@@ -30,7 +30,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrValueName)
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::NodeBase                                             NodeBase;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
-    typedef typename Base::TreePath                                             TreePath;
 
     typedef typename Container::Value                                           Value;
     typedef typename Container::Key                                             Key;

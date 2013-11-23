@@ -51,9 +51,6 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     typedef typename Types::Metadata                                            Metadata;
 
-    typedef typename Types::TreePathItem                                        TreePathItem;
-    typedef typename Types::TreePath                                            TreePath;
-
 
     class BTreeCtrShared: public CtrShared {
 

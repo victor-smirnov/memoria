@@ -47,8 +47,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::NodeComprName)
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
 
-    typedef typename Base::TreePath                                             TreePath;
-    typedef typename Base::TreePathItem                                         TreePathItem;
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
@@ -78,31 +76,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::NodeComprName)
     bool tryMergeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn = [](const Position&, Int){});
     bool mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&, Int){});
 
-//    void updateUp(TreePath& path, Int level, Int idx, const Accumulator& counters, std::function<void (Int, Int)> fn);
-//
-//
-//    void updateUpNoBackup(TreePath& path, Int level, Int idx, const Accumulator& counters);
-//
-//    void updateParentIfExists(TreePath& path, Int level, const Accumulator& counters);
-
-//    bool updateCounters(
-//            TreePath& path,
-//            Int level,
-//            Int idx,
-//            const Accumulator& counters,
-//            std::function<void (Int, Int)> fn
-//    );
-
 
     MEMORIA_DECLARE_NODE_FN(InsertFn, insert);
 
-//    void insertNonLeaf(
-//            TreePath& path,
-//            Int level,
-//            Int idx,
-//            const Accumulator& keys,
-//            const ID& id
-//    );
 
     void insertNonLeaf(
             NodeBaseG& node,
@@ -110,10 +86,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::NodeComprName)
             const Accumulator& keys,
             const ID& id
     );
-
-
-
-
 
 
 
@@ -458,144 +430,6 @@ bool M_TYPE::mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-//
-//
-//M_PARAMS
-//void M_TYPE::updateUp(TreePath& path, Int level, Int idx, const Accumulator& counters, std::function<void (Int, Int)> fn)
-//{
-//    auto& self = this->self();
-//
-//    for (Int c = level; c < path.getSize(); c++)
-//    {
-//        self.updateCounters(path, c, idx, counters, fn);
-//        idx = path[c].parent_idx();
-//    }
-//}
-//
-//
-//
-//M_PARAMS
-//void M_TYPE::updateUpNoBackup(TreePath& path, Int level, Int idx, const Accumulator& counters)
-//{
-//    auto& self = this->self();
-//
-//    for (Int c = level; c < path.getSize(); c++)
-//    {
-//        self.updateNodeCounters(path[c], idx, counters);
-//        idx = path[c].parent_idx();
-//    }
-//}
-//
-//
-//M_PARAMS
-//void M_TYPE::updateParentIfExists(TreePath& path, Int level, const Accumulator& counters)
-//{
-//    auto& self = this->self();
-//    self.updateUp(path, level + 1, path[level].parent_idx(), counters, [](Int, Int) {});
-//}
-//
-//
-//M_PARAMS
-//bool M_TYPE::updateCounters(
-//        TreePath& path,
-//        Int level,
-//        Int idx,
-//        const Accumulator& counters,
-//        std::function<void (Int, Int)> fn
-//)
-//{
-//    auto& self = this->self();
-//    NodeBaseG& node = path[level];
-//
-//    node.update();
-//
-//    PageUpdateMgr mgr(self);
-//    mgr.add(node);
-//
-//    try {
-//        self.addKeys(path[level], idx, counters, true);
-//    }
-//    catch (PackedOOMException ex)
-//    {
-//        mgr.rollback();
-//        auto right = path;
-//
-//        Int size = self.getNodeSize(node, 0);
-//
-//        Int split_idx = size / 2;
-//
-////      self.splitPath(path, right, level, Position(split_idx), -1);
-//
-//        if (idx >= split_idx)
-//        {
-//            path = right;
-//            idx -= split_idx;
-//
-//            fn(level, idx);
-//        }
-//
-//        self.addKeys(path[level], idx, counters, true);
-//    }
-//
-//    return false; //proceed further unconditionally
-//}
-//
-//
-//
-//
-//
-//
-//M_PARAMS
-//void M_TYPE::insertNonLeaf(
-//        TreePath& path,
-//        Int level,
-//        Int idx,
-//        const Accumulator& keys,
-//        const ID& id
-//)
-//{
-//    auto& self = this->self();
-//    NodeBaseG& node = path[level];
-//
-//    node.update();
-//
-//    PageUpdateMgr mgr(self);
-//    mgr.add(node);
-//
-//    try {
-//        NonLeafDispatcher::dispatch(node, InsertFn(), idx, keys, id);
-//    }
-//    catch (PackedOOMException ex)
-//    {
-//        mgr.rollback();
-//        auto right = path;
-//
-//        Int size = self.getNodeSize(node, 0);
-//
-//        Int split_idx = size / 2;
-//
-//        self.splitPath(path, right, level, Position(split_idx), -1);
-//
-//        if (idx >= split_idx)
-//        {
-//            path = right;
-//            idx -= split_idx;
-//        }
-//
-//        NonLeafDispatcher::dispatch(node, InsertFn(), idx, keys, id);
-//    }
-//}
 
 
 M_PARAMS

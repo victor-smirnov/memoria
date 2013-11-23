@@ -45,9 +45,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::dblmap::CtrApiName)
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
 
-    typedef typename Base::TreePath                                             TreePath;
-    typedef typename Base::TreePathItem                                         TreePathItem;
-
     static const Int Streams                                                    = Types::Streams;
 
     typedef typename Types::DataSource                                     		DataSource;

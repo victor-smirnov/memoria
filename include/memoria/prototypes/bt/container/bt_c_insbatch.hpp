@@ -47,9 +47,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
 
-    typedef typename Base::TreePath                                             TreePath;
-    typedef typename Base::TreePathItem                                         TreePathItem;
-
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
 

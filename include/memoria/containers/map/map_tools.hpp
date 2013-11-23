@@ -89,19 +89,19 @@ public:
     {
         Clear(prefix_);
 
-        Int idx  = Base::iterator().key_idx();
-
-        if (idx >= 0)
-        {
-            typedef typename Iterator::Container::TreePath TreePath;
-            const TreePath& path = Base::iterator().path();
-
-            for (Int c = 0; c < path.getSize(); c++)
-            {
-                Base::iterator().model().sumKeys(path[c].node(), 0, idx, prefix_);
-                idx = path[c].parent_idx();
-            }
-        }
+//        Int idx  = Base::iterator().key_idx();
+//
+//        if (idx >= 0)
+//        {
+//            typedef typename Iterator::Container::TreePath TreePath;
+//            const TreePath& path = Base::iterator().path();
+//
+//            for (Int c = 0; c < path.getSize(); c++)
+//            {
+//                Base::iterator().model().sumKeys(path[c].node(), 0, idx, prefix_);
+//                idx = path[c].parent_idx();
+//            }
+//        }
     }
 
 private:

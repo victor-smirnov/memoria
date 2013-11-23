@@ -28,7 +28,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::FindName)
     typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
     typedef typename Base::LeafDispatcher                                       LeafDispatcher;
     typedef typename Base::Key                                                  Key;
-    typedef typename Base::TreePath                                             TreePath;
 
     static const Int MAIN_STREAM                                                = Types::MAIN_STREAM;
 

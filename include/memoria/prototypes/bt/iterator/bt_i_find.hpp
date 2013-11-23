@@ -30,7 +30,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorFindName)
     typedef typename Container::Value                                               Value;
     typedef typename Container::Allocator                                           Allocator;
     typedef typename Container::Accumulator                                         Accumulator;
-    typedef typename Container::TreePath                                            TreePath;
     typedef typename Container::Iterator                                            Iterator;
 
     template <template <typename CtrTypes> class Walker>

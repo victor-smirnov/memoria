@@ -47,9 +47,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::NodeNormName)
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
 
-    typedef typename Base::TreePath                                             TreePath;
-    typedef typename Base::TreePathItem                                         TreePathItem;
-
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
     typedef std::function<Accumulator (NodeBaseG&, NodeBaseG&)>                 SplitFn;
@@ -72,23 +69,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::NodeNormName)
     void updateParent(NodeBaseG& node, const Accumulator& sums);
 
 
-
-
-
-    void updateUp(TreePath& path, Int level, Int idx, const Accumulator& counters, std::function<void (Int, Int)> fn);
-
-    void updateParentIfExists(TreePath& path, Int level, const Accumulator& counters);
-
-
     MEMORIA_DECLARE_NODE_FN(InsertFn, insert);
-
-    void insertNonLeaf(
-            TreePath& path,
-            Int level,
-            Int idx,
-            const Accumulator& keys,
-            const ID& id
-    );
 
     void insertNonLeaf(
             NodeBaseG& node,
@@ -237,52 +218,6 @@ void M_TYPE::updateParent(NodeBaseG& node, const Accumulator& sums)
 
 
 
-M_PARAMS
-void M_TYPE::updateUp(TreePath& path, Int level, Int idx, const Accumulator& counters, std::function<void (Int, Int)> fn)
-{
-    auto& self = this->self();
-
-    for (Int c = level; c < path.getSize(); c++)
-    {
-        if (self.updateCounters(path, c, idx, counters, fn))
-        {
-            break;
-        }
-        else {
-            idx = path[c].parent_idx();
-        }
-    }
-}
-
-
-M_PARAMS
-void M_TYPE::updateParentIfExists(TreePath& path, Int level, const Accumulator& counters)
-{
-    auto& self = this->self();
-
-    if (level < path.getSize() - 1)
-    {
-        self.updateUp(path, level + 1, path[level].parent_idx(), counters, [](Int, Int){});
-    }
-}
-
-
-M_PARAMS
-void M_TYPE::insertNonLeaf(
-        TreePath& path,
-        Int level,
-        Int idx,
-        const Accumulator& keys,
-        const ID& id
-)
-{
-    auto& self = this->self();
-    NodeBaseG& node = path[level];
-
-    self.updatePageG(node);
-
-    NonLeafDispatcher::dispatch(node, InsertFn(), idx, keys, id);
-}
 
 
 M_PARAMS

@@ -25,8 +25,6 @@ using namespace memoria::bt;
 MEMORIA_BT_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTIteratorBase)
 public:
     typedef typename Base::Container::Types                                             Types;
-    typedef typename Base::Container::TreePath                                          TreePath;
-    typedef typename Base::Container::TreePath::Element                                 TreePathItem;
     typedef typename Base::Container::NodeBase                                          NodeBase;
     typedef typename Base::Container::NodeBaseG                                         NodeBaseG;
     typedef typename Base::Container::Allocator                                         Allocator;

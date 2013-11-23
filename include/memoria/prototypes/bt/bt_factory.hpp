@@ -335,12 +335,6 @@ public:
         typedef BTCtrTypes<Types>                                               CtrTypes;
         typedef BTIterTypes<Types>                                              IterTypes;
 
-        typedef bt::NodePath<
-                NodeBaseG, 8
-        >                                                                       TreePath;
-
-        typedef typename TreePath::PathItem                                     TreePathItem;
-
         typedef typename MaxElement<
                 typename ContainerTypes::KeysList, TypeSizeValueProvider
         >::Result                                                               Key;

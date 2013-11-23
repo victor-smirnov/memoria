@@ -53,8 +53,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
 
-    typedef typename Types::TreePath                                            TreePath;
-    typedef typename Types::TreePathItem                                        TreePathItem;
 
     static const Int Streams                                                    = Types::Streams;
 
@@ -191,11 +189,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
         return getChild(node, self().getNodeSize(node, 0) - 1, flags);
     }
 
-
-    TreePathItem& getParent(TreePath& path, const NodeBaseG& node) const
-    {
-        return path[node->level() + 1];
-    }
 
     NodeBaseG getNodeParent(const NodeBaseG& node) const
     {
@@ -381,18 +374,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
         }
     }
 
-    void dump(TreePath& path, Int level = 0, std::ostream& out = std::cout) const
-    {
-        out<<"PATH of "<<path.getSize()<<" elements"<<std::endl;
-
-        for (Int c = path.getSize() - 1; c >=0; c--)
-        {
-            out<<"parentIdx = "<<path[c].parent_idx();
-            self().dump(path[c].node());
-        }
-
-    }
-
     void dumpPath(NodeBaseG node, std::ostream& out = std::cout) const
     {
         auto& self = this->self();
@@ -411,18 +392,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     Position getTotalKeyCount() const;
     void setTotalKeyCount(const Position& values);
     void addTotalKeyCount(const Position& values);
-    void addTotalKeyCount(TreePath& path, const Position& value);
 
-    bool getNextNode(TreePath& path, Int level = 0, bool down = false) const
-    {
-        Int idx = self().getNodeSize(path[level].node(), 0);
-        return getNextNode(path, level, idx, down ? 0 : level );
-    }
-
-    bool getPrevNode(TreePath& path, Int level = 0, bool down = false) const
-    {
-        return getPrevNode(path, level, -1, down ? 0 : level);
-    }
 
     NodeBaseG getNextNodeP(NodeBaseG& node) const;
     NodeBaseG getPrevNodeP(NodeBaseG& node) const;
@@ -540,23 +510,6 @@ void M_TYPE::addTotalKeyCount(const Position& values)
     self.setRootMetadata(meta);
 }
 
-
-M_PARAMS
-void M_TYPE::addTotalKeyCount(TreePath& path, const Position& values)
-{
-    auto& self          = this->self();
-
-    NodeBaseG& node     = path[path.getSize() - 1].node();
-
-    Metadata meta       = self.getRootMetadata();
-
-    for (Int c = 0; c < Streams; c++)
-    {
-        meta.size(c) += values[c];
-    }
-
-    self.setRootMetadata(node, meta);
-}
 
 
 M_PARAMS
