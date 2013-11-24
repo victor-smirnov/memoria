@@ -35,6 +35,8 @@ public:
 
     WTTest(StringRef name): SPTestTask(name)
     {
+    	Ctr::initMetadata();
+
         size_ = 5000;
 
         MEMORIA_ADD_TEST_PARAM(alphabet_size_);

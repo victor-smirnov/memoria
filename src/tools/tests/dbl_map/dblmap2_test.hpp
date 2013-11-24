@@ -35,9 +35,6 @@ protected:
     typedef typename Ctr::Types::Key 											Key;
     typedef typename Ctr::Types::Value											Value;
 
-//    typedef std::map<Key, std::map<Key, Value>>									StdDblMap;
-
-
 
 public:
 

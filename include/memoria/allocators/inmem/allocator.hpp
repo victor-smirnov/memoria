@@ -46,7 +46,7 @@ public:
     typedef typename RootMapType::Metadata                                      RootMetatata;
     typedef typename RootMapType::BTreeCtrShared                                RootCtrShared;
 
-    typedef Ctr<typename CtrTF<Profile, BitVector<>>::CtrTypes>                 BlockMapType;
+//    typedef Ctr<typename CtrTF<Profile, BitVector<>>::CtrTypes>                 BlockMapType;
 
     typedef IJournaledAllocator<Page>											JournaledAllocator;
     typedef IWalkableAllocator<Page>											WalkableAllocator;

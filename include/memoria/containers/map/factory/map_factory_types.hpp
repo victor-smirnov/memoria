@@ -52,9 +52,24 @@ struct BTTypes<Profile, memoria::Map<Key_, Value_> >: public BTTypes<Profile, me
                 TreeNodeType<BranchNode>
     >                                                                           DefaultNodeTypesList;
 
+
+
+    template <Int StreamIdx>
+    struct StreamTF {
+        typedef Key_                                                Key;
+        typedef Value_                                              Value;
+
+        typedef core::StaticVector<BigInt, 1>						AccumulatorPart;
+        typedef core::StaticVector<BigInt, 1>						IteratorPrefixPart;
+
+        typedef PkdFTree<Packed2TreeTypes<Key, Key, 1>> 			NonLeafType;
+        typedef PackedFSEMap<PackedFSEMapTypes<Key, Value, 1>>      LeafType;
+    };
+
+
     typedef TypeList<
-                StreamDescr<PkdFTreeTF, map::PackedFSEMapTF, 1>
-    >                                                                           StreamDescriptors;
+    			StreamDescr<StreamTF>
+    >                                    										StreamDescriptors;
 
     typedef BalancedTreeMetadata<
             typename Base::ID,

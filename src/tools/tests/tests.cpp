@@ -15,7 +15,7 @@
 //#include "packed/louds_cardinal/packed_lcardinal_suite.hpp"
 //#include "packed/wavelet_tree/packed_wtree_suite.hpp"
 //
-#include "ctr/ctr_test_suite.hpp"
+//#include "ctr/ctr_test_suite.hpp"
 #include "map/map_test_suite.hpp"
 #include "vector/vector_test_suite.hpp"
 #include "vector_map/vectormap_test_suite.hpp"
@@ -32,6 +32,7 @@
 #include <memoria/tools/tools.hpp>
 #include <memoria/tools/tests.hpp>
 #include <memoria/core/tools/terminal.hpp>
+#include "dump.hpp"
 
 #include <iostream>
 
@@ -39,7 +40,7 @@ using namespace std;
 using namespace memoria;
 using namespace memoria::tools;
 
-#include "dump.hpp"
+
 
 const char* DESCRIPTION = "Run Memoria regression tests with specified configuration";
 const char* CFG_FILE    = "tests.properties";
@@ -81,14 +82,14 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new SymbolSeqTestSuite());
 ////
 //        runner.registerTask(new CtrTestSuite());
-//        runner.registerTask(new MapTestSuite());
-//        runner.registerTask(new VectorTestSuite());
-//        runner.registerTask(new VectorMapTestSuite());
-//        runner.registerTask(new DblMapTestSuite());
-//        runner.registerTask(new SequenceTestSuite());
-//        runner.registerTask(new LabeledTreeTestSuite());
-//        runner.registerTask(new VTreeTestSuite());
-//        runner.registerTask(new WTTestSuite());
+        runner.registerTask(new MapTestSuite());
+        runner.registerTask(new VectorTestSuite());
+        runner.registerTask(new VectorMapTestSuite());
+        runner.registerTask(new DblMapTestSuite());
+        runner.registerTask(new SequenceTestSuite());
+        runner.registerTask(new LabeledTreeTestSuite());
+        runner.registerTask(new VTreeTestSuite());
+        runner.registerTask(new WTTestSuite());
 
         runner.registerTask(new FileAllocatorTestSuite());
 

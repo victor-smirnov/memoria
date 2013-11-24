@@ -74,19 +74,42 @@ struct BTTypes<Profile, memoria::VectorMap<Key_, Value_> >:
             TreeNodeType<BranchNode>
     >                                                                           DefaultNodeTypesList;
 
+
+    template <Int StreamIdx>
+    struct MapStreamTF {
+        typedef Key_                                                Key;
+        typedef BigInt                                              Value;
+
+        typedef core::StaticVector<BigInt, 2>						AccumulatorPart;
+        typedef core::StaticVector<BigInt, 2>						IteratorPrefixPart;
+
+        typedef PkdFTree<Packed2TreeTypes<Key, Key, 2>> 			NonLeafType;
+        typedef PkdFTree<Packed2TreeTypes<Key, Key, 2>> 			LeafType;
+    };
+
+
+    template <Int StreamIdx>
+    struct DataStreamTF {
+        typedef BigInt                                              Key;
+        typedef Value_                                              Value;
+
+        typedef core::StaticVector<BigInt, 1>						AccumulatorPart;
+        typedef core::StaticVector<BigInt, 1>						IteratorPrefixPart;
+
+        typedef PkdFTree<Packed2TreeTypes<Key, Key, 1>> 			NonLeafType;
+        typedef PackedFSEArray<PackedFSEArrayTypes<Value>> 			LeafType;
+    };
+
+
     typedef TypeList<
                 // Map
                 StreamDescr<
-                    PkdFTreeTF,
-                    PackedVMapFSETreeLeafTF,
-                    2
+                    MapStreamTF
                 >,
 
                 // Vector
                 StreamDescr<
-                    PkdFTreeTF,
-                    PackedFSEArrayTF,
-                    1
+                	DataStreamTF
                 >
     >                                                                           StreamDescriptors;
 

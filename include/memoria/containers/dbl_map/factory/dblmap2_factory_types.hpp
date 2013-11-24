@@ -121,12 +121,23 @@ struct BTTypes<Profile, dblmap::OuterMap<Key_> >: public BTTypes<Profile, memori
         typedef dblmap::OuterMapIteratorPrefixCache<Iterator, Container>        Type;
     };
 
+
+    template <Int StreamIdx>
+    struct StreamTF {
+        typedef Key_                                                Key;
+
+        typedef core::StaticVector<BigInt, 2>						AccumulatorPart;
+        typedef core::StaticVector<BigInt, 2>						IteratorPrefixPart;
+
+        typedef PkdFTree<Packed2TreeTypes<Key, Key, 2>> 			NonLeafType;
+        typedef PkdFTree<Packed2TreeTypes<Key, Key, 2>> 			LeafType;
+    };
+
+
     typedef TypeList<
                 // Outer Map
                 StreamDescr<
-                    PkdFTreeTF,
-                    PkdFTreeTF,
-                    2 // node & leaf indexes
+                	StreamTF
                 >
     >                                                                           StreamDescriptors;
 
@@ -222,13 +233,27 @@ struct BTTypes<Profile, dblmap::InnerMap<Key_, Value_, BitsPerMark_> >: public B
         typedef dblmap::InnerMapIteratorPrefixCache<Iterator, Container>       Type;
     };
 
+
+    template <Int StreamIdx>
+    struct StreamTF {
+        typedef core::StaticVector<BigInt, 2>						AccumulatorPart;
+        typedef core::StaticVector<BigInt, 2>						IteratorPrefixPart;
+
+        typedef PkdFTree<Packed2TreeTypes<Key, Key, 2>> 			NonLeafType;
+
+        typedef PackedFSEMarkableMap<PackedFSEMarkableMapTypes<
+        		Key,
+        		Value,
+        		1,
+        		BitsPerMark_
+        >>                            								LeafType;
+    };
+
+
     typedef TypeList<
                 // Inner Map
     			StreamDescr<
-    				PkdFTreeTF,
-    				dblmap::PackedInnerMarkedMapLeafTF,
-    				2, // node indexes
-    				1  // leaf indexes
+    				StreamTF
     			>
     >                                                                           StreamDescriptors;
 

@@ -15,38 +15,6 @@ namespace memoria {
 template <>
 struct CtrNameDeclarator<0>: TypeDef<Root> {};
 
-template <>
-struct CtrNameDeclarator<1>: TypeDef<Vector<Byte>> {};
-
-template <>
-struct CtrNameDeclarator<2>: TypeDef<Vector<UByte>> {};
-
-template <>
-struct CtrNameDeclarator<3>: TypeDef<Vector<Int>> {};
-
-template <>
-struct CtrNameDeclarator<4>: TypeDef<Vector<BigInt>> {};
-
-template <>
-struct CtrNameDeclarator<7>: TypeDef<VectorMap<BigInt, BigInt>> {};
-
-template <>
-struct CtrNameDeclarator<8>: TypeDef<Sequence<1, true>> {};
-
-template <>
-struct CtrNameDeclarator<9>: TypeDef<Sequence<8, true>> {};
-
-
-template <>
-struct CtrNameDeclarator<16>: TypeDef<LabeledTree<FLabel<UByte>, VLabel<BigInt, Granularity::Bit, Indexed::Yes>>> {};
-
-template <>
-struct CtrNameDeclarator<18>: TypeDef<WT> {};
-
-template <>
-struct CtrNameDeclarator<19>: TypeDef<VTree> {};
-
-
 }
 
 #endif

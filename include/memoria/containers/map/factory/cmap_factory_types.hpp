@@ -51,11 +51,14 @@ struct BTTypes<Profile, memoria::CMap<gr> >: public BTTypes<Profile, memoria::BT
             TreeNodeType<BranchNode>
     >                                                                           DefaultNodeTypesList;
 
+
+    template <Int StreamIdx>
+    using StreamTF = map::CompressedMapTF<BigInt, gr, 1>;
+
+
     typedef TypeList<
             StreamDescr<
-                PkdFTreeTF,
-                map::MapTypeTF<Granularity::Bit>::Type,
-                1
+                StreamTF
             >
     >                                                                           StreamDescriptors;
 

@@ -50,8 +50,9 @@ public:
 
     LabeledTreeTestBase(StringRef name): SPTestTask(name)
     {
-        MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
+        Ctr::initMetadata();
 
+    	MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
     }
 
     virtual ~LabeledTreeTestBase() throw () {}

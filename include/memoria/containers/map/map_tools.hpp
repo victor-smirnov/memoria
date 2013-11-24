@@ -133,60 +133,40 @@ struct PackedFSEMapTF {
     typedef PackedFSEMap<MapTypes>                                              Type;
 };
 
-
-template <typename Types, Int StreamIdx>
-struct PackedEliasMapTF {
-
-    typedef typename Types::Key                                                 Key;
-    typedef typename Types::Value                                               Value;
-
-    typedef typename SelectByIndexTool<
-            StreamIdx,
-            typename Types::StreamDescriptors
-    >::Result                                                                   Descriptor;
-
-    typedef PackedVLEMapTypes<
-            Descriptor::NodeIndexes, UBigIntEliasCodec, PackedTreeEliasVPB
-    >                                                                           MapTypes;
-
-    typedef PackedVLEMap<MapTypes>                                              Type;
-};
+template <typename Key, Granularity Gr, Int Indexes> struct CompressedMapTF;
 
 
-template <typename Types, Int StreamIdx>
-struct PackedExintMapTF {
+template <typename Key, Int Indexes>
+struct CompressedMapTF<Key, Granularity::Bit, Indexes> {
 
-    typedef typename Types::Key                                                 Key;
-    typedef typename Types::Value                                               Value;
+	typedef core::StaticVector<BigInt, Indexes>									AccumulatorPart;
+	typedef core::StaticVector<BigInt, 1>										IteratorPrefixPart;
 
-    typedef typename SelectByIndexTool<
-            StreamIdx,
-            typename Types::StreamDescriptors
-    >::Result                                                                   Descriptor;
+	typedef PkdFTree<Packed2TreeTypes<Key, Key, 1>> 							NonLeafType;
 
     typedef PackedVLEMapTypes<
-            Descriptor::NodeIndexes, UByteExintCodec, PackedTreeExintVPB
-    >                                                                           MapTypes;
+            Indexes, UBigIntEliasCodec, PackedTreeEliasVPB
+    > MapTypes;
 
-    typedef PackedVLEMap<MapTypes>                                              Type;
+    typedef PackedVLEMap<MapTypes>                                         		LeafType;
 };
 
-template <Granularity gr> struct MapTypeTF;
 
+template <typename Key, Int Indexes>
+struct CompressedMapTF<Key, Granularity::Byte, Indexes> {
 
-template <>
-struct MapTypeTF<Granularity::Byte> {
+	typedef core::StaticVector<BigInt, Indexes>									AccumulatorPart;
+	typedef core::StaticVector<BigInt, 1>										IteratorPrefixPart;
 
-    template <typename Types, Int StreamIdx>
-    using Type = PackedExintMapTF<Types, StreamIdx>;
+	typedef PkdFTree<Packed2TreeTypes<Key, Key, 1>> 							NonLeafType;
+
+    typedef PackedVLEMapTypes<
+            Indexes, UByteExintCodec, PackedTreeExintVPB
+    > MapTypes;
+
+    typedef PackedVLEMap<MapTypes>                                              LeafType;
 };
 
-template <>
-struct MapTypeTF<Granularity::Bit> {
-
-    template <typename Types, Int StreamIdx>
-    using Type = PackedEliasMapTF<Types, StreamIdx>;
-};
 
 
 }

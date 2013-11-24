@@ -10,8 +10,7 @@
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_TYPES_HPP
 
 #include <memoria/core/container/container.hpp>
-
-
+#include <memoria/core/tools/static_array.hpp>
 
 namespace memoria    {
 
@@ -23,21 +22,11 @@ namespace bt     {
 
 class IDType {};
 
+
 template <
-    template <typename, Int> class NonLeafPackedTypeFactory,
-    template <typename, Int> class LeafPackedTypeFactory,
-    Int NodeIndexes_,
-    Int LeafIndexes_ = NodeIndexes_,
-    typename Value_ = BigInt
+    template <Int> class PackedTypesFactory
 >
-struct StreamDescr {
-    static const Int NodeIndexes = NodeIndexes_;
-    static const Int LeafIndexes = LeafIndexes_;
-    typedef BigInt IndexType;
-    typedef Value_ Value;
-};
-
-
+struct StreamDescr {};
 
 
 

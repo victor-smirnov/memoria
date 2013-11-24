@@ -12,29 +12,13 @@
 #include <memoria/core/tools/vector_tuple.hpp>
 #include <memoria/core/packed/tools/packed_dispatcher.hpp>
 
+#include <memoria/prototypes/bt/bt_names.hpp>
+
 #include <ostream>
 #include <tuple>
 
 namespace memoria   {
 namespace bt 		{
-
-using namespace memoria::core;
-
-
-
-struct Valueclearing {
-    template <typename Value>
-    void operator()(Value& value)
-    {
-        value.clear();
-    }
-};
-
-
-
-
-
-
 
 template <typename Iterator>
 class IteratorCacheBase {
@@ -159,69 +143,105 @@ Element GetValue(const std::tuple<Types...>& v, Int element_idx, Int value_idx)
 
 
 
-template <typename List> struct AccumulatorListBuilder;
-
-template <typename Head, typename... Tail>
-struct AccumulatorListBuilder<TypeList<Head, Tail...>> {
-    typedef typename MergeLists<
-            StaticVector<typename Head::IndexType, Head::NodeIndexes>,
-            typename AccumulatorListBuilder<TypeList<Tail...>>::Type
-    >::Result                                                                   Type;
-};
-
-
-template <>
-struct AccumulatorListBuilder<TypeList<>> {
-    typedef TypeList<>                                                          Type;
-};
-
-
-template <typename List> struct AccumulatorBuilder;
+template <typename List> struct TupleBuilder;
 
 template <typename... Types>
-struct AccumulatorBuilder<TypeList<Types...>> {
+struct TupleBuilder<TypeList<Types...>> {
     typedef std::tuple<Types...>                                                Type;
 };
 
 
 
 
+template <typename List, Int Idx = 0>
+class AccumulatorListBuilder;
+
+template <
+    template <Int> class StructsTF,
+    typename... Tail,
+    Int Idx
+>
+class AccumulatorListBuilder<TypeList<StreamDescr<StructsTF>, Tail...>, Idx> {
+
+public:
+    typedef typename MergeLists<
+            typename StructsTF<Idx>::AccumulatorPart,
+            typename AccumulatorListBuilder<
+                TypeList<Tail...>,
+                Idx + 1
+            >::Type
+    >::Result                                                                   Type;
+};
+
+
+
+template <Int Idx>
+class AccumulatorListBuilder<TypeList<>, Idx> {
+public:
+    typedef TypeList<>                                                          Type;
+};
 
 
 
 
-template <typename Types, typename List, Int Idx>
+template <typename List, Int Idx = 0>
+class IteratorPrefixListBuilder;
+
+template <
+    template <Int> class StructsTF,
+    typename... Tail,
+    Int Idx
+>
+class IteratorPrefixListBuilder<TypeList<StreamDescr<StructsTF>, Tail...>, Idx> {
+
+public:
+    typedef typename MergeLists<
+            typename StructsTF<Idx>::IteratorPrefixPart,
+            typename IteratorPrefixListBuilder<
+                TypeList<Tail...>,
+                Idx + 1
+            >::Type
+    >::Result                                                                   Type;
+};
+
+
+
+template <Int Idx>
+class IteratorPrefixListBuilder<TypeList<>, Idx> {
+public:
+    typedef TypeList<>                                                          Type;
+};
+
+
+
+
+
+
+
+
+
+
+
+template <typename List, Int Idx>
 class PackedStructListBuilder;
 
 
 template <
-    typename Types,
-    template <typename, Int> class NonLeafStructTF,
-    template <typename, Int> class LeafStructTF,
-    Int Indexes1,
-    Int Indexes2,
-    typename Value,
+    template <Int> class StructsTF,
     typename... Tail,
     Int Idx
 >
-class PackedStructListBuilder<
-    Types,
-    TypeList<
-        StreamDescr<NonLeafStructTF, LeafStructTF, Indexes1, Indexes2, Value>,
-        Tail...
-    >,
-    Idx
-> {
-    typedef TypeList<StreamDescr<NonLeafStructTF, LeafStructTF, Indexes1, Indexes2, Value>, Tail...> List;
+class PackedStructListBuilder<TypeList<StreamDescr<StructsTF>, Tail...>, Idx> {
+
+    typedef TypeList<StreamDescr<StructsTF>, Tail...> List;
 
 public:
     typedef typename MergeLists<
             StructDescr<
-                typename NonLeafStructTF<Types, Idx>::Type,
+                typename StructsTF<Idx>::NonLeafType,
                 Idx
             >,
             typename PackedStructListBuilder<
-                Types,
                 TypeList<Tail...>,
                 Idx + 1
             >::NonLeafStructList
@@ -229,11 +249,10 @@ public:
 
     typedef typename MergeLists<
                 StructDescr<
-                    typename LeafStructTF<Types, Idx>::Type,
+                    typename StructsTF<Idx>::LeafType,
                     Idx
                 >,
                 typename PackedStructListBuilder<
-                    Types,
                     TypeList<Tail...>,
                     Idx + 1
                 >::LeafStructList
@@ -241,12 +260,31 @@ public:
 };
 
 
-template <typename Types, Int Idx>
-class PackedStructListBuilder<Types, TypeList<>, Idx> {
+
+template <Int Idx>
+class PackedStructListBuilder<TypeList<>, Idx> {
 public:
     typedef TypeList<>                                                          NonLeafStructList;
     typedef TypeList<>                                                          LeafStructList;
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -7,9 +7,9 @@
 #ifndef MEMORIA_TESTS_DUMP_HPP
 #define MEMORIA_TESTS_DUMP_HPP
 
-#include <memoria/allocators/file/factory.hpp>
+//#include <memoria/allocators/file/factory.hpp>
 #include <memoria/allocators/inmem/factory.hpp>
-#include <memoria/allocators/mvcc/mvcc_allocator.hpp>
+//#include <memoria/allocators/mvcc/mvcc_allocator.hpp>
 
 #include <memoria/metadata/container.hpp>
 
@@ -60,32 +60,32 @@ static Int DumpAllocator(String file_name)
             return 1;
         }
         
-        Int status = GenericFileAllocator::testFile(file.getPath());  
-        
-        if (status == 7) 
-        {
-        	cout<<"Load FileAllocator file: "+file.getPath()<<endl;
-        	GenericFileAllocator allocator(file.getPath(), OpenMode::READ);
-        	
-        	GenericFileAllocator::initMetadata();
-
-        	if (allocator.properties().isMVCC())
-        	{
-        		cout<<"Dump MVCCV FileAllocator"<<endl;
-
-        		typedef MVCCAllocator<FileProfile<>, GenericFileAllocator::Page> 	TxnMgr;
-
-        		TxnMgr::initMetadata();
-
-        		TxnMgr mvcc_allocator(&allocator);
-
-        		FSDumpAllocator(&mvcc_allocator, path.getAbsolutePath());
-        	}
-        	else {
-        		FSDumpAllocator(&allocator, path.getAbsolutePath());
-        	}
-        }
-        else {
+//        Int status = GenericFileAllocator::testFile(file.getPath());
+//
+//        if (status == 7)
+//        {
+//        	cout<<"Load FileAllocator file: "+file.getPath()<<endl;
+//        	GenericFileAllocator allocator(file.getPath(), OpenMode::READ);
+//
+//        	GenericFileAllocator::initMetadata();
+//
+//        	if (allocator.properties().isMVCC())
+//        	{
+//        		cout<<"Dump MVCCV FileAllocator"<<endl;
+//
+//        		typedef MVCCAllocator<FileProfile<>, GenericFileAllocator::Page> 	TxnMgr;
+//
+//        		TxnMgr::initMetadata();
+//
+//        		TxnMgr mvcc_allocator(&allocator);
+//
+//        		FSDumpAllocator(&mvcc_allocator, path.getAbsolutePath());
+//        	}
+//        	else {
+//        		FSDumpAllocator(&allocator, path.getAbsolutePath());
+//        	}
+//        }
+//        else {
         	SmallInMemAllocator allocator;
         	
         	cout<<"Load InMemAllocator file: "+file.getPath()<<endl;
@@ -93,7 +93,7 @@ static Int DumpAllocator(String file_name)
         	LoadFile(allocator, file.getPath().c_str());
 
         	FSDumpAllocator(&allocator, path.getAbsolutePath());
-        }
+//        }
 
     }
     catch (Exception& ex) {

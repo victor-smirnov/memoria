@@ -55,8 +55,27 @@ struct BTTypes<Profile, memoria::Sequence<8, true> >:
                 TreeNodeType<BranchNode>
     >                                                                           DefaultNodeTypesList;
 
+
+    template <Int StreamIdx>
+    struct StreamTF {
+        typedef BigInt                                                Key;
+
+        typedef core::StaticVector<BigInt, Indexes>					AccumulatorPart;
+        typedef core::StaticVector<BigInt, 1>						IteratorPrefixPart;
+
+        typedef PkdVTree<Packed2TreeTypes<
+                Key, Key, Indexes, UByteExintCodec
+        >> 															NonLeafType;
+
+
+        typedef typename PkdFSSeqTF<BitsPerSymbol>::Type            SequenceTypes;
+
+        typedef PkdFSSeq<SequenceTypes> 							LeafType;
+    };
+
+
     typedef TypeList<
-                StreamDescr<PkdVTreeTF, PackedFSESeqTF, Indexes>
+                StreamDescr<StreamTF>
     >                                                                           StreamDescriptors;
 
     typedef BalancedTreeMetadata<

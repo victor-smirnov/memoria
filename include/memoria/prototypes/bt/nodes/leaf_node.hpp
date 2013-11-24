@@ -89,7 +89,6 @@ public:
     typedef LeafNodeStreamTypes<Types>                                          StreamTypes;
 
     typedef typename PackedStructListBuilder<
-                StreamTypes,
                 typename Types::StreamDescriptors,
                 0
     >::LeafStructList                                                           StreamsStructList;

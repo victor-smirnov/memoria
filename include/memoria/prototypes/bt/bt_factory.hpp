@@ -87,7 +87,7 @@ struct PackedFSEArrayTF {
             Value
     >                                                                           ArrayTypes;
 
-    typedef PackedFSEArray<ArrayTypes> Type;
+    typedef PackedFSEArray<ArrayTypes> 											Type;
 };
 
 
@@ -107,7 +107,7 @@ struct PkdVTreeTF {
             Key, Key, Descriptor::NodeIndexes, UByteExintCodec
     >                                                                           TreeTypes;
 
-    typedef PkdVTree<TreeTypes> Type;
+    typedef PkdVTree<TreeTypes> 												Type;
 };
 
 
@@ -260,13 +260,19 @@ public:
 
     static const Int Streams = ListSize<typename ContainerTypes::StreamDescriptors>::Value;
 
-    typedef typename bt::AccumulatorBuilder<
+    typedef typename bt::TupleBuilder<
                 typename bt::AccumulatorListBuilder<
                     typename ContainerTypes::StreamDescriptors
                 >::Type
     >::Type                                                                     Accumulator_;
 
-    typedef bt::StaticVector<
+    typedef typename bt::TupleBuilder<
+                typename bt::IteratorPrefixListBuilder<
+                    typename ContainerTypes::StreamDescriptors
+                >::Type
+    >::Type                                                                     IteratorPrefix_;
+
+    typedef core::StaticVector<
                 BigInt,
                 Streams
     >                                                                           Position_;
@@ -341,8 +347,12 @@ public:
 
 
         static const Int Streams                                                = MyType::Streams;
+
         typedef Accumulator_                                                    Accumulator;
-        typedef bt::StaticVector<BigInt, MyType::Streams>                       Position;
+        typedef IteratorPrefix_                                                 IteratorPrefix;
+
+
+        typedef core::StaticVector<BigInt, MyType::Streams>                     Position;
 
         typedef ValuePair<Accumulator, Value>                                   Element;
 

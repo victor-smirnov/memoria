@@ -48,9 +48,10 @@ public:
 
     VectorTreeTestBase(StringRef name): SPTestTask(name)
     {
+    	Ctr::initMetadata();
+
         MEMORIA_ADD_TEST_PARAM(max_data_size_);
         MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
-
     }
 
     virtual ~VectorTreeTestBase() throw () {}

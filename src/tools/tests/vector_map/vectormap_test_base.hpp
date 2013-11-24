@@ -79,6 +79,8 @@ public:
 
     VectorMapTestBase(StringRef name): SPTestTask(name)
     {
+    	Ctr::initMetadata();
+
         MEMORIA_ADD_TEST_PARAM(max_block_size_);
         MEMORIA_ADD_TEST_PARAM(check_data_);
         MEMORIA_ADD_TEST_PARAM(check_data_start_);

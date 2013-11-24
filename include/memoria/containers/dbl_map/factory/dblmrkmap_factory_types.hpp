@@ -58,27 +58,27 @@ struct BTTypes<Profile, DblMrkMap<Key_, Value_, BitsPerMark_> >:
             TreeNodeType<BranchNode>
     >                                                                           DefaultNodeTypesList;
 
-    typedef TypeList<
-                // Outer Map
-                StreamDescr<
-                    PkdFTreeTF,
-                    dblmap::PackedOuterMapLeafTF,
-                    2 // node & leaf indexes
-                >,
-
-                // Inner Map
-                StreamDescr<
-                    PkdFTreeTF,
-                    dblmap::PackedInnerMarkedMapLeafTF,
-                    2, // node indexes
-                    1  // leaf indexes
-                >
-    >                                                                           StreamDescriptors;
-
-    typedef BalancedTreeMetadata<
-                typename Base::ID,
-                ListSize<StreamDescriptors>::Value
-    >                                                                           Metadata;
+//    typedef TypeList<
+//                // Outer Map
+//                StreamDescr<
+//                    PkdFTreeTF,
+//                    dblmap::PackedOuterMapLeafTF,
+//                    2 // node & leaf indexes
+//                >,
+//
+//                // Inner Map
+//                StreamDescr<
+//                    PkdFTreeTF,
+//                    dblmap::PackedInnerMarkedMapLeafTF,
+//                    2, // node indexes
+//                    1  // leaf indexes
+//                >
+//    >                                                                           StreamDescriptors;
+//
+//    typedef BalancedTreeMetadata<
+//                typename Base::ID,
+//                ListSize<StreamDescriptors>::Value
+//    >                                                                           Metadata;
 
 
     typedef typename MergeLists<

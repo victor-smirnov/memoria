@@ -77,8 +77,26 @@ struct BTTypes<Profile, MrkMap<Key_, Value_, BitsPerMark_> >: public BTTypes<Pro
                 TreeNodeType<BranchNode>
     >                                                                           DefaultNodeTypesList;
 
+
+    template <Int StreamIdx>
+    struct StreamTF {
+        typedef core::StaticVector<BigInt, 1>						AccumulatorPart;
+        typedef core::StaticVector<BigInt, 1>						IteratorPrefixPart;
+
+        typedef PkdFTree<Packed2TreeTypes<Key, Key, 1>> 			NonLeafType;
+
+        typedef PackedFSEMarkableMap<PackedFSEMarkableMapTypes<
+        		Key,
+        		Value,
+                1,
+                BitsPerMark_
+        >>                            								LeafType;
+    };
+
+
+
     typedef TypeList<
-                StreamDescr<PkdFTreeTF, MarkableMapTF, 1>
+                StreamDescr<StreamTF>
     >                                                                           StreamDescriptors;
 
     typedef BalancedTreeMetadata<

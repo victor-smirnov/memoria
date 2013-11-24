@@ -55,11 +55,23 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
             TreeNodeType<BranchNode>
     >                                                                           DefaultNodeTypesList;
 
+
+    template <Int StreamIdx>
+    struct StreamTF {
+        typedef BigInt                                              Key;
+        typedef Value_                                              Value;
+
+        typedef core::StaticVector<BigInt, 1>						AccumulatorPart;
+        typedef core::StaticVector<BigInt, 1>						IteratorPrefixPart;
+
+        typedef PkdFTree<Packed2TreeTypes<Key, Key, 1>> 			NonLeafType;
+        typedef PackedFSEArray<PackedFSEArrayTypes<Value>> 			LeafType;
+    };
+
+
     typedef TypeList<
                 StreamDescr<
-                    PkdFTreeTF,
-                    PackedFSEArrayTF,
-                    1
+                    StreamTF
             >
     >                                                                           StreamDescriptors;
 
