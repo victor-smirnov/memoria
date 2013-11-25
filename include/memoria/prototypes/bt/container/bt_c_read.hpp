@@ -47,6 +47,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ReadName)
 
     typedef typename Types::DataTarget                                     		DataTarget;
 
+    typedef typename Types::CtrSizeT											CtrSizeT;
+
     Position getRemainder(ITarget& target)
     {
         Position size;
@@ -132,12 +134,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ReadName)
 
 
 
-    BigInt readStream(Iterator& iter, ITarget& data_target)
+    CtrSizeT readStream(Iterator& iter, ITarget& data_target)
     {
         IDataBase* data = T2T<IDataBase*>(data_target.stream(iter.stream()));
 
-        BigInt sum = 0;
-        BigInt len = data->getRemainder();
+        CtrSizeT sum = 0;
+        CtrSizeT len = data->getRemainder();
 
         while (len > 0)
         {

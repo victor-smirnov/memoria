@@ -35,6 +35,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrRemoveName)
 
     typedef typename Base::Types::LabelsTuple                                   LabelsTuple;
 
+    typedef typename Base::Types::CtrSizeT                        				CtrSizeT;
+
     static const Int Streams                                                    = Types::Streams;
 
 
@@ -120,7 +122,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrRemoveName)
         return fn.sizes_;
     }
 
-    void remove(BigInt idx)
+    void remove(CtrSizeT idx)
     {
         auto& self  = this->self();
         auto iter   = self.seek(idx);
@@ -168,7 +170,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrRemoveName)
     {
         auto& self = this->self();
 
-        BigInt idx = iter.pos();
+        CtrSizeT idx = iter.pos();
 
         MEMORIA_ASSERT_TRUE(iter.symbol() == 1);
 

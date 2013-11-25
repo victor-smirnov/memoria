@@ -24,6 +24,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::wt::CtrApiName)
 
     typedef typename Tree::Iterator                                             TreeIterator;
     typedef typename Seq::Iterator                                              SeqIterator;
+    typedef typename Tree::Types::CtrSizeT                                      CtrSizeT;
 
     void prepare()
     {
@@ -37,7 +38,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::wt::CtrApiName)
         iter.insertZero();
     }
 
-    BigInt size()
+    CtrSizeT size()
     {
         auto& self = this->self();
         auto root = self.tree().seek(0);
@@ -88,7 +89,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::wt::CtrApiName)
     }
 
 
-    BigInt rank(BigInt idx, UBigInt symbol)
+    CtrSizeT rank(CtrSizeT idx, UBigInt symbol)
     {
         auto& self = this->self();
         auto& tree = self.tree();
@@ -99,7 +100,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::wt::CtrApiName)
     }
 
 
-    BigInt select(BigInt rank, UBigInt symbol)
+    CtrSizeT select(CtrSizeT rank, UBigInt symbol)
     {
         auto& self = this->self();
         auto& tree = self.tree();
@@ -145,9 +146,9 @@ private:
         auto& self = this->self();
         auto& seq  = self.seq();
 
-        BigInt seq_base = node.template sumLabel<1>();
-        UBigInt label   = seq.seek(seq_base + idx).symbol();
-        BigInt  rank    = seq.rank(seq_base, idx + 1, label);
+        CtrSizeT seq_base 	= node.template sumLabel<1>();
+        UBigInt label   	= seq.seek(seq_base + idx).symbol();
+        CtrSizeT  rank    	= seq.rank(seq_base, idx + 1, label);
 
         value |= label << (level * 8);
 
@@ -165,11 +166,11 @@ private:
         auto& tree = self.tree();
         auto& seq  = self.seq();
 
-        BigInt node_pos = node.pos();
+        CtrSizeT node_pos 	= node.pos();
 
-        BigInt seq_base = node.template sumLabel<1>();
-        UBigInt label   = seq.seek(seq_base + idx).symbol();
-        BigInt  rank    = seq.rank(seq_base, idx + 1, label);
+        CtrSizeT seq_base 	= node.template sumLabel<1>();
+        UBigInt label   	= seq.seek(seq_base + idx).symbol();
+        CtrSizeT  rank    	= seq.rank(seq_base, idx + 1, label);
 
         if (level > 0)
         {
@@ -183,7 +184,7 @@ private:
         seq.seek(seq_base + idx).remove();
         node.addLabel(1, -1);
 
-        BigInt seq_length = std::get<1>(node.labels());
+        CtrSizeT seq_length = std::get<1>(node.labels());
 
         if (seq_length == 0)
         {
@@ -195,7 +196,7 @@ private:
     }
 
 
-    BigInt select(TreeIterator& node, Int rank, UBigInt symbol, Int level)
+    CtrSizeT select(TreeIterator& node, Int rank, UBigInt symbol, Int level)
     {
         auto& self = this->self();
         auto& seq  = self.seq();
@@ -206,9 +207,9 @@ private:
 
             auto child = self.findChild(node, label);
 
-            BigInt rnk = select(child, rank, symbol, level - 1);
+            CtrSizeT rnk = select(child, rank, symbol, level - 1);
 
-            BigInt seq_base = node.template sumLabel<1>();
+            CtrSizeT seq_base = node.template sumLabel<1>();
 
             BigInt pos = seq.select(seq_base, rnk, label).pos() + 1;
 
@@ -220,16 +221,16 @@ private:
     }
 
 
-    BigInt buildRank(TreeIterator& node, BigInt idx, UBigInt symbol, Int level)
+    CtrSizeT buildRank(TreeIterator& node, CtrSizeT idx, UBigInt symbol, Int level)
     {
         Int label  = (symbol >> (level * 8)) & 0xFFull;
 
         auto& self = this->self();
         auto& seq  = self.seq();
 
-        BigInt seq_base = node.template sumLabel<1>();
+        CtrSizeT seq_base = node.template sumLabel<1>();
 
-        BigInt rank = seq.rank(seq_base, idx + 1, label);
+        CtrSizeT rank = seq.rank(seq_base, idx + 1, label);
 
         if (level > 0)
         {

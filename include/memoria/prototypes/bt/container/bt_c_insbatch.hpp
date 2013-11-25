@@ -44,6 +44,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
+    typedef typename Types::CtrSizeT											CtrSizeT;
+
 
     static const Int Streams                                                    = Types::Streams;
 
@@ -51,7 +53,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
     {
         Accumulator keys;
         ID          value;
-        BigInt      key_count;
+        CtrSizeT    key_count;
     };
 
     struct ISubtreeProvider
@@ -61,11 +63,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
         virtual NonLeafNodeKeyValuePair getKVPair(
                                             const ID& parent_id,
                                             Int parent_idx,
-                                            BigInt count,
+                                            CtrSizeT count,
                                             Int level
                                         )                                                       = 0;
 
-        virtual BigInt                  getTotalKeyCount()                                      = 0;
+        virtual CtrSizeT                getTotalKeyCount()                                      = 0;
         virtual Position                getTotalSize()                                          = 0;
         virtual Position                getTotalInserted()                                      = 0;
 
@@ -95,9 +97,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
             return active_streams_;
         }
 
-        virtual NonLeafNodeKeyValuePair getKVPair(const ID& parent_id, Int parent_idx, BigInt total, Int level)
+        virtual NonLeafNodeKeyValuePair getKVPair(const ID& parent_id, Int parent_idx, CtrSizeT total, Int level)
         {
-            BigInt local_count = 0;
+        	CtrSizeT local_count = 0;
             return BuildTree(parent_id, parent_idx, local_count, total, level - 1);
         }
 
@@ -114,8 +116,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
         NonLeafNodeKeyValuePair BuildTree(
                 const ID& parent_id,
                 Int parent_idx,
-                BigInt& count,
-                const BigInt total,
+                CtrSizeT& count,
+                const CtrSizeT total,
                 Int level
         )
         {
@@ -252,7 +254,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
             data_source_(data_source)
         {}
 
-        virtual BigInt getTotalKeyCount()
+        virtual CtrSizeT getTotalKeyCount()
         {
             StaticLayoutManager<LeafDispatcher> manager(ctr_.getRootMetadata().page_size());
             return data_source_.getTotalNodes(&manager);
@@ -339,13 +341,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
 
         Accumulator accumulator;
 
-        BigInt start;
-        BigInt end;
-        BigInt total;
+        CtrSizeT start;
+        CtrSizeT end;
+        CtrSizeT total;
 
-        BigInt remains;
+        CtrSizeT remains;
 
-        BigInt first_cell_key_count;
+        CtrSizeT first_cell_key_count;
 
         UBigInt active_streams;
 
@@ -362,12 +364,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
 
 
 
-    BigInt divide(BigInt op1, BigInt op2)
+    CtrSizeT divide(CtrSizeT op1, CtrSizeT op2)
     {
         return (op1 / op2) + ((op1 % op2 == 0) ?  0 : 1);
     }
 
-    BigInt getSubtreeSize(Int level) const;
+    CtrSizeT getSubtreeSize(Int level) const;
 
     void makeRoom(NodeBaseG& node, const Position& start, const Position& count);
     void makeRoom(NodeBaseG& node, Int stream, Int start, Int count);
@@ -531,15 +533,15 @@ typename M_TYPE::Accumulator M_TYPE::insertSubtree(NodeBaseG& leaf, Position& id
 
 
 M_PARAMS
-BigInt M_TYPE::getSubtreeSize(Int level) const
+typename M_TYPE::CtrSizeT M_TYPE::getSubtreeSize(Int level) const
 {
     MEMORIA_ASSERT(level, >=, 0);
 
-    BigInt result = 1;
+    CtrSizeT result = 1;
 
     for (int c = 1; c < level; c++)
     {
-        BigInt children_at_level = self().getMaxKeyCountForNode(c == 0, c);
+    	CtrSizeT children_at_level = self().getMaxKeyCountForNode(c == 0, c);
 
         result *= children_at_level;
     }
@@ -568,9 +570,9 @@ void M_TYPE::insertInternalSubtree(
 
     //FIXME: check node->level() after deletion;
 
-    BigInt  subtree_size    = self.getSubtreeSize(left_node->level());
+    CtrSizeT subtree_size    = self.getSubtreeSize(left_node->level());
 
-    BigInt  key_count       = data.total - data.start - data.end;
+    CtrSizeT key_count       = data.total - data.start - data.end;
 
     if (left_node == right_node)
     {
@@ -579,7 +581,7 @@ void M_TYPE::insertInternalSubtree(
         if (key_count <= subtree_size * node_capacity)
         {
             // We have enough free space for all subtrees in the current node
-            BigInt total    = divide(key_count, subtree_size);
+        	CtrSizeT total	= divide(key_count, subtree_size);
 
             fillNodeLeft(left_node, left_idx, total, data);
 
@@ -606,14 +608,14 @@ void M_TYPE::insertInternalSubtree(
         Int total_capacity  = start_capacity + end_capacity;
 
 
-        BigInt max_key_count = subtree_size * total_capacity;
+        CtrSizeT max_key_count = subtree_size * total_capacity;
 
         if (key_count <= max_key_count)
         {
             // Otherwise fill nodes 'equally'. Each node will have almost
             // equal free space after processing.
 
-            BigInt total_keys           = divide(key_count, subtree_size);
+        	CtrSizeT total_keys	= divide(key_count, subtree_size);
 
             Int left_count, right_count;
 
@@ -685,13 +687,13 @@ void M_TYPE::fillNodeLeft(NodeBaseG& node, Int from, Int count, InsertSharedData
 {
     auto& self = this->self();
 
-    BigInt subtree_size = me()->getSubtreeSize(node->level());
+    CtrSizeT subtree_size = me()->getSubtreeSize(node->level());
 
     self.makeRoom(node, Position(from), Position(count));
 
     for (Int c = from; c < from + count; c++)
     {
-        BigInt requested_size;
+    	CtrSizeT requested_size;
 
         if (data.first_cell_key_count > 0)
         {
@@ -729,11 +731,11 @@ void M_TYPE::fillNodeLeft(NodeBaseG& node, Int from, Int count, InsertSharedData
 M_PARAMS
 void M_TYPE::prepareNodeFillmentRight(Int level, Int count, InsertSharedData& data)
 {
-    BigInt subtree_size = me()->getSubtreeSize(level);
+	CtrSizeT subtree_size = me()->getSubtreeSize(level);
 
     if (level > 0)
     {
-        BigInt total = subtree_size * count;
+    	CtrSizeT total = subtree_size * count;
 
         if (data.remains >= total)
         {
@@ -741,7 +743,7 @@ void M_TYPE::prepareNodeFillmentRight(Int level, Int count, InsertSharedData& da
             data.remains    -= total;
         }
         else {
-            BigInt remainder = data.remains - (subtree_size * count - subtree_size);
+        	CtrSizeT remainder = data.remains - (subtree_size * count - subtree_size);
 
             data.end        += data.remains;
             data.remains    = 0;

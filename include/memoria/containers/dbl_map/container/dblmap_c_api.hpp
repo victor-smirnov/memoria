@@ -48,19 +48,21 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::dblmap::CtrApiName)
 
     typedef typename Types::DataSource                                     		DataSource;
 
-    BigInt total_size() const
+    typedef typename Types::CtrSizeT                                            CtrSizeT;
+
+    CtrSizeT total_size() const
     {
         auto sizes = self().getTotalKeyCount();
         return sizes[1];
     }
 
-    BigInt size() const
+    CtrSizeT size() const
     {
         auto sizes = self().getTotalKeyCount();
         return sizes[0];
     }
 
-    BigInt blob_size(Key id) const
+    CtrSizeT blob_size(Key id) const
     {
         return seek(id).size();
     }

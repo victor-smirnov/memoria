@@ -40,12 +40,14 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::InnerItrNavName)
     typedef typename Container::LeafDispatcher                                  LeafDispatcher;
     typedef typename Container::Position                                        Position;
 
+    typedef typename Container::CtrSizeT                        				CtrSizeT;
 
-    BigInt skipFw(BigInt amount) {
+
+    CtrSizeT skipFw(CtrSizeT amount) {
     	return self().template _findFw<Types::template SkipForwardWalker>(0, amount);
     }
 
-    BigInt skipBw(BigInt amount) {
+    CtrSizeT skipBw(CtrSizeT amount) {
     	return self().template _findBw<Types::template SkipBackwardWalker>(0, amount);
     }
 

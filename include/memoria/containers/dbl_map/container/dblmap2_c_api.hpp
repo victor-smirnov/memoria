@@ -28,7 +28,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::dblmap::CtrApi2Name)
 
     typedef typename Base::Types::Key 											Key;
 
-    BigInt size()
+    typedef typename OuterMap::Types::CtrSizeT                                  CtrSizeT;
+
+    CtrSizeT size()
     {
     	return self().outer_map().size();
     }
@@ -40,7 +42,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::dblmap::CtrApi2Name)
 
     	if (!outer_iter.isEnd())
     	{
-    		BigInt offset 	= outer_iter.base();
+    		CtrSizeT offset 	= outer_iter.base();
     		auto inner_iter = self.inner_map().seek(offset);
 
     		inner_iter.resetKeyPrefix();
@@ -67,7 +69,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::dblmap::CtrApi2Name)
     		outer_iter.insert({key, 0});
     		outer_iter--;
 
-    		BigInt offset 	= outer_iter.base();
+    		CtrSizeT offset 	= outer_iter.base();
     		auto inner_iter = self.inner_map().seek(offset);
 
     		inner_iter.resetKeyPrefix();
@@ -75,7 +77,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::dblmap::CtrApi2Name)
     		return Iterator(self, outer_iter, inner_iter);
     	}
     	else {
-    		BigInt offset 	= outer_iter.base();
+    		CtrSizeT offset 	= outer_iter.base();
     		auto inner_iter = self.inner_map().seek(offset);
 
     		inner_iter.resetKeyPrefix();
@@ -95,7 +97,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::dblmap::CtrApi2Name)
     		outer_iter.insert({key, 0});
     		outer_iter--;
 
-    		BigInt offset 	= outer_iter.base();
+    		CtrSizeT offset = outer_iter.base();
     		auto inner_iter = self.inner_map().seek(offset);
 
     		inner_iter.resetKeyPrefix();

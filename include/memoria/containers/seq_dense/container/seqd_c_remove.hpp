@@ -43,6 +43,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrRemoveName)
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
+    typedef typename Types::CtrSizeT											CtrSizeT;
+
     static const Int Streams                                                    = Types::Streams;
 
     static const Int MAIN_STREAM                                                = Types::MAIN_STREAM;
@@ -118,7 +120,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrRemoveName)
     	self().updateParent(leaf, -indexes);
     }
 
-    void remove(BigInt idx)
+    void remove(CtrSizeT idx)
     {
         auto& self  = this->self();
         auto iter   = self.seek(idx);
@@ -145,7 +147,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrRemoveName)
     }
 
 
-    void removeBlock(Iterator& iter, BigInt length)
+    void removeBlock(Iterator& iter, CtrSizeT length)
     {
     	auto& self  = this->self();
 

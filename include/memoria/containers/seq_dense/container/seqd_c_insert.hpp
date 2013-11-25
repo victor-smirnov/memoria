@@ -43,6 +43,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
+    typedef typename Types::CtrSizeT											CtrSizeT;
+
     static const Int Streams                                                    = Types::Streams;
 
     static const Int MAIN_STREAM                                                = Types::MAIN_STREAM;
@@ -98,7 +100,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
         }
     }
 
-    void insert(BigInt idx, Int symbol)
+    void insert(CtrSizeT idx, Int symbol)
     {
         auto& self  = this->self();
         auto iter   = self.seek(idx);

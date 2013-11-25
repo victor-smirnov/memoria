@@ -59,7 +59,7 @@ struct BTTypes {
 
     typedef Profile_                                                            Profile;
 
-    typedef TypeList<BigInt>                                                    KeysList;
+    using CtrSizeT = BigInt;
 
     typedef TypeList<
             bt::AllocatorName,
@@ -88,9 +88,9 @@ struct BTTypes {
     typedef typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator Allocator;
     typedef typename Allocator::ID                                              ID;
 
-//    typedef TypeList<>                                                        NodeTypesList;
+//  typedef TypeList<>                                                        	NodeTypesList;
 //
-//    typedef TypeList<>                                                        DefaultNodeTypesList;
+//  typedef TypeList<>                                                        	DefaultNodeTypesList;
 
     typedef TypeList<
             NonLeafNodeTypes<BranchNode>,
@@ -201,7 +201,7 @@ public:
     >::Type                                                                     IteratorPrefix_;
 
     typedef core::StaticVector<
-                BigInt,
+                typename ContainerTypes::CtrSizeT,
                 Streams
     >                                                                           Position_;
 
@@ -218,16 +218,11 @@ public:
         typedef ContainerTypeName_                          Name;
         typedef typename ContainerTypes::Metadata           Metadata;
 
-        typedef typename ListHead<typename ContainerTypes::KeysList>::Type      Key;
-        typedef typename MyType::Value                      Value;
         typedef typename MyType::ID                         ID;
 
         typedef typename ContainerTypes::StreamDescriptors  StreamDescriptors;
 
-        static const Int                                    Indexes             = 1;
         static const Int                                    Streams             = MyType::Streams;
-
-        static const Int                                    StreamsIdxStart     = 0;
 
         typedef Accumulator_                                Accumulator;
         typedef Position_                                   Position;
@@ -243,14 +238,13 @@ public:
         typedef typename ContainerTypes::Allocator          Allocator;
     };
 
-    typedef bt::BTreeDispatchers2<DispatcherTypes>                              PageDispatchers;
+    typedef bt::BTreeDispatchers<DispatcherTypes>                              PageDispatchers;
 
 
 public:
     struct Types: ContainerTypes
     {
         typedef ContainerTypeName_                                              ContainerTypeName;
-        typedef typename MyType::Value                                          Value;
         typedef typename MyType::PageDispatchers                                Pages;
 
         typedef typename ContainerTypes::Allocator                              Allocator;
@@ -272,8 +266,7 @@ public:
         typedef Accumulator_                                                    Accumulator;
         typedef IteratorPrefix_                                                 IteratorPrefix;
 
-
-        typedef core::StaticVector<BigInt, MyType::Streams>                     Position;
+        typedef Position_                     									Position;
 
         typedef PageUpdateManager<CtrTypes>                                     PageUpdateMgr;
     };

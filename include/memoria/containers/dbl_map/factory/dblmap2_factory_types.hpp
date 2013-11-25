@@ -114,7 +114,6 @@ struct BTTypes<Profile, dblmap::OuterMap<Key_> >: public BTTypes<Profile, memori
 
     typedef Key_                                                              	Key;
     typedef BigInt                                                              Value;
-    typedef TypeList<Key_>                                                    	KeysList;
 
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {

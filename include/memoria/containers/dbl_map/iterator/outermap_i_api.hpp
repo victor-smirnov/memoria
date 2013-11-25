@@ -39,6 +39,9 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::OuterItrApiName)
 
     typedef	typename std::tuple_element<0, Accumulator>::type					Entry0;
 
+    typedef typename Container::CtrSizeT                        				CtrSizeT;
+
+
 
     void updateUp(const Accumulator& keys)
     {
@@ -89,16 +92,16 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::OuterItrApiName)
     	return fn.element_;
     }
 
-    BigInt size() const {
+    CtrSizeT size() const {
     	return std::get<0>(entry())[1];
     }
 
-    BigInt pos() const
+    CtrSizeT pos() const
     {
     	return std::get<0>(self().cache().prefixes())[0];
     }
 
-    BigInt base() const
+    CtrSizeT base() const
     {
     	auto& self = this->self();
     	return std::get<0>(self.cache().prefixes())[1];

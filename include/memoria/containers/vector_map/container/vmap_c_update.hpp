@@ -48,13 +48,15 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrUpdateName)
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
 
-    static const Int Streams                                                    = Types::Streams;
-
     typedef typename Types::DataSource                                     		DataSource;
     typedef typename Types::DataTarget                                     		DataTarget;
 
+    typedef typename Types::CtrSizeT                                            CtrSizeT;
+
+    static const Int Streams                                                    = Types::Streams;
+
     void replaceData(Iterator& iter, DataSource& data);
-    BigInt updateData(Iterator& iter, DataSource& data);
+    CtrSizeT updateData(Iterator& iter, DataSource& data);
 
 private:
 
@@ -72,8 +74,8 @@ void M_TYPE::replaceData(Iterator& iter, DataSource& data)
 
     auto& self = this->self();
 
-    BigInt entry_size   = iter.blob_size();
-    BigInt data_size    = data.getRemainder();
+    CtrSizeT entry_size   = iter.blob_size();
+    CtrSizeT data_size    = data.getRemainder();
 
     if (entry_size < data_size)
     {
@@ -81,7 +83,7 @@ void M_TYPE::replaceData(Iterator& iter, DataSource& data)
         {
             memoria::vapi::DataSourceProxy<typename Types::IOValue> proxy(data, entry_size);
 
-            BigInt updated = self.updateData(iter, proxy);
+            CtrSizeT updated = self.updateData(iter, proxy);
             MEMORIA_ASSERT(updated, ==, entry_size);
 
 //          iter.skipBw(1);
@@ -92,7 +94,7 @@ void M_TYPE::replaceData(Iterator& iter, DataSource& data)
     }
     else if (entry_size > data_size)
     {
-        BigInt updated = self.updateData(iter, data);
+    	CtrSizeT updated = self.updateData(iter, data);
         MEMORIA_ASSERT(updated, ==, data_size);
 
         self.removeData(iter, entry_size - data_size);
@@ -105,14 +107,14 @@ void M_TYPE::replaceData(Iterator& iter, DataSource& data)
 
 
 M_PARAMS
-BigInt M_TYPE::updateData(Iterator& iter, DataSource& data)
+typename M_TYPE::CtrSizeT M_TYPE::updateData(Iterator& iter, DataSource& data)
 {
     MEMORIA_ASSERT_TRUE(iter.stream() == 1);
 
 //  auto& self = this->self();
 
-    BigInt sum = 0;
-    BigInt len = data.getRemainder();
+    CtrSizeT sum = 0;
+    CtrSizeT len = data.getRemainder();
 
     while (len > 0)
     {

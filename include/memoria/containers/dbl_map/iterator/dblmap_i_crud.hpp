@@ -42,6 +42,8 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::ItrCRUDName)
     typedef typename Container::LeafDispatcher                                  LeafDispatcher;
     typedef typename Container::Position                                        Position;
 
+    typedef typename Container::CtrSizeT                                        CtrSizeT;
+
     template <typename T>
     using Find2ndGEWalker = typename Container::Types::template FindGEWalker<T>;
 
@@ -154,11 +156,11 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::ItrCRUDName)
     {
     	auto& self = this->self();
 
-    	BigInt size = prepareFind2();
+    	CtrSizeT size = prepareFind2();
 
     	if (size > 0)
     	{
-    		BigInt offset = self.template _findFw<Find2ndGEWalker>(0, key);
+    		CtrSizeT offset = self.template _findFw<Find2ndGEWalker>(0, key);
 
     		self.cache().addToGlobalPos(offset);
 
@@ -182,11 +184,11 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::ItrCRUDName)
     {
     	auto& self = this->self();
 
-    	BigInt size = prepareFind2();
+    	CtrSizeT size = prepareFind2();
 
     	if (size > 0)
     	{
-    		BigInt offset = self.template _findFw<Find2ndGEWalker>(0, key);
+    		CtrSizeT offset = self.template _findFw<Find2ndGEWalker>(0, key);
 
     		self.cache().addToGlobalPos(offset);
 
@@ -224,11 +226,11 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::ItrCRUDName)
     {
     	auto& self = this->self();
 
-    	BigInt size = prepareFind2();
+    	CtrSizeT size = prepareFind2();
 
     	if (size > 0)
     	{
-    		BigInt offset = self.template _findFw<Find2ndGTWalker>(0, key);
+    		CtrSizeT offset = self.template _findFw<Find2ndGTWalker>(0, key);
 
     		self.cache().addToGlobalPos(offset);
 
@@ -276,11 +278,11 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::ItrCRUDName)
 
 private:
 
-    BigInt prepareFind2()
+    CtrSizeT prepareFind2()
     {
     	auto& self = this->self();
 
-    	BigInt size = self.blob_size();
+    	CtrSizeT size = self.blob_size();
 
     	if (self.stream() == 0)
     	{
@@ -288,7 +290,7 @@ private:
     	}
     	else
     	{
-    		BigInt pos = self.pos();
+    		CtrSizeT pos = self.pos();
 
     		if (pos > 0)
     		{
@@ -364,7 +366,7 @@ public:
 
     	self.findData();
 
-    	BigInt pos = self.pos();
+    	CtrSizeT pos = self.pos();
     	if (pos > 0)
     	{
     		self.skipBw(pos);
@@ -422,7 +424,7 @@ public:
 
 
 
-    BigInt read(DataTarget& tgt)
+    CtrSizeT read(DataTarget& tgt)
     {
         auto& self = this->self();
 
@@ -445,7 +447,7 @@ public:
     }
 
 
-    void remove(BigInt size)
+    void remove(CtrSizeT size)
     {
         auto& self = this->self();
 

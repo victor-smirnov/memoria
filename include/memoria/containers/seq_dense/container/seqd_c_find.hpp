@@ -39,16 +39,18 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
 
+    typedef typename Types::CtrSizeT											CtrSizeT;
+
     static const Int Streams                                                    = Types::Streams;
 
     static const Int MAIN_STREAM                                                = Types::MAIN_STREAM;
 
-    BigInt size() const
+    CtrSizeT size() const
     {
         return self().sizes()[0];
     }
 
-    BigInt rank(BigInt idx, Int symbol)
+    CtrSizeT rank(CtrSizeT idx, Int symbol)
     {
         auto& self = this->self();
 
@@ -59,11 +61,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
         return walker.rank();
     }
 
-    BigInt rank(Int symbol) {
+    CtrSizeT rank(Int symbol) {
     	return rank(self().size(), symbol);
     }
 
-    BigInt rank(BigInt start, BigInt idx, Int symbol)
+    CtrSizeT rank(CtrSizeT start, CtrSizeT idx, Int symbol)
     {
         auto& self = this->self();
 
@@ -74,7 +76,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
 
 
 
-    Iterator select(Int symbol, BigInt rank)
+    Iterator select(Int symbol, CtrSizeT rank)
     {
         auto& self = this->self();
 
@@ -92,7 +94,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
         return iter;
     }
 
-    Iterator select(BigInt start, Int symbol, BigInt rank)
+    Iterator select(CtrSizeT start, Int symbol, CtrSizeT rank)
     {
         auto& self = this->self();
 

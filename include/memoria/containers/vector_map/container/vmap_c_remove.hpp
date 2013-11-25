@@ -41,17 +41,19 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrRemoveName)
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
 
+    typedef typename Types::CtrSizeT                                            CtrSizeT;
+
     static const Int Streams                                                    = Types::Streams;
 
 
     void removeEntry(Iterator& iter);
-    void removeData(Iterator& iter, BigInt size);
+    void removeData(Iterator& iter, CtrSizeT size);
 
 private:
     bool mergeLeaf(Iterator& iter);
 
-    void removeWithinPage(Iterator& iter, BigInt size);
-    void removeMultiPage(Iterator& iter, BigInt size);
+    void removeWithinPage(Iterator& iter, CtrSizeT size);
+    void removeMultiPage(Iterator& iter, CtrSizeT size);
 
 MEMORIA_CONTAINER_PART_END
 
@@ -64,9 +66,9 @@ void M_TYPE::removeEntry(Iterator& iter)
     auto& self = this->self();
 
     Int idx                 = iter.idx();
-    BigInt local_offset     = iter.data_offset();
-    BigInt size             = iter.blob_size();
-    BigInt data_leaf_size   = iter.leafSize(1);
+    CtrSizeT local_offset     = iter.data_offset();
+    CtrSizeT size           = iter.blob_size();
+    CtrSizeT data_leaf_size 	= iter.leafSize(1);
 
     Accumulator keys;
 
@@ -154,17 +156,17 @@ bool M_TYPE::mergeLeaf(Iterator& iter)
 
 
 M_PARAMS
-void M_TYPE::removeData(Iterator& iter, BigInt size)
+void M_TYPE::removeData(Iterator& iter, CtrSizeT size)
 {
 //  auto& self = this->self();
 
     MEMORIA_ASSERT_TRUE(iter.stream() == 1);
 
     BigInt idx              = iter.idx();
-    BigInt data_leaf_size   = iter.leaf_size(1);
-    BigInt map_leaf_size    = iter.leaf_size(0);
+    CtrSizeT data_leaf_size = iter.leaf_size(1);
+    CtrSizeT map_leaf_size  = iter.leaf_size(0);
 
-    BigInt pos = iter.pos();
+    CtrSizeT pos = iter.pos();
 
     if (pos + size > iter.blob_size())
     {
@@ -257,11 +259,11 @@ void M_TYPE::removeData(Iterator& iter, BigInt size)
 }
 
 M_PARAMS
-void M_TYPE::removeWithinPage(Iterator& iter, BigInt size)
+void M_TYPE::removeWithinPage(Iterator& iter, CtrSizeT size)
 {
     auto& self = this->self();
 
-    BigInt local_offset = iter.idx();
+    CtrSizeT local_offset = iter.idx();
 
     Accumulator keys;
     std::get<0>(keys)[1] = -size;
@@ -280,7 +282,7 @@ void M_TYPE::removeWithinPage(Iterator& iter, BigInt size)
 }
 
 M_PARAMS
-void M_TYPE::removeMultiPage(Iterator& iter, BigInt size)
+void M_TYPE::removeMultiPage(Iterator& iter, CtrSizeT size)
 {
     Accumulator keys;
     std::get<0>(keys)[1] = -size;
@@ -296,7 +298,7 @@ void M_TYPE::removeMultiPage(Iterator& iter, BigInt size)
     iter.cache().addToEntry(0, -size);
     to.cache().addToEntry(0, -size);
 
-    BigInt local_offset = iter.idx();
+    Int local_offset = iter.idx();
 
     NodeBaseG& from_node    = iter.leaf();
     Position from_idx       = {iter.leaf_size(0), local_offset};

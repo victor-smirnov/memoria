@@ -43,9 +43,9 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrCRUDName)
     typedef typename Container::LeafDispatcher                                  LeafDispatcher;
     typedef typename Container::Position                                        Position;
 
+    typedef typename Container::Types::CtrSizeT                                 CtrSizeT;
 
-
-    BigInt read(DataTarget& tgt)
+    CtrSizeT read(DataTarget& tgt)
     {
         auto& self = this->self();
 
@@ -92,7 +92,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrCRUDName)
         self.ctr().insertData(self, src);
     }
 
-    void remove(BigInt size)
+    void remove(CtrSizeT size)
     {
         auto& self = this->self();
 

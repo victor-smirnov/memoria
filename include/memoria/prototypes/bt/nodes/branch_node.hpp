@@ -1525,7 +1525,6 @@ struct TypeHash<bt::BranchNode<Types> > {
             TypeHash<typename Node::Base>::Value,
             Node::VERSION,
             false,
-            Types::Indexes,
             TypeHash<typename Types::Name>::Value
     >::Value;
 };

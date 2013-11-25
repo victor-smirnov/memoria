@@ -32,9 +32,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::dblmap::InnerCtrApiName)
 
     typedef typename Base::Element												Element;
 
+    typedef typename Types::CtrSizeT                                            CtrSizeT;
+
     static const Int Streams                                                    = Types::Streams;
 
-    BigInt size() const {
+    CtrSizeT size() const {
     	return self().sizes()[0];
     }
 
@@ -43,7 +45,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::dblmap::InnerCtrApiName)
     	return self().findGT(0, pos, 0);
     }
 
-    BigInt remove(Iterator& from, Iterator& to)
+    CtrSizeT remove(Iterator& from, Iterator& to)
     {
     	Accumulator keys;
     	self().removeEntries(from, to, keys);
@@ -51,7 +53,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::dblmap::InnerCtrApiName)
     	return std::get<0>(keys)[1];
     }
 
-    BigInt remove(Iterator& from)
+    CtrSizeT remove(Iterator& from)
     {
     	Accumulator keys;
     	self().removeMapEntry(from, keys);

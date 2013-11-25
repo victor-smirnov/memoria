@@ -29,6 +29,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::dblmap::ItrApi2Name)
     typedef typename ContainerType::InnerMap::Element			InnerMapElement;
     typedef typename ContainerType::InnerMap::Accumulator		InnerMapAccumulator;
 
+    typedef typename ContainerType::OuterMap::Types::CtrSizeT   CtrSizeT;
+
     Value value() const
     {
     	return self().inner_iter().getValue();
@@ -53,24 +55,24 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::dblmap::ItrApi2Name)
     	return self().inner_iter().key();
     }
 
-    BigInt global_pos() const
+    CtrSizeT global_pos() const
     {
     	return self().inner_iter().pos();
     }
 
-    BigInt pos() const
+    CtrSizeT pos() const
     {
-    	BigInt global_pos 	= self().global_pos();
-    	BigInt base			= self().outer_iter().base();
+    	CtrSizeT global_pos 	= self().global_pos();
+    	CtrSizeT base			= self().outer_iter().base();
 
     	return global_pos - base;
     }
 
-    BigInt blob_size() const {
+    CtrSizeT blob_size() const {
     	return size();
     }
 
-    BigInt size() const
+    CtrSizeT size() const
     {
     	return self().outer_iter().size();
     }
@@ -89,8 +91,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::dblmap::ItrApi2Name)
 
     	if (self.inner_iter().findKeyGE(key))
     	{
-    		BigInt pos 	= self.pos();
-    		BigInt size = self.size();
+    		CtrSizeT pos 	= self.pos();
+    		CtrSizeT size = self.size();
 
     		if (pos > size)
     		{
@@ -102,8 +104,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::dblmap::ItrApi2Name)
     		}
     	}
     	else {
-    		BigInt pos 	= self.pos();
-    		BigInt size = self.size();
+    		CtrSizeT pos 	= self.pos();
+    		CtrSizeT size = self.size();
 
     		if (pos > size)
     		{
@@ -128,8 +130,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::dblmap::ItrApi2Name)
 
     	if (self.inner_iter().findKeyGT(key))
     	{
-    		BigInt pos 	= self.pos();
-    		BigInt size = self.size();
+    		CtrSizeT pos 	= self.pos();
+    		CtrSizeT size = self.size();
 
     		if (pos > size)
     		{
@@ -141,8 +143,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::dblmap::ItrApi2Name)
     		}
     	}
     	else {
-    		BigInt pos 	= self.pos();
-    		BigInt size = self.size();
+    		CtrSizeT pos 	= self.pos();
+    		CtrSizeT size = self.size();
 
     		if (pos > size)
     		{
@@ -249,8 +251,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::dblmap::ItrApi2Name)
     	auto& self = this->self();
     	self.inner_iter().updateKey(amount);
 
-    	BigInt pos 	= self.pos();
-    	BigInt size	= self.size();
+    	CtrSizeT pos 	= self.pos();
+    	CtrSizeT size	= self.size();
 
     	if (pos < size - 1)
     	{
@@ -272,9 +274,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::dblmap::ItrApi2Name)
     	{
     		if (self.key2() != key)
     		{
-    			BigInt key_prefix = self.inner_iter().key_prefix();
+    			CtrSizeT key_prefix = self.inner_iter().key_prefix();
 
-    			BigInt key_delta = key - key_prefix;
+    			CtrSizeT key_delta = key - key_prefix;
 
     			std::get<0>(element.first)[0] = 1;
     			std::get<0>(element.first)[1] = key_delta;
@@ -293,9 +295,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::dblmap::ItrApi2Name)
     		}
     	}
     	else {
-    		BigInt key_prefix = self.inner_iter().key_prefix();
+    		CtrSizeT key_prefix = self.inner_iter().key_prefix();
 
-    		BigInt key_delta = key - key_prefix;
+    		CtrSizeT key_delta = key - key_prefix;
 
     		std::get<0>(element.first)[0] = 1;
     		std::get<0>(element.first)[1] = key_delta;
@@ -331,20 +333,20 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::dblmap::ItrApi2Name)
     	}
     }
 
-    BigInt removeRange(BigInt length)
+    CtrSizeT removeRange(CtrSizeT length)
     {
     	auto& self = this->self();
 
-    	BigInt pos 	= self.pos();
-    	BigInt size	= self.size();
+    	CtrSizeT pos 	= self.pos();
+    	CtrSizeT size	= self.size();
 
     	if (pos < size)
     	{
-    		BigInt to_remove = (pos + length <= size) ? length : size - pos;
+    		CtrSizeT to_remove = (pos + length <= size) ? length : size - pos;
 
     		InnerMapAccumulator sums;
 
-    		for (BigInt c = 0; c < to_remove; c++)
+    		for (CtrSizeT c = 0; c < to_remove; c++)
     		{
     			self.inner_iter().ctr().removeMapEntry(self.inner_iter(), sums);
     		}
@@ -406,8 +408,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::dblmap::ItrApi2Name)
     		self.skipBw(-self.pos());
     	}
 
-    	BigInt length	= self.size();
-    	BigInt removed 	= self.removeRange(length);
+    	CtrSizeT length	= self.size();
+    	CtrSizeT removed 	= self.removeRange(length);
 
     	MEMORIA_ASSERT(removed, == , length);
 
@@ -418,8 +420,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::dblmap::ItrApi2Name)
     {
     	auto& self = this->self();
 
-    	BigInt pos 	= self.pos();
-    	BigInt size	= self.size();
+    	CtrSizeT pos 	= self.pos();
+    	CtrSizeT size	= self.size();
 
     	if (pos < size)
     	{
@@ -452,8 +454,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::dblmap::ItrApi2Name)
 
     	if (!self.outer_iter().isEnd())
     	{
-    		BigInt pos = self.pos();
-    		BigInt size = self.size();
+    		CtrSizeT pos = self.pos();
+    		CtrSizeT size = self.size();
 
     		if (self.outer_iter()++)
     		{
@@ -476,11 +478,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::dblmap::ItrApi2Name)
 
     	if (!self.outer_iter().isBegin())
     	{
-    		BigInt pos = self.pos();
+    		CtrSizeT pos = self.pos();
 
     		if (self.outer_iter()--)
     		{
-    			BigInt size = self.size();
+    			CtrSizeT size = self.size();
 
     			self.inner_iter().skipBw(size + pos);
     			self.inner_iter().resetKeyPrefix();
@@ -495,25 +497,25 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::dblmap::ItrApi2Name)
     	}
     }
 
-    BigInt skipFw(BigInt delta)
+    CtrSizeT skipFw(CtrSizeT delta)
     {
     	auto& self = this->self();
 
-    	BigInt size = self.size();
-    	BigInt pos 	= self.pos();
+    	CtrSizeT size = self.size();
+    	CtrSizeT pos 	= self.pos();
 
-    	BigInt to_skip = (pos + delta < size) ? delta : size - pos;
+    	CtrSizeT to_skip = (pos + delta < size) ? delta : size - pos;
 
     	return self.inner_iter().skipFw(to_skip);
     }
 
-    BigInt skipBw(BigInt delta)
+    CtrSizeT skipBw(CtrSizeT delta)
     {
     	auto& self = this->self();
 
-    	BigInt pos 	= self.pos();
+    	CtrSizeT pos 	= self.pos();
 
-    	BigInt to_skip = (pos - delta >= 0) ? delta : pos;
+    	CtrSizeT to_skip = (pos - delta >= 0) ? delta : pos;
 
     	return self.inner_iter().skipBw(to_skip);
     }
@@ -522,8 +524,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::dblmap::ItrApi2Name)
     {
     	auto& self = this->self();
 
-    	BigInt size = self.size();
-    	BigInt pos 	= self.pos();
+    	CtrSizeT size = self.size();
+    	CtrSizeT pos 	= self.pos();
 
     	return pos >= size;
     }

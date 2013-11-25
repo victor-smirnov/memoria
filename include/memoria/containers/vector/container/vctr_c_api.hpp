@@ -43,16 +43,18 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrApiName)
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
 
+    typedef typename Types::CtrSizeT											CtrSizeT;
+
     static const Int Streams                                                    = Types::Streams;
 
     static const Int MAIN_STREAM                                                = Types::MAIN_STREAM;
 
 
-    BigInt size() const {
+    CtrSizeT size() const {
         return self().sizes()[0];
     }
 
-    Iterator seek(BigInt pos)
+    Iterator seek(CtrSizeT pos)
     {
         return self().findGT(MAIN_STREAM, pos, 0);
     }

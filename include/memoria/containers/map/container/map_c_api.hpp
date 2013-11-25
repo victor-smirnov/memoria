@@ -34,9 +34,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
 
     typedef ValuePair<Accumulator, Value>                                   	Element;
 
+    typedef typename Types::CtrSizeT                                           	CtrSizeT;
+
     static const Int Streams                                                    = Types::Streams;
 
-    BigInt size() const {
+    CtrSizeT size() const {
         return self().sizes()[0];
     }
 

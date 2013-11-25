@@ -26,12 +26,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrApiName)
 
     typedef typename Base::Iterator                                             Iterator;
 
+	typedef typename Base::Types::CtrSizeT                        				CtrSizeT;
+
     Iterator findNode(const LoudsNode& node)
     {
         return self().seek(node.node());
     }
 
-    Iterator findNode(BigInt node_idx)
+    Iterator findNode(CtrSizeT node_idx)
     {
         return self().seek(node_idx);
     }
@@ -53,7 +55,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrApiName)
     }
 
 
-    Iterator child(const LoudsNode& node, BigInt child_num)
+    Iterator child(const LoudsNode& node, CtrSizeT child_num)
     {
         Iterator iter = firstChild(node);
 
@@ -85,7 +87,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrApiName)
         return iter;
     }
 
-    BigInt nodes()
+    CtrSizeT nodes()
     {
         auto& self = this->self();
         return self.rank1(self.size() - 1);
@@ -119,11 +121,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrApiName)
 //      return tree;
 //  }
 
-    BigInt getSubtreeSize(const LoudsNode& node)
+    CtrSizeT getSubtreeSize(const LoudsNode& node)
     {
-        BigInt count = 0;
+    	CtrSizeT count = 0;
 
-        this->traverseSubtree(node, [&count](const Iterator& left, BigInt length, Int level) {
+        this->traverseSubtree(node, [&count](const Iterator& left, CtrSizeT length, Int level) {
             if (level == 0)
             {
                 count += left.rank1(length - 1);
@@ -138,7 +140,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrApiName)
 
 
 
-    void traverseSubtree(const LoudsNode& node, function<void (const Iterator&, BigInt, Int)> fn)
+    void traverseSubtree(const LoudsNode& node, function<void (const Iterator&, CtrSizeT, Int)> fn)
     {
         Iterator left = self().seek(node.node());
         Iterator right = left;
@@ -147,9 +149,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrApiName)
     }
 
 private:
-    void traverseSubtree(Iterator& left, Iterator& right, function<void (const Iterator&, BigInt, Int)> fn, Int level = 0)
+    void traverseSubtree(Iterator& left, Iterator& right, function<void (const Iterator&, CtrSizeT, Int)> fn, Int level = 0)
     {
-        BigInt length = right.nodeIdx() - left.nodeIdx() + 1;
+    	CtrSizeT length = right.nodeIdx() - left.nodeIdx() + 1;
 
         fn(left, length + 1, level);
 

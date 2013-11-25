@@ -46,6 +46,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrNormName)
     typedef typename Types::DataSource                                          DataSource;
     typedef typename Types::DataTarget                                          DataTarget;
 
+
+    typedef typename Types::CtrSizeT											CtrSizeT;
+
     static const Int Streams                                                    = Types::Streams;
 
     static const Int MAIN_STREAM                                                = Types::MAIN_STREAM;
@@ -146,7 +149,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrNormName)
 
 
 
-    BigInt updateBlock(Iterator& iter, DataSource& data);
+    CtrSizeT updateBlock(Iterator& iter, DataSource& data);
 
 
 
@@ -220,10 +223,10 @@ void M_TYPE::insertBlock(Iterator& iter, DataSource& data)
 
 
 M_PARAMS
-BigInt M_TYPE::updateBlock(Iterator& iter, DataSource& data)
+typename M_TYPE::CtrSizeT M_TYPE::updateBlock(Iterator& iter, DataSource& data)
 {
-	BigInt sum = 0;
-	BigInt len = data.getRemainder();
+	CtrSizeT sum = 0;
+	CtrSizeT len = data.getRemainder();
 
 	while (len > 0)
 	{

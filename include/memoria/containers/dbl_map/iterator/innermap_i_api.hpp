@@ -40,6 +40,8 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::InnerItrApiName)
     typedef typename Container::LeafDispatcher                                  LeafDispatcher;
     typedef typename Container::Position                                        Position;
 
+    typedef typename Container::CtrSizeT                        				CtrSizeT;
+
 
     template <typename T>
     using Find2ndGEWalker = typename Container::Types::template FindGEWalker<T>;
@@ -121,12 +123,12 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::InnerItrApiName)
     	}
     };
 
-    BigInt pos() const
+    CtrSizeT pos() const
     {
     	return std::get<0>(self().cache().prefixes())[0];
     }
 
-    BigInt key_prefix() const
+    CtrSizeT key_prefix() const
     {
     	return std::get<0>(self().cache().prefixes())[1];
     }
@@ -186,7 +188,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::InnerItrApiName)
 
 
 
-    BigInt removeRange(BigInt size)
+    CtrSizeT removeRange(CtrSizeT size)
     {
         auto& self 	= this->self();
         auto  to 	= this->self();
@@ -197,7 +199,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::InnerItrApiName)
 
         self.ctr().removeMapEntries(self, to, sums);
 
-        BigInt removed = std::get<0>(sums)[0];
+        CtrSizeT removed = std::get<0>(sums)[0];
 
         self.addTotalKeyCount(Position::create(0, -removed));
 
@@ -219,7 +221,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::InnerItrApiName)
         }
     };
 
-    void updateKey(BigInt delta)
+    void updateKey(CtrSizeT delta)
     {
         auto& self = this->self();
 

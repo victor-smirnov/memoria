@@ -46,11 +46,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrInsertName)
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
 
-    static const Int Streams                                                    = Types::Streams;
+    typedef typename Types::CtrSizeT                                            CtrSizeT;
 
     typedef typename Types::DataSource                                     		DataSource;
     typedef typename Types::DataTarget                                     		DataTarget;
 
+    static const Int Streams                                                    = Types::Streams;
 
 
     void insertData(Iterator& iter, DataSource& data);
@@ -85,8 +86,8 @@ void M_TYPE::insertData(Iterator& iter, DataSource& data)
 
     MEMORIA_ASSERT_TRUE(iter.stream() == 1);
 
-    BigInt data_size = data.getRemainder();
-    BigInt pos       = iter.pos();
+    CtrSizeT data_size = data.getRemainder();
+    CtrSizeT pos       = iter.pos();
 
     NodeBaseG& leaf = iter.leaf();
 
@@ -179,13 +180,13 @@ void M_TYPE::insert(Iterator& iter, BigInt id, DataSource& src)
 
     BigInt id_entry_value = id - iter.cache().id_prefix();
 
-    std::pair<BigInt, BigInt> pair(id_entry_value, src.getSize());
+    std::pair<BigInt, CtrSizeT> pair(id_entry_value, src.getSize());
 
     NodeBaseG& leaf = iter.leaf();
 
     bool at_the_end = iter.isEnd();
 
-    BigInt data_size = src.getRemainder();
+    CtrSizeT data_size = src.getRemainder();
 
     if (self.checkCapacities(leaf, {1, data_size}) || self.isNodeEmpty(leaf))
     {
@@ -212,7 +213,7 @@ void M_TYPE::insert(Iterator& iter, BigInt id, DataSource& src)
         else {
             iter--;
 
-            BigInt blob_size    = iter.blob_size();
+            CtrSizeT blob_size    = iter.blob_size();
             Int leaf_data_size  = iter.leafSize(1);
             Int blob_offset     = iter.data_offset();
 

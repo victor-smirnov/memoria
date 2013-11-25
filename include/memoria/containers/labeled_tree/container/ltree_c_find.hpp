@@ -28,22 +28,24 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrFindName)
     typedef typename Base::Types::NodeBaseG                                     NodeBaseG;
     typedef typename Base::LeafDispatcher                                       LeafDispatcher;
 
-    Iterator select0(BigInt rank)
+    typedef typename Base::Types::CtrSizeT                        				CtrSizeT;
+
+    Iterator select0(CtrSizeT rank)
     {
         return self().select(0, rank);
     }
 
-    Iterator select1(BigInt rank)
+    Iterator select1(CtrSizeT rank)
     {
         return self().select(1, rank);
     }
 
-    BigInt rank1(BigInt idx)
+    CtrSizeT rank1(CtrSizeT idx)
     {
         return self().rank(idx + 1, 1);
     }
 
-    BigInt rank0(BigInt idx)
+    CtrSizeT rank0(CtrSizeT idx)
     {
         return self().rank(idx + 1, 0);
     }

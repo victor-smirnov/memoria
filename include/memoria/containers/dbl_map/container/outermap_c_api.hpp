@@ -32,9 +32,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::dblmap::OuterCtrApiName)
 
     typedef typename std::tuple_element<0, Accumulator>::type					Entry0;
 
+    typedef typename Types::CtrSizeT                                            CtrSizeT;
+
     static const Int Streams                                                    = Types::Streams;
 
-    BigInt size() const {
+    CtrSizeT size() const {
     	return self().sizes()[0];
     }
 

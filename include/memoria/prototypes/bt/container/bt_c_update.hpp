@@ -47,6 +47,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::UpdateName)
 
     typedef typename Types::DataTarget                                     		DataTarget;
 
+    typedef typename Types::CtrSizeT											CtrSizeT;
+
     Position getRemainder(ISource& source)
     {
         Position size;
@@ -132,12 +134,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::UpdateName)
 
 
 
-    BigInt updateStream(Iterator& iter, ISource& data_source)
+    CtrSizeT updateStream(Iterator& iter, ISource& data_source)
     {
         IDataBase* data = T2T<IDataBase*>(data_source.stream(iter.stream()));
 
-        BigInt sum = 0;
-        BigInt len = data->getRemainder();
+        CtrSizeT sum = 0;
+        CtrSizeT len = data->getRemainder();
 
         while (len > 0)
         {

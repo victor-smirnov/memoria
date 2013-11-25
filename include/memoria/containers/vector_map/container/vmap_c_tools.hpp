@@ -45,6 +45,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrToolsName)
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
 
+    typedef typename Types::CtrSizeT                                            CtrSizeT;
 
     static const Int Streams                                                    = Types::Streams;
 

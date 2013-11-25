@@ -38,7 +38,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
     typedef typename Container::Position                                        Position;
     typedef typename Container::Types::LabelsTuple                              LabelsTuple;
 
-    BigInt node_rank() const
+    typedef typename Container::Types::CtrSizeT                        			CtrSizeT;
+
+    CtrSizeT node_rank() const
     {
         auto& self = this->self();
 //      return self.cache().rank1() + (self.symbol() == 1);
@@ -77,12 +79,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
         return test(0);
     }
 
-    BigInt nodeIdx() const
+    CtrSizeT nodeIdx() const
     {
         return self().pos();
     }
 
-    BigInt countFw(Int symbol)
+    CtrSizeT countFw(Int symbol)
     {
         MEMORIA_ASSERT_TRUE(symbol == 0 || symbol == 1);
 
@@ -96,18 +98,18 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
         return LoudsNode(nodeIdx(), rank1(), value());
     }
 
-    BigInt nextSiblings()
+    CtrSizeT nextSiblings()
     {
         return self().countFw(1);
     }
 
-    BigInt next_siblings() const
+    CtrSizeT next_siblings() const
     {
         Iterator iter = self();
         return iter.countFw(1) - 1;
     }
 
-    BigInt prev_siblings() const
+    CtrSizeT prev_siblings() const
     {
         Iterator iter = self();
         return iter.countBw(1);
@@ -153,11 +155,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
         }
     }
 
-    void insertDegree(BigInt degree)
+    void insertDegree(CtrSizeT degree)
     {
         auto& self = this->self();
 
-        for (BigInt c = 0; c < degree; c++)
+        for (CtrSizeT c = 0; c < degree; c++)
         {
             self.insert(1);
         }
@@ -165,7 +167,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
         self.insert(0);
     }
 
-    void insertZeroes(BigInt length)
+    void insertZeroes(CtrSizeT length)
     {
         auto& self = this->self();
 
@@ -176,28 +178,28 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
     }
 
 
-    BigInt select1Fw(BigInt rank)
+    CtrSizeT select1Fw(CtrSizeT rank)
     {
         return self().selectFw(rank, 1);
     }
 
-    BigInt select1Bw(BigInt rank)
+    CtrSizeT select1Bw(CtrSizeT rank)
     {
         return self().selectBw(rank, 1);
     }
 
-    BigInt rank1(BigInt length) const
+    CtrSizeT rank1(CtrSizeT length) const
     {
         auto iter = self();
         return iter.rank(length, 1);
     }
 
-    BigInt rank1() const
+    CtrSizeT rank1() const
     {
         return node_rank();
     }
 
-    BigInt rank0() const
+    CtrSizeT rank0() const
     {
         Int nodeIdx = this->nodeIdx();
         Int rank1   = this->rank1();
@@ -209,7 +211,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
     {
         auto& self = this->self();
 
-        BigInt rank0 = self.rank0();
+        CtrSizeT rank0 = self.rank0();
 
         self.selectFw(self.rank1() - rank0, 0);
         self++;
@@ -219,7 +221,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
     {
         auto& self = this->self();
 
-        BigInt rank0 = self.rank0();
+        CtrSizeT rank0 = self.rank0();
 
         self.selectFw(self.rank1() + 1 - rank0, 0);
         self--;
@@ -292,7 +294,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
 
     template <Int LabelIdx>
     struct SumLabelFn {
-        BigInt sum_ = 0;
+    	CtrSizeT sum_ = 0;
         Int block_ = 0;
 
 
@@ -326,7 +328,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
     };
 
     template <Int LabelIdx>
-    BigInt sumLabel() const
+    CtrSizeT sumLabel() const
     {
         auto& self = this->self();
 

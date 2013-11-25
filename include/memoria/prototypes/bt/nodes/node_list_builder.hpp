@@ -132,9 +132,9 @@ struct DefaultNodeTypeListBuilder<Types, TypeList<>> {
 template <
     typename Types1
 >
-class BTreeDispatchers2: public Types1 {
+class BTreeDispatchers: public Types1 {
 
-    typedef BTreeDispatchers2<Types1>                                           MyType;
+    typedef BTreeDispatchers<Types1>                                           MyType;
 
     typedef typename Types1::NodeTypes                                          Types;
     typedef typename Types1::NodeList                                           NodeList_;

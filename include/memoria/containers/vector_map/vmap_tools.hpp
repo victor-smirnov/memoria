@@ -95,13 +95,14 @@ class VectorMapIteratorPrefixCache: public bt::BTreeIteratorCache<Iterator, Cont
 
     typedef bt::BTreeIteratorCache<Iterator, Container>                         Base;
     typedef typename Container::Accumulator                                     Accumulator;
+    typedef typename Container::CtrSizeT										CtrSizeT;
 
     BigInt id_prefix_   = 0;
     BigInt id_entry_    = 0;
-    BigInt size_        = 0;
-    BigInt base_        = 0;
+    CtrSizeT size_      = 0;
+    CtrSizeT base_      = 0;
 
-    BigInt global_pos_  = 0;
+    CtrSizeT global_pos_  = 0;
 
     Int entry_idx_      = 0;
     Int entries_        = 0;
@@ -128,12 +129,12 @@ public:
         return id_entry_;
     }
 
-    BigInt size() const
+    CtrSizeT size() const
     {
         return size_;
     }
 
-    BigInt blob_base() const
+    CtrSizeT blob_base() const
     {
         return base_;
     }
@@ -163,11 +164,11 @@ public:
     }
 
 
-    BigInt global_pos() const {
+    CtrSizeT global_pos() const {
         return global_pos_;
     }
 
-    void addToGlobalPos(BigInt value) {
+    void addToGlobalPos(CtrSizeT value) {
         global_pos_ += value;
     }
 
@@ -176,7 +177,7 @@ public:
         global_pos_ = global_pos;
     }
 
-    void addToEntry(BigInt entry, BigInt size) {
+    void addToEntry(BigInt entry, CtrSizeT size) {
         id_entry_   += entry;
         size_       += size;
     }
@@ -185,11 +186,11 @@ public:
     void setup(
             BigInt id_prefix,
             BigInt id_entry,
-            BigInt base,
-            BigInt size,
+            CtrSizeT base,
+            CtrSizeT size,
             Int entry_idx,
             Int entries,
-            BigInt global_pos
+            CtrSizeT global_pos
         )
     {
         id_prefix_  = id_prefix;
@@ -204,7 +205,7 @@ public:
         global_pos_ = global_pos;
     }
 
-    void add(BigInt id_entry, BigInt size, Int entry_idx)
+    void add(BigInt id_entry, CtrSizeT size, Int entry_idx)
     {
         id_prefix_  += id_entry_;
         base_       += size_;
@@ -215,7 +216,7 @@ public:
         entry_idx_  = entry_idx;
     }
 
-    void sub(BigInt id_entry, BigInt size, Int entry_idx)
+    void sub(BigInt id_entry, CtrSizeT size, Int entry_idx)
     {
         id_prefix_  -= id_entry;
         base_       -= size;
@@ -226,7 +227,7 @@ public:
         entry_idx_  = entry_idx;
     }
 
-    void set(BigInt id_entry, BigInt size, Int entry_idx, Int entries, BigInt global_pos)
+    void set(BigInt id_entry, CtrSizeT size, Int entry_idx, Int entries, CtrSizeT global_pos)
     {
         id_entry_   = id_entry;
         size_       = size;

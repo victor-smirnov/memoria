@@ -42,7 +42,10 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
     typedef typename Container::DataTarget                                      DataTarget;
     typedef typename Container::LeafDispatcher                                  LeafDispatcher;
     typedef typename Container::Position                                        Position;
-    typedef std::pair<BigInt, BigInt>                                           BlobDescriptorEntry; // ID, Size
+
+    typedef typename Container::Types::CtrSizeT                                 CtrSizeT;
+
+    typedef std::pair<BigInt, CtrSizeT>                                         BlobDescriptorEntry; // ID, Size
 
 
 
@@ -196,8 +199,8 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
 
         MEMORIA_ASSERT_TRUE(self.stream() == 1);
 
-        BigInt pos = self.pos();
-        BigInt size = self.cache().size();
+        CtrSizeT pos = self.pos();
+        CtrSizeT size = self.cache().size();
 
         return size == 0 || pos >= size;
     }
@@ -207,7 +210,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
         auto& self = this->self();
         MEMORIA_ASSERT_TRUE(self.stream() == 1);
 
-        BigInt pos = self.pos();
+        CtrSizeT pos = self.pos();
 
         return self.blob_size() == 0 || pos < 0;
     }
@@ -219,7 +222,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
     }
 
     struct PrefixFn {
-        BigInt prefix_ = 0;
+    	CtrSizeT prefix_ = 0;
 
         Int stream_;
         Int block_;
@@ -254,7 +257,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
     };
 
 
-    BigInt global_pos() const
+    CtrSizeT global_pos() const
     {
         auto& self = this->self();
 
@@ -263,7 +266,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
         return self.cache().global_pos();
     }
 
-    BigInt leaf_blob_base() const
+    CtrSizeT leaf_blob_base() const
     {
         auto& self = this->self();
 
@@ -293,7 +296,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
     }
 
     struct EntryBlobBaseFn {
-        BigInt prefix_ = 0;
+    	CtrSizeT prefix_ = 0;
 
         template <typename Node>
         void treeNode(const Node* node, Int idx)
@@ -314,7 +317,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
     };
 
 
-    BigInt entry_blob_base(Int entry_idx) const
+    CtrSizeT entry_blob_base(Int entry_idx) const
     {
         auto& self = this->self();
 
@@ -327,17 +330,17 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
         return fn.prefix_;
     }
 
-    BigInt pos() const
+    CtrSizeT pos() const
     {
         auto& self = this->self();
 
-        BigInt global_pos = self.global_pos();
-        BigInt blob_base  = self.cache().blob_base();
+        CtrSizeT global_pos = self.global_pos();
+        CtrSizeT blob_base  = self.cache().blob_base();
 
         return global_pos - blob_base;
     }
 
-    BigInt blob_size() const {
+    CtrSizeT blob_size() const {
         return self().cache().size();
     }
 
@@ -345,8 +348,8 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
     {
         auto& self = this->self();
 
-        BigInt size = self.blob_size();
-        BigInt pos  = self.pos();
+        CtrSizeT size = self.blob_size();
+        CtrSizeT pos  = self.pos();
 
         return pos < size;
     }
@@ -355,8 +358,8 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
     {
         auto& self = this->self();
 
-        BigInt global_pos   = self.global_pos();
-        BigInt blob_base    = self.cache().blob_base();
+        CtrSizeT global_pos   = self.global_pos();
+        CtrSizeT blob_base    = self.cache().blob_base();
 
         return global_pos < blob_base;
     }
@@ -447,7 +450,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
 
         Int local_offset        = LeafDispatcher::dispatchConstRtn(self.leaf(), LocalDataOffsetFn(), 1, entry_idx);
 
-        BigInt entry_blob_base  = self.entry_blob_base(entry_idx);
+        CtrSizeT entry_blob_base  = self.entry_blob_base(entry_idx);
 
         Int local_base          = entry_blob_base - self.leaf_blob_base();
 
@@ -456,12 +459,12 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
         return local_base + local_offset;
     }
 
-    BigInt findData(BigInt offset = 0)
+    CtrSizeT findData(CtrSizeT offset = 0)
     {
         return seek(offset);
     }
 
-    BigInt seek(BigInt offset)
+    CtrSizeT seek(CtrSizeT offset)
     {
         auto& self = this->self();
 
@@ -479,7 +482,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
         }
         else
         {
-            BigInt pos = self.pos();
+        	CtrSizeT pos = self.pos();
             return self.skip(offset - pos);
         }
     }
@@ -528,7 +531,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
 
         if (self.stream() == 1)
         {
-            BigInt offset = self.pos();
+        	CtrSizeT offset = self.pos();
 
             self.skip(-offset);
 
@@ -555,7 +558,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
         }
     }
 
-    BigInt skip(BigInt offset)
+    CtrSizeT skip(CtrSizeT offset)
     {
         auto& self = this->self();
 
@@ -568,7 +571,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
         }
     }
 
-    BigInt skipFw(BigInt amount)
+    CtrSizeT skipFw(CtrSizeT amount)
     {
         auto& self = this->self();
 
@@ -578,12 +581,12 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
         }
         else if (self.blob_size() > 0)
         {
-            BigInt size = self.blob_size();
-            BigInt pos  = self.pos();
+        	CtrSizeT size = self.blob_size();
+        	CtrSizeT pos  = self.pos();
 
             if (pos + amount < size)
             {
-                BigInt offset = self.template _findFw<FwWalker>(0, amount);
+            	CtrSizeT offset = self.template _findFw<FwWalker>(0, amount);
 
                 self.cache().addToGlobalPos(offset);
 
@@ -591,7 +594,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
             }
             else
             {
-                BigInt offset = self.template _findFw<FwWalker>(0, size - pos - 1);
+            	CtrSizeT offset = self.template _findFw<FwWalker>(0, size - pos - 1);
 
                 self.idx()++;
 
@@ -605,7 +608,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
         }
     }
 
-    BigInt skipBw(BigInt amount)
+    CtrSizeT skipBw(CtrSizeT amount)
     {
         auto& self = this->self();
 
@@ -613,7 +616,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
 
         if (self.blob_size() > 0)
         {
-            BigInt pos  = self.pos();
+        	CtrSizeT pos  = self.pos();
 
             if (amount >= pos + 1)
             {
@@ -688,10 +691,10 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
         self.ctr().walkUp(self.leaf(), self.idx(), fn);
 
         BigInt id_prefix    = std::get<0>(fn.prefix_)[0];
-        BigInt base         = std::get<0>(fn.prefix_)[1];
+        CtrSizeT base       = std::get<0>(fn.prefix_)[1];
 
-        BigInt id_entry;
-        BigInt size;
+        BigInt   id_entry;
+        CtrSizeT size;
 
         if (!self.isEnd())
         {
@@ -705,7 +708,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
             size     = 0;
         }
 
-        BigInt global_pos   = base;
+        CtrSizeT global_pos   = base;
 
         self.cache().setup(id_prefix, id_entry, base, size, self.idx(), self.leaf_size(0), global_pos);
     }

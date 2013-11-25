@@ -38,7 +38,7 @@ struct BTTypes<Profile, DblMap<Key_, Value_> >:
     typedef BTTypes<Profile, memoria::BT>                   					Base;
 
     typedef Value_                                                              Value;
-    typedef TypeList<BigInt>                                                    KeysList;
+    typedef Key_                                                    			Key;
 
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {

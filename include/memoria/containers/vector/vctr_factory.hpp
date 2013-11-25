@@ -34,10 +34,9 @@ namespace memoria    {
 template <typename Profile, typename Value_>
 struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memoria::BT> {
 
-    typedef BTTypes<Profile, memoria::BT>                   Base;
+    typedef BTTypes<Profile, memoria::BT>                   					Base;
 
     typedef Value_                                                              Value;
-    typedef TypeList<BigInt>                                                    KeysList;
 
 
     template <typename Iterator, typename Container>

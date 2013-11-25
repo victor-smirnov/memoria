@@ -25,12 +25,14 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::vtree::ItrApiName)
     typedef typename ContainerType::Vec::Iterator               VectorIterator;
     typedef typename ContainerType::Vec::Value                  Value;
 
-    BigInt next_siblings() const
+    typedef typename ContainerType::Tree::Types::CtrSizeT       CtrSizeT;
+
+    CtrSizeT next_siblings() const
     {
         return self().tree_iter().next_siblings();
     }
 
-    BigInt prev_siblings() const
+    CtrSizeT prev_siblings() const
     {
         return self().tree_iter().prev_siblings();
     }
@@ -41,7 +43,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::vtree::ItrApiName)
 
         if (self.tree_iter().next_sibling())
         {
-            BigInt data_base = self.tree_iter().template sumLabel<1>();
+        	CtrSizeT data_base = self.tree_iter().template sumLabel<1>();
             self.vector_iter() = self.ctr().vector().seek(data_base);
 
             return true;
@@ -57,7 +59,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::vtree::ItrApiName)
 
         if (self.tree_iter().prev_sibling())
         {
-            BigInt data_base = self.tree_iter().template sumLabel<1>();
+        	CtrSizeT data_base = self.tree_iter().template sumLabel<1>();
             self.vector_iter() = self.ctr().vector().seek(data_base);
 
             return true;
@@ -100,12 +102,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::vtree::ItrApiName)
         self().tree_iter().addLabel(1, values.size());
     }
 
-    BigInt lobBase() const
+    CtrSizeT lobBase() const
     {
         return self().tree_iter().template sumLabel<1>();
     }
 
-    BigInt lobSize() const
+    CtrSizeT lobSize() const
     {
         return std::get<1>(self().tree_iter().labels());
     }
@@ -114,20 +116,20 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::vtree::ItrApiName)
     {
         auto& self = this->self();
 
-        BigInt data_base    = self.lobBase();
-        BigInt data_size    = self.lobSize();
+        CtrSizeT data_base    = self.lobBase();
+        CtrSizeT data_size    = self.lobSize();
 
         self.vector_iter().seek(data_base);
         self.vector_iter().remove(data_size);
     }
 
-    void removeLob(BigInt size)
+    void removeLob(CtrSizeT size)
     {
         auto& self = this->self();
 
-        BigInt data_base    = self.lobBase();
-        BigInt data_size    = self.lobSize();
-        BigInt data_pos     = self.vector_iter().idx();
+        CtrSizeT data_base    = self.lobBase();
+        CtrSizeT data_size    = self.lobSize();
+        CtrSizeT data_pos     = self.vector_iter().idx();
 
         if (data_pos + size < data_base + data_size)
         {
@@ -138,13 +140,13 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::vtree::ItrApiName)
         }
     }
 
-    BigInt skipFw(BigInt delta)
+    CtrSizeT skipFw(CtrSizeT delta)
     {
         auto& self = this->self();
 
-        BigInt data_base    = self.lobBase();
-        BigInt data_size    = self.lobSize();
-        BigInt data_pos     = self.vector_iter().idx();
+        CtrSizeT data_base    = self.lobBase();
+        CtrSizeT data_size    = self.lobSize();
+        CtrSizeT data_pos     = self.vector_iter().idx();
 
         if (data_pos + delta < data_base + data_size)
         {
@@ -155,8 +157,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::vtree::ItrApiName)
         }
     }
 
-    std::vector<Value> read() {
-        BigInt data_size = self().lobSize();
+    std::vector<Value> read()
+    {
+    	CtrSizeT data_size = self().lobSize();
         return self().vector_iter().subVector(data_size);
     }
 

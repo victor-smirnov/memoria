@@ -39,6 +39,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
     typedef typename Container::LeafDispatcher                                  LeafDispatcher;
     typedef typename Container::Position                                        Position;
 
+    typedef typename Container::Types::CtrSizeT									CtrSizeT;
+
     bool operator++() {
         return self().skipFw(1);
     }
@@ -55,12 +57,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
         return self().skipFw(1);
     }
 
-    BigInt operator+=(BigInt size)
+    CtrSizeT operator+=(CtrSizeT size)
     {
         return self().skipFw(size);
     }
 
-    BigInt operator-=(BigInt size)
+    CtrSizeT operator-=(CtrSizeT size)
     {
         return self().skipBw(size);
     }
@@ -123,7 +125,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
     MEMORIA_DECLARE_NODE_FN(ReadFn, read);
 
 
-    BigInt read(DataTarget& data)
+    CtrSizeT read(DataTarget& data)
     {
         auto& self = this->self();
         mvector::VectorTarget target(&data);
@@ -131,7 +133,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
         return self.ctr().readStream(self, target);
     }
 
-    BigInt read(std::vector<Value>& data)
+    CtrSizeT read(std::vector<Value>& data)
     {
         MemBuffer<Value> buf(data);
         return read(buf);
@@ -142,7 +144,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
         Value data;
         MemBuffer<Value> buf(&data, 1);
 
-        BigInt length = read(buf);
+        CtrSizeT length = read(buf);
 
         if (length == 1)
         {
@@ -157,7 +159,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
         }
     }
 
-    void remove(BigInt size)
+    void remove(CtrSizeT size)
     {
         auto& self = this->self();
         self.ctr().remove(self, size);
@@ -165,7 +167,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
         self.ctr().markCtrUpdated();
     }
 
-    std::vector<Value> subVector(BigInt size)
+    std::vector<Value> subVector(CtrSizeT size)
     {
         std::vector<Value> data(size);
 
@@ -178,13 +180,13 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
         return data;
     }
 
-    BigInt skipFw(BigInt amount);
-    BigInt skipBw(BigInt amount);
-    BigInt skip(BigInt amount);
+    CtrSizeT skipFw(CtrSizeT amount);
+    CtrSizeT skipBw(CtrSizeT amount);
+    CtrSizeT skip(CtrSizeT amount);
 
-    void seek(BigInt pos)
+    void seek(CtrSizeT pos)
     {
-        BigInt current_pos = self().pos();
+    	CtrSizeT current_pos = self().pos();
         self().skip(pos - current_pos);
     }
 
@@ -202,7 +204,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
     };
 
 
-    BigInt pos() const
+    CtrSizeT pos() const
     {
         auto& self = this->self();
 
@@ -213,12 +215,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
         return std::get<0>(fn.prefix_)[0] + self.key_idx();
     }
 
-    BigInt dataPos() const
+    CtrSizeT dataPos() const
     {
         return self().idx();
     }
 
-    BigInt prefix() const
+    CtrSizeT prefix() const
     {
         return self().cache().prefix();
     }
@@ -229,7 +231,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
         return acc;
     }
 
-    void ComputePrefix(BigInt& accum)
+    void ComputePrefix(CtrSizeT& accum)
     {
         accum = prefix();
     }
@@ -245,7 +247,7 @@ MEMORIA_ITERATOR_PART_END
 #define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
 
 M_PARAMS
-BigInt M_TYPE::skip(BigInt amount)
+typename M_TYPE::CtrSizeT M_TYPE::skip(CtrSizeT amount)
 {
     auto& self = this->self();
 
@@ -263,13 +265,13 @@ BigInt M_TYPE::skip(BigInt amount)
 
 
 M_PARAMS
-BigInt M_TYPE::skipFw(BigInt amount)
+typename M_TYPE::CtrSizeT M_TYPE::skipFw(CtrSizeT amount)
 {
     return self().template _findFw<Types::template SkipForwardWalker>(0, amount);
 }
 
 M_PARAMS
-BigInt M_TYPE::skipBw(BigInt amount)
+typename M_TYPE::CtrSizeT M_TYPE::skipBw(CtrSizeT amount)
 {
     return self().template _findBw<Types::template SkipBackwardWalker>(0, amount);
 }

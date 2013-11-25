@@ -34,6 +34,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
     typedef typename Container::LeafDispatcher                                  LeafDispatcher;
     typedef typename Types::Position                                            Position;
 
+    typedef typename Container::Types::CtrSizeT                                 CtrSizeT;
+
 
 
     bool nextLeaf();
@@ -62,9 +64,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
         Base::dumpKeys(out);
     }
 
-    BigInt skipStreamFw(Int stream, BigInt distance);
-    BigInt skipStreamBw(Int stream, BigInt distance);
-    BigInt skipStream(Int stream, BigInt distance);
+    CtrSizeT skipStreamFw(Int stream, CtrSizeT distance);
+    CtrSizeT skipStreamBw(Int stream, CtrSizeT distance);
+    CtrSizeT skipStream(Int stream, CtrSizeT distance);
 
     MEMORIA_DECLARE_NODE_FN_RTN(SizeFn, size, Int);
 
@@ -141,7 +143,7 @@ MEMORIA_ITERATOR_PART_END
 
 
 M_PARAMS
-BigInt M_TYPE::skipStreamFw(Int stream, BigInt amount)
+typename M_TYPE::CtrSizeT M_TYPE::skipStreamFw(Int stream, CtrSizeT amount)
 {
     typedef typename Types::template SkipForwardWalker<Types> Walker;
 
@@ -157,7 +159,7 @@ BigInt M_TYPE::skipStreamFw(Int stream, BigInt amount)
 }
 
 M_PARAMS
-BigInt M_TYPE::skipStreamBw(Int stream, BigInt amount)
+typename M_TYPE::CtrSizeT M_TYPE::skipStreamBw(Int stream, CtrSizeT amount)
 {
     typedef typename Types::template SkipBackwardWalker<Types> Walker;
 
@@ -176,7 +178,7 @@ BigInt M_TYPE::skipStreamBw(Int stream, BigInt amount)
 
 
 M_PARAMS
-BigInt M_TYPE::skipStream(Int stream, BigInt amount)
+typename M_TYPE::CtrSizeT M_TYPE::skipStream(Int stream, CtrSizeT amount)
 {
     auto& self = this->self();
 

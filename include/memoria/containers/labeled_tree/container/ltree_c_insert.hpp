@@ -38,6 +38,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
 
     typedef typename Base::Types::LabelsTuple                                   LabelsTuple;
 
+    typedef typename Base::Types::CtrSizeT                        				CtrSizeT;
+
     static const Int Streams                                                    = Types::Streams;
 
 
@@ -275,7 +277,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
     {
         auto& self = this->self();
 
-        BigInt pos = iter.pos();
+        CtrSizeT pos = iter.pos();
 
         self.insertNode(iter, labels);
 
