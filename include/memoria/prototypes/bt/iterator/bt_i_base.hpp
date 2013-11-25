@@ -29,7 +29,6 @@ public:
     typedef typename Base::Container::NodeBaseG                                         NodeBaseG;
     typedef typename Base::Container::Allocator                                         Allocator;
     typedef typename Base::Container::Accumulator                                       Accumulator;
-    typedef typename Base::Container::Key                                               Key;
 
     typedef typename Types::template IteratorCacheFactory<
             MyType,

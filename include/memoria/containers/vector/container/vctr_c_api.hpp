@@ -36,9 +36,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrApiName)
     typedef typename Base::LeafDispatcher                                       LeafDispatcher;
     typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
 
-
-    typedef typename Base::Key                                                  Key;
-    typedef typename Base::Value                                                Value;
+    typedef typename Types::Value                                               Value;
 
     typedef typename Base::Metadata                                             Metadata;
 
@@ -54,7 +52,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrApiName)
         return self().sizes()[0];
     }
 
-    Iterator seek(Key pos)
+    Iterator seek(BigInt pos)
     {
         return self().findGT(MAIN_STREAM, pos, 0);
     }

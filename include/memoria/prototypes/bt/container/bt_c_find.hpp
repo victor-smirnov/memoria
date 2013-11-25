@@ -27,7 +27,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::FindName)
     typedef typename Base::NodeDispatcher                                       NodeDispatcher;
     typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
     typedef typename Base::LeafDispatcher                                       LeafDispatcher;
-    typedef typename Base::Key                                                  Key;
+
+
 
     static const Int MAIN_STREAM                                                = Types::MAIN_STREAM;
 
@@ -113,14 +114,14 @@ public:
         return streamREnd(MAIN_STREAM);
     }
 
-    Iterator findGT(Int stream, Key key, Int key_num)
+    Iterator findGT(Int stream, BigInt key, Int key_num)
     {
         typename Types::template FindGTWalker<Types> walker(stream, key_num, key);
 
         return self().find0(stream, walker);
     }
 
-    Iterator findGE(Int stream, Key key, Int key_num)
+    Iterator findGE(Int stream, BigInt key, Int key_num)
     {
         typename Types::template FindGEWalker<Types> walker(stream, key_num, key);
 

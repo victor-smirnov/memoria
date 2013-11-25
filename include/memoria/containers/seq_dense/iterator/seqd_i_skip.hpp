@@ -29,11 +29,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterSkipName)
 
 
     typedef typename Base::Allocator                                            Allocator;
-    typedef typename Base::NodeBase                                             NodeBase;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
 
-    typedef typename Container::Value                                           Value;
-    typedef typename Container::Key                                             Key;
     typedef typename Container::Accumulator                                     Accumulator;
 
     typedef typename Container::LeafDispatcher                                  LeafDispatcher;

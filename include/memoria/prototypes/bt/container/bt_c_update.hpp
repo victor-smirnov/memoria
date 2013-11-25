@@ -37,10 +37,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::UpdateName)
     typedef typename Base::LeafDispatcher                                       LeafDispatcher;
     typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
 
-
-    typedef typename Base::Key                                                  Key;
-    typedef typename Base::Value                                                Value;
-
     typedef typename Base::Metadata                                             Metadata;
 
     typedef typename Types::Accumulator                                         Accumulator;

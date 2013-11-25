@@ -42,9 +42,6 @@ struct BTTypes<Profile, MrkMap<Key_, Value_, BitsPerMark_> >: public BTTypes<Pro
 
     static const Int BitsPerMark												= BitsPerMark_;
 
-    typedef TypeList<Key_>                                                      KeysList;
-
-
 
     typedef TypeList<
                 LeafNodeTypes<LeafNode>,

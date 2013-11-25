@@ -26,8 +26,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::smrk_map::CtrApiName)
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    typedef typename Base::Key                                                  Key;
-    typedef typename Base::Value                                                Value;
+    typedef typename Types::Key                                                 Key;
+    typedef typename Types::Value                                               Value;
 
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;

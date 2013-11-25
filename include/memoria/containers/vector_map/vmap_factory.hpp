@@ -36,10 +36,10 @@ struct BTTypes<Profile, memoria::VectorMap<Key_, Value_> >:
     public BTTypes<Profile, memoria::BT>
 {
 
-    typedef BTTypes<Profile, memoria::BT>                   Base;
+    typedef BTTypes<Profile, memoria::BT>                   					Base;
 
     typedef Value_                                                              Value;
-    typedef TypeList<BigInt>                                                    KeysList;
+    typedef Key_                                                   				Key;
 
 
     template <typename Iterator, typename Container>

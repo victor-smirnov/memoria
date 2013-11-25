@@ -29,7 +29,7 @@ template <typename Types, typename MyType>
 class FindWalkerBase {
 protected:
     typedef typename Types::Position                                            Position;
-    typedef typename Types::Key                                                 Key;
+    typedef BigInt                                                 				Key;
 
     typedef Iter<typename Types::IterTypes>                                     Iterator;
 

@@ -25,7 +25,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::dblmap::OuterCtrApiName)
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    typedef typename Base::Key                                                  Key;
+    typedef typename Types::Key                                                 Key;
 
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;

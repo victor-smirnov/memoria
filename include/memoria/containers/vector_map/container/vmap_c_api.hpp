@@ -38,8 +38,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrApiName)
     typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
 
 
-    typedef typename Base::Key                                                  Key;
-    typedef typename Base::Value                                                Value;
+    typedef typename Types::Key                                                 Key;
+    typedef typename Types::Value                                               Value;
 
     typedef typename Base::Metadata                                             Metadata;
 

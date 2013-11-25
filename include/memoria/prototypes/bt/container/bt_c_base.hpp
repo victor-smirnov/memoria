@@ -34,8 +34,6 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     typedef typename Allocator::ID                                              ID;
     typedef typename Base::CtrShared                                            CtrShared;
 
-    typedef typename Types::Key                                                 Key;
-    typedef typename Types::Value                                               Value;
     typedef typename Types::Accumulator                                         Accumulator;
 
     typedef typename Types::NodeBase                                            NodeBase;

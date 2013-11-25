@@ -88,11 +88,9 @@ struct BTTypes {
     typedef typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator Allocator;
     typedef typename Allocator::ID                                              ID;
 
-//    typedef TypeList<
-//    >                                                                           NodeTypesList;
+//    typedef TypeList<>                                                        NodeTypesList;
 //
-//    typedef TypeList<
-//    >                                                                           DefaultNodeTypesList;
+//    typedef TypeList<>                                                        DefaultNodeTypesList;
 
     typedef TypeList<
             NonLeafNodeTypes<BranchNode>,
@@ -261,8 +259,6 @@ public:
         typedef NodePageBase0                                                   NodeBase;
         typedef NodePageBase0G                                                  NodeBaseG;
 
-        typedef TypeList<>                                                      EmbeddedContainersList;
-
         typedef typename ContainerTypes::ContainerPartsList                     CtrList;
         typedef typename ContainerTypes::IteratorPartsList                      IterList;
 
@@ -270,11 +266,6 @@ public:
         // Use container types as base definitions
         typedef BTCtrTypes<Types>                                               CtrTypes;
         typedef BTIterTypes<Types>                                              IterTypes;
-
-        typedef typename MaxElement<
-                typename ContainerTypes::KeysList, TypeSizeValueProvider
-        >::Result                                                               Key;
-
 
         static const Int Streams                                                = MyType::Streams;
 

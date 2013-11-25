@@ -38,7 +38,7 @@ struct BTTypes<Profile, memoria::CMap<gr> >: public BTTypes<Profile, memoria::BT
     typedef BTTypes<Profile, memoria::BT>                                       Base;
 
     typedef BigInt                                                              Value;
-    typedef TypeList<BigInt>                                                    KeysList;
+    typedef BigInt                                                    			Key;
 
 
     typedef TypeList<

@@ -22,21 +22,18 @@ namespace memoria    {
 
 MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorFindName)
 
-    typedef typename Base::NodeBase                                                 NodeBase;
     typedef typename Base::NodeBaseG                                                NodeBaseG;
     typedef typename Base::Container                                                Container;
 
-    typedef typename Container::Key                                                 Key;
-    typedef typename Container::Value                                               Value;
     typedef typename Container::Allocator                                           Allocator;
     typedef typename Container::Accumulator                                         Accumulator;
     typedef typename Container::Iterator                                            Iterator;
 
     template <template <typename CtrTypes> class Walker>
-    BigInt _findFw(Int index, Key key);
+    BigInt _findFw(Int index, BigInt key);
 
     template <template <typename CtrTypes> class Walker>
-    BigInt _findBw(Int index, Key key);
+    BigInt _findBw(Int index, BigInt key);
 
 MEMORIA_ITERATOR_PART_END
 
@@ -45,7 +42,7 @@ MEMORIA_ITERATOR_PART_END
 
 M_PARAMS
 template <template <typename CtrTypes> class Walker>
-BigInt M_TYPE::_findFw(Int index, Key key)
+BigInt M_TYPE::_findFw(Int index, BigInt key)
 {
     auto& self = this->self();
     Int stream = self.stream();
@@ -61,7 +58,7 @@ BigInt M_TYPE::_findFw(Int index, Key key)
 
 M_PARAMS
 template <template <typename CtrTypes> class Walker>
-BigInt M_TYPE::_findBw(Int index, Key key)
+BigInt M_TYPE::_findBw(Int index, BigInt key)
 {
     auto& self = this->self();
     Int stream = self.stream();

@@ -38,7 +38,7 @@ struct BTTypes<Profile, memoria::Map<Key_, Value_> >: public BTTypes<Profile, me
     typedef BTTypes<Profile, memoria::BT>                                       Base;
 
     typedef Value_                                                              Value;
-    typedef TypeList<Key_>                                                      KeysList;
+    typedef Key_                                                      			Key;
 
 
     typedef TypeList<

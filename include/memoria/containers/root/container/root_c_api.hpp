@@ -19,8 +19,6 @@ namespace memoria    {
 MEMORIA_CONTAINER_PART_BEGIN(memoria::root::CtrApiName)
 
     typedef typename Base::Iterator                                             Iterator;
-    typedef typename Base::Key                                                  Key;
-    typedef typename Base::Value                                                Value;
     typedef typename Base::Accumulator                                          Accumulator;
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::Metadata                                             Metadata;

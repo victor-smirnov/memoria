@@ -26,8 +26,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::dblmap::OuterCtrInsertName)
 
 	typedef typename Base::LeafDispatcher                                       LeafDispatcher;
 
-	typedef typename Base::Key                                                  Key;
-	typedef typename Base::Value                                                Value;
+    typedef typename Types::Key                                                 Key;
+    typedef typename Types::Value                                               Value;
 
 	typedef typename Types::Accumulator                                         Accumulator;
 	typedef typename Types::Position                                            Position;
