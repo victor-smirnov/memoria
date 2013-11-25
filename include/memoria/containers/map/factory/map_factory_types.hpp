@@ -54,7 +54,7 @@ struct BTTypes<Profile, memoria::Map<Key_, Value_> >: public BTTypes<Profile, me
 
 
 
-    template <Int StreamIdx>
+
     struct StreamTF {
         typedef Key_                                                Key;
         typedef Value_                                              Value;
@@ -68,7 +68,7 @@ struct BTTypes<Profile, memoria::Map<Key_, Value_> >: public BTTypes<Profile, me
 
 
     typedef TypeList<
-    			StreamDescr<StreamTF>
+    			StreamTF
     >                                    										StreamDescriptors;
 
     typedef BalancedTreeMetadata<

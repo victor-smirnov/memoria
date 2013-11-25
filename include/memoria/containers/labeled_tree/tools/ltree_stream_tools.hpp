@@ -20,7 +20,7 @@ template <typename... List> struct StreamDescriptorsListHelper;
 template <typename T>       struct StreamDescrTF;
 
 
-template <Int StreamIdx>
+
 struct LoudsStreamTF {
     typedef BigInt                                              Key;
     typedef BigInt                                              Value;
@@ -42,7 +42,7 @@ struct LoudsStreamTF {
 
 template <typename... List>
 class StreamDescriptorsListBuilder {
-    typedef StreamDescr<LoudsStreamTF> 										LoudsStreamDescriptor;
+    typedef LoudsStreamTF 														LoudsStreamDescriptor;
 public:
     typedef typename PrependToList<
             typename StreamDescriptorsListHelper<List...>::Type,
@@ -52,7 +52,7 @@ public:
 
 template <typename... List>
 class StreamDescriptorsListBuilder<TypeList<List...>> {
-	typedef StreamDescr<LoudsStreamTF> 										LoudsStreamDescriptor;
+	typedef LoudsStreamTF 														LoudsStreamDescriptor;
 public:
     typedef typename PrependToList<
             typename StreamDescriptorsListHelper<List...>::Type,
@@ -77,7 +77,7 @@ struct LabelFTreeNodeTFBase {
 };
 
 
-template <typename Value, Int StreamIdx>
+template <typename Value>
 struct LabelFTreeIndexedTF: LabelFTreeNodeTFBase<2> {
 
     typedef Packed2TreeTypes<
@@ -90,23 +90,8 @@ struct LabelFTreeIndexedTF: LabelFTreeNodeTFBase<2> {
 };
 
 
-template <typename Types, Int StreamIdx>
-struct LabelFSEArrayTF {
 
-    typedef typename SelectByIndexTool<
-            StreamIdx - Types::StreamsIdxStart,
-            typename Types::StreamDescriptors
-    >::Result                                                                   Descriptor;
-
-    typedef PackedFSEArrayTypes<
-            typename Descriptor::Value
-    >                                                                           ArrayTypes;
-
-    typedef PackedFSEArray<ArrayTypes> Type;
-};
-
-
-template <typename Value, Int StreamIdx>
+template <typename Value>
 struct LabelFTreeArrayTF: LabelFTreeNodeTFBase<1> {
 
 	typedef PackedFSEArrayTypes<
@@ -118,7 +103,7 @@ struct LabelFTreeArrayTF: LabelFTreeNodeTFBase<1> {
 
 
 
-template <UInt BitsPerSymbol, Int StreamIdx>
+template <UInt BitsPerSymbol>
 struct LabelFTreeBitmapTF: LabelFTreeNodeTFBase<1> {
 
 	typedef PackedFSEBitmapTypes<
@@ -150,7 +135,7 @@ struct LabelVTreeNodeTFBase {
 
 
 
-template <typename Value, Int Indexes, Int StreamIdx>
+template <typename Value, Int Indexes>
 struct LabelVTreeByteTF: LabelVTreeNodeTFBase<Indexes> {
 
     typedef Packed2TreeTypes<
@@ -167,7 +152,7 @@ struct LabelVTreeByteTF: LabelVTreeNodeTFBase<Indexes> {
 
 
 
-template <typename Value, Int Indexes, Int StreamIdx>
+template <typename Value, Int Indexes>
 struct LabelVTreeBitTF: LabelVTreeNodeTFBase<Indexes> {
 
     typedef Packed2TreeTypes<
@@ -186,30 +171,18 @@ struct LabelVTreeBitTF: LabelVTreeNodeTFBase<Indexes> {
 
 template <typename T>
 struct StreamDescrTF<FLabel<T, Indexed::Yes>> {
-
-	template <Int StreamIdx>
-	using StreamTF = LabelFTreeIndexedTF<T, StreamIdx>;
-
-    typedef StreamDescr<StreamTF>                								Type;
+	using Type = LabelFTreeIndexedTF<T>;
 };
 
 
 template <typename T>
 struct StreamDescrTF<FLabel<T, Indexed::No>> {
-
-	template <Int StreamIdx>
-	using StreamTF = LabelFTreeArrayTF<T, StreamIdx>;
-
-    typedef StreamDescr<StreamTF>                								Type;
+	using Type = LabelFTreeArrayTF<T>;
 };
 
 template <Int BitsPerSymbol>
 struct StreamDescrTF<FBLabel<BitsPerSymbol>> {
-
-	template <Int StreamIdx>
-	using StreamTF = LabelFTreeBitmapTF<BitsPerSymbol, StreamIdx>;
-
-    typedef StreamDescr<StreamTF>                                    			Type;
+	using Type = LabelFTreeBitmapTF<BitsPerSymbol>;
 };
 
 
@@ -218,37 +191,22 @@ struct StreamDescrTF<FBLabel<BitsPerSymbol>> {
 
 template <typename T>
 struct StreamDescrTF<VLabel<T, Granularity::Bit, Indexed::Yes>> {
-
-	template <Int StreamIdx>
-	using StreamTF = LabelVTreeBitTF<T, 2, StreamIdx>;
-
-    typedef StreamDescr<StreamTF>                								Type;
+	using Type = LabelVTreeBitTF<T, 2>;
 };
 
 template <typename T>
 struct StreamDescrTF<VLabel<T, Granularity::Byte, Indexed::Yes>> {
-
-	template <Int StreamIdx>
-	using StreamTF = LabelVTreeByteTF<T, 2, StreamIdx>;
-
-    typedef StreamDescr<StreamTF>                								Type;
+	using Type = LabelVTreeByteTF<T, 2>;
 };
 
 template <typename T>
 struct StreamDescrTF<VLabel<T, Granularity::Bit, Indexed::No>> {
-
-	template <Int StreamIdx>
-	using StreamTF = LabelVTreeBitTF<T, 1, StreamIdx>;
-
-    typedef StreamDescr<StreamTF>                								Type;
+	using Type = LabelVTreeBitTF<T, 1>;
 };
 
 template <typename T>
 struct StreamDescrTF<VLabel<T, Granularity::Byte, Indexed::No>> {
-    template <Int StreamIdx>
-	using StreamTF = LabelVTreeByteTF<T, 1, StreamIdx>;
-
-    typedef StreamDescr<StreamTF>                								Type;
+    using Type = LabelVTreeByteTF<T, 1>;
 };
 
 

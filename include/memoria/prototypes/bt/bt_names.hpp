@@ -15,21 +15,8 @@
 namespace memoria    {
 
 template <typename Profile> class ContainerCollectionCfg;
-template <typename>         class PkdFTree;
-template <typename>         class PackedFSEArray;
 
 namespace bt     {
-
-class IDType {};
-
-
-template <
-    template <Int> class PackedTypesFactory
->
-struct StreamDescr {};
-
-
-
 
 template <typename ContainerName>
 class ContainerPartsListFactory     {};

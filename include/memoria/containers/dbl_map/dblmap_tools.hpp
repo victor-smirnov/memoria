@@ -24,61 +24,6 @@ namespace memoria       {
 namespace dblmap        {
 
 
-template <typename Types, Int StreamIdx>
-struct PackedOuterMapLeafTF {
-
-    typedef typename Types::Key                                                 Key;
-
-    typedef typename SelectByIndexTool<
-            StreamIdx,
-            typename Types::StreamDescriptors
-    >::Result                                                                   Descriptor;
-
-    typedef Packed2TreeTypes<
-            Key, Key, Descriptor::LeafIndexes
-    >                                                                           TreeTypes;
-
-    typedef PkdFTree<TreeTypes> 												Type;
-};
-
-template <typename Types, Int StreamIdx>
-struct PackedInnerMapLeafTF {
-
-    typedef typename Types::Key                                                 Key;
-    typedef typename Types::Value                                               Value;
-
-    typedef typename SelectByIndexTool<
-            StreamIdx,
-            typename Types::StreamDescriptors
-    >::Result                                                                   Descriptor;
-
-    typedef PackedFSEMapTypes<
-            Key, Value, Descriptor::LeafIndexes
-    >                                                                           MapTypes;
-
-    typedef PackedFSEMap<MapTypes> 												Type;
-};
-
-
-template <typename Types, Int StreamIdx>
-struct PackedInnerMarkedMapLeafTF {
-    typedef typename Types::Key                                                 Key;
-    typedef typename Types::Value                                               Value;
-
-    typedef typename SelectByIndexTool<
-            StreamIdx,
-            typename Types::StreamDescriptors
-    >::Result                                                                   Descriptor;
-
-    typedef PackedFSEMarkableMapTypes<
-    		Key,
-    		Value,
-            Descriptor::LeafIndexes,
-            Types::BitsPerMark
-    >                                                                           MapTypes;
-
-    typedef PackedFSEMarkableMap<MapTypes>                            			Type;
-};
 
 
 typedef std::pair<BigInt, BigInt> VectorMapEntry;

@@ -114,25 +114,6 @@ private:
 
 
 
-
-template <typename Types, Int StreamIdx>
-struct PackedFSEMapTF {
-
-    typedef typename Types::Key                                                 Key;
-    typedef typename Types::Value                                               Value;
-
-    typedef typename SelectByIndexTool<
-            StreamIdx,
-            typename Types::StreamDescriptors
-    >::Result                                                                   Descriptor;
-
-    typedef PackedFSEMapTypes<
-            Key, Value, Descriptor::NodeIndexes
-    >                                                                           MapTypes;
-
-    typedef PackedFSEMap<MapTypes>                                              Type;
-};
-
 template <typename Key, Granularity Gr, Int Indexes> struct CompressedMapTF;
 
 

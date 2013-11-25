@@ -157,15 +157,15 @@ template <typename List, Int Idx = 0>
 class AccumulatorListBuilder;
 
 template <
-    template <Int> class StructsTF,
+    typename StructsTF,
     typename... Tail,
     Int Idx
 >
-class AccumulatorListBuilder<TypeList<StreamDescr<StructsTF>, Tail...>, Idx> {
+class AccumulatorListBuilder<TypeList<StructsTF, Tail...>, Idx> {
 
 public:
     typedef typename MergeLists<
-            typename StructsTF<Idx>::AccumulatorPart,
+            typename StructsTF::AccumulatorPart,
             typename AccumulatorListBuilder<
                 TypeList<Tail...>,
                 Idx + 1
@@ -188,15 +188,15 @@ template <typename List, Int Idx = 0>
 class IteratorPrefixListBuilder;
 
 template <
-    template <Int> class StructsTF,
+    typename StructsTF,
     typename... Tail,
     Int Idx
 >
-class IteratorPrefixListBuilder<TypeList<StreamDescr<StructsTF>, Tail...>, Idx> {
+class IteratorPrefixListBuilder<TypeList<StructsTF, Tail...>, Idx> {
 
 public:
     typedef typename MergeLists<
-            typename StructsTF<Idx>::IteratorPrefixPart,
+            typename StructsTF::IteratorPrefixPart,
             typename IteratorPrefixListBuilder<
                 TypeList<Tail...>,
                 Idx + 1
@@ -227,18 +227,18 @@ class PackedStructListBuilder;
 
 
 template <
-    template <Int> class StructsTF,
+    typename StructsTF,
     typename... Tail,
     Int Idx
 >
-class PackedStructListBuilder<TypeList<StreamDescr<StructsTF>, Tail...>, Idx> {
+class PackedStructListBuilder<TypeList<StructsTF, Tail...>, Idx> {
 
-    typedef TypeList<StreamDescr<StructsTF>, Tail...> List;
+    typedef TypeList<StructsTF, Tail...> List;
 
 public:
     typedef typename MergeLists<
             StructDescr<
-                typename StructsTF<Idx>::NonLeafType,
+                typename StructsTF::NonLeafType,
                 Idx
             >,
             typename PackedStructListBuilder<
@@ -249,7 +249,7 @@ public:
 
     typedef typename MergeLists<
                 StructDescr<
-                    typename StructsTF<Idx>::LeafType,
+                    typename StructsTF::LeafType,
                     Idx
                 >,
                 typename PackedStructListBuilder<

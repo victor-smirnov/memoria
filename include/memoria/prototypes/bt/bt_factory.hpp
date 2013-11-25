@@ -54,65 +54,6 @@
 
 namespace memoria    {
 
-template <typename Types, Int StreamIdx>
-struct PkdFTreeTF {
-
-    typedef typename Types::Key                                                 Key;
-
-    typedef typename SelectByIndexTool<
-            StreamIdx,
-            typename Types::StreamDescriptors
-    >::Result                                                                   Descriptor;
-
-    typedef Packed2TreeTypes<
-            Key, Key, Descriptor::NodeIndexes
-    >                                                                           TreeTypes;
-
-    typedef PkdFTree<TreeTypes> Type;
-};
-
-
-template <typename Types, Int StreamIdx>
-struct PackedFSEArrayTF {
-
-    typedef typename Types::Value                                               Value;
-    typedef typename Types::Key                                                 Key;
-
-    typedef typename SelectByIndexTool<
-            StreamIdx,
-            typename Types::StreamDescriptors
-    >::Result                                                                   Descriptor;
-
-    typedef PackedFSEArrayTypes<
-            Value
-    >                                                                           ArrayTypes;
-
-    typedef PackedFSEArray<ArrayTypes> 											Type;
-};
-
-
-
-
-template <typename Types, Int StreamIdx>
-struct PkdVTreeTF {
-
-    typedef typename Types::Key                                                 Key;
-
-    typedef typename SelectByIndexTool<
-            StreamIdx,
-            typename Types::StreamDescriptors
-    >::Result                                                                   Descriptor;
-
-    typedef Packed2TreeTypes<
-            Key, Key, Descriptor::NodeIndexes, UByteExintCodec
-    >                                                                           TreeTypes;
-
-    typedef PkdVTree<TreeTypes> 												Type;
-};
-
-
-
-
 template <typename Profile_, typename ContainerTypeSelector>
 struct BTTypes {
 
@@ -244,17 +185,6 @@ public:
 
     
     typedef typename ContainerTypes::Allocator::Page::ID                        ID;
-
-   /* //TAGS: #IF_THEN_ELSE_EXAMPLE
-    typedef typename memoria::IfThenElse<
-                IfTypesEqual<
-                    typename ContainerTypes::Value,
-                    memoria::bt::IDType
-                >::Value,
-                ID,
-                typename ContainerTypes::Value
-    >::Result                                                                   Value;
-    */
 
     typedef typename ContainerTypes::Value										Value;
 

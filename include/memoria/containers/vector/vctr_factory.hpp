@@ -56,7 +56,6 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
     >                                                                           DefaultNodeTypesList;
 
 
-    template <Int StreamIdx>
     struct StreamTF {
         typedef BigInt                                              Key;
         typedef Value_                                              Value;
@@ -70,9 +69,7 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
 
 
     typedef TypeList<
-                StreamDescr<
-                    StreamTF
-            >
+            	StreamTF
     >                                                                           StreamDescriptors;
 
     typedef BalancedTreeMetadata<

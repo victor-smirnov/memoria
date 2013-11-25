@@ -122,7 +122,7 @@ struct BTTypes<Profile, dblmap::OuterMap<Key_> >: public BTTypes<Profile, memori
     };
 
 
-    template <Int StreamIdx>
+
     struct StreamTF {
         typedef Key_                                                Key;
 
@@ -136,9 +136,7 @@ struct BTTypes<Profile, dblmap::OuterMap<Key_> >: public BTTypes<Profile, memori
 
     typedef TypeList<
                 // Outer Map
-                StreamDescr<
-                	StreamTF
-                >
+                StreamTF
     >                                                                           StreamDescriptors;
 
     typedef BalancedTreeMetadata<
@@ -234,7 +232,6 @@ struct BTTypes<Profile, dblmap::InnerMap<Key_, Value_, BitsPerMark_> >: public B
     };
 
 
-    template <Int StreamIdx>
     struct StreamTF {
         typedef core::StaticVector<BigInt, 2>						AccumulatorPart;
         typedef core::StaticVector<BigInt, 2>						IteratorPrefixPart;
@@ -252,9 +249,7 @@ struct BTTypes<Profile, dblmap::InnerMap<Key_, Value_, BitsPerMark_> >: public B
 
     typedef TypeList<
                 // Inner Map
-    			StreamDescr<
-    				StreamTF
-    			>
+    			StreamTF
     >                                                                           StreamDescriptors;
 
     typedef BalancedTreeMetadata<

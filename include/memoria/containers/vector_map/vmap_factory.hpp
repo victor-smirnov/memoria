@@ -29,23 +29,6 @@
 namespace memoria    {
 
 
-template <typename Types, Int StreamIdx>
-struct PackedVMapFSETreeLeafTF {
-
-    typedef typename Types::Key                                                 Key;
-
-    typedef typename SelectByIndexTool<
-            StreamIdx,
-            typename Types::StreamDescriptors
-    >::Result                                                                   Descriptor;
-
-    typedef Packed2TreeTypes<
-            Key, Key, Descriptor::LeafIndexes
-    >                                                                           TreeTypes;
-
-    typedef PkdFTree<TreeTypes> Type;
-};
-
 
 
 template <typename Profile, typename Key_, typename Value_>
@@ -75,7 +58,7 @@ struct BTTypes<Profile, memoria::VectorMap<Key_, Value_> >:
     >                                                                           DefaultNodeTypesList;
 
 
-    template <Int StreamIdx>
+
     struct MapStreamTF {
         typedef Key_                                                Key;
         typedef BigInt                                              Value;
@@ -88,7 +71,7 @@ struct BTTypes<Profile, memoria::VectorMap<Key_, Value_> >:
     };
 
 
-    template <Int StreamIdx>
+
     struct DataStreamTF {
         typedef BigInt                                              Key;
         typedef Value_                                              Value;
@@ -103,14 +86,10 @@ struct BTTypes<Profile, memoria::VectorMap<Key_, Value_> >:
 
     typedef TypeList<
                 // Map
-                StreamDescr<
-                    MapStreamTF
-                >,
-
+                MapStreamTF
+                ,
                 // Vector
-                StreamDescr<
-                	DataStreamTF
-                >
+                DataStreamTF
     >                                                                           StreamDescriptors;
 
     typedef BalancedTreeMetadata<

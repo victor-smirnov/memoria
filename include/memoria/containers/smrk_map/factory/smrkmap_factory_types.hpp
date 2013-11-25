@@ -35,28 +35,6 @@
 namespace memoria {
 
 
-template <typename Types, Int StreamIdx>
-struct SearchableMarkableMapTF {
-
-    typedef typename Types::Key                                                 Key;
-    typedef typename Types::Value                                               Value;
-
-    typedef typename SelectByIndexTool<
-            StreamIdx,
-            typename Types::StreamDescriptors
-    >::Result                                                                   Descriptor;
-
-    typedef PackedFSESearchableMarkableMapTypes<
-    		Key,
-    		Value,
-            Descriptor::LeafIndexes,
-            Types::BitsPerMark
-    >                                                                           MapTypes;
-
-    typedef PackedFSESearchableMarkableMap<MapTypes>                            Type;
-};
-
-
 
 template <typename Profile, typename Key_, typename Value_, Int BitsPerMark_>
 struct BTTypes<Profile, SMrkMap<Key_, Value_, BitsPerMark_> >: public BTTypes<Profile, memoria::BT> {
@@ -83,7 +61,7 @@ struct BTTypes<Profile, SMrkMap<Key_, Value_, BitsPerMark_> >: public BTTypes<Pr
     >                                                                           DefaultNodeTypesList;
 
 
-    template <Int StreamIdx>
+
     struct StreamTF {
     	static const Int Indexes = (1 << BitsPerMark) + 2;
 
@@ -105,9 +83,7 @@ struct BTTypes<Profile, SMrkMap<Key_, Value_, BitsPerMark_> >: public BTTypes<Pr
 
 
     typedef TypeList<
-            StreamDescr<
-                StreamTF
-            >
+            	StreamTF
     >                                                                           StreamDescriptors;
 
     typedef BalancedTreeMetadata<

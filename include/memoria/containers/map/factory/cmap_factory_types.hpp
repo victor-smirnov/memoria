@@ -52,15 +52,11 @@ struct BTTypes<Profile, memoria::CMap<gr> >: public BTTypes<Profile, memoria::BT
     >                                                                           DefaultNodeTypesList;
 
 
-    template <Int StreamIdx>
+
     using StreamTF = map::CompressedMapTF<BigInt, gr, 1>;
 
 
-    typedef TypeList<
-            StreamDescr<
-                StreamTF
-            >
-    >                                                                           StreamDescriptors;
+    typedef TypeList<StreamTF>                                                  StreamDescriptors;
 
     typedef BalancedTreeMetadata<
             typename Base::ID,
