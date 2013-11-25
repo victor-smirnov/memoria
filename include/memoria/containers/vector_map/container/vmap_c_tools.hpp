@@ -40,7 +40,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrToolsName)
 
     typedef typename Base::Key                                                  Key;
     typedef typename Base::Value                                                Value;
-    typedef typename Base::Element                                              Element;
 
     typedef typename Base::Metadata                                             Metadata;
 
@@ -79,30 +78,30 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrToolsName)
         VectorAdd(keys, LeafDispatcher::dispatchConstRtn(node, typename Base::WrappedCtr::SumKeysFn(&self().ctr()), from, count));
     }
 
-    template <typename Node>
-    void setAndReindexFn(Node* node, Int idx, const Element& element) const
-    {
-        node->value(idx) = element.second;
-
-        if (idx == node->children_count() - 1)
-        {
-            node->reindexAll(idx, idx + 1);
-        }
-        else {
-            node->reindexAll(idx, node->children_count());
-        }
-    }
-
-    MEMORIA_CONST_FN_WRAPPER(SetAndReindexFn, setAndReindexFn);
-
-
-    void setLeafDataAndReindex(NodeBaseG& node, Int idx, const Element& element) const
-    {
-        self().ctr().setKeys(node, idx, element.first);
-
-        self().ctr().updatePageG(node);
-        LeafDispatcher::dispatch(node.page(), SetAndReindexFn(me()), idx, element);
-    }
+//    template <typename Node>
+//    void setAndReindexFn(Node* node, Int idx, const Element& element) const
+//    {
+//        node->value(idx) = element.second;
+//
+//        if (idx == node->children_count() - 1)
+//        {
+//            node->reindexAll(idx, idx + 1);
+//        }
+//        else {
+//            node->reindexAll(idx, node->children_count());
+//        }
+//    }
+//
+//    MEMORIA_CONST_FN_WRAPPER(SetAndReindexFn, setAndReindexFn);
+//
+//
+//    void setLeafDataAndReindex(NodeBaseG& node, Int idx, const Element& element) const
+//    {
+//        self().ctr().setKeys(node, idx, element.first);
+//
+//        self().ctr().updatePageG(node);
+//        LeafDispatcher::dispatch(node.page(), SetAndReindexFn(me()), idx, element);
+//    }
 
 
     template <typename Node>

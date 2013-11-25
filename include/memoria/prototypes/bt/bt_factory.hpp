@@ -284,8 +284,6 @@ public:
 
         typedef core::StaticVector<BigInt, MyType::Streams>                     Position;
 
-        typedef ValuePair<Accumulator, Value>                                   Element;
-
         typedef PageUpdateManager<CtrTypes>                                     PageUpdateMgr;
     };
 

@@ -36,7 +36,6 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrCRUDName)
 
     typedef typename Container::Value                                           Value;
     typedef typename Container::Key                                             Key;
-    typedef typename Container::Element                                         Element;
     typedef typename Container::Accumulator                                     Accumulator;
 
     typedef typename Container::DataSource                                      DataSource;

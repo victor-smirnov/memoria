@@ -28,10 +28,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
 
     typedef typename Base::Key                                                  Key;
     typedef typename Base::Value                                                Value;
-    typedef typename Base::Element                                              Element;
+
 
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
+
+    typedef ValuePair<Accumulator, Value>                                   	Element;
 
     static const Int Streams                                                    = Types::Streams;
 

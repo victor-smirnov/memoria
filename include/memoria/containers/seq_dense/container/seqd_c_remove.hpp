@@ -39,7 +39,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrRemoveName)
 
     typedef typename Base::Key                                                  Key;
     typedef typename Base::Value                                                Value;
-    typedef typename Base::Element                                              Element;
 
     typedef typename Base::Metadata                                             Metadata;
 

@@ -34,7 +34,6 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::InnerItrApiName)
     typedef typename Base::NodeBaseG                                            NodeBaseG;
 
     typedef typename Container::Value                                           Value;
-    typedef typename Container::Element                                         Element;
     typedef typename Container::Key                                             Key;
     typedef typename Container::Accumulator                                     Accumulator;
 

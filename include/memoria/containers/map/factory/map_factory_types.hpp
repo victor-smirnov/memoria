@@ -41,7 +41,6 @@ struct BTTypes<Profile, memoria::Map<Key_, Value_> >: public BTTypes<Profile, me
     typedef TypeList<Key_>                                                      KeysList;
 
 
-
     typedef TypeList<
                 LeafNodeTypes<LeafNode>,
                 NonLeafNodeTypes<BranchNode>

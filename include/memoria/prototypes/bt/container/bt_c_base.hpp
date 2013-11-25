@@ -36,7 +36,6 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     typedef typename Types::Key                                                 Key;
     typedef typename Types::Value                                               Value;
-    typedef typename Types::Element                                             Element;
     typedef typename Types::Accumulator                                         Accumulator;
 
     typedef typename Types::NodeBase                                            NodeBase;

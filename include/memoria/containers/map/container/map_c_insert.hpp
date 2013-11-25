@@ -31,7 +31,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertName)
 
     typedef typename Base::Key                                                  Key;
     typedef typename Base::Value                                                Value;
-    typedef typename Base::Element                                              Element;
 
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
@@ -39,6 +38,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertName)
     static const Int Streams                                                    = Types::Streams;
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
+
+    typedef ValuePair<Accumulator, Value>                                   	Element;
 
     struct InsertIntoLeafFn {
 

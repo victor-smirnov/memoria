@@ -31,7 +31,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
 
     typedef typename Base::Container::Value                                     Value;
     typedef typename Base::Container::Key                                       Key;
-    typedef typename Base::Container::Element                                   Element;
     typedef typename Base::Container::Accumulator                               Accumulator;
     typedef typename Base::Container                                            Container;
     typedef typename Container::LeafDispatcher                                  LeafDispatcher;

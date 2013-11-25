@@ -35,7 +35,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterCountName)
 
     typedef typename Container::Value                                           Value;
     typedef typename Container::Key                                             Key;
-    typedef typename Container::Element                                         Element;
     typedef typename Container::Accumulator                                     Accumulator;
 
     typedef typename Container::LeafDispatcher                                  LeafDispatcher;
