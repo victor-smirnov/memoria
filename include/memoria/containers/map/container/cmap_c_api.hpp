@@ -5,8 +5,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_CONTAINERS_MAP_CTR_API_HPP
-#define _MEMORIA_CONTAINERS_MAP_CTR_API_HPP
+#ifndef _MEMORIA_CONTAINERS_CMAP_CTR_API_HPP
+#define _MEMORIA_CONTAINERS_CMAP_CTR_API_HPP
 
 
 #include <memoria/containers/map/map_names.hpp>
@@ -18,7 +18,7 @@
 
 namespace memoria    {
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrCApiName)
 
     typedef typename Base::Types                                                Types;
 
@@ -44,7 +44,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
 
     Iterator find(Key key)
     {
-        Iterator iter = self().findGE(0, key, 0);
+        Iterator iter = self().findGE(0, key, 1);
 
         if (!iter.isEnd())
         {
@@ -63,12 +63,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
 
     Iterator findKeyGE(Key key)
     {
-    	return self().findGE(0, key, 0);
+    	return self().findGE(0, key, 1);
     }
 
     Iterator findKeyLE(Key key)
     {
-    	Iterator iter = self().findGE(0, key, 0);
+    	Iterator iter = self().findGE(0, key, 1);
 
     	if (iter.isEnd() || iter.key() > key)
     	{
@@ -85,7 +85,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
 
     Iterator findKeyLT(Key key)
     {
-    	Iterator iter = self().findGE(0, key, 0);
+    	Iterator iter = self().findGE(0, key, 1);
 
     	if (iter.isEnd() || iter.key() >= key)
     	{
@@ -104,12 +104,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
 
     Iterator operator[](Key key)
     {
-        Iterator iter = self().findGE(0, key, 0);
+        Iterator iter = self().findGE(0, key, 1);
 
         if (iter.isEnd() || key != iter.key())
         {
             Accumulator keys;
-            std::get<0>(keys)[0] = key;
+            std::get<0>(keys)[0] = 1;
+            std::get<0>(keys)[1] = key;
             self().insert(iter, keys);
 
             iter--;
@@ -120,12 +121,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
 
     Iterator insertIFNotExists(Key key)
     {
-    	Iterator iter = self().findGE(0, key, 0);
+    	Iterator iter = self().findGE(0, key, 1);
 
     	if (iter.isEnd() || key != iter.key())
     	{
     		Accumulator keys;
-    		std::get<0>(keys)[0] = key;
+    		std::get<0>(keys)[1] = key;
     		self().insert(iter, keys);
 
     		iter--;
@@ -139,7 +140,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
 
     bool remove(Key key)
     {
-        Iterator iter = self().findGE(0, key, 0);
+        Iterator iter = self().findGE(0, key, 1);
 
         if (key == iter.key())
         {
@@ -168,11 +169,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrApiName)
     {
         Accumulator delta = element.first - iter.prefixes();
 
+        std::get<0>(delta)[0] = 1;
+
         Element e(delta, element.second);
 
         if (self().insertMapEntry(iter, e))
         {
-            iter.updateUp(-delta);
+        	std::get<0>(delta)[0] = 0;
+        	iter.updateUp(-delta);
         }
     }
 

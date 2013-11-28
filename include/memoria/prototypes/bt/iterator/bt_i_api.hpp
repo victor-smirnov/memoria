@@ -44,16 +44,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
 
     bool prevLeaf();
 
-    bool next() {
-        return self().nextKey();
-    }
-
-    bool prev() {
-        return self().prevKey();
-    }
-
-
-
     bool IsFound() {
         auto& self = this->self();
         return (!self.isEnd()) && self.isNotEmpty();

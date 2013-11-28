@@ -104,7 +104,7 @@ public:
                 AssertEQ(MA_SRC, pairs[idx].key_, key);
                 AssertEQ(MA_SRC, pairs[idx].value_, value);
 
-                iter.next();
+                iter++;
                 idx++;
             }
 
@@ -118,7 +118,7 @@ public:
                 AssertEQ(MA_SRC, pairs[idx].key_, key, SBuf()<<idx);
                 AssertEQ(MA_SRC, pairs[idx].value_, value, SBuf()<<idx);
 
-                iter.prev();
+                iter--;
 
                 idx--;
             }

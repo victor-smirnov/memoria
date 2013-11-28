@@ -18,10 +18,10 @@ template <
     Int Blocks      = 1,
     template <typename> class Codec = UByteExintCodec,
 
-    Int BF                  = PackedTreeExintVPB,
-    Int VPB                 = PackedTreeBranchingFactor
+    Int BF                  = PackedTreeBranchingFactor,
+    Int VPB                 = PackedTreeExintVPB
 >
-struct PackedVLEMapTypes: Packed2TreeTypes<BigInt, BigInt, Blocks, Codec> {};
+struct PackedVLEMapTypes: Packed2TreeTypes<BigInt, BigInt, Blocks, Codec, BF, VPB> {};
 
 template <typename Types>
 class PackedVLEMap: public PackedAllocator {
@@ -44,6 +44,8 @@ public:
 
     typedef typename Array::ConstValueAccessor                                  ConstValueAccessor;
     typedef typename Array::ValueAccessor                                       ValueAccessor;
+
+    static const Int Blocks = 													Tree::Blocks;
 
     Tree* tree()
     {
@@ -146,6 +148,16 @@ public:
         array()->dump(out);
     }
 
+    ValueDescr findForward(SearchType search_type, Int block, Int start, IndexValue val) const
+    {
+    	return tree()->findForward(search_type, block, start, val);
+    }
+
+    ValueDescr findBackward(SearchType search_type, Int block, Int start, IndexValue val) const
+    {
+    	return tree()->findBackward(search_type, block, start, val);
+    }
+
     ValueDescr findGEForward(Int block, Int start, IndexValue val) const
     {
         return this->tree()->findGEForward(block, start, val);
@@ -176,6 +188,16 @@ public:
         tree()->sums(from, to, values);
     }
 
+    void sums(Int idx, Values& values) const
+    {
+    	tree()->sums(idx, values);
+    }
+
+    void sums(Int idx, Values2& values) const
+    {
+    	tree()->sums(idx, values);
+    }
+
     IndexValue sum(Int block) const {
         return tree()->sum(block);
     }
@@ -190,6 +212,35 @@ public:
 
     IndexValue sumWithoutLastElement(Int block) const {
         return tree()->sumWithoutLastElement(block);
+    }
+
+
+    void addValues(Int idx, const core::StaticVector<Value, Blocks>& values)
+    {
+    	auto* tree = this->tree();
+
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		if (values[block] != 0)
+    		{
+    			Value val = tree->getValue(block, idx);
+    			tree->setValue(block, idx, val + values[block]);
+    		}
+    	}
+    }
+
+    void addValues(Int idx, const core::StaticVector<Value, Blocks + 1>& values)
+    {
+    	auto* tree = this->tree();
+
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		if (values[block + 1] != 0)
+    		{
+    			Value val = tree->getValue(block, idx);
+    			tree->setValue(block, idx, val + values[block + 1]);
+    		}
+    	}
     }
 
     void generateDataEvents(IPageDataEventHandler* handler) const

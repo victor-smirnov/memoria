@@ -1184,6 +1184,18 @@ public:
     }
 
     template <typename Fn, typename... Args>
+    void processAll(Fn&& fn, Args&&... args) const
+    {
+    	Dispatcher::dispatchAll(allocator(), std::forward<Fn>(fn), args...);
+    }
+
+    template <typename Fn, typename... Args>
+    void processAll(Fn&& fn, Args&&... args)
+    {
+    	Dispatcher::dispatchAll(allocator(), std::forward<Fn>(fn), args...);
+    }
+
+    template <typename Fn, typename... Args>
     void processNotEmpty(Fn&& fn, Args&&... args) const
     {
         Dispatcher::dispatchNotEmpty(allocator(), std::forward<Fn>(fn), args...);

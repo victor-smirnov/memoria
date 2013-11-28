@@ -137,7 +137,7 @@ public:
 
     void finish(Iterator& iter, Int idx)
     {
-        iter.key_idx() = 0;
+        iter.idx() = 0;
 
         iter.cache().setup(0);
     }

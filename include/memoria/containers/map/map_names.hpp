@@ -14,15 +14,22 @@
 namespace memoria    {
 namespace map        {
 
-class CtrApiName    {};
-class CtrInsertName {};
-class CtrRemoveName {};
+class CtrApiName    	{};
+class CtrCApiName    	{};
+class CtrInsertName 	{};
+class CtrCInsertName 	{};
+class CtrCNavName 		{};
+class CtrRemoveName 	{};
+class CtrCRemoveName 	{};
 
 
 class ItrApiName {};
+class ItrCApiName {};
 class ItrNavName {};
+class ItrCNavName {};
 
 class ItrValueName {};
+class ItrCValueName {};
 class ItrMrkValueName {};
 
 }

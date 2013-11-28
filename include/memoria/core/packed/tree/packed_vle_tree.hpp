@@ -1496,8 +1496,6 @@ public:
 
     void sums(Values& values) const
     {
-        //values += sums();
-
         sumsSmall<0>(values);
     }
 
@@ -1506,10 +1504,25 @@ public:
         values[0] += size();
 
         sumsSmall<1>(values);
-
-        //values.sumUp(sums());
     }
 
+    void sums(Int idx, Values2& values) const
+    {
+    	values[0]++;
+
+    	for (Int c = 1; c < Values2::Indexes; c++)
+    	{
+    		values[c] = this->getValue(c - 1, idx);
+    	}
+    }
+
+    void sums(Int idx, Values& values) const
+    {
+    	for (Int c = 0; c < Values::Indexes; c++)
+    	{
+    		values[c] = this->getValue(c, idx);
+    	}
+    }
 
     // ==================================== Find =========================================== //
 
