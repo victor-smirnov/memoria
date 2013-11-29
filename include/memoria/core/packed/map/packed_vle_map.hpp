@@ -214,6 +214,11 @@ public:
         return tree()->sumWithoutLastElement(block);
     }
 
+    void addValue(Int block, Int idx, const Value& value)
+    {
+    	auto* tree = this->tree();
+    	tree->addValue(block, idx, value);
+    }
 
     void addValues(Int idx, const core::StaticVector<Value, Blocks>& values)
     {

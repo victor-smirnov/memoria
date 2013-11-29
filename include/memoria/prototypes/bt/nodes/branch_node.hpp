@@ -339,7 +339,6 @@ public:
     typedef BranchNodeStreamTypes<Types>                                        StreamTypes;
 
     typedef typename PackedStructListBuilder<
-//                StreamTypes,
                 typename Types::StreamDescriptors,
                 0
     >::NonLeafStructList                                                        StreamsStructList;
@@ -1248,16 +1247,28 @@ public:
 
     struct UpdateUpFn {
         template <Int StreamIdx, typename StreamType>
-        void stream(StreamType* tree, Int idx, const Accumulator* accum)
+        void stream(StreamType* tree, Int idx, const Accumulator& accum)
         {
-            tree->addValues(idx, std::get<StreamIdx>(*accum));
+            tree->addValues(idx, std::get<StreamIdx>(accum));
+        }
+
+        template <Int StreamIdx, typename StreamType, typename DataType>
+        void stream(StreamType* tree, Int idx, const SingleIndexUpdateData<DataType>& data)
+        {
+        	tree->addValue(data.index(), idx, data.delta());
         }
     };
 
 
     void updateUp(Int idx, const Accumulator& keys)
     {
-        Dispatcher::dispatchNotEmpty(allocator(), UpdateUpFn(), idx, &keys);
+        Dispatcher::dispatchNotEmpty(allocator(), UpdateUpFn(), idx, keys);
+    }
+
+    template <typename DataType>
+    void updateUp(Int idx, const SingleIndexUpdateData<DataType>& data)
+    {
+    	Dispatcher::dispatch(data.stream(), allocator(), UpdateUpFn(), idx, data);
     }
 
     //FIXME: remove?

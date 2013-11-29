@@ -175,8 +175,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrCApiName)
 
         if (self().insertMapEntry(iter, e))
         {
-        	std::get<0>(delta)[0] = 0;
-        	iter.updateUp(-delta);
+        	//iter.updateUp(1, -std::get<0>(delta)[1]);
         }
     }
 
@@ -190,10 +189,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrCApiName)
     {
         bool result = self().removeMapEntry(iter, keys);
 
-        if (!iter.isEnd())
-        {
-            iter.updateUp(keys);
-        }
+//        if (!iter.isEnd())
+//        {
+//            iter.updateUp(keys);
+//        }
 
         return result;
     }

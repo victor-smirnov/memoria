@@ -10,6 +10,7 @@
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_NODECOMPR_HPP
 
 #include <memoria/prototypes/bt/bt_tools.hpp>
+#include <memoria/prototypes/bt/bt_macros.hpp>
 #include <memoria/core/container/macros.hpp>
 
 #include <vector>
@@ -60,11 +61,18 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::NodeComprName)
     NodeBaseG splitP(NodeBaseG& node, SplitFn split_fn);
 
     MEMORIA_DECLARE_NODE_FN(UpdateNodeFn, updateUp);
-    bool updateNode(NodeBaseG& node, Int idx, const Accumulator& sums);
-    void updatePath(NodeBaseG& node, Int& idx, const Accumulator& sums);
-    void updateParent(NodeBaseG& node, const Accumulator& sums);
 
-    void updatePathNoBackup(NodeBaseG& node, Int idx, const Accumulator& sums);
+    template <typename UpdateData>
+    bool updateNode(NodeBaseG& node, Int idx, const UpdateData& sums);
+
+    template <typename UpdateData>
+    void updatePath(NodeBaseG& node, Int& idx, const UpdateData& sums);
+
+    template <typename UpdateData>
+    void updateParent(NodeBaseG& node, const UpdateData& sums);
+
+    template <typename UpdateData>
+    void updatePathNoBackup(NodeBaseG& node, Int idx, const UpdateData& sums);
 
 
     MEMORIA_DECLARE_NODE_FN(TryMergeNodesFn, mergeWith);
@@ -252,7 +260,8 @@ typename M_TYPE::NodeBaseG M_TYPE::createNextLeaf(NodeBaseG& left_node)
 }
 
 M_PARAMS
-bool M_TYPE::updateNode(NodeBaseG& node, Int idx, const Accumulator& sums)
+template <typename UpdateData>
+bool M_TYPE::updateNode(NodeBaseG& node, Int idx, const UpdateData& sums)
 {
     auto& self = this->self();
 
@@ -271,8 +280,13 @@ bool M_TYPE::updateNode(NodeBaseG& node, Int idx, const Accumulator& sums)
     }
 }
 
+
+
+
+
 M_PARAMS
-void M_TYPE::updatePath(NodeBaseG& node, Int& idx, const Accumulator& sums)
+template <typename UpdateData>
+void M_TYPE::updatePath(NodeBaseG& node, Int& idx, const UpdateData& sums)
 {
     auto& self = this->self();
 
@@ -304,8 +318,12 @@ void M_TYPE::updatePath(NodeBaseG& node, Int& idx, const Accumulator& sums)
     }
 }
 
+
+
+
 M_PARAMS
-void M_TYPE::updateParent(NodeBaseG& node, const Accumulator& sums)
+template <typename UpdateData>
+void M_TYPE::updateParent(NodeBaseG& node, const UpdateData& sums)
 {
     auto& self = this->self();
 
@@ -318,8 +336,10 @@ void M_TYPE::updateParent(NodeBaseG& node, const Accumulator& sums)
 
 
 
+
 M_PARAMS
-void M_TYPE::updatePathNoBackup(NodeBaseG& node, Int idx, const Accumulator& sums)
+template <typename UpdateData>
+void M_TYPE::updatePathNoBackup(NodeBaseG& node, Int idx, const UpdateData& sums)
 {
     auto& self = this->self();
 

@@ -39,6 +39,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrCRemoveName)
     struct RemoveFromLeafFn {
         Accumulator& entry_;
 
+        bool next_entry_updated_ = false;
+
         RemoveFromLeafFn(Accumulator& sums):entry_(sums) {}
 
         template <Int Idx, typename StreamTypes>
@@ -46,6 +48,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrCRemoveName)
         {
             map->sums(idx, std::get<Idx>(entry_));
             map->remove(idx, idx + 1);
+
+            next_entry_updated_ = idx < map->size();
+
+            if (next_entry_updated_)
+            {
+            	map->addValue(0, idx, std::get<0>(entry_)[1]);
+            }
         }
 
 
@@ -69,7 +78,17 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrCRemoveName)
 
         LeafDispatcher::dispatch(leaf, fn, idx);
 
-        self.updateParent(leaf, -fn.entry_);
+        if (fn.next_entry_updated_)
+        {
+        	auto sums1 = fn.entry_;
+        	std::get<0>(sums1)[1] = 0;
+
+        	self.updateParent(leaf, -sums1);
+        }
+        else {
+        	self.updateParent(leaf, -fn.entry_);
+        }
+
 
         self.addTotalKeyCount(Position::create(0, -1));
 
@@ -86,6 +105,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrCRemoveName)
         }
 
         self.removeRedundantRootP(leaf);
+
+        if ((!fn.next_entry_updated_) && !iter.isEnd())
+        {
+        	iter.updateUp(1, (std::get<0>(fn.entry_)[1]));
+        }
 
         self.markCtrUpdated();
     }

@@ -13,6 +13,8 @@
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
 
+#include <memoria/prototypes/bt/bt_tools.hpp>
+
 #include <memoria/core/packed/map/packed_fse_map.hpp>
 #include <memoria/core/packed/map/packed_fse_mark_map.hpp>
 
@@ -44,6 +46,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrCInsertName)
     struct InsertIntoLeafFn {
 
         const Element& element_;
+        bool next_entry_updated_ = false;
 
         InsertIntoLeafFn(const Element& element): element_(element) {}
 
@@ -59,6 +62,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrCInsertName)
             values.assignDown(std::get<Idx>(element_.first));
 
             map->insert(idx, values, element_.second);
+
+            next_entry_updated_ = idx < map->size() - 1;
+
+            if (next_entry_updated_)
+            {
+            	map->addValue(0, idx + 1, -values[0]);
+            }
         }
 
 
@@ -71,7 +81,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrCInsertName)
     };
 
 
-    bool insertIntoLeaf(NodeBaseG& leaf, Int idx, const Element& element);
+    std::pair<bool, bool> insertIntoLeaf(NodeBaseG& leaf, Int idx, const Element& element);
 
     bool insertMapEntry(Iterator& iter, const Element& element);
 
@@ -96,9 +106,43 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrCInsertName)
         }
     };
 
+    template <typename DataType>
+    struct AddLeafSingleFn {
 
-    void updateLeafNode(NodeBaseG& node, Int idx, const Accumulator& sums, std::function<void (Int, Int)> fn);
-    void updateUp(NodeBaseG& node, Int idx, const Accumulator& sums, std::function<void (Int, Int)> fn);
+        const bt::SingleIndexUpdateData<DataType>& element_;
+
+        AddLeafSingleFn(const bt::SingleIndexUpdateData<DataType>& element): element_(element) {}
+
+        template <Int Idx, typename StreamTypes>
+        void stream(PackedVLEMap<StreamTypes>* map, Int idx)
+        {
+            MEMORIA_ASSERT_TRUE(map);
+            map->addValue(element_.index() - 1, idx, element_.delta());
+        }
+
+        template <typename NTypes>
+        void treeNode(LeafNode<NTypes>* node, Int idx)
+        {
+            node->template processStream<0>(*this, idx);
+        }
+    };
+
+
+    template <typename DataType>
+    void updateLeafNode(
+    		NodeBaseG& node,
+    		Int idx,
+    		const bt::SingleIndexUpdateData<DataType>& sums,
+    		std::function<void (Int, Int)> fn
+    	);
+
+    template <typename DataType>
+    void updateUp(
+    		NodeBaseG& node,
+    		Int idx,
+    		const bt::SingleIndexUpdateData<DataType>& sums,
+    		std::function<void (Int, Int)> fn
+    	);
 
     void initLeaf(NodeBaseG& node) const
     {
@@ -116,7 +160,7 @@ MEMORIA_CONTAINER_PART_END
 
 
 M_PARAMS
-bool M_TYPE::insertIntoLeaf(NodeBaseG& leaf, Int idx, const Element& element)
+std::pair<bool, bool> M_TYPE::insertIntoLeaf(NodeBaseG& leaf, Int idx, const Element& element)
 {
     auto& self = this->self();
 
@@ -127,13 +171,16 @@ bool M_TYPE::insertIntoLeaf(NodeBaseG& leaf, Int idx, const Element& element)
     mgr.add(leaf);
 
     try {
-        LeafDispatcher::dispatch(leaf, InsertIntoLeafFn(element), idx);
-        return true;
+    	InsertIntoLeafFn fn(element);
+
+        LeafDispatcher::dispatch(leaf, fn, idx);
+
+        return std::pair<bool, bool>(true, fn.next_entry_updated_);
     }
     catch (PackedOOMException& e)
     {
         mgr.rollback();
-        return false;
+        return std::pair<bool, bool>(false, false);
     }
 }
 
@@ -146,25 +193,54 @@ bool M_TYPE::insertMapEntry(Iterator& iter, const Element& element)
     NodeBaseG& leaf = iter.leaf();
     Int& idx        = iter.idx();
 
-    if (!self.insertIntoLeaf(leaf, idx, element))
+    std::pair<bool, bool> result = self.insertIntoLeaf(leaf, idx, element);
+
+    if (!result.first)
     {
         iter.split();
-        if (!self.insertIntoLeaf(leaf, idx, element))
+
+        result = self.insertIntoLeaf(leaf, idx, element);
+
+        if (!result.first)
         {
             throw Exception(MA_SRC, "Second insertion attempt failed");
         }
     }
 
-    self.updateParent(leaf, element.first);
-
     self.addTotalKeyCount(Position::create(0, 1));
 
-    return iter++;
+    if (result.second)
+    {
+    	auto entry_sums = element.first;
+    	std::get<0>(entry_sums)[1] = 0;
+
+    	self.updateParent(leaf, entry_sums);
+
+    	return iter++;
+    }
+    else {
+    	self.updateParent(leaf, element.first);
+
+    	if (iter++)
+    	{
+    		iter.updateUp(1, -(std::get<0>(element.first)[1]));
+    		return true;
+    	}
+    	else {
+    		return false;
+    	}
+    }
 }
 
 
 M_PARAMS
-void M_TYPE::updateLeafNode(NodeBaseG& node, Int idx, const Accumulator& sums, std::function<void (Int, Int)> fn)
+template <typename DataType>
+void M_TYPE::updateLeafNode(
+				NodeBaseG& node,
+				Int idx,
+				const bt::SingleIndexUpdateData<DataType>& sums,
+				std::function<void (Int, Int)> fn
+	)
 {
     auto& self = this->self();
 
@@ -173,7 +249,7 @@ void M_TYPE::updateLeafNode(NodeBaseG& node, Int idx, const Accumulator& sums, s
     PageUpdateMgr mgr(self);
 
     try {
-        LeafDispatcher::dispatch(node, AddLeafFn(sums), idx);
+        LeafDispatcher::dispatch(node, AddLeafSingleFn<DataType>(sums), idx);
     }
     catch (PackedOOMException ex)
     {
@@ -190,13 +266,19 @@ void M_TYPE::updateLeafNode(NodeBaseG& node, Int idx, const Accumulator& sums, s
             node = next;
         }
 
-        LeafDispatcher::dispatch(node, AddLeafFn(sums), idx);
+        LeafDispatcher::dispatch(node, AddLeafSingleFn<DataType>(sums), idx);
     }
 }
 
 
 M_PARAMS
-void M_TYPE::updateUp(NodeBaseG& node, Int idx, const Accumulator& counters, std::function<void (Int, Int)> fn)
+template <typename DataType>
+void M_TYPE::updateUp(
+		NodeBaseG& node,
+		Int idx,
+		const bt::SingleIndexUpdateData<DataType>& counters,
+		std::function<void (Int, Int)> fn
+	)
 {
     auto& self = this->self();
 

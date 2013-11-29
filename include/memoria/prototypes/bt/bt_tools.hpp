@@ -20,6 +20,21 @@
 namespace memoria   {
 namespace bt 		{
 
+template <typename DataType>
+struct SingleIndexUpdateData {
+	Int stream_;
+	Int index_;
+	DataType delta_;
+
+	SingleIndexUpdateData(Int stream, Int index, DataType delta):
+		stream_(stream), index_(index), delta_(delta)
+	{}
+
+	Int stream() const 		{return stream_;}
+	Int index() const 		{return index_;}
+	DataType delta() const 	{return delta_;}
+};
+
 template <typename Iterator>
 class IteratorCacheBase {
     Iterator* iter_;

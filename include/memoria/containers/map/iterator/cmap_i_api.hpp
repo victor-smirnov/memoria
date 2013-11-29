@@ -15,6 +15,8 @@
 #include <memoria/core/container/iterator.hpp>
 #include <memoria/core/container/macros.hpp>
 
+#include <memoria/prototypes/bt/bt_tools.hpp>
+
 #include <memoria/core/packed/map/packed_fse_map.hpp>
 #include <memoria/core/packed/map/packed_fse_mark_map.hpp>
 
@@ -43,12 +45,14 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrCApiName)
     typedef typename Container::Types::Pages::LeafDispatcher                    LeafDispatcher;
 
 
-    void updateUp(const Accumulator& keys)
+    void updateUp(Int index, BigInt delta)
     {
-        auto& self = this->self();
+        auto& self 	= this->self();
+        auto& leaf	= self.leaf();
+        auto& idx	= self.idx();
 
-        self.ctr().updateUp(self.leaf(), self.idx(), keys, [&](Int, Int idx) {
-            self.idx() = idx;
+        self.ctr().updateUp(leaf, idx, bt::SingleIndexUpdateData<BigInt>(0, index, delta), [&](Int, Int _idx) {
+            idx = _idx;
             self.updatePrefix();
         });
     }
@@ -145,7 +149,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrCApiName)
 
     	Accumulator sums;
 
-    	get<0>(sums)[0] = key;
+    	get<0>(sums)[0] = 1;
+    	get<0>(sums)[1] = key;
 
     	self.ctr().insert(self, Element(sums, value));
     }
@@ -157,12 +162,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrCApiName)
 
         Accumulator keys;
         self.ctr().removeMapEntry(self, keys);
-
-        if (!self.isEnd())
-        {
-        	std::get<0>(keys)[0] = 0;
-            self.updateUp(keys);
-        }
     }
 
 

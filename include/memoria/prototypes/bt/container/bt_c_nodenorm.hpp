@@ -10,6 +10,7 @@
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_NODENORM_HPP
 
 #include <memoria/prototypes/bt/bt_tools.hpp>
+#include <memoria/prototypes/bt/bt_macros.hpp>
 #include <memoria/core/container/macros.hpp>
 
 #include <vector>
@@ -60,9 +61,15 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::NodeNormName)
     NodeBaseG splitP(NodeBaseG& node, SplitFn split_fn);
 
     MEMORIA_DECLARE_NODE_FN(UpdateNodeFn, updateUp);
-    bool updateNode(NodeBaseG& node, Int idx, const Accumulator& keys);
-    void updatePath(NodeBaseG& node, Int& idx, const Accumulator& keys);
-    void updateParent(NodeBaseG& node, const Accumulator& sums);
+    template <typename UpdateData>
+    bool updateNode(NodeBaseG& node, Int idx, const UpdateData& keys);
+
+    template <typename UpdateData>
+    void updatePath(NodeBaseG& node, Int& idx, const UpdateData& keys);
+
+    template <typename UpdateData>
+    void updateParent(NodeBaseG& node, const UpdateData& sums);
+
 
 
     MEMORIA_DECLARE_NODE_FN(InsertFn, insert);
@@ -167,16 +174,22 @@ typename M_TYPE::NodeBaseG M_TYPE::splitLeafP(NodeBaseG& left_node, const Positi
     });
 }
 
+
 M_PARAMS
-bool M_TYPE::updateNode(NodeBaseG& node, Int idx, const Accumulator& keys)
+template <typename UpdateData>
+bool M_TYPE::updateNode(NodeBaseG& node, Int idx, const UpdateData& keys)
 {
 	self().updatePageG(node);
 	NonLeafDispatcher::dispatch(node, UpdateNodeFn(), idx, keys);
     return true;
 }
 
+
+
+
 M_PARAMS
-void M_TYPE::updatePath(NodeBaseG& node, Int& idx, const Accumulator& keys)
+template <typename UpdateData>
+void M_TYPE::updatePath(NodeBaseG& node, Int& idx, const UpdateData& keys)
 {
     auto& self = this->self();
 
@@ -193,8 +206,13 @@ void M_TYPE::updatePath(NodeBaseG& node, Int& idx, const Accumulator& keys)
     }
 }
 
+
+
+
+
 M_PARAMS
-void M_TYPE::updateParent(NodeBaseG& node, const Accumulator& sums)
+template <typename UpdateData>
+void M_TYPE::updateParent(NodeBaseG& node, const UpdateData& sums)
 {
     auto& self = this->self();
 
