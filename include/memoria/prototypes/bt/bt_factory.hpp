@@ -43,8 +43,7 @@
 #include <memoria/prototypes/bt/container/bt_c_rembatch.hpp>
 #include <memoria/prototypes/bt/container/bt_c_find.hpp>
 #include <memoria/prototypes/bt/container/bt_c_walk.hpp>
-
-#include <memoria/prototypes/templates/container/allocator.hpp>
+#include <memoria/prototypes/bt/container/bt_c_allocator.hpp>
 
 #include <memoria/prototypes/bt/bt_iterator.hpp>
 

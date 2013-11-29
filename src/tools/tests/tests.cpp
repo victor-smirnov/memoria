@@ -24,9 +24,9 @@
 //#include "labeled_tree/ltree_test_suite.hpp"
 //#include "vector_tree/vtree_test_suite.hpp"
 //#include "wt/wt_test_suite.hpp"
-
-#include "file_allocator/file_alloc_test_suite.hpp"
-#include "mvcc/mvcc_test_suite.hpp"
+//
+//#include "file_allocator/file_alloc_test_suite.hpp"
+//#include "mvcc/mvcc_test_suite.hpp"
 
 #include <memoria/tools/cmdline.hpp>
 #include <memoria/tools/tools.hpp>

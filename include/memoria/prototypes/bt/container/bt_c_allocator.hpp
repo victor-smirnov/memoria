@@ -6,8 +6,8 @@
 
 
 
-#ifndef _MEMORIA_PROTOTYPES_BTREE_MODEL_ALLOCATOR_HPP
-#define _MEMORIA_PROTOTYPES_BTREE_MODEL_ALLOCATOR_HPP
+#ifndef _MEMORIA_PROTOTYPES_BT_CTR_ALLOCATOR_HPP
+#define _MEMORIA_PROTOTYPES_BT_CTR_ALLOCATOR_HPP
 
 #include <iostream>
 #include <memoria/prototypes/bt/bt_names.hpp>
