@@ -68,7 +68,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrEntryName)
         void stream(Stream* stream, Int idx, const Entry& entry)
         {
             MEMORIA_ASSERT_TRUE(stream);
-            metamap::GetEntry(stream, idx, entry);
+            metamap::SetEntry(stream, idx, entry);
         }
 
         template <typename Node>
@@ -115,16 +115,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrEntryName)
 
 
 
-    EntryAccessor sentry() {
+    EntryAccessor s_entry() {
     	return EntryAccessor(self());
     }
 
-    EntryAccessor entry() {
-    	return EntryAccessor(self());
-    }
-
-    ConstEntryAccessor entry() const {
-    	return ConstEntryAccessor(self());
+    Entry entry() const {
+    	return self().getEntry();
     }
 
 MEMORIA_ITERATOR_PART_END

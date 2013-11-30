@@ -59,11 +59,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrValueName)
 
 
     struct SetValueFn {
-        template <Int Idx, typename StreamTypes>
-        void stream(PackedVLEMap<StreamTypes>* map, Int idx, const Value& value)
+        template <Int Idx, typename Stream>
+        void stream(Stream* stream, Int idx, const Value& value)
         {
-            MEMORIA_ASSERT_TRUE(map);
-            map->value(idx) = value;
+            MEMORIA_ASSERT_TRUE(stream);
+            stream->value(idx) = value;
         }
 
         template <typename Node>

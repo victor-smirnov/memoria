@@ -21,19 +21,19 @@
 namespace memoria {
 
 template <
-    template <typename, typename> class MapType
+    typename MapName
 >
-class MapApiTest: public MapTestBase<MapType> {
+class MapApiTest: public MapTestBase<MapName> {
 
-    typedef MapTestBase<MapType>                                                Base;
-    typedef MapApiTest<MapType>                                                 MyType;
+    typedef MapTestBase<MapName>                                                Base;
+    typedef MapApiTest<MapName>                                                 MyType;
 
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::Ctr                                                  Ctr;
 
 public:
 
-    MapApiTest(): Base("API")
+    MapApiTest(String name): Base(name)
     {
         MEMORIA_ADD_TEST(runTest);
     }
@@ -43,7 +43,7 @@ public:
 
     void runTest()
     {
-        DefaultLogHandlerImpl logHandler(Base::out());
+    	DefaultLogHandlerImpl logHandler(Base::out());
 
         Allocator allocator;
         allocator.getLogger()->setHandler(&logHandler);
@@ -51,6 +51,23 @@ public:
         Ctr map(&allocator);
 
         Base::ctr_name_ = map.name();
+
+
+        auto iter1 = map[1];
+        iter1 = std::make_tuple(1, 2);
+
+        cout<<"First: "<<std::get<0>(iter1.value())<<endl;
+        cout<<"Second: "<<std::get<1>(iter1.value())<<endl;
+
+        cout<<"E.Key: "<<iter1.entry().key()<<endl;
+        cout<<"E.First: "<<std::get<0>(iter1.entry().value())<<endl;
+        cout<<"E.Second: "<<std::get<1>(iter1.entry().value())<<endl;
+
+
+
+        allocator.commit();
+
+        this->StoreAllocator(allocator, this->getResourcePath("api.dump"));
     }
 
 

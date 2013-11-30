@@ -16,26 +16,26 @@
 
 namespace memoria {
 
-template <typename... List> class PackedDispatcher;
+template <Int StartIdx, typename... List> class PackedDispatcher;
 
-template <typename List> struct PackedDispatcherTool;
+template <Int StartIdx, typename List> struct PackedDispatcherTool;
 
-template <typename... List>
-struct PackedDispatcherTool<TypeList<List...>> {
-    typedef PackedDispatcher<List...> Type;
+template <Int StartIdx, typename... List>
+struct PackedDispatcherTool<StartIdx, TypeList<List...>> {
+    typedef PackedDispatcher<StartIdx, List...> Type;
 };
 
 
 
 template <typename Struct, Int Index>
-struct StructDescr {
+struct StreamDescr {
     typedef Struct Type;
 };
 
 
 
-template <typename Head, typename... Tail, Int Index>
-class PackedDispatcher<StructDescr<Head, Index>, Tail...> {
+template <Int StartIdx, typename Head, typename... Tail, Int Index>
+class PackedDispatcher<StartIdx, StreamDescr<Head, Index>, Tail...> {
 
 public:
     template <typename Fn, typename... Args>
@@ -44,14 +44,15 @@ public:
         if (idx == Index)
         {
             Head* head = nullptr;
-            if (!alloc->is_empty(Index))
+            if (!alloc->is_empty(Index + StartIdx))
             {
-                head = alloc->template get<Head>(Index);
+                head = alloc->template get<Head>(Index + StartIdx);
             }
+
             fn.template stream<Index>(head, args...);
         }
         else {
-            PackedDispatcher<Tail...>::dispatch(idx, alloc, std::forward<Fn>(fn), args...);
+            PackedDispatcher<StartIdx, Tail...>::dispatch(idx, alloc, std::forward<Fn>(fn), args...);
         }
     }
 
@@ -61,29 +62,29 @@ public:
         if (idx == Index)
         {
             const Head* head = nullptr;
-            if (!alloc->is_empty(Index))
+            if (!alloc->is_empty(Index + StartIdx))
             {
-                head = alloc->template get<Head>(Index);
+                head = alloc->template get<Head>(Index + StartIdx);
             }
 
             fn.template stream<Index>(head, args...);
         }
         else {
-            PackedDispatcher<Tail...>::dispatch(idx, alloc, std::forward<Fn>(fn), args...);
+            PackedDispatcher<StartIdx, Tail...>::dispatch(idx, alloc, std::forward<Fn>(fn), args...);
         }
     }
 
     template <Int StreamIdx, typename Fn, typename... Args>
     static void dispatch(PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-        typedef TypeList<StructDescr<Head, Index>, Tail...> List;
+        typedef TypeList<StreamDescr<Head, Index>, Tail...> List;
 
         typedef typename SelectByIndexTool<StreamIdx, List>::Result::Type StreamType;
 
         StreamType* head = nullptr;
-        if (!alloc->is_empty(StreamIdx))
+        if (!alloc->is_empty(StreamIdx + StartIdx))
         {
-            head = alloc->template get<StreamType>(StreamIdx);
+            head = alloc->template get<StreamType>(StreamIdx + StartIdx);
         }
 
         fn.template stream<StreamIdx>(head, args...);
@@ -92,14 +93,14 @@ public:
     template <Int StreamIdx, typename Fn, typename... Args>
     static void dispatch(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-        typedef TypeList<StructDescr<Head, Index>, Tail...> List;
+        typedef TypeList<StreamDescr<Head, Index>, Tail...> List;
 
         typedef typename SelectByIndexTool<StreamIdx, List>::Result::Type StreamType;
 
         const StreamType* head = nullptr;
-        if (!alloc->is_empty(StreamIdx))
+        if (!alloc->is_empty(StreamIdx + StartIdx))
         {
-            head = alloc->template get<StreamType>(StreamIdx);
+            head = alloc->template get<StreamType>(StreamIdx + StartIdx);
         }
 
         fn.template stream<StreamIdx>(head, args...);
@@ -113,15 +114,15 @@ public:
         if (idx == Index)
         {
             Head* head = nullptr;
-            if (!alloc->is_empty(Index))
+            if (!alloc->is_empty(Index + StartIdx))
             {
-                head = alloc->template get<Head>(Index);
+                head = alloc->template get<Head>(Index + StartIdx);
             }
 
             return fn.template stream<Index>(head, args...);
         }
         else {
-            return PackedDispatcher<Tail...>::dispatchRtn(idx, alloc, std::forward<Fn>(fn), args...);
+            return PackedDispatcher<StartIdx, Tail...>::dispatchRtn(idx, alloc, std::forward<Fn>(fn), args...);
         }
     }
 
@@ -132,15 +133,15 @@ public:
         if (idx == Index)
         {
             const Head* head = nullptr;
-            if (!alloc->is_empty(Index))
+            if (!alloc->is_empty(Index + StartIdx))
             {
-                head = alloc->template get<Head>(Index);
+                head = alloc->template get<Head>(Index + StartIdx);
             }
 
             return fn.template stream<Index>(head, args...);
         }
         else {
-            return PackedDispatcher<Tail...>::dispatchRtn(idx, alloc, std::forward<Fn>(fn), args...);
+            return PackedDispatcher<StartIdx, Tail...>::dispatchRtn(idx, alloc, std::forward<Fn>(fn), args...);
         }
     }
 
@@ -148,14 +149,14 @@ public:
     static typename std::remove_reference<Fn>::type::ResultType
     dispatchRtn(PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-        typedef TypeList<StructDescr<Head, Index>, Tail...> List;
+        typedef TypeList<StreamDescr<Head, Index>, Tail...> List;
 
         typedef typename SelectByIndexTool<StreamIdx, List>::Result::Type StreamType;
 
         StreamType* head = nullptr;
-        if (!alloc->is_empty(StreamIdx))
+        if (!alloc->is_empty(StreamIdx + StartIdx))
         {
-            head = alloc->template get<StreamType>(StreamIdx);
+            head = alloc->template get<StreamType>(StreamIdx + StartIdx);
         }
 
         return fn.template stream<StreamIdx>(head, args...);
@@ -165,14 +166,14 @@ public:
     static typename std::remove_reference<Fn>::type::ResultType
     dispatchRtn(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-        typedef TypeList<StructDescr<Head, Index>, Tail...> List;
+        typedef TypeList<StreamDescr<Head, Index>, Tail...> List;
 
         typedef typename SelectByIndexTool<StreamIdx, List>::Result::Type StreamType;
 
         const StreamType* head = nullptr;
-        if (!alloc->is_empty(StreamIdx))
+        if (!alloc->is_empty(StreamIdx + StartIdx))
         {
-            head = alloc->template get<StreamType>(StreamIdx);
+            head = alloc->template get<StreamType>(StreamIdx + StartIdx);
         }
 
         return fn.template stream<StreamIdx>(head, args...);
@@ -187,7 +188,7 @@ public:
             fn.template stream<Head>(args...);
         }
         else {
-            PackedDispatcher<Tail...>::dispatchStatic(idx, std::forward<Fn>(fn), args...);
+            PackedDispatcher<StartIdx, Tail...>::dispatchStatic(idx, std::forward<Fn>(fn), args...);
         }
     }
 
@@ -196,55 +197,55 @@ public:
     {
         Head* head = nullptr;
         fn.template stream<Index>(head, args...);
-        PackedDispatcher<Tail...>::dispatchAllStatic(std::forward<Fn>(fn), args...);
+        PackedDispatcher<StartIdx, Tail...>::dispatchAllStatic(std::forward<Fn>(fn), args...);
     }
 
     template <typename Fn, typename... Args>
     static void dispatchNotEmpty(PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-        if (!alloc->is_empty(Index))
+        if (!alloc->is_empty(Index + StartIdx))
         {
-            Head* head = alloc->template get<Head>(Index);
+            Head* head = alloc->template get<Head>(Index + StartIdx);
             fn.template stream<Index>(head, args...);
         }
 
-        PackedDispatcher<Tail...>::dispatchNotEmpty(alloc, std::forward<Fn>(fn), args...);
+        PackedDispatcher<StartIdx, Tail...>::dispatchNotEmpty(alloc, std::forward<Fn>(fn), args...);
     }
 
     template <typename Fn, typename... Args>
     static void dispatchNotEmpty(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-        if (!alloc->is_empty(Index))
+        if (!alloc->is_empty(Index + StartIdx))
         {
-            const Head* head = alloc->template get<Head>(Index);
+            const Head* head = alloc->template get<Head>(Index + StartIdx);
             fn.template stream<Index>(head, args...);
         }
 
-        PackedDispatcher<Tail...>::dispatchNotEmpty(alloc, std::forward<Fn>(fn), args...);
+        PackedDispatcher<StartIdx, Tail...>::dispatchNotEmpty(alloc, std::forward<Fn>(fn), args...);
     }
 
     template <typename Fn, typename... Args>
     static void dispatchNotEmpty(UBigInt streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-        if ((streams & (1ull << Index)) && !alloc->is_empty(Index))
+        if ((streams & (1ull << Index)) && !alloc->is_empty(Index + StartIdx))
         {
-            Head* head = alloc->template get<Head>(Index);
+            Head* head = alloc->template get<Head>(Index + StartIdx);
             fn.template stream<Index>(head, args...);
         }
 
-        PackedDispatcher<Tail...>::dispatchNotEmpty(streams, alloc, std::forward<Fn>(fn), args...);
+        PackedDispatcher<StartIdx, Tail...>::dispatchNotEmpty(streams, alloc, std::forward<Fn>(fn), args...);
     }
 
     template <typename Fn, typename... Args>
     static void dispatchNotEmpty(UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-        if ((streams & (1ull << Index)) && !alloc->is_empty(Index))
+        if ((streams & (1ull << Index)) && !alloc->is_empty(Index + StartIdx))
         {
-            const Head* head = alloc->template get<Head>(Index);
+            const Head* head = alloc->template get<Head>(Index + StartIdx);
             fn.template stream<Index>(head, args...);
         }
 
-        PackedDispatcher<Tail...>::dispatchNotEmpty(streams, alloc, std::forward<Fn>(fn), args...);
+        PackedDispatcher<StartIdx, Tail...>::dispatchNotEmpty(streams, alloc, std::forward<Fn>(fn), args...);
     }
 
 
@@ -252,14 +253,14 @@ public:
     static void dispatchAll(PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         Head* head = nullptr;
-        if (!alloc->is_empty(Index))
+        if (!alloc->is_empty(Index + StartIdx))
         {
-            head = alloc->template get<Head>(Index);
+            head = alloc->template get<Head>(Index + StartIdx);
         }
 
         fn.template stream<Index>(head, args...);
 
-        PackedDispatcher<Tail...>::dispatchAll(alloc, std::forward<Fn>(fn), args...);
+        PackedDispatcher<StartIdx, Tail...>::dispatchAll(alloc, std::forward<Fn>(fn), args...);
     }
 
 
@@ -267,14 +268,14 @@ public:
     static void dispatchAll(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         const Head* head = nullptr;
-        if (!alloc->is_empty(Index))
+        if (!alloc->is_empty(Index + StartIdx))
         {
-            head = alloc->template get<Head>(Index);
+            head = alloc->template get<Head>(Index + StartIdx);
         }
 
         fn.template stream<Index>(head, args...);
 
-        PackedDispatcher<Tail...>::dispatchAll(alloc, std::forward<Fn>(fn), args...);
+        PackedDispatcher<StartIdx, Tail...>::dispatchAll(alloc, std::forward<Fn>(fn), args...);
     }
 
 
@@ -282,28 +283,28 @@ public:
     static void dispatchAll(UBigInt streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         Head* head = nullptr;
-        if (!alloc->is_empty(Index) && (streams & (1 << Index)))
+        if (!alloc->is_empty(Index + StartIdx) && (streams & (1 << Index)))
         {
-            head = alloc->template get<Head>(Index);
+            head = alloc->template get<Head>(Index + StartIdx);
         }
 
         fn.template stream<Index>(head, args...);
 
-        PackedDispatcher<Tail...>::dispatchAll(streams, alloc, std::forward<Fn>(fn), args...);
+        PackedDispatcher<StartIdx, Tail...>::dispatchAll(streams, alloc, std::forward<Fn>(fn), args...);
     }
 
     template <typename Fn, typename... Args>
     static void dispatchAll(UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         Head* head = nullptr;
-        if (!alloc->is_empty(Index) && (streams & (1 << Index)))
+        if (!alloc->is_empty(Index + StartIdx) && (streams & (1 << Index)))
         {
-            head = alloc->template get<Head>(Index);
+            head = alloc->template get<Head>(Index + StartIdx);
         }
 
         fn.template stream<Index>(head, args...);
 
-        PackedDispatcher<Tail...>::dispatchAll(streams, alloc, std::forward<Fn>(fn), args...);
+        PackedDispatcher<StartIdx, Tail...>::dispatchAll(streams, alloc, std::forward<Fn>(fn), args...);
     }
 
     template <typename Fn, typename... Args>
@@ -316,13 +317,13 @@ public:
             return fn.template stream<Index>(head, args...);
         }
         else {
-            return PackedDispatcher<Tail...>::dispatchStaticRtn(idx, std::forward<Fn>(fn), args...);
+            return PackedDispatcher<StartIdx, Tail...>::dispatchStaticRtn(idx, std::forward<Fn>(fn), args...);
         }
     }
 };
 
-template <>
-class PackedDispatcher<> {
+template <Int StartIdx>
+class PackedDispatcher<StartIdx> {
 public:
     template <typename Fn, typename... Args>
     static void dispatch(Int idx, PackedAllocator* alloc, Fn&& fn, Args&&...) {
@@ -397,12 +398,15 @@ public:
     }
 };
 
+
+
+
 template <typename List, Int Idx = 0> struct PackedDispatchersListBuilder;
 
 template <typename Head, typename... Tail, Int Idx>
 struct PackedDispatchersListBuilder<TypeList<Head, Tail...>, Idx> {
 	 typedef typename MergeLists<
-	            StructDescr<Head, Idx>,
+	            StreamDescr<Head, Idx>,
 	            typename PackedDispatchersListBuilder<
 	                TypeList<Tail...>,
 	                Idx + 1

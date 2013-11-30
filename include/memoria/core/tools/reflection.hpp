@@ -13,6 +13,7 @@
 #include <memoria/core/types/type2type.hpp>
 
 #include <string.h>
+#include <tuple>
 
 namespace memoria    {
 
@@ -123,6 +124,71 @@ MEMORIA_TYPED_FIELD(UBigInt);
 MEMORIA_TYPED_FIELD(UByte);
 MEMORIA_TYPED_FIELD(UShort);
 MEMORIA_TYPED_FIELD(UInt);
+
+
+namespace internal {
+
+template <typename Tuple, Int Idx = std::tuple_size<Tuple>::value - 1>
+struct TupleFactoryHelper {
+
+	using CurrentType = typename std::tuple_element<Idx, Tuple>::type;
+
+    static void serialize(SerializationData& data, const Tuple& field)
+    {
+        FieldFactory<CurrentType>::serialize(data, std::get<Idx>(field));
+
+        TupleFactoryHelper<Tuple, Idx - 1>::serialize(data, field);
+    }
+
+    static void deserialize(DeserializationData& data, Tuple& field)
+    {
+    	FieldFactory<CurrentType>::deserialize(data, std::get<Idx>(field));
+
+    	TupleFactoryHelper<Tuple, Idx - 1>::deserialize(data, field);
+    }
+};
+
+template <typename Tuple>
+struct TupleFactoryHelper<Tuple, -1> {
+	static void serialize(SerializationData& data, const Tuple& field) {}
+	static void deserialize(DeserializationData& data, Tuple& field) {}
+};
+
+}
+
+
+template <typename... Types>
+struct FieldFactory<std::tuple<Types...> > {
+
+	using Type = std::tuple<Types...>;
+
+    static void serialize(SerializationData& data, const Type& field)
+    {
+        memoria::internal::TupleFactoryHelper<Type>::serialize(data, field);
+    }
+
+    static void serialize(SerializationData& data, const Type* field, Int size)
+    {
+    	for (Int c = 0; c < size; c++)
+    	{
+    		memoria::internal::TupleFactoryHelper<Type>::serialize(data, field[c]);
+    	}
+    }
+
+    static void deserialize(DeserializationData& data, Type& field)
+    {
+    	memoria::internal::TupleFactoryHelper<Type>::deserialize(data, field);
+    }
+
+    static void deserialize(DeserializationData& data, Type* field, Int size)
+    {
+    	for (Int c = 0; c < size; c++)
+    	{
+    		memoria::internal::TupleFactoryHelper<Type>::deserialize(data, field[c]);
+    	}
+    }
+};
+
 
 
 #undef MEMORIA_TYPED_FIELD

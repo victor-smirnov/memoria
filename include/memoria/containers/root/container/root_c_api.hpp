@@ -18,12 +18,9 @@ namespace memoria    {
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::root::CtrApiName)
 
-    typedef typename Base::Iterator                                             Iterator;
-    typedef typename Base::Accumulator                                          Accumulator;
-    typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::Metadata                                             Metadata;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
-    typedef typename Base::NodeBase                                             NodeBase;
+    typedef typename Base::NodeBase                                            	NodeBase;
     typedef typename Base::Page                                                 Page;
 
     Metadata createNewRootMetadata() const

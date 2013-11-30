@@ -10,6 +10,7 @@
 #define _MEMORIA_PROTOTYPES_MAP_FACTORY_HPP
 
 #include <memoria/prototypes/metamap/factory/metamap_compr_factory_types.hpp>
+#include <memoria/prototypes/metamap/factory/metamap_factory_types.hpp>
 
 namespace memoria    {
 

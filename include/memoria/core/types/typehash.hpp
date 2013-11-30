@@ -14,6 +14,8 @@
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/types/static_md5.hpp>
 
+#include <tuple>
+
 namespace memoria    {
 
 struct TypeHashes {
@@ -202,6 +204,15 @@ public:
 	static const UInt Value = md5::Md5Sum<TaggedValueList>::Result::Value32;
 };
 
+template <typename... List>
+struct TypeHash<std::tuple<List...>> {
+private:
+	typedef typename TypeToValueList<TypeList<List...>>::Type   				ValueList;
+	typedef typename AppendValueTool<UInt, 2001, ValueList>::Result         	TaggedValueList;
+public:
+
+	static const UInt Value = md5::Md5Sum<TaggedValueList>::Result::Value32;
+};
 
 
 

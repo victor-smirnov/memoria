@@ -13,7 +13,7 @@
 #include <memoria/core/tools/idata.hpp>
 #include <memoria/core/tools/dump.hpp>
 
-
+#include <tuple>
 
 namespace memoria    {
 
@@ -144,7 +144,44 @@ struct ValueHelper<EmptyValue> {
     }
 };
 
+namespace internal {
 
+template <typename Tuple, Int Idx = std::tuple_size<Tuple>::value - 1>
+struct TupleValueHelper {
+
+	using CurrentType = typename std::tuple_element<Idx, Tuple>::type;
+
+    static void setup(IPageDataEventHandler* handler, const Tuple& field)
+    {
+        ValueHelper<CurrentType>::setup(handler, std::get<Idx>(field));
+
+        TupleValueHelper<Tuple, Idx - 1>::setup(handler, field);
+    }
+
+
+};
+
+template <typename Tuple>
+struct TupleValueHelper<Tuple, -1> {
+	static void setup(IPageDataEventHandler* handler, const Tuple& field) {}
+};
+
+}
+
+template <typename... Types>
+struct ValueHelper<std::tuple<Types...>> {
+
+	using Type = std::tuple<Types...>;
+
+    static void setup(IPageDataEventHandler* handler, const Type& value)
+    {
+    	handler->startLine("VALUE", std::tuple_size<Type>::value);
+
+    	internal::TupleValueHelper<Type>::setup(handler, value);
+
+    	handler->endLine();
+    }
+};
 
 
 

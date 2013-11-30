@@ -18,9 +18,9 @@
 namespace memoria {
 
 template <typename Profile>
-struct BTTypes<Profile, memoria::Root>: public BTTypes<Profile, memoria::Map<BigInt, NullType> > {
+struct BTTypes<Profile, memoria::Root>: public BTTypes<Profile, memoria::Map<BigInt, IDType> > {
 
-    typedef BTTypes<Profile, memoria::Map<BigInt, NullType>>                    Base;
+    typedef BTTypes<Profile, memoria::Map<BigInt, IDType>>                    	Base;
 
     typedef typename Base::ID                                                   Value;
 
@@ -35,7 +35,7 @@ struct BTTypes<Profile, memoria::Root>: public BTTypes<Profile, memoria::Map<Big
 
 
 template <typename Profile, typename T>
-class CtrTF<Profile, memoria::Root, T>: public CtrTF<Profile, memoria::Map<BigInt, NullType>, T> {
+class CtrTF<Profile, memoria::Root, T>: public CtrTF<Profile, memoria::Map<BigInt, BigInt>, T> {
 };
 
 }

@@ -45,10 +45,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrRemoveName)
 
         RemoveFromLeafFn(Accumulator& sums):entry_(sums) {}
 
-        template <Int Idx, typename StreamTypes>
-        void stream(PackedVLEMap<StreamTypes>* map, Int idx)
+        template <Int Idx, typename Stream>
+        void stream(Stream* map, Int idx)
         {
             map->sums(idx, std::get<Idx>(entry_));
+
             map->remove(idx, idx + 1);
 
             next_entry_updated_ = idx < map->size();

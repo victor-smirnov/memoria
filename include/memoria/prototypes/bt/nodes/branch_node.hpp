@@ -343,7 +343,7 @@ public:
                 0
     >::NonLeafStructList                                                        StreamsStructList;
 
-    typedef typename PackedDispatcherTool<StreamsStructList>::Type              Dispatcher;
+    typedef typename PackedDispatcherTool<0, StreamsStructList>::Type           Dispatcher;
 
     static const Int Streams                                                    = ListSize<StreamsStructList>::Value;
     static const Int ValuesBlockIdx                                             = Streams;

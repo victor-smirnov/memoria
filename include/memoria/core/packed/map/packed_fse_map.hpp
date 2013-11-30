@@ -14,10 +14,12 @@ namespace memoria {
 
 template <
     typename Key,
-    typename Value,
+    typename Value_,
     Int Blocks      = 1
 >
-struct PackedFSEMapTypes: Packed2TreeTypes<Key, BigInt, Blocks> {};
+struct PackedFSEMapTypes: Packed2TreeTypes<Key, BigInt, Blocks> {
+	using MapValue = Value_;
+};
 
 template <typename Types>
 class PackedFSEMap: public PackedAllocator {
@@ -30,7 +32,9 @@ public:
 
     typedef PkdFTree<Types>                                                     Tree;
 
-    typedef typename Types::Value                                               Value;
+    typedef typename Types::Value                                            	Key;
+    typedef typename Types::MapValue                                            Value;
+
     typedef typename Tree::Values                                               Values;
     typedef typename Tree::Values2                                              Values2;
 
@@ -322,7 +326,17 @@ public:
 
     void sums(Int from, Int to, Values2& values) const
     {
-        tree()->sums(from, to, values);
+    	tree()->sums(from, to, values);
+    }
+
+    void sums(Int idx, Values2& values) const
+    {
+        tree()->sums(idx, values);
+    }
+
+    void sums(Int idx, Values& values) const
+    {
+    	tree()->sums(idx, values);
     }
 
     IndexValue sum(Int block) const {
@@ -339,6 +353,11 @@ public:
 
     IndexValue sumWithoutLastElement(Int block) const {
         return tree()->sumWithoutLastElement(block);
+    }
+
+    void addValue(Int block, Int idx, Key value)
+    {
+    	tree()->addValue(block, idx, value);
     }
 
     // ============================ IO =============================================== //

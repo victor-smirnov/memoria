@@ -54,18 +54,18 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrInsertName)
 
         InsertIntoLeafFn(const Entry& entry): entry_(entry) {}
 
-        template <Int Idx, typename StreamTypes>
-        void stream(PackedVLEMap<StreamTypes>* map, Int idx)
+        template <Int Idx, typename Stream>
+        void stream(Stream* stream, Int idx)
         {
-            MEMORIA_ASSERT_TRUE(map);
+            MEMORIA_ASSERT_TRUE(stream);
 
-            metamap::InsertEntry(map, idx, entry_);
+            metamap::InsertEntry(stream, idx, entry_);
 
-            next_entry_updated_ = idx < map->size() - 1;
+            next_entry_updated_ = idx < stream->size() - 1;
 
             if (next_entry_updated_)
             {
-            	map->addValue(0, idx + 1, -entry_.key());
+            	stream->addValue(0, idx + 1, -entry_.key());
             }
         }
 
@@ -93,11 +93,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrInsertName)
 
         AddLeafSingleFn(const bt::SingleIndexUpdateData<DataType>& element): element_(element) {}
 
-        template <Int Idx, typename StreamTypes>
-        void stream(PackedVLEMap<StreamTypes>* map, Int idx)
+        template <Int Idx, typename Stream>
+        void stream(Stream* stream, Int idx)
         {
-            MEMORIA_ASSERT_TRUE(map);
-            map->addValue(element_.index() - 1, idx, element_.delta());
+            MEMORIA_ASSERT_TRUE(stream);
+            stream->addValue(element_.index() - 1, idx, element_.delta());
         }
 
         template <typename NTypes>

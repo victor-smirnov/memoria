@@ -199,21 +199,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrApiName)
 
         PrefixFn() {}
 
-        template <Int Idx, typename StreamTypes>
-        void stream(const PackedVLEMap<StreamTypes>* map, Int idx)
+        template <Int Idx, typename Stream>
+        void stream(const Stream* stream, Int idx)
         {
-            if (map != nullptr)
+            if (stream)
             {
-                map->sums(0, idx, std::get<Idx>(prefix_));
-            }
-        }
-
-        template <Int Idx, typename StreamTypes>
-        void stream(const PkdFTree<StreamTypes>* tree, Int idx)
-        {
-            if (tree != nullptr)
-            {
-            	tree->sums(0, idx, std::get<Idx>(prefix_));
+            	stream->sums(0, idx, std::get<Idx>(prefix_));
             }
         }
 

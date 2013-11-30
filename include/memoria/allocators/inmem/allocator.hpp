@@ -753,7 +753,7 @@ public:
 
             result = ctr_meta->getCtrInterface()->check(&page->gid(), ctr_name, this) || result;
 
-            iter.next();
+            iter++;
         }
 
         return result;
@@ -938,7 +938,7 @@ private:
 
     void set_value_for_key(BigInt name, const ID& page_id)
     {
-        root_map_->operator[](name).setData(page_id);
+        root_map_->operator[](name).setValue(page_id);
     }
 
     ID get_value_for_key(BigInt name)

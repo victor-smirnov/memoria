@@ -252,7 +252,7 @@ class PackedStructListBuilder<TypeList<StructsTF, Tail...>, Idx> {
 
 public:
     typedef typename MergeLists<
-            StructDescr<
+            StreamDescr<
                 typename StructsTF::NonLeafType,
                 Idx
             >,
@@ -263,7 +263,7 @@ public:
     >::Result                                                                   NonLeafStructList;
 
     typedef typename MergeLists<
-                StructDescr<
+                StreamDescr<
                     typename StructsTF::LeafType,
                     Idx
                 >,

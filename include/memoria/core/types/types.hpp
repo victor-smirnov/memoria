@@ -244,6 +244,9 @@ using DblMrkMap2 = Map2<K, MrkMap2<K, V, BitsPerMark>>;
 template <Granularity granularity, typename T = BigInt>
 struct VLen {};
 
+// Placeholder type to be used in place of Page IDs
+struct IDType {};
+
 
 /*
  * End of container type names and profiles

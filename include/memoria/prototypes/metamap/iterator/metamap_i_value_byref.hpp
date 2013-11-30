@@ -70,7 +70,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrValueByRefName)
     {
     	auto& self = this->self();
     	self.ctr().updatePageG(self.leaf());
-    	return LeafDispatcher::dispatchConstRtn(self.leaf(), GetValueRefFn<Value>(), self.idx());
+    	return LeafDispatcher::dispatchRtn(self.leaf(), GetValueRefFn<Value>(), self.idx());
     }
 
 

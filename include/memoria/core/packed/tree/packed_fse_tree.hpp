@@ -409,6 +409,8 @@ public:
         {
         	this->value(block, idx) += value;
         }
+
+        reindex();
     }
 
     template <typename Value, Int Indexes>
@@ -723,6 +725,15 @@ public:
         values.sumUp(sums());
     }
 
+    void sums(Int idx, Values2& values) const
+    {
+    	addKeys(idx, values);
+    }
+
+    void sums(Int idx, Values& values) const
+    {
+    	addKeys(idx, values);
+    }
 
     void addKeys(Int idx, Values& values) const
     {

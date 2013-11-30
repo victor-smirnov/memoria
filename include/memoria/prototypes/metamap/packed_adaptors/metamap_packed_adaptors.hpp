@@ -43,7 +43,7 @@ Entry GetEntry(const Stream* stream, Int idx)
 {
 	Entry entry;
 
-	stream->sum(idx, entry.keys());
+	stream->sums(idx, entry.keys());
 	entry.value() = stream->value(idx);
 
 	// Process entry labels here
@@ -51,6 +51,15 @@ Entry GetEntry(const Stream* stream, Int idx)
 	return entry;
 }
 
+template <typename Stream, typename Entry>
+void SetEntry(const Stream* stream, Int idx, const Entry& entry)
+{
+	// Process entry keys here
+
+	stream->value(idx) = entry.value();
+
+	// Process entry labels here
+}
 
 
 }

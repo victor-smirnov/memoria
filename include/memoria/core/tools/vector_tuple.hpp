@@ -157,21 +157,19 @@ struct ClearFn {
     }
 };
 
-
-
 }
 
 template <typename... Types>
 void VectorAdd(std::tuple<Types...>& obj, const std::tuple<Types...>& arg)
 {
-    internal::DoRecursive<sizeof...(Types)>::process(internal::VectorAddFn<Types...>(obj, arg));
+    memoria::internal::DoRecursive<sizeof...(Types)>::process(memoria::internal::VectorAddFn<Types...>(obj, arg));
 }
 
 template <typename... Types>
 std::tuple<Types...> operator+(const std::tuple<Types...>& obj, const std::tuple<Types...>& arg)
 {
-    internal::VectorAdd2Fn<Types...> fn(obj, arg);
-    internal::DoRecursive<sizeof...(Types)>::process(fn);
+	memoria::internal::VectorAdd2Fn<Types...> fn(obj, arg);
+	memoria::internal::DoRecursive<sizeof...(Types)>::process(fn);
     return fn.result_;
 }
 
@@ -179,15 +177,15 @@ std::tuple<Types...> operator+(const std::tuple<Types...>& obj, const std::tuple
 template <typename... Types>
 void VectorSub(std::tuple<Types...>& obj, const std::tuple<Types...>& arg)
 {
-    internal::DoRecursive<sizeof...(Types)>::process(internal::VectorSubFn<Types...>(obj, arg));
+	memoria::internal::DoRecursive<sizeof...(Types)>::process(memoria::internal::VectorSubFn<Types...>(obj, arg));
 }
 
 
 template <typename... Types>
 std::tuple<Types...> operator-(const std::tuple<Types...>& obj, const std::tuple<Types...>& arg)
 {
-    internal::VectorSub2Fn<Types...> fn(obj, arg);
-    internal::DoRecursive<sizeof...(Types)>::process(fn);
+	memoria::internal::VectorSub2Fn<Types...> fn(obj, arg);
+	memoria::internal::DoRecursive<sizeof...(Types)>::process(fn);
     return fn.result_;
 }
 
@@ -195,8 +193,8 @@ std::tuple<Types...> operator-(const std::tuple<Types...>& obj, const std::tuple
 template <typename... Types>
 std::tuple<Types...> operator-(const std::tuple<Types...>& obj)
 {
-    internal::VectorNegFn<Types...> fn(obj);
-    internal::DoRecursive<sizeof...(Types)>::process(fn);
+	memoria::internal::VectorNegFn<Types...> fn(obj);
+	memoria::internal::DoRecursive<sizeof...(Types)>::process(fn);
     return fn.result_;
 }
 
@@ -204,7 +202,7 @@ std::tuple<Types...> operator-(const std::tuple<Types...>& obj)
 template <typename... Types>
 void Clear(std::tuple<Types...>& obj)
 {
-    internal::DoRecursive<sizeof...(Types)>::process(internal::ClearFn<Types...>(obj));
+	memoria::internal::DoRecursive<sizeof...(Types)>::process(memoria::internal::ClearFn<Types...>(obj));
 }
 
 
