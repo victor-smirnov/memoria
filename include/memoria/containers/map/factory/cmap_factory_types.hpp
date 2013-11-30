@@ -33,10 +33,18 @@
 
 #include <memoria/containers/map/map_names.hpp>
 
+#include <memoria/prototypes/metamap/metamap_factory.hpp>
+
 namespace memoria    {
 
 
+template <typename Profile, Granularity gr>
+struct BTTypes<Profile, memoria::CMap<gr> >: public BTTypes<Profile, MetaMap<1, VLen<gr, BigInt>, BigInt>> {
 
+};
+
+
+/*
 
 
 template <typename Profile, Granularity gr>
@@ -124,7 +132,7 @@ struct BTTypes<Profile, memoria::CMap<gr> >: public BTTypes<Profile, memoria::BT
     template <typename Types>
     using FindREndWalker    = map::FindREndWalker<Types>;
 };
-
+*/
 
 }
 

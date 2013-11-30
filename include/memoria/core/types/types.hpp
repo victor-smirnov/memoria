@@ -109,6 +109,18 @@ public:
 
 template <typename T> struct TypeHash; // must define Value constant
 
+
+template <typename ... Types>
+struct TypeList {};
+
+template <typename T, T ... Values>
+struct ValueList {};
+
+
+
+
+
+
 /*
  * Container type names & profiles
  */
@@ -135,9 +147,16 @@ using DblMap = Map<K, Map<K, V>>;
 template <typename K, typename V>
 using DblMap2 = Map2<K, Map2<K, V>>;
 
+template <
+	Int Indexes,
+	typename Key,
+	typename Value,
+	typename LabelsList 		= TypeList<>,
+	typename HiddenLabelsList 	= TypeList<>
+>
+struct MetaMap      {};
 
-template <typename Key, typename Value>
-struct MapProto     {};
+
 
 template <typename Value>
 struct VectorProto  {};
@@ -221,6 +240,11 @@ using DblMrkMap = Map<K, MrkMap<K, V, BitsPerMark>>;
 template <typename K, typename V, Int BitsPerMark>
 using DblMrkMap2 = Map2<K, MrkMap2<K, V, BitsPerMark>>;
 
+
+template <Granularity granularity, typename T = BigInt>
+struct VLen {};
+
+
 /*
  * End of container type names and profiles
  */
@@ -263,11 +287,11 @@ class NotDefined {};
 template <int Order>
 struct CtrNameDeclarator: TypeDef<NotDefined> {};
 
-template <typename ... Types>
-struct TypeList {};
 
-template <typename T, T ... Values>
-struct ValueList {};
+
+
+
+
 
 
 
