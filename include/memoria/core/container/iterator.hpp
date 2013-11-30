@@ -161,6 +161,7 @@ public:
 
 template <typename Container> class IteratorFactoryName {};
 
+/*
 template<
         typename Types
 >
@@ -226,6 +227,8 @@ public:
         return *this;
     }
 };
+*/
+
 
 }
 

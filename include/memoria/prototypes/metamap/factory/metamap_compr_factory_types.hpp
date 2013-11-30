@@ -30,13 +30,15 @@
 #include <memoria/prototypes/metamap/metamap_iterator.hpp>
 #include <memoria/prototypes/metamap/iterator/metamap_i_api.hpp>
 #include <memoria/prototypes/metamap/iterator/metamap_i_nav.hpp>
+#include <memoria/prototypes/metamap/iterator/metamap_i_entry.hpp>
 #include <memoria/prototypes/metamap/iterator/metamap_i_value.hpp>
+#include <memoria/prototypes/metamap/iterator/metamap_i_value_byref.hpp>
 
 #include <memoria/prototypes/metamap/metamap_names.hpp>
 
 
 
-namespace memoria    {
+namespace memoria {
 
 
 template <typename Profile, Int Indexes, Granularity gr, typename Key_, typename Value_>

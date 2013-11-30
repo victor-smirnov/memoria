@@ -21,7 +21,9 @@ class CtrNavName 	{};
 
 class ItrApiName 	{};
 class ItrNavName 	{};
+class ItrEntryName 	{};
 class ItrValueName 	{};
+class ItrValueByRefName {};
 
 }
 

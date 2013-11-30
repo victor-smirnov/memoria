@@ -137,9 +137,9 @@ public:
     }
 
     template <typename T>
-    MyType& operator=(const T& value)
+    MyType& operator=(T&& value)
     {
-        this->setData(value);
+        AssignToItem(*this, value);
         return *this;
     }
 };

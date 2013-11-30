@@ -43,10 +43,10 @@ struct MapIterTypesT: IterTypesT<Types> {};
 
 
 template <typename Types>
-using MapCtrTypes  = MapCtrTypesT<Types>;
+using MapCtrTypes  = BTCtrTypes<MapCtrTypesT<Types>>;
 
 template <typename Types>
-using MapIterTypes = MapIterTypesT<Types>;
+using MapIterTypes = BTIterTypes<MapIterTypesT<Types>>;
 
 
 }

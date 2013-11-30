@@ -19,6 +19,40 @@ void InsertEntry(Map* map, Int idx, const MetaMapEntry<Indexes, Key, Value, Hidd
 }
 
 
+template <typename Value, typename Stream>
+Value& GetValueRef(Stream* stream, Int idx)
+{
+	return stream->value(idx);
+}
+
+template <typename Value, typename Stream>
+Value GetValue(const Stream* stream, Int idx)
+{
+	return stream->value(idx);
+}
+
+template <typename Stream, typename Value>
+void SetValue(Stream* stream, Int idx, const Value& value)
+{
+	stream->value(idx) = value;
+}
+
+
+template <typename Entry, typename Stream>
+Entry GetEntry(const Stream* stream, Int idx)
+{
+	Entry entry;
+
+	stream->sum(idx, entry.keys());
+	entry.value() = stream->value(idx);
+
+	// Process entry labels here
+
+	return entry;
+}
+
+
+
 }
 }
 

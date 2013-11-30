@@ -80,7 +80,7 @@ public:
 
                 auto iter = map[pairs[vector_idx].key_];
 
-                iter.value() = pairs[vector_idx].value_;
+                iter.svalue() = pairs[vector_idx].value_;
 
                 Base::checkIterator(iter, MEMORIA_SOURCE);
 
@@ -124,7 +124,7 @@ public:
         Ctr map(&allocator, CTR_FIND, Base::ctr_name_);
 
         auto iter = map[pairs[vector_idx_].key_];
-        iter.value() = pairs[vector_idx_].value_;
+        iter.svalue() = pairs[vector_idx_].value_;
 
         Base::checkIterator(iter, MEMORIA_SOURCE);
 
