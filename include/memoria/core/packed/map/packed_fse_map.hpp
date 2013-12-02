@@ -598,12 +598,12 @@ public:
 
     ValueDescr findGEBackward(Int block, Int start, IndexValue val) const
     {
-        return this->tree()->findGEForward(block, start, val);
+        return this->tree()->findGEBackward(block, start, val);
     }
 
     ValueDescr findGTBackward(Int block, Int start, IndexValue val) const
     {
-        return this->tree()->findGTForward(block, start, val);
+        return this->tree()->findGTBackward(block, start, val);
     }
 
 
@@ -740,10 +740,135 @@ public:
         return tree()->sumWithoutLastElement(block);
     }
 
+
     void addValue(Int block, Int idx, Key value)
     {
     	tree()->addValue(block, idx, value);
     }
+
+    // ====================================== Labels Operations ====================================== //
+
+    struct RankFn {
+
+    	using ResultType = Int;
+
+    	template <Int StreamIdx, typename Stream>
+    	ResultType stream(const Stream* stream, Int end, Int label)
+    	{
+    		return stream->rank(end, label);
+    	}
+
+    	template <Int StreamIdx, typename Stream>
+    	ResultType stream(const Stream* stream, Int start, Int end, Int label)
+    	{
+    		return stream->rank(start, end, label);
+    	}
+    };
+
+
+    BigInt h_rank(Int end, Int label) const
+    {
+    	return HiddenLabelsDispatcher::dispatchRtn(0, this, RankFn(), end, label);
+    }
+
+    BigInt rank(Int end, Int label) const
+    {
+    	return LabelsDispatcher::dispatchRtn(0, this, RankFn(), end, label);
+    }
+
+
+    BigInt h_rank(Int start, Int end, Int label) const
+    {
+    	return HiddenLabelsDispatcher::dispatchRtn(0, this, RankFn(), start, end, label);
+    }
+
+    BigInt rank(Int start, Int end, Int label) const
+    {
+    	return LabelsDispatcher::dispatchRtn(0, this, RankFn(), start, end, label);
+    }
+
+
+
+
+    struct SelectFwFn {
+
+    	using ResultType = SelectResult;
+
+    	template <Int StreamIdx, typename Stream>
+    	ResultType stream(const Stream* stream, Int start, Int symbol, BigInt rank)
+    	{
+    		return stream->selectFw(start, symbol, rank);
+    	}
+
+    	template <Int StreamIdx, typename Stream>
+    	ResultType stream(const Stream* stream, Int symbol, BigInt rank)
+    	{
+    		return stream->selectFw(symbol, rank);
+    	}
+    };
+
+    SelectResult h_selectFw(Int start, Int symbol, BigInt rank) const
+    {
+    	return HiddenLabelsDispatcher::dispatchRtn(0, this, SelectFwFn(), start, symbol, rank);
+    }
+
+    SelectResult selectFw(Int start, Int symbol, BigInt rank) const
+    {
+    	return LabelsDispatcher::dispatchRtn(0, this, SelectFwFn(), start, symbol, rank);
+    }
+
+
+    SelectResult h_selectFw(Int symbol, BigInt rank) const
+    {
+    	return HiddenLabelsDispatcher::dispatchRtn(0, this, SelectFwFn(), symbol, rank);
+    }
+
+    SelectResult selectFw(Int symbol, BigInt rank) const
+    {
+    	return LabelsDispatcher::dispatchRtn(0, this, SelectFwFn(), symbol, rank);
+    }
+
+
+
+
+    struct SelectBwFn {
+    	using ResultType = SelectResult;
+
+    	template <Int StreamIdx, typename Stream>
+    	ResultType stream(const Stream* stream, Int start, Int symbol, BigInt rank)
+    	{
+    		return stream->selectBw(start, symbol, rank);
+    	}
+
+    	template <Int StreamIdx, typename Stream>
+    	ResultType stream(const Stream* stream, Int symbol, BigInt rank)
+    	{
+    		return stream->selectBw(symbol, rank);
+    	}
+    };
+
+
+    SelectResult h_selectBw(Int start, Int symbol, BigInt rank) const
+    {
+    	return HiddenLabelsDispatcher::dispatchRtn(0, this, SelectBwFn(), start, symbol, rank);
+    }
+
+    SelectResult selectBw(Int start, Int symbol, BigInt rank) const
+    {
+    	return LabelsDispatcher::dispatchRtn(0, this, SelectBwFn(), start, symbol, rank);
+    }
+
+
+    SelectResult h_selectBw(Int symbol, BigInt rank) const
+    {
+    	return HiddenLabelsDispatcher::dispatchRtn(0, this, SelectBwFn(), symbol, rank);
+    }
+
+    SelectResult selectBw(Int symbol, BigInt rank) const
+    {
+    	return LabelsDispatcher::dispatchRtn(0, this, SelectBwFn(), symbol, rank);
+    }
+
 
     // ============================ IO =============================================== //
 

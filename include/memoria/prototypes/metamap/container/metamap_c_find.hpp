@@ -121,6 +121,20 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrFindName)
         return iter;
     }
 
+    Iterator selectLabel(Int symbol, CtrSizeT rank)
+    {
+    	typename Types::template SelectForwardWalker<Types> walker(0, 2 + symbol, symbol, false, rank);
+
+    	return self().find0(0, walker);
+    }
+
+    Iterator selectHiddenLabel(Int symbol, CtrSizeT rank)
+    {
+    	typename Types::template SelectForwardWalker<Types> walker(0, 2 + symbol, symbol, true, rank);
+
+    	return self().find0(0, walker);
+    }
+
 MEMORIA_CONTAINER_PART_END
 
 }

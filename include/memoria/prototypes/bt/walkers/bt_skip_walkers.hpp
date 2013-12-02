@@ -14,18 +14,19 @@ namespace bt1 	  {
 
 template <
 	typename Types,
-	typename IteratorPrefixFn = EmptyIteratorPrefixFn
+	typename IteratorPrefixFn,
+	typename MyType
 >
-class SkipForwardWalker: public FindForwardWalkerBase<Types, IteratorPrefixFn, SkipForwardWalker<Types, IteratorPrefixFn>> {
-
-	using Base 	= FindForwardWalkerBase<Types, IteratorPrefixFn, SkipForwardWalker<Types, IteratorPrefixFn>>;
+class SkipForwardWalkerBase: public FindForwardWalkerBase<Types, IteratorPrefixFn, MyType> {
+protected:
+	using Base 	= FindForwardWalkerBase<Types, IteratorPrefixFn, MyType>;
 	using Key 	= typename Base::Key;
 
 public:
 	using ResultType = Int;
 
-	SkipForwardWalker(Int stream, Int block, Key target):
-		Base(stream, block, block, target, SearchType::GT)
+	SkipForwardWalkerBase(Int stream, Int branch_index, Int leaf_index, Key target):
+		Base(stream, branch_index, leaf_index, target, SearchType::GT)
 	{}
 
 
@@ -50,6 +51,8 @@ public:
 
 				this->end_ = false;
 
+				self().template postProcessLeafStream<StreamIdx>(array, start, start + offset);
+
 				return start + offset;
 			}
 			else {
@@ -59,6 +62,8 @@ public:
 
 				this->end_ = true;
 
+				self().template postProcessLeafStream<StreamIdx>(array, start, size);
+
 				return size;
 			}
 		}
@@ -67,8 +72,9 @@ public:
 		}
 	}
 
+    MyType& self() {return *T2T<MyType*>(this);}
+    const MyType& self() const {return *T2T<const MyType*>(this);}
 };
-
 
 
 
@@ -76,19 +82,34 @@ template <
 	typename Types,
 	typename IteratorPrefixFn = EmptyIteratorPrefixFn
 >
-class SkipBackwardWalker: public FindBackwardWalkerBase<
-									Types,
-									IteratorPrefixFn,
-									SkipBackwardWalker<Types, IteratorPrefixFn>> {
-
-	using Base 	= FindBackwardWalkerBase<Types, IteratorPrefixFn, SkipBackwardWalker<Types, IteratorPrefixFn>>;
+class SkipForwardWalker: public SkipForwardWalkerBase<Types, IteratorPrefixFn, SkipForwardWalker<Types, IteratorPrefixFn>> {
+	using Base 	= SkipForwardWalkerBase<Types, IteratorPrefixFn, SkipForwardWalker<Types, IteratorPrefixFn>>;
 	using Key 	= typename Base::Key;
 
 public:
 	using ResultType = Int;
 
-	SkipBackwardWalker(Int stream, Int block, Key target):
-		Base(stream, block, block, target, SearchType::GT)
+	SkipForwardWalker(Int stream, Int block, Key target):
+		Base(stream, block, block, target)
+	{}
+};
+
+
+template <
+	typename Types,
+	typename IteratorPrefixFn,
+	typename MyType
+>
+class SkipBackwardWalkerBase: public FindBackwardWalkerBase<Types, IteratorPrefixFn, MyType> {
+protected:
+	using Base 	= FindBackwardWalkerBase<Types, IteratorPrefixFn, MyType>;
+	using Key 	= typename Base::Key;
+
+public:
+	using ResultType = Int;
+
+	SkipBackwardWalkerBase(Int stream, Int branch_index, Int leaf_index, Key target):
+		Base(stream, branch_index, leaf_index, target, SearchType::GE)
 	{}
 
 
@@ -111,6 +132,8 @@ public:
 
 				this->end_ = false;
 
+				self().template postProcessLeafStream<StreamIdx>(array, start - offset, start);
+
 				return start - offset;
 			}
 			else {
@@ -120,6 +143,8 @@ public:
 
 				this->end_ = true;
 
+				self().template postProcessLeafStream<StreamIdx>(array, 0, start);
+
 				return -1;
 			}
 		}
@@ -127,6 +152,30 @@ public:
 			return 0;
 		}
 	}
+
+    MyType& self() {return *T2T<MyType*>(this);}
+    const MyType& self() const {return *T2T<const MyType*>(this);}
+};
+
+
+template <
+	typename Types,
+	typename IteratorPrefixFn = EmptyIteratorPrefixFn
+>
+class SkipBackwardWalker: public SkipBackwardWalkerBase<
+									Types,
+									IteratorPrefixFn,
+									SkipBackwardWalker<Types, IteratorPrefixFn>> {
+
+	using Base 	= SkipBackwardWalkerBase<Types, IteratorPrefixFn, SkipBackwardWalker<Types, IteratorPrefixFn>>;
+	using Key 	= typename Base::Key;
+
+public:
+	using ResultType = Int;
+
+	SkipBackwardWalker(Int stream, Int block, Key target):
+		Base(stream, block, block, target)
+	{}
 };
 
 

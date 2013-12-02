@@ -31,11 +31,17 @@ class MapApiTest: public MapTestBase<MapName> {
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::Ctr                                                  Ctr;
 
+    Int key_ 		= 0;
+    Int skip_bw_  	= 0;
+
 public:
 
     MapApiTest(String name): Base(name)
     {
-        MEMORIA_ADD_TEST(runTest);
+        MEMORIA_ADD_TEST_PARAM(key_);
+        MEMORIA_ADD_TEST_PARAM(skip_bw_);
+
+    	MEMORIA_ADD_TEST(runTest);
     }
 
     virtual ~MapApiTest() throw () {}
@@ -52,16 +58,59 @@ public:
 
         Base::ctr_name_ = map.name();
 
+        BigInt last_key = 0;
 
-        auto iter1 = map[1];
-        iter1 = std::make_tuple(1, 2);
+        for (Int c = 1; c <= 1000; c++)
+        {
+        	last_key += getRandom(5) + 1;
 
-        cout<<"First: "<<std::get<0>(iter1.value())<<endl;
-        cout<<"Second: "<<std::get<1>(iter1.value())<<endl;
+        	auto iter = map[last_key];
+        	iter = std::make_tuple(1, 2);
+        }
 
-        cout<<"E.Key: "<<iter1.entry().key()<<endl;
-        cout<<"E.First: "<<std::get<0>(iter1.entry().value())<<endl;
-        cout<<"E.Second: "<<std::get<1>(iter1.entry().value())<<endl;
+        cout<<"Size: "<<map.size()<<endl;
+
+        auto iter = map.selectHiddenLabel(0, 1000);
+
+        cout<<"pos="<<iter.pos()<<" "<<iter.cache().prefixes()<<endl;
+
+        for (auto iter = map.Begin(); !iter.isEnd(); iter++)
+        {
+        	iter.selectHiddenLabelFw(0, 100);
+
+        	cout<<iter.pos()<<endl;
+        }
+
+        iter = map.Begin();
+
+        iter.selectHiddenLabelFw(1, 1);
+
+        cout<<"1.pos="<<iter.pos()<<endl;
+
+//        iter--;
+//
+//        auto iter2 = iter;
+//
+//        iter.selectHiddenLabelBw(0, 142 + 78 + 1);
+//
+//        cout<<"1.pos="<<iter.pos()<<" "<<iter.idx()<<" "<<iter.cache().prefixes()<<endl;
+
+
+//        auto iter3 = map.RBegin();
+//
+//        cout<<"3.pos="<<iter3.pos()<<" "<<iter3.idx()<<" "<<iter3.cache().prefixes()<<endl;
+//
+//        iter3.findKeyGEBw(0, key_);
+//
+//        cout<<"3.pos="<<iter3.pos()<<" "<<iter3.idx()<<" "<<iter3.cache().prefixes()<<endl;
+
+
+        auto iter4 = map.End();
+        cout<<"4.pos="<<iter4.pos()<<" "<<iter4.idx()<<" "<<iter4.cache().prefixes()<<endl;
+
+        iter4.skipBw(skip_bw_);
+
+        cout<<"4.pos="<<iter4.pos()<<" "<<iter4.idx()<<" "<<iter4.cache().prefixes()<<" "<<iter4.leaf()->id()<<endl;
 
         allocator.commit();
 

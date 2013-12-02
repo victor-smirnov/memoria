@@ -62,6 +62,8 @@ public:
 
     	this->end_ = result.idx() >= tree->size();
 
+    	self().template postProcessNonLeafStream<StreamIdx>(tree, start, result.idx());
+
     	return result.idx();
     }
 
@@ -82,6 +84,8 @@ public:
     	fn.processLeafFw(tree, std::get<StreamIdx>(Base::prefix_), start, result.idx(), index + 1, result.prefix());
 
     	this->end_ = result.idx() >= tree->size();
+
+    	self().template postProcessLeafStream<StreamIdx>(tree, start, result.idx());
 
     	return result.idx();
     }
@@ -105,13 +109,8 @@ public:
     	}
     }
 
-    MyType& self() {
-        return *T2T<MyType*>(this);
-    }
-
-    const MyType& self() const {
-        return *T2T<const MyType*>(this);
-    }
+    MyType& self() {return *T2T<MyType*>(this);}
+    const MyType& self() const {return *T2T<const MyType*>(this);}
 };
 
 
@@ -177,7 +176,7 @@ public:
 
 template <typename Types, typename IteratorPrefixFn, typename MyType>
 class FindBackwardWalkerBase: public FindWalkerBase<Types, MyType> {
-
+protected:
     typedef FindWalkerBase<Types, MyType>                                       Base;
 
 protected:
@@ -202,11 +201,13 @@ public:
 
         IteratorPrefixFn fn;
 
-        Int idx = result.idx() < 0 ? 0 : result.idx();
+        Int idx = result.idx();
 
-        fn.processNonLeafBw(tree, std::get<StreamIdx>(Base::prefix_), idx, start, index, result.prefix());
+        fn.processNonLeafBw(tree, std::get<StreamIdx>(Base::prefix_), idx + 1, start + 1, index, result.prefix());
 
         this->end_ = result.idx() >= 0;
+
+        self().template postProcessNonLeafStream<StreamIdx>(tree, idx + 1, start + 1);
 
         return result.idx();
     }
@@ -219,7 +220,9 @@ public:
 
     	Int index 		= this->leaf_index();
 
-    	auto result     = tree->findBackward(Base::search_type_, index, start, k);
+    	Int start1		= start == tree->size() ? start - 1 : start;
+
+    	auto result     = tree->findBackward(Base::search_type_, index, start1, k);
     	Base::sum_      += result.prefix();
 
     	IteratorPrefixFn fn;
@@ -229,6 +232,8 @@ public:
     	fn.processLeafBw(tree, std::get<StreamIdx>(Base::prefix_), idx, start, index + 1, result.prefix());
 
     	this->end_ = result.idx() >= 0;
+
+    	self().template postProcessNonLeafStream<StreamIdx>(tree, idx, start);
 
     	return result.idx();
     }
@@ -272,7 +277,7 @@ class FindBackwardWalker: public FindBackwardWalkerBase<
 									IteratorPrefixFn,
 									FindBackwardWalker<Types, IteratorPrefixFn>> {
 
-	using Base 	= FindBackwardWalkerBase<Types, IteratorPrefixFn, FindForwardWalker<Types, IteratorPrefixFn>>;
+	using Base 	= FindBackwardWalkerBase<Types, IteratorPrefixFn, FindBackwardWalker<Types, IteratorPrefixFn>>;
 	using Key 	= typename Base::Key;
 
 public:

@@ -784,9 +784,9 @@ public:
         auto prefix = raw_sum(block_start + start + 1);
         auto target = prefix - val;
 
-        if (target >= 0)
+        if (target > 0)
         {
-            FSEFindElementFn<MyType, PackedCompareLE> fn(*this, target);
+            FSEFindElementFn<MyType, PackedCompareLT> fn(*this, target);
 
             Int pos = TreeTools::find2(fn);
 
@@ -835,31 +835,38 @@ public:
     {
         Int block_start = block * size_;
 
-        auto prefix = raw_sum(block_start + start + 1);
-        auto target = prefix - val;
-
-        if (target >= 0)
+        if (val > 0)
         {
-            FSEFindElementFn<MyType, PackedCompareLT> fn(*this, target);
+        	auto prefix = raw_sum(block_start + start + 1);
+        	auto target = prefix - val;
 
-            Int pos = TreeTools::find2(fn);
+        	if (target > 0)
+        	{
+        		FSEFindElementFn<MyType, PackedCompareLE> fn(*this, target);
 
-            if (pos >= block_start)
-            {
-                Value actual_value = value(pos);
-                return ValueDescr(actual_value, pos - block_start, prefix - (fn.sum() + actual_value));
-            }
-            else {
-                return ValueDescr(0, -1, prefix - raw_sum(block_start));
-            }
-        }
-        else if (target == 0)
-        {
-            Value actual_value = value(0);
-            return ValueDescr(actual_value, 0, prefix - actual_value);
+        		Int pos = TreeTools::find2(fn);
+
+        		if (pos >= block_start)
+        		{
+        			Value actual_value = value(pos);
+        			return ValueDescr(actual_value, pos - block_start, prefix - (fn.sum() + actual_value));
+        		}
+        		else {
+        			return ValueDescr(0, -1, prefix - raw_sum(block_start));
+        		}
+        	}
+        	else if (target == 0)
+        	{
+        		Value actual_value = value(block_start);
+        		return ValueDescr(actual_value, 0, prefix - raw_sum(block_start) - actual_value);
+        	}
+        	else {
+        		return ValueDescr(0, -1, prefix);
+        	}
         }
         else {
-            return ValueDescr(0, -1, prefix);
+        	Value actual_value = value(start);
+        	return ValueDescr(actual_value, start, 0);
         }
     }
 

@@ -4,30 +4,30 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_RANK_WALKERS_HPP
-#define _MEMORIA_PROTOTYPES_BALANCEDTREE_RANK_WALKERS_HPP
+#ifndef _MEMORIA_PROTOTYPES_METAMAP_RANK_WALKERS_HPP
+#define _MEMORIA_PROTOTYPES_METAMAP_RANK_WALKERS_HPP
 
 #include <memoria/prototypes/bt/walkers/bt_skip_walkers.hpp>
 
 namespace memoria {
-namespace bt1 	  {
+namespace metamap {
 
 
 template <
 	typename Types,
-	typename IteratorPrefixFn = EmptyIteratorPrefixFn
+	typename IteratorPrefixFn = bt1::DefaultIteratorPrefixFn
 >
-class RankForwardWalker: public SkipForwardWalkerBase<
+class RankForwardWalker: public bt1::SkipForwardWalkerBase<
 									Types,
 									IteratorPrefixFn,
 									RankForwardWalker<Types, IteratorPrefixFn>> {
 
-	using Base 		= SkipForwardWalkerBase<Types, IteratorPrefixFn, RankForwardWalker<Types, IteratorPrefixFn>>;
+	using Base 		= bt1::SkipForwardWalkerBase<Types, IteratorPrefixFn, RankForwardWalker<Types, IteratorPrefixFn>>;
 	using Key 		= typename Base::Key;
 	using Iterator	= typename Base::Iterator;
 
-	using CtrSizeT = typename Types::CtrSizeT;
-	CtrSizeT rank_ = 0;
+	using CtrSizeT 	= typename Types::CtrSizeT;
+	CtrSizeT rank_ 	= 0;
 
 	Int branch_rank_index_;
 	Int symbol_;
@@ -64,14 +64,14 @@ public:
 
 template <
 	typename Types,
-	typename IteratorPrefixFn = EmptyIteratorPrefixFn
+	typename IteratorPrefixFn = bt1::DefaultIteratorPrefixFn
 >
-class RankBackwardWalker: public SkipBackwardWalkerBase<
+class RankBackwardWalker: public bt1::SkipBackwardWalkerBase<
 									Types,
 									IteratorPrefixFn,
 									RankBackwardWalker<Types, IteratorPrefixFn>> {
 
-	using Base 		= SkipBackwardWalkerBase<Types, IteratorPrefixFn, RankBackwardWalker<Types, IteratorPrefixFn>>;
+	using Base 		= bt1::SkipBackwardWalkerBase<Types, IteratorPrefixFn, RankBackwardWalker<Types, IteratorPrefixFn>>;
 	using Key 		= typename Base::Key;
 	using Iterator	= typename Base::Iterator;
 

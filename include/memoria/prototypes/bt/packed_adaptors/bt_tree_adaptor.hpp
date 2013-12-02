@@ -16,16 +16,30 @@ struct DefaultIteratorPrefixFn {
 	template <typename StreamType, typename IteratorPrefix>
 	void processNonLeafFw(const StreamType* stream, IteratorPrefix& i_prefix, Int start, Int end, Int index, BigInt prefix)
 	{
-		for (Int c = 0; c < IteratorPrefix::Indexes; c++)
+		if (index >= 0 && index < IteratorPrefix::Indexes)
 		{
-			if (c != index)
+			for (Int c = 0; c < index; c++)
+			{
+				i_prefix[c] += stream->sum(c, start, end);
+			}
+
+			i_prefix[index] += prefix;
+
+			for (Int c = index + 1; c < IteratorPrefix::Indexes; c++)
 			{
 				i_prefix[c] += stream->sum(c, start, end);
 			}
 		}
-
-		i_prefix[index] += prefix;
+		else {
+			for (Int c = 0; c < IteratorPrefix::Indexes; c++)
+			{
+				i_prefix[c] += stream->sum(c, start, end);
+			}
+		}
 	}
+
+
+
 
 	template <typename StreamType, typename IteratorPrefix>
 	void processLeafFw(const StreamType* stream, IteratorPrefix& i_prefix, Int start, Int end, Int index, BigInt prefix)
@@ -47,37 +61,82 @@ struct DefaultIteratorPrefixFn {
 	}
 
 	template <typename StreamType, typename IteratorPrefix>
+	void processLeafFw(const StreamType* stream, IteratorPrefix& i_prefix, Int start, Int end)
+	{
+		i_prefix[0] += end - start;
+
+		for (Int c = 1; c < IteratorPrefix::Indexes; c++)
+		{
+			i_prefix[c] += stream->sum(c - 1, start, end);
+		}
+	}
+
+
+
+	template <typename StreamType, typename IteratorPrefix>
 	void processNonLeafBw(const StreamType* stream, IteratorPrefix& i_prefix, Int start, Int end, Int index, BigInt prefix)
 	{
-		for (Int c = 0; c < IteratorPrefix::Indexes; c++)
+		if (index >= 0 && index < IteratorPrefix::Indexes)
 		{
-			if (c != index)
+			for (Int c = 0; c < index; c++)
+			{
+				i_prefix[c] -= stream->sum(c, start, end);
+			}
+
+			i_prefix[index] -= prefix;
+
+			for (Int c = index + 1; c < IteratorPrefix::Indexes; c++)
 			{
 				i_prefix[c] -= stream->sum(c, start, end);
 			}
 		}
-
-		i_prefix[index] -= prefix;
+		else {
+			for (Int c = 0; c < IteratorPrefix::Indexes; c++)
+			{
+				i_prefix[c] -= stream->sum(c, start, end);
+			}
+		}
 	}
 
 	template <typename StreamType, typename IteratorPrefix>
 	void processLeafBw(const StreamType* stream, IteratorPrefix& i_prefix, Int start, Int end, Int index, BigInt prefix)
 	{
+//		for (Int c = 1; c < IteratorPrefix::Indexes; c++)
+//		{
+//			if (c != index)
+//			{
+//				i_prefix[c] -= stream->sum(c - 1, start, end);
+//			}
+//		}
+//
+//		i_prefix[index] -= prefix;
+//
+//		if (index > 0)
+//		{
+//			i_prefix[0] -= end - start;
+//		}
+
 		for (Int c = 1; c < IteratorPrefix::Indexes; c++)
 		{
-			if (c != index)
-			{
-				i_prefix[c] -= stream->sum(c - 1, start, end);
-			}
+			i_prefix[c] -= stream->sum(c - 1, start, end);
 		}
 
-		i_prefix[index] -= prefix;
+		i_prefix[0] -= end - start;
+	}
 
-		if (index > 0)
+
+
+	template <typename StreamType, typename IteratorPrefix>
+	void processLeafBw(const StreamType* stream, IteratorPrefix& i_prefix, Int start, Int end)
+	{
+		i_prefix[0] -= end - start;
+
+		for (Int c = 1; c < IteratorPrefix::Indexes; c++)
 		{
-			i_prefix[0] -= end - start;
+			i_prefix[c] -= stream->sum(c - 1, start, end);
 		}
 	}
+
 };
 
 

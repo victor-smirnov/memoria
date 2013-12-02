@@ -15,6 +15,12 @@
 #include <memoria/prototypes/bt/walkers/bt_skip_walkers.hpp>
 #include <memoria/prototypes/bt/walkers/bt_find_walkers.hpp>
 #include <memoria/prototypes/bt/walkers/bt_edge_walkers.hpp>
+#include <memoria/prototypes/bt/walkers/bt_select_walkers.hpp>
+#include <memoria/prototypes/bt/walkers/bt_rank_walkers.hpp>
+
+#include <memoria/prototypes/metamap/walkers/metamap_rank_walkers.hpp>
+#include <memoria/prototypes/metamap/walkers/metamap_select_walkers.hpp>
+
 
 #include <memoria/prototypes/bt/packed_adaptors/bt_tree_adaptor.hpp>
 #include <memoria/prototypes/metamap/packed_adaptors/metamap_packed_adaptors.hpp>
@@ -33,6 +39,8 @@
 #include <memoria/prototypes/metamap/iterator/metamap_i_entry.hpp>
 #include <memoria/prototypes/metamap/iterator/metamap_i_value.hpp>
 #include <memoria/prototypes/metamap/iterator/metamap_i_value_byref.hpp>
+#include <memoria/prototypes/metamap/iterator/metamap_i_labels.hpp>
+#include <memoria/prototypes/metamap/iterator/metamap_i_find.hpp>
 
 #include <memoria/prototypes/metamap/metamap_names.hpp>
 
@@ -41,14 +49,16 @@
 namespace memoria {
 
 
-template <typename Profile, Int Indexes, typename Key_, typename Value_, typename HiddenLabelsList, typename LabelsList>
+template <typename Profile, Int Indexes_, typename Key_, typename Value_, typename HiddenLabelsList, typename LabelsList>
 struct BTTypes<
 	Profile,
-	memoria::MetaMap<Indexes, Key_, Value_, HiddenLabelsList, LabelsList>
+	memoria::MetaMap<Indexes_, Key_, Value_, HiddenLabelsList, LabelsList>
 >:
 public BTTypes<Profile, memoria::BT> {
 
     typedef BTTypes<Profile, memoria::BT>                                       Base;
+
+    static const Int Indexes													= Indexes_;
 
     typedef typename IfThenElse<
     			IfTypesEqual<Value_, IDType>::Value,
@@ -83,6 +93,12 @@ public BTTypes<Profile, memoria::BT> {
             TreeNodeType<LeafNode>,
             TreeNodeType<BranchNode>
     >                                                                           DefaultNodeTypesList;
+
+    static const Int Labels														= ListSize<LabelsList>::Value;
+    static const Int HiddenLabels												= ListSize<HiddenLabelsList>::Value;
+
+    static const Int HiddenLabelsOffset											= 1 + Indexes;
+    static const Int LabelsOffset												= HiddenLabelsOffset + Labels;
 
     struct StreamTF {
     	typedef PackedFSEMap<
@@ -131,7 +147,9 @@ public BTTypes<Profile, memoria::BT> {
                 metamap::ItrApiName,
                 metamap::ItrNavName,
                 metamap::ItrValueByRefName,
-                metamap::ItrEntryName
+                metamap::ItrEntryName,
+                metamap::ItrLabelsName,
+                metamap::ItrFindName
     >::Result                                                                   IteratorPartsList;
 
 
@@ -149,10 +167,20 @@ public BTTypes<Profile, memoria::BT> {
     using FindGEWalker      	= bt1::FindGEForwardWalker<Types, bt1::DefaultIteratorPrefixFn>;
 
     template <typename Types>
+    using FindBackwardWalker    = bt1::FindBackwardWalker<Types, bt1::DefaultIteratorPrefixFn>;
+
+
+    template <typename Types>
     using SkipForwardWalker     = bt1::SkipForwardWalker<Types, bt1::DefaultIteratorPrefixFn>;
 
     template <typename Types>
     using SkipBackwardWalker    = bt1::SkipBackwardWalker<Types, bt1::DefaultIteratorPrefixFn>;
+
+    template <typename Types>
+    using SelectForwardWalker   = metamap::SelectForwardWalker<Types, bt1::DefaultIteratorPrefixFn>;
+
+    template <typename Types>
+    using SelectBackwardWalker  = metamap::SelectBackwardWalker<Types, bt1::DefaultIteratorPrefixFn>;
 
 
     template <typename Types>

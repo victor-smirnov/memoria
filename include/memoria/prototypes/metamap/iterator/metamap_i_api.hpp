@@ -288,7 +288,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrApiName)
     bool is_found_le(Key key) const
     {
     	auto& self = this->self();
-
     	return self.isContent() && self.key() <= key;
     }
 

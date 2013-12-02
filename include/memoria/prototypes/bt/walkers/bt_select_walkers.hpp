@@ -13,243 +13,171 @@ namespace memoria {
 namespace bt1 	  {
 
 
-
-template <typename Types, typename MyType>
-class SelectWalkerBase: public WalkerBase<Types, MyType> {
-
+template <
+	typename Types,
+	typename IteratorPrefixFn,
+	typename MyType
+>
+class SelectForwardWalkerBase: public FindForwardWalkerBase<Types, IteratorPrefixFn, MyType> {
 protected:
-    typedef SelectWalkerBase<Types, MyType>                                     Base;
-    typedef typename Base::Key                                                  Key;
+	using Base 	= FindForwardWalkerBase<Types, IteratorPrefixFn, MyType>;
+	using Key 	= typename Base::Key;
 
 public:
-    typedef Int                                                                 ResultType;
+	using ResultType = Int;
+
+	SelectForwardWalkerBase(Int stream, Int branch_index, Int symbol, Key target):
+		Base(stream, branch_index, symbol, target, SearchType::GE)
+	{}
 
 
-	SelectWalkerBase(Int stream, Int block, Key target):
-		Base(stream, block, target)
+	template <Int StreamIdx, typename Seq>
+	ResultType find_leaf(const Seq* seq, Int start)
 	{
-		this->search_type_ = SearchType::GE;
+		MEMORIA_ASSERT_TRUE(seq);
+
+		auto& sum       = Base::sum_;
+		auto symbol     = Base::leaf_index();
+
+		BigInt rank   	= Base::target_ - sum;
+		auto result		= self().template select<StreamIdx>(seq, start, symbol, rank);
+
+		this->end_ 		= !result.is_found();
+
+		IteratorPrefixFn fn;
+
+		if (result.is_found())
+		{
+			fn.processLeafFw(seq, std::get<StreamIdx>(Base::prefix_), start, result.idx());
+
+			return result.idx();
+		}
+		else {
+			Int size = seq->size();
+
+			sum  += result.rank();
+
+			fn.processLeafFw(seq, std::get<StreamIdx>(Base::prefix_), start, size);
+
+			return size;
+		}
 	}
 
-    template <Int StreamIdx, typename StreamObj>
-    ResultType stream(const StreamObj* stream, Int start)
-    {
-    	if (this->current_tree_level_)
-    	{
-    		return self().template find<StreamIdx>(stream, start);
-    	}
-    	else
-    	{
-    		return self().template select<StreamIdx>(stream, start);
-    	}
-    }
+	MyType& self() {return *T2T<MyType*>(this);}
+	const MyType& self() const {return *T2T<const MyType*>(this);}
 };
 
 
 
 
-template <typename Types, typename MyType>
-class SelectForwardWalkerBase: public SelectWalkerBase<Types, MyType> {
+template <
+	typename Types,
+	typename IteratorPrefixFn = EmptyIteratorPrefixFn
+>
+class SelectForwardWalker: public SelectForwardWalkerBase<
+									Types,
+									IteratorPrefixFn,
+									SelectForwardWalker<Types, IteratorPrefixFn>> {
 
-protected:
-    typedef SelectWalkerBase<Types, MyType>                                     Base;
-    typedef typename Base::Key                                                  Key;
+	using Base 	= SelectForwardWalkerBase<Types, IteratorPrefixFn, SelectForwardWalker<Types, IteratorPrefixFn>>;
+	using Key 	= typename Base::Key;
 
 public:
-    SelectForwardWalkerBase(Int stream, Int block, Key target):
-    	Base(stream, block, target)
-    {}
+	using ResultType = Int;
 
-    typedef Int                                                                 ResultType;
+	SelectForwardWalker(Int stream, Int branch_index, Int symbol, Key target):
+		Base(stream, branch_index, symbol, target)
+	{}
 
-    template <Int StreamIdx, typename StreamObj>
-    ResultType stream(const StreamObj* stream, Int start)
-    {
-    	if (this->index_ || this->current_tree_level_)
-    	{
-    		return self().template find<StreamIdx>(stream, start);
-    	}
-    	else
-    	{
-    		return self().template skip<StreamIdx>(stream, start);
-    	}
-    }
-
-    template <Int StreamIdx, typename Tree>
-    ResultType find(const Tree* tree, Int start)
-    {
-    	auto k = Base::target_ - Base::sum_;
-
-    	auto result = tree->findForward(Base::search_type_, Base::index_, start, k);
-
-    	Base::sum_ += result.prefix();
-
-    	self().template postProcessStream<StreamIdx>(tree, start, result);
-
-    	this->end_ = result.idx() >= tree->size();
-
-    	return result.idx();
-    }
-
-
-    template <Int StreamIdx, typename Tree>
-    ResultType select(const Tree* tree, Int start)
-    {
-        MEMORIA_ASSERT_TRUE(seq != nullptr);
-
-        auto& sum       = Base::sum_;
-        auto symbol     = Base::index_ - 1;
-
-        BigInt target   = Base::target_ - sum;
-        auto result     = seq->selectFw(start, symbol, target);
-
-        this->end_ 		= !result.is_found();
-
-        if (result.is_found())
-        {
-        	self().template postProcessStream<StreamIdx>(tree, start, result.idx());
-
-            return result.idx();
-        }
-        else {
-            Int size = seq->size();
-
-            sum  += result.rank();
-
-            self().template postProcessStream<StreamIdx>(tree, start, size);
-
-            return size;
-        }
-    }
-
-
-    template <Int StreamIdx, typename StreamType, typename Result>
-    void postProcessStream(const StreamType* stream, Int start, const Result& result)
-    {
-    	PostProcessStreamFw(stream, std::get<StreamIdx>(Base::prefix_), start, result);
-    }
-
-
-
-    template <Int StreamIdx, typename StreamType>
-    void postProcessNonLeafOtherStreams(const StreamType* stream, Int start, Int end)
-    {
-    	PostProcessStreamFw(stream, std::get<StreamIdx>(Base::prefix_), start, end);
-    }
-
-    template <Int StreamIdx, typename StreamType>
-    void postProcessLeafOtherStreams(const StreamType* stream)
-    {
-    	if (this->end_)
-    	{
-    		PostProcessStreamFw(stream, std::get<StreamIdx>(Base::prefix_), 0, stream->size());
-    	}
-    }
-
-    MyType& self() {
-        return *T2T<MyType*>(this);
-    }
-
-    const MyType& self() const {
-        return *T2T<const MyType*>(this);
-    }
+	template <Int StreamIdx, typename Seq>
+	SelectResult select(const Seq* seq, Int start, Int symbol, BigInt rank)
+	{
+		return seq->selectFw(start, symbol, rank);
+	}
 };
 
 
 
 
-
-template <typename Types, typename MyType>
-class SelectBackwardWalkerBase: public SelectWalkerBase<Types, MyType> {
-
-    typedef SelectWalkerBase<Types, MyType>                                     Base;
-
+template <
+	typename Types,
+	typename IteratorPrefixFn,
+	typename MyType
+>
+class SelectBackwardWalkerBase: public FindBackwardWalkerBase<Types, IteratorPrefixFn, MyType> {
 protected:
-    typedef typename Base::Key                                                  Key;
+	using Base 	= FindBackwardWalkerBase<Types, IteratorPrefixFn, MyType>;
+	using Key 	= typename Base::Key;
 
 public:
-    typedef Int                                                                 ResultType;
+	using ResultType = Int;
 
-    SelectBackwardWalkerBase(Int stream, Int index, Key target):
-    	Base(stream, index, target)
-    {}
-
-    template <Int StreamIdx, typename Tree>
-    ResultType find(const Tree* tree, Int start)
-    {
-        auto k          = Base::target_ - Base::sum_;
-        auto result     = tree->findBackward(Base::search_type_, Base::index_, start, k);
-        Base::sum_      += result.prefix();
-
-        self().template postProcessStream<Idx>(tree, start, result);
-
-        this->end_ 		= result.idx() >= 0;
-
-        return result.idx();
-    }
+	SelectBackwardWalkerBase(Int stream, Int branch_index, Int symbol, Key target):
+		Base(stream, branch_index, symbol, target, SearchType::GT)
+	{}
 
 
-    template <Int StreamIdx, typename Array>
-    ResultType select(const Array* array, Int start)
-    {
-    	MEMORIA_ASSERT_TRUE(seq != nullptr);
+	template <Int StreamIdx, typename Seq>
+	ResultType find_leaf(const Seq* seq, Int start)
+	{
+		MEMORIA_ASSERT_TRUE(seq);
 
-    	BigInt target   = Base::target_ - Base::sum_;
+		BigInt target   = Base::target_ - Base::sum_;
 
-    	auto& sum       = Base::sum_;
-    	auto symbol     = Base::index_ - 1;
+		auto& sum       = Base::sum_;
+		auto symbol     = Base::leaf_index();
+		auto result		= self().template select<StreamIdx>(seq, start, symbol, target);
 
-    	auto result     = seq->selectBw(start, symbol, target);
+		this->end_ 		= !result.is_found();
 
-    	this->end_ 		= !result.is_found();
+		IteratorPrefixFn fn;
 
-    	if (result.is_found())
-    	{
-    		self().template postProcessStream<StreamIdx>(array, start, start - result.idx());
+		if (result.is_found())
+		{
+			fn.processLeafBw(seq, std::get<StreamIdx>(Base::prefix_), result.idx(), start);
 
-    		return result.idx();
-    	}
-    	else {
-    		sum += result.rank();
+			return result.idx();
+		}
+		else {
+			sum += result.rank();
 
-    		self().template postProcessStream<StreamIdx>(array, start, 0);
+			fn.processLeafBw(seq, std::get<StreamIdx>(Base::prefix_), 0, start);
 
-    		return -1;
-    	}
-    }
+			return -1;
+		}
+	}
 
-
-    template <Int StreamIdx, typename StreamType, typename Result>
-    void postProcessStream(const StreamType* stream, Int start, const Result& result)
-    {
-    	PostProcessStreamBw(stream, std::get<StreamIdx>(Base::prefix_), start, result);
-    }
-
-    template <Int StreamIdx, typename StreamType>
-    void postProcessNonLeafOtherStreams(const StreamType* stream, Int start, Int end)
-    {
-    	PostProcessStreamBw(stream, std::get<StreamIdx>(Base::prefix_), start, end);
-    }
-
-    template <Int StreamIdx, typename StreamType>
-    void postProcessLeafOtherStreams(const StreamType* stream)
-    {
-    	if (this->end_)
-    	{
-    		PostProcessStreamBw(stream, std::get<StreamIdx>(Base::prefix_), stream->size(), 0);
-    	}
-    }
-
-    MyType& self() {
-        return *T2T<MyType*>(this);
-    }
-
-    const MyType& self() const {
-        return *T2T<const MyType*>(this);
-    }
+	MyType& self() {return *T2T<MyType*>(this);}
+	const MyType& self() const {return *T2T<const MyType*>(this);}
 };
 
 
+
+
+template <
+	typename Types,
+	typename IteratorPrefixFn = EmptyIteratorPrefixFn
+>
+class SelectBackwardWalker: public SelectBackwardWalkerBase<
+									Types,
+									IteratorPrefixFn,
+									SelectBackwardWalker<Types, IteratorPrefixFn>> {
+
+	using Base 	= SelectBackwardWalkerBase<Types, IteratorPrefixFn, SelectBackwardWalker<Types, IteratorPrefixFn>>;
+	using Key 	= typename Base::Key;
+
+public:
+
+	SelectBackwardWalker(Int stream, Int block, Key target):
+		Base(stream, block, block, target)
+	{}
+
+	template <Int StreamIdx, typename Seq>
+	SelectResult select(const Seq* seq, Int start, Int symbol, BigInt rank)
+	{
+		return seq->selectBw(start, symbol, rank);
+	}
+};
 
 
 }

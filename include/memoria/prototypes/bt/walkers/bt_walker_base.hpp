@@ -17,14 +17,14 @@ protected:
     typedef Iter<typename Types::IterTypes>                                     Iterator;
     typedef typename Types::IteratorPrefix										IteratorPrefix;
 
-    typedef BigInt																Key;
+    typedef typename Types::CtrSizeT											Key;
 
     static const Int Streams                                                    = Types::Streams;
 
     SearchType search_type_ = SearchType::GT;
 
-    BigInt sum_         = 0;
-    BigInt target_      = 0;
+    BigInt sum_         	= 0;
+    BigInt target_      	= 0;
 
     WalkDirection direction_;
 
@@ -169,9 +169,16 @@ public:
     const MyType& self() const {return *T2T<const MyType*>(this);}
 
 
+    template <Int StreamIdx, typename StreamType>
+    void postProcessNonLeafStream(const StreamType*, Int, Int) {}
 
-    template <Int StreamIdx, typename StreamType, typename Result>
-    void postProcessStream(const StreamType*, Int, const Result& result) {}
+    template <Int StreamIdx, typename StreamType>
+    void postProcessLeafStream(const StreamType*, Int, Int) {}
+
+
+
+
+
 
     template <Int StreamIdx, typename StreamType>
     void postProcessOtherNonLeafStreams(const StreamType*, Int, Int) {}
@@ -179,40 +186,46 @@ public:
     template <Int StreamIdx, typename StreamType>
     void postProcessOtherLeafStreams(const StreamType*, Int, Int) {}
 
+
+
     template <typename Node>
     void postProcessNode(const Node*, Int, Int) {}
 
-    template <typename Node>
-    ReturnType treeNode(const Node* node, BigInt start)
+    template <typename NodeTypes>
+    ReturnType treeNode(const bt::BranchNode<NodeTypes>* node, BigInt start)
     {
-    	Int idx;
-
-    	if (node->level())
-    	{
-    		idx = node->find(stream_, FindNonLeafFn(self()), start);
-    	}
-    	else {
-    		idx = node->find(stream_, FindLeafFn(self()), start);
-    	}
+    	Int idx = node->find(stream_, FindNonLeafFn(self()), start);
 
         self().postProcessNode(node, start, idx);
 
         if (multistream_ && Streams > 1)
         {
-        	if (node->level())
-        	{
-        		OtherNonLeafStreamsProc proc(self());
-        		node->processAll(proc, start, idx);
-        	}
-        	else if (direction_ == WalkDirection::UP)
-        	{
-        		OtherLeafStreamsProc proc(self());
-        		node->processAll(proc);
-        	}
+        	OtherNonLeafStreamsProc proc(self());
+        	node->processAll(proc, start, idx);
         }
 
         return idx;
     }
+
+    template <typename NodeTypes>
+    ReturnType treeNode(const bt::LeafNode<NodeTypes>* node, BigInt start)
+    {
+    	Int idx = node->find(stream_, FindLeafFn(self()), start);
+
+    	self().postProcessNode(node, start, idx);
+
+    	if (multistream_ && Streams > 1)
+    	{
+    		if (direction_ == WalkDirection::UP)
+    		{
+    			OtherLeafStreamsProc proc(self());
+    			node->processAll(proc);
+    		}
+    	}
+
+    	return idx;
+    }
+
 };
 
 
@@ -226,11 +239,21 @@ struct EmptyIteratorPrefixFn {
 	{}
 
 	template <typename StreamType, typename IteratorPrefix>
+	void processLeafFw(const StreamType*, IteratorPrefix&, Int start, Int end)
+	{}
+
+
+
+	template <typename StreamType, typename IteratorPrefix>
 	void processNonLeafBw(const StreamType*, IteratorPrefix&, Int start, Int end, Int index, BigInt prefix)
 	{}
 
 	template <typename StreamType, typename IteratorPrefix>
 	void processLeafBw(const StreamType*, IteratorPrefix&, Int start, Int end, Int index, BigInt prefix)
+	{}
+
+	template <typename StreamType, typename IteratorPrefix>
+	void processLeafBw(const StreamType*, IteratorPrefix&, Int start, Int end)
 	{}
 };
 

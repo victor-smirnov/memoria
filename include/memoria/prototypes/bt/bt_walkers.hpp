@@ -17,6 +17,8 @@
 #include <memoria/core/packed/map/packed_fse_map.hpp>
 #include <memoria/core/packed/map/packed_fse_mark_map.hpp>
 
+#include <memoria/prototypes/bt/walkers/bt_misc_walkers.hpp>
+
 #include <ostream>
 #include <functional>
 
