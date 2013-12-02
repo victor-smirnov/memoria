@@ -41,8 +41,12 @@
 namespace memoria {
 
 
-template <typename Profile, Int Indexes, typename Key_, typename Value_>
-struct BTTypes<Profile, memoria::MetaMap<Indexes, Key_, Value_> >: public BTTypes<Profile, memoria::BT> {
+template <typename Profile, Int Indexes, typename Key_, typename Value_, typename HiddenLabelsList, typename LabelsList>
+struct BTTypes<
+	Profile,
+	memoria::MetaMap<Indexes, Key_, Value_, HiddenLabelsList, LabelsList>
+>:
+public BTTypes<Profile, memoria::BT> {
 
     typedef BTTypes<Profile, memoria::BT>                                       Base;
 
@@ -54,7 +58,21 @@ struct BTTypes<Profile, memoria::MetaMap<Indexes, Key_, Value_> >: public BTType
 
     typedef Key_                                                    			Key;
 
-    typedef metamap::MetaMapEntry<Indexes, Key, Value>							Entry;
+    typedef typename TupleBuilder<
+    		typename metamap::LabelTypeListBuilder<HiddenLabelsList>::Type
+    >::Type																		HiddenLabelsTuple;
+
+    typedef typename TupleBuilder<
+    		typename metamap::LabelTypeListBuilder<LabelsList>::Type
+    >::Type																		LabelsTuple;
+
+    typedef metamap::MetaMapEntry<
+    			Indexes,
+    			Key,
+    			Value,
+    			HiddenLabelsTuple,
+    			LabelsTuple
+    >																			Entry;
 
     typedef TypeList<
             LeafNodeTypes<LeafNode>,
@@ -67,11 +85,23 @@ struct BTTypes<Profile, memoria::MetaMap<Indexes, Key_, Value_> >: public BTType
     >                                                                           DefaultNodeTypesList;
 
     struct StreamTF {
-        typedef core::StaticVector<BigInt, Indexes + 1>					AccumulatorPart;
+    	typedef PackedFSEMap<
+    	        			PackedFSEMapTypes<
+    	        				Key,
+    	        				Value,
+    	        				Indexes,
+    	        				HiddenLabelsList,
+    	        				LabelsList
+    	        			>
+    	 	 	 > 														LeafType;
+
+
+    	static const Int LeafIndexes 									= LeafType::SizedIndexes;
+
+        typedef core::StaticVector<BigInt, LeafIndexes>					AccumulatorPart;
         typedef core::StaticVector<BigInt, Indexes + 1>					IteratorPrefixPart;
 
-        typedef PkdFTree<Packed2TreeTypes<Key, Key, Indexes + 1>> 		NonLeafType;
-        typedef PackedFSEMap<PackedFSEMapTypes<Key, Value, Indexes>> 	LeafType;
+        typedef PkdFTree<Packed2TreeTypes<Key, Key, LeafIndexes>> 		NonLeafType;
     };
 
 

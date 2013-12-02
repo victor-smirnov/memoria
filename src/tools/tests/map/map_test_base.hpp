@@ -111,7 +111,8 @@ public:
             AssertEQ(MA_SRC, idx, pairs_size);
 
             idx = pairs_size - 1;
-            for (auto iter = map.RBegin(); !iter.isBegin();) {
+            for (auto iter = map.RBegin(); !iter.isBegin();)
+            {
                 BigInt key = iter.key();
                 BigInt value = iter.value();
 

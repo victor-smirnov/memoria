@@ -664,6 +664,14 @@ public:
         return sums(to) - sums(from);
     }
 
+    Values sumsAt(Int idx) const
+    {
+    	Values values;
+    	values[symbol(idx)] = 1;
+
+    	return values;
+    }
+
     Values2 sums2(Int from, Int to) const
     {
         return sums2(to) - sums2(from);

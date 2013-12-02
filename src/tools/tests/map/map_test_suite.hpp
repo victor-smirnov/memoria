@@ -35,11 +35,11 @@ public:
 //
 //    	registerTask(new MapCreateTest<MrkMap<BigInt, BigInt, 1>>("MrkMap.Create"));
 //
-//        registerTask(new MapCreateTest<Map<BigInt, BigInt>>("Map.Create"));
+        registerTask(new MapCreateTest<Map<BigInt, BigInt>>("Map.Create"));
 //        registerTask(new MapCreateTest<CMap<Granularity::Bit>>("CMap1.Create"));
 //        registerTask(new MapCreateTest<CMap<Granularity::Byte>>("CMap2.Create"));
 //
-//        registerTask(new MapRemoveTest<Map<BigInt, BigInt>>("Map.Remove"));
+        registerTask(new MapRemoveTest<Map<BigInt, BigInt>>("Map.Remove"));
 //
 //    	registerTask(new MapRemoveTest<SMrkMap<BigInt, BigInt, 1>>("SMrkMap.Remove"));
 //    	registerTask(new MapRemoveTest<MrkMap<BigInt, BigInt, 1>>("MrkMap.Remove"));

@@ -10,15 +10,72 @@
 #include <memoria/core/packed/tree/packed_fse_tree.hpp>
 #include <memoria/metadata/page.hpp>
 
+#include <utility>
+
 namespace memoria {
+
+template <Int Bits>
+struct LabelDescr {};
+
+
+
+
+namespace internal {
+
+template <typename Labels, Int Idx = 0>
+class LabelDispatcherListBuilder;
+
+template <Int Bits, typename... Tail, Int Idx>
+class LabelDispatcherListBuilder<TypeList<LabelDescr<Bits>, Tail...>, Idx> {
+	typedef PkdFSSeq<typename PkdFSSeqTF<Bits>::Type>							LabelStream;
+public:
+	 typedef typename MergeLists<
+	            StreamDescr<LabelStream, Idx>,
+	            typename LabelDispatcherListBuilder<
+	                TypeList<Tail...>,
+	                Idx + 1
+	            >::Type
+	 >::Result                                                                  Type;
+};
+
+template <Int Idx>
+class LabelDispatcherListBuilder<TypeList<>, Idx> {
+public:
+	typedef TypeList<>															Type;
+};
+
+
+
+template <typename List> struct LabelsBlockSizeBuilder;
+
+template <typename LabelStream, Int Idx, typename... Tail>
+struct LabelsBlockSizeBuilder<TypeList<StreamDescr<LabelStream, Idx>, Tail...>> {
+	static const Int Value = LabelStream::Indexes +
+			LabelsBlockSizeBuilder<TypeList<Tail...>>::Value;
+};
+
+template <>
+struct LabelsBlockSizeBuilder<TypeList<>> {
+	static const Int Value = 0;
+};
+
+
+}
+
+
+
 
 template <
     typename Key,
     typename Value_,
-    Int Blocks      = 1
+    Int Blocks      = 1,
+    typename HiddenLabels_ = TypeList<>,
+    typename Labels_ = TypeList<>
 >
 struct PackedFSEMapTypes: Packed2TreeTypes<Key, BigInt, Blocks> {
-	using MapValue = Value_;
+	using MapValue 		= Value_;
+	using HiddenLabels 	= HiddenLabels_;
+	using Labels 		= Labels_;
 };
 
 template <typename Types>
@@ -27,8 +84,6 @@ class PackedFSEMap: public PackedAllocator {
     typedef PackedAllocator                                                     Base;
 public:
     typedef PackedFSEMap<Types>                                                 MyType;
-
-    enum {TREE, ARRAY};
 
     typedef PkdFTree<Types>                                                     Tree;
 
@@ -45,6 +100,39 @@ public:
 
     typedef IDataSource<IOValue>												DataSource;
     typedef IDataTarget<IOValue>												DataTarget;
+
+    typedef typename Types::HiddenLabels										HiddenLabelsList;
+    typedef typename Types::Labels												LabelsList;
+
+    static const Int HiddenLabelsOffset											= 1;
+    static const Int LabelsOffset												= HiddenLabelsOffset +
+    																				ListSize<HiddenLabelsList>::Value;
+
+
+    typedef typename memoria::internal::LabelDispatcherListBuilder<HiddenLabelsList>::Type 	HiddenLabelsStructsList;
+    typedef typename memoria::internal::LabelDispatcherListBuilder<LabelsList>::Type 		LabelsStructsList;
+
+
+    typedef typename PackedDispatcherTool<
+    		HiddenLabelsOffset,
+    		HiddenLabelsStructsList
+    >::Type																		HiddenLabelsDispatcher;
+
+    typedef typename PackedDispatcherTool<
+    		HiddenLabelsOffset + ListSize<HiddenLabelsList>::Value,
+    		LabelsStructsList
+    >::Type																		LabelsDispatcher;
+
+
+    static const Int LabelsIndexes 	= memoria::internal::LabelsBlockSizeBuilder<HiddenLabelsStructsList>::Value +
+    								  memoria::internal::LabelsBlockSizeBuilder<LabelsStructsList>::Value;
+
+    typedef StaticVector<BigInt, 1 + Tree::Blocks + LabelsIndexes>				MapSums;
+
+    static const Int SizedIndexes												= MapSums::Indexes;
+    static const Int Indexes													= SizedIndexes - 1;
+
+    enum {TREE, ARRAY = LabelsOffset + ListSize<LabelsList>::Value};
 
     Tree* tree() {
         return Base::template get<Tree>(TREE);
@@ -77,12 +165,28 @@ public:
         return values()[idx];
     }
 
+    struct EmptySizeFn {
+        Int size_ = 0;
+
+        template <Int StreamIdx, typename Stream>
+        void stream(Stream*)
+        {
+            size_ += Stream::empty_size();
+        }
+    };
+
+
     static Int empty_size()
     {
         Int allocator_size  = PackedAllocator::empty_size(2);
         Int tree_empty_size = Tree::empty_size();
 
-        return allocator_size + tree_empty_size;
+        EmptySizeFn fn;
+
+        HiddenLabelsDispatcher::dispatchAllStatic(fn);
+        LabelsDispatcher::dispatchAllStatic(fn);
+
+        return allocator_size + tree_empty_size + fn.size_;
     }
 
     static Int block_size(Int size)
@@ -99,12 +203,30 @@ public:
     	return Base::block_size();
     }
 
+
+
+    struct PackedBlockSizeFn {
+        Int size_ = 0;
+
+        template <Int StreamIdx, typename Stream>
+        void stream(Stream*, Int stream_size)
+        {
+            size_ += Stream::estimate_block_size(stream_size);
+        }
+    };
+
+
     static Int packed_block_size(Int size)
     {
     	Int tree_block_size = Tree::packed_block_size(size);
     	Int data_block_size = Base::roundUpBytesToAlignmentBlocks(sizeof(Value)*size);
 
-    	Int my_block_size 	= Base::block_size(tree_block_size + data_block_size, 2);
+    	PackedBlockSizeFn fn;
+
+    	HiddenLabelsDispatcher::dispatchAllStatic(fn);
+    	LabelsDispatcher::dispatchAllStatic(fn);
+
+    	Int my_block_size 	= Base::block_size(tree_block_size + data_block_size + fn.size_, 2);
 
     	return my_block_size;
     }
@@ -129,25 +251,54 @@ public:
 
     void init()
     {
-        Base::init(empty_size(), 2);
-
-        Base::template allocateEmpty<Tree>(TREE);
-        Base::template allocateArrayByLength<Value>(ARRAY, 0);
+    	init(empty_size());
     }
+
+
+    struct InitStructFn {
+    	PackedAllocator* allocator_;
+    	Int offset_;
+
+    	InitStructFn(PackedAllocator* target, Int offset): allocator_(target), offset_(offset) {}
+
+    	template <Int StreamIdx, typename Stream>
+    	void stream(Stream*)
+    	{
+    		allocator_->template allocateEmpty<Stream>(StreamIdx + offset_);
+    	}
+    };
 
     void init(Int block_size)
     {
-    	Base::init(block_size, 2);
+    	Base::init(block_size, 2 + ListSize<HiddenLabelsList>::Value + ListSize<LabelsList>::Value);
+
+    	HiddenLabelsDispatcher::dispatchAllStatic(InitStructFn(this, HiddenLabelsOffset));
+    	LabelsDispatcher::dispatchAllStatic(InitStructFn(this, LabelsOffset));
 
     	Base::template allocateEmpty<Tree>(TREE);
     	Base::template allocateArrayByLength<Value>(ARRAY, 0);
     }
+
+
+
+    struct InsertZeroFn {
+
+    	template <Int StreamIdx, typename Stream>
+    	void stream(Stream* stream, Int idx)
+    	{
+    		stream->insert(idx, 0);
+    	}
+    };
+
 
     void insert(Int idx, const Values& keys, const Value& value)
     {
         Int size = this->size();
 
         tree()->insert(idx, keys);
+
+        HiddenLabelsDispatcher::dispatchAll(this, InsertZeroFn(), idx);
+        LabelsDispatcher::dispatchAll(this, InsertZeroFn(), idx);
 
         Int requested_block_size = (size + 1) * sizeof(Value);
 
@@ -161,6 +312,74 @@ public:
     }
 
 
+    template <typename Labels>
+    struct InsertFn {
+    	const Labels& labels_;
+
+    	MapSums& sums_;
+    	Int offset_;
+
+    	InsertFn(const Labels& labels, MapSums& sums, Int offset):
+    		labels_(labels),
+    		sums_(sums),
+    		offset_(offset)
+    	{}
+
+    	template <Int LabelIdx, typename Stream>
+    	void stream(Stream* stream, Int idx)
+    	{
+    		stream->insert(idx, std::get<LabelIdx>(labels_));
+
+    		sums_[offset_ + std::get<LabelIdx>(labels_)] += 1;
+    	}
+    };
+
+
+    template <typename Entry>
+    void insert(Int idx, const Entry& entry, MapSums& sums)
+    {
+    	Int size = this->size();
+
+    	tree()->insert(idx, entry.keys());
+
+    	sums[0] += 1;
+    	sums.sumAt(1, entry.keys());
+
+    	HiddenLabelsDispatcher::dispatchAll(
+    			this,
+    			InsertFn<typename Entry::HiddenLabelsType>(entry.hidden_labels(), sums, HiddenLabelsOffset + 1),
+    			idx
+    	);
+
+    	LabelsDispatcher::dispatchAll(
+    			this,
+    			InsertFn<typename Entry::LabelsType>(entry.labels(), sums, LabelsOffset + 1),
+    			idx
+    	);
+
+    	Int requested_block_size = (size + 1) * sizeof(Value);
+
+    	Base::resizeBlock(ARRAY, requested_block_size);
+
+    	Value* values = this->values();
+
+    	CopyBuffer(values + idx, values + idx + 1, size - idx);
+
+    	values[idx] = entry.value();
+    }
+
+
+
+
+    struct InsertSpaceFn {
+      	template <Int StreamIdx, typename Stream>
+    	void stream(Stream* stream, Int start, Int length)
+    	{
+    		stream->insertSpace(start, length);
+    	}
+    };
+
+
     void insertSpace(Int room_start, Int room_length)
     {
     	Int size = this->size();
@@ -169,6 +388,9 @@ public:
     	MEMORIA_ASSERT(room_length, >=, 0);
 
     	tree()->insertSpace(room_start, room_length);
+
+    	HiddenLabelsDispatcher::dispatchAll(this, InsertSpaceFn(), room_start, room_length);
+    	LabelsDispatcher::dispatchAll(this, InsertSpaceFn(), room_start, room_length);
 
     	Int requested_block_size = (size + room_length) * sizeof(Value);
 
@@ -179,10 +401,22 @@ public:
     	CopyBuffer(values + room_start, values + room_start + room_length, size - room_start);
     }
 
+
     void removeSpace(Int room_start, Int room_end)
     {
         remove(room_start, room_end);
     }
+
+
+
+    struct RemoveFn {
+    	template <Int StreamIdx, typename Stream>
+    	void stream(Stream* stream, Int start, Int end)
+    	{
+    		stream->removeSpace(start, end);
+    	}
+    };
+
 
     void remove(Int room_start, Int room_end)
     {
@@ -200,16 +434,38 @@ public:
 
         Base::resizeBlock(values, requested_block_size);
 
+        HiddenLabelsDispatcher::dispatchAll(this, RemoveFn(), room_start, room_end);
+        LabelsDispatcher::dispatchAll(this, RemoveFn(), room_start, room_end);
+
         tree()->remove(room_start, room_end);
 
         tree()->reindex();
     }
+
+
+    struct SplitToFn {
+    	PackedAllocator* target_;
+    	Int offset_;
+
+    	SplitToFn(PackedAllocator* target, Int offset): target_(target), offset_(offset) {}
+
+    	template <Int StreamIdx, typename Stream>
+    	void stream(Stream* stream, Int idx)
+    	{
+    		Stream* tgt_stream = target_->template get<Stream>(StreamIdx + offset_);
+    		stream->splitTo(tgt_stream, idx);
+    	}
+    };
 
     void splitTo(MyType* other, Int split_idx)
     {
         Int size = this->size();
 
         tree()->splitTo(other->tree(), split_idx);
+
+        HiddenLabelsDispatcher::dispatchAll(this, SplitToFn(other, HiddenLabelsOffset), split_idx);
+        LabelsDispatcher::dispatchAll(this, SplitToFn(other, LabelsOffset), split_idx);
+
 
         Int remainder = size - split_idx;
 
@@ -221,12 +477,29 @@ public:
         CopyBuffer(my_values + split_idx, other_values, remainder);
     }
 
+    struct MergeWithFn {
+    	PackedAllocator* target_;
+    	Int offset_;
+
+    	MergeWithFn(PackedAllocator* target, Int offset): target_(target), offset_(offset) {}
+
+    	template <Int StreamIdx, typename Stream>
+    	void stream(Stream* stream)
+    	{
+    		Stream* tgt_stream = target_->template get<Stream>(StreamIdx + offset_);
+    		stream->mergeWith(tgt_stream);
+    	}
+    };
+
     void mergeWith(MyType* other)
     {
         Int other_size  = other->size();
         Int my_size     = this->size();
 
         tree()->mergeWith(other->tree());
+
+        HiddenLabelsDispatcher::dispatchAll(this, MergeWithFn(other, HiddenLabelsOffset));
+        LabelsDispatcher::dispatchAll(this, MergeWithFn(other, LabelsOffset));
 
         Int other_values_block_size          = other->element_size(ARRAY);
         Int required_other_values_block_size = (my_size + other_size) * sizeof(Value);
@@ -239,16 +512,64 @@ public:
         CopyBuffer(values(), other->values() + other_size, my_size);
     }
 
-    void reindex() {
+
+
+    struct ReindexFn {
+    	template <Int StreamIdx, typename Stream>
+    	void stream(Stream* stream)
+    	{
+    		stream->reindex();
+    	}
+    };
+
+
+    void reindex()
+    {
         tree()->reindex();
+
+        HiddenLabelsDispatcher::dispatchAll(this, ReindexFn());
+        LabelsDispatcher::dispatchAll(this, ReindexFn());
     }
 
-    void check() const {
+
+
+    struct CheckFn {
+    	template <Int StreamIdx, typename Stream>
+    	void stream(const Stream* stream)
+    	{
+    		stream->check();
+    	}
+    };
+
+    void check() const
+    {
         tree()->check();
+
+        HiddenLabelsDispatcher::dispatchAll(this, CheckFn());
+        LabelsDispatcher::dispatchAll(this, CheckFn());
     }
 
-    void dump(std::ostream& out = std::cout) const {
+
+
+    struct DumpFn {
+    	template <Int StreamIdx, typename Stream>
+    	void stream(const Stream* stream, std::ostream& out)
+    	{
+    		out<<"Stream: "<<StreamIdx<<std::endl;
+    		stream->dump(out);
+    	}
+    };
+
+
+    void dump(std::ostream& out = std::cout) const
+    {
         tree()->dump(out);
+
+        out<<"Hidden Labels:"<<std::endl;
+        HiddenLabelsDispatcher::dispatchAll(this, DumpFn(), out);
+
+        out<<"Labels:"<<std::endl;
+        LabelsDispatcher::dispatchAll(this, DumpFn(), out);
 
         Int size = this->size();
 
@@ -309,9 +630,30 @@ public:
     }
 
 
-    void sums(Values2& values) const
+    struct Sums0Fn {
+    	Int idx_;
+    	Sums0Fn(Int start): idx_(start) {}
+
+    	template <Int StreamIdx, typename Stream>
+    	void stream(const Stream* stream, MapSums& sums)
+    	{
+    		sums.sumAt(idx_, stream->sums());
+    		idx_ += Stream::Indexes;
+    	}
+    };
+
+
+    void sums(MapSums& sums) const
     {
-        tree()->sums(values);
+        Values2 tree_sums;
+    	tree()->sums(tree_sums);
+
+    	sums.sumAt(0, tree_sums);
+
+    	Sums0Fn fn(Values2::Indexes);
+
+    	HiddenLabelsDispatcher::dispatchAll(this, fn, sums);
+    	LabelsDispatcher::dispatchAll(this, fn, sums);
     }
 
     void sums(Values& values) const
@@ -324,14 +666,57 @@ public:
         tree()->sums(from, to, values);
     }
 
-    void sums(Int from, Int to, Values2& values) const
+
+
+    struct Sums2Fn {
+    	Int idx_;
+    	Sums2Fn(Int start): idx_(start) {}
+
+    	template <Int StreamIdx, typename Stream>
+    	void stream(const Stream* stream, Int from, Int to, MapSums& sums)
+    	{
+    		sums.sumAt(idx_, stream->sums(from, to));
+    		idx_ += Stream::Indexes;
+    	}
+    };
+
+    void sums(Int from, Int to, MapSums& sums) const
     {
-    	tree()->sums(from, to, values);
+        Values2 tree_sums;
+    	tree()->sums(from, to, tree_sums);
+
+    	sums.sumAt(0, tree_sums);
+
+    	Sums2Fn fn(Values2::Indexes);
+
+    	HiddenLabelsDispatcher::dispatchAll(this, fn, from, to, sums);
+    	LabelsDispatcher::dispatchAll(this, fn, from, to, sums);
     }
 
-    void sums(Int idx, Values2& values) const
+
+    struct Sums1Fn {
+    	Int idx_;
+    	Sums1Fn(Int start): idx_(start) {}
+
+    	template <Int StreamIdx, typename Stream>
+    	void stream(const Stream* stream, Int idx, MapSums& sums)
+    	{
+    		sums.sumAt(idx_, stream->sumsAt(idx));
+    		idx_ += Stream::Indexes;
+    	}
+    };
+
+    void sums(Int idx, MapSums& sums) const
     {
-        tree()->sums(idx, values);
+        Values2 tree_sums;
+        tree()->sums(idx, tree_sums);
+
+        sums.sumAt(0, tree_sums);
+
+        Sums1Fn fn(Values2::Indexes);
+
+        HiddenLabelsDispatcher::dispatchAll(this, fn, idx, sums);
+        LabelsDispatcher::dispatchAll(this, fn, idx, sums);
     }
 
     void sums(Int idx, Values& values) const
@@ -430,6 +815,15 @@ public:
 
     // ============================ Serialization ==================================== //
 
+    struct GenerateDataEventsFn {
+    	template <Int StreamIdx, typename Stream>
+    	void stream(const Stream* stream, IPageDataEventHandler* handler)
+    	{
+    		stream->generateDataEvents(handler);
+    	}
+    };
+
+
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
         handler->startGroup("FSE_MAP");
@@ -437,6 +831,9 @@ public:
         Base::generateDataEvents(handler);
 
         tree()->generateDataEvents(handler);
+
+        HiddenLabelsDispatcher::dispatchAll(this, GenerateDataEventsFn(), handler);
+        LabelsDispatcher::dispatchAll(this, GenerateDataEventsFn(), handler);
 
         handler->startGroup("DATA", size());
 
@@ -452,20 +849,42 @@ public:
         handler->endGroup();
     }
 
+    struct SerializeFn {
+    	template <Int StreamIdx, typename Stream>
+    	void stream(const Stream* stream, SerializationData& buf)
+    	{
+    		stream->serialize(buf);
+    	}
+    };
+
     void serialize(SerializationData& buf) const
     {
         Base::serialize(buf);
 
         tree()->serialize(buf);
 
+        HiddenLabelsDispatcher::dispatchAll(this, SerializeFn(), buf);
+        LabelsDispatcher::dispatchAll(this, SerializeFn(), buf);
+
         FieldFactory<Value>::serialize(buf, values(), size());
     }
+
+    struct DeserializeFn {
+    	template <Int StreamIdx, typename Stream>
+    	void stream(Stream* stream, DeserializationData& buf)
+    	{
+    		stream->deserialize(buf);
+    	}
+    };
 
     void deserialize(DeserializationData& buf)
     {
         Base::deserialize(buf);
 
         tree()->deserialize(buf);
+
+        HiddenLabelsDispatcher::dispatchAll(this, DeserializeFn(), buf);
+        LabelsDispatcher::dispatchAll(this, DeserializeFn(), buf);
 
         FieldFactory<Value>::deserialize(buf, values(), size());
     }

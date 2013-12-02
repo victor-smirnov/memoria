@@ -29,17 +29,47 @@ protected:
     WalkDirection direction_;
 
     Int stream_;
-    Int index_;
+    Int branch_index_;
+    Int leaf_index_;
 
     IteratorPrefix prefix_;
-
-    Int current_tree_level_;
 
     bool multistream_ = false;
 
     bool end_ = false;
 
 private:
+
+    struct FindNonLeafFn {
+    	MyType& walker_;
+
+    	using ResultType = Int;
+
+    	FindNonLeafFn(MyType& walker): walker_(walker) {}
+
+    	template <Int StreamIndex, typename StreamType>
+    	ResultType stream(const StreamType* stream, Int start)
+    	{
+    		return walker_.template find_non_leaf<StreamIndex>(stream, start);
+    	}
+    };
+
+
+    struct FindLeafFn {
+    	MyType& walker_;
+
+    	using ResultType = Int;
+
+    	FindLeafFn(MyType& walker): walker_(walker) {}
+
+    	template <Int StreamIndex, typename StreamType>
+    	ResultType stream(const StreamType* stream, Int start)
+    	{
+    		return walker_.template find_leaf<StreamIndex>(stream, start);
+    	}
+    };
+
+
     struct OtherNonLeafStreamsProc {
     	MyType& walker_;
 
@@ -74,10 +104,11 @@ public:
 
     typedef Int                                                                 ReturnType;
 
-    WalkerBase(Int stream, Int index, BigInt target):
+    WalkerBase(Int stream, Int branch_index, Int leaf_index, BigInt target):
         target_(target),
         stream_(stream),
-        index_(index)
+        branch_index_(branch_index),
+        leaf_index_(leaf_index)
     {}
 
     const WalkDirection& direction() const {
@@ -101,9 +132,14 @@ public:
         return stream_;
     }
 
-    Int index() const
+    Int branch_index() const
     {
-    	return index_;
+    	return branch_index_;
+    }
+
+    Int leaf_index() const
+    {
+    	return leaf_index_;
     }
 
     const SearchType& search_type() const {
@@ -128,15 +164,11 @@ public:
         return sum_;
     }
 
-    MyType& self()
-    {
-        return *T2T<MyType*>(this);
-    }
 
-    const MyType& self() const
-    {
-        return *T2T<const MyType*>(this);
-    }
+    MyType& self() {return *T2T<MyType*>(this);}
+    const MyType& self() const {return *T2T<const MyType*>(this);}
+
+
 
     template <Int StreamIdx, typename StreamType, typename Result>
     void postProcessStream(const StreamType*, Int, const Result& result) {}
@@ -153,15 +185,21 @@ public:
     template <typename Node>
     ReturnType treeNode(const Node* node, BigInt start)
     {
-    	current_tree_level_ = node->level();
+    	Int idx;
 
-        Int idx = node->find(stream_, self(), start);
+    	if (node->level())
+    	{
+    		idx = node->find(stream_, FindNonLeafFn(self()), start);
+    	}
+    	else {
+    		idx = node->find(stream_, FindLeafFn(self()), start);
+    	}
 
         self().postProcessNode(node, start, idx);
 
         if (multistream_ && Streams > 1)
         {
-        	if (current_tree_level_ > 0)
+        	if (node->level())
         	{
         		OtherNonLeafStreamsProc proc(self());
         		node->processAll(proc, start, idx);

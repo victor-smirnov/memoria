@@ -63,8 +63,6 @@ public:
         cout<<"E.First: "<<std::get<0>(iter1.entry().value())<<endl;
         cout<<"E.Second: "<<std::get<1>(iter1.entry().value())<<endl;
 
-
-
         allocator.commit();
 
         this->StoreAllocator(allocator, this->getResourcePath("api.dump"));

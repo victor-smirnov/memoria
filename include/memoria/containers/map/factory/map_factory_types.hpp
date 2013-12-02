@@ -31,7 +31,7 @@
 namespace memoria    {
 
 template <typename Profile, typename Key_, typename Value_>
-struct BTTypes<Profile, memoria::Map<Key_, Value_> >: public BTTypes<Profile, MetaMap<1, Key_, Value_>> {
+struct BTTypes<Profile, memoria::Map<Key_, Value_> >: public BTTypes<Profile, MetaMap<1, Key_, Value_, TypeList<LabelDescr<1>>>> {
 
 };
 

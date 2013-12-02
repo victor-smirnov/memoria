@@ -104,6 +104,8 @@ public:
             Base::dump_name_ = Base::Store(allocator);
             throw;
         }
+
+        this->StoreAllocator(allocator, this->getResourcePath("create.dump"));
     }
 
     void replayCreateTest()

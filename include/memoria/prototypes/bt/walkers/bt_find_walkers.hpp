@@ -22,36 +22,12 @@ protected:
     typedef typename Base::Key                                                  Key;
 
 public:
-    typedef Int                                                                 ResultType;
 
-
-	FindWalkerBase(Int stream, Int block, Key target, SearchType search_type):
-		Base(stream, block, target)
+	FindWalkerBase(Int stream, Int branch_index, Int leaf_index, Key target, SearchType search_type):
+		Base(stream, branch_index, leaf_index, target)
 	{
 		Base::search_type() = search_type;
 	}
-
-
-    template <Int StreamIdx, typename StreamObj>
-    ResultType stream(const StreamObj* stream, Int start)
-    {
-    	if (this->index_ || this->current_tree_level_)
-    	{
-    		return self().template find<StreamIdx>(stream, start);
-    	}
-    	else
-    	{
-    		return self().template skip<StreamIdx>(stream, start);
-    	}
-    }
-
-    MyType& self() {
-    	return *T2T<MyType*>(this);
-    }
-
-    const MyType& self() const {
-    	return *T2T<const MyType*>(this);
-    }
 };
 
 
@@ -63,75 +39,54 @@ protected:
     typedef typename Base::Key                                                  Key;
 
 public:
-    FindForwardWalkerBase(Int stream, Int block, Key target, SearchType search_type):
-    	Base(stream, block, target, search_type)
+    FindForwardWalkerBase(Int stream, Int branch_index, Int leaf_index, Key target, SearchType search_type):
+    	Base(stream, branch_index, leaf_index, target, search_type)
     {}
 
     typedef Int                                                                 ResultType;
 
     template <Int StreamIdx, typename Tree>
-    ResultType find(const Tree* tree, Int start)
+    ResultType find_non_leaf(const Tree* tree, Int start)
     {
     	auto k = Base::target_ - Base::sum_;
 
-    	Int shift = this->current_tree_level_ == 0;
+    	Int index 	= this->branch_index();
 
-    	auto result = tree->findForward(Base::search_type_, Base::index_ - shift, start, k);
+    	auto result = tree->findForward(Base::search_type_, index, start, k);
 
     	Base::sum_ += result.prefix();
 
     	IteratorPrefixFn fn;
 
-    	if (this->current_tree_level_ > 0)
-    	{
-    	    fn.processNonLeafFw(tree, std::get<StreamIdx>(Base::prefix_), start, result.idx(), Base::index_, result.prefix());
-    	}
-    	else {
-    		fn.processLeafFw(tree, std::get<StreamIdx>(Base::prefix_), start, result.idx(), Base::index_, result.prefix());
-    	}
+    	fn.processNonLeafFw(tree, std::get<StreamIdx>(Base::prefix_), start, result.idx(), index, result.prefix());
 
     	this->end_ = result.idx() >= tree->size();
 
     	return result.idx();
     }
 
-    template <Int StreamIdx, typename Array>
-    ResultType skip(const Array* array, Int start)
+
+    template <Int StreamIdx, typename Tree>
+    ResultType find_leaf(const Tree* tree, Int start)
     {
-    	auto& sum = Base::sum_;
+    	auto k = Base::target_ - Base::sum_;
 
-    	BigInt offset = Base::target_ - sum;
+    	Int index 	= this->leaf_index();
 
-    	if (array != nullptr)
-    	{
-    		Int size = array->size();
+    	auto result = tree->findForward(Base::search_type_, index, start, k);
 
-    		IteratorPrefixFn fn;
+    	Base::sum_ += result.prefix();
 
-    		if (start + offset < size)
-    		{
-    			sum += offset;
+    	IteratorPrefixFn fn;
 
-    			fn.processLeafFw(array, std::get<StreamIdx>(Base::prefix_), start, start + offset, 0, offset);
+    	fn.processLeafFw(tree, std::get<StreamIdx>(Base::prefix_), start, result.idx(), index + 1, result.prefix());
 
-    			this->end_ = false;
+    	this->end_ = result.idx() >= tree->size();
 
-    			return start + offset;
-    		}
-    		else {
-    			sum += (size - start);
-
-    			fn.processLeafFw(array, std::get<StreamIdx>(Base::prefix_), start, size, 0, size - start);
-
-    			this->end_ = true;
-
-    			return size;
-    		}
-    	}
-    	else {
-    		return 0;
-    	}
+    	return result.idx();
     }
+
+
 
     template <Int StreamIdx, typename StreamType>
     void postProcessOtherNonLeafStreams(const StreamType* stream, Int start, Int end)
@@ -192,8 +147,8 @@ class FindGTForwardWalker: public FindForwardWalkerBase<
 	using Key 	= typename Base::Key;
 
 public:
-	FindGTForwardWalker(Int stream, Int block, Key target):
-		Base(stream, block, target, SearchType::GT)
+	FindGTForwardWalker(Int stream, Int branch_index, Int leaf_index, Key target):
+		Base(stream, branch_index, leaf_index, target, SearchType::GT)
 	{}
 };
 
@@ -211,10 +166,14 @@ class FindGEForwardWalker: public FindForwardWalkerBase<
 	using Key 	= typename Base::Key;
 
 public:
-	FindGEForwardWalker(Int stream, Int block, Key target):
-		Base(stream, block, target, SearchType::GE)
+	FindGEForwardWalker(Int stream, Int branch_index, Int leaf_index, Key target):
+		Base(stream, branch_index, leaf_index, target, SearchType::GE)
 	{}
 };
+
+
+
+
 
 template <typename Types, typename IteratorPrefixFn, typename MyType>
 class FindBackwardWalkerBase: public FindWalkerBase<Types, MyType> {
@@ -227,30 +186,25 @@ protected:
 public:
     typedef Int                                                                 ResultType;
 
-    FindBackwardWalkerBase(Int stream, Int index, Key target, SearchType search_type):
-    	Base(stream, index, target, search_type)
+    FindBackwardWalkerBase(Int stream, Int branch_index, Int leaf_index, Key target, SearchType search_type):
+    	Base(stream, branch_index, leaf_index, target, search_type)
     {}
 
     template <Int StreamIdx, typename Tree>
-    ResultType find(const Tree* tree, Int start)
+    ResultType find_non_leaf(const Tree* tree, Int start)
     {
         auto k          = Base::target_ - Base::sum_;
-        Int shift 		= this->current_tree_level_ == 0;
 
-        auto result     = tree->findBackward(Base::search_type_, Base::index_ - shift, start, k);
+        Int index 		= this->branch_index();
+
+        auto result     = tree->findBackward(Base::search_type_, index, start, k);
         Base::sum_      += result.prefix();
 
         IteratorPrefixFn fn;
 
         Int idx = result.idx() < 0 ? 0 : result.idx();
 
-        if (this->current_tree_level_ > 0)
-        {
-        	fn.processNonLeafBw(tree, std::get<StreamIdx>(Base::prefix_), idx, start, Base::index_, result.prefix());
-        }
-        else {
-        	fn.processLeafBw(tree, std::get<StreamIdx>(Base::prefix_), idx, start, Base::index_, result.prefix());
-        }
+        fn.processNonLeafBw(tree, std::get<StreamIdx>(Base::prefix_), idx, start, index, result.prefix());
 
         this->end_ = result.idx() >= 0;
 
@@ -258,41 +212,28 @@ public:
     }
 
 
-    template <Int StreamIdx, typename Array>
-    ResultType skip(const Array* array, Int start)
+    template <Int StreamIdx, typename Tree>
+    ResultType find_leaf(const Tree* tree, Int start)
     {
-    	BigInt offset = Base::target_ - Base::sum_;
+    	auto k          = Base::target_ - Base::sum_;
 
-    	auto& sum = Base::sum_;
+    	Int index 		= this->leaf_index();
 
-    	if (array != nullptr)
-    	{
-    		IteratorPrefixFn fn;
+    	auto result     = tree->findBackward(Base::search_type_, index, start, k);
+    	Base::sum_      += result.prefix();
 
-    		if (start - offset >= 0)
-    		{
-    			sum += offset;
+    	IteratorPrefixFn fn;
 
-    			fn.processLeafBw(array, std::get<StreamIdx>(Base::prefix_), start - offset, start, 0, offset);
+    	Int idx = result.idx() < 0 ? 0 : result.idx();
 
-    			this->end_ = false;
+    	fn.processLeafBw(tree, std::get<StreamIdx>(Base::prefix_), idx, start, index + 1, result.prefix());
 
-    			return start - offset;
-    		}
-    		else {
-    			sum += start;
+    	this->end_ = result.idx() >= 0;
 
-    			fn.processLeafBw(array, std::get<StreamIdx>(Base::prefix_), 0, start, 0, start);
-
-    			this->end_ = true;
-
-    			return -1;
-    		}
-    	}
-    	else {
-    		return 0;
-    	}
+    	return result.idx();
     }
+
+
 
 
     template <Int StreamIdx, typename StreamType>
@@ -335,8 +276,8 @@ class FindBackwardWalker: public FindBackwardWalkerBase<
 	using Key 	= typename Base::Key;
 
 public:
-	FindBackwardWalker(Int stream, Int block, Key target, SearchType search_type = SearchType::GE):
-		Base(stream, block, target, search_type)
+	FindBackwardWalker(Int stream, Int branch_index, Int leaf_index, Key target, SearchType search_type = SearchType::GE):
+		Base(stream, branch_index, leaf_index, target, search_type)
 	{}
 };
 

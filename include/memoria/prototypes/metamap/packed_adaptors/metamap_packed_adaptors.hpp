@@ -12,10 +12,15 @@
 namespace memoria 	{
 namespace metamap	{
 
-template <typename Map, Int Indexes, typename Key, typename Value, typename HiddenLabels, typename Labels>
-void InsertEntry(Map* map, Int idx, const MetaMapEntry<Indexes, Key, Value, HiddenLabels, Labels>& entry)
+template <typename Map, Int Indexes, typename Key, typename Value, typename HiddenLabels, typename Labels, typename Accum>
+void InsertEntry(
+		Map* map,
+		Int idx,
+		const MetaMapEntry<Indexes, Key, Value, HiddenLabels, Labels>& entry,
+		Accum& sums
+	)
 {
-	map->insert(idx, entry.keys(), entry.value());
+	map->insert(idx, entry, sums);
 }
 
 

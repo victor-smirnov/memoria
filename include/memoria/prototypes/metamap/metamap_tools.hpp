@@ -34,6 +34,9 @@ class MetaMapEntry {
 	Labels 						labels_;
 public:
 
+	using HiddenLabelsType 	= HiddenLabels;
+	using LabelsType 		= Labels;
+
 	StaticVector<Key, Indexes>&	keys() 				{return keys_;}
 	const StaticVector<Key, Indexes>& keys() const 	{return keys_;}
 
@@ -49,6 +52,26 @@ public:
 	Key& key() 										{return keys_[0];}
 	const Key& key() const							{return keys_[0];}
 };
+
+
+template <typename List> struct LabelTypeListBuilder;
+
+template <Int Bits, typename... Tail>
+struct LabelTypeListBuilder<TypeList<LabelDescr<Bits>, Tail...>> {
+	typedef typename MergeLists<
+				Int,
+				typename LabelTypeListBuilder<
+					TypeList<Tail...>
+				>::Type
+	>::Result                                                                   Type;
+};
+
+
+template <>
+struct LabelTypeListBuilder<TypeList<>> {
+	typedef TypeList<>                                                          Type;
+};
+
 
 
 template <typename Iterator, typename Container>

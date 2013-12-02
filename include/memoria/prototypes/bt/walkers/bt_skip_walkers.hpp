@@ -22,9 +22,51 @@ class SkipForwardWalker: public FindForwardWalkerBase<Types, IteratorPrefixFn, S
 	using Key 	= typename Base::Key;
 
 public:
+	using ResultType = Int;
+
 	SkipForwardWalker(Int stream, Int block, Key target):
-		Base(stream, block, target, SearchType::GT)
+		Base(stream, block, block, target, SearchType::GT)
 	{}
+
+
+	template <Int StreamIdx, typename Array>
+	ResultType find_leaf(const Array* array, Int start)
+	{
+		auto& sum = Base::sum_;
+
+		BigInt offset = Base::target_ - sum;
+
+		if (array != nullptr)
+		{
+			Int size = array->size();
+
+			IteratorPrefixFn fn;
+
+			if (start + offset < size)
+			{
+				sum += offset;
+
+				fn.processLeafFw(array, std::get<StreamIdx>(Base::prefix_), start, start + offset, 0, offset);
+
+				this->end_ = false;
+
+				return start + offset;
+			}
+			else {
+				sum += (size - start);
+
+				fn.processLeafFw(array, std::get<StreamIdx>(Base::prefix_), start, size, 0, size - start);
+
+				this->end_ = true;
+
+				return size;
+			}
+		}
+		else {
+			return 0;
+		}
+	}
+
 };
 
 
@@ -43,9 +85,48 @@ class SkipBackwardWalker: public FindBackwardWalkerBase<
 	using Key 	= typename Base::Key;
 
 public:
+	using ResultType = Int;
+
 	SkipBackwardWalker(Int stream, Int block, Key target):
-		Base(stream, block, target, SearchType::GT)
+		Base(stream, block, block, target, SearchType::GT)
 	{}
+
+
+	template <Int StreamIdx, typename Array>
+	ResultType find_leaf(const Array* array, Int start)
+	{
+		BigInt offset = Base::target_ - Base::sum_;
+
+		auto& sum = Base::sum_;
+
+		if (array != nullptr)
+		{
+			IteratorPrefixFn fn;
+
+			if (start - offset >= 0)
+			{
+				sum += offset;
+
+				fn.processLeafBw(array, std::get<StreamIdx>(Base::prefix_), start - offset, start, 0, offset);
+
+				this->end_ = false;
+
+				return start - offset;
+			}
+			else {
+				sum += start;
+
+				fn.processLeafBw(array, std::get<StreamIdx>(Base::prefix_), 0, start, 0, start);
+
+				this->end_ = true;
+
+				return -1;
+			}
+		}
+		else {
+			return 0;
+		}
+	}
 };
 
 

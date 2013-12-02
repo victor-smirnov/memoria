@@ -185,7 +185,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrApiName)
             self.ctr().walkUp(self.leaf(), self.idx(), fn);
         }
 
-        accum = fn.prefix_;
+        std::get<0>(accum).sumAt(0, std::get<0>(fn.prefix_));
     }
 
     void dump(std::ostream& out = std::cout)
@@ -195,23 +195,33 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrApiName)
     }
 
     struct PrefixFn {
-        Accumulator prefix_;
+    	IteratorPrefix prefix_;
 
         PrefixFn() {}
 
         template <Int Idx, typename Stream>
-        void stream(const Stream* stream, Int idx)
+        void stream(const Stream* stream, Int idx, bool leaf)
         {
             if (stream)
             {
-            	stream->sums(0, idx, std::get<Idx>(prefix_));
+            	Int shift = leaf;
+
+            	if (leaf)
+            	{
+            		std::get<0>(prefix_)[0] += idx;
+            	}
+
+            	for (Int c = shift; c < std::tuple_element<0, IteratorPrefix>::type::Indexes; c++)
+            	{
+            		std::get<0>(prefix_)[c] += stream->sum(c - shift, 0, idx);
+            	}
             }
         }
 
         template <typename Node>
         void treeNode(const Node* node, Int idx)
         {
-            node->template processStream<0>(*this, idx);
+            node->template processStream<0>(*this, idx, node->level() == 0);
         }
     };
 

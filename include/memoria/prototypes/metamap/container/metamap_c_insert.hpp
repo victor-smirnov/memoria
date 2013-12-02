@@ -49,17 +49,18 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrInsertName)
     struct InsertIntoLeafFn {
 
         const Entry& entry_;
+        Accumulator& sums_;
 
         bool next_entry_updated_ = false;
 
-        InsertIntoLeafFn(const Entry& entry): entry_(entry) {}
+        InsertIntoLeafFn(const Entry& entry, Accumulator& sums): entry_(entry), sums_(sums) {}
 
-        template <Int Idx, typename Stream>
+        template <Int StreamIdx, typename Stream>
         void stream(Stream* stream, Int idx)
         {
             MEMORIA_ASSERT_TRUE(stream);
 
-            metamap::InsertEntry(stream, idx, entry_);
+            metamap::InsertEntry(stream, idx, entry_, std::get<StreamIdx>(sums_));
 
             next_entry_updated_ = idx < stream->size() - 1;
 
@@ -80,7 +81,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrInsertName)
 
 
     template <typename Entry>
-    std::pair<bool, bool> insertIntoLeaf(NodeBaseG& leaf, Int idx, const Entry& entry);
+    std::pair<bool, bool> insertIntoLeaf(NodeBaseG& leaf, Int idx, const Entry& entry, Accumulator& sums);
 
     template <typename Entry>
     bool insertMapEntry(Iterator& iter, const Entry& entry);
@@ -173,7 +174,7 @@ MEMORIA_CONTAINER_PART_END
 
 M_PARAMS
 template <typename Entry>
-std::pair<bool, bool> M_TYPE::insertIntoLeaf(NodeBaseG& leaf, Int idx, const Entry& entry)
+std::pair<bool, bool> M_TYPE::insertIntoLeaf(NodeBaseG& leaf, Int idx, const Entry& entry, Accumulator& sums)
 {
     auto& self = this->self();
 
@@ -184,7 +185,7 @@ std::pair<bool, bool> M_TYPE::insertIntoLeaf(NodeBaseG& leaf, Int idx, const Ent
     mgr.add(leaf);
 
     try {
-    	InsertIntoLeafFn<Entry> fn(entry);
+    	InsertIntoLeafFn<Entry> fn(entry, sums);
 
         LeafDispatcher::dispatch(leaf, fn, idx);
 
@@ -207,13 +208,17 @@ bool M_TYPE::insertMapEntry(Iterator& iter, const Entry& entry)
     NodeBaseG& leaf = iter.leaf();
     Int& idx        = iter.idx();
 
-    std::pair<bool, bool> result = self.insertIntoLeaf(leaf, idx, entry);
+    Accumulator sums;
+
+    std::pair<bool, bool> result = self.insertIntoLeaf(leaf, idx, entry, sums);
 
     if (!result.first)
     {
         iter.split();
 
-        result = self.insertIntoLeaf(leaf, idx, entry);
+        Clear(sums);
+
+        result = self.insertIntoLeaf(leaf, idx, entry, sums);
 
         if (!result.first)
         {
@@ -223,23 +228,15 @@ bool M_TYPE::insertMapEntry(Iterator& iter, const Entry& entry)
 
     self.addTotalKeyCount(Position::create(0, 1));
 
-    Accumulator sums;
-    std::get<0>(sums)[0] = 1;
-
     if (result.second)
     {
-    	auto entry_sums = entry.keys();
-    	entry_sums[0] 	= 0;
-
-    	std::get<0>(sums).sumUp(entry_sums);
+    	std::get<0>(sums)[1] = 0;
 
     	self.updateParent(leaf, sums);
 
     	return iter++;
     }
     else {
-    	std::get<0>(sums).sumUp(entry.keys());
-
     	self.updateParent(leaf, sums);
 
     	if (iter++)
