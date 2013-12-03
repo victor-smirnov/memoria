@@ -111,7 +111,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrRemoveName)
 
         if ((!fn.next_entry_updated_) && !iter.isEnd())
         {
-        	iter.updateUp(1, (std::get<0>(fn.entry_)[1]));
+        	iter.adjustIndex(1, (std::get<0>(fn.entry_)[1]));
         }
 
         self.markCtrUpdated();

@@ -46,17 +46,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrMiscName)
 
     typedef typename Container::Types::Pages::LeafDispatcher                    LeafDispatcher;
 
-    void updateUp(Int index, CtrSizeT delta)
-    {
-    	auto& self 	= this->self();
-    	auto& leaf	= self.leaf();
-    	auto& idx	= self.idx();
 
-    	self.ctr().updateUp(leaf, idx, bt::SingleIndexUpdateData<CtrSizeT>(0, index, delta), [&](Int, Int _idx) {
-    		idx = _idx;
-    		self.updatePrefix();
-    	});
-    }
 
 
     struct PrefixFn: bt1::NoRtnLeveledNodeWalkerBase<PrefixFn> {

@@ -97,13 +97,13 @@ public:
 	template <typename NodeTypes, typename... Args>
 	ReturnType_ treeNode(const bt::LeafNode<NodeTypes>* node, Args&&... args)
 	{
-		return node->template processStream<StreamIndex>(LeafStreamFn(self()), args...);
+		return node->template processStreamRtn<StreamIndex>(LeafStreamFn(self()), args...);
 	}
 
 	template <typename NodeTypes, typename... Args>
 	ReturnType_ treeNode(const bt::BranchNode<NodeTypes>* node, Args&&... args)
 	{
-		return node->template processStream<StreamIndex>(NonLeafStreamFn(self()), args...);
+		return node->template processStreamRtn<StreamIndex>(NonLeafStreamFn(self()), args...);
 	}
 
 	MyType& self() {return *T2T<MyType*>(this);}
@@ -133,7 +133,7 @@ struct NoRtnNodeWalkerBase {
 	template <typename Node, typename... Args>
 	void treeNode(Node* node, Args&&... args)
 	{
-		return node->template processStreamRtn<StreamIndex>(self(), args...);
+		node->template processStream<StreamIndex>(self(), args...);
 	}
 
 	MyType& self() {return *T2T<MyType*>(this);}

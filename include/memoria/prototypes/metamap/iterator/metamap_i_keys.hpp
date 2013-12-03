@@ -42,6 +42,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrKeysName)
     typedef typename Container::Position                                        Position;
 
     typedef typename Container::Types::IteratorPrefix                           IteratorPrefix;
+    typedef typename Container::Types::CtrSizeT                           		CtrSizeT;
 
     typedef typename Container::Types::Pages::LeafDispatcher                    LeafDispatcher;
 
@@ -89,22 +90,33 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrKeysName)
     	return self().cache().prefixes();
     }
 
-    void updateKey(BigInt key)
+    void adjustIndex(Int index, Key delta)
+    {
+    	auto& self 	= this->self();
+    	auto& leaf	= self.leaf();
+    	auto& idx	= self.idx();
+
+    	self.ctr().updateUp(leaf, idx, bt::SingleIndexUpdateData<Key>(0, index, delta), [&](Int, Int _idx) {
+    		idx = _idx;
+    		self.updatePrefix();
+    	});
+    }
+
+    void adjustKey(BigInt delta, bool ajust_next = true)
     {
     	auto& self = this->self();
 
-    	Accumulator sums;
+    	self.adjustIndex(0, delta);
 
-    	std::get<0>(sums)[0] = key;
-
-    	self.updateUp(sums);
-
-    	if (self++)
+    	if (ajust_next)
     	{
-    		self.updateUp(-sums);
-    	}
+    		if (self++)
+    		{
+    			self.adjustKey(-delta);
+    		}
 
-    	self--;
+    		self--;
+    	}
     }
 
 MEMORIA_ITERATOR_PART_END
