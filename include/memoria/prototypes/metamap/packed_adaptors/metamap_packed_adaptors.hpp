@@ -46,14 +46,7 @@ void SetValue(Stream* stream, Int idx, const Value& value)
 template <typename Entry, typename Stream>
 Entry GetEntry(const Stream* stream, Int idx)
 {
-	Entry entry;
-
-	stream->sums(idx, entry.keys());
-	entry.value() = stream->value(idx);
-
-	// Process entry labels here
-
-	return entry;
+	return stream->template entry<Entry>(idx);
 }
 
 template <typename Stream, typename Entry>
@@ -65,6 +58,13 @@ void SetEntry(const Stream* stream, Int idx, const Entry& entry)
 
 	// Process entry labels here
 }
+
+template <typename IndexType, typename Stream>
+IndexType GetLeafIndex(const Stream* stream, Int idx, Int index_num)
+{
+	return stream->key(index_num, idx);
+}
+
 
 
 }

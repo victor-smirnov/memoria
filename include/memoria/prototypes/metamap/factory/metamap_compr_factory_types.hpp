@@ -28,7 +28,7 @@
 #include <memoria/prototypes/metamap/container/metamap_c_find.hpp>
 
 #include <memoria/prototypes/metamap/metamap_iterator.hpp>
-#include <memoria/prototypes/metamap/iterator/metamap_i_api.hpp>
+#include <memoria/prototypes/metamap/iterator/metamap_i_keys.hpp>
 #include <memoria/prototypes/metamap/iterator/metamap_i_nav.hpp>
 #include <memoria/prototypes/metamap/iterator/metamap_i_entry.hpp>
 #include <memoria/prototypes/metamap/iterator/metamap_i_value.hpp>

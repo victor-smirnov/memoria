@@ -86,6 +86,36 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrFindName)
     	return walker.finish(self, idx);
     }
 
+    bool is_found_eq(Key key) const
+    {
+    	auto& self = this->self();
+    	return (!self.isEnd()) && self.key() == key;
+    }
+
+    bool is_found_le(Key key) const
+    {
+    	auto& self = this->self();
+    	return self.isContent() && self.key() <= key;
+    }
+
+    bool is_found_lt(Key key) const
+    {
+    	auto& self = this->self();
+    	return self.isContent() && self.key() <= key;
+    }
+
+    bool is_found_ge(Key key) const
+    {
+    	auto& self = this->self();
+    	return self.isContent() && self.key() >= key;
+    }
+
+    bool is_found_gt(Key key) const
+    {
+    	auto& self = this->self();
+    	return self.isContent() && self.key() > key;
+    }
+
 MEMORIA_ITERATOR_PART_END
 
 }

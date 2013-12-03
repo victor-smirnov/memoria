@@ -34,13 +34,14 @@
 #include <memoria/prototypes/metamap/container/metamap_c_find.hpp>
 
 #include <memoria/prototypes/metamap/metamap_iterator.hpp>
-#include <memoria/prototypes/metamap/iterator/metamap_i_api.hpp>
+#include <memoria/prototypes/metamap/iterator/metamap_i_keys.hpp>
 #include <memoria/prototypes/metamap/iterator/metamap_i_nav.hpp>
 #include <memoria/prototypes/metamap/iterator/metamap_i_entry.hpp>
 #include <memoria/prototypes/metamap/iterator/metamap_i_value.hpp>
 #include <memoria/prototypes/metamap/iterator/metamap_i_value_byref.hpp>
 #include <memoria/prototypes/metamap/iterator/metamap_i_labels.hpp>
 #include <memoria/prototypes/metamap/iterator/metamap_i_find.hpp>
+#include <memoria/prototypes/metamap/iterator/metamap_i_misc.hpp>
 
 #include <memoria/prototypes/metamap/metamap_names.hpp>
 
@@ -143,12 +144,13 @@ public BTTypes<Profile, memoria::BT> {
     typedef typename MergeLists<
                 typename Base::IteratorPartsList,
 
-                metamap::ItrApiName,
+                metamap::ItrKeysName,
                 metamap::ItrNavName,
                 metamap::ItrValueByRefName,
                 metamap::ItrEntryName,
                 metamap::ItrLabelsName,
-                metamap::ItrFindName
+                metamap::ItrFindName,
+                metamap::ItrMiscName
     >::Result                                                                   IteratorPartsList;
 
 

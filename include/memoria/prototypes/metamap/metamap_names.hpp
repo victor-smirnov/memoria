@@ -26,6 +26,8 @@ class ItrValueName 	{};
 class ItrValueByRefName {};
 class ItrLabelsName {};
 class ItrFindName 	{};
+class ItrMiscName 	{};
+class ItrKeysName 	{};
 
 }
 

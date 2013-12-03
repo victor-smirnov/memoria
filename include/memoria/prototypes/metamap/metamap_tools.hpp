@@ -28,7 +28,7 @@ template <
 	typename Labels			= std::tuple<>
 >
 class MetaMapEntry {
-	StaticVector<Key, Indexes> 	keys_;
+	StaticVector<Key, Indexes> 	indexes_;
 	Value 						value_;
 	HiddenLabels 				hidden_labels_;
 	Labels 						labels_;
@@ -37,21 +37,42 @@ public:
 	using HiddenLabelsType 	= HiddenLabels;
 	using LabelsType 		= Labels;
 
-	StaticVector<Key, Indexes>&	keys() 				{return keys_;}
-	const StaticVector<Key, Indexes>& keys() const 	{return keys_;}
+	StaticVector<Key, Indexes>&	indexes() 				{return indexes_;}
+	const StaticVector<Key, Indexes>& indexes() const 	{return indexes_;}
 
-	Value& value() 									{return value_;}
-	const Value& value() const 						{return value_;}
+	Value& value() 										{return value_;}
+	const Value& value() const 							{return value_;}
 
-	HiddenLabels& hidden_labels() 					{return hidden_labels_;}
-	const HiddenLabels& hidden_labels() const		{return hidden_labels_;}
+	HiddenLabels& hidden_labels() 						{return hidden_labels_;}
+	const HiddenLabels& hidden_labels() const			{return hidden_labels_;}
 
-	Labels& labels() 								{return labels_;}
-	const Labels& labels() const 					{return labels_;}
+	Labels& labels() 									{return labels_;}
+	const Labels& labels() const 						{return labels_;}
 
-	Key& key() 										{return keys_[0];}
-	const Key& key() const							{return keys_[0];}
+	Key& key() 											{return indexes_[0];}
+	const Key& key() const								{return indexes_[0];}
 };
+
+template <
+	Int Indexes,
+	typename Key,
+	typename Value,
+	typename HiddenLabels,
+	typename Labels
+>
+std::ostream& operator<<(std::ostream& out, const MetaMapEntry<Indexes, Key, Value, HiddenLabels, Labels>& entry)
+{
+	out<<"MetaMapEntry[";
+	out<<"indxs:"<<entry.indexes()<<", ";
+	out<<"value:"<<entry.value()<<", ";
+	out<<"h_lbls:"<<entry.hidden_labels()<<", ";
+	out<<"lbls:"<<entry.labels();
+	out<<"]";
+
+	return out;
+}
+
+
 
 
 template <typename List> struct LabelTypeListBuilder;
@@ -169,5 +190,7 @@ struct CompressedMapTF<Key, Granularity::Byte, Indexes> {
 
 }
 }
+
+
 
 #endif

@@ -31,7 +31,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrEntryName)
     typedef typename Base::NodeBaseG                                            NodeBaseG;
 
     typedef typename Container::Types::Entry                    				Entry;
-
+    typedef typename Container::Value                                           Value;
+    typedef typename Container::Key                                             Key;
+    typedef typename Container::Element                                         Element;
     typedef typename Container::Accumulator                                     Accumulator;
 
 
@@ -122,6 +124,29 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrEntryName)
     Entry entry() const {
     	return self().getEntry();
     }
+
+
+    void insert(const Key& key, const Value& value)
+    {
+    	auto& self = this->self();
+
+    	Accumulator sums;
+
+    	get<0>(sums)[0] = 1;
+    	get<0>(sums)[1] = key;
+
+    	self.ctr().insert(self, Element(sums, value));
+    }
+
+
+    void remove()
+    {
+    	auto& self = this->self();
+
+    	Accumulator keys;
+    	self.ctr().removeMapEntry(self, keys);
+    }
+
 
 MEMORIA_ITERATOR_PART_END
 

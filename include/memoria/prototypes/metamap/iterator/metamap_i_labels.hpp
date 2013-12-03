@@ -52,7 +52,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrLabelsName)
 
 
 
-    struct LabelRankFn: bt1::UpWalkerBase<LabelRankFn> {
+    struct LabelRankFn: bt1::NoRtnLeveledNodeWalkerBase<LabelRankFn> {
 
     	CtrSizeT rank_ = 0;
 
@@ -80,7 +80,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrLabelsName)
         }
     };
 
-    struct HiddenLabelRankFn: bt1::UpWalkerBase<HiddenLabelRankFn> {
+    struct HiddenLabelRankFn: bt1::NoRtnLeveledNodeWalkerBase<HiddenLabelRankFn> {
 
     	CtrSizeT rank_ = 0;
 
@@ -119,7 +119,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrLabelsName)
     }
 
 
-    struct GetLabelFn: bt1::RtnWalkerBase<GetLabelFn> {
+    struct GetLabelFn: bt1::RtnNodeWalkerBase<GetLabelFn> {
 
     	Int label_num_;
     	GetLabelFn(Int label_num): label_num_(label_num) {}
@@ -132,7 +132,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrLabelsName)
     	}
     };
 
-    struct GetHiddenLabelFn: bt1::RtnWalkerBase<GetHiddenLabelFn> {
+    struct GetHiddenLabelFn: bt1::RtnNodeWalkerBase<GetHiddenLabelFn> {
 
     	Int label_num_;
     	GetHiddenLabelFn(Int label_num): label_num_(label_num) {}
@@ -156,7 +156,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrLabelsName)
 
 
 
-    struct SetLabelFn: bt1::RtnWalkerBase<SetLabelFn> {
+    struct SetLabelFn: bt1::RtnNodeWalkerBase<SetLabelFn> {
 
     	Int label_num_;
     	Int new_value_;
@@ -178,7 +178,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrLabelsName)
     	}
     };
 
-    struct SetHiddenLabelFn: bt1::RtnWalkerBase<SetHiddenLabelFn> {
+    struct SetHiddenLabelFn: bt1::RtnNodeWalkerBase<SetHiddenLabelFn> {
 
     	Int label_num_;
     	Int new_value_;

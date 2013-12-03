@@ -190,11 +190,11 @@ public:
 
             Iterator i3 = ctr.End();
             AssertTrue(MA_SRC, i3.isEnd());
-            AssertEQ(MA_SRC, i3.entry_idx(), ctr.getNodeSize(i3.leaf(), 0));
+            AssertEQ(MA_SRC, i3.idx(), ctr.getNodeSize(i3.leaf(), 0));
 
             Iterator i4 = ctr.REnd();
             AssertTrue(MA_SRC, i4.isBegin());
-            AssertEQ(MA_SRC, i4.entry_idx(), -1);
+            AssertEQ(MA_SRC, i4.idx(), -1);
         }
         catch (...) {
             Base::dump_name_ = Base::Store(allocator);

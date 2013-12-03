@@ -117,6 +117,9 @@ public:
         cout<<"Rank.0="<<iter.label_rank(0, 0)<<endl;
         cout<<"Rank.0="<<iter.label_rank(0, 1)<<endl;
 
+        cout<<iter.entry()<<endl;
+        cout<<iter.key()<<endl;
+
         allocator.commit();
 
         this->StoreAllocator(allocator, this->getResourcePath("api.dump"));

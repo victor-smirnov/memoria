@@ -159,6 +159,16 @@ public:
         return tree()->size();
     }
 
+    Key& key(Int key_num, Int idx)
+    {
+    	return tree()->value(key_num, idx);
+    }
+
+    const Key& key(Int key_num, Int idx) const
+    {
+    	return tree()->value(key_num, idx);
+    }
+
     Value& value(Int idx)
     {
         return values()[idx];
@@ -168,6 +178,44 @@ public:
     {
         return values()[idx];
     }
+
+
+
+    template <typename Entry>
+    struct GetEntryLabelsFn {
+    	template <Int LabelIdx, typename Labels>
+    	void stream(const Labels* labels, Int idx, Entry& entry)
+    	{
+    		std::get<LabelIdx>(entry.labels()) = labels->symbol(idx);
+    	}
+    };
+
+    template <typename Entry>
+    struct GetEntryHiddenLabelsFn {
+    	template <Int LabelIdx, typename Labels>
+    	void stream(const Labels* labels, Int idx, Entry& entry)
+    	{
+    		std::get<LabelIdx>(entry.hidden_labels()) = labels->symbol(idx);
+    	}
+    };
+
+
+    template <typename Entry>
+    Entry entry(Int idx) const
+    {
+    	Entry entry;
+
+    	tree()->sums(entry.indexes());
+    	entry.value() = this->value(idx);
+
+    	HiddenLabelsDispatcher::dispatchAll(this, GetEntryHiddenLabelsFn<Entry>(), idx, entry);
+    	LabelsDispatcher::dispatchAll(this, GetEntryLabelsFn<Entry>(), idx, entry);
+
+    	return entry;
+    }
+
+
+
 
     struct EmptySizeFn {
         Int size_ = 0;
@@ -372,10 +420,10 @@ public:
     {
     	Int size = this->size();
 
-    	tree()->insert(idx, entry.keys());
+    	tree()->insert(idx, entry.indexes());
 
     	sums[0] += 1;
-    	sums.sumAt(1, entry.keys());
+    	sums.sumAt(1, entry.indexes());
 
     	HiddenLabelsDispatcher::dispatchAll(this, InsertHiddenLabelsFn<Entry>(entry, sums), idx);
 
