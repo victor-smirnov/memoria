@@ -29,13 +29,15 @@ class RankForwardWalker: public bt1::SkipForwardWalkerBase<
 	using CtrSizeT 	= typename Types::CtrSizeT;
 	CtrSizeT rank_ 	= 0;
 
+	Int label_num_;
 	Int branch_rank_index_;
 	Int symbol_;
 
 public:
 
-	RankForwardWalker(Int stream, Int branch_rank_index, Int symbol, Key target):
+	RankForwardWalker(Int stream, Int label_num, Int branch_rank_index, Int symbol, Key target):
 		Base(stream, 0, 0, target),
+		label_num_(label_num),
 		branch_rank_index_(branch_rank_index),
 		symbol_(symbol)
 	{}
@@ -43,7 +45,7 @@ public:
 	template <Int StreamIdx, typename StreamType>
 	void postProcessLeafStream(const StreamType* stream, Int start, Int end)
 	{
-		return stream->rank(start, end, symbol_);
+		return stream->rank(label_num_, start, end, symbol_);
 	}
 
 	template <Int StreamIdx, typename StreamType>
@@ -78,13 +80,15 @@ class RankBackwardWalker: public bt1::SkipBackwardWalkerBase<
 	using CtrSizeT = typename Types::CtrSizeT;
 	CtrSizeT rank_ = 0;
 
+	Int label_num_;
 	Int branch_rank_index_;
 	Int symbol_;
 
 public:
 
-	RankBackwardWalker(Int stream, Int branch_rank_index, Int symbol, Key target):
+	RankBackwardWalker(Int stream, Int label_num, Int branch_rank_index, Int symbol, Key target):
 		Base(stream, 0, 0, target),
+		label_num_(label_num),
 		branch_rank_index_(branch_rank_index),
 		symbol_(symbol)
 	{}
@@ -92,7 +96,7 @@ public:
 	template <Int StreamIdx, typename StreamType>
 	void postProcessLeafStream(const StreamType* stream, Int start, Int end)
 	{
-		return stream->rank(start, end, symbol_);
+		return stream->rank(label_num_, start, end, symbol_);
 	}
 
 	template <Int StreamIdx, typename StreamType>

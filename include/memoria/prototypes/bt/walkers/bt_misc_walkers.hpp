@@ -8,6 +8,7 @@
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_MISC_WALKERS_HPP
 
 #include <memoria/prototypes/bt/walkers/bt_find_walkers.hpp>
+#include <memoria/core/packed/tools/packed_tools.hpp>
 
 namespace memoria {
 namespace bt1 	  {
@@ -58,6 +59,22 @@ public:
 	MyType& self() {return *T2T<MyType*>(this);}
 	const MyType& self() const {return *T2T<const MyType*>(this);}
 };
+
+
+
+template <typename MyType, typename ReturnType_ = Int, Int StreamIndex = 0>
+struct RtnWalkerBase: RtnPkdHandlerBase<ReturnType_> {
+
+	template <typename Node>
+	ReturnType_ treeNode(Node* node, Int idx)
+	{
+		return node->template processStreamRtn<StreamIndex>(self(), idx);
+	}
+
+	MyType& self() {return *T2T<MyType*>(this);}
+	const MyType& self() const {return *T2T<const MyType*>(this);}
+};
+
 
 
 }

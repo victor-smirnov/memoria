@@ -86,6 +86,7 @@ public:
     static const Int ValuesPerBranch        = Types::ValuesPerBranch;
     static const Int Indexes                = Types::Blocks;
     static const Int BitsPerSymbol          = Types::BitsPerSymbol;
+    static const Int AlphabetSize          	= 1<<BitsPerSymbol;
 
     enum {
         METADATA, INDEX, SYMBOLS
@@ -752,6 +753,8 @@ public:
     Int rank(Int end, Int symbol) const
     {
         MEMORIA_ASSERT(end, <=, size());
+        MEMORIA_ASSERT_TRUE(end >= 0);
+        MEMORIA_ASSERT_TRUE(symbol >= 0 && symbol < AlphabetSize);
 
         if (has_index())
         {
@@ -788,7 +791,10 @@ public:
 
     SelectResult selectFw(Int symbol, BigInt rank) const
     {
-        if (has_index())
+        MEMORIA_ASSERT(rank, >=, 0);
+        MEMORIA_ASSERT_TRUE(symbol >= 0 && symbol < AlphabetSize);
+
+    	if (has_index())
         {
             const Index* index = this->index();
 

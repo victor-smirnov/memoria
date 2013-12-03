@@ -8,6 +8,7 @@
 
 
 #include <memoria/core/packed/tree/packed_fse_tree.hpp>
+#include <memoria/core/packed/tools/packed_tools.hpp>
 #include <memoria/metadata/page.hpp>
 
 #include <utility>
@@ -103,6 +104,9 @@ public:
 
     typedef typename Types::HiddenLabels										HiddenLabelsList;
     typedef typename Types::Labels												LabelsList;
+
+    static const Int HiddenLabelsListSize										= ListSize<HiddenLabelsList>::Value;
+    static const Int LabelsListSize												= ListSize<LabelsList>::Value;
 
     static const Int HiddenLabelsOffset											= 1;
     static const Int LabelsOffset												= HiddenLabelsOffset +
@@ -312,27 +316,55 @@ public:
     }
 
 
-    template <typename Labels>
-    struct InsertFn {
-    	const Labels& labels_;
 
+    template <typename Entry>
+    struct InsertLabelsFn {
+    	const Entry& entry_;
     	MapSums& sums_;
-    	Int offset_;
 
-    	InsertFn(const Labels& labels, MapSums& sums, Int offset):
-    		labels_(labels),
-    		sums_(sums),
-    		offset_(offset)
+
+    	InsertLabelsFn(const Entry& entry, MapSums& sums):
+    		entry_(entry),
+    		sums_(sums)
     	{}
 
     	template <Int LabelIdx, typename Stream>
     	void stream(Stream* stream, Int idx)
     	{
-    		stream->insert(idx, std::get<LabelIdx>(labels_));
+    		Int offset = MyType::label_block_offset(LabelIdx) + Tree::Blocks + 1;
 
-    		sums_[offset_ + std::get<LabelIdx>(labels_)] += 1;
+    		Int label = std::get<LabelIdx>(entry_.labels());
+
+    		stream->insert(idx, label);
+
+    		sums_[offset + label] += 1;
     	}
     };
+
+    template <typename Entry>
+    struct InsertHiddenLabelsFn {
+    	const Entry& entry_;
+    	MapSums& sums_;
+
+
+    	InsertHiddenLabelsFn(const Entry& entry, MapSums& sums):
+    		entry_(entry),
+    		sums_(sums)
+    	{}
+
+    	template <Int LabelIdx, typename Stream>
+    	void stream(Stream* stream, Int idx)
+    	{
+    		Int offset = MyType::hidden_label_block_offset(LabelIdx) + Tree::Blocks + 1;
+
+    		Int label  = std::get<LabelIdx>(entry_.hidden_labels());
+
+    		stream->insert(idx, label);
+
+    		sums_[offset + label] += 1;
+    	}
+    };
+
 
 
     template <typename Entry>
@@ -345,17 +377,9 @@ public:
     	sums[0] += 1;
     	sums.sumAt(1, entry.keys());
 
-    	HiddenLabelsDispatcher::dispatchAll(
-    			this,
-    			InsertFn<typename Entry::HiddenLabelsType>(entry.hidden_labels(), sums, HiddenLabelsOffset + 1),
-    			idx
-    	);
+    	HiddenLabelsDispatcher::dispatchAll(this, InsertHiddenLabelsFn<Entry>(entry, sums), idx);
 
-    	LabelsDispatcher::dispatchAll(
-    			this,
-    			InsertFn<typename Entry::LabelsType>(entry.labels(), sums, LabelsOffset + 1),
-    			idx
-    	);
+    	LabelsDispatcher::dispatchAll(this, InsertLabelsFn<Entry>(entry, sums), idx);
 
     	Int requested_block_size = (size + 1) * sizeof(Value);
 
@@ -676,7 +700,7 @@ public:
     	void stream(const Stream* stream, Int from, Int to, MapSums& sums)
     	{
     		sums.sumAt(idx_, stream->sums(from, to));
-    		idx_ += Stream::Indexes;
+    		idx_ += Stream::AlphabetSize;
     	}
     };
 
@@ -702,13 +726,13 @@ public:
     	void stream(const Stream* stream, Int idx, MapSums& sums)
     	{
     		sums.sumAt(idx_, stream->sumsAt(idx));
-    		idx_ += Stream::Indexes;
+    		idx_ += Stream::AlphabetSize;
     	}
     };
 
     void sums(Int idx, MapSums& sums) const
     {
-        Values2 tree_sums;
+    	Values2 tree_sums;
         tree()->sums(idx, tree_sums);
 
         sums.sumAt(0, tree_sums);
@@ -748,6 +772,86 @@ public:
 
     // ====================================== Labels Operations ====================================== //
 
+    struct GetLabelFn: RtnPkdHandlerBase<Int> {
+    	template <Int StreamIdx, typename Stream>
+    	Int stream(const Stream* stream, Int idx)
+    	{
+    		return stream->symbol(idx);
+    	}
+    };
+
+
+    Int label(Int idx, Int label_num) const
+    {
+    	return LabelsDispatcher::dispatchRtn(label_num, this, GetLabelFn(), idx);
+    }
+
+    Int hidden_label(Int idx, Int label_num) const
+    {
+    	return HiddenLabelsDispatcher::dispatchRtn(label_num, this, GetLabelFn(), idx);
+    }
+
+
+    struct SetLabelFn: RtnPkdHandlerBase<Int> {
+    	template <Int StreamIdx, typename Stream>
+    	Int stream(Stream* stream, Int idx, Int value)
+    	{
+    		Int old_value = stream->symbol(idx);
+
+    		stream->symbol(idx) = value;
+
+    		stream->reindex();
+
+    		return old_value;
+    	}
+    };
+
+    Int set_label(Int idx, Int label_num, Int label)
+    {
+    	return LabelsDispatcher::dispatchRtn(label_num, this, SetLabelFn(), idx, label);
+    }
+
+    Int set_hidden_label(Int idx, Int label_num, Int label)
+    {
+    	return HiddenLabelsDispatcher::dispatchRtn(label_num, this, SetLabelFn(), idx, label);
+    }
+
+
+
+    struct GetLabelBlockOffset
+    {
+    	Int offset_ = 0;
+
+    	template <Int StreamIdx, typename Stream>
+    	void stream(Stream*, Int label_block)
+    	{
+    		if (StreamIdx < label_block)
+    		{
+    			offset_ += Stream::AlphabetSize;
+    		}
+    	}
+    };
+
+    static Int label_block_offset(Int label_num)
+    {
+    	GetLabelBlockOffset offset_fn;
+
+    	HiddenLabelsDispatcher::dispatchAllStatic(offset_fn, 100);
+    	LabelsDispatcher::dispatchAllStatic(offset_fn, label_num);
+
+    	return offset_fn.offset_;
+    }
+
+    static Int hidden_label_block_offset(Int label_num)
+    {
+    	GetLabelBlockOffset offset_fn;
+
+    	HiddenLabelsDispatcher::dispatchAllStatic(offset_fn, label_num);
+
+    	return offset_fn.offset_;
+    }
+
+
     struct RankFn {
 
     	using ResultType = Int;
@@ -766,25 +870,25 @@ public:
     };
 
 
-    BigInt h_rank(Int end, Int label) const
+    BigInt h_rank(Int label_num, Int end, Int label) const
     {
-    	return HiddenLabelsDispatcher::dispatchRtn(0, this, RankFn(), end, label);
+    	return HiddenLabelsDispatcher::dispatchRtn(label_num, this, RankFn(), end, label);
     }
 
-    BigInt rank(Int end, Int label) const
+    BigInt rank(Int label_num, Int end, Int label) const
     {
-    	return LabelsDispatcher::dispatchRtn(0, this, RankFn(), end, label);
+    	return LabelsDispatcher::dispatchRtn(label_num, this, RankFn(), end, label);
     }
 
 
-    BigInt h_rank(Int start, Int end, Int label) const
+    BigInt h_rank(Int label_num, Int start, Int end, Int label) const
     {
-    	return HiddenLabelsDispatcher::dispatchRtn(0, this, RankFn(), start, end, label);
+    	return HiddenLabelsDispatcher::dispatchRtn(label_num, this, RankFn(), start, end, label);
     }
 
-    BigInt rank(Int start, Int end, Int label) const
+    BigInt rank(Int label_num, Int start, Int end, Int label) const
     {
-    	return LabelsDispatcher::dispatchRtn(0, this, RankFn(), start, end, label);
+    	return LabelsDispatcher::dispatchRtn(label_num, this, RankFn(), start, end, label);
     }
 
 
@@ -807,25 +911,25 @@ public:
     	}
     };
 
-    SelectResult h_selectFw(Int start, Int symbol, BigInt rank) const
+    SelectResult h_selectFw(Int label_num, Int start, Int symbol, BigInt rank) const
     {
-    	return HiddenLabelsDispatcher::dispatchRtn(0, this, SelectFwFn(), start, symbol, rank);
+    	return HiddenLabelsDispatcher::dispatchRtn(label_num, this, SelectFwFn(), start, symbol, rank);
     }
 
-    SelectResult selectFw(Int start, Int symbol, BigInt rank) const
+    SelectResult selectFw(Int label_num, Int start, Int symbol, BigInt rank) const
     {
-    	return LabelsDispatcher::dispatchRtn(0, this, SelectFwFn(), start, symbol, rank);
+    	return LabelsDispatcher::dispatchRtn(label_num, this, SelectFwFn(), start, symbol, rank);
     }
 
 
-    SelectResult h_selectFw(Int symbol, BigInt rank) const
+    SelectResult h_selectFw(Int label_num, Int symbol, BigInt rank) const
     {
-    	return HiddenLabelsDispatcher::dispatchRtn(0, this, SelectFwFn(), symbol, rank);
+    	return HiddenLabelsDispatcher::dispatchRtn(label_num, this, SelectFwFn(), symbol, rank);
     }
 
-    SelectResult selectFw(Int symbol, BigInt rank) const
+    SelectResult selectFw(Int label_num, Int symbol, BigInt rank) const
     {
-    	return LabelsDispatcher::dispatchRtn(0, this, SelectFwFn(), symbol, rank);
+    	return LabelsDispatcher::dispatchRtn(label_num, this, SelectFwFn(), symbol, rank);
     }
 
 
@@ -848,25 +952,25 @@ public:
     };
 
 
-    SelectResult h_selectBw(Int start, Int symbol, BigInt rank) const
+    SelectResult h_selectBw(Int label_num, Int start, Int symbol, BigInt rank) const
     {
-    	return HiddenLabelsDispatcher::dispatchRtn(0, this, SelectBwFn(), start, symbol, rank);
+    	return HiddenLabelsDispatcher::dispatchRtn(label_num, this, SelectBwFn(), start, symbol, rank);
     }
 
-    SelectResult selectBw(Int start, Int symbol, BigInt rank) const
+    SelectResult selectBw(Int label_num, Int start, Int symbol, BigInt rank) const
     {
-    	return LabelsDispatcher::dispatchRtn(0, this, SelectBwFn(), start, symbol, rank);
+    	return LabelsDispatcher::dispatchRtn(label_num, this, SelectBwFn(), start, symbol, rank);
     }
 
 
-    SelectResult h_selectBw(Int symbol, BigInt rank) const
+    SelectResult h_selectBw(Int label_num, Int symbol, BigInt rank) const
     {
-    	return HiddenLabelsDispatcher::dispatchRtn(0, this, SelectBwFn(), symbol, rank);
+    	return HiddenLabelsDispatcher::dispatchRtn(label_num, this, SelectBwFn(), symbol, rank);
     }
 
-    SelectResult selectBw(Int symbol, BigInt rank) const
+    SelectResult selectBw(Int label_num, Int symbol, BigInt rank) const
     {
-    	return LabelsDispatcher::dispatchRtn(0, this, SelectBwFn(), symbol, rank);
+    	return LabelsDispatcher::dispatchRtn(label_num, this, SelectBwFn(), symbol, rank);
     }
 
 

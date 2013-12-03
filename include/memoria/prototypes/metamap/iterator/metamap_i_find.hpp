@@ -48,18 +48,18 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrFindName)
     static const Int Labels														= Container::Types::Labels;
     static const Int HiddenLabels												= Container::Types::HiddenLabels;
 
-    static const Int HiddenLabelsOffset											= Container::Types::HiddenLabelsOffset;
-    static const Int LabelsOffset												= Container::Types::LabelsOffset;
 
 
-
-    CtrSizeT findKeyGEFw(Int index, CtrSizeT value)
+    CtrSizeT findKeyFw(Int index, CtrSizeT value, SearchType search_type = SearchType::GE)
     {
     	auto& self  = this->self();
     	auto& ctr   = self.ctr();
     	Int stream  = self.stream();
 
-    	typename Types::template FindGEWalker<Types> walker(stream, index + 1, index, value);
+    	MEMORIA_ASSERT_TRUE(index >= 0 && index < Indexes);
+    	MEMORIA_ASSERT(value, >=, 0);
+
+    	typename Types::template FindforwardWalker<Types> walker(stream, index + 1, index, value, search_type);
 
     	walker.prepare(self);
 
@@ -68,13 +68,16 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrFindName)
     	return walker.finish(self, idx);
     }
 
-    CtrSizeT findKeyGEBw(Int index, CtrSizeT value)
+    CtrSizeT findKeyBw(Int index, CtrSizeT value, SearchType search_type = SearchType::GE)
     {
     	auto& self  = this->self();
     	auto& ctr   = self.ctr();
     	Int stream  = self.stream();
 
-    	typename Types::template FindBackwardWalker<Types> walker(stream, index + 1, index, value, SearchType::GT);
+    	MEMORIA_ASSERT_TRUE(index >= 0 && index < Indexes);
+    	MEMORIA_ASSERT(value, >=, 0);
+
+    	typename Types::template FindBackwardWalker<Types> walker(stream, index + 1, index, value, search_type);
 
     	walker.prepare(self);
 

@@ -113,7 +113,7 @@ public:
 	using ResultType = Int;
 
 	SelectBackwardWalkerBase(Int stream, Int branch_index, Int symbol, Key target):
-		Base(stream, branch_index, symbol, target, SearchType::GT)
+		Base(stream, branch_index, symbol, target, SearchType::GE)
 	{}
 
 

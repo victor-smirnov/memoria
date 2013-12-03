@@ -627,13 +627,13 @@ public:
     {
         MEMORIA_ASSERT(name, >=, 0);
 
-        auto& self = this->self();
+        //auto& self = this->self();
 
         allocator_          = allocator;
         name_               = name;
         model_type_name_    = mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname();
 
-        self.init_data().set_master_name(name);
+        this->init_data().set_master_name(name);
 
         //FIXME: init logger correctly
 

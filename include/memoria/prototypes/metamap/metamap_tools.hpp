@@ -74,6 +74,37 @@ struct LabelTypeListBuilder<TypeList<>> {
 
 
 
+
+template <typename List> struct LabelOffsetProc;
+
+template <Int Bits, typename... Tail>
+struct LabelOffsetProc<TypeList<LabelDescr<Bits>, Tail...>> {
+	static Int offset(Int label_num)
+	{
+		if (label_num > 0)
+		{
+			return (1 << Bits) + LabelOffsetProc<TypeList<Tail...>>::offset(label_num - 1);
+		}
+		else {
+			return 0;
+		}
+	}
+};
+
+template <>
+struct LabelOffsetProc<TypeList<>> {
+	static Int offset(Int label_num)
+	{
+		if (label_num > 0)
+		{
+			throw vapi::Exception(MA_SRC, "Invalid label number requested");
+		}
+		else {
+			return 0;
+		}
+	}
+};
+
 template <typename Iterator, typename Container>
 class MetaMapIteratorPrefixCache: public bt::BTreeIteratorCache<Iterator, Container> {
     typedef bt::BTreeIteratorCache<Iterator, Container> Base;

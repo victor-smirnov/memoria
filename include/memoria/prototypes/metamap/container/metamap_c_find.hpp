@@ -121,18 +121,34 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrFindName)
         return iter;
     }
 
-    Iterator selectLabel(Int symbol, CtrSizeT rank)
+    Iterator selectLabel(Int label_num, Int label, CtrSizeT rank)
     {
-    	typename Types::template SelectForwardWalker<Types> walker(0, 2 + symbol, symbol, false, rank);
+    	Int label_index = p_label_block_offset(label_num) + label;
+
+    	typename Types::template SelectForwardWalker<Types> walker(0, label_num, label_index, label, false, rank);
 
     	return self().find0(0, walker);
     }
 
-    Iterator selectHiddenLabel(Int symbol, CtrSizeT rank)
+    Iterator selectHiddenLabel(Int label_num, Int label, CtrSizeT rank)
     {
-    	typename Types::template SelectForwardWalker<Types> walker(0, 2 + symbol, symbol, true, rank);
+    	Int label_index = p_hidden_label_block_offset(label_num) + label;
+
+    	typename Types::template SelectForwardWalker<Types> walker(0, label_num, label_index, label, true, rank);
 
     	return self().find0(0, walker);
+    }
+
+private:
+
+    Int p_hidden_label_block_offset(Int label_num) const
+    {
+    	return 1 + Types::Indexes + Types::HiddenLabelsOffset::offset(label_num);
+    }
+
+    Int p_label_block_offset(Int label_num) const
+    {
+    	return p_hidden_label_block_offset(Types::HiddenLabels) + Types::LabelsOffset::offset(label_num);
     }
 
 MEMORIA_CONTAINER_PART_END

@@ -26,13 +26,16 @@ class SelectForwardWalker: public bt1::SelectForwardWalkerBase<
 	using Base 	= bt1::SelectForwardWalkerBase<Types, IteratorPrefixFn, SelectForwardWalker<Types, IteratorPrefixFn>>;
 	using Key 	= typename Base::Key;
 
+	Int label_num_;
 	bool hidden_;
+
 
 public:
 	using ResultType = Int;
 
-	SelectForwardWalker(Int stream, Int branch_index, Int symbol, bool hidden, Key target):
+	SelectForwardWalker(Int stream, Int label_num, Int branch_index, Int symbol, bool hidden, Key target):
 		Base(stream, branch_index, symbol, target),
+		label_num_(label_num),
 		hidden_(hidden)
 	{}
 
@@ -41,10 +44,10 @@ public:
 	{
 		if (hidden_)
 		{
-			return seq->h_selectFw(start, symbol, rank);
+			return seq->h_selectFw(label_num_, start, symbol, rank);
 		}
 		else {
-			return seq->selectFw(start, symbol, rank);
+			return seq->selectFw(label_num_, start, symbol, rank);
 		}
 	}
 };
@@ -69,12 +72,14 @@ class SelectBackwardWalker: public bt1::SelectBackwardWalkerBase<
 	using Base 	= bt1::SelectBackwardWalkerBase<Types, IteratorPrefixFn, SelectBackwardWalker<Types, IteratorPrefixFn>>;
 	using Key 	= typename Base::Key;
 
+	Int label_num_;
 	bool hidden_;
 
 public:
 
-	SelectBackwardWalker(Int stream, Int branch_index, Int symbol, bool hidden, Key target):
+	SelectBackwardWalker(Int stream, Int label_num, Int branch_index, Int symbol, bool hidden, Key target):
 		Base(stream, branch_index, symbol, target),
+		label_num_(label_num),
 		hidden_(hidden)
 	{}
 
@@ -83,10 +88,10 @@ public:
 	{
 		if (hidden_)
 		{
-			return seq->h_selectBw(start, symbol, rank);
+			return seq->h_selectBw(label_num_, start, symbol, rank);
 		}
 		else {
-			return seq->selectBw(start, symbol, rank);
+			return seq->selectBw(label_num_, start, symbol, rank);
 		}
 	}
 };

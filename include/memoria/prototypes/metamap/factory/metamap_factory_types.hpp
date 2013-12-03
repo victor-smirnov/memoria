@@ -97,9 +97,6 @@ public BTTypes<Profile, memoria::BT> {
     static const Int Labels														= ListSize<LabelsList>::Value;
     static const Int HiddenLabels												= ListSize<HiddenLabelsList>::Value;
 
-    static const Int HiddenLabelsOffset											= 1 + Indexes;
-    static const Int LabelsOffset												= HiddenLabelsOffset + Labels;
-
     struct StreamTF {
     	typedef PackedFSEMap<
     	        			PackedFSEMapTypes<
@@ -120,6 +117,8 @@ public BTTypes<Profile, memoria::BT> {
         typedef PkdFTree<Packed2TreeTypes<Key, Key, LeafIndexes>> 		NonLeafType;
     };
 
+    typedef metamap::LabelOffsetProc<LabelsList> 								LabelsOffset;
+    typedef metamap::LabelOffsetProc<HiddenLabelsList> 							HiddenLabelsOffset;
 
 
     typedef TypeList<StreamTF>                                                  StreamDescriptors;

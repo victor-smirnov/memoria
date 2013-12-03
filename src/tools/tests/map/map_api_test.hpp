@@ -33,6 +33,7 @@ class MapApiTest: public MapTestBase<MapName> {
 
     Int key_ 		= 0;
     Int skip_bw_  	= 0;
+    Int select_bw_  = 0;
 
 public:
 
@@ -40,6 +41,7 @@ public:
     {
         MEMORIA_ADD_TEST_PARAM(key_);
         MEMORIA_ADD_TEST_PARAM(skip_bw_);
+        MEMORIA_ADD_TEST_PARAM(select_bw_);
 
     	MEMORIA_ADD_TEST(runTest);
     }
@@ -60,57 +62,60 @@ public:
 
         BigInt last_key = 0;
 
+        vector<Int> labels;
+
         for (Int c = 1; c <= 1000; c++)
         {
         	last_key += getRandom(5) + 1;
 
         	auto iter = map[last_key];
         	iter = std::make_tuple(1, 2);
+
+        	if (getRandom(50) == 0)
+        	{
+        		iter.set_label(0, 2);
+
+        		labels.push_back(iter.pos());
+        	}
         }
 
         cout<<"Size: "<<map.size()<<endl;
 
-        auto iter = map.selectHiddenLabel(0, 1000);
+        cout<<"Select Forward: "<<endl;
 
-        cout<<"pos="<<iter.pos()<<" "<<iter.cache().prefixes()<<endl;
+        auto iter = map.selectLabel(0, 2, 1);
+        Int c = 0;
 
-        for (auto iter = map.Begin(); !iter.isEnd(); iter++)
+        while (!iter.isEnd())
         {
-        	iter.selectHiddenLabelFw(0, 100);
-
-        	cout<<iter.pos()<<endl;
+        	cout<<iter.pos()<<" "<<labels[c]<<endl;
+        	iter.selectNextLabel(0, 2);
+        	c++;
         }
 
-        iter = map.Begin();
+        cout<<endl<<"Select Backward: "<<endl;
 
-        iter.selectHiddenLabelFw(1, 1);
+        iter = map.End();
 
-        cout<<"1.pos="<<iter.pos()<<endl;
+        iter.selectLabelBw(0, 2, 1);
 
-//        iter--;
-//
-//        auto iter2 = iter;
-//
-//        iter.selectHiddenLabelBw(0, 142 + 78 + 1);
-//
-//        cout<<"1.pos="<<iter.pos()<<" "<<iter.idx()<<" "<<iter.cache().prefixes()<<endl;
+        c = labels.size() - 1;
 
+        while (!iter.isBegin())
+        {
+        	cout<<iter.pos()<<" "<<labels[c]<<endl;
 
-//        auto iter3 = map.RBegin();
-//
-//        cout<<"3.pos="<<iter3.pos()<<" "<<iter3.idx()<<" "<<iter3.cache().prefixes()<<endl;
-//
-//        iter3.findKeyGEBw(0, key_);
-//
-//        cout<<"3.pos="<<iter3.pos()<<" "<<iter3.idx()<<" "<<iter3.cache().prefixes()<<endl;
+        	iter.selectLabelBw(0, 2, 1);
+        	c--;
+        }
 
+        iter = map.RBegin();
 
-        auto iter4 = map.End();
-        cout<<"4.pos="<<iter4.pos()<<" "<<iter4.idx()<<" "<<iter4.cache().prefixes()<<endl;
-
-        iter4.skipBw(skip_bw_);
-
-        cout<<"4.pos="<<iter4.pos()<<" "<<iter4.idx()<<" "<<iter4.cache().prefixes()<<" "<<iter4.leaf()->id()<<endl;
+        cout<<"Set Label="<<iter.set_hidden_label(1, 2)<<endl;
+        cout<<"Set Label="<<iter.set_label(0, 2)<<endl;
+        cout<<"Rank.2="<<iter.label_rank(0, 2)<<endl;
+        cout<<"Rank.0="<<iter.label_rank(0, 0)<<endl;
+        cout<<"Rank.0="<<iter.label_rank(0, 1)<<endl;
 
         allocator.commit();
 
