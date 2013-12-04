@@ -326,12 +326,14 @@ private :
 
     Int p_hidden_label_block_offset(Int label_num) const
     {
-    	return LabelsIndexStart + Container::Types::HiddenLabelsOffset::offset(label_num);
+    	Int offset = Container::Types::HiddenLabelsOffset::offset(label_num);
+    	return LabelsIndexStart + offset;
     }
 
     Int p_label_block_offset(Int label_num) const
     {
-    	return p_hidden_label_block_offset(HiddenLabels) + Container::Types::LabelsOffset::offset(label_num);
+    	Int offset = Container::Types::LabelsOffset::offset(label_num);
+    	return p_hidden_label_block_offset(HiddenLabels) + offset;
     }
 
 MEMORIA_ITERATOR_PART_END

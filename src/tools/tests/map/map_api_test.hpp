@@ -69,6 +69,7 @@ public:
         	last_key += getRandom(5) + 1;
 
         	auto iter = map[last_key];
+
         	iter = std::make_tuple(1, 2);
 
         	if (getRandom(50) == 0)
@@ -88,7 +89,7 @@ public:
 
         while (!iter.isEnd())
         {
-        	cout<<iter.pos()<<" "<<labels[c]<<endl;
+        	cout<<c<<" "<<iter.pos()<<" "<<labels[c]<<endl;
         	iter.selectNextLabel(0, 2);
         	c++;
         }
@@ -103,7 +104,7 @@ public:
 
         while (!iter.isBegin())
         {
-        	cout<<iter.pos()<<" "<<labels[c]<<endl;
+        	cout<<c<<" "<<iter.pos()<<" "<<labels[c]<<endl;
 
         	iter.selectLabelBw(0, 2, 1);
         	c--;

@@ -71,7 +71,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrMiscName)
     	template <Int Idx, typename Stream>
     	void nonLeafStream(const Stream* stream, Int idx)
     	{
-    		for (Int c = 9; c < std::tuple_element<0, IteratorPrefix>::type::Indexes; c++)
+    		for (Int c = 0; c < std::tuple_element<0, IteratorPrefix>::type::Indexes; c++)
     		{
     			std::get<0>(prefix_)[c] += stream->sum(c, idx);
     		}
