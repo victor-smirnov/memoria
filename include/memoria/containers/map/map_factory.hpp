@@ -12,7 +12,8 @@
 #include <memoria/containers/map/factory/map_factory_types.hpp>
 #include <memoria/containers/map/factory/smrkmap_factory_types.hpp>
 #include <memoria/containers/map/factory/cmap_factory_types.hpp>
-#include <memoria/containers/map/factory/mrkmap_factory_types.hpp>
+
+#include <memoria/containers/map/map_names.hpp>
 
 namespace memoria    {
 
