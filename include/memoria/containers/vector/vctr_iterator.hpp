@@ -13,11 +13,11 @@
 
 namespace memoria {
 
-template <typename Types, typename Value>
-void AssignToItem(Iter<Vector2IterTypes<Types>>& iter, const Value& value)
-{
-    iter.setValue(value);
-}
+//template <typename Types, typename Value>
+//void AssignToItem(Iter<Vector2IterTypes<Types>>& iter, const Value& value)
+//{
+//    iter.setValue(value);
+//}
 
 }
 

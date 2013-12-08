@@ -243,7 +243,7 @@ public:
 
 			result = ctr_meta->getCtrInterface()->check(&page->id(), ctr_name, this) || result;
 
-			iter.next();
+			iter++;
 		}
 
 		return result;

@@ -15,11 +15,16 @@
 #include <memoria/prototypes/bt/walkers/bt_skip_walkers.hpp>
 #include <memoria/prototypes/bt/walkers/bt_find_walkers.hpp>
 #include <memoria/prototypes/bt/walkers/bt_edge_walkers.hpp>
+#include <memoria/prototypes/bt/walkers/bt_select_walkers.hpp>
+#include <memoria/prototypes/bt/walkers/bt_rank_walkers.hpp>
+
+#include <memoria/prototypes/metamap/walkers/metamap_rank_walkers.hpp>
+#include <memoria/prototypes/metamap/walkers/metamap_select_walkers.hpp>
+
 
 #include <memoria/prototypes/bt/packed_adaptors/bt_tree_adaptor.hpp>
 #include <memoria/prototypes/metamap/packed_adaptors/metamap_packed_adaptors.hpp>
 
-#include <memoria/prototypes/metamap/metamap_walkers.hpp>
 #include <memoria/prototypes/metamap/metamap_tools.hpp>
 
 #include <memoria/prototypes/metamap/container/metamap_c_insert.hpp>
@@ -33,35 +38,77 @@
 #include <memoria/prototypes/metamap/iterator/metamap_i_entry.hpp>
 #include <memoria/prototypes/metamap/iterator/metamap_i_value.hpp>
 #include <memoria/prototypes/metamap/iterator/metamap_i_value_byref.hpp>
+#include <memoria/prototypes/metamap/iterator/metamap_i_labels.hpp>
+#include <memoria/prototypes/metamap/iterator/metamap_i_find.hpp>
+#include <memoria/prototypes/metamap/iterator/metamap_i_misc.hpp>
 
 #include <memoria/prototypes/metamap/metamap_names.hpp>
-
 
 
 namespace memoria {
 
 
-template <typename Profile, Int Indexes, Granularity gr, typename Key_, typename Value_>
-struct BTTypes<Profile, memoria::MetaMap<Indexes, VLen<gr, Key_>, Value_> >: public BTTypes<Profile, memoria::BT> {
+template <
+	typename Profile,
+	Int Indexes_,
+	Granularity gr,
+	typename Key_,
+	typename Value_,
+	typename HiddenLabelsList,
+	typename LabelsList
+>
+struct BTTypes<
+	Profile,
+	memoria::MetaMap<Indexes_, VLen<gr, Key_>, Value_, HiddenLabelsList, LabelsList>
+>:
+public BTTypes<Profile, memoria::BT> {
 
-    typedef BTTypes<Profile, memoria::BT>                                       Base;
+	typedef BTTypes<Profile, memoria::BT>                                       Base;
 
-    typedef Value_                                                              Value;
-    typedef Key_                                                    			Key;
+	static const Int Indexes													= Indexes_;
 
-    typedef metamap::MetaMapEntry<Indexes, Key, Value>							Entry;
+	typedef typename IfThenElse<
+			IfTypesEqual<Value_, IDType>::Value,
+			typename Base::ID,
+			Value_
+			>::Result																	Value;
 
-    typedef TypeList<
-            LeafNodeTypes<LeafNode>,
-            NonLeafNodeTypes<BranchNode>
-    >                                                                           NodeTypesList;
+	typedef Key_                                                    			Key;
 
-    typedef TypeList<
-            TreeNodeType<LeafNode>,
-            TreeNodeType<BranchNode>
-    >                                                                           DefaultNodeTypesList;
+	typedef typename TupleBuilder<
+			typename metamap::LabelTypeListBuilder<HiddenLabelsList>::Type
+			>::Type																		HiddenLabelsTuple;
+
+	typedef typename TupleBuilder<
+			typename metamap::LabelTypeListBuilder<LabelsList>::Type
+			>::Type																		LabelsTuple;
+
+	typedef metamap::MetaMapEntry<
+			Indexes,
+			Key,
+			Value,
+			HiddenLabelsTuple,
+			LabelsTuple
+			>																			Entry;
+
+	typedef TypeList<
+			LeafNodeTypes<LeafNode>,
+			NonLeafNodeTypes<BranchNode>
+	>                                                                           NodeTypesList;
+
+	typedef TypeList<
+			TreeNodeType<LeafNode>,
+			TreeNodeType<BranchNode>
+	>                                                                           DefaultNodeTypesList;
+
+	static const Int Labels														= ListSize<LabelsList>::Value;
+	static const Int HiddenLabels												= ListSize<HiddenLabelsList>::Value;
 
     using StreamTF = metamap::CompressedMapTF<BigInt, gr, Indexes>;
+
+
+    typedef metamap::LabelOffsetProc<LabelsList> 								LabelsOffset;
+    typedef metamap::LabelOffsetProc<HiddenLabelsList> 							HiddenLabelsOffset;
 
 
     typedef TypeList<StreamTF>                                                  StreamDescriptors;
@@ -86,9 +133,13 @@ struct BTTypes<Profile, memoria::MetaMap<Indexes, VLen<gr, Key_>, Value_> >: pub
     typedef typename MergeLists<
                 typename Base::IteratorPartsList,
 
-                metamap::ItrApiName,
+                metamap::ItrKeysName,
                 metamap::ItrNavName,
-                metamap::ItrValueName
+                metamap::ItrValueName,
+                metamap::ItrEntryName,
+                metamap::ItrLabelsName,
+                metamap::ItrFindName,
+                metamap::ItrMiscName
     >::Result                                                                   IteratorPartsList;
 
 
@@ -106,10 +157,20 @@ struct BTTypes<Profile, memoria::MetaMap<Indexes, VLen<gr, Key_>, Value_> >: pub
     using FindGEWalker      	= bt1::FindGEForwardWalker<Types, bt1::DefaultIteratorPrefixFn>;
 
     template <typename Types>
+    using FindBackwardWalker    = bt1::FindBackwardWalker<Types, bt1::DefaultIteratorPrefixFn>;
+
+
+    template <typename Types>
     using SkipForwardWalker     = bt1::SkipForwardWalker<Types, bt1::DefaultIteratorPrefixFn>;
 
     template <typename Types>
     using SkipBackwardWalker    = bt1::SkipBackwardWalker<Types, bt1::DefaultIteratorPrefixFn>;
+
+    template <typename Types>
+    using SelectForwardWalker   = metamap::SelectForwardWalker<Types, bt1::DefaultIteratorPrefixFn>;
+
+    template <typename Types>
+    using SelectBackwardWalker  = metamap::SelectBackwardWalker<Types, bt1::DefaultIteratorPrefixFn>;
 
 
     template <typename Types>

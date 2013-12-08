@@ -33,10 +33,10 @@ struct Vector2IterTypesT: IterTypesT<Types> {};
 
 
 template <typename Types>
-using Vector2CtrTypes  = Vector2CtrTypesT<Types>;
+using Vector2CtrTypes  = BTCtrTypesT<Vector2CtrTypesT<Types>>;
 
 template <typename Types>
-using Vector2IterTypes = Vector2IterTypesT<Types>;
+using Vector2IterTypes = BTIterTypesT<Vector2IterTypesT<Types>>;
 
 
 }

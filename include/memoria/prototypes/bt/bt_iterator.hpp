@@ -137,7 +137,7 @@ public:
     }
 
     template <typename T>
-    MyType& operator=(T&& value)
+    MyType& operator=(const T& value)
     {
         AssignToItem(*this, value);
         return *this;

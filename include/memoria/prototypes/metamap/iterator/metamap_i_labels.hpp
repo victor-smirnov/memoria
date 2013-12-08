@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011.
+// Copyright Victor Smirnov 2013.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -241,7 +241,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrLabelsName)
 
     CtrSizeT selectNextHiddenLabel(Int label_num, Int label, CtrSizeT rank = 1)
     {
-    	Int current_label = self().label(label_num);
+    	Int current_label = self().hidden_label(label_num);
     	return self().selectHiddenLabelFw(label_num, label, rank + (current_label == label));
     }
 

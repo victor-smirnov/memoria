@@ -43,6 +43,9 @@ public:
     FindGTWalker(Int stream, Int key_num, Key key): Base(stream, key_num, key)
     {}
 
+    FindGTWalker(Int stream, Int key_num, Int index1, Key key): Base(stream, key_num, key)
+    {}
+
     typedef Int ResultType;
     typedef Int ReturnType;
 
@@ -94,6 +97,9 @@ class FindGEWalker: public bt::FindWalkerBase<Types, FindGEWalker<Types>> {
 
 public:
     FindGEWalker(Int stream, Int key_num, Key key): Base(stream, key_num, key)
+    {}
+
+    FindGEWalker(Int stream, Int key_num, Int index1, Key key): Base(stream, key_num, key)
     {}
 
     typedef Int ResultType;
@@ -153,6 +159,9 @@ class FindGTWalker: public bt::FindWalkerBase<Types, FindGTWalker<Types>> {
 
 public:
     FindGTWalker(Int stream, Int key_num, Key key): Base(stream, key_num, key)
+    {}
+
+    FindGTWalker(Int stream, Int key_num, Int index1, Key key): Base(stream, key_num, key)
     {}
 
     typedef Int ResultType;
@@ -251,6 +260,9 @@ class FindGEWalker: public bt::FindWalkerBase<Types, FindGEWalker<Types>> {
 
 public:
     FindGEWalker(Int stream, Int key_num, Key key): Base(stream, key_num, key)
+    {}
+
+    FindGEWalker(Int stream, Int key_num, Int index1, Key key): Base(stream, key_num, key)
     {}
 
     typedef Int ResultType;

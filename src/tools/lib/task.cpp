@@ -266,7 +266,8 @@ Int GroupRunner::Run()
 
         for (auto t: tasks_)
         {
-            if (t->IsEnabled())
+            cout<<t->getName()<<endl;
+        	if (t->IsEnabled())
             {
                 String folder;
 

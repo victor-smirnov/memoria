@@ -28,6 +28,9 @@ public:
     SkipForwardWalker(Int stream, Int index, Key target): Base(stream, index, target)
     {}
 
+    SkipForwardWalker(Int stream, Int index, Int index1, Key target): Base(stream, index, target)
+    {}
+
     template <Int Idx, typename Tree>
     ResultType stream(Tree* tree, Int start) {
         return Base::template stream<Idx>(tree, start);

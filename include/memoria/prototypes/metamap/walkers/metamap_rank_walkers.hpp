@@ -8,6 +8,7 @@
 #define _MEMORIA_PROTOTYPES_METAMAP_RANK_WALKERS_HPP
 
 #include <memoria/prototypes/bt/walkers/bt_skip_walkers.hpp>
+#include <memoria/prototypes/bt/packed_adaptors/bt_tree_adaptor.hpp>
 
 namespace memoria {
 namespace metamap {

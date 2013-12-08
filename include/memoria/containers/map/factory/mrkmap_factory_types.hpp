@@ -30,7 +30,7 @@
 
 namespace memoria    {
 
-
+/*
 
 template <typename Profile, typename Key_, typename Value_, Int BitsPerMark_>
 struct BTTypes<Profile, MrkMap<Key_, Value_, BitsPerMark_> >: public BTTypes<Profile, memoria::BT> {
@@ -125,7 +125,7 @@ struct BTTypes<Profile, MrkMap<Key_, Value_, BitsPerMark_> >: public BTTypes<Pro
     template <typename Types>
     using FindREndWalker    = map::FindREndWalker<Types>;
 };
-
+*/
 
 }
 

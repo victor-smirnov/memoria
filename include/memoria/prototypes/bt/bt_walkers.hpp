@@ -355,6 +355,9 @@ class SkipForwardWalker: public FindForwardWalkerBase<Types, SkipForwardWalker<T
 public:
     SkipForwardWalker(Int stream, Int index, Key target): Base(stream, index, target)
     {}
+
+    SkipForwardWalker(Int stream, Int index, Int index1, Key target): Base(stream, index, target)
+    {}
 };
 
 
@@ -597,7 +600,7 @@ class SkipBackwardWalker: public FindBackwardWalkerBase<Types, SkipBackwardWalke
 public:
     SkipBackwardWalker(Int stream, Int index, Key target): Base(stream, index, target)
     {
-        Base::search_type_ = SearchType::GT;
+        Base::search_type_ = SearchType::GE;
     }
 };
 

@@ -381,7 +381,7 @@ public:
 		{
 			if (id.isSet())
 			{
-				iter.value() = id;
+				iter.svalue() = id;
 			}
 			else {
 				iter.remove();
@@ -389,7 +389,17 @@ public:
 		}
 		else if (id.isSet())
 		{
-			iter.insert(txn_id, id, toInt(TxnStatus::ACTIVE));
+			using Entry = typename TxnHistory::Types::Entry;
+
+			Entry entry;
+
+			entry.key() 	= txn_id;
+			entry.value()	= id;
+			std::get<0>(entry.hidden_labels()) = toInt(TxnStatus::ACTIVE);
+
+			iter.insert(entry);
+
+//			iter.insert(txn_id, id, toInt(TxnStatus::ACTIVE));
 		}
 	}
 
@@ -470,7 +480,7 @@ public:
 
 		// Check containers for conflicts
 
-		auto txn_iter = txn_ctr_directory.select(toInt(EntryStatus::UPDATED), 1);
+		auto txn_iter = txn_ctr_directory.selectHiddenLabel(0, toInt(EntryStatus::UPDATED), 1);
 
 		while (!txn_iter.isEnd())
 		{
@@ -495,12 +505,12 @@ public:
 			}
 
 			txn_iter++;
-			txn_iter.selectFw(toInt(EntryStatus::UPDATED), 1);
+			txn_iter.selectHiddenLabelFw(0, toInt(EntryStatus::UPDATED), 1);
 		}
 
 
 
-		txn_iter = txn_ctr_directory.select(toInt(EntryStatus::CREATED), 1);
+		txn_iter = txn_ctr_directory.selectHiddenLabel(0, toInt(EntryStatus::CREATED), 1);
 
 		while (!txn_iter.isEnd())
 		{
@@ -513,11 +523,11 @@ public:
 			}
 
 			txn_iter++;
-			txn_iter.selectFw(toInt(EntryStatus::UPDATED), 1);
+			txn_iter.selectHiddenLabelFw(0, toInt(EntryStatus::UPDATED), 1);
 		}
 
 
-		txn_iter = txn_ctr_directory.select(toInt(EntryStatus::DELETED), 1);
+		txn_iter = txn_ctr_directory.selectHiddenLabel(0, toInt(EntryStatus::DELETED), 1);
 
 		while (!txn_iter.isEnd())
 		{
@@ -539,7 +549,7 @@ public:
 			}
 
 			txn_iter++;
-			txn_iter.selectFw(toInt(EntryStatus::UPDATED), 1);
+			txn_iter.selectHiddenLabelFw(0, toInt(EntryStatus::UPDATED), 1);
 		}
 
 
@@ -547,7 +557,8 @@ public:
 
 		last_commited_txn_id_ = newTxnId();
 
-		txn_iter = txn_ctr_directory.select(toInt(EntryStatus::UPDATED), 1);
+		// FIXME: move this line down to the next iteration
+		txn_iter = txn_ctr_directory.selectHiddenLabel(0, toInt(EntryStatus::UPDATED), 1);
 
 		TxnLog txn_log(&update_allocator_proxy_, CTR_CREATE, last_commited_txn_id_);
 
@@ -557,7 +568,7 @@ public:
 
 			TxnStatus status = txn.is_snapshot() ? TxnStatus::SNAPSHOT : TxnStatus::COMMITED;
 
-			iter.setMark(toInt(status));
+			iter.set_hidden_label(0, toInt(status));
 		}
 
 		TxnLogAllocator txn_log_allocator(this, txn_log);
@@ -572,16 +583,16 @@ public:
 			auto iter = ctr_directory.findKeyGE(name);
 			MEMORIA_ASSERT_TRUE(iter.is_found_eq(name));
 
-			iter.value() = CtrDirectoryValue(last_commited_txn_id_, id);
+			iter.svalue() = CtrDirectoryValue(last_commited_txn_id_, id);
 
 			importPages(txn.update_log(), txn_log,  name);
 
 			txn_iter++;
-			txn_iter.selectFw(toInt(EntryStatus::UPDATED), 1);
+			txn_iter.selectHiddenLabelFw(0, toInt(EntryStatus::UPDATED), 1);
 		}
 
 
-		txn_iter = txn_ctr_directory.select(toInt(EntryStatus::CREATED), 1);
+		txn_iter = txn_ctr_directory.selectHiddenLabel(0, toInt(EntryStatus::CREATED), 1);
 
 		while (!txn_iter.isEnd())
 		{
@@ -591,17 +602,25 @@ public:
 			auto iter = ctr_directory.findKeyGE(name);
 			MEMORIA_ASSERT_TRUE(!iter.is_found_eq(name));
 
-			iter.insert(name, CtrDirectoryValue(last_commited_txn_id_, id), toInt(EntryStatus::CLEAN));
+			using Entry = typename CtrDirectory::Types::Entry;
+
+			Entry entry;
+			entry.key() 	= name;
+			entry.value()	= CtrDirectoryValue(last_commited_txn_id_, id);
+			std::get<0>(entry.hidden_labels()) = toInt(EntryStatus::CLEAN);
+
+			//iter.insert(name, CtrDirectoryValue(last_commited_txn_id_, id), toInt(EntryStatus::CLEAN));
+			iter.insert(entry);
 
 			importPages(txn.update_log(), txn_log, name);
 
 			txn_iter++;
-			txn_iter.selectFw(toInt(EntryStatus::CREATED), 1);
+			txn_iter.selectHiddenLabelFw(0, toInt(EntryStatus::CREATED), 1);
 		}
 
 
 
-		txn_iter = txn_ctr_directory.select(toInt(EntryStatus::DELETED), 1);
+		txn_iter = txn_ctr_directory.selectHiddenLabel(0, toInt(EntryStatus::DELETED), 1);
 
 		while (!txn_iter.isEnd())
 		{
@@ -619,7 +638,7 @@ public:
 
 			importPages(txn.update_log(), txn_log, name);
 
-			txn_iter.selectFw(toInt(EntryStatus::DELETED), 1);
+			txn_iter.selectHiddenLabelFw(0, toInt(EntryStatus::DELETED), 1);
 		}
 
 		cleanupCtrDirectoryBlocks(txn.update_log());
@@ -892,7 +911,7 @@ public:
 			{
 				if (root.isSet())
 				{
-					iter.value() = root;
+					iter.svalue() = root;
 				}
 				else {
 					iter.remove();
@@ -916,10 +935,19 @@ public:
 
 				if (iter.is_found_eq(name))
 				{
-					iter.value() = root_value;
+					iter.svalue() = root_value;
 				}
 				else {
-					iter.insert(name, root_value, toInt(EntryStatus::CLEAN));
+					using Entry = typename CtrDirectory::Types::Entry;
+
+					Entry entry;
+					entry.key() 	= name;
+					entry.value()	= root_value;
+					std::get<0>(entry.hidden_labels()) = toInt(EntryStatus::CLEAN);
+
+
+//					iter.insert(name, root_value, toInt(EntryStatus::CLEAN));
+					iter.insert(entry);
 				}
 			}
 			else {
@@ -1022,7 +1050,7 @@ public:
 
 			result = ctr_meta->getCtrInterface()->check(&page->id(), ctr_name, this) || result;
 
-			iter.next();
+			iter++;
 		}
 
 		return result;
@@ -1042,7 +1070,7 @@ public:
 
 	void compactifyCommitHistory()
 	{
-		auto start = txn_history_.select(toInt(TxnStatus::COMMITED), 1);
+		auto start = txn_history_.selectHiddenLabel(0, toInt(TxnStatus::COMMITED), 1);
 
 		while(!start.isEnd())
 		{
@@ -1052,7 +1080,7 @@ public:
 
 			while (start.key() < limit)
 			{
-				MEMORIA_ASSERT(start.mark(), ==, toInt(TxnStatus::COMMITED));
+				MEMORIA_ASSERT(start.hidden_label(0), ==, toInt(TxnStatus::COMMITED));
 
 				auto current_start_key = start.key();
 
@@ -1065,7 +1093,7 @@ public:
 				start = txn_history_.findKeyGE(current_start_key);
 			}
 
-			start.selectNext(toInt(TxnStatus::COMMITED));
+			start.selectNextHiddenLabel(0, toInt(TxnStatus::COMMITED));
 		}
 	}
 
@@ -1082,14 +1110,15 @@ public:
 
 	virtual TxnIteratorPtr transactions(TxnStatus status)
 	{
-		auto iter = txn_history_.select(toInt(status), 1);
+		auto iter = txn_history_.selectHiddenLabel(0, toInt(status), 1);
 		return std::make_shared<TxnIteratorImpl<MyType, typename TxnHistory::Iterator>>(this, status, iter);
 	}
 
 
 	virtual BigInt total_transactions(TxnStatus status)
 	{
-		return txn_history_.rank(toInt(status));
+		auto iter = txn_history_.End();
+		return iter.hidden_label_rank(0, toInt(status));
 	}
 
 
@@ -1119,7 +1148,7 @@ private:
 		auto iter = txn_history_.findKeyGE(txn_id);
 		MEMORIA_ASSERT_TRUE(iter.is_found_eq(txn_id));
 
-		return static_cast<TxnStatus>(iter.mark());
+		return static_cast<TxnStatus>(iter.hidden_label(0));
 	}
 
 	void setTxnStatus(BigInt txn_id, TxnStatus status)
@@ -1127,7 +1156,7 @@ private:
 		auto iter = txn_history_.findKeyGE(txn_id);
 		MEMORIA_ASSERT_TRUE(iter.is_found_eq(txn_id));
 
-		iter.setMark(toInt(status));
+		iter.set_hidden_label(0, toInt(status));
 	}
 
 	void checkCommitHistory()
@@ -1220,7 +1249,7 @@ private:
 		while (!iter.isEnd())
 		{
 			BigInt txn_id = iter.key();
-			TxnStatus status = static_cast<TxnStatus>(iter.mark());
+			TxnStatus status = static_cast<TxnStatus>(iter.hidden_label(0));
 
 			if (status == TxnStatus::ACTIVE)
 			{
@@ -1261,7 +1290,7 @@ private:
 
 				h_iter.insert2nd(last_commited_txn_id_, CommitHistoryValue(toInt(EntryStatus::CREATED), gid));
 
-				txn_log[id].value() = toInt(EntryStatus::CREATED);
+				txn_log[id].svalue() = toInt(EntryStatus::CREATED);
 			}
 			else if (status == EntryStatus::UPDATED)
 			{
@@ -1270,7 +1299,7 @@ private:
 
 				h_iter.insert2nd(last_commited_txn_id_, CommitHistoryValue(toInt(EntryStatus::UPDATED), gid));
 
-				txn_log[id].value() = toInt(EntryStatus::UPDATED);
+				txn_log[id].svalue() = toInt(EntryStatus::UPDATED);
 			}
 			else if (status == EntryStatus::DELETED)
 			{
@@ -1279,7 +1308,7 @@ private:
 
 				h_iter.insert2nd(last_commited_txn_id_, CommitHistoryValue(toInt(EntryStatus::DELETED), ID(0)));
 
-				txn_log[id].value() = toInt(EntryStatus::DELETED);
+				txn_log[id].svalue() = toInt(EntryStatus::DELETED);
 			}
 			else {
 				throw vapi::Exception(MA_SRC, SBuf()<<"Unknown entry status value: "<<toInt(status));
@@ -1321,10 +1350,10 @@ private:
 		auto iter1 = start;
 		auto iter2 = start;
 
-		iter1.selectFw(1, toInt(TxnStatus::ACTIVE));
+		iter1.selectHiddenLabelFw(0, toInt(TxnStatus::ACTIVE), 1);
 		iter1--;
 
-		iter2.selectFw(1, toInt(TxnStatus::SNAPSHOT));
+		iter2.selectHiddenLabelFw(0, toInt(TxnStatus::SNAPSHOT), 1);
 
 		if (iter2.isEnd())
 		{
@@ -1612,7 +1641,8 @@ private:
 
 				if (top_txn_id < max_txn_id)
 				{
-					base.updateKey(max_txn_id - top_txn_id);
+					// FIXME: adjust next key?
+					base.adjustKey(max_txn_id - top_txn_id);
 					MEMORIA_ASSERT(base.key(), ==, max_txn_id);
 				}
 			}

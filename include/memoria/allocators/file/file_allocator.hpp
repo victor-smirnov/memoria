@@ -918,7 +918,7 @@ public:
     	}
     	else if (root.isSet())
     	{
-    		root_map_->operator[](name).setData(root);
+    		root_map_->operator[](name).svalue() = root;
     	}
     	else {
     		root_map_->remove(name);
@@ -1321,7 +1321,7 @@ public:
 
     		result = ctr_meta->getCtrInterface()->check(&page->id(), ctr_name, this) || result;
 
-    		iter.next();
+    		iter++;
     	}
 
     	return result;

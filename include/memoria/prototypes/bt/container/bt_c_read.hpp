@@ -136,7 +136,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ReadName)
 
     CtrSizeT readStream(Iterator& iter, ITarget& data_target)
     {
-        IDataBase* data = T2T<IDataBase*>(data_target.stream(iter.stream()));
+        MEMORIA_ASSERT(iter.dataPos(), >=, 0);
+
+    	IDataBase* data = T2T<IDataBase*>(data_target.stream(iter.stream()));
 
         CtrSizeT sum = 0;
         CtrSizeT len = data->getRemainder();

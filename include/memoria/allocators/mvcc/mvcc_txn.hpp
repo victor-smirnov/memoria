@@ -345,23 +345,31 @@ public:
 			{
 				if (root.isSet())
 				{
-					EntryStatus status = static_cast<EntryStatus>(iter.mark());
+					EntryStatus status = static_cast<EntryStatus>(iter.hidden_label(0));
 
-					iter.value() = CtrDirectoryValue(txn_id_, root);
+					iter.svalue() = CtrDirectoryValue(txn_id_, root);
 
 					if (!(status == EntryStatus::CREATED || status == EntryStatus::UPDATED))
 					{
-						iter.setMark(toInt(EntryStatus::UPDATED));
+						iter.set_hidden_label(0, toInt(EntryStatus::UPDATED));
 					}
 				}
 				else {
-					iter.value() = CtrDirectoryValue(txn_id_, root);
-					iter.setMark(toInt(EntryStatus::DELETED));
+					iter.svalue() = CtrDirectoryValue(txn_id_, root);
+					iter.set_hidden_label(0, toInt(EntryStatus::DELETED));
 				}
 			}
 			else if (root.isSet())
 			{
-				iter.insert(name, CtrDirectoryValue(txn_id_, root), toInt(EntryStatus::CREATED));
+				using Entry = typename CtrDirectory::Types::Entry;
+
+				Entry entry;
+				entry.key() 	= name;
+				entry.value()	= CtrDirectoryValue(txn_id_, root);
+				std::get<0>(entry.hidden_labels()) = toInt(EntryStatus::CREATED);
+
+				//iter.insert(name, CtrDirectoryValue(txn_id_, root), toInt(EntryStatus::CREATED));
+				iter.insert(entry);
 			}
 			else {
 				throw vapi::Exception(MA_SRC, "Try to remove nonexistent root ID form root directory");
@@ -392,11 +400,11 @@ public:
 			auto iter = ctr_directory_.findKeyGE(name);
 			if (iter.is_found_eq(name))
 			{
-				EntryStatus status = static_cast<EntryStatus>(iter.mark());
+				EntryStatus status = static_cast<EntryStatus>(iter.hidden_label(0));
 
 				if (!(status == EntryStatus::CREATED || status == EntryStatus::UPDATED))
 				{
-					iter.setMark(toInt(EntryStatus::UPDATED));
+					iter.set_hidden_label(0, toInt(EntryStatus::UPDATED));
 				}
 			}
 			else {
@@ -487,7 +495,7 @@ public:
 
 			result = ctr_meta->getCtrInterface()->check(&page->id(), ctr_name, this) || result;
 
-			iter.next();
+			iter++;
 		}
 
 		return result;

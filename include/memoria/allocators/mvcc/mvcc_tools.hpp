@@ -286,7 +286,7 @@ public:
 
 	virtual void next()
 	{
-		iterator_.selectNext(toInt(status_));
+		iterator_.selectNextHiddenLabel(0, toInt(status_));
 	}
 
 	virtual typename Owner::TxnPtr txn()

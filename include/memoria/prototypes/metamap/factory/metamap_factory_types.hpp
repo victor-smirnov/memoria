@@ -25,7 +25,6 @@
 #include <memoria/prototypes/bt/packed_adaptors/bt_tree_adaptor.hpp>
 #include <memoria/prototypes/metamap/packed_adaptors/metamap_packed_adaptors.hpp>
 
-#include <memoria/prototypes/metamap/metamap_walkers.hpp>
 #include <memoria/prototypes/metamap/metamap_tools.hpp>
 
 #include <memoria/prototypes/metamap/container/metamap_c_insert.hpp>
@@ -53,7 +52,7 @@ namespace memoria {
 template <typename Profile, Int Indexes_, typename Key_, typename Value_, typename HiddenLabelsList, typename LabelsList>
 struct BTTypes<
 	Profile,
-	memoria::MetaMap<Indexes_, Key_, Value_, HiddenLabelsList, LabelsList>
+	memoria::MetaMap<Indexes_, Key_, Value_, LabelsList, HiddenLabelsList>
 >:
 public BTTypes<Profile, memoria::BT> {
 

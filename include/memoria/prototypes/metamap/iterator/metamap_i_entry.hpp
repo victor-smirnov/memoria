@@ -33,7 +33,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrEntryName)
     typedef typename Container::Types::Entry                    				Entry;
     typedef typename Container::Value                                           Value;
     typedef typename Container::Key                                             Key;
-    typedef typename Container::Element                                         Element;
+//    typedef typename Container::Element                                         Element;
     typedef typename Container::Accumulator                                     Accumulator;
 
 
@@ -130,12 +130,18 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrEntryName)
     {
     	auto& self = this->self();
 
-    	Accumulator sums;
+    	Entry entry;
 
-    	get<0>(sums)[0] = 1;
-    	get<0>(sums)[1] = key;
+    	entry.key() 	= key;
+    	entry.value()	= value;
 
-    	self.ctr().insert(self, Element(sums, value));
+    	self.ctr().insertEntry(self, entry);
+    }
+
+    void insert(const Entry& entry)
+    {
+    	auto& self = this->self();
+    	self.ctr().insertEntry(self, entry);
     }
 
 
