@@ -20,7 +20,6 @@ struct BTTypes<Profile, SMrkMap<Key_, Value_, BitsPerLabel> >:
 								1,
 								Key_,
 								Value_,
-								TypeList<>,
 								TypeList<LabelDescr<2>>
 							>
 	> {

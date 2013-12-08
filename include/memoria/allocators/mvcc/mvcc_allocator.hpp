@@ -395,7 +395,7 @@ public:
 
 			entry.key() 	= txn_id;
 			entry.value()	= id;
-			std::get<0>(entry.hidden_labels()) = toInt(TxnStatus::ACTIVE);
+			std::get<0>(entry.labels()) = toInt(TxnStatus::ACTIVE);
 
 			iter.insert(entry);
 
@@ -480,7 +480,7 @@ public:
 
 		// Check containers for conflicts
 
-		auto txn_iter = txn_ctr_directory.selectHiddenLabel(0, toInt(EntryStatus::UPDATED), 1);
+		auto txn_iter = txn_ctr_directory.selectLabel(0, toInt(EntryStatus::UPDATED), 1);
 
 		while (!txn_iter.isEnd())
 		{
@@ -505,12 +505,12 @@ public:
 			}
 
 			txn_iter++;
-			txn_iter.selectHiddenLabelFw(0, toInt(EntryStatus::UPDATED), 1);
+			txn_iter.selectLabelFw(0, toInt(EntryStatus::UPDATED), 1);
 		}
 
 
 
-		txn_iter = txn_ctr_directory.selectHiddenLabel(0, toInt(EntryStatus::CREATED), 1);
+		txn_iter = txn_ctr_directory.selectLabel(0, toInt(EntryStatus::CREATED), 1);
 
 		while (!txn_iter.isEnd())
 		{
@@ -523,11 +523,11 @@ public:
 			}
 
 			txn_iter++;
-			txn_iter.selectHiddenLabelFw(0, toInt(EntryStatus::UPDATED), 1);
+			txn_iter.selectLabelFw(0, toInt(EntryStatus::UPDATED), 1);
 		}
 
 
-		txn_iter = txn_ctr_directory.selectHiddenLabel(0, toInt(EntryStatus::DELETED), 1);
+		txn_iter = txn_ctr_directory.selectLabel(0, toInt(EntryStatus::DELETED), 1);
 
 		while (!txn_iter.isEnd())
 		{
@@ -549,7 +549,7 @@ public:
 			}
 
 			txn_iter++;
-			txn_iter.selectHiddenLabelFw(0, toInt(EntryStatus::UPDATED), 1);
+			txn_iter.selectLabelFw(0, toInt(EntryStatus::UPDATED), 1);
 		}
 
 
@@ -558,7 +558,7 @@ public:
 		last_commited_txn_id_ = newTxnId();
 
 		// FIXME: move this line down to the next iteration
-		txn_iter = txn_ctr_directory.selectHiddenLabel(0, toInt(EntryStatus::UPDATED), 1);
+		txn_iter = txn_ctr_directory.selectLabel(0, toInt(EntryStatus::UPDATED), 1);
 
 		TxnLog txn_log(&update_allocator_proxy_, CTR_CREATE, last_commited_txn_id_);
 
@@ -568,7 +568,7 @@ public:
 
 			TxnStatus status = txn.is_snapshot() ? TxnStatus::SNAPSHOT : TxnStatus::COMMITED;
 
-			iter.set_hidden_label(0, toInt(status));
+			iter.set_label(0, toInt(status));
 		}
 
 		TxnLogAllocator txn_log_allocator(this, txn_log);
@@ -588,11 +588,11 @@ public:
 			importPages(txn.update_log(), txn_log,  name);
 
 			txn_iter++;
-			txn_iter.selectHiddenLabelFw(0, toInt(EntryStatus::UPDATED), 1);
+			txn_iter.selectLabelFw(0, toInt(EntryStatus::UPDATED), 1);
 		}
 
 
-		txn_iter = txn_ctr_directory.selectHiddenLabel(0, toInt(EntryStatus::CREATED), 1);
+		txn_iter = txn_ctr_directory.selectLabel(0, toInt(EntryStatus::CREATED), 1);
 
 		while (!txn_iter.isEnd())
 		{
@@ -607,7 +607,7 @@ public:
 			Entry entry;
 			entry.key() 	= name;
 			entry.value()	= CtrDirectoryValue(last_commited_txn_id_, id);
-			std::get<0>(entry.hidden_labels()) = toInt(EntryStatus::CLEAN);
+			std::get<0>(entry.labels()) = toInt(EntryStatus::CLEAN);
 
 			//iter.insert(name, CtrDirectoryValue(last_commited_txn_id_, id), toInt(EntryStatus::CLEAN));
 			iter.insert(entry);
@@ -615,12 +615,12 @@ public:
 			importPages(txn.update_log(), txn_log, name);
 
 			txn_iter++;
-			txn_iter.selectHiddenLabelFw(0, toInt(EntryStatus::CREATED), 1);
+			txn_iter.selectLabelFw(0, toInt(EntryStatus::CREATED), 1);
 		}
 
 
 
-		txn_iter = txn_ctr_directory.selectHiddenLabel(0, toInt(EntryStatus::DELETED), 1);
+		txn_iter = txn_ctr_directory.selectLabel(0, toInt(EntryStatus::DELETED), 1);
 
 		while (!txn_iter.isEnd())
 		{
@@ -638,7 +638,7 @@ public:
 
 			importPages(txn.update_log(), txn_log, name);
 
-			txn_iter.selectHiddenLabelFw(0, toInt(EntryStatus::DELETED), 1);
+			txn_iter.selectLabelFw(0, toInt(EntryStatus::DELETED), 1);
 		}
 
 		cleanupCtrDirectoryBlocks(txn.update_log());
@@ -943,7 +943,7 @@ public:
 					Entry entry;
 					entry.key() 	= name;
 					entry.value()	= root_value;
-					std::get<0>(entry.hidden_labels()) = toInt(EntryStatus::CLEAN);
+					std::get<0>(entry.labels()) = toInt(EntryStatus::CLEAN);
 
 
 //					iter.insert(name, root_value, toInt(EntryStatus::CLEAN));
@@ -1070,7 +1070,7 @@ public:
 
 	void compactifyCommitHistory()
 	{
-		auto start = txn_history_.selectHiddenLabel(0, toInt(TxnStatus::COMMITED), 1);
+		auto start = txn_history_.selectLabel(0, toInt(TxnStatus::COMMITED), 1);
 
 		while(!start.isEnd())
 		{
@@ -1080,7 +1080,7 @@ public:
 
 			while (start.key() < limit)
 			{
-				MEMORIA_ASSERT(start.hidden_label(0), ==, toInt(TxnStatus::COMMITED));
+				MEMORIA_ASSERT(start.label(0), ==, toInt(TxnStatus::COMMITED));
 
 				auto current_start_key = start.key();
 
@@ -1093,7 +1093,7 @@ public:
 				start = txn_history_.findKeyGE(current_start_key);
 			}
 
-			start.selectNextHiddenLabel(0, toInt(TxnStatus::COMMITED));
+			start.selectNextLabel(0, toInt(TxnStatus::COMMITED));
 		}
 	}
 
@@ -1110,7 +1110,7 @@ public:
 
 	virtual TxnIteratorPtr transactions(TxnStatus status)
 	{
-		auto iter = txn_history_.selectHiddenLabel(0, toInt(status), 1);
+		auto iter = txn_history_.selectLabel(0, toInt(status), 1);
 		return std::make_shared<TxnIteratorImpl<MyType, typename TxnHistory::Iterator>>(this, status, iter);
 	}
 
@@ -1118,7 +1118,7 @@ public:
 	virtual BigInt total_transactions(TxnStatus status)
 	{
 		auto iter = txn_history_.End();
-		return iter.hidden_label_rank(0, toInt(status));
+		return iter.label_rank(0, toInt(status));
 	}
 
 
@@ -1148,7 +1148,7 @@ private:
 		auto iter = txn_history_.findKeyGE(txn_id);
 		MEMORIA_ASSERT_TRUE(iter.is_found_eq(txn_id));
 
-		return static_cast<TxnStatus>(iter.hidden_label(0));
+		return static_cast<TxnStatus>(iter.label(0));
 	}
 
 	void setTxnStatus(BigInt txn_id, TxnStatus status)
@@ -1156,7 +1156,7 @@ private:
 		auto iter = txn_history_.findKeyGE(txn_id);
 		MEMORIA_ASSERT_TRUE(iter.is_found_eq(txn_id));
 
-		iter.set_hidden_label(0, toInt(status));
+		iter.set_label(0, toInt(status));
 	}
 
 	void checkCommitHistory()
@@ -1249,7 +1249,7 @@ private:
 		while (!iter.isEnd())
 		{
 			BigInt txn_id = iter.key();
-			TxnStatus status = static_cast<TxnStatus>(iter.hidden_label(0));
+			TxnStatus status = static_cast<TxnStatus>(iter.label(0));
 
 			if (status == TxnStatus::ACTIVE)
 			{
@@ -1350,10 +1350,10 @@ private:
 		auto iter1 = start;
 		auto iter2 = start;
 
-		iter1.selectHiddenLabelFw(0, toInt(TxnStatus::ACTIVE), 1);
+		iter1.selectLabelFw(0, toInt(TxnStatus::ACTIVE), 1);
 		iter1--;
 
-		iter2.selectHiddenLabelFw(0, toInt(TxnStatus::SNAPSHOT), 1);
+		iter2.selectLabelFw(0, toInt(TxnStatus::SNAPSHOT), 1);
 
 		if (iter2.isEnd())
 		{

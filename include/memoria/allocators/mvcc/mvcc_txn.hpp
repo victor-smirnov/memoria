@@ -345,18 +345,18 @@ public:
 			{
 				if (root.isSet())
 				{
-					EntryStatus status = static_cast<EntryStatus>(iter.hidden_label(0));
+					EntryStatus status = static_cast<EntryStatus>(iter.label(0));
 
 					iter.svalue() = CtrDirectoryValue(txn_id_, root);
 
 					if (!(status == EntryStatus::CREATED || status == EntryStatus::UPDATED))
 					{
-						iter.set_hidden_label(0, toInt(EntryStatus::UPDATED));
+						iter.set_label(0, toInt(EntryStatus::UPDATED));
 					}
 				}
 				else {
 					iter.svalue() = CtrDirectoryValue(txn_id_, root);
-					iter.set_hidden_label(0, toInt(EntryStatus::DELETED));
+					iter.set_label(0, toInt(EntryStatus::DELETED));
 				}
 			}
 			else if (root.isSet())
@@ -366,7 +366,7 @@ public:
 				Entry entry;
 				entry.key() 	= name;
 				entry.value()	= CtrDirectoryValue(txn_id_, root);
-				std::get<0>(entry.hidden_labels()) = toInt(EntryStatus::CREATED);
+				std::get<0>(entry.labels()) = toInt(EntryStatus::CREATED);
 
 				//iter.insert(name, CtrDirectoryValue(txn_id_, root), toInt(EntryStatus::CREATED));
 				iter.insert(entry);
@@ -400,11 +400,11 @@ public:
 			auto iter = ctr_directory_.findKeyGE(name);
 			if (iter.is_found_eq(name))
 			{
-				EntryStatus status = static_cast<EntryStatus>(iter.hidden_label(0));
+				EntryStatus status = static_cast<EntryStatus>(iter.label(0));
 
 				if (!(status == EntryStatus::CREATED || status == EntryStatus::UPDATED))
 				{
-					iter.set_hidden_label(0, toInt(EntryStatus::UPDATED));
+					iter.set_label(0, toInt(EntryStatus::UPDATED));
 				}
 			}
 			else {
