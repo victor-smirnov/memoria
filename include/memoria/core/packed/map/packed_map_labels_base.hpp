@@ -136,8 +136,8 @@ public:
     {
     	LabelsBlockSizeFn fn;
 
-    	HiddenLabelsDispatcher::dispatchAllStatic(fn);
-    	LabelsDispatcher::dispatchAllStatic(fn);
+    	HiddenLabelsDispatcher::dispatchAllStatic(fn, size);
+    	LabelsDispatcher::dispatchAllStatic(fn, size);
 
     	return fn.size_;
     }

@@ -16,6 +16,7 @@ namespace metamap	{
 
 class CtrFindName   {};
 class CtrInsertName {};
+class CtrInsertComprName {};
 class CtrRemoveName {};
 class CtrNavName 	{};
 

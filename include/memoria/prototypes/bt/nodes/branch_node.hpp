@@ -948,7 +948,7 @@ public:
         CanMergeWithFn fn;
         Dispatcher::dispatchAll(allocator(), fn, other);
 
-        Int free_space = this->allocator()->free_space();
+        Int free_space = this->allocator()->free_space() + Base::allocator()->free_space();
 
         Int my_data_size    = this->allocator()->element_size(ValuesBlockIdx);
         Int other_data_size = other->allocator()->element_size(ValuesBlockIdx);

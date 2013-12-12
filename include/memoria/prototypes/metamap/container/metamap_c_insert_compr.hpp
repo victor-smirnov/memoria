@@ -5,8 +5,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_PROTOTYPES_METAMAP_CTR_INSERT_HPP
-#define _MEMORIA_PROTOTYPES_METAMAP_CTR_INSERT_HPP
+#ifndef _MEMORIA_PROTOTYPES_METAMAP_CTR_INSERT_COMPR_HPP
+#define _MEMORIA_PROTOTYPES_METAMAP_CTR_INSERT_COMPR_HPP
 
 
 #include <memoria/prototypes/metamap/metamap_names.hpp>
@@ -22,7 +22,7 @@
 
 namespace memoria    {
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrInsertName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrInsertComprName)
 
     typedef typename Base::Types                                                Types;
 
@@ -91,7 +91,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrInsertName)
 
 
     template <typename Entry>
-    bool insertIntoLeaf(
+    std::pair<bool, bool> insertIntoLeaf(
     		NodeBaseG&
     		leaf,
     		Int idx,
@@ -171,13 +171,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrInsertName)
 
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::metamap::CtrInsertName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::metamap::CtrInsertComprName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 
 M_PARAMS
 template <typename Entry>
-bool M_TYPE::insertIntoLeaf(
+std::pair<bool, bool> M_TYPE::insertIntoLeaf(
 		NodeBaseG& leaf,
 		Int idx,
 		const Entry& entry,
@@ -187,13 +187,24 @@ bool M_TYPE::insertIntoLeaf(
 {
     auto& self = this->self();
 
+    PageUpdateMgr mgr(self);
+
     self.updatePageG(leaf);
 
-    InsertIntoLeafFn<Entry> fn(entry, sums, adjust_next);
+    mgr.add(leaf);
 
-    LeafDispatcher::dispatch(leaf, fn, idx);
+    try {
+    	InsertIntoLeafFn<Entry> fn(entry, sums, adjust_next);
 
-    return fn.next_entry_updated_;
+        LeafDispatcher::dispatch(leaf, fn, idx);
+
+        return std::pair<bool, bool>(true, fn.next_entry_updated_);
+    }
+    catch (PackedOOMException& e)
+    {
+        mgr.rollback();
+        return std::pair<bool, bool>(false, false);
+    }
 }
 
 
@@ -206,24 +217,34 @@ void M_TYPE::insertEntry(Iterator& iter, const Entry& entry, bool adjust_next)
     NodeBaseG& leaf = iter.leaf();
     Int& idx        = iter.idx();
 
-    if (!self.checkCapacities(leaf, {1}))
-    {
-    	iter.split();
-    }
+	Entry tmp_entry = entry;
 
-    Entry tmp_entry = entry;
+	tmp_entry.key() -= std::get<0>(iter.prefixes())[1];
 
-    tmp_entry.key() -= std::get<0>(iter.prefixes())[1];
 
     Accumulator sums;
 
-    bool result = self.insertIntoLeaf(leaf, idx, tmp_entry, sums, adjust_next);
+    std::pair<bool, bool> result = self.insertIntoLeaf(leaf, idx, tmp_entry, sums, adjust_next);
+
+    if (!result.first)
+    {
+        iter.split();
+
+        Clear(sums);
+
+        result = self.insertIntoLeaf(leaf, idx, tmp_entry, sums, adjust_next);
+
+        if (!result.first)
+        {
+            throw Exception(MA_SRC, "Second insertion attempt failed");
+        }
+    }
 
     self.addTotalKeyCount(Position::create(0, 1));
 
     if (adjust_next)
     {
-    	if (result)
+    	if (result.second)
     	{
     		std::get<0>(sums)[1] = 0;
 
@@ -260,7 +281,28 @@ void M_TYPE::updateLeafNode(
 
     self.updatePageG(node);
 
-    LeafDispatcher::dispatch(node, AddLeafSingleFn<DataType>(sums), idx);
+    PageUpdateMgr mgr(self);
+
+    try {
+        LeafDispatcher::dispatch(node, AddLeafSingleFn<DataType>(sums), idx);
+    }
+    catch (PackedOOMException ex)
+    {
+        Position sizes = self.getNodeSizes(node);
+
+        Position split_idx = sizes / 2;
+
+        auto next = self.splitLeafP(node, split_idx);
+
+        if (idx >= split_idx[0])
+        {
+            idx -= split_idx[0];
+            fn(0, idx);
+            node = next;
+        }
+
+        LeafDispatcher::dispatch(node, AddLeafSingleFn<DataType>(sums), idx);
+    }
 }
 
 

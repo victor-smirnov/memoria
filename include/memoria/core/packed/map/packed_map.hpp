@@ -96,6 +96,10 @@ public:
         return packed_block_size(this->size() + other->size());
     }
 
+    Int block_size() const {
+    	return PackedAllocator::block_size();
+    }
+
     static Int packed_block_size(Int size)
     {
     	Int tree_block_size 	= Base::tree_block_size(size);

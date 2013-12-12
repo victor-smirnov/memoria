@@ -113,6 +113,8 @@ public:
 
                 pairs_sorted = pairs_sorted_tmp;
             }
+
+            Base::StoreAllocator(allocator, this->getResourcePath("remove.dump"));
         }
         catch (MemoriaThrowable& e)
         {

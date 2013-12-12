@@ -28,6 +28,7 @@
 #include <memoria/prototypes/metamap/metamap_tools.hpp>
 
 #include <memoria/prototypes/metamap/container/metamap_c_insert.hpp>
+#include <memoria/prototypes/metamap/container/metamap_c_insert_compr.hpp>
 #include <memoria/prototypes/metamap/container/metamap_c_nav.hpp>
 #include <memoria/prototypes/metamap/container/metamap_c_remove.hpp>
 #include <memoria/prototypes/metamap/container/metamap_c_find.hpp>
@@ -120,7 +121,6 @@ struct MetaMapBTTypesBase: public BTTypes<Profile, memoria::BT> {
                 typename Base::ContainerPartsList,
 
                 metamap::CtrNavName,
-                metamap::CtrInsertName,
                 metamap::CtrRemoveName,
                 metamap::CtrFindName
     >::Result                                                                   ContainerPartsList;
@@ -194,7 +194,8 @@ struct BTTypes<Profile, memoria::MetaMap<Indexes_, Key_, Value_, LabelsList, Hid
 
 	typedef typename MergeLists<
 	                typename Base::ContainerPartsList,
-	                bt::NodeComprName
+	                bt::NodeNormName,
+	                metamap::CtrInsertName
     >::Result                                                                   ContainerPartsList;
 
 
@@ -223,7 +224,8 @@ struct BTTypes<Profile, memoria::MetaMap<Indexes_, VLen<gr, Key_>, Value_, Label
 
 	typedef typename MergeLists<
 	                typename Base::ContainerPartsList,
-	                bt::NodeComprName
+	                bt::NodeComprName,
+	                metamap::CtrInsertComprName
     >::Result                                                                   ContainerPartsList;
 
 
@@ -253,7 +255,8 @@ struct BTTypes<Profile, memoria::MetaMap<Indexes_, Key_, VLen<gr, Value_>, Label
 
 	typedef typename MergeLists<
 	                typename Base::ContainerPartsList,
-	                bt::NodeComprName
+	                bt::NodeComprName,
+	                metamap::CtrInsertComprName
     >::Result                                                                   ContainerPartsList;
 
 
@@ -284,7 +287,8 @@ struct BTTypes<Profile, memoria::MetaMap<Indexes_, VLen<gr1, Key_>, VLen<gr2, Va
 
 	typedef typename MergeLists<
 	                typename Base::ContainerPartsList,
-	                bt::NodeComprName
+	                bt::NodeComprName,
+	                metamap::CtrInsertComprName
     >::Result                                                                   ContainerPartsList;
 
 

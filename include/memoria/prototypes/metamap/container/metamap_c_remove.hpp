@@ -57,7 +57,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrRemoveName)
             }
         }
 
-
         template <typename Node>
         void treeNode(Node* node, Int idx)
         {
@@ -89,13 +88,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrRemoveName)
         	self.updateParent(leaf, -fn.entry_);
         }
 
-
         self.addTotalKeyCount(Position::create(0, -1));
 
         self.mergeWithSiblings(leaf, [&](const Position& prev_sizes, Int level) {
             if (level == 0)
             {
-                idx += prev_sizes[0];
+            	idx += prev_sizes[0];
             }
         });
 

@@ -37,8 +37,8 @@ public:
         registerTask(new MapCreateTest<Map<BigInt, BigInt>>("Map.Create"));
         registerTask(new MapRemoveTest<Map<BigInt, BigInt>>("Map.Remove"));
 
-//        registerTask(new MapCreateTest<CMap<Granularity::Bit>>("CMap1.Create"));
-//        registerTask(new MapRemoveTest<CMap<Granularity::Bit>>("CMap1.Remove"));
+        registerTask(new MapCreateTest<CMap<Granularity::Bit>>("CMap1.Create"));
+        registerTask(new MapRemoveTest<CMap<Granularity::Bit>>("CMap1.Remove"));
 //
 //        registerTask(new MapCreateTest<CMap<Granularity::Byte>>("CMap2.Create"));
 //        registerTask(new MapRemoveTest<CMap<Granularity::Byte>>("CMap2.Remove"));
