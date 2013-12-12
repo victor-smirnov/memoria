@@ -96,6 +96,9 @@ public:
 
     typedef VLETreeValueDescr<IndexValue>                                       ValueDescr;
 
+    typedef FnAccessor<Value>													ValueAccessor;
+    typedef ConstFnAccessor<Value>												ConstValueAccessor;
+
     class Metadata {
         Int size_;
         Int data_size_;
@@ -727,9 +730,9 @@ public:
     }
 
 
-    FnAccessor<Value> value(Int idx)
+    ValueAccessor value(Int idx)
     {
-        return FnAccessor<Value>(
+        return ValueAccessor(
             [this, idx]() {return this->getValue(idx);},
             [this, idx](const Value& value) {
                 if (this->setValue(idx, value) > 0)
@@ -740,9 +743,9 @@ public:
         );
     }
 
-    FnAccessor<Value> value(Int block, Int idx)
+    ValueAccessor value(Int block, Int idx)
     {
-        return FnAccessor<Value>(
+        return ValueAccessor(
             [this, block, idx]() {return this->getValue(block, idx);},
             [this, block, idx](const Value& value) {
                 if (this->setValue(block, idx, value) > 0)
@@ -754,16 +757,16 @@ public:
     }
 
 
-    ConstFnAccessor<Value> value(Int idx) const
+    ConstValueAccessor value(Int idx) const
     {
-        return ConstFnAccessor<Value>(
+        return ConstValueAccessor(
             [this, idx]() {return this->getValue(idx);}
         );
     }
 
-    ConstFnAccessor<Value> value(Int block, Int idx) const
+    ConstValueAccessor value(Int block, Int idx) const
     {
-        return ConstFnAccessor<Value>(
+        return ConstValueAccessor(
                 [this, block, idx]() {return this->getValue(block, idx);}
         );
     }

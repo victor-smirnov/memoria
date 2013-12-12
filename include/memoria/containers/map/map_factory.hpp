@@ -14,6 +14,7 @@
 #include <memoria/containers/map/factory/cmap_factory_types.hpp>
 
 #include <memoria/containers/map/map_names.hpp>
+#include <memoria/containers/map/map_iterator.hpp>
 
 namespace memoria    {
 

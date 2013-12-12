@@ -104,7 +104,32 @@ public BTTypes<Profile, memoria::BT> {
 	static const Int Labels														= ListSize<LabelsList>::Value;
 	static const Int HiddenLabels												= ListSize<HiddenLabelsList>::Value;
 
-    using StreamTF = metamap::CompressedMapTF<BigInt, gr, Indexes>;
+//    using StreamTF = metamap::CompressedMapTF<BigInt, gr, Indexes>;
+
+
+    struct StreamTF {
+
+    	typedef PackedMap<
+    				Indexes,
+    				VLen<gr, Key>,
+    				Value,
+
+    				HiddenLabelsList,
+    				LabelsList
+
+    	> 																LeafType;
+
+
+    	static const Int LeafIndexes 									= LeafType::SizedIndexes;
+
+        typedef core::StaticVector<BigInt, LeafIndexes>					AccumulatorPart;
+        typedef core::StaticVector<BigInt, Indexes + 1>					IteratorPrefixPart;
+
+        typedef PkdFTree<Packed2TreeTypes<Key, Key, LeafIndexes>> 		NonLeafType;
+    };
+
+
+
 
 
     typedef metamap::LabelOffsetProc<LabelsList> 								LabelsOffset;

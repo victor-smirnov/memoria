@@ -13,7 +13,27 @@
 #include <memoria/core/packed/tools/packed_allocator_types.hpp>
 #include <memoria/core/packed/tools/packed_tools.hpp>
 
+#include <memoria/core/types/int128.hpp>
+
 namespace memoria {
+
+template <typename T>
+struct PackedTreeIndexTF {
+	using Type = BigInt;
+};
+
+template <>
+struct PackedTreeIndexTF<Int128> {
+	using Type = Int128;
+};
+
+template <>
+struct PackedTreeIndexTF<UInt128> {
+	using Type = UInt128;
+};
+
+
+
 
 template <typename T1, typename T2>
 constexpr static T2 divUp(T1 v, T2 d) {

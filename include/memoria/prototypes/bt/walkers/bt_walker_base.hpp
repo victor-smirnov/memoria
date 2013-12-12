@@ -7,6 +7,8 @@
 #ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_WALKER_BASE_HPP
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_WALKER_BASE_HPP
 
+#include <memoria/core/types/types.hpp>
+
 namespace memoria {
 namespace bt1 	  {
 

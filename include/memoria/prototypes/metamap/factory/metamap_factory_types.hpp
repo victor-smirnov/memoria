@@ -98,15 +98,25 @@ public BTTypes<Profile, memoria::BT> {
     static const Int HiddenLabels												= ListSize<HiddenLabelsList>::Value;
 
     struct StreamTF {
-    	typedef PackedFSEMap<
-    	        			PackedFSEMapTypes<
-    	        				Key,
-    	        				Value,
-    	        				Indexes,
-    	        				HiddenLabelsList,
-    	        				LabelsList
-    	        			>
-    	 	 	 > 														LeafType;
+//    	typedef PackedFSEMap<
+//    	        			PackedFSEMapTypes<
+//    	        				Key,
+//    	        				Value,
+//    	        				Indexes,
+//    	        				HiddenLabelsList,
+//    	        				LabelsList
+//    	        			>
+//    	 	 	 > 														LeafType;
+
+    	typedef PackedMap<
+    				Indexes,
+    				Key,
+    				Value,
+
+    				HiddenLabelsList,
+    				LabelsList
+
+    	> 																LeafType;
 
 
     	static const Int LeafIndexes 									= LeafType::SizedIndexes;

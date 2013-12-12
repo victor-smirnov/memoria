@@ -12,7 +12,7 @@
 #include <string>
 #include <sstream>
 #include <cassert>
-#include <stdint.h>
+#include <cstdint>
 
 #include <memoria/core/tools/config.hpp>
 #include <type_traits>
@@ -27,15 +27,14 @@ static const int PackedTreeExintVPB                 = 256;
 static const int PackedTreeEliasVPB                 = 1024;
 static const int PackedAllocationAlignment          = 8;
 
-
-typedef int64_t             BigInt;
-typedef uint64_t            UBigInt;
-typedef int32_t             Int;
-typedef uint32_t            UInt;
-typedef int16_t             Short;
-typedef uint16_t            UShort;
-typedef char                Byte;
-typedef uint8_t             UByte;
+typedef std::int64_t            BigInt;
+typedef std::uint64_t           UBigInt;
+typedef std::int32_t            Int;
+typedef std::uint32_t           UInt;
+typedef std::int16_t            Short;
+typedef std::uint16_t           UShort;
+typedef char                	Byte;
+typedef std::uint8_t            UByte;
 
 
 namespace internal {
