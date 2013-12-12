@@ -12,7 +12,6 @@
 namespace memoria {
 
 
-
 template <
 	Int Blocks_,
 	typename Key_,
@@ -21,11 +20,36 @@ template <
     typename HiddenLabels_ = TypeList<>,
     typename Labels_ = TypeList<>
 >
-class PackedMap: public PackedMapValueBase<Blocks_, Key_, Value_, HiddenLabels_, Labels_> {
+struct PackedMapTypes {
+	using Key 				= Key_;
+	using Value 			= Value_;
+	using HiddenLabels		= HiddenLabels_;
+	using Labels			= Labels_;
 
-    typedef PackedMapValueBase<Blocks_, Key_, Value_, HiddenLabels_, Labels_>   Base;
+	static const Int Blocks	= Blocks_;
+};
+
+
+
+template <typename Types>
+class PackedMap:
+		public PackedMapValueBase<
+			Types::Blocks,
+			typename Types::Key,
+			typename Types::Value,
+			typename Types::HiddenLabels,
+			typename Types::Labels
+		> {
+
+    typedef PackedMapValueBase<
+			Types::Blocks,
+			typename Types::Key,
+			typename Types::Value,
+			typename Types::HiddenLabels,
+			typename Types::Labels
+		>  	 																	Base;
 public:
-    typedef PackedMap<Blocks_, Key_, Value_, HiddenLabels_, Labels_>            MyType;
+    typedef PackedMap<Types>            										MyType;
 
     typedef typename Base::Key                                            		Key;
     typedef typename Base::Value                                            	Value;
@@ -41,7 +65,7 @@ public:
 //    typedef IDataSource<IOValue>												DataSource;
 //    typedef IDataTarget<IOValue>												DataTarget;
 
-    static const Int Blocks														= Blocks_;
+    static const Int Blocks														= Types::Blocks;
 
     static const Int SizedIndexes												= 1 + Blocks + Base::LabelsIndexes;
 

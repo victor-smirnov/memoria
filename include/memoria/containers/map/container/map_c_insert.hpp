@@ -13,7 +13,7 @@
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
 
-#include <memoria/core/packed/map/packed_fse_map.hpp>
+#include <memoria/core/packed/map/packed_map.hpp>
 #include <memoria/core/packed/map/packed_fse_mark_map.hpp>
 
 #include <vector>
@@ -47,19 +47,19 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertName)
 
         InsertIntoLeafFn(const Element& element): element_(element) {}
 
-        template <Int Idx, typename StreamTypes>
-        void stream(PackedFSEMap<StreamTypes>* map, Int idx)
-        {
-            MEMORIA_ASSERT_TRUE(map);
-            map->insert(idx, std::get<Idx>(element_.first), element_.second);
-        }
-
-        template <Int Idx, typename StreamTypes>
-        void stream(PackedVLEMap<StreamTypes>* map, Int idx)
-        {
-            MEMORIA_ASSERT_TRUE(map);
-            map->insert(idx, std::get<Idx>(element_.first), element_.second);
-        }
+//        template <Int Idx, typename StreamTypes>
+//        void stream(PackedFSEMap<StreamTypes>* map, Int idx)
+//        {
+//            MEMORIA_ASSERT_TRUE(map);
+//            map->insert(idx, std::get<Idx>(element_.first), element_.second);
+//        }
+//
+//        template <Int Idx, typename StreamTypes>
+//        void stream(PackedVLEMap<StreamTypes>* map, Int idx)
+//        {
+//            MEMORIA_ASSERT_TRUE(map);
+//            map->insert(idx, std::get<Idx>(element_.first), element_.second);
+//        }
 
         template <Int Idx, typename StreamTypes>
         void stream(PackedFSEMarkableMap<StreamTypes>* map, Int idx)
@@ -89,21 +89,21 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertName)
 
         AddLeafFn(const Accumulator& element): element_(element) {}
 
-        template <Int Idx, typename StreamTypes>
-        void stream(PackedFSEMap<StreamTypes>* map, Int idx)
-        {
-            MEMORIA_ASSERT_TRUE(map != nullptr);
-
-            map->tree()->addValues(idx, std::get<Idx>(element_));
-        }
-
-        template <Int Idx, typename StreamTypes>
-        void stream(PackedVLEMap<StreamTypes>* map, Int idx)
-        {
-            MEMORIA_ASSERT_TRUE(map != nullptr);
-
-            map->tree()->addValues(idx, std::get<Idx>(element_));
-        }
+//        template <Int Idx, typename StreamTypes>
+//        void stream(PackedFSEMap<StreamTypes>* map, Int idx)
+//        {
+//            MEMORIA_ASSERT_TRUE(map != nullptr);
+//
+//            map->tree()->addValues(idx, std::get<Idx>(element_));
+//        }
+//
+//        template <Int Idx, typename StreamTypes>
+//        void stream(PackedVLEMap<StreamTypes>* map, Int idx)
+//        {
+//            MEMORIA_ASSERT_TRUE(map != nullptr);
+//
+//            map->tree()->addValues(idx, std::get<Idx>(element_));
+//        }
 
         template <Int Idx, typename StreamTypes>
         void stream(PackedFSEMarkableMap<StreamTypes>* map, Int idx)

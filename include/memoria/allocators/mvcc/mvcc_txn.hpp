@@ -24,6 +24,7 @@
 #include <memoria/allocators/mvcc/mvcc_tools.hpp>
 
 #include <unordered_map>
+#include <tuple>
 
 namespace memoria {
 

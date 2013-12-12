@@ -12,10 +12,7 @@
 #include <memoria/core/tools/static_array.hpp>
 #include <memoria/core/container/container.hpp>
 
-#include <memoria/core/packed/map/packed_fse_map.hpp>
-#include <memoria/core/packed/map/packed_vle_map.hpp>
 #include <memoria/core/packed/map/packed_map.hpp>
-
 
 #include <memoria/core/tools/elias_codec.hpp>
 
@@ -153,40 +150,130 @@ public:
 
 
 
+template <Int Indexes, typename Key_, typename Value_, typename HiddenLabelsList, typename LabelsList>
+struct MetaMapStreamTF{
+	typedef Key_													Key;
+	typedef Value_													Value;
 
-template <typename Key, Granularity Gr, Int Indexes> struct CompressedMapTF;
+	typedef PackedMap<
+				PackedMapTypes<
+					Indexes,
+					Key,
+					Value,
+
+					HiddenLabelsList,
+					LabelsList
+				>
+	> 																LeafType;
 
 
-template <typename Key, Int Indexes>
-struct CompressedMapTF<Key, Granularity::Bit, Indexes> {
+	static const Int LeafIndexes 									= LeafType::SizedIndexes;
 
-	typedef core::StaticVector<BigInt, Indexes + 1>								AccumulatorPart;
-	typedef core::StaticVector<BigInt, Indexes + 1>								IteratorPrefixPart;
+    typedef core::StaticVector<BigInt, LeafIndexes>					AccumulatorPart;
+    typedef core::StaticVector<BigInt, Indexes + 1>					IteratorPrefixPart;
 
-	typedef PkdFTree<Packed2TreeTypes<Key, Key, Indexes + 1>>					NonLeafType;
-
-    typedef PackedVLEMapTypes<
-            Indexes, UBigIntEliasCodec, PackedTreeBranchingFactor, PackedTreeEliasVPB
-    > MapTypes;
-
-    typedef PackedVLEMap<MapTypes>                                         		LeafType;
+    typedef PkdFTree<
+    			Packed2TreeTypes<Key, Key, LeafIndexes>
+    > 																NonLeafType;
 };
 
 
-template <typename Key, Int Indexes>
-struct CompressedMapTF<Key, Granularity::Byte, Indexes> {
 
-	typedef core::StaticVector<BigInt, Indexes + 1>								AccumulatorPart;
-	typedef core::StaticVector<BigInt, Indexes + 1>								IteratorPrefixPart;
+template <Int Indexes, typename Key_, typename Value_, typename HiddenLabelsList, typename LabelsList, Granularity gr>
+struct MetaMapStreamTF<Indexes, VLen<gr, Key_>, Value_, HiddenLabelsList, LabelsList> {
 
-	typedef PkdFTree<Packed2TreeTypes<Key, Key, Indexes + 1>>					NonLeafType;
+	typedef Key_													Key;
+	typedef Value_													Value;
 
-    typedef PackedVLEMapTypes<
-            Indexes, UByteExintCodec, PackedTreeBranchingFactor, PackedTreeExintVPB
-    > MapTypes;
+	typedef PackedMap<
+				PackedMapTypes<
+					Indexes,
+					VLen<gr, Key>,
+					Value,
 
-    typedef PackedVLEMap<MapTypes>                                              LeafType;
+					HiddenLabelsList,
+					LabelsList
+				>
+	> 																LeafType;
+
+
+	static const Int LeafIndexes 									= LeafType::SizedIndexes;
+
+    typedef core::StaticVector<BigInt, LeafIndexes>					AccumulatorPart;
+    typedef core::StaticVector<BigInt, Indexes + 1>					IteratorPrefixPart;
+
+    typedef PkdFTree<
+    			Packed2TreeTypes<Key, Key, LeafIndexes>
+    > 																NonLeafType;
 };
+
+
+
+template <Int Indexes, typename Key_, typename Value_, typename HiddenLabelsList, typename LabelsList, Granularity gr>
+struct MetaMapStreamTF<Indexes, Key_, VLen<gr, Value_>, HiddenLabelsList, LabelsList> {
+
+	typedef Key_													Key;
+	typedef Value_													Value;
+
+	typedef PackedMap<
+				PackedMapTypes<
+					Indexes,
+					Key,
+					VLen<gr, Value>,
+
+					HiddenLabelsList,
+					LabelsList
+				>
+	> 																LeafType;
+
+
+	static const Int LeafIndexes 									= LeafType::SizedIndexes;
+
+    typedef core::StaticVector<BigInt, LeafIndexes>					AccumulatorPart;
+    typedef core::StaticVector<BigInt, Indexes + 1>					IteratorPrefixPart;
+
+    typedef PkdFTree<
+    			Packed2TreeTypes<Key, Key, LeafIndexes>
+    > 																NonLeafType;
+};
+
+
+template <
+	Int Indexes,
+	typename Key_,
+	typename Value_,
+	typename HiddenLabelsList,
+	typename LabelsList,
+	Granularity gr1,
+	Granularity gr2
+>
+struct MetaMapStreamTF<Indexes, VLen<gr1, Key_>, VLen<gr2, Value_>, HiddenLabelsList, LabelsList> {
+
+	typedef Key_													Key;
+	typedef Value_													Value;
+
+	typedef PackedMap<
+				PackedMapTypes<
+					Indexes,
+					VLen<gr1, Key>,
+					VLen<gr2, Value>,
+
+					HiddenLabelsList,
+					LabelsList
+				>
+	> 																LeafType;
+
+
+	static const Int LeafIndexes 									= LeafType::SizedIndexes;
+
+    typedef core::StaticVector<BigInt, LeafIndexes>					AccumulatorPart;
+    typedef core::StaticVector<BigInt, Indexes + 1>					IteratorPrefixPart;
+
+    typedef PkdFTree<
+    			Packed2TreeTypes<Key, Key, LeafIndexes>
+    > 																NonLeafType;
+};
+
 
 
 

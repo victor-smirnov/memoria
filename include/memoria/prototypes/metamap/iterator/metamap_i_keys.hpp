@@ -17,7 +17,7 @@
 
 #include <memoria/prototypes/bt/bt_tools.hpp>
 
-#include <memoria/core/packed/map/packed_fse_map.hpp>
+#include <memoria/core/packed/map/packed_map.hpp>
 #include <memoria/core/packed/map/packed_fse_mark_map.hpp>
 #include <memoria/core/packed/tools/packed_tools.hpp>
 

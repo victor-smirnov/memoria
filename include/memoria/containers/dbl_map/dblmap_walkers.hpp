@@ -143,14 +143,14 @@ public:
         std::get<StreamIdx>(prefix_)[1 - index]     += tree->sum(1 - index, start, result.idx());
     }
 
-    template <Int StreamIdx, typename StreamTypes, typename SearchResult>
-    void postProcessStream(const PackedFSEMap<StreamTypes>* tree, Int start, const SearchResult& result)
-    {
-        auto& index     = Base::index_;
-
-        std::get<StreamIdx>(prefix_)[index]         += result.prefix();
-        std::get<StreamIdx>(prefix_)[1 - index]     += tree->sum(1 - index, start, result.idx());
-    }
+//    template <Int StreamIdx, typename StreamTypes, typename SearchResult>
+//    void postProcessStream(const PackedMap<StreamTypes>* tree, Int start, const SearchResult& result)
+//    {
+//        auto& index     = Base::index_;
+//
+//        std::get<StreamIdx>(prefix_)[index]         += result.prefix();
+//        std::get<StreamIdx>(prefix_)[1 - index]     += tree->sum(1 - index, start, result.idx());
+//    }
 
     template <Int StreamIdx, typename StreamTypes, typename SearchResult>
     void postProcessStream(const PackedFSEMarkableMap<StreamTypes>* tree, Int start, const SearchResult& result)
@@ -222,11 +222,11 @@ public:
     	prefix_	+= tree->sum(0, start, result.idx());
     }
 
-    template <Int StreamIdx, typename StreamTypes, typename SearchResult>
-    void postProcessStream(const PackedFSEMap<StreamTypes>* tree, Int start, const SearchResult& result)
-    {
-    	prefix_	+= result.idx() - start;
-    }
+//    template <Int StreamIdx, typename StreamTypes, typename SearchResult>
+//    void postProcessStream(const PackedFSEMap<StreamTypes>* tree, Int start, const SearchResult& result)
+//    {
+//    	prefix_	+= result.idx() - start;
+//    }
 
     template <Int StreamIdx, typename StreamTypes, typename SearchResult>
     void postProcessStream(const PackedFSEMarkableMap<StreamTypes>* tree, Int start, const SearchResult& result)
@@ -244,12 +244,12 @@ public:
     }
 
 
-    template <Int Idx, typename TreeTypes>
-    typename Base::ResultType stream(const PackedFSEMap<TreeTypes>* map, Int start)
-    {
-    	Base::index_ = 0;
-    	return Base::template tree<Idx>(map, start);
-    }
+//    template <Int Idx, typename TreeTypes>
+//    typename Base::ResultType stream(const PackedFSEMap<TreeTypes>* map, Int start)
+//    {
+//    	Base::index_ = 0;
+//    	return Base::template tree<Idx>(map, start);
+//    }
 
     template <Int Idx, typename TreeTypes>
     typename Base::ResultType stream(const PackedFSEMarkableMap<TreeTypes>* map, Int start)
@@ -338,15 +338,15 @@ public:
     }
 
 
-    template <Int Idx, typename TreeTypes>
-    ResultType stream(const PackedFSEMap<TreeTypes>* map, Int start)
-    {
-    	ResultType result = Base::template array<Idx>(map, start);
-
-    	prefix_	+= map->sum(0, start, result);
-
-    	return result;
-    }
+//    template <Int Idx, typename TreeTypes>
+//    ResultType stream(const PackedFSEMap<TreeTypes>* map, Int start)
+//    {
+//    	ResultType result = Base::template array<Idx>(map, start);
+//
+//    	prefix_	+= map->sum(0, start, result);
+//
+//    	return result;
+//    }
 
     template <Int Idx, typename TreeTypes>
     ResultType stream(const PackedFSEMarkableMap<TreeTypes>* map, Int start)
@@ -406,19 +406,19 @@ public:
     	return Base::template stream<Idx>(obj, start);
     }
 
-    template <Int Idx, typename TreeTypes>
-    ResultType stream(const PackedFSEMap<TreeTypes>* map, Int start)
-    {
-    	auto result = Base::template array<Idx>(map, start);
-
-    	auto begin = result >= 0 ? result : 0;
-
-    	auto sum = map->sum(0, begin, start);
-
-    	prefix_	-= sum;
-
-    	return result;
-    }
+//    template <Int Idx, typename TreeTypes>
+//    ResultType stream(const PackedFSEMap<TreeTypes>* map, Int start)
+//    {
+//    	auto result = Base::template array<Idx>(map, start);
+//
+//    	auto begin = result >= 0 ? result : 0;
+//
+//    	auto sum = map->sum(0, begin, start);
+//
+//    	prefix_	-= sum;
+//
+//    	return result;
+//    }
 
     template <Int Idx, typename TreeTypes>
     ResultType stream(const PackedFSEMarkableMap<TreeTypes>* map, Int start)
@@ -492,11 +492,11 @@ public:
     	return Base::template stream<Idx>(obj, start);
     }
 
-    template <Int Idx, typename TreeTypes>
-    ResultType stream(const PackedFSEMap<TreeTypes>* map, Int start)
-    {
-    	return Base::template array<Idx>(map, start);
-    }
+//    template <Int Idx, typename TreeTypes>
+//    ResultType stream(const PackedFSEMap<TreeTypes>* map, Int start)
+//    {
+//    	return Base::template array<Idx>(map, start);
+//    }
 
     template <Int Idx, typename TreeTypes>
     ResultType stream(const PackedFSEMarkableMap<TreeTypes>* map, Int start)

@@ -15,7 +15,7 @@
 #include <memoria/core/container/iterator.hpp>
 #include <memoria/core/container/macros.hpp>
 
-#include <memoria/core/packed/map/packed_fse_map.hpp>
+#include <memoria/core/packed/map/packed_map.hpp>
 #include <memoria/core/packed/map/packed_fse_mark_map.hpp>
 
 #include <iostream>
@@ -41,26 +41,26 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrMrkValueName)
 
     struct SetValueFn {
 
-        template <Int Idx, typename StreamTypes>
-        void stream(PackedFSEMap<StreamTypes>* map, Int idx, const Value& value)
-        {
-            MEMORIA_ASSERT_TRUE(map != nullptr);
-            map->value(idx) = value;
-        }
+//        template <Int Idx, typename StreamTypes>
+//        void stream(PackedFSEMap<StreamTypes>* map, Int idx, const Value& value)
+//        {
+//            MEMORIA_ASSERT_TRUE(map != nullptr);
+//            map->value(idx) = value;
+//        }
 
-        template <Int Idx, typename StreamTypes>
-        void stream(PackedVLEMap<StreamTypes>* map, Int idx, const Value& value)
-        {
-            MEMORIA_ASSERT_TRUE(map != nullptr);
-            map->value(idx) = value;
-        }
-
-        template <Int Idx, typename StreamTypes>
-        void stream(PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx, const Value& value)
-        {
-        	MEMORIA_ASSERT_TRUE(map != nullptr);
-        	map->value(idx) = value;
-        }
+//        template <Int Idx, typename StreamTypes>
+//        void stream(PackedVLEMap<StreamTypes>* map, Int idx, const Value& value)
+//        {
+//            MEMORIA_ASSERT_TRUE(map != nullptr);
+//            map->value(idx) = value;
+//        }
+//
+//        template <Int Idx, typename StreamTypes>
+//        void stream(PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx, const Value& value)
+//        {
+//        	MEMORIA_ASSERT_TRUE(map != nullptr);
+//        	map->value(idx) = value;
+//        }
 
         template <Int Idx, typename StreamTypes>
         void stream(PackedFSEMarkableMap<StreamTypes>* map, Int idx, const Value& value)
@@ -121,26 +121,26 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrMrkValueName)
     struct GetValueFn {
         Value value_;
 
-        template <Int Idx, typename StreamTypes>
-        void stream(const PackedFSEMap<StreamTypes>* map, Int idx)
-        {
-            MEMORIA_ASSERT_TRUE(map);
-            value_ = map->value(idx);
-        }
-
-        template <Int Idx, typename StreamTypes>
-        void stream(const PackedVLEMap<StreamTypes>* map, Int idx)
-        {
-        	MEMORIA_ASSERT_TRUE(map);
-            value_ = map->value(idx);
-        }
-
-        template <Int Idx, typename StreamTypes>
-        void stream(const PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx)
-        {
-        	MEMORIA_ASSERT_TRUE(map);
-        	value_ = map->value(idx);
-        }
+//        template <Int Idx, typename StreamTypes>
+//        void stream(const PackedFSEMap<StreamTypes>* map, Int idx)
+//        {
+//            MEMORIA_ASSERT_TRUE(map);
+//            value_ = map->value(idx);
+//        }
+//
+//        template <Int Idx, typename StreamTypes>
+//        void stream(const PackedVLEMap<StreamTypes>* map, Int idx)
+//        {
+//        	MEMORIA_ASSERT_TRUE(map);
+//            value_ = map->value(idx);
+//        }
+//
+//        template <Int Idx, typename StreamTypes>
+//        void stream(const PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx)
+//        {
+//        	MEMORIA_ASSERT_TRUE(map);
+//        	value_ = map->value(idx);
+//        }
 
         template <Int Idx, typename StreamTypes>
         void stream(const PackedFSEMarkableMap<StreamTypes>* map, Int idx)

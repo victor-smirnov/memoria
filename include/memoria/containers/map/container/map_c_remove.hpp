@@ -13,8 +13,7 @@
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
 
-#include <memoria/core/packed/map/packed_fse_map.hpp>
-#include <memoria/core/packed/map/packed_fse_smark_map.hpp>
+#include <memoria/core/packed/map/packed_map.hpp>
 
 
 
@@ -41,12 +40,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrRemoveName)
 
         RemoveFromLeafFn(Accumulator& sums):entry_(sums) {}
 
-        template <Int Idx, typename StreamTypes>
-        void stream(PackedFSEMap<StreamTypes>* map, Int idx)
-        {
-            std::get<Idx>(entry_)[0] = map->tree()->value(0, idx);
-            map->remove(idx, idx + 1);
-        }
+//        template <Int Idx, typename StreamTypes>
+//        void stream(PackedFSEMap<StreamTypes>* map, Int idx)
+//        {
+//            std::get<Idx>(entry_)[0] = map->tree()->value(0, idx);
+//            map->remove(idx, idx + 1);
+//        }
 
         template <Int Idx, typename StreamTypes>
         void stream(PkdFTree<StreamTypes>* map, Int idx)
@@ -56,19 +55,19 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrRemoveName)
         	map->reindex();
         }
 
-        template <Int Idx, typename StreamTypes>
-        void stream(PackedVLEMap<StreamTypes>* map, Int idx)
-        {
-            std::get<Idx>(entry_)[0] = map->tree()->value(0, idx);
-            map->remove(idx, idx + 1);
-        }
+//        template <Int Idx, typename StreamTypes>
+//        void stream(PackedVLEMap<StreamTypes>* map, Int idx)
+//        {
+//            std::get<Idx>(entry_)[0] = map->tree()->value(0, idx);
+//            map->remove(idx, idx + 1);
+//        }
 
-        template <Int Idx, typename StreamTypes>
-        void stream(PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx)
-        {
-        	map->addKeys(idx, std::get<Idx>(entry_));
-        	map->remove(idx, idx + 1);
-        }
+//        template <Int Idx, typename StreamTypes>
+//        void stream(PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx)
+//        {
+//        	map->addKeys(idx, std::get<Idx>(entry_));
+//        	map->remove(idx, idx + 1);
+//        }
 
         template <Int Idx, typename StreamTypes>
         void stream(PackedFSEMarkableMap<StreamTypes>* map, Int idx)

@@ -11,51 +11,51 @@
 
 namespace memoria {
 
-//template <Int Bits>
-//struct LabelDescr {};
-//
-//
-//namespace internal {
-//
-//template <typename Labels, Int Idx = 0>
-//class LabelDispatcherListBuilder;
-//
-//template <Int Bits, typename... Tail, Int Idx>
-//class LabelDispatcherListBuilder<TypeList<LabelDescr<Bits>, Tail...>, Idx> {
-//	typedef PkdFSSeq<typename PkdFSSeqTF<Bits>::Type>							LabelStream;
-//public:
-//	 typedef typename MergeLists<
-//	            StreamDescr<LabelStream, Idx>,
-//	            typename LabelDispatcherListBuilder<
-//	                TypeList<Tail...>,
-//	                Idx + 1
-//	            >::Type
-//	 >::Result                                                                  Type;
-//};
-//
-//template <Int Idx>
-//class LabelDispatcherListBuilder<TypeList<>, Idx> {
-//public:
-//	typedef TypeList<>															Type;
-//};
-//
-//
-//
-//template <typename List> struct LabelsBlockSizeBuilder;
-//
-//template <typename LabelStream, Int Idx, typename... Tail>
-//struct LabelsBlockSizeBuilder<TypeList<StreamDescr<LabelStream, Idx>, Tail...>> {
-//	static const Int Value = LabelStream::Indexes +
-//			LabelsBlockSizeBuilder<TypeList<Tail...>>::Value;
-//};
-//
-//template <>
-//struct LabelsBlockSizeBuilder<TypeList<>> {
-//	static const Int Value = 0;
-//};
-//
-//
-//}
+template <Int Bits>
+struct LabelDescr {};
+
+
+namespace internal {
+
+template <typename Labels, Int Idx = 0>
+class LabelDispatcherListBuilder;
+
+template <Int Bits, typename... Tail, Int Idx>
+class LabelDispatcherListBuilder<TypeList<LabelDescr<Bits>, Tail...>, Idx> {
+	typedef PkdFSSeq<typename PkdFSSeqTF<Bits>::Type>							LabelStream;
+public:
+	 typedef typename MergeLists<
+	            StreamDescr<LabelStream, Idx>,
+	            typename LabelDispatcherListBuilder<
+	                TypeList<Tail...>,
+	                Idx + 1
+	            >::Type
+	 >::Result                                                                  Type;
+};
+
+template <Int Idx>
+class LabelDispatcherListBuilder<TypeList<>, Idx> {
+public:
+	typedef TypeList<>															Type;
+};
+
+
+
+template <typename List> struct LabelsBlockSizeBuilder;
+
+template <typename LabelStream, Int Idx, typename... Tail>
+struct LabelsBlockSizeBuilder<TypeList<StreamDescr<LabelStream, Idx>, Tail...>> {
+	static const Int Value = LabelStream::Indexes +
+			LabelsBlockSizeBuilder<TypeList<Tail...>>::Value;
+};
+
+template <>
+struct LabelsBlockSizeBuilder<TypeList<>> {
+	static const Int Value = 0;
+};
+
+
+}
 
 
 

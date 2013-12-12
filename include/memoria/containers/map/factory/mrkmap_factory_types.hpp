@@ -12,15 +12,14 @@
 #include <memoria/prototypes/bt/bt_factory.hpp>
 #include <memoria/prototypes/ctr_wrapper/ctrwrapper_factory.hpp>
 
-#include <memoria/containers/map/map_walkers.hpp>
+
 #include <memoria/containers/map/map_tools.hpp>
 
 #include <memoria/containers/map/container/map_c_insert.hpp>
 #include <memoria/containers/map/container/map_c_remove.hpp>
-#include <memoria/containers/map/container/map_c_api.hpp>
+
 
 #include <memoria/containers/map/map_iterator.hpp>
-#include <memoria/containers/map/iterator/map_i_api.hpp>
 #include <memoria/containers/map/iterator/map_i_nav.hpp>
 #include <memoria/containers/map/iterator/mrkmap_i_value.hpp>
 

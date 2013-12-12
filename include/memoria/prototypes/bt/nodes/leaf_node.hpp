@@ -18,8 +18,7 @@
 #include <memoria/core/packed/tree/packed_fse_tree.hpp>
 #include <memoria/core/packed/tree/packed_vle_tree.hpp>
 
-#include <memoria/core/packed/map/packed_fse_map.hpp>
-#include <memoria/core/packed/map/packed_vle_map.hpp>
+#include <memoria/core/packed/map/packed_map.hpp>
 
 #include <memoria/core/packed/array/packed_fse_array.hpp>
 #include <memoria/core/packed/tools/packed_allocator.hpp>

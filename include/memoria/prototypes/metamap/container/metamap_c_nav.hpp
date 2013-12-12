@@ -13,7 +13,7 @@
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
 
-#include <memoria/core/packed/map/packed_fse_map.hpp>
+#include <memoria/core/packed/map/packed_map.hpp>
 #include <memoria/core/packed/map/packed_fse_mark_map.hpp>
 
 #include <vector>

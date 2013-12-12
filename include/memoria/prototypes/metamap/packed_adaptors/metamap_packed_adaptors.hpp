@@ -8,7 +8,7 @@
 #define _MEMORIA_PROTOTYPES_MAP_PACKED_ADAPTORS_HPP
 
 #include <memoria/prototypes/metamap/metamap_tools.hpp>
-#include <memoria/core/packed/map/packed_vle_map.hpp>
+#include <memoria/core/packed/map/packed_map.hpp>
 
 #include <tuple>
 
@@ -27,19 +27,19 @@ void InsertEntry(
 }
 
 
-template <typename StreamTypes, Int Indexes, typename Key, typename Value, typename HiddenLabels, typename Labels, typename Accum>
-void InsertEntry(
-		PackedVLEMap<StreamTypes>* map,
-		Int idx,
-		const MetaMapEntry<Indexes, Key, Value, HiddenLabels, Labels>& entry,
-		Accum& sums
-	)
-{
-	sums[0]++;
-	sums.sumAt(1, entry.indexes());
-
-	map->insert(idx, entry.indexes(), entry.value());
-}
+//template <typename StreamTypes, Int Indexes, typename Key, typename Value, typename HiddenLabels, typename Labels, typename Accum>
+//void InsertEntry(
+//		PackedVLEMap<StreamTypes>* map,
+//		Int idx,
+//		const MetaMapEntry<Indexes, Key, Value, HiddenLabels, Labels>& entry,
+//		Accum& sums
+//	)
+//{
+//	sums[0]++;
+//	sums.sumAt(1, entry.indexes());
+//
+//	map->insert(idx, entry.indexes(), entry.value());
+//}
 
 
 template <typename Value, typename Stream>
@@ -90,11 +90,11 @@ IndexType GetLeafIndex(const Stream* stream, Int idx, Int index_num)
 }
 
 
-template <typename IndexType, typename StreamTypes>
-IndexType GetLeafIndex(const PackedVLEMap<StreamTypes>* stream, Int idx, Int index_num)
-{
-	return stream->tree()->value(index_num, idx);
-}
+//template <typename IndexType, typename StreamTypes>
+//IndexType GetLeafIndex(const PackedVLEMap<StreamTypes>* stream, Int idx, Int index_num)
+//{
+//	return stream->tree()->value(index_num, idx);
+//}
 
 
 
