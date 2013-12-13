@@ -19,7 +19,7 @@ namespace memoria {
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::dblmap::InnerCtrApiName)
 
-	typedef typename Base::Types                                                Types;
+    typedef typename Base::Types                                                Types;
 
 
     typedef typename Types::NodeBaseG                                           NodeBaseG;
@@ -30,59 +30,59 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::dblmap::InnerCtrApiName)
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
 
-    typedef typename Base::Element												Element;
+    typedef typename Base::Element                                              Element;
 
     typedef typename Types::CtrSizeT                                            CtrSizeT;
 
     static const Int Streams                                                    = Types::Streams;
 
     CtrSizeT size() const {
-    	return self().sizes()[0];
+        return self().sizes()[0];
     }
 
     Iterator seek(Key pos)
     {
-    	return self().findGT(0, pos, 0);
+        return self().findGT(0, pos, 0);
     }
 
     CtrSizeT remove(Iterator& from, Iterator& to)
     {
-    	Accumulator keys;
-    	self().removeEntries(from, to, keys);
+        Accumulator keys;
+        self().removeEntries(from, to, keys);
 
-    	return std::get<0>(keys)[1];
+        return std::get<0>(keys)[1];
     }
 
     CtrSizeT remove(Iterator& from)
     {
-    	Accumulator keys;
-    	self().removeMapEntry(from, keys);
+        Accumulator keys;
+        self().removeMapEntry(from, keys);
 
-    	return std::get<0>(keys)[1];
+        return std::get<0>(keys)[1];
     }
 
 //    bool insertMapEntry(Iterator& iter, const Element& element)
 //    {
-//    	auto& self      = this->self();
-//    	NodeBaseG& leaf = iter.leaf();
-//    	Int& idx        = iter.idx();
+//      auto& self      = this->self();
+//      NodeBaseG& leaf = iter.leaf();
+//      Int& idx        = iter.idx();
 //
-//    	bool refresh_prefix = false;
+//      bool refresh_prefix = false;
 //
-//    	if (!self.insertIntoLeaf(leaf, idx, element))
-//    	{
-//    		refresh_prefix = iter.split();
-//    		if (!self.insertIntoLeaf(leaf, idx, element))
-//    		{
-//    			throw Exception(MA_SRC, "Second insertion attempt failed");
-//    		}
-//    	}
+//      if (!self.insertIntoLeaf(leaf, idx, element))
+//      {
+//          refresh_prefix = iter.split();
+//          if (!self.insertIntoLeaf(leaf, idx, element))
+//          {
+//              throw Exception(MA_SRC, "Second insertion attempt failed");
+//          }
+//      }
 //
-//    	self.updateParent(leaf, element.first);
+//      self.updateParent(leaf, element.first);
 //
-//    	self.addTotalKeyCount(Position::create(0, 1));
+//      self.addTotalKeyCount(Position::create(0, 1));
 //
-//    	return refresh_prefix;
+//      return refresh_prefix;
 //    }
 
 MEMORIA_CONTAINER_PART_END

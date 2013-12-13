@@ -42,7 +42,7 @@
 
 #include <memoria/core/types/typehash.hpp>
 
-namespace memoria 	{
+namespace memoria   {
 
 namespace dblmap {
 
@@ -75,11 +75,11 @@ struct CompositeTypes<Profile_, DblMrkMap2<K, V, BitsPerMark> >: public Composit
 
     typedef CompositeTypes<Profile_, Composite>                                 Base;
 
-    typedef K																	Key;
-    typedef MarkedValue<V>                                                 		Value;
+    typedef K                                                                   Key;
+    typedef MarkedValue<V>                                                      Value;
 
-    typedef dblmap::OuterMap<K>													OuterMapName;
-    typedef dblmap::InnerMap<K, V, BitsPerMark>									InnerMapName;
+    typedef dblmap::OuterMap<K>                                                 OuterMapName;
+    typedef dblmap::InnerMap<K, V, BitsPerMark>                                 InnerMapName;
 
     typedef typename MergeLists<
             typename Base::ContainerPartsList,
@@ -95,7 +95,7 @@ struct CompositeTypes<Profile_, DblMrkMap2<K, V, BitsPerMark> >: public Composit
 
     template <typename Types_>
     struct CtrBaseFactory {
-        typedef dblmap::DblMap2CtrBase<Types_>             	Type;
+        typedef dblmap::DblMap2CtrBase<Types_>              Type;
     };
 };
 
@@ -109,9 +109,9 @@ template <typename Profile, typename Key_>
 struct BTTypes<Profile, dblmap::OuterMap<Key_> >: public BTTypes<Profile, memoria::BT>
 {
 
-    typedef BTTypes<Profile, memoria::BT>                   					Base;
+    typedef BTTypes<Profile, memoria::BT>                                       Base;
 
-    typedef Key_                                                              	Key;
+    typedef Key_                                                                Key;
     typedef BigInt                                                              Value;
 
     template <typename Iterator, typename Container>
@@ -124,11 +124,11 @@ struct BTTypes<Profile, dblmap::OuterMap<Key_> >: public BTTypes<Profile, memori
     struct StreamTF {
         typedef Key_                                                Key;
 
-        typedef core::StaticVector<BigInt, 2>						AccumulatorPart;
-        typedef core::StaticVector<BigInt, 2>						IteratorPrefixPart;
+        typedef core::StaticVector<BigInt, 2>                       AccumulatorPart;
+        typedef core::StaticVector<BigInt, 2>                       IteratorPrefixPart;
 
-        typedef PkdFTree<Packed2TreeTypes<Key, Key, 2>> 			NonLeafType;
-        typedef PkdFTree<Packed2TreeTypes<Key, Key, 2>> 			LeafType;
+        typedef PkdFTree<Packed2TreeTypes<Key, Key, 2>>             NonLeafType;
+        typedef PkdFTree<Packed2TreeTypes<Key, Key, 2>>             LeafType;
     };
 
 
@@ -162,7 +162,7 @@ struct BTTypes<Profile, dblmap::OuterMap<Key_> >: public BTTypes<Profile, memori
     >::Result                                                                   IteratorPartsList;
 
 
-    typedef StaticVector<BigInt, 2>												IOValue;
+    typedef StaticVector<BigInt, 2>                                             IOValue;
 
     typedef IDataSource<IOValue>                                                DataSource;
     typedef IDataTarget<IOValue>                                                DataTarget;
@@ -215,14 +215,14 @@ template <typename Profile, typename Key_, typename Value_, Int BitsPerMark_>
 struct BTTypes<Profile, dblmap::InnerMap<Key_, Value_, BitsPerMark_> >: public BTTypes<Profile, memoria::BT>
 {
 
-    typedef BTTypes<Profile, memoria::BT>                   					Base;
+    typedef BTTypes<Profile, memoria::BT>                                       Base;
 
-    typedef Key_                                                              	Key;
+    typedef Key_                                                                Key;
     typedef MarkedValue<Value_>                                                 Value;
 
-    static const Int BitsPerMark												= BitsPerMark_;
+    static const Int BitsPerMark                                                = BitsPerMark_;
 
-    typedef TypeList<Key_>                                                    	KeysList;
+    typedef TypeList<Key_>                                                      KeysList;
 
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {
@@ -231,23 +231,23 @@ struct BTTypes<Profile, dblmap::InnerMap<Key_, Value_, BitsPerMark_> >: public B
 
 
     struct StreamTF {
-        typedef core::StaticVector<BigInt, 2>						AccumulatorPart;
-        typedef core::StaticVector<BigInt, 2>						IteratorPrefixPart;
+        typedef core::StaticVector<BigInt, 2>                       AccumulatorPart;
+        typedef core::StaticVector<BigInt, 2>                       IteratorPrefixPart;
 
-        typedef PkdFTree<Packed2TreeTypes<Key, Key, 2>> 			NonLeafType;
+        typedef PkdFTree<Packed2TreeTypes<Key, Key, 2>>             NonLeafType;
 
         typedef PackedFSEMarkableMap<PackedFSEMarkableMapTypes<
-        		Key,
-        		Value,
-        		1,
-        		BitsPerMark_
-        >>                            								LeafType;
+                Key,
+                Value,
+                1,
+                BitsPerMark_
+        >>                                                          LeafType;
     };
 
 
     typedef TypeList<
                 // Inner Map
-    			StreamTF
+                StreamTF
     >                                                                           StreamDescriptors;
 
     typedef BalancedTreeMetadata<
@@ -277,7 +277,7 @@ struct BTTypes<Profile, dblmap::InnerMap<Key_, Value_, BitsPerMark_> >: public B
     >::Result                                                                   IteratorPartsList;
 
 
-    typedef std::pair<StaticVector<BigInt, 1>, Value>							IOValue;
+    typedef std::pair<StaticVector<BigInt, 1>, Value>                           IOValue;
 
     typedef IDataSource<IOValue>                                                DataSource;
     typedef IDataTarget<IOValue>                                                DataTarget;

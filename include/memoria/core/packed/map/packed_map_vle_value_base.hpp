@@ -20,20 +20,20 @@ template <Granularity gr, typename ValueType> struct VLEArrayTF;
 
 template <typename ValueType>
 struct VLEArrayTF<Granularity::Bit, ValueType> {
-	typedef PackedVLEArray<
-			Packed2TreeTypes<
-				ValueType, typename PackedTreeIndexTF<ValueType>::Type, 1, UBigIntEliasCodec
-			>
-	>																			Type;
+    typedef PackedVLEArray<
+            Packed2TreeTypes<
+                ValueType, typename PackedTreeIndexTF<ValueType>::Type, 1, UBigIntEliasCodec
+            >
+    >                                                                           Type;
 };
 
 template <typename ValueType>
 struct VLEArrayTF<Granularity::Byte, ValueType> {
-	typedef PackedVLEArray<
-			Packed2TreeTypes<
-				ValueType, typename PackedTreeIndexTF<ValueType>::Type, 1, UByteExintCodec
-			>
-	>																			Type;
+    typedef PackedVLEArray<
+            Packed2TreeTypes<
+                ValueType, typename PackedTreeIndexTF<ValueType>::Type, 1, UByteExintCodec
+            >
+    >                                                                           Type;
 };
 
 
@@ -42,35 +42,35 @@ struct VLEArrayTF<Granularity::Byte, ValueType> {
 
 
 template <
-	Int Blocks,
-	typename Key,
-	typename ValueType,
-	typename HiddenLabels,
-	typename Labels
+    Int Blocks,
+    typename Key,
+    typename ValueType,
+    typename HiddenLabels,
+    typename Labels
 > class PackedMapValueBase;
 
 template <
-	Int Blocks,
-	typename Key,
-	Granularity gr,
-	typename ValueType,
-	typename
-	HiddenLabels,
-	typename Labels
+    Int Blocks,
+    typename Key,
+    Granularity gr,
+    typename ValueType,
+    typename
+    HiddenLabels,
+    typename Labels
 >
 class PackedMapValueBase<Blocks, Key, VLen<gr, ValueType>, HiddenLabels, Labels>:
-		public PackedMapLabelsBase<Blocks, Key, HiddenLabels, Labels> {
+        public PackedMapLabelsBase<Blocks, Key, HiddenLabels, Labels> {
 
-    typedef PackedMapLabelsBase<Blocks, Key, HiddenLabels, Labels>						Base;
+    typedef PackedMapLabelsBase<Blocks, Key, HiddenLabels, Labels>                      Base;
 public:
-    typedef PackedMapValueBase<Blocks, Key, VLen<gr, ValueType>, HiddenLabels, Labels> 	MyType;
+    typedef PackedMapValueBase<Blocks, Key, VLen<gr, ValueType>, HiddenLabels, Labels>  MyType;
 
     typedef typename memoria::internal::VLEArrayTF<gr, ValueType>                       Values;
-    typedef ValueType																	Value;
+    typedef ValueType                                                                   Value;
 
     static const Int ARRAY = Blocks + ListSize<HiddenLabels>::Value + ListSize<Labels>::Value;
 
-    static const bool HasValue															= true;
+    static const bool HasValue                                                          = true;
 
     Values* values() {
         return Base::template get<Value>(ARRAY);
@@ -97,14 +97,14 @@ public:
 
     static Int value_block_size(Int size)
     {
-    	Int block_size = Values::packed_block_size(size);
-    	return block_size;
+        Int block_size = Values::packed_block_size(size);
+        return block_size;
     }
 
 
     void value_init()
     {
-    	PackedAllocator::template allocateEmpty<Value>(ARRAY);
+        PackedAllocator::template allocateEmpty<Value>(ARRAY);
     }
 
     template <typename Entry>
@@ -116,7 +116,7 @@ public:
 
     void insertValueSpace(Int room_start, Int room_length)
     {
-    	values()->insertSpace(room_start, room_length);
+        values()->insertSpace(room_start, room_length);
     }
 
 
@@ -139,7 +139,7 @@ public:
 
     void reindexValues()
     {
-    	values()->reindex();
+        values()->reindex();
     }
 
     void checkValues() const

@@ -24,14 +24,14 @@ namespace memoria {
 using namespace std;
 
 template <
-	typename ContainerTypeName,
+    typename ContainerTypeName,
     typename MemBuffer
 >
 class MVCCRandomAccessListTestBase: public AbstractSequenceTestBase<
-	FileProfile<>,
-	typename GenericFileAllocator::WalkableAllocator,
-	ContainerTypeName,
-	MemBuffer
+    FileProfile<>,
+    typename GenericFileAllocator::WalkableAllocator,
+    ContainerTypeName,
+    MemBuffer
 > {
 
     typedef MVCCRandomAccessListTestBase<
@@ -40,28 +40,28 @@ class MVCCRandomAccessListTestBase: public AbstractSequenceTestBase<
     >                                                                           MyType;
 
     typedef AbstractSequenceTestBase<
-    		FileProfile<>,
-    		typename GenericFileAllocator::WalkableAllocator,
-    		ContainerTypeName,
-    		MemBuffer
-    >                                                            				Base;
+            FileProfile<>,
+            typename GenericFileAllocator::WalkableAllocator,
+            ContainerTypeName,
+            MemBuffer
+    >                                                                           Base;
 
 protected:
-    typedef typename Base::Ctr                            						Ctr;
+    typedef typename Base::Ctr                                                  Ctr;
     typedef typename Ctr::Iterator                                              Iterator;
     typedef typename Ctr::ID                                                    ID;
-    typedef typename Ctr::Accumulator											Accumulator;
+    typedef typename Ctr::Accumulator                                           Accumulator;
 
 
-    typedef GenericFileAllocator												FileAllocator;
-    typedef MVCCAllocator<FileProfile<>, FileAllocator::Page>					TxnMgr;
-    typedef typename Base::Allocator											Allocator;
+    typedef GenericFileAllocator                                                FileAllocator;
+    typedef MVCCAllocator<FileProfile<>, FileAllocator::Page>                   TxnMgr;
+    typedef typename Base::Allocator                                            Allocator;
 
 
 
     OpenMode mode_ = OpenMode::READ | OpenMode::WRITE | OpenMode::CREATE | OpenMode::TRUNC;
 
-    typedef typename Base::TestFn                     							TestFn;
+    typedef typename Base::TestFn                                               TestFn;
 
     bool clear_cache_ = false;
     BigInt txn_id_;
@@ -71,34 +71,34 @@ public:
     MVCCRandomAccessListTestBase(StringRef name):
         Base(name)
     {
-    	MEMORIA_ADD_TEST_PARAM(clear_cache_);
+        MEMORIA_ADD_TEST_PARAM(clear_cache_);
 
-    	MEMORIA_ADD_TEST_PARAM(txn_id_)->state();
+        MEMORIA_ADD_TEST_PARAM(txn_id_)->state();
     }
 
     virtual ~MVCCRandomAccessListTestBase() throw() {}
 
     virtual String Store(FileAllocator& allocator) const
     {
-    	String new_name = allocator.file_name() + ".valid";
+        String new_name = allocator.file_name() + ".valid";
 
-    	allocator.sync();
+        allocator.sync();
 
-    	File file(allocator.file_name());
-    	file.copy(new_name);
+        File file(allocator.file_name());
+        file.copy(new_name);
 
-    	allocator.flush();
+        allocator.flush();
 
-    	return new_name;
+        return new_name;
     }
 
 
     virtual void testInsert(TestFn test_fn)
     {
-    	typename FileAllocator::Cfg cfg;
+        typename FileAllocator::Cfg cfg;
 
-    	cfg.pages_buffer_size(10240);
-    	cfg.sync_on_commit(false);
+        cfg.pages_buffer_size(10240);
+        cfg.sync_on_commit(false);
 
         FileAllocator file_allocator(this->getResourcePath("insert.db"), mode_, cfg);
         DefaultLogHandlerImpl logHandler(this->out());
@@ -108,33 +108,33 @@ public:
         TxnMgr txn_mgr(&file_allocator);
 
         try {
-        	BigInt size = 0;
+            BigInt size = 0;
 
-        	this->ctr_name_ = txn_mgr.createCtrName();
+            this->ctr_name_ = txn_mgr.createCtrName();
 
             while (size < this->size_)
             {
-            	auto txn = txn_mgr.begin();
+                auto txn = txn_mgr.begin();
 
-            	bool snapshot = getRandom(10) == 0; //1 from 10 is a snapshot
-            	txn->setSnapshot(snapshot);
+                bool snapshot = getRandom(10) == 0; //1 from 10 is a snapshot
+                txn->setSnapshot(snapshot);
 
-            	txn_id_ = txn->currentTxnId();
+                txn_id_ = txn->currentTxnId();
 
-            	Ctr ctr(txn.get(), CTR_CREATE | CTR_FIND, this->ctr_name_);
+                Ctr ctr(txn.get(), CTR_CREATE | CTR_FIND, this->ctr_name_);
 
-            	test_fn(this, *txn.get(), ctr);
+                test_fn(this, *txn.get(), ctr);
 
-            	this->out()<<"Size: "
-                	 <<ctr.size()
-                	 <<" "<<file_allocator.shared_pool_size()
-                	 <<" "<<file_allocator.shared_created()
-                	 <<" "<<file_allocator.shared_deleted()
-                	 <<" txn_id="<<txn->currentTxnId()
-                	 <<" snapshot="<<txn->is_snapshot()
-                	 <<endl;
+                this->out()<<"Size: "
+                     <<ctr.size()
+                     <<" "<<file_allocator.shared_pool_size()
+                     <<" "<<file_allocator.shared_created()
+                     <<" "<<file_allocator.shared_deleted()
+                     <<" txn_id="<<txn->currentTxnId()
+                     <<" snapshot="<<txn->is_snapshot()
+                     <<endl;
 
-            	this->checkAllocator(*txn.get(), "Insert: Txn Check Failed", MA_SRC);
+                this->checkAllocator(*txn.get(), "Insert: Txn Check Failed", MA_SRC);
 
                 size = ctr.size();
 
@@ -144,7 +144,7 @@ public:
                 this->checkAllocator(txn_mgr, "Insert: TxnMgr Check Failed", MA_SRC);
 
                 if (clear_cache_) {
-                	file_allocator.clearCache();
+                    file_allocator.clearCache();
                 }
             }
 
@@ -152,7 +152,7 @@ public:
             txn_mgr.flush();
         }
         catch (...) {
-        	this->dump_name_ = Store(file_allocator);
+            this->dump_name_ = Store(file_allocator);
             throw;
         }
     }
@@ -160,62 +160,62 @@ public:
 
     virtual void testInsert1(TestFn test_fn)
     {
-    	typename FileAllocator::Cfg cfg;
+        typename FileAllocator::Cfg cfg;
 
-    	cfg.pages_buffer_size(10240);
-    	cfg.sync_on_commit(false);
+        cfg.pages_buffer_size(10240);
+        cfg.sync_on_commit(false);
 
-    	FileAllocator file_allocator(this->getResourcePath("insert.db"), mode_, cfg);
-    	DefaultLogHandlerImpl logHandler(this->out());
-    	file_allocator.getLogger()->setHandler(&logHandler);
-    	file_allocator.getLogger()->level() = Logger::ERROR;
+        FileAllocator file_allocator(this->getResourcePath("insert.db"), mode_, cfg);
+        DefaultLogHandlerImpl logHandler(this->out());
+        file_allocator.getLogger()->setHandler(&logHandler);
+        file_allocator.getLogger()->level() = Logger::ERROR;
 
-    	TxnMgr txn_mgr(&file_allocator);
+        TxnMgr txn_mgr(&file_allocator);
 
-    	try {
-    		BigInt size = 0;
+        try {
+            BigInt size = 0;
 
-    		this->ctr_name_ = txn_mgr.createCtrName();
+            this->ctr_name_ = txn_mgr.createCtrName();
 
-    		while (size < this->size_)
-    		{
-    			txn_id_ = txn_mgr.currentTxnId();
+            while (size < this->size_)
+            {
+                txn_id_ = txn_mgr.currentTxnId();
 
-    			Ctr ctr(&txn_mgr, CTR_CREATE | CTR_FIND, this->ctr_name_);
+                Ctr ctr(&txn_mgr, CTR_CREATE | CTR_FIND, this->ctr_name_);
 
-    			test_fn(this, txn_mgr, ctr);
+                test_fn(this, txn_mgr, ctr);
 
-    			this->out()<<"Size: "
-    					<<ctr.size()
-    					<<" "<<file_allocator.shared_pool_size()
-    					<<" "<<file_allocator.shared_created()
-    					<<" "<<file_allocator.shared_deleted()
-    					<<endl;
+                this->out()<<"Size: "
+                        <<ctr.size()
+                        <<" "<<file_allocator.shared_pool_size()
+                        <<" "<<file_allocator.shared_created()
+                        <<" "<<file_allocator.shared_deleted()
+                        <<endl;
 
-    			this->checkAllocator(txn_mgr, "Insert: TxnMgr Check Failed", MA_SRC);
+                this->checkAllocator(txn_mgr, "Insert: TxnMgr Check Failed", MA_SRC);
 
-    			size = ctr.size();
+                size = ctr.size();
 
-    			txn_mgr.flush();
+                txn_mgr.flush();
 
-    			if (clear_cache_) {
-    				file_allocator.clearCache();
-    			}
-    		}
-    	}
-    	catch (...) {
-    		this->dump_name_ = Store(file_allocator);
-    		throw;
-    	}
+                if (clear_cache_) {
+                    file_allocator.clearCache();
+                }
+            }
+        }
+        catch (...) {
+            this->dump_name_ = Store(file_allocator);
+            throw;
+        }
     }
 
 
     virtual void testRemove(TestFn test_fn)
     {
-    	typename FileAllocator::Cfg cfg;
+        typename FileAllocator::Cfg cfg;
 
-    	cfg.pages_buffer_size(10240);
-    	cfg.sync_on_commit(false);
+        cfg.pages_buffer_size(10240);
+        cfg.sync_on_commit(false);
 
         FileAllocator file_allocator(this->getResourcePath("remove.db"), mode_, cfg);
         DefaultLogHandlerImpl logHandler(this->out());
@@ -226,21 +226,21 @@ public:
         this->ctr_name_ = mgr.createCtrName();
 
         try {
-        	BigInt size;
+            BigInt size;
 
-        	{
-        		auto txn = mgr.begin();
+            {
+                auto txn = mgr.begin();
 
-        		Ctr ctr(txn.get(), CTR_CREATE | CTR_FIND, this->ctr_name_);
+                Ctr ctr(txn.get(), CTR_CREATE | CTR_FIND, this->ctr_name_);
 
-        		this->fillRandom(*txn.get(), ctr, Base::size_);
+                this->fillRandom(*txn.get(), ctr, Base::size_);
 
-        		size = ctr.size();
+                size = ctr.size();
 
-        		txn->commit();
-        	}
+                txn->commit();
+            }
 
-        	while (size > 0)
+            while (size > 0)
             {
                 auto txn = mgr.begin();
 
@@ -249,11 +249,11 @@ public:
 
                 Ctr ctr(txn.get(), CTR_CREATE | CTR_FIND, this->ctr_name_);
 
-            	test_fn(this, *txn.get(), ctr);
+                test_fn(this, *txn.get(), ctr);
 
-            	this->out()<<"Size: "<<ctr.size()<<endl;
+                this->out()<<"Size: "<<ctr.size()<<endl;
 
-            	this->checkAllocator(*txn.get(), "Remove: Txn Check Failed", MA_SRC);
+                this->checkAllocator(*txn.get(), "Remove: Txn Check Failed", MA_SRC);
 
                 size = ctr.size();
 
@@ -263,15 +263,15 @@ public:
 
                 if (clear_cache_)
                 {
-                	file_allocator.clearCache();
+                    file_allocator.clearCache();
                 }
             }
 
-        	mgr.compactifyCommitHistory();
-        	mgr.flush();
+            mgr.compactifyCommitHistory();
+            mgr.flush();
         }
         catch (...) {
-        	this->dump_name_ = Store(file_allocator);
+            this->dump_name_ = Store(file_allocator);
             throw;
         }
     }
@@ -279,55 +279,55 @@ public:
 
     virtual void testRemove1(TestFn test_fn)
     {
-    	typename FileAllocator::Cfg cfg;
+        typename FileAllocator::Cfg cfg;
 
-    	cfg.pages_buffer_size(10240);
-    	cfg.sync_on_commit(false);
+        cfg.pages_buffer_size(10240);
+        cfg.sync_on_commit(false);
 
-    	FileAllocator file_allocator(this->getResourcePath("remove.db"), mode_, cfg);
-    	DefaultLogHandlerImpl logHandler(this->out());
-    	file_allocator.getLogger()->setHandler(&logHandler);
+        FileAllocator file_allocator(this->getResourcePath("remove.db"), mode_, cfg);
+        DefaultLogHandlerImpl logHandler(this->out());
+        file_allocator.getLogger()->setHandler(&logHandler);
 
-    	TxnMgr mgr(&file_allocator);
+        TxnMgr mgr(&file_allocator);
 
-    	this->ctr_name_ = mgr.createCtrName();
+        this->ctr_name_ = mgr.createCtrName();
 
-    	try {
-    		BigInt size;
+        try {
+            BigInt size;
 
-    		{
-    			Ctr ctr(&mgr, CTR_CREATE | CTR_FIND, this->ctr_name_);
+            {
+                Ctr ctr(&mgr, CTR_CREATE | CTR_FIND, this->ctr_name_);
 
-    			this->fillRandom(mgr, ctr, Base::size_);
+                this->fillRandom(mgr, ctr, Base::size_);
 
-    			size = ctr.size();
-    		}
+                size = ctr.size();
+            }
 
 
-    		while (size > 0)
-    		{
-    			Ctr ctr(&mgr, CTR_CREATE | CTR_FIND, this->ctr_name_);
+            while (size > 0)
+            {
+                Ctr ctr(&mgr, CTR_CREATE | CTR_FIND, this->ctr_name_);
 
-    			test_fn(this, mgr, ctr);
+                test_fn(this, mgr, ctr);
 
-    			this->out()<<"Size: "<<ctr.size()<<endl;
+                this->out()<<"Size: "<<ctr.size()<<endl;
 
-    			this->checkAllocator(mgr, "Remove: TxnMgr Check Failed", MA_SRC);
+                this->checkAllocator(mgr, "Remove: TxnMgr Check Failed", MA_SRC);
 
-    			size = ctr.size();
+                size = ctr.size();
 
-    			mgr.flush();
+                mgr.flush();
 
-    			if (clear_cache_)
-    			{
-    				file_allocator.clearCache();
-    			}
-    		}
-    	}
-    	catch (...) {
-    		this->dump_name_ = Store(file_allocator);
-    		throw;
-    	}
+                if (clear_cache_)
+                {
+                    file_allocator.clearCache();
+                }
+            }
+        }
+        catch (...) {
+            this->dump_name_ = Store(file_allocator);
+            throw;
+        }
     }
 
 

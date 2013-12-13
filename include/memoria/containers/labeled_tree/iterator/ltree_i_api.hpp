@@ -38,7 +38,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
     typedef typename Container::Position                                        Position;
     typedef typename Container::Types::LabelsTuple                              LabelsTuple;
 
-    typedef typename Container::Types::CtrSizeT                        			CtrSizeT;
+    typedef typename Container::Types::CtrSizeT                                 CtrSizeT;
 
     CtrSizeT node_rank() const
     {
@@ -294,7 +294,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
 
     template <Int LabelIdx>
     struct SumLabelFn {
-    	CtrSizeT sum_ = 0;
+        CtrSizeT sum_ = 0;
         Int block_ = 0;
 
 

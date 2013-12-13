@@ -20,33 +20,33 @@ using namespace memoria::vapi;
 using namespace std;
 
 template <
-	typename Profile,
-	typename AllocatorType,
+    typename Profile,
+    typename AllocatorType,
     typename ContainerTypeName,
     typename MemBuffer
 >
 class AbstractSequenceTestBase: public AbstractRandomAccessListTestBase <
-										Profile,
-										AllocatorType,
+                                        Profile,
+                                        AllocatorType,
                                         ContainerTypeName,
                                         MemBuffer
 >
 {
-	typedef AbstractSequenceTestBase<
-    			Profile,
-    			AllocatorType,
-    			ContainerTypeName,
-    			MemBuffer
-    		>              														MyType;
+    typedef AbstractSequenceTestBase<
+                Profile,
+                AllocatorType,
+                ContainerTypeName,
+                MemBuffer
+            >                                                                   MyType;
     typedef MyType                                                              ParamType;
 
 
     typedef AbstractRandomAccessListTestBase <
-			Profile,
-			AllocatorType,
+            Profile,
+            AllocatorType,
             ContainerTypeName,
             MemBuffer
-    >                                                                   		Base;
+    >                                                                           Base;
 
 protected:
     typedef typename Base::Ctr                                                  Ctr;

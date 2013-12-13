@@ -21,40 +21,40 @@ namespace memoria    {
 
 template <typename Profile, typename Key, typename Value, typename T>
 class CtrTF<Profile, memoria::Map<Key, Value>, T>: public CtrTF<Profile, memoria::BT, T> {
-	using Base = CtrTF<Profile, memoria::BT, T>;
+    using Base = CtrTF<Profile, memoria::BT, T>;
 public:
 
 
-	struct Types: Base::Types
-	{
-		typedef MapCtrTypes<Types>                                              CtrTypes;
-		typedef MapIterTypes<Types>                                             IterTypes;
+    struct Types: Base::Types
+    {
+        typedef MapCtrTypes<Types>                                              CtrTypes;
+        typedef MapIterTypes<Types>                                             IterTypes;
 
-		typedef PageUpdateManager<CtrTypes>                                     PageUpdateMgr;
-	};
+        typedef PageUpdateManager<CtrTypes>                                     PageUpdateMgr;
+    };
 
 
-	typedef typename Types::CtrTypes                                            CtrTypes;
-	typedef Ctr<CtrTypes>                                                       Type;
+    typedef typename Types::CtrTypes                                            CtrTypes;
+    typedef Ctr<CtrTypes>                                                       Type;
 };
 
 template <typename Profile, Granularity gr, typename T>
 class CtrTF<Profile, memoria::CMap<gr>, T>: public CtrTF<Profile, memoria::BT, T> {
-	using Base = CtrTF<Profile, memoria::BT, T>;
+    using Base = CtrTF<Profile, memoria::BT, T>;
 public:
 
 
-	struct Types: Base::Types
-	{
-		typedef MapCtrTypes<Types>                                              CtrTypes;
-		typedef MapIterTypes<Types>                                             IterTypes;
+    struct Types: Base::Types
+    {
+        typedef MapCtrTypes<Types>                                              CtrTypes;
+        typedef MapIterTypes<Types>                                             IterTypes;
 
-		typedef PageUpdateManager<CtrTypes>                                     PageUpdateMgr;
-	};
+        typedef PageUpdateManager<CtrTypes>                                     PageUpdateMgr;
+    };
 
 
-	typedef typename Types::CtrTypes                                            CtrTypes;
-	typedef Ctr<CtrTypes>                                                       Type;
+    typedef typename Types::CtrTypes                                            CtrTypes;
+    typedef Ctr<CtrTypes>                                                       Type;
 
 };
 
@@ -67,21 +67,21 @@ public:
 
 template <typename Profile, typename Key, typename Value, Int BitsPerMark, typename T>
 class CtrTF<Profile, memoria::SMrkMap<Key, Value, BitsPerMark>, T>: public CtrTF<Profile, memoria::BT, T> {
-	using Base = CtrTF<Profile, memoria::BT, T>;
+    using Base = CtrTF<Profile, memoria::BT, T>;
 public:
 
 
-	struct Types: Base::Types
-	{
-		typedef MapCtrTypes<Types>                                              CtrTypes;
-		typedef MapIterTypes<Types>                                             IterTypes;
+    struct Types: Base::Types
+    {
+        typedef MapCtrTypes<Types>                                              CtrTypes;
+        typedef MapIterTypes<Types>                                             IterTypes;
 
-		typedef PageUpdateManager<CtrTypes>                                     PageUpdateMgr;
-	};
+        typedef PageUpdateManager<CtrTypes>                                     PageUpdateMgr;
+    };
 
 
-	typedef typename Types::CtrTypes                                            CtrTypes;
-	typedef Ctr<CtrTypes>                                                       Type;
+    typedef typename Types::CtrTypes                                            CtrTypes;
+    typedef Ctr<CtrTypes>                                                       Type;
 };
 
 

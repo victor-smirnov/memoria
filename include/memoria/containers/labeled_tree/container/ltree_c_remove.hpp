@@ -35,7 +35,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrRemoveName)
 
     typedef typename Base::Types::LabelsTuple                                   LabelsTuple;
 
-    typedef typename Base::Types::CtrSizeT                        				CtrSizeT;
+    typedef typename Base::Types::CtrSizeT                                      CtrSizeT;
 
     static const Int Streams                                                    = Types::Streams;
 

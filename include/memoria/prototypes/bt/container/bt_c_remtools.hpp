@@ -130,7 +130,7 @@ void M_TYPE::removeNode(NodeBaseG& node, Accumulator& sums, Position& sizes)
         Int size = self.getNodeSize(node, 0);
         self.forAllIDs(node, 0, size, [&, this](const ID& id, Int idx)
         {
-        	auto& self = this->self();
+            auto& self = this->self();
             NodeBaseG child = self.allocator().getPage(id, self.master_name());
             this->removeNode(child, sums, sizes);
         });
@@ -189,7 +189,7 @@ void M_TYPE::removeNodeContent(NodeBaseG& node, Int start, Int end, Accumulator&
     Accumulator deleted_sums;
 
     self.forAllIDs(node, start, end, [&, this](const ID& id, Int idx){
-    	auto& self = this->self();
+        auto& self = this->self();
         NodeBaseG child = self.allocator().getPage(id, self.master_name());
         self.removeNode(child, deleted_sums, sizes);
     });

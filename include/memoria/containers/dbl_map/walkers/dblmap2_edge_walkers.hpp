@@ -76,10 +76,10 @@ public:
     {
         if (level > 0)
         {
-        	tree->sums(0, tree->size() - 1, std::get<Idx>(prefix_));
+            tree->sums(0, tree->size() - 1, std::get<Idx>(prefix_));
         }
         else {
-        	tree->sums(std::get<Idx>(prefix_));
+            tree->sums(std::get<Idx>(prefix_));
         }
     }
 

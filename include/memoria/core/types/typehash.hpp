@@ -121,21 +121,21 @@ struct TypeHash<CMap<gr>>:   UIntValue<
 
 
 template <
-	Int Indexes,
-	typename Key,
-	typename Value,
-	typename LabelsList,
-	typename HiddenLabelsList
-	>
+    Int Indexes,
+    typename Key,
+    typename Value,
+    typename LabelsList,
+    typename HiddenLabelsList
+    >
 struct TypeHash<MetaMap<Indexes, Key, Value, HiddenLabelsList, LabelsList>>: UIntValue<
     HashHelper<
-    	1111,
-    	Indexes,
-    	TypeHash<Key>::Value,
-    	TypeHash<Value>::Value,
-    	TypeHash<LabelsList>::Value,
-    	TypeHash<HiddenLabelsList>::Value,
-    	1
+        1111,
+        Indexes,
+        TypeHash<Key>::Value,
+        TypeHash<Value>::Value,
+        TypeHash<LabelsList>::Value,
+        TypeHash<HiddenLabelsList>::Value,
+        1
     >::Value
 > {};
 
@@ -197,21 +197,21 @@ struct TypeHash<VTree>: UIntValue<1900> {};
 template <typename... List>
 struct TypeHash<TypeList<List...>> {
 private:
-	typedef typename TypeToValueList<TypeList<List...>>::Type   				ValueList;
-	typedef typename AppendValueTool<UInt, 2000, ValueList>::Result         	TaggedValueList;
+    typedef typename TypeToValueList<TypeList<List...>>::Type                   ValueList;
+    typedef typename AppendValueTool<UInt, 2000, ValueList>::Result             TaggedValueList;
 public:
 
-	static const UInt Value = md5::Md5Sum<TaggedValueList>::Result::Value32;
+    static const UInt Value = md5::Md5Sum<TaggedValueList>::Result::Value32;
 };
 
 template <typename... List>
 struct TypeHash<std::tuple<List...>> {
 private:
-	typedef typename TypeToValueList<TypeList<List...>>::Type   				ValueList;
-	typedef typename AppendValueTool<UInt, 2001, ValueList>::Result         	TaggedValueList;
+    typedef typename TypeToValueList<TypeList<List...>>::Type                   ValueList;
+    typedef typename AppendValueTool<UInt, 2001, ValueList>::Result             TaggedValueList;
 public:
 
-	static const UInt Value = md5::Md5Sum<TaggedValueList>::Result::Value32;
+    static const UInt Value = md5::Md5Sum<TaggedValueList>::Result::Value32;
 };
 
 

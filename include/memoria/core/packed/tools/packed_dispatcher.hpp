@@ -405,18 +405,18 @@ template <typename List, Int Idx = 0> struct PackedDispatchersListBuilder;
 
 template <typename Head, typename... Tail, Int Idx>
 struct PackedDispatchersListBuilder<TypeList<Head, Tail...>, Idx> {
-	 typedef typename MergeLists<
-	            StreamDescr<Head, Idx>,
-	            typename PackedDispatchersListBuilder<
-	                TypeList<Tail...>,
-	                Idx + 1
-	            >::Type
-	 >::Result                                                                  Type;
+     typedef typename MergeLists<
+                StreamDescr<Head, Idx>,
+                typename PackedDispatchersListBuilder<
+                    TypeList<Tail...>,
+                    Idx + 1
+                >::Type
+     >::Result                                                                  Type;
 };
 
 template <Int Idx>
 struct PackedDispatchersListBuilder<TypeList<>, Idx> {
-	typedef TypeList<>															Type;
+    typedef TypeList<>                                                          Type;
 };
 
 }

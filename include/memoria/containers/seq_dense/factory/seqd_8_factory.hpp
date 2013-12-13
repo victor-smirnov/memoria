@@ -60,17 +60,17 @@ struct BTTypes<Profile, memoria::Sequence<8, true> >:
     struct StreamTF {
         typedef BigInt                                                Key;
 
-        typedef core::StaticVector<BigInt, Indexes>					AccumulatorPart;
-        typedef core::StaticVector<BigInt, 1>						IteratorPrefixPart;
+        typedef core::StaticVector<BigInt, Indexes>                 AccumulatorPart;
+        typedef core::StaticVector<BigInt, 1>                       IteratorPrefixPart;
 
         typedef PkdVTree<Packed2TreeTypes<
                 Key, Key, Indexes, UByteExintCodec
-        >> 															NonLeafType;
+        >>                                                          NonLeafType;
 
 
         typedef typename PkdFSSeqTF<BitsPerSymbol>::Type            SequenceTypes;
 
-        typedef PkdFSSeq<SequenceTypes> 							LeafType;
+        typedef PkdFSSeq<SequenceTypes>                             LeafType;
     };
 
 

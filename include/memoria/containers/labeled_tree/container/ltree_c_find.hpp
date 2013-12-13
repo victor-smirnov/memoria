@@ -28,7 +28,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrFindName)
     typedef typename Base::Types::NodeBaseG                                     NodeBaseG;
     typedef typename Base::LeafDispatcher                                       LeafDispatcher;
 
-    typedef typename Base::Types::CtrSizeT                        				CtrSizeT;
+    typedef typename Base::Types::CtrSizeT                                      CtrSizeT;
 
     Iterator select0(CtrSizeT rank)
     {

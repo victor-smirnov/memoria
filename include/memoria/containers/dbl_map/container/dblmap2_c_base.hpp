@@ -32,14 +32,14 @@ MEMORIA_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(DblMap2CtrBase)
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::CtrShared                                            CtrShared;
 
-    typedef typename Types::OuterMapName										OuterMapName;
-    typedef typename Types::InnerMapName										InnerMapName;
+    typedef typename Types::OuterMapName                                        OuterMapName;
+    typedef typename Types::InnerMapName                                        InnerMapName;
 
     typedef typename CtrTF<Profile, OuterMapName, OuterMapName>::Type           OuterMap;
     typedef typename CtrTF<Profile, InnerMapName, InnerMapName>::Type           InnerMap;
 
     typedef typename Types::Value                                               Value;
-    typedef typename Types::Key                                                	Key;
+    typedef typename Types::Key                                                 Key;
 
 private:
     OuterMap   outer_map_;
@@ -178,20 +178,20 @@ public:
 
     virtual void setRoot(BigInt name, const ID& root_id)
     {
-    	cout<<"MrkMap2: SetRoot: "<<name<<" "<<root_id<<endl;
+        cout<<"MrkMap2: SetRoot: "<<name<<" "<<root_id<<endl;
 
-    	self().outer_map().setRoot(name, root_id);
+        self().outer_map().setRoot(name, root_id);
     }
 
     bool checkTree()
     {
-    	return check();
+        return check();
     }
 
     bool check(void* ptr = nullptr)
     {
         bool outer_map_errors   = outer_map_.check(ptr);
-        bool inner_errors     	= inner_map_.check(ptr);
+        bool inner_errors       = inner_map_.check(ptr);
 
         return outer_map_errors || inner_errors;
     }
@@ -206,15 +206,15 @@ public:
 
     void walkTree(ContainerWalker* walker)
     {
-    	walker->beginCompositeCtr(
-    			TypeNameFactory<typename Types::ContainerTypeName>::name().c_str(),
-    			outer_map_.name()
-    	);
+        walker->beginCompositeCtr(
+                TypeNameFactory<typename Types::ContainerTypeName>::name().c_str(),
+                outer_map_.name()
+        );
 
-    	outer_map_.walkTree(walker);
-    	inner_map_.walkTree(walker);
+        outer_map_.walkTree(walker);
+        inner_map_.walkTree(walker);
 
-    	walker->endCompositeCtr();
+        walker->endCompositeCtr();
     }
 
 private:

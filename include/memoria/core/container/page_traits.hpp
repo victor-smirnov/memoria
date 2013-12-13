@@ -50,8 +50,8 @@ public:
 
     static void deserialize(DeserializationData& data, Type* field, Int count = 1)
     {
-    	memmove(field, data.buf, sizeof(Type) * count);
-    	data.buf += sizeof(Type) * count;
+        memmove(field, data.buf, sizeof(Type) * count);
+        data.buf += sizeof(Type) * count;
     }
 };
 

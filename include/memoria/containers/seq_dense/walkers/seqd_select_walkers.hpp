@@ -98,7 +98,7 @@ public:
 template <typename Types>
 class SelectForwardWalker2: public bt::SelectForwardWalkerBase<Types> {
 
-    typedef bt::SelectForwardWalkerBase<Types>        							Base;
+    typedef bt::SelectForwardWalkerBase<Types>                                  Base;
     typedef typename Base::Key                                                  Key;
 
 public:

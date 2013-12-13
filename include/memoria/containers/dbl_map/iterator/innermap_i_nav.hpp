@@ -27,7 +27,7 @@ namespace memoria    {
 
 MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::InnerItrNavName)
 
-    typedef Ctr<typename Types::CtrTypes>                       				Container;
+    typedef Ctr<typename Types::CtrTypes>                                       Container;
 
 
     typedef typename Base::Allocator                                            Allocator;
@@ -40,31 +40,31 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::InnerItrNavName)
     typedef typename Container::LeafDispatcher                                  LeafDispatcher;
     typedef typename Container::Position                                        Position;
 
-    typedef typename Container::CtrSizeT                        				CtrSizeT;
+    typedef typename Container::CtrSizeT                                        CtrSizeT;
 
 
     CtrSizeT skipFw(CtrSizeT amount) {
-    	return self().template _findFw<Types::template SkipForwardWalker>(0, amount);
+        return self().template _findFw<Types::template SkipForwardWalker>(0, amount);
     }
 
     CtrSizeT skipBw(CtrSizeT amount) {
-    	return self().template _findBw<Types::template SkipBackwardWalker>(0, amount);
+        return self().template _findBw<Types::template SkipBackwardWalker>(0, amount);
     }
 
     bool operator++() {
-    	return self().skipFw(1);
+        return self().skipFw(1);
     }
 
     bool operator--() {
-    	return self().skipBw(1);
+        return self().skipBw(1);
     }
 
     bool operator++(int) {
-    	return self().skipFw(1);
+        return self().skipFw(1);
     }
 
     bool operator--(int) {
-    	return self().skipBw(1);
+        return self().skipBw(1);
     }
 
 MEMORIA_ITERATOR_PART_END

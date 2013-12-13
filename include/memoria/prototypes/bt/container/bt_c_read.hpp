@@ -45,9 +45,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ReadName)
 
     static const Int Streams                                                    = Types::Streams;
 
-    typedef typename Types::DataTarget                                     		DataTarget;
+    typedef typename Types::DataTarget                                          DataTarget;
 
-    typedef typename Types::CtrSizeT											CtrSizeT;
+    typedef typename Types::CtrSizeT                                            CtrSizeT;
 
     Position getRemainder(ITarget& target)
     {
@@ -138,7 +138,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ReadName)
     {
         MEMORIA_ASSERT(iter.dataPos(), >=, 0);
 
-    	IDataBase* data = T2T<IDataBase*>(data_target.stream(iter.stream()));
+        IDataBase* data = T2T<IDataBase*>(data_target.stream(iter.stream()));
 
         CtrSizeT sum = 0;
         CtrSizeT len = data->getRemainder();

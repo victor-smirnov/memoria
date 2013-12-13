@@ -76,7 +76,7 @@ public:
 template <typename Object>
 class ValueBuffer {
 
-	static_assert(std::is_trivial<Object>::value, "Object must be a trivial type");
+    static_assert(std::is_trivial<Object>::value, "Object must be a trivial type");
 
     typedef ValueBuffer<Object>                                                 MyType;
     Object value_;

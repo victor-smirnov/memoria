@@ -20,7 +20,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::root::CtrApiName)
 
     typedef typename Base::Metadata                                             Metadata;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
-    typedef typename Base::NodeBase                                            	NodeBase;
+    typedef typename Base::NodeBase                                             NodeBase;
     typedef typename Base::Page                                                 Page;
 
     Metadata createNewRootMetadata() const

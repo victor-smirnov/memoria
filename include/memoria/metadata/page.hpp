@@ -149,7 +149,7 @@ namespace internal {
 template <typename Tuple, Int Idx = std::tuple_size<Tuple>::value - 1>
 struct TupleValueHelper {
 
-	using CurrentType = typename std::tuple_element<Idx, Tuple>::type;
+    using CurrentType = typename std::tuple_element<Idx, Tuple>::type;
 
     static void setup(IPageDataEventHandler* handler, const Tuple& field)
     {
@@ -163,7 +163,7 @@ struct TupleValueHelper {
 
 template <typename Tuple>
 struct TupleValueHelper<Tuple, -1> {
-	static void setup(IPageDataEventHandler* handler, const Tuple& field) {}
+    static void setup(IPageDataEventHandler* handler, const Tuple& field) {}
 };
 
 }
@@ -171,15 +171,15 @@ struct TupleValueHelper<Tuple, -1> {
 template <typename... Types>
 struct ValueHelper<std::tuple<Types...>> {
 
-	using Type = std::tuple<Types...>;
+    using Type = std::tuple<Types...>;
 
     static void setup(IPageDataEventHandler* handler, const Type& value)
     {
-    	handler->startLine("VALUE", std::tuple_size<Type>::value);
+        handler->startLine("VALUE", std::tuple_size<Type>::value);
 
-    	internal::TupleValueHelper<Type>::setup(handler, value);
+        internal::TupleValueHelper<Type>::setup(handler, value);
 
-    	handler->endLine();
+        handler->endLine();
     }
 };
 

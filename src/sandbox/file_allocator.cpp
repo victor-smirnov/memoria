@@ -12,49 +12,49 @@ using namespace memoria;
 
 Int main() {
 
-	MetadataRepository<FileProfile<> >::init();
+    MetadataRepository<FileProfile<> >::init();
 
-	typedef FCtrTF<Vector<Int>>::Type CtrType;
+    typedef FCtrTF<Vector<Int>>::Type CtrType;
 
-	CtrType::initMetadata();
+    CtrType::initMetadata();
 
-	try {
+    try {
 
-		GenericFileAllocator allocator("file.db");
+        GenericFileAllocator allocator("file.db");
 
-		if (allocator.is_new())
-		{
-			CtrType ctr(&allocator, CTR_CREATE, 100000);
+        if (allocator.is_new())
+        {
+            CtrType ctr(&allocator, CTR_CREATE, 100000);
 
-			vector<Int> data(200000);
+            vector<Int> data(200000);
 
-			Int cnt = 0;
-			for (auto& a: data)
-			{
-				a = cnt++;
-			}
+            Int cnt = 0;
+            for (auto& a: data)
+            {
+                a = cnt++;
+            }
 
-			ctr.seek(0).insert(data);
+            ctr.seek(0).insert(data);
 
-			allocator.commit();
-		}
-		else {
-			CtrType ctr(&allocator, CTR_FIND, 100000);
+            allocator.commit();
+        }
+        else {
+            CtrType ctr(&allocator, CTR_FIND, 100000);
 
-			std::cout<<"Size: "<<ctr.size()<<std::endl;
+            std::cout<<"Size: "<<ctr.size()<<std::endl;
 
-			auto iter = ctr.seek(0);
+            auto iter = ctr.seek(0);
 
-			while (iter.nextLeaf())
-			{
-				iter.dump();
-			}
-		}
-	}
-	catch (Exception ex)
-	{
-		std::cout<<ex.source()<<" "<<ex<<std::endl;
-	}
+            while (iter.nextLeaf())
+            {
+                iter.dump();
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        std::cout<<ex.source()<<" "<<ex<<std::endl;
+    }
 
-	return 0;
+    return 0;
 }

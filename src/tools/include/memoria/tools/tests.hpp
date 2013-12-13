@@ -27,7 +27,7 @@ using namespace std;
     this->addTest(#testMethodName, &MyType::testMethodName)
 
 #define MEMORIA_ADD_TEST_WITH_REPLAY(testMethodName, replayMethodName)\
-	this->addTest(#testMethodName, &MyType::testMethodName, &MyType::replayMethodName)
+    this->addTest(#testMethodName, &MyType::testMethodName, &MyType::replayMethodName)
 
 
 

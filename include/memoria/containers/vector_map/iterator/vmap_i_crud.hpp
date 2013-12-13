@@ -27,7 +27,7 @@ namespace memoria    {
 
 MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrCRUDName)
 
-    typedef Ctr<typename Types::CtrTypes>                       				Container;
+    typedef Ctr<typename Types::CtrTypes>                                       Container;
 
 
     typedef typename Base::Allocator                                            Allocator;

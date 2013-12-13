@@ -327,9 +327,9 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     template <typename Node>
     NodeBaseG createNodeFn(Int size) const
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	NodeBaseG node = self.allocator().createPage(size, self.master_name());
+        NodeBaseG node = self.allocator().createPage(size, self.master_name());
         node->init();
 
         node->page_type_hash() = Node::hash();
@@ -437,44 +437,44 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     void markCtrUpdated()
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	BigInt txn_id = self.allocator().currentTxnId();
-    	const Metadata& metadata = self.getRootMetadata();
+        BigInt txn_id = self.allocator().currentTxnId();
+        const Metadata& metadata = self.getRootMetadata();
 
-    	if (txn_id == metadata.txn_id())
-    	{
-    		// do nothing
-    	}
-    	else if (txn_id > metadata.txn_id())
-    	{
-    		Metadata copy = metadata;
-    		copy.txn_id() = txn_id;
+        if (txn_id == metadata.txn_id())
+        {
+            // do nothing
+        }
+        else if (txn_id > metadata.txn_id())
+        {
+            Metadata copy = metadata;
+            copy.txn_id() = txn_id;
 
-    		self.setRootMetadata(copy);
+            self.setRootMetadata(copy);
 
-    		self.allocator().markUpdated(self.master_name());
-    	}
-    	else {
-    		throw vapi::Exception(MA_SRC, SBuf()<<"Invalid txn_id "<<txn_id<<" < "<<metadata.txn_id());
-    	}
+            self.allocator().markUpdated(self.master_name());
+        }
+        else {
+            throw vapi::Exception(MA_SRC, SBuf()<<"Invalid txn_id "<<txn_id<<" < "<<metadata.txn_id());
+        }
     }
 
     void updatePageG(NodeBaseG& node) const
     {
-    	node.update(self().master_name());
+        node.update(self().master_name());
     }
 
 
     virtual bool hasRoot(BigInt name)
     {
-    	MEMORIA_ASSERT(name, >=, 0);
+        MEMORIA_ASSERT(name, >=, 0);
 
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	NodeBaseG root = self.allocator().getPage(self.root(), self.master_name());
+        NodeBaseG root = self.allocator().getPage(self.root(), self.master_name());
 
-    	return root->root_metadata().roots(name).isSet();
+        return root->root_metadata().roots(name).isSet();
     }
 
  private:

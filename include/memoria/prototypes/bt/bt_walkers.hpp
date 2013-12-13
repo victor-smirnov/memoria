@@ -24,14 +24,14 @@
 
 
 namespace memoria       {
-namespace bt 			{
+namespace bt            {
 
 
 template <typename Types, typename MyType>
 class FindWalkerBase {
 protected:
     typedef typename Types::Position                                            Position;
-    typedef BigInt                                                 				Key;
+    typedef BigInt                                                              Key;
 
     typedef Iter<typename Types::IterTypes>                                     Iterator;
 
@@ -82,7 +82,7 @@ public:
 
     Int index() const
     {
-    	return index_;
+        return index_;
     }
 
     const SearchType& search_type() const {
@@ -265,38 +265,38 @@ public:
     template <Int Idx, typename TreeTypes>
     ResultType stream(const PkdFTree<TreeTypes>* tree, Int start)
     {
-    	return self().template tree<Idx>(tree, start);
+        return self().template tree<Idx>(tree, start);
     }
 
 //    template <Int Idx, typename TreeTypes>
 //    ResultType stream(const PackedMap<TreeTypes>* tree, Int start)
 //    {
-//    	return self().template tree<Idx>(tree, start);
+//      return self().template tree<Idx>(tree, start);
 //    }
 
     template <Int Idx, typename TreeTypes>
     ResultType stream(const PackedFSEMarkableMap<TreeTypes>* tree, Int start)
     {
-    	return self().template tree<Idx>(tree, start);
+        return self().template tree<Idx>(tree, start);
     }
 
 
     template <Int Idx, typename TreeTypes>
     ResultType stream(const PkdVTree<TreeTypes>* tree, Int start)
     {
-    	return self().template tree<Idx>(tree, start);
+        return self().template tree<Idx>(tree, start);
     }
 
     template <Int Idx, typename StreamTypes>
     ResultType stream(const PackedFSEArray<StreamTypes>* array, Int start)
     {
-    	return self().template array<Idx>(array, start);
+        return self().template array<Idx>(array, start);
     }
 
     template <Int Idx, typename StreamTypes>
     ResultType stream(const PkdFSSeq<StreamTypes>* array, Int start)
     {
-    	return self().template array<Idx>(array, start);
+        return self().template array<Idx>(array, start);
     }
 
 
@@ -304,37 +304,37 @@ public:
     template <Int Idx, typename Tree>
     ResultType tree(const Tree* tree, Int start)
     {
-    	auto k      = Base::target_ - Base::sum_;
+        auto k      = Base::target_ - Base::sum_;
 
-    	auto result = tree->findForward(Base::search_type_, Base::index_, start, k);
+        auto result = tree->findForward(Base::search_type_, Base::index_, start, k);
 
-    	Base::sum_ += result.prefix();
+        Base::sum_ += result.prefix();
 
-    	self().template postProcessStream<Idx>(tree, start, result);
+        self().template postProcessStream<Idx>(tree, start, result);
 
-    	return result.idx();
+        return result.idx();
     }
 
     template <Int Idx, typename Array>
     ResultType array(const Array* array, Int start)
     {
-    	auto& sum = Base::sum_;
+        auto& sum = Base::sum_;
 
-    	BigInt offset = Base::target_ - sum;
+        BigInt offset = Base::target_ - sum;
 
-    	Int size = array != nullptr? array->size() : 0;
+        Int size = array != nullptr? array->size() : 0;
 
-    	if (start + offset < size)
-    	{
-    		sum += offset;
+        if (start + offset < size)
+        {
+            sum += offset;
 
-    		return start + offset;
-    	}
-    	else {
-    		sum += (size - start);
+            return start + offset;
+        }
+        else {
+            sum += (size - start);
 
-    		return size;
-    	}
+            return size;
+        }
     }
 
 
@@ -521,33 +521,33 @@ public:
     template <Int Idx, typename TreeTypes>
     ResultType stream(const PkdFTree<TreeTypes>* tree, Int start)
     {
-    	return self().template tree<Idx>(tree, start);
+        return self().template tree<Idx>(tree, start);
     }
 
 //    template <Int Idx, typename TreeTypes>
 //    ResultType stream(const PackedFSEMap<TreeTypes>* tree, Int start)
 //    {
-//    	return self().template tree<Idx>(tree, start);
+//      return self().template tree<Idx>(tree, start);
 //    }
 
 
     template <Int Idx, typename TreeTypes>
     ResultType stream(const PkdVTree<TreeTypes>* tree, Int start)
     {
-    	return self().template tree<Idx>(tree, start);
+        return self().template tree<Idx>(tree, start);
     }
 
 
     template <Int Idx, typename TreeTypes>
     ResultType stream(const PackedFSEArray<TreeTypes>* array, Int start)
     {
-    	return self().template array<Idx>(array, start);
+        return self().template array<Idx>(array, start);
     }
 
     template <Int Idx, typename TreeTypes>
     ResultType stream(const PkdFSSeq<TreeTypes>* array, Int start)
     {
-    	return self().template array<Idx>(array, start);
+        return self().template array<Idx>(array, start);
     }
 
 
@@ -568,19 +568,19 @@ public:
     template <Int Idx, typename Array>
     ResultType array(const Array* array, Int start)
     {
-    	BigInt offset = Base::target_ - Base::sum_;
+        BigInt offset = Base::target_ - Base::sum_;
 
-    	auto& sum = Base::sum_;
+        auto& sum = Base::sum_;
 
-    	if (start - offset >= 0)
-    	{
-    		sum += offset;
-    		return start - offset;
-    	}
-    	else {
-    		sum += start;
-    		return -1;
-    	}
+        if (start - offset >= 0)
+        {
+            sum += offset;
+            return start - offset;
+        }
+        else {
+            sum += start;
+            return -1;
+        }
     }
 
     MyType& self() {
@@ -751,9 +751,9 @@ public:
 
 
     SelectForwardWalkerBase(Int stream, Int index, Int symbol, Key target, Int size_index = 0):
-    	Base(stream, index + 1, target),
-    	size_index_(size_index),
-    	symbol_(symbol)
+        Base(stream, index + 1, target),
+        size_index_(size_index),
+        symbol_(symbol)
     {
         Base::search_type_ = SearchType::GE;
     }
@@ -825,9 +825,9 @@ public:
     typedef typename Base::Iterator                                             Iterator;
 
     SelectBackwardWalkerBase(Int stream, Int index, Int symbol, Key target, Int size_index = 0):
-    	Base(stream, index + 1, target),
-    	size_index_(size_index),
-    	symbol_(symbol)
+        Base(stream, index + 1, target),
+        size_index_(size_index),
+        symbol_(symbol)
     {
         Base::search_type_ = SearchType::GT;
     }

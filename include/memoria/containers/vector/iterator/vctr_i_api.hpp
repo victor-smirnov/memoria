@@ -39,7 +39,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
     typedef typename Container::LeafDispatcher                                  LeafDispatcher;
     typedef typename Container::Position                                        Position;
 
-    typedef typename Container::Types::CtrSizeT									CtrSizeT;
+    typedef typename Container::Types::CtrSizeT                                 CtrSizeT;
 
     bool operator++() {
         return self().skipFw(1);
@@ -186,7 +186,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 
     void seek(CtrSizeT pos)
     {
-    	CtrSizeT current_pos = self().pos();
+        CtrSizeT current_pos = self().pos();
         self().skip(pos - current_pos);
     }
 

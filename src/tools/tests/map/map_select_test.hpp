@@ -78,20 +78,20 @@ public:
 
         for (Int c = 1; c <= this->size_; c++)
         {
-        	Int key = getRandom();
+            Int key = getRandom();
 
-        	auto iter = map[key];
+            auto iter = map[key];
 
-        	iter.setData(c);
+            iter.setData(c);
 
-        	if (c % mark_step == 0)
-        	{
-        		iter.setMark(1);
+            if (c % mark_step == 0)
+            {
+                iter.setMark(1);
 
-        		marked_keys[key] = c;
-        	}
+                marked_keys[key] = c;
+            }
 
-        	this->check(allocator, MA_SRC);
+            this->check(allocator, MA_SRC);
         }
 
         allocator.commit();
@@ -101,37 +101,37 @@ public:
         assertMap(map, marked_keys);
 
         try {
-        	while(marked_keys.size() > 0)
-        	{
-        		auto tgt_pos = getRandom(marked_keys.size());
+            while(marked_keys.size() > 0)
+            {
+                auto tgt_pos = getRandom(marked_keys.size());
 
-        		auto i = marked_keys.begin();
-        		for (Int c = 0; c < tgt_pos; c++, i++);
+                auto i = marked_keys.begin();
+                for (Int c = 0; c < tgt_pos; c++, i++);
 
-        		MEMORIA_ASSERT_TRUE(i != marked_keys.end());
+                MEMORIA_ASSERT_TRUE(i != marked_keys.end());
 
-        		BigInt key = i->first;
-        		this->out()<<"Remove: "<<key<<" at "<<tgt_pos<<std::endl;
-        		marked_keys.erase(key);
+                BigInt key = i->first;
+                this->out()<<"Remove: "<<key<<" at "<<tgt_pos<<std::endl;
+                marked_keys.erase(key);
 
-        		auto iter = map.find(key);
+                auto iter = map.find(key);
 
-        		AssertFalse(MA_SRC, iter.isEnd());
-        		AssertEQ(MA_SRC, iter.key(), key);
-        		AssertEQ(MA_SRC, iter.mark(), 1);
+                AssertFalse(MA_SRC, iter.isEnd());
+                AssertEQ(MA_SRC, iter.key(), key);
+                AssertEQ(MA_SRC, iter.mark(), 1);
 
-        		iter.remove();
+                iter.remove();
 
-        		this->check(allocator, MA_SRC);
+                this->check(allocator, MA_SRC);
 
-        		assertMap(map, marked_keys);
+                assertMap(map, marked_keys);
 
-        		allocator.commit();
-        	}
+                allocator.commit();
+            }
         }
         catch (...) {
-        	this->dump_name_ = this->Store(allocator);
-        	throw;
+            this->dump_name_ = this->Store(allocator);
+            throw;
         }
     }
 
@@ -144,33 +144,33 @@ public:
 
         while (!iter.isEnd())
         {
-        	auto tmp = iter;
+            auto tmp = iter;
 
-        	iter.selectFw(1, 1);
+            iter.selectFw(1, 1);
 
-        	if (!iter.isEnd())
-        	{
-        		total_marks++;
+            if (!iter.isEnd())
+            {
+                total_marks++;
 
-        		BigInt key 		= iter.key();
-        		BigInt value 	= iter.value();
+                BigInt key      = iter.key();
+                BigInt value    = iter.value();
 
-        		Int mark 		= iter.mark();
+                Int mark        = iter.mark();
 
-        		AssertEQ(MA_SRC, mark, 1);
+                AssertEQ(MA_SRC, mark, 1);
 
-        		AssertTrue(MA_SRC, marked_keys.find(key) != marked_keys.end());
+                AssertTrue(MA_SRC, marked_keys.find(key) != marked_keys.end());
 
-        		AssertEQ(MA_SRC, value, marked_keys[key]);
+                AssertEQ(MA_SRC, value, marked_keys[key]);
 
-        		iter++;
-        	}
-        	else if (total_marks < marked_keys.size())
-        	{
-        		tmp.dumpPath();
-        		tmp.selectFw(1, 1);
-        		tmp.dumpPath();
-        	}
+                iter++;
+            }
+            else if (total_marks < marked_keys.size())
+            {
+                tmp.dumpPath();
+                tmp.selectFw(1, 1);
+                tmp.dumpPath();
+            }
         }
 
         this->out()<<"Total marks: "<<total_marks<<std::endl;

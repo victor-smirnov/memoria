@@ -10,23 +10,23 @@
 #include <memoria/core/types/types.hpp>
 
 namespace memoria {
-namespace bt1 	  {
+namespace bt1     {
 
 
 template <typename Types, typename MyType>
 class WalkerBase {
 protected:
     typedef Iter<typename Types::IterTypes>                                     Iterator;
-    typedef typename Types::IteratorPrefix										IteratorPrefix;
+    typedef typename Types::IteratorPrefix                                      IteratorPrefix;
 
-    typedef typename Types::CtrSizeT											Key;
+    typedef typename Types::CtrSizeT                                            Key;
 
     static const Int Streams                                                    = Types::Streams;
 
     SearchType search_type_ = SearchType::GT;
 
-    BigInt sum_         	= 0;
-    BigInt target_      	= 0;
+    BigInt sum_             = 0;
+    BigInt target_          = 0;
 
     WalkDirection direction_;
 
@@ -43,63 +43,63 @@ protected:
 private:
 
     struct FindNonLeafFn {
-    	MyType& walker_;
+        MyType& walker_;
 
-    	using ResultType = Int;
+        using ResultType = Int;
 
-    	FindNonLeafFn(MyType& walker): walker_(walker) {}
+        FindNonLeafFn(MyType& walker): walker_(walker) {}
 
-    	template <Int StreamIndex, typename StreamType>
-    	ResultType stream(const StreamType* stream, Int start)
-    	{
-    		return walker_.template find_non_leaf<StreamIndex>(stream, start);
-    	}
+        template <Int StreamIndex, typename StreamType>
+        ResultType stream(const StreamType* stream, Int start)
+        {
+            return walker_.template find_non_leaf<StreamIndex>(stream, start);
+        }
     };
 
 
     struct FindLeafFn {
-    	MyType& walker_;
+        MyType& walker_;
 
-    	using ResultType = Int;
+        using ResultType = Int;
 
-    	FindLeafFn(MyType& walker): walker_(walker) {}
+        FindLeafFn(MyType& walker): walker_(walker) {}
 
-    	template <Int StreamIndex, typename StreamType>
-    	ResultType stream(const StreamType* stream, Int start)
-    	{
-    		return walker_.template find_leaf<StreamIndex>(stream, start);
-    	}
+        template <Int StreamIndex, typename StreamType>
+        ResultType stream(const StreamType* stream, Int start)
+        {
+            return walker_.template find_leaf<StreamIndex>(stream, start);
+        }
     };
 
 
     struct OtherNonLeafStreamsProc {
-    	MyType& walker_;
+        MyType& walker_;
 
-    	OtherNonLeafStreamsProc(MyType& walker): walker_(walker) {}
+        OtherNonLeafStreamsProc(MyType& walker): walker_(walker) {}
 
-    	template <Int StreamIndex, typename StreamType>
-    	void stream(const StreamType* stream, Int start, Int idx)
-    	{
-    		if (stream && (StreamIndex != walker_.current_stream()))
-    		{
-    			walker_.template postProcessOtherNonLeafStreams<StreamIndex>(stream, start, idx);
-    		}
-    	}
+        template <Int StreamIndex, typename StreamType>
+        void stream(const StreamType* stream, Int start, Int idx)
+        {
+            if (stream && (StreamIndex != walker_.current_stream()))
+            {
+                walker_.template postProcessOtherNonLeafStreams<StreamIndex>(stream, start, idx);
+            }
+        }
     };
 
     struct OtherLeafStreamsProc {
-    	MyType& walker_;
+        MyType& walker_;
 
-    	OtherLeafStreamsProc(MyType& walker): walker_(walker) {}
+        OtherLeafStreamsProc(MyType& walker): walker_(walker) {}
 
-    	template <Int StreamIndex, typename StreamType>
-    	void stream(const StreamType* stream)
-    	{
-    		if (stream && (StreamIndex != walker_.current_stream()))
-    		{
-    			walker_.template postProcessOtherLeafStreams<StreamIndex>(stream);
-    		}
-    	}
+        template <Int StreamIndex, typename StreamType>
+        void stream(const StreamType* stream)
+        {
+            if (stream && (StreamIndex != walker_.current_stream()))
+            {
+                walker_.template postProcessOtherLeafStreams<StreamIndex>(stream);
+            }
+        }
     };
 
 public:
@@ -136,12 +136,12 @@ public:
 
     Int branch_index() const
     {
-    	return branch_index_;
+        return branch_index_;
     }
 
     Int leaf_index() const
     {
-    	return leaf_index_;
+        return leaf_index_;
     }
 
     const SearchType& search_type() const {
@@ -154,7 +154,7 @@ public:
 
     void prepare(Iterator& iter)
     {
-    	prefix_ = iter.cache().prefixes();
+        prefix_ = iter.cache().prefixes();
     }
 
     BigInt finish(Iterator& iter, Int idx)
@@ -196,14 +196,14 @@ public:
     template <typename NodeTypes>
     ReturnType treeNode(const bt::BranchNode<NodeTypes>* node, BigInt start)
     {
-    	Int idx = node->find(stream_, FindNonLeafFn(self()), start);
+        Int idx = node->find(stream_, FindNonLeafFn(self()), start);
 
         self().postProcessNode(node, start, idx);
 
         if (multistream_ && Streams > 1)
         {
-        	OtherNonLeafStreamsProc proc(self());
-        	node->processAll(proc, start, idx);
+            OtherNonLeafStreamsProc proc(self());
+            node->processAll(proc, start, idx);
         }
 
         return idx;
@@ -212,51 +212,51 @@ public:
     template <typename NodeTypes>
     ReturnType treeNode(const bt::LeafNode<NodeTypes>* node, BigInt start)
     {
-    	Int idx = node->find(stream_, FindLeafFn(self()), start);
+        Int idx = node->find(stream_, FindLeafFn(self()), start);
 
-    	self().postProcessNode(node, start, idx);
+        self().postProcessNode(node, start, idx);
 
-    	if (multistream_ && Streams > 1)
-    	{
-    		if (direction_ == WalkDirection::UP)
-    		{
-    			OtherLeafStreamsProc proc(self());
-    			node->processAll(proc);
-    		}
-    	}
+        if (multistream_ && Streams > 1)
+        {
+            if (direction_ == WalkDirection::UP)
+            {
+                OtherLeafStreamsProc proc(self());
+                node->processAll(proc);
+            }
+        }
 
-    	return idx;
+        return idx;
     }
 
 };
 
 
 struct EmptyIteratorPrefixFn {
-	template <typename StreamType, typename IteratorPrefix>
-	void processNonLeafFw(const StreamType*, IteratorPrefix&, Int start, Int end, Int index, BigInt prefix)
-	{}
+    template <typename StreamType, typename IteratorPrefix>
+    void processNonLeafFw(const StreamType*, IteratorPrefix&, Int start, Int end, Int index, BigInt prefix)
+    {}
 
-	template <typename StreamType, typename IteratorPrefix>
-	void processLeafFw(const StreamType*, IteratorPrefix&, Int start, Int end, Int index, BigInt prefix)
-	{}
+    template <typename StreamType, typename IteratorPrefix>
+    void processLeafFw(const StreamType*, IteratorPrefix&, Int start, Int end, Int index, BigInt prefix)
+    {}
 
-	template <typename StreamType, typename IteratorPrefix>
-	void processLeafFw(const StreamType*, IteratorPrefix&, Int start, Int end)
-	{}
+    template <typename StreamType, typename IteratorPrefix>
+    void processLeafFw(const StreamType*, IteratorPrefix&, Int start, Int end)
+    {}
 
 
 
-	template <typename StreamType, typename IteratorPrefix>
-	void processNonLeafBw(const StreamType*, IteratorPrefix&, Int start, Int end, Int index, BigInt prefix)
-	{}
+    template <typename StreamType, typename IteratorPrefix>
+    void processNonLeafBw(const StreamType*, IteratorPrefix&, Int start, Int end, Int index, BigInt prefix)
+    {}
 
-	template <typename StreamType, typename IteratorPrefix>
-	void processLeafBw(const StreamType*, IteratorPrefix&, Int start, Int end, Int index, BigInt prefix)
-	{}
+    template <typename StreamType, typename IteratorPrefix>
+    void processLeafBw(const StreamType*, IteratorPrefix&, Int start, Int end, Int index, BigInt prefix)
+    {}
 
-	template <typename StreamType, typename IteratorPrefix>
-	void processLeafBw(const StreamType*, IteratorPrefix&, Int start, Int end)
-	{}
+    template <typename StreamType, typename IteratorPrefix>
+    void processLeafBw(const StreamType*, IteratorPrefix&, Int start, Int end)
+    {}
 };
 
 

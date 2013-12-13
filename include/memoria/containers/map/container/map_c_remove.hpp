@@ -50,9 +50,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrRemoveName)
         template <Int Idx, typename StreamTypes>
         void stream(PkdFTree<StreamTypes>* map, Int idx)
         {
-        	map->sums(idx, idx+1, std::get<Idx>(entry_));
-        	map->remove(idx, idx + 1);
-        	map->reindex();
+            map->sums(idx, idx+1, std::get<Idx>(entry_));
+            map->remove(idx, idx + 1);
+            map->reindex();
         }
 
 //        template <Int Idx, typename StreamTypes>
@@ -65,15 +65,15 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrRemoveName)
 //        template <Int Idx, typename StreamTypes>
 //        void stream(PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx)
 //        {
-//        	map->addKeys(idx, std::get<Idx>(entry_));
-//        	map->remove(idx, idx + 1);
+//          map->addKeys(idx, std::get<Idx>(entry_));
+//          map->remove(idx, idx + 1);
 //        }
 
         template <Int Idx, typename StreamTypes>
         void stream(PackedFSEMarkableMap<StreamTypes>* map, Int idx)
         {
-        	map->sums(idx, idx + 1, std::get<Idx>(entry_));
-        	map->remove(idx, idx + 1);
+            map->sums(idx, idx + 1, std::get<Idx>(entry_));
+            map->remove(idx, idx + 1);
         }
 
         template <typename Node>

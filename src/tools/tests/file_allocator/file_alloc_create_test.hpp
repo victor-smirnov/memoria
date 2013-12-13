@@ -20,122 +20,122 @@
 namespace memoria {
 
 class FileAllocatorCreateTest: public FileAllocatorTestBase {
-	typedef FileAllocatorTestBase												Base;
-	typedef FileAllocatorCreateTest												MyType;
+    typedef FileAllocatorTestBase                                               Base;
+    typedef FileAllocatorCreateTest                                             MyType;
 
 protected:
-	typedef typename Base::Allocator											Allocator;
+    typedef typename Base::Allocator                                            Allocator;
 
-	typedef typename FCtrTF<Map<BigInt, BigInt>>::Type							MapCtr;
+    typedef typename FCtrTF<Map<BigInt, BigInt>>::Type                          MapCtr;
 
 public:
 
-	FileAllocatorCreateTest(StringRef name): Base(name)
-	{
-		MapCtr::initMetadata();
+    FileAllocatorCreateTest(StringRef name): Base(name)
+    {
+        MapCtr::initMetadata();
 
-		MEMORIA_ADD_TEST(testOpenMode);
-		MEMORIA_ADD_TEST(testAttributes);
-		MEMORIA_ADD_TEST(testInitialFileSize);
-	}
+        MEMORIA_ADD_TEST(testOpenMode);
+        MEMORIA_ADD_TEST(testAttributes);
+        MEMORIA_ADD_TEST(testInitialFileSize);
+    }
 
-	void testOpenMode()
-	{
-		File db_file(getResourcePath("open_mode.db"));
+    void testOpenMode()
+    {
+        File db_file(getResourcePath("open_mode.db"));
 
-		if (db_file.isExists())
-		{
-			db_file.deleteFile();
-		}
+        if (db_file.isExists())
+        {
+            db_file.deleteFile();
+        }
 
-		AssertDoesntThrow(MA_SRC, [&db_file]()
-		{
-			Allocator allocator(db_file.getPath(), OpenMode::READ | OpenMode::WRITE | OpenMode::CREATE);
-		});
+        AssertDoesntThrow(MA_SRC, [&db_file]()
+        {
+            Allocator allocator(db_file.getPath(), OpenMode::READ | OpenMode::WRITE | OpenMode::CREATE);
+        });
 
-		AssertDoesntThrow(MA_SRC, [&db_file]()
-		{
-			Allocator allocator(db_file.getPath(), OpenMode::READ | OpenMode::WRITE);
-		});
+        AssertDoesntThrow(MA_SRC, [&db_file]()
+        {
+            Allocator allocator(db_file.getPath(), OpenMode::READ | OpenMode::WRITE);
+        });
 
-		AssertThrows<Exception>(MA_SRC, [&db_file]()
-		{
-			Allocator allocator(db_file.getPath(), OpenMode::READ);
+        AssertThrows<Exception>(MA_SRC, [&db_file]()
+        {
+            Allocator allocator(db_file.getPath(), OpenMode::READ);
 
-			auto page = allocator.createPage(allocator.properties().defaultPageSize(), -1);
+            auto page = allocator.createPage(allocator.properties().defaultPageSize(), -1);
 
-			allocator.commit();
-		});
+            allocator.commit();
+        });
 
-		AssertDoesntThrow(MA_SRC, [&db_file]()
-		{
-			Allocator allocator(db_file.getPath(), OpenMode::READ);
+        AssertDoesntThrow(MA_SRC, [&db_file]()
+        {
+            Allocator allocator(db_file.getPath(), OpenMode::READ);
 
-			auto page = allocator.createPage(allocator.properties().defaultPageSize(), -1);
+            auto page = allocator.createPage(allocator.properties().defaultPageSize(), -1);
 
-			allocator.rollback();
-		});
+            allocator.rollback();
+        });
 
 
-		AssertThrows<Exception>(MA_SRC, [&db_file]()
-		{
-			Allocator allocator(db_file.getPath(), OpenMode::READ | OpenMode::CREATE);
-		});
+        AssertThrows<Exception>(MA_SRC, [&db_file]()
+        {
+            Allocator allocator(db_file.getPath(), OpenMode::READ | OpenMode::CREATE);
+        });
 
-		AssertDoesntThrow(MA_SRC, [&db_file]()
-		{
-			Allocator allocator(db_file.getPath(), OpenMode::READ | OpenMode::WRITE | OpenMode::TRUNC);
-		});
+        AssertDoesntThrow(MA_SRC, [&db_file]()
+        {
+            Allocator allocator(db_file.getPath(), OpenMode::READ | OpenMode::WRITE | OpenMode::TRUNC);
+        });
 
-		db_file.deleteFile();
+        db_file.deleteFile();
 
-		AssertDoesntThrow(MA_SRC, [&db_file]()
-		{
-			Allocator allocator(db_file.getPath(), OpenMode::READ | OpenMode::WRITE | OpenMode::CREATE);
-			MapCtr map(&allocator, CTR_CREATE, 10000);
+        AssertDoesntThrow(MA_SRC, [&db_file]()
+        {
+            Allocator allocator(db_file.getPath(), OpenMode::READ | OpenMode::WRITE | OpenMode::CREATE);
+            MapCtr map(&allocator, CTR_CREATE, 10000);
 
-			allocator.commit();
-		});
+            allocator.commit();
+        });
 
-		AssertDoesntThrow(MA_SRC, [&db_file]()
-		{
-			Allocator allocator(db_file.getPath(), OpenMode::READ | OpenMode::WRITE | OpenMode::TRUNC);
-			MapCtr map(&allocator, CTR_CREATE | CTR_THROW_IF_EXISTS, 10000);
+        AssertDoesntThrow(MA_SRC, [&db_file]()
+        {
+            Allocator allocator(db_file.getPath(), OpenMode::READ | OpenMode::WRITE | OpenMode::TRUNC);
+            MapCtr map(&allocator, CTR_CREATE | CTR_THROW_IF_EXISTS, 10000);
 
-			allocator.commit();
-		});
-	}
+            allocator.commit();
+        });
+    }
 
-	void testAttributes()
-	{
-		String name = getResourcePath("attributes.db");
+    void testAttributes()
+    {
+        String name = getResourcePath("attributes.db");
 
-		Allocator allocator(name, OpenMode::READ | OpenMode::WRITE | OpenMode::CREATE | OpenMode::TRUNC);
+        Allocator allocator(name, OpenMode::READ | OpenMode::WRITE | OpenMode::CREATE | OpenMode::TRUNC);
 
-		AssertTrue(MA_SRC, allocator.is_new());
-		AssertTrue(MA_SRC, allocator.is_clean());
+        AssertTrue(MA_SRC, allocator.is_new());
+        AssertTrue(MA_SRC, allocator.is_clean());
 
-		allocator.close();
+        allocator.close();
 
-		Allocator new_allocator(name, OpenMode::READ | OpenMode::WRITE);
+        Allocator new_allocator(name, OpenMode::READ | OpenMode::WRITE);
 
-		AssertFalse(MA_SRC, new_allocator.is_new());
-		AssertTrue(MA_SRC, new_allocator.is_clean());
-	}
+        AssertFalse(MA_SRC, new_allocator.is_new());
+        AssertTrue(MA_SRC, new_allocator.is_clean());
+    }
 
-	void testInitialFileSize()
-	{
-		String name = getResourcePath("initial_file_size.db");
+    void testInitialFileSize()
+    {
+        String name = getResourcePath("initial_file_size.db");
 
-		Allocator allocator(name, OpenMode::READ | OpenMode::WRITE | OpenMode::CREATE | OpenMode::TRUNC);
+        Allocator allocator(name, OpenMode::READ | OpenMode::WRITE | OpenMode::CREATE | OpenMode::TRUNC);
 
-		File file(name);
+        File file(name);
 
-		Int page_size 	= allocator.properties().defaultPageSize();
-		Int batch_size 	= allocator.cfg().initial_allocation_size();
+        Int page_size   = allocator.properties().defaultPageSize();
+        Int batch_size  = allocator.cfg().initial_allocation_size();
 
-		AssertEQ(MA_SRC, file.size(), batch_size * page_size);
-	}
+        AssertEQ(MA_SRC, file.size(), batch_size * page_size);
+    }
 };
 
 }

@@ -42,7 +42,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrKeysName)
     typedef typename Container::Position                                        Position;
 
     typedef typename Container::Types::IteratorPrefix                           IteratorPrefix;
-    typedef typename Container::Types::CtrSizeT                           		CtrSizeT;
+    typedef typename Container::Types::CtrSizeT                                 CtrSizeT;
 
     typedef typename Container::Types::Pages::LeafDispatcher                    LeafDispatcher;
 
@@ -54,18 +54,18 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrKeysName)
         template <Int Idx, typename Stream>
         Key stream(const Stream* stream, Int idx, Int index_num)
         {
-        	MEMORIA_ASSERT_TRUE(stream);
-        	return metamap::GetLeafIndex<Key>(stream, idx, index_num);
+            MEMORIA_ASSERT_TRUE(stream);
+            return metamap::GetLeafIndex<Key>(stream, idx, index_num);
         }
     };
 
     Key index(Int index_num) const
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	GetIndexFn fn;
+        GetIndexFn fn;
 
-    	return LeafDispatcher::dispatchConstRtn(self.leaf(), fn, self.idx(), index_num);
+        return LeafDispatcher::dispatchConstRtn(self.leaf(), fn, self.idx(), index_num);
     }
 
     Key key() const
@@ -87,36 +87,36 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrKeysName)
 
     IteratorPrefix prefixes() const
     {
-    	return self().cache().prefixes();
+        return self().cache().prefixes();
     }
 
     void adjustIndex(Int index, Key delta)
     {
-    	auto& self 	= this->self();
-    	auto& leaf	= self.leaf();
-    	auto& idx	= self.idx();
+        auto& self  = this->self();
+        auto& leaf  = self.leaf();
+        auto& idx   = self.idx();
 
-    	self.ctr().updateUp(leaf, idx, bt::SingleIndexUpdateData<Key>(0, index, delta), [&](Int, Int _idx) {
-    		idx = _idx;
-    		self.updatePrefix();
-    	});
+        self.ctr().updateUp(leaf, idx, bt::SingleIndexUpdateData<Key>(0, index, delta), [&](Int, Int _idx) {
+            idx = _idx;
+            self.updatePrefix();
+        });
     }
 
     void adjustKey(BigInt delta, bool ajust_next = true)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	self.adjustIndex(0, delta);
+        self.adjustIndex(0, delta);
 
-    	if (ajust_next)
-    	{
-    		if (self++)
-    		{
-    			self.adjustKey(-delta);
-    		}
+        if (ajust_next)
+        {
+            if (self++)
+            {
+                self.adjustKey(-delta);
+            }
 
-    		self--;
-    	}
+            self--;
+        }
     }
 
 MEMORIA_ITERATOR_PART_END

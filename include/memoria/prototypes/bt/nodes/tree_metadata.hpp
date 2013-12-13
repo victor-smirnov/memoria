@@ -168,11 +168,11 @@ public:
     }
 
     BigInt& txn_id() {
-    	return txn_id_;
+        return txn_id_;
     }
 
     const BigInt& txn_id() const {
-    	return txn_id_;
+        return txn_id_;
     }
 };
 

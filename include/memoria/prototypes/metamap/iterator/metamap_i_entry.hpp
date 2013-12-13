@@ -30,10 +30,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrEntryName)
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
 
-    typedef typename Container::Types::Entry                    				Entry;
+    typedef typename Container::Types::Entry                                    Entry;
     typedef typename Container::Value                                           Value;
     typedef typename Container::Key                                             Key;
-//    typedef typename Container::Element                                         Element;
     typedef typename Container::Accumulator                                     Accumulator;
 
 
@@ -41,27 +40,27 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrEntryName)
 
 
     struct GetEntryFn {
-    	using ReturnType = Entry;
-    	using ResultType = Entry;
+        using ReturnType = Entry;
+        using ResultType = Entry;
 
-    	template <Int Idx, typename Stream>
-    	ReturnType stream(const Stream* stream, Int idx)
-    	{
-    		MEMORIA_ASSERT_TRUE(stream);
-    		return metamap::GetEntry<Entry>(stream, idx);
-    	}
+        template <Int Idx, typename Stream>
+        ReturnType stream(const Stream* stream, Int idx)
+        {
+            MEMORIA_ASSERT_TRUE(stream);
+            return metamap::GetEntry<Entry>(stream, idx);
+        }
 
-    	template <typename Node>
-    	ResultType treeNode(const Node* node, Int idx)
-    	{
-    		return node->template processStreamRtn<0>(*this, idx);
-    	}
+        template <typename Node>
+        ResultType treeNode(const Node* node, Int idx)
+        {
+            return node->template processStreamRtn<0>(*this, idx);
+        }
     };
 
     Entry getEntry() const
     {
-    	auto& self = this->self();
-    	return LeafDispatcher::dispatchConstRtn(self.leaf(), GetEntryFn(), self.idx());
+        auto& self = this->self();
+        return LeafDispatcher::dispatchConstRtn(self.leaf(), GetEntryFn(), self.idx());
     }
 
 
@@ -118,39 +117,47 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrEntryName)
 
 
     EntryAccessor s_entry() {
-    	return EntryAccessor(self());
+        return EntryAccessor(self());
     }
 
     Entry entry() const {
-    	return self().getEntry();
+        return self().getEntry();
     }
 
 
     void insert(const Key& key, const Value& value)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	Entry entry;
+        Entry entry;
 
-    	entry.key() 	= key;
-    	entry.value()	= value;
+        entry.key()     = key;
+        entry.value()   = value;
 
-    	self.ctr().insertEntry(self, entry);
+        self.ctr().insertEntry(self, entry);
     }
 
     void insert(const Entry& entry)
     {
-    	auto& self = this->self();
-    	self.ctr().insertEntry(self, entry);
+        auto& self = this->self();
+        self.ctr().insertEntry(self, entry);
     }
 
 
     void remove()
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	Accumulator keys;
-    	self.ctr().removeMapEntry(self, keys);
+        Accumulator keys;
+        self.ctr().removeMapEntry(self, keys);
+    }
+
+    void removeTo(MyType& to)
+    {
+        auto& self = this->self();
+
+        Accumulator keys;
+        self.ctr().removeMapEntries(self, to, keys);
     }
 
 

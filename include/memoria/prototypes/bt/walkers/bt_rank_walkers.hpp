@@ -10,47 +10,47 @@
 #include <memoria/prototypes/bt/walkers/bt_skip_walkers.hpp>
 
 namespace memoria {
-namespace bt1 	  {
+namespace bt1     {
 
 
 template <
-	typename Types,
-	typename IteratorPrefixFn = EmptyIteratorPrefixFn
+    typename Types,
+    typename IteratorPrefixFn = EmptyIteratorPrefixFn
 >
 class RankForwardWalker: public SkipForwardWalkerBase<
-									Types,
-									IteratorPrefixFn,
-									RankForwardWalker<Types, IteratorPrefixFn>> {
+                                    Types,
+                                    IteratorPrefixFn,
+                                    RankForwardWalker<Types, IteratorPrefixFn>> {
 
-	using Base 		= SkipForwardWalkerBase<Types, IteratorPrefixFn, RankForwardWalker<Types, IteratorPrefixFn>>;
-	using Key 		= typename Base::Key;
-	using Iterator	= typename Base::Iterator;
+    using Base      = SkipForwardWalkerBase<Types, IteratorPrefixFn, RankForwardWalker<Types, IteratorPrefixFn>>;
+    using Key       = typename Base::Key;
+    using Iterator  = typename Base::Iterator;
 
-	using CtrSizeT = typename Types::CtrSizeT;
-	CtrSizeT rank_ = 0;
+    using CtrSizeT = typename Types::CtrSizeT;
+    CtrSizeT rank_ = 0;
 
-	Int branch_rank_index_;
-	Int symbol_;
+    Int branch_rank_index_;
+    Int symbol_;
 
 public:
 
-	RankForwardWalker(Int stream, Int branch_rank_index, Int symbol, Key target):
-		Base(stream, 0, 0, target),
-		branch_rank_index_(branch_rank_index),
-		symbol_(symbol)
-	{}
+    RankForwardWalker(Int stream, Int branch_rank_index, Int symbol, Key target):
+        Base(stream, 0, 0, target),
+        branch_rank_index_(branch_rank_index),
+        symbol_(symbol)
+    {}
 
-	template <Int StreamIdx, typename StreamType>
-	void postProcessLeafStream(const StreamType* stream, Int start, Int end)
-	{
-		return stream->rank(start, end, symbol_);
-	}
+    template <Int StreamIdx, typename StreamType>
+    void postProcessLeafStream(const StreamType* stream, Int start, Int end)
+    {
+        return stream->rank(start, end, symbol_);
+    }
 
-	template <Int StreamIdx, typename StreamType>
-	void postProcessNonLeafStream(const StreamType* stream, Int start, Int end, Int symbol)
-	{
-		return stream->sum(branch_rank_index_, start, end);
-	}
+    template <Int StreamIdx, typename StreamType>
+    void postProcessNonLeafStream(const StreamType* stream, Int start, Int end, Int symbol)
+    {
+        return stream->sum(branch_rank_index_, start, end);
+    }
 
     BigInt finish(Iterator& iter, Int idx)
     {
@@ -63,47 +63,47 @@ public:
 
 
 template <
-	typename Types,
-	typename IteratorPrefixFn = EmptyIteratorPrefixFn
+    typename Types,
+    typename IteratorPrefixFn = EmptyIteratorPrefixFn
 >
 class RankBackwardWalker: public SkipBackwardWalkerBase<
-									Types,
-									IteratorPrefixFn,
-									RankBackwardWalker<Types, IteratorPrefixFn>> {
+                                    Types,
+                                    IteratorPrefixFn,
+                                    RankBackwardWalker<Types, IteratorPrefixFn>> {
 
-	using Base 		= SkipBackwardWalkerBase<Types, IteratorPrefixFn, RankBackwardWalker<Types, IteratorPrefixFn>>;
-	using Key 		= typename Base::Key;
-	using Iterator	= typename Base::Iterator;
+    using Base      = SkipBackwardWalkerBase<Types, IteratorPrefixFn, RankBackwardWalker<Types, IteratorPrefixFn>>;
+    using Key       = typename Base::Key;
+    using Iterator  = typename Base::Iterator;
 
-	using CtrSizeT = typename Types::CtrSizeT;
-	CtrSizeT rank_ = 0;
+    using CtrSizeT = typename Types::CtrSizeT;
+    CtrSizeT rank_ = 0;
 
-	Int branch_rank_index_;
-	Int symbol_;
+    Int branch_rank_index_;
+    Int symbol_;
 
 public:
 
-	RankBackwardWalker(Int stream, Int branch_rank_index, Int symbol, Key target):
-		Base(stream, 0, 0, target),
-		branch_rank_index_(branch_rank_index),
-		symbol_(symbol)
-	{}
+    RankBackwardWalker(Int stream, Int branch_rank_index, Int symbol, Key target):
+        Base(stream, 0, 0, target),
+        branch_rank_index_(branch_rank_index),
+        symbol_(symbol)
+    {}
 
-	template <Int StreamIdx, typename StreamType>
-	void postProcessLeafStream(const StreamType* stream, Int start, Int end)
-	{
-		return stream->rank(start, end, symbol_);
-	}
+    template <Int StreamIdx, typename StreamType>
+    void postProcessLeafStream(const StreamType* stream, Int start, Int end)
+    {
+        return stream->rank(start, end, symbol_);
+    }
 
-	template <Int StreamIdx, typename StreamType>
-	void postProcessNonLeafStream(const StreamType* stream, Int start, Int end, Int symbol)
-	{
-		return stream->sum(branch_rank_index_, start, end);
-	}
+    template <Int StreamIdx, typename StreamType>
+    void postProcessNonLeafStream(const StreamType* stream, Int start, Int end, Int symbol)
+    {
+        return stream->sum(branch_rank_index_, start, end);
+    }
 
     BigInt finish(Iterator& iter, Int idx)
     {
-    	Base::finish(iter, idx);
+        Base::finish(iter, idx);
 
         return rank_;
     }

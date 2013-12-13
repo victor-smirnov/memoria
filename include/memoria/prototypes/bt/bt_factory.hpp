@@ -87,9 +87,9 @@ struct BTTypes {
     typedef typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator Allocator;
     typedef typename Allocator::ID                                              ID;
 
-//  typedef TypeList<>                                                        	NodeTypesList;
+//  typedef TypeList<>                                                          NodeTypesList;
 //
-//  typedef TypeList<>                                                        	DefaultNodeTypesList;
+//  typedef TypeList<>                                                          DefaultNodeTypesList;
 
     typedef TypeList<
             NonLeafNodeTypes<BranchNode>,
@@ -128,8 +128,8 @@ struct BTTypes {
     static const Int MAIN_STREAM                                                = 0;
 
 
-    typedef EmptyType															DataSource;
-    typedef EmptyType															DataTarget;
+    typedef EmptyType                                                           DataSource;
+    typedef EmptyType                                                           DataTarget;
 
 
     template <typename Types>
@@ -183,7 +183,7 @@ public:
     
     typedef typename ContainerTypes::Allocator::Page::ID                        ID;
 
-    typedef typename ContainerTypes::Value										Value;
+    typedef typename ContainerTypes::Value                                      Value;
 
     static const Int Streams = ListSize<typename ContainerTypes::StreamDescriptors>::Value;
 
@@ -265,7 +265,7 @@ public:
         typedef Accumulator_                                                    Accumulator;
         typedef IteratorPrefix_                                                 IteratorPrefix;
 
-        typedef Position_                     									Position;
+        typedef Position_                                                       Position;
 
         typedef PageUpdateManager<CtrTypes>                                     PageUpdateMgr;
     };

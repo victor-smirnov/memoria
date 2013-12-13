@@ -39,82 +39,82 @@ public:
 
     void walkTree(ContainerWalker* walker)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	NodeBaseG root = self.getRoot();
+        NodeBaseG root = self.getRoot();
 
-    	walker->beginCtr(
-    	    			TypeNameFactory<typename Types::ContainerTypeName>::name().c_str(),
-    	    			self.name(),
-    	    			IDValue(root->id())
-    	    	);
+        walker->beginCtr(
+                        TypeNameFactory<typename Types::ContainerTypeName>::name().c_str(),
+                        self.name(),
+                        IDValue(root->id())
+                );
 
-    	this->traverseTree(root, walker);
+        this->traverseTree(root, walker);
 
-    	walker->endCtr();
+        walker->endCtr();
     }
 
     void beginNode(const NodeBaseG& node, ContainerWalker* walker)
     {
-    	if (node->is_root())
-    	{
-    		if (node->is_leaf())
-    		{
-    			walker->rootLeaf(node->parent_idx(), node.page());
-    		}
-    		else {
-    			walker->beginRoot(node->parent_idx(), node.page());
-    		}
-    	}
-    	else if (node->is_leaf())
-    	{
-    		walker->leaf(node->parent_idx(), node.page());
-    	}
-    	else {
-    		walker->beginNode(node->parent_idx(), node.page());
-    	}
+        if (node->is_root())
+        {
+            if (node->is_leaf())
+            {
+                walker->rootLeaf(node->parent_idx(), node.page());
+            }
+            else {
+                walker->beginRoot(node->parent_idx(), node.page());
+            }
+        }
+        else if (node->is_leaf())
+        {
+            walker->leaf(node->parent_idx(), node.page());
+        }
+        else {
+            walker->beginNode(node->parent_idx(), node.page());
+        }
     }
 
     void endNode(const NodeBaseG& node, ContainerWalker* walker)
     {
-    	if (node->is_root())
-    	{
-    		if (!node->is_leaf())
-    		{
-    			walker->endRoot();
-    		}
-    	}
-    	else if (!node->is_leaf())
-    	{
-    		walker->endNode();
-    	}
+        if (node->is_root())
+        {
+            if (!node->is_leaf())
+            {
+                walker->endRoot();
+            }
+        }
+        else if (!node->is_leaf())
+        {
+            walker->endNode();
+        }
     }
 
 private:
 
     void traverseTree(const NodeBaseG& node, ContainerWalker* walker)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-//    	TextPageDumper dumper(cout);
+//      TextPageDumper dumper(cout);
 //
-//    	node->generateDataEvents(&dumper);
+//      node->generateDataEvents(&dumper);
 //
-//    	self.dump(node);
+//      self.dump(node);
 
-    	self.beginNode(node, walker);
+        self.beginNode(node, walker);
 
-    	if (!node->is_leaf())
-    	{
-    		self.forAllIDs(node, 0, self.getNodeSize(node, 0), [&self, walker](const ID& id, Int idx)
-    		{
-    			NodeBaseG child = self.allocator().getPage(id, self.master_name());
+        if (!node->is_leaf())
+        {
+            self.forAllIDs(node, 0, self.getNodeSize(node, 0), [&self, walker](const ID& id, Int idx)
+            {
+                NodeBaseG child = self.allocator().getPage(id, self.master_name());
 
-    			self.traverseTree(child, walker);
-    		});
-    	}
+                self.traverseTree(child, walker);
+            });
+        }
 
-    	self.endNode(node, walker);
+        self.endNode(node, walker);
     }
 
 MEMORIA_CONTAINER_PART_END

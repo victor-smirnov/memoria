@@ -192,7 +192,7 @@ public:
 
     static Int packed_block_size(Int tree_capacity)
     {
-    	return block_size(tree_capacity);
+        return block_size(tree_capacity);
     }
 
     static Int block_size(Int tree_capacity)
@@ -407,7 +407,7 @@ public:
     {
         if (value != 0)
         {
-        	this->value(block, idx) += value;
+            this->value(block, idx) += value;
         }
 
         reindex();
@@ -416,12 +416,12 @@ public:
     template <typename Value, Int Indexes>
     void addValues(Int idx, Int from, Int size, const core::StaticVector<Value, Indexes>& values)
     {
-    	for (Int block = 0; block < size; block++)
-    	{
-    		value(block, idx) += values[block + from];
-    	}
+        for (Int block = 0; block < size; block++)
+        {
+            value(block, idx) += values[block + from];
+        }
 
-    	reindex();
+        reindex();
     }
 
     BigInt setValue(Int block, Int idx, Value value)
@@ -727,30 +727,30 @@ public:
 
     void sums(Int idx, Values2& values) const
     {
-    	addKeys(idx, values);
+        addKeys(idx, values);
     }
 
     void sums(Int idx, Values& values) const
     {
-    	addKeys(idx, values);
+        addKeys(idx, values);
     }
 
     void addKeys(Int idx, Values& values) const
     {
-    	for (Int block = 0; block < Blocks; block++)
-    	{
-    		values[block] += this->value(block, idx);
-    	}
+        for (Int block = 0; block < Blocks; block++)
+        {
+            values[block] += this->value(block, idx);
+        }
     }
 
     void addKeys(Int idx, Values2& values) const
     {
-    	values[0] += 1;
+        values[0] += 1;
 
-    	for (Int block = 0; block < Blocks; block++)
-    	{
-    		values[block + 1] += this->value(block, idx);
-    	}
+        for (Int block = 0; block < Blocks; block++)
+        {
+            values[block + 1] += this->value(block, idx);
+        }
     }
 
 
@@ -837,36 +837,36 @@ public:
 
         if (val > 0)
         {
-        	auto prefix = raw_sum(block_start + start + 1);
-        	auto target = prefix - val;
+            auto prefix = raw_sum(block_start + start + 1);
+            auto target = prefix - val;
 
-        	if (target > 0)
-        	{
-        		FSEFindElementFn<MyType, PackedCompareLE> fn(*this, target);
+            if (target > 0)
+            {
+                FSEFindElementFn<MyType, PackedCompareLE> fn(*this, target);
 
-        		Int pos = TreeTools::find2(fn);
+                Int pos = TreeTools::find2(fn);
 
-        		if (pos >= block_start)
-        		{
-        			Value actual_value = value(pos);
-        			return ValueDescr(actual_value, pos - block_start, prefix - (fn.sum() + actual_value));
-        		}
-        		else {
-        			return ValueDescr(0, -1, prefix - raw_sum(block_start));
-        		}
-        	}
-        	else if (target == 0)
-        	{
-        		Value actual_value = value(block_start);
-        		return ValueDescr(actual_value, 0, prefix - raw_sum(block_start) - actual_value);
-        	}
-        	else {
-        		return ValueDescr(0, -1, prefix);
-        	}
+                if (pos >= block_start)
+                {
+                    Value actual_value = value(pos);
+                    return ValueDescr(actual_value, pos - block_start, prefix - (fn.sum() + actual_value));
+                }
+                else {
+                    return ValueDescr(0, -1, prefix - raw_sum(block_start));
+                }
+            }
+            else if (target == 0)
+            {
+                Value actual_value = value(block_start);
+                return ValueDescr(actual_value, 0, prefix - raw_sum(block_start) - actual_value);
+            }
+            else {
+                return ValueDescr(0, -1, prefix);
+            }
         }
         else {
-        	Value actual_value = value(start);
-        	return ValueDescr(actual_value, start, 0);
+            Value actual_value = value(start);
+            return ValueDescr(actual_value, start, 0);
         }
     }
 

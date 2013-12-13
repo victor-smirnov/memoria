@@ -39,8 +39,8 @@ public:
         registerTask(new SequenceSelectTest<1>("1.Select"));
 //        registerTask(new SequenceSelectTest<8>("8.Select"));
 
-    	//registerTask(new SequenceBatchTest<1>("1.Batch"));
-    	registerTask(new SequenceUpdateTest<1>("1.Update"));
+        //registerTask(new SequenceBatchTest<1>("1.Batch"));
+        registerTask(new SequenceUpdateTest<1>("1.Update"));
     }
 
 };

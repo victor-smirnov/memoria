@@ -57,10 +57,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::smrk_map::ItrApiName)
         template <Int Idx, typename StreamTypes>
         void stream(const PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx)
         {
-        	if (map != nullptr)
-        	{
-        		value_ = map->tree()->value(0, idx);
-        	}
+            if (map != nullptr)
+            {
+                value_ = map->tree()->value(0, idx);
+            }
         }
 
         template <typename Node>
@@ -122,11 +122,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::smrk_map::ItrApiName)
 
 
     struct SetValueFn {
-    	template <Int Idx, typename StreamTypes>
+        template <Int Idx, typename StreamTypes>
         void stream(PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx, const Value& value)
         {
-        	MEMORIA_ASSERT_TRUE(map != nullptr);
-        	map->value(idx) = value;
+            MEMORIA_ASSERT_TRUE(map != nullptr);
+            map->value(idx) = value;
         }
 
         template <typename Node>
@@ -161,7 +161,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::smrk_map::ItrApiName)
         }
 
         Value value() const {
-        	return iter_.getValue();
+            return iter_.getValue();
         }
     };
 
@@ -175,7 +175,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::smrk_map::ItrApiName)
         }
 
         Value value() const {
-        	return iter_.getValue();
+            return iter_.getValue();
         }
     };
 
@@ -186,9 +186,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::smrk_map::ItrApiName)
         template <Int Idx, typename StreamTypes>
         void stream(const PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx)
         {
-        	MEMORIA_ASSERT_TRUE(map)
+            MEMORIA_ASSERT_TRUE(map)
 
-        	value_ = map->value(idx);
+            value_ = map->value(idx);
         }
 
         template <typename Node>
@@ -229,117 +229,117 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::smrk_map::ItrApiName)
 
     struct SetMarkFn {
 
-    	Int old_mark_;
+        Int old_mark_;
 
-    	template <Int Idx, typename StreamTypes>
-    	void stream(PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx, Int mark)
-    	{
-    		MEMORIA_ASSERT_TRUE(map != nullptr);
+        template <Int Idx, typename StreamTypes>
+        void stream(PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx, Int mark)
+        {
+            MEMORIA_ASSERT_TRUE(map != nullptr);
 
-    		old_mark_ = map->mark(idx);
+            old_mark_ = map->mark(idx);
 
-    		map->mark(idx) = mark;
+            map->mark(idx) = mark;
 
-    		map->bitmap()->reindex();
-    	}
+            map->bitmap()->reindex();
+        }
 
 
-    	template <typename NTypes>
-    	void treeNode(LeafNode<NTypes>* node, Int idx, Int mark)
-    	{
-    		node->layout(1);
-    		node->template processStream<0>(*this, idx, mark);
-    	}
+        template <typename NTypes>
+        void treeNode(LeafNode<NTypes>* node, Int idx, Int mark)
+        {
+            node->layout(1);
+            node->template processStream<0>(*this, idx, mark);
+        }
     };
 
 
     void setMark(Int mark)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	self.ctr().updatePageG(self.leaf());
+        self.ctr().updatePageG(self.leaf());
 
-    	SetMarkFn fn;
+        SetMarkFn fn;
 
-    	LeafDispatcher::dispatch(self.leaf(), fn, self.idx(), mark);
+        LeafDispatcher::dispatch(self.leaf(), fn, self.idx(), mark);
 
-    	Accumulator sums;
+        Accumulator sums;
 
-    	std::get<0>(sums)[2 + fn.old_mark_] = -1;
-    	std::get<0>(sums)[2 + mark] = 1;
+        std::get<0>(sums)[2 + fn.old_mark_] = -1;
+        std::get<0>(sums)[2 + mark] = 1;
 
-    	self.ctr().updateParent(self.leaf(), sums);
+        self.ctr().updateParent(self.leaf(), sums);
 
-    	self.ctr().markCtrUpdated();
+        self.ctr().markCtrUpdated();
     }
 
     struct AssingFn {
-    	template <Int Idx, typename StreamTypes>
-    	void stream(PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx, Int mark, const Value& value)
-    	{
-    		MEMORIA_ASSERT_TRUE(map != nullptr);
+        template <Int Idx, typename StreamTypes>
+        void stream(PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx, Int mark, const Value& value)
+        {
+            MEMORIA_ASSERT_TRUE(map != nullptr);
 
-    		map->mark(idx)  = mark;
-    		map->value(idx) = value;
+            map->mark(idx)  = mark;
+            map->value(idx) = value;
 
-    		map->bitmap()->reindex();
-    	}
+            map->bitmap()->reindex();
+        }
 
 
-    	template <typename NTypes>
-    	void treeNode(LeafNode<NTypes>* node, Int idx, Int mark, const Value& value)
-    	{
-    		node->layout(1);
-    		node->template processStream<0>(*this, idx, mark, value);
-    	}
+        template <typename NTypes>
+        void treeNode(LeafNode<NTypes>* node, Int idx, Int mark, const Value& value)
+        {
+            node->layout(1);
+            node->template processStream<0>(*this, idx, mark, value);
+        }
     };
 
 
     void assing(Int mark, const Value& value)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	self.ctr().updatePageG(self.leaf());
+        self.ctr().updatePageG(self.leaf());
 
-    	LeafDispatcher::dispatch(self.leaf(), AssingFn(), self.idx(), mark, value);
+        LeafDispatcher::dispatch(self.leaf(), AssingFn(), self.idx(), mark, value);
 
-    	Accumulator sums;
+        Accumulator sums;
 
-    	std::get<0>(sums)[2 + mark] = 1;
+        std::get<0>(sums)[2 + mark] = 1;
 
-    	self.ctr().updateParent(self.leaf(), sums);
+        self.ctr().updateParent(self.leaf(), sums);
 
-    	self.ctr().markCtrUpdated();
+        self.ctr().markCtrUpdated();
     }
 
 
 
     struct GetMarkFn {
-    	Int mark_;
+        Int mark_;
 
-    	template <Int Idx, typename StreamTypes>
-    	void stream(const PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx)
-    	{
-    		MEMORIA_ASSERT_TRUE(map != nullptr);
+        template <Int Idx, typename StreamTypes>
+        void stream(const PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx)
+        {
+            MEMORIA_ASSERT_TRUE(map != nullptr);
 
-    		this->mark_ =  map->mark(idx);
-    	}
+            this->mark_ =  map->mark(idx);
+        }
 
 
-    	template <typename NTypes>
-    	void treeNode(const LeafNode<NTypes>* node, Int idx)
-    	{
-    		node->template processStream<0>(*this, idx);
-    	}
+        template <typename NTypes>
+        void treeNode(const LeafNode<NTypes>* node, Int idx)
+        {
+            node->template processStream<0>(*this, idx);
+        }
     };
 
     Int mark() const
     {
-    	GetMarkFn fn;
+        GetMarkFn fn;
 
-    	LeafDispatcher::dispatchConst(self().leaf(), fn, self().idx());
+        LeafDispatcher::dispatchConst(self().leaf(), fn, self().idx());
 
-    	return fn.mark_;
+        return fn.mark_;
     }
 
 
@@ -359,21 +359,21 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::smrk_map::ItrApiName)
 
             for (Int c = 0; c < 1<<Types::BitsPerMark; c++)
             {
-            	std::get<0>(keys)[c + 2] = 0;
+                std::get<0>(keys)[c + 2] = 0;
             }
 
-        	self.updateUp(keys);
+            self.updateUp(keys);
         }
     }
 
     void insert(const Key& key, const Value& value, Int mark)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	Accumulator sums;
-    	std::get<0>(sums)[1] = key;
+        Accumulator sums;
+        std::get<0>(sums)[1] = key;
 
-    	self.ctr().insert(self, Element(sums, value), mark);
+        self.ctr().insert(self, Element(sums, value), mark);
     }
 
 
@@ -447,10 +447,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::smrk_map::ItrApiName)
         template <Int Idx, typename StreamTypes>
         void stream(const PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx)
         {
-        	if (map != nullptr)
-        	{
-        		prefix_ += map->tree()->sum(0, idx);
-        	}
+            if (map != nullptr)
+            {
+                prefix_ += map->tree()->sum(0, idx);
+            }
         }
 
         template <typename Node>
@@ -488,82 +488,82 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::smrk_map::ItrApiName)
 
         if (idx > split_idx)
         {
-        	leaf = right;
-        	idx -= split_idx;
+            leaf = right;
+            idx -= split_idx;
 
-        	self.updatePrefix();
+            self.updatePrefix();
         }
     }
 
 
     struct RankFn {
-    	BigInt rank_ = 0;
-    	BigInt symbol_;
+        BigInt rank_ = 0;
+        BigInt symbol_;
 
-    	RankFn(Int symbol): symbol_(symbol) {}
+        RankFn(Int symbol): symbol_(symbol) {}
 
-    	template <Int Idx, typename StreamTypes>
-    	void stream(const PkdFTree<StreamTypes>* tree, Int idx)
-    	{
-    		MEMORIA_ASSERT_TRUE(tree);
-    		rank_ += tree->sum(2 + symbol_, idx);
-    	}
+        template <Int Idx, typename StreamTypes>
+        void stream(const PkdFTree<StreamTypes>* tree, Int idx)
+        {
+            MEMORIA_ASSERT_TRUE(tree);
+            rank_ += tree->sum(2 + symbol_, idx);
+        }
 
-    	template <Int Idx, typename StreamTypes>
-    	void stream(const PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx)
-    	{
-    		MEMORIA_ASSERT_TRUE(map);
-    		rank_ += map->bitmap()->rank(idx, symbol_);
-    	}
+        template <Int Idx, typename StreamTypes>
+        void stream(const PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx)
+        {
+            MEMORIA_ASSERT_TRUE(map);
+            rank_ += map->bitmap()->rank(idx, symbol_);
+        }
 
-    	template <typename Node>
-    	void treeNode(const Node* node, Int idx)
-    	{
-    		node->template processStream<0>(*this, idx);
-    	}
+        template <typename Node>
+        void treeNode(const Node* node, Int idx)
+        {
+            node->template processStream<0>(*this, idx);
+        }
     };
 
     BigInt rank(Int symbol)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	RankFn fn(symbol);
+        RankFn fn(symbol);
 
-    	self.ctr().walkUp(self.leaf(), self.idx(), fn);
+        self.ctr().walkUp(self.leaf(), self.idx(), fn);
 
-    	return fn.rank_;
+        return fn.rank_;
     }
 
 
     bool is_found_eq(Key key) const
     {
-    	auto& self = this->self();
-    	return (!self.isEnd()) && self.key() == key;
+        auto& self = this->self();
+        return (!self.isEnd()) && self.key() == key;
     }
 
     bool is_found_le(Key key) const
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	return self.isContent() && self.key() <= key;
+        return self.isContent() && self.key() <= key;
     }
 
     bool is_found_lt(Key key) const
     {
-    	auto& self = this->self();
-    	return self.isContent() && self.key() <= key;
+        auto& self = this->self();
+        return self.isContent() && self.key() <= key;
     }
 
     bool is_found_ge(Key key) const
     {
-    	auto& self = this->self();
-    	return self.isContent() && self.key() >= key;
+        auto& self = this->self();
+        return self.isContent() && self.key() >= key;
     }
 
     bool is_found_gt(Key key) const
     {
-    	auto& self = this->self();
-    	return self.isContent() && self.key() > key;
+        auto& self = this->self();
+        return self.isContent() && self.key() > key;
     }
 
 

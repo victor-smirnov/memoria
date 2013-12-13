@@ -33,7 +33,7 @@ typedef std::int32_t            Int;
 typedef std::uint32_t           UInt;
 typedef std::int16_t            Short;
 typedef std::uint16_t           UShort;
-typedef char                	Byte;
+typedef char                    Byte;
 typedef std::uint8_t            UByte;
 
 
@@ -147,11 +147,11 @@ template <typename K, typename V>
 using DblMap2 = Map2<K, Map2<K, V>>;
 
 template <
-	Int Indexes,
-	typename Key,
-	typename Value,
-	typename LabelsList 		= TypeList<>,
-	typename HiddenLabelsList 	= TypeList<>
+    Int Indexes,
+    typename Key,
+    typename Value,
+    typename LabelsList         = TypeList<>,
+    typename HiddenLabelsList   = TypeList<>
 >
 struct MetaMap      {};
 
@@ -223,15 +223,15 @@ struct CMap         {};
 
 // A map with marked K/V pairs
 template <typename Key, typename Value, Int BitsPerMark = 1>
-struct MrkMap		{};
+struct MrkMap       {};
 
 // A map with marked K/V pairs
 template <typename Key, typename Value, Int BitsPerMark = 1>
-struct MrkMap2		{};
+struct MrkMap2      {};
 
 // A map with marked K/V pairs, with search over marks
 template <typename Key, typename Value, Int BitsPerMark = 1>
-struct SMrkMap		{};
+struct SMrkMap      {};
 
 template <typename K, typename V, Int BitsPerMark>
 using DblMrkMap = Map<K, MrkMap<K, V, BitsPerMark>>;

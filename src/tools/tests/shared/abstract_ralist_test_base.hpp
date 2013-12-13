@@ -23,16 +23,16 @@ namespace memoria {
 using namespace std;
 
 template <
-	typename Profile,
-	typename AllocatorType,
-	typename ContainerTypeName,
+    typename Profile,
+    typename AllocatorType,
+    typename ContainerTypeName,
     typename MemBuffer
 >
 class AbstractRandomAccessListTestBase: public TestTask {
 
     typedef AbstractRandomAccessListTestBase<
-    			Profile,
-    			AllocatorType,
+                Profile,
+                AllocatorType,
                 ContainerTypeName,
                 MemBuffer
     >                                                                           MyType;
@@ -43,9 +43,9 @@ protected:
     typedef typename CtrTF<Profile, ContainerTypeName>::Type                    Ctr;
     typedef typename Ctr::Iterator                                              Iterator;
     typedef typename Ctr::ID                                                    ID;
-    typedef typename Ctr::Accumulator											Accumulator;
+    typedef typename Ctr::Accumulator                                           Accumulator;
 
-    typedef AllocatorType														Allocator;
+    typedef AllocatorType                                                       Allocator;
 
 
 
@@ -98,63 +98,63 @@ public:
 
     virtual ~AbstractRandomAccessListTestBase() throw() {}
 
-    virtual Iterator seek(Ctr& ctr, BigInt pos)                         		= 0;
-    virtual void insert(Iterator& iter, MemBuffer& data)                		= 0;
-    virtual void read(Iterator& iter, MemBuffer& data)                  		= 0;
-    virtual void skip(Iterator& iter, BigInt offset)                    		= 0;
-    virtual BigInt getSize(Ctr& ctr)                                    		= 0;
-    virtual BigInt getPosition(Iterator& iter)                          		= 0;
+    virtual Iterator seek(Ctr& ctr, BigInt pos)                                 = 0;
+    virtual void insert(Iterator& iter, MemBuffer& data)                        = 0;
+    virtual void read(Iterator& iter, MemBuffer& data)                          = 0;
+    virtual void skip(Iterator& iter, BigInt offset)                            = 0;
+    virtual BigInt getSize(Ctr& ctr)                                            = 0;
+    virtual BigInt getPosition(Iterator& iter)                                  = 0;
 
-    virtual void remove(Iterator& iter, BigInt size)                    		= 0;
+    virtual void remove(Iterator& iter, BigInt size)                            = 0;
 
-    virtual MemBuffer createBuffer(Int size)                            		= 0;
-    virtual MemBuffer createRandomBuffer(Int size)                      		= 0;
+    virtual MemBuffer createBuffer(Int size)                                    = 0;
+    virtual MemBuffer createRandomBuffer(Int size)                              = 0;
     virtual void compareBuffers(const MemBuffer& src, const MemBuffer& tgt, const char* source) = 0;
 
-    virtual void testInsert(TestFn test_fn) 									= 0;
-    virtual void testRemove(TestFn test_fn)										= 0;
-    virtual void replay(TestFn test_fn)											= 0;
+    virtual void testInsert(TestFn test_fn)                                     = 0;
+    virtual void testRemove(TestFn test_fn)                                     = 0;
+    virtual void replay(TestFn test_fn)                                         = 0;
 
 
     virtual void checkAllocator(Allocator& allocator, const char* msg, const char* source)
     {
-    	Int step_count = getcheckStep();
+        Int step_count = getcheckStep();
 
-    	if (step_count > 0 && (check_count_ % step_count == 0))
-    	{
-    		::memoria::check<Allocator>(allocator, msg, source);
-    	}
+        if (step_count > 0 && (check_count_ % step_count == 0))
+        {
+            ::memoria::check<Allocator>(allocator, msg, source);
+        }
 
-    	check_count_++;
+        check_count_++;
     }
 
     virtual void fillRandom(Ctr& ctr, BigInt size)
     {
-    	MemBuffer data = createRandomBuffer(size);
-    	Iterator iter = seek(ctr, 0);
-    	insert(iter, data);
+        MemBuffer data = createRandomBuffer(size);
+        Iterator iter = seek(ctr, 0);
+        insert(iter, data);
     }
 
     virtual void fillRandom(Allocator& alloc, Ctr& ctr, BigInt size)
     {
-    	BigInt block_size = size > 65536*4 ? 65536*4 : size;
+        BigInt block_size = size > 65536*4 ? 65536*4 : size;
 
-    	BigInt total = 0;
+        BigInt total = 0;
 
-    	Iterator iter = seek(ctr, 0);
+        Iterator iter = seek(ctr, 0);
 
-    	while (total < size)
-    	{
-    		BigInt tmp_size = size - total > block_size ? block_size : size - total;
+        while (total < size)
+        {
+            BigInt tmp_size = size - total > block_size ? block_size : size - total;
 
-    		MemBuffer data = createRandomBuffer(tmp_size);
+            MemBuffer data = createRandomBuffer(tmp_size);
 
-    		insert(iter, data);
+            insert(iter, data);
 
-    		alloc.flush();
+            alloc.flush();
 
-    		total += tmp_size;
-    	}
+            total += tmp_size;
+        }
     }
 
 
@@ -365,11 +365,11 @@ public:
         skip(iter, -prefix.size());
 
         try {
-        	checkBufferWritten(iter, prefix, MA_SRC);
+            checkBufferWritten(iter, prefix, MA_SRC);
         }
         catch (...) {
-        	iter.dumpPath();
-        	throw;
+            iter.dumpPath();
+            throw;
         }
         checkBufferWritten(iter, data,   MA_SRC);
         checkBufferWritten(iter, suffix, MA_SRC);

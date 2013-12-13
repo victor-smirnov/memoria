@@ -25,24 +25,24 @@ struct LoudsStreamTF {
     typedef BigInt                                              Key;
     typedef BigInt                                              Value;
 
-    typedef core::StaticVector<BigInt, 3>						AccumulatorPart;
-    typedef core::StaticVector<BigInt, 1>						IteratorPrefixPart;
+    typedef core::StaticVector<BigInt, 3>                       AccumulatorPart;
+    typedef core::StaticVector<BigInt, 1>                       IteratorPrefixPart;
 
-    typedef PkdFTree<Packed2TreeTypes<Key, Key, 3>> 			NonLeafType;
+    typedef PkdFTree<Packed2TreeTypes<Key, Key, 3>>             NonLeafType;
 
 
     static const Int BitsPerSymbol = 1;
 
     typedef typename PkdFSSeqTF<BitsPerSymbol>::Type            SequenceTypes;
 
-    typedef PkdFSSeq<SequenceTypes> 							LeafType;
+    typedef PkdFSSeq<SequenceTypes>                             LeafType;
 
 };
 
 
 template <typename... List>
 class StreamDescriptorsListBuilder {
-    typedef LoudsStreamTF 														LoudsStreamDescriptor;
+    typedef LoudsStreamTF                                                       LoudsStreamDescriptor;
 public:
     typedef typename PrependToList<
             typename StreamDescriptorsListHelper<List...>::Type,
@@ -52,7 +52,7 @@ public:
 
 template <typename... List>
 class StreamDescriptorsListBuilder<TypeList<List...>> {
-	typedef LoudsStreamTF 														LoudsStreamDescriptor;
+    typedef LoudsStreamTF                                                       LoudsStreamDescriptor;
 public:
     typedef typename PrependToList<
             typename StreamDescriptorsListHelper<List...>::Type,
@@ -66,14 +66,14 @@ public:
 template <Int Indexes>
 struct LabelFTreeNodeTFBase {
 
-	typedef core::StaticVector<BigInt, Indexes>									AccumulatorPart;
-	typedef core::StaticVector<BigInt, 1>										IteratorPrefixPart;
+    typedef core::StaticVector<BigInt, Indexes>                                 AccumulatorPart;
+    typedef core::StaticVector<BigInt, 1>                                       IteratorPrefixPart;
 
     typedef Packed2TreeTypes<
             BigInt, BigInt, Indexes
     >                                                                           TreeTypes;
 
-    typedef PkdFTree<TreeTypes> 												NonLeafType;
+    typedef PkdFTree<TreeTypes>                                                 NonLeafType;
 };
 
 
@@ -86,7 +86,7 @@ struct LabelFTreeIndexedTF: LabelFTreeNodeTFBase<2> {
             1
     > TreeTypes;
 
-    typedef PkdFTree<TreeTypes> 												LeafType;
+    typedef PkdFTree<TreeTypes>                                                 LeafType;
 };
 
 
@@ -94,11 +94,11 @@ struct LabelFTreeIndexedTF: LabelFTreeNodeTFBase<2> {
 template <typename Value>
 struct LabelFTreeArrayTF: LabelFTreeNodeTFBase<1> {
 
-	typedef PackedFSEArrayTypes<
-	            Value
-	> ArrayTypes;
+    typedef PackedFSEArrayTypes<
+                Value
+    > ArrayTypes;
 
-	typedef PackedFSEArray<ArrayTypes> 											LeafType;
+    typedef PackedFSEArray<ArrayTypes>                                          LeafType;
 };
 
 
@@ -106,12 +106,12 @@ struct LabelFTreeArrayTF: LabelFTreeNodeTFBase<1> {
 template <UInt BitsPerSymbol>
 struct LabelFTreeBitmapTF: LabelFTreeNodeTFBase<1> {
 
-	typedef PackedFSEBitmapTypes<
-	            BitsPerSymbol,
-	            UBigInt
-	> ArrayTypes;
+    typedef PackedFSEBitmapTypes<
+                BitsPerSymbol,
+                UBigInt
+    > ArrayTypes;
 
-	typedef PackedFSEArray<ArrayTypes> 											LeafType;
+    typedef PackedFSEArray<ArrayTypes>                                          LeafType;
 };
 
 
@@ -121,8 +121,8 @@ struct LabelFTreeBitmapTF: LabelFTreeNodeTFBase<1> {
 template <Int Indexes>
 struct LabelVTreeNodeTFBase {
 
-	typedef core::StaticVector<BigInt, Indexes>									AccumulatorPart;
-	typedef core::StaticVector<BigInt, 1>										IteratorPrefixPart;
+    typedef core::StaticVector<BigInt, Indexes>                                 AccumulatorPart;
+    typedef core::StaticVector<BigInt, 1>                                       IteratorPrefixPart;
 
     typedef Packed2TreeTypes<
             BigInt, BigInt, Indexes, UByteExintCodec,
@@ -130,7 +130,7 @@ struct LabelVTreeNodeTFBase {
             PackedTreeExintVPB
     > TreeTypes;
 
-    typedef PkdVTree<TreeTypes> 												NonLeafType;
+    typedef PkdVTree<TreeTypes>                                                 NonLeafType;
 };
 
 
@@ -147,7 +147,7 @@ struct LabelVTreeByteTF: LabelVTreeNodeTFBase<Indexes> {
             PackedTreeExintVPB
     > TreeTypes;
 
-    typedef PkdVTree<TreeTypes> 												LeafType;
+    typedef PkdVTree<TreeTypes>                                                 LeafType;
 };
 
 
@@ -164,25 +164,25 @@ struct LabelVTreeBitTF: LabelVTreeNodeTFBase<Indexes> {
             PackedTreeEliasVPB
     > TreeTypes;
 
-    typedef PkdVTree<TreeTypes> 												LeafType;
+    typedef PkdVTree<TreeTypes>                                                 LeafType;
 };
 
 
 
 template <typename T>
 struct StreamDescrTF<FLabel<T, Indexed::Yes>> {
-	using Type = LabelFTreeIndexedTF<T>;
+    using Type = LabelFTreeIndexedTF<T>;
 };
 
 
 template <typename T>
 struct StreamDescrTF<FLabel<T, Indexed::No>> {
-	using Type = LabelFTreeArrayTF<T>;
+    using Type = LabelFTreeArrayTF<T>;
 };
 
 template <Int BitsPerSymbol>
 struct StreamDescrTF<FBLabel<BitsPerSymbol>> {
-	using Type = LabelFTreeBitmapTF<BitsPerSymbol>;
+    using Type = LabelFTreeBitmapTF<BitsPerSymbol>;
 };
 
 
@@ -191,17 +191,17 @@ struct StreamDescrTF<FBLabel<BitsPerSymbol>> {
 
 template <typename T>
 struct StreamDescrTF<VLabel<T, Granularity::Bit, Indexed::Yes>> {
-	using Type = LabelVTreeBitTF<T, 2>;
+    using Type = LabelVTreeBitTF<T, 2>;
 };
 
 template <typename T>
 struct StreamDescrTF<VLabel<T, Granularity::Byte, Indexed::Yes>> {
-	using Type = LabelVTreeByteTF<T, 2>;
+    using Type = LabelVTreeByteTF<T, 2>;
 };
 
 template <typename T>
 struct StreamDescrTF<VLabel<T, Granularity::Bit, Indexed::No>> {
-	using Type = LabelVTreeBitTF<T, 1>;
+    using Type = LabelVTreeBitTF<T, 1>;
 };
 
 template <typename T>

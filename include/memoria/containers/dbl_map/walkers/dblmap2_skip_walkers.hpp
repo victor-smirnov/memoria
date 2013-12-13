@@ -21,24 +21,24 @@
 
 #include <ostream>
 
-namespace memoria	{
-namespace dblmap	{
+namespace memoria   {
+namespace dblmap    {
 
-namespace inner 	{
+namespace inner     {
 
 
 template <typename Types>
 class SkipForwardWalker: public bt::FindForwardWalkerBase<Types, SkipForwardWalker<Types>> {
     typedef bt::FindForwardWalkerBase<Types, SkipForwardWalker<Types>>              Base;
-    typedef typename Base::Key                                                  	Key;
+    typedef typename Base::Key                                                      Key;
 
-    typedef typename Types::Accumulator												Accumulator;
-    typedef typename Base::Iterator													Iterator;
+    typedef typename Types::Accumulator                                             Accumulator;
+    typedef typename Base::Iterator                                                 Iterator;
 
     Accumulator prefix_;
 
 public:
-    typedef typename Base::ResultType												ResultType;
+    typedef typename Base::ResultType                                               ResultType;
 
     SkipForwardWalker(Int stream, Int index, Key target): Base(stream, index, target)
     {}
@@ -46,52 +46,52 @@ public:
     template <Int StreamIdx, typename StreamType, typename SearchResult>
     void postProcessStream(const StreamType* tree, Int start, const SearchResult& result)
     {
-    	tree->sums(start, result.idx(), std::get<StreamIdx>(prefix_));
+        tree->sums(start, result.idx(), std::get<StreamIdx>(prefix_));
     }
 
     template <Int Idx, typename Tree>
     ResultType stream(const Tree* tree, Int start)
     {
-    	return Base::template tree<Idx>(tree, start);
+        return Base::template tree<Idx>(tree, start);
     }
 
     template <Int Idx, typename TreeTypes>
     ResultType stream(const PackedFSEMarkableMap<TreeTypes>* tree, Int start)
     {
-    	auto& sum = Base::sum_;
+        auto& sum = Base::sum_;
 
-    	BigInt offset = Base::target_ - sum;
+        BigInt offset = Base::target_ - sum;
 
-    	Int size = tree->size();
+        Int size = tree->size();
 
-    	if (start + offset < size)
-    	{
-    		sum += offset;
+        if (start + offset < size)
+        {
+            sum += offset;
 
-    		tree->sums(start, start + offset, std::get<Idx>(prefix_));
+            tree->sums(start, start + offset, std::get<Idx>(prefix_));
 
-    		return start + offset;
-    	}
-    	else {
-    		sum += (size - start);
+            return start + offset;
+        }
+        else {
+            sum += (size - start);
 
-    		tree->sums(start, size, std::get<Idx>(prefix_));
+            tree->sums(start, size, std::get<Idx>(prefix_));
 
-    		return size;
-    	}
+            return size;
+        }
     }
 
 
     void prepare(Iterator& iter)
     {
-    	prefix_ = iter.cache().prefixes();
+        prefix_ = iter.cache().prefixes();
     }
 
     BigInt finish(Iterator& iter, Int idx)
     {
-    	iter.idx() = idx;
-    	iter.cache().setup(prefix_);
-    	return Base::sum_;
+        iter.idx() = idx;
+        iter.cache().setup(prefix_);
+        return Base::sum_;
     }
 };
 
@@ -99,15 +99,15 @@ public:
 template <typename Types>
 class SkipBackwardWalker: public bt::FindBackwardWalkerBase<Types, SkipBackwardWalker<Types>> {
     typedef bt::FindBackwardWalkerBase<Types, SkipBackwardWalker<Types>>            Base;
-    typedef typename Base::Key                                                  	Key;
+    typedef typename Base::Key                                                      Key;
 
-    typedef typename Types::Accumulator												Accumulator;
-    typedef typename Base::Iterator													Iterator;
+    typedef typename Types::Accumulator                                             Accumulator;
+    typedef typename Base::Iterator                                                 Iterator;
 
     Accumulator prefix_;
 
 public:
-    typedef typename Base::ResultType												ResultType;
+    typedef typename Base::ResultType                                               ResultType;
 
     SkipBackwardWalker(Int stream, Int index, Key target): Base(stream, index, target)
     {}
@@ -115,46 +115,46 @@ public:
     template <Int StreamIdx, typename StreamType, typename SearchResult>
     void postProcessStream(const StreamType* tree, Int start, const SearchResult& result)
     {
-    	auto begin = result.idx();
+        auto begin = result.idx();
 
-    	Accumulator sums;
+        Accumulator sums;
 
-    	tree->sums(begin >= 0 ? begin + 1 : 0, start + 1, std::get<StreamIdx>(sums));
+        tree->sums(begin >= 0 ? begin + 1 : 0, start + 1, std::get<StreamIdx>(sums));
 
-    	VectorSub(prefix_, sums);
+        VectorSub(prefix_, sums);
     }
 
 
     template <Int Idx, typename Tree>
     ResultType stream(const Tree* tree, Int start)
     {
-    	return Base::template tree<Idx>(tree, start);
+        return Base::template tree<Idx>(tree, start);
     }
 
     template <Int Idx, typename TreeTypes>
     ResultType stream(const PackedFSEMarkableMap<TreeTypes>* tree, Int start)
     {
-    	Int pos = Base::template array<Idx>(tree, start);
+        Int pos = Base::template array<Idx>(tree, start);
 
-    	Accumulator sums;
+        Accumulator sums;
 
-    	tree->sums(pos >= 0 ? pos : 0, start, std::get<Idx>(sums));
+        tree->sums(pos >= 0 ? pos : 0, start, std::get<Idx>(sums));
 
-    	VectorSub(prefix_, sums);
+        VectorSub(prefix_, sums);
 
-    	return pos;
+        return pos;
     }
 
     void prepare(Iterator& iter)
     {
-    	prefix_ = iter.cache().prefixes();
+        prefix_ = iter.cache().prefixes();
     }
 
     BigInt finish(Iterator& iter, Int idx)
     {
-    	iter.idx() = idx;
-    	iter.cache().setup(prefix_);
-    	return idx;
+        iter.idx() = idx;
+        iter.cache().setup(prefix_);
+        return idx;
     }
 };
 

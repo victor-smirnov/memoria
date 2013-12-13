@@ -25,7 +25,7 @@ namespace memoria {
 
 struct FileAllocatorTestSuite: public TestSuite {
 
-	FileAllocatorTestSuite(): TestSuite("FileAllocatorSuite")
+    FileAllocatorTestSuite(): TestSuite("FileAllocatorSuite")
     {
         registerTask(new FileAllocatorCreateTest("Create"));
         registerTask(new FileAllocatorCommitTest("Commit"));

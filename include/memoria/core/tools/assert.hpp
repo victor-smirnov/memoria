@@ -28,19 +28,19 @@ template <> class STATIC_ASSERT_FAILURE <true> {};
 
 #ifndef MEMORIA_NO_ASSERTS
 
-#define MEMORIA_ASSERT(Left, Operation, Right)                                                         	\
-        if (!(Left Operation Right)) {                                                                 	\
-            throw memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "				   	\
-                    <<#Left<<" "<<#Operation<<" "<<#Right<<" Values: "<<Left<<" "<<Right); 			   	\
+#define MEMORIA_ASSERT(Left, Operation, Right)                                                          \
+        if (!(Left Operation Right)) {                                                                  \
+            throw memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "                   \
+                    <<#Left<<" "<<#Operation<<" "<<#Right<<" Values: "<<Left<<" "<<Right);              \
         }
 
 
-#define MEMORIA_WARNING(Left, Operation, Right)                                                        	\
-        if ((Left Operation Right)) {                                                                  	\
-            std::cout<<"WARNING: "																	   	\
-                    <<#Left<<" "<<#Operation<<" "<<#Right<<" Values: "<<Left<<" "<<Right			   	\
-                    <<" at "<<MA_SRC																	\
-					<<std::endl;   																	   	\
+#define MEMORIA_WARNING(Left, Operation, Right)                                                         \
+        if ((Left Operation Right)) {                                                                   \
+            std::cout<<"WARNING: "                                                                      \
+                    <<#Left<<" "<<#Operation<<" "<<#Right<<" Values: "<<Left<<" "<<Right                \
+                    <<" at "<<MA_SRC                                                                    \
+                    <<std::endl;                                                                        \
         }
 
 

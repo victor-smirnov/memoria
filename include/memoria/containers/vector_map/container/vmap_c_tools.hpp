@@ -132,7 +132,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrToolsName)
 
     void setLeafData(NodeBaseG& node, Int idx, const Value &val)
     {
-    	self().updatePageG(node);
+        self().updatePageG(node);
         LeafDispatcher::dispatch(node.page(), SetLeafDataFn(me()), idx, val);
     }
 

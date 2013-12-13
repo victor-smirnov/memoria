@@ -48,7 +48,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrApiName)
 
     typedef typename Types::CtrSizeT                                            CtrSizeT;
 
-    typedef typename Types::DataSource											DataSource;
+    typedef typename Types::DataSource                                          DataSource;
 
     static const Int Streams                                                    = Types::Streams;
 

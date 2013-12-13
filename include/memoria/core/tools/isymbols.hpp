@@ -38,19 +38,19 @@ constexpr static T2 DivUp0(T1 v, T2 d) {
 template <typename T, Int BitsPerSymbol>
 SizeT RoundSymbolsToStorageType(SizeT length)
 {
-	SizeT bitsize 				= length * BitsPerSymbol;
-	const SizeT item_bitsize 	= sizeof(T) * 8;
+    SizeT bitsize               = length * BitsPerSymbol;
+    const SizeT item_bitsize    = sizeof(T) * 8;
 
-	SizeT result = DivUp0(bitsize, item_bitsize);
+    SizeT result = DivUp0(bitsize, item_bitsize);
 
-	return result * sizeof(T);
+    return result * sizeof(T);
 };
 
 template <Int BitsPerSymbol, typename T = UBigInt>
 class SymbolsBuffer: public AbstractData<T> {
-	typedef SymbolsBuffer<BitsPerSymbol, T>										MyType;
+    typedef SymbolsBuffer<BitsPerSymbol, T>                                     MyType;
 protected:
-	typedef AbstractData<T>														Base;
+    typedef AbstractData<T>                                                     Base;
 
     T*      data_;
     bool    owner_;
@@ -60,23 +60,23 @@ public:
 
     static SizeT storage_size(SizeT length)
     {
-    	return RoundSymbolsToStorageType<T, BitsPerSymbol>(length);
+        return RoundSymbolsToStorageType<T, BitsPerSymbol>(length);
     }
 
     SymbolsBuffer(T* data, SizeT length, bool owner = false):
         Base(0, length),
-    	data_(data),
+        data_(data),
         owner_(owner)
     {}
 
     SymbolsBuffer(SizeT length):
-    	Base(0, length),
+        Base(0, length),
         data_(T2T<T*>(length > 0 ?::malloc(storage_size(length)) : nullptr)),
         owner_(true)
     {}
 
     SymbolsBuffer(MyType&& other):
-    	Base(other.start_, other.length_),
+        Base(other.start_, other.length_),
         data_(other.data_),
         owner_(other.owner_)
     {
@@ -84,10 +84,10 @@ public:
     }
 
     SymbolsBuffer(const MyType& other):
-    	Base(other.start, other.length_),
-    	owner_(true)
+        Base(other.start, other.length_),
+        owner_(true)
     {
-    	SizeT ssize = storage_size(this->length_);
+        SizeT ssize = storage_size(this->length_);
 
         data_ = T2T<T*>(this->length_ > 0 ?::malloc(ssize) : nullptr);
 
@@ -97,7 +97,7 @@ public:
     virtual ~SymbolsBuffer() throw ()
     {
         if (owner_) {
-        	::free(data_);
+            ::free(data_);
         }
     }
 
@@ -153,8 +153,8 @@ public:
 
     virtual void put(const T& value)
     {
-    	SetBits(data_, this->start_ * BitsPerSymbol, value, BitsPerSymbol);
-    	this->skip(1);
+        SetBits(data_, this->start_ * BitsPerSymbol, value, BitsPerSymbol);
+        this->skip(1);
     }
 
 
@@ -165,22 +165,22 @@ public:
 
     void clear()
     {
-    	SizeT len = storage_size(this->length_) / sizeof(T);
+        SizeT len = storage_size(this->length_) / sizeof(T);
 
-    	for (SizeT c = 0; c < len; c++)
-    	{
-    		data_[c] = 0;
-    	}
+        for (SizeT c = 0; c < len; c++)
+        {
+            data_[c] = 0;
+        }
     }
 
     BitmapAccessor<T*, T, BitsPerSymbol> operator[](SizeT idx)
     {
-    	return BitmapAccessor<T*, T, BitsPerSymbol>(data_, idx);
+        return BitmapAccessor<T*, T, BitsPerSymbol>(data_, idx);
     }
 
     BitmapAccessor<const T*, T, BitsPerSymbol> operator[](SizeT idx) const
     {
-    	return BitmapAccessor<const T*, T, BitsPerSymbol>(data_, idx);
+        return BitmapAccessor<const T*, T, BitsPerSymbol>(data_, idx);
     }
 };
 
@@ -192,26 +192,26 @@ public:
 
 template <Int BitsPerSymbol, typename T>
 class SymbolsBuffer<BitsPerSymbol, const T>: public AbstractDataSource<T> {
-	typedef SymbolsBuffer<BitsPerSymbol, T>										MyType;
+    typedef SymbolsBuffer<BitsPerSymbol, T>                                     MyType;
 
 protected:
-	typedef AbstractDataSource<T>												Base;
+    typedef AbstractDataSource<T>                                               Base;
 
     const T*    data_;
 public:
 
     static SizeT storage_size(SizeT length)
     {
-    	return RoundSymbolsToStorageType<T, BitsPerSymbol>(length);
+        return RoundSymbolsToStorageType<T, BitsPerSymbol>(length);
     }
 
     SymbolsBuffer(const T* data, SizeT length):
         Base(0, length),
-    	data_(data)
+        data_(data)
     {}
 
     SymbolsBuffer(const MyType& other):
-    	Base(other.start_, other.length_),
+        Base(other.start_, other.length_),
         data_(other.data_)
     {}
 
@@ -242,9 +242,9 @@ public:
 
     virtual T get()
     {
-    	T value = GetBits(data_, this->start_ * BitsPerSymbol, BitsPerSymbol);
+        T value = GetBits(data_, this->start_ * BitsPerSymbol, BitsPerSymbol);
 
-    	this->skip(1);
+        this->skip(1);
 
         return value;
     }
@@ -256,7 +256,7 @@ public:
 
     virtual void reset(SizeT pos = 0)
     {
-    	this->start_ = pos;
+        this->start_ = pos;
     }
 };
 

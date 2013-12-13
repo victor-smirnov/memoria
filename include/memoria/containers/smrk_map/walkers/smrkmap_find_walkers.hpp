@@ -129,16 +129,16 @@ public:
     template <Int Idx, typename MapTypes>
     Int stream(const PackedFSESearchableMarkableMap<MapTypes>* map, Int level, Int start)
     {
-    	auto& key       = Base::key_;
-    	auto& prefix    = Base::prefix_;
+        auto& key       = Base::key_;
+        auto& prefix    = Base::prefix_;
 
-    	auto target     = key - prefix;
+        auto target     = key - prefix;
 
-    	auto result     = map->findGEForward(0, 0, target);
+        auto result     = map->findGEForward(0, 0, target);
 
-    	prefix += result.prefix();
+        prefix += result.prefix();
 
-    	return result.idx();
+        return result.idx();
     }
 };
 

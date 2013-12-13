@@ -150,12 +150,12 @@ public:
 
     void serialize(SerializationData& buf) const
     {
-    	FieldFactory<Int>::serialize(buf, allocator_offset_);
+        FieldFactory<Int>::serialize(buf, allocator_offset_);
     }
 
     void deserialize(DeserializationData& buf)
     {
-    	FieldFactory<Int>::deserialize(buf, allocator_offset_);
+        FieldFactory<Int>::deserialize(buf, allocator_offset_);
     }
 
 };

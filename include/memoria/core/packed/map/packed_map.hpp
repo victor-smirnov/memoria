@@ -13,46 +13,46 @@ namespace memoria {
 
 
 template <
-	Int Blocks_,
-	typename Key_,
+    Int Blocks_,
+    typename Key_,
     typename Value_,
 
     typename HiddenLabels_ = TypeList<>,
     typename Labels_ = TypeList<>
 >
 struct PackedMapTypes {
-	using Key 				= Key_;
-	using Value 			= Value_;
-	using HiddenLabels		= HiddenLabels_;
-	using Labels			= Labels_;
+    using Key               = Key_;
+    using Value             = Value_;
+    using HiddenLabels      = HiddenLabels_;
+    using Labels            = Labels_;
 
-	static const Int Blocks	= Blocks_;
+    static const Int Blocks = Blocks_;
 };
 
 
 
 template <typename Types>
 class PackedMap:
-		public PackedMapValueBase<
-			Types::Blocks,
-			typename Types::Key,
-			typename Types::Value,
-			typename Types::HiddenLabels,
-			typename Types::Labels
-		> {
+        public PackedMapValueBase<
+            Types::Blocks,
+            typename Types::Key,
+            typename Types::Value,
+            typename Types::HiddenLabels,
+            typename Types::Labels
+        > {
 
     typedef PackedMapValueBase<
-			Types::Blocks,
-			typename Types::Key,
-			typename Types::Value,
-			typename Types::HiddenLabels,
-			typename Types::Labels
-		>  	 																	Base;
+            Types::Blocks,
+            typename Types::Key,
+            typename Types::Value,
+            typename Types::HiddenLabels,
+            typename Types::Labels
+        >                                                                       Base;
 public:
-    typedef PackedMap<Types>            										MyType;
+    typedef PackedMap<Types>                                                    MyType;
 
-    typedef typename Base::Key                                            		Key;
-    typedef typename Base::Value                                            	Value;
+    typedef typename Base::Key                                                  Key;
+    typedef typename Base::Value                                                Value;
 
     typedef typename Base::Values                                               Values;
     typedef typename Base::Values2                                              Values2;
@@ -60,35 +60,35 @@ public:
     typedef typename Base::IndexValue                                           IndexValue;
     typedef typename Base::ValueDescr                                           ValueDescr;
 
-//    typedef std::pair<typename Base::Values, Value>								IOValue;
+//    typedef std::pair<typename Base::Values, Value>                               IOValue;
 //
-//    typedef IDataSource<IOValue>												DataSource;
-//    typedef IDataTarget<IOValue>												DataTarget;
+//    typedef IDataSource<IOValue>                                              DataSource;
+//    typedef IDataTarget<IOValue>                                              DataTarget;
 
-    static const Int Blocks														= Types::Blocks;
+    static const Int Blocks                                                     = Types::Blocks;
 
-    static const Int SizedIndexes												= 1 + Blocks + Base::LabelsIndexes;
+    static const Int SizedIndexes                                               = 1 + Blocks + Base::LabelsIndexes;
 
     template <typename T>
     using MapSums = StaticVector<T, SizedIndexes>;
 
-    static const Int Indexes													= SizedIndexes - 1;
-    static const Int AllocatorBlocks 											= Blocks + Base::TotalLabels
-    																					 + Base::HasValue;
+    static const Int Indexes                                                    = SizedIndexes - 1;
+    static const Int AllocatorBlocks                                            = Blocks + Base::TotalLabels
+                                                                                         + Base::HasValue;
 
     static Int empty_size()
     {
-        Int allocator_size  	= PackedAllocator::empty_size(AllocatorBlocks);
-        Int tree_empty_size 	= Base::tree_empty_size();
-        Int labels_empty_size 	= Base::labels_empty_size();
-        Int value_empty_size 	= Base::value_empty_size();
+        Int allocator_size      = PackedAllocator::empty_size(AllocatorBlocks);
+        Int tree_empty_size     = Base::tree_empty_size();
+        Int labels_empty_size   = Base::labels_empty_size();
+        Int value_empty_size    = Base::value_empty_size();
 
         return allocator_size + tree_empty_size + labels_empty_size + value_empty_size;
     }
 
     static Int block_size(Int size)
     {
-    	return packed_block_size(size);
+        return packed_block_size(size);
     }
 
     Int block_size(const MyType* other) const
@@ -97,21 +97,21 @@ public:
     }
 
     Int block_size() const {
-    	return PackedAllocator::block_size();
+        return PackedAllocator::block_size();
     }
 
     static Int packed_block_size(Int size)
     {
-    	Int tree_block_size 	= Base::tree_block_size(size);
-    	Int values_block_size 	= Base::value_block_size(size);
-    	Int labels_block_size 	= Base::labels_block_size(size);
+        Int tree_block_size     = Base::tree_block_size(size);
+        Int values_block_size   = Base::value_block_size(size);
+        Int labels_block_size   = Base::labels_block_size(size);
 
-    	Int my_block_size 	= PackedAllocator::block_size(
-    								tree_block_size + values_block_size + labels_block_size,
-    								AllocatorBlocks
-    						  );
+        Int my_block_size   = PackedAllocator::block_size(
+                                    tree_block_size + values_block_size + labels_block_size,
+                                    AllocatorBlocks
+                              );
 
-    	return my_block_size;
+        return my_block_size;
     }
 
 
@@ -130,21 +130,21 @@ public:
             }
         };
 
-    	return FindTotalElementsNumber2(block_size, ElementsForFn());
+        return FindTotalElementsNumber2(block_size, ElementsForFn());
     }
 
     void init()
     {
-    	init(empty_size());
+        init(empty_size());
     }
 
     void init(Int block_size)
     {
-    	PackedAllocator::init(block_size, AllocatorBlocks);
+        PackedAllocator::init(block_size, AllocatorBlocks);
 
-    	Base::tree_init();
-    	Base::labels_init();
-    	Base::value_init();
+        Base::tree_init();
+        Base::labels_init();
+        Base::value_init();
     }
 
 
@@ -157,18 +157,18 @@ public:
     template <typename Entry, typename T>
     void insert(Int idx, const Entry& entry, MapSums<T>& sums)
     {
-    	Base::insertTree(idx, entry, sums);
-    	Base::insertLabels(idx, entry, sums);
-    	Base::insertValue(idx, entry);
+        Base::insertTree(idx, entry, sums);
+        Base::insertLabels(idx, entry, sums);
+        Base::insertValue(idx, entry);
     }
 
 
 
     void insertSpace(Int room_start, Int room_length)
     {
-    	Base::insertTreeSpace(room_start, room_length);
-    	Base::insertLabelsSpace(room_start, room_length);
-    	Base::insertValuesSpace(room_start, room_length);
+        Base::insertTreeSpace(room_start, room_length);
+        Base::insertLabelsSpace(room_start, room_length);
+        Base::insertValuesSpace(room_start, room_length);
     }
 
 
@@ -188,20 +188,20 @@ public:
 
     void splitTo(MyType* other, Int split_idx)
     {
-    	Int size = this->size();
+        Int size = this->size();
 
-    	Base::splitTreeTo(other, split_idx);
-    	Base::splitLabelsTo(other, split_idx);
-    	Base::splitValuesTo(other, split_idx, size);
+        Base::splitTreeTo(other, split_idx);
+        Base::splitLabelsTo(other, split_idx);
+        Base::splitValuesTo(other, split_idx, size);
     }
 
 
     void mergeWith(MyType* other)
     {
-    	Int size 		= this->size();
-    	Int other_size 	= other->size();
+        Int size        = this->size();
+        Int other_size  = other->size();
 
-    	Base::mergeTreeWith(other);
+        Base::mergeTreeWith(other);
         Base::mergeLabelsWith(other);
         Base::mergeValuesWith(other, size, other_size);
     }
@@ -217,9 +217,9 @@ public:
 
     void check() const
     {
-    	Base::checkTree();
-    	Base::checkLabels();
-    	Base::checkValues();
+        Base::checkTree();
+        Base::checkLabels();
+        Base::checkValues();
     }
 
 
@@ -247,24 +247,24 @@ public:
 
     ValueDescr findForward(SearchType search_type, Int block, Int start, IndexValue val) const
     {
-    	if (search_type == SearchType::GT)
-    	{
-    		return findGTForward(block, start, val);
-    	}
-    	else {
-    		return findGEForward(block, start, val);
-    	}
+        if (search_type == SearchType::GT)
+        {
+            return findGTForward(block, start, val);
+        }
+        else {
+            return findGEForward(block, start, val);
+        }
     }
 
     ValueDescr findBackward(SearchType search_type, Int block, Int start, IndexValue val) const
     {
-    	if (search_type == SearchType::GT)
-    	{
-    		return findGTBackward(block, start, val);
-    	}
-    	else {
-    		return findGEBackward(block, start, val);
-    	}
+        if (search_type == SearchType::GT)
+        {
+            return findGTBackward(block, start, val);
+        }
+        else {
+            return findGEBackward(block, start, val);
+        }
     }
 
 
@@ -274,11 +274,11 @@ public:
     void sums(MapSums<T>& sums) const
     {
         Values2 tree_sums;
-    	this->tree()->sums(tree_sums);
+        this->tree()->sums(tree_sums);
 
-    	sums.sumAt(0, tree_sums);
+        sums.sumAt(0, tree_sums);
 
-    	Base::sumsLabels(sums);
+        Base::sumsLabels(sums);
     }
 
     void sums(Values& values) const
@@ -295,11 +295,11 @@ public:
     void sums(Int from, Int to, MapSums<T>& sums) const
     {
         Values2 tree_sums;
-    	this->tree()->sums(from, to, tree_sums);
+        this->tree()->sums(from, to, tree_sums);
 
-    	sums.sumAt(0, tree_sums);
+        sums.sumAt(0, tree_sums);
 
-    	Base::sumsLabels(from, to, sums);
+        Base::sumsLabels(from, to, sums);
     }
 
 
@@ -308,7 +308,7 @@ public:
     template <typename T>
     void sums(Int idx, MapSums<T>& sums) const
     {
-    	Values2 tree_sums;
+        Values2 tree_sums;
         this->tree()->sums(idx, tree_sums);
 
         sums.sumAt(0, tree_sums);
@@ -318,7 +318,7 @@ public:
 
     void sums(Int idx, Values& values) const
     {
-    	this->tree()->sums(idx, values);
+        this->tree()->sums(idx, values);
     }
 
     IndexValue sum(Int block) const {
@@ -339,21 +339,21 @@ public:
 
     void addValue(Int block, Int idx, Key value)
     {
-    	this->tree()->addValue(block, idx, value);
+        this->tree()->addValue(block, idx, value);
     }
 
 
     template <typename Entry>
     Entry entry(Int idx) const
     {
-    	Entry entry;
+        Entry entry;
 
-    	this->tree()->sums(idx, entry.indexes());
-    	entry.value() = this->value(idx);
+        this->tree()->sums(idx, entry.indexes());
+        entry.value() = this->value(idx);
 
-    	Base::fillLabels(idx, entry);
+        Base::fillLabels(idx, entry);
 
-    	return entry;
+        return entry;
     }
 
 

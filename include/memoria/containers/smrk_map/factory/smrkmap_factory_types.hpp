@@ -41,10 +41,10 @@ struct BTTypes<Profile, SMrkMap<Key_, Value_, BitsPerMark_> >: public BTTypes<Pr
 
     typedef BTTypes<Profile, memoria::BT>                                       Base;
 
-    typedef Key_                                                              	Key;
+    typedef Key_                                                                Key;
     typedef Value_                                                              Value;
 
-    static const Int BitsPerMark												= BitsPerMark_;
+    static const Int BitsPerMark                                                = BitsPerMark_;
 
 
     typedef TypeList<BigInt>                                                    KeysList;
@@ -63,27 +63,27 @@ struct BTTypes<Profile, SMrkMap<Key_, Value_, BitsPerMark_> >: public BTTypes<Pr
 
 
     struct StreamTF {
-    	static const Int Indexes = (1 << BitsPerMark) + 2;
+        static const Int Indexes = (1 << BitsPerMark) + 2;
 
-    	typedef core::StaticVector<BigInt, Indexes>					AccumulatorPart;
-    	typedef core::StaticVector<BigInt, 1>						IteratorPrefixPart;
+        typedef core::StaticVector<BigInt, Indexes>                 AccumulatorPart;
+        typedef core::StaticVector<BigInt, 1>                       IteratorPrefixPart;
 
-    	typedef PkdFTree<Packed2TreeTypes<Key, Key, Indexes>> 		NonLeafType;
+        typedef PkdFTree<Packed2TreeTypes<Key, Key, Indexes>>       NonLeafType;
 
         typedef PackedFSESearchableMarkableMap<
-        			PackedFSESearchableMarkableMapTypes<
-        				Key,
-        				Value,
-        				1,
-        				BitsPerMark
-        			>
-        >                            								LeafType;
+                    PackedFSESearchableMarkableMapTypes<
+                        Key,
+                        Value,
+                        1,
+                        BitsPerMark
+                    >
+        >                                                           LeafType;
     };
 
 
 
     typedef TypeList<
-            	StreamTF
+                StreamTF
     >                                                                           StreamDescriptors;
 
     typedef BalancedTreeMetadata<

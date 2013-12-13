@@ -32,11 +32,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrFindName)
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
 
-    typedef ValuePair<Accumulator, Value>                                   	Element;
+    typedef ValuePair<Accumulator, Value>                                       Element;
 
-    typedef typename Types::CtrSizeT                                           	CtrSizeT;
+    typedef typename Types::CtrSizeT                                            CtrSizeT;
 
-    typedef typename Types::Entry                                         		MapEntry;
+    typedef typename Types::Entry                                               MapEntry;
 
     static const Int Streams                                                    = Types::Streams;
 
@@ -65,41 +65,41 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrFindName)
 
     Iterator findKeyGE(Key key)
     {
-    	return self().findGE(0, key, 1);
+        return self().findGE(0, key, 1);
     }
 
     Iterator findKeyLE(Key key)
     {
-    	Iterator iter = self().findGE(0, key, 1);
+        Iterator iter = self().findGE(0, key, 1);
 
-    	if (iter.isEnd() || iter.key() > key)
-    	{
-    		iter--;
+        if (iter.isEnd() || iter.key() > key)
+        {
+            iter--;
 
-    		if (iter.isBegin())
-    		{
-    			iter.idx() = 0;
-    		}
-    	}
+            if (iter.isBegin())
+            {
+                iter.idx() = 0;
+            }
+        }
 
-    	return iter;
+        return iter;
     }
 
     Iterator findKeyLT(Key key)
     {
-    	Iterator iter = self().findGE(0, key, 1);
+        Iterator iter = self().findGE(0, key, 1);
 
-    	if (iter.isEnd() || iter.key() >= key)
-    	{
-    		iter--;
+        if (iter.isEnd() || iter.key() >= key)
+        {
+            iter--;
 
-    		if (iter.isBegin())
-    		{
-    			iter.idx() = 0;
-    		}
-    	}
+            if (iter.isBegin())
+            {
+                iter.idx() = 0;
+            }
+        }
 
-    	return iter;
+        return iter;
     }
 
 
@@ -113,7 +113,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrFindName)
             MapEntry entry;
             entry.key() = key;
 
-        	self().insertEntry(iter, entry);
+            self().insertEntry(iter, entry);
 
             iter--;
         }
@@ -123,32 +123,32 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrFindName)
 
     Iterator selectLabel(Int label_num, Int label, CtrSizeT rank)
     {
-    	Int label_index = p_label_block_offset(label_num) + label;
+        Int label_index = p_label_block_offset(label_num) + label;
 
-    	typename Types::template SelectForwardWalker<Types> walker(0, label_num, label_index, label, false, rank);
+        typename Types::template SelectForwardWalker<Types> walker(0, label_num, label_index, label, false, rank);
 
-    	return self().find0(0, walker);
+        return self().find0(0, walker);
     }
 
     Iterator selectHiddenLabel(Int label_num, Int label, CtrSizeT rank)
     {
-    	Int label_index = p_hidden_label_block_offset(label_num) + label;
+        Int label_index = p_hidden_label_block_offset(label_num) + label;
 
-    	typename Types::template SelectForwardWalker<Types> walker(0, label_num, label_index, label, true, rank);
+        typename Types::template SelectForwardWalker<Types> walker(0, label_num, label_index, label, true, rank);
 
-    	return self().find0(0, walker);
+        return self().find0(0, walker);
     }
 
 private:
 
     Int p_hidden_label_block_offset(Int label_num) const
     {
-    	return 1 + Types::Indexes + Types::HiddenLabelsOffset::offset(label_num);
+        return 1 + Types::Indexes + Types::HiddenLabelsOffset::offset(label_num);
     }
 
     Int p_label_block_offset(Int label_num) const
     {
-    	return p_hidden_label_block_offset(Types::HiddenLabels) + Types::LabelsOffset::offset(label_num);
+        return p_hidden_label_block_offset(Types::HiddenLabels) + Types::LabelsOffset::offset(label_num);
     }
 
 MEMORIA_CONTAINER_PART_END

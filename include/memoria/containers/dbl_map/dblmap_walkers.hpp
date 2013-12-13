@@ -219,19 +219,19 @@ public:
     template <Int StreamIdx, typename StreamTypes, typename SearchResult>
     void postProcessStream(const PkdFTree<StreamTypes>* tree, Int start, const SearchResult& result)
     {
-    	prefix_	+= tree->sum(0, start, result.idx());
+        prefix_ += tree->sum(0, start, result.idx());
     }
 
 //    template <Int StreamIdx, typename StreamTypes, typename SearchResult>
 //    void postProcessStream(const PackedFSEMap<StreamTypes>* tree, Int start, const SearchResult& result)
 //    {
-//    	prefix_	+= result.idx() - start;
+//      prefix_ += result.idx() - start;
 //    }
 
     template <Int StreamIdx, typename StreamTypes, typename SearchResult>
     void postProcessStream(const PackedFSEMarkableMap<StreamTypes>* tree, Int start, const SearchResult& result)
     {
-    	prefix_	+= result.idx() - start;
+        prefix_ += result.idx() - start;
     }
 
 
@@ -239,23 +239,23 @@ public:
     template <Int Idx, typename StreamObj>
     typename Base::ResultType stream(const StreamObj* obj, Int start)
     {
-    	Base::index_ = 1;
-    	return Base::template stream<Idx>(obj, start);
+        Base::index_ = 1;
+        return Base::template stream<Idx>(obj, start);
     }
 
 
 //    template <Int Idx, typename TreeTypes>
 //    typename Base::ResultType stream(const PackedFSEMap<TreeTypes>* map, Int start)
 //    {
-//    	Base::index_ = 0;
-//    	return Base::template tree<Idx>(map, start);
+//      Base::index_ = 0;
+//      return Base::template tree<Idx>(map, start);
 //    }
 
     template <Int Idx, typename TreeTypes>
     typename Base::ResultType stream(const PackedFSEMarkableMap<TreeTypes>* map, Int start)
     {
-    	Base::index_ = 0;
-    	return Base::template tree<Idx>(map, start);
+        Base::index_ = 0;
+        return Base::template tree<Idx>(map, start);
     }
 
 
@@ -264,11 +264,11 @@ public:
 
     BigInt finish(Iterator& iter, Int idx)
     {
-    	iter.idx() = idx;
+        iter.idx() = idx;
 
-    	iter.cache().second_prefix() = Base::sum_;
+        iter.cache().second_prefix() = Base::sum_;
 
-    	return prefix_;
+        return prefix_;
     }
 };
 
@@ -277,7 +277,7 @@ public:
 template <typename Types>
 class SecondMapFindGEWalker: public SecondMapFindWalkerBase<Types> {
 
-    typedef SecondMapFindWalkerBase<Types>        								Base;
+    typedef SecondMapFindWalkerBase<Types>                                      Base;
 
 protected:
     typedef typename Base::Key                                                  Key;
@@ -295,7 +295,7 @@ public:
 template <typename Types>
 class SecondMapFindGTWalker: public SecondMapFindWalkerBase<Types> {
 
-    typedef SecondMapFindWalkerBase<Types>        								Base;
+    typedef SecondMapFindWalkerBase<Types>                                      Base;
 
 protected:
     typedef typename Base::Key                                                  Key;
@@ -324,7 +324,7 @@ class SkipForwardWalker: public FindForwardWalkerBase<Types, SkipForwardWalker<T
 
 public:
 
-    typedef typename Base::ResultType											ResultType;
+    typedef typename Base::ResultType                                           ResultType;
 
     SkipForwardWalker(Int stream, Int index, Key distance):
         Base(stream, index, distance)
@@ -334,28 +334,28 @@ public:
 
     template <Int Idx, typename StreamObj>
     ResultType stream(const StreamObj* obj, Int start) {
-    	return Base::template stream<Idx>(obj, start);
+        return Base::template stream<Idx>(obj, start);
     }
 
 
 //    template <Int Idx, typename TreeTypes>
 //    ResultType stream(const PackedFSEMap<TreeTypes>* map, Int start)
 //    {
-//    	ResultType result = Base::template array<Idx>(map, start);
+//      ResultType result = Base::template array<Idx>(map, start);
 //
-//    	prefix_	+= map->sum(0, start, result);
+//      prefix_ += map->sum(0, start, result);
 //
-//    	return result;
+//      return result;
 //    }
 
     template <Int Idx, typename TreeTypes>
     ResultType stream(const PackedFSEMarkableMap<TreeTypes>* map, Int start)
     {
-    	ResultType result = Base::template array<Idx>(map, start);
+        ResultType result = Base::template array<Idx>(map, start);
 
-    	prefix_	+= map->sum(0, start, result);
+        prefix_ += map->sum(0, start, result);
 
-    	return result;
+        return result;
     }
 
 
@@ -363,21 +363,21 @@ public:
     template <Int StreamIdx, typename StreamTypes, typename SearchResult>
     void postProcessStream(const PkdFTree<StreamTypes>* tree, Int start, const SearchResult& result)
     {
-    	prefix_	+= tree->sum(1, start, result.idx());
+        prefix_ += tree->sum(1, start, result.idx());
     }
 
     void prepare(typename Base::Iterator& iter)
     {
-    	prefix_ = iter.cache().second_prefix();
+        prefix_ = iter.cache().second_prefix();
 
-    	Base::prepare(iter);
+        Base::prepare(iter);
     }
 
     BigInt finish(typename Base::Iterator& iter, Int idx)
     {
-    	iter.cache().second_prefix() = prefix_;
+        iter.cache().second_prefix() = prefix_;
 
-    	return Base::finish(iter, idx);
+        return Base::finish(iter, idx);
     }
 };
 
@@ -393,7 +393,7 @@ class SkipBackwardWalker: public FindBackwardWalkerBase<Types, SkipBackwardWalke
 
 public:
 
-    typedef typename Base::ResultType											ResultType;
+    typedef typename Base::ResultType                                           ResultType;
 
     SkipBackwardWalker(Int stream, Int index, Key distance):
         Base(stream, index, distance)
@@ -403,35 +403,35 @@ public:
 
     template <Int Idx, typename StreamObj>
     ResultType stream(const StreamObj* obj, Int start) {
-    	return Base::template stream<Idx>(obj, start);
+        return Base::template stream<Idx>(obj, start);
     }
 
 //    template <Int Idx, typename TreeTypes>
 //    ResultType stream(const PackedFSEMap<TreeTypes>* map, Int start)
 //    {
-//    	auto result = Base::template array<Idx>(map, start);
+//      auto result = Base::template array<Idx>(map, start);
 //
-//    	auto begin = result >= 0 ? result : 0;
+//      auto begin = result >= 0 ? result : 0;
 //
-//    	auto sum = map->sum(0, begin, start);
+//      auto sum = map->sum(0, begin, start);
 //
-//    	prefix_	-= sum;
+//      prefix_ -= sum;
 //
-//    	return result;
+//      return result;
 //    }
 
     template <Int Idx, typename TreeTypes>
     ResultType stream(const PackedFSEMarkableMap<TreeTypes>* map, Int start)
     {
-    	auto result = Base::template array<Idx>(map, start);
+        auto result = Base::template array<Idx>(map, start);
 
-    	auto begin = result >= 0 ? result : 0;
+        auto begin = result >= 0 ? result : 0;
 
-    	auto sum = map->sum(0, begin, start);
+        auto sum = map->sum(0, begin, start);
 
-    	prefix_	-= sum;
+        prefix_ -= sum;
 
-    	return result;
+        return result;
     }
 
 
@@ -439,25 +439,25 @@ public:
     template <Int StreamIdx, typename StreamTypes, typename SearchResult>
     void postProcessStream(const PkdFTree<StreamTypes>* tree, Int start, const SearchResult& result)
     {
-    	auto begin = result.idx();// >= 0 ? result.idx() : 0;
+        auto begin = result.idx();// >= 0 ? result.idx() : 0;
 
-    	auto sum = tree->sum(1, begin + 1, start + 1);
+        auto sum = tree->sum(1, begin + 1, start + 1);
 
-    	prefix_	-= sum;
+        prefix_ -= sum;
     }
 
 
     void prepare(typename Base::Iterator& iter)
     {
-    	prefix_ = iter.cache().second_prefix();
+        prefix_ = iter.cache().second_prefix();
 
-    	Base::prepare(iter);
+        Base::prepare(iter);
     }
 
     BigInt finish(typename Base::Iterator& iter, Int idx)
     {
-    	iter.cache().second_prefix() = prefix_;
-    	return Base::finish(iter, idx);
+        iter.cache().second_prefix() = prefix_;
+        return Base::finish(iter, idx);
     }
 };
 
@@ -482,26 +482,26 @@ protected:
 
 public:
 
-    typedef typename Base::ResultType											ResultType;
+    typedef typename Base::ResultType                                           ResultType;
 
     PrevLeafWalker(Int stream, Int index): Base(stream, index)
     {}
 
     template <Int Idx, typename StreamObj>
     ResultType stream(const StreamObj* obj, Int start) {
-    	return Base::template stream<Idx>(obj, start);
+        return Base::template stream<Idx>(obj, start);
     }
 
 //    template <Int Idx, typename TreeTypes>
 //    ResultType stream(const PackedFSEMap<TreeTypes>* map, Int start)
 //    {
-//    	return Base::template array<Idx>(map, start);
+//      return Base::template array<Idx>(map, start);
 //    }
 
     template <Int Idx, typename TreeTypes>
     ResultType stream(const PackedFSEMarkableMap<TreeTypes>* map, Int start)
     {
-    	return Base::template array<Idx>(map, start);
+        return Base::template array<Idx>(map, start);
     }
 };
 

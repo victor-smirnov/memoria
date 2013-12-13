@@ -185,8 +185,8 @@ public:
 
     bool isContent() const
     {
-    	auto& self = this->self();
-    	return !(self.isBegin() || self.isEnd());
+        auto& self = this->self();
+        return !(self.isBegin() || self.isEnd());
     }
 
     bool isNotEnd() const

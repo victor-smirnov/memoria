@@ -23,7 +23,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrRemoveName)
     typedef typename Base::Allocator                                            Allocator;
 
 
-    typedef typename Types::Key                                           		Key;
+    typedef typename Types::Key                                                 Key;
 
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
@@ -53,7 +53,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrRemoveName)
 
             if (next_entry_updated_)
             {
-            	map->addValue(0, idx, std::get<0>(entry_)[1]);
+                map->addValue(0, idx, std::get<0>(entry_)[1]);
             }
         }
 
@@ -79,13 +79,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrRemoveName)
 
         if (fn.next_entry_updated_)
         {
-        	auto sums1 = fn.entry_;
-        	std::get<0>(sums1)[1] = 0;
+            auto sums1 = fn.entry_;
+            std::get<0>(sums1)[1] = 0;
 
-        	self.updateParent(leaf, -sums1);
+            self.updateParent(leaf, -sums1);
         }
         else {
-        	self.updateParent(leaf, -fn.entry_);
+            self.updateParent(leaf, -fn.entry_);
         }
 
         self.addTotalKeyCount(Position::create(0, -1));
@@ -93,7 +93,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrRemoveName)
         self.mergeWithSiblings(leaf, [&](const Position& prev_sizes, Int level) {
             if (level == 0)
             {
-            	idx += prev_sizes[0];
+                idx += prev_sizes[0];
             }
         });
 
@@ -106,7 +106,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrRemoveName)
 
         if ((!fn.next_entry_updated_) && !iter.isEnd())
         {
-        	iter.adjustIndex(1, (std::get<0>(fn.entry_)[1]));
+            iter.adjustIndex(1, (std::get<0>(fn.entry_)[1]));
         }
 
         self.markCtrUpdated();
@@ -119,16 +119,16 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrRemoveName)
 
     bool remove(Key key)
     {
-    	Iterator iter = self().findGE(0, key, 1);
+        Iterator iter = self().findGE(0, key, 1);
 
-    	if (key == iter.key())
-    	{
-    		iter.remove();
-    		return true;
-    	}
-    	else {
-    		return false;
-    	}
+        if (key == iter.key())
+        {
+            iter.remove();
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
 

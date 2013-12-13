@@ -52,7 +52,7 @@ public:
     {
         Ctr::initMetadata();
 
-    	MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
+        MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
     }
 
     virtual ~LabeledTreeTestBase() throw () {}

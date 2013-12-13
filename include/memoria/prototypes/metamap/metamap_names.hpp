@@ -12,23 +12,23 @@
 #include <memoria/prototypes/bt/bt_names.hpp>
 
 namespace memoria   {
-namespace metamap	{
+namespace metamap   {
 
 class CtrFindName   {};
 class CtrInsertName {};
 class CtrInsertComprName {};
 class CtrRemoveName {};
-class CtrNavName 	{};
+class CtrNavName    {};
 
-class ItrApiName 	{};
-class ItrNavName 	{};
-class ItrEntryName 	{};
-class ItrValueName 	{};
+class ItrApiName    {};
+class ItrNavName    {};
+class ItrEntryName  {};
+class ItrValueName  {};
 class ItrValueByRefName {};
 class ItrLabelsName {};
-class ItrFindName 	{};
-class ItrMiscName 	{};
-class ItrKeysName 	{};
+class ItrFindName   {};
+class ItrMiscName   {};
+class ItrKeysName   {};
 
 }
 

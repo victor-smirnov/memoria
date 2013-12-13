@@ -39,7 +39,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
 
-    typedef typename Types::CtrSizeT											CtrSizeT;
+    typedef typename Types::CtrSizeT                                            CtrSizeT;
 
     static const Int Streams                                                    = Types::Streams;
 
@@ -62,7 +62,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
     }
 
     CtrSizeT rank(Int symbol) {
-    	return rank(self().size(), symbol);
+        return rank(self().size(), symbol);
     }
 
     CtrSizeT rank(CtrSizeT start, CtrSizeT idx, Int symbol)

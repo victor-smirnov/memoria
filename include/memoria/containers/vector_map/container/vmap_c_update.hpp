@@ -48,8 +48,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrUpdateName)
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
 
-    typedef typename Types::DataSource                                     		DataSource;
-    typedef typename Types::DataTarget                                     		DataTarget;
+    typedef typename Types::DataSource                                          DataSource;
+    typedef typename Types::DataTarget                                          DataTarget;
 
     typedef typename Types::CtrSizeT                                            CtrSizeT;
 
@@ -94,7 +94,7 @@ void M_TYPE::replaceData(Iterator& iter, DataSource& data)
     }
     else if (entry_size > data_size)
     {
-    	CtrSizeT updated = self.updateData(iter, data);
+        CtrSizeT updated = self.updateData(iter, data);
         MEMORIA_ASSERT(updated, ==, data_size);
 
         self.removeData(iter, entry_size - data_size);

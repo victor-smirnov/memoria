@@ -144,16 +144,16 @@ enum class IDataAPI: Int {
 
 inline constexpr IDataAPI operator&(IDataAPI m1, IDataAPI m2)
 {
-	return static_cast<IDataAPI>(static_cast<Int>(m1) & static_cast<Int>(m2));
+    return static_cast<IDataAPI>(static_cast<Int>(m1) & static_cast<Int>(m2));
 }
 
 inline constexpr IDataAPI operator|(IDataAPI m1, IDataAPI m2)
 {
-	return static_cast<IDataAPI>(static_cast<Int>(m1) | static_cast<Int>(m2));
+    return static_cast<IDataAPI>(static_cast<Int>(m1) | static_cast<Int>(m2));
 }
 
 inline constexpr bool to_bool(IDataAPI mode) {
-	return static_cast<Int>(mode) > 0;
+    return static_cast<Int>(mode) > 0;
 }
 
 
@@ -200,7 +200,7 @@ struct IDataBase: IData {
 
 template <typename T>
 struct IDataSource: IDataBase {
-	typedef T Type;
+    typedef T Type;
 
     virtual ~IDataSource() throw () {}
 
@@ -346,13 +346,13 @@ public:
         length_ = size;
     }
 
-    virtual IDataAPI api() const 												= 0;
-    virtual SizeT put(const T* buffer, SizeT start, SizeT length)				= 0;
-    virtual SizeT get(T* buffer, SizeT start, SizeT length)						= 0;
+    virtual IDataAPI api() const                                                = 0;
+    virtual SizeT put(const T* buffer, SizeT start, SizeT length)               = 0;
+    virtual SizeT get(T* buffer, SizeT start, SizeT length)                     = 0;
 
 
-    virtual T get()																= 0;
-    virtual void put(const T& value)											= 0;
+    virtual T get()                                                             = 0;
+    virtual void put(const T& value)                                            = 0;
 
     virtual void reset(BigInt pos = 0)
     {
@@ -422,10 +422,10 @@ public:
         length_ = size;
     }
 
-    virtual IDataAPI api() const 												= 0;
+    virtual IDataAPI api() const                                                = 0;
 
-    virtual SizeT get(T* buffer, SizeT start, SizeT length)						= 0;
-    virtual T get()																= 0;
+    virtual SizeT get(T* buffer, SizeT start, SizeT length)                     = 0;
+    virtual T get()                                                             = 0;
 
 
     virtual void reset(BigInt pos = 0)
@@ -496,9 +496,9 @@ public:
         length_ = size;
     }
 
-    virtual IDataAPI api() const 												= 0;
-    virtual SizeT put(const T* buffer, SizeT start, SizeT length)				= 0;
-    virtual void put(const T& value)											= 0;
+    virtual IDataAPI api() const                                                = 0;
+    virtual SizeT put(const T* buffer, SizeT start, SizeT length)               = 0;
+    virtual void put(const T& value)                                            = 0;
 
     virtual void reset(BigInt pos = 0)
     {
@@ -518,7 +518,7 @@ template <typename T>
 class MemBuffer: public AbstractData<T> {
 protected:
 
-	typedef AbstractData<T>														Base;
+    typedef AbstractData<T>                                                     Base;
 
     T*      data_;
     bool    owner_;
@@ -526,25 +526,25 @@ protected:
 public:
 
     MemBuffer(T* data, SizeT length, bool owner = false):
-    	Base(0, length),
+        Base(0, length),
         data_(data),
         owner_(owner)
     {}
 
     MemBuffer(vector<T>& data):
-    	Base(0, data.size()),
+        Base(0, data.size()),
         data_(&data[0]),
         owner_(false)
     {}
 
     MemBuffer(SizeT length):
-    	Base(0, length),
+        Base(0, length),
         data_(T2T<T*>(::malloc(length * sizeof(T)))),
         owner_(true)
     {}
 
     MemBuffer(MemBuffer<T>&& other):
-    	Base(other.start_, other.length_),
+        Base(other.start_, other.length_),
         data_(other.data_),
         owner_(other.owner_)
     {
@@ -552,8 +552,8 @@ public:
     }
 
     MemBuffer(const MemBuffer<T>& other):
-    	Base(other.start_, other.length_),
-    	owner_(true)
+        Base(other.start_, other.length_),
+        owner_(true)
     {
         data_ = T2T<T*>(::malloc(Base::length_*sizeof(T)));
 
@@ -563,7 +563,7 @@ public:
     virtual ~MemBuffer() throw ()
     {
         if (owner_) {
-        	::free(data_);
+            ::free(data_);
         }
     }
 
@@ -617,8 +617,8 @@ public:
 
     virtual void put(const T& value)
     {
-    	*(data_ + Base::start_) = value;
-    	Base::skip(1);
+        *(data_ + Base::start_) = value;
+        Base::skip(1);
     }
 
     void dump(std::ostream& out) const
@@ -632,14 +632,14 @@ public:
 template <typename T>
 class MemBuffer<const T>: public AbstractDataSource<T> {
 protected:
-	typedef AbstractDataSource<T>												Base;
+    typedef AbstractDataSource<T>                                               Base;
 
-	const T*    data_;
+    const T*    data_;
 public:
 
     MemBuffer(const T* data, SizeT length):
         Base(0, length),
-    	data_(data)
+        data_(data)
     {}
 
     MemBuffer(const MemBuffer<const T>& other):
@@ -649,7 +649,7 @@ public:
 
     MemBuffer(const vector<T>& data):
         Base(0, data.size()),
-    	data_(&data[0])
+        data_(&data[0])
     {}
 
     virtual ~MemBuffer() throw () {}
@@ -705,14 +705,14 @@ public:
 template <typename Value>
 class ValueSource: public AbstractDataSource<Value> {
 protected:
-	typedef AbstractDataSource<Value>											Base;
+    typedef AbstractDataSource<Value>                                           Base;
 
-	const Value& value_;
+    const Value& value_;
 
 public:
     ValueSource(const Value& value):
-    	Base(0, 1),
-    	value_(value) {}
+        Base(0, 1),
+        value_(value) {}
 
     virtual IDataAPI api() const
     {
@@ -742,7 +742,7 @@ template <typename Value>
 class ValueTarget: public AbstractDataTarget<Value> {
 protected:
 
-	typedef AbstractDataTarget<Value>											Base;
+    typedef AbstractDataTarget<Value>                                           Base;
 
     Value& value_;
 

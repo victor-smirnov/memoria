@@ -13,21 +13,21 @@
 
 namespace memoria {
 
-typedef __uint128_t 		UInt128;
-typedef __int128_t 			Int128;
+typedef __uint128_t         UInt128;
+typedef __int128_t          Int128;
 
 }
 
 namespace std {
 
 ostream& operator<<(ostream& out, const memoria::Int128& value) {
-	out<<(memoria::BigInt)value;
-	return out;
+    out<<(memoria::BigInt)value;
+    return out;
 }
 
 ostream& operator<<(ostream& out, const memoria::UInt128& value) {
-	out<<(memoria::UBigInt)value;
-	return out;
+    out<<(memoria::UBigInt)value;
+    return out;
 }
 
 }

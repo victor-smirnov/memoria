@@ -22,20 +22,20 @@
 #include <ostream>
 
 namespace memoria       {
-namespace dblmap		{
+namespace dblmap        {
 
 
-namespace outer 		{
+namespace outer         {
 
 
 template <typename Types>
 class FindGTWalker: public bt::FindWalkerBase<Types, FindGTWalker<Types>> {
 
-    typedef bt::FindWalkerBase<Types, FindGTWalker<Types>>   	Base;
-    typedef typename Base::Key          						Key;
-    typedef typename Base::Iterator         					Iterator;
+    typedef bt::FindWalkerBase<Types, FindGTWalker<Types>>      Base;
+    typedef typename Base::Key                                  Key;
+    typedef typename Base::Iterator                             Iterator;
 
-    typedef typename Types::Accumulator	Accumulator;
+    typedef typename Types::Accumulator Accumulator;
 
     Accumulator prefix_;
 
@@ -58,7 +58,7 @@ public:
     template <Int Idx, typename Tree>
     Int stream(const Tree* tree, Int level, Int start)
     {
-        Int index		= Base::index();
+        Int index       = Base::index();
 
         auto target     = Base::target_- std::get<Idx>(prefix_)[index];
 
@@ -71,7 +71,7 @@ public:
 
     void prepare(Iterator& iter)
     {
-    	prefix_ = iter.prefixes();
+        prefix_ = iter.prefixes();
     }
 
     BigInt finish(Iterator& iter, Int idx)
@@ -87,11 +87,11 @@ public:
 template <typename Types>
 class FindGEWalker: public bt::FindWalkerBase<Types, FindGEWalker<Types>> {
 
-    typedef bt::FindWalkerBase<Types, FindGEWalker<Types>>   	Base;
-    typedef typename Base::Key          						Key;
-    typedef typename Base::Iterator         					Iterator;
+    typedef bt::FindWalkerBase<Types, FindGEWalker<Types>>      Base;
+    typedef typename Base::Key                                  Key;
+    typedef typename Base::Iterator                             Iterator;
 
-    typedef typename Types::Accumulator	Accumulator;
+    typedef typename Types::Accumulator Accumulator;
 
     Accumulator prefix_;
 
@@ -114,7 +114,7 @@ public:
     template <Int Idx, typename Tree>
     Int stream(const Tree* tree, Int level, Int start)
     {
-        Int index		= Base::index();
+        Int index       = Base::index();
 
         auto target     = Base::target_- std::get<Idx>(prefix_)[index];
 
@@ -127,7 +127,7 @@ public:
 
     void prepare(Iterator& iter)
     {
-    	prefix_ = iter.prefixes();
+        prefix_ = iter.prefixes();
     }
 
     BigInt finish(Iterator& iter, Int idx)
@@ -143,17 +143,17 @@ public:
 
 
 
-namespace inner 		{
+namespace inner         {
 
 
 template <typename Types>
 class FindGTWalker: public bt::FindWalkerBase<Types, FindGTWalker<Types>> {
 
-    typedef bt::FindWalkerBase<Types, FindGTWalker<Types>>   	Base;
-    typedef typename Base::Key          						Key;
-    typedef typename Base::Iterator         					Iterator;
+    typedef bt::FindWalkerBase<Types, FindGTWalker<Types>>      Base;
+    typedef typename Base::Key                                  Key;
+    typedef typename Base::Iterator                             Iterator;
 
-    typedef typename Types::Accumulator	Accumulator;
+    typedef typename Types::Accumulator Accumulator;
 
     Accumulator prefix_;
 
@@ -176,7 +176,7 @@ public:
     template <Int Idx, typename TreeTypes>
     Int stream(const PkdFTree<TreeTypes>* tree, Int level, Int start)
     {
-        Int index		= Base::index();
+        Int index       = Base::index();
 
         auto target     = Base::target_- std::get<Idx>(prefix_)[index];
 
@@ -194,47 +194,47 @@ public:
     template <Int Idx, typename MapTypes>
     Int stream(const PackedFSEMarkableMap<MapTypes>* tree, Int level, Int start)
     {
-    	Int index		= Base::index();
-    	auto& sum 		= Base::sum_;
+        Int index       = Base::index();
+        auto& sum       = Base::sum_;
 
-    	if (index > 0)
-    	{
-    		auto target     = Base::target_- std::get<Idx>(prefix_)[index];
+        if (index > 0)
+        {
+            auto target     = Base::target_- std::get<Idx>(prefix_)[index];
 
-    		auto result     = tree->findGTForward(index - 1, start, target);
+            auto result     = tree->findGTForward(index - 1, start, target);
 
-    		tree->sums(start, result.idx(), std::get<Idx>(prefix_));
+            tree->sums(start, result.idx(), std::get<Idx>(prefix_));
 
-    		sum += result.prefix();
+            sum += result.prefix();
 
-    		return result.idx();
-    	}
-    	else {
-    		BigInt offset = Base::target_ - sum;
+            return result.idx();
+        }
+        else {
+            BigInt offset = Base::target_ - sum;
 
-    		Int size = tree->size();
+            Int size = tree->size();
 
-    		if (start + offset < size)
-    		{
-    			sum += offset;
+            if (start + offset < size)
+            {
+                sum += offset;
 
-    			tree->sums(start, start + offset, std::get<Idx>(prefix_));
+                tree->sums(start, start + offset, std::get<Idx>(prefix_));
 
-    			return start + offset;
-    		}
-    		else {
-    			tree->sums(start, size, std::get<Idx>(prefix_));
+                return start + offset;
+            }
+            else {
+                tree->sums(start, size, std::get<Idx>(prefix_));
 
-    			sum += (size - start);
+                sum += (size - start);
 
-    			return size;
-    		}
-    	}
+                return size;
+            }
+        }
     }
 
     void prepare(Iterator& iter)
     {
-    	prefix_ = iter.cache().prefixes();
+        prefix_ = iter.cache().prefixes();
     }
 
     BigInt finish(Iterator& iter, Int idx)
@@ -250,11 +250,11 @@ public:
 template <typename Types>
 class FindGEWalker: public bt::FindWalkerBase<Types, FindGEWalker<Types>> {
 
-    typedef bt::FindWalkerBase<Types, FindGEWalker<Types>>   	Base;
-    typedef typename Base::Key          						Key;
-    typedef typename Base::Iterator         					Iterator;
+    typedef bt::FindWalkerBase<Types, FindGEWalker<Types>>      Base;
+    typedef typename Base::Key                                  Key;
+    typedef typename Base::Iterator                             Iterator;
 
-    typedef typename Types::Accumulator	Accumulator;
+    typedef typename Types::Accumulator Accumulator;
 
     Accumulator prefix_;
 
@@ -277,13 +277,13 @@ public:
     template <Int Idx, typename TreeTypes>
     Int stream(const PkdFTree<TreeTypes>* tree, Int level, Int start)
     {
-        Int index		= Base::index();
+        Int index       = Base::index();
 
         auto target     = Base::target_- std::get<Idx>(prefix_)[index];
 
         auto result     = tree->findGEForward(index, start, target);
 
-        Base::sum_ 		+= result.prefix();
+        Base::sum_      += result.prefix();
 
         tree->sums(start, result.idx(), std::get<Idx>(prefix_));
 
@@ -293,26 +293,26 @@ public:
     template <Int Idx, typename MapTypes>
     Int stream(const PackedFSEMarkableMap<MapTypes>* tree, Int level, Int start)
     {
-    	Int index		= Base::index();
-    	auto& sum 		= Base::sum_;
+        Int index       = Base::index();
+        auto& sum       = Base::sum_;
 
-    	MEMORIA_ASSERT_TRUE(index > 0);
+        MEMORIA_ASSERT_TRUE(index > 0);
 
-    	auto target     = Base::target_- std::get<Idx>(prefix_)[index];
+        auto target     = Base::target_- std::get<Idx>(prefix_)[index];
 
-    	auto result     = tree->findGEForward(index - 1, start, target);
+        auto result     = tree->findGEForward(index - 1, start, target);
 
-    	tree->sums(start, result.idx(), std::get<Idx>(prefix_));
+        tree->sums(start, result.idx(), std::get<Idx>(prefix_));
 
-    	sum += result.prefix();
+        sum += result.prefix();
 
-    	return result.idx();
+        return result.idx();
     }
 
 
     void prepare(Iterator& iter)
     {
-    	prefix_ = iter.cache().prefixes();
+        prefix_ = iter.cache().prefixes();
     }
 
     BigInt finish(Iterator& iter, Int idx)

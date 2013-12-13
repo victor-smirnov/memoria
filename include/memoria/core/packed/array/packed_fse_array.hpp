@@ -90,7 +90,7 @@ public:
 
     static Int packed_block_size(int array_size)
     {
-    	return PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(MyType) + array_size * sizeof(Value));
+        return PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(MyType) + array_size * sizeof(Value));
     }
 
     static Int elements_for(Int block_size)
@@ -276,9 +276,9 @@ public:
 
     void insertSpace(Int room_start, Int room_length)
     {
-    	if (room_start < 0) {
-    		int a = 0; a++;
-    	}
+        if (room_start < 0) {
+            int a = 0; a++;
+        }
 
         MEMORIA_ASSERT(room_start, >=, 0);
 

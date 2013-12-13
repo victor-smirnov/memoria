@@ -95,7 +95,7 @@ class VectorMapIteratorPrefixCache: public bt::BTreeIteratorCache<Iterator, Cont
 
     typedef bt::BTreeIteratorCache<Iterator, Container>                         Base;
     typedef typename Container::Accumulator                                     Accumulator;
-    typedef typename Container::CtrSizeT										CtrSizeT;
+    typedef typename Container::CtrSizeT                                        CtrSizeT;
 
     BigInt id_prefix_   = 0;
     BigInt id_entry_    = 0;

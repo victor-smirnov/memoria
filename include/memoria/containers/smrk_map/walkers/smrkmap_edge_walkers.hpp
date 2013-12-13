@@ -82,13 +82,13 @@ public:
     template <Int Idx, typename MapTypes>
     void stream(const PackedFSESearchableMarkableMap<MapTypes>* tree, Int level, Int start)
     {
-    	if (level > 0)
-    	{
-    		prefix_ += tree->sumWithoutLastElement(0);
-    	}
-    	else {
-    		prefix_ += tree->sum(0);
-    	}
+        if (level > 0)
+        {
+            prefix_ += tree->sumWithoutLastElement(0);
+        }
+        else {
+            prefix_ += tree->sum(0);
+        }
     }
 
 
@@ -190,7 +190,7 @@ public:
     template <Int Idx, typename MapTypes>
     void stream(const PackedFSESearchableMarkableMap<MapTypes>* tree)
     {
-    	prefix_ += tree->sumWithoutLastElement(0);
+        prefix_ += tree->sumWithoutLastElement(0);
     }
 
 

@@ -39,7 +39,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertName)
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
-    typedef ValuePair<Accumulator, Value>                                   	Element;
+    typedef ValuePair<Accumulator, Value>                                       Element;
 
     struct InsertIntoLeafFn {
 
@@ -64,8 +64,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertName)
         template <Int Idx, typename StreamTypes>
         void stream(PackedFSEMarkableMap<StreamTypes>* map, Int idx)
         {
-        	MEMORIA_ASSERT_TRUE(map);
-        	map->insert(idx, std::get<Idx>(element_.first), element_.second);
+            MEMORIA_ASSERT_TRUE(map);
+            map->insert(idx, std::get<Idx>(element_.first), element_.second);
         }
 
 
@@ -126,9 +126,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertName)
 
     void initLeaf(NodeBaseG& node) const
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	self.updatePageG(node);
+        self.updatePageG(node);
         self.layoutNode(node, 1);
     }
 

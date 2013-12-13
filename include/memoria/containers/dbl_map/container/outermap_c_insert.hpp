@@ -19,82 +19,82 @@ namespace memoria {
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::dblmap::OuterCtrInsertName)
 
-	typedef typename Base::Types                                                Types;
+    typedef typename Base::Types                                                Types;
 
-	typedef typename Types::NodeBaseG                                           NodeBaseG;
-	typedef typename Base::Iterator                                             Iterator;
+    typedef typename Types::NodeBaseG                                           NodeBaseG;
+    typedef typename Base::Iterator                                             Iterator;
 
-	typedef typename Base::LeafDispatcher                                       LeafDispatcher;
+    typedef typename Base::LeafDispatcher                                       LeafDispatcher;
 
     typedef typename Types::Key                                                 Key;
     typedef typename Types::Value                                               Value;
 
-	typedef typename Types::Accumulator                                         Accumulator;
-	typedef typename Types::Position                                            Position;
+    typedef typename Types::Accumulator                                         Accumulator;
+    typedef typename Types::Position                                            Position;
 
-	static const Int Streams                                                    = Types::Streams;
+    static const Int Streams                                                    = Types::Streams;
 
-	typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
+    typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
-	struct InsertIntoLeafFn {
+    struct InsertIntoLeafFn {
 
-		const Accumulator& element_;
+        const Accumulator& element_;
 
-		InsertIntoLeafFn(const Accumulator& element): element_(element) {}
-
-
-		template <Int Idx, typename StreamTypes>
-		void stream(PkdFTree<StreamTypes>* map, Int idx)
-		{
-			MEMORIA_ASSERT_TRUE(map != nullptr);
-			map->insert(idx, std::get<Idx>(element_));
-		}
+        InsertIntoLeafFn(const Accumulator& element): element_(element) {}
 
 
-		template <typename NTypes>
-		void treeNode(LeafNode<NTypes>* node, Int idx)
-		{
-			node->layout(1);
-			node->template processStream<0>(*this, idx);
-		}
-	};
-
-	bool insertIntoLeaf(NodeBaseG& leaf, Int idx, const Accumulator& element);
-	bool insertMapEntry(Iterator& iter, const Accumulator& element);
+        template <Int Idx, typename StreamTypes>
+        void stream(PkdFTree<StreamTypes>* map, Int idx)
+        {
+            MEMORIA_ASSERT_TRUE(map != nullptr);
+            map->insert(idx, std::get<Idx>(element_));
+        }
 
 
-	struct AddLeafFn {
+        template <typename NTypes>
+        void treeNode(LeafNode<NTypes>* node, Int idx)
+        {
+            node->layout(1);
+            node->template processStream<0>(*this, idx);
+        }
+    };
 
-		const Accumulator& element_;
-
-		AddLeafFn(const Accumulator& element): element_(element) {}
-
-		template <Int Idx, typename StreamTypes>
-		void stream(PkdFTree<StreamTypes>* map, Int idx)
-		{
-			MEMORIA_ASSERT_TRUE(map != nullptr);
-
-			map->addValues(idx, std::get<Idx>(element_));
-		}
-
-		template <typename NTypes>
-		void treeNode(LeafNode<NTypes>* node, Int idx)
-		{
-			node->template processStream<0>(*this, idx);
-		}
-	};
+    bool insertIntoLeaf(NodeBaseG& leaf, Int idx, const Accumulator& element);
+    bool insertMapEntry(Iterator& iter, const Accumulator& element);
 
 
-	void updateLeafNode(NodeBaseG& node, Int idx, const Accumulator& sums, std::function<void (Int, Int)> fn);
-	void updateUp(NodeBaseG& node, Int idx, const Accumulator& sums, std::function<void (Int, Int)> fn);
+    struct AddLeafFn {
 
-	void initLeaf(NodeBaseG& node) const
-	{
-		auto& self = this->self();
+        const Accumulator& element_;
 
-		self.updatePageG(node);
-		self.layoutNode(node, 1);
-	}
+        AddLeafFn(const Accumulator& element): element_(element) {}
+
+        template <Int Idx, typename StreamTypes>
+        void stream(PkdFTree<StreamTypes>* map, Int idx)
+        {
+            MEMORIA_ASSERT_TRUE(map != nullptr);
+
+            map->addValues(idx, std::get<Idx>(element_));
+        }
+
+        template <typename NTypes>
+        void treeNode(LeafNode<NTypes>* node, Int idx)
+        {
+            node->template processStream<0>(*this, idx);
+        }
+    };
+
+
+    void updateLeafNode(NodeBaseG& node, Int idx, const Accumulator& sums, std::function<void (Int, Int)> fn);
+    void updateUp(NodeBaseG& node, Int idx, const Accumulator& sums, std::function<void (Int, Int)> fn);
+
+    void initLeaf(NodeBaseG& node) const
+    {
+        auto& self = this->self();
+
+        self.updatePageG(node);
+        self.layoutNode(node, 1);
+    }
 
 MEMORIA_CONTAINER_PART_END
 

@@ -45,9 +45,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::UpdateName)
 
     static const Int Streams                                                    = Types::Streams;
 
-    typedef typename Types::DataTarget                                     		DataTarget;
+    typedef typename Types::DataTarget                                          DataTarget;
 
-    typedef typename Types::CtrSizeT											CtrSizeT;
+    typedef typename Types::CtrSizeT                                            CtrSizeT;
 
     Position getRemainder(ISource& source)
     {

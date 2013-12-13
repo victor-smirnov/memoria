@@ -48,8 +48,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrInsertName)
 
     typedef typename Types::CtrSizeT                                            CtrSizeT;
 
-    typedef typename Types::DataSource                                     		DataSource;
-    typedef typename Types::DataTarget                                     		DataTarget;
+    typedef typename Types::DataSource                                          DataSource;
+    typedef typename Types::DataTarget                                          DataTarget;
 
     static const Int Streams                                                    = Types::Streams;
 
@@ -144,16 +144,16 @@ void M_TYPE::insertData(Iterator& iter, DataSource& data)
             }
         }
         else {
-        	// -1 added for DblMap
+            // -1 added for DblMap
             if (entry_idx < leaf_size - 1)
             {
-            	auto right = self.splitLeafP(iter.leaf(), {entry_idx + 1, idx});
+                auto right = self.splitLeafP(iter.leaf(), {entry_idx + 1, idx});
                 iter.cache().setEntries(iter.leaf_size(0));
 
                 insertDataInternal1(iter, {0, idx}, data);
             }
             else {
-            	insertDataInternal1(iter, {0, idx}, data);
+                insertDataInternal1(iter, {0, idx}, data);
             }
         }
     }

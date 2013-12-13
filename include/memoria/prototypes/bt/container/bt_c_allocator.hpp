@@ -83,28 +83,28 @@ public:
 //    virtual bool hasRoot(BigInt name)
 //    {
 ////        throw vapi::Exception(MA_SRC, "Allocator::hasRoot(BigInt) method must be properly implements for this container");
-//    	return isCtrSharedRegistered(name); // Is it correct?
+//      return isCtrSharedRegistered(name); // Is it correct?
 //    }
 
     virtual void markUpdated(BigInt name)
     {
-    	return self().allocator().markUpdated(name);
+        return self().allocator().markUpdated(name);
     }
 
     virtual BigInt currentTxnId() const {
-    	return self().allocator().currentTxnId();
+        return self().allocator().currentTxnId();
     }
 
 
 
     virtual PageG getPage(const ID& id, BigInt name)
     {
-    	return self().allocator().getPage(id, name);
+        return self().allocator().getPage(id, name);
     }
 
     virtual PageG getPageForUpdate(const ID& id, BigInt name)
     {
-    	return self().allocator().getPageForUpdate(id, name);
+        return self().allocator().getPageForUpdate(id, name);
     }
 
     virtual PageG updatePage(Shared* shared, BigInt name);
@@ -133,12 +133,12 @@ public:
 
     virtual IAllocatorProperties& properties()
     {
-    	return self().allocator().properties();
+        return self().allocator().properties();
     }
 
     virtual ID newId()
     {
-    	return self().allocator().newId();
+        return self().allocator().newId();
     }
 
 MEMORIA_CONTAINER_PART_END

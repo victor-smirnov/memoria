@@ -46,7 +46,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::dblmap::CtrApiName)
 
     static const Int Streams                                                    = Types::Streams;
 
-    typedef typename Types::DataSource                                     		DataSource;
+    typedef typename Types::DataSource                                          DataSource;
 
     typedef typename Types::CtrSizeT                                            CtrSizeT;
 
@@ -116,9 +116,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::dblmap::CtrApiName)
 
         if (!iter.found())
         {
-        	EmptyDataSource<typename Types::IOValue> src;
-        	self.insert(iter, id, src);
-        	iter.found() = true;
+            EmptyDataSource<typename Types::IOValue> src;
+            self.insert(iter, id, src);
+            iter.found() = true;
         }
 
         return iter;
@@ -131,12 +131,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::dblmap::CtrApiName)
 
         if (!iter.found())
         {
-        	EmptyDataSource<typename Types::IOValue> src;
-        	self.insert(iter, id, src);
-        	iter.found() = true;
+            EmptyDataSource<typename Types::IOValue> src;
+            self.insert(iter, id, src);
+            iter.found() = true;
         }
         else {
-        	throw vapi::Exception(MA_SRC, SBuf()<<"DmblMap Entry with key "<<id<<" already exists");
+            throw vapi::Exception(MA_SRC, SBuf()<<"DmblMap Entry with key "<<id<<" already exists");
         }
 
         return iter;

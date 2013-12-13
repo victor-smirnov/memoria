@@ -22,8 +22,8 @@ class Iter<DblMap2IterTypes<Types> >: public IterStart<DblMap2IterTypes<Types> >
     typedef Iter<DblMap2IterTypes<Types> >                                      MyType;
     typedef Ctr<DblMap2CtrTypes<Types> >                                        ContainerType;
 
-    typedef typename ContainerType::OuterMap::Iterator          				OuterMapIterator;
-    typedef typename ContainerType::InnerMap::Iterator          				InnerMapIterator;
+    typedef typename ContainerType::OuterMap::Iterator                          OuterMapIterator;
+    typedef typename ContainerType::InnerMap::Iterator                          InnerMapIterator;
 
     typedef typename Types::Profile                                             Profile;
     typedef typename Types::Allocator                                           Allocator;

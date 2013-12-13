@@ -43,7 +43,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrApiName)
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
 
-    typedef typename Types::CtrSizeT											CtrSizeT;
+    typedef typename Types::CtrSizeT                                            CtrSizeT;
 
     static const Int Streams                                                    = Types::Streams;
 

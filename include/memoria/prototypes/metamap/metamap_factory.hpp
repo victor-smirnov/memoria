@@ -50,24 +50,24 @@ namespace memoria {
 
 
 template <
-	typename Profile,
-	Int Indexes_,
-	typename Key_,
-	typename Value_,
-	typename LabelsList,
-	typename HiddenLabelsList
+    typename Profile,
+    Int Indexes_,
+    typename Key_,
+    typename Value_,
+    typename LabelsList,
+    typename HiddenLabelsList
 >
 struct MetaMapBTTypesBase: public BTTypes<Profile, memoria::BT> {
 
     typedef BTTypes<Profile, memoria::BT>                                       Base;
 
     typedef typename TupleBuilder<
-    		typename metamap::LabelTypeListBuilder<HiddenLabelsList>::Type
-    >::Type																		HiddenLabelsTuple;
+            typename metamap::LabelTypeListBuilder<HiddenLabelsList>::Type
+    >::Type                                                                     HiddenLabelsTuple;
 
     typedef typename TupleBuilder<
-    		typename metamap::LabelTypeListBuilder<LabelsList>::Type
-    >::Type																		LabelsTuple;
+            typename metamap::LabelTypeListBuilder<LabelsList>::Type
+    >::Type                                                                     LabelsTuple;
 
 
 
@@ -81,32 +81,32 @@ struct MetaMapBTTypesBase: public BTTypes<Profile, memoria::BT> {
             TreeNodeType<BranchNode>
     >                                                                           DefaultNodeTypesList;
 
-    static const Int Labels														= ListSize<LabelsList>::Value;
-    static const Int HiddenLabels												= ListSize<HiddenLabelsList>::Value;
+    static const Int Labels                                                     = ListSize<LabelsList>::Value;
+    static const Int HiddenLabels                                               = ListSize<HiddenLabelsList>::Value;
 
     typedef typename IfThenElse<
-        			IfTypesEqual<Value_, IDType>::Value,
-        			typename Base::ID,
-        			Value_
-    >::Result																	ValueType;
+                    IfTypesEqual<Value_, IDType>::Value,
+                    typename Base::ID,
+                    Value_
+    >::Result                                                                   ValueType;
 
-    static const Int Indexes													= Indexes_;
+    static const Int Indexes                                                    = Indexes_;
 
     using StreamTF = metamap::MetaMapStreamTF<Indexes, Key_, ValueType, HiddenLabelsList, LabelsList>;
 
-    typedef typename StreamTF::Key												Key;
-    typedef typename StreamTF::Value											Value;
+    typedef typename StreamTF::Key                                              Key;
+    typedef typename StreamTF::Value                                            Value;
 
     typedef metamap::MetaMapEntry<
-        			Indexes,
-        			Key,
-        			Value,
-        			HiddenLabelsTuple,
-        			LabelsTuple
-    >																			Entry;
+                    Indexes,
+                    Key,
+                    Value,
+                    HiddenLabelsTuple,
+                    LabelsTuple
+    >                                                                           Entry;
 
-    typedef metamap::LabelOffsetProc<LabelsList> 								LabelsOffset;
-    typedef metamap::LabelOffsetProc<HiddenLabelsList> 							HiddenLabelsOffset;
+    typedef metamap::LabelOffsetProc<LabelsList>                                LabelsOffset;
+    typedef metamap::LabelOffsetProc<HiddenLabelsList>                          HiddenLabelsOffset;
 
 
     typedef TypeList<StreamTF>                                                  StreamDescriptors;
@@ -146,10 +146,10 @@ struct MetaMapBTTypesBase: public BTTypes<Profile, memoria::BT> {
 
 
     template <typename Types>
-    using FindGTWalker      	= bt1::FindGTForwardWalker<Types, bt1::DefaultIteratorPrefixFn>;
+    using FindGTWalker          = bt1::FindGTForwardWalker<Types, bt1::DefaultIteratorPrefixFn>;
 
     template <typename Types>
-    using FindGEWalker      	= bt1::FindGEForwardWalker<Types, bt1::DefaultIteratorPrefixFn>;
+    using FindGEWalker          = bt1::FindGEForwardWalker<Types, bt1::DefaultIteratorPrefixFn>;
 
     template <typename Types>
     using FindBackwardWalker    = bt1::FindBackwardWalker<Types, bt1::DefaultIteratorPrefixFn>;
@@ -169,7 +169,7 @@ struct MetaMapBTTypesBase: public BTTypes<Profile, memoria::BT> {
 
 
     template <typename Types>
-    using FindBeginWalker   	= bt1::FindBeginWalker<Types>;
+    using FindBeginWalker       = bt1::FindBeginWalker<Types>;
 };
 
 
@@ -179,123 +179,123 @@ struct MetaMapBTTypesBase: public BTTypes<Profile, memoria::BT> {
 
 
 template <
-	typename Profile,
-	Int Indexes_,
-	typename Key_,
-	typename Value_,
-	typename HiddenLabelsList,
-	typename LabelsList
+    typename Profile,
+    Int Indexes_,
+    typename Key_,
+    typename Value_,
+    typename HiddenLabelsList,
+    typename LabelsList
 >
 struct BTTypes<Profile, memoria::MetaMap<Indexes_, Key_, Value_, LabelsList, HiddenLabelsList>>:
-	public MetaMapBTTypesBase<Profile, Indexes_, Key_, Value_, LabelsList, HiddenLabelsList> {
+    public MetaMapBTTypesBase<Profile, Indexes_, Key_, Value_, LabelsList, HiddenLabelsList> {
 
-	using Base = MetaMapBTTypesBase<Profile, Indexes_, Key_, Value_, LabelsList, HiddenLabelsList>;
+    using Base = MetaMapBTTypesBase<Profile, Indexes_, Key_, Value_, LabelsList, HiddenLabelsList>;
 
 
-	typedef typename MergeLists<
-	                typename Base::ContainerPartsList,
-	                bt::NodeNormName,
-	                metamap::CtrInsertName
+    typedef typename MergeLists<
+                    typename Base::ContainerPartsList,
+                    bt::NodeNormName,
+                    metamap::CtrInsertName
     >::Result                                                                   ContainerPartsList;
 
 
-	typedef typename MergeLists<
-	                typename Base::IteratorPartsList,
-	                metamap::ItrValueByRefName
-	>::Result                                                                   IteratorPartsList;
+    typedef typename MergeLists<
+                    typename Base::IteratorPartsList,
+                    metamap::ItrValueByRefName
+    >::Result                                                                   IteratorPartsList;
 };
 
 
 template <
-	typename Profile,
-	Int Indexes_,
-	typename Key_,
-	typename Value_,
-	typename HiddenLabelsList,
-	typename LabelsList,
+    typename Profile,
+    Int Indexes_,
+    typename Key_,
+    typename Value_,
+    typename HiddenLabelsList,
+    typename LabelsList,
 
-	Granularity gr
+    Granularity gr
 >
 struct BTTypes<Profile, memoria::MetaMap<Indexes_, VLen<gr, Key_>, Value_, LabelsList, HiddenLabelsList>>:
-	public MetaMapBTTypesBase<Profile, Indexes_, VLen<gr, Key_>, Value_, LabelsList, HiddenLabelsList> {
+    public MetaMapBTTypesBase<Profile, Indexes_, VLen<gr, Key_>, Value_, LabelsList, HiddenLabelsList> {
 
-	using Base = MetaMapBTTypesBase<Profile, Indexes_, VLen<gr, Key_>, Value_, LabelsList, HiddenLabelsList>;
+    using Base = MetaMapBTTypesBase<Profile, Indexes_, VLen<gr, Key_>, Value_, LabelsList, HiddenLabelsList>;
 
 
-	typedef typename MergeLists<
-	                typename Base::ContainerPartsList,
-	                bt::NodeComprName,
-	                metamap::CtrInsertComprName
+    typedef typename MergeLists<
+                    typename Base::ContainerPartsList,
+                    bt::NodeComprName,
+                    metamap::CtrInsertComprName
     >::Result                                                                   ContainerPartsList;
 
 
-	typedef typename MergeLists<
-	                typename Base::IteratorPartsList,
-	                metamap::ItrValueByRefName
-	>::Result                                                                   IteratorPartsList;
+    typedef typename MergeLists<
+                    typename Base::IteratorPartsList,
+                    metamap::ItrValueByRefName
+    >::Result                                                                   IteratorPartsList;
 };
 
 
 
 template <
-	typename Profile,
-	Int Indexes_,
-	typename Key_,
-	typename Value_,
-	typename HiddenLabelsList,
-	typename LabelsList,
+    typename Profile,
+    Int Indexes_,
+    typename Key_,
+    typename Value_,
+    typename HiddenLabelsList,
+    typename LabelsList,
 
-	Granularity gr
+    Granularity gr
 >
 struct BTTypes<Profile, memoria::MetaMap<Indexes_, Key_, VLen<gr, Value_>, LabelsList, HiddenLabelsList>>:
-	public MetaMapBTTypesBase<Profile, Indexes_, Key_, VLen<gr, Value_>, LabelsList, HiddenLabelsList> {
+    public MetaMapBTTypesBase<Profile, Indexes_, Key_, VLen<gr, Value_>, LabelsList, HiddenLabelsList> {
 
-	using Base = MetaMapBTTypesBase<Profile, Indexes_, Key_, VLen<gr, Value_>, LabelsList, HiddenLabelsList>;
+    using Base = MetaMapBTTypesBase<Profile, Indexes_, Key_, VLen<gr, Value_>, LabelsList, HiddenLabelsList>;
 
 
-	typedef typename MergeLists<
-	                typename Base::ContainerPartsList,
-	                bt::NodeComprName,
-	                metamap::CtrInsertComprName
+    typedef typename MergeLists<
+                    typename Base::ContainerPartsList,
+                    bt::NodeComprName,
+                    metamap::CtrInsertComprName
     >::Result                                                                   ContainerPartsList;
 
 
-	typedef typename MergeLists<
-	                typename Base::IteratorPartsList,
-	                metamap::ItrValueName
-	>::Result                                                                   IteratorPartsList;
+    typedef typename MergeLists<
+                    typename Base::IteratorPartsList,
+                    metamap::ItrValueName
+    >::Result                                                                   IteratorPartsList;
 };
 
 
 
 template <
-	typename Profile,
-	Int Indexes_,
-	typename Key_,
-	typename Value_,
-	typename HiddenLabelsList,
-	typename LabelsList,
+    typename Profile,
+    Int Indexes_,
+    typename Key_,
+    typename Value_,
+    typename HiddenLabelsList,
+    typename LabelsList,
 
-	Granularity gr1,
-	Granularity gr2
+    Granularity gr1,
+    Granularity gr2
 >
 struct BTTypes<Profile, memoria::MetaMap<Indexes_, VLen<gr1, Key_>, VLen<gr2, Value_>, LabelsList, HiddenLabelsList>>:
-	public MetaMapBTTypesBase<Profile, Indexes_, VLen<gr1, Key_>, VLen<gr2, Value_>, LabelsList, HiddenLabelsList> {
+    public MetaMapBTTypesBase<Profile, Indexes_, VLen<gr1, Key_>, VLen<gr2, Value_>, LabelsList, HiddenLabelsList> {
 
-	using Base = MetaMapBTTypesBase<Profile, Indexes_, VLen<gr1, Key_>, VLen<gr2, Value_>, LabelsList, HiddenLabelsList>;
+    using Base = MetaMapBTTypesBase<Profile, Indexes_, VLen<gr1, Key_>, VLen<gr2, Value_>, LabelsList, HiddenLabelsList>;
 
 
-	typedef typename MergeLists<
-	                typename Base::ContainerPartsList,
-	                bt::NodeComprName,
-	                metamap::CtrInsertComprName
+    typedef typename MergeLists<
+                    typename Base::ContainerPartsList,
+                    bt::NodeComprName,
+                    metamap::CtrInsertComprName
     >::Result                                                                   ContainerPartsList;
 
 
-	typedef typename MergeLists<
-	                typename Base::IteratorPartsList,
-	                metamap::ItrValueName
-	>::Result                                                                   IteratorPartsList;
+    typedef typename MergeLists<
+                    typename Base::IteratorPartsList,
+                    metamap::ItrValueName
+    >::Result                                                                   IteratorPartsList;
 };
 
 

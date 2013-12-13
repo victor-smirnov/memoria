@@ -17,21 +17,21 @@ template <typename Types> class PackedMapValueBase;
 
 template <Int Blocks, typename Key, typename Value, typename HiddenLabels, typename Labels>
 class PackedMapValueBase<
-	Blocks,
-	Key,
-	EmptyType,
-	HiddenLabels,
-	Labels
+    Blocks,
+    Key,
+    EmptyType,
+    HiddenLabels,
+    Labels
 >: public PackedMapLabelsBase<Blocks, Key, HiddenLabels, Labels> {
 
     typedef PackedMapLabelsBase<Blocks, Key, HiddenLabels, Labels>              Base;
 public:
     typedef PackedMapValueBase<Blocks, Key, EmptyType, HiddenLabels, Labels>    MyType;
 
-    typedef EmptyType															Value;
+    typedef EmptyType                                                           Value;
 
 
-    static const bool HasValue													= false;
+    static const bool HasValue                                                  = false;
 
 
 
@@ -42,7 +42,7 @@ public:
 
     static Int value_block_size(Int size)
     {
-    	return 0;
+        return 0;
     }
 
 

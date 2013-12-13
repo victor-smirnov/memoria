@@ -27,10 +27,10 @@ template <
     typename MemBuffer
 >
 class FARandomAccessListTestBase: public AbstractSequenceTestBase<
-	FileProfile<>,
-	typename GenericFileAllocator::WalkableAllocator,
-	ContainerTypeName,
-	MemBuffer
+    FileProfile<>,
+    typename GenericFileAllocator::WalkableAllocator,
+    ContainerTypeName,
+    MemBuffer
 > {
 
     typedef FARandomAccessListTestBase<
@@ -39,25 +39,25 @@ class FARandomAccessListTestBase: public AbstractSequenceTestBase<
     >                                                                           MyType;
 
     typedef AbstractSequenceTestBase<
-    		FileProfile<>,
-    		typename GenericFileAllocator::WalkableAllocator,
-    		ContainerTypeName,
-    		MemBuffer
-    >                                                            				Base;
+            FileProfile<>,
+            typename GenericFileAllocator::WalkableAllocator,
+            ContainerTypeName,
+            MemBuffer
+    >                                                                           Base;
 
 protected:
     typedef typename FCtrTF<ContainerTypeName>::Type                            Ctr;
     typedef typename Ctr::Iterator                                              Iterator;
     typedef typename Ctr::ID                                                    ID;
-    typedef typename Ctr::Accumulator											Accumulator;
+    typedef typename Ctr::Accumulator                                           Accumulator;
 
-    typedef GenericFileAllocator												Allocator;
+    typedef GenericFileAllocator                                                Allocator;
 
     bool clear_cache_ = true;
 
     OpenMode mode_ = OpenMode::READ | OpenMode::WRITE | OpenMode::CREATE | OpenMode::TRUNC;
 
-    typedef typename Base::TestFn                     							TestFn;
+    typedef typename Base::TestFn                                               TestFn;
 
 public:
 
@@ -72,22 +72,22 @@ public:
 
     virtual String Store(Allocator& allocator) const
     {
-    	String new_name = allocator.file_name() + ".valid";
+        String new_name = allocator.file_name() + ".valid";
 
-    	File file(allocator.file_name());
-    	file.copy(new_name);
+        File file(allocator.file_name());
+        file.copy(new_name);
 
-    	allocator.commit();
+        allocator.commit();
 
-    	return new_name;
+        return new_name;
     }
 
 
     virtual void testInsert(TestFn test_fn)
     {
-    	typename Allocator::Cfg cfg;
+        typename Allocator::Cfg cfg;
 
-    	cfg.pages_buffer_size(1024);
+        cfg.pages_buffer_size(1024);
 
         Allocator allocator(this->getResourcePath("insert.db"), mode_, cfg);
         DefaultLogHandlerImpl logHandler(this->out());
@@ -111,12 +111,12 @@ public:
                 allocator.flush();
 
                 if (clear_cache_) {
-                	allocator.clearCache();
+                    allocator.clearCache();
                 }
             }
         }
         catch (...) {
-        	this->dump_name_ = Store(allocator);
+            this->dump_name_ = Store(allocator);
             throw;
         }
     }
@@ -124,9 +124,9 @@ public:
 
     virtual void testRemove(TestFn test_fn)
     {
-    	typename Allocator::Cfg cfg;
+        typename Allocator::Cfg cfg;
 
-    	cfg.pages_buffer_size(1024);
+        cfg.pages_buffer_size(1024);
 
         Allocator allocator(this->getResourcePath("remove.db"), mode_, cfg);
         DefaultLogHandlerImpl logHandler(this->out());
@@ -139,7 +139,7 @@ public:
 
         try {
 
-        	this->fillRandom(allocator, ctr, Base::size_);
+            this->fillRandom(allocator, ctr, Base::size_);
 
             allocator.flush();
 
@@ -154,12 +154,12 @@ public:
                 allocator.flush();
 
                 if (clear_cache_) {
-                	allocator.clearCache();
+                    allocator.clearCache();
                 }
             }
         }
         catch (...) {
-        	this->dump_name_ = Store(allocator);
+            this->dump_name_ = Store(allocator);
             throw;
         }
     }

@@ -22,20 +22,20 @@ template <Int Blocks, Granularity gr, typename ValueType> struct VLETreeTF;
 
 template <Int Blocks, typename ValueType>
 struct VLETreeTF<Blocks, Granularity::Bit, ValueType> {
-	typedef PkdVTree<
-			Packed2TreeTypes<
-				ValueType, typename PackedTreeIndexTF<ValueType>::Type, Blocks, UBigIntEliasCodec
-			>
-	>																			Type;
+    typedef PkdVTree<
+            Packed2TreeTypes<
+                ValueType, typename PackedTreeIndexTF<ValueType>::Type, Blocks, UBigIntEliasCodec
+            >
+    >                                                                           Type;
 };
 
 template <Int Blocks, typename ValueType>
 struct VLETreeTF<Blocks, Granularity::Byte, ValueType> {
-	typedef PkdVTree<
-			Packed2TreeTypes<
-				ValueType, typename PackedTreeIndexTF<ValueType>::Type, Blocks, UByteExintCodec
-			>
-	>																			Type;
+    typedef PkdVTree<
+            Packed2TreeTypes<
+                ValueType, typename PackedTreeIndexTF<ValueType>::Type, Blocks, UByteExintCodec
+            >
+    >                                                                           Type;
 };
 
 
@@ -51,11 +51,11 @@ class PackedMapTreeBase<Blocks_, VLen<gr, Key_>>: public PackedAllocator {
     typedef PackedAllocator                                                     Base;
 public:
 
-    typedef PackedMapTreeBase<Blocks_, VLen<gr, Key_>>							MyType;
+    typedef PackedMapTreeBase<Blocks_, VLen<gr, Key_>>                          MyType;
 
     typedef typename memoria::internal::VLETreeTF<Blocks_, gr, Key_>::Type      Tree;
 
-    typedef Key_                                            					Key;
+    typedef Key_                                                                Key;
 
     typedef typename Tree::Values                                               Values;
     typedef typename Tree::Values2                                              Values2;
@@ -63,8 +63,8 @@ public:
     typedef typename Tree::IndexValue                                           IndexValue;
     typedef typename Tree::ValueDescr                                           ValueDescr;
 
-    static const Int TREE														= 0;
-    static const Int Blocks														= Blocks_;
+    static const Int TREE                                                       = 0;
+    static const Int Blocks                                                     = Blocks_;
 
     Tree* tree() {
         return Base::template get<Tree>(TREE);
@@ -81,12 +81,12 @@ public:
 
     typename Tree::ValueAccessor key(Int key_num, Int idx)
     {
-    	return tree()->value(key_num, idx);
+        return tree()->value(key_num, idx);
     }
 
     Key key(Int key_num, Int idx) const
     {
-    	return tree()->value(key_num, idx);
+        return tree()->value(key_num, idx);
     }
 
     static Int tree_empty_size()
@@ -97,59 +97,59 @@ public:
 
     static Int tree_block_size(Int size)
     {
-    	Int tree_block_size = Tree::packed_block_size(size);
-    	return tree_block_size;
+        Int tree_block_size = Tree::packed_block_size(size);
+        return tree_block_size;
     }
 
 
     void tree_init()
     {
-    	Base::template allocateEmpty<Tree>(TREE);
+        Base::template allocateEmpty<Tree>(TREE);
     }
 
     template <typename Entry, typename MapSums>
     void insertTree(Int idx, const Entry& entry, MapSums& sums)
     {
-    	tree()->insert(idx, entry.indexes());
+        tree()->insert(idx, entry.indexes());
 
-    	sums[0] += 1;
-    	sums.sumAt(1, entry.indexes());
+        sums[0] += 1;
+        sums.sumAt(1, entry.indexes());
     }
 
     void insertTreeSpace(Int room_start, Int room_length)
     {
-      	tree()->insertSpace(room_start, room_length);
+        tree()->insertSpace(room_start, room_length);
     }
 
 
     void removeTreeSpace(Int room_start, Int room_end)
     {
-    	tree()->remove(room_start, room_end);
-    	tree()->reindex();
+        tree()->remove(room_start, room_end);
+        tree()->reindex();
     }
 
     void splitTreeTo(MyType* other, Int split_idx)
     {
-    	tree()->splitTo(other->tree(), split_idx);
+        tree()->splitTo(other->tree(), split_idx);
     }
 
     void mergeTreeWith(MyType* other)
     {
-       	tree()->mergeWith(other->tree());
+        tree()->mergeWith(other->tree());
     }
 
     void reindexTree() {
-    	tree()->reindex();
+        tree()->reindex();
     }
 
     void checkTree() const
     {
-    	tree()->check();
+        tree()->check();
     }
 
     void dumpTree(std::ostream& out = std::cout) const
     {
-    	tree()->dump(out);
+        tree()->dump(out);
     }
 
     // ============================ Serialization ==================================== //

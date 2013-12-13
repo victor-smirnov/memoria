@@ -25,12 +25,12 @@ class SequenceBatchTest: public SequenceCreateTestBase<
     SymbolsBuffer<BitsPerSymbol>
 >
 {
-    typedef SequenceBatchTest<BitsPerSymbol, Dense>                            	MyType;
+    typedef SequenceBatchTest<BitsPerSymbol, Dense>                             MyType;
     typedef MyType                                                              ParamType;
 
     typedef SequenceCreateTestBase<
-    			Sequence<BitsPerSymbol, Dense>,
-    			SymbolsBuffer<BitsPerSymbol>
+                Sequence<BitsPerSymbol, Dense>,
+                SymbolsBuffer<BitsPerSymbol>
     >                                                                           Base;
 
     typedef typename Base::Ctr                                                  Ctr;
@@ -38,7 +38,7 @@ class SequenceBatchTest: public SequenceCreateTestBase<
     typedef typename Ctr::Accumulator                                           Accumulator;
     typedef typename Base::ID                                                   ID;
 
-    typedef SymbolsBuffer<BitsPerSymbol>                                       	MemBuffer;
+    typedef SymbolsBuffer<BitsPerSymbol>                                        MemBuffer;
 
 public:
     SequenceBatchTest(StringRef name):
@@ -86,7 +86,7 @@ public:
 
     virtual void read(Iterator& iter, MemBuffer& data)
     {
-    	iter.read(data);
+        iter.read(data);
     }
 
     virtual void remove(Iterator& iter, BigInt size) {

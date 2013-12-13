@@ -68,7 +68,7 @@ void M_TYPE::removeEntry(Iterator& iter)
     Int idx                 = iter.idx();
     CtrSizeT local_offset     = iter.data_offset();
     CtrSizeT size           = iter.blob_size();
-    CtrSizeT data_leaf_size 	= iter.leafSize(1);
+    CtrSizeT data_leaf_size     = iter.leafSize(1);
 
     Accumulator keys;
 

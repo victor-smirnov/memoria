@@ -91,7 +91,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
     void root2Node(NodeBaseG& node) const
     {
-    	self().updatePageG(node);
+        self().updatePageG(node);
 
         node->set_root(false);
 
@@ -100,7 +100,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
     void node2Root(NodeBaseG& node, const Metadata& meta) const
     {
-    	self().updatePageG(node);
+        self().updatePageG(node);
 
         node->set_root(true);
 
@@ -112,7 +112,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
     void copyRootMetadata(NodeBaseG& src, NodeBaseG& tgt) const
     {
-    	self().updatePageG(tgt);
+        self().updatePageG(tgt);
         tgt->setMetadata(src->root_metadata());
     }
 
@@ -138,16 +138,16 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     template <typename Node>
     NodeBaseG getChildFn(const Node* node, Int idx) const
     {
-    	auto& self = this->self();
-    	return self.allocator().getPage(node->value(idx), self.master_name());
+        auto& self = this->self();
+        return self.allocator().getPage(node->value(idx), self.master_name());
     }
 
 
     template <typename Node>
     NodeBaseG getChildForUpdateFn(const Node* node, Int idx) const
     {
-    	auto& self = this->self();
-    	return self.allocator().getPageForUpdate(node->value(idx), self.master_name());
+        auto& self = this->self();
+        return self.allocator().getPageForUpdate(node->value(idx), self.master_name());
     }
 
 
@@ -188,14 +188,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
     NodeBaseG getNodeParent(const NodeBaseG& node) const
     {
-    	auto& self = this->self();
-    	return self.allocator().getPage(node->parent_id(), self.master_name());
+        auto& self = this->self();
+        return self.allocator().getPage(node->parent_id(), self.master_name());
     }
 
     NodeBaseG getNodeParentForUpdate(const NodeBaseG& node) const
     {
-    	auto& self = this->self();
-    	return self.allocator().getPageForUpdate(node->parent_id(), self.master_name());
+        auto& self = this->self();
+        return self.allocator().getPageForUpdate(node->parent_id(), self.master_name());
     }
 
 
@@ -275,14 +275,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
     NodeBaseG getRoot() const
     {
-    	auto& self = this->self();
-    	return self.allocator().getPage(self.root(), self.master_name());
+        auto& self = this->self();
+        return self.allocator().getPage(self.root(), self.master_name());
     }
 
     NodeBaseG getRootForUpdate() const
     {
-    	auto& self = this->self();
-    	return self.allocator().getPageForUpdate(self.root(), self.master_name());
+        auto& self = this->self();
+        return self.allocator().getPageForUpdate(self.root(), self.master_name());
     }
 
 
@@ -291,13 +291,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
     void setKeys(NodeBaseG& node, Int idx, const Accumulator& keys) const
     {
-    	self().updatePageG(node);
+        self().updatePageG(node);
         NonLeafDispatcher::dispatch(node, SetKeysFn(), idx, keys);
     }
 
     void setNonLeafKeys(NodeBaseG& node, Int idx, const Accumulator& keys) const
     {
-    	self().updatePageG(node);
+        self().updatePageG(node);
         NonLeafDispatcher::dispatch(node, SetKeysFn(), idx, keys);
     }
 
@@ -314,7 +314,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
     void setNonLeafChildrenCount(NodeBaseG& node, Int count) const
     {
-    	self().updatePageG(node);
+        self().updatePageG(node);
         NonLeafDispatcher::dispatch(node, SetChildrenCountFn(me()), count);
     }
 
@@ -342,7 +342,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
     void setChildID(NodeBaseG& node, Int idx, const ID& id) const
     {
-    	self().updatePageG(node);
+        self().updatePageG(node);
         NonLeafDispatcher::dispatch(node, SetChildID(me()), idx, id);
     }
 
@@ -350,7 +350,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
     void reindex(NodeBaseG& node) const
     {
-    	self().updatePageG(node);
+        self().updatePageG(node);
         NodeDispatcher::dispatch(node, ReindexFn());
     }
 
@@ -396,7 +396,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     MEMORIA_DECLARE_NODE_FN(AddKeysFn, updateUp);
     void addKeys(NodeBaseG& node, int idx, const Accumulator& keys)
     {
-    	self().updatePageG(node);
+        self().updatePageG(node);
         NonLeafDispatcher::dispatch(node, AddKeysFn(me()), idx, keys);
     }
 

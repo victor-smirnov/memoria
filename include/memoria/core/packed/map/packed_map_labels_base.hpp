@@ -22,21 +22,21 @@ class LabelDispatcherListBuilder;
 
 template <Int Bits, typename... Tail, Int Idx>
 class LabelDispatcherListBuilder<TypeList<LabelDescr<Bits>, Tail...>, Idx> {
-	typedef PkdFSSeq<typename PkdFSSeqTF<Bits>::Type>							LabelStream;
+    typedef PkdFSSeq<typename PkdFSSeqTF<Bits>::Type>                           LabelStream;
 public:
-	 typedef typename MergeLists<
-	            StreamDescr<LabelStream, Idx>,
-	            typename LabelDispatcherListBuilder<
-	                TypeList<Tail...>,
-	                Idx + 1
-	            >::Type
-	 >::Result                                                                  Type;
+     typedef typename MergeLists<
+                StreamDescr<LabelStream, Idx>,
+                typename LabelDispatcherListBuilder<
+                    TypeList<Tail...>,
+                    Idx + 1
+                >::Type
+     >::Result                                                                  Type;
 };
 
 template <Int Idx>
 class LabelDispatcherListBuilder<TypeList<>, Idx> {
 public:
-	typedef TypeList<>															Type;
+    typedef TypeList<>                                                          Type;
 };
 
 
@@ -45,13 +45,13 @@ template <typename List> struct LabelsBlockSizeBuilder;
 
 template <typename LabelStream, Int Idx, typename... Tail>
 struct LabelsBlockSizeBuilder<TypeList<StreamDescr<LabelStream, Idx>, Tail...>> {
-	static const Int Value = LabelStream::Indexes +
-			LabelsBlockSizeBuilder<TypeList<Tail...>>::Value;
+    static const Int Value = LabelStream::Indexes +
+            LabelsBlockSizeBuilder<TypeList<Tail...>>::Value;
 };
 
 template <>
 struct LabelsBlockSizeBuilder<TypeList<>> {
-	static const Int Value = 0;
+    static const Int Value = 0;
 };
 
 
@@ -62,41 +62,41 @@ struct LabelsBlockSizeBuilder<TypeList<>> {
 template <Int Blocks, typename Key, typename HiddenLabels, typename Labels>
 class PackedMapLabelsBase: public PackedMapTreeBase<Blocks, Key> {
 
-    typedef PackedMapTreeBase<Blocks, Key>               						Base;
+    typedef PackedMapTreeBase<Blocks, Key>                                      Base;
 public:
 
-    typedef PackedMapLabelsBase<Blocks, Key, HiddenLabels, Labels>				MyType;
+    typedef PackedMapLabelsBase<Blocks, Key, HiddenLabels, Labels>              MyType;
 
-    typedef HiddenLabels														HiddenLabelsList;
-    typedef Labels																LabelsList;
+    typedef HiddenLabels                                                        HiddenLabelsList;
+    typedef Labels                                                              LabelsList;
 
-    static const Int HiddenLabelsListSize										= ListSize<HiddenLabelsList>::Value;
-    static const Int LabelsListSize												= ListSize<LabelsList>::Value;
+    static const Int HiddenLabelsListSize                                       = ListSize<HiddenLabelsList>::Value;
+    static const Int LabelsListSize                                             = ListSize<LabelsList>::Value;
 
-    static const Int HiddenLabelsOffset											= 1;
-    static const Int LabelsOffset												= HiddenLabelsOffset +
-    																				ListSize<HiddenLabelsList>::Value;
+    static const Int HiddenLabelsOffset                                         = 1;
+    static const Int LabelsOffset                                               = HiddenLabelsOffset +
+                                                                                    ListSize<HiddenLabelsList>::Value;
 
-    static const Int TotalLabels												= HiddenLabelsListSize + LabelsListSize;
+    static const Int TotalLabels                                                = HiddenLabelsListSize + LabelsListSize;
 
 
-    typedef typename memoria::internal::LabelDispatcherListBuilder<HiddenLabelsList>::Type 	HiddenLabelsStructsList;
-    typedef typename memoria::internal::LabelDispatcherListBuilder<LabelsList>::Type 		LabelsStructsList;
+    typedef typename memoria::internal::LabelDispatcherListBuilder<HiddenLabelsList>::Type  HiddenLabelsStructsList;
+    typedef typename memoria::internal::LabelDispatcherListBuilder<LabelsList>::Type        LabelsStructsList;
 
 
     typedef typename PackedDispatcherTool<
-    		HiddenLabelsOffset,
-    		HiddenLabelsStructsList
-    >::Type																		HiddenLabelsDispatcher;
+            HiddenLabelsOffset,
+            HiddenLabelsStructsList
+    >::Type                                                                     HiddenLabelsDispatcher;
 
     typedef typename PackedDispatcherTool<
-    		HiddenLabelsOffset + ListSize<HiddenLabelsList>::Value,
-    		LabelsStructsList
-    >::Type																		LabelsDispatcher;
+            HiddenLabelsOffset + ListSize<HiddenLabelsList>::Value,
+            LabelsStructsList
+    >::Type                                                                     LabelsDispatcher;
 
 
-    static const Int LabelsIndexes 	= memoria::internal::LabelsBlockSizeBuilder<HiddenLabelsStructsList>::Value +
-    								  memoria::internal::LabelsBlockSizeBuilder<LabelsStructsList>::Value;
+    static const Int LabelsIndexes  = memoria::internal::LabelsBlockSizeBuilder<HiddenLabelsStructsList>::Value +
+                                      memoria::internal::LabelsBlockSizeBuilder<LabelsStructsList>::Value;
 
 
     struct EmptySizeFn {
@@ -134,12 +134,12 @@ public:
 
     static Int labels_block_size(Int size)
     {
-    	LabelsBlockSizeFn fn;
+        LabelsBlockSizeFn fn;
 
-    	HiddenLabelsDispatcher::dispatchAllStatic(fn, size);
-    	LabelsDispatcher::dispatchAllStatic(fn, size);
+        HiddenLabelsDispatcher::dispatchAllStatic(fn, size);
+        LabelsDispatcher::dispatchAllStatic(fn, size);
 
-    	return fn.size_;
+        return fn.size_;
     }
 
 
@@ -147,70 +147,70 @@ public:
 
 
     struct InitStructFn {
-    	PackedAllocator* allocator_;
-    	Int offset_;
+        PackedAllocator* allocator_;
+        Int offset_;
 
-    	InitStructFn(PackedAllocator* target, Int offset): allocator_(target), offset_(offset) {}
+        InitStructFn(PackedAllocator* target, Int offset): allocator_(target), offset_(offset) {}
 
-    	template <Int StreamIdx, typename Stream>
-    	void stream(Stream*)
-    	{
-    		allocator_->template allocateEmpty<Stream>(StreamIdx + offset_);
-    	}
+        template <Int StreamIdx, typename Stream>
+        void stream(Stream*)
+        {
+            allocator_->template allocateEmpty<Stream>(StreamIdx + offset_);
+        }
     };
 
     void labels_init()
     {
-    	HiddenLabelsDispatcher::dispatchAllStatic(InitStructFn(this, HiddenLabelsOffset));
-    	LabelsDispatcher::dispatchAllStatic(InitStructFn(this, LabelsOffset));
+        HiddenLabelsDispatcher::dispatchAllStatic(InitStructFn(this, HiddenLabelsOffset));
+        LabelsDispatcher::dispatchAllStatic(InitStructFn(this, LabelsOffset));
     }
 
     template <typename Entry, typename MapSums>
     struct InsertLabelsFn {
-    	const Entry& entry_;
-    	MapSums& sums_;
+        const Entry& entry_;
+        MapSums& sums_;
 
 
-    	InsertLabelsFn(const Entry& entry, MapSums& sums):
-    		entry_(entry),
-    		sums_(sums)
-    	{}
+        InsertLabelsFn(const Entry& entry, MapSums& sums):
+            entry_(entry),
+            sums_(sums)
+        {}
 
-    	template <Int LabelIdx, typename Stream>
-    	void stream(Stream* stream, Int idx)
-    	{
-    		Int offset = MyType::label_block_offset(LabelIdx) + Blocks + 1;
+        template <Int LabelIdx, typename Stream>
+        void stream(Stream* stream, Int idx)
+        {
+            Int offset = MyType::label_block_offset(LabelIdx) + Blocks + 1;
 
-    		Int label = std::get<LabelIdx>(entry_.labels());
+            Int label = std::get<LabelIdx>(entry_.labels());
 
-    		stream->insert(idx, label);
+            stream->insert(idx, label);
 
-    		sums_[offset + label] += 1;
-    	}
+            sums_[offset + label] += 1;
+        }
     };
 
     template <typename Entry, typename MapSums>
     struct InsertHiddenLabelsFn {
-    	const Entry& entry_;
-    	MapSums& sums_;
+        const Entry& entry_;
+        MapSums& sums_;
 
 
-    	InsertHiddenLabelsFn(const Entry& entry, MapSums& sums):
-    		entry_(entry),
-    		sums_(sums)
-    	{}
+        InsertHiddenLabelsFn(const Entry& entry, MapSums& sums):
+            entry_(entry),
+            sums_(sums)
+        {}
 
-    	template <Int LabelIdx, typename Stream>
-    	void stream(Stream* stream, Int idx)
-    	{
-    		Int offset = MyType::hidden_label_block_offset(LabelIdx) + Blocks + 1;
+        template <Int LabelIdx, typename Stream>
+        void stream(Stream* stream, Int idx)
+        {
+            Int offset = MyType::hidden_label_block_offset(LabelIdx) + Blocks + 1;
 
-    		Int label  = std::get<LabelIdx>(entry_.hidden_labels());
+            Int label  = std::get<LabelIdx>(entry_.hidden_labels());
 
-    		stream->insert(idx, label);
+            stream->insert(idx, label);
 
-    		sums_[offset + label] += 1;
-    	}
+            sums_[offset + label] += 1;
+        }
     };
 
 
@@ -218,57 +218,57 @@ public:
     template <typename Entry, typename MapSums>
     void insertLabels(Int idx, const Entry& entry, MapSums& sums)
     {
-    	HiddenLabelsDispatcher::dispatchAll(this, InsertHiddenLabelsFn<Entry, MapSums>(entry, sums), idx);
-    	LabelsDispatcher::dispatchAll(this, InsertLabelsFn<Entry, MapSums>(entry, sums), idx);
+        HiddenLabelsDispatcher::dispatchAll(this, InsertHiddenLabelsFn<Entry, MapSums>(entry, sums), idx);
+        LabelsDispatcher::dispatchAll(this, InsertLabelsFn<Entry, MapSums>(entry, sums), idx);
     }
 
 
 
 
     struct InsertSpaceFn {
-      	template <Int StreamIdx, typename Stream>
-    	void stream(Stream* stream, Int start, Int length)
-    	{
-    		stream->insertSpace(start, length);
-    	}
+        template <Int StreamIdx, typename Stream>
+        void stream(Stream* stream, Int start, Int length)
+        {
+            stream->insertSpace(start, length);
+        }
     };
 
 
     void insertLabelsSpace(Int room_start, Int room_length)
     {
-    	HiddenLabelsDispatcher::dispatchAll(this, InsertSpaceFn(), room_start, room_length);
-    	LabelsDispatcher::dispatchAll(this, InsertSpaceFn(), room_start, room_length);
+        HiddenLabelsDispatcher::dispatchAll(this, InsertSpaceFn(), room_start, room_length);
+        LabelsDispatcher::dispatchAll(this, InsertSpaceFn(), room_start, room_length);
     }
 
     struct RemoveFn {
-    	template <Int StreamIdx, typename Stream>
-    	void stream(Stream* stream, Int start, Int end)
-    	{
-    		stream->removeSpace(start, end);
-    	}
+        template <Int StreamIdx, typename Stream>
+        void stream(Stream* stream, Int start, Int end)
+        {
+            stream->removeSpace(start, end);
+        }
     };
 
     void removeLabelsSpace(Int room_start, Int room_end)
     {
-    	HiddenLabelsDispatcher::dispatchAll(this, RemoveFn(), room_start, room_end);
-    	LabelsDispatcher::dispatchAll(this, RemoveFn(), room_start, room_end);
+        HiddenLabelsDispatcher::dispatchAll(this, RemoveFn(), room_start, room_end);
+        LabelsDispatcher::dispatchAll(this, RemoveFn(), room_start, room_end);
     }
 
 
 
 
     struct SplitToFn {
-    	PackedAllocator* target_;
-    	Int offset_;
+        PackedAllocator* target_;
+        Int offset_;
 
-    	SplitToFn(PackedAllocator* target, Int offset): target_(target), offset_(offset) {}
+        SplitToFn(PackedAllocator* target, Int offset): target_(target), offset_(offset) {}
 
-    	template <Int StreamIdx, typename Stream>
-    	void stream(Stream* stream, Int idx)
-    	{
-    		Stream* tgt_stream = target_->template get<Stream>(StreamIdx + offset_);
-    		stream->splitTo(tgt_stream, idx);
-    	}
+        template <Int StreamIdx, typename Stream>
+        void stream(Stream* stream, Int idx)
+        {
+            Stream* tgt_stream = target_->template get<Stream>(StreamIdx + offset_);
+            stream->splitTo(tgt_stream, idx);
+        }
     };
 
     void splitLabelsTo(MyType* other, Int split_idx)
@@ -278,17 +278,17 @@ public:
     }
 
     struct MergeWithFn {
-    	PackedAllocator* target_;
-    	Int offset_;
+        PackedAllocator* target_;
+        Int offset_;
 
-    	MergeWithFn(PackedAllocator* target, Int offset): target_(target), offset_(offset) {}
+        MergeWithFn(PackedAllocator* target, Int offset): target_(target), offset_(offset) {}
 
-    	template <Int StreamIdx, typename Stream>
-    	void stream(Stream* stream)
-    	{
-    		Stream* tgt_stream = target_->template get<Stream>(StreamIdx + offset_);
-    		stream->mergeWith(tgt_stream);
-    	}
+        template <Int StreamIdx, typename Stream>
+        void stream(Stream* stream)
+        {
+            Stream* tgt_stream = target_->template get<Stream>(StreamIdx + offset_);
+            stream->mergeWith(tgt_stream);
+        }
     };
 
     void mergeLabelsWith(MyType* other)
@@ -300,11 +300,11 @@ public:
 
 
     struct ReindexFn {
-    	template <Int StreamIdx, typename Stream>
-    	void stream(Stream* stream)
-    	{
-    		stream->reindex();
-    	}
+        template <Int StreamIdx, typename Stream>
+        void stream(Stream* stream)
+        {
+            stream->reindex();
+        }
     };
 
 
@@ -317,11 +317,11 @@ public:
 
 
     struct CheckFn {
-    	template <Int StreamIdx, typename Stream>
-    	void stream(const Stream* stream)
-    	{
-    		stream->check();
-    	}
+        template <Int StreamIdx, typename Stream>
+        void stream(const Stream* stream)
+        {
+            stream->check();
+        }
     };
 
     void checkLabels() const
@@ -333,12 +333,12 @@ public:
 
 
     struct DumpFn {
-    	template <Int StreamIdx, typename Stream>
-    	void stream(const Stream* stream, std::ostream& out)
-    	{
-    		out<<"Stream: "<<StreamIdx<<std::endl;
-    		stream->dump(out);
-    	}
+        template <Int StreamIdx, typename Stream>
+        void stream(const Stream* stream, std::ostream& out)
+        {
+            out<<"Stream: "<<StreamIdx<<std::endl;
+            stream->dump(out);
+        }
     };
 
 
@@ -355,122 +355,122 @@ public:
     // ====================================== Labels Operations ====================================== //
 
     struct GetLabelFn: RtnPkdHandlerBase<Int> {
-    	template <Int StreamIdx, typename Stream>
-    	Int stream(const Stream* stream, Int idx)
-    	{
-    		return stream->symbol(idx);
-    	}
+        template <Int StreamIdx, typename Stream>
+        Int stream(const Stream* stream, Int idx)
+        {
+            return stream->symbol(idx);
+        }
     };
 
 
     Int label(Int idx, Int label_num) const
     {
-    	return LabelsDispatcher::dispatchRtn(label_num, this, GetLabelFn(), idx);
+        return LabelsDispatcher::dispatchRtn(label_num, this, GetLabelFn(), idx);
     }
 
     Int hidden_label(Int idx, Int label_num) const
     {
-    	return HiddenLabelsDispatcher::dispatchRtn(label_num, this, GetLabelFn(), idx);
+        return HiddenLabelsDispatcher::dispatchRtn(label_num, this, GetLabelFn(), idx);
     }
 
 
     struct SetLabelFn: RtnPkdHandlerBase<Int> {
-    	template <Int StreamIdx, typename Stream>
-    	Int stream(Stream* stream, Int idx, Int value)
-    	{
-    		Int old_value = stream->symbol(idx);
+        template <Int StreamIdx, typename Stream>
+        Int stream(Stream* stream, Int idx, Int value)
+        {
+            Int old_value = stream->symbol(idx);
 
-    		stream->symbol(idx) = value;
+            stream->symbol(idx) = value;
 
-    		stream->reindex();
+            stream->reindex();
 
-    		return old_value;
-    	}
+            return old_value;
+        }
     };
 
     Int set_label(Int idx, Int label_num, Int label)
     {
-    	return LabelsDispatcher::dispatchRtn(label_num, this, SetLabelFn(), idx, label);
+        return LabelsDispatcher::dispatchRtn(label_num, this, SetLabelFn(), idx, label);
     }
 
     Int set_hidden_label(Int idx, Int label_num, Int label)
     {
-    	return HiddenLabelsDispatcher::dispatchRtn(label_num, this, SetLabelFn(), idx, label);
+        return HiddenLabelsDispatcher::dispatchRtn(label_num, this, SetLabelFn(), idx, label);
     }
 
 
 
     struct GetLabelBlockOffset
     {
-    	Int offset_ = 0;
+        Int offset_ = 0;
 
-    	template <Int StreamIdx, typename Stream>
-    	void stream(Stream*, Int label_block)
-    	{
-    		if (StreamIdx < label_block)
-    		{
-    			offset_ += Stream::AlphabetSize;
-    		}
-    	}
+        template <Int StreamIdx, typename Stream>
+        void stream(Stream*, Int label_block)
+        {
+            if (StreamIdx < label_block)
+            {
+                offset_ += Stream::AlphabetSize;
+            }
+        }
     };
 
     static Int label_block_offset(Int label_num)
     {
-    	GetLabelBlockOffset offset_fn;
+        GetLabelBlockOffset offset_fn;
 
-    	HiddenLabelsDispatcher::dispatchAllStatic(offset_fn, 100);
-    	LabelsDispatcher::dispatchAllStatic(offset_fn, label_num);
+        HiddenLabelsDispatcher::dispatchAllStatic(offset_fn, 100);
+        LabelsDispatcher::dispatchAllStatic(offset_fn, label_num);
 
-    	return offset_fn.offset_;
+        return offset_fn.offset_;
     }
 
     static Int hidden_label_block_offset(Int label_num)
     {
-    	GetLabelBlockOffset offset_fn;
+        GetLabelBlockOffset offset_fn;
 
-    	HiddenLabelsDispatcher::dispatchAllStatic(offset_fn, label_num);
+        HiddenLabelsDispatcher::dispatchAllStatic(offset_fn, label_num);
 
-    	return offset_fn.offset_;
+        return offset_fn.offset_;
     }
 
 
     struct RankFn {
 
-    	using ResultType = Int;
+        using ResultType = Int;
 
-    	template <Int StreamIdx, typename Stream>
-    	ResultType stream(const Stream* stream, Int end, Int label)
-    	{
-    		return stream->rank(end, label);
-    	}
+        template <Int StreamIdx, typename Stream>
+        ResultType stream(const Stream* stream, Int end, Int label)
+        {
+            return stream->rank(end, label);
+        }
 
-    	template <Int StreamIdx, typename Stream>
-    	ResultType stream(const Stream* stream, Int start, Int end, Int label)
-    	{
-    		return stream->rank(start, end, label);
-    	}
+        template <Int StreamIdx, typename Stream>
+        ResultType stream(const Stream* stream, Int start, Int end, Int label)
+        {
+            return stream->rank(start, end, label);
+        }
     };
 
 
     BigInt h_rank(Int label_num, Int end, Int label) const
     {
-    	return HiddenLabelsDispatcher::dispatchRtn(label_num, this, RankFn(), end, label);
+        return HiddenLabelsDispatcher::dispatchRtn(label_num, this, RankFn(), end, label);
     }
 
     BigInt rank(Int label_num, Int end, Int label) const
     {
-    	return LabelsDispatcher::dispatchRtn(label_num, this, RankFn(), end, label);
+        return LabelsDispatcher::dispatchRtn(label_num, this, RankFn(), end, label);
     }
 
 
     BigInt h_rank(Int label_num, Int start, Int end, Int label) const
     {
-    	return HiddenLabelsDispatcher::dispatchRtn(label_num, this, RankFn(), start, end, label);
+        return HiddenLabelsDispatcher::dispatchRtn(label_num, this, RankFn(), start, end, label);
     }
 
     BigInt rank(Int label_num, Int start, Int end, Int label) const
     {
-    	return LabelsDispatcher::dispatchRtn(label_num, this, RankFn(), start, end, label);
+        return LabelsDispatcher::dispatchRtn(label_num, this, RankFn(), start, end, label);
     }
 
 
@@ -478,178 +478,178 @@ public:
 
     struct SelectFwFn {
 
-    	using ResultType = SelectResult;
+        using ResultType = SelectResult;
 
-    	template <Int StreamIdx, typename Stream>
-    	ResultType stream(const Stream* stream, Int start, Int symbol, BigInt rank)
-    	{
-    		return stream->selectFw(start, symbol, rank);
-    	}
+        template <Int StreamIdx, typename Stream>
+        ResultType stream(const Stream* stream, Int start, Int symbol, BigInt rank)
+        {
+            return stream->selectFw(start, symbol, rank);
+        }
 
-    	template <Int StreamIdx, typename Stream>
-    	ResultType stream(const Stream* stream, Int symbol, BigInt rank)
-    	{
-    		return stream->selectFw(symbol, rank);
-    	}
+        template <Int StreamIdx, typename Stream>
+        ResultType stream(const Stream* stream, Int symbol, BigInt rank)
+        {
+            return stream->selectFw(symbol, rank);
+        }
     };
 
     SelectResult h_selectFw(Int label_num, Int start, Int symbol, BigInt rank) const
     {
-    	return HiddenLabelsDispatcher::dispatchRtn(label_num, this, SelectFwFn(), start, symbol, rank);
+        return HiddenLabelsDispatcher::dispatchRtn(label_num, this, SelectFwFn(), start, symbol, rank);
     }
 
     SelectResult selectFw(Int label_num, Int start, Int symbol, BigInt rank) const
     {
-    	return LabelsDispatcher::dispatchRtn(label_num, this, SelectFwFn(), start, symbol, rank);
+        return LabelsDispatcher::dispatchRtn(label_num, this, SelectFwFn(), start, symbol, rank);
     }
 
 
     SelectResult h_selectFw(Int label_num, Int symbol, BigInt rank) const
     {
-    	return HiddenLabelsDispatcher::dispatchRtn(label_num, this, SelectFwFn(), symbol, rank);
+        return HiddenLabelsDispatcher::dispatchRtn(label_num, this, SelectFwFn(), symbol, rank);
     }
 
     SelectResult selectFw(Int label_num, Int symbol, BigInt rank) const
     {
-    	return LabelsDispatcher::dispatchRtn(label_num, this, SelectFwFn(), symbol, rank);
+        return LabelsDispatcher::dispatchRtn(label_num, this, SelectFwFn(), symbol, rank);
     }
 
 
 
 
     struct SelectBwFn {
-    	using ResultType = SelectResult;
+        using ResultType = SelectResult;
 
-    	template <Int StreamIdx, typename Stream>
-    	ResultType stream(const Stream* stream, Int start, Int symbol, BigInt rank)
-    	{
-    		return stream->selectBw(start, symbol, rank);
-    	}
+        template <Int StreamIdx, typename Stream>
+        ResultType stream(const Stream* stream, Int start, Int symbol, BigInt rank)
+        {
+            return stream->selectBw(start, symbol, rank);
+        }
 
-    	template <Int StreamIdx, typename Stream>
-    	ResultType stream(const Stream* stream, Int symbol, BigInt rank)
-    	{
-    		return stream->selectBw(symbol, rank);
-    	}
+        template <Int StreamIdx, typename Stream>
+        ResultType stream(const Stream* stream, Int symbol, BigInt rank)
+        {
+            return stream->selectBw(symbol, rank);
+        }
     };
 
 
     SelectResult h_selectBw(Int label_num, Int start, Int symbol, BigInt rank) const
     {
-    	return HiddenLabelsDispatcher::dispatchRtn(label_num, this, SelectBwFn(), start, symbol, rank);
+        return HiddenLabelsDispatcher::dispatchRtn(label_num, this, SelectBwFn(), start, symbol, rank);
     }
 
     SelectResult selectBw(Int label_num, Int start, Int symbol, BigInt rank) const
     {
-    	return LabelsDispatcher::dispatchRtn(label_num, this, SelectBwFn(), start, symbol, rank);
+        return LabelsDispatcher::dispatchRtn(label_num, this, SelectBwFn(), start, symbol, rank);
     }
 
 
     SelectResult h_selectBw(Int label_num, Int symbol, BigInt rank) const
     {
-    	return HiddenLabelsDispatcher::dispatchRtn(label_num, this, SelectBwFn(), symbol, rank);
+        return HiddenLabelsDispatcher::dispatchRtn(label_num, this, SelectBwFn(), symbol, rank);
     }
 
     SelectResult selectBw(Int label_num, Int symbol, BigInt rank) const
     {
-    	return LabelsDispatcher::dispatchRtn(label_num, this, SelectBwFn(), symbol, rank);
+        return LabelsDispatcher::dispatchRtn(label_num, this, SelectBwFn(), symbol, rank);
     }
 
 
     template <typename Entry>
     struct GetEntryLabelsFn {
-    	template <Int LabelIdx, typename LabelsObj>
-    	void stream(const LabelsObj* labels, Int idx, Entry& entry)
-    	{
-    		std::get<LabelIdx>(entry.labels()) = labels->symbol(idx);
-    	}
+        template <Int LabelIdx, typename LabelsObj>
+        void stream(const LabelsObj* labels, Int idx, Entry& entry)
+        {
+            std::get<LabelIdx>(entry.labels()) = labels->symbol(idx);
+        }
     };
 
     template <typename Entry>
     struct GetEntryHiddenLabelsFn {
-    	template <Int LabelIdx, typename LabelsObj>
-    	void stream(const LabelsObj* labels, Int idx, Entry& entry)
-    	{
-    		std::get<LabelIdx>(entry.hidden_labels()) = labels->symbol(idx);
-    	}
+        template <Int LabelIdx, typename LabelsObj>
+        void stream(const LabelsObj* labels, Int idx, Entry& entry)
+        {
+            std::get<LabelIdx>(entry.hidden_labels()) = labels->symbol(idx);
+        }
     };
 
     template <typename Entry>
     void fillLabels(Int idx, Entry& entry)
     {
-    	HiddenLabelsDispatcher::dispatchAll(this, GetEntryHiddenLabelsFn<Entry>(), idx, entry);
-    	LabelsDispatcher::dispatchAll(this, GetEntryLabelsFn<Entry>(), idx, entry);
+        HiddenLabelsDispatcher::dispatchAll(this, GetEntryHiddenLabelsFn<Entry>(), idx, entry);
+        LabelsDispatcher::dispatchAll(this, GetEntryLabelsFn<Entry>(), idx, entry);
     }
 
 
     template <typename T>
     struct Sums0Fn {
-    	Int idx_;
-    	Sums0Fn(Int start): idx_(start) {}
+        Int idx_;
+        Sums0Fn(Int start): idx_(start) {}
 
-    	template <Int StreamIdx, typename Stream>
-    	void stream(const Stream* stream, T& sums)
-    	{
-    		sums.sumAt(idx_, stream->sums());
-    		idx_ += Stream::Indexes;
-    	}
+        template <Int StreamIdx, typename Stream>
+        void stream(const Stream* stream, T& sums)
+        {
+            sums.sumAt(idx_, stream->sums());
+            idx_ += Stream::Indexes;
+        }
     };
 
 
     template <typename T>
     void sumsLabels(T& sums) const
     {
-    	Sums0Fn<T> fn(Blocks + 1);
+        Sums0Fn<T> fn(Blocks + 1);
 
-    	HiddenLabelsDispatcher::dispatchAll(this, fn, sums);
-    	LabelsDispatcher::dispatchAll(this, fn, sums);
+        HiddenLabelsDispatcher::dispatchAll(this, fn, sums);
+        LabelsDispatcher::dispatchAll(this, fn, sums);
     }
 
 
     template <typename T>
     struct Sums2Fn {
-    	Int idx_;
-    	Sums2Fn(Int start): idx_(start) {}
+        Int idx_;
+        Sums2Fn(Int start): idx_(start) {}
 
-    	template <Int StreamIdx, typename Stream>
-    	void stream(const Stream* stream, Int from, Int to, T& sums)
-    	{
-    		sums.sumAt(idx_, stream->sums(from, to));
-    		idx_ += Stream::AlphabetSize;
-    	}
+        template <Int StreamIdx, typename Stream>
+        void stream(const Stream* stream, Int from, Int to, T& sums)
+        {
+            sums.sumAt(idx_, stream->sums(from, to));
+            idx_ += Stream::AlphabetSize;
+        }
     };
 
 
     template <typename T>
     void sumsLabels(Int from, Int to, T& sums) const
     {
-    	Sums2Fn<T> fn(Blocks + 1);
+        Sums2Fn<T> fn(Blocks + 1);
 
-    	HiddenLabelsDispatcher::dispatchAll(this, fn, from, to, sums);
-    	LabelsDispatcher::dispatchAll(this, fn, from, to, sums);
+        HiddenLabelsDispatcher::dispatchAll(this, fn, from, to, sums);
+        LabelsDispatcher::dispatchAll(this, fn, from, to, sums);
     }
 
 
     template <typename T>
     struct Sums1Fn {
-    	Int idx_;
-    	Sums1Fn(Int start): idx_(start) {}
+        Int idx_;
+        Sums1Fn(Int start): idx_(start) {}
 
-    	template <Int StreamIdx, typename Stream>
-    	void stream(const Stream* stream, Int idx, T& sums)
-    	{
-    		sums.sumAt(idx_, stream->sumsAt(idx));
-    		idx_ += Stream::AlphabetSize;
-    	}
+        template <Int StreamIdx, typename Stream>
+        void stream(const Stream* stream, Int idx, T& sums)
+        {
+            sums.sumAt(idx_, stream->sumsAt(idx));
+            idx_ += Stream::AlphabetSize;
+        }
     };
 
     template <typename T>
     void sumsLabels(Int idx, T& sums) const
     {
-    	Sums1Fn<T> fn(Blocks + 1);
+        Sums1Fn<T> fn(Blocks + 1);
 
-    	HiddenLabelsDispatcher::dispatchAll(this, fn, idx, sums);
-    	LabelsDispatcher::dispatchAll(this, fn, idx, sums);
+        HiddenLabelsDispatcher::dispatchAll(this, fn, idx, sums);
+        LabelsDispatcher::dispatchAll(this, fn, idx, sums);
     }
 
 
@@ -657,11 +657,11 @@ public:
     // ============================ Serialization ==================================== //
 
     struct GenerateDataEventsFn {
-    	template <Int StreamIdx, typename Stream>
-    	void stream(const Stream* stream, IPageDataEventHandler* handler)
-    	{
-    		stream->generateDataEvents(handler);
-    	}
+        template <Int StreamIdx, typename Stream>
+        void stream(const Stream* stream, IPageDataEventHandler* handler)
+        {
+            stream->generateDataEvents(handler);
+        }
     };
 
 
@@ -674,11 +674,11 @@ public:
     }
 
     struct SerializeFn {
-    	template <Int StreamIdx, typename Stream>
-    	void stream(const Stream* stream, SerializationData& buf)
-    	{
-    		stream->serialize(buf);
-    	}
+        template <Int StreamIdx, typename Stream>
+        void stream(const Stream* stream, SerializationData& buf)
+        {
+            stream->serialize(buf);
+        }
     };
 
     void serialize(SerializationData& buf) const
@@ -690,11 +690,11 @@ public:
     }
 
     struct DeserializeFn {
-    	template <Int StreamIdx, typename Stream>
-    	void stream(Stream* stream, DeserializationData& buf)
-    	{
-    		stream->deserialize(buf);
-    	}
+        template <Int StreamIdx, typename Stream>
+        void stream(Stream* stream, DeserializationData& buf)
+        {
+            stream->deserialize(buf);
+        }
     };
 
     void deserialize(DeserializationData& buf)

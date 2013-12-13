@@ -58,15 +58,15 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrMrkValueName)
 //        template <Int Idx, typename StreamTypes>
 //        void stream(PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx, const Value& value)
 //        {
-//        	MEMORIA_ASSERT_TRUE(map != nullptr);
-//        	map->value(idx) = value;
+//          MEMORIA_ASSERT_TRUE(map != nullptr);
+//          map->value(idx) = value;
 //        }
 
         template <Int Idx, typename StreamTypes>
         void stream(PackedFSEMarkableMap<StreamTypes>* map, Int idx, const Value& value)
         {
-        	MEMORIA_ASSERT_TRUE(map != nullptr);
-        	map->value(idx) = value;
+            MEMORIA_ASSERT_TRUE(map != nullptr);
+            map->value(idx) = value;
         }
 
         template <typename Node>
@@ -99,7 +99,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrMrkValueName)
         }
 
         operator typename Value::second_type() const {
-        	return iter_.getValue().second;
+            return iter_.getValue().second;
         }
     };
 
@@ -113,7 +113,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrMrkValueName)
         }
 
         operator typename Value::second_type() const {
-        	return iter_.getValue().second;
+            return iter_.getValue().second;
         }
     };
 
@@ -131,22 +131,22 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrMrkValueName)
 //        template <Int Idx, typename StreamTypes>
 //        void stream(const PackedVLEMap<StreamTypes>* map, Int idx)
 //        {
-//        	MEMORIA_ASSERT_TRUE(map);
+//          MEMORIA_ASSERT_TRUE(map);
 //            value_ = map->value(idx);
 //        }
 //
 //        template <Int Idx, typename StreamTypes>
 //        void stream(const PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx)
 //        {
-//        	MEMORIA_ASSERT_TRUE(map);
-//        	value_ = map->value(idx);
+//          MEMORIA_ASSERT_TRUE(map);
+//          value_ = map->value(idx);
 //        }
 
         template <Int Idx, typename StreamTypes>
         void stream(const PackedFSEMarkableMap<StreamTypes>* map, Int idx)
         {
-        	MEMORIA_ASSERT_TRUE(map);
-        	value_ = map->value(idx);
+            MEMORIA_ASSERT_TRUE(map);
+            value_ = map->value(idx);
         }
 
         template <typename Node>

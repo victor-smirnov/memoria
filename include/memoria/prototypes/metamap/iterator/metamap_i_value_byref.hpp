@@ -41,36 +41,36 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrValueByRefName)
 
     template <typename Value>
     struct GetValueRefFn {
-    	using ReturnType = Value&;
-    	using ResultType = Value&;
+        using ReturnType = Value&;
+        using ResultType = Value&;
 
-    	template <Int Idx, typename Stream>
-    	ReturnType stream(Stream* stream, Int idx)
-    	{
-    		MEMORIA_ASSERT_TRUE(stream);
-    		return metamap::GetValueRef<Value>(stream, idx);
-    	}
+        template <Int Idx, typename Stream>
+        ReturnType stream(Stream* stream, Int idx)
+        {
+            MEMORIA_ASSERT_TRUE(stream);
+            return metamap::GetValueRef<Value>(stream, idx);
+        }
 
-    	template <typename Node>
-    	ResultType treeNode(Node* node, Int idx)
-    	{
-    		return node->template processStreamRtn<0>(*this, idx);
-    	}
+        template <typename Node>
+        ResultType treeNode(Node* node, Int idx)
+        {
+            return node->template processStreamRtn<0>(*this, idx);
+        }
     };
 
 
 
     const Value& getValue() const
     {
-    	auto& self = this->self();
-    	return LeafDispatcher::dispatchConstRtn(self.leaf(), GetValueRefFn<const Value>(), self.idx());
+        auto& self = this->self();
+        return LeafDispatcher::dispatchConstRtn(self.leaf(), GetValueRefFn<const Value>(), self.idx());
     }
 
     Value& getSValue()
     {
-    	auto& self = this->self();
-    	self.ctr().updatePageG(self.leaf());
-    	return LeafDispatcher::dispatchRtn(self.leaf(), GetValueRefFn<Value>(), self.idx());
+        auto& self = this->self();
+        self.ctr().updatePageG(self.leaf());
+        return LeafDispatcher::dispatchRtn(self.leaf(), GetValueRefFn<Value>(), self.idx());
     }
 
 
@@ -98,12 +98,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrValueByRefName)
 
     Value& svalue()
     {
-    	return self().getSValue();
+        return self().getSValue();
     }
 
     const Value& value() const
     {
-    	return self().getValue();
+        return self().getValue();
     }
 MEMORIA_ITERATOR_PART_END
 

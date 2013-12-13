@@ -21,7 +21,7 @@ namespace memoria {
 
 template <typename Node>
 struct DefaultEvictionPredicate {
-	bool operator()(const Node& node) {return true;}
+    bool operator()(const Node& node) {return true;}
 };
 
 template <typename Node>
@@ -31,332 +31,332 @@ template <typename Key, typename Value>
 using DefaultLRUMap = std::unordered_map<Key, Value>;
 
 template <
-	typename Key,
-	template <typename Node> class EvictionPredicate 				= DefaultEvictionPredicate,
-	template <typename Base> class NodeExtender 					= DefaultNodeExtender,
-	template <typename KeyType, typename ValueType> class Map 		= DefaultLRUMap
+    typename Key,
+    template <typename Node> class EvictionPredicate                = DefaultEvictionPredicate,
+    template <typename Base> class NodeExtender                     = DefaultNodeExtender,
+    template <typename KeyType, typename ValueType> class Map       = DefaultLRUMap
 >
 class LRUCache {
 
-	typedef LRUCache<Key, EvictionPredicate, NodeExtender, Map>		MyType;
+    typedef LRUCache<Key, EvictionPredicate, NodeExtender, Map>     MyType;
 
-	template <
-		template <typename> class NodeExtender1
-	>
-	class NodeBase {
-		typedef NodeExtender<NodeBase<NodeExtender1>>* NodePtr;
+    template <
+        template <typename> class NodeExtender1
+    >
+    class NodeBase {
+        typedef NodeExtender<NodeBase<NodeExtender1>>* NodePtr;
 
-		NodePtr next_;
-		NodePtr prev_;
+        NodePtr next_;
+        NodePtr prev_;
 
-		UBigInt counter_ = 0;
+        UBigInt counter_ = 0;
 
-		Key 	key_;
+        Key     key_;
 
-		MyType* owner_;
+        MyType* owner_;
 
-	public:
-		NodeBase():
-			next_(nullptr), prev_(nullptr)
-		{}
+    public:
+        NodeBase():
+            next_(nullptr), prev_(nullptr)
+        {}
 
-		NodePtr& next() {return next_;}
-		const NodePtr& next() const {return next_;}
+        NodePtr& next() {return next_;}
+        const NodePtr& next() const {return next_;}
 
-		NodePtr& prev() {return prev_;}
-		const NodePtr& prev() const {return prev_;}
+        NodePtr& prev() {return prev_;}
+        const NodePtr& prev() const {return prev_;}
 
-		UBigInt& counter() {return counter_;}
+        UBigInt& counter() {return counter_;}
 
-		const UBigInt& counter() const {return counter_;}
+        const UBigInt& counter() const {return counter_;}
 
-		Key& key() {return key_;}
-		const Key& key() const {return key_;}
+        Key& key() {return key_;}
+        const Key& key() const {return key_;}
 
-		bool is_allocated() const
-		{
-			return owner_ != nullptr;
-		}
+        bool is_allocated() const
+        {
+            return owner_ != nullptr;
+        }
 
-		void reset()
-		{
-			next_ = prev_ = nullptr;
+        void reset()
+        {
+            next_ = prev_ = nullptr;
 
-			counter_ 	= 0;
-			owner_		= nullptr;
-		}
+            counter_    = 0;
+            owner_      = nullptr;
+        }
 
-	//private:
-		void set_owner(MyType* owner) {this->owner_ = owner;}
-		MyType* owner() {return owner_;}
-		const MyType* owner() const {return owner_;}
-	};
-
-public:
-	typedef NodeExtender<NodeBase<NodeExtender>> 	Entry;
-	typedef std::function<void (Entry&)> 			FillCacheFn;
-
-private:
-	typedef Map<Key, Entry*> 						MapType;
-	typedef IntrusiveList<Entry> 					ListType;
-
-	MapType 	map_;
-	ListType 	list_;
-
-	std::size_t max_size_;
-
-	EvictionPredicate<Entry> eviction_predicate_;
-
-	std::size_t propagations_ = 0;
+    //private:
+        void set_owner(MyType* owner) {this->owner_ = owner;}
+        MyType* owner() {return owner_;}
+        const MyType* owner() const {return owner_;}
+    };
 
 public:
+    typedef NodeExtender<NodeBase<NodeExtender>>    Entry;
+    typedef std::function<void (Entry&)>            FillCacheFn;
 
-	LRUCache(std::size_t max_size): max_size_(max_size) {}
+private:
+    typedef Map<Key, Entry*>                        MapType;
+    typedef IntrusiveList<Entry>                    ListType;
 
-	MapType& map() {
-		return map_;
-	}
+    MapType     map_;
+    ListType    list_;
 
-	const MapType& map() const {
-		return map_;
-	}
+    std::size_t max_size_;
 
-	ListType& list() {
-		return list_;
-	}
+    EvictionPredicate<Entry> eviction_predicate_;
 
-	const ListType& list() const {
-		return list_;
-	}
+    std::size_t propagations_ = 0;
 
-	std::size_t size() const {
-		return map_.size();
-	}
+public:
 
-	std::size_t max_size() const {
-		return max_size_;
-	}
+    LRUCache(std::size_t max_size): max_size_(max_size) {}
 
-	bool contains_key(const Key& key) const
-	{
-		return map_.find(key) != map_.end();
-	}
+    MapType& map() {
+        return map_;
+    }
 
-	bool contains_entry(const Entry* entry) const
-	{
-		return entry->owner() == this;
-	}
+    const MapType& map() const {
+        return map_;
+    }
 
-	bool insert(Entry* entry)
-	{
-		MyType* owner = entry->owner();
+    ListType& list() {
+        return list_;
+    }
 
-		if (!contains_entry(entry))
-		{
-			if (owner)
-			{
-				owner->remove_entry(entry);
-			}
+    const ListType& list() const {
+        return list_;
+    }
 
-			entry->set_owner(this);
+    std::size_t size() const {
+        return map_.size();
+    }
 
-			map_[entry->key()] = entry;
-			list_.insert(list_.begin(), entry);
+    std::size_t max_size() const {
+        return max_size_;
+    }
 
-			propagate(entry);
+    bool contains_key(const Key& key) const
+    {
+        return map_.find(key) != map_.end();
+    }
 
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
+    bool contains_entry(const Entry* entry) const
+    {
+        return entry->owner() == this;
+    }
 
-	bool touch(Entry* entry)
-	{
-		if (contains_entry(entry))
-		{
-			entry->counter()++;
-			propagate(entry);
+    bool insert(Entry* entry)
+    {
+        MyType* owner = entry->owner();
 
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
+        if (!contains_entry(entry))
+        {
+            if (owner)
+            {
+                owner->remove_entry(entry);
+            }
 
-	Entry* get_entry(const Key& key, FillCacheFn fill_fn)
-	{
-		auto iter = map_.find(key);
+            entry->set_owner(this);
 
-		if (iter != map_.end())
-		{
-			Entry* entry = iter->second;
-			entry->counter()++;
+            map_[entry->key()] = entry;
+            list_.insert(list_.begin(), entry);
 
-			propagate(entry);
+            propagate(entry);
 
-			return entry;
-		}
-		else if (size() >= max_size_)
-		{
-			Entry* entry_to_evict = findNodeToEvict();
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 
-			if (entry_to_evict)
-			{
-				map_.erase(entry_to_evict->key());
-				list_.erase(entry_to_evict);
+    bool touch(Entry* entry)
+    {
+        if (contains_entry(entry))
+        {
+            entry->counter()++;
+            propagate(entry);
 
-				entry_to_evict->reset();
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 
-				entry_to_evict->key() = key;
+    Entry* get_entry(const Key& key, FillCacheFn fill_fn)
+    {
+        auto iter = map_.find(key);
 
-				entry_to_evict->set_owner(this);
+        if (iter != map_.end())
+        {
+            Entry* entry = iter->second;
+            entry->counter()++;
 
-				try {
-					fill_fn(*entry_to_evict);
+            propagate(entry);
 
-					map_[key] = entry_to_evict;
-					list_.insert(list_.begin(), entry_to_evict);
+            return entry;
+        }
+        else if (size() >= max_size_)
+        {
+            Entry* entry_to_evict = findNodeToEvict();
 
-					return entry_to_evict;
-				}
-				catch(...)
-				{
-					delete entry_to_evict;
-					throw;
-				}
-			}
-			else if (max_size_ > 0)
-			{
-				throw vapi::Exception(MA_SRC, "Nothing to evict");
-			}
-			else {
-				throw vapi::Exception(MA_SRC, "The cache is configured empty");
-			}
-		}
-		else {
-			Entry* entry 	= new Entry();
-			entry->key() 	= key;
-			entry->set_owner(this);
+            if (entry_to_evict)
+            {
+                map_.erase(entry_to_evict->key());
+                list_.erase(entry_to_evict);
 
-			fill_fn(*entry);
+                entry_to_evict->reset();
 
-			map_[key] = entry;
-			list_.insert(list_.begin(), entry);
+                entry_to_evict->key() = key;
 
-			return entry;
-		}
-	}
+                entry_to_evict->set_owner(this);
 
-	Entry* remove_entry(const Key& key)
-	{
-		auto i = map_.find(key);
+                try {
+                    fill_fn(*entry_to_evict);
 
-		if (i != map_.end())
-		{
-			Entry* entry = i->second;
+                    map_[key] = entry_to_evict;
+                    list_.insert(list_.begin(), entry_to_evict);
 
-			list_.erase(entry);
+                    return entry_to_evict;
+                }
+                catch(...)
+                {
+                    delete entry_to_evict;
+                    throw;
+                }
+            }
+            else if (max_size_ > 0)
+            {
+                throw vapi::Exception(MA_SRC, "Nothing to evict");
+            }
+            else {
+                throw vapi::Exception(MA_SRC, "The cache is configured empty");
+            }
+        }
+        else {
+            Entry* entry    = new Entry();
+            entry->key()    = key;
+            entry->set_owner(this);
 
-			return entry;
-		}
-		else {
-			return nullptr;
-		}
-	}
+            fill_fn(*entry);
 
-	bool remove_entry(Entry* entry)
-	{
-		if (entry->owner() == this)
-		{
-			list_.erase(entry);
-			map_.erase(entry->key());
+            map_[key] = entry;
+            list_.insert(list_.begin(), entry);
 
-			entry->set_owner(nullptr);
+            return entry;
+        }
+    }
 
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
+    Entry* remove_entry(const Key& key)
+    {
+        auto i = map_.find(key);
 
-	void dump() const
-	{
-		for (auto& entry: list_)
-		{
-			dump(entry);
-		}
+        if (i != map_.end())
+        {
+            Entry* entry = i->second;
 
-		std::cout<<"propagations="<<propagations_<<std::endl;
-	}
+            list_.erase(entry);
 
-	void checkOrder() const {
+            return entry;
+        }
+        else {
+            return nullptr;
+        }
+    }
 
-		UBigInt last = 0;
+    bool remove_entry(Entry* entry)
+    {
+        if (entry->owner() == this)
+        {
+            list_.erase(entry);
+            map_.erase(entry->key());
 
-		size_t pos = 0;
-		for (auto& entry: list_)
-		{
-			if (entry.counter() >= last)
-			{
-				last = entry.counter();
-				pos++;
-			}
-			else {
-				std::cout<<"Invalid node order at "<<pos<<std::endl;
-				dump(entry);
-			}
-		}
-	}
+            entry->set_owner(nullptr);
+
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    void dump() const
+    {
+        for (auto& entry: list_)
+        {
+            dump(entry);
+        }
+
+        std::cout<<"propagations="<<propagations_<<std::endl;
+    }
+
+    void checkOrder() const {
+
+        UBigInt last = 0;
+
+        size_t pos = 0;
+        for (auto& entry: list_)
+        {
+            if (entry.counter() >= last)
+            {
+                last = entry.counter();
+                pos++;
+            }
+            else {
+                std::cout<<"Invalid node order at "<<pos<<std::endl;
+                dump(entry);
+            }
+        }
+    }
 
 private:
 
-	Entry* findNodeToEvict()
-	{
-		for (Entry& entry: list_)
-		{
-			if (eviction_predicate_(entry))
-			{
-				return &entry;
-			}
-		}
+    Entry* findNodeToEvict()
+    {
+        for (Entry& entry: list_)
+        {
+            if (eviction_predicate_(entry))
+            {
+                return &entry;
+            }
+        }
 
-//		for (Entry& entry: list_) {
-////			cout<<entry.is_updated()<<" "<<entry.shared()<<endl;
-//		}
+//      for (Entry& entry: list_) {
+////            cout<<entry.is_updated()<<" "<<entry.shared()<<endl;
+//      }
 
-		return nullptr;
-	}
+        return nullptr;
+    }
 
-	std::size_t propagate(Entry* entry)
-	{
-		Entry* tmp = entry->next();
+    std::size_t propagate(Entry* entry)
+    {
+        Entry* tmp = entry->next();
 
-		std::size_t distance = 0;
+        std::size_t distance = 0;
 
-		while (tmp && entry->counter() >= tmp->counter())
-		{
-			tmp = tmp->next();
-			distance++;
-			propagations_++;
-		}
+        while (tmp && entry->counter() >= tmp->counter())
+        {
+            tmp = tmp->next();
+            distance++;
+            propagations_++;
+        }
 
-		if (distance > 0)
-		{
-			list_.erase(entry);
-			list_.insert(typename ListType::iterator(tmp), entry);
-		}
+        if (distance > 0)
+        {
+            list_.erase(entry);
+            list_.insert(typename ListType::iterator(tmp), entry);
+        }
 
-		return distance;
-	}
+        return distance;
+    }
 
-	void dump(const Entry& entry) const
-	{
-		std::cout<<"Node: key="<<entry.key()<<" counter="<<entry.counter()<<std::endl;
-	}
+    void dump(const Entry& entry) const
+    {
+        std::cout<<"Node: key="<<entry.key()<<" counter="<<entry.counter()<<std::endl;
+    }
 };
 
 

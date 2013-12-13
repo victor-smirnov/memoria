@@ -48,8 +48,8 @@ public:
 
 //    typedef Ctr<typename CtrTF<Profile, BitVector<>>::CtrTypes>                 BlockMapType;
 
-    typedef IJournaledAllocator<Page>											JournaledAllocator;
-    typedef IWalkableAllocator<Page>											WalkableAllocator;
+    typedef IJournaledAllocator<Page>                                           JournaledAllocator;
+    typedef IWalkableAllocator<Page>                                            WalkableAllocator;
 
 private:
 
@@ -95,22 +95,22 @@ private:
 
 
     class Properties: public IAllocatorProperties {
-    	public:
-    	virtual Int defaultPageSize() const
-    	{
-    		return 4096;
-    	}
+        public:
+        virtual Int defaultPageSize() const
+        {
+            return 4096;
+        }
 
-    	virtual BigInt lastCommitId() const {
-    		return 0;
-    	}
+        virtual BigInt lastCommitId() const {
+            return 0;
+        }
 
-    	virtual void setLastCommitId(BigInt txn_id) {}
+        virtual void setLastCommitId(BigInt txn_id) {}
 
-    	virtual BigInt newTxnId() {return 0;}
+        virtual BigInt newTxnId() {return 0;}
 
-    	virtual bool isMVCC() const {return false;}
-    	virtual void setMVCC(bool mvcc) {}
+        virtual bool isMVCC() const {return false;}
+        virtual void setMVCC(bool mvcc) {}
 
     };
 
@@ -219,12 +219,12 @@ public:
     }
 
     virtual PageG getPage(const ID& id, BigInt name) {
-    	return getPage(id, Base::READ, name);
+        return getPage(id, Base::READ, name);
     }
 
     virtual PageG getPageForUpdate(const ID& id, BigInt name)
     {
-    	return getPage(id, Base::UPDATE, name);
+        return getPage(id, Base::UPDATE, name);
     }
 
 
@@ -291,7 +291,7 @@ public:
 
     virtual PageG getPageG(Page* page)
     {
-    	return getPage(page->id(), Base::READ, -1);
+        return getPage(page->id(), Base::READ, -1);
     }
 
     virtual PageG updatePage(Shared* shared, BigInt name)
@@ -399,7 +399,7 @@ public:
 
     void commit(bool force_sync = false)
     {
-    	flush(force_sync);
+        flush(force_sync);
     }
 
     virtual void flush(bool force_sync = false)
@@ -514,9 +514,9 @@ public:
     virtual void markUpdated(BigInt name) {}
 
     virtual BigInt currentTxnId() const
-	{
-		return 0;
-	}
+    {
+        return 0;
+    }
 
 
 
@@ -747,7 +747,7 @@ public:
         {
             BigInt ctr_name = iter.key();
 
-        	PageG page = this->getPage(iter.getValue(), Base::READ, ctr_name);
+            PageG page = this->getPage(iter.getValue(), Base::READ, ctr_name);
 
             ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(page->ctr_type_hash());
 
@@ -761,28 +761,28 @@ public:
 
     virtual void walkContainers(ContainerWalker* walker, const char* allocator_descr = nullptr)
     {
-    	walker->beginAllocator("InMemAllocator", allocator_descr);
+        walker->beginAllocator("InMemAllocator", allocator_descr);
 
-    	auto iter = root_map_->Begin();
+        auto iter = root_map_->Begin();
 
-    	while (!iter.isEnd())
-    	{
-    		BigInt ctr_name = iter.key();
-    		ID root_id		= iter.value();
+        while (!iter.isEnd())
+        {
+            BigInt ctr_name = iter.key();
+            ID root_id      = iter.value();
 
-    		PageG page 		= this->getPage(root_id, Base::READ, ctr_name);
+            PageG page      = this->getPage(root_id, Base::READ, ctr_name);
 
-    		Int master_hash = page->master_ctr_type_hash();
-    		Int ctr_hash 	= page->ctr_type_hash();
+            Int master_hash = page->master_ctr_type_hash();
+            Int ctr_hash    = page->ctr_type_hash();
 
-    		ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(master_hash != 0 ? master_hash : ctr_hash);
+            ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(master_hash != 0 ? master_hash : ctr_hash);
 
-    		ctr_meta->getCtrInterface()->walk(&page->gid(), ctr_name, this, walker);
+            ctr_meta->getCtrInterface()->walk(&page->gid(), ctr_name, this, walker);
 
-    		iter++;
-    	}
+            iter++;
+        }
 
-    	walker->endAllocator();
+        walker->endAllocator();
     }
 
 
@@ -812,11 +812,11 @@ public:
 
     virtual IAllocatorProperties& properties()
     {
-    	return properties_;
+        return properties_;
     }
 
     virtual ID newId() {
-    	return counter_++;
+        return counter_++;
     }
 
 

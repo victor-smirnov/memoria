@@ -179,8 +179,8 @@ M_PARAMS
 template <typename UpdateData>
 bool M_TYPE::updateNode(NodeBaseG& node, Int idx, const UpdateData& keys)
 {
-	self().updatePageG(node);
-	NonLeafDispatcher::dispatch(node, UpdateNodeFn(), idx, keys);
+    self().updatePageG(node);
+    NonLeafDispatcher::dispatch(node, UpdateNodeFn(), idx, keys);
     return true;
 }
 
@@ -242,7 +242,7 @@ void M_TYPE::insertNonLeaf(
         const ID& id
 )
 {
-	self().updatePageG(node);
+    self().updatePageG(node);
     NonLeafDispatcher::dispatch(node, InsertFn(), idx, keys, id);
 }
 

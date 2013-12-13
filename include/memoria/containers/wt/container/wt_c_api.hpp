@@ -146,9 +146,9 @@ private:
         auto& self = this->self();
         auto& seq  = self.seq();
 
-        CtrSizeT seq_base 	= node.template sumLabel<1>();
-        UBigInt label   	= seq.seek(seq_base + idx).symbol();
-        CtrSizeT  rank    	= seq.rank(seq_base, idx + 1, label);
+        CtrSizeT seq_base   = node.template sumLabel<1>();
+        UBigInt label       = seq.seek(seq_base + idx).symbol();
+        CtrSizeT  rank      = seq.rank(seq_base, idx + 1, label);
 
         value |= label << (level * 8);
 
@@ -166,11 +166,11 @@ private:
         auto& tree = self.tree();
         auto& seq  = self.seq();
 
-        CtrSizeT node_pos 	= node.pos();
+        CtrSizeT node_pos   = node.pos();
 
-        CtrSizeT seq_base 	= node.template sumLabel<1>();
-        UBigInt label   	= seq.seek(seq_base + idx).symbol();
-        CtrSizeT  rank    	= seq.rank(seq_base, idx + 1, label);
+        CtrSizeT seq_base   = node.template sumLabel<1>();
+        UBigInt label       = seq.seek(seq_base + idx).symbol();
+        CtrSizeT  rank      = seq.rank(seq_base, idx + 1, label);
 
         if (level > 0)
         {

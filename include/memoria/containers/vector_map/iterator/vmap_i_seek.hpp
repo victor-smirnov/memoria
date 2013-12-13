@@ -27,7 +27,7 @@ namespace memoria    {
 
 MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
 
-    typedef Ctr<typename Types::CtrTypes>                       				Container;
+    typedef Ctr<typename Types::CtrTypes>                                       Container;
 
 
     typedef typename Base::Allocator                                            Allocator;
@@ -194,7 +194,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
         auto& self = this->self();
 
         if (self.stream() != 1) {
-        	int a = 0; a++;
+            int a = 0; a++;
         }
 
         MEMORIA_ASSERT_TRUE(self.stream() == 1);
@@ -222,7 +222,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
     }
 
     struct PrefixFn {
-    	CtrSizeT prefix_ = 0;
+        CtrSizeT prefix_ = 0;
 
         Int stream_;
         Int block_;
@@ -247,10 +247,10 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
         template <Int StreamIdx, typename Tree>
         void stream(const Tree* tree, Int idx)
         {
-        	if (idx > 0)
-        	{
-        		MEMORIA_ASSERT_TRUE(tree != nullptr);
-        	}
+            if (idx > 0)
+            {
+                MEMORIA_ASSERT_TRUE(tree != nullptr);
+            }
 
             prefix_ += tree ? tree->sum(block_, idx) : 0;
         }
@@ -296,7 +296,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
     }
 
     struct EntryBlobBaseFn {
-    	CtrSizeT prefix_ = 0;
+        CtrSizeT prefix_ = 0;
 
         template <typename Node>
         void treeNode(const Node* node, Int idx)
@@ -307,12 +307,12 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
         template <Int StreamIdx, typename TreeTypes>
         void stream(const PkdFTree<TreeTypes>* tree, Int idx)
         {
-        	if (idx > 0)
-        	{
-        		MEMORIA_ASSERT_TRUE(tree != nullptr);
-        	}
+            if (idx > 0)
+            {
+                MEMORIA_ASSERT_TRUE(tree != nullptr);
+            }
 
-        	prefix_ += tree ? tree->sum(1, idx) : 0;
+            prefix_ += tree ? tree->sum(1, idx) : 0;
         }
     };
 
@@ -379,9 +379,9 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
         template <Int StreamIdx, typename StreamType>
         ResultType stream(StreamType* obj, Int idx)
         {
-        	MEMORIA_ASSERT_TRUE(obj != nullptr && idx >= 0 && idx < obj->size());
+            MEMORIA_ASSERT_TRUE(obj != nullptr && idx >= 0 && idx < obj->size());
 
-        	BlobDescriptorEntry entry;
+            BlobDescriptorEntry entry;
 
             entry.first  = obj->value(0, idx);
             entry.second = obj->value(1, idx);
@@ -418,7 +418,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
         {
             if (idx > 0)
             {
-            	MEMORIA_ASSERT_TRUE(obj != nullptr);
+                MEMORIA_ASSERT_TRUE(obj != nullptr);
             }
 
             return obj ? obj->sum(block, idx) : 0;
@@ -482,7 +482,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
         }
         else
         {
-        	CtrSizeT pos = self.pos();
+            CtrSizeT pos = self.pos();
             return self.skip(offset - pos);
         }
     }
@@ -531,12 +531,12 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
 
         if (self.stream() == 1)
         {
-        	CtrSizeT offset = self.pos();
+            CtrSizeT offset = self.pos();
 
             self.skip(-offset);
 
-            Int leaf_size 	= self.leaf_size(0);
-            Int idx 		= self.idx();
+            Int leaf_size   = self.leaf_size(0);
+            Int idx         = self.idx();
             Int data_offset_for = self.data_offset_for(0);
 
             if (leaf_size == 0 || idx < data_offset_for)
@@ -581,12 +581,12 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
         }
         else if (self.blob_size() > 0)
         {
-        	CtrSizeT size = self.blob_size();
-        	CtrSizeT pos  = self.pos();
+            CtrSizeT size = self.blob_size();
+            CtrSizeT pos  = self.pos();
 
             if (pos + amount < size)
             {
-            	CtrSizeT offset = self.template _findFw<FwWalker>(0, amount);
+                CtrSizeT offset = self.template _findFw<FwWalker>(0, amount);
 
                 self.cache().addToGlobalPos(offset);
 
@@ -594,7 +594,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
             }
             else
             {
-            	CtrSizeT offset = self.template _findFw<FwWalker>(0, size - pos - 1);
+                CtrSizeT offset = self.template _findFw<FwWalker>(0, size - pos - 1);
 
                 self.idx()++;
 
@@ -616,7 +616,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::vmap::ItrSeekName)
 
         if (self.blob_size() > 0)
         {
-        	CtrSizeT pos  = self.pos();
+            CtrSizeT pos  = self.pos();
 
             if (amount >= pos + 1)
             {

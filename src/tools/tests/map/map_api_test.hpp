@@ -31,8 +31,8 @@ class MapApiTest: public MapTestBase<MapName> {
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::Ctr                                                  Ctr;
 
-    Int key_ 		= 0;
-    Int skip_bw_  	= 0;
+    Int key_        = 0;
+    Int skip_bw_    = 0;
     Int select_bw_  = 0;
 
 public:
@@ -43,7 +43,7 @@ public:
         MEMORIA_ADD_TEST_PARAM(skip_bw_);
         MEMORIA_ADD_TEST_PARAM(select_bw_);
 
-    	MEMORIA_ADD_TEST(runTest);
+        MEMORIA_ADD_TEST(runTest);
     }
 
     virtual ~MapApiTest() throw () {}
@@ -51,7 +51,7 @@ public:
 
     void runTest()
     {
-    	DefaultLogHandlerImpl logHandler(Base::out());
+        DefaultLogHandlerImpl logHandler(Base::out());
 
         Allocator allocator;
         allocator.getLogger()->setHandler(&logHandler);
@@ -62,64 +62,23 @@ public:
 
         BigInt last_key = 0;
 
-        vector<Int> labels;
-
         for (Int c = 1; c <= 1000; c++)
         {
-        	last_key += getRandom(5) + 1;
+            last_key += getRandom(5) + 1;
 
-        	auto iter = map[last_key];
+            auto iter = map[last_key];
 
-        	iter = std::make_tuple(1, 2);
-
-        	if (getRandom(50) == 0)
-        	{
-        		iter.set_label(0, 2);
-
-        		labels.push_back(iter.pos());
-        	}
+            iter = 1234;
         }
 
         cout<<"Size: "<<map.size()<<endl;
 
-        cout<<"Select Forward: "<<endl;
+        auto begin  = map.Begin();
+        auto end    = map.RBegin();
 
-        auto iter = map.selectLabel(0, 2, 1);
-        Int c = 0;
+        begin.removeTo(end);
 
-        while (!iter.isEnd())
-        {
-        	cout<<c<<" "<<iter.pos()<<" "<<labels[c]<<endl;
-        	iter.selectNextLabel(0, 2);
-        	c++;
-        }
-
-        cout<<endl<<"Select Backward: "<<endl;
-
-        iter = map.End();
-
-        iter.selectLabelBw(0, 2, 1);
-
-        c = labels.size() - 1;
-
-        while (!iter.isBegin())
-        {
-        	cout<<c<<" "<<iter.pos()<<" "<<labels[c]<<endl;
-
-        	iter.selectLabelBw(0, 2, 1);
-        	c--;
-        }
-
-        iter = map.RBegin();
-
-        cout<<"Set Label="<<iter.set_hidden_label(1, 2)<<endl;
-        cout<<"Set Label="<<iter.set_label(0, 2)<<endl;
-        cout<<"Rank.2="<<iter.label_rank(0, 2)<<endl;
-        cout<<"Rank.0="<<iter.label_rank(0, 0)<<endl;
-        cout<<"Rank.0="<<iter.label_rank(0, 1)<<endl;
-
-        cout<<iter.entry()<<endl;
-        cout<<iter.key()<<endl;
+        cout<<"Size: "<<map.size()<<endl;
 
         allocator.commit();
 

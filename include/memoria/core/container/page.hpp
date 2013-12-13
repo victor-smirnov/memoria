@@ -113,8 +113,8 @@ public:
 
     ValueType& operator+=(const ValueType& other)
     {
-    	Base::value() += other.value();
-    	return *this;
+        Base::value() += other.value();
+        return *this;
     }
 };
 
@@ -201,7 +201,7 @@ public:
 
 template <typename PageIdType, Int FlagsCount = 32>
 class AbstractPage {
-	static_assert(std::is_trivial<PageIdType>::value, "PageIdType must be a trivial type");
+    static_assert(std::is_trivial<PageIdType>::value, "PageIdType must be a trivial type");
 
 public:
     static const UInt VERSION                                                   = 1;
@@ -217,8 +217,8 @@ private:
     Int         page_type_hash_;
     Int         page_size_;
 
-    UBigInt		next_block_pos_;
-    UBigInt		target_block_pos_;
+    UBigInt     next_block_pos_;
+    UBigInt     target_block_pos_;
 
     PageIdType  id_;
     PageIdType  gid_;
@@ -362,19 +362,19 @@ public:
     }
 
     UBigInt& next_block_pos() {
-    	return next_block_pos_;
+        return next_block_pos_;
     }
 
     const UBigInt& next_block_pos() const {
-    	return next_block_pos_;
+        return next_block_pos_;
     }
 
     UBigInt& target_block_pos() {
-    	return target_block_pos_;
+        return target_block_pos_;
     }
 
     const UBigInt& target_block_pos() const {
-    	return target_block_pos_;
+        return target_block_pos_;
     }
 
 
@@ -488,8 +488,8 @@ struct TypeHash<AbstractPage<PageIdType, FlagsCount>> {
 template <typename AllocatorT>
 class PageShared {
 
-	typedef PageShared<AllocatorT>			MyType;
-	typedef MyType*							MyTypePtr;
+    typedef PageShared<AllocatorT>          MyType;
+    typedef MyType*                         MyTypePtr;
 
     typedef typename AllocatorT::Page       PageT;
     typedef typename AllocatorT::Page::ID   ID;
@@ -569,7 +569,7 @@ public:
     }
 
     void resetPage() {
-    	this->page_ = nullptr;
+        this->page_ = nullptr;
     }
 
     Int ref() {
@@ -582,7 +582,7 @@ public:
 
         if (refs == 0)
         {
-        	unrefDelegate();
+            unrefDelegate();
         }
 
         return refs;
@@ -608,75 +608,75 @@ public:
     }
 
     MyTypePtr& owner() {
-    	return owner_;
+        return owner_;
     }
 
     const MyTypePtr& owner() const {
-    	return owner_;
+        return owner_;
     }
 
     const MyTypePtr& delegate() const {
-    	return delegate_;
+        return delegate_;
     }
 
     void setDelegate(MyType* delegate)
     {
-    	MEMORIA_ASSERT_TRUE(delegate != this);
+        MEMORIA_ASSERT_TRUE(delegate != this);
 
-    	if (delegate_)
-    	{
-    		delegate_->owner() = nullptr;
-    		if (delegate_->unref() == 0)
-    		{
-    			delegate_->allocator()->releasePage(delegate_);
-    			delegate_ = nullptr;
-    		}
-    	}
+        if (delegate_)
+        {
+            delegate_->owner() = nullptr;
+            if (delegate_->unref() == 0)
+            {
+                delegate_->allocator()->releasePage(delegate_);
+                delegate_ = nullptr;
+            }
+        }
 
-    	delegate_ = delegate;
-    	delegate_->owner() = this;
+        delegate_ = delegate;
+        delegate_->owner() = this;
 
-    	delegate_->ref();
+        delegate_->ref();
     }
 
 
     void refresh()
     {
-    	if (owner_)
-    	{
-    		owner_->refreshData(this);
-    	}
+        if (owner_)
+        {
+            owner_->refreshData(this);
+        }
     }
 
     void init()
     {
-        id_			= 0;
-    	references_ = 0;
+        id_         = 0;
+        references_ = 0;
         state_      = READ;
         page_       = nullptr;
         allocator_  = nullptr;
 
-        owner_		= nullptr;
-        delegate_ 	= nullptr;
+        owner_      = nullptr;
+        delegate_   = nullptr;
     }
 
 private:
     void refreshData(MyType* shared)
     {
-    	this->page_ 	= shared->page_;
-    	this->state_	= shared->state_;
+        this->page_     = shared->page_;
+        this->state_    = shared->state_;
 
-    	refresh();
+        refresh();
     }
 
-	void unrefDelegate()
-	{
-		if (delegate_ && delegate_->unref() == 0)
-		{
-			delegate_->allocator()->releasePage(delegate_);
-			delegate_ = nullptr;
-		}
-	}
+    void unrefDelegate()
+    {
+        if (delegate_ && delegate_->unref() == 0)
+        {
+            delegate_->allocator()->releasePage(delegate_);
+            delegate_ = nullptr;
+        }
+    }
 };
 
 
@@ -866,7 +866,7 @@ public:
 
             if (guard.shared() != shared_)
             {
-            	*this = guard;
+                *this = guard;
             }
         }
     }

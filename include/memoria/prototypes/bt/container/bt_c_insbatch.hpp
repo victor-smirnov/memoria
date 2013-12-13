@@ -44,7 +44,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
-    typedef typename Types::CtrSizeT											CtrSizeT;
+    typedef typename Types::CtrSizeT                                            CtrSizeT;
 
 
     static const Int Streams                                                    = Types::Streams;
@@ -99,7 +99,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
 
         virtual NonLeafNodeKeyValuePair getKVPair(const ID& parent_id, Int parent_idx, CtrSizeT total, Int level)
         {
-        	CtrSizeT local_count = 0;
+            CtrSizeT local_count = 0;
             return BuildTree(parent_id, parent_idx, local_count, total, level - 1);
         }
 
@@ -471,7 +471,7 @@ typename M_TYPE::Accumulator M_TYPE::insertSubtree(NodeBaseG& leaf, Position& id
 
     if (self.checkCapacities(leaf, sizes))
     {
-    	self.updatePageG(leaf);
+        self.updatePageG(leaf);
 
         Accumulator sums = provider.insertIntoLeaf(leaf, idx, sizes);
 
@@ -489,7 +489,7 @@ typename M_TYPE::Accumulator M_TYPE::insertSubtree(NodeBaseG& leaf, Position& id
 
         if (!self.isAfterEnd(leaf, idx, provider.getActiveStreams()))
         {
-        	right = self.splitLeafP(leaf, idx);
+            right = self.splitLeafP(leaf, idx);
         }
 
         self.updatePageG(leaf);
@@ -541,7 +541,7 @@ typename M_TYPE::CtrSizeT M_TYPE::getSubtreeSize(Int level) const
 
     for (int c = 1; c < level; c++)
     {
-    	CtrSizeT children_at_level = self().getMaxKeyCountForNode(c == 0, c);
+        CtrSizeT children_at_level = self().getMaxKeyCountForNode(c == 0, c);
 
         result *= children_at_level;
     }
@@ -581,7 +581,7 @@ void M_TYPE::insertInternalSubtree(
         if (key_count <= subtree_size * node_capacity)
         {
             // We have enough free space for all subtrees in the current node
-        	CtrSizeT total	= divide(key_count, subtree_size);
+            CtrSizeT total  = divide(key_count, subtree_size);
 
             fillNodeLeft(left_node, left_idx, total, data);
 
@@ -615,7 +615,7 @@ void M_TYPE::insertInternalSubtree(
             // Otherwise fill nodes 'equally'. Each node will have almost
             // equal free space after processing.
 
-        	CtrSizeT total_keys	= divide(key_count, subtree_size);
+            CtrSizeT total_keys = divide(key_count, subtree_size);
 
             Int left_count, right_count;
 
@@ -693,7 +693,7 @@ void M_TYPE::fillNodeLeft(NodeBaseG& node, Int from, Int count, InsertSharedData
 
     for (Int c = from; c < from + count; c++)
     {
-    	CtrSizeT requested_size;
+        CtrSizeT requested_size;
 
         if (data.first_cell_key_count > 0)
         {
@@ -731,11 +731,11 @@ void M_TYPE::fillNodeLeft(NodeBaseG& node, Int from, Int count, InsertSharedData
 M_PARAMS
 void M_TYPE::prepareNodeFillmentRight(Int level, Int count, InsertSharedData& data)
 {
-	CtrSizeT subtree_size = me()->getSubtreeSize(level);
+    CtrSizeT subtree_size = me()->getSubtreeSize(level);
 
     if (level > 0)
     {
-    	CtrSizeT total = subtree_size * count;
+        CtrSizeT total = subtree_size * count;
 
         if (data.remains >= total)
         {
@@ -743,7 +743,7 @@ void M_TYPE::prepareNodeFillmentRight(Int level, Int count, InsertSharedData& da
             data.remains    -= total;
         }
         else {
-        	CtrSizeT remainder = data.remains - (subtree_size * count - subtree_size);
+            CtrSizeT remainder = data.remains - (subtree_size * count - subtree_size);
 
             data.end        += data.remains;
             data.remains    = 0;

@@ -43,7 +43,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrRemoveName)
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
-    typedef typename Types::CtrSizeT											CtrSizeT;
+    typedef typename Types::CtrSizeT                                            CtrSizeT;
 
     static const Int Streams                                                    = Types::Streams;
 
@@ -82,42 +82,42 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrRemoveName)
 
     struct RemoveBlockFromLeafFn {
 
-    	template <Int Idx, typename SeqTypes>
-    	void stream(PkdFSSeq<SeqTypes>* seq, Int idx, Int length, Accumulator& delta)
-    	{
-    		MEMORIA_ASSERT_TRUE(seq != nullptr);
+        template <Int Idx, typename SeqTypes>
+        void stream(PkdFSSeq<SeqTypes>* seq, Int idx, Int length, Accumulator& delta)
+        {
+            MEMORIA_ASSERT_TRUE(seq != nullptr);
 
-    		std::get<Idx>(delta).assignUp(seq->sums(idx, idx + length));
-    		std::get<Idx>(delta)[0] = length;
+            std::get<Idx>(delta).assignUp(seq->sums(idx, idx + length));
+            std::get<Idx>(delta)[0] = length;
 
-    		seq->remove(idx, idx + length);
-    	}
+            seq->remove(idx, idx + length);
+        }
 
 
-    	template <typename NTypes>
-    	void treeNode(LeafNode<NTypes>* node, Int stream, Int idx, Int length, Accumulator& delta)
-    	{
-    		node->layout(1);
-    		node->process(stream, *this, idx, length, delta);
-    	}
+        template <typename NTypes>
+        void treeNode(LeafNode<NTypes>* node, Int stream, Int idx, Int length, Accumulator& delta)
+        {
+            node->layout(1);
+            node->process(stream, *this, idx, length, delta);
+        }
     };
 
 
 
     void removeFromLeaf(NodeBaseG& leaf, Int idx, Accumulator& indexes)
     {
-    	self().updatePageG(leaf);
-    	LeafDispatcher::dispatch(leaf, RemoveFromLeafFn(), 0, idx, indexes);
+        self().updatePageG(leaf);
+        LeafDispatcher::dispatch(leaf, RemoveFromLeafFn(), 0, idx, indexes);
     }
 
     void removeBlockFromNode(NodeBaseG& leaf, Int idx, Int length)
     {
-    	self().updatePageG(leaf);
+        self().updatePageG(leaf);
 
-    	Accumulator indexes;
-    	LeafDispatcher::dispatch(leaf, RemoveBlockFromLeafFn(), 0, idx, length, indexes);
+        Accumulator indexes;
+        LeafDispatcher::dispatch(leaf, RemoveBlockFromLeafFn(), 0, idx, length, indexes);
 
-    	self().updateParent(leaf, -indexes);
+        self().updateParent(leaf, -indexes);
     }
 
     void remove(CtrSizeT idx)
@@ -149,52 +149,52 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrRemoveName)
 
     void removeBlock(Iterator& iter, CtrSizeT length)
     {
-    	auto& self  = this->self();
+        auto& self  = this->self();
 
-    	auto merge_fn = [&iter](const Position& size, Int level){
-    		if (level == 0)
-    		{
-    			iter.idx() += size[0];
-    		}
-    	};
+        auto merge_fn = [&iter](const Position& size, Int level){
+            if (level == 0)
+            {
+                iter.idx() += size[0];
+            }
+        };
 
-    	if (iter.idx() + length <= iter.leaf_size())
-    	{
-    		self.removeBlockFromNode(iter.leaf(), iter.idx(), length);
+        if (iter.idx() + length <= iter.leaf_size())
+        {
+            self.removeBlockFromNode(iter.leaf(), iter.idx(), length);
 
-    		if (iter.isEnd())
-    		{
-    			iter.skipFw(1);
-    		}
+            if (iter.isEnd())
+            {
+                iter.skipFw(1);
+            }
 
-    		self.mergeWithSiblings(iter.leaf(), merge_fn);
-    	}
-    	else {
-    		auto tmp = iter;
-    		tmp.skipFw(length);
+            self.mergeWithSiblings(iter.leaf(), merge_fn);
+        }
+        else {
+            auto tmp = iter;
+            tmp.skipFw(length);
 
-    		Int from_length = iter.leaf_size() - iter.idx();
-    		self.removeBlockFromNode(iter.leaf(), iter.idx(), from_length);
+            Int from_length = iter.leaf_size() - iter.idx();
+            self.removeBlockFromNode(iter.leaf(), iter.idx(), from_length);
 
-    		auto bkp_iter = iter;
+            auto bkp_iter = iter;
 
-    		while(iter.nextLeaf() && iter.leaf() != tmp.leaf())
-    		{
-    			self.removeNode(iter.leaf());
-    			iter = bkp_iter;
-    		}
+            while(iter.nextLeaf() && iter.leaf() != tmp.leaf())
+            {
+                self.removeNode(iter.leaf());
+                iter = bkp_iter;
+            }
 
-    		self.removeBlockFromNode(tmp.leaf(), 0, tmp.idx());
+            self.removeBlockFromNode(tmp.leaf(), 0, tmp.idx());
 
-    		tmp.idx() = 0;
+            tmp.idx() = 0;
 
-    		iter = tmp;
+            iter = tmp;
 
 
-    		self.mergeWithSiblings(iter.leaf(), merge_fn);
-    	}
+            self.mergeWithSiblings(iter.leaf(), merge_fn);
+        }
 
-    	self.addTotalKeyCount(Position::create(0, -length));
+        self.addTotalKeyCount(Position::create(0, -length));
     }
 
 

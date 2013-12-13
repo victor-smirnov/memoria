@@ -42,7 +42,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrMiscName)
     typedef typename Container::Position                                        Position;
 
     typedef typename Container::Types::IteratorPrefix                           IteratorPrefix;
-    typedef typename Container::Types::CtrSizeT									CtrSizeT;
+    typedef typename Container::Types::CtrSizeT                                 CtrSizeT;
 
     typedef typename Container::Types::Pages::LeafDispatcher                    LeafDispatcher;
 
@@ -50,68 +50,68 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrMiscName)
 
 
     struct PrefixFn: bt1::NoRtnLeveledNodeWalkerBase<PrefixFn> {
-    	IteratorPrefix prefix_;
+        IteratorPrefix prefix_;
 
-    	PrefixFn() {}
+        PrefixFn() {}
 
-    	template <Int Idx, typename Stream>
-    	void leafStream(const Stream* stream, Int idx)
-    	{
-    		if (stream)
-    		{
-    			std::get<0>(prefix_)[0] += idx;
+        template <Int Idx, typename Stream>
+        void leafStream(const Stream* stream, Int idx)
+        {
+            if (stream)
+            {
+                std::get<0>(prefix_)[0] += idx;
 
-    			for (Int c = 1; c < std::tuple_element<0, IteratorPrefix>::type::Indexes; c++)
-    			{
-    				std::get<0>(prefix_)[c] += stream->sum(c - 1, idx);
-    			}
-    		}
-    	}
+                for (Int c = 1; c < std::tuple_element<0, IteratorPrefix>::type::Indexes; c++)
+                {
+                    std::get<0>(prefix_)[c] += stream->sum(c - 1, idx);
+                }
+            }
+        }
 
-    	template <Int Idx, typename Stream>
-    	void nonLeafStream(const Stream* stream, Int idx)
-    	{
-    		for (Int c = 0; c < std::tuple_element<0, IteratorPrefix>::type::Indexes; c++)
-    		{
-    			std::get<0>(prefix_)[c] += stream->sum(c, idx);
-    		}
-    	}
+        template <Int Idx, typename Stream>
+        void nonLeafStream(const Stream* stream, Int idx)
+        {
+            for (Int c = 0; c < std::tuple_element<0, IteratorPrefix>::type::Indexes; c++)
+            {
+                std::get<0>(prefix_)[c] += stream->sum(c, idx);
+            }
+        }
 
     };
 
     void updatePrefix()
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	PrefixFn fn;
+        PrefixFn fn;
 
-    	if (self.idx() >= 0)
-    	{
-    		self.ctr().walkUp(self.leaf(), self.idx(), fn);
-    	}
+        if (self.idx() >= 0)
+        {
+            self.ctr().walkUp(self.leaf(), self.idx(), fn);
+        }
 
-    	self.cache().prefixes() = fn.prefix_;
+        self.cache().prefixes() = fn.prefix_;
     }
 
     void split()
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	NodeBaseG& leaf = self.leaf();
-    	Int& idx        = self.idx();
+        NodeBaseG& leaf = self.leaf();
+        Int& idx        = self.idx();
 
-    	Int size        = self.leaf_size(0);
-    	Int split_idx   = size/2;
+        Int size        = self.leaf_size(0);
+        Int split_idx   = size/2;
 
-    	auto right = self.ctr().splitLeafP(leaf, Position::create(0, split_idx));
+        auto right = self.ctr().splitLeafP(leaf, Position::create(0, split_idx));
 
-    	if (idx > split_idx)
-    	{
-    		leaf = right;
-    		idx -= split_idx;
+        if (idx > split_idx)
+        {
+            leaf = right;
+            idx -= split_idx;
 
-    		self.updatePrefix();
-    	}
+            self.updatePrefix();
+        }
     }
 
 
@@ -119,30 +119,30 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrMiscName)
 
     void ComputePrefix(BigInt& v)
     {
-    	Accumulator accum;
-    	ComputePrefix(accum);
+        Accumulator accum;
+        ComputePrefix(accum);
 
-    	v = std::get<0>(accum)[1];
+        v = std::get<0>(accum)[1];
     }
 
     void ComputePrefix(Accumulator& accum)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	PrefixFn fn;
+        PrefixFn fn;
 
-    	if (self.idx() >= 0)
-    	{
-    		self.ctr().walkUp(self.leaf(), self.idx(), fn);
-    	}
+        if (self.idx() >= 0)
+        {
+            self.ctr().walkUp(self.leaf(), self.idx(), fn);
+        }
 
-    	std::get<0>(accum).sumAt(0, std::get<0>(fn.prefix_));
+        std::get<0>(accum).sumAt(0, std::get<0>(fn.prefix_));
     }
 
     void dump(std::ostream& out = std::cout)
     {
-    	out<<"Prefixes="<<self().cache().prefixes()<<endl;
-    	Base::dump(out);
+        out<<"Prefixes="<<self().cache().prefixes()<<endl;
+        Base::dump(out);
     }
 MEMORIA_ITERATOR_PART_END
 

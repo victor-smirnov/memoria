@@ -43,7 +43,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
-    typedef typename Types::CtrSizeT											CtrSizeT;
+    typedef typename Types::CtrSizeT                                            CtrSizeT;
 
     static const Int Streams                                                    = Types::Streams;
 

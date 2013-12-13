@@ -131,7 +131,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrToolsName)
     MEMORIA_CONST_FN_WRAPPER(SetLeafDataFn, setLeafDataFn);
     void setLeafData(NodeBaseG& node, Int idx, const Value &val)
     {
-    	self().updatePageG(node);
+        self().updatePageG(node);
         LeafDispatcher::dispatch(node.page(), SetLeafDataFn(me()), idx, val);
     }
 

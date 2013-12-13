@@ -34,7 +34,7 @@ namespace memoria    {
 template <typename Profile, typename Value_>
 struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memoria::BT> {
 
-    typedef BTTypes<Profile, memoria::BT>                   					Base;
+    typedef BTTypes<Profile, memoria::BT>                                       Base;
 
     typedef Value_                                                              Value;
 
@@ -59,16 +59,16 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
         typedef BigInt                                              Key;
         typedef Value_                                              Value;
 
-        typedef core::StaticVector<BigInt, 1>						AccumulatorPart;
-        typedef core::StaticVector<BigInt, 1>						IteratorPrefixPart;
+        typedef core::StaticVector<BigInt, 1>                       AccumulatorPart;
+        typedef core::StaticVector<BigInt, 1>                       IteratorPrefixPart;
 
-        typedef PkdFTree<Packed2TreeTypes<Key, Key, 1>> 			NonLeafType;
-        typedef PackedFSEArray<PackedFSEArrayTypes<Value>> 			LeafType;
+        typedef PkdFTree<Packed2TreeTypes<Key, Key, 1>>             NonLeafType;
+        typedef PackedFSEArray<PackedFSEArrayTypes<Value>>          LeafType;
     };
 
 
     typedef TypeList<
-            	StreamTF
+                StreamTF
     >                                                                           StreamDescriptors;
 
     typedef BalancedTreeMetadata<
@@ -136,20 +136,20 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
 template <typename Profile, typename Value, typename T>
 class CtrTF<Profile, memoria::Vector<Value>, T>: public CtrTF<Profile, memoria::BT, T> {
 
-	using Base = CtrTF<Profile, memoria::BT, T>;
+    using Base = CtrTF<Profile, memoria::BT, T>;
 public:
 
-	struct Types: Base::Types
-	{
-		typedef Vector2CtrTypes<Types>                                          CtrTypes;
-		typedef Vector2IterTypes<Types>                                         IterTypes;
+    struct Types: Base::Types
+    {
+        typedef Vector2CtrTypes<Types>                                          CtrTypes;
+        typedef Vector2IterTypes<Types>                                         IterTypes;
 
-		typedef PageUpdateManager<CtrTypes>                                     PageUpdateMgr;
-	};
+        typedef PageUpdateManager<CtrTypes>                                     PageUpdateMgr;
+    };
 
 
-	typedef typename Types::CtrTypes                                            CtrTypes;
-	typedef Ctr<CtrTypes>                                                       Type;
+    typedef typename Types::CtrTypes                                            CtrTypes;
+    typedef Ctr<CtrTypes>                                                       Type;
 
 };
 

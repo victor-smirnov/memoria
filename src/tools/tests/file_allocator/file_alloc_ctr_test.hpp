@@ -20,20 +20,20 @@
 namespace memoria {
 
 class FileAllocatorCtrTest: public FileAllocatorTestBase {
-	typedef FileAllocatorTestBase												Base;
-	typedef FileAllocatorCtrTest												MyType;
+    typedef FileAllocatorTestBase                                               Base;
+    typedef FileAllocatorCtrTest                                                MyType;
 
 protected:
-	typedef typename Base::Allocator											Allocator;
+    typedef typename Base::Allocator                                            Allocator;
 
-	typedef typename FCtrTF<Vector<Int>>::Type									Ctr;
+    typedef typename FCtrTF<Vector<Int>>::Type                                  Ctr;
 
 public:
 
-	FileAllocatorCtrTest(StringRef name): Base(name)
-	{
-		Ctr::initMetadata();
-	}
+    FileAllocatorCtrTest(StringRef name): Base(name)
+    {
+        Ctr::initMetadata();
+    }
 
 
 };

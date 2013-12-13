@@ -12,88 +12,88 @@
 
 #include <tuple>
 
-namespace memoria 	{
-namespace metamap	{
+namespace memoria   {
+namespace metamap   {
 
 template <typename Map, Int Indexes, typename Key, typename Value, typename HiddenLabels, typename Labels, typename Accum>
 void InsertEntry(
-		Map* map,
-		Int idx,
-		const MetaMapEntry<Indexes, Key, Value, HiddenLabels, Labels>& entry,
-		Accum& sums
-	)
+        Map* map,
+        Int idx,
+        const MetaMapEntry<Indexes, Key, Value, HiddenLabels, Labels>& entry,
+        Accum& sums
+    )
 {
-	map->insert(idx, entry, sums);
+    map->insert(idx, entry, sums);
 }
 
 
 //template <typename StreamTypes, Int Indexes, typename Key, typename Value, typename HiddenLabels, typename Labels, typename Accum>
 //void InsertEntry(
-//		PackedVLEMap<StreamTypes>* map,
-//		Int idx,
-//		const MetaMapEntry<Indexes, Key, Value, HiddenLabels, Labels>& entry,
-//		Accum& sums
-//	)
+//      PackedVLEMap<StreamTypes>* map,
+//      Int idx,
+//      const MetaMapEntry<Indexes, Key, Value, HiddenLabels, Labels>& entry,
+//      Accum& sums
+//  )
 //{
-//	sums[0]++;
-//	sums.sumAt(1, entry.indexes());
+//  sums[0]++;
+//  sums.sumAt(1, entry.indexes());
 //
-//	map->insert(idx, entry.indexes(), entry.value());
+//  map->insert(idx, entry.indexes(), entry.value());
 //}
 
 
 template <typename Value, typename Stream>
 Value& GetValueRef(Stream* stream, Int idx)
 {
-	return stream->value(idx);
+    return stream->value(idx);
 }
 
 //template <typename Value, typename StreamTypes>
 //Value& GetValueRef(PackedVLEMap<StreamTypes>* stream, Int idx)
 //{
-//	return stream->value(idx).value();
+//  return stream->value(idx).value();
 //}
 
 template <typename Value, typename Stream>
 Value GetValue(const Stream* stream, Int idx)
 {
-	return stream->value(idx);
+    return stream->value(idx);
 }
 
 template <typename Stream, typename Value>
 void SetValue(Stream* stream, Int idx, const Value& value)
 {
-	stream->value(idx) = value;
+    stream->value(idx) = value;
 }
 
 
 template <typename Entry, typename Stream>
 Entry GetEntry(const Stream* stream, Int idx)
 {
-	return stream->template entry<Entry>(idx);
+    return stream->template entry<Entry>(idx);
 }
 
 template <typename Stream, typename Entry>
 void SetEntry(const Stream* stream, Int idx, const Entry& entry)
 {
-	// Process entry keys here
+    // Process entry keys here
 
-	stream->value(idx) = entry.value();
+    stream->value(idx) = entry.value();
 
-	// Process entry labels here
+    // Process entry labels here
 }
 
 template <typename IndexType, typename Stream>
 IndexType GetLeafIndex(const Stream* stream, Int idx, Int index_num)
 {
-	return stream->key(index_num, idx);
+    return stream->key(index_num, idx);
 }
 
 
 //template <typename IndexType, typename StreamTypes>
 //IndexType GetLeafIndex(const PackedVLEMap<StreamTypes>* stream, Int idx, Int index_num)
 //{
-//	return stream->tree()->value(index_num, idx);
+//  return stream->tree()->value(index_num, idx);
 //}
 
 

@@ -40,31 +40,31 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::smrk_map::CtrInsertName)
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
-    typedef ValuePair<Accumulator, Value>                                   	Element;
+    typedef ValuePair<Accumulator, Value>                                       Element;
 
     struct InsertIntoLeafFn {
-        const Key& 		key_;
-        const Value& 	value_;
+        const Key&      key_;
+        const Value&    value_;
 
-        const Int 		mark_;
+        const Int       mark_;
 
         InsertIntoLeafFn(const Key& key, const Value& value, Int mark):
-        	key_(key),
-        	value_(value),
-        	mark_(mark)
+            key_(key),
+            value_(value),
+            mark_(mark)
         {}
 
 
         template <Int Idx, typename StreamTypes>
         void stream(PackedFSESearchableMarkableMap<StreamTypes>* map, Int idx)
         {
-        	MEMORIA_ASSERT_TRUE(map != nullptr);
+            MEMORIA_ASSERT_TRUE(map != nullptr);
 
-        	typename PackedFSESearchableMarkableMap<StreamTypes>::TreeKeys keys;
+            typename PackedFSESearchableMarkableMap<StreamTypes>::TreeKeys keys;
 
-        	keys[0] = key_;
+            keys[0] = key_;
 
-        	map->insert(idx, keys, value_, mark_);
+            map->insert(idx, keys, value_, mark_);
         }
 
 
@@ -112,7 +112,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::smrk_map::CtrInsertName)
 
     void initLeaf(NodeBaseG& node) const
     {
-    	self().updatePageG(node);
+        self().updatePageG(node);
         self().layoutNode(node, 1);
     }
 
@@ -165,8 +165,8 @@ bool M_TYPE::insertMapEntry(Iterator& iter, const Element& element, Int mark)
 
     Accumulator e = element.first;
 
-    std::get<0>(e)[0] 			= 1;
-    std::get<0>(e)[2 + mark] 	= 1;
+    std::get<0>(e)[0]           = 1;
+    std::get<0>(e)[2 + mark]    = 1;
 
     self.updateParent(leaf, e);
 

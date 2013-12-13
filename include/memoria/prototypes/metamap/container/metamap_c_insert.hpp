@@ -41,9 +41,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrInsertName)
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
-    typedef ValuePair<Accumulator, Value>                                   	Element;
+    typedef ValuePair<Accumulator, Value>                                       Element;
 
-    typedef typename Types::Entry                                         		MapEntry;
+    typedef typename Types::Entry                                               MapEntry;
 
     template <typename Entry>
     struct InsertIntoLeafFn {
@@ -55,8 +55,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrInsertName)
         bool next_entry_updated_ = false;
 
         InsertIntoLeafFn(const Entry& entry, Accumulator& sums, bool adjust_next):
-        	entry_(entry), sums_(sums),
-        	adjust_next_(adjust_next)
+            entry_(entry), sums_(sums),
+            adjust_next_(adjust_next)
         {}
 
         template <Int StreamIdx, typename Stream>
@@ -68,15 +68,15 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrInsertName)
 
             if (adjust_next_)
             {
-            	next_entry_updated_ = idx < stream->size() - 1;
+                next_entry_updated_ = idx < stream->size() - 1;
 
-            	if (next_entry_updated_)
-            	{
-            		stream->addValue(0, idx + 1, -entry_.key());
-            	}
+                if (next_entry_updated_)
+                {
+                    stream->addValue(0, idx + 1, -entry_.key());
+                }
             }
             else {
-            	next_entry_updated_ = true;
+                next_entry_updated_ = true;
             }
         }
 
@@ -92,12 +92,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrInsertName)
 
     template <typename Entry>
     bool insertIntoLeaf(
-    		NodeBaseG&
-    		leaf,
-    		Int idx,
-    		const Entry& entry,
-    		Accumulator& sums,
-    		bool adjust_next
+            NodeBaseG&
+            leaf,
+            Int idx,
+            const Entry& entry,
+            Accumulator& sums,
+            bool adjust_next
     );
 
     template <typename Entry>
@@ -122,47 +122,47 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrInsertName)
 
     template <typename DataType>
     void updateLeafNode(
-    		NodeBaseG& node,
-    		Int idx,
-    		const bt::SingleIndexUpdateData<DataType>& sums,
-    		std::function<void (Int, Int)> fn
-    	);
+            NodeBaseG& node,
+            Int idx,
+            const bt::SingleIndexUpdateData<DataType>& sums,
+            std::function<void (Int, Int)> fn
+        );
 
     template <typename DataType>
     void updateUp(
-    		NodeBaseG& node,
-    		Int idx,
-    		const bt::SingleIndexUpdateData<DataType>& sums,
-    		std::function<void (Int, Int)> fn
-    	);
+            NodeBaseG& node,
+            Int idx,
+            const bt::SingleIndexUpdateData<DataType>& sums,
+            std::function<void (Int, Int)> fn
+        );
 
 
     void initLeaf(NodeBaseG& node) const
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	self.updatePageG(node);
+        self.updatePageG(node);
         self.layoutNode(node, 1);
     }
 
     Iterator insertIFNotExists(Key key)
     {
-    	Iterator iter = self().findGE(0, key, 1);
+        Iterator iter = self().findGE(0, key, 1);
 
-    	if (iter.isEnd() || key != iter.key())
-    	{
-    		MapEntry entry;
-    		entry.key() = key;
+        if (iter.isEnd() || key != iter.key())
+        {
+            MapEntry entry;
+            entry.key() = key;
 
-    		self().insertEntry(iter, entry);
+            self().insertEntry(iter, entry);
 
-    		iter--;
-    	}
-    	else {
-    		throw Exception(MA_SRC, "Inserted Key already exists");
-    	}
+            iter--;
+        }
+        else {
+            throw Exception(MA_SRC, "Inserted Key already exists");
+        }
 
-    	return iter;
+        return iter;
     }
 
 
@@ -178,12 +178,12 @@ MEMORIA_CONTAINER_PART_END
 M_PARAMS
 template <typename Entry>
 bool M_TYPE::insertIntoLeaf(
-		NodeBaseG& leaf,
-		Int idx,
-		const Entry& entry,
-		Accumulator& sums,
-		bool adjust_next
-	)
+        NodeBaseG& leaf,
+        Int idx,
+        const Entry& entry,
+        Accumulator& sums,
+        bool adjust_next
+    )
 {
     auto& self = this->self();
 
@@ -208,7 +208,7 @@ void M_TYPE::insertEntry(Iterator& iter, const Entry& entry, bool adjust_next)
 
     if (!self.checkCapacities(leaf, {1}))
     {
-    	iter.split();
+        iter.split();
     }
 
     Entry tmp_entry = entry;
@@ -223,26 +223,26 @@ void M_TYPE::insertEntry(Iterator& iter, const Entry& entry, bool adjust_next)
 
     if (adjust_next)
     {
-    	if (result)
-    	{
-    		std::get<0>(sums)[1] = 0;
+        if (result)
+        {
+            std::get<0>(sums)[1] = 0;
 
-    		self.updateParent(leaf, sums);
+            self.updateParent(leaf, sums);
 
-    		iter++;
-    	}
-    	else {
-    		self.updateParent(leaf, sums);
+            iter++;
+        }
+        else {
+            self.updateParent(leaf, sums);
 
-    		if (iter++)
-    		{
-    			iter.adjustIndex(1, -tmp_entry.key());
-    		}
-    	}
+            if (iter++)
+            {
+                iter.adjustIndex(1, -tmp_entry.key());
+            }
+        }
     }
     else {
-    	self.updateParent(leaf, sums);
-    	iter++;
+        self.updateParent(leaf, sums);
+        iter++;
     }
 }
 
@@ -250,11 +250,11 @@ void M_TYPE::insertEntry(Iterator& iter, const Entry& entry, bool adjust_next)
 M_PARAMS
 template <typename DataType>
 void M_TYPE::updateLeafNode(
-				NodeBaseG& node,
-				Int idx,
-				const bt::SingleIndexUpdateData<DataType>& sums,
-				std::function<void (Int, Int)> fn
-	)
+                NodeBaseG& node,
+                Int idx,
+                const bt::SingleIndexUpdateData<DataType>& sums,
+                std::function<void (Int, Int)> fn
+    )
 {
     auto& self = this->self();
 
@@ -267,11 +267,11 @@ void M_TYPE::updateLeafNode(
 M_PARAMS
 template <typename DataType>
 void M_TYPE::updateUp(
-		NodeBaseG& node,
-		Int idx,
-		const bt::SingleIndexUpdateData<DataType>& counters,
-		std::function<void (Int, Int)> fn
-	)
+        NodeBaseG& node,
+        Int idx,
+        const bt::SingleIndexUpdateData<DataType>& counters,
+        std::function<void (Int, Int)> fn
+    )
 {
     auto& self = this->self();
 

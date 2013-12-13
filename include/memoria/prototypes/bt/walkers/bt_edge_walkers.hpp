@@ -8,7 +8,7 @@
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_EDGE_WALKERS_HPP
 
 namespace memoria {
-namespace bt1 	  {
+namespace bt1     {
 
 template <typename Types>
 class FindEdgeWalkerBase {
@@ -36,7 +36,7 @@ public:
 template <typename Types>
 class FindBeginWalker: public FindEdgeWalkerBase<Types> {
 
-    typedef FindEdgeWalkerBase<Types>      	Base;
+    typedef FindEdgeWalkerBase<Types>       Base;
     typedef typename Base::Iterator         Iterator;
     typedef typename Base::Container        Container;
 

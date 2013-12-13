@@ -19,14 +19,14 @@ namespace memoria {
 
 class FileAllocatorTestBase: public TestTask {
 protected:
-	typedef GenericFileAllocator												Allocator;
+    typedef GenericFileAllocator                                                Allocator;
 
 public:
 
-	FileAllocatorTestBase(StringRef name): TestTask(name)
-	{
-		MetadataRepository<FileProfile<>>::init();
-	}
+    FileAllocatorTestBase(StringRef name): TestTask(name)
+    {
+        MetadataRepository<FileProfile<>>::init();
+    }
 
 
 

@@ -452,7 +452,7 @@ void AssertDoesntThrow(const char* src, Functor&& fn)
     }
     catch (Exception& ex)
     {
-    	throw TestException(src, SBuf()<<"Code throws unexpected exception: "<<ex.source()<<" "<<ex);
+        throw TestException(src, SBuf()<<"Code throws unexpected exception: "<<ex.source()<<" "<<ex);
     }
     catch (...)
     {

@@ -27,7 +27,7 @@
 #include <memoria/containers/dbl_map/dblmap_names.hpp>
 #include <memoria/containers/vector_map/vmap_names.hpp>
 
-namespace memoria 	{
+namespace memoria   {
 
 
 template <typename Profile, typename Key_, typename Value_>
@@ -35,10 +35,10 @@ struct BTTypes<Profile, DblMap<Key_, Value_> >:
     public BTTypes<Profile, memoria::BT>
 {
 
-    typedef BTTypes<Profile, memoria::BT>                   					Base;
+    typedef BTTypes<Profile, memoria::BT>                                       Base;
 
     typedef Value_                                                              Value;
-    typedef Key_                                                    			Key;
+    typedef Key_                                                                Key;
 
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {
@@ -98,7 +98,7 @@ struct BTTypes<Profile, DblMap<Key_, Value_> >:
             memoria::dblmap::ItrCRUDName
     >::Result                                                                   IteratorPartsList;
 
-    typedef std::pair<StaticVector<BigInt, 1>, BigInt>								IOValue;
+    typedef std::pair<StaticVector<BigInt, 1>, BigInt>                              IOValue;
 
     typedef IDataSource<IOValue>                                                DataSource;
     typedef IDataTarget<IOValue>                                                DataTarget;

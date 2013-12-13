@@ -23,7 +23,7 @@
 namespace memoria {
 
 struct MVCCTestSuite: public TestSuite {
-	MVCCTestSuite(): TestSuite("MVCCSuite")
+    MVCCTestSuite(): TestSuite("MVCCSuite")
     {
         registerTask(new MVCCCommitTest("Commit"));
         registerTask(new MVCCSnapshotTest("Snapshot"));

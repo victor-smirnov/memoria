@@ -86,7 +86,7 @@ public:
     static const Int ValuesPerBranch        = Types::ValuesPerBranch;
     static const Int Indexes                = Types::Blocks;
     static const Int BitsPerSymbol          = Types::BitsPerSymbol;
-    static const Int AlphabetSize          	= 1<<BitsPerSymbol;
+    static const Int AlphabetSize           = 1<<BitsPerSymbol;
 
     enum {
         METADATA, INDEX, SYMBOLS
@@ -112,7 +112,7 @@ public:
 
     static const Int IndexSizeThreshold                                         = 0;
 
-    typedef core::StaticVector<BigInt, Indexes>                             	Values;
+    typedef core::StaticVector<BigInt, Indexes>                                 Values;
     typedef core::StaticVector<BigInt, Indexes + 1>                             Values2;
 
     typedef typename Types::template ToolsFn<MyType>                            Tools;
@@ -260,7 +260,7 @@ public:
 
     static Int packed_block_size(Int array_size)
     {
-    	return PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(MyType) + array_size * sizeof(Value));
+        return PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(MyType) + array_size * sizeof(Value));
     }
 
 private:
@@ -278,7 +278,7 @@ private:
 public:
     static Int elements_for(Int block_size)
     {
-    	return FindTotalElementsNumber2(block_size, ElementsForFn());
+        return FindTotalElementsNumber2(block_size, ElementsForFn());
     }
 
 
@@ -341,9 +341,9 @@ public:
 
     void set(Int idx, Int symbol)
     {
-    	MEMORIA_ASSERT(idx , <, size());
+        MEMORIA_ASSERT(idx , <, size());
 
-    	tools().set(symbols(), idx, symbol);
+        tools().set(symbols(), idx, symbol);
     }
 
     void clear()
@@ -432,7 +432,7 @@ public:
     }
 
     void removeSpace(Int start, Int end) {
-    	remove(start, end);
+        remove(start, end);
     }
 
 
@@ -612,8 +612,8 @@ public:
 
     Values sums() const
     {
-    	Values2 values2 = sums2();
-    	return convert(values2);
+        Values2 values2 = sums2();
+        return convert(values2);
     }
 
     Values2 sums2(Int to) const
@@ -643,7 +643,7 @@ public:
 
     Values sums(Int to) const
     {
-    	return convert(sums2(to));
+        return convert(sums2(to));
     }
 
 
@@ -667,10 +667,10 @@ public:
 
     Values sumsAt(Int idx) const
     {
-    	Values values;
-    	values[symbol(idx)] = 1;
+        Values values;
+        values[symbol(idx)] = 1;
 
-    	return values;
+        return values;
     }
 
     Values2 sums2(Int from, Int to) const
@@ -685,7 +685,7 @@ public:
 
     void sums(Int from, Int to, Values& values) const
     {
-    	values += sums(from, to);
+        values += sums(from, to);
     }
 
     void sums(Values2& values) const
@@ -695,7 +695,7 @@ public:
 
     void sums(Values& values) const
     {
-    	values += sums();
+        values += sums();
     }
 
     Values2 sum(Int from, Int to) const {
@@ -705,29 +705,29 @@ public:
 
     void addKeys(Int idx, Values& values) const
     {
-    	Int symbol = this->symbol(idx);
-    	values[symbol]++;
+        Int symbol = this->symbol(idx);
+        values[symbol]++;
     }
 
     void addKeys(Int idx, Values2& values) const
     {
-    	values[0] += 1;
+        values[0] += 1;
 
-    	Int symbol = this->symbol(idx);
-    	values[symbol]++;
+        Int symbol = this->symbol(idx);
+        values[symbol]++;
     }
 
     Int get(Int idx) const
     {
         MEMORIA_ASSERT(idx , <, size());
 
-    	return tools().get(symbols(), idx);
+        return tools().get(symbols(), idx);
     }
 
     bool test(Int idx, Value symbol) const
     {
-    	MEMORIA_ASSERT(idx , <, size());
-    	return tools().test(symbols(), idx, symbol);
+        MEMORIA_ASSERT(idx , <, size());
+        return tools().test(symbols(), idx, symbol);
     }
 
     Int rank(Int symbol) const
@@ -794,7 +794,7 @@ public:
         MEMORIA_ASSERT(rank, >=, 0);
         MEMORIA_ASSERT_TRUE(symbol >= 0 && symbol < AlphabetSize);
 
-    	if (has_index())
+        if (has_index())
         {
             const Index* index = this->index();
 
@@ -942,13 +942,13 @@ private:
 
     static Values convert(const Values2& v)
     {
-    	Values values;
-    	for (Int c = 0; c < Indexes; c++)
-    	{
-    		values[c] = v[c + 1];
-    	}
+        Values values;
+        for (Int c = 0; c < Indexes; c++)
+        {
+            values[c] = v[c + 1];
+        }
 
-    	return values;
+        return values;
     }
 };
 

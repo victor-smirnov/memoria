@@ -36,10 +36,10 @@ struct BTTypes<Profile, memoria::VectorMap<Key_, Value_> >:
     public BTTypes<Profile, memoria::BT>
 {
 
-    typedef BTTypes<Profile, memoria::BT>                   					Base;
+    typedef BTTypes<Profile, memoria::BT>                                       Base;
 
     typedef Value_                                                              Value;
-    typedef Key_                                                   				Key;
+    typedef Key_                                                                Key;
 
 
     template <typename Iterator, typename Container>
@@ -63,11 +63,11 @@ struct BTTypes<Profile, memoria::VectorMap<Key_, Value_> >:
         typedef Key_                                                Key;
         typedef BigInt                                              Value;
 
-        typedef core::StaticVector<BigInt, 2>						AccumulatorPart;
-        typedef core::StaticVector<BigInt, 2>						IteratorPrefixPart;
+        typedef core::StaticVector<BigInt, 2>                       AccumulatorPart;
+        typedef core::StaticVector<BigInt, 2>                       IteratorPrefixPart;
 
-        typedef PkdFTree<Packed2TreeTypes<Key, Key, 2>> 			NonLeafType;
-        typedef PkdFTree<Packed2TreeTypes<Key, Key, 2>> 			LeafType;
+        typedef PkdFTree<Packed2TreeTypes<Key, Key, 2>>             NonLeafType;
+        typedef PkdFTree<Packed2TreeTypes<Key, Key, 2>>             LeafType;
     };
 
 
@@ -76,11 +76,11 @@ struct BTTypes<Profile, memoria::VectorMap<Key_, Value_> >:
         typedef BigInt                                              Key;
         typedef Value_                                              Value;
 
-        typedef core::StaticVector<BigInt, 1>						AccumulatorPart;
-        typedef core::StaticVector<BigInt, 1>						IteratorPrefixPart;
+        typedef core::StaticVector<BigInt, 1>                       AccumulatorPart;
+        typedef core::StaticVector<BigInt, 1>                       IteratorPrefixPart;
 
-        typedef PkdFTree<Packed2TreeTypes<Key, Key, 1>> 			NonLeafType;
-        typedef PackedFSEArray<PackedFSEArrayTypes<Value>> 			LeafType;
+        typedef PkdFTree<Packed2TreeTypes<Key, Key, 1>>             NonLeafType;
+        typedef PackedFSEArray<PackedFSEArrayTypes<Value>>          LeafType;
     };
 
 
@@ -119,7 +119,7 @@ struct BTTypes<Profile, memoria::VectorMap<Key_, Value_> >:
     >::Result                                                                   IteratorPartsList;
 
 
-    typedef Value																IOValue;
+    typedef Value                                                               IOValue;
 
     typedef IDataSource<IOValue>                                                DataSource;
     typedef IDataTarget<IOValue>                                                DataTarget;

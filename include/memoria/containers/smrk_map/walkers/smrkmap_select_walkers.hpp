@@ -69,7 +69,7 @@ public:
         {
             prefix_ += seq->sum(0, start, result.idx());
 
-        	return result.idx();
+            return result.idx();
         }
         else {
             Int size = seq->size();
@@ -84,17 +84,17 @@ public:
 
     void prepare(Iterator& iter)
     {
-    	Base::prepare(iter);
+        Base::prepare(iter);
 
-    	prefix_ = iter.cache().prefix();
+        prefix_ = iter.cache().prefix();
     }
 
 
     BigInt finish(Iterator& iter, Int idx)
     {
-    	iter.cache().setup(prefix_);
+        iter.cache().setup(prefix_);
 
-    	return Base::finish(iter, idx);
+        return Base::finish(iter, idx);
     }
 };
 

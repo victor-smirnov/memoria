@@ -27,7 +27,7 @@ namespace memoria    {
 
 MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::ItrCRUDName)
 
-    typedef Ctr<typename Types::CtrTypes>                       				Container;
+    typedef Ctr<typename Types::CtrTypes>                                       Container;
 
 
     typedef typename Base::Allocator                                            Allocator;
@@ -66,7 +66,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::ItrCRUDName)
         {
             MEMORIA_ASSERT(offset, <, obj->size());
 
-        	return obj->value(offset);
+            return obj->value(offset);
         }
     };
 
@@ -75,7 +75,7 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::ItrCRUDName)
         auto& self = this->self();
 
         if (self.stream() != 1) {
-        	int a = 0; a++;
+            int a = 0; a++;
         }
 
         MEMORIA_ASSERT_TRUE(self.stream() == 1);
@@ -93,9 +93,9 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::ItrCRUDName)
         template <Int StreamIdx, typename StreamType>
         void stream(StreamType* obj, Int offset, const Value& value)
         {
-        	MEMORIA_ASSERT(offset, <, obj->size());
+            MEMORIA_ASSERT(offset, <, obj->size());
 
-        	obj->value(offset) = value;
+            obj->value(offset) = value;
         }
     };
 
@@ -111,246 +111,246 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::ItrCRUDName)
 
 
     struct Key2Fn {
-    	typedef Key ReturnType;
-    	typedef Key ResultType;
+        typedef Key ReturnType;
+        typedef Key ResultType;
 
-    	template <typename Node>
-    	ReturnType treeNode(const Node* node, Int offset)
-    	{
-    		return node->template processStreamRtn<1>(*this, offset);
-    	}
+        template <typename Node>
+        ReturnType treeNode(const Node* node, Int offset)
+        {
+            return node->template processStreamRtn<1>(*this, offset);
+        }
 
-    	template <Int StreamIdx, typename StreamType>
-    	ResultType stream(const StreamType* obj, Int offset)
-    	{
-    		MEMORIA_ASSERT(offset, <, obj->size());
-    		return obj->tree()->value(0, offset);
-    	}
+        template <Int StreamIdx, typename StreamType>
+        ResultType stream(const StreamType* obj, Int offset)
+        {
+            MEMORIA_ASSERT(offset, <, obj->size());
+            return obj->tree()->value(0, offset);
+        }
     };
 
     Key key() const
     {
-    	auto prefix = self().cache().id_prefix();
-    	Key value 	= self().cache().id_entry();
+        auto prefix = self().cache().id_prefix();
+        Key value   = self().cache().id_entry();
 
-    	return value + prefix;
+        return value + prefix;
     }
 
     Key key2() const
     {
-    	auto prefix = self().cache().second_prefix();
-    	Key value 	= self().raw_key2();
+        auto prefix = self().cache().second_prefix();
+        Key value   = self().raw_key2();
 
-    	return value + prefix;
+        return value + prefix;
     }
 
     Key raw_key2() const
     {
-    	auto& self = this->self();
-    	MEMORIA_ASSERT_TRUE(self.stream() == 1);
-    	return LeafDispatcher::dispatchConstRtn(self.leaf(), Key2Fn(), self.idx());
+        auto& self = this->self();
+        MEMORIA_ASSERT_TRUE(self.stream() == 1);
+        return LeafDispatcher::dispatchConstRtn(self.leaf(), Key2Fn(), self.idx());
     }
 
 
     bool find2ndGE(Key key)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	CtrSizeT size = prepareFind2();
+        CtrSizeT size = prepareFind2();
 
-    	if (size > 0)
-    	{
-    		CtrSizeT offset = self.template _findFw<Find2ndGEWalker>(0, key);
+        if (size > 0)
+        {
+            CtrSizeT offset = self.template _findFw<Find2ndGEWalker>(0, key);
 
-    		self.cache().addToGlobalPos(offset);
+            self.cache().addToGlobalPos(offset);
 
-    		if (offset < size)
-    		{
-    			return true;
-    		}
-    		else {
-    			self.skipBw(offset - size);
+            if (offset < size)
+            {
+                return true;
+            }
+            else {
+                self.skipBw(offset - size);
 
-    			return false;
-    		}
-    	}
-    	else {
-    		return false;
-    	}
+                return false;
+            }
+        }
+        else {
+            return false;
+        }
     }
 
 
     bool find2ndLE(Key key)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	CtrSizeT size = prepareFind2();
+        CtrSizeT size = prepareFind2();
 
-    	if (size > 0)
-    	{
-    		CtrSizeT offset = self.template _findFw<Find2ndGEWalker>(0, key);
+        if (size > 0)
+        {
+            CtrSizeT offset = self.template _findFw<Find2ndGEWalker>(0, key);
 
-    		self.cache().addToGlobalPos(offset);
+            self.cache().addToGlobalPos(offset);
 
-    		if (offset < size)
-    		{
-    			if (self.key2() > key)
-    			{
-    				if (self.pos() > 0)
-    				{
-    					self.skipBw(1);
+            if (offset < size)
+            {
+                if (self.key2() > key)
+                {
+                    if (self.pos() > 0)
+                    {
+                        self.skipBw(1);
 
-    					return self.key2() <= key;
-    				}
-    				else {
-    					return false;
-    				}
-    			}
-    			else {
-    				return true;
-    			}
-    		}
-    		else {
-    			self.skipBw(offset - size + 1);
-    			return self.key2() <= key;
-    		}
-    	}
-    	else {
-    		return false;
-    	}
+                        return self.key2() <= key;
+                    }
+                    else {
+                        return false;
+                    }
+                }
+                else {
+                    return true;
+                }
+            }
+            else {
+                self.skipBw(offset - size + 1);
+                return self.key2() <= key;
+            }
+        }
+        else {
+            return false;
+        }
     }
 
 
 
     bool find2ndGT(Key key)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	CtrSizeT size = prepareFind2();
+        CtrSizeT size = prepareFind2();
 
-    	if (size > 0)
-    	{
-    		CtrSizeT offset = self.template _findFw<Find2ndGTWalker>(0, key);
+        if (size > 0)
+        {
+            CtrSizeT offset = self.template _findFw<Find2ndGTWalker>(0, key);
 
-    		self.cache().addToGlobalPos(offset);
+            self.cache().addToGlobalPos(offset);
 
-    		if (offset < size)
-    		{
-    			return true;
-    		}
-    		else {
-    			self.skipBw(offset - size);
-    			return false;
-    		}
-    	}
-    	else {
-    		return false;
-    	}
+            if (offset < size)
+            {
+                return true;
+            }
+            else {
+                self.skipBw(offset - size);
+                return false;
+            }
+        }
+        else {
+            return false;
+        }
     }
 
 
     bool insert2nd(Key key, Value value)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	self.findData();
+        self.findData();
 
-    	if (self.find2ndGE(key))
-    	{
-    		auto k = self.key2();
+        if (self.find2ndGE(key))
+        {
+            auto k = self.key2();
 
-    		if (k != key)
-    		{
-    			this->insert2ndEntry(key, value);
-    			return true;
-    		}
-    		else {
-    			self.setValue(value);
-    			return false;
-    		}
-    	}
-    	else {
-    		this->insert2ndEntry(key, value);
+            if (k != key)
+            {
+                this->insert2ndEntry(key, value);
+                return true;
+            }
+            else {
+                self.setValue(value);
+                return false;
+            }
+        }
+        else {
+            this->insert2ndEntry(key, value);
 
-    		return true;
-    	}
+            return true;
+        }
     }
 
 private:
 
     CtrSizeT prepareFind2()
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	CtrSizeT size = self.blob_size();
+        CtrSizeT size = self.blob_size();
 
-    	if (self.stream() == 0)
-    	{
-    		self.findData(0);
-    	}
-    	else
-    	{
-    		CtrSizeT pos = self.pos();
+        if (self.stream() == 0)
+        {
+            self.findData(0);
+        }
+        else
+        {
+            CtrSizeT pos = self.pos();
 
-    		if (pos > 0)
-    		{
-    			self.skipBw(pos);
-    		}
-    	}
+            if (pos > 0)
+            {
+                self.skipBw(pos);
+            }
+        }
 
-    	return size;
+        return size;
     }
 
 
     struct AddKey2Fn {
 
-    	template <typename Node>
-    	void treeNode(Node* node, Int offset, Key key)
-    	{
-    		node->template processStream<1>(*this, offset, key);
-    	}
+        template <typename Node>
+        void treeNode(Node* node, Int offset, Key key)
+        {
+            node->template processStream<1>(*this, offset, key);
+        }
 
-    	template <Int StreamIdx, typename StreamType>
-    	void stream(StreamType* obj, Int offset, Key key)
-    	{
-    		MEMORIA_ASSERT(offset, <, obj->size());
+        template <Int StreamIdx, typename StreamType>
+        void stream(StreamType* obj, Int offset, Key key)
+        {
+            MEMORIA_ASSERT(offset, <, obj->size());
 
-    		obj->tree()->value(0, offset) += key;
-    		obj->reindex();
-    	}
+            obj->tree()->value(0, offset) += key;
+            obj->reindex();
+        }
     };
 
 
 
     void insert2ndEntry(const Key& key, const Value& value)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	typedef StaticVector<Key, 1> 			KeyV;
-    	typedef std::pair<KeyV, Value> 			IOValue;
+        typedef StaticVector<Key, 1>            KeyV;
+        typedef std::pair<KeyV, Value>          IOValue;
 
-    	KeyV key_v;
+        KeyV key_v;
 
-    	auto delta = key - self.cache().second_prefix();
+        auto delta = key - self.cache().second_prefix();
 
-    	key_v[0] = delta;
+        key_v[0] = delta;
 
-    	IOValue io_val(key_v, value);
+        IOValue io_val(key_v, value);
 
-    	ValueSource<IOValue> src(io_val);
+        ValueSource<IOValue> src(io_val);
 
-    	self.insert(src);
+        self.insert(src);
 
-    	if (self.pos() < self.blob_size())
-    	{
-    		LeafDispatcher::dispatch(self.leaf(), AddKey2Fn(), self.idx(), -delta);
+        if (self.pos() < self.blob_size())
+        {
+            LeafDispatcher::dispatch(self.leaf(), AddKey2Fn(), self.idx(), -delta);
 
-    		Accumulator sums;
+            Accumulator sums;
 
-    		std::get<1>(sums)[1] = -delta;
+            std::get<1>(sums)[1] = -delta;
 
-    		self.ctr().updateParent(self.leaf(), sums);
-    	}
+            self.ctr().updateParent(self.leaf(), sums);
+        }
     }
 
 
@@ -359,65 +359,65 @@ public:
 
     bool remove2nd(Key key)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	typedef StaticVector<Key, 1> 			KeyV;
-    	typedef std::pair<KeyV, Value> 			IOValue;
+        typedef StaticVector<Key, 1>            KeyV;
+        typedef std::pair<KeyV, Value>          IOValue;
 
-    	self.findData();
+        self.findData();
 
-    	CtrSizeT pos = self.pos();
-    	if (pos > 0)
-    	{
-    		self.skipBw(pos);
-    	}
+        CtrSizeT pos = self.pos();
+        if (pos > 0)
+        {
+            self.skipBw(pos);
+        }
 
-    	if (self.find2ndGE(key))
-    	{
-    		if (self.key2() == key)
-    		{
-    			self.remove2nd();
+        if (self.find2ndGE(key))
+        {
+            if (self.key2() == key)
+            {
+                self.remove2nd();
 
-    			return true;
-    		}
-    		else {
-    			return false;
-    		}
-    	}
-    	else {
-    		return false;
-    	}
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            return false;
+        }
     }
 
 
     void remove2nd()
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	typedef StaticVector<Key, 1> 			KeyV;
-    	typedef std::pair<KeyV, Value> 			IOValue;
+        typedef StaticVector<Key, 1>            KeyV;
+        typedef std::pair<KeyV, Value>          IOValue;
 
-    	auto delta = self.raw_key2();
+        auto delta = self.raw_key2();
 
-    	MEMORIA_ASSERT(self.pos(), <, self.blob_size());
+        MEMORIA_ASSERT(self.pos(), <, self.blob_size());
 
-    	self.remove(1);
+        self.remove(1);
 
-    	if (self.pos() < self.blob_size())
-    	{
-    		if (self.idx() == self.leaf_size(1))
-    		{
-    			self.nextLeaf();
-    		}
+        if (self.pos() < self.blob_size())
+        {
+            if (self.idx() == self.leaf_size(1))
+            {
+                self.nextLeaf();
+            }
 
-    		LeafDispatcher::dispatch(self.leaf(), AddKey2Fn(), self.idx(), delta);
+            LeafDispatcher::dispatch(self.leaf(), AddKey2Fn(), self.idx(), delta);
 
-    		Accumulator sums;
+            Accumulator sums;
 
-    		std::get<1>(sums)[1] = delta;
+            std::get<1>(sums)[1] = delta;
 
-    		self.ctr().updateParent(self.leaf(), sums);
-    	}
+            self.ctr().updateParent(self.leaf(), sums);
+        }
     }
 
 
@@ -517,21 +517,21 @@ public:
     }
 
     void dumpCache() const {
-    	auto cache = self().cache();
+        auto cache = self().cache();
 
-    	cout<<"Cache: id=" <<cache.id()
-                            		<<" id_prefix="<<cache.id_prefix()
-                            		<<" id_entry="<<cache.id_entry()
-                            		<<" base="<<cache.blob_base()
-                            		<<" size="<<cache.size()
-                            		<<" idx="<<cache.entry_idx()
-                            		<<" entries="<<cache.entries()
-                            		<<" second_prefix="<<cache.second_prefix()
-                            		<<endl;
+        cout<<"Cache: id=" <<cache.id()
+                                    <<" id_prefix="<<cache.id_prefix()
+                                    <<" id_entry="<<cache.id_entry()
+                                    <<" base="<<cache.blob_base()
+                                    <<" size="<<cache.size()
+                                    <<" idx="<<cache.entry_idx()
+                                    <<" entries="<<cache.entries()
+                                    <<" second_prefix="<<cache.second_prefix()
+                                    <<endl;
 
-    	cout<<" blob_size="<<self().blob_size()<<" Leaf ID="<<self().leaf()->id()
-    		<<" idx="<<self().idx()
-    		<<endl;
+        cout<<" blob_size="<<self().blob_size()<<" Leaf ID="<<self().leaf()->id()
+            <<" idx="<<self().idx()
+            <<endl;
     }
 
 

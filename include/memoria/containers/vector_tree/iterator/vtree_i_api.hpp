@@ -43,7 +43,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::vtree::ItrApiName)
 
         if (self.tree_iter().next_sibling())
         {
-        	CtrSizeT data_base = self.tree_iter().template sumLabel<1>();
+            CtrSizeT data_base = self.tree_iter().template sumLabel<1>();
             self.vector_iter() = self.ctr().vector().seek(data_base);
 
             return true;
@@ -59,7 +59,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::vtree::ItrApiName)
 
         if (self.tree_iter().prev_sibling())
         {
-        	CtrSizeT data_base = self.tree_iter().template sumLabel<1>();
+            CtrSizeT data_base = self.tree_iter().template sumLabel<1>();
             self.vector_iter() = self.ctr().vector().seek(data_base);
 
             return true;
@@ -159,7 +159,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::vtree::ItrApiName)
 
     std::vector<Value> read()
     {
-    	CtrSizeT data_size = self().lobSize();
+        CtrSizeT data_size = self().lobSize();
         return self().vector_iter().subVector(data_size);
     }
 

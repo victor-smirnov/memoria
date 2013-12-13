@@ -32,7 +32,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::smrk_map::CtrApiName)
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
 
-    typedef ValuePair<Accumulator, Value>                                   	Element;
+    typedef ValuePair<Accumulator, Value>                                       Element;
 
     static const Int Streams                                                    = Types::Streams;
 
@@ -61,41 +61,41 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::smrk_map::CtrApiName)
 
     Iterator findKeyGE(Key key)
     {
-    	return self().findGE(0, key, 0);
+        return self().findGE(0, key, 0);
     }
 
     Iterator findKeyLE(Key key)
     {
-    	Iterator iter = self().findGE(0, key, 0);
+        Iterator iter = self().findGE(0, key, 0);
 
-    	if (iter.isEnd() || iter.key() > key)
-    	{
-    		iter--;
+        if (iter.isEnd() || iter.key() > key)
+        {
+            iter--;
 
-    		if (iter.isBegin())
-    		{
-    			iter.idx() = 0;
-    		}
-    	}
+            if (iter.isBegin())
+            {
+                iter.idx() = 0;
+            }
+        }
 
-    	return iter;
+        return iter;
     }
 
     Iterator findKeyLT(Key key)
     {
-    	Iterator iter = self().findGE(0, key, 0);
+        Iterator iter = self().findGE(0, key, 0);
 
-    	if (iter.isEnd() || iter.key() >= key)
-    	{
-    		iter--;
+        if (iter.isEnd() || iter.key() >= key)
+        {
+            iter--;
 
-    		if (iter.isBegin())
-    		{
-    			iter.idx() = 0;
-    		}
-    	}
+            if (iter.isBegin())
+            {
+                iter.idx() = 0;
+            }
+        }
 
-    	return iter;
+        return iter;
     }
 
 
@@ -118,21 +118,21 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::smrk_map::CtrApiName)
 
     Iterator insertIFNotExists(Key key)
     {
-    	Iterator iter = self().findGE(0, key, 0);
+        Iterator iter = self().findGE(0, key, 0);
 
-    	if (iter.isEnd() || key != iter.key())
-    	{
-    		Accumulator keys;
-    		std::get<0>(keys)[0] = key;
-    		self().insert(iter, keys);
+        if (iter.isEnd() || key != iter.key())
+        {
+            Accumulator keys;
+            std::get<0>(keys)[0] = key;
+            self().insert(iter, keys);
 
-    		iter.prev();
-    	}
-    	else {
-    		throw Exception(MA_SRC, "Inserted Key already exists");
-    	}
+            iter.prev();
+        }
+        else {
+            throw Exception(MA_SRC, "Inserted Key already exists");
+        }
 
-    	return iter;
+        return iter;
     }
 
     bool remove(Key key)
@@ -193,21 +193,21 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::smrk_map::CtrApiName)
 
     Iterator select(Int mark, BigInt rank)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	MEMORIA_ASSERT(rank, >=, 1);
-    	MEMORIA_ASSERT(mark, >=, 0);
+        MEMORIA_ASSERT(rank, >=, 1);
+        MEMORIA_ASSERT(mark, >=, 0);
 
-    	typename Types::template SelectFwWalker<Types> walker(0, mark, rank);
+        typename Types::template SelectFwWalker<Types> walker(0, mark, rank);
 
-    	auto iter = self.find0(0, walker);
+        auto iter = self.find0(0, walker);
 
-    	return iter;
+        return iter;
     }
 
     BigInt rank(Int mark)
     {
-    	return self().End().rank(mark);
+        return self().End().rank(mark);
     }
 
 MEMORIA_CONTAINER_PART_END

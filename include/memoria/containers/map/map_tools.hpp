@@ -132,7 +132,7 @@ public:
 
     IteratorPrefix& prefixes()
     {
-    	return prefix_;
+        return prefix_;
     }
 };
 
@@ -145,26 +145,26 @@ template <typename Key, Granularity Gr, Int Indexes> struct CompressedMapTF;
 template <typename Key, Int Indexes>
 struct CompressedMapTF<Key, Granularity::Bit, Indexes> {
 
-	typedef core::StaticVector<BigInt, Indexes + 1>								AccumulatorPart;
-	typedef core::StaticVector<BigInt, Indexes + 1>								IteratorPrefixPart;
+    typedef core::StaticVector<BigInt, Indexes + 1>                             AccumulatorPart;
+    typedef core::StaticVector<BigInt, Indexes + 1>                             IteratorPrefixPart;
 
-	typedef PkdFTree<Packed2TreeTypes<Key, Key, Indexes + 1>>					NonLeafType;
+    typedef PkdFTree<Packed2TreeTypes<Key, Key, Indexes + 1>>                   NonLeafType;
 
     typedef PackedVLEMapTypes<
             Indexes, UBigIntEliasCodec, PackedTreeBranchingFactor, PackedTreeEliasVPB
     > MapTypes;
 
-    typedef PackedVLEMap<MapTypes>                                         		LeafType;
+    typedef PackedVLEMap<MapTypes>                                              LeafType;
 };
 
 
 template <typename Key, Int Indexes>
 struct CompressedMapTF<Key, Granularity::Byte, Indexes> {
 
-	typedef core::StaticVector<BigInt, Indexes + 1>								AccumulatorPart;
-	typedef core::StaticVector<BigInt, Indexes + 1>								IteratorPrefixPart;
+    typedef core::StaticVector<BigInt, Indexes + 1>                             AccumulatorPart;
+    typedef core::StaticVector<BigInt, Indexes + 1>                             IteratorPrefixPart;
 
-	typedef PkdFTree<Packed2TreeTypes<Key, Key, Indexes + 1>>					NonLeafType;
+    typedef PkdFTree<Packed2TreeTypes<Key, Key, Indexes + 1>>                   NonLeafType;
 
     typedef PackedVLEMapTypes<
             Indexes, UByteExintCodec, PackedTreeBranchingFactor, PackedTreeExintVPB

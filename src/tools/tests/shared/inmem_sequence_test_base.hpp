@@ -24,9 +24,9 @@ template <
     typename MemBuffer
 >
 class SequenceCreateTestBase: public AbstractRandomAccessListTestBase <
-										SmallProfile<>,
-										typename SmallInMemAllocator::WalkableAllocator,
-										ContainerTypeName,
+                                        SmallProfile<>,
+                                        typename SmallInMemAllocator::WalkableAllocator,
+                                        ContainerTypeName,
                                         MemBuffer
                               >
 {
@@ -35,20 +35,20 @@ class SequenceCreateTestBase: public AbstractRandomAccessListTestBase <
 
 
     typedef AbstractRandomAccessListTestBase <
-			SmallProfile<>,
-			typename SmallInMemAllocator::WalkableAllocator,
-			ContainerTypeName,
+            SmallProfile<>,
+            typename SmallInMemAllocator::WalkableAllocator,
+            ContainerTypeName,
             MemBuffer
-    >                                                                   		Base;
+    >                                                                           Base;
 
 protected:
     typedef typename Base::Ctr                                                  Ctr;
     typedef typename Base::Iterator                                             Iterator;
     typedef typename Base::ID                                                   ID;
 
-    typedef typename Base::TestFn                     							TestFn;
+    typedef typename Base::TestFn                                               TestFn;
 
-    typedef SmallInMemAllocator													Allocator;
+    typedef SmallInMemAllocator                                                 Allocator;
 
 public:
     SequenceCreateTestBase(StringRef name):
@@ -57,40 +57,40 @@ public:
 
     virtual String getAllocatorFileName(StringRef infix = "") const
     {
-    	return this->getResourcePath("Allocator"+infix+".dump");
+        return this->getResourcePath("Allocator"+infix+".dump");
     }
 
     virtual void LoadAllocator(Allocator& allocator, StringRef file_name) const
     {
-    	unique_ptr <FileInputStreamHandler> in(FileInputStreamHandler::create(file_name.c_str()));
-    	allocator.load(in.get());
+        unique_ptr <FileInputStreamHandler> in(FileInputStreamHandler::create(file_name.c_str()));
+        allocator.load(in.get());
     }
 
     virtual void StoreAllocator(Allocator& allocator, StringRef file_name) const
     {
-    	unique_ptr <FileOutputStreamHandler> out(FileOutputStreamHandler::create(file_name.c_str()));
-    	allocator.store(out.get());
+        unique_ptr <FileOutputStreamHandler> out(FileOutputStreamHandler::create(file_name.c_str()));
+        allocator.store(out.get());
     }
 
     virtual void StoreResource(Allocator& allocator, StringRef file_name, Int mark = 0) const {
-    	StoreAllocator(allocator, this->getResourcePath((SBuf()<<file_name<<mark<<".dump").str()));
+        StoreAllocator(allocator, this->getResourcePath((SBuf()<<file_name<<mark<<".dump").str()));
     }
 
     virtual void LoadResource(Allocator& allocator, StringRef file_name, Int mark = 0) const {
-    	LoadAllocator(allocator, this->getResourcePath((SBuf()<<file_name<<mark<<".dump").str()));
+        LoadAllocator(allocator, this->getResourcePath((SBuf()<<file_name<<mark<<".dump").str()));
     }
 
 
     virtual String Store(Allocator& allocator) const
     {
-    	String file_name = this->getAllocatorFileName(".valid");
-    	StoreAllocator(allocator, file_name);
+        String file_name = this->getAllocatorFileName(".valid");
+        StoreAllocator(allocator, file_name);
 
-    	String file_name_invalid = this->getAllocatorFileName(".invalid");
-    	allocator.commit();
-    	StoreAllocator(allocator, file_name_invalid);
+        String file_name_invalid = this->getAllocatorFileName(".invalid");
+        allocator.commit();
+        StoreAllocator(allocator, file_name_invalid);
 
-    	return file_name;
+        return file_name;
     }
 
     virtual void compareBuffers(const MemBuffer& src, const MemBuffer& tgt, const char* source)
@@ -119,82 +119,82 @@ public:
 
     virtual void testInsert(TestFn test_fn)
     {
-    	Allocator allocator;
-    	DefaultLogHandlerImpl logHandler(out());
-    	allocator.getLogger()->setHandler(&logHandler);
-    	allocator.getLogger()->level() = Logger::ERROR;
+        Allocator allocator;
+        DefaultLogHandlerImpl logHandler(out());
+        allocator.getLogger()->setHandler(&logHandler);
+        allocator.getLogger()->level() = Logger::ERROR;
 
-    	Ctr ctr(&allocator);
-    	this->ctr_name_ = ctr.name();
+        Ctr ctr(&allocator);
+        this->ctr_name_ = ctr.name();
 
-    	allocator.commit();
+        allocator.commit();
 
-    	try {
-    		while (ctr.size() < this->size_)
-    		{
-    			test_fn(this, allocator, ctr);
+        try {
+            while (ctr.size() < this->size_)
+            {
+                test_fn(this, allocator, ctr);
 
-    			out()<<"Size: "<<ctr.size()<<endl;
+                out()<<"Size: "<<ctr.size()<<endl;
 
-    			this->checkAllocator(allocator, "Insert: Container Check Failed", MA_SRC);
+                this->checkAllocator(allocator, "Insert: Container Check Failed", MA_SRC);
 
-    			allocator.commit();
-    		}
-    	}
-    	catch (...) {
-    		this->dump_name_ = Store(allocator);
-    		throw;
-    	}
+                allocator.commit();
+            }
+        }
+        catch (...) {
+            this->dump_name_ = Store(allocator);
+            throw;
+        }
     }
 
 
     virtual void testRemove(TestFn test_fn)
     {
-    	Allocator allocator;
-    	DefaultLogHandlerImpl logHandler(out());
-    	allocator.getLogger()->setHandler(&logHandler);
+        Allocator allocator;
+        DefaultLogHandlerImpl logHandler(out());
+        allocator.getLogger()->setHandler(&logHandler);
 
-    	Ctr ctr(&allocator);
-    	this->ctr_name_ = ctr.name();
+        Ctr ctr(&allocator);
+        this->ctr_name_ = ctr.name();
 
-    	allocator.commit();
+        allocator.commit();
 
-    	try {
+        try {
 
-    		this->fillRandom(ctr, Base::size_);
+            this->fillRandom(ctr, Base::size_);
 
-    		allocator.commit();
+            allocator.commit();
 
-    		while (ctr.size() > 0)
-    		{
-    			test_fn(this, allocator, ctr);
+            while (ctr.size() > 0)
+            {
+                test_fn(this, allocator, ctr);
 
-    			out()<<"Size: "<<ctr.size()<<endl;
+                out()<<"Size: "<<ctr.size()<<endl;
 
-    			this->checkAllocator(allocator, "Remove: Container Check Failed", MA_SRC);
+                this->checkAllocator(allocator, "Remove: Container Check Failed", MA_SRC);
 
-    			allocator.commit();
-    		}
-    	}
-    	catch (...) {
-    		this->dump_name_ = Store(allocator);
-    		throw;
-    	}
+                allocator.commit();
+            }
+        }
+        catch (...) {
+            this->dump_name_ = Store(allocator);
+            throw;
+        }
     }
 
     virtual void replay(TestFn test_fn)
     {
-    	Allocator allocator;
-    	DefaultLogHandlerImpl logHandler(out());
-    	allocator.getLogger()->setHandler(&logHandler);
+        Allocator allocator;
+        DefaultLogHandlerImpl logHandler(out());
+        allocator.getLogger()->setHandler(&logHandler);
 
-    	LoadAllocator(allocator, this->dump_name_);
+        LoadAllocator(allocator, this->dump_name_);
 
-    	Ctr ctr(&allocator, CTR_FIND, this->ctr_name_);
+        Ctr ctr(&allocator, CTR_FIND, this->ctr_name_);
 
-    	test_fn(this, allocator, ctr);
+        test_fn(this, allocator, ctr);
 
-    	this->checkAllocator(allocator, "Insert: Container Check Failed", MA_SRC);
+        this->checkAllocator(allocator, "Insert: Container Check Failed", MA_SRC);
     }
 };
 

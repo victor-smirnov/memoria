@@ -10,67 +10,67 @@
 #include <memoria/prototypes/bt/walkers/bt_find_walkers.hpp>
 
 namespace memoria {
-namespace bt1 	  {
+namespace bt1     {
 
 template <
-	typename Types,
-	typename IteratorPrefixFn,
-	typename MyType
+    typename Types,
+    typename IteratorPrefixFn,
+    typename MyType
 >
 class SkipForwardWalkerBase: public FindForwardWalkerBase<Types, IteratorPrefixFn, MyType> {
 protected:
-	using Base 	= FindForwardWalkerBase<Types, IteratorPrefixFn, MyType>;
-	using Key 	= typename Base::Key;
+    using Base  = FindForwardWalkerBase<Types, IteratorPrefixFn, MyType>;
+    using Key   = typename Base::Key;
 
 public:
-	using ResultType = Int;
+    using ResultType = Int;
 
-	SkipForwardWalkerBase(Int stream, Int branch_index, Int leaf_index, Key target):
-		Base(stream, branch_index, leaf_index, target, SearchType::GT)
-	{}
+    SkipForwardWalkerBase(Int stream, Int branch_index, Int leaf_index, Key target):
+        Base(stream, branch_index, leaf_index, target, SearchType::GT)
+    {}
 
 
-	template <Int StreamIdx, typename Array>
-	ResultType find_leaf(const Array* array, Int start)
-	{
-		auto& sum = Base::sum_;
+    template <Int StreamIdx, typename Array>
+    ResultType find_leaf(const Array* array, Int start)
+    {
+        auto& sum = Base::sum_;
 
-		BigInt offset = Base::target_ - sum;
+        BigInt offset = Base::target_ - sum;
 
-		if (array != nullptr)
-		{
-			Int size = array->size();
+        if (array != nullptr)
+        {
+            Int size = array->size();
 
-			IteratorPrefixFn fn;
+            IteratorPrefixFn fn;
 
-			if (start + offset < size)
-			{
-				sum += offset;
+            if (start + offset < size)
+            {
+                sum += offset;
 
-				fn.processLeafFw(array, std::get<StreamIdx>(Base::prefix_), start, start + offset, 0, offset);
+                fn.processLeafFw(array, std::get<StreamIdx>(Base::prefix_), start, start + offset, 0, offset);
 
-				this->end_ = false;
+                this->end_ = false;
 
-				self().template postProcessLeafStream<StreamIdx>(array, start, start + offset);
+                self().template postProcessLeafStream<StreamIdx>(array, start, start + offset);
 
-				return start + offset;
-			}
-			else {
-				sum += (size - start);
+                return start + offset;
+            }
+            else {
+                sum += (size - start);
 
-				fn.processLeafFw(array, std::get<StreamIdx>(Base::prefix_), start, size, 0, size - start);
+                fn.processLeafFw(array, std::get<StreamIdx>(Base::prefix_), start, size, 0, size - start);
 
-				this->end_ = true;
+                this->end_ = true;
 
-				self().template postProcessLeafStream<StreamIdx>(array, start, size);
+                self().template postProcessLeafStream<StreamIdx>(array, start, size);
 
-				return size;
-			}
-		}
-		else {
-			return 0;
-		}
-	}
+                return size;
+            }
+        }
+        else {
+            return 0;
+        }
+    }
 
     MyType& self() {return *T2T<MyType*>(this);}
     const MyType& self() const {return *T2T<const MyType*>(this);}
@@ -79,79 +79,79 @@ public:
 
 
 template <
-	typename Types,
-	typename IteratorPrefixFn = EmptyIteratorPrefixFn
+    typename Types,
+    typename IteratorPrefixFn = EmptyIteratorPrefixFn
 >
 class SkipForwardWalker: public SkipForwardWalkerBase<Types, IteratorPrefixFn, SkipForwardWalker<Types, IteratorPrefixFn>> {
-	using Base 	= SkipForwardWalkerBase<Types, IteratorPrefixFn, SkipForwardWalker<Types, IteratorPrefixFn>>;
-	using Key 	= typename Base::Key;
+    using Base  = SkipForwardWalkerBase<Types, IteratorPrefixFn, SkipForwardWalker<Types, IteratorPrefixFn>>;
+    using Key   = typename Base::Key;
 
 public:
-	using ResultType = Int;
+    using ResultType = Int;
 
-	SkipForwardWalker(Int stream, Int block, Key target):
-		Base(stream, block, block, target)
-	{}
+    SkipForwardWalker(Int stream, Int block, Key target):
+        Base(stream, block, block, target)
+    {}
 };
 
 
 template <
-	typename Types,
-	typename IteratorPrefixFn,
-	typename MyType
+    typename Types,
+    typename IteratorPrefixFn,
+    typename MyType
 >
 class SkipBackwardWalkerBase: public FindBackwardWalkerBase<Types, IteratorPrefixFn, MyType> {
 protected:
-	using Base 	= FindBackwardWalkerBase<Types, IteratorPrefixFn, MyType>;
-	using Key 	= typename Base::Key;
+    using Base  = FindBackwardWalkerBase<Types, IteratorPrefixFn, MyType>;
+    using Key   = typename Base::Key;
 
 public:
-	using ResultType = Int;
+    using ResultType = Int;
 
-	SkipBackwardWalkerBase(Int stream, Int branch_index, Int leaf_index, Key target):
-		Base(stream, branch_index, leaf_index, target, SearchType::GE)
-	{}
+    SkipBackwardWalkerBase(Int stream, Int branch_index, Int leaf_index, Key target):
+        Base(stream, branch_index, leaf_index, target, SearchType::GE)
+    {}
 
 
-	template <Int StreamIdx, typename Array>
-	ResultType find_leaf(const Array* array, Int start)
-	{
-		BigInt offset = Base::target_ - Base::sum_;
+    template <Int StreamIdx, typename Array>
+    ResultType find_leaf(const Array* array, Int start)
+    {
+        BigInt offset = Base::target_ - Base::sum_;
 
-		auto& sum = Base::sum_;
+        auto& sum = Base::sum_;
 
-		if (array != nullptr)
-		{
-			IteratorPrefixFn fn;
+        if (array != nullptr)
+        {
+            IteratorPrefixFn fn;
 
-			if (start - offset >= 0)
-			{
-				sum += offset;
+            if (start - offset >= 0)
+            {
+                sum += offset;
 
-				fn.processLeafBw(array, std::get<StreamIdx>(Base::prefix_), start - offset, start, 0, offset);
+                fn.processLeafBw(array, std::get<StreamIdx>(Base::prefix_), start - offset, start, 0, offset);
 
-				this->end_ = false;
+                this->end_ = false;
 
-				self().template postProcessLeafStream<StreamIdx>(array, start - offset, start);
+                self().template postProcessLeafStream<StreamIdx>(array, start - offset, start);
 
-				return start - offset;
-			}
-			else {
-				sum += start;
+                return start - offset;
+            }
+            else {
+                sum += start;
 
-				fn.processLeafBw(array, std::get<StreamIdx>(Base::prefix_), 0, start, 0, start);
+                fn.processLeafBw(array, std::get<StreamIdx>(Base::prefix_), 0, start, 0, start);
 
-				this->end_ = true;
+                this->end_ = true;
 
-				self().template postProcessLeafStream<StreamIdx>(array, 0, start);
+                self().template postProcessLeafStream<StreamIdx>(array, 0, start);
 
-				return -1;
-			}
-		}
-		else {
-			return 0;
-		}
-	}
+                return -1;
+            }
+        }
+        else {
+            return 0;
+        }
+    }
 
     MyType& self() {return *T2T<MyType*>(this);}
     const MyType& self() const {return *T2T<const MyType*>(this);}
@@ -159,23 +159,23 @@ public:
 
 
 template <
-	typename Types,
-	typename IteratorPrefixFn = EmptyIteratorPrefixFn
+    typename Types,
+    typename IteratorPrefixFn = EmptyIteratorPrefixFn
 >
 class SkipBackwardWalker: public SkipBackwardWalkerBase<
-									Types,
-									IteratorPrefixFn,
-									SkipBackwardWalker<Types, IteratorPrefixFn>> {
+                                    Types,
+                                    IteratorPrefixFn,
+                                    SkipBackwardWalker<Types, IteratorPrefixFn>> {
 
-	using Base 	= SkipBackwardWalkerBase<Types, IteratorPrefixFn, SkipBackwardWalker<Types, IteratorPrefixFn>>;
-	using Key 	= typename Base::Key;
+    using Base  = SkipBackwardWalkerBase<Types, IteratorPrefixFn, SkipBackwardWalker<Types, IteratorPrefixFn>>;
+    using Key   = typename Base::Key;
 
 public:
-	using ResultType = Int;
+    using ResultType = Int;
 
-	SkipBackwardWalker(Int stream, Int block, Key target):
-		Base(stream, block, block, target)
-	{}
+    SkipBackwardWalker(Int stream, Int block, Key target):
+        Base(stream, block, block, target)
+    {}
 };
 
 

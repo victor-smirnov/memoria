@@ -138,7 +138,7 @@ public:
 
     virtual bool hasRoot(BigInt name)
     {
-    	throw vapi::Exception(MA_SRC, "Allocator::hasRoot(BigInt) method must be properly implements for this container");
+        throw vapi::Exception(MA_SRC, "Allocator::hasRoot(BigInt) method must be properly implements for this container");
     }
 
     static Int initMetadata()
@@ -201,17 +201,17 @@ public:
 
     void walkTree(ContainerWalker* walker)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	walker->beginCompositeCtr(
-    			TypeNameFactory<typename Types::ContainerTypeName>::name().c_str(),
-    			self.name()
-    	);
+        walker->beginCompositeCtr(
+                TypeNameFactory<typename Types::ContainerTypeName>::name().c_str(),
+                self.name()
+        );
 
-    	tree_.walkTree(walker);
-    	seq_.walkTree(walker);
+        tree_.walkTree(walker);
+        seq_.walkTree(walker);
 
-    	walker->endCompositeCtr();
+        walker->endCompositeCtr();
     }
 
 private:

@@ -133,7 +133,7 @@ typename M_TYPE::NodeBaseG M_TYPE::splitP(NodeBaseG& left_node, SplitFn split_fn
         self.newRootP(left_node);
     }
     else {
-    	self.updatePageG(left_node);
+        self.updatePageG(left_node);
     }
 
     NodeBaseG left_parent  = self.getNodeParentForUpdate(left_node);
@@ -205,58 +205,58 @@ typename M_TYPE::NodeBaseG M_TYPE::splitLeafP(NodeBaseG& left_node, const Positi
 M_PARAMS
 typename M_TYPE::NodeBaseG M_TYPE::createNextLeaf(NodeBaseG& left_node)
 {
-	auto& self = this->self();
+    auto& self = this->self();
 
-	if (left_node->is_root())
-	{
-		self.newRootP(left_node);
-	}
-	else {
-		self.updatePageG(left_node);
-	}
+    if (left_node->is_root())
+    {
+        self.newRootP(left_node);
+    }
+    else {
+        self.updatePageG(left_node);
+    }
 
-	NodeBaseG left_parent  = self.getNodeParentForUpdate(left_node);
+    NodeBaseG left_parent  = self.getNodeParentForUpdate(left_node);
 
-	NodeBaseG other  = self.createNode1(left_node->level(), false, left_node->is_leaf(), left_node->page_size());
+    NodeBaseG other  = self.createNode1(left_node->level(), false, left_node->is_leaf(), left_node->page_size());
 
-	Accumulator sums;
+    Accumulator sums;
 
-	Int parent_idx = left_node->parent_idx();
+    Int parent_idx = left_node->parent_idx();
 
-	PageUpdateMgr mgr(self);
-	mgr.add(left_parent);
+    PageUpdateMgr mgr(self);
+    mgr.add(left_parent);
 
-	try {
-		self.insertNonLeafP(left_parent, parent_idx + 1, sums, other->id());
-	}
-	catch (PackedOOMException ex)
-	{
-		mgr.rollback();
+    try {
+        self.insertNonLeafP(left_parent, parent_idx + 1, sums, other->id());
+    }
+    catch (PackedOOMException ex)
+    {
+        mgr.rollback();
 
-		NodeBaseG right_parent = splitPathP(left_parent, parent_idx + 1);
+        NodeBaseG right_parent = splitPathP(left_parent, parent_idx + 1);
 
-		mgr.add(right_parent);
+        mgr.add(right_parent);
 
-		try {
-			self.insertNonLeafP(right_parent, 0, sums, other->id());
-		}
-		catch (PackedOOMException ex2)
-		{
-			mgr.rollback();
+        try {
+            self.insertNonLeafP(right_parent, 0, sums, other->id());
+        }
+        catch (PackedOOMException ex2)
+        {
+            mgr.rollback();
 
-			Int right_parent_size = self.getNodeSize(right_parent, 0);
+            Int right_parent_size = self.getNodeSize(right_parent, 0);
 
-			splitPathP(right_parent, right_parent_size / 2);
+            splitPathP(right_parent, right_parent_size / 2);
 
-			self.insertNonLeafP(right_parent, 0, sums, other->id());
-		}
-	}
-	catch (Exception& ex) {
-		cout<<ex<<endl;
-		throw;
-	}
+            self.insertNonLeafP(right_parent, 0, sums, other->id());
+        }
+    }
+    catch (Exception& ex) {
+        cout<<ex<<endl;
+        throw;
+    }
 
-	return other;
+    return other;
 }
 
 M_PARAMS
@@ -455,7 +455,7 @@ void M_TYPE::insertNonLeaf(
         const ID& id
 )
 {
-	self().updatePageG(node);
+    self().updatePageG(node);
     NonLeafDispatcher::dispatch(node, InsertFn(), idx, keys, id);
 }
 

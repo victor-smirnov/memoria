@@ -26,152 +26,152 @@ namespace memoria {
 
 template <typename ID>
 class PackedBlockMap: public PackedAllocator {
-	typedef PackedAllocator														Base;
+    typedef PackedAllocator                                                     Base;
 public:
 
-	class Metadata {
-		UBigInt start_position_;
-		UBigInt length_;
-		UBigInt allocated_;
+    class Metadata {
+        UBigInt start_position_;
+        UBigInt length_;
+        UBigInt allocated_;
 
-		Int 	version_;
+        Int     version_;
 
-	public:
-		UBigInt& start_position() {return start_position_;}
-		const UBigInt& start_position() const {return start_position_;}
+    public:
+        UBigInt& start_position() {return start_position_;}
+        const UBigInt& start_position() const {return start_position_;}
 
-		UBigInt& length() {return length_;}
-		const UBigInt& length() const {return length_;}
+        UBigInt& length() {return length_;}
+        const UBigInt& length() const {return length_;}
 
-		UBigInt& allocated() {return allocated_;}
-		const UBigInt& allocated() const {return allocated_;}
+        UBigInt& allocated() {return allocated_;}
+        const UBigInt& allocated() const {return allocated_;}
 
-		Int& version() {return version_;}
-		const Int& version() const {return version_;}
+        Int& version() {return version_;}
+        const Int& version() const {return version_;}
 
-		void reset()
-		{
-			start_position_ = 0;
-			length_			= 0;
-			allocated_		= 0;
-			version_		= 0;
-		}
-	};
+        void reset()
+        {
+            start_position_ = 0;
+            length_         = 0;
+            allocated_      = 0;
+            version_        = 0;
+        }
+    };
 
-	class IDMapEntry {
-		ID 		id_;
-		UBigInt position_;
-	public:
+    class IDMapEntry {
+        ID      id_;
+        UBigInt position_;
+    public:
 
-		IDMapEntry() = default;
-		IDMapEntry(ID id, UBigInt position): id_(id), position_(position) {}
+        IDMapEntry() = default;
+        IDMapEntry(ID id, UBigInt position): id_(id), position_(position) {}
 
-		ID& id() {return id_;}
-		const ID& id() const {return id_;}
+        ID& id() {return id_;}
+        const ID& id() const {return id_;}
 
-		UBigInt& position() {return position_;}
-		const UBigInt& position() const {return position_;}
-	};
+        UBigInt& position() {return position_;}
+        const UBigInt& position() const {return position_;}
+    };
 
-	enum {METADATA, BITMAP, IDMAP};
+    enum {METADATA, BITMAP, IDMAP};
 
-	PackedBlockMap() = default;
+    PackedBlockMap() = default;
 
-	static Int empty_size()
-	{
-		Int allocator_size 	= Base::empty_size(3);
-		Int content_size 	= Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
+    static Int empty_size()
+    {
+        Int allocator_size  = Base::empty_size(3);
+        Int content_size    = Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
 
-		return allocator_size + content_size;
-	}
+        return allocator_size + content_size;
+    }
 
-	void init()
-	{
-		Base::init(3, empty_size());
+    void init()
+    {
+        Base::init(3, empty_size());
 
-		Base::allocate<Metadata>(METADATA)->reset();
+        Base::allocate<Metadata>(METADATA)->reset();
 
-		Base::allocateArrayByLength<UBigInt>(BITMAP, 0);
-		Base::allocateArrayByLength<IDMapEntry>(IDMAP, 0);
-	}
+        Base::allocateArrayByLength<UBigInt>(BITMAP, 0);
+        Base::allocateArrayByLength<IDMapEntry>(IDMAP, 0);
+    }
 
-	Metadata* metadata() {
-		return Base::template get<Metadata>(METADATA);
-	}
+    Metadata* metadata() {
+        return Base::template get<Metadata>(METADATA);
+    }
 
-	const Metadata* metadata() const {
-		return Base::template get<Metadata>(METADATA);
-	}
+    const Metadata* metadata() const {
+        return Base::template get<Metadata>(METADATA);
+    }
 
-	UBigInt* bitmap() {
-		return Base::template get<UBigInt>(BITMAP);
-	}
+    UBigInt* bitmap() {
+        return Base::template get<UBigInt>(BITMAP);
+    }
 
-	const UBigInt* bitmap() const {
-		return Base::template get<UBigInt>(BITMAP);
-	}
+    const UBigInt* bitmap() const {
+        return Base::template get<UBigInt>(BITMAP);
+    }
 
-	IDMapEntry* entries() {
-		return Base::template get<IDMapEntry>(IDMAP);
-	}
+    IDMapEntry* entries() {
+        return Base::template get<IDMapEntry>(IDMAP);
+    }
 
-	const IDMapEntry* entries() const {
-		return Base::template get<IDMapEntry>(IDMAP);
-	}
+    const IDMapEntry* entries() const {
+        return Base::template get<IDMapEntry>(IDMAP);
+    }
 
-	UBigInt start_position() const {
-		return metadata()->start_position();
-	}
+    UBigInt start_position() const {
+        return metadata()->start_position();
+    }
 
-	void clear()
-	{
-		Base::free(BITMAP);
-		Base::free(IDMAP);
+    void clear()
+    {
+        Base::free(BITMAP);
+        Base::free(IDMAP);
 
-		metadata()->reset();
-	}
+        metadata()->reset();
+    }
 
-	void allocateBlocks(UBigInt start, UBigInt length)
-	{
-		Metadata* metadata = this->metadata();
+    void allocateBlocks(UBigInt start, UBigInt length)
+    {
+        Metadata* metadata = this->metadata();
 
-		metadata->start_position() 	= start;
-		metadata->length()			= length;
+        metadata->start_position()  = start;
+        metadata->length()          = length;
 
-		Int bitmap_size = Base::roundUpBitToBytes(length);
+        Int bitmap_size = Base::roundUpBitToBytes(length);
 
-		Base::resizeBlock(BITMAP, bitmap_size);
-		Base::clear(BITMAP);
-	}
+        Base::resizeBlock(BITMAP, bitmap_size);
+        Base::clear(BITMAP);
+    }
 
-	UBigInt allocateBlock()
-	{
-		UBigInt* bitmap 	= this->bitmap();
-		Metadata* metadata 	= this->metadata();
+    UBigInt allocateBlock()
+    {
+        UBigInt* bitmap     = this->bitmap();
+        Metadata* metadata  = this->metadata();
 
-		SelectResult result = Select0FW(bitmap, 0, metadata->length(), 1);
+        SelectResult result = Select0FW(bitmap, 0, metadata->length(), 1);
 
-		MEMORIA_ASSERT_TRUE(result.is_found());
-		MEMORIA_ASSERT(result.idx(), <, metadata->length());
+        MEMORIA_ASSERT_TRUE(result.is_found());
+        MEMORIA_ASSERT(result.idx(), <, metadata->length());
 
-		SetBit(bitmap, result.idx(), 1);
+        SetBit(bitmap, result.idx(), 1);
 
-		metadata->allocated()++;
+        metadata->allocated()++;
 
-		MEMORIA_ASSERT(metadata->allocated(), <=, metadata->length());
+        MEMORIA_ASSERT(metadata->allocated(), <=, metadata->length());
 
-		return result.idx();
-	}
+        return result.idx();
+    }
 
-	void markAllocated(UBigInt pos)
-	{
-		UBigInt* bitmap 	= this->bitmap();
-		Metadata* metadata 	= this->metadata();
+    void markAllocated(UBigInt pos)
+    {
+        UBigInt* bitmap     = this->bitmap();
+        Metadata* metadata  = this->metadata();
 
-		MEMORIA_ASSERT(pos, <, metadata->length());
+        MEMORIA_ASSERT(pos, <, metadata->length());
 
-		SetBit(bitmap, pos, 1);
-	}
+        SetBit(bitmap, pos, 1);
+    }
 
 };
 

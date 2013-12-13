@@ -48,29 +48,29 @@ template <typename Profile> class MetadataRepository;
 
 
 class CtrInitData {
-	BigInt master_name_;
-	Int master_ctr_type_hash_;
+    BigInt master_name_;
+    Int master_ctr_type_hash_;
     Int owner_ctr_type_hash_;
 
 public:
     CtrInitData(BigInt master_name, Int master_hash, Int owner_hash):
-    	master_name_(master_name),
-    	master_ctr_type_hash_(master_hash),
+        master_name_(master_name),
+        master_ctr_type_hash_(master_hash),
         owner_ctr_type_hash_(owner_hash)
     {}
 
     CtrInitData(Int master_hash):
         master_name_(-1),
-    	master_ctr_type_hash_(master_hash),
+        master_ctr_type_hash_(master_hash),
         owner_ctr_type_hash_(0)
     {}
 
     BigInt master_name() const {
-    	return master_name_;
+        return master_name_;
     }
 
     void set_master_name(BigInt name){
-    	master_name_ = name;
+        master_name_ = name;
     }
 
     Int owner_ctr_type_hash() const {
@@ -200,25 +200,25 @@ public:
         }
 
         virtual void walk(
-        		const void* id,
-        		BigInt name,
-        		void* allocator,
-        		ContainerWalker* walker
+                const void* id,
+                BigInt name,
+                void* allocator,
+                ContainerWalker* walker
         ) const
         {
-        	Allocator* alloc = T2T<Allocator*>(allocator);
-        	ID* root_id = T2T<ID*>(id);
+            Allocator* alloc = T2T<Allocator*>(allocator);
+            ID* root_id = T2T<ID*>(id);
 
-        	PageG page = alloc->getPage(*root_id, name);
+            PageG page = alloc->getPage(*root_id, name);
 
-        	MyType ctr(alloc, *root_id, CtrInitData(name, page->master_ctr_type_hash(), page->owner_ctr_type_hash()));
+            MyType ctr(alloc, *root_id, CtrInitData(name, page->master_ctr_type_hash(), page->owner_ctr_type_hash()));
 
-        	ctr.walkTree(walker);
+            ctr.walkTree(walker);
         }
 
         virtual String ctr_type_name() const
         {
-        	return TypeNameFactory<ContainerTypeName>::name();
+            return TypeNameFactory<ContainerTypeName>::name();
         }
     };
 
@@ -252,7 +252,7 @@ public:
     }
 
     CtrInitData& init_data() {
-    	return init_data_;
+        return init_data_;
     }
 
     PageG createRoot() {
@@ -276,7 +276,7 @@ public:
             return me()->allocator().getCtrShared(name);
         }
         else {
-        	ID root_id = self().allocator().getRootID(name);
+            ID root_id = self().allocator().getRootID(name);
             PageG node = self().allocator().getPage(root_id, name);
 
             if (node.isSet())
@@ -724,7 +724,7 @@ public:
 
     MEMORIA_PUBLIC BigInt master_name() const
     {
-    	return Base::init_data().master_name();
+        return Base::init_data().master_name();
     }
 
     MyType& operator=(const MyType& other)

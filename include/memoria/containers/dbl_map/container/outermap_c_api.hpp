@@ -30,72 +30,72 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::dblmap::OuterCtrApiName)
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
 
-    typedef typename std::tuple_element<0, Accumulator>::type					Entry0;
+    typedef typename std::tuple_element<0, Accumulator>::type                   Entry0;
 
     typedef typename Types::CtrSizeT                                            CtrSizeT;
 
     static const Int Streams                                                    = Types::Streams;
 
     CtrSizeT size() const {
-    	return self().sizes()[0];
+        return self().sizes()[0];
     }
 
     Iterator find(Key key)
     {
-    	Iterator iter = self().findGE(0, key, 0);
+        Iterator iter = self().findGE(0, key, 0);
 
-    	if (!iter.isEnd())
-    	{
-    		if (iter.is_found_eq(key))
-    		{
-    			return iter;
-    		}
-    		else {
-    			return self().End();
-    		}
-    	}
-    	else {
-    		return iter;
-    	}
+        if (!iter.isEnd())
+        {
+            if (iter.is_found_eq(key))
+            {
+                return iter;
+            }
+            else {
+                return self().End();
+            }
+        }
+        else {
+            return iter;
+        }
     }
 
     Iterator findKeyGE(Key key)
     {
-    	return self().findGE(0, key, 0);
+        return self().findGE(0, key, 0);
     }
 
     Iterator findKeyLE(Key key)
     {
-    	Iterator iter = self().findGE(0, key, 0);
+        Iterator iter = self().findGE(0, key, 0);
 
-    	if (iter.isEnd() || iter.key() > key)
-    	{
-    		iter--;
+        if (iter.isEnd() || iter.key() > key)
+        {
+            iter--;
 
-    		if (iter.isBegin())
-    		{
-    			iter.idx() = 0;
-    		}
-    	}
+            if (iter.isBegin())
+            {
+                iter.idx() = 0;
+            }
+        }
 
-    	return iter;
+        return iter;
     }
 
     Iterator findKeyLT(Key key)
     {
-    	Iterator iter = self().findGE(0, key, 0);
+        Iterator iter = self().findGE(0, key, 0);
 
-    	if (iter.isEnd() || iter.key() >= key)
-    	{
-    		iter--;
+        if (iter.isEnd() || iter.key() >= key)
+        {
+            iter--;
 
-    		if (iter.isBegin())
-    		{
-    			iter.idx() = 0;
-    		}
-    	}
+            if (iter.isBegin())
+            {
+                iter.idx() = 0;
+            }
+        }
 
-    	return iter;
+        return iter;
     }
 
 
@@ -103,60 +103,60 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::dblmap::OuterCtrApiName)
 
     bool remove(Key key)
     {
-    	Iterator iter = self().findGE(0, key, 0);
+        Iterator iter = self().findGE(0, key, 0);
 
-    	if (iter.is_found_eq(key))
-    	{
-    		iter.remove();
-    		return true;
-    	}
-    	else {
-    		return false;
-    	}
+        if (iter.is_found_eq(key))
+        {
+            iter.remove();
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     void remove(Iterator& from, Iterator& to)
     {
-    	Accumulator keys;
-    	self().removeEntries(from, to, keys);
+        Accumulator keys;
+        self().removeEntries(from, to, keys);
 
-    	if (!to.isEnd())
-    	{
-    		std::get<0>(keys)[1] = 0;
-    		to.updateUp(keys);
-    	}
+        if (!to.isEnd())
+        {
+            std::get<0>(keys)[1] = 0;
+            to.updateUp(keys);
+        }
     }
 
     void remove(Iterator& from)
     {
-    	Accumulator keys;
-    	self().removeMapEntry(from, keys);
+        Accumulator keys;
+        self().removeMapEntry(from, keys);
 
-    	if (!from.isEnd())
-    	{
-    		std::get<0>(keys)[1] = 0;
-    		from.updateUp(keys);
-    	}
+        if (!from.isEnd())
+        {
+            std::get<0>(keys)[1] = 0;
+            from.updateUp(keys);
+        }
     }
 
     void insert(Iterator& iter, const Entry0& element)
     {
-    	Accumulator accum;
+        Accumulator accum;
 
-    	std::get<0>(accum) = element;
-    	std::get<0>(accum)[0] -= std::get<0>(iter.prefixes())[0];
+        std::get<0>(accum) = element;
+        std::get<0>(accum)[0] -= std::get<0>(iter.prefixes())[0];
 
-    	if (self().insertMapEntry(iter, accum))
-    	{
-    		std::get<0>(accum)[1] = 0;
-    		iter.updateUp(-accum);
-    	}
+        if (self().insertMapEntry(iter, accum))
+        {
+            std::get<0>(accum)[1] = 0;
+            iter.updateUp(-accum);
+        }
     }
 
     void insert(const Entry0& element)
     {
-    	auto iter = self().findKeyGE(element[0]);
-    	self().insert(iter, element);
+        auto iter = self().findKeyGE(element[0]);
+        self().insert(iter, element);
     }
 
 

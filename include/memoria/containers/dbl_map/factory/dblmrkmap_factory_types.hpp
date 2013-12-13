@@ -27,7 +27,7 @@
 #include <memoria/containers/dbl_map/dblmap_names.hpp>
 #include <memoria/containers/vector_map/vmap_names.hpp>
 
-namespace memoria 	{
+namespace memoria   {
 
 
 template <typename Profile, typename Key_, typename Value_, Int BitsPerMark_>
@@ -35,17 +35,17 @@ struct BTTypes<Profile, DblMrkMap<Key_, Value_, BitsPerMark_> >:
     public BTTypes<Profile, memoria::BT>
 {
 
-    typedef BTTypes<Profile, memoria::BT>                   					Base;
+    typedef BTTypes<Profile, memoria::BT>                                       Base;
 
-    typedef Key_																Key;
+    typedef Key_                                                                Key;
     typedef MarkedValue<Value_>                                                 Value;
 
-    static const Int BitsPerMark												= BitsPerMark_;
+    static const Int BitsPerMark                                                = BitsPerMark_;
 
 
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {
-        typedef dblmap::DblMapIteratorPrefixCache<Iterator, Container>	Type;
+        typedef dblmap::DblMapIteratorPrefixCache<Iterator, Container>  Type;
     };
 
     typedef TypeList<
@@ -101,7 +101,7 @@ struct BTTypes<Profile, DblMrkMap<Key_, Value_, BitsPerMark_> >:
             memoria::dblmap::ItrCRUDName
     >::Result                                                                   IteratorPartsList;
 
-    typedef std::pair<StaticVector<Key, 1>, Value>								IOValue;
+    typedef std::pair<StaticVector<Key, 1>, Value>                              IOValue;
 
     typedef IDataSource<IOValue>                                                DataSource;
     typedef IDataTarget<IOValue>                                                DataTarget;

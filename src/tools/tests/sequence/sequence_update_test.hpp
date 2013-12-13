@@ -33,7 +33,7 @@ class SequenceUpdateTest: public SequenceTestBase<BitsPerSymbol, Dense> {
     static const Int Symbols = Base::Symbols;
 
     Int block_size_ = 1024*8;
-    Int updates_ 	= 1024*8;
+    Int updates_    = 1024*8;
 
     BigInt pos_;
     BigInt buffer_size_;
@@ -57,104 +57,104 @@ public:
 
     void testUpdate()
     {
-    	DefaultLogHandlerImpl logHandler(Base::out());
+        DefaultLogHandlerImpl logHandler(Base::out());
 
-    	Allocator allocator;
-    	allocator.getLogger()->setHandler(&logHandler);
+        Allocator allocator;
+        allocator.getLogger()->setHandler(&logHandler);
 
-    	Ctr ctr(&allocator);
+        Ctr ctr(&allocator);
 
-    	ctr_name_ = ctr.name();
+        ctr_name_ = ctr.name();
 
-    	allocator.commit();
+        allocator.commit();
 
-    	try {
+        try {
 
-    		MemBuffer buffer = this->createRandomBuffer(this->size_);
-    		ctr.begin().insert(buffer);
+            MemBuffer buffer = this->createRandomBuffer(this->size_);
+            ctr.begin().insert(buffer);
 
-    		Base::check(allocator, MA_SRC);
+            Base::check(allocator, MA_SRC);
 
-    		allocator.commit();
+            allocator.commit();
 
-    		this->StoreAllocator(allocator, this->getResourcePath("ctr.dump"));
+            this->StoreAllocator(allocator, this->getResourcePath("ctr.dump"));
 
-    		for (Int c = 0; c < updates_; c++)
-    		{
-    			this->out()<<c<<std::endl;
+            for (Int c = 0; c < updates_; c++)
+            {
+                this->out()<<c<<std::endl;
 
-    			MemBuffer buf 		= this->createRandomBuffer(getRandom(this->block_size_) + 1);
-    			BigInt pos = pos_	= getRandom(ctr.size() - buf.getSize());
+                MemBuffer buf       = this->createRandomBuffer(getRandom(this->block_size_) + 1);
+                BigInt pos = pos_   = getRandom(ctr.size() - buf.getSize());
 
-    			auto iter = ctr.seek(pos);
+                auto iter = ctr.seek(pos);
 
-    			iter.update(buf);
+                iter.update(buf);
 
-    			Base::check(allocator, MA_SRC);
+                Base::check(allocator, MA_SRC);
 
-    			buf.reset();
+                buf.reset();
 
-    			auto iter2 = ctr.seek(pos);
+                auto iter2 = ctr.seek(pos);
 
-    			Int size = buffer_size_ = buf.getSize();
+                Int size = buffer_size_ = buf.getSize();
 
-    			MemBuffer b1(size);
-    			MemBuffer b2(size);
+                MemBuffer b1(size);
+                MemBuffer b2(size);
 
-    			iter.skipBw(size);
+                iter.skipBw(size);
 
-    			iter.read(b1);
-    			iter2.read(b2);
+                iter.read(b1);
+                iter2.read(b2);
 
-    			this->compareBuffers(b1, b2, MA_SRC);
-    			this->compareBuffers(b1, buf, MA_SRC);
-    			this->compareBuffers(b2, buf, MA_SRC);
+                this->compareBuffers(b1, b2, MA_SRC);
+                this->compareBuffers(b1, buf, MA_SRC);
+                this->compareBuffers(b2, buf, MA_SRC);
 
-    			allocator.commit();
-    		}
-    	}
-    	catch (...) {
-    		Base::dump_name_ = Base::Store(allocator);
-    		throw;
-    	}
+                allocator.commit();
+            }
+        }
+        catch (...) {
+            Base::dump_name_ = Base::Store(allocator);
+            throw;
+        }
     }
 
     void replayUpdate()
     {
-    	Allocator allocator;
-    	allocator.commit();
+        Allocator allocator;
+        allocator.commit();
 
-    	this->LoadAllocator(allocator, Base::dump_name_);
+        this->LoadAllocator(allocator, Base::dump_name_);
 
-    	Base::check(allocator, MA_SRC);
+        Base::check(allocator, MA_SRC);
 
-    	Ctr ctr(&allocator, CTR_FIND, ctr_name_);
+        Ctr ctr(&allocator, CTR_FIND, ctr_name_);
 
-    	MemBuffer buf = this->createRandomBuffer(this->buffer_size_);
+        MemBuffer buf = this->createRandomBuffer(this->buffer_size_);
 
-    	auto iter = ctr.seek(pos_);
+        auto iter = ctr.seek(pos_);
 
-    	iter.update(buf);
+        iter.update(buf);
 
-    	Base::check(allocator, MA_SRC);
+        Base::check(allocator, MA_SRC);
 
-    	buf.reset();
+        buf.reset();
 
-    	auto iter2 = ctr.seek(pos_);
+        auto iter2 = ctr.seek(pos_);
 
-    	Int size = buf.getSize();
+        Int size = buf.getSize();
 
-    	MemBuffer b1(size);
-    	MemBuffer b2(size);
+        MemBuffer b1(size);
+        MemBuffer b2(size);
 
-    	iter.skipBw(size);
+        iter.skipBw(size);
 
-    	iter.read(b1);
-    	iter2.read(b2);
+        iter.read(b1);
+        iter2.read(b2);
 
-    	this->compareBuffers(b1, b2, MA_SRC);
-    	this->compareBuffers(b1, buf, MA_SRC);
-    	this->compareBuffers(b2, buf, MA_SRC);
+        this->compareBuffers(b1, b2, MA_SRC);
+        this->compareBuffers(b1, buf, MA_SRC);
+        this->compareBuffers(b2, buf, MA_SRC);
     }
 };
 

@@ -26,7 +26,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrApiName)
 
     typedef typename Base::Iterator                                             Iterator;
 
-	typedef typename Base::Types::CtrSizeT                        				CtrSizeT;
+    typedef typename Base::Types::CtrSizeT                                      CtrSizeT;
 
     Iterator findNode(const LoudsNode& node)
     {
@@ -123,7 +123,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrApiName)
 
     CtrSizeT getSubtreeSize(const LoudsNode& node)
     {
-    	CtrSizeT count = 0;
+        CtrSizeT count = 0;
 
         this->traverseSubtree(node, [&count](const Iterator& left, CtrSizeT length, Int level) {
             if (level == 0)
@@ -151,7 +151,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrApiName)
 private:
     void traverseSubtree(Iterator& left, Iterator& right, function<void (const Iterator&, CtrSizeT, Int)> fn, Int level = 0)
     {
-    	CtrSizeT length = right.nodeIdx() - left.nodeIdx() + 1;
+        CtrSizeT length = right.nodeIdx() - left.nodeIdx() + 1;
 
         fn(left, length + 1, level);
 

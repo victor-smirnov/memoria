@@ -20,7 +20,7 @@ namespace memoria {
 template <typename Profile>
 struct BTTypes<Profile, memoria::Root>: public BTTypes<Profile, memoria::Map<BigInt, IDType> > {
 
-    typedef BTTypes<Profile, memoria::Map<BigInt, IDType>>                    	Base;
+    typedef BTTypes<Profile, memoria::Map<BigInt, IDType>>                      Base;
 
     typedef typename Base::ID                                                   Value;
 

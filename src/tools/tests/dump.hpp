@@ -64,35 +64,35 @@ static Int DumpAllocator(String file_name)
 //
 //        if (status == 7)
 //        {
-//        	cout<<"Load FileAllocator file: "+file.getPath()<<endl;
-//        	GenericFileAllocator allocator(file.getPath(), OpenMode::READ);
+//          cout<<"Load FileAllocator file: "+file.getPath()<<endl;
+//          GenericFileAllocator allocator(file.getPath(), OpenMode::READ);
 //
-//        	GenericFileAllocator::initMetadata();
+//          GenericFileAllocator::initMetadata();
 //
-//        	if (allocator.properties().isMVCC())
-//        	{
-//        		cout<<"Dump MVCCV FileAllocator"<<endl;
+//          if (allocator.properties().isMVCC())
+//          {
+//              cout<<"Dump MVCCV FileAllocator"<<endl;
 //
-//        		typedef MVCCAllocator<FileProfile<>, GenericFileAllocator::Page> 	TxnMgr;
+//              typedef MVCCAllocator<FileProfile<>, GenericFileAllocator::Page>    TxnMgr;
 //
-//        		TxnMgr::initMetadata();
+//              TxnMgr::initMetadata();
 //
-//        		TxnMgr mvcc_allocator(&allocator);
+//              TxnMgr mvcc_allocator(&allocator);
 //
-//        		FSDumpAllocator(&mvcc_allocator, path.getAbsolutePath());
-//        	}
-//        	else {
-//        		FSDumpAllocator(&allocator, path.getAbsolutePath());
-//        	}
+//              FSDumpAllocator(&mvcc_allocator, path.getAbsolutePath());
+//          }
+//          else {
+//              FSDumpAllocator(&allocator, path.getAbsolutePath());
+//          }
 //        }
 //        else {
-        	SmallInMemAllocator allocator;
-        	
-        	cout<<"Load InMemAllocator file: "+file.getPath()<<endl;
+            SmallInMemAllocator allocator;
+            
+            cout<<"Load InMemAllocator file: "+file.getPath()<<endl;
 
-        	LoadFile(allocator, file.getPath().c_str());
+            LoadFile(allocator, file.getPath().c_str());
 
-        	FSDumpAllocator(&allocator, path.getAbsolutePath());
+            FSDumpAllocator(&allocator, path.getAbsolutePath());
 //        }
 
     }

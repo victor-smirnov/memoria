@@ -15,14 +15,12 @@ namespace memoria    {
 
 template <typename Profile, typename Key_, typename Value_>
 struct BTTypes<Profile, Map<Key_, Value_> >:
-	public BTTypes<Profile, MetaMap<
-								1,
-								Key_,
-								Value_,
-								TypeList<LabelDescr<1>, LabelDescr<2>>,
-								TypeList<LabelDescr<2>>
-							>
-	> {
+    public BTTypes<Profile, MetaMap<
+                                1,
+                                Key_,
+                                Value_
+                            >
+    > {
 
 };
 

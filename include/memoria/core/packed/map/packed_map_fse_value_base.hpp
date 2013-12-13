@@ -18,16 +18,16 @@ namespace memoria {
 template <Int Blocks, typename Key, typename Value_, typename HiddenLabels, typename Labels>
 class PackedMapValueBase: public PackedMapLabelsBase<Blocks, Key, HiddenLabels, Labels> {
 
-    typedef PackedMapLabelsBase<Blocks, Key, HiddenLabels, Labels>				Base;
+    typedef PackedMapLabelsBase<Blocks, Key, HiddenLabels, Labels>              Base;
 public:
     typedef PackedMapValueBase<Blocks, Key, Value_, HiddenLabels, Labels>       MyType;
 
-    typedef Value_																Value;
+    typedef Value_                                                              Value;
 
 
     static const Int ARRAY = Blocks + ListSize<HiddenLabels>::Value + ListSize<Labels>::Value;
 
-    static const bool HasValue													= true;
+    static const bool HasValue                                                  = true;
 
     Value* values() {
         return Base::template get<Value>(ARRAY);
@@ -54,14 +54,14 @@ public:
 
     static Int value_block_size(Int size)
     {
-    	Int block_size = Base::roundUpBytesToAlignmentBlocks(sizeof(Value)*size);
-    	return block_size;
+        Int block_size = Base::roundUpBytesToAlignmentBlocks(sizeof(Value)*size);
+        return block_size;
     }
 
 
     void value_init()
     {
-    	Base::template allocateArrayByLength<Value>(ARRAY, 0);
+        Base::template allocateArrayByLength<Value>(ARRAY, 0);
     }
 
     template <typename Entry>
@@ -83,15 +83,15 @@ public:
 
     void insertValuesSpace(Int room_start, Int room_length)
     {
-    	Int size = this->size();
+        Int size = this->size();
 
-    	Int requested_block_size = (size + room_length) * sizeof(Value);
+        Int requested_block_size = (size + room_length) * sizeof(Value);
 
-    	Base::resizeBlock(ARRAY, requested_block_size);
+        Base::resizeBlock(ARRAY, requested_block_size);
 
-    	Value* values = this->values();
+        Value* values = this->values();
 
-    	CopyBuffer(values + room_start, values + room_start + room_length, size - room_start);
+        CopyBuffer(values + room_start, values + room_start + room_length, size - room_start);
     }
 
 

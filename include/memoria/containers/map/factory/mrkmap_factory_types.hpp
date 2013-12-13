@@ -36,10 +36,10 @@ struct BTTypes<Profile, MrkMap<Key_, Value_, BitsPerMark_> >: public BTTypes<Pro
 
     typedef BTTypes<Profile, memoria::BT>                                       Base;
 
-    typedef Key_                                                              	Key;
+    typedef Key_                                                                Key;
     typedef MarkedValue<Value_>                                                 Value;
 
-    static const Int BitsPerMark												= BitsPerMark_;
+    static const Int BitsPerMark                                                = BitsPerMark_;
 
 
     typedef TypeList<
@@ -54,17 +54,17 @@ struct BTTypes<Profile, MrkMap<Key_, Value_, BitsPerMark_> >: public BTTypes<Pro
 
 
     struct StreamTF {
-        typedef core::StaticVector<BigInt, 1>						AccumulatorPart;
-        typedef core::StaticVector<BigInt, 1>						IteratorPrefixPart;
+        typedef core::StaticVector<BigInt, 1>                       AccumulatorPart;
+        typedef core::StaticVector<BigInt, 1>                       IteratorPrefixPart;
 
-        typedef PkdFTree<Packed2TreeTypes<Key, Key, 1>> 			NonLeafType;
+        typedef PkdFTree<Packed2TreeTypes<Key, Key, 1>>             NonLeafType;
 
         typedef PackedFSEMarkableMap<PackedFSEMarkableMapTypes<
-        		Key,
-        		Value,
+                Key,
+                Value,
                 1,
                 BitsPerMark_
-        >>                            								LeafType;
+        >>                                                          LeafType;
     };
 
 

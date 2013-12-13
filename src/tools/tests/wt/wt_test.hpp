@@ -35,7 +35,7 @@ public:
 
     WTTest(StringRef name): SPTestTask(name)
     {
-    	Ctr::initMetadata();
+        Ctr::initMetadata();
 
         size_ = 5000;
 

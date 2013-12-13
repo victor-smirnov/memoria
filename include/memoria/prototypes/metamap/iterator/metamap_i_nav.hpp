@@ -52,7 +52,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrNavName)
 
     bool operator--(int)
     {
-    	self().skipBw(1);
+        self().skipBw(1);
 
         return !self().isBegin();
     }
@@ -69,7 +69,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrNavName)
 
     CtrSizeT pos() const
     {
-    	return std::get<0>(self().cache().prefixes())[0];
+        return std::get<0>(self().cache().prefixes())[0];
     }
 
     bool nextLeaf();
@@ -142,14 +142,14 @@ bool M_TYPE::prevLeaf()
 M_PARAMS
 typename M_TYPE::CtrSizeT M_TYPE::skipFw(BigInt amount)
 {
-	return self().template _findFw<Types::template SkipForwardWalker>(0, amount);
+    return self().template _findFw<Types::template SkipForwardWalker>(0, amount);
 }
 
 
 M_PARAMS
 typename M_TYPE::CtrSizeT M_TYPE::skipBw(BigInt amount)
 {
-	return self().template _findBw<Types::template SkipBackwardWalker>(0, amount);
+    return self().template _findBw<Types::template SkipBackwardWalker>(0, amount);
 }
 
 

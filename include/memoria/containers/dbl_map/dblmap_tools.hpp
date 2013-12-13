@@ -188,7 +188,7 @@ public:
 
         if (entry > 0)
         {
-        	second_prefix_ = 0;
+            second_prefix_ = 0;
         }
     }
 
@@ -255,11 +255,11 @@ public:
     }
 
     BigInt& second_prefix() {
-    	return second_prefix_;
+        return second_prefix_;
     }
 
     const BigInt& second_prefix() const {
-    	return second_prefix_;
+        return second_prefix_;
     }
 };
 
@@ -272,7 +272,7 @@ template <typename Iterator, typename Container>
 class OuterMapIteratorPrefixCache: public bt::BTreeIteratorCache<Iterator, Container> {
     typedef bt::BTreeIteratorCache<Iterator, Container> Base;
 
-    typedef typename Container::Accumulator     								Accumulator;
+    typedef typename Container::Accumulator                                     Accumulator;
 
     Accumulator prefix_;
     Accumulator current_;
@@ -298,7 +298,7 @@ public:
 
     Accumulator& prefixes()
     {
-    	return prefix_;
+        return prefix_;
     }
 
     void nextKey(bool end)
@@ -327,13 +327,13 @@ public:
 
     void Prepare()
     {
-    	if (Base::iterator().idx() >= 0)
-    	{
-    		current_ = Base::iterator().entry();
-    	}
-    	else {
-    		Clear(current_);
-    	}
+        if (Base::iterator().idx() >= 0)
+        {
+            current_ = Base::iterator().entry();
+        }
+        else {
+            Clear(current_);
+        }
     }
 };
 
@@ -343,7 +343,7 @@ template <typename Iterator, typename Container>
 class InnerMapIteratorPrefixCache: public bt::BTreeIteratorCache<Iterator, Container> {
     typedef bt::BTreeIteratorCache<Iterator, Container> Base;
 
-    typedef typename Container::Accumulator     								Accumulator;
+    typedef typename Container::Accumulator                                     Accumulator;
 
     Accumulator prefix_;
 
@@ -358,12 +358,12 @@ public:
 
     Accumulator& prefixes()
     {
-    	return prefix_;
+        return prefix_;
     }
 
     void setup(const Accumulator& prefix)
     {
-    	prefix_ = prefix;
+        prefix_ = prefix;
     }
 };
 

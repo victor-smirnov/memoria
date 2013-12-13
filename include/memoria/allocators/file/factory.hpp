@@ -33,14 +33,14 @@ class ContainerCollectionCfg;
 template <typename T>
 class ContainerCollectionCfg<FileProfile<T> > {
 public:
-    typedef BasicContainerCollectionCfg<FileProfile<T>, BigInt >               	Types;
+    typedef BasicContainerCollectionCfg<FileProfile<T>, BigInt >                Types;
 };
 
 
 typedef memoria::FileAllocator<
             FileProfile<>,
             ContainerCollectionCfg<FileProfile<> >::Types::Page
->                                                                       		GenericFileAllocator;
+>                                                                               GenericFileAllocator;
 
 template <typename CtrName>
 using FCtrTF = CtrTF<FileProfile<>, CtrName>;

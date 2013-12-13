@@ -16,13 +16,13 @@ namespace memoria    {
 
 template <typename Profile, typename Key_, typename Value_, Int BitsPerLabel>
 struct BTTypes<Profile, SMrkMap<Key_, Value_, BitsPerLabel> >:
-	public BTTypes<Profile, MetaMap<
-								1,
-								Key_,
-								Value_,
-								TypeList<LabelDescr<2>>
-							>
-	> {
+    public BTTypes<Profile, MetaMap<
+                                1,
+                                Key_,
+                                Value_,
+                                TypeList<LabelDescr<2>>
+                            >
+    > {
 
 };
 

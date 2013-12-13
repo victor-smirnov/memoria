@@ -19,17 +19,17 @@ namespace memoria {
 
 template <typename T>
 struct PackedTreeIndexTF {
-	using Type = BigInt;
+    using Type = BigInt;
 };
 
 template <>
 struct PackedTreeIndexTF<Int128> {
-	using Type = Int128;
+    using Type = Int128;
 };
 
 template <>
 struct PackedTreeIndexTF<UInt128> {
-	using Type = UInt128;
+    using Type = UInt128;
 };
 
 

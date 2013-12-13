@@ -50,8 +50,8 @@ public:
 
 
     static_assert(std::is_trivial<Metadata>::value, "TreeNodeBase: metadata must be a trivial type");
-    static_assert(std::is_trivial<Base_>::value, 	"TreeNodeBase: base must be a trivial type");
-    static_assert(std::is_trivial<ID>::value, 		"TreeNodeBase: ID must be a trivial type");
+    static_assert(std::is_trivial<Base_>::value,    "TreeNodeBase: base must be a trivial type");
+    static_assert(std::is_trivial<ID>::value,       "TreeNodeBase: ID must be a trivial type");
 
 
 private:
@@ -303,10 +303,10 @@ template <
 class BranchNode: public TreeNodeBase<typename Types::Metadata, typename Types::NodeBase>
 {
 
-	static_assert(
-			std::is_trivial<TreeNodeBase<typename Types::Metadata, typename Types::NodeBase>>::value,
-			"TreeNodeBase must be a trivial type"
-			);
+    static_assert(
+            std::is_trivial<TreeNodeBase<typename Types::Metadata, typename Types::NodeBase>>::value,
+            "TreeNodeBase must be a trivial type"
+            );
 
     static const Int  BranchingFactor                                           = PackedTreeBranchingFactor;
 
@@ -1185,13 +1185,13 @@ public:
     template <typename Fn, typename... Args>
     void processAll(Fn&& fn, Args&&... args) const
     {
-    	Dispatcher::dispatchAll(allocator(), std::forward<Fn>(fn), args...);
+        Dispatcher::dispatchAll(allocator(), std::forward<Fn>(fn), args...);
     }
 
     template <typename Fn, typename... Args>
     void processAll(Fn&& fn, Args&&... args)
     {
-    	Dispatcher::dispatchAll(allocator(), std::forward<Fn>(fn), args...);
+        Dispatcher::dispatchAll(allocator(), std::forward<Fn>(fn), args...);
     }
 
     template <typename Fn, typename... Args>
@@ -1255,7 +1255,7 @@ public:
         template <Int StreamIdx, typename StreamType, typename DataType>
         void stream(StreamType* tree, Int idx, const SingleIndexUpdateData<DataType>& data)
         {
-        	tree->addValue(data.index(), idx, data.delta());
+            tree->addValue(data.index(), idx, data.delta());
         }
     };
 
@@ -1268,7 +1268,7 @@ public:
     template <typename DataType>
     void updateUp(Int idx, const SingleIndexUpdateData<DataType>& data)
     {
-    	Dispatcher::dispatch(data.stream(), allocator(), UpdateUpFn(), idx, data);
+        Dispatcher::dispatch(data.stream(), allocator(), UpdateUpFn(), idx, data);
     }
 
     //FIXME: remove?

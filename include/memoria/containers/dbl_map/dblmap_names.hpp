@@ -29,14 +29,14 @@ class CtrRemoveName {};
 class CtrChecksName {};
 class CtrUpdateName {};
 
-class ItrCRUDName 	{};
+class ItrCRUDName   {};
 
-class ItrApi2Name 	{};
+class ItrApi2Name   {};
 
-class OuterItrApiName 	{};
+class OuterItrApiName   {};
 
-class InnerItrApiName 	{};
-class InnerItrNavName 	{};
+class InnerItrApiName   {};
+class InnerItrNavName   {};
 
 }
 
