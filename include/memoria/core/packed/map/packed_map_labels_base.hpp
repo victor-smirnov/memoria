@@ -575,7 +575,7 @@ public:
     };
 
     template <typename Entry>
-    void fillLabels(Int idx, Entry& entry)
+    void fillLabels(Int idx, Entry& entry) const
     {
         HiddenLabelsDispatcher::dispatchAll(this, GetEntryHiddenLabelsFn<Entry>(), idx, entry);
         LabelsDispatcher::dispatchAll(this, GetEntryLabelsFn<Entry>(), idx, entry);

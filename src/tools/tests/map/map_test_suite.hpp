@@ -30,6 +30,7 @@ public:
     MapTestSuite(): TestSuite("MapSuite")
     {
         registerTask(new MapApiTest<Map<BigInt, BigInt>>("Map.Api"));
+        registerTask(new MapApiTest<CMap<Granularity::Byte>>("CMap.Api"));
 
 //      registerTask(new MapCreateTest<SMrkMap<BigInt, BigInt, 1>>("SMrkMap.Create"));
 //      registerTask(new MapRemoveTest<SMrkMap<BigInt, BigInt, 1>>("SMrkMap.Remove"));

@@ -35,7 +35,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrRemoveName)
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
 
-    struct RemoveFromLeafFn {
+    struct RemoveFromLeafFn: bt1::NoRtnNodeWalkerBase<RemoveFromLeafFn> {
         Accumulator& entry_;
 
         bool next_entry_updated_ = false;
@@ -43,29 +43,27 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrRemoveName)
         RemoveFromLeafFn(Accumulator& sums):entry_(sums) {}
 
         template <Int Idx, typename Stream>
-        void stream(Stream* map, Int idx)
+        void stream(Stream* map, Int idx, bool adjust_next)
         {
-            map->sums(idx, std::get<Idx>(entry_));
+            MEMORIA_ASSERT_TRUE(map);
+
+        	map->sums(idx, std::get<Idx>(entry_));
 
             map->remove(idx, idx + 1);
 
-            next_entry_updated_ = idx < map->size();
-
-            if (next_entry_updated_)
+            if (adjust_next)
             {
-                map->addValue(0, idx, std::get<0>(entry_)[1]);
-            }
-        }
+            	next_entry_updated_ = idx < map->size();
 
-        template <typename Node>
-        void treeNode(Node* node, Int idx)
-        {
-            node->layout(1);
-            node->template processStream<0>(*this, idx);
+            	if (next_entry_updated_)
+            	{
+            		map->addValue(0, idx, std::get<0>(entry_)[1]);
+            	}
+            }
         }
     };
 
-    void removeMapEntry(Iterator& iter, Accumulator& sums)
+    void removeMapEntry(Iterator& iter, Accumulator& sums, bool adjust_next = true)
     {
         auto& self  = this->self();
         auto& leaf  = iter.leaf();
@@ -75,7 +73,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrRemoveName)
 
         self.updatePageG(leaf);
 
-        LeafDispatcher::dispatch(leaf, fn, idx);
+        LeafDispatcher::dispatch(leaf, fn, idx, adjust_next);
 
         if (fn.next_entry_updated_)
         {
@@ -104,7 +102,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrRemoveName)
 
         self.removeRedundantRootP(leaf);
 
-        if ((!fn.next_entry_updated_) && !iter.isEnd())
+        if (adjust_next && (!fn.next_entry_updated_) && !iter.isEnd())
         {
             iter.adjustIndex(1, (std::get<0>(fn.entry_)[1]));
         }
@@ -115,15 +113,15 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrRemoveName)
 
 
 
-    bool removeMapEntries(Iterator& from, Iterator& to, Accumulator& keys);
+    bool removeMapEntries(Iterator& from, Iterator& to, Accumulator& keys, bool adjust_next_entry);
 
-    bool remove(Key key)
+    bool remove(Key key, bool adjust_next_entry = true)
     {
         Iterator iter = self().findGE(0, key, 1);
 
         if (key == iter.key())
         {
-            iter.remove();
+            iter.remove(adjust_next_entry);
             return true;
         }
         else {
@@ -138,7 +136,7 @@ MEMORIA_CONTAINER_PART_END
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-bool M_TYPE::removeMapEntries(Iterator& from, Iterator& to, Accumulator& keys)
+bool M_TYPE::removeMapEntries(Iterator& from, Iterator& to, Accumulator& keys, bool adjust_next_entry)
 {
     auto& ctr = self();
 
@@ -150,7 +148,14 @@ bool M_TYPE::removeMapEntries(Iterator& from, Iterator& to, Accumulator& keys)
 
     bool result = ctr.removeEntries(from_node, from_pos, to_node, to_pos, keys, true).gtAny(0);
 
-    from.idx() = to.idx() = to_pos.get();
+    to.idx() = to_pos.get();
+    to.updatePrefix();
+    from = to;
+
+    if (adjust_next_entry && !to.isEnd())
+    {
+    	to.adjustIndex(1, (std::get<0>(keys)[1]));
+    }
 
     ctr.markCtrUpdated();
 

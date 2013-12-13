@@ -39,21 +39,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrEntryName)
     typedef typename Container::Types::Pages::LeafDispatcher                    LeafDispatcher;
 
 
-    struct GetEntryFn {
-        using ReturnType = Entry;
-        using ResultType = Entry;
-
+    struct GetEntryFn: bt1::RtnNodeWalkerBase<GetEntryFn, Entry> {
         template <Int Idx, typename Stream>
-        ReturnType stream(const Stream* stream, Int idx)
+        Entry stream(const Stream* stream, Int idx)
         {
             MEMORIA_ASSERT_TRUE(stream);
             return metamap::GetEntry<Entry>(stream, idx);
-        }
-
-        template <typename Node>
-        ResultType treeNode(const Node* node, Int idx)
-        {
-            return node->template processStreamRtn<0>(*this, idx);
         }
     };
 
@@ -64,18 +55,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrEntryName)
     }
 
 
-    struct SetEntryFn {
+    struct SetEntryFn: bt1::NoRtnNodeWalkerBase<SetEntryFn> {
         template <Int Idx, typename Stream>
         void stream(Stream* stream, Int idx, const Entry& entry)
         {
             MEMORIA_ASSERT_TRUE(stream);
             metamap::SetEntry(stream, idx, entry);
-        }
-
-        template <typename Node>
-        void treeNode(Node* node, Int idx, const Entry& value)
-        {
-            node->template processStream<0>(*this, idx, value);
         }
     };
 
@@ -144,7 +129,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrEntryName)
     }
 
 
-    void remove()
+    void remove(bool adjust_next_entry = true)
     {
         auto& self = this->self();
 
@@ -152,12 +137,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrEntryName)
         self.ctr().removeMapEntry(self, keys);
     }
 
-    void removeTo(MyType& to)
+    void removeTo(MyType& to, bool adjust_next_entry = true)
     {
         auto& self = this->self();
 
         Accumulator keys;
-        self.ctr().removeMapEntries(self, to, keys);
+        self.ctr().removeMapEntries(self, to, keys, adjust_next_entry);
     }
 
 

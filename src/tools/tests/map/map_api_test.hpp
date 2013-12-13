@@ -78,6 +78,8 @@ public:
 
         begin.removeTo(end);
 
+        cout<<begin.entry()<<endl;
+
         cout<<"Size: "<<map.size()<<endl;
 
         allocator.commit();

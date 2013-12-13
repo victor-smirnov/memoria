@@ -62,6 +62,16 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveBatchName)
             Position& sizes
     );
 
+    void tryMergeNodesAfterRemove(
+    		NodeBaseG& start,
+            const Position& start_idx,
+
+            NodeBaseG& stop,
+            Position& stop_idx)
+    {
+
+    }
+
 
 
     ////  ------------------------ CONTAINER PART PRIVATE API ------------------------
@@ -397,14 +407,10 @@ void M_TYPE::removeNodes(
 
         if (self.isTheSameParent(start, stop))
         {
-            if (self.canMerge(start, stop))
+        	if (self.mergeCurrentBTreeNodes(start, stop))
             {
-                self.mergeNodes(start, stop);
-
                 stop_idx    = start_idx;
                 stop        = start;
-
-                self.removeRedundantRootP(start);
             }
             else {
                 stop_idx = Position(0);
@@ -467,14 +473,10 @@ void M_TYPE::removeNonLeafNodes(
 
         if (self.isTheSameParent(start, stop))
         {
-            if (self.canMerge(start, stop))
+            if (self.mergeCurrentBTreeNodes(start, stop))
             {
-                self.mergeNodes(start, stop);
-
                 stop            = start;
                 stop_parent_idx = start_parent_idx;
-
-                self.removeRedundantRootP(start);
             }
         }
     }

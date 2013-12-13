@@ -50,6 +50,8 @@ protected:
 
     typedef SmallInMemAllocator                                                 Allocator;
 
+    Int cnt_ = 0;
+
 public:
     SequenceCreateTestBase(StringRef name):
         Base(name)
@@ -175,6 +177,8 @@ public:
 
                 allocator.commit();
             }
+
+            this->StoreAllocator(allocator, this->getResourcePath(SBuf()<<"remove"<<(++cnt_)<<".dump"));
         }
         catch (...) {
             this->dump_name_ = Store(allocator);

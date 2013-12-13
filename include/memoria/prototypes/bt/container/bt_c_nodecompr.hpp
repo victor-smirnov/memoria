@@ -78,6 +78,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::NodeComprName)
     MEMORIA_DECLARE_NODE_FN(TryMergeNodesFn, mergeWith);
     bool tryMergeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn = [](const Position&, Int){});
     bool mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&, Int){});
+    bool mergeCurrentBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&, Int){});
 
 
     MEMORIA_DECLARE_NODE_FN(InsertFn, insert);
@@ -412,14 +413,7 @@ bool M_TYPE::mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 
     if (self.isTheSameParent(tgt, src))
     {
-        if (self.tryMergeNodes(tgt, src, fn))
-        {
-            self.removeRedundantRootP(tgt);
-            return true;
-        }
-        else {
-            return false;
-        }
+    	return self.mergeCurrentBTreeNodes(tgt, src, fn);
     }
     else
     {
@@ -428,19 +422,30 @@ bool M_TYPE::mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 
         if (mergeBTreeNodes(tgt_parent, src_parent, fn))
         {
-            if (self.tryMergeNodes(tgt, src, fn))
-            {
-                self.removeRedundantRootP(tgt);
-                return true;
-            }
-            else {
-                return false;
-            }
+        	return self.mergeCurrentBTreeNodes(tgt, src, fn);
         }
         else
         {
             return false;
         }
+    }
+}
+
+
+
+
+M_PARAMS
+bool M_TYPE::mergeCurrentBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
+{
+    auto& self = this->self();
+
+    if (self.tryMergeNodes(tgt, src, fn))
+    {
+    	self.removeRedundantRootP(tgt);
+    	return true;
+    }
+    else {
+    	return false;
     }
 }
 

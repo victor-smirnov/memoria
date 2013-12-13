@@ -92,6 +92,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::NodeNormName)
     MEMORIA_DECLARE_NODE_FN(MergeNodesFn, mergeWith);
     void mergeNodes(NodeBaseG& tgt, NodeBaseG& src);
     bool mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&, Int){});
+    bool mergeCurrentBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&, Int){});
 
 
 MEMORIA_CONTAINER_PART_END
@@ -359,6 +360,31 @@ bool M_TYPE::mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
         return false;
     }
 }
+
+
+
+M_PARAMS
+bool M_TYPE::mergeCurrentBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
+{
+    auto& self = this->self();
+
+    if (self.canMerge(tgt, src))
+    {
+    	fn(self.getNodeSizes(tgt), tgt->level());
+
+    	mergeNodes(tgt, src);
+
+    	self.removeRedundantRootP(tgt);
+
+    	return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+
 
 
 #undef M_TYPE
