@@ -50,7 +50,8 @@ protected:
 
     typedef SmallInMemAllocator                                                 Allocator;
 
-    Int cnt_ = 0;
+    Int cnt_i_ = 0;
+    Int cnt_r_ = 0;
 
 public:
     SequenceCreateTestBase(StringRef name):
@@ -95,18 +96,7 @@ public:
         return file_name;
     }
 
-    virtual void compareBuffers(const MemBuffer& src, const MemBuffer& tgt, const char* source)
-    {
-        AssertEQ(source, src.size(), tgt.size(), SBuf()<<"buffer sizes are not equal");
 
-        for (size_t c = 0; c < src.size(); c++)
-        {
-            typename MemBuffer::value_type v1 = src[c];
-            typename MemBuffer::value_type v2 = tgt[c];
-
-            AssertEQ(source, v1, v2, [=](){return SBuf()<<"c="<<c;});
-        }
-    }
 
     ostream& out() {
         return Base::out();
@@ -142,6 +132,8 @@ public:
 
                 allocator.commit();
             }
+
+            this->StoreAllocator(allocator, this->getResourcePath(SBuf()<<"insert"<<(++cnt_i_)<<".dump"));
         }
         catch (...) {
             this->dump_name_ = Store(allocator);
@@ -178,7 +170,7 @@ public:
                 allocator.commit();
             }
 
-            this->StoreAllocator(allocator, this->getResourcePath(SBuf()<<"remove"<<(++cnt_)<<".dump"));
+            this->StoreAllocator(allocator, this->getResourcePath(SBuf()<<"remove"<<(++cnt_r_)<<".dump"));
         }
         catch (...) {
             this->dump_name_ = Store(allocator);

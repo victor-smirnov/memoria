@@ -49,6 +49,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
 
+    typedef typename Types::Source												Source;
+    typedef typename Types::Target												Target;
 
     static const Int Streams                                                    = Types::Streams;
 
@@ -62,7 +64,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
         switch (trait)
         {
             case BTNodeTraits::MAX_CHILDREN:
-                return Node::max_tree_size_for_block(page_size); break;
+                return Node::max_tree_size_for_block(page_size, false); break;
 
             default: throw DispatchException(MEMORIA_SOURCE, "Unknown static node trait value", (Int)trait);
         }
@@ -402,9 +404,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
 
     MEMORIA_DECLARE_NODE_FN_RTN(CheckCapacitiesFn, checkCapacities, bool);
-    bool checkCapacities(const NodeBaseG& node, const Position& pos) const
+    bool checkCapacities(const NodeBaseG& node, const Position& sizes) const
     {
-        return NodeDispatcher::dispatchConstRtn(node, CheckCapacitiesFn(), pos);
+        return NodeDispatcher::dispatchConstRtn(node, CheckCapacitiesFn(), sizes);
     }
 
 
@@ -451,6 +453,33 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     {
         NonLeafDispatcher::dispatchConst(node, ForAllIDsFn(), start, end, fn);
     }
+
+    struct GetRemainderSize {
+    	template <Int Idx, typename Stream>
+    	void operator()(const Stream* obj, Position& pos)
+    	{
+    		pos[Idx] = obj->getRemainder();
+    	}
+    };
+
+    Position getRemainderSize(const Source& source)
+    {
+    	Position pos;
+
+    	TupleDispatcher<Source>::dispatch(source, GetRemainderSize(), pos);
+
+    	return pos;
+    }
+
+    Position getRemainderSize(const Target& target)
+    {
+    	Position pos;
+
+    	TupleDispatcher<Target>::dispatch(target, GetRemainderSize(), pos);
+
+    	return pos;
+    }
+
 
 MEMORIA_CONTAINER_PART_END
 

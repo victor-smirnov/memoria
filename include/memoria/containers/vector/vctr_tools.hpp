@@ -178,6 +178,21 @@ private:
 
 
 
+template <
+    typename I, typename C
+>
+std::ostream& operator<<(std::ostream& out, const VectorIteratorPrefixCache<I, C>& cache)
+{
+    out<<"VectorIteratorPrefixCache[";
+    out<<"prefixes: "<<cache.prefixes();
+    out<<"]";
+
+    return out;
+}
+
+
+
+
 
 }
 }

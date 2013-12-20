@@ -148,6 +148,18 @@ public:
     }
 };
 
+template <
+    typename I, typename C
+>
+std::ostream& operator<<(std::ostream& out, const MetaMapIteratorPrefixCache<I, C>& cache)
+{
+    out<<"MetaMapIteratorPrefixCache[";
+    out<<"prefixes: "<<cache.prefixes();
+    out<<"]";
+
+    return out;
+}
+
 
 
 template <Int Indexes, typename Key_, typename Value_, typename HiddenLabelsList, typename LabelsList>

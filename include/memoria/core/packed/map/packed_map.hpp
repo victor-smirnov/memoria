@@ -60,11 +60,6 @@ public:
     typedef typename Base::IndexValue                                           IndexValue;
     typedef typename Base::ValueDescr                                           ValueDescr;
 
-//    typedef std::pair<typename Base::Values, Value>                               IOValue;
-//
-//    typedef IDataSource<IOValue>                                              DataSource;
-//    typedef IDataTarget<IOValue>                                              DataTarget;
-
     static const Int Blocks                                                     = Types::Blocks;
 
     static const Int SizedIndexes                                               = 1 + Blocks + Base::LabelsIndexes;
@@ -102,7 +97,7 @@ public:
 
     static Int packed_block_size(Int size)
     {
-        Int tree_block_size     = Base::tree_block_size(size);
+    	Int tree_block_size     = Base::tree_block_size(size);
         Int values_block_size   = Base::value_block_size(size);
         Int labels_block_size   = Base::labels_block_size(size);
 
@@ -148,27 +143,25 @@ public:
     }
 
 
-
-
-
-
-
-
     template <typename Entry, typename T>
     void insert(Int idx, const Entry& entry, MapSums<T>& sums)
     {
+    	Int size = this->size();
+
         Base::insertTree(idx, entry, sums);
         Base::insertLabels(idx, entry, sums);
-        Base::insertValue(idx, entry);
+        Base::insertValue(idx, entry, size);
     }
 
 
 
     void insertSpace(Int room_start, Int room_length)
     {
-        Base::insertTreeSpace(room_start, room_length);
+    	Int size = this->size();
+
+    	Base::insertTreeSpace(room_start, room_length);
         Base::insertLabelsSpace(room_start, room_length);
-        Base::insertValuesSpace(room_start, room_length);
+        Base::insertValuesSpace(room_start, room_length, size);
     }
 
 
@@ -180,7 +173,9 @@ public:
 
     void remove(Int room_start, Int room_end)
     {
-        Base::removeValuesSpace(room_start, room_end);
+    	Int size = this->size();
+
+        Base::removeValuesSpace(room_start, room_end, size);
         Base::removeLabelsSpace(room_start, room_end);
         Base::removeTreeSpace(room_start, room_end);
     }
@@ -358,6 +353,40 @@ public:
 
 
     // ============================ IO =============================================== //
+
+    template <typename DataSource>
+    void insert(DataSource* src, Int idx, Int size)
+    {
+    	Int old_size 	= this->size();
+    	auto pos 		= src->getStart();
+
+    	this->insertTree(src, idx, size);
+
+    	this->insertLabels(src, pos, idx, size);
+    	this->insertValues(src, pos, idx, size, old_size);
+    }
+
+    template <typename DataTarget>
+    void read(DataTarget* src, Int idx, Int size) const
+    {
+    	auto pos = src->getStart();
+
+    	this->readTree(src, idx, size);
+
+    	this->readLabels(src, pos, idx, size);
+    	this->readValues(src, pos, idx, size);
+    }
+
+    template <typename DataSource>
+    void update(DataSource* src, Int idx, Int size)
+    {
+    	auto pos = src->getStart();
+
+    	this->updateTree(src, idx, size);
+
+    	this->updateLabels(src, pos, idx, size);
+    	this->updateValues(src, pos, idx, size);
+    }
 
 
     // ============================ Serialization ==================================== //

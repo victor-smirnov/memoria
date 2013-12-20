@@ -182,6 +182,7 @@ struct ITarget {
 
 
 
+
 struct IDataBase: IData {
 
     virtual ~IDataBase() throw () {}
@@ -216,6 +217,7 @@ struct IDataTarget: IDataBase {
 
     virtual SizeT put(const T* buffer, SizeT start, SizeT length)               = 0;
     virtual void put(const T& value)                                            = 0;
+    virtual T peek()                                            				= 0;
 };
 
 
@@ -349,6 +351,7 @@ public:
     virtual IDataAPI api() const                                                = 0;
     virtual SizeT put(const T* buffer, SizeT start, SizeT length)               = 0;
     virtual SizeT get(T* buffer, SizeT start, SizeT length)                     = 0;
+    virtual T peek()                                            				= 0;
 
 
     virtual T get()                                                             = 0;
@@ -499,6 +502,7 @@ public:
     virtual IDataAPI api() const                                                = 0;
     virtual SizeT put(const T* buffer, SizeT start, SizeT length)               = 0;
     virtual void put(const T& value)                                            = 0;
+    virtual T peek()                                            				= 0;
 
     virtual void reset(BigInt pos = 0)
     {
@@ -619,6 +623,11 @@ public:
     {
         *(data_ + Base::start_) = value;
         Base::skip(1);
+    }
+
+    virtual T peek()
+    {
+    	return *(data_ + Base::start_);
     }
 
     void dump(std::ostream& out) const
@@ -802,6 +811,7 @@ class EmptyDataTarget: public IDataTarget<T> {
 public:
     virtual SizeT put(const T* buffer, SizeT start, SizeT length) {return 0;}
     virtual void put(const T&) {throw Exception(MA_SRC, "Unsupported operation");}
+    virtual T peek() {throw Exception(MA_SRC, "Unsupported operation");}
 
     virtual IDataAPI api() const
     {
@@ -953,6 +963,8 @@ public:
         // FIXME EOF handling?
         skip(1);
     }
+
+    virtual T peek() {throw Exception(MA_SRC, "Unsupported operation");}
 
     virtual void reset(SizeT pos = 0)
     {

@@ -113,13 +113,6 @@ struct TypeHash<Map2<Key, Value>>:   UIntValue<
 
 
 
-template <Granularity gr>
-struct TypeHash<CMap<gr>>:   UIntValue<
-    HashHelper<1112, (UInt)gr>::Value
-> {};
-
-
-
 template <
     Int Indexes,
     typename Key,

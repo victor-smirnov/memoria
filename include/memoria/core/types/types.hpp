@@ -218,8 +218,11 @@ struct LabeledTree  {};
 struct WT           {};
 struct VTree        {};
 
+template <Granularity granularity, typename T = BigInt>
+struct VLen {};
+
 template <Granularity gr = Granularity::Byte>
-struct CMap         {};
+using CMap = Map<VLen<gr>, BigInt>;
 
 // A map with marked K/V pairs
 template <typename Key, typename Value, Int BitsPerMark = 1>
@@ -240,8 +243,7 @@ template <typename K, typename V, Int BitsPerMark>
 using DblMrkMap2 = Map2<K, MrkMap2<K, V, BitsPerMark>>;
 
 
-template <Granularity granularity, typename T = BigInt>
-struct VLen {};
+
 
 // Placeholder type to be used in place of Page IDs
 struct IDType {};

@@ -242,6 +242,18 @@ public:
         out<<"======================================================================"<<std::endl;
     }
 
+    void dumpCache(std::ostream& out = std::cout) const
+    {
+    	auto& self  = this->self();
+    	out<<self.cache()<<std::endl;
+    }
+
+    void dumpHeader(std::ostream& out = std::cout) const
+    {
+    	self().dumpCache(out);
+    	self().dumpKeys(out);
+    }
+
     void dumpKeys(std::ostream& out) const
     {
         auto& self = this->self();

@@ -903,20 +903,34 @@ public:
     }
 
 
-    struct InsertSourceFn {
+    struct InsertSourceFn
+    {
         template <Int Idx, typename Tree>
-        void stream(Tree* tree, ISource* src, const Position* pos, const Position* sizes)
+        void stream(Tree* tree, ISource* src, const Position& pos, const Position& sizes)
         {
-            tree->insert(src->stream(Idx), pos->value(Idx), sizes->value(Idx));
+            tree->insert(src->stream(Idx), pos[Idx], sizes[Idx]);
+        }
+
+        template <Int Idx, typename Tree, typename... TupleTypes>
+        void stream(Tree* tree, std::tuple<TupleTypes...>& src, const Position& pos, const Position& sizes)
+        {
+        	tree->insert(std::get<Idx>(src), pos[Idx], sizes[Idx]);
         }
     };
 
     void insert(ISource& src, const Position& pos, const Position& sizes)
     {
         initStreamsIfEmpty(sizes);
-
-        Dispatcher::dispatchNotEmpty(allocator(), InsertSourceFn(), &src, &pos, &sizes);
+        Dispatcher::dispatchNotEmpty(allocator(), InsertSourceFn(), &src, pos, sizes);
     }
+
+    template <typename... TupleTypes>
+    void insert(std::tuple<TupleTypes...>& src, const Position& pos, const Position& sizes)
+    {
+    	initStreamsIfEmpty(sizes);
+    	Dispatcher::dispatchNotEmpty(allocator(), InsertSourceFn(), src, pos, sizes);
+    }
+
 
 
     struct AppendSourceFn {
@@ -952,15 +966,28 @@ public:
 
     struct ReadToTargetFn {
         template <Int Idx, typename Tree>
-        void stream(Tree* tree, ITarget* tgt, const Position* pos, const Position* sizes)
+        void stream(const Tree* tree, ITarget* tgt, const Position& pos, const Position& sizes)
         {
-            tree->read(tgt->stream(Idx), pos->value(Idx), sizes->value(Idx));
+            tree->read(tgt->stream(Idx), pos[Idx], sizes[Idx]);
+        }
+
+        template <Int Idx, typename Tree, typename... TupleTypes>
+        void stream(const Tree* tree, std::tuple<TupleTypes...>& tgt, const Position& pos, const Position& sizes)
+        {
+        	tree->read(std::get<Idx>(tgt), pos[Idx], sizes[Idx]);
         }
     };
 
     void read(ITarget* tgt, const Position& pos, const Position& sizes) const
     {
-        Dispatcher::dispatchNotEmpty(allocator(), ReadToTargetFn(), tgt, &pos, &sizes);
+        Dispatcher::dispatchNotEmpty(allocator(), ReadToTargetFn(), tgt, pos, sizes);
+    }
+
+
+    template <typename... TupleTypes>
+    void read(std::tuple<TupleTypes...>& tgt, const Position& pos, const Position& sizes) const
+    {
+    	Dispatcher::dispatchNotEmpty(allocator(), ReadToTargetFn(), tgt, pos, sizes);
     }
 
 

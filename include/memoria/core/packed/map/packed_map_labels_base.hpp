@@ -652,6 +652,24 @@ public:
         LabelsDispatcher::dispatchAll(this, fn, idx, sums);
     }
 
+    // ============================ IO =============================================== //
+
+
+    template <typename DataSource>
+    void insertLabels(DataSource* src, SizeT start, Int idx, Int size)
+    {
+    }
+
+    template <typename DataSource>
+    void updateLabels(DataSource* src, SizeT start, Int idx, Int size)
+    {
+    }
+
+    template <typename DataTarget>
+    void readLabels(DataTarget* tgt, SizeT start, Int idx, Int size) const
+    {
+    }
+
 
 
     // ============================ Serialization ==================================== //

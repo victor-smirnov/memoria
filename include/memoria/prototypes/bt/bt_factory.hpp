@@ -131,6 +131,9 @@ struct BTTypes {
     typedef EmptyType                                                           DataSource;
     typedef EmptyType                                                           DataTarget;
 
+    typedef EmptyType															Source;
+    typedef EmptyType															Target;
+
 
     template <typename Types>
     using SkipForwardWalker                 = TypeIsNotDefined;

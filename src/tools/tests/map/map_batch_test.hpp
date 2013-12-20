@@ -4,15 +4,15 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_MAP_MAP_BATCH_TEST_HPP_
-#define MEMORIA_TESTS_MAP_MAP_BATCH_TEST_HPP_
+#ifndef MEMORIA_TESTS_MAP_BATCH_TEST_HPP_
+#define MEMORIA_TESTS_MAP_BATCH_TEST_HPP_
 
 #include <memoria/memoria.hpp>
 
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
 
-#include "../shared/randomaccesslist_test_base.hpp"
+#include "../shared/inmem_sequence_test_base.hpp"
 
 #include <vector>
 #include <algorithm>
@@ -23,149 +23,101 @@
 namespace memoria {
 
 template <
-    template <typename, typename> class MapType
+    typename T
 >
-class MapBatchTest: public RandomAccessListTestBase<
-    MapType<BigInt, Int>,
-    typename SCtrTF<MapType<BigInt, Int>>::Type::LeafPairsVector
+class MapBatchTest: public SequenceCreateTestBase<
+    T,
+    std::vector<typename SCtrTF<T>::Type::Types::Entry>
 >
 {
-    typedef typename SCtrTF<MapType<BigInt, Int>>::Type                         SumSet1Ctr;
+    typedef MapBatchTest<T>                                                     MyType;
 
-
-
-    typedef RandomAccessListTestBase<
-            MapType<BigInt, Int>,
-            typename SumSet1Ctr::LeafPairsVector
+    typedef SequenceCreateTestBase<
+    			T,
+    		    std::vector<typename SCtrTF<T>::Type::Types::Entry>
     >                                                                           Base;
 
     typedef typename Base::Ctr                                                  Ctr;
-    typedef typename Base::Accumulator                                          Accumulator;
     typedef typename Base::Iterator                                             Iterator;
-    typedef typename SumSet1Ctr::LeafPairsVector                                MemBuffer;
+    typedef typename Ctr::Accumulator                                           Accumulator;
+    typedef typename Base::ID                                                   ID;
 
+    typedef typename SCtrTF<T>::Type::Types::Entry								Entry;
+
+    typedef std::vector<Entry>                 									MemBuffer;
 
 public:
     MapBatchTest(StringRef name):
         Base(name)
     {
-        Base::size_ = 1024*1024;
-        Ctr::initMetadata();
+        Base::max_block_size_ = 1024*2;
+        Base::size_           = 1024*1024;
     }
 
+    virtual MemBuffer createBuffer(Int size)
+    {
+        MemBuffer data(size);
+        for (auto& item: data)
+        {
+            Entry entry;
 
-    virtual MemBuffer createBuffer(Int size) {
-        return createRandomBuffer(size);
+            entry.key() 	= getRandom(10) + 1;
+            entry.value() 	= getRandom(100) + 1;
+
+        	item = entry;
+        }
+
+        return data;
     }
 
     virtual MemBuffer createRandomBuffer(Int size)
     {
-        MemBuffer array(size);
-
-        BigInt cnt = 0;
-        for (auto& pair: array)
+        MemBuffer data(size);
+        for (auto& item: data)
         {
-            pair.first = cnt++;
+        	Entry entry;
 
-            if (cnt == 10000) cnt = 0;
+        	entry.key() 	= getRandom(10) + 1;
+        	entry.value() 	= getRandom(100) + 1;
+
+        	item = entry;
         }
 
-        return array;
+        return data;
     }
-
-
-    virtual void compareBuffers(const MemBuffer& src, const MemBuffer& tgt, const char* source)
-    {
-        AssertEQ(source, src.size(), tgt.size(), SBuf()<<"buffer sizes are not equal");
-
-        for (size_t c = 0; c < src.size(); c++)
-        {
-            auto v1 = src[c].first;
-            auto v2 = tgt[c].first;
-
-            AssertEQ(source, v1, v2, [=](){return SBuf()<<"c="<<c;});
-        }
-    }
-
 
     virtual Iterator seek(Ctr& array, BigInt pos)
     {
-        Iterator i = array.Begin();
-
-        for (BigInt c = 0; c < pos; c++)
-        {
-            if (!i.next())
-            {
-                break;
-            }
-        }
-
-//        AssertEQ(MA_SRC, pos, i.iter().keyNum());
-
-        return i;
+        return array.seek(pos);
     }
 
     virtual void insert(Iterator& iter, MemBuffer& data)
     {
-        BigInt size = iter.model().size();
-
-        iter.model().insertBatch(iter, data);
-
-        AssertNEQ(MA_SRC, size, iter.model().size());
-
-        checkSize(iter.model());
+        iter.insert(data);
     }
 
     virtual void read(Iterator& iter, MemBuffer& data)
     {
-        for (auto& value: data)
-        {
-            value.first = iter.rawKey();
-
-            if (!iter.next())
-            {
-                break;
-            }
-        }
+        iter.read(data);
     }
 
-    virtual void remove(Iterator& iter, BigInt size)
-    {
-        auto iter2 = iter;
-        skip(iter2, size);
-        Accumulator keys;
-        iter.model().removeMapEntries(iter, iter2, keys);
+    virtual void remove(Iterator& iter, BigInt size) {
+        iter.removeNext(size);
     }
 
     virtual void skip(Iterator& iter, BigInt offset)
     {
-        if (offset > 0)
-        {
-            Int actual = 0;
-
-            for (BigInt c = 0; c < offset; c++)
-            {
-                actual += iter.next();
-            }
-        }
-        else {
-            Int actual = 0;
-
-            for (BigInt c = 0; c < -offset; c++)
-            {
-                actual += iter.prev();
-            }
-        }
+        iter.skip(offset);
     }
 
     virtual BigInt getPosition(Iterator& iter)
     {
-        return iter.keyNum();
+        return iter.pos();
     }
 
     virtual BigInt getLocalPosition(Iterator& iter)
     {
-        return iter.entry_idx();
+        return iter.key_idx();
     }
 
     virtual BigInt getSize(Ctr& array)
@@ -173,25 +125,26 @@ public:
         return array.size();
     }
 
-    void checkSize(Ctr& array)
-    {
-        BigInt cnt = 0;
-
-        for (auto iter = array.Begin(); iter.isNotEnd(); iter.next())
-        {
-            cnt++;
-        }
-
-        if (cnt != array.size()) {
-            int a = 0; a++;
-        }
-
-        AssertEQ(MA_SRC, cnt, array.size());
+    std::ostream& out() {
+        return Base::out();
     }
 
-    virtual void checkIteratorPrefix(Iterator& iter, const char* source) {}
 
+    virtual void compareBuffers(const MemBuffer& src, const MemBuffer& tgt, const char* source)
+    {
+    	AssertEQ(source, src.size(), tgt.size(), SBuf()<<"buffer sizes are not equal");
+
+    	for (size_t c = 0; c < src.size(); c++)
+    	{
+    		typename MemBuffer::value_type v1 = src[c];
+    		typename MemBuffer::value_type v2 = tgt[c];
+
+    		AssertEQ(source, v1.value(), v2.value(), [=](){return SBuf()<<"c="<<c;});
+    	}
+    }
 };
+
+
 
 }
 

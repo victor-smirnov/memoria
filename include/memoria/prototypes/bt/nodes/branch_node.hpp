@@ -60,6 +60,8 @@ private:
     Int leaf_;
     Int level_;
 
+    ID  next_leaf_id_;
+
     ID  parent_id_;
     Int parent_idx_;
 
@@ -99,6 +101,14 @@ public:
     Int& level()
     {
         return level_;
+    }
+
+    const ID& next_leaf_id() const {
+    	return next_leaf_id_;
+    }
+
+    ID& next_leaf_id() {
+    	return next_leaf_id_;
     }
 
     const ID& parent_id() const
@@ -216,6 +226,10 @@ public:
         handler->value("LEAF",  &leaf_);
         handler->value("LEVEL", &level_);
 
+        IDValue next_id(next_leaf_id_);
+
+        handler->value("NEXT_LEAF_ID_", &next_id);
+
         IDValue parent_id(parent_id_);
         handler->value("PARENT_ID", &parent_id);
         handler->value("PARENT_IDX", &parent_idx_);
@@ -239,6 +253,8 @@ public:
         FieldFactory<Int>::serialize(buf, leaf_);
         FieldFactory<Int>::serialize(buf, level_);
 
+        FieldFactory<ID>::serialize(buf, next_leaf_id_);
+
         FieldFactory<ID>::serialize(buf, parent_id_);
         FieldFactory<Int>::serialize(buf, parent_idx_);
 
@@ -261,6 +277,8 @@ public:
         FieldFactory<Int>::deserialize(buf, leaf_);
         FieldFactory<Int>::deserialize(buf, level_);
 
+        FieldFactory<ID>::deserialize(buf, next_leaf_id_);
+
         FieldFactory<ID>::deserialize(buf, parent_id_);
         FieldFactory<Int>::deserialize(buf, parent_idx_);
 
@@ -282,12 +300,13 @@ public:
 
         this->level()       = page->level();
 
+        this->next_leaf_id() = page->next_leaf_id();
+
         this->parent_id()   = page->parent_id();
         this->parent_idx()  = page->parent_idx();
 
-
-
         //FIXME: copy allocator?
+        //FIXME: copy root metadata ?
     }
 };
 
@@ -1280,9 +1299,9 @@ public:
     }
 
 
-    bool checkCapacities(const Position& pos) const
+    bool checkCapacities(const Position& sizes) const
     {
-        return capacity() >= pos.get();
+        return capacity() >= sizes.get();
     }
 
     struct DumpFn {
@@ -1463,8 +1482,6 @@ public:
             Me* tgt = T2T<Me*>(buffer);
 
             tgt->copyFrom(me);
-//            tgt->init(new_size);
-
             me->transferDataTo(tgt);
 
             tgt->clearUnused();

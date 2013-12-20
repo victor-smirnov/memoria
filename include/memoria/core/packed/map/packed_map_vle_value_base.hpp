@@ -108,19 +108,19 @@ public:
     }
 
     template <typename Entry>
-    void insertValue(Int idx, const Entry& entry)
+    void insertValue(Int idx, const Entry& entry, Int)
     {
         values()->insert(idx, entry.value());
     }
 
 
-    void insertValueSpace(Int room_start, Int room_length)
+    void insertValueSpace(Int room_start, Int room_length, Int)
     {
         values()->insertSpace(room_start, room_length);
     }
 
 
-    void removeValuesSpace(Int room_start, Int room_end)
+    void removeValuesSpace(Int room_start, Int room_end, Int)
     {
         values()->removeSpace(room_start, room_end);
     }

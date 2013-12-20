@@ -933,6 +933,49 @@ public:
         reindex();
     }
 
+    void update(Int idx, Int size, std::function<Values ()> provider)
+    {
+    	Int my_size = this->size();
+
+        MEMORIA_ASSERT(idx + size, <=, my_size);
+
+        Value* values = this->values();
+
+        for (Int c = idx; c < idx + size; c++)
+        {
+            Values vals = provider();
+
+            for (Int block = 0; block < Blocks; block++)
+            {
+                values[block * my_size + c] = vals[block];
+            }
+        }
+
+        reindex();
+    }
+
+    void read(Int idx, Int size, std::function<void (const Values&)> consumer) const
+    {
+    	Int my_size = this->size();
+
+        MEMORIA_ASSERT(idx + size, <=, my_size);
+
+        const Value* values = this->values();
+
+        for (Int c = idx; c < idx + size; c++)
+        {
+            Values vals;
+
+            for (Int block = 0; block < Blocks; block++)
+            {
+                vals[block] = values[block * my_size + c];
+            }
+
+            consumer(vals);
+        }
+    }
+
+
     Int insert(Int idx, std::function<bool (Values&)> provider)
     {
         Values vals;

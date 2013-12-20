@@ -14,6 +14,9 @@
 
 #include <memoria/prototypes/bt/bt_names.hpp>
 
+#include <memoria/core/tools/idata.hpp>
+#include <memoria/core/tools/tuple_dispatcher.hpp>
+
 #include <ostream>
 #include <tuple>
 
@@ -86,6 +89,17 @@ public:
 };
 
 
+template <
+    typename I, typename C
+>
+std::ostream& operator<<(std::ostream& out, const BTreeIteratorCache<I, C>& cache)
+{
+    out<<"BTreeIteratorCache[";
+    out<<"key_num: "<<cache.key_num();
+    out<<"]";
+
+    return out;
+}
 
 
 
@@ -105,9 +119,9 @@ struct TupleDispatcher<std::tuple<Types...>, Index> {
     static const Int SIZE = std::tuple_size<Tuple>::value;
 
     template <typename Fn, typename... Args>
-    static void dispatch(const Tuple& tuple, Fn&& fn, Args... args)
+    static void dispatch(const Tuple& tuple, Fn&& fn, Args&&... args)
     {
-        fn.template operator()<Index>(std::get<SIZE - Index>(tuple), args...);
+        fn.template operator()<SIZE - Index>(std::get<SIZE - Index>(tuple), args...);
         TupleDispatcher<Tuple, Index - 1>::dispatch(tuple, std::move(fn), args...);
     }
 };
@@ -117,7 +131,7 @@ struct TupleDispatcher<std::tuple<Types...>, 0> {
     typedef std::tuple<Types...> Tuple;
 
     template <typename Fn, typename... Args>
-    static void dispatch(const Tuple& tuple, Fn&& fn, Args... args){}
+    static void dispatch(const Tuple& tuple, Fn&& fn, Args&&... args){}
 };
 
 
@@ -425,6 +439,27 @@ struct ExtendIntType<Byte> {
 template <>
 struct ExtendIntType<UByte> {
     typedef Int Type;
+};
+
+
+
+template <typename List> struct StreamSourcePtrListBuilder;
+
+template <typename Head, typename... Tail>
+struct StreamSourcePtrListBuilder<TypeList<Head, Tail...>>
+{
+	typedef typename MergeLists<
+	            IDataSource<Head>*,
+	            typename StreamSourcePtrListBuilder<
+	                TypeList<Tail...>
+	            >::Type
+	>::Result                                                                   Type;
+};
+
+template <>
+struct StreamSourcePtrListBuilder<TypeList<>>
+{
+	using Type = TypeList<>;
 };
 
 

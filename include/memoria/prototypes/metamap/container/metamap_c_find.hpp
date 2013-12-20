@@ -44,6 +44,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrFindName)
         return self().sizes()[0];
     }
 
+
+    Iterator seek(CtrSizeT entry_idx)
+    {
+    	typename Types::template SkipForwardWalker<Types> walker(0, 0, entry_idx);
+    	return self().find0(0, walker);
+    }
+
+
     Iterator find(Key key)
     {
         Iterator iter = self().findGE(0, key, 1);

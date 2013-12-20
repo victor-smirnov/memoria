@@ -48,11 +48,11 @@ public:
 
     void value_init(){}
 
-    void insertValue(Int idx, const Value& value) {}
+    void insertValue(Int idx, const Value& value, Int) {}
 
-    void insertValueSpace(Int room_start, Int room_length) {}
+    void insertValueSpace(Int room_start, Int room_length, Int) {}
 
-    void removeValueSpace(Int room_start, Int room_end) {}
+    void removeValueSpace(Int room_start, Int room_end, Int) {}
 
     void splitValuesTo(MyType* other, Int split_idx, Int size) {}
 

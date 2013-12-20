@@ -46,6 +46,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
 
     typedef typename Types::CtrSizeT                                            CtrSizeT;
 
+    typedef typename Types::Source												Source;
+
 
     static const Int Streams                                                    = Types::Streams;
 
@@ -60,30 +62,36 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
     {
         typedef MyType                      CtrType;
 
-        virtual NonLeafNodeKeyValuePair getKVPair(
-                                            const ID& parent_id,
-                                            Int parent_idx,
-                                            CtrSizeT count,
-                                            Int level
-                                        )                                                       = 0;
+        virtual ~ISubtreeProvider() {}
 
-        virtual CtrSizeT                getTotalKeyCount()                                      = 0;
-        virtual Position                getTotalSize()                                          = 0;
-        virtual Position                getTotalInserted()                                      = 0;
 
-        virtual Position                remainder()                                             = 0;
+        virtual NonLeafNodeKeyValuePair getKVPair(const ID& parent_id, Int parent_idx, CtrSizeT count, Int level) = 0;
 
-        virtual ISubtreeProvider&       getProvider() {return *this;}
+        virtual CtrSizeT            getTotalLeafCount()                          = 0;
+        virtual Position            getTotalSize()                              = 0;
+        virtual Position            getTotalInserted()                          = 0;
 
-        virtual Accumulator insertIntoLeaf(NodeBaseG& leaf)                                             = 0;
-        virtual Accumulator insertIntoLeaf(NodeBaseG& leaf, const Position& from)                       = 0;
-        virtual Accumulator insertIntoLeaf(NodeBaseG& leaf, const Position& from, const Position& size) = 0;
+        virtual Position           	remainder()                                 = 0;
 
-        virtual UBigInt                 getActiveStreams()                                      = 0;
+        virtual ISubtreeProvider&   getProvider() {return *this;}
+
+        virtual NodeBaseG 			createLeaf()								= 0;
+
+        virtual UBigInt             getActiveStreams()                          = 0;
     };
 
-    class AbstractSubtreeProviderBase: public ISubtreeProvider {
 
+    struct ISubtreeLeafProvider: ISubtreeProvider
+    {
+    	virtual Accumulator insertIntoLeaf(NodeBaseG& leaf)                                             = 0;
+    	virtual Accumulator insertIntoLeaf(NodeBaseG& leaf, const Position& from)                       = 0;
+    	virtual Accumulator insertIntoLeaf(NodeBaseG& leaf, const Position& from, const Position& size) = 0;
+    };
+
+
+
+    class AbstractSubtreeProviderBase: public ISubtreeProvider {
+    protected:
         MyType& ctr_;
         UBigInt active_streams_;
 
@@ -128,7 +136,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
 
             if (level > 0)
             {
-                Int max_keys = ctr_.getMaxKeyCountForNode(level == 0, level);
+                Int max_keys 		= ctr_.getMaxKeyCountForNode(level == 0, level);
 
                 NodeBaseG node      = ctr_.createNode1(level, false, false);
                 node->parent_id()   = parent_id;
@@ -147,15 +155,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
                             Int batch_idx = 0;
                             batch_idx < MAX_CHILDREN && c < max_keys && count < total;
                             c++, batch_idx++, local++
-                    )
-                    {
+                    ){
                         children[batch_idx]     =  BuildTree(
                                                         node->id(),
                                                         c,
                                                         count,
                                                         total,
                                                         level - 1
-                                                    );
+                                                   );
 
                         pair.key_count          += children[batch_idx].key_count;
                     }
@@ -175,16 +182,17 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
             }
             else
             {
-                NodeBaseG node = ctr_.createNode1(level, false, true);
+            	NodeBaseG node = this->createLeaf();
 
-                node->parent_id()   = parent_id;
-                node->parent_idx()  = parent_idx;
+            	node->parent_id()   = parent_id;
+            	node->parent_idx()  = parent_idx;
 
-                count++;
-                pair.keys = this->insertIntoLeaf(node);
+            	count++;
+            	pair.keys = ctr_.sums(node);
 
-                pair.value      =  node->id();
-                pair.key_count  += 1;
+            	pair.value      =  node->id();
+            	pair.key_count  += 1;
+
             }
 
             return pair;
@@ -234,11 +242,36 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
     };
 
 
+    class AbstractSubtreeLeafProviderBase: public AbstractSubtreeProviderBase, public ISubtreeLeafProvider {
+    	using ProviderBase = AbstractSubtreeProviderBase;
+
+    public:
+    	AbstractSubtreeLeafProviderBase(MyType& ctr, UBigInt active_streams = -1ull):
+    		AbstractSubtreeProviderBase(ctr, active_streams)
+    {}
+
+    	virtual NodeBaseG createLeaf()
+    	{
+    		NodeBaseG node = this->ctr_.createNode1(0, false, true);
+    		this->insertIntoLeaf(node);
+
+    		return node;
+    	}
+
+    	virtual NonLeafNodeKeyValuePair getKVPair(const ID& parent_id, Int parent_idx, CtrSizeT total, Int level) {
+    		return ProviderBase::getKVPair(parent_id, parent_idx, total, level);
+    	}
+
+    	virtual UBigInt getActiveStreams() {
+    		return ProviderBase::getActiveStreams();
+    	}
+    };
 
 
-    class DefaultSubtreeProvider: public AbstractSubtreeProviderBase {
 
-        typedef AbstractSubtreeProviderBase                 ProviderBase;
+    class DefaultSubtreeProvider: public AbstractSubtreeLeafProviderBase {
+
+        typedef AbstractSubtreeLeafProviderBase                 ProviderBase;
 
         MyType&     ctr_;
         Position    total_;
@@ -254,7 +287,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
             data_source_(data_source)
         {}
 
-        virtual CtrSizeT getTotalKeyCount()
+        virtual CtrSizeT getTotalLeafCount()
         {
             StaticLayoutManager<LeafDispatcher> manager(ctr_.getRootMetadata().page_size());
             return data_source_.getTotalNodes(&manager);
@@ -315,6 +348,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
             }
         };
 
+
+
         virtual Accumulator insertIntoLeaf(NodeBaseG& leaf)
         {
             Position pos;
@@ -333,6 +368,64 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
             return LeafDispatcher::dispatchRtn(leaf, InsertIntoLeafFn(), this, from, size);
         }
     };
+
+
+    class LeafNodeListSubtreeProvider: public AbstractSubtreeProviderBase {
+
+    	typedef AbstractSubtreeProviderBase                 ProviderBase;
+
+    	MyType&     ctr_;
+    	Position    total_sizes_;
+    	Position    inserted_;
+
+    	CtrSizeT	total_leafs_;
+
+    	ID 			list_head_;
+
+
+    public:
+    	LeafNodeListSubtreeProvider(MyType& ctr, const Position& total, CtrSizeT total_leafs, const ID& list_head):
+    		ProviderBase(ctr, total.gtZero()),
+    		ctr_(ctr),
+    		total_sizes_(total),
+    		total_leafs_(total_leafs),
+    		list_head_(list_head)
+    {}
+
+    	virtual CtrSizeT getTotalLeafCount() {
+    		return total_leafs_;
+    	}
+
+    	virtual Position getTotalSize()
+    	{
+    		return total_sizes_;
+    	}
+
+    	virtual Position getTotalInserted()
+    	{
+    		return inserted_;
+    	}
+
+    	virtual Position remainder()
+    	{
+    		return total_sizes_ - inserted_;
+    	}
+
+    	virtual NodeBaseG createLeaf()
+    	{
+    		NodeBaseG next = ctr_.allocator().getPageForUpdate(list_head_, ctr_.name());
+    		list_head_ = next->next_leaf_id();
+
+    		next->next_leaf_id().clear();
+
+    		inserted_ += ctr_.getNodeSizes(next);
+
+    		return next;
+    	}
+    };
+
+
+
 
 
     struct InsertSharedData {
@@ -355,7 +448,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
             provider(provider_),
             start(0),
             end(0),
-            total(provider_.getTotalKeyCount()),
+            total(provider_.getTotalLeafCount()),
             remains(total),
             first_cell_key_count(0),
             active_streams(provider.getActiveStreams())
@@ -374,20 +467,22 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
     void makeRoom(NodeBaseG& node, const Position& start, const Position& count);
     void makeRoom(NodeBaseG& node, Int stream, Int start, Int count);
 
-    Accumulator insertSubtree(NodeBaseG& node, Position& idx, ISubtreeProvider& provider);
+    Accumulator insertSubtree(NodeBaseG& node, Position& idx, ISubtreeLeafProvider& provider);
+
+
+
+    Accumulator insertSource(NodeBaseG& node, Position& idx, Source& source);
+    bool insertToLeaf(NodeBaseG& node, Position& idx, Source& source, Accumulator& sums);
+    std::pair<CtrSizeT, ID> createLeafList(Source& source);
+
+    // These methods have to be defined in actual containers
+    //Accumulator insertSourceToLeaf(NodeBaseG& node, Position& idx, Source& source) {}
+    //Accumulator appendToLeaf(NodeBaseG& node, Position& idx, Source& source) {}
+    //void fillNewLeaf(NodeBaseG& node, Source& source) {}
+
 
 
     void newRootP(NodeBaseG& root);
-
-
-    void insertSubtree(NodeBaseG& node, Int &idx, InsertSharedData& data)
-    {
-        NodeBaseG left_node = node;
-        insertSubtree(left_node, idx, node, idx, 0, data);
-
-        self().addTotalKeyCount(data.provider.getTotalKeyCount());
-    }
-
 
     void insertInternalSubtree(
             NodeBaseG& left_path,
@@ -422,10 +517,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
             return self.splitNonLeafNode(src, tgt, split_at.get());
         }
     }
-
-
-//    MEMORIA_DECLARE_NODE_FN(ForAllIDsFn, forAllValues);
-//    void forAllIDs(const NodeBaseG& node, Int start, Int end, std::function<void (const ID&, Int)> fn) const;
 
     void updateChildren(const NodeBaseG& node);
     void updateChildren(const NodeBaseG& node, Int start);
@@ -463,7 +554,7 @@ MEMORIA_CONTAINER_PART_END
 
 
 M_PARAMS
-typename M_TYPE::Accumulator M_TYPE::insertSubtree(NodeBaseG& leaf, Position& idx, ISubtreeProvider& provider)
+typename M_TYPE::Accumulator M_TYPE::insertSubtree(NodeBaseG& leaf, Position& idx, ISubtreeLeafProvider& provider)
 {
     auto& self = this->self();
 
@@ -522,6 +613,127 @@ typename M_TYPE::Accumulator M_TYPE::insertSubtree(NodeBaseG& leaf, Position& id
 
 
 
+M_PARAMS
+typename M_TYPE::Accumulator M_TYPE::insertSource(NodeBaseG& leaf, Position& idx, Source& source)
+{
+    auto& self = this->self();
+
+    Position sizes = self.getRemainderSize(source);
+
+    UBigInt active_streams = sizes.gtZero();
+
+    Accumulator sums;
+    if (self.insertToLeaf(leaf, idx, source, sums))
+    {
+        self.updateParent(leaf, sums);
+
+        return sums;
+    }
+    else {
+        auto right = leaf;
+
+        if (leaf->is_root())
+        {
+            self.newRootP(leaf);
+        }
+
+        if (!self.isAfterEnd(leaf, idx, active_streams))
+        {
+            right = self.splitLeafP(leaf, idx);
+        }
+
+        Accumulator sums = self.appendToLeaf(leaf, idx, source);
+
+        self.updateParent(leaf, sums);
+
+        Position remainder = self.getRemainderSize(source);
+
+        if (remainder.gtAny(0))
+        {
+            Int path_parent_idx     = leaf->parent_idx() + 1;
+            Int right_parent_idx    = right->parent_idx();
+
+            auto pair = self.createLeafList(source);
+
+            LeafNodeListSubtreeProvider provider(self, remainder, pair.first, pair.second);
+
+            InsertSharedData data(provider);
+
+            NodeBaseG leaf_parent = self.getNodeParentForUpdate(leaf);
+            NodeBaseG right_parent = self.getNodeParentForUpdate(right);
+
+            self.insertInternalSubtree(leaf_parent, path_parent_idx, right_parent, right_parent_idx, data);
+
+            return sums + data.accumulator;
+        }
+        else {
+            return sums;
+        }
+    }
+}
+
+
+M_PARAMS
+bool M_TYPE::insertToLeaf(NodeBaseG& leaf, Position& idx, Source& source, Accumulator& sums)
+{
+	auto& self = this->self();
+
+	Position sizes = self.getRemainderSize(source);
+
+	if (self.checkCapacities(leaf, sizes))
+	{
+		self.updatePageG(leaf);
+		sums = self.insertSourceToLeaf(leaf, idx, source);
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+
+
+
+M_PARAMS
+std::pair<typename M_TYPE::CtrSizeT, typename M_TYPE::ID> M_TYPE::createLeafList(Source& source)
+{
+	auto& self = this->self();
+
+	CtrSizeT 	total 	= 0;
+	NodeBaseG	head;
+	NodeBaseG	current;
+
+	Int page_size = self.getRootMetadata().page_size();
+
+	while (true)
+	{
+		Position remainder = self.getRemainderSize(source);
+
+		if (remainder.gtAny(0))
+		{
+			total++;
+
+			NodeBaseG node = self.createNode1(0, false, true, page_size);
+
+			self.fillNewLeaf(node, source);
+
+			if (head.isSet())
+			{
+				current->next_leaf_id() = node->id();
+				current 				= node;
+			}
+			else {
+				head = current = node;
+			}
+		}
+		else {
+			break;
+		}
+	}
+
+	return std::make_pair(total, head.isSet() ? head->id() : ID(0));
+}
+
 
 
 
@@ -570,18 +782,17 @@ void M_TYPE::insertInternalSubtree(
 
     //FIXME: check node->level() after deletion;
 
-    CtrSizeT subtree_size    = self.getSubtreeSize(left_node->level());
-
-    CtrSizeT key_count       = data.total - data.start - data.end;
+    CtrSizeT subtree_size	= self.getSubtreeSize(left_node->level());
+    CtrSizeT leaf_count     = data.total - data.start - data.end;
 
     if (left_node == right_node)
     {
         Int node_capacity = self.getNonLeafCapacity(left_node, data.active_streams);
 
-        if (key_count <= subtree_size * node_capacity)
+        if (leaf_count <= subtree_size * node_capacity)
         {
             // We have enough free space for all subtrees in the current node
-            CtrSizeT total  = divide(key_count, subtree_size);
+            CtrSizeT total  = divide(leaf_count, subtree_size);
 
             fillNodeLeft(left_node, left_idx, total, data);
 
@@ -608,30 +819,30 @@ void M_TYPE::insertInternalSubtree(
         Int total_capacity  = start_capacity + end_capacity;
 
 
-        CtrSizeT max_key_count = subtree_size * total_capacity;
+        CtrSizeT max_leaf_count = subtree_size * total_capacity;
 
-        if (key_count <= max_key_count)
+        if (leaf_count <= max_leaf_count)
         {
             // Otherwise fill nodes 'equally'. Each node will have almost
             // equal free space after processing.
 
-            CtrSizeT total_keys = divide(key_count, subtree_size);
+            CtrSizeT total_leafs = divide(leaf_count, subtree_size);
 
             Int left_count, right_count;
 
-            if (total_keys <= total_capacity)
+            if (total_leafs <= total_capacity)
             {
                 Int left_usage  = self.getNodeSize(left_node, 0);
                 Int right_usage = self.getNodeSize(right_node, 0);
 
                 if (left_usage < right_usage)
                 {
-                    left_count  = start_capacity > total_keys ? total_keys : start_capacity;
-                    right_count = total_keys - left_count;
+                    left_count  = start_capacity > total_leafs ? total_leafs : start_capacity;
+                    right_count = total_leafs - left_count;
                 }
                 else {
-                    right_count = end_capacity > total_keys ? total_keys : end_capacity;
-                    left_count  = total_keys - right_count;
+                    right_count = end_capacity > total_leafs ? total_leafs : end_capacity;
+                    left_count  = total_leafs - right_count;
                 }
             }
             else {
@@ -687,7 +898,7 @@ void M_TYPE::fillNodeLeft(NodeBaseG& node, Int from, Int count, InsertSharedData
 {
     auto& self = this->self();
 
-    CtrSizeT subtree_size = me()->getSubtreeSize(node->level());
+    CtrSizeT subtree_size = self.getSubtreeSize(node->level());
 
     self.makeRoom(node, Position(from), Position(count));
 
@@ -731,7 +942,7 @@ void M_TYPE::fillNodeLeft(NodeBaseG& node, Int from, Int count, InsertSharedData
 M_PARAMS
 void M_TYPE::prepareNodeFillmentRight(Int level, Int count, InsertSharedData& data)
 {
-    CtrSizeT subtree_size = me()->getSubtreeSize(level);
+	CtrSizeT subtree_size = self().getSubtreeSize(level);
 
     if (level > 0)
     {

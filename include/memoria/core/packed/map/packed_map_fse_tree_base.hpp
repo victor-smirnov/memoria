@@ -134,6 +134,31 @@ public:
         tree()->dump(out);
     }
 
+    // ============================ IO =============================================== //
+
+    template <typename DataSource>
+    void insertTree(DataSource* src, Int idx, Int size)
+    {
+    	tree()->insert(idx, size, [src](){return src->get().indexes();});
+    }
+
+    template <typename DataSource>
+    void updateTree(DataSource* src, Int idx, Int size)
+    {
+    	tree()->update(idx, size, [src](){return src->get().indexes();});
+    }
+
+    template <typename DataTarget>
+    void readTree(DataTarget* tgt, Int idx, Int size) const
+    {
+    	tree()->read(idx, size, [tgt](const Values& values){
+    		auto current = tgt->peek();
+    		current.indexes() = values;
+    		tgt->put(current);
+    	});
+    }
+
+
     // ============================ Serialization ==================================== //
 
     void generateDataEvents(IPageDataEventHandler* handler) const

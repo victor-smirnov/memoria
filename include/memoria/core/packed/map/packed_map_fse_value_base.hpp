@@ -65,10 +65,8 @@ public:
     }
 
     template <typename Entry>
-    void insertValue(Int idx, const Entry& entry)
+    void insertValue(Int idx, const Entry& entry, Int size)
     {
-        Int size = this->size();
-
         Int requested_block_size = (size + 1) * sizeof(Value);
 
         Base::resizeBlock(ARRAY, requested_block_size);
@@ -81,10 +79,8 @@ public:
     }
 
 
-    void insertValuesSpace(Int room_start, Int room_length)
+    void insertValuesSpace(Int room_start, Int room_length, Int size)
     {
-        Int size = this->size();
-
         Int requested_block_size = (size + room_length) * sizeof(Value);
 
         Base::resizeBlock(ARRAY, requested_block_size);
@@ -95,10 +91,8 @@ public:
     }
 
 
-    void removeValuesSpace(Int room_start, Int room_end)
+    void removeValuesSpace(Int room_start, Int room_end, Int old_size)
     {
-        Int old_size = this->size();
-
         Value* values = this->values();
 
         CopyBuffer(values + room_end, values + room_start, old_size - room_end);
@@ -161,6 +155,46 @@ public:
         out<<std::endl;
     }
 
+
+    // ============================ IO =============================================== //
+
+    template <typename DataSource>
+    void insertValues(DataSource* src, SizeT start, Int idx, Int size, Int old_size)
+    {
+    	insertValuesSpace(idx, size, old_size);
+
+    	updateValues(src, start, idx, size);
+    }
+
+
+    template <typename DataSource>
+    void updateValues(DataSource* src, SizeT start, Int idx, Int size)
+    {
+    	src->reset(start);
+
+    	auto* values = this->values();
+
+    	for (Int c = idx; c < idx + size; c++)
+    	{
+    		values[c] = src->get().value();
+    	}
+    }
+
+    template <typename DataTarget>
+    void readValues(DataTarget* tgt, SizeT start, Int idx, Int size) const
+    {
+    	tgt->reset(start);
+
+    	auto* values = this->values();
+
+    	for (Int c = idx; c < idx + size; c++)
+    	{
+    		auto current 	= tgt->peek();
+    		current.value() = values[c];
+
+    		tgt->put(current);
+    	}
+    }
 
     // ============================ Serialization ==================================== //
 

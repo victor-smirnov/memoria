@@ -33,7 +33,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ReadName)
     typedef typename Base::Iterator                                             Iterator;
 
     typedef typename Base::NodeDispatcher                                       NodeDispatcher;
-    typedef typename Base::RootDispatcher                                       RootDispatcher;
     typedef typename Base::LeafDispatcher                                       LeafDispatcher;
     typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
 
@@ -41,13 +40,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ReadName)
 
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
+    typedef typename Types::DataTarget                                          DataTarget;
+    typedef typename Types::CtrSizeT                                            CtrSizeT;
 
+    typedef typename Types::Target                                            	Target;
 
     static const Int Streams                                                    = Types::Streams;
-
-    typedef typename Types::DataTarget                                          DataTarget;
-
-    typedef typename Types::CtrSizeT                                            CtrSizeT;
 
     Position getRemainder(ITarget& target)
     {
@@ -75,6 +73,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ReadName)
         }
 
         return streams;
+    }
+
+    UBigInt getTargetActiveStreams(Target& target)
+    {
+    	return self().getRemainderSize(target).gtZero();
     }
 
     MEMORIA_DECLARE_NODE_FN(ReadFn, read);
@@ -134,6 +137,61 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ReadName)
 
 
 
+    Position readStreams(Iterator& iter, const Position& start, Target& data_target)
+    {
+        auto& self = this->self();
+
+        Position pos = start;
+
+        Position sum;
+        Position len = self.getRemainderSize(data_target);
+
+        while (len.gtAny(0))
+        {
+            Position to_read = self.getNodeSizes(iter.leaf()) - pos;
+
+            for (Int c = 0; c < Streams; c++)
+            {
+                if (to_read[c] > len[c])
+                {
+                    to_read[c] = len[c];
+                }
+            }
+
+            LeafDispatcher::dispatchConst(
+                    iter.leaf(),
+                    ReadFn(),
+                    data_target,
+                    pos,
+                    to_read
+            );
+
+            len     -= to_read;
+            sum     += to_read;
+
+            UBigInt active_streams = getTargetActiveStreams(data_target);
+
+            if (len.gtAny(0))
+            {
+                iter.nextLeafMs(active_streams);
+                pos.clear();
+
+                if (iter.isEnd())
+                {
+                    break;
+                }
+            }
+            else {
+                iter.idx() += to_read[iter.stream()];
+                break;
+            }
+        }
+
+        return sum;
+    }
+
+
+
     CtrSizeT readStream(Iterator& iter, ITarget& data_target)
     {
         MEMORIA_ASSERT(iter.dataPos(), >=, 0);
@@ -169,6 +227,42 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ReadName)
         }
 
         return sum;
+    }
+
+
+    CtrSizeT readStream(Iterator& iter, Target& data_target)
+    {
+    	MEMORIA_ASSERT(iter.idx(), >=, 0);
+
+    	CtrSizeT sum = 0;
+    	CtrSizeT len = self().getRemainderSize(data_target)[iter.stream()];
+
+    	while (len > 0)
+    	{
+    		Int to_read = iter.leaf_size(iter.stream()) - iter.idx();
+
+    		if (to_read > len) to_read = len;
+
+    		LeafDispatcher::dispatchConst(
+    				iter.leaf(),
+    				ReadFn(),
+    				data_target,
+    				Position(iter.idx()),
+    				Position(to_read)
+    		);
+
+    		len     -= to_read;
+    		sum     += to_read;
+
+    		iter.skipFw(to_read);
+
+    		if (iter.isEnd())
+    		{
+    			break;
+    		}
+    	}
+
+    	return sum;
     }
 
 

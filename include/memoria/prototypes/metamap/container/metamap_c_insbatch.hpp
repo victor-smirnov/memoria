@@ -5,23 +5,23 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_CONTAINER_vctr_C_INSERT_HPP
-#define _MEMORIA_CONTAINER_vctr_C_INSERT_HPP
+#ifndef _MEMORIA_PROTOTYPES_METAMAP_CTR_INSBATCH_HPP
+#define _MEMORIA_PROTOTYPES_METAMAP_CTR_INSBATCH_HPP
 
 
-#include <memoria/containers/vector/vctr_names.hpp>
-#include <memoria/containers/vector/vctr_tools.hpp>
+#include <memoria/prototypes/metamap/metamap_names.hpp>
+#include <memoria/prototypes/metamap/metamap_tools.hpp>
 
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
 
-#include <vector>
+
 
 namespace memoria    {
 
-using namespace memoria::bt;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrInsertName)
+
+MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrInsBatchName)
 
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
@@ -33,22 +33,15 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrInsertName)
     typedef typename Base::Iterator                                             Iterator;
 
     typedef typename Base::NodeDispatcher                                       NodeDispatcher;
-    typedef typename Base::RootDispatcher                                       RootDispatcher;
     typedef typename Base::LeafDispatcher                                       LeafDispatcher;
-    typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
-    typedef typename Base::DefaultDispatcher                                    DefaultDispatcher;
-
-    typedef typename Base::Metadata                                             Metadata;
 
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
 
     typedef typename Types::DataSource                                          DataSource;
-    typedef typename Types::DataTarget                                          DataTarget;
 
     typedef typename Types::Source												Source;
     typedef typename Types::CtrSizeT											CtrSizeT;
-    typedef typename Types::Value												Value;
 
     static const Int Streams                                                    = Types::Streams;
 
@@ -69,7 +62,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrInsertName)
 
     	LeafDispatcher::dispatch(leaf, InsertSourceFn(), source, idx, sizes);
 
-    	return Accumulator(sizes);
+    	return self.sums(leaf, idx, idx + sizes);
     }
 
     Accumulator appendToLeaf(NodeBaseG& leaf, const Position& idx, Source& source)
@@ -86,12 +79,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrInsertName)
 
         	LeafDispatcher::dispatch(leaf, InsertSourceFn(), source, idx, length);
 
-        	return Accumulator(length);
+        	return self.sums(leaf, idx, idx + length);
     	}
     	else {
     		LeafDispatcher::dispatch(leaf, InsertSourceFn(), source, idx, remainders);
 
-    		return Accumulator(remainders);
+    		return self.sums(leaf, idx, idx + remainders);
     	}
     }
 
@@ -100,40 +93,41 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrInsertName)
     	appendToLeaf(leaf, Position(0), source);
     }
 
-    void insert(Iterator& iter, DataSource& data);
+    Accumulator insert(Iterator& iter, DataSource& data);
 
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::mvector::CtrInsertName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::metamap::CtrInsBatchName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-void M_TYPE::insert(Iterator& iter, DataSource& data)
+typename M_TYPE::Accumulator M_TYPE::insert(Iterator& iter, DataSource& data)
 {
     auto& self = this->self();
-    auto& ctr  = self;
 
     Position idx(iter.idx());
 
-    if (ctr.isNodeEmpty(iter.leaf()))
+    if (self.isNodeEmpty(iter.leaf()))
     {
-        ctr.layoutLeafNode(iter.leaf(), 0);
+        self.layoutLeafNode(iter.leaf(), Position(0));
     }
 
     Source source(&data);
 
     CtrSizeT inserted = data.getRemainder();
 
-    ctr.insertSource(iter.leaf(), idx, source);
+    Accumulator sums = self.insertSource(iter.leaf(), idx, source);
 
-    ctr.addTotalKeyCount(Position(inserted));
+    self.addTotalKeyCount(Position(inserted));
 
-    if (iter.isEof())
+    if (iter.isEnd())
     {
         iter.nextLeaf();
     }
 
     iter.skipFw(inserted);
+
+    return sums;
 }
 
 

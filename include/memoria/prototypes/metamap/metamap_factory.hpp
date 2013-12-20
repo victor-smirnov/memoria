@@ -9,6 +9,8 @@
 #ifndef _MEMORIA_PROTOTYPES_MAP_FACTORY_HPP
 #define _MEMORIA_PROTOTYPES_MAP_FACTORY_HPP
 
+#include <memoria/core/tools/idata.hpp>
+
 #include <memoria/prototypes/bt/bt_factory.hpp>
 #include <memoria/prototypes/ctr_wrapper/ctrwrapper_factory.hpp>
 
@@ -32,6 +34,7 @@
 #include <memoria/prototypes/metamap/container/metamap_c_nav.hpp>
 #include <memoria/prototypes/metamap/container/metamap_c_remove.hpp>
 #include <memoria/prototypes/metamap/container/metamap_c_find.hpp>
+#include <memoria/prototypes/metamap/container/metamap_c_insbatch.hpp>
 
 #include <memoria/prototypes/metamap/metamap_iterator.hpp>
 #include <memoria/prototypes/metamap/iterator/metamap_i_keys.hpp>
@@ -44,6 +47,8 @@
 #include <memoria/prototypes/metamap/iterator/metamap_i_misc.hpp>
 
 #include <memoria/prototypes/metamap/metamap_names.hpp>
+
+#include <tuple>
 
 namespace memoria {
 
@@ -104,6 +109,12 @@ struct MetaMapBTTypesBase: public BTTypes<Profile, memoria::BT> {
                     HiddenLabelsTuple,
                     LabelsTuple
     >                                                                           Entry;
+
+    typedef IDataSource<Entry>                                                  DataSource;
+    typedef IDataTarget<Entry>                                                  DataTarget;
+
+    typedef std::tuple<DataSource*>												Source;
+    typedef std::tuple<DataTarget*>												Target;
 
     typedef metamap::LabelOffsetProc<LabelsList>                                LabelsOffset;
     typedef metamap::LabelOffsetProc<HiddenLabelsList>                          HiddenLabelsOffset;
@@ -195,7 +206,8 @@ struct BTTypes<Profile, memoria::MetaMap<Indexes_, Key_, Value_, LabelsList, Hid
     typedef typename MergeLists<
                     typename Base::ContainerPartsList,
                     bt::NodeNormName,
-                    metamap::CtrInsertName
+                    metamap::CtrInsertName,
+                    metamap::CtrInsBatchName
     >::Result                                                                   ContainerPartsList;
 
 

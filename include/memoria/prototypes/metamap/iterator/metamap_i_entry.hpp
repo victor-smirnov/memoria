@@ -35,8 +35,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrEntryName)
     typedef typename Container::Key                                             Key;
     typedef typename Container::Accumulator                                     Accumulator;
 
-
     typedef typename Container::Types::Pages::LeafDispatcher                    LeafDispatcher;
+    typedef typename Container::Types::CtrSizeT                    				CtrSizeT;
+    typedef typename Container::Types::Target                    				Target;
+    typedef typename Container::Types::Position                    				Position;
 
 
     struct GetEntryFn: bt1::RtnNodeWalkerBase<GetEntryFn, Entry> {
@@ -128,6 +130,26 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrEntryName)
         self.ctr().insertEntry(self, entry);
     }
 
+    Accumulator insert(const vector<Entry>& entries)
+    {
+    	auto& self = this->self();
+
+    	MemBuffer<const Entry> buf(entries);
+
+    	return self.ctr().insert(self, buf);
+    }
+
+    CtrSizeT read(vector<Entry>& entries)
+    {
+    	auto& self = this->self();
+
+    	MemBuffer<Entry> buf(entries);
+
+    	Target target(&buf);
+
+    	return self.ctr().readStream(self, target);
+    }
+
 
     void remove(bool adjust_next_entry = true)
     {
@@ -140,6 +162,18 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrEntryName)
     void removeTo(MyType& to, bool adjust_next_entry = true)
     {
         auto& self = this->self();
+
+        Accumulator keys;
+        self.ctr().removeMapEntries(self, to, keys, adjust_next_entry);
+    }
+
+    void removeNext(CtrSizeT size, bool adjust_next_entry = true)
+    {
+        auto& self = this->self();
+
+        auto to = self;
+
+        to.skipFw(size);
 
         Accumulator keys;
         self.ctr().removeMapEntries(self, to, keys, adjust_next_entry);
