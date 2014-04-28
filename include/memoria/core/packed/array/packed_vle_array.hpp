@@ -1139,6 +1139,19 @@ public:
     // ==================================== IO ============================================= //
 
 
+    static Int computeDataLength(const Values& values)
+    {
+    	Codec codec;
+    	Int length = 0;
+
+    	for (Int c = 0; c < Blocks; c++)
+    	{
+    		length += codec.length(values[c]);
+    	}
+
+    	return length;
+    }
+
 
     void insert(Int idx, Int length, std::function<Values ()> provider)
     {
@@ -1257,6 +1270,13 @@ public:
         insert(data, pos, length);
     }
 
+    void update(Int start, Int end, std::function<Values ()> provider)
+    {
+    	remove(start, end);
+    	insert(start, end - start, provider);
+    }
+
+
     void read(IData* data, Int pos, Int length)
     {
         IDataTarget<Values>* tgt = static_cast<IDataTarget<Values>*>(data);
@@ -1308,6 +1328,37 @@ public:
             }
         }
     }
+
+
+    void read(Int start, Int end, std::function<void (const Values&)> consumer) const
+    {
+    	MEMORIA_ASSERT(start, >=, 0);
+    	MEMORIA_ASSERT(start, <=, end);
+    	MEMORIA_ASSERT(end, <=, size());
+
+    	Values values[IOBatchSize];
+
+    	Int to_read	= end - start;
+    	Int pos		= start;
+
+    	while (to_read > 0)
+    	{
+    		SizeT batch_size    = to_read > IOBatchSize ? IOBatchSize : to_read;
+
+    		readData(values, pos, batch_size);
+
+    		for (Int c = 0; c < batch_size; c++)
+    		{
+    			consumer(values[c]);
+    		}
+
+    		pos     += batch_size;
+    		to_read -= batch_size;
+    	}
+    }
+
+
+
 
     // ==================================== Sum ============================================ //
 
@@ -1796,7 +1847,7 @@ private:
         reindex();
     }
 
-    void readData(Values* values, Int pos, Int processed)
+    void readData(Values* values, Int pos, Int processed) const
     {
         Codec codec;
 

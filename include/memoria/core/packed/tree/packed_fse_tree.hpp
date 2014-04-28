@@ -933,15 +933,16 @@ public:
         reindex();
     }
 
-    void update(Int idx, Int size, std::function<Values ()> provider)
+    void update(Int start, Int end, std::function<Values ()> provider)
     {
     	Int my_size = this->size();
 
-        MEMORIA_ASSERT(idx + size, <=, my_size);
+    	MEMORIA_ASSERT(start, >=, 0);
+        MEMORIA_ASSERT(start, <=, end);
 
         Value* values = this->values();
 
-        for (Int c = idx; c < idx + size; c++)
+        for (Int c = start; c < end; c++)
         {
             Values vals = provider();
 
@@ -954,15 +955,17 @@ public:
         reindex();
     }
 
-    void read(Int idx, Int size, std::function<void (const Values&)> consumer) const
+    void read(Int start, Int end, std::function<void (const Values&)> consumer) const
     {
     	Int my_size = this->size();
 
-        MEMORIA_ASSERT(idx + size, <=, my_size);
+    	MEMORIA_ASSERT(start, >=, 0);
+        MEMORIA_ASSERT(start, <=, end);
+        MEMORIA_ASSERT(end, <=, my_size);
 
         const Value* values = this->values();
 
-        for (Int c = idx; c < idx + size; c++)
+        for (Int c = start; c < end; c++)
         {
             Values vals;
 
@@ -1152,6 +1155,11 @@ public:
 
 
     // ===================================== IO ============================================ //
+
+    static Int computeDataLength(const Values& values)
+    {
+    	return Blocks;
+    }
 
 
     void insert(IData* data, Int pos, Int length)

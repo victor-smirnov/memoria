@@ -67,7 +67,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
 
         virtual NonLeafNodeKeyValuePair getKVPair(const ID& parent_id, Int parent_idx, CtrSizeT count, Int level) = 0;
 
-        virtual CtrSizeT            getTotalLeafCount()                          = 0;
+        virtual CtrSizeT            getTotalLeafCount()                         = 0;
         virtual Position            getTotalSize()                              = 0;
         virtual Position            getTotalInserted()                          = 0;
 
@@ -78,6 +78,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
         virtual NodeBaseG 			createLeaf()								= 0;
 
         virtual UBigInt             getActiveStreams()                          = 0;
+
+        virtual ID					getSavePoint()								= 0;
+        virtual void				reset(const ID& save_point)					= 0;
     };
 
 
@@ -239,6 +242,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
             SetNodeValuesFn<PairType> fn(data, start, count);
             NonLeafDispatcher::dispatch(node, fn);
         }
+
+        virtual ID getSavePoint() {return ID(0);}
+
+        virtual void reset(const ID& save_point)
+        {
+        	throw Exception(MA_SRC, "This type of subtree providers doesn't support savepoints");
+        }
     };
 
 
@@ -271,7 +281,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
 
     class DefaultSubtreeProvider: public AbstractSubtreeLeafProviderBase {
 
-        typedef AbstractSubtreeLeafProviderBase                 ProviderBase;
+        typedef AbstractSubtreeLeafProviderBase                 				ProviderBase;
 
         MyType&     ctr_;
         Position    total_;
@@ -414,14 +424,24 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
     	virtual NodeBaseG createLeaf()
     	{
     		NodeBaseG next = ctr_.allocator().getPageForUpdate(list_head_, ctr_.name());
-    		list_head_ = next->next_leaf_id();
 
-    		next->next_leaf_id().clear();
+    		list_head_ = next->next_leaf_id();
 
     		inserted_ += ctr_.getNodeSizes(next);
 
     		return next;
     	}
+
+
+        virtual ID getSavePoint()
+        {
+        	return list_head_;
+        }
+
+        virtual void reset(const ID& save_point)
+        {
+        	list_head_ = save_point;
+        }
     };
 
 
@@ -472,14 +492,19 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
 
 
     Accumulator insertSource(NodeBaseG& node, Position& idx, Source& source);
-    bool insertToLeaf(NodeBaseG& node, Position& idx, Source& source, Accumulator& sums);
+
     std::pair<CtrSizeT, ID> createLeafList(Source& source);
+
+
 
     // These methods have to be defined in actual containers
     //Accumulator insertSourceToLeaf(NodeBaseG& node, Position& idx, Source& source) {}
     //Accumulator appendToLeaf(NodeBaseG& node, Position& idx, Source& source) {}
     //void fillNewLeaf(NodeBaseG& node, Source& source) {}
 
+    // This method is defined in bt_c_nodenorm.hpp and bt_c_nodecompr.hpp for ordinary and
+    // compressed containers respectively
+    // bool insertToLeaf(NodeBaseG& node, Position& idx, Source& source, Accumulator& sums);
 
 
     void newRootP(NodeBaseG& root);
@@ -671,27 +696,6 @@ typename M_TYPE::Accumulator M_TYPE::insertSource(NodeBaseG& leaf, Position& idx
         }
     }
 }
-
-
-M_PARAMS
-bool M_TYPE::insertToLeaf(NodeBaseG& leaf, Position& idx, Source& source, Accumulator& sums)
-{
-	auto& self = this->self();
-
-	Position sizes = self.getRemainderSize(source);
-
-	if (self.checkCapacities(leaf, sizes))
-	{
-		self.updatePageG(leaf);
-		sums = self.insertSourceToLeaf(leaf, idx, source);
-		return true;
-	}
-	else {
-		return false;
-	}
-}
-
-
 
 
 M_PARAMS
@@ -977,7 +981,7 @@ void M_TYPE::makeRoom(NodeBaseG& node, const Position& start, const Position& co
 
     self.updatePageG(node);
 
-    NodeDispatcher::dispatch(node, MakeRoomFn(), start, count);
+    NonLeafDispatcher::dispatch(node, MakeRoomFn(), start, count);
 
     if (!node->is_leaf())
     {
@@ -993,7 +997,7 @@ void M_TYPE::makeRoom(NodeBaseG& node, Int stream, Int start, Int count)
         auto& self = this->self();
 
         self.updatePageG(node);
-        NodeDispatcher::dispatch(node, MakeRoomFn(), stream, start, count);
+        NonLeafDispatcher::dispatch(node, MakeRoomFn(), stream, start, count);
 
         if (!node->is_leaf())
         {

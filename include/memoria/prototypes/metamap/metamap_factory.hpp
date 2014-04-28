@@ -35,6 +35,7 @@
 #include <memoria/prototypes/metamap/container/metamap_c_remove.hpp>
 #include <memoria/prototypes/metamap/container/metamap_c_find.hpp>
 #include <memoria/prototypes/metamap/container/metamap_c_insbatch.hpp>
+#include <memoria/prototypes/metamap/container/metamap_c_insbatch_compr.hpp>
 
 #include <memoria/prototypes/metamap/metamap_iterator.hpp>
 #include <memoria/prototypes/metamap/iterator/metamap_i_keys.hpp>
@@ -115,6 +116,14 @@ struct MetaMapBTTypesBase: public BTTypes<Profile, memoria::BT> {
 
     typedef std::tuple<DataSource*>												Source;
     typedef std::tuple<DataTarget*>												Target;
+
+    typedef std::tuple <
+    			std::pair<float, float>
+    >																			Entropy;
+
+    typedef typename bt::TupleBuilder<
+    	typename bt::SameTypeListBuilder<Int, 2 + Labels + HiddenLabels>::Type
+    >::Type																		EntrySizes;
 
     typedef metamap::LabelOffsetProc<LabelsList>                                LabelsOffset;
     typedef metamap::LabelOffsetProc<HiddenLabelsList>                          HiddenLabelsOffset;
@@ -237,7 +246,8 @@ struct BTTypes<Profile, memoria::MetaMap<Indexes_, VLen<gr, Key_>, Value_, Label
     typedef typename MergeLists<
                     typename Base::ContainerPartsList,
                     bt::NodeComprName,
-                    metamap::CtrInsertComprName
+                    metamap::CtrInsertComprName,
+                    metamap::CtrInsBatchComprName
     >::Result                                                                   ContainerPartsList;
 
 
@@ -268,7 +278,8 @@ struct BTTypes<Profile, memoria::MetaMap<Indexes_, Key_, VLen<gr, Value_>, Label
     typedef typename MergeLists<
                     typename Base::ContainerPartsList,
                     bt::NodeComprName,
-                    metamap::CtrInsertComprName
+                    metamap::CtrInsertComprName,
+                    metamap::CtrInsBatchComprName
     >::Result                                                                   ContainerPartsList;
 
 
@@ -300,7 +311,8 @@ struct BTTypes<Profile, memoria::MetaMap<Indexes_, VLen<gr1, Key_>, VLen<gr2, Va
     typedef typename MergeLists<
                     typename Base::ContainerPartsList,
                     bt::NodeComprName,
-                    metamap::CtrInsertComprName
+                    metamap::CtrInsertComprName,
+                    metamap::CtrInsBatchComprName
     >::Result                                                                   ContainerPartsList;
 
 

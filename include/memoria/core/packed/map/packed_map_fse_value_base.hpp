@@ -25,7 +25,8 @@ public:
     typedef Value_                                                              Value;
 
 
-    static const Int ARRAY = Blocks + ListSize<HiddenLabels>::Value + ListSize<Labels>::Value;
+    static const Int TotalLabels 	= ListSize<HiddenLabels>::Value + ListSize<Labels>::Value;
+    static const Int ARRAY 			= Blocks + TotalLabels;
 
     static const bool HasValue                                                  = true;
 
@@ -158,36 +159,44 @@ public:
 
     // ============================ IO =============================================== //
 
-    template <typename DataSource>
-    void insertValues(DataSource* src, SizeT start, Int idx, Int size, Int old_size)
-    {
-    	insertValuesSpace(idx, size, old_size);
 
-    	updateValues(src, start, idx, size);
+    template <typename Entry, typename Lengths>
+    static void computeValueEntryDataLength(const Entry& entry, Lengths& lengths)
+    {
+    	std::get<1 + TotalLabels>(lengths)++;
     }
 
 
     template <typename DataSource>
-    void updateValues(DataSource* src, SizeT start, Int idx, Int size)
+    void insertValues(DataSource* src, SizeT pos, Int start, Int size, Int old_size)
     {
-    	src->reset(start);
+    	insertValuesSpace(start, size, old_size);
+
+    	updateValues(src, pos, start, start + size);
+    }
+
+
+    template <typename DataSource>
+    void updateValues(DataSource* src, SizeT pos, Int start, Int end)
+    {
+    	src->reset(pos);
 
     	auto* values = this->values();
 
-    	for (Int c = idx; c < idx + size; c++)
+    	for (Int c = start; c < end; c++)
     	{
     		values[c] = src->get().value();
     	}
     }
 
     template <typename DataTarget>
-    void readValues(DataTarget* tgt, SizeT start, Int idx, Int size) const
+    void readValues(DataTarget* tgt, SizeT pos, Int start, Int end) const
     {
-    	tgt->reset(start);
+    	tgt->reset(pos);
 
     	auto* values = this->values();
 
-    	for (Int c = idx; c < idx + size; c++)
+    	for (Int c = start; c < end; c++)
     	{
     		auto current 	= tgt->peek();
     		current.value() = values[c];

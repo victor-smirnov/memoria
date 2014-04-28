@@ -89,6 +89,14 @@ public:
         Base::template allocateEmpty<Tree>(TREE);
     }
 
+
+    template <typename Lengths, typename Entry>
+    static void computeTreeEntryDataLength(const Entry& entry, Lengths& lengths)
+    {
+    	std::get<0>(lengths) += Tree::computeDataLength(entry.indexes());
+    }
+
+
     template <typename Entry, typename MapSums>
     void insertTree(Int idx, const Entry& entry, MapSums& sums)
     {
@@ -143,17 +151,17 @@ public:
     }
 
     template <typename DataSource>
-    void updateTree(DataSource* src, Int idx, Int size)
+    void updateTree(DataSource* src, Int start, Int end)
     {
-    	tree()->update(idx, size, [src](){return src->get().indexes();});
+    	tree()->update(start, end, [src](){return src->get().indexes();});
     }
 
     template <typename DataTarget>
-    void readTree(DataTarget* tgt, Int idx, Int size) const
+    void readTree(DataTarget* tgt, Int start, Int end) const
     {
-    	tree()->read(idx, size, [tgt](const Values& values){
-    		auto current = tgt->peek();
-    		current.indexes() = values;
+    	tree()->read(start, end, [tgt](const Values& values) {
+    		auto current 		= tgt->peek();
+    		current.indexes() 	= values;
     		tgt->put(current);
     	});
     }

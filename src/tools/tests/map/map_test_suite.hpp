@@ -32,7 +32,9 @@ public:
         registerTask(new MapApiTest<Map<BigInt, BigInt>>("Map.Api"));
         registerTask(new MapApiTest<CMap<Granularity::Byte>>("CMap.Api"));
 
-        registerTask(new MapBatchTest<Map<BigInt, BigInt>>("MapBatch"));
+        registerTask(new MapBatchTest<Map<BigInt, BigInt>>("Batch.Map"));
+        registerTask(new MapBatchTest<CMap<Granularity::Byte>>("Batch.CMap"));
+        registerTask(new MapBatchTest<CCMap<Granularity::Byte>>("Batch.CCMap"));
 
 //      registerTask(new MapCreateTest<SMrkMap<BigInt, BigInt, 1>>("SMrkMap.Create"));
 //      registerTask(new MapRemoveTest<SMrkMap<BigInt, BigInt, 1>>("SMrkMap.Remove"));

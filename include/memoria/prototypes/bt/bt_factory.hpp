@@ -134,6 +134,8 @@ struct BTTypes {
     typedef EmptyType															Source;
     typedef EmptyType															Target;
 
+    typedef EmptyType															Entropy;
+
 
     template <typename Types>
     using SkipForwardWalker                 = TypeIsNotDefined;

@@ -51,6 +51,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
     typedef typename Types::Source												Source;
     typedef typename Types::Target												Target;
+    typedef typename Types::Entropy												Entropy;
 
     static const Int Streams                                                    = Types::Streams;
 
@@ -478,6 +479,26 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     	TupleDispatcher<Target>::dispatch(target, GetRemainderSize(), pos);
 
     	return pos;
+    }
+
+
+    MEMORIA_DECLARE_NODE_FN_RTN(EstimateEntropy, estimateEntropy, bool);
+    Entropy estimateLeafEntropy(const NodeBaseG& node, const Position& start, const Position& end)
+    {
+    	Entropy entropy;
+
+    	LeafDispatcher::dispatchConst(node, EstimateEntropy(), entropy, start, end);
+
+    	return entropy;
+    }
+
+    Entropy estimateLeafEntropy(const NodeBaseG& node)
+    {
+    	Entropy entropy;
+
+    	LeafDispatcher::dispatchConst(node, EstimateEntropy(), entropy);
+
+    	return entropy;
     }
 
 

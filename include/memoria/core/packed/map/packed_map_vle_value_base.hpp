@@ -65,19 +65,22 @@ class PackedMapValueBase<Blocks, Key, VLen<gr, ValueType>, HiddenLabels, Labels>
 public:
     typedef PackedMapValueBase<Blocks, Key, VLen<gr, ValueType>, HiddenLabels, Labels>  MyType;
 
-    typedef typename memoria::internal::VLEArrayTF<gr, ValueType>                       Values;
+    typedef typename memoria::internal::VLEArrayTF<gr, ValueType>::Type         		Values;
+    typedef typename Values::Values         											VValues;
     typedef ValueType                                                                   Value;
 
-    static const Int ARRAY = Blocks + ListSize<HiddenLabels>::Value + ListSize<Labels>::Value;
+    static const Int TotalLabels = ListSize<HiddenLabels>::Value + ListSize<Labels>::Value;
+
+    static const Int ARRAY = Blocks + TotalLabels;
 
     static const bool HasValue                                                          = true;
 
     Values* values() {
-        return Base::template get<Value>(ARRAY);
+        return Base::template get<Values>(ARRAY);
     }
 
     const Values* values() const {
-        return Base::template get<Value>(ARRAY);
+        return Base::template get<Values>(ARRAY);
     }
 
     typename Values::ValueAccessor value(Int idx)
@@ -97,14 +100,14 @@ public:
 
     static Int value_block_size(Int size)
     {
-        Int block_size = Values::packed_block_size(size);
+        Int block_size = Values::estimate_block_size(size);
         return block_size;
     }
 
 
     void value_init()
     {
-        PackedAllocator::template allocateEmpty<Value>(ARRAY);
+        PackedAllocator::template allocateEmpty<Values>(ARRAY);
     }
 
     template <typename Entry>
@@ -162,6 +165,52 @@ public:
         }
 
         out<<std::endl;
+    }
+
+
+
+    // ============================ IO =============================================== //
+
+
+    template <typename Entry, typename Lengths>
+    static void computeValueEntryDataLength(const Entry& entry, Lengths& lengths)
+    {
+    	std::get<1 + TotalLabels>(lengths) += Values::computeDataLength(VValues(entry.value()));
+    }
+
+
+    template <typename DataSource>
+    void insertValues(DataSource* src, SizeT pos, Int start, Int size, Int old_size)
+    {
+    	src->reset(pos);
+
+    	values()->insert(start, size, [src]() {
+    		return VValues(src->get().value());
+    	});
+    }
+
+
+    template <typename DataSource>
+    void updateValues(DataSource* src, SizeT pos, Int start, Int end)
+    {
+    	src->reset(pos);
+
+    	values()->update(start, end, [src]() {
+    		return VValues(src->get().value());
+    	});
+    }
+
+    template <typename DataTarget>
+    void readValues(DataTarget* tgt, SizeT pos, Int start, Int end) const
+    {
+    	tgt->reset(pos);
+
+    	values()->read(start, end, [=](const typename Values::Values& value) {
+    		auto current 	= tgt->peek();
+    		current.value() = value.get();
+
+    		tgt->put(current);
+    	});
     }
 
 

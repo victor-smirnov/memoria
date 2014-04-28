@@ -65,7 +65,15 @@ public:
     void dumpValues(std::ostream& out = std::cout) const {}
 
 
+    // ================================== IO ========================================= //
+
+    template <typename Lengths, typename Entry>
+    static void computeValueEntryDataLength(const Entry& entry, Lengths& lengths) const
+    {}
+
     // ============================ Serialization ==================================== //
+
+
 
 
     void generateDataEvents(IPageDataEventHandler* handler) const

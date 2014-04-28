@@ -155,14 +155,14 @@ public:
 
 
 
-    void insertSpace(Int room_start, Int room_length)
-    {
-    	Int size = this->size();
-
-    	Base::insertTreeSpace(room_start, room_length);
-        Base::insertLabelsSpace(room_start, room_length);
-        Base::insertValuesSpace(room_start, room_length, size);
-    }
+//    void insertSpace(Int room_start, Int room_length)
+//    {
+//    	Int size = this->size();
+//
+//    	Base::insertTreeSpace(room_start, room_length);
+//        Base::insertLabelsSpace(room_start, room_length);
+//        Base::insertValuesSpace(room_start, room_length, size);
+//    }
 
 
     void removeSpace(Int room_start, Int room_end)
@@ -354,6 +354,22 @@ public:
 
     // ============================ IO =============================================== //
 
+
+    template <typename Entropy>
+    void estimateEntropy(Entropy& entropy, Int start, Int end) const
+    {
+
+    }
+
+    template <typename Lengths, typename Entry>
+    static void computeDataLength(const Entry& entry, Lengths& lengths)
+    {
+    	Base::computeTreeEntryDataLength(entry,   lengths);
+    	Base::computeLabelsEntryDataLength(entry, lengths);
+    	Base::computeValueEntryDataLength(entry,  lengths);
+    }
+
+
     template <typename DataSource>
     void insert(DataSource* src, Int idx, Int size)
     {
@@ -366,26 +382,26 @@ public:
     	this->insertValues(src, pos, idx, size, old_size);
     }
 
-    template <typename DataTarget>
-    void read(DataTarget* src, Int idx, Int size) const
+    template <typename DataSource>
+    void update(DataSource* src, Int start, Int end)
     {
     	auto pos = src->getStart();
 
-    	this->readTree(src, idx, size);
+    	this->updateTree(src, start, end);
 
-    	this->readLabels(src, pos, idx, size);
-    	this->readValues(src, pos, idx, size);
+    	this->updateLabels(src, pos, start, end);
+    	this->updateValues(src, pos, start, end);
     }
 
-    template <typename DataSource>
-    void update(DataSource* src, Int idx, Int size)
+    template <typename DataTarget>
+    void read(DataTarget* src, Int start, Int end) const
     {
     	auto pos = src->getStart();
 
-    	this->updateTree(src, idx, size);
+    	this->readTree(src, start, end);
 
-    	this->updateLabels(src, pos, idx, size);
-    	this->updateValues(src, pos, idx, size);
+    	this->readLabels(src, pos, start, end);
+    	this->readValues(src, pos, start, end);
     }
 
 

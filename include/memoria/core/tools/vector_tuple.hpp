@@ -143,6 +143,21 @@ struct OstreamFn {
 };
 
 
+
+
+template <typename ElementType_, Int Indexes_>
+void Clear(core::StaticVector<ElementType_, Indexes_>& v)
+{
+	v.clear();
+}
+
+template <typename T>
+void Clear(T& t) {
+	t = 0;
+}
+
+
+
 template <typename... Args>
 struct ClearFn {
     typedef std::tuple<Args...> Tuple;
@@ -153,7 +168,7 @@ struct ClearFn {
     template <Int Idx>
     void operator()()
     {
-        get<Idx>(obj_).clear();
+        Clear(get<Idx>(obj_));
     }
 };
 
@@ -204,6 +219,9 @@ void Clear(std::tuple<Types...>& obj)
 {
     memoria::internal::DoRecursive<sizeof...(Types)>::process(memoria::internal::ClearFn<Types...>(obj));
 }
+
+
+
 
 
 }

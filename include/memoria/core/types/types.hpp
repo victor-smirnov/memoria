@@ -224,6 +224,9 @@ struct VLen {};
 template <Granularity gr = Granularity::Byte>
 using CMap = Map<VLen<gr>, BigInt>;
 
+template <Granularity gr = Granularity::Byte>
+using CCMap = Map<VLen<gr>, VLen<gr>>;
+
 // A map with marked K/V pairs
 template <typename Key, typename Value, Int BitsPerMark = 1>
 struct MrkMap       {};

@@ -47,11 +47,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::NodeNormName)
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
     typedef std::function<Accumulator (NodeBaseG&, NodeBaseG&)>                 SplitFn;
+    typedef std::function<void (const Position&, Int)>                          MergeFn;
+
+    typedef typename Types::Source                                       		Source;
 
 
     static const Int Streams                                                    = Types::Streams;
 
-    typedef std::function<void (const Position&, Int)>                          MergeFn;
+
 
     void insertNonLeafP(NodeBaseG& node, Int idx, const Accumulator& keys, const ID& id);
 
@@ -94,12 +97,33 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::NodeNormName)
     bool mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&, Int){});
     bool mergeCurrentBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&, Int){});
 
+    bool insertToLeaf(NodeBaseG& leaf, Position& idx, Source& source, Accumulator& sums);
+
 
 MEMORIA_CONTAINER_PART_END
 
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bt::NodeNormName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+
+M_PARAMS
+bool M_TYPE::insertToLeaf(NodeBaseG& leaf, Position& idx, Source& source, Accumulator& sums)
+{
+	auto& self = this->self();
+
+	Position sizes = self.getRemainderSize(source);
+
+	if (self.checkCapacities(leaf, sizes))
+	{
+		self.updatePageG(leaf);
+		sums = self.insertSourceToLeaf(leaf, idx, source);
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
 
 
 

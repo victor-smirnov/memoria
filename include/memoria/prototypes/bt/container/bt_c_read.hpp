@@ -248,7 +248,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ReadName)
     				ReadFn(),
     				data_target,
     				Position(iter.idx()),
-    				Position(to_read)
+    				Position(iter.idx() + to_read)
     		);
 
     		len     -= to_read;

@@ -1208,6 +1208,51 @@ public:
     // ==================================== IO ============================================= //
 
 
+    static Int computeDataLength(const Values& values)
+    {
+    	Codec codec;
+    	Int length = 0;
+
+    	for (Int c = 0; c < Blocks; c++)
+    	{
+    		length += codec.length(values[c]);
+    	}
+
+    	return length;
+    }
+
+    float estimateEntropy(Int start, Int end) const
+    {
+    	MEMORIA_ASSERT(start, >=, 0);
+    	MEMORIA_ASSERT(start, <, end);
+    	MEMORIA_ASSERT(end, <=, size());
+
+    	float total_length 	= 0;
+    	float total_count 	= (end - start) * Blocks;
+
+    	for (Int c = 0; c < Blocks; c++)
+    	{
+    		Int start_idx 	= this->value_offset(start);
+    		Int end_idx 	= this->value_offset(end);
+
+    		total_length += (end_idx - start_idx);
+    	}
+
+    	return total_length / total_count;
+    }
+
+    float estimateEntropy() const
+    {
+    	Int total_count = size() * Blocks;
+
+    	Int start_idx 	= 0;
+    	Int end_idx 	= this->value_offset(total_count);
+
+    	float total_length = (end_idx - start_idx);
+
+    	return total_length / total_count;
+    }
+
 
     void insert(Int idx, Int length, std::function<Values ()> provider)
     {
@@ -1230,6 +1275,14 @@ public:
             to_write_local  -= batch_size;
         }
     }
+
+
+    void update(Int start, Int end, std::function<Values ()> provider)
+    {
+    	remove(start, end);
+    	insert(start, end - start, provider);
+    }
+
 
     Int insert(Int idx, std::function<bool (Values&)> provider)
     {
@@ -1353,6 +1406,10 @@ public:
         insert(data, pos, length);
     }
 
+
+
+
+
     void read(IData* data, Int pos, Int length)
     {
         IDataTarget<Values>* tgt = static_cast<IDataTarget<Values>*>(data);
@@ -1404,6 +1461,37 @@ public:
             }
         }
     }
+
+
+
+    void read(Int start, Int end, std::function<void (const Values&)> consumer) const
+    {
+    	MEMORIA_ASSERT(start, >=, 0);
+    	MEMORIA_ASSERT(start, <=, end);
+    	MEMORIA_ASSERT(end, <=, size());
+
+    	Values values[IOBatchSize];
+
+    	Int to_read	= end - start;
+    	Int pos		= start;
+
+    	while (to_read > 0)
+    	{
+    		SizeT batch_size    = to_read > IOBatchSize ? IOBatchSize : to_read;
+
+    		readData(values, pos, batch_size);
+
+    		for (Int c = 0; c < batch_size; c++)
+    		{
+    			consumer(values[c]);
+    		}
+
+    		pos     += batch_size;
+    		to_read -= batch_size;
+    	}
+    }
+
+
 
     // ==================================== Sum ============================================ //
 
@@ -2184,7 +2272,7 @@ private:
         }
     }
 
-    void readData(Values* values, Int pos, Int processed)
+    void readData(Values* values, Int pos, Int processed) const
     {
         Codec codec;
 

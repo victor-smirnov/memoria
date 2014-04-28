@@ -97,7 +97,7 @@ public:
 
     static Int tree_block_size(Int size)
     {
-        Int tree_block_size = Tree::packed_block_size(size);
+        Int tree_block_size = Tree::estimate_block_size(size);
         return tree_block_size;
     }
 
@@ -106,6 +106,15 @@ public:
     {
         Base::template allocateEmpty<Tree>(TREE);
     }
+
+
+    template <typename Lenghts, typename Entry>
+    static void computeTreeEntryDataLength(const Entry& entry, Lenghts& lengths)
+    {
+    	std::get<0>(lengths) += Tree::computeDataLength(entry.indexes());
+    }
+
+
 
     template <typename Entry, typename MapSums>
     void insertTree(Int idx, const Entry& entry, MapSums& sums)
@@ -150,6 +159,32 @@ public:
     void dumpTree(std::ostream& out = std::cout) const
     {
         tree()->dump(out);
+    }
+
+
+
+    // ============================ IO =============================================== //
+
+    template <typename DataSource>
+    void insertTree(DataSource* src, Int idx, Int size)
+    {
+    	tree()->insert(idx, size, [src](){return src->get().indexes();});
+    }
+
+    template <typename DataSource>
+    void updateTree(DataSource* src, Int start, Int end)
+    {
+    	tree()->update(start, end, [src](){return src->get().indexes();});
+    }
+
+    template <typename DataTarget>
+    void readTree(DataTarget* tgt, Int start, Int end) const
+    {
+    	tree()->read(start, end, [tgt](const Values& values) {
+    		auto current 		= tgt->peek();
+    		current.indexes() 	= values;
+    		tgt->put(current);
+    	});
     }
 
     // ============================ Serialization ==================================== //

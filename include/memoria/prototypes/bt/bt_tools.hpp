@@ -182,6 +182,24 @@ struct TupleBuilder<TypeList<Types...>> {
 
 
 
+
+template <typename T, Int N>
+struct SameTypeListBuilder {
+	typedef typename MergeLists<
+			T,
+			typename SameTypeListBuilder<T, N - 1>::Type
+	>::Result                                                                   Type;
+};
+
+template <typename T>
+struct SameTypeListBuilder<T, 0> {
+	typedef TypeList<>															Type;
+};
+
+
+
+
+
 template <typename List, Int Idx = 0>
 class AccumulatorListBuilder;
 
