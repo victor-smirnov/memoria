@@ -92,7 +92,7 @@ public:
     }
 
     Int block_size() const {
-        return PackedAllocator::block_size();
+        return static_cast<const PackedAllocator*>(this)->block_size();
     }
 
     static Int packed_block_size(Int size)

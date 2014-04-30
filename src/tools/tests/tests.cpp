@@ -24,7 +24,7 @@
 //#include "labeled_tree/ltree_test_suite.hpp"
 //#include "vector_tree/vtree_test_suite.hpp"
 //#include "wt/wt_test_suite.hpp"
-//
+
 //#include "file_allocator/file_alloc_test_suite.hpp"
 //#include "mvcc/mvcc_test_suite.hpp"
 
@@ -82,7 +82,7 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new SymbolSeqTestSuite());
 ////
 //        runner.registerTask(new CtrTestSuite());
-        runner.registerTask(new MapTestSuite());
+//        runner.registerTask(new MapTestSuite());
         runner.registerTask(new VectorTestSuite());
 //        runner.registerTask(new VectorMapTestSuite());
 //        runner.registerTask(new DblMapTestSuite());

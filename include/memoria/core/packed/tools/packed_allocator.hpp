@@ -47,7 +47,7 @@ private:
     Int layout_size_;
     Int bitmap_size_;
 
-    UByte buffer_[];
+    UByte buffer_[1];
 
 public:
 
@@ -87,7 +87,7 @@ public:
     }
 
     Int client_area() const {
-        return block_size_ - sizeof(MyType) - layout_size_ - bitmap_size_;
+        return block_size_ - my_size() - layout_size_ - bitmap_size_;
     }
 
     Int free_space() const {
@@ -148,7 +148,7 @@ public:
         Int layout_size = layout_blocks * sizeof(Int);
         Int bitmap_size = roundUpBitsToAlignmentBlocks(blocks);
 
-        return sizeof(MyType) + layout_size + bitmap_size + roundUpBytesToAlignmentBlocks(client_area);
+        return my_size() + layout_size + bitmap_size + roundUpBytesToAlignmentBlocks(client_area);
     }
 
     static Int client_area(Int block_size, Int blocks)
@@ -158,7 +158,7 @@ public:
         Int layout_size = layout_blocks * sizeof(Int);
         Int bitmap_size = roundUpBitsToAlignmentBlocks(blocks);
 
-        return roundDownBytesToAlignmentBlocks(block_size - (sizeof(MyType) + layout_size + bitmap_size));
+        return roundDownBytesToAlignmentBlocks(block_size - (my_size() + layout_size + bitmap_size));
     }
 
     Int computeElementOffset(const void* element) const
@@ -504,7 +504,7 @@ public:
         }
         else if (new_size < block_size_)
         {
-            if (new_size >= allocated() + (Int)sizeof(MyType) + layout_size_ + bitmap_size_)
+            if (new_size >= allocated() + my_size() + layout_size_ + bitmap_size_)
             {
                 block_size_ = new_size;
             }
@@ -581,6 +581,11 @@ public:
 
 
 private:
+
+    constexpr static Int my_size()
+    {
+    	return sizeof(MyType) - sizeof(buffer_[0]);
+    }
 
     Int& set_element_offset(Int idx)
     {

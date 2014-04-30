@@ -238,6 +238,7 @@ public:
 };
 
 
+namespace vapi {
 template <typename T>
 struct ValueHelper<TxnValue<T> > {
     typedef TxnValue<T>                                             Type;
@@ -247,7 +248,7 @@ struct ValueHelper<TxnValue<T> > {
         value.generateDataEvents(handler);
     }
 };
-
+}
 
 
 template <typename Owner, typename TxnIterator>
