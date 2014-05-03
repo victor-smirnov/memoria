@@ -580,13 +580,15 @@ public:
     }
 
 
-private:
+
 
     constexpr static Int my_size()
     {
-    	return sizeof(MyType) - sizeof(buffer_[0]);
+    	return sizeof(MyType) - alignof(MyType);
     }
 
+
+private:
     Int& set_element_offset(Int idx)
     {
         return *(T2T<Int*>(buffer_) + idx);

@@ -183,7 +183,7 @@ public:
 
     static Int free_space(Int page_size, bool root)
     {
-        Int block_size = page_size - sizeof(Me) + sizeof(PackedAllocator);
+        Int block_size = page_size - sizeof(Me) + PackedAllocator::my_size();
         Int client_area = PackedAllocator::client_area(block_size, STREAMS + 1);
 
         return client_area - root * PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
@@ -202,10 +202,10 @@ public:
     void init()
     {
         Int page_size = this->page_size();
-        MEMORIA_ASSERT(page_size, >, sizeof(Me) + sizeof(PackedAllocator));
+        MEMORIA_ASSERT(page_size, >, sizeof(Me) + PackedAllocator::my_size());
 
         allocator_.setTopLevelAllocator();
-        allocator_.init(page_size - sizeof(Me) + sizeof(PackedAllocator), STREAMS + 1);
+        allocator_.init(page_size - sizeof(Me) + PackedAllocator::my_size(), STREAMS + 1);
     }
 
     void transferDataTo(Me* other) const
@@ -598,7 +598,7 @@ public:
 
     static Int client_area(Int block_size)
     {
-        Int allocator_block_size = block_size - sizeof(Me) + sizeof(PackedAllocator);
+        Int allocator_block_size = block_size - sizeof(Me) + PackedAllocator::my_size();
         return PackedAllocator::client_area(allocator_block_size, Streams);
     }
 
