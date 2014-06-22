@@ -188,7 +188,7 @@ public:
     {
         if (fn.tree().index_size() > 0)
         {
-            LayoutValue layout[16];
+            LayoutValue layout[64];
 
             Int capacity = fn.tree().raw_capacity();
 
@@ -284,7 +284,7 @@ public:
     {
         if (walker.has_index())
         {
-            LayoutValue layout[16];
+            LayoutValue layout[64];
 
             Int layout_size = compute_layout_size(walker.capacity());
 

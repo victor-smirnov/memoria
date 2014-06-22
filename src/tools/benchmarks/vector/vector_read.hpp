@@ -27,11 +27,6 @@ class VectorReadBenchmark: public SPBenchmarkTask {
 
     typedef typename SCtrTF<Vector<BigInt>>::Type                               VectorCtrType;
     typedef typename VectorCtrType::Iterator                                    Iterator;
-    typedef typename VectorCtrType::ID                                          ID;
-    typedef typename VectorCtrType::Accumulator                                 Accumulator;
-
-
-    typedef typename VectorCtrType::Key                                         Key;
 
 
 
@@ -54,9 +49,8 @@ public:
 
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {
-        allocator_ = new Allocator();
-
-        Int size = params.x();
+        allocator_ 	= new Allocator();
+        Int size 	= params.x();
 
         ctr_ = new VectorCtrType(allocator_);
 
@@ -64,13 +58,12 @@ public:
 
         for (Int c = 0; c < size/128; c++)
         {
-            BigInt array[128];
-            for (Int d = 0; d < 128; d++)
-            {
-                array[d] = getRandom(10000);
-            }
+        	vector<BigInt> buffer(128);
 
-            MemBuffer<BigInt> buffer(array, sizeof(array)/sizeof(BigInt));
+            for (auto& d: buffer)
+            {
+                d = getRandom(10000);
+            }
 
             i.insert(buffer);
         }
@@ -91,13 +84,13 @@ public:
 
     virtual void Benchmark(BenchmarkParameters& params, ostream& out)
     {
-        volatile BigInt buffer;
+        volatile BigInt buffer = 0;
 
         BigInt total = 0;
 
         for (Int c = 0; c < params.operations(); c++, total++)
         {
-            buffer += ctr_->seek(rd_array_[c]).element();
+            buffer += ctr_->seek(rd_array_[c]).value();
         }
 
         params.memory() = total;

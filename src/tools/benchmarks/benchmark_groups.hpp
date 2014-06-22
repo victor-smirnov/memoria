@@ -17,9 +17,9 @@
 #include "stl/stlset_scan.hpp"
 #include "stl/stluset_find_mem.hpp"
 #include "stl/stluset_find_size.hpp"
-#include "stl/stl_vctr_random_read.hpp"
-#include "stl/stl_vctr_linear_read.hpp"
-#include "stl/stl_vctr_insert.hpp"
+#include "stl/stl_vector_random_read.hpp"
+#include "stl/stl_vector_linear_read.hpp"
+#include "stl/stl_vector_insert.hpp"
 
 
 #include "set/set_scan.hpp"
@@ -31,18 +31,18 @@
 #include "set/set_insert.hpp"
 #include "set/set_insert_batch.hpp"
 
-#include "vector/vctr_append.hpp"
-#include "vector/vctr_insert_batch.hpp"
-#include "vector/vctr_read.hpp"
-#include "vector/vctr_random_read.hpp"
-#include "vector/vctr_sequential_read.hpp"
-#include "vector/vctr_random_insert.hpp"
+#include "vector/vector_append.hpp"
+#include "vector/vector_insert_batch.hpp"
+#include "vector/vector_read.hpp"
+#include "vector/vector_random_read.hpp"
+#include "vector/vector_sequential_read.hpp"
+#include "vector/vector_random_insert.hpp"
 
-#include "vector_map/vector_map_append.hpp"
-#include "vector_map/vector_map_batch_insert.hpp"
-#include "vector_map/vector_map_random_insert.hpp"
-#include "vector_map/vector_map_random_read.hpp"
-#include "vector_map/vector_map_sequential_read.hpp"
+//#include "vector_map/vector_map_append.hpp"
+//#include "vector_map/vector_map_batch_insert.hpp"
+//#include "vector_map/vector_map_random_insert.hpp"
+//#include "vector_map/vector_map_random_read.hpp"
+//#include "vector_map/vector_map_sequential_read.hpp"
 
 #include "misc/memmove.hpp"
 
@@ -110,6 +110,7 @@ public:
     }
 };
 
+
 class MemoryThroughputGraph: public LogXScaleGnuplotGraph {
 public:
     MemoryThroughputGraph(): LogXScaleGnuplotGraph("MemThroughput")
@@ -169,7 +170,7 @@ public:
 
 class SetRandomReadGraph: public LogXScaleGnuplotGraph {
 public:
-    SetRandomReadGraph(): LogXScaleGnuplotGraph("setRandomRead")
+    SetRandomReadGraph(): LogXScaleGnuplotGraph("SetRandomRead")
     {
         title   = "Packedset<BigInt> vs set<BigInt> vs std::set<BigInt> Random Read Performance,\\n1 million reads";
         xtitle  = "Number of Elements";
@@ -182,7 +183,7 @@ public:
         logscale    = 10;
 
         AddGraph(new PSetSizeBenchmark<16>(), GraphData("PackedSet"));
-        AddGraph(new setFindRandomBenchmark("FindRandom"), GraphData("Memoria set"));
+        AddGraph(new SetFindRandomBenchmark("FindRandom"), GraphData("Memoria set"));
         AddGraph(new StlSetSizeBenchmark("StlFindRandom"), GraphData("std::set"));
     }
 };
@@ -212,9 +213,9 @@ public:
 
 
 
-class SetRandominsertGraph: public LogXScaleGnuplotGraph {
+class SetRandomBatchInsertGraph: public LogXScaleGnuplotGraph {
 public:
-    SetRandominsertGraph(): LogXScaleGnuplotGraph("SetInsert")
+    SetRandomBatchInsertGraph(): LogXScaleGnuplotGraph("SetInsert")
     {
         title   = "Set<BigInt> Batch insert Performance";
         xtitle  = "Batch size, Elements";
@@ -226,8 +227,8 @@ public:
 
         logscale    = 10;
 
-        AddGraph(new SetInsertBatchBenchmark("insertBatch"), GraphData("Random insert"));
-        AddGraph(new SetAppendBatchBenchmark("appendBatch"), GraphData("Sequential append"));
+        AddGraph(new SetInsertBatchBenchmark("InsertBatch"), GraphData("Random insert"));
+        AddGraph(new SetAppendBatchBenchmark("AppendBatch"), GraphData("Sequential append"));
     }
 };
 
@@ -246,8 +247,8 @@ public:
 
         logscale    = 10;
 
-        AddGraph(new setCommitRandomBenchmark("Random"), GraphData("Random insert"));
-        AddGraph(new setCommitappendBenchmark("append"), GraphData("Sequential append"));
+        AddGraph(new SetCommitRandomBenchmark("Random"), GraphData("Random insert"));
+        AddGraph(new SetCommitAppendBenchmark("Append"), GraphData("Sequential append"));
     }
 };
 
@@ -294,6 +295,8 @@ public:
         AddGraph(new MemmoveBenchmark("MemMove"), GraphData("memmove() Performance", "Memory Throughput"));
     }
 };
+
+
 
 class VectorRandomSmallReadGraph: public LogXScaleGnuplotGraph {
 public:
@@ -375,8 +378,7 @@ public:
     }
 };
 
-
-
+/*
 class VectorMapRandomGraph: public LogXScaleGnuplotGraph {
 public:
     VectorMapRandomGraph(): LogXScaleGnuplotGraph("VectorMapRandom")
@@ -468,6 +470,8 @@ public:
     }
 };
 
+*/
+
 class TestGraph: public LogXScaleGnuplotGraph {
 public:
     TestGraph(): LogXScaleGnuplotGraph("Test", 2)
@@ -488,7 +492,7 @@ public:
 
         logscale    = 2;
 
-//      AddGraph(new VectorSequentialReadBenchmark("Vector"), GraphData("Vector Performance", "Vector Throughput"));
+      AddGraph(new VectorSequentialReadBenchmark("Vector"), GraphData("Vector Performance", "Vector Throughput"));
 //      AddGraph(
 //          new VectorMapSequentialReadBenchmark("VectorMap"),
 //          GraphData("VectorMap Performance", "VectorMap Throughput")

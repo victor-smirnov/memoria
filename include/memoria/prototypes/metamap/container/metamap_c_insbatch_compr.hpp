@@ -50,7 +50,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrInsBatchComprName)
     MEMORIA_DECLARE_NODE_FN(ComputeDataLengths, computeDataLengths);
     bool checkLeafCapacity(const NodeBaseG& node, const EntrySizes& sizes, SizeT total)
     {
-
+    	return false;
     }
 
 

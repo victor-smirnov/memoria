@@ -25,7 +25,7 @@ class SetScanBenchmark: public SPBenchmarkTask {
     typedef typename Base::Allocator    Allocator;
     typedef typename Base::Profile      Profile;
 
-    typedef typename SCtrTF<Set1>::Type                                 SetCtrType;
+    typedef typename SCtrTF<Set1>::Type                    				SetCtrType;
     typedef typename SetCtrType::Iterator                               Iterator;
     typedef typename SetCtrType::ID                                     ID;
     typedef typename SetCtrType::Accumulator                            Accumulator;
@@ -44,7 +44,9 @@ public:
 
     SetScanBenchmark(StringRef name):
         SPBenchmarkTask(name)
-    {}
+    {
+    	SetCtrType::initMetadata();
+    }
 
     virtual ~SetScanBenchmark() throw() {}
 
@@ -56,6 +58,7 @@ public:
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {
         allocator_ = new Allocator();
+        allocator_->commit();
 
         Int size = params.x();
 
@@ -74,12 +77,7 @@ public:
 
             for (Int c = 0; c < size; c++)
             {
-                Accumulator keys;
-                keys[0] = key(c);
-
-                set_->insert(i, keys);
-
-                i++;
+            	i.insert(key(c), EmptyValue());
             }
 
             allocator_->commit();
@@ -103,7 +101,7 @@ public:
         {
             for (auto i = set_->begin(); !i.isEnd() && c < params.operations(); i++, c++)
             {
-                total += i.getKey(0);
+                total += i.key();
             }
         }
     }

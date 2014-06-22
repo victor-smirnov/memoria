@@ -21,45 +21,18 @@ using namespace std;
 class SetInsertBatchBenchmark: public SPBenchmarkTask {
 public:
 
-    Int max_size;
 
     typedef SPBenchmarkTask Base;
 
-    typedef typename Base::Allocator    Allocator;
-    typedef typename Base::Profile      Profile;
+    typedef typename Base::Allocator    										Allocator;
+    typedef typename Base::Profile      										Profile;
 
-    typedef typename SCtrTF<Set1>::Type                                 SetCtrType;
-    typedef typename SetCtrType::Iterator                               Iterator;
-    typedef typename SetCtrType::ID                                     ID;
-    typedef typename SetCtrType::Accumulator                            Accumulator;
+    typedef typename SCtrTF<Set1>::Type                                 		SetCtrType;
+    typedef typename SetCtrType::Iterator                               		Iterator;
+    typedef typename SetCtrType::Types::Entry                           		Entry;
 
-
-    typedef typename SetCtrType::Key                                    Key;
-    typedef typename SetCtrType::Value                                  Value;
-
-    typedef typename SetCtrType::ISubtreeProvider                       ISubtreeProvider;
-    typedef typename SetCtrType::DefaultSubtreeProviderBase             DefaultSubtreeProviderBase;
-    typedef typename SetCtrType::NonLeafNodeKeyValuePair                NonLeafNodeKeyValuePair;
-    typedef typename SetCtrType::LeafNodeKeyValuePair                   LeafNodeKeyValuePair;
-
-
-    class SubtreeProvider: public DefaultSubtreeProviderBase
-    {
-        typedef DefaultSubtreeProviderBase          Base;
-
-    public:
-        SubtreeProvider(SetCtrType* ctr, BigInt total): Base(*ctr, total) {}
-
-        virtual LeafNodeKeyValuePair getLeafKVPair(BigInt begin)
-        {
-            Accumulator acc;
-            acc[0] = 1;
-            return LeafNodeKeyValuePair(acc, Value());
-        }
-    };
-
-
-    Allocator*  allocator_;
+    Int 			max_size;
+    Allocator*  	allocator_;
     SetCtrType*     set_;
 
 public:
@@ -89,7 +62,8 @@ public:
     {
         Int size = params.x();
 
-        SubtreeProvider provider(set_, size);
+        Entry entry;
+        entry.indexes()[0] = 1;
 
         Int map_size = 0;
 
@@ -100,7 +74,11 @@ public:
             Int pos = getRandom(map_size - 1) + 1;
             auto i = map_size == 0? set_->End() : set_->find(pos);
 
-            set_->insertSubtree(i, provider);
+            FnDataSource<Entry> source(size, [&](BigInt idx){
+            	return entry;
+            });
+
+            set_->insert(i, source);
 
             map_size += size;
         }

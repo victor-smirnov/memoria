@@ -98,6 +98,10 @@ public:
         return false;
     }
 
+    ostream& out() {
+    	return *out_;
+    }
+
     void setIteration(Int iteration)
     {
         iteration_ = iteration;

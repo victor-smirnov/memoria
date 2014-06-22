@@ -16,7 +16,7 @@ namespace memoria {
 
 using namespace std;
 
-class VectorinsertBatchBenchmark: public SPBenchmarkTask {
+class VectorInsertBatchBenchmark: public SPBenchmarkTask {
 public:
 
     Int max_size;
@@ -39,13 +39,13 @@ public:
 
 public:
 
-    VectorinsertBatchBenchmark(StringRef name):
+    VectorInsertBatchBenchmark(StringRef name):
         SPBenchmarkTask(name), max_size(128*1024*1024)
     {
         Add("max_size", max_size);
     }
 
-    virtual ~VectorinsertBatchBenchmark() throw() {}
+    virtual ~VectorInsertBatchBenchmark() throw() {}
 
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {
@@ -66,7 +66,7 @@ public:
     {
         Int size = params.x();
 
-        MemBuffer<UByte> data(size);
+        vector<UByte> data(size);
 
         Int max = this->max_size / size;
 

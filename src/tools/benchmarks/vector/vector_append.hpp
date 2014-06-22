@@ -12,6 +12,8 @@
 #include <malloc.h>
 #include <memory>
 
+#include <memoria/containers/vector/vctr_factory.hpp>
+
 namespace memoria {
 
 using namespace std;
@@ -35,7 +37,7 @@ public:
 
 
     Allocator*  allocator_;
-    Ctr* map_;
+    Ctr* 		map_;
 
     Int         memory_size;
 
@@ -69,13 +71,13 @@ public:
     {
         Int size = params.x();
 
-        auto i = map_->End();
+        auto i = map_->seek(map_->size());
 
         BigInt total = 0;
 
         params.operations() = 0;
 
-        MemBuffer<UByte> data(size);
+        vector<UByte> data(size);
 
         while (total < memory_size)
         {

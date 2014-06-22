@@ -21,6 +21,7 @@
 #include <iostream>
 #include <vector>
 #include <tuple>
+#include <functional>
 
 #include <malloc.h>
 
@@ -434,6 +435,32 @@ public:
     virtual void reset(BigInt pos = 0)
     {
         start_ = pos;
+    }
+};
+
+
+template <typename T>
+class FnDataSource: public AbstractDataSource<T> {
+
+	typedef AbstractDataSource<T>												Base;
+	typedef std::function<T (BigInt)> 											Fn;
+
+	Fn 	fn_;
+
+public:
+	FnDataSource(BigInt size, Fn fn): Base(0, size), fn_(fn) {}
+
+    virtual IDataAPI api() const {return IDataAPI::Single;}
+
+    virtual SizeT get(T* buffer, SizeT start, SizeT length) {return 0;}
+
+    virtual T get()
+    {
+    	T value = fn_(Base::start_);
+
+    	Base::skip(1);
+
+    	return value;
     }
 };
 

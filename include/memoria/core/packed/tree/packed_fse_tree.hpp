@@ -79,7 +79,7 @@ public:
     typedef core::StaticVector<IndexValue, Blocks>                              Values;
     typedef core::StaticVector<IndexValue, Blocks + 1>                          Values2;
 
-    typedef Short                                                               LayoutValue;
+    typedef Int                                                               	LayoutValue;
 
     typedef PackedTreeTools<BranchingFactor, ValuesPerBranch, LayoutValue>      TreeTools;
 
@@ -1362,10 +1362,10 @@ public:
     }
 
 
-private:
+
     const Int& max_size() const {return max_size_;}
 
-
+private:
     IndexValue raw_sum(Int to) const
     {
         if (index_size_ == 0 || to < ValuesPerBranch)

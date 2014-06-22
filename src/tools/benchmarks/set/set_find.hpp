@@ -18,7 +18,7 @@ using namespace std;
 
 
 
-class setFindRandomBenchmark: public SPBenchmarkTask {
+class SetFindRandomBenchmark: public SPBenchmarkTask {
 
 
     typedef SPBenchmarkTask Base;
@@ -46,13 +46,13 @@ class setFindRandomBenchmark: public SPBenchmarkTask {
 
 public:
 
-    setFindRandomBenchmark(StringRef name):
+    SetFindRandomBenchmark(StringRef name):
         SPBenchmarkTask(name)
     {
         average = 10;
     }
 
-    virtual ~setFindRandomBenchmark() throw() {}
+    virtual ~SetFindRandomBenchmark() throw() {}
 
     Key key(Int c) const
     {
@@ -62,12 +62,13 @@ public:
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {
         allocator_ = new Allocator();
+        allocator_->commit();
 
         Int size = params.x();
 
         String resource_name = "allocator."+toString(size)+".dump";
 
-        if (IsResourceExists(resource_name))
+        if (false && IsResourceExists(resource_name))
         {
             LoadResource(*allocator_, resource_name);
 
@@ -80,16 +81,11 @@ public:
 
             for (Int c = 0; c < size; c++)
             {
-                Accumulator keys;
-                keys[0] = key(c);
-
-                set_->insert(i, keys);
-
-                i++;
+            	i.insert(key(c), EmptyValue());
             }
 
             allocator_->commit();
-            StoreResource(*allocator_, resource_name);
+//            StoreResource(*allocator_, resource_name);
         }
 
         rd_array_ = new Int[params.operations()];
@@ -110,7 +106,9 @@ public:
     {
         for (Int c = 0; c < params.operations(); c++)
         {
-            if (!set_->contains(rd_array_[c]))
+        	auto key = rd_array_[c];
+
+            if (!set_->find(key).is_found_eq(key))
             {
                 cout<<"MISS!!!"<<endl; // this should't happen
             }

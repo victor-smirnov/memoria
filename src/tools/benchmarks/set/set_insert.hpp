@@ -28,12 +28,7 @@ class SetInsertBenchmark: public SPBenchmarkTask {
 
     typedef typename SCtrTF<Set1>::Type                                 SetCtrType;
     typedef typename SetCtrType::Iterator                               Iterator;
-    typedef typename SetCtrType::ID                                     ID;
-    typedef typename SetCtrType::Accumulator                            Accumulator;
-
-
-    typedef typename SetCtrType::Key                                    Key;
-    typedef typename SetCtrType::Value                                  Value;
+    typedef typename SetCtrType::Types::Entry                           Entry;
 
 
     Allocator*  allocator_;
@@ -73,18 +68,11 @@ public:
         {
             auto i = set_->find(getRandom(size));
 
-            Accumulator keys;
-            keys[0] = 1;
+            Entry entry;
 
-            set_->insertRaw(i, keys);
+            entry.indexes()[0] = 1;
 
-            keys[0] = 0;
-            i++;
-
-            if (i.isNotEnd())
-            {
-                i.updateUp(keys);
-            }
+            i.insert(entry);
         }
     }
 };

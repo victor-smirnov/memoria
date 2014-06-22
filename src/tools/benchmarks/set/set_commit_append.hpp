@@ -19,7 +19,7 @@ using namespace std;
 
 
 
-class setCommitappendBenchmark: public SPBenchmarkTask {
+class SetCommitAppendBenchmark: public SPBenchmarkTask {
 
     public:
     Int max_size;
@@ -33,25 +33,21 @@ class setCommitappendBenchmark: public SPBenchmarkTask {
 
     typedef typename SCtrTF<Set1>::Type                                 SetCtrType;
     typedef typename SetCtrType::Iterator                               Iterator;
-    typedef typename SetCtrType::ID                                     ID;
-    typedef typename SetCtrType::Accumulator                            Accumulator;
+    typedef typename SetCtrType::Types::Entry                           Entry;
 
 
-    typedef typename SetCtrType::Key                                    Key;
-    typedef typename SetCtrType::Value                                  Value;
-
-    Allocator*  allocator_;
+    Allocator*  	allocator_;
     SetCtrType*     set_;
 
 public:
 
-    setCommitappendBenchmark(StringRef name):
+    SetCommitAppendBenchmark(StringRef name):
         SPBenchmarkTask(name), max_size(1*1024*1024)
     {
         Add("max_size", max_size);
     }
 
-    virtual ~setCommitappendBenchmark() throw() {}
+    virtual ~SetCommitAppendBenchmark() throw() {}
 
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {
@@ -77,10 +73,11 @@ public:
 
         for (Int c = 0; c < this->max_size; c++)
         {
-            Accumulator keys;
-            keys[0] = 1;
+        	Entry entry;
 
-            set_->insertRaw(i, keys);
+        	entry.indexes()[0] = 1;
+
+            i.insert(entry);
 
             if (c % size == 0)
             {

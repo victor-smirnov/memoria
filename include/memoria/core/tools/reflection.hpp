@@ -76,8 +76,10 @@ struct FieldFactory<BitField<Type> > {
 template <>
 struct FieldFactory<EmptyValue> {
     static void serialize(SerializationData& data, const EmptyValue& field, Int count = 1) {}
+    static void serialize(SerializationData& data, const EmptyValue* field, Int count = 1) {}
 
     static void deserialize(DeserializationData& data, EmptyValue& field, Int count = 1) {}
+    static void deserialize(DeserializationData& data, EmptyValue* field, Int count = 1) {}
 };
 
 

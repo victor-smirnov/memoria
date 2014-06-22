@@ -18,11 +18,9 @@ using namespace std;
 
 
 
-class setCommitRandomBenchmark: public SPBenchmarkTask {
+class SetCommitRandomBenchmark: public SPBenchmarkTask {
 public:
-
     Int max_size;
-
 
     typedef SPBenchmarkTask Base;
 
@@ -32,28 +30,20 @@ public:
 
     typedef typename SCtrTF<Set1>::Type                                         SetCtrType;
     typedef typename SetCtrType::Iterator                                       Iterator;
-    typedef typename SetCtrType::ID                                             ID;
-    typedef typename SetCtrType::Accumulator                                    Accumulator;
+    typedef typename SetCtrType::Types::Entry                                   Entry;
 
-
-    typedef typename SetCtrType::Key                                            Key;
-    typedef typename SetCtrType::Value                                          Value;
-
-
-    Allocator*  allocator_;
+    Allocator*  	allocator_;
     SetCtrType*     set_;
-
-
 
 public:
 
-    setCommitRandomBenchmark(StringRef name):
+    SetCommitRandomBenchmark(StringRef name):
         SPBenchmarkTask(name), max_size(1*1024*1024)
     {
         Add("max_size", max_size);
     }
 
-    virtual ~setCommitRandomBenchmark() throw() {}
+    virtual ~SetCommitRandomBenchmark() throw() {}
 
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {
@@ -79,18 +69,10 @@ public:
         {
             auto i = c == 0? set_->End() : set_->find(getRandom(c));
 
-            Accumulator keys;
-            keys[0] = 1;
+            Entry entry;
+            entry.indexes()[0] = 1;
 
-            set_->insertRaw(i, keys);
-
-            keys[0] = 0;
-            i++;
-
-            if (i.isNotEnd())
-            {
-                i.updateUp(keys);
-            }
+            i.insert(entry);
 
             if (c % size == 0)
             {

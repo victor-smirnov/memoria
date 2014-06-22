@@ -9,7 +9,7 @@
 
 #include "../benchmarks_inc.hpp"
 
-#include <memoria/core/packed/packed_sum_tree.hpp>
+#include <memoria/core/packed/tree/packed_fse_tree.hpp>
 
 #include <malloc.h>
 #include <memory>
@@ -25,32 +25,24 @@ using namespace std;
 template <Int BranchingFactor_>
 class PSetMemBenchmark: public BenchmarkTask {
 
-    template <typename Key_, typename Value_, Int Blocks_>
-    struct PMapFindTypes {
-        typedef Key_                        Key;
-        typedef Key_                        IndexKey;
-        typedef Value_                      Value;
+	static const Int Blocks                 									= 1;
 
-        static const Int Blocks             = Blocks_;
-        static const Int BranchingFactor    = BranchingFactor_;
+	typedef Packed2TreeTypes<
+			BigInt,
+			BigInt,
+			Blocks,
+			ValueFSECodec,
+			BranchingFactor_,
+			BranchingFactor_
+	>                                                                   		Types;
 
-        typedef Accumulators<Key, Blocks>   Accumulator;
-    };
+	typedef PkdFTree<Types>                                                     Map;
 
+    typedef typename Map::Values                                               	Values;
 
-    typedef PMapFindTypes<BigInt, EmptyValue, 1>                Types;
-
-    typedef typename Types::Accumulator     Accumulator;
-    typedef typename Types::Key             Key;
-    typedef typename Types::Value           Value;
-
-    static const Int Blocks                 = Types::Blocks;
-
-    typedef PackedSumTree<Types>                Map;
-
-    Map* map_;
-
-    Int* rd_array_;
+    PackedAllocator* 	allocator_;
+    Map* 				map_;
+    Int* 				rd_array_;
 
 public:
 
@@ -62,33 +54,21 @@ public:
 
     virtual ~PSetMemBenchmark() throw() {}
 
-    void FillPMap(Map* map, Int size)
-    {
-        map->key(0, 0) = 0;
-
-        for (Int c = 1; c < size; c++)
-        {
-            map->key(0, c) = 1;
-        }
-
-        map->size() = size;
-
-        map->reindex(0);
-    }
-
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {
-        Int buffer_size     = params.x();
+    	Int buffer_size     = params.x();
+    	void* block 		= malloc(buffer_size);
 
-        Byte* buffer        = T2T<Byte*>(malloc(buffer_size));
+    	allocator_ = T2T<PackedAllocator*>(block);
+    	allocator_->init(buffer_size, 1);
+    	allocator_->setTopLevelAllocator();
 
-        memset(buffer, buffer_size, 0);
+    	map_ = allocator_->template allocate<Map>(0, allocator_->client_area());
 
-        map_ = T2T<Map*>(buffer);
+    	Values one = {1};
 
-        map_->initByBlock(buffer_size - sizeof(Map));
-
-        FillPMap(map_, map_->maxSize());
+    	map_->insert(0, map_->max_size(), [&](){return one;});
+    	map_->reindex();
 
         rd_array_ = new Int[params.operations()];
         for (Int c = 0; c < params.operations(); c++)
@@ -99,7 +79,7 @@ public:
 
     virtual void release(ostream& out)
     {
-        free(map_);
+        free(allocator_);
         delete[] rd_array_;
     }
 
@@ -108,10 +88,12 @@ public:
         for (Int c = 0; c < params.operations(); c++)
         {
             BigInt key = rd_array_[c];
-            if (map_->findEQ(0, key) != key)
+            auto result = map_->findGEForward(0, 0, key);
+
+            if (key && result.idx() != key - 1)
             {
                 // this shouldn't happen
-                cout<<"MISS! "<<key<<endl;
+                cout<<"MISS! "<<key<<" "<<map_->size()<<endl;
                 out<<"MISS! "<<key<<endl;
             }
         }

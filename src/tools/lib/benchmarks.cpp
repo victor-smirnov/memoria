@@ -71,9 +71,42 @@ void BenchmarkTaskGroup::Run(ostream& out)
             cout<<endl;
 
         }
-        catch (...) {
-            task->releaseResources();
+        catch (const std::exception& e)
+        {
+        	task->out()<<"FAILED: STL exception: "<<e.what()<<" "<<endl;
+
+        	failures_.push_back(FailureDescriptor(task->getIteration(), task->getName()));
         }
+        catch (const Exception& e) {
+        	task->out()<<"FAILED: "<<e.source()<<": "<<e<<endl;
+
+        	String path = getTaskParametersFilePath();
+
+        	StoreProperties(path);
+
+        	failures_.push_back(FailureDescriptor(task->getIteration(), task->getName()));
+        }
+        catch (const MemoriaThrowable& e) {
+        	task->out()<<"FAILED: "<<e.source()<<": "<<e<<endl;
+
+        	String path = getTaskParametersFilePath();
+
+        	StoreProperties(path);
+
+        	failures_.push_back(FailureDescriptor(task->getIteration(), task->getName()));
+        }
+        catch (...)
+        {
+        	task->out()<<"FAILED: Unknown Exception"<<endl;
+
+        	String path = getTaskParametersFilePath();
+
+        	StoreProperties(path);
+
+        	failures_.push_back(FailureDescriptor(task->getIteration(), task->getName()));
+        }
+
+        task->releaseResources();
     }
 }
 

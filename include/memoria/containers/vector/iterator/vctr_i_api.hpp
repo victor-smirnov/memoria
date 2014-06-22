@@ -133,6 +133,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
         return self.ctr().readStream(self, target);
     }
 
+
     CtrSizeT read(std::vector<Value>& data)
     {
         MemBuffer<Value> buf(data);
@@ -141,10 +142,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 
     Value value() const
     {
+    	MyType me = this->self();
+
         Value data;
         MemBuffer<Value> buf(&data, 1);
 
-        CtrSizeT length = read(buf);
+        CtrSizeT length = me.read(buf);
 
         if (length == 1)
         {

@@ -535,11 +535,11 @@ public:
         return me_.index_size() > 0;
     }
 
-    bool capacity() const {
+    Int capacity() const {
         return me_.raw_capacity();
     }
 
-    bool max() const {
+    Int max() const {
         return me_.size();
     }
 

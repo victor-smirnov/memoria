@@ -27,34 +27,7 @@ class setCreateBatchBenchmark: public SPBenchmarkTask {
 
     typedef typename SCtrTF<Set1>::Type                                 SetCtrType;
     typedef typename SetCtrType::Iterator                               Iterator;
-    typedef typename SetCtrType::ID                                     ID;
-    typedef typename SetCtrType::Accumulator                            Accumulator;
-
-
-    typedef typename SetCtrType::Key                                    Key;
-    typedef typename SetCtrType::Value                                  Value;
-
-    typedef typename SetCtrType::ISubtreeProvider                       ISubtreeProvider;
-    typedef typename SetCtrType::DefaultSubtreeProviderBase             DefaultSubtreeProviderBase;
-    typedef typename SetCtrType::NonLeafNodeKeyValuePair                NonLeafNodeKeyValuePair;
-    typedef typename SetCtrType::LeafNodeKeyValuePair                   LeafNodeKeyValuePair;
-
-
-    class SubtreeProvider: public DefaultSubtreeProviderBase
-    {
-        typedef DefaultSubtreeProviderBase      Base;
-
-    public:
-        SubtreeProvider(SetCtrType* ctr, BigInt total): Base(*ctr, total) {}
-
-        virtual LeafNodeKeyValuePair getLeafKVPair(BigInt begin)
-        {
-            Accumulator acc;
-            acc[0] = 1;
-            return LeafNodeKeyValuePair(acc, Value());
-        }
-    };
-
+    typedef typename SetCtrType::Types::Entry                           Entry;
 
     Allocator*  allocator_;
     SetCtrType*     set_;
@@ -86,13 +59,18 @@ public:
     {
         Int size = params.x();
 
+        Entry entry;
+        entry.indexes()[0] = 1;
+
+        FnDataSource<Entry> source(size, [&](BigInt idx){
+        	return entry;
+        });
+
         params.operations() = size;
 
         Iterator i = set_->End();
 
-        SubtreeProvider provider(set_, size);
-
-        set_->insertSubtree(i, provider);
+        set_->insert(i, source);
 
         allocator_->commit();
     }

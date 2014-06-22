@@ -27,11 +27,6 @@ class VectorRandomInsertBenchmark: public SPBenchmarkTask {
 
     typedef typename SCtrTF<Vector<UByte>>::Type                                VectorCtrType;
     typedef typename VectorCtrType::Iterator                                    Iterator;
-    typedef typename VectorCtrType::ID                                          ID;
-    typedef typename VectorCtrType::Accumulator                                 Accumulator;
-
-
-    typedef typename VectorCtrType::Key                                         Key;
 
     Allocator*      allocator_;
     VectorCtrType*  ctr_;
@@ -66,7 +61,7 @@ public:
     {
         BigInt total = 0;
 
-        MemBuffer<UByte> data(params.x());
+        vector<UByte> data(params.x());
 
         Int cnt = 0;
 

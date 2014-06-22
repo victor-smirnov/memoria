@@ -9,7 +9,7 @@
 
 #include "../benchmarks_inc.hpp"
 
-#include <memoria/core/packed/packed_sum_tree.hpp>
+#include <memoria/core/packed/tree/packed_fse_tree.hpp>
 
 #include <malloc.h>
 #include <memory>
@@ -23,32 +23,27 @@ using namespace std;
 template <Int BranchingFactor_>
 class PSetSizeBenchmark: public BenchmarkTask {
 
-    template <typename Key_, typename Value_, Int Blocks_>
-    struct PMapFindTypes {
-        typedef Key_                        Key;
-        typedef Key_                        IndexKey;
-        typedef Value_                      Value;
+	static const Int Blocks                 									= 1;
 
-        static const Int Blocks             = Blocks_;
-        static const Int BranchingFactor    = BranchingFactor_;
+	typedef Packed2TreeTypes<
+			BigInt,
+			BigInt,
+			Blocks,
+			ValueFSECodec,
+			BranchingFactor_,
+			BranchingFactor_
+	>                                                                   		Types;
 
-        typedef Accumulators<Key, Blocks>   Accumulator;
-    };
+	typedef PkdFTree<Types>                                                     Map;
+
+	typedef typename Types::Value             									Key;
+	typedef typename Map::Values             									Values;
 
 
-    typedef PMapFindTypes<BigInt, EmptyValue, 1>                Types;
+	PackedAllocator* 	allocator_;
+	Map* 				map_;
+	Int* 				rd_array_;
 
-    typedef typename Types::Accumulator     Accumulator;
-    typedef typename Types::Key             Key;
-    typedef typename Types::Value           Value;
-
-    static const Int Blocks                 = Types::Blocks;
-
-    typedef PackedSumTree<Types>                Map;
-
-    Map* map_;
-
-    Int* rd_array_;
 
 public:
 
@@ -60,59 +55,51 @@ public:
 
     virtual ~PSetSizeBenchmark() throw() {}
 
-    void FillPMap(Map* map, Int size)
+    virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {
-        map->key(0, 0) = 0;
+    	Int tree_size     	= params.x();
+    	Int tree_block_size	= Map::block_size(tree_size);
+    	Int block_size		= PackedAllocator::block_size(tree_block_size, 1);
 
-        for (Int c = 1; c < size; c++)
-        {
-            map->key(0, c) = 1;
-        }
+    	void* block 		= malloc(block_size);
 
-        map->size() = size;
+    	allocator_ = T2T<PackedAllocator*>(block);
+    	allocator_->init(block_size, 1);
+    	allocator_->setTopLevelAllocator();
 
-        map->reindex(0);
-    }
+    	map_ = allocator_->template allocate<Map>(0, allocator_->client_area());
 
-    virtual void Prepare(BenchmarkParameters& data, ostream& out)
-    {
-        Int buffer_size     = sizeof(Map) + Map::getMemoryBlockSizeFor(data.x());
+    	Values one = {1};
 
-        Byte* buffer        = T2T<Byte*>(malloc(buffer_size));
+    	map_->insert(0, map_->max_size(), [&](){return one;});
+    	map_->reindex();
 
-        memset(buffer, buffer_size, 0);
-
-        map_ = T2T<Map*>(buffer);
-
-        map_->initByBlock(buffer_size);
-
-        FillPMap(map_, map_->maxSize());
-
-        rd_array_ = new Int[data.operations()];
-        for (Int c = 0; c < data.operations(); c++)
-        {
-            rd_array_[c] = getRandom(map_->size());
-        }
+    	rd_array_ = new Int[params.operations()];
+    	for (Int c = 0; c < params.operations(); c++)
+    	{
+    		rd_array_[c] = getRandom(map_->size());
+    	}
     }
 
     virtual void release(ostream& out)
     {
-        free(map_);
+        free(allocator_);
         delete[] rd_array_;
     }
 
-    virtual void Benchmark(BenchmarkParameters& data, ostream& out)
+    virtual void Benchmark(BenchmarkParameters& params, ostream& out)
     {
-        for (Int c = 0; c < data.operations(); c++)
-        {
-            BigInt key = rd_array_[c];
-            if (map_->findEQ(0, key) != key)
-            {
-                // this shouldn't happen
-                cout<<"MISS! "<<key<<endl;
-                out<<"MISS! "<<key<<endl;
-            }
-        }
+    	for (Int c = 0; c < params.operations(); c++)
+    	{
+    		BigInt key = rd_array_[c];
+    		auto result = map_->findGEForward(0, 0, key);
+    		if (key && result.idx() != key - 1)
+    		{
+    			// this shouldn't happen
+    			cout<<"MISS! "<<key<<endl;
+    			out<<"MISS! "<<key<<endl;
+    		}
+    	}
     }
 };
 

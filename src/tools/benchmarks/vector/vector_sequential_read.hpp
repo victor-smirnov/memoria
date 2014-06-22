@@ -28,13 +28,6 @@ class VectorSequentialReadBenchmark: public SPBenchmarkTask {
 
     typedef typename SCtrTF<Vector<UByte>>::Type                                VectorCtrType;
     typedef typename VectorCtrType::Iterator                                    Iterator;
-    typedef typename VectorCtrType::ID                                          ID;
-    typedef typename VectorCtrType::Accumulator                                 Accumulator;
-
-
-    typedef typename VectorCtrType::Key                                         Key;
-
-
 
     Allocator*      allocator_;
     VectorCtrType*  ctr_;
@@ -61,7 +54,7 @@ public:
 
         BigInt size = 1024*1024;
 
-        MemBuffer<UByte> data(size);
+        vector<UByte> data(size);
 
         Iterator i = ctr_->seek(0);
         for (Int c = 0; c < memory_size / size; c++)
@@ -82,7 +75,7 @@ public:
     {
         Int     size    = params.x();
 
-        MemBuffer<UByte> data(size);
+        vector<UByte> data(size);
 
         for (Iterator i = ctr_->seek(0); !i.isEof();)
         {

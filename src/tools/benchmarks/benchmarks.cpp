@@ -28,7 +28,9 @@ const char* CFG_FILE    = "benchmarks.properties";
 
 int main(int argc, const char** argv, const char** envp)
 {
-    MEMORIA_INIT(SmallProfile<>);
+	Term::init(argc, argv, envp);
+
+	MEMORIA_INIT(SmallProfile<>);
 
     try {
         CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::NONE);
@@ -48,7 +50,7 @@ int main(int argc, const char** argv, const char** envp)
             getBIRandom();
         }
 
-        MemoriaTaskRunner runner;
+        MemoriaTaskRunner runner("Benchmarks");
 
         runner.setRunCount(cmd_line.getCount());
 
@@ -61,7 +63,7 @@ int main(int argc, const char** argv, const char** envp)
 
         runner.registerTask(new SetRandomReadGraph());
         runner.registerTask(new SetLinearReadGraph());
-        runner.registerTask(new SetRandominsertGraph());
+        runner.registerTask(new SetRandomBatchInsertGraph());
         runner.registerTask(new SetCommitRateGraph());
 
 
@@ -71,11 +73,11 @@ int main(int argc, const char** argv, const char** envp)
         runner.registerTask(new VectorReadGraph());
         runner.registerTask(new VectorInsertGraph());
 
-
-        runner.registerTask(new VectorMapRandomGraph());
-        runner.registerTask(new VectorMapLinearGraph());
-        runner.registerTask(new VectorMapReadOverheadGraph());
-        runner.registerTask(new VectorMapBatchinsertGraph());
+//
+//        runner.registerTask(new VectorMapRandomGraph());
+//        runner.registerTask(new VectorMapLinearGraph());
+//        runner.registerTask(new VectorMapReadOverheadGraph());
+//        runner.registerTask(new VectorMapBatchinsertGraph());
 
         runner.registerTask(new TestGraph());
 
