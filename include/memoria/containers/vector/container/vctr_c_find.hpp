@@ -43,6 +43,41 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrFindName)
 
     static const Int Streams                                                    = Types::Streams;
 
+    MEMORIA_PUBLIC Iterator End()
+    {
+    	auto& self = this->self();
+    	return self.seek(self.size());
+    }
+
+    MEMORIA_PUBLIC Iterator RBegin()
+    {
+    	auto& self 	= this->self();
+    	auto size 	= self.size();
+
+    	if (size > 0)
+    	{
+    		return self.seek(size - 1);
+    	}
+    	else {
+    		return self.seek(size);
+    	}
+    }
+
+    MEMORIA_PUBLIC Iterator REnd()
+    {
+    	auto& self 	= this->self();
+    	auto size 	= self.size();
+
+    	auto iter 	= self.Begin();
+
+    	if (size > 0)
+    	{
+    		iter--;
+    	}
+
+    	return iter;
+    }
+
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::mvector::CtrFindName)

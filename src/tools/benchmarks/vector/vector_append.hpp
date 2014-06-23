@@ -37,7 +37,7 @@ public:
 
 
     Allocator*  allocator_;
-    Ctr* 		map_;
+    Ctr* 		ctr_;
 
     Int         memory_size;
 
@@ -55,14 +55,14 @@ public:
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {
         allocator_  = new Allocator();
-        map_        = new Ctr(allocator_);
+        ctr_        = new Ctr(allocator_);
 
         allocator_->commit();
     }
 
     virtual void release(ostream& out)
     {
-        delete map_;
+        delete ctr_;
         delete allocator_;
     }
 
@@ -71,7 +71,7 @@ public:
     {
         Int size = params.x();
 
-        auto i = map_->seek(map_->size());
+        auto i = ctr_->End();
 
         BigInt total = 0;
 

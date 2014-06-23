@@ -59,6 +59,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrApiName)
         return self().findGT(MAIN_STREAM, pos, 0);
     }
 
+
     MyType& operator<<(vector<Value>& v)
     {
         auto& self = this->self();
