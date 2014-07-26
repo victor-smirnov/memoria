@@ -39,14 +39,14 @@ public:
 //      registerTask(new MapCreateTest<SMrkMap<BigInt, BigInt, 1>>("SMrkMap.Create"));
 //      registerTask(new MapRemoveTest<SMrkMap<BigInt, BigInt, 1>>("SMrkMap.Remove"));
 
-//        registerTask(new MapCreateTest<Map<BigInt, BigInt>>("Map.Create"));
-//        registerTask(new MapRemoveTest<Map<BigInt, BigInt>>("Map.Remove"));
-//
-//        registerTask(new MapCreateTest<CMap<Granularity::Bit>>("CMap1.Create"));
-//        registerTask(new MapRemoveTest<CMap<Granularity::Bit>>("CMap1.Remove"));
-//
-//        registerTask(new MapCreateTest<CMap<Granularity::Byte>>("CMap2.Create"));
-//        registerTask(new MapRemoveTest<CMap<Granularity::Byte>>("CMap2.Remove"));
+        registerTask(new MapCreateTest<Map<BigInt, BigInt>>("Map.Create"));
+        registerTask(new MapRemoveTest<Map<BigInt, BigInt>>("Map.Remove"));
+
+        registerTask(new MapCreateTest<CMap<Granularity::Bit>>("CMap1.Create"));
+        registerTask(new MapRemoveTest<CMap<Granularity::Bit>>("CMap1.Remove"));
+
+        registerTask(new MapCreateTest<CMap<Granularity::Byte>>("CMap2.Create"));
+        registerTask(new MapRemoveTest<CMap<Granularity::Byte>>("CMap2.Remove"));
     }
 
 };

@@ -149,13 +149,15 @@ bool M_TYPE::removeMapEntries(Iterator& from, Iterator& to, Accumulator& keys, b
     bool result = ctr.removeEntries(from_node, from_pos, to_node, to_pos, keys, true).gtAny(0);
 
     to.idx() = to_pos.get();
-    to.updatePrefix();
-    from = to;
 
     if (adjust_next_entry && !to.isEnd())
     {
     	to.adjustIndex(1, (std::get<0>(keys)[1]));
     }
+
+    to.updatePrefix();
+
+    from = to;
 
     ctr.markCtrUpdated();
 

@@ -71,16 +71,10 @@ public:
             iter = 1234;
         }
 
-        cout<<"Size: "<<map.size()<<endl;
-
         auto begin  = map.Begin();
         auto end    = map.RBegin();
 
         begin.removeTo(end);
-
-        cout<<begin.entry()<<endl;
-
-        cout<<"Size: "<<map.size()<<endl;
 
         allocator.commit();
 

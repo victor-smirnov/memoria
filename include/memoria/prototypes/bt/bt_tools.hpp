@@ -269,7 +269,7 @@ public:
 
 
 
-template <typename List, Int Idx>
+template <typename List, Int Idx = 0>
 class PackedStructListBuilder;
 
 

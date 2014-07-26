@@ -32,9 +32,6 @@
 namespace memoria   {
 namespace bt        {
 
-
-
-
 template <
     typename K,
     typename V
@@ -88,13 +85,18 @@ public:
     typedef LeafNodeStreamTypes<Types>                                          StreamTypes;
 
     typedef typename PackedStructListBuilder<
-                typename Types::StreamDescriptors,
-                0
+                typename Types::StreamDescriptors
     >::LeafStructList                                                           StreamsStructList;
 
-    typedef typename PackedDispatcherTool<0, StreamsStructList>::Type           Dispatcher;
+    typedef typename PackedDispatcherTool<
+    					Base::StreamsStart,
+    					StreamsStructList
+    >::Type           															Dispatcher;
 
     static const Int Streams                                                    = ListSize<StreamsStructList>::Value;
+    static const Int StreamsStart                                               = Base::StreamsStart;
+    static const Int StreamsEnd                                               	= Base::StreamsStart + Streams;
+    static const Int ValuesBlockIdx                                             = StreamsEnd;
 
     LeafNode() = default;
 
@@ -115,36 +117,45 @@ private:
 
 public:
 
+    static Int free_space(Int page_size, bool root)
+    {
+        Int block_size = page_size - sizeof(Me) + PackedAllocator::my_size();
+        Int client_area = PackedAllocator::client_area(block_size, StreamsStart + Streams + 1);
+
+        return client_area - root * PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
+    }
+
+
     PackedAllocator* allocator()
     {
-        return Base::allocator()->template get<PackedAllocator>(Base::STREAMS);
+        return Base::allocator();
     }
 
     const PackedAllocator* allocator() const
     {
-        return Base::allocator()->template get<PackedAllocator>(Base::STREAMS);
+        return Base::allocator();
     }
 
     template <typename T>
-    T* get(Int idx)
+    T* get_stream(Int idx)
     {
-        return allocator()->template get<T>(idx);
+        return allocator()->template get<T>(idx + StreamsStart);
     }
 
     template <typename T>
-    const T* get(Int idx) const
+    const T* get_stream(Int idx) const
     {
-        return allocator()->template get<T>(idx);
+        return allocator()->template get<T>(idx + StreamsStart);
     }
 
-    bool is_empty(Int idx) const
+    bool is_stream_empty(Int idx) const
     {
-        return allocator()->is_empty(idx);
+        return allocator()->is_empty(idx + StreamsStart);
     }
 
     bool is_empty() const
     {
-        for (Int c = 0; c < Streams; c++)
+        for (Int c = StreamsStart; c < StreamsEnd; c++)
         {
             if (!allocator()->is_empty(c)) {
                 return false;
@@ -184,7 +195,7 @@ public:
 
     static Int client_area(Int block_size, bool root)
     {
-        Int free_space = Base::free_space(block_size, root);
+        Int free_space = MyType::free_space(block_size, root);
         return PackedAllocator::client_area(free_space, Streams);
     }
 
@@ -195,8 +206,7 @@ public:
 
     void prepare()
     {
-        Base::init();
-        Base::allocator()->allocateAllocator(Base::STREAMS, Streams);
+        Base::initAllocator(StreamsStart + Streams);
     }
 
     void layout(const Position& sizes)
@@ -218,9 +228,9 @@ public:
         {
             if (streams & (1<<StreamIndex))
             {
-                if (alloc->is_empty(StreamIndex))
+                if (alloc->is_empty(StreamIndex + StreamsStart))
                 {
-                    alloc->template allocateEmpty<Stream>(StreamIndex);
+                    alloc->template allocateEmpty<Stream>(StreamIndex + StreamsStart);
                 }
             }
         }
@@ -254,7 +264,7 @@ private:
             if (sizes[StreamIndex] > -1)
             {
                 Int block_size = Tree::block_size(sizes[StreamIndex]);
-                allocator->template allocate<Tree>(StreamIndex, block_size);
+                allocator->template allocate<Tree>(StreamIndex + StreamsStart, block_size);
             }
         }
 
@@ -263,26 +273,26 @@ private:
         {
             if (StreamIndex == 0)
             {
-                allocator->template allocate<Tree>(StreamIndex, client_area);
+                allocator->template allocate<Tree>(StreamIndex + StreamsStart, client_area);
             }
         }
     };
 
 public:
 
-    void init0(Int block_size, const Position& sizes)
-    {
-        allocator()->init(block_size, Streams);
-
-        Dispatcher::dispatchAllStatic(InitStructFn(), allocator(), sizes);
-    }
-
-    void init0(Int block_size)
-    {
-        allocator()->init(block_size, Streams);
-
-        Dispatcher::dispatchAllStatic(InitStructFn(), allocator(), allocator()->client_area());
-    }
+//    void init0(Int block_size, const Position& sizes)
+//    {
+//        allocator()->init(block_size, Streams);
+//
+//        Dispatcher::dispatchAllStatic(InitStructFn(), allocator(), sizes);
+//    }
+//
+//    void init0(Int block_size)
+//    {
+//        allocator()->init(block_size, Streams);
+//
+//        Dispatcher::dispatchAllStatic(InitStructFn(), allocator(), allocator()->client_area());
+//    }
 
 
     struct ObjectSizeFn {
@@ -293,6 +303,10 @@ public:
         }
     };
 
+
+    void init() {
+    	Base::initAllocator(StreamsStart + Streams);
+    }
 
     Int object_size() const
     {
@@ -338,7 +352,7 @@ public:
             auto allocator = tree->allocator();
             auto other_allocator = other->allocator();
 
-            other_allocator->importBlock(Idx, allocator, Idx);
+            other_allocator->importBlock(Idx + StreamsStart, allocator, Idx + StreamsStart);
         }
     };
 
@@ -354,7 +368,7 @@ public:
 
     Int data_size() const
     {
-        return sizeof(Me) + this->getDataSize();
+        return sizeof(Me) + this->getDataSize(); //FIXME: sizeof(Me) and array[] in PackedAllocator
     }
 
 
@@ -495,7 +509,7 @@ public:
 
         Dispatcher::dispatchAll(allocator(), CheckCapacitiesFn(), fillment, &mem_size);
 
-        Int free_space      = Base::free_space(this->page_size(), this->is_root());
+        Int free_space      = MyType::free_space(this->page_size(), this->is_root());
         Int client_area     = PackedAllocator::client_area(free_space, Streams);
 
         return client_area >= mem_size;
@@ -516,7 +530,7 @@ public:
 
     	Dispatcher::dispatchAll(allocator(), CheckCapacitiesFn(), entropy, fillment, &mem_size);
 
-    	Int free_space      = Base::free_space(this->page_size(), this->is_root());
+    	Int free_space      = MyType::free_space(this->page_size(), this->is_root());
     	Int client_area     = PackedAllocator::client_area(free_space, Streams);
 
     	return client_area >= mem_size;
@@ -642,7 +656,7 @@ public:
         {
             if (tree == nullptr && sizes[Idx] > 0)
             {
-                allocator->template allocate<Tree>(Idx, Tree::empty_size());
+                allocator->template allocate<Tree>(Idx + StreamsStart, Tree::empty_size());
             }
         }
     };
@@ -690,7 +704,8 @@ public:
         template <Int Idx, typename Tree>
         void stream(Tree* tree, Int room_start, Int room_end)
         {
-            if (tree != nullptr) {
+            if (tree != nullptr)
+            {
                 tree->removeSpace(room_start, room_end);
             }
         }
@@ -741,19 +756,19 @@ public:
         {
             if (tree != nullptr)
             {
-                if (other->allocator()->is_empty(StreamIdx))
+                if (other->allocator()->is_empty(StreamIdx + StreamsStart))
                 {
                     mem_used_ += tree->block_size();
                 }
                 else {
-                    const Tree* other_tree = other->allocator()->template get<Tree>(StreamIdx);
+                    const Tree* other_tree = other->allocator()->template get<Tree>(StreamIdx + StreamsStart);
                     mem_used_ += tree->block_size(other_tree);
                 }
             }
             else {
-                if (!other->allocator()->is_empty(StreamIdx))
+                if (!other->allocator()->is_empty(StreamIdx + StreamsStart))
                 {
-                    Int element_size = other->allocator()->element_size(StreamIdx);
+                    Int element_size = other->allocator()->element_size(StreamIdx + StreamsStart);
                     mem_used_ += element_size;
                 }
             }
@@ -762,10 +777,10 @@ public:
 
     bool canBeMergedWith(const MyType* other) const
     {
-        CanMergeWithFn fn;
+    	CanMergeWithFn fn;
         Dispatcher::dispatchAll(allocator(), fn, other);
 
-        Int free_space = this->allocator()->free_space() + Base::allocator()->free_space();
+        Int free_space = this->allocator()->free_space();
 
         return free_space >= fn.mem_used_;
     }
@@ -780,12 +795,12 @@ public:
 
             if (size > 0)
             {
-                if (other->is_empty(Idx))
+                if (other->is_stream_empty(Idx))
                 {
-                    other->allocator()->template allocateEmpty<Tree>(Idx);
+                    other->allocator()->template allocateEmpty<Tree>(Idx + StreamsStart);
                 }
 
-                Tree* other_tree = other->template get<Tree>(Idx);
+                Tree* other_tree = other->template get_stream<Tree>(Idx);
                 tree->mergeWith(other_tree);
             }
         }
@@ -803,10 +818,6 @@ public:
             Int idx   = indexes[Idx];
             Int size  = tree->size();
 
-            if (idx < 0) {
-                int a = 0; a++;
-            }
-
             MEMORIA_ASSERT_TRUE(idx >= 0);
             MEMORIA_ASSERT_TRUE(idx <= size);
 
@@ -815,7 +826,7 @@ public:
                 Int size = tree->size();
                 if (size > 0)
                 {
-                    Tree* other_tree    = other->allocator()->template allocateEmpty<Tree>(Idx);
+                    Tree* other_tree    = other->allocator()->template allocateEmpty<Tree>(Idx + StreamsStart);
 
                     tree->splitTo(other_tree, idx);
                 }
@@ -848,7 +859,7 @@ public:
                 const Position& copy_to
         )
         {
-            tree->copyTo(other->template get<Tree>(Idx), copy_from[Idx], count[Idx], copy_to[Idx]);
+            tree->copyTo(other->allocator()->template get<Tree>(Idx + StreamsStart), copy_from[Idx], count[Idx], copy_to[Idx]);
         }
     };
 
@@ -1152,8 +1163,6 @@ public:
     {
         Base::generateDataEvents(handler);
 
-        allocator()->generateDataEvents(handler);
-
         Dispatcher::dispatchNotEmpty(allocator(), GenerateDataEventsFn(), handler);
     }
 
@@ -1170,8 +1179,6 @@ public:
     {
         Base::template serialize<FieldFactory>(buf);
 
-        allocator()->serialize(buf);
-
         Dispatcher::dispatchNotEmpty(allocator(), SerializeFn(), &buf);
     }
 
@@ -1187,8 +1194,6 @@ public:
     void deserialize(DeserializationData& buf)
     {
         Base::template deserialize<FieldFactory>(buf);
-
-        allocator()->deserialize(buf);
 
         Dispatcher::dispatchNotEmpty(allocator(), DeserializeFn(), &buf);
     }

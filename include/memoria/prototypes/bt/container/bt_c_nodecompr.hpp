@@ -114,6 +114,9 @@ bool M_TYPE::insertToLeaf(NodeBaseG& leaf, Position& idx, Source& source, Accumu
 	self.updatePageG(leaf);
 
 	mgr.add(leaf);
+
+	Position streamPos = self.getStreamPosition(source);
+
 	try
 	{
 		sums = self.insertSourceToLeaf(leaf, idx, source);
@@ -121,6 +124,8 @@ bool M_TYPE::insertToLeaf(NodeBaseG& leaf, Position& idx, Source& source, Accumu
 	}
 	catch (PackedOOMException& ex)
 	{
+		self.setStreamPosition(source, streamPos);
+
 		mgr.rollback();
 
 		return false;

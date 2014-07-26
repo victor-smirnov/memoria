@@ -114,7 +114,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrFindName)
 
     Iterator operator[](Key key)
     {
-        Iterator iter = self().findGE(0, key, 1);
+    	Iterator iter = self().findGE(0, key, 1);
 
         if (iter.isEnd() || key != iter.key())
         {

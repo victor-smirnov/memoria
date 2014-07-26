@@ -486,7 +486,7 @@ public:
         return has_index_;
     }
 
-    bool max() const {
+    Int max() const {
         return max_;
     }
 
@@ -540,7 +540,7 @@ public:
     }
 
     Int max() const {
-        return me_.size();
+        return me_.raw_size();
     }
 
     Int walkValues(Int pos)

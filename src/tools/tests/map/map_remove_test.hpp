@@ -42,12 +42,16 @@ class MapRemoveTest: public MapTestBase<MapName> {
     PairVector&     pairs_sorted    = Base::pairs_sorted;
     String&         dump_name_      = Base::dump_name_;
 
+    bool 			map_creation_ = false;
+
 public:
 
     MapRemoveTest(StringRef name): Base(name)
     {
         Base::size_         = 10000;
-        Base::check_step    = 0;
+        Base::check_step    = 1;
+
+        MEMORIA_ADD_TEST_PARAM(map_creation_)->state();
 
         MEMORIA_ADD_TEST_WITH_REPLAY(runRemoveTest, replayRemoveTest);
     }
@@ -66,13 +70,15 @@ public:
         ctr_name_ = map.name();
 
         try {
-            for (vector_idx_ = 0; vector_idx_ < size_; vector_idx_++)
+        	map_creation_ = true;
+
+        	for (vector_idx_ = 0; vector_idx_ < size_; vector_idx_++)
             {
                 auto iter = map[pairs[vector_idx_].key_];
                 iter.svalue() = pairs[vector_idx_].value_;
-            }
 
-            allocator.commit();
+                allocator.commit();
+            }
 
             Base::check(allocator, MEMORIA_SOURCE);
 
@@ -81,9 +87,11 @@ public:
                 pairs_sorted.push_back(Pair(iter.key(), iter.value()));
             }
 
+            map_creation_ = false;
+
             for (vector_idx_ = 0; vector_idx_ < size_; vector_idx_++)
             {
-                bool result = map.remove(pairs[vector_idx_].key_);
+            	bool result = map.remove(pairs[vector_idx_].key_);
 
                 AssertTrue(MA_SRC, result);
 
@@ -139,22 +147,28 @@ public:
 
         Ctr map(&allocator, CTR_FIND, ctr_name_);
 
-        bool result = map.remove(pairs[vector_idx_].key_);
-
-        AssertTrue(MA_SRC, result);
-
-        Base::check(allocator, MEMORIA_SOURCE);
-
-        BigInt size = size_ - vector_idx_ - 1;
-
-        AssertEQ(MA_SRC, size, map.size());
-
-        for (UInt x = 0; x < pairs_sorted.size(); x++)
+        if (map_creation_)
         {
-            if (pairs_sorted[x].key_ == pairs[vector_idx_].key_)
-            {
-                pairs_sorted.erase(pairs_sorted.begin() + x);
-            }
+
+        }
+        else {
+        	bool result = map.remove(pairs[vector_idx_].key_);
+
+        	AssertTrue(MA_SRC, result);
+
+        	Base::check(allocator, MEMORIA_SOURCE);
+
+        	BigInt size = size_ - vector_idx_ - 1;
+
+        	AssertEQ(MA_SRC, size, map.size());
+
+        	for (UInt x = 0; x < pairs_sorted.size(); x++)
+        	{
+        		if (pairs_sorted[x].key_ == pairs[vector_idx_].key_)
+        		{
+        			pairs_sorted.erase(pairs_sorted.begin() + x);
+        		}
+        	}
         }
 
         Base::check(allocator, MEMORIA_SOURCE);

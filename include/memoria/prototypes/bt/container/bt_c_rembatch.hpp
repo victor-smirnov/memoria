@@ -270,13 +270,11 @@ void M_TYPE::removeNonLeafNodesFromStart(NodeBaseG& stop, Int stop_idx, Accumula
     {
         Int parent_idx = node->parent_idx();
 
+        node = self.getNodeParentForUpdate(node);
+
         if (parent_idx > 0)
         {
-            node = self.getNodeParentForUpdate(node);
             self.removeNodeContent(node, 0, parent_idx, sums, sizes);
-        }
-        else {
-            break;
         }
     }
 }
@@ -326,9 +324,6 @@ void M_TYPE::removeNonLeafNodesAtEnd(NodeBaseG& start, Int start_idx, Accumulato
         if (parent_idx < node_size - 1)
         {
             self.removeNodeContent(node, parent_idx + 1, node_size, sums, sizes);
-        }
-        else {
-            break;
         }
     }
 }
@@ -409,7 +404,7 @@ void M_TYPE::removeNodes(
         {
         	if (self.mergeCurrentBTreeNodes(start, stop))
             {
-                stop_idx    = start_idx;
+        		stop_idx    = start_idx;
                 stop        = start;
             }
             else {

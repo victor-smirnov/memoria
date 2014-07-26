@@ -312,7 +312,7 @@ private:
         String folder_name = getNodeName(type, idx, page->id());
         pushFolder(folder_name.c_str());
 
-        String file_name = path_.top().getPath() + Platform::getFilePathSeparator() + "page.txt";
+        String file_name = path_.top().getPath() + Platform::getFilePathSeparator() + "0_page.txt";
 
         dumpPage(file_name, page);
     }

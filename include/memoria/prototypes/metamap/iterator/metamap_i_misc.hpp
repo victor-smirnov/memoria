@@ -59,11 +59,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrMiscName)
         {
             if (stream)
             {
-                std::get<0>(prefix_)[0] += idx;
+                std::get<Idx>(prefix_)[0] += idx;
 
-                for (Int c = 1; c < std::tuple_element<0, IteratorPrefix>::type::Indexes; c++)
+                for (Int c = 1; c < std::tuple_element<Idx, IteratorPrefix>::type::Indexes; c++)
                 {
-                    std::get<0>(prefix_)[c] += stream->sum(c - 1, idx);
+                    std::get<Idx>(prefix_)[c] += stream->sum(c - 1, idx);
                 }
             }
         }

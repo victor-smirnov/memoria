@@ -235,7 +235,8 @@ public:
     struct DispatcherTypes
     {
         typedef typename ContainerTypes::NodeTypesList      NodeList;
-        typedef typename ContainerTypes::DefaultNodeTypesList DefaultNodeList;
+        typedef
+        	typename ContainerTypes::DefaultNodeTypesList 	DefaultNodeList;
         typedef NodePageBase0                               NodeBase;
         typedef typename MyType::NodeTypes                  NodeTypes;
         typedef NodePageBase0G                              NodeBaseG;

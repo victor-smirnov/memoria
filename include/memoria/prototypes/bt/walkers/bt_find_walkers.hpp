@@ -48,6 +48,10 @@ public:
     template <Int StreamIdx, typename Tree>
     ResultType find_non_leaf(const Tree* tree, Int start)
     {
+    	if (DebugCounter) {
+    		int a = 0; a++;
+    	}
+
         auto k = Base::target_ - Base::sum_;
 
         Int index   = this->branch_index();

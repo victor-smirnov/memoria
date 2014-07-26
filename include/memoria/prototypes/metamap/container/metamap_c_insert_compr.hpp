@@ -286,7 +286,7 @@ void M_TYPE::updateLeafNode(
     try {
         LeafDispatcher::dispatch(node, AddLeafSingleFn<DataType>(sums), idx);
     }
-    catch (PackedOOMException ex)
+    catch (PackedOOMException& ex)
     {
         Position sizes = self.getNodeSizes(node);
 

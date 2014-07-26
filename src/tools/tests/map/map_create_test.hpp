@@ -64,7 +64,7 @@ public:
 
         allocator.commit();
 
-        map.setNewPageSize(8192);
+        map.setNewPageSize(4096);
 
         Base::ctr_name_ = map.name();
 
@@ -145,9 +145,11 @@ public:
     {
         vector<Int> v;
 
-        for (int c = 0; c < size; c++)
+        for (int c = 1; c <= size; c++)
         {
-            key_ = value_ = c;
+        	allocator.commit();
+
+        	key_ = value_ = c;
 
             Base::out()<<c<<endl;
 
@@ -159,8 +161,6 @@ public:
 
             AssertEQ(MA_SRC, i.key(), c);
             AssertEQ(MA_SRC, i.value(), c);
-
-            allocator.commit();
         }
 
         return v;
@@ -173,14 +173,14 @@ public:
         Allocator allocator;
         allocator.getLogger()->setHandler(&logHandler);
 
+        allocator.commit();
+
         try {
             Ctr ctr(&allocator);
 
             Base::ctr_name_ = ctr.name();
 
             vector<Int> v = fillVector(allocator, ctr, Base::size_);
-
-            allocator.commit();
 
             Iterator i1 = ctr.Begin();
             AssertEQ(MA_SRC, i1.key(), v[0]);
@@ -195,11 +195,15 @@ public:
             Iterator i4 = ctr.REnd();
             AssertTrue(MA_SRC, i4.isBegin());
             AssertEQ(MA_SRC, i4.idx(), -1);
+
+            allocator.commit();
         }
         catch (...) {
             Base::dump_name_ = Base::Store(allocator);
             throw;
         }
+
+        this->StoreAllocator(allocator, this->getResourcePath("iterator.dump"));
     }
 
     void replayIteratorTest()

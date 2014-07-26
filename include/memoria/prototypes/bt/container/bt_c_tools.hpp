@@ -463,6 +463,22 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     	}
     };
 
+    struct GetStreamPositionFn {
+    	template <Int Idx, typename Stream>
+    	void operator()(const Stream* obj, Position& pos)
+    	{
+    		pos[Idx] = obj->getStart();
+    	}
+    };
+
+    struct ResetPositionFn {
+    	template <Int Idx, typename Stream>
+    	void operator()(Stream* obj, const Position& pos)
+    	{
+    		obj->reset(pos[Idx]);
+    	}
+    };
+
     Position getRemainderSize(const Source& source)
     {
     	Position pos;
@@ -470,6 +486,20 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     	TupleDispatcher<Source>::dispatch(source, GetRemainderSize(), pos);
 
     	return pos;
+    }
+
+    Position getStreamPosition(const Source& source)
+    {
+    	Position pos;
+
+    	TupleDispatcher<Source>::dispatch(source, GetStreamPositionFn(), pos);
+
+    	return pos;
+    }
+
+    void setStreamPosition(Source& source, const Position& pos)
+    {
+    	TupleDispatcher<Source>::dispatch(source, ResetPositionFn(), pos);
     }
 
     Position getRemainderSize(const Target& target)
@@ -480,6 +510,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
     	return pos;
     }
+
+
 
 
     MEMORIA_DECLARE_NODE_FN_RTN(EstimateEntropy, estimateEntropy, bool);
