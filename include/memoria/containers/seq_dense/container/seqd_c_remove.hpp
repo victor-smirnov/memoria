@@ -190,7 +190,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrRemoveName)
 
             iter = tmp;
 
-
             self.mergeWithSiblings(iter.leaf(), merge_fn);
         }
 

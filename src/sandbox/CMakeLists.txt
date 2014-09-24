@@ -1,7 +1,7 @@
 include_directories(../tools/include)
 
 if (NOT DEFINED MEMORIA_SANDBOX)
-    set(MEMORIA_SANDBOX lru_cache file_allocator)
+    set(MEMORIA_SANDBOX const)
 endif()
 
 FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX})

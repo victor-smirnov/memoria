@@ -2,45 +2,35 @@
 
 #include <memoria/memoria.hpp>
 
+#include <memoria/core/tools/elias_codec.hpp>
+#include <memoria/core/tools/i64_codec.hpp>
+
 #include <typeinfo>
 #include <iostream>
 #include <vector>
 
 using namespace std;
 using namespace memoria;
-using namespace memoria::vapi;
-
-class AClass {
-    Int* array_;
-public:
-    AClass() {
-        array_ = new Int[10];
-    }
-
-    AClass(Int* array): array_(array) {}
-
-    void constMethod() const {
-        array_[0] = 10;
-    }
-
-    void nonConstMethod() {
-        array_[1] = 20;
-    }
-
-    ~AClass() {
-        delete[] array_;
-    }
-
-};
+using namespace memoria::core;
 
 
-void doSomethin(const AClass& aClass)
-{
-    aClass.constMethod();
-}
 
 int main(void) {
 
+	size_t lmax = 0;
+
+	for (BigInt c = 0; c < 65536; c++)
+	{
+		size_t len = GetI64ValueLength(c);
+
+		if (len < lmax) {
+			cout<<c<<" "<<len<<" "<<lmax<<endl;
+			break;
+		}
+		else {
+			cout<<c<<" "<<len<<endl;
+		}
+	}
 
     return 0;
 }

@@ -12,7 +12,7 @@
 
 /**
  * Elias Delta based codec. It has right the same code lengths as the original Elias Delta code,
- * but a bit different code wirds. See the EncodeEliasDelta procedure for details.
+ * but a bit different code words. See the EncodeEliasDelta procedure for details.
  */
 
 
@@ -25,10 +25,10 @@ namespace memoria {
 template <typename V>
 size_t GetEliasDeltaValueLength(V value)
 {
-    size_t length           = Log2(value);
-    size_t length_length    = Log2(length) - 1;
+	size_t length           = Log2(value);
+	size_t length_length    = Log2(length) - 1;
 
-    return length_length * 2 + length;
+	return length_length * 2 + length;
 }
 
 

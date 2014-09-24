@@ -335,13 +335,14 @@ public:
 
             auto symbols = seq.symbols();
 
+            Int sum = 0;
+
             Int block = 0;
             for (Int b = 0; b < size; b += ValuesPerBranch, block++)
             {
                 Int next = b + ValuesPerBranch;
                 Int max = next <= size ? next : size;
 
-                //Values values;
 
                 for (Int pos = b; pos < max; pos++)
                 {
@@ -351,9 +352,14 @@ public:
 
                 for (Int c = 0; c < Blocks; c++)
                 {
-                    length += codec.length(frequences[c * LineWidth + block]);
+                    UShort freq = frequences[c * LineWidth + block];
+                	length += codec.length(freq);
+
+                	sum += freq;
                 }
             }
+
+            MEMORIA_ASSERT(sum, ==, size);
 
             seq.createIndex(length);
 

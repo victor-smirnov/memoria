@@ -194,7 +194,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ReadName)
 
     CtrSizeT readStream(Iterator& iter, ITarget& data_target)
     {
-        MEMORIA_ASSERT(iter.dataPos(), >=, 0);
+    	MEMORIA_ASSERT(iter.dataPos(), >=, 0);
 
         IDataBase* data = T2T<IDataBase*>(data_target.stream(iter.stream()));
 

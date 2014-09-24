@@ -554,7 +554,7 @@ public:
     template <Int Idx, typename Tree>
     ResultType tree(const Tree* tree, Int start)
     {
-        auto k          = Base::target_ - Base::sum_;
+    	auto k          = Base::target_ - Base::sum_;
         auto result     = tree->findBackward(Base::search_type_, Base::index_, start, k);
         Base::sum_      += result.prefix();
 

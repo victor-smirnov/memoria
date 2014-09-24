@@ -35,6 +35,8 @@ class SequenceCreateTest: public SequenceTestBase<BitsPerSymbol, Dense> {
 
     Int last_symbol_;
     Int ctr_name_;
+    Int remove_idx_;
+    BigInt target_size_;
 
     String seq_file_name_;
 
@@ -50,8 +52,10 @@ public:
         MEMORIA_ADD_TEST_PARAM(seq_file_name_)->state();
         MEMORIA_ADD_TEST_PARAM(last_symbol_)->state();
         MEMORIA_ADD_TEST_PARAM(ctr_name_)->state();
+        MEMORIA_ADD_TEST_PARAM(remove_idx_)->state();
+        MEMORIA_ADD_TEST_PARAM(target_size_)->state();
 
-        MEMORIA_ADD_TEST(testCreateRemoveRandom);
+        MEMORIA_ADD_TEST_WITH_REPLAY(testCreateRemoveRandom, replayCreateRemoveRandom);
         MEMORIA_ADD_TEST_WITH_REPLAY(testAppend, replayAppend);
     }
 
@@ -96,14 +100,16 @@ public:
 
             for (Int c = 0; c < size; c++)
             {
-                Int idx = getRandom(size - c);
+                remove_idx_ = getRandom(size - c);
 
-                ctr.remove(idx);
+                ctr.remove(remove_idx_);
 
-                AssertEQ(MA_SRC, ctr.size(), size - c - 1);
+                target_size_ = size - c - 1;
+
+                AssertEQ(MA_SRC, ctr.size(), target_size_);
+
+                allocator.commit();
             }
-
-            allocator.commit();
 
             this->StoreAllocator(allocator, this->getResourcePath("remove.dump"));
         }
@@ -111,6 +117,26 @@ public:
             Base::dump_name_ = Base::Store(allocator);
             throw;
         }
+    }
+
+    void replayCreateRemoveRandom()
+    {
+    	Allocator allocator;
+    	allocator.commit();
+
+    	this->LoadAllocator(allocator, Base::dump_name_);
+
+    	Base::check(allocator, MA_SRC);
+
+    	Ctr ctr(&allocator, CTR_FIND, ctr_name_);
+
+    	ctr.remove(remove_idx_);
+
+    	AssertEQ(MA_SRC, ctr.size(), target_size_);
+
+    	allocator.commit();
+
+    	this->StoreAllocator(allocator, this->getResourcePath("remove-replay.dump"));
     }
 
     void StoreSequenceData(const vector<UByte>& seq)

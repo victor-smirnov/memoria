@@ -11,6 +11,8 @@
 
 
 #include <memoria/core/types/types.hpp>
+#include <memoria/core/tools/static_array.hpp>
+
 
 #include <tuple>
 #include <ostream>
@@ -146,7 +148,7 @@ struct OstreamFn {
 
 
 template <typename ElementType_, Int Indexes_>
-void Clear(core::StaticVector<ElementType_, Indexes_>& v)
+void Clear(::memoria::core::StaticVector<ElementType_, Indexes_>& v)
 {
 	v.clear();
 }

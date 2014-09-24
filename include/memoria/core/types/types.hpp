@@ -269,6 +269,10 @@ class Tree {};
 struct NullType {};
 
 struct EmptyType {};
+
+struct EmptyType1 {};
+struct EmptyType2 {};
+
 struct IncompleteType;
 struct TypeIsNotDefined {};
 

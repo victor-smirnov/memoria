@@ -80,7 +80,7 @@ public:
 
     SkipBackwardWalker(Int stream, Int index, Key target): Base(stream, index, target)
     {
-        Base::search_type_ = SearchType::GT;
+        Base::search_type_ = SearchType::GE;
     }
 
     template <Int Idx, typename Tree>

@@ -116,7 +116,7 @@ public:
 
     RankBWWalker(Int stream, Int index, Key target): Base(stream, 0, target)
     {
-        Base::search_type_  = SearchType::GT;
+        Base::search_type_  = SearchType::GE;
         symbol_             = index;
     }
 

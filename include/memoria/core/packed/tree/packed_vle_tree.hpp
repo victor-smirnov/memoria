@@ -1389,8 +1389,6 @@ public:
         this->data_size()   = pos;
         this->size()        = blocks;
 
-//      reindexBlock(data, blocks);
-
         reindex();
     }
 
