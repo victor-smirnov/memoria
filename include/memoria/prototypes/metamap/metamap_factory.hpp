@@ -77,15 +77,15 @@ struct MetaMapBTTypesBase: public BTTypes<Profile, memoria::BT> {
 
 
 
-    typedef TypeList<
-            LeafNodeTypes<LeafNode>,
-            NonLeafNodeTypes<BranchNode>
-    >                                                                           NodeTypesList;
-
-    typedef TypeList<
-            TreeNodeType<LeafNode>,
-            TreeNodeType<BranchNode>
-    >                                                                           DefaultNodeTypesList;
+//    typedef TypeList<
+//            LeafNodeTypes<LeafNode>,
+//            NonLeafNodeTypes<BranchNode>
+//    >                                                                           NodeTypesList;
+//
+//    typedef TypeList<
+//            TreeNodeType<LeafNode>,
+//            TreeNodeType<BranchNode>
+//    >                                                                           DefaultNodeTypesList;
 
     static const Int Labels                                                     = ListSize<LabelsList>::Value;
     static const Int HiddenLabels                                               = ListSize<HiddenLabelsList>::Value;

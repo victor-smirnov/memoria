@@ -189,7 +189,7 @@ typename M_TYPE::Iterator M_TYPE::find0(Int stream, Walker&& walker)
                     idx = self.getNodeSize(node, stream) - 1;
                 }
 
-                node = me()->getChild(node, idx);
+                node = self.getChild(node, idx);
             }
 
             Int idx;

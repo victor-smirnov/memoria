@@ -49,15 +49,15 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >: public BTTypes<Profile, me
 
 
 
-    typedef TypeList<
-                NonLeafNodeTypes<BranchNode>,
-                LeafNodeTypes<LeafNode>
-    >                                                                           NodeTypesList;
-
-    typedef TypeList<
-                TreeNodeType<LeafNode>,
-                TreeNodeType<BranchNode>
-    >                                                                           DefaultNodeTypesList;
+//    typedef TypeList<
+//                NonLeafNodeTypes<BranchNode>,
+//                LeafNodeTypes<LeafNode>
+//    >                                                                           NodeTypesList;
+//
+//    typedef TypeList<
+//                TreeNodeType<LeafNode>,
+//                TreeNodeType<BranchNode>
+//    >                                                                           DefaultNodeTypesList;
 
 
     struct StreamTF {

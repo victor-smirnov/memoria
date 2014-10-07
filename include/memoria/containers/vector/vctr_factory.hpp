@@ -44,15 +44,15 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
         typedef ::memoria::mvector::VectorIteratorPrefixCache<Iterator, Container>               Type;
     };
 
-    typedef TypeList<
-            LeafNodeTypes<LeafNode>,
-            NonLeafNodeTypes<BranchNode>
-    >                                                                           NodeTypesList;
-
-    typedef TypeList<
-            TreeNodeType<LeafNode>,
-            TreeNodeType<BranchNode>
-    >                                                                           DefaultNodeTypesList;
+//    typedef TypeList<
+//            LeafNodeTypes<LeafNode>,
+//            NonLeafNodeTypes<BranchNode>
+//    >                                                                           NodeTypesList;
+//
+//    typedef TypeList<
+//            TreeNodeType<LeafNode>,
+//            TreeNodeType<BranchNode>
+//    >                                                                           DefaultNodeTypesList;
 
 
     struct StreamTF {
