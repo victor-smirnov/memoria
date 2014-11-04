@@ -12,12 +12,12 @@
 #include <memoria/containers/root/root_factory.hpp>
 #include <memoria/containers/map/map_factory.hpp>
 #include <memoria/containers/vector/vctr_factory.hpp>
-#include <memoria/containers/vector_map/vmap_factory.hpp>
-#include <memoria/containers/seq_dense/seqd_factory.hpp>
-#include <memoria/containers/labeled_tree/ltree_factory.hpp>
-#include <memoria/containers/wt/wt_factory.hpp>
-#include <memoria/containers/vector_tree/vtree_factory.hpp>
-#include <memoria/containers/dbl_map/dblmap_factory.hpp>
+//#include <memoria/containers/vector_map/vmap_factory.hpp>
+//#include <memoria/containers/seq_dense/seqd_factory.hpp>
+//#include <memoria/containers/labeled_tree/ltree_factory.hpp>
+//#include <memoria/containers/wt/wt_factory.hpp>
+//#include <memoria/containers/vector_tree/vtree_factory.hpp>
+//#include <memoria/containers/dbl_map/dblmap_factory.hpp>
 
 #include <memoria/core/container/metadata_repository.hpp>
 

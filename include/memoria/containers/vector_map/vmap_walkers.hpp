@@ -116,10 +116,10 @@ public:
 
 
 
-template <typename Types>
-class MapFindWalker: public FindForwardWalkerBase<Types, MapFindWalker<Types>> {
+template <typename Types, Int Stream>
+class MapFindWalker: public FindForwardWalkerBase<Types, Stream, MapFindWalker<Types, Stream>> {
 
-    typedef FindForwardWalkerBase<Types, MapFindWalker<Types>>                  Base;
+    typedef FindForwardWalkerBase<Types, Stream, MapFindWalker<Types, Stream>>  Base;
     typedef typename Base::Key                                                  Key;
     typedef typename Types::Accumulator                                         Accumulator;
     typedef Iter<typename Types::IterTypes>                                     Iterator;
@@ -177,10 +177,10 @@ public:
 };
 
 
-template <typename Types>
-class SkipForwardWalker: public FindForwardWalkerBase<Types, SkipForwardWalker<Types>> {
+template <typename Types, Int Stream>
+class SkipForwardWalker: public FindForwardWalkerBase<Types, Stream, SkipForwardWalker<Types, Stream>> {
 
-    typedef FindForwardWalkerBase<Types, SkipForwardWalker<Types>>              Base;
+    typedef FindForwardWalkerBase<Types, Stream, SkipForwardWalker<Types, Stream>>              Base;
     typedef typename Types::Key                                                 Key;
     typedef typename Types::Accumulator                                         Accumulator;
 
@@ -193,10 +193,10 @@ public:
 };
 
 
-template <typename Types>
-class SkipBackwardWalker: public FindBackwardWalkerBase<Types, SkipBackwardWalker<Types>> {
+template <typename Types, Int Stream>
+class SkipBackwardWalker: public FindBackwardWalkerBase<Types, Stream, SkipBackwardWalker<Types, Stream>> {
 
-    typedef FindBackwardWalkerBase<Types, SkipBackwardWalker<Types>>            Base;
+    typedef FindBackwardWalkerBase<Types, Stream, SkipBackwardWalker<Types, Stream>>            Base;
     typedef typename Types::Key                                                 Key;
     typedef typename Types::Accumulator                                         Accumulator;
 
@@ -422,12 +422,12 @@ public:
 };
 
 
-template <typename Types>
-class PrevLeafWalker: public PrevLeafWalkerBase<Types, PrevLeafWalker<Types>> {
+template <typename Types, Int Stream>
+class PrevLeafWalker: public PrevLeafWalkerBase<Types, Stream, PrevLeafWalker<Types, Stream>> {
 
 protected:
 
-    typedef PrevLeafWalkerBase<Types, PrevLeafWalker<Types>>                    Base;
+    typedef PrevLeafWalkerBase<Types, Stream, PrevLeafWalker<Types, Stream>>                    Base;
     typedef typename Base::Key                                                  Key;
     typedef typename Base::Position                                             Position;
     typedef typename Base::Iterator                                             Iterator;

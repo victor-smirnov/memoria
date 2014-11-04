@@ -108,30 +108,30 @@ struct BTTypes<Profile, DblMap<Key_, Value_> >:
 
 
     template <typename Types>
-    using FindGEWalker              = dblmap::SecondMapFindGEWalker<Types>;
+    using FindGEWalker              = dblmap::SecondMapFindGEWalker<Types, 0>;
     template <typename Types>
-    using FindGTWalker              = dblmap::SecondMapFindGTWalker<Types>;
-
-
-    template <typename Types>
-    using SkipForwardWalker         = dblmap::SkipForwardWalker<Types>;
-
-    template <typename Types>
-    using SkipBackwardWalker        = dblmap::SkipBackwardWalker<Types>;
+    using FindGTWalker              = dblmap::SecondMapFindGTWalker<Types, 0>;
 
 
     template <typename Types>
-    using NextLeafWalker            = bt::NextLeafWalker<Types>;
+    using SkipForwardWalker         = dblmap::SkipForwardWalker<Types, 0>;
 
     template <typename Types>
-    using PrevLeafWalker            = dblmap::PrevLeafWalker<Types>;
-
-    template <typename Types>
-    using NextLeafMutistreamWalker  = bt::NextLeafMultistreamWalker<Types>;
+    using SkipBackwardWalker        = dblmap::SkipBackwardWalker<Types, 0>;
 
 
     template <typename Types>
-    using PrevLeafMutistreamWalker  = bt::PrevLeafMultistreamWalker<Types>;
+    using NextLeafWalker            = bt::NextLeafWalker<Types, 0>;
+
+    template <typename Types>
+    using PrevLeafWalker            = dblmap::PrevLeafWalker<Types, 0>;
+
+    template <typename Types>
+    using NextLeafMutistreamWalker  = bt::NextLeafMultistreamWalker<Types, 0>;
+
+
+    template <typename Types>
+    using PrevLeafMutistreamWalker  = bt::PrevLeafMultistreamWalker<Types, 0>;
 
 
 

@@ -166,26 +166,26 @@ struct MetaMapBTTypesBase: public BTTypes<Profile, memoria::BT> {
 
 
     template <typename Types>
-    using FindGTWalker          = bt1::FindGTForwardWalker<Types, bt1::DefaultIteratorPrefixFn>;
+    using FindGTWalker          = bt1::FindGTForwardWalker<Types, 0, bt1::DefaultIteratorPrefixFn>;
 
     template <typename Types>
-    using FindGEWalker          = bt1::FindGEForwardWalker<Types, bt1::DefaultIteratorPrefixFn>;
+    using FindGEWalker          = bt1::FindGEForwardWalker<Types, 0, bt1::DefaultIteratorPrefixFn>;
 
     template <typename Types>
-    using FindBackwardWalker    = bt1::FindBackwardWalker<Types, bt1::DefaultIteratorPrefixFn>;
+    using FindBackwardWalker    = bt1::FindBackwardWalker<Types, 0, bt1::DefaultIteratorPrefixFn>;
 
 
     template <typename Types>
-    using SkipForwardWalker     = bt1::SkipForwardWalker<Types, bt1::DefaultIteratorPrefixFn>;
+    using SkipForwardWalker     = bt1::SkipForwardWalker<Types, 0, bt1::DefaultIteratorPrefixFn>;
 
     template <typename Types>
-    using SkipBackwardWalker    = bt1::SkipBackwardWalker<Types, bt1::DefaultIteratorPrefixFn>;
+    using SkipBackwardWalker    = bt1::SkipBackwardWalker<Types, 0, bt1::DefaultIteratorPrefixFn>;
 
     template <typename Types>
-    using SelectForwardWalker   = metamap::SelectForwardWalker<Types, bt1::DefaultIteratorPrefixFn>;
+    using SelectForwardWalker   = metamap::SelectForwardWalker<Types, 0, bt1::DefaultIteratorPrefixFn>;
 
     template <typename Types>
-    using SelectBackwardWalker  = metamap::SelectBackwardWalker<Types, bt1::DefaultIteratorPrefixFn>;
+    using SelectBackwardWalker  = metamap::SelectBackwardWalker<Types, 0, bt1::DefaultIteratorPrefixFn>;
 
 
     template <typename Types>

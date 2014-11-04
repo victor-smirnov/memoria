@@ -15,14 +15,16 @@ namespace bt1     {
 
 template <
     typename Types,
+    Int Stream,
     typename IteratorPrefixFn = EmptyIteratorPrefixFn
 >
 class RankForwardWalker: public SkipForwardWalkerBase<
                                     Types,
+                                    Stream,
                                     IteratorPrefixFn,
-                                    RankForwardWalker<Types, IteratorPrefixFn>> {
+                                    RankForwardWalker<Types, Stream, IteratorPrefixFn>> {
 
-    using Base      = SkipForwardWalkerBase<Types, IteratorPrefixFn, RankForwardWalker<Types, IteratorPrefixFn>>;
+    using Base      = SkipForwardWalkerBase<Types, Stream, IteratorPrefixFn, RankForwardWalker<Types, Stream, IteratorPrefixFn>>;
     using Key       = typename Base::Key;
     using Iterator  = typename Base::Iterator;
 
@@ -64,14 +66,16 @@ public:
 
 template <
     typename Types,
+    Int Stream,
     typename IteratorPrefixFn = EmptyIteratorPrefixFn
 >
 class RankBackwardWalker: public SkipBackwardWalkerBase<
                                     Types,
+                                    Stream,
                                     IteratorPrefixFn,
-                                    RankBackwardWalker<Types, IteratorPrefixFn>> {
+                                    RankBackwardWalker<Types, Stream, IteratorPrefixFn>> {
 
-    using Base      = SkipBackwardWalkerBase<Types, IteratorPrefixFn, RankBackwardWalker<Types, IteratorPrefixFn>>;
+    using Base      = SkipBackwardWalkerBase<Types, Stream, IteratorPrefixFn, RankBackwardWalker<Types, Stream, IteratorPrefixFn>>;
     using Key       = typename Base::Key;
     using Iterator  = typename Base::Iterator;
 

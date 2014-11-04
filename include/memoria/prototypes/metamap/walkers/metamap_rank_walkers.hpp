@@ -16,14 +16,16 @@ namespace metamap {
 
 template <
     typename Types,
+    Int Stream,
     typename IteratorPrefixFn = bt1::DefaultIteratorPrefixFn
 >
 class RankForwardWalker: public bt1::SkipForwardWalkerBase<
                                     Types,
+                                    Stream,
                                     IteratorPrefixFn,
-                                    RankForwardWalker<Types, IteratorPrefixFn>> {
+                                    RankForwardWalker<Types, Stream, IteratorPrefixFn>> {
 
-    using Base      = bt1::SkipForwardWalkerBase<Types, IteratorPrefixFn, RankForwardWalker<Types, IteratorPrefixFn>>;
+    using Base      = bt1::SkipForwardWalkerBase<Types, Stream, IteratorPrefixFn, RankForwardWalker<Types, Stream, IteratorPrefixFn>>;
     using Key       = typename Base::Key;
     using Iterator  = typename Base::Iterator;
 
@@ -67,14 +69,16 @@ public:
 
 template <
     typename Types,
+    Int Stream,
     typename IteratorPrefixFn = bt1::DefaultIteratorPrefixFn
 >
 class RankBackwardWalker: public bt1::SkipBackwardWalkerBase<
                                     Types,
+                                    Stream,
                                     IteratorPrefixFn,
-                                    RankBackwardWalker<Types, IteratorPrefixFn>> {
+                                    RankBackwardWalker<Types, Stream, IteratorPrefixFn>> {
 
-    using Base      = bt1::SkipBackwardWalkerBase<Types, IteratorPrefixFn, RankBackwardWalker<Types, IteratorPrefixFn>>;
+    using Base      = bt1::SkipBackwardWalkerBase<Types, Stream, IteratorPrefixFn, RankBackwardWalker<Types, Stream, IteratorPrefixFn>>;
     using Key       = typename Base::Key;
     using Iterator  = typename Base::Iterator;
 

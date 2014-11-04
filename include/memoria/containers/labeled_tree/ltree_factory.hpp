@@ -85,35 +85,35 @@ struct BTTypes<Profile, memoria::LabeledTree<LabelDescriptors...>>: BTTypes<Prof
 
 
     template <typename Types>
-    using FindGTWalker          = louds::SkipForwardWalker<Types>;
+    using FindGTWalker          = louds::SkipForwardWalker<Types, 0>;
 
 
     template <typename Types>
-    using RankFWWalker          = louds::RankFWWalker<Types>;
+    using RankFWWalker          = louds::RankFWWalker<Types, 0>;
 
     template <typename Types>
-    using RankBWWalker          = louds::RankBWWalker<Types>;
-
-
-    template <typename Types>
-    using SelectFwWalker        = louds::SelectForwardWalker<Types>;
-
-    template <typename Types>
-    using SelectBwWalker        = louds::SelectBackwardWalker<Types>;
+    using RankBWWalker          = louds::RankBWWalker<Types, 0>;
 
 
     template <typename Types>
-    using SkipForwardWalker     = louds::SkipForwardWalker<Types>;
+    using SelectFwWalker        = louds::SelectForwardWalker<Types, 0>;
 
     template <typename Types>
-    using SkipBackwardWalker    = louds::SkipBackwardWalker<Types>;
+    using SelectBwWalker        = louds::SelectBackwardWalker<Types, 0>;
 
 
     template <typename Types>
-    using NextLeafWalker        = bt::NextLeafWalker<Types>;
+    using SkipForwardWalker     = louds::SkipForwardWalker<Types, 0>;
 
     template <typename Types>
-    using PrevLeafWalker        = bt::PrevLeafWalker<Types>;
+    using SkipBackwardWalker    = louds::SkipBackwardWalker<Types, 0>;
+
+
+    template <typename Types>
+    using NextLeafWalker        = bt::NextLeafWalker<Types, 0>;
+
+    template <typename Types>
+    using PrevLeafWalker        = bt::PrevLeafWalker<Types, 0>;
 
     template <typename Types>
     using FindBeginWalker       = louds::FindBeginWalker<Types>;

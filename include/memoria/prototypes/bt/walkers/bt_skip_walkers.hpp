@@ -14,12 +14,13 @@ namespace bt1     {
 
 template <
     typename Types,
+    Int Stream,
     typename IteratorPrefixFn,
     typename MyType
 >
-class SkipForwardWalkerBase: public FindForwardWalkerBase<Types, IteratorPrefixFn, MyType> {
+class SkipForwardWalkerBase: public FindForwardWalkerBase<Types, Stream, IteratorPrefixFn, MyType> {
 protected:
-    using Base  = FindForwardWalkerBase<Types, IteratorPrefixFn, MyType>;
+    using Base  = FindForwardWalkerBase<Types, Stream, IteratorPrefixFn, MyType>;
     using Key   = typename Base::Key;
 
 public:
@@ -80,10 +81,11 @@ public:
 
 template <
     typename Types,
+    Int Stream,
     typename IteratorPrefixFn = EmptyIteratorPrefixFn
 >
-class SkipForwardWalker: public SkipForwardWalkerBase<Types, IteratorPrefixFn, SkipForwardWalker<Types, IteratorPrefixFn>> {
-    using Base  = SkipForwardWalkerBase<Types, IteratorPrefixFn, SkipForwardWalker<Types, IteratorPrefixFn>>;
+class SkipForwardWalker: public SkipForwardWalkerBase<Types, Stream, IteratorPrefixFn, SkipForwardWalker<Types, Stream, IteratorPrefixFn>> {
+    using Base  = SkipForwardWalkerBase<Types, Stream, IteratorPrefixFn, SkipForwardWalker<Types, Stream, IteratorPrefixFn>>;
     using Key   = typename Base::Key;
 
 public:
@@ -97,12 +99,13 @@ public:
 
 template <
     typename Types,
+    Int Stream,
     typename IteratorPrefixFn,
     typename MyType
 >
-class SkipBackwardWalkerBase: public FindBackwardWalkerBase<Types, IteratorPrefixFn, MyType> {
+class SkipBackwardWalkerBase: public FindBackwardWalkerBase<Types, Stream, IteratorPrefixFn, MyType> {
 protected:
-    using Base  = FindBackwardWalkerBase<Types, IteratorPrefixFn, MyType>;
+    using Base  = FindBackwardWalkerBase<Types, Stream, IteratorPrefixFn, MyType>;
     using Key   = typename Base::Key;
 
 public:
@@ -160,14 +163,16 @@ public:
 
 template <
     typename Types,
+    Int Stream,
     typename IteratorPrefixFn = EmptyIteratorPrefixFn
 >
 class SkipBackwardWalker: public SkipBackwardWalkerBase<
                                     Types,
+                                    Stream,
                                     IteratorPrefixFn,
-                                    SkipBackwardWalker<Types, IteratorPrefixFn>> {
+                                    SkipBackwardWalker<Types, Stream, IteratorPrefixFn>> {
 
-    using Base  = SkipBackwardWalkerBase<Types, IteratorPrefixFn, SkipBackwardWalker<Types, IteratorPrefixFn>>;
+    using Base  = SkipBackwardWalkerBase<Types, Stream, IteratorPrefixFn, SkipBackwardWalker<Types, Stream, IteratorPrefixFn>>;
     using Key   = typename Base::Key;
 
 public:

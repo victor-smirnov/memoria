@@ -17,11 +17,11 @@ namespace seq_dense {
 
 
 
-template <typename Types>
-class SelectForwardWalker: public bt::FindForwardWalkerBase<Types, SelectForwardWalker<Types>> {
+template <typename Types, Int Stream>
+class SelectForwardWalker: public bt::FindForwardWalkerBase<Types, Stream, SelectForwardWalker<Types, Stream>> {
 
-    typedef bt::FindForwardWalkerBase<Types, SelectForwardWalker<Types>>        Base;
-    typedef typename Base::Key                                                  Key;
+    typedef bt::FindForwardWalkerBase<Types, Stream, SelectForwardWalker<Types, Stream>>	Base;
+    typedef typename Base::Key                                                  			Key;
 
     BigInt pos_ = 0;
 
@@ -95,10 +95,10 @@ public:
 };
 
 
-template <typename Types>
-class SelectForwardWalker2: public bt::SelectForwardWalkerBase<Types> {
+template <typename Types, Int Stream>
+class SelectForwardWalker2: public bt::SelectForwardWalkerBase<Types, Stream> {
 
-    typedef bt::SelectForwardWalkerBase<Types>                                  Base;
+    typedef bt::SelectForwardWalkerBase<Types, Stream>                                  Base;
     typedef typename Base::Key                                                  Key;
 
 public:
@@ -135,11 +135,11 @@ public:
 
 
 
-template <typename Types>
-class SelectBackwardWalker: public bt::FindBackwardWalkerBase<Types, SelectBackwardWalker<Types>> {
+template <typename Types, Int Stream>
+class SelectBackwardWalker: public bt::FindBackwardWalkerBase<Types, Stream, SelectBackwardWalker<Types, Stream>> {
 
-    typedef bt::FindBackwardWalkerBase<Types, SelectBackwardWalker<Types>>      Base;
-    typedef typename Base::Key                                                  Key;
+    typedef bt::FindBackwardWalkerBase<Types, Stream, SelectBackwardWalker<Types, Stream>>      Base;
+    typedef typename Base::Key                                                  				Key;
 
 
     BigInt pos_ = 0;

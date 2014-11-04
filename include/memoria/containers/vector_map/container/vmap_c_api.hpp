@@ -83,7 +83,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrApiName)
     {
         auto& self = this->self();
 
-        vmap::MapFindWalker<Types> walker(id);
+        vmap::MapFindWalker<Types, 0> walker(id);
 
         Iterator iter = self.find0(0, walker);
 

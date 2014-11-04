@@ -81,7 +81,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::dblmap::CtrApiName)
     {
         auto& self = this->self();
 
-        dblmap::MapFindWalker<Types> walker(id);
+        dblmap::MapFindWalker<Types, 0> walker(id);
 
         Iterator iter = self.find0(0, walker);
 

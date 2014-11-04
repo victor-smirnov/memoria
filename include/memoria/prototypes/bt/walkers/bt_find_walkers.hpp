@@ -14,11 +14,11 @@ namespace memoria {
 namespace bt1     {
 
 
-template <typename Types, typename MyType>
-class FindWalkerBase: public WalkerBase<Types, MyType> {
+template <typename Types, typename MyType, Int Stream>
+class FindWalkerBase: public WalkerBase<Types, MyType, Stream> {
 
 protected:
-    typedef WalkerBase<Types, MyType>                                           Base;
+    typedef WalkerBase<Types, MyType, Stream>                  					Base;
     typedef typename Base::Key                                                  Key;
 
 public:
@@ -31,11 +31,11 @@ public:
 };
 
 
-template <typename Types, typename IteratorPrefixFn, typename MyType>
-class FindForwardWalkerBase: public FindWalkerBase<Types, MyType> {
+template <typename Types, Int Stream, typename IteratorPrefixFn, typename MyType>
+class FindForwardWalkerBase: public FindWalkerBase<Types, MyType, Stream> {
 
 protected:
-    typedef FindWalkerBase<Types, MyType>                                       Base;
+    typedef FindWalkerBase<Types, MyType, Stream>                               Base;
     typedef typename Base::Key                                                  Key;
 
 public:
@@ -48,10 +48,6 @@ public:
     template <Int StreamIdx, typename Tree>
     ResultType find_non_leaf(const Tree* tree, Int start)
     {
-    	if (DebugCounter) {
-    		int a = 0; a++;
-    	}
-
         auto k = Base::target_ - Base::sum_;
 
         Int index   = this->branch_index();
@@ -120,14 +116,16 @@ public:
 
 template <
     typename Types,
+    Int Stream = 0,
     typename IteratorPrefixFn = EmptyIteratorPrefixFn
 >
 class FindForwardWalker: public FindForwardWalkerBase<
                                     Types,
+                                    Stream,
                                     IteratorPrefixFn,
-                                    FindForwardWalker<Types, IteratorPrefixFn>> {
+                                    FindForwardWalker<Types, Stream, IteratorPrefixFn>> {
 
-    using Base  = FindForwardWalkerBase<Types, IteratorPrefixFn, FindForwardWalker<Types, IteratorPrefixFn>>;
+    using Base  = FindForwardWalkerBase<Types, Stream, IteratorPrefixFn, FindForwardWalker<Types, Stream, IteratorPrefixFn>>;
     using Key   = typename Base::Key;
 
 public:
@@ -139,14 +137,16 @@ public:
 
 template <
     typename Types,
+    Int Stream = 0,
     typename IteratorPrefixFn = EmptyIteratorPrefixFn
 >
 class FindGTForwardWalker: public FindForwardWalkerBase<
                                     Types,
+                                    Stream,
                                     IteratorPrefixFn,
-                                    FindGTForwardWalker<Types, IteratorPrefixFn>> {
+                                    FindGTForwardWalker<Types, Stream, IteratorPrefixFn>> {
 
-    using Base  = FindForwardWalkerBase<Types, IteratorPrefixFn, FindGTForwardWalker<Types, IteratorPrefixFn>>;
+    using Base  = FindForwardWalkerBase<Types, Stream, IteratorPrefixFn, FindGTForwardWalker<Types, Stream, IteratorPrefixFn>>;
     using Key   = typename Base::Key;
 
 public:
@@ -158,17 +158,23 @@ public:
 
 template <
     typename Types,
+    Int Stream = 0,
     typename IteratorPrefixFn = EmptyIteratorPrefixFn
 >
 class FindGEForwardWalker: public FindForwardWalkerBase<
                                     Types,
+                                    Stream,
                                     IteratorPrefixFn,
-                                    FindGEForwardWalker<Types, IteratorPrefixFn>> {
+                                    FindGEForwardWalker<Types, Stream, IteratorPrefixFn>> {
 
-    using Base  = FindForwardWalkerBase<Types, IteratorPrefixFn, FindGEForwardWalker<Types, IteratorPrefixFn>>;
+    using Base  = FindForwardWalkerBase<Types, Stream, IteratorPrefixFn, FindGEForwardWalker<Types, Stream, IteratorPrefixFn>>;
     using Key   = typename Base::Key;
 
 public:
+
+    static const Int StreamIdx = 0;
+    static const Int SubstreamIdx = 0;
+
     FindGEForwardWalker(Int stream, Int branch_index, Int leaf_index, Key target):
         Base(stream, branch_index, leaf_index, target, SearchType::GE)
     {}
@@ -178,10 +184,10 @@ public:
 
 
 
-template <typename Types, typename IteratorPrefixFn, typename MyType>
-class FindBackwardWalkerBase: public FindWalkerBase<Types, MyType> {
+template <typename Types, Int Stream, typename IteratorPrefixFn, typename MyType>
+class FindBackwardWalkerBase: public FindWalkerBase<Types, MyType, Stream> {
 protected:
-    typedef FindWalkerBase<Types, MyType>                                       Base;
+    typedef FindWalkerBase<Types, MyType, Stream>                               Base;
 
 protected:
     typedef typename Base::Key                                                  Key;
@@ -274,14 +280,16 @@ public:
 
 template <
     typename Types,
+    Int Stream,
     typename IteratorPrefixFn = EmptyIteratorPrefixFn
 >
 class FindBackwardWalker: public FindBackwardWalkerBase<
                                     Types,
+                                    Stream,
                                     IteratorPrefixFn,
-                                    FindBackwardWalker<Types, IteratorPrefixFn>> {
+                                    FindBackwardWalker<Types, Stream, IteratorPrefixFn>> {
 
-    using Base  = FindBackwardWalkerBase<Types, IteratorPrefixFn, FindBackwardWalker<Types, IteratorPrefixFn>>;
+    using Base  = FindBackwardWalkerBase<Types, Stream, IteratorPrefixFn, FindBackwardWalker<Types, Stream, IteratorPrefixFn>>;
     using Key   = typename Base::Key;
 
 public:

@@ -27,7 +27,7 @@ namespace memoria       {
 namespace bt            {
 
 
-template <typename Types, typename MyType>
+template <typename Types, Int Stream, typename MyType>
 class FindWalkerBase {
 protected:
     typedef typename Types::Position                                            Position;
@@ -36,6 +36,9 @@ protected:
     typedef Iter<typename Types::IterTypes>                                     Iterator;
 
     static const Int Streams                                                    = Types::Streams;
+
+    static const Int StreamIdx 		= Stream >> 16;
+    static const Int SubstreamIdx 	= Stream & 0xFFFF;
 
     SearchType search_type_ = SearchType::GT;
 
@@ -124,7 +127,7 @@ public:
     template <typename Node>
     ReturnType treeNode(const Node* node, BigInt start)
     {
-        Int idx = node->find(stream_, self(), start);
+        Int idx = node->template processStreamRtn<StreamIdx>(self(), start);
 
         self().postProcessNode(node, start, idx);
 
@@ -134,7 +137,7 @@ public:
 
 
 
-template <typename Types, typename MyType>
+template <typename Types, Int Stream, typename MyType>
 class FindMinWalkerBase {
 protected:
     typedef typename Types::Position                                            Position;
@@ -143,6 +146,9 @@ protected:
     typedef Iter<typename Types::IterTypes>                                     Iterator;
 
     static const Int Streams                                                    = Types::Streams;
+
+    static const Int StreamIdx 		= Stream >> 16;
+    static const Int SubstreamIdx 	= Stream & 0xFFFF;
 
     SearchType  search_type_ = SearchType::GT;
 
@@ -249,11 +255,11 @@ public:
 
 
 
-template <typename Types, typename MyType>
-class FindForwardWalkerBase: public FindWalkerBase<Types, MyType> {
+template <typename Types, Int Stream, typename MyType>
+class FindForwardWalkerBase: public FindWalkerBase<Types, Stream, MyType> {
 
 protected:
-    typedef FindWalkerBase<Types, MyType>                                       Base;
+    typedef FindWalkerBase<Types, Stream, MyType>                               Base;
     typedef typename Base::Key                                                  Key;
 
 public:
@@ -348,9 +354,9 @@ public:
 };
 
 
-template <typename Types>
-class SkipForwardWalker: public FindForwardWalkerBase<Types, SkipForwardWalker<Types>> {
-    typedef FindForwardWalkerBase<Types, SkipForwardWalker<Types>>              Base;
+template <typename Types, Int Stream>
+class SkipForwardWalker: public FindForwardWalkerBase<Types, Stream, SkipForwardWalker<Types, Stream>> {
+    typedef FindForwardWalkerBase<Types, Stream, SkipForwardWalker<Types, Stream>>              Base;
     typedef typename Base::Key                                                  Key;
 public:
     SkipForwardWalker(Int stream, Int index, Key target): Base(stream, index, target)
@@ -370,10 +376,10 @@ public:
 
 
 
-template <typename Types, typename MyType>
-class NextLeafWalkerBase: public FindForwardWalkerBase<Types, MyType> {
+template <typename Types, Int Stream, typename MyType>
+class NextLeafWalkerBase: public FindForwardWalkerBase<Types, Stream, MyType> {
 protected:
-    typedef FindForwardWalkerBase<Types, MyType>                                Base;
+    typedef FindForwardWalkerBase<Types, Stream, MyType>                        Base;
     typedef typename Base::Key                                                  Key;
     typedef typename Base::Position                                             Position;
     typedef typename Base::Iterator                                             Iterator;
@@ -391,10 +397,10 @@ public:
 
 
 
-template <typename Types>
-class NextLeafWalker: public NextLeafWalkerBase<Types, NextLeafWalker<Types> > {
+template <typename Types, Int Stream>
+class NextLeafWalker: public NextLeafWalkerBase<Types, Stream, NextLeafWalker<Types, Stream> > {
 
-    typedef NextLeafWalkerBase<Types, NextLeafWalker<Types>>                    Base;
+    typedef NextLeafWalkerBase<Types, Stream, NextLeafWalker<Types, Stream>>    Base;
     typedef typename Base::Key                                                  Key;
     typedef typename Base::Position                                             Position;
     typedef typename Base::Iterator                                             Iterator;
@@ -410,10 +416,10 @@ public:
 
 
 
-template <typename Types, typename MyType>
-class FindMinForwardWalkerBase: public FindMinWalkerBase<Types, MyType> {
+template <typename Types, Int Stream, typename MyType>
+class FindMinForwardWalkerBase: public FindMinWalkerBase<Types, Stream, MyType> {
 
-    typedef FindMinWalkerBase<Types, MyType>                                    Base;
+    typedef FindMinWalkerBase<Types, Stream, MyType>                            Base;
     typedef typename Base::Key                                                  Key;
     typedef typename Base::Position                                             Position;
     typedef typename Base::Iterator                                             Iterator;
@@ -492,9 +498,9 @@ public:
 
 
 
-template <typename Types>
-class NextLeafMultistreamWalker: public FindMinForwardWalkerBase<Types, NextLeafMultistreamWalker<Types> > {
-    typedef FindMinForwardWalkerBase<Types, NextLeafMultistreamWalker<Types>>   Base;
+template <typename Types, Int Stream>
+class NextLeafMultistreamWalker: public FindMinForwardWalkerBase<Types, Stream, NextLeafMultistreamWalker<Types, Stream> > {
+    typedef FindMinForwardWalkerBase<Types, Stream, NextLeafMultistreamWalker<Types, Stream>>   Base;
 public:
     NextLeafMultistreamWalker(UBigInt streams): Base(streams) {}
 };
@@ -504,10 +510,10 @@ public:
 
 
 
-template <typename Types, typename MyType>
-class FindBackwardWalkerBase: public FindWalkerBase<Types, MyType> {
+template <typename Types, Int Stream, typename MyType>
+class FindBackwardWalkerBase: public FindWalkerBase<Types, Stream, MyType> {
 
-    typedef FindWalkerBase<Types, MyType>                                       Base;
+    typedef FindWalkerBase<Types, Stream, MyType>                               Base;
 
 protected:
     typedef typename Base::Key                                                  Key;
@@ -593,10 +599,10 @@ public:
 };
 
 
-template <typename Types>
-class SkipBackwardWalker: public FindBackwardWalkerBase<Types, SkipBackwardWalker<Types>> {
-    typedef FindBackwardWalkerBase<Types, SkipBackwardWalker<Types>>            Base;
-    typedef typename Base::Key                                                  Key;
+template <typename Types, Int Stream>
+class SkipBackwardWalker: public FindBackwardWalkerBase<Types, Stream, SkipBackwardWalker<Types, Stream>> {
+    typedef FindBackwardWalkerBase<Types, Stream, SkipBackwardWalker<Types, Stream>> 	Base;
+    typedef typename Base::Key                                                  		Key;
 public:
     SkipBackwardWalker(Int stream, Int index, Key target): Base(stream, index, target)
     {
@@ -609,11 +615,11 @@ public:
 
 
 
-template <typename Types, typename MyType>
-class PrevLeafWalkerBase: public FindBackwardWalkerBase<Types, MyType> {
+template <typename Types, Int Stream, typename MyType>
+class PrevLeafWalkerBase: public FindBackwardWalkerBase<Types, Stream, MyType> {
 
 protected:
-    typedef FindBackwardWalkerBase<Types, MyType>                               Base;
+    typedef FindBackwardWalkerBase<Types, Stream, MyType>                       Base;
     typedef typename Base::Key                                                  Key;
     typedef typename Base::Position                                             Position;
     typedef typename Base::Iterator                                             Iterator;
@@ -627,12 +633,12 @@ public:
 };
 
 
-template <typename Types>
-class PrevLeafWalker: public PrevLeafWalkerBase<Types, PrevLeafWalker<Types>> {
+template <typename Types, Int Stream>
+class PrevLeafWalker: public PrevLeafWalkerBase<Types, Stream, PrevLeafWalker<Types, Stream>> {
 
 protected:
 
-    typedef PrevLeafWalkerBase<Types, PrevLeafWalker<Types>>                    Base;
+    typedef PrevLeafWalkerBase<Types, Stream, PrevLeafWalker<Types, Stream>>    Base;
     typedef typename Base::Key                                                  Key;
     typedef typename Base::Position                                             Position;
     typedef typename Base::Iterator                                             Iterator;
@@ -646,10 +652,10 @@ public:
 
 
 
-template <typename Types, typename MyType>
-class FindMinBackwardWalker: public FindMinWalkerBase<Types, MyType> {
+template <typename Types, Int Stream, typename MyType>
+class FindMinBackwardWalker: public FindMinWalkerBase<Types, Stream, MyType> {
 
-    typedef FindMinWalkerBase<Types, MyType>                                    Base;
+    typedef FindMinWalkerBase<Types, Stream, MyType>                            Base;
     typedef typename Base::Key                                                  Key;
     typedef typename Base::Position                                             Position;
     typedef typename Base::Iterator                                             Iterator;
@@ -723,19 +729,19 @@ public:
 };
 
 
-template <typename Types>
-class PrevLeafMultistreamWalker: public FindMinForwardWalkerBase<Types, PrevLeafMultistreamWalker<Types> > {
-    typedef FindMinForwardWalkerBase<Types, PrevLeafMultistreamWalker<Types>>   Base;
+template <typename Types, Int Stream>
+class PrevLeafMultistreamWalker: public FindMinForwardWalkerBase<Types, Stream, PrevLeafMultistreamWalker<Types, Stream> > {
+    typedef FindMinForwardWalkerBase<Types, Stream, PrevLeafMultistreamWalker<Types, Stream>>   Base;
 public:
     PrevLeafMultistreamWalker(UBigInt streams): Base(streams) {}
 };
 
 
 
-template <typename Types>
-class SelectForwardWalkerBase: public FindForwardWalkerBase<Types, SelectForwardWalkerBase<Types>> {
+template <typename Types, Int Stream>
+class SelectForwardWalkerBase: public FindForwardWalkerBase<Types, Stream, SelectForwardWalkerBase<Types, Stream>> {
 
-    typedef FindForwardWalkerBase<Types, SelectForwardWalkerBase<Types>>        Base;
+    typedef FindForwardWalkerBase<Types, Stream, SelectForwardWalkerBase<Types, Stream>>        Base;
 
 protected:
     typedef typename Base::Key                                                  Key;
@@ -807,10 +813,10 @@ public:
 
 
 
-template <typename Types>
-class SelectBackwardWalkerBase: public FindBackwardWalkerBase<Types, SelectBackwardWalkerBase<Types>> {
+template <typename Types, Int Stream>
+class SelectBackwardWalkerBase: public FindBackwardWalkerBase<Types, Stream, SelectBackwardWalkerBase<Types, Stream>> {
 
-    typedef FindBackwardWalkerBase<Types, SelectBackwardWalkerBase<Types>>      Base;
+    typedef FindBackwardWalkerBase<Types, Stream, SelectBackwardWalkerBase<Types, Stream>>      Base;
 
 protected:
     typedef typename Base::Key                                                  Key;

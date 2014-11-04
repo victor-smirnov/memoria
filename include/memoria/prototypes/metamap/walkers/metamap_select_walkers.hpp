@@ -16,14 +16,16 @@ namespace metamap {
 
 template <
     typename Types,
+    Int Stream,
     typename IteratorPrefixFn = bt1::DefaultIteratorPrefixFn
 >
 class SelectForwardWalker: public bt1::SelectForwardWalkerBase<
                                     Types,
+                                    Stream,
                                     IteratorPrefixFn,
-                                    SelectForwardWalker<Types, IteratorPrefixFn>> {
+                                    SelectForwardWalker<Types, Stream, IteratorPrefixFn>> {
 
-    using Base  = bt1::SelectForwardWalkerBase<Types, IteratorPrefixFn, SelectForwardWalker<Types, IteratorPrefixFn>>;
+    using Base  = bt1::SelectForwardWalkerBase<Types, Stream, IteratorPrefixFn, SelectForwardWalker<Types, Stream, IteratorPrefixFn>>;
     using Key   = typename Base::Key;
 
     Int label_num_;
@@ -62,14 +64,16 @@ public:
 
 template <
     typename Types,
+    Int Stream,
     typename IteratorPrefixFn = bt1::DefaultIteratorPrefixFn
 >
 class SelectBackwardWalker: public bt1::SelectBackwardWalkerBase<
                                     Types,
+                                    Stream,
                                     IteratorPrefixFn,
-                                    SelectBackwardWalker<Types, IteratorPrefixFn>> {
+                                    SelectBackwardWalker<Types, Stream, IteratorPrefixFn>> {
 
-    using Base  = bt1::SelectBackwardWalkerBase<Types, IteratorPrefixFn, SelectBackwardWalker<Types, IteratorPrefixFn>>;
+    using Base  = bt1::SelectBackwardWalkerBase<Types, Stream, IteratorPrefixFn, SelectBackwardWalker<Types, Stream, IteratorPrefixFn>>;
     using Key   = typename Base::Key;
 
     Int label_num_;
