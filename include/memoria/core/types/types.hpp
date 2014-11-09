@@ -84,8 +84,15 @@ template <typename T, T V> struct ConstValue {
 template <UInt Value>
 using UIntValue = ConstValue<UInt, Value>;
 
+template <Int Value>
+using IntValue = ConstValue<Int, Value>;
+
+
 template <bool Value>
 using BoolValue = ConstValue<bool, Value>;
+
+
+
 
 class EmptyValue {
 public:
@@ -116,7 +123,11 @@ template <typename T, T ... Values>
 struct ValueList {};
 
 
+template <Int... Values>
+using IntList = ValueList<Int, Values...>;
 
+template <Int... Values>
+using UIntList = ValueList<UInt, Values...>;
 
 
 

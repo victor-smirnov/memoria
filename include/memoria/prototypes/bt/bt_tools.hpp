@@ -17,6 +17,8 @@
 #include <memoria/core/tools/idata.hpp>
 #include <memoria/core/tools/tuple_dispatcher.hpp>
 
+#include <memoria/prototypes/bt/bt_packed_struct_list_builder.hpp>
+
 #include <ostream>
 #include <tuple>
 
@@ -258,76 +260,6 @@ class IteratorPrefixListBuilder<TypeList<>, Idx> {
 public:
     typedef TypeList<>                                                          Type;
 };
-
-
-
-
-
-
-
-
-
-
-
-template <typename List, Int Idx = 0>
-class PackedStructListBuilder;
-
-
-template <
-    typename StructsTF,
-    typename... Tail,
-    Int Idx
->
-class PackedStructListBuilder<TypeList<StructsTF, Tail...>, Idx> {
-
-    typedef TypeList<StructsTF, Tail...> List;
-
-public:
-    typedef typename MergeLists<
-            StreamDescr<
-                typename StructsTF::NonLeafType,
-                Idx
-            >,
-            typename PackedStructListBuilder<
-                TypeList<Tail...>,
-                Idx + 1
-            >::NonLeafStructList
-    >::Result                                                                   NonLeafStructList;
-
-    typedef typename MergeLists<
-                StreamDescr<
-                    typename StructsTF::LeafType,
-                    Idx
-                >,
-                typename PackedStructListBuilder<
-                    TypeList<Tail...>,
-                    Idx + 1
-                >::LeafStructList
-    >::Result                                                                   LeafStructList;
-};
-
-
-
-template <Int Idx>
-class PackedStructListBuilder<TypeList<>, Idx> {
-public:
-    typedef TypeList<>                                                          NonLeafStructList;
-    typedef TypeList<>                                                          LeafStructList;
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

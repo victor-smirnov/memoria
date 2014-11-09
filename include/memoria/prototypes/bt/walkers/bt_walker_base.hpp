@@ -200,7 +200,6 @@ public:
     ReturnType treeNode(const bt::BranchNode<NodeTypes>* node, BigInt start)
     {
         Int idx = node->template processStreamRtn<StreamIdx>(FindNonLeafFn(self()), start);
-//        Int idx = node->find(stream_, FindNonLeafFn(self()), start);
 
         self().postProcessNode(node, start, idx);
 

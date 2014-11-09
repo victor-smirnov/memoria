@@ -193,6 +193,17 @@ long int ConvertToLongInt(StringRef str)
     return value * getValueMultiplier(chars, endptr);
 }
 
+unsigned long int ConvertToULongInt(StringRef str)
+{
+    const char* chars = str.c_str();
+    char* endptr;
+
+    unsigned long int value = strtoul(chars, &endptr, 0);
+
+    return value * getValueMultiplier(chars, endptr);
+}
+
+
 long long ConvertToLongLong(StringRef str)
 {
     const char* chars = str.c_str();
@@ -203,7 +214,7 @@ long long ConvertToLongLong(StringRef str)
     return value * getValueMultiplier(chars, endptr);
 }
 
-long long ConvertToULongLong(StringRef str)
+unsigned long long ConvertToULongLong(StringRef str)
 {
     const char* chars = str.c_str();
     char* endptr;
@@ -230,7 +241,7 @@ long double ConvertToLongDouble(StringRef str)
     const char* chars = str.c_str();
     char* endptr;
 
-    long double value = strtold(chars, &endptr);
+    long double value = strtod(chars, &endptr);
 
     checkError(chars, endptr);
 

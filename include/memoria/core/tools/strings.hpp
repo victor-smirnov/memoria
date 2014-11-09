@@ -82,8 +82,9 @@ struct AsString<String> {
 
 
 long int ConvertToLongInt(StringRef str);
+unsigned long int ConvertToULongInt(StringRef str);
 long long ConvertToLongLong(StringRef str);
-long long ConvertToULongLong(StringRef str);
+unsigned long long ConvertToULongLong(StringRef str);
 double ConvertToDouble(StringRef str);
 long double ConvertToLongDouble(StringRef str);
 bool ConvertToBool(StringRef str);

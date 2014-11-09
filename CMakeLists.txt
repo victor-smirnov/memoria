@@ -90,7 +90,7 @@ endif()
 
 if (CMAKE_COMPILER_IS_GNUCXX OR CLANG_COMPILER OR MINGW)
 
-    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -march=native -mtune=native -std=c++11 -Wall ")
+    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -std=c++11 -Wall ")
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors")
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -Wcomment -Wunused-variable")
     
