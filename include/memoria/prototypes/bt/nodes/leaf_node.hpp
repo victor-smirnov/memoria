@@ -84,9 +84,9 @@ public:
 
     typedef LeafNodeStreamTypes<Types>                                          StreamTypes;
 
-    typedef typename PackedStructListBuilder<
+    typedef typename PackedLeafStructListBuilder<
                 typename Types::StreamDescriptors
-    >::LeafStructList                                                           StreamsStructList;
+    >::StructList                                                           	StreamsStructList;
 
     typedef typename PackedDispatcherTool<
     					Base::StreamsStart,

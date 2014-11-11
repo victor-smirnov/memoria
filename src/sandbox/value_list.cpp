@@ -1,6 +1,3 @@
-
-
-
 #include <memoria/core/types/list/append.hpp>
 #include <memoria/core/tools/type_name.hpp>
 

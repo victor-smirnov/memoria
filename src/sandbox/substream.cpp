@@ -34,6 +34,24 @@ typedef TypeList<
 		> 																		List;
 
 
+using namespace memoria::bt::internal;
+
+class T {};
+
+typedef TypeList<
+		SubstreamSizeListBuilder<T>::Type,
+		SubstreamSizeListBuilder<TypeList<T, T, T, T>>::Type,
+		SubstreamSizeListBuilder<TypeList<TypeList<T>, T, T, T>>::Type,
+		SubstreamSizeListBuilder<TypeList<T, T, TypeList<T>, T, T, T, TypeList<T>, T, T>>::Type,
+		SubstreamSizeListBuilder<TypeList<T, TypeList<T>, T, T, TypeList<T>, T>>::Type,
+
+		SubstreamSizeListBuilder<TypeList<TypeList<T>>>::Type,
+
+		SubstreamSizeListBuilder<TypeList<TypeList<T>, T>>::Type,
+
+		SubstreamSizeListBuilder<TypeList<T, TypeList<T, TypeList<T>>>>::Type
+> SList;
+
 int main(void) {
 
 	cout<<TypeNameFactory<List>::name()<<endl;
@@ -41,6 +59,8 @@ int main(void) {
 	cout<<SubstreamsTreeSize<List>::Size<<endl;
 
 	cout<<LeafOffsetCount<List, IntList<3>>::Size<<endl;
+
+	ListPrinter<SList>::print(cout);
 
     return 0;
 }

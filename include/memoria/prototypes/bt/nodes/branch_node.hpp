@@ -352,9 +352,9 @@ public:
 
     typedef BranchNodeStreamTypes<Types>                                        StreamTypes;
 
-    typedef typename PackedStructListBuilder<
+    typedef typename PackedNonLeafStructListBuilder<
                 typename Types::StreamDescriptors
-    >::NonLeafStructList                                                        StreamsStructList;
+    >::StructList                                                        		StreamsStructList;
 
     typedef typename PackedDispatcherTool<
     					Base::StreamsStart,

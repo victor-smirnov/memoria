@@ -11,6 +11,10 @@
 
 #include <memoria/core/types/types.hpp>
 
+#include <memoria/core/tools/type_name.hpp>
+
+#include <ostream>
+
 namespace memoria    {
 
 template <typename ... List> struct ListHead;
@@ -37,6 +41,25 @@ template <typename T, T Head, T ... Tail>
 struct ListTail<ValueList<T, Head, Tail...>> {
     typedef ValueList<T, Tail...> Type;
 };
+
+template <typename T> struct ListPrinter;
+
+template <typename Head, typename... Tail>
+struct ListPrinter<TypeList<Head, Tail...>> {
+	static void print(std::ostream& out)
+	{
+		out<<::memoria::vapi::TypeNameFactory<Head>::name()<<std::endl;
+		ListPrinter<TypeList<Tail...>>::print(out);
+	}
+};
+
+template <>
+struct ListPrinter<TypeList<>> {
+	static void print(std::ostream& out)
+	{
+	}
+};
+
 }
 
 #endif  /* _MEMORIA_CORE_TOOLS_TYPES_LIST_TYPELIST_HPP */

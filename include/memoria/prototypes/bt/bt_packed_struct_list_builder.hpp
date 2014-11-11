@@ -135,66 +135,111 @@ struct LeafOffsetCount<TypeList<TypeList<List...>, Tail...>, IntList<Max>, Max, 
 
 
 
-
-
-
-
-
-
-template <typename StructsTF, Int Idx>
-class LeafListTool {
-public:
+template <typename LeafType, Int Idx = 0>
+struct LinearLeafListHelper {
 	typedef TypeList<
-				StreamDescr<
-                    typename StructsTF::LeafType,
-                    Idx
-                >
-	>																			LeafStructList;
-
-    typedef TypeList<IntValue<1>>                                               SubstreamSizeList;
+				StreamDescr<LeafType, Idx>
+	>																			Type;
 };
 
 
-template <typename StructsTF, typename... Tail, Int Idx>
-class LeafListTool<TypeList<StructsTF, Tail...>, Idx> {
+template <typename LeafType, typename... Tail, Int Idx>
+struct LinearLeafListHelper<TypeList<LeafType, Tail...>, Idx> {
+	typedef typename MergeLists<
+				StreamDescr<LeafType, Idx>,
+				LinearLeafListHelper<Tail..., Idx + 1>
+	>::Result 																	Type;
+};
 
-	typedef LeafListTool<StructsTF, Idx> 										HeadListTool;
 
-	typedef typename HeadListTool::LeafStructsList								HeadStructList;
-	typedef typename HeadListTool::LeafSubstreamList							HeadSubstreamList;
-
+template <typename Head, typename... SubTail, typename... Tail, Int Idx>
+struct LinearLeafListHelper<TypeList<TypeList<Head, SubTail...>, Tail...>, Idx> {
+private:
+	typedef typename LinearLeafListHelper<TypeList<Head, SubTail...>, Idx>::Type SubList;
 public:
-    typedef typename MergeLists<
-                HeadStructList,
-                typename LeafListTool<
-                    TypeList<Tail...>,
-                    Idx + ListSize<HeadStructList>::Value
-                >::LeafStructList
-    >::Result                                                                   LeafStructList;
-
-    typedef typename MergeLists<
-                    HeadSubstreamList,
-                    typename LeafListTool<
-                        TypeList<Tail...>,
-                        Idx + ListSize<HeadSubstreamList>::Value
-                    >::SubstreamSizeList
-    >::Result                                                                   SubstreamSizeList;
+	typedef typename MergeLists<
+				SubList,
+				typename LinearLeafListHelper<
+							Tail...,
+							Idx + ListSize<SubList>::Value
+				>::Type
+	>::Result 																	Type;
 };
-
 
 template <Int Idx>
-class LeafListTool<TypeList<>, Idx> {
-public:
-	typedef TypeList<>                                                          LeafStructList;
-	typedef TypeList<>                                                          SubstreamSizeList;
+struct LinearLeafListHelper<TypeList<>, Idx> {
+	typedef TypeList<>															Type;
+};
+
+
+
+
+
+template <typename T, Int Acc = 0>
+struct SubstreamSizeListBuilder {
+	typedef TypeList<IntValue<1>>												Type;
+};
+
+
+template <typename T, typename... List, Int Acc>
+struct SubstreamSizeListBuilder<TypeList<T, List...>, Acc> {
+	typedef typename SubstreamSizeListBuilder<
+				TypeList<List...>, Acc + 1
+	>::Type																		Type;
+};
+
+template <typename T, typename... List, Int Acc, typename R, typename... Tail>
+struct SubstreamSizeListBuilder<TypeList<T, TypeList<List...>, R, Tail...>, Acc> {
+	typedef typename MergeLists<
+			IntValue<Acc + 1>,
+			TypeList<typename SubstreamSizeListBuilder<TypeList<List...>, 0>::Type>,
+			typename SubstreamSizeListBuilder<TypeList<R, Tail...>, 0>::Type
+	>::Result																	Type;
+};
+
+template <typename T, typename... List, Int Acc>
+struct SubstreamSizeListBuilder<TypeList<T, TypeList<List...>>, Acc> {
+	typedef typename MergeLists<
+			IntValue<Acc + 1>,
+			TypeList<typename SubstreamSizeListBuilder<TypeList<List...>, 0>::Type>
+	>::Result																	Type;
+};
+
+template <typename... List, typename R, typename... Tail, Int Acc>
+struct SubstreamSizeListBuilder<TypeList<TypeList<List...>, R, Tail...>, Acc> {
+	typedef typename MergeLists<
+			TypeList<typename SubstreamSizeListBuilder<TypeList<List...>, 0>::Type>,
+			typename SubstreamSizeListBuilder<TypeList<R, Tail...>, 0>::Type
+	>::Result																	Type;
+};
+
+template <typename... List, Int Acc>
+struct SubstreamSizeListBuilder<TypeList<TypeList<List...>>, Acc> {
+	typedef TypeList<
+			typename SubstreamSizeListBuilder<TypeList<List...>, 0>::Type
+	>																			Type;
+};
+
+template <typename T, Int Acc>
+struct SubstreamSizeListBuilder<TypeList<T>, Acc> {
+	typedef TypeList<IntValue<Acc + 1>>											Type;
 };
 
 
 }
 
 
+
+
+
+
+
 template <typename List, Int Idx = 0>
-class PackedStructListBuilder;
+class PackedLeafStructListBuilder;
+
+template <typename List, Int Idx = 0>
+class PackedNonLeafStructListBuilder;
+
 
 
 template <
@@ -202,54 +247,69 @@ template <
     typename... Tail,
     Int Idx
 >
-class PackedStructListBuilder<TypeList<StructsTF, Tail...>, Idx> {
+class PackedLeafStructListBuilder<TypeList<StructsTF, Tail...>, Idx> {
 
     typedef TypeList<StructsTF, Tail...> List;
 
+    typedef typename internal::LinearLeafListHelper<
+    		typename StructsTF::LeafType,
+    		Idx
+    >::Type																		LeafList;
+
 public:
+
     typedef typename MergeLists<
+                LeafList,
+                typename PackedLeafStructListBuilder<
+                    TypeList<Tail...>,
+                    Idx + ListSize<LeafList>::Value
+                >::StructList
+    >::Result                                                                   StructList;
+
+    typedef typename internal::SubstreamSizeListBuilder<
+                typename StructsTF::LeafType
+    >::Type                                                                   	SubstreamSizeList;
+};
+
+
+template <
+    typename StructsTF,
+    typename... Tail,
+    Int Idx
+>
+class PackedNonLeafStructListBuilder<TypeList<StructsTF, Tail...>, Idx> {
+public:
+	typedef typename MergeLists<
             StreamDescr<
                 typename StructsTF::NonLeafType,
                 Idx
             >,
-            typename PackedStructListBuilder<
+            typename PackedNonLeafStructListBuilder<
                 TypeList<Tail...>,
                 Idx + 1
-            >::NonLeafStructList
-    >::Result                                                                   NonLeafStructList;
-
-    typedef typename MergeLists<
-                StreamDescr<
-                    typename StructsTF::LeafType,
-                    Idx
-                >,
-                typename PackedStructListBuilder<
-                    TypeList<Tail...>,
-                    Idx + 1
-                >::LeafStructList
-    >::Result                                                                   LeafStructList;
-
-    typedef typename MergeLists<
-                    IntValue<1>,
-                    typename PackedStructListBuilder<
-                        TypeList<Tail...>,
-                        Idx + 1
-                    >::SubstreamSizeList
-    >::Result                                                                   SubstreamSizeList;
+            >::StructList
+    >::Result                                                                   StructList;
 };
-
 
 
 
 
 
 template <Int Idx>
-class PackedStructListBuilder<TypeList<>, Idx> {
+class PackedLeafStructListBuilder<TypeList<>, Idx> {
 public:
-    typedef TypeList<>                                                          NonLeafStructList;
-    typedef TypeList<>                                                          LeafStructList;
+    typedef TypeList<>                                                          StructList;
     typedef TypeList<>                                                          SubstreamSizeList;
 };
+
+
+template <Int Idx>
+class PackedNonLeafStructListBuilder<TypeList<>, Idx> {
+public:
+    typedef TypeList<>                                                          StructList;
+};
+
+
 
 
 }
