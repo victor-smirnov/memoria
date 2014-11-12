@@ -9,7 +9,7 @@
 #ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_NODENORM_HPP
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_NODENORM_HPP
 
-#include <memoria/prototypes/bt/bt_tools.hpp>
+#include <memoria/prototypes/bt/tools/bt_tools.hpp>
 #include <memoria/prototypes/bt/bt_macros.hpp>
 #include <memoria/core/container/macros.hpp>
 

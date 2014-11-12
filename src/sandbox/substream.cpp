@@ -1,7 +1,8 @@
 
 
 
-#include <memoria/prototypes/bt/bt_packed_struct_list_builder.hpp>
+#include <memoria/prototypes/bt/tools/bt_packed_struct_list_builder.hpp>
+#include <memoria/prototypes/bt/tools/bt_leaf_offset_count.hpp>
 
 #include <memoria/core/tools/type_name.hpp>
 
@@ -13,7 +14,6 @@ using namespace std;
 using namespace memoria;
 using namespace memoria::core;
 using namespace memoria::bt;
-using namespace memoria::bt::internal;
 
 typedef TypeList<
 			IntValue<10>,

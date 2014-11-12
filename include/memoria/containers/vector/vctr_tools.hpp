@@ -8,7 +8,7 @@
 #ifndef _MEMORIA_CONTAINERS_vctr_TOOLS_HPP
 #define _MEMORIA_CONTAINERS_vctr_TOOLS_HPP
 
-#include <memoria/prototypes/bt/bt_tools.hpp>
+#include <memoria/prototypes/bt/tools/bt_tools.hpp>
 
 #include <memoria/core/tools/static_array.hpp>
 #include <memoria/core/tools/idata.hpp>

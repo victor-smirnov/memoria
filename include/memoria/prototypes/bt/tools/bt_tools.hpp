@@ -17,7 +17,8 @@
 #include <memoria/core/tools/idata.hpp>
 #include <memoria/core/tools/tuple_dispatcher.hpp>
 
-#include <memoria/prototypes/bt/bt_packed_struct_list_builder.hpp>
+#include <memoria/prototypes/bt/tools/bt_packed_struct_list_builder.hpp>
+#include <memoria/prototypes/bt/tools/bt_leaf_offset_count.hpp>
 
 #include <ostream>
 #include <tuple>

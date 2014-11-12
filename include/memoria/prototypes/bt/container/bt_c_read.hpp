@@ -9,7 +9,7 @@
 #ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_CTR_READ_HPP
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_CTR_READ_HPP
 
-#include <memoria/prototypes/bt/bt_tools.hpp>
+#include <memoria/prototypes/bt/tools/bt_tools.hpp>
 #include <memoria/core/container/macros.hpp>
 
 #include <vector>
