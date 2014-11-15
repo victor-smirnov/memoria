@@ -85,7 +85,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrInsertName)
         void treeNode(LeafNode<NTypes>* node, Int idx)
         {
             node->layout(1);
-            node->template processStream<0>(*this, idx);
+            node->template processStream<IntList<0>>(*this, idx);
         }
     };
 

@@ -58,7 +58,7 @@ int main(void) {
 
 	cout<<SubstreamsTreeSize<List>::Size<<endl;
 
-	cout<<LeafOffsetCount<List, IntList<3>>::Size<<endl;
+	cout<<LeafOffsetCount<List, IntList<3>>::Value<<endl;
 
 	ListPrinter<SList>::print(cout);
 

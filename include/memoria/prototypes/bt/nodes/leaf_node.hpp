@@ -88,6 +88,10 @@ public:
                 typename Types::StreamDescriptors
     >::StructList                                                           	StreamsStructList;
 
+    typedef typename PackedLeafStructListBuilder<
+                typename Types::StreamDescriptors
+    >::SubstreamSizeList                                                        SubstreamsSizeList;
+
     typedef typename PackedDispatcherTool<
     					Base::StreamsStart,
     					StreamsStructList
@@ -1124,29 +1128,33 @@ public:
         Dispatcher::dispatchAll(allocator(), std::forward<Fn>(fn), args...);
     }
 
-    template <Int StreamIdx, typename Fn, typename... Args>
+    template <typename SubstreamPath, typename Fn, typename... Args>
     void processStream(Fn&& fn, Args&&... args) const
     {
-        Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
+    	const Int StreamIdx = LeafOffsetCount<SubstreamsSizeList, SubstreamPath>::Value;
+    	Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
     }
 
-    template <Int StreamIdx, typename Fn, typename... Args>
+    template <typename SubstreamPath, typename Fn, typename... Args>
     void processStream(Fn&& fn, Args&&... args)
     {
+    	const Int StreamIdx = LeafOffsetCount<SubstreamsSizeList, SubstreamPath>::Value;
         Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
     }
 
-    template <Int StreamIdx, typename Fn, typename... Args>
+    template <typename SubstreamPath, typename Fn, typename... Args>
     typename std::remove_reference<Fn>::type::ResultType
     processStreamRtn(Fn&& fn, Args&&... args) const
     {
+    	const Int StreamIdx = LeafOffsetCount<SubstreamsSizeList, SubstreamPath>::Value;
         return Dispatcher::template dispatchRtn<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
     }
 
-    template <Int StreamIdx, typename Fn, typename... Args>
+    template <typename SubstreamPath, typename Fn, typename... Args>
     typename std::remove_reference<Fn>::type::ResultType
     processStreamRtn(Fn&& fn, Args&&... args)
     {
+    	const Int StreamIdx = LeafOffsetCount<SubstreamsSizeList, SubstreamPath>::Value;
         return Dispatcher::template dispatchRtn<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
     }
 

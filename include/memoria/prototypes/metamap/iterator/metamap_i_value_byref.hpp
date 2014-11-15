@@ -51,10 +51,28 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrValueByRefName)
             return metamap::GetValueRef<Value>(stream, idx);
         }
 
-        template <typename Node>
-        ResultType treeNode(Node* node, Int idx)
+        template <typename NodeTypes>
+        ResultType treeNode(LeafNode<NodeTypes>* node, Int idx)
+        {
+            return node->template processStreamRtn<IntList<0>>(*this, idx);
+        }
+
+        template <typename NodeTypes>
+        ResultType treeNode(BranchNode<NodeTypes>* node, Int idx)
         {
             return node->template processStreamRtn<0>(*this, idx);
+        }
+
+        template <typename NodeTypes>
+        ResultType treeNode(const LeafNode<NodeTypes>* node, Int idx)
+        {
+        	return node->template processStreamRtn<IntList<0>>(*this, idx);
+        }
+
+        template <typename NodeTypes>
+        ResultType treeNode(const BranchNode<NodeTypes>* node, Int idx)
+        {
+        	return node->template processStreamRtn<0>(*this, idx);
         }
     };
 
@@ -82,10 +100,16 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrValueByRefName)
             metamap::SetValue(stream, idx, value);
         }
 
-        template <typename Node>
-        void treeNode(Node* node, Int idx, const Value& value)
+        template <typename NodeTypes>
+        void treeNode(LeafNode<NodeTypes>* node, Int idx, const Value& value)
         {
-            node->template processStream<0>(*this, idx, value);
+            node->template processStream<IntList<0>>(*this, idx, value);
+        }
+
+        template <typename NodeTypes>
+        void treeNode(BranchNode<NodeTypes>* node, Int idx, const Value& value)
+        {
+        	node->template processStream<0>(*this, idx, value);
         }
     };
 

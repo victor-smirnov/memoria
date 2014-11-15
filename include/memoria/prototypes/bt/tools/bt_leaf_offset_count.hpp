@@ -31,7 +31,12 @@ template <
 >
 struct LeafOffsetCount<TypeList<IntValue<Substreams>, Tail...>, IntList<Max, Path...>, Idx, Max>
 {
-	static const Int Size = Substreams + LeafOffsetCount<TypeList<Tail...>, IntList<Max, Path...>, Idx + 1, Max>::Size;
+	static const Int Value = Substreams + LeafOffsetCount<
+											TypeList<Tail...>,
+											IntList<Max, Path...>,
+											Idx + 1,
+											Max
+										  >::Value;
 };
 
 
@@ -44,7 +49,7 @@ template <
 >
 struct LeafOffsetCount<TypeList<IntValue<Substreams>, Tail...>, IntList<Max>, Max, Max>
 {
-	static const Int Size = 0;
+	static const Int Value = 0;
 };
 
 
@@ -59,8 +64,8 @@ template <
 >
 struct LeafOffsetCount<TypeList<TypeList<List...>, Tail...>, IntList<Max, Path...>, Idx, Max>
 {
-	static const Int Size = internal::SubstreamsTreeSize<TypeList<List...>>::Size
-							+ LeafOffsetCount<TypeList<Tail...>, IntList<Max, Path...>, Idx + 1, Max>::Size;
+	static const Int Value = internal::SubstreamsTreeSize<TypeList<List...>>::Size
+							+ LeafOffsetCount<TypeList<Tail...>, IntList<Max, Path...>, Idx + 1, Max>::Value;
 };
 
 // Main case. Current element is NonLeaf and we are at the target element.
@@ -73,7 +78,7 @@ template <
 	Int Max
 >
 struct LeafOffsetCount<TypeList<TypeList<Sublist...>, Tail...>, IntList<Max, PathHead, PathTail...>, Max, Max> {
-	static const Int Size = LeafOffsetCount<TypeList<Sublist...>, IntList<PathHead, PathTail...>, 0, PathHead>::Size;
+	static const Int Value = LeafOffsetCount<TypeList<Sublist...>, IntList<PathHead, PathTail...>, 0, PathHead>::Value;
 };
 
 
@@ -87,7 +92,7 @@ template <
 	Int Max
 >
 struct LeafOffsetCount<TypeList<>, IntList<Path...>, Idx, Max> {
-	static const Int Size = InvalidTreePath<Idx, Max>::Value;
+	static const Int Value = InvalidTreePath<Idx, Max>::Value;
 };
 
 
@@ -99,7 +104,7 @@ template <
 >
 struct LeafOffsetCount<TypeList<TypeList<List...>, Tail...>, IntList<Max>, Max, Max>
 {
-	static const Int Size = IncompleteTreePath<Max, Max>::Value;
+	static const Int Value = IncompleteTreePath<Max, Max>::Value;
 };
 
 

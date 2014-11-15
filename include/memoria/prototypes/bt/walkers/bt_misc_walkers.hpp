@@ -47,7 +47,7 @@ public:
     template <typename NodeTypes, typename... Args>
     void treeNode(const bt::LeafNode<NodeTypes>* node, Args&&... args)
     {
-        node->template processStream<StreamIndex>(LeafStreamFn(self()), args...);
+        node->template processStream<IntList<StreamIndex>>(LeafStreamFn(self()), args...);
     }
 
     template <typename NodeTypes, typename... Args>
@@ -116,10 +116,28 @@ public:
 template <typename MyType, typename ReturnType_ = Int, Int StreamIndex = 0>
 struct RtnNodeWalkerBase: RtnPkdHandlerBase<ReturnType_> {
 
-    template <typename Node, typename... Args>
-    ReturnType_ treeNode(Node* node, Args&&... args)
+    template <typename NodeTypes, typename... Args>
+    ReturnType_ treeNode(bt::LeafNode<NodeTypes>* node, Args&&... args)
     {
-        return node->template processStreamRtn<StreamIndex>(self(), args...);
+        return node->template processStreamRtn<IntList<StreamIndex>>(self(), args...);
+    }
+
+    template <typename NodeTypes, typename... Args>
+    ReturnType_ treeNode(bt::BranchNode<NodeTypes>* node, Args&&... args)
+    {
+    	return node->template processStreamRtn<StreamIndex>(self(), args...);
+    }
+
+    template <typename NodeTypes, typename... Args>
+    ReturnType_ treeNode(const bt::LeafNode<NodeTypes>* node, Args&&... args)
+    {
+    	return node->template processStreamRtn<IntList<StreamIndex>>(self(), args...);
+    }
+
+    template <typename NodeTypes, typename... Args>
+    ReturnType_ treeNode(const bt::BranchNode<NodeTypes>* node, Args&&... args)
+    {
+    	return node->template processStreamRtn<StreamIndex>(self(), args...);
     }
 
     MyType& self() {return *T2T<MyType*>(this);}
@@ -130,10 +148,28 @@ struct RtnNodeWalkerBase: RtnPkdHandlerBase<ReturnType_> {
 template <typename MyType, Int StreamIndex = 0>
 struct NoRtnNodeWalkerBase {
 
-    template <typename Node, typename... Args>
-    void treeNode(Node* node, Args&&... args)
+    template <typename NodeTypes, typename... Args>
+    void treeNode(const bt::LeafNode<NodeTypes>* node, Args&&... args)
     {
-        node->template processStream<StreamIndex>(self(), args...);
+        node->template processStream<IntList<StreamIndex>>(self(), args...);
+    }
+
+    template <typename NodeTypes, typename... Args>
+    void treeNode(bt::LeafNode<NodeTypes>* node, Args&&... args)
+    {
+    	node->template processStream<IntList<StreamIndex>>(self(), args...);
+    }
+
+    template <typename NodeTypes, typename... Args>
+    void treeNode(const bt::BranchNode<NodeTypes>* node, Args&&... args)
+    {
+    	node->template processStream<StreamIndex>(self(), args...);
+    }
+
+    template <typename NodeTypes, typename... Args>
+    void treeNode(bt::BranchNode<NodeTypes>* node, Args&&... args)
+    {
+    	node->template processStream<StreamIndex>(self(), args...);
     }
 
     MyType& self() {return *T2T<MyType*>(this);}

@@ -124,8 +124,18 @@ public:
     template <typename Node>
     void postProcessNode(const Node*, Int, Int) {}
 
-    template <typename Node>
-    ReturnType treeNode(const Node* node, BigInt start)
+    template <typename NodeTypes>
+    ReturnType treeNode(const LeafNode<NodeTypes>* node, BigInt start)
+    {
+        Int idx = node->template processStreamRtn<IntList<StreamIdx>>(self(), start);
+
+        self().postProcessNode(node, start, idx);
+
+        return idx;
+    }
+
+    template <typename NodeTypes>
+    ReturnType treeNode(const BranchNode<NodeTypes>* node, BigInt start)
     {
         Int idx = node->template processStreamRtn<StreamIdx>(self(), start);
 
