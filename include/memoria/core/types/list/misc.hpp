@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011.
+// Copyright Victor Smirnov 2011-2014.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -35,6 +35,10 @@ struct ListSize<TypeList<List...> > {
     static const Int Value = sizeof...(List);
 };
 
+template <typename T, T ... List>
+struct ListSize<ValueList<T, List...> > {
+    static const Int Value = sizeof...(List);
+};
 
 }
 

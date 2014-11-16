@@ -87,7 +87,12 @@ public:
     typedef TypeList<>                                                          StructList;
 };
 
+template <typename Types, typename NodeList, typename LeafList>
+struct PackedStructsTF {
 
+
+
+};
 
 
 }

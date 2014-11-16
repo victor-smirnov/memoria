@@ -9,12 +9,20 @@
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/types/type2type.hpp>
+#include <memoria/core/types/list/sublist.hpp>
 
 
 #include <memoria/core/packed/tools/packed_allocator.hpp>
 
 
 namespace memoria {
+
+template <typename T>
+struct RtnFnBase {
+	typedef T ResultType;
+	typedef T ReturnType;
+};
+
 
 template <Int StartIdx, typename... List> class PackedDispatcher;
 
@@ -36,10 +44,22 @@ struct StreamDescr {
 
 template <Int StartIdx, typename Head, typename... Tail, Int Index>
 class PackedDispatcher<StartIdx, StreamDescr<Head, Index>, Tail...> {
-
-
-
 public:
+
+	template <Int From = 0, Int To = sizeof...(Tail) + 1>
+	using SubDispatcher = typename PackedDispatcherTool<
+								StartIdx,
+								typename ::memoria::Sublist<
+									TypeList<
+										StreamDescr<Head, Index>,
+										Tail...
+									>,
+									From, To
+								>::Type
+						  >::Type;
+
+
+
     template <typename Fn, typename... Args>
     static void dispatch(Int idx, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {

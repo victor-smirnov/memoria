@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2012.
+// Copyright Victor Smirnov 2012-2014.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -11,6 +11,7 @@
 #include <memoria/core/types/algo/select.hpp>
 #include <memoria/core/tools/type_name.hpp>
 #include <memoria/core/types/types.hpp>
+#include <memoria/core/types/list/misc.hpp>
 
 namespace memoria   {
 
@@ -275,6 +276,32 @@ public:
 
 namespace internal  {
 
+template <typename List, Int From> struct MD5Sublist;
+
+template <typename T, T... List>
+struct MD5Sublist<ValueList<T, List...>, 0> {
+	typedef ValueList<T, List...>                                         		Type;
+};
+
+template <Int From, typename T, T Head, T ... Tail>
+struct MD5Sublist<ValueList<T, Head, Tail...>, From> {
+    typedef typename MD5Sublist<ValueList<T, Tail...>, From - 1>::Type     Type;
+};
+
+template <Int From, typename T>
+struct MD5Sublist<ValueList<T>, From> {
+    typedef ValueList<T>                                                        Type;
+};
+
+template <typename T>
+struct MD5Sublist<ValueList<T>, 0> {
+    typedef ValueList<T>                                                        Type;
+};
+
+
+
+
+
 template <typename List, typename Initial> class Md5SumHelper;
 
 template <UInt ... Data, typename Initial>
@@ -286,7 +313,7 @@ class Md5SumHelper<ValueList<UInt, Data...>, Initial> {
     typedef typename Round::Result                      RoundResult;
 
     typedef Md5SumHelper<
-                    typename Sublist<16, List>::Type,
+                    typename MD5Sublist<List, 16>::Type,
                     RoundResult
     >                                                                           Helper;
 

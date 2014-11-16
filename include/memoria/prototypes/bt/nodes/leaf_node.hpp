@@ -542,11 +542,9 @@ public:
 
 
 
-    struct SizeFn {
-        typedef Int ResultType;
-
+    struct SizeFn: RtnFnBase<Int> {
         template <Int Idx, typename Tree>
-        ResultType stream(const Tree* tree)
+        Int stream(const Tree* tree)
         {
             return tree != nullptr ? tree->size() : 0;
         }
@@ -554,7 +552,7 @@ public:
 
     Int size(Int stream) const
     {
-        return Dispatcher::dispatchRtn(stream, allocator(), SizeFn());
+        return Dispatcher::template SubDispatcher<>::dispatchRtn(stream, allocator(), SizeFn());
     }
 
     struct SizesFn {
@@ -573,11 +571,9 @@ public:
     }
 
 
-    struct MaxSizeFn {
-        typedef Int ResultType;
-
+    struct MaxSizeFn: RtnFnBase<Int> {
         template <Int Idx, typename Tree>
-        ResultType stream(const Tree* tree)
+        Int stream(const Tree* tree)
         {
             return tree->max_size();
         }
