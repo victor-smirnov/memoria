@@ -542,7 +542,9 @@ public:
 
 
 
-    struct SizeFn: RtnFnBase<Int> {
+    struct SizeFn {
+    	typedef Int ResultType;
+
         template <Int Idx, typename Tree>
         Int stream(const Tree* tree)
         {
@@ -552,7 +554,7 @@ public:
 
     Int size(Int stream) const
     {
-        return Dispatcher::template SubDispatcher<>::dispatchRtn(stream, allocator(), SizeFn());
+        return Dispatcher::dispatchRtn(stream, allocator(), SizeFn());
     }
 
     struct SizesFn {

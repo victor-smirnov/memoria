@@ -17,5 +17,6 @@
 #include <memoria/core/types/list/append.hpp>
 #include <memoria/core/types/list/reverse.hpp>
 #include <memoria/core/types/list/sublist.hpp>
+#include <memoria/core/types/list/tuple.hpp>
 
 #endif

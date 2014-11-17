@@ -11,6 +11,8 @@
 #include <memoria/core/types/type2type.hpp>
 #include <memoria/core/types/list/sublist.hpp>
 
+#include <memoria/core/types/fn_traits.hpp>
+#include <memoria/core/types/list/tuple.hpp>
 
 #include <memoria/core/packed/tools/packed_allocator.hpp>
 
@@ -45,6 +47,27 @@ struct StreamDescr {
 template <Int StartIdx, typename Head, typename... Tail, Int Index>
 class PackedDispatcher<StartIdx, StreamDescr<Head, Index>, Tail...> {
 public:
+
+	typedef TypeList<StreamDescr<Head, Index>, Tail...> List;
+
+	template<Int, typename...> friend class PackedDispatcher;
+
+	template <typename T, typename... Args>
+	using FnType = auto(Args...) -> decltype(std::declval<T>().template stream<0>(std::declval<Args>()...));
+
+	template <typename Fn, typename... T>
+	using RtnType1 = typename FnTraits<FnType<Fn, T...>>::RtnType;
+
+
+	template <typename Fn, typename... T>
+	using RtnType = typename FnTraits<decltype(&std::remove_reference<Fn>::type::template stream<Index, T...>)>::RtnType;
+
+	template<Int StreamIdx>
+	using StreamTypeT = typename SelectByIndexTool<StreamIdx, List>::Result::Type;
+
+//	template <typename Fn>
+//	using RtnTuple = MakeTuple<RtnType<Fn>, sizeof...(Tail) + 1>;
+
 
 	template <Int From = 0, Int To = sizeof...(Tail) + 1>
 	using SubDispatcher = typename PackedDispatcherTool<
@@ -130,7 +153,7 @@ public:
 
 
     template <typename Fn, typename... Args>
-    static typename std::remove_reference<Fn>::type::ResultType
+    RtnType<Fn, Head>
     dispatchRtn(Int idx, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         if (idx == Index)
@@ -149,7 +172,7 @@ public:
     }
 
     template <typename Fn, typename... Args>
-    static typename std::remove_reference<Fn>::type::ResultType
+    static RtnType<Fn, Head>
     dispatchRtn(Int idx, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         if (idx == Index)
@@ -169,11 +192,10 @@ public:
 
     template <Int StreamIdx, typename Fn, typename... Args>
     static typename std::remove_reference<Fn>::type::ResultType
+//    static RtnType<Fn, StreamTypeT<StreamIdx>>
     dispatchRtn(PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-        typedef TypeList<StreamDescr<Head, Index>, Tail...> List;
-
-        typedef typename SelectByIndexTool<StreamIdx, List>::Result::Type StreamType;
+        typedef StreamTypeT<StreamIdx> StreamType;
 
         StreamType* head = nullptr;
         if (!alloc->is_empty(StreamIdx + StartIdx))
@@ -185,12 +207,10 @@ public:
     }
 
     template <Int StreamIdx, typename Fn, typename... Args>
-    static typename std::remove_reference<Fn>::type::ResultType
-    dispatchRtn(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    static auto dispatchRtn(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    	-> RtnType1<Fn, const StreamTypeT<StreamIdx>*, Args...>
     {
-        typedef TypeList<StreamDescr<Head, Index>, Tail...> List;
-
-        typedef typename SelectByIndexTool<StreamIdx, List>::Result::Type StreamType;
+        typedef StreamTypeT<StreamIdx> StreamType;
 
         const StreamType* head = nullptr;
         if (!alloc->is_empty(StreamIdx + StartIdx))
@@ -347,6 +367,12 @@ public:
 template <Int StartIdx>
 class PackedDispatcher<StartIdx> {
 public:
+	template<Int, typename...> friend class PackedDispatcher;
+
+//	template <typename Fn, typename... T>
+//	using RtnType = typename FnTraits<decltype(&Fn::template stream<0, void*, T...>)>::RtnType;
+
+
     template <typename Fn, typename... Args>
     static void dispatch(Int idx, PackedAllocator* alloc, Fn&& fn, Args&&...) {
         throw DispatchException(MA_SRC, SBuf()<<"Can't dispatch packed allocator structure: "<<idx);

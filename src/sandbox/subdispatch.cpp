@@ -1,5 +1,7 @@
 #include <memoria/core/types/types.hpp>
+#include <memoria/core/types/fn_traits.hpp>
 #include <memoria/core/types/list/append.hpp>
+#include <memoria/core/types/list/tuple.hpp>
 
 #include <memoria/core/tools/type_name.hpp>
 
@@ -10,60 +12,6 @@
 using namespace memoria;
 using namespace memoria::vapi;
 using namespace std;
-
-template <typename T> struct FnTraits;
-
-template <typename RtnType_, typename ClassType_, typename... Args_>
-struct FnTraits<RtnType_ (ClassType_::*)(Args_...)> {
-	typedef RtnType_ 				RtnType;
-	typedef ClassType_ 				ClassType;
-	typedef TypeList<Args_...>		ArgsList;
-
-	static const Int Arity			= sizeof...(Args_);
-	static const bool Const			= false;
-
-
-	template <Int I>
-	using Arg = typename std::tuple_element<I, std::tuple<Args_...>>::type;
-};
-
-template <typename RtnType_, typename ClassType_, typename... Args_>
-struct FnTraits<RtnType_ (ClassType_::*)(Args_...) const> {
-	typedef RtnType_ 				RtnType;
-	typedef ClassType_ 				ClassType;
-	typedef TypeList<Args_...>		ArgsList;
-
-	static const Int Arity			= sizeof...(Args_);
-	static const bool Const			= true;
-
-	template <Int I>
-	using Arg = typename std::tuple_element<I, std::tuple<Args_...>>::type;
-};
-
-
-
-template <typename T, Int Size>
-struct MakeList {
-	typedef typename MergeLists<
-				T,
-				typename MakeList<T, Size - 1>::Type
-	>::Result 																	Type;
-};
-
-template <typename T>
-struct MakeList<T, 0> {
-	typedef TypeList<> 															Type;
-};
-
-template <typename T> struct MakeTupleH;
-
-template <typename... List>
-struct MakeTupleH<TypeList<List...>> {
-	typedef std::tuple<List...> 												Type;
-};
-
-template <typename T, Int Size>
-using MakeTuple = typename MakeTupleH<typename MakeList<T, Size>::Type>::Type;
 
 template <typename List> struct Dispatcher;
 
@@ -156,6 +104,48 @@ void PrintTuple(std::ostream& out, const T& t) {
 	PrintTupleH<T>::print(out, t);
 }
 
+
+
+template <typename T> struct TT1 {};
+template <typename T> struct TT2 {};
+
+
+//template <typename Fn, typename... Args>
+//using FooRtnType = typename FnTraits<decltype(&Fn::template foo<0>(Args...))>::RtnType;
+
+
+
+struct Boo {
+	template <Int Idx, typename T>
+	int foo(const TT1<T>*, int, long) {
+		return 1;
+	}
+
+	template <Int Idx, typename T>
+	int foo(const TT2<T>*, int, long) {
+		return 2;
+	}
+
+	template <Int Idx, typename T>
+	int foo(const T*, int, long) {
+		return 2;
+	}
+};
+
+struct Foo: Boo {
+
+	Foo(int) {}
+
+//	template <Int Idx>
+//	static int foo(int, int, long) {
+//		return 0;
+//	}
+};
+
+
+template <typename T, typename... Args>
+using FnType = auto(Args...) -> decltype(std::declval<T>().template foo<0>(std::declval<Args>()...));
+
 int main() {
 
 	int r = 1;
@@ -170,5 +160,14 @@ int main() {
 	auto result = Disp::dispatchAllRtn(l, 3, 2, 1);
 
 	PrintTuple(cout, result);
+
+	const TT1<T>* t = nullptr;
+
+	cout<<"foo: "<<Foo(1).foo<0>(t, 1, 2)<<endl;
+
+//	cout<<TypeNameFactory<FooRtnType<Boo, T>>::name()<<endl;
+
+	cout<<"fooT: "<<TypeNameFactory<FnTraits<FnType<Foo, const TT1<T>*, int, int>>::RtnType>::name()<<endl;
+
 }
 
