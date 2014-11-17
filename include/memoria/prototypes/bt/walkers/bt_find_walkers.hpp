@@ -43,10 +43,8 @@ public:
         Base(stream, branch_index, leaf_index, target, search_type)
     {}
 
-    typedef Int                                                                 ResultType;
-
     template <Int StreamIdx, typename Tree>
-    ResultType find_non_leaf(const Tree* tree, Int start)
+    Int find_non_leaf(const Tree* tree, Int start)
     {
         auto k = Base::target_ - Base::sum_;
 
@@ -69,7 +67,7 @@ public:
 
 
     template <Int StreamIdx, typename Tree>
-    ResultType find_leaf(const Tree* tree, Int start)
+    Int find_leaf(const Tree* tree, Int start)
     {
         auto k = Base::target_ - Base::sum_;
 
@@ -193,14 +191,13 @@ protected:
     typedef typename Base::Key                                                  Key;
 
 public:
-    typedef Int                                                                 ResultType;
 
     FindBackwardWalkerBase(Int stream, Int branch_index, Int leaf_index, Key target, SearchType search_type):
         Base(stream, branch_index, leaf_index, target, search_type)
     {}
 
     template <Int StreamIdx, typename Tree>
-    ResultType find_non_leaf(const Tree* tree, Int start)
+    Int find_non_leaf(const Tree* tree, Int start)
     {
         auto k          = Base::target_ - Base::sum_;
 
@@ -224,7 +221,7 @@ public:
 
 
     template <Int StreamIdx, typename Tree>
-    ResultType find_leaf(const Tree* tree, Int start)
+    Int find_leaf(const Tree* tree, Int start)
     {
         auto k          = Base::target_ - Base::sum_;
 

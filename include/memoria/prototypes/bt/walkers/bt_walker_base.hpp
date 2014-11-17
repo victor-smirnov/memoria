@@ -48,12 +48,10 @@ private:
     struct FindNonLeafFn {
         MyType& walker_;
 
-        using ResultType = Int;
-
         FindNonLeafFn(MyType& walker): walker_(walker) {}
 
         template <Int StreamIndex, typename StreamType>
-        ResultType stream(const StreamType* stream, Int start)
+        Int stream(const StreamType* stream, Int start)
         {
             return walker_.template find_non_leaf<StreamIndex>(stream, start);
         }
@@ -63,12 +61,10 @@ private:
     struct FindLeafFn {
         MyType& walker_;
 
-        using ResultType = Int;
-
         FindLeafFn(MyType& walker): walker_(walker) {}
 
         template <Int StreamIndex, typename StreamType>
-        ResultType stream(const StreamType* stream, Int start)
+        Int stream(const StreamType* stream, Int start)
         {
             return walker_.template find_leaf<StreamIndex>(stream, start);
         }

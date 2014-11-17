@@ -175,7 +175,6 @@ protected:
 public:
 
     typedef Int                                                                 ReturnType;
-    typedef Int                                                                 ResultType;
 
     FindMinWalkerBase(UBigInt streams):
         streams_(streams)

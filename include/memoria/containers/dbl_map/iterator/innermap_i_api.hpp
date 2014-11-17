@@ -52,16 +52,16 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::InnerItrApiName)
 
     struct ReadValueFn {
         typedef Value ReturnType;
-        typedef Value ResultType;
+//        typedef Value ResultType;
 
         template <typename Node>
-        ReturnType treeNode(const Node* node, Int offset)
+        Value treeNode(const Node* node, Int offset)
         {
             return node->template processStreamRtn<0>(*this, offset);
         }
 
         template <Int StreamIdx, typename StreamType>
-        ResultType stream(const StreamType* obj, Int offset)
+        Value stream(const StreamType* obj, Int offset)
         {
             MEMORIA_ASSERT(offset, <, obj->size());
             MEMORIA_ASSERT(offset, >=, 0);
@@ -105,16 +105,16 @@ MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(memoria::dblmap::InnerItrApiName)
 
     struct Key2Fn {
         typedef Key ReturnType;
-        typedef Key ResultType;
+//        typedef Key ResultType;
 
         template <typename Node>
-        ReturnType treeNode(const Node* node, Int offset)
+        Key treeNode(const Node* node, Int offset)
         {
             return node->template processStreamRtn<0>(*this, offset);
         }
 
         template <Int StreamIdx, typename StreamType>
-        ResultType stream(const StreamType* obj, Int offset)
+        Key stream(const StreamType* obj, Int offset)
         {
             MEMORIA_ASSERT(offset, <, obj->size());
             MEMORIA_ASSERT(offset, >=, 0);

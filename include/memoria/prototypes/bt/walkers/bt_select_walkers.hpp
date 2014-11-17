@@ -25,7 +25,6 @@ protected:
     using Key   = typename Base::Key;
 
 public:
-    using ResultType = Int;
 
     SelectForwardWalkerBase(Int stream, Int branch_index, Int symbol, Key target):
         Base(stream, branch_index, symbol, target, SearchType::GE)
@@ -33,7 +32,7 @@ public:
 
 
     template <Int StreamIdx, typename Seq>
-    ResultType find_leaf(const Seq* seq, Int start)
+    Int find_leaf(const Seq* seq, Int start)
     {
         MEMORIA_ASSERT_TRUE(seq);
 
@@ -86,8 +85,6 @@ class SelectForwardWalker: public SelectForwardWalkerBase<
     using Key   = typename Base::Key;
 
 public:
-    using ResultType = Int;
-
     SelectForwardWalker(Int stream, Int branch_index, Int symbol, Key target):
         Base(stream, branch_index, symbol, target)
     {}
@@ -114,7 +111,6 @@ protected:
     using Key   = typename Base::Key;
 
 public:
-    using ResultType = Int;
 
     SelectBackwardWalkerBase(Int stream, Int branch_index, Int symbol, Key target):
         Base(stream, branch_index, symbol, target, SearchType::GE)
@@ -122,7 +118,7 @@ public:
 
 
     template <Int StreamIdx, typename Seq>
-    ResultType find_leaf(const Seq* seq, Int start)
+    Int find_leaf(const Seq* seq, Int start)
     {
         MEMORIA_ASSERT_TRUE(seq);
 

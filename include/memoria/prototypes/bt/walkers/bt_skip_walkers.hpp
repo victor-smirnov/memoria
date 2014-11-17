@@ -24,7 +24,6 @@ protected:
     using Key   = typename Base::Key;
 
 public:
-    using ResultType = Int;
 
     SkipForwardWalkerBase(Int stream, Int branch_index, Int leaf_index, Key target):
         Base(stream, branch_index, leaf_index, target, SearchType::GT)
@@ -32,7 +31,7 @@ public:
 
 
     template <Int StreamIdx, typename Array>
-    ResultType find_leaf(const Array* array, Int start)
+    Int find_leaf(const Array* array, Int start)
     {
         auto& sum = Base::sum_;
 
@@ -89,7 +88,6 @@ class SkipForwardWalker: public SkipForwardWalkerBase<Types, Stream, IteratorPre
     using Key   = typename Base::Key;
 
 public:
-    using ResultType = Int;
 
     SkipForwardWalker(Int stream, Int block, Key target):
         Base(stream, block, block, target)
@@ -109,7 +107,6 @@ protected:
     using Key   = typename Base::Key;
 
 public:
-    using ResultType = Int;
 
     SkipBackwardWalkerBase(Int stream, Int branch_index, Int leaf_index, Key target):
         Base(stream, branch_index, leaf_index, target, SearchType::GE)
@@ -117,7 +114,7 @@ public:
 
 
     template <Int StreamIdx, typename Array>
-    ResultType find_leaf(const Array* array, Int start)
+    Int find_leaf(const Array* array, Int start)
     {
         BigInt offset = Base::target_ - Base::sum_;
 
@@ -176,8 +173,6 @@ class SkipBackwardWalker: public SkipBackwardWalkerBase<
     using Key   = typename Base::Key;
 
 public:
-    using ResultType = Int;
-
     SkipBackwardWalker(Int stream, Int block, Key target):
         Base(stream, block, block, target)
     {}

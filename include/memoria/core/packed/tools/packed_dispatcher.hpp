@@ -21,7 +21,7 @@ namespace memoria {
 
 template <typename T>
 struct RtnFnBase {
-	typedef T ResultType;
+//	typedef T ResultType;
 	typedef T ReturnType;
 };
 
@@ -52,22 +52,14 @@ public:
 
 	template<Int, typename...> friend class PackedDispatcher;
 
-	template <typename T, typename... Args>
-	using FnType = auto(Args...) -> decltype(std::declval<T>().template stream<0>(std::declval<Args>()...));
+	template <typename T, Int Idx, typename... Args>
+	using FnType = auto(Args...) -> decltype(std::declval<T>().template stream<Idx>(std::declval<Args>()...));
 
-	template <typename Fn, typename... T>
-	using RtnType1 = typename FnTraits<FnType<Fn, T...>>::RtnType;
-
-
-	template <typename Fn, typename... T>
-	using RtnType = typename FnTraits<decltype(&std::remove_reference<Fn>::type::template stream<Index, T...>)>::RtnType;
+	template <typename Fn, Int Idx, typename... T>
+	using RtnType = typename FnTraits<FnType<typename std::remove_reference<Fn>::type, Idx, T...>>::RtnType;
 
 	template<Int StreamIdx>
 	using StreamTypeT = typename SelectByIndexTool<StreamIdx, List>::Result::Type;
-
-//	template <typename Fn>
-//	using RtnTuple = MakeTuple<RtnType<Fn>, sizeof...(Tail) + 1>;
-
 
 	template <Int From = 0, Int To = sizeof...(Tail) + 1>
 	using SubDispatcher = typename PackedDispatcherTool<
@@ -122,9 +114,7 @@ public:
     template <Int StreamIdx, typename Fn, typename... Args>
     static void dispatch(PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-        typedef TypeList<StreamDescr<Head, Index>, Tail...> List;
-
-        typedef typename SelectByIndexTool<StreamIdx, List>::Result::Type StreamType;
+        typedef StreamTypeT<StreamIdx> StreamType;
 
         StreamType* head = nullptr;
         if (!alloc->is_empty(StreamIdx + StartIdx))
@@ -138,9 +128,7 @@ public:
     template <Int StreamIdx, typename Fn, typename... Args>
     static void dispatch(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-        typedef TypeList<StreamDescr<Head, Index>, Tail...> List;
-
-        typedef typename SelectByIndexTool<StreamIdx, List>::Result::Type StreamType;
+    	typedef StreamTypeT<StreamIdx> StreamType;
 
         const StreamType* head = nullptr;
         if (!alloc->is_empty(StreamIdx + StartIdx))
@@ -153,7 +141,7 @@ public:
 
 
     template <typename Fn, typename... Args>
-    RtnType<Fn, Head>
+    RtnType<Fn, Index, Head*, Args...>
     dispatchRtn(Int idx, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         if (idx == Index)
@@ -172,7 +160,7 @@ public:
     }
 
     template <typename Fn, typename... Args>
-    static RtnType<Fn, Head>
+    static RtnType<Fn, Index, const Head*, Args...>
     dispatchRtn(Int idx, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         if (idx == Index)
@@ -191,9 +179,9 @@ public:
     }
 
     template <Int StreamIdx, typename Fn, typename... Args>
-    static typename std::remove_reference<Fn>::type::ResultType
-//    static RtnType<Fn, StreamTypeT<StreamIdx>>
+    static auto
     dispatchRtn(PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    	-> RtnType<Fn, StreamIdx, StreamTypeT<StreamIdx>*, Args...>
     {
         typedef StreamTypeT<StreamIdx> StreamType;
 
@@ -208,7 +196,7 @@ public:
 
     template <Int StreamIdx, typename Fn, typename... Args>
     static auto dispatchRtn(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
-    	-> RtnType1<Fn, const StreamTypeT<StreamIdx>*, Args...>
+    	-> RtnType<Fn, StreamIdx, const StreamTypeT<StreamIdx>*, Args...>
     {
         typedef StreamTypeT<StreamIdx> StreamType;
 
@@ -350,7 +338,7 @@ public:
     }
 
     template <typename Fn, typename... Args>
-    static typename std::remove_reference<Fn>::type::ResultType
+    static RtnType<Fn, Index, const Head*, Args...>
     dispatchStaticRtn(Int idx, Fn&& fn, Args&&... args)
     {
         if (idx == Index)
@@ -364,6 +352,304 @@ public:
     }
 };
 
+
+
+
+
+template <Int StartIdx, typename Head, Int Index>
+class PackedDispatcher<StartIdx, StreamDescr<Head, Index>> {
+public:
+
+	typedef TypeList<StreamDescr<Head, Index>> List;
+
+	template<Int, typename...> friend class PackedDispatcher;
+
+	template <typename T, Int Idx, typename... Args>
+	using FnType = auto(Args...) -> decltype(std::declval<T>().template stream<Idx>(std::declval<Args>()...));
+
+	template <typename Fn, Int Idx, typename... T>
+	using RtnType = typename FnTraits<FnType<typename std::remove_reference<Fn>::type, Idx, T...>>::RtnType;
+
+	template<Int StreamIdx>
+	using StreamTypeT = typename SelectByIndexTool<StreamIdx, List>::Result::Type;
+
+	template <Int From = 0, Int To = 1>
+	using SubDispatcher = typename PackedDispatcherTool<
+								StartIdx,
+								typename ::memoria::Sublist<
+									TypeList<
+										StreamDescr<Head, Index>
+									>,
+									From, To
+								>::Type
+						  >::Type;
+
+
+
+    template <typename Fn, typename... Args>
+    static void dispatch(Int idx, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    {
+        if (idx == Index)
+        {
+            Head* head = nullptr;
+            if (!alloc->is_empty(Index + StartIdx))
+            {
+                head = alloc->template get<Head>(Index + StartIdx);
+            }
+
+            fn.template stream<Index>(head, args...);
+        }
+        else {
+        	throw DispatchException(MA_SRC, SBuf()<<"Can't dispatch packed allocator structure: "<<idx);
+        }
+    }
+
+    template <typename Fn, typename... Args>
+    static void dispatch(Int idx, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    {
+        if (idx == Index)
+        {
+            const Head* head = nullptr;
+            if (!alloc->is_empty(Index + StartIdx))
+            {
+                head = alloc->template get<Head>(Index + StartIdx);
+            }
+
+            fn.template stream<Index>(head, args...);
+        }
+        else {
+        	throw DispatchException(MA_SRC, SBuf()<<"Can't dispatch packed allocator structure: "<<idx);
+        }
+    }
+
+    template <Int StreamIdx, typename Fn, typename... Args>
+    static void dispatch(PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    {
+    	typedef StreamTypeT<StreamIdx> StreamType;
+
+        StreamType* head = nullptr;
+        if (!alloc->is_empty(StreamIdx + StartIdx))
+        {
+            head = alloc->template get<StreamType>(StreamIdx + StartIdx);
+        }
+
+        fn.template stream<StreamIdx>(head, args...);
+    }
+
+    template <Int StreamIdx, typename Fn, typename... Args>
+    static void dispatch(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    {
+    	typedef StreamTypeT<StreamIdx> StreamType;
+
+        const StreamType* head = nullptr;
+        if (!alloc->is_empty(StreamIdx + StartIdx))
+        {
+            head = alloc->template get<StreamType>(StreamIdx + StartIdx);
+        }
+
+        fn.template stream<StreamIdx>(head, args...);
+    }
+
+
+    template <typename Fn, typename... Args>
+    RtnType<Fn, Index, Head*, Args...>
+    dispatchRtn(Int idx, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    {
+        if (idx == Index)
+        {
+            Head* head = nullptr;
+            if (!alloc->is_empty(Index + StartIdx))
+            {
+                head = alloc->template get<Head>(Index + StartIdx);
+            }
+
+            return fn.template stream<Index>(head, args...);
+        }
+        else {
+        	throw DispatchException(MA_SRC, SBuf()<<"Can't dispatch packed allocator structure: "<<idx);
+        }
+    }
+
+    template <typename Fn, typename... Args>
+    static RtnType<Fn, Index, const Head*, Args...>
+    dispatchRtn(Int idx, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    {
+        if (idx == Index)
+        {
+            const Head* head = nullptr;
+            if (!alloc->is_empty(Index + StartIdx))
+            {
+                head = alloc->template get<Head>(Index + StartIdx);
+            }
+
+            return fn.template stream<Index>(head, args...);
+        }
+        else {
+        	throw DispatchException(MA_SRC, SBuf()<<"Can't dispatch packed allocator structure: "<<idx);
+        }
+    }
+
+    template <Int StreamIdx, typename Fn, typename... Args>
+    static auto
+    dispatchRtn(PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    	-> RtnType<Fn, StreamIdx, StreamTypeT<StreamIdx>*, Args...>
+    {
+        typedef StreamTypeT<StreamIdx> StreamType;
+
+        StreamType* head = nullptr;
+        if (!alloc->is_empty(StreamIdx + StartIdx))
+        {
+            head = alloc->template get<StreamType>(StreamIdx + StartIdx);
+        }
+
+        return fn.template stream<StreamIdx>(head, args...);
+    }
+
+    template <Int StreamIdx, typename Fn, typename... Args>
+    static auto dispatchRtn(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    	-> RtnType<Fn, StreamIdx, const StreamTypeT<StreamIdx>*, Args...>
+    {
+        typedef StreamTypeT<StreamIdx> StreamType;
+
+        const StreamType* head = nullptr;
+        if (!alloc->is_empty(StreamIdx + StartIdx))
+        {
+            head = alloc->template get<StreamType>(StreamIdx + StartIdx);
+        }
+
+        return fn.template stream<StreamIdx>(head, args...);
+    }
+
+
+    template <typename Fn, typename... Args>
+    static void dispatchStatic(Int idx, Fn&& fn, Args&&... args)
+    {
+        if (idx == Index)
+        {
+            fn.template stream<Head>(args...);
+        }
+        else {
+        	throw DispatchException(MA_SRC, SBuf()<<"Can't dispatch packed allocator structure: "<<idx);
+        }
+    }
+
+    template <typename Fn, typename... Args>
+    static void dispatchAllStatic(Fn&& fn, Args&&... args)
+    {
+        Head* head = nullptr;
+        fn.template stream<Index>(head, args...);
+    }
+
+    template <typename Fn, typename... Args>
+    static void dispatchNotEmpty(PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    {
+        if (!alloc->is_empty(Index + StartIdx))
+        {
+            Head* head = alloc->template get<Head>(Index + StartIdx);
+            fn.template stream<Index>(head, args...);
+        }
+    }
+
+    template <typename Fn, typename... Args>
+    static void dispatchNotEmpty(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    {
+        if (!alloc->is_empty(Index + StartIdx))
+        {
+            const Head* head = alloc->template get<Head>(Index + StartIdx);
+            fn.template stream<Index>(head, args...);
+        }
+    }
+
+    template <typename Fn, typename... Args>
+    static void dispatchNotEmpty(UBigInt streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    {
+        if ((streams & (1ull << Index)) && !alloc->is_empty(Index + StartIdx))
+        {
+            Head* head = alloc->template get<Head>(Index + StartIdx);
+            fn.template stream<Index>(head, args...);
+        }
+    }
+
+    template <typename Fn, typename... Args>
+    static void dispatchNotEmpty(UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    {
+        if ((streams & (1ull << Index)) && !alloc->is_empty(Index + StartIdx))
+        {
+            const Head* head = alloc->template get<Head>(Index + StartIdx);
+            fn.template stream<Index>(head, args...);
+        }
+    }
+
+
+    template <typename Fn, typename... Args>
+    static void dispatchAll(PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    {
+        Head* head = nullptr;
+        if (!alloc->is_empty(Index + StartIdx))
+        {
+            head = alloc->template get<Head>(Index + StartIdx);
+        }
+
+        fn.template stream<Index>(head, args...);
+    }
+
+
+    template <typename Fn, typename... Args>
+    static void dispatchAll(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    {
+        const Head* head = nullptr;
+        if (!alloc->is_empty(Index + StartIdx))
+        {
+            head = alloc->template get<Head>(Index + StartIdx);
+        }
+
+        fn.template stream<Index>(head, args...);
+    }
+
+
+    template <typename Fn, typename... Args>
+    static void dispatchAll(UBigInt streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    {
+        Head* head = nullptr;
+        if (!alloc->is_empty(Index + StartIdx) && (streams & (1 << Index)))
+        {
+            head = alloc->template get<Head>(Index + StartIdx);
+        }
+
+        fn.template stream<Index>(head, args...);
+    }
+
+    template <typename Fn, typename... Args>
+    static void dispatchAll(UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    {
+        Head* head = nullptr;
+        if (!alloc->is_empty(Index + StartIdx) && (streams & (1 << Index)))
+        {
+            head = alloc->template get<Head>(Index + StartIdx);
+        }
+
+        fn.template stream<Index>(head, args...);
+    }
+
+    template <typename Fn, typename... Args>
+    static RtnType<Fn, Index, const Head*, Args...>
+    dispatchStaticRtn(Int idx, Fn&& fn, Args&&... args)
+    {
+        if (idx == Index)
+        {
+            const Head* head = nullptr;
+            return fn.template stream<Index>(head, args...);
+        }
+        else {
+        	throw DispatchException(MA_SRC, SBuf()<<"Can't dispatch packed allocator structure: "<<idx);
+        }
+    }
+};
+
+
+
+
+
 template <Int StartIdx>
 class PackedDispatcher<StartIdx> {
 public:
@@ -373,21 +659,21 @@ public:
 //	using RtnType = typename FnTraits<decltype(&Fn::template stream<0, void*, T...>)>::RtnType;
 
 
-    template <typename Fn, typename... Args>
-    static void dispatch(Int idx, PackedAllocator* alloc, Fn&& fn, Args&&...) {
-        throw DispatchException(MA_SRC, SBuf()<<"Can't dispatch packed allocator structure: "<<idx);
-    }
-
-    template <typename Fn, typename... Args>
-    static void dispatch(Int idx, const PackedAllocator* alloc, Fn&& fn, Args&&...) {
-        throw DispatchException(MA_SRC, SBuf()<<"Can't dispatch packed allocator structure: "<<idx);
-    }
-
-    template <typename Fn, typename... Args>
-    static void dispatchStatic(Int idx, Fn&& fn, Args&&...)
-    {
-        throw DispatchException(MA_SRC, SBuf()<<"Can't dispatch packed allocator structure: "<<idx);
-    }
+//    template <typename Fn, typename... Args>
+//    static void dispatch(Int idx, PackedAllocator* alloc, Fn&& fn, Args&&...) {
+//        throw DispatchException(MA_SRC, SBuf()<<"Can't dispatch packed allocator structure: "<<idx);
+//    }
+//
+//    template <typename Fn, typename... Args>
+//    static void dispatch(Int idx, const PackedAllocator* alloc, Fn&& fn, Args&&...) {
+//        throw DispatchException(MA_SRC, SBuf()<<"Can't dispatch packed allocator structure: "<<idx);
+//    }
+//
+//    template <typename Fn, typename... Args>
+//    static void dispatchStatic(Int idx, Fn&& fn, Args&&...)
+//    {
+//        throw DispatchException(MA_SRC, SBuf()<<"Can't dispatch packed allocator structure: "<<idx);
+//    }
 
     template <typename Fn, typename... Args>
     static void dispatchAllStatic(Fn&& fn, Args&&...)
@@ -426,24 +712,24 @@ public:
     static void dispatchAll(const PackedAllocator* alloc, Fn&& fn, Args&&...)
     {}
 
-    template <typename Fn, typename... Args>
-    static typename std::remove_reference<Fn>::type::ResultType
-    dispatchRtn(Int idx, PackedAllocator* alloc, Fn&& fn, Args&&...) {
-        throw DispatchException(MA_SRC, SBuf()<<"Can't dispatch packed allocator structure: "<<idx);
-    }
-
-    template <typename Fn, typename... Args>
-    static typename std::remove_reference<Fn>::type::ResultType
-    dispatchRtn(Int idx, const PackedAllocator* alloc, Fn&& fn, Args&&...) {
-        throw DispatchException(MA_SRC, SBuf()<<"Can't dispatch packed allocator structure: "<<idx);
-    }
-
-    template <typename Fn, typename... Args>
-    static typename std::remove_reference<Fn>::type::ResultType
-    dispatchStaticRtn(Int idx, Fn&& fn, Args&&...)
-    {
-        throw DispatchException(MA_SRC, SBuf()<<"Can't dispatch packed allocator structure: "<<idx);
-    }
+//    template <typename Fn, typename... Args>
+//    static typename std::remove_reference<Fn>::type::ResultType
+//    dispatchRtn(Int idx, PackedAllocator* alloc, Fn&& fn, Args&&...) {
+//        throw DispatchException(MA_SRC, SBuf()<<"Can't dispatch packed allocator structure: "<<idx);
+//    }
+//
+//    template <typename Fn, typename... Args>
+//    static typename std::remove_reference<Fn>::type::ResultType
+//    dispatchRtn(Int idx, const PackedAllocator* alloc, Fn&& fn, Args&&...) {
+//        throw DispatchException(MA_SRC, SBuf()<<"Can't dispatch packed allocator structure: "<<idx);
+//    }
+//
+//    template <typename Fn, typename... Args>
+//    static typename std::remove_reference<Fn>::type::ResultType
+//    dispatchStaticRtn(Int idx, Fn&& fn, Args&&...)
+//    {
+//        throw DispatchException(MA_SRC, SBuf()<<"Can't dispatch packed allocator structure: "<<idx);
+//    }
 };
 
 

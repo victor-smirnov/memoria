@@ -468,17 +468,14 @@ public:
 
 
     struct RankFn {
-
-        using ResultType = Int;
-
         template <Int StreamIdx, typename Stream>
-        ResultType stream(const Stream* stream, Int end, Int label)
+        Int stream(const Stream* stream, Int end, Int label)
         {
             return stream->rank(end, label);
         }
 
         template <Int StreamIdx, typename Stream>
-        ResultType stream(const Stream* stream, Int start, Int end, Int label)
+        Int stream(const Stream* stream, Int start, Int end, Int label)
         {
             return stream->rank(start, end, label);
         }
@@ -510,17 +507,14 @@ public:
 
 
     struct SelectFwFn {
-
-        using ResultType = SelectResult;
-
         template <Int StreamIdx, typename Stream>
-        ResultType stream(const Stream* stream, Int start, Int symbol, BigInt rank)
+        SelectResult stream(const Stream* stream, Int start, Int symbol, BigInt rank)
         {
             return stream->selectFw(start, symbol, rank);
         }
 
         template <Int StreamIdx, typename Stream>
-        ResultType stream(const Stream* stream, Int symbol, BigInt rank)
+        SelectResult stream(const Stream* stream, Int symbol, BigInt rank)
         {
             return stream->selectFw(symbol, rank);
         }
