@@ -18,7 +18,7 @@ template <typename Types, typename MyType, Int Stream>
 class FindWalkerBase: public WalkerBase<Types, MyType, Stream> {
 
 protected:
-    typedef WalkerBase<Types, MyType, Stream>                  					Base;
+    typedef WalkerBase<Types, MyType, Stream>                                   Base;
     typedef typename Base::Key                                                  Key;
 
 public:

@@ -63,7 +63,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveBatchName)
     );
 
     void tryMergeNodesAfterRemove(
-    		NodeBaseG& start,
+            NodeBaseG& start,
             const Position& start_idx,
 
             NodeBaseG& stop,
@@ -402,9 +402,9 @@ void M_TYPE::removeNodes(
 
         if (self.isTheSameParent(start, stop))
         {
-        	if (self.mergeCurrentBTreeNodes(start, stop))
+            if (self.mergeCurrentBTreeNodes(start, stop))
             {
-        		stop_idx    = start_idx;
+                stop_idx    = start_idx;
                 stop        = start;
             }
             else {

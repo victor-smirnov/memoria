@@ -25,8 +25,8 @@ public:
     typedef Value_                                                              Value;
 
 
-    static const Int TotalLabels 	= ListSize<HiddenLabels>::Value + ListSize<Labels>::Value;
-    static const Int ARRAY 			= Blocks + TotalLabels;
+    static const Int TotalLabels    = ListSize<HiddenLabels>::Value + ListSize<Labels>::Value;
+    static const Int ARRAY          = Blocks + TotalLabels;
 
     static const bool HasValue                                                  = true;
 
@@ -163,46 +163,46 @@ public:
     template <typename Entry, typename Lengths>
     static void computeValueEntryDataLength(const Entry& entry, Lengths& lengths)
     {
-    	std::get<1 + TotalLabels>(lengths)++;
+        std::get<1 + TotalLabels>(lengths)++;
     }
 
 
     template <typename DataSource>
     void insertValues(DataSource* src, SizeT pos, Int start, Int size, Int old_size)
     {
-    	insertValuesSpace(start, size, old_size);
+        insertValuesSpace(start, size, old_size);
 
-    	updateValues(src, pos, start, start + size);
+        updateValues(src, pos, start, start + size);
     }
 
 
     template <typename DataSource>
     void updateValues(DataSource* src, SizeT pos, Int start, Int end)
     {
-    	src->reset(pos);
+        src->reset(pos);
 
-    	auto* values = this->values();
+        auto* values = this->values();
 
-    	for (Int c = start; c < end; c++)
-    	{
-    		values[c] = src->get().value();
-    	}
+        for (Int c = start; c < end; c++)
+        {
+            values[c] = src->get().value();
+        }
     }
 
     template <typename DataTarget>
     void readValues(DataTarget* tgt, SizeT pos, Int start, Int end) const
     {
-    	tgt->reset(pos);
+        tgt->reset(pos);
 
-    	auto* values = this->values();
+        auto* values = this->values();
 
-    	for (Int c = start; c < end; c++)
-    	{
-    		auto current 	= tgt->peek();
-    		current.value() = values[c];
+        for (Int c = start; c < end; c++)
+        {
+            auto current    = tgt->peek();
+            current.value() = values[c];
 
-    		tgt->put(current);
-    	}
+            tgt->put(current);
+        }
     }
 
     // ============================ Serialization ==================================== //

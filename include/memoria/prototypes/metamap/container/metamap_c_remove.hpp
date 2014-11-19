@@ -47,18 +47,18 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrRemoveName)
         {
             MEMORIA_ASSERT_TRUE(map);
 
-        	map->sums(idx, std::get<Idx>(entry_));
+            map->sums(idx, std::get<Idx>(entry_));
 
             map->remove(idx, idx + 1);
 
             if (adjust_next)
             {
-            	next_entry_updated_ = idx < map->size();
+                next_entry_updated_ = idx < map->size();
 
-            	if (next_entry_updated_)
-            	{
-            		map->addValue(0, idx, std::get<0>(entry_)[1]);
-            	}
+                if (next_entry_updated_)
+                {
+                    map->addValue(0, idx, std::get<0>(entry_)[1]);
+                }
             }
         }
     };
@@ -152,7 +152,7 @@ bool M_TYPE::removeMapEntries(Iterator& from, Iterator& to, Accumulator& keys, b
 
     if (adjust_next_entry && !to.isEnd())
     {
-    	to.adjustIndex(1, (std::get<0>(keys)[1]));
+        to.adjustIndex(1, (std::get<0>(keys)[1]));
     }
 
     to.updatePrefix();

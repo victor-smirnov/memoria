@@ -218,7 +218,7 @@ struct IDataTarget: IDataBase {
 
     virtual SizeT put(const T* buffer, SizeT start, SizeT length)               = 0;
     virtual void put(const T& value)                                            = 0;
-    virtual T peek()                                            				= 0;
+    virtual T peek()                                                            = 0;
 };
 
 
@@ -352,7 +352,7 @@ public:
     virtual IDataAPI api() const                                                = 0;
     virtual SizeT put(const T* buffer, SizeT start, SizeT length)               = 0;
     virtual SizeT get(T* buffer, SizeT start, SizeT length)                     = 0;
-    virtual T peek()                                            				= 0;
+    virtual T peek()                                                            = 0;
 
 
     virtual T get()                                                             = 0;
@@ -442,13 +442,13 @@ public:
 template <typename T>
 class FnDataSource: public AbstractDataSource<T> {
 
-	typedef AbstractDataSource<T>												Base;
-	typedef std::function<T (BigInt)> 											Fn;
+    typedef AbstractDataSource<T>                                               Base;
+    typedef std::function<T (BigInt)>                                           Fn;
 
-	Fn 	fn_;
+    Fn  fn_;
 
 public:
-	FnDataSource(BigInt size, Fn fn): Base(0, size), fn_(fn) {}
+    FnDataSource(BigInt size, Fn fn): Base(0, size), fn_(fn) {}
 
     virtual IDataAPI api() const {return IDataAPI::Single;}
 
@@ -456,11 +456,11 @@ public:
 
     virtual T get()
     {
-    	T value = fn_(Base::start_);
+        T value = fn_(Base::start_);
 
-    	Base::skip(1);
+        Base::skip(1);
 
-    	return value;
+        return value;
     }
 };
 
@@ -529,7 +529,7 @@ public:
     virtual IDataAPI api() const                                                = 0;
     virtual SizeT put(const T* buffer, SizeT start, SizeT length)               = 0;
     virtual void put(const T& value)                                            = 0;
-    virtual T peek()                                            				= 0;
+    virtual T peek()                                                            = 0;
 
     virtual void reset(BigInt pos = 0)
     {
@@ -654,7 +654,7 @@ public:
 
     virtual T peek()
     {
-    	return *(data_ + Base::start_);
+        return *(data_ + Base::start_);
     }
 
     void dump(std::ostream& out) const

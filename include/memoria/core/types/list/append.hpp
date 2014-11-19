@@ -147,9 +147,9 @@ template <typename ... Lists> struct MergeLists {
 template <typename ... Lists> struct MergeValueLists;
 
 template <
-	typename T,
-	T... List,
-	typename... Tail
+    typename T,
+    T... List,
+    typename... Tail
 >
 struct MergeValueLists<ValueList<T, List...>, Tail...> {
     typedef typename internal0::MergeValueListsHelper<ValueList<T, List...>, Tail...>::Result   Result;
@@ -157,24 +157,24 @@ struct MergeValueLists<ValueList<T, List...>, Tail...> {
 
 
 template <
-	typename T,
-	T Value,
-	T... List,
-	typename... Tail
+    typename T,
+    T Value,
+    T... List,
+    typename... Tail
 >
 struct MergeValueLists<ValueList<T, List...>, ConstValue<T, Value>, Tail...> {
 private:
-	typedef typename internal0::MergeValueListsHelper<ValueList<T, List...>, ValueList<T, Value>>::Result R0;
+    typedef typename internal0::MergeValueListsHelper<ValueList<T, List...>, ValueList<T, Value>>::Result R0;
 
 public:
-	typedef typename MergeValueLists<R0, Tail...>::Result   Result;
+    typedef typename MergeValueLists<R0, Tail...>::Result   Result;
 };
 
 
 template <
-	typename T,
-	T Value,
-	typename... Tail
+    typename T,
+    T Value,
+    typename... Tail
 >
 struct MergeValueLists<ConstValue<T, Value>, Tail...> {
     typedef typename MergeValueLists<ValueList<T, Value>, Tail...>::Result   Result;

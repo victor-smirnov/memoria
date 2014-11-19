@@ -188,15 +188,15 @@ struct TupleBuilder<TypeList<Types...>> {
 
 template <typename T, Int N>
 struct SameTypeListBuilder {
-	typedef typename MergeLists<
-			T,
-			typename SameTypeListBuilder<T, N - 1>::Type
-	>::Result                                                                   Type;
+    typedef typename MergeLists<
+            T,
+            typename SameTypeListBuilder<T, N - 1>::Type
+    >::Result                                                                   Type;
 };
 
 template <typename T>
 struct SameTypeListBuilder<T, 0> {
-	typedef TypeList<>															Type;
+    typedef TypeList<>                                                          Type;
 };
 
 
@@ -399,18 +399,18 @@ template <typename List> struct StreamSourcePtrListBuilder;
 template <typename Head, typename... Tail>
 struct StreamSourcePtrListBuilder<TypeList<Head, Tail...>>
 {
-	typedef typename MergeLists<
-	            IDataSource<Head>*,
-	            typename StreamSourcePtrListBuilder<
-	                TypeList<Tail...>
-	            >::Type
-	>::Result                                                                   Type;
+    typedef typename MergeLists<
+                IDataSource<Head>*,
+                typename StreamSourcePtrListBuilder<
+                    TypeList<Tail...>
+                >::Type
+    >::Result                                                                   Type;
 };
 
 template <>
 struct StreamSourcePtrListBuilder<TypeList<>>
 {
-	using Type = TypeList<>;
+    using Type = TypeList<>;
 };
 
 

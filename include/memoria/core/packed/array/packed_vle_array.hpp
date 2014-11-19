@@ -1141,15 +1141,15 @@ public:
 
     static Int computeDataLength(const Values& values)
     {
-    	Codec codec;
-    	Int length = 0;
+        Codec codec;
+        Int length = 0;
 
-    	for (Int c = 0; c < Blocks; c++)
-    	{
-    		length += codec.length(values[c]);
-    	}
+        for (Int c = 0; c < Blocks; c++)
+        {
+            length += codec.length(values[c]);
+        }
 
-    	return length;
+        return length;
     }
 
 
@@ -1272,8 +1272,8 @@ public:
 
     void update(Int start, Int end, std::function<Values ()> provider)
     {
-    	remove(start, end);
-    	insert(start, end - start, provider);
+        remove(start, end);
+        insert(start, end - start, provider);
     }
 
 
@@ -1332,29 +1332,29 @@ public:
 
     void read(Int start, Int end, std::function<void (const Values&)> consumer) const
     {
-    	MEMORIA_ASSERT(start, >=, 0);
-    	MEMORIA_ASSERT(start, <=, end);
-    	MEMORIA_ASSERT(end, <=, size());
+        MEMORIA_ASSERT(start, >=, 0);
+        MEMORIA_ASSERT(start, <=, end);
+        MEMORIA_ASSERT(end, <=, size());
 
-    	Values values[IOBatchSize];
+        Values values[IOBatchSize];
 
-    	Int to_read	= end - start;
-    	Int pos		= start;
+        Int to_read = end - start;
+        Int pos     = start;
 
-    	while (to_read > 0)
-    	{
-    		SizeT batch_size    = to_read > IOBatchSize ? IOBatchSize : to_read;
+        while (to_read > 0)
+        {
+            SizeT batch_size    = to_read > IOBatchSize ? IOBatchSize : to_read;
 
-    		readData(values, pos, batch_size);
+            readData(values, pos, batch_size);
 
-    		for (Int c = 0; c < batch_size; c++)
-    		{
-    			consumer(values[c]);
-    		}
+            for (Int c = 0; c < batch_size; c++)
+            {
+                consumer(values[c]);
+            }
 
-    		pos     += batch_size;
-    		to_read -= batch_size;
-    	}
+            pos     += batch_size;
+            to_read -= batch_size;
+        }
     }
 
 

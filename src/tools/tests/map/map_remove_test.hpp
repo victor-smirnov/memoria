@@ -42,7 +42,7 @@ class MapRemoveTest: public MapTestBase<MapName> {
     PairVector&     pairs_sorted    = Base::pairs_sorted;
     String&         dump_name_      = Base::dump_name_;
 
-    bool 			map_creation_ = false;
+    bool            map_creation_ = false;
 
 public:
 
@@ -70,9 +70,9 @@ public:
         ctr_name_ = map.name();
 
         try {
-        	map_creation_ = true;
+            map_creation_ = true;
 
-        	for (vector_idx_ = 0; vector_idx_ < size_; vector_idx_++)
+            for (vector_idx_ = 0; vector_idx_ < size_; vector_idx_++)
             {
                 auto iter = map[pairs[vector_idx_].key_];
                 iter.svalue() = pairs[vector_idx_].value_;
@@ -91,7 +91,7 @@ public:
 
             for (vector_idx_ = 0; vector_idx_ < size_; vector_idx_++)
             {
-            	bool result = map.remove(pairs[vector_idx_].key_);
+                bool result = map.remove(pairs[vector_idx_].key_);
 
                 AssertTrue(MA_SRC, result);
 
@@ -152,23 +152,23 @@ public:
 
         }
         else {
-        	bool result = map.remove(pairs[vector_idx_].key_);
+            bool result = map.remove(pairs[vector_idx_].key_);
 
-        	AssertTrue(MA_SRC, result);
+            AssertTrue(MA_SRC, result);
 
-        	Base::check(allocator, MEMORIA_SOURCE);
+            Base::check(allocator, MEMORIA_SOURCE);
 
-        	BigInt size = size_ - vector_idx_ - 1;
+            BigInt size = size_ - vector_idx_ - 1;
 
-        	AssertEQ(MA_SRC, size, map.size());
+            AssertEQ(MA_SRC, size, map.size());
 
-        	for (UInt x = 0; x < pairs_sorted.size(); x++)
-        	{
-        		if (pairs_sorted[x].key_ == pairs[vector_idx_].key_)
-        		{
-        			pairs_sorted.erase(pairs_sorted.begin() + x);
-        		}
-        	}
+            for (UInt x = 0; x < pairs_sorted.size(); x++)
+            {
+                if (pairs_sorted[x].key_ == pairs[vector_idx_].key_)
+                {
+                    pairs_sorted.erase(pairs_sorted.begin() + x);
+                }
+            }
         }
 
         Base::check(allocator, MEMORIA_SOURCE);

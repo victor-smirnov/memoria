@@ -43,7 +43,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ReadName)
     typedef typename Types::DataTarget                                          DataTarget;
     typedef typename Types::CtrSizeT                                            CtrSizeT;
 
-    typedef typename Types::Target                                            	Target;
+    typedef typename Types::Target                                              Target;
 
     static const Int Streams                                                    = Types::Streams;
 
@@ -77,7 +77,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ReadName)
 
     UBigInt getTargetActiveStreams(Target& target)
     {
-    	return self().getRemainderSize(target).gtZero();
+        return self().getRemainderSize(target).gtZero();
     }
 
     MEMORIA_DECLARE_NODE_FN(ReadFn, read);
@@ -194,7 +194,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ReadName)
 
     CtrSizeT readStream(Iterator& iter, ITarget& data_target)
     {
-    	MEMORIA_ASSERT(iter.dataPos(), >=, 0);
+        MEMORIA_ASSERT(iter.dataPos(), >=, 0);
 
         IDataBase* data = T2T<IDataBase*>(data_target.stream(iter.stream()));
 
@@ -232,37 +232,37 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ReadName)
 
     CtrSizeT readStream(Iterator& iter, Target& data_target)
     {
-    	MEMORIA_ASSERT(iter.idx(), >=, 0);
+        MEMORIA_ASSERT(iter.idx(), >=, 0);
 
-    	CtrSizeT sum = 0;
-    	CtrSizeT len = self().getRemainderSize(data_target)[iter.stream()];
+        CtrSizeT sum = 0;
+        CtrSizeT len = self().getRemainderSize(data_target)[iter.stream()];
 
-    	while (len > 0)
-    	{
-    		Int to_read = iter.leaf_size(iter.stream()) - iter.idx();
+        while (len > 0)
+        {
+            Int to_read = iter.leaf_size(iter.stream()) - iter.idx();
 
-    		if (to_read > len) to_read = len;
+            if (to_read > len) to_read = len;
 
-    		LeafDispatcher::dispatchConst(
-    				iter.leaf(),
-    				ReadFn(),
-    				data_target,
-    				Position(iter.idx()),
-    				Position(iter.idx() + to_read)
-    		);
+            LeafDispatcher::dispatchConst(
+                    iter.leaf(),
+                    ReadFn(),
+                    data_target,
+                    Position(iter.idx()),
+                    Position(iter.idx() + to_read)
+            );
 
-    		len     -= to_read;
-    		sum     += to_read;
+            len     -= to_read;
+            sum     += to_read;
 
-    		iter.skipFw(to_read);
+            iter.skipFw(to_read);
 
-    		if (iter.isEnd())
-    		{
-    			break;
-    		}
-    	}
+            if (iter.isEnd())
+            {
+                break;
+            }
+        }
 
-    	return sum;
+        return sum;
     }
 
 

@@ -40,9 +40,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrInsBatchComprName)
 
     typedef typename Types::DataSource                                          DataSource;
 
-    typedef typename Types::Source												Source;
-    typedef typename Types::EntrySizes											EntrySizes;
-    typedef typename Types::CtrSizeT											CtrSizeT;
+    typedef typename Types::Source                                              Source;
+    typedef typename Types::EntrySizes                                          EntrySizes;
+    typedef typename Types::CtrSizeT                                            CtrSizeT;
 
     typedef typename Types::Entry                                               Entry;
 
@@ -50,87 +50,87 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrInsBatchComprName)
     MEMORIA_DECLARE_NODE_FN(ComputeDataLengths, computeDataLengths);
     bool checkLeafCapacity(const NodeBaseG& node, const EntrySizes& sizes, SizeT total)
     {
-    	return false;
+        return false;
     }
 
 
     template <typename Entry>
     void computeDataLengths(const Entry& entry, EntrySizes& lengths)
     {
-    	LeafDispatcher::template dispatchStatic<LeafNode>(true, ComputeDataLengths(), entry, lengths);
+        LeafDispatcher::template dispatchStatic<LeafNode>(true, ComputeDataLengths(), entry, lengths);
     }
 
     std::pair<EntrySizes, SizeT> computeDataLengths(SizeT total, Source& source)
     {
-    	EntrySizes lengths;
-    	Clear(lengths);
+        EntrySizes lengths;
+        Clear(lengths);
 
-    	auto pos		= std::get<0>(source)->getStart();
-    	auto remainder 	= std::get<0>(source)->getRemainder();
+        auto pos        = std::get<0>(source)->getStart();
+        auto remainder  = std::get<0>(source)->getRemainder();
 
-    	if (remainder < total) total = remainder;
+        if (remainder < total) total = remainder;
 
-    	for (SizeT c = 0; c < total; c++)
-    	{
-    		Entry entry = std::get<0>(source)->get();
+        for (SizeT c = 0; c < total; c++)
+        {
+            Entry entry = std::get<0>(source)->get();
 
-    		computeDataLengths(entry, lengths);
-    	}
+            computeDataLengths(entry, lengths);
+        }
 
-    	std::get<0>(source)->reset(pos);
-    	return std::pair<EntrySizes, SizeT>(lengths, total);
+        std::get<0>(source)->reset(pos);
+        return std::pair<EntrySizes, SizeT>(lengths, total);
     }
 
     struct InsertSourceFn
     {
-    	template <typename Node>
-    	void treeNode(Node* node, Source& source, const Position& idx, const Position& sizes)
-    	{
-    		node->insert(source, idx, sizes);
-    	}
+        template <typename Node>
+        void treeNode(Node* node, Source& source, const Position& idx, const Position& sizes)
+        {
+            node->insert(source, idx, sizes);
+        }
     };
 
     Accumulator insertSourceToLeaf(NodeBaseG& leaf, const Position& idx, Source& source)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	Position sizes = self.getRemainderSize(source);
+        Position sizes = self.getRemainderSize(source);
 
-    	LeafDispatcher::dispatch(leaf, InsertSourceFn(), source, idx, sizes);
+        LeafDispatcher::dispatch(leaf, InsertSourceFn(), source, idx, sizes);
 
-    	return self.sums(leaf, idx, idx + sizes);
+        return self.sums(leaf, idx, idx + sizes);
     }
 
 
 
     Accumulator appendToLeaf(NodeBaseG& leaf, const Position& idx, Source& source)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	self.computeDataLengths(10, source);
+        self.computeDataLengths(10, source);
 
-    	Position remainders = self.getRemainderSize(source);
-    	Position sizes		= self.getNodeSizes(leaf);
-    	Int capacity 		= self.getStreamCapacity(leaf, sizes, 0);
+        Position remainders = self.getRemainderSize(source);
+        Position sizes      = self.getNodeSizes(leaf);
+        Int capacity        = self.getStreamCapacity(leaf, sizes, 0);
 
-    	if (remainders[0] > capacity)
-    	{
-    		auto length = Position::create(0, capacity);
+        if (remainders[0] > capacity)
+        {
+            auto length = Position::create(0, capacity);
 
-        	LeafDispatcher::dispatch(leaf, InsertSourceFn(), source, idx, length);
+            LeafDispatcher::dispatch(leaf, InsertSourceFn(), source, idx, length);
 
-        	return self.sums(leaf, idx, idx + length);
-    	}
-    	else {
-    		LeafDispatcher::dispatch(leaf, InsertSourceFn(), source, idx, remainders);
+            return self.sums(leaf, idx, idx + length);
+        }
+        else {
+            LeafDispatcher::dispatch(leaf, InsertSourceFn(), source, idx, remainders);
 
-    		return self.sums(leaf, idx, idx + remainders);
-    	}
+            return self.sums(leaf, idx, idx + remainders);
+        }
     }
 
     void fillNewLeaf(NodeBaseG& leaf, Source& source)
     {
-    	appendToLeaf(leaf, Position(0), source);
+        appendToLeaf(leaf, Position(0), source);
     }
 
     Accumulator insert(Iterator& iter, DataSource& data);

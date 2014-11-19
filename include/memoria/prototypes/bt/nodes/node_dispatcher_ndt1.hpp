@@ -33,11 +33,11 @@ class NDT1 {
 
     static const Int HASH = Head::PAGE_HASH;
 
-	template <typename T, typename... Args>
-	using FnType = auto(Args...) -> decltype(std::declval<T>().template treeNode(std::declval<Args>()...));
+    template <typename T, typename... Args>
+    using FnType = auto(Args...) -> decltype(std::declval<T>().template treeNode(std::declval<Args>()...));
 
-	template <typename Fn, typename... T>
-	using RtnType = typename FnTraits<FnType<typename std::remove_reference<Fn>::type, T...>>::RtnType;
+    template <typename Fn, typename... T>
+    using RtnType = typename FnTraits<FnType<typename std::remove_reference<Fn>::type, T...>>::RtnType;
 
 
 public:
@@ -144,18 +144,18 @@ public:
 template <typename Types>
 class NDT1<Types, 0> {
 
-	static const Int Idx = 0;
+    static const Int Idx = 0;
 
     typedef typename Types::NodeBase NodeBase;
     typedef typename SelectByIndexTool<Idx, typename Types::List>::Result Head;
 
     static const Int HASH = Head::PAGE_HASH;
 
-	template <typename T, typename... Args>
-	using FnType = auto(Args...) -> decltype(std::declval<T>().template treeNode(std::declval<Args>()...));
+    template <typename T, typename... Args>
+    using FnType = auto(Args...) -> decltype(std::declval<T>().template treeNode(std::declval<Args>()...));
 
-	template <typename Fn, typename... T>
-	using RtnType = typename FnTraits<FnType<typename std::remove_reference<Fn>::type, T...>>::RtnType;
+    template <typename Fn, typename... T>
+    using RtnType = typename FnTraits<FnType<typename std::remove_reference<Fn>::type, T...>>::RtnType;
 
 
 public:
@@ -172,7 +172,7 @@ public:
             );
         }
         else {
-        	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
         }
     }
 
@@ -189,7 +189,7 @@ public:
             );
         }
         else {
-        	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
         }
     }
 
@@ -206,7 +206,7 @@ public:
             );
         }
         else {
-        	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
         }
     }
 
@@ -229,7 +229,7 @@ public:
             );
         }
         else {
-        	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
         }
     }
 
@@ -252,7 +252,7 @@ public:
             );
         }
         else {
-        	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
         }
     }
 };

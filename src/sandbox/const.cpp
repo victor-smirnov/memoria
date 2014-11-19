@@ -17,20 +17,20 @@ using namespace memoria::core;
 
 int main(void) {
 
-	size_t lmax = 0;
+    size_t lmax = 0;
 
-	for (BigInt c = 0; c < 65536; c++)
-	{
-		size_t len = GetI64ValueLength(c);
+    for (BigInt c = 0; c < 65536; c++)
+    {
+        size_t len = GetI64ValueLength(c);
 
-		if (len < lmax) {
-			cout<<c<<" "<<len<<" "<<lmax<<endl;
-			break;
-		}
-		else {
-			cout<<c<<" "<<len<<endl;
-		}
-	}
+        if (len < lmax) {
+            cout<<c<<" "<<len<<" "<<lmax<<endl;
+            break;
+        }
+        else {
+            cout<<c<<" "<<len<<endl;
+        }
+    }
 
     return 0;
 }

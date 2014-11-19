@@ -46,7 +46,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
 
     typedef typename Types::CtrSizeT                                            CtrSizeT;
 
-    typedef typename Types::Source												Source;
+    typedef typename Types::Source                                              Source;
 
 
     static const Int Streams                                                    = Types::Streams;
@@ -71,24 +71,24 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
         virtual Position            getTotalSize()                              = 0;
         virtual Position            getTotalInserted()                          = 0;
 
-        virtual Position           	remainder()                                 = 0;
+        virtual Position            remainder()                                 = 0;
 
         virtual ISubtreeProvider&   getProvider() {return *this;}
 
-        virtual NodeBaseG 			createLeaf()								= 0;
+        virtual NodeBaseG           createLeaf()                                = 0;
 
         virtual UBigInt             getActiveStreams()                          = 0;
 
-        virtual ID					getSavePoint()								= 0;
-        virtual void				reset(const ID& save_point)					= 0;
+        virtual ID                  getSavePoint()                              = 0;
+        virtual void                reset(const ID& save_point)                 = 0;
     };
 
 
     struct ISubtreeLeafProvider: ISubtreeProvider
     {
-    	virtual Accumulator insertIntoLeaf(NodeBaseG& leaf)                                             = 0;
-    	virtual Accumulator insertIntoLeaf(NodeBaseG& leaf, const Position& from)                       = 0;
-    	virtual Accumulator insertIntoLeaf(NodeBaseG& leaf, const Position& from, const Position& size) = 0;
+        virtual Accumulator insertIntoLeaf(NodeBaseG& leaf)                                             = 0;
+        virtual Accumulator insertIntoLeaf(NodeBaseG& leaf, const Position& from)                       = 0;
+        virtual Accumulator insertIntoLeaf(NodeBaseG& leaf, const Position& from, const Position& size) = 0;
     };
 
 
@@ -139,7 +139,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
 
             if (level > 0)
             {
-                Int max_keys 		= ctr_.getMaxKeyCountForNode(level == 0, level);
+                Int max_keys        = ctr_.getMaxKeyCountForNode(level == 0, level);
 
                 NodeBaseG node      = ctr_.createNode1(level, false, false);
                 node->parent_id()   = parent_id;
@@ -185,16 +185,16 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
             }
             else
             {
-            	NodeBaseG node = this->createLeaf();
+                NodeBaseG node = this->createLeaf();
 
-            	node->parent_id()   = parent_id;
-            	node->parent_idx()  = parent_idx;
+                node->parent_id()   = parent_id;
+                node->parent_idx()  = parent_idx;
 
-            	count++;
-            	pair.keys = ctr_.sums(node);
+                count++;
+                pair.keys = ctr_.sums(node);
 
-            	pair.value      =  node->id();
-            	pair.key_count  += 1;
+                pair.value      =  node->id();
+                pair.key_count  += 1;
 
             }
 
@@ -247,41 +247,41 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
 
         virtual void reset(const ID& save_point)
         {
-        	throw Exception(MA_SRC, "This type of subtree providers doesn't support savepoints");
+            throw Exception(MA_SRC, "This type of subtree providers doesn't support savepoints");
         }
     };
 
 
     class AbstractSubtreeLeafProviderBase: public AbstractSubtreeProviderBase, public ISubtreeLeafProvider {
-    	using ProviderBase = AbstractSubtreeProviderBase;
+        using ProviderBase = AbstractSubtreeProviderBase;
 
     public:
-    	AbstractSubtreeLeafProviderBase(MyType& ctr, UBigInt active_streams = -1ull):
-    		AbstractSubtreeProviderBase(ctr, active_streams)
+        AbstractSubtreeLeafProviderBase(MyType& ctr, UBigInt active_streams = -1ull):
+            AbstractSubtreeProviderBase(ctr, active_streams)
     {}
 
-    	virtual NodeBaseG createLeaf()
-    	{
-    		NodeBaseG node = this->ctr_.createNode1(0, false, true);
-    		this->insertIntoLeaf(node);
+        virtual NodeBaseG createLeaf()
+        {
+            NodeBaseG node = this->ctr_.createNode1(0, false, true);
+            this->insertIntoLeaf(node);
 
-    		return node;
-    	}
+            return node;
+        }
 
-    	virtual NonLeafNodeKeyValuePair getKVPair(const ID& parent_id, Int parent_idx, CtrSizeT total, Int level) {
-    		return ProviderBase::getKVPair(parent_id, parent_idx, total, level);
-    	}
+        virtual NonLeafNodeKeyValuePair getKVPair(const ID& parent_id, Int parent_idx, CtrSizeT total, Int level) {
+            return ProviderBase::getKVPair(parent_id, parent_idx, total, level);
+        }
 
-    	virtual UBigInt getActiveStreams() {
-    		return ProviderBase::getActiveStreams();
-    	}
+        virtual UBigInt getActiveStreams() {
+            return ProviderBase::getActiveStreams();
+        }
     };
 
 
 
     class DefaultSubtreeProvider: public AbstractSubtreeLeafProviderBase {
 
-        typedef AbstractSubtreeLeafProviderBase                 				ProviderBase;
+        typedef AbstractSubtreeLeafProviderBase                                 ProviderBase;
 
         MyType&     ctr_;
         Position    total_;
@@ -382,65 +382,65 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
 
     class LeafNodeListSubtreeProvider: public AbstractSubtreeProviderBase {
 
-    	typedef AbstractSubtreeProviderBase                 ProviderBase;
+        typedef AbstractSubtreeProviderBase                 ProviderBase;
 
-    	MyType&     ctr_;
-    	Position    total_sizes_;
-    	Position    inserted_;
+        MyType&     ctr_;
+        Position    total_sizes_;
+        Position    inserted_;
 
-    	CtrSizeT	total_leafs_;
+        CtrSizeT    total_leafs_;
 
-    	ID 			list_head_;
+        ID          list_head_;
 
 
     public:
-    	LeafNodeListSubtreeProvider(MyType& ctr, const Position& total, CtrSizeT total_leafs, const ID& list_head):
-    		ProviderBase(ctr, total.gtZero()),
-    		ctr_(ctr),
-    		total_sizes_(total),
-    		total_leafs_(total_leafs),
-    		list_head_(list_head)
+        LeafNodeListSubtreeProvider(MyType& ctr, const Position& total, CtrSizeT total_leafs, const ID& list_head):
+            ProviderBase(ctr, total.gtZero()),
+            ctr_(ctr),
+            total_sizes_(total),
+            total_leafs_(total_leafs),
+            list_head_(list_head)
     {}
 
-    	virtual CtrSizeT getTotalLeafCount() {
-    		return total_leafs_;
-    	}
+        virtual CtrSizeT getTotalLeafCount() {
+            return total_leafs_;
+        }
 
-    	virtual Position getTotalSize()
-    	{
-    		return total_sizes_;
-    	}
+        virtual Position getTotalSize()
+        {
+            return total_sizes_;
+        }
 
-    	virtual Position getTotalInserted()
-    	{
-    		return inserted_;
-    	}
+        virtual Position getTotalInserted()
+        {
+            return inserted_;
+        }
 
-    	virtual Position remainder()
-    	{
-    		return total_sizes_ - inserted_;
-    	}
+        virtual Position remainder()
+        {
+            return total_sizes_ - inserted_;
+        }
 
-    	virtual NodeBaseG createLeaf()
-    	{
-    		NodeBaseG next = ctr_.allocator().getPageForUpdate(list_head_, ctr_.name());
+        virtual NodeBaseG createLeaf()
+        {
+            NodeBaseG next = ctr_.allocator().getPageForUpdate(list_head_, ctr_.name());
 
-    		list_head_ = next->next_leaf_id();
+            list_head_ = next->next_leaf_id();
 
-    		inserted_ += ctr_.getNodeSizes(next);
+            inserted_ += ctr_.getNodeSizes(next);
 
-    		return next;
-    	}
+            return next;
+        }
 
 
         virtual ID getSavePoint()
         {
-        	return list_head_;
+            return list_head_;
         }
 
         virtual void reset(const ID& save_point)
         {
-        	list_head_ = save_point;
+            list_head_ = save_point;
         }
     };
 
@@ -701,41 +701,41 @@ typename M_TYPE::Accumulator M_TYPE::insertSource(NodeBaseG& leaf, Position& idx
 M_PARAMS
 std::pair<typename M_TYPE::CtrSizeT, typename M_TYPE::ID> M_TYPE::createLeafList(Source& source)
 {
-	auto& self = this->self();
+    auto& self = this->self();
 
-	CtrSizeT 	total 	= 0;
-	NodeBaseG	head;
-	NodeBaseG	current;
+    CtrSizeT    total   = 0;
+    NodeBaseG   head;
+    NodeBaseG   current;
 
-	Int page_size = self.getRootMetadata().page_size();
+    Int page_size = self.getRootMetadata().page_size();
 
-	while (true)
-	{
-		Position remainder = self.getRemainderSize(source);
+    while (true)
+    {
+        Position remainder = self.getRemainderSize(source);
 
-		if (remainder.gtAny(0))
-		{
-			total++;
+        if (remainder.gtAny(0))
+        {
+            total++;
 
-			NodeBaseG node = self.createNode1(0, false, true, page_size);
+            NodeBaseG node = self.createNode1(0, false, true, page_size);
 
-			self.fillNewLeaf(node, source);
+            self.fillNewLeaf(node, source);
 
-			if (head.isSet())
-			{
-				current->next_leaf_id() = node->id();
-				current 				= node;
-			}
-			else {
-				head = current = node;
-			}
-		}
-		else {
-			break;
-		}
-	}
+            if (head.isSet())
+            {
+                current->next_leaf_id() = node->id();
+                current                 = node;
+            }
+            else {
+                head = current = node;
+            }
+        }
+        else {
+            break;
+        }
+    }
 
-	return std::make_pair(total, head.isSet() ? head->id() : ID(0));
+    return std::make_pair(total, head.isSet() ? head->id() : ID(0));
 }
 
 
@@ -786,7 +786,7 @@ void M_TYPE::insertInternalSubtree(
 
     //FIXME: check node->level() after deletion;
 
-    CtrSizeT subtree_size	= self.getSubtreeSize(left_node->level());
+    CtrSizeT subtree_size   = self.getSubtreeSize(left_node->level());
     CtrSizeT leaf_count     = data.total - data.start - data.end;
 
     if (left_node == right_node)
@@ -946,7 +946,7 @@ void M_TYPE::fillNodeLeft(NodeBaseG& node, Int from, Int count, InsertSharedData
 M_PARAMS
 void M_TYPE::prepareNodeFillmentRight(Int level, Int count, InsertSharedData& data)
 {
-	CtrSizeT subtree_size = self().getSubtreeSize(level);
+    CtrSizeT subtree_size = self().getSubtreeSize(level);
 
     if (level > 0)
     {

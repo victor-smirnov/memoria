@@ -81,7 +81,7 @@ public:
 
             for (Int c = 0; c < size; c++)
             {
-            	i.insert(key(c), EmptyValue());
+                i.insert(key(c), EmptyValue());
             }
 
             allocator_->commit();
@@ -106,7 +106,7 @@ public:
     {
         for (Int c = 0; c < params.operations(); c++)
         {
-        	auto key = rd_array_[c];
+            auto key = rd_array_[c];
 
             if (!set_->find(key).is_found_eq(key))
             {

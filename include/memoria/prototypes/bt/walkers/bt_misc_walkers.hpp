@@ -125,19 +125,19 @@ struct RtnNodeWalkerBase: RtnPkdHandlerBase<ReturnType_> {
     template <typename NodeTypes, typename... Args>
     ReturnType_ treeNode(bt::BranchNode<NodeTypes>* node, Args&&... args)
     {
-    	return node->template processStreamRtn<StreamIndex>(self(), args...);
+        return node->template processStreamRtn<StreamIndex>(self(), args...);
     }
 
     template <typename NodeTypes, typename... Args>
     ReturnType_ treeNode(const bt::LeafNode<NodeTypes>* node, Args&&... args)
     {
-    	return node->template processStreamRtn<IntList<StreamIndex>>(self(), args...);
+        return node->template processStreamRtn<IntList<StreamIndex>>(self(), args...);
     }
 
     template <typename NodeTypes, typename... Args>
     ReturnType_ treeNode(const bt::BranchNode<NodeTypes>* node, Args&&... args)
     {
-    	return node->template processStreamRtn<StreamIndex>(self(), args...);
+        return node->template processStreamRtn<StreamIndex>(self(), args...);
     }
 
     MyType& self() {return *T2T<MyType*>(this);}
@@ -157,19 +157,19 @@ struct NoRtnNodeWalkerBase {
     template <typename NodeTypes, typename... Args>
     void treeNode(bt::LeafNode<NodeTypes>* node, Args&&... args)
     {
-    	node->template processStream<IntList<StreamIndex>>(self(), args...);
+        node->template processStream<IntList<StreamIndex>>(self(), args...);
     }
 
     template <typename NodeTypes, typename... Args>
     void treeNode(const bt::BranchNode<NodeTypes>* node, Args&&... args)
     {
-    	node->template processStream<StreamIndex>(self(), args...);
+        node->template processStream<StreamIndex>(self(), args...);
     }
 
     template <typename NodeTypes, typename... Args>
     void treeNode(bt::BranchNode<NodeTypes>* node, Args&&... args)
     {
-    	node->template processStream<StreamIndex>(self(), args...);
+        node->template processStream<StreamIndex>(self(), args...);
     }
 
     MyType& self() {return *T2T<MyType*>(this);}

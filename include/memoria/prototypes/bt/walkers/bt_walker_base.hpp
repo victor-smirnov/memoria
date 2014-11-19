@@ -23,8 +23,8 @@ protected:
 
     static const Int Streams                                                    = Types::Streams;
 
-    static const Int StreamIdx 		= Stream >> 16;
-    static const Int SubstreamIdx 	= Stream & 0xFFFF;
+    static const Int StreamIdx      = Stream >> 16;
+    static const Int SubstreamIdx   = Stream & 0xFFFF;
 
     SearchType search_type_ = SearchType::GT;
 

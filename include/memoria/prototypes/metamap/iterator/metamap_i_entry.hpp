@@ -36,9 +36,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrEntryName)
     typedef typename Container::Accumulator                                     Accumulator;
 
     typedef typename Container::Types::Pages::LeafDispatcher                    LeafDispatcher;
-    typedef typename Container::Types::CtrSizeT                    				CtrSizeT;
-    typedef typename Container::Types::Target                    				Target;
-    typedef typename Container::Types::Position                    				Position;
+    typedef typename Container::Types::CtrSizeT                                 CtrSizeT;
+    typedef typename Container::Types::Target                                   Target;
+    typedef typename Container::Types::Position                                 Position;
 
 
     struct GetEntryFn: bt1::RtnNodeWalkerBase<GetEntryFn, Entry> {
@@ -132,22 +132,22 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrEntryName)
 
     Accumulator insert(const vector<Entry>& entries)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	MemBuffer<const Entry> buf(entries);
+        MemBuffer<const Entry> buf(entries);
 
-    	return self.ctr().insert(self, buf);
+        return self.ctr().insert(self, buf);
     }
 
     CtrSizeT read(vector<Entry>& entries)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	MemBuffer<Entry> buf(entries);
+        MemBuffer<Entry> buf(entries);
 
-    	Target target(&buf);
+        Target target(&buf);
 
-    	return self.ctr().readStream(self, target);
+        return self.ctr().readStream(self, target);
     }
 
 

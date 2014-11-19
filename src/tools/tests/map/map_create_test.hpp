@@ -147,9 +147,9 @@ public:
 
         for (int c = 1; c <= size; c++)
         {
-        	allocator.commit();
+            allocator.commit();
 
-        	key_ = value_ = c;
+            key_ = value_ = c;
 
             Base::out()<<c<<endl;
 

@@ -49,8 +49,8 @@ public:
 
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {
-        allocator_ 	= new Allocator();
-        Int size 	= params.x();
+        allocator_  = new Allocator();
+        Int size    = params.x();
 
         ctr_ = new VectorCtrType(allocator_);
 
@@ -58,7 +58,7 @@ public:
 
         for (Int c = 0; c < size/128; c++)
         {
-        	vector<BigInt> buffer(128);
+            vector<BigInt> buffer(128);
 
             for (auto& d: buffer)
             {

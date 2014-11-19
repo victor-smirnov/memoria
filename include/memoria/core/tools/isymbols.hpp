@@ -150,7 +150,7 @@ public:
     }
 
     virtual T peek() {
-    	return GetBits(data_, this->start_ * BitsPerSymbol, BitsPerSymbol);
+        return GetBits(data_, this->start_ * BitsPerSymbol, BitsPerSymbol);
     }
 
     virtual void put(const T& value)

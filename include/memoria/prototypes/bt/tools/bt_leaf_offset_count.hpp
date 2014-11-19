@@ -17,68 +17,68 @@ template <typename List, typename Path, Int Idx = 0, Int Max = ListHead<Path>::V
 
 template <Int, Int> struct IncompleteTreePath;
 template <Int, Int> struct InvalidTreePath;
-template <Int> 		struct InvalidTreeStructure;
+template <Int>      struct InvalidTreeStructure;
 
 
 // Main case. Current tree element is Leaf and there are more elements in the level to consume.
 // Proceed further.
 template <
-	Int Substreams,
-	typename... Tail,
-	Int... Path,
-	Int Idx,
-	Int Max
+    Int Substreams,
+    typename... Tail,
+    Int... Path,
+    Int Idx,
+    Int Max
 >
 struct LeafOffsetCount<TypeList<IntValue<Substreams>, Tail...>, IntList<Max, Path...>, Idx, Max>
 {
-	static const Int Value = Substreams + LeafOffsetCount<
-											TypeList<Tail...>,
-											IntList<Max, Path...>,
-											Idx + 1,
-											Max
-										  >::Value;
+    static const Int Value = Substreams + LeafOffsetCount<
+                                            TypeList<Tail...>,
+                                            IntList<Max, Path...>,
+                                            Idx + 1,
+                                            Max
+                                          >::Value;
 };
 
 
 
 // Main case. Current element is Leaf and we are at the target element. Stop.
 template <
-	Int Substreams,
-	typename... Tail,
-	Int Max
+    Int Substreams,
+    typename... Tail,
+    Int Max
 >
 struct LeafOffsetCount<TypeList<IntValue<Substreams>, Tail...>, IntList<Max>, Max, Max>
 {
-	static const Int Value = 0;
+    static const Int Value = 0;
 };
 
 
 // Main case. Current element is NonLeaf and there are more tree elements at this tree level to consume.
 // Determine subtree size and proceed further at the current level.
 template <
-	typename... List,
-	typename... Tail,
-	Int... Path,
-	Int Idx,
-	Int Max
+    typename... List,
+    typename... Tail,
+    Int... Path,
+    Int Idx,
+    Int Max
 >
 struct LeafOffsetCount<TypeList<TypeList<List...>, Tail...>, IntList<Max, Path...>, Idx, Max>
 {
-	static const Int Value = internal::SubstreamsTreeSize<TypeList<List...>>::Size
-							+ LeafOffsetCount<TypeList<Tail...>, IntList<Max, Path...>, Idx + 1, Max>::Value;
+    static const Int Value = internal::SubstreamsTreeSize<TypeList<List...>>::Size
+                            + LeafOffsetCount<TypeList<Tail...>, IntList<Max, Path...>, Idx + 1, Max>::Value;
 };
 
 // Main case. Current element is NonLeaf and we are at the target element.
 // Dive into subtree.
 template <
-	typename... Sublist,
-	typename... Tail,
-	Int PathHead,
-	Int... PathTail,
-	Int Max
+    typename... Sublist,
+    typename... Tail,
+    Int PathHead,
+    Int... PathTail,
+    Int Max
 >
 struct LeafOffsetCount<TypeList<TypeList<Sublist...>, Tail...>, IntList<Max, PathHead, PathTail...>, Max, Max> {
-	static const Int Value = LeafOffsetCount<TypeList<Sublist...>, IntList<PathHead, PathTail...>, 0, PathHead>::Value;
+    static const Int Value = LeafOffsetCount<TypeList<Sublist...>, IntList<PathHead, PathTail...>, 0, PathHead>::Value;
 };
 
 
@@ -87,24 +87,24 @@ struct LeafOffsetCount<TypeList<TypeList<Sublist...>, Tail...>, IntList<Max, Pat
 
 // Exceptional case. Tree path is too long. It exceeds some Leaf node.
 template <
-	Int... Path,
-	Int Idx,
-	Int Max
+    Int... Path,
+    Int Idx,
+    Int Max
 >
 struct LeafOffsetCount<TypeList<>, IntList<Path...>, Idx, Max> {
-	static const Int Value = InvalidTreePath<Idx, Max>::Value;
+    static const Int Value = InvalidTreePath<Idx, Max>::Value;
 };
 
 
 // Exceptional case. Tree path is too short, it doesn't end at a Leaf node.
 template <
-	typename... List,
-	typename... Tail,
-	Int Max
+    typename... List,
+    typename... Tail,
+    Int Max
 >
 struct LeafOffsetCount<TypeList<TypeList<List...>, Tail...>, IntList<Max>, Max, Max>
 {
-	static const Int Value = IncompleteTreePath<Max, Max>::Value;
+    static const Int Value = IncompleteTreePath<Max, Max>::Value;
 };
 
 

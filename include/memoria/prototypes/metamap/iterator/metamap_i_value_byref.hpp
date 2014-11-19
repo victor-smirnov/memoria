@@ -66,13 +66,13 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrValueByRefName)
         template <typename NodeTypes>
         ResultType treeNode(const LeafNode<NodeTypes>* node, Int idx)
         {
-        	return node->template processStreamRtn<IntList<0>>(*this, idx);
+            return node->template processStreamRtn<IntList<0>>(*this, idx);
         }
 
         template <typename NodeTypes>
         ResultType treeNode(const BranchNode<NodeTypes>* node, Int idx)
         {
-        	return node->template processStreamRtn<0>(*this, idx);
+            return node->template processStreamRtn<0>(*this, idx);
         }
     };
 
@@ -109,7 +109,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrValueByRefName)
         template <typename NodeTypes>
         void treeNode(BranchNode<NodeTypes>* node, Int idx, const Value& value)
         {
-        	node->template processStream<0>(*this, idx, value);
+            node->template processStream<0>(*this, idx, value);
         }
     };
 

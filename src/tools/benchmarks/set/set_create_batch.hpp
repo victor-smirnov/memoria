@@ -63,7 +63,7 @@ public:
         entry.indexes()[0] = 1;
 
         FnDataSource<Entry> source(size, [&](BigInt idx){
-        	return entry;
+            return entry;
         });
 
         params.operations() = size;

@@ -51,15 +51,15 @@ public:
     }
 
     virtual void compareBuffers(const MemBuffer& src, const MemBuffer& tgt, const char* source) {
-    	AssertEQ(source, src.size(), tgt.size(), SBuf()<<"buffer sizes are not equal");
+        AssertEQ(source, src.size(), tgt.size(), SBuf()<<"buffer sizes are not equal");
 
-    	for (size_t c = 0; c < src.size(); c++)
-    	{
-    		auto v1 = src[c].value();
-    		auto v2 = tgt[c].value();
+        for (size_t c = 0; c < src.size(); c++)
+        {
+            auto v1 = src[c].value();
+            auto v2 = tgt[c].value();
 
-    		AssertEQ(source, v1, v2, [=](){return SBuf()<<"c="<<c;});
-    	}
+            AssertEQ(source, v1, v2, [=](){return SBuf()<<"c="<<c;});
+        }
     }
 
     virtual MemBuffer createBuffer(Int size)

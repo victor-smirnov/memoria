@@ -73,37 +73,37 @@ void BenchmarkTaskGroup::Run(ostream& out)
         }
         catch (const std::exception& e)
         {
-        	task->out()<<"FAILED: STL exception: "<<e.what()<<" "<<endl;
+            task->out()<<"FAILED: STL exception: "<<e.what()<<" "<<endl;
 
-        	failures_.push_back(FailureDescriptor(task->getIteration(), task->getName()));
+            failures_.push_back(FailureDescriptor(task->getIteration(), task->getName()));
         }
         catch (const Exception& e) {
-        	task->out()<<"FAILED: "<<e.source()<<": "<<e<<endl;
+            task->out()<<"FAILED: "<<e.source()<<": "<<e<<endl;
 
-        	String path = getTaskParametersFilePath();
+            String path = getTaskParametersFilePath();
 
-        	StoreProperties(path);
+            StoreProperties(path);
 
-        	failures_.push_back(FailureDescriptor(task->getIteration(), task->getName()));
+            failures_.push_back(FailureDescriptor(task->getIteration(), task->getName()));
         }
         catch (const MemoriaThrowable& e) {
-        	task->out()<<"FAILED: "<<e.source()<<": "<<e<<endl;
+            task->out()<<"FAILED: "<<e.source()<<": "<<e<<endl;
 
-        	String path = getTaskParametersFilePath();
+            String path = getTaskParametersFilePath();
 
-        	StoreProperties(path);
+            StoreProperties(path);
 
-        	failures_.push_back(FailureDescriptor(task->getIteration(), task->getName()));
+            failures_.push_back(FailureDescriptor(task->getIteration(), task->getName()));
         }
         catch (...)
         {
-        	task->out()<<"FAILED: Unknown Exception"<<endl;
+            task->out()<<"FAILED: Unknown Exception"<<endl;
 
-        	String path = getTaskParametersFilePath();
+            String path = getTaskParametersFilePath();
 
-        	StoreProperties(path);
+            StoreProperties(path);
 
-        	failures_.push_back(FailureDescriptor(task->getIteration(), task->getName()));
+            failures_.push_back(FailureDescriptor(task->getIteration(), task->getName()));
         }
 
         task->releaseResources();

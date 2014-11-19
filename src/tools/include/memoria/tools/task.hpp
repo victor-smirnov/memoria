@@ -99,7 +99,7 @@ public:
     }
 
     ostream& out() {
-    	return *out_;
+        return *out_;
     }
 
     void setIteration(Int iteration)

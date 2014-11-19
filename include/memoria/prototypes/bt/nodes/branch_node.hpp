@@ -53,7 +53,7 @@ public:
     static_assert(std::is_trivial<Base_>::value,    "TreeNodeBase: base must be a trivial type");
     static_assert(std::is_trivial<ID>::value,       "TreeNodeBase: ID must be a trivial type");
 
-    static const Int StreamsStart				= 1;
+    static const Int StreamsStart               = 1;
 
 private:
 
@@ -105,11 +105,11 @@ public:
     }
 
     const ID& next_leaf_id() const {
-    	return next_leaf_id_;
+        return next_leaf_id_;
     }
 
     ID& next_leaf_id() {
-    	return next_leaf_id_;
+        return next_leaf_id_;
     }
 
     const ID& parent_id() const
@@ -196,7 +196,7 @@ public:
 
     void initAllocator(Int entries)
     {
-    	Int page_size = this->page_size();
+        Int page_size = this->page_size();
         MEMORIA_ASSERT(page_size, >, sizeof(Me) + PackedAllocator::my_size());
 
         allocator_.setTopLevelAllocator();
@@ -354,17 +354,17 @@ public:
 
     typedef typename PackedNonLeafStructListBuilder<
                 typename Types::StreamDescriptors
-    >::StructList                                                        		StreamsStructList;
+    >::StructList                                                               StreamsStructList;
 
     typedef typename PackedDispatcherTool<
-    					0,
-    					Base::StreamsStart,
-    					StreamsStructList
-    >::Type           															Dispatcher;
+                        0,
+                        Base::StreamsStart,
+                        StreamsStructList
+    >::Type                                                                     Dispatcher;
 
     static const Int Streams                                                    = ListSize<StreamsStructList>::Value;
     static const Int StreamsStart                                               = Base::StreamsStart;
-    static const Int StreamsEnd                                               	= Base::StreamsStart + Streams;
+    static const Int StreamsEnd                                                 = Base::StreamsStart + Streams;
     static const Int ValuesBlockIdx                                             = StreamsEnd;
 
     BranchNode() = default;
@@ -594,7 +594,7 @@ public:
 
 //    void init0(Int block_size, UBigInt active_streams)
 //    {
-//    	Base::initAllocator(StreamsStart + Streams + 1);
+//      Base::initAllocator(StreamsStart + Streams + 1);
 //
 //        Int tree_size = 0;//max_tree_size(block_size, active_streams);
 //
@@ -1118,10 +1118,10 @@ public:
     const Value& value(Int idx) const
     {
         if (idx < 0) {
-        	int a = 0; a++;
+            int a = 0; a++;
         }
 
-    	MEMORIA_ASSERT(idx, >=, 0);
+        MEMORIA_ASSERT(idx, >=, 0);
         MEMORIA_ASSERT(idx, <, size());
 
         return *(values() + idx);
@@ -1264,19 +1264,19 @@ public:
 
     template <Int Idx, typename Fn, typename... T>
     using DispatchRtnType = typename FnTraits<
-    									DispatchRtnFnType<Idx, const PackedAllocator*, Fn, T...>
-    								 >::RtnType;
+                                        DispatchRtnFnType<Idx, const PackedAllocator*, Fn, T...>
+                                     >::RtnType;
 
     template <Int StreamIdx, typename Fn, typename... Args>
     auto processStreamRtn(Fn&& fn, Args&&... args) const
-    	-> DispatchRtnType<StreamIdx, Fn, Args...>
+        -> DispatchRtnType<StreamIdx, Fn, Args...>
     {
         return Dispatcher::template dispatchRtn<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
     }
 
     template <Int StreamIdx, typename Fn, typename... Args>
     auto processStreamRtn(Fn&& fn, Args&&... args)
-    	-> DispatchRtnType<StreamIdx, Fn, Args...>
+        -> DispatchRtnType<StreamIdx, Fn, Args...>
     {
         return Dispatcher::template dispatchRtn<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
     }

@@ -1210,47 +1210,47 @@ public:
 
     static Int computeDataLength(const Values& values)
     {
-    	Codec codec;
-    	Int length = 0;
+        Codec codec;
+        Int length = 0;
 
-    	for (Int c = 0; c < Blocks; c++)
-    	{
-    		length += codec.length(values[c]);
-    	}
+        for (Int c = 0; c < Blocks; c++)
+        {
+            length += codec.length(values[c]);
+        }
 
-    	return length;
+        return length;
     }
 
     float estimateEntropy(Int start, Int end) const
     {
-    	MEMORIA_ASSERT(start, >=, 0);
-    	MEMORIA_ASSERT(start, <, end);
-    	MEMORIA_ASSERT(end, <=, size());
+        MEMORIA_ASSERT(start, >=, 0);
+        MEMORIA_ASSERT(start, <, end);
+        MEMORIA_ASSERT(end, <=, size());
 
-    	float total_length 	= 0;
-    	float total_count 	= (end - start) * Blocks;
+        float total_length  = 0;
+        float total_count   = (end - start) * Blocks;
 
-    	for (Int c = 0; c < Blocks; c++)
-    	{
-    		Int start_idx 	= this->value_offset(start);
-    		Int end_idx 	= this->value_offset(end);
+        for (Int c = 0; c < Blocks; c++)
+        {
+            Int start_idx   = this->value_offset(start);
+            Int end_idx     = this->value_offset(end);
 
-    		total_length += (end_idx - start_idx);
-    	}
+            total_length += (end_idx - start_idx);
+        }
 
-    	return total_length / total_count;
+        return total_length / total_count;
     }
 
     float estimateEntropy() const
     {
-    	Int total_count = size() * Blocks;
+        Int total_count = size() * Blocks;
 
-    	Int start_idx 	= 0;
-    	Int end_idx 	= this->value_offset(total_count);
+        Int start_idx   = 0;
+        Int end_idx     = this->value_offset(total_count);
 
-    	float total_length = (end_idx - start_idx);
+        float total_length = (end_idx - start_idx);
 
-    	return total_length / total_count;
+        return total_length / total_count;
     }
 
 
@@ -1279,8 +1279,8 @@ public:
 
     void update(Int start, Int end, std::function<Values ()> provider)
     {
-    	remove(start, end);
-    	insert(start, end - start, provider);
+        remove(start, end);
+        insert(start, end - start, provider);
     }
 
 
@@ -1464,29 +1464,29 @@ public:
 
     void read(Int start, Int end, std::function<void (const Values&)> consumer) const
     {
-    	MEMORIA_ASSERT(start, >=, 0);
-    	MEMORIA_ASSERT(start, <=, end);
-    	MEMORIA_ASSERT(end, <=, size());
+        MEMORIA_ASSERT(start, >=, 0);
+        MEMORIA_ASSERT(start, <=, end);
+        MEMORIA_ASSERT(end, <=, size());
 
-    	Values values[IOBatchSize];
+        Values values[IOBatchSize];
 
-    	Int to_read	= end - start;
-    	Int pos		= start;
+        Int to_read = end - start;
+        Int pos     = start;
 
-    	while (to_read > 0)
-    	{
-    		SizeT batch_size    = to_read > IOBatchSize ? IOBatchSize : to_read;
+        while (to_read > 0)
+        {
+            SizeT batch_size    = to_read > IOBatchSize ? IOBatchSize : to_read;
 
-    		readData(values, pos, batch_size);
+            readData(values, pos, batch_size);
 
-    		for (Int c = 0; c < batch_size; c++)
-    		{
-    			consumer(values[c]);
-    		}
+            for (Int c = 0; c < batch_size; c++)
+            {
+                consumer(values[c]);
+            }
 
-    		pos     += batch_size;
-    		to_read -= batch_size;
-    	}
+            pos     += batch_size;
+            to_read -= batch_size;
+        }
     }
 
 

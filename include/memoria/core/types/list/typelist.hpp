@@ -46,18 +46,18 @@ template <typename T> struct ListPrinter;
 
 template <typename Head, typename... Tail>
 struct ListPrinter<TypeList<Head, Tail...>> {
-	static void print(std::ostream& out)
-	{
-		out<<::memoria::vapi::TypeNameFactory<Head>::name()<<std::endl;
-		ListPrinter<TypeList<Tail...>>::print(out);
-	}
+    static void print(std::ostream& out)
+    {
+        out<<::memoria::vapi::TypeNameFactory<Head>::name()<<std::endl;
+        ListPrinter<TypeList<Tail...>>::print(out);
+    }
 };
 
 template <>
 struct ListPrinter<TypeList<>> {
-	static void print(std::ostream& out)
-	{
-	}
+    static void print(std::ostream& out)
+    {
+    }
 };
 
 }

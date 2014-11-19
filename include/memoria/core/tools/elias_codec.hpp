@@ -25,10 +25,10 @@ namespace memoria {
 template <typename V>
 size_t GetEliasDeltaValueLength(V value)
 {
-	size_t length           = Log2(value);
-	size_t length_length    = Log2(length) - 1;
+    size_t length           = Log2(value);
+    size_t length_length    = Log2(length) - 1;
 
-	return length_length * 2 + length;
+    return length_length * 2 + length;
 }
 
 

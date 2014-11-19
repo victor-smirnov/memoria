@@ -30,9 +30,9 @@ class PackedLeafStructListBuilder<TypeList<StructsTF, Tail...>, Idx> {
     typedef TypeList<StructsTF, Tail...> List;
 
     typedef typename internal::LinearLeafListHelper<
-    		typename StructsTF::LeafType,
-    		Idx
-    >::Type																		LeafList;
+            typename StructsTF::LeafType,
+            Idx
+    >::Type                                                                     LeafList;
 
 public:
 
@@ -46,7 +46,7 @@ public:
 
     typedef typename internal::SubstreamSizeListBuilder<
                 typename StructsTF::LeafType
-    >::Type                                                                   	SubstreamSizeList;
+    >::Type                                                                     SubstreamSizeList;
 };
 
 
@@ -57,7 +57,7 @@ template <
 >
 class PackedNonLeafStructListBuilder<TypeList<StructsTF, Tail...>, Idx> {
 public:
-	typedef typename MergeLists<
+    typedef typename MergeLists<
             StreamDescr<
                 typename StructsTF::NonLeafType,
                 Idx

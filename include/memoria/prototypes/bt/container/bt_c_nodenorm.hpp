@@ -49,7 +49,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::NodeNormName)
     typedef std::function<Accumulator (NodeBaseG&, NodeBaseG&)>                 SplitFn;
     typedef std::function<void (const Position&, Int)>                          MergeFn;
 
-    typedef typename Types::Source                                       		Source;
+    typedef typename Types::Source                                              Source;
 
 
     static const Int Streams                                                    = Types::Streams;
@@ -109,19 +109,19 @@ MEMORIA_CONTAINER_PART_END
 M_PARAMS
 bool M_TYPE::insertToLeaf(NodeBaseG& leaf, Position& idx, Source& source, Accumulator& sums)
 {
-	auto& self = this->self();
+    auto& self = this->self();
 
-	Position sizes = self.getRemainderSize(source);
+    Position sizes = self.getRemainderSize(source);
 
-	if (self.checkCapacities(leaf, sizes))
-	{
-		self.updatePageG(leaf);
-		sums = self.insertSourceToLeaf(leaf, idx, source);
-		return true;
-	}
-	else {
-		return false;
-	}
+    if (self.checkCapacities(leaf, sizes))
+    {
+        self.updatePageG(leaf);
+        sums = self.insertSourceToLeaf(leaf, idx, source);
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
 
@@ -394,13 +394,13 @@ bool M_TYPE::mergeCurrentBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 
     if (self.canMerge(tgt, src))
     {
-    	fn(self.getNodeSizes(tgt), tgt->level());
+        fn(self.getNodeSizes(tgt), tgt->level());
 
-    	mergeNodes(tgt, src);
+        mergeNodes(tgt, src);
 
-    	self.removeRedundantRootP(tgt);
+        self.removeRedundantRootP(tgt);
 
-    	return true;
+        return true;
     }
     else
     {

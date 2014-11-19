@@ -584,7 +584,7 @@ public:
 
     constexpr static Int my_size()
     {
-    	return sizeof(MyType) - alignof(MyType);
+        return sizeof(MyType) - alignof(MyType);
     }
 
 

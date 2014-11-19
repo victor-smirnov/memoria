@@ -79,7 +79,7 @@ public:
     typedef core::StaticVector<IndexValue, Blocks>                              Values;
     typedef core::StaticVector<IndexValue, Blocks + 1>                          Values2;
 
-    typedef Int                                                               	LayoutValue;
+    typedef Int                                                                 LayoutValue;
 
     typedef PackedTreeTools<BranchingFactor, ValuesPerBranch, LayoutValue>      TreeTools;
 
@@ -935,9 +935,9 @@ public:
 
     void update(Int start, Int end, std::function<Values ()> provider)
     {
-    	Int my_size = this->size();
+        Int my_size = this->size();
 
-    	MEMORIA_ASSERT(start, >=, 0);
+        MEMORIA_ASSERT(start, >=, 0);
         MEMORIA_ASSERT(start, <=, end);
 
         Value* values = this->values();
@@ -957,9 +957,9 @@ public:
 
     void read(Int start, Int end, std::function<void (const Values&)> consumer) const
     {
-    	Int my_size = this->size();
+        Int my_size = this->size();
 
-    	MEMORIA_ASSERT(start, >=, 0);
+        MEMORIA_ASSERT(start, >=, 0);
         MEMORIA_ASSERT(start, <=, end);
         MEMORIA_ASSERT(end, <=, my_size);
 
@@ -1158,7 +1158,7 @@ public:
 
     static Int computeDataLength(const Values& values)
     {
-    	return Blocks;
+        return Blocks;
     }
 
 

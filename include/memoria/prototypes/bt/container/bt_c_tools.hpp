@@ -49,9 +49,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
 
-    typedef typename Types::Source												Source;
-    typedef typename Types::Target												Target;
-    typedef typename Types::Entropy												Entropy;
+    typedef typename Types::Source                                              Source;
+    typedef typename Types::Target                                              Target;
+    typedef typename Types::Entropy                                             Entropy;
 
     static const Int Streams                                                    = Types::Streams;
 
@@ -456,59 +456,59 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     }
 
     struct GetRemainderSize {
-    	template <Int Idx, typename Stream>
-    	void operator()(const Stream* obj, Position& pos)
-    	{
-    		pos[Idx] = obj->getRemainder();
-    	}
+        template <Int Idx, typename Stream>
+        void operator()(const Stream* obj, Position& pos)
+        {
+            pos[Idx] = obj->getRemainder();
+        }
     };
 
     struct GetStreamPositionFn {
-    	template <Int Idx, typename Stream>
-    	void operator()(const Stream* obj, Position& pos)
-    	{
-    		pos[Idx] = obj->getStart();
-    	}
+        template <Int Idx, typename Stream>
+        void operator()(const Stream* obj, Position& pos)
+        {
+            pos[Idx] = obj->getStart();
+        }
     };
 
     struct ResetPositionFn {
-    	template <Int Idx, typename Stream>
-    	void operator()(Stream* obj, const Position& pos)
-    	{
-    		obj->reset(pos[Idx]);
-    	}
+        template <Int Idx, typename Stream>
+        void operator()(Stream* obj, const Position& pos)
+        {
+            obj->reset(pos[Idx]);
+        }
     };
 
     Position getRemainderSize(const Source& source)
     {
-    	Position pos;
+        Position pos;
 
-    	TupleDispatcher<Source>::dispatch(source, GetRemainderSize(), pos);
+        TupleDispatcher<Source>::dispatch(source, GetRemainderSize(), pos);
 
-    	return pos;
+        return pos;
     }
 
     Position getStreamPosition(const Source& source)
     {
-    	Position pos;
+        Position pos;
 
-    	TupleDispatcher<Source>::dispatch(source, GetStreamPositionFn(), pos);
+        TupleDispatcher<Source>::dispatch(source, GetStreamPositionFn(), pos);
 
-    	return pos;
+        return pos;
     }
 
     void setStreamPosition(Source& source, const Position& pos)
     {
-    	TupleDispatcher<Source>::dispatch(source, ResetPositionFn(), pos);
+        TupleDispatcher<Source>::dispatch(source, ResetPositionFn(), pos);
     }
 
     Position getRemainderSize(const Target& target)
     {
-    	Position pos;
+        Position pos;
 
-    	TupleDispatcher<Target>::dispatch(target, GetRemainderSize(), pos);
+        TupleDispatcher<Target>::dispatch(target, GetRemainderSize(), pos);
 
-    	return pos;
+        return pos;
     }
 
 
@@ -517,20 +517,20 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     MEMORIA_DECLARE_NODE_FN_RTN(EstimateEntropy, estimateEntropy, bool);
     Entropy estimateLeafEntropy(const NodeBaseG& node, const Position& start, const Position& end)
     {
-    	Entropy entropy;
+        Entropy entropy;
 
-    	LeafDispatcher::dispatchConst(node, EstimateEntropy(), entropy, start, end);
+        LeafDispatcher::dispatchConst(node, EstimateEntropy(), entropy, start, end);
 
-    	return entropy;
+        return entropy;
     }
 
     Entropy estimateLeafEntropy(const NodeBaseG& node)
     {
-    	Entropy entropy;
+        Entropy entropy;
 
-    	LeafDispatcher::dispatchConst(node, EstimateEntropy(), entropy);
+        LeafDispatcher::dispatchConst(node, EstimateEntropy(), entropy);
 
-    	return entropy;
+        return entropy;
     }
 
 

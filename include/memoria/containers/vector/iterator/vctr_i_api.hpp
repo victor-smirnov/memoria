@@ -142,7 +142,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 
     Value value() const
     {
-    	MyType me = this->self();
+        MyType me = this->self();
 
         Value data;
         MemBuffer<Value> buf(&data, 1);

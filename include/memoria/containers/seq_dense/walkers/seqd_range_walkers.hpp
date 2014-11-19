@@ -17,8 +17,8 @@ namespace seq_dense {
 template <typename Types, Int Stream>
 class SkipForwardWalker: public bt::FindForwardWalkerBase<Types, Stream, SkipForwardWalker<Types, Stream>> {
 
-    typedef bt::FindForwardWalkerBase<Types, Stream, SkipForwardWalker<Types, Stream>> 	Base;
-    typedef typename Base::Key                                                  		Key;
+    typedef bt::FindForwardWalkerBase<Types, Stream, SkipForwardWalker<Types, Stream>>  Base;
+    typedef typename Base::Key                                                          Key;
 
 public:
     typedef typename Base::ResultType                                           ResultType;

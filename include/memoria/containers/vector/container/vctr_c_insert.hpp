@@ -46,58 +46,58 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrInsertName)
     typedef typename Types::DataSource                                          DataSource;
     typedef typename Types::DataTarget                                          DataTarget;
 
-    typedef typename Types::Source												Source;
-    typedef typename Types::CtrSizeT											CtrSizeT;
-    typedef typename Types::Value												Value;
+    typedef typename Types::Source                                              Source;
+    typedef typename Types::CtrSizeT                                            CtrSizeT;
+    typedef typename Types::Value                                               Value;
 
     static const Int Streams                                                    = Types::Streams;
 
     struct InsertSourceFn
     {
-    	template <typename Node>
-    	void treeNode(Node* node, Source& source, const Position& idx, const Position& sizes)
-    	{
-    		node->insert(source, idx, sizes);
-    	}
+        template <typename Node>
+        void treeNode(Node* node, Source& source, const Position& idx, const Position& sizes)
+        {
+            node->insert(source, idx, sizes);
+        }
     };
 
     Accumulator insertSourceToLeaf(NodeBaseG& leaf, const Position& idx, Source& source)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	Position sizes = self.getRemainderSize(source);
+        Position sizes = self.getRemainderSize(source);
 
-    	LeafDispatcher::dispatch(leaf, InsertSourceFn(), source, idx, sizes);
+        LeafDispatcher::dispatch(leaf, InsertSourceFn(), source, idx, sizes);
 
-    	return Accumulator(sizes);
+        return Accumulator(sizes);
     }
 
     Accumulator appendToLeaf(NodeBaseG& leaf, const Position& idx, Source& source)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	Position remainders = self.getRemainderSize(source);
-    	Position sizes		= self.getNodeSizes(leaf);
-    	Int capacity 		= self.getStreamCapacity(leaf, sizes, 0);
+        Position remainders = self.getRemainderSize(source);
+        Position sizes      = self.getNodeSizes(leaf);
+        Int capacity        = self.getStreamCapacity(leaf, sizes, 0);
 
-    	if (remainders[0] > capacity)
-    	{
-    		auto length = Position::create(0, capacity);
+        if (remainders[0] > capacity)
+        {
+            auto length = Position::create(0, capacity);
 
-        	LeafDispatcher::dispatch(leaf, InsertSourceFn(), source, idx, length);
+            LeafDispatcher::dispatch(leaf, InsertSourceFn(), source, idx, length);
 
-        	return Accumulator(length);
-    	}
-    	else {
-    		LeafDispatcher::dispatch(leaf, InsertSourceFn(), source, idx, remainders);
+            return Accumulator(length);
+        }
+        else {
+            LeafDispatcher::dispatch(leaf, InsertSourceFn(), source, idx, remainders);
 
-    		return Accumulator(remainders);
-    	}
+            return Accumulator(remainders);
+        }
     }
 
     void fillNewLeaf(NodeBaseG& leaf, Source& source)
     {
-    	appendToLeaf(leaf, Position(0), source);
+        appendToLeaf(leaf, Position(0), source);
     }
 
     void insert(Iterator& iter, DataSource& data);

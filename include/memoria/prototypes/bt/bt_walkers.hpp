@@ -37,8 +37,8 @@ protected:
 
     static const Int Streams                                                    = Types::Streams;
 
-    static const Int StreamIdx 		= Stream >> 16;
-    static const Int SubstreamIdx 	= Stream & 0xFFFF;
+    static const Int StreamIdx      = Stream >> 16;
+    static const Int SubstreamIdx   = Stream & 0xFFFF;
 
     SearchType search_type_ = SearchType::GT;
 
@@ -157,8 +157,8 @@ protected:
 
     static const Int Streams                                                    = Types::Streams;
 
-    static const Int StreamIdx 		= Stream >> 16;
-    static const Int SubstreamIdx 	= Stream & 0xFFFF;
+    static const Int StreamIdx      = Stream >> 16;
+    static const Int SubstreamIdx   = Stream & 0xFFFF;
 
     SearchType  search_type_ = SearchType::GT;
 
@@ -569,7 +569,7 @@ public:
     template <Int Idx, typename Tree>
     ResultType tree(const Tree* tree, Int start)
     {
-    	auto k          = Base::target_ - Base::sum_;
+        auto k          = Base::target_ - Base::sum_;
         auto result     = tree->findBackward(Base::search_type_, Base::index_, start, k);
         Base::sum_      += result.prefix();
 
@@ -610,8 +610,8 @@ public:
 
 template <typename Types, Int Stream>
 class SkipBackwardWalker: public FindBackwardWalkerBase<Types, Stream, SkipBackwardWalker<Types, Stream>> {
-    typedef FindBackwardWalkerBase<Types, Stream, SkipBackwardWalker<Types, Stream>> 	Base;
-    typedef typename Base::Key                                                  		Key;
+    typedef FindBackwardWalkerBase<Types, Stream, SkipBackwardWalker<Types, Stream>>    Base;
+    typedef typename Base::Key                                                          Key;
 public:
     SkipBackwardWalker(Int stream, Int index, Key target): Base(stream, index, target)
     {

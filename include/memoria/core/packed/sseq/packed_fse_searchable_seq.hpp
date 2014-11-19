@@ -507,10 +507,10 @@ public:
 
     void insert(Int start, Int length, std::function<Value ()> fn)
     {
-    	MEMORIA_ASSERT(start, >=, 0);
-    	MEMORIA_ASSERT(start, <=, size());
+        MEMORIA_ASSERT(start, >=, 0);
+        MEMORIA_ASSERT(start, <=, size());
 
-    	MEMORIA_ASSERT(length, >=, 0);
+        MEMORIA_ASSERT(length, >=, 0);
 
         insertDataRoom(start, length);
         fill(start, start + length, fn);
@@ -519,22 +519,22 @@ public:
 
     void update(Int start, Int end, std::function<Value ()> fn)
     {
-    	MEMORIA_ASSERT(start, >=, 0);
-    	MEMORIA_ASSERT(start, <=, end);
-    	MEMORIA_ASSERT(end, <=, size());
+        MEMORIA_ASSERT(start, >=, 0);
+        MEMORIA_ASSERT(start, <=, end);
+        MEMORIA_ASSERT(end, <=, size());
 
-    	fill(start, end, fn);
-    	reindex();
+        fill(start, end, fn);
+        reindex();
     }
 
     void read(Int start, Int end, std::function<void (Value)> fn) const
     {
-    	MEMORIA_ASSERT(start, >=, 0);
-    	MEMORIA_ASSERT(start, <=, end);
-    	MEMORIA_ASSERT(end, <=, size());
+        MEMORIA_ASSERT(start, >=, 0);
+        MEMORIA_ASSERT(start, <=, end);
+        MEMORIA_ASSERT(end, <=, size());
 
-        auto symbols 	= this->symbols();
-        auto tools 		= this->tools();
+        auto symbols    = this->symbols();
+        auto tools      = this->tools();
 
         for (Int c = start; c < end; c++)
         {

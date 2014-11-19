@@ -114,16 +114,16 @@ struct MetaMapBTTypesBase: public BTTypes<Profile, memoria::BT> {
     typedef IDataSource<Entry>                                                  DataSource;
     typedef IDataTarget<Entry>                                                  DataTarget;
 
-    typedef std::tuple<DataSource*>												Source;
-    typedef std::tuple<DataTarget*>												Target;
+    typedef std::tuple<DataSource*>                                             Source;
+    typedef std::tuple<DataTarget*>                                             Target;
 
     typedef std::tuple <
-    			std::pair<float, float>
-    >																			Entropy;
+                std::pair<float, float>
+    >                                                                           Entropy;
 
     typedef typename bt::TupleBuilder<
-    	typename bt::SameTypeListBuilder<Int, 2 + Labels + HiddenLabels>::Type
-    >::Type																		EntrySizes;
+        typename bt::SameTypeListBuilder<Int, 2 + Labels + HiddenLabels>::Type
+    >::Type                                                                     EntrySizes;
 
     typedef metamap::LabelOffsetProc<LabelsList>                                LabelsOffset;
     typedef metamap::LabelOffsetProc<HiddenLabelsList>                          HiddenLabelsOffset;

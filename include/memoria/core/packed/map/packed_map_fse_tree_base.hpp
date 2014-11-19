@@ -93,7 +93,7 @@ public:
     template <typename Lengths, typename Entry>
     static void computeTreeEntryDataLength(const Entry& entry, Lengths& lengths)
     {
-    	std::get<0>(lengths) += Tree::computeDataLength(entry.indexes());
+        std::get<0>(lengths) += Tree::computeDataLength(entry.indexes());
     }
 
 
@@ -147,23 +147,23 @@ public:
     template <typename DataSource>
     void insertTree(DataSource* src, Int idx, Int size)
     {
-    	tree()->insert(idx, size, [src](){return src->get().indexes();});
+        tree()->insert(idx, size, [src](){return src->get().indexes();});
     }
 
     template <typename DataSource>
     void updateTree(DataSource* src, Int start, Int end)
     {
-    	tree()->update(start, end, [src](){return src->get().indexes();});
+        tree()->update(start, end, [src](){return src->get().indexes();});
     }
 
     template <typename DataTarget>
     void readTree(DataTarget* tgt, Int start, Int end) const
     {
-    	tree()->read(start, end, [tgt](const Values& values) {
-    		auto current 		= tgt->peek();
-    		current.indexes() 	= values;
-    		tgt->put(current);
-    	});
+        tree()->read(start, end, [tgt](const Values& values) {
+            auto current        = tgt->peek();
+            current.indexes()   = values;
+            tgt->put(current);
+        });
     }
 
 

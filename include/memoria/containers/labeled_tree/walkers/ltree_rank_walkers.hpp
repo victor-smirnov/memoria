@@ -113,8 +113,8 @@ public:
 
 template <typename Types, Int Stream>
 class RankBWWalker: public bt::FindBackwardWalkerBase<Types, Stream, RankBWWalker<Types, Stream>> {
-    typedef bt::FindBackwardWalkerBase<Types, Stream, RankBWWalker<Types, Stream>>		Base;
-    typedef typename Base::Key                                                  		Key;
+    typedef bt::FindBackwardWalkerBase<Types, Stream, RankBWWalker<Types, Stream>>      Base;
+    typedef typename Base::Key                                                          Key;
 
     BigInt rank_ = 0;
 

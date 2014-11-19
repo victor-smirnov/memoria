@@ -13,7 +13,7 @@
 #include <memoria/prototypes/bt/nodes/node_dispatcher_ndt2.hpp>
 
 namespace memoria       {
-namespace bt 			{
+namespace bt            {
 
 template <typename Types, int idx> class NDT0;
 template <typename Types> class NDT0<Types, -1>;
@@ -81,7 +81,7 @@ public:
             wrapper.treeNode(static_cast<Head*>(node1), static_cast<Head*>(node2), std::forward<Args>(args)...);
         }
         else {
-        	NextNDT0::template wrappedDispatch<Wrapper>(node1, node2, std::forward<Functor>(functor), std::forward<Args>(args)...);
+            NextNDT0::template wrappedDispatch<Wrapper>(node1, node2, std::forward<Functor>(functor), std::forward<Args>(args)...);
         }
     }
 
@@ -93,7 +93,7 @@ public:
             functor.treeNode(static_cast<Head*>(node1), static_cast<Head*>(node2), std::forward<Args>(args)...);
         }
         else {
-        	NextNDT0::dispatch2(node1, node2, std::forward<Functor>(functor), std::forward<Args>(args)...);
+            NextNDT0::dispatch2(node1, node2, std::forward<Functor>(functor), std::forward<Args>(args)...);
         }
     }
 
@@ -133,7 +133,7 @@ public:
             functor.treeNode(head, std::forward<Args>(args)...);
         }
         else {
-        	NextNDT0::dispatchConst(node, functor, std::forward<Args>(args)...);
+            NextNDT0::dispatchConst(node, functor, std::forward<Args>(args)...);
         }
     }
 
@@ -145,7 +145,7 @@ public:
             functor.treeNode(static_cast<const Head*>(node1), static_cast<const Head*>(node2), std::forward<Args>(args)...);
         }
         else {
-        	NextNDT0::dispatchConst(node1, node2, functor, std::forward<Args>(args)...);
+            NextNDT0::dispatchConst(node1, node2, functor, std::forward<Args>(args)...);
         }
     }
 
@@ -194,7 +194,7 @@ public:
             );
         }
         else {
-        	NextNDT0::doubleDispatch(node1, node2, std::forward<Functor>(functor), std::forward<Args>(args)...);
+            NextNDT0::doubleDispatch(node1, node2, std::forward<Functor>(functor), std::forward<Args>(args)...);
         }
     }
 
@@ -211,7 +211,7 @@ public:
             );
         }
         else {
-        	NextNDT0::doubleDispatchConst(node1, node2, std::forward<Functor>(functor), std::forward<Args>(args)...);
+            NextNDT0::doubleDispatchConst(node1, node2, std::forward<Functor>(functor), std::forward<Args>(args)...);
         }
     }
 
@@ -229,7 +229,7 @@ public:
             );
         }
         else {
-        	NextNDT0::dispatchTreeConst(parent, child, std::forward<Functor>(functor), std::forward<Args>(args)...);
+            NextNDT0::dispatchTreeConst(parent, child, std::forward<Functor>(functor), std::forward<Args>(args)...);
         }
     }
 
@@ -279,7 +279,7 @@ public:
             fn.treeNode(head, std::forward<Args>(args)...);
         }
         else {
-        	NextNDT0::template dispatchStatic<TreeNode>(leaf, std::forward<Functor>(fn), std::forward<Args>(args)...);
+            NextNDT0::template dispatchStatic<TreeNode>(leaf, std::forward<Functor>(fn), std::forward<Args>(args)...);
         }
     }
 
@@ -337,7 +337,7 @@ public:
 template <typename Types>
 class NDT0<Types, 0> {
 
-	static const Int Idx = 0;
+    static const Int Idx = 0;
 
     typedef typename Types::NodeBase NodeBase;
     typedef typename SelectByIndexTool<Idx, typename Types::List>::Result Head;
@@ -361,7 +361,7 @@ public:
             functor.treeNode(static_cast<Head*>(node), std::forward<Args>(args)...);
         }
         else {
-        	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
         }
     }
 
@@ -374,7 +374,7 @@ public:
             wrapper.treeNode(static_cast<Head*>(node1), static_cast<Head*>(node2), std::forward<Args>(args)...);
         }
         else {
-        	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
         }
     }
 
@@ -386,7 +386,7 @@ public:
             functor.treeNode(static_cast<Head*>(node1), static_cast<Head*>(node2), std::forward<Args>(args)...);
         }
         else {
-        	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
         }
     }
 
@@ -400,7 +400,7 @@ public:
             return functor.treeNode(static_cast<Head*>(node), std::forward<Args>(args)...);
         }
         else {
-        	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
         }
     }
 
@@ -413,7 +413,7 @@ public:
             return functor.treeNode(static_cast<Head*>(node1), static_cast<Head*>(node2), std::forward<Args>(args)...);
         }
         else {
-        	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
         }
     }
 
@@ -426,7 +426,7 @@ public:
             functor.treeNode(head, std::forward<Args>(args)...);
         }
         else {
-        	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
         }
     }
 
@@ -438,7 +438,7 @@ public:
             functor.treeNode(static_cast<const Head*>(node1), static_cast<const Head*>(node2), std::forward<Args>(args)...);
         }
         else {
-        	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
         }
     }
 
@@ -451,7 +451,7 @@ public:
             return functor.treeNode(static_cast<const Head*>(node), std::forward<Args>(args)...);
         }
         else {
-        	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
         }
     }
 
@@ -470,7 +470,7 @@ public:
             return functor.treeNode(static_cast<const Head*>(node1), static_cast<const Head*>(node2), std::forward<Args>(args)...);
         }
         else {
-        	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
         }
     }
 
@@ -487,7 +487,7 @@ public:
             );
         }
         else {
-        	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
         }
     }
 
@@ -504,7 +504,7 @@ public:
             );
         }
         else {
-        	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
         }
     }
 
@@ -522,7 +522,7 @@ public:
             );
         }
         else {
-        	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
         }
     }
 
@@ -531,12 +531,12 @@ public:
 
     template <typename... Args>
     using DoubleDispatchConstFnType = auto(Args...) -> decltype(
-    		StartNDT1::template dispatchConstRtn(std::declval<Args>()...)
+            StartNDT1::template dispatchConstRtn(std::declval<Args>()...)
     );
 
     template <typename Fn, typename... Args>
     using DoubleDispatchConstRtnType = typename FnTraits<
-    		DoubleDispatchConstFnType<typename std::remove_reference<Fn>::type, Args...>
+            DoubleDispatchConstFnType<typename std::remove_reference<Fn>::type, Args...>
     >::RtnType;
 
 
@@ -559,7 +559,7 @@ public:
             );
         }
         else {
-        	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
         }
     }
 
@@ -581,7 +581,7 @@ public:
             fn.treeNode(head, std::forward<Args>(args)...);
         }
         else {
-        	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
         }
     }
 
@@ -602,7 +602,7 @@ public:
             return fn.treeNode(head, std::forward<Args>(args)...);
         }
         else {
-        	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
         }
     }
 
@@ -619,7 +619,7 @@ public:
             return fn.treeNode(head, std::forward<Args>(args)...);
         }
         else {
-        	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
         }
     }
 

@@ -17,7 +17,7 @@
 #include <tuple>
 
 namespace memoria   {
-namespace bt 		{
+namespace bt        {
 
 template <typename Types, int idx> class NDT2;
 template <typename Types> class NDT2<Types, -1>;
@@ -52,7 +52,7 @@ public:
             );
         }
         else {
-        	NextNDT3::dispatchTreeConst(parent, child, std::forward<Functor>(functor), std::forward<Args>(args)...);
+            NextNDT3::dispatchTreeConst(parent, child, std::forward<Functor>(functor), std::forward<Args>(args)...);
         }
     }
 
@@ -93,7 +93,7 @@ public:
 template <typename Types>
 class NDTTree<Types, 0> {
 
-	static const Int Idx = 0;
+    static const Int Idx = 0;
 
     typedef typename Types::NodeBase NodeBase;
     typedef typename SelectByIndexTool<Idx, typename Types::List>::Result Head;
@@ -119,7 +119,7 @@ public:
             );
         }
         else {
-        	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
         }
     }
 
@@ -151,7 +151,7 @@ public:
             );
         }
         else {
-        	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
         }
     }
 };
@@ -222,7 +222,7 @@ public:
 template <typename Types>
 class NDT2<Types, 0> {
 
-	static const Int Idx = 0;
+    static const Int Idx = 0;
 
     typedef typename Types::NodeBase NodeBase;
     typedef typename SelectByIndexTool<Idx, typename Types::ChildList>::Result Head;
@@ -250,7 +250,7 @@ public:
             );
         }
         else {
-        	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
         }
     }
 
@@ -275,7 +275,7 @@ public:
             );
         }
         else {
-        	throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
         }
     }
 };

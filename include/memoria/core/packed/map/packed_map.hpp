@@ -97,7 +97,7 @@ public:
 
     static Int packed_block_size(Int size)
     {
-    	Int tree_block_size     = Base::tree_block_size(size);
+        Int tree_block_size     = Base::tree_block_size(size);
         Int values_block_size   = Base::value_block_size(size);
         Int labels_block_size   = Base::labels_block_size(size);
 
@@ -146,7 +146,7 @@ public:
     template <typename Entry, typename T>
     void insert(Int idx, const Entry& entry, MapSums<T>& sums)
     {
-    	Int size = this->size();
+        Int size = this->size();
 
         Base::insertTree(idx, entry, sums);
         Base::insertLabels(idx, entry, sums);
@@ -157,9 +157,9 @@ public:
 
 //    void insertSpace(Int room_start, Int room_length)
 //    {
-//    	Int size = this->size();
+//      Int size = this->size();
 //
-//    	Base::insertTreeSpace(room_start, room_length);
+//      Base::insertTreeSpace(room_start, room_length);
 //        Base::insertLabelsSpace(room_start, room_length);
 //        Base::insertValuesSpace(room_start, room_length, size);
 //    }
@@ -173,7 +173,7 @@ public:
 
     void remove(Int room_start, Int room_end)
     {
-    	Int size = this->size();
+        Int size = this->size();
 
         Base::removeValuesSpace(room_start, room_end, size);
         Base::removeLabelsSpace(room_start, room_end);
@@ -364,44 +364,44 @@ public:
     template <typename Lengths, typename Entry>
     static void computeDataLength(const Entry& entry, Lengths& lengths)
     {
-    	Base::computeTreeEntryDataLength(entry,   lengths);
-    	Base::computeLabelsEntryDataLength(entry, lengths);
-    	Base::computeValueEntryDataLength(entry,  lengths);
+        Base::computeTreeEntryDataLength(entry,   lengths);
+        Base::computeLabelsEntryDataLength(entry, lengths);
+        Base::computeValueEntryDataLength(entry,  lengths);
     }
 
 
     template <typename DataSource>
     void insert(DataSource* src, Int idx, Int size)
     {
-    	Int old_size 	= this->size();
-    	auto pos 		= src->getStart();
+        Int old_size    = this->size();
+        auto pos        = src->getStart();
 
-    	this->insertTree(src, idx, size);
+        this->insertTree(src, idx, size);
 
-    	this->insertLabels(src, pos, idx, size);
-    	this->insertValues(src, pos, idx, size, old_size);
+        this->insertLabels(src, pos, idx, size);
+        this->insertValues(src, pos, idx, size, old_size);
     }
 
     template <typename DataSource>
     void update(DataSource* src, Int start, Int end)
     {
-    	auto pos = src->getStart();
+        auto pos = src->getStart();
 
-    	this->updateTree(src, start, end);
+        this->updateTree(src, start, end);
 
-    	this->updateLabels(src, pos, start, end);
-    	this->updateValues(src, pos, start, end);
+        this->updateLabels(src, pos, start, end);
+        this->updateValues(src, pos, start, end);
     }
 
     template <typename DataTarget>
     void read(DataTarget* src, Int start, Int end) const
     {
-    	auto pos = src->getStart();
+        auto pos = src->getStart();
 
-    	this->readTree(src, start, end);
+        this->readTree(src, start, end);
 
-    	this->readLabels(src, pos, start, end);
-    	this->readValues(src, pos, start, end);
+        this->readLabels(src, pos, start, end);
+        this->readValues(src, pos, start, end);
     }
 
 

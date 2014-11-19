@@ -16,9 +16,9 @@ namespace metamap   {
 
 class CtrFindName   {};
 class CtrInsertName {};
-class CtrInsBatchName 		{};
-class CtrInsBatchComprName 	{};
-class CtrInsertComprName 	{};
+class CtrInsBatchName       {};
+class CtrInsBatchComprName  {};
+class CtrInsertComprName    {};
 class CtrRemoveName {};
 class CtrNavName    {};
 

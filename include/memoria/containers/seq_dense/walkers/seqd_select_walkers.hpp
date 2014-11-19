@@ -20,8 +20,8 @@ namespace seq_dense {
 template <typename Types, Int Stream>
 class SelectForwardWalker: public bt::FindForwardWalkerBase<Types, Stream, SelectForwardWalker<Types, Stream>> {
 
-    typedef bt::FindForwardWalkerBase<Types, Stream, SelectForwardWalker<Types, Stream>>	Base;
-    typedef typename Base::Key                                                  			Key;
+    typedef bt::FindForwardWalkerBase<Types, Stream, SelectForwardWalker<Types, Stream>>    Base;
+    typedef typename Base::Key                                                              Key;
 
     BigInt pos_ = 0;
 
@@ -139,7 +139,7 @@ template <typename Types, Int Stream>
 class SelectBackwardWalker: public bt::FindBackwardWalkerBase<Types, Stream, SelectBackwardWalker<Types, Stream>> {
 
     typedef bt::FindBackwardWalkerBase<Types, Stream, SelectBackwardWalker<Types, Stream>>      Base;
-    typedef typename Base::Key                                                  				Key;
+    typedef typename Base::Key                                                                  Key;
 
 
     BigInt pos_ = 0;

@@ -96,7 +96,7 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
     typedef IDataSource<Value>                                                  DataSource;
     typedef IDataTarget<Value>                                                  DataTarget;
 
-    typedef std::tuple<DataSource*>												Source;
+    typedef std::tuple<DataSource*>                                             Source;
 
 
 

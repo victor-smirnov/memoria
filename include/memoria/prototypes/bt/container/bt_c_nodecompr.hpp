@@ -48,7 +48,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::NodeComprName)
     typedef std::function<Accumulator (NodeBaseG&, NodeBaseG&)>                 SplitFn;
     typedef std::function<void (const Position&, Int)>                          MergeFn;
 
-    typedef typename Types::Source                                       		Source;
+    typedef typename Types::Source                                              Source;
 
 
     static const Int Streams                                                    = Types::Streams;
@@ -107,29 +107,29 @@ MEMORIA_CONTAINER_PART_END
 M_PARAMS
 bool M_TYPE::insertToLeaf(NodeBaseG& leaf, Position& idx, Source& source, Accumulator& sums)
 {
-	auto& self = this->self();
+    auto& self = this->self();
 
-	PageUpdateMgr mgr(self);
+    PageUpdateMgr mgr(self);
 
-	self.updatePageG(leaf);
+    self.updatePageG(leaf);
 
-	mgr.add(leaf);
+    mgr.add(leaf);
 
-	Position streamPos = self.getStreamPosition(source);
+    Position streamPos = self.getStreamPosition(source);
 
-	try
-	{
-		sums = self.insertSourceToLeaf(leaf, idx, source);
-		return true;
-	}
-	catch (PackedOOMException& ex)
-	{
-		self.setStreamPosition(source, streamPos);
+    try
+    {
+        sums = self.insertSourceToLeaf(leaf, idx, source);
+        return true;
+    }
+    catch (PackedOOMException& ex)
+    {
+        self.setStreamPosition(source, streamPos);
 
-		mgr.rollback();
+        mgr.rollback();
 
-		return false;
-	}
+        return false;
+    }
 }
 
 
@@ -448,7 +448,7 @@ bool M_TYPE::mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 
     if (self.isTheSameParent(tgt, src))
     {
-    	return self.mergeCurrentBTreeNodes(tgt, src, fn);
+        return self.mergeCurrentBTreeNodes(tgt, src, fn);
     }
     else
     {
@@ -457,7 +457,7 @@ bool M_TYPE::mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 
         if (mergeBTreeNodes(tgt_parent, src_parent, fn))
         {
-        	return self.mergeCurrentBTreeNodes(tgt, src, fn);
+            return self.mergeCurrentBTreeNodes(tgt, src, fn);
         }
         else
         {
@@ -476,11 +476,11 @@ bool M_TYPE::mergeCurrentBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 
     if (self.tryMergeNodes(tgt, src, fn))
     {
-    	self.removeRedundantRootP(tgt);
-    	return true;
+        self.removeRedundantRootP(tgt);
+        return true;
     }
     else {
-    	return false;
+        return false;
     }
 }
 

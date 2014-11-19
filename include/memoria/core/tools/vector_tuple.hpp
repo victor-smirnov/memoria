@@ -150,12 +150,12 @@ struct OstreamFn {
 template <typename ElementType_, Int Indexes_>
 void Clear(::memoria::core::StaticVector<ElementType_, Indexes_>& v)
 {
-	v.clear();
+    v.clear();
 }
 
 template <typename T>
 void Clear(T& t) {
-	t = 0;
+    t = 0;
 }
 
 

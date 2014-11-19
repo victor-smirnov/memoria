@@ -32,19 +32,19 @@ typedef MergeValueLists<IntValue<5>, IntList<7, 8, 9>, IntValue<10>>::Result Lis
 
 int main(void) {
 
-	cout<<TypeNameFactory<SrcList>::name()<<endl;
+    cout<<TypeNameFactory<SrcList>::name()<<endl;
 
-	cout<<TypeNameFactory<List1>::name()<<endl;
-	cout<<TypeNameFactory<List2>::name()<<endl;
+    cout<<TypeNameFactory<List1>::name()<<endl;
+    cout<<TypeNameFactory<List2>::name()<<endl;
 
-	cout<<TypeNameFactory<List3>::name()<<endl;
-	cout<<TypeNameFactory<List4>::name()<<endl;
-	cout<<TypeNameFactory<List5>::name()<<endl;
+    cout<<TypeNameFactory<List3>::name()<<endl;
+    cout<<TypeNameFactory<List4>::name()<<endl;
+    cout<<TypeNameFactory<List5>::name()<<endl;
 
-	cout<<TypeNameFactory<List6>::name()<<endl;
-	cout<<TypeNameFactory<List7>::name()<<endl;
-	cout<<TypeNameFactory<List8>::name()<<endl;
-	cout<<TypeNameFactory<List9>::name()<<endl;
+    cout<<TypeNameFactory<List6>::name()<<endl;
+    cout<<TypeNameFactory<List7>::name()<<endl;
+    cout<<TypeNameFactory<List8>::name()<<endl;
+    cout<<TypeNameFactory<List9>::name()<<endl;
 
     return 0;
 }

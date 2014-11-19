@@ -131,10 +131,10 @@ struct BTTypes {
     typedef EmptyType1                                                          DataSource;
     typedef EmptyType2                                                          DataTarget;
 
-    typedef EmptyType1															Source;
-    typedef EmptyType2															Target;
+    typedef EmptyType1                                                          Source;
+    typedef EmptyType2                                                          Target;
 
-    typedef EmptyType															Entropy;
+    typedef EmptyType                                                           Entropy;
 
 
     template <typename Types>
@@ -236,7 +236,7 @@ public:
     {
         typedef typename ContainerTypes::NodeTypesList      NodeList;
         typedef
-        	typename ContainerTypes::DefaultNodeTypesList 	DefaultNodeList;
+            typename ContainerTypes::DefaultNodeTypesList   DefaultNodeList;
         typedef NodePageBase0                               NodeBase;
         typedef typename MyType::NodeTypes                  NodeTypes;
         typedef NodePageBase0G                              NodeBaseG;

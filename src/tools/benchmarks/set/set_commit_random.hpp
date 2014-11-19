@@ -32,7 +32,7 @@ public:
     typedef typename SetCtrType::Iterator                                       Iterator;
     typedef typename SetCtrType::Types::Entry                                   Entry;
 
-    Allocator*  	allocator_;
+    Allocator*      allocator_;
     SetCtrType*     set_;
 
 public:
