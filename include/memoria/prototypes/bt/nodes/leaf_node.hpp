@@ -93,6 +93,7 @@ public:
     >::SubstreamSizeList                                                        SubstreamsSizeList;
 
     typedef typename PackedDispatcherTool<
+    					0,
     					Base::StreamsStart,
     					StreamsStructList
     >::Type           															Dispatcher;

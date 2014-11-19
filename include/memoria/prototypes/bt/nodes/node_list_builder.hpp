@@ -173,7 +173,7 @@ public:
     typedef NDT<LeafTypes>                                  LeafDispatcher;
     typedef NDT<NonLeafTypes>                               NonLeafDispatcher;
     typedef NDT<DefaultTypes>                               DefaultDispatcher;
-    typedef NDT<TreeTypes>                                  TreeDispatcher;
+    typedef NDTTree<TreeTypes>                              TreeDispatcher;
 };
 
 

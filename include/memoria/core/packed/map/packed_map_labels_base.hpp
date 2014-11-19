@@ -85,12 +85,14 @@ public:
 
 
     typedef typename PackedDispatcherTool<
-            HiddenLabelsOffset,
+            0,
+    		HiddenLabelsOffset,
             HiddenLabelsStructsList
     >::Type                                                                     HiddenLabelsDispatcher;
 
     typedef typename PackedDispatcherTool<
-            HiddenLabelsOffset + ListSize<HiddenLabelsList>::Value,
+            0,
+    		HiddenLabelsOffset + ListSize<HiddenLabelsList>::Value,
             LabelsStructsList
     >::Type                                                                     LabelsDispatcher;
 

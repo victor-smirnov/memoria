@@ -71,7 +71,7 @@ public:
     typedef TypeList<BlockMap>                                                  ObjectsList;
 
     typedef typename PackedDispatchersListBuilder<ObjectsList>::Type            PackedTypesList;
-    typedef typename PackedDispatcherTool<0, PackedTypesList>::Type             Dispatcher;
+    typedef typename PackedDispatcherTool<0, 0, PackedTypesList>::Type          Dispatcher;
 
     enum {BLOCK_MAP};
 

@@ -357,6 +357,7 @@ public:
     >::StructList                                                        		StreamsStructList;
 
     typedef typename PackedDispatcherTool<
+    					0,
     					Base::StreamsStart,
     					StreamsStructList
     >::Type           															Dispatcher;
@@ -711,7 +712,6 @@ public:
             size_ = tree != nullptr ? tree->size() : 0;
         }
     };
-
 
     Int size() const
     {
