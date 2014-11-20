@@ -1247,20 +1247,8 @@ public:
         Dispatcher::dispatchNotEmpty(streams, allocator(), std::forward<Fn>(fn), args...);
     }
 
-    template <Int StreamIdx, typename Fn, typename... Args>
-    void processStream(Fn&& fn, Args&&... args) const
-    {
-        Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
-    }
-
-    template <Int StreamIdx, typename Fn, typename... Args>
-    void processStream(Fn&& fn, Args&&... args)
-    {
-        Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
-    }
-
     template <Int Idx, typename... Args>
-    using DispatchRtnFnType = auto(Args...) -> decltype(Dispatcher::template dispatchRtn<Idx>(std::declval<Args>()...));
+    using DispatchRtnFnType = auto(Args...) -> decltype(Dispatcher::template dispatch<Idx>(std::declval<Args>()...));
 
     template <Int Idx, typename Fn, typename... T>
     using DispatchRtnType = typename FnTraits<
@@ -1268,17 +1256,17 @@ public:
                                      >::RtnType;
 
     template <Int StreamIdx, typename Fn, typename... Args>
-    auto processStreamRtn(Fn&& fn, Args&&... args) const
+    auto processStream(Fn&& fn, Args&&... args) const
         -> DispatchRtnType<StreamIdx, Fn, Args...>
     {
-        return Dispatcher::template dispatchRtn<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
+        return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
     }
 
     template <Int StreamIdx, typename Fn, typename... Args>
-    auto processStreamRtn(Fn&& fn, Args&&... args)
+    auto processStream(Fn&& fn, Args&&... args)
         -> DispatchRtnType<StreamIdx, Fn, Args...>
     {
-        return Dispatcher::template dispatchRtn<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
+        return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
     }
 
 

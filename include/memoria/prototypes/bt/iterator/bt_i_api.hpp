@@ -67,18 +67,18 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
 
     Int leaf_size(Int stream) const
     {
-        return LeafDispatcher::dispatchConstRtn(self().leaf(), SizeFn(), stream);
+        return LeafDispatcher::dispatch(self().leaf(), SizeFn(), stream);
     }
 
     Int leaf_size() const
     {
-        return LeafDispatcher::dispatchConstRtn(self().leaf(), SizeFn(), self().stream());
+        return LeafDispatcher::dispatch(self().leaf(), SizeFn(), self().stream());
     }
 
     MEMORIA_DECLARE_NODE_FN_RTN(SizesFn, sizes, Int);
 
     Position leaf_sizes() const {
-        return LeafDispatcher::dispatchConstRtn(self().leaf(), SizesFn());
+        return LeafDispatcher::dispatch(self().leaf(), SizesFn());
     }
 
     bool has_no_data() const

@@ -28,8 +28,8 @@ template <typename Types> class NDTTree<Types, -1>;
 template <typename Types, int Idx = ListSize<typename Types::List>::Value - 1>
 class NDTTree {
 
-    typedef typename Types::NodeBase NodeBase;
-    typedef typename SelectByIndexTool<Idx, typename Types::List>::Result Head;
+    using NodeBaseG = typename Types::NodeBaseG;
+    using Head      = typename SelectByIndexTool<Idx, typename Types::List>::Result;
 
     static const Int HASH       = Head::PAGE_HASH;
     static const bool Leaf      = Head::Leaf;
@@ -37,54 +37,33 @@ class NDTTree {
     using NextNDT3 = NDTTree<Types, Idx - 1>;
 
 public:
-
-
-    template <typename Functor, typename... Args>
-    static void dispatchTreeConst(const NodeBase* parent, const NodeBase* child, Functor&& functor, Args&&... args)
-    {
-        if (HASH == parent->page_type_hash())
-        {
-            NDT2<Types, ListSize<typename Types::ChildList>::Value - 1>::dispatchTreeConst(
-                    static_cast<const Head*>(parent),
-                    child,
-                    functor,
-                    std::forward<Args>(args)...
-            );
-        }
-        else {
-            NextNDT3::dispatchTreeConst(parent, child, std::forward<Functor>(functor), std::forward<Args>(args)...);
-        }
-    }
-
-
-
     template <typename... Args>
-    using DispatchTreeConstFnType = auto(Args...) -> decltype(NextNDT3::template dispatchTreeConstRtn(std::declval<Args>()...));
+    using DispatchTreeFnType = auto(Args...) -> decltype(NextNDT3::template dispatchTree(std::declval<Args>()...));
 
     template <typename Fn, typename... Args>
-    using DispatchTreeConstRtnType = typename FnTraits<DispatchTreeConstFnType<typename std::remove_reference<Fn>::type, Args...>>::RtnType;
+    using DispatchTreeRtnType = typename FnTraits<DispatchTreeFnType<typename std::remove_reference<Fn>::type, Args...>>::RtnType;
 
 
     template <typename Functor, typename... Args>
-    static DispatchTreeConstRtnType<const NodeBase*, const NodeBase*, Functor, Args...>
-    dispatchTreeConstRtn(
-            const NodeBase* parent,
-            const NodeBase* child,
+    static DispatchTreeRtnType<const NodeBaseG&, const NodeBaseG&, Functor, Args...>
+    dispatchTree(
+            const NodeBaseG& parent,
+            const NodeBaseG& child,
             Functor&& functor,
             Args&&... args
     )
     {
         if (HASH == parent->page_type_hash())
         {
-            return NDT2<Types, ListSize<typename Types::ChildList>::Value - 1>::dispatchTreeConstRtn(
-                    static_cast<const Head*>(parent),
+            return NDT2<Types, ListSize<typename Types::ChildList>::Value - 1>::dispatchTreeConst(
+                    static_cast<const Head*>(parent.page()),
                     child,
                     std::forward<Functor>(functor),
                     std::forward<Args>(args)...
             );
         }
         else {
-            return NextNDT3::dispatchTreeConstRtn(parent, child, std::forward<Functor>(functor), std::forward<Args>(args)...);
+            return NextNDT3::dispatchTree(parent, child, std::forward<Functor>(functor), std::forward<Args>(args)...);
         }
     }
 };
@@ -95,8 +74,8 @@ class NDTTree<Types, 0> {
 
     static const Int Idx = 0;
 
-    typedef typename Types::NodeBase NodeBase;
-    typedef typename SelectByIndexTool<Idx, typename Types::List>::Result Head;
+    using NodeBaseG = typename Types::NodeBaseG;
+    using Head      = typename SelectByIndexTool<Idx, typename Types::List>::Result;
 
     static const Int HASH       = Head::PAGE_HASH;
     static const bool Leaf      = Head::Leaf;
@@ -104,47 +83,28 @@ class NDTTree<Types, 0> {
     using NextNDT3 = NDTTree<Types, Idx - 1>;
 
 public:
-
-
-    template <typename Functor, typename... Args>
-    static void dispatchTreeConst(const NodeBase* parent, const NodeBase* child, Functor&& functor, Args&&... args)
-    {
-        if (HASH == parent->page_type_hash())
-        {
-            NDT2<Types, ListSize<typename Types::ChildList>::Value - 1>::dispatchTreeConst(
-                    static_cast<const Head*>(parent),
-                    child,
-                    functor,
-                    std::forward<Args>(args)...
-            );
-        }
-        else {
-            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
-        }
-    }
-
     using NDT2Start = NDT2<Types, ListSize<typename Types::ChildList>::Value - 1>;
 
     template <typename... Args>
-    using DispatchTreeConstFnType = auto(Args...) -> decltype(NDT2Start::template dispatchTreeConstRtn(std::declval<Args>()...));
+    using DispatchTreeFnType = auto(Args...) -> decltype(NDT2Start::template dispatchTree(std::declval<Args>()...));
 
     template <typename Fn, typename... Args>
-    using DispatchTreeConstRtnType = typename FnTraits<DispatchTreeConstFnType<typename std::remove_reference<Fn>::type, Args...>>::RtnType;
+    using DispatchTreeRtnType = typename FnTraits<DispatchTreeFnType<typename std::remove_reference<Fn>::type, Args...>>::RtnType;
 
 
     template <typename Functor, typename... Args>
-    static DispatchTreeConstRtnType<const NodeBase*, const NodeBase*, Functor, Args...>
-    dispatchTreeConstRtn(
-            const NodeBase* parent,
-            const NodeBase* child,
+    static DispatchTreeRtnType<const Head*, const NodeBaseG&, Functor, Args...>
+    dispatchTree(
+            const NodeBaseG& parent,
+            const NodeBaseG& child,
             Functor&& functor,
             Args&&... args
     )
     {
         if (HASH == parent->page_type_hash())
         {
-            return NDT2Start::dispatchTreeConstRtn(
-                    static_cast<const Head*>(parent),
+            return NDT2Start::dispatchTree(
+                    static_cast<const Head*>(parent.page()),
                     child,
                     std::forward<Functor>(functor),
                     std::forward<Args>(args)...
@@ -161,8 +121,8 @@ public:
 template <typename Types, int Idx>
 class NDT2 {
 
-    typedef typename Types::NodeBase NodeBase;
-    typedef typename SelectByIndexTool<Idx, typename Types::ChildList>::Result Head;
+    using NodeBase  = typename Types::NodeBase;
+    using Head      = typename SelectByIndexTool<Idx, typename Types::ChildList>::Result;
 
     using NextNDT2 = NDT2<Types, Idx - 1>;
 
@@ -176,26 +136,8 @@ class NDT2 {
 
 
 public:
-
     template <typename Node, typename Functor, typename... Args>
-    static void dispatchTreeConst(const Node* parent, const NodeBase* child, Functor&& functor, Args&&... args)
-    {
-        if (HASH == child->page_type_hash())
-        {
-            functor.treeNode(
-                    parent,
-                    static_cast<const Head*>(child),
-                    std::forward<Args>(args)...
-            );
-        }
-        else {
-            NextNDT2::dispatchConst(parent, child, std::forward<Functor>(functor), std::forward<Args>(args)...);
-        }
-    }
-
-
-    template <typename Node, typename Functor, typename... Args>
-    static auto dispatchTreeConstRtn(
+    static auto dispatchTree(
             const Node* parent,
             const NodeBase* child,
             Functor&& functor,
@@ -212,7 +154,7 @@ public:
             );
         }
         else {
-            return NextNDT2::dispatchTreeConstRtn(parent, child, std::forward<Functor>(functor), std::forward<Args>(args)...);
+            return NextNDT2::dispatchTree(parent, child, std::forward<Functor>(functor), std::forward<Args>(args)...);
         }
     }
 };
@@ -224,8 +166,8 @@ class NDT2<Types, 0> {
 
     static const Int Idx = 0;
 
-    typedef typename Types::NodeBase NodeBase;
-    typedef typename SelectByIndexTool<Idx, typename Types::ChildList>::Result Head;
+    using NodeBase  = typename Types::NodeBase;
+    using Head      = typename SelectByIndexTool<Idx, typename Types::ChildList>::Result;
 
     static const Int HASH = Head::PAGE_HASH;
 
@@ -237,28 +179,8 @@ class NDT2<Types, 0> {
 
 
 public:
-
     template <typename Node, typename Functor, typename... Args>
-    static void dispatchTreeConst(const Node* parent, const NodeBase* child, Functor&& functor, Args&&... args)
-    {
-        if (HASH == child->page_type_hash())
-        {
-            functor.treeNode(
-                    parent,
-                    static_cast<const Head*>(child),
-                    std::forward<Args>(args)...
-            );
-        }
-        else {
-            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
-        }
-    }
-
-
-
-
-    template <typename Node, typename Functor, typename... Args>
-    static auto dispatchTreeConstRtn(
+    static auto dispatchTree(
             const Node* parent,
             const NodeBase* child,
             Functor&& functor,

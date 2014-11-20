@@ -49,7 +49,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrKeysName)
 
 
 
-    struct GetIndexFn: bt1::RtnNodeWalkerBase<GetIndexFn, Key>
+    struct GetIndexFn: bt1::NodeWalkerBase<GetIndexFn>
     {
         template <Int Idx, typename Stream>
         Key stream(const Stream* stream, Int idx, Int index_num)
@@ -65,7 +65,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrKeysName)
 
         GetIndexFn fn;
 
-        return LeafDispatcher::dispatchConstRtn(self.leaf(), fn, self.idx(), index_num);
+        return LeafDispatcher::dispatch(self.leaf(), fn, self.idx(), index_num);
     }
 
     Key key() const

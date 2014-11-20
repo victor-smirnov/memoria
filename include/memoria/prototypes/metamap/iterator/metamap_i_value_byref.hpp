@@ -54,25 +54,25 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrValueByRefName)
         template <typename NodeTypes>
         ResultType treeNode(LeafNode<NodeTypes>* node, Int idx)
         {
-            return node->template processStreamRtn<IntList<0>>(*this, idx);
+            return node->template processStream<IntList<0>>(*this, idx);
         }
 
         template <typename NodeTypes>
         ResultType treeNode(BranchNode<NodeTypes>* node, Int idx)
         {
-            return node->template processStreamRtn<0>(*this, idx);
+            return node->template processStream<0>(*this, idx);
         }
 
         template <typename NodeTypes>
         ResultType treeNode(const LeafNode<NodeTypes>* node, Int idx)
         {
-            return node->template processStreamRtn<IntList<0>>(*this, idx);
+            return node->template processStream<IntList<0>>(*this, idx);
         }
 
         template <typename NodeTypes>
         ResultType treeNode(const BranchNode<NodeTypes>* node, Int idx)
         {
-            return node->template processStreamRtn<0>(*this, idx);
+            return node->template processStream<0>(*this, idx);
         }
     };
 
@@ -81,14 +81,14 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrValueByRefName)
     const Value& getValue() const
     {
         auto& self = this->self();
-        return LeafDispatcher::dispatchConstRtn(self.leaf(), GetValueRefFn<const Value>(), self.idx());
+        return LeafDispatcher::dispatch(self.leaf(), GetValueRefFn<const Value>(), self.idx());
     }
 
     Value& getSValue()
     {
         auto& self = this->self();
         self.ctr().updatePageG(self.leaf());
-        return LeafDispatcher::dispatchRtn(self.leaf(), GetValueRefFn<Value>(), self.idx());
+        return LeafDispatcher::dispatch(self.leaf(), GetValueRefFn<Value>(), self.idx());
     }
 
 

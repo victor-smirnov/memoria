@@ -389,7 +389,7 @@ public:
 
     // ====================================== Labels Operations ====================================== //
 
-    struct GetLabelFn: RtnPkdHandlerBase<Int> {
+    struct GetLabelFn {
         template <Int StreamIdx, typename Stream>
         Int stream(const Stream* stream, Int idx)
         {
@@ -409,7 +409,7 @@ public:
     }
 
 
-    struct SetLabelFn: RtnPkdHandlerBase<Int> {
+    struct SetLabelFn {
         template <Int StreamIdx, typename Stream>
         Int stream(Stream* stream, Int idx, Int value)
         {

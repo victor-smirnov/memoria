@@ -134,17 +134,18 @@ template <
 >
 class BTreeDispatchers: public Types1 {
 
-    typedef BTreeDispatchers<Types1>                                           MyType;
+    typedef BTreeDispatchers<Types1>                                            MyType;
 
     typedef typename Types1::NodeTypes                                          Types;
     typedef typename Types1::NodeList                                           NodeList_;
     typedef typename Types1::DefaultNodeList                                    DefaultNodeList_;
     typedef typename Types1::NodeBase                                           NodeBase_;
+    typedef typename Types1::NodeBaseG                                           NodeBaseG_;
 
 public:
 
     struct NodeTypesBase: Types {
-        typedef NodeBase_ NodeBase;
+        typedef NodeBaseG_  NodeBaseG;
     };
 
     struct AllTypes: NodeTypesBase {

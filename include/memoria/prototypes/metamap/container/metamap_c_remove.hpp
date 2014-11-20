@@ -35,7 +35,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrRemoveName)
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
 
-    struct RemoveFromLeafFn: bt1::NoRtnNodeWalkerBase<RemoveFromLeafFn> {
+    struct RemoveFromLeafFn: bt1::NodeWalkerBase<RemoveFromLeafFn> {
         Accumulator& entry_;
 
         bool next_entry_updated_ = false;

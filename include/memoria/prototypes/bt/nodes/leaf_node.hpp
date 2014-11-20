@@ -421,7 +421,7 @@ public:
 
         Int client_area = MyType::client_area(this->page_size(), this->is_root());
 
-        return Dispatcher::dispatchRtn(stream, allocator(), Capacity3Fn(), client_area - mem_used);
+        return Dispatcher::dispatch(stream, allocator(), Capacity3Fn(), client_area - mem_used);
     }
 
     Int capacity(const Int* sizes, Int stream) const
@@ -549,7 +549,7 @@ public:
 
     Int size(Int stream) const
     {
-        return Dispatcher::dispatchRtn(stream, allocator(), SizeFn());
+        return Dispatcher::dispatch(stream, allocator(), SizeFn());
     }
 
     struct SizesFn {
@@ -1094,7 +1094,7 @@ public:
     template <typename Fn, typename... Args>
     Int find(Int stream, Fn&& fn, Args&&... args) const
     {
-        return Dispatcher::dispatchRtn(stream, allocator(), std::forward<Fn>(fn), args...);
+        return Dispatcher::dispatch(stream, allocator(), std::forward<Fn>(fn), args...);
     }
 
     template <typename Fn, typename... Args>
@@ -1121,22 +1121,8 @@ public:
         Dispatcher::dispatchAll(allocator(), std::forward<Fn>(fn), args...);
     }
 
-    template <typename SubstreamPath, typename Fn, typename... Args>
-    void processStream(Fn&& fn, Args&&... args) const
-    {
-        const Int StreamIdx = LeafOffsetCount<SubstreamsSizeList, SubstreamPath>::Value;
-        Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
-    }
-
-    template <typename SubstreamPath, typename Fn, typename... Args>
-    void processStream(Fn&& fn, Args&&... args)
-    {
-        const Int StreamIdx = LeafOffsetCount<SubstreamsSizeList, SubstreamPath>::Value;
-        Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
-    }
-
     template <Int Idx, typename... Args>
-    using DispatchRtnFnType = auto(Args...) -> decltype(Dispatcher::template dispatchRtn<Idx>(std::declval<Args>()...));
+    using DispatchRtnFnType = auto(Args...) -> decltype(Dispatcher::template dispatch<Idx>(std::declval<Args>()...));
 
     template <Int Idx, typename Fn, typename... T>
     using DispatchRtnType = typename FnTraits<
@@ -1145,7 +1131,7 @@ public:
 
 
     template <typename SubstreamPath, typename Fn, typename... Args>
-    auto processStreamRtn(Fn&& fn, Args&&... args) const
+    auto processStream(Fn&& fn, Args&&... args) const
     -> DispatchRtnType<
         LeafOffsetCount<SubstreamsSizeList, SubstreamPath>::Value,
         Fn,
@@ -1153,11 +1139,11 @@ public:
     >
     {
         const Int StreamIdx = LeafOffsetCount<SubstreamsSizeList, SubstreamPath>::Value;
-        return Dispatcher::template dispatchRtn<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
+        return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
     }
 
     template <typename SubstreamPath, typename Fn, typename... Args>
-    auto processStreamRtn(Fn&& fn, Args&&... args)
+    auto processStream(Fn&& fn, Args&&... args)
     -> DispatchRtnType<
             LeafOffsetCount<SubstreamsSizeList, SubstreamPath>::Value,
             Fn,
@@ -1165,7 +1151,7 @@ public:
     >
     {
         const Int StreamIdx = LeafOffsetCount<SubstreamsSizeList, SubstreamPath>::Value;
-        return Dispatcher::template dispatchRtn<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
+        return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
     }
 
 

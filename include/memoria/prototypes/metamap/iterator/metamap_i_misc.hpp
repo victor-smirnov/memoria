@@ -49,7 +49,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrMiscName)
 
 
 
-    struct PrefixFn: bt1::NoRtnLeveledNodeWalkerBase<PrefixFn> {
+    struct PrefixFn: bt1::LeveledNodeWalkerBase<PrefixFn> {
         IteratorPrefix prefix_;
 
         PrefixFn() {}

@@ -57,7 +57,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrInsBatchComprName)
     template <typename Entry>
     void computeDataLengths(const Entry& entry, EntrySizes& lengths)
     {
-        LeafDispatcher::template dispatchStatic<LeafNode>(true, ComputeDataLengths(), entry, lengths);
+        LeafDispatcher::template dispatch<LeafNode>(true, ComputeDataLengths(), entry, lengths);
     }
 
     std::pair<EntrySizes, SizeT> computeDataLengths(SizeT total, Source& source)

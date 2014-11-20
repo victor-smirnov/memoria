@@ -67,7 +67,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveToolsName)
     MEMORIA_DECLARE_NODE_FN_RTN(ShouldBeMergedNodeFn, shouldBeMergedWithSiblings, bool);
     bool shouldMergeNode(const NodeBaseG& node) const
     {
-        return NodeDispatcher::dispatchConstRtn(node, ShouldBeMergedNodeFn());
+        return NodeDispatcher::dispatch(node, ShouldBeMergedNodeFn());
     }
 
 
@@ -212,7 +212,7 @@ void M_TYPE::removeNonLeafNodeEntry(NodeBaseG& node, Int start)
     MEMORIA_ASSERT_TRUE(!node->is_leaf());
 
     self.updatePageG(node);
-    Accumulator sums = NonLeafDispatcher::dispatchRtn(node, RemoveNonLeafNodeEntryFn(), start, start + 1);
+    Accumulator sums = NonLeafDispatcher::dispatch(node, RemoveNonLeafNodeEntryFn(), start, start + 1);
 
     self.updateChildren(node, start);
 
@@ -228,7 +228,7 @@ typename M_TYPE::Accumulator M_TYPE::removeLeafContent(NodeBaseG& node, const Po
 
     self.updatePageG(node);
 
-    Accumulator sums = LeafDispatcher::dispatchRtn(node, RemoveLeafContentFn(), start, end);
+    Accumulator sums = LeafDispatcher::dispatch(node, RemoveLeafContentFn(), start, end);
 
     self.updateParent(node, -sums);
 
@@ -242,7 +242,7 @@ typename M_TYPE::Accumulator M_TYPE::removeLeafContent(NodeBaseG& node, Int stre
 
     self.updatePageG(node);
 
-    Accumulator sums = LeafDispatcher::dispatchRtn(node, RemoveLeafContentFn(), stream, start, end);
+    Accumulator sums = LeafDispatcher::dispatch(node, RemoveLeafContentFn(), stream, start, end);
 
     self.updateParent(node, -sums);
 

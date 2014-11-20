@@ -103,7 +103,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ReadName)
                 }
             }
 
-            LeafDispatcher::dispatchConst(
+            LeafDispatcher::dispatch(
                     iter.leaf(),
                     ReadFn(),
                     &data_target,
@@ -158,7 +158,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ReadName)
                 }
             }
 
-            LeafDispatcher::dispatchConst(
+            LeafDispatcher::dispatch(
                     iter.leaf(),
                     ReadFn(),
                     data_target,
@@ -207,7 +207,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ReadName)
 
             if (to_read > len) to_read = len;
 
-            LeafDispatcher::dispatchConst(
+            LeafDispatcher::dispatch(
                     iter.leaf(),
                     ReadFn(),
                     &data_target,
@@ -243,7 +243,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ReadName)
 
             if (to_read > len) to_read = len;
 
-            LeafDispatcher::dispatchConst(
+            LeafDispatcher::dispatch(
                     iter.leaf(),
                     ReadFn(),
                     data_target,

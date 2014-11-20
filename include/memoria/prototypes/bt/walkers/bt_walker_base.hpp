@@ -103,8 +103,6 @@ private:
 
 public:
 
-    typedef Int                                                                 ReturnType;
-
     WalkerBase(Int stream, Int branch_index, Int leaf_index, BigInt target):
         target_(target),
         stream_(stream),
@@ -193,9 +191,9 @@ public:
     void postProcessNode(const Node*, Int, Int) {}
 
     template <typename NodeTypes>
-    ReturnType treeNode(const bt::BranchNode<NodeTypes>* node, BigInt start)
+    Int treeNode(const bt::BranchNode<NodeTypes>* node, BigInt start)
     {
-        Int idx = node->template processStreamRtn<StreamIdx>(FindNonLeafFn(self()), start);
+        Int idx = node->template processStream<StreamIdx>(FindNonLeafFn(self()), start);
 
         self().postProcessNode(node, start, idx);
 
@@ -209,7 +207,7 @@ public:
     }
 
     template <typename NodeTypes>
-    ReturnType treeNode(const bt::LeafNode<NodeTypes>* node, BigInt start)
+    Int treeNode(const bt::LeafNode<NodeTypes>* node, BigInt start)
     {
         Int idx = node->find(stream_, FindLeafFn(self()), start);
 

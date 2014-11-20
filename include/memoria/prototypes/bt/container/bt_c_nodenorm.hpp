@@ -88,7 +88,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::NodeNormName)
     MEMORIA_DECLARE_NODE2_FN_RTN(CanMergeFn, canBeMergedWith, bool);
     bool canMerge(const NodeBaseG& tgt, const NodeBaseG& src)
     {
-        return NodeDispatcher::dispatchConstRtn2(src, tgt, CanMergeFn());
+        return NodeDispatcher::dispatch(src, tgt, CanMergeFn());
     }
 
 
@@ -300,7 +300,7 @@ void M_TYPE::mergeNodes(NodeBaseG& tgt, NodeBaseG& src)
 
     Int tgt_size = self.getNodeSize(tgt, 0);
 
-    NodeDispatcher::dispatch2(src, tgt, MergeNodesFn());
+    NodeDispatcher::dispatch(src, tgt, MergeNodesFn());
 
     self.updateChildren(tgt, tgt_size);
 

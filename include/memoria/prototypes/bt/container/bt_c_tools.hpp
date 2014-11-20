@@ -76,7 +76,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     Int getNodeTraitInt(BTNodeTraits trait, bool leaf) const
     {
         Int page_size = self().getRootMetadata().page_size();
-        return NonLeafDispatcher::template dispatchStaticRtn<BranchNode>(leaf, GetNodeTraitsFn(me()), trait, page_size);
+        return NonLeafDispatcher::template dispatch<BranchNode>(leaf, GetNodeTraitsFn(me()), trait, page_size);
     }
 
 
@@ -157,7 +157,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     MEMORIA_CONST_FN_WRAPPER_RTN(GetChildFn, getChildFn, NodeBaseG);
     NodeBaseG getChild(const NodeBaseG& node, Int idx) const
     {
-        NodeBaseG result = NonLeafDispatcher::dispatchConstRtn(node, GetChildFn(me()), idx);
+        NodeBaseG result = NonLeafDispatcher::dispatch(node, GetChildFn(me()), idx);
 
         if (!result.isEmpty())
         {
@@ -171,7 +171,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     MEMORIA_CONST_FN_WRAPPER_RTN(GetChildForUpdateFn, getChildForUpdateFn, NodeBaseG);
     NodeBaseG getChildForUpdate(const NodeBaseG& node, Int idx) const
     {
-        NodeBaseG result = NonLeafDispatcher::dispatchConstRtn(node, GetChildForUpdateFn(me()), idx);
+        NodeBaseG result = NonLeafDispatcher::dispatch(node, GetChildForUpdateFn(me()), idx);
 
         if (!result.isEmpty())
         {
@@ -212,7 +212,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
     Int getCapacity(const NodeBaseG& node) const
     {
-        return NonLeafDispatcher::dispatchConstRtn(node, GetCapacityFn(me()));
+        return NonLeafDispatcher::dispatch(node, GetCapacityFn(me()));
     }
 
 
@@ -226,14 +226,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
     Int getStreamCapacity(const NodeBaseG& node, const Position& reservation, Int stream) const
     {
-        return LeafDispatcher::dispatchConstRtn(node, GetStreamCapacityFn(), reservation, stream);
+        return LeafDispatcher::dispatch(node, GetStreamCapacityFn(), reservation, stream);
     }
 
 
     MEMORIA_DECLARE_NODE_FN_RTN(GetNonLeafCapacityFn, capacity, Int);
     Int getNonLeafCapacity(const NodeBaseG& node, UBigInt active_streams) const
     {
-        return NonLeafDispatcher::dispatchConstRtn(node, GetNonLeafCapacityFn(), active_streams);
+        return NonLeafDispatcher::dispatch(node, GetNonLeafCapacityFn(), active_streams);
     }
 
 
@@ -242,36 +242,36 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     MEMORIA_DECLARE_NODE_FN(SumsFn, sums);
     void sums(const NodeBaseG& node, Accumulator& sums) const
     {
-        NodeDispatcher::dispatchConst(node, SumsFn(), sums);
+        NodeDispatcher::dispatch(node, SumsFn(), sums);
     }
 
     MEMORIA_DECLARE_NODE_FN_RTN(SumsRtnFn, sums, Accumulator);
     Accumulator sums(const NodeBaseG& node) const
     {
-        return NodeDispatcher::dispatchConstRtn(node, SumsRtnFn());
+        return NodeDispatcher::dispatch(node, SumsRtnFn());
     }
 
     void sums(const NodeBaseG& node, Int start, Int end, Accumulator& sums) const
     {
-        NodeDispatcher::dispatchConst(node, SumsFn(), start, end, sums);
+        NodeDispatcher::dispatch(node, SumsFn(), start, end, sums);
     }
 
     Accumulator sums(const NodeBaseG& node, Int start, Int end) const
     {
         Accumulator sums;
-        NodeDispatcher::dispatchConst(node, SumsFn(), start, end, sums);
+        NodeDispatcher::dispatch(node, SumsFn(), start, end, sums);
         return sums;
     }
 
     void sums(const NodeBaseG& node, const Position& start, const Position& end, Accumulator& sums) const
     {
-        NodeDispatcher::dispatchConst(node, SumsFn(), start, end, sums);
+        NodeDispatcher::dispatch(node, SumsFn(), start, end, sums);
     }
 
     Accumulator sums(const NodeBaseG& node, const Position& start, const Position& end) const
     {
         Accumulator sums;
-        NodeDispatcher::dispatchConst(node, SumsFn(), start, end, sums);
+        NodeDispatcher::dispatch(node, SumsFn(), start, end, sums);
         return sums;
     }
 
@@ -331,7 +331,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
     ID getChildID(const NodeBaseG& node, Int idx) const
     {
-        return NonLeafDispatcher::dispatchConstRtn(node, GetINodeDataFn(me()), idx);
+        return NonLeafDispatcher::dispatch(node, GetINodeDataFn(me()), idx);
     }
 
 
@@ -407,20 +407,20 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     MEMORIA_DECLARE_NODE_FN_RTN(CheckCapacitiesFn, checkCapacities, bool);
     bool checkCapacities(const NodeBaseG& node, const Position& sizes) const
     {
-        return NodeDispatcher::dispatchConstRtn(node, CheckCapacitiesFn(), sizes);
+        return NodeDispatcher::dispatch(node, CheckCapacitiesFn(), sizes);
     }
 
 
     MEMORIA_DECLARE_NODE_FN_RTN(GetSizesFn, sizes, Position);
     Position getNodeSizes(const NodeBaseG& node) const
     {
-        return NodeDispatcher::dispatchConstRtn(node, GetSizesFn());
+        return NodeDispatcher::dispatch(node, GetSizesFn());
     }
 
     MEMORIA_DECLARE_NODE_FN_RTN(GetSizeFn, size, Int);
     Int getNodeSize(const NodeBaseG& node, Int stream) const
     {
-        return NodeDispatcher::dispatchConstRtn(node, GetSizeFn(), stream);
+        return NodeDispatcher::dispatch(node, GetSizeFn(), stream);
     }
 
     MEMORIA_DECLARE_NODE_FN(LayoutNodeFn, layout);
@@ -437,7 +437,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     MEMORIA_DECLARE_NODE_FN_RTN(GetActiveStreamsFn, active_streams, UBigInt);
     UBigInt getActiveStreams(const NodeBaseG& node) const
     {
-        return NodeDispatcher::dispatchConstRtn(node, GetActiveStreamsFn());
+        return NodeDispatcher::dispatch(node, GetActiveStreamsFn());
     }
 
     void initLeaf(NodeBaseG& node) const {}
@@ -445,14 +445,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     MEMORIA_DECLARE_NODE_FN_RTN(IsNodeEmpty, is_empty, bool);
     bool isNodeEmpty(const NodeBaseG& node)
     {
-        return NodeDispatcher::dispatchConstRtn(node, IsNodeEmpty());
+        return NodeDispatcher::dispatch(node, IsNodeEmpty());
     }
 
 
     MEMORIA_DECLARE_NODE_FN(ForAllIDsFn, forAllValues);
     void forAllIDs(const NodeBaseG& node, Int start, Int end, std::function<void (const ID&, Int)> fn) const
     {
-        NonLeafDispatcher::dispatchConst(node, ForAllIDsFn(), start, end, fn);
+        NonLeafDispatcher::dispatch(node, ForAllIDsFn(), start, end, fn);
     }
 
     struct GetRemainderSize {
@@ -519,7 +519,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     {
         Entropy entropy;
 
-        LeafDispatcher::dispatchConst(node, EstimateEntropy(), entropy, start, end);
+        LeafDispatcher::dispatch(node, EstimateEntropy(), entropy, start, end);
 
         return entropy;
     }
@@ -528,7 +528,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     {
         Entropy entropy;
 
-        LeafDispatcher::dispatchConst(node, EstimateEntropy(), entropy);
+        LeafDispatcher::dispatch(node, EstimateEntropy(), entropy);
 
         return entropy;
     }

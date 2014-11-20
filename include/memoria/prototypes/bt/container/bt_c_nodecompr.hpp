@@ -414,7 +414,7 @@ bool M_TYPE::tryMergeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 
         MEMORIA_ASSERT(parent_idx, >, 0);
 
-        NodeDispatcher::dispatch2(src, tgt, TryMergeNodesFn());
+        NodeDispatcher::dispatch(src, tgt, TryMergeNodesFn());
 
         self.updateChildren(tgt, tgt_size);
 

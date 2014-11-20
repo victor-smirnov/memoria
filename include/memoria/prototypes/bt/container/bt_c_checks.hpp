@@ -63,7 +63,7 @@ public:
     bool checkContent(const NodeBaseG& node) const
     {
         try {
-            NodeDispatcher::dispatchConst(node, CheckContentFn());
+            NodeDispatcher::dispatch(node, CheckContentFn());
             return false;
         }
         catch (Exception ex)
@@ -127,7 +127,7 @@ void M_TYPE::checkTreeStructure(const NodeBaseG& parent, Int parent_idx, const N
 
     if (!node->is_root())
     {
-        errors = TreeDispatcher::dispatchTreeConstRtn(parent, node, CheckTypedNodeContentFn(me()), parent_idx) || errors;
+        errors = TreeDispatcher::dispatchTree(parent, node, CheckTypedNodeContentFn(me()), parent_idx) || errors;
 
         if (!node->is_leaf())
         {

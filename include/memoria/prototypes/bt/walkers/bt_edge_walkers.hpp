@@ -41,13 +41,12 @@ class FindBeginWalker: public FindEdgeWalkerBase<Types> {
     typedef typename Base::Container        Container;
 
 public:
-    typedef Int ReturnType;
 
     FindBeginWalker(Int stream, const Container&) {}
 
 
     template <typename Node>
-    ReturnType treeNode(const Node* node, Int start)
+    Int treeNode(const Node* node, Int start)
     {
         return 0;
     }

@@ -563,12 +563,12 @@ public:
     MEMORIA_DECLARE_NODE_FN_RTN(IsAfterEndFn, isAfterEnd, bool);
 
     bool isEmpty(const NodeBaseG& node) {
-        return NodeDispatcher::dispatchConstRtn(node, IsEmptyFn());
+        return NodeDispatcher::dispatch(node, IsEmptyFn());
     }
 
     bool isAfterEnd(const NodeBaseG& node, const Position& idx, UBigInt active_streams)
     {
-        return NodeDispatcher::dispatchConstRtn(node, IsAfterEndFn(), idx, active_streams);
+        return NodeDispatcher::dispatch(node, IsAfterEndFn(), idx, active_streams);
     }
 
 
@@ -1010,7 +1010,7 @@ void M_TYPE::makeRoom(NodeBaseG& node, Int stream, Int start, Int count)
 M_PARAMS
 typename M_TYPE::Accumulator M_TYPE::splitLeafNode(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at)
 {
-    return LeafDispatcher::dispatchRtn(src, tgt, SplitNodeFn(), split_at);
+    return LeafDispatcher::dispatch(src, tgt, SplitNodeFn(), split_at);
 }
 
 M_PARAMS
@@ -1018,7 +1018,7 @@ typename M_TYPE::Accumulator M_TYPE::splitNonLeafNode(NodeBaseG& src, NodeBaseG&
 {
     auto& self = this->self();
 
-    Accumulator accum = NonLeafDispatcher::dispatchRtn(src, tgt, SplitNodeFn(), split_at);
+    Accumulator accum = NonLeafDispatcher::dispatch(src, tgt, SplitNodeFn(), split_at);
 
     self.updateChildren(tgt);
 
