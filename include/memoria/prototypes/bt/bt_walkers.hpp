@@ -16,6 +16,7 @@
 
 #include <memoria/core/packed/map/packed_map.hpp>
 #include <memoria/core/packed/map/packed_fse_mark_map.hpp>
+#include <memoria/core/packed/array/packed_fse_array.hpp>
 
 #include <memoria/prototypes/bt/walkers/bt_misc_walkers.hpp>
 
@@ -124,20 +125,10 @@ public:
     template <typename Node>
     void postProcessNode(const Node*, Int, Int) {}
 
-    template <typename NodeTypes>
-    ReturnType treeNode(const LeafNode<NodeTypes>* node, BigInt start)
+    template <typename Node>
+    ReturnType treeNode(const Node* node, BigInt start)
     {
         Int idx = node->template processStream<IntList<StreamIdx>>(self(), start);
-
-        self().postProcessNode(node, start, idx);
-
-        return idx;
-    }
-
-    template <typename NodeTypes>
-    ReturnType treeNode(const BranchNode<NodeTypes>* node, BigInt start)
-    {
-        Int idx = node->template processStream<StreamIdx>(self(), start);
 
         self().postProcessNode(node, start, idx);
 

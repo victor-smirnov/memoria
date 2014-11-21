@@ -356,6 +356,10 @@ public:
                 typename Types::StreamDescriptors
     >::StructList                                                               StreamsStructList;
 
+    typedef typename PackedLeafStructListBuilder<
+                typename Types::StreamDescriptors
+    >::SubstreamSizeList                                                        SubstreamsSizeList;
+
     typedef typename PackedDispatcherTool<
                         0,
                         Base::StreamsStart,
@@ -366,6 +370,17 @@ public:
     static const Int StreamsStart                                               = Base::StreamsStart;
     static const Int StreamsEnd                                                 = Base::StreamsStart + Streams;
     static const Int ValuesBlockIdx                                             = StreamsEnd;
+
+
+    template <Int Idx, typename... Args>
+    using DispatchRtnFnType = auto(Args...) -> decltype(
+            Dispatcher::template dispatch<Idx>(std::declval<Args>()...)
+    );
+
+    template <Int Idx, typename Fn, typename... T>
+    using DispatchRtnType = typename FnTraits<
+            DispatchRtnFnType<Idx, const PackedAllocator*, Fn, T...>
+    >::RtnType;
 
     BranchNode() = default;
 
@@ -1247,27 +1262,45 @@ public:
         Dispatcher::dispatchNotEmpty(streams, allocator(), std::forward<Fn>(fn), args...);
     }
 
-    template <Int Idx, typename... Args>
-    using DispatchRtnFnType = auto(Args...) -> decltype(Dispatcher::template dispatch<Idx>(std::declval<Args>()...));
+//    template <Int Idx, typename... Args>
+//    using DispatchRtnFnType = auto(Args...) -> decltype(Dispatcher::template dispatch<Idx>(std::declval<Args>()...));
+//
+//    template <Int Idx, typename Fn, typename... T>
+//    using DispatchRtnType = typename FnTraits<
+//                                        DispatchRtnFnType<Idx, const PackedAllocator*, Fn, T...>
+//                                     >::RtnType;
+//
+//    template <typename StreamPath, typename Fn, typename... Args>
+//    auto processStream(Fn&& fn, Args&&... args) const
+//        -> DispatchRtnType<StreamIdx, Fn, Args...>
+//    {
+//        return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
+//    }
+//
+//    template <Int StreamIdx, typename Fn, typename... Args>
+//    auto processStream(Fn&& fn, Args&&... args)
+//        -> DispatchRtnType<StreamIdx, Fn, Args...>
+//    {
+//        return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
+//    }
 
-    template <Int Idx, typename Fn, typename... T>
-    using DispatchRtnType = typename FnTraits<
-                                        DispatchRtnFnType<Idx, const PackedAllocator*, Fn, T...>
-                                     >::RtnType;
 
-    template <Int StreamIdx, typename Fn, typename... Args>
-    auto processStream(Fn&& fn, Args&&... args) const
-        -> DispatchRtnType<StreamIdx, Fn, Args...>
+    template <typename SubstreamPath, typename Fn, typename... Args>
+    DispatchRtnType<LeafOffsetCount<SubstreamsSizeList, SubstreamPath>::Value, Fn, Args...>
+    processStream(Fn&& fn, Args&&... args) const
     {
+        const Int StreamIdx = LeafOffsetCount<SubstreamsSizeList, SubstreamPath>::Value;
         return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
     }
 
-    template <Int StreamIdx, typename Fn, typename... Args>
-    auto processStream(Fn&& fn, Args&&... args)
-        -> DispatchRtnType<StreamIdx, Fn, Args...>
+    template <typename SubstreamPath, typename Fn, typename... Args>
+    DispatchRtnType<LeafOffsetCount<SubstreamsSizeList, SubstreamPath>::Value, Fn, Args...>
+    processStream(Fn&& fn, Args&&... args)
     {
+        const Int StreamIdx = LeafOffsetCount<SubstreamsSizeList, SubstreamPath>::Value;
         return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
     }
+
 
 
     struct UpdateUpFn {

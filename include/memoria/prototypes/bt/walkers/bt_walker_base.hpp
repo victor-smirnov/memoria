@@ -193,7 +193,7 @@ public:
     template <typename NodeTypes>
     Int treeNode(const bt::BranchNode<NodeTypes>* node, BigInt start)
     {
-        Int idx = node->template processStream<StreamIdx>(FindNonLeafFn(self()), start);
+        Int idx = node->template processStream<IntList<StreamIdx>>(FindNonLeafFn(self()), start);
 
         self().postProcessNode(node, start, idx);
 

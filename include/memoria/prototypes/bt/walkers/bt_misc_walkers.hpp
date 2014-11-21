@@ -13,7 +13,7 @@
 namespace memoria {
 namespace bt1     {
 
-template <typename MyType, Int StreamIndex = 0>
+template <typename MyType, typename BranchPath, typename LeafPath>
 class LeveledNodeWalkerBase {
 
     struct LeafStreamFn {
@@ -61,11 +61,9 @@ class LeveledNodeWalkerBase {
         }
     };
 
-
-    // FIXME: Leaf version must be different
     template <typename T, typename... Args>
     using BranchRtnFnType = auto(Args...) -> decltype(
-        std::declval<T>().template processStream<StreamIndex>(std::declval<Args>()...)
+        std::declval<T>().template processStream<BranchPath>(std::declval<Args>()...)
     );
 
     template <typename T, typename Fn, typename... Args>
@@ -73,12 +71,11 @@ class LeveledNodeWalkerBase {
 
     template <typename T, typename... Args>
     using LeafRtnFnType = auto(Args...) -> decltype(
-            std::declval<T>().template processStream<IntList<StreamIndex>>(std::declval<Args>()...)
+        std::declval<T>().template processStream<LeafPath>(std::declval<Args>()...)
     );
 
     template <typename T, typename Fn, typename... Args>
     using LeafRtnType = typename FnTraits<LeafRtnFnType<T, Fn, Args...>>::RtnType;
-
 
 public:
 
@@ -86,14 +83,28 @@ public:
     LeafRtnType<const bt::LeafNode<NodeTypes>, LeafStreamFn, Args...>
     treeNode(const bt::LeafNode<NodeTypes>* node, Args&&... args)
     {
-        return node->template processStream<IntList<StreamIndex>>(LeafStreamFn(self()), args...);
+        return node->template processStream<LeafPath>(LeafStreamFn(self()), args...);
     }
 
     template <typename NodeTypes, typename... Args>
     BranchRtnType<const bt::BranchNode<NodeTypes>, NonLeafStreamFn, Args...>
     treeNode(const bt::BranchNode<NodeTypes>* node, Args&&... args)
     {
-        return node->template processStream<StreamIndex>(NonLeafStreamFn(self()), args...);
+        return node->template processStream<BranchPath>(NonLeafStreamFn(self()), args...);
+    }
+
+    template <typename NodeTypes, typename... Args>
+    LeafRtnType<bt::LeafNode<NodeTypes>, LeafStreamFn, Args...>
+    treeNode(bt::LeafNode<NodeTypes>* node, Args&&... args)
+    {
+        return node->template processStream<LeafPath>(LeafStreamFn(self()), args...);
+    }
+
+    template <typename NodeTypes, typename... Args>
+    BranchRtnType<bt::BranchNode<NodeTypes>, NonLeafStreamFn, Args...>
+    treeNode(bt::BranchNode<NodeTypes>* node, Args&&... args)
+    {
+        return node->template processStream<BranchPath>(NonLeafStreamFn(self()), args...);
     }
 
     MyType& self() {return *T2T<MyType*>(this);}
@@ -103,13 +114,13 @@ public:
 
 
 
-template <typename MyType, Int StreamIndex = 0>
+template <typename MyType, typename BranchPath, typename LeafPath>
 struct NodeWalkerBase {
 private:
 
     template <typename T, typename... Args>
     using BranchRtnFnType = auto(Args...) -> decltype(
-            std::declval<T>().template processStream<StreamIndex>(std::declval<Args>()...)
+            std::declval<T>().template processStream<BranchPath>(std::declval<Args>()...)
     );
 
     template <typename T, typename Fn, typename... Args>
@@ -118,7 +129,7 @@ private:
 
     template <typename T, typename... Args>
     using LeafRtnFnType = auto(Args...) -> decltype(
-            std::declval<T>().template processStream<IntList<StreamIndex>>(std::declval<Args>()...)
+            std::declval<T>().template processStream<LeafPath>(std::declval<Args>()...)
     );
 
     template <typename T, typename Fn, typename... Args>
@@ -129,33 +140,36 @@ public:
     LeafRtnType<bt::LeafNode<NodeTypes>, MyType, Args...>
     treeNode(bt::LeafNode<NodeTypes>* node, Args&&... args)
     {
-        return node->template processStream<IntList<StreamIndex>>(self(), args...);
+        return node->template processStream<LeafPath>(self(), args...);
     }
 
     template <typename NodeTypes, typename... Args>
     BranchRtnType<bt::BranchNode<NodeTypes>, MyType, Args...>
     treeNode(bt::BranchNode<NodeTypes>* node, Args&&... args)
     {
-        return node->template processStream<StreamIndex>(self(), args...);
+        return node->template processStream<BranchPath>(self(), args...);
     }
 
     template <typename NodeTypes, typename... Args>
     LeafRtnType<const bt::LeafNode<NodeTypes>, MyType, Args...>
     treeNode(const bt::LeafNode<NodeTypes>* node, Args&&... args)
     {
-        return node->template processStream<IntList<StreamIndex>>(self(), args...);
+        return node->template processStream<LeafPath>(self(), args...);
     }
 
     template <typename NodeTypes, typename... Args>
     BranchRtnType<bt::BranchNode<NodeTypes>, MyType, Args...>
     treeNode(const bt::BranchNode<NodeTypes>* node, Args&&... args)
     {
-        return node->template processStream<StreamIndex>(self(), args...);
+        return node->template processStream<BranchPath>(self(), args...);
     }
 
     MyType& self() {return *T2T<MyType*>(this);}
     const MyType& self() const {return *T2T<const MyType*>(this);}
 };
+
+
+
 
 
 }

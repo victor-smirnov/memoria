@@ -49,7 +49,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrKeysName)
 
 
 
-    struct GetIndexFn: bt1::NodeWalkerBase<GetIndexFn>
+    struct GetIndexFn: bt1::NodeWalkerBase<GetIndexFn, IntList<0>, IntList<0>>
     {
         template <Int Idx, typename Stream>
         Key stream(const Stream* stream, Int idx, Int index_num)

@@ -9,24 +9,20 @@
 #ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_NODES_LEAFNODE_HPP
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_NODES_LEAFNODE_HPP
 
-#include <memoria/core/types/typehash.hpp>
-#include <memoria/core/types/algo/select.hpp>
-#include <memoria/core/tools/reflection.hpp>
-
-#include <memoria/core/types/types.hpp>
-
-#include <memoria/core/packed/tree/packed_fse_tree.hpp>
-#include <memoria/core/packed/tree/packed_vle_tree.hpp>
-
-#include <memoria/core/packed/map/packed_map.hpp>
-
-#include <memoria/core/packed/array/packed_fse_array.hpp>
+#include <memoria/core/exceptions/memoria.hpp>
 #include <memoria/core/packed/tools/packed_allocator.hpp>
 #include <memoria/core/packed/tools/packed_dispatcher.hpp>
-
-#include <memoria/prototypes/bt/tools/bt_tools.hpp>
-#include <memoria/prototypes/bt/bt_names.hpp>
+#include <memoria/core/packed/tree/packed_tree_tools.hpp>
+#include <memoria/core/tools/assert.hpp>
+#include <memoria/core/tools/config.hpp>
+#include <memoria/core/tools/idata.hpp>
+#include <memoria/core/types/fn_traits.hpp>
+#include <memoria/core/types/list/misc.hpp>
+#include <memoria/core/types/typehash.hpp>
+#include <memoria/core/types/types.hpp>
 #include <memoria/prototypes/bt/nodes/branch_node.hpp>
+#include <memoria/prototypes/bt/tools/bt_leaf_offset_count.hpp>
+#include <memoria/prototypes/bt/tools/bt_packed_struct_list_builder.hpp>
 
 
 namespace memoria   {
@@ -71,6 +67,7 @@ private:
 
 
 
+
 public:
 
     typedef typename Types::Accumulator                                         Accumulator;
@@ -102,6 +99,18 @@ public:
     static const Int StreamsStart                                               = Base::StreamsStart;
     static const Int StreamsEnd                                                 = Base::StreamsStart + Streams;
     static const Int ValuesBlockIdx                                             = StreamsEnd;
+
+    template <Int Idx, typename... Args>
+    using DispatchRtnFnType = auto(Args...) -> decltype(
+            Dispatcher::template dispatch<Idx>(std::declval<Args>()...)
+    );
+
+    template <Int Idx, typename Fn, typename... T>
+    using DispatchRtnType = typename FnTraits<
+            DispatchRtnFnType<Idx, const PackedAllocator*, Fn, T...>
+    >::RtnType;
+
+
 
     LeafNode() = default;
 
@@ -1121,34 +1130,19 @@ public:
         Dispatcher::dispatchAll(allocator(), std::forward<Fn>(fn), args...);
     }
 
-    template <Int Idx, typename... Args>
-    using DispatchRtnFnType = auto(Args...) -> decltype(Dispatcher::template dispatch<Idx>(std::declval<Args>()...));
-
-    template <Int Idx, typename Fn, typename... T>
-    using DispatchRtnType = typename FnTraits<
-                                        DispatchRtnFnType<Idx, const PackedAllocator*, Fn, T...>
-                                     >::RtnType;
 
 
     template <typename SubstreamPath, typename Fn, typename... Args>
-    auto processStream(Fn&& fn, Args&&... args) const
-    -> DispatchRtnType<
-        LeafOffsetCount<SubstreamsSizeList, SubstreamPath>::Value,
-        Fn,
-        Args...
-    >
+    DispatchRtnType<LeafOffsetCount<SubstreamsSizeList, SubstreamPath>::Value, Fn, Args...>
+    processStream(Fn&& fn, Args&&... args) const
     {
         const Int StreamIdx = LeafOffsetCount<SubstreamsSizeList, SubstreamPath>::Value;
         return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
     }
 
     template <typename SubstreamPath, typename Fn, typename... Args>
-    auto processStream(Fn&& fn, Args&&... args)
-    -> DispatchRtnType<
-            LeafOffsetCount<SubstreamsSizeList, SubstreamPath>::Value,
-            Fn,
-            Args...
-    >
+    DispatchRtnType<LeafOffsetCount<SubstreamsSizeList, SubstreamPath>::Value, Fn, Args...>
+    processStream(Fn&& fn, Args&&... args)
     {
         const Int StreamIdx = LeafOffsetCount<SubstreamsSizeList, SubstreamPath>::Value;
         return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);

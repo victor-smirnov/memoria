@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2013.
+// Copyright Victor Smirnov 2013-2014.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -52,7 +52,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrLabelsName)
 
 
 
-    struct LabelRankFn: bt1::LeveledNodeWalkerBase<LabelRankFn> {
+    struct LabelRankFn: bt1::LeveledNodeWalkerBase<LabelRankFn, IntList<0>, IntList<0>> {
 
         CtrSizeT rank_ = 0;
 
@@ -80,7 +80,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrLabelsName)
         }
     };
 
-    struct HiddenLabelRankFn: bt1::LeveledNodeWalkerBase<HiddenLabelRankFn> {
+    struct HiddenLabelRankFn: bt1::LeveledNodeWalkerBase<HiddenLabelRankFn, IntList<0>, IntList<0>> {
 
         CtrSizeT rank_ = 0;
 
@@ -119,7 +119,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrLabelsName)
     }
 
 
-    struct GetLabelFn: bt1::NodeWalkerBase<GetLabelFn> {
+    struct GetLabelFn: bt1::NodeWalkerBase<GetLabelFn, IntList<0>, IntList<0>> {
 
         Int label_num_;
         GetLabelFn(Int label_num): label_num_(label_num) {}
@@ -132,7 +132,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrLabelsName)
         }
     };
 
-    struct GetHiddenLabelFn: bt1::NodeWalkerBase<GetHiddenLabelFn> {
+    struct GetHiddenLabelFn: bt1::NodeWalkerBase<GetHiddenLabelFn, IntList<0>, IntList<0>> {
 
         Int label_num_;
         GetHiddenLabelFn(Int label_num): label_num_(label_num) {}
@@ -156,7 +156,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrLabelsName)
 
 
 
-    struct SetLabelFn: bt1::NodeWalkerBase<SetLabelFn> {
+    struct SetLabelFn: bt1::NodeWalkerBase<SetLabelFn, IntList<0>, IntList<0>> {
 
         Int label_num_;
         Int new_value_;
@@ -178,7 +178,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrLabelsName)
         }
     };
 
-    struct SetHiddenLabelFn: bt1::NodeWalkerBase<SetHiddenLabelFn> {
+    struct SetHiddenLabelFn: bt1::NodeWalkerBase<SetHiddenLabelFn, IntList<0>, IntList<0>> {
 
         Int label_num_;
         Int new_value_;

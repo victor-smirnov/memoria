@@ -105,7 +105,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrInsertComprName)
 
 
     template <typename DataType>
-    struct AddLeafSingleFn: bt1::NodeWalkerBase<AddLeafSingleFn<DataType>>
+    struct AddLeafSingleFn: bt1::NodeWalkerBase<AddLeafSingleFn<DataType>, IntList<0>, IntList<0>>
     {
         const bt::SingleIndexUpdateData<DataType>& element_;
 

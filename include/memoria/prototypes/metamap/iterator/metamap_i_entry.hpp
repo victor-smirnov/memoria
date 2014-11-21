@@ -41,7 +41,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrEntryName)
     typedef typename Container::Types::Position                                 Position;
 
 
-    struct GetEntryFn: bt1::NodeWalkerBase<GetEntryFn> {
+    struct GetEntryFn: bt1::NodeWalkerBase<GetEntryFn, IntList<0>, IntList<0>> {
         template <Int Idx, typename Stream>
         Entry stream(const Stream* stream, Int idx)
         {
@@ -57,7 +57,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrEntryName)
     }
 
 
-    struct SetEntryFn: bt1::NodeWalkerBase<SetEntryFn> {
+    struct SetEntryFn: bt1::NodeWalkerBase<SetEntryFn, IntList<0>, IntList<0>> {
         template <Int Idx, typename Stream>
         void stream(Stream* stream, Int idx, const Entry& entry)
         {
