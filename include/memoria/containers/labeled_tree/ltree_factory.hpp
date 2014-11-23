@@ -37,7 +37,7 @@ struct BTTypes<Profile, memoria::LabeledTree<LabelDescriptors...>>: BTTypes<Prof
     typedef UBigInt                                                             Value;
 
     typedef TypeList<
-                NonLeafNodeTypes<BranchNode>,
+                BranchNodeTypes<BranchNode>,
                 LeafNodeTypes<LeafNode>
     >                                                                           NodeTypesList;
 

@@ -62,6 +62,8 @@ int main(void) {
 
     ListPrinter<SList>::print(cout);
 
+//    cout<<ListSize<T>::Value<<endl;
+
     return 0;
 }
 

@@ -1,7 +1,7 @@
 include_directories(../tools/include)
 
 if (NOT DEFINED MEMORIA_SANDBOX)
-    set(MEMORIA_SANDBOX substream value_list sublist subdispatch)
+    set(MEMORIA_SANDBOX substream value_list sublist subdispatch mapx)
 endif()
 
 FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX})

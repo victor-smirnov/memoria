@@ -52,7 +52,7 @@ struct BTTypes<Profile, SMrkMap<Key_, Value_, BitsPerMark_> >: public BTTypes<Pr
 
     typedef TypeList<
             LeafNodeTypes<LeafNode>,
-            NonLeafNodeTypes<BranchNode>
+            BranchNodeTypes<BranchNode>
     >                                                                           NodeTypesList;
 
     typedef TypeList<

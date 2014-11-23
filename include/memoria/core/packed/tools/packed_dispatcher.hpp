@@ -123,9 +123,8 @@ public:
     }
 
     template <Int StreamIdx, typename Fn, typename... Args>
-    static auto
+    static RtnType<Fn, StreamIdx, StreamTypeT<StreamIdx>*, Args...>
     dispatch(PackedAllocator* alloc, Fn&& fn, Args&&... args)
-        -> RtnType<Fn, StreamIdx, StreamTypeT<StreamIdx>*, Args...>
     {
         typedef StreamTypeT<StreamIdx> StreamType;
 
@@ -139,8 +138,8 @@ public:
     }
 
     template <Int StreamIdx, typename Fn, typename... Args>
-    static auto dispatch(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
-        -> RtnType<Fn, StreamIdx, const StreamTypeT<StreamIdx>*, Args...>
+    static RtnType<Fn, StreamIdx, const StreamTypeT<StreamIdx>*, Args...>
+    dispatch(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         typedef StreamTypeT<StreamIdx> StreamType;
 
@@ -443,9 +442,8 @@ public:
     }
 
     template <Int StreamIdx, typename Fn, typename... Args>
-    static auto
+    static RtnType<Fn, StreamIdx, StreamTypeT<StreamIdx>*, Args...>
     dispatch(PackedAllocator* alloc, Fn&& fn, Args&&... args)
-        -> RtnType<Fn, StreamIdx, StreamTypeT<StreamIdx>*, Args...>
     {
         typedef StreamTypeT<StreamIdx> StreamType;
 
@@ -459,8 +457,8 @@ public:
     }
 
     template <Int StreamIdx, typename Fn, typename... Args>
-    static auto dispatch(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
-        -> RtnType<Fn, StreamIdx, const StreamTypeT<StreamIdx>*, Args...>
+    static RtnType<Fn, StreamIdx, const StreamTypeT<StreamIdx>*, Args...>
+    dispatch(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         typedef StreamTypeT<StreamIdx> StreamType;
 

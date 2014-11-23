@@ -26,12 +26,6 @@
 namespace memoria   {
 namespace bt        {
 
-template <typename Types>
-struct BranchNodeStreamTypes: Types {
-    static const bool Leaf = false;
-};
-
-
 template <
         template <typename> class,
         typename
@@ -344,29 +338,22 @@ public:
 
     typedef typename Types::ID                                                  Value;
 
-    template <
-        template <typename> class,
-        typename
-    >
+    template <template <typename> class, typename>
     friend class NodePageAdaptor;
 
-    typedef BranchNodeStreamTypes<Types>                                        StreamTypes;
+    using StreamsStructList = typename Types::StreamsStructList;
 
-    typedef typename PackedNonLeafStructListBuilder<
-                typename Types::StreamDescriptors
-    >::StructList                                                               StreamsStructList;
+    using StreamDispatcherStructList = typename PackedDispatchersListBuilder<StreamsStructList>::Type;
 
-    typedef typename PackedLeafStructListBuilder<
-                typename Types::StreamDescriptors
-    >::SubstreamSizeList                                                        SubstreamsSizeList;
+    using SubstreamsSizeList = typename internal::SubstreamSizeListBuilder<StreamsStructList>::Type;
 
-    typedef typename PackedDispatcherTool<
+    using Dispatcher = typename PackedDispatcherTool<
                         0,
                         Base::StreamsStart,
-                        StreamsStructList
-    >::Type                                                                     Dispatcher;
+                        StreamDispatcherStructList
+    >::Type;
 
-    static const Int Streams                                                    = ListSize<StreamsStructList>::Value;
+    static const Int Streams 													= ListSize<StreamsStructList>::Value;
     static const Int StreamsStart                                               = Base::StreamsStart;
     static const Int StreamsEnd                                                 = Base::StreamsStart + Streams;
     static const Int ValuesBlockIdx                                             = StreamsEnd;
@@ -1262,28 +1249,6 @@ public:
         Dispatcher::dispatchNotEmpty(streams, allocator(), std::forward<Fn>(fn), args...);
     }
 
-//    template <Int Idx, typename... Args>
-//    using DispatchRtnFnType = auto(Args...) -> decltype(Dispatcher::template dispatch<Idx>(std::declval<Args>()...));
-//
-//    template <Int Idx, typename Fn, typename... T>
-//    using DispatchRtnType = typename FnTraits<
-//                                        DispatchRtnFnType<Idx, const PackedAllocator*, Fn, T...>
-//                                     >::RtnType;
-//
-//    template <typename StreamPath, typename Fn, typename... Args>
-//    auto processStream(Fn&& fn, Args&&... args) const
-//        -> DispatchRtnType<StreamIdx, Fn, Args...>
-//    {
-//        return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
-//    }
-//
-//    template <Int StreamIdx, typename Fn, typename... Args>
-//    auto processStream(Fn&& fn, Args&&... args)
-//        -> DispatchRtnType<StreamIdx, Fn, Args...>
-//    {
-//        return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
-//    }
-
 
     template <typename SubstreamPath, typename Fn, typename... Args>
     DispatchRtnType<LeafOffsetCount<SubstreamsSizeList, SubstreamPath>::Value, Fn, Args...>
@@ -1293,6 +1258,7 @@ public:
         return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
     }
 
+
     template <typename SubstreamPath, typename Fn, typename... Args>
     DispatchRtnType<LeafOffsetCount<SubstreamsSizeList, SubstreamPath>::Value, Fn, Args...>
     processStream(Fn&& fn, Args&&... args)
@@ -1300,7 +1266,6 @@ public:
         const Int StreamIdx = LeafOffsetCount<SubstreamsSizeList, SubstreamPath>::Value;
         return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
     }
-
 
 
     struct UpdateUpFn {
@@ -1448,7 +1413,7 @@ class NodePageAdaptor: public TreeNode<Types>
 {
 public:
 
-    typedef NodePageAdaptor<TreeNode, Types>                                    Me;
+    typedef NodePageAdaptor<TreeNode, Types>                                    MyType;
     typedef TreeNode<Types>                                                     Base;
 
 
@@ -1467,8 +1432,6 @@ private:
     static PageMetadata *page_metadata_;
 
 public:
-
-
     NodePageAdaptor() = default;
 
     static Int hash() {
@@ -1483,7 +1446,7 @@ public:
     {
         virtual Int serialize(const void* page, void* buf) const
         {
-            const Me* me = T2T<const Me*>(page);
+            const MyType* me = T2T<const MyType*>(page);
 
             SerializationData data;
             data.buf = T2T<char*>(buf);
@@ -1495,7 +1458,7 @@ public:
 
         virtual void deserialize(const void* buf, Int buf_size, void* page) const
         {
-            Me* me = T2T<Me*>(page);
+            MyType* me = T2T<MyType*>(page);
 
             DeserializationData data;
             data.buf = T2T<const char*>(buf);
@@ -1505,14 +1468,14 @@ public:
 
         virtual Int getPageSize(const void *page) const
         {
-            const Me* me = T2T<const Me*>(page);
+            const MyType* me = T2T<const MyType*>(page);
             return me->page_size();
         }
 
         virtual void resize(const void* page, void* buffer, Int new_size) const
         {
-            const Me* me = T2T<const Me*>(page);
-            Me* tgt = T2T<Me*>(buffer);
+            const MyType* me = T2T<const MyType*>(page);
+            MyType* tgt = T2T<MyType*>(buffer);
 
             tgt->copyFrom(me);
             me->transferDataTo(tgt);
@@ -1527,7 +1490,7 @@ public:
                         IPageDataEventHandler* handler
                      ) const
         {
-            const Me* me = T2T<const Me*>(page);
+            const MyType* me = T2T<const MyType*>(page);
             handler->startPage("BTREE_NODE");
             me->generateDataEvents(handler);
             handler->endPage();
@@ -1539,7 +1502,7 @@ public:
                         IPageLayoutEventHandler* handler
                      ) const
         {
-            const Me* me = T2T<const Me*>(page);
+            const MyType* me = T2T<const MyType*>(page);
             handler->startPage("BTREE_NODE");
             me->generateLayoutEvents(handler);
             handler->endPage();

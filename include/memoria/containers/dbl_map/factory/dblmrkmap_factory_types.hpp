@@ -49,7 +49,7 @@ struct BTTypes<Profile, DblMrkMap<Key_, Value_, BitsPerMark_> >:
     };
 
     typedef TypeList<
-            NonLeafNodeTypes<BranchNode>,
+            BranchNodeTypes<BranchNode>,
             LeafNodeTypes<LeafNode>
     >                                                                           NodeTypesList;
 

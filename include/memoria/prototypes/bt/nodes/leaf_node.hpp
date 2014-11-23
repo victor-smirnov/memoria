@@ -36,10 +36,6 @@ struct TreeLeafNodeTypes: Packed2TreeTypes<V, K> {
 
 };
 
-template <typename Types>
-struct LeafNodeStreamTypes: Types {
-    static const bool Leaf = true;
-};
 
 
 template <
@@ -47,8 +43,7 @@ template <
 >
 class LeafNode: public TreeNodeBase<typename Types::Metadata, typename Types::NodeBase>
 {
-
-    static const Int  BranchingFactor                                           = PackedTreeBranchingFactor;
+    static const Int BranchingFactor                                           	= PackedTreeBranchingFactor;
 
     typedef LeafNode<Types>                                                     Me;
     typedef LeafNode<Types>                                                     MyType;
@@ -63,37 +58,23 @@ public:
                 typename Types::NodeBase
     >                                                                           Base;
 
-private:
-
-
-
-
-public:
-
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
 
-    template <
-            template <typename> class,
-            typename
-    >
+    template <template <typename> class, typename>
     friend class NodePageAdaptor;
 
-    typedef LeafNodeStreamTypes<Types>                                          StreamTypes;
+    using StreamsStructList = typename Types::StreamsStructList;
 
-    typedef typename PackedLeafStructListBuilder<
-                typename Types::StreamDescriptors
-    >::StructList                                                               StreamsStructList;
+    using StreamDispatcherStructList = typename PackedDispatchersListBuilder<StreamsStructList>::Type;
 
-    typedef typename PackedLeafStructListBuilder<
-                typename Types::StreamDescriptors
-    >::SubstreamSizeList                                                        SubstreamsSizeList;
+    using SubstreamsSizeList = typename internal::SubstreamSizeListBuilder<StreamsStructList>::Type;
 
-    typedef typename PackedDispatcherTool<
+    using Dispatcher = typename PackedDispatcherTool<
                         0,
                         Base::StreamsStart,
-                        StreamsStructList
-    >::Type                                                                     Dispatcher;
+                        StreamDispatcherStructList
+    >::Type;
 
     static const Int Streams                                                    = ListSize<StreamsStructList>::Value;
     static const Int StreamsStart                                               = Base::StreamsStart;

@@ -121,7 +121,7 @@ public:
 template <typename Types, int Idx>
 class NDT2 {
 
-    using NodeBase  = typename Types::NodeBase;
+    using NodeBaseG  = typename Types::NodeBaseG;
     using Head      = typename SelectByIndexTool<Idx, typename Types::ChildList>::Result;
 
     using NextNDT2 = NDT2<Types, Idx - 1>;
@@ -139,7 +139,7 @@ public:
     template <typename Node, typename Functor, typename... Args>
     static auto dispatchTree(
             const Node* parent,
-            const NodeBase* child,
+            const NodeBaseG& child,
             Functor&& functor,
             Args&&... args
     )
@@ -149,7 +149,7 @@ public:
         {
             return functor.treeNode(
                     parent,
-                    static_cast<const Head*>(child),
+                    static_cast<const Head*>(child.page()),
                     std::forward<Args>(args)...
             );
         }
@@ -166,8 +166,8 @@ class NDT2<Types, 0> {
 
     static const Int Idx = 0;
 
-    using NodeBase  = typename Types::NodeBase;
-    using Head      = typename SelectByIndexTool<Idx, typename Types::ChildList>::Result;
+    using NodeBaseG  	= typename Types::NodeBaseG;
+    using Head      	= typename SelectByIndexTool<Idx, typename Types::ChildList>::Result;
 
     static const Int HASH = Head::PAGE_HASH;
 
@@ -182,7 +182,7 @@ public:
     template <typename Node, typename Functor, typename... Args>
     static auto dispatchTree(
             const Node* parent,
-            const NodeBase* child,
+            const NodeBaseG& child,
             Functor&& functor,
             Args&&... args
     )
@@ -192,7 +192,7 @@ public:
         {
             return functor.treeNode(
                     parent,
-                    static_cast<const Head*>(child),
+                    static_cast<const Head*>(child.page()),
                     std::forward<Args>(args)...
             );
         }

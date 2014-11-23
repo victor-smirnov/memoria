@@ -37,7 +37,7 @@ struct SubstreamsTreeSize<TypeList<>> {
     static const Int Size = 0;
 };
 
-
+/*
 template <typename LeafType, Int Idx = 0>
 struct LinearLeafListHelper {
     typedef TypeList<
@@ -74,7 +74,41 @@ struct LinearLeafListHelper<TypeList<>, Idx> {
     typedef TypeList<>                                                          Type;
 };
 
+*/
 
+
+template <typename LeafType>
+struct LinearLeafListHelper {
+    using Type = TypeList<LeafType>;
+};
+
+
+template <typename LeafType, typename... Tail>
+struct LinearLeafListHelper<TypeList<LeafType, Tail...>> {
+    using Type = typename MergeLists<
+                LeafType,
+                typename LinearLeafListHelper<TypeList<Tail...>>::Type
+    >::Result;
+};
+
+
+template <typename Head, typename... SubTail, typename... Tail>
+struct LinearLeafListHelper<TypeList<TypeList<Head, SubTail...>, Tail...>> {
+private:
+    using Sublist = typename LinearLeafListHelper<TypeList<Head, SubTail...>>::Typ;
+public:
+    using Type = typename MergeLists<
+                Sublist,
+                typename LinearLeafListHelper<
+                            TypeList<Tail...>
+                >::Type
+    >::Result;
+};
+
+template <>
+struct LinearLeafListHelper<TypeList<>> {
+    using Type = TypeList<>;
+};
 
 
 
@@ -128,6 +162,51 @@ struct SubstreamSizeListBuilder<TypeList<T>, Acc> {
     typedef TypeList<IntValue<Acc + 1>>                                         Type;
 };
 
+
+
+
+template <typename BranchSubstream, typename LeafSubstream>
+struct ValidateSubstreams {
+	static const bool Value = true;
+};
+
+template <typename T, typename... List>
+struct ValidateSubstreams<T, TypeList<List...>> {
+	static const bool Value = true;
+};
+
+template <typename T, typename... List>
+struct ValidateSubstreams<TypeList<T>, TypeList<List...>> {
+	static const bool Value = true;
+};
+
+template <typename T1, typename T2>
+struct ValidateSubstreams<TypeList<T1>, T2> {
+	static const bool Value = true;
+};
+
+template <typename T1, typename... List1, typename T2, typename... List2>
+struct ValidateSubstreams<TypeList<T1, List1...>, TypeList<T2, List2...>> {
+	static const bool Value = (sizeof...(List1) == sizeof...(List2)) &&
+								IsPlainList<TypeList<T1, List1...>>::Value;
+};
+
+
+
+template <typename T>
+struct NormalizeSingleElementList {
+	using Type = T;
+};
+
+template <typename T>
+struct NormalizeSingleElementList<TypeList<T>> {
+	using Type = T;
+};
+
+template <typename... List>
+struct NormalizeSingleElementList<TypeList<List...>> {
+	using Type = TypeList<List...>;
+};
 
 }
 }

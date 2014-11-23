@@ -7,102 +7,71 @@
 #include <memoria/prototypes/bt/tools/bt_packed_struct_list_builder_internal.hpp>
 
 
-namespace memoria {
-namespace bt {
+namespace memoria 	{
+namespace bt 		{
 
 
-
-template <typename List, Int Idx = 0>
+template <typename List>
 class PackedLeafStructListBuilder;
 
-template <typename List, Int Idx = 0>
-class PackedNonLeafStructListBuilder;
-
+template <typename List>
+class PackedBranchStructListBuilder;
 
 
 template <
     typename StructsTF,
-    typename... Tail,
-    Int Idx
+    typename... Tail
 >
-class PackedLeafStructListBuilder<TypeList<StructsTF, Tail...>, Idx> {
+class PackedLeafStructListBuilder<TypeList<StructsTF, Tail...>> {
 
-    typedef TypeList<StructsTF, Tail...> List;
+	using BranchType = typename internal::NormalizeSingleElementList<typename StructsTF::NonLeafType>::Type;
+	using LeafType = typename internal::NormalizeSingleElementList<typename StructsTF::LeafType>::Type;
 
-    typedef typename internal::LinearLeafListHelper<
-            typename StructsTF::LeafType,
-            Idx
-    >::Type                                                                     LeafList;
+	static_assert(
+			internal::ValidateSubstreams<BranchType, LeafType>::Value,
+			"Invalid substream structure"
+	);
 
 public:
-
     typedef typename MergeLists<
-                LeafList,
+    			LeafType,
                 typename PackedLeafStructListBuilder<
-                    TypeList<Tail...>,
-                    Idx + ListSize<LeafList>::Value
+                    TypeList<Tail...>
                 >::StructList
     >::Result                                                                   StructList;
-
-    typedef typename internal::SubstreamSizeListBuilder<
-                typename StructsTF::LeafType
-    >::Type                                                                     SubstreamSizeList;
 };
 
 
 template <
     typename StructsTF,
-    typename... Tail,
-    Int Idx
+    typename... Tail
 >
-class PackedNonLeafStructListBuilder<TypeList<StructsTF, Tail...>, Idx> {
+class PackedBranchStructListBuilder<TypeList<StructsTF, Tail...>> {
 
-    typedef TypeList<StructsTF, Tail...> List;
-
-    typedef typename internal::LinearLeafListHelper<
-            typename StructsTF::NonLeafType,
-            Idx
-    >::Type                                                                     NonLeafList;
+	using BranchType = typename internal::NormalizeSingleElementList<typename StructsTF::NonLeafType>::Type;
 
 public:
-
     typedef typename MergeLists<
-                NonLeafList,
-                typename PackedNonLeafStructListBuilder<
-                    TypeList<Tail...>,
-                    Idx + ListSize<NonLeafList>::Value
+                BranchType,
+                typename PackedBranchStructListBuilder<
+                    TypeList<Tail...>
                 >::StructList
     >::Result                                                                   StructList;
-
-    typedef typename internal::SubstreamSizeListBuilder<
-                typename StructsTF::NonLeafType
-    >::Type                                                                     SubstreamSizeList;
 };
 
-
-
-
-
-template <Int Idx>
-class PackedLeafStructListBuilder<TypeList<>, Idx> {
-public:
-    typedef TypeList<>                                                          StructList;
-    typedef TypeList<>                                                          SubstreamSizeList;
-};
-
-
-template <Int Idx>
-class PackedNonLeafStructListBuilder<TypeList<>, Idx> {
+template <>
+class PackedLeafStructListBuilder<TypeList<>> {
 public:
     typedef TypeList<>                                                          StructList;
 };
 
-template <typename Types, typename NodeList, typename LeafList>
-struct PackedStructsTF {
 
-
-
+template <>
+class PackedBranchStructListBuilder<TypeList<>> {
+public:
+    typedef TypeList<>                                                          StructList;
 };
+
 
 
 }

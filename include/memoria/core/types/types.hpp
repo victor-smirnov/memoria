@@ -149,6 +149,9 @@ template <typename Key, typename Value>
 struct Map          {};
 
 template <typename Key, typename Value>
+struct MapX         {};
+
+template <typename Key, typename Value>
 struct Map2         {};
 
 template <typename K, typename V>

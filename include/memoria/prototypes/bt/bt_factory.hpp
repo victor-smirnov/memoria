@@ -87,23 +87,22 @@ struct BTTypes {
     typedef typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator Allocator;
     typedef typename Allocator::ID                                              ID;
 
-//  typedef TypeList<>                                                          NodeTypesList;
-//
-//  typedef TypeList<>                                                          DefaultNodeTypesList;
 
     typedef TypeList<
-            NonLeafNodeTypes<BranchNode>,
+            BranchNodeTypes<BranchNode>,
             LeafNodeTypes<LeafNode>
     >                                                                           NodeTypesList;
 
     typedef TypeList<
-            TreeNodeType<LeafNode>,
             TreeNodeType<BranchNode>
-    >                                                                           DefaultNodeTypesList;
-
+    >                                                                           DefaultBranchNodeTypesList;
 
     typedef TypeList<
-    >                                                                           StreamDescriptors;
+            TreeNodeType<LeafNode>
+    >                                                                           DefaultLeafNodeTypesList;
+    //FIXME DefaultNodeTypesList is not used anymore
+
+    typedef TypeList<>                                                          StreamDescriptors;
 
     template <
         typename Types_
@@ -182,7 +181,6 @@ class CtrTF<Profile, memoria::BT, ContainerTypeName_> {
 
 public:
 
-
     typedef BTTypes<Profile, ContainerTypeName_>                                ContainerTypes;
 
     
@@ -204,43 +202,52 @@ public:
                 >::Type
     >::Type                                                                     IteratorPrefix_;
 
-    typedef core::StaticVector<
-                typename ContainerTypes::CtrSizeT,
-                Streams
-    >                                                                           Position_;
+    using Position_ = core::StaticVector<typename ContainerTypes::CtrSizeT, Streams>;
+    using Page 		= typename ContainerTypes::Allocator::Page;
 
-    typedef typename ContainerTypes::Allocator::Page                            Page;
+    using NodePageBase0 	= TreeNodeBase<typename ContainerTypes::Metadata,Page>;
+    using NodePageBase0G 	= PageGuard<NodePageBase0, typename ContainerTypes::Allocator>;
 
-    typedef TreeNodeBase<
-            typename ContainerTypes::Metadata,
-            Page
-    >                                                                           NodePageBase0;
-    typedef PageGuard<NodePageBase0, typename ContainerTypes::Allocator>        NodePageBase0G;
+    using BranchStreamsStructList = typename PackedBranchStructListBuilder<
+                typename ContainerTypes::StreamDescriptors
+    >::StructList;
 
-    struct NodeTypes: ContainerTypes {
-        typedef Page                                        NodeBase;
-        typedef ContainerTypeName_                          Name;
-        typedef typename ContainerTypes::Metadata           Metadata;
+    using LeafStreamsStructList = typename PackedLeafStructListBuilder<
+                typename ContainerTypes::StreamDescriptors
+    >::StructList;
 
-        typedef typename MyType::ID                         ID;
 
-        typedef typename ContainerTypes::StreamDescriptors  StreamDescriptors;
+    struct NodeTypesBase: ContainerTypes {
+    	using NodeBase 	= Page;
+    	using Name 		= ContainerTypeName_;
+    	using Metadata 	= typename ContainerTypes::Metadata;
+    	using ID		= typename MyType::ID;
 
-        static const Int                                    Streams             = MyType::Streams;
+    	using StreamDescriptors = typename ContainerTypes::StreamDescriptors;
 
-        typedef Accumulator_                                Accumulator;
-        typedef Position_                                   Position;
+    	using Accumulator 	= Accumulator_;
+    	using Position 		= Position_;
+    };
+
+    struct BranchNodeTypes: NodeTypesBase {
+    	using StreamsStructList = typename MyType::BranchStreamsStructList;
+    };
+
+    struct LeafNodeTypes: NodeTypesBase {
+    	using StreamsStructList = typename MyType::LeafStreamsStructList;
     };
 
     struct DispatcherTypes
     {
-        typedef typename ContainerTypes::NodeTypesList      NodeList;
-        typedef
-            typename ContainerTypes::DefaultNodeTypesList   DefaultNodeList;
-        typedef NodePageBase0                               NodeBase;
-        typedef typename MyType::NodeTypes                  NodeTypes;
-        typedef NodePageBase0G                              NodeBaseG;
-        typedef typename ContainerTypes::Allocator          Allocator;
+        using NodeTypesList = typename ContainerTypes::NodeTypesList;
+
+        using DefaultBranchNodeTypesList 	= typename ContainerTypes::DefaultBranchNodeTypesList;
+        using DefaultLeafNodeTypesList 		= typename ContainerTypes::DefaultLeafNodeTypesList;
+
+        using BranchNodeTypes 	= typename MyType::BranchNodeTypes;
+        using LeafNodeTypes 	= typename MyType::LeafNodeTypes;
+
+        using NodeBaseG 		= NodePageBase0G;
     };
 
     typedef bt::BTreeDispatchers<DispatcherTypes>                              PageDispatchers;

@@ -10,6 +10,7 @@
 #define _MEMORIA_CORE_TOOLS_TYPES_LIST_MISC_HPP
 
 #include <memoria/core/types/list/append.hpp>
+#include <memoria/core/types/list/asserts.hpp>
 #include <memoria/core/types/types.hpp>
 
 namespace memoria    {
@@ -27,8 +28,15 @@ struct SelectHeadIfNotEmpty<TypeList<>, Default> {
     typedef Default                                                             Result;
 };
 
+template<typename...> struct False {
+	static const bool Value = false;
+};
 
-template <typename List> struct ListSize;
+template <typename List> struct ListSize {
+	static_assert(False<List>::Value, "Type supplied to ListSize<> template is not allowed");
+};
+
+//template <typename List> struct ListSize;
 
 template <typename ... List>
 struct ListSize<TypeList<List...> > {
@@ -39,6 +47,22 @@ template <typename T, T ... List>
 struct ListSize<ValueList<T, List...> > {
     static const Int Value = sizeof...(List);
 };
+
+
+
+template <typename List> struct IsPlainList;
+
+template <typename H, typename... Tail>
+struct IsPlainList<TypeList<H, Tail...>> {
+	static const bool Value = (!IsList<H>::Value) && IsPlainList<TypeList<Tail...>>::Value;
+};
+
+template <>
+struct IsPlainList<TypeList<>> {
+	static const bool Value = true;
+};
+
+
 
 }
 
