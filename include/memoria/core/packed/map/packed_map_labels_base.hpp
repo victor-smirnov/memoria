@@ -84,17 +84,12 @@ public:
     typedef typename memoria::internal::LabelDispatcherListBuilder<LabelsList>::Type        LabelsStructsList;
 
 
-    typedef typename PackedDispatcherTool<
-            0,
-            HiddenLabelsOffset,
-            HiddenLabelsStructsList
-    >::Type                                                                     HiddenLabelsDispatcher;
+    using HiddenLabelsDispatcher =  PackedDispatcher <HiddenLabelsStructsList, HiddenLabelsOffset>;
 
-    typedef typename PackedDispatcherTool<
-            0,
-            HiddenLabelsOffset + ListSize<HiddenLabelsList>::Value,
-            LabelsStructsList
-    >::Type                                                                     LabelsDispatcher;
+    using LabelsDispatcher = PackedDispatcher<
+            LabelsStructsList,
+            HiddenLabelsOffset + ListSize<HiddenLabelsList>::Value
+    >;
 
 
     static const Int LabelsIndexes  = memoria::internal::LabelsBlockSizeBuilder<HiddenLabelsStructsList>::Value +

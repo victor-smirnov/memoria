@@ -26,16 +26,7 @@ struct RtnFnBase {
 };
 
 
-template <Int ListOffsetIdx, Int StartIdx, typename... List> class PackedDispatcher;
-
-template <Int ListOffsetIdx, Int StartIdx, typename List> struct PackedDispatcherTool;
-
-template <Int ListOffsetIdx, Int StartIdx, typename... List>
-struct PackedDispatcherTool<ListOffsetIdx, StartIdx, TypeList<List...>> {
-    typedef PackedDispatcher<ListOffsetIdx, StartIdx, List...> Type;
-};
-
-
+template <typename List, Int StartIdx = 0, Int ListOffsetIdx = 0> class PackedDispatcher;
 
 template <typename Struct, Int Index>
 struct StreamDescr {
@@ -44,16 +35,15 @@ struct StreamDescr {
 
 
 
-template <Int ListOffsetIdx, Int StartIdx, typename Head, typename... Tail, Int Index>
-class PackedDispatcher<ListOffsetIdx, StartIdx, StreamDescr<Head, Index>, Tail...> {
+template <typename Head, typename... Tail, Int Index, Int StartIdx, Int ListOffsetIdx>
+class PackedDispatcher<TypeList<StreamDescr<Head, Index>, Tail...>, StartIdx, ListOffsetIdx> {
 public:
 
     static const Int AllocatorIdx   = Index + StartIdx;
     static const Int ListIdx        = Index - ListOffsetIdx;
 
-
     using List              = TypeList<StreamDescr<Head, Index>, Tail...>;
-    using NextDispatcher    = PackedDispatcher<ListOffsetIdx, StartIdx, Tail...>;
+    using NextDispatcher    = PackedDispatcher<TypeList<Tail...>, StartIdx, ListOffsetIdx>;
 
     template<Int, Int, typename...> friend class PackedDispatcher;
 
@@ -71,16 +61,13 @@ public:
     using StreamTypeT = typename SelectByIndexTool<StreamIdx, List>::Result::Type;
 
     template <Int From = 0, Int To = sizeof...(Tail) + 1>
-    using SubDispatcher = typename PackedDispatcherTool<
-                                From,
-                                StartIdx,
+    using SubDispatcher = typename PackedDispatcher<
                                 typename ::memoria::Sublist<
-                                    TypeList<
-                                        StreamDescr<Head, Index>,
-                                        Tail...
-                                    >,
+                                    List,
                                     From, To
-                                >::Type
+                                >::Type,
+                                StartIdx,
+                                From
                           >::Type;
 
 
@@ -364,8 +351,8 @@ public:
 
 
 
-template <Int ListOffsetIdx, Int StartIdx, typename Head, Int Index>
-class PackedDispatcher<ListOffsetIdx, StartIdx, StreamDescr<Head, Index>> {
+template <typename Head, Int Index, Int StartIdx, Int ListOffsetIdx>
+class PackedDispatcher<TypeList<StreamDescr<Head, Index>>, StartIdx, ListOffsetIdx> {
 public:
 
     static const Int AllocatorIdx   = Index + StartIdx;
@@ -374,7 +361,7 @@ public:
 
     typedef TypeList<StreamDescr<Head, Index>> List;
 
-    template<Int, Int, typename...> friend class PackedDispatcher;
+    template<typename, Int, Int> friend class PackedDispatcher;
 
     template <typename T, Int Idx, typename... Args>
     using FnType = auto(Args...) -> decltype(std::declval<T>().template stream<Idx>(std::declval<Args>()...));
@@ -390,15 +377,15 @@ public:
     using StreamTypeT = typename SelectByIndexTool<StreamIdx, List>::Result::Type;
 
     template <Int From = 0, Int To = 1>
-    using SubDispatcher = typename PackedDispatcherTool<
-                                From,
-                                StartIdx,
+    using SubDispatcher = typename PackedDispatcher<
                                 typename ::memoria::Sublist<
                                     TypeList<
                                         StreamDescr<Head, Index>
                                     >,
                                     From, To
-                                >::Type
+                                >::Type,
+                                StartIdx,
+                                From
                           >::Type;
 
 
@@ -660,10 +647,10 @@ public:
 
 
 
-template <Int ListOffsetIdx, Int StartIdx>
-class PackedDispatcher<ListOffsetIdx, StartIdx> {
+template <Int StartIdx, Int ListOffsetIdx>
+class PackedDispatcher<TypeList<>, StartIdx, ListOffsetIdx> {
 public:
-    template<Int, Int, typename...> friend class PackedDispatcher;
+    template<typename, Int, Int> friend class PackedDispatcher;
 
     template <typename Fn, typename... Args>
     static void dispatchAllStatic(Fn&& fn, Args&&...)

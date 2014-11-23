@@ -205,7 +205,7 @@ public:
     using Position_ = core::StaticVector<typename ContainerTypes::CtrSizeT, Streams>;
     using Page 		= typename ContainerTypes::Allocator::Page;
 
-    using NodePageBase0 	= TreeNodeBase<typename ContainerTypes::Metadata,Page>;
+    using NodePageBase0 	= TreeNodeBase<typename ContainerTypes::Metadata, Page>;
     using NodePageBase0G 	= PageGuard<NodePageBase0, typename ContainerTypes::Allocator>;
 
     using BranchStreamsStructList = typename PackedBranchStructListBuilder<
@@ -222,8 +222,6 @@ public:
     	using Name 		= ContainerTypeName_;
     	using Metadata 	= typename ContainerTypes::Metadata;
     	using ID		= typename MyType::ID;
-
-    	using StreamDescriptors = typename ContainerTypes::StreamDescriptors;
 
     	using Accumulator 	= Accumulator_;
     	using Position 		= Position_;

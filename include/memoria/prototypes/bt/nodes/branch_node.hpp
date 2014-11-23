@@ -347,11 +347,7 @@ public:
 
     using SubstreamsSizeList = typename internal::SubstreamSizeListBuilder<StreamsStructList>::Type;
 
-    using Dispatcher = typename PackedDispatcherTool<
-                        0,
-                        Base::StreamsStart,
-                        StreamDispatcherStructList
-    >::Type;
+    using Dispatcher = PackedDispatcher<StreamDispatcherStructList, Base::StreamsStart>;
 
     static const Int Streams 													= ListSize<StreamsStructList>::Value;
     static const Int StreamsStart                                               = Base::StreamsStart;
