@@ -15,8 +15,10 @@
 #include <memoria/core/types/list/tuple.hpp>
 
 #include <memoria/core/packed/tools/packed_allocator.hpp>
+#include <memoria/core/packed/tools/packed_rtn_type_list.hpp>
 
 #include <utility>
+#include <type_traits>
 
 namespace memoria {
 
@@ -30,7 +32,7 @@ template <typename List, Int StartIdx = 0, Int ListOffsetIdx = 0> class PackedDi
 
 template <typename Struct, Int Index>
 struct StreamDescr {
-    typedef Struct Type;
+    using Type = Struct;
 };
 
 
@@ -38,7 +40,6 @@ struct StreamDescr {
 template <typename Head, typename... Tail, Int Index, Int StartIdx, Int ListOffsetIdx>
 class PackedDispatcher<TypeList<StreamDescr<Head, Index>, Tail...>, StartIdx, ListOffsetIdx> {
 public:
-
     static const Int AllocatorIdx   = Index + StartIdx;
     static const Int ListIdx        = Index - ListOffsetIdx;
 
@@ -53,12 +54,18 @@ public:
     template <typename Fn, Int Idx, typename... T>
     using RtnType = typename FnTraits<FnType<typename std::remove_reference<Fn>::type, Idx, T...>>::RtnType;
 
-    template <typename Fn, typename... Args>
-    using RtnTuple = MakeTuple<RtnType<Fn, ListIdx, Head*, Args...>, sizeof...(Tail) + 1>;
-
-
     template<Int StreamIdx>
     using StreamTypeT = typename SelectByIndexTool<StreamIdx, List>::Result::Type;
+
+    template <typename Fn, typename... Args>
+    using RtnTuple = typename MakeTupleH<
+    		typename MakeRtnTypeList<List, ListIdx, Fn, Args...>::Type
+    >::Type;
+
+    template <typename Fn, typename... Args>
+    using ConstRtnTuple = typename MakeTupleH<
+    		typename MakeRtnConstTypeList<List, ListIdx, Fn, Args...>::Type
+    >::Type;
 
     template <Int From = 0, Int To = sizeof...(Tail) + 1>
     using SubDispatcher = typename PackedDispatcher<
@@ -271,41 +278,41 @@ public:
 
 
     template <typename Fn, typename... Args>
-    static auto dispatchAllRtn(UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args) ->
-        RtnTuple<Fn, const Head*, Args...>
+    static ConstRtnTuple<Fn, Args...>
+    dispatchAllRtn(UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-        RtnTuple<Fn, const Head*, Args...> tuple;
+        ConstRtnTuple<Fn, const Head*, Args...> tuple;
 
-        dispatchAllRtn(tuple, streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        dispatchAllTuple(tuple, streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
 
         return tuple;
     }
 
     template <typename Fn, typename... Args>
-    static auto dispatchAllRtn(const PackedAllocator* alloc, Fn&& fn, Args&&... args) ->
-        RtnTuple<Fn, const Head*, Args...>
+    static ConstRtnTuple<Fn, Args...>
+    dispatchAllRtn(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-        RtnTuple<Fn, const Head*, Args...> tuple;
+        ConstRtnTuple<Fn, Args...> tuple;
 
-        dispatchAllRtn(tuple, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        dispatchAllTuple(tuple, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
 
         return tuple;
     }
 
     template <typename Fn, typename... Args>
-    static auto dispatchAllRtn(PackedAllocator* alloc, Fn&& fn, Args&&... args) ->
-        RtnTuple<Fn, Head*, Args...>
+    static RtnTuple<Fn, Args...>
+    dispatchAllRtn(PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-        RtnTuple<Fn, Head*, Args...> tuple;
+        RtnTuple<Fn, Args...> tuple;
 
-        dispatchAllRtn(tuple, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        dispatchAllTuple(tuple, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
 
         return tuple;
     }
 
 
     template <typename Tuple, typename Fn, typename... Args>
-    static void dispatchAllRtn(Tuple& tuple, UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    static void dispatchAllTuple(Tuple& tuple, UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         const Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
@@ -319,7 +326,7 @@ public:
     }
 
     template <typename Tuple, typename Fn, typename... Args>
-    static void dispatchAllRtn(Tuple& tuple, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    static void dispatchAllTuple(Tuple& tuple, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         const Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx))
@@ -333,7 +340,7 @@ public:
     }
 
     template <typename Tuple, typename Fn, typename... Args>
-    static void dispatchAllRtn(Tuple& tuple, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    static void dispatchAllTuple(Tuple& tuple, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx))
@@ -369,12 +376,24 @@ public:
     template <typename Fn, Int Idx, typename... T>
     using RtnType = typename FnTraits<FnType<typename std::remove_reference<Fn>::type, Idx, T...>>::RtnType;
 
-    template <typename Fn, typename... Args>
-    using RtnTuple = MakeTuple<RtnType<Fn, ListIdx, Args...>, 1>;
-
-
     template<Int StreamIdx>
     using StreamTypeT = typename SelectByIndexTool<StreamIdx, List>::Result::Type;
+
+
+    template <typename Fn, typename... Args>
+    using RtnTuple = typename MakeTupleH<
+    		typename MakeRtnTypeList<List, ListIdx, Fn, Args...>::Type
+    >::Type;
+
+    template <typename Fn, typename... Args>
+    using ConstRtnTuple = typename MakeTupleH<
+    		typename MakeRtnConstTypeList<List, ListIdx, Fn, Args...>::Type
+    >::Type;
+
+    template <typename Fn, typename... Args>
+    using HasVoid = ContainsVoid<List, ListIdx, Fn, Args...>;
+
+
 
     template <Int From = 0, Int To = 1>
     using SubDispatcher = typename PackedDispatcher<
@@ -572,42 +591,66 @@ public:
     }
 
     template <typename Fn, typename... Args>
-    static auto dispatchAllRtn(PackedAllocator* alloc, Fn&& fn, Args&&... args) ->
-        RtnTuple<Fn, const Head*, Args...>
+    static RtnTuple<Fn, Args...>
+    dispatchAllRtn(PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-        RtnTuple<Fn, const Head*, Args...> tuple;
+        RtnTuple<Fn, Args...> tuple;
 
-        dispatchAllRtn(tuple, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        dispatchAllTuple(tuple, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
 
         return tuple;
     }
 
+//    template <typename Fn, typename... Args>
+//    static typename std::enable_if<
+//    		!HasVoid<Fn, Args...>::Value,
+//    		RtnTuple<Fn, Args...>
+//    >::type
+//    dispatchAll1(PackedAllocator* alloc, Fn&& fn, Args&&... args)
+//    {
+//        RtnTuple<Fn, Args...> tuple;
+//
+//        dispatchAllTuple(tuple, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+//
+//        return tuple;
+//    }
+
+//    template <typename Fn, typename... Args>
+//    static typename std::enable_if<
+//    		HasVoid<Fn, Args...>::Value,
+//    		void
+//    >::type
+//    dispatchAll1(PackedAllocator* alloc, Fn&& fn, Args&&... args)
+//    {
+//    }
+
+
 
     template <typename Fn, typename... Args>
-    static auto dispatchAllRtn(UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args) ->
-        RtnTuple<Fn, const Head*, Args...>
+    static ConstRtnTuple<Fn, Args...>
+    dispatchAllSRtn(UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-        RtnTuple<Fn, const Head*, Args...> tuple;
+        ConstRtnTuple<Fn, Args...> tuple;
 
-        dispatchAllRtn(tuple, streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        dispatchAllTuple(tuple, streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
 
         return tuple;
     }
 
     template <typename Fn, typename... Args>
-    static auto dispatchAllRtn(const PackedAllocator* alloc, Fn&& fn, Args&&... args) ->
-        RtnTuple<Fn, const Head*, Args...>
+    static ConstRtnTuple<Fn, Args...>
+    dispatchAllRtn(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-        RtnTuple<Fn, const Head*, Args...> tuple;
+        ConstRtnTuple<Fn, Args...> tuple;
 
-        dispatchAllRtn_(tuple, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        dispatchAllTuple(tuple, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
 
         return tuple;
     }
 
 
     template <typename Tuple, typename Fn, typename... Args>
-    static void dispatchAllRtn(Tuple& tuple, UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    static void dispatchAllRtn1(Tuple& tuple, UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         const Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
@@ -619,7 +662,7 @@ public:
     }
 
     template <typename Tuple, typename Fn, typename... Args>
-    static void dispatchAllRtn(Tuple& tuple, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    static void dispatchAllTuple(Tuple& tuple, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         const Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx))
@@ -631,7 +674,7 @@ public:
     }
 
     template <typename Tuple, typename Fn, typename... Args>
-    static void dispatchAllRtn(Tuple& tuple, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    static void dispatchAllTuple(Tuple& tuple, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx))

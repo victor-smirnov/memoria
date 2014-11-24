@@ -63,6 +63,8 @@ int main(void) {
     ListPrinter<SList>::print(cout);
 
 //    cout<<ListSize<T>::Value<<endl;
+//
+//    std::tuple<void> t;
 
     return 0;
 }
