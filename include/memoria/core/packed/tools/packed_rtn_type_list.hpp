@@ -21,7 +21,7 @@ namespace memoria {
 template <typename Struct, Int Index> struct StreamDescr;
 
 template <typename List, Int StreamIdx, typename Fn, typename... Args> class MakeRtnTypeList;
-template <typename List, Int StreamIdx, typename Fn, typename... Args> class ContainsVoid;
+template <typename List, Int StreamIdx, typename Fn, typename... Args> class ContainsVoidRtnType;
 
 template <Int StreamIdx, typename Head, Int Index, typename Fn, typename... Tail, typename... Args>
 class MakeRtnTypeList<TypeList<StreamDescr<Head, Index>, Tail...>, StreamIdx, Fn, Args...> {
@@ -58,7 +58,7 @@ struct IsVoid<void> {
 
 
 template <Int StreamIdx, typename Head, Int Index, typename Fn, typename... Tail, typename... Args>
-class ContainsVoid<TypeList<StreamDescr<Head, Index>, Tail...>, StreamIdx, Fn, Args...> {
+class ContainsVoidRtnType<TypeList<StreamDescr<Head, Index>, Tail...>, StreamIdx, Fn, Args...> {
 
 	using FnType = typename std::remove_reference<Fn>::type;
 
@@ -68,11 +68,11 @@ class ContainsVoid<TypeList<StreamDescr<Head, Index>, Tail...>, StreamIdx, Fn, A
 
 public:
 	static const bool Value = IsVoid<RtnType>::Value ||
-								ContainsVoid<TypeList<Tail...>, StreamIdx + 1, Fn, Args...>::Value;
+								ContainsVoidRtnType<TypeList<Tail...>, StreamIdx + 1, Fn, Args...>::Value;
 };
 
 template <Int StreamIdx, typename Fn, typename... Args>
-class ContainsVoid<TypeList<>, StreamIdx, Fn, Args...> {
+class ContainsVoidRtnType<TypeList<>, StreamIdx, Fn, Args...> {
 public:
 	static const bool Value = false;
 };
@@ -82,10 +82,11 @@ public:
 
 
 
-template <typename List, Int StreamIdx, typename Fn, typename... Args> class MakeRtnConstTypeList;
+template <typename List, Int StreamIdx, typename Fn, typename... Args> class MakeRtnTypeListConst;
+template <typename List, Int StreamIdx, typename Fn, typename... Args> class ContainsVoidRtnTypeConst;
 
 template <Int StreamIdx, typename Head, Int Index, typename Fn, typename... Tail, typename... Args>
-class MakeRtnConstTypeList<TypeList<StreamDescr<Head, Index>, Tail...>, StreamIdx, Fn, Args...> {
+class MakeRtnTypeListConst<TypeList<StreamDescr<Head, Index>, Tail...>, StreamIdx, Fn, Args...> {
 
 	using FnType = typename std::remove_reference<Fn>::type;
 
@@ -97,16 +98,37 @@ public:
 
 	using Type = typename MergeLists<
 			RtnType,
-			typename MakeRtnConstTypeList<TypeList<Tail...>, StreamIdx + 1, Fn, Args...>::Type
+			typename MakeRtnTypeListConst<TypeList<Tail...>, StreamIdx + 1, Fn, Args...>::Type
 	>::Result;
 };
 
 template <Int StreamIdx, typename Fn, typename... Args>
-class MakeRtnConstTypeList<TypeList<>, StreamIdx, Fn, Args...> {
+class MakeRtnTypeListConst<TypeList<>, StreamIdx, Fn, Args...> {
 public:
 	using Type = TypeList<>;
 };
 
+
+
+template <Int StreamIdx, typename Head, Int Index, typename Fn, typename... Tail, typename... Args>
+class ContainsVoidRtnTypeConst<TypeList<StreamDescr<Head, Index>, Tail...>, StreamIdx, Fn, Args...> {
+
+	using FnType = typename std::remove_reference<Fn>::type;
+
+	using RtnType = decltype(
+		std::declval<FnType>().template stream<StreamIdx>(std::declval<const Head*>(), std::declval<Args>()...)
+	);
+
+public:
+	static const bool Value = IsVoid<RtnType>::Value ||
+								ContainsVoidRtnTypeConst<TypeList<Tail...>, StreamIdx + 1, Fn, Args...>::Value;
+};
+
+template <Int StreamIdx, typename Fn, typename... Args>
+class ContainsVoidRtnTypeConst<TypeList<>, StreamIdx, Fn, Args...> {
+public:
+	static const bool Value = false;
+};
 
 
 }

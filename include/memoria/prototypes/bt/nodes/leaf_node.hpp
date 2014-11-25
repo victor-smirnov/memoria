@@ -317,29 +317,29 @@ public:
     };
 
 
-//    struct InitAll {
-//    	template <Int StreamIdx, typename Node>
-//    	StaticVector<Int, StreamIdx>
-//    	stream(const Node* boo, int a, int b, int c) {
-//    		StaticVector<Int, StreamIdx> t;
-//
-//    		return t;
-//    	}
-//    };
-//
-//    struct InitVoidAll {
-//    	template <Int StreamIdx, typename Node>
-//    	void
-//    	stream(const Node* boo, int a, int b, int c) {
-//    	}
-//    };
+    struct InitAll {
+    	template <Int StreamIdx, typename Node>
+    	StaticVector<Int, StreamIdx>
+    	stream(const Node* boo, int a, int b, int c) {
+    		StaticVector<Int, StreamIdx> t;
+
+    		return t;
+    	}
+    };
+
+    struct InitVoidAll {
+    	template <Int StreamIdx, typename Node>
+    	void
+    	stream(const Node* boo, int a, int b, int c) {
+    	}
+    };
 
     void reindex()
     {
         Dispatcher::dispatchNotEmpty(allocator(), ReindexFn());
 
-//        Dispatcher::dispatchAll1(allocator(), InitAll(), 1, 2, 3);
-//        Dispatcher::dispatchAll1(allocator(), InitVoidAll(), 1, 2, 3);
+        Dispatcher::dispatchAll(allocator(), InitAll(), 1, 2, 3);
+        Dispatcher::dispatchAll(allocator(), InitVoidAll(), 1, 2, 3);
     }
 
     struct CheckFn {
