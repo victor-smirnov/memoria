@@ -209,7 +209,7 @@ public:
     template <typename NodeTypes>
     Int treeNode(const bt::LeafNode<NodeTypes>* node, BigInt start)
     {
-        Int idx = node->find(stream_, FindLeafFn(self()), start);
+        Int idx = node->process(stream_, FindLeafFn(self()), start);
 
         self().postProcessNode(node, start, idx);
 

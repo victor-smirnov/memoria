@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2013.
+// Copyright Victor Smirnov 2013-2014.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -80,29 +80,29 @@ class LeveledNodeWalkerBase {
 public:
 
     template <typename NodeTypes, typename... Args>
-    LeafRtnType<const bt::LeafNode<NodeTypes>, LeafStreamFn, Args...>
-    treeNode(const bt::LeafNode<NodeTypes>* node, Args&&... args)
+    auto treeNode(const bt::LeafNode<NodeTypes>* node, Args&&... args)
+    	-> LeafRtnType<const bt::LeafNode<NodeTypes>, LeafStreamFn, Args...>
     {
         return node->template processStream<LeafPath>(LeafStreamFn(self()), args...);
     }
 
     template <typename NodeTypes, typename... Args>
-    BranchRtnType<const bt::BranchNode<NodeTypes>, NonLeafStreamFn, Args...>
-    treeNode(const bt::BranchNode<NodeTypes>* node, Args&&... args)
+    auto treeNode(const bt::BranchNode<NodeTypes>* node, Args&&... args)
+    	-> BranchRtnType<const bt::BranchNode<NodeTypes>, NonLeafStreamFn, Args...>
     {
         return node->template processStream<BranchPath>(NonLeafStreamFn(self()), args...);
     }
 
     template <typename NodeTypes, typename... Args>
-    LeafRtnType<bt::LeafNode<NodeTypes>, LeafStreamFn, Args...>
-    treeNode(bt::LeafNode<NodeTypes>* node, Args&&... args)
+    auto treeNode(bt::LeafNode<NodeTypes>* node, Args&&... args)
+    	-> LeafRtnType<bt::LeafNode<NodeTypes>, LeafStreamFn, Args...>
     {
         return node->template processStream<LeafPath>(LeafStreamFn(self()), args...);
     }
 
     template <typename NodeTypes, typename... Args>
-    BranchRtnType<bt::BranchNode<NodeTypes>, NonLeafStreamFn, Args...>
-    treeNode(bt::BranchNode<NodeTypes>* node, Args&&... args)
+    auto treeNode(bt::BranchNode<NodeTypes>* node, Args&&... args)
+    	-> BranchRtnType<bt::BranchNode<NodeTypes>, NonLeafStreamFn, Args...>
     {
         return node->template processStream<BranchPath>(NonLeafStreamFn(self()), args...);
     }
@@ -137,31 +137,31 @@ private:
 
 public:
     template <typename NodeTypes, typename... Args>
-    LeafRtnType<bt::LeafNode<NodeTypes>, MyType, Args...>
-    treeNode(bt::LeafNode<NodeTypes>* node, Args&&... args)
+    auto treeNode(bt::LeafNode<NodeTypes>* node, Args&&... args)
+    	-> LeafRtnType<bt::LeafNode<NodeTypes>, MyType, Args...>
     {
-        return node->template processStream<LeafPath>(self(), args...);
+        node->template processStream<LeafPath>(self(), std::forward<Args>(args)...);
     }
 
     template <typename NodeTypes, typename... Args>
-    BranchRtnType<bt::BranchNode<NodeTypes>, MyType, Args...>
-    treeNode(bt::BranchNode<NodeTypes>* node, Args&&... args)
+    auto treeNode(bt::BranchNode<NodeTypes>* node, Args&&... args)
+    	-> BranchRtnType<bt::BranchNode<NodeTypes>, MyType, Args...>
     {
-        return node->template processStream<BranchPath>(self(), args...);
+        return node->template processStream<BranchPath>(self(), std::forward<Args>(args)...);
     }
 
     template <typename NodeTypes, typename... Args>
-    LeafRtnType<const bt::LeafNode<NodeTypes>, MyType, Args...>
-    treeNode(const bt::LeafNode<NodeTypes>* node, Args&&... args)
+    auto treeNode(const bt::LeafNode<NodeTypes>* node, Args&&... args)
+    	-> LeafRtnType<const bt::LeafNode<NodeTypes>, MyType, Args...>
     {
-        return node->template processStream<LeafPath>(self(), args...);
+        return node->template processStream<LeafPath>(self(), std::forward<Args>(args)...);
     }
 
     template <typename NodeTypes, typename... Args>
-    BranchRtnType<bt::BranchNode<NodeTypes>, MyType, Args...>
-    treeNode(const bt::BranchNode<NodeTypes>* node, Args&&... args)
+    auto treeNode(const bt::BranchNode<NodeTypes>* node, Args&&... args)
+    	-> BranchRtnType<const bt::BranchNode<NodeTypes>, MyType, Args...>
     {
-        return node->template processStream<BranchPath>(self(), args...);
+        return node->template processStream<BranchPath>(self(), std::forward<Args>(args)...);
     }
 
     MyType& self() {return *T2T<MyType*>(this);}

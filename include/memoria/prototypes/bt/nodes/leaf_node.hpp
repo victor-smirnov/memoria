@@ -72,20 +72,54 @@ public:
 
     using Dispatcher = PackedDispatcher<StreamDispatcherStructList, Base::StreamsStart>;
 
+    template <Int StartIdx, Int EndIdx>
+    using SubDispatcher = typename Dispatcher::template SubDispatcher<StartIdx, EndIdx>;
+
     static const Int Streams                                                    = ListSize<StreamsStructList>::Value;
     static const Int StreamsStart                                               = Base::StreamsStart;
     static const Int StreamsEnd                                                 = Base::StreamsStart + Streams;
     static const Int ValuesBlockIdx                                             = StreamsEnd;
+
+    //FIXME: Use SubDispatcher
 
     template <Int Idx, typename... Args>
     using DispatchRtnFnType = auto(Args...) -> decltype(
             Dispatcher::template dispatch<Idx>(std::declval<Args>()...)
     );
 
+    template <typename... Args>
+    using DynDispatchRtnFnType = auto(Args...) -> decltype(
+    		Dispatcher::template dispatch(std::declval<Args>()...)
+    );
+
     template <Int Idx, typename Fn, typename... T>
     using DispatchRtnType = typename FnTraits<
-            DispatchRtnFnType<Idx, const PackedAllocator*, Fn, T...>
+            DispatchRtnFnType<Idx, PackedAllocator*, Fn, T...>
     >::RtnType;
+
+    template <Int Idx, typename Fn, typename... T>
+    using DispatchRtnConstType = typename FnTraits<
+    		DispatchRtnFnType<Idx, const PackedAllocator*, Fn, T...>
+    >::RtnType;
+
+    template <typename Fn, typename... T>
+    using DynDispatchRtnType = typename FnTraits<
+    		DynDispatchRtnFnType<Int, PackedAllocator*, Fn, T...>
+    >::RtnType;
+
+    template <typename Fn, typename... T>
+    using DynDispatchRtnConstType = typename FnTraits<
+    		DynDispatchRtnFnType<Int, const PackedAllocator*, Fn, T...>
+    >::RtnType;
+
+
+
+    template <typename Fn, typename... T>
+    using ProcessAllRtnType = typename Dispatcher::template ProcessAllRtnType<Fn, T...>;
+
+    template <typename Fn, typename... T>
+    using ProcessAllRtnConstType = typename Dispatcher::template ProcessAllRtnConstType<Fn, T...>;
+
 
 
 
@@ -1098,36 +1132,37 @@ public:
     }
 
 
+
+
     template <typename Fn, typename... Args>
-    Int find(Int stream, Fn&& fn, Args&&... args) const
+    DynDispatchRtnConstType<Fn, Args...>
+    process(Int stream, Fn&& fn, Args&&... args) const
     {
         return Dispatcher::dispatch(stream, allocator(), std::forward<Fn>(fn), args...);
     }
 
     template <typename Fn, typename... Args>
-    void process(Int stream, Fn&& fn, Args&&... args) const
+    DynDispatchRtnType<Fn, Args...>
+    process(Int stream, Fn&& fn, Args&&... args)
     {
-        Dispatcher::dispatch(stream, allocator(), std::forward<Fn>(fn), args...);
+        return Dispatcher::dispatch(stream, allocator(), std::forward<Fn>(fn), args...);
     }
+
 
     template <typename Fn, typename... Args>
-    void process(Int stream, Fn&& fn, Args&&... args)
+    ProcessAllRtnConstType<Fn, Args...>
+    processAll(Fn&& fn, Args&&... args) const
     {
-        Dispatcher::dispatch(stream, allocator(), std::forward<Fn>(fn), args...);
+        return Dispatcher::dispatchAll(allocator(), std::forward<Fn>(fn), args...);
     }
+
 
     template <typename Fn, typename... Args>
-    void processAll(Fn&& fn, Args&&... args) const
+    ProcessAllRtnType<Fn, Args...>
+    processAll(Fn&& fn, Args&&... args)
     {
-        Dispatcher::dispatchAll(allocator(), std::forward<Fn>(fn), args...);
+        return Dispatcher::dispatchAll(allocator(), std::forward<Fn>(fn), args...);
     }
-
-    template <typename Fn, typename... Args>
-    void processAll(Fn&& fn, Args&&... args)
-    {
-        Dispatcher::dispatchAll(allocator(), std::forward<Fn>(fn), args...);
-    }
-
 
 
     template <typename SubstreamPath, typename Fn, typename... Args>

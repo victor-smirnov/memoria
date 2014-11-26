@@ -318,7 +318,6 @@ class BranchNode: public TreeNodeBase<typename Types::Metadata, typename Types::
 
     static const Int  BranchingFactor                                           = PackedTreeBranchingFactor;
 
-    typedef BranchNode<Types>                                                   Me;
     typedef BranchNode<Types>                                                   MyType;
 
 public:
@@ -355,15 +354,61 @@ public:
     static const Int ValuesBlockIdx                                             = StreamsEnd;
 
 
+//    template <Int Idx, typename... Args>
+//    using DispatchRtnFnType = auto(Args...) -> decltype(
+//            Dispatcher::template dispatch<Idx>(std::declval<Args>()...)
+//    );
+//
+//    template <Int Idx, typename Fn, typename... T>
+//    using DispatchRtnType = typename FnTraits<
+//            DispatchRtnFnType<Idx, PackedAllocator*, Fn, T...>
+//    >::RtnType;
+//
+//    template <Int Idx, typename Fn, typename... T>
+//    using DispatchRtnConstType = typename FnTraits<
+//    		DispatchRtnFnType<Idx, const PackedAllocator*, Fn, T...>
+//    >::RtnType;
+
     template <Int Idx, typename... Args>
     using DispatchRtnFnType = auto(Args...) -> decltype(
             Dispatcher::template dispatch<Idx>(std::declval<Args>()...)
     );
 
+    template <typename... Args>
+    using DynDispatchRtnFnType = auto(Args...) -> decltype(
+    		Dispatcher::template dispatch(std::declval<Args>()...)
+    );
+
     template <Int Idx, typename Fn, typename... T>
     using DispatchRtnType = typename FnTraits<
-            DispatchRtnFnType<Idx, const PackedAllocator*, Fn, T...>
+            DispatchRtnFnType<Idx, PackedAllocator*, Fn, T...>
     >::RtnType;
+
+    template <Int Idx, typename Fn, typename... T>
+    using DispatchRtnConstType = typename FnTraits<
+    		DispatchRtnFnType<Idx, const PackedAllocator*, Fn, T...>
+    >::RtnType;
+
+    template <typename Fn, typename... T>
+    using DynDispatchRtnType = typename FnTraits<
+    		DynDispatchRtnFnType<Int, PackedAllocator*, Fn, T...>
+    >::RtnType;
+
+    template <typename Fn, typename... T>
+    using DynDispatchRtnConstType = typename FnTraits<
+    		DynDispatchRtnFnType<Int, const PackedAllocator*, Fn, T...>
+    >::RtnType;
+
+
+
+
+    template <typename Fn, typename... T>
+    using ProcessAllRtnType = typename Dispatcher::template ProcessAllRtnType<Fn, T...>;
+
+    template <typename Fn, typename... T>
+    using ProcessAllRtnConstType = typename Dispatcher::template ProcessAllRtnConstType<Fn, T...>;
+
+
 
     BranchNode() = default;
 
@@ -388,7 +433,7 @@ public:
 
     static Int free_space(Int page_size, bool root)
     {
-        Int block_size = page_size - sizeof(Me) + PackedAllocator::my_size();
+        Int block_size = page_size - sizeof(MyType) + PackedAllocator::my_size();
         Int client_area = PackedAllocator::client_area(block_size, StreamsStart + Streams + 1);
 
         return client_area - root * PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
@@ -603,7 +648,7 @@ public:
 
     static Int client_area(Int block_size)
     {
-        Int allocator_block_size = block_size - sizeof(Me) + PackedAllocator::my_size();
+        Int allocator_block_size = block_size - sizeof(MyType) + PackedAllocator::my_size();
         return PackedAllocator::client_area(allocator_block_size, Streams);
     }
 
@@ -698,7 +743,7 @@ public:
 
     Int data_size() const
     {
-        return sizeof(Me) + this->getDataSize();
+        return sizeof(MyType) + this->getDataSize();
     }
 
     struct SizeFn {
@@ -1191,34 +1236,33 @@ public:
         }
     }
 
+
     template <typename Fn, typename... Args>
-    Int find(Int stream, Fn&& fn, Args&&... args) const
+    DynDispatchRtnConstType<Fn, Args...>
+    process(Int stream, Fn&& fn, Args... args) const
     {
-        return Dispatcher::dispatchRtn(stream, allocator(), std::forward<Fn>(fn), args...);
+        return Dispatcher::dispatch(stream, allocator(), std::forward<Fn>(fn), args...);
     }
 
     template <typename Fn, typename... Args>
-    void process(Int stream, Fn&& fn, Args... args) const
+    DynDispatchRtnType<Fn, Args...>
+    process(Int stream, Fn&& fn, Args&&... args)
     {
-        Dispatcher::dispatch(stream, allocator(), std::forward<Fn>(fn), args...);
+        return Dispatcher::dispatch(stream, allocator(), std::forward<Fn>(fn), args...);
     }
 
     template <typename Fn, typename... Args>
-    void process(Int stream, Fn&& fn, Args&&... args)
+    ProcessAllRtnConstType<Fn, Args...>
+    processAll(Fn&& fn, Args&&... args) const
     {
-        Dispatcher::dispatch(stream, allocator(), std::forward<Fn>(fn), args...);
+        return Dispatcher::dispatchAll(allocator(), std::forward<Fn>(fn), args...);
     }
 
     template <typename Fn, typename... Args>
-    void processAll(Fn&& fn, Args&&... args) const
+    ProcessAllRtnType<Fn, Args...>
+    processAll(Fn&& fn, Args&&... args)
     {
-        Dispatcher::dispatchAll(allocator(), std::forward<Fn>(fn), args...);
-    }
-
-    template <typename Fn, typename... Args>
-    void processAll(Fn&& fn, Args&&... args)
-    {
-        Dispatcher::dispatchAll(allocator(), std::forward<Fn>(fn), args...);
+        return Dispatcher::dispatchAll(allocator(), std::forward<Fn>(fn), args...);
     }
 
     template <typename Fn, typename... Args>
@@ -1247,7 +1291,7 @@ public:
 
 
     template <typename SubstreamPath, typename Fn, typename... Args>
-    DispatchRtnType<LeafOffsetCount<SubstreamsSizeList, SubstreamPath>::Value, Fn, Args...>
+    DispatchRtnConstType<LeafOffsetCount<SubstreamsSizeList, SubstreamPath>::Value, Fn, Args...>
     processStream(Fn&& fn, Args&&... args) const
     {
         const Int StreamIdx = LeafOffsetCount<SubstreamsSizeList, SubstreamPath>::Value;

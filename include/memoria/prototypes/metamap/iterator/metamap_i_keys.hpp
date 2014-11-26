@@ -65,7 +65,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::metamap::ItrKeysName)
 
         GetIndexFn fn;
 
-        return LeafDispatcher::dispatch(self.leaf(), fn, self.idx(), index_num);
+        return LeafDispatcher::dispatch(self.leaf(), fn, self.idx(), index_num);;
     }
 
     Key key() const
