@@ -39,6 +39,9 @@ struct IndexOfTool<Item, TypeList<>, Idx> {
 
 template <Int Idx, typename List, bool ReturnDefault = false, Int Counter = 0> struct SelectByIndexTool;
 
+template <Int Idx, typename List, bool ReturnDefault = false>
+using SelectByIndex = typename SelectByIndexTool<Idx, List, ReturnDefault>::Type;
+
 template <Int idx> class ListIndexOutOfRange {};
 
 

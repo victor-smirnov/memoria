@@ -27,7 +27,7 @@ template <typename Types, int Idx>
 class NDT1 {
 
     using NodeBaseG = typename Types::NodeBaseG;
-    using Head      = typename SelectByIndexTool<Idx, typename Types::List>::Type;
+    using Head      = SelectByIndex<Idx, typename Types::List>;
 
     using NextNDT1 = NDT1<Types, Idx - 1>;
 
@@ -96,7 +96,7 @@ class NDT1<Types, 0> {
     static const Int Idx = 0;
 
     using NodeBaseG = typename Types::NodeBaseG;
-    using Head      = typename SelectByIndexTool<Idx, typename Types::List>::Type;
+    using Head      = SelectByIndex<Idx, typename Types::List>;
 
     static const Int HASH = Head::PAGE_HASH;
 

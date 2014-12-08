@@ -61,7 +61,7 @@ public:
     using RtnType = typename FnTraits<FnType<typename std::remove_reference<Fn>::type, Idx, T...>>::RtnType;
 
     template<Int StreamIdx>
-    using StreamTypeT = typename SelectByIndexTool<StreamIdx, List>::Type::Type;
+    using StreamTypeT = typename SelectByIndex<StreamIdx, List>::Type;
 
     template <typename Fn, typename... Args>
     using RtnTuple = typename MakeTupleH<
@@ -576,7 +576,7 @@ public:
     using RtnType = typename FnTraits<FnType<typename std::remove_reference<Fn>::type, Idx, T...>>::RtnType;
 
     template<Int StreamIdx>
-    using StreamTypeT = typename SelectByIndexTool<StreamIdx, List>::Type::Type;
+    using StreamTypeT = typename SelectByIndex<StreamIdx, List>::Type;
 
 
     template <typename Fn, typename... Args>
