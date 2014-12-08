@@ -33,10 +33,10 @@ class MakeRtnTypeList<TypeList<StreamDescr<Head, Index>, Tail...>, StreamIdx, Fn
 	);
 
 public:
-	using Type = typename MergeLists<
+	using Type = MergeLists<
 			RtnType,
 			typename MakeRtnTypeList<TypeList<Tail...>, StreamIdx + 1, Fn, Args...>::Type
-	>::Result;
+	>;
 };
 
 template <Int StreamIdx, typename Fn, typename... Args>
@@ -96,10 +96,10 @@ class MakeRtnTypeListConst<TypeList<StreamDescr<Head, Index>, Tail...>, StreamId
 
 public:
 
-	using Type = typename MergeLists<
+	using Type = MergeLists<
 			RtnType,
 			typename MakeRtnTypeListConst<TypeList<Tail...>, StreamIdx + 1, Fn, Args...>::Type
-	>::Result;
+	>;
 };
 
 template <Int StreamIdx, typename Fn, typename... Args>

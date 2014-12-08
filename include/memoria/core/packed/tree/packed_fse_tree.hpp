@@ -104,7 +104,7 @@ private:
 
 public:
 
-    typedef typename MergeLists<
+    using FieldsList = MergeLists<
                 typename Base::FieldsList,
                 ConstValue<UInt, VERSION>,
                 decltype(size_),
@@ -112,7 +112,7 @@ public:
                 decltype(index_size_),
                 IndexValue,
                 Value
-    >::Result                                                                   FieldsList;
+    >;
 
 
 

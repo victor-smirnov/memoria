@@ -137,16 +137,16 @@ struct MetaMapBTTypesBase: public BTTypes<Profile, memoria::BT> {
     >                                                                           Metadata;
 
 
-    typedef typename MergeLists<
+    using ContainerPartsList = MergeLists<
                 typename Base::ContainerPartsList,
 
                 metamap::CtrNavName,
                 metamap::CtrRemoveName,
                 metamap::CtrFindName
-    >::Result                                                                   ContainerPartsList;
+    >;
 
 
-    typedef typename MergeLists<
+    using IteratorPartsList = MergeLists<
                 typename Base::IteratorPartsList,
 
                 metamap::ItrKeysName,
@@ -155,7 +155,7 @@ struct MetaMapBTTypesBase: public BTTypes<Profile, memoria::BT> {
                 metamap::ItrLabelsName,
                 metamap::ItrFindName,
                 metamap::ItrMiscName
-    >::Result                                                                   IteratorPartsList;
+    >;
 
 
     template <typename Iterator, typename Container>
@@ -212,18 +212,18 @@ struct BTTypes<Profile, memoria::MetaMap<Indexes_, Key_, Value_, LabelsList, Hid
     using Base = MetaMapBTTypesBase<Profile, Indexes_, Key_, Value_, LabelsList, HiddenLabelsList>;
 
 
-    typedef typename MergeLists<
+    using ContainerPartsList = MergeLists<
                     typename Base::ContainerPartsList,
                     bt::NodeNormName,
                     metamap::CtrInsertName,
                     metamap::CtrInsBatchName
-    >::Result                                                                   ContainerPartsList;
+    >;
 
 
-    typedef typename MergeLists<
+    using IteratorPartsList =MergeLists<
                     typename Base::IteratorPartsList,
                     metamap::ItrValueByRefName
-    >::Result                                                                   IteratorPartsList;
+    >;
 };
 
 
@@ -243,18 +243,18 @@ struct BTTypes<Profile, memoria::MetaMap<Indexes_, VLen<gr, Key_>, Value_, Label
     using Base = MetaMapBTTypesBase<Profile, Indexes_, VLen<gr, Key_>, Value_, LabelsList, HiddenLabelsList>;
 
 
-    typedef typename MergeLists<
+    using ContainerPartsList = MergeLists<
                     typename Base::ContainerPartsList,
                     bt::NodeComprName,
                     metamap::CtrInsertComprName,
                     metamap::CtrInsBatchComprName
-    >::Result                                                                   ContainerPartsList;
+    >;
 
 
-    typedef typename MergeLists<
+    using IteratorPartsList = MergeLists<
                     typename Base::IteratorPartsList,
                     metamap::ItrValueByRefName
-    >::Result                                                                   IteratorPartsList;
+    >;
 };
 
 
@@ -308,18 +308,18 @@ struct BTTypes<Profile, memoria::MetaMap<Indexes_, VLen<gr1, Key_>, VLen<gr2, Va
     using Base = MetaMapBTTypesBase<Profile, Indexes_, VLen<gr1, Key_>, VLen<gr2, Value_>, LabelsList, HiddenLabelsList>;
 
 
-    typedef typename MergeLists<
+    using ContainerPartsList = MergeLists<
                     typename Base::ContainerPartsList,
                     bt::NodeComprName,
                     metamap::CtrInsertComprName,
                     metamap::CtrInsBatchComprName
-    >::Result                                                                   ContainerPartsList;
+    >;
 
 
-    typedef typename MergeLists<
+    using IteratorPartsList = MergeLists<
                     typename Base::IteratorPartsList,
                     metamap::ItrValueName
-    >::Result                                                                   IteratorPartsList;
+    >;
 };
 
 

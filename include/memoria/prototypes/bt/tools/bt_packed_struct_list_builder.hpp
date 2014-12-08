@@ -33,12 +33,12 @@ class PackedLeafStructListBuilder<TypeList<StructsTF, Tail...>> {
 	);
 
 public:
-    typedef typename MergeLists<
+    using StructList = MergeLists<
     			LeafType,
                 typename PackedLeafStructListBuilder<
                     TypeList<Tail...>
                 >::StructList
-    >::Result                                                                   StructList;
+    >;
 };
 
 
@@ -51,25 +51,25 @@ class PackedBranchStructListBuilder<TypeList<StructsTF, Tail...>> {
 	using BranchType = typename internal::NormalizeSingleElementList<typename StructsTF::NonLeafType>::Type;
 
 public:
-    typedef typename MergeLists<
+    using StructList = MergeLists<
                 BranchType,
                 typename PackedBranchStructListBuilder<
                     TypeList<Tail...>
                 >::StructList
-    >::Result                                                                   StructList;
+    >;
 };
 
 template <>
 class PackedLeafStructListBuilder<TypeList<>> {
 public:
-    typedef TypeList<>                                                          StructList;
+    using StructList = TypeList<>;
 };
 
 
 template <>
 class PackedBranchStructListBuilder<TypeList<>> {
 public:
-    typedef TypeList<>                                                          StructList;
+    using StructList = TypeList<>;
 };
 
 

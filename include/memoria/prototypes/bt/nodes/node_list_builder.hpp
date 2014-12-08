@@ -80,21 +80,21 @@ template <typename BranchTypes, typename LeafTypes, typename NodeTypes> struct N
 template <typename BranchTypes, typename LeafTypes, typename Head, typename... Tail>
 struct NodeTypeListBuilder<BranchTypes, LeafTypes, TypeList<Head, Tail...>> {
 
-    typedef typename MergeLists<
+    typedef MergeLists<
             typename Head::template AllTypesList<BranchTypes, LeafTypes>,
             typename NodeTypeListBuilder<BranchTypes, LeafTypes, TypeList<Tail...>>::AllTypesList
-    >::Result                                                                   AllTypesList;
+    >                                                                   		AllTypesList;
 
 
-    typedef typename MergeLists<
+    typedef MergeLists<
             typename Head::template LeafTypesList<LeafTypes>,
             typename NodeTypeListBuilder<BranchTypes, LeafTypes, TypeList<Tail...>>::LeafTypesList
-    >::Result                                                                   LeafTypesList;
+    >                                                                   		LeafTypesList;
 
-    typedef typename MergeLists<
+    typedef MergeLists<
             typename Head::template BranchTypesList<BranchTypes>,
             typename NodeTypeListBuilder<BranchTypes, LeafTypes, TypeList<Tail...>>::BranchTypesList
-    >::Result                                                                   BranchTypesList;
+    >                                                                   		BranchTypesList;
 };
 
 
@@ -114,10 +114,10 @@ template <typename Types, typename NodeTypes> struct DefaultNodeTypeListBuilder;
 template <typename Types, typename Head, typename... Tail>
 struct DefaultNodeTypeListBuilder<Types, TypeList<Head, Tail...>> {
 
-    typedef typename MergeLists<
+    typedef MergeLists<
             typename Head::template Type<Types>,
             typename DefaultNodeTypeListBuilder<Types, TypeList<Tail...>>::List
-    >::Result                                                                   List;
+    >                                                                   		List;
 };
 
 
@@ -163,10 +163,10 @@ public:
     };
 
     struct DefaultDTypes: NodeTypesBase {
-    	using List = typename MergeLists<
+    	using List = MergeLists<
     			typename DefaultNodeTypeListBuilder<LeafTypes, DefaultLeafNodeTypesList>::List,
     			typename DefaultNodeTypeListBuilder<BranchTypes, DefaultBranchNodeTypesList>::List
-    	>::Result;
+    	>;
     };
 
     struct TreeDTypes: NodeTypesBase {

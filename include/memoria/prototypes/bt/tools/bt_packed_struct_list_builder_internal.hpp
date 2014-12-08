@@ -37,44 +37,6 @@ struct SubstreamsTreeSize<TypeList<>> {
     static const Int Size = 0;
 };
 
-/*
-template <typename LeafType, Int Idx = 0>
-struct LinearLeafListHelper {
-    typedef TypeList<
-                StreamDescr<LeafType, Idx>
-    >                                                                           Type;
-};
-
-
-template <typename LeafType, typename... Tail, Int Idx>
-struct LinearLeafListHelper<TypeList<LeafType, Tail...>, Idx> {
-    typedef typename MergeLists<
-                StreamDescr<LeafType, Idx>,
-                LinearLeafListHelper<Tail..., Idx + 1>
-    >::Result                                                                   Type;
-};
-
-
-template <typename Head, typename... SubTail, typename... Tail, Int Idx>
-struct LinearLeafListHelper<TypeList<TypeList<Head, SubTail...>, Tail...>, Idx> {
-private:
-    typedef typename LinearLeafListHelper<TypeList<Head, SubTail...>, Idx>::Type SubList;
-public:
-    typedef typename MergeLists<
-                SubList,
-                typename LinearLeafListHelper<
-                            Tail...,
-                            Idx + ListSize<SubList>::Value
-                >::Type
-    >::Result                                                                   Type;
-};
-
-template <Int Idx>
-struct LinearLeafListHelper<TypeList<>, Idx> {
-    typedef TypeList<>                                                          Type;
-};
-
-*/
 
 
 template <typename LeafType>
@@ -85,24 +47,24 @@ struct LinearLeafListHelper {
 
 template <typename LeafType, typename... Tail>
 struct LinearLeafListHelper<TypeList<LeafType, Tail...>> {
-    using Type = typename MergeLists<
+    using Type = MergeLists<
                 LeafType,
                 typename LinearLeafListHelper<TypeList<Tail...>>::Type
-    >::Result;
+    >;
 };
 
 
 template <typename Head, typename... SubTail, typename... Tail>
 struct LinearLeafListHelper<TypeList<TypeList<Head, SubTail...>, Tail...>> {
 private:
-    using Sublist = typename LinearLeafListHelper<TypeList<Head, SubTail...>>::Typ;
+    using Sublist = typename LinearLeafListHelper<TypeList<Head, SubTail...>>::Type;
 public:
-    using Type = typename MergeLists<
+    using Type = MergeLists<
                 Sublist,
                 typename LinearLeafListHelper<
                             TypeList<Tail...>
                 >::Type
-    >::Result;
+    >;
 };
 
 template <>
@@ -127,27 +89,27 @@ struct SubstreamSizeListBuilder<TypeList<T, List...>, Acc> {
 
 template <typename T, typename... List, Int Acc, typename R, typename... Tail>
 struct SubstreamSizeListBuilder<TypeList<T, TypeList<List...>, R, Tail...>, Acc> {
-    typedef typename MergeLists<
+    typedef MergeLists<
             IntValue<Acc + 1>,
             TypeList<typename SubstreamSizeListBuilder<TypeList<List...>, 0>::Type>,
             typename SubstreamSizeListBuilder<TypeList<R, Tail...>, 0>::Type
-    >::Result                                                                   Type;
+    >                                                                   		Type;
 };
 
 template <typename T, typename... List, Int Acc>
 struct SubstreamSizeListBuilder<TypeList<T, TypeList<List...>>, Acc> {
-    typedef typename MergeLists<
+    typedef MergeLists<
             IntValue<Acc + 1>,
             TypeList<typename SubstreamSizeListBuilder<TypeList<List...>, 0>::Type>
-    >::Result                                                                   Type;
+    >                                                                   		Type;
 };
 
 template <typename... List, typename R, typename... Tail, Int Acc>
 struct SubstreamSizeListBuilder<TypeList<TypeList<List...>, R, Tail...>, Acc> {
-    typedef typename MergeLists<
+    typedef MergeLists<
             TypeList<typename SubstreamSizeListBuilder<TypeList<List...>, 0>::Type>,
             typename SubstreamSizeListBuilder<TypeList<R, Tail...>, 0>::Type
-    >::Result                                                                   Type;
+    >                                                                   		Type;
 };
 
 template <typename... List, Int Acc>

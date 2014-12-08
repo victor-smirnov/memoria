@@ -24,10 +24,10 @@ struct BTTypes<Profile, memoria::Root>: public BTTypes<Profile, memoria::Map<Big
 
     typedef typename Base::ID                                                   Value;
 
-    typedef typename MergeLists<
+    using ContainerPartsList = MergeLists<
                     typename Base::ContainerPartsList,
                     memoria::root::CtrApiName
-    >::Result                                                                   ContainerPartsList;
+    >;
 
     typedef RootCtrMetadata<typename Base::ID, 1>                               Metadata;
 };

@@ -51,7 +51,7 @@ private:
 
 public:
 
-    typedef typename MergeLists<
+    using FieldsList = MergeLists<
                 typename Base::FieldsList,
 
                 UIntValue<VERSION>,
@@ -59,7 +59,7 @@ public:
                 decltype(layout_size_),
                 decltype(bitmap_size_)
 
-    >::Result                                                                   FieldsList;
+    >;
 
     PackedAllocator() = default;
 

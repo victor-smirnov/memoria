@@ -21,22 +21,22 @@ struct SublistFromStart<ValueList<T, Head, Tail...>, Len> {
     static_assert(Len >= 0, "Len parameter must be >= 0");
     static_assert(Len <= sizeof...(Tail) + 1, "Len parameter must be <= the Length of value list");
 
-    typedef typename MergeValueLists<
+    using Type = MergeValueLists<
                 ConstValue<T, Head>,
                 typename SublistFromStart<ValueList<T, Tail...>, Len - 1>::Type
-    >::Result                                                                   Type;
+    >;
 };
 
 
 
 template <typename T, T Head, T... Tail>
 struct SublistFromStart<ValueList<T, Head, Tail...>, 0> {
-    typedef ValueList<T>                                                        Type;
+    using Type = ValueList<T>;
 };
 
 template <typename T>
 struct SublistFromStart<ValueList<T>, 0> {
-    typedef ValueList<T>                                                        Type;
+    using Type = ValueList<T>;
 };
 
 
@@ -47,20 +47,20 @@ struct SublistFromStart<TypeList<Head, Tail...>, Len> {
     static_assert(Len >= 0, "Len parameter must be >= 0");
     static_assert(Len <= sizeof...(Tail) + 1, "Len parameter must be <= the Length of value list");
 
-    typedef typename MergeLists<
+    using Type = MergeLists<
                 Head,
                 typename SublistFromStart<TypeList<Tail...>, Len - 1>::Type
-    >::Result                                                                   Type;
+    >;
 };
 
 template <typename Head, typename... Tail>
 struct SublistFromStart<TypeList<Head, Tail...>, 0> {
-    typedef TypeList<>                                                          Type;
+    using Type = TypeList<>;
 };
 
 template <>
 struct SublistFromStart<TypeList<>, 0> {
-    typedef TypeList<>                                                          Type;
+    using Type = TypeList<>;
 };
 
 
@@ -69,12 +69,12 @@ template <typename List, Int From> struct SublistToEnd;
 
 template <typename T, T Head, T... Tail>
 struct SublistToEnd<ValueList<T, Head, Tail...>, 0> {
-    typedef ValueList<T, Head, Tail...>                                         Type;
+    using Type = ValueList<T, Head, Tail...>;
 };
 
 template <typename T>
 struct SublistToEnd<ValueList<T>, 0> {
-    typedef ValueList<T>                                                        Type;
+    using Type = ValueList<T>;
 };
 
 
@@ -83,19 +83,19 @@ struct SublistToEnd<ValueList<T, Head, Tail...>, From> {
     static_assert(From >= 0, "Form must be >= 0");
     static_assert(From < sizeof...(Tail) + 1, "Form must be <= length of the list");
 
-    typedef typename SublistToEnd<ValueList<T, Tail...>, From - 1>::Type            Type;
+    using Type = typename SublistToEnd<ValueList<T, Tail...>, From - 1>::Type;
 };
 
 
 
 template <typename Head, typename... Tail>
 struct SublistToEnd<TypeList<Head, Tail...>, 0> {
-    typedef TypeList<Head, Tail...>                                             Type;
+    using Type = TypeList<Head, Tail...>;
 };
 
 template <>
 struct SublistToEnd<TypeList<>, 0> {
-    typedef TypeList<>                                                          Type;
+    using Type = TypeList<>;
 };
 
 template <typename Head, typename... Tail, Int From>
@@ -103,7 +103,7 @@ struct SublistToEnd<TypeList<Head, Tail...>, From> {
     static_assert(From >= 0, "Form must be >= 0");
     static_assert(From <= sizeof...(Tail) + 1, "Form must be <= length of the list");
 
-    typedef typename SublistToEnd<TypeList<Tail...>, From - 1>::Type            Type;
+    using Type = typename SublistToEnd<TypeList<Tail...>, From - 1>::Type;
 };
 
 
@@ -112,10 +112,10 @@ template <typename List, Int From, Int To>
 struct Sublist {
     static_assert(From <= To, "Form must be <= To");
 
-    typedef typename SublistFromStart<
+    using Type = typename SublistFromStart<
             typename SublistToEnd<List, From>::Type,
             To - From
-    >::Type                                                                     Type;
+    >::Type;
 };
 
 }

@@ -139,12 +139,18 @@ public:
 
 
 
-template <typename ... Lists> struct MergeLists {
+template <typename ... Lists> struct MergeListsMF {
     typedef typename internal0::MergeTypeListsHelper<TypeList<>, Lists...>::Result   Result;
 };
 
+template <typename ... Lists>
+using MergeLists = typename MergeListsMF<Lists...>::Result;
+
 
 template <typename ... Lists> struct MergeValueLists;
+
+template <typename ... Lists>
+using MergeValueListsT = typename MergeValueLists<Lists...>::Result;
 
 template <
     typename T,

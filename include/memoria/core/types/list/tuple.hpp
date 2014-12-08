@@ -16,22 +16,22 @@ namespace memoria {
 
 template <typename T, Int Size>
 struct MakeList {
-    typedef typename MergeLists<
+    using Type = MergeLists<
                 T,
                 typename MakeList<T, Size - 1>::Type
-    >::Result                                                                   Type;
+    >;
 };
 
 template <typename T>
 struct MakeList<T, 0> {
-    typedef TypeList<>                                                          Type;
+    using Type = TypeList<>;
 };
 
 template <typename T> struct MakeTupleH;
 
 template <typename... List>
 struct MakeTupleH<TypeList<List...>> {
-    typedef std::tuple<List...>                                                 Type;
+    using Type = std::tuple<List...>;
 };
 
 template <typename T, Int Size>

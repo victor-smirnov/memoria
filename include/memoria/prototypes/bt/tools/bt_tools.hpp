@@ -188,10 +188,10 @@ struct TupleBuilder<TypeList<Types...>> {
 
 template <typename T, Int N>
 struct SameTypeListBuilder {
-    typedef typename MergeLists<
+    using Type = MergeLists<
             T,
             typename SameTypeListBuilder<T, N - 1>::Type
-    >::Result                                                                   Type;
+    >;
 };
 
 template <typename T>
@@ -214,13 +214,13 @@ template <
 class AccumulatorListBuilder<TypeList<StructsTF, Tail...>, Idx> {
 
 public:
-    typedef typename MergeLists<
+    using Type = MergeLists<
             typename StructsTF::AccumulatorPart,
             typename AccumulatorListBuilder<
                 TypeList<Tail...>,
                 Idx + 1
             >::Type
-    >::Result                                                                   Type;
+    >;
 };
 
 
@@ -245,13 +245,13 @@ template <
 class IteratorPrefixListBuilder<TypeList<StructsTF, Tail...>, Idx> {
 
 public:
-    typedef typename MergeLists<
+    using Type = MergeLists<
             typename StructsTF::IteratorPrefixPart,
             typename IteratorPrefixListBuilder<
                 TypeList<Tail...>,
                 Idx + 1
             >::Type
-    >::Result                                                                   Type;
+    >;
 };
 
 

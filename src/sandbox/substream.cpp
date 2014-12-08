@@ -52,6 +52,31 @@ typedef TypeList<
         SubstreamSizeListBuilder<TypeList<T, TypeList<T, TypeList<T>>>>::Type
 > SList;
 
+
+template <typename T, typename V = Int> struct PropValue;
+
+template <typename T>
+struct PropValue<T, decltype((void)T::VALUE, 0)> {
+	static const Int Value = T::VALUE;
+};
+
+template <typename T>
+struct PropValue<T, decltype((void)T::VALUE1, 0)> {
+	static const Int Value = T::VALUE1;
+};
+
+
+
+struct VV {
+	static const Int VALUE = 42;
+};
+
+struct VVV {
+	static const Int VALUE1 = 42;
+};
+
+
+
 int main(void) {
 
     cout<<TypeNameFactory<List>::name()<<endl;
@@ -61,6 +86,11 @@ int main(void) {
     cout<<LeafOffsetCount<List, IntList<3>>::Value<<endl;
 
     ListPrinter<SList>::print(cout);
+
+    cout<<PropValue<VV>::Value<<endl;
+
+    cout<<TypeNameFactory<decltype(std::declval<int>())>::name()<<endl;
+
 
 //    cout<<ListSize<T>::Value<<endl;
 //

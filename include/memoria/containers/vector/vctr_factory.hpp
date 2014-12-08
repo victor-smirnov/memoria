@@ -77,7 +77,7 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
     >                                                                           Metadata;
 
 
-    typedef typename MergeLists<
+    using ContainerPartsList = MergeLists<
             typename Base::ContainerPartsList,
             bt::NodeNormName,
 
@@ -86,12 +86,12 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
             mvector::CtrRemoveName,
             mvector::CtrFindName,
             mvector::CtrApiName
-    >::Result                                                                   ContainerPartsList;
+    >;
 
-    typedef typename MergeLists<
+    using IteratorPartsList = MergeLists<
             typename Base::IteratorPartsList,
             mvector::ItrApiName
-    >::Result                                                                   IteratorPartsList;
+    >;
 
     typedef IDataSource<Value>                                                  DataSource;
     typedef IDataTarget<Value>                                                  DataTarget;

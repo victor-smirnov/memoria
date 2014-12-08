@@ -83,7 +83,7 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >: public BTTypes<Profile, me
     >                                                                           Metadata;
 
 
-    typedef typename MergeLists<
+    using ContainerPartsList = MergeLists<
                 typename Base::ContainerPartsList,
                 bt::NodeComprName,
 
@@ -91,10 +91,10 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >: public BTTypes<Profile, me
                 seq_dense::CtrFindName,
                 seq_dense::CtrInsertName,
                 seq_dense::CtrRemoveName
-    >::Result                                                                   ContainerPartsList;
+    >;
 
 
-    typedef typename MergeLists<
+    using IteratorPartsList = MergeLists<
                 typename Base::IteratorPartsList,
 
                 seq_dense::IterSelectName,
@@ -103,7 +103,7 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >: public BTTypes<Profile, me
                 seq_dense::IterRankName,
                 seq_dense::IterSkipName
 
-    >::Result                                                                   IteratorPartsList;
+    >;
 
 
     template <typename Iterator, typename Container>
