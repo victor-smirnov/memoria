@@ -24,17 +24,17 @@ template <typename T, T Item1, typename List> struct AppendValueTool;
 
 template <typename Item, typename ... List>
 struct AppendTool<Item, TypeList<List...> > {
-    typedef TypeList<Item, List...>                                             Result;
+    using Type = TypeList<Item, List...>;
 };
 
 template <typename ... List1, typename ... List2>
 struct AppendTool<TypeList<List1...>, TypeList<List2...> > {
-    typedef TypeList<List1..., List2...>                                        Result;
+	using Type = TypeList<List1..., List2...>;
 };
 
 template <typename ... List, typename Item>
 struct AppendTool<TypeList<List...>, Item > {
-    typedef TypeList<List..., Item>                                             Result;
+	using Type = TypeList<List..., Item>;
 };
 
 
@@ -42,23 +42,23 @@ struct AppendTool<TypeList<List...>, Item > {
 // ValueList
 template <typename T, T Item, T ... List>
 struct AppendValueTool<T, Item, ValueList<T, List...> > {
-    typedef ValueList<T, Item, List...>                                         Result;
+	using Type = ValueList<T, Item, List...>;
 };
 
 template <typename T, T ... List1, T ... List2>
 struct AppendTool<ValueList<T, List1...>, ValueList<T, List2...> > {
-    typedef ValueList<T, List1..., List2...>                                    Result;
+	using Type = ValueList<T, List1..., List2...>;
 };
 
 
 template <typename ... List, typename ... Items>
 struct AppendToList<TypeList<List...>, Items...> {
-    typedef TypeList<List..., Items...>                                         Result;
+	using Type = TypeList<List..., Items...>;
 };
 
 template <typename ... List, typename ... Items>
 struct PrependToList<TypeList<List...>, Items...> {
-    typedef TypeList<Items..., List...>                                         Result;
+	using Type = TypeList<Items..., List...>;
 };
 
 
@@ -83,23 +83,23 @@ template <typename Accumulator, typename ... Lists> class MergeTypeListsHelper;
 
 template <typename Accumulator, typename ... List, typename ... Tail>
 class MergeTypeListsHelper<Accumulator, TypeList<List...>, Tail...> {
-    typedef typename AppendTool<Accumulator, TypeList<List...> >::Result        R0;
+    using R0 = typename AppendTool<Accumulator, TypeList<List...> >::Type;
 public:
-    typedef typename MergeTypeListsHelper<R0, Tail...>::Result                  Result;
+    using Type = typename MergeTypeListsHelper<R0, Tail...>::Type;
 };
 
 template <typename Accumulator, typename Item, typename ... Tail>
 class MergeTypeListsHelper<Accumulator, Item, Tail...> {
-    typedef typename AppendTool<Accumulator, TypeList<Item> >::Result           R0;
+    using R0 = typename AppendTool<Accumulator, TypeList<Item> >::Type;
 public:
-    typedef typename MergeTypeListsHelper<R0, Tail...>::Result                  Result;
+    using Type = typename MergeTypeListsHelper<R0, Tail...>::Type;
 };
 
 
 template <typename Accumulator>
 class MergeTypeListsHelper<Accumulator> {
 public:
-    typedef Accumulator                                                         Result;
+	using Type = Accumulator;
 };
 
 
@@ -108,22 +108,22 @@ template <typename Accumulator, typename ... Lists> class MergeValueListsHelper;
 
 template <typename Accumulator, typename T, T... List, typename ... Tail>
 class MergeValueListsHelper<Accumulator, ValueList<T, List...>, Tail...> {
-    typedef typename AppendTool<Accumulator, ValueList<T, List...> >::Result    R0;
+	using R0 = typename AppendTool<Accumulator, ValueList<T, List...> >::Type;
 public:
-    typedef typename MergeValueListsHelper<R0, Tail...>::Result                 Result;
+	using Type = typename MergeValueListsHelper<R0, Tail...>::Type;
 };
 
 template <typename Accumulator, typename T, T Value, typename ... Tail>
 class MergeValueListsHelper<Accumulator, ConstValue<T, Value>, Tail...> {
-    typedef typename AppendTool<Accumulator, ValueList<T, Value> >::Result    R0;
+	using R0 = typename AppendTool<Accumulator, ValueList<T, Value> >::Type;
 public:
-    typedef typename MergeValueListsHelper<R0, Tail...>::Result                 Result;
+	using Type = typename MergeValueListsHelper<R0, Tail...>::Type;
 };
 
 template <typename Accumulator, typename ... Tail>
 class MergeValueListsHelper {
 public:
-    typedef typename AppendTool<Accumulator, Tail... >::Result                 Result;
+	using Type = typename AppendTool<Accumulator, Tail... >::Type;
 };
 
 
@@ -131,7 +131,7 @@ public:
 template <typename Accumulator>
 class MergeValueListsHelper<Accumulator> {
 public:
-    typedef Accumulator                                                         Result;
+	using Type = Accumulator;
 };
 
 }
@@ -140,17 +140,17 @@ public:
 
 
 template <typename ... Lists> struct MergeListsMF {
-    typedef typename internal0::MergeTypeListsHelper<TypeList<>, Lists...>::Result   Result;
+	using Type = typename internal0::MergeTypeListsHelper<TypeList<>, Lists...>::Type;
 };
 
 template <typename ... Lists>
-using MergeLists = typename MergeListsMF<Lists...>::Result;
+using MergeLists = typename MergeListsMF<Lists...>::Type;
 
 
 template <typename ... Lists> struct MergeValueLists;
 
 template <typename ... Lists>
-using MergeValueListsT = typename MergeValueLists<Lists...>::Result;
+using MergeValueListsT = typename MergeValueLists<Lists...>::Type;
 
 template <
     typename T,
@@ -158,7 +158,7 @@ template <
     typename... Tail
 >
 struct MergeValueLists<ValueList<T, List...>, Tail...> {
-    typedef typename internal0::MergeValueListsHelper<ValueList<T, List...>, Tail...>::Result   Result;
+	using Type = typename internal0::MergeValueListsHelper<ValueList<T, List...>, Tail...>::Type;
 };
 
 
@@ -170,10 +170,10 @@ template <
 >
 struct MergeValueLists<ValueList<T, List...>, ConstValue<T, Value>, Tail...> {
 private:
-    typedef typename internal0::MergeValueListsHelper<ValueList<T, List...>, ValueList<T, Value>>::Result R0;
+	using R0 = typename internal0::MergeValueListsHelper<ValueList<T, List...>, ValueList<T, Value>>::Type;
 
 public:
-    typedef typename MergeValueLists<R0, Tail...>::Result   Result;
+	using Type = typename MergeValueLists<R0, Tail...>::Type;
 };
 
 
@@ -183,7 +183,7 @@ template <
     typename... Tail
 >
 struct MergeValueLists<ConstValue<T, Value>, Tail...> {
-    typedef typename MergeValueLists<ValueList<T, Value>, Tail...>::Result   Result;
+	using Type = typename MergeValueLists<ValueList<T, Value>, Tail...>::Type;
 };
 
 

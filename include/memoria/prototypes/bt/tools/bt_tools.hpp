@@ -399,12 +399,12 @@ template <typename List> struct StreamSourcePtrListBuilder;
 template <typename Head, typename... Tail>
 struct StreamSourcePtrListBuilder<TypeList<Head, Tail...>>
 {
-    typedef typename MergeLists<
+	using Type = MergeLists<
                 IDataSource<Head>*,
                 typename StreamSourcePtrListBuilder<
                     TypeList<Tail...>
                 >::Type
-    >::Result                                                                   Type;
+    >;
 };
 
 template <>

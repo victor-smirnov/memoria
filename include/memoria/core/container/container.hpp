@@ -373,13 +373,13 @@ ContainerMetadata* CtrBase<TypesType>::reflection_ = NULL;
 
 template <int Idx, typename Types>
 class CtrHelper: public CtrPart<
-                            typename SelectByIndexTool<Idx, typename Types::List>::Result,
+                            typename SelectByIndexTool<Idx, typename Types::List>::Type,
                             CtrHelper<Idx - 1, Types>,
                             Types>
 {
     typedef CtrHelper<Idx, Types>                               ThisType;
     typedef Ctr<Types>                                          MyType;
-    typedef CtrPart<typename SelectByIndexTool<Idx, typename Types::List>::Result, CtrHelper<Idx - 1, Types>, Types> Base;
+    typedef CtrPart<typename SelectByIndexTool<Idx, typename Types::List>::Type, CtrHelper<Idx - 1, Types>, Types> Base;
 
     typedef typename Types::Allocator Allocator0;
 

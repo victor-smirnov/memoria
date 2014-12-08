@@ -29,7 +29,7 @@ template <typename Types, int Idx = ListSize<typename Types::List>::Value - 1>
 class NDTTree {
 
     using NodeBaseG = typename Types::NodeBaseG;
-    using Head      = typename SelectByIndexTool<Idx, typename Types::List>::Result;
+    using Head      = typename SelectByIndexTool<Idx, typename Types::List>::Type;
 
     static const Int HASH       = Head::PAGE_HASH;
     static const bool Leaf      = Head::Leaf;
@@ -75,7 +75,7 @@ class NDTTree<Types, 0> {
     static const Int Idx = 0;
 
     using NodeBaseG = typename Types::NodeBaseG;
-    using Head      = typename SelectByIndexTool<Idx, typename Types::List>::Result;
+    using Head      = typename SelectByIndexTool<Idx, typename Types::List>::Type;
 
     static const Int HASH       = Head::PAGE_HASH;
     static const bool Leaf      = Head::Leaf;
@@ -122,7 +122,7 @@ template <typename Types, int Idx>
 class NDT2 {
 
     using NodeBaseG  = typename Types::NodeBaseG;
-    using Head      = typename SelectByIndexTool<Idx, typename Types::ChildList>::Result;
+    using Head       = typename SelectByIndexTool<Idx, typename Types::ChildList>::Type;
 
     using NextNDT2 = NDT2<Types, Idx - 1>;
 
@@ -167,7 +167,7 @@ class NDT2<Types, 0> {
     static const Int Idx = 0;
 
     using NodeBaseG  	= typename Types::NodeBaseG;
-    using Head      	= typename SelectByIndexTool<Idx, typename Types::ChildList>::Result;
+    using Head      	= typename SelectByIndexTool<Idx, typename Types::ChildList>::Type;
 
     static const Int HASH = Head::PAGE_HASH;
 

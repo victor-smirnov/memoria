@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011.
+// Copyright Victor Smirnov 2011-2014.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -44,27 +44,27 @@ template <Int idx> class ListIndexOutOfRange {};
 
 template <Int Idx, bool ReturnDefault, typename Head, typename ... Tail>
 struct SelectByIndexTool<Idx, TypeList<Head, Tail...>, ReturnDefault, Idx> {
-    typedef Head                                                                Result;
+    using Type = Head;
 };
 
 template <Int Idx, bool ReturnDefault, typename Head, typename ... Tail, Int Counter>
 struct SelectByIndexTool<Idx, TypeList<Head, Tail...>, ReturnDefault, Counter> {
-    typedef typename SelectByIndexTool<
+	using Type = typename SelectByIndexTool<
                         Idx,
                         TypeList<Tail...>,
                         ReturnDefault,
                         Counter + 1
-                     >::Result                                                  Result;
+                     >::Type;
 };
 
 template <Int Idx, Int Counter>
 struct SelectByIndexTool<Idx, TypeList<>, false, Counter> {
-    typedef ListIndexOutOfRange<Idx>                                            Result;
+	using Type = ListIndexOutOfRange<Idx>;
 };
 
 template <Int Idx, Int Counter>
 struct SelectByIndexTool<Idx, TypeList<>, true, Counter> {
-    typedef NullType                                                            Result;
+	using Type = NullType;
 };
 
 

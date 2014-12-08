@@ -263,7 +263,7 @@ struct PageBuilder: public Builder<PartsList, PagePart, Base> {};
 
 template <int Idx, typename Types>
 class PageHelper: public PagePart<
-                    typename SelectByIndexTool<Idx, typename Types::List>::Result,
+                    typename SelectByIndexTool<Idx, typename Types::List>::Type,
                     PageHelper<Idx - 1, Types>
                   >
 {

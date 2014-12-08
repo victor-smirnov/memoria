@@ -28,14 +28,14 @@ template <typename Name, typename Base, typename Types> class IterPart;
 template <int Idx, typename Types>
 class IterHelper: public IterPart<typename SelectByIndexTool<
                                                 Idx,
-                                                typename Types::List>::Result,
+                                                typename Types::List>::Type,
                                                 IterHelper<Idx - 1, Types>, Types
                                                 >
 {
     typedef Iter<Types>                         MyType;
     typedef IterHelper<Idx, Types>              ThisType;
     typedef IterPart<
-                typename SelectByIndexTool<Idx, typename Types::List>::Result,
+                typename SelectByIndexTool<Idx, typename Types::List>::Type,
                 IterHelper<Idx - 1, Types>, Types
             >                                   BaseType;
 

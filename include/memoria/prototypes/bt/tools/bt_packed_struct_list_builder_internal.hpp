@@ -76,52 +76,52 @@ struct LinearLeafListHelper<TypeList<>> {
 
 template <typename T, Int Acc = 0>
 struct SubstreamSizeListBuilder {
-    typedef TypeList<IntValue<1>>                                               Type;
+    using Type = TypeList<IntValue<1>>;
 };
 
 
 template <typename T, typename... List, Int Acc>
 struct SubstreamSizeListBuilder<TypeList<T, List...>, Acc> {
-    typedef typename SubstreamSizeListBuilder<
+    using Type = typename SubstreamSizeListBuilder<
                 TypeList<List...>, Acc + 1
-    >::Type                                                                     Type;
+    >::Type;
 };
 
 template <typename T, typename... List, Int Acc, typename R, typename... Tail>
 struct SubstreamSizeListBuilder<TypeList<T, TypeList<List...>, R, Tail...>, Acc> {
-    typedef MergeLists<
+    using Type = MergeLists<
             IntValue<Acc + 1>,
             TypeList<typename SubstreamSizeListBuilder<TypeList<List...>, 0>::Type>,
             typename SubstreamSizeListBuilder<TypeList<R, Tail...>, 0>::Type
-    >                                                                   		Type;
+    >;
 };
 
 template <typename T, typename... List, Int Acc>
 struct SubstreamSizeListBuilder<TypeList<T, TypeList<List...>>, Acc> {
-    typedef MergeLists<
+    using Type = MergeLists<
             IntValue<Acc + 1>,
             TypeList<typename SubstreamSizeListBuilder<TypeList<List...>, 0>::Type>
-    >                                                                   		Type;
+    >;
 };
 
 template <typename... List, typename R, typename... Tail, Int Acc>
 struct SubstreamSizeListBuilder<TypeList<TypeList<List...>, R, Tail...>, Acc> {
-    typedef MergeLists<
+    using Type = MergeLists<
             TypeList<typename SubstreamSizeListBuilder<TypeList<List...>, 0>::Type>,
             typename SubstreamSizeListBuilder<TypeList<R, Tail...>, 0>::Type
-    >                                                                   		Type;
+    >;
 };
 
 template <typename... List, Int Acc>
 struct SubstreamSizeListBuilder<TypeList<TypeList<List...>>, Acc> {
-    typedef TypeList<
+    using Type = TypeList<
             typename SubstreamSizeListBuilder<TypeList<List...>, 0>::Type
-    >                                                                           Type;
+    >;
 };
 
 template <typename T, Int Acc>
 struct SubstreamSizeListBuilder<TypeList<T>, Acc> {
-    typedef TypeList<IntValue<Acc + 1>>                                         Type;
+	using Type = TypeList<IntValue<Acc + 1>>;
 };
 
 

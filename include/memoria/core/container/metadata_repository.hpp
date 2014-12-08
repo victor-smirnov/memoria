@@ -69,7 +69,7 @@ class SimpleOrderedBuilder {
     typedef typename IfThenElse<
         IfTypesEqual<DeclType, NotDefined>::Value,
         List,
-        typename AppendTool<DeclType, List>::Result
+        typename AppendTool<DeclType, List>::Type
     >::Result                                                   NewList;
 
 public:
