@@ -21,7 +21,10 @@
 #include <memoria/core/types/typehash.hpp>
 #include <memoria/core/types/types.hpp>
 #include <memoria/prototypes/bt/nodes/branch_node.hpp>
+
 #include <memoria/prototypes/bt/tools/bt_packed_struct_list_builder.hpp>
+#include <memoria/prototypes/bt/tools/bt_size_list_builder.hpp>
+#include <memoria/prototypes/bt/tools/bt_accumulator_handlers.hpp>
 
 
 namespace memoria   {
@@ -68,6 +71,15 @@ public:
     using StreamDispatcherStructList = typename PackedDispatchersListBuilder<Linearize<SubstreamsStructList>>::Type;
 
     using Dispatcher = PackedDispatcher<StreamDispatcherStructList, Base::StreamsStart>;
+
+    using AccumulatorDispatcher = AccumulatorLeafHandler<
+    		Accumulator,
+    		typename LeafOffsetListBuilder<SubstreamsStructList>::Type
+    >;
+
+//    using AccumulatorDispatcher =
+//        		typename LeafOffsetListBuilder<SubstreamsStructList>::Type;
+
 
     template <Int StartIdx, Int EndIdx>
     using SubDispatcher = typename Dispatcher::template SubDispatcher<StartIdx, EndIdx>;
@@ -943,9 +955,25 @@ public:
         }
     };
 
+//    struct Sums2XFn {
+//    	template<Int Idx, Int Offset, typename TupleItem, typename... Args>
+//    	void substream(TupleItem&& item, Args&&... args)
+//    	{
+//
+//    	}
+//
+//    	template<Int Idx, Int Offset, typename TupleItem, typename... Args>
+//    	void streamStart(TupleItem&& item, Args&&... args)
+//    	{
+//
+//    	}
+//    };
+
     void sums(Int start, Int end, Accumulator& sums) const
     {
-        Dispatcher::dispatchNotEmpty(allocator(), SumsFn(), start, end, sums);
+//    	AccumulatorDispatcher::process(sums, Sums2XFn(), start, end);
+
+    	Dispatcher::dispatchNotEmpty(allocator(), SumsFn(), start, end, sums);
     }
 
     void sums(Int stream, Int start, Int end, Accumulator& sums) const

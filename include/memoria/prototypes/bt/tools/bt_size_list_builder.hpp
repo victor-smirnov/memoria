@@ -61,7 +61,7 @@ template <
 >
 struct OffsetBuilder<TypeList<Head, Tail...>> {
 	using Type = MergeLists<
-			IntValue<0>,
+			TypeList<IntList<0>>,
 			typename OffsetBuilder<TypeList<Tail...>>::Type
 	>;
 };
@@ -92,7 +92,7 @@ template <
 struct InternalOffsetBuilder<TypeList<Head, Tail...>, Offset>
 {
 	using Type = MergeLists<
-			IntValue<Offset>,
+			TypeList<IntList<Offset>>,
 			typename InternalOffsetBuilder<
 						TypeList<Tail...>,
 						Offset + StructSizeProvider<Head>::Value
@@ -121,6 +121,7 @@ class LeafOffsetListBuilder {
 public:
 	using Type = typename detail::TagStreamsStart<OffsetList, List>::Type;
 };
+
 
 
 }
