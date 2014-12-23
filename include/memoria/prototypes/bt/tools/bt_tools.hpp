@@ -26,6 +26,11 @@
 namespace memoria   {
 namespace bt        {
 
+
+
+
+
+
 template <typename DataType>
 struct SingleIndexUpdateData {
     Int stream_;
@@ -202,7 +207,6 @@ struct SameTypeListBuilder<T, 0> {
 
 
 
-
 template <typename List, Int Idx = 0>
 class AccumulatorListBuilder;
 
@@ -215,8 +219,8 @@ class AccumulatorListBuilder<TypeList<StructsTF, Tail...>, Idx> {
 
 public:
     using Type = MergeLists<
-            typename StructsTF::AccumulatorPart,
-            typename AccumulatorListBuilder<
+            Linearize<typename StructsTF::AccumulatorPart>,
+    		typename AccumulatorListBuilder<
                 TypeList<Tail...>,
                 Idx + 1
             >::Type

@@ -18,5 +18,7 @@
 #include <memoria/core/types/list/reverse.hpp>
 #include <memoria/core/types/list/sublist.hpp>
 #include <memoria/core/types/list/tuple.hpp>
+#include <memoria/core/types/list/list_tree.hpp>
+#include <memoria/core/types/list/linearize.hpp>
 
 #endif

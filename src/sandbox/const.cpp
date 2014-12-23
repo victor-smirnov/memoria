@@ -1,36 +1,84 @@
 
-
-#include <memoria/memoria.hpp>
-
-#include <memoria/core/tools/elias_codec.hpp>
-#include <memoria/core/tools/i64_codec.hpp>
+#include <memoria/core/tools/type_name.hpp>
 
 #include <typeinfo>
 #include <iostream>
 #include <vector>
+#include <unordered_map>
+
 
 using namespace std;
-using namespace memoria;
-using namespace memoria::core;
+using namespace memoria::vapi;
+
+struct Foo {
+	void m() {
+		cout<<"m() "<<endl;
+	};
+	void m() const {
+		cout<<"m() const"<<endl;
+	};
+};
+
+struct ConstFoo {
+	void m() const {
+		cout<<"m() const"<<endl;
+	};
+};
+
+
+struct Bar {
+	mutable int m_ = 0;
+
+	Bar() {}
+
+	void m() {
+		cout<<"m()"<<endl;
+	}
+	void m() const {
+		m_ = 2;
+
+		cout<<"m() const"<<endl;
+	}
+
+	const ConstFoo foo() const {
+		return ConstFoo();
+	}
+
+	Foo foo() {
+		return Foo();
+	}
+};
+
+
+void constFn(const Bar& bar) {
+	cout<<TypeNameFactory<decltype(bar.foo())>::name()<<endl;
+}
 
 
 
 int main(void) {
 
-    size_t lmax = 0;
+    Bar b1;
+    const Bar b2;
 
-    for (BigInt c = 0; c < 65536; c++)
-    {
-        size_t len = GetI64ValueLength(c);
+    b1.m();
+    b1.m();
 
-        if (len < lmax) {
-            cout<<c<<" "<<len<<" "<<lmax<<endl;
-            break;
-        }
-        else {
-            cout<<c<<" "<<len<<endl;
-        }
-    }
+    b2.m();
+    b2.m();
+
+    ConstFoo foo = b2.foo();
+
+    foo.m();
+
+    typedef unordered_map<int, int> int_map;
+
+    int_map m;
+
+    constFn(b2);
+
+    //cout<<TypeNameFactory<decltype(b2.foo())>::name()<<endl;
+    cout<<TypeNameFactory<decltype(begin(m))>::name()<<endl;
 
     return 0;
 }

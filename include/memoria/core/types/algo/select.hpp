@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011.
+// Copyright Victor Smirnov 2011-2014.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -34,6 +34,21 @@ template <Int Value, Int Idx>
 struct Select<Value, TypeList<>, Idx> {
     typedef ListIndexOutOfRange<Value>                                          Result;
 };
+
+
+template <typename List, typename Default> struct SelectHeadIfNotEmpty;
+
+template <typename Head, typename ... Tail, typename Default>
+struct SelectHeadIfNotEmpty<TypeList<Head, Tail...>, Default> {
+    typedef Head                                                                Result;
+};
+
+template <typename Default>
+struct SelectHeadIfNotEmpty<TypeList<>, Default> {
+    typedef Default                                                             Result;
+};
+
+
 
 
 

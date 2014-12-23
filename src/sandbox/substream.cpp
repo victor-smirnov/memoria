@@ -3,12 +3,30 @@
 
 #include <memoria/prototypes/bt/tools/bt_packed_struct_list_builder.hpp>
 #include <memoria/prototypes/bt/tools/bt_leaf_offset_count.hpp>
+#include <memoria/prototypes/bt/tools/bt_size_list_builder.hpp>
 
 #include <memoria/core/tools/type_name.hpp>
+#include <memoria/core/types/list/list_tree.hpp>
 
 #include <typeinfo>
 #include <iostream>
 #include <vector>
+
+template <int I>
+struct S {};
+
+namespace memoria {
+namespace bt {
+
+template <Int I>
+struct StructSizeProvider<S<I>> {
+	static const Int Value = I;
+};
+
+
+}
+}
+
 
 using namespace std;
 using namespace memoria;
@@ -38,7 +56,7 @@ using namespace memoria::bt::internal;
 
 class T {};
 
-typedef TypeList<
+using SList = TypeList<
         SubstreamSizeListBuilder<T>::Type,
         SubstreamSizeListBuilder<TypeList<T, T, T, T>>::Type,
         SubstreamSizeListBuilder<TypeList<TypeList<T>, T, T, T>>::Type,
@@ -50,8 +68,7 @@ typedef TypeList<
         SubstreamSizeListBuilder<TypeList<TypeList<T>, T>>::Type,
 
         SubstreamSizeListBuilder<TypeList<T, TypeList<T, TypeList<T>>>>::Type
-> SList;
-
+>;
 
 template <typename T, typename V = Int> struct PropValue;
 
@@ -76,6 +93,21 @@ struct VVV {
 };
 
 
+using List2 = IntList<
+	LeafCount<TL<TL<T, TL<T, T, T>, T>, TL<T, T, T>, T>, IntList<2>, 3>::Value
+>;
+
+
+using List4 = TL<TL<S<2>, S<7>>, TL<S<3>, S<5>>>;
+using List5 = Linearize<List4, 2>;
+
+using List3 = TypeList<
+		//detail::OffsetBuilder<List5>::Type,
+		LeafOffsetListBuilder<List4>::Type
+
+//		S<LeafCount<List4, IntList<1,1>, 1>::Value>
+>;
+
 
 int main(void) {
 
@@ -83,7 +115,7 @@ int main(void) {
 
     cout<<SubstreamsTreeSize<List>::Size<<endl;
 
-    cout<<LeafOffsetCount<List, IntList<3>>::Value<<endl;
+//    cout<<LeafOffsetCount<List, IntList<3>>::Value<<endl;
 
     ListPrinter<SList>::print(cout);
 
@@ -95,6 +127,9 @@ int main(void) {
 //    cout<<ListSize<T>::Value<<endl;
 //
 //    std::tuple<void> t;
+
+    cout<<"LeafOffset: "<<endl;
+    ListPrinter<List3>::print(cout);
 
     return 0;
 }

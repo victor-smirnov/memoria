@@ -64,18 +64,16 @@ public:
     template <template <typename> class, typename>
     friend class NodePageAdaptor;
 
-    using StreamsStructList = typename Types::StreamsStructList;
+    using SubstreamsStructList = typename Types::StreamsStructList;
 
-    using StreamDispatcherStructList = typename PackedDispatchersListBuilder<StreamsStructList>::Type;
-
-    using SubstreamsSizeList = typename internal::SubstreamSizeListBuilder<StreamsStructList>::Type;
+    using StreamDispatcherStructList = typename PackedDispatchersListBuilder<Linearize<SubstreamsStructList>>::Type;
 
     using Dispatcher = PackedDispatcher<StreamDispatcherStructList, Base::StreamsStart>;
 
     template <Int StartIdx, Int EndIdx>
     using SubDispatcher = typename Dispatcher::template SubDispatcher<StartIdx, EndIdx>;
 
-    static const Int Streams                                                    = ListSize<StreamsStructList>::Value;
+    static const Int Streams                                                    = ListSize<SubstreamsStructList>::Value;
     static const Int StreamsStart                                               = Base::StreamsStart;
     static const Int StreamsEnd                                                 = Base::StreamsStart + Streams;
     static const Int ValuesBlockIdx                                             = StreamsEnd;
@@ -1166,18 +1164,18 @@ public:
 
 
     template <typename SubstreamPath, typename Fn, typename... Args>
-    DispatchRtnType<LeafOffsetCount<SubstreamsSizeList, SubstreamPath>::Value, Fn, Args...>
+    DispatchRtnType<LeafCount<SubstreamsStructList, SubstreamPath>::Value, Fn, Args...>
     processStream(Fn&& fn, Args&&... args) const
     {
-        const Int StreamIdx = LeafOffsetCount<SubstreamsSizeList, SubstreamPath>::Value;
+        const Int StreamIdx = LeafCount<SubstreamsStructList, SubstreamPath>::Value;
         return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
     }
 
     template <typename SubstreamPath, typename Fn, typename... Args>
-    DispatchRtnType<LeafOffsetCount<SubstreamsSizeList, SubstreamPath>::Value, Fn, Args...>
+    DispatchRtnType<LeafCount<SubstreamsStructList, SubstreamPath>::Value, Fn, Args...>
     processStream(Fn&& fn, Args&&... args)
     {
-        const Int StreamIdx = LeafOffsetCount<SubstreamsSizeList, SubstreamPath>::Value;
+        const Int StreamIdx = LeafCount<SubstreamsStructList, SubstreamPath>::Value;
         return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
     }
 

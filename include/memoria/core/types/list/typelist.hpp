@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011.
+// Copyright Victor Smirnov 2011-2014.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -16,6 +16,28 @@
 #include <ostream>
 
 namespace memoria    {
+
+template<typename...> struct False {
+	static const bool Value = false;
+};
+
+
+template <typename List> struct ListSize {
+	static_assert(False<List>::Value, "Type supplied to ListSize<> template is not allowed");
+};
+
+//template <typename List> struct ListSize;
+
+template <typename ... List>
+struct ListSize<TypeList<List...> > {
+    static const Int Value = sizeof...(List);
+};
+
+template <typename T, T ... List>
+struct ListSize<ValueList<T, List...> > {
+    static const Int Value = sizeof...(List);
+};
+
 
 template <typename ... List> struct ListHead;
 
@@ -60,6 +82,24 @@ struct ListPrinter<TypeList<>> {
     }
 };
 
+
+template <typename T, T Head, T... Tail>
+struct ListPrinter<ValueList<T, Head, Tail...>> {
+    static void print(std::ostream& out)
+    {
+        out<<Head<<std::endl;
+        ListPrinter<ValueList<T, Tail...>>::print(out);
+    }
+};
+
+template <typename T>
+struct ListPrinter<ValueList<T>> {
+    static void print(std::ostream& out)
+    {
+    }
+};
+
+
 }
 
-#endif  /* _MEMORIA_CORE_TOOLS_TYPES_LIST_TYPELIST_HPP */
+#endif

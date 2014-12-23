@@ -39,40 +39,6 @@ struct SubstreamsTreeSize<TypeList<>> {
 
 
 
-template <typename LeafType>
-struct LinearLeafListHelper {
-    using Type = TypeList<LeafType>;
-};
-
-
-template <typename LeafType, typename... Tail>
-struct LinearLeafListHelper<TypeList<LeafType, Tail...>> {
-    using Type = MergeLists<
-                LeafType,
-                typename LinearLeafListHelper<TypeList<Tail...>>::Type
-    >;
-};
-
-
-template <typename Head, typename... SubTail, typename... Tail>
-struct LinearLeafListHelper<TypeList<TypeList<Head, SubTail...>, Tail...>> {
-private:
-    using Sublist = typename LinearLeafListHelper<TypeList<Head, SubTail...>>::Type;
-public:
-    using Type = MergeLists<
-                Sublist,
-                typename LinearLeafListHelper<
-                            TypeList<Tail...>
-                >::Type
-    >;
-};
-
-template <>
-struct LinearLeafListHelper<TypeList<>> {
-    using Type = TypeList<>;
-};
-
-
 
 template <typename T, Int Acc = 0>
 struct SubstreamSizeListBuilder {
@@ -169,6 +135,42 @@ template <typename... List>
 struct NormalizeSingleElementList<TypeList<List...>> {
 	using Type = TypeList<List...>;
 };
+
+
+template <typename T>
+struct IsTypeOrPlainList {
+	static const bool Value = true;
+};
+
+template <typename... T>
+struct IsTypeOrPlainList<TypeList<T...>> {
+	static const bool Value = IsPlainList<TypeList<T...>>::Value;
+};
+
+
+
+template <typename T> struct SublinearizeT {
+	using Type = TypeList<T>;
+};
+
+
+template <typename Head, typename... Tail>
+struct SublinearizeT<TypeList<Head, Tail...>> {
+//	using Type = typename IfThenElse<
+//					IsTypeOrPlainList<TypeList<Head, Tail...>>::Value,
+//					TypeList<Head, Tail...>,
+//					typename IfThenElse<
+//						IsTypeOrPlainList<Head>::Value,
+//						MergeLists<
+//							Head,
+//							typename SublinearizeT<TypeList<Tail...>>::Type
+//						>,
+//
+//					>::Type
+//
+//	>::Result;
+};
+
 
 }
 }

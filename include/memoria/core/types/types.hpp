@@ -119,6 +119,10 @@ template <typename T> struct TypeHash; // must define Value constant
 template <typename ... Types>
 struct TypeList {};
 
+template <typename ... Types>
+using TL = TypeList<Types...>;
+
+
 template <typename T, T ... Values>
 struct ValueList {};
 

@@ -190,11 +190,6 @@ public:
 
     static const Int Streams = ListSize<typename ContainerTypes::StreamDescriptors>::Value;
 
-    typedef typename bt::TupleBuilder<
-                typename bt::AccumulatorListBuilder<
-                    typename ContainerTypes::StreamDescriptors
-                >::Type
-    >::Type                                                                     Accumulator_;
 
     typedef typename bt::TupleBuilder<
                 typename bt::IteratorPrefixListBuilder<
@@ -215,6 +210,12 @@ public:
     using LeafStreamsStructList = typename PackedLeafStructListBuilder<
                 typename ContainerTypes::StreamDescriptors
     >::StructList;
+
+    using Accumulator_ = typename bt::TupleBuilder<
+                    typename bt::AccumulatorListBuilder<
+                        typename ContainerTypes::StreamDescriptors
+                    >::Type
+    >::Type;
 
 
     struct NodeTypesBase: ContainerTypes {

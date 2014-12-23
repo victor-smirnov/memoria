@@ -340,34 +340,19 @@ public:
     template <template <typename> class, typename>
     friend class NodePageAdaptor;
 
-    using StreamsStructList = typename Types::StreamsStructList;
+    using SubstreamsStructList = typename Types::StreamsStructList;
 
-    using StreamDispatcherStructList = typename PackedDispatchersListBuilder<StreamsStructList>::Type;
+    using StreamDispatcherStructList = typename PackedDispatchersListBuilder<Linearize<SubstreamsStructList>>::Type;
 
-    using SubstreamsSizeList = typename internal::SubstreamSizeListBuilder<StreamsStructList>::Type;
+//    using SubstreamsSizeList = typename internal::SubstreamSizeListBuilder<StreamsStructList>::Type;
 
     using Dispatcher = PackedDispatcher<StreamDispatcherStructList, Base::StreamsStart>;
 
-    static const Int Streams 													= ListSize<StreamsStructList>::Value;
+    static const Int Streams 													= ListSize<SubstreamsStructList>::Value;
     static const Int StreamsStart                                               = Base::StreamsStart;
     static const Int StreamsEnd                                                 = Base::StreamsStart + Streams;
     static const Int ValuesBlockIdx                                             = StreamsEnd;
 
-
-//    template <Int Idx, typename... Args>
-//    using DispatchRtnFnType = auto(Args...) -> decltype(
-//            Dispatcher::template dispatch<Idx>(std::declval<Args>()...)
-//    );
-//
-//    template <Int Idx, typename Fn, typename... T>
-//    using DispatchRtnType = typename FnTraits<
-//            DispatchRtnFnType<Idx, PackedAllocator*, Fn, T...>
-//    >::RtnType;
-//
-//    template <Int Idx, typename Fn, typename... T>
-//    using DispatchRtnConstType = typename FnTraits<
-//    		DispatchRtnFnType<Idx, const PackedAllocator*, Fn, T...>
-//    >::RtnType;
 
     template <Int Idx, typename... Args>
     using DispatchRtnFnType = auto(Args...) -> decltype(
@@ -1291,19 +1276,19 @@ public:
 
 
     template <typename SubstreamPath, typename Fn, typename... Args>
-    DispatchRtnConstType<LeafOffsetCount<SubstreamsSizeList, SubstreamPath>::Value, Fn, Args...>
+    DispatchRtnConstType<LeafCount<SubstreamsStructList, SubstreamPath>::Value, Fn, Args...>
     processStream(Fn&& fn, Args&&... args) const
     {
-        const Int StreamIdx = LeafOffsetCount<SubstreamsSizeList, SubstreamPath>::Value;
+        const Int StreamIdx = LeafCount<SubstreamsStructList, SubstreamPath>::Value;
         return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
     }
 
 
     template <typename SubstreamPath, typename Fn, typename... Args>
-    DispatchRtnType<LeafOffsetCount<SubstreamsSizeList, SubstreamPath>::Value, Fn, Args...>
+    DispatchRtnType<LeafCount<SubstreamsStructList, SubstreamPath>::Value, Fn, Args...>
     processStream(Fn&& fn, Args&&... args)
     {
-        const Int StreamIdx = LeafOffsetCount<SubstreamsSizeList, SubstreamPath>::Value;
+        const Int StreamIdx = LeafCount<SubstreamsStructList, SubstreamPath>::Value;
         return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
     }
 
