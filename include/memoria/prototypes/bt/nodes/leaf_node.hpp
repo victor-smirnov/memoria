@@ -955,25 +955,35 @@ public:
         }
     };
 
-//    struct Sums2XFn {
-//    	template<Int Idx, Int Offset, typename TupleItem, typename... Args>
-//    	void substream(TupleItem&& item, Args&&... args)
-//    	{
-//
-//    	}
-//
-//    	template<Int Idx, Int Offset, typename TupleItem, typename... Args>
-//    	void streamStart(TupleItem&& item, Args&&... args)
-//    	{
-//
-//    	}
-//    };
+
+    struct AccumulatorHandler {
+    	template <Int StreamIdx, typename StreamType, typename TupleItem>
+    	void stream(const StreamType* obj, Int start, Int end, TupleItem& accum)
+    	{
+    		if (obj != nullptr) {
+    			obj->sums(start, end, accum);
+    		}
+    	}
+    };
+
+    struct Sums2XFn
+    {
+    	template<Int Idx, Int Offset, typename TupleItem, typename... Args>
+    	void substream(TupleItem&& item, const PackedAllocator* allocator, Int start, Int end)
+    	{
+    		Dispatcher::template dispatch<Idx>(allocator, AccumulatorHandler(), start, end, item);
+    	}
+
+    	template<Int Idx, Int Offset, typename TupleItem, typename... Args>
+    	void streamStart(TupleItem&& item, const PackedAllocator* allocator, Int start, Int end)
+    	{
+    		Dispatcher::template dispatch<Idx>(allocator, AccumulatorHandler(), start, end, item);
+    	}
+    };
 
     void sums(Int start, Int end, Accumulator& sums) const
     {
-//    	AccumulatorDispatcher::process(sums, Sums2XFn(), start, end);
-
-    	Dispatcher::dispatchNotEmpty(allocator(), SumsFn(), start, end, sums);
+    	AccumulatorDispatcher::process(sums, Sums2XFn(), allocator(), start, end);
     }
 
     void sums(Int stream, Int start, Int end, Accumulator& sums) const
