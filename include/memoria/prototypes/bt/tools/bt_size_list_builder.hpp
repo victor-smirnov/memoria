@@ -10,7 +10,6 @@
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/types/list/list_tree.hpp>
 #include <memoria/core/types/algo/select.hpp>
-#include <memoria/prototypes/bt/tools/bt_leaf_offset_count.hpp>
 
 namespace memoria 	{
 namespace bt 		{
@@ -29,16 +28,13 @@ struct StructSizeProvider {
 
 namespace detail {
 
-template <typename OffsetList, typename List, Int Idx = 0, Int Max = ListSize<List>::Value> class TagStreamsStart;
-
 template <
 	typename OffsetList,
 	typename List,
-	Int Idx,
-	Int Max
+	Int Idx 				= 0,
+	Int Max 				= ListSize<List>::Value
 >
-class TagStreamsStart//<OffsetList, List, Idx, Max>
-{
+class TagStreamsStart {
 	static const Int StreamOffset = LeafCount<List, IntList<Idx>, 2>::Value;
 
 	using StreamStart = typename Select<StreamOffset, OffsetList>::Result;

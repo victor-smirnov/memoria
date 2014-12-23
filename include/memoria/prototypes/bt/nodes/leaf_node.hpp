@@ -21,7 +21,6 @@
 #include <memoria/core/types/typehash.hpp>
 #include <memoria/core/types/types.hpp>
 #include <memoria/prototypes/bt/nodes/branch_node.hpp>
-#include <memoria/prototypes/bt/tools/bt_leaf_offset_count.hpp>
 #include <memoria/prototypes/bt/tools/bt_packed_struct_list_builder.hpp>
 
 

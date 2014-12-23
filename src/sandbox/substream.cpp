@@ -2,7 +2,6 @@
 
 
 #include <memoria/prototypes/bt/tools/bt_packed_struct_list_builder.hpp>
-#include <memoria/prototypes/bt/tools/bt_leaf_offset_count.hpp>
 #include <memoria/prototypes/bt/tools/bt_size_list_builder.hpp>
 
 #include <memoria/core/tools/type_name.hpp>
@@ -52,22 +51,22 @@ typedef TypeList<
         >                                                                       List;
 
 
-using namespace memoria::bt::internal;
+using namespace memoria::bt::detail;
 
 class T {};
 
 using SList = TypeList<
-        SubstreamSizeListBuilder<T>::Type,
-        SubstreamSizeListBuilder<TypeList<T, T, T, T>>::Type,
-        SubstreamSizeListBuilder<TypeList<TypeList<T>, T, T, T>>::Type,
-        SubstreamSizeListBuilder<TypeList<T, T, TypeList<T>, T, T, T, TypeList<T>, T, T>>::Type,
-        SubstreamSizeListBuilder<TypeList<T, TypeList<T>, T, T, TypeList<T>, T>>::Type,
-
-        SubstreamSizeListBuilder<TypeList<TypeList<T>>>::Type,
-
-        SubstreamSizeListBuilder<TypeList<TypeList<T>, T>>::Type,
-
-        SubstreamSizeListBuilder<TypeList<T, TypeList<T, TypeList<T>>>>::Type
+//        SubstreamSizeListBuilder<T>::Type,
+//        SubstreamSizeListBuilder<TypeList<T, T, T, T>>::Type,
+//        SubstreamSizeListBuilder<TypeList<TypeList<T>, T, T, T>>::Type,
+//        SubstreamSizeListBuilder<TypeList<T, T, TypeList<T>, T, T, T, TypeList<T>, T, T>>::Type,
+//        SubstreamSizeListBuilder<TypeList<T, TypeList<T>, T, T, TypeList<T>, T>>::Type,
+//
+//        SubstreamSizeListBuilder<TypeList<TypeList<T>>>::Type,
+//
+//        SubstreamSizeListBuilder<TypeList<TypeList<T>, T>>::Type,
+//
+//        SubstreamSizeListBuilder<TypeList<T, TypeList<T, TypeList<T>>>>::Type
 >;
 
 template <typename T, typename V = Int> struct PropValue;
@@ -113,7 +112,7 @@ int main(void) {
 
     cout<<TypeNameFactory<List>::name()<<endl;
 
-    cout<<SubstreamsTreeSize<List>::Size<<endl;
+//    cout<<SubstreamsTreeSize<List>::Size<<endl;
 
 //    cout<<LeafOffsetCount<List, IntList<3>>::Value<<endl;
 
