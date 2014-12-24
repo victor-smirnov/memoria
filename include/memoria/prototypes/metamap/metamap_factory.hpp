@@ -48,6 +48,7 @@
 #include <memoria/prototypes/metamap/iterator/metamap_i_misc.hpp>
 
 #include <memoria/prototypes/metamap/metamap_names.hpp>
+#include <memoria/containers/mapx/mapx_names.hpp>
 
 #include <tuple>
 
@@ -321,6 +322,28 @@ struct BTTypes<Profile, memoria::MetaMap<Indexes_, VLen<gr1, Key_>, VLen<gr2, Va
                     metamap::ItrValueName
     >;
 };
+
+
+
+template <typename Profile, typename Key, typename Value, typename T>
+class CtrTF<Profile, memoria::MapX<Key, Value>, T>: public CtrTF<Profile, memoria::BT, T> {
+    using Base = CtrTF<Profile, memoria::BT, T>;
+public:
+
+
+    struct Types: Base::Types
+    {
+        typedef MapXCtrTypes<Types>                                              CtrTypes;
+        typedef MapXIterTypes<Types>                                             IterTypes;
+
+        typedef PageUpdateManager<CtrTypes>                                     PageUpdateMgr;
+    };
+
+
+    typedef typename Types::CtrTypes                                            CtrTypes;
+    typedef Ctr<CtrTypes>                                                       Type;
+};
+
 
 
 

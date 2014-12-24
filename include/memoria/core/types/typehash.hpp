@@ -111,7 +111,10 @@ struct TypeHash<Map2<Key, Value>>:   UIntValue<
     HashHelper<1103, TypeHash<Key>::Value, TypeHash<Value>::Value>::Value
 > {};
 
-
+template <typename Key, typename Value>
+struct TypeHash<MapX<Key, Value>>:   UIntValue<
+    HashHelper<1203, TypeHash<Key>::Value, TypeHash<Value>::Value>::Value
+> {};
 
 template <
     Int Indexes,

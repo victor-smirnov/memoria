@@ -15,6 +15,7 @@
 #include "map_remove_test.hpp"
 #include "map_select_test.hpp"
 #include "map_batch_test.hpp"
+#include "map_mapx_test.hpp"
 
 #include <vector>
 
@@ -47,6 +48,8 @@ public:
 
         registerTask(new MapCreateTest<CMap<Granularity::Byte>>("CMap2.Create"));
         registerTask(new MapRemoveTest<CMap<Granularity::Byte>>("CMap2.Remove"));
+
+        registerTask(new MapXTest<MapX<BigInt, BigInt>>("MapX"));
     }
 
 };
