@@ -97,14 +97,22 @@ using List2 = IntList<
 >;
 
 
-using List4 = TL<TL<S<2>, S<7>>, TL<S<3>, S<5>>>;
+using List4 = TL<
+				TL<
+					S<2>, S<7>
+				>,
+				TL<
+					S<3>, S<5>
+				>
+			  >;
+
 using List5 = Linearize<List4, 2>;
 
 using List3 = TypeList<
 		//detail::OffsetBuilder<List5>::Type,
-		LeafOffsetListBuilder<List4>::Type
+//		LeafOffsetListBuilder<List4>::Type
 
-//		S<LeafCount<List4, IntList<1,1>, 1>::Value>
+		S<SubtreeLeafCount<List4, IntList<1, 1>, 1>::Value>
 >;
 
 

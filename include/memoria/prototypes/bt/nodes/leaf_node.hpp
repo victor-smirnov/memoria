@@ -66,6 +66,7 @@ public:
     template <template <typename> class, typename>
     friend class NodePageAdaptor;
 
+    using BranchSubstreamsStructList = typename Types::BranchStreamsStructList;
     using SubstreamsStructList = typename Types::StreamsStructList;
 
     using StreamDispatcherStructList = typename PackedDispatchersListBuilder<Linearize<SubstreamsStructList>>::Type;
@@ -77,9 +78,13 @@ public:
     		typename LeafOffsetListBuilder<SubstreamsStructList>::Type
     >;
 
-//    using AccumulatorDispatcher =
-//        		typename LeafOffsetListBuilder<SubstreamsStructList>::Type;
-
+    template <Int Stream>
+    using ByStreamAccumulatorDispatcher = AccumulatorLeafHandler<
+    		Accumulator,
+    		typename LeafOffsetListBuilder<SubstreamsStructList>::Type,
+    		LeafCountInf<BranchSubstreamsStructList, IntList<Stream>>::Value,
+    		LeafCountSup<BranchSubstreamsStructList, IntList<Stream>>::Value
+    >;
 
     template <Int StartIdx, Int EndIdx>
     using SubDispatcher = typename Dispatcher::template SubDispatcher<StartIdx, EndIdx>;
@@ -922,12 +927,6 @@ public:
 
     struct SumsFn {
         template <Int StreamIdx, typename StreamType>
-        void stream(const StreamType* obj, Int start, Int end, Accumulator& accum)
-        {
-            obj->sums(start, end, std::get<StreamIdx>(accum));
-        }
-
-        template <Int StreamIdx, typename StreamType>
         void stream(const StreamType* obj, Int block, Int start, Int end, BigInt& accum)
         {
             accum += obj->sum(block, start, end);
@@ -947,43 +946,37 @@ public:
                 obj->sums(start[StreamIdx], end[StreamIdx], std::get<StreamIdx>(accum));
             }
         }
-
-        template <Int StreamIdx, typename StreamType>
-        void stream(const StreamType* obj, Accumulator& accum)
-        {
-            obj->sums(std::get<StreamIdx>(accum));
-        }
     };
 
 
-    struct AccumulatorHandler {
+    template <
+    	Int Idx,
+    	Int Offset,
+    	bool StreamStart
+    >
+    struct AccumulatorHandler
+    {
     	template <Int StreamIdx, typename StreamType, typename TupleItem>
-    	void stream(const StreamType* obj, Int start, Int end, TupleItem& accum)
+    	void stream(const StreamType* obj, TupleItem& accum, Int start, Int end)
+    	{
+    		if (obj != nullptr){
+    			obj->sums(start, end, accum);
+    		}
+    	}
+
+    	template <Int StreamIdx, typename StreamType, typename TupleItem>
+    	void stream(const StreamType* obj, TupleItem& accum)
     	{
     		if (obj != nullptr) {
-    			obj->sums(start, end, accum);
+    			obj->sums(accum);
     		}
     	}
     };
 
-    struct Sums2XFn
-    {
-    	template<Int Idx, Int Offset, typename TupleItem, typename... Args>
-    	void substream(TupleItem&& item, const PackedAllocator* allocator, Int start, Int end)
-    	{
-    		Dispatcher::template dispatch<Idx>(allocator, AccumulatorHandler(), start, end, item);
-    	}
-
-    	template<Int Idx, Int Offset, typename TupleItem, typename... Args>
-    	void streamStart(TupleItem&& item, const PackedAllocator* allocator, Int start, Int end)
-    	{
-    		Dispatcher::template dispatch<Idx>(allocator, AccumulatorHandler(), start, end, item);
-    	}
-    };
 
     void sums(Int start, Int end, Accumulator& sums) const
     {
-    	AccumulatorDispatcher::process(sums, Sums2XFn(), allocator(), start, end);
+    	process<AccumulatorHandler>(sums, start, end);
     }
 
     void sums(Int stream, Int start, Int end, Accumulator& sums) const
@@ -1008,13 +1001,13 @@ public:
 
     void sums(Accumulator& sums) const
     {
-        Dispatcher::dispatchNotEmpty(allocator(), SumsFn(), sums);
+        process<AccumulatorHandler>(sums);
     }
 
     Accumulator sums() const
     {
         Accumulator sums;
-        Dispatcher::dispatchNotEmpty(allocator(), SumsFn(), sums);
+        process<AccumulatorHandler>(sums);
         return sums;
     }
 
@@ -1214,6 +1207,105 @@ public:
     {
         const Int StreamIdx = LeafCount<SubstreamsStructList, SubstreamPath>::Value;
         return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
+    }
+
+
+
+
+
+    template <
+    	Int Stream,
+    	template <
+    		Int Idx,
+    		Int Offset,
+    		bool StreamStart
+    	>
+    	class Fn,
+    	typename... Args
+    >
+    void processSubstreamsAcc(Accumulator& accum, Args&&... args) const
+    {
+    	AccumulatorDispatcher::process(
+    			accum,
+    			AccumulatorHandlerFn<
+    				const PackedAllocator*,
+    				Dispatcher,
+    				Fn
+    			>
+    			(allocator()),
+    			std::forward<Args>(args)...
+    	);
+    }
+
+    template <
+    	template <
+    		Int Idx,
+    		Int Offset,
+    		bool StreamStart
+    	>
+    	class Fn,
+    	typename... Args
+    >
+    void processSubstreamsAcc(Accumulator& accum, Args&&... args)
+    {
+    	AccumulatorDispatcher::process(
+    			accum,
+    			AccumulatorHandlerFn<
+    				PackedAllocator*,
+    				Dispatcher,
+    				Fn
+    			>
+    			(allocator()),
+    			std::forward<Args>(args)...
+    	);
+    }
+
+
+    template <
+    	template <
+    		Int Idx,
+    		Int Offset,
+    		bool StreamStart
+    	>
+    	class Fn,
+    	typename... Args
+    >
+    void process(Accumulator& accum, Args&&... args) const
+    {
+    	AccumulatorDispatcher::process(
+    			accum,
+    			AccumulatorHandlerFn<
+    				const PackedAllocator*,
+    				Dispatcher,
+    				Fn
+    			>
+    			(allocator()),
+    			std::forward<Args>(args)...
+    	);
+    }
+
+    template <
+    	Int Stream,
+    	template <
+    		Int Idx,
+    		Int Offset,
+    		bool StreamStart
+    	>
+    	class Fn,
+    	typename... Args
+    >
+    void process(Accumulator& accum, Args&&... args)
+    {
+    	AccumulatorDispatcher::process(
+    			accum,
+    			AccumulatorHandlerFn<
+    				PackedAllocator*,
+    				Dispatcher,
+    				Fn
+    			>
+    			(allocator()),
+    			std::forward<Args>(args)...
+    	);
     }
 
 

@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2013.
+// Copyright Victor Smirnov 2014.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -12,6 +12,8 @@
 #include <memoria/containers/mapx/mapx_names.hpp>
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
+
+#include <memoria/containers/mapx/mapx_tools.hpp>
 
 
 #include <vector>
@@ -39,88 +41,82 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mapx::CtrInsertName)
 
     typedef ValuePair<Accumulator, Value>                                       Element;
 
+    typedef typename Types::Entry                                               MapEntry;
+
+    template <typename Entry>
     struct InsertIntoLeafFn {
 
-        const Element& element_;
+        const Entry& entry_;
+        Accumulator& sums_;
 
-        InsertIntoLeafFn(const Element& element): element_(element) {}
+        InsertIntoLeafFn(const Entry& entry, Accumulator& sums):
+            entry_(entry), sums_(sums)
+        {}
 
-//        template <Int Idx, typename StreamTypes>
-//        void stream(PackedFSEMap<StreamTypes>* map, Int idx)
-//        {
-//            MEMORIA_ASSERT_TRUE(map);
-//            map->insert(idx, std::get<Idx>(element_.first), element_.second);
-//        }
-//
-//        template <Int Idx, typename StreamTypes>
-//        void stream(PackedVLEMap<StreamTypes>* map, Int idx)
-//        {
-//            MEMORIA_ASSERT_TRUE(map);
-//            map->insert(idx, std::get<Idx>(element_.first), element_.second);
-//        }
-
-        template <Int Idx, typename StreamTypes>
-        void stream(PackedFSEMarkableMap<StreamTypes>* map, Int idx)
+        template <Int StreamIdx, typename Stream>
+        void stream(Stream* stream, Int idx)
         {
-            MEMORIA_ASSERT_TRUE(map);
-            map->insert(idx, std::get<Idx>(element_.first), element_.second);
+            MEMORIA_ASSERT_TRUE(stream);
+
+
         }
 
 
         template <typename NTypes>
         void treeNode(LeafNode<NTypes>* node, Int idx)
         {
-            node->layout(1);
-            node->template processStream<0>(*this, idx);
+            node->layout(255);
+            node->template processStream<IntList<0>>(*this, idx);
         }
     };
 
 
-    bool insertIntoLeaf(NodeBaseG& leaf, Int idx, const Element& element);
+    template <typename Entry>
+    bool insertIntoLeaf(
+            NodeBaseG&
+            leaf,
+            Int idx,
+            const Entry& entry,
+            Accumulator& sums,
+            bool adjust_next
+    );
 
-    bool insertMapEntry(Iterator& iter, const Element& element);
+    template <typename Entry>
+    void insertEntry(Iterator& iter, const Entry& entry, bool adjust_next = true);
 
 
-    struct AddLeafFn {
+    template <typename DataType>
+    struct AddLeafSingleFn: bt1::NodeWalkerBase<AddLeafSingleFn<DataType>, IntList<0>, IntList<0>>
+    {
+        const bt::SingleIndexUpdateData<DataType>& element_;
 
-        const Accumulator& element_;
+        AddLeafSingleFn(const bt::SingleIndexUpdateData<DataType>& element): element_(element) {}
 
-        AddLeafFn(const Accumulator& element): element_(element) {}
-
-//        template <Int Idx, typename StreamTypes>
-//        void stream(PackedFSEMap<StreamTypes>* map, Int idx)
-//        {
-//            MEMORIA_ASSERT_TRUE(map != nullptr);
-//
-//            map->tree()->addValues(idx, std::get<Idx>(element_));
-//        }
-//
-//        template <Int Idx, typename StreamTypes>
-//        void stream(PackedVLEMap<StreamTypes>* map, Int idx)
-//        {
-//            MEMORIA_ASSERT_TRUE(map != nullptr);
-//
-//            map->tree()->addValues(idx, std::get<Idx>(element_));
-//        }
-
-        template <Int Idx, typename StreamTypes>
-        void stream(PackedFSEMarkableMap<StreamTypes>* map, Int idx)
+        template <Int Idx, typename Stream>
+        void stream(Stream* stream, Int idx)
         {
-            MEMORIA_ASSERT_TRUE(map != nullptr);
-
-            map->tree()->addValues(idx, std::get<Idx>(element_));
-        }
-
-        template <typename NTypes>
-        void treeNode(LeafNode<NTypes>* node, Int idx)
-        {
-            node->template processStream<0>(*this, idx);
+            MEMORIA_ASSERT_TRUE(stream);
+            stream->addValue(element_.index() - 1, idx, element_.delta());
         }
     };
 
 
-    void updateLeafNode(NodeBaseG& node, Int idx, const Accumulator& sums, std::function<void (Int, Int)> fn);
-    void updateUp(NodeBaseG& node, Int idx, const Accumulator& sums, std::function<void (Int, Int)> fn);
+    template <typename DataType>
+    void updateLeafNode(
+            NodeBaseG& node,
+            Int idx,
+            const bt::SingleIndexUpdateData<DataType>& sums,
+            std::function<void (Int, Int)> fn
+        );
+
+    template <typename DataType>
+    void updateUp(
+            NodeBaseG& node,
+            Int idx,
+            const bt::SingleIndexUpdateData<DataType>& sums,
+            std::function<void (Int, Int)> fn
+        );
+
 
     void initLeaf(NodeBaseG& node) const
     {
@@ -130,95 +126,133 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mapx::CtrInsertName)
         self.layoutNode(node, 1);
     }
 
+    Iterator insertIFNotExists(Key key)
+    {
+        Iterator iter = self().findGE(0, key, 1);
+
+        if (iter.isEnd() || key != iter.key())
+        {
+            MapEntry entry;
+            entry.key() = key;
+
+            self().insertEntry(iter, entry);
+
+            iter--;
+        }
+        else {
+            throw Exception(MA_SRC, "Inserted Key already exists");
+        }
+
+        return iter;
+    }
+
+
+
+
 
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::map::CtrInsertName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::mapx::CtrInsertName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 
 M_PARAMS
-bool M_TYPE::insertIntoLeaf(NodeBaseG& leaf, Int idx, const Element& element)
+template <typename Entry>
+bool M_TYPE::insertIntoLeaf(
+        NodeBaseG& leaf,
+        Int idx,
+        const Entry& entry,
+        Accumulator& sums,
+        bool adjust_next
+    )
 {
     auto& self = this->self();
 
-    PageUpdateMgr mgr(self);
-
     self.updatePageG(leaf);
 
-    mgr.add(leaf);
+    InsertIntoLeafFn<Entry> fn(entry, sums, adjust_next);
 
-    try {
-        LeafDispatcher::dispatch(leaf, InsertIntoLeafFn(element), idx);
-        return true;
-    }
-    catch (PackedOOMException& e)
-    {
-        mgr.rollback();
-        return false;
-    }
+    LeafDispatcher::dispatch(leaf, fn, idx);
+
+    return fn.next_entry_updated_;
 }
 
 
 
 M_PARAMS
-bool M_TYPE::insertMapEntry(Iterator& iter, const Element& element)
+template <typename Entry>
+void M_TYPE::insertEntry(Iterator& iter, const Entry& entry, bool adjust_next)
 {
     auto& self      = this->self();
     NodeBaseG& leaf = iter.leaf();
     Int& idx        = iter.idx();
 
-    if (!self.insertIntoLeaf(leaf, idx, element))
+    if (!self.checkCapacities(leaf, {1}))
     {
         iter.split();
-        if (!self.insertIntoLeaf(leaf, idx, element))
-        {
-            throw Exception(MA_SRC, "Second insertion attempt failed");
-        }
     }
 
-    self.updateParent(leaf, element.first);
+    Entry tmp_entry = entry;
+
+    tmp_entry.key() -= std::get<0>(iter.prefixes())[1];
+
+    Accumulator sums;
+
+    bool result = self.insertIntoLeaf(leaf, idx, tmp_entry, sums, adjust_next);
 
     self.addTotalKeyCount(Position::create(0, 1));
 
-    return iter++;
+    if (adjust_next)
+    {
+        if (result)
+        {
+            std::get<0>(sums)[1] = 0;
+
+            self.updateParent(leaf, sums);
+
+            iter++;
+        }
+        else {
+            self.updateParent(leaf, sums);
+
+            if (iter++)
+            {
+                iter.adjustIndex(1, -tmp_entry.key());
+            }
+        }
+    }
+    else {
+        self.updateParent(leaf, sums);
+        iter++;
+    }
 }
 
 
 M_PARAMS
-void M_TYPE::updateLeafNode(NodeBaseG& node, Int idx, const Accumulator& sums, std::function<void (Int, Int)> fn)
+template <typename DataType>
+void M_TYPE::updateLeafNode(
+                NodeBaseG& node,
+                Int idx,
+                const bt::SingleIndexUpdateData<DataType>& sums,
+                std::function<void (Int, Int)> fn
+    )
 {
     auto& self = this->self();
 
     self.updatePageG(node);
 
-    PageUpdateMgr mgr(self);
-
-    try {
-        LeafDispatcher::dispatch(node, AddLeafFn(sums), idx);
-    }
-    catch (PackedOOMException ex)
-    {
-        Position sizes = self.getNodeSizes(node);
-
-        Position split_idx = sizes / 2;
-
-        auto next = self.splitLeafP(node, split_idx);
-
-        if (idx >= split_idx[0])
-        {
-            idx -= split_idx[0];
-            fn(0, idx);
-            node = next;
-        }
-
-        LeafDispatcher::dispatch(node, AddLeafFn(sums), idx);
-    }
+    LeafDispatcher::dispatch(node, AddLeafSingleFn<DataType>(sums), idx);
 }
 
 
 M_PARAMS
-void M_TYPE::updateUp(NodeBaseG& node, Int idx, const Accumulator& counters, std::function<void (Int, Int)> fn)
+template <typename DataType>
+void M_TYPE::updateUp(
+        NodeBaseG& node,
+        Int idx,
+        const bt::SingleIndexUpdateData<DataType>& counters,
+        std::function<void (Int, Int)> fn
+    )
 {
     auto& self = this->self();
 

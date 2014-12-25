@@ -20,6 +20,8 @@ namespace memoria {
 
 template <typename Struct, Int Index> struct StreamDescr;
 
+namespace pd {
+
 template <typename List, Int StreamIdx, typename Fn, typename... Args> class MakeRtnTypeList;
 template <typename List, Int StreamIdx, typename Fn, typename... Args> class ContainsVoidRtnType;
 
@@ -130,7 +132,7 @@ public:
 	static const bool Value = false;
 };
 
-
+}
 }
 
 #endif

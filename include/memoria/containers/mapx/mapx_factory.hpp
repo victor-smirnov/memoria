@@ -49,6 +49,7 @@
 
 #include <memoria/prototypes/metamap/metamap_names.hpp>
 
+#include <memoria/containers/mapx/container/mapx_c_insert.hpp>
 
 #include <memoria/containers/mapx/mapx_tools.hpp>
 #include <memoria/containers/mapx/mapx_iterator.hpp>
@@ -64,25 +65,18 @@ template <
     typename Profile,
     Int Indexes_,
     typename Key_,
-    typename Value_,
-    typename LabelsList,
-    typename HiddenLabelsList
+    typename Value_
 >
 struct MapXBTTypesBase: public BTTypes<Profile, memoria::BT> {
 
     typedef BTTypes<Profile, memoria::BT>                                       Base;
 
-    typedef typename TupleBuilder<
-            typename metamap::LabelTypeListBuilder<HiddenLabelsList>::Type
-    >::Type                                                                     HiddenLabelsTuple;
+    using HiddenLabelsTuple = std::tuple<>;
 
-    typedef typename TupleBuilder<
-            typename metamap::LabelTypeListBuilder<LabelsList>::Type
-    >::Type                                                                     LabelsTuple;
+    using LabelsTuple = std::tuple<>;
 
-
-    static const Int Labels                                                     = ListSize<LabelsList>::Value;
-    static const Int HiddenLabels                                               = ListSize<HiddenLabelsList>::Value;
+    static const Int Labels                                                     = 0;
+    static const Int HiddenLabels                                               = 0;
 
     typedef typename IfThenElse<
                     IfTypesEqual<Value_, IDType>::Value,
@@ -92,36 +86,18 @@ struct MapXBTTypesBase: public BTTypes<Profile, memoria::BT> {
 
     static const Int Indexes                                                    = Indexes_;
 
-    using StreamTF = metamap::MetaMapStreamTF<Indexes, Key_, ValueType, HiddenLabelsList, LabelsList>;
+    using StreamTF = mapx::MapXStreamTF<Indexes, Key_, ValueType>;
 
     typedef typename StreamTF::Key                                              Key;
     typedef typename StreamTF::Value                                            Value;
 
-    typedef metamap::MetaMapEntry<
-                    Indexes,
-                    Key,
-                    Value,
-                    HiddenLabelsTuple,
-                    LabelsTuple
-    >                                                                           Entry;
+    typedef std::tuple<Key, Value>                                              Entry;
 
     typedef IDataSource<Entry>                                                  DataSource;
     typedef IDataTarget<Entry>                                                  DataTarget;
 
     typedef std::tuple<DataSource*>                                             Source;
     typedef std::tuple<DataTarget*>                                             Target;
-
-    typedef std::tuple <
-                std::pair<float, float>
-    >                                                                           Entropy;
-
-    typedef typename bt::TupleBuilder<
-        typename bt::SameTypeListBuilder<Int, 2 + Labels + HiddenLabels>::Type
-    >::Type                                                                     EntrySizes;
-
-    typedef metamap::LabelOffsetProc<LabelsList>                                LabelsOffset;
-    typedef metamap::LabelOffsetProc<HiddenLabelsList>                          HiddenLabelsOffset;
-
 
     typedef TypeList<StreamTF>                                                  StreamDescriptors;
 
@@ -132,29 +108,18 @@ struct MapXBTTypesBase: public BTTypes<Profile, memoria::BT> {
 
 
     using ContainerPartsList = MergeLists<
-                typename Base::ContainerPartsList,
-
-                metamap::CtrNavName,
-                metamap::CtrRemoveName,
-                metamap::CtrFindName
+                typename Base::ContainerPartsList
     >;
 
 
     using IteratorPartsList = MergeLists<
-                typename Base::IteratorPartsList,
-
-                metamap::ItrKeysName,
-                metamap::ItrNavName,
-                metamap::ItrEntryName,
-                metamap::ItrLabelsName,
-                metamap::ItrFindName,
-                metamap::ItrMiscName
+                typename Base::IteratorPartsList
     >;
 
 
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {
-        typedef metamap::MetaMapIteratorPrefixCache<Iterator, Container> Type;
+        typedef mapx::MapXIteratorPrefixCache<Iterator, Container> Type;
     };
 
 
@@ -176,10 +141,10 @@ struct MapXBTTypesBase: public BTTypes<Profile, memoria::BT> {
     using SkipBackwardWalker    = bt1::SkipBackwardWalker<Types, 0, bt1::DefaultIteratorPrefixFn>;
 
     template <typename Types>
-    using SelectForwardWalker   = metamap::SelectForwardWalker<Types, 0, bt1::DefaultIteratorPrefixFn>;
+    using SelectForwardWalker   = bt1::SelectForwardWalker<Types, 0, bt1::DefaultIteratorPrefixFn>;
 
     template <typename Types>
-    using SelectBackwardWalker  = metamap::SelectBackwardWalker<Types, 0, bt1::DefaultIteratorPrefixFn>;
+    using SelectBackwardWalker  = bt1::SelectBackwardWalker<Types, 0, bt1::DefaultIteratorPrefixFn>;
 
 
     template <typename Types>
@@ -198,22 +163,20 @@ template <
     typename Value_
 >
 struct BTTypes<Profile, memoria::MapX<Key_, Value_>>:
-    public MapXBTTypesBase<Profile, 1, Key_, Value_, TL<>, TL<>> {
+	public MapXBTTypesBase<Profile, 1, Key_, Value_>
+{
 
-    using Base = MapXBTTypesBase<Profile, 1, Key_, Value_, TL<>, TL<>>;
+    using Base = MapXBTTypesBase<Profile, 1, Key_, Value_>;
 
 
     using ContainerPartsList = MergeLists<
                     typename Base::ContainerPartsList,
                     bt::NodeNormName,
-                    metamap::CtrInsertName,
-                    metamap::CtrInsBatchName
+                    mapx::CtrInsertName
     >;
 
-
     using IteratorPartsList =MergeLists<
-                    typename Base::IteratorPartsList,
-                    metamap::ItrValueByRefName
+                    typename Base::IteratorPartsList
     >;
 };
 

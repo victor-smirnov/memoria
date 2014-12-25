@@ -25,13 +25,20 @@ namespace memoria {
 template <
     typename MapName
 >
-class MapXTest: public MapTestBase<MapName> {
+class MapXTest: public SPTestTask {
 
-    using Base = MapTestBase<MapName>;
+    using Base = SPTestTask;
     using MyType = MapXTest<MapName>;
 
-    typedef typename Base::Allocator                                            Allocator;
-    typedef typename Base::Ctr                                                  Ctr;
+
+    typedef typename SCtrTF<MapName>::Type Ctr;
+    typedef typename Ctr::Iterator Iterator;
+    typedef typename Ctr::ID ID;
+    typedef typename Ctr::Accumulator Accumulator;
+
+
+//    typedef typename Base::Allocator                                            Allocator;
+//    typedef typename Base::Ctr                                                  Ctr;
 
     Int key_        = 0;
     Int skip_bw_    = 0;
@@ -60,23 +67,23 @@ public:
 
         Ctr map(&allocator);
 
-        Base::ctr_name_ = map.name();
-
-        BigInt last_key = 0;
-
-        for (Int c = 1; c <= 1000; c++)
-        {
-            last_key += getRandom(5) + 1;
-
-            auto iter = map[last_key];
-
-            iter = 1234;
-        }
-
-        auto begin  = map.Begin();
-        auto end    = map.RBegin();
-
-        begin.removeTo(end);
+//        Base::ctr_name_ = map.name();
+//
+//        BigInt last_key = 0;
+//
+//        for (Int c = 1; c <= 1000; c++)
+//        {
+//            last_key += getRandom(5) + 1;
+//
+//            auto iter = map[last_key];
+//
+//            iter = 1234;
+//        }
+//
+//        auto begin  = map.Begin();
+//        auto end    = map.RBegin();
+//
+//        begin.removeTo(end);
 
         allocator.commit();
 

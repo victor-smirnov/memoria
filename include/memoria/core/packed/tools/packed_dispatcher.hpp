@@ -52,7 +52,7 @@ public:
     using List              = TypeList<StreamDescr<Head, Index>, Tail...>;
     using NextDispatcher    = PackedDispatcher<TypeList<Tail...>, StartIdx, ListOffsetIdx>;
 
-    template<Int, Int, typename...> friend class PackedDispatcher;
+    template<typename, Int, Int> friend class PackedDispatcher;
 
     template <typename T, Int Idx, typename... Args>
     using FnType = auto(Args...) -> decltype(std::declval<T>().template stream<Idx>(std::declval<Args>()...));
@@ -65,19 +65,19 @@ public:
 
     template <typename Fn, typename... Args>
     using RtnTuple = typename MakeTupleH<
-    		typename MakeRtnTypeList<List, ListIdx, Fn, Args...>::Type
+    		typename pd::MakeRtnTypeList<List, ListIdx, Fn, Args...>::Type
     >::Type;
 
     template <typename Fn, typename... Args>
     using ConstRtnTuple = typename MakeTupleH<
-    		typename MakeRtnTypeListConst<List, ListIdx, Fn, Args...>::Type
+    		typename pd::MakeRtnTypeListConst<List, ListIdx, Fn, Args...>::Type
     >::Type;
 
     template <typename Fn, typename... Args>
-    using HasVoid = ContainsVoidRtnType<List, ListIdx, Fn, Args...>;
+    using HasVoid = pd::ContainsVoidRtnType<List, ListIdx, Fn, Args...>;
 
     template <typename Fn, typename... Args>
-    using HasVoidConst = ContainsVoidRtnTypeConst<List, ListIdx, Fn, Args...>;
+    using HasVoidConst = pd::ContainsVoidRtnTypeConst<List, ListIdx, Fn, Args...>;
 
     template <typename Fn, typename... Args>
     using ProcessAllRtnType = typename IfThenElse<
@@ -581,19 +581,19 @@ public:
 
     template <typename Fn, typename... Args>
     using RtnTuple = typename MakeTupleH<
-    		typename MakeRtnTypeList<List, ListIdx, Fn, Args...>::Type
+    		typename pd::MakeRtnTypeList<List, ListIdx, Fn, Args...>::Type
     >::Type;
 
     template <typename Fn, typename... Args>
     using ConstRtnTuple = typename MakeTupleH<
-    		typename MakeRtnTypeListConst<List, ListIdx, Fn, Args...>::Type
+    		typename pd::MakeRtnTypeListConst<List, ListIdx, Fn, Args...>::Type
     >::Type;
 
     template <typename Fn, typename... Args>
-    using HasVoid = ContainsVoidRtnType<List, ListIdx, Fn, Args...>;
+    using HasVoid = pd::ContainsVoidRtnType<List, ListIdx, Fn, Args...>;
 
     template <typename Fn, typename... Args>
-    using HasVoidConst = ContainsVoidRtnTypeConst<List, ListIdx, Fn, Args...>;
+    using HasVoidConst = pd::ContainsVoidRtnTypeConst<List, ListIdx, Fn, Args...>;
 
     template <typename Fn, typename... Args>
     using ProcessAllRtnType = typename IfThenElse<

@@ -97,45 +97,51 @@ struct ItemSize<StreamStartTag<List>> {
 	static const Int Value = ListSize<List>::Value;
 };
 
+
 }
 
 
 template <
 	typename Tuple,
 	typename List,
-	Int AccumulatorIdx 	= 0,
-	Int TotalIdx 		= 0
+	Int From 			= 0,
+	Int To 				= std::tuple_size<Tuple>::value,
+	Int TotalIdx 		= 0,
+	bool Last 			= To - From == 1
 >
 struct AccumulatorLeafHandler;
 
 template <
-	typename Head,
-	typename... Tail,
+	typename Tuple,
 	typename List,
-	Int AccumulatorIdx,
+	Int From,
+	Int To,
 	Int TotalIdx
 >
-struct AccumulatorLeafHandler<std::tuple<Head, Tail...>, List, AccumulatorIdx, TotalIdx>
+struct AccumulatorLeafHandler<Tuple, List, From, To, TotalIdx, false>
 {
-	template <typename Tuple, typename Fn, typename... Args>
-	static void process(Tuple&& tuple, Fn&& fn, Args&&... args)
+	template<typename, typename, Int, Int, Int, bool> friend class AccumulatorLeafHandlers;
+
+	template <typename Fn, typename... Args>
+	static void process(Tuple& tuple, Fn&& fn, Args&&... args)
 	{
-		using ListElement = typename Select<AccumulatorIdx, List>::Result;
+		using ListElement = typename Select<From, List>::Result;
 
 		detail::AccumulatorLeafItemHandler<ListElement, TotalIdx>::process(
-				std::get<AccumulatorIdx>(tuple),
+				std::get<From>(tuple),
 				std::forward<Fn>(fn),
 				std::forward<Args>(args)...
 		);
 
 		AccumulatorLeafHandler<
-			std::tuple<Tail...>,
+			Tuple,
 			List,
-			AccumulatorIdx + 1,
+			From + 1,
+			To,
 			TotalIdx + detail::ItemSize<ListElement>::Value
 		>
 		::process(
-				std::forward<Tuple>(tuple),
+				tuple,
 				std::forward<Fn>(fn),
 				std::forward<Args>(args)...
 		);
@@ -143,11 +149,86 @@ struct AccumulatorLeafHandler<std::tuple<Head, Tail...>, List, AccumulatorIdx, T
 };
 
 
-template <Int AccumulatorIdx, Int TotalIdx, typename List>
-struct AccumulatorLeafHandler<std::tuple<>, List, AccumulatorIdx, TotalIdx>
+template <
+	typename Tuple,
+	typename List,
+	Int From,
+	Int To,
+	Int TotalIdx
+>
+struct AccumulatorLeafHandler<Tuple, List, From, To, TotalIdx, true>
 {
 	template <typename Fn, typename... Args>
-	static void process(Fn&& fn, Args&&... args){}
+	static void process(Tuple& tuple, Fn&& fn, Args&&... args)
+	{
+		using ListElement = typename Select<From, List>::Result;
+
+		detail::AccumulatorLeafItemHandler<ListElement, TotalIdx>::process(
+				std::get<From>(tuple),
+				std::forward<Fn>(fn),
+				std::forward<Args>(args)...
+		);
+	}
+};
+
+
+
+
+
+
+template <
+	typename Allocator,
+	typename Dispatcher,
+	template <
+		Int Idx,
+		Int Offset,
+		bool StreamStart
+	> class Fn
+>
+class AccumulatorHandlerFn
+{
+	Allocator allocator_;
+
+public:
+
+	template <Int Idx, typename... Args>
+	using RtnFnType = auto(Args...) -> decltype(
+			Dispatcher::template dispatch<Idx>(std::declval<Args>()...)
+	);
+
+	template <Int Idx, typename StreamFn, typename... T>
+	using RtnType = typename FnTraits<
+			RtnFnType<Idx, Allocator, StreamFn, T...>
+	>::RtnType;
+
+
+	AccumulatorHandlerFn(Allocator allocator):
+		allocator_(allocator)
+	{}
+
+	template<Int Idx, Int Offset, typename TupleItem, typename... Args>
+	auto substream(TupleItem&& item, Args&&... args)
+	-> RtnType<Idx, Fn<Idx, Offset, false>, TupleItem, Args...>
+	{
+		return Dispatcher::template dispatch<Idx>(
+				allocator_,
+				Fn<Idx, Offset, false>(),
+				std::forward<TupleItem>(item),
+				std::forward<Args>(args)...
+		);
+	}
+
+	template<Int Idx, Int Offset, typename TupleItem, typename... Args>
+	auto streamStart(TupleItem&& item, Args&&... args)
+	-> RtnType<Idx, Fn<Idx, Offset, true>, TupleItem, Args...>
+	{
+		return Dispatcher::template dispatch<Idx>(
+				allocator_,
+				Fn<Idx, Offset, true>(),
+				std::forward<TupleItem>(item),
+				std::forward<Args>(args)...
+		);
+	}
 };
 
 

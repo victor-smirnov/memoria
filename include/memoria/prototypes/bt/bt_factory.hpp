@@ -233,6 +233,7 @@ public:
     };
 
     struct LeafNodeTypes: NodeTypesBase {
+    	using BranchStreamsStructList = typename MyType::BranchStreamsStructList;
     	using StreamsStructList = typename MyType::LeafStreamsStructList;
     };
 

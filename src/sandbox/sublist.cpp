@@ -70,6 +70,7 @@ using List3 = TypeList<
 		Linearize<TL<TL<T>, T, TL<T>>, 1>
 >;
 
+
 int main() {
 	ListPrinter<Tests>::print(cout);
 
