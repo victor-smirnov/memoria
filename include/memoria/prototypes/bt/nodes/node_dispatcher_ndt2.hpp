@@ -166,8 +166,8 @@ class NDT2<Types, 0> {
 
     static const Int Idx = 0;
 
-    using NodeBaseG  	= typename Types::NodeBaseG;
-    using Head      	= SelectByIndex<Idx, typename Types::ChildList>;
+    using NodeBaseG     = typename Types::NodeBaseG;
+    using Head          = SelectByIndex<Idx, typename Types::ChildList>;
 
     static const Int HASH = Head::PAGE_HASH;
 

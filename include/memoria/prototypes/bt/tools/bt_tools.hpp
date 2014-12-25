@@ -219,7 +219,7 @@ class AccumulatorListBuilder<TypeList<StructsTF, Tail...>, Idx> {
 public:
     using Type = MergeLists<
             Linearize<typename StructsTF::AccumulatorPart>,
-    		typename AccumulatorListBuilder<
+            typename AccumulatorListBuilder<
                 TypeList<Tail...>,
                 Idx + 1
             >::Type
@@ -402,7 +402,7 @@ template <typename List> struct StreamSourcePtrListBuilder;
 template <typename Head, typename... Tail>
 struct StreamSourcePtrListBuilder<TypeList<Head, Tail...>>
 {
-	using Type = MergeLists<
+    using Type = MergeLists<
                 IDataSource<Head>*,
                 typename StreamSourcePtrListBuilder<
                     TypeList<Tail...>

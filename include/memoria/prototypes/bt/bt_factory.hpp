@@ -136,37 +136,37 @@ struct BTTypes {
     typedef EmptyType                                                           Entropy;
 
 
-    template <typename Types>
+    template <typename Types, typename BranchPath, typename LeafPath>
     using SkipForwardWalker                 = TypeIsNotDefined;
 
-    template <typename Types>
+    template <typename Types, typename BranchPath, typename LeafPath>
     using SkipBackwardWalker                = TypeIsNotDefined;
 
-    template <typename Types>
+    template <typename Types, typename BranchPath, typename LeafPath>
     using NextLeafWalker                    = TypeIsNotDefined;
 
-    template <typename Types>
+    template <typename Types, typename BranchPath, typename LeafPath>
     using PrevLeafWalker                    = TypeIsNotDefined;
 
-    template <typename Types>
+    template <typename Types, typename BranchPath, typename LeafPath>
     using NextLeafMutistreamWalker          = TypeIsNotDefined;
 
-    template <typename Types>
+    template <typename Types, typename BranchPath, typename LeafPath>
     using PrevLeafMutistreamWalker          = TypeIsNotDefined;
 
 
 
 
-    template <typename Types>
+    template <typename Types, typename BranchPath, typename LeafPath>
     using FindBeginWalker                   = TypeIsNotDefined;
 
-    template <typename Types>
+    template <typename Types, typename BranchPath, typename LeafPath>
     using FindEndWalker                     = TypeIsNotDefined;
 
-    template <typename Types>
+    template <typename Types, typename BranchPath, typename LeafPath>
     using FindRBeginWalker                  = TypeIsNotDefined;
 
-    template <typename Types>
+    template <typename Types, typename BranchPath, typename LeafPath>
     using FindREndWalker                    = TypeIsNotDefined;
 };
 
@@ -198,10 +198,10 @@ public:
     >::Type                                                                     IteratorPrefix_;
 
     using Position_ = core::StaticVector<typename ContainerTypes::CtrSizeT, Streams>;
-    using Page 		= typename ContainerTypes::Allocator::Page;
+    using Page      = typename ContainerTypes::Allocator::Page;
 
-    using NodePageBase0 	= TreeNodeBase<typename ContainerTypes::Metadata, Page>;
-    using NodePageBase0G 	= PageGuard<NodePageBase0, typename ContainerTypes::Allocator>;
+    using NodePageBase0     = TreeNodeBase<typename ContainerTypes::Metadata, Page>;
+    using NodePageBase0G    = PageGuard<NodePageBase0, typename ContainerTypes::Allocator>;
 
     using BranchStreamsStructList = typename PackedBranchStructListBuilder<
                 typename ContainerTypes::StreamDescriptors
@@ -219,35 +219,35 @@ public:
 
 
     struct NodeTypesBase: ContainerTypes {
-    	using NodeBase 	= Page;
-    	using Name 		= ContainerTypeName_;
-    	using Metadata 	= typename ContainerTypes::Metadata;
-    	using ID		= typename MyType::ID;
+        using NodeBase  = Page;
+        using Name      = ContainerTypeName_;
+        using Metadata  = typename ContainerTypes::Metadata;
+        using ID        = typename MyType::ID;
 
-    	using Accumulator 	= Accumulator_;
-    	using Position 		= Position_;
+        using Accumulator   = Accumulator_;
+        using Position      = Position_;
     };
 
     struct BranchNodeTypes: NodeTypesBase {
-    	using StreamsStructList = typename MyType::BranchStreamsStructList;
+        using StreamsStructList = typename MyType::BranchStreamsStructList;
     };
 
     struct LeafNodeTypes: NodeTypesBase {
-    	using BranchStreamsStructList = typename MyType::BranchStreamsStructList;
-    	using StreamsStructList = typename MyType::LeafStreamsStructList;
+        using BranchStreamsStructList = typename MyType::BranchStreamsStructList;
+        using StreamsStructList = typename MyType::LeafStreamsStructList;
     };
 
     struct DispatcherTypes
     {
         using NodeTypesList = typename ContainerTypes::NodeTypesList;
 
-        using DefaultBranchNodeTypesList 	= typename ContainerTypes::DefaultBranchNodeTypesList;
-        using DefaultLeafNodeTypesList 		= typename ContainerTypes::DefaultLeafNodeTypesList;
+        using DefaultBranchNodeTypesList    = typename ContainerTypes::DefaultBranchNodeTypesList;
+        using DefaultLeafNodeTypesList      = typename ContainerTypes::DefaultLeafNodeTypesList;
 
-        using BranchNodeTypes 	= typename MyType::BranchNodeTypes;
-        using LeafNodeTypes 	= typename MyType::LeafNodeTypes;
+        using BranchNodeTypes   = typename MyType::BranchNodeTypes;
+        using LeafNodeTypes     = typename MyType::LeafNodeTypes;
 
-        using NodeBaseG 		= NodePageBase0G;
+        using NodeBaseG         = NodePageBase0G;
     };
 
     typedef bt::BTreeDispatchers<DispatcherTypes>                              PageDispatchers;

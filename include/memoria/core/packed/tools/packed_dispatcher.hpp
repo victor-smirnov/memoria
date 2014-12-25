@@ -44,7 +44,7 @@ template <typename Head, typename... Tail, Int Index, Int StartIdx, Int ListOffs
 class PackedDispatcher<TypeList<StreamDescr<Head, Index>, Tail...>, StartIdx, ListOffsetIdx> {
 public:
 
-	using MyType = PackedDispatcher<TypeList<StreamDescr<Head, Index>, Tail...>, StartIdx, ListOffsetIdx>;
+    using MyType = PackedDispatcher<TypeList<StreamDescr<Head, Index>, Tail...>, StartIdx, ListOffsetIdx>;
 
     static const Int AllocatorIdx   = Index + StartIdx;
     static const Int ListIdx        = Index - ListOffsetIdx;
@@ -65,12 +65,12 @@ public:
 
     template <typename Fn, typename... Args>
     using RtnTuple = typename MakeTupleH<
-    		typename pd::MakeRtnTypeList<List, ListIdx, Fn, Args...>::Type
+            typename pd::MakeRtnTypeList<List, ListIdx, Fn, Args...>::Type
     >::Type;
 
     template <typename Fn, typename... Args>
     using ConstRtnTuple = typename MakeTupleH<
-    		typename pd::MakeRtnTypeListConst<List, ListIdx, Fn, Args...>::Type
+            typename pd::MakeRtnTypeListConst<List, ListIdx, Fn, Args...>::Type
     >::Type;
 
     template <typename Fn, typename... Args>
@@ -81,16 +81,16 @@ public:
 
     template <typename Fn, typename... Args>
     using ProcessAllRtnType = typename IfThenElse<
-    	HasVoid<Fn, Args...>::Value,
-    	void,
-    	RtnTuple<Fn, Args...>
+        HasVoid<Fn, Args...>::Value,
+        void,
+        RtnTuple<Fn, Args...>
     >::Result;
 
     template <typename Fn, typename... Args>
     using ProcessAllRtnConstType = typename IfThenElse<
-    	HasVoid<Fn, Args...>::Value,
-    	void,
-    	ConstRtnTuple<Fn, Args...>
+        HasVoid<Fn, Args...>::Value,
+        void,
+        ConstRtnTuple<Fn, Args...>
     >::Result;
 
 
@@ -265,18 +265,18 @@ public:
     >::type
     dispatchAll(PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-    	RtnTuple<Fn, Args...> tuple;
+        RtnTuple<Fn, Args...> tuple;
 
-    	dispatchAllTuple(tuple, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        dispatchAllTuple(tuple, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
 
-    	return tuple;
+        return tuple;
     }
 
 
     template <typename Fn, typename... Args>
     static typename std::enable_if<
-    	HasVoid<Fn, Args...>::Value,
-    	void
+        HasVoid<Fn, Args...>::Value,
+        void
     >::type
     dispatchAll(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
@@ -294,24 +294,24 @@ public:
 
     template <typename Fn, typename... Args>
     static typename std::enable_if<
-    	!HasVoid<Fn, Args...>::Value,
-    	ConstRtnTuple<Fn, Args...>
+        !HasVoid<Fn, Args...>::Value,
+        ConstRtnTuple<Fn, Args...>
     >::type
     dispatchAll(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-    	ConstRtnTuple<Fn, Args...> tuple;
+        ConstRtnTuple<Fn, Args...> tuple;
 
-    	dispatchAllTuple(tuple, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        dispatchAllTuple(tuple, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
 
-    	return tuple;
+        return tuple;
     }
 
 
 
     template <typename Fn, typename... Args>
     static typename std::enable_if<
-    	HasVoid<Fn, Args...>::Value,
-    	void
+        HasVoid<Fn, Args...>::Value,
+        void
     >::type
     dispatchAll(UBigInt streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
@@ -329,8 +329,8 @@ public:
 
     template <typename Fn, typename... Args>
     static typename std::enable_if<
-    	!HasVoid<Fn, Args...>::Value,
-    	RtnTuple<Fn, Args...>
+        !HasVoid<Fn, Args...>::Value,
+        RtnTuple<Fn, Args...>
     >::type
     dispatchAll(UBigInt streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
@@ -344,8 +344,8 @@ public:
 
     template <typename Fn, typename... Args>
     static typename std::enable_if<
-    	!HasVoid<Fn, Args...>::Value,
-    	void
+        !HasVoid<Fn, Args...>::Value,
+        void
     >::type
     dispatchAll(UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
@@ -363,8 +363,8 @@ public:
 
     template <typename Fn, typename... Args>
     static typename std::enable_if<
-    	HasVoid<Fn, Args...>::Value,
-    	ConstRtnTuple<Fn, Args...>
+        HasVoid<Fn, Args...>::Value,
+        ConstRtnTuple<Fn, Args...>
     >::type
     dispatchAll(UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
@@ -380,8 +380,8 @@ public:
 
     template <typename Fn, typename... Args>
     static typename std::enable_if<
-    	HasVoid<Fn, Args...>::Value,
-    	void
+        HasVoid<Fn, Args...>::Value,
+        void
     >::type
     dispatchStatic(Int idx, Fn&& fn, Args&&... args)
     {
@@ -397,24 +397,24 @@ public:
 
     template <typename Fn, typename... Args>
     static typename std::enable_if<
-    	!HasVoid<Fn, Args...>::Value,
-    	ConstRtnTuple<Fn, Args...>
+        !HasVoid<Fn, Args...>::Value,
+        ConstRtnTuple<Fn, Args...>
     >::type
     dispatchStatic(Int idx, Fn&& fn, Args&&... args)
     {
-    	ConstRtnTuple<Fn, Args...> tuple;
+        ConstRtnTuple<Fn, Args...> tuple;
 
-    	dispatchAllStaticTuple(tuple, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        dispatchAllStaticTuple(tuple, std::forward<Fn>(fn), std::forward<Args>(args)...);
 
-    	return tuple;
+        return tuple;
     }
 
 
 
     template <typename Fn, typename... Args>
     static typename std::enable_if<
-    	!HasVoid<Fn, Args...>::Value,
-    	ConstRtnTuple<Fn, Args...>
+        !HasVoid<Fn, Args...>::Value,
+        ConstRtnTuple<Fn, Args...>
     >::type
     dispatchSelected(UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
@@ -428,27 +428,27 @@ public:
 
     template <typename Fn, typename... Args>
     static typename std::enable_if<
-    	HasVoid<Fn, Args...>::Value,
-    	void
+        HasVoid<Fn, Args...>::Value,
+        void
     >::type
     dispatchSelected(UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-    	const Head* head = nullptr;
-    	if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
-    	{
-    		head = alloc->template get<Head>(AllocatorIdx);
-    	}
+        const Head* head = nullptr;
+        if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
+        {
+            head = alloc->template get<Head>(AllocatorIdx);
+        }
 
-    	fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+        fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
 
-    	NextDispatcher::dispatchSelected(streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        NextDispatcher::dispatchSelected(streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
 
     template <typename Fn, typename... Args>
     static typename std::enable_if<
-    	!HasVoid<Fn, Args...>::Value,
-    	RtnTuple<Fn, Args...>
+        !HasVoid<Fn, Args...>::Value,
+        RtnTuple<Fn, Args...>
     >::type
     dispatchSelected(UBigInt streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
@@ -462,20 +462,20 @@ public:
 
     template <typename Fn, typename... Args>
     static typename std::enable_if<
-    	HasVoid<Fn, Args...>::Value,
-    	void
+        HasVoid<Fn, Args...>::Value,
+        void
     >::type
     dispatchSelected(UBigInt streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-    	Head* head = nullptr;
-    	if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
-    	{
-    		head = alloc->template get<Head>(AllocatorIdx);
-    	}
+        Head* head = nullptr;
+        if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
+        {
+            head = alloc->template get<Head>(AllocatorIdx);
+        }
 
-    	fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+        fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
 
-    	NextDispatcher::dispatchSelected(streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        NextDispatcher::dispatchSelected(streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
 
@@ -484,7 +484,7 @@ public:
     template <typename Tuple, typename Fn, typename... Args>
     static void dispatchAllTuple(Tuple& tuple, UBigInt streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-    	Head* head = nullptr;
+        Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
         {
             head = alloc->template get<Head>(AllocatorIdx);
@@ -545,11 +545,11 @@ public:
     template <typename Tuple, typename Fn, typename... Args>
     static void dispatchAllStaticTuple(Tuple& tuple, Fn&& fn, Args&&... args)
     {
-    	const Head* head = nullptr;
+        const Head* head = nullptr;
 
-    	std::get<ListIdx>(tuple) = fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+        std::get<ListIdx>(tuple) = fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
 
-    	NextDispatcher::dispatchAllStaticTuple(tuple, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        NextDispatcher::dispatchAllStaticTuple(tuple, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 };
 
@@ -581,12 +581,12 @@ public:
 
     template <typename Fn, typename... Args>
     using RtnTuple = typename MakeTupleH<
-    		typename pd::MakeRtnTypeList<List, ListIdx, Fn, Args...>::Type
+            typename pd::MakeRtnTypeList<List, ListIdx, Fn, Args...>::Type
     >::Type;
 
     template <typename Fn, typename... Args>
     using ConstRtnTuple = typename MakeTupleH<
-    		typename pd::MakeRtnTypeListConst<List, ListIdx, Fn, Args...>::Type
+            typename pd::MakeRtnTypeListConst<List, ListIdx, Fn, Args...>::Type
     >::Type;
 
     template <typename Fn, typename... Args>
@@ -597,16 +597,16 @@ public:
 
     template <typename Fn, typename... Args>
     using ProcessAllRtnType = typename IfThenElse<
-    	HasVoid<Fn, Args...>::Value,
-    	void,
-    	RtnTuple<Fn, Args...>
+        HasVoid<Fn, Args...>::Value,
+        void,
+        RtnTuple<Fn, Args...>
     >::Result;
 
     template <typename Fn, typename... Args>
     using ProcessAllRtnConstType = typename IfThenElse<
-    	HasVoid<Fn, Args...>::Value,
-    	void,
-    	ConstRtnTuple<Fn, Args...>
+        HasVoid<Fn, Args...>::Value,
+        void,
+        ConstRtnTuple<Fn, Args...>
     >::Result;
 
 
@@ -749,8 +749,8 @@ public:
 
     template <typename Fn, typename... Args>
     static typename std::enable_if<
-    	HasVoid<Fn, Args...>::Value,
-    	void
+        HasVoid<Fn, Args...>::Value,
+        void
     >::type
     dispatchStatic(Int idx, Fn&& fn, Args&&... args)
     {
@@ -760,23 +760,23 @@ public:
             return fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
         }
         else {
-        	throw DispatchException(MA_SRC, SBuf()<<"Can't dispatch packed allocator structure: "<<idx);
+            throw DispatchException(MA_SRC, SBuf()<<"Can't dispatch packed allocator structure: "<<idx);
         }
     }
 
 
     template <typename Fn, typename... Args>
     static typename std::enable_if<
-    	!HasVoid<Fn, Args...>::Value,
-    	ConstRtnTuple<Fn, Args...>
+        !HasVoid<Fn, Args...>::Value,
+        ConstRtnTuple<Fn, Args...>
     >::type
     dispatchStatic(Int idx, Fn&& fn, Args&&... args)
     {
-    	ConstRtnTuple<Fn, Args...> tuple;
+        ConstRtnTuple<Fn, Args...> tuple;
 
-    	dispatchAllStaticTuple(tuple, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        dispatchAllStaticTuple(tuple, std::forward<Fn>(fn), std::forward<Args>(args)...);
 
-    	return tuple;
+        return tuple;
     }
 
 
@@ -784,8 +784,8 @@ public:
 
     template <typename Fn, typename... Args>
     static typename std::enable_if<
-    		!HasVoid<Fn, Args...>::Value,
-    		RtnTuple<Fn, Args...>
+            !HasVoid<Fn, Args...>::Value,
+            RtnTuple<Fn, Args...>
     >::type
     dispatchAll(PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
@@ -799,8 +799,8 @@ public:
 
     template <typename Fn, typename... Args>
     static typename std::enable_if<
-    		!HasVoid<Fn, Args...>::Value,
-    		RtnTuple<Fn, Args...>
+            !HasVoid<Fn, Args...>::Value,
+            RtnTuple<Fn, Args...>
     >::type
     dispatchAll(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
@@ -814,35 +814,35 @@ public:
 
     template <typename Fn, typename... Args>
     static typename std::enable_if<
-    		HasVoid<Fn, Args...>::Value,
-    		void
+            HasVoid<Fn, Args...>::Value,
+            void
     >::type
     dispatchAll(PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-    	Head* head = nullptr;
-    	if (!alloc->is_empty(AllocatorIdx))
-    	{
-    		head = alloc->template get<Head>(AllocatorIdx);
-    	}
+        Head* head = nullptr;
+        if (!alloc->is_empty(AllocatorIdx))
+        {
+            head = alloc->template get<Head>(AllocatorIdx);
+        }
 
-    	fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+        fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
     }
 
 
     template <typename Fn, typename... Args>
     static typename std::enable_if<
-    		HasVoidConst<Fn, Args...>::Value,
-    		void
+            HasVoidConst<Fn, Args...>::Value,
+            void
     >::type
     dispatchAll(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-    	const Head* head = nullptr;
-    	if (!alloc->is_empty(AllocatorIdx))
-    	{
-    		head = alloc->template get<Head>(AllocatorIdx);
-    	}
+        const Head* head = nullptr;
+        if (!alloc->is_empty(AllocatorIdx))
+        {
+            head = alloc->template get<Head>(AllocatorIdx);
+        }
 
-    	fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+        fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
     }
 
 
@@ -852,8 +852,8 @@ public:
 
     template <typename Fn, typename... Args>
     static typename std::enable_if<
-    	!HasVoid<Fn, Args...>::Value,
-    	ConstRtnTuple<Fn, Args...>
+        !HasVoid<Fn, Args...>::Value,
+        ConstRtnTuple<Fn, Args...>
     >::type
     dispatchSelected(UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
@@ -867,25 +867,25 @@ public:
 
     template <typename Fn, typename... Args>
     static typename std::enable_if<
-    	HasVoid<Fn, Args...>::Value,
-    	void
+        HasVoid<Fn, Args...>::Value,
+        void
     >::type
     dispatchSelected(UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-    	const Head* head = nullptr;
-    	if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
-    	{
-    		head = alloc->template get<Head>(AllocatorIdx);
-    	}
+        const Head* head = nullptr;
+        if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
+        {
+            head = alloc->template get<Head>(AllocatorIdx);
+        }
 
-    	fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+        fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
     }
 
 
     template <typename Fn, typename... Args>
     static typename std::enable_if<
-    	!HasVoid<Fn, Args...>::Value,
-    	RtnTuple<Fn, Args...>
+        !HasVoid<Fn, Args...>::Value,
+        RtnTuple<Fn, Args...>
     >::type
     dispatchSelected(UBigInt streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
@@ -899,18 +899,18 @@ public:
 
     template <typename Fn, typename... Args>
     static typename std::enable_if<
-    	HasVoid<Fn, Args...>::Value,
-    	void
+        HasVoid<Fn, Args...>::Value,
+        void
     >::type
     dispatchSelected(UBigInt streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-    	Head* head = nullptr;
-    	if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
-    	{
-    		head = alloc->template get<Head>(AllocatorIdx);
-    	}
+        Head* head = nullptr;
+        if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
+        {
+            head = alloc->template get<Head>(AllocatorIdx);
+        }
 
-    	fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+        fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
     }
 
 
@@ -919,7 +919,7 @@ public:
     template <typename Tuple, typename Fn, typename... Args>
     static void dispatchAllTuple(Tuple& tuple, UBigInt streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-    	Head* head = nullptr;
+        Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
         {
             head = alloc->template get<Head>(AllocatorIdx);
@@ -972,9 +972,9 @@ public:
     template <typename Tuple, typename Fn, typename... Args>
     static void dispatchAllStaticTuple(Tuple& tuple, Fn&& fn, Args&&... args)
     {
-    	const Head* head = nullptr;
+        const Head* head = nullptr;
 
-    	std::get<ListIdx>(tuple) = fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+        std::get<ListIdx>(tuple) = fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
     }
 };
 

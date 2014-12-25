@@ -54,7 +54,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrNavName)
 
         auto stream = 0;
 
-        typename Types::template SkipForwardWalker<Types> walker(stream, 0, self.size());
+        typename Types::template SkipForwardWalker<Types, IntList<0>, IntList<0>> walker(stream, 0, self.size());
         return self.find0(stream, walker);
     }
 
@@ -68,7 +68,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrNavName)
 
         if (size > 0)
         {
-            typename Types::template SkipForwardWalker<Types> walker(stream, 0, size - 1);
+            typename Types::template SkipForwardWalker<Types, IntList<0>, IntList<0>> walker(stream, 0, size - 1);
             return self.find0(stream, walker);
         }
         else {

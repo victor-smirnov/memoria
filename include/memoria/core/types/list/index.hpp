@@ -52,7 +52,7 @@ struct SelectByIndexTool<Idx, TypeList<Head, Tail...>, ReturnDefault, Idx> {
 
 template <Int Idx, bool ReturnDefault, typename Head, typename ... Tail, Int Counter>
 struct SelectByIndexTool<Idx, TypeList<Head, Tail...>, ReturnDefault, Counter> {
-	using Type = typename SelectByIndexTool<
+    using Type = typename SelectByIndexTool<
                         Idx,
                         TypeList<Tail...>,
                         ReturnDefault,
@@ -62,12 +62,12 @@ struct SelectByIndexTool<Idx, TypeList<Head, Tail...>, ReturnDefault, Counter> {
 
 template <Int Idx, Int Counter>
 struct SelectByIndexTool<Idx, TypeList<>, false, Counter> {
-	using Type = ListIndexOutOfRange<Idx>;
+    using Type = ListIndexOutOfRange<Idx>;
 };
 
 template <Int Idx, Int Counter>
 struct SelectByIndexTool<Idx, TypeList<>, true, Counter> {
-	using Type = NullType;
+    using Type = NullType;
 };
 
 

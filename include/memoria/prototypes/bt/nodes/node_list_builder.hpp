@@ -83,18 +83,18 @@ struct NodeTypeListBuilder<BranchTypes, LeafTypes, TypeList<Head, Tail...>> {
     typedef MergeLists<
             typename Head::template AllTypesList<BranchTypes, LeafTypes>,
             typename NodeTypeListBuilder<BranchTypes, LeafTypes, TypeList<Tail...>>::AllTypesList
-    >                                                                   		AllTypesList;
+    >                                                                           AllTypesList;
 
 
     typedef MergeLists<
             typename Head::template LeafTypesList<LeafTypes>,
             typename NodeTypeListBuilder<BranchTypes, LeafTypes, TypeList<Tail...>>::LeafTypesList
-    >                                                                   		LeafTypesList;
+    >                                                                           LeafTypesList;
 
     typedef MergeLists<
             typename Head::template BranchTypesList<BranchTypes>,
             typename NodeTypeListBuilder<BranchTypes, LeafTypes, TypeList<Tail...>>::BranchTypesList
-    >                                                                   		BranchTypesList;
+    >                                                                           BranchTypesList;
 };
 
 
@@ -117,7 +117,7 @@ struct DefaultNodeTypeListBuilder<Types, TypeList<Head, Tail...>> {
     typedef MergeLists<
             typename Head::template Type<Types>,
             typename DefaultNodeTypeListBuilder<Types, TypeList<Tail...>>::List
-    >                                                                   		List;
+    >                                                                           List;
 };
 
 
@@ -134,16 +134,16 @@ template <
 >
 class BTreeDispatchers {
 
-	using MyType 			= BTreeDispatchers<Types>;
+    using MyType            = BTreeDispatchers<Types>;
 
-	using BranchTypes 		= typename Types::BranchNodeTypes;
-    using LeafTypes 		= typename Types::LeafNodeTypes;
+    using BranchTypes       = typename Types::BranchNodeTypes;
+    using LeafTypes         = typename Types::LeafNodeTypes;
 
-    using NodeTypesList 	= typename Types::NodeTypesList;
-    using NodeBaseG_ 		= typename Types::NodeBaseG;
+    using NodeTypesList     = typename Types::NodeTypesList;
+    using NodeBaseG_        = typename Types::NodeBaseG;
 
-    using DefaultBranchNodeTypesList 	= typename Types::DefaultBranchNodeTypesList;
-    using DefaultLeafNodeTypesList 		= typename Types::DefaultLeafNodeTypesList;
+    using DefaultBranchNodeTypesList    = typename Types::DefaultBranchNodeTypesList;
+    using DefaultLeafNodeTypesList      = typename Types::DefaultLeafNodeTypesList;
 
 public:
     struct NodeTypesBase {
@@ -155,30 +155,30 @@ public:
     };
 
     struct LeafDTypes: NodeTypesBase {
-    	using List = typename NodeTypeListBuilder<BranchTypes, LeafTypes, NodeTypesList>::LeafTypesList;
+        using List = typename NodeTypeListBuilder<BranchTypes, LeafTypes, NodeTypesList>::LeafTypesList;
     };
 
     struct BranchDTypes: NodeTypesBase {
-    	using List = typename NodeTypeListBuilder<BranchTypes, LeafTypes, NodeTypesList>::BranchTypesList;
+        using List = typename NodeTypeListBuilder<BranchTypes, LeafTypes, NodeTypesList>::BranchTypesList;
     };
 
     struct DefaultDTypes: NodeTypesBase {
-    	using List = MergeLists<
-    			typename DefaultNodeTypeListBuilder<LeafTypes, DefaultLeafNodeTypesList>::List,
-    			typename DefaultNodeTypeListBuilder<BranchTypes, DefaultBranchNodeTypesList>::List
-    	>;
+        using List = MergeLists<
+                typename DefaultNodeTypeListBuilder<LeafTypes, DefaultLeafNodeTypesList>::List,
+                typename DefaultNodeTypeListBuilder<BranchTypes, DefaultBranchNodeTypesList>::List
+        >;
     };
 
     struct TreeDTypes: NodeTypesBase {
-        using List 		= typename NodeTypeListBuilder<BranchTypes, LeafTypes, NodeTypesList>::BranchTypesList;
+        using List      = typename NodeTypeListBuilder<BranchTypes, LeafTypes, NodeTypesList>::BranchTypesList;
         using ChildList = typename NodeTypeListBuilder<BranchTypes, LeafTypes, NodeTypesList>::AllTypesList;
     };
 
-    using NodeDispatcher 		= NDT<AllDTypes>;
-    using LeafDispatcher 		= NDT<LeafDTypes>;
-    using NonLeafDispatcher 	= NDT<BranchDTypes>;
-    using DefaultDispatcher 	= NDT<DefaultDTypes>;
-    using TreeDispatcher 		= NDTTree<TreeDTypes>;
+    using NodeDispatcher        = NDT<AllDTypes>;
+    using LeafDispatcher        = NDT<LeafDTypes>;
+    using NonLeafDispatcher     = NDT<BranchDTypes>;
+    using DefaultDispatcher     = NDT<DefaultDTypes>;
+    using TreeDispatcher        = NDTTree<TreeDTypes>;
 };
 
 }

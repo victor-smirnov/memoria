@@ -348,7 +348,7 @@ public:
 
     using Dispatcher = PackedDispatcher<StreamDispatcherStructList, Base::StreamsStart>;
 
-    static const Int Streams 													= ListSize<SubstreamsStructList>::Value;
+    static const Int Streams                                                    = ListSize<SubstreamsStructList>::Value;
     static const Int StreamsStart                                               = Base::StreamsStart;
     static const Int StreamsEnd                                                 = Base::StreamsStart + Streams;
     static const Int ValuesBlockIdx                                             = StreamsEnd;
@@ -361,7 +361,7 @@ public:
 
     template <typename... Args>
     using DynDispatchRtnFnType = auto(Args...) -> decltype(
-    		Dispatcher::template dispatch(std::declval<Args>()...)
+            Dispatcher::template dispatch(std::declval<Args>()...)
     );
 
     template <Int Idx, typename Fn, typename... T>
@@ -371,17 +371,17 @@ public:
 
     template <Int Idx, typename Fn, typename... T>
     using DispatchRtnConstType = typename FnTraits<
-    		DispatchRtnFnType<Idx, const PackedAllocator*, Fn, T...>
+            DispatchRtnFnType<Idx, const PackedAllocator*, Fn, T...>
     >::RtnType;
 
     template <typename Fn, typename... T>
     using DynDispatchRtnType = typename FnTraits<
-    		DynDispatchRtnFnType<Int, PackedAllocator*, Fn, T...>
+            DynDispatchRtnFnType<Int, PackedAllocator*, Fn, T...>
     >::RtnType;
 
     template <typename Fn, typename... T>
     using DynDispatchRtnConstType = typename FnTraits<
-    		DynDispatchRtnFnType<Int, const PackedAllocator*, Fn, T...>
+            DynDispatchRtnFnType<Int, const PackedAllocator*, Fn, T...>
     >::RtnType;
 
 

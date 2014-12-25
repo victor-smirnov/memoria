@@ -67,6 +67,9 @@ public:
 
         Ctr map(&allocator);
 
+//        auto iter = map.Begin();
+//        map.insertEntry();
+
 //        Base::ctr_name_ = map.name();
 //
 //        BigInt last_key = 0;

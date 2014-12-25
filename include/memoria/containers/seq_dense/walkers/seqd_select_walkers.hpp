@@ -17,10 +17,10 @@ namespace seq_dense {
 
 
 
-template <typename Types, Int Stream>
-class SelectForwardWalker: public bt::FindForwardWalkerBase<Types, Stream, SelectForwardWalker<Types, Stream>> {
+template <typename Types, typename BranchPath, typename LeafPath>
+class SelectForwardWalker: public bt::FindForwardWalkerBase<Types, BranchPath, LeafPath, SelectForwardWalker<Types, BranchPath, LeafPath>> {
 
-    typedef bt::FindForwardWalkerBase<Types, Stream, SelectForwardWalker<Types, Stream>>    Base;
+    using Base = bt::FindForwardWalkerBase<Types, BranchPath, LeafPath, SelectForwardWalker<Types, BranchPath, LeafPath>>;
     typedef typename Base::Key                                                              Key;
 
     BigInt pos_ = 0;
@@ -95,10 +95,10 @@ public:
 };
 
 
-template <typename Types, Int Stream>
-class SelectForwardWalker2: public bt::SelectForwardWalkerBase<Types, Stream> {
+template <typename Types, typename BranchPath, typename LeafPath>
+class SelectForwardWalker2: public bt::SelectForwardWalkerBase<Types, BranchPath, LeafPath> {
 
-    typedef bt::SelectForwardWalkerBase<Types, Stream>                                  Base;
+    using Base = bt::SelectForwardWalkerBase<Types, BranchPath, LeafPath>;
     typedef typename Base::Key                                                  Key;
 
 public:
@@ -135,10 +135,10 @@ public:
 
 
 
-template <typename Types, Int Stream>
-class SelectBackwardWalker: public bt::FindBackwardWalkerBase<Types, Stream, SelectBackwardWalker<Types, Stream>> {
+template <typename Types, typename BranchPath, typename LeafPath>
+class SelectBackwardWalker: public bt::FindBackwardWalkerBase<Types, BranchPath, LeafPath, SelectBackwardWalker<Types, BranchPath, LeafPath>> {
 
-    typedef bt::FindBackwardWalkerBase<Types, Stream, SelectBackwardWalker<Types, Stream>>      Base;
+    using Base = bt::FindBackwardWalkerBase<Types, BranchPath, LeafPath, SelectBackwardWalker<Types, BranchPath, LeafPath>>;
     typedef typename Base::Key                                                                  Key;
 
 

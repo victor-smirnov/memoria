@@ -45,7 +45,7 @@ template <
 >
 class LeafNode: public TreeNodeBase<typename Types::Metadata, typename Types::NodeBase>
 {
-    static const Int BranchingFactor                                           	= PackedTreeBranchingFactor;
+    static const Int BranchingFactor                                            = PackedTreeBranchingFactor;
 
     typedef LeafNode<Types>                                                     Me;
     typedef LeafNode<Types>                                                     MyType;
@@ -74,16 +74,16 @@ public:
     using Dispatcher = PackedDispatcher<StreamDispatcherStructList, Base::StreamsStart>;
 
     using AccumulatorDispatcher = AccumulatorLeafHandler<
-    		Accumulator,
-    		typename LeafOffsetListBuilder<SubstreamsStructList>::Type
+            Accumulator,
+            typename LeafOffsetListBuilder<SubstreamsStructList>::Type
     >;
 
     template <Int Stream>
     using ByStreamAccumulatorDispatcher = AccumulatorLeafHandler<
-    		Accumulator,
-    		typename LeafOffsetListBuilder<SubstreamsStructList>::Type,
-    		LeafCountInf<BranchSubstreamsStructList, IntList<Stream>>::Value,
-    		LeafCountSup<BranchSubstreamsStructList, IntList<Stream>>::Value
+            Accumulator,
+            typename LeafOffsetListBuilder<SubstreamsStructList>::Type,
+            LeafCountInf<BranchSubstreamsStructList, IntList<Stream>>::Value,
+            LeafCountSup<BranchSubstreamsStructList, IntList<Stream>>::Value
     >;
 
     template <Int StartIdx, Int EndIdx>
@@ -103,7 +103,7 @@ public:
 
     template <typename... Args>
     using DynDispatchRtnFnType = auto(Args...) -> decltype(
-    		Dispatcher::template dispatch(std::declval<Args>()...)
+            Dispatcher::template dispatch(std::declval<Args>()...)
     );
 
     template <Int Idx, typename Fn, typename... T>
@@ -113,17 +113,17 @@ public:
 
     template <Int Idx, typename Fn, typename... T>
     using DispatchRtnConstType = typename FnTraits<
-    		DispatchRtnFnType<Idx, const PackedAllocator*, Fn, T...>
+            DispatchRtnFnType<Idx, const PackedAllocator*, Fn, T...>
     >::RtnType;
 
     template <typename Fn, typename... T>
     using DynDispatchRtnType = typename FnTraits<
-    		DynDispatchRtnFnType<Int, PackedAllocator*, Fn, T...>
+            DynDispatchRtnFnType<Int, PackedAllocator*, Fn, T...>
     >::RtnType;
 
     template <typename Fn, typename... T>
     using DynDispatchRtnConstType = typename FnTraits<
-    		DynDispatchRtnFnType<Int, const PackedAllocator*, Fn, T...>
+            DynDispatchRtnFnType<Int, const PackedAllocator*, Fn, T...>
     >::RtnType;
 
 
@@ -366,20 +366,20 @@ public:
 
 
     struct InitAll {
-    	template <Int StreamIdx, typename Node>
-    	StaticVector<Int, StreamIdx>
-    	stream(const Node* boo, int a, int b, int c) {
-    		StaticVector<Int, StreamIdx> t;
+        template <Int StreamIdx, typename Node>
+        StaticVector<Int, StreamIdx>
+        stream(const Node* boo, int a, int b, int c) {
+            StaticVector<Int, StreamIdx> t;
 
-    		return t;
-    	}
+            return t;
+        }
     };
 
     struct InitVoidAll {
-    	template <Int StreamIdx, typename Node>
-    	void
-    	stream(const Node* boo, int a, int b, int c) {
-    	}
+        template <Int StreamIdx, typename Node>
+        void
+        stream(const Node* boo, int a, int b, int c) {
+        }
     };
 
     void reindex()
@@ -950,33 +950,33 @@ public:
 
 
     template <
-    	Int Idx,
-    	Int Offset,
-    	bool StreamStart
+        Int Idx,
+        Int Offset,
+        bool StreamStart
     >
     struct AccumulatorHandler
     {
-    	template <Int StreamIdx, typename StreamType, typename TupleItem>
-    	void stream(const StreamType* obj, TupleItem& accum, Int start, Int end)
-    	{
-    		if (obj != nullptr){
-    			obj->sums(start, end, accum);
-    		}
-    	}
+        template <Int StreamIdx, typename StreamType, typename TupleItem>
+        void stream(const StreamType* obj, TupleItem& accum, Int start, Int end)
+        {
+            if (obj != nullptr){
+                obj->sums(start, end, accum);
+            }
+        }
 
-    	template <Int StreamIdx, typename StreamType, typename TupleItem>
-    	void stream(const StreamType* obj, TupleItem& accum)
-    	{
-    		if (obj != nullptr) {
-    			obj->sums(accum);
-    		}
-    	}
+        template <Int StreamIdx, typename StreamType, typename TupleItem>
+        void stream(const StreamType* obj, TupleItem& accum)
+        {
+            if (obj != nullptr) {
+                obj->sums(accum);
+            }
+        }
     };
 
 
     void sums(Int start, Int end, Accumulator& sums) const
     {
-    	process<AccumulatorHandler>(sums, start, end);
+        process<AccumulatorHandler>(sums, start, end);
     }
 
     void sums(Int stream, Int start, Int end, Accumulator& sums) const
@@ -1214,98 +1214,98 @@ public:
 
 
     template <
-    	Int Stream,
-    	template <
-    		Int Idx,
-    		Int Offset,
-    		bool StreamStart
-    	>
-    	class Fn,
-    	typename... Args
+        Int Stream,
+        template <
+            Int Idx,
+            Int Offset,
+            bool StreamStart
+        >
+        class Fn,
+        typename... Args
     >
     void processSubstreamsAcc(Accumulator& accum, Args&&... args) const
     {
-    	AccumulatorDispatcher::process(
-    			accum,
-    			AccumulatorHandlerFn<
-    				const PackedAllocator*,
-    				Dispatcher,
-    				Fn
-    			>
-    			(allocator()),
-    			std::forward<Args>(args)...
-    	);
+        AccumulatorDispatcher::process(
+                accum,
+                AccumulatorHandlerFn<
+                    const PackedAllocator*,
+                    Dispatcher,
+                    Fn
+                >
+                (allocator()),
+                std::forward<Args>(args)...
+        );
     }
 
     template <
-    	template <
-    		Int Idx,
-    		Int Offset,
-    		bool StreamStart
-    	>
-    	class Fn,
-    	typename... Args
+        template <
+            Int Idx,
+            Int Offset,
+            bool StreamStart
+        >
+        class Fn,
+        typename... Args
     >
     void processSubstreamsAcc(Accumulator& accum, Args&&... args)
     {
-    	AccumulatorDispatcher::process(
-    			accum,
-    			AccumulatorHandlerFn<
-    				PackedAllocator*,
-    				Dispatcher,
-    				Fn
-    			>
-    			(allocator()),
-    			std::forward<Args>(args)...
-    	);
+        AccumulatorDispatcher::process(
+                accum,
+                AccumulatorHandlerFn<
+                    PackedAllocator*,
+                    Dispatcher,
+                    Fn
+                >
+                (allocator()),
+                std::forward<Args>(args)...
+        );
     }
 
 
     template <
-    	template <
-    		Int Idx,
-    		Int Offset,
-    		bool StreamStart
-    	>
-    	class Fn,
-    	typename... Args
+        template <
+            Int Idx,
+            Int Offset,
+            bool StreamStart
+        >
+        class Fn,
+        typename... Args
     >
     void process(Accumulator& accum, Args&&... args) const
     {
-    	AccumulatorDispatcher::process(
-    			accum,
-    			AccumulatorHandlerFn<
-    				const PackedAllocator*,
-    				Dispatcher,
-    				Fn
-    			>
-    			(allocator()),
-    			std::forward<Args>(args)...
-    	);
+        AccumulatorDispatcher::process(
+                accum,
+                AccumulatorHandlerFn<
+                    const PackedAllocator*,
+                    Dispatcher,
+                    Fn
+                >
+                (allocator()),
+                std::forward<Args>(args)...
+        );
     }
 
     template <
-    	Int Stream,
-    	template <
-    		Int Idx,
-    		Int Offset,
-    		bool StreamStart
-    	>
-    	class Fn,
-    	typename... Args
+        Int Stream,
+        template <
+            Int Idx,
+            Int Offset,
+            bool StreamStart
+        >
+        class Fn,
+        typename... Args
     >
     void process(Accumulator& accum, Args&&... args)
     {
-    	AccumulatorDispatcher::process(
-    			accum,
-    			AccumulatorHandlerFn<
-    				PackedAllocator*,
-    				Dispatcher,
-    				Fn
-    			>
-    			(allocator()),
-    			std::forward<Args>(args)...
-    	);
+        AccumulatorDispatcher::process(
+                accum,
+                AccumulatorHandlerFn<
+                    PackedAllocator*,
+                    Dispatcher,
+                    Fn
+                >
+                (allocator()),
+                std::forward<Args>(args)...
+        );
     }
 
 

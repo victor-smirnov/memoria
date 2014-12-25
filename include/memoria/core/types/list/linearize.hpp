@@ -14,39 +14,39 @@ namespace memoria {
 
 template <typename List, Int Depth = 0>
 struct ListDepth {
-	static const Int Value = Depth;
+    static const Int Value = Depth;
 };
 
 
 template <typename Head, typename... Tail, Int Depth>
 struct ListDepth<TypeList<Head, Tail...>, Depth> {
-	static const Int Value = ListDepth<TypeList<Tail...>, Depth>::Value;
+    static const Int Value = ListDepth<TypeList<Tail...>, Depth>::Value;
 };
 
 template <typename... Head, typename... Tail, Int Depth>
 struct ListDepth<TypeList<TypeList<Head...>, Tail...>, Depth> {
-	static const Int Value = Max<
-			Int,
-			ListDepth<TypeList<Head...>, Depth + 1>::Value,
-			ListDepth<TypeList<Tail...>, Depth>::Value
-	>::Value;
+    static const Int Value = Max<
+            Int,
+            ListDepth<TypeList<Head...>, Depth + 1>::Value,
+            ListDepth<TypeList<Tail...>, Depth>::Value
+    >::Value;
 };
 
 
 template <Int Depth>
 struct ListDepth<TypeList<>, Depth> {
-	static const Int Value = Depth + 1;
+    static const Int Value = Depth + 1;
 };
 
 
 
 template <typename List> struct IsPlainList {
-	static const bool Value = false;
+    static const bool Value = false;
 };
 
 template <typename... List>
 struct IsPlainList<TypeList<List...>> {
-	static const bool Value = ListDepth<TypeList<List...>>::Value == 1;
+    static const bool Value = ListDepth<TypeList<List...>>::Value == 1;
 };
 
 
@@ -69,16 +69,16 @@ struct LinearizeT<T, 0>;
 
 template <typename T, typename... Tail, Int MaxDepth>
 struct LinearizeT<TypeList<T, Tail...>, MaxDepth> {
-	using Type = typename IfThenElse<
-    		ListDepth<T>::Value < MaxDepth,
-    		MergeLists<
-    			TypeList<T>,
-    			typename LinearizeT<TypeList<Tail...>, MaxDepth>::Type
-    		>,
-    		MergeLists<
-    			typename LinearizeT<T, MaxDepth>::Type,
-    			typename LinearizeT<TypeList<Tail...>, MaxDepth>::Type
-    		>
+    using Type = typename IfThenElse<
+            ListDepth<T>::Value < MaxDepth,
+            MergeLists<
+                TypeList<T>,
+                typename LinearizeT<TypeList<Tail...>, MaxDepth>::Type
+            >,
+            MergeLists<
+                typename LinearizeT<T, MaxDepth>::Type,
+                typename LinearizeT<TypeList<Tail...>, MaxDepth>::Type
+            >
     >::Result;
 };
 

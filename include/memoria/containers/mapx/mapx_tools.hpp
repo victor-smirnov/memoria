@@ -20,7 +20,7 @@ namespace bt {
 
 template <typename T>
 struct StructSizeProvider<PackedFSEArray<T>> {
-	static const Int Value = 0;
+    static const Int Value = 0;
 };
 
 }
@@ -177,8 +177,8 @@ struct MapXStreamTF{
     typedef Value_                                                  Value;
 
     using LeafType = TypeList<
-    		PkdFTree<Packed2TreeTypes<Key, Key, Indexes>>,
-    		PackedFSEArray<PackedFSEArrayTypes<Value>>
+            PkdFTree<Packed2TreeTypes<Key, Key, Indexes>>,
+            PackedFSEArray<PackedFSEArrayTypes<Value>>
     >;
 
     static const Int LeafIndexes                                    = Indexes + 1;

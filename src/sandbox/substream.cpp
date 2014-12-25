@@ -19,7 +19,7 @@ namespace bt {
 
 template <Int I>
 struct StructSizeProvider<S<I>> {
-	static const Int Value = I;
+    static const Int Value = I;
 };
 
 
@@ -73,46 +73,46 @@ template <typename T, typename V = Int> struct PropValue;
 
 template <typename T>
 struct PropValue<T, decltype((void)T::VALUE, 0)> {
-	static const Int Value = T::VALUE;
+    static const Int Value = T::VALUE;
 };
 
 template <typename T>
 struct PropValue<T, decltype((void)T::VALUE1, 0)> {
-	static const Int Value = T::VALUE1;
+    static const Int Value = T::VALUE1;
 };
 
 
 
 struct VV {
-	static const Int VALUE = 42;
+    static const Int VALUE = 42;
 };
 
 struct VVV {
-	static const Int VALUE1 = 42;
+    static const Int VALUE1 = 42;
 };
 
 
 using List2 = IntList<
-	LeafCount<TL<TL<T, TL<T, T, T>, T>, TL<T, T, T>, T>, IntList<2>, 3>::Value
+    LeafCount<TL<TL<T, TL<T, T, T>, T>, TL<T, T, T>, T>, IntList<2>, 3>::Value
 >;
 
 
 using List4 = TL<
-				TL<
-					S<2>, S<7>
-				>,
-				TL<
-					S<3>, S<5>
-				>
-			  >;
+                TL<
+                    S<2>, S<7>
+                >,
+                TL<
+                    S<3>, S<5>
+                >
+              >;
 
 using List5 = Linearize<List4, 2>;
 
 using List3 = TypeList<
-		//detail::OffsetBuilder<List5>::Type,
-//		LeafOffsetListBuilder<List4>::Type
+        //detail::OffsetBuilder<List5>::Type,
+//      LeafOffsetListBuilder<List4>::Type
 
-		S<SubtreeLeafCount<List4, IntList<1, 1>, 1>::Value>
+        S<SubtreeLeafCount<List4, IntList<1, 1>, 1>::Value>
 >;
 
 

@@ -16,16 +16,35 @@ namespace metamap {
 
 template <
     typename Types,
-    Int Stream,
+    typename BranchPath,
+    typename LeafPath,
     typename IteratorPrefixFn = bt1::DefaultIteratorPrefixFn
 >
 class RankForwardWalker: public bt1::SkipForwardWalkerBase<
                                     Types,
-                                    Stream,
+                                    BranchPath,
+                                    LeafPath,
                                     IteratorPrefixFn,
-                                    RankForwardWalker<Types, Stream, IteratorPrefixFn>> {
+                                    RankForwardWalker<
+                                        Types,
+                                        BranchPath,
+                                        LeafPath,
+                                        IteratorPrefixFn
+                                    >
+> {
 
-    using Base      = bt1::SkipForwardWalkerBase<Types, Stream, IteratorPrefixFn, RankForwardWalker<Types, Stream, IteratorPrefixFn>>;
+    using Base      = bt1::SkipForwardWalkerBase<
+                            Types,
+                            BranchPath,
+                            LeafPath,
+                            IteratorPrefixFn,
+                            RankForwardWalker<
+                                Types,
+                                BranchPath,
+                                LeafPath,
+                                IteratorPrefixFn
+                            >
+    >;
     using Key       = typename Base::Key;
     using Iterator  = typename Base::Iterator;
 
@@ -69,16 +88,35 @@ public:
 
 template <
     typename Types,
-    Int Stream,
+    typename BranchPath,
+    typename LeafPath,
     typename IteratorPrefixFn = bt1::DefaultIteratorPrefixFn
 >
 class RankBackwardWalker: public bt1::SkipBackwardWalkerBase<
                                     Types,
-                                    Stream,
+                                    BranchPath,
+                                    LeafPath,
                                     IteratorPrefixFn,
-                                    RankBackwardWalker<Types, Stream, IteratorPrefixFn>> {
+                                    RankBackwardWalker<
+                                        Types,
+                                        BranchPath,
+                                        LeafPath,
+                                        IteratorPrefixFn
+                                    >
+> {
+    using Base      = bt1::SkipBackwardWalkerBase<
+                            Types,
+                            BranchPath,
+                            LeafPath,
+                            IteratorPrefixFn,
+                            RankBackwardWalker<
+                                Types,
+                                BranchPath,
+                                LeafPath,
+                                IteratorPrefixFn
+                            >
+    >;
 
-    using Base      = bt1::SkipBackwardWalkerBase<Types, Stream, IteratorPrefixFn, RankBackwardWalker<Types, Stream, IteratorPrefixFn>>;
     using Key       = typename Base::Key;
     using Iterator  = typename Base::Iterator;
 

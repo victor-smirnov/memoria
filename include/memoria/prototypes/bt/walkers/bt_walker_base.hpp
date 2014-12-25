@@ -13,7 +13,12 @@ namespace memoria {
 namespace bt1     {
 
 
-template <typename Types, typename MyType, Int Stream>
+template <
+    typename Types,
+    typename MyType,
+    typename BranchPath,
+    typename LeafPath
+>
 class WalkerBase {
 protected:
     typedef Iter<typename Types::IterTypes>                                     Iterator;
@@ -23,8 +28,8 @@ protected:
 
     static const Int Streams                                                    = Types::Streams;
 
-    static const Int StreamIdx      = Stream >> 16;
-    static const Int SubstreamIdx   = Stream & 0xFFFF;
+//    static const Int StreamIdx      = Stream >> 16;
+//    static const Int SubstreamIdx   = Stream & 0xFFFF;
 
     SearchType search_type_ = SearchType::GT;
 
@@ -193,7 +198,7 @@ public:
     template <typename NodeTypes>
     Int treeNode(const bt::BranchNode<NodeTypes>* node, BigInt start)
     {
-        Int idx = node->template processStream<IntList<StreamIdx>>(FindNonLeafFn(self()), start);
+        Int idx = node->template processStream<BranchPath>(FindNonLeafFn(self()), start);
 
         self().postProcessNode(node, start, idx);
 
@@ -209,7 +214,7 @@ public:
     template <typename NodeTypes>
     Int treeNode(const bt::LeafNode<NodeTypes>* node, BigInt start)
     {
-        Int idx = node->process(stream_, FindLeafFn(self()), start);
+        Int idx = node->template processStream<LeafPath>(FindLeafFn(self()), start);
 
         self().postProcessNode(node, start, idx);
 

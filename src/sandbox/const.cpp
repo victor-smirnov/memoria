@@ -11,47 +11,47 @@ using namespace std;
 using namespace memoria::vapi;
 
 struct Foo {
-	void m() {
-		cout<<"m() "<<endl;
-	};
-	void m() const {
-		cout<<"m() const"<<endl;
-	};
+    void m() {
+        cout<<"m() "<<endl;
+    };
+    void m() const {
+        cout<<"m() const"<<endl;
+    };
 };
 
 struct ConstFoo {
-	void m() const {
-		cout<<"m() const"<<endl;
-	};
+    void m() const {
+        cout<<"m() const"<<endl;
+    };
 };
 
 
 struct Bar {
-	mutable int m_ = 0;
+    mutable int m_ = 0;
 
-	Bar() {}
+    Bar() {}
 
-	void m() {
-		cout<<"m()"<<endl;
-	}
-	void m() const {
-		m_ = 2;
+    void m() {
+        cout<<"m()"<<endl;
+    }
+    void m() const {
+        m_ = 2;
 
-		cout<<"m() const"<<endl;
-	}
+        cout<<"m() const"<<endl;
+    }
 
-	const ConstFoo foo() const {
-		return ConstFoo();
-	}
+    const ConstFoo foo() const {
+        return ConstFoo();
+    }
 
-	Foo foo() {
-		return Foo();
-	}
+    Foo foo() {
+        return Foo();
+    }
 };
 
 
 void constFn(const Bar& bar) {
-	cout<<TypeNameFactory<decltype(bar.foo())>::name()<<endl;
+    cout<<TypeNameFactory<decltype(bar.foo())>::name()<<endl;
 }
 
 

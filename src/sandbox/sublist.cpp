@@ -48,33 +48,33 @@ using List = TypeList<
 
 
 using List2 = TypeList<
-		IntValue<ListDepth<T>::Value>,
-		IntValue<ListDepth<TypeList<>>::Value>,
-		IntValue<ListDepth<TypeList<T, T, T>>::Value>,
-		IntValue<ListDepth<TypeList<TypeList<T>, T, T>>::Value>,
-		IntValue<ListDepth<TypeList<TypeList<T>, T, TypeList<T>>>::Value>,
-		IntValue<ListDepth<TypeList<TypeList<T>, T, TypeList<TypeList<T>>>>::Value>,
-		IntValue<ListDepth<TypeList<TypeList<T>, TypeList<TypeList<TypeList<T>>>, TypeList<TypeList<T>>>>::Value>
+        IntValue<ListDepth<T>::Value>,
+        IntValue<ListDepth<TypeList<>>::Value>,
+        IntValue<ListDepth<TypeList<T, T, T>>::Value>,
+        IntValue<ListDepth<TypeList<TypeList<T>, T, T>>::Value>,
+        IntValue<ListDepth<TypeList<TypeList<T>, T, TypeList<T>>>::Value>,
+        IntValue<ListDepth<TypeList<TypeList<T>, T, TypeList<TypeList<T>>>>::Value>,
+        IntValue<ListDepth<TypeList<TypeList<T>, TypeList<TypeList<TypeList<T>>>, TypeList<TypeList<T>>>>::Value>
 >;
 
 using Tests = IntList<
-		ListDepth<TypeList<TypeList<T>>>::Value
+        ListDepth<TypeList<TypeList<T>>>::Value
 >;
 
 
 using List3 = TypeList<
-		Linearize<TL<T, TL<TL<T>>, T>, 1>,
-		Linearize<TL<T, T, TL<TL<T>>>, 1>,
-		Linearize<TL<TL<TL<TL<T>>>, T, TL<TL<T>>>, 3>,
+        Linearize<TL<T, TL<TL<T>>, T>, 1>,
+        Linearize<TL<T, T, TL<TL<T>>>, 1>,
+        Linearize<TL<TL<TL<TL<T>>>, T, TL<TL<T>>>, 3>,
 
-		Linearize<TL<TL<T>, T, TL<T>>, 1>
+        Linearize<TL<TL<T>, T, TL<T>>, 1>
 >;
 
 
 int main() {
-	ListPrinter<Tests>::print(cout);
+    ListPrinter<Tests>::print(cout);
 
-	ListPrinter<List3>::print(cout);
+    ListPrinter<List3>::print(cout);
 }
 
 

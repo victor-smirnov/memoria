@@ -20,63 +20,63 @@ namespace memoria {
 template <typename List, typename Path, Int Depth = 1, Int Ptr = 0> struct LeafCount;
 
 template <
-	typename Head,
-	typename... Tail,
-	Int Idx,
-	Int... PathTail,
-	Int Depth,
-	Int Ptr
+    typename Head,
+    typename... Tail,
+    Int Idx,
+    Int... PathTail,
+    Int Depth,
+    Int Ptr
 >
 struct LeafCount<TypeList<Head, Tail...>, IntList<Idx, PathTail...>, Depth, Ptr> {
-	static const Int PrefixSize = ListSize<Linearize<TypeList<Head>, Depth>>::Value;
+    static const Int PrefixSize = ListSize<Linearize<TypeList<Head>, Depth>>::Value;
 private:
 public:
-	static const Int Value = PrefixSize + LeafCount<
-		TypeList<Tail...>,
-		IntList<Idx, PathTail...>,
-		Depth,
-		Ptr + 1
-	>::Value;
+    static const Int Value = PrefixSize + LeafCount<
+        TypeList<Tail...>,
+        IntList<Idx, PathTail...>,
+        Depth,
+        Ptr + 1
+    >::Value;
 };
 
 
 template <
-	typename Head,
-	typename... Tail,
-	Int Idx,
-	Int... PathTail,
-	Int Depth
+    typename Head,
+    typename... Tail,
+    Int Idx,
+    Int... PathTail,
+    Int Depth
 >
 struct LeafCount<TypeList<Head, Tail...>, IntList<Idx, PathTail...>, Depth, Idx> {
-	static const Int Value = LeafCount<
-		Head,
-		IntList<PathTail...>, Depth
-	>::Value;
+    static const Int Value = LeafCount<
+        Head,
+        IntList<PathTail...>, Depth
+    >::Value;
 };
 
 
 
 template <
-	typename Head,
-	typename... Tail,
-	Int Depth,
-	Int Idx
+    typename Head,
+    typename... Tail,
+    Int Depth,
+    Int Idx
 >
 struct LeafCount<TypeList<Head, Tail...>, IntList<>, Depth, Idx> {
-	static const Int Value = LeafCount<
-		TypeList<Head, Tail...>,
-		IntList<0>, Depth
-	>::Value;
+    static const Int Value = LeafCount<
+        TypeList<Head, Tail...>,
+        IntList<0>, Depth
+    >::Value;
 };
 
 
 template <
-	typename T,
-	Int Depth,
-	Int Idx
+    typename T,
+    Int Depth,
+    Int Idx
 >
 struct LeafCount<T, IntList<>, Depth, Idx> {
-	static const Int Value = 0;
+    static const Int Value = 0;
 };
 
 
@@ -85,60 +85,60 @@ template <typename List, typename Path, Int Depth = 1, Int Ptr = 0> struct Subtr
 
 
 template <
-	typename Head,
-	typename... Tail,
-	Int Idx,
-	Int... PathTail,
-	Int Depth,
-	Int Ptr
+    typename Head,
+    typename... Tail,
+    Int Idx,
+    Int... PathTail,
+    Int Depth,
+    Int Ptr
 >
 struct SubtreeLeafCount<TypeList<Head, Tail...>, IntList<Idx, PathTail...>, Depth, Ptr> {
-	static const Int Value = SubtreeLeafCount<
-		TypeList<Tail...>,
-		IntList<Idx, PathTail...>,
-		Depth,
-		Ptr + 1
-	>::Value;
+    static const Int Value = SubtreeLeafCount<
+        TypeList<Tail...>,
+        IntList<Idx, PathTail...>,
+        Depth,
+        Ptr + 1
+    >::Value;
 };
 
 
 template <
-	typename Head,
-	typename... Tail,
-	Int Idx,
-	Int... PathTail,
-	Int Depth
+    typename Head,
+    typename... Tail,
+    Int Idx,
+    Int... PathTail,
+    Int Depth
 >
 struct SubtreeLeafCount<TypeList<Head, Tail...>, IntList<Idx, PathTail...>, Depth, Idx> {
-	static const Int Value = sizeof...(PathTail) > 0 ?
-			SubtreeLeafCount<
-		Head,
-		IntList<PathTail...>, Depth
-	>::Value :
-	ListSize<Linearize<Head, Depth>>::Value;
+    static const Int Value = sizeof...(PathTail) > 0 ?
+            SubtreeLeafCount<
+        Head,
+        IntList<PathTail...>, Depth
+    >::Value :
+    ListSize<Linearize<Head, Depth>>::Value;
 };
 
 
 
 
 template <
-	typename Head,
-	typename... Tail,
-	Int Depth,
-	Int Idx
+    typename Head,
+    typename... Tail,
+    Int Depth,
+    Int Idx
 >
 struct SubtreeLeafCount<TypeList<Head, Tail...>, IntList<>, Depth, Idx> {
-	static const Int Value = ListSize<Linearize<TypeList<Head, Tail...>, Depth>>::Value;
+    static const Int Value = ListSize<Linearize<TypeList<Head, Tail...>, Depth>>::Value;
 };
 
 
 template <
-	typename T,
-	Int Depth,
-	Int Idx
+    typename T,
+    Int Depth,
+    Int Idx
 >
 struct SubtreeLeafCount<T, IntList<>, Depth, Idx> {
-	static const Int Value = 0;
+    static const Int Value = 0;
 };
 
 

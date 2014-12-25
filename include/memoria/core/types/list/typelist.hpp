@@ -18,12 +18,12 @@
 namespace memoria    {
 
 template<typename...> struct False {
-	static const bool Value = false;
+    static const bool Value = false;
 };
 
 
 template <typename List> struct ListSize {
-	static_assert(False<List>::Value, "Type supplied to ListSize<> template is not allowed");
+    static_assert(False<List>::Value, "Type supplied to ListSize<> template is not allowed");
 };
 
 //template <typename List> struct ListSize;

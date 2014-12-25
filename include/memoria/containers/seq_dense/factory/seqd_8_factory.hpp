@@ -115,36 +115,36 @@ struct BTTypes<Profile, memoria::Sequence<8, true> >:
     typedef IDataTarget<Value>                                                  DataTarget;
 
 
-    template <typename Types>
-    using FindGTWalker          = ::memoria::seq_dense::SkipForwardWalker<Types, 0>;
+    template <typename Types, typename BranchPath, typename LeafPath>
+    using FindGTWalker          = ::memoria::seq_dense::SkipForwardWalker<Types, BranchPath, LeafPath>;
 
 
-    template <typename Types>
-    using RankFWWalker          = ::memoria::seq_dense::RankFWWalker<Types, 0>;
+    template <typename Types, typename BranchPath, typename LeafPath>
+    using RankFWWalker          = ::memoria::seq_dense::RankFWWalker<Types, BranchPath, LeafPath>;
 
-    template <typename Types>
-    using RankBWWalker          = ::memoria::seq_dense::RankBWWalker<Types, 0>;
-
-
-    template <typename Types>
-    using SelectFwWalker        = ::memoria::seq_dense::SelectForwardWalker<Types, 0>;
-
-    template <typename Types>
-    using SelectBwWalker        = ::memoria::seq_dense::SelectBackwardWalker<Types, 0>;
+    template <typename Types, typename BranchPath, typename LeafPath>
+    using RankBWWalker          = ::memoria::seq_dense::RankBWWalker<Types, BranchPath, LeafPath>;
 
 
-    template <typename Types>
-    using SkipForwardWalker     = ::memoria::seq_dense::SkipForwardWalker<Types, 0>;
+    template <typename Types, typename BranchPath, typename LeafPath>
+    using SelectFwWalker        = ::memoria::seq_dense::SelectForwardWalker<Types, BranchPath, LeafPath>;
 
-    template <typename Types>
-    using SkipBackwardWalker    = ::memoria::seq_dense::SkipBackwardWalker<Types, 0>;
+    template <typename Types, typename BranchPath, typename LeafPath>
+    using SelectBwWalker        = ::memoria::seq_dense::SelectBackwardWalker<Types, BranchPath, LeafPath>;
 
 
-    template <typename Types>
-    using NextLeafWalker        = ::memoria::bt::NextLeafWalker<Types, 0>;
+    template <typename Types, typename BranchPath, typename LeafPath>
+    using SkipForwardWalker     = ::memoria::seq_dense::SkipForwardWalker<Types, BranchPath, LeafPath>;
 
-    template <typename Types>
-    using PrevLeafWalker        = ::memoria::bt::PrevLeafWalker<Types, 0>;
+    template <typename Types, typename BranchPath, typename LeafPath>
+    using SkipBackwardWalker    = ::memoria::seq_dense::SkipBackwardWalker<Types, BranchPath, LeafPath>;
+
+
+    template <typename Types, typename BranchPath, typename LeafPath>
+    using NextLeafWalker        = ::memoria::bt::NextLeafWalker<Types, BranchPath, LeafPath>;
+
+    template <typename Types, typename BranchPath, typename LeafPath>
+    using PrevLeafWalker        = ::memoria::bt::PrevLeafWalker<Types, BranchPath, LeafPath>;
 
 
     template <typename Types>
