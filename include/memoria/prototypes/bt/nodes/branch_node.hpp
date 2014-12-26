@@ -1276,19 +1276,19 @@ public:
 
 
     template <typename SubstreamPath, typename Fn, typename... Args>
-    DispatchRtnConstType<LeafCount<SubstreamsStructList, SubstreamPath>::Value, Fn, Args...>
+    DispatchRtnConstType<memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value, Fn, Args...>
     processStream(Fn&& fn, Args&&... args) const
     {
-        const Int StreamIdx = LeafCount<SubstreamsStructList, SubstreamPath>::Value;
+        const Int StreamIdx = memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value;
         return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
     }
 
 
     template <typename SubstreamPath, typename Fn, typename... Args>
-    DispatchRtnType<LeafCount<SubstreamsStructList, SubstreamPath>::Value, Fn, Args...>
+    DispatchRtnType<memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value, Fn, Args...>
     processStream(Fn&& fn, Args&&... args)
     {
-        const Int StreamIdx = LeafCount<SubstreamsStructList, SubstreamPath>::Value;
+        const Int StreamIdx = memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value;
         return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
     }
 

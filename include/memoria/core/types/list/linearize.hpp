@@ -89,7 +89,29 @@ struct LinearizeT<TypeList<>, MaxDepth> {
 };
 
 
+template <typename List, typename Set> struct ListSubsetH;
 
+template <typename List, typename Set>
+using ListSubset = typename ListSubsetH<List, Set>::Type;
+
+template <
+	typename List,
+	Int Head,
+	Int... Tail
+>
+struct ListSubsetH<List, IntList<Head, Tail...>> {
+	using Type = AppendItemToList<
+			typename Select<Head, List>::Result,
+			typename ListSubsetH<List,IntList<Tail...>>::Type
+	>;
+};
+
+template <
+	typename List
+>
+struct ListSubsetH<List, IntList<>> {
+	using Type = TypeList<>;
+};
 
 }
 

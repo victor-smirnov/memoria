@@ -31,9 +31,10 @@ struct Select<Value, TypeList<Head, Tail...>, Idx> {
 };
 
 template <Int Value, Int Idx>
-struct Select<Value, TypeList<>, Idx> {
-    typedef ListIndexOutOfRange<Value>                                          Result;
-};
+struct Select<Value, TypeList<>, Idx>;
+//{
+//    typedef ListIndexOutOfRange<Value>                                          Result;
+//};
 
 
 template <typename List, typename Default> struct SelectHeadIfNotEmpty;

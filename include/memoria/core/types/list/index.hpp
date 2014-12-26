@@ -42,7 +42,7 @@ template <Int Idx, typename List, bool ReturnDefault = false, Int Counter = 0> s
 template <Int Idx, typename List, bool ReturnDefault = false>
 using SelectByIndex = typename SelectByIndexTool<Idx, List, ReturnDefault>::Type;
 
-template <Int idx> class ListIndexOutOfRange {};
+template <Int idx> class ListIndexOutOfRange;
 
 
 template <Int Idx, bool ReturnDefault, typename Head, typename ... Tail>
@@ -61,9 +61,10 @@ struct SelectByIndexTool<Idx, TypeList<Head, Tail...>, ReturnDefault, Counter> {
 };
 
 template <Int Idx, Int Counter>
-struct SelectByIndexTool<Idx, TypeList<>, false, Counter> {
-    using Type = ListIndexOutOfRange<Idx>;
-};
+struct SelectByIndexTool<Idx, TypeList<>, false, Counter>;
+//{
+//    using Type = ListIndexOutOfRange<Idx>;
+//};
 
 template <Int Idx, Int Counter>
 struct SelectByIndexTool<Idx, TypeList<>, true, Counter> {

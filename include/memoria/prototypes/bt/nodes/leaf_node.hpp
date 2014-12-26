@@ -79,8 +79,8 @@ public:
 
     template <typename SubstreamsPath>
     using SubstreamsDispatcher = SubDispatcher<
-            LeafCountInf<SubstreamsStructList, SubstreamsPath>::Value,
-            LeafCountSup<SubstreamsStructList, SubstreamsPath>::Value
+    		memoria::list_tree::LeafCountInf<SubstreamsStructList, SubstreamsPath>::Value,
+    		memoria::list_tree::LeafCountSup<SubstreamsStructList, SubstreamsPath>::Value
     >;
 
     using AccumulatorDispatcher = AccumulatorLeafHandler<
@@ -92,8 +92,8 @@ public:
     using ByStreamAccumulatorDispatcher = AccumulatorLeafHandler<
             Accumulator,
             typename LeafOffsetListBuilder<SubstreamsStructList>::Type,
-            LeafCountInf<BranchSubstreamsStructList, IntList<Stream>>::Value,
-            LeafCountSup<BranchSubstreamsStructList, IntList<Stream>>::Value
+            memoria::list_tree::LeafCountInf<BranchSubstreamsStructList, IntList<Stream>>::Value,
+            memoria::list_tree::LeafCountSup<BranchSubstreamsStructList, IntList<Stream>>::Value
     >;
 
 
@@ -1282,18 +1282,18 @@ public:
 
 
     template <typename SubstreamPath, typename Fn, typename... Args>
-    DispatchRtnType<LeafCount<SubstreamsStructList, SubstreamPath>::Value, Fn, Args...>
+    DispatchRtnType<memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value, Fn, Args...>
     processStream(Fn&& fn, Args&&... args) const
     {
-        const Int StreamIdx = LeafCount<SubstreamsStructList, SubstreamPath>::Value;
+        const Int StreamIdx = memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value;
         return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
     }
 
     template <typename SubstreamPath, typename Fn, typename... Args>
-    DispatchRtnType<LeafCount<SubstreamsStructList, SubstreamPath>::Value, Fn, Args...>
+    DispatchRtnType<memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value, Fn, Args...>
     processStream(Fn&& fn, Args&&... args)
     {
-        const Int StreamIdx = LeafCount<SubstreamsStructList, SubstreamPath>::Value;
+        const Int StreamIdx = memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value;
         return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
     }
 

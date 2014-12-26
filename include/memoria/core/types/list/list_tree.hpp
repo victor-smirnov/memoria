@@ -13,8 +13,8 @@
 #include <memoria/core/types/list/sublist.hpp>
 #include <memoria/core/types/algo/select.hpp>
 
-namespace memoria {
-
+namespace memoria   {
+namespace list_tree {
 
 
 template <typename List, typename Path, Int Depth = 1, Int Ptr = 0> struct LeafCount;
@@ -80,25 +80,21 @@ struct LeafCount<T, IntList<>, Depth, Idx> {
 };
 
 
-
-template <typename List, typename Path, Int Depth = 1, Int Ptr = 0> struct SubtreeLeafCount;
-
+template <typename List, typename Path, Int Ptr = 0> struct Subtree;
 
 template <
     typename Head,
     typename... Tail,
     Int Idx,
     Int... PathTail,
-    Int Depth,
     Int Ptr
 >
-struct SubtreeLeafCount<TypeList<Head, Tail...>, IntList<Idx, PathTail...>, Depth, Ptr> {
-    static const Int Value = SubtreeLeafCount<
+struct Subtree<TypeList<Head, Tail...>, IntList<Idx, PathTail...>, Ptr> {
+    using Type = typename Subtree<
         TypeList<Tail...>,
         IntList<Idx, PathTail...>,
-        Depth,
         Ptr + 1
-    >::Value;
+    >::Type;
 };
 
 
@@ -106,40 +102,43 @@ template <
     typename Head,
     typename... Tail,
     Int Idx,
-    Int... PathTail,
-    Int Depth
+    Int... PathTail
 >
-struct SubtreeLeafCount<TypeList<Head, Tail...>, IntList<Idx, PathTail...>, Depth, Idx> {
-    static const Int Value = sizeof...(PathTail) > 0 ?
-            SubtreeLeafCount<
-        Head,
-        IntList<PathTail...>, Depth
-    >::Value :
-    ListSize<Linearize<Head, Depth>>::Value;
+struct Subtree<TypeList<Head, Tail...>, IntList<Idx, PathTail...>, Idx> {
+    using Type = typename IfThenElse<
+    		(sizeof...(PathTail) > 0),
+    		typename Subtree<Head, IntList<PathTail...>>::Type,
+    		Head
+    >::Result;
 };
-
-
-
 
 template <
     typename Head,
     typename... Tail,
-    Int Depth,
     Int Idx
 >
-struct SubtreeLeafCount<TypeList<Head, Tail...>, IntList<>, Depth, Idx> {
-    static const Int Value = ListSize<Linearize<TypeList<Head, Tail...>, Depth>>::Value;
+struct Subtree<TypeList<Head, Tail...>, IntList<>, Idx> {
+    using Type = TypeList<Head, Tail...>;
 };
 
 
 template <
     typename T,
-    Int Depth,
     Int Idx
 >
-struct SubtreeLeafCount<T, IntList<>, Depth, Idx> {
-    static const Int Value = 0;
+struct Subtree<T, IntList<>, Idx> {
+    using Type = T;
 };
+
+
+template <typename List, typename Path, Int Depth = 1>
+using SubtreeLeafCount = ListSize<
+							Linearize<
+							typename Subtree<List, Path>::Type,
+							Depth
+							>
+						  >;
+
 
 
 template <typename List, typename Path, Int Depth = 1>
@@ -148,7 +147,7 @@ using LeafCountInf = LeafCount<List, Path, Depth>;
 template <typename List, typename Path, Int Depth = 1>
 using LeafCountSup = IntValue<LeafCount<List, Path, Depth>::Value + SubtreeLeafCount<List, Path, Depth>::Value>;
 
-
+}
 }
 
 #endif

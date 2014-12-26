@@ -35,7 +35,7 @@ template <
     Int Max                 = ListSize<List>::Value
 >
 class TagStreamsStart {
-    static const Int StreamOffset = LeafCount<List, IntList<Idx>, 2>::Value;
+    static const Int StreamOffset = list_tree::LeafCount<List, IntList<Idx>, 2>::Value;
 
     using StreamStart = typename Select<StreamOffset, OffsetList>::Result;
 

@@ -31,6 +31,7 @@ using namespace std;
 using namespace memoria;
 using namespace memoria::core;
 using namespace memoria::bt;
+using namespace memoria::list_tree;
 
 typedef TypeList<
             IntValue<10>,
@@ -112,7 +113,11 @@ using List3 = TypeList<
         //detail::OffsetBuilder<List5>::Type,
 //      LeafOffsetListBuilder<List4>::Type
 
-        S<SubtreeLeafCount<List4, IntList<1, 1>, 1>::Value>
+//        S<SubtreeLeafCount<List4, IntList<1,1>, 2>::Value>,
+        S<SubtreeLeafCount<List4, IntList<1,1>, 2>::Value>,
+
+//        S<SubtreeLeafCount<T, IntList<>, 1>::Value>,
+        S<SubtreeLeafCount<T, IntList<>, 1>::Value>
 >;
 
 using List6 = TypeList<
@@ -121,27 +126,18 @@ using List6 = TypeList<
 >;
 
 
-int main(void) {
+using List7 = TypeList<
+		Subtree<TL<TL<T>, TL<T, T, T>, TL<T, T>>, IntList<>>::Type
+>;
 
-    cout<<TypeNameFactory<List>::name()<<endl;
+using List8 = TypeList<
+		ListSubset<TL<S<0>, S<1>, S<2>, S<3>, S<4>, S<5>, S<6>, S<7>>, IntList<1, 3, 7, 2, 2, 0>>
+>;
 
-//    cout<<SubstreamsTreeSize<List>::Size<<endl;
-
-//    cout<<LeafOffsetCount<List, IntList<3>>::Value<<endl;
-
-    ListPrinter<SList>::print(cout);
-
-    cout<<PropValue<VV>::Value<<endl;
-
-    cout<<TypeNameFactory<decltype(std::declval<int>())>::name()<<endl;
-
-
-//    cout<<ListSize<T>::Value<<endl;
-//
-//    std::tuple<void> t;
-
+int main(void)
+{
     cout<<"LeafOffset: "<<endl;
-    ListPrinter<List6>::print(cout);
+    ListPrinter<List8>::print(cout);
 
     return 0;
 }
