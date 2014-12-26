@@ -31,26 +31,26 @@ struct RtnFnBase {
 };
 
 
-template <typename List, Int StartIdx = 0, Int ListOffsetIdx = 0> class PackedDispatcher;
+template <typename List, Int StartIdx = 0, Int ListIdx = 0> class PackedDispatcher;
 
 template <typename Struct, Int Index>
 struct StreamDescr {
     using Type = Struct;
+    static const int Value = Index;
 };
 
 
 
-template <typename Head, typename... Tail, Int Index, Int StartIdx, Int ListOffsetIdx>
-class PackedDispatcher<TypeList<StreamDescr<Head, Index>, Tail...>, StartIdx, ListOffsetIdx> {
+template <typename Head, typename... Tail, Int Index, Int StartIdx, Int ListIdx>
+class PackedDispatcher<TypeList<StreamDescr<Head, Index>, Tail...>, StartIdx, ListIdx> {
 public:
 
-    using MyType = PackedDispatcher<TypeList<StreamDescr<Head, Index>, Tail...>, StartIdx, ListOffsetIdx>;
+    using MyType = PackedDispatcher<TypeList<StreamDescr<Head, Index>, Tail...>, StartIdx, ListIdx>;
 
     static const Int AllocatorIdx   = Index + StartIdx;
-    static const Int ListIdx        = Index - ListOffsetIdx;
 
     using List              = TypeList<StreamDescr<Head, Index>, Tail...>;
-    using NextDispatcher    = PackedDispatcher<TypeList<Tail...>, StartIdx, ListOffsetIdx>;
+    using NextDispatcher    = PackedDispatcher<TypeList<Tail...>, StartIdx, ListIdx + 1>;
 
     template<typename, Int, Int> friend class PackedDispatcher;
 
@@ -60,8 +60,16 @@ public:
     template <typename Fn, Int Idx, typename... T>
     using RtnType = typename FnTraits<FnType<typename std::remove_reference<Fn>::type, Idx, T...>>::RtnType;
 
+    template <typename T, Int AllocIdx, Int Idx, typename... Args>
+    using FnTypeT = auto(Args...) -> decltype(std::declval<T>().template stream<AllocIdx, Idx>(std::declval<Args>()...));
+
+    template <typename Fn, Int AllocIdx, Int Idx, typename... T>
+    using RtnTypeT = typename FnTraits<FnTypeT<typename std::remove_reference<Fn>::type, AllocIdx, Idx, T...>>::RtnType;
+
+
+
     template<Int StreamIdx>
-    using StreamTypeT = typename SelectByIndex<StreamIdx, List>::Type;
+    using StreamTypeT = SelectByIndex<StreamIdx, List>;
 
     template <typename Fn, typename... Args>
     using RtnTuple = typename MakeTupleH<
@@ -95,7 +103,7 @@ public:
 
 
     template <Int From = 0, Int To = sizeof...(Tail) + 1>
-    using SubDispatcher = PackedDispatcher<
+    using SubrangeDispatcher = PackedDispatcher<
                                 typename ::memoria::Sublist<
                                     List,
                                     From, To
@@ -104,6 +112,15 @@ public:
                                 From
                           >;
 
+    template <typename Subset>
+    using SubsetDispatcher = PackedDispatcher<
+                                typename ::memoria::ListSubset<
+                                    List,
+                                    Subset
+                                >::Type,
+                                StartIdx,
+                                0
+                          >;
 
 
     template <typename Fn, typename... Args>
@@ -147,15 +164,18 @@ public:
 
 
     template <Int StreamIdx, typename Fn, typename... Args>
-    static RtnType<Fn, StreamIdx, StreamTypeT<StreamIdx>*, Args...>
+    static RtnType<Fn, StreamIdx, typename StreamTypeT<StreamIdx>::Type*, Args...>
     dispatch(PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-        typedef StreamTypeT<StreamIdx> StreamType;
+        using StreamDescrT 	= StreamTypeT<StreamIdx>;
+        using StreamType 	= typename StreamDescrT::Type;
+
+        const Int AccumIdx 	= StreamDescrT::Value + StartIdx;
 
         StreamType* head = nullptr;
-        if (!alloc->is_empty(StreamIdx + StartIdx + ListOffsetIdx))
+        if (!alloc->is_empty(AccumIdx))
         {
-            head = alloc->template get<StreamType>(StreamIdx + StartIdx + ListOffsetIdx);
+            head = alloc->template get<StreamType>(AccumIdx);
         }
 
         return fn.template stream<StreamIdx>(head, std::forward<Args>(args)...);
@@ -166,16 +186,69 @@ public:
     static RtnType<Fn, StreamIdx, const StreamTypeT<StreamIdx>*, Args...>
     dispatch(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-        typedef StreamTypeT<StreamIdx> StreamType;
+        using StreamDescrT 	= StreamTypeT<StreamIdx>;
+        using StreamType 	= typename StreamDescrT::Type;
+
+        const Int AccumIdx 	= StreamDescrT::Value + StartIdx;
 
         const StreamType* head = nullptr;
-        if (!alloc->is_empty(StreamIdx + StartIdx + ListOffsetIdx))
+        if (!alloc->is_empty(AccumIdx))
         {
-            head = alloc->template get<StreamType>(StreamIdx + StartIdx + ListOffsetIdx);
+            head = alloc->template get<StreamType>(AccumIdx);
         }
 
         return fn.template stream<StreamIdx>(head, std::forward<Args>(args)...);
     }
+
+
+    template <Int StreamIdx, typename Fn, typename... Args>
+    static RtnTypeT<
+    		Fn,
+    		StreamTypeT<StreamIdx>::Value + StartIdx,
+    		StreamIdx,
+    		typename StreamTypeT<StreamIdx>::Type*,
+    		Args...
+    >
+    dispatchT(PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    {
+        using StreamDescrT 	= StreamTypeT<StreamIdx>;
+        using StreamType 	= typename StreamDescrT::Type;
+
+        const Int AccumIdx 	= StreamDescrT::Value + StartIdx;
+
+        StreamType* head = nullptr;
+        if (!alloc->is_empty(AccumIdx))
+        {
+            head = alloc->template get<StreamType>(AccumIdx);
+        }
+
+        return fn.template stream<AccumIdx, StreamIdx>(head, std::forward<Args>(args)...);
+    }
+
+    template <Int StreamIdx, typename Fn, typename... Args>
+    static RtnTypeT<
+    		Fn,
+    		StreamTypeT<StreamIdx>::Value + StartIdx,
+    		StreamIdx,
+    		typename StreamTypeT<StreamIdx>::Type*,
+    		Args...
+    >
+    dispatchT(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    {
+        using StreamDescrT 	= StreamTypeT<StreamIdx>;
+        using StreamType 	= typename StreamDescrT::Type;
+
+        const Int AccumIdx 	= StreamDescrT::Value + StartIdx;
+
+        const StreamType* head = nullptr;
+        if (!alloc->is_empty(AccumIdx))
+        {
+            head = alloc->template get<StreamType>(AccumIdx);
+        }
+
+        return fn.template stream<AccumIdx, StreamIdx>(head, std::forward<Args>(args)...);
+    }
+
 
 
     template <typename Fn, typename... Args>
@@ -557,13 +630,11 @@ public:
 
 
 
-template <typename Head, Int Index, Int StartIdx, Int ListOffsetIdx>
-class PackedDispatcher<TypeList<StreamDescr<Head, Index>>, StartIdx, ListOffsetIdx> {
+template <typename Head, Int Index, Int StartIdx, Int ListIdx>
+class PackedDispatcher<TypeList<StreamDescr<Head, Index>>, StartIdx, ListIdx> {
 public:
 
     static const Int AllocatorIdx   = Index + StartIdx;
-    static const Int ListIdx        = Index - ListOffsetIdx;
-
 
     typedef TypeList<StreamDescr<Head, Index>> List;
 
@@ -575,8 +646,15 @@ public:
     template <typename Fn, Int Idx, typename... T>
     using RtnType = typename FnTraits<FnType<typename std::remove_reference<Fn>::type, Idx, T...>>::RtnType;
 
+    template <typename T, Int AllocIdx, Int Idx, typename... Args>
+    using FnTypeT = auto(Args...) -> decltype(std::declval<T>().template stream<AllocIdx, Idx>(std::declval<Args>()...));
+
+    template <typename Fn, Int AllocIdx, Int Idx, typename... T>
+    using RtnTypeT = typename FnTraits<FnTypeT<typename std::remove_reference<Fn>::type, AllocIdx, Idx, T...>>::RtnType;
+
+
     template<Int StreamIdx>
-    using StreamTypeT = typename SelectByIndex<StreamIdx, List>::Type;
+    using StreamTypeT = SelectByIndex<StreamIdx, List>;
 
 
     template <typename Fn, typename... Args>
@@ -611,16 +689,24 @@ public:
 
 
     template <Int From = 0, Int To = 1>
-    using SubDispatcher = PackedDispatcher<
+    using SubrangeDispatcher = PackedDispatcher<
                                 typename ::memoria::Sublist<
-                                    TypeList<
-                                        StreamDescr<Head, Index>
-                                    >,
+                                    TypeList<StreamDescr<Head, Index>>,
                                     From, To
                                 >::Type,
                                 StartIdx,
                                 From
                           >;
+
+    template <typename Subset>
+    using SubsetDispatcher = PackedDispatcher<
+                                    typename ::memoria::ListSubset<
+                                        TypeList<StreamDescr<Head, Index>>,
+                                        Subset
+                                    >::Type,
+                                    StartIdx,
+                                    0
+                              >;
 
 
     template <typename Fn, typename... Args>
@@ -664,15 +750,18 @@ public:
 
 
     template <Int StreamIdx, typename Fn, typename... Args>
-    static RtnType<Fn, StreamIdx, StreamTypeT<StreamIdx>*, Args...>
+    static RtnType<Fn, StreamIdx, typename StreamTypeT<StreamIdx>::Type*, Args...>
     dispatch(PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-        typedef StreamTypeT<StreamIdx> StreamType;
+        using StreamDescrT 	= StreamTypeT<StreamIdx>;
+        using StreamType 	= typename StreamDescrT::Type;
+
+        const Int AccumIdx 	= StreamDescrT::Value + StartIdx;
 
         StreamType* head = nullptr;
-        if (!alloc->is_empty(StreamIdx + StartIdx + ListOffsetIdx))
+        if (!alloc->is_empty(AccumIdx))
         {
-            head = alloc->template get<StreamType>(StreamIdx + StartIdx + ListOffsetIdx);
+            head = alloc->template get<StreamType>(AccumIdx);
         }
 
         return fn.template stream<StreamIdx>(head, std::forward<Args>(args)...);
@@ -680,19 +769,72 @@ public:
 
 
     template <Int StreamIdx, typename Fn, typename... Args>
-    static RtnType<Fn, StreamIdx, const StreamTypeT<StreamIdx>*, Args...>
+    static RtnType<Fn, StreamIdx, const typename StreamTypeT<StreamIdx>::Type*, Args...>
     dispatch(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-        typedef StreamTypeT<StreamIdx> StreamType;
+        using StreamDescrT 	= StreamTypeT<StreamIdx>;
+        using StreamType 	= typename StreamDescrT::Type;
+
+        const Int AccumIdx 	= StreamDescrT::Value + StartIdx;
 
         const StreamType* head = nullptr;
-        if (!alloc->is_empty(StreamIdx + StartIdx + ListOffsetIdx))
+        if (!alloc->is_empty(AccumIdx))
         {
-            head = alloc->template get<StreamType>(StreamIdx + StartIdx + ListOffsetIdx);
+            head = alloc->template get<StreamType>(AccumIdx);
         }
 
         return fn.template stream<StreamIdx>(head, std::forward<Args>(args)...);
     }
+
+
+    template <Int StreamIdx, typename Fn, typename... Args>
+    static RtnTypeT<
+    		Fn,
+    		StreamTypeT<StreamIdx>::Value + StartIdx,
+    		StreamIdx,
+    		typename StreamTypeT<StreamIdx>::Type*,
+    		Args...
+    >
+    dispatchT(PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    {
+        using StreamDescrT 	= StreamTypeT<StreamIdx>;
+        using StreamType 	= typename StreamDescrT::Type;
+
+        const Int AccumIdx 	= StreamDescrT::Value + StartIdx;
+
+        StreamType* head = nullptr;
+        if (!alloc->is_empty(AccumIdx))
+        {
+            head = alloc->template get<StreamType>(AccumIdx);
+        }
+
+        fn.template stream<AccumIdx, StreamIdx>(head, std::forward<Args>(args)...);
+    }
+
+    template <Int StreamIdx, typename Fn, typename... Args>
+    static RtnTypeT<
+    		Fn,
+    		StreamTypeT<StreamIdx>::Value + StartIdx,
+    		StreamIdx,
+    		typename StreamTypeT<StreamIdx>::Type*,
+    		Args...
+    >
+    dispatchT(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    {
+        using StreamDescrT 	= StreamTypeT<StreamIdx>;
+        using StreamType 	= typename StreamDescrT::Type;
+
+        const Int AccumIdx 	= StreamDescrT::Value + StartIdx;
+
+        const StreamType* head = nullptr;
+        if (!alloc->is_empty(AccumIdx))
+        {
+            head = alloc->template get<StreamType>(AccumIdx);
+        }
+
+        fn.template stream<AccumIdx, StreamIdx>(head, std::forward<Args>(args)...);
+    }
+
 
 
     template <typename Fn, typename... Args>

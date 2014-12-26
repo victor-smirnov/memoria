@@ -74,11 +74,11 @@ public:
     using Dispatcher = PackedDispatcher<StreamDispatcherStructList, Base::StreamsStart>;
 
     template <Int StartIdx, Int EndIdx>
-    using SubDispatcher = typename Dispatcher::template SubDispatcher<StartIdx, EndIdx>;
+    using SubrangeDispatcher = typename Dispatcher::template SubrangeDispatcher<StartIdx, EndIdx>;
 
 
     template <typename SubstreamsPath>
-    using SubstreamsDispatcher = SubDispatcher<
+    using SubstreamsDispatcher = SubrangeDispatcher<
     		memoria::list_tree::LeafCountInf<SubstreamsStructList, SubstreamsPath>::Value,
     		memoria::list_tree::LeafCountSup<SubstreamsStructList, SubstreamsPath>::Value
     >;
@@ -1298,6 +1298,21 @@ public:
     }
 
 
+    template <typename SubstreamPath, typename Fn, typename... Args>
+    //DispatchRtnType<memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value, Fn, Args...>
+    void processStreamT(Fn&& fn, Args&&... args) const
+    {
+        const Int StreamIdx = memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value;
+        Dispatcher::template dispatchT<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
+    }
+
+    template <typename SubstreamPath, typename Fn, typename... Args>
+    //DispatchRtnType<memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value, Fn, Args...>
+    void processStreamT(Fn&& fn, Args&&... args)
+    {
+        const Int StreamIdx = memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value;
+        return Dispatcher::template dispatchT<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
+    }
 
 
 

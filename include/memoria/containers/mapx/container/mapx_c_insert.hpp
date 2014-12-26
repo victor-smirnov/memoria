@@ -59,6 +59,16 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mapx::CtrInsertName)
     };
 
 
+    struct HandlerT
+    {
+        template <Int AllocIdx, Int StreamIdx, typename StreamType>
+        void stream(StreamType* obj)
+        {
+        	std::cout<<"AllocIdx "<<AllocIdx<<" "<<StreamIdx<<" "<<std::endl;
+        }
+    };
+
+
     template <typename Entry>
     struct InsertIntoLeafFn {
         template <typename NTypes>
@@ -66,6 +76,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mapx::CtrInsertName)
         {
             node->layout(255);
             node->template processSubstreamsAcc<0, AccumulatorHandler>(accum, idx, entry);
+
+            node->template processStreamT<IntList<0>>(HandlerT());
 
 //            node->template processSubstreams<IntList<0>>(*this, idx, entry);
         }
