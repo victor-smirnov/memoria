@@ -115,6 +115,11 @@ using List3 = TypeList<
         S<SubtreeLeafCount<List4, IntList<1, 1>, 1>::Value>
 >;
 
+using List6 = TypeList<
+		AppendItemToList<TL<T, T, T>, AppendItemToList<TL<T,T>, AppendItemToList<TL<T, T>, TL<>>>>,
+		MergeValueListsT<IntList<1>, IntList<2>>
+>;
+
 
 int main(void) {
 
@@ -136,7 +141,7 @@ int main(void) {
 //    std::tuple<void> t;
 
     cout<<"LeafOffset: "<<endl;
-    ListPrinter<List3>::print(cout);
+    ListPrinter<List6>::print(cout);
 
     return 0;
 }

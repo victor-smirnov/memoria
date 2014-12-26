@@ -57,8 +57,8 @@ template <
 >
 class PackedLeafStructListBuilder<TypeList<StructsTF, Tail...>> {
 
-    using BranchType = typename StructsTF::NonLeafType;
-    using LeafType = typename StructsTF::LeafType;
+    using BranchType 	= typename StructsTF::NonLeafType;
+    using LeafType 		= typename StructsTF::LeafType;
 
     static_assert(
             detail::ValidateSubstreams<BranchType, LeafType>::Value,
@@ -66,8 +66,8 @@ class PackedLeafStructListBuilder<TypeList<StructsTF, Tail...>> {
     );
 
 public:
-    using StructList = MergeLists<
-                TypeList<LeafType>,
+    using StructList = AppendItemToList<
+                LeafType,
                 typename PackedLeafStructListBuilder<
                     TypeList<Tail...>
                 >::StructList
@@ -84,8 +84,8 @@ class PackedBranchStructListBuilder<TypeList<StructsTF, Tail...>> {
     using BranchType = typename StructsTF::NonLeafType;
 
 public:
-    using StructList = MergeLists<
-                TypeList<BranchType>,
+    using StructList = AppendItemToList<
+                BranchType,
                 typename PackedBranchStructListBuilder<
                     TypeList<Tail...>
                 >::StructList

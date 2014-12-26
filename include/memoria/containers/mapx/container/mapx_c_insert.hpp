@@ -43,18 +43,44 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mapx::CtrInsertName)
 
     typedef typename Types::Entry                                               MapEntry;
 
-    template <typename Entry>
-    struct InsertIntoLeafFn {
-        template <typename NTypes>
-        void treeNode(LeafNode<NTypes>* node, Int idx, const Entry& entry)
+
+    template <
+        Int Idx,
+        Int Offset,
+        bool StreamStart
+    >
+    struct AccumulatorHandler
+    {
+        template <Int StreamIdx, typename StreamType, typename TupleItem>
+        void stream(const StreamType* obj, TupleItem& accum, Int idx, const MapEntry& entry)
         {
-            node->layout(255);
-            node->template processStream<IntList<0>>(*this, idx, entry);
+        	std::cout<<"Idx "<<Idx<<" "<<Offset<<" "<<StreamIdx<<" "<<StreamStart<<" "<<std::get<StreamIdx>(entry)<<std::endl;
         }
     };
 
-    void insertEntry(Iterator& iter, const MapEntry& entry) {
 
+    template <typename Entry>
+    struct InsertIntoLeafFn {
+        template <typename NTypes>
+        void treeNode(LeafNode<NTypes>* node, Int idx, Accumulator& accum, const Entry& entry)
+        {
+            node->layout(255);
+            node->template processSubstreamsAcc<0, AccumulatorHandler>(accum, idx, entry);
+
+//            node->template processSubstreams<IntList<0>>(*this, idx, entry);
+        }
+
+        template <Int Idx, typename SubstreamStruct>
+        void stream(SubstreamStruct* obj, Int idx, const Entry& entry)
+        {
+            std::cout<<"Idx "<<Idx<<" "<<std::get<Idx>(entry)<<std::endl;
+        }
+    };
+
+    void insertEntry(Iterator& iter, const MapEntry& entry)
+    {
+    	Accumulator accum;
+        LeafDispatcher::dispatch(iter.leaf(), InsertIntoLeafFn<MapEntry>(), iter.idx(), accum, entry);
     }
 
 MEMORIA_CONTAINER_PART_END

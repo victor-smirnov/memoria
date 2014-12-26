@@ -73,6 +73,16 @@ public:
 
     using Dispatcher = PackedDispatcher<StreamDispatcherStructList, Base::StreamsStart>;
 
+    template <Int StartIdx, Int EndIdx>
+    using SubDispatcher = typename Dispatcher::template SubDispatcher<StartIdx, EndIdx>;
+
+
+    template <typename SubstreamsPath>
+    using SubstreamsDispatcher = SubDispatcher<
+            LeafCountInf<SubstreamsStructList, SubstreamsPath>::Value,
+            LeafCountSup<SubstreamsStructList, SubstreamsPath>::Value
+    >;
+
     using AccumulatorDispatcher = AccumulatorLeafHandler<
             Accumulator,
             typename LeafOffsetListBuilder<SubstreamsStructList>::Type
@@ -86,8 +96,6 @@ public:
             LeafCountSup<BranchSubstreamsStructList, IntList<Stream>>::Value
     >;
 
-    template <Int StartIdx, Int EndIdx>
-    using SubDispatcher = typename Dispatcher::template SubDispatcher<StartIdx, EndIdx>;
 
     static const Int Streams                                                    = ListSize<SubstreamsStructList>::Value;
     static const Int StreamsStart                                               = Base::StreamsStart;
@@ -135,6 +143,12 @@ public:
     using ProcessAllRtnConstType = typename Dispatcher::template ProcessAllRtnConstType<Fn, T...>;
 
 
+    template <typename SubstreamsPath, typename Fn, typename... T>
+    using ProcessSubstreamsRtnType = typename SubstreamsDispatcher<SubstreamsPath>::template ProcessAllRtnType<Fn, T...>;
+
+
+    template <typename SubstreamsPath, typename Fn, typename... T>
+    using ProcessSubstreamsRtnConstType = typename SubstreamsDispatcher<SubstreamsPath>::template ProcessAllRtnConstType<Fn, T...>;
 
 
     LeafNode() = default;
@@ -605,6 +619,12 @@ public:
     Int size(Int stream) const
     {
         return Dispatcher::dispatch(stream, allocator(), SizeFn());
+    }
+
+    template <Int StreamIdx>
+    Int streamSize() const
+    {
+    	return Dispatcher::template dispatch<IntList<StreamIdx>>(allocator(), SizeFn());
     }
 
     struct SizesFn {
@@ -1192,6 +1212,74 @@ public:
         return Dispatcher::dispatchAll(allocator(), std::forward<Fn>(fn), args...);
     }
 
+    template <typename SubstreamsPath, typename Fn, typename... Args>
+    ProcessSubstreamsRtnConstType<SubstreamsPath, Fn, Args...>
+    processSubstreams(Fn&& fn, Args&&... args) const
+    {
+        return SubstreamsDispatcher<SubstreamsPath>::dispatchAll(allocator(), std::forward<Fn>(fn), args...);
+    }
+
+
+    template <typename SubstreamsPath, typename Fn, typename... Args>
+    ProcessSubstreamsRtnType<SubstreamsPath, Fn, Args...>
+    processSubstreams(Fn&& fn, Args&&... args)
+    {
+        return SubstreamsDispatcher<SubstreamsPath>::dispatchAll(allocator(), std::forward<Fn>(fn), args...);
+    }
+
+    template <
+    	Int Stream,
+        template <
+            Int Idx,
+            Int Offset,
+            bool StreamStart
+        >
+        class Fn,
+        typename... Args
+    >
+    void processSubstreamsAcc(Accumulator& accum, Args&&... args) const
+    {
+    	ByStreamAccumulatorDispatcher<Stream>::process(
+                accum,
+                AccumulatorHandlerFn<
+                    const PackedAllocator*,
+                    Dispatcher,
+                    Fn
+                >
+                (allocator()),
+                std::forward<Args>(args)...
+        );
+    }
+
+    template <
+    	Int Stream,
+    	template <
+            Int Idx,
+            Int Offset,
+            bool StreamStart
+        >
+        class Fn,
+        typename... Args
+    >
+    void processSubstreamsAcc(Accumulator& accum, Args&&... args)
+    {
+    	ByStreamAccumulatorDispatcher<Stream>::process(
+                accum,
+                AccumulatorHandlerFn<
+                    PackedAllocator*,
+                    Dispatcher,
+                    Fn
+                >
+                (allocator()),
+                std::forward<Args>(args)...
+        );
+    }
+
+
+
+
+
+
 
     template <typename SubstreamPath, typename Fn, typename... Args>
     DispatchRtnType<LeafCount<SubstreamsStructList, SubstreamPath>::Value, Fn, Args...>
@@ -1213,52 +1301,6 @@ public:
 
 
 
-    template <
-        Int Stream,
-        template <
-            Int Idx,
-            Int Offset,
-            bool StreamStart
-        >
-        class Fn,
-        typename... Args
-    >
-    void processSubstreamsAcc(Accumulator& accum, Args&&... args) const
-    {
-        AccumulatorDispatcher::process(
-                accum,
-                AccumulatorHandlerFn<
-                    const PackedAllocator*,
-                    Dispatcher,
-                    Fn
-                >
-                (allocator()),
-                std::forward<Args>(args)...
-        );
-    }
-
-    template <
-        template <
-            Int Idx,
-            Int Offset,
-            bool StreamStart
-        >
-        class Fn,
-        typename... Args
-    >
-    void processSubstreamsAcc(Accumulator& accum, Args&&... args)
-    {
-        AccumulatorDispatcher::process(
-                accum,
-                AccumulatorHandlerFn<
-                    PackedAllocator*,
-                    Dispatcher,
-                    Fn
-                >
-                (allocator()),
-                std::forward<Args>(args)...
-        );
-    }
 
 
     template <
@@ -1285,7 +1327,6 @@ public:
     }
 
     template <
-        Int Stream,
         template <
             Int Idx,
             Int Offset,

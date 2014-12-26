@@ -67,8 +67,11 @@ public:
 
         Ctr map(&allocator);
 
-//        auto iter = map.Begin();
-//        map.insertEntry();
+        auto iter = map.Begin();
+
+        auto entry = std::make_tuple((BigInt)1, (BigInt)2);
+
+        map.insertEntry(iter, entry);
 
 //        Base::ctr_name_ = map.name();
 //

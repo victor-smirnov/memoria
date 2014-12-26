@@ -176,10 +176,11 @@ struct MetaMapStreamTF{
                     HiddenLabelsList,
                     LabelsList
                 >
-    >                                                               LeafType;
+    >                                                               LeafTypeT;
 
+    using LeafType = TL<LeafTypeT>;
 
-    static const Int LeafIndexes                                    = LeafType::SizedIndexes;
+    static const Int LeafIndexes                                    = LeafTypeT::SizedIndexes;
 
     typedef core::StaticVector<BigInt, LeafIndexes>                 AccumulatorPart;
     typedef core::StaticVector<BigInt, Indexes + 1>                 IteratorPrefixPart;
@@ -206,10 +207,11 @@ struct MetaMapStreamTF<Indexes, VLen<gr, Key_>, Value_, HiddenLabelsList, Labels
                     HiddenLabelsList,
                     LabelsList
                 >
-    >                                                               LeafType;
+    >                                                               LeafTypeT;
 
+    using LeafType = TL<LeafTypeT>;
 
-    static const Int LeafIndexes                                    = LeafType::SizedIndexes;
+    static const Int LeafIndexes                                    = LeafTypeT::SizedIndexes;
 
     typedef core::StaticVector<BigInt, LeafIndexes>                 AccumulatorPart;
     typedef core::StaticVector<BigInt, Indexes + 1>                 IteratorPrefixPart;
@@ -236,10 +238,11 @@ struct MetaMapStreamTF<Indexes, Key_, VLen<gr, Value_>, HiddenLabelsList, Labels
                     HiddenLabelsList,
                     LabelsList
                 >
-    >                                                               LeafType;
+    >                                                               LeafTypeT;
 
+    using LeafType = TL<LeafTypeT>;
 
-    static const Int LeafIndexes                                    = LeafType::SizedIndexes;
+    static const Int LeafIndexes                                    = LeafTypeT::SizedIndexes;
 
     typedef core::StaticVector<BigInt, LeafIndexes>                 AccumulatorPart;
     typedef core::StaticVector<BigInt, Indexes + 1>                 IteratorPrefixPart;
@@ -273,10 +276,11 @@ struct MetaMapStreamTF<Indexes, VLen<gr1, Key_>, VLen<gr2, Value_>, HiddenLabels
                     HiddenLabelsList,
                     LabelsList
                 >
-    >                                                               LeafType;
+    >                                                               LeafTypeT;
 
+    using LeafType = TL<LeafTypeT>;
 
-    static const Int LeafIndexes                                    = LeafType::SizedIndexes;
+    static const Int LeafIndexes                                    = LeafTypeT::SizedIndexes;
 
     typedef core::StaticVector<BigInt, LeafIndexes>                 AccumulatorPart;
     typedef core::StaticVector<BigInt, Indexes + 1>                 IteratorPrefixPart;

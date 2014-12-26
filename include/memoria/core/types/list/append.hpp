@@ -208,6 +208,23 @@ struct ReplaceH<TypeList<Head, Tail...>, Item, Idx> {
 };
 
 
+template <typename T1, typename T2> struct AppendToListH;
+
+template <typename T1, typename... List>
+struct AppendToListH<T1, TypeList<List...>>
+{
+	using Type = TypeList<T1, List...>;
+};
+
+template <typename T, T V1, T... List>
+struct AppendToListH<ConstValue<T, V1>, ValueList<T, List...>>
+{
+	using Type = ValueList<T, V1, List...>;
+};
+
+template <typename T1, typename T2>
+using AppendItemToList = typename AppendToListH<T1, T2>::Type;
+
 
 }
 

@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011-2013.
+// Copyright Victor Smirnov 2011-2014.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -292,11 +292,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     MEMORIA_DECLARE_NODE_FN(SetKeysFn, setKeys);
 
 
-    void setKeys(NodeBaseG& node, Int idx, const Accumulator& keys) const
-    {
-        self().updatePageG(node);
-        NonLeafDispatcher::dispatch(node, SetKeysFn(), idx, keys);
-    }
+//    void setKeys(NodeBaseG& node, Int idx, const Accumulator& keys) const
+//    {
+//        self().updatePageG(node);
+//        NonLeafDispatcher::dispatch(node, SetKeysFn(), idx, keys);
+//    }
 
     void setNonLeafKeys(NodeBaseG& node, Int idx, const Accumulator& keys) const
     {
@@ -533,6 +533,47 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
         return entropy;
     }
 
+
+    struct GetBranchNodeChildernCount {
+        template <typename T, typename... Args>
+        Int treeNode(const BranchNode<T>* node, Args&&... args) const
+        {
+            return node->size();
+        }
+    };
+
+    template <Int Stream>
+    struct GetLeafNodeStreamSize {
+    	template <typename T, typename... Args>
+    	Int treeNode(const LeafNode<T>* node, Args&&... args) const
+    	{
+    		return node->template streamSize<Stream>();
+    	}
+    };
+
+    struct GetLeafNodeStreamSizes {
+    	template <typename T, typename... Args>
+    	Position treeNode(const LeafNode<T>* node, Args&&... args) const
+    	{
+    		return node->size();
+    	}
+    };
+
+    Int getNodeChildrenCount(const NodeBaseG& node) const
+    {
+    	return NonLeafDispatcher::dispatch(node, GetBranchNodeChildernCount());
+    }
+
+    template <Int StreamIdx>
+    Int getLeafStreamSize(const NodeBaseG& node) const
+    {
+    	return LeafDispatcher::dispatch(node, GetLeafNodeStreamSize<StreamIdx>());
+    }
+
+    Position getLeafStreamSizes(const NodeBaseG& node) const
+    {
+    	return LeafDispatcher::dispatch(node, GetLeafNodeStreamSizes());
+    }
 
 MEMORIA_CONTAINER_PART_END
 

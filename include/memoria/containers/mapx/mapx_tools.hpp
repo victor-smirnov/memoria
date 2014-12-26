@@ -176,10 +176,10 @@ struct MapXStreamTF{
     typedef Key_                                                    Key;
     typedef Value_                                                  Value;
 
-    using LeafType = TypeList<
+    using LeafType = TypeList<TypeList<
             PkdFTree<Packed2TreeTypes<Key, Key, Indexes>>,
             PackedFSEArray<PackedFSEArrayTypes<Value>>
-    >;
+    >>;
 
     static const Int LeafIndexes                                    = Indexes + 1;
 

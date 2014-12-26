@@ -61,7 +61,7 @@ template <
 >
 struct OffsetBuilder<TypeList<Head, Tail...>> {
     using Type = MergeLists<
-            TypeList<IntList<0>>,
+            IntList<0>,
             typename OffsetBuilder<TypeList<Tail...>>::Type
     >;
 };
@@ -91,8 +91,8 @@ template <
 >
 struct InternalOffsetBuilder<TypeList<Head, Tail...>, Offset>
 {
-    using Type = MergeLists<
-            TypeList<IntList<Offset>>,
+    using Type = MergeValueListsT<
+            IntList<Offset>,
             typename InternalOffsetBuilder<
                         TypeList<Tail...>,
                         Offset + StructSizeProvider<Head>::Value
@@ -105,7 +105,7 @@ template <
 >
 struct InternalOffsetBuilder<TypeList<>, Offset>
 {
-    using Type = TypeList<>;
+    using Type = IntList<>;
 };
 
 

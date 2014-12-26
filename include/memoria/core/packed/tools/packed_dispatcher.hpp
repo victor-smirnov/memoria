@@ -95,14 +95,14 @@ public:
 
 
     template <Int From = 0, Int To = sizeof...(Tail) + 1>
-    using SubDispatcher = typename PackedDispatcher<
+    using SubDispatcher = PackedDispatcher<
                                 typename ::memoria::Sublist<
                                     List,
                                     From, To
                                 >::Type,
                                 StartIdx,
                                 From
-                          >::Type;
+                          >;
 
 
 
@@ -121,7 +121,7 @@ public:
             return fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
         }
         else {
-            return NextDispatcher::dispatchRtn(idx, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+            return NextDispatcher::dispatch(idx, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
         }
     }
 
@@ -141,7 +141,7 @@ public:
             return fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
         }
         else {
-            return NextDispatcher::dispatchRtn(idx, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+            return NextDispatcher::dispatch(idx, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
         }
     }
 
@@ -313,7 +313,7 @@ public:
         HasVoid<Fn, Args...>::Value,
         void
     >::type
-    dispatchAll(UBigInt streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchAll2(UBigInt streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
@@ -323,7 +323,7 @@ public:
 
         fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
 
-        NextDispatcher::dispatchAll(streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+        NextDispatcher::dispatchAll2(streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
 
@@ -332,7 +332,7 @@ public:
         !HasVoid<Fn, Args...>::Value,
         RtnTuple<Fn, Args...>
     >::type
-    dispatchAll(UBigInt streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchAll2(UBigInt streams, PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         RtnTuple<Fn, Args...> tuple;
 
@@ -347,7 +347,7 @@ public:
         !HasVoid<Fn, Args...>::Value,
         void
     >::type
-    dispatchAll(UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchAll2(UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         const Head* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx) && (streams & (1 << ListIdx)))
@@ -366,7 +366,7 @@ public:
         HasVoid<Fn, Args...>::Value,
         ConstRtnTuple<Fn, Args...>
     >::type
-    dispatchAll(UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    dispatchAll2(UBigInt streams, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         ConstRtnTuple<Fn, Args...> tuple;
 
@@ -611,7 +611,7 @@ public:
 
 
     template <Int From = 0, Int To = 1>
-    using SubDispatcher = typename PackedDispatcher<
+    using SubDispatcher = PackedDispatcher<
                                 typename ::memoria::Sublist<
                                     TypeList<
                                         StreamDescr<Head, Index>
@@ -620,7 +620,7 @@ public:
                                 >::Type,
                                 StartIdx,
                                 From
-                          >::Type;
+                          >;
 
 
     template <typename Fn, typename... Args>

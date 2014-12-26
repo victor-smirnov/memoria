@@ -70,7 +70,7 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >: public BTTypes<Profile, me
 
         typedef typename PkdFSSeqTF<BitsPerSymbol>::Type            SequenceTypes;
 
-        typedef PkdFSSeq<SequenceTypes>                             LeafType;
+        typedef TL<PkdFSSeq<SequenceTypes>>                             LeafType;
     };
 
     typedef TypeList<
