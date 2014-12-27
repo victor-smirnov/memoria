@@ -1298,25 +1298,12 @@ public:
     }
 
 
-    template <typename SubstreamPath, typename Fn, typename... Args>
-    //DispatchRtnType<memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value, Fn, Args...>
-    void processStreamT(Fn&& fn, Args&&... args) const
-    {
-        const Int StreamIdx = memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value;
-        Dispatcher::template dispatchT<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
-    }
-
-    template <typename SubstreamPath, typename Fn, typename... Args>
-    //DispatchRtnType<memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value, Fn, Args...>
-    void processStreamT(Fn&& fn, Args&&... args)
-    {
-        const Int StreamIdx = memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value;
-        return Dispatcher::template dispatchT<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
-    }
 
     template <typename Fn, typename... Args>
-    //DispatchRtnType<memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value, Fn, Args...>
-    void processStreamsStart(Fn&& fn, Args&&... args)
+    auto processStreamsStart(Fn&& fn, Args&&... args)
+    -> typename Dispatcher::template SubsetDispatcher<
+    		StreamsStartSubset<SubstreamsStructList>
+       >::template ProcessAllRtnConstType<Fn, Args...>
     {
     	using Subset = StreamsStartSubset<SubstreamsStructList>;
     	return Dispatcher::template SubsetDispatcher<Subset>::template dispatchAll(allocator(), std::forward<Fn>(fn), args...);
@@ -1324,30 +1311,16 @@ public:
 
 
     template <typename Fn, typename... Args>
-    //DispatchRtnType<memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value, Fn, Args...>
-    void processStreamsStart(Fn&& fn, Args&&... args) const
+    auto processStreamsStart(Fn&& fn, Args&&... args) const
+    -> typename Dispatcher::template SubsetDispatcher<
+    		StreamsStartSubset<SubstreamsStructList>
+       >::template ProcessAllRtnConstType<Fn, Args...>
     {
     	using Subset = StreamsStartSubset<SubstreamsStructList>;
     	return Dispatcher::template SubsetDispatcher<Subset>::template dispatchAll(allocator(), std::forward<Fn>(fn), args...);
     }
 
 
-    template <typename Fn, typename... Args>
-    //DispatchRtnType<memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value, Fn, Args...>
-    void processStreamsStartT(Fn&& fn, Args&&... args)
-    {
-    	using Subset = StreamsStartSubset<SubstreamsStructList>;
-    	return Dispatcher::template SubsetDispatcher<Subset>::template dispatchAllT(allocator(), std::forward<Fn>(fn), args...);
-    }
-
-
-    template <typename Fn, typename... Args>
-    //DispatchRtnType<memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value, Fn, Args...>
-    void processStreamsStartT(Fn&& fn, Args&&... args) const
-    {
-    	using Subset = StreamsStartSubset<SubstreamsStructList>;
-    	return Dispatcher::template SubsetDispatcher<Subset>::template dispatchAllT(allocator(), std::forward<Fn>(fn), args...);
-    }
 
 
     template <
@@ -1413,7 +1386,7 @@ public:
     }
 
     struct SerializeFn {
-        template <Int Idx, typename Tree>
+        template <typename Tree>
         void stream(const Tree* tree, SerializationData* buf)
         {
             tree->serialize(*buf);
@@ -1429,7 +1402,7 @@ public:
     }
 
     struct DeserializeFn {
-        template <Int Idx, typename Tree>
+        template <typename Tree>
         void stream(Tree* tree, DeserializationData* buf)
         {
             tree->deserialize(*buf);

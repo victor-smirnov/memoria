@@ -116,11 +116,7 @@ using FnRtnType = typename IfThenElse<
 		typename IfThenElse<
 			(HasFn2<Fn, AccumIdx, Idx, Args...>::Value > 0),
 			typename HasFn2<Fn, AccumIdx, Idx, Args...>::RtnType,
-			typename IfThenElse<
-				(HasFn1<Fn, AccumIdx, Idx, Args...>::Value > 0),
-				typename HasFn1<Fn, AccumIdx, Idx, Args...>::RtnType,
-				TNotDefined
-			>::Result
+			typename HasFn1<Fn, AccumIdx, Idx, Args...>::RtnType
 		>::Result
 >::Result;
 

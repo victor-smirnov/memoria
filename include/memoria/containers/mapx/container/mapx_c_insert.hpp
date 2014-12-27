@@ -62,18 +62,33 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mapx::CtrInsertName)
     struct HandlerT
     {
         template <Int AllocIdx, Int StreamIdx, typename StreamType>
-        void stream(StreamType* obj)
+        int stream(StreamType* obj)
         {
-        	std::cout<<"AllocIdx "<<AllocIdx<<" "<<StreamIdx<<" "<<std::endl;
+        	std::cout<<"AllocIdx (Int) "<<AllocIdx<<" "<<StreamIdx<<" "<<std::endl;
+
+        	return 10;
         }
     };
 
     struct Handler
     {
     	template <Int StreamIdx, typename StreamType>
-    	void stream(StreamType* obj)
+    	bool stream(StreamType* obj)
     	{
-    		std::cout<<"Idx "<<StreamIdx<<" "<<std::endl;
+    		std::cout<<"Idx (bool) "<<StreamIdx<<" "<<std::endl;
+
+    		return true;
+    	}
+    };
+
+    struct HandlerS
+    {
+    	template <typename StreamType>
+    	double stream(StreamType* obj)
+    	{
+    		std::cout<<"NoIdx (double)"<<" "<<std::endl;
+
+    		return 1.23456;
     	}
     };
 
@@ -84,11 +99,19 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mapx::CtrInsertName)
         void treeNode(LeafNode<NTypes>* node, Int idx, Accumulator& accum, const Entry& entry)
         {
             node->layout(255);
+
+            ListPrinter<TypeList<decltype(node->template processStreamsStart(HandlerS()))>>::print(cout);
+
+
 //            node->template processSubstreamsAcc<0, AccumulatorHandler>(accum, idx, entry);
 //
-//            node->template processStreamT<IntList<0>>(HandlerT());
+//            auto r = node->template processStream<IntList<0>>(Handler());
 
-            node->processStreamsStartT(HandlerT());
+//            cout<<"Result: "<<r<<endl;
+
+//            ListPrinter<TL<decltype(r)>>::print(cout);
+
+//            node->processStreamsStartT(HandlerT());
 
 //            node->template processSubstreams<IntList<0>>(*this, idx, entry);
         }

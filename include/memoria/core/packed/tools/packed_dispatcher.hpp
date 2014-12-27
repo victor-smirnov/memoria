@@ -17,7 +17,7 @@
 
 #include <memoria/core/packed/tools/packed_allocator.hpp>
 #include <memoria/core/packed/tools/packed_rtn_type_list.hpp>
-
+#include <memoria/core/packed/tools/packed_dispatcher_detail.hpp>
 
 
 #include <utility>
@@ -54,38 +54,24 @@ public:
 
     template<typename, Int, Int> friend class PackedDispatcher;
 
-    template <typename T, Int Idx, typename... Args>
-    using FnType = auto(Args...) -> decltype(std::declval<T>().template stream<Idx>(std::declval<Args>()...));
-
-    template <typename Fn, Int Idx, typename... T>
-    using RtnType = typename FnTraits<FnType<typename std::remove_reference<Fn>::type, Idx, T...>>::RtnType;
-
-    template <typename T, Int AllocIdx, Int Idx, typename... Args>
-    using FnTypeT = auto(Args...) -> decltype(std::declval<T>().template stream<AllocIdx, Idx>(std::declval<Args>()...));
-
-    template <typename Fn, Int AllocIdx, Int Idx, typename... T>
-    using RtnTypeT = typename FnTraits<FnTypeT<typename std::remove_reference<Fn>::type, AllocIdx, Idx, T...>>::RtnType;
-
-
-
     template<Int StreamIdx>
     using StreamTypeT = SelectByIndex<StreamIdx, List>;
 
     template <typename Fn, typename... Args>
     using RtnTuple = typename MakeTupleH<
-            typename pd::MakeRtnTypeList<List, ListIdx, Fn, Args...>::Type
+            typename pd::MakeRtnTypeList<List, StartIdx, ListIdx, Fn, Args...>::Type
     >::Type;
 
     template <typename Fn, typename... Args>
     using ConstRtnTuple = typename MakeTupleH<
-            typename pd::MakeRtnTypeListConst<List, ListIdx, Fn, Args...>::Type
+            typename pd::MakeRtnTypeListConst<List, StartIdx, ListIdx, Fn, Args...>::Type
     >::Type;
 
     template <typename Fn, typename... Args>
-    using HasVoid = pd::ContainsVoidRtnType<List, ListIdx, Fn, Args...>;
+    using HasVoid = pd::ContainsVoidRtnType<List, StartIdx, ListIdx, Fn, Args...>;
 
     template <typename Fn, typename... Args>
-    using HasVoidConst = pd::ContainsVoidRtnTypeConst<List, ListIdx, Fn, Args...>;
+    using HasVoidConst = pd::ContainsVoidRtnTypeConst<List, StartIdx, ListIdx, Fn, Args...>;
 
     template <typename Fn, typename... Args>
     using ProcessAllRtnType = typename IfThenElse<
@@ -124,8 +110,8 @@ public:
 
 
     template <typename Fn, typename... Args>
-    RtnType<Fn, ListIdx, Head*, Args...>
-    dispatch(Int idx, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    static auto dispatch(Int idx, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    -> detail::pd::FnRtnType<Fn, AllocatorIdx, ListIdx, Head*, Args...>
     {
         if (idx == ListIdx)
         {
@@ -135,7 +121,7 @@ public:
                 head = alloc->template get<Head>(AllocatorIdx);
             }
 
-            return fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+            return detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
         }
         else {
             return NextDispatcher::dispatch(idx, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
@@ -144,8 +130,8 @@ public:
 
 
     template <typename Fn, typename... Args>
-    static RtnType<Fn, ListIdx, const Head*, Args...>
-    dispatch(Int idx, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    static auto dispatch(Int idx, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    -> detail::pd::FnRtnType<Fn, AllocatorIdx, ListIdx, const Head*, Args...>
     {
         if (idx == ListIdx)
         {
@@ -155,7 +141,7 @@ public:
                 head = alloc->template get<Head>(AllocatorIdx);
             }
 
-            return fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+            return detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
         }
         else {
             return NextDispatcher::dispatch(idx, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
@@ -164,89 +150,52 @@ public:
 
 
     template <Int StreamIdx, typename Fn, typename... Args>
-    static RtnType<Fn, StreamIdx, typename StreamTypeT<StreamIdx>::Type*, Args...>
-    dispatch(PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    static auto dispatch(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    -> detail::pd::FnRtnType<
+		Fn,
+		StreamTypeT<StreamIdx>::Value + StartIdx,
+		StreamIdx,
+		const typename StreamTypeT<StreamIdx>::Type*,
+		Args...
+	>
     {
         using StreamDescrT 	= StreamTypeT<StreamIdx>;
         using StreamType 	= typename StreamDescrT::Type;
 
-        const Int AccumIdx 	= StreamDescrT::Value + StartIdx;
-
-        StreamType* head = nullptr;
-        if (!alloc->is_empty(AccumIdx))
-        {
-            head = alloc->template get<StreamType>(AccumIdx);
-        }
-
-        return fn.template stream<StreamIdx>(head, std::forward<Args>(args)...);
-    }
-
-
-    template <Int StreamIdx, typename Fn, typename... Args>
-    static RtnType<Fn, StreamIdx, const StreamTypeT<StreamIdx>*, Args...>
-    dispatch(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
-    {
-        using StreamDescrT 	= StreamTypeT<StreamIdx>;
-        using StreamType 	= typename StreamDescrT::Type;
-
-        const Int AccumIdx 	= StreamDescrT::Value + StartIdx;
+        const Int AllocatorIdx 	= StreamDescrT::Value + StartIdx;
 
         const StreamType* head = nullptr;
-        if (!alloc->is_empty(AccumIdx))
+        if (!alloc->is_empty(AllocatorIdx))
         {
-            head = alloc->template get<StreamType>(AccumIdx);
+            head = alloc->template get<StreamType>(AllocatorIdx);
         }
 
-        return fn.template stream<StreamIdx>(head, std::forward<Args>(args)...);
+        return detail::pd::dispatchFn<AllocatorIdx, StreamIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
     }
 
 
     template <Int StreamIdx, typename Fn, typename... Args>
-    static RtnTypeT<
+    static auto dispatch(PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    -> detail::pd::FnRtnType<
     		Fn,
     		StreamTypeT<StreamIdx>::Value + StartIdx,
     		StreamIdx,
     		typename StreamTypeT<StreamIdx>::Type*,
     		Args...
     >
-    dispatchT(PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         using StreamDescrT 	= StreamTypeT<StreamIdx>;
         using StreamType 	= typename StreamDescrT::Type;
 
-        const Int AccumIdx 	= StreamDescrT::Value + StartIdx;
+        const Int AllocatorIdx 	= StreamDescrT::Value + StartIdx;
 
         StreamType* head = nullptr;
-        if (!alloc->is_empty(AccumIdx))
+        if (!alloc->is_empty(AllocatorIdx))
         {
-            head = alloc->template get<StreamType>(AccumIdx);
+            head = alloc->template get<StreamType>(AllocatorIdx);
         }
 
-        return fn.template stream<AccumIdx, StreamIdx>(head, std::forward<Args>(args)...);
-    }
-
-    template <Int StreamIdx, typename Fn, typename... Args>
-    static RtnTypeT<
-    		Fn,
-    		StreamTypeT<StreamIdx>::Value + StartIdx,
-    		StreamIdx,
-    		typename StreamTypeT<StreamIdx>::Type*,
-    		Args...
-    >
-    dispatchT(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
-    {
-        using StreamDescrT 	= StreamTypeT<StreamIdx>;
-        using StreamType 	= typename StreamDescrT::Type;
-
-        const Int AccumIdx 	= StreamDescrT::Value + StartIdx;
-
-        const StreamType* head = nullptr;
-        if (!alloc->is_empty(AccumIdx))
-        {
-            head = alloc->template get<StreamType>(AccumIdx);
-        }
-
-        return fn.template stream<AccumIdx, StreamIdx>(head, std::forward<Args>(args)...);
+        return detail::pd::dispatchFn<AllocatorIdx, StreamIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
     }
 
 
@@ -255,7 +204,7 @@ public:
     static void dispatchAllStatic(Fn&& fn, Args&&... args)
     {
         Head* head = nullptr;
-        fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+        detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
         NextDispatcher::dispatchAllStatic(std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
@@ -266,7 +215,7 @@ public:
         if (!alloc->is_empty(AllocatorIdx))
         {
             Head* head = alloc->template get<Head>(AllocatorIdx);
-            fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+            detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
         }
 
         NextDispatcher::dispatchNotEmpty(alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
@@ -279,7 +228,7 @@ public:
         if (!alloc->is_empty(AllocatorIdx))
         {
             const Head* head = alloc->template get<Head>(AllocatorIdx);
-            fn.template stream<ListIdx>(head, args...);
+            detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
         }
 
         NextDispatcher::dispatchNotEmpty(alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
@@ -292,7 +241,7 @@ public:
         if ((streams & (1ull << ListIdx)) && !alloc->is_empty(AllocatorIdx))
         {
             Head* head = alloc->template get<Head>(AllocatorIdx);
-            fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+            detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
         }
 
         NextDispatcher::dispatchNotEmpty(streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
@@ -305,7 +254,7 @@ public:
         if ((streams & (1ull << ListIdx)) && !alloc->is_empty(AllocatorIdx))
         {
             const Head* head = alloc->template get<Head>(AllocatorIdx);
-            fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+            detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
         }
 
         NextDispatcher::dispatchNotEmpty(streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
@@ -325,7 +274,7 @@ public:
             head = alloc->template get<Head>(AllocatorIdx);
         }
 
-        fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+        return detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
 
         NextDispatcher::dispatchAll(alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
@@ -359,7 +308,7 @@ public:
             head = alloc->template get<Head>(AllocatorIdx);
         }
 
-        fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+        return detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
 
         NextDispatcher::dispatchAll(alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
@@ -380,36 +329,6 @@ public:
     }
 
 
-    template <typename Fn, typename... Args>
-    static void dispatchAllT(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
-    {
-        const Head* head = nullptr;
-        if (!alloc->is_empty(AllocatorIdx))
-        {
-            head = alloc->template get<Head>(AllocatorIdx);
-        }
-
-        fn.template stream<AllocatorIdx, ListIdx>(head, std::forward<Args>(args)...);
-
-        NextDispatcher::dispatchAllT(alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
-    }
-
-
-    template <typename Fn, typename... Args>
-    static void dispatchAllT(PackedAllocator* alloc, Fn&& fn, Args&&... args)
-    {
-    	Head* head = nullptr;
-    	if (!alloc->is_empty(AllocatorIdx))
-    	{
-    		head = alloc->template get<Head>(AllocatorIdx);
-    	}
-
-    	fn.template stream<AllocatorIdx, ListIdx>(head, std::forward<Args>(args)...);
-
-    	NextDispatcher::dispatchAllT(alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
-    }
-
-
 
     template <typename Fn, typename... Args>
     static typename std::enable_if<
@@ -424,7 +343,7 @@ public:
             head = alloc->template get<Head>(AllocatorIdx);
         }
 
-        fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+        detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
 
         NextDispatcher::dispatchAll2(streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
@@ -458,7 +377,7 @@ public:
             head = alloc->template get<Head>(AllocatorIdx);
         }
 
-        fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+        detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
 
         NextDispatcher::dispatchAll(streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
@@ -491,7 +410,7 @@ public:
         if (idx == ListIdx)
         {
             const Head* head = nullptr;
-            fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+            detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
         }
         else {
             NextDispatcher::dispatchStatic(idx, std::forward<Fn>(fn), std::forward<Args>(args)...);
@@ -542,7 +461,7 @@ public:
             head = alloc->template get<Head>(AllocatorIdx);
         }
 
-        fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+        detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
 
         NextDispatcher::dispatchSelected(streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
@@ -576,7 +495,7 @@ public:
             head = alloc->template get<Head>(AllocatorIdx);
         }
 
-        fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+        detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
 
         NextDispatcher::dispatchSelected(streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
@@ -593,7 +512,7 @@ public:
             head = alloc->template get<Head>(AllocatorIdx);
         }
 
-        std::get<ListIdx>(tuple) = fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+        std::get<ListIdx>(tuple) = detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
 
         NextDispatcher::dispatchAllTuple(tuple, streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
@@ -608,7 +527,7 @@ public:
             head = alloc->template get<Head>(AllocatorIdx);
         }
 
-        std::get<ListIdx>(tuple) = fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+        std::get<ListIdx>(tuple) = detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
 
         NextDispatcher::dispatchAllTuple(tuple, streams, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
@@ -624,7 +543,7 @@ public:
             head = alloc->template get<Head>(AllocatorIdx);
         }
 
-        std::get<ListIdx>(tuple) = fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+        std::get<ListIdx>(tuple) = detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
 
         NextDispatcher::dispatchAllTuple(tuple, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
@@ -639,7 +558,7 @@ public:
             head = alloc->template get<Head>(AllocatorIdx);
         }
 
-        std::get<ListIdx>(tuple) = fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+        std::get<ListIdx>(tuple) = detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
 
         NextDispatcher::dispatchAllTuple(tuple, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
@@ -650,7 +569,7 @@ public:
     {
         const Head* head = nullptr;
 
-        std::get<ListIdx>(tuple) = fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+        std::get<ListIdx>(tuple) = detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
 
         NextDispatcher::dispatchAllStaticTuple(tuple, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
@@ -670,18 +589,6 @@ public:
 
     template<typename, Int, Int> friend class PackedDispatcher;
 
-    template <typename T, Int Idx, typename... Args>
-    using FnType = auto(Args...) -> decltype(std::declval<T>().template stream<Idx>(std::declval<Args>()...));
-
-    template <typename Fn, Int Idx, typename... T>
-    using RtnType = typename FnTraits<FnType<typename std::remove_reference<Fn>::type, Idx, T...>>::RtnType;
-
-    template <typename T, Int AllocIdx, Int Idx, typename... Args>
-    using FnTypeT = auto(Args...) -> decltype(std::declval<T>().template stream<AllocIdx, Idx>(std::declval<Args>()...));
-
-    template <typename Fn, Int AllocIdx, Int Idx, typename... T>
-    using RtnTypeT = typename FnTraits<FnTypeT<typename std::remove_reference<Fn>::type, AllocIdx, Idx, T...>>::RtnType;
-
 
     template<Int StreamIdx>
     using StreamTypeT = SelectByIndex<StreamIdx, List>;
@@ -689,19 +596,19 @@ public:
 
     template <typename Fn, typename... Args>
     using RtnTuple = typename MakeTupleH<
-            typename pd::MakeRtnTypeList<List, ListIdx, Fn, Args...>::Type
+            typename pd::MakeRtnTypeList<List, StartIdx, ListIdx, Fn, Args...>::Type
     >::Type;
 
     template <typename Fn, typename... Args>
     using ConstRtnTuple = typename MakeTupleH<
-            typename pd::MakeRtnTypeListConst<List, ListIdx, Fn, Args...>::Type
+            typename pd::MakeRtnTypeListConst<List, StartIdx, ListIdx, Fn, Args...>::Type
     >::Type;
 
     template <typename Fn, typename... Args>
-    using HasVoid = pd::ContainsVoidRtnType<List, ListIdx, Fn, Args...>;
+    using HasVoid = pd::ContainsVoidRtnType<List, StartIdx, ListIdx, Fn, Args...>;
 
     template <typename Fn, typename... Args>
-    using HasVoidConst = pd::ContainsVoidRtnTypeConst<List, ListIdx, Fn, Args...>;
+    using HasVoidConst = pd::ContainsVoidRtnTypeConst<List, StartIdx, ListIdx, Fn, Args...>;
 
     template <typename Fn, typename... Args>
     using ProcessAllRtnType = typename IfThenElse<
@@ -740,8 +647,8 @@ public:
 
 
     template <typename Fn, typename... Args>
-    static RtnType<Fn, ListIdx, Head*, Args...>
-    dispatch(Int idx, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    static auto dispatch(Int idx, PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    -> detail::pd::FnRtnType<Fn, AllocatorIdx, ListIdx, Head*, Args...>
     {
         if (idx == ListIdx)
         {
@@ -751,7 +658,7 @@ public:
                 head = alloc->template get<Head>(AllocatorIdx);
             }
 
-            return fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+            return detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
         }
         else {
             throw DispatchException(MA_SRC, SBuf()<<"Can't dispatch packed allocator structure: "<<idx);
@@ -760,8 +667,8 @@ public:
 
 
     template <typename Fn, typename... Args>
-    static RtnType<Fn, ListIdx, const Head*, Args...>
-    dispatch(Int idx, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    static auto dispatch(Int idx, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    -> detail::pd::FnRtnType<Fn, AllocatorIdx, ListIdx, const Head*, Args...>
     {
         if (idx == ListIdx)
         {
@@ -771,7 +678,7 @@ public:
                 head = alloc->template get<Head>(AllocatorIdx);
             }
 
-            return fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+            return detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
         }
         else {
             throw DispatchException(MA_SRC, SBuf()<<"Can't dispatch packed allocator structure: "<<idx);
@@ -780,89 +687,52 @@ public:
 
 
     template <Int StreamIdx, typename Fn, typename... Args>
-    static RtnType<Fn, StreamIdx, typename StreamTypeT<StreamIdx>::Type*, Args...>
-    dispatch(PackedAllocator* alloc, Fn&& fn, Args&&... args)
-    {
-        using StreamDescrT 	= StreamTypeT<StreamIdx>;
-        using StreamType 	= typename StreamDescrT::Type;
-
-        const Int AccumIdx 	= StreamDescrT::Value + StartIdx;
-
-        StreamType* head = nullptr;
-        if (!alloc->is_empty(AccumIdx))
-        {
-            head = alloc->template get<StreamType>(AccumIdx);
-        }
-
-        return fn.template stream<StreamIdx>(head, std::forward<Args>(args)...);
-    }
-
-
-    template <Int StreamIdx, typename Fn, typename... Args>
-    static RtnType<Fn, StreamIdx, const typename StreamTypeT<StreamIdx>::Type*, Args...>
-    dispatch(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
-    {
-        using StreamDescrT 	= StreamTypeT<StreamIdx>;
-        using StreamType 	= typename StreamDescrT::Type;
-
-        const Int AccumIdx 	= StreamDescrT::Value + StartIdx;
-
-        const StreamType* head = nullptr;
-        if (!alloc->is_empty(AccumIdx))
-        {
-            head = alloc->template get<StreamType>(AccumIdx);
-        }
-
-        return fn.template stream<StreamIdx>(head, std::forward<Args>(args)...);
-    }
-
-
-    template <Int StreamIdx, typename Fn, typename... Args>
-    static RtnTypeT<
+    static auto dispatch(PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    -> detail::pd::FnRtnType<
     		Fn,
     		StreamTypeT<StreamIdx>::Value + StartIdx,
     		StreamIdx,
     		typename StreamTypeT<StreamIdx>::Type*,
     		Args...
-    >
-    dispatchT(PackedAllocator* alloc, Fn&& fn, Args&&... args)
+       >
     {
         using StreamDescrT 	= StreamTypeT<StreamIdx>;
         using StreamType 	= typename StreamDescrT::Type;
 
-        const Int AccumIdx 	= StreamDescrT::Value + StartIdx;
+        const Int AllocatorIdx 	= StreamDescrT::Value + StartIdx;
 
         StreamType* head = nullptr;
-        if (!alloc->is_empty(AccumIdx))
+        if (!alloc->is_empty(AllocatorIdx))
         {
-            head = alloc->template get<StreamType>(AccumIdx);
+            head = alloc->template get<StreamType>(AllocatorIdx);
         }
 
-        fn.template stream<AccumIdx, StreamIdx>(head, std::forward<Args>(args)...);
+        return detail::pd::dispatchFn<AllocatorIdx, StreamIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
     }
 
+
     template <Int StreamIdx, typename Fn, typename... Args>
-    static RtnTypeT<
+    static auto dispatch(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    -> detail::pd::FnRtnType<
     		Fn,
     		StreamTypeT<StreamIdx>::Value + StartIdx,
     		StreamIdx,
-    		typename StreamTypeT<StreamIdx>::Type*,
+    		const typename StreamTypeT<StreamIdx>::Type*,
     		Args...
-    >
-    dispatchT(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+       >
     {
         using StreamDescrT 	= StreamTypeT<StreamIdx>;
         using StreamType 	= typename StreamDescrT::Type;
 
-        const Int AccumIdx 	= StreamDescrT::Value + StartIdx;
+        const Int AllocatorIdx 	= StreamDescrT::Value + StartIdx;
 
         const StreamType* head = nullptr;
-        if (!alloc->is_empty(AccumIdx))
+        if (!alloc->is_empty(AllocatorIdx))
         {
-            head = alloc->template get<StreamType>(AccumIdx);
+            head = alloc->template get<StreamType>(AllocatorIdx);
         }
 
-        fn.template stream<AccumIdx, StreamIdx>(head, std::forward<Args>(args)...);
+        return detail::pd::dispatchFn<AllocatorIdx, StreamIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
     }
 
 
@@ -871,7 +741,7 @@ public:
     static void dispatchAllStatic(Fn&& fn, Args&&... args)
     {
         Head* head = nullptr;
-        fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+        detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
     }
 
 
@@ -881,7 +751,7 @@ public:
         if (!alloc->is_empty(AllocatorIdx))
         {
             Head* head = alloc->template get<Head>(AllocatorIdx);
-            fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+            detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
         }
     }
 
@@ -892,7 +762,7 @@ public:
         if (!alloc->is_empty(AllocatorIdx))
         {
             const Head* head = alloc->template get<Head>(AllocatorIdx);
-            fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+            detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
         }
     }
 
@@ -903,7 +773,7 @@ public:
         if ((streams & (1ull << ListIdx)) && !alloc->is_empty(AllocatorIdx))
         {
             Head* head = alloc->template get<Head>(AllocatorIdx);
-            fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+            detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
         }
     }
 
@@ -914,7 +784,7 @@ public:
         if ((streams & (1ull << ListIdx)) && !alloc->is_empty(AllocatorIdx))
         {
             const Head* head = alloc->template get<Head>(AllocatorIdx);
-            fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+            detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
         }
     }
 
@@ -929,7 +799,7 @@ public:
         if (idx == ListIdx)
         {
             const Head* head = nullptr;
-            return fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+            return detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
         }
         else {
             throw DispatchException(MA_SRC, SBuf()<<"Can't dispatch packed allocator structure: "<<idx);
@@ -997,7 +867,7 @@ public:
             head = alloc->template get<Head>(AllocatorIdx);
         }
 
-        fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+        return detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
     }
 
 
@@ -1014,34 +884,10 @@ public:
             head = alloc->template get<Head>(AllocatorIdx);
         }
 
-        fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+        return detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
     }
 
 
-    template <typename Fn, typename... Args>
-    static void dispatchAllT(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
-    {
-        const Head* head = nullptr;
-        if (!alloc->is_empty(AllocatorIdx))
-        {
-            head = alloc->template get<Head>(AllocatorIdx);
-        }
-
-        fn.template stream<AllocatorIdx, ListIdx>(head, std::forward<Args>(args)...);
-    }
-
-
-    template <typename Fn, typename... Args>
-    static void dispatchAllT(PackedAllocator* alloc, Fn&& fn, Args&&... args)
-    {
-    	Head* head = nullptr;
-    	if (!alloc->is_empty(AllocatorIdx))
-    	{
-    		head = alloc->template get<Head>(AllocatorIdx);
-    	}
-
-    	fn.template stream<AllocatorIdx, ListIdx>(head, std::forward<Args>(args)...);
-    }
 
 
 
@@ -1075,7 +921,7 @@ public:
             head = alloc->template get<Head>(AllocatorIdx);
         }
 
-        fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+        return detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
     }
 
 
@@ -1107,7 +953,7 @@ public:
             head = alloc->template get<Head>(AllocatorIdx);
         }
 
-        fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+        return detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
     }
 
 
@@ -1122,7 +968,7 @@ public:
             head = alloc->template get<Head>(AllocatorIdx);
         }
 
-        std::get<ListIdx>(tuple) = fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+        std::get<ListIdx>(tuple) = detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
     }
 
 
@@ -1135,7 +981,7 @@ public:
             head = alloc->template get<Head>(AllocatorIdx);
         }
 
-        std::get<ListIdx>(tuple) = fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+        std::get<ListIdx>(tuple) = detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
     }
 
 
@@ -1149,7 +995,7 @@ public:
             head = alloc->template get<Head>(AllocatorIdx);
         }
 
-        std::get<ListIdx>(tuple) = fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+        std::get<ListIdx>(tuple) = detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
     }
 
 
@@ -1162,7 +1008,7 @@ public:
             head = alloc->template get<Head>(AllocatorIdx);
         }
 
-        std::get<ListIdx>(tuple) = fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+        std::get<ListIdx>(tuple) = detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
     }
 
 
@@ -1171,7 +1017,7 @@ public:
     {
         const Head* head = nullptr;
 
-        std::get<ListIdx>(tuple) = fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
+        std::get<ListIdx>(tuple) = detail::pd::dispatchFn<AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
     }
 };
 
