@@ -110,14 +110,7 @@ using List4 = TL<
 using List5 = Linearize<List4, 2>;
 
 using List3 = TypeList<
-        //detail::OffsetBuilder<List5>::Type,
-//      LeafOffsetListBuilder<List4>::Type
-
-//        S<SubtreeLeafCount<List4, IntList<1,1>, 2>::Value>,
-        S<SubtreeLeafCount<List4, IntList<1,1>, 2>::Value>,
-
-//        S<SubtreeLeafCount<T, IntList<>, 1>::Value>,
-        S<SubtreeLeafCount<T, IntList<>, 1>::Value>
+		StreamsStartSubset<List4>
 >;
 
 using List6 = TypeList<
@@ -137,7 +130,7 @@ using List8 = TypeList<
 int main(void)
 {
     cout<<"LeafOffset: "<<endl;
-    ListPrinter<List8>::print(cout);
+    ListPrinter<List3>::print(cout);
 
     return 0;
 }

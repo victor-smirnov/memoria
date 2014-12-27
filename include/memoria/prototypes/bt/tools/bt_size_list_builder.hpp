@@ -109,9 +109,32 @@ struct InternalOffsetBuilder<TypeList<>, Offset>
 };
 
 
+template <typename List, Int Offset = 0, Int Idx = 0, Int Max = ListSize<List>::Value>
+class ForAllTopLevelElements;
+
+template <typename List, Int Offset, Int Idx, Int Max>
+class ForAllTopLevelElements {
+	static const Int LeafOffset = memoria::list_tree::LeafCountInf<List, IntList<Idx>>::Value;
+public:
+	using Type = AppendItemToList<
+			IntValue<LeafOffset + Offset>,
+			typename ForAllTopLevelElements<
+				List,
+				Offset,
+				Idx + 1
+			>::Type
+	>;
+};
+
+
+template <typename List, Int Offset, Int Max>
+class ForAllTopLevelElements<List, Offset, Max, Max> {
+public:
+	using Type = IntList<>;
+};
+
+
 }
-
-
 
 
 template <typename List>
@@ -121,6 +144,19 @@ class LeafOffsetListBuilder {
 public:
     using Type = typename detail::TagStreamsStart<OffsetList, List>::Type;
 };
+
+
+
+
+template <typename List, typename Path>
+using LeafSubsetInf = typename detail::ForAllTopLevelElements<
+		typename memoria::list_tree::Subtree<List, Path>::Type,
+		memoria::list_tree::LeafCount<List, Path>::Value
+>::Type;
+
+
+template <typename List>
+using StreamsStartSubset = LeafSubsetInf<List, IntList<>>;
 
 
 

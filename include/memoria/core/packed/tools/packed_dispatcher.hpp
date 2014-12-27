@@ -114,10 +114,10 @@ public:
 
     template <typename Subset>
     using SubsetDispatcher = PackedDispatcher<
-                                typename ::memoria::ListSubset<
+                                ::memoria::ListSubset<
                                     List,
                                     Subset
-                                >::Type,
+                                >,
                                 StartIdx,
                                 0
                           >;
@@ -377,6 +377,36 @@ public:
         dispatchAllTuple(tuple, alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
 
         return tuple;
+    }
+
+
+    template <typename Fn, typename... Args>
+    static void dispatchAllT(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    {
+        const Head* head = nullptr;
+        if (!alloc->is_empty(AllocatorIdx))
+        {
+            head = alloc->template get<Head>(AllocatorIdx);
+        }
+
+        fn.template stream<AllocatorIdx, ListIdx>(head, std::forward<Args>(args)...);
+
+        NextDispatcher::dispatchAllT(alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
+    }
+
+
+    template <typename Fn, typename... Args>
+    static void dispatchAllT(PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    {
+    	Head* head = nullptr;
+    	if (!alloc->is_empty(AllocatorIdx))
+    	{
+    		head = alloc->template get<Head>(AllocatorIdx);
+    	}
+
+    	fn.template stream<AllocatorIdx, ListIdx>(head, std::forward<Args>(args)...);
+
+    	NextDispatcher::dispatchAllT(alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
 
@@ -700,10 +730,10 @@ public:
 
     template <typename Subset>
     using SubsetDispatcher = PackedDispatcher<
-                                    typename ::memoria::ListSubset<
+    								::memoria::ListSubset<
                                         TypeList<StreamDescr<Head, Index>>,
                                         Subset
-                                    >::Type,
+                                    >,
                                     StartIdx,
                                     0
                               >;
@@ -987,6 +1017,31 @@ public:
         fn.template stream<ListIdx>(head, std::forward<Args>(args)...);
     }
 
+
+    template <typename Fn, typename... Args>
+    static void dispatchAllT(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    {
+        const Head* head = nullptr;
+        if (!alloc->is_empty(AllocatorIdx))
+        {
+            head = alloc->template get<Head>(AllocatorIdx);
+        }
+
+        fn.template stream<AllocatorIdx, ListIdx>(head, std::forward<Args>(args)...);
+    }
+
+
+    template <typename Fn, typename... Args>
+    static void dispatchAllT(PackedAllocator* alloc, Fn&& fn, Args&&... args)
+    {
+    	Head* head = nullptr;
+    	if (!alloc->is_empty(AllocatorIdx))
+    	{
+    		head = alloc->template get<Head>(AllocatorIdx);
+    	}
+
+    	fn.template stream<AllocatorIdx, ListIdx>(head, std::forward<Args>(args)...);
+    }
 
 
 

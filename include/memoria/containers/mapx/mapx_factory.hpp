@@ -99,7 +99,7 @@ struct MapXBTTypesBase: public BTTypes<Profile, memoria::BT> {
     typedef std::tuple<DataSource*>                                             Source;
     typedef std::tuple<DataTarget*>                                             Target;
 
-    typedef TypeList<StreamTF>                                                  StreamDescriptors;
+    typedef TypeList<StreamTF, StreamTF, StreamTF>                              StreamDescriptors;
 
     typedef BalancedTreeMetadata<
             typename Base::ID,
