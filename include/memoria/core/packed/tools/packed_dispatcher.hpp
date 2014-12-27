@@ -31,7 +31,7 @@ struct RtnFnBase {
 };
 
 
-template <typename List, Int StartIdx = 0, Int ListIdx = 0> class PackedDispatcher;
+template <typename List, Int ListIdx = 0> class PackedDispatcher;
 
 template <typename Struct, Int Index>
 struct StreamDescr {
@@ -41,37 +41,37 @@ struct StreamDescr {
 
 
 
-template <typename Head, typename... Tail, Int Index, Int StartIdx, Int ListIdx>
-class PackedDispatcher<TypeList<StreamDescr<Head, Index>, Tail...>, StartIdx, ListIdx> {
+template <typename Head, typename... Tail, Int Index, Int ListIdx>
+class PackedDispatcher<TypeList<StreamDescr<Head, Index>, Tail...>, ListIdx> {
 public:
 
-    using MyType = PackedDispatcher<TypeList<StreamDescr<Head, Index>, Tail...>, StartIdx, ListIdx>;
+    using MyType = PackedDispatcher<TypeList<StreamDescr<Head, Index>, Tail...>, ListIdx>;
 
-    static const Int AllocatorIdx   = Index + StartIdx;
+    static const Int AllocatorIdx   = Index;
 
     using List              = TypeList<StreamDescr<Head, Index>, Tail...>;
-    using NextDispatcher    = PackedDispatcher<TypeList<Tail...>, StartIdx, ListIdx + 1>;
+    using NextDispatcher    = PackedDispatcher<TypeList<Tail...>, ListIdx + 1>;
 
-    template<typename, Int, Int> friend class PackedDispatcher;
+    template<typename, Int> friend class PackedDispatcher;
 
     template<Int StreamIdx>
     using StreamTypeT = SelectByIndex<StreamIdx, List>;
 
     template <typename Fn, typename... Args>
     using RtnTuple = typename MakeTupleH<
-            typename pd::MakeRtnTypeList<List, StartIdx, ListIdx, Fn, Args...>::Type
+            typename pd::MakeRtnTypeList<List, ListIdx, Fn, Args...>::Type
     >::Type;
 
     template <typename Fn, typename... Args>
     using ConstRtnTuple = typename MakeTupleH<
-            typename pd::MakeRtnTypeListConst<List, StartIdx, ListIdx, Fn, Args...>::Type
+            typename pd::MakeRtnTypeListConst<List, ListIdx, Fn, Args...>::Type
     >::Type;
 
     template <typename Fn, typename... Args>
-    using HasVoid = pd::ContainsVoidRtnType<List, StartIdx, ListIdx, Fn, Args...>;
+    using HasVoid = pd::ContainsVoidRtnType<List, ListIdx, Fn, Args...>;
 
     template <typename Fn, typename... Args>
-    using HasVoidConst = pd::ContainsVoidRtnTypeConst<List, StartIdx, ListIdx, Fn, Args...>;
+    using HasVoidConst = pd::ContainsVoidRtnTypeConst<List, ListIdx, Fn, Args...>;
 
     template <typename Fn, typename... Args>
     using ProcessAllRtnType = typename IfThenElse<
@@ -93,9 +93,7 @@ public:
                                 typename ::memoria::Sublist<
                                     List,
                                     From, To
-                                >::Type,
-                                StartIdx,
-                                From
+                                >::Type
                           >;
 
     template <typename Subset>
@@ -103,9 +101,7 @@ public:
                                 ::memoria::ListSubset<
                                     List,
                                     Subset
-                                >,
-                                StartIdx,
-                                0
+                                >
                           >;
 
 
@@ -153,7 +149,7 @@ public:
     static auto dispatch(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     -> detail::pd::FnRtnType<
 		Fn,
-		StreamTypeT<StreamIdx>::Value + StartIdx,
+		StreamTypeT<StreamIdx>::Value,
 		StreamIdx,
 		const typename StreamTypeT<StreamIdx>::Type*,
 		Args...
@@ -162,7 +158,7 @@ public:
         using StreamDescrT 	= StreamTypeT<StreamIdx>;
         using StreamType 	= typename StreamDescrT::Type;
 
-        const Int AllocatorIdx 	= StreamDescrT::Value + StartIdx;
+        const Int AllocatorIdx 	= StreamDescrT::Value;
 
         const StreamType* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx))
@@ -178,7 +174,7 @@ public:
     static auto dispatch(PackedAllocator* alloc, Fn&& fn, Args&&... args)
     -> detail::pd::FnRtnType<
     		Fn,
-    		StreamTypeT<StreamIdx>::Value + StartIdx,
+    		StreamTypeT<StreamIdx>::Value,
     		StreamIdx,
     		typename StreamTypeT<StreamIdx>::Type*,
     		Args...
@@ -187,7 +183,7 @@ public:
         using StreamDescrT 	= StreamTypeT<StreamIdx>;
         using StreamType 	= typename StreamDescrT::Type;
 
-        const Int AllocatorIdx 	= StreamDescrT::Value + StartIdx;
+        const Int AllocatorIdx 	= StreamDescrT::Value;
 
         StreamType* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx))
@@ -579,15 +575,15 @@ public:
 
 
 
-template <typename Head, Int Index, Int StartIdx, Int ListIdx>
-class PackedDispatcher<TypeList<StreamDescr<Head, Index>>, StartIdx, ListIdx> {
+template <typename Head, Int Index, Int ListIdx>
+class PackedDispatcher<TypeList<StreamDescr<Head, Index>>, ListIdx> {
 public:
 
-    static const Int AllocatorIdx   = Index + StartIdx;
+    static const Int AllocatorIdx   = Index;
 
     typedef TypeList<StreamDescr<Head, Index>> List;
 
-    template<typename, Int, Int> friend class PackedDispatcher;
+    template<typename, Int> friend class PackedDispatcher;
 
 
     template<Int StreamIdx>
@@ -596,19 +592,19 @@ public:
 
     template <typename Fn, typename... Args>
     using RtnTuple = typename MakeTupleH<
-            typename pd::MakeRtnTypeList<List, StartIdx, ListIdx, Fn, Args...>::Type
+            typename pd::MakeRtnTypeList<List, ListIdx, Fn, Args...>::Type
     >::Type;
 
     template <typename Fn, typename... Args>
     using ConstRtnTuple = typename MakeTupleH<
-            typename pd::MakeRtnTypeListConst<List, StartIdx, ListIdx, Fn, Args...>::Type
+            typename pd::MakeRtnTypeListConst<List, ListIdx, Fn, Args...>::Type
     >::Type;
 
     template <typename Fn, typename... Args>
-    using HasVoid = pd::ContainsVoidRtnType<List, StartIdx, ListIdx, Fn, Args...>;
+    using HasVoid = pd::ContainsVoidRtnType<List, ListIdx, Fn, Args...>;
 
     template <typename Fn, typename... Args>
-    using HasVoidConst = pd::ContainsVoidRtnTypeConst<List, StartIdx, ListIdx, Fn, Args...>;
+    using HasVoidConst = pd::ContainsVoidRtnTypeConst<List, ListIdx, Fn, Args...>;
 
     template <typename Fn, typename... Args>
     using ProcessAllRtnType = typename IfThenElse<
@@ -630,9 +626,7 @@ public:
                                 typename ::memoria::Sublist<
                                     TypeList<StreamDescr<Head, Index>>,
                                     From, To
-                                >::Type,
-                                StartIdx,
-                                From
+                                >::Type
                           >;
 
     template <typename Subset>
@@ -640,9 +634,7 @@ public:
     								::memoria::ListSubset<
                                         TypeList<StreamDescr<Head, Index>>,
                                         Subset
-                                    >,
-                                    StartIdx,
-                                    0
+                                    >
                               >;
 
 
@@ -690,7 +682,7 @@ public:
     static auto dispatch(PackedAllocator* alloc, Fn&& fn, Args&&... args)
     -> detail::pd::FnRtnType<
     		Fn,
-    		StreamTypeT<StreamIdx>::Value + StartIdx,
+    		StreamTypeT<StreamIdx>::Value,
     		StreamIdx,
     		typename StreamTypeT<StreamIdx>::Type*,
     		Args...
@@ -699,7 +691,7 @@ public:
         using StreamDescrT 	= StreamTypeT<StreamIdx>;
         using StreamType 	= typename StreamDescrT::Type;
 
-        const Int AllocatorIdx 	= StreamDescrT::Value + StartIdx;
+        const Int AllocatorIdx 	= StreamDescrT::Value;
 
         StreamType* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx))
@@ -715,7 +707,7 @@ public:
     static auto dispatch(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     -> detail::pd::FnRtnType<
     		Fn,
-    		StreamTypeT<StreamIdx>::Value + StartIdx,
+    		StreamTypeT<StreamIdx>::Value,
     		StreamIdx,
     		const typename StreamTypeT<StreamIdx>::Type*,
     		Args...
@@ -724,7 +716,7 @@ public:
         using StreamDescrT 	= StreamTypeT<StreamIdx>;
         using StreamType 	= typename StreamDescrT::Type;
 
-        const Int AllocatorIdx 	= StreamDescrT::Value + StartIdx;
+        const Int AllocatorIdx 	= StreamDescrT::Value;
 
         const StreamType* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx))
@@ -1025,10 +1017,10 @@ public:
 
 
 
-template <Int StartIdx, Int ListOffsetIdx>
-class PackedDispatcher<TypeList<>, StartIdx, ListOffsetIdx> {
+template <Int ListOffsetIdx>
+class PackedDispatcher<TypeList<>, ListOffsetIdx> {
 public:
-    template<typename, Int, Int> friend class PackedDispatcher;
+	template<typename, Int> friend class PackedDispatcher;
 
     template <typename Fn, typename... Args>
     static void dispatchAllStatic(Fn&& fn, Args&&...)

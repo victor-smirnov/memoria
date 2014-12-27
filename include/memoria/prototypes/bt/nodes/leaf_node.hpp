@@ -69,9 +69,11 @@ public:
     using BranchSubstreamsStructList = typename Types::BranchStreamsStructList;
     using SubstreamsStructList = typename Types::StreamsStructList;
 
-    using StreamDispatcherStructList = typename PackedDispatchersListBuilder<Linearize<SubstreamsStructList>>::Type;
+    using StreamDispatcherStructList = typename PackedDispatchersListBuilder<
+    		Linearize<SubstreamsStructList>, Base::StreamsStart
+    >::Type;
 
-    using Dispatcher = PackedDispatcher<StreamDispatcherStructList, Base::StreamsStart>;
+    using Dispatcher = PackedDispatcher<StreamDispatcherStructList, 0>;
 
     template <Int StartIdx, Int EndIdx>
     using SubrangeDispatcher = typename Dispatcher::template SubrangeDispatcher<StartIdx, EndIdx>;

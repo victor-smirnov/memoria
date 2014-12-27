@@ -342,11 +342,11 @@ public:
 
     using SubstreamsStructList = typename Types::StreamsStructList;
 
-    using StreamDispatcherStructList = typename PackedDispatchersListBuilder<Linearize<SubstreamsStructList>>::Type;
+    using StreamDispatcherStructList = typename PackedDispatchersListBuilder<
+    		Linearize<SubstreamsStructList>, Base::StreamsStart
+    >::Type;
 
-//    using SubstreamsSizeList = typename internal::SubstreamSizeListBuilder<StreamsStructList>::Type;
-
-    using Dispatcher = PackedDispatcher<StreamDispatcherStructList, Base::StreamsStart>;
+    using Dispatcher = PackedDispatcher<StreamDispatcherStructList, 0>;
 
     static const Int Streams                                                    = ListSize<SubstreamsStructList>::Value;
     static const Int StreamsStart                                               = Base::StreamsStart;
