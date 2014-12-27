@@ -225,12 +225,12 @@ private:
     struct BlockSizeFn {
         Int size_ = 0;
 
-        template <Int StreamIndex, typename Node>
+        template <Int Idx, typename Node>
         void stream(Node*, const Position& sizes)
         {
-            if (sizes[StreamIndex] > 0)
+            if (sizes[Idx] > 0)
             {
-                size_ += Node::block_size(sizes[StreamIndex]);
+                size_ += Node::block_size(sizes[Idx]);
             }
         }
     };
@@ -278,14 +278,14 @@ public:
 
 
     struct LayoutFn {
-        template <Int StreamIndex, typename Stream>
+        template <Int Idx, typename Stream>
         void stream(Stream*, PackedAllocator* alloc, UBigInt streams)
         {
-            if (streams & (1<<StreamIndex))
+            if (streams & (1<<Idx))
             {
-                if (alloc->is_empty(StreamIndex + StreamsStart))
+                if (alloc->is_empty(Idx + StreamsStart))
                 {
-                    alloc->template allocateEmpty<Stream>(StreamIndex + StreamsStart);
+                    alloc->template allocateEmpty<Stream>(Idx + StreamsStart);
                 }
             }
         }
@@ -313,22 +313,22 @@ public:
 private:
 
     struct InitStructFn {
-        template <Int StreamIndex, typename Tree>
+        template <Int Idx, typename Tree>
         void stream(Tree*, PackedAllocator* allocator, const Position& sizes)
         {
-            if (sizes[StreamIndex] > -1)
+            if (sizes[Idx] > -1)
             {
-                Int block_size = Tree::block_size(sizes[StreamIndex]);
-                allocator->template allocate<Tree>(StreamIndex + StreamsStart, block_size);
+                Int block_size = Tree::block_size(sizes[Idx]);
+                allocator->template allocate<Tree>(Idx + StreamsStart, block_size);
             }
         }
 
-        template <Int StreamIndex, typename Tree>
+        template <Int Idx, typename Tree>
         void stream(Tree*, PackedAllocator* allocator, Int client_area)
         {
-            if (StreamIndex == 0)
+            if (Idx == 0)
             {
-                allocator->template allocate<Tree>(StreamIndex + StreamsStart, client_area);
+                allocator->template allocate<Tree>(Idx + StreamsStart, client_area);
             }
         }
     };
@@ -351,7 +351,7 @@ public:
 
 
     struct ObjectSizeFn {
-        template <Int StreamIndex, typename Tree>
+        template <typename Tree>
         void stream(const Tree* tree, PackedAllocator* allocator, const Int* size)
         {
             *size += tree->object_size();
@@ -373,7 +373,7 @@ public:
     void clearUnused() {}
 
     struct ReindexFn {
-        template <Int Idx, typename Tree>
+        template <typename Tree>
         void stream(Tree* tree)
         {
             tree->reindex();
@@ -382,19 +382,19 @@ public:
 
 
     struct InitAll {
-        template <Int StreamIdx, typename Node>
-        StaticVector<Int, StreamIdx>
+        template <Int Idx, typename Node>
+        StaticVector<Int, Idx>
         stream(const Node* boo, int a, int b, int c) {
-            StaticVector<Int, StreamIdx> t;
+            StaticVector<Int, Idx> t;
 
             return t;
         }
     };
 
     struct InitVoidAll {
-        template <Int StreamIdx, typename Node>
-        void
-        stream(const Node* boo, int a, int b, int c) {
+        template <typename Node>
+        void stream(const Node* boo, int a, int b, int c)
+        {
         }
     };
 
@@ -407,7 +407,7 @@ public:
     }
 
     struct CheckFn {
-        template <Int Idx, typename Tree>
+        template <typename Tree>
         void stream(const Tree* tree)
         {
             tree->check();
@@ -422,13 +422,13 @@ public:
 
     template <typename TreeType>
     struct TransferToFn {
-        template <Int Idx, typename Tree>
+        template <Int AllocatorIdx, Int Idx, typename Tree>
         void stream(const Tree* tree, TreeType* other)
         {
             auto allocator = tree->allocator();
             auto other_allocator = other->allocator();
 
-            other_allocator->importBlock(Idx + StreamsStart, allocator, Idx + StreamsStart);
+            other_allocator->importBlock(AllocatorIdx, allocator, AllocatorIdx);
         }
     };
 
@@ -450,12 +450,12 @@ public:
 
 
     struct MemUsedFn {
-        template <Int StreamIndex, typename Tree>
+        template <Int Idx, typename Tree>
         void stream(const Tree* tree, const Position& sizes, Int* mem_used, Int except)
         {
-            if (StreamIndex != except)
+            if (Idx != except)
             {
-                Int size = sizes[StreamIndex];
+                Int size = sizes[Idx];
 
                 if (tree != nullptr || size > 0)
                 {
@@ -466,7 +466,7 @@ public:
     };
 
     struct Capacity3Fn {
-        template <Int StreamIndex, typename Tree>
+        template <typename Tree>
         Int stream(const Tree* tree, Int free_mem)
         {
             Int size = tree != nullptr ? tree->size() : 0;
@@ -504,7 +504,7 @@ public:
     }
 
     struct StaticCapacity3Fn {
-        template <Int StreamIndex, typename Tree>
+        template <typename Tree>
         Int stream(const Tree* tree, Int free_mem)
         {
             Int size = tree != nullptr ? tree->size() : 0;
@@ -544,10 +544,10 @@ public:
 
     struct CheckCapacitiesFn {
 
-        template <Int StreamIdx, typename Tree>
+        template <Int Idx, typename Tree>
         void stream(const Tree* tree, const Position& sizes, Int* mem_size)
         {
-            Int size = sizes[StreamIdx];
+            Int size = sizes[Idx];
 
             if (tree != nullptr || size > 0)
             {
@@ -556,10 +556,10 @@ public:
         }
 
 
-        template <Int StreamIdx, typename Tree, typename Entropy>
+        template <Int Idx, typename Tree, typename Entropy>
         void stream(const Tree* tree, const Entropy& entropy, const Position& sizes, Int* mem_size)
         {
-            Int size = sizes[StreamIdx];
+            Int size = sizes[Idx];
 
             if (tree != nullptr || size > 0)
             {
@@ -611,7 +611,7 @@ public:
 
 
     struct SizeFn {
-        template <Int Idx, typename Tree>
+        template <typename Tree>
         Int stream(const Tree* tree)
         {
             return tree != nullptr ? tree->size() : 0;
@@ -646,7 +646,7 @@ public:
 
 
     struct MaxSizeFn: RtnFnBase<Int> {
-        template <Int Idx, typename Tree>
+        template <typename Tree>
         Int stream(const Tree* tree)
         {
             return tree->max_size();
@@ -677,7 +677,7 @@ public:
     struct MaxOfSizesFn {
         Int max_size_ = 0;
 
-        template <Int Idx, typename Tree>
+        template <typename Tree>
         void stream(const Tree* tree)
         {
             if (tree->size() > max_size_)
@@ -825,24 +825,24 @@ public:
     struct CanMergeWithFn {
         Int mem_used_ = 0;
 
-        template <Int StreamIdx, typename Tree>
+        template <Int AllocatorIdx, Int Idx, typename Tree>
         void stream(const Tree* tree, const MyType* other)
         {
             if (tree != nullptr)
             {
-                if (other->allocator()->is_empty(StreamIdx + StreamsStart))
+                if (other->allocator()->is_empty(AllocatorIdx))
                 {
                     mem_used_ += tree->block_size();
                 }
                 else {
-                    const Tree* other_tree = other->allocator()->template get<Tree>(StreamIdx + StreamsStart);
+                    const Tree* other_tree = other->allocator()->template get<Tree>(AllocatorIdx);
                     mem_used_ += tree->block_size(other_tree);
                 }
             }
             else {
-                if (!other->allocator()->is_empty(StreamIdx + StreamsStart))
+                if (!other->allocator()->is_empty(AllocatorIdx))
                 {
-                    Int element_size = other->allocator()->element_size(StreamIdx + StreamsStart);
+                    Int element_size = other->allocator()->element_size(AllocatorIdx);
                     mem_used_ += element_size;
                 }
             }
@@ -862,19 +862,19 @@ public:
 
 
     struct MergeWithFn {
-        template <Int Idx, typename Tree>
+        template <Int AllocatorIdx, Int Idx, typename Tree>
         void stream(Tree* tree, MyType* other)
         {
             Int size = tree->size();
 
             if (size > 0)
             {
-                if (other->is_stream_empty(Idx))
+                if (other->allocator()->is_empty(AllocatorIdx))
                 {
-                    other->allocator()->template allocateEmpty<Tree>(Idx + StreamsStart);
+                    other->allocator()->template allocateEmpty<Tree>(AllocatorIdx);
                 }
 
-                Tree* other_tree = other->template get_stream<Tree>(Idx);
+                Tree* other_tree = other->template get_stream<Tree>(AllocatorIdx);
                 tree->mergeWith(other_tree);
             }
         }
@@ -886,7 +886,7 @@ public:
     }
 
     struct SplitToFn {
-        template <Int Idx, typename Tree>
+        template <Int AllocatorIdx, Int Idx, typename Tree>
         void stream(Tree* tree, MyType* other, const Position& indexes)
         {
             Int idx   = indexes[Idx];
@@ -900,8 +900,7 @@ public:
                 Int size = tree->size();
                 if (size > 0)
                 {
-                    Tree* other_tree    = other->allocator()->template allocateEmpty<Tree>(Idx + StreamsStart);
-
+                    Tree* other_tree    = other->allocator()->template allocateEmpty<Tree>(AllocatorIdx);
                     tree->splitTo(other_tree, idx);
                 }
             }
@@ -924,7 +923,7 @@ public:
 
 
     struct CopyToFn {
-        template <Int Idx, typename Tree>
+        template <Int AllocatorIdx, Int Idx, typename Tree>
         void stream(
                 const Tree* tree,
                 MyType* other,
@@ -933,7 +932,12 @@ public:
                 const Position& copy_to
         )
         {
-            tree->copyTo(other->allocator()->template get<Tree>(Idx + StreamsStart), copy_from[Idx], count[Idx], copy_to[Idx]);
+            tree->copyTo(
+            		other->allocator()->template get<Tree>(AllocatorIdx),
+            		copy_from[Idx],
+            		count[Idx],
+            		copy_to[Idx]
+            );
         }
     };
 
@@ -948,24 +952,24 @@ public:
 
 
     struct SumsFn {
-        template <Int StreamIdx, typename StreamType>
+        template <typename StreamType>
         void stream(const StreamType* obj, Int block, Int start, Int end, BigInt& accum)
         {
             accum += obj->sum(block, start, end);
         }
 
-        template <Int StreamIdx, typename StreamType>
+        template <Int Idx, typename StreamType>
         void stream(const StreamType* obj, const Position& start, const Position& end, Accumulator& accum)
         {
-            obj->sums(start[StreamIdx], end[StreamIdx], std::get<StreamIdx>(accum));
+            obj->sums(start[Idx], end[Idx], std::get<Idx>(accum));
         }
 
-        template <Int StreamIdx, typename StreamType>
+        template <Int Idx, typename StreamType>
         void stream(const StreamType* obj, const Position& start, const Position& end, Accumulator& accum, UBigInt streams)
         {
-            if (streams && (1ull<<StreamIdx))
+            if (streams && (1ull<<Idx))
             {
-                obj->sums(start[StreamIdx], end[StreamIdx], std::get<StreamIdx>(accum));
+                obj->sums(start[Idx], end[Idx], std::get<Idx>(accum));
             }
         }
     };
@@ -978,7 +982,7 @@ public:
     >
     struct AccumulatorHandler
     {
-        template <Int StreamIdx, typename StreamType, typename TupleItem>
+        template <typename StreamType, typename TupleItem>
         void stream(const StreamType* obj, TupleItem& accum, Int start, Int end)
         {
             if (obj != nullptr){
@@ -986,7 +990,7 @@ public:
             }
         }
 
-        template <Int StreamIdx, typename StreamType, typename TupleItem>
+        template <typename StreamType, typename TupleItem>
         void stream(const StreamType* obj, TupleItem& accum)
         {
             if (obj != nullptr) {
@@ -1095,7 +1099,7 @@ public:
 
     struct ComputeDataLengthsFn
     {
-        template <Int Idx, typename Tree, typename EntryType, typename Lengths>
+        template <typename Tree, typename EntryType, typename Lengths>
         void stream(Tree*, const EntryType& entry, Lengths& lengths)
         {
             Tree::computeDataLength(entry, lengths);
@@ -1427,7 +1431,7 @@ public:
     }
 
     struct DumpFn {
-        template <Int Idx, typename Tree>
+        template <typename Tree>
         void stream(Tree* tree)
         {
             tree->dump();
