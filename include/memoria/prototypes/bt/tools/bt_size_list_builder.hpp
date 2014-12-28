@@ -161,6 +161,33 @@ using StreamsStartSubset = LeafSubsetInf<List, IntList<>>;
 
 
 
+template <typename List, Int Idx, Int Pos = 0> struct FindTopLevelIdx;
+
+template <
+	typename Head,
+	typename... Tail,
+	Int Idx,
+	Int Pos
+>
+struct FindTopLevelIdx<TypeList<Head, Tail...>, Idx, Pos>
+{
+	static const Int Children = memoria::list_tree::SubtreeLeafCount<TypeList<Head>, IntList<>>::Value;
+
+	static const Int Value = Idx < Children ?
+			Pos :
+			FindTopLevelIdx<
+				TypeList<Tail...>,
+				Idx - Children,
+				Pos + 1
+			>::Value;
+};
+
+template <Int Idx, Int Pos>
+struct FindTopLevelIdx<TypeList<>, Idx, Pos> {
+	static const Int Value = -1;
+};
+
+
 }
 }
 

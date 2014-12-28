@@ -37,13 +37,15 @@ using List = TL<
 
 int main(void)
 {
-//	ListPrinter<List>::print(cout);
+	ListPrinter<List>::print(cout);
 
 //	ListPrinter<TL<
 //		MakeValueList<Int, 100, 200>
 //	>>::print(cout);
 
-	ListPrinter<BuildTopLevelLeafSubsets<List>>::print(cout);
+//	ListPrinter<BuildTopLevelLeafSubsets<List>>::print(cout);
+
+	ListPrinter<TL<S<FindTopLevelIdx<List, 4>::Value>>>::print(cout);
 
     return 0;
 }
