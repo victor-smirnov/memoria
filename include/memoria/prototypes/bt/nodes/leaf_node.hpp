@@ -74,7 +74,7 @@ public:
     		Linearize<SubstreamsStructList>, Base::StreamsStart
     >::Type;
 
-    using Dispatcher = PackedDispatcher<StreamDispatcherStructList, 0>;
+    using Dispatcher = PackedDispatcher<StreamDispatcherStructList>;
 
     template <Int StartIdx, Int EndIdx>
     using SubrangeDispatcher = typename Dispatcher::template SubrangeDispatcher<StartIdx, EndIdx>;
@@ -107,7 +107,7 @@ public:
     static const Int SubstreamsStart                                            = Dispatcher::AllocatorIdxStart;
     static const Int SubstreamsEnd                                              = Dispatcher::AllocatorIdxEnd;
 
-    static const Int ValuesBlockIdx                                             = SubstreamsEnd;
+//    static const Int ValuesBlockIdx                                             = SubstreamsEnd;
 
     //FIXME: Use SubDispatcher
 
@@ -266,7 +266,7 @@ public:
 
     void prepare()
     {
-        Base::initAllocator(SubstreamsStart + Substreams + 1); // +1?
+        Base::initAllocator(SubstreamsStart + Substreams); // +1?
     }
 
     void layout(const Position& sizes)
@@ -364,7 +364,7 @@ public:
     };
 
     void init() {
-        Base::initAllocator(SubstreamsStart + Substreams + 1); //+1?
+        Base::initAllocator(SubstreamsStart + Substreams);
     }
 
     Int object_size() const
