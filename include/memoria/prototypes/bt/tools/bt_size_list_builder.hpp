@@ -121,7 +121,8 @@ public:
 			typename ForAllTopLevelElements<
 				List,
 				Offset,
-				Idx + 1
+				Idx + 1,
+				Max
 			>::Type
 	>;
 };

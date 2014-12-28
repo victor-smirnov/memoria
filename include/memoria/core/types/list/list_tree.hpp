@@ -147,6 +147,30 @@ using LeafCountInf = LeafCount<List, Path, Depth>;
 template <typename List, typename Path, Int Depth = 1>
 using LeafCountSup = IntValue<LeafCount<List, Path, Depth>::Value + SubtreeLeafCount<List, Path, Depth>::Value>;
 
+
+
+
+
+template <typename T, T From, T To> struct MakeValueListH;
+
+template <typename T, T From, T To>
+struct MakeValueListH {
+	using Type = AppendItemToList<
+			ConstValue<T, From>,
+			typename MakeValueListH<T, From + 1, To>::Type
+	>;
+};
+
+template <typename T, T To>
+struct MakeValueListH<T, To, To> {
+	using Type = ValueList<T>;
+};
+
+
+
+template <typename T, T From, T To>
+using MakeValueList = typename MakeValueListH<T, From, To>::Type;
+
 }
 }
 

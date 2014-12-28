@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2013.
+// Copyright Victor Smirnov 2013-2014.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -25,6 +25,7 @@
 #include <memoria/prototypes/bt/tools/bt_packed_struct_list_builder.hpp>
 #include <memoria/prototypes/bt/tools/bt_size_list_builder.hpp>
 #include <memoria/prototypes/bt/tools/bt_accumulator_handlers.hpp>
+#include <memoria/prototypes/bt/tools/bt_substreamgroup_dispatcher.hpp>
 
 
 namespace memoria   {
@@ -100,9 +101,13 @@ public:
 
 
     static const Int Streams                                                    = ListSize<SubstreamsStructList>::Value;
-    static const Int StreamsStart                                               = Base::StreamsStart;
-    static const Int StreamsEnd                                                 = Base::StreamsStart + Streams;
-    static const Int ValuesBlockIdx                                             = StreamsEnd;
+
+    static const Int Substreams                                                 = Dispatcher::Size;
+
+    static const Int SubstreamsStart                                            = Dispatcher::AllocatorIdxStart;
+    static const Int SubstreamsEnd                                              = Dispatcher::AllocatorIdxEnd;
+
+    static const Int ValuesBlockIdx                                             = SubstreamsEnd;
 
     //FIXME: Use SubDispatcher
 
@@ -175,7 +180,7 @@ public:
     static Int free_space(Int page_size, bool root)
     {
         Int block_size = page_size - sizeof(Me) + PackedAllocator::my_size();
-        Int client_area = PackedAllocator::client_area(block_size, StreamsStart + Streams + 1);
+        Int client_area = PackedAllocator::client_area(block_size, SubstreamsStart + Substreams + 1);
 
         return client_area - root * PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
     }
@@ -194,23 +199,23 @@ public:
     template <typename T>
     T* get_stream(Int idx)
     {
-        return allocator()->template get<T>(idx + StreamsStart);
+        return allocator()->template get<T>(idx + SubstreamsStart);
     }
 
     template <typename T>
     const T* get_stream(Int idx) const
     {
-        return allocator()->template get<T>(idx + StreamsStart);
+        return allocator()->template get<T>(idx + SubstreamsStart);
     }
 
     bool is_stream_empty(Int idx) const
     {
-        return allocator()->is_empty(idx + StreamsStart);
+        return allocator()->is_empty(idx + SubstreamsStart);
     }
 
     bool is_empty() const
     {
-        for (Int c = StreamsStart; c < StreamsEnd; c++)
+        for (Int c = SubstreamsStart; c < SubstreamsEnd; c++)
         {
             if (!allocator()->is_empty(c)) {
                 return false;
@@ -261,7 +266,7 @@ public:
 
     void prepare()
     {
-        Base::initAllocator(StreamsStart + Streams);
+        Base::initAllocator(SubstreamsStart + Substreams + 1); // +1?
     }
 
     void layout(const Position& sizes)
@@ -278,14 +283,14 @@ public:
 
 
     struct LayoutFn {
-        template <Int Idx, typename Stream>
+        template <Int AllocatorIdx, Int Idx, typename Stream>
         void stream(Stream*, PackedAllocator* alloc, UBigInt streams)
         {
             if (streams & (1<<Idx))
             {
-                if (alloc->is_empty(Idx + StreamsStart))
+                if (alloc->is_empty(AllocatorIdx))
                 {
-                    alloc->template allocateEmpty<Stream>(Idx + StreamsStart);
+                    alloc->template allocateEmpty<Stream>(AllocatorIdx);
                 }
             }
         }
@@ -313,22 +318,22 @@ public:
 private:
 
     struct InitStructFn {
-        template <Int Idx, typename Tree>
+        template <Int AllocatorIdx, Int Idx, typename Tree>
         void stream(Tree*, PackedAllocator* allocator, const Position& sizes)
         {
             if (sizes[Idx] > -1)
             {
                 Int block_size = Tree::block_size(sizes[Idx]);
-                allocator->template allocate<Tree>(Idx + StreamsStart, block_size);
+                allocator->template allocate<Tree>(AllocatorIdx, block_size);
             }
         }
 
-        template <Int Idx, typename Tree>
+        template <Int AllocatorIdx, Int Idx, typename Tree>
         void stream(Tree*, PackedAllocator* allocator, Int client_area)
         {
             if (Idx == 0)
             {
-                allocator->template allocate<Tree>(Idx + StreamsStart, client_area);
+                allocator->template allocate<Tree>(AllocatorIdx, client_area);
             }
         }
     };
@@ -359,7 +364,7 @@ public:
     };
 
     void init() {
-        Base::initAllocator(StreamsStart + Streams);
+        Base::initAllocator(SubstreamsStart + Substreams + 1); //+1?
     }
 
     Int object_size() const
@@ -725,12 +730,12 @@ public:
 
 
     struct InitStreamIfEmpty {
-        template <Int Idx, typename Tree>
+        template <Int AllocatorIdx, Int Idx, typename Tree>
         void stream(Tree* tree, PackedAllocator* allocator, const Position& sizes)
         {
             if (tree == nullptr && sizes[Idx] > 0)
             {
-                allocator->template allocate<Tree>(Idx + StreamsStart, Tree::empty_size());
+                allocator->template allocate<Tree>(AllocatorIdx, Tree::empty_size());
             }
         }
     };
@@ -1192,14 +1197,19 @@ public:
     DynDispatchRtnConstType<Fn, Args...>
     process(Int stream, Fn&& fn, Args&&... args) const
     {
-        return Dispatcher::dispatch(stream, allocator(), std::forward<Fn>(fn), args...);
+        return Dispatcher::dispatch(
+        		stream,
+        		allocator(),
+        		std::forward<Fn>(fn),
+        		std::forward<Args>(args)...
+        );
     }
 
     template <typename Fn, typename... Args>
     DynDispatchRtnType<Fn, Args...>
     process(Int stream, Fn&& fn, Args&&... args)
     {
-        return Dispatcher::dispatch(stream, allocator(), std::forward<Fn>(fn), args...);
+        return Dispatcher::dispatch(stream, allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
 
@@ -1207,7 +1217,7 @@ public:
     ProcessAllRtnConstType<Fn, Args...>
     processAll(Fn&& fn, Args&&... args) const
     {
-        return Dispatcher::dispatchAll(allocator(), std::forward<Fn>(fn), args...);
+        return Dispatcher::dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
 
@@ -1215,14 +1225,14 @@ public:
     ProcessAllRtnType<Fn, Args...>
     processAll(Fn&& fn, Args&&... args)
     {
-        return Dispatcher::dispatchAll(allocator(), std::forward<Fn>(fn), args...);
+        return Dispatcher::dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
     template <typename SubstreamsPath, typename Fn, typename... Args>
     ProcessSubstreamsRtnConstType<SubstreamsPath, Fn, Args...>
     processSubstreams(Fn&& fn, Args&&... args) const
     {
-        return SubstreamsDispatcher<SubstreamsPath>::dispatchAll(allocator(), std::forward<Fn>(fn), args...);
+        return SubstreamsDispatcher<SubstreamsPath>::dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
 
@@ -1230,7 +1240,7 @@ public:
     ProcessSubstreamsRtnType<SubstreamsPath, Fn, Args...>
     processSubstreams(Fn&& fn, Args&&... args)
     {
-        return SubstreamsDispatcher<SubstreamsPath>::dispatchAll(allocator(), std::forward<Fn>(fn), args...);
+        return SubstreamsDispatcher<SubstreamsPath>::dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
     template <
@@ -1292,7 +1302,7 @@ public:
     processStream(Fn&& fn, Args&&... args) const
     {
         const Int StreamIdx = memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value;
-        return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
+        return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
     template <typename SubstreamPath, typename Fn, typename... Args>
@@ -1300,7 +1310,32 @@ public:
     processStream(Fn&& fn, Args&&... args)
     {
         const Int StreamIdx = memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value;
-        return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
+        return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+    }
+
+
+    template <typename Fn, typename... Args>
+    void processSubstreamGroups(Fn&& fn, Args&&... args)
+    {
+    	using GroupsList = BuildTopLevelLeafSubsets<SubstreamsStructList>;
+
+    	GroupDispatcher<Dispatcher, GroupsList>::dispatchGroups(
+    			allocator(),
+    			std::forward<Fn>(fn),
+    			std::forward<Args>(args)...
+    	);
+    }
+
+    template <typename Fn, typename... Args>
+    void processSubstreamGroups(Fn&& fn, Args&&... args) const
+    {
+    	using GroupsList = BuildTopLevelLeafSubsets<SubstreamsStructList>;
+
+    	GroupDispatcher<Dispatcher, GroupsList>::dispatchGroups(
+    			allocator(),
+    			std::forward<Fn>(fn),
+    			std::forward<Args>(args)...
+    	);
     }
 
 
@@ -1312,7 +1347,11 @@ public:
        >::template ProcessAllRtnConstType<Fn, Args...>
     {
     	using Subset = StreamsStartSubset<SubstreamsStructList>;
-    	return Dispatcher::template SubsetDispatcher<Subset>::template dispatchAll(allocator(), std::forward<Fn>(fn), args...);
+    	return Dispatcher::template SubsetDispatcher<Subset>::template dispatchAll(
+    			allocator(),
+    			std::forward<Fn>(fn),
+    			std::forward<Args>(args)...
+    	);
     }
 
 
@@ -1323,7 +1362,11 @@ public:
        >::template ProcessAllRtnConstType<Fn, Args...>
     {
     	using Subset = StreamsStartSubset<SubstreamsStructList>;
-    	return Dispatcher::template SubsetDispatcher<Subset>::template dispatchAll(allocator(), std::forward<Fn>(fn), args...);
+    	return Dispatcher::template SubsetDispatcher<Subset>::template dispatchAll(
+    			allocator(),
+    			std::forward<Fn>(fn),
+    			std::forward<Args>(args)...
+    	);
     }
 
 

@@ -52,6 +52,12 @@ public:
     using List              = TypeList<StreamDescr<Head, Index>, Tail...>;
     using NextDispatcher    = PackedDispatcher<TypeList<Tail...>, GroupIdx, ListIdx + 1>;
 
+    static const Int Size = ListSize<List>::Value;
+
+    static const Int AllocatorIdxStart 	= Index;
+    static const Int AllocatorIdxEnd 	= Select<Size - 1, List>::Result::Value + 1;
+
+
     template<typename, Int, Int> friend class PackedDispatcher;
 
     template<Int StreamIdx>
@@ -106,6 +112,8 @@ public:
                                 GroupIdx_
                           >;
 
+    template <Int GroupIdx_>
+    using GroupDispatcher = PackedDispatcher<List, GroupIdx>;
 
     template <typename Fn, typename... Args>
     static auto dispatch(Int idx, PackedAllocator* alloc, Fn&& fn, Args&&... args)
@@ -274,7 +282,7 @@ public:
             head = alloc->template get<Head>(AllocatorIdx);
         }
 
-        return detail::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
+        detail::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
 
         NextDispatcher::dispatchAll(alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
@@ -308,7 +316,7 @@ public:
             head = alloc->template get<Head>(AllocatorIdx);
         }
 
-        return detail::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
+        detail::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
 
         NextDispatcher::dispatchAll(alloc, std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
@@ -586,6 +594,11 @@ public:
     static const Int AllocatorIdx   = Index;
 
     typedef TypeList<StreamDescr<Head, Index>> List;
+
+    static const Int AllocatorIdxStart 	= Index;
+    static const Int AllocatorIdxEnd 	= Index + 1;
+
+    static const Int Size = ListSize<List>::Value;
 
     template<typename, Int, Int> friend class PackedDispatcher;
 

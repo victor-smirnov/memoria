@@ -70,6 +70,18 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mapx::CtrInsertName)
         }
     };
 
+
+    struct HandlerG
+    {
+        template <Int GroupIdx, Int AllocIdx, Int StreamIdx, typename StreamType>
+        void stream(StreamType* obj)
+        {
+        	std::cout<<"GroupIdx "<<GroupIdx<<" "<<AllocIdx<<" "<<StreamIdx<<" "<<std::endl;
+        }
+    };
+
+
+
     struct Handler
     {
     	template <Int StreamIdx, typename StreamType>
@@ -100,7 +112,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mapx::CtrInsertName)
         {
             node->layout(255);
 
-            ListPrinter<TypeList<decltype(node->template processStreamsStart(HandlerS()))>>::print(cout);
+            node->processSubstreamGroups(HandlerG());
+
+//            ListPrinter<TypeList<decltype(node->template processStreamsStart(HandlerS()))>>::print(cout);
 
 
 //            node->template processSubstreamsAcc<0, AccumulatorHandler>(accum, idx, entry);
