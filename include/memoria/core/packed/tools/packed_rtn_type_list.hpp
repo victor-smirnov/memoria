@@ -24,25 +24,25 @@ template <typename Struct, Int Index> struct StreamDescr;
 
 namespace pd {
 
-template <typename List, Int StreamIdx, typename Fn, typename... Args> class MakeRtnTypeList;
-template <typename List, Int StreamIdx, typename Fn, typename... Args> class ContainsVoidRtnType;
+template <typename List, Int GroupIdx, Int StreamIdx, typename Fn, typename... Args> class MakeRtnTypeList;
+template <typename List, Int GroupIdx, Int StreamIdx, typename Fn, typename... Args> class ContainsVoidRtnType;
 
-template <Int StreamIdx, typename Head, Int Index, typename Fn, typename... Tail, typename... Args>
-class MakeRtnTypeList<TypeList<StreamDescr<Head, Index>, Tail...>, StreamIdx, Fn, Args...> {
+template <Int GroupIdx, Int StreamIdx, typename Head, Int Index, typename Fn, typename... Tail, typename... Args>
+class MakeRtnTypeList<TypeList<StreamDescr<Head, Index>, Tail...>, GroupIdx, StreamIdx, Fn, Args...> {
 
     using FnType = typename std::remove_reference<Fn>::type;
 
-    using RtnType = memoria::detail::pd::FnRtnType<Fn, Index, StreamIdx, Head*, Args...>;
+    using RtnType = memoria::detail::pd::FnRtnType<Fn, GroupIdx, Index, StreamIdx, Head*, Args...>;
 
 public:
     using Type = MergeLists<
             RtnType,
-            typename MakeRtnTypeList<TypeList<Tail...>, StreamIdx + 1, Fn, Args...>::Type
+            typename MakeRtnTypeList<TypeList<Tail...>, GroupIdx, StreamIdx + 1, Fn, Args...>::Type
     >;
 };
 
-template <Int StreamIdx, typename Fn, typename... Args>
-class MakeRtnTypeList<TypeList<>, StreamIdx, Fn, Args...> {
+template <Int GroupIdx, Int StreamIdx, typename Fn, typename... Args>
+class MakeRtnTypeList<TypeList<>, GroupIdx, StreamIdx, Fn, Args...> {
 public:
     using Type = TypeList<>;
 };
@@ -59,20 +59,20 @@ struct IsVoid<void> {
 };
 
 
-template <Int StreamIdx, typename Head, Int Index, typename Fn, typename... Tail, typename... Args>
-class ContainsVoidRtnType<TypeList<StreamDescr<Head, Index>, Tail...>, StreamIdx, Fn, Args...> {
+template <Int GroupIdx, Int StreamIdx, typename Head, Int Index, typename Fn, typename... Tail, typename... Args>
+class ContainsVoidRtnType<TypeList<StreamDescr<Head, Index>, Tail...>, GroupIdx, StreamIdx, Fn, Args...> {
 
     using FnType = typename std::remove_reference<Fn>::type;
 
-    using RtnType = memoria::detail::pd::FnRtnType<Fn, Index, StreamIdx, Head*, Args...>;
+    using RtnType = memoria::detail::pd::FnRtnType<Fn, GroupIdx, Index, StreamIdx, Head*, Args...>;
 
 public:
     static const bool Value = IsVoid<RtnType>::Value ||
-                                ContainsVoidRtnType<TypeList<Tail...>, StreamIdx + 1, Fn, Args...>::Value;
+                                ContainsVoidRtnType<TypeList<Tail...>, GroupIdx, StreamIdx + 1, Fn, Args...>::Value;
 };
 
-template <Int StreamIdx, typename Fn, typename... Args>
-class ContainsVoidRtnType<TypeList<>, StreamIdx, Fn, Args...> {
+template <Int GroupIdx, Int StreamIdx, typename Fn, typename... Args>
+class ContainsVoidRtnType<TypeList<>, GroupIdx, StreamIdx, Fn, Args...> {
 public:
     static const bool Value = false;
 };
@@ -82,46 +82,46 @@ public:
 
 
 
-template <typename List, Int StreamIdx, typename Fn, typename... Args> class MakeRtnTypeListConst;
-template <typename List, Int StreamIdx, typename Fn, typename... Args> class ContainsVoidRtnTypeConst;
+template <typename List, Int GroupIdx, Int StreamIdx, typename Fn, typename... Args> class MakeRtnTypeListConst;
+template <typename List, Int GroupIdx, Int StreamIdx, typename Fn, typename... Args> class ContainsVoidRtnTypeConst;
 
-template <Int StreamIdx, typename Head, Int Index, typename Fn, typename... Tail, typename... Args>
-class MakeRtnTypeListConst<TypeList<StreamDescr<Head, Index>, Tail...>, StreamIdx, Fn, Args...> {
+template <Int GroupIdx, Int StreamIdx, typename Head, Int Index, typename Fn, typename... Tail, typename... Args>
+class MakeRtnTypeListConst<TypeList<StreamDescr<Head, Index>, Tail...>, GroupIdx, StreamIdx, Fn, Args...> {
 
     using FnType = typename std::remove_reference<Fn>::type;
 
-    using RtnType = memoria::detail::pd::FnRtnType<Fn, Index, StreamIdx, const Head*, Args...>;
+    using RtnType = memoria::detail::pd::FnRtnType<Fn, GroupIdx, Index, StreamIdx, const Head*, Args...>;
 
 public:
 
     using Type = MergeLists<
             RtnType,
-            typename MakeRtnTypeListConst<TypeList<Tail...>, StreamIdx + 1, Fn, Args...>::Type
+            typename MakeRtnTypeListConst<TypeList<Tail...>, GroupIdx, StreamIdx + 1, Fn, Args...>::Type
     >;
 };
 
-template <Int StreamIdx, typename Fn, typename... Args>
-class MakeRtnTypeListConst<TypeList<>, StreamIdx, Fn, Args...> {
+template <Int GroupIdx, Int StreamIdx, typename Fn, typename... Args>
+class MakeRtnTypeListConst<TypeList<>, GroupIdx, StreamIdx, Fn, Args...> {
 public:
     using Type = TypeList<>;
 };
 
 
 
-template <Int StreamIdx, typename Head, Int Index, typename Fn, typename... Tail, typename... Args>
-class ContainsVoidRtnTypeConst<TypeList<StreamDescr<Head, Index>, Tail...>, StreamIdx, Fn, Args...> {
+template <Int GroupIdx, Int StreamIdx, typename Head, Int Index, typename Fn, typename... Tail, typename... Args>
+class ContainsVoidRtnTypeConst<TypeList<StreamDescr<Head, Index>, Tail...>, GroupIdx, StreamIdx, Fn, Args...> {
 
     using FnType = typename std::remove_reference<Fn>::type;
 
-    using RtnType = memoria::detail::pd::FnRtnType<Fn, Index, StreamIdx, const Head*, Args...>;
+    using RtnType = memoria::detail::pd::FnRtnType<Fn, GroupIdx, Index, StreamIdx, const Head*, Args...>;
 public:
 
     static const bool Value = IsVoid<RtnType>::Value ||
-                                ContainsVoidRtnTypeConst<TypeList<Tail...>, StreamIdx + 1, Fn, Args...>::Value;
+                                ContainsVoidRtnTypeConst<TypeList<Tail...>, GroupIdx, StreamIdx + 1, Fn, Args...>::Value;
 };
 
-template <Int StreamIdx, typename Fn, typename... Args>
-class ContainsVoidRtnTypeConst<TypeList<>, StreamIdx, Fn, Args...> {
+template <Int GroupIdx, Int StreamIdx, typename Fn, typename... Args>
+class ContainsVoidRtnTypeConst<TypeList<>, GroupIdx, StreamIdx, Fn, Args...> {
 public:
     static const bool Value = false;
 };
