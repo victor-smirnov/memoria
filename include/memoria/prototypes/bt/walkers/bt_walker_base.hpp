@@ -8,6 +8,7 @@
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_WALKER_BASE_HPP
 
 #include <memoria/core/types/types.hpp>
+#include <memoria/prototypes/bt/walkers/bt_walker_tools.hpp>
 
 namespace memoria {
 namespace bt1     {
@@ -234,35 +235,6 @@ public:
         return idx;
     }
 
-};
-
-
-struct EmptyIteratorPrefixFn {
-    template <typename StreamType, typename IteratorPrefix>
-    void processNonLeafFw(const StreamType*, IteratorPrefix&, Int start, Int end, Int index, BigInt prefix)
-    {}
-
-    template <typename StreamType, typename IteratorPrefix>
-    void processLeafFw(const StreamType*, IteratorPrefix&, Int start, Int end, Int index, BigInt prefix)
-    {}
-
-    template <typename StreamType, typename IteratorPrefix>
-    void processLeafFw(const StreamType*, IteratorPrefix&, Int start, Int end)
-    {}
-
-
-
-    template <typename StreamType, typename IteratorPrefix>
-    void processNonLeafBw(const StreamType*, IteratorPrefix&, Int start, Int end, Int index, BigInt prefix)
-    {}
-
-    template <typename StreamType, typename IteratorPrefix>
-    void processLeafBw(const StreamType*, IteratorPrefix&, Int start, Int end, Int index, BigInt prefix)
-    {}
-
-    template <typename StreamType, typename IteratorPrefix>
-    void processLeafBw(const StreamType*, IteratorPrefix&, Int start, Int end)
-    {}
 };
 
 
