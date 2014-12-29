@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2013.
+// Copyright Victor Smirnov 2013-2014.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -28,7 +28,7 @@ namespace memoria       {
 namespace bt            {
 
 
-template <typename Types, typename BranchPath, typename LeafPath, typename MyType>
+template <typename Types, typename MyType>
 class FindWalkerBase {
 protected:
     typedef typename Types::Position                                            Position;
@@ -49,6 +49,10 @@ protected:
     Int index_;
 
 public:
+
+    using BranchPath 	= typename Types::BranchPath;
+    using LeafPath 		= typename Types::LeafPath;
+
 
     typedef Int                                                                 ReturnType;
 
@@ -145,7 +149,7 @@ public:
 
 
 
-template <typename Types, typename BranchPath, typename LeafPath, typename MyType>
+template <typename Types, typename MyType>
 class FindMinWalkerBase {
 protected:
     typedef typename Types::Position                                            Position;
@@ -259,12 +263,12 @@ public:
 
 
 
-template <typename Types, typename BranchPath, typename LeafPath, typename MyType>
-class FindForwardWalkerBase: public FindWalkerBase<Types, BranchPath, LeafPath, MyType> {
+template <typename Types, typename MyType>
+class FindForwardWalkerBase: public FindWalkerBase<Types, MyType> {
 
 protected:
-    typedef FindWalkerBase<Types, BranchPath, LeafPath, MyType>                               Base;
-    typedef typename Base::Key                                                  Key;
+    typedef FindWalkerBase<Types, MyType>                               Base;
+    typedef typename Base::Key                                          Key;
 
 public:
     FindForwardWalkerBase(Int stream, Int block, Key target): Base(stream, block, target)
@@ -358,24 +362,17 @@ public:
 };
 
 
-template <typename Types, typename BranchPath, typename LeafPath>
+template <typename Types>
 class SkipForwardWalker: public FindForwardWalkerBase<
                                     Types,
-                                    BranchPath,
-                                    LeafPath,
                                     SkipForwardWalker<
-                                        Types,
-                                        BranchPath, LeafPath
+                                        Types
                                     >
 > {
     using Base = FindForwardWalkerBase<
                 Types,
-                BranchPath,
-                LeafPath,
                 SkipForwardWalker<
-                    Types,
-                    BranchPath,
-                    LeafPath
+                    Types
                 >
     >;
     typedef typename Base::Key                                                  Key;
@@ -397,10 +394,10 @@ public:
 
 
 
-template <typename Types, typename BranchPath, typename LeafPath, typename MyType>
-class NextLeafWalkerBase: public FindForwardWalkerBase<Types, BranchPath, LeafPath, MyType> {
+template <typename Types, typename MyType>
+class NextLeafWalkerBase: public FindForwardWalkerBase<Types, MyType> {
 protected:
-    typedef FindForwardWalkerBase<Types, BranchPath, LeafPath, MyType>          Base;
+    typedef FindForwardWalkerBase<Types, MyType>          						Base;
     typedef typename Base::Key                                                  Key;
     typedef typename Base::Position                                             Position;
     typedef typename Base::Iterator                                             Iterator;
@@ -418,17 +415,13 @@ public:
 
 
 
-template <typename Types, typename BranchPath, typename LeafPath>
-class NextLeafWalker: public NextLeafWalkerBase<Types, BranchPath, LeafPath, NextLeafWalker<Types, BranchPath, LeafPath> > {
+template <typename Types>
+class NextLeafWalker: public NextLeafWalkerBase<Types, NextLeafWalker<Types> > {
 
     using Base = NextLeafWalkerBase<
                 Types,
-                BranchPath,
-                LeafPath,
                 NextLeafWalker<
-                    Types,
-                    BranchPath,
-                    LeafPath
+                    Types
                 >
     >;
     typedef typename Base::Key                                                  Key;
@@ -446,10 +439,10 @@ public:
 
 
 
-template <typename Types, typename BranchPath, typename LeafPath, typename MyType>
-class FindMinForwardWalkerBase: public FindMinWalkerBase<Types, BranchPath, LeafPath, MyType> {
+template <typename Types, typename MyType>
+class FindMinForwardWalkerBase: public FindMinWalkerBase<Types, MyType> {
 
-    typedef FindMinWalkerBase<Types, BranchPath, LeafPath, MyType>                            Base;
+    typedef FindMinWalkerBase<Types, MyType>                            		Base;
     typedef typename Base::Key                                                  Key;
     typedef typename Base::Position                                             Position;
     typedef typename Base::Iterator                                             Iterator;
@@ -528,24 +521,17 @@ public:
 
 
 
-template <typename Types, typename BranchPath, typename LeafPath>
+template <typename Types>
 class NextLeafMultistreamWalker: public FindMinForwardWalkerBase<
                                             Types,
-                                            BranchPath,
-                                            LeafPath,
                                             NextLeafMultistreamWalker<
-                                                Types,
-                                                BranchPath,
-                                                LeafPath
+                                                Types
                                             >
 > {
     using Base = FindMinForwardWalkerBase<
                     Types,
-                    BranchPath, LeafPath,
                     NextLeafMultistreamWalker<
-                        Types,
-                        BranchPath,
-                        LeafPath
+                        Types
                     >
     >;
 public:
@@ -557,15 +543,10 @@ public:
 
 
 
-template <typename Types, typename BranchPath, typename LeafPath, typename MyType>
-class FindBackwardWalkerBase: public FindWalkerBase<
-                                        Types,
-                                        BranchPath,
-                                        LeafPath,
-                                        MyType
-> {
+template <typename Types, typename MyType>
+class FindBackwardWalkerBase: public FindWalkerBase<Types,MyType> {
 
-    typedef FindWalkerBase<Types, BranchPath, LeafPath, MyType>                               Base;
+    typedef FindWalkerBase<Types, MyType>                               		Base;
 
 protected:
     typedef typename Base::Key                                                  Key;
@@ -651,24 +632,15 @@ public:
 };
 
 
-template <typename Types, typename BranchPath, typename LeafPath>
+template <typename Types>
 class SkipBackwardWalker: public FindBackwardWalkerBase<
                             Types,
-                            BranchPath,
-                            LeafPath,
-                            SkipBackwardWalker<
-                                Types,
-                                BranchPath,
-                                LeafPath
-                            >
+                            SkipBackwardWalker<Types>
 > {
     using Base = FindBackwardWalkerBase<
                     Types,
-                    BranchPath, LeafPath,
                     SkipBackwardWalker<
-                        Types,
-                        BranchPath,
-                        LeafPath
+                        Types
                     >
     >;
     typedef typename Base::Key                                                          Key;
@@ -686,18 +658,14 @@ public:
 
 template <
     typename Types,
-    typename BranchPath,
-    typename LeafPath,
     typename MyType
 >
 class PrevLeafWalkerBase: public FindBackwardWalkerBase<
                                     Types,
-                                    BranchPath,
-                                    LeafPath,
                                     MyType
 > {
 protected:
-    typedef FindBackwardWalkerBase<Types, BranchPath, LeafPath, MyType>         Base;
+    typedef FindBackwardWalkerBase<Types, MyType>         						Base;
     typedef typename Base::Key                                                  Key;
     typedef typename Base::Position                                             Position;
     typedef typename Base::Iterator                                             Iterator;
@@ -711,20 +679,16 @@ public:
 };
 
 
-template <typename Types, typename BranchPath, typename LeafPath>
+template <typename Types>
 class PrevLeafWalker: public PrevLeafWalkerBase<
                                 Types,
-                                BranchPath,
-                                LeafPath,
                                 PrevLeafWalker<
-                                    Types,
-                                    BranchPath,
-                                    LeafPath
+                                    Types
                                 >
 > {
 protected:
 
-    using Base = PrevLeafWalkerBase<Types, BranchPath, LeafPath, PrevLeafWalker<Types, BranchPath, LeafPath>>;
+    using Base = PrevLeafWalkerBase<Types, PrevLeafWalker<Types>>;
     typedef typename Base::Key                                                  Key;
     typedef typename Base::Position                                             Position;
     typedef typename Base::Iterator                                             Iterator;
@@ -738,10 +702,11 @@ public:
 
 
 
-template <typename Types, typename BranchPath, typename LeafPath, typename MyType>
-class FindMinBackwardWalker: public FindMinWalkerBase<Types, BranchPath, LeafPath, MyType> {
+template <typename Types, typename MyType>
+class FindMinBackwardWalker: public FindMinWalkerBase<Types, MyType> {
 
-    using Base = FindMinWalkerBase<Types, BranchPath, LeafPath, MyType>;
+    using Base = FindMinWalkerBase<Types, MyType>;
+
     typedef typename Base::Key                                                  Key;
     typedef typename Base::Position                                             Position;
     typedef typename Base::Iterator                                             Iterator;
@@ -815,28 +780,24 @@ public:
 };
 
 
-template <typename Types, typename BranchPath, typename LeafPath>
+template <typename Types>
 class PrevLeafMultistreamWalker: public FindMinForwardWalkerBase<
                                             Types,
-                                            BranchPath,
-                                            LeafPath,
                                             PrevLeafMultistreamWalker<
-                                                Types,
-                                                BranchPath,
-                                                LeafPath
+                                                Types
                                             >
 > {
-    using Base = FindMinForwardWalkerBase<Types, BranchPath, LeafPath, PrevLeafMultistreamWalker<Types, BranchPath, LeafPath>>;
+    using Base = FindMinForwardWalkerBase<Types, PrevLeafMultistreamWalker<Types>>;
 public:
     PrevLeafMultistreamWalker(UBigInt streams): Base(streams) {}
 };
 
 
 
-template <typename Types, typename BranchPath, typename LeafPath>
-class SelectForwardWalkerBase: public FindForwardWalkerBase<Types, BranchPath, LeafPath, SelectForwardWalkerBase<Types, BranchPath, LeafPath>> {
+template <typename Types>
+class SelectForwardWalkerBase: public FindForwardWalkerBase<Types, SelectForwardWalkerBase<Types>> {
 
-    using Base = FindForwardWalkerBase<Types, BranchPath, LeafPath, SelectForwardWalkerBase<Types, BranchPath, LeafPath>>;
+    using Base = FindForwardWalkerBase<Types, SelectForwardWalkerBase<Types>>;
 
 protected:
     typedef typename Base::Key                                                  Key;
@@ -908,10 +869,10 @@ public:
 
 
 
-template <typename Types, typename BranchPath, typename LeafPath>
-class SelectBackwardWalkerBase: public FindBackwardWalkerBase<Types, BranchPath, LeafPath, SelectBackwardWalkerBase<Types, BranchPath, LeafPath>> {
+template <typename Types>
+class SelectBackwardWalkerBase: public FindBackwardWalkerBase<Types, SelectBackwardWalkerBase<Types>> {
 
-    using Base = FindBackwardWalkerBase<Types, BranchPath, LeafPath, SelectBackwardWalkerBase<Types, BranchPath, LeafPath>>;
+    using Base = FindBackwardWalkerBase<Types, SelectBackwardWalkerBase<Types>>;
 
 protected:
     typedef typename Base::Key                                                  Key;

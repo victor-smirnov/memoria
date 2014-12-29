@@ -17,10 +17,10 @@ namespace seq_dense {
 
 
 
-template <typename Types, typename BranchPath, typename LeafPath>
-class SelectForwardWalker: public bt::FindForwardWalkerBase<Types, BranchPath, LeafPath, SelectForwardWalker<Types, BranchPath, LeafPath>> {
+template <typename Types>
+class SelectForwardWalker: public bt::FindForwardWalkerBase<Types, SelectForwardWalker<Types>> {
 
-    using Base = bt::FindForwardWalkerBase<Types, BranchPath, LeafPath, SelectForwardWalker<Types, BranchPath, LeafPath>>;
+    using Base = bt::FindForwardWalkerBase<Types, SelectForwardWalker<Types>>;
     typedef typename Base::Key                                                              Key;
 
     BigInt pos_ = 0;
@@ -95,10 +95,10 @@ public:
 };
 
 
-template <typename Types, typename BranchPath, typename LeafPath>
-class SelectForwardWalker2: public bt::SelectForwardWalkerBase<Types, BranchPath, LeafPath> {
+template <typename Types>
+class SelectForwardWalker2: public bt::SelectForwardWalkerBase<Types> {
 
-    using Base = bt::SelectForwardWalkerBase<Types, BranchPath, LeafPath>;
+    using Base = bt::SelectForwardWalkerBase<Types>;
     typedef typename Base::Key                                                  Key;
 
 public:
@@ -135,10 +135,10 @@ public:
 
 
 
-template <typename Types, typename BranchPath, typename LeafPath>
-class SelectBackwardWalker: public bt::FindBackwardWalkerBase<Types, BranchPath, LeafPath, SelectBackwardWalker<Types, BranchPath, LeafPath>> {
+template <typename Types>
+class SelectBackwardWalker: public bt::FindBackwardWalkerBase<Types, SelectBackwardWalker<Types>> {
 
-    using Base = bt::FindBackwardWalkerBase<Types, BranchPath, LeafPath, SelectBackwardWalker<Types, BranchPath, LeafPath>>;
+    using Base = bt::FindBackwardWalkerBase<Types, SelectBackwardWalker<Types>>;
     typedef typename Base::Key                                                                  Key;
 
 

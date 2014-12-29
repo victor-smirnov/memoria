@@ -15,14 +15,12 @@ namespace bt1     {
 
 template <
     typename Types,
-    typename BranchPath,
-    typename LeafPath,
     typename IteratorPrefixFn,
     typename MyType
 >
-class SelectForwardWalkerBase: public FindForwardWalkerBase<Types, BranchPath, LeafPath, IteratorPrefixFn, MyType> {
+class SelectForwardWalkerBase: public FindForwardWalkerBase<Types, IteratorPrefixFn, MyType> {
 protected:
-    using Base  = FindForwardWalkerBase<Types, BranchPath, LeafPath, IteratorPrefixFn, MyType>;
+    using Base  = FindForwardWalkerBase<Types, IteratorPrefixFn, MyType>;
     using Key   = typename Base::Key;
 
 public:
@@ -73,22 +71,17 @@ public:
 
 template <
     typename Types,
-    typename BranchPath, typename LeafPath,
     typename IteratorPrefixFn = EmptyIteratorPrefixFn
 >
 class SelectForwardWalker: public SelectForwardWalkerBase<
                                     Types,
-                                    BranchPath,
-                                    LeafPath,
                                     IteratorPrefixFn,
-                                    SelectForwardWalker<Types, BranchPath, LeafPath, IteratorPrefixFn>> {
+                                    SelectForwardWalker<Types, IteratorPrefixFn>> {
 
     using Base  = SelectForwardWalkerBase<
                     Types,
-                    BranchPath,
-                    LeafPath,
                     IteratorPrefixFn,
-                    SelectForwardWalker<Types, BranchPath, LeafPath, IteratorPrefixFn>
+                    SelectForwardWalker<Types, IteratorPrefixFn>
     >;
     using Key   = typename Base::Key;
 
@@ -109,14 +102,12 @@ public:
 
 template <
     typename Types,
-    typename BranchPath,
-    typename LeafPath,
     typename IteratorPrefixFn,
     typename MyType
 >
-class SelectBackwardWalkerBase: public FindBackwardWalkerBase<Types, BranchPath, LeafPath, IteratorPrefixFn, MyType> {
+class SelectBackwardWalkerBase: public FindBackwardWalkerBase<Types, IteratorPrefixFn, MyType> {
 protected:
-    using Base  = FindBackwardWalkerBase<Types, BranchPath, LeafPath, IteratorPrefixFn, MyType>;
+    using Base  = FindBackwardWalkerBase<Types, IteratorPrefixFn, MyType>;
     using Key   = typename Base::Key;
 
 public:
@@ -165,24 +156,18 @@ public:
 
 template <
     typename Types,
-    typename BranchPath,
-    typename LeafPath,
     typename IteratorPrefixFn = EmptyIteratorPrefixFn
 >
 class SelectBackwardWalker: public SelectBackwardWalkerBase<
                                     Types,
-                                    BranchPath,
-                                    LeafPath,
                                     IteratorPrefixFn,
-                                    SelectBackwardWalker<Types, BranchPath, LeafPath, IteratorPrefixFn>> {
+                                    SelectBackwardWalker<Types, IteratorPrefixFn>> {
 
     using Base  = SelectBackwardWalkerBase<
                     Types,
-                    BranchPath, LeafPath,
                     IteratorPrefixFn,
                     SelectBackwardWalker<
                         Types,
-                        BranchPath, LeafPath,
                         IteratorPrefixFn
                     >
     >;

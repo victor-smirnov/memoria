@@ -125,26 +125,26 @@ struct MapXBTTypesBase: public BTTypes<Profile, memoria::BT> {
 
 
     template <typename Types, typename BranchPath, typename LeafPath>
-    using FindGTWalker          = bt1::FindGTForwardWalker<Types, BranchPath, LeafPath, bt1::DefaultIteratorPrefixFn>;
+    using FindGTWalker          = bt1::FindGTForwardWalker<WalkerTypes<Types, BranchPath, LeafPath>, bt1::DefaultIteratorPrefixFn>;
 
     template <typename Types, typename BranchPath, typename LeafPath>
-    using FindGEWalker          = bt1::FindGEForwardWalker<Types, BranchPath, LeafPath, bt1::DefaultIteratorPrefixFn>;
+    using FindGEWalker          = bt1::FindGEForwardWalker<WalkerTypes<Types, BranchPath, LeafPath>, bt1::DefaultIteratorPrefixFn>;
 
     template <typename Types, typename BranchPath, typename LeafPath>
-    using FindBackwardWalker    = bt1::FindBackwardWalker<Types, BranchPath, LeafPath, bt1::DefaultIteratorPrefixFn>;
+    using FindBackwardWalker    = bt1::FindBackwardWalker<WalkerTypes<Types, BranchPath, LeafPath>, bt1::DefaultIteratorPrefixFn>;
 
 
     template <typename Types, typename BranchPath, typename LeafPath>
-    using SkipForwardWalker     = bt1::SkipForwardWalker<Types, BranchPath, LeafPath, bt1::DefaultIteratorPrefixFn>;
+    using SkipForwardWalker     = bt1::SkipForwardWalker<WalkerTypes<Types, BranchPath, LeafPath>, bt1::DefaultIteratorPrefixFn>;
 
     template <typename Types, typename BranchPath, typename LeafPath>
-    using SkipBackwardWalker    = bt1::SkipBackwardWalker<Types, BranchPath, LeafPath, bt1::DefaultIteratorPrefixFn>;
+    using SkipBackwardWalker    = bt1::SkipBackwardWalker<WalkerTypes<Types, BranchPath, LeafPath>, bt1::DefaultIteratorPrefixFn>;
 
     template <typename Types, typename BranchPath, typename LeafPath>
-    using SelectForwardWalker   = bt1::SelectForwardWalker<Types, BranchPath, LeafPath, bt1::DefaultIteratorPrefixFn>;
+    using SelectForwardWalker   = bt1::SelectForwardWalker<WalkerTypes<Types, BranchPath, LeafPath>, bt1::DefaultIteratorPrefixFn>;
 
     template <typename Types, typename BranchPath, typename LeafPath>
-    using SelectBackwardWalker  = bt1::SelectBackwardWalker<Types, BranchPath, LeafPath, bt1::DefaultIteratorPrefixFn>;
+    using SelectBackwardWalker  = bt1::SelectBackwardWalker<WalkerTypes<Types, BranchPath, LeafPath>, bt1::DefaultIteratorPrefixFn>;
 
 
     template <typename Types>

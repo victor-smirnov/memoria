@@ -16,31 +16,21 @@ namespace metamap {
 
 template <
     typename Types,
-    typename BranchPath,
-    typename LeafPath,
     typename IteratorPrefixFn = bt1::DefaultIteratorPrefixFn
 >
 class SelectForwardWalker: public bt1::SelectForwardWalkerBase<
                                     Types,
-                                    BranchPath,
-                                    LeafPath,
                                     IteratorPrefixFn,
                                     SelectForwardWalker<
                                         Types,
-                                        BranchPath,
-                                        LeafPath,
                                         IteratorPrefixFn
                                     >
 > {
     using Base  = bt1::SelectForwardWalkerBase<
                         Types,
-                        BranchPath,
-                        LeafPath,
                         IteratorPrefixFn,
                         SelectForwardWalker<
                             Types,
-                            BranchPath,
-                            LeafPath,
                             IteratorPrefixFn
                         >
     >;
@@ -82,31 +72,21 @@ public:
 
 template <
     typename Types,
-    typename BranchPath,
-    typename LeafPath,
     typename IteratorPrefixFn = bt1::DefaultIteratorPrefixFn
 >
 class SelectBackwardWalker: public bt1::SelectBackwardWalkerBase<
                                     Types,
-                                    BranchPath,
-                                    LeafPath,
                                     IteratorPrefixFn,
                                     SelectBackwardWalker<
                                         Types,
-                                        BranchPath,
-                                        LeafPath,
                                         IteratorPrefixFn
                                     >
 > {
     using Base  = bt1::SelectBackwardWalkerBase<
                         Types,
-                        BranchPath,
-                        LeafPath,
                         IteratorPrefixFn,
                         SelectBackwardWalker<
                             Types,
-                            BranchPath,
-                            LeafPath,
                             IteratorPrefixFn
                         >
     >;

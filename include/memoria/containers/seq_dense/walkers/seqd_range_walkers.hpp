@@ -14,10 +14,10 @@
 namespace memoria   {
 namespace seq_dense {
 
-template <typename Types, typename BranchPath, typename LeafPath>
-class SkipForwardWalker: public bt::FindForwardWalkerBase<Types, BranchPath, LeafPath, SkipForwardWalker<Types, BranchPath, LeafPath>> {
+template <typename Types>
+class SkipForwardWalker: public bt::FindForwardWalkerBase<Types, SkipForwardWalker<Types>> {
 
-    using Base = bt::FindForwardWalkerBase<Types, BranchPath, LeafPath, SkipForwardWalker<Types, BranchPath, LeafPath>>;
+    using Base = bt::FindForwardWalkerBase<Types, SkipForwardWalker<Types>>;
     typedef typename Base::Key                                                          Key;
 
 public:
@@ -68,10 +68,10 @@ public:
     }
 };
 
-template <typename Types, typename BranchPath, typename LeafPath>
-class SkipBackwardWalker: public bt::FindBackwardWalkerBase<Types, BranchPath, LeafPath, SkipBackwardWalker<Types, BranchPath, LeafPath>> {
+template <typename Types>
+class SkipBackwardWalker: public bt::FindBackwardWalkerBase<Types, SkipBackwardWalker<Types>> {
 
-    using Base = bt::FindBackwardWalkerBase<Types, BranchPath, LeafPath, SkipBackwardWalker<Types, BranchPath, LeafPath>>;
+    using Base = bt::FindBackwardWalkerBase<Types, SkipBackwardWalker<Types>>;
     typedef typename Base::Key                                                  Key;
 
 public:

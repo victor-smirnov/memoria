@@ -101,23 +101,23 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
 
 
     template <typename Types, typename BranchPath, typename LeafPath>
-    using FindGTWalker          = SkipForwardWalker<Types, BranchPath, LeafPath>;
+    using FindGTWalker          = SkipForwardWalker<WalkerTypes<Types, BranchPath, LeafPath>>;
 
     template <typename Types, typename BranchPath, typename LeafPath>
     using FindGEWalker          = ::memoria::mvector::FindGEWalker<Types>;
 
 
     template <typename Types, typename BranchPath, typename LeafPath>
-    using SkipForwardWalker     = SkipForwardWalker<Types, BranchPath, LeafPath>;
+    using SkipForwardWalker     = SkipForwardWalker<WalkerTypes<Types, BranchPath, LeafPath>>;
 
     template <typename Types, typename BranchPath, typename LeafPath>
-    using SkipBackwardWalker    = SkipBackwardWalker<Types, BranchPath, LeafPath>;
+    using SkipBackwardWalker    = SkipBackwardWalker<WalkerTypes<Types, BranchPath, LeafPath>>;
 
     template <typename Types, typename BranchPath, typename LeafPath>
-    using NextLeafWalker        = NextLeafWalker<Types, BranchPath, LeafPath>;
+    using NextLeafWalker        = NextLeafWalker<WalkerTypes<Types, BranchPath, LeafPath>>;
 
     template <typename Types, typename BranchPath, typename LeafPath>
-    using PrevLeafWalker        = PrevLeafWalker<Types, BranchPath, LeafPath>;
+    using PrevLeafWalker        = PrevLeafWalker<WalkerTypes<Types, BranchPath, LeafPath>>;
 
 
 

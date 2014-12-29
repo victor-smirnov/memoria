@@ -13,11 +13,15 @@ namespace memoria {
 namespace bt1     {
 
 
+template <typename Types, typename BranchPath_, typename LeafPath_>
+struct WalkerTypes: Types {
+	using BranchPath 	= BranchPath_;
+	using LeafPath 		= LeafPath_;
+};
+
 template <
     typename Types,
-    typename MyType,
-    typename BranchPath,
-    typename LeafPath
+    typename MyType
 >
 class WalkerBase {
 protected:
@@ -28,8 +32,8 @@ protected:
 
     static const Int Streams                                                    = Types::Streams;
 
-//    static const Int StreamIdx      = Stream >> 16;
-//    static const Int SubstreamIdx   = Stream & 0xFFFF;
+    using BranchPath 	= typename Types::BranchPath;
+    using LeafPath 		= typename Types::LeafPath;
 
     SearchType search_type_ = SearchType::GT;
 
