@@ -24,32 +24,78 @@ using namespace memoria::bt;
 using namespace memoria::list_tree;
 
 template <int I>
-struct S {};
+struct S {
+	static const Int Value = I;
+};
 
 struct T{};
 
+
+namespace memoria {
+namespace bt {
+
+template <Int V>
+struct StructSizeProvider<S<V>> {
+    static const Int Value = V;
+};
+
+
+}
+}
+
+
 using List = TL<
 		TL<
-			TL<T>,
-			TL<T>
+			TL<
+				S<5>,
+				TL<
+					S<2>,
+					S<3>,
+					S<7>
+				>
+			>,
+			TL<S<4>>
 		>,
 		TL<
-			TL<T>,
-			TL<T>
+			TL<
+				S<8>,
+				S<10>
+			>,
+			TL<
+				TL<
+					S<10>,
+					S<15>,
+					S<7>,
+					S<19>
+				>,
+				S<2>
+			>
 		>
 >;
 
+
+
+
 int main(void)
 {
-	ListPrinter<List>::print(cout);
+	using Leafs = Linearize<List, 2>;
 
-//	ListPrinter<TL<
-//		MakeValueList<Int, 100, 200>
-//	>>::print(cout);
+	cout<<"Leaf Offsets:"<<endl;
+	using LeafOffsets 	= typename LeafOffsetListBuilder<List>::Type;
 
-//	ListPrinter<BuildTopLevelLeafSubsets<List>>::print(cout);
+	using LeafPath = IntList<1, 0, 1>;
 
-	ListPrinter<TL<S<FindTopLevelIdx<List, 4>::Value>>>::print(cout);
+	constexpr Int LeafIdx = LeafCount<List, LeafPath>::Value;
+
+	constexpr Int LocalOffset 	= FindLocalLeafOffsetV<Leafs, LeafIdx>::Value;
+	using LocalLeafGroup 		= FindLocalLeafOffsetT<LeafOffsets, LeafIdx>::Type;
+
+	cout<<"LocalOffset: "<<LocalOffset<<endl;
+	ListPrinter<TL<LocalLeafGroup>>::print(cout);
+
+	cout<<"LeafPrefix: "<<GetLeafPrefix<LocalLeafGroup, LocalOffset>::Value<<endl;
+
+//	ListPrinter<TL<S<FindTopLevelIdx<List, 3>::Value>>>::print(cout);
 
     return 0;
 }

@@ -229,12 +229,13 @@ public:
     };
 
     struct BranchNodeTypes: NodeTypesBase {
-        using StreamsStructList = typename MyType::BranchStreamsStructList;
+    	using LeafStreamsStructList = typename MyType::LeafStreamsStructList;
+    	using BranchStreamsStructList = typename MyType::BranchStreamsStructList;
     };
 
     struct LeafNodeTypes: NodeTypesBase {
         using BranchStreamsStructList = typename MyType::BranchStreamsStructList;
-        using StreamsStructList = typename MyType::LeafStreamsStructList;
+        using LeafStreamsStructList = typename MyType::LeafStreamsStructList;
     };
 
     struct DispatcherTypes

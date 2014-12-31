@@ -32,9 +32,23 @@ struct Select<Value, TypeList<Head, Tail...>, Idx> {
 
 template <Int Value, Int Idx>
 struct Select<Value, TypeList<>, Idx>;
-//{
-//    typedef ListIndexOutOfRange<Value>                                          Result;
-//};
+
+
+//template <Int Value, typename List, Int idx = 0> struct Select;
+
+template <Int Pos, typename T, T Head, T ... Tail>
+struct Select<Pos, ValueList<T, Head, Tail...>, Pos> {
+    static const T Value = Head;
+};
+
+template <Int Pos, typename T, T Head, T ... Tail, Int Idx>
+struct Select<Pos, ValueList<T, Head, Tail...>, Idx> {
+    static const T Value = Select<Pos, ValueList<T, Tail...>, Idx + 1>::Value;
+};
+
+template <Int Value, typename T, Int Idx>
+struct Select<Value, ValueList<T>, Idx>;
+
 
 
 template <typename List, typename Default> struct SelectHeadIfNotEmpty;

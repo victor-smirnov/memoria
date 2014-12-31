@@ -345,10 +345,11 @@ public:
     template <template <typename> class, typename>
     friend class NodePageAdaptor;
 
-    using SubstreamsStructList = typename Types::StreamsStructList;
+    using BranchSubstreamsStructList 	= typename Types::BranchStreamsStructList;
+    using LeafSubstreamsStructList 		= typename Types::LeafStreamsStructList;
 
     using StreamDispatcherStructList = typename PackedDispatchersListBuilder<
-    		Linearize<SubstreamsStructList>, Base::StreamsStart
+    		Linearize<BranchSubstreamsStructList>, Base::StreamsStart
     >::Type;
 
     using Dispatcher = PackedDispatcher<StreamDispatcherStructList, 0>;
@@ -359,11 +360,11 @@ public:
 
     template <typename SubstreamsPath>
     using SubstreamsDispatcher = SubrangeDispatcher<
-    		memoria::list_tree::LeafCountInf<SubstreamsStructList, SubstreamsPath>::Value,
-    		memoria::list_tree::LeafCountSup<SubstreamsStructList, SubstreamsPath>::Value
+    		memoria::list_tree::LeafCountInf<BranchSubstreamsStructList, SubstreamsPath>::Value,
+    		memoria::list_tree::LeafCountSup<BranchSubstreamsStructList, SubstreamsPath>::Value
     >;
 
-    static const Int Streams                                                    = ListSize<SubstreamsStructList>::Value;
+    static const Int Streams                                                    = ListSize<BranchSubstreamsStructList>::Value;
 
     static const Int Substreams                                                 = Dispatcher::Size;
 
@@ -422,6 +423,23 @@ public:
 
 
     BranchNode() = default;
+
+
+    template <typename LeafPath>
+    static Int translateLeafIndexToBranchIndex(Int leaf_index)
+    {
+    	using LeafOffsets 	= typename LeafOffsetListBuilder<LeafSubstreamsStructList>::Type;
+
+    	using Leafs = Linearize<LeafSubstreamsStructList, 2>;
+
+    	const Int LeafIdx 			= memoria::list_tree::LeafCount<LeafSubstreamsStructList, LeafPath>::Value;
+    	const Int LocalLeafOffset 	= FindLocalLeafOffsetV<Leafs, LeafIdx>::Value;
+    	using LocalLeafGroup 		= typename FindLocalLeafOffsetT<LeafOffsets, LeafIdx>::Type;
+
+    	const Int Prefix = GetLeafPrefix<LocalLeafGroup, LocalLeafOffset>::Value;
+
+    	return leaf_index + Prefix + 1;
+    }
 
 private:
     struct InitFn {
@@ -1370,18 +1388,18 @@ public:
 
 
     template <typename SubstreamPath, typename Fn, typename... Args>
-    DispatchRtnType<memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value, Fn, Args...>
+    DispatchRtnType<memoria::list_tree::LeafCount<BranchSubstreamsStructList, SubstreamPath>::Value, Fn, Args...>
     processStream(Fn&& fn, Args&&... args) const
     {
-    	const Int StreamIdx = memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value;
+    	const Int StreamIdx = memoria::list_tree::LeafCount<BranchSubstreamsStructList, SubstreamPath>::Value;
     	return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
     template <typename SubstreamPath, typename Fn, typename... Args>
-    DispatchRtnType<memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value, Fn, Args...>
+    DispatchRtnType<memoria::list_tree::LeafCount<BranchSubstreamsStructList, SubstreamPath>::Value, Fn, Args...>
     processStream(Fn&& fn, Args&&... args)
     {
-    	const Int StreamIdx = memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value;
+    	const Int StreamIdx = memoria::list_tree::LeafCount<BranchSubstreamsStructList, SubstreamPath>::Value;
     	return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
@@ -1389,7 +1407,7 @@ public:
     template <typename Fn, typename... Args>
     void processSubstreamGroups(Fn&& fn, Args&&... args)
     {
-    	using GroupsList = BuildTopLevelLeafSubsets<SubstreamsStructList>;
+    	using GroupsList = BuildTopLevelLeafSubsets<BranchSubstreamsStructList>;
 
     	GroupDispatcher<Dispatcher, GroupsList>::dispatchGroups(
     			allocator(),
@@ -1401,7 +1419,7 @@ public:
     template <typename Fn, typename... Args>
     void processSubstreamGroups(Fn&& fn, Args&&... args) const
     {
-    	using GroupsList = BuildTopLevelLeafSubsets<SubstreamsStructList>;
+    	using GroupsList = BuildTopLevelLeafSubsets<BranchSubstreamsStructList>;
 
     	GroupDispatcher<Dispatcher, GroupsList>::dispatchGroups(
     			allocator(),
@@ -1413,7 +1431,7 @@ public:
     template <typename Fn, typename... Args>
     static void processSubstreamGroupsStatic(Fn&& fn, Args&&... args)
     {
-    	using GroupsList = BuildTopLevelLeafSubsets<SubstreamsStructList>;
+    	using GroupsList = BuildTopLevelLeafSubsets<BranchSubstreamsStructList>;
 
     	GroupDispatcher<Dispatcher, GroupsList>::dispatchGroupsStatic(
     			std::forward<Fn>(fn),
@@ -1427,10 +1445,10 @@ public:
     template <typename Fn, typename... Args>
     auto processStreamsStart(Fn&& fn, Args&&... args)
     -> typename Dispatcher::template SubsetDispatcher<
-    		StreamsStartSubset<SubstreamsStructList>
+    		StreamsStartSubset<BranchSubstreamsStructList>
        >::template ProcessAllRtnConstType<Fn, Args...>
     {
-    	using Subset = StreamsStartSubset<SubstreamsStructList>;
+    	using Subset = StreamsStartSubset<BranchSubstreamsStructList>;
     	return Dispatcher::template SubsetDispatcher<Subset>::template dispatchAll(
     			allocator(),
     			std::forward<Fn>(fn),
@@ -1442,10 +1460,10 @@ public:
     template <typename Fn, typename... Args>
     auto processStreamsStart(Fn&& fn, Args&&... args) const
     -> typename Dispatcher::template SubsetDispatcher<
-    		StreamsStartSubset<SubstreamsStructList>
+    		StreamsStartSubset<BranchSubstreamsStructList>
        >::template ProcessAllRtnConstType<Fn, Args...>
     {
-    	using Subset = StreamsStartSubset<SubstreamsStructList>;
+    	using Subset = StreamsStartSubset<BranchSubstreamsStructList>;
     	return Dispatcher::template SubsetDispatcher<Subset>::template dispatchAll(
     			allocator(),
     			std::forward<Fn>(fn),
