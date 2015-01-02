@@ -64,6 +64,22 @@ struct ListTail<ValueList<T, Head, Tail...>> {
     typedef ValueList<T, Tail...> Type;
 };
 
+
+template <typename T>
+struct TypePrinter {
+    static void print(std::ostream& out)
+    {
+        out<<::memoria::vapi::TypeNameFactory<T>::name();
+    }
+
+    static void println(std::ostream& out)
+    {
+    	print(out);
+    	out<<std::endl;
+    }
+};
+
+
 template <typename T> struct ListPrinter;
 
 template <typename Head, typename... Tail>

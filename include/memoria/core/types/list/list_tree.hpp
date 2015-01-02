@@ -131,7 +131,7 @@ struct Subtree<T, IntList<>, Idx> {
 };
 
 
-template <typename List, typename Path, Int Depth = 1>
+template <typename List, typename Path = IntList<>, Int Depth = 1>
 using SubtreeLeafCount = ListSize<
 							Linearize<
 							typename Subtree<List, Path>::Type,
@@ -170,6 +170,102 @@ struct MakeValueListH<T, To, To> {
 
 template <typename T, T From, T To>
 using MakeValueList = typename MakeValueListH<T, From, To>::Type;
+
+
+template <typename List, Int LeafIdx, typename Path = IntList<>, Int Idx = 0> struct BuildTreePath;
+
+namespace detail {
+
+template <bool Condition, typename List, Int LeafIdx, typename Path, Int Idx> struct BuildTreePathHelper1;
+template <bool Condition, typename List, Int LeafIdx, typename Path, Int Idx> struct BuildTreePathHelper2;
+
+template <typename List, Int LeafIdx, Int... Path, Int Idx>
+struct BuildTreePathHelper1<true, List, LeafIdx, IntList<Path...>, Idx> {
+	using Type = IntList<Path..., Idx>;
+};
+
+template <typename List, Int LeafIdx, Int... Path, Int Idx>
+struct BuildTreePathHelper1<false, List, LeafIdx, IntList<Path...>, Idx> {
+	using Type = typename BuildTreePath<
+			List,
+			LeafIdx - 1,
+			IntList<Path...>,
+			Idx + 1
+	>::Type;
+};
+
+
+template <typename... Head, typename... Tail, Int LeafIdx, Int... Path, Int Idx>
+struct BuildTreePathHelper2<true, TypeList<TypeList<Head...>, Tail...>, LeafIdx, IntList<Path...>, Idx> {
+	using Type = typename BuildTreePath<
+			TypeList<Head...>,
+			LeafIdx,
+			IntList<Path..., Idx>,
+			0
+	>::Type;
+};
+
+template <typename... Head, typename... Tail, Int LeafIdx, Int... Path, Int Idx>
+struct BuildTreePathHelper2<false, TypeList<TypeList<Head...>, Tail...>, LeafIdx, IntList<Path...>, Idx> {
+	static const Int SubtreeSize = ListSize<Linearize<TypeList<Head...>>>::Value;
+
+	using Type = typename BuildTreePath<
+			TypeList<Tail...>,
+			LeafIdx - SubtreeSize,
+			IntList<Path...>,
+			Idx + 1
+	>::Type;
+};
+
+
+}
+
+
+template <
+	typename... Head,
+	typename... Tail,
+	Int... PathList,
+	Int LeafIdx,
+	Int Idx
+>
+struct BuildTreePath<TypeList<TypeList<Head...>, Tail...>, LeafIdx, IntList<PathList...>, Idx> {
+	static const Int SubtreeSize = ListSize<Linearize<TypeList<Head...>>>::Value;
+
+	using Type = typename detail::BuildTreePathHelper2<
+			(LeafIdx < SubtreeSize),
+			TypeList<TypeList<Head...>, Tail...>,
+			LeafIdx,
+			IntList<PathList...>,
+			Idx
+	>::Type;
+};
+
+
+template <
+	typename Head,
+	typename... Tail,
+	Int... PathList,
+	Int LeafIdx,
+	Int Idx
+>
+struct BuildTreePath<TypeList<Head, Tail...>, LeafIdx, IntList<PathList...>, Idx> {
+	using Type = typename detail::BuildTreePathHelper1<
+			(LeafIdx < 1),
+			TypeList<Tail...>,
+			LeafIdx,
+			IntList<PathList...>,
+			Idx
+	>::Type;
+};
+
+
+
+template <
+	Int... PathList,
+	Int LeafIdx,
+	Int Idx
+>
+struct BuildTreePath<TypeList<>, LeafIdx, IntList<PathList...>, Idx>;
 
 }
 }

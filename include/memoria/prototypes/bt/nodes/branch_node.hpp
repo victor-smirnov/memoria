@@ -420,6 +420,15 @@ public:
     template <typename SubstreamsPath, typename Fn, typename... T>
     using ProcessSubstreamsRtnConstType = typename SubstreamsDispatcher<SubstreamsPath>::template ProcessAllRtnConstType<Fn, T...>;
 
+    template <typename LeafPath>
+    using BuildBranchPath = typename memoria::list_tree::BuildTreePath<
+    		BranchSubstreamsStructList,
+    		memoria::list_tree::LeafCountInf<LeafSubstreamsStructList, LeafPath, 2>::Value -
+    			FindLocalLeafOffsetV<
+    				Linearize<LeafSubstreamsStructList, 2>,
+    				memoria::list_tree::LeafCount<LeafSubstreamsStructList, LeafPath>::Value
+    			>::Value
+    >::Type;
 
 
     BranchNode() = default;
@@ -436,9 +445,7 @@ public:
     	const Int LocalLeafOffset 	= FindLocalLeafOffsetV<Leafs, LeafIdx>::Value;
     	using LocalLeafGroup 		= typename FindLocalLeafOffsetT<LeafOffsets, LeafIdx>::Type;
 
-    	const Int Prefix = GetLeafPrefix<LocalLeafGroup, LocalLeafOffset>::Value;
-
-    	return leaf_index + Prefix + 1;
+    	return leaf_index + GetLeafPrefix<LocalLeafGroup, LocalLeafOffset>::Value + 1;
     }
 
 private:
