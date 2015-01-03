@@ -164,6 +164,7 @@
 		<project id="p1.null.1219388518" name="p1"/>
 	</storageModule>
 	<storageModule moduleId="refreshScope" versionNumber="2">
+		<configuration configurationName="Clang"/>
 		<configuration configurationName="Default">
 			<resource resourceType="PROJECT" workspacePath="/p1"/>
 		</configuration>

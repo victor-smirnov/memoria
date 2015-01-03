@@ -29,8 +29,6 @@ template <
 >
 struct LeafCount<TypeList<Head, Tail...>, IntList<Idx, PathTail...>, Depth, Ptr> {
     static const Int PrefixSize = ListSize<Linearize<TypeList<Head>, Depth>>::Value;
-private:
-public:
     static const Int Value = PrefixSize + LeafCount<
         TypeList<Tail...>,
         IntList<Idx, PathTail...>,
@@ -181,7 +179,7 @@ template <bool Condition, typename List, Int LeafIdx, typename Path, Int Idx> st
 
 template <typename List, Int LeafIdx, Int... Path, Int Idx>
 struct BuildTreePathHelper1<true, List, LeafIdx, IntList<Path...>, Idx> {
-	using Type = IntList<Path..., Idx>;
+	using Type = typename MergeValueLists<IntList<Path...>, IntList<Idx>>::Type;
 };
 
 template <typename List, Int LeafIdx, Int... Path, Int Idx>
@@ -200,7 +198,7 @@ struct BuildTreePathHelper2<true, TypeList<TypeList<Head...>, Tail...>, LeafIdx,
 	using Type = typename BuildTreePath<
 			TypeList<Head...>,
 			LeafIdx,
-			IntList<Path..., Idx>,
+			typename MergeValueLists<IntList<Path...>, IntList<Idx>>::Type,
 			0
 	>::Type;
 };

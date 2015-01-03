@@ -94,6 +94,7 @@ using LeafList = TL<
 
 int main(void)
 {
+
 	static_assert(ListSize<Linearize<BranchList>>::Value == ListSize<Linearize<LeafList, 2>>::Value, "");
 
 	TypePrinter<Linearize<BranchList>>::println(cout);
@@ -127,6 +128,7 @@ int main(void)
 	TypePrinter<BuildTreePath<BranchList, BranchOffset>::Type>::println(cout);
 
 //	ListPrinter<TL<S<FindTopLevelIdx<List, 3>::Value>>>::print(cout);
+
 
     return 0;
 }
