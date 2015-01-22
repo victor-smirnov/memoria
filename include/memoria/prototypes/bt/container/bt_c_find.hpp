@@ -116,14 +116,14 @@ public:
 
     Iterator findGT(Int stream, BigInt key, Int key_num)
     {
-        typename Types::template FindGTWalker<Types, IntList<0>, IntList<0>> walker(stream, key_num, key_num - 1, key);
+        typename Types::template FindGTWalker<Types, IntList<0>> walker(stream, key_num - 1, key);
 
         return self().find0(stream, walker);
     }
 
     Iterator findGE(Int stream, BigInt key, Int key_num)
     {
-        typename Types::template FindGEWalker<Types, IntList<0>, IntList<0>> walker(stream, key_num, key_num - 1, key);
+        typename Types::template FindGEWalker<Types, IntList<0>> walker(stream, key_num - 1, key);
 
         return self().find0(stream, walker);
     }

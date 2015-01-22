@@ -50,7 +50,6 @@ protected:
 
 public:
 
-    using BranchPath 	= typename Types::BranchPath;
     using LeafPath 		= typename Types::LeafPath;
 
 
@@ -129,6 +128,7 @@ public:
     template <typename NodeTypes>
     ReturnType treeNode(const BranchNode<NodeTypes>* node, BigInt start)
     {
+    	using BranchPath = typename bt::BranchNode<NodeTypes>::template BuildBranchPath<LeafPath>;
         Int idx = node->template processStream<BranchPath>(self(), start);
 
         self().postProcessNode(node, start, idx);

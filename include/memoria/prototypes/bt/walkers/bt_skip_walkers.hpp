@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2013.
+// Copyright Victor Smirnov 2013-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -24,8 +24,8 @@ protected:
 
 public:
 
-    SkipForwardWalkerBase(Int stream, Int branch_index, Int leaf_index, Key target):
-        Base(stream, branch_index, leaf_index, target, SearchType::GT)
+    SkipForwardWalkerBase(Int stream, Int leaf_index, Key target):
+        Base(stream, leaf_index, target, SearchType::GT)
     {}
 
 
@@ -103,7 +103,7 @@ class SkipForwardWalker: public SkipForwardWalkerBase<
 public:
 
     SkipForwardWalker(Int stream, Int block, Key target):
-        Base(stream, block, block, target)
+        Base(stream, block, target)
     {}
 };
 
@@ -129,8 +129,8 @@ protected:
 
 public:
 
-    SkipBackwardWalkerBase(Int stream, Int branch_index, Int leaf_index, Key target):
-        Base(stream, branch_index, leaf_index, target, SearchType::GE)
+    SkipBackwardWalkerBase(Int stream, Int leaf_index, Key target):
+        Base(stream, leaf_index, target, SearchType::GE)
     {}
 
 
@@ -201,7 +201,7 @@ class SkipBackwardWalker: public SkipBackwardWalkerBase<
 
 public:
     SkipBackwardWalker(Int stream, Int block, Key target):
-        Base(stream, block, block, target)
+        Base(stream, block, target)
     {}
 };
 

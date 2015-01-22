@@ -200,7 +200,7 @@ bool M_TYPE::nextLeafMs(UBigInt streams)
 M_PARAMS
 bool M_TYPE::nextLeaf()
 {
-    typedef typename Types::template NextLeafWalker<Types, IntList<0>, IntList<0>> Walker;
+    typedef typename Types::template NextLeafWalker<Types, IntList<0>> Walker;
     Walker walker(self().stream(), 0);
 
     return self().findNextLeaf(walker);
@@ -212,7 +212,7 @@ bool M_TYPE::nextLeaf()
 M_PARAMS
 bool M_TYPE::prevLeaf()
 {
-    typedef typename Types::template PrevLeafWalker<Types, IntList<0>, IntList<0>> Walker;
+    typedef typename Types::template PrevLeafWalker<Types, IntList<0>> Walker;
 
     auto& self = this->self();
     Int stream = self.stream();

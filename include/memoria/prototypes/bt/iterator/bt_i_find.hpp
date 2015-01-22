@@ -29,10 +29,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorFindName)
     typedef typename Container::Accumulator                                         Accumulator;
     typedef typename Container::Iterator                                            Iterator;
 
-    template <template <typename CtrTypes, typename BranchPath, typename LeafPath> class Walker>
+    template <template <typename CtrTypes, typename LeafPath> class Walker>
     BigInt _findFw(Int index, BigInt key);
 
-    template <template <typename CtrTypes, typename BranchPath, typename LeafPath> class Walker>
+    template <template <typename CtrTypes, typename LeafPath> class Walker>
     BigInt _findBw(Int index, BigInt key);
 
 MEMORIA_ITERATOR_PART_END
@@ -41,13 +41,13 @@ MEMORIA_ITERATOR_PART_END
 #define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
 
 M_PARAMS
-template <template <typename CtrTypes, typename BranchPath, typename LeafPath> class Walker>
+template <template <typename CtrTypes, typename LeafPath> class Walker>
 BigInt M_TYPE::_findFw(Int index, BigInt key)
 {
     auto& self = this->self();
     Int stream = self.stream();
 
-    Walker<Types, IntList<0>, IntList<0>> walker(stream, index, key);
+    Walker<Types, IntList<0>> walker(stream, index, key);
 
     walker.prepare(self);
 
@@ -57,13 +57,13 @@ BigInt M_TYPE::_findFw(Int index, BigInt key)
 }
 
 M_PARAMS
-template <template <typename CtrTypes, typename BranchPath, typename LeafPath> class Walker>
+template <template <typename CtrTypes, typename LeafPath> class Walker>
 BigInt M_TYPE::_findBw(Int index, BigInt key)
 {
     auto& self = this->self();
     Int stream = self.stream();
 
-    Walker<Types, IntList<0>, IntList<0>> walker(stream, index, key);
+    Walker<Types, IntList<0>> walker(stream, index, key);
 
     walker.prepare(self);
 

@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2013-2014.
+// Copyright Victor Smirnov 2013-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -23,13 +23,12 @@ protected:
     using Base = WalkerBase<Types, MyType>;
     using Key = typename Base::Key;
 
-    using BranchPath 	= typename Types::BranchPath;
     using LeafPath 		= typename Types::LeafPath;
 
 public:
 
-    FindWalkerBase(Int stream, Int branch_index, Int leaf_index, Key target, SearchType search_type):
-        Base(stream, branch_index, leaf_index, target)
+    FindWalkerBase(Int stream, Int leaf_index, Key target, SearchType search_type):
+        Base(stream, leaf_index, target)
     {
         Base::search_type() = search_type;
     }
@@ -44,16 +43,14 @@ protected:
     typedef typename Base::Key                                                  Key;
 
 public:
-    FindForwardWalkerBase(Int stream, Int branch_index, Int leaf_index, Key target, SearchType search_type):
-        Base(stream, branch_index, leaf_index, target, search_type)
+    FindForwardWalkerBase(Int stream, Int leaf_index, Key target, SearchType search_type):
+        Base(stream, leaf_index, target, search_type)
     {}
 
     template <Int StreamIdx, typename Tree>
-    Int find_non_leaf(const Tree* tree, Int start)
+    Int find_non_leaf(const Tree* tree, Int index, Int start)
     {
         auto k = Base::target_ - Base::sum_;
-
-        Int index   = this->branch_index();
 
         auto result = tree->findForward(Base::search_type_, index, start, k);
 
@@ -196,8 +193,8 @@ public:
     static const Int StreamIdx = 0;
     static const Int SubstreamIdx = 0;
 
-    FindGEForwardWalker(Int stream, Int branch_index, Int leaf_index, Key target):
-        Base(stream, branch_index, leaf_index, target, SearchType::GE)
+    FindGEForwardWalker(Int stream, Int leaf_index, Key target):
+        Base(stream, leaf_index, target, SearchType::GE)
     {}
 };
 
@@ -219,16 +216,14 @@ protected:
 
 public:
 
-    FindBackwardWalkerBase(Int stream, Int branch_index, Int leaf_index, Key target, SearchType search_type):
-        Base(stream, branch_index, leaf_index, target, search_type)
+    FindBackwardWalkerBase(Int stream, Int leaf_index, Key target, SearchType search_type):
+        Base(stream, leaf_index, target, search_type)
     {}
 
     template <Int StreamIdx, typename Tree>
-    Int find_non_leaf(const Tree* tree, Int start)
+    Int find_non_leaf(const Tree* tree, Int index, Int start)
     {
         auto k          = Base::target_ - Base::sum_;
-
-        Int index       = this->branch_index();
 
         auto result     = tree->findBackward(Base::search_type_, index, start, k);
         Base::sum_      += result.prefix();
@@ -323,8 +318,8 @@ class FindBackwardWalker: public FindBackwardWalkerBase<
     using Key   = typename Base::Key;
 
 public:
-    FindBackwardWalker(Int stream, Int branch_index, Int leaf_index, Key target, SearchType search_type = SearchType::GE):
-        Base(stream, branch_index, leaf_index, target, search_type)
+    FindBackwardWalker(Int stream, Int leaf_index, Key target, SearchType search_type = SearchType::GE):
+        Base(stream, leaf_index, target, search_type)
     {}
 };
 

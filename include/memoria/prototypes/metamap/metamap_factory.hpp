@@ -166,27 +166,27 @@ struct MetaMapBTTypesBase: public BTTypes<Profile, memoria::BT> {
 
 
 
-    template <typename Types, typename BranchPath, typename LeafPath>
-    using FindGTWalker          = bt1::FindGTForwardWalker<WalkerTypes<Types, BranchPath, LeafPath>, bt1::DefaultIteratorPrefixFn>;
+    template <typename Types, typename LeafPath>
+    using FindGTWalker          = bt1::FindGTForwardWalker<WalkerTypes<Types, LeafPath>, bt1::DefaultIteratorPrefixFn>;
 
-    template <typename Types, typename BranchPath, typename LeafPath>
-    using FindGEWalker          = bt1::FindGEForwardWalker<WalkerTypes<Types, BranchPath, LeafPath>, bt1::DefaultIteratorPrefixFn>;
+    template <typename Types, typename LeafPath>
+    using FindGEWalker          = bt1::FindGEForwardWalker<WalkerTypes<Types, LeafPath>, bt1::DefaultIteratorPrefixFn>;
 
-    template <typename Types, typename BranchPath, typename LeafPath>
-    using FindBackwardWalker    = bt1::FindBackwardWalker<WalkerTypes<Types, BranchPath, LeafPath>, bt1::DefaultIteratorPrefixFn>;
+    template <typename Types, typename LeafPath>
+    using FindBackwardWalker    = bt1::FindBackwardWalker<WalkerTypes<Types, LeafPath>, bt1::DefaultIteratorPrefixFn>;
 
 
-    template <typename Types, typename BranchPath, typename LeafPath>
-    using SkipForwardWalker     = bt1::SkipForwardWalker<WalkerTypes<Types, BranchPath, LeafPath>, bt1::DefaultIteratorPrefixFn>;
+    template <typename Types, typename LeafPath>
+    using SkipForwardWalker     = bt1::SkipForwardWalker<WalkerTypes<Types, LeafPath>, bt1::DefaultIteratorPrefixFn>;
 
-    template <typename Types, typename BranchPath, typename LeafPath>
-    using SkipBackwardWalker    = bt1::SkipBackwardWalker<WalkerTypes<Types, BranchPath, LeafPath>, bt1::DefaultIteratorPrefixFn>;
+    template <typename Types, typename LeafPath>
+    using SkipBackwardWalker    = bt1::SkipBackwardWalker<WalkerTypes<Types, LeafPath>, bt1::DefaultIteratorPrefixFn>;
 
-    template <typename Types, typename BranchPath, typename LeafPath>
-    using SelectForwardWalker   = metamap::SelectForwardWalker<WalkerTypes<Types, BranchPath, LeafPath>, bt1::DefaultIteratorPrefixFn>;
+    template <typename Types, typename LeafPath>
+    using SelectForwardWalker   = metamap::SelectForwardWalker<WalkerTypes<Types, LeafPath>, bt1::DefaultIteratorPrefixFn>;
 
-    template <typename Types, typename BranchPath, typename LeafPath>
-    using SelectBackwardWalker  = metamap::SelectBackwardWalker<WalkerTypes<Types, BranchPath, LeafPath>, bt1::DefaultIteratorPrefixFn>;
+    template <typename Types, typename LeafPath>
+    using SelectBackwardWalker  = metamap::SelectBackwardWalker<WalkerTypes<Types, LeafPath>, bt1::DefaultIteratorPrefixFn>;
 
 
     template <typename Types>

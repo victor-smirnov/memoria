@@ -47,7 +47,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::metamap::CtrFindName)
 
     Iterator seek(CtrSizeT entry_idx)
     {
-        typename Types::template SkipForwardWalker<Types, IntList<0>, IntList<0>> walker(0, 0, entry_idx);
+        typename Types::template SkipForwardWalker<Types, IntList<0>> walker(0, 0, entry_idx);
         return self().find0(0, walker);
     }
 

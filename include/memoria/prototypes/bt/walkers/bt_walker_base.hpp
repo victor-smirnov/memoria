@@ -14,9 +14,8 @@ namespace memoria {
 namespace bt1     {
 
 
-template <typename Types, typename BranchPath_, typename LeafPath_>
+template <typename Types, typename LeafPath_>
 struct WalkerTypes: Types {
-	using BranchPath 	= BranchPath_;
 	using LeafPath 		= LeafPath_;
 };
 
@@ -33,7 +32,6 @@ protected:
 
     static const Int Streams                                                    = Types::Streams;
 
-    using BranchPath 	= typename Types::BranchPath;
     using LeafPath 		= typename Types::LeafPath;
 
     SearchType search_type_ = SearchType::GT;
@@ -44,7 +42,6 @@ protected:
     WalkDirection direction_;
 
     Int stream_;
-    Int branch_index_;
     Int leaf_index_;
 
     IteratorPrefix prefix_;
@@ -61,9 +58,9 @@ private:
         FindNonLeafFn(MyType& walker): walker_(walker) {}
 
         template <Int StreamIndex, typename StreamType>
-        Int stream(const StreamType* stream, Int start)
+        Int stream(const StreamType* stream, Int index, Int start)
         {
-            return walker_.template find_non_leaf<StreamIndex>(stream, start);
+            return walker_.template find_non_leaf<StreamIndex>(stream, index, start);
         }
     };
 
@@ -113,10 +110,9 @@ private:
 
 public:
 
-    WalkerBase(Int stream, Int branch_index, Int leaf_index, BigInt target):
+    WalkerBase(Int stream, Int leaf_index, BigInt target):
         target_(target),
         stream_(stream),
-        branch_index_(branch_index),
         leaf_index_(leaf_index)
     {}
 
@@ -139,11 +135,6 @@ public:
 
     Int current_stream() const {
         return stream_;
-    }
-
-    Int branch_index() const
-    {
-        return branch_index_;
     }
 
     Int leaf_index() const
@@ -203,7 +194,10 @@ public:
     template <typename NodeTypes>
     Int treeNode(const bt::BranchNode<NodeTypes>* node, BigInt start)
     {
-        Int idx = node->template processStream<BranchPath>(FindNonLeafFn(self()), start);
+    	Int index = node->template translateLeafIndexToBranchIndex<LeafPath>(this->leaf_index());
+
+    	using BranchPath = typename bt::BranchNode<NodeTypes>::template BuildBranchPath<LeafPath>;
+        Int idx = node->template processStream<BranchPath>(FindNonLeafFn(self()), index, start);
 
         self().postProcessNode(node, start, idx);
 
