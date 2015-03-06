@@ -1,7 +1,7 @@
 include_directories(../tools/include)
 
 if (NOT DEFINED MEMORIA_SANDBOX)
-    set(MEMORIA_SANDBOX const sublist substream sfinae metafunc)
+    set(MEMORIA_SANDBOX accum)
 endif()
 
 FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX})

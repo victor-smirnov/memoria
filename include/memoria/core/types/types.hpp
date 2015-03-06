@@ -377,6 +377,11 @@ extern BigInt DebugCounter2;
 extern size_t MemBase;
 
 
+template <typename T>
+struct TypeP {
+	using Type = T;
+};
+
 }
 
 #endif
