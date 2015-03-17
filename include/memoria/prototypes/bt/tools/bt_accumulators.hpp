@@ -85,7 +85,10 @@ struct IndexesSize {
 	static const Int Value = PkdStruct::Indexes;
 };
 
-
+/**
+ * Builds type list for accumulator
+ *
+ */
 
 template <typename PkdStructList, typename IdxList> struct AccumListBuilderH;
 
@@ -106,6 +109,9 @@ template <>
 struct AccumListBuilderH<TypeList<>, TypeList<>>:
 	TypeP<TypeList<>>
 {};
+
+
+
 
 
 }

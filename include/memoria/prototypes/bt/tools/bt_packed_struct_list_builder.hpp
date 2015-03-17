@@ -50,6 +50,8 @@ class PackedLeafStructListBuilder;
 template <typename List>
 class PackedBranchStructListBuilder;
 
+template <typename List>
+class IteratorAccumulatorBuilder;
 
 template <
     typename StructsTF,
@@ -92,6 +94,24 @@ public:
     >;
 };
 
+
+template <
+    typename StructsTF,
+    typename... Tail
+>
+class IteratorAccumulatorBuilder<TypeList<StructsTF, Tail...>> {
+
+    using BranchType = typename StructsTF::NonLeafType;
+
+public:
+    using StructList = AppendItemToList<
+                BranchType,
+                typename PackedBranchStructListBuilder<
+                    TypeList<Tail...>
+                >::StructList
+    >;
+};
+
 template <>
 class PackedLeafStructListBuilder<TypeList<>> {
 public:
@@ -105,6 +125,11 @@ public:
     using StructList = TypeList<>;
 };
 
+template <>
+class IteratorAccumulatorBuilder<TypeList<>> {
+public:
+    using StructList = TypeList<>;
+};
 
 
 }
