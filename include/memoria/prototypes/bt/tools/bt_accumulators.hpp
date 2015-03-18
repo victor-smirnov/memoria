@@ -72,7 +72,74 @@ struct AccumBuilderH<T, TypeList<>, Max>:
 {};
 
 
+
+template <typename List, Int Offset> struct ShiftRangeList;
+
+template <Int From, Int To, typename... Tail, Int Offset>
+struct ShiftRangeList<TypeList<IndexRange<From, To>, Tail...>, Offset> {
+	using Type = MergeLists<
+			IndexRange<From + Offset, To + Offset>,
+			typename ShiftRangeList<TypeList<Tail...>, Offset>::Type
+	>;
+};
+
+
+template <Int Offset>
+struct ShiftRangeList<TypeList<>, Offset> {
+	using Type = TypeList<>;
+};
+
+
+template <typename RangeList> struct GlueRanges;
+
+template <Int From, Int Middle, Int To, typename... Tail>
+struct GlueRanges<TypeList<IndexRange<From, Middle>, IndexRange<Middle, To>, Tail...>> {
+	static_assert(From >= 0, "From must be >= 0");
+	static_assert(Middle > From, "To must be > From");
+	static_assert(To > Middle, "To must be > From");
+
+	using Type = typename GlueRanges<TypeList<IndexRange<From, To>, Tail...>>::Type;
+};
+
+template <Int From, Int To, typename... Tail>
+struct GlueRanges<TypeList<IndexRange<From, To>, Tail...>> {
+	static_assert(From >= 0, "From must be >= 0");
+	static_assert(To > From, "To must be > From");
+
+	using Type = MergeLists<
+			IndexRange<From, To>,
+			typename GlueRanges<TypeList<Tail...>>::Type
+	>;
+};
+
+template <>
+struct GlueRanges<TL<>> {
+	using Type = TL<>;
+};
+
+
+template <Int Max, typename List>
+struct CheckRangeList;
+
+template <Int Max, typename Head, typename... Tail>
+struct CheckRangeList<Max, TL<Head, Tail...>> {
+	static const bool Value = CheckRangeList<Max, TL<Tail...>>::Value;
+};
+
+template <Int Max, Int From, Int To>
+struct CheckRangeList<Max, TL<IndexRange<From, To>>> {
+	static const bool Value = To <= Max;
+};
+
+template <Int Max>
+struct CheckRangeList<Max, TL<>> {
+	static const bool Value = true;
+};
+
 }
+
+
+
 
 
 template <typename PkdStruct>
@@ -85,31 +152,110 @@ struct IndexesSize {
 	static const Int Value = PkdStruct::Indexes;
 };
 
-/**
- * Builds type list for accumulator
- *
- */
 
-template <typename PkdStructList, typename IdxList> struct AccumListBuilderH;
 
-template <typename PkdStruct, typename... STail, typename IHead, typename... ITail>
-struct AccumListBuilderH<TypeList<PkdStruct, STail...>, TypeList<IHead, ITail...>>:
-	MergeListsMF<
-			typename detail::AccumBuilderH<
-				typename AccumType<PkdStruct>::Type,
-				IHead,
-				IndexesSize<PkdStruct>::Value
+template <typename BranchStruct, typename LeafStructList, typename RangeList, Int Offset> struct RangeListBuilder;
+
+template <
+	typename BranchStruct,
+	typename LeafStruct, typename... LTail,
+	typename RangeList,
+	Int Offset
+>
+struct RangeListBuilder<BranchStruct, TypeList<LeafStruct, LTail...>, RangeList, Offset> {
+	using Type = MergeLists<
+			typename memoria::bt::detail::ShiftRangeList<
+				typename ListHead<RangeList>::Type,
+				Offset
 			>::Type,
-			typename AccumListBuilderH<TypeList<STail...>, TypeList<ITail...>>::Type
-	>
-{};
+			typename RangeListBuilder<
+				BranchStruct,
+				TypeList<LTail...>,
+				typename ListTail<RangeList>::Type,
+				Offset + IndexesSize<LeafStruct>::Value
+			>::Type
+	>;
+};
 
+
+template <typename BranchStruct, typename LeafStruct, typename RangeList, Int Offset>
+struct RangeListBuilder {
+	using Type = typename memoria::bt::detail::ShiftRangeList<RangeList, Offset>::Type;
+};
+
+template <
+	typename BranchStruct,
+	typename RangeList,
+	Int Offset
+>
+struct RangeListBuilder<BranchStruct, TypeList<>, RangeList, Offset> {
+	using Type = TypeList<>;
+};
+
+
+
+template <typename BranchStructList, typename LeafStructLists, typename RangeList, Int Offset = 1> struct BranchNodeRangeListBuilder;
+
+template <
+	typename BranchStruct, typename... BTail,
+	typename LeafStruct, typename... LTail,
+	typename RangeList, typename... RTail,
+	Int Offset
+>
+struct BranchNodeRangeListBuilder<TypeList<BranchStruct, BTail...>, TypeList<LeafStruct, LTail...>, TypeList<RangeList, RTail...>, Offset>
+{
+	using List = typename RangeListBuilder<
+			BranchStruct,
+			LeafStruct,
+			RangeList,
+			Offset
+	>::Type;
+
+	static_assert(memoria::bt::detail::CheckRangeList<IndexesSize<BranchStruct>::Value, List>::Value, "Invalid RangeList");
+
+	using Type = MergeLists<
+			TL<
+				typename memoria::bt::detail::GlueRanges<List>::Type
+			>,
+			typename BranchNodeRangeListBuilder<
+				TypeList<BTail...>,
+				TypeList<LTail...>,
+				TypeList<RTail...>,
+				0
+			>::Type
+	>;
+};
+
+
+template <Int Offset>
+struct BranchNodeRangeListBuilder<TypeList<>, TypeList<>, TypeList<>, Offset>
+{
+	using Type = TypeList<>;
+};
+
+
+
+
+template <typename BranchStructList, typename RangeLists> struct IteratorAccumulatorBuilder;
+
+template <typename BranchStruct, typename... BTail, typename RangeList, typename... RTail>
+struct IteratorAccumulatorBuilder<TL<BranchStruct, BTail...>, TL<RangeList, RTail...>> {
+	using Type = MergeLists<
+			TL<
+				typename memoria::bt::detail::AccumBuilderH<
+					typename memoria::bt::AccumType<BranchStruct>::Type,
+					RangeList,
+					IndexesSize<BranchStruct>::Value
+				>::Type
+			>,
+			typename IteratorAccumulatorBuilder<TL<BTail...>, TL<RTail...>>::Type
+	>;
+};
 
 template <>
-struct AccumListBuilderH<TypeList<>, TypeList<>>:
-	TypeP<TypeList<>>
-{};
-
+struct IteratorAccumulatorBuilder<TL<>, TL<>> {
+	using Type = TL<>;
+};
 
 
 
