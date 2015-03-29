@@ -11,6 +11,12 @@
 #include <memoria/core/tools/static_array.hpp>
 
 #include <memoria/core/types/list/append.hpp>
+#include <memoria/core/types/list/linearize.hpp>
+#include <memoria/core/types/list/list_tree.hpp>
+#include <memoria/core/exceptions/bounds.hpp>
+
+#include <memoria/prototypes/bt/tools/bt_size_list_builder.hpp>
+
 
 #include <ostream>
 #include <tuple>
@@ -54,6 +60,12 @@ struct IndexVector: public memoria::core::StaticVector<T, To_ - From_> {
 	static const Int From 	= From_;
 };
 
+template <typename T>
+struct EmptyVector {
+	static const Int To 	= 0;
+	static const Int From 	= 0;
+};
+
 
 template <typename T, Int From, Int To, typename... Tail, Int Max>
 struct AccumBuilderH<T, TypeList<IndexRange<From, To>, Tail...>, Max>:
@@ -65,10 +77,17 @@ struct AccumBuilderH<T, TypeList<IndexRange<From, To>, Tail...>, Max>:
 	static_assert(To <= Max, "Index range must not exceed the limit");
 };
 
+template <typename T, Int From, Int To, Int Max>
+struct AccumBuilderH<T, TypeList<IndexRange<From, To>>, Max>
+{
+	using Type = TL<IndexVector<T, From, To>>;
+	static_assert(To <= Max, "Index range must not exceed the limit");
+};
+
 
 template <typename T, Int Max>
 struct AccumBuilderH<T, TypeList<>, Max>:
-	TypeP<TypeList<>>
+	TypeP<TypeList<EmptyVector<T>>>
 {};
 
 
@@ -136,6 +155,20 @@ struct CheckRangeList<Max, TL<>> {
 	static const bool Value = true;
 };
 
+
+template <typename List> struct MakeTuple;
+
+template <typename... Types>
+struct MakeTuple<TypeList<Types...>> {
+    using Type = std::tuple<Types...>;
+};
+
+template <typename... Types>
+struct MakeTuple<std::tuple<Types...>> {
+    using type = std::tuple<Types...>;
+};
+
+
 }
 
 
@@ -193,6 +226,10 @@ struct RangeListBuilder<BranchStruct, TypeList<>, RangeList, Offset> {
 };
 
 
+/**
+ * Converts range list from leaf node format to branch node format, that has different layout.
+ * Several leaf structs may belong to one branch struct.
+ */
 
 template <typename BranchStructList, typename LeafStructLists, typename RangeList, Int Offset = 1> struct BranchNodeRangeListBuilder;
 
@@ -235,19 +272,21 @@ struct BranchNodeRangeListBuilder<TypeList<>, TypeList<>, TypeList<>, Offset>
 
 
 
-
+/**
+ * Converts branch node range list to list of IndexVector types
+ */
 template <typename BranchStructList, typename RangeLists> struct IteratorAccumulatorBuilder;
 
 template <typename BranchStruct, typename... BTail, typename RangeList, typename... RTail>
 struct IteratorAccumulatorBuilder<TL<BranchStruct, BTail...>, TL<RangeList, RTail...>> {
 	using Type = MergeLists<
-			TL<
+			typename memoria::bt::detail::MakeTuple<
 				typename memoria::bt::detail::AccumBuilderH<
 					typename memoria::bt::AccumType<BranchStruct>::Type,
 					RangeList,
 					IndexesSize<BranchStruct>::Value
 				>::Type
-			>,
+			>::Type,
 			typename IteratorAccumulatorBuilder<TL<BTail...>, TL<RTail...>>::Type
 	>;
 };
@@ -256,6 +295,99 @@ template <>
 struct IteratorAccumulatorBuilder<TL<>, TL<>> {
 	using Type = TL<>;
 };
+
+
+
+
+
+namespace detail {
+
+template <typename RangeList, Int Idx = 0, typename RtnT = void> struct IndexRangeProc;
+
+template <typename T, Int From, Int To, typename... Tail, Int Idx, typename RtnT>
+struct IndexRangeProc<std::tuple<IndexVector<T, From, To>, Tail...>, Idx, RtnT> {
+
+	using RtnType = T;
+
+	template <typename RangeList>
+	static T& value(Int index, RangeList&& accum)
+	{
+		if (index >= From && index < To)
+		{
+			return std::get<Idx>(accum)[index - From];
+		}
+		else {
+			return IndexRangeProc<std::tuple<Tail...>, Idx + 1, T>::value(index, std::forward<RangeList>(accum));
+		}
+	}
+};
+
+
+
+template <Int Idx, typename RtnT>
+struct IndexRangeProc<std::tuple<>, Idx, RtnT> {
+
+	using RtnType = RtnT;
+
+	template <typename RangeList>
+	static RtnT& value(Int index, RangeList&& accum)
+	{
+		throw vapi::BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid index value: "<<index);
+	}
+};
+
+template <typename T, Int Idx, typename RtnT>
+struct IndexRangeProc<std::tuple<EmptyVector<T>>, Idx, RtnT> {
+
+	using RtnType = RtnT;
+
+	template <typename RangeList>
+	static RtnT& value(Int index, RangeList&& accum)
+	{
+		throw vapi::BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid index value: "<<index);
+	}
+};
+
+template <typename T> struct JustDumpT;
+
+}
+
+
+
+
+template <
+	typename LeafStructList,
+	typename LeafRangeList,
+	typename LeafPath,
+	typename AccumType
+>
+struct AccumItem {
+private:
+	using LeafOffsets 	= typename LeafOffsetListBuilder<LeafStructList>::Type;
+
+	using Leafs = Linearize<LeafStructList, 2>;
+
+	static constexpr Int LeafIdx 			= memoria::list_tree::LeafCount<LeafStructList, LeafPath>::Value;
+	static constexpr Int BranchIdx 			= memoria::list_tree::LeafCount<LeafStructList, LeafPath, 2>::Value;
+	static constexpr Int LocalLeafOffset 	= FindLocalLeafOffsetV<Leafs, LeafIdx>::Value;
+
+	using LocalLeafGroup = typename FindLocalLeafOffsetT<LeafOffsets, LeafIdx>::Type;
+
+	static constexpr Int LeafPrefix = GetLeafPrefix<LocalLeafGroup, LocalLeafOffset>::Value;
+
+	using RangeList = typename std::tuple_element<BranchIdx, AccumType>::type;
+
+public:
+
+	template <typename AccumTypeT>
+	static typename detail::IndexRangeProc<RangeList>::RtnType& value(Int index, AccumTypeT&& accum)
+	{
+		return detail::IndexRangeProc<RangeList>::value(index + LeafPrefix + 1, std::forward<RangeList>(std::get<BranchIdx>(std::forward<AccumTypeT>(accum))));
+	}
+};
+
+
+
 
 
 

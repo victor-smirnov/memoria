@@ -5,6 +5,9 @@
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/packed/tools/packed_dispatcher.hpp>
 
+#include <memoria/prototypes/bt/tools/bt_accumulators.hpp>
+
+#include <memoria/core/types/list/linearize.hpp>
 
 namespace memoria   {
 namespace bt        {
@@ -51,7 +54,7 @@ template <typename List>
 class PackedBranchStructListBuilder;
 
 template <typename List>
-class IteratorAccumulatorBuilder;
+class IteratorAccumulatorListBuilder;
 
 template <
     typename StructsTF,
@@ -99,13 +102,27 @@ template <
     typename StructsTF,
     typename... Tail
 >
-class IteratorAccumulatorBuilder<TypeList<StructsTF, Tail...>> {
+class IteratorAccumulatorListBuilder<TypeList<StructsTF, Tail...>> {
 
-    using BranchType = typename StructsTF::NonLeafType;
+	using LeafStructList 	= typename StructsTF::LeafType;
+    using BranchStructList 	= typename StructsTF::NonLeafType;
+
+    using IdxRangeList 		= typename StructsTF::IdxRangeList;
+
+    using RangeListType = typename BranchNodeRangeListBuilder<
+    		BranchStructList,
+    		LeafStructList,
+    		IdxRangeList
+    >::Type;
+
+    using AccType = typename IteratorAccumulatorBuilder<
+    		BranchStructList,
+    		RangeListType
+    >::Type;
 
 public:
     using StructList = AppendItemToList<
-                BranchType,
+    			AccType,
                 typename PackedBranchStructListBuilder<
                     TypeList<Tail...>
                 >::StructList
@@ -126,7 +143,7 @@ public:
 };
 
 template <>
-class IteratorAccumulatorBuilder<TypeList<>> {
+class IteratorAccumulatorListBuilder<TypeList<>> {
 public:
     using StructList = TypeList<>;
 };

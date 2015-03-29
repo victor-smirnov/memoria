@@ -6,6 +6,7 @@
 
 #include <memoria/core/types/list/linearize.hpp>
 #include <memoria/prototypes/bt/tools/bt_accumulators.hpp>
+#include <memoria/prototypes/bt/tools/bt_tools.hpp>
 
 
 
@@ -51,10 +52,7 @@ using IdxList = TypeList<
 >;
 
 
-
-
-
-using Type = BranchNodeRangeListBuilder<
+using RangeListType = BranchNodeRangeListBuilder<
 		BranchStructList,
 		LeafStructList,
 		IdxList
@@ -63,13 +61,28 @@ using Type = BranchNodeRangeListBuilder<
 
 using AccType = IteratorAccumulatorBuilder<
 		BranchStructList,
-		Type
+		RangeListType
 >::Type;
 
+
+using AccumTuple = TupleBuilder<AccType>::Type;
+
 int main() {
-	ListPrinter<Type>::print(cout);
+	ListPrinter<RangeListType>::print(cout);
 	cout<<"Accum:"<<endl;
 	ListPrinter<AccType>::print(cout);
+	cout<<"AccumTuple:"<<endl;
+	ListPrinter<TL<AccumTuple>>::print(cout);
+
+	AccumTuple accum;
+
+	try {
+		AccumItem<LeafStructList, IdxList, IntList<0>, AccumTuple>::value(9, accum) = 12345;
+		cout<<"AccumItem = "<<AccumItem<LeafStructList, IdxList, IntList<0>, AccumTuple>::value(0, accum)<<endl;
+	}
+	catch (BoundsException& ex) {
+		cout<<ex.message()<<endl;
+	}
 }
 
 
