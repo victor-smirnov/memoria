@@ -14,6 +14,7 @@
 
 using namespace memoria;
 using namespace memoria::bt;
+using namespace memoria::list_tree;
 using namespace std;
 
 class T{};
@@ -35,7 +36,7 @@ using BranchStructList = TypeList<
 
 
 using LeafStructList = TypeList<
-		TL<PkdStruct<Int, 4>, PkdStruct<Int, 4>>,
+		TL<PkdStruct<Int, 4>, PkdStruct<Int, 2>, PkdStruct<Int, 2>>,
 
 		PkdStruct<Int, 17>,
 
@@ -45,8 +46,12 @@ using LeafStructList = TypeList<
 >;
 
 using IdxList = TypeList<
-		TL<TL<IndexRange<0, 1>, IndexRange<1, 3>>, TL<IndexRange<0, 3>>>,
-		TL<IndexRange<0, 3>, IndexRange<3, 6>, IndexRange<6, 12>, IndexRange<13, 16>>,
+		TL<
+			TL<IndexRange<0, 1>, IndexRange<2, 4>>,
+			TL<IndexRange<0, 2>>,
+			TL<IndexRange<0, 2>>
+		>,
+		TL<IndexRange<0, 3>, IndexRange<3, 6>, IndexRange<6, 12>, IndexRange<13, 17>>,
 		TL<>,
 		TL<IndexRange<0, 1>, IndexRange<1, 2>>
 >;
@@ -65,7 +70,7 @@ using AccType = IteratorAccumulatorBuilder<
 >::Type;
 
 
-using AccumTuple = TupleBuilder<AccType>::Type;
+using AccumTuple = TupleBuilder<Linearize<AccType>>::Type;
 
 int main() {
 	ListPrinter<RangeListType>::print(cout);
@@ -74,11 +79,14 @@ int main() {
 	cout<<"AccumTuple:"<<endl;
 	ListPrinter<TL<AccumTuple>>::print(cout);
 
+	using AccumItemH = AccumItem<TL<LeafStructList>, IntList<0, 0, 1>, AccumTuple>;
+
 	AccumTuple accum;
 
 	try {
-		AccumItem<LeafStructList, IdxList, IntList<0>, AccumTuple>::value(9, accum) = 12345;
-		cout<<"AccumItem = "<<AccumItem<LeafStructList, IdxList, IntList<0>, AccumTuple>::value(0, accum)<<endl;
+		Int index = 4;
+		AccumItemH::value(index, accum) = 12345;
+		cout<<"AccumItem = "<<AccumItemH::value(index, accum)<<endl;
 	}
 	catch (BoundsException& ex) {
 		cout<<ex.message()<<endl;

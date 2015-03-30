@@ -13,6 +13,8 @@
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/types/type2type.hpp>
 
+#include <memoria/core/exceptions/bounds.hpp>
+
 #include <algorithm>
 
 namespace memoria    {
@@ -239,6 +241,7 @@ public:
 
     ElementType get() const
     {
+    	check(0);
         return values_[0];
     }
 
@@ -252,6 +255,8 @@ public:
 
     static MyType create(Int idx, const ElementType& value)
     {
+    	check(idx);
+
         MyType me;
 
         me[idx] = value;
@@ -272,22 +277,26 @@ public:
 
     const ElementType& value(Int idx) const
     {
+    	check(idx);
         return values_[idx];
     }
 
     ElementType& value(Int idx)
     {
+    	check(idx);
         return values_[idx];
     }
 
     const ElementType& operator[](Int idx) const
     {
+    	check(idx);
         return values_[idx];
     }
 
     ElementType& operator[](Int idx)
     {
-        return values_[idx];
+    	check(idx);
+    	return values_[idx];
     }
 
     void clear()
@@ -675,6 +684,12 @@ public:
         }
 
         return value;
+    }
+private:
+    static void check(Int idx) {
+    	if (idx < 0 || idx >= Indexes_) {
+    		throw vapi::BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid StaticVector index: "<<idx);
+    	}
     }
 };
 

@@ -18,7 +18,7 @@
 #include <memoria/prototypes/bt/tools/bt_size_list_builder.hpp>
 
 
-#include <ostream>
+#include <iostream>
 #include <tuple>
 
 namespace memoria   {
@@ -302,47 +302,56 @@ struct IteratorAccumulatorBuilder<TL<>, TL<>> {
 
 namespace detail {
 
-template <typename RangeList, Int Idx = 0, typename RtnT = void> struct IndexRangeProc;
+template <typename RangeList, Int Idx = 0> struct IndexRangeProc;
 
-template <typename T, Int From, Int To, typename... Tail, Int Idx, typename RtnT>
-struct IndexRangeProc<std::tuple<IndexVector<T, From, To>, Tail...>, Idx, RtnT> {
+template <typename T, Int From, Int To, typename... Tail, Int Idx>
+struct IndexRangeProc<std::tuple<IndexVector<T, From, To>, Tail...>, Idx> {
 
 	using RtnType = T;
 
 	template <typename RangeList>
 	static T& value(Int index, RangeList&& accum)
 	{
+		std::cout<<"IndexRangeProc1: "<<index<<" "<<From<<" "<<To<<std::endl;
 		if (index >= From && index < To)
 		{
 			return std::get<Idx>(accum)[index - From];
 		}
 		else {
-			return IndexRangeProc<std::tuple<Tail...>, Idx + 1, T>::value(index, std::forward<RangeList>(accum));
+			return IndexRangeProc<std::tuple<Tail...>, Idx + 1>::value(index, std::forward<RangeList>(accum));
+		}
+	}
+};
+
+
+template <typename T, Int From, Int To, Int Idx>
+struct IndexRangeProc<std::tuple<IndexVector<T, From, To>>, Idx> {
+
+	using RtnType = T;
+
+	template <typename RangeList>
+	static T& value(Int index, RangeList&& accum)
+	{
+		std::cout<<"IndexRangeProc2: "<<index<<" "<<From<<" "<<To<<" "<<Idx<<std::endl;
+		if (index >= From && index < To)
+		{
+			return std::get<Idx>(accum)[index - From];
+		}
+		else {
+			throw vapi::BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid index value: "<<index);
 		}
 	}
 };
 
 
 
-template <Int Idx, typename RtnT>
-struct IndexRangeProc<std::tuple<>, Idx, RtnT> {
+template <typename T, Int Idx>
+struct IndexRangeProc<std::tuple<EmptyVector<T>>, Idx> {
 
-	using RtnType = RtnT;
-
-	template <typename RangeList>
-	static RtnT& value(Int index, RangeList&& accum)
-	{
-		throw vapi::BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid index value: "<<index);
-	}
-};
-
-template <typename T, Int Idx, typename RtnT>
-struct IndexRangeProc<std::tuple<EmptyVector<T>>, Idx, RtnT> {
-
-	using RtnType = RtnT;
+	using RtnType = T;
 
 	template <typename RangeList>
-	static RtnT& value(Int index, RangeList&& accum)
+	static RtnType& value(Int index, RangeList&& accum)
 	{
 		throw vapi::BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid index value: "<<index);
 	}
@@ -357,23 +366,22 @@ template <typename T> struct JustDumpT;
 
 template <
 	typename LeafStructList,
-	typename LeafRangeList,
 	typename LeafPath,
 	typename AccumType
 >
 struct AccumItem {
-private:
-	using LeafOffsets 	= typename LeafOffsetListBuilder<LeafStructList>::Type;
+public:
+	static constexpr Int LeafIdx 			= memoria::list_tree::LeafCount<LeafStructList, LeafPath>::Value;
 
 	using Leafs = Linearize<LeafStructList, 2>;
-
-	static constexpr Int LeafIdx 			= memoria::list_tree::LeafCount<LeafStructList, LeafPath>::Value;
-	static constexpr Int BranchIdx 			= memoria::list_tree::LeafCount<LeafStructList, LeafPath, 2>::Value;
 	static constexpr Int LocalLeafOffset 	= FindLocalLeafOffsetV<Leafs, LeafIdx>::Value;
 
+	static constexpr Int BranchIdx 			= memoria::list_tree::LeafCountInf<LeafStructList, LeafPath, 2>::Value - LocalLeafOffset;
+
+	using LeafOffsets 	 = typename LeafOffsetListBuilder<LeafStructList>::Type;
 	using LocalLeafGroup = typename FindLocalLeafOffsetT<LeafOffsets, LeafIdx>::Type;
 
-	static constexpr Int LeafPrefix = GetLeafPrefix<LocalLeafGroup, LocalLeafOffset>::Value;
+	static constexpr Int LeafPrefix = GetLeafPrefix<LocalLeafGroup, LocalLeafOffset>::Value + 1 - IsStreamStart<LeafPath>::Value;
 
 	using RangeList = typename std::tuple_element<BranchIdx, AccumType>::type;
 
@@ -382,7 +390,8 @@ public:
 	template <typename AccumTypeT>
 	static typename detail::IndexRangeProc<RangeList>::RtnType& value(Int index, AccumTypeT&& accum)
 	{
-		return detail::IndexRangeProc<RangeList>::value(index + LeafPrefix + 1, std::forward<RangeList>(std::get<BranchIdx>(std::forward<AccumTypeT>(accum))));
+		std::cout<<"LeafPrefix = "<<LeafPrefix<<" "<<(index + LeafPrefix)<<" "<<BranchIdx<<std::endl;
+		return detail::IndexRangeProc<RangeList>::value(index + LeafPrefix, std::forward<RangeList>(std::get<BranchIdx>(std::forward<AccumTypeT>(accum))));
 	}
 };
 

@@ -419,6 +419,25 @@ struct GetLeafPrefix<StreamStartTag<List>, Idx> {
 	static const Int Value = Select<Idx, List>::Value;
 };
 
+
+template <typename Path, Int Depth = 0> struct IsStreamStart;
+
+template <Int Head, Int... Tail>
+struct IsStreamStart<IntList<Head, Tail...>, 0> {
+	static const bool Value = IsStreamStart<IntList<Tail...>, 1>::Value;
+};
+
+template <Int Head, Int... Tail, Int Idx>
+struct IsStreamStart<IntList<Head, Tail...>, Idx> {
+	static const bool Value = Head == 0 && IsStreamStart<IntList<Tail...>, Idx + 1>::Value;
+};
+
+template <Int Idx>
+struct IsStreamStart<IntList<>, Idx> {
+	static const bool Value = true;
+};
+
+
 }
 }
 
