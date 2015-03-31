@@ -312,7 +312,6 @@ struct IndexRangeProc<std::tuple<IndexVector<T, From, To>, Tail...>, Idx> {
 	template <typename RangeList>
 	static T& value(Int index, RangeList&& accum)
 	{
-		std::cout<<"IndexRangeProc1: "<<index<<" "<<From<<" "<<To<<std::endl;
 		if (index >= From && index < To)
 		{
 			return std::get<Idx>(accum)[index - From];
@@ -332,7 +331,6 @@ struct IndexRangeProc<std::tuple<IndexVector<T, From, To>>, Idx> {
 	template <typename RangeList>
 	static T& value(Int index, RangeList&& accum)
 	{
-		std::cout<<"IndexRangeProc2: "<<index<<" "<<From<<" "<<To<<" "<<Idx<<std::endl;
 		if (index >= From && index < To)
 		{
 			return std::get<Idx>(accum)[index - From];
@@ -381,7 +379,7 @@ public:
 	using LeafOffsets 	 = typename LeafOffsetListBuilder<LeafStructList>::Type;
 	using LocalLeafGroup = typename FindLocalLeafOffsetT<LeafOffsets, LeafIdx>::Type;
 
-	static constexpr Int LeafPrefix = GetLeafPrefix<LocalLeafGroup, LocalLeafOffset>::Value + 1 - IsStreamStart<LeafPath>::Value;
+	static constexpr Int LeafPrefix = GetLeafPrefix<LocalLeafGroup, LocalLeafOffset>::Value + IsStreamStart<LeafPath>::Value;
 
 	using RangeList = typename std::tuple_element<BranchIdx, AccumType>::type;
 
@@ -390,7 +388,6 @@ public:
 	template <typename AccumTypeT>
 	static typename detail::IndexRangeProc<RangeList>::RtnType& value(Int index, AccumTypeT&& accum)
 	{
-		std::cout<<"LeafPrefix = "<<LeafPrefix<<" "<<(index + LeafPrefix)<<" "<<BranchIdx<<std::endl;
 		return detail::IndexRangeProc<RangeList>::value(index + LeafPrefix, std::forward<RangeList>(std::get<BranchIdx>(std::forward<AccumTypeT>(accum))));
 	}
 };

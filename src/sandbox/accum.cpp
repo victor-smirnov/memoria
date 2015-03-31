@@ -79,12 +79,12 @@ int main() {
 	cout<<"AccumTuple:"<<endl;
 	ListPrinter<TL<AccumTuple>>::print(cout);
 
-	using AccumItemH = AccumItem<TL<LeafStructList>, IntList<0, 0, 1>, AccumTuple>;
+	using AccumItemH = AccumItem<TL<LeafStructList>, IntList<0, 1>, AccumTuple>;
 
 	AccumTuple accum;
 
 	try {
-		Int index = 4;
+		Int index = 13;
 		AccumItemH::value(index, accum) = 12345;
 		cout<<"AccumItem = "<<AccumItemH::value(index, accum)<<endl;
 	}
