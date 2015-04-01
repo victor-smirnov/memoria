@@ -264,6 +264,18 @@ public:
 
 
 
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void sum(AccumItem<T, Size>& accum) const
+    {
+    	// FIXME: implement
+    }
+
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void sum(Int start, Int end, AccumItem<T, Size>& accum) const
+    {
+    	// FIXME: implement
+    }
+
 
     template <typename T>
     void sums(MapSums<T>& sums) const

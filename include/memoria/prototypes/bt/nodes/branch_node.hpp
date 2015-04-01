@@ -349,7 +349,7 @@ public:
     using LeafSubstreamsStructList 		= typename Types::LeafStreamsStructList;
 
     using StreamDispatcherStructList = typename PackedDispatchersListBuilder<
-    		Linearize<BranchSubstreamsStructList>, Base::StreamsStart
+    		FlattenBranchTree<BranchSubstreamsStructList>, Base::StreamsStart
     >::Type;
 
     using Dispatcher = PackedDispatcher<StreamDispatcherStructList, 0>;
@@ -425,7 +425,7 @@ public:
     		BranchSubstreamsStructList,
     		memoria::list_tree::LeafCountInf<LeafSubstreamsStructList, LeafPath, 2>::Value -
     			FindLocalLeafOffsetV<
-    				Linearize<LeafSubstreamsStructList, 2>,
+    				FlattenLeafTree<LeafSubstreamsStructList>,
     				memoria::list_tree::LeafCount<LeafSubstreamsStructList, LeafPath>::Value
     			>::Value
     >::Type;
@@ -439,7 +439,7 @@ public:
     {
     	using LeafOffsets 	= typename LeafOffsetListBuilder<LeafSubstreamsStructList>::Type;
 
-    	using Leafs = Linearize<LeafSubstreamsStructList, 2>;
+    	using Leafs = FlattenLeafTree<LeafSubstreamsStructList>;
 
     	const Int LeafIdx 			= memoria::list_tree::LeafCount<LeafSubstreamsStructList, LeafPath>::Value;
     	const Int LocalLeafOffset 	= FindLocalLeafOffsetV<Leafs, LeafIdx>::Value;

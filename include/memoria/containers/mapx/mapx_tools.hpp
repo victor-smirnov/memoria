@@ -176,19 +176,21 @@ struct MapXStreamTF{
     typedef Key_                                                    Key;
     typedef Value_                                                  Value;
 
-    using LeafType = TypeList<TypeList<
-            PkdFTree<Packed2TreeTypes<Key, Key, Indexes>>,
-            PackedFSEArray<PackedFSEArrayTypes<Value>>
+    using LeafType = TL<TypeList<
+    		PkdFTree<Packed2TreeTypes<Key, Key, Indexes>>,
+    		PackedFSEArray<PackedFSEArrayTypes<Value>>
     >>;
 
     static const Int LeafIndexes                                    = Indexes + 1;
 
-    typedef core::StaticVector<BigInt, LeafIndexes>                 AccumulatorPart;
+    using AccumulatorPart = core::StaticVector<BigInt, Indexes + 1>;
+
     typedef core::StaticVector<BigInt, Indexes + 1>                 IteratorPrefixPart;
 
     typedef PkdFTree<
                 Packed2TreeTypes<Key, Key, LeafIndexes>
     >                                                               NonLeafType;
+    typedef TL<TL<TL<IndexRange<0, Indexes>>, TL<>>>				IdxRangeList;
 };
 
 

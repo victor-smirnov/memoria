@@ -202,14 +202,17 @@ public:
 
     using NodePageBase0     = TreeNodeBase<typename ContainerTypes::Metadata, Page>;
     using NodePageBase0G    = PageGuard<NodePageBase0, typename ContainerTypes::Allocator>;
+    using StreamDescriptors = typename ContainerTypes::StreamDescriptors;
 
-    using BranchStreamsStructList = typename PackedBranchStructListBuilder<
-                typename ContainerTypes::StreamDescriptors
-    >::StructList;
+    using BranchStreamsStructList = typename PackedBranchStructListBuilder<StreamDescriptors>::StructList;
 
-    using LeafStreamsStructList = typename PackedLeafStructListBuilder<
-                typename ContainerTypes::StreamDescriptors
-    >::StructList;
+    using LeafStreamsStructList = typename PackedLeafStructListBuilder<StreamDescriptors>::StructList;
+
+    using IteratorAccumulator = typename TupleBuilder<
+    			Linearize<
+    				typename IteratorAccumulatorListBuilder<StreamDescriptors>::Type
+                >
+    >::Type;
 
     using Accumulator_ = typename bt::TupleBuilder<
                     typename bt::AccumulatorListBuilder<
@@ -226,16 +229,17 @@ public:
 
         using Accumulator   = Accumulator_;
         using Position      = Position_;
+
+        using LeafStreamsStructList 	= typename MyType::LeafStreamsStructList;
+        using BranchStreamsStructList 	= typename MyType::BranchStreamsStructList;
+        using IteratorAccumulator 		= typename MyType::IteratorAccumulator;
     };
 
     struct BranchNodeTypes: NodeTypesBase {
-    	using LeafStreamsStructList = typename MyType::LeafStreamsStructList;
-    	using BranchStreamsStructList = typename MyType::BranchStreamsStructList;
+
     };
 
     struct LeafNodeTypes: NodeTypesBase {
-        using BranchStreamsStructList = typename MyType::BranchStreamsStructList;
-        using LeafStreamsStructList = typename MyType::LeafStreamsStructList;
     };
 
     struct DispatcherTypes
@@ -282,6 +286,10 @@ public:
         typedef Position_                                                       Position;
 
         typedef PageUpdateManager<CtrTypes>                                     PageUpdateMgr;
+
+        using LeafStreamsStructList 	= typename MyType::LeafStreamsStructList;
+        using BranchStreamsStructList 	= typename MyType::BranchStreamsStructList;
+        using IteratorAccumulator 		= typename MyType::IteratorAccumulator;
     };
 
     typedef typename Types::CtrTypes                                            CtrTypes;

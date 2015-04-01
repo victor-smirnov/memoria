@@ -20,7 +20,7 @@
 
 namespace memoria {
 
-template <typename Struct, Int Index> struct StreamDescr;
+template <typename Struct, Int Index> struct SubstreamDescr;
 
 namespace pd {
 
@@ -28,7 +28,7 @@ template <typename List, Int GroupIdx, Int StreamIdx, typename Fn, typename... A
 template <typename List, Int GroupIdx, Int StreamIdx, typename Fn, typename... Args> class ContainsVoidRtnType;
 
 template <Int GroupIdx, Int StreamIdx, typename Head, Int Index, typename Fn, typename... Tail, typename... Args>
-class MakeRtnTypeList<TypeList<StreamDescr<Head, Index>, Tail...>, GroupIdx, StreamIdx, Fn, Args...> {
+class MakeRtnTypeList<TypeList<SubstreamDescr<Head, Index>, Tail...>, GroupIdx, StreamIdx, Fn, Args...> {
 
     using FnType = typename std::remove_reference<Fn>::type;
 
@@ -60,7 +60,7 @@ struct IsVoid<void> {
 
 
 template <Int GroupIdx, Int StreamIdx, typename Head, Int Index, typename Fn, typename... Tail, typename... Args>
-class ContainsVoidRtnType<TypeList<StreamDescr<Head, Index>, Tail...>, GroupIdx, StreamIdx, Fn, Args...> {
+class ContainsVoidRtnType<TypeList<SubstreamDescr<Head, Index>, Tail...>, GroupIdx, StreamIdx, Fn, Args...> {
 
     using FnType = typename std::remove_reference<Fn>::type;
 
@@ -86,7 +86,7 @@ template <typename List, Int GroupIdx, Int StreamIdx, typename Fn, typename... A
 template <typename List, Int GroupIdx, Int StreamIdx, typename Fn, typename... Args> class ContainsVoidRtnTypeConst;
 
 template <Int GroupIdx, Int StreamIdx, typename Head, Int Index, typename Fn, typename... Tail, typename... Args>
-class MakeRtnTypeListConst<TypeList<StreamDescr<Head, Index>, Tail...>, GroupIdx, StreamIdx, Fn, Args...> {
+class MakeRtnTypeListConst<TypeList<SubstreamDescr<Head, Index>, Tail...>, GroupIdx, StreamIdx, Fn, Args...> {
 
     using FnType = typename std::remove_reference<Fn>::type;
 
@@ -109,7 +109,7 @@ public:
 
 
 template <Int GroupIdx, Int StreamIdx, typename Head, Int Index, typename Fn, typename... Tail, typename... Args>
-class ContainsVoidRtnTypeConst<TypeList<StreamDescr<Head, Index>, Tail...>, GroupIdx, StreamIdx, Fn, Args...> {
+class ContainsVoidRtnTypeConst<TypeList<SubstreamDescr<Head, Index>, Tail...>, GroupIdx, StreamIdx, Fn, Args...> {
 
     using FnType = typename std::remove_reference<Fn>::type;
 

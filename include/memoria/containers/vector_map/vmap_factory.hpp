@@ -68,6 +68,7 @@ struct BTTypes<Profile, memoria::VectorMap<Key_, Value_> >:
 
         typedef PkdFTree<Packed2TreeTypes<Key, Key, 2>>             NonLeafType;
         typedef PkdFTree<Packed2TreeTypes<Key, Key, 2>>             LeafType;
+        typedef TL<TL<>>											IdxRangeList;
     };
 
 
@@ -81,6 +82,7 @@ struct BTTypes<Profile, memoria::VectorMap<Key_, Value_> >:
 
         typedef PkdFTree<Packed2TreeTypes<Key, Key, 1>>             NonLeafType;
         typedef PackedFSEArray<PackedFSEArrayTypes<Value>>          LeafType;
+        typedef TL<TL<>>											IdxRangeList;
     };
 
 

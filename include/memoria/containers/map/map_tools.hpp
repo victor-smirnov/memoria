@@ -149,6 +149,7 @@ struct CompressedMapTF<Key, Granularity::Bit, Indexes> {
     typedef core::StaticVector<BigInt, Indexes + 1>                             IteratorPrefixPart;
 
     typedef PkdFTree<Packed2TreeTypes<Key, Key, Indexes + 1>>                   NonLeafType;
+    typedef TL<TL<>>															IdxRangeList;
 
     typedef PackedVLEMapTypes<
             Indexes, UBigIntEliasCodec, PackedTreeBranchingFactor, PackedTreeEliasVPB
@@ -165,6 +166,7 @@ struct CompressedMapTF<Key, Granularity::Byte, Indexes> {
     typedef core::StaticVector<BigInt, Indexes + 1>                             IteratorPrefixPart;
 
     typedef PkdFTree<Packed2TreeTypes<Key, Key, Indexes + 1>>                   NonLeafType;
+    typedef TL<TL<>>															IdxRangeList;
 
     typedef PackedVLEMapTypes<
             Indexes, UByteExintCodec, PackedTreeBranchingFactor, PackedTreeExintVPB

@@ -116,6 +116,15 @@ struct ListPrinter<ValueList<T>> {
 };
 
 
+template <typename... T>
+struct TypesPrinter {
+	static std::ostream& print(std::ostream& out)
+	{
+		ListPrinter<TL<T...>>::print(out);
+		return out;
+	}
+};
+
 }
 
 #endif

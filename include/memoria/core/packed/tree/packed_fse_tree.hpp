@@ -69,8 +69,8 @@ public:
 
     static const Int BranchingFactor        = Types::BranchingFactor;
     static const Int ValuesPerBranch        = Types::ValuesPerBranch;
-    static const Int Indexes                = 1;
     static const Int Blocks                 = Types::Blocks;
+    static const Int Indexes                = Blocks;
 
     static const bool FixedSizeElement      = true;
 
@@ -652,6 +652,29 @@ public:
     }
 
     // ==================================== Query ========================================== //
+
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void sum(AccumItem<T, Size>& accum) const
+    {
+    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		accum[block] += sum(block + Offset);
+    	}
+    }
+
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void sum(Int start, Int end, AccumItem<T, Size>& accum) const
+    {
+    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		accum[block] += sum(block + Offset, start, end);
+    	}
+    }
+
 
     IndexValue sum(Int block) const
     {

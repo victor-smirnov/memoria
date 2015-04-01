@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2013-2014.
+// Copyright Victor Smirnov 2013-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -977,17 +977,29 @@ public:
         template <typename StreamType, typename TupleItem>
         void stream(const StreamType* obj, TupleItem& accum, Int start, Int end)
         {
-            if (obj != nullptr){
-                obj->sums(start, end, accum);
+            if (obj != nullptr)
+            {
+                if (StreamStart)
+                {
+                	accum[Offset - 1] += end - start;
+                }
+
+                obj->template sum<Offset>(start, end, accum);
             }
         }
 
         template <typename StreamType, typename TupleItem>
         void stream(const StreamType* obj, TupleItem& accum)
         {
-            if (obj != nullptr) {
-                obj->sums(accum);
-            }
+        	if (obj != nullptr)
+        	{
+        		if (StreamStart)
+        		{
+        			accum[Offset - 1] += obj->size();
+        		}
+
+        		obj->template sum<Offset>(accum);
+        	}
         }
 
         template <Int GroupIdx, Int AllocatorIdx, Int ListIdx, typename StreamType, typename TupleItem>
@@ -995,7 +1007,10 @@ public:
         {
         	const Int StreamIdx = FindTopLevelIdx<LeafSubstreamsStructList, ListIdx>::Value;
 
-        	obj->sums(start[StreamIdx], end[StreamIdx], accum);
+        	Int startIdx 	= start[StreamIdx];
+        	Int endIdx 		= end[StreamIdx];
+
+        	stream(obj, accum, startIdx, endIdx);
         }
     };
 

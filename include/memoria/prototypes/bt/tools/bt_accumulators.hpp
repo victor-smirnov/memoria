@@ -39,6 +39,9 @@ struct IndexesH<IntList<Head, Tail...>>:
 {};
 
 
+template <typename IndexRangeTree>
+using FlattenIndexRangeTree = Linearize<IndexRangeTree, 3>;
+
 template <Int Head>
 struct IndexesH<IntList<Head>>:
 	TypeP<TypeList<IndexRange<Head>>>
@@ -355,11 +358,7 @@ struct IndexRangeProc<std::tuple<EmptyVector<T>>, Idx> {
 	}
 };
 
-template <typename T> struct JustDumpT;
-
 }
-
-
 
 
 template <
@@ -371,7 +370,7 @@ struct AccumItem {
 public:
 	static constexpr Int LeafIdx 			= memoria::list_tree::LeafCount<LeafStructList, LeafPath>::Value;
 
-	using Leafs = Linearize<LeafStructList, 2>;
+	using Leafs 							= FlattenLeafTree<LeafStructList>;
 	static constexpr Int LocalLeafOffset 	= FindLocalLeafOffsetV<Leafs, LeafIdx>::Value;
 
 	static constexpr Int BranchIdx 			= memoria::list_tree::LeafCountInf<LeafStructList, LeafPath, 2>::Value - LocalLeafOffset;

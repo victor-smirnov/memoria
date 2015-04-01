@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2014.
+// Copyright Victor Smirnov 2014-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -13,6 +13,12 @@
 
 namespace memoria   {
 namespace bt        {
+
+template <typename Tree>
+using FlattenBranchTree = Linearize<Tree, 1>;
+
+template <typename Tree>
+using FlattenLeafTree = Linearize<Tree, 2>;
 
 template <typename SizeList>
 struct StreamStartTag {
@@ -28,6 +34,26 @@ struct StructSizeProvider {
 
 namespace detail {
 
+template <typename List> struct FixStreamStart;
+
+
+template <Int Head, Int... Tail>
+struct FixStreamStart<IntList<Head, Tail...>> {
+	using Type = MergeValueListsT<
+		IntList<Head + 1>,
+		typename FixStreamStart<IntList<Tail...>>::Type
+	>;
+};
+
+
+template <>
+struct FixStreamStart<IntList<>> {
+	using Type = IntList<>;
+};
+
+
+
+
 template <
     typename OffsetList,
     typename List,
@@ -39,10 +65,14 @@ class TagStreamsStart {
 
     using StreamStart = typename Select<StreamOffset, OffsetList>::Result;
 
-    using FixedList = Replace<OffsetList, StreamStartTag<StreamStart>, StreamOffset>;
+    using FixedList = Replace<
+    		OffsetList,
+    		StreamStartTag<typename FixStreamStart<StreamStart>::Type>,
+    		StreamOffset
+    >;
 
 public:
-    using Type = typename TagStreamsStart<FixedList, List, Idx + 1>::Type;
+    using Type = typename TagStreamsStart<FixedList, List, Idx + 1, Max>::Type;
 };
 
 template <typename OffsetList, typename List, Int Idx>
@@ -138,12 +168,12 @@ public:
 }
 
 
-template <typename List>
+template <typename LeafTree>
 class LeafOffsetListBuilder {
-    using LinearLeafList = Linearize<List, 2>;
+    using LinearLeafList = FlattenLeafTree<LeafTree>;
     using OffsetList = typename detail::OffsetBuilder<LinearLeafList>::Type;
 public:
-    using Type = typename detail::TagStreamsStart<OffsetList, List>::Type;
+    using Type = typename detail::TagStreamsStart<OffsetList, LeafTree>::Type;
 };
 
 

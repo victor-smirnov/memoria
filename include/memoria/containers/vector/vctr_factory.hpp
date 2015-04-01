@@ -63,7 +63,8 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
         typedef core::StaticVector<BigInt, 1>                       IteratorPrefixPart;
 
         typedef PkdFTree<Packed2TreeTypes<Key, Key, 1>>             NonLeafType;
-        typedef TL<PackedFSEArray<PackedFSEArrayTypes<Value>>>          LeafType;
+        typedef TL<PackedFSEArray<PackedFSEArrayTypes<Value>>>      LeafType;
+        typedef TL<TL<>>											IdxRangeList;
     };
 
 

@@ -25,7 +25,7 @@ class LabelDispatcherListBuilder<TypeList<LabelDescr<Bits>, Tail...>, Idx> {
     typedef PkdFSSeq<typename PkdFSSeqTF<Bits>::Type>                           LabelStream;
 public:
      typedef typename MergeLists<
-                StreamDescr<LabelStream, Idx>,
+                SubstreamDescr<LabelStream, Idx>,
                 typename LabelDispatcherListBuilder<
                     TypeList<Tail...>,
                     Idx + 1
@@ -44,7 +44,7 @@ public:
 template <typename List> struct LabelsBlockSizeBuilder;
 
 template <typename LabelStream, Int Idx, typename... Tail>
-struct LabelsBlockSizeBuilder<TypeList<StreamDescr<LabelStream, Idx>, Tail...>> {
+struct LabelsBlockSizeBuilder<TypeList<SubstreamDescr<LabelStream, Idx>, Tail...>> {
     static const Int Value = LabelStream::Indexes +
             LabelsBlockSizeBuilder<TypeList<Tail...>>::Value;
 };

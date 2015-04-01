@@ -5,6 +5,7 @@
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/packed/tools/packed_dispatcher.hpp>
 
+#include <memoria/prototypes/bt/tools/bt_size_list_builder.hpp>
 #include <memoria/prototypes/bt/tools/bt_accumulators.hpp>
 
 #include <memoria/core/types/list/linearize.hpp>
@@ -104,10 +105,10 @@ template <
 >
 class IteratorAccumulatorListBuilder<TypeList<StructsTF, Tail...>> {
 
-	using LeafStructList 	= typename StructsTF::LeafType;
-    using BranchStructList 	= typename StructsTF::NonLeafType;
+	using LeafStructList 	= FlattenLeafTree<typename StructsTF::LeafType>;
 
-    using IdxRangeList 		= typename StructsTF::IdxRangeList;
+    using BranchStructList 	= FlattenBranchTree<typename StructsTF::NonLeafType>;
+    using IdxRangeList 		= FlattenIndexRangeTree<typename StructsTF::IdxRangeList>;
 
     using RangeListType = typename BranchNodeRangeListBuilder<
     		BranchStructList,
@@ -121,11 +122,9 @@ class IteratorAccumulatorListBuilder<TypeList<StructsTF, Tail...>> {
     >::Type;
 
 public:
-    using StructList = AppendItemToList<
+    using Type = AppendItemToList<
     			AccType,
-                typename PackedBranchStructListBuilder<
-                    TypeList<Tail...>
-                >::StructList
+                typename IteratorAccumulatorListBuilder<TypeList<Tail...>>::Type
     >;
 };
 
@@ -145,7 +144,7 @@ public:
 template <>
 class IteratorAccumulatorListBuilder<TypeList<>> {
 public:
-    using StructList = TypeList<>;
+    using Type = TypeList<>;
 };
 
 

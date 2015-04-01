@@ -42,6 +42,9 @@ public:
     typedef typename Types::Value                                               Value;
 
     typedef StaticVector<BigInt, 1>                                             Values;
+    typedef StaticVector<BigInt, 2>                                             Values2;
+
+    static const Int Indexes 													= 0;
 
 
 private:
@@ -206,9 +209,17 @@ public:
         values += sums(from, to);
     }
 
-    void sums(Values& values) const
+
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void sum(AccumItem<T, Size>& accum) const
     {
-        values += sums();
+    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+    }
+
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void sum(Int start, Int end, AccumItem<T, Size>& accum) const
+    {
+    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
     }
 
 

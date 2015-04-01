@@ -67,6 +67,7 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >: public BTTypes<Profile, me
         typedef core::StaticVector<BigInt, 1>                       IteratorPrefixPart;
 
         typedef PkdFTree<Packed2TreeTypes<Key, Key, Indexes>>       NonLeafType;
+        typedef TL<TL<>>											IdxRangeList;
 
         typedef typename PkdFSSeqTF<BitsPerSymbol>::Type            SequenceTypes;
 

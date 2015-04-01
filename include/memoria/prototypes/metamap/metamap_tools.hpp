@@ -188,6 +188,7 @@ struct MetaMapStreamTF{
     typedef PkdFTree<
                 Packed2TreeTypes<Key, Key, LeafIndexes>
     >                                                               NonLeafType;
+    typedef TL<TL<>>												IdxRangeList;
 };
 
 
@@ -219,6 +220,7 @@ struct MetaMapStreamTF<Indexes, VLen<gr, Key_>, Value_, HiddenLabelsList, Labels
     typedef PkdFTree<
                 Packed2TreeTypes<Key, Key, LeafIndexes>
     >                                                               NonLeafType;
+    typedef TL<TL<>>												IdxRangeList;
 };
 
 
@@ -250,6 +252,7 @@ struct MetaMapStreamTF<Indexes, Key_, VLen<gr, Value_>, HiddenLabelsList, Labels
     typedef PkdFTree<
                 Packed2TreeTypes<Key, Key, LeafIndexes>
     >                                                               NonLeafType;
+    typedef TL<TL<>>												IdxRangeList;
 };
 
 
@@ -288,6 +291,7 @@ struct MetaMapStreamTF<Indexes, VLen<gr1, Key_>, VLen<gr2, Value_>, HiddenLabels
     typedef PkdFTree<
                 Packed2TreeTypes<Key, Key, LeafIndexes>
     >                                                               NonLeafType;
+    typedef TL<TL<>>													IdxRangeList;
 };
 
 

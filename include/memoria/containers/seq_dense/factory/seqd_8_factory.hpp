@@ -66,11 +66,12 @@ struct BTTypes<Profile, memoria::Sequence<8, true> >:
         typedef PkdVTree<Packed2TreeTypes<
                 Key, Key, Indexes, UByteExintCodec
         >>                                                          NonLeafType;
+        typedef TL<TL<>>											IdxRangeList;
 
 
         typedef typename PkdFSSeqTF<BitsPerSymbol>::Type            SequenceTypes;
 
-        typedef TL<PkdFSSeq<SequenceTypes>>                             LeafType;
+        typedef TL<PkdFSSeq<SequenceTypes>>                         LeafType;
     };
 
 

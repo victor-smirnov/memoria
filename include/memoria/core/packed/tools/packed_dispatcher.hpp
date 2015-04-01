@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2013-2014.
+// Copyright Victor Smirnov 2013-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -34,7 +34,7 @@ struct RtnFnBase {
 template <typename List, Int GroupIdx = 0, Int ListIdx = 0> class PackedDispatcher;
 
 template <typename Struct, Int Index>
-struct StreamDescr {
+struct SubstreamDescr {
     using Type = Struct;
     static const int Value = Index;
 };
@@ -42,14 +42,14 @@ struct StreamDescr {
 
 
 template <typename Head, typename... Tail, Int Index, Int GroupIdx, Int ListIdx>
-class PackedDispatcher<TypeList<StreamDescr<Head, Index>, Tail...>, GroupIdx, ListIdx> {
+class PackedDispatcher<TypeList<SubstreamDescr<Head, Index>, Tail...>, GroupIdx, ListIdx> {
 public:
 
-    using MyType = PackedDispatcher<TypeList<StreamDescr<Head, Index>, Tail...>, GroupIdx, ListIdx>;
+    using MyType = PackedDispatcher<TypeList<SubstreamDescr<Head, Index>, Tail...>, GroupIdx, ListIdx>;
 
     static const Int AllocatorIdx   = Index;
 
-    using List              = TypeList<StreamDescr<Head, Index>, Tail...>;
+    using List              = TypeList<SubstreamDescr<Head, Index>, Tail...>;
     using NextDispatcher    = PackedDispatcher<TypeList<Tail...>, GroupIdx, ListIdx + 1>;
 
     static const Int Size = ListSize<List>::Value;
@@ -177,7 +177,7 @@ public:
             head = alloc->template get<StreamType>(AllocatorIdx);
         }
 
-        return detail::pd::dispatchFn<AllocatorIdx, StreamIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
+        return detail::pd::dispatchFn<GroupIdx, AllocatorIdx, StreamIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
     }
 
 
@@ -203,7 +203,7 @@ public:
             head = alloc->template get<StreamType>(AllocatorIdx);
         }
 
-        return detail::pd::dispatchFn<AllocatorIdx, StreamIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
+        return detail::pd::dispatchFn<GroupIdx, AllocatorIdx, StreamIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
     }
 
 
@@ -589,12 +589,12 @@ public:
 
 
 template <typename Head, Int Index, Int GroupIdx, Int ListIdx>
-class PackedDispatcher<TypeList<StreamDescr<Head, Index>>, GroupIdx, ListIdx> {
+class PackedDispatcher<TypeList<SubstreamDescr<Head, Index>>, GroupIdx, ListIdx> {
 public:
 
     static const Int AllocatorIdx   = Index;
 
-    typedef TypeList<StreamDescr<Head, Index>> List;
+    typedef TypeList<SubstreamDescr<Head, Index>> List;
 
     static const Int AllocatorIdxStart 	= Index;
     static const Int AllocatorIdxEnd 	= Index + 1;
@@ -642,7 +642,7 @@ public:
     template <Int From = 0, Int To = 1, Int GroupIdx_ = GroupIdx>
     using SubrangeDispatcher = PackedDispatcher<
                                 typename ::memoria::Sublist<
-                                    TypeList<StreamDescr<Head, Index>>,
+                                    TypeList<SubstreamDescr<Head, Index>>,
                                     From, To
                                 >::Type,
                                 GroupIdx_
@@ -651,7 +651,7 @@ public:
     template <typename Subset, Int GroupIdx_ = GroupIdx>
     using SubsetDispatcher = PackedDispatcher<
     								::memoria::ListSubset<
-                                        TypeList<StreamDescr<Head, Index>>,
+                                        TypeList<SubstreamDescr<Head, Index>>,
                                         Subset
                                     >,
                                     GroupIdx_
@@ -1090,7 +1090,7 @@ template <typename List, Int Idx = 0> struct PackedDispatchersListBuilder;
 template <typename Head, typename... Tail, Int Idx>
 struct PackedDispatchersListBuilder<TypeList<Head, Tail...>, Idx> {
      using Type = MergeLists<
-                StreamDescr<Head, Idx>,
+                SubstreamDescr<Head, Idx>,
                 typename PackedDispatchersListBuilder<
                     TypeList<Tail...>,
                     Idx + 1
