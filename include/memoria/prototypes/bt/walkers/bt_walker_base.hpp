@@ -105,24 +105,65 @@ struct BranchAccumWaker1<Accumulator, IntList<>> {
 };
 
 
+template <typename AccumItemH, typename RangeList, typename RangeOffsetList> struct LeafIndexRangeWalker;
 
 template <
-	typename Accum,
-	typename RangeList,
-	typename LeafStructList
+	typename AccumItemH,
+	Int From,
+	Int To,
+	Int Offset,
+	typename... Tail,
+	Int... RTail
 >
-struct LeafAccumWalker {
+struct LeafIndexRangeWalker<AccumItemH, TL<memoria::bt::IndexRange<From, To>, Tail...>, IntList<Offset, RTail...>> {
 
-	template <Int StreamIdx, Int Idx, typename StreamObj>
-	void stream(const StreamObj* obj, Int start, Int end)
+	template <typename StreamObj, typename Accum>
+	static void process(const StreamObj* obj, Accum& accum, Int start, Int end)
 	{
-		using LeafPath = typename memoria::list_tree::BuildTreePath<LeafStructList, StreamIdx>::Type;
-		using IdxRange = typename Select<StreamIdx, Linearize<RangeList>>::Type;
+		auto& item = AccumItemH::template item<Offset>(accum);
 
-//		AccumItem<LeafStructList, LeafPath>::value();
+		for (Int c = 0; c < To - From; c++)
+		{
+			item[Offset + c] += obj->sum(c + From, start, end);
+		}
+
+		LeafIndexRangeWalker<AccumItemH, TL<Tail...>, IntList<RTail...>>::process(obj, accum, start, end);
 	}
 };
 
+
+template <
+	typename AccumItemH
+>
+struct LeafIndexRangeWalker<AccumItemH, TL<>, IntList<>>{
+	template <typename StreamObj, typename Accum>
+	static void process(const StreamObj* obj, Accum& accum, Int start, Int end)
+	{
+	}
+};
+
+
+template <
+	typename LeafStructList,
+	typename LeafRangeList,
+	typename LeafRangeOffsetList,
+	Int StreamIdx
+>
+struct LeafAccumWalker {
+	template <Int Idx, typename StreamObj, typename Accum>
+	void stream(const StreamObj* obj, Accum& accum, Int start, Int end)
+	{
+		constexpr Int SubstreamIdx = StreamIdx + Idx;
+
+		using LeafPath   = typename memoria::list_tree::BuildTreePath<LeafStructList, SubstreamIdx>::Type;
+		using AccumItemH = memoria::bt::AccumItem<LeafStructList, LeafPath, Accum>;
+
+		using RangeList = typename Select<SubstreamIdx, Linearize<LeafRangeList, 2>>::Result;
+		using RangeOffsetList = typename Select<SubstreamIdx, Linearize<LeafRangeOffsetList>>::Result;
+
+		LeafIndexRangeWalker<AccumItemH, RangeList, RangeOffsetList>::process(obj, accum, start, end);
+	}
+};
 
 
 }
@@ -141,8 +182,13 @@ protected:
     typedef Iter<typename Types::IterTypes>                                     Iterator;
     typedef typename Types::IteratorPrefix                                      IteratorPrefix;
     typedef typename Types::IteratorAccumulator                                 IteratorAccumulator;
+    typedef typename Types::LeafStreamsStructList                               LeafStructList;
+    typedef typename Types::LeafRangeList                                 		LeafRangeList;
+    typedef typename Types::LeafRangeOffsetList                                 LeafRangeOffsetList;
 
     typedef typename Types::CtrSizeT                                            Key;
+
+
 
     static const Int Streams                                                    = Types::Streams;
 
@@ -340,9 +386,22 @@ public:
     template <typename NodeTypes>
     Int treeNode(const bt::LeafNode<NodeTypes>* node, BigInt start)
     {
-        Int idx = node->template processStream<LeafPath>(FindLeafFn(self()), start);
+    	Int idx = node->template processStream<LeafPath>(FindLeafFn(self()), start);
 
         self().postProcessNode(node, start, idx);
+
+        detail::LeafAccumWalker<
+        	LeafStructList,
+        	LeafRangeList,
+        	LeafRangeOffsetList,
+        	bt::LeafNode<NodeTypes>::template StreamStartIdx<
+        		ListHead<LeafPath>::Value
+        	>::Value
+        > w;
+
+        bt::LeafNode<NodeTypes>::template StreamDispatcher<
+        	ListHead<LeafPath>::Value
+        >::dispatchAll(node->allocator(), w, accumulator(), 0, 0);
 
         if (multistream_ && Streams > 1)
         {

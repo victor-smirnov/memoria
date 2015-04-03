@@ -51,7 +51,7 @@ using IdxList = TypeList<
 			TL<IndexRange<0, 2>>,
 			TL<IndexRange<0, 2>>
 		>,
-		TL<IndexRange<0, 3>, IndexRange<3, 6>, IndexRange<6, 12>, IndexRange<13, 17>>,
+		TL<IndexRange<0, 3>, IndexRange<3, 5>, IndexRange<6, 12>, IndexRange<13, 17>>,
 		TL<>,
 		TL<IndexRange<0, 1>, IndexRange<1, 2>>
 >;
@@ -79,25 +79,29 @@ using AccType = IteratorAccumulatorBuilder<
 using AccumTuple = TupleBuilder<Linearize<AccType>>::Type;
 
 int main() {
-	ListPrinter<RangeListType>::print(cout);
+//	ListPrinter<RangeListType>::print(cout);
 	//cout<<"Accum:"<<endl;
 	//ListPrinter<AccType>::print(cout);
 //	cout<<"AccumTuple:"<<endl;
 //	ListPrinter<TL<AccumTuple>>::print(cout);
 
-	cout<<"LeafRangeList:"<<endl;
-	ListPrinter<TL<IdxList>>::print(cout);
+//	cout<<"LeafRangeList:"<<endl;
+//	ListPrinter<TL<IdxList>>::print(cout);
+//
+//
+//	cout<<"RangeOffsetList:"<<endl;
+//	ListPrinter<TL<RangeOffsetListType>>::print(cout);
 
 
-	cout<<"RangeOffsetList:"<<endl;
-	ListPrinter<TL<RangeOffsetListType>>::print(cout);
-
-
-	using AccumItemH = AccumItem<TL<LeafStructList>, RangeOffsetListType, IntList<0, 1>, AccumTuple>;
+	using AccumItemH = AccumItem<TL<LeafStructList>, IntList<0, 1>, AccumTuple>;
 
 	AccumTuple accum;
 
 	try {
+		AccumItemH::template item<6>(accum)[0] = 123;
+
+		TypesPrinter<decltype(AccumItemH::template item<6>(accum))>::print(cout);
+
 		Int index = 13;
 		AccumItemH::value(index, accum) = 12345;
 		cout<<"AccumItem = "<<AccumItemH::value(index, accum)<<endl;

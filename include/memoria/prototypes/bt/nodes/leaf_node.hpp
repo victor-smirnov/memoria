@@ -87,6 +87,14 @@ public:
     		memoria::list_tree::LeafCountSup<LeafSubstreamsStructList, SubstreamsPath>::Value
     >;
 
+    template <Int StreamIdx>
+    using StreamDispatcher = SubstreamsDispatcher<IntList<StreamIdx>>;
+
+    template <Int StreamIdx>
+    using StreamStartIdx = IntValue<
+    		memoria::list_tree::LeafCountInf<LeafSubstreamsStructList, IntList<StreamIdx>>::Value
+    >;
+
     using AccumulatorDispatcher = AccumulatorLeafHandler<
             Accumulator,
             typename LeafOffsetListBuilder<LeafSubstreamsStructList>::Type

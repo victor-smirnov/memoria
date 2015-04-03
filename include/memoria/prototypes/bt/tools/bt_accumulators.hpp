@@ -439,21 +439,26 @@ struct IndexRangeProc<std::tuple<EmptyVector<T>>, Idx> {
 
 
 
-template <typename AccumTuple, Int Offset> struct SearchForAccumItem;
+template <typename AccumTuple, Int Offset, Int Tmp = 0> struct SearchForAccumItem;
 
-template <typename T, Int From, Int To, Int Offset, typename... Tail>
-struct SearchForAccumItem<std::tuple<IndexVector<T, From, To>, Tail...>, Offset>
+template <typename T, Int From, Int To, Int Offset, Int Tmp, typename... Tail>
+struct SearchForAccumItem<std::tuple<IndexVector<T, From, To>, Tail...>, Offset, Tmp>
 {
-	using Type = typename IfThenElse<
-			(Offset >= From && Offset < To),
-			IndexVector<T, From, To>,
-			typename SearchForAccumItem<std::tuple<Tail...>, Offset>::Type
-	>::Type;
+	static constexpr Int Idx = (Offset >= From && Offset < To) ?
+					Tmp :
+					SearchForAccumItem<std::tuple<Tail...>, Offset, Tmp + 1>::Idx;
 };
 
 
-template <Int Offset>
-struct SearchForAccumItem<std::tuple<>, Offset>;
+
+
+
+
+template <Int Offset, Int Tmp>
+struct SearchForAccumItem<std::tuple<>, Offset, Tmp> {
+	static constexpr Int Idx = -1;
+};
+
 
 
 }
@@ -461,7 +466,6 @@ struct SearchForAccumItem<std::tuple<>, Offset>;
 
 template <
 	typename LeafStructList,
-	typename RangeOffsetListType,
 	typename LeafPath,
 	typename AccumType
 >
@@ -482,6 +486,12 @@ public:
 
 	using AccumRangeList = typename std::tuple_element<BranchIdx, AccumType>::type;
 
+	template <Int Offset>
+	using Vector = typename std::tuple_element<
+		detail::SearchForAccumItem<AccumRangeList, Offset>::Idx,
+		AccumRangeList
+	>::type;
+
 
 //	template <Int LeafIdx>
 //	using Vector = typename detail::SearchForAccumItem<
@@ -496,6 +506,15 @@ public:
 //	using Vector = typename detail::SearchForAccumItem<AccumType, IdxRange>::Type;
 
 public:
+
+	template <Int Offset>
+	static
+	Vector<Offset>& item(AccumType& accum)
+	{
+		return std::get<
+				detail::SearchForAccumItem<AccumRangeList, Offset>::Idx
+		>(std::get<BranchIdx>(accum));
+	}
 
 	template <typename AccumTypeT>
 	static typename detail::IndexRangeProc<AccumRangeList>::RtnType& value(Int index, AccumTypeT&& accum)

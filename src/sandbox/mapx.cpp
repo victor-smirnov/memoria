@@ -30,8 +30,8 @@ int main() {
 	using LinearLeafList = FlattenLeafTree<CtrT::Types::LeafStreamsStructList>;
 
 	TypesPrinter<
-		RootT::Types::RangeOffsetList,
-		CtrT::Types::RangeOffsetList//,
+		RootT::Types::LeafRangeOffsetList,
+		CtrT::Types::LeafRangeOffsetList//,
 //
 //		LeafOffsetListBuilder<CtrT::Types::LeafStreamsStructList>::Type,
 //		CtrT::Types::IteratorAccumulator,

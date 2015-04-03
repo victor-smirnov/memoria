@@ -214,8 +214,13 @@ public:
                 >
     >::Type;
 
-    using RangeOffsetList = Linearize<
+    using LeafRangeOffsetList = Linearize<
     				typename IteratorAccumulatorListBuilder<StreamDescriptors>::RangeOffsetList
+    >;
+
+    using LeafRangeList = Linearize<
+    				typename IteratorAccumulatorListBuilder<StreamDescriptors>::IndexRangeList,
+    				2
     >;
 
 
@@ -295,7 +300,8 @@ public:
         using LeafStreamsStructList 	= typename MyType::LeafStreamsStructList;
         using BranchStreamsStructList 	= typename MyType::BranchStreamsStructList;
         using IteratorAccumulator 		= typename MyType::IteratorAccumulator;
-        using RangeOffsetList 			= typename MyType::RangeOffsetList;
+        using LeafRangeOffsetList 		= typename MyType::LeafRangeOffsetList;
+        using LeafRangeList				= typename MyType::LeafRangeList;
     };
 
     typedef typename Types::CtrTypes                                            CtrTypes;

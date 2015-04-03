@@ -137,6 +137,11 @@ public:
     		RangeOffsetListType,
     		typename IteratorAccumulatorListBuilder<TypeList<Tail...>>::RangeOffsetList
     >;
+
+    using IndexRangeList = AppendItemToList<
+    		IdxRangeList,
+    		typename IteratorAccumulatorListBuilder<TypeList<Tail...>>::IndexRangeList
+    >;
 };
 
 template <>
@@ -155,8 +160,9 @@ public:
 template <>
 class IteratorAccumulatorListBuilder<TypeList<>> {
 public:
-    using AccumTuple = TypeList<>;
-    using RangeOffsetList = TypeList<>;
+    using AccumTuple 		= TypeList<>;
+    using RangeOffsetList 	= TypeList<>;
+    using IndexRangeList	= TypeList<>;
 };
 
 
