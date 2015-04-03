@@ -63,6 +63,12 @@ using RangeListType = BranchNodeRangeListBuilder<
 		IdxList
 >::Type;
 
+using RangeOffsetListType = BranchNodeRangeListBuilder<
+		BranchStructList,
+		LeafStructList,
+		IdxList
+>::OffsetList;
+
 
 using AccType = IteratorAccumulatorBuilder<
 		BranchStructList,
@@ -74,12 +80,20 @@ using AccumTuple = TupleBuilder<Linearize<AccType>>::Type;
 
 int main() {
 	ListPrinter<RangeListType>::print(cout);
-	cout<<"Accum:"<<endl;
-	ListPrinter<AccType>::print(cout);
-	cout<<"AccumTuple:"<<endl;
-	ListPrinter<TL<AccumTuple>>::print(cout);
+	//cout<<"Accum:"<<endl;
+	//ListPrinter<AccType>::print(cout);
+//	cout<<"AccumTuple:"<<endl;
+//	ListPrinter<TL<AccumTuple>>::print(cout);
 
-	using AccumItemH = AccumItem<TL<LeafStructList>, IntList<0, 1>, AccumTuple>;
+	cout<<"LeafRangeList:"<<endl;
+	ListPrinter<TL<IdxList>>::print(cout);
+
+
+	cout<<"RangeOffsetList:"<<endl;
+	ListPrinter<TL<RangeOffsetListType>>::print(cout);
+
+
+	using AccumItemH = AccumItem<TL<LeafStructList>, RangeOffsetListType, IntList<0, 1>, AccumTuple>;
 
 	AccumTuple accum;
 

@@ -18,20 +18,26 @@ int main() {
 
 	SmallInMemAllocator alloc;
 
+	using RootT = SCtrTF<Root>::Type;
 	using CtrT = SCtrTF<MapX<BigInt, BigInt>>::Type;
 
 	CtrT::initMetadata();
 
 	CtrT ctr(&alloc);
 
+	ctr.insertSmth();
+
 	using LinearLeafList = FlattenLeafTree<CtrT::Types::LeafStreamsStructList>;
 
 	TypesPrinter<
-		LeafOffsetListBuilder<CtrT::Types::LeafStreamsStructList>::Type,
+		RootT::Types::RangeOffsetList,
+		CtrT::Types::RangeOffsetList//,
+//
+//		LeafOffsetListBuilder<CtrT::Types::LeafStreamsStructList>::Type,
 //		CtrT::Types::IteratorAccumulator,
-		CtrT::Types::Accumulator,
-		LinearLeafList,
-		CtrT::Types::BranchStreamsStructList
+//		CtrT::Types::Accumulator,
+//		LinearLeafList,
+//		CtrT::Types::BranchStreamsStructList
 	>::print(cout);
 
 }

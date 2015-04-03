@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011-2014.
+// Copyright Victor Smirnov 2011-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -1409,6 +1409,23 @@ public:
     	const Int StreamIdx = memoria::list_tree::LeafCount<BranchSubstreamsStructList, SubstreamPath>::Value;
     	return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
+
+
+    template <Int StreamIdx, typename Fn, typename... Args>
+    //DispatchRtnType<StreamIdx, Fn, Args...>
+    void processStreamByIdx(Fn&& fn, Args&&... args) const
+    {
+    	Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+    }
+
+    template <Int StreamIdx, typename Fn, typename... Args>
+    //DispatchRtnType<StreamIdx, Fn, Args...>
+    void processStreamByIdx(Fn&& fn, Args&&... args)
+    {
+    	Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+    }
+
+
 
 
     template <typename Fn, typename... Args>

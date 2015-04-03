@@ -25,8 +25,11 @@ namespace memoria   {
 namespace bt        {
 
 
-template <Int From, Int To = From +1>
-struct IndexRange {};
+template <Int From_, Int To_ = From_ +1>
+struct IndexRange {
+	static const Int From = From_;
+	static const Int To = To_;
+};
 
 template <typename T> struct IndexesH;
 
@@ -98,17 +101,24 @@ struct AccumBuilderH<T, TypeList<>, Max>:
 template <typename List, Int Offset> struct ShiftRangeList;
 
 template <Int From, Int To, typename... Tail, Int Offset>
-struct ShiftRangeList<TypeList<IndexRange<From, To>, Tail...>, Offset> {
+struct ShiftRangeList<TypeList<IndexRange<From, To>, Tail...>, Offset>
+{
 	using Type = MergeLists<
 			IndexRange<From + Offset, To + Offset>,
 			typename ShiftRangeList<TypeList<Tail...>, Offset>::Type
 	>;
+
+	using OffsetList = typename MergeValueLists<
+			IntList<From + Offset>,
+			typename ShiftRangeList<TypeList<Tail...>, Offset>::OffsetList
+	>::Type;
 };
 
 
 template <Int Offset>
 struct ShiftRangeList<TypeList<>, Offset> {
-	using Type = TypeList<>;
+	using Type 		 = TypeList<>;
+	using OffsetList = IntList<>;
 };
 
 
@@ -199,11 +209,20 @@ template <
 	Int Offset
 >
 struct RangeListBuilder<BranchStruct, TypeList<LeafStruct, LTail...>, RangeList, Offset> {
+private:
+	using ShiftedRangeList = typename memoria::bt::detail::ShiftRangeList<
+			typename ListHead<RangeList>::Type,
+			Offset
+	>::Type;
+
+	using RangeOffsetList = typename memoria::bt::detail::ShiftRangeList<
+			typename ListHead<RangeList>::Type,
+			Offset
+	>::OffsetList;
+
+public:
 	using Type = MergeLists<
-			typename memoria::bt::detail::ShiftRangeList<
-				typename ListHead<RangeList>::Type,
-				Offset
-			>::Type,
+			ShiftedRangeList,
 			typename RangeListBuilder<
 				BranchStruct,
 				TypeList<LTail...>,
@@ -211,12 +230,23 @@ struct RangeListBuilder<BranchStruct, TypeList<LeafStruct, LTail...>, RangeList,
 				Offset + IndexesSize<LeafStruct>::Value
 			>::Type
 	>;
+
+	using OffsetList = MergeLists<
+			TL<RangeOffsetList>,
+			typename RangeListBuilder<
+				BranchStruct,
+				TypeList<LTail...>,
+				typename ListTail<RangeList>::Type,
+				Offset + IndexesSize<LeafStruct>::Value
+			>::OffsetList
+	>;
 };
 
 
 template <typename BranchStruct, typename LeafStruct, typename RangeList, Int Offset>
 struct RangeListBuilder {
-	using Type = typename memoria::bt::detail::ShiftRangeList<RangeList, Offset>::Type;
+	using Type 		 = typename memoria::bt::detail::ShiftRangeList<RangeList, Offset>::Type;
+	using OffsetList = typename memoria::bt::detail::ShiftRangeList<RangeList, Offset>::OffsetList;
 };
 
 template <
@@ -225,7 +255,8 @@ template <
 	Int Offset
 >
 struct RangeListBuilder<BranchStruct, TypeList<>, RangeList, Offset> {
-	using Type = TypeList<>;
+	using Type 		 = TypeList<>;
+	using OffsetList = TypeList<>;
 };
 
 
@@ -251,7 +282,14 @@ struct BranchNodeRangeListBuilder<TypeList<BranchStruct, BTail...>, TypeList<Lea
 			Offset
 	>::Type;
 
-	static_assert(memoria::bt::detail::CheckRangeList<IndexesSize<BranchStruct>::Value, List>::Value, "Invalid RangeList");
+	using RangeOffsetList = typename RangeListBuilder<
+			BranchStruct,
+			LeafStruct,
+			RangeList,
+			Offset
+	>::OffsetList;
+
+	static_assert(memoria::bt::detail::CheckRangeList<IndexesSize<BranchStruct>::Value, List>::Value, "RangeList exceeds PackedStruct size");
 
 	using Type = MergeLists<
 			TL<
@@ -264,6 +302,16 @@ struct BranchNodeRangeListBuilder<TypeList<BranchStruct, BTail...>, TypeList<Lea
 				0
 			>::Type
 	>;
+
+	using OffsetList = MergeLists<
+			TL<RangeOffsetList>,
+			typename BranchNodeRangeListBuilder<
+				TypeList<BTail...>,
+				TypeList<LTail...>,
+				TypeList<RTail...>,
+				0
+			>::OffsetList
+	>;
 };
 
 
@@ -271,6 +319,7 @@ template <Int Offset>
 struct BranchNodeRangeListBuilder<TypeList<>, TypeList<>, TypeList<>, Offset>
 {
 	using Type = TypeList<>;
+	using OffsetList = TypeList<>;
 };
 
 
@@ -323,6 +372,18 @@ struct IndexRangeProc<std::tuple<IndexVector<T, From, To>, Tail...>, Idx> {
 			return IndexRangeProc<std::tuple<Tail...>, Idx + 1>::value(index, std::forward<RangeList>(accum));
 		}
 	}
+
+	template <Int Index, typename RangeList>
+	static T& value(RangeList&& accum)
+	{
+		if (Index >= From && Index < To)
+		{
+			return std::get<Idx>(accum)[Index - From];
+		}
+		else {
+			return IndexRangeProc<std::tuple<Tail...>, Idx + 1>::template value<Index>(std::forward<RangeList>(accum));
+		}
+	}
 };
 
 
@@ -342,6 +403,18 @@ struct IndexRangeProc<std::tuple<IndexVector<T, From, To>>, Idx> {
 			throw vapi::BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid index value: "<<index);
 		}
 	}
+
+	template <Int Index, typename RangeList>
+	static T& value(RangeList&& accum)
+	{
+		if (Index >= From && Index < To)
+		{
+			return std::get<Idx>(accum)[Index - From];
+		}
+		else {
+			throw vapi::BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid index value: "<<Index);
+		}
+	}
 };
 
 
@@ -356,13 +429,39 @@ struct IndexRangeProc<std::tuple<EmptyVector<T>>, Idx> {
 	{
 		throw vapi::BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid index value: "<<index);
 	}
+
+	template <Int Index, typename RangeList>
+	static RtnType& value(RangeList&& accum)
+	{
+		throw vapi::BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid index value: "<<Index);
+	}
 };
+
+
+
+template <typename AccumTuple, Int Offset> struct SearchForAccumItem;
+
+template <typename T, Int From, Int To, Int Offset, typename... Tail>
+struct SearchForAccumItem<std::tuple<IndexVector<T, From, To>, Tail...>, Offset>
+{
+	using Type = typename IfThenElse<
+			(Offset >= From && Offset < To),
+			IndexVector<T, From, To>,
+			typename SearchForAccumItem<std::tuple<Tail...>, Offset>::Type
+	>::Type;
+};
+
+
+template <Int Offset>
+struct SearchForAccumItem<std::tuple<>, Offset>;
+
 
 }
 
 
 template <
 	typename LeafStructList,
+	typename RangeOffsetListType,
 	typename LeafPath,
 	typename AccumType
 >
@@ -378,18 +477,40 @@ public:
 	using LeafOffsets 	 = typename LeafOffsetListBuilder<LeafStructList>::Type;
 	using LocalLeafGroup = typename FindLocalLeafOffsetT<LeafOffsets, LeafIdx>::Type;
 
-	static constexpr Int LeafPrefix = GetLeafPrefix<LocalLeafGroup, LocalLeafOffset>::Value + IsStreamStart<LeafPath>::Value;
+	static constexpr Int LeafPrefix = GetLeafPrefix<LocalLeafGroup, LocalLeafOffset>::Value
+									+ IsStreamStart<LeafPath>::Value;
 
-	using RangeList = typename std::tuple_element<BranchIdx, AccumType>::type;
+	using AccumRangeList = typename std::tuple_element<BranchIdx, AccumType>::type;
+
+
+//	template <Int LeafIdx>
+//	using Vector = typename detail::SearchForAccumItem<
+//			AccumRangeList,
+//			LeafIdx
+//	>::Type;
+
+
+//	using AccumTupleItem =
+
+//	template <typename IdxRange>
+//	using Vector = typename detail::SearchForAccumItem<AccumType, IdxRange>::Type;
 
 public:
 
 	template <typename AccumTypeT>
-	static typename detail::IndexRangeProc<RangeList>::RtnType& value(Int index, AccumTypeT&& accum)
+	static typename detail::IndexRangeProc<AccumRangeList>::RtnType& value(Int index, AccumTypeT&& accum)
 	{
-		return detail::IndexRangeProc<RangeList>::value(index + LeafPrefix, std::forward<RangeList>(std::get<BranchIdx>(std::forward<AccumTypeT>(accum))));
+		return detail::IndexRangeProc<AccumRangeList>::value(index + LeafPrefix, std::forward<AccumRangeList>(std::get<BranchIdx>(std::forward<AccumTypeT>(accum))));
+	}
+
+	template <Int Index, typename AccumTypeT>
+	static typename detail::IndexRangeProc<AccumRangeList>::RtnType& value(AccumTypeT&& accum)
+	{
+		return detail::IndexRangeProc<AccumRangeList>::template value<Index + LeafPrefix>(std::forward<AccumRangeList>(std::get<BranchIdx>(std::forward<AccumTypeT>(accum))));
 	}
 };
+
+
 
 
 

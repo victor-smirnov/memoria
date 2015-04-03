@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2013.
+// Copyright Victor Smirnov 2013-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -8,11 +8,124 @@
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_WALKER_BASE_HPP
 
 #include <memoria/core/types/types.hpp>
+#include <memoria/core/types/list/list_tree.hpp>
 #include <memoria/prototypes/bt/walkers/bt_walker_tools.hpp>
+
+
+#include <tuple>
 
 namespace memoria {
 namespace bt1     {
 
+namespace detail {
+
+template <typename Accumulator, typename IdxList> struct BranchAccumWaker1;
+template <typename Accumulator, typename IdxList> struct BranchAccumWalker2;
+
+template <
+	typename Accumulator,
+	Int Idx,
+	Int... Tail
+>
+struct BranchAccumWalker2<Accumulator, IntList<Idx, Tail...>> {
+
+	template <typename Node>
+	static void process(const Node* node, Accumulator& accum, Int start, Int end)
+	{
+		BranchAccumWalker2<Accumulator, IntList<Idx, Tail...>> w;
+
+		node->template processStreamByIdx<Idx>(w, std::get<Idx>(accum), start, end);
+
+		BranchAccumWalker2<Accumulator, IntList<Tail...>>::process(node, accum, start, end);
+	}
+
+	template <
+		typename StreamObj,
+		typename T,
+		Int From,
+		Int To,
+		template <typename, Int, Int> class AccumItem
+	>
+	void stream(const StreamObj* obj, AccumItem<T, From, To>& item, Int start, Int end)
+	{
+		obj->template sum<From>(start, end, item);
+	}
+
+	template <
+		typename StreamObj,
+		typename T,
+		template <typename> class AccumItem
+	>
+	void stream(const StreamObj* obj, AccumItem<T>& item, Int start, Int end)
+	{
+	}
+};
+
+
+template <
+	typename Accumulator
+>
+struct BranchAccumWalker2<Accumulator, IntList<>> {
+
+	template <typename Node>
+	static void process(const Node* node, Accumulator& accum, Int start, Int end)
+	{}
+};
+
+
+
+template <
+	typename Accumulator,
+	Int Idx,
+	Int... Tail
+>
+struct BranchAccumWaker1<Accumulator, IntList<Idx, Tail...>> {
+
+	template <typename Node>
+	static void process(const Node* node, Accumulator& accum, Int start, Int end)
+	{
+		using ItemType = typename std::tuple_element<Idx, Accumulator>::type;
+		using RangeIdxList = memoria::list_tree::MakeValueList<Int, 0, std::tuple_size<ItemType>::value>;
+
+		BranchAccumWalker2<ItemType, RangeIdxList>::process(node, std::get<Idx>(accum), start, end);
+
+		BranchAccumWaker1<Accumulator, IntList<Tail...>>::process(node, accum, start, end);
+	}
+};
+
+
+template <
+	typename Accumulator
+>
+struct BranchAccumWaker1<Accumulator, IntList<>> {
+
+	template <typename Node>
+	static void process(const Node* node, Accumulator& accum, Int start, Int end)
+	{}
+};
+
+
+
+template <
+	typename Accum,
+	typename RangeList,
+	typename LeafStructList
+>
+struct LeafAccumWalker {
+
+	template <Int StreamIdx, Int Idx, typename StreamObj>
+	void stream(const StreamObj* obj, Int start, Int end)
+	{
+		using LeafPath = typename memoria::list_tree::BuildTreePath<LeafStructList, StreamIdx>::Type;
+		using IdxRange = typename Select<StreamIdx, Linearize<RangeList>>::Type;
+
+//		AccumItem<LeafStructList, LeafPath>::value();
+	}
+};
+
+
+
+}
 
 template <typename Types, typename LeafPath_>
 struct WalkerTypes: Types {
@@ -27,6 +140,7 @@ class WalkerBase {
 protected:
     typedef Iter<typename Types::IterTypes>                                     Iterator;
     typedef typename Types::IteratorPrefix                                      IteratorPrefix;
+    typedef typename Types::IteratorAccumulator                                 IteratorAccumulator;
 
     typedef typename Types::CtrSizeT                                            Key;
 
@@ -45,6 +159,8 @@ protected:
     Int leaf_index_;
 
     IteratorPrefix prefix_;
+
+    IteratorAccumulator accumulator_;
 
     bool multistream_ = false;
 
@@ -164,6 +280,14 @@ public:
         return sum_;
     }
 
+    const IteratorAccumulator& accumulator() const {
+    	return accumulator_;
+    }
+
+    IteratorAccumulator& accumulator() {
+    	return accumulator_;
+    }
+
 
     MyType& self() {return *T2T<MyType*>(this);}
     const MyType& self() const {return *T2T<const MyType*>(this);}
@@ -198,6 +322,9 @@ public:
 
     	using BranchPath = typename bt::BranchNode<NodeTypes>::template BuildBranchPath<LeafPath>;
         Int idx = node->template processStream<BranchPath>(FindNonLeafFn(self()), index, start);
+
+        using ItrAccList = memoria::list_tree::MakeValueList<Int, 0, std::tuple_size<IteratorAccumulator>::value>;
+        detail::BranchAccumWaker1<IteratorAccumulator, ItrAccList>::process(node, accumulator_, start, idx);
 
         self().postProcessNode(node, start, idx);
 

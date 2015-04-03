@@ -116,15 +116,26 @@ class IteratorAccumulatorListBuilder<TypeList<StructsTF, Tail...>> {
     		IdxRangeList
     >::Type;
 
+	using RangeOffsetListType = typename BranchNodeRangeListBuilder<
+			BranchStructList,
+			LeafStructList,
+			IdxRangeList
+	>::OffsetList;
+
     using AccType = typename IteratorAccumulatorBuilder<
     		BranchStructList,
     		RangeListType
     >::Type;
 
 public:
-    using Type = AppendItemToList<
-    			AccType,
-                typename IteratorAccumulatorListBuilder<TypeList<Tail...>>::Type
+    using AccumTuple = AppendItemToList<
+    		AccType,
+    		typename IteratorAccumulatorListBuilder<TypeList<Tail...>>::AccumTuple
+    >;
+
+    using RangeOffsetList = AppendItemToList<
+    		RangeOffsetListType,
+    		typename IteratorAccumulatorListBuilder<TypeList<Tail...>>::RangeOffsetList
     >;
 };
 
@@ -144,7 +155,8 @@ public:
 template <>
 class IteratorAccumulatorListBuilder<TypeList<>> {
 public:
-    using Type = TypeList<>;
+    using AccumTuple = TypeList<>;
+    using RangeOffsetList = TypeList<>;
 };
 
 

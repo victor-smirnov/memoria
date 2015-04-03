@@ -675,6 +675,17 @@ public:
     	}
     }
 
+    template <Int Offset, Int From, Int To, typename T, template <typename, Int, Int> class AccumItem>
+    void sum(Int start, Int end, AccumItem<T, From, To>& accum) const
+    {
+//    	static_assert(Offset <= To - From - Indexes, "Invalid balanced tree structure");
+
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		accum[block] += sum(block + Offset, start, end);
+    	}
+    }
+
 
     IndexValue sum(Int block) const
     {

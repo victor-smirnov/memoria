@@ -143,6 +143,15 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mapx::CtrInsertName)
         LeafDispatcher::dispatch(iter.leaf(), InsertIntoLeafFn<MapEntry>(), iter.idx(), accum, entry);
     }
 
+    void insertSmth() {
+
+    	auto& self = this->self();
+
+    	MapEntry e;
+    	auto i = self.begin();
+    	insertEntry(i, e);
+    }
+
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::mapx::CtrInsertName)

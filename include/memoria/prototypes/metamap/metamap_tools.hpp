@@ -188,7 +188,7 @@ struct MetaMapStreamTF{
     typedef PkdFTree<
                 Packed2TreeTypes<Key, Key, LeafIndexes>
     >                                                               NonLeafType;
-    typedef TL<TL<>>												IdxRangeList;
+    typedef TL<TL<IndexRange<0, LeafIndexes - 1>>>					IdxRangeList;
 };
 
 

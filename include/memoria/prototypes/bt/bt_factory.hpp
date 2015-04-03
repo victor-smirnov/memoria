@@ -210,9 +210,14 @@ public:
 
     using IteratorAccumulator = typename TupleBuilder<
     			Linearize<
-    				typename IteratorAccumulatorListBuilder<StreamDescriptors>::Type
+    				typename IteratorAccumulatorListBuilder<StreamDescriptors>::AccumTuple
                 >
     >::Type;
+
+    using RangeOffsetList = Linearize<
+    				typename IteratorAccumulatorListBuilder<StreamDescriptors>::RangeOffsetList
+    >;
+
 
     using Accumulator_ = typename bt::TupleBuilder<
                     typename bt::AccumulatorListBuilder<
@@ -290,6 +295,7 @@ public:
         using LeafStreamsStructList 	= typename MyType::LeafStreamsStructList;
         using BranchStreamsStructList 	= typename MyType::BranchStreamsStructList;
         using IteratorAccumulator 		= typename MyType::IteratorAccumulator;
+        using RangeOffsetList 			= typename MyType::RangeOffsetList;
     };
 
     typedef typename Types::CtrTypes                                            CtrTypes;
