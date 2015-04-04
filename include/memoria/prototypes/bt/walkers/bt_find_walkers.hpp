@@ -326,6 +326,181 @@ public:
 
 
 
+
+
+/***********************************************************************/
+
+template <typename Types, typename MyType>
+class FindWalkerBase2: public WalkerBase2<Types, MyType> {
+
+protected:
+    using Base = WalkerBase2<Types, MyType>;
+    using Key = typename Base::Key;
+
+    using LeafPath 		= typename Types::LeafPath;
+
+    BigInt sum_             = 0;
+
+    Key target_;
+
+public:
+
+    FindWalkerBase2(Int leaf_index, Key target, SearchType search_type):
+        Base(leaf_index), target_(target)
+    {
+        Base::search_type() = search_type;
+    }
+
+    BigInt sum() const {
+    	return sum_;
+    }
+
+
+    Key target() const {
+    	return target_;
+    }
+
+};
+
+
+template <typename Types, typename IteratorPrefixFn, typename MyType>
+class FindForwardWalkerBase2: public FindWalkerBase2<Types, MyType> {
+
+protected:
+    using Base = FindWalkerBase2<Types, MyType>;
+    typedef typename Base::Key                                                  Key;
+
+public:
+    FindForwardWalkerBase2(Int leaf_index, Key target, SearchType search_type):
+        Base(leaf_index, target, search_type)
+    {}
+
+    template <Int StreamIdx, typename Tree>
+    Int find_non_leaf(const Tree* tree, Int index, Int start)
+    {
+        auto k = Base::target_ - Base::sum_;
+
+        auto result = tree->findForward(Base::search_type_, index, start, k);
+
+        Base::sum_ += result.prefix();
+
+        this->end_ = result.idx() >= tree->size();
+
+        return result.idx();
+    }
+
+
+    template <Int StreamIdx, typename Tree>
+    Int find_leaf(const Tree* tree, Int start)
+    {
+        auto k = Base::target_ - Base::sum_;
+
+        Int index   = this->leaf_index();
+
+        auto result = tree->findForward(Base::search_type_, index, start, k);
+
+        Base::sum_ += result.prefix();
+
+        this->end_ = result.idx() >= tree->size();
+
+        return result.idx();
+    }
+
+	template <Int StreamIdx, typename StreamType>
+	void branch_size_prefix(const StreamType* stream, Int start, Int end) {
+		Base::size_prefix()[StreamIdx] += stream->sum(start, end);
+	}
+
+	template <Int StreamIdx, typename StreamType>
+	void leaf_size_prefix(const StreamType* stream, Int start, Int end)
+	{
+		Base::size_prefix()[StreamIdx] += end - start;
+	}
+};
+
+
+template <
+    typename Types,
+    typename IteratorPrefixFn = EmptyIteratorPrefixFn
+>
+class FindForwardWalker2: public FindForwardWalkerBase2<
+                                    Types,
+                                    IteratorPrefixFn,
+                                    FindForwardWalker2<Types, IteratorPrefixFn>> {
+
+    using Base  = FindForwardWalkerBase2<
+                    Types,
+                    IteratorPrefixFn,
+                    FindForwardWalker2<
+                        Types,
+                        IteratorPrefixFn
+                    >
+    >;
+
+    using Key   = typename Base::Key;
+
+public:
+    FindForwardWalker2(Int leaf_index, Key target, SearchType search_type = SearchType::GE):
+        Base(leaf_index, target, search_type)
+    {}
+};
+
+
+template <
+    typename Types,
+    typename IteratorPrefixFn = EmptyIteratorPrefixFn
+>
+class FindGTForwardWalker2: public FindForwardWalkerBase2<
+                                    Types,
+                                    IteratorPrefixFn,
+                                    FindGTForwardWalker2<Types, IteratorPrefixFn>> {
+
+    using Base  = FindForwardWalkerBase2<
+                    Types,
+                    IteratorPrefixFn,
+                    FindGTForwardWalker2<
+                        Types,
+                        IteratorPrefixFn
+                    >
+    >;
+
+    using Key   = typename Base::Key;
+
+public:
+    FindGTForwardWalker2(Int leaf_index, Key target):
+        Base(leaf_index, target, SearchType::GT)
+    {}
+};
+
+template <
+    typename Types,
+    typename IteratorPrefixFn = EmptyIteratorPrefixFn
+>
+class FindGEForwardWalker2: public FindForwardWalkerBase2<
+                                    Types,
+                                    IteratorPrefixFn,
+                                    FindGTForwardWalker2<Types, IteratorPrefixFn>> {
+
+    using Base  = FindForwardWalkerBase2<
+                    Types,
+                    IteratorPrefixFn,
+                    FindGTForwardWalker2<
+                        Types,
+                        IteratorPrefixFn
+                    >
+    >;
+
+    using Key   = typename Base::Key;
+
+public:
+    FindGEForwardWalker2(Int leaf_index, Key target):
+        Base(leaf_index, target, SearchType::GE)
+    {}
+};
+
+
+
+
 }
 }
 

@@ -16,6 +16,7 @@ using namespace std;
 int main() {
 	MEMORIA_INIT(SmallProfile<>);
 
+	try {
 	SmallInMemAllocator alloc;
 
 	using RootT = SCtrTF<Root>::Type;
@@ -30,8 +31,9 @@ int main() {
 	using LinearLeafList = FlattenLeafTree<CtrT::Types::LeafStreamsStructList>;
 
 	TypesPrinter<
-		RootT::Types::LeafRangeOffsetList,
-		CtrT::Types::LeafRangeOffsetList//,
+		IntValue<CtrT::Types::Streams>
+//		RootT::Types::LeafRangeOffsetList,
+//		CtrT::Types::LeafRangeOffsetList//,
 //
 //		LeafOffsetListBuilder<CtrT::Types::LeafStreamsStructList>::Type,
 //		CtrT::Types::IteratorAccumulator,
@@ -39,5 +41,8 @@ int main() {
 //		LinearLeafList,
 //		CtrT::Types::BranchStreamsStructList
 	>::print(cout);
-
+	}
+	catch (memoria::vapi::Exception& ex) {
+		cout<<ex.message()<<" at "<<ex.source()<<endl;
+	}
 }

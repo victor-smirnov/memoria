@@ -148,7 +148,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mapx::CtrInsertName)
     	auto& self = this->self();
 
     	MapEntry e;
-    	auto i = self.begin();
+
+    	memoria::bt1::FindGEForwardWalker2<memoria::bt1::WalkerTypes<Types, IntList<0>>> w(0, 0);
+
+    	auto i = self.find0(0, w);
     	insertEntry(i, e);
     }
 

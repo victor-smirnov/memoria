@@ -67,15 +67,17 @@ struct ListTail<ValueList<T, Head, Tail...>> {
 
 template <typename T>
 struct TypePrinter {
-    static void print(std::ostream& out)
+    static std::ostream& print(std::ostream& out)
     {
         out<<::memoria::vapi::TypeNameFactory<T>::name();
+        return out;
     }
 
-    static void println(std::ostream& out)
+    static std::ostream& println(std::ostream& out)
     {
     	print(out);
     	out<<std::endl;
+    	return out;
     }
 };
 

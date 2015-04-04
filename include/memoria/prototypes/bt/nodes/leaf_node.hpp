@@ -116,7 +116,6 @@ public:
     static const Int SubstreamsStart                                            = Dispatcher::AllocatorIdxStart;
     static const Int SubstreamsEnd                                              = Dispatcher::AllocatorIdxEnd;
 
-//    static const Int ValuesBlockIdx                                             = SubstreamsEnd;
 
     //FIXME: Use SubDispatcher
 
@@ -1010,7 +1009,7 @@ public:
         	}
         }
 
-        template <Int GroupIdx, Int AllocatorIdx, Int ListIdx, typename StreamType, typename TupleItem>
+        template <Int ListIdx, typename StreamType, typename TupleItem>
         void stream(const StreamType* obj, TupleItem& accum, const Position& start, const Position& end)
         {
         	const Int StreamIdx = FindTopLevelIdx<LeafSubstreamsStructList, ListIdx>::Value;

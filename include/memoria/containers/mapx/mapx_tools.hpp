@@ -176,7 +176,7 @@ struct MapXStreamTF{
     typedef Key_                                                    Key;
     typedef Value_                                                  Value;
 
-    using LeafType = TL<TypeList<
+    using LeafType = TL<TL<
     		PkdFTree<Packed2TreeTypes<Key, Key, Indexes>>,
     		PackedFSEArray<PackedFSEArrayTypes<Value>>
     >>;
