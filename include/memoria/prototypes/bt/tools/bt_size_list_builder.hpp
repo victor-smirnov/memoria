@@ -468,6 +468,30 @@ struct IsStreamStart<IntList<>, Idx> {
 };
 
 
+
+
+
+template <typename LeafStructList, typename LeafPath, Int LeafIndex = 0>
+struct LeafToBranchIndexTranslator {
+protected:
+	using LeafOffsets = typename LeafOffsetListBuilder<LeafStructList>::Type;
+
+	using Leafs = FlattenLeafTree<LeafStructList>;
+
+	static const Int LeafIdx 			= memoria::list_tree::LeafCount<LeafStructList, LeafPath>::Value;
+	static const Int LocalLeafOffset	= FindLocalLeafOffsetV<Leafs, LeafIdx>::Value;
+
+	using LocalLeafGroup = typename FindLocalLeafOffsetT<LeafOffsets, LeafIdx>::Type;
+
+public:
+	static const Int BranchIndex = LeafIndex
+									+ GetLeafPrefix<LocalLeafGroup, LocalLeafOffset>::Value
+									+ IsStreamStart<LeafPath>::Value;
+};
+
+
+
+
 }
 }
 

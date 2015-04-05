@@ -339,7 +339,7 @@ protected:
 
     using LeafPath 		= typename Types::LeafPath;
 
-    BigInt sum_             = 0;
+    BigInt sum_			= 0;
 
     Key target_;
 
@@ -363,7 +363,7 @@ public:
 };
 
 
-template <typename Types, typename IteratorPrefixFn, typename MyType>
+template <typename Types, typename MyType>
 class FindForwardWalkerBase2: public FindWalkerBase2<Types, MyType> {
 
 protected:
@@ -410,26 +410,48 @@ public:
 	void branch_size_prefix(const StreamType* stream, Int start, Int end) {
 		Base::branch_size_prefix()[StreamIdx] += stream->sum(start, end);
 	}
+
+	template <
+		typename StreamObj,
+		typename T,
+		Int From,
+		Int To,
+		template <typename, Int, Int> class IterAccumItem
+	>
+	void branch_iterator_accumulator(const StreamObj* obj, IterAccumItem<T, From, To>& item, Int start, Int end)
+	{
+		static_assert(To <= StreamObj::Indexes, "Invalid BTree structure");
+
+		for (Int c = 0; c < StreamObj::Indexes; c++)
+		{
+			item[c + From] += obj->sum(c, start, end);
+		}
+	}
+
+	template <
+		typename StreamObj,
+		typename T,
+		template <typename> class AccumItem
+	>
+	void branch_iterator_accumulator(const StreamObj* obj, AccumItem<T>& item, Int start, Int end){}
+
+	template <Int Offset, Int From, Int Size, typename StreamObj, typename AccumItem>
+	void leaf_iterator_accumulator(const StreamObj* obj, AccumItem& item, Int start, Int end)
+	{
+		for (Int c = 0; c < Size; c++)
+		{
+			item[Offset - std::remove_reference<decltype(item)>::type::From + c] += obj->sum(c + From, start, end);
+		}
+	}
 };
 
 
 template <
-    typename Types,
-    typename IteratorPrefixFn = EmptyIteratorPrefixFn
+    typename Types
 >
-class FindForwardWalker2: public FindForwardWalkerBase2<
-                                    Types,
-                                    IteratorPrefixFn,
-                                    FindForwardWalker2<Types, IteratorPrefixFn>> {
+class FindForwardWalker2: public FindForwardWalkerBase2<Types,FindForwardWalker2<Types>> {
 
-    using Base  = FindForwardWalkerBase2<
-                    Types,
-                    IteratorPrefixFn,
-                    FindForwardWalker2<
-                        Types,
-                        IteratorPrefixFn
-                    >
-    >;
+    using Base  = FindForwardWalkerBase2<Types,FindForwardWalker2<Types>>;
 
     using Key   = typename Base::Key;
 
@@ -441,22 +463,11 @@ public:
 
 
 template <
-    typename Types,
-    typename IteratorPrefixFn = EmptyIteratorPrefixFn
+    typename Types
 >
-class FindGTForwardWalker2: public FindForwardWalkerBase2<
-                                    Types,
-                                    IteratorPrefixFn,
-                                    FindGTForwardWalker2<Types, IteratorPrefixFn>> {
+class FindGTForwardWalker2: public FindForwardWalkerBase2<Types, FindGTForwardWalker2<Types>> {
 
-    using Base  = FindForwardWalkerBase2<
-                    Types,
-                    IteratorPrefixFn,
-                    FindGTForwardWalker2<
-                        Types,
-                        IteratorPrefixFn
-                    >
-    >;
+    using Base  = FindForwardWalkerBase2<Types, FindGTForwardWalker2<Types>>;
 
     using Key   = typename Base::Key;
 
@@ -467,27 +478,170 @@ public:
 };
 
 template <
-    typename Types,
-    typename IteratorPrefixFn = EmptyIteratorPrefixFn
+    typename Types
 >
-class FindGEForwardWalker2: public FindForwardWalkerBase2<
-                                    Types,
-                                    IteratorPrefixFn,
-                                    FindGTForwardWalker2<Types, IteratorPrefixFn>> {
+class FindGEForwardWalker2: public FindForwardWalkerBase2<Types, FindGTForwardWalker2<Types>> {
 
-    using Base  = FindForwardWalkerBase2<
+    using Base  = FindForwardWalkerBase2<Types, FindGTForwardWalker2<Types>>;
+
+    using Key   = typename Base::Key;
+
+public:
+    FindGEForwardWalker2(Int leaf_index, Key target):
+        Base(leaf_index, target, SearchType::GE)
+    {}
+};
+
+
+
+
+template <typename Types, typename MyType>
+class FindBackwardWalkerBase2: public FindWalkerBase2<Types, MyType> {
+
+protected:
+    using Base = FindWalkerBase2<Types, MyType>;
+    typedef typename Base::Key                                                  Key;
+
+public:
+    FindBackwardWalkerBase2(Int leaf_index, Key target, SearchType search_type):
+        Base(leaf_index, target, search_type)
+    {}
+
+    template <Int StreamIdx, typename Tree>
+    Int find_non_leaf(const Tree* tree, Int index, Int start)
+    {
+    	auto k          = Base::target_ - Base::sum_;
+
+    	auto result     = tree->findBackward(Base::search_type_, index, start, k);
+    	Base::sum_      += result.prefix();
+
+    	this->end_ = result.idx() >= 0;
+
+    	return result.idx();
+    }
+
+
+    template <Int StreamIdx, typename Tree>
+    Int find_leaf(const Tree* tree, Int start)
+    {
+    	auto k          = Base::target_ - Base::sum_;
+
+    	Int index       = this->leaf_index();
+
+    	Int start1      = start == tree->size() ? start - 1 : start;
+
+    	auto result     = tree->findBackward(Base::search_type_, index, start1, k);
+    	Base::sum_      += result.prefix();
+
+    	this->end_ = result.idx() >= 0;
+
+    	return result.idx();
+    }
+
+	template <Int StreamIdx, typename StreamType>
+	void branch_size_prefix(const StreamType* stream, Int start, Int end)
+	{
+		Base::branch_size_prefix()[StreamIdx] += stream->sum(end + 1, start + 1);
+	}
+
+	template <
+		typename StreamObj,
+		typename T,
+		Int From,
+		Int To,
+		template <typename, Int, Int> class IterAccumItem
+	>
+	void branch_iterator_accumulator(const StreamObj* obj, IterAccumItem<T, From, To>& item, Int start, Int end)
+	{
+		static_assert(To <= StreamObj::Indexes, "Invalid BTree structure");
+
+		for (Int c = 0; c < StreamObj::Indexes; c++)
+		{
+			item[c + From] -= obj->sum(c, end + 1, start + 1);
+		}
+	}
+
+	template <
+		typename StreamObj,
+		typename T,
+		template <typename> class AccumItem
+	>
+	void branch_iterator_accumulator(const StreamObj* obj, AccumItem<T>& item, Int start, Int end){}
+
+	template <Int Offset, Int From, Int Size, typename StreamObj, typename AccumItem>
+	void leaf_iterator_accumulator(const StreamObj* obj, AccumItem& item, Int start, Int end)
+	{
+		for (Int c = 0; c < Size; c++)
+		{
+			item[Offset - std::remove_reference<decltype(item)>::type::From + c] -= obj->sum(c + From, end, start);
+		}
+	}
+};
+
+
+template <
+    typename Types
+>
+class FindBackwardWalker2: public FindBackwardWalkerBase2<
+                                    Types,
+                                    FindBackwardWalker2<Types>> {
+
+    using Base  = FindBackwardWalkerBase2<
                     Types,
-                    IteratorPrefixFn,
-                    FindGTForwardWalker2<
-                        Types,
-                        IteratorPrefixFn
+                    FindBackwardWalker2<
+                        Types
                     >
     >;
 
     using Key   = typename Base::Key;
 
 public:
-    FindGEForwardWalker2(Int leaf_index, Key target):
+    FindBackwardWalker2(Int leaf_index, Key target, SearchType search_type = SearchType::GE):
+        Base(leaf_index, target, search_type)
+    {}
+};
+
+
+template <
+    typename Types
+>
+class FindGTBackwardWalker2: public FindBackwardWalkerBase2<
+                                    Types,
+                                    FindGTBackwardWalker2<Types>> {
+
+    using Base  = FindBackwardWalkerBase2<
+                    Types,
+                    FindGTBackwardWalker2<
+                        Types
+                    >
+    >;
+
+    using Key   = typename Base::Key;
+
+public:
+    FindGTBackwardWalker2(Int leaf_index, Key target):
+        Base(leaf_index, target, SearchType::GT)
+    {}
+};
+
+template <
+    typename Types
+>
+class FindGEBackwardWalker2: public FindBackwardWalkerBase2<
+                                    Types,
+                                    FindGTBackwardWalker2<Types>> {
+
+    using Base  = FindBackwardWalkerBase2<
+                    Types,
+                    FindGTBackwardWalker2<
+                        Types
+                    >
+    >;
+
+    using Key   = typename Base::Key;
+
+public:
+    FindGEBackwardWalker2(Int leaf_index, Key target):
         Base(leaf_index, target, SearchType::GE)
     {}
 };

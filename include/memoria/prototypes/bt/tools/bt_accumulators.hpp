@@ -469,20 +469,13 @@ template <
 	typename LeafPath,
 	typename AccumType
 >
-struct AccumItem {
+struct AccumItem: public LeafToBranchIndexTranslator<LeafStructList, LeafPath, 0> {
 public:
-	static constexpr Int LeafIdx 			= memoria::list_tree::LeafCount<LeafStructList, LeafPath>::Value;
+	using Base = LeafToBranchIndexTranslator<LeafStructList, LeafPath, 0>;
 
-	using Leafs 							= FlattenLeafTree<LeafStructList>;
-	static constexpr Int LocalLeafOffset 	= FindLocalLeafOffsetV<Leafs, LeafIdx>::Value;
+	static constexpr Int BranchIdx 			= memoria::list_tree::LeafCountInf<LeafStructList, LeafPath, 2>::Value - Base::LocalLeafOffset;
 
-	static constexpr Int BranchIdx 			= memoria::list_tree::LeafCountInf<LeafStructList, LeafPath, 2>::Value - LocalLeafOffset;
-
-	using LeafOffsets 	 = typename LeafOffsetListBuilder<LeafStructList>::Type;
-	using LocalLeafGroup = typename FindLocalLeafOffsetT<LeafOffsets, LeafIdx>::Type;
-
-	static constexpr Int LeafPrefix = GetLeafPrefix<LocalLeafGroup, LocalLeafOffset>::Value
-									+ IsStreamStart<LeafPath>::Value;
+	static constexpr Int LeafPrefix = Base::BranchIndex;
 
 	using AccumRangeList = typename std::tuple_element<BranchIdx, AccumType>::type;
 
@@ -491,19 +484,6 @@ public:
 		detail::SearchForAccumItem<AccumRangeList, Offset>::Idx,
 		AccumRangeList
 	>::type;
-
-
-//	template <Int LeafIdx>
-//	using Vector = typename detail::SearchForAccumItem<
-//			AccumRangeList,
-//			LeafIdx
-//	>::Type;
-
-
-//	using AccumTupleItem =
-
-//	template <typename IdxRange>
-//	using Vector = typename detail::SearchForAccumItem<AccumType, IdxRange>::Type;
 
 public:
 

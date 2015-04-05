@@ -5,8 +5,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_CONTAINERS_MAPX_CTR_INSERT_HPP
-#define _MEMORIA_CONTAINERS_MAPX_CTR_INSERT_HPP
+#ifndef _MEMORIA_CONTAINERS_MAPX_CTR_REMOVE_HPP
+#define _MEMORIA_CONTAINERS_MAPX_CTR_REMOVE_HPP
 
 
 #include <memoria/containers/mapx/mapx_names.hpp>
@@ -20,7 +20,7 @@
 
 namespace memoria    {
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::mapx::CtrRemoveName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::mapx::CtrInsertName)
 
     typedef typename Base::Types                                                Types;
 
@@ -43,50 +43,45 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mapx::CtrRemoveName)
 
     typedef typename Types::Entry                                               MapEntry;
 
+
     template <
     	Int Idx,
     	Int Offset,
     	bool StreamStart
     >
-    struct InsertIntoStreamHanlder
+    struct RemoveFromStreamHanlder
     {
-    	template <typename SubstreamType, typename AccumulatorItem, typename Entry>
-    	void stream(SubstreamType* obj, AccumulatorItem& accum, Int idx, const Entry& entry)
+    	template <typename SubstreamType, typename AccumulatorItem>
+    	void stream(SubstreamType* obj, AccumulatorItem& accum, Int idx)
     	{
-    		obj->insert(idx, std::get<Idx>(entry));
-    		obj->template sum<Offset>(idx, accum);
+    		obj->remove(idx, idx + 1);
+
+    		obj->template sub<Offset>(idx, accum);
 
     		if (StreamStart)
     		{
-    			accum[0] += 1;
+    			accum[0] -= 1;
     		}
     	}
     };
 
 
-    template <Int Stream, typename Entry>
-    struct InsertIntoLeafFn
+    template <Int Stream>
+    struct RemoveFromLeafFn
     {
     	template <typename NTypes>
-        void treeNode(LeafNode<NTypes>* node, Int idx, Accumulator& accum, const Entry& entry)
+        void treeNode(LeafNode<NTypes>* node, Int idx, Accumulator& accum)
         {
     		using Node = LeafNode<NTypes>;
 
             node->layout(255);
 
-            node->template processSubstreamsAcc<Stream, InsertIntoStreamHanlder>(accum, idx, entry);
+            node->template processSubstreamsAcc<Stream, RemoveFromStreamHanlder>(accum, idx);
         }
     };
 
-    void insertEntry(Iterator& iter, const MapEntry& entry)
-    {
-    	Accumulator accum;
-        LeafDispatcher::dispatch(iter.leaf(), InsertIntoLeafFn<0, MapEntry>(), iter.idx(), accum, entry);
-    }
-
-
-    template <Int Stream, typename... TupleTypes>
-    std::tuple<bool, Accumulator> tryInsertStreamEntry(Iterator& iter, const std::tuple<TupleTypes...>& entry)
+    template <Int Stream>
+    std::tuple<bool, Accumulator> tryRemoveStreamEntry(Iterator& iter)
     {
     	auto& self = this->self();
 
@@ -98,7 +93,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mapx::CtrRemoveName)
 
     	try {
     		Accumulator accum;
-    		LeafDispatcher::dispatch(iter.leaf(), InsertIntoLeafFn<Stream, std::tuple<TupleTypes...>>(), iter.idx(), accum, entry);
+    		LeafDispatcher::dispatch(iter.leaf(), RemoveFromLeafFn<Stream>(), iter.idx(), accum);
     		return std::make_tuple(true, accum);
     	}
     	catch (PackedOOMException& e)
@@ -108,42 +103,35 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mapx::CtrRemoveName)
     	}
     }
 
-    template <Int Stream, typename... TupleTypes>
-    void insertStreamEntry(Iterator& iter, const std::tuple<TupleTypes...>& entry)
+    template <Int Stream>
+    void removeStreamEntry(Iterator& iter)
     {
     	auto& self      = this->self();
 
-    	auto result = self.template tryInsertStreamEntry<Stream>(iter, entry);
+    	auto result = self.template tryRemoveStreamEntry<Stream>(iter);
 
     	if (!std::get<0>(result))
     	{
     		iter.split();
 
-    		result = self.template tryInsertStreamEntry<Stream>(iter, entry);
+    		result = self.template tryRemoveStreamEntry<Stream>(iter);
 
     		if (!std::get<0>(result))
     		{
-    			throw Exception(MA_SRC, "Second insertion attempt failed");
+    			throw Exception(MA_SRC, "Second removal attempt failed");
     		}
     	}
 
     	self.updateParent(iter.leaf(), std::get<1>(result));
 
-    	iter.skipFw(1);
-
-    	self.addTotalKeyCount(Position::create(Stream, 1));
+    	self.addTotalKeyCount(Position::create(Stream, -1));
     }
 
 
-    Iterator findK(BigInt k)
-    {
-    	memoria::bt1::FindGTForwardWalker2<memoria::bt1::WalkerTypes<Types, IntList<0>>> w(0, k);
-    	return self().find0(0, w);
-    }
 
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::mapx::CtrRemoveName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::mapx::CtrInsertName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 

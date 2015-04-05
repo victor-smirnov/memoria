@@ -193,6 +193,10 @@ public:
     	return size_prefix_;
     }
 
+    static Int branchIndex(Int leaf_index)
+    {
+    	return memoria::bt::LeafToBranchIndexTranslator<LeafStructList, LeafPath, 0>::BranchIndex + leaf_index;
+    }
 
     MyType& self() {return *T2T<MyType*>(this);}
     const MyType& self() const {return *T2T<const MyType*>(this);}
@@ -308,15 +312,19 @@ public:
 
 private:
 
-    struct FindNonLeafFn {
+    struct FindBranchFn {
         MyType& walker_;
 
-        FindNonLeafFn(MyType& walker): walker_(walker) {}
+        FindBranchFn(MyType& walker): walker_(walker) {}
 
-        template <Int StreamIndex, typename StreamType>
+        template <Int ListIdx, typename StreamType>
         Int stream(const StreamType* stream, Int index, Int start)
         {
-            return walker_.template find_non_leaf<StreamIndex>(stream, index, start);
+            Int idx = walker_.template find_non_leaf<ListIdx>(stream, index, start);
+
+            walker_.template postProcessBranchStream<ListIdx>(stream, start, idx);
+
+            return idx;
         }
     };
 
@@ -326,10 +334,14 @@ private:
 
         FindLeafFn(MyType& walker): walker_(walker) {}
 
-        template <Int StreamIndex, typename StreamType>
+        template <Int ListIdx, typename StreamType>
         Int stream(const StreamType* stream, Int start)
         {
-            return walker_.template find_leaf<StreamIndex>(stream, start);
+            Int idx = walker_.template find_leaf<ListIdx>(stream, start);
+
+            walker_.template postProcessLeafStream<ListIdx>(stream, start, idx);
+
+            return idx;
         }
     };
 
@@ -470,15 +482,17 @@ public:
     template <typename NodeTypes>
     Int treeNode(const bt::BranchNode<NodeTypes>* node, BigInt start)
     {
+    	auto& self = this->self();
+
     	Int index = node->template translateLeafIndexToBranchIndex<LeafPath>(this->leaf_index());
 
     	using BranchPath = typename bt::BranchNode<NodeTypes>::template BuildBranchPath<LeafPath>;
-        Int idx = node->template processStream<BranchPath>(FindNonLeafFn(self()), index, start);
+        Int idx = node->template processStream<BranchPath>(FindBranchFn(self), index, start);
 
         if (compute_branch_)
         {
-        	self().processBranchIteratorAccumulator(node, start, idx);
-        	self().processBranchSizePrefix(node, start, idx);
+        	self.processBranchIteratorAccumulator(node, start, idx);
+        	self.processBranchSizePrefix(node, start, idx);
         }
 
         return idx;
@@ -493,7 +507,7 @@ public:
     		IteratorAccumulator,
     		ItrAccList
     	>::
-    	process(node, branch_accumulator(), start, end);
+    	process(self(), node, branch_accumulator(), start, end);
     }
 
 
@@ -515,13 +529,15 @@ public:
     template <typename NodeTypes>
     Int treeNode(const bt::LeafNode<NodeTypes>* node, BigInt start)
     {
+    	auto& self = this->self();
+
     	using Node = bt::LeafNode<NodeTypes>;
 
-    	Int idx = node->template processStream<LeafPath>(FindLeafFn(self()), start);
+    	Int idx = node->template processStream<LeafPath>(FindLeafFn(self), start);
 
     	if (compute_leaf_)
     	{
-    		self().processLeafIteratorAccumulator(node, start, idx);
+    		self.processLeafIteratorAccumulator(node, start, idx);
     	}
 
         return idx;
@@ -543,8 +559,14 @@ public:
     	Node::template StreamDispatcher<
     		ListHead<LeafPath>::Value
     	>
-    	::dispatchAll(node->allocator(), w, leaf_accumulator(), start, end);
+    	::dispatchAll(node->allocator(), w, self(), leaf_accumulator(), start, end);
     }
+
+    template <Int StreamIdx, typename StreamType>
+    void postProcessBranchStream(const StreamType*, Int, Int) {}
+
+    template <Int StreamIdx, typename StreamType>
+    void postProcessLeafStream(const StreamType*, Int, Int) {}
 };
 
 

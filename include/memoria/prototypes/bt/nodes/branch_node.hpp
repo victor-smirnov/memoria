@@ -437,15 +437,7 @@ public:
     template <typename LeafPath>
     static Int translateLeafIndexToBranchIndex(Int leaf_index)
     {
-    	using LeafOffsets 	= typename LeafOffsetListBuilder<LeafSubstreamsStructList>::Type;
-
-    	using Leafs = FlattenLeafTree<LeafSubstreamsStructList>;
-
-    	const Int LeafIdx 			= memoria::list_tree::LeafCount<LeafSubstreamsStructList, LeafPath>::Value;
-    	const Int LocalLeafOffset 	= FindLocalLeafOffsetV<Leafs, LeafIdx>::Value;
-    	using LocalLeafGroup 		= typename FindLocalLeafOffsetT<LeafOffsets, LeafIdx>::Type;
-
-    	return leaf_index + GetLeafPrefix<LocalLeafGroup, LocalLeafOffset>::Value + 1;
+    	return LeafToBranchIndexTranslator<LeafSubstreamsStructList, LeafPath, 0>::BranchIndex + leaf_index;
     }
 
 private:

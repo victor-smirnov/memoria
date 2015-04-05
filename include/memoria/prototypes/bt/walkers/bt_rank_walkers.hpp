@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2013.
+// Copyright Victor Smirnov 2013-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -121,6 +121,96 @@ public:
     void postProcessNonLeafStream(const StreamType* stream, Int start, Int end, Int symbol)
     {
         return stream->sum(branch_rank_index_, start, end);
+    }
+
+    BigInt finish(Iterator& iter, Int idx)
+    {
+        Base::finish(iter, idx);
+
+        return rank_;
+    }
+};
+
+
+
+
+/*****************************************************************************************/
+
+template <
+    typename Types
+>
+class RankForwardWalker2: public SkipForwardWalkerBase2<Types, RankForwardWalker2<Types>> {
+
+    using Base      = SkipForwardWalkerBase2<Types, RankForwardWalker2<Types>>;
+    using Key       = typename Base::Key;
+    using Iterator  = typename Base::Iterator;
+
+    using CtrSizeT = typename Types::CtrSizeT;
+    CtrSizeT rank_ = 0;
+
+    Int symbol_;
+
+public:
+
+    RankForwardWalker2(Int symbol, Key target):
+        Base(target),
+        symbol_(symbol)
+    {}
+
+    template <Int StreamIdx, typename StreamType>
+    void postProcessLeafStream(const StreamType* stream, Int start, Int end)
+    {
+        rank_ += stream->rank(start, end, symbol_);
+    }
+
+    template <Int StreamIdx, typename StreamType>
+    void postProcessBranchStream(const StreamType* stream, Int start, Int end)
+    {
+    	rank_ += stream->sum(Base::branchIndex(symbol_), start, end);
+    }
+
+    BigInt finish(Iterator& iter, Int idx)
+    {
+        Base::finish(iter, idx);
+
+        return rank_;
+    }
+};
+
+
+template <
+    typename Types
+>
+class RankBackwardWalker2: public SkipBackwardWalkerBase2<Types, RankBackwardWalker2<Types>> {
+
+    using Base      = SkipBackwardWalkerBase2<Types, RankBackwardWalker2<Types>>;
+    using Key       = typename Base::Key;
+    using Iterator  = typename Base::Iterator;
+
+    using CtrSizeT = typename Types::CtrSizeT;
+    CtrSizeT rank_ = 0;
+
+    Int symbol_;
+
+public:
+
+    RankBackwardWalker2(Int symbol, Key target):
+        Base(target),
+        symbol_(symbol)
+    {}
+
+    template <Int StreamIdx, typename StreamType>
+    void postProcessLeafStream(const StreamType* stream, Int start, Int end)
+    {
+    	//FIXME: rank ranges
+        rank_ += stream->rank(start, end, symbol_);
+    }
+
+    template <Int StreamIdx, typename StreamType>
+    void postProcessBranchStream(const StreamType* stream, Int start, Int end)
+    {
+    	//FIXME: rank ranges
+    	rank_ += stream->sum(Base::branchIndex(symbol_), start, end);
     }
 
     BigInt finish(Iterator& iter, Int idx)

@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2014.
+// Copyright Victor Smirnov 2014-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -291,36 +291,14 @@ bool M_TYPE::hasPrevKey()
 M_PARAMS
 BigInt M_TYPE::skipFw(BigInt amount)
 {
-    BigInt cnt = 0;
-
-    for (BigInt c = 0; c < amount; c++, cnt++)
-    {
-        if (!me()->nextKey())
-        {
-            break;
-        }
-    }
-
-    return cnt;
+    return self().template _findFw<Types::template SkipForwardWalker>(0, amount);
 }
-
 
 M_PARAMS
 BigInt M_TYPE::skipBw(BigInt amount)
 {
-    BigInt cnt = 0;
-
-    for (BigInt c = 0; c < amount; c++, cnt++)
-    {
-        if (!me()->prevKey())
-        {
-            break;
-        }
-    }
-
-    return cnt;
+    return self().template _findBw<Types::template SkipBackwardWalker>(0, amount);
 }
-
 
 M_PARAMS
 BigInt M_TYPE::skip(BigInt amount)
@@ -338,8 +316,6 @@ BigInt M_TYPE::skip(BigInt amount)
         return 0;
     }
 }
-
-
 
 
 }

@@ -206,6 +206,163 @@ public:
 };
 
 
+
+
+
+
+
+/***************************************************************************************/
+
+
+template <
+    typename Types,
+    typename MyType
+>
+class SkipForwardWalkerBase2: public FindForwardWalkerBase2<Types, MyType> {
+protected:
+    using Base  = FindForwardWalkerBase2<Types, MyType>;
+    using Key   = typename Base::Key;
+
+public:
+
+    SkipForwardWalkerBase2(Key target):
+        Base(0, target, SearchType::GT)
+    {}
+
+
+    template <Int StreamIdx, typename Array>
+    Int find_leaf(const Array* array, Int start)
+    {
+        auto& sum = Base::sum_;
+
+        BigInt offset = Base::target_ - sum;
+
+        if (array != nullptr)
+        {
+            Int size = array->size();
+
+            if (start + offset < size)
+            {
+                sum += offset;
+
+                this->end_ = false;
+
+                return start + offset;
+            }
+            else {
+                sum += (size - start);
+
+                this->end_ = true;
+
+                return size;
+            }
+        }
+        else {
+            return 0;
+        }
+    }
+
+    MyType& self() {return *T2T<MyType*>(this);}
+    const MyType& self() const {return *T2T<const MyType*>(this);}
+};
+
+
+
+template <
+    typename Types
+>
+class SkipForwardWalker2: public SkipForwardWalkerBase2<Types, SkipForwardWalker2<Types>> {
+    using Base  = SkipForwardWalkerBase2<Types, SkipForwardWalker2<Types>>;
+
+    using Key   = typename Base::Key;
+
+public:
+
+    SkipForwardWalker2(Key target):
+        Base(target)
+    {}
+
+    SkipForwardWalker2(Int stream, Int block, Key target):
+    	Base(target)
+    {}
+};
+
+
+
+
+template <
+    typename Types,
+    typename MyType
+>
+class SkipBackwardWalkerBase2: public FindBackwardWalkerBase2<Types,MyType> {
+protected:
+    using Base  = FindBackwardWalkerBase2<Types,MyType>;
+
+    using Key   = typename Base::Key;
+
+public:
+
+    SkipBackwardWalkerBase2(Key target):
+        Base(0, target, SearchType::GE)
+    {}
+
+
+    template <Int StreamIdx, typename Array>
+    Int find_leaf(const Array* array, Int start)
+    {
+        BigInt offset = Base::target_ - Base::sum_;
+
+        auto& sum = Base::sum_;
+
+        if (array != nullptr)
+        {
+            if (start - offset >= 0)
+            {
+                sum += offset;
+
+                this->end_ = false;
+
+                return start - offset;
+            }
+            else {
+                sum += start;
+
+                this->end_ = true;
+
+                return -1;
+            }
+        }
+        else {
+            return 0;
+        }
+    }
+
+    MyType& self() {return *T2T<MyType*>(this);}
+    const MyType& self() const {return *T2T<const MyType*>(this);}
+};
+
+
+template <
+    typename Types
+>
+class SkipBackwardWalker2: public SkipBackwardWalkerBase2<Types, SkipBackwardWalker2<Types>> {
+    using Base  = SkipBackwardWalkerBase2<Types,SkipBackwardWalker2<Types>>;
+
+    using Key   = typename Base::Key;
+
+public:
+    SkipBackwardWalker2(Key target):
+        Base(target)
+    {}
+
+    SkipBackwardWalker2(Int stream, Int block, Key target):
+    	Base(target)
+    {}
+};
+
+
+
+
 }
 }
 

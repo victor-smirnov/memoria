@@ -37,6 +37,12 @@ int main() {
 
 		iter.dump();
 
+		ctr.template removeStreamEntry<0>(iter);
+
+		iter.dump();
+
+		iter--;
+
 //		using LinearLeafList = FlattenLeafTree<CtrT::Types::LeafStreamsStructList>;
 //
 //		TypesPrinter<
