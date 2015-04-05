@@ -522,6 +522,13 @@ public:
 		return detail::IndexRangeProc<AccumRangeList>::value(index + LeafPrefix, std::forward<AccumRangeList>(std::get<BranchIdx>(std::forward<AccumTypeT>(accum))));
 	}
 
+	template <typename AccumTypeT>
+	static const typename detail::IndexRangeProc<AccumRangeList>::RtnType& cvalue(Int index, AccumTypeT&& accum)
+	{
+		return detail::IndexRangeProc<AccumRangeList>::value(index + LeafPrefix, std::forward<AccumRangeList>(std::get<BranchIdx>(std::forward<AccumTypeT>(accum))));
+	}
+
+
 	template <Int Index, typename AccumTypeT>
 	static typename detail::IndexRangeProc<AccumRangeList>::RtnType& value(AccumTypeT&& accum)
 	{

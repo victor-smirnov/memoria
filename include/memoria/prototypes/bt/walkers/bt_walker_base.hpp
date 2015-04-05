@@ -272,7 +272,7 @@ template <
 class WalkerBase2 {
 protected:
     typedef Iter<typename Types::IterTypes>                                     Iterator;
-    typedef typename Types::IteratorPrefix                                      IteratorPrefix;
+    typedef typename Types::IteratorPrefix                                 		IteratorPrefix;
     typedef typename Types::IteratorAccumulator                                 IteratorAccumulator;
     typedef typename Types::LeafStreamsStructList                               LeafStructList;
     typedef typename Types::LeafRangeList                                 		LeafRangeList;
@@ -292,11 +292,19 @@ protected:
 
     IteratorPrefix prefix_;
 
-    StaticVector<BigInt, Streams> size_prefix_;
+    StaticVector<BigInt, Streams> branch_size_prefix_;
 
-    IteratorAccumulator accumulator_;
+    IteratorAccumulator branch_prefix_;
+    IteratorAccumulator leaf_prefix_;
 
     bool end_ = false;
+
+    bool compute_branch_ 	= true;
+    bool compute_leaf_ 		= true;
+public:
+
+    template <typename LeafPath>
+    using AccumItemH = memoria::bt::AccumItem<LeafStructList, LeafPath, IteratorAccumulator>;
 
 private:
 
@@ -361,34 +369,97 @@ public:
         return search_type_;
     }
 
+    const bool& compute_branch() const {
+    	return compute_branch_;
+    }
+
+    bool& compute_branch() {
+    	return compute_branch_;
+    }
+
+    const bool& compute_leaf() const {
+    	return compute_leaf_;
+    }
+
+    bool& compute_leaf() {
+    	return compute_leaf_;
+    }
+
+    template <typename LeafPath>
+    auto branch_index(Int index) ->
+    decltype(AccumItemH<LeafPath>::value(index, branch_prefix_))
+    {
+    	return AccumItemH<LeafPath>::value(index, branch_prefix_);
+    }
+
+    template <typename LeafPath>
+    auto branch_index(Int index) const ->
+    decltype(AccumItemH<LeafPath>::cvalue(index, branch_prefix_))
+    {
+    	return AccumItemH<LeafPath>::cvalue(index, branch_prefix_);
+    }
+
+    template <typename LeafPath>
+    auto leaf_index(Int index) ->
+    decltype(AccumItemH<LeafPath>::value(index, leaf_prefix_))
+    {
+    	return AccumItemH<LeafPath>::value(index, leaf_prefix_);
+    }
+
+    template <typename LeafPath>
+    auto leaf_index(Int index) const ->
+    decltype(AccumItemH<LeafPath>::cvalue(index, leaf_prefix_))
+    {
+    	return AccumItemH<LeafPath>::cvalue(index, leaf_prefix_);
+    }
+
+
+    template <typename LeafPath>
+    auto total_index(Int index) const ->
+    typename std::remove_reference<decltype(AccumItemH<LeafPath>::value(index, branch_prefix_))>::type
+    {
+    	return AccumItemH<LeafPath>::cvalue(index, branch_prefix_) +
+    			AccumItemH<LeafPath>::cvalue(index, leaf_prefix_);
+    }
+
     void prepare(Iterator& iter)
     {
-        prefix_ = iter.cache().prefixes();
+        branch_prefix_ 	= iter.cache().prefixes();
+        leaf_prefix_ 	= iter.cache().leaf_prefixes();
     }
 
     BigInt finish(Iterator& iter, Int idx)
     {
         iter.idx() = idx;
 
-        iter.cache().prefixes() = prefix_;
+        iter.cache().prefixes() = branch_prefix_;
+        iter.cache().leaf_prefixes() = leaf_prefix_;
 
         return 0;
     }
 
-    const IteratorAccumulator& accumulator() const {
-    	return accumulator_;
+    const IteratorAccumulator& branch_accumulator() const {
+    	return branch_prefix_;
     }
 
-    IteratorAccumulator& accumulator() {
-    	return accumulator_;
+    IteratorAccumulator& branch_accumulator() {
+    	return branch_prefix_;
     }
 
-    const StaticVector<BigInt, Streams>& size_prefix() const {
-    	return size_prefix_;
+    const IteratorAccumulator& leaf_accumulator() const {
+    	return leaf_prefix_;
     }
 
-    StaticVector<BigInt, Streams>& size_prefix() {
-    	return size_prefix_;
+    IteratorAccumulator& leaf_accumulator() {
+    	return leaf_prefix_;
+    }
+
+    const StaticVector<BigInt, Streams>& branch_size_prefix() const {
+    	return branch_size_prefix_;
+    }
+
+    StaticVector<BigInt, Streams>& branch_size_prefix() {
+    	return branch_size_prefix_;
     }
 
 
@@ -404,8 +475,11 @@ public:
     	using BranchPath = typename bt::BranchNode<NodeTypes>::template BuildBranchPath<LeafPath>;
         Int idx = node->template processStream<BranchPath>(FindNonLeafFn(self()), index, start);
 
-        self().processBranchIteratorAccumulator(node, start, idx);
-        self().processBranchSizePrefix(node, start, idx);
+        if (compute_branch_)
+        {
+        	self().processBranchIteratorAccumulator(node, start, idx);
+        	self().processBranchSizePrefix(node, start, idx);
+        }
 
         return idx;
     }
@@ -419,7 +493,7 @@ public:
     		IteratorAccumulator,
     		ItrAccList
     	>::
-    	process(node, accumulator(), start, end);
+    	process(node, branch_accumulator(), start, end);
     }
 
 
@@ -445,26 +519,12 @@ public:
 
     	Int idx = node->template processStream<LeafPath>(FindLeafFn(self()), start);
 
-    	self().processLeafIteratorAccumulator(node, start, idx);
-    	self().processLeafSizePrefix(node, start, idx);
+    	if (compute_leaf_)
+    	{
+    		self().processLeafIteratorAccumulator(node, start, idx);
+    	}
 
         return idx;
-    }
-
-
-    struct LeafSizePrefix
-    {
-    	template <Int GroupIdx, Int AllocatorIdx, Int ListIdx, typename StreamObj>
-    	void stream(const StreamObj* obj, MyType& walker, Int start, Int end)
-    	{
-    		walker.template leaf_size_prefix<GroupIdx>(obj, start, end);
-    	}
-    };
-
-    template <typename Node>
-    void processLeafSizePrefix(Node* node, Int start, Int end)
-    {
-    	node->processStreamsStart(LeafSizePrefix(), self(), start, end);
     }
 
 
@@ -483,43 +543,11 @@ public:
     	Node::template StreamDispatcher<
     		ListHead<LeafPath>::Value
     	>
-    	::dispatchAll(node->allocator(), w, accumulator(), start, end);
+    	::dispatchAll(node->allocator(), w, leaf_accumulator(), start, end);
     }
 };
 
 
-
-
-template <typename T, typename P>
-struct WalkerBase1: WalkerBase2<WalkerTypes<T, P>, WalkerBase1<T, P>> {
-
-	using Base = WalkerBase2<WalkerTypes<T, P>, WalkerBase1<T, P>>;
-
-public:
-	WalkerBase1(Int leaf_index):
-		Base(leaf_index)
-	{}
-
-	template <Int StreamIndex, typename StreamType>
-	Int find_leaf(const StreamType* stream, Int start) {
-		return 0;
-	}
-
-	template <Int StreamIndex, typename StreamType>
-	Int find_non_leaf(const StreamType* stream, Int index, Int start) {
-		return 0;
-	}
-
-	template <Int StreamIdx, typename StreamType>
-	void branch_size_prefix(const StreamType* stream, Int start, Int end) {
-
-	}
-
-	template <Int StreamIdx, typename StreamType>
-	void leaf_size_prefix(const StreamType* stream, Int start, Int end) {
-
-	}
-};
 
 
 }

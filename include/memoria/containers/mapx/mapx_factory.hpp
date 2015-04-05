@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2014.
+// Copyright Victor Smirnov 2014-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -50,6 +50,7 @@
 #include <memoria/prototypes/metamap/metamap_names.hpp>
 
 #include <memoria/containers/mapx/container/mapx_c_insert.hpp>
+#include <memoria/containers/mapx/iterator/mapx_i_nav.hpp>
 
 #include <memoria/containers/mapx/mapx_tools.hpp>
 #include <memoria/containers/mapx/mapx_iterator.hpp>
@@ -99,7 +100,7 @@ struct MapXBTTypesBase: public BTTypes<Profile, memoria::BT> {
     typedef std::tuple<DataSource*>                                             Source;
     typedef std::tuple<DataTarget*>                                             Target;
 
-    typedef TypeList<StreamTF, StreamTF>                              			StreamDescriptors;
+    typedef TypeList<StreamTF>                              					StreamDescriptors;
 
     typedef BalancedTreeMetadata<
             typename Base::ID,
@@ -114,7 +115,8 @@ struct MapXBTTypesBase: public BTTypes<Profile, memoria::BT> {
 
 
     using IteratorPartsList = MergeLists<
-                typename Base::IteratorPartsList
+                typename Base::IteratorPartsList,
+                memoria::mapx::ItrNavName
     >;
 
 

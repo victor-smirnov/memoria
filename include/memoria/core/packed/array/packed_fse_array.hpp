@@ -222,6 +222,12 @@ public:
     	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
     }
 
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void sum(Int idx, AccumItem<T, Size>& accum) const
+    {
+    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+    }
+
 
     // =================================== Update ========================================== //
 

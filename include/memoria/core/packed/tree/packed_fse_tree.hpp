@@ -383,7 +383,8 @@ public:
         return 0;
     }
 
-    void setValues(Int idx, const core::StaticVector<Value, Blocks>& values)
+    template <typename T>
+    void setValues(Int idx, const core::StaticVector<T, Blocks>& values)
     {
         for (Int block = 0; block < Blocks; block++)
         {
@@ -393,7 +394,8 @@ public:
         reindex();
     }
 
-    void addValues(Int idx, const core::StaticVector<Value, Blocks>& values)
+    template <typename T>
+    void addValues(Int idx, const core::StaticVector<T, Blocks>& values)
     {
         for (Int block = 0; block < Blocks; block++)
         {
@@ -402,6 +404,7 @@ public:
 
         reindex();
     }
+
 
     void addValue(Int block, Int idx, Value value)
     {
@@ -413,8 +416,8 @@ public:
         reindex();
     }
 
-    template <typename Value, Int Indexes>
-    void addValues(Int idx, Int from, Int size, const core::StaticVector<Value, Indexes>& values)
+    template <typename T, Int Indexes>
+    void addValues(Int idx, Int from, Int size, const core::StaticVector<T, Indexes>& values)
     {
         for (Int block = 0; block < size; block++)
         {
@@ -660,7 +663,7 @@ public:
 
     	for (Int block = 0; block < Blocks; block++)
     	{
-    		accum[block] += sum(block + Offset);
+    		accum[block + Offset] += sum(block);
     	}
     }
 
@@ -671,18 +674,28 @@ public:
 
     	for (Int block = 0; block < Blocks; block++)
     	{
-    		accum[block] += sum(block + Offset, start, end);
+    		accum[block + Offset] += sum(block, start, end);
     	}
     }
+
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void sum(Int idx, AccumItem<T, Size>& accum) const
+    {
+    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		accum[block + Offset] += value(block, idx);
+    	}
+    }
+
 
     template <Int Offset, Int From, Int To, typename T, template <typename, Int, Int> class AccumItem>
     void sum(Int start, Int end, AccumItem<T, From, To>& accum) const
     {
-//    	static_assert(Offset <= To - From - Indexes, "Invalid balanced tree structure");
-
     	for (Int block = 0; block < Blocks; block++)
     	{
-    		accum[block] += sum(block + Offset, start, end);
+    		accum[block + Offset] += sum(block, start, end);
     	}
     }
 
@@ -1039,7 +1052,8 @@ public:
         return cnt;
     }
 
-    void insert(Int idx, const Values& values)
+    template <typename T>
+    void insert(Int idx, const core::StaticVector<T, Indexes>& values)
     {
         insertSpace(idx, 1);
         setValues(idx, values);

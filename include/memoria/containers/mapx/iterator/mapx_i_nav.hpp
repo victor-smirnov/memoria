@@ -29,6 +29,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
     typedef typename Base::Container::Key                                       Key;
     typedef typename Base::Container::Accumulator                               Accumulator;
     typedef typename Base::Container                                            Container;
+    typedef typename Base::Container::Position                                  Position;
 
     bool operator++() {
         return self().nextKey();
@@ -95,10 +96,31 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
         return skipBw(distance);
     }
 
+    void split()
+    {
+    	auto& self = this->self();
+
+    	NodeBaseG& leaf = self.leaf();
+    	Int& idx        = self.idx();
+
+    	Int size        = self.leaf_size(0);
+    	Int split_idx   = size/2;
+
+    	auto right = self.ctr().splitLeafP(leaf, Position::create(0, split_idx));
+
+    	if (idx > split_idx)
+    	{
+    		leaf = right;
+    		idx -= split_idx;
+
+//    		self.updatePrefix();
+    	}
+    }
+
 
 MEMORIA_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::map::ItrNavName)
+#define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::mapx::ItrNavName)
 #define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
 
 

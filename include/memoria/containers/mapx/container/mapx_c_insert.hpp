@@ -43,116 +43,101 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mapx::CtrInsertName)
 
     typedef typename Types::Entry                                               MapEntry;
 
-
     template <
-        Int Idx,
-        Int Offset,
-        bool StreamStart
+    	Int Idx,
+    	Int Offset,
+    	bool StreamStart
     >
-    struct AccumulatorHandler
+    struct InsertIntoStreamHanlder
     {
-        template <Int StreamIdx, typename StreamType, typename TupleItem>
-        void stream(const StreamType* obj, TupleItem& accum, Int idx, const MapEntry& entry)
-        {
-        	std::cout<<"Idx "<<Idx<<" "<<Offset<<" "<<StreamIdx<<" "<<StreamStart<<" "<<std::get<StreamIdx>(entry)<<std::endl;
-        }
-    };
-
-
-    struct HandlerT
-    {
-        template <Int AllocIdx, Int StreamIdx, typename StreamType>
-        int stream(StreamType* obj)
-        {
-        	std::cout<<"AllocIdx (Int) "<<AllocIdx<<" "<<StreamIdx<<" "<<std::endl;
-
-        	return 10;
-        }
-    };
-
-
-    struct HandlerG
-    {
-        template <Int GroupIdx, Int AllocIdx, Int StreamIdx, typename StreamType>
-        void stream(StreamType* obj)
-        {
-        	std::cout<<"GroupIdx "<<GroupIdx<<" "<<AllocIdx<<" "<<StreamIdx<<" "<<std::endl;
-        }
-    };
-
-
-
-    struct Handler
-    {
-    	template <Int StreamIdx, typename StreamType>
-    	bool stream(StreamType* obj)
+    	template <typename SubstreamType, typename AccumulatorItem, typename Entry>
+    	void stream(SubstreamType* obj, AccumulatorItem& accum, Int idx, const Entry& entry)
     	{
-    		std::cout<<"Idx (bool) "<<StreamIdx<<" "<<std::endl;
+    		obj->insert(idx, std::get<Idx>(entry));
+    		obj->template sum<Offset>(idx, accum);
 
-    		return true;
-    	}
-    };
-
-    struct HandlerS
-    {
-    	template <typename StreamType>
-    	double stream(StreamType* obj)
-    	{
-    		std::cout<<"NoIdx (double)"<<" "<<std::endl;
-
-    		return 1.23456;
+    		if (StreamStart)
+    		{
+    			accum[0] += 1;
+    		}
     	}
     };
 
 
-    template <typename Entry>
-    struct InsertIntoLeafFn {
-        template <typename NTypes>
+    template <Int Stream, typename Entry>
+    struct InsertIntoLeafFn
+    {
+    	template <typename NTypes>
         void treeNode(LeafNode<NTypes>* node, Int idx, Accumulator& accum, const Entry& entry)
         {
+    		using Node = LeafNode<NTypes>;
+
             node->layout(255);
 
-            node->processSubstreamGroups(HandlerG());
-
-//            ListPrinter<TypeList<decltype(node->template processStreamsStart(HandlerS()))>>::print(cout);
-
-
-//            node->template processSubstreamsAcc<0, AccumulatorHandler>(accum, idx, entry);
-//
-//            auto r = node->template processStream<IntList<0>>(Handler());
-
-//            cout<<"Result: "<<r<<endl;
-
-//            ListPrinter<TL<decltype(r)>>::print(cout);
-
-//            node->processStreamsStartT(HandlerT());
-
-//            node->template processSubstreams<IntList<0>>(*this, idx, entry);
-        }
-
-        template <Int Idx, typename SubstreamStruct>
-        void stream(SubstreamStruct* obj, Int idx, const Entry& entry)
-        {
-            std::cout<<"Idx "<<Idx<<" "<<std::get<Idx>(entry)<<std::endl;
+            node->template processSubstreamsAcc<Stream, InsertIntoStreamHanlder>(accum, idx, entry);
         }
     };
 
     void insertEntry(Iterator& iter, const MapEntry& entry)
     {
     	Accumulator accum;
-        LeafDispatcher::dispatch(iter.leaf(), InsertIntoLeafFn<MapEntry>(), iter.idx(), accum, entry);
+        LeafDispatcher::dispatch(iter.leaf(), InsertIntoLeafFn<0, MapEntry>(), iter.idx(), accum, entry);
     }
 
-    void insertSmth() {
 
+    template <Int Stream, typename... TupleTypes>
+    std::tuple<bool, Accumulator> tryInsertStreamEntry(Iterator& iter, const std::tuple<TupleTypes...>& entry)
+    {
     	auto& self = this->self();
 
-    	MapEntry e;
+    	PageUpdateMgr mgr(self);
 
-    	memoria::bt1::FindGEForwardWalker2<memoria::bt1::WalkerTypes<Types, IntList<0>>> w(0, 0);
+    	self.updatePageG(iter.leaf());
 
-    	auto i = self.find0(0, w);
-    	insertEntry(i, e);
+    	mgr.add(iter.leaf());
+
+    	try {
+    		Accumulator accum;
+    		LeafDispatcher::dispatch(iter.leaf(), InsertIntoLeafFn<Stream, std::tuple<TupleTypes...>>(), iter.idx(), accum, entry);
+    		return std::make_tuple(true, accum);
+    	}
+    	catch (PackedOOMException& e)
+    	{
+    		mgr.rollback();
+    		return std::make_tuple(false, Accumulator());
+    	}
+    }
+
+    template <Int Stream, typename... TupleTypes>
+    void insertStreamEntry(Iterator& iter, const std::tuple<TupleTypes...>& entry)
+    {
+    	auto& self      = this->self();
+
+    	auto result = self.template tryInsertStreamEntry<Stream>(iter, entry);
+
+    	if (!std::get<0>(result))
+    	{
+    		iter.split();
+
+    		result = self.template tryInsertStreamEntry<Stream>(iter, entry);
+
+    		if (!std::get<0>(result))
+    		{
+    			throw Exception(MA_SRC, "Second insertion attempt failed");
+    		}
+    	}
+
+    	self.updateParent(iter.leaf(), std::get<1>(result));
+
+    	iter.skipFw(1);
+
+    	self.addTotalKeyCount(Position::create(Stream, 1));
+    }
+
+    Iterator findK(BigInt k)
+    {
+    	memoria::bt1::FindGTForwardWalker2<memoria::bt1::WalkerTypes<Types, IntList<0>>> w(0, k);
+    	return self().find0(0, w);
     }
 
 MEMORIA_CONTAINER_PART_END

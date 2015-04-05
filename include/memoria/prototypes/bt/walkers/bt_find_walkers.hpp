@@ -408,13 +408,7 @@ public:
 
 	template <Int StreamIdx, typename StreamType>
 	void branch_size_prefix(const StreamType* stream, Int start, Int end) {
-		Base::size_prefix()[StreamIdx] += stream->sum(start, end);
-	}
-
-	template <Int StreamIdx, typename StreamType>
-	void leaf_size_prefix(const StreamType* stream, Int start, Int end)
-	{
-		Base::size_prefix()[StreamIdx] += end - start;
+		Base::branch_size_prefix()[StreamIdx] += stream->sum(start, end);
 	}
 };
 

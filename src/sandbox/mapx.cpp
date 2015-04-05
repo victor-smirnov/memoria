@@ -17,21 +17,30 @@ int main() {
 	MEMORIA_INIT(SmallProfile<>);
 
 	try {
-	SmallInMemAllocator alloc;
+		SmallInMemAllocator alloc;
 
-	using RootT = SCtrTF<Root>::Type;
-	using CtrT = SCtrTF<MapX<BigInt, BigInt>>::Type;
+		using RootT = SCtrTF<Root>::Type;
+		using CtrT = SCtrTF<MapX<BigInt, BigInt>>::Type;
 
-	CtrT::initMetadata();
+		CtrT::initMetadata();
 
-	CtrT ctr(&alloc);
+		CtrT ctr(&alloc);
 
-	ctr.insertSmth();
+		auto iter = ctr.Begin();
 
-	using LinearLeafList = FlattenLeafTree<CtrT::Types::LeafStreamsStructList>;
+		ctr.template insertStreamEntry<0>(iter, std::make_tuple(core::StaticVector<BigInt, 1>({1}), 5));
+		ctr.template insertStreamEntry<0>(iter, std::make_tuple(core::StaticVector<BigInt, 1>({1}), 6));
+		ctr.template insertStreamEntry<0>(iter, std::make_tuple(core::StaticVector<BigInt, 1>({1}), 7));
+		ctr.template insertStreamEntry<0>(iter, std::make_tuple(core::StaticVector<BigInt, 1>({1}), 8));
 
-	TypesPrinter<
-		IntValue<CtrT::Types::Streams>
+		iter = ctr.findK(2);
+
+		iter.dump();
+
+//		using LinearLeafList = FlattenLeafTree<CtrT::Types::LeafStreamsStructList>;
+//
+//		TypesPrinter<
+//		IntValue<CtrT::Types::Streams>
 //		RootT::Types::LeafRangeOffsetList,
 //		CtrT::Types::LeafRangeOffsetList//,
 //
@@ -40,7 +49,7 @@ int main() {
 //		CtrT::Types::Accumulator,
 //		LinearLeafList,
 //		CtrT::Types::BranchStreamsStructList
-	>::print(cout);
+//		>::print(cout);
 	}
 	catch (memoria::vapi::Exception& ex) {
 		cout<<ex.message()<<" at "<<ex.source()<<endl;

@@ -93,6 +93,8 @@ public:
     {
         return key_num_;
     }
+
+    void dump() const {}
 };
 
 

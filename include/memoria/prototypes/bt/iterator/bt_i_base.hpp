@@ -220,9 +220,10 @@ public:
     {
         auto& self = this->self();
 
-        out<<(header != NULL ? header : me()->getDumpHeader())<<std::endl;
+        out<<(header != NULL ? header : self.getDumpHeader())<<std::endl;
 
         self.dumpKeys(out);
+        self.dumpCache(out);
 
         self.dumpBeforePages(out);
         self.dumpPages(out);
