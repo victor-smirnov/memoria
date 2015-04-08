@@ -17,6 +17,24 @@
 namespace memoria {
 namespace bt1     {
 
+
+
+class StreamOpResult {
+	Int idx_;
+	bool out_of_range_;
+
+public:
+	StreamOpResult(Int idx, bool out_of_range): idx_(idx), out_of_range_(out_of_range) {}
+
+	Int idx() const {
+		return idx_;
+	}
+
+	bool out_of_range(){
+		return out_of_range_;
+	}
+};
+
 template <typename Types, typename LeafPath_>
 struct WalkerTypes: Types {
 	using LeafPath 		= LeafPath_;
@@ -54,8 +72,6 @@ protected:
     Int leaf_index_;
 
     IteratorPrefix prefix_;
-
-    StaticVector<BigInt, Streams> size_prefix_;
 
     IteratorAccumulator accumulator_;
 
@@ -185,18 +201,6 @@ public:
     	return accumulator_;
     }
 
-    const StaticVector<BigInt, Streams>& size_prefix() const {
-    	return size_prefix_;
-    }
-
-    StaticVector<BigInt, Streams>& size_prefix() {
-    	return size_prefix_;
-    }
-
-    static Int branchIndex(Int leaf_index)
-    {
-    	return memoria::bt::LeafToBranchIndexTranslator<LeafStructList, LeafPath, 0>::BranchIndex + leaf_index;
-    }
 
     MyType& self() {return *T2T<MyType*>(this);}
     const MyType& self() const {return *T2T<const MyType*>(this);}
@@ -301,16 +305,16 @@ protected:
     IteratorAccumulator branch_prefix_;
     IteratorAccumulator leaf_prefix_;
 
-    bool end_ = false;
-
     bool compute_branch_ 	= true;
     bool compute_leaf_ 		= true;
+
+
 public:
 
     template <typename LeafPath>
     using AccumItemH = memoria::bt::AccumItem<LeafStructList, LeafPath, IteratorAccumulator>;
 
-private:
+protected:
 
     struct FindBranchFn {
         MyType& walker_;
@@ -318,13 +322,13 @@ private:
         FindBranchFn(MyType& walker): walker_(walker) {}
 
         template <Int ListIdx, typename StreamType>
-        Int stream(const StreamType* stream, Int index, Int start)
+        StreamOpResult stream(const StreamType* stream, Int index, Int start)
         {
-            Int idx = walker_.template find_non_leaf<ListIdx>(stream, index, start);
+            StreamOpResult result = walker_.template find_non_leaf<ListIdx>(stream, index, start);
 
-            walker_.template postProcessBranchStream<ListIdx>(stream, start, idx);
+            walker_.template postProcessBranchStream<ListIdx>(stream, start, result.idx());
 
-            return idx;
+            return result;
         }
     };
 
@@ -335,13 +339,13 @@ private:
         FindLeafFn(MyType& walker): walker_(walker) {}
 
         template <Int ListIdx, typename StreamType>
-        Int stream(const StreamType* stream, Int start)
+        StreamOpResult stream(const StreamType* stream, Int start)
         {
-            Int idx = walker_.template find_leaf<ListIdx>(stream, start);
+        	StreamOpResult result = walker_.template find_leaf<ListIdx>(stream, start);
 
-            walker_.template postProcessLeafStream<ListIdx>(stream, start, idx);
+            walker_.template postProcessLeafStream<ListIdx>(stream, start, result.idx());
 
-            return idx;
+            return result;
         }
     };
 
@@ -397,6 +401,12 @@ public:
     	return compute_leaf_;
     }
 
+    static constexpr Int branchIndex(Int leaf_index)
+    {
+    	return memoria::bt::LeafToBranchIndexTranslator<LeafStructList, LeafPath, 0>::BranchIndex + leaf_index;
+    }
+
+
     template <typename LeafPath>
     auto branch_index(Int index) ->
     decltype(AccumItemH<LeafPath>::value(index, branch_prefix_))
@@ -436,16 +446,18 @@ public:
 
     void prepare(Iterator& iter)
     {
-        branch_prefix_ 	= iter.cache().prefixes();
-        leaf_prefix_ 	= iter.cache().leaf_prefixes();
+        branch_prefix_ 		= iter.cache().prefixes();
+        leaf_prefix_ 		= iter.cache().leaf_prefixes();
+        branch_size_prefix_	= iter.cache().size_prefix();
     }
 
     BigInt finish(Iterator& iter, Int idx)
     {
         iter.idx() = idx;
 
-        iter.cache().prefixes() = branch_prefix_;
+        iter.cache().prefixes() 	 = branch_prefix_;
         iter.cache().leaf_prefixes() = leaf_prefix_;
+        iter.cache().size_prefix() 	 = branch_size_prefix_;
 
         return 0;
     }
@@ -478,28 +490,27 @@ public:
     MyType& self() {return *T2T<MyType*>(this);}
     const MyType& self() const {return *T2T<const MyType*>(this);}
 
-
-    template <typename NodeTypes>
-    Int treeNode(const bt::BranchNode<NodeTypes>* node, BigInt start)
+    template <typename Node, typename... Args>
+    void processLeafIteratorAccumulator(Node* node, IteratorAccumulator&accum, Args&&... args)
     {
-    	auto& self = this->self();
+    	detail::LeafAccumWalker<
+    		LeafStructList,
+    		LeafRangeList,
+    		LeafRangeOffsetList,
+    		Node::template StreamStartIdx<
+    			ListHead<LeafPath>::Value
+    		>::Value
+    	> w;
 
-    	Int index = node->template translateLeafIndexToBranchIndex<LeafPath>(this->leaf_index());
-
-    	using BranchPath = typename bt::BranchNode<NodeTypes>::template BuildBranchPath<LeafPath>;
-        Int idx = node->template processStream<BranchPath>(FindBranchFn(self), index, start);
-
-        if (compute_branch_)
-        {
-        	self.processBranchIteratorAccumulator(node, start, idx);
-        	self.processBranchSizePrefix(node, start, idx);
-        }
-
-        return idx;
+    	Node::template StreamDispatcher<
+    		ListHead<LeafPath>::Value
+    	>
+    	::dispatchAll(node->allocator(), w, self(), accum, std::forward<Args>(args)...);
     }
 
-    template <typename Node>
-    void processBranchIteratorAccumulator(Node* node, Int start, Int end)
+
+    template <typename Node, typename... Args>
+    void processBranchIteratorAccumulator(Node* node, Args&&... args)
     {
     	using ItrAccList = memoria::list_tree::MakeValueList<Int, 0, std::tuple_size<IteratorAccumulator>::value>;
 
@@ -507,60 +518,148 @@ public:
     		IteratorAccumulator,
     		ItrAccList
     	>::
-    	process(self(), node, branch_accumulator(), start, end);
+    	process(self(), node, branch_accumulator(), std::forward<Args>(args)...);
     }
-
 
     struct BranchSizePrefix
     {
-    	template <Int GroupIdx, Int AllocatorIdx, Int ListIdx, typename StreamObj>
-    	void stream(const StreamObj* obj, MyType& walker, Int start, Int end)
+    	template <Int GroupIdx, Int AllocatorIdx, Int ListIdx, typename StreamObj, typename... Args>
+    	void stream(const StreamObj* obj, MyType& walker, Args&&... args)
     	{
-    		walker.template branch_size_prefix<GroupIdx>(obj, start, end);
+    		walker.template branch_size_prefix<GroupIdx>(obj, std::forward<Args>(args)...);
     	}
     };
 
-    template <typename Node>
-    void processBranchSizePrefix(Node* node, Int start, Int end)
+
+    struct LeafSizePrefix
     {
-    	node->template processStream<IntList<current_stream()>>(BranchSizePrefix(), self(), start, end);
-    }
-
-    template <typename NodeTypes>
-    Int treeNode(const bt::LeafNode<NodeTypes>* node, BigInt start)
-    {
-    	auto& self = this->self();
-
-    	using Node = bt::LeafNode<NodeTypes>;
-
-    	Int idx = node->template processStream<LeafPath>(FindLeafFn(self), start);
-
-    	if (compute_leaf_)
+    	template <Int GroupIdx, Int AllocatorIdx, Int ListIdx, typename StreamObj, typename... Args>
+    	void stream(const StreamObj* obj, MyType& walker, Args&&... args)
     	{
-    		self.processLeafIteratorAccumulator(node, start, idx);
+    		walker.template leaf_size_prefix<GroupIdx>(obj, std::forward<Args>(args)...);
     	}
-
-        return idx;
-    }
+    };
 
 
-    template <typename Node>
-    void processLeafIteratorAccumulator(Node* node, Int start, Int end)
+
+    template <typename Node, typename... Args>
+    void processBranchSizePrefix(Node* node, Args&&... args)
     {
-    	detail::LeafAccumWalker<
-    		LeafStructList,
-    		LeafRangeList,
-    		LeafRangeOffsetList,
-    		Node::template StreamStartIdx<
-    		ListHead<LeafPath>::Value
-    		>::Value
-    	> w;
-
-    	Node::template StreamDispatcher<
-    		ListHead<LeafPath>::Value
-    	>
-    	::dispatchAll(node->allocator(), w, self(), leaf_accumulator(), start, end);
+    	node->template processStream<IntList<current_stream()>>(BranchSizePrefix(), self(), std::forward<Args>(args)...);
     }
+
+    template <typename Node, typename... Args>
+    void processLeafSizePrefix(Node* node, Args&&... args)
+    {
+    	node->template processStream<IntList<current_stream()>>(LeafSizePrefix(), self(), std::forward<Args>(args)...);
+    }
+
+
+
+
+
+//    template <typename NodeTypes>
+//    Int treeNode(const bt::BranchNode<NodeTypes>* node, BigInt start)
+//    {
+//    	auto& self = this->self();
+//
+//    	Int index = node->template translateLeafIndexToBranchIndex<LeafPath>(this->leaf_index());
+//
+//    	using BranchPath = typename bt::BranchNode<NodeTypes>::template BuildBranchPath<LeafPath>;
+//        StreamOpResult result = node->template processStream<BranchPath>(FindBranchFn(self), index, start);
+//
+//        if (compute_branch_)
+//        {
+//        	self.processBranchIteratorAccumulator(node, start, std::get<0>(result));
+//        	self.processBranchSizePrefix(node, start, std::get<0>(result));
+//        }
+//
+//        return std::get<0>(result);
+//    }
+//
+//    template <typename Node>
+//    void processBranchIteratorAccumulator(Node* node, Int start, Int end)
+//    {
+//    	using ItrAccList = memoria::list_tree::MakeValueList<Int, 0, std::tuple_size<IteratorAccumulator>::value>;
+//
+//    	detail::BranchAccumWaker1<
+//    		IteratorAccumulator,
+//    		ItrAccList
+//    	>::
+//    	process(self(), node, branch_accumulator(), start, end);
+//    }
+//
+//
+//    struct BranchSizePrefix
+//    {
+//    	template <Int GroupIdx, Int AllocatorIdx, Int ListIdx, typename StreamObj>
+//    	void stream(const StreamObj* obj, MyType& walker, Int start, Int end)
+//    	{
+//    		walker.template branch_size_prefix<GroupIdx>(obj, start, end);
+//    	}
+//    };
+//
+//    template <typename Node>
+//    void processBranchSizePrefix(Node* node, Int start, Int end)
+//    {
+//    	node->template processStream<IntList<current_stream()>>(BranchSizePrefix(), self(), start, end);
+//    }
+//
+//    struct LeafSizePrefix
+//    {
+//    	template <Int GroupIdx, Int AllocatorIdx, Int ListIdx, typename StreamObj>
+//    	void stream(const StreamObj* obj, MyType& walker)
+//    	{
+//    		walker.template leaf_size_prefix<GroupIdx>(obj);
+//    	}
+//    };
+//
+//    template <typename Node>
+//    void processLeafSizePrefix(Node* node)
+//    {
+//    	node->template processStream<IntList<current_stream()>>(LeafSizePrefix(), self());
+//    }
+//
+//    template <typename NodeTypes>
+//    Int treeNode(const bt::LeafNode<NodeTypes>* node, BigInt start)
+//    {
+//    	auto& self = this->self();
+//
+//    	using Node = bt::LeafNode<NodeTypes>;
+//
+//    	StreamOpResult result = node->template processStream<LeafPath>(FindLeafFn(self), start);
+//
+//    	if (compute_leaf_)
+//    	{
+//    		self.processLeafIteratorAccumulator(node, leaf_accumulator(), true, start, std::get<0>(result));
+//
+////    		if (direction() == WalkDirection::DOWN && end_)
+////    		{
+////    			self.processLeafSizePrefix(node, start, idx);
+////    		}
+//    	}
+//
+//        return std::get<0>(result);
+//    }
+//
+//
+//    template <typename Node>
+//    void processLeafIteratorAccumulator(Node* node, IteratorAccumulator&accum, bool leaf, Int start, Int end)
+//    {
+//    	detail::LeafAccumWalker<
+//    		LeafStructList,
+//    		LeafRangeList,
+//    		LeafRangeOffsetList,
+//    		Node::template StreamStartIdx<
+//    			ListHead<LeafPath>::Value
+//    		>::Value
+//    	> w;
+//
+//    	Node::template StreamDispatcher<
+//    		ListHead<LeafPath>::Value
+//    	>
+//    	::dispatchAll(node->allocator(), w, self(), accum, leaf, start, end);
+//    }
 
     template <Int StreamIdx, typename StreamType>
     void postProcessBranchStream(const StreamType*, Int, Int) {}

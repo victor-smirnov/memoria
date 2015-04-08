@@ -20,7 +20,7 @@ int main() {
 		SmallInMemAllocator alloc;
 
 		using RootT = SCtrTF<Root>::Type;
-		using CtrT = SCtrTF<MapX<BigInt, BigInt>>::Type;
+		using CtrT  = SCtrTF<MapX<BigInt, BigInt>>::Type;
 
 		CtrT::initMetadata();
 
@@ -28,34 +28,43 @@ int main() {
 
 		auto iter = ctr.Begin();
 
-		ctr.template insertStreamEntry<0>(iter, std::make_tuple(core::StaticVector<BigInt, 1>({1}), 5));
-		ctr.template insertStreamEntry<0>(iter, std::make_tuple(core::StaticVector<BigInt, 1>({1}), 6));
-		ctr.template insertStreamEntry<0>(iter, std::make_tuple(core::StaticVector<BigInt, 1>({1}), 7));
-		ctr.template insertStreamEntry<0>(iter, std::make_tuple(core::StaticVector<BigInt, 1>({1}), 8));
+		Int size = 1000;
 
-		iter = ctr.findK(2);
+		for (Int c = 1; c <= size; c++)
+		{
+			iter.insert(1, c);
+		}
+
+		iter = ctr.findK(0);
+
+//		iter.dump();
+
+//		iter.skipBw(size - 100);
+//		iter.skipBw(1);
+
+//		iter.findBwGE(0, size - 1);
+
+
+//		iter.findFwGT(0, size);
+		iter.skipFw(size - 2);
 
 		iter.dump();
 
-		ctr.template removeStreamEntry<0>(iter);
+//		DebugCounter = 1;
+		iter.skipFw(2);
 
 		iter.dump();
 
-		iter--;
+		iter.skipFw(2);
+		iter.dump();
 
-//		using LinearLeafList = FlattenLeafTree<CtrT::Types::LeafStreamsStructList>;
-//
-//		TypesPrinter<
-//		IntValue<CtrT::Types::Streams>
-//		RootT::Types::LeafRangeOffsetList,
-//		CtrT::Types::LeafRangeOffsetList//,
-//
-//		LeafOffsetListBuilder<CtrT::Types::LeafStreamsStructList>::Type,
-//		CtrT::Types::IteratorAccumulator,
-//		CtrT::Types::Accumulator,
-//		LinearLeafList,
-//		CtrT::Types::BranchStreamsStructList
-//		>::print(cout);
+		alloc.commit();
+
+		OutputStreamHandler* os = FileOutputStreamHandler::create("mapxx.dump");
+
+		alloc.store(os);
+
+		delete os;
 	}
 	catch (memoria::vapi::Exception& ex) {
 		cout<<ex.message()<<" at "<<ex.source()<<endl;

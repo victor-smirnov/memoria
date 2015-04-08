@@ -371,29 +371,106 @@ protected:
     typedef typename Base::Key                                                  Key;
 
 public:
+
+    using LeafPath 		 = typename Base::LeafPath;
+
     FindForwardWalkerBase2(Int leaf_index, Key target, SearchType search_type):
         Base(leaf_index, target, search_type)
     {}
 
+
+    template <typename NodeTypes>
+    StreamOpResult treeNode(const bt::BranchNode<NodeTypes>* node, Int start)
+    {
+    	auto& self = this->self();
+
+    	Int index = node->template translateLeafIndexToBranchIndex<LeafPath>(this->leaf_index());
+
+    	using BranchPath = typename bt::BranchNode<NodeTypes>::template BuildBranchPath<LeafPath>;
+        StreamOpResult result = node->template processStream<BranchPath>(typename Base::FindBranchFn(self), index, start);
+
+        return result;
+    }
+
+    template <typename NodeTypes>
+    void treeNode(const bt::BranchNode<NodeTypes>* node, Int start, Int end)
+    {
+    	auto& self = this->self();
+
+        if (this->compute_branch_)
+        {
+        	self.processBranchIteratorAccumulator(node, start, end);
+        	self.processBranchSizePrefix(node, start, end);
+        }
+    }
+
+
+
+    template <typename NodeTypes>
+    StreamOpResult treeNode(const bt::LeafNode<NodeTypes>* node, Int start)
+    {
+    	auto& self = this->self();
+
+    	using Node = bt::LeafNode<NodeTypes>;
+
+    	StreamOpResult result = node->template processStream<LeafPath>(typename Base::FindLeafFn(self), start);
+
+        return result;
+    }
+
+
+    template <typename NodeTypes>
+    void treeNode(const bt::LeafNode<NodeTypes>* node, WalkCmd cmd, Int start, Int end)
+    {
+    	auto& self = this->self();
+
+    	if (this->compute_leaf_)
+    	{
+    		if (cmd == WalkCmd::FIRST_LEAF)
+    		{
+    			self.processLeafIteratorAccumulator(node, this->leaf_accumulator(), start, end);
+    			self.processLeafIteratorAccumulator(node, this->branch_accumulator());
+
+    			self.processLeafSizePrefix(node);
+    		}
+    		else {
+    			self.processLeafIteratorAccumulator(node, this->leaf_accumulator(), start, end);
+    		}
+    	}
+    }
+
+
+
     template <Int StreamIdx, typename Tree>
-    Int find_non_leaf(const Tree* tree, Int index, Int start)
+    StreamOpResult find_non_leaf(const Tree* tree, Int index, Int start)
     {
         auto k = Base::target_ - Base::sum_;
 
         auto result = tree->findForward(Base::search_type_, index, start, k);
 
-        Base::sum_ += result.prefix();
+        auto size = tree->size();
 
-        this->end_ = result.idx() >= tree->size();
+        if (result.idx() < size)
+        {
+        	Base::sum_ += result.prefix();
 
-        return result.idx();
+        	return StreamOpResult(result.idx(), false);
+        }
+        else if (size > 0)
+        {
+        	Base::sum_ += result.prefix() - tree->value(index, size - 1);
+        	return StreamOpResult(result.idx() - 1, true);
+        }
+        else {
+        	return StreamOpResult(0, true);
+        }
     }
 
 
     template <Int StreamIdx, typename Tree>
-    Int find_leaf(const Tree* tree, Int start)
+    StreamOpResult find_leaf(const Tree* tree, Int start)
     {
-        auto k = Base::target_ - Base::sum_;
+    	auto k = Base::target_ - Base::sum_;
 
         Int index   = this->leaf_index();
 
@@ -401,15 +478,26 @@ public:
 
         Base::sum_ += result.prefix();
 
-        this->end_ = result.idx() >= tree->size();
-
-        return result.idx();
+        return StreamOpResult(result.idx(), result.idx() >= tree->size());
     }
 
 	template <Int StreamIdx, typename StreamType>
-	void branch_size_prefix(const StreamType* stream, Int start, Int end) {
-		Base::branch_size_prefix()[StreamIdx] += stream->sum(start, end);
+	void branch_size_prefix(const StreamType* stream, Int start, Int end)
+	{
+		Base::branch_size_prefix()[StreamIdx] += stream->sum(0, start, end);
 	}
+
+
+	template <Int StreamIdx, typename StreamType>
+	void leaf_size_prefix(const StreamType* stream)
+	{
+		auto sum = stream->size();
+		auto& prefix = Base::branch_size_prefix();
+		prefix[StreamIdx] += sum;
+
+//		Base::branch_size_prefix()[StreamIdx] -= stream->sum(0);
+	}
+
 
 	template <
 		typename StreamObj,
@@ -422,9 +510,14 @@ public:
 	{
 		static_assert(To <= StreamObj::Indexes, "Invalid BTree structure");
 
-		for (Int c = 0; c < StreamObj::Indexes; c++)
+        if (DebugCounter) {
+        	obj->dump();
+        }
+
+
+		for (Int c = 0; c < To - From; c++)
 		{
-			item[c + From] += obj->sum(c, start, end);
+			item[c] += obj->sum(c + From, start, end);
 		}
 	}
 
@@ -438,9 +531,27 @@ public:
 	template <Int Offset, Int From, Int Size, typename StreamObj, typename AccumItem>
 	void leaf_iterator_accumulator(const StreamObj* obj, AccumItem& item, Int start, Int end)
 	{
+		if (end - start == 1 && start > 0)
+		{
+			for (Int c = 0; c < Size; c++)
+			{
+				item[Offset - std::remove_reference<decltype(item)>::type::From + c] += obj->value(c + From, start);
+			}
+		}
+		else {
+			for (Int c = 0; c < Size; c++)
+			{
+				item[Offset - std::remove_reference<decltype(item)>::type::From + c] = obj->sum(c + From, end);
+			}
+		}
+	}
+
+	template <Int Offset, Int From, Int Size, typename StreamObj, typename AccumItem>
+	void leaf_iterator_accumulator(const StreamObj* obj, AccumItem& item)
+	{
 		for (Int c = 0; c < Size; c++)
 		{
-			item[Offset - std::remove_reference<decltype(item)>::type::From + c] += obj->sum(c + From, start, end);
+			item[Offset - std::remove_reference<decltype(item)>::type::From + c] += obj->sum(c + From);
 		}
 	}
 };
@@ -475,6 +586,10 @@ public:
     FindGTForwardWalker2(Int leaf_index, Key target):
         Base(leaf_index, target, SearchType::GT)
     {}
+
+    FindGTForwardWalker2(Int stream, Int leaf_index, Key target):
+    	Base(leaf_index, target, SearchType::GT)
+    {}
 };
 
 template <
@@ -490,6 +605,10 @@ public:
     FindGEForwardWalker2(Int leaf_index, Key target):
         Base(leaf_index, target, SearchType::GE)
     {}
+
+    FindGEForwardWalker2(Int stream, Int leaf_index, Key target):
+    	Base(leaf_index, target, SearchType::GE)
+    {}
 };
 
 
@@ -503,26 +622,26 @@ protected:
     typedef typename Base::Key                                                  Key;
 
 public:
+    using StreamOpResult = typename Base::StreamOpResult;
+
     FindBackwardWalkerBase2(Int leaf_index, Key target, SearchType search_type):
         Base(leaf_index, target, search_type)
     {}
 
     template <Int StreamIdx, typename Tree>
-    Int find_non_leaf(const Tree* tree, Int index, Int start)
+    StreamOpResult find_non_leaf(const Tree* tree, Int index, Int start)
     {
     	auto k          = Base::target_ - Base::sum_;
 
     	auto result     = tree->findBackward(Base::search_type_, index, start, k);
     	Base::sum_      += result.prefix();
 
-    	this->end_ = result.idx() >= 0;
-
-    	return result.idx();
+    	return StreamOpResult(result.idx(), result.idx() < 0);
     }
 
 
     template <Int StreamIdx, typename Tree>
-    Int find_leaf(const Tree* tree, Int start)
+    StreamOpResult find_leaf(const Tree* tree, Int start)
     {
     	auto k          = Base::target_ - Base::sum_;
 
@@ -533,15 +652,66 @@ public:
     	auto result     = tree->findBackward(Base::search_type_, index, start1, k);
     	Base::sum_      += result.prefix();
 
-    	this->end_ = result.idx() >= 0;
-
-    	return result.idx();
+    	return StreamOpResult(result.idx(), result.idx() < 0);
     }
+
+    template <typename NodeTypes>
+    Int treeNode(const bt::BranchNode<NodeTypes>* node, BigInt start)
+    {
+    	return Base::treeNode(node, start);
+    }
+
+    template <typename NodeTypes>
+    Int treeNode(const bt::LeafNode<NodeTypes>* node, BigInt start)
+    {
+    	auto& self = this->self();
+
+    	using Node = bt::LeafNode<NodeTypes>;
+
+    	StreamOpResult result = node->template processStream<typename Base::LeafPath>(typename Base::FindLeafFn(self), start);
+
+    	if (this->compute_leaf_)
+    	{
+    		self.processLeafIteratorAccumulator(node, this->leaf_accumulator(), true, start, std::get<0>(result));
+
+    		if (Base::direction() == WalkDirection::DOWN)
+    		{
+    			self.processLeafIteratorAccumulator(node, this->branch_accumulator(), false, start, std::get<0>(result));
+    			self.processLeafSizePrefix(node, start, std::get<0>(result));
+    		}
+    	}
+
+        return std::get<0>(result);
+    }
+
+
+    struct LeafSizePrefix
+    {
+    	template <Int GroupIdx, Int AllocatorIdx, Int ListIdx, typename StreamObj>
+    	void stream(const StreamObj* obj, MyType& walker, Int start, Int end)
+    	{
+    		walker.template leaf_size_prefix<GroupIdx>(obj, start, end);
+    	}
+    };
+
+    template <typename Node>
+    void processLeafSizePrefix(Node* node, Int start, Int end)
+    {
+    	node->template processStream<IntList<MyType::current_stream()>>(LeafSizePrefix(), this->self(), start, end);
+    }
+
+
 
 	template <Int StreamIdx, typename StreamType>
 	void branch_size_prefix(const StreamType* stream, Int start, Int end)
 	{
-		Base::branch_size_prefix()[StreamIdx] += stream->sum(end + 1, start + 1);
+		Base::branch_size_prefix()[StreamIdx] -= stream->sum(0, end + 1, start + 1);
+	}
+
+	template <Int StreamIdx, typename StreamType>
+	void leaf_size_prefix(const StreamType* stream, Int start, Int end)
+	{
+		Base::branch_size_prefix()[StreamIdx] -= stream->sum(0);
 	}
 
 	template <
@@ -555,9 +725,9 @@ public:
 	{
 		static_assert(To <= StreamObj::Indexes, "Invalid BTree structure");
 
-		for (Int c = 0; c < StreamObj::Indexes; c++)
+		for (Int c = 0; c < To - From; c++)
 		{
-			item[c + From] -= obj->sum(c, end + 1, start + 1);
+			item[c] -= obj->sum(c + From, end + 1, start + 1);
 		}
 	}
 
@@ -569,11 +739,29 @@ public:
 	void branch_iterator_accumulator(const StreamObj* obj, AccumItem<T>& item, Int start, Int end){}
 
 	template <Int Offset, Int From, Int Size, typename StreamObj, typename AccumItem>
-	void leaf_iterator_accumulator(const StreamObj* obj, AccumItem& item, Int start, Int end)
+	void leaf_iterator_accumulator(const StreamObj* obj, AccumItem& item, bool leaf, Int start, Int end)
 	{
-		for (Int c = 0; c < Size; c++)
+		if (leaf)
 		{
-			item[Offset - std::remove_reference<decltype(item)>::type::From + c] -= obj->sum(c + From, end, start);
+			if (end > 0)
+			{
+				for (Int c = 0; c < Size; c++)
+				{
+					item[Offset - std::remove_reference<decltype(item)>::type::From + c] = obj->sum(c + From, 0, end);
+				}
+			}
+			else {
+				for (Int c = 0; c < Size; c++)
+				{
+					item[Offset - std::remove_reference<decltype(item)>::type::From + c] = 0;
+				}
+			}
+		}
+		else {
+			for (Int c = 0; c < Size; c++)
+			{
+				item[Offset - std::remove_reference<decltype(item)>::type::From + c] -= obj->sum(c + From);
+			}
 		}
 	}
 };
@@ -622,6 +810,10 @@ public:
     FindGTBackwardWalker2(Int leaf_index, Key target):
         Base(leaf_index, target, SearchType::GT)
     {}
+
+    FindGTBackwardWalker2(Int stream, Int leaf_index, Key target):
+    	Base(leaf_index, target, SearchType::GT)
+    {}
 };
 
 template <
@@ -643,6 +835,10 @@ class FindGEBackwardWalker2: public FindBackwardWalkerBase2<
 public:
     FindGEBackwardWalker2(Int leaf_index, Key target):
         Base(leaf_index, target, SearchType::GE)
+    {}
+
+    FindGEBackwardWalker2(Int stream, Int leaf_index, Key target):
+    	Base(leaf_index, target, SearchType::GE)
     {}
 };
 

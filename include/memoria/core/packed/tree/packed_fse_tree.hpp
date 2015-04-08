@@ -358,7 +358,12 @@ public:
 
     const Value& value(Int idx) const
     {
-        MEMORIA_ASSERT(idx, >=, 0);
+        if (idx >= raw_size()) {
+        	int a = 0;
+        	a++;
+        }
+
+    	MEMORIA_ASSERT(idx, >=, 0);
         MEMORIA_ASSERT(idx, <, raw_size());
 
         return *(values() + idx);
@@ -829,7 +834,8 @@ public:
             return ValueDescr(actual_value, pos - block_start, fn.sum() - prefix);
         }
         else {
-            return ValueDescr(0, size_, sum(block) - prefix);
+        	auto block_sum = raw_sum(block_start + size_);
+            return ValueDescr(0, size_, block_sum - prefix);
         }
     }
 

@@ -138,14 +138,27 @@ template <typename Iterator, typename Container>
 class MapXIteratorPrefixCache: public bt::BTreeIteratorCache<Iterator, Container> {
     typedef bt::BTreeIteratorCache<Iterator, Container> Base;
 
-    typedef typename Container::Types::IteratorAccumulator IteratorPrefix;
+    using IteratorPrefix = typename Container::Types::IteratorAccumulator;
+    using SizePrefix = core::StaticVector<BigInt, Container::Types::Streams>;
 
-    IteratorPrefix prefix_;
-    IteratorPrefix leaf_prefix_;
+
+    IteratorPrefix 	prefix_;
+    IteratorPrefix 	leaf_prefix_;
+    SizePrefix		size_prefix_;
 
 public:
 
     MapXIteratorPrefixCache(): Base(), prefix_() {}
+
+    const SizePrefix& size_prefix() const
+    {
+        return size_prefix_;
+    }
+
+    SizePrefix& size_prefix()
+    {
+        return size_prefix_;
+    }
 
     const IteratorPrefix& prefixes() const
     {
@@ -166,10 +179,6 @@ public:
     {
         return leaf_prefix_;
     }
-
-    void dump() const {
-    	std::cout<<"Branch Prefix: "<<prefix_<<std::endl;
-    }
 };
 
 template <
@@ -178,7 +187,7 @@ template <
 std::ostream& operator<<(std::ostream& out, const MapXIteratorPrefixCache<I, C>& cache)
 {
     out<<"MetaMapIteratorPrefixCache[";
-    out<<"Branch prefixes: "<<cache.prefixes()<<", Leaf Prefixes: "<<cache.leaf_prefixes();
+    out<<"Branch prefixes: "<<cache.prefixes()<<", Leaf Prefixes: "<<cache.leaf_prefixes()<<", Size Prefixes: "<<cache.size_prefix();
     out<<"]";
 
     return out;

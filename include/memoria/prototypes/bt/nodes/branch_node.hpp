@@ -437,7 +437,9 @@ public:
     template <typename LeafPath>
     static Int translateLeafIndexToBranchIndex(Int leaf_index)
     {
-    	return LeafToBranchIndexTranslator<LeafSubstreamsStructList, LeafPath, 0>::BranchIndex + leaf_index;
+    	//return LeafToBranchIndexTranslator<LeafSubstreamsStructList, LeafPath, 0>::BranchIndex + leaf_index;
+
+    	return LeafToBranchIndexTranslator<LeafSubstreamsStructList, LeafPath, 0>::translate(leaf_index);
     }
 
 private:

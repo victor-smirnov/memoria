@@ -138,7 +138,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mapx::CtrRemoveName)
     Iterator findK(BigInt k)
     {
     	memoria::bt1::FindGTForwardWalker2<memoria::bt1::WalkerTypes<Types, IntList<0>>> w(0, k);
-    	return self().find0(0, w);
+    	return self().find2(0, w);
     }
 
 MEMORIA_CONTAINER_PART_END

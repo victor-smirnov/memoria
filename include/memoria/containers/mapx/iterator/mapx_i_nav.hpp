@@ -36,15 +36,15 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
     }
 
     bool operator--() {
-        return self().prevKey();
+        return self().skipBw(1);
     }
 
     bool operator++(int) {
-        return self().nextKey();
+        return self().skipFw(1);
     }
 
     bool operator--(int) {
-        return self().prevKey();
+        return self().skipBw(1);
     }
 
     BigInt operator+=(BigInt size)
@@ -115,6 +115,55 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
 
 //    		self.updatePrefix();
     	}
+    }
+
+    void insert(BigInt key, BigInt value)
+    {
+    	auto& self = this->self();
+
+    	self.ctr().template insertStreamEntry<0>(self, std::make_tuple(core::StaticVector<BigInt, 1>({key}), value));
+    }
+
+    void remove() {
+    	auto& self = this->self();
+    	self.ctr().template removeStreamEntry<0>(self);
+    }
+
+    template <typename WTypes, typename LeafPath>
+    using GTFWWalker = memoria::bt1::FindGTForwardWalker2<memoria::bt1::WalkerTypes<WTypes, LeafPath>>;
+
+    template <typename WTypes, typename LeafPath>
+    using GEFWWalker = memoria::bt1::FindGEForwardWalker2<memoria::bt1::WalkerTypes<WTypes, LeafPath>>;
+
+    template <typename WTypes, typename LeafPath>
+    using GTBWWalker = memoria::bt1::FindGTBackwardWalker2<memoria::bt1::WalkerTypes<WTypes, LeafPath>>;
+
+    template <typename WTypes, typename LeafPath>
+    using GEBWWalker = memoria::bt1::FindGEBackwardWalker2<memoria::bt1::WalkerTypes<WTypes, LeafPath>>;
+
+
+    void findFwGT(Int index, BigInt key)
+    {
+    	auto& self = this->self();
+    	self.template _findFw2<GTFWWalker>(index, key);
+    }
+
+    void findFwGE(Int index, BigInt key)
+    {
+    	auto& self = this->self();
+    	self.template _findFw2<GEFWWalker>(index, key);
+    }
+
+    void findBwGT(Int index, BigInt key)
+    {
+    	auto& self = this->self();
+    	self.template _findBw2<GTBWWalker>(index, key);
+    }
+
+    void findBwGE(Int index, BigInt key)
+    {
+    	auto& self = this->self();
+    	self.template _findBw2<GEBWWalker>(index, key);
     }
 
 
@@ -291,13 +340,13 @@ bool M_TYPE::hasPrevKey()
 M_PARAMS
 BigInt M_TYPE::skipFw(BigInt amount)
 {
-    return self().template _findFw<Types::template SkipForwardWalker>(0, amount);
+    return self().template _findFw2<Types::template SkipForwardWalker>(0, amount);
 }
 
 M_PARAMS
 BigInt M_TYPE::skipBw(BigInt amount)
 {
-    return self().template _findBw<Types::template SkipBackwardWalker>(0, amount);
+    return self().template _findBw2<Types::template SkipBackwardWalker>(0, amount);
 }
 
 M_PARAMS

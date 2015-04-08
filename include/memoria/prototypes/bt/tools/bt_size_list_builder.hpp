@@ -485,8 +485,27 @@ protected:
 
 public:
 	static const Int BranchIndex = LeafIndex
-									+ GetLeafPrefix<LocalLeafGroup, LocalLeafOffset>::Value
-									+ IsStreamStart<LeafPath>::Value;
+									+ GetLeafPrefix<LocalLeafGroup, LocalLeafOffset>::Value;
+									//+ IsStreamStart<LeafPath>::Value;
+
+	static Int translate(Int leaf_index) {
+
+		const Int LeafIdx 			= memoria::list_tree::LeafCount<LeafStructList, LeafPath>::Value;
+		const Int LocalLeafOffset	= FindLocalLeafOffsetV<Leafs, LeafIdx>::Value;
+
+		using LocalLeafGroup = typename FindLocalLeafOffsetT<LeafOffsets, LeafIdx>::Type;
+
+		const Int LeafPrefix = GetLeafPrefix<LocalLeafGroup, LocalLeafOffset>::Value;
+
+//		const Int StreamStart = IsStreamStart<LeafPath>::Value;
+
+		const Int BranchIndex = leaf_index
+				+ LeafPrefix;
+//				+ StreamStart;
+
+
+		return BranchIndex;
+	}
 };
 
 

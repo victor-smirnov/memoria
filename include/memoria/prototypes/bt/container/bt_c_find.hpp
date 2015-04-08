@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011-2013.
+// Copyright Victor Smirnov 2011-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -42,10 +42,71 @@ public:
     Iterator find0(Int stream, Walker&& walker);
 
     template <typename Walker>
+    Iterator find2(Int stream, Walker&& walker);
+
+    template <typename Walker>
     Int findFw(NodeBaseG& node, Int stream, Int idx, Walker&& walker);
 
     template <typename Walker>
     Int findBw(NodeBaseG& node, Int stream, Int idx, Walker&& walker);
+
+
+    struct NodeChain {
+    	NodeBaseG node;
+    	Int start;
+    	Int end;
+    	NodeChain* ref;
+
+    	NodeChain(NodeBaseG _node, Int _start, NodeChain* _ref = nullptr): node(_node), start(_start), end(0), ref(_ref) {}
+
+    	template <typename Walker>
+    	void processChain(Walker&& walker, Int cnt = 0)
+    	{
+    		if (node->is_leaf())
+    		{
+    			cnt++;
+    		}
+
+    		if (ref)
+    		{
+    			ref->processChain(std::forward<Walker>(walker), cnt);
+    		}
+
+    		if (node->is_leaf())
+    		{
+    			WalkCmd cmd;
+
+        		if (cnt == 1) {
+        			cmd = WalkCmd::LAST_LEAF;
+        		}
+        		else if (cnt == 2) {
+        			cmd = WalkCmd::FIRST_LEAF;
+        		}
+
+        		LeafDispatcher::dispatch(node, std::forward<Walker>(walker), cmd, start, end);
+    		}
+    		else {
+    			NonLeafDispatcher::dispatch(node, std::forward<Walker>(walker), start, end);
+    		}
+    	}
+    };
+
+    struct FindResult {
+    	NodeBaseG node;
+    	Int idx;
+
+    	FindResult(NodeBaseG _node, Int _idx): node(_node), idx(_idx) {}
+    };
+
+    template <typename Walker>
+    memoria::bt1::StreamOpResult findFw2(NodeBaseG& node, Int stream, Int idx, Walker&& walker);
+
+    template <typename Walker>
+    FindResult findFw2(NodeChain node_chain, bool up, Walker&& walker);
+
+
+    template <typename Walker>
+    Int findBw2(NodeBaseG& node, Int stream, Int idx, Walker&& walker);
 
     MEMORIA_PUBLIC Position sizes() const
     {
@@ -346,9 +407,282 @@ Int M_TYPE::findBw(NodeBaseG& node, Int stream, Int start, Walker&& walker)
 
 
 
+
+/********************************************************************************************/
+
+M_PARAMS
+template <typename Walker>
+typename M_TYPE::FindResult M_TYPE::findFw2(NodeChain node_chain, bool up, Walker&& walker)
+{
+    auto& self = this->self();
+
+    auto result = NodeDispatcher::dispatch(node_chain.node, std::forward<Walker>(walker), node_chain.start);
+    node_chain.end = result.idx();
+
+    if (up)
+    {
+    	if (!result.out_of_range())
+    	{
+    		if (node_chain.node->is_leaf())
+    		{
+    			node_chain.processChain(std::forward<Walker>(walker));
+    			return FindResult(node_chain.node, result.idx());
+    		}
+    		else {
+    			auto child = self.getChild(node_chain.node, result.idx());
+    			return findFw2(NodeChain(child, 0, &node_chain), false, std::forward<Walker>(walker));
+    		}
+    	}
+    	else {
+    		if (!node_chain.node->is_root())
+    		{
+    			auto parent 		= self.getNodeParent(node_chain.node);
+    			auto parent_idx 	= node_chain.node->parent_idx() + 1;
+    			auto parent_result  = findFw2(NodeChain(parent, parent_idx, &node_chain), true, std::forward<Walker>(walker));
+
+    			if (parent_result.idx > parent_idx)
+    			{
+    				return parent_result;
+    			}
+    			else if (node_chain.node->is_leaf())
+    			{
+    				node_chain.processChain(std::forward<Walker>(walker));
+    				return FindResult(node_chain.node, result.idx());
+    			}
+    			else {
+    				return FindResult(node_chain.node, node_chain.start);
+    			}
+    		}
+    		else {
+    			if (node_chain.node->is_leaf())
+    			{
+    				node_chain.processChain(std::forward<Walker>(walker));
+    				return FindResult(node_chain.node, result.idx());
+    			}
+    			else if (result.idx() > node_chain.start)
+    			{
+    				auto child = self.getChild(node_chain.node, result.idx());
+    				return findFw2(NodeChain(child, 0, &node_chain), false, std::forward<Walker>(walker));
+    			}
+    			else {
+    				return FindResult(node_chain.node, node_chain.start);
+    			}
+    		}
+    	}
+    }
+    else if (node_chain.node->is_leaf())
+    {
+    	node_chain.processChain(std::forward<Walker>(walker));
+    	return FindResult(node_chain.node, result.idx());
+    }
+    else {
+    	auto child = self.getChild(node_chain.node, result.idx());
+    	return findFw2(NodeChain(child, 0, &node_chain), false, std::forward<Walker>(walker));
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+M_PARAMS
+template <typename Walker>
+memoria::bt1::StreamOpResult M_TYPE::findFw2(NodeBaseG& node, Int stream, Int start, Walker&& walker)
+{
+    auto& self = this->self();
+
+//    Int size = self.getNodeSize(node, stream);
+//
+//    Int idx;
+//
+//    if (start < size)
+//    {
+//        idx = NodeDispatcher::dispatch(node, walker, start).idx();
+//    }
+//    else {
+//        idx = size;
+//    }
+
+    auto result = NodeDispatcher::dispatch(node, walker, start);
+
+    if (result.out_of_range())
+    {
+        if (!node->is_root())
+        {
+            NodeBaseG parent = self.getNodeParent(node);
+
+            // Step up the tree
+            auto child_idx = findFw2(parent, stream, node->parent_idx() + 1, walker);
+
+            Int parent_size = self.getNodeSize(parent, stream);
+            if (!child_idx.out_of_range())
+            {
+                // Step down the tree
+                node = self.getChild(parent, child_idx.idx());
+
+                return NodeDispatcher::dispatch(node, walker, 0);
+            }
+            else {
+                // Step down the tree
+                node = self.getChild(parent, parent_size - 1);
+
+                return memoria::bt1::StreamOpResult(self.getNodeSize(node, stream), true);
+            }
+        }
+        else {
+            return result;
+        }
+    }
+    else {
+        return result;
+    }
+}
+
+
+
+
+
+M_PARAMS
+template <typename Walker>
+Int M_TYPE::findBw2(NodeBaseG& node, Int stream, Int start, Walker&& walker)
+{
+    auto& self = this->self();
+
+    if (node->is_root())
+    {
+        walker.direction()  = WalkDirection::DOWN;
+    }
+    else {
+        walker.direction()  = WalkDirection::UP;
+    }
+
+    Int idx;
+
+    if (start >= 0)
+    {
+        idx = NodeDispatcher::dispatch(node, walker, start);
+    }
+    else {
+        idx = -1;
+    }
+
+    if (idx < 0)
+    {
+        if (!node->is_root())
+        {
+            NodeBaseG parent = self.getNodeParent(node);
+
+            // Step up the tree
+            Int child_idx = findBw2(parent, stream, node->parent_idx() - 1, walker);
+
+            if (child_idx >= 0)
+            {
+                // Step down the tree
+                node        = self.getChild(parent, child_idx);
+                Int start   = self.getNodeSize(node, stream) - !node->is_leaf();
+
+                return NodeDispatcher::dispatch(node, walker, start);
+            }
+            else {
+                // Step down the tree
+                node = self.getChild(parent, 0);
+
+                return -1;
+            }
+        }
+        else {
+            return -1;
+        }
+    }
+    else {
+        walker.direction()  = WalkDirection::DOWN;
+        return idx;
+    }
+}
+
+
+
+M_PARAMS
+template <typename Walker>
+typename M_TYPE::Iterator M_TYPE::find2(Int stream, Walker&& walker)
+{
+    auto& self = this->self();
+    walker.direction()  = WalkDirection::DOWN;
+
+    NodeBaseG node = self.getRoot();
+    if (node.isSet())
+    {
+        Iterator i(self);
+
+        i.stream() = stream;
+
+        Int size = self.getNodeSize(node, stream);
+
+        if (size > 0)
+        {
+            bool out_of_range = false;
+
+            while (!node->is_leaf())
+            {
+                Int idx;
+                if (!out_of_range)
+                {
+                    idx = NodeDispatcher::dispatch(node, walker, 0).idx();
+
+                    size = self.getNodeSize(node, stream);
+
+                    if (idx >= size)
+                    {
+                        out_of_range = true;
+                        idx = size - 1;
+                    }
+                }
+                else {
+                    idx = self.getNodeSize(node, stream) - 1;
+                }
+
+                node = self.getChild(node, idx);
+            }
+
+            Int idx;
+            if (!out_of_range)
+            {
+                i.idx() = idx = NodeDispatcher::dispatch(node, walker, 0).idx();
+            }
+            else {
+                i.idx() = idx = self.getNodeSize(node, stream);
+            }
+
+            i.leaf() = node;
+
+            walker.finish(i, idx);
+        }
+        else {
+            i.leaf() = node;
+
+            walker.empty(i);
+        }
+
+        i.init();
+        return i;
+    }
+    else {
+        return Iterator(self);
+    }
+}
+
+
+
+
 #undef M_TYPE
 #undef M_PARAMS
 
 }
 
-#endif  //_MEMORIA_MODELS_KVMAP_MODEL_FIND_HPP
+#endif

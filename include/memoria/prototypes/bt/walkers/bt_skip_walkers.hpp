@@ -24,6 +24,7 @@ protected:
 
 public:
 
+
     SkipForwardWalkerBase(Int stream, Int leaf_index, Key target):
         Base(stream, leaf_index, target, SearchType::GT)
     {}
@@ -226,12 +227,12 @@ protected:
 public:
 
     SkipForwardWalkerBase2(Key target):
-        Base(0, target, SearchType::GT)
+        Base(-1, target, SearchType::GT)
     {}
 
 
     template <Int StreamIdx, typename Array>
-    Int find_leaf(const Array* array, Int start)
+    StreamOpResult find_leaf(const Array* array, Int start)
     {
         auto& sum = Base::sum_;
 
@@ -245,20 +246,16 @@ public:
             {
                 sum += offset;
 
-                this->end_ = false;
-
-                return start + offset;
+                return StreamOpResult(start + offset, false);
             }
             else {
                 sum += (size - start);
 
-                this->end_ = true;
-
-                return size;
+                return StreamOpResult(size, true);
             }
         }
         else {
-            return 0;
+            return StreamOpResult(0, true);
         }
     }
 
@@ -302,13 +299,15 @@ protected:
 
 public:
 
+    using StreamOpResult = typename Base::StreamOpResult;
+
     SkipBackwardWalkerBase2(Key target):
-        Base(0, target, SearchType::GE)
+        Base(-1, target, SearchType::GE)
     {}
 
 
     template <Int StreamIdx, typename Array>
-    Int find_leaf(const Array* array, Int start)
+    StreamOpResult find_leaf(const Array* array, Int start)
     {
         BigInt offset = Base::target_ - Base::sum_;
 
@@ -320,20 +319,16 @@ public:
             {
                 sum += offset;
 
-                this->end_ = false;
-
-                return start - offset;
+                return StreamOpResult(start - offset, false);
             }
             else {
                 sum += start;
 
-                this->end_ = true;
-
-                return -1;
+                return StreamOpResult(-1, true);
             }
         }
         else {
-            return 0;
+            return StreamOpResult(0, true);
         }
     }
 

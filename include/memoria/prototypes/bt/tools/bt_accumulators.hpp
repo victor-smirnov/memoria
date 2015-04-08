@@ -473,7 +473,7 @@ struct AccumItem: public LeafToBranchIndexTranslator<LeafStructList, LeafPath, 0
 public:
 	using Base = LeafToBranchIndexTranslator<LeafStructList, LeafPath, 0>;
 
-	static constexpr Int BranchIdx 			= memoria::list_tree::LeafCountInf<LeafStructList, LeafPath, 2>::Value - Base::LocalLeafOffset;
+	static constexpr Int BranchIdx  = memoria::list_tree::LeafCountInf<LeafStructList, LeafPath, 2>::Value - Base::LocalLeafOffset;
 
 	static constexpr Int LeafPrefix = Base::BranchIndex;
 

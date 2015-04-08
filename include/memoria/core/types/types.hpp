@@ -364,6 +364,11 @@ enum class WalkDirection {
     UP, DOWN
 };
 
+enum class WalkCmd {
+    FIRST_LEAF, LAST_LEAF
+};
+
+
 enum class SearchType {LT, LE, GT, GE};
 enum class IteratorMode {FORWARD, BACKWARD};
 enum class MergeType {NONE, LEFT, RIGHT};

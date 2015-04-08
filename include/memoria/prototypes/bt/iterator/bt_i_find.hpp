@@ -35,6 +35,13 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorFindName)
     template <template <typename CtrTypes, typename LeafPath> class Walker>
     BigInt _findBw(Int index, BigInt key);
 
+    template <template <typename CtrTypes, typename LeafPath> class Walker>
+    BigInt _findFw2(Int index, BigInt key);
+
+    template <template <typename CtrTypes, typename LeafPath> class Walker>
+    BigInt _findBw2(Int index, BigInt key);
+
+
 MEMORIA_ITERATOR_PART_END
 
 #define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::bt::IteratorFindName)
@@ -68,6 +75,46 @@ BigInt M_TYPE::_findBw(Int index, BigInt key)
     walker.prepare(self);
 
     Int idx = self.model().findBw(self.leaf(), stream, self.key_idx(), walker);
+
+    return walker.finish(self, idx);
+}
+
+
+
+
+M_PARAMS
+template <template <typename CtrTypes, typename LeafPath> class Walker>
+BigInt M_TYPE::_findFw2(Int index, BigInt key)
+{
+    auto& self = this->self();
+    Int stream = self.stream();
+
+    Walker<Types, IntList<0>> walker(stream, index, key);
+
+    walker.prepare(self);
+
+    typename Container::NodeChain node_chain(self.leaf(), self.key_idx());
+
+    auto result = self.ctr().findFw2(node_chain, true, walker);
+
+    self.leaf() = result.node;
+    self.idx()  = result.idx;
+
+    return walker.finish(self, result.idx);
+}
+
+M_PARAMS
+template <template <typename CtrTypes, typename LeafPath> class Walker>
+BigInt M_TYPE::_findBw2(Int index, BigInt key)
+{
+    auto& self = this->self();
+    Int stream = self.stream();
+
+    Walker<Types, IntList<0>> walker(stream, index, key);
+
+    walker.prepare(self);
+
+    Int idx = self.model().findBw2(self.leaf(), stream, self.key_idx(), walker);
 
     return walker.finish(self, idx);
 }
