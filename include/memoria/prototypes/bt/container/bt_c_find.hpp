@@ -42,7 +42,7 @@ public:
     Iterator find0(Int stream, Walker&& walker);
 
     template <typename Walker>
-    Iterator find2(Int stream, Walker&& walker);
+    Iterator find2(Walker&& walker);
 
     template <typename Walker>
     Int findFw(NodeBaseG& node, Int stream, Int idx, Walker&& walker);
@@ -102,7 +102,7 @@ public:
     memoria::bt1::StreamOpResult findFw2(NodeBaseG& node, Int stream, Int idx, Walker&& walker);
 
     template <typename Walker>
-    FindResult findFw2(NodeChain node_chain, bool up, Walker&& walker);
+    FindResult findFw2(NodeChain node_chain, Walker&& walker, bool up = true);
 
 
     template <typename Walker>
@@ -412,7 +412,7 @@ Int M_TYPE::findBw(NodeBaseG& node, Int stream, Int start, Walker&& walker)
 
 M_PARAMS
 template <typename Walker>
-typename M_TYPE::FindResult M_TYPE::findFw2(NodeChain node_chain, bool up, Walker&& walker)
+typename M_TYPE::FindResult M_TYPE::findFw2(NodeChain node_chain, Walker&& walker, bool up)
 {
     auto& self = this->self();
 
@@ -430,7 +430,7 @@ typename M_TYPE::FindResult M_TYPE::findFw2(NodeChain node_chain, bool up, Walke
     		}
     		else {
     			auto child = self.getChild(node_chain.node, result.idx());
-    			return findFw2(NodeChain(child, 0, &node_chain), false, std::forward<Walker>(walker));
+    			return findFw2(NodeChain(child, 0, &node_chain), std::forward<Walker>(walker), false);
     		}
     	}
     	else {
@@ -438,7 +438,7 @@ typename M_TYPE::FindResult M_TYPE::findFw2(NodeChain node_chain, bool up, Walke
     		{
     			auto parent 		= self.getNodeParent(node_chain.node);
     			auto parent_idx 	= node_chain.node->parent_idx() + 1;
-    			auto parent_result  = findFw2(NodeChain(parent, parent_idx, &node_chain), true, std::forward<Walker>(walker));
+    			auto parent_result  = findFw2(NodeChain(parent, parent_idx, &node_chain), std::forward<Walker>(walker), true);
 
     			if (parent_result.idx > parent_idx)
     			{
@@ -462,7 +462,7 @@ typename M_TYPE::FindResult M_TYPE::findFw2(NodeChain node_chain, bool up, Walke
     			else if (result.idx() > node_chain.start)
     			{
     				auto child = self.getChild(node_chain.node, result.idx());
-    				return findFw2(NodeChain(child, 0, &node_chain), false, std::forward<Walker>(walker));
+    				return findFw2(NodeChain(child, 0, &node_chain), std::forward<Walker>(walker), false);
     			}
     			else {
     				return FindResult(node_chain.node, node_chain.start);
@@ -477,72 +477,13 @@ typename M_TYPE::FindResult M_TYPE::findFw2(NodeChain node_chain, bool up, Walke
     }
     else {
     	auto child = self.getChild(node_chain.node, result.idx());
-    	return findFw2(NodeChain(child, 0, &node_chain), false, std::forward<Walker>(walker));
+    	return findFw2(NodeChain(child, 0, &node_chain), std::forward<Walker>(walker), false);
     }
 }
 
 
 
 
-
-
-
-
-
-
-
-M_PARAMS
-template <typename Walker>
-memoria::bt1::StreamOpResult M_TYPE::findFw2(NodeBaseG& node, Int stream, Int start, Walker&& walker)
-{
-    auto& self = this->self();
-
-//    Int size = self.getNodeSize(node, stream);
-//
-//    Int idx;
-//
-//    if (start < size)
-//    {
-//        idx = NodeDispatcher::dispatch(node, walker, start).idx();
-//    }
-//    else {
-//        idx = size;
-//    }
-
-    auto result = NodeDispatcher::dispatch(node, walker, start);
-
-    if (result.out_of_range())
-    {
-        if (!node->is_root())
-        {
-            NodeBaseG parent = self.getNodeParent(node);
-
-            // Step up the tree
-            auto child_idx = findFw2(parent, stream, node->parent_idx() + 1, walker);
-
-            Int parent_size = self.getNodeSize(parent, stream);
-            if (!child_idx.out_of_range())
-            {
-                // Step down the tree
-                node = self.getChild(parent, child_idx.idx());
-
-                return NodeDispatcher::dispatch(node, walker, 0);
-            }
-            else {
-                // Step down the tree
-                node = self.getChild(parent, parent_size - 1);
-
-                return memoria::bt1::StreamOpResult(self.getNodeSize(node, stream), true);
-            }
-        }
-        else {
-            return result;
-        }
-    }
-    else {
-        return result;
-    }
-}
 
 
 
@@ -610,7 +551,7 @@ Int M_TYPE::findBw2(NodeBaseG& node, Int stream, Int start, Walker&& walker)
 
 M_PARAMS
 template <typename Walker>
-typename M_TYPE::Iterator M_TYPE::find2(Int stream, Walker&& walker)
+typename M_TYPE::Iterator M_TYPE::find2(Walker&& walker)
 {
     auto& self = this->self();
     walker.direction()  = WalkDirection::DOWN;
@@ -620,56 +561,22 @@ typename M_TYPE::Iterator M_TYPE::find2(Int stream, Walker&& walker)
     {
         Iterator i(self);
 
-        i.stream() = stream;
-
-        Int size = self.getNodeSize(node, stream);
-
-        if (size > 0)
+        while (!node->is_leaf())
         {
-            bool out_of_range = false;
+        	auto result = NodeDispatcher::dispatch(node, walker, 0);
 
-            while (!node->is_leaf())
-            {
-                Int idx;
-                if (!out_of_range)
-                {
-                    idx = NodeDispatcher::dispatch(node, walker, 0).idx();
+        	NonLeafDispatcher::dispatch(node, walker, 0, result.idx());
 
-                    size = self.getNodeSize(node, stream);
-
-                    if (idx >= size)
-                    {
-                        out_of_range = true;
-                        idx = size - 1;
-                    }
-                }
-                else {
-                    idx = self.getNodeSize(node, stream) - 1;
-                }
-
-                node = self.getChild(node, idx);
-            }
-
-            Int idx;
-            if (!out_of_range)
-            {
-                i.idx() = idx = NodeDispatcher::dispatch(node, walker, 0).idx();
-            }
-            else {
-                i.idx() = idx = self.getNodeSize(node, stream);
-            }
-
-            i.leaf() = node;
-
-            walker.finish(i, idx);
-        }
-        else {
-            i.leaf() = node;
-
-            walker.empty(i);
+        	node = self.getChild(node, result.idx());
         }
 
-        i.init();
+        auto result = NodeDispatcher::dispatch(node, walker, 0);
+        LeafDispatcher::dispatch(node, walker, WalkCmd::LAST_LEAF, 0, result.idx());
+
+        i.leaf() = node;
+
+        walker.finish(i, result.idx());
+
         return i;
     }
     else {

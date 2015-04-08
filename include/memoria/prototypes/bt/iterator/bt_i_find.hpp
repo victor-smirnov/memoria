@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2013.
+// Copyright Victor Smirnov 2013-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -95,7 +95,7 @@ BigInt M_TYPE::_findFw2(Int index, BigInt key)
 
     typename Container::NodeChain node_chain(self.leaf(), self.key_idx());
 
-    auto result = self.ctr().findFw2(node_chain, true, walker);
+    auto result = self.ctr().findFw2(node_chain, walker);
 
     self.leaf() = result.node;
     self.idx()  = result.idx;

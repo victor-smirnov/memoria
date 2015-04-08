@@ -32,10 +32,11 @@ int main() {
 
 		for (Int c = 1; c <= size; c++)
 		{
-			iter.insert(1, c);
+			iter.insert(2, c);
 		}
 
-		iter = ctr.findK(0);
+		DebugCounter = 1;
+		iter = ctr.findK((size) * 2);
 
 //		iter.dump();
 
@@ -45,18 +46,18 @@ int main() {
 //		iter.findBwGE(0, size - 1);
 
 
-//		iter.findFwGT(0, size);
-		iter.skipFw(size - 2);
-
-		iter.dump();
-
-//		DebugCounter = 1;
-		iter.skipFw(2);
-
-		iter.dump();
-
-		iter.skipFw(2);
-		iter.dump();
+////		iter.findFwGT(0, size);
+//		iter.skipFw(size - 2);
+//
+//		iter.dump();
+//
+////		DebugCounter = 1;
+//		iter.skipFw(2);
+//
+//		iter.dump();
+//
+//		iter.skipFw(2);
+		iter.dumpPath();
 
 		alloc.commit();
 

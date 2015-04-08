@@ -238,6 +238,7 @@ public:
     {
         auto& self  = this->self();
         out<<(header != NULL ? header : me()->getDumpHeader())<<std::endl;
+        dumpCache(out);
         dumpKeys(out);
         self.ctr().dumpPath(self.leaf(), out);
         out<<"======================================================================"<<std::endl;

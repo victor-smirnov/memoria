@@ -13,9 +13,6 @@
 namespace memoria {
 namespace bt1     {
 
-
-
-
 template <typename Types, typename MyType>
 class FindWalkerBase: public WalkerBase<Types, MyType> {
 
@@ -491,11 +488,7 @@ public:
 	template <Int StreamIdx, typename StreamType>
 	void leaf_size_prefix(const StreamType* stream)
 	{
-		auto sum = stream->size();
-		auto& prefix = Base::branch_size_prefix();
-		prefix[StreamIdx] += sum;
-
-//		Base::branch_size_prefix()[StreamIdx] -= stream->sum(0);
+		Base::branch_size_prefix()[StreamIdx] -= stream->size();
 	}
 
 
