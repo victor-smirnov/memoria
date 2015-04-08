@@ -87,9 +87,8 @@ template <template <typename CtrTypes, typename LeafPath> class Walker>
 BigInt M_TYPE::_findFw2(Int index, BigInt key)
 {
     auto& self = this->self();
-    Int stream = self.stream();
 
-    Walker<Types, IntList<0>> walker(stream, index, key);
+    Walker<Types, IntList<0>> walker(0, index, key);
 
     walker.prepare(self);
 
@@ -108,21 +107,24 @@ template <template <typename CtrTypes, typename LeafPath> class Walker>
 BigInt M_TYPE::_findBw2(Int index, BigInt key)
 {
     auto& self = this->self();
-    Int stream = self.stream();
 
-    Walker<Types, IntList<0>> walker(stream, index, key);
+    Walker<Types, IntList<0>> walker(0, index, key);
 
     walker.prepare(self);
 
-    Int idx = self.model().findBw2(self.leaf(), stream, self.key_idx(), walker);
+    typename Container::NodeChain node_chain(self.leaf(), self.key_idx());
 
-    return walker.finish(self, idx);
+    auto result = self.ctr().findBw2(node_chain, walker);
+
+    self.leaf() = result.node;
+    self.idx()  = result.idx;
+
+    return walker.finish(self, result.idx);
+
 }
 
 #undef M_PARAMS
 #undef M_TYPE
-
-
 
 }
 

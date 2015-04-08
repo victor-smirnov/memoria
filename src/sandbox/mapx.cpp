@@ -30,34 +30,19 @@ int main() {
 
 		Int size = 1000;
 
+		Int mult = 1;
+
 		for (Int c = 1; c <= size; c++)
 		{
-			iter.insert(2, c);
+			iter.insert(mult, c);
 		}
 
 		DebugCounter = 1;
-		iter = ctr.findK((size) * 2);
+		iter = ctr.findK((size) * mult);
 
-//		iter.dump();
+		iter.skipBw(163);
 
-//		iter.skipBw(size - 100);
-//		iter.skipBw(1);
-
-//		iter.findBwGE(0, size - 1);
-
-
-////		iter.findFwGT(0, size);
-//		iter.skipFw(size - 2);
-//
-//		iter.dump();
-//
-////		DebugCounter = 1;
-//		iter.skipFw(2);
-//
-//		iter.dump();
-//
-//		iter.skipFw(2);
-		iter.dumpPath();
+		iter.dump();
 
 		alloc.commit();
 

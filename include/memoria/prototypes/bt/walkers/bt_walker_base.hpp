@@ -292,7 +292,7 @@ protected:
 
     using LeafPath = typename Types::LeafPath;
 
-    SearchType search_type_ = SearchType::GT;
+
 
     WalkDirection direction_;
 
@@ -375,14 +375,6 @@ public:
     Int leaf_index() const
     {
         return leaf_index_;
-    }
-
-    const SearchType& search_type() const {
-        return search_type_;
-    }
-
-    SearchType& search_type() {
-        return search_type_;
     }
 
     const bool& compute_branch() const {
@@ -553,113 +545,6 @@ public:
     {
     	node->template processStream<IntList<current_stream()>>(LeafSizePrefix(), self(), std::forward<Args>(args)...);
     }
-
-
-
-
-
-//    template <typename NodeTypes>
-//    Int treeNode(const bt::BranchNode<NodeTypes>* node, BigInt start)
-//    {
-//    	auto& self = this->self();
-//
-//    	Int index = node->template translateLeafIndexToBranchIndex<LeafPath>(this->leaf_index());
-//
-//    	using BranchPath = typename bt::BranchNode<NodeTypes>::template BuildBranchPath<LeafPath>;
-//        StreamOpResult result = node->template processStream<BranchPath>(FindBranchFn(self), index, start);
-//
-//        if (compute_branch_)
-//        {
-//        	self.processBranchIteratorAccumulator(node, start, std::get<0>(result));
-//        	self.processBranchSizePrefix(node, start, std::get<0>(result));
-//        }
-//
-//        return std::get<0>(result);
-//    }
-//
-//    template <typename Node>
-//    void processBranchIteratorAccumulator(Node* node, Int start, Int end)
-//    {
-//    	using ItrAccList = memoria::list_tree::MakeValueList<Int, 0, std::tuple_size<IteratorAccumulator>::value>;
-//
-//    	detail::BranchAccumWaker1<
-//    		IteratorAccumulator,
-//    		ItrAccList
-//    	>::
-//    	process(self(), node, branch_accumulator(), start, end);
-//    }
-//
-//
-//    struct BranchSizePrefix
-//    {
-//    	template <Int GroupIdx, Int AllocatorIdx, Int ListIdx, typename StreamObj>
-//    	void stream(const StreamObj* obj, MyType& walker, Int start, Int end)
-//    	{
-//    		walker.template branch_size_prefix<GroupIdx>(obj, start, end);
-//    	}
-//    };
-//
-//    template <typename Node>
-//    void processBranchSizePrefix(Node* node, Int start, Int end)
-//    {
-//    	node->template processStream<IntList<current_stream()>>(BranchSizePrefix(), self(), start, end);
-//    }
-//
-//    struct LeafSizePrefix
-//    {
-//    	template <Int GroupIdx, Int AllocatorIdx, Int ListIdx, typename StreamObj>
-//    	void stream(const StreamObj* obj, MyType& walker)
-//    	{
-//    		walker.template leaf_size_prefix<GroupIdx>(obj);
-//    	}
-//    };
-//
-//    template <typename Node>
-//    void processLeafSizePrefix(Node* node)
-//    {
-//    	node->template processStream<IntList<current_stream()>>(LeafSizePrefix(), self());
-//    }
-//
-//    template <typename NodeTypes>
-//    Int treeNode(const bt::LeafNode<NodeTypes>* node, BigInt start)
-//    {
-//    	auto& self = this->self();
-//
-//    	using Node = bt::LeafNode<NodeTypes>;
-//
-//    	StreamOpResult result = node->template processStream<LeafPath>(FindLeafFn(self), start);
-//
-//    	if (compute_leaf_)
-//    	{
-//    		self.processLeafIteratorAccumulator(node, leaf_accumulator(), true, start, std::get<0>(result));
-//
-////    		if (direction() == WalkDirection::DOWN && end_)
-////    		{
-////    			self.processLeafSizePrefix(node, start, idx);
-////    		}
-//    	}
-//
-//        return std::get<0>(result);
-//    }
-//
-//
-//    template <typename Node>
-//    void processLeafIteratorAccumulator(Node* node, IteratorAccumulator&accum, bool leaf, Int start, Int end)
-//    {
-//    	detail::LeafAccumWalker<
-//    		LeafStructList,
-//    		LeafRangeList,
-//    		LeafRangeOffsetList,
-//    		Node::template StreamStartIdx<
-//    			ListHead<LeafPath>::Value
-//    		>::Value
-//    	> w;
-//
-//    	Node::template StreamDispatcher<
-//    		ListHead<LeafPath>::Value
-//    	>
-//    	::dispatchAll(node->allocator(), w, self(), accum, leaf, start, end);
-//    }
 
     template <Int StreamIdx, typename StreamType>
     void postProcessBranchStream(const StreamType*, Int, Int) {}

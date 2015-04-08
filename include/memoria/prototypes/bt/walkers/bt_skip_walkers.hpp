@@ -299,8 +299,6 @@ protected:
 
 public:
 
-    using StreamOpResult = typename Base::StreamOpResult;
-
     SkipBackwardWalkerBase2(Key target):
         Base(-1, target, SearchType::GE)
     {}
@@ -309,7 +307,9 @@ public:
     template <Int StreamIdx, typename Array>
     StreamOpResult find_leaf(const Array* array, Int start)
     {
-        BigInt offset = Base::target_ - Base::sum_;
+    	if (start < 0) start = array->size();
+
+    	BigInt offset = Base::target_ - Base::sum_;
 
         auto& sum = Base::sum_;
 

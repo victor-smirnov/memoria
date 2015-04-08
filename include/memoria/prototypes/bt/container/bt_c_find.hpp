@@ -94,8 +94,9 @@ public:
     struct FindResult {
     	NodeBaseG node;
     	Int idx;
+    	bool pass;
 
-    	FindResult(NodeBaseG _node, Int _idx): node(_node), idx(_idx) {}
+    	FindResult(NodeBaseG _node, Int _idx, bool _pass = true): node(_node), idx(_idx), pass(_pass) {}
     };
 
     template <typename Walker>
@@ -106,7 +107,8 @@ public:
 
 
     template <typename Walker>
-    Int findBw2(NodeBaseG& node, Int stream, Int idx, Walker&& walker);
+    FindResult findBw2(NodeChain node_chain, Walker&& walker, bool up = true);
+
 
     MEMORIA_PUBLIC Position sizes() const
     {
@@ -440,7 +442,80 @@ typename M_TYPE::FindResult M_TYPE::findFw2(NodeChain node_chain, Walker&& walke
     			auto parent_idx 	= node_chain.node->parent_idx() + 1;
     			auto parent_result  = findFw2(NodeChain(parent, parent_idx, &node_chain), std::forward<Walker>(walker), true);
 
-    			if (parent_result.idx > parent_idx)
+    			if (parent_result.pass)
+    			{
+    				return parent_result;
+    			}
+    			else if (node_chain.node->is_leaf())
+    			{
+    				node_chain.processChain(std::forward<Walker>(walker));
+    				return FindResult(node_chain.node, result.idx());
+    			}
+    			else {
+    				return FindResult(node_chain.node, node_chain.start, false);
+    			}
+    		}
+    		else {
+    			if (node_chain.node->is_leaf())
+    			{
+    				node_chain.processChain(std::forward<Walker>(walker));
+    				return FindResult(node_chain.node, result.idx());
+    			}
+    			else if (result.idx() > node_chain.start)
+    			{
+    				auto child = self.getChild(node_chain.node, result.idx());
+    				return findFw2(NodeChain(child, 0, &node_chain), std::forward<Walker>(walker), false);
+    			}
+    			else {
+    				return FindResult(node_chain.node, node_chain.start, false);
+    			}
+    		}
+    	}
+    }
+    else if (node_chain.node->is_leaf())
+    {
+    	node_chain.processChain(std::forward<Walker>(walker));
+    	return FindResult(node_chain.node, result.idx());
+    }
+    else {
+    	auto child = self.getChild(node_chain.node, result.idx());
+    	return findFw2(NodeChain(child, 0, &node_chain), std::forward<Walker>(walker), false);
+    }
+}
+
+
+
+M_PARAMS
+template <typename Walker>
+typename M_TYPE::FindResult M_TYPE::findBw2(NodeChain node_chain, Walker&& walker, bool up)
+{
+    auto& self = this->self();
+
+    auto result = NodeDispatcher::dispatch(node_chain.node, std::forward<Walker>(walker), node_chain.start);
+    node_chain.end = result.idx();
+
+    if (up)
+    {
+    	if (!result.out_of_range())
+    	{
+    		if (node_chain.node->is_leaf())
+    		{
+    			node_chain.processChain(std::forward<Walker>(walker));
+    			return FindResult(node_chain.node, result.idx());
+    		}
+    		else {
+    			auto child = self.getChild(node_chain.node, result.idx());
+    			return findBw2(NodeChain(child, -1, &node_chain), std::forward<Walker>(walker), false);
+    		}
+    	}
+    	else {
+    		if (!node_chain.node->is_root())
+    		{
+    			auto parent 		= self.getNodeParent(node_chain.node);
+    			auto parent_idx 	= node_chain.node->parent_idx() - 1;
+    			auto parent_result  = findBw2(NodeChain(parent, parent_idx, &node_chain), std::forward<Walker>(walker), true);
+
+    			if (parent_result.pass)
     			{
     				return parent_result;
     			}
@@ -459,13 +534,13 @@ typename M_TYPE::FindResult M_TYPE::findFw2(NodeChain node_chain, Walker&& walke
     				node_chain.processChain(std::forward<Walker>(walker));
     				return FindResult(node_chain.node, result.idx());
     			}
-    			else if (result.idx() > node_chain.start)
+    			else if (result.idx() < node_chain.start)
     			{
     				auto child = self.getChild(node_chain.node, result.idx());
-    				return findFw2(NodeChain(child, 0, &node_chain), std::forward<Walker>(walker), false);
+    				return findBw2(NodeChain(child, -1, &node_chain), std::forward<Walker>(walker), false);
     			}
     			else {
-    				return FindResult(node_chain.node, node_chain.start);
+    				return FindResult(node_chain.node, node_chain.start, false);
     			}
     		}
     	}
@@ -477,75 +552,11 @@ typename M_TYPE::FindResult M_TYPE::findFw2(NodeChain node_chain, Walker&& walke
     }
     else {
     	auto child = self.getChild(node_chain.node, result.idx());
-    	return findFw2(NodeChain(child, 0, &node_chain), std::forward<Walker>(walker), false);
+    	return findFw2(NodeChain(child, -1, &node_chain), std::forward<Walker>(walker), false);
     }
 }
 
 
-
-
-
-
-
-
-
-M_PARAMS
-template <typename Walker>
-Int M_TYPE::findBw2(NodeBaseG& node, Int stream, Int start, Walker&& walker)
-{
-    auto& self = this->self();
-
-    if (node->is_root())
-    {
-        walker.direction()  = WalkDirection::DOWN;
-    }
-    else {
-        walker.direction()  = WalkDirection::UP;
-    }
-
-    Int idx;
-
-    if (start >= 0)
-    {
-        idx = NodeDispatcher::dispatch(node, walker, start);
-    }
-    else {
-        idx = -1;
-    }
-
-    if (idx < 0)
-    {
-        if (!node->is_root())
-        {
-            NodeBaseG parent = self.getNodeParent(node);
-
-            // Step up the tree
-            Int child_idx = findBw2(parent, stream, node->parent_idx() - 1, walker);
-
-            if (child_idx >= 0)
-            {
-                // Step down the tree
-                node        = self.getChild(parent, child_idx);
-                Int start   = self.getNodeSize(node, stream) - !node->is_leaf();
-
-                return NodeDispatcher::dispatch(node, walker, start);
-            }
-            else {
-                // Step down the tree
-                node = self.getChild(parent, 0);
-
-                return -1;
-            }
-        }
-        else {
-            return -1;
-        }
-    }
-    else {
-        walker.direction()  = WalkDirection::DOWN;
-        return idx;
-    }
-}
 
 
 
@@ -554,7 +565,6 @@ template <typename Walker>
 typename M_TYPE::Iterator M_TYPE::find2(Walker&& walker)
 {
     auto& self = this->self();
-    walker.direction()  = WalkDirection::DOWN;
 
     NodeBaseG node = self.getRoot();
     if (node.isSet())
