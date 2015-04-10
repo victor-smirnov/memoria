@@ -13,6 +13,8 @@
 
 #include <memoria/core/container/macros.hpp>
 
+#include <limits>
+
 namespace memoria    {
 
 using namespace memoria::bt;
@@ -60,26 +62,32 @@ public:
     	NodeChain(NodeBaseG _node, Int _start, NodeChain* _ref = nullptr): node(_node), start(_start), end(0), ref(_ref) {}
 
     	template <typename Walker>
-    	void processChain(Walker&& walker, Int cnt = 0)
+    	void processChain(Walker&& walker, Int leaf_cnt = 0)
     	{
     		if (node->is_leaf())
     		{
-    			cnt++;
+    			leaf_cnt++;
     		}
 
     		if (ref)
     		{
-    			ref->processChain(std::forward<Walker>(walker), cnt);
+    			ref->processChain(std::forward<Walker>(walker), leaf_cnt);
     		}
 
     		if (node->is_leaf())
     		{
     			WalkCmd cmd;
 
-        		if (cnt == 1) {
-        			cmd = WalkCmd::LAST_LEAF;
+        		if (leaf_cnt == 1)
+        		{
+        			if (ref == nullptr) {
+        				cmd = WalkCmd::THE_ONLY_LEAF;
+        			}
+        			else {
+        				cmd = WalkCmd::LAST_LEAF;
+        			}
         		}
-        		else if (cnt == 2) {
+        		else if (leaf_cnt == 2) {
         			cmd = WalkCmd::FIRST_LEAF;
         		}
 
@@ -456,12 +464,17 @@ typename M_TYPE::FindResult M_TYPE::findFw2(NodeChain node_chain, Walker&& walke
     			}
     		}
     		else {
+    			if (DebugCounter)
+    			{
+    				std::cout<<"node_chain.start: "<<node_chain.start<<std::endl;
+    			}
+
     			if (node_chain.node->is_leaf())
     			{
     				node_chain.processChain(std::forward<Walker>(walker));
     				return FindResult(node_chain.node, result.idx());
     			}
-    			else if (result.idx() > node_chain.start)
+    			else if (!result.empty())
     			{
     				auto child = self.getChild(node_chain.node, result.idx());
     				return findFw2(NodeChain(child, 0, &node_chain), std::forward<Walker>(walker), false);
@@ -494,6 +507,8 @@ typename M_TYPE::FindResult M_TYPE::findBw2(NodeChain node_chain, Walker&& walke
     auto result = NodeDispatcher::dispatch(node_chain.node, std::forward<Walker>(walker), node_chain.start);
     node_chain.end = result.idx();
 
+    const Int max = std::numeric_limits<Int>::max();
+
     if (up)
     {
     	if (!result.out_of_range())
@@ -505,7 +520,7 @@ typename M_TYPE::FindResult M_TYPE::findBw2(NodeChain node_chain, Walker&& walke
     		}
     		else {
     			auto child = self.getChild(node_chain.node, result.idx());
-    			return findBw2(NodeChain(child, -1, &node_chain), std::forward<Walker>(walker), false);
+    			return findBw2(NodeChain(child, max, &node_chain), std::forward<Walker>(walker), false);
     		}
     	}
     	else {
@@ -534,10 +549,10 @@ typename M_TYPE::FindResult M_TYPE::findBw2(NodeChain node_chain, Walker&& walke
     				node_chain.processChain(std::forward<Walker>(walker));
     				return FindResult(node_chain.node, result.idx());
     			}
-    			else if (result.idx() < node_chain.start)
+    			else if (!result.empty())
     			{
     				auto child = self.getChild(node_chain.node, result.idx());
-    				return findBw2(NodeChain(child, -1, &node_chain), std::forward<Walker>(walker), false);
+    				return findBw2(NodeChain(child, max, &node_chain), std::forward<Walker>(walker), false);
     			}
     			else {
     				return FindResult(node_chain.node, node_chain.start, false);

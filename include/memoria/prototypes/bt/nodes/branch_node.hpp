@@ -1189,7 +1189,7 @@ public:
 
     const Value& value(Int idx) const
     {
-        if (idx < 0) {
+        if (idx >= size()) {
             int a = 0; a++;
         }
 

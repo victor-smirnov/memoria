@@ -22,9 +22,10 @@ namespace bt1     {
 class StreamOpResult {
 	Int idx_;
 	bool out_of_range_;
+	bool empty_;
 
 public:
-	StreamOpResult(Int idx, bool out_of_range): idx_(idx), out_of_range_(out_of_range) {}
+	StreamOpResult(Int idx, bool out_of_range, bool empty = false): idx_(idx), out_of_range_(out_of_range), empty_(empty) {}
 
 	Int idx() const {
 		return idx_;
@@ -32,6 +33,10 @@ public:
 
 	bool out_of_range(){
 		return out_of_range_;
+	}
+
+	bool empty(){
+		return empty_;
 	}
 };
 
@@ -481,6 +486,27 @@ public:
 
     MyType& self() {return *T2T<MyType*>(this);}
     const MyType& self() const {return *T2T<const MyType*>(this);}
+
+    template <typename NodeTypes>
+    StreamOpResult treeNode(const bt::BranchNode<NodeTypes>* node, Int start)
+    {
+    	auto& self = this->self();
+
+    	Int index = node->template translateLeafIndexToBranchIndex<LeafPath>(self.leaf_index());
+
+    	using BranchPath = typename bt::BranchNode<NodeTypes>::template BuildBranchPath<LeafPath>;
+        return node->template processStream<BranchPath>(FindBranchFn(self), index, start);
+    }
+
+    template <typename NodeTypes>
+    StreamOpResult treeNode(const bt::LeafNode<NodeTypes>* node, Int start)
+    {
+    	auto& self = this->self();
+    	return node->template processStream<LeafPath>(FindLeafFn(self), start);
+    }
+
+
+
 
     template <typename Node, typename... Args>
     void processLeafIteratorAccumulator(Node* node, IteratorAccumulator&accum, Args&&... args)

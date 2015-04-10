@@ -37,12 +37,25 @@ int main() {
 			iter.insert(mult, c);
 		}
 
-		DebugCounter = 1;
-		iter = ctr.findK((size) * mult);
 
-		iter.skipBw(163);
+		iter = ctr.findK((118) * mult);
+
+//		iter = ctr.Begin();
 
 		iter.dump();
+
+
+		DebugCounter = 1;
+		iter.skipBw(1);
+
+//		iter.findBwGE(0, 1);
+
+		iter.dump();
+
+//		DebugCounter = 1;
+//
+//		iter.skipFw(1);
+//		iter.dump();
 
 		alloc.commit();
 

@@ -231,16 +231,16 @@ public:
     {}
 
 
-    template <Int StreamIdx, typename Array>
-    StreamOpResult find_leaf(const Array* array, Int start)
+    template <Int StreamIdx, typename Tree>
+    StreamOpResult find_leaf(const Tree* tree, Int start)
     {
         auto& sum = Base::sum_;
 
         BigInt offset = Base::target_ - sum;
 
-        if (array != nullptr)
+        if (tree != nullptr)
         {
-            Int size = array->size();
+            Int size = tree->size();
 
             if (start + offset < size)
             {
@@ -304,32 +304,38 @@ public:
     {}
 
 
-    template <Int StreamIdx, typename Array>
-    StreamOpResult find_leaf(const Array* array, Int start)
+    template <Int StreamIdx, typename Tree>
+    StreamOpResult find_leaf(const Tree* tree, Int start)
     {
-    	if (start < 0) start = array->size();
+    	if (start >= 0)
+    	{
+    		if (start > tree->size()) start = tree->size();
 
-    	BigInt offset = Base::target_ - Base::sum_;
+    		BigInt offset = Base::target_ - Base::sum_;
 
-        auto& sum = Base::sum_;
+    		auto& sum = Base::sum_;
 
-        if (array != nullptr)
-        {
-            if (start - offset >= 0)
-            {
-                sum += offset;
+    		if (tree != nullptr)
+    		{
+    			if (start - offset >= 0)
+    			{
+    				sum += offset;
 
-                return StreamOpResult(start - offset, false);
-            }
-            else {
-                sum += start;
+    				return StreamOpResult(start - offset, false);
+    			}
+    			else {
+    				sum += start;
 
-                return StreamOpResult(-1, true);
-            }
-        }
-        else {
-            return StreamOpResult(0, true);
-        }
+    				return StreamOpResult(-1, true);
+    			}
+    		}
+    		else {
+    			return StreamOpResult(-1, true, true);
+    		}
+    	}
+    	else {
+    		return StreamOpResult(-1, true, true);
+    	}
     }
 
     MyType& self() {return *T2T<MyType*>(this);}
