@@ -43,6 +43,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrFindName)
 
     static const Int Streams                                                    = Types::Streams;
 
+    Iterator Begin() {
+    	return self().seek(0);
+    }
+
     MEMORIA_PUBLIC Iterator End()
     {
         auto& self = this->self();

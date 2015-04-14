@@ -7,7 +7,11 @@
 
 #include <memoria/memoria.hpp>
 #include <memoria/containers/mapx/mapx_factory.hpp>
+#include <memoria/containers/seq_dense/seqd_factory.hpp>
+#include <memoria/containers/vector/vctr_factory.hpp>
+
 #include <memoria/core/container/metadata_repository.hpp>
+
 
 
 using namespace memoria;
@@ -21,41 +25,30 @@ int main() {
 
 		using RootT = SCtrTF<Root>::Type;
 		using CtrT  = SCtrTF<MapX<BigInt, BigInt>>::Type;
+		using SecT  = SCtrTF<Sequence<1>>::Type;
+		using VecT  = SCtrTF<Vector<Int>>::Type;
 
 		CtrT::initMetadata();
+		VecT::initMetadata();
+		SecT::initMetadata();
+		RootT::initMetadata();
 
-		CtrT ctr(&alloc);
+		CtrT map(&alloc);
 
-		auto iter = ctr.Begin();
+		auto iter = map.Begin();
 
-		Int size = 1000;
-
-		Int mult = 1;
-
-		for (Int c = 1; c <= size; c++)
-		{
-			iter.insert(mult, c);
+		for (Int c = 0; c < 1000; c++) {
+			iter.insert(1, c);
 		}
 
+		iter = map.findK(1000);
 
-		iter = ctr.findK((118) * mult);
-
-//		iter = ctr.Begin();
-
-		iter.dump();
+		iter.dumpCache(cout);
 
 
-		DebugCounter = 1;
-		iter.skipBw(1);
-
-//		iter.findBwGE(0, 1);
-
-		iter.dump();
-
-//		DebugCounter = 1;
-//
-//		iter.skipFw(1);
-//		iter.dump();
+		while (iter.prevLeaf()) {
+			iter.dumpCache(cout);
+		}
 
 		alloc.commit();
 

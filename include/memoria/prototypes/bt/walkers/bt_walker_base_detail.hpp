@@ -18,6 +18,7 @@ namespace memoria {
 namespace bt1     {
 namespace detail  {
 
+//FIXME: struct name typo
 template <typename Accumulator, typename IdxList> struct BranchAccumWaker1;
 template <typename Accumulator, typename IdxList> struct BranchAccumWalker2;
 

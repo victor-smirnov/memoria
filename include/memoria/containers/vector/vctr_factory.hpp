@@ -41,18 +41,8 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
 
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {
-        typedef ::memoria::mvector::VectorIteratorPrefixCache<Iterator, Container>               Type;
+        typedef ::memoria::bt::BTree2IteratorPrefixCache<Iterator, Container>   Type;
     };
-
-//    typedef TypeList<
-//            LeafNodeTypes<LeafNode>,
-//            NonLeafNodeTypes<BranchNode>
-//    >                                                                           NodeTypesList;
-//
-//    typedef TypeList<
-//            TreeNodeType<LeafNode>,
-//            TreeNodeType<BranchNode>
-//    >                                                                           DefaultNodeTypesList;
 
 
     struct StreamTF {
@@ -102,17 +92,17 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
 
 
     template <typename Types, typename LeafPath>
-    using FindGTWalker          = SkipForwardWalker<WalkerTypes<Types, LeafPath>>;
+    using FindGTWalker          = memoria::bt1::SkipForwardWalker2<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using FindGEWalker          = ::memoria::mvector::FindGEWalker<Types>;
+    using FindGEWalker          = memoria::bt1::FindGEForwardWalker2<Types>;
 
 
     template <typename Types, typename LeafPath>
-    using SkipForwardWalker     = SkipForwardWalker<WalkerTypes<Types, LeafPath>>;
+    using SkipForwardWalker     = memoria::bt1::SkipForwardWalker2<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using SkipBackwardWalker    = SkipBackwardWalker<WalkerTypes<Types, LeafPath>>;
+    using SkipBackwardWalker    = memoria::bt1::SkipBackwardWalker2<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
     using NextLeafWalker        = NextLeafWalker<WalkerTypes<Types, LeafPath>>;

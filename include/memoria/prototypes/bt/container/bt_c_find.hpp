@@ -52,7 +52,6 @@ public:
     template <typename Walker>
     Int findBw(NodeBaseG& node, Int stream, Int idx, Walker&& walker);
 
-
     struct NodeChain {
     	NodeBaseG node;
     	Int start;
@@ -116,6 +115,7 @@ public:
 
     template <typename Walker>
     FindResult findBw2(NodeChain node_chain, Walker&& walker, bool up = true);
+
 
 
     MEMORIA_PUBLIC Position sizes() const
@@ -189,7 +189,7 @@ public:
     {
         typename Types::template FindGTWalker<Types, IntList<0>> walker(stream, key_num - 1, key);
 
-        return self().find0(stream, walker);
+        return self().find0(walker);
     }
 
     Iterator findGE(Int stream, BigInt key, Int key_num)
@@ -464,11 +464,6 @@ typename M_TYPE::FindResult M_TYPE::findFw2(NodeChain node_chain, Walker&& walke
     			}
     		}
     		else {
-    			if (DebugCounter)
-    			{
-    				std::cout<<"node_chain.start: "<<node_chain.start<<std::endl;
-    			}
-
     			if (node_chain.node->is_leaf())
     			{
     				node_chain.processChain(std::forward<Walker>(walker));
@@ -495,6 +490,7 @@ typename M_TYPE::FindResult M_TYPE::findFw2(NodeChain node_chain, Walker&& walke
     	return findFw2(NodeChain(child, 0, &node_chain), std::forward<Walker>(walker), false);
     }
 }
+
 
 
 

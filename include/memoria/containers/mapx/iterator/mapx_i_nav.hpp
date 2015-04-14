@@ -166,6 +166,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
     	self.template _findBw2<GEBWWalker>(index, key);
     }
 
+    template <typename T, typename P>
+    using FWLeafWalker = memoria::bt1::ForwardLeafWalker<T>;
+
+    template <typename T, typename P>
+    using BWLeafWalker = memoria::bt1::BackwardLeafWalker<T>;
 
 MEMORIA_ITERATOR_PART_END
 
@@ -179,16 +184,11 @@ bool M_TYPE::nextLeaf()
 {
     auto& self = this->self();
 
-    auto next = self.ctr().getNextNodeP(self.leaf());
+    auto id = self.leaf()->id();
 
-    if (next)
-    {
-        self.leaf() = next;
-        self.idx()  = 0;
-        return true;
-    }
+    self.template _findFw2<FWLeafWalker>(0, 0);
 
-    return false;
+    return id != self.leaf()->id();
 }
 
 
@@ -199,17 +199,11 @@ bool M_TYPE::prevLeaf()
 {
     auto& self = this->self();
 
-    auto prev = self.ctr().getPrevNodeP(self.leaf());
+    auto id = self.leaf()->id();
 
-    if (prev)
-    {
-        self.leaf() = prev;
-        self.idx()  = self.leafSize(self.stream()) - 1;
+    self.template _findBw2<BWLeafWalker>(0, 0);
 
-        return true;
-    }
-
-    return false;
+    return id != self.leaf()->id();
 }
 
 

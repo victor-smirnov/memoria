@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011.
+// Copyright Victor Smirnov 2011-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -225,7 +225,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 
     CtrSizeT prefix() const
     {
-        return self().cache().prefix();
+        return self().cache().size_prefix();
     }
 
     Accumulator prefixes() const {
@@ -270,13 +270,13 @@ typename M_TYPE::CtrSizeT M_TYPE::skip(CtrSizeT amount)
 M_PARAMS
 typename M_TYPE::CtrSizeT M_TYPE::skipFw(CtrSizeT amount)
 {
-    return self().template _findFw<Types::template SkipForwardWalker>(0, amount);
+    return self().template _findFw2<Types::template SkipForwardWalker>(0, amount);
 }
 
 M_PARAMS
 typename M_TYPE::CtrSizeT M_TYPE::skipBw(CtrSizeT amount)
 {
-    return self().template _findBw<Types::template SkipBackwardWalker>(0, amount);
+    return self().template _findBw2<Types::template SkipBackwardWalker>(0, amount);
 }
 
 

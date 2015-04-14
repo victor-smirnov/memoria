@@ -50,13 +50,16 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrApiName)
     static const Int MAIN_STREAM                                                = Types::MAIN_STREAM;
 
 
+
     CtrSizeT size() const {
         return self().sizes()[0];
     }
 
     Iterator seek(CtrSizeT pos)
     {
-        return self().findGT(MAIN_STREAM, pos, 0);
+    	typename Types::template SkipForwardWalker<Types, IntList<0>> walker(pos);
+
+    	return self().find2(walker);
     }
 
 

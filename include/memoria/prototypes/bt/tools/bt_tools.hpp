@@ -419,6 +419,69 @@ struct StreamSourcePtrListBuilder<TypeList<>>
 };
 
 
+template <typename Iterator, typename Container>
+class BTree2IteratorPrefixCache {
+
+    using IteratorPrefix = typename Container::Types::IteratorAccumulator;
+    using SizePrefix = core::StaticVector<BigInt, Container::Types::Streams>;
+
+
+    IteratorPrefix 	prefix_;
+    IteratorPrefix 	leaf_prefix_;
+    SizePrefix		size_prefix_;
+
+public:
+
+    void init(Iterator*) {}
+
+    const SizePrefix& size_prefix() const
+    {
+        return size_prefix_;
+    }
+
+    SizePrefix& size_prefix()
+    {
+        return size_prefix_;
+    }
+
+    const IteratorPrefix& prefixes() const
+    {
+        return prefix_;
+    }
+
+    IteratorPrefix& prefixes()
+    {
+        return prefix_;
+    }
+
+    const IteratorPrefix& leaf_prefixes() const
+    {
+        return leaf_prefix_;
+    }
+
+    IteratorPrefix& leaf_prefixes()
+    {
+        return leaf_prefix_;
+    }
+
+    void initState() {}
+};
+
+template <
+    typename I, typename C
+>
+std::ostream& operator<<(std::ostream& out, const BTree2IteratorPrefixCache<I, C>& cache)
+{
+    out<<"IteratorPrefixCache[";
+    out<<"Branch prefixes: "<<cache.prefixes()<<", Leaf Prefixes: "<<cache.leaf_prefixes()<<", Size Prefixes: "<<cache.size_prefix();
+    out<<"]";
+
+    return out;
+}
+
+
+
+
 
 }
 }

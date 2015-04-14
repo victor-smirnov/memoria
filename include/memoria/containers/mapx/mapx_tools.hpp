@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2014.
+// Copyright Victor Smirnov 2014-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -134,66 +134,6 @@ struct LabelOffsetProc<TypeList<>> {
     }
 };
 
-template <typename Iterator, typename Container>
-class MapXIteratorPrefixCache: public bt::BTreeIteratorCache<Iterator, Container> {
-    typedef bt::BTreeIteratorCache<Iterator, Container> Base;
-
-    using IteratorPrefix = typename Container::Types::IteratorAccumulator;
-    using SizePrefix = core::StaticVector<BigInt, Container::Types::Streams>;
-
-
-    IteratorPrefix 	prefix_;
-    IteratorPrefix 	leaf_prefix_;
-    SizePrefix		size_prefix_;
-
-public:
-
-    MapXIteratorPrefixCache(): Base(), prefix_() {}
-
-    const SizePrefix& size_prefix() const
-    {
-        return size_prefix_;
-    }
-
-    SizePrefix& size_prefix()
-    {
-        return size_prefix_;
-    }
-
-    const IteratorPrefix& prefixes() const
-    {
-        return prefix_;
-    }
-
-    IteratorPrefix& prefixes()
-    {
-        return prefix_;
-    }
-
-    const IteratorPrefix& leaf_prefixes() const
-    {
-        return leaf_prefix_;
-    }
-
-    IteratorPrefix& leaf_prefixes()
-    {
-        return leaf_prefix_;
-    }
-};
-
-template <
-    typename I, typename C
->
-std::ostream& operator<<(std::ostream& out, const MapXIteratorPrefixCache<I, C>& cache)
-{
-    out<<"MetaMapIteratorPrefixCache[";
-    out<<"Branch prefixes: "<<cache.prefixes()<<", Leaf Prefixes: "<<cache.leaf_prefixes()<<", Size Prefixes: "<<cache.size_prefix();
-    out<<"]";
-
-    return out;
-}
-
-
 
 template <Int Indexes, typename Key_, typename Value_>
 struct MapXStreamTF{
@@ -236,19 +176,6 @@ void InsertEntry(
 }
 
 
-//template <typename StreamTypes, Int Indexes, typename Key, typename Value, typename HiddenLabels, typename Labels, typename Accum>
-//void InsertEntry(
-//      PackedVLEMap<StreamTypes>* map,
-//      Int idx,
-//      const MetaMapEntry<Indexes, Key, Value, HiddenLabels, Labels>& entry,
-//      Accum& sums
-//  )
-//{
-//  sums[0]++;
-//  sums.sumAt(1, entry.indexes());
-//
-//  map->insert(idx, entry.indexes(), entry.value());
-//}
 
 
 template <typename Value, typename Stream>
@@ -257,11 +184,6 @@ Value& GetValueRef(Stream* stream, Int idx)
     return stream->value(idx);
 }
 
-//template <typename Value, typename StreamTypes>
-//Value& GetValueRef(PackedVLEMap<StreamTypes>* stream, Int idx)
-//{
-//  return stream->value(idx).value();
-//}
 
 template <typename Value, typename Stream>
 Value GetValue(const Stream* stream, Int idx)

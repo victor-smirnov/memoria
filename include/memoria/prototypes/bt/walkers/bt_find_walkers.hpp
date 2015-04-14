@@ -418,6 +418,7 @@ public:
     		}
     		else if (cmd == WalkCmd::FIRST_LEAF)
     		{
+    			// FIXME: is this call necessary here?
     			self.processLeafIteratorAccumulator(node, this->leaf_accumulator(), start, end);
     			self.processLeafIteratorAccumulator(node, this->branch_accumulator());
 

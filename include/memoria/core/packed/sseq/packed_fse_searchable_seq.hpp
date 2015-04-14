@@ -733,6 +733,64 @@ public:
     }
 
 
+
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void sum(AccumItem<T, Size>& accum) const
+    {
+    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+
+    	for (Int block = 0; block < Indexes; block++)
+    	{
+    		accum[block + Offset] += rank(block);
+    	}
+    }
+
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void sum(Int start, Int end, AccumItem<T, Size>& accum) const
+    {
+    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+
+    	for (Int block = 0; block < Indexes; block++)
+    	{
+    		accum[block + Offset] += rank(block, start, end);
+    	}
+    }
+
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void sum(Int idx, AccumItem<T, Size>& accum) const
+    {
+    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+
+    	accum[symbol(idx) + Offset] ++;
+    }
+
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void sub(Int idx, AccumItem<T, Size>& accum) const
+    {
+    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+
+    	for (Int block = 0; block < Indexes; block++)
+    	{
+    		accum[symbol(idx) + Offset]--;
+    	}
+    }
+
+
+    template <Int Offset, Int From, Int To, typename T, template <typename, Int, Int> class AccumItem>
+    void sum(Int start, Int end, AccumItem<T, From, To>& accum) const
+    {
+    	for (Int block = 0; block < Indexes; block++)
+    	{
+    		accum[block + Offset] += rank(block, start, end);
+    	}
+    }
+
+
+
+
+
+
+
     void addKeys(Int idx, Values& values) const
     {
         Int symbol = this->symbol(idx);

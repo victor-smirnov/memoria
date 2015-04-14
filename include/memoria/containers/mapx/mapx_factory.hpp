@@ -19,6 +19,7 @@
 #include <memoria/prototypes/bt/walkers/bt_edge_walkers.hpp>
 #include <memoria/prototypes/bt/walkers/bt_select_walkers.hpp>
 #include <memoria/prototypes/bt/walkers/bt_rank_walkers.hpp>
+#include <memoria/prototypes/bt/walkers/bt_leaf_walkers.hpp>
 
 #include <memoria/prototypes/metamap/walkers/metamap_rank_walkers.hpp>
 #include <memoria/prototypes/metamap/walkers/metamap_select_walkers.hpp>
@@ -124,7 +125,7 @@ struct MapXBTTypesBase: public BTTypes<Profile, memoria::BT> {
 
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {
-        typedef mapx::MapXIteratorPrefixCache<Iterator, Container> Type;
+        typedef BTree2IteratorPrefixCache<Iterator, Container> Type;
     };
 
 

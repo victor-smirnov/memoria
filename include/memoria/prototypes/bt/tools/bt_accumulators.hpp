@@ -72,6 +72,12 @@ struct EmptyVector {
 	static const Int From 	= 0;
 };
 
+template <typename T>
+std::ostream& operator<<(std::ostream& out, const EmptyVector<T>& v) {
+	out<<"EmptyVector<>s";
+	return out;
+}
+
 
 template <typename T, Int From, Int To, typename... Tail, Int Max>
 struct AccumBuilderH<T, TypeList<IndexRange<From, To>, Tail...>, Max>:

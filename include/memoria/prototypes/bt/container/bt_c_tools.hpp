@@ -423,6 +423,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
         return NodeDispatcher::dispatch(node, GetSizeFn(), stream);
     }
 
+    Int getBranchNodeSize(const NodeBaseG& node) const
+    {
+    	return NonLeafDispatcher::dispatch(node, GetSizeFn());
+    }
+
     MEMORIA_DECLARE_NODE_FN(LayoutNodeFn, layout);
     void layoutNonLeafNode(NodeBaseG& node, UBigInt active_streams) const
     {

@@ -560,16 +560,28 @@ public:
 
 
 
+//    template <typename Node, typename... Args>
+//    void processBranchSizePrefix(Node* node, Args&&... args)
+//    {
+//    	node->template processStream<IntList<current_stream()>>(BranchSizePrefix(), self(), std::forward<Args>(args)...);
+//    }
+//
+//    template <typename Node, typename... Args>
+//    void processLeafSizePrefix(Node* node, Args&&... args)
+//    {
+//    	node->template processStream<IntList<current_stream()>>(LeafSizePrefix(), self(), std::forward<Args>(args)...);
+//    }
+
     template <typename Node, typename... Args>
     void processBranchSizePrefix(Node* node, Args&&... args)
     {
-    	node->template processStream<IntList<current_stream()>>(BranchSizePrefix(), self(), std::forward<Args>(args)...);
+    	node->template processStreamsStart(BranchSizePrefix(), self(), std::forward<Args>(args)...);
     }
 
     template <typename Node, typename... Args>
     void processLeafSizePrefix(Node* node, Args&&... args)
     {
-    	node->template processStream<IntList<current_stream()>>(LeafSizePrefix(), self(), std::forward<Args>(args)...);
+    	node->template processStreamsStart(LeafSizePrefix(), self(), std::forward<Args>(args)...);
     }
 
     template <Int StreamIdx, typename StreamType>
