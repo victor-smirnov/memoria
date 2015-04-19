@@ -134,6 +134,15 @@ public:
     virtual void checkIteratorPrefix(Iterator& iter, const char* source)
     {
     }
+
+//    virtual void checkIterator(Iterator& iter, const char* source)
+//    {
+//    	auto pos 	= iter.pos();
+//    	auto prefix = iter.cache().size_prefix()[0];
+//    	auto idx 	= iter.idx();
+//
+//    	AssertEQ(source, pos, prefix + idx);
+//    }
 };
 
 

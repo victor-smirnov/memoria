@@ -752,7 +752,7 @@ public:
 
     	for (Int block = 0; block < Indexes; block++)
     	{
-    		accum[block + Offset] += rank(block, start, end);
+    		accum[block + Offset] += rank(start, end, block);
     	}
     }
 
@@ -842,6 +842,11 @@ public:
     {
         MEMORIA_ASSERT(end, <=, size());
         MEMORIA_ASSERT_TRUE(end >= 0);
+
+        if (symbol < 0 || symbol >= AlphabetSize) {
+        	int a = 0; a++;
+        }
+
         MEMORIA_ASSERT_TRUE(symbol >= 0 && symbol < AlphabetSize);
 
         if (has_index())

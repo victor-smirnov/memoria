@@ -205,13 +205,13 @@ protected:
 
 public:
 
-    SelectForwardWalkerBase2(Int branch_index, Int symbol, Key target):
+    SelectForwardWalkerBase2(Int symbol, Key target):
         Base(symbol, target, SearchType::GE)
     {}
 
 
     template <Int StreamIdx, typename Seq>
-    Int find_leaf(const Seq* seq, Int start)
+    StreamOpResult find_leaf(const Seq* seq, Int start)
     {
         MEMORIA_ASSERT_TRUE(seq);
 
@@ -221,24 +221,16 @@ public:
         BigInt rank     = Base::target_ - sum;
         auto result     = self().template select<StreamIdx>(seq, start, symbol, rank);
 
-        this->end_      = !result.is_found();
-
-//        IteratorPrefixFn fn;
 
         if (result.is_found())
         {
-//            fn.processLeafFw(seq, std::get<StreamIdx>(Base::prefix_), start, result.idx());
-
-            return result.idx();
+            return StreamOpResult(result.idx(), start, false);
         }
         else {
             Int size = seq->size();
 
             sum  += result.rank();
-
-//            fn.processLeafFw(seq, std::get<StreamIdx>(Base::prefix_), start, size);
-
-            return size;
+            return StreamOpResult(size, start, true);
         }
     }
 
@@ -258,7 +250,7 @@ class SelectForwardWalker2: public SelectForwardWalkerBase2<Types,SelectForwardW
     using Key   = typename Base::Key;
 
 public:
-    SelectForwardWalker2(Int symbol, Key target):
+    SelectForwardWalker2(Int, Int symbol, Key target):
         Base(symbol, target)
     {}
 
@@ -290,7 +282,7 @@ public:
 
 
     template <Int StreamIdx, typename Seq>
-    Int find_leaf(const Seq* seq, Int start)
+    StreamOpResult find_leaf(const Seq* seq, Int start)
     {
         MEMORIA_ASSERT_TRUE(seq);
 
@@ -300,22 +292,13 @@ public:
         auto symbol     = Base::leaf_index();
         auto result     = self().template select<StreamIdx>(seq, start, symbol, target);
 
-        this->end_      = !result.is_found();
-
-//        IteratorPrefixFn fn;
-
         if (result.is_found())
         {
-//            fn.processLeafBw(seq, std::get<StreamIdx>(Base::prefix_), result.idx(), start);
-
-            return result.idx();
+            return StreamOpResult(result.idx(), start, false);
         }
         else {
             sum += result.rank();
-
-//            fn.processLeafBw(seq, std::get<StreamIdx>(Base::prefix_), 0, start);
-
-            return -1;
+            return StreamOpResult(-1, start, true);
         }
     }
 
@@ -336,7 +319,7 @@ class SelectBackwardWalker2: public SelectBackwardWalkerBase2<Types, SelectBackw
 
 public:
 
-    SelectBackwardWalker2(Int symbol, Key target):
+    SelectBackwardWalker2(Int, Int symbol, Key target):
         Base(symbol, target)
     {}
 

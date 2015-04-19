@@ -71,19 +71,21 @@ BigInt M_TYPE::select(BigInt rank_delta, Int symbol)
 M_PARAMS
 BigInt M_TYPE::selectFw(BigInt rank_delta, Int symbol)
 {
-    auto& self  = this->self();
-    auto& ctr   = self.ctr();
-    Int stream  = self.stream();
-
+//    auto& self  = this->self();
+//    auto& ctr   = self.ctr();
+//    Int stream  = self.stream();
+//
     MEMORIA_ASSERT(rank_delta, >=, 0);
+//
+//    typename Types::template SelectFwWalker<Types, IntList<0>> walker(symbol, rank_delta);
+//
+//    walker.prepare(self);
+//
+//    Int idx = ctr.findFw2(self.leaf(), stream, self.idx(), walker);
+//
+//    return walker.finish(self, idx);
 
-    typename Types::template SelectFwWalker<Types> walker(stream, symbol, rank_delta);
-
-    walker.prepare(self);
-
-    Int idx = ctr.findFw(self.leaf(), stream, self.idx(), walker);
-
-    return walker.finish(self, idx);
+    return self().template _findFw2<Types::template SelectFwWalker>(0, rank_delta);
 }
 
 
@@ -91,19 +93,21 @@ BigInt M_TYPE::selectFw(BigInt rank_delta, Int symbol)
 M_PARAMS
 BigInt M_TYPE::selectBw(BigInt rank_delta, Int symbol)
 {
-    auto& self  = this->self();
-    auto& ctr   = self.ctr();
-    Int stream  = self.stream();
-
+//    auto& self  = this->self();
+//    auto& ctr   = self.ctr();
+//    Int stream  = self.stream();
+//
     MEMORIA_ASSERT(rank_delta, >=, 0);
+//
+//    typename Types::template SelectBwWalker<Types, IntList<0>> walker(symbol, rank_delta);
+//
+//    walker.prepare(self);
+//
+//    Int idx = ctr.findBw2(self.leaf(), stream, self.idx(), walker);
+//
+//    return walker.finish(self, idx);
 
-    typename Types::template SelectBwWalker<Types> walker(stream, symbol, rank_delta);
-
-    walker.prepare(self);
-
-    Int idx = ctr.findBw(self.leaf(), stream, self.idx(), walker);
-
-    return walker.finish(self, idx);
+	 return self().template _findBw2<Types::template SelectBwWalker>(0, rank_delta);
 }
 
 

@@ -247,6 +247,20 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
         return ctr.getStreamCapacity(self.leaf(), Position::create(0, 0), 0);
     }
 
+    void refreshCache()
+    {
+    	auto& self = this->self();
+
+    	memoria::bt1::FindForwardWalker2<memoria::bt1::WalkerTypes<Types, IntList<0>>> walker(0, 0);
+
+    	self.cache().reset();
+
+    	self.ctr().walkUp2(self.leaf(), self.idx(), walker);
+
+    	walker.finish(self, self.idx());
+    }
+
+
 MEMORIA_ITERATOR_PART_END
 
 

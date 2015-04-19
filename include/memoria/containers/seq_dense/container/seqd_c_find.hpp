@@ -87,9 +87,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
         MEMORIA_ASSERT(rank, >=, 1);
         MEMORIA_ASSERT(symbol, >=, 0);
 
-        typename Types::template SelectFwWalker<Types> walker(0, symbol, rank);
+        typename Types::template SelectFwWalker<Types, IntList<0>> walker(0, symbol, rank);
 
-        auto iter = self.find0(0, walker);
+        auto iter = self.find2(walker);
 
         return iter;
     }
@@ -107,9 +107,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
 
     Iterator seek(Int pos)
     {
-        auto& self = this->self();
+    	typename Types::template SkipForwardWalker<Types, IntList<0>> walker(pos);
 
-        return self.findGT(MAIN_STREAM, pos, 0);
+    	return self().find2(walker);
     }
 
 

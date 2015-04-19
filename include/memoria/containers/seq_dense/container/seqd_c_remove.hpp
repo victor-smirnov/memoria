@@ -164,7 +164,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrRemoveName)
 
             if (iter.isEnd())
             {
-                iter.skipFw(1);
+                iter.skipFw(0);
             }
 
             self.mergeWithSiblings(iter.leaf(), merge_fn);
@@ -180,7 +180,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrRemoveName)
 
             while(iter.nextLeaf() && iter.leaf() != tmp.leaf())
             {
-                self.removeNode(iter.leaf());
+            	iter.dump();
+
+            	self.removeNode(iter.leaf());
                 iter = bkp_iter;
             }
 
@@ -194,6 +196,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrRemoveName)
         }
 
         self.addTotalKeyCount(Position::create(0, -length));
+
+        iter.refreshCache();
     }
 
 

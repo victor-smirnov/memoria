@@ -36,6 +36,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterSkipName)
     typedef typename Container::LeafDispatcher                                  LeafDispatcher;
     typedef typename Container::Position                                        Position;
 
+    bool nextLeaf();
+    bool prevLeaf();
+
     bool operator++() {
         return self().skipFw(1);
     }
@@ -111,11 +114,47 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterSkipName)
 //      return self.cache().pos();
 //  }
 
+    template <typename TTypes, typename LeafPath>
+    using NextLeafWalker        = memoria::bt1::ForwardLeafWalker<TTypes>;
+
+    template <typename TTypes, typename LeafPath>
+    using PrevLeafWalker        = memoria::bt1::BackwardLeafWalker<TTypes>;
+
+
 MEMORIA_ITERATOR_PART_END
 
 
 #define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::seq_dense::IterSkipName)
 #define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
+
+M_PARAMS
+bool M_TYPE::nextLeaf()
+{
+    auto& self = this->self();
+
+    auto id = self.leaf()->id();
+
+    self.template _findFw2<NextLeafWalker>(0, 0);
+
+    return id != self.leaf()->id();
+}
+
+
+
+
+M_PARAMS
+bool M_TYPE::prevLeaf()
+{
+    auto& self = this->self();
+
+    auto id = self.leaf()->id();
+
+    self.template _findBw2<PrevLeafWalker>(0, 0);
+
+    return id != self.leaf()->id();
+}
+
+
 
 M_PARAMS
 BigInt M_TYPE::skip(BigInt amount)
@@ -138,13 +177,13 @@ BigInt M_TYPE::skip(BigInt amount)
 M_PARAMS
 BigInt M_TYPE::skipFw(BigInt amount)
 {
-    return self().template _findFw<Types::template SkipForwardWalker>(0, amount);
+    return self().template _findFw2<Types::template SkipForwardWalker>(0, amount);
 }
 
 M_PARAMS
 BigInt M_TYPE::skipBw(BigInt amount)
 {
-    return self().template _findBw<Types::template SkipBackwardWalker>(0, amount);
+    return self().template _findBw2<Types::template SkipBackwardWalker>(0, amount);
 }
 
 

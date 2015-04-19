@@ -48,18 +48,6 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >: public BTTypes<Profile, me
     static const Int Indexes                                                    = (1 << BitsPerSymbol) + 1;
 
 
-
-//    typedef TypeList<
-//                NonLeafNodeTypes<BranchNode>,
-//                LeafNodeTypes<LeafNode>
-//    >                                                                           NodeTypesList;
-//
-//    typedef TypeList<
-//                TreeNodeType<LeafNode>,
-//                TreeNodeType<BranchNode>
-//    >                                                                           DefaultNodeTypesList;
-
-
     struct StreamTF {
         typedef BigInt                                              Key;
 
@@ -67,11 +55,11 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >: public BTTypes<Profile, me
         typedef core::StaticVector<BigInt, 1>                       IteratorPrefixPart;
 
         typedef PkdFTree<Packed2TreeTypes<Key, Key, Indexes>>       NonLeafType;
-        typedef TL<TL<>>											IdxRangeList;
+        typedef TL<TL<>>					IdxRangeList;
 
         typedef typename PkdFSSeqTF<BitsPerSymbol>::Type            SequenceTypes;
 
-        typedef TL<PkdFSSeq<SequenceTypes>>                             LeafType;
+        typedef TL<PkdFSSeq<SequenceTypes>>                         LeafType;
     };
 
     typedef TypeList<
@@ -109,7 +97,7 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >: public BTTypes<Profile, me
 
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {
-        typedef memoria::seq_dense::SequenceIteratorCache<Iterator, Container> Type;
+    	typedef ::memoria::bt::BTree2IteratorPrefixCache<Iterator, Container>   Type;
     };
 
     typedef IDataSource<Value>                                                  DataSource;
@@ -118,35 +106,35 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >: public BTTypes<Profile, me
 
 
     template <typename Types, typename LeafPath>
-    using FindGTWalker          = ::memoria::seq_dense::SkipForwardWalker<WalkerTypes<Types, LeafPath>>;
+    using FindGTWalker          = ::memoria::bt1::SkipForwardWalker2<WalkerTypes<Types, LeafPath>>;
 
 
     template <typename Types, typename LeafPath>
-    using RankFWWalker          = ::memoria::seq_dense::RankFWWalker<WalkerTypes<Types, LeafPath>>;
+    using RankFWWalker          = ::memoria::bt1::RankForwardWalker2<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using RankBWWalker          = ::memoria::seq_dense::RankBWWalker<WalkerTypes<Types, LeafPath>>;
-
-
-    template <typename Types, typename LeafPath>
-    using SelectFwWalker        = ::memoria::seq_dense::SelectForwardWalker<WalkerTypes<Types, LeafPath>>;
-
-    template <typename Types, typename LeafPath>
-    using SelectBwWalker        = ::memoria::seq_dense::SelectBackwardWalker<WalkerTypes<Types, LeafPath>>;
+    using RankBWWalker          = ::memoria::bt1::RankBackwardWalker2<WalkerTypes<Types, LeafPath>>;
 
 
     template <typename Types, typename LeafPath>
-    using SkipForwardWalker     = ::memoria::seq_dense::SkipForwardWalker<WalkerTypes<Types, LeafPath>>;
+    using SelectFwWalker        = ::memoria::bt1::SelectForwardWalker2<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using SkipBackwardWalker    = ::memoria::seq_dense::SkipBackwardWalker<WalkerTypes<Types, LeafPath>>;
+    using SelectBwWalker        = ::memoria::bt1::SelectBackwardWalker2<WalkerTypes<Types, LeafPath>>;
 
 
     template <typename Types, typename LeafPath>
-    using NextLeafWalker        = ::memoria::bt::NextLeafWalker<WalkerTypes<Types, LeafPath>>;
+    using SkipForwardWalker     = ::memoria::bt1::SkipForwardWalker2<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using PrevLeafWalker        = ::memoria::bt::PrevLeafWalker<WalkerTypes<Types, LeafPath>>;
+    using SkipBackwardWalker    = ::memoria::bt1::SkipBackwardWalker2<WalkerTypes<Types, LeafPath>>;
+
+
+    template <typename Types, typename LeafPath>
+    using NextLeafWalker        = ::memoria::bt1::ForwardLeafWalker<WalkerTypes<Types, LeafPath>>;
+
+    template <typename Types, typename LeafPath>
+    using PrevLeafWalker        = ::memoria::bt1::BackwardLeafWalker<WalkerTypes<Types, LeafPath>>;
 
 
     template <typename Types>

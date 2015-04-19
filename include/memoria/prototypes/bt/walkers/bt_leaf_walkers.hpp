@@ -249,7 +249,7 @@ public:
     		return StreamOpResult(start, start, false);
     	}
     	else {
-    		return StreamOpResult(size - 1, start, true);
+    		return StreamOpResult(size, start, true);
     	}
     }
 
