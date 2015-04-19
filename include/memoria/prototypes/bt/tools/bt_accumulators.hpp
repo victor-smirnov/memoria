@@ -74,7 +74,7 @@ struct EmptyVector {
 
 template <typename T>
 std::ostream& operator<<(std::ostream& out, const EmptyVector<T>& v) {
-	out<<"EmptyVector<>s";
+	out<<"EmptyVector<>";
 	return out;
 }
 

@@ -365,7 +365,7 @@ enum class WalkDirection {
 };
 
 enum class WalkCmd {
-    FIRST_LEAF, LAST_LEAF, THE_ONLY_LEAF
+    FIRST_LEAF, LAST_LEAF, THE_ONLY_LEAF, FIX_TARGET, NONE, PREFIXES
 };
 
 

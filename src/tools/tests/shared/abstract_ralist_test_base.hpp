@@ -60,6 +60,7 @@ protected:
     String dump_name_;
 
 
+    BigInt iteration_ = 0;
 
     Int check_count_ = 0;
 
@@ -86,6 +87,7 @@ public:
         MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
         MEMORIA_ADD_TEST_PARAM(random_position_)->state();
 
+        MEMORIA_ADD_TEST_PARAM(iteration_)->state();
 
         MEMORIA_ADD_TEST_WITH_REPLAY(testInsertFromStart,   replayInsertFromStart);
         MEMORIA_ADD_TEST_WITH_REPLAY(testInsertAtEnd,       replayInsertAtEnd);
@@ -94,6 +96,10 @@ public:
         MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveFromStart,   replayRemoveFromStart);
         MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveAtEnd,       replayRemoveAtEnd);
         MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveInTheMiddle, replayRemoveInTheMiddle);
+    }
+
+    BigInt iteration() const {
+    	return iteration_;
     }
 
     virtual ~AbstractRandomAccessListTestBase() throw() {}
@@ -197,7 +203,12 @@ public:
 
         checkIterator(iter, MA_SRC);
 
+//        iter.dumpPath();
+
+//        DebugCounter = 2;
         skip(iter, -length);
+
+//        iter.dumpPath();
 
         checkIterator(iter, MA_SRC);
 
@@ -442,11 +453,15 @@ public:
 
         Iterator iter = seek(ctr, ctr_size - size);
 
+        checkIterator(iter, MA_SRC);
+
         MemBuffer prefix = createPrefixCheckBuffer(iter);
 
         BigInt last_size = getSize(ctr);
 
         remove(iter, size);
+
+        checkIterator(iter, MA_SRC);
 
         AssertEQ(MA_SRC, last_size - size, getSize(ctr));
 
@@ -506,6 +521,10 @@ public:
         MemBuffer suffix = createSuffixCheckBuffer(iter);
 
         skip(iter,  -size);
+
+        if (this->iteration() == 6) {
+        	DebugCounter = 1;
+        }
 
         remove(iter, size);
 

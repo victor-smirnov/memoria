@@ -393,11 +393,15 @@ public:
     }
 
     template <typename NodeTypes>
-    void treeNode(const bt::BranchNode<NodeTypes>* node, Int start, Int end)
+    void treeNode(const bt::BranchNode<NodeTypes>* node, WalkCmd cmd, Int start, Int end)
     {
     	auto& self = this->self();
 
-        if (this->compute_branch_)
+        if (cmd == WalkCmd::FIX_TARGET)
+        {
+        	self.processCmd(node, cmd, start, end);
+        }
+        else if (cmd == WalkCmd::PREFIXES)
         {
         	self.processBranchIteratorAccumulator(node, start, end);
         	self.processBranchSizePrefix(node, start, end);
@@ -424,8 +428,11 @@ public:
 
     			self.processLeafSizePrefix(node);
     		}
-    		else {
+    		else if (cmd == WalkCmd::LAST_LEAF) {
     			self.processLeafIteratorAccumulator(node, this->leaf_accumulator(), start, end);
+    		}
+    		else {
+    			// throw exception ?
     		}
     	}
     }
@@ -433,9 +440,13 @@ public:
 
 
     template <Int StreamIdx, typename Tree>
-    StreamOpResult find_non_leaf(const Tree* tree, Int index, Int start)
+    StreamOpResult find_non_leaf(const Tree* tree, bool root, Int index, Int start)
     {
-        auto size = tree->size();
+        if (DebugCounter == 1) {
+        	int a = 0; a++;
+        }
+
+    	auto size = tree->size();
 
         if (start < size)
         {
@@ -443,24 +454,27 @@ public:
 
         	auto result = tree->findForward(Base::search_type_, index, start, k);
 
-        	if (result.idx() < size)
-        	{
-        		Base::sum_ += result.prefix();
+        	Base::sum_ += result.prefix();
 
-        		return StreamOpResult(result.idx(), false, result.idx() > start);
-        	}
-        	else if (size > 0)
-        	{
-        		Base::sum_ += result.prefix() - tree->value(index, size - 1);
-        		return StreamOpResult(result.idx() - 1, true);
-        	}
-        	else {
-        		return StreamOpResult(0, true);
-        	}
+        	return StreamOpResult(result.idx(), start, result.idx() >= size, false);
         }
         else {
-        	return StreamOpResult(start, true, true);
+        	return StreamOpResult(size, start, true, true);
         }
+    }
+
+
+    template <Int StreamIdx, typename Tree>
+    void process_branch_cmd(const Tree* tree, WalkCmd cmd, Int index, Int start, Int end)
+    {
+        if (DebugCounter == 1) {
+        	int a = 0; a++;
+        }
+
+    	if (cmd == WalkCmd::FIX_TARGET)
+    	{
+    		Base::sum_ -= tree->value(index, end);
+    	}
     }
 
 
@@ -477,24 +491,36 @@ public:
 
     		Base::sum_ += result.prefix();
 
-    		return StreamOpResult(result.idx(), result.idx() >= tree->size());
+    		return StreamOpResult(result.idx(), start, result.idx() >= tree->size());
     	}
     	else {
-    		return StreamOpResult(start, true, true);
+    		return StreamOpResult(start, start, true, true);
     	}
     }
 
 	template <Int StreamIdx, typename StreamType>
 	void branch_size_prefix(const StreamType* stream, Int start, Int end)
 	{
-		Base::branch_size_prefix()[StreamIdx] += stream->sum(0, start, end);
+        if (DebugCounter) {
+        	int a = 0; a++;
+        }
+
+        auto sum = stream->sum(0, start, end);
+
+		Base::branch_size_prefix()[StreamIdx] += sum;
 	}
 
 
 	template <Int StreamIdx, typename StreamType>
 	void leaf_size_prefix(const StreamType* stream)
 	{
-		Base::branch_size_prefix()[StreamIdx] += stream->size();
+        if (DebugCounter) {
+        	int a = 0; a++;
+        }
+
+        auto size = stream->size();
+
+		Base::branch_size_prefix()[StreamIdx] += size;
 	}
 
 
@@ -633,12 +659,16 @@ public:
     {}
 
     template <Int StreamIdx, typename Tree>
-    StreamOpResult find_non_leaf(const Tree* tree, Int index, Int start)
+    StreamOpResult find_non_leaf(const Tree* tree, bool root, Int index, Int start)
     {
+    	if (DebugCounter == 2) {
+    		int a = 0; a++;
+    	}
+
+    	if (start > tree->size()) start = tree->size() - 1;
+
     	if (start >= 0)
     	{
-    		if (start > tree->size()) start = tree->size();
-
     		auto k          = Base::target_ - Base::sum_;
 
     		auto result     = tree->findBackward(Base::search_type_, index, start, k);
@@ -646,10 +676,10 @@ public:
 
     		Int idx = result.idx();
 
-    		return StreamOpResult(idx < 0 ? 0 : idx, idx < 0);
+    		return StreamOpResult(idx, start, idx < 0);
     	}
     	else {
-    		return StreamOpResult(0, true, true);
+    		return StreamOpResult(start, start, true, true);
     	}
     }
 
@@ -657,10 +687,10 @@ public:
     template <Int StreamIdx, typename Tree>
     StreamOpResult find_leaf(const Tree* tree, Int start)
     {
+    	if (start > tree->size()) start = tree->size();
+
     	if (start >= 0)
     	{
-    		if (start > tree->size()) start = tree->size();
-
     		auto k          = Base::target_ - Base::sum_;
 
     		Int index       = this->leaf_index();
@@ -672,10 +702,10 @@ public:
 
     		Int idx = result.idx();
 
-    		return StreamOpResult(idx, idx < 0);
+    		return StreamOpResult(idx, start, idx < 0);
     	}
     	else {
-    		return StreamOpResult(0, true, true);
+    		return StreamOpResult(start, start, true, true);
     	}
     }
 
@@ -687,15 +717,19 @@ public:
     }
 
     template <typename NodeTypes>
-    void treeNode(const bt::BranchNode<NodeTypes>* node, Int start, Int end)
+    void treeNode(const bt::BranchNode<NodeTypes>* node, WalkCmd cmd, Int start, Int end)
     {
     	auto& self = this->self();
 
-        if (this->compute_branch_)
-        {
-        	self.processBranchIteratorAccumulator(node, start, end);
-        	self.processBranchSizePrefix(node, start, end);
-        }
+    	if (cmd == WalkCmd::FIX_TARGET)
+    	{
+    		self.processCmd(node, cmd, start, end);
+    	}
+    	else if (cmd == WalkCmd::PREFIXES)
+    	{
+    		self.processBranchIteratorAccumulator(node, start, end);
+    		self.processBranchSizePrefix(node, start, end);
+    	}
     }
 
     template <typename NodeTypes>
@@ -703,36 +737,55 @@ public:
     {
     	auto& self = this->self();
 
-    	if (this->compute_leaf_)
+    	if (cmd == WalkCmd::THE_ONLY_LEAF)
     	{
-    		if (cmd == WalkCmd::THE_ONLY_LEAF)
-    		{
-    			self.processLeafIteratorAccumulator(node, this->leaf_accumulator(), start, end);
-    		}
-    		else if (cmd == WalkCmd::FIRST_LEAF)
-    		{
-    			self.processLeafIteratorAccumulator(node, this->leaf_accumulator(), start, end);
-    		}
-    		else {
-    			self.processLeafIteratorAccumulator(node, this->leaf_accumulator(), start, end);
-    			self.processLeafIteratorAccumulator(node, this->branch_accumulator());
-    			self.processLeafSizePrefix(node);
-    		}
+    		self.processLeafIteratorAccumulator(node, this->leaf_accumulator(), start, end);
+    	}
+    	else if (cmd == WalkCmd::FIRST_LEAF)
+    	{
+    		self.processLeafIteratorAccumulator(node, this->leaf_accumulator(), start, end);
+    	}
+    	else if (cmd == WalkCmd::LAST_LEAF)  {
+    		self.processLeafIteratorAccumulator(node, this->leaf_accumulator(), start, end);
+    		self.processLeafIteratorAccumulator(node, this->branch_accumulator());
+    		self.processLeafSizePrefix(node);
+    	}
+    	else {
+    		// ?
+    	}
+    }
+
+    template <Int StreamIdx, typename Tree>
+    void process_branch_cmd(const Tree* tree, WalkCmd cmd, Int index, Int start, Int end)
+    {
+    	if (DebugCounter == 1) {
+    		int a = 0; a++;
+    	}
+
+    	if (cmd == WalkCmd::FIX_TARGET)
+    	{
+    		Base::sum_ -= tree->value(index, end + 1);
     	}
     }
 
 
 	template <Int StreamIdx, typename StreamType>
-	void branch_size_prefix(const StreamType* stream, Int start, Int end)
+	void branch_size_prefix(const StreamType* obj, Int start, Int end)
 	{
-		Base::branch_size_prefix()[StreamIdx] -= stream->sum(0, end + 1, start + 1);
+		if (DebugCounter == 2) {
+			int a = 0; a++;
+		}
+
+		Int s = start > (obj->size() - 1) ? obj->size() - 1 : start;
+
+		Base::branch_size_prefix()[StreamIdx] -= obj->sum(0, end + 1, s + 1);
 	}
 
 
 	template <Int StreamIdx, typename StreamType>
-	void leaf_size_prefix(const StreamType* stream)
+	void leaf_size_prefix(const StreamType* obj)
 	{
-		Base::branch_size_prefix()[StreamIdx] -= stream->size();
+		Base::branch_size_prefix()[StreamIdx] -= obj->size();
 	}
 
 
@@ -747,9 +800,11 @@ public:
 	{
 		static_assert(To <= StreamObj::Indexes, "Invalid BTree structure");
 
+		Int s = start > (obj->size() - 1) ? obj->size() - 1 : start;
+
 		for (Int c = 0; c < To - From; c++)
 		{
-			item[c] -= obj->sum(c + From, end + 1, start + 1);
+			item[c] -= obj->sum(c + From, end + 1, s + 1);
 		}
 	}
 

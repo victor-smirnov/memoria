@@ -72,10 +72,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mapx::CtrInsertName)
     	template <typename NTypes>
         void treeNode(LeafNode<NTypes>* node, Int idx, Accumulator& accum)
         {
-    		using Node = LeafNode<NTypes>;
-
-            node->layout(255);
-
+    		node->layout(255);
             node->template processSubstreamsAcc<Stream, RemoveFromStreamHanlder>(accum, idx);
         }
     };

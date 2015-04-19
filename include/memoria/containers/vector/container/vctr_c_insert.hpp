@@ -76,6 +76,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrInsertName)
     {
         auto& self = this->self();
 
+        self.updatePageG(leaf);
+
         Position remainders = self.getRemainderSize(source);
         Position sizes      = self.getNodeSizes(leaf);
         Int capacity        = self.getStreamCapacity(leaf, sizes, 0);
@@ -132,6 +134,10 @@ void M_TYPE::insert(Iterator& iter, DataSource& data)
     {
         iter.nextLeaf();
     }
+
+//    DebugCounter = 1;
+
+//    iter.dump();
 
     iter.skipFw(inserted);
 }

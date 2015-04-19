@@ -41,6 +41,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 
     typedef typename Container::Types::CtrSizeT                                 CtrSizeT;
 
+    bool nextLeaf();
+    bool prevLeaf();
+
+
+
     bool operator++() {
         return self().skipFw(1);
     }
@@ -225,7 +230,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 
     CtrSizeT prefix() const
     {
-        return self().cache().size_prefix();
+        return self().cache().size_prefix()[0];
     }
 
     Accumulator prefixes() const {
@@ -244,10 +249,61 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
         accum = prefixes();
     }
 
+
+    void refreshCache()
+    {
+    	auto& self = this->self();
+
+    	memoria::bt1::FindForwardWalker2<memoria::bt1::WalkerTypes<Types, IntList<0>>> walker(0, 0);
+
+    	self.cache().reset();
+
+    	self.ctr().walkUp2(self.leaf(), self.idx(), walker);
+
+    	walker.finish(self, self.idx());
+    }
+
+
+    template <typename TTypes, typename LeafPath>
+    using NextLeafWalker        = memoria::bt1::ForwardLeafWalker<TTypes>;
+
+    template <typename TTypes, typename LeafPath>
+    using PrevLeafWalker        = memoria::bt1::BackwardLeafWalker<TTypes>;
+
 MEMORIA_ITERATOR_PART_END
 
 #define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::mvector::ItrApiName)
 #define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
+
+
+M_PARAMS
+bool M_TYPE::nextLeaf()
+{
+    auto& self = this->self();
+
+    auto id = self.leaf()->id();
+
+    self.template _findFw2<NextLeafWalker>(0, 0);
+
+    return id != self.leaf()->id();
+}
+
+
+
+
+M_PARAMS
+bool M_TYPE::prevLeaf()
+{
+    auto& self = this->self();
+
+    auto id = self.leaf()->id();
+
+    self.template _findBw2<PrevLeafWalker>(0, 0);
+
+    return id != self.leaf()->id();
+}
+
+
 
 M_PARAMS
 typename M_TYPE::CtrSizeT M_TYPE::skip(CtrSizeT amount)

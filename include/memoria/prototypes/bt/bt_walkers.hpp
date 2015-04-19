@@ -19,6 +19,7 @@
 #include <memoria/core/packed/array/packed_fse_array.hpp>
 
 #include <memoria/prototypes/bt/walkers/bt_misc_walkers.hpp>
+#include <memoria/prototypes/bt/walkers/bt_leaf_walkers.hpp>
 
 #include <ostream>
 #include <functional>

@@ -470,17 +470,17 @@ public:
     }
 
 
-    template <typename T>
-    T* get_stream(Int idx)
-    {
-        return allocator()->template get<T>(idx + SubstreamsStart);
-    }
-
-    template <typename T>
-    const T* get_stream(Int idx) const
-    {
-        return allocator()->template get<T>(idx + SubstreamsStart);
-    }
+//    template <typename T>
+//    T* get_stream(Int idx)
+//    {
+//        return allocator()->template get<T>(idx + SubstreamsStart);
+//    }
+//
+//    template <typename T>
+//    const T* get_stream(Int idx) const
+//    {
+//        return allocator()->template get<T>(idx + SubstreamsStart);
+//    }
 
     PackedAllocator* allocator()
     {
@@ -995,9 +995,9 @@ public:
         template <Int AllocatorIdx, Int Idx, typename Tree>
         void stream(const Tree* tree, MyType* other, Int copy_from, Int count, Int copy_to)
         {
-            MEMORIA_ASSERT_TRUE(!other->is_stream_empty(AllocatorIdx));
+            MEMORIA_ASSERT_TRUE(!other->allocator()->is_empty(AllocatorIdx));
 
-            tree->copyTo(other->template get_stream<Tree>(AllocatorIdx), copy_from, count, copy_to);
+            tree->copyTo(other->allocator()->template get<Tree>(AllocatorIdx), copy_from, count, copy_to);
         }
     };
 
@@ -1026,7 +1026,7 @@ public:
                     mem_used_ += tree->block_size();
                 }
                 else {
-                    const Tree* other_tree = other->template get_stream<Tree>(AllocatorIdx);
+                    const Tree* other_tree = other->allocator()->template get<Tree>(AllocatorIdx);
                     mem_used_ += tree->block_size(other_tree);
                 }
             }
@@ -1057,7 +1057,7 @@ public:
     }
 
     struct MergeWithFn {
-        template <Int AllocatorIdx, typename Tree>
+        template <Int AllocatorIdx, Int ListIdx, typename Tree>
         void stream(Tree* tree, MyType* other)
         {
             Int size = tree->size();
@@ -1069,7 +1069,7 @@ public:
                     other->allocator()->template allocateEmpty<Tree>(AllocatorIdx);
                 }
 
-                Tree* other_tree = other->template get_stream<Tree>(AllocatorIdx);
+                Tree* other_tree = other->allocator()->template get<Tree>(AllocatorIdx);
 
                 tree->mergeWith(other_tree);
             }
@@ -1189,7 +1189,7 @@ public:
 
     const Value& value(Int idx) const
     {
-        if (idx >= size()) {
+        if (idx >= size() || idx < 0) {
             int a = 0; a++;
         }
 

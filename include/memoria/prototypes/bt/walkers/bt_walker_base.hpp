@@ -21,14 +21,19 @@ namespace bt1     {
 
 class StreamOpResult {
 	Int idx_;
+	Int start_;
 	bool out_of_range_;
 	bool empty_;
 
 public:
-	StreamOpResult(Int idx, bool out_of_range, bool empty = false): idx_(idx), out_of_range_(out_of_range), empty_(empty) {}
+	StreamOpResult(Int idx, Int start, bool out_of_range, bool empty = false): idx_(idx), start_(start), out_of_range_(out_of_range), empty_(empty) {}
 
 	Int idx() const {
 		return idx_;
+	}
+
+	Int start() const {
+		return start_;
 	}
 
 	bool out_of_range(){
@@ -252,8 +257,6 @@ public:
     template <typename NodeTypes>
     Int treeNode(const bt::LeafNode<NodeTypes>* node, BigInt start)
     {
-    	using Node = bt::LeafNode<NodeTypes>;
-
     	Int idx = node->template processStream<LeafPath>(FindLeafFn(self()), start);
 
         self().postProcessNode(node, start, idx);
@@ -326,11 +329,12 @@ protected:
 
         FindBranchFn(MyType& walker): walker_(walker) {}
 
-        template <Int ListIdx, typename StreamType>
-        StreamOpResult stream(const StreamType* stream, Int index, Int start)
+        template <Int ListIdx, typename StreamType, typename... Args>
+        StreamOpResult stream(const StreamType* stream, bool root, Int index, Int start, Args&&... args)
         {
-            StreamOpResult result = walker_.template find_non_leaf<ListIdx>(stream, index, start);
+            StreamOpResult result = walker_.template find_non_leaf<ListIdx>(stream, root, index, start, std::forward<Args>(args)...);
 
+            // TODO: should we also forward args... to this call?
             walker_.template postProcessBranchStream<ListIdx>(stream, start, result.idx());
 
             return result;
@@ -343,16 +347,42 @@ protected:
 
         FindLeafFn(MyType& walker): walker_(walker) {}
 
-        template <Int ListIdx, typename StreamType>
-        StreamOpResult stream(const StreamType* stream, Int start)
+        template <Int ListIdx, typename StreamType, typename... Args>
+        StreamOpResult stream(const StreamType* stream, Int start, Args&&... args)
         {
-        	StreamOpResult result = walker_.template find_leaf<ListIdx>(stream, start);
+        	StreamOpResult result = walker_.template find_leaf<ListIdx>(stream, start, std::forward<Args>(args)...);
 
+        	// TODO: should we also forward args... to this call?
             walker_.template postProcessLeafStream<ListIdx>(stream, start, result.idx());
 
             return result;
         }
     };
+
+    struct ProcessBranchCmdFn {
+        MyType& walker_;
+
+        ProcessBranchCmdFn(MyType& walker): walker_(walker) {}
+
+        template <Int ListIdx, typename StreamType, typename... Args>
+        void stream(const StreamType* stream, WalkCmd cmd, Args&&... args)
+        {
+        	walker_.template process_branch_cmd<ListIdx>(stream, cmd, std::forward<Args>(args)...);
+        }
+    };
+
+    struct ProcessLeafCmdFn {
+    	MyType& walker_;
+
+    	ProcessLeafCmdFn(MyType& walker): walker_(walker) {}
+
+    	template <Int ListIdx, typename StreamType, typename... Args>
+    	void stream(const StreamType* stream, WalkCmd cmd, Args&&... args)
+    	{
+    		walker_.template process_leaf_cmd<ListIdx>(stream, cmd, std::forward<Args>(args)...);
+    	}
+    };
+
 
 public:
 
@@ -488,24 +518,36 @@ public:
     const MyType& self() const {return *T2T<const MyType*>(this);}
 
     template <typename NodeTypes>
-    StreamOpResult treeNode(const bt::BranchNode<NodeTypes>* node, Int start)
+    StreamOpResult treeNode(const bt::BranchNode<NodeTypes>* node, WalkDirection direction, Int start)
     {
     	auto& self = this->self();
 
     	Int index = node->template translateLeafIndexToBranchIndex<LeafPath>(self.leaf_index());
 
     	using BranchPath = typename bt::BranchNode<NodeTypes>::template BuildBranchPath<LeafPath>;
-        return node->template processStream<BranchPath>(FindBranchFn(self), index, start);
+        return node->template processStream<BranchPath>(FindBranchFn(self), node->is_root(), index, start);
     }
 
     template <typename NodeTypes>
-    StreamOpResult treeNode(const bt::LeafNode<NodeTypes>* node, Int start)
+    StreamOpResult treeNode(const bt::LeafNode<NodeTypes>* node, WalkDirection direction, Int start)
     {
     	auto& self = this->self();
     	return node->template processStream<LeafPath>(FindLeafFn(self), start);
     }
 
 
+    template <typename Node, typename... Args>
+    void processCmd(const Node* node, WalkCmd cmd, Args&&... args){}
+
+    template <typename NodeTypes, typename... Args>
+    void processCmd(const bt::BranchNode<NodeTypes>* node, WalkCmd cmd, Args&&... args)
+    {
+    	auto& self = this->self();
+
+    	Int index = node->template translateLeafIndexToBranchIndex<LeafPath>(self.leaf_index());
+
+    	return node->template processStream<LeafPath>(ProcessBranchCmdFn(self), cmd, index, std::forward<Args>(args)...);
+    }
 
 
     template <typename Node, typename... Args>
@@ -559,18 +601,6 @@ public:
     };
 
 
-
-//    template <typename Node, typename... Args>
-//    void processBranchSizePrefix(Node* node, Args&&... args)
-//    {
-//    	node->template processStream<IntList<current_stream()>>(BranchSizePrefix(), self(), std::forward<Args>(args)...);
-//    }
-//
-//    template <typename Node, typename... Args>
-//    void processLeafSizePrefix(Node* node, Args&&... args)
-//    {
-//    	node->template processStream<IntList<current_stream()>>(LeafSizePrefix(), self(), std::forward<Args>(args)...);
-//    }
 
     template <typename Node, typename... Args>
     void processBranchSizePrefix(Node* node, Args&&... args)

@@ -378,7 +378,12 @@ public:
 
     const Value& value(Int block, Int idx) const
     {
-        MEMORIA_ASSERT(idx, <, size());
+        if (idx >= size() || idx < 0 ) {
+        	int a = 0;a++;
+        }
+
+        MEMORIA_ASSERT(idx, >=, 0);
+    	MEMORIA_ASSERT(idx, <, size());
         return *(values(block) + idx);
     }
 
@@ -1121,7 +1126,13 @@ public:
 
         Int room_length = end - start;
 
-        MEMORIA_ASSERT(room_length, <= , size() - start);
+        Int size = this->size();
+
+        if (room_length >  size - start) {
+        	int a = 0; a++;
+        }
+
+        MEMORIA_ASSERT(room_length, <= , size - start);
 
         Value* values = this->values();
 

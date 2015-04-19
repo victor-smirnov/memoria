@@ -53,10 +53,14 @@ protected:
     Int cnt_i_ = 0;
     Int cnt_r_ = 0;
 
+
+
 public:
     SequenceCreateTestBase(StringRef name):
         Base(name)
     {}
+
+
 
     virtual String getAllocatorFileName(StringRef infix = "") const
     {
@@ -122,6 +126,8 @@ public:
         allocator.commit();
 
         try {
+        	this->iteration_ = 0;
+
             while (ctr.size() < this->size_)
             {
                 test_fn(this, allocator, ctr);
@@ -130,6 +136,7 @@ public:
 
                 this->checkAllocator(allocator, "Insert: Container Check Failed", MA_SRC);
 
+                this->iteration_++;
                 allocator.commit();
             }
 
@@ -158,7 +165,7 @@ public:
             this->fillRandom(ctr, Base::size_);
 
             allocator.commit();
-
+            this->iteration_ = 0;
             while (ctr.size() > 0)
             {
                 test_fn(this, allocator, ctr);
@@ -167,6 +174,7 @@ public:
 
                 this->checkAllocator(allocator, "Remove: Container Check Failed", MA_SRC);
 
+                this->iteration_++;
                 allocator.commit();
             }
 

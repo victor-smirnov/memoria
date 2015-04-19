@@ -434,6 +434,12 @@ public:
 
     void init(Iterator*) {}
 
+    void reset() {
+    	prefix_ = IteratorPrefix();
+    	leaf_prefix_ = IteratorPrefix();
+    	size_prefix_ = SizePrefix();
+    }
+
     const SizePrefix& size_prefix() const
     {
         return size_prefix_;

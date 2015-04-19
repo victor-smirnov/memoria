@@ -162,7 +162,7 @@ public:
     const MyType& self() const {return *T2T<const MyType*>(this);}
 
     template <typename NodeTypes>
-    void treeNode(const bt::BranchNode<NodeTypes>* node, Int start, Int end)
+    void treeNode(const bt::BranchNode<NodeTypes>* node, WalkCmd cmd, Int start, Int end)
     {}
 
 
@@ -240,23 +240,23 @@ public:
 
 
     template <typename NodeTypes>
-    StreamOpResult treeNode(const bt::BranchNode<NodeTypes>* node, Int start)
+    StreamOpResult treeNode(const bt::BranchNode<NodeTypes>* node, WalkDirection direction, Int start)
     {
     	Int size = node->size();
 
     	if (start < size)
     	{
-    		return StreamOpResult(start, false);
+    		return StreamOpResult(start, start, false);
     	}
     	else {
-    		return StreamOpResult(size - 1, true);
+    		return StreamOpResult(size - 1, start, true);
     	}
     }
 
     template <typename NodeTypes>
-    StreamOpResult treeNode(const bt::LeafNode<NodeTypes>* node, Int start)
+    StreamOpResult treeNode(const bt::LeafNode<NodeTypes>* node, WalkDirection direction, Int start)
     {
-    	return StreamOpResult(0, true);
+    	return StreamOpResult(0, 0, true);
     }
 
 
@@ -296,17 +296,6 @@ public:
 			item[Idx + c] += obj->sum(c + From);
 		}
 	}
-
-//	template <Int Offset, Int From, Int Size, typename StreamObj, typename AccumItem>
-//	void leaf_iterator_accumulator(const StreamObj* obj, AccumItem& item, Int, Int)
-//	{
-//		const Int Idx = Offset - std::remove_reference<decltype(item)>::type::From;
-//
-//		for (Int c = 0; c < Size; c++)
-//		{
-//			item[Idx + c] = 0;
-//		}
-//	}
 };
 
 
@@ -336,23 +325,21 @@ public:
 
 
     template <typename NodeTypes>
-    StreamOpResult treeNode(const bt::BranchNode<NodeTypes>* node, Int start)
+    StreamOpResult treeNode(const bt::BranchNode<NodeTypes>* node, WalkDirection direction, Int start)
     {
-//    	Int size = node->size();
-
     	if (start >= 0)
     	{
-    		return StreamOpResult(start, false);
+    		return StreamOpResult(start, start, false);
     	}
     	else {
-    		return StreamOpResult(0, true);
+    		return StreamOpResult(0, 0, true);
     	}
     }
 
     template <typename NodeTypes>
-    StreamOpResult treeNode(const bt::LeafNode<NodeTypes>* node, Int start)
+    StreamOpResult treeNode(const bt::LeafNode<NodeTypes>* node, WalkDirection direction, Int start)
     {
-    	return StreamOpResult(0, true);
+    	return StreamOpResult(0, 0, true);
     }
 
 
@@ -365,10 +352,8 @@ public:
     	{
     		self.leaf_accumulator() = IteratorAccumulator();
     	}
-    	else if (cmd == WalkCmd::FIRST_LEAF)
+    	else if (cmd == WalkCmd::LAST_LEAF)
     	{
-    	}
-    	else {
     		self.leaf_accumulator() = IteratorAccumulator();
 
     		self.processLeafIteratorAccumulator(node, this->branch_accumulator());
@@ -393,17 +378,6 @@ public:
 			item[Idx + c] -= obj->sum(c + From);
 		}
 	}
-
-//	template <Int Offset, Int From, Int Size, typename StreamObj, typename AccumItem>
-//	void leaf_iterator_accumulator(const StreamObj* obj, AccumItem& item, Int, Int)
-//	{
-//		const Int Idx = Offset - std::remove_reference<decltype(item)>::type::From;
-//
-//		for (Int c = 0; c < Size; c++)
-//		{
-//			item[Idx + c] = 0;
-//		}
-//	}
 };
 
 

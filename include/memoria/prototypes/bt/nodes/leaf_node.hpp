@@ -205,22 +205,22 @@ public:
         return Base::allocator();
     }
 
-    template <typename T>
-    T* get_stream(Int idx)
-    {
-        return allocator()->template get<T>(idx + SubstreamsStart);
-    }
+//    template <typename T>
+//    T* get_stream(Int idx)
+//    {
+//        return allocator()->template get<T>(idx + SubstreamsStart);
+//    }
+//
+//    template <typename T>
+//    const T* get_stream(Int idx) const
+//    {
+//        return allocator()->template get<T>(idx + SubstreamsStart);
+//    }
 
-    template <typename T>
-    const T* get_stream(Int idx) const
-    {
-        return allocator()->template get<T>(idx + SubstreamsStart);
-    }
-
-    bool is_stream_empty(Int idx) const
-    {
-        return allocator()->is_empty(idx + SubstreamsStart);
-    }
+//    bool is_stream_empty(Int idx) const
+//    {
+//        return allocator()->is_empty(idx + SubstreamsStart);
+//    }
 
     bool is_empty() const
     {
@@ -873,7 +873,7 @@ public:
                     other->allocator()->template allocateEmpty<Tree>(AllocatorIdx);
                 }
 
-                Tree* other_tree = other->template get_stream<Tree>(AllocatorIdx);
+                Tree* other_tree = other->allocator()->template get<Tree>(AllocatorIdx);
                 tree->mergeWith(other_tree);
             }
         }

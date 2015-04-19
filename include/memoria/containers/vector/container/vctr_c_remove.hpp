@@ -73,6 +73,7 @@ M_PARAMS
 void M_TYPE::remove(Iterator& from, BigInt size)
 {
     auto to = from;
+
     to.skip(size);
 
     auto& self = this->self();
@@ -81,7 +82,7 @@ void M_TYPE::remove(Iterator& from, BigInt size)
 
     from = to;
 
-    from.cache().initState();
+    from.refreshCache();
 }
 
 

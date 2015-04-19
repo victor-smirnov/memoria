@@ -33,22 +33,21 @@ int main() {
 		SecT::initMetadata();
 		RootT::initMetadata();
 
-		CtrT map(&alloc);
+		VecT map(&alloc);
 
 		auto iter = map.Begin();
 
-		for (Int c = 0; c < 1000; c++) {
-			iter.insert(1, c);
-		}
+		int size = 10000000;
 
-		iter = map.findK(1000);
+		vector<Int> v(size);
 
-		iter.dumpCache(cout);
+		iter.insert(v);
 
+		DebugCounter = 2;
 
-		while (iter.prevLeaf()) {
-			iter.dumpCache(cout);
-		}
+		iter.skip(-size+975);
+
+		iter.dump();
 
 		alloc.commit();
 

@@ -105,10 +105,10 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
     using SkipBackwardWalker    = memoria::bt1::SkipBackwardWalker2<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using NextLeafWalker        = NextLeafWalker<WalkerTypes<Types, LeafPath>>;
+    using NextLeafWalker        = memoria::bt1::ForwardLeafWalker<Types>;
 
     template <typename Types, typename LeafPath>
-    using PrevLeafWalker        = PrevLeafWalker<WalkerTypes<Types, LeafPath>>;
+    using PrevLeafWalker        = memoria::bt1::BackwardLeafWalker<Types>;
 
 
 

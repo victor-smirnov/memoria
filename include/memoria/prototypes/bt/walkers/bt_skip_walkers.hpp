@@ -234,7 +234,11 @@ public:
     template <Int StreamIdx, typename Tree>
     StreamOpResult find_leaf(const Tree* tree, Int start)
     {
-        auto& sum = Base::sum_;
+        if (DebugCounter == 1) {
+        	int a = 0; a++;
+        }
+
+    	auto& sum = Base::sum_;
 
         BigInt offset = Base::target_ - sum;
 
@@ -246,16 +250,16 @@ public:
             {
                 sum += offset;
 
-                return StreamOpResult(start + offset, false);
+                return StreamOpResult(start + offset, start, false);
             }
             else {
                 sum += (size - start);
 
-                return StreamOpResult(size, true);
+                return StreamOpResult(size, start, true);
             }
         }
         else {
-            return StreamOpResult(0, true);
+            return StreamOpResult(0, start, true);
         }
     }
 
@@ -307,10 +311,14 @@ public:
     template <Int StreamIdx, typename Tree>
     StreamOpResult find_leaf(const Tree* tree, Int start)
     {
+    	if (DebugCounter == 2) {
+    		int a = 0; a++;
+    	}
+
+    	if (start > tree->size()) start = tree->size();
+
     	if (start >= 0)
     	{
-    		if (start > tree->size()) start = tree->size();
-
     		BigInt offset = Base::target_ - Base::sum_;
 
     		auto& sum = Base::sum_;
@@ -321,20 +329,20 @@ public:
     			{
     				sum += offset;
 
-    				return StreamOpResult(start - offset, false);
+    				return StreamOpResult(start - offset, start, false);
     			}
     			else {
     				sum += start;
 
-    				return StreamOpResult(-1, true);
+    				return StreamOpResult(-1, start, true);
     			}
     		}
     		else {
-    			return StreamOpResult(-1, true, true);
+    			return StreamOpResult(-1, start, true, true);
     		}
     	}
     	else {
-    		return StreamOpResult(-1, true, true);
+    		return StreamOpResult(-1, start, true, true);
     	}
     }
 
