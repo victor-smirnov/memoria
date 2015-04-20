@@ -753,11 +753,11 @@ public:
     	}
     	else if (cmd == WalkCmd::FIRST_LEAF)
     	{
-    		self.processLeafIteratorAccumulator(node, this->leaf_accumulator(), start, end);
+    		self.processLeafIteratorAccumulator(node, this->leaf_accumulator(), true);
     	}
     	else if (cmd == WalkCmd::LAST_LEAF)  {
     		self.processLeafIteratorAccumulator(node, this->leaf_accumulator(), start, end);
-    		self.processLeafIteratorAccumulator(node, this->branch_accumulator());
+    		self.processLeafIteratorAccumulator(node, this->branch_accumulator(), false);
     		self.processLeafSizePrefix(node);
     	}
     	else {
@@ -832,38 +832,28 @@ public:
 
 		if (start >= obj->size()) start = obj->size() - 1;
 
-		if (end > 0)
+		for (Int c = 0; c < Size; c++)
 		{
-//			if (start - end == 1)
-//			{
-//				for (Int c = 0; c < Size; c++)
-//				{
-//					item[Idx + c] -= obj->value(c + From, start - 1);
-//				}
-//			}
-//			else {
-				for (Int c = 0; c < Size; c++)
-				{
-					item[Idx + c] = obj->sum(c + From, end);
-				}
-//			}
-		}
-		else {
-			for (Int c = 0; c < Size; c++)
-			{
-				item[Idx + c] = 0;
-			}
+			item[Idx + c] = obj->sum(c + From, end);
 		}
 	}
 
 	template <Int Offset, Int From, Int Size, typename StreamObj, typename AccumItem>
-	void leaf_iterator_accumulator(const StreamObj* obj, AccumItem& item)
+	void leaf_iterator_accumulator(const StreamObj* obj, AccumItem& item, bool leaf)
 	{
 		const Int Idx = Offset - std::remove_reference<decltype(item)>::type::From;
 
-		for (Int c = 0; c < Size; c++)
-		{
-			item[Idx + c] -= obj->sum(c + From);
+		if (leaf) {
+			for (Int c = 0; c < Size; c++)
+			{
+				item[Idx + c] -= 0;
+			}
+		}
+		else {
+			for (Int c = 0; c < Size; c++)
+			{
+				item[Idx + c] -= obj->sum(c + From);
+			}
 		}
 	}
 };

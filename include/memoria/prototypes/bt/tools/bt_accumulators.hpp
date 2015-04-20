@@ -70,6 +70,14 @@ template <typename T>
 struct EmptyVector {
 	static const Int To 	= 0;
 	static const Int From 	= 0;
+
+	bool operator==(const EmptyVector<T>&) const {
+		return true;
+	}
+
+	bool operator!=(const EmptyVector<T>&) const {
+		return false;
+	}
 };
 
 template <typename T>
