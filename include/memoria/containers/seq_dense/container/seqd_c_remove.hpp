@@ -180,8 +180,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrRemoveName)
 
             while(iter.nextLeaf() && iter.leaf() != tmp.leaf())
             {
-            	iter.dump();
-
             	self.removeNode(iter.leaf());
                 iter = bkp_iter;
             }

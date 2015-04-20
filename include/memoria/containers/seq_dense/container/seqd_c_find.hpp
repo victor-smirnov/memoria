@@ -54,9 +54,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
     {
         auto& self = this->self();
 
-        typename Types::template RankFWWalker<Types> walker(0, symbol, idx);
+        typename Types::template RankFWWalker<Types, IntList<0>> walker(0, symbol, idx);
 
-        auto iter = self.find0(0, walker);
+        auto iter = self.find2(walker);
 
         return walker.rank();
     }

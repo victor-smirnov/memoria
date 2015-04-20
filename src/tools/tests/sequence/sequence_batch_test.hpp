@@ -135,14 +135,14 @@ public:
     {
     }
 
-//    virtual void checkIterator(Iterator& iter, const char* source)
-//    {
-//    	auto pos 	= iter.pos();
-//    	auto prefix = iter.cache().size_prefix()[0];
-//    	auto idx 	= iter.idx();
-//
-//    	AssertEQ(source, pos, prefix + idx);
-//    }
+    virtual void checkIterator(Iterator& iter, const char* source)
+    {
+    	auto pos 	= iter.pos();
+    	auto prefix = iter.cache().size_prefix()[0];
+    	auto idx 	= iter.idx();
+
+    	AssertEQ(source, pos, prefix + idx);
+    }
 };
 
 

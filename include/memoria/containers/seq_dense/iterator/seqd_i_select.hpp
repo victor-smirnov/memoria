@@ -85,7 +85,7 @@ BigInt M_TYPE::selectFw(BigInt rank_delta, Int symbol)
 //
 //    return walker.finish(self, idx);
 
-    return self().template _findFw2<Types::template SelectFwWalker>(0, rank_delta);
+    return self().template _findFw2<Types::template SelectFwWalker>(symbol, rank_delta);
 }
 
 
@@ -107,7 +107,7 @@ BigInt M_TYPE::selectBw(BigInt rank_delta, Int symbol)
 //
 //    return walker.finish(self, idx);
 
-	 return self().template _findBw2<Types::template SelectBwWalker>(0, rank_delta);
+	 return self().template _findBw2<Types::template SelectBwWalker>(symbol, rank_delta);
 }
 
 

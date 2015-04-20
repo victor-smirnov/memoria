@@ -130,12 +130,22 @@ public:
 
                     auto iter   = ctr.seek(pos);
 
+                    auto pos0 = iter.pos();
+
+                    AssertEQ(MA_SRC, pos0, pos);
+
                     BigInt pos_delta1 = iter.selectFw(rank, symbol);
 
                     auto tgt_pos2 = seq.selectFw(pos, symbol, rank);
 
                     AssertEQ(MA_SRC, iter.pos(), tgt_pos2.idx());
-                    AssertEQ(MA_SRC, pos_delta1, tgt_pos2.idx() - pos);
+
+                    if (tgt_pos2.is_found()) {
+                    	AssertEQ(MA_SRC, pos_delta1, rank);
+                    }
+                    else {
+                    	AssertEQ(MA_SRC, pos_delta1, tgt_pos2.rank());
+                    }
                 }
             }
         }
@@ -188,7 +198,14 @@ public:
                     BigInt pos_delta1   = iter.selectBw(rank, symbol);
 
                     AssertEQ(MA_SRC, iter.pos(), tgt_pos.idx());
-                    AssertEQ(MA_SRC, pos_delta1, pos - tgt_pos.idx());
+
+                    if (tgt_pos.is_found())
+                    {
+                    	AssertEQ(MA_SRC, pos_delta1, rank);
+                    }
+                    else {
+                    	AssertEQ(MA_SRC, pos_delta1, tgt_pos.rank());
+                    }
                 }
             }
         }

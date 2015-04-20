@@ -295,6 +295,7 @@ protected:
     typedef typename Types::LeafRangeOffsetList                                 LeafRangeOffsetList;
 
     typedef typename Types::CtrSizeT                                            Key;
+    typedef typename Types::CtrSizeT                                            CtrSizeT;
 
     static const Int Streams                                                    = Types::Streams;
 
@@ -390,6 +391,10 @@ public:
         leaf_index_(leaf_index)
     {}
 
+    CtrSizeT sum() const {
+    	return 0;
+    }
+
     const WalkDirection& direction() const {
         return direction_;
     }
@@ -478,7 +483,9 @@ public:
         branch_size_prefix_	= iter.cache().size_prefix();
     }
 
-    BigInt finish(Iterator& iter, Int idx)
+    auto finish(Iterator& iter, Int idx) const ->
+    //decltype(std::declval<const MyType>().sum())
+    		CtrSizeT
     {
         iter.idx() = idx;
 
@@ -486,7 +493,7 @@ public:
         iter.cache().leaf_prefixes() = leaf_prefix_;
         iter.cache().size_prefix() 	 = branch_size_prefix_;
 
-        return 0;
+        return self().sum();
     }
 
     const IteratorAccumulator& branch_accumulator() const {

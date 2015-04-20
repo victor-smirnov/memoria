@@ -840,6 +840,10 @@ public:
 
     Int rank(Int end, Int symbol) const
     {
+    	if (end < 0 || end > size()) {
+    		int a = 0; a++;
+    	}
+
         MEMORIA_ASSERT(end, <=, size());
         MEMORIA_ASSERT_TRUE(end >= 0);
 

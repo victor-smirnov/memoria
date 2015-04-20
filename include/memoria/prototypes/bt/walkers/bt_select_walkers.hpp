@@ -221,10 +221,10 @@ public:
         BigInt rank     = Base::target_ - sum;
         auto result     = self().template select<StreamIdx>(seq, start, symbol, rank);
 
-
         if (result.is_found())
         {
-            return StreamOpResult(result.idx(), start, false);
+        	sum  += rank;
+        	return StreamOpResult(result.idx(), start, false);
         }
         else {
             Int size = seq->size();
@@ -286,6 +286,10 @@ public:
     {
         MEMORIA_ASSERT_TRUE(seq);
 
+        auto size = seq->size();
+
+        if (start > size) start = size;
+
         BigInt target   = Base::target_ - Base::sum_;
 
         auto& sum       = Base::sum_;
@@ -294,7 +298,8 @@ public:
 
         if (result.is_found())
         {
-            return StreamOpResult(result.idx(), start, false);
+        	sum += target;
+        	return StreamOpResult(result.idx(), start, false);
         }
         else {
             sum += result.rank();

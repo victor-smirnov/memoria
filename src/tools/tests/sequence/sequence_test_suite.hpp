@@ -33,7 +33,7 @@ public:
 //        registerTask(new SequenceCreateTest<1>("1.Create"));
 //        registerTask(new SequenceCreateTest<8>("8.Create"));
 //
-//        registerTask(new SequenceRankTest<1>("1.Rank"));
+        registerTask(new SequenceRankTest<1>("1.Rank"));
 //        registerTask(new SequenceRankTest<8>("8.Rank"));
 //
         registerTask(new SequenceSelectTest<1>("1.Select"));

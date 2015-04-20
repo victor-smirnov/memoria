@@ -152,10 +152,14 @@ class RankForwardWalker2: public SkipForwardWalkerBase2<Types, RankForwardWalker
 
 public:
 
-    RankForwardWalker2(Int symbol, Key target):
+    RankForwardWalker2(Int, Int symbol, Key target):
         Base(target),
         symbol_(symbol)
     {}
+
+    CtrSizeT rank() const {
+    	return rank_;
+    }
 
     template <Int StreamIdx, typename StreamType>
     void postProcessLeafStream(const StreamType* stream, Int start, Int end)
@@ -169,7 +173,7 @@ public:
     	rank_ += stream->sum(Base::branchIndex(symbol_), start, end);
     }
 
-    BigInt finish(Iterator& iter, Int idx)
+    CtrSizeT finish(Iterator& iter, Int idx)
     {
         Base::finish(iter, idx);
 
@@ -194,10 +198,14 @@ class RankBackwardWalker2: public SkipBackwardWalkerBase2<Types, RankBackwardWal
 
 public:
 
-    RankBackwardWalker2(Int symbol, Key target):
+    RankBackwardWalker2(Int, Int symbol, Key target):
         Base(target),
         symbol_(symbol)
     {}
+
+    CtrSizeT rank() const {
+    	return rank_;
+    }
 
     template <Int StreamIdx, typename StreamType>
     void postProcessLeafStream(const StreamType* stream, Int start, Int end)
@@ -213,7 +221,7 @@ public:
     	rank_ += stream->sum(Base::branchIndex(symbol_), start, end);
     }
 
-    BigInt finish(Iterator& iter, Int idx)
+    CtrSizeT finish(Iterator& iter, Int idx)
     {
         Base::finish(iter, idx);
 
