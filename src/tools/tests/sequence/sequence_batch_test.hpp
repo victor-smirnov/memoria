@@ -142,6 +142,8 @@ public:
     	auto idx 	= iter.idx();
 
     	AssertEQ(source, pos, prefix + idx);
+
+    	iter.check(source);
     }
 };
 

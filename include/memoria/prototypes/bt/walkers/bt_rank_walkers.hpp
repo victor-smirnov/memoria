@@ -161,6 +161,10 @@ public:
     	return rank_;
     }
 
+    CtrSizeT result() const {
+    	return rank_;
+    }
+
     template <Int StreamIdx, typename StreamType>
     void postProcessLeafStream(const StreamType* stream, Int start, Int end)
     {
@@ -206,6 +210,11 @@ public:
     CtrSizeT rank() const {
     	return rank_;
     }
+
+    CtrSizeT result() const {
+    	return rank_;
+    }
+
 
     template <Int StreamIdx, typename StreamType>
     void postProcessLeafStream(const StreamType* stream, Int start, Int end)

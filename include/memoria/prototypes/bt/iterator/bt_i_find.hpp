@@ -36,10 +36,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorFindName)
     BigInt _findBw(Int index, BigInt key);
 
     template <template <typename CtrTypes, typename LeafPath> class Walker>
-    BigInt _findFw2(Int index, BigInt key);
+    auto _findFw2(Int index, BigInt key) ->
+    memoria::bt1::WalkerResultFnType<Walker<Types, IntList<0>>>;
 
     template <template <typename CtrTypes, typename LeafPath> class Walker>
-    BigInt _findBw2(Int index, BigInt key);
+    auto _findBw2(Int index, BigInt key) ->
+    memoria::bt1::WalkerResultFnType<Walker<Types, IntList<0>>>;
 
 
 MEMORIA_ITERATOR_PART_END
@@ -84,7 +86,8 @@ BigInt M_TYPE::_findBw(Int index, BigInt key)
 
 M_PARAMS
 template <template <typename CtrTypes, typename LeafPath> class Walker>
-BigInt M_TYPE::_findFw2(Int index, BigInt key)
+auto M_TYPE::_findFw2(Int index, BigInt key) ->
+memoria::bt1::WalkerResultFnType<Walker<Types, IntList<0>>>
 {
     auto& self = this->self();
 
@@ -99,12 +102,15 @@ BigInt M_TYPE::_findFw2(Int index, BigInt key)
     self.leaf() = result.node;
     self.idx()  = result.idx;
 
-    return walker.finish(self, result.idx);
+    walker.finish(self, result.idx);
+
+    return walker.result();
 }
 
 M_PARAMS
 template <template <typename CtrTypes, typename LeafPath> class Walker>
-BigInt M_TYPE::_findBw2(Int index, BigInt key)
+auto M_TYPE::_findBw2(Int index, BigInt key) ->
+memoria::bt1::WalkerResultFnType<Walker<Types, IntList<0>>>
 {
     auto& self = this->self();
 
@@ -119,8 +125,9 @@ BigInt M_TYPE::_findBw2(Int index, BigInt key)
     self.leaf() = result.node;
     self.idx()  = result.idx;
 
-    return walker.finish(self, result.idx);
+    walker.finish(self, result.idx);
 
+    return walker.result();
 }
 
 #undef M_PARAMS

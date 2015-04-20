@@ -641,6 +641,7 @@ typename M_TYPE::Iterator M_TYPE::find2(Walker&& walker)
         }
 
         auto result = LeafDispatcher::dispatch(node, walker, WalkDirection::DOWN, 0);
+
         LeafDispatcher::dispatch(node, walker, WalkCmd::LAST_LEAF, 0, result.idx());
 
         i.leaf() = node;

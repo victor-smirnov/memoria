@@ -336,6 +336,9 @@ protected:
 
     using LeafPath 		= typename Types::LeafPath;
 
+    using ThisType = FindWalkerBase2<Types, MyType>;
+    using Iterator = typename Base::Iterator;
+
     BigInt sum_			= 0;
 
     Key target_;
@@ -362,11 +365,13 @@ public:
     	return sum_;
     }
 
+    BigInt result() const {
+    	return sum_;
+    }
 
     Key target() const {
     	return target_;
     }
-
 };
 
 
@@ -551,19 +556,22 @@ public:
 	template <Int Offset, Int From, Int Size, typename StreamObj, typename AccumItem>
 	void leaf_iterator_accumulator(const StreamObj* obj, AccumItem& item, Int start, Int end)
 	{
-		const Int Idx = Offset - std::remove_reference<decltype(item)>::type::From;
-
-		if (end - start == 1 && start > 0)
+		if (obj != nullptr)
 		{
-			for (Int c = 0; c < Size; c++)
+			const Int Idx = Offset - std::remove_reference<decltype(item)>::type::From;
+
+			if (end - start == 1 && start > 0)
 			{
-				item[Idx + c] += obj->value(c + From, start);
+				for (Int c = 0; c < Size; c++)
+				{
+					item[Idx + c] += obj->value(c + From, start);
+				}
 			}
-		}
-		else {
-			for (Int c = 0; c < Size; c++)
-			{
-				item[Idx + c] = obj->sum(c + From, end);
+			else {
+				for (Int c = 0; c < Size; c++)
+				{
+					item[Idx + c] = obj->sum(c + From, end);
+				}
 			}
 		}
 	}
@@ -571,9 +579,11 @@ public:
 	template <Int Offset, Int From, Int Size, typename StreamObj, typename AccumItem>
 	void leaf_iterator_accumulator(const StreamObj* obj, AccumItem& item)
 	{
-		for (Int c = 0; c < Size; c++)
-		{
-			item[Offset - std::remove_reference<decltype(item)>::type::From + c] += obj->sum(c + From);
+		if (obj != nullptr) {
+			for (Int c = 0; c < Size; c++)
+			{
+				item[Offset - std::remove_reference<decltype(item)>::type::From + c] += obj->sum(c + From);
+			}
 		}
 	}
 };
@@ -820,21 +830,23 @@ public:
 	{
 		const Int Idx = Offset - std::remove_reference<decltype(item)>::type::From;
 
-		if (start > 0)
+		if (start >= obj->size()) start = obj->size() - 1;
+
+		if (end > 0)
 		{
-			if (start - end == 1)
-			{
-				for (Int c = 0; c < Size; c++)
-				{
-					item[Idx + c] -= obj->value(c + From, start - 1);
-				}
-			}
-			else {
+//			if (start - end == 1)
+//			{
+//				for (Int c = 0; c < Size; c++)
+//				{
+//					item[Idx + c] -= obj->value(c + From, start - 1);
+//				}
+//			}
+//			else {
 				for (Int c = 0; c < Size; c++)
 				{
 					item[Idx + c] = obj->sum(c + From, end);
 				}
-			}
+//			}
 		}
 		else {
 			for (Int c = 0; c < Size; c++)

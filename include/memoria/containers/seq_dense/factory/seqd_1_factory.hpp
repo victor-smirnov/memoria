@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2013.
+// Copyright Victor Smirnov 2013-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -55,7 +55,9 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >: public BTTypes<Profile, me
         typedef core::StaticVector<BigInt, 1>                       IteratorPrefixPart;
 
         typedef PkdFTree<Packed2TreeTypes<Key, Key, Indexes>>       NonLeafType;
-        typedef TL<TL<>>					IdxRangeList;
+        typedef TL<TL<IndexRange<0, Indexes - 1>>>					IdxRangeList;
+
+//        typedef TL<TL<>>					IdxRangeList;
 
         typedef typename PkdFSSeqTF<BitsPerSymbol>::Type            SequenceTypes;
 

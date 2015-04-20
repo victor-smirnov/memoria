@@ -34,6 +34,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
     typedef typename Base::NodeBaseG                                            NodeBaseG;
 
     typedef typename Container::Accumulator                                     Accumulator;
+    typedef typename Container::Iterator                                     	Iterator;
 
     typedef typename Container::Types::DataSource                               DataSource;
     typedef typename Container::Types::DataTarget                               DataTarget;
@@ -205,7 +206,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
     void insert(DataSource& data)
     {
         auto& self = this->self();
-        self.ctr().insertBlock(self, data);
+
+        Iterator tmp = self;
+
+        self.ctr().insertBlock(tmp, data);
+
+        self.skipFw(data.getSize());
     }
 
     BigInt update(DataSource& data)
@@ -258,6 +264,20 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
     	self.ctr().walkUp2(self.leaf(), self.idx(), walker);
 
     	walker.finish(self, self.idx());
+    }
+
+    void check(const char* source) const
+    {
+    	auto& self = this->self();
+
+    	auto tmp = self;
+
+    	tmp.refreshCache();
+
+    	if (self.cache() != tmp.cache())
+    	{
+    		throw TestException(source, SBuf()<<"Iterator cache mismatch: having: "<<self.cache()<<", should be: "<<tmp.cache());
+    	}
     }
 
 

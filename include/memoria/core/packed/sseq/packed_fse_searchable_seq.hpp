@@ -207,6 +207,10 @@ public:
         return SymbolAccessor(*this, idx);
     }
 
+    Int value(Int symbol, Int idx) const {
+    	return this->symbol(idx) == symbol;
+    }
+
 
     class ConstSymbolAccessor {
         const MyType& seq_;
@@ -728,7 +732,7 @@ public:
         values += sums();
     }
 
-    Values2 sum(Int from, Int to) const {
+    Values2 sum_v(Int from, Int to) const {
         return sums2(from, to);
     }
 
@@ -786,9 +790,20 @@ public:
     }
 
 
+    Int sum(Int symbol, Int start, Int end) const
+    {
+    	return rank(start, end, symbol);
+    }
 
+    Int sum(Int symbol, Int end) const
+    {
+    	return rank(end, symbol);
+    }
 
-
+    Int sum(Int symbol) const
+    {
+    	return rank(symbol);
+    }
 
 
     void addKeys(Int idx, Values& values) const

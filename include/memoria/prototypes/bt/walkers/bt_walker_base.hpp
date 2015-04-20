@@ -277,8 +277,8 @@ public:
 
 
 
-
-
+template <typename W>
+using WalkerResultFnType = decltype(std::declval<const W>().result());
 
 
 template <
@@ -300,10 +300,6 @@ protected:
     static const Int Streams                                                    = Types::Streams;
 
     using LeafPath = typename Types::LeafPath;
-
-
-
-    WalkDirection direction_;
 
     Int leaf_index_;
 
@@ -391,17 +387,8 @@ public:
         leaf_index_(leaf_index)
     {}
 
-    CtrSizeT sum() const {
-    	return 0;
-    }
+    void result() const {}
 
-    const WalkDirection& direction() const {
-        return direction_;
-    }
-
-    WalkDirection& direction() {
-        return direction_;
-    }
 
     void empty(Iterator& iter)
     {
@@ -483,17 +470,13 @@ public:
         branch_size_prefix_	= iter.cache().size_prefix();
     }
 
-    auto finish(Iterator& iter, Int idx) const ->
-    //decltype(std::declval<const MyType>().sum())
-    		CtrSizeT
+    void finish(Iterator& iter, Int idx) const
     {
         iter.idx() = idx;
 
         iter.cache().prefixes() 	 = branch_prefix_;
         iter.cache().leaf_prefixes() = leaf_prefix_;
         iter.cache().size_prefix() 	 = branch_size_prefix_;
-
-        return self().sum();
     }
 
     const IteratorAccumulator& branch_accumulator() const {

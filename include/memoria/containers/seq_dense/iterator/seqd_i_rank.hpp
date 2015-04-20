@@ -72,6 +72,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterRankName)
 
     BigInt rank(BigInt delta, Int symbol);
     BigInt rankFw(BigInt delta, Int symbol);
+
     BigInt rankBw(BigInt delta, Int symbol);
 
 MEMORIA_ITERATOR_PART_END
@@ -142,18 +143,8 @@ M_PARAMS
 BigInt M_TYPE::rankFw(BigInt delta, Int symbol)
 {
     auto& self  = this->self();
-//    auto& ctr   = self.ctr();
-//    Int stream  = self.stream();
 
     MEMORIA_ASSERT(delta, >=, 0);
-
-//    typename Types::template RankFWWalker<Types, IntList<0>> walker(stream, symbol, delta);
-//
-//    walker.prepare(self);
-//
-//    Int idx = ctr.findFw(self.leaf(), stream, self.idx(), walker);
-//
-//    return walker.finish(self, idx);
 
     return self.template _findFw2<Types::template RankFWWalker>(symbol, delta);
 }
@@ -162,18 +153,8 @@ M_PARAMS
 BigInt M_TYPE::rankBw(BigInt delta, Int symbol)
 {
     auto& self  = this->self();
-//    auto& ctr   = self.ctr();
-//    Int stream  = self.stream();
-//
+
     MEMORIA_ASSERT(delta, >=, 0);
-//
-//    typename Types::template RankBWWalker<Types> walker(stream, symbol, delta);
-//
-//    walker.prepare(self);
-//
-//    Int idx = ctr.findBw(self.leaf(), stream, self.idx(), walker);
-//
-//    return walker.finish(self, idx);
 
     return self.template _findBw2<Types::template RankBWWalker>(symbol, delta);
 }

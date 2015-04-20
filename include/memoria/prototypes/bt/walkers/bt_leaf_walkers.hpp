@@ -54,6 +54,7 @@ public:
     LeafWalkerBase()
     {}
 
+    void result() const {}
 
     void empty(Iterator& iter)
     {

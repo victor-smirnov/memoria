@@ -425,6 +425,7 @@ class BTree2IteratorPrefixCache {
     using IteratorPrefix = typename Container::Types::IteratorAccumulator;
     using SizePrefix = core::StaticVector<BigInt, Container::Types::Streams>;
 
+    using MyType = BTree2IteratorPrefixCache<Iterator, Container>;
 
     IteratorPrefix 	prefix_;
     IteratorPrefix 	leaf_prefix_;
@@ -471,6 +472,27 @@ public:
     }
 
     void initState() {}
+
+    bool operator==(const MyType& other) const
+    {
+    	return prefix_ == other.prefix_ && leaf_prefix_ == other.leaf_prefix_ && size_prefix_ == other.size_prefix_;
+    }
+
+    bool operator!=(const MyType& other) const
+	{
+    	return prefix_ != other.prefix_ || leaf_prefix_ != other.leaf_prefix_ || size_prefix_ != other.size_prefix_;
+    }
+
+//    bool operator==(const MyType& other) const
+//    {
+//    	return prefix_ == other.prefix_ &&  size_prefix_ == other.size_prefix_;
+//    }
+//
+//    bool operator!=(const MyType& other) const
+//	{
+//    	return prefix_ != other.prefix_ ||  size_prefix_ != other.size_prefix_;
+//	}
+
 };
 
 template <
