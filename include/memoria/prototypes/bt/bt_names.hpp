@@ -58,6 +58,10 @@ class IteratorAPIName       {};
 class IteratorMultiskipName {};
 class IteratorContainerAPIName  {};
 class IteratorFindName      {};
+class IteratorSelectName    {};
+class IteratorRankName      {};
+class IteratorSkipName      {};
+class IteratorLeafName      {};
 
 }
 

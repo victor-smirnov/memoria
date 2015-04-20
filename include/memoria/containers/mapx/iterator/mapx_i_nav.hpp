@@ -31,6 +31,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
     typedef typename Base::Container                                            Container;
     typedef typename Base::Container::Position                                  Position;
 
+    using CtrSizeT = typename Container::Types::CtrSizeT;
+
     bool operator++() {
         return self().nextKey();
     }
@@ -74,19 +76,18 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
         return accum;
     }
 
-    bool nextKey();
-    bool prevKey();
 
-    bool nextLeaf();
-    bool prevLeaf();
+    CtrSizeT skipFw(CtrSizeT amount) {
+    	return self().template _skipFw<0>(amount);
+    }
 
+    CtrSizeT skipBw(CtrSizeT amount) {
+    	return self().template _skipBw<0>(amount);
+    }
 
-    bool hasNextKey();
-    bool hasPrevKey();
-
-    BigInt skipFw(BigInt amount);
-    BigInt skipBw(BigInt amount);
-    BigInt skip(BigInt amount);
+    CtrSizeT skip(CtrSizeT amount) {
+    	return self().template _skip<0>(amount);
+    }
 
     BigInt skipStreamFw(Int stream, BigInt distance) {
         return skipFw(distance);
@@ -129,48 +130,31 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
     	self.ctr().template removeStreamEntry<0>(self);
     }
 
-    template <typename WTypes, typename LeafPath>
-    using GTFWWalker = memoria::bt1::FindGTForwardWalker2<memoria::bt1::WalkerTypes<WTypes, LeafPath>>;
-
-    template <typename WTypes, typename LeafPath>
-    using GEFWWalker = memoria::bt1::FindGEForwardWalker2<memoria::bt1::WalkerTypes<WTypes, LeafPath>>;
-
-    template <typename WTypes, typename LeafPath>
-    using GTBWWalker = memoria::bt1::FindGTBackwardWalker2<memoria::bt1::WalkerTypes<WTypes, LeafPath>>;
-
-    template <typename WTypes, typename LeafPath>
-    using GEBWWalker = memoria::bt1::FindGEBackwardWalker2<memoria::bt1::WalkerTypes<WTypes, LeafPath>>;
 
 
-    void findFwGT(Int index, BigInt key)
+    auto findFwGT(Int index, BigInt key) ->
+    ItrFindFwGTRtnType<Base, IntList<0>, Int, BigInt>
     {
-    	auto& self = this->self();
-    	self.template _findFw2<GTFWWalker>(index, key);
+    	return self().template _findFwGT<IntList<0>>(index, key);
     }
 
-    void findFwGE(Int index, BigInt key)
+    auto findFwGE(Int index, BigInt key) ->
+    ItrFindFwGERtnType<Base, IntList<0>, Int, BigInt>
     {
-    	auto& self = this->self();
-    	self.template _findFw2<GEFWWalker>(index, key);
+    	return self().template _findFwGE<IntList<0>>(index, key);
     }
 
-    void findBwGT(Int index, BigInt key)
+    auto findBwGT(Int index, BigInt key) ->
+    ItrFindBwGTRtnType<Base, IntList<0>, Int, BigInt>
     {
-    	auto& self = this->self();
-    	self.template _findBw2<GTBWWalker>(index, key);
+    	return self().template _findBwGT<IntList<0>>(index, key);
     }
 
-    void findBwGE(Int index, BigInt key)
+    auto findBwGE(Int index, BigInt key) ->
+    ItrFindBwGERtnType<Base, IntList<0>, Int, BigInt>
     {
-    	auto& self = this->self();
-    	self.template _findBw2<GEBWWalker>(index, key);
+    	return self().template _findBwGE<IntList<0>>(index, key);
     }
-
-    template <typename T, typename P>
-    using FWLeafWalker = memoria::bt1::ForwardLeafWalker<T>;
-
-    template <typename T, typename P>
-    using BWLeafWalker = memoria::bt1::BackwardLeafWalker<T>;
 
 MEMORIA_ITERATOR_PART_END
 
@@ -178,187 +162,6 @@ MEMORIA_ITERATOR_PART_END
 #define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
 
 
-//FIXME: Should nextLeaf/PreveLeaf set to End/Start if move fails?
-M_PARAMS
-bool M_TYPE::nextLeaf()
-{
-    auto& self = this->self();
-
-    auto id = self.leaf()->id();
-
-    self.template _findFw2<FWLeafWalker>(0, 0);
-
-    return id != self.leaf()->id();
-}
-
-
-
-
-M_PARAMS
-bool M_TYPE::prevLeaf()
-{
-    auto& self = this->self();
-
-    auto id = self.leaf()->id();
-
-    self.template _findBw2<BWLeafWalker>(0, 0);
-
-    return id != self.leaf()->id();
-}
-
-
-
-M_PARAMS
-bool M_TYPE::nextKey()
-{
-    auto& self = this->self();
-    auto& ctr  = self.ctr();
-
-    if (!self.isEnd())
-    {
-        if (self.idx() < ctr.getNodeSize(self.leaf(), 0) - 1)
-        {
-            self.cache().Prepare();
-
-            self.idx()++;
-
-            self.keyNum()++;
-
-            self.cache().nextKey(false);
-
-            return true;
-        }
-        else {
-            self.cache().Prepare();
-
-            bool has_next_leaf = self.nextLeaf();
-            if (has_next_leaf)
-            {
-                self.idx() = 0;
-
-                self.cache().nextKey(false);
-            }
-            else {
-                self.idx() = ctr.getNodeSize(self.leaf(), 0);
-
-                self.cache().nextKey(true);
-            }
-
-            self.keyNum()++;
-
-            return has_next_leaf;
-        }
-    }
-    else {
-        return false;
-    }
-}
-
-M_PARAMS
-bool M_TYPE::hasNextKey()
-{
-    auto& self = this->self();
-    auto& ctr  = self.model();
-
-    if (!self.isEnd())
-    {
-        if (self.idx() < ctr.getNodeSize(self.leaf(), 0) - 1)
-        {
-            return true;
-        }
-        else {
-            return self.hasNextLeaf();
-        }
-    }
-    else {
-        return false;
-    }
-}
-
-
-
-M_PARAMS
-bool M_TYPE::prevKey()
-{
-    auto& self = this->self();
-    auto& ctr  = self.model();
-
-    if (self.key_idx() > 0)
-    {
-        self.idx()--;
-        self.keyNum()--;
-
-        self.cache().Prepare();
-        self.cache().prevKey(false);
-
-        return true;
-    }
-    else {
-        bool has_prev_leaf = self.prevLeaf();
-
-        if (has_prev_leaf)
-        {
-            self.idx() = ctr.getNodeSize(self.leaf(), 0) - 1;
-            self.keyNum()--;
-
-            self.cache().Prepare();
-            self.cache().prevKey(false);
-        }
-        else {
-            self.idx() = -1;
-
-            self.cache().Prepare();
-            self.cache().prevKey(true);
-        }
-
-        return has_prev_leaf;
-    }
-}
-
-
-M_PARAMS
-bool M_TYPE::hasPrevKey()
-{
-    auto& self = this->self();
-
-    if (self.key_idx() > 0)
-    {
-        return true;
-    }
-    else {
-        return self.hasPrevLeaf();
-    }
-}
-
-
-M_PARAMS
-BigInt M_TYPE::skipFw(BigInt amount)
-{
-    return self().template _findFw2<Types::template SkipForwardWalker>(0, amount);
-}
-
-M_PARAMS
-BigInt M_TYPE::skipBw(BigInt amount)
-{
-    return self().template _findBw2<Types::template SkipBackwardWalker>(0, amount);
-}
-
-M_PARAMS
-BigInt M_TYPE::skip(BigInt amount)
-{
-    auto& self = this->self();
-
-    if (amount > 0)
-    {
-        return self.skipFw(amount);
-    }
-    else if (amount < 0) {
-        return self.skipBw(-amount);
-    }
-    else {
-        return 0;
-    }
-}
 
 
 }

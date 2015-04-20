@@ -595,7 +595,7 @@ template <
 class FindForwardWalker2: public FindForwardWalkerBase2<Types,FindForwardWalker2<Types>> {
 
     using Base  = FindForwardWalkerBase2<Types,FindForwardWalker2<Types>>;
-
+protected:
     using Key   = typename Base::Key;
 
 public:
@@ -608,9 +608,9 @@ public:
 template <
     typename Types
 >
-class FindGTForwardWalker2: public FindForwardWalkerBase2<Types, FindGTForwardWalker2<Types>> {
+class FindGTForwardWalker2: public FindForwardWalker2<Types> {
 
-    using Base  = FindForwardWalkerBase2<Types, FindGTForwardWalker2<Types>>;
+    using Base  = FindForwardWalker2<Types>;
 
     using Key   = typename Base::Key;
 

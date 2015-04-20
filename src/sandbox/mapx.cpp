@@ -24,30 +24,31 @@ int main() {
 		SmallInMemAllocator alloc;
 
 		using RootT = SCtrTF<Root>::Type;
-		using CtrT  = SCtrTF<MapX<BigInt, BigInt>>::Type;
+		using MapT  = SCtrTF<MapX<BigInt, BigInt>>::Type;
 		using SecT  = SCtrTF<Sequence<1>>::Type;
 		using VecT  = SCtrTF<Vector<Int>>::Type;
 
-		CtrT::initMetadata();
+		MapT::initMetadata();
 		VecT::initMetadata();
 		SecT::initMetadata();
 		RootT::initMetadata();
 
-		VecT map(&alloc);
+		MapT map(&alloc);
 
 		auto iter = map.Begin();
 
-		int size = 10000000;
+		int size = 1000;
 
-		vector<Int> v(size);
+		for (int c = 0; c < size; c++) {
+			iter.insert(1, c);
+		}
 
-		iter.insert(v);
+		map.findK(0);
 
-		DebugCounter = 2;
-
-		iter.skip(-size+975);
-
-		iter.dump();
+		iter.findFwGT(0, 100);
+		iter.findFwGE(0, 100);
+		iter.findBwGT(0, 100);
+		iter.findBwGE(0, 100);
 
 		alloc.commit();
 

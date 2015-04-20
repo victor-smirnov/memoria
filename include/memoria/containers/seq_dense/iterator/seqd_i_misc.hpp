@@ -245,7 +245,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
         self.idx()  = 0;
     }
 
-    Int leaf_capacity()
+    Int leaf_capacity() const
     {
         auto& self  = this->self();
         auto& ctr   = self.ctr();
@@ -266,7 +266,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
     	walker.finish(self, self.idx());
     }
 
-    void check(const char* source) const
+    void check(const char* source = nullptr) const
     {
     	auto& self = this->self();
 
@@ -276,7 +276,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
 
     	if (self.cache() != tmp.cache())
     	{
-    		throw TestException(source, SBuf()<<"Iterator cache mismatch: having: "<<self.cache()<<", should be: "<<tmp.cache());
+    		throw TestException(
+    				source != nullptr ? source : MA_SRC,
+    				SBuf()<<"Iterator cache mismatch: having: "<<self.cache()<<", should be: "<<tmp.cache()
+    		);
     	}
     }
 

@@ -46,6 +46,36 @@ public:
     template <typename Walker>
     Iterator find2(Walker&& walker);
 
+
+    template <typename LeafPath>
+    Iterator _find2GT(Int index, BigInt key)
+    {
+    	typename Types::template FindGTForwardWalker<Types, LeafPath> walker(index, key);
+    	return self().find2(walker);
+    }
+
+    template <typename LeafPath>
+    Iterator _find2GE(Int index, BigInt key)
+    {
+    	typename Types::template FindGEForwardWalker<Types, LeafPath> walker(index, key);
+    	return self().find2(walker);
+    }
+
+    template <typename LeafPath>
+    Iterator _rank(Int index, BigInt pos)
+    {
+    	typename Types::template RankForwardWalker<Types, LeafPath> walker(index, pos);
+    	return self().find2(walker);
+    }
+
+    template <typename LeafPath>
+    Iterator _select(Int index, BigInt rank)
+    {
+    	typename Types::template SelectForwardWalker<Types, LeafPath> walker(index, rank);
+    	return self().find2(walker);
+    }
+
+
     template <typename Walker>
     Int findFw(NodeBaseG& node, Int stream, Int idx, Walker&& walker);
 
@@ -100,10 +130,6 @@ public:
         		LeafDispatcher::dispatch(node, std::forward<Walker>(walker), cmd, start, end);
     		}
     		else {
-    			if (DebugCounter) {
-    				int a = 0; a++;
-    			}
-
     			NonLeafDispatcher::dispatch(node, std::forward<Walker>(walker), WalkCmd::PREFIXES, start, end);
     		}
     	}

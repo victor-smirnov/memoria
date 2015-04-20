@@ -29,20 +29,131 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorFindName)
     typedef typename Container::Accumulator                                         Accumulator;
     typedef typename Container::Iterator                                            Iterator;
 
+    using CtrSizeT = typename Container::Types::CtrSizeT;
+
     template <template <typename CtrTypes, typename LeafPath> class Walker>
     BigInt _findFw(Int index, BigInt key);
 
     template <template <typename CtrTypes, typename LeafPath> class Walker>
     BigInt _findBw(Int index, BigInt key);
 
-    template <template <typename CtrTypes, typename LeafPath> class Walker>
-    auto _findFw2(Int index, BigInt key) ->
-    memoria::bt1::WalkerResultFnType<Walker<Types, IntList<0>>>;
 
-    template <template <typename CtrTypes, typename LeafPath> class Walker>
-    auto _findBw2(Int index, BigInt key) ->
-    memoria::bt1::WalkerResultFnType<Walker<Types, IntList<0>>>;
+    template <typename Walker>
+    auto _findFw2(Walker&& walker) ->
+    memoria::bt1::WalkerResultFnType<Walker>
+    {
+    	auto& self = this->self();
 
+    	walker.prepare(self);
+
+    	typename Container::NodeChain node_chain(self.leaf(), self.key_idx());
+
+    	auto result = self.ctr().findFw2(node_chain, walker);
+
+    	self.leaf() = result.node;
+    	self.idx()  = result.idx;
+
+    	walker.finish(self, result.idx);
+
+    	return walker.result();
+    }
+
+    template <typename Walker>
+    auto _findBw2(Walker&& walker) ->
+    memoria::bt1::WalkerResultFnType<Walker>
+    {
+        auto& self = this->self();
+
+        walker.prepare(self);
+
+        typename Container::NodeChain node_chain(self.leaf(), self.key_idx());
+
+        auto result = self.ctr().findBw2(node_chain, walker);
+
+        self.leaf() = result.node;
+        self.idx()  = result.idx;
+
+        walker.finish(self, result.idx);
+
+        return walker.result();
+    }
+
+
+
+    template <typename LeafPath>
+    memoria::bt1::WalkerResultFnType<typename Types::template FindGTForwardWalker<Types, LeafPath>>
+    _findFwGT(Int index, BigInt key)
+    {
+    	MEMORIA_ASSERT(index, >=, 0);
+    	MEMORIA_ASSERT(key, >=, 0);
+
+    	typename Types::template FindGTForwardWalker<Types, LeafPath> walker(index, key);
+
+    	return self()._findFw2(walker);
+    }
+
+    template <typename LeafPath>
+    memoria::bt1::WalkerResultFnType<typename Types::template FindGEBackwardWalker<Types, LeafPath>>
+    _findFwGE(Int index, BigInt key)
+    {
+    	MEMORIA_ASSERT(index, >=, 0);
+    	MEMORIA_ASSERT(key, >=, 0);
+
+    	typename Types::template FindGEForwardWalker<Types, LeafPath> walker(index, key);
+
+    	return self()._findFw2(walker);
+    }
+
+
+    template <typename LeafPath>
+    memoria::bt1::WalkerResultFnType<typename Types::template FindGTBackwardWalker<Types, LeafPath>>
+    _findBwGT(Int index, BigInt key)
+    {
+    	MEMORIA_ASSERT(index, >=, 0);
+    	MEMORIA_ASSERT(key, >=, 0);
+
+    	typename Types::template FindGTBackwardWalker<Types, LeafPath> walker(index, key);
+
+    	return self()._findBw2(walker);
+    }
+
+    template <typename LeafPath>
+    memoria::bt1::WalkerResultFnType<typename Types::template FindGEBackwardWalker<Types, LeafPath>>
+    _findBwGE(Int index, BigInt key)
+    {
+    	MEMORIA_ASSERT(index, >=, 0);
+    	MEMORIA_ASSERT(key, >=, 0);
+
+    	typename Types::template FindGEBackwardWalker<Types, LeafPath> walker(index, key);
+
+    	return self()._findBw2(walker);
+    }
+
+
+
+    template <typename LeafPath>
+    memoria::bt1::WalkerResultFnType<typename Types::template FindGTForwardWalker<Types, LeafPath>>
+    _findGT(Int index, BigInt key)
+    {
+    	if (key >= 0) {
+    		return self().template _findFwGT<LeafPath>(index, key);
+    	}
+    	else {
+    		return self().template _findBwGT<LeafPath>(index, -key);
+    	}
+    }
+
+    template <typename LeafPath>
+    memoria::bt1::WalkerResultFnType<typename Types::template FindGEForwardWalker<Types, LeafPath>>
+    _findGE(Int index, BigInt key)
+    {
+    	if (key >= 0) {
+    		return self().template _findFwGE<LeafPath>(index, key);
+    	}
+    	else {
+    		return self().template _findBwGE<LeafPath>(index, -key);
+    	}
+    }
 
 MEMORIA_ITERATOR_PART_END
 
@@ -84,51 +195,7 @@ BigInt M_TYPE::_findBw(Int index, BigInt key)
 
 
 
-M_PARAMS
-template <template <typename CtrTypes, typename LeafPath> class Walker>
-auto M_TYPE::_findFw2(Int index, BigInt key) ->
-memoria::bt1::WalkerResultFnType<Walker<Types, IntList<0>>>
-{
-    auto& self = this->self();
 
-    Walker<Types, IntList<0>> walker(0, index, key);
-
-    walker.prepare(self);
-
-    typename Container::NodeChain node_chain(self.leaf(), self.key_idx());
-
-    auto result = self.ctr().findFw2(node_chain, walker);
-
-    self.leaf() = result.node;
-    self.idx()  = result.idx;
-
-    walker.finish(self, result.idx);
-
-    return walker.result();
-}
-
-M_PARAMS
-template <template <typename CtrTypes, typename LeafPath> class Walker>
-auto M_TYPE::_findBw2(Int index, BigInt key) ->
-memoria::bt1::WalkerResultFnType<Walker<Types, IntList<0>>>
-{
-    auto& self = this->self();
-
-    Walker<Types, IntList<0>> walker(0, index, key);
-
-    walker.prepare(self);
-
-    typename Container::NodeChain node_chain(self.leaf(), self.key_idx());
-
-    auto result = self.ctr().findBw2(node_chain, walker);
-
-    self.leaf() = result.node;
-    self.idx()  = result.idx;
-
-    walker.finish(self, result.idx);
-
-    return walker.result();
-}
 
 #undef M_PARAMS
 #undef M_TYPE

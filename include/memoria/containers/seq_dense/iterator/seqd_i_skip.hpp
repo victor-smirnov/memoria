@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011-2013.
+// Copyright Victor Smirnov 2011-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -36,8 +36,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterSkipName)
     typedef typename Container::LeafDispatcher                                  LeafDispatcher;
     typedef typename Container::Position                                        Position;
 
-    bool nextLeaf();
-    bool prevLeaf();
+    using CtrSizeT = typename Container::Types::CtrSizeT;
 
     bool operator++() {
         return self().skipFw(1);
@@ -78,9 +77,17 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterSkipName)
         return self().leafSize(0);
     }
 
-    BigInt skipFw(BigInt amount);
-    BigInt skipBw(BigInt amount);
-    BigInt skip(BigInt amount);
+    ItrSkipFwRtnType<Base, 0, CtrSizeT> skipFw(CtrSizeT amount) {
+    	return self().template _skipFw<0>(amount);
+    }
+
+    ItrSkipBwRtnType<Base, 0, CtrSizeT>  skipBw(CtrSizeT amount) {
+    	return self().template _skipBw<0>(amount);
+    }
+
+    ItrSkipRtnType<Base, 0, CtrSizeT>  skip(CtrSizeT amount) {
+    	return self().template _skip<0>(amount);
+    }
 
 
     struct PosFn {
@@ -108,84 +115,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterSkipName)
         return fn.prefix_ + self.idx();
     }
 
-//  BigInt cpos() const
-//  {
-//      auto& self = this->self();
-//      return self.cache().pos();
-//  }
-
-    template <typename TTypes, typename LeafPath>
-    using NextLeafWalker        = memoria::bt1::ForwardLeafWalker<TTypes>;
-
-    template <typename TTypes, typename LeafPath>
-    using PrevLeafWalker        = memoria::bt1::BackwardLeafWalker<TTypes>;
-
-
 MEMORIA_ITERATOR_PART_END
 
 
 #define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::seq_dense::IterSkipName)
 #define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
-
-M_PARAMS
-bool M_TYPE::nextLeaf()
-{
-    auto& self = this->self();
-
-    auto id = self.leaf()->id();
-
-    self.template _findFw2<NextLeafWalker>(0, 0);
-
-    return id != self.leaf()->id();
-}
-
-
-
-
-M_PARAMS
-bool M_TYPE::prevLeaf()
-{
-    auto& self = this->self();
-
-    auto id = self.leaf()->id();
-
-    self.template _findBw2<PrevLeafWalker>(0, 0);
-
-    return id != self.leaf()->id();
-}
-
-
-
-M_PARAMS
-BigInt M_TYPE::skip(BigInt amount)
-{
-    auto& self = this->self();
-
-    if (amount > 0)
-    {
-        return self.skipFw(amount);
-    }
-    else if (amount < 0) {
-        return self.skipBw(-amount);
-    }
-    else {
-        return 0;
-    }
-}
-
-
-M_PARAMS
-BigInt M_TYPE::skipFw(BigInt amount)
-{
-    return self().template _findFw2<Types::template SkipForwardWalker>(0, amount);
-}
-
-M_PARAMS
-BigInt M_TYPE::skipBw(BigInt amount)
-{
-    return self().template _findBw2<Types::template SkipBackwardWalker>(0, amount);
-}
-
 
 
 

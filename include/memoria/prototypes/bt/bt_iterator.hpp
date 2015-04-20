@@ -14,6 +14,10 @@
 #include <memoria/prototypes/bt/iterator/bt_i_api.hpp>
 #include <memoria/prototypes/bt/iterator/bt_i_base.hpp>
 #include <memoria/prototypes/bt/iterator/bt_i_find.hpp>
+#include <memoria/prototypes/bt/iterator/bt_i_select.hpp>
+#include <memoria/prototypes/bt/iterator/bt_i_rank.hpp>
+#include <memoria/prototypes/bt/iterator/bt_i_skip.hpp>
+#include <memoria/prototypes/bt/iterator/bt_i_leaf.hpp>
 #include <memoria/prototypes/bt/bt_names.hpp>
 
 namespace memoria    {

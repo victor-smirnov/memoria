@@ -1,12 +1,12 @@
 
-// Copyright Victor Smirnov 2013-2014.
+// Copyright Victor Smirnov 2013-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_CONTAINERS_vctr_FACTORY_HPP
-#define _MEMORIA_CONTAINERS_vctr_FACTORY_HPP
+#ifndef _MEMORIA_CONTAINERS_VCTR_FACTORY_HPP
+#define _MEMORIA_CONTAINERS_VCTR_FACTORY_HPP
 
 #include <memoria/prototypes/bt/bt_factory.hpp>
 
@@ -37,13 +37,6 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
     typedef BTTypes<Profile, memoria::BT>                                       Base;
 
     typedef Value_                                                              Value;
-
-
-    template <typename Iterator, typename Container>
-    struct IteratorCacheFactory {
-        typedef ::memoria::bt::BTree2IteratorPrefixCache<Iterator, Container>   Type;
-    };
-
 
     struct StreamTF {
         typedef BigInt                                              Key;
@@ -88,28 +81,6 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
     typedef IDataTarget<Value>                                                  DataTarget;
 
     typedef std::tuple<DataSource*>                                             Source;
-
-
-
-    template <typename Types, typename LeafPath>
-    using FindGTWalker          = memoria::bt1::SkipForwardWalker2<WalkerTypes<Types, LeafPath>>;
-
-    template <typename Types, typename LeafPath>
-    using FindGEWalker          = memoria::bt1::FindGEForwardWalker2<Types>;
-
-
-    template <typename Types, typename LeafPath>
-    using SkipForwardWalker     = memoria::bt1::SkipForwardWalker2<WalkerTypes<Types, LeafPath>>;
-
-    template <typename Types, typename LeafPath>
-    using SkipBackwardWalker    = memoria::bt1::SkipBackwardWalker2<WalkerTypes<Types, LeafPath>>;
-
-    template <typename Types, typename LeafPath>
-    using NextLeafWalker        = memoria::bt1::ForwardLeafWalker<Types>;
-
-    template <typename Types, typename LeafPath>
-    using PrevLeafWalker        = memoria::bt1::BackwardLeafWalker<Types>;
-
 
 
     template <typename Types>

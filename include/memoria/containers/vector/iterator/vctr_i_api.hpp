@@ -18,6 +18,8 @@
 #include <memoria/core/container/iterator.hpp>
 #include <memoria/core/container/macros.hpp>
 
+#include <memoria/prototypes/bt/bt_macros.hpp>
+
 #include <iostream>
 
 namespace memoria    {
@@ -39,11 +41,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
     typedef typename Container::LeafDispatcher                                  LeafDispatcher;
     typedef typename Container::Position                                        Position;
 
-    typedef typename Container::Types::CtrSizeT                                 CtrSizeT;
-
-    bool nextLeaf();
-    bool prevLeaf();
-
+    using CtrSizeT = typename Container::Types::CtrSizeT;
 
 
     bool operator++() {
@@ -79,24 +77,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
     bool isBof() const {
         return self().idx() < 0;
     }
-
-//  bool nextLeaf()
-//  {
-//      auto& self      = this->self();
-//      auto& ctr       = self.ctr();
-//
-//      auto next = ctr.getNextNodeP(self.leaf());
-//
-//      if (next)
-//      {
-//          self.leaf() = next;
-//          self.idx()  = 0;
-//          return true;
-//      }
-//      else {
-//          return false;
-//      }
-//  }
 
     void insert(std::vector<Value>& data)
     {
@@ -188,11 +168,19 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
         return data;
     }
 
-    CtrSizeT skipFw(CtrSizeT amount);
-    CtrSizeT skipBw(CtrSizeT amount);
-    CtrSizeT skip(CtrSizeT amount);
+    ItrSkipFwRtnType<Base, 0, CtrSizeT> skipFw(CtrSizeT amount) {
+    	return self().template _skipFw<0>(amount);
+    }
 
-    void seek(CtrSizeT pos)
+    ItrSkipBwRtnType<Base, 0, CtrSizeT> skipBw(CtrSizeT amount) {
+    	return self().template _skipBw<0>(amount);
+    }
+
+    ItrSkipRtnType<Base, 0, CtrSizeT> skip(CtrSizeT amount) {
+    	return self().template _skip<0>(amount);
+    }
+
+    ItrSkipRtnType<Base, 0, CtrSizeT> seek(CtrSizeT pos)
     {
         CtrSizeT current_pos = self().pos();
         self().skip(pos - current_pos);
@@ -263,78 +251,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
     	walker.finish(self, self.idx());
     }
 
-
-    template <typename TTypes, typename LeafPath>
-    using NextLeafWalker        = memoria::bt1::ForwardLeafWalker<TTypes>;
-
-    template <typename TTypes, typename LeafPath>
-    using PrevLeafWalker        = memoria::bt1::BackwardLeafWalker<TTypes>;
-
 MEMORIA_ITERATOR_PART_END
 
 #define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::mvector::ItrApiName)
 #define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
-
-
-M_PARAMS
-bool M_TYPE::nextLeaf()
-{
-    auto& self = this->self();
-
-    auto id = self.leaf()->id();
-
-    self.template _findFw2<NextLeafWalker>(0, 0);
-
-    return id != self.leaf()->id();
-}
-
-
-
-
-M_PARAMS
-bool M_TYPE::prevLeaf()
-{
-    auto& self = this->self();
-
-    auto id = self.leaf()->id();
-
-    self.template _findBw2<PrevLeafWalker>(0, 0);
-
-    return id != self.leaf()->id();
-}
-
-
-
-M_PARAMS
-typename M_TYPE::CtrSizeT M_TYPE::skip(CtrSizeT amount)
-{
-    auto& self = this->self();
-
-    if (amount > 0)
-    {
-        return self.skipFw(amount);
-    }
-    else if (amount < 0) {
-        return self.skipBw(-amount);
-    }
-    else {
-        return 0;
-    }
-}
-
-
-M_PARAMS
-typename M_TYPE::CtrSizeT M_TYPE::skipFw(CtrSizeT amount)
-{
-    return self().template _findFw2<Types::template SkipForwardWalker>(0, amount);
-}
-
-M_PARAMS
-typename M_TYPE::CtrSizeT M_TYPE::skipBw(CtrSizeT amount)
-{
-    return self().template _findBw2<Types::template SkipBackwardWalker>(0, amount);
-}
-
 
 
 

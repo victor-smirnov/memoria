@@ -36,6 +36,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterRankName)
     typedef typename Container::LeafDispatcher                                  LeafDispatcher;
     typedef typename Container::Position                                        Position;
 
+    using CtrSizeT = typename Container::Types::CtrSizeT;
+
     struct RankFn {
         BigInt rank_ = 0;
         Int symbol_;
@@ -70,10 +72,17 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterRankName)
 
     BigInt local_rank(Int idx, Int symbol) const;
 
-    BigInt rank(BigInt delta, Int symbol);
-    BigInt rankFw(BigInt delta, Int symbol);
+    ItrRankRtnType<Base, IntList<0>, Int, CtrSizeT> rank(BigInt delta, Int symbol) {
+    	return self().template _rank<IntList<0>>(symbol, delta);
+    }
 
-    BigInt rankBw(BigInt delta, Int symbol);
+    ItrRankFwRtnType<Base, IntList<0>, Int, CtrSizeT> rankFw(BigInt delta, Int symbol) {
+    	return self().template _rankFw<IntList<0>>(symbol, delta);
+    }
+
+    ItrRankBwRtnType<Base, IntList<0>, Int, CtrSizeT> rankBw(BigInt delta, Int symbol) {
+    	return self().template _rankBw<IntList<0>>(symbol, delta);
+    }
 
 MEMORIA_ITERATOR_PART_END
 
@@ -121,43 +130,48 @@ BigInt M_TYPE::ranki(Int symbol) const
     return fn.rank_;
 }
 
-M_PARAMS
-BigInt M_TYPE::rank(BigInt delta, Int symbol)
-{
-    auto& self  = this->self();
-
-    if (delta > 0)
-    {
-        return self.rankFw(delta, symbol);
-    }
-    else if (delta < 0)
-    {
-        return self.rankBw(-delta, symbol);
-    }
-    else {
-        return 0;
-    }
-}
-
-M_PARAMS
-BigInt M_TYPE::rankFw(BigInt delta, Int symbol)
-{
-    auto& self  = this->self();
-
-    MEMORIA_ASSERT(delta, >=, 0);
-
-    return self.template _findFw2<Types::template RankFWWalker>(symbol, delta);
-}
-
-M_PARAMS
-BigInt M_TYPE::rankBw(BigInt delta, Int symbol)
-{
-    auto& self  = this->self();
-
-    MEMORIA_ASSERT(delta, >=, 0);
-
-    return self.template _findBw2<Types::template RankBWWalker>(symbol, delta);
-}
+//M_PARAMS
+//BigInt M_TYPE::rank(BigInt delta, Int symbol)
+//{
+//    auto& self  = this->self();
+//
+//    if (delta > 0)
+//    {
+//        return self.rankFw(delta, symbol);
+//    }
+//    else if (delta < 0)
+//    {
+//        return self.rankBw(-delta, symbol);
+//    }
+//    else {
+//        return 0;
+//    }
+//}
+//
+//M_PARAMS
+//BigInt M_TYPE::rankFw(BigInt delta, Int symbol)
+//{
+//    auto& self  = this->self();
+//
+//    MEMORIA_ASSERT(delta, >=, 0);
+//
+//    typename Types::template RankFWWalker<Types, IntList<0>> walker(symbol, delta);
+//
+//
+//    return self._findFw2(walker);
+//}
+//
+//M_PARAMS
+//BigInt M_TYPE::rankBw(BigInt delta, Int symbol)
+//{
+//    auto& self  = this->self();
+//
+//    MEMORIA_ASSERT(delta, >=, 0);
+//
+//    typename Types::template RankBWWalker<Types, IntList<0>> walker(symbol, delta);
+//
+//    return self.template _findBw2(walker);
+//}
 
 
 

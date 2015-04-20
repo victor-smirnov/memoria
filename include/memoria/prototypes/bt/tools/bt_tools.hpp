@@ -26,7 +26,49 @@ namespace memoria   {
 namespace bt        {
 
 
+template <typename T, typename LeafPath, typename... Args>
+using ItrFindFwGTRtnType = decltype(std::declval<T>().template _findFwGT<LeafPath>(std::declval<Args>()...));
 
+template <typename T, typename LeafPath, typename... Args>
+using ItrFindFwGERtnType = decltype(std::declval<T>().template _findFwGE<LeafPath>(std::declval<Args>()...));
+
+template <typename T, typename LeafPath, typename... Args>
+using ItrFindBwGTRtnType = decltype(std::declval<T>().template _findBwGT<LeafPath>(std::declval<Args>()...));
+
+template <typename T, typename LeafPath, typename... Args>
+using ItrFindBwGERtnType = decltype(std::declval<T>().template _findBwGE<LeafPath>(std::declval<Args>()...));
+
+
+
+template <typename T, Int Stream, typename... Args>
+using ItrSkipFwRtnType = decltype(std::declval<T>().template _skipFw<Stream>(std::declval<Args>()...));
+
+template <typename T, Int Stream, typename... Args>
+using ItrSkipBwRtnType = decltype(std::declval<T>().template _skipBw<Stream>(std::declval<Args>()...));
+
+template <typename T, Int Stream, typename... Args>
+using ItrSkipRtnType = decltype(std::declval<T>().template _skip<Stream>(std::declval<Args>()...));
+
+
+
+template <typename T, typename LeafPath, typename... Args>
+using ItrSelectFwRtnType = decltype(std::declval<T>().template _selectFw<LeafPath>(std::declval<Args>()...));
+
+template <typename T, typename LeafPath, typename... Args>
+using ItrSelectBwRtnType = decltype(std::declval<T>().template _selectBw<LeafPath>(std::declval<Args>()...));
+
+template <typename T, typename LeafPath, typename... Args>
+using ItrSelectRtnType = decltype(std::declval<T>().template _select<LeafPath>(std::declval<Args>()...));
+
+
+template <typename T, typename LeafPath, typename... Args>
+using ItrRankFwRtnType = decltype(std::declval<T>().template _rankFw<LeafPath>(std::declval<Args>()...));
+
+template <typename T, typename LeafPath, typename... Args>
+using ItrRankBwRtnType = decltype(std::declval<T>().template _rankBw<LeafPath>(std::declval<Args>()...));
+
+template <typename T, typename LeafPath, typename... Args>
+using ItrRankRtnType = decltype(std::declval<T>().template _rank<LeafPath>(std::declval<Args>()...));
 
 
 

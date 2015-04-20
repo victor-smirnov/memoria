@@ -12,6 +12,7 @@
 #include <memoria/core/types/types.hpp>
 
 #include <memoria/prototypes/bt/bt_names.hpp>
+#include <memoria/prototypes/bt/bt_macros.hpp>
 #include <memoria/core/container/macros.hpp>
 
 

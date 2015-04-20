@@ -157,6 +157,12 @@ public:
         symbol_(symbol)
     {}
 
+    RankForwardWalker2(Int symbol, Key target):
+        Base(target),
+        symbol_(symbol)
+    {}
+
+
     CtrSizeT rank() const {
     	return rank_;
     }
@@ -203,6 +209,11 @@ class RankBackwardWalker2: public SkipBackwardWalkerBase2<Types, RankBackwardWal
 public:
 
     RankBackwardWalker2(Int, Int symbol, Key target):
+        Base(target),
+        symbol_(symbol)
+    {}
+
+    RankBackwardWalker2(Int symbol, Key target):
         Base(target),
         symbol_(symbol)
     {}

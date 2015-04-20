@@ -132,11 +132,11 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >: public BTTypes<Profile, me
     using SkipBackwardWalker    = ::memoria::bt1::SkipBackwardWalker2<WalkerTypes<Types, LeafPath>>;
 
 
-    template <typename Types, typename LeafPath>
-    using NextLeafWalker        = ::memoria::bt1::ForwardLeafWalker<WalkerTypes<Types, LeafPath>>;
-
-    template <typename Types, typename LeafPath>
-    using PrevLeafWalker        = ::memoria::bt1::BackwardLeafWalker<WalkerTypes<Types, LeafPath>>;
+//    template <typename Types, typename LeafPath>
+//    using NextLeafWalker        = ::memoria::bt1::ForwardLeafWalker<WalkerTypes<Types, LeafPath>>;
+//
+//    template <typename Types, typename LeafPath>
+//    using PrevLeafWalker        = ::memoria::bt1::BackwardLeafWalker<WalkerTypes<Types, LeafPath>>;
 
 
     template <typename Types>

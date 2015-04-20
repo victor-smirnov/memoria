@@ -250,7 +250,7 @@ class SelectForwardWalker2: public SelectForwardWalkerBase2<Types,SelectForwardW
     using Key   = typename Base::Key;
 
 public:
-    SelectForwardWalker2(Int, Int symbol, Key target):
+    SelectForwardWalker2(Int symbol, Key target):
         Base(symbol, target)
     {}
 
@@ -324,7 +324,7 @@ class SelectBackwardWalker2: public SelectBackwardWalkerBase2<Types, SelectBackw
 
 public:
 
-    SelectBackwardWalker2(Int, Int symbol, Key target):
+    SelectBackwardWalker2(Int symbol, Key target):
         Base(symbol, target)
     {}
 

@@ -80,14 +80,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
     {
         auto& self = this->self();
 
-        if (rank < 1) {
-            int a = 0; a++;
-        }
-
         MEMORIA_ASSERT(rank, >=, 1);
         MEMORIA_ASSERT(symbol, >=, 0);
 
-        typename Types::template SelectFwWalker<Types, IntList<0>> walker(0, symbol, rank);
+        typename Types::template SelectFwWalker<Types, IntList<0>> walker(symbol, rank);
 
         auto iter = self.find2(walker);
 
