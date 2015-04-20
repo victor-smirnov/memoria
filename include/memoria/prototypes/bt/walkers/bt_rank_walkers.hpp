@@ -210,15 +210,18 @@ public:
     template <Int StreamIdx, typename StreamType>
     void postProcessLeafStream(const StreamType* stream, Int start, Int end)
     {
-    	//FIXME: rank ranges
-        rank_ += stream->rank(start, end, symbol_);
+    	if (start > stream->size()) start = stream->size();
+    	if (end < 0) end = 0;
+
+        rank_ += stream->rank(end, start, symbol_);
     }
 
     template <Int StreamIdx, typename StreamType>
     void postProcessBranchStream(const StreamType* stream, Int start, Int end)
     {
-    	//FIXME: rank ranges
-    	rank_ += stream->sum(Base::branchIndex(symbol_), start, end);
+    	if (start > stream->size()) start = stream->size() - 1;
+
+    	rank_ += stream->sum(Base::branchIndex(symbol_), end + 1, start + 1);
     }
 
     CtrSizeT finish(Iterator& iter, Int idx)
