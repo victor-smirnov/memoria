@@ -113,6 +113,12 @@ int main() {
 	catch (BoundsException& ex) {
 		cout<<ex.message()<<endl;
 	}
+
+	using Tuple = std::tuple<int, int, int>;
+
+	cout<<StreamTupleHelper<Tuple>::convert()<<endl;
+
+	cout<<StreamTupleHelper<Tuple>::convertTupleAll(std::make_tuple(1, 5, 6.6))<<endl;
 }
 
 

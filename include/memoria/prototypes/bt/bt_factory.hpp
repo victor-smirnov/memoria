@@ -51,6 +51,7 @@
 #include <memoria/prototypes/bt/container/bt_c_find.hpp>
 #include <memoria/prototypes/bt/container/bt_c_walk.hpp>
 #include <memoria/prototypes/bt/container/bt_c_allocator.hpp>
+#include <memoria/prototypes/bt/container/bt_c_remove.hpp>
 
 #include <memoria/prototypes/bt/bt_iterator.hpp>
 
@@ -77,6 +78,7 @@ struct BTTypes {
             bt::InsertName,
             bt::RemoveToolsName,
             bt::RemoveBatchName,
+            bt::RemoveName,
             bt::FindName,
             bt::ReadName,
             bt::UpdateName,
@@ -187,10 +189,10 @@ struct BTTypes {
     using PrevLeafWalker        = ::memoria::bt1::BackwardLeafWalker<Types>;
 
     template <typename Types, typename LeafPath>
-    using NextLeafMutistreamWalker          = TypeIsNotDefined;
+    using NextLeafMutistreamWalker 	= memoria::bt1::SkipForwardWalker2<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using PrevLeafMutistreamWalker          = TypeIsNotDefined;
+    using PrevLeafMutistreamWalker	= memoria::bt1::SkipBackwardWalker2<WalkerTypes<Types, LeafPath>>;
 
 
 
@@ -242,9 +244,10 @@ public:
     using NodePageBase0G    = PageGuard<NodePageBase0, typename ContainerTypes::Allocator>;
     using StreamDescriptors = typename ContainerTypes::StreamDescriptors;
 
-    using BranchStreamsStructList = typename PackedBranchStructListBuilder<StreamDescriptors>::StructList;
+    using BranchStreamsStructList 	= typename PackedBranchStructListBuilder<StreamDescriptors>::StructList;
 
-    using LeafStreamsStructList = typename PackedLeafStructListBuilder<StreamDescriptors>::StructList;
+    using LeafStreamsStructList 	= typename PackedLeafStructListBuilder<StreamDescriptors>::StructList;
+    using StreamsInputTypeList 		= typename PackedLeafStructListBuilder<StreamDescriptors>::StreamInputList;
 
     using IteratorAccumulator = typename TupleBuilder<
     			Linearize<
@@ -281,6 +284,7 @@ public:
         using LeafStreamsStructList 	= typename MyType::LeafStreamsStructList;
         using BranchStreamsStructList 	= typename MyType::BranchStreamsStructList;
         using IteratorAccumulator 		= typename MyType::IteratorAccumulator;
+        using StreamsInputTypeList		= typename MyType::StreamsInputTypeList;
     };
 
     struct BranchNodeTypes: NodeTypesBase {
@@ -336,10 +340,22 @@ public:
         typedef PageUpdateManager<CtrTypes>                                     PageUpdateMgr;
 
         using LeafStreamsStructList 	= typename MyType::LeafStreamsStructList;
+        using StreamsInputTypeList 		= typename MyType::StreamsInputTypeList;
+
         using BranchStreamsStructList 	= typename MyType::BranchStreamsStructList;
+
         using IteratorAccumulator 		= typename MyType::IteratorAccumulator;
         using LeafRangeOffsetList 		= typename MyType::LeafRangeOffsetList;
         using LeafRangeList				= typename MyType::LeafRangeList;
+
+        template <typename LeafPath>
+        using TargetType = typename PackedStructValueTypeH<LeafStreamsStructList, LeafPath>::Type;
+
+        template <Int Stream>
+        using StreamInputTuple = TypeListToTuple<typename Select<Stream, StreamsInputTypeList>::Result>;
+
+        template <Int Stream>
+        using InputTupleAdapter = StreamTupleHelper<StreamInputTuple<Stream>>;
     };
 
     typedef typename Types::CtrTypes                                            CtrTypes;

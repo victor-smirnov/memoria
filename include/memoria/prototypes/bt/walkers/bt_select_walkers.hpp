@@ -201,12 +201,12 @@ template <
 class SelectForwardWalkerBase2: public FindForwardWalkerBase2<Types, MyType> {
 protected:
     using Base  = FindForwardWalkerBase2<Types, MyType>;
-    using Key   = typename Base::Key;
+    using CtrSizeT   = typename Types::CtrSizeT;
 
 public:
 
-    SelectForwardWalkerBase2(Int symbol, Key target):
-        Base(symbol, target, SearchType::GE)
+    SelectForwardWalkerBase2(Int symbol, CtrSizeT rank):
+        Base(symbol, rank, SearchType::GE)
     {}
 
 
@@ -247,15 +247,15 @@ template <
 class SelectForwardWalker2: public SelectForwardWalkerBase2<Types,SelectForwardWalker2<Types>> {
 
     using Base  = SelectForwardWalkerBase2<Types,SelectForwardWalker2<Types>>;
-    using Key   = typename Base::Key;
+    using CtrSizeT   = typename Base::CtrSizeT;
 
 public:
-    SelectForwardWalker2(Int symbol, Key target):
-        Base(symbol, target)
+    SelectForwardWalker2(Int symbol, CtrSizeT rank):
+        Base(symbol, rank)
     {}
 
     template <Int StreamIdx, typename Seq>
-    SelectResult select(const Seq* seq, Int start, Int symbol, BigInt rank)
+    SelectResult select(const Seq* seq, Int start, Int symbol, CtrSizeT rank)
     {
         return seq->selectFw(start, symbol, rank);
     }
@@ -272,12 +272,12 @@ template <
 class SelectBackwardWalkerBase2: public FindBackwardWalkerBase2<Types, MyType> {
 protected:
     using Base  = FindBackwardWalkerBase2<Types, MyType>;
-    using Key   = typename Base::Key;
+    using CtrSizeT   = typename Types::CtrSizeT;
 
 public:
 
-    SelectBackwardWalkerBase2(Int symbol, Key target):
-        Base(symbol, target, SearchType::GE)
+    SelectBackwardWalkerBase2(Int symbol, CtrSizeT rank):
+        Base(symbol, rank, SearchType::GE)
     {}
 
 
@@ -320,16 +320,16 @@ template <
 class SelectBackwardWalker2: public SelectBackwardWalkerBase2<Types, SelectBackwardWalker2<Types>> {
 
     using Base  = SelectBackwardWalkerBase2<Types, SelectBackwardWalker2<Types>>;
-    using Key   = typename Base::Key;
+    using CtrSizeT   = typename Base::CtrSizeT;
 
 public:
 
-    SelectBackwardWalker2(Int symbol, Key target):
+    SelectBackwardWalker2(Int symbol, CtrSizeT target):
         Base(symbol, target)
     {}
 
     template <Int StreamIdx, typename Seq>
-    SelectResult select(const Seq* seq, Int start, Int symbol, BigInt rank)
+    SelectResult select(const Seq* seq, Int start, Int symbol, CtrSizeT rank)
     {
         return seq->selectBw(start, symbol, rank);
     }

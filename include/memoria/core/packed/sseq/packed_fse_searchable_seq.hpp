@@ -117,6 +117,7 @@ public:
 
     typedef typename Types::template ToolsFn<MyType>                            Tools;
 
+    using InputType = Values;
 
     class Metadata {
         Int size_;

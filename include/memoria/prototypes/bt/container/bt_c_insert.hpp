@@ -51,6 +51,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertName)
     static const Int ActiveStreams                                              = 3;
 
 
+    template <Int Stream>
+    using StreamInputTuple = typename Types::template StreamInputTuple<Stream>;
+
     template <typename EntryData>
     void insertEntry(Iterator& iter, const EntryData& data);
 
@@ -105,6 +108,97 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertName)
         auto& self = this->self();
 
         LeafDispatcher::dispatch(iter.leaf(), AppendToLeafFn(), src);
+    }
+
+
+
+
+
+
+
+
+    //==================================================================================
+
+    template <
+    Int Idx,
+    Int Offset,
+    bool StreamStart
+    >
+    struct InsertIntoStreamHanlder
+    {
+    	template <typename SubstreamType, typename AccumulatorItem, typename Entry>
+    	void stream(SubstreamType* obj, AccumulatorItem& accum, Int idx, const Entry& entry)
+    	{
+    		obj->insert(idx, std::get<Idx>(entry));
+    		obj->template sum<Offset>(idx, accum);
+
+    		if (StreamStart)
+    		{
+    			accum[0] += 1;
+    		}
+    	}
+    };
+
+
+    template <Int Stream>
+    struct InsertIntoStreamFn
+    {
+    	template <typename NTypes, typename Entry>
+    	void treeNode(LeafNode<NTypes>* node, Int idx, Accumulator& accum, const Entry& entry)
+    	{
+    		node->layout(255);
+
+    		node->template processSubstreamsAcc<Stream, InsertIntoStreamHanlder>(accum, idx, entry);
+    	}
+    };
+
+    template <Int Stream>
+    std::tuple<bool, Accumulator> tryInsertStreamEntry(Iterator& iter, const StreamInputTuple<Stream>& entry)
+    {
+    	auto& self = this->self();
+
+    	PageUpdateMgr mgr(self);
+
+    	self.updatePageG(iter.leaf());
+
+    	mgr.add(iter.leaf());
+
+    	try {
+    		Accumulator accum;
+    		LeafDispatcher::dispatch(iter.leaf(), InsertIntoStreamFn<Stream>(), iter.idx(), accum, entry);
+    		return std::make_tuple(true, accum);
+    	}
+    	catch (PackedOOMException& e)
+    	{
+    		mgr.rollback();
+    		return std::make_tuple(false, Accumulator());
+    	}
+    }
+
+    template <Int Stream>
+    void insertStreamEntry(Iterator& iter, const StreamInputTuple<Stream>& entry)
+    {
+    	auto& self      = this->self();
+
+    	auto result = self.template tryInsertStreamEntry<Stream>(iter, entry);
+
+    	if (!std::get<0>(result))
+    	{
+    		iter.split();
+
+    		result = self.template tryInsertStreamEntry<Stream>(iter, entry);
+
+    		if (!std::get<0>(result))
+    		{
+    			throw Exception(MA_SRC, "Second insertion attempt failed");
+    		}
+    	}
+
+    	self.updateParent(iter.leaf(), std::get<1>(result));
+
+    	iter.skipFw(1);
+
+    	self.addTotalKeyCount(Position::create(Stream, 1));
     }
 
 

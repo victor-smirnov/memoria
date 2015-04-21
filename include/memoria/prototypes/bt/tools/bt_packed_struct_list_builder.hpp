@@ -78,6 +78,13 @@ public:
                     TypeList<Tail...>
                 >::StructList
     >;
+
+    using StreamInputList = AppendItemToList<
+    		typename MakeStreamEntryTL<Linearize<LeafType>>::Type,
+    		typename PackedLeafStructListBuilder<
+    			TypeList<Tail...>
+    		>::StructList
+    >;
 };
 
 
@@ -147,7 +154,8 @@ public:
 template <>
 class PackedLeafStructListBuilder<TypeList<>> {
 public:
-    using StructList = TypeList<>;
+    using StructList 		= TypeList<>;
+    using StreamInputList 	= TypeList<>;
 };
 
 

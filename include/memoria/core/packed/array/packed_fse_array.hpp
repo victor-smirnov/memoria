@@ -46,6 +46,7 @@ public:
 
     static const Int Indexes 													= 0;
 
+    using InputType = Value;
 
 private:
 

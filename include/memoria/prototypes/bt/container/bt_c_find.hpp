@@ -30,10 +30,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::FindName)
     typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
     typedef typename Base::LeafDispatcher                                       LeafDispatcher;
 
+    template <typename LeafPath>
+    using TargetType = typename Types::template TargetType<LeafPath>;
 
+    using CtrSizeT = typename Types::CtrSizeT;
 
-    static const Int MAIN_STREAM                                                = Types::MAIN_STREAM;
-
+    static const Int MAIN_STREAM = 0;
 
 private:
 
@@ -48,28 +50,28 @@ public:
 
 
     template <typename LeafPath>
-    Iterator _find2GT(Int index, BigInt key)
+    Iterator _find2GT(Int index, TargetType<LeafPath> key)
     {
     	typename Types::template FindGTForwardWalker<Types, LeafPath> walker(index, key);
     	return self().find2(walker);
     }
 
     template <typename LeafPath>
-    Iterator _find2GE(Int index, BigInt key)
+    Iterator _find2GE(Int index, TargetType<LeafPath> key)
     {
     	typename Types::template FindGEForwardWalker<Types, LeafPath> walker(index, key);
     	return self().find2(walker);
     }
 
     template <typename LeafPath>
-    Iterator _rank(Int index, BigInt pos)
+    Iterator _rank(Int index, CtrSizeT pos)
     {
     	typename Types::template RankForwardWalker<Types, LeafPath> walker(index, pos);
     	return self().find2(walker);
     }
 
     template <typename LeafPath>
-    Iterator _select(Int index, BigInt rank)
+    Iterator _select(Int index, CtrSizeT rank)
     {
     	typename Types::template SelectForwardWalker<Types, LeafPath> walker(index, rank);
     	return self().find2(walker);

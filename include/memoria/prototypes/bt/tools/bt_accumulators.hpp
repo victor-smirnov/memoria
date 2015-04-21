@@ -202,10 +202,17 @@ struct MakeTuple<std::tuple<Types...>> {
 
 
 
-template <typename PkdStruct>
-struct AccumType {
-	using Type = BigInt;
-};
+//template <typename PkdStruct>
+//struct AccumType {
+//	using Type = BigInt;
+//};
+//
+//template <typename PkdStruct>
+//struct PkdStructInputType {
+//	using Type = BigInt;
+//};
+
+
 
 template <typename PkdStruct>
 struct IndexesSize {
@@ -348,7 +355,7 @@ struct IteratorAccumulatorBuilder<TL<BranchStruct, BTail...>, TL<RangeList, RTai
 	using Type = MergeLists<
 			typename memoria::bt::detail::MakeTuple<
 				typename memoria::bt::detail::AccumBuilderH<
-					typename memoria::bt::AccumType<BranchStruct>::Type,
+					typename memoria::AccumType<BranchStruct>::Type,
 					RangeList,
 					IndexesSize<BranchStruct>::Value
 				>::Type
@@ -533,10 +540,139 @@ public:
 
 
 
+template <typename LeafStructList, typename LeafPath>
+struct PackedStructValueTypeH {
+	static const Int LeafIdx = memoria::list_tree::LeafCount<LeafStructList, LeafPath>::Value;
+	using PkdStruct = typename Select<LeafIdx, LeafStructList>::Result;
+
+	using Type = typename AccumType<PkdStruct>::Type;
+};
+
+
+template <typename Tuple> struct StreamTupleHelper;
+
+
+namespace detail {
+
+template <typename T, T A, T B>
+struct min {
+	static const T Value = A < B ? A : B;
+};
+
+
+template <
+	typename T1,
+	typename T2,
+	Int Idx = 0,
+	Int Max = min<Int, std::tuple_size<T1>::value, std::tuple_size<T2>::value>::Value
+>
+struct StreamT2TCvtHelper {
+
+	static void _convert(T1& t1, const T2& t2)
+	{
+		std::get<Idx>(t1) = std::get<Idx>(t2);
+
+		StreamT2TCvtHelper<T1, T2, Idx + 1, Max>::_convert(t1, t2);
+	}
+};
+
+
+template <typename T1, typename T2, Int Idx>
+struct StreamT2TCvtHelper<T1, T2, Idx, Idx> {
+
+	static void _convert(T1& t1, const T2& t2){}
+};
+
+
+}
+
+
+
+template <typename Tuple>
+struct StreamTupleHelper {
+
+	template <typename... Args>
+	static Tuple convert(Args&&... args)
+	{
+		Tuple tuple;
+
+		_convert<0>(tuple, std::forward<Args>(args)...);
+
+		return tuple;
+	}
+
+	template <typename... Args>
+	static Tuple convertAll(Args&&... args)
+	{
+		static_assert(sizeof...(args) == std::tuple_size<Tuple>::value, "Number of arguments does not match target tuple size");
+
+		return convert(std::forward<Args>(args)...);
+	}
+
+	template <typename... Args>
+	static Tuple convertTuple(const std::tuple<Args...>& other)
+	{
+		Tuple tuple;
+
+		detail::StreamT2TCvtHelper<Tuple, std::tuple<Args...>>::_convert(tuple, other);
+
+		return tuple;
+	}
+
+	template <typename... Args>
+	static Tuple convertTupleAll(const std::tuple<Args...>& other)
+	{
+		static_assert(sizeof...(Args) == std::tuple_size<Tuple>::value, "Source tuple size does not match target tuple size");
+
+		return convertTuple(other);
+	}
+
+private:
+
+	template <Int Idx2>
+	static void _convert(Tuple& tuple) {}
+
+	template <Int Idx2, typename Arg, typename... Args>
+	static void _convert(Tuple& tuple, Arg&& head, Args&&... tail)
+	{
+		std::get<Idx2>(tuple) = head;
+
+		_convert<Idx2 + 1>(tuple, std::forward<Args>(tail)...);
+	}
+};
 
 
 
 
+
+
+template <typename PkdStructList> struct MakeStreamEntryTL;
+
+
+template <typename Head, typename... Tail>
+struct MakeStreamEntryTL<TL<Head, Tail...>> {
+	using Type = AppendItemToList<
+			typename PkdStructInputType<Head>::Type,
+			typename MakeStreamEntryTL<TL<Tail...>>::Type
+	>;
+};
+
+template <>
+struct MakeStreamEntryTL<TL<>> {
+	using Type = TL<>;
+};
+
+
+
+template <typename List> struct TypeListToTupleH;
+
+template <typename List>
+using TypeListToTuple = typename TypeListToTupleH<List>::Type;
+
+template <typename... List>
+struct TypeListToTupleH<TL<List...>> {
+	using Type = std::tuple<List...>;
+};
 
 }
 }

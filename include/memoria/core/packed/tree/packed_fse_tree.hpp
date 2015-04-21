@@ -50,7 +50,6 @@ public:
 };
 
 
-
 template <typename Types_>
 class PkdFTree: public PackedAllocatable {
 
@@ -93,6 +92,8 @@ public:
 
     template <typename TreeType, typename MyType>
     using FindLEFnBase = FSEFindElementFnBase<TreeType, PackedCompareLT, MyType>;
+
+    using InputType = Values;
 
 private:
 

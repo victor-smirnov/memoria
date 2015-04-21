@@ -486,7 +486,7 @@ protected:
 public:
 	static const Int BranchIndex = LeafIndex
 									+ GetLeafPrefix<LocalLeafGroup, LocalLeafOffset>::Value;
-									//+ IsStreamStart<LeafPath>::Value;
+
 
 	static Int translate(Int leaf_index) {
 
@@ -497,12 +497,7 @@ public:
 
 		const Int LeafPrefix = GetLeafPrefix<LocalLeafGroup, LocalLeafOffset>::Value;
 
-//		const Int StreamStart = IsStreamStart<LeafPath>::Value;
-
-		const Int BranchIndex = leaf_index
-				+ LeafPrefix;
-//				+ StreamStart;
-
+		const Int BranchIndex = leaf_index + LeafPrefix;
 
 		return BranchIndex;
 	}

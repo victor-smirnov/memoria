@@ -50,6 +50,8 @@ int main() {
 		iter.findBwGT(0, 100);
 		iter.findBwGE(0, 100);
 
+		iter.remove();
+
 		alloc.commit();
 
 		OutputStreamHandler* os = FileOutputStreamHandler::create("mapxx.dump");

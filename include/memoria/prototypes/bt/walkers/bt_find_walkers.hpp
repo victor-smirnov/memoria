@@ -331,45 +331,40 @@ template <typename Types, typename MyType>
 class FindWalkerBase2: public WalkerBase2<Types, MyType> {
 
 protected:
-    using Base = WalkerBase2<Types, MyType>;
-    using Key = typename Base::Key;
+    using Base 			= WalkerBase2<Types, MyType>;
 
     using LeafPath 		= typename Types::LeafPath;
+
+    using TargetType 	= typename Types::template TargetType<LeafPath>;
 
     using ThisType = FindWalkerBase2<Types, MyType>;
     using Iterator = typename Base::Iterator;
 
-    BigInt sum_			= 0;
+    TargetType sum_			= 0;
 
-    Key target_;
+    TargetType target_;
 
     SearchType search_type_ = SearchType::GT;
 
 public:
 
-    FindWalkerBase2(Int leaf_index, Key target, SearchType search_type):
-        Base(leaf_index), target_(target)
-    {
-        this->search_type() = search_type;
-    }
+    FindWalkerBase2(Int leaf_index, TargetType target, SearchType search_type):
+        Base(leaf_index), target_(target), search_type_(search_type)
+    {}
 
     const SearchType& search_type() const {
     	return search_type_;
     }
 
-    SearchType& search_type() {
-    	return search_type_;
-    }
-
-    BigInt sum() const {
+    TargetType sum() const {
     	return sum_;
     }
 
-    BigInt result() const {
+    TargetType result() const {
     	return sum_;
     }
 
-    Key target() const {
+    TargetType target() const {
     	return target_;
     }
 };
@@ -379,14 +374,16 @@ template <typename Types, typename MyType>
 class FindForwardWalkerBase2: public FindWalkerBase2<Types, MyType> {
 
 protected:
-    using Base = FindWalkerBase2<Types, MyType>;
-    typedef typename Base::Key                                                  Key;
+    using Base 			= FindWalkerBase2<Types, MyType>;
+    using TargetType 	= typename Base::TargetType;
+
+
 
 public:
 
     using LeafPath 		 = typename Base::LeafPath;
 
-    FindForwardWalkerBase2(Int leaf_index, Key target, SearchType search_type):
+    FindForwardWalkerBase2(Int leaf_index, TargetType target, SearchType search_type):
         Base(leaf_index, target, search_type)
     {}
 
@@ -447,10 +444,6 @@ public:
     template <Int StreamIdx, typename Tree>
     StreamOpResult find_non_leaf(const Tree* tree, bool root, Int index, Int start)
     {
-        if (DebugCounter == 1) {
-        	int a = 0; a++;
-        }
-
     	auto size = tree->size();
 
         if (start < size)
@@ -472,10 +465,6 @@ public:
     template <Int StreamIdx, typename Tree>
     void process_branch_cmd(const Tree* tree, WalkCmd cmd, Int index, Int start, Int end)
     {
-        if (DebugCounter == 1) {
-        	int a = 0; a++;
-        }
-
     	if (cmd == WalkCmd::FIX_TARGET)
     	{
     		Base::sum_ -= tree->value(index, end);
@@ -506,10 +495,6 @@ public:
 	template <Int StreamIdx, typename StreamType>
 	void branch_size_prefix(const StreamType* stream, Int start, Int end)
 	{
-        if (DebugCounter) {
-        	int a = 0; a++;
-        }
-
         auto sum = stream->sum(0, start, end);
 
 		Base::branch_size_prefix()[StreamIdx] += sum;
@@ -519,10 +504,6 @@ public:
 	template <Int StreamIdx, typename StreamType>
 	void leaf_size_prefix(const StreamType* stream)
 	{
-        if (DebugCounter) {
-        	int a = 0; a++;
-        }
-
         auto size = stream->size();
 
 		Base::branch_size_prefix()[StreamIdx] += size;
@@ -596,10 +577,10 @@ class FindForwardWalker2: public FindForwardWalkerBase2<Types,FindForwardWalker2
 
     using Base  = FindForwardWalkerBase2<Types,FindForwardWalker2<Types>>;
 protected:
-    using Key   = typename Base::Key;
+    using TargetType 	= typename Base::TargetType;
 
 public:
-    FindForwardWalker2(Int leaf_index, Key target, SearchType search_type = SearchType::GE):
+    FindForwardWalker2(Int leaf_index, TargetType target, SearchType search_type = SearchType::GE):
         Base(leaf_index, target, search_type)
     {}
 };
@@ -610,16 +591,15 @@ template <
 >
 class FindGTForwardWalker2: public FindForwardWalker2<Types> {
 
-    using Base  = FindForwardWalker2<Types>;
-
-    using Key   = typename Base::Key;
+    using Base  		= FindForwardWalker2<Types>;
+    using TargetType 	= typename Base::TargetType;
 
 public:
-    FindGTForwardWalker2(Int leaf_index, Key target):
+    FindGTForwardWalker2(Int leaf_index, TargetType target):
         Base(leaf_index, target, SearchType::GT)
     {}
 
-    FindGTForwardWalker2(Int stream, Int leaf_index, Key target):
+    FindGTForwardWalker2(Int stream, Int leaf_index, TargetType target):
     	Base(leaf_index, target, SearchType::GT)
     {}
 };
@@ -629,16 +609,15 @@ template <
 >
 class FindGEForwardWalker2: public FindForwardWalkerBase2<Types, FindGTForwardWalker2<Types>> {
 
-    using Base  = FindForwardWalkerBase2<Types, FindGTForwardWalker2<Types>>;
-
-    using Key   = typename Base::Key;
+    using Base  		= FindForwardWalkerBase2<Types, FindGTForwardWalker2<Types>>;
+    using TargetType 	= typename Base::TargetType;
 
 public:
-    FindGEForwardWalker2(Int leaf_index, Key target):
+    FindGEForwardWalker2(Int leaf_index, TargetType target):
         Base(leaf_index, target, SearchType::GE)
     {}
 
-    FindGEForwardWalker2(Int stream, Int leaf_index, Key target):
+    FindGEForwardWalker2(Int stream, Int leaf_index, TargetType target):
     	Base(leaf_index, target, SearchType::GE)
     {}
 };
@@ -659,22 +638,18 @@ class FindBackwardWalkerBase2: public FindWalkerBase2<Types, MyType> {
 protected:
     using Base = FindWalkerBase2<Types, MyType>;
 
-    using Key = typename Base::Key;
-    using LeafPath = typename Base::LeafPath;
+    using TargetType 	= typename Base::TargetType;
+    using LeafPath 		= typename Base::LeafPath;
 
 public:
 
-    FindBackwardWalkerBase2(Int leaf_index, Key target, SearchType search_type):
+    FindBackwardWalkerBase2(Int leaf_index, TargetType target, SearchType search_type):
         Base(leaf_index, target, search_type)
     {}
 
     template <Int StreamIdx, typename Tree>
     StreamOpResult find_non_leaf(const Tree* tree, bool root, Int index, Int start)
     {
-    	if (DebugCounter == 2) {
-    		int a = 0; a++;
-    	}
-
     	if (start > tree->size()) start = tree->size() - 1;
 
     	if (start >= 0)
@@ -768,10 +743,6 @@ public:
     template <Int StreamIdx, typename Tree>
     void process_branch_cmd(const Tree* tree, WalkCmd cmd, Int index, Int start, Int end)
     {
-    	if (DebugCounter == 1) {
-    		int a = 0; a++;
-    	}
-
     	if (cmd == WalkCmd::FIX_TARGET)
     	{
     		Base::sum_ -= tree->value(index, end + 1);
@@ -782,10 +753,6 @@ public:
 	template <Int StreamIdx, typename StreamType>
 	void branch_size_prefix(const StreamType* obj, Int start, Int end)
 	{
-		if (DebugCounter == 2) {
-			int a = 0; a++;
-		}
-
 		Int s = start > (obj->size() - 1) ? obj->size() - 1 : start;
 
 		Base::branch_size_prefix()[StreamIdx] -= obj->sum(0, end + 1, s + 1);
@@ -866,10 +833,10 @@ class FindBackwardWalker2: public FindBackwardWalkerBase2<Types, FindBackwardWal
 
     using Base  = FindBackwardWalkerBase2<Types, FindBackwardWalker2<Types>>;
 
-    using Key   = typename Base::Key;
+    using TargetType 	= typename Base::TargetType;
 
 public:
-    FindBackwardWalker2(Int leaf_index, Key target, SearchType search_type = SearchType::GE):
+    FindBackwardWalker2(Int leaf_index, TargetType target, SearchType search_type = SearchType::GE):
         Base(leaf_index, target, search_type)
     {}
 };
@@ -882,14 +849,14 @@ class FindGTBackwardWalker2: public FindBackwardWalkerBase2<Types, FindGTBackwar
 
     using Base  = FindBackwardWalkerBase2<Types, FindGTBackwardWalker2<Types>>;
 
-    using Key   = typename Base::Key;
+    using TargetType 	= typename Base::TargetType;
 
 public:
-    FindGTBackwardWalker2(Int leaf_index, Key target):
+    FindGTBackwardWalker2(Int leaf_index, TargetType target):
         Base(leaf_index, target, SearchType::GT)
     {}
 
-    FindGTBackwardWalker2(Int stream, Int leaf_index, Key target):
+    FindGTBackwardWalker2(Int stream, Int leaf_index, TargetType target):
     	Base(leaf_index, target, SearchType::GT)
     {}
 };
@@ -901,14 +868,14 @@ class FindGEBackwardWalker2: public FindBackwardWalkerBase2<Types, FindGTBackwar
 
     using Base  = FindBackwardWalkerBase2<Types, FindGTBackwardWalker2<Types>>;
 
-    using Key   = typename Base::Key;
+    using TargetType = typename Base::TargetType;
 
 public:
-    FindGEBackwardWalker2(Int leaf_index, Key target):
+    FindGEBackwardWalker2(Int leaf_index, TargetType target):
         Base(leaf_index, target, SearchType::GE)
     {}
 
-    FindGEBackwardWalker2(Int stream, Int leaf_index, Key target):
+    FindGEBackwardWalker2(Int stream, Int leaf_index, TargetType target):
     	Base(leaf_index, target, SearchType::GE)
     {}
 };

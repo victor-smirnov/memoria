@@ -222,11 +222,11 @@ template <
 class SkipForwardWalkerBase2: public FindForwardWalkerBase2<Types, MyType> {
 protected:
     using Base  = FindForwardWalkerBase2<Types, MyType>;
-    using Key   = typename Base::Key;
+    using CtrSizeT = typename Types::CtrSizeT;
 
 public:
 
-    SkipForwardWalkerBase2(Key target):
+    SkipForwardWalkerBase2(CtrSizeT target):
         Base(-1, target, SearchType::GT)
     {}
 
@@ -275,16 +275,12 @@ template <
 class SkipForwardWalker2: public SkipForwardWalkerBase2<Types, SkipForwardWalker2<Types>> {
     using Base  = SkipForwardWalkerBase2<Types, SkipForwardWalker2<Types>>;
 
-    using Key   = typename Base::Key;
+    using CtrSizeT   = typename Base::CtrSizeT;
 
 public:
 
-    SkipForwardWalker2(Key target):
+    SkipForwardWalker2(CtrSizeT target):
         Base(target)
-    {}
-
-    SkipForwardWalker2(Int stream, Int block, Key target):
-    	Base(target)
     {}
 };
 
@@ -299,11 +295,11 @@ class SkipBackwardWalkerBase2: public FindBackwardWalkerBase2<Types,MyType> {
 protected:
     using Base  = FindBackwardWalkerBase2<Types,MyType>;
 
-    using Key   = typename Base::Key;
+    using CtrSizeT = typename Types::CtrSizeT;
 
 public:
 
-    SkipBackwardWalkerBase2(Key target):
+    SkipBackwardWalkerBase2(CtrSizeT target):
         Base(-1, target, SearchType::GE)
     {}
 
@@ -311,10 +307,6 @@ public:
     template <Int StreamIdx, typename Tree>
     StreamOpResult find_leaf(const Tree* tree, Int start)
     {
-    	if (DebugCounter == 2) {
-    		int a = 0; a++;
-    	}
-
     	if (start > tree->size()) start = tree->size();
 
     	if (start >= 0)
@@ -357,15 +349,11 @@ template <
 class SkipBackwardWalker2: public SkipBackwardWalkerBase2<Types, SkipBackwardWalker2<Types>> {
     using Base  = SkipBackwardWalkerBase2<Types,SkipBackwardWalker2<Types>>;
 
-    using Key   = typename Base::Key;
+    using CtrSizeT = typename Base::CtrSizeT;
 
 public:
-    SkipBackwardWalker2(Key target):
+    SkipBackwardWalker2(CtrSizeT target):
         Base(target)
-    {}
-
-    SkipBackwardWalker2(Int stream, Int block, Key target):
-    	Base(target)
     {}
 };
 

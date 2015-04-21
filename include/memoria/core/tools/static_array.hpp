@@ -16,6 +16,7 @@
 #include <memoria/core/exceptions/bounds.hpp>
 
 #include <algorithm>
+#include <type_traits>
 
 namespace memoria    {
 namespace core       {
@@ -565,6 +566,18 @@ public:
         }
         return *this;
     }
+
+    template <typename Value>
+    MyType& operator=(const Value& value)
+    {
+    	static_assert(Indexes == 1, "");
+
+    	values_[0] = value;
+    	return *this;
+    }
+
+
+
 
 //    MyType& operator=(const ElementType* keys)
 //    {

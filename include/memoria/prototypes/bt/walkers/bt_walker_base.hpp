@@ -294,8 +294,7 @@ protected:
     typedef typename Types::LeafRangeList                                 		LeafRangeList;
     typedef typename Types::LeafRangeOffsetList                                 LeafRangeOffsetList;
 
-    typedef typename Types::CtrSizeT                                            Key;
-    typedef typename Types::CtrSizeT                                            CtrSizeT;
+
 
     static const Int Streams                                                    = Types::Streams;
 

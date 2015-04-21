@@ -142,7 +142,6 @@ template <
 class RankForwardWalker2: public SkipForwardWalkerBase2<Types, RankForwardWalker2<Types>> {
 
     using Base      = SkipForwardWalkerBase2<Types, RankForwardWalker2<Types>>;
-    using Key       = typename Base::Key;
     using Iterator  = typename Base::Iterator;
 
     using CtrSizeT = typename Types::CtrSizeT;
@@ -152,12 +151,12 @@ class RankForwardWalker2: public SkipForwardWalkerBase2<Types, RankForwardWalker
 
 public:
 
-    RankForwardWalker2(Int, Int symbol, Key target):
+    RankForwardWalker2(Int, Int symbol, CtrSizeT target):
         Base(target),
         symbol_(symbol)
     {}
 
-    RankForwardWalker2(Int symbol, Key target):
+    RankForwardWalker2(Int symbol, CtrSizeT target):
         Base(target),
         symbol_(symbol)
     {}
@@ -198,7 +197,6 @@ template <
 class RankBackwardWalker2: public SkipBackwardWalkerBase2<Types, RankBackwardWalker2<Types>> {
 
     using Base      = SkipBackwardWalkerBase2<Types, RankBackwardWalker2<Types>>;
-    using Key       = typename Base::Key;
     using Iterator  = typename Base::Iterator;
 
     using CtrSizeT = typename Types::CtrSizeT;
@@ -208,12 +206,12 @@ class RankBackwardWalker2: public SkipBackwardWalkerBase2<Types, RankBackwardWal
 
 public:
 
-    RankBackwardWalker2(Int, Int symbol, Key target):
+    RankBackwardWalker2(Int, Int symbol, CtrSizeT target):
         Base(target),
         symbol_(symbol)
     {}
 
-    RankBackwardWalker2(Int symbol, Key target):
+    RankBackwardWalker2(Int symbol, CtrSizeT target):
         Base(target),
         symbol_(symbol)
     {}

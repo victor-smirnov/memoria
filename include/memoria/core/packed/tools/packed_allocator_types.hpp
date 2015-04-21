@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2013.
+// Copyright Victor Smirnov 2013-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -14,6 +14,17 @@
 #include <memoria/metadata/page.hpp>
 
 namespace memoria {
+
+
+template <typename PkdStruct>
+struct AccumType {
+	using Type = BigInt;
+};
+
+template <typename PkdStruct>
+struct PkdStructInputType {
+	using Type = typename PkdStruct::InputType;
+};
 
 
 class MEMORIA_API PackedOOMException: public vapi::MemoriaThrowable {

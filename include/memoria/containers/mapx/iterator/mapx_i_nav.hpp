@@ -33,6 +33,13 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
 
     using CtrSizeT = typename Container::Types::CtrSizeT;
 
+    template <Int Stream>
+    using StreamInputTuple = typename Container::Types::template StreamInputTuple<Stream>;
+
+    template <Int Stream>
+    using InputTupleAdapter = typename Container::Types::template InputTupleAdapter<Stream>;
+
+
     bool operator++() {
         return self().nextKey();
     }
@@ -122,7 +129,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
     {
     	auto& self = this->self();
 
-    	self.ctr().template insertStreamEntry<0>(self, std::make_tuple(core::StaticVector<BigInt, 1>({key}), value));
+    	self.ctr().template insertStreamEntry<0>(
+    			self,
+    			InputTupleAdapter<0>::convert(core::StaticVector<BigInt, 1>({key}), value)
+    	);
     }
 
     void remove() {
