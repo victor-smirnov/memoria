@@ -960,38 +960,10 @@ public:
     }
 
 
-//    struct SumsFn {
-//        template <typename StreamType>
-//        void stream(const StreamType* obj, Int block, Int start, Int end, BigInt& accum)
-//        {
-//            accum += obj->sum(block, start, end);
-//        }
 
-//        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename StreamType>
-//        void stream(const StreamType* obj, const Position& start, const Position& end, Accumulator& accum)
-//        {
-//            obj->sums(start[StreamIdx], end[StreamIdx], std::get<Idx>(accum));
-//        }
-
-//        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename StreamType>
-//        void stream(const StreamType* obj, const Position& start, const Position& end, Accumulator& accum, UBigInt streams)
-//        {
-//            if (streams && (1ull<<Idx))
-//            {
-//                obj->sums(start[StreamIdx], end[StreamIdx], std::get<StreamIdx>(accum));
-//            }
-//        }
-//    };
-
-
-    template <
-        Int Idx,
-        Int Offset,
-        bool StreamStart
-    >
     struct AccumulatorHandler
     {
-        template <typename StreamType, typename TupleItem>
+        template <Int Offset, bool StreamStart, Int Idx, typename StreamType, typename TupleItem>
         void stream(const StreamType* obj, TupleItem& accum, Int start, Int end)
         {
             if (obj != nullptr)
@@ -1005,7 +977,7 @@ public:
             }
         }
 
-        template <typename StreamType, typename TupleItem>
+        template <Int Offset, bool StreamStart, Int Idx, typename StreamType, typename TupleItem>
         void stream(const StreamType* obj, TupleItem& accum)
         {
         	if (obj != nullptr)
@@ -1019,7 +991,7 @@ public:
         	}
         }
 
-        template <Int ListIdx, typename StreamType, typename TupleItem>
+        template <Int Offset, bool StreamStart, Int ListIdx, typename StreamType, typename TupleItem>
         void stream(const StreamType* obj, TupleItem& accum, const Position& start, const Position& end)
         {
         	const Int StreamIdx = FindTopLevelIdx<LeafSubstreamsStructList, ListIdx>::Value;
@@ -1027,32 +999,32 @@ public:
         	Int startIdx 	= start[StreamIdx];
         	Int endIdx 		= end[StreamIdx];
 
-        	stream(obj, accum, startIdx, endIdx);
+        	stream<Offset, StreamStart, ListIdx>(obj, accum, startIdx, endIdx);
         }
     };
 
 
     void sums(Int start, Int end, Accumulator& sums) const
     {
-        process<AccumulatorHandler>(sums, start, end);
+        processAllSubstreamsAcc(AccumulatorHandler(), sums, start, end);
     }
 
 
     void sums(const Position& start, const Position& end, Accumulator& sums) const
     {
-    	process<AccumulatorHandler>(sums, start, end);
+    	processAllSubstreamsAcc(AccumulatorHandler(), sums, start, end);
     }
 
 
     void sums(Accumulator& sums) const
     {
-        process<AccumulatorHandler>(sums);
+    	processAllSubstreamsAcc(AccumulatorHandler(), sums);
     }
 
     Accumulator sums() const
     {
         Accumulator sums;
-        process<AccumulatorHandler>(sums);
+        processAllSubstreamsAcc(AccumulatorHandler(), sums);
         return sums;
     }
 
@@ -1259,58 +1231,17 @@ public:
 
 
 
-    template <
-    	Int Stream,
-        template <
-            Int Idx,
-            Int Offset,
-            bool StreamStart
-        >
-        class Fn,
-        typename... Args
-    >
-    void processStreamAcc(Accumulator& accum, Args&&... args) const
-    {
-    	ByStreamAccumulatorDispatcher<Stream>::process(
-                accum,
-                AccumulatorHandlerFn<
-                    const PackedAllocator*,
-                    Dispatcher,
-                    Fn
-                >
-                (allocator()),
-                std::forward<Args>(args)...
-        );
-    }
 
-    template <
-    	Int Stream,
+
+    struct ProcessSubstreamsAccFnAdaptor
+    {
     	template <
-            Int Idx,
-            Int Offset,
-            bool StreamStart
-        >
-        class Fn,
-        typename... Args
-    >
-    void processStreamAcc(Accumulator& accum, Args&&... args)
-    {
-    	ByStreamAccumulatorDispatcher<Stream>::process(
-                accum,
-                AccumulatorHandlerFn<
-                    PackedAllocator*,
-                    Dispatcher,
-                    Fn
-                >
-                (allocator()),
-                std::forward<Args>(args)...
-        );
-    }
-
-
-    struct ProcessSubstreamsByIdxAccFnAdaptor
-    {
-    	template <Int AccumulatorIdx, Int ListIdx, typename StreamType, typename Fn, typename... Args>
+    		Int AccumulatorIdx,
+    		Int ListIdx,
+    		typename StreamType,
+    		typename Fn,
+    		typename... Args
+    	>
     	void stream(StreamType* obj, Fn&& fn, Accumulator& accum, Args&&... args)
     	{
     		const Int LeafIdx = AccumulatorIdx - SubstreamsStart;
@@ -1327,6 +1258,41 @@ public:
 
     template <
     	Int Stream,
+        typename Fn,
+        typename... Args
+    >
+    void processStreamAcc(Fn&& fn, Accumulator& accum, Args&&... args) const
+    {
+    	StreamDispatcher<Stream>::dispatchAll(
+    			allocator(),
+    			ProcessSubstreamsAccFnAdaptor(),
+    			std::forward<Fn>(fn),
+                accum,
+                std::forward<Args>(args)...
+        );
+    }
+
+    template <
+    	Int Stream,
+    	typename Fn,
+        typename... Args
+    >
+    void processStreamAcc(Fn&& fn, Accumulator& accum, Args&&... args)
+    {
+    	StreamDispatcher<Stream>::dispatchAll(
+    			allocator(),
+    			ProcessSubstreamsAccFnAdaptor(),
+    			std::forward<Fn>(fn),
+                accum,
+                std::forward<Args>(args)...
+        );
+    }
+
+
+
+
+    template <
+    	Int Stream,
     	typename SubstreamsIdxList,
     	typename Fn,
         typename... Args
@@ -1335,7 +1301,7 @@ public:
     {
     	SubstreamsByIdxDispatcher<Stream, SubstreamsIdxList>::dispatchAll(
     			allocator(),
-    			ProcessSubstreamsByIdxAccFnAdaptor(),
+    			ProcessSubstreamsAccFnAdaptor(),
     			std::forward<Fn>(fn),
                 accum,
                 std::forward<Args>(args)...
@@ -1353,18 +1319,43 @@ public:
     {
     	SubstreamsByIdxDispatcher<Stream, SubstreamsIdxList>::dispatchAll(
     			allocator(),
-    			ProcessSubstreamsByIdxAccFnAdaptor(),
-    			fn,
+    			ProcessSubstreamsAccFnAdaptor(),
+    			std::forward<Fn>(fn),
                 accum,
                 std::forward<Args>(args)...
         );
     }
 
 
+    template <
+        typename Fn,
+        typename... Args
+    >
+    void processAllSubstreamsAcc(Fn&& fn, Accumulator& accum, Args&&... args) const
+    {
+    	Dispatcher::dispatchAll(
+    			allocator(),
+    			ProcessSubstreamsAccFnAdaptor(),
+    			std::forward<Fn>(fn),
+    			accum,
+    			std::forward<Args>(args)...
+    	);
+    }
 
-
-
-
+    template <
+        typename Fn,
+        typename... Args
+    >
+    void processAllSubstreamsAcc(Fn&& fn, Accumulator& accum, Args&&... args)
+    {
+    	Dispatcher::dispatchAll(
+    			allocator(),
+    			ProcessSubstreamsAccFnAdaptor(),
+    			std::forward<Fn>(fn),
+    			accum,
+    			std::forward<Args>(args)...
+    	);
+    }
 
 
 
@@ -1459,51 +1450,6 @@ public:
 
 
 
-    template <
-        template <
-            Int Idx,
-            Int Offset,
-            bool StreamStart
-        >
-        class Fn,
-        typename... Args
-    >
-    void process(Accumulator& accum, Args&&... args) const
-    {
-        AccumulatorDispatcher::process(
-                accum,
-                AccumulatorHandlerFn<
-                    const PackedAllocator*,
-                    Dispatcher,
-                    Fn
-                >
-                (allocator()),
-                std::forward<Args>(args)...
-        );
-    }
-
-    template <
-        template <
-            Int Idx,
-            Int Offset,
-            bool StreamStart
-        >
-        class Fn,
-        typename... Args
-    >
-    void process(Accumulator& accum, Args&&... args)
-    {
-        AccumulatorDispatcher::process(
-                accum,
-                AccumulatorHandlerFn<
-                    PackedAllocator*,
-                    Dispatcher,
-                    Fn
-                >
-                (allocator()),
-                std::forward<Args>(args)...
-        );
-    }
 
 
     struct GenerateDataEventsFn {

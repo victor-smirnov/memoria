@@ -38,19 +38,18 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveName)
 
 
 
-    template <
-    	Int Idx,
-    	Int Offset,
-    	bool StreamStart
-    >
     struct RemoveFromStreamHanlder
     {
-    	template <typename SubstreamType, typename AccumulatorItem>
+    	template <
+    		Int Offset,
+    		bool StreamStart,
+    		Int Idx,
+    		typename SubstreamType,
+    		typename AccumulatorItem
+    	>
     	void stream(SubstreamType* obj, AccumulatorItem& accum, Int idx)
     	{
-    		obj->remove(idx, idx + 1);
-
-    		obj->template sub<Offset>(idx, accum);
+    		obj->template _remove<Offset>(idx, accum);
 
     		if (StreamStart)
     		{
@@ -67,7 +66,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveName)
         void treeNode(LeafNode<NTypes>* node, Int idx, Accumulator& accum)
         {
     		node->layout(255);
-            node->template processStreamAcc<Stream, RemoveFromStreamHanlder>(accum, idx);
+            node->template processStreamAcc<Stream>(RemoveFromStreamHanlder(), accum, idx);
         }
     };
 

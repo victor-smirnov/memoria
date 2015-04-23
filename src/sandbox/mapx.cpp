@@ -47,7 +47,8 @@ int main() {
 
 		iter.dump();
 
-		iter.template _updateStream<0, IntList<1>>(123);
+		iter.template _updateStream<0, IntList<0>>(MakeStaticVector<BigInt>(456));
+		iter.template _updateStream<0, IntList<1>>(555);
 
 		iter.dump();
 
@@ -56,7 +57,10 @@ int main() {
 //		iter.findBwGT(0, 100);
 //		iter.findBwGE(0, 100);
 
-//		iter.remove();
+//		iter.skipBw(1);
+		iter.remove();
+
+		iter.dump();
 
 		alloc.commit();
 

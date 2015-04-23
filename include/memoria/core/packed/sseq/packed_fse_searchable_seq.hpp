@@ -547,6 +547,36 @@ public:
         }
     }
 
+
+
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void _insert(Int idx, Int symbol, AccumItem<T, Size>& accum)
+    {
+    	insert(idx, symbol);
+
+    	sum<Offset>(idx, accum);
+    }
+
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void _update(Int idx, Int symbol, AccumItem<T, Size>& accum)
+    {
+    	sub<Offset>(idx, accum);
+
+    	this->symbol(idx) = symbol;
+
+    	sum<Offset>(idx, accum);
+    }
+
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void _remove(Int idx, AccumItem<T, Size>& accum)
+    {
+    	sub<Offset>(idx, accum);
+    	remove(idx, idx + 1);
+    }
+
+
+
+
     void append(IData* data, Int length)
     {
         insert(data, size(), length);

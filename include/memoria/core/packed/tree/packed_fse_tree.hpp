@@ -1082,6 +1082,40 @@ public:
         setValues(idx, values);
     }
 
+    template <typename T>
+    void update(Int idx, const core::StaticVector<T, Indexes>& values)
+    {
+        setValues(idx, values);
+    }
+
+
+    template <Int Offset, Int Size, typename T1, typename T2, template <typename, Int> class AccumItem>
+    void _insert(Int idx, const core::StaticVector<T1, Indexes>& values, AccumItem<T2, Size>& accum)
+    {
+    	insert(idx, values);
+
+    	sum<Offset>(idx, accum);
+    }
+
+    template <Int Offset, Int Size, typename T1, typename T2, template <typename, Int> class AccumItem>
+    void _update(Int idx, const core::StaticVector<T1, Indexes>& values, AccumItem<T2, Size>& accum)
+    {
+    	sub<Offset>(idx, accum);
+
+    	update(idx, values);
+
+    	sum<Offset>(idx, accum);
+    }
+
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void _remove(Int idx, AccumItem<T, Size>& accum)
+    {
+    	sub<Offset>(idx, accum);
+    	remove(idx, idx + 1);
+    }
+
+
+
     void insertSpace(Int idx, Int room_length)
     {
         MEMORIA_ASSERT(idx, <=, this->size());

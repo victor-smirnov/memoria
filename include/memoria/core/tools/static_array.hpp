@@ -714,10 +714,12 @@ private:
 
 
 
-}
+template <typename T, typename... Args>
+auto MakeStaticVector(Args&&... args) -> StaticVector<T, sizeof...(Args)>
+{
+	return StaticVector<T, sizeof...(Args)>(std::forward<Args>(args)...);
 }
 
-namespace std {
 
 template <typename Key, memoria::Int Indexes>
 ostream& operator<<(ostream& out, const ::memoria::core::StaticVector<Key, Indexes>& accum)
@@ -738,7 +740,11 @@ ostream& operator<<(ostream& out, const ::memoria::core::StaticVector<Key, Index
 
     return out;
 }
-}
 
+
+
+
+}
+}
 #endif
 

@@ -48,6 +48,7 @@ public:
 
     using InputType = Value;
 
+
 private:
 
     Int size_;
@@ -424,11 +425,24 @@ public:
         value(pos) = val;
     }
 
-    template <Int Offset, typename T, Int Size>
-    void _update(Int pos, Value val, StaticVector<T, Size>& accum)
+    template <Int Offset, typename Value, typename T, Int Size, template <typename, Int> class AccumItem>
+    void _update(Int pos, Value val, AccumItem<T, Size>& accum)
     {
         value(pos) = val;
     }
+
+    template <Int Offset, typename Value, typename T, Int Size, template <typename, Int> class AccumItem>
+    void _insert(Int pos, Value val, AccumItem<T, Size>& accum)
+    {
+    	insert(pos, val);
+    }
+
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void _remove(Int idx, AccumItem<T, Size>& accum)
+    {
+    	remove(idx, idx + 1);
+    }
+
 
 
     void update(IData* data, Int pos, Int length)

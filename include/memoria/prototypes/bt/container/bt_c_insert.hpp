@@ -119,18 +119,19 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertName)
 
     //==================================================================================
 
-    template <
-    	Int Idx,
-    	Int Offset,
-    	bool StreamStart
-    >
     struct InsertEntryIntoStreamHanlder
     {
-    	template <typename SubstreamType, typename AccumulatorItem, typename Entry>
+    	template <
+    		Int Offset,
+    	    bool StreamStart,
+    	    Int Idx,
+    		typename SubstreamType,
+    		typename AccumulatorItem,
+    		typename Entry
+    	>
     	void stream(SubstreamType* obj, AccumulatorItem& accum, Int idx, const Entry& entry)
     	{
-    		obj->insert(idx, std::get<Idx>(entry));
-    		obj->template sum<Offset>(idx, accum);
+    		obj->template _insert<Offset>(idx, std::get<Idx>(entry), accum);
 
     		if (StreamStart)
     		{
@@ -149,7 +150,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertName)
     	void treeNode(LeafNode<NTypes>* node, Int idx, Accumulator& accum, Args&&... args)
     	{
     		node->layout(255);
-    		node->template processStreamAcc<Stream, InsertEntryIntoStreamHanlder>(accum, idx, std::forward<Args>(args)...);
+    		node->template processStreamAcc<Stream>(InsertEntryIntoStreamHanlder(), accum, idx, std::forward<Args>(args)...);
     	}
     };
 
