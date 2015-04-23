@@ -203,18 +203,6 @@ struct MakeTuple<std::tuple<Types...>> {
 
 
 
-//template <typename PkdStruct>
-//struct AccumType {
-//	using Type = BigInt;
-//};
-//
-//template <typename PkdStruct>
-//struct PkdStructInputType {
-//	using Type = BigInt;
-//};
-
-
-
 template <typename PkdStruct>
 struct IndexesSize {
 	static const Int Value = PkdStruct::Indexes;

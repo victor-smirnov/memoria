@@ -6,7 +6,7 @@
 #include <memoria/core/packed/tools/packed_dispatcher.hpp>
 
 #include <memoria/prototypes/bt/tools/bt_size_list_builder.hpp>
-#include <memoria/prototypes/bt/tools/bt_accumulators.hpp>
+#include <memoria/prototypes/bt/tools/bt_index_range.hpp>
 
 #include <memoria/core/types/list/linearize.hpp>
 
