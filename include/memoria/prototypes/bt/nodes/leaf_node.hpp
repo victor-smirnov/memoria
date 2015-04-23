@@ -24,7 +24,6 @@
 
 #include <memoria/prototypes/bt/tools/bt_packed_struct_list_builder.hpp>
 #include <memoria/prototypes/bt/tools/bt_size_list_builder.hpp>
-#include <memoria/prototypes/bt/tools/bt_accumulator_handlers.hpp>
 #include <memoria/prototypes/bt/tools/bt_substreamgroup_dispatcher.hpp>
 
 
@@ -94,20 +93,6 @@ public:
     using StreamStartIdx = IntValue<
     		memoria::list_tree::LeafCountInf<LeafSubstreamsStructList, IntList<StreamIdx>>::Value
     >;
-
-    using AccumulatorDispatcher = AccumulatorLeafHandler<
-            Accumulator,
-            typename LeafOffsetListBuilder<LeafSubstreamsStructList>::Type
-    >;
-
-    template <Int Stream>
-    using ByStreamAccumulatorDispatcher = AccumulatorLeafHandler<
-            Accumulator,
-            typename LeafOffsetListBuilder<LeafSubstreamsStructList>::Type,
-            memoria::list_tree::LeafCountInf<BranchSubstreamsStructList, IntList<Stream>>::Value,
-            memoria::list_tree::LeafCountSup<BranchSubstreamsStructList, IntList<Stream>>::Value
-    >;
-
 
     template <Int Stream, typename SubstreamIdxList>
     using SubstreamsByIdxDispatcher = typename Dispatcher::template SubsetDispatcher<

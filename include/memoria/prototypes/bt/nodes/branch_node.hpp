@@ -24,7 +24,6 @@
 
 #include <memoria/prototypes/bt/tools/bt_packed_struct_list_builder.hpp>
 #include <memoria/prototypes/bt/tools/bt_size_list_builder.hpp>
-#include <memoria/prototypes/bt/tools/bt_accumulator_handlers.hpp>
 #include <memoria/prototypes/bt/tools/bt_substreamgroup_dispatcher.hpp>
 
 
