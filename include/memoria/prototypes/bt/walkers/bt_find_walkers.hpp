@@ -523,7 +523,7 @@ public:
 
 		for (Int c = 0; c < To - From; c++)
 		{
-			item[c] += obj->sum(c + From, start, end);
+			obj->_add(c + From, start, end, item[c]);
 		}
 	}
 
@@ -551,7 +551,8 @@ public:
 			else {
 				for (Int c = 0; c < Size; c++)
 				{
-					item[Idx + c] = obj->sum(c + From, end);
+					item[Idx + c] = 0;
+					obj->_add(c + From, end, item[Idx + c]);
 				}
 			}
 		}
@@ -560,10 +561,12 @@ public:
 	template <Int Offset, Int From, Int Size, typename StreamObj, typename AccumItem>
 	void leaf_iterator_accumulator(const StreamObj* obj, AccumItem& item)
 	{
+		const Int Idx = Offset - std::remove_reference<decltype(item)>::type::From;
+
 		if (obj != nullptr) {
 			for (Int c = 0; c < Size; c++)
 			{
-				item[Offset - std::remove_reference<decltype(item)>::type::From + c] += obj->sum(c + From);
+				obj->_add(c + From, item[Idx + c]);
 			}
 		}
 	}
@@ -755,7 +758,7 @@ public:
 	{
 		Int s = start > (obj->size() - 1) ? obj->size() - 1 : start;
 
-		Base::branch_size_prefix()[StreamIdx] -= obj->sum(0, end + 1, s + 1);
+		obj->_sub(0, end + 1, s + 1, Base::branch_size_prefix()[StreamIdx]);
 	}
 
 
@@ -781,7 +784,7 @@ public:
 
 		for (Int c = 0; c < To - From; c++)
 		{
-			item[c] -= obj->sum(c + From, end + 1, s + 1);
+			obj->_sub(c + From, end + 1, s + 1, item[c]);
 		}
 	}
 
@@ -801,7 +804,8 @@ public:
 
 		for (Int c = 0; c < Size; c++)
 		{
-			item[Idx + c] = obj->sum(c + From, end);
+			item[Idx + c] = 0;
+			obj->_add(c + From, end, item[Idx + c]);
 		}
 	}
 
@@ -810,16 +814,17 @@ public:
 	{
 		const Int Idx = Offset - std::remove_reference<decltype(item)>::type::From;
 
-		if (leaf) {
+		if (leaf)
+		{
 			for (Int c = 0; c < Size; c++)
 			{
-				item[Idx + c] -= 0;
+				item[Idx + c] = 0;
 			}
 		}
 		else {
 			for (Int c = 0; c < Size; c++)
 			{
-				item[Idx + c] -= obj->sum(c + From);
+				obj->_sub(c + From, item[Idx + c]);
 			}
 		}
 	}

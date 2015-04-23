@@ -294,7 +294,9 @@ public:
 
 		for (Int c = 0; c < Size; c++)
 		{
-			item[Idx + c] += obj->sum(c + From);
+//			item[Idx + c] += obj->sum(c + From);
+
+			obj->_add(c + From, item[Idx + c]);
 		}
 	}
 };
@@ -376,7 +378,7 @@ public:
 
 		for (Int c = 0; c < Size; c++)
 		{
-			item[Idx + c] -= obj->sum(c + From);
+			obj->_sub(c + From, item[Idx + c]);
 		}
 	}
 };

@@ -837,6 +837,49 @@ public:
     }
 
 
+
+
+
+    template <typename T>
+    void _add(Int symbol, T& value) const
+    {
+    	value += rank(symbol);
+    }
+
+    template <typename T>
+    void _add(Int symbol, Int end, T& value) const
+    {
+    	value += rank(end, symbol);
+    }
+
+    template <typename T>
+    void _add(Int symbol, Int start, Int end, T& value) const
+    {
+    	value += rank(start, end, symbol);
+    }
+
+
+
+    template <typename T>
+    void _sub(Int symbol, T& value) const
+    {
+    	value -= rank(symbol);
+    }
+
+    template <typename T>
+    void _sub(Int symbol, Int end, T& value) const
+    {
+    	value -= rank(end, symbol);
+    }
+
+    template <typename T>
+    void _sub(Int symbol, Int start, Int end, T& value) const
+    {
+    	value -= rank(start, end, symbol);
+    }
+
+
+
     void addKeys(Int idx, Values& values) const
     {
         Int symbol = this->symbol(idx);

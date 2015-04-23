@@ -12,80 +12,53 @@
 #include <vector>
 #include <unordered_map>
 
+#include <math.h>
+#include <iostream>
+#include <iomanip>
+
+#include <limits>
 
 using namespace std;
-using namespace memoria::vapi;
 
-struct Foo {
-    void m() {
-        cout<<"m() "<<endl;
-    };
-    void m() const {
-        cout<<"m() const"<<endl;
-    };
-};
-
-struct ConstFoo {
-    void m() const {
-        cout<<"m() const"<<endl;
-    };
-};
-
-
-struct Bar {
-    mutable int m_ = 0;
-
-    Bar() {}
-
-    void m() {
-        cout<<"m()"<<endl;
-    }
-    void m() const {
-        m_ = 2;
-
-        cout<<"m() const"<<endl;
-    }
-
-    const ConstFoo foo() const {
-        return ConstFoo();
-    }
-
-    Foo foo() {
-        return Foo();
-    }
-};
-
-
-void constFn(const Bar& bar) {
-    cout<<TypeNameFactory<decltype(bar.foo())>::name()<<endl;
+template <typename R, typename T>
+R& bit_cast(T& pX)
+{
+    return reinterpret_cast<R&>(pX);
 }
 
 
+int main ()
+{
+    float f = numeric_limits<float>::min();
+    int last_int;
 
-int main(void) {
+    cout<<"Start f: "<<f<<endl;
 
-    Bar b1;
-    const Bar b2;
+    int i, int_f;
 
-    b1.m();
-    b1.m();
+    for(i = numeric_limits<int>::min(); i < numeric_limits<int>::max(); ++i)
+    {
+    	int_f = bit_cast<long long>(f);
 
-    b2.m();
-    b2.m();
+//    	if (int_f - last_int != 1)
+//    	{
+////    		cout<<"Exception "<<f<<" "<<i<<" "<<int_f<<" "<<last_int<<endl;
+////    		break;
+//    	}
+//    	else
+    	{
+    		last_int = int_f;
+    	}
 
-    ConstFoo foo = b2.foo();
+    	if (i % 10000000 == 0) {
+    		cout<<i<<endl;
+    	}
 
-    foo.m();
+    	//std::cout << std::setprecision(70) << f <<" "<<bit_cast<long long>(f)<< std::endl;
 
-    typedef unordered_map<int, int> int_map;
+    	f = nexttowardf(f, numeric_limits<float>::max());
+    }
 
-    int_map m;
-
-    constFn(b2);
-
-    //cout<<TypeNameFactory<decltype(b2.foo())>::name()<<endl;
-    cout<<TypeNameFactory<decltype(begin(m))>::name()<<endl;
-
-    return 0;
+    cout<<f<<" "<<i<<" "<<int_f<<" "<<last_int<<endl;
+  return 0;
 }
-

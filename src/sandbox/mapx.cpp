@@ -52,6 +52,11 @@ int main() {
 
 		iter.dump();
 
+		iter.template _updateStream<0, IntList<0, 1>>(MakeStaticVector<BigInt>(777), 333);
+
+		iter.dump();
+
+
 //		iter.findFwGT(0, 100);
 //		iter.findFwGE(0, 100);
 //		iter.findBwGT(0, 100);
