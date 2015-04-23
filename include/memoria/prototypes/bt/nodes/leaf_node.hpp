@@ -109,6 +109,16 @@ public:
     >;
 
 
+    template <Int Stream, typename SubstreamIdxList>
+    using SubstreamsByIdxDispatcher = typename Dispatcher::template SubsetDispatcher<
+    		memoria::list_tree::AddToValueList<
+    			memoria::list_tree::LeafCount<LeafSubstreamsStructList, IntList<Stream>>::Value,
+    			SubstreamIdxList
+    		>,
+    		Stream
+    >;
+
+
     static const Int Streams                                                    = ListSize<LeafSubstreamsStructList>::Value;
 
     static const Int Substreams                                                 = Dispatcher::Size;
@@ -1245,6 +1255,10 @@ public:
         return SubstreamsDispatcher<SubstreamsPath>::dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
+
+
+
+
     template <
     	Int Stream,
         template <
@@ -1255,7 +1269,7 @@ public:
         class Fn,
         typename... Args
     >
-    void processSubstreamsAcc(Accumulator& accum, Args&&... args) const
+    void processStreamAcc(Accumulator& accum, Args&&... args) const
     {
     	ByStreamAccumulatorDispatcher<Stream>::process(
                 accum,
@@ -1279,7 +1293,7 @@ public:
         class Fn,
         typename... Args
     >
-    void processSubstreamsAcc(Accumulator& accum, Args&&... args)
+    void processStreamAcc(Accumulator& accum, Args&&... args)
     {
     	ByStreamAccumulatorDispatcher<Stream>::process(
                 accum,
@@ -1292,6 +1306,65 @@ public:
                 std::forward<Args>(args)...
         );
     }
+
+
+    struct ProcessSubstreamsByIdxAccFnAdaptor
+    {
+    	template <Int AccumulatorIdx, Int ListIdx, typename StreamType, typename Fn, typename... Args>
+    	void stream(StreamType* obj, Fn&& fn, Accumulator& accum, Args&&... args)
+    	{
+    		const Int LeafIdx = AccumulatorIdx - SubstreamsStart;
+
+    		const Int BranchStructIdx 	= LeafToBranchIndexByValueTranslator<LeafSubstreamsStructList, LeafIdx>::BranchStructIdx;
+    		const Int LeafOffset 		= LeafToBranchIndexByValueTranslator<LeafSubstreamsStructList, LeafIdx>::LeafOffset;
+    		const bool IsStreamStart 	= LeafToBranchIndexByValueTranslator<LeafSubstreamsStructList, LeafIdx>::IsStreamStart;
+
+    		fn.template stream<LeafOffset, IsStreamStart, ListIdx>(obj, std::get<BranchStructIdx>(accum), std::forward<Args>(args)...);
+    	}
+    };
+
+
+
+    template <
+    	Int Stream,
+    	typename SubstreamsIdxList,
+    	typename Fn,
+        typename... Args
+    >
+    void processSubstreamsByIdxAcc(Fn&& fn, Accumulator& accum, Args&&... args) const
+    {
+    	SubstreamsByIdxDispatcher<Stream, SubstreamsIdxList>::dispatchAll(
+    			allocator(),
+    			ProcessSubstreamsByIdxAccFnAdaptor(),
+    			std::forward<Fn>(fn),
+                accum,
+                std::forward<Args>(args)...
+        );
+    }
+
+
+    template <
+    	Int Stream,
+    	typename SubstreamsIdxList,
+    	typename Fn,
+        typename... Args
+    >
+    void processSubstreamsByIdxAcc(Fn&& fn, Accumulator& accum, Args&&... args)
+    {
+    	SubstreamsByIdxDispatcher<Stream, SubstreamsIdxList>::dispatchAll(
+    			allocator(),
+    			ProcessSubstreamsByIdxAccFnAdaptor(),
+    			fn,
+                accum,
+                std::forward<Args>(args)...
+        );
+    }
+
+
+
+
+
+
 
 
 

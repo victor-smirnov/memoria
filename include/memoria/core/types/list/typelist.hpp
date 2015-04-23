@@ -86,34 +86,36 @@ template <typename T> struct ListPrinter;
 
 template <typename Head, typename... Tail>
 struct ListPrinter<TypeList<Head, Tail...>> {
-    static void print(std::ostream& out)
+    static std::ostream& print(std::ostream& out)
     {
         out<<::memoria::vapi::TypeNameFactory<Head>::name()<<std::endl;
-        ListPrinter<TypeList<Tail...>>::print(out);
+        return ListPrinter<TypeList<Tail...>>::print(out);
     }
 };
 
 template <>
 struct ListPrinter<TypeList<>> {
-    static void print(std::ostream& out)
+    static std::ostream& print(std::ostream& out)
     {
+    	return out;
     }
 };
 
 
 template <typename T, T Head, T... Tail>
 struct ListPrinter<ValueList<T, Head, Tail...>> {
-    static void print(std::ostream& out)
+    static std::ostream& print(std::ostream& out)
     {
         out<<Head<<std::endl;
-        ListPrinter<ValueList<T, Tail...>>::print(out);
+        return ListPrinter<ValueList<T, Tail...>>::print(out);
     }
 };
 
 template <typename T>
 struct ListPrinter<ValueList<T>> {
-    static void print(std::ostream& out)
+    static std::ostream& print(std::ostream& out)
     {
+    	return out;
     }
 };
 
@@ -122,8 +124,7 @@ template <typename... T>
 struct TypesPrinter {
 	static std::ostream& print(std::ostream& out)
 	{
-		ListPrinter<TL<T...>>::print(out);
-		return out;
+		return ListPrinter<TL<T...>>::print(out);
 	}
 };
 

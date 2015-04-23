@@ -17,6 +17,7 @@
 
 #include <memoria/prototypes/bt/tools/bt_size_list_builder.hpp>
 
+#include <memoria/core/packed/tools/packed_allocator_types.hpp>
 
 #include <iostream>
 #include <tuple>

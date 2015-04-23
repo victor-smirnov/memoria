@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011-2013.
+// Copyright Victor Smirnov 2011-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -10,6 +10,7 @@
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_CTR_UPDATE_HPP
 
 #include <memoria/prototypes/bt/tools/bt_tools.hpp>
+#include <memoria/prototypes/bt/bt_macros.hpp>
 #include <memoria/core/container/macros.hpp>
 
 #include <vector>
@@ -42,12 +43,21 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::UpdateName)
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
 
+    typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
+
 
     static const Int Streams                                                    = Types::Streams;
 
     typedef typename Types::DataTarget                                          DataTarget;
 
-    typedef typename Types::CtrSizeT                                            CtrSizeT;
+
+    using CtrSizeT = typename Types::CtrSizeT;
+
+    template <Int Stream>
+    using StreamInputTuple = typename Types::template StreamInputTuple<Stream>;
+
+
+
 
     Position getRemainder(ISource& source)
     {
@@ -169,6 +179,114 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::UpdateName)
         return sum;
     }
 
+
+    //=========================================================================================
+
+    struct UpdateStreamEntryHanlder
+    {
+    	template <
+    		Int Offset,
+    		bool Start,
+    		Int Idx,
+    		typename SubstreamType,
+    		typename AccumulatorItem,
+    		typename Entry
+    	>
+    	void stream(SubstreamType* obj, AccumulatorItem& accum, Int idx, const Entry& entry)
+    	{
+    		obj->template _update<Offset>(idx, std::get<Idx>(entry), accum);
+
+//    		if (update_type == UpdateType::SET)
+//    		{
+//    			obj->update(idx, std::get<Idx>(entry));
+//    		}
+//    		else if (update_type == UpdateType::ADD)
+//    		{
+//    			obj->add(idx, std::get<Idx>(entry));
+//    		}
+//    		else {
+//    			// throw exception
+//    		}
+    	}
+    };
+
+    template <Int Stream, typename SubstreamsList>
+    struct UpdateStreamEntryFn
+    {
+    	template <typename NTypes, typename... Args>
+    	void treeNode(LeafNode<NTypes>* node, Int idx, Accumulator& accum, Args&&... args)
+    	{
+    		node->template processSubstreamsByIdxAcc<
+    			Stream,
+    			SubstreamsList
+    		>(
+    			UpdateStreamEntryHanlder(),
+    			accum,
+    			idx,
+    			std::forward<Args>(args)...
+    		);
+    	}
+    };
+
+
+    template <Int Stream, typename SubstreamsList, typename... TupleTypes>
+    std::tuple<bool, Accumulator> tryUpdateStreamEntry(Iterator& iter, const std::tuple<TupleTypes...>& entry)
+    {
+    	static_assert(
+    			ListSize<SubstreamsList>::Value == sizeof...(TupleTypes),
+    			"Input tuple size must match SubstreamsList size"
+    	);
+
+    	auto& self = this->self();
+
+    	PageUpdateMgr mgr(self);
+
+    	self.updatePageG(iter.leaf());
+
+    	mgr.add(iter.leaf());
+
+    	try {
+    		Accumulator accum;
+    		LeafDispatcher::dispatch(
+    				iter.leaf(),
+    				UpdateStreamEntryFn<Stream, SubstreamsList>(),
+    				iter.idx(),
+    				accum,
+    				entry
+    		);
+    		return std::make_tuple(true, accum);
+    	}
+    	catch (PackedOOMException& e)
+    	{
+    		mgr.rollback();
+    		return std::make_tuple(false, Accumulator());
+    	}
+    }
+
+
+    template <Int Stream, typename SubstreamsList, typename... TupleTypes>
+    void updateStreamEntry(Iterator& iter, const std::tuple<TupleTypes...>& entry)
+    {
+    	auto& self      = this->self();
+
+    	auto result = self.template tryUpdateStreamEntry<Stream, SubstreamsList>(iter, entry);
+
+    	if (!std::get<0>(result))
+    	{
+    		iter.split();
+
+    		result = self.template tryUpdateStreamEntry<Stream, SubstreamsList>(iter, entry);
+
+    		if (!std::get<0>(result))
+    		{
+    			throw Exception(MA_SRC, "Second insertion attempt failed");
+    		}
+    	}
+
+    	self.updateParent(iter.leaf(), std::get<1>(result));
+
+    	//iter.skipFw(1);
+    }
 
 MEMORIA_CONTAINER_PART_END
 

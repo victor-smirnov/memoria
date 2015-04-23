@@ -119,6 +119,47 @@ int main() {
 	cout<<StreamTupleHelper<Tuple>::convert()<<endl;
 
 	cout<<StreamTupleHelper<Tuple>::convertTupleAll(std::make_tuple(1, 5, 6.6))<<endl;
+
+
+
+	using LeafStructList2 = TL<
+
+			TypeList<
+				TL<PkdStruct<Int, 4>, PkdStruct<Int, 2>>,
+
+				PkdStruct<Int, 10>,
+
+				TL<PkdStruct<Int, 4>, PkdStruct<Int, 2>>,
+
+				PkdStruct<Int, 11>,
+
+				TL<PkdStruct<Int, 4>, PkdStruct<Int, 2>, PkdStruct<Int, 2>>,
+
+				PkdStruct<Int, 17>,
+
+				PkdStruct<Int, 4>,
+
+				PkdStruct<Int, 4>
+			>,
+
+			TypeList<
+				PkdStruct<Int, 11>, //12 //br:8
+
+				TL<PkdStruct<Int, 4>, PkdStruct<Int, 2>>,
+
+				PkdStruct<Int, 11>,
+
+				TL<PkdStruct<Int, 4>, PkdStruct<Int, 2>, PkdStruct<Int, 2>>,
+
+				PkdStruct<Int, 17>
+			>
+	>;
+
+	const Int LeafIdx = 13;
+
+	cout<<"BranchIndex: "<<LeafToBranchIndexByValueTranslator<LeafStructList2, LeafIdx>::BranchStructIdx<<endl;
+	cout<<"Offset: "<<LeafToBranchIndexByValueTranslator<LeafStructList2, LeafIdx>::LeafOffset<<endl;
+	cout<<"ISStart: "<<LeafToBranchIndexByValueTranslator<LeafStructList2, LeafIdx>::IsStreamStart<<endl;
 }
 
 

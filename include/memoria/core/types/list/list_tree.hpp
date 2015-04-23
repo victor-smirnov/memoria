@@ -165,9 +165,37 @@ struct MakeValueListH<T, To, To> {
 };
 
 
-
 template <typename T, T From, T To>
 using MakeValueList = typename MakeValueListH<T, From, To>::Type;
+
+
+
+template <Int V, typename VList> struct AddToValueListH;
+
+template <
+	Int V,
+	typename T,
+	T Head,
+	T... Tail
+>
+struct AddToValueListH<V, ValueList<T, Head, Tail...>> {
+	using Type = MergeValueListsT<
+			ValueList<T, V + Head>,
+			typename AddToValueListH<V, ValueList<T, Tail...>>::Type
+	>;
+};
+
+template <Int V, typename T>
+struct AddToValueListH<V, ValueList<T>> {
+	using Type = ValueList<T>;
+};
+
+
+template <Int V, typename VList>
+using AddToValueList = typename AddToValueListH<V, VList>::Type;
+
+
+
 
 
 template <typename List, Int LeafIdx, typename Path = IntList<>, Int Idx = 0> struct BuildTreePath;

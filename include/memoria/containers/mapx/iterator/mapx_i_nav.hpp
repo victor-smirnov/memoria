@@ -135,6 +135,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
     	);
     }
 
+
+
     void remove() {
     	auto& self = this->self();
     	self.ctr().template removeStreamEntry<0>(self);

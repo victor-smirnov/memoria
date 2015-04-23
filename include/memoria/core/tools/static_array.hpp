@@ -597,7 +597,8 @@ public:
         return *this;
     }
 
-    MyType& operator+=(const MyType& other)
+    template <typename T>
+    MyType& operator+=(const StaticVector<T, Indexes>& other)
     {
         for (Int c = 0; c < Indexes; c++)
         {
@@ -629,6 +630,7 @@ public:
         return result;
     }
 
+
     MyType operator-(const MyType& other) const
     {
         MyType result = *this;
@@ -654,7 +656,8 @@ public:
     }
 
 
-    MyType& operator-=(const MyType& other)
+    template <typename T>
+    MyType& operator-=(const StaticVector<T, Indexes>& other)
     {
         for (Int c = 0; c < Indexes; c++)
         {

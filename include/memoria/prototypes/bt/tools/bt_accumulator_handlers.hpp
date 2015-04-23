@@ -113,7 +113,7 @@ struct ItemSize<StreamStartTag<List>> {
 
 template <
     typename Tuple,
-    typename List,
+    typename OffsetList,
     Int From            = 0,
     Int To              = std::tuple_size<Tuple>::value,
     Int TotalIdx        = 0,
@@ -123,19 +123,19 @@ struct AccumulatorLeafHandler;
 
 template <
     typename Tuple,
-    typename List,
+    typename OffsetList,
     Int From,
     Int To,
     Int TotalIdx
 >
-struct AccumulatorLeafHandler<Tuple, List, From, To, TotalIdx, false>
+struct AccumulatorLeafHandler<Tuple, OffsetList, From, To, TotalIdx, false>
 {
     template<typename, typename, Int, Int, Int, bool> friend class AccumulatorLeafHandlers;
 
     template <typename Fn, typename... Args>
     static void process(Tuple& tuple, Fn&& fn, Args&&... args)
     {
-        using ListElement = typename Select<From, List>::Result;
+        using ListElement = typename Select<From, OffsetList>::Result;
 
         detail::AccumulatorLeafItemHandler<ListElement, TotalIdx>::process(
                 std::get<From>(tuple),
@@ -145,7 +145,7 @@ struct AccumulatorLeafHandler<Tuple, List, From, To, TotalIdx, false>
 
         AccumulatorLeafHandler<
             Tuple,
-            List,
+            OffsetList,
             From + 1,
             To,
             TotalIdx + detail::ItemSize<ListElement>::Value
@@ -161,17 +161,17 @@ struct AccumulatorLeafHandler<Tuple, List, From, To, TotalIdx, false>
 
 template <
     typename Tuple,
-    typename List,
+    typename OffsetList,
     Int From,
     Int To,
     Int TotalIdx
 >
-struct AccumulatorLeafHandler<Tuple, List, From, To, TotalIdx, true>
+struct AccumulatorLeafHandler<Tuple, OffsetList, From, To, TotalIdx, true>
 {
     template <typename Fn, typename... Args>
     static void process(Tuple& tuple, Fn&& fn, Args&&... args)
     {
-        using ListElement = typename Select<From, List>::Result;
+        using ListElement = typename Select<From, OffsetList>::Result;
 
         detail::AccumulatorLeafItemHandler<ListElement, TotalIdx>::process(
                 std::get<From>(tuple),
@@ -180,6 +180,89 @@ struct AccumulatorLeafHandler<Tuple, List, From, To, TotalIdx, true>
         );
     }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+template <
+    typename Tuple,
+    typename OffsetList,
+    typename IdxList,
+    Int TotalIdx = 0
+>
+struct AccumulatorLeafByListHandler;
+
+template <
+    typename Tuple,
+    typename OffsetList,
+    Int Head,
+    Int... Tail,
+    Int TotalIdx
+>
+struct AccumulatorLeafByListHandler<Tuple, OffsetList, IntList<Head, Tail...>, TotalIdx>
+{
+    template<typename, typename, Int, Int, Int, bool> friend class AccumulatorLeafHandlers;
+
+    template <typename Fn, typename... Args>
+    static void process(Tuple& tuple, Fn&& fn, Args&&... args)
+    {
+        using ListElement = typename Select<Head, OffsetList>::Result;
+
+        detail::AccumulatorLeafItemHandler<ListElement, TotalIdx>::process(
+                std::get<Head>(tuple),
+                std::forward<Fn>(fn),
+                std::forward<Args>(args)...
+        );
+
+        AccumulatorLeafByListHandler<
+            Tuple,
+            OffsetList,
+            IntList<Tail...>,
+            TotalIdx + detail::ItemSize<ListElement>::Value
+        >
+        ::process(
+                tuple,
+                std::forward<Fn>(fn),
+                std::forward<Args>(args)...
+        );
+    }
+};
+
+
+template <
+    typename Tuple,
+    typename OffsetList,
+    Int Head,
+    Int TotalIdx
+>
+struct AccumulatorLeafByListHandler<Tuple, OffsetList, IntList<Head>, TotalIdx>
+{
+    template <typename Fn, typename... Args>
+    static void process(Tuple& tuple, Fn&& fn, Args&&... args)
+    {
+        using ListElement = typename Select<Head, OffsetList>::Result;
+
+        detail::AccumulatorLeafItemHandler<ListElement, TotalIdx>::process(
+                std::get<Head>(tuple),
+                std::forward<Fn>(fn),
+                std::forward<Args>(args)...
+        );
+    }
+};
+
+
+
+
+
+
 
 
 

@@ -124,6 +124,15 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
         self.idx() = 0;
     }
 
+    template <Int Stream, typename SubstreamsList, typename... Args>
+    void _updateStream(Args&&... args)
+    {
+    	auto& self = this->self();
+    	auto& ctr  = self.model();
+
+    	ctr.template updateStreamEntry<Stream, SubstreamsList>(self, std::make_tuple(std::forward<Args>(args)...));
+    }
+
 MEMORIA_ITERATOR_PART_END
 
 

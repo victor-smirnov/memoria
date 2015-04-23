@@ -37,20 +37,26 @@ int main() {
 
 		auto iter = map.Begin();
 
-		int size = 1000;
+		int size = 10;
 
 		for (int c = 0; c < size; c++) {
 			iter.insert(1, c);
 		}
 
-		map.findK(0);
+		iter = map.findK(3);
 
-		iter.findFwGT(0, 100);
-		iter.findFwGE(0, 100);
-		iter.findBwGT(0, 100);
-		iter.findBwGE(0, 100);
+		iter.dump();
 
-		iter.remove();
+		iter.template _updateStream<0, IntList<1>>(123);
+
+		iter.dump();
+
+//		iter.findFwGT(0, 100);
+//		iter.findFwGE(0, 100);
+//		iter.findBwGT(0, 100);
+//		iter.findBwGE(0, 100);
+
+//		iter.remove();
 
 		alloc.commit();
 

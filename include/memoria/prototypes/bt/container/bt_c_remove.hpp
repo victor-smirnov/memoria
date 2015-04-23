@@ -67,7 +67,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveName)
         void treeNode(LeafNode<NTypes>* node, Int idx, Accumulator& accum)
         {
     		node->layout(255);
-            node->template processSubstreamsAcc<Stream, RemoveFromStreamHanlder>(accum, idx);
+            node->template processStreamAcc<Stream, RemoveFromStreamHanlder>(accum, idx);
         }
     };
 

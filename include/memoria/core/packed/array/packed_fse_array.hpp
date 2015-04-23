@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2013.
+// Copyright Victor Smirnov 2013-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -423,6 +423,13 @@ public:
         insertSpace(pos, 1);
         value(pos) = val;
     }
+
+    template <Int Offset, typename T, Int Size>
+    void _update(Int pos, Value val, StaticVector<T, Size>& accum)
+    {
+        value(pos) = val;
+    }
+
 
     void update(IData* data, Int pos, Int length)
     {

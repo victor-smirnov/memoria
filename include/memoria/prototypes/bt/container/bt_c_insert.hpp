@@ -120,11 +120,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertName)
     //==================================================================================
 
     template <
-    Int Idx,
-    Int Offset,
-    bool StreamStart
+    	Int Idx,
+    	Int Offset,
+    	bool StreamStart
     >
-    struct InsertIntoStreamHanlder
+    struct InsertEntryIntoStreamHanlder
     {
     	template <typename SubstreamType, typename AccumulatorItem, typename Entry>
     	void stream(SubstreamType* obj, AccumulatorItem& accum, Int idx, const Entry& entry)
@@ -140,17 +140,21 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertName)
     };
 
 
+
+
     template <Int Stream>
-    struct InsertIntoStreamFn
+    struct InsertEntryIntoStreamFn
     {
-    	template <typename NTypes, typename Entry>
-    	void treeNode(LeafNode<NTypes>* node, Int idx, Accumulator& accum, const Entry& entry)
+    	template <typename NTypes, typename... Args>
+    	void treeNode(LeafNode<NTypes>* node, Int idx, Accumulator& accum, Args&&... args)
     	{
     		node->layout(255);
-
-    		node->template processSubstreamsAcc<Stream, InsertIntoStreamHanlder>(accum, idx, entry);
+    		node->template processStreamAcc<Stream, InsertEntryIntoStreamHanlder>(accum, idx, std::forward<Args>(args)...);
     	}
     };
+
+
+
 
     template <Int Stream>
     std::tuple<bool, Accumulator> tryInsertStreamEntry(Iterator& iter, const StreamInputTuple<Stream>& entry)
@@ -165,7 +169,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertName)
 
     	try {
     		Accumulator accum;
-    		LeafDispatcher::dispatch(iter.leaf(), InsertIntoStreamFn<Stream>(), iter.idx(), accum, entry);
+    		LeafDispatcher::dispatch(iter.leaf(), InsertEntryIntoStreamFn<Stream>(), iter.idx(), accum, entry);
     		return std::make_tuple(true, accum);
     	}
     	catch (PackedOOMException& e)
