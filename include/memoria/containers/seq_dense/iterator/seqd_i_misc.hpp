@@ -257,7 +257,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
     {
     	auto& self = this->self();
 
-    	FindForwardWalker2<memoria::bt1::WalkerTypes<Types, IntList<0>>> walker(0, 0);
+    	FindForwardWalker2<bt::WalkerTypes<Types, IntList<0>>> walker(0, 0);
 
     	self.cache().reset();
 

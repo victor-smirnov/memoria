@@ -15,15 +15,17 @@
 #include <tuple>
 
 namespace memoria {
-namespace bt1     {
 
-
-
-
+namespace bt {
 template <typename Types, typename LeafPath_>
 struct WalkerTypes: Types {
 	using LeafPath 		= LeafPath_;
 };
+}
+
+namespace bt1     {
+
+
 
 template <
     typename Types,

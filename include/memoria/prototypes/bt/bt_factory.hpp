@@ -61,7 +61,7 @@
 
 namespace memoria    {
 
-using memoria::bt1::WalkerTypes;
+using memoria::bt::WalkerTypes;
 
 template <typename Profile_, typename ContainerTypeSelector>
 struct BTTypes {

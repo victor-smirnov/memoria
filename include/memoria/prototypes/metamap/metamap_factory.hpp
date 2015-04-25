@@ -54,7 +54,7 @@
 
 namespace memoria {
 
-using bt1::WalkerTypes;
+using bt::WalkerTypes;
 
 template <
     typename Profile,
