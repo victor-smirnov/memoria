@@ -15,7 +15,7 @@
 #include <tuple>
 
 namespace memoria {
-namespace bt1     {
+namespace bt      {
 namespace detail  {
 
 //FIXME: struct name typo

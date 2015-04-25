@@ -44,7 +44,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorFindName)
 
     template <typename Walker>
     auto _findFw2(Walker&& walker) ->
-    memoria::bt1::WalkerResultFnType<Walker>
+    WalkerResultFnType<Walker>
     {
     	auto& self = this->self();
 
@@ -64,7 +64,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorFindName)
 
     template <typename Walker>
     auto _findBw2(Walker&& walker) ->
-    memoria::bt1::WalkerResultFnType<Walker>
+    WalkerResultFnType<Walker>
     {
         auto& self = this->self();
 
@@ -85,7 +85,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorFindName)
 
 
     template <typename LeafPath>
-    memoria::bt1::WalkerResultFnType<typename Types::template FindGTForwardWalker<Types, LeafPath>>
+    WalkerResultFnType<typename Types::template FindGTForwardWalker<Types, LeafPath>>
     _findFwGT(Int index, TargetType<LeafPath> key)
     {
     	MEMORIA_ASSERT(index, >=, 0);
@@ -97,7 +97,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorFindName)
     }
 
     template <typename LeafPath>
-    memoria::bt1::WalkerResultFnType<typename Types::template FindGEBackwardWalker<Types, LeafPath>>
+    WalkerResultFnType<typename Types::template FindGEBackwardWalker<Types, LeafPath>>
     _findFwGE(Int index, TargetType<LeafPath> key)
     {
     	MEMORIA_ASSERT(index, >=, 0);
@@ -110,7 +110,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorFindName)
 
 
     template <typename LeafPath>
-    memoria::bt1::WalkerResultFnType<typename Types::template FindGTBackwardWalker<Types, LeafPath>>
+    WalkerResultFnType<typename Types::template FindGTBackwardWalker<Types, LeafPath>>
     _findBwGT(Int index, TargetType<LeafPath> key)
     {
     	MEMORIA_ASSERT(index, >=, 0);
@@ -122,7 +122,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorFindName)
     }
 
     template <typename LeafPath>
-    memoria::bt1::WalkerResultFnType<typename Types::template FindGEBackwardWalker<Types, LeafPath>>
+    WalkerResultFnType<typename Types::template FindGEBackwardWalker<Types, LeafPath>>
     _findBwGE(Int index, TargetType<LeafPath> key)
     {
     	MEMORIA_ASSERT(index, >=, 0);
@@ -136,7 +136,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorFindName)
 
 
     template <typename LeafPath>
-    memoria::bt1::WalkerResultFnType<typename Types::template FindGTForwardWalker<Types, LeafPath>>
+    WalkerResultFnType<typename Types::template FindGTForwardWalker<Types, LeafPath>>
     _findGT(Int index, TargetType<LeafPath> key)
     {
     	if (key >= 0) {
@@ -148,7 +148,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorFindName)
     }
 
     template <typename LeafPath>
-    memoria::bt1::WalkerResultFnType<typename Types::template FindGEForwardWalker<Types, LeafPath>>
+    WalkerResultFnType<typename Types::template FindGEForwardWalker<Types, LeafPath>>
     _findGE(Int index, TargetType<LeafPath> key)
     {
     	if (key >= 0) {

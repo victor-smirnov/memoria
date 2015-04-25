@@ -10,7 +10,7 @@
 #include <memoria/prototypes/bt/walkers/bt_walker_base.hpp>
 
 namespace memoria {
-namespace bt1     {
+namespace bt      {
 
 
 template <

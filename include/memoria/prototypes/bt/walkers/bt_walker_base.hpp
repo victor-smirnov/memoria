@@ -19,31 +19,6 @@ namespace bt1     {
 
 
 
-class StreamOpResult {
-	Int idx_;
-	Int start_;
-	bool out_of_range_;
-	bool empty_;
-
-public:
-	StreamOpResult(Int idx, Int start, bool out_of_range, bool empty = false): idx_(idx), start_(start), out_of_range_(out_of_range), empty_(empty) {}
-
-	Int idx() const {
-		return idx_;
-	}
-
-	Int start() const {
-		return start_;
-	}
-
-	bool out_of_range(){
-		return out_of_range_;
-	}
-
-	bool empty(){
-		return empty_;
-	}
-};
 
 template <typename Types, typename LeafPath_>
 struct WalkerTypes: Types {
@@ -275,6 +250,37 @@ public:
 };
 
 
+}
+
+namespace bt {
+
+
+class StreamOpResult {
+	Int idx_;
+	Int start_;
+	bool out_of_range_;
+	bool empty_;
+
+public:
+	StreamOpResult(Int idx, Int start, bool out_of_range, bool empty = false): idx_(idx), start_(start), out_of_range_(out_of_range), empty_(empty) {}
+
+	Int idx() const {
+		return idx_;
+	}
+
+	Int start() const {
+		return start_;
+	}
+
+	bool out_of_range(){
+		return out_of_range_;
+	}
+
+	bool empty(){
+		return empty_;
+	}
+};
+
 
 
 template <typename W>
@@ -316,7 +322,7 @@ protected:
 public:
 
     template <typename LeafPath>
-    using AccumItemH = memoria::bt::AccumItem<LeafStructList, LeafPath, IteratorAccumulator>;
+    using AccumItemH = AccumItem<LeafStructList, LeafPath, IteratorAccumulator>;
 
 protected:
 

@@ -153,61 +153,46 @@ struct BTTypes {
 
 
     template <typename Types, typename LeafPath>
-    using FindGTForwardWalker          = memoria::bt1::FindGTForwardWalker2<WalkerTypes<Types, LeafPath>>;
+    using FindGTForwardWalker          = bt::FindGTForwardWalker2<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using FindGTBackwardWalker         = memoria::bt1::FindGTBackwardWalker2<WalkerTypes<Types, LeafPath>>;
+    using FindGTBackwardWalker         = bt::FindGTBackwardWalker2<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using FindGEForwardWalker          = memoria::bt1::FindGEForwardWalker2<WalkerTypes<Types, LeafPath>>;
+    using FindGEForwardWalker          = bt::FindGEForwardWalker2<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using FindGEBackwardWalker         = memoria::bt1::FindGEBackwardWalker2<WalkerTypes<Types, LeafPath>>;
+    using FindGEBackwardWalker         = bt::FindGEBackwardWalker2<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using SkipForwardWalker     = memoria::bt1::SkipForwardWalker2<WalkerTypes<Types, LeafPath>>;
+    using SkipForwardWalker     = bt::SkipForwardWalker2<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using SkipBackwardWalker    = memoria::bt1::SkipBackwardWalker2<WalkerTypes<Types, LeafPath>>;
+    using SkipBackwardWalker    = bt::SkipBackwardWalker2<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using SelectForwardWalker   = memoria::bt1::SelectForwardWalker2<WalkerTypes<Types, LeafPath>>;
+    using SelectForwardWalker   = bt::SelectForwardWalker2<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using SelectBackwardWalker  = memoria::bt1::SelectBackwardWalker2<WalkerTypes<Types, LeafPath>>;
+    using SelectBackwardWalker  = bt::SelectBackwardWalker2<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using RankForwardWalker   = memoria::bt1::RankForwardWalker2<WalkerTypes<Types, LeafPath>>;
+    using RankForwardWalker   = bt::RankForwardWalker2<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using RankBackwardWalker  = memoria::bt1::RankBackwardWalker2<WalkerTypes<Types, LeafPath>>;
+    using RankBackwardWalker  = bt::RankBackwardWalker2<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types>
-    using NextLeafWalker        = ::memoria::bt1::ForwardLeafWalker<Types>;
+    using NextLeafWalker        = bt::ForwardLeafWalker<Types>;
 
     template <typename Types>
-    using PrevLeafWalker        = ::memoria::bt1::BackwardLeafWalker<Types>;
+    using PrevLeafWalker        = bt::BackwardLeafWalker<Types>;
 
     template <typename Types, typename LeafPath>
-    using NextLeafMutistreamWalker 	= memoria::bt1::SkipForwardWalker2<WalkerTypes<Types, LeafPath>>;
+    using NextLeafMutistreamWalker 	= bt::SkipForwardWalker2<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using PrevLeafMutistreamWalker	= memoria::bt1::SkipBackwardWalker2<WalkerTypes<Types, LeafPath>>;
-
-
-
-
-//    template <typename Types, typename LeafPath>
-//    using FindBeginWalker                   = TypeIsNotDefined;
-//
-//    template <typename Types, typename LeafPath>
-//    using FindEndWalker                     = TypeIsNotDefined;
-//
-//    template <typename Types, typename LeafPath>
-//    using FindRBeginWalker                  = TypeIsNotDefined;
-//
-//    template <typename Types, typename LeafPath>
-//    using FindREndWalker                    = TypeIsNotDefined;
+    using PrevLeafMutistreamWalker	= bt::SkipBackwardWalker2<WalkerTypes<Types, LeafPath>>;
 };
 
 

@@ -33,7 +33,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorSelectName)
 
 
     template <typename LeafPath>
-    memoria::bt1::WalkerResultFnType<typename Types::template SelectForwardWalker<Types, LeafPath>>
+    WalkerResultFnType<typename Types::template SelectForwardWalker<Types, LeafPath>>
     _selectFw(Int index, CtrSizeT rank)
     {
     	MEMORIA_ASSERT(index, >=, 0);
@@ -45,7 +45,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorSelectName)
     }
 
     template <typename LeafPath>
-    memoria::bt1::WalkerResultFnType<typename Types::template SelectBackwardWalker<Types, LeafPath>>
+    WalkerResultFnType<typename Types::template SelectBackwardWalker<Types, LeafPath>>
     _selectBw(Int index, CtrSizeT rank)
     {
     	MEMORIA_ASSERT(index, >=, 0);
@@ -57,7 +57,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorSelectName)
     }
 
     template <typename LeafPath>
-    memoria::bt1::WalkerResultFnType<typename Types::template SelectForwardWalker<Types, LeafPath>>
+    WalkerResultFnType<typename Types::template SelectForwardWalker<Types, LeafPath>>
     _select(Int index, CtrSizeT rank)
     {
     	if (rank >= 0) {

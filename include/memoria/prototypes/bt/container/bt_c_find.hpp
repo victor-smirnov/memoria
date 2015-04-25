@@ -146,7 +146,7 @@ public:
     };
 
     template <typename Walker>
-    memoria::bt1::StreamOpResult findFw2(NodeBaseG& node, Int stream, Int idx, Walker&& walker);
+    StreamOpResult findFw2(NodeBaseG& node, Int stream, Int idx, Walker&& walker);
 
     template <typename Walker>
     FindResult findFw2(NodeChain node_chain, Walker&& walker, WalkDirection direction = WalkDirection::UP);

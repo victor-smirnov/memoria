@@ -32,7 +32,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorRankName)
     using CtrSizeT = typename Container::Types::CtrSizeT;
 
     template <typename LeafPath>
-    memoria::bt1::WalkerResultFnType<typename Types::template RankForwardWalker<Types, LeafPath>>
+    WalkerResultFnType<typename Types::template RankForwardWalker<Types, LeafPath>>
     _rankFw(Int index, CtrSizeT pos)
     {
     	MEMORIA_ASSERT(pos, >=, 0);
@@ -44,7 +44,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorRankName)
     }
 
     template <typename LeafPath>
-    memoria::bt1::WalkerResultFnType<typename Types::template RankBackwardWalker<Types, LeafPath>>
+    WalkerResultFnType<typename Types::template RankBackwardWalker<Types, LeafPath>>
     _rankBw(Int index, CtrSizeT pos)
     {
     	MEMORIA_ASSERT(pos, >=, 0);
@@ -56,7 +56,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorRankName)
     }
 
     template <typename LeafPath>
-    memoria::bt1::WalkerResultFnType<typename Types::template RankForwardWalker<Types, LeafPath>>
+    WalkerResultFnType<typename Types::template RankForwardWalker<Types, LeafPath>>
     _rank(Int index, CtrSizeT pos)
     {
     	if (pos >= 0)

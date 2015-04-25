@@ -282,7 +282,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ReadName)
 
 
     template <Int Stream, typename SubstreamsIdxList>
-    struct ApplySubstreamsFn: memoria::bt1::SubstreamsSetNodeFnBase<Stream, SubstreamsIdxList> {
+    struct ApplySubstreamsFn: SubstreamsSetNodeFn<Stream, SubstreamsIdxList> {
     };
 
 

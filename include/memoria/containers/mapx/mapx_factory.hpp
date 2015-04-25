@@ -131,26 +131,26 @@ struct MapXBTTypesBase: public BTTypes<Profile, memoria::BT> {
 
 
     template <typename Types, typename LeafPath>
-    using FindGTWalker          = bt1::FindGTForwardWalker2<WalkerTypes<Types, LeafPath>>;
+    using FindGTWalker          = bt::FindGTForwardWalker2<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using FindGEWalker          = bt1::FindGEForwardWalker2<WalkerTypes<Types, LeafPath>>;
+    using FindGEWalker          = bt::FindGEForwardWalker2<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using FindBackwardWalker    = bt1::FindBackwardWalker2<WalkerTypes<Types, LeafPath>>;
+    using FindBackwardWalker    = bt::FindBackwardWalker2<WalkerTypes<Types, LeafPath>>;
 
 
     template <typename Types, typename LeafPath>
-    using SkipForwardWalker     = bt1::SkipForwardWalker2<WalkerTypes<Types, LeafPath>>;
+    using SkipForwardWalker     = bt::SkipForwardWalker2<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using SkipBackwardWalker    = bt1::SkipBackwardWalker2<WalkerTypes<Types, LeafPath>>;
+    using SkipBackwardWalker    = bt::SkipBackwardWalker2<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using SelectForwardWalker   = bt1::SelectForwardWalker2<WalkerTypes<Types, LeafPath>>;
+    using SelectForwardWalker   = bt::SelectForwardWalker2<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using SelectBackwardWalker  = bt1::SelectBackwardWalker2<WalkerTypes<Types, LeafPath>>;
+    using SelectBackwardWalker  = bt::SelectBackwardWalker2<WalkerTypes<Types, LeafPath>>;
 
 
     template <typename Types>

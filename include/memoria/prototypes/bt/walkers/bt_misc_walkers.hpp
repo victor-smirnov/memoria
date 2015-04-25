@@ -11,7 +11,7 @@
 #include <memoria/core/packed/tools/packed_tools.hpp>
 
 namespace memoria {
-namespace bt1     {
+namespace bt     {
 
 template <typename MyType, typename BranchPath, typename LeafPath>
 class LeveledNodeWalkerBase {
@@ -171,7 +171,7 @@ public:
 
 
 template <Int Stream, typename SubstreamsIdxList>
-struct SubstreamsSetNodeFnBase {
+struct SubstreamsSetNodeFn {
 
 private:
 
