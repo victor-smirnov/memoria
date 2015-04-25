@@ -206,7 +206,7 @@ void M_TYPE::insertEntry(Iterator& iter, const Entry& entry, bool adjust_next)
     NodeBaseG& leaf = iter.leaf();
     Int& idx        = iter.idx();
 
-    if (!self.checkCapacities(leaf, {1}))
+    if (!self.checkCapacities(leaf, Position({1})))
     {
         iter.split();
     }

@@ -266,6 +266,72 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ReadName)
     }
 
 
+    template <typename Fn, typename... Args>
+    using LeafDispatchFnType = auto(Args...)-> decltype(LeafDispatcher::dispatch(std::declval<NodeBaseG&>(), std::declval<Fn>(), std::declval<Args>()...));
+
+    template <typename Fn, typename... Args>
+    using LeafDispatchRtnType = typename FnTraits<LeafDispatchFnType<typename std::remove_reference<Fn>::type, Args...>>::RtnType;
+
+
+    template <typename Fn, typename... Args>
+    using LeafDispatchConstFnType = auto(Args...)-> decltype(LeafDispatcher::dispatch(std::declval<const NodeBaseG&>(), std::declval<Fn>(), std::declval<Args>()...));
+
+    template <typename Fn, typename... Args>
+    using LeafDispatchConstRtnType = typename FnTraits<LeafDispatchConstFnType<typename std::remove_reference<Fn>::type, Args...>>::RtnType;
+
+
+
+    template <Int Stream, typename SubstreamsIdxList>
+    struct ApplySubstreamsFn: memoria::bt1::SubstreamsSetNodeFnBase<Stream, SubstreamsIdxList> {
+    };
+
+
+
+
+    template <Int Stream, typename SubstreamsIdxList, typename Fn, typename... Args>
+    auto _applySubstreamsFn(NodeBaseG& leaf, Fn&& fn, Args&&... args)
+    -> LeafDispatchRtnType<ApplySubstreamsFn<Stream, SubstreamsIdxList>, Fn, Args...>
+    {
+    	return LeafDispatcher::dispatch(leaf, ApplySubstreamsFn<Stream, SubstreamsIdxList>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+    }
+
+    template <Int Stream, typename SubstreamsIdxList, typename Fn, typename... Args>
+    auto _applySubstreamsFn(const NodeBaseG& leaf, Fn&& fn, Args&&... args) const
+    -> LeafDispatchConstRtnType<ApplySubstreamsFn<Stream, SubstreamsIdxList>, Fn, Args...>
+    {
+    	return LeafDispatcher::dispatch(leaf, ApplySubstreamsFn<Stream, SubstreamsIdxList>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+    }
+
+
+    template <typename T, typename... Args>
+    using GetValuesFnType = auto (Args...)-> decltype(std::declval<T>().get_values(std::declval<Args>()...));
+
+    template <typename T, typename... Args>
+    using GetValuesRtnType = typename FnTraits<GetValuesFnType<typename std::remove_reference<T>::type, Args...>>::RtnType;
+
+
+
+
+    struct ReadStreamEntryFn {
+    	template <typename StreamType, typename... Args>
+    	auto stream(const StreamType* obj, Args&&... args) -> GetValuesRtnType<const StreamType, Args...>
+    	{
+    		return obj->get_values(std::forward<Args>(args)...);
+    	}
+    };
+
+
+    template <Int Stream, typename SubstreamsIdxList, typename... Args>
+    using ReadLeafEntryRtnType = LeafDispatchConstRtnType<ApplySubstreamsFn<Stream, SubstreamsIdxList>, ReadStreamEntryFn, Args...>;
+
+    template <Int Stream, typename SubstreamsIdxList, typename... Args>
+    auto _readLeafEntry(const NodeBaseG& leaf, Args&&... args) const -> ReadLeafEntryRtnType<Stream, SubstreamsIdxList, Args...>
+    {
+    	 return _applySubstreamsFn<Stream, SubstreamsIdxList>(leaf, ReadStreamEntryFn(), std::forward<Args>(args)...);
+    }
+
+
+
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bt::ReadName)

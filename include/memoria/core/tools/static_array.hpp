@@ -722,7 +722,7 @@ auto MakeStaticVector(Args&&... args) -> StaticVector<T, sizeof...(Args)>
 
 
 template <typename Key, memoria::Int Indexes>
-ostream& operator<<(ostream& out, const ::memoria::core::StaticVector<Key, Indexes>& accum)
+std::ostream& operator<<(std::ostream& out, const ::memoria::core::StaticVector<Key, Indexes>& accum)
 {
     out<<"[";
 

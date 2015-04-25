@@ -5,7 +5,6 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 #include <memoria/core/types/list/linearize.hpp>
-#include <memoria/prototypes/bt/tools/bt_accumulators.hpp>
 #include <memoria/prototypes/bt/tools/bt_tools.hpp>
 
 

@@ -140,7 +140,7 @@ public:
     auto treeNode(bt::LeafNode<NodeTypes>* node, Args&&... args)
         -> LeafRtnType<bt::LeafNode<NodeTypes>, MyType, Args...>
     {
-        node->template processStream<LeafPath>(self(), std::forward<Args>(args)...);
+        return node->template processStream<LeafPath>(self(), std::forward<Args>(args)...);
     }
 
     template <typename NodeTypes, typename... Args>
@@ -167,6 +167,43 @@ public:
     MyType& self() {return *T2T<MyType*>(this);}
     const MyType& self() const {return *T2T<const MyType*>(this);}
 };
+
+
+
+template <Int Stream, typename SubstreamsIdxList>
+struct SubstreamsSetNodeFnBase {
+
+private:
+
+    template <typename T, typename... Args>
+    using LeafRtnFnType = auto(Args...) -> decltype(
+            std::declval<T>().template processSubstreamsByIdx<Stream, SubstreamsIdxList>(std::declval<Args>()...)
+    );
+
+    template <typename T, typename... Args>
+    using LeafRtnType = typename FnTraits<LeafRtnFnType<T, Args...>>::RtnType;
+
+public:
+    template <typename NodeTypes, typename... Args>
+    auto treeNode(bt::LeafNode<NodeTypes>* node, Args&&... args)
+        -> LeafRtnType<bt::LeafNode<NodeTypes>, Args...>
+    {
+        return node->template processSubstreamsByIdx<Stream, SubstreamsIdxList>(std::forward<Args>(args)...);
+    }
+
+
+    template <typename NodeTypes, typename... Args>
+    auto treeNode(const bt::LeafNode<NodeTypes>* node, Args&&... args)
+        -> LeafRtnType<const bt::LeafNode<NodeTypes>, Args...>
+    {
+        return node->template processSubstreamsByIdx<Stream, SubstreamsIdxList>(std::forward<Args>(args)...);
+    }
+
+//
+//    MyType& self() {return *T2T<MyType*>(this);}
+//    const MyType& self() const {return *T2T<const MyType*>(this);}
+};
+
 
 
 

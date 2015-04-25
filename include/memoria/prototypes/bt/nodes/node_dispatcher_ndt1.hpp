@@ -32,7 +32,7 @@ class NDT1 {
     using NextNDT1 = NDT1<Types, Idx - 1>;
 
     static const Int HASH = Head::PAGE_HASH;
-
+public:
     template <typename T, typename... Args>
     using FnType = auto(Args...) -> decltype(std::declval<T>().template treeNode(std::declval<Args>()...));
 

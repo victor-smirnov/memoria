@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011-2014.
+// Copyright Victor Smirnov 2011-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -44,6 +44,8 @@ struct IsTreeNode<TreeNode, NodePageAdaptor<TreeNode, Types>> {
 template <typename Types, int Idx>
 class NDT0 {
 
+	using MyType = NDT0<Types, Idx>;
+
     using NodeBaseG = typename Types::NodeBaseG;
     using Head      = SelectByIndex<Idx, typename Types::List>;
 
@@ -52,6 +54,7 @@ class NDT0 {
 
     using NextNDT0 = NDT0<Types, Idx - 1>;
 
+public:
     template <typename T, typename... Args>
     using FnType = auto(Args...) -> decltype(std::declval<T>().template treeNode(std::declval<Args>()...));
 
@@ -63,7 +66,6 @@ class NDT0 {
 
     template <typename Fn, typename... Args>
     using DoubleDispatchRtnType = typename FnTraits<DoubleDispatchFnType<typename std::remove_reference<Fn>::type, Args...>>::RtnType;
-
 
 public:
     template <template <typename> class Wrapper, typename Functor, typename... Args>
@@ -245,6 +247,7 @@ class NDT0<Types, 0> {
     static const Int HASH       = Head::PAGE_HASH;
     static const bool Leaf      = Head::Leaf;
 
+public:
     template <typename T, typename... Args>
     using FnType = auto(Args...) -> decltype(std::declval<T>().template treeNode(std::declval<Args>()...));
 

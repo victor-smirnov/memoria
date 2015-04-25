@@ -94,6 +94,8 @@ public:
     		memoria::list_tree::LeafCountInf<LeafSubstreamsStructList, IntList<StreamIdx>>::Value
     >;
 
+
+
     template <Int Stream, typename SubstreamIdxList>
     using SubstreamsByIdxDispatcher = typename Dispatcher::template SubsetDispatcher<
     		memoria::list_tree::AddToValueList<
@@ -159,6 +161,13 @@ public:
 
     template <typename SubstreamsPath, typename Fn, typename... T>
     using ProcessSubstreamsRtnConstType = typename SubstreamsDispatcher<SubstreamsPath>::template ProcessAllRtnConstType<Fn, T...>;
+
+
+    template <Int Stream, typename SubstreamsIdxList, typename Fn, typename... T>
+    using ProcessSubstreamsByIdxRtnType = typename SubstreamsByIdxDispatcher<Stream, SubstreamsIdxList>::template ProcessAllRtnType<Fn, T...>;
+
+    template <Int Stream, typename SubstreamsIdxList, typename Fn, typename... T>
+    using ProcessSubstreamsByIdxRtnConstType = typename SubstreamsByIdxDispatcher<Stream, SubstreamsIdxList>::template ProcessAllRtnConstType<Fn, T...>;
 
 
     LeafNode() = default;
@@ -1343,6 +1352,37 @@ public:
     }
 
 
+
+
+    template <
+    	Int Stream,
+    	typename SubstreamsIdxList,
+    	typename Fn,
+        typename... Args
+    >
+    auto processSubstreamsByIdx(Fn&& fn, Args&&... args) const -> ProcessSubstreamsByIdxRtnConstType<Stream, SubstreamsIdxList, Fn, Args...>
+    {
+    	return SubstreamsByIdxDispatcher<Stream, SubstreamsIdxList>::dispatchAll(
+    			allocator(),
+    			std::forward<Fn>(fn),
+                std::forward<Args>(args)...
+        );
+    }
+
+    template <
+    	Int Stream,
+    	typename SubstreamsIdxList,
+    	typename Fn,
+        typename... Args
+    >
+    auto processSubstreamsByIdx(Fn&& fn, Args&&... args) -> ProcessSubstreamsByIdxRtnType<Stream, SubstreamsIdxList, Fn, Args...>
+    {
+    	return SubstreamsByIdxDispatcher<Stream, SubstreamsIdxList>::dispatchAll(
+    			allocator(),
+    			std::forward<Fn>(fn),
+                std::forward<Args>(args)...
+        );
+    }
 
 
 

@@ -163,6 +163,15 @@ public:
         return buffer_[idx];
     }
 
+
+    Value get_values(Int idx) const {
+    	return value(idx);
+    }
+
+    Value get_values(Int idx, Int index) const {
+    	return value(idx);
+    }
+
     Value* data() {
         return buffer_;
     }

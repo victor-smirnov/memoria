@@ -168,6 +168,26 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
     	return self().template _findBwGE<IntList<0>>(index, key);
     }
 
+
+    template <Int Stream, typename SubstreamsIdxList, typename... Args>
+    using ReadLeafEntryRtnType = typename Container::template ReadLeafEntryRtnType<Stream, SubstreamsIdxList, Args...>;
+
+    auto key() const -> typename std::tuple_element<0, ReadLeafEntryRtnType<0, IntList<0>, Int>>::type
+    {
+    	return std::get<0>(self().ctr().template _readLeafEntry<0, IntList<0>>(self().leaf(), self().idx()));
+    }
+
+    auto key(Int index) const -> typename std::tuple_element<0, ReadLeafEntryRtnType<0, IntList<0>, Int, Int>>::type
+    {
+    	return std::get<0>(self().ctr().template _readLeafEntry<0, IntList<0>>(self().leaf(), self().idx(), index));
+    }
+
+    auto value() const -> typename std::tuple_element<0, ReadLeafEntryRtnType<0, IntList<1>, Int>>::type
+    {
+    	return std::get<0>(self().ctr().template _readLeafEntry<0, IntList<1>>(self().leaf(), self().idx()));
+    }
+
+
 MEMORIA_ITERATOR_PART_END
 
 #define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::mapx::ItrNavName)

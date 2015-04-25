@@ -482,6 +482,22 @@ public:
         return value(block, 0);
     }
 
+    Values get_values(Int idx) const {
+    	Values v;
+
+    	for (Int i = 0; i < Indexes; i++)
+    	{
+    		v[i] = this->value(i, idx);
+    	}
+
+    	return v;
+    }
+
+    Value get_values(Int idx, Int index) const
+    {
+    	return this->value(index, idx);
+    }
+
     void clearIndex()
     {
         for (Int i = 0; i < Indexes; i++)

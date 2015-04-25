@@ -4,7 +4,6 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-
 #include <memoria/memoria.hpp>
 #include <memoria/containers/mapx/mapx_factory.hpp>
 #include <memoria/containers/seq_dense/seqd_factory.hpp>
@@ -53,6 +52,10 @@ int main() {
 		iter.dump();
 
 		iter.template _updateStream<0, IntList<0, 1>>(MakeStaticVector<BigInt>(777), 333);
+
+		cout<<"LeafEntry: "<<iter.template _readLeafEntry<0, IntList<0, 1>>(iter.idx())<<endl;
+		cout<<"Key: "<<iter.key()<<endl;
+		cout<<"Value: "<<iter.value()<<endl;
 
 		iter.dump();
 

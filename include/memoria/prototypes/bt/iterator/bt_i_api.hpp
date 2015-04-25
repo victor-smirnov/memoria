@@ -39,6 +39,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
 
 
 
+
+
     bool nextLeaf();
     bool nextLeafMs(UBigInt streams);
 
@@ -132,6 +134,21 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
 
     	ctr.template updateStreamEntry<Stream, SubstreamsList>(self, std::make_tuple(std::forward<Args>(args)...));
     }
+
+
+
+
+
+    template <Int Stream, typename SubstreamsIdxList, typename... Args>
+    using ReadLeafEntryRtnType = typename Container::template ReadLeafEntryRtnType<Stream, SubstreamsIdxList, Args...>;
+
+    template <Int Stream, typename SubstreamsIdxList, typename... Args>
+    auto _readLeafEntry(Args&&... args) const -> ReadLeafEntryRtnType<Stream, SubstreamsIdxList, Args...>
+    {
+    	 return self().ctr().template _readLeafEntry<Stream, SubstreamsIdxList>(self().leaf(), std::forward<Args>(args)...);
+    }
+
+
 
 MEMORIA_ITERATOR_PART_END
 
