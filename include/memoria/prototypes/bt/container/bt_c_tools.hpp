@@ -580,6 +580,23 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     	return LeafDispatcher::dispatch(node, GetLeafNodeStreamSizes());
     }
 
+
+    template <Int Stream, typename SubstreamsIdxList, typename Fn, typename... Args>
+    auto _applySubstreamsFn(NodeBaseG& leaf, Fn&& fn, Args&&... args)
+    -> DispatchRtnType<LeafDispatcher, SubstreamsSetNodeFn<Stream, SubstreamsIdxList>, Fn, Args...>
+    {
+    	return LeafDispatcher::dispatch(leaf, SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+    }
+
+    template <Int Stream, typename SubstreamsIdxList, typename Fn, typename... Args>
+    auto _applySubstreamsFn(const NodeBaseG& leaf, Fn&& fn, Args&&... args) const
+    -> DispatchConstRtnType<LeafDispatcher, SubstreamsSetNodeFn<Stream, SubstreamsIdxList>, Fn, Args...>
+    {
+    	return LeafDispatcher::dispatch(leaf, SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+    }
+
+
+
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bt::ToolsName)

@@ -11,7 +11,12 @@
 #include <memoria/core/packed/tools/packed_tools.hpp>
 
 namespace memoria {
-namespace bt     {
+namespace bt      {
+
+
+
+
+
 
 template <typename MyType, typename BranchPath, typename LeafPath>
 class LeveledNodeWalkerBase {
@@ -206,7 +211,39 @@ public:
 
 
 
+struct GetLeafValuesFn {
 
+    template <typename T, typename... Args>
+    using FnType = auto (Args...)-> decltype(std::declval<T>().get_values(std::declval<Args>()...));
+
+    template <typename T, typename... Args>
+    using RtnType = typename FnTraits<FnType<typename std::remove_reference<T>::type, Args...>>::RtnType;
+
+
+	template <typename StreamType, typename... Args>
+	auto stream(const StreamType* obj, Args&&... args) -> RtnType<const StreamType, Args...>
+	{
+		return obj->get_values(std::forward<Args>(args)...);
+	}
+};
+
+
+
+struct SetLeafValuesFn {
+
+    template <typename T, typename... Args>
+    using FnType = auto (Args...)-> decltype(std::declval<T>().set_values(std::declval<Args>()...));
+
+    template <typename T, typename... Args>
+    using RtnType = typename FnTraits<FnType<typename std::remove_reference<T>::type, Args...>>::RtnType;
+
+
+	template <typename StreamType, typename... Args>
+	auto stream(const StreamType* obj, Args&&... args) -> RtnType<const StreamType, Args...>
+	{
+		return obj->set_values(std::forward<Args>(args)...);
+	}
+};
 
 
 }

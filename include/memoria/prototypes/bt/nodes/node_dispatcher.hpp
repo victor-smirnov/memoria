@@ -15,6 +15,14 @@
 namespace memoria       {
 namespace bt            {
 
+
+template <typename Dispatcher, typename Fn, typename... Args>
+using DispatchRtnType = decltype(Dispatcher::dispatch(std::declval<typename Dispatcher::NodeBaseG&>(), std::declval<Fn>(), std::declval<Args>()...));
+
+template <typename Dispatcher, typename Fn, typename... Args>
+using DispatchConstRtnType = decltype(Dispatcher::dispatch(std::declval<const typename Dispatcher::NodeBaseG&>(), std::declval<Fn>(), std::declval<Args>()...));
+
+
 template <typename Types, int idx> class NDT0;
 template <typename Types> class NDT0<Types, -1>;
 
@@ -46,7 +54,6 @@ class NDT0 {
 
 	using MyType = NDT0<Types, Idx>;
 
-    using NodeBaseG = typename Types::NodeBaseG;
     using Head      = SelectByIndex<Idx, typename Types::List>;
 
     static const Int HASH       = Head::PAGE_HASH;
@@ -55,6 +62,8 @@ class NDT0 {
     using NextNDT0 = NDT0<Types, Idx - 1>;
 
 public:
+    using NodeBaseG = typename Types::NodeBaseG;
+
     template <typename T, typename... Args>
     using FnType = auto(Args...) -> decltype(std::declval<T>().template treeNode(std::declval<Args>()...));
 
@@ -241,13 +250,14 @@ class NDT0<Types, 0> {
 
     static const Int Idx = 0;
 
-    using NodeBaseG = typename Types::NodeBaseG;
     using Head      = SelectByIndex<Idx, typename Types::List>;
 
     static const Int HASH       = Head::PAGE_HASH;
     static const bool Leaf      = Head::Leaf;
 
 public:
+    using NodeBaseG = typename Types::NodeBaseG;
+
     template <typename T, typename... Args>
     using FnType = auto(Args...) -> decltype(std::declval<T>().template treeNode(std::declval<Args>()...));
 
