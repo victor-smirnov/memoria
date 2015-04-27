@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011-2013.
+// Copyright Victor Smirnov 2011-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -10,6 +10,7 @@
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_INSERT_BATCH_HPP
 
 #include <memoria/prototypes/bt/tools/bt_tools.hpp>
+#include <memoria/prototypes/bt/bt_macros.hpp>
 #include <memoria/core/container/macros.hpp>
 
 #include <vector>
@@ -154,11 +155,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
                 for (Int c = 0; c < max_keys && count < total; start += MAX_CHILDREN)
                 {
                     Int local = 0;
-                    for (
-                            Int batch_idx = 0;
-                            batch_idx < MAX_CHILDREN && c < max_keys && count < total;
-                            c++, batch_idx++, local++
-                    ){
+                    for (Int batch_idx = 0; batch_idx < MAX_CHILDREN && c < max_keys && count < total; batch_idx++)
+                    {
                         children[batch_idx]     =  BuildTree(
                                                         node->id(),
                                                         c,
@@ -168,6 +166,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchName)
                                                    );
 
                         pair.key_count          += children[batch_idx].key_count;
+
+                        c++;
+                        local++;
                     }
 
                     setINodeData(children, node, start, local);

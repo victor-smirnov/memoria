@@ -1,7 +1,7 @@
 include_directories(../tools/include)
 
 if (NOT DEFINED MEMORIA_SANDBOX)
-    set(MEMORIA_SANDBOX accum mapx)
+    set(MEMORIA_SANDBOX instree)
 endif()
 
 
