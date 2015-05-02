@@ -366,7 +366,8 @@ void M_TYPE::updateParent(NodeBaseG& node, const UpdateData& sums)
     if (!node->is_root())
     {
         NodeBaseG parent = self.getNodeParentForUpdate(node);
-        self.updatePath(parent, node->parent_idx(), sums);
+        Int parent_idx = node->parent_idx();
+        self.updatePath(parent, parent_idx, sums);
     }
 }
 

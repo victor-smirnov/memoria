@@ -365,8 +365,6 @@ public:
 
         insert(iter, data);
 
-//        checkAllocator(alloc, "", MA_SRC);
-
         checkIterator(iter, MA_SRC);
 
         skip(iter, -data.size());

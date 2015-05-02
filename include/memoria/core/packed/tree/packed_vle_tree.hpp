@@ -2052,6 +2052,45 @@ public:
         FieldFactory<BufferType>::deserialize(buf, values(), this->data_length());
     }
 
+
+    //=======================
+    template <typename T>
+    void _add(Int block, T& value) const
+    {
+    	value += sum(block);
+    }
+
+    template <typename T>
+    void _add(Int block, Int end, T& value) const
+    {
+    	value += sum(block, end);
+    }
+
+    template <typename T>
+    void _add(Int block, Int start, Int end, T& value) const
+    {
+    	value += sum(block, start, end);
+    }
+
+
+
+    template <typename T>
+    void _sub(Int block, T& value) const
+    {
+    	value -= sum(block);
+    }
+
+    template <typename T>
+    void _sub(Int block, Int end, T& value) const
+    {
+    	value -= sum(block, end);
+    }
+
+    template <typename T>
+    void _sub(Int block, Int start, Int end, T& value) const
+    {
+    	value -= sum(block, start, end);
+    }
 private:
     static Int index_size(Int items_number)
     {
@@ -2311,6 +2350,10 @@ private:
             }
         }
     }
+
+
+
+
 };
 
 
