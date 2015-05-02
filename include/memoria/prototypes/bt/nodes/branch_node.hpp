@@ -1264,6 +1264,22 @@ public:
         }
     }
 
+    template <typename V>
+    void forAllValues(Int start, std::function<void (const V&, Int)> fn) const
+    {
+        auto end = this->size();
+
+        forAllValues(start, end, fn);
+    }
+
+    template <typename V>
+    void forAllValues(std::function<void (const V&, Int)> fn) const
+    {
+        forAllValues(0, fn);
+    }
+
+
+
 
 //    template <typename Fn, typename... Args>
 //    DynDispatchRtnConstType<Fn, Args...>

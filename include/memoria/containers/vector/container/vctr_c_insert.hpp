@@ -104,10 +104,72 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrInsertName)
 
     void insert(Iterator& iter, DataSource& data);
 
+    Accumulator insertSource(NodeBaseG& leaf, Position& idx, Source& source);
+
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::mvector::CtrInsertName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+
+
+M_PARAMS
+typename M_TYPE::Accumulator M_TYPE::insertSource(NodeBaseG& leaf, Position& idx, Source& source)
+{
+    auto& self = this->self();
+
+    Position sizes = self.getRemainderSize(source);
+
+    UBigInt active_streams = sizes.gtZero();
+
+    Accumulator sums;
+    if (self.insertToLeaf(leaf, idx, source, sums))
+    {
+        self.updateParent(leaf, sums);
+
+        return sums;
+    }
+    else {
+        auto right = leaf;
+
+        if (leaf->is_root())
+        {
+            self.newRootP(leaf);
+        }
+
+        if (!self.isAfterEnd(leaf, idx, active_streams))
+        {
+            right = self.splitLeafP(leaf, idx);
+        }
+
+        Accumulator sums = self.appendToLeaf(leaf, idx, source);
+
+        self.updateParent(leaf, sums);
+
+        Position remainder = self.getRemainderSize(source);
+
+        if (remainder.gtAny(0))
+        {
+            Int path_parent_idx = leaf->parent_idx() + 1;
+
+            auto pair = self.createLeafList2(source);
+
+            using Provider = typename Base::ListLeafProvider;
+
+            Provider provider(self, pair.second, pair.first);
+
+            NodeBaseG parent = self.getNodeParentForUpdate(leaf);
+
+            self.insert_subtree(parent, path_parent_idx, provider);
+
+            return sums;
+        }
+        else {
+            return sums;
+        }
+    }
+}
+
+
 
 M_PARAMS
 void M_TYPE::insert(Iterator& iter, DataSource& data)
@@ -134,10 +196,6 @@ void M_TYPE::insert(Iterator& iter, DataSource& data)
     {
         iter.nextLeaf();
     }
-
-//    DebugCounter = 1;
-
-//    iter.dump();
 
     iter.skipFw(inserted);
 }

@@ -203,12 +203,7 @@ public:
 
         checkIterator(iter, MA_SRC);
 
-//        iter.dumpPath();
-
-//        DebugCounter = 2;
         skip(iter, -length);
-
-//        iter.dumpPath();
 
         checkIterator(iter, MA_SRC);
 
@@ -359,7 +354,7 @@ public:
 
 
 
-    void insertInTheMiddle(Allocator&, Ctr& ctr)
+    void insertInTheMiddle(Allocator& alloc, Ctr& ctr)
     {
         Iterator iter    = seek(ctr, getRandomPosition(ctr));
 
@@ -369,6 +364,8 @@ public:
         MemBuffer data   = createDataBuffer();
 
         insert(iter, data);
+
+//        checkAllocator(alloc, "", MA_SRC);
 
         checkIterator(iter, MA_SRC);
 
@@ -382,7 +379,15 @@ public:
             iter.dumpPath();
             throw;
         }
-        checkBufferWritten(iter, data,   MA_SRC);
+
+        try{
+        	checkBufferWritten(iter, data,   MA_SRC);
+        }
+        catch (...) {
+        	iter.dumpPath();
+        	throw;
+        }
+
         checkBufferWritten(iter, suffix, MA_SRC);
     }
 

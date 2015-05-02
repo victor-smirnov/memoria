@@ -771,6 +771,7 @@ void insert_subtree(TreePtr tree, BranchNodePtr node, Int pos, ILeafProvider& pr
 }
 
 
+
 using ListLeafProviderPtr = shared_ptr<ListLeafProvider>;
 
 template <typename LeafFn>
@@ -817,7 +818,7 @@ int main()
 			data1.emplace_back(leaf->values());
 		});
 
-		auto root = BuildSubtree(*provider1.get(), 2);
+		auto root = BuildSubtree(*provider1.get(), 4);
 
 		TreePtr tree = make_shared<::Tree>(root.node());
 
@@ -830,9 +831,9 @@ int main()
 			data2.emplace_back(leaf->values());
 		});
 
-		data1.insert(data1.begin() + 1, data2.begin(), data2.end());
+		data1.insert(data1.begin() + 2, data2.begin(), data2.end());
 
-		auto target_leaf = tree->find_leaf(1);
+		auto target_leaf = tree->find_leaf(2);
 
 		if (target_leaf != nullptr)
 		{

@@ -63,7 +63,8 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
 
     using ContainerPartsList = MergeLists<
             typename Base::ContainerPartsList,
-            bt::NodeNormName,
+            bt::NodeComprName,
+            bt::InsertBatchComprName,
 
             mvector::CtrToolsName,
             mvector::CtrInsertName,

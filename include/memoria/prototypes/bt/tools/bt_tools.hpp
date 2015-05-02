@@ -340,10 +340,6 @@ public:
 
     void add(NodeBaseG& node)
     {
-        if (!node.isSet()) {
-            int a = 0; a++;
-        }
-
         MEMORIA_ASSERT_TRUE(node.isSet());
 
         if (pages_.capacity() > 0)
@@ -358,6 +354,23 @@ public:
         else {
             throw Exception(MA_SRC, "No space left for new pages in the PageUpdateMgr");
         }
+    }
+
+    void checkpoint(NodeBaseG& node)
+    {
+    	for (Int c = 0; c < pages_.getSize(); c++)
+    	{
+    		if (std::get<0>(pages_[c]->id() == node->id()))
+    		{
+    			void* backup_buffer = std::get<1>(pages_[c]);
+    			Int page_size       = std::get<2>(pages_[c]);
+    			CopyByteBuffer(node.page(), backup_buffer, page_size);
+
+    			return;
+    		}
+    	}
+
+    	throw Exception(MA_SRC, "Unregistered page checkpointing attempt in PageUpdateMgr");
     }
 
     void rollback()

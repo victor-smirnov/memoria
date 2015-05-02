@@ -460,6 +460,16 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
         NonLeafDispatcher::dispatch(node, ForAllIDsFn(), start, end, fn);
     }
 
+    void forAllIDs(const NodeBaseG& node, Int start, std::function<void (const ID&, Int)> fn) const
+    {
+    	NonLeafDispatcher::dispatch(node, ForAllIDsFn(), start, fn);
+    }
+
+    void forAllIDs(const NodeBaseG& node, std::function<void (const ID&, Int)> fn) const
+    {
+    	NonLeafDispatcher::dispatch(node, ForAllIDsFn(), fn);
+    }
+
     struct GetRemainderSize {
         template <Int Idx, typename Stream>
         void operator()(const Stream* obj, Position& pos)

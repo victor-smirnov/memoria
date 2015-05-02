@@ -31,6 +31,8 @@ class UpdateName            {};
 
 class InsertName            {};
 class InsertBatchName       {};
+class InsertBatchComprName  {};
+class InsertBatchNormName   {};
 class InsertToolsName       {};
 
 class RemoveName            {};
