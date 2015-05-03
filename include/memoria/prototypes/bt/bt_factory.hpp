@@ -76,7 +76,6 @@ struct BTTypes {
             bt::AllocatorName,
             bt::ToolsName,
             bt::ChecksName,
-//            bt::InsertBatchName,
             bt::InsertBatchCommonName,
             bt::InsertName,
             bt::RemoveToolsName,
@@ -297,6 +296,31 @@ public:
 
     typedef bt::BTreeDispatchers<DispatcherTypes>                              PageDispatchers;
 
+    static const PackedSizeType BranchSizeType 	= PackedListStructSizeType<Linearize<BranchStreamsStructList>>::Value;
+    static const PackedSizeType LeafSizeType 	= PackedListStructSizeType<Linearize<LeafStreamsStructList>>::Value;
+
+    static const PackedSizeType TotalSizeType = PackedSizeTypeList<BranchSizeType, LeafSizeType>::Value;
+
+
+    using CtrList = typename IfThenElse<
+    					TotalSizeType == PackedSizeType::FIXED,
+    					MergeLists<
+    						typename ContainerTypes::ContainerPartsList,
+    						TL<
+    							bt::NodeNormName,
+    							bt::InsertBatchNormName
+    						>
+    					>,
+    					MergeLists<
+    						typename ContainerTypes::ContainerPartsList,
+    						TL<
+    							bt::NodeComprName,
+    							bt::InsertBatchComprName
+    						>
+    					>
+    >::Result;
+
+
 
 public:
     struct Types: ContainerTypes
@@ -310,7 +334,7 @@ public:
         typedef NodePageBase0                                                   NodeBase;
         typedef NodePageBase0G                                                  NodeBaseG;
 
-        typedef typename ContainerTypes::ContainerPartsList                     CtrList;
+        typedef typename MyType::CtrList                     					CtrList;
         typedef typename ContainerTypes::IteratorPartsList                      IterList;
 
         // FIXME Refactor BTree hierarchy

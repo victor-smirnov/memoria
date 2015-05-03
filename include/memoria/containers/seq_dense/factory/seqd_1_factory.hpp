@@ -57,8 +57,6 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >: public BTTypes<Profile, me
         typedef PkdFTree<Packed2TreeTypes<Key, Key, Indexes>>       NonLeafType;
         typedef TL<TL<IndexRange<0, Indexes - 1>>>					IdxRangeList;
 
-//        typedef TL<TL<>>					IdxRangeList;
-
         typedef typename PkdFSSeqTF<BitsPerSymbol>::Type            SequenceTypes;
 
         typedef TL<PkdFSSeq<SequenceTypes>>                         LeafType;
@@ -76,7 +74,6 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >: public BTTypes<Profile, me
 
     using ContainerPartsList = MergeLists<
                 typename Base::ContainerPartsList,
-                bt::NodeComprName,
 
                 seq_dense::CtrNormName,
                 seq_dense::CtrFindName,

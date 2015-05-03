@@ -27,6 +27,45 @@ struct PkdStructInputType {
 };
 
 
+enum class PackedSizeType {FIXED, VARIABLE};
+
+template <typename PkdStruct>
+struct PkdStructSizeType {
+	static const PackedSizeType Value = PkdStruct::SizeType;
+};
+
+
+
+template <typename List> struct PackedListStructSizeType;
+
+template <typename Head, typename... Tail>
+struct PackedListStructSizeType<TL<Head, Tail...>> {
+	static const PackedSizeType HeadValue = PkdStructSizeType<Head>::Value;
+
+	static const PackedSizeType Value =
+			(HeadValue == PackedSizeType::VARIABLE) ?
+					PackedSizeType::VARIABLE :
+					PackedListStructSizeType<TL<Tail...>>::Value;
+};
+
+template <>
+struct PackedListStructSizeType<TL<>> {
+	static const PackedSizeType Value = PackedSizeType::FIXED;
+};
+
+
+template <PackedSizeType... SizeTypes> struct PackedSizeTypeList;
+
+template <PackedSizeType Head, PackedSizeType... Tail>
+struct PackedSizeTypeList<Head, Tail...> {
+	static const PackedSizeType Value = (Head == PackedSizeType::VARIABLE) ? PackedSizeType::VARIABLE : PackedSizeTypeList<Tail...>::Value;
+};
+
+template <>
+struct PackedSizeTypeList<> {
+	static const PackedSizeType Value = PackedSizeType::FIXED;
+};
+
 class MEMORIA_API PackedOOMException: public vapi::MemoriaThrowable {
 
     Int total_;

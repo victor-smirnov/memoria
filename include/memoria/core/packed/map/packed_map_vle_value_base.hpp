@@ -75,6 +75,8 @@ public:
 
     static const bool HasValue                                                          = true;
 
+    static const PackedSizeType ValueSizeType											= PkdStructSizeType<Values>::Value;
+
     Values* values() {
         return Base::template get<Values>(ARRAY);
     }

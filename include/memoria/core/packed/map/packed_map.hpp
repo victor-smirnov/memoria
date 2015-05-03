@@ -70,6 +70,10 @@ public:
     static const Int Indexes                                                    = SizedIndexes - 1;
     static const Int AllocatorBlocks                                            = Blocks + Base::TotalLabels
                                                                                          + Base::HasValue;
+
+
+    static const PackedSizeType SizeType = PackedSizeTypeList<Base::TreeSizeType, Base::LabelsSizeType, Base::ValueSizeType>::Value;
+
     using InputType = Values;
 
     static Int empty_size()

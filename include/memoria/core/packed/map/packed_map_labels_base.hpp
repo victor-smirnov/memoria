@@ -95,6 +95,7 @@ public:
     static const Int LabelsIndexes  = memoria::internal::LabelsBlockSizeBuilder<HiddenLabelsStructsList>::Value +
                                       memoria::internal::LabelsBlockSizeBuilder<LabelsStructsList>::Value;
 
+    static const PackedSizeType LabelsSizeType = PackedListStructSizeType<LabelsStructsList>::Value;
 
     struct EmptySizeFn {
         Int size_ = 0;

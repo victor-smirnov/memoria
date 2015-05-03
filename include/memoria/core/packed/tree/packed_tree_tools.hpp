@@ -45,6 +45,8 @@ template <typename Type, typename Value>
 struct FSECodec {
     typedef Type BufferType;
 
+    static const PackedSizeType SizeType = PackedSizeType::FIXED;
+
     size_t length(const Type* buffer, size_t idx) const {return 1;}
     size_t length(Value value) const {return 1;}
 

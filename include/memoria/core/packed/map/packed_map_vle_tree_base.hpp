@@ -66,6 +66,8 @@ public:
     static const Int TREE                                                       = 0;
     static const Int Blocks                                                     = Blocks_;
 
+    static const PackedSizeType TreeSizeType									= PkdStructSizeType<Tree>::Value;
+
     Tree* tree() {
         return Base::template get<Tree>(TREE);
     }

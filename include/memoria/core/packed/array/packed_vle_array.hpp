@@ -1869,6 +1869,12 @@ private:
 };
 
 
+template <typename Types>
+struct PkdStructSizeType<PackedVLEArray<Types>> {
+	static const PackedSizeType Value = PackedSizeType::VARIABLE;
+};
+
+
 }
 
 

@@ -1636,7 +1636,10 @@ private:
 };
 
 
-
+template <typename Types>
+struct PkdStructSizeType<PkdFTree<Types>> {
+	static const PackedSizeType Value = PackedSizeType::FIXED;
+};
 
 
 }

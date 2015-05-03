@@ -30,6 +30,8 @@ public:
 
     static const bool HasValue                                                  = true;
 
+    static const PackedSizeType ValueSizeType									= PackedSizeType::FIXED;
+
     Value* values() {
         return Base::template get<Value>(ARRAY);
     }

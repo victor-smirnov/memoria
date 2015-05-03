@@ -2357,6 +2357,12 @@ private:
 };
 
 
+template <typename Types>
+struct PkdStructSizeType<PkdVTree<Types>> {
+	static const PackedSizeType Value = PackedSizeType::VARIABLE;
+};
+
+
 }
 
 

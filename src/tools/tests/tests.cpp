@@ -88,7 +88,7 @@ int main(int argc, const char** argv, const char** envp)
         runner.registerTask(new VectorTestSuite());
 //        runner.registerTask(new VectorMapTestSuite());
 //        runner.registerTask(new DblMapTestSuite());
-        runner.registerTask(new SequenceTestSuite());
+//        runner.registerTask(new SequenceTestSuite());
 //        runner.registerTask(new LabeledTreeTestSuite());
 //        runner.registerTask(new FileAllocatorTestSuite());
 //        runner.registerTask(new VTreeTestSuite());

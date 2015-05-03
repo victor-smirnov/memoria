@@ -111,6 +111,7 @@ public:
     typedef typename Index::Codec                                               Codec;
 
     static const Int IndexSizeThreshold                                         = 0;
+    static const PackedSizeType SizeType										= PackedSizeType::VARIABLE; //PkdStructSizeType<Index>::Value;
 
     typedef core::StaticVector<BigInt, Indexes>                                 Values;
     typedef core::StaticVector<BigInt, Indexes + 1>                             Values2;

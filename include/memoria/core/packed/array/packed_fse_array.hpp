@@ -549,6 +549,12 @@ public:
 };
 
 
+template <typename Types>
+struct PkdStructSizeType<PackedFSEArray<Types>> {
+	static const PackedSizeType Value = PackedSizeType::FIXED;
+};
+
+
 }
 
 

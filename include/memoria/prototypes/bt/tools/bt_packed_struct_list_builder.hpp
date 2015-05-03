@@ -10,6 +10,9 @@
 
 #include <memoria/core/types/list/linearize.hpp>
 
+#include <memoria/core/packed/tools/packed_allocator_types.hpp>
+
+
 namespace memoria   {
 namespace bt        {
 
@@ -172,6 +175,12 @@ public:
     using RangeOffsetList 	= TypeList<>;
     using IndexRangeList	= TypeList<>;
 };
+
+
+
+
+
+
 
 
 }
