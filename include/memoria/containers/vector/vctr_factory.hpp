@@ -45,7 +45,7 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
         typedef core::StaticVector<BigInt, 1>                       AccumulatorPart;
         typedef core::StaticVector<BigInt, 1>                       IteratorPrefixPart;
 
-        typedef PkdVTree<Packed2TreeTypes<Key, Key, 1, UByteExintCodec>>             NonLeafType;
+        typedef PkdFTree<Packed2TreeTypes<Key, Key, 1>>             NonLeafType;
         typedef TL<PackedFSEArray<PackedFSEArrayTypes<Value>>>      LeafType;
         typedef TL<TL<>>											IdxRangeList;
     };
@@ -63,8 +63,9 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
 
     using ContainerPartsList = MergeLists<
             typename Base::ContainerPartsList,
-            bt::NodeComprName,
-            bt::InsertBatchComprName,
+            bt::NodeNormName,
+            bt::InsertBatchCommonName,
+            bt::InsertBatchNormName,
 
             mvector::CtrToolsName,
             mvector::CtrInsertName,

@@ -42,6 +42,8 @@
 #include <memoria/prototypes/bt/container/bt_c_checks.hpp>
 #include <memoria/prototypes/bt/container/bt_c_insbatch.hpp>
 #include <memoria/prototypes/bt/container/bt_c_insbatch_compr.hpp>
+#include <memoria/prototypes/bt/container/bt_c_insbatch_norm.hpp>
+#include <memoria/prototypes/bt/container/bt_c_insbatch_common.hpp>
 #include <memoria/prototypes/bt/container/bt_c_insert.hpp>
 #include <memoria/prototypes/bt/container/bt_c_read.hpp>
 #include <memoria/prototypes/bt/container/bt_c_update.hpp>

@@ -526,9 +526,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
         return pos;
     }
 
-
-
-
     MEMORIA_DECLARE_NODE_FN_RTN(EstimateEntropy, estimateEntropy, bool);
     Entropy estimateLeafEntropy(const NodeBaseG& node, const Position& start, const Position& end)
     {

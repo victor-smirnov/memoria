@@ -275,7 +275,7 @@ public:
 
 
 
-    void insertFromStart(Allocator&, Ctr& ctr)
+    void insertFromStart(Allocator& alc, Ctr& ctr)
     {
         Iterator iter = seek(ctr, 0);
 
@@ -285,6 +285,8 @@ public:
         BigInt size = ctr.size();
 
         insert(iter, data);
+
+        checkAllocator(alc, "", MA_SRC);
 
         BigInt size2 = ctr.size();
 

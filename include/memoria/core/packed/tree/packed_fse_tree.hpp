@@ -1039,7 +1039,7 @@ public:
     }
 
 
-    void insert(Int idx, Int size, std::function<Values ()> provider)
+    void insert(Int idx, Int size, std::function<Values ()> provider, bool reindex = true)
     {
         insertSpace(idx, size);
 
@@ -1057,10 +1057,12 @@ public:
             }
         }
 
-        reindex();
+        if (reindex) {
+        	this->reindex();
+        }
     }
 
-    void update(Int start, Int end, std::function<Values ()> provider)
+    void update(Int start, Int end, std::function<Values ()> provider, bool reindex = true)
     {
         Int my_size = this->size();
 
@@ -1079,8 +1081,13 @@ public:
             }
         }
 
-        reindex();
+        if (reindex) {
+        	this->reindex();
+        }
     }
+
+
+
 
     void read(Int start, Int end, std::function<void (const Values&)> consumer) const
     {

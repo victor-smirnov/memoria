@@ -6,8 +6,8 @@
 
 
 
-#ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_INSERT_BATCH_COMPR_HPP
-#define _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_INSERT_BATCH_COMPR_HPP
+#ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_INSERT_BATCH_NORM_HPP
+#define _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_INSERT_BATCH_NORM_HPP
 
 #include <memoria/prototypes/bt/tools/bt_tools.hpp>
 #include <memoria/prototypes/bt/bt_macros.hpp>
@@ -23,7 +23,7 @@ using namespace memoria::core;
 
 using namespace std;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchComprName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchNormName)
 
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
@@ -50,6 +50,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchComprName)
 
     typedef typename Types::Source                                              Source;
 
+
+
     using Checkpoint 	= typename Base::Checkpoint;
     using ILeafProvider = typename Base::ILeafProvider;
 
@@ -65,69 +67,96 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchComprName)
     	CtrSizeT subtree_size() const {return subtree_size_;}
     };
 
-    MEMORIA_DECLARE_NODE_FN(InsertChildFn, insert);
+    class BranchNodeEntry {
+    	Accumulator accum_;
+    	ID child_id_;
+    public:
+    	BranchNodeEntry(const Accumulator& accum, const ID& id): accum_(accum), child_id_(id) {}
+    	BranchNodeEntry() : child_id_(0) {}
+
+    	const Accumulator& accum() const {return accum_;}
+    	const ID& child_id() const {return child_id_;}
+
+    	Accumulator& accum() {return accum_;}
+    	ID& child_id() {return child_id_;}
+    };
+
+
+    struct InsertChildrenFn {
+    	template <typename NodeTypes>
+    	void treeNode(BranchNode<NodeTypes>* node, Int from, Int to, const BranchNodeEntry* entries)
+    	{
+    		int old_size = node->size();
+
+    		node->processAll(*this, from, to, entries);
+
+    		Int idx = 0;
+    		node->insertValues(old_size, from, to - from, [entries, &idx](){
+    			return entries[idx++].child_id();
+    		});
+    	}
+
+    	template <Int ListIdx, typename StreamType>
+    	void stream(StreamType* obj, Int from, Int to, const BranchNodeEntry* entries)
+    	{
+    		Int idx = 0;
+    		obj->insert(from, to - from, [entries, &idx]() {
+    			return std::get<ListIdx>(entries[idx++].accum());
+    		});
+    	}
+    };
+
+
+    MEMORIA_DECLARE_NODE_FN(ReindexBranchNodeFn, reindex);
+
     InsertBatchResult insertSubtree(NodeBaseG& node, Int idx, ILeafProvider& provider, std::function<NodeBaseG ()> child_fn, bool update_hierarchy)
     {
     	auto& self = this->self();
 
-    	Int idx0 = idx;
+//    	self.dumpPath(node);
 
-    	Int batch_size = 32;
-
+    	Int capacity 			= self.getCapacity(node);
     	CtrSizeT provider_size0 = provider.size();
+    	const Int batch_size 	= 32;
 
-    	while(batch_size > 0 && provider.size() > 0)
+    	Int max = idx;
+
+    	for (Int c = 0; c < capacity; c+= batch_size)
     	{
-    		auto checkpoint = provider.checkpoint();
+    		BranchNodeEntry subtrees[batch_size];
 
-    		PageUpdateMgr mgr(self);
-    		mgr.add(node);
-
-    		Int c;
-
-    		try {
-    			for (c = 0; c < batch_size && provider.size() > 0; c++)
-    			{
-    				auto child = child_fn();
-
-    				if (!child.isSet()) {
-    					throw vapi::NullPointerException(MA_SRC, "Subtree is null");
-    				}
-
-    				child->parent_id() 	= node->id();
-    				child->parent_idx() = idx + c;
-
-        			Accumulator sums = self.sums(child);
-        			NonLeafDispatcher::dispatch(node, InsertChildFn(), idx + c, sums, child->id());
-    			}
-
-    			idx += c;
-    		}
-    		catch (PackedOOMException& ex)
+    		Int i, batch_max = (c + batch_size) < capacity ? batch_size : (capacity - c);
+    		for (i = 0; i < batch_max && provider.size() > 0; i++)
     		{
-    			if (node->level() > 1)
-    			{
-    				self.forAllIDs(node, idx, c, [&, this](const ID& id, Int parent_idx)
-    				{
-    					auto& self = this->self();
-    					self.remove_branch_nodes(id);
-    				});
-    			}
+    			NodeBaseG child = child_fn();
 
-    			provider.rollback(checkpoint);
-    			mgr.rollback();
-    			batch_size /= 2;
+    			subtrees[i].accum() 	= self.sums(child);
+    			subtrees[i].child_id() 	= child->id();
+
+    			child->parent_id() = node->id();
+    			child->parent_idx() = idx + c + i;
+    		}
+
+    		NonLeafDispatcher::dispatch(node, InsertChildrenFn(), idx + c, idx + c + i, subtrees);
+
+    		max = idx + c + i;
+
+    		if (i < batch_max)
+    		{
+    			break;
     		}
     	}
+
+//    	self.reindex(node);
 
     	if (update_hierarchy)
     	{
-    		Accumulator sums = self.sums(node, idx0, idx);
+    		Accumulator sums = self.sums(node, idx, max);
     		self.updateParent(node, sums);
-    		self.updateChildIndexes(node, idx);
+    		self.updateChildIndexes(node, max);
     	}
 
-    	return InsertBatchResult(idx, provider_size0 - provider.size());
+    	return InsertBatchResult(max, provider_size0 - provider.size());
     }
 
 
@@ -375,11 +404,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchComprName)
     	}
     }
 
-
-
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bt::InsertBatchComprName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bt::InsertBatchNormName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 

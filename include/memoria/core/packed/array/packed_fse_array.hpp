@@ -454,6 +454,7 @@ public:
 
 
 
+
     void update(IData* data, Int pos, Int length)
     {
         MEMORIA_ASSERT(pos, <=, size_);

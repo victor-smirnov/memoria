@@ -143,7 +143,7 @@ public:
             this->StoreAllocator(allocator, this->getResourcePath(SBuf()<<"insert"<<(++cnt_i_)<<".dump"));
         }
         catch (...) {
-            this->dump_name_ = Store(allocator);
+        	this->dump_name_ = Store(allocator);
             throw;
         }
     }

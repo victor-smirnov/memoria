@@ -536,7 +536,7 @@ private:
         Int size_ = 0;
 
         template <Int StreamIndex, Int AllocatorIdx, Int Idx, typename Node>
-        void stream(Node*, Int tree_size, UBigInt active_streams)
+        void stream(Node* obj, Int tree_size, UBigInt active_streams)
         {
             if (active_streams && (1 << StreamIndex))
             {
@@ -898,8 +898,25 @@ public:
         insertValuesSpace(size, room_start, room_length);
     }
 
+    void insertSpace(Int room_start, Int room_length)
+    {
+        Int size = this->size();
+
+        MEMORIA_ASSERT(room_start, >=, 0);
+        MEMORIA_ASSERT(room_start, <=, size);
+
+        Dispatcher::dispatchNotEmpty(allocator(), InsertSpaceFn(), room_start, room_length);
+
+        insertValuesSpace(size, room_start, room_length);
+    }
+
+
     void insertValuesSpace(Int old_size, Int room_start, Int room_length)
     {
+    	if (room_start < 0 || room_start > old_size) {
+    		int a = 0; a++;
+    	}
+
         MEMORIA_ASSERT(room_start, >=, 0);
         MEMORIA_ASSERT(room_start, <=, old_size);
 

@@ -96,9 +96,9 @@ struct WrapperName {                                    \
     MyType* me_;                                        \
     WrapperName(MyType* v): me_(v) {}                   \
     template <typename T, typename... Args>             \
-    void treeNode(T arg, Args&&... args)                \
+    void treeNode(T&& arg, Args&&... args)                \
     {                                                   \
-        me_->TargetMethod(arg, args...);                \
+        me_->TargetMethod(std::forward<T>(arg), std::forward<Args>(args)...);\
     }                                                   \
 }
 
@@ -110,7 +110,7 @@ struct WrapperName {                                    \
     template <typename T, typename... Args>             \
     ReturnType treeNode(T arg, Args&&... args)          \
     {                                                   \
-        return me_->TargetMethod(arg, args...);         \
+        return me_->TargetMethod(arg, std::forward<Args>(args)...);\
     }                                                   \
 }
 
@@ -119,9 +119,9 @@ struct WrapperName {                                        \
     const MyType* me_;                                      \
     WrapperName(const MyType* v): me_(v) {}                 \
     template <typename T, typename... Args>                 \
-    void treeNode(T arg, Args&&... args) const              \
+    void treeNode(T&& arg, Args&&... args) const              \
     {                                                       \
-        me_->TargetMethod(arg, args...);                    \
+        me_->TargetMethod(std::forward<T>(arg), std::forward<Args>(args)...);\
     }                                                       \
 }
 
@@ -131,9 +131,9 @@ struct WrapperName {                                    \
     const MyType* me_;                                  \
     WrapperName(const MyType* v): me_(v) {}             \
     template <typename T, typename... Args>             \
-    ReturnType treeNode(T arg, Args&&... args) const    \
+    ReturnType treeNode(T&& arg, Args&&... args) const    \
     {                                                   \
-        return me_->TargetMethod(arg, args...);         \
+        return me_->TargetMethod(std::forward<T>(arg), std::forward<Args>(args)...);\
     }                                                   \
 }
 
@@ -148,7 +148,7 @@ struct WrapperName {                                    \
     template <typename T, typename... Args>             \
     ReturnType treeNode(const T*, Args&&... args) const \
     {                                                   \
-        return me_->template TargetMethod<T>(args...);  \
+        return me_->template TargetMethod<T>(std::forward<Args>(args)...);\
     }                                                   \
 }
 
@@ -158,7 +158,7 @@ struct WrapperName {                                        \
     template <typename T, typename... Args>                 \
     void treeNode(T node, Args&&... args) const             \
     {                                                       \
-        node->NodeMethodName(args...);                      \
+        node->NodeMethodName(std::forward<Args>(args)...);\
     }                                                       \
 }
 
@@ -167,7 +167,7 @@ struct WrapperName {                                        \
     template <typename T, typename... Args>                 \
     void treeNode(T node1, T node2, Args&&... args) const   \
     {                                                       \
-        node1->NodeMethodName(node2, args...);              \
+        node1->NodeMethodName(node2, std::forward<Args>(args)...);\
     }                                                       \
 }
 
@@ -177,7 +177,7 @@ struct WrapperName {                                        \
     template <typename T, typename... Args>                 \
     ReturnType treeNode(T node, Args&&... args) const       \
     {                                                       \
-        return node->NodeMethodName(args...);               \
+        return node->NodeMethodName(std::forward<Args>(args)...);\
     }                                                       \
 }
 
@@ -187,7 +187,7 @@ struct WrapperName {                                        \
     template <typename T, typename... Args>                 \
     ReturnType treeNode(T node1, T node2, Args&&... args) const \
     {                                                       \
-        return node1->NodeMethodName(node2, args...);       \
+        return node1->NodeMethodName(node2, std::forward<Args>(args)...);\
     }                                                       \
 }
 
