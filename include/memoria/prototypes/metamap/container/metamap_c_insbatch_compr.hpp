@@ -12,6 +12,8 @@
 #include <memoria/prototypes/metamap/metamap_names.hpp>
 #include <memoria/prototypes/metamap/metamap_tools.hpp>
 
+#include <memoria/prototypes/bt/bt_macros.hpp>
+
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
 

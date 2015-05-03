@@ -72,26 +72,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchCommonName)
     	virtual CtrSizeT size() const		= 0;
     };
 
-//    class Subtree {
-//    	NodeBaseG node_;
-//    	CtrSizeT size_;
-//
-//    public:
-//    	Subtree(NodeBaseG node, CtrSizeT size): node_(node), size_(size) {}
-//    	Subtree(): size_(0) {}
-//
-//    	NodeBaseG node() {
-//    		return node_;
-//    	}
-//
-//    	const NodeBaseG node() const {
-//    		return node_;
-//    	}
-//
-//    	CtrSizeT size() const {
-//    		return size_;
-//    	}
-//    };
+
 
     void updateChildIndexes(NodeBaseG& node, Int start)
     {
@@ -214,180 +195,224 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchCommonName)
 
 
 
-//    class InsertionState {
-//    	Int inserted_ = 0;
-//    	Int total_;
-//    public:
-//    	InsertionState(Int total): total_(total) {}
-//
-//    	Int& total() {
-//    		return total_;
-//    	}
-//
-//    	Int& inserted() {
-//    		return inserted_;
-//    	}
-//
-//    	bool shouldMoveUp() const {
-//    		return inserted_ <= total_ / 3;
-//    	}
-//    };
-//
-//
-//    InsertBatchResult insertBatchToNode(NodeBaseG& node, Int idx, ILeafProvider& provider, Int level = 1, bool update_hierarchy = true)
-//    {
-//    	auto& self = this->self();
-//    	return self.insertSubtree(node, idx, provider, [&provider, &node, this]() -> NodeBaseG {
-//    		auto& self = this->self();
-//    		return self.BuildSubtree(provider, node->level() - 1);
-//    	},
-//    	update_hierarchy);
-//    }
-//
-//    void insert_subtree(NodeBaseG& left, NodeBaseG& right, ILeafProvider& provider, InsertionState& state, Int level = 1)
-//    {
-//    	auto& self = this->self();
-//
-//    	Int left_size0 = self.getBranchNodeSize(left);
-//
-//    	auto left_result = insertBatchToNode(left, left_size0, provider, level);
-//
-//    	state.inserted() += left_result.subtree_size();
-//
-//    	if (state.shouldMoveUp())
-//    	{
-//    		auto left_parent 	= self.getNodeParentForUpdate(left);
-//    		auto right_parent 	= self.getNodeParentForUpdate(right);
-//
-//    		if (left_parent == right_parent)
-//    		{
-//    			right_parent = self.splitPathP(left_parent, right->parent_idx());
-//    		}
-//
-//    		insert_subtree(left_parent, right_parent, provider, state, level + 1);
-//    	}
-//    	else {
-//    		auto right_result = insertBatchToNode(right, 0, provider, level);
-//    		state.inserted() += right_result.subtree_size();
-//    	}
-//    }
-//
-//    NodeBaseG insert_subtree_at_end(NodeBaseG& left, ILeafProvider& provider, InsertionState& state, Int level = 1)
-//    {
-//    	auto& self = this->self();
-//
-//    	Int left_size0 = self.getBranchNodeSize(left);
-//
-//    	auto left_result = insertBatchToNode(left, left_size0, provider, level);
-//
-//    	state.inserted() += left_result.subtree_size();
-//
-//    	if (provider.size() > 0)
-//    	{
-//    		if (left->is_root())
-//    		{
-//    			self.newRootP(left);
-//    		}
-//
-//    		auto left_parent = self.getNodeParentForUpdate(left);
-//
-//    		auto right = insert_subtree_at_end(left_parent, provider, state, level + 1);
-//
-//    		Int right_size = self.getBranchNodeSize(right);
-//
-//    		return self.getChild(right, right_size - 1);
-//    	}
-//    	else {
-//    		return left;
-//    	}
-//    }
-//
-//
-//    Int insert_branch_subtree(NodeBaseG& node, Int pos, ILeafProvider& provider)
-//    {
-//    	auto& self = this->self();
-//
-//    	auto result = insertBatchToNode(node, pos, provider);
-//
-//    	if (provider.size() == 0)
-//    	{
-//    		return result.idx();
-//    	}
-//    	else {
-//    		auto node_size = self.getBranchNodeSize(node);
-//
-//    		NodeBaseG next;
-//
-//    		if (result.idx() < node_size)
-//    		{
-//    			next = self.splitPathP(node, result.idx());
-//    		}
-//    		else {
-//    			next = self.getNextNodeP(node);
-//    		}
-//
-//    		if (next.isSet())
-//    		{
-//    			auto left_result = insertBatchToNode(node, result.idx(), provider);
-//
-//    			if (provider.size() == 0)
-//    			{
-//    				return left_result.idx();
-//    			}
-//    			else {
-//    				PageUpdateMgr mgr(self);
-//    				mgr.add(next);
-//
-//    				auto next_result = insertBatchToNode(next, 0, provider, 1, false);
-//
-//    				if (provider.size() == 0)
-//    				{
-//    					auto sums = self.sums(next, 0, next_result.idx());
-//    					self.updateParent(next, sums);
-//
-//    					updateChildIndexes(next, next_result.idx());
-//
-//    					node = next;
-//
-//    					return next_result.idx();
-//    				}
-//    				else {
-//    					mgr.rollback();
-//
-//    					InsertionState state(provider.size());
-//
-//    					auto next_size0 = self.getBranchNodeSize(next);
-//
-//    					insert_subtree(node, next, provider, state);
-//
-//    					auto idx = self.getBranchNodeSize(next) - next_size0;
-//
-//    					if (provider.size() == 0)
-//    					{
-//    						node = next;
-//    						return idx;
-//    					}
-//    					else {
-//    						return insert_subtree(next, idx, provider);
-//    					}
-//    				}
-//    			}
-//    		}
-//    		else {
-//    			InsertionState state(provider.size());
-//    			node = insert_subtree_at_end(node, provider, state, 1);
-//
-//    			return self.getBranchNodeSize(node);
-//    		}
-//    	}
-//    }
 
     std::pair<CtrSizeT, NodeBaseG> createLeafList2(Source& source);
+
+
+
+
+    Accumulator insertSource(NodeBaseG& node, Position& idx, Source& source);
+
+    MEMORIA_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, Accumulator);
+    Accumulator splitLeafNode(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at);
+    Accumulator splitNonLeafNode(NodeBaseG& src, NodeBaseG& tgt, Int split_at);
+
+    Accumulator splitNode(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at)
+    {
+        auto& self = this->self();
+
+        if (src->is_leaf())
+        {
+            return self.splitLeafNode(src, tgt, split_at);
+        }
+        else {
+            return self.splitNonLeafNode(src, tgt, split_at.get());
+        }
+    }
+
+    void newRootP(NodeBaseG& root);
+
+
+    void updateChildren(const NodeBaseG& node);
+    void updateChildren(const NodeBaseG& node, Int start);
+    void updateChildren(const NodeBaseG& node, Int start, Int end);
+
+    MEMORIA_DECLARE_NODE_FN_RTN(IsEmptyFn, isEmpty, bool);
+    MEMORIA_DECLARE_NODE_FN_RTN(IsAfterEndFn, isAfterEnd, bool);
+
+    bool isEmpty(const NodeBaseG& node) {
+        return NodeDispatcher::dispatch(node, IsEmptyFn());
+    }
+
+    bool isAfterEnd(const NodeBaseG& node, const Position& idx, UBigInt active_streams)
+    {
+        return NodeDispatcher::dispatch(node, IsAfterEndFn(), idx, active_streams);
+    }
+
+private:
+    void updateChildrenInternal(const NodeBaseG& node, Int start, Int end);
+public:
+
 
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bt::InsertBatchCommonName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+
+
+M_PARAMS
+typename M_TYPE::Accumulator M_TYPE::insertSource(NodeBaseG& leaf, Position& idx, Source& source)
+{
+    auto& self = this->self();
+
+    Position sizes = self.getRemainderSize(source);
+
+    UBigInt active_streams = sizes.gtZero();
+
+    Accumulator sums;
+    if (self.insertToLeaf(leaf, idx, source, sums))
+    {
+        self.updateParent(leaf, sums);
+
+        return sums;
+    }
+    else {
+        auto right = leaf;
+
+        if (leaf->is_root())
+        {
+            self.newRootP(leaf);
+        }
+
+        if (!self.isAfterEnd(leaf, idx, active_streams))
+        {
+            right = self.splitLeafP(leaf, idx);
+        }
+
+        Accumulator sums = self.appendToLeaf(leaf, idx, source);
+
+        self.updateParent(leaf, sums);
+
+        Position remainder = self.getRemainderSize(source);
+
+        if (remainder.gtAny(0))
+        {
+            Int path_parent_idx     = leaf->parent_idx() + 1;
+
+            auto pair = self.createLeafList2(source);
+
+            using Provider = ListLeafProvider;
+
+            Provider provider(self, pair.second, pair.first);
+
+            NodeBaseG parent = self.getNodeParentForUpdate(leaf);
+
+            self.insert_subtree(parent, path_parent_idx, provider);
+
+            return sums; //fixme: this accumulator contains data from the forst leaf only
+        }
+        else {
+            return sums;
+        }
+    }
+}
+
+
+
+M_PARAMS
+void M_TYPE::updateChildren(const NodeBaseG& node)
+{
+    if (!node->is_leaf())
+    {
+        auto& self = this->self();
+        self.updateChildrenInternal(node, 0, self.getNodeSize(node, 0));
+    }
+}
+
+M_PARAMS
+void M_TYPE::updateChildren(const NodeBaseG& node, Int start)
+{
+    if (!node->is_leaf())
+    {
+        auto& self = this->self();
+        self.updateChildrenInternal(node, start, self.getNodeSize(node, 0));
+    }
+}
+
+M_PARAMS
+void M_TYPE::updateChildren(const NodeBaseG& node, Int start, Int end)
+{
+    if (!node->is_leaf())
+    {
+        auto& self = this->self();
+        self.updateChildrenInternal(node, start, end);
+    }
+}
+
+
+M_PARAMS
+void M_TYPE::updateChildrenInternal(const NodeBaseG& node, Int start, Int end)
+{
+    auto& self = this->self();
+
+    ID node_id = node->id();
+
+    self.forAllIDs(node, start, end, [&self, &node_id](const ID& id, Int idx)
+    {
+        NodeBaseG child = self.allocator().getPageForUpdate(id, self.master_name());
+
+        child->parent_id()  = node_id;
+        child->parent_idx() = idx;
+    });
+}
+
+
+
+
+M_PARAMS
+void M_TYPE::newRootP(NodeBaseG& root)
+{
+    auto& self = this->self();
+
+    self.updatePageG(root);
+
+    NodeBaseG new_root = self.createNode1(root->level() + 1, true, false, root->page_size());
+
+    UBigInt root_active_streams = self.getActiveStreams(root);
+    self.layoutNonLeafNode(new_root, root_active_streams);
+
+    self.copyRootMetadata(root, new_root);
+
+    self.root2Node(root);
+
+    Accumulator keys = self.sums(root);
+
+    self.insertNonLeaf(new_root, 0, keys, root->id());
+
+    root->parent_id()  = new_root->id();
+    root->parent_idx() = 0;
+
+    self.set_root(new_root->id());
+}
+
+
+
+M_PARAMS
+typename M_TYPE::Accumulator M_TYPE::splitLeafNode(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at)
+{
+    return LeafDispatcher::dispatch(src, tgt, SplitNodeFn(), split_at);
+}
+
+
+M_PARAMS
+typename M_TYPE::Accumulator M_TYPE::splitNonLeafNode(NodeBaseG& src, NodeBaseG& tgt, Int split_at)
+{
+    auto& self = this->self();
+
+    Accumulator accum = NonLeafDispatcher::dispatch(src, tgt, SplitNodeFn(), split_at);
+
+    self.updateChildren(tgt);
+
+    return accum;
+}
+
+
+
+
+
+
+
+
 
 
 

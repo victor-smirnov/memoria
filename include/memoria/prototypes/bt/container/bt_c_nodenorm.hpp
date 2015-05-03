@@ -100,11 +100,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::NodeNormName)
     bool insertToLeaf(NodeBaseG& leaf, Position& idx, Source& source, Accumulator& sums);
 
 
+
 MEMORIA_CONTAINER_PART_END
 
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bt::NodeNormName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+
+
 
 M_PARAMS
 bool M_TYPE::insertToLeaf(NodeBaseG& leaf, Position& idx, Source& source, Accumulator& sums)
@@ -123,6 +126,7 @@ bool M_TYPE::insertToLeaf(NodeBaseG& leaf, Position& idx, Source& source, Accumu
         return false;
     }
 }
+
 
 
 

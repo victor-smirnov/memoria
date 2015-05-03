@@ -40,7 +40,7 @@
 #include <memoria/prototypes/bt/container/bt_c_base.hpp>
 #include <memoria/prototypes/bt/container/bt_c_tools.hpp>
 #include <memoria/prototypes/bt/container/bt_c_checks.hpp>
-#include <memoria/prototypes/bt/container/bt_c_insbatch.hpp>
+//#include <memoria/prototypes/bt/container/bt_c_insbatch.hpp>
 #include <memoria/prototypes/bt/container/bt_c_insbatch_compr.hpp>
 #include <memoria/prototypes/bt/container/bt_c_insbatch_norm.hpp>
 #include <memoria/prototypes/bt/container/bt_c_insbatch_common.hpp>
@@ -77,7 +77,8 @@ struct BTTypes {
             bt::AllocatorName,
             bt::ToolsName,
             bt::ChecksName,
-            bt::InsertBatchName,
+//            bt::InsertBatchName,
+            bt::InsertBatchCommonName,
             bt::InsertName,
             bt::RemoveToolsName,
             bt::RemoveBatchName,

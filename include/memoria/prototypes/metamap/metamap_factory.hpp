@@ -206,6 +206,7 @@ struct BTTypes<Profile, memoria::MetaMap<Indexes_, Key_, Value_, LabelsList, Hid
     using ContainerPartsList = MergeLists<
                     typename Base::ContainerPartsList,
                     bt::NodeNormName,
+                    bt::InsertBatchNormName,
                     metamap::CtrInsertName,
                     metamap::CtrInsBatchName
     >;
@@ -237,6 +238,7 @@ struct BTTypes<Profile, memoria::MetaMap<Indexes_, VLen<gr, Key_>, Value_, Label
     using ContainerPartsList = MergeLists<
                     typename Base::ContainerPartsList,
                     bt::NodeComprName,
+                    bt::InsertBatchComprName,
                     metamap::CtrInsertComprName,
                     metamap::CtrInsBatchComprName
     >;
@@ -269,6 +271,7 @@ struct BTTypes<Profile, memoria::MetaMap<Indexes_, Key_, VLen<gr, Value_>, Label
     typedef typename MergeLists<
                     typename Base::ContainerPartsList,
                     bt::NodeComprName,
+                    bt::InsertBatchComprName,
                     metamap::CtrInsertComprName,
                     metamap::CtrInsBatchComprName
     >::Result                                                                   ContainerPartsList;
@@ -302,6 +305,7 @@ struct BTTypes<Profile, memoria::MetaMap<Indexes_, VLen<gr1, Key_>, VLen<gr2, Va
     using ContainerPartsList = MergeLists<
                     typename Base::ContainerPartsList,
                     bt::NodeComprName,
+                    bt::InsertBatchComprName,
                     metamap::CtrInsertComprName,
                     metamap::CtrInsBatchComprName
     >;
