@@ -6,8 +6,8 @@
 
 
 
-#ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_INSERT_BATCH_COMPR_HPP
-#define _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_INSERT_BATCH_COMPR_HPP
+#ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_INSERT_BATCH_VARIABLE_HPP
+#define _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_INSERT_BATCH_VARIABLE_HPP
 
 #include <memoria/prototypes/bt/tools/bt_tools.hpp>
 #include <memoria/prototypes/bt/bt_macros.hpp>
@@ -23,7 +23,7 @@ using namespace memoria::core;
 
 using namespace std;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchComprName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchVariableName)
 
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
@@ -379,7 +379,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchComprName)
 
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bt::InsertBatchComprName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bt::InsertBatchVariableName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 

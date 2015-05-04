@@ -40,14 +40,14 @@
 #include <memoria/prototypes/bt/container/bt_c_base.hpp>
 #include <memoria/prototypes/bt/container/bt_c_tools.hpp>
 #include <memoria/prototypes/bt/container/bt_c_checks.hpp>
-#include <memoria/prototypes/bt/container/bt_c_insbatch_compr.hpp>
-#include <memoria/prototypes/bt/container/bt_c_insbatch_norm.hpp>
+#include <memoria/prototypes/bt/container/bt_c_insbatch_variable.hpp>
+#include <memoria/prototypes/bt/container/bt_c_insbatch_fixed.hpp>
 #include <memoria/prototypes/bt/container/bt_c_insbatch_common.hpp>
 #include <memoria/prototypes/bt/container/bt_c_insert.hpp>
 #include <memoria/prototypes/bt/container/bt_c_read.hpp>
 #include <memoria/prototypes/bt/container/bt_c_update.hpp>
-#include <memoria/prototypes/bt/container/bt_c_nodecompr.hpp>
-#include <memoria/prototypes/bt/container/bt_c_nodenorm.hpp>
+#include <memoria/prototypes/bt/container/bt_c_branch_variable.hpp>
+#include <memoria/prototypes/bt/container/bt_c_branch_fixed.hpp>
 #include <memoria/prototypes/bt/container/bt_c_remtools.hpp>
 #include <memoria/prototypes/bt/container/bt_c_rembatch.hpp>
 #include <memoria/prototypes/bt/container/bt_c_find.hpp>
@@ -307,15 +307,15 @@ public:
     					MergeLists<
     						typename ContainerTypes::ContainerPartsList,
     						TL<
-    							bt::NodeNormName,
-    							bt::InsertBatchNormName
+    							bt::BranchFixedName,
+    							bt::InsertBatchFixedName
     						>
     					>,
     					MergeLists<
     						typename ContainerTypes::ContainerPartsList,
     						TL<
-    							bt::NodeComprName,
-    							bt::InsertBatchComprName
+    							bt::BranchVariableName,
+    							bt::InsertBatchVariableName
     						>
     					>
     >::Result;

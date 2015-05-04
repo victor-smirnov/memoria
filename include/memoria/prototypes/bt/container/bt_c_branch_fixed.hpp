@@ -1,13 +1,13 @@
 
-// Copyright Victor Smirnov 2011-2013.
+// Copyright Victor Smirnov 2011-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
 
-#ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_NODENORM_HPP
-#define _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_NODENORM_HPP
+#ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_NODE_FIXED_HPP
+#define _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_NODE_FIXED_HPP
 
 #include <memoria/prototypes/bt/tools/bt_tools.hpp>
 #include <memoria/prototypes/bt/bt_macros.hpp>
@@ -22,7 +22,7 @@ using namespace memoria::core;
 
 using namespace std;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::NodeNormName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchFixedName)
 
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
@@ -104,7 +104,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::NodeNormName)
 MEMORIA_CONTAINER_PART_END
 
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bt::NodeNormName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bt::BranchFixedName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 

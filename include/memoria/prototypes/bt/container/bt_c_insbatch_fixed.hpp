@@ -6,8 +6,8 @@
 
 
 
-#ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_INSERT_BATCH_NORM_HPP
-#define _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_INSERT_BATCH_NORM_HPP
+#ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_INSERT_BATCH_FIXED_HPP
+#define _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_INSERT_BATCH_FIXED_HPP
 
 #include <memoria/prototypes/bt/tools/bt_tools.hpp>
 #include <memoria/prototypes/bt/bt_macros.hpp>
@@ -23,7 +23,7 @@ using namespace memoria::core;
 
 using namespace std;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchNormName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchFixedName)
 
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
@@ -112,8 +112,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchNormName)
     InsertBatchResult insertSubtree(NodeBaseG& node, Int idx, ILeafProvider& provider, std::function<NodeBaseG ()> child_fn, bool update_hierarchy)
     {
     	auto& self = this->self();
-
-//    	self.dumpPath(node);
 
     	Int capacity 			= self.getCapacity(node);
     	CtrSizeT provider_size0 = provider.size();
@@ -406,7 +404,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchNormName)
 
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bt::InsertBatchNormName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bt::InsertBatchFixedName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 

@@ -177,11 +177,10 @@ struct BTTypes<Profile, memoria::MapX<Key_, Value_>>:
 
     using ContainerPartsList = MergeLists<
                     typename Base::ContainerPartsList,
-                    bt::NodeNormName,
                     mapx::CtrInsertName
     >;
 
-    using IteratorPartsList =MergeLists<
+    using IteratorPartsList = MergeLists<
                     typename Base::IteratorPartsList
     >;
 };

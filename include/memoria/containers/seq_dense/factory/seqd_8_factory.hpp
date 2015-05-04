@@ -87,7 +87,6 @@ struct BTTypes<Profile, memoria::Sequence<8, true> >:
 
     typedef typename MergeLists<
                 typename Base::ContainerPartsList,
-                bt::NodeComprName,
 
                 seq_dense::CtrFindName,
                 seq_dense::CtrInsertName,

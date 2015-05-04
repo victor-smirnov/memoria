@@ -31,8 +31,8 @@ class UpdateName            {};
 
 class InsertName            {};
 class InsertBatchName       {};
-class InsertBatchComprName  {};
-class InsertBatchNormName   {};
+class InsertBatchVariableName {};
+class InsertBatchFixedName  {};
 class InsertBatchCommonName {};
 class InsertToolsName       {};
 
@@ -40,8 +40,8 @@ class RemoveName            {};
 class RemoveToolsName       {};
 class RemoveBatchName       {};
 
-class NodeNormName          {};
-class NodeComprName         {};
+class BranchFixedName       {};
+class BranchVariableName    {};
 
 class ApiName               {};
 class ChecksName            {};
