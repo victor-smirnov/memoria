@@ -6,8 +6,8 @@
 
 
 
-#ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_NODE_FIXED_HPP
-#define _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_NODE_FIXED_HPP
+#ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_CTR_BRANCH_FIXED_HPP
+#define _MEMORIA_PROTOTYPES_BALANCEDTREE_CTR_BRANCH_FIXED_HPP
 
 #include <memoria/prototypes/bt/tools/bt_tools.hpp>
 #include <memoria/prototypes/bt/bt_macros.hpp>

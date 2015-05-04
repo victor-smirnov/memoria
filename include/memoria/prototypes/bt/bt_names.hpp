@@ -40,8 +40,13 @@ class RemoveName            {};
 class RemoveToolsName       {};
 class RemoveBatchName       {};
 
+class BranchCommonName      {};
 class BranchFixedName       {};
 class BranchVariableName    {};
+
+class LeafCommonName      	{};
+class LeafFixedName       	{};
+class LeafVariableName    	{};
 
 class ApiName               {};
 class ChecksName            {};
