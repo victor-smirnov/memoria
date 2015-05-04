@@ -355,41 +355,21 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchFixedName)
     				return left_result.idx();
     			}
     			else {
-    				PageUpdateMgr mgr(self);
-    				mgr.add(next);
+    				InsertionState state(provider.size());
 
-    				auto next_result = insertBatchToNode(next, 0, provider, 1, false);
+    				auto next_size0 = self.getBranchNodeSize(next);
+
+    				insert_subtree(node, next, provider, state);
+
+    				auto idx = self.getBranchNodeSize(next) - next_size0;
 
     				if (provider.size() == 0)
     				{
-    					auto sums = self.sums(next, 0, next_result.idx());
-    					self.updateParent(next, sums);
-
-    					self.updateChildIndexes(next, next_result.idx());
-
     					node = next;
-
-    					return next_result.idx();
+    					return idx;
     				}
     				else {
-    					mgr.rollback();
-
-    					InsertionState state(provider.size());
-
-    					auto next_size0 = self.getBranchNodeSize(next);
-
-    					insert_subtree(node, next, provider, state);
-
-    					auto idx = self.getBranchNodeSize(next) - next_size0;
-
-    					if (provider.size() == 0)
-    					{
-    						node = next;
-    						return idx;
-    					}
-    					else {
-    						return insert_subtree(next, idx, provider);
-    					}
+    					return insert_subtree(next, idx, provider);
     				}
     			}
     		}
