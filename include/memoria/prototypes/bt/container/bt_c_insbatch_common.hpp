@@ -244,10 +244,40 @@ private:
 public:
 
 
+    NodeBaseG createNextLeaf(NodeBaseG& left_node);
+
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bt::InsertBatchCommonName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+
+
+M_PARAMS
+typename M_TYPE::NodeBaseG M_TYPE::createNextLeaf(NodeBaseG& left_node)
+{
+    auto& self = this->self();
+
+    if (left_node->is_root())
+    {
+        self.newRootP(left_node);
+    }
+    else {
+        self.updatePageG(left_node);
+    }
+
+    NodeBaseG left_parent = self.getNodeParentForUpdate(left_node);
+
+    NodeBaseG other  = self.createNode1(left_node->level(), false, left_node->is_leaf(), left_node->page_size());
+
+    other->next_leaf_id().clear();
+
+    ListLeafProvider provider(self, other, 1);
+
+    self.insert_subtree(left_parent, left_node->parent_idx() + 1, provider);
+
+    return other;
+}
+
 
 
 M_PARAMS

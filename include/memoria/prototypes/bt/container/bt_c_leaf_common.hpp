@@ -54,6 +54,69 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
 
     static const Int Streams                                                    = Types::Streams;
 
+    template <Int Stream>
+    using StreamInputTuple = typename Types::template StreamInputTuple<Stream>;
+
+
+    template <Int Stream, typename SubstreamsIdxList, typename... Args>
+    using ReadLeafEntryRtnType = DispatchConstRtnType<LeafDispatcher, SubstreamsSetNodeFn<Stream, SubstreamsIdxList>, GetLeafValuesFn, Args...>;
+
+    template <Int Stream, typename SubstreamsIdxList, typename... Args>
+    auto _readLeafEntry(const NodeBaseG& leaf, Args&&... args) const -> ReadLeafEntryRtnType<Stream, SubstreamsIdxList, Args...>
+    {
+    	 return self().template _applySubstreamsFn<Stream, SubstreamsIdxList>(leaf, GetLeafValuesFn(), std::forward<Args>(args)...);
+    }
+
+
+
+    template <Int Stream>
+    void insertStreamEntry(Iterator& iter, const StreamInputTuple<Stream>& entry)
+    {
+    	auto& self = this->self();
+
+    	auto result = self.template tryInsertStreamEntry<Stream>(iter, entry);
+
+    	if (!std::get<0>(result))
+    	{
+    		iter.split();
+
+    		result = self.template tryInsertStreamEntry<Stream>(iter, entry);
+
+    		if (!std::get<0>(result))
+    		{
+    			throw Exception(MA_SRC, "Second insertion attempt failed");
+    		}
+    	}
+
+    	self.updateParent(iter.leaf(), std::get<1>(result));
+
+    	iter.skipFw(1);
+
+    	self.addTotalKeyCount(Position::create(Stream, 1));
+    }
+
+
+    template <Int Stream, typename SubstreamsList, typename... TupleTypes>
+    void updateStreamEntry(Iterator& iter, const std::tuple<TupleTypes...>& entry)
+    {
+    	auto& self      = this->self();
+
+    	auto result = self.template tryUpdateStreamEntry<Stream, SubstreamsList>(iter, entry);
+
+    	if (!std::get<0>(result))
+    	{
+    		iter.split();
+
+    		result = self.template tryUpdateStreamEntry<Stream, SubstreamsList>(iter, entry);
+
+    		if (!std::get<0>(result))
+    		{
+    			throw Exception(MA_SRC, "Second insertion attempt failed");
+    		}
+    	}
+
+    	self.updateParent(iter.leaf(), std::get<1>(result));
+    }
 
 
 MEMORIA_CONTAINER_PART_END

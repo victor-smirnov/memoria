@@ -308,26 +308,29 @@ public:
     static const PackedSizeType TotalSizeType = PackedSizeTypeList<BranchSizeType, LeafSizeType>::Value;
 
 
-    using CtrList = typename IfThenElse<
-    					TotalSizeType == PackedSizeType::FIXED,
-    					MergeLists<
-    						typename ContainerTypes::ContainerPartsList,
-    						TL<
-    							bt::BranchFixedName,
-    							bt::LeafFixedName,
-    							bt::InsertBatchFixedName
-    						>
-    					>,
-    					MergeLists<
-    						typename ContainerTypes::ContainerPartsList,
-    						TL<
-    							bt::BranchVariableName,
-    							bt::LeafVariableName,
-    							bt::InsertBatchVariableName
-    						>
-    					>
+    using CtrListBoth = typename IfThenElse<
+    						TotalSizeType == PackedSizeType::FIXED,
+    						TL<bt::InsertBatchFixedName>,
+    						TL<bt::InsertBatchVariableName>
     >::Result;
 
+
+    using CtrListBranch = typename IfThenElse<
+    						BranchSizeType == PackedSizeType::FIXED,
+    						TL<bt::BranchFixedName>,
+    						TL<bt::BranchVariableName>
+    >::Result;
+
+    using CtrListLeaf = typename IfThenElse<
+    					LeafSizeType == PackedSizeType::FIXED,
+    					TL<bt::LeafFixedName>,
+    					TL<bt::LeafVariableName>
+    >::Result;
+
+    using CtrList = MergeLists<
+    		MergeLists<typename ContainerTypes::ContainerPartsList, CtrListBoth>,
+    		MergeLists<CtrListLeaf, CtrListBranch>
+    >;
 
 
 public:

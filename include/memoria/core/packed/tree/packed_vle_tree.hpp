@@ -99,6 +99,8 @@ public:
     typedef FnAccessor<Value>                                                   ValueAccessor;
     typedef ConstFnAccessor<Value>                                              ConstValueAccessor;
 
+    using InputType = Values;
+
     class Metadata {
         Int size_;
         Int data_size_;

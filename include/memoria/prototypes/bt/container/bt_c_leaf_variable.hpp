@@ -51,8 +51,149 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafVariableName)
 
     typedef typename Types::Source                                              Source;
 
-
     static const Int Streams                                                    = Types::Streams;
+
+    template <Int Stream>
+    using StreamInputTuple = typename Types::template StreamInputTuple<Stream>;
+
+
+    struct InsertEntryIntoStreamHanlder
+    {
+    	template <
+    		Int Offset,
+    	    bool StreamStart,
+    	    Int Idx,
+    		typename SubstreamType,
+    		typename AccumulatorItem,
+    		typename Entry
+    	>
+    	void stream(SubstreamType* obj, AccumulatorItem& accum, Int idx, const Entry& entry)
+    	{
+    		obj->template _insert<Offset>(idx, std::get<Idx>(entry), accum);
+
+    		if (StreamStart)
+    		{
+    			accum[0] += 1;
+    		}
+    	}
+    };
+
+
+
+
+    template <Int Stream>
+    struct InsertEntryIntoStreamFn
+    {
+    	template <typename NTypes, typename... Args>
+    	void treeNode(LeafNode<NTypes>* node, Int idx, Accumulator& accum, Args&&... args)
+    	{
+    		node->layout(255);
+    		node->template processStreamAcc<Stream>(InsertEntryIntoStreamHanlder(), accum, idx, std::forward<Args>(args)...);
+    	}
+    };
+
+
+
+
+    template <Int Stream>
+    std::tuple<bool, Accumulator> tryInsertStreamEntry(Iterator& iter, const StreamInputTuple<Stream>& entry)
+    {
+    	auto& self = this->self();
+
+    	PageUpdateMgr mgr(self);
+
+    	self.updatePageG(iter.leaf());
+
+    	mgr.add(iter.leaf());
+
+    	try {
+    		Accumulator accum;
+    		LeafDispatcher::dispatch(iter.leaf(), InsertEntryIntoStreamFn<Stream>(), iter.idx(), accum, entry);
+    		return std::make_tuple(true, accum);
+    	}
+    	catch (PackedOOMException& e)
+    	{
+    		mgr.rollback();
+    		return std::make_tuple(false, Accumulator());
+    	}
+    }
+
+
+
+
+
+
+    //=========================================================================================
+
+     struct UpdateStreamEntryHanlder
+     {
+     	template <
+     		Int Offset,
+     		bool Start,
+     		Int Idx,
+     		typename SubstreamType,
+     		typename AccumulatorItem,
+     		typename Entry
+     	>
+     	void stream(SubstreamType* obj, AccumulatorItem& accum, Int idx, const Entry& entry)
+     	{
+     		obj->template _update<Offset>(idx, std::get<Idx>(entry), accum);
+     	}
+     };
+
+     template <Int Stream, typename SubstreamsList>
+     struct UpdateStreamEntryFn
+     {
+     	template <typename NTypes, typename... Args>
+     	void treeNode(LeafNode<NTypes>* node, Int idx, Accumulator& accum, Args&&... args)
+     	{
+     		node->template processSubstreamsByIdxAcc<
+     			Stream,
+     			SubstreamsList
+     		>(
+     			UpdateStreamEntryHanlder(),
+     			accum,
+     			idx,
+     			std::forward<Args>(args)...
+     		);
+     	}
+     };
+
+
+     template <Int Stream, typename SubstreamsList, typename... TupleTypes>
+     std::tuple<bool, Accumulator> tryUpdateStreamEntry(Iterator& iter, const std::tuple<TupleTypes...>& entry)
+     {
+     	static_assert(
+     			ListSize<SubstreamsList>::Value == sizeof...(TupleTypes),
+     			"Input tuple size must match SubstreamsList size"
+     	);
+
+     	auto& self = this->self();
+
+     	PageUpdateMgr mgr(self);
+
+     	self.updatePageG(iter.leaf());
+
+     	mgr.add(iter.leaf());
+
+     	try {
+     		Accumulator accum;
+     		LeafDispatcher::dispatch(
+     				iter.leaf(),
+     				UpdateStreamEntryFn<Stream, SubstreamsList>(),
+     				iter.idx(),
+     				accum,
+     				entry
+     		);
+     		return std::make_tuple(true, accum);
+     	}
+     	catch (PackedOOMException& e)
+     	{
+     		mgr.rollback();
+     		return std::make_tuple(false, Accumulator());
+     	}
+     }
+
 
 
 
