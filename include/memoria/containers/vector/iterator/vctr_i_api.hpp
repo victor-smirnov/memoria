@@ -83,9 +83,18 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
         auto& self = this->self();
         auto& model = self.ctr();
 
-        MemBuffer<Value> buf(data);
+        auto& leaf = self.leaf();
 
-        model.insert(self, buf);
+        mvector::ArrayInputBufferProvider<Value> provider(data);
+
+        auto result = model.insertBuffers(leaf, self.idx(), provider);
+
+        self.leaf() = std::get<0>(result);
+        self.idx() = std::get<1>(result);
+
+        model.addTotalKeyCount(Position(data.size()));
+
+        self.refreshCache();
 
         model.markCtrUpdated();
     }

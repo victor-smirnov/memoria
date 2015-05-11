@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2013.
+// Copyright Victor Smirnov 2013-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -12,13 +12,63 @@
 
 #include <memoria/core/tools/static_array.hpp>
 #include <memoria/core/tools/idata.hpp>
-
 #include <memoria/core/container/container.hpp>
 
-
+#include <memoria/prototypes/bt/layouts/bt_input_buffer.hpp>
 
 namespace memoria       {
 namespace mvector       {
+
+
+
+template <typename T>
+class ArrayInputBufferProvider: public bt::InputBufferProvider<Int, T> {
+
+	using Position = Int;
+
+	std::vector<T>& data_;
+	Position start_;
+	Position size_;
+
+	bool next_ = true;
+
+public:
+
+
+	ArrayInputBufferProvider(std::vector<T>& data, Position start = 0): data_(data), start_(0), size_(data.size()) {}
+	ArrayInputBufferProvider(std::vector<T>& data, Position start, Position size): data_(data), start_(0), size_(size)  {}
+
+	virtual Position start() const {
+		return start_;
+	}
+
+	virtual Position size()	const {
+		return size_;
+	}
+
+	virtual Position zero()	const {return 0;}
+
+	virtual const T* buffer() const {
+		return &data_[0];
+	}
+
+	virtual void consumed(Position sizes) {
+		start_ += sizes;
+	}
+
+	virtual bool isConsumed() {
+		return start_ >= size_;
+	}
+
+	virtual void nextBuffer() {
+		next_ = false;
+	}
+
+	virtual bool hasData() const {
+		return next_ || start_ < size_;
+	}
+};
+
 
 class VectorSource: public ISource {
 

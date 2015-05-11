@@ -85,12 +85,12 @@ public:
         init(empty_size());
     }
 
-    static Int packed_block_size(Int elements)
+    static constexpr Int packed_block_size(Int elements)
     {
         return block_size(elements);
     }
 
-    static Int block_size(Int elements)
+    static constexpr Int block_size(Int elements)
     {
         return sizeof(MyType) + roundUpBitsToAlignmentBlocks(elements * BitsPerSymbol);
     }
@@ -100,11 +100,11 @@ public:
         return alloc->element_size(this);
     }
 
-    static int empty_size() {
+    static constexpr int empty_size() {
         return sizeof(MyType);
     }
 
-    static Int block_size_bs(Int block_size)
+    static constexpr Int block_size_bs(Int block_size)
     {
         return sizeof(MyType) + block_size;
     }

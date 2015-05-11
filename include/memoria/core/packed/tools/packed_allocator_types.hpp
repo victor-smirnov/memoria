@@ -168,32 +168,32 @@ public:
         }
     }
 
-    static Int roundUpBytesToAlignmentBlocks(Int value)
+    static constexpr Int roundUpBytesToAlignmentBlocks(Int value)
     {
         return (value / AlignmentBlock + (value % AlignmentBlock ? 1 : 0)) * AlignmentBlock;
     }
 
-    static Int roundDownBytesToAlignmentBlocks(Int value)
+    static constexpr Int roundDownBytesToAlignmentBlocks(Int value)
     {
         return (value / AlignmentBlock) * AlignmentBlock;
     }
 
-    static Int roundUpBitsToAlignmentBlocks(Int bits)
+    static constexpr Int roundUpBitsToAlignmentBlocks(Int bits)
     {
         return roundUpBytesToAlignmentBlocks(roundUpBitToBytes(bits));
     }
 
-    static Int roundDownBitsToAlignmentBlocks(Int bits)
+    static constexpr Int roundDownBitsToAlignmentBlocks(Int bits)
     {
         return roundDownBytesToAlignmentBlocks(roundDownBitsToBytes(bits));
     }
 
-    static Int roundUpBitToBytes(Int bits)
+    static constexpr Int roundUpBitToBytes(Int bits)
     {
         return bits / 8 + (bits % 8 > 0);
     }
 
-    static Int roundDownBitsToBytes(Int bits)
+    static constexpr Int roundDownBitsToBytes(Int bits)
     {
         return bits / 8 + (bits % 8 > 0);
     }

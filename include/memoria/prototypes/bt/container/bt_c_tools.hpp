@@ -567,7 +567,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     	template <typename T, typename... Args>
     	Position treeNode(const LeafNode<T>* node, Args&&... args) const
     	{
-    		return node->size();
+    		return node->sizes();
     	}
     };
 

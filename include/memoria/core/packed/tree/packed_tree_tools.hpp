@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2013.
+// Copyright Victor Smirnov 2013-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -422,6 +422,42 @@ public:
             return sum;
         }
     }
+
+    static Int compute_index_size_ce(Int csize)
+    {
+    	if (csize == 1)
+    	{
+    		return 1;
+    	}
+    	else {
+    		Int sum = 0;
+    		for (Int nlevels=0; csize > 1; nlevels++)
+    		{
+    			if (nlevels > 0) {
+    				csize = divUp(csize, BranchingFactor);
+    			}
+    			else {
+    				csize = divUp(csize, ValuesPerBranch);
+    			}
+    			sum += csize;
+    		}
+    		return sum;
+    	}
+    }
+
+private:
+    static constexpr Int compute_index_size_ce_divup(Int csize, Int nlevels)
+    {
+    	return nlevels > 0 ? divUp(csize, BranchingFactor) : divUp(csize, ValuesPerBranch);
+    }
+
+    static constexpr Int compute_index_size_ce_sum(Int csize, Int nlevels)
+    {
+    	return csize > 1 ? compute_index_size_ce_sum(compute_index_size_ce_divup(csize, nlevels), nlevels) : 0;
+    }
+
+public:
+
 
     static Int compute_layout_size(Int csize)
     {

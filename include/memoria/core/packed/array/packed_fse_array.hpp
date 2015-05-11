@@ -88,17 +88,17 @@ public:
 
 public:
 
-    static Int block_size(int array_size)
+    static constexpr Int block_size(int array_size)
     {
         return PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(MyType) + array_size * sizeof(Value));
     }
 
-    static Int packed_block_size(int array_size)
+    static constexpr Int packed_block_size(int array_size)
     {
         return PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(MyType) + array_size * sizeof(Value));
     }
 
-    static Int elements_for(Int block_size)
+    static constexpr Int elements_for(Int block_size)
     {
         return max_size_for(block_size);
     }
@@ -120,24 +120,24 @@ public:
         max_size_ = max_size_for(block_size);
     }
 
-    static Int max_size_for(Int block_size) {
+    static constexpr Int max_size_for(Int block_size) {
         return (block_size - sizeof(MyType)) / sizeof(Value);
     }
 
-    static Int empty_size()
+    static constexpr Int empty_size()
     {
         return sizeof(MyType);
     }
 
     void initEmpty()
     {
-        size_       = 0;
+    	size_ = 0;
         max_size_   = 0;
     }
 
     void init()
     {
-        size_       = 0;
+        size_ = 0;
         max_size_   = 0;
     }
 
@@ -432,6 +432,19 @@ public:
     {
         insertSpace(pos, 1);
         value(pos) = val;
+    }
+
+
+    void insert(Int pos, Int start, Int size, const Value* data)
+    {
+    	insertSpace(pos, size);
+
+    	Value* vals = values();
+
+    	for (Int c = 0; c < size; c++)
+    	{
+    		vals[c + pos] = data[c + start];
+    	}
     }
 
     template <Int Offset, typename Value, typename T, Int Size, template <typename, Int> class AccumItem>

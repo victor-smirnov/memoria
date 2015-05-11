@@ -24,6 +24,8 @@
 #include <memoria/prototypes/bt/tools/bt_tools.hpp>
 #include <memoria/prototypes/bt/bt_walkers.hpp>
 
+#include <memoria/prototypes/bt/layouts/bt_input_buffer.hpp>
+
 #include <memoria/prototypes/bt/walkers/bt_skip_walkers.hpp>
 #include <memoria/prototypes/bt/walkers/bt_find_walkers.hpp>
 #include <memoria/prototypes/bt/walkers/bt_select_walkers.hpp>
@@ -81,8 +83,8 @@ struct BTTypes {
             bt::ToolsName,
             bt::ChecksName,
             bt::BranchCommonName,
-            bt::LeafCommonName,
             bt::InsertBatchCommonName,
+            bt::LeafCommonName,
             bt::InsertName,
             bt::RemoveToolsName,
             bt::RemoveBatchName,

@@ -10,6 +10,7 @@
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_LEAF_FIXED_HPP
 
 #include <memoria/prototypes/bt/tools/bt_tools.hpp>
+#include <memoria/prototypes/bt/layouts/bt_input_buffer.hpp>
 #include <memoria/prototypes/bt/bt_macros.hpp>
 #include <memoria/core/container/macros.hpp>
 
@@ -51,6 +52,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafFixedName)
 
     typedef typename Types::Source                                              Source;
 
+    using CtrSizeT = typename Types::CtrSizeT;
 
     static const Int Streams                                                    = Types::Streams;
 
@@ -179,12 +181,51 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafFixedName)
  		return std::make_tuple(true, accum);
      }
 
+
+
+     //==========================================================================================
+
+
+     struct InsertBufferIntoLeafFn
+     {
+     	template <typename NTypes, typename LeafPosition, typename Buffer>
+     	void treeNode(LeafNode<NTypes>* node, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
+     	{
+     		node->processAll(*this, pos, start, size, buffer);
+     	}
+
+     	template <typename StreamType, typename LeafPosition, typename Buffer>
+     	void stream(StreamType* obj, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
+     	{
+     		obj->insert(pos, start, size, buffer);
+     	}
+     };
+
+
+     template <typename LeafPosition, typename Buffer>
+     std::tuple<LeafPosition, bool> insertBufferIntoLeaf(NodeBaseG& leaf, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
+     {
+    	 auto& self = this->self();
+
+    	 Int sizes = size - start;
+
+    	 Int capacity = self.getStreamCapacity(leaf, 0);
+
+    	 Int to_insert = capacity >= sizes ? sizes : capacity;
+
+    	 LeafDispatcher::dispatch(leaf, InsertBufferIntoLeafFn(), pos, start, to_insert, buffer);
+
+    	 return std::make_tuple(to_insert, capacity > to_insert);
+     }
+
+
+
+
 MEMORIA_CONTAINER_PART_END
 
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bt::LeafFixedName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
-
 
 
 
