@@ -268,7 +268,33 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ReadName)
 
 
 
+    template <typename Walker>
+    auto readStream2(Iterator& iter, Walker&& walker) -> decltype(std::declval<Walker>().result())
+    {
+    	MEMORIA_ASSERT(iter.idx(), >=, 0);
 
+    	while (!walker.stop())
+    	{
+    		walker.start_leaf();
+
+    		Int skip = LeafDispatcher::dispatch(iter.leaf(), walker, iter.idx());
+
+    		if (skip < 0) {
+    			LeafDispatcher::dispatch(iter.leaf(), walker, iter.idx());
+    		}
+
+    		walker.end_leaf(skip);
+
+    		iter.skipFw(skip);
+
+    		if (iter.isEnd())
+    		{
+    			break;
+    		}
+    	}
+
+    	return walker.result();
+    }
 
 
 MEMORIA_CONTAINER_PART_END

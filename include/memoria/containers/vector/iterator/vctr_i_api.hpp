@@ -119,20 +119,83 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
     MEMORIA_DECLARE_NODE_FN(ReadFn, read);
 
 
-    CtrSizeT read(DataTarget& data)
-    {
-        auto& self = this->self();
-        mvector::VectorTarget target(&data);
+//    CtrSizeT read(DataTarget& data)
+//    {
+//        auto& self = this->self();
+//        mvector::VectorTarget target(&data);
+//
+//        return self.ctr().readStream(self, target);
+//    }
 
-        return self.ctr().readStream(self, target);
-    }
+
+    struct VectorReadWalker {
+    	std::vector<Value>& data_;
+    	CtrSizeT processed_ = 0;
+    	const CtrSizeT max_;
+
+    	VectorReadWalker(std::vector<Value>& data): data_(data), max_(data.size()) {}
+
+    	template <typename NodeTypes>
+    	Int treeNode(const LeafNode<NodeTypes>* leaf, Int start)
+    	{
+    		return std::get<0>(leaf->template processSubstreams<IntList<0, 0>>(*this, start));
+    	}
+
+    	template <typename StreamObj>
+    	Int stream(const StreamObj* obj, Int start)
+    	{
+    		if (obj != nullptr)
+    		{
+    			Int size 		= obj->size();
+    			Int remainder 	= size - start;
+
+    			Int to_read = (processed_ + remainder < max_) ? remainder : (max_ - processed_);
+
+    			for (Int c = 0; c < to_read; c++) {
+    				data_[c + processed_] = obj->value(c + start);
+    			}
+
+    			return to_read;
+    		}
+    		else {
+    			return 0;
+    		}
+    	}
+
+    	void start_leaf() {}
+
+    	void end_leaf(Int skip) {
+    		processed_ += skip;
+    	}
+
+    	CtrSizeT result() const {
+    		return processed_;
+    	}
+
+    	bool stop() const {
+    		return processed_ >= max_;
+    	}
+    };
+
 
 
     CtrSizeT read(std::vector<Value>& data)
     {
-        MemBuffer<Value> buf(data);
-        return read(buf);
+    	auto& self = this->self();
+
+    	VectorReadWalker walker(data);
+
+    	return self.ctr().readStream2(self, walker);
     }
+
+
+
+
+//    CtrSizeT read(std::vector<Value>& data)
+//    {
+//        MemBuffer<Value> buf(data);
+//        return read(buf);
+//    }
 
     Value value() const
     {
