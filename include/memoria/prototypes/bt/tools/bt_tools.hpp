@@ -360,7 +360,7 @@ public:
     {
     	for (Int c = 0; c < pages_.getSize(); c++)
     	{
-    		if (std::get<0>(pages_[c]->id() == node->id()))
+    		if (std::get<0>(pages_[c])->id() == node->id())
     		{
     			void* backup_buffer = std::get<1>(pages_[c]);
     			Int page_size       = std::get<2>(pages_[c]);
@@ -371,6 +371,19 @@ public:
     	}
 
     	throw Exception(MA_SRC, "Unregistered page checkpointing attempt in PageUpdateMgr");
+    }
+
+    // FIXME: unify with rollback()
+    void restoreNodeState()
+    {
+        for (Int c = 0; c < pages_.getSize(); c++)
+        {
+            NodeBaseG& node     = std::get<0>(pages_[c]);
+            void* backup_buffer = std::get<1>(pages_[c]);
+            Int page_size       = std::get<2>(pages_[c]);
+
+            CopyByteBuffer(backup_buffer, node.page(), page_size);
+        }
     }
 
     void rollback()

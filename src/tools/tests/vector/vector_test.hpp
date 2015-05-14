@@ -64,7 +64,7 @@ public:
         MemBuffer data(size);
         for (auto& item: data)
         {
-            item = getRandom();
+            item = getRandom(100);
         }
 
         return data;

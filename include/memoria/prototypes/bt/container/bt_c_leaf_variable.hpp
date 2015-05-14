@@ -196,7 +196,96 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafVariableName)
 
 
 
+     //==========================================================================================
 
+     template <typename LeafPosition, typename Buffer>
+     std::tuple<LeafPosition, bool> insertBufferIntoLeaf(NodeBaseG& leaf, LeafPosition pos, LeafPosition start, LeafPosition end, const Buffer* buffer)
+     {
+    	 auto& self = this->self();
+
+    	 PageUpdateMgr mgr(self);
+
+    	 mgr.add(leaf);
+
+    	 if (end - start > leaf->page_size() * 8) {
+    		 end = start + leaf->page_size() * 8;
+    	 }
+
+    	 if (self.doInsertBufferIntoLeaf(leaf, mgr, pos, start, end, buffer))
+    	 {
+    		 return std::make_tuple(end - start, true);
+    	 }
+    	 else if (end - start <= 1)
+    	 {
+    		 return std::make_tuple(0, true);
+    	 }
+    	 else {
+    		 LeafPosition imax = end, imin = start;
+    		 LeafPosition inserted = 0;
+    		 Int accepts 	 = 0;
+
+    		 while (accepts < 5 && imax > imin)
+    		 {
+    			 if (imax - 1 != imin)
+    			 {
+    				 int mid = imin + ((imax - imin) / 2);
+
+    				 if (self.doInsertBufferIntoLeaf(leaf, mgr, pos + inserted, start + inserted, start + inserted + mid - imin, buffer))
+    				 {
+    					 accepts++;
+    					 inserted += mid - imin;
+    					 imin = mid + 1;
+    				 }
+    				 else {
+    					 imax = mid - 1;
+    				 }
+    			 }
+    			 else {
+    				 if (self.doInsertBufferIntoLeaf(leaf, mgr, pos + inserted, start + inserted, start + inserted + 1, buffer))
+    				 {
+    					 accepts++;
+    					 inserted += 1;
+    				 }
+    				 break;
+    			 }
+    		 }
+
+    		 return std::make_tuple(inserted, false);
+    	 }
+     }
+
+
+
+     struct InsertBufferIntoLeafFn
+     {
+     	template <typename NTypes, typename LeafPosition, typename Buffer>
+     	void treeNode(LeafNode<NTypes>* node, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
+     	{
+     		node->processAll(*this, pos, start, size, buffer);
+     	}
+
+     	template <typename StreamType, typename LeafPosition, typename Buffer>
+     	void stream(StreamType* obj, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
+     	{
+     		obj->insert(pos, start, size, buffer);
+     	}
+     };
+
+
+     template <typename LeafPosition, typename Buffer>
+     bool doInsertBufferIntoLeaf(NodeBaseG& leaf, PageUpdateMgr& mgr, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
+     {
+    	 try {
+    		 LeafDispatcher::dispatch(leaf, InsertBufferIntoLeafFn(), pos, start, size, buffer);
+    		 mgr.checkpoint(leaf);
+    		 return true;
+    	 }
+    	 catch (PackedOOMException& ex)
+    	 {
+    		 mgr.restoreNodeState();
+    		 return false;
+    	 }
+     }
 MEMORIA_CONTAINER_PART_END
 
 

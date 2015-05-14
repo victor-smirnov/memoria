@@ -96,6 +96,8 @@ public:
     typedef FnAccessor<Value>                                                   ValueAccessor;
     typedef ConstFnAccessor<Value>                                              ConstValueAccessor;
 
+    using InputType = Value;
+
     class Metadata {
         Int size_;
         Int data_size_;
@@ -1175,6 +1177,15 @@ public:
         }
     }
 
+    void insert(Int pos, Int start, Int size, const Value* data)
+    {
+    	int i = start;
+    	this->insert(pos, size - start, [data, &i]() -> Values {
+    		return Values(data[i++]);
+    	});
+    }
+
+
     Int insert(Int idx, std::function<bool (Values&)> provider)
     {
         Values vals;
@@ -1258,6 +1269,8 @@ public:
 
         reindex();
     }
+
+
 
     void append(IData* src, Int pos, Int length)
     {
@@ -1361,7 +1374,29 @@ public:
 
 
     // ==================================== Sum ============================================ //
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void sum(AccumItem<T, Size>& accum) const
+    {
+//    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+    }
 
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void sum(Int start, Int end, AccumItem<T, Size>& accum) const
+    {
+//    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+    }
+
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void sub(Int start, AccumItem<T, Size>& accum) const
+    {
+    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+    }
+
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void sum(Int idx, AccumItem<T, Size>& accum) const
+    {
+    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+    }
 
 
 
