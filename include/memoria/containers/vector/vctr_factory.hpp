@@ -64,8 +64,8 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
     >                                                                           Metadata;
 
 
-    using ContainerPartsList = MergeLists<
-            typename Base::ContainerPartsList,
+    using CommonContainerPartsList = MergeLists<
+            typename Base::CommonContainerPartsList,
 
             mvector::CtrToolsName,
             mvector::CtrInsertName,

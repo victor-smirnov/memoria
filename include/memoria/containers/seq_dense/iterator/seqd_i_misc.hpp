@@ -41,6 +41,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
     typedef typename Container::LeafDispatcher                                  LeafDispatcher;
     typedef typename Container::Position                                        Position;
 
+    static const Int BitsPerSymbol = Container::Types::BitsPerSymbol;
 
     Int size() const
     {
@@ -188,7 +189,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
         auto& self  = this->self();
         auto& ctr   = self.ctr();
 
-        ctr.removeBlock(self, size);
+        ctr.remove(self, size);
     }
 
     Int dataPos() const {
@@ -203,7 +204,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
         return self.ctr().readStream(self, target);
     }
 
-    void insert(DataSource& data)
+    void insert2(DataSource& data)
     {
         auto& self = this->self();
 
@@ -213,6 +214,29 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
 
         self.skipFw(data.getSize());
     }
+
+
+    void insert(vapi::SymbolsBuffer<BitsPerSymbol>& data)
+    {
+    	auto& self = this->self();
+    	auto& model = self.ctr();
+
+    	auto& leaf = self.leaf();
+
+    	seq_dense::SymbolsInputBufferProvider<BitsPerSymbol> provider(data);
+
+    	auto result = model.insertBuffers(leaf, self.idx(), provider);
+
+    	self.leaf() = std::get<0>(result);
+    	self.idx() = std::get<1>(result);
+
+    	model.addTotalKeyCount(Position(data.size()));
+
+    	self.refreshCache();
+
+    	model.markCtrUpdated();
+    }
+
 
     BigInt update(DataSource& data)
     {

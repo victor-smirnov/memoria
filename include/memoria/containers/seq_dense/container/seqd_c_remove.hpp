@@ -199,12 +199,98 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrRemoveName)
     }
 
 
+    void removeBlock2(Iterator& iter, CtrSizeT length)
+    {
+        auto& self  = this->self();
+
+        auto merge_fn = [&iter](const Position& size, Int level){
+            if (level == 0)
+            {
+                iter.idx() += size[0];
+            }
+        };
+
+        if (iter.idx() + length <= iter.leaf_size())
+        {
+            self.removeBlockFromNode(iter.leaf(), iter.idx(), length);
+
+            if (iter.isEnd())
+            {
+                iter.skipFw(0);
+            }
+
+            self.mergeWithSiblings(iter.leaf(), merge_fn);
+        }
+        else {
+            auto tmp = iter;
+            tmp.skipFw(length);
+
+            Int from_length = iter.leaf_size() - iter.idx();
+            self.removeBlockFromNode(iter.leaf(), iter.idx(), from_length);
+
+            auto bkp_iter = iter;
+
+            while(iter.nextLeaf() && iter.leaf() != tmp.leaf())
+            {
+            	self.removeNode(iter.leaf());
+                iter = bkp_iter;
+            }
+
+            self.removeBlockFromNode(tmp.leaf(), 0, tmp.idx());
+
+            tmp.idx() = 0;
+
+            iter = tmp;
+
+            self.mergeWithSiblings(iter.leaf(), merge_fn);
+        }
+
+        self.addTotalKeyCount(Position::create(0, -length));
+
+        iter.refreshCache();
+    }
+
+    void remove(Iterator& from, Iterator& to);
+    void remove(Iterator& from, CtrSizeT size);
+
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::seq_dense::CtrRemoveName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
+M_PARAMS
+void M_TYPE::remove(Iterator& from, Iterator& to)
+{
+    auto& self = this->self();
 
+    auto& from_path     = from.leaf();
+    Position from_pos   = Position(from.key_idx());
+
+    auto& to_path       = to.leaf();
+    Position to_pos     = Position(to.key_idx());
+
+    Accumulator keys;
+
+    self.removeEntries(from_path, from_pos, to_path, to_pos, keys, true);
+
+    from.idx() = to.idx() = to_pos.get();
+}
+
+M_PARAMS
+void M_TYPE::remove(Iterator& from, CtrSizeT size)
+{
+    auto to = from;
+
+    to.skip(size);
+
+    auto& self = this->self();
+
+    self.remove(from, to);
+
+    from = to;
+
+    from.refreshCache();
+}
 
 #undef M_PARAMS
 #undef M_TYPE

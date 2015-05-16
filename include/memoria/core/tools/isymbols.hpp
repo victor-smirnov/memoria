@@ -46,7 +46,22 @@ SizeT RoundSymbolsToStorageType(SizeT length)
     return result * sizeof(T);
 };
 
-template <Int BitsPerSymbol, typename T = UBigInt>
+
+namespace detail {
+
+template <Int BitsPerSymbol>
+struct SymbolsTypeSelector {
+	using Type = UBigInt;
+};
+
+template <>
+struct SymbolsTypeSelector<8> {
+	using Type = UByte;
+};
+
+}
+
+template <Int BitsPerSymbol, typename T = typename detail::SymbolsTypeSelector<BitsPerSymbol>::Type>
 class SymbolsBuffer: public AbstractData<T> {
     typedef SymbolsBuffer<BitsPerSymbol, T>                                     MyType;
 protected:
@@ -138,6 +153,15 @@ public:
         MoveBits(data_, buffer, this->start_ * BitsPerSymbol, start * BitsPerSymbol, length * BitsPerSymbol);
 
         return this->skip(length);
+    }
+
+    virtual SizeT getc(T* buffer, SizeT buf_start, SizeT start, SizeT length) const
+    {
+        MEMORIA_ASSERT_TRUE(this->start_ + length <= this->length_);
+
+        MoveBits(data_, buffer, (this->start_ + buf_start) * BitsPerSymbol, start * BitsPerSymbol, length * BitsPerSymbol);
+
+        return length;
     }
 
     virtual T get()

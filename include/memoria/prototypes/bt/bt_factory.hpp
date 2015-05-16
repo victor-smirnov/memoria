@@ -94,7 +94,29 @@ struct BTTypes {
             bt::UpdateName,
             bt::WalkName
     >                                                                           ContainerPartsList;
+
+
+    typedef TypeList<
+    		bt::BranchFixedName,
+    		bt::InsertBatchFixedName
+    >                                                                           FixedBranchContainerPartsList;
+
+    typedef TypeList<
+    		bt::BranchVariableName,
+    		bt::InsertBatchVariableName
+    >                                                                           VariableBranchContainerPartsList;
+
+    typedef TypeList<
+    		bt::LeafFixedName
+    >                                                                           FixedLeafContainerPartsList;
+
+    typedef TypeList<
+    		bt::LeafVariableName
+    >                                                                           VariableLeafContainerPartsList;
     
+    typedef TypeList<> 															CommonContainerPartsList;
+
+
     typedef TypeList<
             bt::IteratorAPIName,
             bt::IteratorFindName,
@@ -310,28 +332,22 @@ public:
     static const PackedSizeType TotalSizeType = PackedSizeTypeList<BranchSizeType, LeafSizeType>::Value;
 
 
-    using CtrListBoth = typename IfThenElse<
-    						TotalSizeType == PackedSizeType::FIXED,
-    						TL<bt::InsertBatchFixedName>,
-    						TL<bt::InsertBatchVariableName>
-    >::Result;
-
 
     using CtrListBranch = typename IfThenElse<
     						BranchSizeType == PackedSizeType::FIXED,
-    						TL<bt::BranchFixedName>,
-    						TL<bt::BranchVariableName>
+    						typename ContainerTypes::FixedBranchContainerPartsList,
+    						typename ContainerTypes::VariableBranchContainerPartsList
     >::Result;
 
     using CtrListLeaf = typename IfThenElse<
     					LeafSizeType == PackedSizeType::FIXED,
-    					TL<bt::LeafFixedName>,
-    					TL<bt::LeafVariableName>
+    					typename ContainerTypes::FixedLeafContainerPartsList,
+    					typename ContainerTypes::VariableLeafContainerPartsList
     >::Result;
 
     using CtrList = MergeLists<
-    		MergeLists<typename ContainerTypes::ContainerPartsList, CtrListBoth>,
-    		MergeLists<CtrListLeaf, CtrListBranch>
+    		typename ContainerTypes::ContainerPartsList,
+    		MergeLists<CtrListLeaf, CtrListBranch, typename ContainerTypes::CommonContainerPartsList>
     >;
 
 

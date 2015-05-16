@@ -331,6 +331,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchVariableName)
     				PageUpdateMgr mgr(self);
     				mgr.add(next);
 
+    				auto checkpoint = provider.checkpoint();
+
     				auto next_result = insertBatchToNode(next, 0, provider, 1, false);
 
     				if (provider.size() == 0)
@@ -346,6 +348,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchVariableName)
     				}
     				else {
     					mgr.rollback();
+
+    					provider.rollback(checkpoint);
 
     					InsertionState state(provider.size());
 

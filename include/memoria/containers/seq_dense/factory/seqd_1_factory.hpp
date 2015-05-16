@@ -21,6 +21,8 @@
 #include <memoria/containers/seq_dense/container/seqd_c_norm.hpp>
 #include <memoria/containers/seq_dense/container/seqd_c_find.hpp>
 #include <memoria/containers/seq_dense/container/seqd_c_insert.hpp>
+#include <memoria/containers/seq_dense/container/seqd_c_insert_fixed.hpp>
+#include <memoria/containers/seq_dense/container/seqd_c_insert_variable.hpp>
 #include <memoria/containers/seq_dense/container/seqd_c_remove.hpp>
 
 #include <memoria/containers/seq_dense/iterator/seqd_i_count.hpp>
@@ -72,14 +74,28 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >: public BTTypes<Profile, me
     >                                                                           Metadata;
 
 
-    using ContainerPartsList = MergeLists<
-                typename Base::ContainerPartsList,
+    using CommonContainerPartsList = MergeLists<
+                typename Base::CommonContainerPartsList,
 
                 seq_dense::CtrNormName,
                 seq_dense::CtrFindName,
                 seq_dense::CtrInsertName,
                 seq_dense::CtrRemoveName
     >;
+
+
+    using FixedLeafContainerPartsList = MergeLists<
+                typename Base::FixedLeafContainerPartsList,
+
+                seq_dense::CtrInsertFixedName
+    >;
+
+    using VariableLeafContainerPartsList = MergeLists<
+                typename Base::VariableLeafContainerPartsList,
+
+                seq_dense::CtrInsertVariableName
+    >;
+
 
 
     using IteratorPartsList = MergeLists<

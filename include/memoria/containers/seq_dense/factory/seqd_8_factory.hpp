@@ -20,6 +20,8 @@
 
 #include <memoria/containers/seq_dense/container/seqd_c_find.hpp>
 #include <memoria/containers/seq_dense/container/seqd_c_insert.hpp>
+#include <memoria/containers/seq_dense/container/seqd_c_insert_fixed.hpp>
+#include <memoria/containers/seq_dense/container/seqd_c_insert_variable.hpp>
 #include <memoria/containers/seq_dense/container/seqd_c_remove.hpp>
 
 #include <memoria/containers/seq_dense/iterator/seqd_i_count.hpp>
@@ -37,25 +39,10 @@ struct BTTypes<Profile, memoria::Sequence<8, true> >:
 
     typedef BTTypes<Profile, memoria::BT>                                       Base;
 
-    typedef UBigInt                                                             Value;
-    typedef TypeList<BigInt>                                                    KeysList;
+    typedef UByte                                                             	Value;
 
     static const Int BitsPerSymbol                                              = 8;
     static const Int Indexes                                                    = (1 << BitsPerSymbol) + 1;
-
-
-
-//    typedef TypeList<
-//                NonLeafNodeTypes<BranchNode>,
-//                LeafNodeTypes<LeafNode>
-//    >                                                                           NodeTypesList;
-//
-//    typedef TypeList<
-//                TreeNodeType<LeafNode>,
-//                TreeNodeType<BranchNode>
-//    >                                                                           DefaultNodeTypesList;
-
-
 
     struct StreamTF {
         typedef BigInt                                                Key;
@@ -85,16 +72,30 @@ struct BTTypes<Profile, memoria::Sequence<8, true> >:
     >                                                                           Metadata;
 
 
-    typedef typename MergeLists<
-                typename Base::ContainerPartsList,
+    typedef MergeLists<
+                typename Base::CommonContainerPartsList,
 
                 seq_dense::CtrFindName,
                 seq_dense::CtrInsertName,
                 seq_dense::CtrRemoveName
-    >::Result                                                                   ContainerPartsList;
+    >                                                                   		CommonContainerPartsList;
 
 
-    typedef typename MergeLists<
+    using FixedLeafContainerPartsList = MergeLists<
+                typename Base::FixedLeafContainerPartsList,
+
+                seq_dense::CtrInsertFixedName
+    >;
+
+    using VariableLeafContainerPartsList = MergeLists<
+                typename Base::VariableLeafContainerPartsList,
+
+                seq_dense::CtrInsertVariableName
+    >;
+
+
+
+    typedef MergeLists<
                 typename Base::IteratorPartsList,
 
                 seq_dense::IterSelectName,
@@ -103,12 +104,12 @@ struct BTTypes<Profile, memoria::Sequence<8, true> >:
                 seq_dense::IterRankName,
                 seq_dense::IterSkipName
 
-    >::Result                                                                   IteratorPartsList;
+    >                                                                   		IteratorPartsList;
 
 
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {
-        typedef memoria::seq_dense::SequenceIteratorCache<Iterator, Container>  Type;
+    	typedef ::memoria::bt::BTree2IteratorPrefixCache<Iterator, Container>   Type;
     };
 
     typedef IDataSource<Value>                                                  DataSource;
@@ -116,35 +117,28 @@ struct BTTypes<Profile, memoria::Sequence<8, true> >:
 
 
     template <typename Types, typename LeafPath>
-    using FindGTWalker          = ::memoria::seq_dense::SkipForwardWalker<WalkerTypes<Types, LeafPath>>;
+    using FindGTWalker          = bt::SkipForwardWalker2<WalkerTypes<Types, LeafPath>>;
 
 
     template <typename Types, typename LeafPath>
-    using RankFWWalker          = ::memoria::seq_dense::RankFWWalker<WalkerTypes<Types, LeafPath>>;
+    using RankFWWalker          = bt::RankForwardWalker2<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using RankBWWalker          = ::memoria::seq_dense::RankBWWalker<WalkerTypes<Types, LeafPath>>;
-
-
-    template <typename Types, typename LeafPath>
-    using SelectFwWalker        = ::memoria::seq_dense::SelectForwardWalker<WalkerTypes<Types, LeafPath>>;
-
-    template <typename Types, typename LeafPath>
-    using SelectBwWalker        = ::memoria::seq_dense::SelectBackwardWalker<WalkerTypes<Types, LeafPath>>;
+    using RankBWWalker          = bt::RankBackwardWalker2<WalkerTypes<Types, LeafPath>>;
 
 
     template <typename Types, typename LeafPath>
-    using SkipForwardWalker     = ::memoria::seq_dense::SkipForwardWalker<WalkerTypes<Types, LeafPath>>;
+    using SelectFwWalker        = bt::SelectForwardWalker2<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using SkipBackwardWalker    = ::memoria::seq_dense::SkipBackwardWalker<WalkerTypes<Types, LeafPath>>;
+    using SelectBwWalker        = bt::SelectBackwardWalker2<WalkerTypes<Types, LeafPath>>;
 
 
     template <typename Types, typename LeafPath>
-    using NextLeafWalker        = ::memoria::bt::NextLeafWalker<WalkerTypes<Types, LeafPath>>;
+    using SkipForwardWalker     = bt::SkipForwardWalker2<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using PrevLeafWalker        = ::memoria::bt::PrevLeafWalker<WalkerTypes<Types, LeafPath>>;
+    using SkipBackwardWalker    = bt::SkipBackwardWalker2<WalkerTypes<Types, LeafPath>>;
 
 
     template <typename Types>

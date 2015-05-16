@@ -13,6 +13,8 @@
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/tools/assert.hpp>
 
+#include <memoria/prototypes/bt/bt_macros.hpp>
+
 #include <memoria/containers/seq_dense/seqd_walkers.hpp>
 #include <memoria/containers/seq_dense/seqd_names.hpp>
 
@@ -49,7 +51,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
 
     static const Int MAIN_STREAM                                                = Types::MAIN_STREAM;
 
-
+    using DataSource = typename Types::DataSource;
 
     struct InsertIntoLeafFn {
 
@@ -145,9 +147,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
 
         iter++;
     }
-
-
-
 
 MEMORIA_CONTAINER_PART_END
 

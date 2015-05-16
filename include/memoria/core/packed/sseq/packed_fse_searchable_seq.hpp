@@ -111,7 +111,7 @@ public:
     typedef typename Index::Codec                                               Codec;
 
     static const Int IndexSizeThreshold                                         = 0;
-    static const PackedSizeType SizeType										= PackedSizeType::VARIABLE; //PkdStructSizeType<Index>::Value;
+    static const PackedSizeType SizeType										= PkdStructSizeType<Index>::Value;
 
     typedef core::StaticVector<BigInt, Indexes>                                 Values;
     typedef core::StaticVector<BigInt, Indexes + 1>                             Values2;
@@ -262,6 +262,11 @@ public:
 
     Int block_size() const {
         return Base::block_size();
+    }
+
+    Int block_size(const MyType* other) const
+    {
+    	return packed_block_size(size() + other->size());
     }
 
     static Int packed_block_size(Int array_size)
@@ -497,6 +502,35 @@ public:
 
         reindex();
     }
+
+
+    template <typename IData>
+    void insert(const IData* data, Int pos, Int start, Int length)
+    {
+    	//const IDataSource<Value>* tgt = static_cast<const IDataSource<Value>*>(data);
+
+    	IDataAPI api_type = data->api();
+
+    	auto symbols = this->symbols();
+
+    	MEMORIA_ASSERT_TRUE(api_type == IDataAPI::Batch || api_type == IDataAPI::Both);
+
+    	SizeT remainder         = data->getRemainder();
+    	SizeT to_process_local  = length <= remainder ? length : remainder;
+
+    	insertDataRoom(pos, to_process_local);
+
+    	while (to_process_local > 0)
+    	{
+    		SizeT processed = data->getc(symbols, start, pos, to_process_local);
+
+    		pos                 += processed;
+    		to_process_local    -= processed;
+    	}
+
+    	reindex();
+    }
+
 
     void fill(Int start, Int end, std::function<Value ()> fn)
     {
