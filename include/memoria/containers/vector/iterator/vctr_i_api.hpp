@@ -89,8 +89,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 
         auto result = model.insertBuffers(leaf, self.idx(), provider);
 
-        self.leaf() = std::get<0>(result);
-        self.idx() = std::get<1>(result);
+        self.leaf() = result.leaf();
+        self.idx() = result.position();
 
         model.addTotalKeyCount(Position(data.size()));
 

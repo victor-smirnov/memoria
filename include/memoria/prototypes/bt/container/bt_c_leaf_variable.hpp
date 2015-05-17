@@ -198,8 +198,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafVariableName)
 
      //==========================================================================================
 
+
+     template <typename LeafPosition>
+     using InsertBufferResult = typename Base::template InsertBufferResult<LeafPosition>;
+
      template <typename LeafPosition, typename Buffer>
-     std::tuple<LeafPosition, bool> insertBufferIntoLeaf(NodeBaseG& leaf, LeafPosition pos, LeafPosition start, LeafPosition end, const Buffer* buffer)
+     InsertBufferResult<LeafPosition> insertBufferIntoLeaf(NodeBaseG& leaf, LeafPosition pos, LeafPosition start, LeafPosition end, const Buffer* buffer)
      {
     	 auto& self = this->self();
 
@@ -213,11 +217,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafVariableName)
 
     	 if (self.doInsertBufferIntoLeaf(leaf, mgr, pos, start, end, buffer))
     	 {
-    		 return std::make_tuple(end - start, true);
+    		 return InsertBufferResult<LeafPosition>(end - start, true);
     	 }
     	 else if (end - start <= 1)
     	 {
-    		 return std::make_tuple(0, true);
+    		 return InsertBufferResult<LeafPosition>(0, true);
     	 }
     	 else {
     		 LeafPosition imax = end, imin = start;
@@ -250,7 +254,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafVariableName)
     			 }
     		 }
 
-    		 return std::make_tuple(inserted, false);
+    		 return InsertBufferResult<LeafPosition>(inserted, false);
     	 }
      }
 

@@ -77,38 +77,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertVariableName)
     };
 
 
-//    template <typename LeafPosition, typename Buffer>
-//    std::tuple<LeafPosition, bool> insertBufferIntoLeaf(NodeBaseG& leaf, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
-//    {
-//    	auto& self = this->self();
-//
-//    	Int sizes = size - start;
-//
-//    	Int capacity = self.getStreamCapacity(leaf, 0);
-//
-//    	Int to_insert = capacity >= sizes ? sizes : capacity;
-//
-//    	LeafDispatcher::dispatch(leaf, InsertBufferIntoLeafFn(), pos, start, to_insert, buffer);
-//
-//    	return std::make_tuple(to_insert, capacity > to_insert);
-//    }
-
-//    struct InsertBufferIntoLeafFn
-//    {
-//    	template <typename NTypes, typename LeafPosition, typename Buffer>
-//    	void treeNode(LeafNode<NTypes>* node, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
-//    	{
-//    		node->processAll(*this, pos, start, size, buffer);
-//    	}
-//
-//    	template <typename StreamType, typename LeafPosition, typename Buffer>
-//    	void stream(StreamType* obj, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
-//    	{
-//    		obj->insert(pos, start, size, buffer);
-//    	}
-//    };
-
-
     template <typename LeafPosition, typename Buffer>
     bool doInsertBufferIntoLeaf(NodeBaseG& leaf, PageUpdateMgr& mgr, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
     {

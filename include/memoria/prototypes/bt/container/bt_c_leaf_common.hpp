@@ -123,6 +123,18 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
 
     //==============================================================================================
 
+    template <typename LeafPosition>
+    class InsertBufferResult {
+    	LeafPosition inserted_size_;
+    	bool extra_space_;
+    public:
+    	InsertBufferResult(LeafPosition size, bool extra_space): inserted_size_(size), extra_space_(extra_space){}
+
+    	const LeafPosition& inserted_size() const {return inserted_size_;}
+    	bool has_extra_space() const {return extra_space_;}
+    };
+
+
     template <typename LeafPosition, typename Buffer>
     LeafPosition insertBuffersIntoLeaf(NodeBaseG& leaf, LeafPosition pos, InputBufferProvider<LeafPosition, Buffer>& provider)
     {
@@ -146,13 +158,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
 
     		auto inserted = self.insertBufferIntoLeaf(leaf, pos, start, provider.size(), buffer);
 
-    		auto inserted_size = std::get<0>(inserted);
+    		auto inserted_size = inserted.inserted_size();
 
     		pos += inserted_size;
 
     		provider.consumed(inserted_size);
 
-    		if (!std::get<1>(inserted)) {
+    		if (!inserted.has_extra_space()) {
     			break;
     		}
     	}
@@ -174,8 +186,25 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
     	return pos >= size;
     }
 
+
+
+
+    template <typename LeafPosition>
+    class InsertBuffersResult {
+    	NodeBaseG leaf_;
+    	LeafPosition position_;
+    public:
+    	InsertBuffersResult(NodeBaseG leaf, LeafPosition position): leaf_(leaf), position_(position){}
+
+    	NodeBaseG& leaf() {return leaf_;}
+    	const NodeBaseG& leaf() const {return leaf_;}
+
+    	const LeafPosition& position() const {return position_;}
+    	LeafPosition& position() {return position_;}
+    };
+
     template <typename LeafPosition, typename Buffer>
-    std::tuple<NodeBaseG, LeafPosition> insertBuffers(NodeBaseG& leaf, LeafPosition pos, InputBufferProvider<LeafPosition, Buffer>& provider)
+    InsertBuffersResult<LeafPosition> insertBuffers(NodeBaseG& leaf, LeafPosition pos, InputBufferProvider<LeafPosition, Buffer>& provider)
     {
     	auto& self = this->self();
 
@@ -194,7 +223,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
     				return insertBuffersRest(leaf, next_leaf, provider);
     			}
     			else {
-    				return std::tuple<NodeBaseG, LeafPosition>(next_leaf, provider.zero());
+    				return InsertBuffersResult<LeafPosition>(next_leaf, provider.zero());
     			}
     		}
     		else {
@@ -210,7 +239,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
     		}
     	}
     	else {
-    		return std::tuple<NodeBaseG, LeafPosition>(leaf, last_pos);
+    		return InsertBuffersResult<LeafPosition>(leaf, last_pos);
     	}
     }
 
@@ -235,7 +264,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
 private:
 
     template <typename LeafPosition, typename Buffer>
-    std::tuple<NodeBaseG, LeafPosition> insertBuffersRest(NodeBaseG& leaf, NodeBaseG& next_leaf, InputBufferProvider<LeafPosition, Buffer>& provider)
+    InsertBuffersResult<LeafPosition> insertBuffersRest(NodeBaseG& leaf, NodeBaseG& next_leaf, InputBufferProvider<LeafPosition, Buffer>& provider)
     {
     	auto& self = this->self();
 
@@ -257,16 +286,19 @@ private:
 
     	if (self.mergeBTreeNodes(last_leaf, next_leaf, [](const Position&, Int){}))
     	{
-    		return std::tuple<NodeBaseG, LeafPosition>(last_leaf, last_leaf_size.get());
+    		return InsertBuffersResult<LeafPosition>(last_leaf, last_leaf_size.get());
     	}
     	else {
-    		return std::tuple<NodeBaseG, LeafPosition>(next_leaf, provider.zero());
+    		return InsertBuffersResult<LeafPosition>(next_leaf, provider.zero());
     	}
     }
 
+//    class BuffersInsertionStatus {
+//    	NodeBaseG last_leaf_;
+//    };
 
     template <typename LeafPosition, typename Buffer>
-    std::tuple<NodeBaseG, LeafPosition> insertBuffersRest(NodeBaseG& leaf, InputBufferProvider<LeafPosition, Buffer>& provider)
+    InsertBuffersResult<LeafPosition> insertBuffersRest(NodeBaseG& leaf, InputBufferProvider<LeafPosition, Buffer>& provider)
     {
     	auto& self = this->self();
 
@@ -290,7 +322,7 @@ private:
 
     	auto last_leaf_size = self.getLeafStreamSizes(last_leaf);
 
-    	return std::tuple<NodeBaseG, LeafPosition>(last_leaf, last_leaf_size.get());
+    	return InsertBuffersResult<LeafPosition>(last_leaf, last_leaf_size.get());
     }
 
 
