@@ -110,21 +110,21 @@ public:
 
             AssertEQ(MA_SRC, idx, pairs_size);
 
-            idx = pairs_size - 1;
-            for (auto iter = map.RBegin(); !iter.isBegin();)
-            {
-                BigInt key = iter.key();
-                BigInt value = iter.value();
-
-                AssertEQ(MA_SRC, pairs[idx].key_, key, SBuf()<<idx);
-                AssertEQ(MA_SRC, pairs[idx].value_, value, SBuf()<<idx);
-
-                iter--;
-
-                idx--;
-            }
-
-            AssertEQ(MA_SRC,idx, -1, SBuf()<<"pairs_size="<<pairs_size);
+//            idx = pairs_size - 1;
+//            for (auto iter = map.RBegin(); !iter.isBegin();)
+//            {
+//                BigInt key = iter.key();
+//                BigInt value = iter.value();
+//
+//                AssertEQ(MA_SRC, pairs[idx].key_, key, SBuf()<<idx);
+//                AssertEQ(MA_SRC, pairs[idx].value_, value, SBuf()<<idx);
+//
+//                iter--;
+//
+//                idx--;
+//            }
+//
+//            AssertEQ(MA_SRC,idx, -1, SBuf()<<"pairs_size="<<pairs_size);
         }
 
         data_check_counter_++;
@@ -150,14 +150,17 @@ public:
 
     virtual void checkIteratorPrefix(Iterator& iter, const char* source)
     {
-        BigInt prefix = 0;
+    	auto cache1 = iter.cache();
 
-        iter.ComputePrefix(prefix);
+    	auto tmp = iter;
+    	tmp.refreshCache();
 
-        if (iter.prefix() != prefix)
+    	auto cache2 = tmp.cache();
+
+        if (cache1 != cache2)
         {
             iter.dump(out());
-            throw TestException(source, SBuf()<<"Invalid prefix value. Iterator: "<<iter.prefix()<<" Actual: "<<prefix);
+            throw TestException(source, SBuf()<<"Invalid iterator cache. Iterator: "<<cache1<<" Actual: "<<cache2);
         }
     }
 

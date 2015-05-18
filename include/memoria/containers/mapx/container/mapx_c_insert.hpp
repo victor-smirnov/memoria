@@ -43,9 +43,52 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mapx::CtrRemoveName)
 
     typedef typename Types::Entry                                               MapEntry;
 
-    Iterator findK(BigInt k)
+    template <typename LeafPath>
+    using TargetType = typename Types::template TargetType<LeafPath>;
+
+    using CtrSizeT = typename Types::CtrSizeT;
+
+    CtrSizeT size() const {
+    	return self().sizes()[0];
+    }
+
+    Iterator Begin() {
+    	return self().template _seek<0>(0);
+    }
+
+    Iterator End() {
+    	auto& self = this->self();
+    	return self.template _seek<0>(self.sizes()[0]);
+    }
+
+    Iterator begin() {
+    	return self().template _seek<0>(0);
+    }
+
+    Iterator end() {
+    	auto& self = this->self();
+    	return self.template _seek<0>(self.sizes()[0]);
+    }
+
+
+    Iterator find(const TargetType<IntList<0>>& k)
     {
-    	return self().template _find2GT<IntList<0>>(0, k);
+    	return self().template _find2GE<IntList<0>>(0, k);
+    }
+
+
+    bool remove(const TargetType<IntList<0>>& k)
+    {
+    	auto iter = find(k);
+
+    	if (iter.key() == k)
+    	{
+    		iter.remove();
+    		return true;
+    	}
+    	else {
+    		return false;
+    	}
     }
 
 MEMORIA_CONTAINER_PART_END

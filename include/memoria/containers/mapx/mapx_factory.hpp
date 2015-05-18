@@ -127,34 +127,6 @@ struct MapXBTTypesBase: public BTTypes<Profile, memoria::BT> {
     struct IteratorCacheFactory {
         typedef BTree2IteratorPrefixCache<Iterator, Container> Type;
     };
-
-
-
-    template <typename Types, typename LeafPath>
-    using FindGTWalker          = bt::FindGTForwardWalker2<WalkerTypes<Types, LeafPath>>;
-
-    template <typename Types, typename LeafPath>
-    using FindGEWalker          = bt::FindGEForwardWalker2<WalkerTypes<Types, LeafPath>>;
-
-    template <typename Types, typename LeafPath>
-    using FindBackwardWalker    = bt::FindBackwardWalker2<WalkerTypes<Types, LeafPath>>;
-
-
-    template <typename Types, typename LeafPath>
-    using SkipForwardWalker     = bt::SkipForwardWalker2<WalkerTypes<Types, LeafPath>>;
-
-    template <typename Types, typename LeafPath>
-    using SkipBackwardWalker    = bt::SkipBackwardWalker2<WalkerTypes<Types, LeafPath>>;
-
-    template <typename Types, typename LeafPath>
-    using SelectForwardWalker   = bt::SelectForwardWalker2<WalkerTypes<Types, LeafPath>>;
-
-    template <typename Types, typename LeafPath>
-    using SelectBackwardWalker  = bt::SelectBackwardWalker2<WalkerTypes<Types, LeafPath>>;
-
-
-    template <typename Types>
-    using FindBeginWalker       = bt1::FindBeginWalker<Types>;
 };
 
 

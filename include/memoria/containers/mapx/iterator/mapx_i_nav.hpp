@@ -41,19 +41,19 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
 
 
     bool operator++() {
-        return self().nextKey();
+        return self().skipFw(1) == 1;
     }
 
     bool operator--() {
-        return self().skipBw(1);
+        return self().skipBw(1) == 1;
     }
 
     bool operator++(int) {
-        return self().skipFw(1);
+        return self().skipFw(1) == 1;
     }
 
     bool operator--(int) {
-        return self().skipBw(1);
+        return self().skipBw(1) == 1;
     }
 
     BigInt operator+=(BigInt size)
@@ -64,23 +64,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
     BigInt operator-=(BigInt size)
     {
         return self().skipBw(size);
-    }
-
-    Key getRawKey() const
-    {
-        auto& self = this->self();
-        return self.raw_key();
-    }
-
-    Accumulator getRawKeys() const
-    {
-        auto& self = this->self();
-
-        Accumulator accum;
-
-        std::get<0>(accum)[0] = self.raw_key();
-
-        return accum;
     }
 
 
@@ -121,7 +104,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
     		leaf = right;
     		idx -= split_idx;
 
-//    		self.updatePrefix();
+    		self.refreshCache();
     	}
     }
 
@@ -129,17 +112,43 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
     {
     	auto& self = this->self();
 
+    	auto delta = key - self.prefix();
+
     	self.ctr().template insertStreamEntry<0>(
     			self,
-    			InputTupleAdapter<0>::convert(core::StaticVector<BigInt, 1>({key}), value)
+    			InputTupleAdapter<0>::convert(core::StaticVector<BigInt, 1>({delta}), value)
     	);
+
+    	if (!self.isEnd())
+    	{
+    		auto k = self.raw_key();
+
+    		MEMORIA_ASSERT_TRUE((k - StaticVector<BigInt, 1>(delta))[0] >= 0);
+
+    		self.ctr().template updateStreamEntry<0, IntList<0>>(self, std::make_tuple(k - StaticVector<BigInt, 1>(delta)));
+    	}
     }
 
 
 
     void remove() {
     	auto& self = this->self();
+
+    	auto k = self.raw_key();
+
     	self.ctr().template removeStreamEntry<0>(self);
+
+    	if (self.isEnd())
+    	{
+    		self.skipFw(0);
+    	}
+
+    	if (!self.isEnd()) {
+
+    		auto kk = self.raw_key();
+
+    		self.ctr().template updateStreamEntry<0, IntList<0>>(self, std::make_tuple(k + kk));
+    	}
     }
 
 
@@ -168,16 +177,25 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
     	return self().template _findBwGE<IntList<0>>(index, key);
     }
 
+    Key prefix() const {
+    	return std::get<0>(std::get<0>(self().cache().prefixes()))[0] + std::get<0>(std::get<0>(self().cache().leaf_prefixes()))[0];
+    }
+
 
     template <Int Stream, typename SubstreamsIdxList, typename... Args>
     using ReadLeafEntryRtnType = typename Container::template ReadLeafEntryRtnType<Stream, SubstreamsIdxList, Args...>;
 
-    auto key() const -> typename std::tuple_element<0, ReadLeafEntryRtnType<0, IntList<0>, Int>>::type
+    auto raw_key() const -> typename std::tuple_element<0, ReadLeafEntryRtnType<0, IntList<0>, Int>>::type
     {
     	return std::get<0>(self().ctr().template _readLeafEntry<0, IntList<0>>(self().leaf(), self().idx()));
     }
 
-    auto key(Int index) const -> typename std::tuple_element<0, ReadLeafEntryRtnType<0, IntList<0>, Int, Int>>::type
+    auto key() const -> Key
+    {
+    	return self().raw_key(0) + self().prefix();
+    }
+
+    auto raw_key(Int index) const -> typename std::tuple_element<0, ReadLeafEntryRtnType<0, IntList<0>, Int, Int>>::type
     {
     	return std::get<0>(self().ctr().template _readLeafEntry<0, IntList<0>>(self().leaf(), self().idx(), index));
     }
@@ -187,6 +205,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
     	return std::get<0>(self().ctr().template _readLeafEntry<0, IntList<1>>(self().leaf(), self().idx()));
     }
 
+
+    template <typename TValue>
+    void set_value1(TValue&& v)
+    {
+    	self().ctr().template updateStreamEntry<0, IntList<1>>(self(), std::make_tuple(v));
+    }
 
 MEMORIA_ITERATOR_PART_END
 

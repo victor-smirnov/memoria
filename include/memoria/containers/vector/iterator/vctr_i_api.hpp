@@ -310,18 +310,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
     }
 
 
-    void refreshCache()
-    {
-    	auto& self = this->self();
 
-    	FindForwardWalker2<bt::WalkerTypes<Types, IntList<0>>> walker(0, 0);
-
-    	self.cache().reset();
-
-    	self.ctr().walkUp2(self.leaf(), self.idx(), walker);
-
-    	walker.finish(self, self.idx());
-    }
 
 MEMORIA_ITERATOR_PART_END
 

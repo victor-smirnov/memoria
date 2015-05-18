@@ -477,20 +477,26 @@ public:
     template <Int StreamIdx, typename Tree>
     StreamOpResult find_leaf(const Tree* tree, Int start)
     {
-    	if (start < tree->size())
+    	if (tree != nullptr)
     	{
-    		auto k = Base::target_ - Base::sum_;
+    		if (start < tree->size())
+    		{
+    			auto k = Base::target_ - Base::sum_;
 
-    		Int index   = this->leaf_index();
+    			Int index   = this->leaf_index();
 
-    		auto result = tree->findForward(Base::search_type_, index, start, k);
+    			auto result = tree->findForward(Base::search_type_, index, start, k);
 
-    		Base::sum_ += result.prefix();
+    			Base::sum_ += result.prefix();
 
-    		return StreamOpResult(result.idx(), start, result.idx() >= tree->size());
+    			return StreamOpResult(result.idx(), start, result.idx() >= tree->size());
+    		}
+    		else {
+    			return StreamOpResult(start, start, true, true);
+    		}
     	}
     	else {
-    		return StreamOpResult(start, start, true, true);
+    		return StreamOpResult(0, 0, true, true);
     	}
     }
 

@@ -78,9 +78,11 @@ public:
             {
                 this->out()<<vector_idx<<endl;
 
-                auto iter = map[pairs[vector_idx].key_];
+                auto key = pairs[vector_idx].key_;
 
-                iter.svalue() = pairs[vector_idx].value_;
+                auto iter = map.find(key);
+
+                iter.insert(key, pairs[vector_idx].value_);
 
                 Base::checkIterator(iter, MEMORIA_SOURCE);
 
@@ -125,8 +127,9 @@ public:
 
         Ctr map(&allocator, CTR_FIND, Base::ctr_name_);
 
-        auto iter = map[pairs[vector_idx_].key_];
-        iter.svalue() = pairs[vector_idx_].value_;
+        auto key = pairs[vector_idx_].key_;
+        auto iter = map.find(key);
+        iter.insert(key, pairs[vector_idx_].value_);
 
         Base::checkIterator(iter, MEMORIA_SOURCE);
 
@@ -153,11 +156,12 @@ public:
 
             Base::out()<<c<<endl;
 
-            ctr[c] = c;
+            auto iter = ctr.find(c);
+            iter.insert(c, c);
 
             v.push_back(c);
 
-            auto i = ctr[c];
+            auto i = ctr.find(c);
 
             AssertEQ(MA_SRC, i.key(), c);
             AssertEQ(MA_SRC, i.value(), c);
@@ -185,16 +189,16 @@ public:
             Iterator i1 = ctr.Begin();
             AssertEQ(MA_SRC, i1.key(), v[0]);
 
-            Iterator i2 = ctr.RBegin();
-            AssertEQ(MA_SRC, i2.key(), v[v.size() - 1]);
+//            Iterator i2 = ctr.RBegin();
+//            AssertEQ(MA_SRC, i2.key(), v[v.size() - 1]);
 
             Iterator i3 = ctr.End();
             AssertTrue(MA_SRC, i3.isEnd());
             AssertEQ(MA_SRC, i3.idx(), ctr.getNodeSize(i3.leaf(), 0));
 
-            Iterator i4 = ctr.REnd();
-            AssertTrue(MA_SRC, i4.isBegin());
-            AssertEQ(MA_SRC, i4.idx(), -1);
+//            Iterator i4 = ctr.REnd();
+//            AssertTrue(MA_SRC, i4.isBegin());
+//            AssertEQ(MA_SRC, i4.idx(), -1);
 
             allocator.commit();
         }
@@ -218,9 +222,13 @@ public:
 
         Ctr ctr(&allocator, CTR_FIND, Base::ctr_name_);
 
-        ctr[key_] = value_;
+        //ctr[key_] = value_;
 
-        auto i = ctr[key_];
+        auto iter = ctr.find(key_);
+
+        iter.insert(key_, value_);
+
+        auto i = ctr.find(key_);
 
         AssertEQ(MA_SRC, i.key(), key_);
         AssertEQ(MA_SRC, i.value(), value_);

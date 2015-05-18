@@ -111,6 +111,27 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveName)
     			throw Exception(MA_SRC, "Second removal attempt failed");
     		}
     	}
+    	else {
+    		auto next = self.getNextNodeP(iter.leaf());
+
+    		if (next.isSet())
+    		{
+    			self.mergeBTreeNodes(iter.leaf(), next, [](const Position&, Int){});
+    		}
+
+    		auto prev = self.getPrevNodeP(iter.leaf());
+
+    		if (prev.isSet())
+    		{
+    			self.mergeBTreeNodes(prev, iter.leaf(), [&iter, &prev](const Position& sizes, Int level){
+    				if (level == 0)
+    				{
+    					iter.idx() += sizes[0];
+    					iter.leaf() = prev;
+    				}
+    			});
+    		}
+    	}
 
     	self.updateParent(iter.leaf(), std::get<1>(result));
 

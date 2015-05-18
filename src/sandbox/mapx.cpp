@@ -22,53 +22,27 @@ int main() {
 	try {
 		SmallInMemAllocator alloc;
 
-		using RootT = SCtrTF<Root>::Type;
+
 		using MapT  = SCtrTF<MapX<BigInt, BigInt>>::Type;
-		using SecT  = SCtrTF<Sequence<1>>::Type;
-		using VecT  = SCtrTF<Vector<Int>>::Type;
 
 		MapT::initMetadata();
-		VecT::initMetadata();
-		SecT::initMetadata();
-		RootT::initMetadata();
 
 		MapT map(&alloc);
 
 		auto iter = map.Begin();
 
-		int size = 10;
+		int size = 10000;
 
 		for (int c = 0; c < size; c++) {
-			iter.insert(1, c);
+			iter.insert(c + 1, c);
 		}
 
-		iter = map.findK(3);
+		iter = map.find(1);
 
-		iter.dump();
-
-		iter.template _updateStream<0, IntList<0>>(MakeStaticVector<BigInt>(456));
-		iter.template _updateStream<0, IntList<1>>(555);
-
-		iter.dump();
-
-		iter.template _updateStream<0, IntList<0, 1>>(MakeStaticVector<BigInt>(777), 333);
-
-		cout<<"LeafEntry: "<<iter.template _readLeafEntry<0, IntList<0, 1>>(iter.idx())<<endl;
-		cout<<"Key: "<<iter.key()<<endl;
-		cout<<"Value: "<<iter.value()<<endl;
-
-		iter.dump();
-
-
-//		iter.findFwGT(0, 100);
-//		iter.findFwGE(0, 100);
-//		iter.findBwGT(0, 100);
-//		iter.findBwGE(0, 100);
-
-//		iter.skipBw(1);
-		iter.remove();
-
-		iter.dump();
+		while (!iter.isEnd()) {
+			cout<<iter.key()<<" -- "<<iter.value()<<" "<<iter.prefix()<<endl;
+			iter++;
+		}
 
 		alloc.commit();
 

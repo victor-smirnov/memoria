@@ -155,6 +155,12 @@ public:
     template <typename Walker>
     FindResult findBw2(NodeChain node_chain, Walker&& walker, WalkDirection direction = WalkDirection::UP);
 
+    template <Int Stream>
+    Iterator _seek(CtrSizeT position)
+    {
+    	typename Types::template SkipForwardWalker<Types, IntList<Stream>> walker(position);
+    	return self().find2(walker);
+    }
 
 
     MEMORIA_PUBLIC Position sizes() const
