@@ -747,7 +747,7 @@ public:
         {
             BigInt ctr_name = iter.key();
 
-            PageG page = this->getPage(iter.getValue(), Base::READ, ctr_name);
+            PageG page = this->getPage(iter.value(), Base::READ, ctr_name);
 
             ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(page->ctr_type_hash());
 
@@ -938,7 +938,17 @@ private:
 
     void set_value_for_key(BigInt name, const ID& page_id)
     {
-        root_map_->operator[](name).setValue(page_id);
+    	auto iter = root_map_->find(name);
+
+    	if (iter.isFound(name))
+    	{
+    		iter.setValue(page_id);
+    	}
+    	else {
+    		iter.insert(name, page_id);
+    	}
+
+        root_map_->find(name).setValue(page_id);
     }
 
     ID get_value_for_key(BigInt name)
@@ -947,7 +957,7 @@ private:
 
         if (!iter.isEnd())
         {
-            return iter.getValue();
+            return iter.value();
         }
         else {
             return ID(0);

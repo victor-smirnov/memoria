@@ -207,9 +207,16 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
 
 
     template <typename TValue>
-    void set_value1(TValue&& v)
+    void setValue(TValue&& v)
     {
     	self().ctr().template updateStreamEntry<0, IntList<1>>(self(), std::make_tuple(v));
+    }
+
+    bool isFound(Key k) const
+    {
+    	auto& self = this->self();
+
+    	return (!self.isEnd()) && self.key() == k;
     }
 
 MEMORIA_ITERATOR_PART_END

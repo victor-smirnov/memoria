@@ -534,7 +534,9 @@ public:
 
         handler->startGroup("DATA", size_);
 
-        handler->value("DATA_ITEM", buffer_, size_, IPageDataEventHandler::BYTE_ARRAY);
+        vapi::ValueHelper<Value>::setup(handler, "DATA_ITEM", buffer_, size_, IPageDataEventHandler::BYTE_ARRAY);
+
+//        handler->value("DATA_ITEM", buffer_, size_, IPageDataEventHandler::BYTE_ARRAY);
 
         handler->endGroup();
 

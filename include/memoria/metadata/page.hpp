@@ -116,9 +116,14 @@ private:
 
 template <typename T>
 struct ValueHelper {
-    static void setup(IPageDataEventHandler* handler, const T& value)
+    static void setup(IPageDataEventHandler* handler, const char* name, const T& value)
     {
-        handler->value("VALUE", &value);
+        handler->value(name, &value);
+    }
+
+    static void setup(IPageDataEventHandler* handler, const char* name, const T* value, Int size, Int type)
+    {
+    	handler->value(name, value, size, type);
     }
 };
 
@@ -126,10 +131,19 @@ template <typename T>
 struct ValueHelper<PageID<T> > {
     typedef PageID<T>                                                   Type;
 
-    static void setup(IPageDataEventHandler* handler, const Type& value)
+    static void setup(IPageDataEventHandler* handler, const char* name, const Type& value)
     {
         IDValue id(&value);
-        handler->value("VALUE", &id);
+        handler->value(name, &id);
+    }
+
+    static void setup(IPageDataEventHandler* handler, const char* name, const Type* value, Int size, Int type)
+    {
+    	for (Int c = 0; c < size; c++)
+    	{
+    		IDValue id(value + c);
+    		handler->value(name, &id);
+    	}
     }
 };
 
@@ -137,10 +151,10 @@ template <>
 struct ValueHelper<EmptyValue> {
     typedef EmptyValue Type;
 
-    static void setup(IPageDataEventHandler* handler, const Type& value)
+    static void setup(IPageDataEventHandler* handler, const char* name, const Type& value)
     {
         BigInt val = 0;
-        handler->value("VALUE", &val);
+        handler->value(name, &val);
     }
 };
 
