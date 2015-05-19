@@ -9,6 +9,8 @@
 #ifndef _MEMORIA_MODELS_ROOT_FACTORY_HPP
 #define _MEMORIA_MODELS_ROOT_FACTORY_HPP
 
+#include <memoria/core/container/container.hpp>
+
 #include <memoria/containers/mapx/mapx_factory.hpp>
 
 #include <memoria/containers/root/container/root_c_api.hpp>
@@ -35,7 +37,7 @@ struct BTTypes<Profile, memoria::Root>: public BTTypes<Profile, memoria::MapX<Bi
 
 
 template <typename Profile, typename T>
-class CtrTF<Profile, memoria::Root, T>: public CtrTF<Profile, memoria::MapX<BigInt, BigInt>, T> {
+class CtrTF<Profile, memoria::Root, T>: public CtrTF<Profile, memoria::MapX<BigInt, IDType>, T> {
 };
 
 }

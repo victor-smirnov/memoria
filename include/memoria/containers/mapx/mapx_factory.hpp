@@ -20,35 +20,7 @@
 #include <memoria/prototypes/bt/walkers/bt_select_walkers.hpp>
 #include <memoria/prototypes/bt/walkers/bt_rank_walkers.hpp>
 #include <memoria/prototypes/bt/walkers/bt_leaf_walkers.hpp>
-
-#include <memoria/prototypes/metamap/walkers/metamap_rank_walkers.hpp>
-#include <memoria/prototypes/metamap/walkers/metamap_select_walkers.hpp>
-
-
-#include <memoria/prototypes/bt/packed_adaptors/bt_tree_adaptor.hpp>
-#include <memoria/prototypes/metamap/packed_adaptors/metamap_packed_adaptors.hpp>
-
-#include <memoria/prototypes/metamap/metamap_tools.hpp>
-
-#include <memoria/prototypes/metamap/container/metamap_c_insert.hpp>
-#include <memoria/prototypes/metamap/container/metamap_c_insert_compr.hpp>
-#include <memoria/prototypes/metamap/container/metamap_c_nav.hpp>
-#include <memoria/prototypes/metamap/container/metamap_c_remove.hpp>
-#include <memoria/prototypes/metamap/container/metamap_c_find.hpp>
-#include <memoria/prototypes/metamap/container/metamap_c_insbatch.hpp>
-#include <memoria/prototypes/metamap/container/metamap_c_insbatch_compr.hpp>
-
-#include <memoria/prototypes/metamap/metamap_iterator.hpp>
-#include <memoria/prototypes/metamap/iterator/metamap_i_keys.hpp>
-#include <memoria/prototypes/metamap/iterator/metamap_i_nav.hpp>
-#include <memoria/prototypes/metamap/iterator/metamap_i_entry.hpp>
-#include <memoria/prototypes/metamap/iterator/metamap_i_value.hpp>
-#include <memoria/prototypes/metamap/iterator/metamap_i_value_byref.hpp>
-#include <memoria/prototypes/metamap/iterator/metamap_i_labels.hpp>
-#include <memoria/prototypes/metamap/iterator/metamap_i_find.hpp>
-#include <memoria/prototypes/metamap/iterator/metamap_i_misc.hpp>
-
-#include <memoria/prototypes/metamap/metamap_names.hpp>
+#include <memoria/containers/mapx/mapx_names.hpp>
 
 #include <memoria/containers/mapx/container/mapx_c_insert.hpp>
 #include <memoria/containers/mapx/container/mapx_c_remove.hpp>
@@ -110,8 +82,8 @@ struct MapXBTTypesBase: public BTTypes<Profile, memoria::BT> {
     >                                                                           Metadata;
 
 
-    using ContainerPartsList = MergeLists<
-                typename Base::ContainerPartsList,
+    using CommonContainerPartsList = MergeLists<
+                typename Base::CommonContainerPartsList,
                 memoria::mapx::CtrInsertName,
                 memoria::mapx::CtrRemoveName
     >;
@@ -123,10 +95,6 @@ struct MapXBTTypesBase: public BTTypes<Profile, memoria::BT> {
     >;
 
 
-    template <typename Iterator, typename Container>
-    struct IteratorCacheFactory {
-        typedef BTree2IteratorPrefixCache<Iterator, Container> Type;
-    };
 };
 
 
@@ -158,7 +126,9 @@ struct BTTypes<Profile, memoria::MapX<Key_, Value_>>:
 };
 
 
-
+template <typename Profile, typename Key, typename Value, typename T>
+class CtrTF<Profile, memoria::MapX<Key, Value>, T>: public CtrTF<Profile, memoria::BT, T> {
+};
 
 
 }
