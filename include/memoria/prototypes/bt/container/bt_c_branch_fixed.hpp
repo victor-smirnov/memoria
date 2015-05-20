@@ -33,10 +33,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchFixedName)
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    typedef typename Base::NodeDispatcher                                       NodeDispatcher;
-    typedef typename Base::RootDispatcher                                       RootDispatcher;
-    typedef typename Base::LeafDispatcher                                       LeafDispatcher;
-    typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
+    typedef typename Types::Pages::NodeDispatcher                               NodeDispatcher;
+    typedef typename Types::Pages::LeafDispatcher                               LeafDispatcher;
+    typedef typename Types::Pages::NonLeafDispatcher                            NonLeafDispatcher;
 
 
     typedef typename Base::Metadata                                             Metadata;
@@ -47,7 +46,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchFixedName)
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
     typedef std::function<Accumulator (NodeBaseG&, NodeBaseG&)>                 SplitFn;
-    typedef std::function<void (const Position&, Int)>                          MergeFn;
+    typedef std::function<void (const Position&)>                          		MergeFn;
 
     typedef typename Types::Source                                              Source;
 
@@ -55,8 +54,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchFixedName)
     static const Int Streams                                                    = Types::Streams;
 
 
-
-    void insertNonLeafP(NodeBaseG& node, Int idx, const Accumulator& keys, const ID& id);
+    MEMORIA_DECLARE_NODE_FN(InsertFn, insert);
+    void insertToBranchNodeP(NodeBaseG& node, Int idx, const Accumulator& keys, const ID& id);
 
     NodeBaseG splitPathP(NodeBaseG& node, Int split_at);
     NodeBaseG splitLeafP(NodeBaseG& leaf, const Position& split_at);
@@ -75,16 +74,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchFixedName)
 
 
 
-    MEMORIA_DECLARE_NODE_FN(InsertFn, insert);
-
-    void insertNonLeaf(
-            NodeBaseG& node,
-            Int idx,
-            const Accumulator& keys,
-            const ID& id
-    );
-
-
     MEMORIA_DECLARE_NODE2_FN_RTN(CanMergeFn, canBeMergedWith, bool);
     bool canMerge(const NodeBaseG& tgt, const NodeBaseG& src)
     {
@@ -94,11 +83,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchFixedName)
 
     MEMORIA_DECLARE_NODE_FN(MergeNodesFn, mergeWith);
     void mergeNodes(NodeBaseG& tgt, NodeBaseG& src);
-    bool mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&, Int){});
-    bool mergeCurrentBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&, Int){});
-
-    bool insertToLeaf(NodeBaseG& leaf, Position& idx, Source& source, Accumulator& sums);
-
+    bool mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&){});
+    bool mergeCurrentBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&){});
 
 
 MEMORIA_CONTAINER_PART_END
@@ -110,29 +96,7 @@ MEMORIA_CONTAINER_PART_END
 
 
 M_PARAMS
-bool M_TYPE::insertToLeaf(NodeBaseG& leaf, Position& idx, Source& source, Accumulator& sums)
-{
-    auto& self = this->self();
-
-    Position sizes = self.getRemainderSize(source);
-
-    if (self.checkCapacities(leaf, sizes))
-    {
-        self.updatePageG(leaf);
-        sums = self.insertSourceToLeaf(leaf, idx, source);
-        return true;
-    }
-    else {
-        return false;
-    }
-}
-
-
-
-
-
-M_PARAMS
-void M_TYPE::insertNonLeafP(NodeBaseG& node, Int idx, const Accumulator& keys, const ID& id)
+void M_TYPE::insertToBranchNodeP(NodeBaseG& node, Int idx, const Accumulator& keys, const ID& id)
 {
     auto& self = this->self();
 
@@ -172,12 +136,12 @@ typename M_TYPE::NodeBaseG M_TYPE::splitP(NodeBaseG& left_node, SplitFn split_fn
 
     if (self.getNonLeafCapacity(left_parent, -1) > 0)
     {
-        self.insertNonLeafP(left_parent, parent_idx + 1, keys, other->id());
+        self.insertToBranchNodeP(left_parent, parent_idx + 1, keys, other->id());
     }
     else {
         NodeBaseG right_parent = splitPathP(left_parent, parent_idx + 1);
 
-        self.insertNonLeafP(right_parent, 0, keys, other->id());
+        self.insertToBranchNodeP(right_parent, 0, keys, other->id());
     }
 
     return other;
@@ -262,26 +226,6 @@ void M_TYPE::updateParent(NodeBaseG& node, const UpdateData& sums)
 
 
 
-
-
-
-M_PARAMS
-void M_TYPE::insertNonLeaf(
-        NodeBaseG& node,
-        Int idx,
-        const Accumulator& keys,
-        const ID& id
-)
-{
-    self().updatePageG(node);
-    NonLeafDispatcher::dispatch(node, InsertFn(), idx, keys, id);
-}
-
-
-
-
-
-
 /**
  * \brief Merge *src* path to the *tgt* path unconditionally.
  *
@@ -356,7 +300,7 @@ bool M_TYPE::mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
     {
         if (self.isTheSameParent(tgt, src))
         {
-            fn(self.getNodeSizes(tgt), tgt->level());
+            fn(self.getNodeSizes(tgt));
 
             mergeNodes(tgt, src);
 
@@ -369,9 +313,9 @@ bool M_TYPE::mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
             NodeBaseG tgt_parent = self.getNodeParent(tgt);
             NodeBaseG src_parent = self.getNodeParent(src);
 
-            if (mergeBTreeNodes(tgt_parent, src_parent, fn))
+            if (mergeBTreeNodes(tgt_parent, src_parent, [](const Position&){}))
             {
-                fn(self.getNodeSizes(tgt), tgt->level());
+                fn(self.getNodeSizes(tgt));
 
                 mergeNodes(tgt, src);
 
@@ -400,7 +344,7 @@ bool M_TYPE::mergeCurrentBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 
     if (self.canMerge(tgt, src))
     {
-        fn(self.getNodeSizes(tgt), tgt->level());
+        fn(self.getNodeSizes(tgt));
 
         mergeNodes(tgt, src);
 

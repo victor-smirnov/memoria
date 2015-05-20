@@ -37,7 +37,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveToolsName)
 
     typedef typename Base::Metadata                                             Metadata;
 
-    typedef std::function<void (const Position&, Int)>                          MergeFn;
+    typedef std::function<void (const Position&)>                          		MergeFn;
 
     void removeNode(NodeBaseG& node, Accumulator& accum, Position& sizes);
     void removeNode(NodeBaseG& node);
@@ -391,7 +391,7 @@ bool M_TYPE::mergeWithRightSibling(NodeBaseG& node)
 
         if (next)
         {
-            merged = self.mergeBTreeNodes(node, next, [](const Position&, Int){});
+            merged = self.mergeBTreeNodes(node, next, [](const Position&){});
         }
     }
 

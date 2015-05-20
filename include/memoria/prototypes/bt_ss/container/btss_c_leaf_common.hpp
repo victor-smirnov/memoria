@@ -6,8 +6,8 @@
 
 
 
-#ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_LEAF_COMMON_HPP
-#define _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_LEAF_COMMON_HPP
+#ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_SS_MODEL_LEAF_COMMON_HPP
+#define _MEMORIA_PROTOTYPES_BALANCEDTREE_SS_MODEL_LEAF_COMMON_HPP
 
 #include <memoria/prototypes/bt/tools/bt_tools.hpp>
 #include <memoria/prototypes/bt/bt_macros.hpp>
@@ -22,106 +22,30 @@ using namespace memoria::core;
 
 using namespace std;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::LeafCommonName)
 
-    typedef typename Base::Types                                                Types;
-    typedef typename Base::Allocator                                            Allocator;
+	using Types = TypesType;
+	using NodeBaseG = typename Types::NodeBaseG;
 
-    typedef typename Base::ID                                                   ID;
-    
-    typedef typename Types::NodeBase                                            NodeBase;
-    typedef typename Types::NodeBaseG                                           NodeBaseG;
-    typedef typename Base::Iterator                                             Iterator;
+	using Iterator = typename Types::Iterator;
 
-    typedef typename Base::NodeDispatcher                                       NodeDispatcher;
-    typedef typename Base::RootDispatcher                                       RootDispatcher;
-    typedef typename Base::LeafDispatcher                                       LeafDispatcher;
-    typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
+	using NodeDispatcher 	= typename Types::NodeDispatcher;
+	using RootDispatcher 	= typename Types::RootDispatcher;
+	using LeafDispatcher 	= typename Types::LeafDispatcher;
+	using NonLeafDispatcher = typename Types::NonLeafDispatcher;
 
 
-    typedef typename Base::Metadata                                             Metadata;
 
-    typedef typename Types::Accumulator                                         Accumulator;
-    typedef typename Types::Position                                            Position;
+	using Accumulator 	= typename Types::Accumulator;
+	using Position		= typename Types::Position;
 
-    typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
-
-    typedef std::function<Accumulator (NodeBaseG&, NodeBaseG&)>                 SplitFn;
-    typedef std::function<void (const Position&, Int)>                          MergeFn;
-
-    typedef typename Types::Source                                              Source;
+    using SplitFn = std::function<Accumulator (NodeBaseG&, NodeBaseG&)>;
+    using MergeFn = std::function<void (const Position&, Int)>;
 
     using CtrSizeT = typename Types::CtrSizeT;
 
     static const Int Streams                                                    = Types::Streams;
 
-    template <Int Stream>
-    using StreamInputTuple = typename Types::template StreamInputTuple<Stream>;
-
-
-    template <Int Stream, typename SubstreamsIdxList, typename... Args>
-    using ReadLeafEntryRtnType = DispatchConstRtnType<LeafDispatcher, SubstreamsSetNodeFn<Stream, SubstreamsIdxList>, GetLeafValuesFn, Args...>;
-
-    template <Int Stream, typename SubstreamsIdxList, typename... Args>
-    auto _readLeafEntry(const NodeBaseG& leaf, Args&&... args) const -> ReadLeafEntryRtnType<Stream, SubstreamsIdxList, Args...>
-    {
-    	 return self().template _applySubstreamsFn<Stream, SubstreamsIdxList>(leaf, GetLeafValuesFn(), std::forward<Args>(args)...);
-    }
-
-
-
-    template <Int Stream>
-    void insertStreamEntry(Iterator& iter, const StreamInputTuple<Stream>& entry)
-    {
-    	auto& self = this->self();
-
-    	auto result = self.template tryInsertStreamEntry<Stream>(iter, entry);
-
-    	if (!std::get<0>(result))
-    	{
-    		iter.split();
-
-    		result = self.template tryInsertStreamEntry<Stream>(iter, entry);
-
-    		if (!std::get<0>(result))
-    		{
-    			throw Exception(MA_SRC, "Second insertion attempt failed");
-    		}
-    	}
-
-    	self.updateParent(iter.leaf(), std::get<1>(result));
-
-    	iter.skipFw(1);
-
-    	self.addTotalKeyCount(Position::create(Stream, 1));
-    }
-
-
-    template <Int Stream, typename SubstreamsList, typename... TupleTypes>
-    void updateStreamEntry(Iterator& iter, const std::tuple<TupleTypes...>& entry)
-    {
-    	auto& self      = this->self();
-
-    	auto result = self.template tryUpdateStreamEntry<Stream, SubstreamsList>(iter, entry);
-
-    	if (!std::get<0>(result))
-    	{
-    		iter.split();
-
-    		result = self.template tryUpdateStreamEntry<Stream, SubstreamsList>(iter, entry);
-
-    		if (!std::get<0>(result))
-    		{
-    			throw Exception(MA_SRC, "Second insertion attempt failed");
-    		}
-    	}
-
-    	self.updateParent(iter.leaf(), std::get<1>(result));
-    }
-
-
-
-    //==============================================================================================
 
     template <typename LeafPosition>
     class InsertBufferResult {
@@ -243,23 +167,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
     	}
     }
 
-    class LeafList {
-    	CtrSizeT size_;
-    	NodeBaseG head_;
-    	NodeBaseG tail_;
-    public:
-    	LeafList(CtrSizeT size, NodeBaseG head, NodeBaseG tail): size_(size), head_(head), tail_(tail) {}
-
-    	CtrSizeT size() const {return size_;}
-    	const NodeBaseG& head() const {return head_;}
-    	const NodeBaseG& tail() const {return tail_;}
-
-    	NodeBaseG& head() {return head_;}
-    	NodeBaseG& tail() {return tail_;}
-    };
-
-    template <typename LeafPosition, typename Buffer>
-    LeafList createLeafList3(InputBufferProvider<LeafPosition, Buffer>& provider);
 
 private:
 
@@ -284,7 +191,7 @@ private:
 
     	auto last_leaf_size = self.getLeafStreamSizes(last_leaf);
 
-    	if (self.mergeBTreeNodes(last_leaf, next_leaf, [](const Position&){}))
+    	if (self.mergeBTreeNodes(last_leaf, next_leaf, [](const Position&, Int){}))
     	{
     		return InsertBuffersResult<LeafPosition>(last_leaf, last_leaf_size.get());
     	}
@@ -330,39 +237,6 @@ MEMORIA_CONTAINER_PART_END
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bt::LeafCommonName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
-
-M_PARAMS
-template <typename LeafPosition, typename Buffer>
-typename M_TYPE::LeafList M_TYPE::createLeafList3(InputBufferProvider<LeafPosition, Buffer>& provider)
-{
-    auto& self = this->self();
-
-    CtrSizeT    total   = 0;
-    NodeBaseG   head;
-    NodeBaseG   current;
-
-    Int page_size = self.getRootMetadata().page_size();
-
-    while (provider.hasData())
-    {
-    	total++;
-
-    	NodeBaseG node = self.createNode1(0, false, true, page_size);
-
-    	self.insertBuffersIntoLeaf(node, provider.zero(), provider);
-
-    	if (head.isSet())
-    	{
-    		current->next_leaf_id() = node->id();
-    		current                 = node;
-    	}
-    	else {
-    		head = current = node;
-    	}
-    }
-
-    return LeafList(total, head, current);
-}
 
 
 
