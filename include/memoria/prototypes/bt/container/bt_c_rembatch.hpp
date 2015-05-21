@@ -396,7 +396,7 @@ void M_TYPE::removeNodes(
 
         if (self.isTheSameParent(start, stop))
         {
-            if (self.mergeCurrentBTreeNodes(start, stop))
+            if (self.mergeCurrentLeafNodes(start, stop))
             {
                 stop_idx    = start_idx;
                 stop        = start;
@@ -462,7 +462,7 @@ void M_TYPE::removeBranchNodes(
 
         if (self.isTheSameParent(start, stop))
         {
-            if (self.mergeCurrentBTreeNodes(start, stop))
+            if (self.mergeCurrentBranchNodes(start, stop))
             {
                 stop            = start;
                 stop_parent_idx = start_parent_idx;

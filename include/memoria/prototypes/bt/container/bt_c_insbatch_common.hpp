@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2015.
+// Copyright Victor Smirnov 2015+.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -193,36 +193,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchCommonName)
     };
 
 
-
-
-
-    std::pair<CtrSizeT, NodeBaseG> createLeafList2(Source& source);
-
-
-
-
-    Accumulator insertSource(NodeBaseG& node, Position& idx, Source& source);
-
-    MEMORIA_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, Accumulator);
-    Accumulator splitLeafNode(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at);
-    Accumulator splitNonLeafNode(NodeBaseG& src, NodeBaseG& tgt, Int split_at);
-
-    Accumulator splitNode(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at)
-    {
-        auto& self = this->self();
-
-        if (src->is_leaf())
-        {
-            return self.splitLeafNode(src, tgt, split_at);
-        }
-        else {
-            return self.splitNonLeafNode(src, tgt, split_at.get());
-        }
-    }
-
-    void newRootP(NodeBaseG& root);
-
-
     void updateChildren(const NodeBaseG& node);
     void updateChildren(const NodeBaseG& node, Int start);
     void updateChildren(const NodeBaseG& node, Int start, Int end);
@@ -280,62 +250,7 @@ typename M_TYPE::NodeBaseG M_TYPE::createNextLeaf(NodeBaseG& left_node)
 
 
 
-M_PARAMS
-typename M_TYPE::Accumulator M_TYPE::insertSource(NodeBaseG& leaf, Position& idx, Source& source)
-{
-    auto& self = this->self();
 
-    Position sizes = self.getRemainderSize(source);
-
-    UBigInt active_streams = sizes.gtZero();
-
-    Accumulator sums;
-    if (self.insertToLeaf(leaf, idx, source, sums))
-    {
-        self.updateParent(leaf, sums);
-
-        return sums;
-    }
-    else {
-        auto right = leaf;
-
-        if (leaf->is_root())
-        {
-            self.newRootP(leaf);
-        }
-
-        if (!self.isAfterEnd(leaf, idx, active_streams))
-        {
-            right = self.splitLeafP(leaf, idx);
-        }
-
-        Accumulator sums = self.appendToLeaf(leaf, idx, source);
-
-        self.updateParent(leaf, sums);
-
-        Position remainder = self.getRemainderSize(source);
-
-        if (remainder.gtAny(0))
-        {
-            Int path_parent_idx     = leaf->parent_idx() + 1;
-
-            auto pair = self.createLeafList2(source);
-
-            using Provider = ListLeafProvider;
-
-            Provider provider(self, pair.second, pair.first);
-
-            NodeBaseG parent = self.getNodeParentForUpdate(leaf);
-
-            self.insert_subtree(parent, path_parent_idx, provider);
-
-            return sums; //fixme: this accumulator contains data from the forst leaf only
-        }
-        else {
-            return sums;
-        }
-    }
-}
 
 
 
@@ -387,112 +302,9 @@ void M_TYPE::updateChildrenInternal(const NodeBaseG& node, Int start, Int end)
 }
 
 
-
-
-M_PARAMS
-void M_TYPE::newRootP(NodeBaseG& root)
-{
-    auto& self = this->self();
-
-    self.updatePageG(root);
-
-    NodeBaseG new_root = self.createNode1(root->level() + 1, true, false, root->page_size());
-
-    UBigInt root_active_streams = self.getActiveStreams(root);
-    self.layoutNonLeafNode(new_root, root_active_streams);
-
-    self.copyRootMetadata(root, new_root);
-
-    self.root2Node(root);
-
-    Accumulator keys = self.sums(root);
-
-    self.insertToBranchNodeP(new_root, 0, keys, root->id());
-
-    root->parent_id()  = new_root->id();
-    root->parent_idx() = 0;
-
-    self.set_root(new_root->id());
-}
-
-
-
-M_PARAMS
-typename M_TYPE::Accumulator M_TYPE::splitLeafNode(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at)
-{
-    return LeafDispatcher::dispatch(src, tgt, SplitNodeFn(), split_at);
-}
-
-
-M_PARAMS
-typename M_TYPE::Accumulator M_TYPE::splitNonLeafNode(NodeBaseG& src, NodeBaseG& tgt, Int split_at)
-{
-    auto& self = this->self();
-
-    Accumulator accum = NonLeafDispatcher::dispatch(src, tgt, SplitNodeFn(), split_at);
-
-    self.updateChildren(tgt);
-
-    return accum;
-}
-
-
-
-
-
-
-
-
-
-
-
-M_PARAMS
-std::pair<typename M_TYPE::CtrSizeT, typename M_TYPE::NodeBaseG> M_TYPE::createLeafList2(Source& source)
-{
-    auto& self = this->self();
-
-    CtrSizeT    total   = 0;
-    NodeBaseG   head;
-    NodeBaseG   current;
-
-    Int page_size = self.getRootMetadata().page_size();
-
-    while (true)
-    {
-        Position remainder = self.getRemainderSize(source);
-
-        if (remainder.gtAny(0))
-        {
-            total++;
-
-            NodeBaseG node = self.createNode1(0, false, true, page_size);
-
-            self.fillNewLeaf(node, source);
-
-            if (head.isSet())
-            {
-                current->next_leaf_id() = node->id();
-                current                 = node;
-            }
-            else {
-                head = current = node;
-            }
-        }
-        else {
-            break;
-        }
-    }
-
-    return std::make_pair(total, head);
-}
-
-
-
 #undef M_TYPE
 #undef M_PARAMS
 
-} //memoria
-
-
+}
 
 #endif

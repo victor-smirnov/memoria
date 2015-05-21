@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2015.
+// Copyright Victor Smirnov 2015+.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -62,6 +62,17 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
     template <Int Stream, typename SubstreamsIdxList, typename... Args>
     using ReadLeafEntryRtnType = DispatchConstRtnType<LeafDispatcher, SubstreamsSetNodeFn<Stream, SubstreamsIdxList>, GetLeafValuesFn, Args...>;
 
+
+    NodeBaseG splitLeafP(NodeBaseG& left_node, const Position& split_at)
+    {
+        auto& self = this->self();
+
+        return self.splitP(left_node, [&self, &split_at](NodeBaseG& left, NodeBaseG& right){
+            return self.splitLeafNode(left, right, split_at);
+        });
+    }
+
+
     template <Int Stream, typename SubstreamsIdxList, typename... Args>
     auto _readLeafEntry(const NodeBaseG& leaf, Args&&... args) const -> ReadLeafEntryRtnType<Stream, SubstreamsIdxList, Args...>
     {
@@ -118,6 +129,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
 
     	self.updateParent(iter.leaf(), std::get<1>(result));
     }
+
+
+    MEMORIA_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, Accumulator);
+    Accumulator splitLeafNode(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at);
 
 
 
@@ -284,7 +299,7 @@ private:
 
     	auto last_leaf_size = self.getLeafStreamSizes(last_leaf);
 
-    	if (self.mergeBTreeNodes(last_leaf, next_leaf, [](const Position&){}))
+    	if (self.mergeLeafNodes(last_leaf, next_leaf, [](const Position&){}))
     	{
     		return InsertBuffersResult<LeafPosition>(last_leaf, last_leaf_size.get());
     	}
@@ -329,6 +344,15 @@ MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bt::LeafCommonName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+
+
+M_PARAMS
+typename M_TYPE::Accumulator M_TYPE::splitLeafNode(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at)
+{
+    return LeafDispatcher::dispatch(src, tgt, SplitNodeFn(), split_at);
+}
+
+
 
 
 M_PARAMS

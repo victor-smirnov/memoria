@@ -116,14 +116,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveName)
 
     		if (next.isSet())
     		{
-    			self.mergeBTreeNodes(iter.leaf(), next, [](const Position&){});
+    			self.mergeLeafNodes(iter.leaf(), next, [](const Position&){});
     		}
 
     		auto prev = self.getPrevNodeP(iter.leaf());
 
     		if (prev.isSet())
     		{
-    			self.mergeBTreeNodes(prev, iter.leaf(), [&iter, &prev](const Position& sizes){
+    			self.mergeLeafNodes(prev, iter.leaf(), [&iter, &prev](const Position& sizes){
     				iter.idx() += sizes[0];
     				iter.leaf() = prev;
     			});

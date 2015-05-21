@@ -54,7 +54,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchCommonName)
 
     static const Int Streams                                                    = Types::Streams;
 
+    void newRootP(NodeBaseG& root);
 
+    MEMORIA_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, Accumulator);
+    Accumulator splitBranchNode(NodeBaseG& src, NodeBaseG& tgt, Int split_at);
 
 MEMORIA_CONTAINER_PART_END
 
@@ -62,14 +65,51 @@ MEMORIA_CONTAINER_PART_END
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bt::BranchCommonName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
+M_PARAMS
+typename M_TYPE::Accumulator M_TYPE::splitBranchNode(NodeBaseG& src, NodeBaseG& tgt, Int split_at)
+{
+    auto& self = this->self();
 
+    Accumulator accum = NonLeafDispatcher::dispatch(src, tgt, SplitNodeFn(), split_at);
+
+    self.updateChildren(tgt);
+
+    return accum;
+}
+
+
+M_PARAMS
+void M_TYPE::newRootP(NodeBaseG& root)
+{
+    auto& self = this->self();
+
+    self.updatePageG(root);
+
+    NodeBaseG new_root = self.createNode1(root->level() + 1, true, false, root->page_size());
+
+    UBigInt root_active_streams = self.getActiveStreams(root);
+    self.layoutBranchNode(new_root, root_active_streams);
+
+    self.copyRootMetadata(root, new_root);
+
+    self.root2Node(root);
+
+    Accumulator keys = self.sums(root);
+
+    self.insertToBranchNodeP(new_root, 0, keys, root->id());
+
+    root->parent_id()  = new_root->id();
+    root->parent_idx() = 0;
+
+    self.set_root(new_root->id());
+}
 
 
 
 #undef M_TYPE
 #undef M_PARAMS
 
-} //memoria
+}
 
 
 

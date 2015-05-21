@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2015.
+// Copyright Victor Smirnov 2015+.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -145,8 +145,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchFixedName)
     		}
     	}
 
-//    	self.reindex(node);
-
     	if (update_hierarchy)
     	{
     		Accumulator sums = self.sums(node, idx, max);
@@ -168,7 +166,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchFixedName)
     		{
     			NodeBaseG node = self.createNode1(level, false, false);
 
-    			self.layoutNonLeafNode(node, 0xFF);
+    			self.layoutBranchNode(node, 0xFF);
 
     			self.insertSubtree(node, 0, provider, [this, level, &provider]() -> NodeBaseG {
     				auto& self = this->self();

@@ -46,7 +46,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchVariableName)
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
     typedef std::function<Accumulator (NodeBaseG&, NodeBaseG&)>                 SplitFn;
-    typedef std::function<void (const Position&)>                          		MergeFn;
+
 
     typedef typename Types::Source                                              Source;
 
@@ -58,9 +58,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchVariableName)
     void insertToBranchNodeP(NodeBaseG& node, Int idx, const Accumulator& keys, const ID& id);
 
     NodeBaseG splitPathP(NodeBaseG& node, Int split_at);
-    NodeBaseG splitLeafP(NodeBaseG& leaf, const Position& split_at);
-    NodeBaseG createNextLeaf(NodeBaseG& leaf);
-
     NodeBaseG splitP(NodeBaseG& node, SplitFn split_fn);
 
     MEMORIA_DECLARE_NODE_FN(UpdateNodeFn, updateUp);
@@ -79,9 +76,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchVariableName)
 
 
     MEMORIA_DECLARE_NODE_FN(TryMergeNodesFn, mergeWith);
-    bool tryMergeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn = [](const Position&){});
-    bool mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&){});
-    bool mergeCurrentBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&){});
+    bool tryMergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src);
+    bool mergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src);
+    bool mergeCurrentBranchNodes(NodeBaseG& tgt, NodeBaseG& src);
 
 
 MEMORIA_CONTAINER_PART_END
@@ -180,76 +177,11 @@ typename M_TYPE::NodeBaseG M_TYPE::splitPathP(NodeBaseG& left_node, Int split_at
     auto& self = this->self();
 
     return splitP(left_node, [&self, split_at](NodeBaseG& left, NodeBaseG& right){
-        return self.splitNonLeafNode(left, right, split_at);
+        return self.splitBranchNode(left, right, split_at);
     });
 }
 
-M_PARAMS
-typename M_TYPE::NodeBaseG M_TYPE::splitLeafP(NodeBaseG& left_node, const Position& split_at)
-{
-    auto& self = this->self();
 
-    return splitP(left_node, [&self, &split_at](NodeBaseG& left, NodeBaseG& right){
-        return self.splitLeafNode(left, right, split_at);
-    });
-}
-
-M_PARAMS
-typename M_TYPE::NodeBaseG M_TYPE::createNextLeaf(NodeBaseG& left_node)
-{
-    auto& self = this->self();
-
-    if (left_node->is_root())
-    {
-        self.newRootP(left_node);
-    }
-    else {
-        self.updatePageG(left_node);
-    }
-
-    NodeBaseG left_parent  = self.getNodeParentForUpdate(left_node);
-
-    NodeBaseG other  = self.createNode1(left_node->level(), false, left_node->is_leaf(), left_node->page_size());
-
-    Accumulator sums;
-
-    Int parent_idx = left_node->parent_idx();
-
-    PageUpdateMgr mgr(self);
-    mgr.add(left_parent);
-
-    try {
-        self.insertNonLeafP(left_parent, parent_idx + 1, sums, other->id());
-    }
-    catch (PackedOOMException ex)
-    {
-        mgr.rollback();
-
-        NodeBaseG right_parent = splitPathP(left_parent, parent_idx + 1);
-
-        mgr.add(right_parent);
-
-        try {
-            self.insertNonLeafP(right_parent, 0, sums, other->id());
-        }
-        catch (PackedOOMException ex2)
-        {
-            mgr.rollback();
-
-            Int right_parent_size = self.getNodeSize(right_parent, 0);
-
-            splitPathP(right_parent, right_parent_size / 2);
-
-            self.insertNonLeafP(right_parent, 0, sums, other->id());
-        }
-    }
-    catch (Exception& ex) {
-        cout<<ex<<endl;
-        throw;
-    }
-
-    return other;
-}
 
 M_PARAMS
 template <typename UpdateData>
@@ -349,7 +281,7 @@ void M_TYPE::updatePathNoBackup(NodeBaseG& node, Int idx, const UpdateData& sums
 
 
 M_PARAMS
-bool M_TYPE::tryMergeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
+bool M_TYPE::tryMergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src)
 {
     auto& self = this->self();
 
@@ -361,7 +293,7 @@ bool M_TYPE::tryMergeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
     mgr.add(src);
     mgr.add(tgt);
 
-    Position tgt_sizes  = self.getNodeSizes(tgt);
+//    Position tgt_sizes  = self.getNodeSizes(tgt);
 //    Int tgt_level       = tgt->level();
 
     try {
@@ -371,7 +303,7 @@ bool M_TYPE::tryMergeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 
         MEMORIA_ASSERT(parent_idx, >, 0);
 
-        NodeDispatcher::dispatch(src, tgt, TryMergeNodesFn());
+        NonLeafDispatcher::dispatch(src, tgt, TryMergeNodesFn());
 
         self.updateChildren(tgt, tgt_size);
 
@@ -385,8 +317,6 @@ bool M_TYPE::tryMergeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 
         self.allocator().removePage(src->id(), self.master_name());
 
-        fn(tgt_sizes);
-
         return true;
     }
     catch (PackedOOMException ex)
@@ -399,22 +329,22 @@ bool M_TYPE::tryMergeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 
 
 M_PARAMS
-bool M_TYPE::mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
+bool M_TYPE::mergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src)
 {
     auto& self = this->self();
 
     if (self.isTheSameParent(tgt, src))
     {
-        return self.mergeCurrentBTreeNodes(tgt, src, fn);
+        return self.mergeCurrentBranchNodes(tgt, src);
     }
     else
     {
         NodeBaseG tgt_parent = self.getNodeParent(tgt);
         NodeBaseG src_parent = self.getNodeParent(src);
 
-        if (mergeBTreeNodes(tgt_parent, src_parent, [](const Position&){}))
+        if (mergeBranchNodes(tgt_parent, src_parent))
         {
-            return self.mergeCurrentBTreeNodes(tgt, src, fn);
+            return self.mergeCurrentBranchNodes(tgt, src);
         }
         else
         {
@@ -427,11 +357,11 @@ bool M_TYPE::mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 
 
 M_PARAMS
-bool M_TYPE::mergeCurrentBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
+bool M_TYPE::mergeCurrentBranchNodes(NodeBaseG& tgt, NodeBaseG& src)
 {
     auto& self = this->self();
 
-    if (self.tryMergeNodes(tgt, src, fn))
+    if (self.tryMergeBranchNodes(tgt, src))
     {
         self.removeRedundantRootP(tgt);
         return true;

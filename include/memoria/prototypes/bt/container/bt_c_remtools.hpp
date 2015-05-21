@@ -350,7 +350,7 @@ bool M_TYPE::mergeWithLeftSibling(NodeBaseG& node, MergeFn fn)
 
         if (prev)
         {
-            merged = self.mergeBTreeNodes(prev, node, fn);
+            merged = self.mergeLeafNodes(prev, node, fn);
 
             if (merged)
             {
@@ -391,7 +391,7 @@ bool M_TYPE::mergeWithRightSibling(NodeBaseG& node)
 
         if (next)
         {
-            merged = self.mergeBTreeNodes(node, next, [](const Position&){});
+            merged = self.mergeBranchNodes(node, next);
         }
     }
 

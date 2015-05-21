@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2015.
+// Copyright Victor Smirnov 2015+.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -48,7 +48,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafFixedName)
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
     typedef std::function<Accumulator (NodeBaseG&, NodeBaseG&)>                 SplitFn;
-    typedef std::function<void (const Position&, Int)>                          MergeFn;
+    typedef std::function<void (const Position&)>                          		MergeFn;
 
     typedef typename Types::Source                                              Source;
 
@@ -221,8 +221,17 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafFixedName)
     	 return InsertBufferResult<LeafPosition>(to_insert, capacity > to_insert);
      }
 
+     MEMORIA_DECLARE_NODE2_FN_RTN(CanMergeFn, canBeMergedWith, bool);
+     bool canMerge(const NodeBaseG& tgt, const NodeBaseG& src)
+     {
+         return NodeDispatcher::dispatch(src, tgt, CanMergeFn());
+     }
 
 
+     MEMORIA_DECLARE_NODE_FN(MergeNodesFn, mergeWith);
+     void doMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src);
+     bool mergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&){});
+     bool mergeCurrentLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&){});
 
 MEMORIA_CONTAINER_PART_END
 
@@ -231,6 +240,103 @@ MEMORIA_CONTAINER_PART_END
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 
+M_PARAMS
+void M_TYPE::doMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src)
+{
+    auto& self = this->self();
+
+    self.updatePageG(tgt);
+    self.updatePageG(src);
+
+    Int tgt_size = self.getNodeSize(tgt, 0);
+
+    LeafDispatcher::dispatch(src, tgt, MergeNodesFn());
+
+    self.updateChildren(tgt, tgt_size);
+
+    NodeBaseG src_parent    = self.getNodeParent(src);
+    Int parent_idx          = src->parent_idx();
+
+    MEMORIA_ASSERT(parent_idx, >, 0);
+
+    Accumulator sums        = self.sums(src_parent, parent_idx, parent_idx + 1);
+
+    self.removeNonLeafNodeEntry(src_parent, parent_idx);
+
+    Int idx = parent_idx - 1;
+
+    self.updatePath(src_parent, idx, sums);
+
+    self.allocator().removePage(src->id(), self.master_name());
+}
+
+
+M_PARAMS
+bool M_TYPE::mergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
+{
+    auto& self = this->self();
+
+    if (self.canMerge(tgt, src))
+    {
+        if (self.isTheSameParent(tgt, src))
+        {
+            fn(self.getNodeSizes(tgt));
+
+            self.doMergeLeafNodes(tgt, src);
+
+            self.removeRedundantRootP(tgt);
+
+            return true;
+        }
+        else
+        {
+            NodeBaseG tgt_parent = self.getNodeParent(tgt);
+            NodeBaseG src_parent = self.getNodeParent(src);
+
+            if (self.mergeBranchNodes(tgt_parent, src_parent))
+            {
+                fn(self.getNodeSizes(tgt));
+
+                self.doMergeLeafNodes(tgt, src);
+
+                self.removeRedundantRootP(tgt);
+
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+    }
+    else
+    {
+        return false;
+    }
+}
+
+
+
+M_PARAMS
+bool M_TYPE::mergeCurrentLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
+{
+    auto& self = this->self();
+
+    if (self.canMerge(tgt, src))
+    {
+        fn(self.getNodeSizes(tgt));
+
+        self.doMergeLeafNodes(tgt, src);
+
+        self.removeRedundantRootP(tgt);
+
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
 
 
 #undef M_TYPE

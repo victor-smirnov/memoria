@@ -46,7 +46,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchFixedName)
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
     typedef std::function<Accumulator (NodeBaseG&, NodeBaseG&)>                 SplitFn;
-    typedef std::function<void (const Position&)>                          		MergeFn;
+
 
     typedef typename Types::Source                                              Source;
 
@@ -58,7 +58,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchFixedName)
     void insertToBranchNodeP(NodeBaseG& node, Int idx, const Accumulator& keys, const ID& id);
 
     NodeBaseG splitPathP(NodeBaseG& node, Int split_at);
-    NodeBaseG splitLeafP(NodeBaseG& leaf, const Position& split_at);
 
     NodeBaseG splitP(NodeBaseG& node, SplitFn split_fn);
 
@@ -82,9 +81,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchFixedName)
 
 
     MEMORIA_DECLARE_NODE_FN(MergeNodesFn, mergeWith);
-    void mergeNodes(NodeBaseG& tgt, NodeBaseG& src);
-    bool mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&){});
-    bool mergeCurrentBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&){});
+    void doMergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src);
+    bool mergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src);
+    bool mergeCurrentBranchNodes(NodeBaseG& tgt, NodeBaseG& src);
 
 
 MEMORIA_CONTAINER_PART_END
@@ -153,17 +152,7 @@ typename M_TYPE::NodeBaseG M_TYPE::splitPathP(NodeBaseG& left_node, Int split_at
     auto& self = this->self();
 
     return splitP(left_node, [&self, split_at](NodeBaseG& left, NodeBaseG& right){
-        return self.splitNonLeafNode(left, right, split_at);
-    });
-}
-
-M_PARAMS
-typename M_TYPE::NodeBaseG M_TYPE::splitLeafP(NodeBaseG& left_node, const Position& split_at)
-{
-    auto& self = this->self();
-
-    return splitP(left_node, [&](NodeBaseG& left, NodeBaseG& right){
-        return self.splitLeafNode(left, right, split_at);
+        return self.splitBranchNode(left, right, split_at);
     });
 }
 
@@ -241,7 +230,7 @@ void M_TYPE::updateParent(NodeBaseG& node, const UpdateData& sums)
  */
 
 M_PARAMS
-void M_TYPE::mergeNodes(NodeBaseG& tgt, NodeBaseG& src)
+void M_TYPE::doMergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src)
 {
     auto& self = this->self();
 
@@ -250,7 +239,7 @@ void M_TYPE::mergeNodes(NodeBaseG& tgt, NodeBaseG& src)
 
     Int tgt_size = self.getNodeSize(tgt, 0);
 
-    NodeDispatcher::dispatch(src, tgt, MergeNodesFn());
+    NonLeafDispatcher::dispatch(src, tgt, MergeNodesFn());
 
     self.updateChildren(tgt, tgt_size);
 
@@ -292,7 +281,7 @@ void M_TYPE::mergeNodes(NodeBaseG& tgt, NodeBaseG& src)
  */
 
 M_PARAMS
-bool M_TYPE::mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
+bool M_TYPE::mergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src)
 {
     auto& self = this->self();
 
@@ -300,9 +289,7 @@ bool M_TYPE::mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
     {
         if (self.isTheSameParent(tgt, src))
         {
-            fn(self.getNodeSizes(tgt));
-
-            mergeNodes(tgt, src);
+            self.doMergeBranchNodes(tgt, src);
 
             self.removeRedundantRootP(tgt);
 
@@ -313,11 +300,9 @@ bool M_TYPE::mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
             NodeBaseG tgt_parent = self.getNodeParent(tgt);
             NodeBaseG src_parent = self.getNodeParent(src);
 
-            if (mergeBTreeNodes(tgt_parent, src_parent, [](const Position&){}))
+            if (mergeBranchNodes(tgt_parent, src_parent))
             {
-                fn(self.getNodeSizes(tgt));
-
-                mergeNodes(tgt, src);
+                self.doMergeBranchNodes(tgt, src);
 
                 self.removeRedundantRootP(tgt);
 
@@ -338,15 +323,13 @@ bool M_TYPE::mergeBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 
 
 M_PARAMS
-bool M_TYPE::mergeCurrentBTreeNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
+bool M_TYPE::mergeCurrentBranchNodes(NodeBaseG& tgt, NodeBaseG& src)
 {
     auto& self = this->self();
 
     if (self.canMerge(tgt, src))
     {
-        fn(self.getNodeSizes(tgt));
-
-        mergeNodes(tgt, src);
+        self.doMergeBranchNodes(tgt, src);
 
         self.removeRedundantRootP(tgt);
 

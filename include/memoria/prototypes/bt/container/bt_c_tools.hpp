@@ -429,7 +429,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     }
 
     MEMORIA_DECLARE_NODE_FN(LayoutNodeFn, layout);
-    void layoutNonLeafNode(NodeBaseG& node, UBigInt active_streams) const
+    void layoutBranchNode(NodeBaseG& node, UBigInt active_streams) const
     {
         NonLeafDispatcher::dispatch(node, LayoutNodeFn(), active_streams);
     }
