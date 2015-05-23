@@ -110,8 +110,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveName)
     		{
     			throw Exception(MA_SRC, "Second removal attempt failed");
     		}
+
+    		self.updateParent(iter.leaf(), std::get<1>(result));
     	}
     	else {
+    		self.updateParent(iter.leaf(), std::get<1>(result));
+
     		auto next = self.getNextNodeP(iter.leaf());
 
     		if (next.isSet())
@@ -129,8 +133,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveName)
     			});
     		}
     	}
-
-    	self.updateParent(iter.leaf(), std::get<1>(result));
 
     	self.addTotalKeyCount(Position::create(Stream, -1));
     }

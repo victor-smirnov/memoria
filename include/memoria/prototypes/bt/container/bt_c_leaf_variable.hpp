@@ -46,7 +46,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafVariableName)
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
-    typedef std::function<Accumulator (NodeBaseG&, NodeBaseG&)>                 SplitFn;
     typedef std::function<void (const Position&)>                          		MergeFn;
 
     typedef typename Types::Source                                              Source;

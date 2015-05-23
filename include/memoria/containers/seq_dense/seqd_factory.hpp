@@ -15,7 +15,7 @@
 namespace memoria {
 
 template <typename Profile, Int BitsPerSymbol, bool Dense, typename T>
-class CtrTF<Profile, memoria::Sequence<BitsPerSymbol, Dense>, T>: public CtrTF<Profile, memoria::BT, T> {
+class CtrTF<Profile, memoria::Sequence<BitsPerSymbol, Dense>, T>: public CtrTF<Profile, memoria::BTSingleStream, T> {
 };
 
 }

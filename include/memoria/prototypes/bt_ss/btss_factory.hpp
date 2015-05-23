@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2015.
+// Copyright Victor Smirnov 2015+.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -9,9 +9,14 @@
 #ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_SS_FACTORY_HPP
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_SS_FACTORY_HPP
 
+#include <memoria/prototypes/bt/bt_factory.hpp>
 
 #include <memoria/prototypes/bt_ss/btss_names.hpp>
 #include <memoria/prototypes/bt_ss/btss_iterator.hpp>
+
+#include <memoria/prototypes/bt_ss/container/btss_c_leaf_common.hpp>
+#include <memoria/prototypes/bt_ss/container/btss_c_leaf_fixed.hpp>
+#include <memoria/prototypes/bt_ss/container/btss_c_leaf_variable.hpp>
 
 #include <tuple>
 
@@ -28,16 +33,24 @@ struct BTTypes<Profile, memoria::BTSingleStream>: public BTTypes<Profile, memori
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
-                memoria::mapx::CtrInsertName,
-                memoria::mapx::CtrRemoveName
+                memoria::btss::LeafCommonName
+    >;
+
+    using FixedLeafContainerPartsList = MergeLists<
+    			typename Base::FixedLeafContainerPartsList,
+    			memoria::btss::LeafFixedName
     >;
 
 
-    using IteratorPartsList = MergeLists<
-                typename Base::IteratorPartsList,
-                memoria::mapx::ItrNavName
+    using VariableLeafContainerPartsList = MergeLists<
+    			typename Base::VariableLeafContainerPartsList,
+    			memoria::btss::LeafVariableName
     >;
 
+//    using IteratorPartsList = MergeLists<
+//                typename Base::IteratorPartsList,
+//                memoria::mapx::ItrNavName
+//    >;
 
 };
 

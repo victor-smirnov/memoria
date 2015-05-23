@@ -34,8 +34,7 @@ namespace memoria {
 
 
 template <typename Profile>
-struct BTTypes<Profile, memoria::Sequence<8, true> >:
-    public BTTypes<Profile, memoria::BT> {
+struct BTTypes<Profile, memoria::Sequence<8, true> >: public BTTypes<Profile, memoria::BTSingleStream> {
 
     typedef BTTypes<Profile, memoria::BT>                                       Base;
 

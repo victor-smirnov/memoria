@@ -59,9 +59,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveToolsName)
 
 
 
-    bool mergeWithLeftSibling(NodeBaseG& node, MergeFn fn = [](const Position&, Int){});
-    bool mergeWithRightSibling(NodeBaseG& node);
-    MergeType mergeWithSiblings(NodeBaseG& node, MergeFn fn = [](const Position&, Int){});
+    bool mergeLeafWithLeftSibling(NodeBaseG& node, MergeFn fn = [](const Position&, Int){});
+    bool mergeLeafWithRightSibling(NodeBaseG& node);
+    MergeType mergeLeafWithSiblings(NodeBaseG& node, MergeFn fn = [](const Position&, Int){});
 
 
     MEMORIA_DECLARE_NODE_FN_RTN(ShouldBeMergedNodeFn, shouldBeMergedWithSiblings, bool);
@@ -303,15 +303,15 @@ void M_TYPE::removeRedundantRootP(NodeBaseG& node)
  */
 
 M_PARAMS
-MergeType M_TYPE::mergeWithSiblings(NodeBaseG& node, MergeFn fn)
+MergeType M_TYPE::mergeLeafWithSiblings(NodeBaseG& node, MergeFn fn)
 {
     auto& self = this->self();
 
-    if (self.mergeWithRightSibling(node))
+    if (self.mergeLeafWithRightSibling(node))
     {
         return MergeType::RIGHT;
     }
-    else if (self.mergeWithLeftSibling(node, fn))
+    else if (self.mergeLeafWithLeftSibling(node, fn))
     {
         return MergeType::LEFT;
     }
@@ -338,7 +338,7 @@ MergeType M_TYPE::mergeWithSiblings(NodeBaseG& node, MergeFn fn)
 
 
 M_PARAMS
-bool M_TYPE::mergeWithLeftSibling(NodeBaseG& node, MergeFn fn)
+bool M_TYPE::mergeLeafWithLeftSibling(NodeBaseG& node, MergeFn fn)
 {
     auto& self = this->self();
 
@@ -379,7 +379,7 @@ bool M_TYPE::mergeWithLeftSibling(NodeBaseG& node, MergeFn fn)
  */
 
 M_PARAMS
-bool M_TYPE::mergeWithRightSibling(NodeBaseG& node)
+bool M_TYPE::mergeLeafWithRightSibling(NodeBaseG& node)
 {
     bool merged = false;
 
@@ -391,7 +391,7 @@ bool M_TYPE::mergeWithRightSibling(NodeBaseG& node)
 
         if (next)
         {
-            merged = self.mergeBranchNodes(node, next);
+            merged = self.mergeLeafNodes(node, next);
         }
     }
 

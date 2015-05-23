@@ -46,9 +46,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
-    typedef std::function<Accumulator (NodeBaseG&, NodeBaseG&)>                 SplitFn;
-    typedef std::function<void (const Position&, Int)>                          MergeFn;
-
     typedef typename Types::Source                                              Source;
 
     using CtrSizeT = typename Types::CtrSizeT;

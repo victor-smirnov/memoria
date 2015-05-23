@@ -11,15 +11,10 @@
 
 #include <memoria/core/tools/idata.hpp>
 
-#include <memoria/prototypes/bt/bt_factory.hpp>
+#include <memoria/prototypes/bt_ss/btss_factory.hpp>
 #include <memoria/prototypes/ctr_wrapper/ctrwrapper_factory.hpp>
 
-#include <memoria/prototypes/bt/walkers/bt_skip_walkers.hpp>
-#include <memoria/prototypes/bt/walkers/bt_find_walkers.hpp>
-#include <memoria/prototypes/bt/walkers/bt_edge_walkers.hpp>
-#include <memoria/prototypes/bt/walkers/bt_select_walkers.hpp>
-#include <memoria/prototypes/bt/walkers/bt_rank_walkers.hpp>
-#include <memoria/prototypes/bt/walkers/bt_leaf_walkers.hpp>
+
 #include <memoria/containers/mapx/mapx_names.hpp>
 
 #include <memoria/containers/mapx/container/mapx_c_insert.hpp>
@@ -42,7 +37,7 @@ template <
     typename Key_,
     typename Value_
 >
-struct MapXBTTypesBase: public BTTypes<Profile, memoria::BT> {
+struct MapXBTTypesBase: public BTTypes<Profile, memoria::BTSingleStream> {
 
     typedef BTTypes<Profile, memoria::BT>                                       Base;
 
@@ -127,7 +122,7 @@ struct BTTypes<Profile, memoria::MapX<Key_, Value_>>:
 
 
 template <typename Profile, typename Key, typename Value, typename T>
-class CtrTF<Profile, memoria::MapX<Key, Value>, T>: public CtrTF<Profile, memoria::BT, T> {
+class CtrTF<Profile, memoria::MapX<Key, Value>, T>: public CtrTF<Profile, memoria::BTSingleStream, T> {
 };
 
 

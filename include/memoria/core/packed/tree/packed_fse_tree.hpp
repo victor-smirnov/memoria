@@ -1254,6 +1254,8 @@ public:
         size_ -= room_length;
 
         shrink(room_length);
+
+        reindex();
     }
 
     void copyTo(MyType* other, Int copy_from, Int count, Int copy_to) const

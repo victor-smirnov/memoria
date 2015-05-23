@@ -47,7 +47,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafFixedName)
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
-    typedef std::function<Accumulator (NodeBaseG&, NodeBaseG&)>                 SplitFn;
     typedef std::function<void (const Position&)>                          		MergeFn;
 
     typedef typename Types::Source                                              Source;
@@ -280,11 +279,13 @@ bool M_TYPE::mergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
     {
         if (self.isTheSameParent(tgt, src))
         {
-            fn(self.getNodeSizes(tgt));
+            auto sizes = self.getNodeSizes(tgt);
 
-            self.doMergeLeafNodes(tgt, src);
+        	self.doMergeLeafNodes(tgt, src);
 
             self.removeRedundantRootP(tgt);
+
+            fn(sizes);
 
             return true;
         }
@@ -295,11 +296,13 @@ bool M_TYPE::mergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 
             if (self.mergeBranchNodes(tgt_parent, src_parent))
             {
-                fn(self.getNodeSizes(tgt));
+            	auto sizes = self.getNodeSizes(tgt);
 
-                self.doMergeLeafNodes(tgt, src);
+            	self.doMergeLeafNodes(tgt, src);
 
                 self.removeRedundantRootP(tgt);
+
+                fn(sizes);
 
                 return true;
             }

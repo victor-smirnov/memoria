@@ -183,7 +183,7 @@ typename M_TYPE::Position M_TYPE::removeEntries(
 
         if (merge)
         {
-            self.mergeWithRightSibling(stop);
+            self.mergeLeafWithRightSibling(stop);
         }
 
         start       = stop;
@@ -195,7 +195,7 @@ typename M_TYPE::Position M_TYPE::removeEntries(
 
         if (merge)
         {
-            self.mergeWithLeftSibling(start, [&](const Position& left_sizes)
+            self.mergeLeafWithLeftSibling(start, [&](const Position& left_sizes)
             {
             	start_idx += left_sizes;
             });
@@ -209,7 +209,7 @@ typename M_TYPE::Position M_TYPE::removeEntries(
 
         if (merge)
         {
-            self.mergeWithSiblings(stop, [&](const Position& left_sizes)
+            self.mergeLeafWithSiblings(stop, [&](const Position& left_sizes)
             {
                 stop_idx += left_sizes;
             });
