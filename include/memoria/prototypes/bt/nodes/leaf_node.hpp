@@ -155,12 +155,14 @@ public:
     using ProcessAllRtnConstType = typename Dispatcher::template ProcessAllRtnConstType<Fn, T...>;
 
 
+
     template <typename SubstreamsPath, typename Fn, typename... T>
     using ProcessSubstreamsRtnType = typename SubstreamsDispatcher<SubstreamsPath>::template ProcessAllRtnType<Fn, T...>;
 
 
     template <typename SubstreamsPath, typename Fn, typename... T>
     using ProcessSubstreamsRtnConstType = typename SubstreamsDispatcher<SubstreamsPath>::template ProcessAllRtnConstType<Fn, T...>;
+
 
 
     template <Int Stream, typename SubstreamsIdxList, typename Fn, typename... T>
@@ -645,55 +647,27 @@ public:
         return pos;
     }
 
+    struct AccumSizesFn {
 
-//    struct MaxSizeFn: RtnFnBase<Int> {
-//        template <typename Tree>
-//        Int stream(const Tree* tree)
-//        {
-//            return tree->max_size();
-//        }
-//    };
-//
-//    Int max_size(Int stream) const
-//    {
-//        return Dispatcher::dispatchRtn(stream, allocator(), MaxSizeFn());
-//    }
+    	template <typename... Args>
+    	void stream(Args&&... args) {
 
-//    struct MaxSizesFn {
-//        template <Int Idx, typename Tree>
-//        void stream(const Tree* tree, Position& pos)
-//        {
-//            pos[Idx] = tree != nullptr? tree->max_size() : 0;
-//        }
-//    };
-//
-//    Position max_sizes() const
-//    {
-//        Position pos;
-//        Dispatcher::dispatchNotEmpty(allocator(), MaxSizesFn(), pos);
-//        return pos;
-//    }
+    	}
 
+    	template <Int Offset, bool StreamStart, Int ListIdx, typename StreamType, typename TupleItem>
+    	void stream(const StreamType* obj, TupleItem& accum, Position& sizes)
+    	{
+    		static_assert(StreamStart, "StreamStart must be true for structures at the start of a stream");
+    		sizes[ListIdx] = accum[0];
+    	}
+    };
 
-//    struct MaxOfSizesFn {
-//        Int max_size_ = 0;
-//
-//        template <typename Tree>
-//        void stream(const Tree* tree)
-//        {
-//            if (tree->size() > max_size_)
-//            {
-//                max_size_ = tree->size();
-//            }
-//        }
-//    };
-//
-//    Int maxOfSizes() const
-//    {
-//        MaxOfSizesFn fn;
-//        Dispatcher::dispatchNotEmpty(allocator(), fn);
-//        return fn.max_size_;
-//    }
+    static Position sizes(const Accumulator& sums)
+    {
+        Position sz;
+        processStreamsStartStaticAcc(AccumSizesFn(), sums, sz);
+        return sz;
+    }
 
     bool isEmpty(Int stream) const
     {
@@ -1223,20 +1197,17 @@ public:
 
 
 
-
-
-
-
     struct ProcessSubstreamsAccFnAdaptor
     {
     	template <
     		Int AccumulatorIdx,
     		Int ListIdx,
     		typename StreamType,
+    		typename Accum,
     		typename Fn,
     		typename... Args
     	>
-    	void stream(StreamType* obj, Fn&& fn, Accumulator& accum, Args&&... args)
+    	void stream(StreamType* obj, Fn&& fn, Accum&& accum, Args&&... args)
     	{
     		const Int LeafIdx = AccumulatorIdx - SubstreamsStart;
 
@@ -1244,7 +1215,11 @@ public:
     		const Int LeafOffset 		= LeafToBranchIndexByValueTranslator<LeafSubstreamsStructList, LeafIdx>::LeafOffset;
     		const bool IsStreamStart 	= LeafToBranchIndexByValueTranslator<LeafSubstreamsStructList, LeafIdx>::IsStreamStart;
 
-    		fn.template stream<LeafOffset, IsStreamStart, ListIdx>(obj, std::get<BranchStructIdx>(accum), std::forward<Args>(args)...);
+    		fn.template stream<LeafOffset, IsStreamStart, ListIdx>(
+    				obj,
+    				std::get<BranchStructIdx>(accum),
+    				std::forward<Args>(args)...
+    		);
     	}
     };
 
@@ -1473,7 +1448,36 @@ public:
     }
 
 
+    template <typename Fn, typename... Args>
+    static auto processStreamsStartStatic(Fn&& fn, Args&&... args)
+    -> typename Dispatcher::template SubsetDispatcher<
+    		StreamsStartSubset<LeafSubstreamsStructList>
+       >::template ProcessAllRtnConstType<Fn, Args...>
+    {
+    	using Subset = StreamsStartSubset<LeafSubstreamsStructList>;
+    	return Dispatcher::template SubsetDispatcher<Subset>::template dispatchAllStatic(
+    			std::forward<Fn>(fn),
+    			std::forward<Args>(args)...
+    	);
+    }
 
+
+
+
+    template <typename Fn, typename Accum, typename... Args>
+    static auto processStreamsStartStaticAcc(Fn&& fn, Accum&& accum, Args&&... args)
+    -> typename Dispatcher::template SubsetDispatcher<
+    		StreamsStartSubset<LeafSubstreamsStructList>
+       >::template ProcessAllRtnConstType<Fn, Args...>
+    {
+    	using Subset = StreamsStartSubset<LeafSubstreamsStructList>;
+    	return Dispatcher::template SubsetDispatcher<Subset>::template dispatchAllStatic(
+    			ProcessSubstreamsAccFnAdaptor(),
+    			std::forward<Fn>(fn),
+    			std::forward<Accum>(accum),
+    			std::forward<Args>(args)...
+    	);
+    }
 
 
 

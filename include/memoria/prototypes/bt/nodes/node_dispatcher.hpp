@@ -201,7 +201,7 @@ public:
         typename... Args
     >
     static auto dispatch(bool leaf, Functor&& fn, Args&&... args)
-    -> RtnType<Functor, const Head*, const Head*, Args...>
+    -> RtnType<Functor, const Head*, Args...>
     {
         bool types_equal = IsTreeNode<TreeNode, Head>::Value;
 

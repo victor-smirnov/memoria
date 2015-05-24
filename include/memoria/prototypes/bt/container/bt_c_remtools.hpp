@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011-2013.
+// Copyright Victor Smirnov 2011+.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -39,12 +39,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveToolsName)
 
     typedef std::function<void (const Position&)>                          		MergeFn;
 
-    void removeNode(NodeBaseG& node, Accumulator& accum, Position& sizes);
+    void removeNode(NodeBaseG& node, Accumulator& accum);
     void removeNode(NodeBaseG& node);
     void removeRootNode(NodeBaseG& node);
 
     MEMORIA_DECLARE_NODE_FN(RemoveNodeContentFn, removeSpace);
-    void removeNodeContent(NodeBaseG& node, Int start, Int end, Accumulator& sums, Position& sizes);
+    void removeNodeContent(NodeBaseG& node, Int start, Int end, Accumulator& sums);
 
     MEMORIA_DECLARE_NODE_FN_RTN(RemoveLeafContentFn, removeSpace, Accumulator);
     Accumulator removeLeafContent(NodeBaseG& node, const Position& start, const Position& end);
@@ -121,7 +121,7 @@ MEMORIA_CONTAINER_PART_END
 
 
 M_PARAMS
-void M_TYPE::removeNode(NodeBaseG& node, Accumulator& sums, Position& sizes)
+void M_TYPE::removeNode(NodeBaseG& node, Accumulator& sums)
 {
     auto& self = this->self();
 
@@ -132,12 +132,11 @@ void M_TYPE::removeNode(NodeBaseG& node, Accumulator& sums, Position& sizes)
         {
             auto& self = this->self();
             NodeBaseG child = self.allocator().getPage(id, self.master_name());
-            this->removeNode(child, sums, sizes);
+            this->removeNode(child, sums);
         });
     }
     else {
         self.sums(node, sums);
-        sizes += self.getNodeSizes(node);
     }
 
     self.allocator().removePage(node->id(), self.master_name());
@@ -180,7 +179,7 @@ void M_TYPE::removeRootNode(NodeBaseG& node)
 
 
 M_PARAMS
-void M_TYPE::removeNodeContent(NodeBaseG& node, Int start, Int end, Accumulator& sums, Position& sizes)
+void M_TYPE::removeNodeContent(NodeBaseG& node, Int start, Int end, Accumulator& sums)
 {
     auto& self = this->self();
 
@@ -191,7 +190,7 @@ void M_TYPE::removeNodeContent(NodeBaseG& node, Int start, Int end, Accumulator&
     self.forAllIDs(node, start, end, [&, this](const ID& id, Int idx){
         auto& self = this->self();
         NodeBaseG child = self.allocator().getPage(id, self.master_name());
-        self.removeNode(child, deleted_sums, sizes);
+        self.removeNode(child, deleted_sums);
     });
 
     NonLeafDispatcher::dispatch(node, RemoveNodeContentFn(), start, end);

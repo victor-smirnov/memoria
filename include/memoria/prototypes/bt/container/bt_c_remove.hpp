@@ -134,7 +134,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveName)
     		}
     	}
 
-    	self.addTotalKeyCount(Position::create(Stream, -1));
+    	self.addTotalKeyCount(self.getStreamSizes(std::get<1>(result)));
     }
 
 

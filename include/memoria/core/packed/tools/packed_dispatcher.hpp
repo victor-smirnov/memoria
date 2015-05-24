@@ -73,6 +73,7 @@ public:
             typename pd::MakeRtnTypeListConst<List, GroupIdx, ListIdx, Fn, Args...>::Type
     >::Type;
 
+
     template <typename Fn, typename... Args>
     using HasVoid = pd::ContainsVoidRtnType<List, GroupIdx, ListIdx, Fn, Args...>;
 
@@ -92,6 +93,7 @@ public:
         void,
         ConstRtnTuple<Fn, Args...>
     >::Result;
+
 
 
     template <Int From = 0, Int To = sizeof...(Tail) + 1, Int GroupIdx_ = GroupIdx>
@@ -209,7 +211,27 @@ public:
 
 
     template <typename Fn, typename... Args>
-    static void dispatchAllStatic(Fn&& fn, Args&&... args)
+    static typename std::enable_if<
+            !HasVoid<Fn, Args...>::Value,
+            ConstRtnTuple<Fn, Args...>
+    >::type
+    dispatchAllStatic(Fn&& fn, Args&&... args)
+    {
+        ConstRtnTuple<Fn, Args...> tuple;
+
+        dispatchAllTupleStatic(tuple, std::forward<Fn>(fn), std::forward<Args>(args)...);
+
+        return tuple;
+    }
+
+
+
+    template <typename Fn, typename... Args>
+    static typename std::enable_if<
+            HasVoid<Fn, Args...>::Value,
+            void
+    >::type
+    dispatchAllStatic(Fn&& fn, Args&&... args)
     {
         Head* head = nullptr;
         detail::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
@@ -544,6 +566,18 @@ public:
 
 
     template <typename Tuple, typename Fn, typename... Args>
+    static void dispatchAllTupleStatic(Tuple& tuple, Fn&& fn, Args&&... args)
+    {
+        const Head* head = nullptr;
+
+        std::get<ListIdx>(tuple) = detail::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
+
+        NextDispatcher::dispatchAllTupleStatic(tuple, std::forward<Fn>(fn), std::forward<Args>(args)...);
+    }
+
+
+
+    template <typename Tuple, typename Fn, typename... Args>
     static void dispatchAllTuple(Tuple& tuple, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
         const Head* head = nullptr;
@@ -750,13 +784,34 @@ public:
     }
 
 
+    template <typename Fn, typename... Args>
+    static typename std::enable_if<
+            !HasVoid<Fn, Args...>::Value,
+            ConstRtnTuple<Fn, Args...>
+    >::type
+    dispatchAllStatic(Fn&& fn, Args&&... args)
+    {
+        ConstRtnTuple<Fn, Args...> tuple;
+
+        dispatchAllTupleStatic(tuple, std::forward<Fn>(fn), std::forward<Args>(args)...);
+
+        return tuple;
+    }
+
+
 
     template <typename Fn, typename... Args>
-    static void dispatchAllStatic(Fn&& fn, Args&&... args)
+    static typename std::enable_if<
+            HasVoid<Fn, Args...>::Value,
+            void
+    >::type
+    dispatchAllStatic(Fn&& fn, Args&&... args)
     {
         Head* head = nullptr;
         detail::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
     }
+
+
 
 
     template <typename Fn, typename... Args>
@@ -996,6 +1051,14 @@ public:
         }
 
         std::get<ListIdx>(tuple) = detail::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
+    }
+
+
+    template <typename Tuple, typename Fn, typename... Args>
+    static void dispatchAllTupleStatic(Tuple& tuple, Fn&& fn, Args&&... args)
+    {
+    	const Head* head = nullptr;
+    	std::get<ListIdx>(tuple) = detail::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
     }
 
 

@@ -571,6 +571,15 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     	}
     };
 
+    struct GetLeafNodeStreamSizesStatic {
+    	template <typename T, typename... Args>
+    	Position treeNode(const LeafNode<T>* node, Args&&... args) const
+    	{
+    		return LeafNode<T>::sizes(std::forward<Args>(args)...);
+    	}
+    };
+
+
     Int getNodeChildrenCount(const NodeBaseG& node) const
     {
     	return NonLeafDispatcher::dispatch(node, GetBranchNodeChildernCount());
@@ -585,6 +594,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     Position getLeafStreamSizes(const NodeBaseG& node) const
     {
     	return LeafDispatcher::dispatch(node, GetLeafNodeStreamSizes());
+    }
+
+
+    Position getStreamSizes(const Accumulator& sums) const
+    {
+    	return LeafDispatcher::template dispatch<LeafNode>(true, GetLeafNodeStreamSizesStatic(), sums);
     }
 
 
