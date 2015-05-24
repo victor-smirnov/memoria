@@ -270,7 +270,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
     	self.leaf() = result.leaf();
     	self.idx() = result.position();
 
-    	model.addTotalKeyCount(Position(data.size()));
+    	model.addTotalSizes(Position(data.size()));
 
     	self.refreshCache();
 

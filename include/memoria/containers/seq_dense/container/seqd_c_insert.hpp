@@ -140,7 +140,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
             self.updateParent(leaf, sums);
         }
 
-        self.addTotalKeyCount(Position::create(stream, 1));
+        self.addTotalSizes(Position::create(stream, 1));
 
         iter++;
     }

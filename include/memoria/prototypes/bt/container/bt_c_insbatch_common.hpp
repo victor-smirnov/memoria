@@ -256,7 +256,7 @@ void M_TYPE::updateChildren(const NodeBaseG& node)
     if (!node->is_leaf())
     {
         auto& self = this->self();
-        self.updateChildrenInternal(node, 0, self.getNodeSize(node, 0));
+        self.updateChildrenInternal(node, 0, self.getBranchNodeSize(node));
     }
 }
 
@@ -266,7 +266,7 @@ void M_TYPE::updateChildren(const NodeBaseG& node, Int start)
     if (!node->is_leaf())
     {
         auto& self = this->self();
-        self.updateChildrenInternal(node, start, self.getNodeSize(node, 0));
+        self.updateChildrenInternal(node, start, self.getBranchNodeSize(node));
     }
 }
 

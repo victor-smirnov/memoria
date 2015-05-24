@@ -152,16 +152,12 @@ typename M_TYPE::NodeBaseG M_TYPE::splitP(NodeBaseG& left_node, SplitFn split_fn
         {
             mgr.rollback();
 
-            Int right_parent_size = self.getNodeSize(right_parent, 0);
+            Int right_parent_size = self.template getNodeSize(right_parent, 0);
 
             splitPathP(right_parent, right_parent_size / 2);
 
             self.insertToBranchNodeP(right_parent, 0, sums, other->id());
         }
-    }
-    catch (Exception& ex) {
-        cout<<ex<<endl;
-        throw;
     }
 
     return other;
@@ -288,9 +284,6 @@ bool M_TYPE::tryMergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src)
 
     mgr.add(src);
     mgr.add(tgt);
-
-//    Position tgt_sizes  = self.getNodeSizes(tgt);
-//    Int tgt_level       = tgt->level();
 
     try {
         Int tgt_size            = self.getNodeSize(tgt, 0);

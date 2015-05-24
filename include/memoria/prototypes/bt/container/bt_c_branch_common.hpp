@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2015.
+// Copyright Victor Smirnov 2015+.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -46,12 +46,17 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchCommonName)
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
     typedef std::function<Accumulator (NodeBaseG&, NodeBaseG&)>                 SplitFn;
-    typedef std::function<void (const Position&, Int)>                          MergeFn;
-
 
     static const Int Streams                                                    = Types::Streams;
 
     void newRootP(NodeBaseG& root);
+
+    MEMORIA_DECLARE_NODE_FN_RTN(GetNonLeafCapacityFn, capacity, Int);
+    Int getBranchNodeCapacity(const NodeBaseG& node, UBigInt active_streams) const
+    {
+        return BranchDispatcher::dispatch(node, GetNonLeafCapacityFn(), active_streams);
+    }
+
 
     MEMORIA_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, Accumulator);
     Accumulator splitBranchNode(NodeBaseG& src, NodeBaseG& tgt, Int split_at);

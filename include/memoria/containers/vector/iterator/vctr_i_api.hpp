@@ -90,7 +90,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
         self.leaf() = result.leaf();
         self.idx() = result.position();
 
-        model.addTotalKeyCount(Position(data.size()));
+        model.addTotalSizes(Position(data.size()));
 
         self.refreshCache();
 

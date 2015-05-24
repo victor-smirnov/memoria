@@ -56,6 +56,20 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafFixedName)
     template <Int Stream>
     using StreamInputTuple = typename Types::template StreamInputTuple<Stream>;
 
+    MEMORIA_DECLARE_NODE_FN_RTN(GetStreamCapacityFn, capacity, Int);
+
+    Int getLeafNodeCapacity(const NodeBaseG& node, Int stream) const
+    {
+        Position reservation;
+        return getLeafNodeCapacity(node, reservation, stream);
+    }
+
+    Int getLeafNodeCapacity(const NodeBaseG& node, const Position& reservation, Int stream) const
+    {
+        return LeafDispatcher::dispatch(node, GetStreamCapacityFn(), reservation, stream);
+    }
+
+
 
     struct InsertEntryIntoStreamHanlder
     {

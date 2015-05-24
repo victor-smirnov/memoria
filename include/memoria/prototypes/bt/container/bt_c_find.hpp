@@ -166,7 +166,7 @@ public:
 
     MEMORIA_PUBLIC Position sizes() const
     {
-        return self().getTotalKeyCount();
+        return self().getTotalSizes();
     }
 
     MEMORIA_PUBLIC Iterator streamBegin(Int stream)

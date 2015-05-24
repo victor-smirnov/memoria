@@ -80,7 +80,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveName)
     		}
     	}
 
-    	self.addTotalKeyCount(self.getStreamSizes(std::get<1>(result)));
+    	self.addTotalSizes(self.getStreamSizes(std::get<1>(result)));
     }
 
 

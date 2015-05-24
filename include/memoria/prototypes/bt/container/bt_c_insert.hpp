@@ -74,7 +74,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertName)
 
     	iter.skipFw(1);
 
-    	self.addTotalKeyCount(self.getStreamSizes(std::get<1>(result)));
+    	self.addTotalSizes(self.getStreamSizes(std::get<1>(result)));
     }
 
 

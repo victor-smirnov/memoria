@@ -215,7 +215,7 @@ void M_TYPE::removeEntries(
         start_idx   = stop_idx;
     }
 
-    self.addTotalKeyCount(-self.getStreamSizes(sums));
+    self.addTotalSizes(-self.getStreamSizes(sums));
 }
 
 

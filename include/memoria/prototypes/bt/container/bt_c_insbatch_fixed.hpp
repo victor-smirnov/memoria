@@ -108,7 +108,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchFixedName)
     {
     	auto& self = this->self();
 
-    	Int capacity 			= self.getCapacity(node);
+    	Int capacity 			= self.getBranchNodeCapacity(node, -1ull);
     	CtrSizeT provider_size0 = provider.size();
     	const Int batch_size 	= 32;
 
