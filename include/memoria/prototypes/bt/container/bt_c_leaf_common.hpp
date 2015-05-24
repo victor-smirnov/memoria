@@ -78,56 +78,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
 
 
 
-    template <Int Stream>
-    void insertStreamEntry(Iterator& iter, const StreamInputTuple<Stream>& entry)
-    {
-    	auto& self = this->self();
-
-    	auto result = self.template tryInsertStreamEntry<Stream>(iter, entry);
-
-    	if (!std::get<0>(result))
-    	{
-    		iter.split();
-
-    		result = self.template tryInsertStreamEntry<Stream>(iter, entry);
-
-    		if (!std::get<0>(result))
-    		{
-    			throw Exception(MA_SRC, "Second insertion attempt failed");
-    		}
-    	}
-
-    	self.updateParent(iter.leaf(), std::get<1>(result));
-
-    	iter.skipFw(1);
-
-    	self.addTotalKeyCount(self.getStreamSizes(std::get<1>(result)));
-    }
-
-
-    template <Int Stream, typename SubstreamsList, typename... TupleTypes>
-    void updateStreamEntry(Iterator& iter, const std::tuple<TupleTypes...>& entry)
-    {
-    	auto& self      = this->self();
-
-    	auto result = self.template tryUpdateStreamEntry<Stream, SubstreamsList>(iter, entry);
-
-    	if (!std::get<0>(result))
-    	{
-    		iter.split();
-
-    		result = self.template tryUpdateStreamEntry<Stream, SubstreamsList>(iter, entry);
-
-    		if (!std::get<0>(result))
-    		{
-    			throw Exception(MA_SRC, "Second insertion attempt failed");
-    		}
-    	}
-
-    	self.updateParent(iter.leaf(), std::get<1>(result));
-    }
-
-
     MEMORIA_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, Accumulator);
     Accumulator splitLeafNode(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at);
 

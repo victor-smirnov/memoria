@@ -116,7 +116,41 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafFixedName)
 
 
 
+    template <Int Stream>
+    struct RemoveFromLeafFn
+    {
+    	template <typename NTypes>
+        void treeNode(LeafNode<NTypes>* node, Int idx, Accumulator& accum)
+        {
+    		node->layout(255);
+            node->template processStreamAcc<Stream>(*this, accum, idx);
+        }
 
+    	template <
+    		Int Offset,
+    		bool StreamStart,
+    		Int Idx,
+    		typename SubstreamType,
+    		typename AccumulatorItem
+    	>
+    	void stream(SubstreamType* obj, AccumulatorItem& accum, Int idx)
+    	{
+    		obj->template _remove<Offset>(idx, accum);
+
+    		if (StreamStart)
+    		{
+    			accum[0] -= 1;
+    		}
+    	}
+    };
+
+    template <Int Stream>
+    std::tuple<bool, Accumulator> tryRemoveStreamEntry(Iterator& iter)
+    {
+    	Accumulator accum;
+    	LeafDispatcher::dispatch(iter.leaf(), RemoveFromLeafFn<Stream>(), iter.idx(), accum);
+    	return std::make_tuple(true, accum);
+    }
 
 
     //=========================================================================================
@@ -345,7 +379,7 @@ bool M_TYPE::mergeCurrentLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 #undef M_TYPE
 #undef M_PARAMS
 
-} //memoria
+}
 
 
 

@@ -119,6 +119,58 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafVariableName)
 
 
 
+    template <Int Stream>
+    struct RemoveFromLeafFn
+    {
+    	template <
+    		Int Offset,
+    		bool StreamStart,
+    		Int Idx,
+    		typename SubstreamType,
+    		typename AccumulatorItem
+    	>
+    	void stream(SubstreamType* obj, AccumulatorItem& accum, Int idx)
+    	{
+    		obj->template _remove<Offset>(idx, accum);
+
+    		if (StreamStart)
+    		{
+    			accum[0] -= 1;
+    		}
+    	}
+
+    	template <typename NTypes>
+        void treeNode(LeafNode<NTypes>* node, Int idx, Accumulator& accum)
+        {
+    		node->layout(255);
+            node->template processStreamAcc<Stream>(*this, accum, idx);
+        }
+    };
+
+
+    template <Int Stream>
+    std::tuple<bool, Accumulator> tryRemoveStreamEntry(Iterator& iter)
+    {
+    	auto& self = this->self();
+
+    	PageUpdateMgr mgr(self);
+
+    	self.updatePageG(iter.leaf());
+
+    	mgr.add(iter.leaf());
+
+    	try {
+    		Accumulator accum;
+    		LeafDispatcher::dispatch(iter.leaf(), RemoveFromLeafFn<Stream>(), iter.idx(), accum);
+    		return std::make_tuple(true, accum);
+    	}
+    	catch (PackedOOMException& e)
+    	{
+    		mgr.rollback();
+    		return std::make_tuple(false, Accumulator());
+    	}
+    }
+
 
 
 
