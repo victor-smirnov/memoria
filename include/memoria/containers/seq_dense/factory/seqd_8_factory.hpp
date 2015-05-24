@@ -104,50 +104,6 @@ struct BTTypes<Profile, memoria::Sequence<8, true> >: public BTTypes<Profile, me
                 seq_dense::IterSkipName
 
     >                                                                   		IteratorPartsList;
-
-
-    template <typename Iterator, typename Container>
-    struct IteratorCacheFactory {
-    	typedef ::memoria::bt::BTree2IteratorPrefixCache<Iterator, Container>   Type;
-    };
-
-
-    template <typename Types, typename LeafPath>
-    using FindGTWalker          = bt::SkipForwardWalker2<WalkerTypes<Types, LeafPath>>;
-
-
-    template <typename Types, typename LeafPath>
-    using RankFWWalker          = bt::RankForwardWalker2<WalkerTypes<Types, LeafPath>>;
-
-    template <typename Types, typename LeafPath>
-    using RankBWWalker          = bt::RankBackwardWalker2<WalkerTypes<Types, LeafPath>>;
-
-
-    template <typename Types, typename LeafPath>
-    using SelectFwWalker        = bt::SelectForwardWalker2<WalkerTypes<Types, LeafPath>>;
-
-    template <typename Types, typename LeafPath>
-    using SelectBwWalker        = bt::SelectBackwardWalker2<WalkerTypes<Types, LeafPath>>;
-
-
-    template <typename Types, typename LeafPath>
-    using SkipForwardWalker     = bt::SkipForwardWalker2<WalkerTypes<Types, LeafPath>>;
-
-    template <typename Types, typename LeafPath>
-    using SkipBackwardWalker    = bt::SkipBackwardWalker2<WalkerTypes<Types, LeafPath>>;
-
-
-    template <typename Types>
-    using FindBeginWalker       = ::memoria::seq_dense::FindBeginWalker<Types>;
-
-    template <typename Types>
-    using FindEndWalker         = ::memoria::seq_dense::FindEndWalker<Types>;
-
-    template <typename Types>
-    using FindRBeginWalker      = ::memoria::seq_dense::FindRBeginWalker<Types>;
-
-    template <typename Types>
-    using FindREndWalker        = ::memoria::seq_dense::FindREndWalker<Types>;
 };
 
 }

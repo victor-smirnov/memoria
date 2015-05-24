@@ -171,8 +171,7 @@ public:
 
     MEMORIA_PUBLIC Iterator streamBegin(Int stream)
     {
-        typename Types::template FindBeginWalker<Types> walker(stream, self());
-        return self().find0(stream, walker);
+        return self().template _seek<0>(0);
     }
 
     MEMORIA_PUBLIC Iterator Begin()
