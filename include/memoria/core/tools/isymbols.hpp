@@ -146,6 +146,16 @@ public:
         return this->skip(length);
     }
 
+    virtual SizeT putc(const T* buffer, SizeT buf_start, SizeT start, SizeT length)
+    {
+        MEMORIA_ASSERT_TRUE(this->start_ + buf_start + length <= this->length_);
+
+        MoveBits(buffer, data_, start * BitsPerSymbol, (this->start_ + buf_start) * BitsPerSymbol, length * BitsPerSymbol);
+
+        return length;
+    }
+
+
     virtual SizeT get(T* buffer, SizeT start, SizeT length)
     {
         MEMORIA_ASSERT_TRUE(this->start_ + length <= this->length_);
@@ -157,7 +167,7 @@ public:
 
     virtual SizeT getc(T* buffer, SizeT buf_start, SizeT start, SizeT length) const
     {
-        MEMORIA_ASSERT_TRUE(this->start_ + length <= this->length_);
+        MEMORIA_ASSERT_TRUE(this->start_ + buf_start + length <= this->length_);
 
         MoveBits(data_, buffer, (this->start_ + buf_start) * BitsPerSymbol, start * BitsPerSymbol, length * BitsPerSymbol);
 

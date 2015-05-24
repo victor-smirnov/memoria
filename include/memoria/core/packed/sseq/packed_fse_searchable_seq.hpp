@@ -455,22 +455,21 @@ public:
 
     // ====================================== Batch IO ================================= //
 
-    void read(IData* data, Int pos, Int length) const
+    template <typename IData>
+    void read(IData* data, Int pos, Int start, Int length) const
     {
-        IDataTarget<Value>* tgt = static_cast<IDataTarget<Value>*>(data);
-
-        IDataAPI api_type = tgt->api();
+        IDataAPI api_type = data->api();
 
         auto symbols = this->symbols();
 
         MEMORIA_ASSERT_TRUE(api_type == IDataAPI::Batch || api_type == IDataAPI::Both);
 
-        SizeT remainder     = tgt->getRemainder();
+        SizeT remainder     = data->getRemainder();
         SizeT to_read_local = length <= remainder ? length : remainder;
 
         while (to_read_local > 0)
         {
-            SizeT processed = tgt->put(symbols, pos, to_read_local);
+            SizeT processed = data->putc(symbols, start, pos, to_read_local);
 
             pos             += processed;
             to_read_local   -= processed;
@@ -507,8 +506,6 @@ public:
     template <typename IData>
     void insert(const IData* data, Int pos, Int start, Int length)
     {
-    	//const IDataSource<Value>* tgt = static_cast<const IDataSource<Value>*>(data);
-
     	IDataAPI api_type = data->api();
 
     	auto symbols = this->symbols();

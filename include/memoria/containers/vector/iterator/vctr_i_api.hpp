@@ -116,18 +116,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
         return self().leafSize(0);
     }
 
-    MEMORIA_DECLARE_NODE_FN(ReadFn, read);
-
-
-//    CtrSizeT read(DataTarget& data)
-//    {
-//        auto& self = this->self();
-//        mvector::VectorTarget target(&data);
-//
-//        return self.ctr().readStream(self, target);
-//    }
-
-
     struct VectorReadWalker {
     	std::vector<Value>& data_;
     	CtrSizeT processed_ = 0;
@@ -188,14 +176,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
     	return self.ctr().readStream2(self, walker);
     }
 
-
-
-
-//    CtrSizeT read(std::vector<Value>& data)
-//    {
-//        MemBuffer<Value> buf(data);
-//        return read(buf);
-//    }
 
     Value value() const
     {

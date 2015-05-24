@@ -41,6 +41,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
     typedef typename Container::LeafDispatcher                                  LeafDispatcher;
     typedef typename Container::Position                                        Position;
 
+
+    using CtrSizeT = typename Container::Types::CtrSizeT;
+
     static const Int BitsPerSymbol = Container::Types::BitsPerSymbol;
 
     Int size() const
@@ -196,23 +199,62 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
         return self().idx();
     }
 
-    BigInt read(DataTarget& data)
+    template <typename T>
+    struct ReadWalker {
+    	T& data_;
+    	CtrSizeT processed_ = 0;
+    	const CtrSizeT max_;
+
+    	ReadWalker(T& data): data_(data), max_(data.size()) {}
+
+    	template <typename NodeTypes>
+    	Int treeNode(const LeafNode<NodeTypes>* leaf, Int start)
+    	{
+    		return std::get<0>(leaf->template processSubstreams<IntList<0, 0>>(*this, start));
+    	}
+
+    	template <typename StreamObj>
+    	Int stream(const StreamObj* obj, Int start)
+    	{
+    		if (obj != nullptr)
+    		{
+    			Int size 		= obj->size();
+    			Int remainder 	= size - start;
+
+    			Int to_read = (processed_ + remainder < max_) ? remainder : (max_ - processed_);
+
+    			obj->read(&data_, start, processed_, to_read);
+
+    			return to_read;
+    		}
+    		else {
+    			return 0;
+    		}
+    	}
+
+    	void start_leaf() {}
+
+    	void end_leaf(Int skip) {
+    		processed_ += skip;
+    	}
+
+    	CtrSizeT result() const {
+    		return processed_;
+    	}
+
+    	bool stop() const {
+    		return processed_ >= max_;
+    	}
+    };
+
+
+
+    BigInt read(vapi::SymbolsBuffer<BitsPerSymbol>& data)
     {
         auto& self = this->self();
-        seq_dense::SequenceTarget target(&data);
+        ReadWalker<vapi::SymbolsBuffer<BitsPerSymbol>> target(data);
 
-        return self.ctr().readStream(self, target);
-    }
-
-    void insert2(DataSource& data)
-    {
-        auto& self = this->self();
-
-        Iterator tmp = self;
-
-        self.ctr().insertBlock(tmp, data);
-
-        self.skipFw(data.getSize());
+        return self.ctr().readStream2(self, target);
     }
 
 
@@ -237,12 +279,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
     	model.markCtrUpdated();
     }
 
-
-    BigInt update(DataSource& data)
-    {
-        auto& self = this->self();
-        return self.ctr().updateBlock(self, data);
-    }
 
     void ComputePrefix(BigInt& accum)
     {
