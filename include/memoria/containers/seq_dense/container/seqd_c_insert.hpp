@@ -50,8 +50,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
 
     static const Int MAIN_STREAM                                                = Types::MAIN_STREAM;
 
-    using DataSource = typename Types::DataSource;
-
     struct InsertIntoLeafFn {
 
         template <Int Idx, typename SeqTypes>

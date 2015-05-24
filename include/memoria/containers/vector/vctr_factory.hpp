@@ -79,12 +79,6 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
             mvector::ItrApiName
     >;
 
-    typedef IDataSource<Value>                                                  DataSource;
-    typedef IDataTarget<Value>                                                  DataTarget;
-
-    typedef std::tuple<DataSource*>                                             Source;
-
-
     template <typename Types>
     using FindBeginWalker       = ::memoria::mvector::FindBeginWalker<Types>;
 };

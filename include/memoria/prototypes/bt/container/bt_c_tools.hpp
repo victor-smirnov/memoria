@@ -47,10 +47,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
 
-    typedef typename Types::Source                                              Source;
-    typedef typename Types::Target                                              Target;
-    typedef typename Types::Entropy                                             Entropy;
-
     static const Int Streams                                                    = Types::Streams;
 
     enum class BTNodeTraits {
@@ -290,19 +286,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     MEMORIA_DECLARE_NODE_FN(SetKeysFn, setKeys);
 
 
-//    void setKeys(NodeBaseG& node, Int idx, const Accumulator& keys) const
-//    {
-//        self().updatePageG(node);
-//        BranchDispatcher::dispatch(node, SetKeysFn(), idx, keys);
-//    }
-
-    void setNonLeafKeys(NodeBaseG& node, Int idx, const Accumulator& keys) const
+    void setBranchKeys(NodeBaseG& node, Int idx, const Accumulator& keys) const
     {
         self().updatePageG(node);
         BranchDispatcher::dispatch(node, SetKeysFn(), idx, keys);
     }
-
-
 
 
     template <typename Node>
@@ -491,57 +479,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
             obj->reset(pos[Idx]);
         }
     };
-
-    Position getRemainderSize(const Source& source)
-    {
-        Position pos;
-
-        TupleDispatcher<Source>::dispatch(source, GetRemainderSize(), pos);
-
-        return pos;
-    }
-
-    Position getStreamPosition(const Source& source)
-    {
-        Position pos;
-
-        TupleDispatcher<Source>::dispatch(source, GetStreamPositionFn(), pos);
-
-        return pos;
-    }
-
-    void setStreamPosition(Source& source, const Position& pos)
-    {
-        TupleDispatcher<Source>::dispatch(source, ResetPositionFn(), pos);
-    }
-
-    Position getRemainderSize(const Target& target)
-    {
-        Position pos;
-
-        TupleDispatcher<Target>::dispatch(target, GetRemainderSize(), pos);
-
-        return pos;
-    }
-
-    MEMORIA_DECLARE_NODE_FN_RTN(EstimateEntropy, estimateEntropy, bool);
-    Entropy estimateLeafEntropy(const NodeBaseG& node, const Position& start, const Position& end)
-    {
-        Entropy entropy;
-
-        LeafDispatcher::dispatch(node, EstimateEntropy(), entropy, start, end);
-
-        return entropy;
-    }
-
-    Entropy estimateLeafEntropy(const NodeBaseG& node)
-    {
-        Entropy entropy;
-
-        LeafDispatcher::dispatch(node, EstimateEntropy(), entropy);
-
-        return entropy;
-    }
 
 
     struct GetBranchNodeChildernCount {

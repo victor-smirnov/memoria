@@ -48,8 +48,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchCommonName)
     typedef std::function<Accumulator (NodeBaseG&, NodeBaseG&)>                 SplitFn;
     typedef std::function<void (const Position&, Int)>                          MergeFn;
 
-    typedef typename Types::Source                                              Source;
-
 
     static const Int Streams                                                    = Types::Streams;
 

@@ -111,9 +111,6 @@ struct BTTypes<Profile, memoria::Sequence<8, true> >: public BTTypes<Profile, me
     	typedef ::memoria::bt::BTree2IteratorPrefixCache<Iterator, Container>   Type;
     };
 
-    typedef IDataSource<Value>                                                  DataSource;
-    typedef IDataTarget<Value>                                                  DataTarget;
-
 
     template <typename Types, typename LeafPath>
     using FindGTWalker          = bt::SkipForwardWalker2<WalkerTypes<Types, LeafPath>>;

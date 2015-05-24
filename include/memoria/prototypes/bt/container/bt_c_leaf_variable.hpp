@@ -46,8 +46,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafVariableName)
 
     typedef std::function<void (const Position&)>                          		MergeFn;
 
-    typedef typename Types::Source                                              Source;
-
     static const Int Streams                                                    = Types::Streams;
 
     template <Int Stream>

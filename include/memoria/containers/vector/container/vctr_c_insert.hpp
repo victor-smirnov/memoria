@@ -41,10 +41,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrInsertName)
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
 
-    typedef typename Types::DataSource                                          DataSource;
-    typedef typename Types::DataTarget                                          DataTarget;
 
-    typedef typename Types::Source                                              Source;
     typedef typename Types::CtrSizeT                                            CtrSizeT;
     typedef typename Types::Value                                               Value;
 

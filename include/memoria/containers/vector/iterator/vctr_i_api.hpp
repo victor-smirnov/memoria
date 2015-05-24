@@ -36,9 +36,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
     typedef typename Container::Value                                           Value;
     typedef typename Container::Accumulator                                     Accumulator;
 
-    typedef typename Container::DataSource                                      DataSource;
-    typedef typename Container::DataTarget                                      DataTarget;
-    typedef typename Container::LeafDispatcher                                  LeafDispatcher;
+    typedef typename Container::Types::Pages::LeafDispatcher                    LeafDispatcher;
     typedef typename Container::Position                                        Position;
 
     using CtrSizeT = typename Container::Types::CtrSizeT;

@@ -47,7 +47,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchVariableName)
 
     typedef typename Types::CtrSizeT                                            CtrSizeT;
 
-    typedef typename Types::Source                                              Source;
 
     using Checkpoint 	= typename Base::Checkpoint;
     using ILeafProvider = typename Base::ILeafProvider;

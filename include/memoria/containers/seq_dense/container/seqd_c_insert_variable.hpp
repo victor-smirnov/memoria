@@ -50,8 +50,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertVariableName)
 
     static const Int MAIN_STREAM                                                = Types::MAIN_STREAM;
 
-    using DataSource = typename Types::DataSource;
-
     //==========================================================================================
 
     MEMORIA_DECLARE_NODE_FN(LayoutNodeFn, layout);

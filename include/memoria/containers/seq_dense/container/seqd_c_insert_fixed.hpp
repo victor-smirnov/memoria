@@ -50,7 +50,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertFixedName)
 
     static const Int MAIN_STREAM                                                = Types::MAIN_STREAM;
 
-    using DataSource = typename Types::DataSource;
 
     //==========================================================================================
 

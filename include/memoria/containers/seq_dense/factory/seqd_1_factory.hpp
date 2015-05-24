@@ -18,7 +18,6 @@
 #include <memoria/containers/seq_dense/seqd_names.hpp>
 #include <memoria/containers/seq_dense/seqd_tools.hpp>
 
-#include <memoria/containers/seq_dense/container/seqd_c_norm.hpp>
 #include <memoria/containers/seq_dense/container/seqd_c_find.hpp>
 #include <memoria/containers/seq_dense/container/seqd_c_insert.hpp>
 #include <memoria/containers/seq_dense/container/seqd_c_insert_fixed.hpp>
@@ -77,7 +76,6 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >: public BTTypes<Profile, me
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
 
-                seq_dense::CtrNormName,
                 seq_dense::CtrFindName,
                 seq_dense::CtrInsertName,
                 seq_dense::CtrRemoveName
@@ -114,11 +112,6 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >: public BTTypes<Profile, me
     struct IteratorCacheFactory {
     	typedef ::memoria::bt::BTree2IteratorPrefixCache<Iterator, Container>   Type;
     };
-
-    typedef IDataSource<Value>                                                  DataSource;
-    typedef IDataTarget<Value>                                                  DataTarget;
-
-
 
     template <typename Types, typename LeafPath>
     using FindGTWalker          = bt::SkipForwardWalker2<WalkerTypes<Types, LeafPath>>;

@@ -45,8 +45,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::LeafVariableName)
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
-    typedef typename Types::Source                                              Source;
-
     static const Int Streams                                                    = Types::Streams;
 
 MEMORIA_CONTAINER_PART_END

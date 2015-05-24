@@ -36,9 +36,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
     typedef typename Container::Accumulator                                     Accumulator;
     typedef typename Container::Iterator                                     	Iterator;
 
-    typedef typename Container::Types::DataSource                               DataSource;
-    typedef typename Container::Types::DataTarget                               DataTarget;
-    typedef typename Container::LeafDispatcher                                  LeafDispatcher;
+    typedef typename Container::Types::Pages::LeafDispatcher                    LeafDispatcher;
     typedef typename Container::Position                                        Position;
 
 

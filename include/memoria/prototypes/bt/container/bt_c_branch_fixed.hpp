@@ -47,10 +47,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchFixedName)
 
     typedef std::function<Accumulator (NodeBaseG&, NodeBaseG&)>                 SplitFn;
 
-
-    typedef typename Types::Source                                              Source;
-
-
     static const Int Streams                                                    = Types::Streams;
 
 

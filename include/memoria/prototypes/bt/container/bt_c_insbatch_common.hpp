@@ -47,9 +47,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchCommonName)
 
     typedef typename Types::CtrSizeT                                            CtrSizeT;
 
-    typedef typename Types::Source                                              Source;
-
-
     class Checkpoint {
     	NodeBaseG head_;
     	Int size_;

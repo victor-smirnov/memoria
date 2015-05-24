@@ -48,8 +48,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafFixedName)
 
     typedef std::function<void (const Position&)>                          		MergeFn;
 
-    typedef typename Types::Source                                              Source;
-
     using CtrSizeT = typename Types::CtrSizeT;
 
     static const Int Streams                                                    = Types::Streams;
