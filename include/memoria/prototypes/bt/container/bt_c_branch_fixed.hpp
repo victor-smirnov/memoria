@@ -33,9 +33,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchFixedName)
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    typedef typename Types::Pages::NodeDispatcher                               NodeDispatcher;
-    typedef typename Types::Pages::LeafDispatcher                               LeafDispatcher;
-    typedef typename Types::Pages::NonLeafDispatcher                            NonLeafDispatcher;
+    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
+    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
+    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
 
 
     typedef typename Base::Metadata                                             Metadata;
@@ -100,7 +100,7 @@ void M_TYPE::insertToBranchNodeP(NodeBaseG& node, Int idx, const Accumulator& ke
     auto& self = this->self();
 
     self.updatePageG(node);
-    NonLeafDispatcher::dispatch(node, InsertFn(), idx, keys, id);
+    BranchDispatcher::dispatch(node, InsertFn(), idx, keys, id);
     self.updateChildren(node, idx);
 
     if (!node->is_root())
@@ -133,7 +133,7 @@ typename M_TYPE::NodeBaseG M_TYPE::splitP(NodeBaseG& left_node, SplitFn split_fn
 
     self.updatePath(left_parent, parent_idx, -keys);
 
-    if (self.getNonLeafCapacity(left_parent, -1) > 0)
+    if (self.getBranchNodeCapacity(left_parent, -1) > 0)
     {
         self.insertToBranchNodeP(left_parent, parent_idx + 1, keys, other->id());
     }
@@ -162,7 +162,7 @@ template <typename UpdateData>
 bool M_TYPE::updateNode(NodeBaseG& node, Int idx, const UpdateData& keys)
 {
     self().updatePageG(node);
-    NonLeafDispatcher::dispatch(node, UpdateNodeFn(), idx, keys);
+    BranchDispatcher::dispatch(node, UpdateNodeFn(), idx, keys);
     return true;
 }
 
@@ -239,7 +239,7 @@ void M_TYPE::doMergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src)
 
     Int tgt_size = self.getNodeSize(tgt, 0);
 
-    NonLeafDispatcher::dispatch(src, tgt, MergeNodesFn());
+    BranchDispatcher::dispatch(src, tgt, MergeNodesFn());
 
     self.updateChildren(tgt, tgt_size);
 

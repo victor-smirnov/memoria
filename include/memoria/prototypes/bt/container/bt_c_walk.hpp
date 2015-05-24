@@ -30,9 +30,9 @@ public:
 
     typedef typename Types::NodeBaseG                                           NodeBaseG;
 
-    typedef typename Types::Pages::NodeDispatcher                               NodeDispatcher;
-    typedef typename Types::Pages::NodeDispatcher                               RootDispatcher;
-    typedef typename Types::Pages::TreeDispatcher                               TreeDispatcher;
+    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
+    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
+    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
 
     typedef typename Types::Accumulator                                         Accumulator;
 

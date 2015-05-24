@@ -33,10 +33,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchVariableName)
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    typedef typename Base::NodeDispatcher                                       NodeDispatcher;
-    typedef typename Base::RootDispatcher                                       RootDispatcher;
-    typedef typename Base::LeafDispatcher                                       LeafDispatcher;
-    typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
+    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
+    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
+    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
 
     typedef typename Base::Metadata                                             Metadata;
 
@@ -98,7 +97,7 @@ void M_TYPE::insertToBranchNodeP(
     auto& self = this->self();
 
     self.updatePageG(node);
-    NonLeafDispatcher::dispatch(node, InsertFn(), idx, sums, id);
+    BranchDispatcher::dispatch(node, InsertFn(), idx, sums, id);
     self.updateChildren(node, idx);
 
     if (!node->is_root())
@@ -194,7 +193,7 @@ bool M_TYPE::updateNode(NodeBaseG& node, Int idx, const UpdateData& sums)
     mgr.add(node);
 
     try {
-        NonLeafDispatcher::dispatch(node, UpdateNodeFn(), idx, sums);
+        BranchDispatcher::dispatch(node, UpdateNodeFn(), idx, sums);
         return true;
     }
     catch (PackedOOMException ex)
@@ -303,7 +302,7 @@ bool M_TYPE::tryMergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src)
 
         MEMORIA_ASSERT(parent_idx, >, 0);
 
-        NonLeafDispatcher::dispatch(src, tgt, TryMergeNodesFn());
+        BranchDispatcher::dispatch(src, tgt, TryMergeNodesFn());
 
         self.updateChildren(tgt, tgt_size);
 

@@ -32,7 +32,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::LeafCommonName)
 	using NodeDispatcher 	= typename Types::NodeDispatcher;
 	using RootDispatcher 	= typename Types::RootDispatcher;
 	using LeafDispatcher 	= typename Types::LeafDispatcher;
-	using NonLeafDispatcher = typename Types::NonLeafDispatcher;
+	using BranchDispatcher = typename Types::BranchDispatcher;
 
 
 

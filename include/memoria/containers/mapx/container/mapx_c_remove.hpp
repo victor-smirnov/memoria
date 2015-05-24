@@ -27,7 +27,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mapx::CtrInsertName)
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    typedef typename Base::LeafDispatcher                                       LeafDispatcher;
+    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
+    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
+    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
 
     typedef typename Types::Key                                                 Key;
     typedef typename Types::Value                                               Value;

@@ -176,7 +176,7 @@ public:
 
     using NodeDispatcher        = NDT<AllDTypes>;
     using LeafDispatcher        = NDT<LeafDTypes>;
-    using NonLeafDispatcher     = NDT<BranchDTypes>;
+    using BranchDispatcher      = NDT<BranchDTypes>;
     using DefaultDispatcher     = NDT<DefaultDTypes>;
     using TreeDispatcher        = NDTTree<TreeDTypes>;
 };

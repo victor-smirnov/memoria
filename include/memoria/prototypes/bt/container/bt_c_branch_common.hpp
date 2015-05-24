@@ -33,10 +33,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchCommonName)
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    typedef typename Base::NodeDispatcher                                       NodeDispatcher;
-    typedef typename Base::RootDispatcher                                       RootDispatcher;
-    typedef typename Base::LeafDispatcher                                       LeafDispatcher;
-    typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
+    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
+    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
+    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
 
 
     typedef typename Base::Metadata                                             Metadata;
@@ -70,7 +69,7 @@ typename M_TYPE::Accumulator M_TYPE::splitBranchNode(NodeBaseG& src, NodeBaseG& 
 {
     auto& self = this->self();
 
-    Accumulator accum = NonLeafDispatcher::dispatch(src, tgt, SplitNodeFn(), split_at);
+    Accumulator accum = BranchDispatcher::dispatch(src, tgt, SplitNodeFn(), split_at);
 
     self.updateChildren(tgt);
 

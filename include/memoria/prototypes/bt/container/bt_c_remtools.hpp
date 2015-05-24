@@ -28,9 +28,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveToolsName)
     typedef typename Base::NodeBaseG                                            NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    typedef typename Base::NodeDispatcher                                       NodeDispatcher;
-    typedef typename Base::LeafDispatcher                                       LeafDispatcher;
-    typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
+    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
+    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
+    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
 
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
@@ -193,7 +193,7 @@ void M_TYPE::removeNodeContent(NodeBaseG& node, Int start, Int end, Accumulator&
         self.removeNode(child, deleted_sums);
     });
 
-    NonLeafDispatcher::dispatch(node, RemoveNodeContentFn(), start, end);
+    BranchDispatcher::dispatch(node, RemoveNodeContentFn(), start, end);
 
     VectorAdd(sums, deleted_sums);
 
@@ -211,7 +211,7 @@ void M_TYPE::removeNonLeafNodeEntry(NodeBaseG& node, Int start)
     MEMORIA_ASSERT_TRUE(!node->is_leaf());
 
     self.updatePageG(node);
-    Accumulator sums = NonLeafDispatcher::dispatch(node, RemoveNonLeafNodeEntryFn(), start, start + 1);
+    Accumulator sums = BranchDispatcher::dispatch(node, RemoveNonLeafNodeEntryFn(), start, start + 1);
 
     self.updateChildren(node, start);
 

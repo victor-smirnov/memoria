@@ -26,9 +26,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::FindName)
     typedef typename Types::Position                                            Position;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
-    typedef typename Base::NodeDispatcher                                       NodeDispatcher;
-    typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
-    typedef typename Base::LeafDispatcher                                       LeafDispatcher;
+
+    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
+    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
+    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
 
     template <typename LeafPath>
     using TargetType = typename Types::template TargetType<LeafPath>;
@@ -132,7 +133,7 @@ public:
         		LeafDispatcher::dispatch(node, std::forward<Walker>(walker), cmd, start, end);
     		}
     		else {
-    			NonLeafDispatcher::dispatch(node, std::forward<Walker>(walker), WalkCmd::PREFIXES, start, end);
+    			BranchDispatcher::dispatch(node, std::forward<Walker>(walker), WalkCmd::PREFIXES, start, end);
     		}
     	}
     };
@@ -266,7 +267,7 @@ public:
     		LeafDispatcher::dispatch(node, walker, WalkCmd::LAST_LEAF, 0, idx);
     	}
     	else {
-    		NonLeafDispatcher::dispatch(node, walker, WalkCmd::PREFIXES, 0, idx);
+    		BranchDispatcher::dispatch(node, walker, WalkCmd::PREFIXES, 0, idx);
     	}
 
     	while (!node->is_root())
@@ -531,7 +532,7 @@ typename M_TYPE::FindResult M_TYPE::findFw2(NodeChain node_chain, Walker&& walke
     		}
     		else if (!result.empty())
     		{
-    			NonLeafDispatcher::dispatch(node, std::forward<Walker>(walker), WalkCmd::FIX_TARGET, start, result.idx() - 1);
+    			BranchDispatcher::dispatch(node, std::forward<Walker>(walker), WalkCmd::FIX_TARGET, start, result.idx() - 1);
     			node_chain.end = result.idx() - 1;
 
     			auto child = self.getChild(node, result.idx() - 1);
@@ -554,7 +555,7 @@ typename M_TYPE::FindResult M_TYPE::findFw2(NodeChain node_chain, Walker&& walke
     }
     else
     {
-    	NonLeafDispatcher::dispatch(node, std::forward<Walker>(walker), WalkCmd::FIX_TARGET, start, result.idx() - 1);
+    	BranchDispatcher::dispatch(node, std::forward<Walker>(walker), WalkCmd::FIX_TARGET, start, result.idx() - 1);
     	node_chain.end = result.idx() - 1;
 
     	auto child = self.getChild(node_chain.node, result.idx() - 1);
@@ -611,7 +612,7 @@ typename M_TYPE::FindResult M_TYPE::findBw2(NodeChain node_chain, Walker&& walke
     		}
     		else if (!result.empty())
     		{
-    			NonLeafDispatcher::dispatch(node_chain.node, std::forward<Walker>(walker), WalkCmd::FIX_TARGET, node_chain.start, result.idx());
+    			BranchDispatcher::dispatch(node_chain.node, std::forward<Walker>(walker), WalkCmd::FIX_TARGET, node_chain.start, result.idx());
     			node_chain.end = result.idx();
 
     			auto child = self.getChild(node_chain.node, result.idx() + 1);
@@ -634,7 +635,7 @@ typename M_TYPE::FindResult M_TYPE::findBw2(NodeChain node_chain, Walker&& walke
     }
     else
     {
-    	NonLeafDispatcher::dispatch(node_chain.node, std::forward<Walker>(walker), WalkCmd::FIX_TARGET, node_chain.start, result.idx());
+    	BranchDispatcher::dispatch(node_chain.node, std::forward<Walker>(walker), WalkCmd::FIX_TARGET, node_chain.start, result.idx());
     	node_chain.end = result.idx();
 
     	auto child = self.getChild(node_chain.node, result.idx() + 1);
@@ -660,16 +661,16 @@ typename M_TYPE::Iterator M_TYPE::find2(Walker&& walker)
 
         while (!node->is_leaf())
         {
-        	auto result = NonLeafDispatcher::dispatch(node, walker, WalkDirection::DOWN, 0);
+        	auto result = BranchDispatcher::dispatch(node, walker, WalkDirection::DOWN, 0);
         	Int idx = result.idx();
 
         	if (result.out_of_range())
         	{
         		idx--;
-        		NonLeafDispatcher::dispatch(node, walker, WalkCmd::FIX_TARGET, 0, idx);
+        		BranchDispatcher::dispatch(node, walker, WalkCmd::FIX_TARGET, 0, idx);
         	}
 
-        	NonLeafDispatcher::dispatch(node, walker, WalkCmd::PREFIXES, 0, idx);
+        	BranchDispatcher::dispatch(node, walker, WalkCmd::PREFIXES, 0, idx);
 
         	node = self.getChild(node, idx);
         }
