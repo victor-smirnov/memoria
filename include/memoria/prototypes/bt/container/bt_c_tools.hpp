@@ -259,10 +259,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
         }
     }
 
-    Position getTotalSizes() const;
-    void setTotalSizes(const Position& values);
-    void addTotalSizes(const Position& values);
-
 
     NodeBaseG getNextNodeP(NodeBaseG& node) const;
     NodeBaseG getPrevNodeP(NodeBaseG& node) const;
@@ -319,30 +315,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     {
     	BranchDispatcher::dispatch(node, ForAllIDsFn(), fn);
     }
-
-//    struct GetRemainderSize {
-//        template <Int Idx, typename Stream>
-//        void operator()(const Stream* obj, Position& pos)
-//        {
-//            pos[Idx] = obj->getRemainder();
-//        }
-//    };
-//
-//    struct GetStreamPositionFn {
-//        template <Int Idx, typename Stream>
-//        void operator()(const Stream* obj, Position& pos)
-//        {
-//            pos[Idx] = obj->getStart();
-//        }
-//    };
-//
-//    struct ResetPositionFn {
-//        template <Int Idx, typename Stream>
-//        void operator()(Stream* obj, const Position& pos)
-//        {
-//            obj->reset(pos[Idx]);
-//        }
-//    };
 
 
     struct GetBranchNodeChildernCount {
@@ -431,52 +403,6 @@ MEMORIA_CONTAINER_PART_END
 
 
 
-M_PARAMS
-typename M_TYPE::Position M_TYPE::getTotalSizes() const
-{
-    auto& self = this->self();
-
-    Position sizes;
-
-    Metadata meta = self.getRootMetadata();
-
-    for (Int c = 0; c < Streams; c++)
-    {
-        sizes[c] = meta.size(c);
-    }
-
-    return sizes;
-}
-
-M_PARAMS
-void M_TYPE::setTotalSizes(const Position& values)
-{
-    auto& self = this->self();
-
-    Metadata meta = self.getRootMetadata();
-
-    for (Int c = 0; c < Streams; c++)
-    {
-        meta.size(c) = values[c];
-    }
-
-    self.setRootMetadata(meta);
-}
-
-M_PARAMS
-void M_TYPE::addTotalSizes(const Position& values)
-{
-    auto& self = this->self();
-
-    Metadata meta = self.getRootMetadata();
-
-    for (Int c = 0; c < Streams; c++)
-    {
-        meta.size(c) += values[c];
-    }
-
-    self.setRootMetadata(meta);
-}
 
 
 

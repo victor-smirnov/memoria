@@ -73,8 +73,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertName)
     	self.updateParent(iter.leaf(), std::get<1>(result));
 
     	iter.skipFw(1);
-
-    	self.addTotalSizes(self.getStreamSizes(std::get<1>(result)));
     }
 
 

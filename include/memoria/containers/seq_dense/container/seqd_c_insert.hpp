@@ -112,7 +112,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
         auto& self  = this->self();
         auto& leaf  = iter.leaf();
         Int& idx    = iter.idx();
-        Int stream  = iter.stream();
 
         self.updatePageG(leaf);
 
@@ -139,8 +138,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
             MEMORIA_ASSERT_TRUE(result);
             self.updateParent(leaf, sums);
         }
-
-        self.addTotalSizes(Position::create(stream, 1));
 
         iter++;
     }

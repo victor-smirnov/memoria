@@ -79,8 +79,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveName)
     			});
     		}
     	}
-
-    	self.addTotalSizes(self.getStreamSizes(std::get<1>(result)));
     }
 
 

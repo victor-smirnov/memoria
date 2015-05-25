@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011-2015.
+// Copyright Victor Smirnov 2011+.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -10,6 +10,7 @@
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_FIND_HPP
 
 #include <memoria/prototypes/bt/bt_names.hpp>
+#include <memoria/prototypes/bt/bt_macros.hpp>
 
 #include <memoria/core/container/macros.hpp>
 
@@ -164,9 +165,11 @@ public:
     }
 
 
+    MEMORIA_DECLARE_NODE_FN_RTN(SizesFn, size_sums, Position);
     MEMORIA_PUBLIC Position sizes() const
     {
-        return self().getTotalSizes();
+    	NodeBaseG node = self().getRoot();
+    	return NodeDispatcher::dispatch(node, SizesFn());
     }
 
     MEMORIA_PUBLIC Iterator streamBegin(Int stream)

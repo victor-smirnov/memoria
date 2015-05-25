@@ -31,7 +31,6 @@ class BalancedTreeMetadata
     static const Int ROOTS = 2;
 
     BigInt  model_name_;
-    BigInt  size_[Streams];
 
     Int     branching_factor_;
 
@@ -47,7 +46,6 @@ public:
                 ConstValue<UInt, VERSION>,
                 ConstValue<UInt, ROOTS>,
                 decltype(model_name_),
-                decltype(size_[0]),
                 ConstValue<UInt, Streams>,
                 decltype(branching_factor_),
                 decltype(page_size_),
@@ -66,15 +64,6 @@ public:
         return model_name_;
     }
 
-    BigInt &size(Int idx)
-    {
-        return size_[idx];
-    }
-
-    const BigInt &size(Int idx) const
-    {
-        return size_[idx];
-    }
 
     Int &branching_factor()
     {
@@ -102,15 +91,6 @@ public:
 
         handler->value("MODEL_NAME",        &model_name_);
 
-        handler->startGroup("STREAM_SIZES", Streams);
-
-        for (Int c = 0; c < Streams; c++)
-        {
-            handler->value("SIZE",  size_ + c);
-        }
-
-        handler->endGroup();
-
         handler->value("BRANCHING_FACTOR",  &branching_factor_);
         handler->value("PAGE_SIZE",         &page_size_);
 
@@ -132,7 +112,6 @@ public:
     void serialize(SerializationData& buf) const
     {
         FieldFactory<BigInt>::serialize(buf, model_name_);
-        FieldFactory<BigInt>::serialize(buf, size_, Streams);
         FieldFactory<Int>::serialize(buf,    branching_factor_);
         FieldFactory<Int>::serialize(buf,    page_size_);
 
@@ -147,7 +126,6 @@ public:
     void deserialize(DeserializationData& buf)
     {
         FieldFactory<BigInt>::deserialize(buf, model_name_);
-        FieldFactory<BigInt>::deserialize(buf, size_, Streams);
         FieldFactory<Int>::deserialize(buf,    branching_factor_);
         FieldFactory<Int>::deserialize(buf,    page_size_);
 

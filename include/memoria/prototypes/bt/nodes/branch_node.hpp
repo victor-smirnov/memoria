@@ -800,17 +800,32 @@ public:
 
     struct SizesFn {
         template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename Tree>
-        void stream(const Tree* tree, Position* pos)
+        void stream(const Tree* tree, Position& pos)
         {
-            pos->value(StreamIdx) = tree->size();
+            pos.value(StreamIdx) = tree->size();
         }
     };
 
     Position sizes() const
     {
         Position pos;
-        processSubstreamGroups(SizesFn(), &pos);
+        processSubstreamGroups(SizesFn(), pos);
         return pos;
+    }
+
+    struct SizeSumsFn {
+    	template <Int ListIdx, typename Tree>
+    	void stream(const Tree* tree, Position& sizes)
+    	{
+    		sizes[ListIdx] = tree != nullptr ? tree->sum(0) : 0;
+    	}
+    };
+
+    Position size_sums() const
+    {
+    	Position sums;
+    	processStreamsStart(SizeSumsFn(), sums);
+    	return sums;
     }
 
 

@@ -996,6 +996,21 @@ public:
         return sums;
     }
 
+    struct SizeSumsFn {
+    	template <Int ListIdx, typename Tree>
+    	void stream(Tree* tree, Position& sizes)
+    	{
+    		sizes[ListIdx] = tree != nullptr ? tree->size() : 0;
+    	}
+    };
+
+    Position size_sums() const
+    {
+    	Position sums;
+    	processStreamsStart(SizeSumsFn(), sums);
+    	return sums;
+    }
+
 
     struct InsertSourceFn
     {
