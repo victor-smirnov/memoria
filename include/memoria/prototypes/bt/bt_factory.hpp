@@ -172,17 +172,6 @@ struct BTTypes {
     };
 
 
-    static const Int MAIN_STREAM                                                = 0;
-
-
-//    typedef EmptyType1                                                          DataSource;
-//    typedef EmptyType2                                                          DataTarget;
-//
-//    typedef EmptyType1                                                          Source;
-//    typedef EmptyType2                                                          Target;
-
-//    typedef EmptyType                                                           Entropy;
-
 
     template <typename Types, typename LeafPath>
     using FindGTForwardWalker          = bt::FindGTForwardWalker2<WalkerTypes<Types, LeafPath>>;
@@ -265,6 +254,7 @@ public:
 
     using LeafStreamsStructList 	= typename PackedLeafStructListBuilder<StreamDescriptors>::StructList;
     using StreamsInputTypeList 		= typename PackedLeafStructListBuilder<StreamDescriptors>::StreamInputList;
+    using InputBufferStructList 	= typename PackedLeafStructListBuilder<StreamDescriptors>::InputBufferList;
 
     using IteratorAccumulator = typename TupleBuilder<
     			Linearize<
@@ -302,6 +292,7 @@ public:
         using BranchStreamsStructList 	= typename MyType::BranchStreamsStructList;
         using IteratorAccumulator 		= typename MyType::IteratorAccumulator;
         using StreamsInputTypeList		= typename MyType::StreamsInputTypeList;
+        using InputBufferStructList		= typename MyType::InputBufferStructList;
     };
 
     struct BranchNodeTypes: NodeTypesBase {
@@ -329,7 +320,7 @@ public:
     static const PackedSizeType BranchSizeType 	= PackedListStructSizeType<Linearize<BranchStreamsStructList>>::Value;
     static const PackedSizeType LeafSizeType 	= PackedListStructSizeType<Linearize<LeafStreamsStructList>>::Value;
 
-    static const PackedSizeType TotalSizeType = PackedSizeTypeList<BranchSizeType, LeafSizeType>::Value;
+    static const PackedSizeType TotalSizeType 	= PackedSizeTypeList<BranchSizeType, LeafSizeType>::Value;
 
 
 
@@ -382,6 +373,7 @@ public:
 
         using LeafStreamsStructList 	= typename MyType::LeafStreamsStructList;
         using StreamsInputTypeList 		= typename MyType::StreamsInputTypeList;
+        using InputBufferStructList		= typename MyType::InputBufferStructList;
 
         using BranchStreamsStructList 	= typename MyType::BranchStreamsStructList;
 
@@ -397,6 +389,8 @@ public:
 
         template <Int Stream>
         using InputTupleAdapter = StreamTupleHelper<StreamInputTuple<Stream>>;
+
+        using InputBuffer = CompoundInputBuffer<typename MyType::NodeTypesBase>;
     };
 
     typedef typename Types::CtrTypes                                            CtrTypes;

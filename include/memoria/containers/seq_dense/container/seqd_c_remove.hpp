@@ -44,10 +44,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrRemoveName)
 
     typedef typename Types::CtrSizeT                                            CtrSizeT;
 
-    static const Int Streams                                                    = Types::Streams;
-
-    static const Int MAIN_STREAM                                                = Types::MAIN_STREAM;
-
     struct RemoveFromLeafFn {
 
         template <Int Idx, typename SeqTypes>

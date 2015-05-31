@@ -232,7 +232,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
     };
 
     template <typename LeafPosition, typename Buffer>
-    LeafList createLeafList3(InputBufferProvider<LeafPosition, Buffer>& provider);
+    LeafList createLeafList(InputBufferProvider<LeafPosition, Buffer>& provider);
 
 private:
 
@@ -243,23 +243,29 @@ private:
 
     	Int path_parent_idx = leaf->parent_idx() + 1;
 
-    	auto leaf_list = self.createLeafList3(provider);
+    	auto leaf_list = self.createLeafList(provider);
 
-    	using Provider = typename Base::ListLeafProvider;
-
-    	Provider list_provider(self, leaf_list.head(), leaf_list.size());
-
-    	NodeBaseG parent = self.getNodeParentForUpdate(leaf);
-
-    	self.insert_subtree(parent, path_parent_idx, list_provider);
-
-    	auto& last_leaf = leaf_list.tail();
-
-    	auto last_leaf_size = self.getLeafStreamSizes(last_leaf);
-
-    	if (self.mergeLeafNodes(last_leaf, next_leaf, [](const Position&){}))
+    	if (leaf_list.size() > 0)
     	{
-    		return InsertBuffersResult<LeafPosition>(last_leaf, last_leaf_size.get());
+    		using Provider = typename Base::ListLeafProvider;
+
+    		Provider list_provider(self, leaf_list.head(), leaf_list.size());
+
+    		NodeBaseG parent = self.getNodeParentForUpdate(leaf);
+
+    		self.insert_subtree(parent, path_parent_idx, list_provider);
+
+    		auto& last_leaf = leaf_list.tail();
+
+    		auto last_leaf_size = self.getLeafStreamSizes(last_leaf);
+
+    		if (self.mergeLeafNodes(last_leaf, next_leaf, [](const Position&){}))
+    		{
+    			return InsertBuffersResult<LeafPosition>(last_leaf, last_leaf_size.get());
+    		}
+    		else {
+    			return InsertBuffersResult<LeafPosition>(next_leaf, provider.zero());
+    		}
     	}
     	else {
     		return InsertBuffersResult<LeafPosition>(next_leaf, provider.zero());
@@ -272,30 +278,36 @@ private:
     {
     	auto& self = this->self();
 
-    	if (leaf->is_root()) {
+    	if (leaf->is_root())
+    	{
     		self.newRootP(leaf);
     	}
 
     	Int path_parent_idx = leaf->parent_idx() + 1;
 
-    	auto leaf_list = self.createLeafList3(provider);
+    	auto leaf_list = self.createLeafList(provider);
 
-    	using Provider = typename Base::ListLeafProvider;
+    	if (leaf_list.size() > 0)
+    	{
+    		using Provider = typename Base::ListLeafProvider;
 
-    	Provider list_provider(self, leaf_list.head(), leaf_list.size());
+    		Provider list_provider(self, leaf_list.head(), leaf_list.size());
 
-    	NodeBaseG parent = self.getNodeParentForUpdate(leaf);
+    		NodeBaseG parent = self.getNodeParentForUpdate(leaf);
 
-    	self.insert_subtree(parent, path_parent_idx, list_provider);
+    		self.insert_subtree(parent, path_parent_idx, list_provider);
 
-    	auto& last_leaf = leaf_list.tail();
+    		auto& last_leaf = leaf_list.tail();
 
-    	auto last_leaf_size = self.getLeafStreamSizes(last_leaf);
+    		auto last_leaf_size = self.getLeafStreamSizes(last_leaf);
 
-    	return InsertBuffersResult<LeafPosition>(last_leaf, last_leaf_size.get());
+    		return InsertBuffersResult<LeafPosition>(last_leaf, last_leaf_size.get());
+    	}
+    	else {
+    		auto leaf_size = self.getLeafStreamSizes(leaf);
+    		return InsertBuffersResult<LeafPosition>(leaf, leaf_size.get());
+    	}
     }
-
-
 
 MEMORIA_CONTAINER_PART_END
 
@@ -315,11 +327,11 @@ typename M_TYPE::Accumulator M_TYPE::splitLeafNode(NodeBaseG& src, NodeBaseG& tg
 
 M_PARAMS
 template <typename LeafPosition, typename Buffer>
-typename M_TYPE::LeafList M_TYPE::createLeafList3(InputBufferProvider<LeafPosition, Buffer>& provider)
+typename M_TYPE::LeafList M_TYPE::createLeafList(InputBufferProvider<LeafPosition, Buffer>& provider)
 {
     auto& self = this->self();
 
-    CtrSizeT    total   = 0;
+    CtrSizeT    total = 0;
     NodeBaseG   head;
     NodeBaseG   current;
 
@@ -327,19 +339,25 @@ typename M_TYPE::LeafList M_TYPE::createLeafList3(InputBufferProvider<LeafPositi
 
     while (provider.hasData())
     {
-    	total++;
-
     	NodeBaseG node = self.createNode1(0, false, true, page_size);
 
     	self.insertBuffersIntoLeaf(node, provider.zero(), provider);
 
-    	if (head.isSet())
+    	if (!self.isEmpty(node))
     	{
-    		current->next_leaf_id() = node->id();
-    		current                 = node;
+    		total++;
+
+    		if (head.isSet())
+    		{
+    			current->next_leaf_id() = node->id();
+    			current                 = node;
+    		}
+    		else {
+    			head = current = node;
+    		}
     	}
     	else {
-    		head = current = node;
+    		self.allocator().removePage(node->id(), self.master_name());
     	}
     }
 

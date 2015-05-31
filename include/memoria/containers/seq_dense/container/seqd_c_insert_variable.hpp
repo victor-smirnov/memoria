@@ -46,10 +46,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertVariableName)
 
     typedef typename Types::CtrSizeT                                            CtrSizeT;
 
-    static const Int Streams                                                    = Types::Streams;
-
-    static const Int MAIN_STREAM                                                = Types::MAIN_STREAM;
-
     //==========================================================================================
 
     MEMORIA_DECLARE_NODE_FN(LayoutNodeFn, layout);

@@ -46,10 +46,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
 
     typedef typename Types::CtrSizeT                                            CtrSizeT;
 
-    static const Int Streams                                                    = Types::Streams;
-
-    static const Int MAIN_STREAM                                                = Types::MAIN_STREAM;
-
     struct InsertIntoLeafFn {
 
         template <Int Idx, typename SeqTypes>

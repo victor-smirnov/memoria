@@ -40,10 +40,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
 
     typedef typename Types::CtrSizeT                                            CtrSizeT;
 
-    static const Int Streams                                                    = Types::Streams;
-
-    static const Int MAIN_STREAM                                                = Types::MAIN_STREAM;
-
     CtrSizeT size() const
     {
         return self().sizes()[0];

@@ -18,11 +18,13 @@ namespace memoria {
 
 template <
     typename V,
+    Int Blocks_ = 1,
     typename Allocator_ = PackedAllocator
 >
 struct PackedFSEArrayTypes {
-    typedef V               Value;
-    typedef Allocator_      Allocator;
+    typedef V               	Value;
+    static const Int Blocks		= Blocks_;
+    typedef Allocator_      	Allocator;
 };
 
 
@@ -45,9 +47,11 @@ public:
     typedef StaticVector<BigInt, 2>                                             Values2;
 
     static const Int Indexes 													= 0;
+    static const Int Blocks 													= Types::Blocks;
 
     using InputType = Value;
 
+    using InputBuffer = MyType;
 
 private:
 
@@ -71,14 +75,14 @@ public:
     {
         Int my_size     = allocator()->element_size(this);
         Int free_space  = allocator()->free_space();
-        Int data_size   = sizeof(Value) * size_;
+        Int data_size   = sizeof(Value) * size_ * Blocks;
 
-        return (my_size + free_space - data_size) / sizeof(Value);
+        return (my_size + free_space - data_size) / (sizeof(Value) * Blocks);
     }
 
     Int block_size() const
     {
-        return sizeof(MyType) + max_size_ * sizeof(Value);
+        return sizeof(MyType) + max_size_ * sizeof(Value) * Blocks;
     }
 
     Int block_size(const MyType* other) const
@@ -88,14 +92,14 @@ public:
 
 public:
 
-    static constexpr Int block_size(int array_size)
+    static constexpr Int block_size(Int array_size)
     {
-        return PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(MyType) + array_size * sizeof(Value));
+        return PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(MyType) + array_size * sizeof(Value) * Blocks);
     }
 
-    static constexpr Int packed_block_size(int array_size)
+    static constexpr Int packed_block_size(Int array_size)
     {
-        return PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(MyType) + array_size * sizeof(Value));
+        return PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(MyType) + array_size * sizeof(Value) * Blocks);
     }
 
     static constexpr Int elements_for(Int block_size)
@@ -121,7 +125,7 @@ public:
     }
 
     static constexpr Int max_size_for(Int block_size) {
-        return (block_size - sizeof(MyType)) / sizeof(Value);
+        return (block_size - empty_size()) / (sizeof(Value) * Blocks);
     }
 
     static constexpr Int empty_size()
@@ -143,7 +147,7 @@ public:
 
     Int object_size() const
     {
-        Int object_size = sizeof(MyType) + sizeof(Value) * size_;
+        Int object_size = sizeof(MyType) + sizeof(Value) * size_ * Blocks;
         return PackedAllocator::roundUpBytesToAlignmentBlocks(object_size);
     }
 
@@ -187,6 +191,15 @@ public:
     const Value* values() const {
         return buffer_;
     }
+
+    Value* values(Int block) {
+        return buffer_ + block * size_;
+    }
+
+    const Value* values(Int block) const {
+        return buffer_ + block * size_;
+    }
+
 
     BigInt sum(Int start, Int end) const {
         return end - start;
@@ -268,7 +281,7 @@ public:
     {
         Allocator* alloc = allocator();
 
-        Int requested_block_size    = (max_size_ + items_num) * sizeof(Value) + sizeof(MyType);
+        Int requested_block_size    = (max_size_ + items_num) * sizeof(Value) * Blocks + empty_size();
         Int new_size                = alloc->resizeBlock(this, requested_block_size);
         max_size_                   = max_size_for(new_size);
     }
@@ -280,61 +293,71 @@ public:
         enlarge(-items_num);
     }
 
-    void remove(Int room_start, Int room_end)
+    void remove(Int start, Int end)
     {
-        MEMORIA_ASSERT(room_start, >=, 0);
-        MEMORIA_ASSERT(room_end,   >=, room_start);
+    	MEMORIA_ASSERT_TRUE(start >= 0);
+    	MEMORIA_ASSERT_TRUE(end >= 0);
 
-        MEMORIA_ASSERT(room_start, <=, max_size_);
-        MEMORIA_ASSERT(room_start, <=, size_);
+    	Int room_length = end - start;
+    	Int size = this->size();
+    	MEMORIA_ASSERT(room_length, <= , size - start);
 
-        Int room_length = room_end - room_start;
+    	Value* values = this->values();
 
-        MEMORIA_ASSERT(room_end, <=, size_);
+    	for (Int block = Blocks - 1, sum = 0; block >= 0; block--)
+    	{
+    		Int to      = block * size_ + start;
+    		Int from    = block * size_ + end;
 
-        Int length = size_ - room_end;
+    		Int length = size_ - end + sum;
 
-        if (length > 0)
-        {
-            CopyBuffer(buffer_ + room_end, buffer_ + room_start, length);
-        }
+    		CopyBuffer(
+    				values + from,
+    				values + to,
+    				length
+    		);
 
-        size_ -= room_length;
+    		sum += size_ - (end - start);
+    	}
 
-        shrink(max_size_ - size_);
+    	size_ -= room_length;
+
+    	shrink(room_length);
     }
 
     void removeSpace(Int room_start, Int room_end) {
         remove(room_start, room_end);
     }
 
-    void insertSpace(Int room_start, Int room_length)
+    void insertSpace(Int idx, Int room_length)
     {
-        if (room_start < 0) {
-            int a = 0; a++;
-        }
+        MEMORIA_ASSERT(idx, <=, this->size());
+        MEMORIA_ASSERT(idx, >=, 0);
+        MEMORIA_ASSERT(room_length, >=, 0);
 
-        MEMORIA_ASSERT(room_start, >=, 0);
+        Int capacity = this->capacity();
 
-        if (room_start > size_) {
-            int a = 0; a++;
-        }
-
-        MEMORIA_ASSERT(room_start, <=, size_);
-
-        if (capacity() < room_length)
+        if (capacity < room_length)
         {
-            enlarge(room_length - capacity());
+            enlarge(room_length - capacity);
         }
 
-        Int length = size_ - room_start;
+        Value* values = this->values();
 
-        if (length > 0)
+        for (Int block = 0; block < Blocks; block++)
         {
-            CopyBuffer(buffer_ + room_start, buffer_ + room_start + room_length, length);
+            Int offset = (Blocks - block - 1) * size_ + idx;
+
+            CopyBuffer(
+                    values + offset,
+                    values + offset + room_length,
+                    size_ * Blocks - offset + room_length * block
+            );
         }
 
         size_ += room_length;
+
+        clear(idx, idx + room_length);
     }
 
     void clearValues(Int idx) {
@@ -343,13 +366,22 @@ public:
 
     void clear(Int start, Int end)
     {
-        Value* values = this->values();
-
-        for (Int c = start; c < end; c++)
+        for (Int block = 0; block < Blocks; block++)
         {
-            values[c] = 0;
+        	Value* values = this->values(block);
+
+        	for (Int c = start; c < end; c++)
+        	{
+        		values[c] = 0;
+        	}
         }
     }
+
+    void reset()
+    {
+    	size_ = 0;
+    }
+
 
     void splitTo(MyType* other, Int idx)
     {
@@ -380,7 +412,20 @@ public:
 
     void copyTo(MyType* other, Int copy_from, Int count, Int copy_to) const
     {
-        CopyBuffer(buffer_ + copy_from, other->buffer_ + copy_to, count);
+        MEMORIA_ASSERT_TRUE(copy_from >= 0);
+        MEMORIA_ASSERT_TRUE(count >= 0);
+
+        for (Int block = 0; block < Blocks; block++)
+        {
+            Int my_offset       = block * size_;
+            Int other_offset    = block * other->size_;
+
+            CopyBuffer(
+                    this->values() + copy_from + my_offset,
+                    other->values() + copy_to + other_offset,
+                    count
+            );
+        }
     }
 
     template <typename TreeType>
@@ -389,7 +434,7 @@ public:
         const auto* my_values   = values();
         auto* other_values      = other->values();
 
-        Int size = this->size();
+        Int size = this->size() * Blocks;
 
         for (Int c = 0; c < size; c++)
         {
@@ -446,6 +491,20 @@ public:
     		vals[c + pos] = data[c + start];
     	}
     }
+
+
+    void insert(Int pos, Int start, Int size, const InputBuffer* buffer)
+    {
+    	insertSpace(pos, size);
+
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		Value* vals 		= values(block);
+    		const Value* data 	= buffer->values(block);
+    		CopyBuffer(data + start, vals + pos, size);
+    	}
+    }
+
 
     template <Int Offset, typename Value, typename T, Int Size, template <typename, Int> class AccumItem>
     void _update(Int pos, Value val, AccumItem<T, Size>& accum)
@@ -518,7 +577,7 @@ public:
 
         const Value* values_ = buffer_;
 
-        dumpArray<Value>(out, size_, [&](Int pos) -> Value {
+        dumpArray<Value>(out, size_ * Blocks, [&](Int pos) -> Value {
             return values_[pos];
         });
     }
@@ -534,9 +593,7 @@ public:
 
         handler->startGroup("DATA", size_);
 
-        vapi::ValueHelper<Value>::setup(handler, "DATA_ITEM", buffer_, size_, IPageDataEventHandler::BYTE_ARRAY);
-
-//        handler->value("DATA_ITEM", buffer_, size_, IPageDataEventHandler::BYTE_ARRAY);
+        vapi::ValueHelper<Value>::setup(handler, "DATA_ITEM", buffer_, size_ * Blocks, IPageDataEventHandler::BYTE_ARRAY);
 
         handler->endGroup();
 
@@ -549,7 +606,7 @@ public:
         FieldFactory<Int>::serialize(buf, size_);
         FieldFactory<Int>::serialize(buf, max_size_);
 
-        FieldFactory<Value>::serialize(buf, buffer_, size_);
+        FieldFactory<Value>::serialize(buf, buffer_, size_ * Blocks);
     }
 
     void deserialize(DeserializationData& buf)
@@ -558,7 +615,7 @@ public:
         FieldFactory<Int>::deserialize(buf, size_);
         FieldFactory<Int>::deserialize(buf, max_size_);
 
-        FieldFactory<Value>::deserialize(buf, buffer_, size_);
+        FieldFactory<Value>::deserialize(buf, buffer_, size_ * Blocks);
     }
 
 };

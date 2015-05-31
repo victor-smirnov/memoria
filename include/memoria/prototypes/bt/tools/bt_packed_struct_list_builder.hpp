@@ -45,6 +45,31 @@ struct ValidateSubstreams<TypeList<T1, List1...>, TypeList<T2, List2...>> {
                                 IsPlainList<TypeList<T1, List1...>>::Value;
 };
 
+
+template <typename List> struct InputBufferListBuilder;
+
+template <typename Head, typename... Tail>
+struct InputBufferListBuilder<TL<Head, Tail...>> {
+	using Type = MergeLists<
+					typename PkdStructInputBufferType<Head>::Type,
+					typename InputBufferListBuilder<TL<Tail...>>::Type
+	>;
+};
+
+template <typename... List, typename... Tail>
+struct InputBufferListBuilder<TL<TL<List...>, Tail...>> {
+	using Type = MergeLists<
+					TL<typename InputBufferListBuilder<TL<List...>>::Type>,
+					typename InputBufferListBuilder<TL<Tail...>>::Type
+	>;
+};
+
+template <>
+struct InputBufferListBuilder<TL<>> {
+	using Type = TL<>;
+};
+
+
 }
 
 
@@ -74,6 +99,8 @@ class PackedLeafStructListBuilder<TypeList<StructsTF, Tail...>> {
             "Invalid substream structure"
     );
 
+    using InputBufferType = typename detail::InputBufferListBuilder<LeafType>::Type;
+
 public:
     using StructList = AppendItemToList<
                 LeafType,
@@ -87,6 +114,13 @@ public:
     		typename PackedLeafStructListBuilder<
     			TypeList<Tail...>
     		>::StructList
+    >;
+
+    using InputBufferList = AppendItemToList<
+    		InputBufferType,
+    		typename PackedLeafStructListBuilder<
+    					TypeList<Tail...>
+    		>::InputBufferList
     >;
 };
 
@@ -159,6 +193,7 @@ class PackedLeafStructListBuilder<TypeList<>> {
 public:
     using StructList 		= TypeList<>;
     using StreamInputList 	= TypeList<>;
+    using InputBufferList 	= TypeList<>;
 };
 
 
@@ -175,6 +210,8 @@ public:
     using RangeOffsetList 	= TypeList<>;
     using IndexRangeList	= TypeList<>;
 };
+
+
 
 
 

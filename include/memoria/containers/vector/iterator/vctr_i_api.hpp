@@ -41,6 +41,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 
     using CtrSizeT = typename Container::Types::CtrSizeT;
 
+    using InputBuffer = typename Container::Types::InputBuffer;
 
     bool operator++() {
         return self().skipFw(1);
@@ -83,9 +84,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 
         auto& leaf = self.leaf();
 
-        mvector::ArrayInputBufferProvider<Value> provider(data);
+        mvector::StdVectorInputBuffer<InputBuffer> buf(data);
 
-        auto result = model.insertBuffers(leaf, self.idx(), provider);
+        auto result = model.insertBuffers(leaf, self.idx(), buf.me());
 
         self.leaf() = result.leaf();
         self.idx() 	= result.position();

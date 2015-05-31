@@ -46,8 +46,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::LeafFixedName)
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
-    typedef typename Types::Source                                              Source;
-
     using CtrSizeT = typename Types::CtrSizeT;
 
     static const Int Streams                                                    = Types::Streams;

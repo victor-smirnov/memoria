@@ -256,7 +256,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafFixedName)
 
     	 Int sizes = size - start;
 
-    	 Int capacity = self.getStreamCapacity(leaf, 0);
+    	 Int capacity = self.getLeafNodeCapacity(leaf, 0);
 
     	 Int to_insert = capacity >= sizes ? sizes : capacity;
 

@@ -46,8 +46,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrApiName)
 
     static const Int Streams                                                    = Types::Streams;
 
-    static const Int MAIN_STREAM                                                = Types::MAIN_STREAM;
-
 
 
     CtrSizeT size() const {

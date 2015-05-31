@@ -12,21 +12,23 @@
 
 #include <memoria/core/tools/static_array.hpp>
 #include <memoria/core/tools/idata.hpp>
+#include <memoria/core/tools/bitmap.hpp>
 #include <memoria/core/container/container.hpp>
 
 #include <memoria/prototypes/bt/layouts/bt_input_buffer.hpp>
+
+
 
 namespace memoria       {
 namespace mvector       {
 
 
 
-template <typename T>
-class ArrayInputBufferProvider: public bt::InputBufferProvider<Int, T> {
 
-	using Position = Int;
+template <typename Position, typename T>
+class AbstractInputBufferProvider: public bt::InputBufferProvider<Position, T> {
 
-	std::vector<T>& data_;
+protected:
 	Position start_;
 	Position size_;
 
@@ -34,9 +36,9 @@ class ArrayInputBufferProvider: public bt::InputBufferProvider<Int, T> {
 
 public:
 
-
-	ArrayInputBufferProvider(std::vector<T>& data, Position start = 0): data_(data), start_(0), size_(data.size()) {}
-	ArrayInputBufferProvider(std::vector<T>& data, Position start, Position size): data_(data), start_(0), size_(size)  {}
+	AbstractInputBufferProvider(): start_(0), size_(0)  {}
+	AbstractInputBufferProvider(Position start, Position size): start_(start), size_(size)  {}
+	AbstractInputBufferProvider(Position start, Position size, bool next): start_(start), size_(size), next_(next) {}
 
 	virtual Position start() const {
 		return start_;
@@ -47,10 +49,6 @@ public:
 	}
 
 	virtual Position zero()	const {return 0;}
-
-	virtual const T* buffer() const {
-		return &data_[0];
-	}
 
 	virtual void consumed(Position sizes) {
 		start_ += sizes;
@@ -64,185 +62,103 @@ public:
 		next_ = false;
 	}
 
-	virtual bool hasData() const {
+	virtual bool hasData() const
+	{
 		return next_ || start_ < size_;
 	}
 };
 
 
-class VectorSource: public ISource {
-
-    IDataBase* source_;
-public:
-    VectorSource(IDataBase* source): source_(source) {}
-
-    virtual Int streams()
-    {
-        return 1;
-    }
-
-    virtual IData* stream(Int stream)
-    {
-        return source_;
-    }
-
-    virtual void newNode(INodeLayoutManager* layout_manager, BigInt* sizes)
-    {
-        Int allocated[1] = {0};
-        Int capacity = layout_manager->getNodeCapacity(allocated, 0);
-
-        sizes[0] = capacity;
-    }
-
-    virtual BigInt getTotalNodes(INodeLayoutManager* manager)
-    {
-        Int sizes[1] = {0};
-
-        SizeT capacity  = manager->getNodeCapacity(sizes, 0);
-        SizeT remainder = source_->getRemainder();
-
-        return remainder / capacity + (remainder % capacity ? 1 : 0);
-    }
-};
-
-
-class VectorTarget: public ITarget {
-
-    IDataBase* target_;
-public:
-    VectorTarget(IDataBase* target): target_(target) {}
-
-    virtual Int streams()
-    {
-        return 1;
-    }
-
-    virtual IData* stream(Int stream)
-    {
-        return target_;
-    }
-};
 
 
 
+template <typename Buffer>
+class VectorInputBufferAdaptor: public AbstractInputBufferProvider<Int, Buffer> {
 
-template <typename Iterator, typename Container>
-class VectorIteratorPrefixCache: public bt::BTreeIteratorCache<Iterator, Container> {
-    typedef bt::BTreeIteratorCache<Iterator, Container>                 Base;
-    typedef typename Container::Position                                        Position;
-    typedef typename Container::Accumulator                                     Accumulator;
-
-    Position prefix_;
-    Position current_;
+	using Base = AbstractInputBufferProvider<Int, Buffer>;
 
 public:
+	using Position = typename Buffer::Position;
 
-    VectorIteratorPrefixCache(): Base(), prefix_(), current_() {}
+	using Struct = typename Buffer::template PackedStruct<IntList<0>>;
 
-    const BigInt& prefix(int num = 0) const
-    {
-        return prefix_[num];
-    }
-
-    const Position& sizePrefix() const
-    {
-        return prefix_;
-    }
-
-    void setSizePrefix(const Position& prefix)
-    {
-        prefix_ = prefix;
-    }
-
-    const Position& prefixes() const
-    {
-        return prefix_;
-    }
-
-    void nextKey(bool end)
-    {
-        prefix_ += current_;
-
-        Clear(current_);
-    };
-
-    void prevKey(bool start)
-    {
-        prefix_ -= current_;
-
-        Clear(current_);
-    };
-
-    void Prepare()
-    {
-        if (Base::iterator().key_idx() >= 0)
-        {
-//            current_ = Base::iterator().getRawKeys();
-        }
-        else {
-            Clear(current_);
-        }
-    }
-
-    void setup(const Position& prefix)
-    {
-        prefix_ = prefix;
-    }
-
-    void setup(BigInt prefix)
-    {
-        prefix_[0] = prefix;
-    }
-
-    void Clear(Position& v) {v = Position();}
-
-    void initState()
-    {
-        Clear(prefix_);
-
-        auto node = Base::iterator().leaf();
-
-        auto& ctr = Base::iterator().ctr();
-
-        while (!node->is_root())
-        {
-            Int idx = node->parent_idx();
-            node = ctr.getNodeParent(node);
-
-            Accumulator acc;
-
-            ctr.sums(node, 0, idx, acc);
-
-            prefix_ += std::get<0>(acc)[0];
-        }
-    }
+	using Value = typename Struct::Value;
 
 private:
+	Buffer* buffer_ = nullptr;
 
-    void init_()
-    {
+public:
+	VectorInputBufferAdaptor(SizeT capacity): Base(0, 0)
+	{
+		Int block_size = Buffer::block_size(Position(capacity));
 
-    }
+		buffer_ = T2T<Buffer*>(malloc(block_size));
+		buffer_->init(block_size, Position(capacity));
+	}
 
+	~VectorInputBufferAdaptor()
+	{
+		if (buffer_) free(buffer_);
+	}
+
+	virtual void nextBuffer()
+	{
+		buffer_->reset();
+
+		this->start_ = 0;
+
+		this->next_ = this->fill(get());
+
+		this->size_ = get()->size();
+	}
+
+	virtual const Buffer* buffer() const {
+		return buffer_;
+	}
+
+	virtual bool fill(Struct* data) = 0;
+
+protected:
+	Struct* get() {
+		return buffer_->template get<IntList<0>>();
+	}
+
+	const Struct* get() const {
+		return buffer_->template get<IntList<0>>();
+	}
 };
 
+template <typename Buffer>
+class StdVectorInputBuffer: public VectorInputBufferAdaptor<Buffer> {
 
+	using Base 		= VectorInputBufferAdaptor<Buffer>;
+	using Value 	= typename Base::Value;
+	using Struct	= typename Base::Struct;
 
-template <
-    typename I, typename C
->
-std::ostream& operator<<(std::ostream& out, const VectorIteratorPrefixCache<I, C>& cache)
-{
-    out<<"VectorIteratorPrefixCache[";
-    out<<"prefixes: "<<cache.prefixes();
-    out<<"]";
+	vector<Value>& data_;
 
-    return out;
-}
+	SizeT pos_ = 0;
 
+public:
+	StdVectorInputBuffer(vector<Value>& data, SizeT buffer_capacity = 4096):
+		Base(buffer_capacity > (SizeT)data.size() ? data.size() : buffer_capacity),
+		data_(data)
+	{}
 
+	virtual bool fill(Struct* data)
+	{
+		auto max = data->max_size();
+		Int to_read = (max + pos_ < data_.size()) ? max : (data_.size() - pos_);
 
+		data->insertSpace(0, to_read);
 
+		CopyBuffer(&data_[pos_], data->values(), to_read);
+
+		pos_ += to_read;
+
+		return to_read == max;
+	}
+};
 
 }
 }

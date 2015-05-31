@@ -34,6 +34,10 @@ struct PkdStructSizeType {
 	static const PackedSizeType Value = PkdStruct::SizeType;
 };
 
+template <typename PkdStruct>
+struct PkdStructInputBufferType {
+	using Type = typename PkdStruct::InputBuffer;
+};
 
 
 template <typename List> struct PackedListStructSizeType;

@@ -95,6 +95,8 @@ public:
 
     using InputType = Values;
 
+    using InputBuffer = MyType;
+
 private:
 
     Int size_;
@@ -1224,13 +1226,7 @@ public:
         MEMORIA_ASSERT_TRUE(end >= 0);
 
         Int room_length = end - start;
-
         Int size = this->size();
-
-        if (room_length >  size - start) {
-        	int a = 0; a++;
-        }
-
         MEMORIA_ASSERT(room_length, <= , size - start);
 
         Value* values = this->values();

@@ -72,7 +72,7 @@ public:
 
     static const Int BranchingFactor        = Types::BranchingFactor;
     static const Int ValuesPerBranch        = Types::ValuesPerBranch;
-    static const Int Indexes                = 1;
+    static const Int Indexes                = 0;
     static const Int Blocks                 = 1;
     static const Int IOBatchSize            = 256;
 
@@ -97,6 +97,8 @@ public:
     typedef ConstFnAccessor<Value>                                              ConstValueAccessor;
 
     using InputType = Value;
+
+    using InputBuffer = MyType;
 
     class Metadata {
         Int size_;
@@ -239,7 +241,7 @@ public:
         Int offsets_length  = Base::roundUpBytesToAlignmentBlocks(getOffsetsBlockLength(max_tree_capacity));
 
         Int index_size      = MyType::index_size(max_tree_capacity);
-        Int index_length    = Base::roundUpBytesToAlignmentBlocks(index_size * Indexes * sizeof(IndexValue));
+        Int index_length    = Base::roundUpBytesToAlignmentBlocks(index_size * Blocks * sizeof(IndexValue));
 
         Int layout_size     = MyType::index_layout_size(max_tree_capacity);
         Int layout_length   = Base::roundUpBytesToAlignmentBlocks(layout_size * sizeof(LayoutValue));
@@ -763,7 +765,7 @@ public:
         TreeTools::buildIndexTreeLayout(index_layout(), max_size, layout_size);
 
         Int index_size = meta->index_size();
-        Base::template allocateArrayBySize<IndexValue>(INDEX, index_size * Indexes);
+        Base::template allocateArrayBySize<IndexValue>(INDEX, index_size * Blocks);
 
         Int values_block_length = Base::roundUpBitsToAlignmentBlocks(max_size * Codec::ElementSize);
         Base::template allocateArrayByLength<BufferType>(VALUES, values_block_length);
@@ -791,7 +793,7 @@ public:
         TreeTools::buildIndexTreeLayout(index_layout(), max_capacity, layout_size);
 
         Int index_size = meta->index_size();
-        Base::template allocateArrayBySize<IndexValue>(INDEX, index_size * Indexes);
+        Base::template allocateArrayBySize<IndexValue>(INDEX, index_size * Blocks);
 
         Int values_block_length = Base::roundUpBitsToAlignmentBlocks(max_capacity * Codec::ElementSize);
         Base::template allocateArrayByLength<BufferType>(VALUES, values_block_length);
@@ -1377,13 +1379,13 @@ public:
     template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
     void sum(AccumItem<T, Size>& accum) const
     {
-//    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
     }
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
     void sum(Int start, Int end, AccumItem<T, Size>& accum) const
     {
-//    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
     }
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
@@ -1481,7 +1483,7 @@ public:
         for (Int c = 0; c < idx_max; c++)
         {
             out<<c<<" ";
-            for (Int block = 0; block < Indexes; block++)
+            for (Int block = 0; block < Blocks; block++)
             {
                 out<<indexes(block)[c]<<" ";
             }
@@ -1535,7 +1537,7 @@ public:
 
         dumpLayout(out);
 
-        out<<"Indexes:"<<std::dec<<std::endl;
+        out<<"Blocks:"<<std::dec<<std::endl;
 
         dumpIndex(out);
 
@@ -1606,13 +1608,13 @@ public:
 
         for (Int c = 0; c < index_size(); c++)
         {
-            IndexValue indexes[Indexes];
-            for (Int idx = 0; idx < Indexes; idx++)
+            IndexValue indexes[Blocks];
+            for (Int idx = 0; idx < Blocks; idx++)
             {
                 indexes[idx] = this->indexes(idx)[c];
             }
 
-            handler->value("INDEX", indexes, Indexes);
+            handler->value("INDEX", indexes, Blocks);
         }
 
         handler->endGroup();
@@ -1653,7 +1655,7 @@ public:
             FieldFactory<LayoutValue>::serialize(buf, layout, layout[0] + 1);
         }
 
-        FieldFactory<IndexValue>::serialize(buf, indexes(0), Indexes * meta->index_size());
+        FieldFactory<IndexValue>::serialize(buf, indexes(0), Blocks * meta->index_size());
 
         FieldFactory<BufferType>::serialize(buf, values(), this->data_length());
     }
@@ -1677,7 +1679,7 @@ public:
             FieldFactory<LayoutValue>::deserialize(buf, layout + 1, layout[0]);
         }
 
-        FieldFactory<IndexValue>::deserialize(buf, indexes(0), Indexes * meta->index_size());
+        FieldFactory<IndexValue>::deserialize(buf, indexes(0), Blocks * meta->index_size());
 
         FieldFactory<BufferType>::deserialize(buf, values(), this->data_length());
     }
@@ -1782,7 +1784,7 @@ private:
         Int layout_length   = Base::roundUpBytesToAlignmentBlocks(layout_size * sizeof(LayoutValue));
 
         Int index_size      = MyType::index_size(max_tree_capacity);
-        Int index_length    = Base::roundUpBytesToAlignmentBlocks(index_size * Indexes * sizeof(IndexValue));
+        Int index_length    = Base::roundUpBytesToAlignmentBlocks(index_size * Blocks * sizeof(IndexValue));
 
         Int values_length   = Base::roundUpBitsToAlignmentBlocks(max_tree_capacity * Codec::ElementSize);
 
