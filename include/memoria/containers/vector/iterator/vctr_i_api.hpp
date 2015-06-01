@@ -136,9 +136,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 
     			Int to_read = (processed_ + remainder < max_) ? remainder : (max_ - processed_);
 
-    			for (Int c = 0; c < to_read; c++) {
-    				data_[c + processed_] = obj->value(c + start);
-    			}
+    			auto i = processed_;
+
+    			obj->read(0, start, start + to_read, [&](Value v){
+    				data_[i++] = v;
+    			});
 
     			return to_read;
     		}
@@ -146,6 +148,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
     			return 0;
     		}
     	}
+
 
     	void start_leaf() {}
 

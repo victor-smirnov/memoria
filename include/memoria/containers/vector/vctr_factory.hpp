@@ -45,11 +45,9 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
         typedef core::StaticVector<BigInt, 1>                       AccumulatorPart;
         typedef core::StaticVector<BigInt, 1>                       IteratorPrefixPart;
 
-        typedef PkdVTree<Packed2TreeTypes<Key, Key, 1, UByteExintCodec>>             NonLeafType;
-//        typedef TL<PackedFSEArray<PackedFSEArrayTypes<Value>>>      LeafType;
-        typedef TL<PackedVLEArray<Packed2TreeTypes<
-                Value, Value, 1, UByteExintCodec
-            >>>      LeafType;
+        typedef PkdFTree<Packed2TreeTypes<Key, Key>>             	NonLeafType;
+        typedef TL<PackedFSEArray<PackedFSEArrayTypes<Value>>>      LeafType;
+
         typedef TL<TL<>>											IdxRangeList;
     };
 
@@ -78,10 +76,81 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
             typename Base::IteratorPartsList,
             mvector::ItrApiName
     >;
-
-    template <typename Types>
-    using FindBeginWalker       = ::memoria::mvector::FindBeginWalker<Types>;
 };
+
+
+
+template <Granularity Gr> struct CodecClassTF;
+
+template <>
+struct CodecClassTF<Granularity::Byte> {
+	template <typename V>
+	using Type = UByteExintCodec<V>;
+};
+
+
+template <>
+struct CodecClassTF<Granularity::Bit> {
+	template <typename V>
+	using Type = UBigIntEliasCodec<V>;
+};
+
+
+template <typename Profile, Granularity Gr, typename Value_>
+struct BTTypes<Profile, memoria::Vector<VLen<Gr, Value_>> >: public BTTypes<Profile, memoria::BTSingleStream> {
+
+    typedef BTTypes<Profile, memoria::BT>                                       Base;
+
+    typedef Value_                                                              Value;
+
+    struct StreamTF {
+        typedef BigInt                                              Key;
+        typedef Value_                                              Value;
+
+        typedef core::StaticVector<BigInt, 1>                       AccumulatorPart;
+        typedef core::StaticVector<BigInt, 1>                       IteratorPrefixPart;
+
+        typedef PkdFTree<Packed2TreeTypes<Key, Key, 1>>        		NonLeafType;
+        typedef TL<PackedVLEArray<
+        				Packed2TreeTypes<
+        					Value, Value, 1, CodecClassTF<Gr>::template Type
+        				>
+        		>>      											LeafType;
+        typedef TL<TL<>>											IdxRangeList;
+    };
+
+
+    typedef TypeList<
+                StreamTF
+    >                                                                           StreamDescriptors;
+
+    typedef BalancedTreeMetadata<
+                typename Base::ID,
+                ListSize<StreamDescriptors>::Value
+    >                                                                           Metadata;
+
+
+    using CommonContainerPartsList = MergeLists<
+            typename Base::CommonContainerPartsList,
+
+            mvector::CtrToolsName,
+            mvector::CtrInsertName,
+            mvector::CtrRemoveName,
+            mvector::CtrFindName,
+            mvector::CtrApiName
+    >;
+
+    using IteratorPartsList = MergeLists<
+            typename Base::IteratorPartsList,
+            mvector::ItrApiName
+    >;
+};
+
+
+
+
+
+
 
 
 template <typename Profile, typename Value, typename T>

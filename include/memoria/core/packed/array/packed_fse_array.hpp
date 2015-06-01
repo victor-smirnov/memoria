@@ -563,6 +563,23 @@ public:
         }
     }
 
+    template <typename Fn>
+    void read(Int block, Int start, Int end, Fn&& fn) const
+    {
+        MEMORIA_ASSERT(start, <, size_);
+        MEMORIA_ASSERT(start, >=, 0);
+        MEMORIA_ASSERT(end, >=, 0);
+        MEMORIA_ASSERT(end, <=, size_);
+
+        auto values = this->values(block);
+
+        for (Int c = start; c < end; c++)
+        {
+        	fn(values[c]);
+        }
+    }
+
+
 
     // ==================================== Dump =========================================== //
 

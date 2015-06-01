@@ -19,17 +19,19 @@ namespace memoria {
 using namespace memoria::vapi;
 using namespace std;
 
-template <typename T>
+
+
+template <typename T, typename CtrT = T>
 class VectorTest: public SequenceCreateTestBase<
-    Vector<T>,
+    Vector<CtrT>,
     vector<T>
 >
 {
-    typedef VectorTest<T>                                                       MyType;
+    typedef VectorTest<T, CtrT>                                                 MyType;
     typedef MyType                                                              ParamType;
 
     typedef SequenceCreateTestBase<
-                Vector<T>,
+                Vector<CtrT>,
                 vector<T>
     >                                                                           Base;
 

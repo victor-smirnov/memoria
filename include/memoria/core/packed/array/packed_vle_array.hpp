@@ -1386,6 +1386,29 @@ public:
         }
     }
 
+    template <typename Fn>
+    void read(Int block, Int start, Int end, Fn&& fn) const
+    {
+    	MEMORIA_ASSERT(start, >=, 0);
+    	MEMORIA_ASSERT(start, <=, end);
+    	MEMORIA_ASSERT(end, <=, size());
+
+    	Codec codec;
+
+    	const auto* buffer  = this->values();
+    	Int size            = this->size();
+
+    	Int value_idx = size * block + start;
+
+    	size_t pos = this->value_offset(value_idx);
+
+    	for (SizeT c = 0; c < end - start; c++)
+    	{
+    		Value value = 0;
+    		pos += codec.decode(buffer, value, pos);
+    		fn(value);
+    	}
+    }
 
 
 
@@ -1917,6 +1940,9 @@ private:
             }
         }
     }
+
+
+
 };
 
 
