@@ -14,19 +14,8 @@
 
 
 namespace memoria       {
-
-
-namespace bt {
-
-template <typename T>
-struct StructSizeProvider<PackedFSEArray<T>> {
-    static const Int Value = 0;
-};
-
-}
-
-
 namespace mapx          {
+
 
 template <
     Int Indexes,

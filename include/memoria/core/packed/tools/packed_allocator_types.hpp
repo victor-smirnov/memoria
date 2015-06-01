@@ -26,6 +26,12 @@ struct PkdStructInputType {
 	using Type = typename PkdStruct::InputType;
 };
 
+template <typename T>
+struct StructSizeProvider {
+    static const Int Value = T::Indexes;
+};
+
+
 
 enum class PackedSizeType {FIXED, VARIABLE};
 

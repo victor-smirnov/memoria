@@ -626,6 +626,12 @@ struct PkdStructSizeType<PackedFSEArray<Types>> {
 	static const PackedSizeType Value = PackedSizeType::FIXED;
 };
 
+template <typename T>
+struct StructSizeProvider<PackedFSEArray<T>> {
+    static const Int Value = 0;
+};
+
+
 
 }
 

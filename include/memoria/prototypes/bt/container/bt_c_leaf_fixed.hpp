@@ -238,10 +238,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafFixedName)
      		node->processAll(*this, pos, start, size, buffer);
      	}
 
-     	template <typename StreamType, typename LeafPosition, typename Buffer>
+     	template <Int ListIdx, typename StreamType, typename LeafPosition, typename Buffer>
      	void stream(StreamType* obj, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
      	{
-     		obj->insert(pos, start, size, buffer);
+     		obj->insert(pos, start, size, buffer->template geti<ListIdx>());
      	}
      };
 

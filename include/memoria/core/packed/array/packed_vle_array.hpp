@@ -12,6 +12,8 @@
 #include <memoria/core/packed/tree/packed_tree_tools.hpp>
 #include <memoria/core/packed/tree/packed_tree_walkers.hpp>
 
+#include <memoria/core/packed/array/packed_fse_array.hpp>
+
 #include <memoria/core/tools/exint_codec.hpp>
 #include <memoria/core/tools/elias_codec.hpp>
 
@@ -72,7 +74,7 @@ public:
 
     static const Int BranchingFactor        = Types::BranchingFactor;
     static const Int ValuesPerBranch        = Types::ValuesPerBranch;
-    static const Int Indexes                = 0;
+    static const Int Indexes                = 1;
     static const Int Blocks                 = 1;
     static const Int IOBatchSize            = 256;
 
@@ -98,7 +100,7 @@ public:
 
     using InputType = Value;
 
-    using InputBuffer = MyType;
+    using InputBuffer = PackedFSEArray<PackedFSEArrayTypes<Value>>;
 
     class Metadata {
         Int size_;
@@ -534,6 +536,10 @@ public:
 
         Codec codec;
         Value value;
+
+        if (pos >= data_size()) {
+        	int a = 0; a++;
+        }
 
         MEMORIA_ASSERT(pos, <, data_size());
 
@@ -1187,6 +1193,14 @@ public:
     	});
     }
 
+    void insert(Int pos, Int start, Int size, const InputBuffer* data)
+    {
+    	int i = start;
+    	this->insert(pos, size - start, [data, &i]() -> Values {
+    		return Values(data->value(i++));
+    	});
+    }
+
 
     Int insert(Int idx, std::function<bool (Values&)> provider)
     {
@@ -1379,25 +1393,25 @@ public:
     template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
     void sum(AccumItem<T, Size>& accum) const
     {
-    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+    	static_assert(Offset <= Size, "Invalid balanced tree structure");
     }
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
     void sum(Int start, Int end, AccumItem<T, Size>& accum) const
     {
-    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+    	static_assert(Offset <= Size, "Invalid balanced tree structure");
     }
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
     void sub(Int start, AccumItem<T, Size>& accum) const
     {
-    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+    	static_assert(Offset <= Size, "Invalid balanced tree structure");
     }
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
     void sum(Int idx, AccumItem<T, Size>& accum) const
     {
-    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+    	static_assert(Offset <= Size, "Invalid balanced tree structure");
     }
 
 
@@ -1909,6 +1923,11 @@ private:
 template <typename Types>
 struct PkdStructSizeType<PackedVLEArray<Types>> {
 	static const PackedSizeType Value = PackedSizeType::VARIABLE;
+};
+
+template <typename T>
+struct StructSizeProvider<PackedVLEArray<T>> {
+    static const Int Value = 0;
 };
 
 
