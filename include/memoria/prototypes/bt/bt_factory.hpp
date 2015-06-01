@@ -296,7 +296,6 @@ public:
     };
 
     struct BranchNodeTypes: NodeTypesBase {
-
     };
 
     struct LeafNodeTypes: NodeTypesBase {

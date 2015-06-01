@@ -469,17 +469,7 @@ public:
     }
 
 
-//    template <typename T>
-//    T* get_stream(Int idx)
-//    {
-//        return allocator()->template get<T>(idx + SubstreamsStart);
-//    }
-//
-//    template <typename T>
-//    const T* get_stream(Int idx) const
-//    {
-//        return allocator()->template get<T>(idx + SubstreamsStart);
-//    }
+
 
     PackedAllocator* allocator()
     {
@@ -1312,35 +1302,6 @@ public:
 
 
 
-
-//    template <typename Fn, typename... Args>
-//    DynDispatchRtnConstType<Fn, Args...>
-//    process(Int stream, Fn&& fn, Args... args) const
-//    {
-//        return Dispatcher::dispatch(stream, allocator(), std::forward<Fn>(fn), args...);
-//    }
-//
-//    template <typename Fn, typename... Args>
-//    DynDispatchRtnType<Fn, Args...>
-//    process(Int stream, Fn&& fn, Args&&... args)
-//    {
-//        return Dispatcher::dispatch(stream, allocator(), std::forward<Fn>(fn), args...);
-//    }
-//
-//    template <typename Fn, typename... Args>
-//    ProcessAllRtnConstType<Fn, Args...>
-//    processAll(Fn&& fn, Args&&... args) const
-//    {
-//        return Dispatcher::dispatchAll(allocator(), std::forward<Fn>(fn), args...);
-//    }
-//
-//    template <typename Fn, typename... Args>
-//    ProcessAllRtnType<Fn, Args...>
-//    processAll(Fn&& fn, Args&&... args)
-//    {
-//        return Dispatcher::dispatchAll(allocator(), std::forward<Fn>(fn), args...);
-//    }
-//
     template <typename Fn, typename... Args>
     void processNotEmpty(Fn&& fn, Args&&... args) const
     {
@@ -1352,36 +1313,7 @@ public:
     {
         Dispatcher::dispatchNotEmpty(allocator(), std::forward<Fn>(fn), args...);
     }
-//
-//    template <typename Fn, typename... Args>
-//    void processNotEmpty(UBigInt streams, Fn&& fn, Args&&... args) const
-//    {
-//        Dispatcher::dispatchNotEmpty(streams, allocator(), std::forward<Fn>(fn), args...);
-//    }
-//
-//    template <typename Fn, typename... Args>
-//    void processNotEmpty(UBigInt streams, Fn&& fn, Args&&... args)
-//    {
-//        Dispatcher::dispatchNotEmpty(streams, allocator(), std::forward<Fn>(fn), args...);
-//    }
-//
-//
-//    template <typename SubstreamPath, typename Fn, typename... Args>
-//    DispatchRtnConstType<memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value, Fn, Args...>
-//    processStream(Fn&& fn, Args&&... args) const
-//    {
-//        const Int StreamIdx = memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value;
-//        return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
-//    }
-//
-//
-//    template <typename SubstreamPath, typename Fn, typename... Args>
-//    DispatchRtnType<memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value, Fn, Args...>
-//    processStream(Fn&& fn, Args&&... args)
-//    {
-//        const Int StreamIdx = memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value;
-//        return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
-//    }
+
 
     template <typename Fn, typename... Args>
     DynDispatchRtnConstType<Fn, Args...>
@@ -1543,12 +1475,6 @@ public:
         {
             tree->addValues(idx, std::get<Idx>(accum));
         }
-
-        template <typename StreamType, typename DataType>
-        void stream(StreamType* tree, Int idx, const SingleIndexUpdateData<DataType>& data)
-        {
-            tree->addValue(data.index(), idx, data.delta());
-        }
     };
 
 
@@ -1557,11 +1483,6 @@ public:
         Dispatcher::dispatchNotEmpty(allocator(), UpdateUpFn(), idx, keys);
     }
 
-    template <typename DataType>
-    void updateUp(Int idx, const SingleIndexUpdateData<DataType>& data)
-    {
-        Dispatcher::dispatch(data.stream(), allocator(), UpdateUpFn(), idx, data);
-    }
 
     //FIXME: remove?
     Accumulator keys(Int pos) const

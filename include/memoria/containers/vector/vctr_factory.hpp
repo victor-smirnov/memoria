@@ -52,9 +52,8 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
     };
 
 
-    typedef TypeList<
-                StreamTF
-    >                                                                           StreamDescriptors;
+    typedef TypeList<StreamTF>                                                  StreamDescriptors;
+
 
     typedef BalancedTreeMetadata<
                 typename Base::ID,
