@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2013.
+// Copyright Victor Smirnov 2013+.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -41,16 +41,13 @@ struct BTTypes<Profile, memoria::Sequence<8, true> >: public BTTypes<Profile, me
     typedef UByte                                                             	Value;
 
     static const Int BitsPerSymbol                                              = 8;
-    static const Int Indexes                                                    = (1 << BitsPerSymbol) + 1;
+    static const Int BranchIndexes                                                    = (1 << BitsPerSymbol) + 1;
 
     struct StreamTF {
         typedef BigInt                                                Key;
 
-        typedef core::StaticVector<BigInt, Indexes>                 AccumulatorPart;
-        typedef core::StaticVector<BigInt, 1>                       IteratorPrefixPart;
-
         typedef PkdVTree<Packed2TreeTypes<
-                Key, Key, Indexes, UByteExintCodec
+                Key, Key, BranchIndexes, UByteExintCodec
         >>                                                          NonLeafType;
         typedef TL<TL<>>											IdxRangeList;
 

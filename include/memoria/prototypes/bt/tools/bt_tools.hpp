@@ -74,74 +74,49 @@ using ItrRankRtnType = decltype(std::declval<T>().template _rank<LeafPath>(std::
 
 
 
-template <typename List> struct TupleBuilder;
+template <typename List> struct TypeListToTupleH;
 
-template <typename... Types>
-struct TupleBuilder<TypeList<Types...>> {
-    using Type = std::tuple<Types...>;
-};
+template <typename List>
+using TypeListToTuple = typename TypeListToTupleH<List>::Type;
 
-
-template <typename List, Int Idx = 0>
-class AccumulatorListBuilder;
-
-template <
-    typename StructsTF,
-    typename... Tail,
-    Int Idx
->
-class AccumulatorListBuilder<TypeList<StructsTF, Tail...>, Idx> {
-
-public:
-    using Type = MergeLists<
-            Linearize<typename StructsTF::AccumulatorPart>,
-            typename AccumulatorListBuilder<
-                TypeList<Tail...>,
-                Idx + 1
-            >::Type
-    >;
+template <typename... List>
+struct TypeListToTupleH<TL<List...>> {
+	using Type = std::tuple<List...>;
 };
 
 
 
-template <Int Idx>
-class AccumulatorListBuilder<TypeList<>, Idx> {
-public:
-    using Type = TypeList<>;
+template <typename PkdStructList> struct MakeStreamEntryTL;
+
+template <typename Head, typename... Tail>
+struct MakeStreamEntryTL<TL<Head, Tail...>> {
+	using Type = AppendItemToList<
+			typename PkdStructInputType<Head>::Type,
+			typename MakeStreamEntryTL<TL<Tail...>>::Type
+	>;
+};
+
+template <>
+struct MakeStreamEntryTL<TL<>> {
+	using Type = TL<>;
 };
 
 
 
+template <typename T> struct AccumulatorBuilder;
 
-template <typename List, Int Idx = 0>
-class IteratorPrefixListBuilder;
-
-template <
-    typename StructsTF,
-    typename... Tail,
-    Int Idx
->
-class IteratorPrefixListBuilder<TypeList<StructsTF, Tail...>, Idx> {
-
-public:
-    using Type = MergeLists<
-            typename StructsTF::IteratorPrefixPart,
-            typename IteratorPrefixListBuilder<
-                TypeList<Tail...>,
-                Idx + 1
-            >::Type
-    >;
+template <typename PackedStruct, typename... Tail>
+struct AccumulatorBuilder<TL<PackedStruct, Tail...>> {
+	using Type = MergeLists<
+					memoria::core::StaticVector<BigInt, StructSizeProvider<PackedStruct>::Value>,
+					typename AccumulatorBuilder<TL<Tail...>>::Type
+	>;
 };
 
-
-
-template <Int Idx>
-class IteratorPrefixListBuilder<TypeList<>, Idx> {
-public:
-    using Type = TypeList<>;
+template <>
+struct AccumulatorBuilder<TL<>> {
+	using Type = TL<>;
 };
-
-
 
 
 

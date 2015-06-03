@@ -1585,12 +1585,15 @@ public:
         values.sumUp(sums(from, to));
     }
 
-    void sums(Values& values) const
+    template <typename T>
+    void sums(core::StaticVector<T, Blocks>& values) const
     {
         sumsSmall<0>(values);
     }
 
-    void sums(Values2& values) const
+
+    template <typename T>
+    void sums(core::StaticVector<T, Blocks + 1>& values) const
     {
         values[0] += size();
 
@@ -2362,6 +2365,11 @@ private:
 template <typename Types>
 struct PkdStructSizeType<PkdVTree<Types>> {
 	static const PackedSizeType Value = PackedSizeType::VARIABLE;
+};
+
+template <typename T>
+struct StructSizeProvider<PkdVTree<T>> {
+    static const Int Value = PkdVTree<T>::Blocks;
 };
 
 

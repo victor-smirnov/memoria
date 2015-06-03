@@ -28,7 +28,7 @@
 namespace memoria       {
 namespace bt            {
 
-
+/*
 template <typename Types, typename MyType>
 class FindWalkerBase {
 protected:
@@ -936,7 +936,7 @@ public:
         }
     }
 };
-
+*/
 
 
 }

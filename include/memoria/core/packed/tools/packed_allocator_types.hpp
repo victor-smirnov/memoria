@@ -26,10 +26,7 @@ struct PkdStructInputType {
 	using Type = typename PkdStruct::InputType;
 };
 
-template <typename T>
-struct StructSizeProvider {
-    static const Int Value = T::Indexes;
-};
+template <typename T> struct StructSizeProvider;
 
 
 

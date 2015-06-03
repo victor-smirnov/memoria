@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011-2013.
+// Copyright Victor Smirnov 2011+.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -237,11 +237,6 @@ public:
     static const Int Streams = ListSize<typename ContainerTypes::StreamDescriptors>::Value;
 
 
-    typedef typename bt::TupleBuilder<
-                typename bt::IteratorPrefixListBuilder<
-                    typename ContainerTypes::StreamDescriptors
-                >::Type
-    >::Type                                                                     IteratorPrefix_;
 
     using Position_ = core::StaticVector<typename ContainerTypes::CtrSizeT, Streams>;
     using Page      = typename ContainerTypes::Allocator::Page;
@@ -256,11 +251,11 @@ public:
     using StreamsInputTypeList 		= typename PackedLeafStructListBuilder<StreamDescriptors>::StreamInputList;
     using InputBufferStructList 	= typename PackedLeafStructListBuilder<StreamDescriptors>::InputBufferList;
 
-    using IteratorAccumulator = typename TupleBuilder<
+    using IteratorAccumulator = TypeListToTuple<
     			Linearize<
     				typename IteratorAccumulatorListBuilder<StreamDescriptors>::AccumTuple
                 >
-    >::Type;
+    >;
 
     using LeafRangeOffsetList = Linearize<
     				typename IteratorAccumulatorListBuilder<StreamDescriptors>::RangeOffsetList
@@ -272,12 +267,9 @@ public:
     >;
 
 
-    using Accumulator_ = typename bt::TupleBuilder<
-                    typename bt::AccumulatorListBuilder<
-                        typename ContainerTypes::StreamDescriptors
-                    >::Type
-    >::Type;
+    using Accumulator_ = TypeListToTuple<typename AccumulatorBuilder<BranchStreamsStructList>::Type>;
 
+//    using IteratorPrefix_ = Accumulator_;
 
     struct NodeTypesBase: ContainerTypes {
         using NodeBase  = Page;
@@ -364,7 +356,6 @@ public:
         static const Int Streams                                                = MyType::Streams;
 
         typedef Accumulator_                                                    Accumulator;
-        typedef IteratorPrefix_                                                 IteratorPrefix;
 
         typedef Position_                                                       Position;
 

@@ -27,12 +27,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::LeafCommonName)
 	using Types = TypesType;
 	using NodeBaseG = typename Types::NodeBaseG;
 
-	using Iterator = typename Types::Iterator;
+	using Iterator = typename Base::Iterator;
 
-	using NodeDispatcher 	= typename Types::NodeDispatcher;
-	using RootDispatcher 	= typename Types::RootDispatcher;
-	using LeafDispatcher 	= typename Types::LeafDispatcher;
-	using BranchDispatcher = typename Types::BranchDispatcher;
+	using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
+	using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
+	using BranchDispatcher = typename Types::Pages::BranchDispatcher;
 
 
 
@@ -40,7 +39,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::LeafCommonName)
 	using Position		= typename Types::Position;
 
     using SplitFn = std::function<Accumulator (NodeBaseG&, NodeBaseG&)>;
-    using MergeFn = std::function<void (const Position&, Int)>;
+    using MergeFn = std::function<void (const Position&)>;
 
     using CtrSizeT = typename Types::CtrSizeT;
 
@@ -177,23 +176,29 @@ private:
 
     	Int path_parent_idx = leaf->parent_idx() + 1;
 
-    	auto leaf_list = self.createLeafList3(provider);
+    	auto leaf_list = self.createLeafList(provider);
 
-    	using Provider = typename Base::ListLeafProvider;
-
-    	Provider list_provider(self, leaf_list.head(), leaf_list.size());
-
-    	NodeBaseG parent = self.getNodeParentForUpdate(leaf);
-
-    	self.insert_subtree(parent, path_parent_idx, list_provider);
-
-    	auto& last_leaf = leaf_list.tail();
-
-    	auto last_leaf_size = self.getLeafStreamSizes(last_leaf);
-
-    	if (self.mergeBTreeNodes(last_leaf, next_leaf, [](const Position&, Int){}))
+    	if (leaf_list.size() > 0)
     	{
-    		return InsertBuffersResult<LeafPosition>(last_leaf, last_leaf_size.get());
+    		using Provider = typename Base::ListLeafProvider;
+
+    		Provider list_provider(self, leaf_list.head(), leaf_list.size());
+
+    		NodeBaseG parent = self.getNodeParentForUpdate(leaf);
+
+    		self.insert_subtree(parent, path_parent_idx, list_provider);
+
+    		auto& last_leaf = leaf_list.tail();
+
+    		auto last_leaf_size = self.getLeafStreamSizes(last_leaf);
+
+    		if (self.mergeLeafNodes(last_leaf, next_leaf, [](const Position&){}))
+    		{
+    			return InsertBuffersResult<LeafPosition>(last_leaf, last_leaf_size.get());
+    		}
+    		else {
+    			return InsertBuffersResult<LeafPosition>(next_leaf, provider.zero());
+    		}
     	}
     	else {
     		return InsertBuffersResult<LeafPosition>(next_leaf, provider.zero());
@@ -206,27 +211,35 @@ private:
     {
     	auto& self = this->self();
 
-    	if (leaf->is_root()) {
+    	if (leaf->is_root())
+    	{
     		self.newRootP(leaf);
     	}
 
     	Int path_parent_idx = leaf->parent_idx() + 1;
 
-    	auto leaf_list = self.createLeafList3(provider);
+    	auto leaf_list = self.createLeafList(provider);
 
-    	using Provider = typename Base::ListLeafProvider;
+    	if (leaf_list.size() > 0)
+    	{
+    		using Provider = typename Base::ListLeafProvider;
 
-    	Provider list_provider(self, leaf_list.head(), leaf_list.size());
+    		Provider list_provider(self, leaf_list.head(), leaf_list.size());
 
-    	NodeBaseG parent = self.getNodeParentForUpdate(leaf);
+    		NodeBaseG parent = self.getNodeParentForUpdate(leaf);
 
-    	self.insert_subtree(parent, path_parent_idx, list_provider);
+    		self.insert_subtree(parent, path_parent_idx, list_provider);
 
-    	auto& last_leaf = leaf_list.tail();
+    		auto& last_leaf = leaf_list.tail();
 
-    	auto last_leaf_size = self.getLeafStreamSizes(last_leaf);
+    		auto last_leaf_size = self.getLeafStreamSizes(last_leaf);
 
-    	return InsertBuffersResult<LeafPosition>(last_leaf, last_leaf_size.get());
+    		return InsertBuffersResult<LeafPosition>(last_leaf, last_leaf_size.get());
+    	}
+    	else {
+    		auto leaf_size = self.getLeafStreamSizes(leaf);
+    		return InsertBuffersResult<LeafPosition>(leaf, leaf_size.get());
+    	}
     }
 
 

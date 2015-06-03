@@ -18,16 +18,16 @@ namespace bt {
 /***********************************************************************/
 
 template <typename Types, typename MyType>
-class FindWalkerBase2: public WalkerBase2<Types, MyType> {
+class FindWalkerBase: public WalkerBase<Types, MyType> {
 
 protected:
-    using Base 			= WalkerBase2<Types, MyType>;
+    using Base 			= WalkerBase<Types, MyType>;
 
     using LeafPath 		= typename Types::LeafPath;
 
     using TargetType 	= typename Types::template TargetType<LeafPath>;
 
-    using ThisType = FindWalkerBase2<Types, MyType>;
+    using ThisType = FindWalkerBase<Types, MyType>;
     using Iterator = typename Base::Iterator;
 
     TargetType sum_			= 0;
@@ -38,7 +38,7 @@ protected:
 
 public:
 
-    FindWalkerBase2(Int leaf_index, TargetType target, SearchType search_type):
+    FindWalkerBase(Int leaf_index, TargetType target, SearchType search_type):
         Base(leaf_index), target_(target), search_type_(search_type)
     {}
 
@@ -61,10 +61,10 @@ public:
 
 
 template <typename Types, typename MyType>
-class FindForwardWalkerBase2: public FindWalkerBase2<Types, MyType> {
+class FindForwardWalkerBase2: public FindWalkerBase<Types, MyType> {
 
 protected:
-    using Base 			= FindWalkerBase2<Types, MyType>;
+    using Base 			= FindWalkerBase<Types, MyType>;
     using TargetType 	= typename Base::TargetType;
 
 
@@ -332,10 +332,10 @@ public:
 
 
 template <typename Types, typename MyType>
-class FindBackwardWalkerBase2: public FindWalkerBase2<Types, MyType> {
+class FindBackwardWalkerBase2: public FindWalkerBase<Types, MyType> {
 
 protected:
-    using Base = FindWalkerBase2<Types, MyType>;
+    using Base = FindWalkerBase<Types, MyType>;
 
     using TargetType 	= typename Base::TargetType;
     using LeafPath 		= typename Base::LeafPath;

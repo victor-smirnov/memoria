@@ -42,9 +42,6 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
         typedef BigInt                                              Key;
         typedef Value_                                              Value;
 
-        typedef core::StaticVector<BigInt, 1>                       AccumulatorPart;
-        typedef core::StaticVector<BigInt, 1>                       IteratorPrefixPart;
-
         typedef PkdFTree<Packed2TreeTypes<Key, Key>>             	NonLeafType;
         typedef TL<PackedFSEArray<PackedFSEArrayTypes<Value>>>      LeafType;
 

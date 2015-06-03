@@ -136,10 +136,6 @@ struct MapXStreamTF{
 
     static const Int LeafIndexes                                    = Indexes + 1;
 
-    using AccumulatorPart = core::StaticVector<BigInt, Indexes + 1>;
-
-    typedef core::StaticVector<BigInt, Indexes + 1>                 IteratorPrefixPart;
-
     typedef PkdVTree<
                 Packed2TreeTypes<Key, Key, LeafIndexes, UByteExintCodec>
     >                                                               NonLeafType;

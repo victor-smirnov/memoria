@@ -220,12 +220,12 @@ template <
 >
 struct RangeListBuilder<BranchStruct, TypeList<LeafStruct, LTail...>, RangeList, Offset> {
 private:
-	using ShiftedRangeList = typename memoria::bt::detail::ShiftRangeList<
+	using ShiftedRangeList = typename detail::ShiftRangeList<
 			typename ListHead<RangeList>::Type,
 			Offset
 	>::Type;
 
-	using RangeOffsetList = typename memoria::bt::detail::ShiftRangeList<
+	using RangeOffsetList = typename detail::ShiftRangeList<
 			typename ListHead<RangeList>::Type,
 			Offset
 	>::OffsetList;
@@ -255,8 +255,8 @@ public:
 
 template <typename BranchStruct, typename LeafStruct, typename RangeList, Int Offset>
 struct RangeListBuilder {
-	using Type 		 = typename memoria::bt::detail::ShiftRangeList<RangeList, Offset>::Type;
-	using OffsetList = typename memoria::bt::detail::ShiftRangeList<RangeList, Offset>::OffsetList;
+	using Type 		 = typename detail::ShiftRangeList<RangeList, Offset>::Type;
+	using OffsetList = typename detail::ShiftRangeList<RangeList, Offset>::OffsetList;
 };
 
 template <
@@ -342,8 +342,8 @@ template <typename BranchStructList, typename RangeLists> struct IteratorAccumul
 template <typename BranchStruct, typename... BTail, typename RangeList, typename... RTail>
 struct IteratorAccumulatorBuilder<TL<BranchStruct, BTail...>, TL<RangeList, RTail...>> {
 	using Type = MergeLists<
-			typename memoria::bt::detail::MakeTuple<
-				typename memoria::bt::detail::AccumBuilderH<
+			typename detail::MakeTuple<
+				typename detail::AccumBuilderH<
 					typename memoria::AccumType<BranchStruct>::Type,
 					RangeList,
 					IndexesSize<BranchStruct>::Value
@@ -633,35 +633,6 @@ private:
 
 
 
-
-
-template <typename PkdStructList> struct MakeStreamEntryTL;
-
-
-template <typename Head, typename... Tail>
-struct MakeStreamEntryTL<TL<Head, Tail...>> {
-	using Type = AppendItemToList<
-			typename PkdStructInputType<Head>::Type,
-			typename MakeStreamEntryTL<TL<Tail...>>::Type
-	>;
-};
-
-template <>
-struct MakeStreamEntryTL<TL<>> {
-	using Type = TL<>;
-};
-
-
-
-template <typename List> struct TypeListToTupleH;
-
-template <typename List>
-using TypeListToTuple = typename TypeListToTupleH<List>::Type;
-
-template <typename... List>
-struct TypeListToTupleH<TL<List...>> {
-	using Type = std::tuple<List...>;
-};
 
 }
 }

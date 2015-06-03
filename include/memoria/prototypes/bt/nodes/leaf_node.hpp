@@ -502,36 +502,6 @@ public:
         return capacity(psizes, stream);
     }
 
-//    struct StaticCapacity3Fn {
-//        template <typename Tree>
-//        Int stream(const Tree* tree, Int free_mem)
-//        {
-//            Int size = tree != nullptr ? tree->size() : 0;
-//
-//            Int capacity = Tree::elements_for(free_mem) - size;
-//
-//            return capacity >= 0 ? capacity : 0;
-//        }
-//    };
-//
-//    static Int capacity(Int block_size, const Int* sizes, Int stream, bool root)
-//    {
-//        Position fillment;
-//
-//        for (Int c = 0; c < Streams; c++)
-//        {
-//            fillment[c] = sizes[c];
-//        }
-//
-//        Int mem_used = 0;
-////        Dispatcher::dispatchAllStatic(MemUsedFn(), fillment, &mem_used, stream);
-//        this->processSubstreamGroupsStatic(MemUsedFn(), fillment, &mem_used, stream);
-//
-//
-//        Int client_area = MyType::client_area(block_size, root);
-//
-//        return Dispatcher::dispatchStaticRtn(stream, Capacity3Fn(), client_area - mem_used);
-//    }
 
 
 
@@ -948,6 +918,8 @@ public:
         template <Int Offset, bool StreamStart, Int Idx, typename StreamType, typename TupleItem>
         void stream(const StreamType* obj, TupleItem& accum)
         {
+        	cout<<TypeNameFactory<TupleItem>::name()<<endl;
+
         	if (obj != nullptr)
         	{
         		if (StreamStart)

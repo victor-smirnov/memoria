@@ -16,6 +16,7 @@
 namespace memoria   {
 namespace bt        {
 
+template <typename PkdStructList> struct MakeStreamEntryTL;
 
 namespace detail  {
 
@@ -123,6 +124,8 @@ public:
     		>::InputBufferList
     >;
 };
+
+
 
 
 template <

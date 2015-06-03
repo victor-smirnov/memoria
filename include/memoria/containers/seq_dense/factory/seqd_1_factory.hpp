@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2013-2015.
+// Copyright Victor Smirnov 2013+.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -40,7 +40,7 @@ namespace memoria {
 template <typename Profile>
 struct BTTypes<Profile, memoria::Sequence<1, true> >: public BTTypes<Profile, memoria::BTSingleStream> {
 
-    typedef BTTypes<Profile, memoria::BT>                                       Base;
+    typedef BTTypes<Profile, memoria::BTSingleStream>                           Base;
 
     typedef UBigInt                                                             Value;
     typedef TypeList<BigInt>                                                    KeysList;
@@ -51,9 +51,6 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >: public BTTypes<Profile, me
 
     struct StreamTF {
         typedef BigInt                                              Key;
-
-        typedef core::StaticVector<BigInt, Indexes>                 AccumulatorPart;
-        typedef core::StaticVector<BigInt, 1>                       IteratorPrefixPart;
 
         typedef PkdFTree<Packed2TreeTypes<Key, Key, Indexes>>       NonLeafType;
         typedef TL<TL<IndexRange<0, Indexes - 1>>>					IdxRangeList;
