@@ -114,7 +114,6 @@ public:
     static const PackedSizeType SizeType										= PkdStructSizeType<Index>::Value;
 
     typedef core::StaticVector<BigInt, Indexes>                                 Values;
-    typedef core::StaticVector<BigInt, Indexes + 1>                             Values2;
 
     typedef typename Types::template ToolsFn<MyType>                            Tools;
 
@@ -689,32 +688,20 @@ public:
 
     // ========================================= Query ================================= //
 
-    Values2 sums2() const
+    Values sums() const
     {
         if (has_index())
         {
             auto index = this->index();
-            auto isums = index->sums();
-
-            Values2 vsums;
-
-            vsums.assignUp(isums);
-            vsums[0] = size();
-
-            return vsums;
+            return index->sums();
         }
         else {
-            return sums2(size());
+            return sums(size());
         }
     }
 
-    Values sums() const
-    {
-        Values2 values2 = sums2();
-        return convert(values2);
-    }
 
-    Values2 sums2(Int to) const
+    Values sums(Int to) const
     {
         if (has_index())
         {
@@ -727,41 +714,32 @@ public:
             auto vsums = tools().sum(index_block * ValuesPerBranch, to);
 
             vsums.sumUp(isums);
-            vsums[0] += index_block * ValuesPerBranch;
 
             return vsums;
         }
         else
         {
             auto vsums = tools().sum(0, to);
-
             return vsums;
         }
     }
 
-    Values sums(Int to) const
-    {
-        return convert(sums2(to));
-    }
 
 
-    Values2 ranks(Int to) const
+
+    Values ranks(Int to) const
     {
-        Values2 vals;
-        vals[0] = to;
+        Values vals;
 
         for (Int symbol = 0; symbol < Indexes; symbol++)
         {
-            vals[symbol + 1] = rank(to, symbol);
+            vals[symbol] = rank(to, symbol);
         }
 
         return vals;
     }
 
-    Values sums(Int from, Int to) const
-    {
-        return sums(to) - sums(from);
-    }
+
 
     Values sumsAt(Int idx) const
     {
@@ -771,24 +749,15 @@ public:
         return values;
     }
 
-    Values2 sums2(Int from, Int to) const
+    Values sums(Int from, Int to) const
     {
-        return sums2(to) - sums2(from);
+        return sums(to) - sums(from);
     }
 
-    void sums(Int from, Int to, Values2& values) const
-    {
-        values += sums2(from, to);
-    }
 
     void sums(Int from, Int to, Values& values) const
     {
         values += sums(from, to);
-    }
-
-    void sums(Values2& values) const
-    {
-        values += sums2();
     }
 
     void sums(Values& values) const
@@ -796,8 +765,8 @@ public:
         values += sums();
     }
 
-    Values2 sum_v(Int from, Int to) const {
-        return sums2(from, to);
+    Values sum_v(Int from, Int to) const {
+        return sums(from, to);
     }
 
 
@@ -805,7 +774,7 @@ public:
     template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
     void sum(AccumItem<T, Size>& accum) const
     {
-//    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
 
     	for (Int block = 0; block < Indexes; block++)
     	{
@@ -919,13 +888,13 @@ public:
         values[symbol]++;
     }
 
-    void addKeys(Int idx, Values2& values) const
-    {
-        values[0] += 1;
-
-        Int symbol = this->symbol(idx);
-        values[symbol]++;
-    }
+//    void addKeys(Int idx, Values2& values) const
+//    {
+//        values[0] += 1;
+//
+//        Int symbol = this->symbol(idx);
+//        values[symbol]++;
+//    }
 
     Int get(Int idx) const
     {
@@ -1157,17 +1126,6 @@ private:
         Int byte_size   = Base::roundUpBitsToAlignmentBlocks(bit_size);
 
         return byte_size / sizeof(Value);
-    }
-
-    static Values convert(const Values2& v)
-    {
-        Values values;
-        for (Int c = 0; c < Indexes; c++)
-        {
-            values[c] = v[c + 1];
-        }
-
-        return values;
     }
 };
 
