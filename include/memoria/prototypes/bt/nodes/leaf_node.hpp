@@ -918,8 +918,6 @@ public:
         template <Int Offset, bool StreamStart, Int Idx, typename StreamType, typename TupleItem>
         void stream(const StreamType* obj, TupleItem& accum)
         {
-        	cout<<TypeNameFactory<TupleItem>::name()<<endl;
-
         	if (obj != nullptr)
         	{
         		if (StreamStart)
