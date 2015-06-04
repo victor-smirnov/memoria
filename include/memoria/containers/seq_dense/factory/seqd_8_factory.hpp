@@ -41,7 +41,8 @@ struct BTTypes<Profile, memoria::Sequence<8, true> >: public BTTypes<Profile, me
     typedef UByte                                                             	Value;
 
     static const Int BitsPerSymbol                                              = 8;
-    static const Int BranchIndexes                                                    = (1 << BitsPerSymbol) + 1;
+    static const Int Symbols                                              		= 256;
+    static const Int BranchIndexes                                              = (1 << BitsPerSymbol) + 1;
 
     struct StreamTF {
         typedef BigInt                                                Key;

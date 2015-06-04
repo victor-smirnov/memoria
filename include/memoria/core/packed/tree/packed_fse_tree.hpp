@@ -76,7 +76,6 @@ public:
     static const Int IOBatchSize            = Blocks <= 2 ? 256: (Blocks <= 4 ? 64 : (Blocks <= 16 ? 16 : 4));
 
     typedef core::StaticVector<IndexValue, Blocks>                              Values;
-    typedef core::StaticVector<IndexValue, Blocks + 1>                          Values2;
 
     typedef Int                                                                 LayoutValue;
 
@@ -795,27 +794,12 @@ public:
         values += sums(from, to);
     }
 
-    void sums(Int from, Int to, Values2& values) const
-    {
-        values[0] += to - from;
-        values.sumUp(sums(from, to));
-    }
 
     void sums(Values& values) const
     {
         values += sums();
     }
 
-    void sums(Values2& values) const
-    {
-        values[0] += size();
-        values.sumUp(sums());
-    }
-
-    void sums(Int idx, Values2& values) const
-    {
-        addKeys(idx, values);
-    }
 
     void sums(Int idx, Values& values) const
     {
@@ -871,15 +855,6 @@ public:
         }
     }
 
-    void addKeys(Int idx, Values2& values) const
-    {
-        values[0] += 1;
-
-        for (Int block = 0; block < Blocks; block++)
-        {
-            values[block + 1] += this->value(block, idx);
-        }
-    }
 
 
     ValueDescr findGTForward(Int block, Int start, IndexValue val) const

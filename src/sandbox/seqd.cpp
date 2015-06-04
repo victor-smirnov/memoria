@@ -1,4 +1,4 @@
-// Copyright Victor Smirnov 2015+.
+// Copyright Victor Smirnov 2014-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -23,30 +23,41 @@ int main() {
 		SmallInMemAllocator alloc;
 
 
-		using MapT  = SCtrTF<MapX<BigInt, BigInt>>::Type;
+		using CtrT  = SCtrTF<Sequence<1>>::Type;
 
-		MapT::initMetadata();
+		CtrT::initMetadata();
 
-		MapT map(&alloc);
+		CtrT ctr(&alloc);
 
-		auto iter = map.Begin();
+		auto iter = ctr.Begin();
 
 		int size = 10000;
 
 		for (int c = 0; c < size; c++) {
-			iter.insert(c + 1, c);
+			iter.insert(c % 3);
 		}
 
-		iter = map.find(1);
+		iter = ctr.Begin();
 
-		while (!iter.isEnd()) {
-			cout<<iter.key()<<" -- "<<iter.value()<<" "<<iter.prefix()<<endl;
+		for (int c = 0; c < size; c++)
+		{
+			if (iter.symbol() != (c % 3))
+			{
+				cout<<"Mismatch: "<<c<<iter.symbol()<<endl;
+			}
+
+			//iter.setSymbol(1);
+
 			iter++;
 		}
 
+		alloc.logger().level() = Logger::ERROR;
+
 		alloc.commit();
 
-		OutputStreamHandler* os = FileOutputStreamHandler::create("mapxx.dump");
+		cout<<"Check "<<alloc.check()<<endl;
+
+		OutputStreamHandler* os = FileOutputStreamHandler::create("seqdx.dump");
 
 		alloc.store(os);
 

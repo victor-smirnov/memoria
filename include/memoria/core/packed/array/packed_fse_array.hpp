@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2013-2015.
+// Copyright Victor Smirnov 2013+.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -42,9 +42,6 @@ public:
 
     typedef typename Types::Allocator                                           Allocator;
     typedef typename Types::Value                                               Value;
-
-    typedef StaticVector<BigInt, 1>                                             Values;
-    typedef StaticVector<BigInt, 2>                                             Values2;
 
     static const Int Indexes 													= 0;
     static const Int Blocks 													= Types::Blocks;
@@ -198,39 +195,6 @@ public:
 
     const Value* values(Int block) const {
         return buffer_ + block * size_;
-    }
-
-
-    BigInt sum(Int start, Int end) const {
-        return end - start;
-    }
-
-    Values sums(Int from, Int to) const
-    {
-        Values vals;
-
-        vals[0] = sum(from, to);
-
-        return vals;
-    }
-
-    Values sums2(Int from, Int to) const {
-        return sums(from, to);
-    }
-
-    Values sums() const
-    {
-        return Values({size_});
-    }
-
-    Values sums2() const
-    {
-        return Values({size_});
-    }
-
-    void sums(Int from, Int to, Values& values) const
-    {
-        values += sums(from, to);
     }
 
 
@@ -457,41 +421,11 @@ public:
 
     // ===================================== IO ============================================ //
 
-    void insert(IData* data, Int pos, Int length)
-    {
-        IDataSource<Value>* src = static_cast<IDataSource<Value>*>(data);
-        insertSpace(pos, length);
-
-        BigInt to_write_local = length;
-
-        while (to_write_local > 0)
-        {
-            SizeT processed = src->get(buffer_, pos, to_write_local);
-
-            pos             += processed;
-            to_write_local  -= processed;
-        }
-    }
-
     void insert(Int pos, Value val)
     {
         insertSpace(pos, 1);
         value(pos) = val;
     }
-
-
-    void insert(Int pos, Int start, Int size, const Value* data)
-    {
-    	insertSpace(pos, size);
-
-    	Value* vals = values();
-
-    	for (Int c = 0; c < size; c++)
-    	{
-    		vals[c + pos] = data[c + start];
-    	}
-    }
-
 
     void insert(Int pos, Int start, Int size, const InputBuffer* buffer)
     {
@@ -524,44 +458,6 @@ public:
     	remove(idx, idx + 1);
     }
 
-
-
-
-    void update(IData* data, Int pos, Int length)
-    {
-        MEMORIA_ASSERT(pos, <=, size_);
-        MEMORIA_ASSERT(pos + length, <=, size_);
-
-        IDataSource<Value>* src = static_cast<IDataSource<Value>*>(data);
-
-        BigInt to_write_local = length;
-
-        while (to_write_local > 0)
-        {
-            SizeT processed = src->get(buffer_, pos, to_write_local);
-
-            pos             += processed;
-            to_write_local  -= processed;
-        }
-    }
-
-    void read(IData* data, Int pos, Int length) const
-    {
-        MEMORIA_ASSERT(pos, <=, size_);
-        MEMORIA_ASSERT(pos + length, <=, size_);
-
-        IDataTarget<Value>* tgt = static_cast<IDataTarget<Value>*>(data);
-
-        BigInt to_read_local = length;
-
-        while (to_read_local > 0)
-        {
-            SizeT processed = tgt->put(buffer_, pos, to_read_local);
-
-            pos             += processed;
-            to_read_local   -= processed;
-        }
-    }
 
     template <typename Fn>
     void read(Int block, Int start, Int end, Fn&& fn) const

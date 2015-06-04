@@ -90,7 +90,6 @@ public:
     typedef core::StaticVector<Int, Blocks>                                     Dimension;
     typedef core::StaticVector<Dimension, 2>                                    BlockRange;
     typedef core::StaticVector<IndexValue, Blocks>                              Values;
-    typedef core::StaticVector<IndexValue, Blocks + 1>                          Values2;
 
     typedef PackedTreeTools<BranchingFactor, ValuesPerBranch>                   TreeTools;
 
@@ -1545,45 +1544,12 @@ public:
         return vals;
     }
 
-    Values2 sums2() const
-    {
-        Values vals;
-
-        for (Int block = 0; block < Blocks; block++)
-        {
-            vals[block + 1] = sum(block);
-        }
-
-        vals[0] = size();
-
-        return vals;
-    }
-
-    Values2 sums2(Int from, Int to) const
-    {
-        Values2 vals;
-
-        for (Int block = 0; block < Blocks; block++)
-        {
-            vals[block + 1] = sum(block, from, to);
-        }
-
-        vals[0] = to - from;
-
-        return vals;
-    }
-
 
     void sums(Int from, Int to, Values& values) const
     {
         values += sums(from, to);
     }
 
-    void sums(Int from, Int to, Values2& values) const
-    {
-        values[0] += to - from;
-        values.sumUp(sums(from, to));
-    }
 
     template <typename T>
     void sums(core::StaticVector<T, Blocks>& values) const
@@ -1592,23 +1558,8 @@ public:
     }
 
 
-    template <typename T>
-    void sums(core::StaticVector<T, Blocks + 1>& values) const
-    {
-        values[0] += size();
 
-        sumsSmall<1>(values);
-    }
 
-    void sums(Int idx, Values2& values) const
-    {
-        values[0]++;
-
-        for (Int c = 1; c < Values2::Indexes; c++)
-        {
-            values[c] = this->getValue(c - 1, idx);
-        }
-    }
 
     void sums(Int idx, Values& values) const
     {

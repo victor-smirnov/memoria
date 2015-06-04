@@ -87,28 +87,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
         return skipBw(distance);
     }
 
-    void split()
-    {
-    	auto& self = this->self();
-
-    	NodeBaseG& leaf = self.leaf();
-    	Int& idx        = self.idx();
-
-    	Int size        = self.leaf_size(0);
-    	Int split_idx   = size/2;
-
-    	auto right = self.ctr().splitLeafP(leaf, Position::create(0, split_idx));
-
-    	if (idx > split_idx)
-    	{
-    		leaf = right;
-    		idx -= split_idx;
-
-    		self.refreshCache();
-    	}
-    }
-
-    void insert(BigInt key, BigInt value)
+    void insert(Key key, Value value)
     {
     	auto& self = this->self();
 
@@ -116,7 +95,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
 
     	self.ctr().template insertStreamEntry<0>(
     			self,
-    			InputTupleAdapter<0>::convert(core::StaticVector<BigInt, 1>({delta}), value)
+    			InputTupleAdapter<0>::convert(core::StaticVector<Key, 1>({delta}), value)
     	);
 
     	if (!self.isEnd())
@@ -153,26 +132,26 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
 
 
 
-    auto findFwGT(Int index, BigInt key) ->
-    ItrFindFwGTRtnType<Base, IntList<0>, Int, BigInt>
+    auto findFwGT(Int index, Key key) ->
+    ItrFindFwGTRtnType<Base, IntList<0>, Int, Key>
     {
     	return self().template _findFwGT<IntList<0>>(index, key);
     }
 
-    auto findFwGE(Int index, BigInt key) ->
-    ItrFindFwGERtnType<Base, IntList<0>, Int, BigInt>
+    auto findFwGE(Int index, Key key) ->
+    ItrFindFwGERtnType<Base, IntList<0>, Int, Key>
     {
     	return self().template _findFwGE<IntList<0>>(index, key);
     }
 
-    auto findBwGT(Int index, BigInt key) ->
-    ItrFindBwGTRtnType<Base, IntList<0>, Int, BigInt>
+    auto findBwGT(Int index, Key key) ->
+    ItrFindBwGTRtnType<Base, IntList<0>, Int, Key>
     {
     	return self().template _findBwGT<IntList<0>>(index, key);
     }
 
-    auto findBwGE(Int index, BigInt key) ->
-    ItrFindBwGERtnType<Base, IntList<0>, Int, BigInt>
+    auto findBwGE(Int index, Key key) ->
+    ItrFindBwGERtnType<Base, IntList<0>, Int, Key>
     {
     	return self().template _findBwGE<IntList<0>>(index, key);
     }

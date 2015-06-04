@@ -46,14 +46,15 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >: public BTTypes<Profile, me
     typedef TypeList<BigInt>                                                    KeysList;
 
     static const Int BitsPerSymbol                                              = 1;
-    static const Int Indexes                                                    = (1 << BitsPerSymbol) + 1;
+    static const Int Symbols                                              		= 1;
+    static const Int BranchIndexes                                              = (1 << BitsPerSymbol) + 1;
 
 
     struct StreamTF {
         typedef BigInt                                              Key;
 
-        typedef PkdFTree<Packed2TreeTypes<Key, Key, Indexes>>       NonLeafType;
-        typedef TL<TL<IndexRange<0, Indexes - 1>>>					IdxRangeList;
+        typedef PkdFTree<Packed2TreeTypes<Key, Key, BranchIndexes>> NonLeafType;
+        typedef TL<TL<IndexRange<0, BranchIndexes - 1>>>			IdxRangeList;
 
         typedef typename PkdFSSeqTF<BitsPerSymbol>::Type            SequenceTypes;
 

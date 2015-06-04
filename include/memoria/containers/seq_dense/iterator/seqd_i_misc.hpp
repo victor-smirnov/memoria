@@ -42,139 +42,40 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
 
     using CtrSizeT = typename Container::Types::CtrSizeT;
 
-    static const Int BitsPerSymbol = Container::Types::BitsPerSymbol;
+    template <Int Stream>
+    using InputTupleAdapter = typename Container::Types::template InputTupleAdapter<Stream>;
 
-    Int size() const
-    {
-        return self().leafSize(0);
-    }
-
-    struct SymbolFn {
-        Int symbol_ = 0;
-
-        template <Int Idx, typename SeqTypes>
-        void stream(const PkdFSSeq<SeqTypes>* obj, Int idx)
-        {
-            MEMORIA_ASSERT_TRUE(obj != nullptr);
-            symbol_ = obj->symbol(idx);
-        }
-
-        template <Int Idx, typename StreamTypes>
-        void stream(const PackedFSEArray<StreamTypes>* obj, Int idx)
-        {
-            MEMORIA_ASSERT_TRUE(obj != nullptr);
-            symbol_ = obj->value(idx);
-        }
-
-        template <Int Idx, typename StreamTypes>
-        void stream(const PkdFTree<StreamTypes>* obj, Int idx)
-        {
-            MEMORIA_ASSERT_TRUE(obj != nullptr);
-            symbol_ = obj->value(0, idx);
-        }
-
-        template <Int Idx, typename StreamTypes>
-        void stream(const PkdVTree<StreamTypes>* obj, Int idx)
-        {
-            MEMORIA_ASSERT_TRUE(obj != nullptr);
-            symbol_ = obj->value(0, idx);
-        }
-
-        template <Int Idx, typename StreamTypes>
-        void stream(const PackedFSEBitmap<StreamTypes>* obj, Int idx)
-        {
-            MEMORIA_ASSERT_TRUE(obj != nullptr);
-            symbol_ = obj->value(idx);
-        }
-
-
-        template <typename NodeTypes>
-        void treeNode(const LeafNode<NodeTypes>* node, Int idx)
-        {
-            node->process(0, *this, idx);
-        }
-    };
-
-    struct SetSymbolFn {
-        Int symbol_ = 0;
-        Accumulator accum_;
-
-
-        SetSymbolFn(Int symbol): symbol_(symbol) {}
-
-        template <Int Idx, typename SeqTypes>
-        void stream(PkdFSSeq<SeqTypes>* obj, Int idx)
-        {
-            MEMORIA_ASSERT_TRUE(obj != nullptr);
-
-            Int old_sym = obj->symbol(idx);
-
-            std::get<Idx>(accum_)[old_sym + 1] = -1;
-
-            obj->symbol(idx) = symbol_;
-
-            std::get<Idx>(accum_)[symbol_ + 1] = 1;
-
-            obj->reindex();
-        }
-
-        template <typename NodeTypes>
-        void treeNode(LeafNode<NodeTypes>* node, Int idx)
-        {
-            node->process(0, *this, idx);
-        }
-    };
-
-
+    static const Int BitsPerSymbol 	= Container::Types::BitsPerSymbol;
+    static const Int Symbols 		= Container::Types::Symbols;
 
 
     Int symbol() const
     {
         auto& self  = this->self();
-
-        SymbolFn fn;
-
-        Int idx = self.idx();
-
-        LeafDispatcher::dispatchConst(self.leaf(), fn, idx);
-
-        return fn.symbol_;
+        return std::get<0>(self.ctr().template _readLeafEntry<0, IntList<0>>(self.leaf(), self.idx()));
     }
+
 
     void setSymbol(Int symbol)
     {
-        auto& self  = this->self();
+    	auto& self  = this->self();
 
-        SetSymbolFn fn(symbol);
-
-        Int idx = self.idx();
-
-        self.ctr().updatePageG(self.leaf());
-
-        LeafDispatcher::dispatch(self.leaf(), fn, idx);
-
-        self.ctr().updateParent(self.leaf(), fn.accum_);
+    	self.ctr().template updateStreamEntry<0, IntList<0>>(self, std::make_tuple(symbol));
     }
 
-    BigInt label(Int label_idx) const
-    {
-        auto& self  = this->self();
-
-        SymbolFn fn;
-
-        Int idx = self.label_idx();
-
-        LeafDispatcher::dispatchConst(self.leaf(), fn, idx);
-
-        return fn.symbol_;
-    }
 
     void insert(Int symbol)
     {
-        auto& self  = this->self();
+        //MEMORIA_ASSERT(symbol, <, Symbols);
+
+
+    	auto& self  = this->self();
         auto& ctr   = self.ctr();
 
-        ctr.insert(self, symbol);
+    	ctr.template insertStreamEntry<0>(
+    			self,
+    			InputTupleAdapter<0>::convert(symbol)
+    	);
     }
 
     void remove()
@@ -191,10 +92,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
         auto& ctr   = self.ctr();
 
         ctr.remove(self, size);
-    }
-
-    Int dataPos() const {
-        return self().idx();
     }
 
     template <typename T>

@@ -117,7 +117,7 @@ public:
 
     typedef typename Types::template ToolsFn<MyType>                            Tools;
 
-    using InputType 	= Values;
+    using InputType 	= Value;
     using InputBuffer 	= MyType;
 
     class Metadata {
@@ -881,25 +881,15 @@ public:
     }
 
 
-
-    void addKeys(Int idx, Values& values) const
-    {
-        Int symbol = this->symbol(idx);
-        values[symbol]++;
-    }
-
-//    void addKeys(Int idx, Values2& values) const
-//    {
-//        values[0] += 1;
-//
-//        Int symbol = this->symbol(idx);
-//        values[symbol]++;
-//    }
-
     Int get(Int idx) const
     {
         MEMORIA_ASSERT(idx , <, size());
+        return tools().get(symbols(), idx);
+    }
 
+    Int get_values(Int idx) const
+    {
+        MEMORIA_ASSERT(idx , <, size());
         return tools().get(symbols(), idx);
     }
 
