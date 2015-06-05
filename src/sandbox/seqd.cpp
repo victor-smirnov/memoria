@@ -23,7 +23,7 @@ int main() {
 		SmallInMemAllocator alloc;
 
 
-		using CtrT  = SCtrTF<Sequence<1>>::Type;
+		using CtrT  = SCtrTF<Sequence<8>>::Type;
 
 		CtrT::initMetadata();
 
@@ -34,19 +34,19 @@ int main() {
 		int size = 10000;
 
 		for (int c = 0; c < size; c++) {
-			iter.insert(c % 3);
+			iter.insert((c % 3) > 0);
 		}
 
 		iter = ctr.Begin();
 
 		for (int c = 0; c < size; c++)
 		{
-			if (iter.symbol() != (c % 3))
+			if (iter.symbol() != (c % 3 > 0))
 			{
 				cout<<"Mismatch: "<<c<<iter.symbol()<<endl;
 			}
 
-			//iter.setSymbol(1);
+			iter.setSymbol(1);
 
 			iter++;
 		}

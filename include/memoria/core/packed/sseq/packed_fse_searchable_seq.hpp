@@ -269,9 +269,9 @@ public:
     	return packed_block_size(size() + other->size());
     }
 
-    static Int packed_block_size(Int array_size)
+    static Int packed_block_size(Int size)
     {
-        return PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(MyType) + array_size * sizeof(Value));
+    	return estimate_block_size(size, 1, 1);
     }
 
 private:
@@ -596,6 +596,8 @@ public:
 
     	this->symbol(idx) = symbol;
 
+    	this->reindex();
+
     	sum<Offset>(idx, accum);
     }
 
@@ -806,10 +808,7 @@ public:
     {
     	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
 
-    	for (Int block = 0; block < Indexes; block++)
-    	{
-    		accum[symbol(idx) + Offset]--;
-    	}
+    	accum[symbol(idx) + Offset]--;
     }
 
 
