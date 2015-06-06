@@ -66,8 +66,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
 
     void insert(Int symbol)
     {
-        //MEMORIA_ASSERT(symbol, <, Symbols);
-
+        MEMORIA_ASSERT(symbol, <, Symbols);
 
     	auto& self  = this->self();
         auto& ctr   = self.ctr();
@@ -83,7 +82,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
         auto& self  = this->self();
         auto& ctr   = self.ctr();
 
-        ctr.remove(self);
+    	ctr.template removeStreamEntry<0>(self);
+
+    	if (self.isEnd())
+    	{
+    		self.skipFw(0);
+    	}
     }
 
     void remove(BigInt size)

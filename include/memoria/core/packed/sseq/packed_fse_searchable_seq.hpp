@@ -882,6 +882,10 @@ public:
 
     Int get(Int idx) const
     {
+    	if (idx >= size()) {
+    		int a = 0; a++;
+    	}
+
         MEMORIA_ASSERT(idx , <, size());
         return tools().get(symbols(), idx);
     }

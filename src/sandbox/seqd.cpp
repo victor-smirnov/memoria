@@ -34,22 +34,33 @@ int main() {
 		int size = 10000;
 
 		for (int c = 0; c < size; c++) {
-			iter.insert((c % 3) > 0);
+			iter.insert((c % 2));
 		}
 
 		iter = ctr.Begin();
 
 		for (int c = 0; c < size; c++)
 		{
-			if (iter.symbol() != (c % 3 > 0))
+			if (iter.symbol() != (c % 2))
 			{
 				cout<<"Mismatch: "<<c<<iter.symbol()<<endl;
 			}
 
-			iter.setSymbol(1);
+//			iter.setSymbol(1);
 
 			iter++;
 		}
+
+		iter = ctr.Begin();
+
+		for (int c = 0; c < size; c+=2)
+		{
+
+			iter.remove();
+
+			iter+=1;
+		}
+
 
 		alloc.logger().level() = Logger::ERROR;
 

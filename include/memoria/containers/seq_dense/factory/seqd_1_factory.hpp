@@ -45,9 +45,9 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >: public BTTypes<Profile, me
     typedef UBigInt                                                             Value;
     typedef TypeList<BigInt>                                                    KeysList;
 
-    static const Int BitsPerSymbol                                              = 1;
-    static const Int Symbols                                              		= 1;
-    static const Int BranchIndexes                                              = (1 << BitsPerSymbol) + 1;
+    static constexpr Int BitsPerSymbol                                          = 1;
+    static constexpr Int Symbols                                                = 2;
+    static constexpr Int BranchIndexes                                          = (1 << BitsPerSymbol) + 1;
 
 
     struct StreamTF {
