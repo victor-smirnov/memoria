@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2015.
+// Copyright Victor Smirnov 2015+.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -46,61 +46,18 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::LeafCommonName)
     static const Int Streams                                                    = Types::Streams;
 
 
-    template <typename LeafPosition>
-    class InsertBufferResult {
-    	LeafPosition inserted_size_;
-    	bool extra_space_;
-    public:
-    	InsertBufferResult(LeafPosition size, bool extra_space): inserted_size_(size), extra_space_(extra_space){}
-
-    	const LeafPosition& inserted_size() const {return inserted_size_;}
-    	bool has_extra_space() const {return extra_space_;}
-    };
+    using InputTuple = typename Types::template StreamInputTuple<0>;
 
 
-    template <typename LeafPosition, typename Buffer>
-    LeafPosition insertBuffersIntoLeaf(NodeBaseG& leaf, LeafPosition pos, InputBufferProvider<LeafPosition, Buffer>& provider)
+    template <typename SubstreamsIdxList, typename... Args>
+    using ReadLeafEntryRtnType = DispatchConstRtnType<LeafDispatcher, SubstreamsSetNodeFn<0, SubstreamsIdxList>, GetLeafValuesFn, Args...>;
+
+    template <typename SubstreamsIdxList, typename... Args>
+    auto _readLeafEntry(const NodeBaseG& leaf, Args&&... args) const -> ReadLeafEntryRtnType<SubstreamsIdxList, Args...>
     {
-    	auto& self = this->self();
-
-    	self.updatePageG(leaf);
-
-    	self.layoutLeafNode(leaf, 0);
-
-    	auto first_pos = pos;
-
-    	while (provider.hasData())
-    	{
-    		if (provider.isConsumed())
-    		{
-    			provider.nextBuffer();
-    		}
-
-    		const Buffer* buffer = provider.buffer();
-    		auto start 	= provider.start();
-
-    		auto inserted = self.insertBufferIntoLeaf(leaf, pos, start, provider.size(), buffer);
-
-    		auto inserted_size = inserted.inserted_size();
-
-    		pos += inserted_size;
-
-    		provider.consumed(inserted_size);
-
-    		if (!inserted.has_extra_space()) {
-    			break;
-    		}
-    	}
-
-    	if (leaf->parent_id().isSet())
-    	{
-    		auto sums = self.sums(leaf, Position(first_pos), Position(pos));
-
-    		self.updateParent(leaf, sums);
-    	}
-
-    	return pos;
+    	 return self().template _applySubstreamsFn<0, SubstreamsIdxList>(leaf, GetLeafValuesFn(), std::forward<Args>(args)...);
     }
+
 
     template <typename LeafPosition>
     bool isAtTheEnd(const NodeBaseG& leaf, LeafPosition pos)
@@ -110,138 +67,22 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::LeafCommonName)
     }
 
 
-
-
-    template <typename LeafPosition>
-    class InsertBuffersResult {
-    	NodeBaseG leaf_;
-    	LeafPosition position_;
-    public:
-    	InsertBuffersResult(NodeBaseG leaf, LeafPosition position): leaf_(leaf), position_(position){}
-
-    	NodeBaseG& leaf() {return leaf_;}
-    	const NodeBaseG& leaf() const {return leaf_;}
-
-    	const LeafPosition& position() const {return position_;}
-    	LeafPosition& position() {return position_;}
-    };
-
-    template <typename LeafPosition, typename Buffer>
-    InsertBuffersResult<LeafPosition> insertBuffers(NodeBaseG& leaf, LeafPosition pos, InputBufferProvider<LeafPosition, Buffer>& provider)
+    void insertEntry(Iterator& iter, const InputTuple& entry)
     {
-    	auto& self = this->self();
-
-    	auto last_pos = self.insertBuffersIntoLeaf(leaf, pos, provider);
-
-    	if (provider.hasData())
-    	{
-    		if (!self.isAtTheEnd(leaf, last_pos))
-    		{
-    			auto next_leaf = self.splitLeafP(leaf, Position(last_pos));
-
-    			self.insertBuffersIntoLeaf(leaf, last_pos, provider);
-
-    			if (provider.hasData())
-    			{
-    				return insertBuffersRest(leaf, next_leaf, provider);
-    			}
-    			else {
-    				return InsertBuffersResult<LeafPosition>(next_leaf, provider.zero());
-    			}
-    		}
-    		else {
-    			auto next_leaf = self.getNextNodeP(leaf);
-
-    			if (next_leaf.isSet())
-    			{
-    				return insertBuffersRest(leaf, next_leaf, provider);
-    			}
-    			else {
-    				return insertBuffersRest(leaf, provider);
-    			}
-    		}
-    	}
-    	else {
-    		return InsertBuffersResult<LeafPosition>(leaf, last_pos);
-    	}
+    	self().template insertStreamEntry<0>(iter, entry);
     }
 
 
-private:
-
-    template <typename LeafPosition, typename Buffer>
-    InsertBuffersResult<LeafPosition> insertBuffersRest(NodeBaseG& leaf, NodeBaseG& next_leaf, InputBufferProvider<LeafPosition, Buffer>& provider)
+    template <typename SubstreamsList, typename... TupleTypes>
+    void updateEntry(Iterator& iter, const std::tuple<TupleTypes...>& entry)
     {
-    	auto& self = this->self();
-
-    	Int path_parent_idx = leaf->parent_idx() + 1;
-
-    	auto leaf_list = self.createLeafList(provider);
-
-    	if (leaf_list.size() > 0)
-    	{
-    		using Provider = typename Base::ListLeafProvider;
-
-    		Provider list_provider(self, leaf_list.head(), leaf_list.size());
-
-    		NodeBaseG parent = self.getNodeParentForUpdate(leaf);
-
-    		self.insert_subtree(parent, path_parent_idx, list_provider);
-
-    		auto& last_leaf = leaf_list.tail();
-
-    		auto last_leaf_size = self.getLeafStreamSizes(last_leaf);
-
-    		if (self.mergeLeafNodes(last_leaf, next_leaf, [](const Position&){}))
-    		{
-    			return InsertBuffersResult<LeafPosition>(last_leaf, last_leaf_size.get());
-    		}
-    		else {
-    			return InsertBuffersResult<LeafPosition>(next_leaf, provider.zero());
-    		}
-    	}
-    	else {
-    		return InsertBuffersResult<LeafPosition>(next_leaf, provider.zero());
-    	}
+    	self().template updateStreamEntry<0, SubstreamsList>(iter, entry);
     }
 
 
-    template <typename LeafPosition, typename Buffer>
-    InsertBuffersResult<LeafPosition> insertBuffersRest(NodeBaseG& leaf, InputBufferProvider<LeafPosition, Buffer>& provider)
-    {
-    	auto& self = this->self();
-
-    	if (leaf->is_root())
-    	{
-    		self.newRootP(leaf);
-    	}
-
-    	Int path_parent_idx = leaf->parent_idx() + 1;
-
-    	auto leaf_list = self.createLeafList(provider);
-
-    	if (leaf_list.size() > 0)
-    	{
-    		using Provider = typename Base::ListLeafProvider;
-
-    		Provider list_provider(self, leaf_list.head(), leaf_list.size());
-
-    		NodeBaseG parent = self.getNodeParentForUpdate(leaf);
-
-    		self.insert_subtree(parent, path_parent_idx, list_provider);
-
-    		auto& last_leaf = leaf_list.tail();
-
-    		auto last_leaf_size = self.getLeafStreamSizes(last_leaf);
-
-    		return InsertBuffersResult<LeafPosition>(last_leaf, last_leaf_size.get());
-    	}
-    	else {
-    		auto leaf_size = self.getLeafStreamSizes(leaf);
-    		return InsertBuffersResult<LeafPosition>(leaf, leaf_size.get());
-    	}
+    void removeEntry(Iterator& iter) {
+    	self().template removeStreamEntry<0>(iter);
     }
-
 
 
 MEMORIA_CONTAINER_PART_END

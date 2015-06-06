@@ -84,7 +84,7 @@ public:
 
                 iter.insert(key, pairs[vector_idx].value_);
 
-                Base::checkIterator(iter, MEMORIA_SOURCE);
+                this->checkIterator(iter, MEMORIA_SOURCE);
 
                 Base::check(allocator, MEMORIA_SOURCE);
 

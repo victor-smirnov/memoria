@@ -212,20 +212,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     }
 
 
-
-
     MEMORIA_DECLARE_NODE_FN_RTN(GetINodeDataFn, value, ID);
     ID getChildID(const NodeBaseG& node, Int idx) const
     {
         return BranchDispatcher::dispatch(node, GetINodeDataFn(), idx);
-    }
-
-
-    MEMORIA_DECLARE_NODE_FN(ReindexFn, reindex);
-    void reindex(NodeBaseG& node) const
-    {
-        self().updatePageG(node);
-        NodeDispatcher::dispatch(node, ReindexFn());
     }
 
 

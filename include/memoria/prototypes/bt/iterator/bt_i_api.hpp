@@ -140,10 +140,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
 
 
     template <Int Stream, typename SubstreamsIdxList, typename... Args>
-    using ReadLeafEntryRtnType = typename Container::template ReadLeafEntryRtnType<Stream, SubstreamsIdxList, Args...>;
+    using ReadLeafStreamEntryRtnType = typename Container::template ReadLeafStreamEntryRtnType<Stream, SubstreamsIdxList, Args...>;
 
     template <Int Stream, typename SubstreamsIdxList, typename... Args>
-    auto _readLeafEntry(Args&&... args) const -> ReadLeafEntryRtnType<Stream, SubstreamsIdxList, Args...>
+    auto _readLeafEntry(Args&&... args) const -> ReadLeafStreamEntryRtnType<Stream, SubstreamsIdxList, Args...>
     {
     	 return self().ctr().template _readLeafEntry<Stream, SubstreamsIdxList>(self().leaf(), std::forward<Args>(args)...);
     }

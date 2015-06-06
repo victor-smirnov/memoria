@@ -146,9 +146,6 @@ public:
     }
 
     virtual void checkIterator(Iterator& iter, const char* source)
-    {}
-
-    virtual void checkIteratorPrefix(Iterator& iter, const char* source)
     {
     	auto cache1 = iter.cache();
 
@@ -163,6 +160,7 @@ public:
             throw TestException(source, SBuf()<<"Invalid iterator cache. Iterator: "<<cache1<<" Actual: "<<cache2);
         }
     }
+
 
     virtual void setUp()
     {

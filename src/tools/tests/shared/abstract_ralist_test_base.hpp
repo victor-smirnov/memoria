@@ -262,14 +262,17 @@ public:
 
     virtual void checkIteratorPrefix(Iterator& iter, const char* source)
     {
-        Accumulator prefixes;
-        iter.ComputePrefix(prefixes);
+    	auto tmp = iter;
 
-        if (iter.prefixes() != prefixes)
-        {
-            iter.dump(out());
-            throw TestException(source, SBuf()<<"Invalid prefix value. Iterator: "<<iter.prefixes()<<" Actual: "<<prefixes);
-        }
+    	tmp.refreshCache();
+
+    	if (iter.cache() != tmp.cache())
+    	{
+    		throw TestException(
+    				source,
+    				SBuf()<<"Iterator cache mismatch: having: "<<iter.cache()<<", should be: "<<tmp.cache()
+    		);
+    	}
     }
 
 
@@ -518,7 +521,6 @@ public:
 
         MemBuffer prefix = createPrefixCheckBuffer(iter);
 
-
         BigInt position = getPosition(iter);
 
         skip(iter, size);
@@ -526,10 +528,6 @@ public:
         MemBuffer suffix = createSuffixCheckBuffer(iter);
 
         skip(iter,  -size);
-
-        if (this->iteration() == 6) {
-        	DebugCounter = 1;
-        }
 
         remove(iter, size);
 

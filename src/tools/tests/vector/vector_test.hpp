@@ -128,15 +128,6 @@ public:
             AssertEQ(source, v1, v2, [=](){return SBuf()<<"c="<<c;});
         }
     }
-
-    virtual void checkIterator(Iterator& iter, const char* source)
-    {
-    	auto pos 	= iter.pos();
-    	auto prefix = iter.prefix();
-    	auto idx 	= iter.idx();
-
-    	AssertEQ(source, pos, prefix + idx);
-    }
 };
 
 

@@ -34,58 +34,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
     using CtrSizeT = typename Container::Types::CtrSizeT;
 
     template <Int Stream>
-    using StreamInputTuple = typename Container::Types::template StreamInputTuple<Stream>;
-
-    template <Int Stream>
     using InputTupleAdapter = typename Container::Types::template InputTupleAdapter<Stream>;
 
-
-    bool operator++() {
-        return self().skipFw(1) == 1;
-    }
-
-    bool operator--() {
-        return self().skipBw(1) == 1;
-    }
-
-    bool operator++(int) {
-        return self().skipFw(1) == 1;
-    }
-
-    bool operator--(int) {
-        return self().skipBw(1) == 1;
-    }
-
-    BigInt operator+=(BigInt size)
-    {
-        return self().skipFw(size);
-    }
-
-    BigInt operator-=(BigInt size)
-    {
-        return self().skipBw(size);
-    }
-
-
-    CtrSizeT skipFw(CtrSizeT amount) {
-    	return self().template _skipFw<0>(amount);
-    }
-
-    CtrSizeT skipBw(CtrSizeT amount) {
-    	return self().template _skipBw<0>(amount);
-    }
-
-    CtrSizeT skip(CtrSizeT amount) {
-    	return self().template _skip<0>(amount);
-    }
-
-    BigInt skipStreamFw(Int stream, BigInt distance) {
-        return skipFw(distance);
-    }
-
-    BigInt skipStreamBw(Int stream, BigInt distance) {
-        return skipBw(distance);
-    }
 
     void insert(Key key, Value value)
     {
@@ -93,7 +43,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
 
     	auto delta = key - self.prefix();
 
-    	self.ctr().template insertStreamEntry<0>(
+    	self.ctr().insertEntry(
     			self,
     			InputTupleAdapter<0>::convert(core::StaticVector<Key, 1>({delta}), value)
     	);
@@ -104,7 +54,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
 
     		MEMORIA_ASSERT_TRUE((k - StaticVector<BigInt, 1>(delta))[0] >= 0);
 
-    		self.ctr().template updateStreamEntry<0, IntList<0>>(self, std::make_tuple(k - StaticVector<BigInt, 1>(delta)));
+    		self.ctr().template updateEntry<IntList<0>>(self, std::make_tuple(k - StaticVector<BigInt, 1>(delta)));
     	}
     }
 
@@ -115,7 +65,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
 
     	auto k = self.raw_key();
 
-    	self.ctr().template removeStreamEntry<0>(self);
+    	self.ctr().removeEntry(self);
 
     	if (self.isEnd())
     	{
@@ -126,7 +76,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
 
     		auto kk = self.raw_key();
 
-    		self.ctr().template updateStreamEntry<0, IntList<0>>(self, std::make_tuple(k + kk));
+    		self.ctr().template updateEntry<IntList<0>>(self, std::make_tuple(k + kk));
     	}
     }
 
@@ -161,12 +111,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
     }
 
 
-    template <Int Stream, typename SubstreamsIdxList, typename... Args>
-    using ReadLeafEntryRtnType = typename Container::template ReadLeafEntryRtnType<Stream, SubstreamsIdxList, Args...>;
+    template <typename SubstreamsIdxList, typename... Args>
+    using ReadLeafEntryRtnType = typename Container::template ReadLeafEntryRtnType<SubstreamsIdxList, Args...>;
 
-    auto raw_key() const -> typename std::tuple_element<0, ReadLeafEntryRtnType<0, IntList<0>, Int>>::type
+    auto raw_key() const -> typename std::tuple_element<0, ReadLeafEntryRtnType<IntList<0>, Int>>::type
     {
-    	return std::get<0>(self().ctr().template _readLeafEntry<0, IntList<0>>(self().leaf(), self().idx()));
+    	return std::get<0>(self().ctr().template _readLeafEntry<IntList<0>>(self().leaf(), self().idx()));
     }
 
     auto key() const -> Key
@@ -174,21 +124,21 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
     	return self().raw_key(0) + self().prefix();
     }
 
-    auto raw_key(Int index) const -> typename std::tuple_element<0, ReadLeafEntryRtnType<0, IntList<0>, Int, Int>>::type
+    auto raw_key(Int index) const -> typename std::tuple_element<0, ReadLeafEntryRtnType<IntList<0>, Int, Int>>::type
     {
-    	return std::get<0>(self().ctr().template _readLeafEntry<0, IntList<0>>(self().leaf(), self().idx(), index));
+    	return std::get<0>(self().ctr().template _readLeafEntry<IntList<0>>(self().leaf(), self().idx(), index));
     }
 
-    auto value() const -> typename std::tuple_element<0, ReadLeafEntryRtnType<0, IntList<1>, Int>>::type
+    auto value() const -> typename std::tuple_element<0, ReadLeafEntryRtnType<IntList<1>, Int>>::type
     {
-    	return std::get<0>(self().ctr().template _readLeafEntry<0, IntList<1>>(self().leaf(), self().idx()));
+    	return std::get<0>(self().ctr().template _readLeafEntry<IntList<1>>(self().leaf(), self().idx()));
     }
 
 
     template <typename TValue>
     void setValue(TValue&& v)
     {
-    	self().ctr().template updateStreamEntry<0, IntList<1>>(self(), std::make_tuple(v));
+    	self().ctr().template updateEntry<IntList<1>>(self(), std::make_tuple(v));
     }
 
     bool isFound(Key k) const

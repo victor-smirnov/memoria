@@ -34,7 +34,7 @@ namespace memoria    {
 template <typename Profile, typename Value_>
 struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memoria::BTSingleStream> {
 
-    typedef BTTypes<Profile, memoria::BT>                                       Base;
+    typedef BTTypes<Profile, memoria::BTSingleStream>                           Base;
 
     typedef Value_                                                              Value;
 
@@ -95,7 +95,7 @@ struct CodecClassTF<Granularity::Bit> {
 template <typename Profile, Granularity Gr, typename Value_>
 struct BTTypes<Profile, memoria::Vector<VLen<Gr, Value_>> >: public BTTypes<Profile, memoria::BTSingleStream> {
 
-    typedef BTTypes<Profile, memoria::BT>                                       Base;
+    typedef BTTypes<Profile, memoria::BTSingleStream>                           Base;
 
     typedef Value_                                                              Value;
 

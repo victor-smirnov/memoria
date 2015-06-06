@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011-2013.
+// Copyright Victor Smirnov 2011+.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -71,32 +71,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
     	auto& self  = this->self();
         auto& ctr   = self.ctr();
 
-    	ctr.template insertStreamEntry<0>(
+    	ctr.insertEntry(
     			self,
     			InputTupleAdapter<0>::convert(symbol)
     	);
     }
 
-    void remove()
-    {
-        auto& self  = this->self();
-        auto& ctr   = self.ctr();
-
-    	ctr.template removeStreamEntry<0>(self);
-
-    	if (self.isEnd())
-    	{
-    		self.skipFw(0);
-    	}
-    }
-
-    void remove(BigInt size)
-    {
-        auto& self  = this->self();
-        auto& ctr   = self.ctr();
-
-        ctr.remove(self, size);
-    }
 
     template <typename T>
     struct ReadWalker {
@@ -174,53 +154,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
     	self.refreshCache();
 
     	model.markCtrUpdated();
-    }
-
-
-    void ComputePrefix(BigInt& accum)
-    {
-
-    }
-
-    void ComputePrefix(Accumulator& accum)
-    {
-
-    }
-
-    Accumulator prefixes() const {
-        return Accumulator();
-    }
-
-    void createEmptyLeaf()
-    {
-        auto& self  = this->self();
-        auto& ctr   = self.ctr();
-
-        NodeBaseG next = ctr.createNextLeaf(self.leaf());
-
-        self.leaf() = next;
-        self.idx()  = 0;
-    }
-
-    Int leaf_capacity() const
-    {
-        auto& self  = this->self();
-        auto& ctr   = self.ctr();
-
-        return ctr.getStreamCapacity(self.leaf(), Position::create(0, 0), 0);
-    }
-
-    void refreshCache()
-    {
-    	auto& self = this->self();
-
-    	FindForwardWalker2<bt::WalkerTypes<Types, IntList<0>>> walker(0, 0);
-
-    	self.cache().reset();
-
-    	self.ctr().walkUp2(self.leaf(), self.idx(), walker);
-
-    	walker.finish(self, self.idx());
     }
 
     void check(const char* source = nullptr) const

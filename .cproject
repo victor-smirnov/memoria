@@ -68,7 +68,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="composite|container|include/memoria/containers/root/pages|params.cpp|iterator|examples|include/memoria/containers/vector_map/iterator|nodes" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="include/memoria/prototypes/bt_ss/iter|composite|container|include/memoria/containers/root/pages|params.cpp|iterator|examples|include/memoria/containers/vector_map/iterator|nodes" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -105,10 +105,13 @@
 								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.2041422232" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES_CPP}&quot;"/>
+									<listOptionValue builtIn="false" value="../memoria/memoria/include"/>
+									<listOptionValue builtIn="false" value="../memoria/memoria/src/tools/include"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/src/tools/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/tools/include}&quot;"/>
+								</option>
+								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.1908312210" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="MEMORIA_TESTS"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.2006883446" languageId="org.eclipse.cdt.core.assembly" languageName="Assembly" sourceContentType="org.eclipse.cdt.core.asmSource" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
@@ -116,10 +119,13 @@
 								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.1103980078" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES_CPP}&quot;"/>
+									<listOptionValue builtIn="false" value="../memoria/memoria/include"/>
+									<listOptionValue builtIn="false" value="../memoria/memoria/src/tools/include"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/src/tools/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/tools/include}&quot;"/>
+								</option>
+								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.73969499" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="MEMORIA_TESTS"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.159204786" languageId="org.eclipse.cdt.core.parser.upc.upc" languageName="UPC" sourceContentType="org.eclipse.cdt.core.parser.upc.upcSource" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
@@ -127,10 +133,10 @@
 								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.1404285452" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES_CPP}&quot;"/>
+									<listOptionValue builtIn="false" value="../memoria/memoria/include"/>
+									<listOptionValue builtIn="false" value="../memoria/memoria/src/tools/include"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/src/tools/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/tools/include}&quot;"/>
 								</option>
 								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.1965418758" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="MEMORIA_TESTS"/>
@@ -141,17 +147,20 @@
 								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.933650428" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES_CPP}&quot;"/>
+									<listOptionValue builtIn="false" value="../memoria/memoria/include"/>
+									<listOptionValue builtIn="false" value="../memoria/memoria/src/tools/include"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/src/tools/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/tools/include}&quot;"/>
+								</option>
+								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.352425401" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="MEMORIA_TESTS"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.936409953" languageId="org.eclipse.cdt.core.gcc" languageName="GNU C" sourceContentType="org.eclipse.cdt.core.cSource,org.eclipse.cdt.core.cHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="composite|container|include/memoria/containers/root/pages|params.cpp|iterator|examples|include/memoria/containers/vector_map/iterator|nodes" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="nodes|include/memoria/prototypes/bt_ss/iter|iterator|examples|params.cpp|include/memoria/containers/vector_map/iterator|container|include/memoria/containers/root/pages|composite" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

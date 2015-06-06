@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2014-2015.
+// Copyright Victor Smirnov 2014+.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -39,7 +39,7 @@ template <
 >
 struct MapXBTTypesBase: public BTTypes<Profile, memoria::BTSingleStream> {
 
-    typedef BTTypes<Profile, memoria::BT>                                       Base;
+    typedef BTTypes<Profile, memoria::BTSingleStream>                           Base;
 
     using HiddenLabelsTuple = std::tuple<>;
 

@@ -42,47 +42,47 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrRemoveName)
     static const Int Streams                                                    = Types::Streams;
 
 
-    void remove(Iterator& from, Iterator& to);
-    void remove(Iterator& from, BigInt size);
+//    void remove(Iterator& from, Iterator& to);
+//    void remove(Iterator& from, BigInt size);
 
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::mvector::CtrRemoveName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
-
-M_PARAMS
-void M_TYPE::remove(Iterator& from, Iterator& to)
-{
-    auto& self = this->self();
-
-    auto& from_path     = from.leaf();
-    Position from_pos   = Position(from.key_idx());
-
-    auto& to_path       = to.leaf();
-    Position to_pos     = Position(to.key_idx());
-
-    Accumulator keys;
-
-    self.removeEntries(from_path, from_pos, to_path, to_pos, keys, true);
-
-    from.idx() = to.idx() = to_pos.get();
-}
-
-M_PARAMS
-void M_TYPE::remove(Iterator& from, BigInt size)
-{
-    auto to = from;
-
-    to.skip(size);
-
-    auto& self = this->self();
-
-    self.remove(from, to);
-
-    from = to;
-
-    from.refreshCache();
-}
+//
+//M_PARAMS
+//void M_TYPE::remove(Iterator& from, Iterator& to)
+//{
+//    auto& self = this->self();
+//
+//    auto& from_path     = from.leaf();
+//    Position from_pos   = Position(from.key_idx());
+//
+//    auto& to_path       = to.leaf();
+//    Position to_pos     = Position(to.key_idx());
+//
+//    Accumulator keys;
+//
+//    self.removeEntries(from_path, from_pos, to_path, to_pos, keys, true);
+//
+//    from.idx() = to.idx() = to_pos.get();
+//}
+//
+//M_PARAMS
+//void M_TYPE::remove(Iterator& from, BigInt size)
+//{
+//    auto to = from;
+//
+//    to.skip(size);
+//
+//    auto& self = this->self();
+//
+//    self.remove(from, to);
+//
+//    from = to;
+//
+//    from.refreshCache();
+//}
 
 
 }

@@ -54,7 +54,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
 
 
     template <Int Stream, typename SubstreamsIdxList, typename... Args>
-    using ReadLeafEntryRtnType = DispatchConstRtnType<LeafDispatcher, SubstreamsSetNodeFn<Stream, SubstreamsIdxList>, GetLeafValuesFn, Args...>;
+    using ReadLeafStreamEntryRtnType = DispatchConstRtnType<LeafDispatcher, SubstreamsSetNodeFn<Stream, SubstreamsIdxList>, GetLeafValuesFn, Args...>;
 
 
     NodeBaseG splitLeafP(NodeBaseG& left_node, const Position& split_at)
@@ -82,7 +82,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
 
 
     template <Int Stream, typename SubstreamsIdxList, typename... Args>
-    auto _readLeafEntry(const NodeBaseG& leaf, Args&&... args) const -> ReadLeafEntryRtnType<Stream, SubstreamsIdxList, Args...>
+    auto _readLeafStreamEntry(const NodeBaseG& leaf, Args&&... args) const -> ReadLeafStreamEntryRtnType<Stream, SubstreamsIdxList, Args...>
     {
     	 return self().template _applySubstreamsFn<Stream, SubstreamsIdxList>(leaf, GetLeafValuesFn(), std::forward<Args>(args)...);
     }
@@ -150,13 +150,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
     	}
 
     	return pos;
-    }
-
-    template <typename LeafPosition>
-    bool isAtTheEnd(const NodeBaseG& leaf, LeafPosition pos)
-    {
-    	Int size = self().template getLeafStreamSize<0>(leaf);
-    	return pos >= size;
     }
 
 
@@ -308,6 +301,10 @@ private:
     		return InsertBuffersResult<LeafPosition>(leaf, leaf_size.get());
     	}
     }
+
+
+
+
 
 MEMORIA_CONTAINER_PART_END
 

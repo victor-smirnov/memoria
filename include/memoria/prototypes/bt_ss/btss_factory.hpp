@@ -18,6 +18,8 @@
 #include <memoria/prototypes/bt_ss/container/btss_c_leaf_fixed.hpp>
 #include <memoria/prototypes/bt_ss/container/btss_c_leaf_variable.hpp>
 
+#include <memoria/prototypes/bt_ss/iterator/btss_i_misc.hpp>
+
 #include <tuple>
 
 namespace memoria {
@@ -47,10 +49,10 @@ struct BTTypes<Profile, memoria::BTSingleStream>: public BTTypes<Profile, memori
     			memoria::btss::LeafVariableName
     >;
 
-//    using IteratorPartsList = MergeLists<
-//                typename Base::IteratorPartsList,
-//                memoria::mapx::ItrNavName
-//    >;
+    using IteratorPartsList = MergeLists<
+                typename Base::IteratorPartsList,
+                memoria::btss::IteratorMiscName
+    >;
 
 };
 

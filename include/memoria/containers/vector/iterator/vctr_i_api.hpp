@@ -28,7 +28,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 
     typedef Ctr<typename Types::CtrTypes>                                       Container;
 
-
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::NodeBase                                             NodeBase;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
@@ -43,39 +42,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 
     using InputBuffer = typename Container::Types::InputBuffer;
 
-    bool operator++() {
-        return self().skipFw(1);
-    }
-
-    bool operator--() {
-        return self().skipBw(1);
-    }
-
-    bool operator++(int) {
-        return self().skipFw(1);
-    }
-
-    bool operator--(int) {
-        return self().skipFw(1);
-    }
-
-    CtrSizeT operator+=(CtrSizeT size)
-    {
-        return self().skipFw(size);
-    }
-
-    CtrSizeT operator-=(CtrSizeT size)
-    {
-        return self().skipBw(size);
-    }
-
-    bool isEof() const {
-        return self().idx() >= self().size();
-    }
-
-    bool isBof() const {
-        return self().idx() < 0;
-    }
 
     void insert(std::vector<Value>& data)
     {
@@ -108,10 +74,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
         model.markCtrUpdated();
     }
 
-    Int size() const
-    {
-        return self().leafSize(0);
-    }
+
 
     struct VectorReadWalker {
     	std::vector<Value>& data_;
@@ -199,13 +162,13 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
         }
     }
 
-    void remove(CtrSizeT size)
-    {
-        auto& self = this->self();
-        self.ctr().remove(self, size);
-
-        self.ctr().markCtrUpdated();
-    }
+//    void remove(CtrSizeT size)
+//    {
+//        auto& self = this->self();
+//        self.ctr().remove(self, size);
+//
+//        self.ctr().markCtrUpdated();
+//    }
 
     std::vector<Value> subVector(CtrSizeT size)
     {
@@ -261,11 +224,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
         self.ctr().walkUp(self.leaf(), self.idx(), fn);
 
         return std::get<0>(fn.prefix_)[0] + self.key_idx();
-    }
-
-    CtrSizeT dataPos() const
-    {
-        return self().idx();
     }
 
     CtrSizeT prefix() const
