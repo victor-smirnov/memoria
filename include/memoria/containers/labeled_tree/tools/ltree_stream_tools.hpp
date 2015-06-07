@@ -29,6 +29,7 @@ struct LoudsStreamTF {
     typedef core::StaticVector<BigInt, 1>                       IteratorPrefixPart;
 
     typedef PkdFTree<Packed2TreeTypes<Key, Key, 3>>             NonLeafType;
+    typedef TL<TL<>>											IdxRangeList;
 
 
     static const Int BitsPerSymbol = 1;
@@ -74,6 +75,7 @@ struct LabelFTreeNodeTFBase {
     >                                                                           TreeTypes;
 
     typedef PkdFTree<TreeTypes>                                                 NonLeafType;
+    typedef TL<TL<>>															IdxRangeList;
 };
 
 
@@ -131,6 +133,7 @@ struct LabelVTreeNodeTFBase {
     > TreeTypes;
 
     typedef PkdVTree<TreeTypes>                                                 NonLeafType;
+    typedef TL<TL<>>															IdxRangeList;
 };
 
 

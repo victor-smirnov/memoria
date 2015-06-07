@@ -12,6 +12,7 @@
 #include <memoria/core/types/types.hpp>
 
 #include <memoria/prototypes/bt/bt_names.hpp>
+#include <memoria/prototypes/bt/bt_macros.hpp>
 #include <memoria/core/container/macros.hpp>
 
 
@@ -35,6 +36,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
     typedef typename Types::Position                                            Position;
 
     typedef typename Container::Types::CtrSizeT                                 CtrSizeT;
+
+
 
 
 
@@ -67,18 +70,18 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
 
     Int leaf_size(Int stream) const
     {
-        return LeafDispatcher::dispatchConstRtn(self().leaf(), SizeFn(), stream);
+        return LeafDispatcher::dispatch(self().leaf(), SizeFn(), stream);
     }
 
     Int leaf_size() const
     {
-        return LeafDispatcher::dispatchConstRtn(self().leaf(), SizeFn(), self().stream());
+        return LeafDispatcher::dispatch(self().leaf(), SizeFn(), self().stream());
     }
 
     MEMORIA_DECLARE_NODE_FN_RTN(SizesFn, sizes, Int);
 
     Position leaf_sizes() const {
-        return LeafDispatcher::dispatchConstRtn(self().leaf(), SizesFn());
+        return LeafDispatcher::dispatch(self().leaf(), SizesFn());
     }
 
     bool has_no_data() const
@@ -122,6 +125,63 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
 
         self.idx() = 0;
     }
+
+    template <Int Stream, typename SubstreamsList, typename... Args>
+    void _updateStream(Args&&... args)
+    {
+    	auto& self = this->self();
+    	auto& ctr  = self.model();
+
+    	ctr.template updateStreamEntry<Stream, SubstreamsList>(self, std::make_tuple(std::forward<Args>(args)...));
+    }
+
+
+
+
+
+    template <Int Stream, typename SubstreamsIdxList, typename... Args>
+    using ReadLeafStreamEntryRtnType = typename Container::template ReadLeafStreamEntryRtnType<Stream, SubstreamsIdxList, Args...>;
+
+    template <Int Stream, typename SubstreamsIdxList, typename... Args>
+    auto _readLeafEntry(Args&&... args) const -> ReadLeafStreamEntryRtnType<Stream, SubstreamsIdxList, Args...>
+    {
+    	 return self().ctr().template _readLeafEntry<Stream, SubstreamsIdxList>(self().leaf(), std::forward<Args>(args)...);
+    }
+
+    void refreshCache()
+    {
+    	auto& self = this->self();
+
+    	FindForwardWalker2<bt::WalkerTypes<Types, IntList<0>>> walker(0, 0);
+
+    	self.cache().reset();
+
+    	self.ctr().walkUp2(self.leaf(), self.idx(), walker);
+
+    	walker.finish(self, self.idx());
+    }
+
+    void split()
+    {
+    	auto& self = this->self();
+
+    	NodeBaseG& leaf = self.leaf();
+    	Int& idx        = self.idx();
+
+    	Int size        = self.leaf_size(0);
+    	Int split_idx   = size/2;
+
+    	auto right = self.ctr().splitLeafP(leaf, Position::create(0, split_idx));
+
+    	if (idx > split_idx)
+    	{
+    		leaf = right;
+    		idx -= split_idx;
+
+    		self.refreshCache();
+    	}
+    }
+
 
 MEMORIA_ITERATOR_PART_END
 
@@ -187,7 +247,7 @@ typename M_TYPE::CtrSizeT M_TYPE::skipStream(Int stream, CtrSizeT amount)
 M_PARAMS
 bool M_TYPE::nextLeafMs(UBigInt streams)
 {
-    typedef typename Types::template NextLeafMutistreamWalker<Types> Walker;
+    typedef typename Types::template NextLeafMutistreamWalker<Types, IntList<0>, IntList<0>> Walker;
 
     auto& self = this->self();
 
@@ -200,7 +260,7 @@ bool M_TYPE::nextLeafMs(UBigInt streams)
 M_PARAMS
 bool M_TYPE::nextLeaf()
 {
-    typedef typename Types::template NextLeafWalker<Types> Walker;
+    typedef typename Types::template NextLeafWalker<Types, IntList<0>> Walker;
     Walker walker(self().stream(), 0);
 
     return self().findNextLeaf(walker);
@@ -212,7 +272,7 @@ bool M_TYPE::nextLeaf()
 M_PARAMS
 bool M_TYPE::prevLeaf()
 {
-    typedef typename Types::template PrevLeafWalker<Types> Walker;
+    typedef typename Types::template PrevLeafWalker<Types, IntList<0>> Walker;
 
     auto& self = this->self();
     Int stream = self.stream();

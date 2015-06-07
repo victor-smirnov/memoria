@@ -42,7 +42,7 @@ class MapRemoveTest: public MapTestBase<MapName> {
     PairVector&     pairs_sorted    = Base::pairs_sorted;
     String&         dump_name_      = Base::dump_name_;
 
-    bool 			map_creation_ = false;
+    bool            map_creation_ = false;
 
 public:
 
@@ -70,15 +70,21 @@ public:
         ctr_name_ = map.name();
 
         try {
-        	map_creation_ = true;
+            map_creation_ = true;
 
-        	for (vector_idx_ = 0; vector_idx_ < size_; vector_idx_++)
+            PairVector tmp = pairs;
+
+            for (vector_idx_ = 0; vector_idx_ < size_; vector_idx_++)
             {
-                auto iter = map[pairs[vector_idx_].key_];
-                iter.svalue() = pairs[vector_idx_].value_;
+            	auto key = pairs[vector_idx_].key_;
+                auto iter = map.find(key);
+                iter.insert(key, pairs[vector_idx_].value_);
 
                 allocator.commit();
             }
+
+            std::sort(tmp.begin(), tmp.end());
+            Base::checkContainerData(map, tmp);
 
             Base::check(allocator, MEMORIA_SOURCE);
 
@@ -91,7 +97,7 @@ public:
 
             for (vector_idx_ = 0; vector_idx_ < size_; vector_idx_++)
             {
-            	bool result = map.remove(pairs[vector_idx_].key_);
+                bool result = map.remove(pairs[vector_idx_].key_);
 
                 AssertTrue(MA_SRC, result);
 
@@ -147,27 +153,24 @@ public:
 
         Ctr map(&allocator, CTR_FIND, ctr_name_);
 
-        if (map_creation_)
+        Base::checkContainerData(map, pairs_sorted);
+
+        auto key = pairs[vector_idx_].key_;
+        bool result = map.remove(key);
+
+        AssertTrue(MA_SRC, result);
+
+        Base::check(allocator, MEMORIA_SOURCE);
+
+        BigInt size = size_ - vector_idx_ - 1;
+
+        AssertEQ(MA_SRC, size, map.size());
+
+        for (UInt x = 0; x < pairs_sorted.size(); x++)
         {
-
-        }
-        else {
-        	bool result = map.remove(pairs[vector_idx_].key_);
-
-        	AssertTrue(MA_SRC, result);
-
-        	Base::check(allocator, MEMORIA_SOURCE);
-
-        	BigInt size = size_ - vector_idx_ - 1;
-
-        	AssertEQ(MA_SRC, size, map.size());
-
-        	for (UInt x = 0; x < pairs_sorted.size(); x++)
+        	if (pairs_sorted[x].key_ == pairs[vector_idx_].key_)
         	{
-        		if (pairs_sorted[x].key_ == pairs[vector_idx_].key_)
-        		{
-        			pairs_sorted.erase(pairs_sorted.begin() + x);
-        		}
+        		pairs_sorted.erase(pairs_sorted.begin() + x);
         	}
         }
 

@@ -51,7 +51,7 @@ private:
 
 public:
 
-    typedef typename MergeLists<
+    using FieldsList = MergeLists<
                 typename Base::FieldsList,
 
                 UIntValue<VERSION>,
@@ -59,7 +59,7 @@ public:
                 decltype(layout_size_),
                 decltype(bitmap_size_)
 
-    >::Result                                                                   FieldsList;
+    >;
 
     PackedAllocator() = default;
 
@@ -136,29 +136,33 @@ public:
         memset(bitmap, 0, bitmap_size_);
     }
 
-    static Int empty_size(Int blocks)
+    static constexpr Int empty_size(Int blocks)
     {
         return block_size(0, blocks);
     }
 
-    static Int block_size(Int client_area, Int blocks)
+    static constexpr Int block_size(Int client_area, Int blocks)
     {
-        Int layout_blocks = blocks + (blocks % 2 ? 1 : 2);
+//        Int layout_blocks = blocks + (blocks % 2 ? 1 : 2);
+//
+//        Int layout_size = layout_blocks * sizeof(Int);
+//        Int bitmap_size = roundUpBitsToAlignmentBlocks(blocks);
 
-        Int layout_size = layout_blocks * sizeof(Int);
-        Int bitmap_size = roundUpBitsToAlignmentBlocks(blocks);
+//        return my_size() + layout_size + bitmap_size + roundUpBytesToAlignmentBlocks(client_area);
 
-        return my_size() + layout_size + bitmap_size + roundUpBytesToAlignmentBlocks(client_area);
+    	return my_size() + (blocks + (blocks % 2 ? 1 : 2))*sizeof(Int) + roundUpBitsToAlignmentBlocks(blocks) + roundUpBytesToAlignmentBlocks(client_area);
     }
 
-    static Int client_area(Int block_size, Int blocks)
+    static constexpr Int client_area(Int block_size, Int blocks)
     {
-        Int layout_blocks = blocks + (blocks % 2 ? 1 : 2);
+//        Int layout_blocks = blocks + (blocks % 2 ? 1 : 2);
+//
+//        Int layout_size = layout_blocks * sizeof(Int);
+//        Int bitmap_size = roundUpBitsToAlignmentBlocks(blocks);
 
-        Int layout_size = layout_blocks * sizeof(Int);
-        Int bitmap_size = roundUpBitsToAlignmentBlocks(blocks);
+//        return roundDownBytesToAlignmentBlocks(block_size - (my_size() + layout_size + bitmap_size));
 
-        return roundDownBytesToAlignmentBlocks(block_size - (my_size() + layout_size + bitmap_size));
+    	return roundDownBytesToAlignmentBlocks(block_size - (my_size() + (blocks + (blocks % 2 ? 1 : 2))*sizeof(Int) + roundUpBitsToAlignmentBlocks(blocks)));
     }
 
     Int computeElementOffset(const void* element) const
@@ -584,7 +588,7 @@ public:
 
     constexpr static Int my_size()
     {
-    	return sizeof(MyType) - alignof(MyType);
+        return sizeof(MyType) - alignof(MyType);
     }
 
 

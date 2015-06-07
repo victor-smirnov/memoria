@@ -16,7 +16,7 @@ namespace memoria {
 
 template <typename Seq>
 class BitmapToolsFn {
-    typedef typename Seq::Values2                                               Values;
+    typedef typename Seq::Values                                               Values;
     typedef typename Seq::Value                                                 Value;
 
     static const Int BitsPerSymbol                                              = Seq::BitsPerSymbol;
@@ -33,9 +33,8 @@ public:
 
         BigInt rank1 = PopCount(seq_.symbols(), start, end);
 
-        values[2] = rank1;
-        values[0] = end - start;
-        values[1] = end - start - rank1;
+        values[1] = rank1;
+        values[0] = end - start - rank1;
 
         return values;
     }
@@ -71,7 +70,7 @@ public:
 
 template <typename Seq>
 class SeqToolsFn {
-    typedef typename Seq::Values2           Values;
+    typedef typename Seq::Values           Values;
     typedef typename Seq::Value             Value;
 
     static const Int BitsPerSymbol          = Seq::BitsPerSymbol;
@@ -87,13 +86,11 @@ public:
     {
         Values values;
 
-        values[0] = end - start;
-
         auto symbols = seq_.symbols();
 
         for (Int idx = start * BitsPerSymbol; idx < end * BitsPerSymbol; idx += BitsPerSymbol)
         {
-            Int symbol = GetBits(symbols, idx, BitsPerSymbol) + 1;
+            Int symbol = GetBits(symbols, idx, BitsPerSymbol);
             values[symbol]++;
         }
 
@@ -131,7 +128,7 @@ public:
 
 template <typename Seq>
 class Seq8ToolsFn {
-    typedef typename Seq::Values2           Values;
+    typedef typename Seq::Values           Values;
     typedef typename Seq::Value             Value;
 
     static const Int BitsPerSymbol          = Seq::BitsPerSymbol;
@@ -146,13 +143,11 @@ public:
     {
         Values values;
 
-        values[0] = end - start;
-
         auto symbols = seq_.symbols();
 
         for (Int idx = start; idx < end; idx++)
         {
-            Int symbol = symbols[idx] + 1;
+            Int symbol = symbols[idx];
             values[symbol]++;
         }
 

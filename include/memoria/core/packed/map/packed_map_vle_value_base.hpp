@@ -65,8 +65,8 @@ class PackedMapValueBase<Blocks, Key, VLen<gr, ValueType>, HiddenLabels, Labels>
 public:
     typedef PackedMapValueBase<Blocks, Key, VLen<gr, ValueType>, HiddenLabels, Labels>  MyType;
 
-    typedef typename memoria::internal::VLEArrayTF<gr, ValueType>::Type         		Values;
-    typedef typename Values::Values         											VValues;
+    typedef typename memoria::internal::VLEArrayTF<gr, ValueType>::Type                 Values;
+    typedef typename Values::Values                                                     VValues;
     typedef ValueType                                                                   Value;
 
     static const Int TotalLabels = ListSize<HiddenLabels>::Value + ListSize<Labels>::Value;
@@ -74,6 +74,8 @@ public:
     static const Int ARRAY = Blocks + TotalLabels;
 
     static const bool HasValue                                                          = true;
+
+    static const PackedSizeType ValueSizeType											= PkdStructSizeType<Values>::Value;
 
     Values* values() {
         return Base::template get<Values>(ARRAY);
@@ -175,42 +177,42 @@ public:
     template <typename Entry, typename Lengths>
     static void computeValueEntryDataLength(const Entry& entry, Lengths& lengths)
     {
-    	std::get<1 + TotalLabels>(lengths) += Values::computeDataLength(VValues(entry.value()));
+        std::get<1 + TotalLabels>(lengths) += Values::computeDataLength(VValues(entry.value()));
     }
 
 
     template <typename DataSource>
     void insertValues(DataSource* src, SizeT pos, Int start, Int size, Int old_size)
     {
-    	src->reset(pos);
+        src->reset(pos);
 
-    	values()->insert(start, size, [src]() {
-    		return VValues(src->get().value());
-    	});
+        values()->insert(start, size, [src]() {
+            return VValues(src->get().value());
+        });
     }
 
 
     template <typename DataSource>
     void updateValues(DataSource* src, SizeT pos, Int start, Int end)
     {
-    	src->reset(pos);
+        src->reset(pos);
 
-    	values()->update(start, end, [src]() {
-    		return VValues(src->get().value());
-    	});
+        values()->update(start, end, [src]() {
+            return VValues(src->get().value());
+        });
     }
 
     template <typename DataTarget>
     void readValues(DataTarget* tgt, SizeT pos, Int start, Int end) const
     {
-    	tgt->reset(pos);
+        tgt->reset(pos);
 
-    	values()->read(start, end, [=](const typename Values::Values& value) {
-    		auto current 	= tgt->peek();
-    		current.value() = value.get();
+        values()->read(start, end, [=](const typename Values::Values& value) {
+            auto current    = tgt->peek();
+            current.value() = value.get();
 
-    		tgt->put(current);
-    	});
+            tgt->put(current);
+        });
     }
 
 

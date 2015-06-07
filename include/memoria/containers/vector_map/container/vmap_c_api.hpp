@@ -35,7 +35,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrApiName)
     typedef typename Base::NodeDispatcher                                       NodeDispatcher;
     typedef typename Base::RootDispatcher                                       RootDispatcher;
     typedef typename Base::LeafDispatcher                                       LeafDispatcher;
-    typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
+    typedef typename Base::BranchDispatcher                                    BranchDispatcher;
 
 
     typedef typename Types::Key                                                 Key;
@@ -83,7 +83,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrApiName)
     {
         auto& self = this->self();
 
-        vmap::MapFindWalker<Types> walker(id);
+        vmap::MapFindWalker<Types, 0> walker(id);
 
         Iterator iter = self.find0(0, walker);
 

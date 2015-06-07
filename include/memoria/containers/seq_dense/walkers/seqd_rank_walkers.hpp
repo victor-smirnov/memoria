@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2013.
+// Copyright Victor Smirnov 2013+.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -14,12 +14,12 @@
 namespace memoria   {
 namespace seq_dense {
 
-
+/*
 template <typename Types>
 class RankFWWalker: public bt::FindForwardWalkerBase<Types, RankFWWalker<Types>> {
 
-    typedef bt::FindForwardWalkerBase<Types, RankFWWalker<Types>>               Base;
-    typedef typename Base::Key                                                  Key;
+    using Base = bt::FindForwardWalkerBase<Types, RankFWWalker<Types>>;
+    typedef typename Base::Key                                                      Key;
 
     BigInt rank_ = 0;
 
@@ -103,8 +103,8 @@ public:
 template <typename Types>
 class RankBWWalker: public bt::FindBackwardWalkerBase<Types, RankBWWalker<Types>> {
 
-    typedef bt::FindBackwardWalkerBase<Types, RankBWWalker<Types>>              Base;
-    typedef typename Base::Key                                                  Key;
+    using Base = bt::FindBackwardWalkerBase<Types, RankBWWalker<Types>>;
+    typedef typename Base::Key                                                      Key;
 
     BigInt rank_ = 0;
 
@@ -176,7 +176,7 @@ public:
 };
 
 
-
+*/
 
 
 }

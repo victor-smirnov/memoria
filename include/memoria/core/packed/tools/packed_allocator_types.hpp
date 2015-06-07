@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2013.
+// Copyright Victor Smirnov 2013-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -15,6 +15,63 @@
 
 namespace memoria {
 
+
+template <typename PkdStruct>
+struct AccumType {
+	using Type = BigInt;
+};
+
+template <typename PkdStruct>
+struct PkdStructInputType {
+	using Type = typename PkdStruct::InputType;
+};
+
+template <typename T> struct StructSizeProvider;
+
+
+
+enum class PackedSizeType {FIXED, VARIABLE};
+
+template <typename PkdStruct>
+struct PkdStructSizeType {
+	static const PackedSizeType Value = PkdStruct::SizeType;
+};
+
+template <typename PkdStruct>
+struct PkdStructInputBufferType {
+	using Type = typename PkdStruct::InputBuffer;
+};
+
+
+template <typename List> struct PackedListStructSizeType;
+
+template <typename Head, typename... Tail>
+struct PackedListStructSizeType<TL<Head, Tail...>> {
+	static const PackedSizeType HeadValue = PkdStructSizeType<Head>::Value;
+
+	static const PackedSizeType Value =
+			(HeadValue == PackedSizeType::VARIABLE) ?
+					PackedSizeType::VARIABLE :
+					PackedListStructSizeType<TL<Tail...>>::Value;
+};
+
+template <>
+struct PackedListStructSizeType<TL<>> {
+	static const PackedSizeType Value = PackedSizeType::FIXED;
+};
+
+
+template <PackedSizeType... SizeTypes> struct PackedSizeTypeList;
+
+template <PackedSizeType Head, PackedSizeType... Tail>
+struct PackedSizeTypeList<Head, Tail...> {
+	static const PackedSizeType Value = (Head == PackedSizeType::VARIABLE) ? PackedSizeType::VARIABLE : PackedSizeTypeList<Tail...>::Value;
+};
+
+template <>
+struct PackedSizeTypeList<> {
+	static const PackedSizeType Value = PackedSizeType::FIXED;
+};
 
 class MEMORIA_API PackedOOMException: public vapi::MemoriaThrowable {
 
@@ -118,32 +175,32 @@ public:
         }
     }
 
-    static Int roundUpBytesToAlignmentBlocks(Int value)
+    static constexpr Int roundUpBytesToAlignmentBlocks(Int value)
     {
         return (value / AlignmentBlock + (value % AlignmentBlock ? 1 : 0)) * AlignmentBlock;
     }
 
-    static Int roundDownBytesToAlignmentBlocks(Int value)
+    static constexpr Int roundDownBytesToAlignmentBlocks(Int value)
     {
         return (value / AlignmentBlock) * AlignmentBlock;
     }
 
-    static Int roundUpBitsToAlignmentBlocks(Int bits)
+    static constexpr Int roundUpBitsToAlignmentBlocks(Int bits)
     {
         return roundUpBytesToAlignmentBlocks(roundUpBitToBytes(bits));
     }
 
-    static Int roundDownBitsToAlignmentBlocks(Int bits)
+    static constexpr Int roundDownBitsToAlignmentBlocks(Int bits)
     {
         return roundDownBytesToAlignmentBlocks(roundDownBitsToBytes(bits));
     }
 
-    static Int roundUpBitToBytes(Int bits)
+    static constexpr Int roundUpBitToBytes(Int bits)
     {
         return bits / 8 + (bits % 8 > 0);
     }
 
-    static Int roundDownBitsToBytes(Int bits)
+    static constexpr Int roundDownBitsToBytes(Int bits)
     {
         return bits / 8 + (bits % 8 > 0);
     }

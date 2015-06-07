@@ -31,10 +31,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrFindName)
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    typedef typename Base::NodeDispatcher                                       NodeDispatcher;
-    typedef typename Base::RootDispatcher                                       RootDispatcher;
-    typedef typename Base::LeafDispatcher                                       LeafDispatcher;
-    typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
+    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
+    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
+    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
 
     typedef typename Base::Metadata                                             Metadata;
 
@@ -43,39 +42,43 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrFindName)
 
     static const Int Streams                                                    = Types::Streams;
 
+    Iterator Begin() {
+    	return self().seek(0);
+    }
+
     MEMORIA_PUBLIC Iterator End()
     {
-    	auto& self = this->self();
-    	return self.seek(self.size());
+        auto& self = this->self();
+        return self.seek(self.size());
     }
 
     MEMORIA_PUBLIC Iterator RBegin()
     {
-    	auto& self 	= this->self();
-    	auto size 	= self.size();
+        auto& self  = this->self();
+        auto size   = self.size();
 
-    	if (size > 0)
-    	{
-    		return self.seek(size - 1);
-    	}
-    	else {
-    		return self.seek(size);
-    	}
+        if (size > 0)
+        {
+            return self.seek(size - 1);
+        }
+        else {
+            return self.seek(size);
+        }
     }
 
     MEMORIA_PUBLIC Iterator REnd()
     {
-    	auto& self 	= this->self();
-    	auto size 	= self.size();
+        auto& self  = this->self();
+        auto size   = self.size();
 
-    	auto iter 	= self.Begin();
+        auto iter   = self.Begin();
 
-    	if (size > 0)
-    	{
-    		iter--;
-    	}
+        if (size > 0)
+        {
+            iter--;
+        }
 
-    	return iter;
+        return iter;
     }
 
 MEMORIA_CONTAINER_PART_END

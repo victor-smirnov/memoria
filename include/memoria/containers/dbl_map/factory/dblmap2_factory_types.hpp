@@ -129,6 +129,7 @@ struct BTTypes<Profile, dblmap::OuterMap<Key_> >: public BTTypes<Profile, memori
 
         typedef PkdFTree<Packed2TreeTypes<Key, Key, 2>>             NonLeafType;
         typedef PkdFTree<Packed2TreeTypes<Key, Key, 2>>             LeafType;
+        typedef TL<TL<>>											IdxRangeList;
     };
 
 
@@ -235,6 +236,7 @@ struct BTTypes<Profile, dblmap::InnerMap<Key_, Value_, BitsPerMark_> >: public B
         typedef core::StaticVector<BigInt, 2>                       IteratorPrefixPart;
 
         typedef PkdFTree<Packed2TreeTypes<Key, Key, 2>>             NonLeafType;
+        typedef TL<TL<>>											IdxRangeList;
 
         typedef PackedFSEMarkableMap<PackedFSEMarkableMapTypes<
                 Key,

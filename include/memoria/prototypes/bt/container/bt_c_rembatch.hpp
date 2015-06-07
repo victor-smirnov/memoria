@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011-2013.
+// Copyright Victor Smirnov 2011+.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -22,9 +22,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveBatchName)
     typedef typename Base::NodeBaseG                                            NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    typedef typename Base::NodeDispatcher                                       NodeDispatcher;
-    typedef typename Base::LeafDispatcher                                       LeafDispatcher;
-    typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
+    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
+    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
+    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
 
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
@@ -32,7 +32,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveBatchName)
     typedef typename Base::Metadata                                             Metadata;
 
 
-    Position removeEntries(
+    void removeEntries(
             NodeBaseG& from,
             Position&  from_idx,
             NodeBaseG& to,
@@ -43,13 +43,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveBatchName)
 
 
 
-    void removeAllNodes(NodeBaseG& start, NodeBaseG& stop, Accumulator& sums, Position& sizes);
+    void removeAllNodes(NodeBaseG& start, NodeBaseG& stop, Accumulator& sums);
 
-    void removeNodesFromStart(NodeBaseG& stop, const Position& stop_idx, Accumulator& sums, Position& sizes);
-    void removeNonLeafNodesFromStart(NodeBaseG& stop, Int stop_idx, Accumulator& sums, Position& sizes);
+    void removeNodesFromStart(NodeBaseG& stop, const Position& stop_idx, Accumulator& sums);
+    void removeBranchNodesFromStart(NodeBaseG& stop, Int stop_idx, Accumulator& sums);
 
-    void removeNodesAtEnd(NodeBaseG& start, const Position& start_idx, Accumulator& sums, Position& sizes);
-    void removeNonLeafNodesAtEnd(NodeBaseG& start, Int start_idx, Accumulator& sums, Position& sizes);
+    void removeNodesAtEnd(NodeBaseG& start, const Position& start_idx, Accumulator& sums);
+    void removeBranchNodesAtEnd(NodeBaseG& start, Int start_idx, Accumulator& sums);
 
     void removeNodes(
             NodeBaseG& start,
@@ -58,12 +58,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveBatchName)
             NodeBaseG& stop,
             Position& stop_idx,
 
-            Accumulator& sums,
-            Position& sizes
+            Accumulator& sums
     );
 
     void tryMergeNodesAfterRemove(
-    		NodeBaseG& start,
+            NodeBaseG& start,
             const Position& start_idx,
 
             NodeBaseG& stop,
@@ -76,14 +75,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveBatchName)
 
     ////  ------------------------ CONTAINER PART PRIVATE API ------------------------
 
-    void removeNonLeafNodes(
+    void removeBranchNodes(
             NodeBaseG& start,
             Int start_idx,
             NodeBaseG& stop,
             Int stop_idx,
 
-            Accumulator& sums,
-            Position& sizes
+            Accumulator& sums
     );
 
 
@@ -111,7 +109,7 @@ MEMORIA_CONTAINER_PART_END
  */
 
 M_PARAMS
-typename M_TYPE::Position M_TYPE::removeEntries(
+void M_TYPE::removeEntries(
         NodeBaseG& start,
         Position&  start_idx,
         NodeBaseG& stop,
@@ -121,8 +119,6 @@ typename M_TYPE::Position M_TYPE::removeEntries(
 )
 {
     auto& self = this->self();
-
-    Position sizes;
 
     Position stop_sizes = self.getNodeSizes(stop);
 
@@ -173,17 +169,17 @@ typename M_TYPE::Position M_TYPE::removeEntries(
 
     if (from_start && at_end)
     {
-        removeAllNodes(start, stop, sums, sizes);
+        removeAllNodes(start, stop, sums);
 
         start_idx = stop_idx.setAll(0);
     }
     else if (from_start && !at_end)
     {
-        removeNodesFromStart(stop, stop_idx, sums, sizes);
+        removeNodesFromStart(stop, stop_idx, sums);
 
         if (merge)
         {
-            self.mergeWithRightSibling(stop);
+            self.mergeLeafWithRightSibling(stop);
         }
 
         start       = stop;
@@ -191,16 +187,13 @@ typename M_TYPE::Position M_TYPE::removeEntries(
     }
     else if ((!from_start) && at_end)
     {
-        removeNodesAtEnd(start, start_idx, sums, sizes);
+        removeNodesAtEnd(start, start_idx, sums);
 
         if (merge)
         {
-            self.mergeWithLeftSibling(start, [&](const Position& left_sizes, Int level)
+            self.mergeLeafWithLeftSibling(start, [&](const Position& left_sizes)
             {
-                if (level == 0)
-                {
-                    start_idx += left_sizes;
-                }
+            	start_idx += left_sizes;
             });
         }
 
@@ -208,16 +201,13 @@ typename M_TYPE::Position M_TYPE::removeEntries(
         stop_idx    = start_idx;
     }
     else {
-        removeNodes(start, start_idx, stop, stop_idx, sums, sizes);
+        removeNodes(start, start_idx, stop, stop_idx, sums);
 
         if (merge)
         {
-            self.mergeWithSiblings(stop, [&](const Position& left_sizes, Int level)
+            self.mergeLeafWithSiblings(stop, [&](const Position& left_sizes)
             {
-                if (level == 0)
-                {
-                    stop_idx += left_sizes;
-                }
+                stop_idx += left_sizes;
             });
         }
 
@@ -225,16 +215,14 @@ typename M_TYPE::Position M_TYPE::removeEntries(
         start_idx   = stop_idx;
     }
 
-    self.addTotalKeyCount(-sizes);
-
-    return sizes;
+    //self.addTotalSizes(-self.getStreamSizes(sums));
 }
 
 
 
 
 M_PARAMS
-void M_TYPE::removeAllNodes(NodeBaseG& start, NodeBaseG& stop, Accumulator& sums, Position& sizes)
+void M_TYPE::removeAllNodes(NodeBaseG& start, NodeBaseG& stop, Accumulator& sums)
 {
     auto& self = this->self();
 
@@ -244,7 +232,7 @@ void M_TYPE::removeAllNodes(NodeBaseG& start, NodeBaseG& stop, Accumulator& sums
         node = self.getNodeParent(node);
     }
 
-    self.removeNode(node, sums, sizes);
+    self.removeNode(node, sums);
 
     Metadata meta = self.getRootMetadata();
 
@@ -256,7 +244,7 @@ void M_TYPE::removeAllNodes(NodeBaseG& start, NodeBaseG& stop, Accumulator& sums
 
 
 M_PARAMS
-void M_TYPE::removeNonLeafNodesFromStart(NodeBaseG& stop, Int stop_idx, Accumulator& sums, Position& sizes)
+void M_TYPE::removeBranchNodesFromStart(NodeBaseG& stop, Int stop_idx, Accumulator& sums)
 {
     auto& self = this->self();
 
@@ -264,7 +252,7 @@ void M_TYPE::removeNonLeafNodesFromStart(NodeBaseG& stop, Int stop_idx, Accumula
 
     NodeBaseG node = stop;
 
-    self.removeNodeContent(node, 0, stop_idx, sums, sizes);
+    self.removeNodeContent(node, 0, stop_idx, sums);
 
     while (!node->is_root())
     {
@@ -274,20 +262,19 @@ void M_TYPE::removeNonLeafNodesFromStart(NodeBaseG& stop, Int stop_idx, Accumula
 
         if (parent_idx > 0)
         {
-            self.removeNodeContent(node, 0, parent_idx, sums, sizes);
+            self.removeNodeContent(node, 0, parent_idx, sums);
         }
     }
 }
 
 
 M_PARAMS
-void M_TYPE::removeNodesFromStart(NodeBaseG& stop, const Position& stop_idx, Accumulator& sums, Position& sizes)
+void M_TYPE::removeNodesFromStart(NodeBaseG& stop, const Position& stop_idx, Accumulator& sums)
 {
     auto& self = this->self();
 
     NodeBaseG node = stop;
 
-    sizes += stop_idx;
     VectorAdd(sums, self.removeLeafContent(node, Position(0), stop_idx));
 
     if (!node->is_root())
@@ -296,7 +283,7 @@ void M_TYPE::removeNodesFromStart(NodeBaseG& stop, const Position& stop_idx, Acc
 
         Int parent_idx = node->parent_idx();
 
-        self.removeNonLeafNodesFromStart(parent, parent_idx, sums, sizes);
+        self.removeBranchNodesFromStart(parent, parent_idx, sums);
 
         self.removeRedundantRootP(node);
     }
@@ -304,7 +291,7 @@ void M_TYPE::removeNodesFromStart(NodeBaseG& stop, const Position& stop_idx, Acc
 
 
 M_PARAMS
-void M_TYPE::removeNonLeafNodesAtEnd(NodeBaseG& start, Int start_idx, Accumulator& sums, Position& sizes)
+void M_TYPE::removeBranchNodesAtEnd(NodeBaseG& start, Int start_idx, Accumulator& sums)
 {
     auto& self = this->self();
 
@@ -312,7 +299,7 @@ void M_TYPE::removeNonLeafNodesAtEnd(NodeBaseG& start, Int start_idx, Accumulato
 
     Int node_size = self.getNodeSize(node, 0);
 
-    self.removeNodeContent(node, start_idx, node_size, sums, sizes);
+    self.removeNodeContent(node, start_idx, node_size, sums);
 
     while (!node->is_root())
     {
@@ -323,27 +310,26 @@ void M_TYPE::removeNonLeafNodesAtEnd(NodeBaseG& start, Int start_idx, Accumulato
 
         if (parent_idx < node_size - 1)
         {
-            self.removeNodeContent(node, parent_idx + 1, node_size, sums, sizes);
+            self.removeNodeContent(node, parent_idx + 1, node_size, sums);
         }
     }
 }
 
 
 M_PARAMS
-void M_TYPE::removeNodesAtEnd(NodeBaseG& start, const Position& start_idx, Accumulator& sums, Position& sizes)
+void M_TYPE::removeNodesAtEnd(NodeBaseG& start, const Position& start_idx, Accumulator& sums)
 {
     auto& self = this->self();
 
     Position node_sizes = self.getNodeSizes(start);
 
-    sizes += node_sizes - start_idx;
     VectorAdd(sums, self.removeLeafContent(start, start_idx, node_sizes));
 
     if (!start->is_root())
     {
         NodeBaseG parent = self.getNodeParentForUpdate(start);
 
-        self.removeNonLeafNodesAtEnd(parent, start->parent_idx() + 1, sums, sizes);
+        self.removeBranchNodesAtEnd(parent, start->parent_idx() + 1, sums);
 
         self.removeRedundantRootP(start);
     }
@@ -357,8 +343,7 @@ void M_TYPE::removeNodes(
         NodeBaseG& stop,
         Position& stop_idx,
 
-        Accumulator& sums,
-        Position& sizes
+        Accumulator& sums
 ) {
 
     auto& self = this->self();
@@ -370,7 +355,6 @@ void M_TYPE::removeNodes(
         if ((stop_idx - start_idx).gtAny(0))
         {
             //remove some space within the node
-            sizes += stop_idx - start_idx;
             VectorAdd(sums, self.removeLeafContent(start, start_idx, stop_idx));
 
             stop_idx = start_idx;
@@ -386,10 +370,8 @@ void M_TYPE::removeNodes(
 
         Position start_end = self.getNodeSizes(start);
 
-        sizes += start_end - start_idx;
         VectorAdd(sums, self.removeLeafContent(start, start_idx, start_end));
 
-        sizes += stop_idx;
         VectorAdd(sums, self.removeLeafContent(stop, Position(0), stop_idx));
 
         Int start_parent_idx    = start->parent_idx();
@@ -398,13 +380,13 @@ void M_TYPE::removeNodes(
         NodeBaseG start_parent  = self.getNodeParentForUpdate(start);
         NodeBaseG stop_parent   = self.getNodeParentForUpdate(stop);
 
-        removeNonLeafNodes(start_parent, start_parent_idx + 1, stop_parent, stop_parent_idx, sums, sizes);
+        removeBranchNodes(start_parent, start_parent_idx + 1, stop_parent, stop_parent_idx, sums);
 
         if (self.isTheSameParent(start, stop))
         {
-        	if (self.mergeCurrentBTreeNodes(start, stop))
+            if (self.mergeCurrentLeafNodes(start, stop))
             {
-        		stop_idx    = start_idx;
+                stop_idx    = start_idx;
                 stop        = start;
             }
             else {
@@ -423,14 +405,13 @@ void M_TYPE::removeNodes(
 
 
 M_PARAMS
-void M_TYPE::removeNonLeafNodes(
+void M_TYPE::removeBranchNodes(
             NodeBaseG& start,
             Int start_idx,
             NodeBaseG& stop,
             Int stop_idx,
 
-            Accumulator& sums,
-            Position& sizes
+            Accumulator& sums
 )
 {
     auto& self = this->self();
@@ -442,7 +423,7 @@ void M_TYPE::removeNonLeafNodes(
         if (stop_idx - start_idx > 0)
         {
             //remove some space within the node
-            self.removeNodeContent(start, start_idx, stop_idx, sums, sizes);
+            self.removeNodeContent(start, start_idx, stop_idx, sums);
 
             self.removeRedundantRootP(start);
         }
@@ -455,8 +436,8 @@ void M_TYPE::removeNonLeafNodes(
 
         Int start_end = self.getNodeSize(start, 0);
 
-        self.removeNodeContent(start, start_idx, start_end, sums, sizes);
-        self.removeNodeContent(stop, 0, stop_idx, sums, sizes);
+        self.removeNodeContent(start, start_idx, start_end, sums);
+        self.removeNodeContent(stop, 0, stop_idx, sums);
 
         Int start_parent_idx    = start->parent_idx();
         Int stop_parent_idx     = stop->parent_idx();
@@ -464,11 +445,11 @@ void M_TYPE::removeNonLeafNodes(
         NodeBaseG start_parent  = self.getNodeParentForUpdate(start);
         NodeBaseG stop_parent   = self.getNodeParentForUpdate(stop);
 
-        removeNonLeafNodes(start_parent, start_parent_idx + 1, stop_parent, stop_parent_idx, sums, sizes);
+        removeBranchNodes(start_parent, start_parent_idx + 1, stop_parent, stop_parent_idx, sums);
 
         if (self.isTheSameParent(start, stop))
         {
-            if (self.mergeCurrentBTreeNodes(start, stop))
+            if (self.mergeCurrentBranchNodes(start, stop))
             {
                 stop            = start;
                 stop_parent_idx = start_parent_idx;

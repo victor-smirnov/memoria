@@ -31,10 +31,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrApiName)
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    typedef typename Base::NodeDispatcher                                       NodeDispatcher;
-    typedef typename Base::RootDispatcher                                       RootDispatcher;
-    typedef typename Base::LeafDispatcher                                       LeafDispatcher;
-    typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
+    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
+    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
+    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
 
     typedef typename Types::Value                                               Value;
 
@@ -47,7 +46,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrApiName)
 
     static const Int Streams                                                    = Types::Streams;
 
-    static const Int MAIN_STREAM                                                = Types::MAIN_STREAM;
 
 
     CtrSizeT size() const {
@@ -56,7 +54,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrApiName)
 
     Iterator seek(CtrSizeT pos)
     {
-        return self().findGT(MAIN_STREAM, pos, 0);
+    	typename Types::template SkipForwardWalker<Types, IntList<0>> walker(pos);
+
+    	return self().find2(walker);
     }
 
 

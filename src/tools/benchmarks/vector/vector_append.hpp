@@ -37,7 +37,7 @@ public:
 
 
     Allocator*  allocator_;
-    Ctr* 		ctr_;
+    Ctr*        ctr_;
 
     Int         memory_size;
 

@@ -52,7 +52,7 @@ struct BTTypes<Profile, SMrkMap<Key_, Value_, BitsPerMark_> >: public BTTypes<Pr
 
     typedef TypeList<
             LeafNodeTypes<LeafNode>,
-            NonLeafNodeTypes<BranchNode>
+            BranchNodeTypes<BranchNode>
     >                                                                           NodeTypesList;
 
     typedef TypeList<
@@ -69,6 +69,7 @@ struct BTTypes<Profile, SMrkMap<Key_, Value_, BitsPerMark_> >: public BTTypes<Pr
         typedef core::StaticVector<BigInt, 1>                       IteratorPrefixPart;
 
         typedef PkdFTree<Packed2TreeTypes<Key, Key, Indexes>>       NonLeafType;
+        typedef TL<TL<>>											IdxRangeList;
 
         typedef PackedFSESearchableMarkableMap<
                     PackedFSESearchableMarkableMapTypes<

@@ -220,9 +220,10 @@ public:
     {
         auto& self = this->self();
 
-        out<<(header != NULL ? header : me()->getDumpHeader())<<std::endl;
+        out<<(header != NULL ? header : self.getDumpHeader())<<std::endl;
 
         self.dumpKeys(out);
+        self.dumpCache(out);
 
         self.dumpBeforePages(out);
         self.dumpPages(out);
@@ -237,6 +238,7 @@ public:
     {
         auto& self  = this->self();
         out<<(header != NULL ? header : me()->getDumpHeader())<<std::endl;
+        dumpCache(out);
         dumpKeys(out);
         self.ctr().dumpPath(self.leaf(), out);
         out<<"======================================================================"<<std::endl;
@@ -244,14 +246,14 @@ public:
 
     void dumpCache(std::ostream& out = std::cout) const
     {
-    	auto& self  = this->self();
-    	out<<self.cache()<<std::endl;
+        auto& self  = this->self();
+        out<<self.cache()<<std::endl;
     }
 
     void dumpHeader(std::ostream& out = std::cout) const
     {
-    	self().dumpCache(out);
-    	self().dumpKeys(out);
+        self().dumpCache(out);
+        self().dumpKeys(out);
     }
 
     void dumpKeys(std::ostream& out) const

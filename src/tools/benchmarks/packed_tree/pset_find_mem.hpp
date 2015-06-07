@@ -25,24 +25,24 @@ using namespace std;
 template <Int BranchingFactor_>
 class PSetMemBenchmark: public BenchmarkTask {
 
-	static const Int Blocks                 									= 1;
+    static const Int Blocks                                                     = 1;
 
-	typedef Packed2TreeTypes<
-			BigInt,
-			BigInt,
-			Blocks,
-			ValueFSECodec,
-			BranchingFactor_,
-			BranchingFactor_
-	>                                                                   		Types;
+    typedef Packed2TreeTypes<
+            BigInt,
+            BigInt,
+            Blocks,
+            ValueFSECodec,
+            BranchingFactor_,
+            BranchingFactor_
+    >                                                                           Types;
 
-	typedef PkdFTree<Types>                                                     Map;
+    typedef PkdFTree<Types>                                                     Map;
 
-    typedef typename Map::Values                                               	Values;
+    typedef typename Map::Values                                                Values;
 
-    PackedAllocator* 	allocator_;
-    Map* 				map_;
-    Int* 				rd_array_;
+    PackedAllocator*    allocator_;
+    Map*                map_;
+    Int*                rd_array_;
 
 public:
 
@@ -56,19 +56,19 @@ public:
 
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {
-    	Int buffer_size     = params.x();
-    	void* block 		= malloc(buffer_size);
+        Int buffer_size     = params.x();
+        void* block         = malloc(buffer_size);
 
-    	allocator_ = T2T<PackedAllocator*>(block);
-    	allocator_->init(buffer_size, 1);
-    	allocator_->setTopLevelAllocator();
+        allocator_ = T2T<PackedAllocator*>(block);
+        allocator_->init(buffer_size, 1);
+        allocator_->setTopLevelAllocator();
 
-    	map_ = allocator_->template allocate<Map>(0, allocator_->client_area());
+        map_ = allocator_->template allocate<Map>(0, allocator_->client_area());
 
-    	Values one = {1};
+        Values one = {1};
 
-    	map_->insert(0, map_->max_size(), [&](){return one;});
-    	map_->reindex();
+        map_->insert(0, map_->max_size(), [&](){return one;});
+        map_->reindex();
 
         rd_array_ = new Int[params.operations()];
         for (Int c = 0; c < params.operations(); c++)

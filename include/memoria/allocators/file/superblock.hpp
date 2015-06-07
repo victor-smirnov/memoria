@@ -66,12 +66,11 @@ class Superblock {
 
 public:
 
-    typedef PackedBlockMap<ID>                                                  BlockMap;
+    using BlockMap          = PackedBlockMap<ID>;
+    using ObjectsList       = TypeList<BlockMap>;
 
-    typedef TypeList<BlockMap>                                                  ObjectsList;
-
-    typedef typename PackedDispatchersListBuilder<ObjectsList>::Type            PackedTypesList;
-    typedef typename PackedDispatcherTool<0, PackedTypesList>::Type             Dispatcher;
+    using PackedTypesList   = typename PackedDispatchersListBuilder<ObjectsList>::Type;
+    using Dispatcher        = PackedDispatcher<PackedTypesList>;
 
     enum {BLOCK_MAP};
 

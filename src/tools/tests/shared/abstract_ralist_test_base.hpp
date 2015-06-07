@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2013.
+// Copyright Victor Smirnov 2013-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -60,6 +60,7 @@ protected:
     String dump_name_;
 
 
+    BigInt iteration_ = 0;
 
     Int check_count_ = 0;
 
@@ -86,6 +87,7 @@ public:
         MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
         MEMORIA_ADD_TEST_PARAM(random_position_)->state();
 
+        MEMORIA_ADD_TEST_PARAM(iteration_)->state();
 
         MEMORIA_ADD_TEST_WITH_REPLAY(testInsertFromStart,   replayInsertFromStart);
         MEMORIA_ADD_TEST_WITH_REPLAY(testInsertAtEnd,       replayInsertAtEnd);
@@ -94,6 +96,10 @@ public:
         MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveFromStart,   replayRemoveFromStart);
         MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveAtEnd,       replayRemoveAtEnd);
         MEMORIA_ADD_TEST_WITH_REPLAY(testRemoveInTheMiddle, replayRemoveInTheMiddle);
+    }
+
+    BigInt iteration() const {
+    	return iteration_;
     }
 
     virtual ~AbstractRandomAccessListTestBase() throw() {}
@@ -256,20 +262,23 @@ public:
 
     virtual void checkIteratorPrefix(Iterator& iter, const char* source)
     {
-        Accumulator prefixes;
-        iter.ComputePrefix(prefixes);
+    	auto tmp = iter;
 
-        if (iter.prefixes() != prefixes)
-        {
-            iter.dump(out());
-            throw TestException(source, SBuf()<<"Invalid prefix value. Iterator: "<<iter.prefixes()<<" Actual: "<<prefixes);
-        }
+    	tmp.refreshCache();
+
+    	if (iter.cache() != tmp.cache())
+    	{
+    		throw TestException(
+    				source,
+    				SBuf()<<"Iterator cache mismatch: having: "<<iter.cache()<<", should be: "<<tmp.cache()
+    		);
+    	}
     }
 
 
 
 
-    void insertFromStart(Allocator&, Ctr& ctr)
+    void insertFromStart(Allocator& alc, Ctr& ctr)
     {
         Iterator iter = seek(ctr, 0);
 
@@ -279,6 +288,8 @@ public:
         BigInt size = ctr.size();
 
         insert(iter, data);
+
+        checkAllocator(alc, "", MA_SRC);
 
         BigInt size2 = ctr.size();
 
@@ -348,7 +359,7 @@ public:
 
 
 
-    void insertInTheMiddle(Allocator&, Ctr& ctr)
+    void insertInTheMiddle(Allocator& alloc, Ctr& ctr)
     {
         Iterator iter    = seek(ctr, getRandomPosition(ctr));
 
@@ -371,7 +382,15 @@ public:
             iter.dumpPath();
             throw;
         }
-        checkBufferWritten(iter, data,   MA_SRC);
+
+        try{
+        	checkBufferWritten(iter, data,   MA_SRC);
+        }
+        catch (...) {
+        	iter.dumpPath();
+        	throw;
+        }
+
         checkBufferWritten(iter, suffix, MA_SRC);
     }
 
@@ -442,11 +461,15 @@ public:
 
         Iterator iter = seek(ctr, ctr_size - size);
 
+        checkIterator(iter, MA_SRC);
+
         MemBuffer prefix = createPrefixCheckBuffer(iter);
 
         BigInt last_size = getSize(ctr);
 
         remove(iter, size);
+
+        checkIterator(iter, MA_SRC);
 
         AssertEQ(MA_SRC, last_size - size, getSize(ctr));
 
@@ -497,7 +520,6 @@ public:
 
 
         MemBuffer prefix = createPrefixCheckBuffer(iter);
-
 
         BigInt position = getPosition(iter);
 

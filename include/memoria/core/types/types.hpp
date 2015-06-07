@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011-2013.
+// Copyright Victor Smirnov 2011-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -78,14 +78,24 @@ typedef std::string                                                             
 typedef const String&                                                           StringRef;
 
 template <typename T, T V> struct ConstValue {
-    static const T Value = V;
+    static constexpr T Value = V;
+
+    constexpr operator T() const noexcept {return Value;}
+    constexpr T operator()() const noexcept {return Value;}
 };
 
 template <UInt Value>
 using UIntValue = ConstValue<UInt, Value>;
 
+template <Int Value>
+using IntValue = ConstValue<Int, Value>;
+
+
 template <bool Value>
 using BoolValue = ConstValue<bool, Value>;
+
+
+
 
 class EmptyValue {
 public:
@@ -110,13 +120,25 @@ template <typename T> struct TypeHash; // must define Value constant
 
 
 template <typename ... Types>
-struct TypeList {};
+struct TypeList {
+	constexpr TypeList() = default;
+};
+
+template <typename ... Types>
+using TL = TypeList<Types...>;
+
 
 template <typename T, T ... Values>
-struct ValueList {};
+struct ValueList {
+	constexpr ValueList() = default;
+};
 
 
+template <Int... Values>
+using IntList = ValueList<Int, Values...>;
 
+template <Int... Values>
+using UIntList = ValueList<UInt, Values...>;
 
 
 
@@ -136,6 +158,9 @@ class CtrWrapper    {};
 
 template <typename Key, typename Value>
 struct Map          {};
+
+template <typename Key, typename Value>
+struct MapX         {};
 
 template <typename Key, typename Value>
 struct Map2         {};
@@ -339,6 +364,15 @@ enum class WalkDirection {
     UP, DOWN
 };
 
+enum class WalkCmd {
+    FIRST_LEAF, LAST_LEAF, THE_ONLY_LEAF, FIX_TARGET, NONE, PREFIXES
+};
+
+
+enum class UpdateType {
+	SET, ADD
+};
+
 enum class SearchType {LT, LE, GT, GE};
 enum class IteratorMode {FORWARD, BACKWARD};
 enum class MergeType {NONE, LEFT, RIGHT};
@@ -351,6 +385,11 @@ extern BigInt DebugCounter1;
 extern BigInt DebugCounter2;
 extern size_t MemBase;
 
+
+template <typename T>
+struct TypeP {
+	using Type = T;
+};
 
 }
 

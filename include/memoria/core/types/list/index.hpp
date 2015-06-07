@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011.
+// Copyright Victor Smirnov 2011-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -9,7 +9,7 @@
 #ifndef _MEMORIA_CORE_TOOLS_TYPES_LIST_INDEX_HPP
 #define _MEMORIA_CORE_TOOLS_TYPES_LIST_INDEX_HPP
 
-#include <memoria/core/types/typelist.hpp>
+#include <memoria/core/types/types.hpp>
 
 namespace memoria    {
 
@@ -39,32 +39,36 @@ struct IndexOfTool<Item, TypeList<>, Idx> {
 
 template <Int Idx, typename List, bool ReturnDefault = false, Int Counter = 0> struct SelectByIndexTool;
 
-template <Int idx> class ListIndexOutOfRange {};
+template <Int Idx, typename List, bool ReturnDefault = false>
+using SelectByIndex = typename SelectByIndexTool<Idx, List, ReturnDefault>::Type;
+
+template <Int idx> class ListIndexOutOfRange;
 
 
 template <Int Idx, bool ReturnDefault, typename Head, typename ... Tail>
 struct SelectByIndexTool<Idx, TypeList<Head, Tail...>, ReturnDefault, Idx> {
-    typedef Head                                                                Result;
+    using Type = Head;
 };
 
 template <Int Idx, bool ReturnDefault, typename Head, typename ... Tail, Int Counter>
 struct SelectByIndexTool<Idx, TypeList<Head, Tail...>, ReturnDefault, Counter> {
-    typedef typename SelectByIndexTool<
+    using Type = typename SelectByIndexTool<
                         Idx,
                         TypeList<Tail...>,
                         ReturnDefault,
                         Counter + 1
-                     >::Result                                                  Result;
+                     >::Type;
 };
 
 template <Int Idx, Int Counter>
-struct SelectByIndexTool<Idx, TypeList<>, false, Counter> {
-    typedef ListIndexOutOfRange<Idx>                                            Result;
-};
+struct SelectByIndexTool<Idx, TypeList<>, false, Counter>;
+//{
+//    using Type = ListIndexOutOfRange<Idx>;
+//};
 
 template <Int Idx, Int Counter>
 struct SelectByIndexTool<Idx, TypeList<>, true, Counter> {
-    typedef NullType                                                            Result;
+    using Type = NullType;
 };
 
 

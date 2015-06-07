@@ -14,9 +14,9 @@
 namespace memoria   {
 namespace louds     {
 
-template <typename Types>
-class SkipForwardWalker: public bt::FindForwardWalkerBase<Types, SkipForwardWalker<Types>> {
-    typedef bt::FindForwardWalkerBase<Types, SkipForwardWalker<Types>>          Base;
+template <typename Types, Int Stream>
+class SkipForwardWalker: public bt::FindForwardWalkerBase<Types, Stream, SkipForwardWalker<Types, Stream>> {
+    typedef bt::FindForwardWalkerBase<Types, Stream, SkipForwardWalker<Types, Stream>>          Base;
     typedef typename Base::Key                                                  Key;
 
     BigInt rank1_ = 0;
@@ -85,9 +85,9 @@ public:
     }
 };
 
-template <typename Types>
-class SkipBackwardWalker: public bt::FindBackwardWalkerBase<Types, SkipBackwardWalker<Types>> {
-    typedef bt::FindBackwardWalkerBase<Types, SkipBackwardWalker<Types>>        Base;
+template <typename Types, Int Stream>
+class SkipBackwardWalker: public bt::FindBackwardWalkerBase<Types, Stream, SkipBackwardWalker<Types, Stream>> {
+    typedef bt::FindBackwardWalkerBase<Types, Stream, SkipBackwardWalker<Types, Stream>>        Base;
     typedef typename Base::Key                                                  Key;
 
     BigInt rank1_ = 0;

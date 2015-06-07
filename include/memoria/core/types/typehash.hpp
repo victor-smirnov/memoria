@@ -59,7 +59,7 @@ struct TypeHash<Profile<T>> {
 
 template <UInt Base, UInt ... Values>
 struct HashHelper {
-    static const UInt Value = md5::Md5Sum<ValueList<UInt, Base, Values...>>::Result::Value32;
+    static const UInt Value = md5::Md5Sum<ValueList<UInt, Base, Values...>>::Type::Value32;
 };
 
 
@@ -111,7 +111,10 @@ struct TypeHash<Map2<Key, Value>>:   UIntValue<
     HashHelper<1103, TypeHash<Key>::Value, TypeHash<Value>::Value>::Value
 > {};
 
-
+template <typename Key, typename Value>
+struct TypeHash<MapX<Key, Value>>:   UIntValue<
+    HashHelper<1203, TypeHash<Key>::Value, TypeHash<Value>::Value>::Value
+> {};
 
 template <
     Int Indexes,

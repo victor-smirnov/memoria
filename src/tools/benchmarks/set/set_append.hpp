@@ -77,9 +77,9 @@ public:
 
         for (Int c = 0; c < params.operations() / size; c++)
         {
-        	FnDataSource<Entry> source(size, [&](BigInt idx){
-        		return entry;
-        	});
+            FnDataSource<Entry> source(size, [&](BigInt idx){
+                return entry;
+            });
 
             set_->insert(i, source);
 

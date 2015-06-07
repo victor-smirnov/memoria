@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011-2013.
+// Copyright Victor Smirnov 2011+.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -13,6 +13,8 @@
 
 #include <memoria/core/container/logs.hpp>
 #include <memoria/core/container/macros.hpp>
+
+#include <memoria/prototypes/bt/bt_macros.hpp>
 
 
 namespace memoria    {
@@ -29,9 +31,10 @@ public:
 
     typedef typename Types::NodeBaseG                                           NodeBaseG;
 
-    typedef typename Types::Pages::NodeDispatcher                               NodeDispatcher;
-    typedef typename Types::Pages::NodeDispatcher                               RootDispatcher;
-    typedef typename Types::Pages::TreeDispatcher                               TreeDispatcher;
+    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
+    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
+    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
+    using TreeDispatcher 	= typename Types::Pages::TreeDispatcher;
 
     typedef typename Types::Accumulator                                         Accumulator;
 
@@ -63,7 +66,7 @@ public:
     bool checkContent(const NodeBaseG& node) const
     {
         try {
-            NodeDispatcher::dispatchConst(node, CheckContentFn());
+            NodeDispatcher::dispatch(node, CheckContentFn());
             return false;
         }
         catch (Exception ex)
@@ -127,7 +130,7 @@ void M_TYPE::checkTreeStructure(const NodeBaseG& parent, Int parent_idx, const N
 
     if (!node->is_root())
     {
-        errors = TreeDispatcher::dispatchTreeConstRtn(parent, node, CheckTypedNodeContentFn(me()), parent_idx) || errors;
+        errors = TreeDispatcher::dispatchTree(parent, node, CheckTypedNodeContentFn(me()), parent_idx) || errors;
 
         if (!node->is_leaf())
         {

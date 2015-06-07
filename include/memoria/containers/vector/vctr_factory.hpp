@@ -1,14 +1,14 @@
 
-// Copyright Victor Smirnov 2013-2014.
+// Copyright Victor Smirnov 2013+.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_CONTAINERS_vctr_FACTORY_HPP
-#define _MEMORIA_CONTAINERS_vctr_FACTORY_HPP
+#ifndef _MEMORIA_CONTAINERS_VCTR_FACTORY_HPP
+#define _MEMORIA_CONTAINERS_VCTR_FACTORY_HPP
 
-#include <memoria/prototypes/bt/bt_factory.hpp>
+#include <memoria/prototypes/bt_ss/btss_factory.hpp>
 
 #include <memoria/core/packed/array/packed_fse_array.hpp>
 
@@ -32,28 +32,72 @@ namespace memoria    {
 
 
 template <typename Profile, typename Value_>
-struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memoria::BT> {
+struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memoria::BTSingleStream> {
 
-    typedef BTTypes<Profile, memoria::BT>                                       Base;
+    typedef BTTypes<Profile, memoria::BTSingleStream>                           Base;
 
     typedef Value_                                                              Value;
 
+    struct StreamTF {
+        typedef BigInt                                              Key;
+        typedef Value_                                              Value;
 
-    template <typename Iterator, typename Container>
-    struct IteratorCacheFactory {
-        typedef ::memoria::mvector::VectorIteratorPrefixCache<Iterator, Container>               Type;
+        typedef PkdFTree<Packed2TreeTypes<Key, Key>>             	NonLeafType;
+        typedef TL<PackedFSEArray<PackedFSEArrayTypes<Value>>>      LeafType;
+
+        typedef TL<TL<>>											IdxRangeList;
     };
 
-    typedef TypeList<
-            LeafNodeTypes<LeafNode>,
-            NonLeafNodeTypes<BranchNode>
-    >                                                                           NodeTypesList;
 
-    typedef TypeList<
-            TreeNodeType<LeafNode>,
-            TreeNodeType<BranchNode>
-    >                                                                           DefaultNodeTypesList;
+    typedef TypeList<StreamTF>                                                  StreamDescriptors;
 
+
+    typedef BalancedTreeMetadata<
+                typename Base::ID,
+                ListSize<StreamDescriptors>::Value
+    >                                                                           Metadata;
+
+
+    using CommonContainerPartsList = MergeLists<
+            typename Base::CommonContainerPartsList,
+
+            mvector::CtrToolsName,
+            mvector::CtrInsertName,
+            mvector::CtrRemoveName,
+            mvector::CtrFindName,
+            mvector::CtrApiName
+    >;
+
+    using IteratorPartsList = MergeLists<
+            typename Base::IteratorPartsList,
+            mvector::ItrApiName
+    >;
+};
+
+
+
+template <Granularity Gr> struct CodecClassTF;
+
+template <>
+struct CodecClassTF<Granularity::Byte> {
+	template <typename V>
+	using Type = UByteExintCodec<V>;
+};
+
+
+template <>
+struct CodecClassTF<Granularity::Bit> {
+	template <typename V>
+	using Type = UBigIntEliasCodec<V>;
+};
+
+
+template <typename Profile, Granularity Gr, typename Value_>
+struct BTTypes<Profile, memoria::Vector<VLen<Gr, Value_>> >: public BTTypes<Profile, memoria::BTSingleStream> {
+
+    typedef BTTypes<Profile, memoria::BTSingleStream>                           Base;
+
+    typedef Value_                                                              Value;
 
     struct StreamTF {
         typedef BigInt                                              Key;
@@ -62,8 +106,13 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
         typedef core::StaticVector<BigInt, 1>                       AccumulatorPart;
         typedef core::StaticVector<BigInt, 1>                       IteratorPrefixPart;
 
-        typedef PkdFTree<Packed2TreeTypes<Key, Key, 1>>             NonLeafType;
-        typedef PackedFSEArray<PackedFSEArrayTypes<Value>>          LeafType;
+        typedef PkdFTree<Packed2TreeTypes<Key, Key, 1>>        		NonLeafType;
+        typedef TL<PackedVLEArray<
+        				Packed2TreeTypes<
+        					Value, Value, 1, CodecClassTF<Gr>::template Type
+        				>
+        		>>      											LeafType;
+        typedef TL<TL<>>											IdxRangeList;
     };
 
 
@@ -77,57 +126,31 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
     >                                                                           Metadata;
 
 
-    typedef typename MergeLists<
-            typename Base::ContainerPartsList,
-            bt::NodeNormName,
+    using CommonContainerPartsList = MergeLists<
+            typename Base::CommonContainerPartsList,
 
             mvector::CtrToolsName,
             mvector::CtrInsertName,
             mvector::CtrRemoveName,
             mvector::CtrFindName,
             mvector::CtrApiName
-    >::Result                                                                   ContainerPartsList;
+    >;
 
-    typedef typename MergeLists<
+    using IteratorPartsList = MergeLists<
             typename Base::IteratorPartsList,
             mvector::ItrApiName
-    >::Result                                                                   IteratorPartsList;
-
-    typedef IDataSource<Value>                                                  DataSource;
-    typedef IDataTarget<Value>                                                  DataTarget;
-
-    typedef std::tuple<DataSource*>												Source;
-
-
-
-    template <typename Types>
-    using FindGTWalker          = SkipForwardWalker<Types>;
-
-    template <typename Types>
-    using FindGEWalker          = ::memoria::mvector::FindGEWalker<Types>;
-
-
-    template <typename Types>
-    using SkipForwardWalker     = SkipForwardWalker<Types>;
-
-    template <typename Types>
-    using SkipBackwardWalker    = SkipBackwardWalker<Types>;
-
-    template <typename Types>
-    using NextLeafWalker        = NextLeafWalker<Types>;
-
-    template <typename Types>
-    using PrevLeafWalker        = PrevLeafWalker<Types>;
-
-
-
-    template <typename Types>
-    using FindBeginWalker       = ::memoria::mvector::FindBeginWalker<Types>;
+    >;
 };
 
 
+
+
+
+
+
+
 template <typename Profile, typename Value, typename T>
-class CtrTF<Profile, memoria::Vector<Value>, T>: public CtrTF<Profile, memoria::BT, T> {
+class CtrTF<Profile, memoria::Vector<Value>, T>: public CtrTF<Profile, memoria::BTSingleStream, T> {
 
     using Base = CtrTF<Profile, memoria::BT, T>;
 public:

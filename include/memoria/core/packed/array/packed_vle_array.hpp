@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2013.
+// Copyright Victor Smirnov 2013+.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -11,6 +11,8 @@
 #include <memoria/core/packed/tools/packed_allocator.hpp>
 #include <memoria/core/packed/tree/packed_tree_tools.hpp>
 #include <memoria/core/packed/tree/packed_tree_walkers.hpp>
+
+#include <memoria/core/packed/array/packed_fse_array.hpp>
 
 #include <memoria/core/tools/exint_codec.hpp>
 #include <memoria/core/tools/elias_codec.hpp>
@@ -87,7 +89,7 @@ public:
     typedef core::StaticVector<Int, Blocks>                                     Dimension;
     typedef core::StaticVector<Dimension, 2>                                    BlockRange;
     typedef core::StaticVector<IndexValue, Blocks>                              Values;
-    typedef core::StaticVector<IndexValue, Blocks + 1>                          Values2;
+
 
     typedef PackedTreeTools<BranchingFactor, ValuesPerBranch>                   TreeTools;
 
@@ -95,6 +97,10 @@ public:
 
     typedef FnAccessor<Value>                                                   ValueAccessor;
     typedef ConstFnAccessor<Value>                                              ConstValueAccessor;
+
+    using InputType = Value;
+
+    using InputBuffer = PackedFSEArray<PackedFSEArrayTypes<Value>>;
 
     class Metadata {
         Int size_;
@@ -237,7 +243,7 @@ public:
         Int offsets_length  = Base::roundUpBytesToAlignmentBlocks(getOffsetsBlockLength(max_tree_capacity));
 
         Int index_size      = MyType::index_size(max_tree_capacity);
-        Int index_length    = Base::roundUpBytesToAlignmentBlocks(index_size * Indexes * sizeof(IndexValue));
+        Int index_length    = Base::roundUpBytesToAlignmentBlocks(index_size * Blocks * sizeof(IndexValue));
 
         Int layout_size     = MyType::index_layout_size(max_tree_capacity);
         Int layout_length   = Base::roundUpBytesToAlignmentBlocks(layout_size * sizeof(LayoutValue));
@@ -531,6 +537,10 @@ public:
         Codec codec;
         Value value;
 
+        if (pos >= data_size()) {
+        	int a = 0; a++;
+        }
+
         MEMORIA_ASSERT(pos, <, data_size());
 
         codec.decode(values_, value, pos, data_size());
@@ -761,7 +771,7 @@ public:
         TreeTools::buildIndexTreeLayout(index_layout(), max_size, layout_size);
 
         Int index_size = meta->index_size();
-        Base::template allocateArrayBySize<IndexValue>(INDEX, index_size * Indexes);
+        Base::template allocateArrayBySize<IndexValue>(INDEX, index_size * Blocks);
 
         Int values_block_length = Base::roundUpBitsToAlignmentBlocks(max_size * Codec::ElementSize);
         Base::template allocateArrayByLength<BufferType>(VALUES, values_block_length);
@@ -789,7 +799,7 @@ public:
         TreeTools::buildIndexTreeLayout(index_layout(), max_capacity, layout_size);
 
         Int index_size = meta->index_size();
-        Base::template allocateArrayBySize<IndexValue>(INDEX, index_size * Indexes);
+        Base::template allocateArrayBySize<IndexValue>(INDEX, index_size * Blocks);
 
         Int values_block_length = Base::roundUpBitsToAlignmentBlocks(max_capacity * Codec::ElementSize);
         Base::template allocateArrayByLength<BufferType>(VALUES, values_block_length);
@@ -1141,15 +1151,15 @@ public:
 
     static Int computeDataLength(const Values& values)
     {
-    	Codec codec;
-    	Int length = 0;
+        Codec codec;
+        Int length = 0;
 
-    	for (Int c = 0; c < Blocks; c++)
-    	{
-    		length += codec.length(values[c]);
-    	}
+        for (Int c = 0; c < Blocks; c++)
+        {
+            length += codec.length(values[c]);
+        }
 
-    	return length;
+        return length;
     }
 
 
@@ -1174,6 +1184,23 @@ public:
             to_write_local  -= batch_size;
         }
     }
+
+    void insert(Int pos, Int start, Int size, const Value* data)
+    {
+    	int i = start;
+    	this->insert(pos, size - start, [data, &i]() -> Values {
+    		return Values(data[i++]);
+    	});
+    }
+
+    void insert(Int pos, Int start, Int size, const InputBuffer* data)
+    {
+    	int i = start;
+    	this->insert(pos, size - start, [data, &i]() -> Values {
+    		return Values(data->value(i++));
+    	});
+    }
+
 
     Int insert(Int idx, std::function<bool (Values&)> provider)
     {
@@ -1212,156 +1239,94 @@ public:
     }
 
 
-    void insert(IData* data, Int pos, Int length)
-    {
-        MEMORIA_ASSERT(pos, <=, size());
 
-        IDataSource<Values>* src = static_cast<IDataSource<Values>*>(data);
 
-        IDataAPI api_type = src->api();
-
-        Values values[IOBatchSize];
-        BigInt to_write_local = length;
-
-        if (api_type == IDataAPI::Batch || api_type == IDataAPI::Both)
-        {
-            while (to_write_local > 0)
-            {
-                SizeT remainder     = src->getRemainder();
-                SizeT batch_size    = remainder > IOBatchSize ? IOBatchSize : remainder;
-
-                SizeT processed     = src->get(&values[0], 0, batch_size);
-
-                insertData(values, pos, processed);
-
-                pos             += processed;
-                to_write_local  -= processed;
-            }
-        }
-        else {
-            while (to_write_local > 0)
-            {
-                SizeT remainder     = src->getRemainder();
-                SizeT batch_size    = remainder > IOBatchSize ? IOBatchSize : remainder;
-
-                for (Int c = 0; c < batch_size; c++)
-                {
-                    values[c] = src->get();
-                }
-
-                insertData(values, pos, batch_size);
-
-                pos             += batch_size;
-                to_write_local  -= batch_size;
-            }
-        }
-
-        reindex();
-    }
-
-    void append(IData* src, Int pos, Int length)
-    {
-        insert(src, size(), length);
-    }
-
-    void update(IData* data, Int pos, Int length)
-    {
-        removeSpace(pos, pos + length);
-        insert(data, pos, length);
-    }
 
     void update(Int start, Int end, std::function<Values ()> provider)
     {
-    	remove(start, end);
-    	insert(start, end - start, provider);
+        remove(start, end);
+        insert(start, end - start, provider);
     }
 
-
-    void read(IData* data, Int pos, Int length)
-    {
-        IDataTarget<Values>* tgt = static_cast<IDataTarget<Values>*>(data);
-
-        IDataAPI api_type = tgt->api();
-
-        Values values[IOBatchSize];
-        BigInt to_read = length;
-
-        if (api_type == IDataAPI::Batch || api_type == IDataAPI::Both)
-        {
-            while (to_read > 0)
-            {
-                SizeT remainder     = tgt->getRemainder();
-                SizeT batch_size    = remainder > IOBatchSize ? IOBatchSize : remainder;
-
-                readData(values, pos, batch_size);
-
-                Int local_pos = 0;
-                Int to_read_local = batch_size;
-
-                while (to_read_local > 0)
-                {
-                    SizeT processed = tgt->put(&values[0], local_pos, batch_size);
-
-                    local_pos       += processed;
-                    to_read_local   -= processed;
-                }
-
-                pos     += batch_size;
-                to_read -= batch_size;
-            }
-        }
-        else {
-            while (to_read > 0)
-            {
-                SizeT remainder     = tgt->getRemainder();
-                SizeT batch_size    = remainder > IOBatchSize ? IOBatchSize : remainder;
-
-                readData(values, pos, batch_size);
-
-                for (Int c = 0; c < batch_size; c++)
-                {
-                    tgt->put(values[c]);
-                }
-
-                pos     += batch_size;
-                to_read -= batch_size;
-            }
-        }
-    }
 
 
     void read(Int start, Int end, std::function<void (const Values&)> consumer) const
+    {
+        MEMORIA_ASSERT(start, >=, 0);
+        MEMORIA_ASSERT(start, <=, end);
+        MEMORIA_ASSERT(end, <=, size());
+
+        Values values[IOBatchSize];
+
+        Int to_read = end - start;
+        Int pos     = start;
+
+        while (to_read > 0)
+        {
+            SizeT batch_size    = to_read > IOBatchSize ? IOBatchSize : to_read;
+
+            readData(values, pos, batch_size);
+
+            for (Int c = 0; c < batch_size; c++)
+            {
+                consumer(values[c]);
+            }
+
+            pos     += batch_size;
+            to_read -= batch_size;
+        }
+    }
+
+    template <typename Fn>
+    void read(Int block, Int start, Int end, Fn&& fn) const
     {
     	MEMORIA_ASSERT(start, >=, 0);
     	MEMORIA_ASSERT(start, <=, end);
     	MEMORIA_ASSERT(end, <=, size());
 
-    	Values values[IOBatchSize];
+    	Codec codec;
 
-    	Int to_read	= end - start;
-    	Int pos		= start;
+    	const auto* buffer  = this->values();
+    	Int size            = this->size();
 
-    	while (to_read > 0)
+    	Int value_idx = size * block + start;
+
+    	size_t pos = this->value_offset(value_idx);
+
+    	for (SizeT c = 0; c < end - start; c++)
     	{
-    		SizeT batch_size    = to_read > IOBatchSize ? IOBatchSize : to_read;
-
-    		readData(values, pos, batch_size);
-
-    		for (Int c = 0; c < batch_size; c++)
-    		{
-    			consumer(values[c]);
-    		}
-
-    		pos     += batch_size;
-    		to_read -= batch_size;
+    		Value value = 0;
+    		pos += codec.decode(buffer, value, pos);
+    		fn(value);
     	}
     }
 
 
 
-
     // ==================================== Sum ============================================ //
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void sum(AccumItem<T, Size>& accum) const
+    {
+    	static_assert(Offset <= Size, "Invalid balanced tree structure");
+    }
 
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void sum(Int start, Int end, AccumItem<T, Size>& accum) const
+    {
+    	static_assert(Offset <= Size, "Invalid balanced tree structure");
+    }
+
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void sub(Int start, AccumItem<T, Size>& accum) const
+    {
+    	static_assert(Offset <= Size, "Invalid balanced tree structure");
+    }
+
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void sum(Int idx, AccumItem<T, Size>& accum) const
+    {
+    	static_assert(Offset <= Size, "Invalid balanced tree structure");
+    }
 
 
 
@@ -1446,7 +1411,7 @@ public:
         for (Int c = 0; c < idx_max; c++)
         {
             out<<c<<" ";
-            for (Int block = 0; block < Indexes; block++)
+            for (Int block = 0; block < Blocks; block++)
             {
                 out<<indexes(block)[c]<<" ";
             }
@@ -1500,7 +1465,7 @@ public:
 
         dumpLayout(out);
 
-        out<<"Indexes:"<<std::dec<<std::endl;
+        out<<"Blocks:"<<std::dec<<std::endl;
 
         dumpIndex(out);
 
@@ -1571,13 +1536,13 @@ public:
 
         for (Int c = 0; c < index_size(); c++)
         {
-            IndexValue indexes[Indexes];
-            for (Int idx = 0; idx < Indexes; idx++)
+            IndexValue indexes[Blocks];
+            for (Int idx = 0; idx < Blocks; idx++)
             {
                 indexes[idx] = this->indexes(idx)[c];
             }
 
-            handler->value("INDEX", indexes, Indexes);
+            handler->value("INDEX", indexes, Blocks);
         }
 
         handler->endGroup();
@@ -1618,7 +1583,7 @@ public:
             FieldFactory<LayoutValue>::serialize(buf, layout, layout[0] + 1);
         }
 
-        FieldFactory<IndexValue>::serialize(buf, indexes(0), Indexes * meta->index_size());
+        FieldFactory<IndexValue>::serialize(buf, indexes(0), Blocks * meta->index_size());
 
         FieldFactory<BufferType>::serialize(buf, values(), this->data_length());
     }
@@ -1642,7 +1607,7 @@ public:
             FieldFactory<LayoutValue>::deserialize(buf, layout + 1, layout[0]);
         }
 
-        FieldFactory<IndexValue>::deserialize(buf, indexes(0), Indexes * meta->index_size());
+        FieldFactory<IndexValue>::deserialize(buf, indexes(0), Blocks * meta->index_size());
 
         FieldFactory<BufferType>::deserialize(buf, values(), this->data_length());
     }
@@ -1747,7 +1712,7 @@ private:
         Int layout_length   = Base::roundUpBytesToAlignmentBlocks(layout_size * sizeof(LayoutValue));
 
         Int index_size      = MyType::index_size(max_tree_capacity);
-        Int index_length    = Base::roundUpBytesToAlignmentBlocks(index_size * Indexes * sizeof(IndexValue));
+        Int index_length    = Base::roundUpBytesToAlignmentBlocks(index_size * Blocks * sizeof(IndexValue));
 
         Int values_length   = Base::roundUpBitsToAlignmentBlocks(max_tree_capacity * Codec::ElementSize);
 
@@ -1866,6 +1831,20 @@ private:
             }
         }
     }
+
+
+
+};
+
+
+template <typename Types>
+struct PkdStructSizeType<PackedVLEArray<Types>> {
+	static const PackedSizeType Value = PackedSizeType::VARIABLE;
+};
+
+template <typename T>
+struct StructSizeProvider<PackedVLEArray<T>> {
+    static const Int Value = 0;
 };
 
 

@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2012.
+// Copyright Victor Smirnov 2012-2014.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -11,6 +11,7 @@
 #include <memoria/core/types/algo/select.hpp>
 #include <memoria/core/tools/type_name.hpp>
 #include <memoria/core/types/types.hpp>
+#include <memoria/core/types/list/misc.hpp>
 
 namespace memoria   {
 
@@ -19,16 +20,16 @@ template <typename List> struct TypeToValueList;
 
 template <typename Head, typename... Tail>
 struct TypeToValueList<TypeList<Head, Tail...>> {
-    typedef typename AppendValueTool<
+    using Type = typename AppendValueTool<
                 UInt,
                 TypeHash<Head>::Value,
                 typename TypeToValueList<TypeList<Tail...> >::Type
-    >::Result                                                                   Type;
+    >::Type;
 };
 
 template <>
 struct TypeToValueList<TypeList<>> {
-    typedef ValueList<UInt>                                                     Type;
+    using Type = ValueList<UInt>;
 };
 
 
@@ -119,7 +120,7 @@ class Block<Quad<A, B, C, D>, Fun, X, K, S, I> {
                   >::Value;
 
 public:
-    typedef Quad<D, ValueB, B, C> Result;
+    using Result = Quad<D, ValueB, B, C>;
 };
 
 typedef Quad<0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476> Q0;
@@ -150,7 +151,7 @@ class Round1 {
 
 public:
 
-    typedef R16                                                                 Result;
+    using Result = R16;
 
     static void dump() {
         cout<<TypeNameFactory<Result>::name()<<endl;
@@ -182,7 +183,7 @@ class Round2 {
     typedef typename Block<R15, FunG, X, 12, 20, 32>::Result    R16;
 
 public:
-    typedef R16                                                                 Result;
+    using Result = R16;
 
     static void dump() {
         cout<<TypeNameFactory<Result>::name()<<endl;
@@ -213,7 +214,7 @@ class Round3 {
     typedef typename Block<R15, FunH, X,  2, 23, 48>::Result    R16;
 
 public:
-    typedef R16                                                                 Result;
+    using Result = R16;
 
     static void dump() {
         cout<<TypeNameFactory<Result>::name()<<endl;
@@ -243,7 +244,7 @@ class Round4 {
     typedef typename Block<R15, FunI, X,  9, 21, 64>::Result    R16;
 
 public:
-    typedef R16                                                                 Result;
+    using Result = R16;
 
     static void dump() {
         cout<<TypeNameFactory<Result>::name()<<endl;
@@ -258,7 +259,7 @@ class Md5Round {
     typedef typename Round4<R3, X>::Result R4;
 
 public:
-    typedef Quad<Q0::A + R4::A, Q0::B + R4::B, Q0::C + R4::C, Q0::D + R4::D>    Result;
+    using Result = Quad<Q0::A + R4::A, Q0::B + R4::B, Q0::C + R4::C, Q0::D + R4::D>;
 
 
     static void dump() {
@@ -275,23 +276,49 @@ public:
 
 namespace internal  {
 
+template <typename List, Int From> struct MD5Sublist;
+
+template <typename T, T... List>
+struct MD5Sublist<ValueList<T, List...>, 0> {
+    using Type = ValueList<T, List...>;
+};
+
+template <Int From, typename T, T Head, T ... Tail>
+struct MD5Sublist<ValueList<T, Head, Tail...>, From> {
+    using Type = typename MD5Sublist<ValueList<T, Tail...>, From - 1>::Type;
+};
+
+template <Int From, typename T>
+struct MD5Sublist<ValueList<T>, From> {
+    using Type = ValueList<T>;
+};
+
+template <typename T>
+struct MD5Sublist<ValueList<T>, 0> {
+    using Type = ValueList<T>;
+};
+
+
+
+
+
 template <typename List, typename Initial> class Md5SumHelper;
 
 template <UInt ... Data, typename Initial>
 class Md5SumHelper<ValueList<UInt, Data...>, Initial> {
 
-    typedef ValueList<UInt, Data...>                    List;
-    typedef Md5Round<Initial, List>                     Round;
+    using List  = ValueList<UInt, Data...>;
+    using Round = Md5Round<Initial, List>;
 
-    typedef typename Round::Result                      RoundResult;
+    using RoundResult = typename Round::Result;
 
-    typedef Md5SumHelper<
-                    typename Sublist<16, List>::Type,
+    using Helper = Md5SumHelper<
+                    typename MD5Sublist<List, 16>::Type,
                     RoundResult
-    >                                                                           Helper;
+    >;
 
 public:
-    typedef typename Helper::Result                                             Result;
+    using Type = typename Helper::Type;
 
     static void dump() {
         Round::dump();
@@ -302,7 +329,7 @@ public:
 template <typename Initial>
 class Md5SumHelper<ValueList<UInt>, Initial> {
 public:
-    typedef Initial Result;
+    using Type = Initial;
 
     static void dump() {
         cout<<"Final Result: "<<TypeNameFactory<Initial>::name()<<endl;
@@ -315,16 +342,16 @@ public:
 template <typename List> struct Md5Sum;
 template <UInt ... Data>
 struct Md5Sum<ValueList<UInt, Data...>> {
-    typedef typename AppendValueTool<
+    using List = typename AppendValueTool<
             UInt,
             sizeof...(Data),
             ValueList<UInt, Data...>
-    >::Result                                                                   List;
+    >::Type;
 
-    typedef typename internal::Md5SumHelper<
+    using Type = typename internal::Md5SumHelper<
                 List,
                 Q0
-    >::Result                                                                   Result;
+    >::Type;
 
     static void dump() {
         internal::Md5SumHelper<List, Q0>::dump();

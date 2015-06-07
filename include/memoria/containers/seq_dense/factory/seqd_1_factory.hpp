@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2013.
+// Copyright Victor Smirnov 2013+.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -18,9 +18,10 @@
 #include <memoria/containers/seq_dense/seqd_names.hpp>
 #include <memoria/containers/seq_dense/seqd_tools.hpp>
 
-#include <memoria/containers/seq_dense/container/seqd_c_norm.hpp>
 #include <memoria/containers/seq_dense/container/seqd_c_find.hpp>
 #include <memoria/containers/seq_dense/container/seqd_c_insert.hpp>
+#include <memoria/containers/seq_dense/container/seqd_c_insert_fixed.hpp>
+#include <memoria/containers/seq_dense/container/seqd_c_insert_variable.hpp>
 #include <memoria/containers/seq_dense/container/seqd_c_remove.hpp>
 
 #include <memoria/containers/seq_dense/iterator/seqd_i_count.hpp>
@@ -37,40 +38,27 @@ namespace memoria {
 
 
 template <typename Profile>
-struct BTTypes<Profile, memoria::Sequence<1, true> >: public BTTypes<Profile, memoria::BT> {
+struct BTTypes<Profile, memoria::Sequence<1, true> >: public BTTypes<Profile, memoria::BTSingleStream> {
 
-    typedef BTTypes<Profile, memoria::BT>                                       Base;
+    typedef BTTypes<Profile, memoria::BTSingleStream>                           Base;
 
     typedef UBigInt                                                             Value;
     typedef TypeList<BigInt>                                                    KeysList;
 
-    static const Int BitsPerSymbol                                              = 1;
-    static const Int Indexes                                                    = (1 << BitsPerSymbol) + 1;
-
-
-
-    typedef TypeList<
-                NonLeafNodeTypes<BranchNode>,
-                LeafNodeTypes<LeafNode>
-    >                                                                           NodeTypesList;
-
-    typedef TypeList<
-                TreeNodeType<LeafNode>,
-                TreeNodeType<BranchNode>
-    >                                                                           DefaultNodeTypesList;
+    static constexpr Int BitsPerSymbol                                          = 1;
+    static constexpr Int Symbols                                                = 2;
+    static constexpr Int BranchIndexes                                          = (1 << BitsPerSymbol) + 1;
 
 
     struct StreamTF {
         typedef BigInt                                              Key;
 
-        typedef core::StaticVector<BigInt, Indexes>                 AccumulatorPart;
-        typedef core::StaticVector<BigInt, 1>                       IteratorPrefixPart;
-
-        typedef PkdFTree<Packed2TreeTypes<Key, Key, Indexes>>       NonLeafType;
+        typedef PkdFTree<Packed2TreeTypes<Key, Key, BranchIndexes>> NonLeafType;
+        typedef TL<TL<IndexRange<0, BranchIndexes - 1>>>			IdxRangeList;
 
         typedef typename PkdFSSeqTF<BitsPerSymbol>::Type            SequenceTypes;
 
-        typedef PkdFSSeq<SequenceTypes>                             LeafType;
+        typedef TL<PkdFSSeq<SequenceTypes>>                         LeafType;
     };
 
     typedef TypeList<
@@ -83,18 +71,30 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >: public BTTypes<Profile, me
     >                                                                           Metadata;
 
 
-    typedef typename MergeLists<
-                typename Base::ContainerPartsList,
-                bt::NodeComprName,
+    using CommonContainerPartsList = MergeLists<
+                typename Base::CommonContainerPartsList,
 
-                seq_dense::CtrNormName,
                 seq_dense::CtrFindName,
                 seq_dense::CtrInsertName,
                 seq_dense::CtrRemoveName
-    >::Result                                                                   ContainerPartsList;
+    >;
 
 
-    typedef typename MergeLists<
+    using FixedLeafContainerPartsList = MergeLists<
+                typename Base::FixedLeafContainerPartsList,
+
+                seq_dense::CtrInsertFixedName
+    >;
+
+    using VariableLeafContainerPartsList = MergeLists<
+                typename Base::VariableLeafContainerPartsList,
+
+                seq_dense::CtrInsertVariableName
+    >;
+
+
+
+    using IteratorPartsList = MergeLists<
                 typename Base::IteratorPartsList,
 
                 seq_dense::IterSelectName,
@@ -102,63 +102,8 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >: public BTTypes<Profile, me
                 seq_dense::IterCountName,
                 seq_dense::IterRankName,
                 seq_dense::IterSkipName
+    >;
 
-    >::Result                                                                   IteratorPartsList;
-
-
-    template <typename Iterator, typename Container>
-    struct IteratorCacheFactory {
-        typedef memoria::seq_dense::SequenceIteratorCache<Iterator, Container> Type;
-    };
-
-    typedef IDataSource<Value>                                                  DataSource;
-    typedef IDataTarget<Value>                                                  DataTarget;
-
-
-
-    template <typename Types>
-    using FindGTWalker          = ::memoria::seq_dense::SkipForwardWalker<Types>;
-
-
-    template <typename Types>
-    using RankFWWalker          = ::memoria::seq_dense::RankFWWalker<Types>;
-
-    template <typename Types>
-    using RankBWWalker          = ::memoria::seq_dense::RankBWWalker<Types>;
-
-
-    template <typename Types>
-    using SelectFwWalker        = ::memoria::seq_dense::SelectForwardWalker<Types>;
-
-    template <typename Types>
-    using SelectBwWalker        = ::memoria::seq_dense::SelectBackwardWalker<Types>;
-
-
-    template <typename Types>
-    using SkipForwardWalker     = ::memoria::seq_dense::SkipForwardWalker<Types>;
-
-    template <typename Types>
-    using SkipBackwardWalker    = ::memoria::seq_dense::SkipBackwardWalker<Types>;
-
-
-    template <typename Types>
-    using NextLeafWalker        = ::memoria::bt::NextLeafWalker<Types>;
-
-    template <typename Types>
-    using PrevLeafWalker        = ::memoria::bt::PrevLeafWalker<Types>;
-
-
-    template <typename Types>
-    using FindBeginWalker       = ::memoria::seq_dense::FindBeginWalker<Types>;
-
-    template <typename Types>
-    using FindEndWalker         = ::memoria::seq_dense::FindEndWalker<Types>;
-
-    template <typename Types>
-    using FindRBeginWalker      = ::memoria::seq_dense::FindRBeginWalker<Types>;
-
-    template <typename Types>
-    using FindREndWalker        = ::memoria::seq_dense::FindREndWalker<Types>;
 };
 
 

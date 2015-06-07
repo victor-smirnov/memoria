@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011-2013.
+// Copyright Victor Smirnov 2011+.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -34,218 +34,145 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
     typedef typename Base::NodeBaseG                                            NodeBaseG;
 
     typedef typename Container::Accumulator                                     Accumulator;
+    typedef typename Container::Iterator                                     	Iterator;
 
-    typedef typename Container::Types::DataSource                               DataSource;
-    typedef typename Container::Types::DataTarget                               DataTarget;
-    typedef typename Container::LeafDispatcher                                  LeafDispatcher;
+    typedef typename Container::Types::Pages::LeafDispatcher                    LeafDispatcher;
     typedef typename Container::Position                                        Position;
 
 
-    Int size() const
-    {
-        return self().leafSize(0);
-    }
+    using CtrSizeT = typename Container::Types::CtrSizeT;
 
-    struct SymbolFn {
-        Int symbol_ = 0;
+    template <Int Stream>
+    using InputTupleAdapter = typename Container::Types::template InputTupleAdapter<Stream>;
 
-        template <Int Idx, typename SeqTypes>
-        void stream(const PkdFSSeq<SeqTypes>* obj, Int idx)
-        {
-            MEMORIA_ASSERT_TRUE(obj != nullptr);
-            symbol_ = obj->symbol(idx);
-        }
-
-        template <Int Idx, typename StreamTypes>
-        void stream(const PackedFSEArray<StreamTypes>* obj, Int idx)
-        {
-            MEMORIA_ASSERT_TRUE(obj != nullptr);
-            symbol_ = obj->value(idx);
-        }
-
-        template <Int Idx, typename StreamTypes>
-        void stream(const PkdFTree<StreamTypes>* obj, Int idx)
-        {
-            MEMORIA_ASSERT_TRUE(obj != nullptr);
-            symbol_ = obj->value(0, idx);
-        }
-
-        template <Int Idx, typename StreamTypes>
-        void stream(const PkdVTree<StreamTypes>* obj, Int idx)
-        {
-            MEMORIA_ASSERT_TRUE(obj != nullptr);
-            symbol_ = obj->value(0, idx);
-        }
-
-        template <Int Idx, typename StreamTypes>
-        void stream(const PackedFSEBitmap<StreamTypes>* obj, Int idx)
-        {
-            MEMORIA_ASSERT_TRUE(obj != nullptr);
-            symbol_ = obj->value(idx);
-        }
-
-
-        template <typename NodeTypes>
-        void treeNode(const LeafNode<NodeTypes>* node, Int idx)
-        {
-            node->process(0, *this, idx);
-        }
-    };
-
-    struct SetSymbolFn {
-        Int symbol_ = 0;
-        Accumulator accum_;
-
-
-        SetSymbolFn(Int symbol): symbol_(symbol) {}
-
-        template <Int Idx, typename SeqTypes>
-        void stream(PkdFSSeq<SeqTypes>* obj, Int idx)
-        {
-            MEMORIA_ASSERT_TRUE(obj != nullptr);
-
-            Int old_sym = obj->symbol(idx);
-
-            std::get<Idx>(accum_)[old_sym + 1] = -1;
-
-            obj->symbol(idx) = symbol_;
-
-            std::get<Idx>(accum_)[symbol_ + 1] = 1;
-
-            obj->reindex();
-        }
-
-        template <typename NodeTypes>
-        void treeNode(LeafNode<NodeTypes>* node, Int idx)
-        {
-            node->process(0, *this, idx);
-        }
-    };
-
-
+    static const Int BitsPerSymbol 	= Container::Types::BitsPerSymbol;
+    static const Int Symbols 		= Container::Types::Symbols;
 
 
     Int symbol() const
     {
         auto& self  = this->self();
-
-        SymbolFn fn;
-
-        Int idx = self.idx();
-
-        LeafDispatcher::dispatchConst(self.leaf(), fn, idx);
-
-        return fn.symbol_;
+        return std::get<0>(self.ctr().template _readLeafEntry<0, IntList<0>>(self.leaf(), self.idx()));
     }
+
 
     void setSymbol(Int symbol)
     {
-        auto& self  = this->self();
+    	auto& self  = this->self();
 
-        SetSymbolFn fn(symbol);
-
-        Int idx = self.idx();
-
-        self.ctr().updatePageG(self.leaf());
-
-        LeafDispatcher::dispatch(self.leaf(), fn, idx);
-
-        self.ctr().updateParent(self.leaf(), fn.accum_);
+    	self.ctr().template updateStreamEntry<0, IntList<0>>(self, std::make_tuple(symbol));
     }
 
-    BigInt label(Int label_idx) const
-    {
-        auto& self  = this->self();
-
-        SymbolFn fn;
-
-        Int idx = self.label_idx();
-
-        LeafDispatcher::dispatchConst(self.leaf(), fn, idx);
-
-        return fn.symbol_;
-    }
 
     void insert(Int symbol)
     {
-        auto& self  = this->self();
+        MEMORIA_ASSERT(symbol, <, Symbols);
+
+    	auto& self  = this->self();
         auto& ctr   = self.ctr();
 
-        ctr.insert(self, symbol);
+    	ctr.insertEntry(
+    			self,
+    			InputTupleAdapter<0>::convert(symbol)
+    	);
     }
 
-    void remove()
-    {
-        auto& self  = this->self();
-        auto& ctr   = self.ctr();
 
-        ctr.remove(self);
-    }
+    template <typename T>
+    struct ReadWalker {
+    	T& data_;
+    	CtrSizeT processed_ = 0;
+    	const CtrSizeT max_;
 
-    void remove(BigInt size)
-    {
-        auto& self  = this->self();
-        auto& ctr   = self.ctr();
+    	ReadWalker(T& data): data_(data), max_(data.size()) {}
 
-        ctr.removeBlock(self, size);
-    }
+    	template <typename NodeTypes>
+    	Int treeNode(const LeafNode<NodeTypes>* leaf, Int start)
+    	{
+    		return std::get<0>(leaf->template processSubstreams<IntList<0, 0>>(*this, start));
+    	}
 
-    Int dataPos() const {
-        return self().idx();
-    }
+    	template <typename StreamObj>
+    	Int stream(const StreamObj* obj, Int start)
+    	{
+    		if (obj != nullptr)
+    		{
+    			Int size 		= obj->size();
+    			Int remainder 	= size - start;
 
-    BigInt read(DataTarget& data)
+    			Int to_read = (processed_ + remainder < max_) ? remainder : (max_ - processed_);
+
+    			obj->read(&data_, start, processed_, to_read);
+
+    			return to_read;
+    		}
+    		else {
+    			return 0;
+    		}
+    	}
+
+    	void start_leaf() {}
+
+    	void end_leaf(Int skip) {
+    		processed_ += skip;
+    	}
+
+    	CtrSizeT result() const {
+    		return processed_;
+    	}
+
+    	bool stop() const {
+    		return processed_ >= max_;
+    	}
+    };
+
+
+
+    BigInt read(vapi::SymbolsBuffer<BitsPerSymbol>& data)
     {
         auto& self = this->self();
-        seq_dense::SequenceTarget target(&data);
+        ReadWalker<vapi::SymbolsBuffer<BitsPerSymbol>> target(data);
 
-        return self.ctr().readStream(self, target);
+        return self.ctr().readStream2(self, target);
     }
 
-    void insert(DataSource& data)
+
+    void insert(vapi::SymbolsBuffer<BitsPerSymbol>& data)
     {
-        auto& self = this->self();
-        self.ctr().insertBlock(self, data);
+    	auto& self = this->self();
+    	auto& model = self.ctr();
+
+    	auto& leaf = self.leaf();
+
+    	seq_dense::SymbolsInputBufferProvider<BitsPerSymbol> provider(data);
+
+    	auto result = model.insertBuffers(leaf, self.idx(), provider);
+
+    	self.leaf() = result.leaf();
+    	self.idx() = result.position();
+
+    	self.refreshCache();
+
+    	model.markCtrUpdated();
     }
 
-    BigInt update(DataSource& data)
+    void check(const char* source = nullptr) const
     {
-        auto& self = this->self();
-        return self.ctr().updateBlock(self, data);
+    	auto& self = this->self();
+
+    	auto tmp = self;
+
+    	tmp.refreshCache();
+
+    	if (self.cache() != tmp.cache())
+    	{
+    		throw TestException(
+    				source != nullptr ? source : MA_SRC,
+    				SBuf()<<"Iterator cache mismatch: having: "<<self.cache()<<", should be: "<<tmp.cache()
+    		);
+    	}
     }
 
-    void ComputePrefix(BigInt& accum)
-    {
-
-    }
-
-    void ComputePrefix(Accumulator& accum)
-    {
-
-    }
-
-    Accumulator prefixes() const {
-        return Accumulator();
-    }
-
-    void createEmptyLeaf()
-    {
-        auto& self  = this->self();
-        auto& ctr   = self.ctr();
-
-        NodeBaseG next = ctr.createNextLeaf(self.leaf());
-
-        self.leaf() = next;
-        self.idx()  = 0;
-    }
-
-    Int leaf_capacity()
-    {
-        auto& self  = this->self();
-        auto& ctr   = self.ctr();
-
-        return ctr.getStreamCapacity(self.leaf(), Position::create(0, 0), 0);
-    }
 
 MEMORIA_ITERATOR_PART_END
 

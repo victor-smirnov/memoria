@@ -121,22 +121,22 @@ public:
 
     void replayCreateRemoveRandom()
     {
-    	Allocator allocator;
-    	allocator.commit();
+        Allocator allocator;
+        allocator.commit();
 
-    	this->LoadAllocator(allocator, Base::dump_name_);
+        this->LoadAllocator(allocator, Base::dump_name_);
 
-    	Base::check(allocator, MA_SRC);
+        Base::check(allocator, MA_SRC);
 
-    	Ctr ctr(&allocator, CTR_FIND, ctr_name_);
+        Ctr ctr(&allocator, CTR_FIND, ctr_name_);
 
-    	ctr.remove(remove_idx_);
+        ctr.remove(remove_idx_);
 
-    	AssertEQ(MA_SRC, ctr.size(), target_size_);
+        AssertEQ(MA_SRC, ctr.size(), target_size_);
 
-    	allocator.commit();
+        allocator.commit();
 
-    	this->StoreAllocator(allocator, this->getResourcePath("remove-replay.dump"));
+        this->StoreAllocator(allocator, this->getResourcePath("remove-replay.dump"));
     }
 
     void StoreSequenceData(const vector<UByte>& seq)

@@ -35,7 +35,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrToolsName)
     typedef typename Base::NodeDispatcher                                       NodeDispatcher;
     typedef typename Base::RootDispatcher                                       RootDispatcher;
     typedef typename Base::LeafDispatcher                                       LeafDispatcher;
-    typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
+    typedef typename Base::BranchDispatcher                                    BranchDispatcher;
 
     typedef typename Types::Key                                                 Key;
     typedef typename Types::Value                                               Value;
@@ -139,7 +139,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrToolsName)
     MEMORIA_DECLARE_NODE_FN(LayoutNodeFn, layout);
     void layoutNode(NodeBaseG& node, UBigInt active_streams) const
     {
-        NonLeafDispatcher::dispatch(node, LayoutNodeFn(), active_streams);
+        BranchDispatcher::dispatch(node, LayoutNodeFn(), active_streams);
     }
 
 

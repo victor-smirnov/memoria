@@ -90,7 +90,13 @@ static Int DumpAllocator(String file_name)
             
             cout<<"Load InMemAllocator file: "+file.getPath()<<endl;
 
+            auto start = getTimeInMillis();
+
             LoadFile(allocator, file.getPath().c_str());
+
+            auto end = getTimeInMillis();
+
+            cout<<"Loading time: "<<FormatTime(end-start)<<endl;
 
             FSDumpAllocator(&allocator, path.getAbsolutePath());
 //        }

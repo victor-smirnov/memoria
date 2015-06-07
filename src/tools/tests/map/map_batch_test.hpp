@@ -33,8 +33,8 @@ class MapBatchTest: public SequenceCreateTestBase<
     typedef MapBatchTest<T>                                                     MyType;
 
     typedef SequenceCreateTestBase<
-    			T,
-    		    std::vector<typename SCtrTF<T>::Type::Types::Entry>
+                T,
+                std::vector<typename SCtrTF<T>::Type::Types::Entry>
     >                                                                           Base;
 
     typedef typename Base::Ctr                                                  Ctr;
@@ -42,9 +42,9 @@ class MapBatchTest: public SequenceCreateTestBase<
     typedef typename Ctr::Accumulator                                           Accumulator;
     typedef typename Base::ID                                                   ID;
 
-    typedef typename SCtrTF<T>::Type::Types::Entry								Entry;
+    typedef typename SCtrTF<T>::Type::Types::Entry                              Entry;
 
-    typedef std::vector<Entry>                 									MemBuffer;
+    typedef std::vector<Entry>                                                  MemBuffer;
 
 public:
     MapBatchTest(StringRef name):
@@ -61,10 +61,10 @@ public:
         {
             Entry entry;
 
-            entry.key() 	= getRandom(10) + 1;
-            entry.value() 	= getRandom(100) + 1;
+            entry.key()     = getRandom(10) + 1;
+            entry.value()   = getRandom(100) + 1;
 
-        	item = entry;
+            item = entry;
         }
 
         return data;
@@ -75,12 +75,12 @@ public:
         MemBuffer data(size);
         for (auto& item: data)
         {
-        	Entry entry;
+            Entry entry;
 
-        	entry.key() 	= getRandom(10) + 1;
-        	entry.value() 	= getRandom(100) + 1;
+            entry.key()     = getRandom(10) + 1;
+            entry.value()   = getRandom(100) + 1;
 
-        	item = entry;
+            item = entry;
         }
 
         return data;
@@ -132,15 +132,15 @@ public:
 
     virtual void compareBuffers(const MemBuffer& src, const MemBuffer& tgt, const char* source)
     {
-    	AssertEQ(source, src.size(), tgt.size(), SBuf()<<"buffer sizes are not equal");
+        AssertEQ(source, src.size(), tgt.size(), SBuf()<<"buffer sizes are not equal");
 
-    	for (size_t c = 0; c < src.size(); c++)
-    	{
-    		typename MemBuffer::value_type v1 = src[c];
-    		typename MemBuffer::value_type v2 = tgt[c];
+        for (size_t c = 0; c < src.size(); c++)
+        {
+            typename MemBuffer::value_type v1 = src[c];
+            typename MemBuffer::value_type v2 = tgt[c];
 
-    		AssertEQ(source, v1.value(), v2.value(), [=](){return SBuf()<<"c="<<c;});
-    	}
+            AssertEQ(source, v1.value(), v2.value(), [=](){return SBuf()<<"c="<<c;});
+        }
     }
 };
 

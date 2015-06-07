@@ -8,6 +8,12 @@
 #ifndef _MEMORIA_CORE_TOOLS_CONFIG_HPP12_
 #define _MEMORIA_CORE_TOOLS_CONFIG_HPP12_
 
+#ifdef PAGE_SIZE
+#define SYSTEM_PAGESIZE PAGE_SIZE
+#undef PAGE_SIZE
+#endif
+
+
 #ifdef _INTEL_COMPILER
 
 #pragma warning (disable : 2586)

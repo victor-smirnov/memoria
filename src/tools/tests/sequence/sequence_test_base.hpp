@@ -44,7 +44,7 @@ protected:
 public:
     SequenceTestBase(StringRef name): Base(name)
     {
-    	Ctr::initMetadata();
+        Ctr::initMetadata();
 
         this->size_ = 100000;
 

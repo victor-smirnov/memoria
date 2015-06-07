@@ -29,10 +29,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    typedef typename Base::NodeDispatcher                                       NodeDispatcher;
-    typedef typename Base::RootDispatcher                                       RootDispatcher;
-    typedef typename Base::LeafDispatcher                                       LeafDispatcher;
-    typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
+    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
+    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
+    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
 
     typedef typename Base::Metadata                                             Metadata;
 
@@ -40,10 +39,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
     typedef typename Types::Position                                            Position;
 
     typedef typename Types::CtrSizeT                                            CtrSizeT;
-
-    static const Int Streams                                                    = Types::Streams;
-
-    static const Int MAIN_STREAM                                                = Types::MAIN_STREAM;
 
     CtrSizeT size() const
     {
@@ -54,9 +49,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
     {
         auto& self = this->self();
 
-        typename Types::template RankFWWalker<Types> walker(0, symbol, idx);
+        typename Types::template RankForwardWalker<Types, IntList<0>> walker(0, symbol, idx);
 
-        auto iter = self.find0(0, walker);
+        auto iter = self.find2(walker);
 
         return walker.rank();
     }
@@ -80,16 +75,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
     {
         auto& self = this->self();
 
-        if (rank < 1) {
-            int a = 0; a++;
-        }
-
         MEMORIA_ASSERT(rank, >=, 1);
         MEMORIA_ASSERT(symbol, >=, 0);
 
-        typename Types::template SelectFwWalker<Types> walker(0, symbol, rank);
+        typename Types::template SelectForwardWalker<Types, IntList<0>> walker(symbol, rank);
 
-        auto iter = self.find0(0, walker);
+        auto iter = self.find2(walker);
 
         return iter;
     }
@@ -107,9 +98,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
 
     Iterator seek(Int pos)
     {
-        auto& self = this->self();
+    	typename Types::template SkipForwardWalker<Types, IntList<0>> walker(pos);
 
-        return self.findGT(MAIN_STREAM, pos, 0);
+    	return self().find2(walker);
     }
 
 

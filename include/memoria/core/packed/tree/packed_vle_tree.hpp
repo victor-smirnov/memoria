@@ -90,7 +90,6 @@ public:
     typedef core::StaticVector<Int, Blocks>                                     Dimension;
     typedef core::StaticVector<Dimension, 2>                                    BlockRange;
     typedef core::StaticVector<IndexValue, Blocks>                              Values;
-    typedef core::StaticVector<IndexValue, Blocks + 1>                          Values2;
 
     typedef PackedTreeTools<BranchingFactor, ValuesPerBranch>                   TreeTools;
 
@@ -98,6 +97,8 @@ public:
 
     typedef FnAccessor<Value>                                                   ValueAccessor;
     typedef ConstFnAccessor<Value>                                              ConstValueAccessor;
+
+    using InputType = Values;
 
     class Metadata {
         Int size_;
@@ -1210,47 +1211,47 @@ public:
 
     static Int computeDataLength(const Values& values)
     {
-    	Codec codec;
-    	Int length = 0;
+        Codec codec;
+        Int length = 0;
 
-    	for (Int c = 0; c < Blocks; c++)
-    	{
-    		length += codec.length(values[c]);
-    	}
+        for (Int c = 0; c < Blocks; c++)
+        {
+            length += codec.length(values[c]);
+        }
 
-    	return length;
+        return length;
     }
 
     float estimateEntropy(Int start, Int end) const
     {
-    	MEMORIA_ASSERT(start, >=, 0);
-    	MEMORIA_ASSERT(start, <, end);
-    	MEMORIA_ASSERT(end, <=, size());
+        MEMORIA_ASSERT(start, >=, 0);
+        MEMORIA_ASSERT(start, <, end);
+        MEMORIA_ASSERT(end, <=, size());
 
-    	float total_length 	= 0;
-    	float total_count 	= (end - start) * Blocks;
+        float total_length  = 0;
+        float total_count   = (end - start) * Blocks;
 
-    	for (Int c = 0; c < Blocks; c++)
-    	{
-    		Int start_idx 	= this->value_offset(start);
-    		Int end_idx 	= this->value_offset(end);
+        for (Int c = 0; c < Blocks; c++)
+        {
+            Int start_idx   = this->value_offset(start);
+            Int end_idx     = this->value_offset(end);
 
-    		total_length += (end_idx - start_idx);
-    	}
+            total_length += (end_idx - start_idx);
+        }
 
-    	return total_length / total_count;
+        return total_length / total_count;
     }
 
     float estimateEntropy() const
     {
-    	Int total_count = size() * Blocks;
+        Int total_count = size() * Blocks;
 
-    	Int start_idx 	= 0;
-    	Int end_idx 	= this->value_offset(total_count);
+        Int start_idx   = 0;
+        Int end_idx     = this->value_offset(total_count);
 
-    	float total_length = (end_idx - start_idx);
+        float total_length = (end_idx - start_idx);
 
-    	return total_length / total_count;
+        return total_length / total_count;
     }
 
 
@@ -1279,8 +1280,8 @@ public:
 
     void update(Int start, Int end, std::function<Values ()> provider)
     {
-    	remove(start, end);
-    	insert(start, end - start, provider);
+        remove(start, end);
+        insert(start, end - start, provider);
     }
 
 
@@ -1464,29 +1465,29 @@ public:
 
     void read(Int start, Int end, std::function<void (const Values&)> consumer) const
     {
-    	MEMORIA_ASSERT(start, >=, 0);
-    	MEMORIA_ASSERT(start, <=, end);
-    	MEMORIA_ASSERT(end, <=, size());
+        MEMORIA_ASSERT(start, >=, 0);
+        MEMORIA_ASSERT(start, <=, end);
+        MEMORIA_ASSERT(end, <=, size());
 
-    	Values values[IOBatchSize];
+        Values values[IOBatchSize];
 
-    	Int to_read	= end - start;
-    	Int pos		= start;
+        Int to_read = end - start;
+        Int pos     = start;
 
-    	while (to_read > 0)
-    	{
-    		SizeT batch_size    = to_read > IOBatchSize ? IOBatchSize : to_read;
+        while (to_read > 0)
+        {
+            SizeT batch_size    = to_read > IOBatchSize ? IOBatchSize : to_read;
 
-    		readData(values, pos, batch_size);
+            readData(values, pos, batch_size);
 
-    		for (Int c = 0; c < batch_size; c++)
-    		{
-    			consumer(values[c]);
-    		}
+            for (Int c = 0; c < batch_size; c++)
+            {
+                consumer(values[c]);
+            }
 
-    		pos     += batch_size;
-    		to_read -= batch_size;
-    	}
+            pos     += batch_size;
+            to_read -= batch_size;
+        }
     }
 
 
@@ -1543,67 +1544,22 @@ public:
         return vals;
     }
 
-    Values2 sums2() const
-    {
-        Values vals;
-
-        for (Int block = 0; block < Blocks; block++)
-        {
-            vals[block + 1] = sum(block);
-        }
-
-        vals[0] = size();
-
-        return vals;
-    }
-
-    Values2 sums2(Int from, Int to) const
-    {
-        Values2 vals;
-
-        for (Int block = 0; block < Blocks; block++)
-        {
-            vals[block + 1] = sum(block, from, to);
-        }
-
-        vals[0] = to - from;
-
-        return vals;
-    }
-
 
     void sums(Int from, Int to, Values& values) const
     {
         values += sums(from, to);
     }
 
-    void sums(Int from, Int to, Values2& values) const
-    {
-        values[0] += to - from;
-        values.sumUp(sums(from, to));
-    }
 
-    void sums(Values& values) const
+    template <typename T>
+    void sums(core::StaticVector<T, Blocks>& values) const
     {
         sumsSmall<0>(values);
     }
 
-    void sums(Values2& values) const
-    {
-        values[0] += size();
 
-        sumsSmall<1>(values);
-    }
 
-    void sums(Int idx, Values2& values) const
-    {
-        values[0]++;
 
-        for (Int c = 1; c < Values2::Indexes; c++)
-        {
-            values[c] = this->getValue(c - 1, idx);
-        }
-    }
 
     void sums(Int idx, Values& values) const
     {
@@ -2052,6 +2008,45 @@ public:
         FieldFactory<BufferType>::deserialize(buf, values(), this->data_length());
     }
 
+
+    //=======================
+    template <typename T>
+    void _add(Int block, T& value) const
+    {
+    	value += sum(block);
+    }
+
+    template <typename T>
+    void _add(Int block, Int end, T& value) const
+    {
+    	value += sum(block, end);
+    }
+
+    template <typename T>
+    void _add(Int block, Int start, Int end, T& value) const
+    {
+    	value += sum(block, start, end);
+    }
+
+
+
+    template <typename T>
+    void _sub(Int block, T& value) const
+    {
+    	value -= sum(block);
+    }
+
+    template <typename T>
+    void _sub(Int block, Int end, T& value) const
+    {
+    	value -= sum(block, end);
+    }
+
+    template <typename T>
+    void _sub(Int block, Int start, Int end, T& value) const
+    {
+    	value -= sum(block, start, end);
+    }
 private:
     static Int index_size(Int items_number)
     {
@@ -2311,6 +2306,21 @@ private:
             }
         }
     }
+
+
+
+
+};
+
+
+template <typename Types>
+struct PkdStructSizeType<PkdVTree<Types>> {
+	static const PackedSizeType Value = PackedSizeType::VARIABLE;
+};
+
+template <typename T>
+struct StructSizeProvider<PkdVTree<T>> {
+    static const Int Value = PkdVTree<T>::Blocks;
 };
 
 

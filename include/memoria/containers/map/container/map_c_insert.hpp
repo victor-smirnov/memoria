@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2013.
+// Copyright Victor Smirnov 2014.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -27,7 +27,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertName)
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    typedef typename Base::LeafDispatcher                                       LeafDispatcher;
+    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
+    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
+    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
 
     typedef typename Types::Key                                                 Key;
     typedef typename Types::Value                                               Value;

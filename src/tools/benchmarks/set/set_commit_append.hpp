@@ -36,7 +36,7 @@ class SetCommitAppendBenchmark: public SPBenchmarkTask {
     typedef typename SetCtrType::Types::Entry                           Entry;
 
 
-    Allocator*  	allocator_;
+    Allocator*      allocator_;
     SetCtrType*     set_;
 
 public:
@@ -73,9 +73,9 @@ public:
 
         for (Int c = 0; c < this->max_size; c++)
         {
-        	Entry entry;
+            Entry entry;
 
-        	entry.indexes()[0] = 1;
+            entry.indexes()[0] = 1;
 
             i.insert(entry);
 

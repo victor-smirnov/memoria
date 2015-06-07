@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011.
+// Copyright Victor Smirnov 2011-2014.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -11,6 +11,7 @@
 
 #include <memoria/core/types/list/typelist.hpp>
 #include <memoria/core/types/list/index.hpp>
+#include <memoria/core/types/list/append.hpp>
 #include <memoria/core/types/types.hpp>
 
 
@@ -30,34 +31,38 @@ struct Select<Value, TypeList<Head, Tail...>, Idx> {
 };
 
 template <Int Value, Int Idx>
-struct Select<Value, TypeList<>, Idx> {
-    typedef ListIndexOutOfRange<Value>                                          Result;
+struct Select<Value, TypeList<>, Idx>;
+
+
+//template <Int Value, typename List, Int idx = 0> struct Select;
+
+template <Int Pos, typename T, T Head, T ... Tail>
+struct Select<Pos, ValueList<T, Head, Tail...>, Pos> {
+    static const T Value = Head;
 };
 
-
-
-
-template <Int From, typename List> struct Sublist;
-
-template <typename T, T Head, T ... Tail>
-struct Sublist<0, ValueList<T, Head, Tail...> > {
-    typedef ValueList<T, Head, Tail...>                                         Type;
+template <Int Pos, typename T, T Head, T ... Tail, Int Idx>
+struct Select<Pos, ValueList<T, Head, Tail...>, Idx> {
+    static const T Value = Select<Pos, ValueList<T, Tail...>, Idx + 1>::Value;
 };
 
-template <Int From, typename T, T Head, T ... Tail>
-struct Sublist<From, ValueList<T, Head, Tail...> > {
-    typedef typename Sublist<From - 1, ValueList<T, Tail...>>::Type             Type;
+template <Int Value, typename T, Int Idx>
+struct Select<Value, ValueList<T>, Idx>;
+
+
+
+template <typename List, typename Default> struct SelectHeadIfNotEmpty;
+
+template <typename Head, typename ... Tail, typename Default>
+struct SelectHeadIfNotEmpty<TypeList<Head, Tail...>, Default> {
+    typedef Head                                                                Result;
 };
 
-template <Int From, typename T>
-struct Sublist<From, ValueList<T> > {
-    typedef ValueList<T>                                                        Type;
+template <typename Default>
+struct SelectHeadIfNotEmpty<TypeList<>, Default> {
+    typedef Default                                                             Result;
 };
 
-template <typename T>
-struct Sublist<0, ValueList<T> > {
-    typedef ValueList<T>                                                        Type;
-};
 
 
 

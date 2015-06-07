@@ -40,7 +40,7 @@ public:
     }
 
     template <typename T>
-    SBuf& operator<<(const T& value)
+    SBuf& operator<<(T value)
     {
         buffer_<<value;
         return *this;

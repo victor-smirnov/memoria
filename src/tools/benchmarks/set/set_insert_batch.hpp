@@ -24,15 +24,15 @@ public:
 
     typedef SPBenchmarkTask Base;
 
-    typedef typename Base::Allocator    										Allocator;
-    typedef typename Base::Profile      										Profile;
+    typedef typename Base::Allocator                                            Allocator;
+    typedef typename Base::Profile                                              Profile;
 
-    typedef typename SCtrTF<Set1>::Type                                 		SetCtrType;
-    typedef typename SetCtrType::Iterator                               		Iterator;
-    typedef typename SetCtrType::Types::Entry                           		Entry;
+    typedef typename SCtrTF<Set1>::Type                                         SetCtrType;
+    typedef typename SetCtrType::Iterator                                       Iterator;
+    typedef typename SetCtrType::Types::Entry                                   Entry;
 
-    Int 			max_size;
-    Allocator*  	allocator_;
+    Int             max_size;
+    Allocator*      allocator_;
     SetCtrType*     set_;
 
 public:
@@ -75,7 +75,7 @@ public:
             auto i = map_size == 0? set_->End() : set_->find(pos);
 
             FnDataSource<Entry> source(size, [&](BigInt idx){
-            	return entry;
+                return entry;
             });
 
             set_->insert(i, source);

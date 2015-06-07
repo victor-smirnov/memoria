@@ -353,9 +353,9 @@ public:
                 for (Int c = 0; c < Blocks; c++)
                 {
                     UShort freq = frequences[c * LineWidth + block];
-                	length += codec.length(freq);
+                    length += codec.length(freq);
 
-                	sum += freq;
+                    sum += freq;
                 }
             }
 

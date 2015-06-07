@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2012.
+// Copyright Victor Smirnov 2012-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -15,6 +15,7 @@
 #include "map_remove_test.hpp"
 #include "map_select_test.hpp"
 #include "map_batch_test.hpp"
+#include "map_mapx_test.hpp"
 
 #include <vector>
 
@@ -29,24 +30,29 @@ public:
 
     MapTestSuite(): TestSuite("MapSuite")
     {
-        registerTask(new MapApiTest<Map<BigInt, BigInt>>("Map.Api"));
-        registerTask(new MapApiTest<CMap<Granularity::Byte>>("CMap.Api"));
+//        registerTask(new MapApiTest<Map<BigInt, BigInt>>("Map.Api"));
+//        registerTask(new MapApiTest<CMap<Granularity::Byte>>("CMap.Api"));
+//
+//        registerTask(new MapBatchTest<Map<BigInt, BigInt>>("Batch.Map"));
+//        registerTask(new MapBatchTest<CMap<Granularity::Byte>>("Batch.CMap"));
+//        registerTask(new MapBatchTest<CCMap<Granularity::Byte>>("Batch.CCMap"));
+//
+////      registerTask(new MapCreateTest<SMrkMap<BigInt, BigInt, 1>>("SMrkMap.Create"));
+////      registerTask(new MapRemoveTest<SMrkMap<BigInt, BigInt, 1>>("SMrkMap.Remove"));
+//
+//        registerTask(new MapCreateTest<Map<BigInt, BigInt>>("Map.Create"));
+//        registerTask(new MapRemoveTest<Map<BigInt, BigInt>>("Map.Remove"));
+//
+//        registerTask(new MapCreateTest<CMap<Granularity::Bit>>("CMap1.Create"));
+//        registerTask(new MapRemoveTest<CMap<Granularity::Bit>>("CMap1.Remove"));
+//
+//        registerTask(new MapCreateTest<CMap<Granularity::Byte>>("CMap2.Create"));
+//        registerTask(new MapRemoveTest<CMap<Granularity::Byte>>("CMap2.Remove"));
 
-        registerTask(new MapBatchTest<Map<BigInt, BigInt>>("Batch.Map"));
-        registerTask(new MapBatchTest<CMap<Granularity::Byte>>("Batch.CMap"));
-        registerTask(new MapBatchTest<CCMap<Granularity::Byte>>("Batch.CCMap"));
+    	registerTask(new MapRemoveTest<MapX<BigInt, BigInt>>("MapX.Remove"));
+    	registerTask(new MapCreateTest<MapX<BigInt, BigInt>>("MapX.Create"));
 
-//      registerTask(new MapCreateTest<SMrkMap<BigInt, BigInt, 1>>("SMrkMap.Create"));
-//      registerTask(new MapRemoveTest<SMrkMap<BigInt, BigInt, 1>>("SMrkMap.Remove"));
-
-        registerTask(new MapCreateTest<Map<BigInt, BigInt>>("Map.Create"));
-        registerTask(new MapRemoveTest<Map<BigInt, BigInt>>("Map.Remove"));
-
-        registerTask(new MapCreateTest<CMap<Granularity::Bit>>("CMap1.Create"));
-        registerTask(new MapRemoveTest<CMap<Granularity::Bit>>("CMap1.Remove"));
-
-        registerTask(new MapCreateTest<CMap<Granularity::Byte>>("CMap2.Create"));
-        registerTask(new MapRemoveTest<CMap<Granularity::Byte>>("CMap2.Remove"));
+//        registerTask(new MapXTest<MapX<BigInt, BigInt>>("MapX"));
     }
 
 };

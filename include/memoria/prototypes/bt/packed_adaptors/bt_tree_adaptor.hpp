@@ -7,7 +7,7 @@
 #ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_TREE_ADAPTOR_HPP
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_TREE_ADAPTOR_HPP
 
-#include <memoria/prototypes/bt/bt_tools.hpp>
+#include <memoria/prototypes/bt/tools/bt_tools.hpp>
 
 namespace memoria   {
 namespace bt1       {

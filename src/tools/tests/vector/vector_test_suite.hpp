@@ -27,7 +27,9 @@ public:
     VectorTestSuite(): TestSuite("VectorSuite")
     {
 //        registerTask(new VectorTest<UByte>("UByte"));
-        registerTask(new VectorTest<Int>("Int"));
+        registerTask(new VectorTest<Int, Int>("Fxd.Int"));
+        registerTask(new VectorTest<Int, VLen<Granularity::Byte, Int>>("VLen.Exint.Int"));
+        registerTask(new VectorTest<Int, VLen<Granularity::Bit, Int>>("VLen.Elias.Int"));
 //        registerTask(new VectorTest<BigInt>("BigInt"));
 
 //        registerTask(new VectorTransferTest<UByte>("Transfer"));

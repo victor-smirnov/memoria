@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2012-2013.
+// Copyright Victor Smirnov 2012-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -52,7 +52,9 @@ int main(int argc, const char** argv, const char** envp)
     Term::init(argc, argv, envp);
 
     try {
-        CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::REPLAY);
+    	SCtrTF<MapX<BigInt, BigInt>>::Type::initMetadata();
+
+    	CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::REPLAY);
 
         Int default_seed = getTimeInMillis() % 100000;
 
@@ -82,8 +84,8 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new SymbolSeqTestSuite());
 ////
 //        runner.registerTask(new CtrTestSuite());
-//        runner.registerTask(new MapTestSuite());
-//        runner.registerTask(new VectorTestSuite());
+        runner.registerTask(new MapTestSuite());
+        runner.registerTask(new VectorTestSuite());
 //        runner.registerTask(new VectorMapTestSuite());
 //        runner.registerTask(new DblMapTestSuite());
         runner.registerTask(new SequenceTestSuite());

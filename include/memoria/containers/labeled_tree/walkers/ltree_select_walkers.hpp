@@ -17,9 +17,9 @@ namespace louds     {
 
 
 
-template <typename Types>
-class SelectForwardWalker: public bt::FindForwardWalkerBase<Types, SelectForwardWalker<Types>> {
-    typedef bt::FindForwardWalkerBase<Types, SelectForwardWalker<Types>>        Base;
+template <typename Types, Int Stream>
+class SelectForwardWalker: public bt::FindForwardWalkerBase<Types, Stream, SelectForwardWalker<Types, Stream>> {
+    typedef bt::FindForwardWalkerBase<Types, Stream, SelectForwardWalker<Types, Stream>>        Base;
     typedef typename Base::Key                                                  Key;
 
     BigInt pos_     = 0;
@@ -110,9 +110,9 @@ public:
 
 
 
-template <typename Types>
-class SelectBackwardWalker: public bt::FindBackwardWalkerBase<Types, SelectBackwardWalker<Types>> {
-    typedef bt::FindBackwardWalkerBase<Types, SelectBackwardWalker<Types>>      Base;
+template <typename Types, Int Stream>
+class SelectBackwardWalker: public bt::FindBackwardWalkerBase<Types, Stream, SelectBackwardWalker<Types, Stream>> {
+    typedef bt::FindBackwardWalkerBase<Types, Stream, SelectBackwardWalker<Types, Stream>>      Base;
     typedef typename Base::Key                                                  Key;
 
     BigInt pos_     = 0;

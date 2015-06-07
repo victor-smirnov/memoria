@@ -199,11 +199,6 @@ private:
 };
 
 
-template <typename RtnType>
-struct RtnPkdHandlerBase {
-    using ReturnType = RtnType;
-    using ResultType = RtnType;
-};
 
 
 }

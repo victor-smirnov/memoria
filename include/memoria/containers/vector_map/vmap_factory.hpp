@@ -48,7 +48,7 @@ struct BTTypes<Profile, memoria::VectorMap<Key_, Value_> >:
     };
 
     typedef TypeList<
-            NonLeafNodeTypes<BranchNode>,
+            BranchNodeTypes<BranchNode>,
             LeafNodeTypes<LeafNode>
     >                                                                           NodeTypesList;
 
@@ -68,6 +68,7 @@ struct BTTypes<Profile, memoria::VectorMap<Key_, Value_> >:
 
         typedef PkdFTree<Packed2TreeTypes<Key, Key, 2>>             NonLeafType;
         typedef PkdFTree<Packed2TreeTypes<Key, Key, 2>>             LeafType;
+        typedef TL<TL<>>											IdxRangeList;
     };
 
 
@@ -81,6 +82,7 @@ struct BTTypes<Profile, memoria::VectorMap<Key_, Value_> >:
 
         typedef PkdFTree<Packed2TreeTypes<Key, Key, 1>>             NonLeafType;
         typedef PackedFSEArray<PackedFSEArrayTypes<Value>>          LeafType;
+        typedef TL<TL<>>											IdxRangeList;
     };
 
 
@@ -133,24 +135,24 @@ struct BTTypes<Profile, memoria::VectorMap<Key_, Value_> >:
 //    using FindGEWalker            = ::memoria::vmap::FindLTForwardWalker<Types>;
 
     template <typename Types>
-    using SkipForwardWalker         = vmap::SkipForwardWalker<Types>;
+    using SkipForwardWalker         = vmap::SkipForwardWalker<Types, 0>;
 
     template <typename Types>
-    using SkipBackwardWalker        = vmap::SkipBackwardWalker<Types>;
-
-
-    template <typename Types>
-    using NextLeafWalker            = bt::NextLeafWalker<Types>;
-
-    template <typename Types>
-    using PrevLeafWalker            = vmap::PrevLeafWalker<Types>;
-
-    template <typename Types>
-    using NextLeafMutistreamWalker  = bt::NextLeafMultistreamWalker<Types>;
+    using SkipBackwardWalker        = vmap::SkipBackwardWalker<Types, 0>;
 
 
     template <typename Types>
-    using PrevLeafMutistreamWalker  = bt::PrevLeafMultistreamWalker<Types>;
+    using NextLeafWalker            = bt::NextLeafWalker<Types, 0>;
+
+    template <typename Types>
+    using PrevLeafWalker            = vmap::PrevLeafWalker<Types, 0>;
+
+    template <typename Types>
+    using NextLeafMutistreamWalker  = bt::NextLeafMultistreamWalker<Types, 0>;
+
+
+    template <typename Types>
+    using PrevLeafMutistreamWalker  = bt::PrevLeafMultistreamWalker<Types, 0>;
 
 
 

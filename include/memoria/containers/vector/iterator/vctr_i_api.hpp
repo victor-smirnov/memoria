@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011.
+// Copyright Victor Smirnov 2011+.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -18,6 +18,8 @@
 #include <memoria/core/container/iterator.hpp>
 #include <memoria/core/container/macros.hpp>
 
+#include <memoria/prototypes/bt/bt_macros.hpp>
+
 #include <iostream>
 
 namespace memoria    {
@@ -26,7 +28,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 
     typedef Ctr<typename Types::CtrTypes>                                       Container;
 
-
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::NodeBase                                             NodeBase;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
@@ -34,73 +35,29 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
     typedef typename Container::Value                                           Value;
     typedef typename Container::Accumulator                                     Accumulator;
 
-    typedef typename Container::DataSource                                      DataSource;
-    typedef typename Container::DataTarget                                      DataTarget;
-    typedef typename Container::LeafDispatcher                                  LeafDispatcher;
+    typedef typename Container::Types::Pages::LeafDispatcher                    LeafDispatcher;
     typedef typename Container::Position                                        Position;
 
-    typedef typename Container::Types::CtrSizeT                                 CtrSizeT;
+    using CtrSizeT = typename Container::Types::CtrSizeT;
 
-    bool operator++() {
-        return self().skipFw(1);
-    }
+    using InputBuffer = typename Container::Types::InputBuffer;
 
-    bool operator--() {
-        return self().skipBw(1);
-    }
-
-    bool operator++(int) {
-        return self().skipFw(1);
-    }
-
-    bool operator--(int) {
-        return self().skipFw(1);
-    }
-
-    CtrSizeT operator+=(CtrSizeT size)
-    {
-        return self().skipFw(size);
-    }
-
-    CtrSizeT operator-=(CtrSizeT size)
-    {
-        return self().skipBw(size);
-    }
-
-    bool isEof() const {
-        return self().idx() >= self().size();
-    }
-
-    bool isBof() const {
-        return self().idx() < 0;
-    }
-
-//  bool nextLeaf()
-//  {
-//      auto& self      = this->self();
-//      auto& ctr       = self.ctr();
-//
-//      auto next = ctr.getNextNodeP(self.leaf());
-//
-//      if (next)
-//      {
-//          self.leaf() = next;
-//          self.idx()  = 0;
-//          return true;
-//      }
-//      else {
-//          return false;
-//      }
-//  }
 
     void insert(std::vector<Value>& data)
     {
         auto& self = this->self();
         auto& model = self.ctr();
 
-        MemBuffer<Value> buf(data);
+        auto& leaf = self.leaf();
 
-        model.insert(self, buf);
+        mvector::StdVectorInputBuffer<InputBuffer> buf(data);
+
+        auto result = model.insertBuffers(leaf, self.idx(), buf.me());
+
+        self.leaf() = result.leaf();
+        self.idx() 	= result.position();
+
+        self.refreshCache();
 
         model.markCtrUpdated();
     }
@@ -117,32 +74,75 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
         model.markCtrUpdated();
     }
 
-    Int size() const
-    {
-        return self().leafSize(0);
-    }
-
-    MEMORIA_DECLARE_NODE_FN(ReadFn, read);
 
 
-    CtrSizeT read(DataTarget& data)
-    {
-        auto& self = this->self();
-        mvector::VectorTarget target(&data);
+    struct VectorReadWalker {
+    	std::vector<Value>& data_;
+    	CtrSizeT processed_ = 0;
+    	const CtrSizeT max_;
 
-        return self.ctr().readStream(self, target);
-    }
+    	VectorReadWalker(std::vector<Value>& data): data_(data), max_(data.size()) {}
+
+    	template <typename NodeTypes>
+    	Int treeNode(const LeafNode<NodeTypes>* leaf, Int start)
+    	{
+    		return std::get<0>(leaf->template processSubstreams<IntList<0, 0>>(*this, start));
+    	}
+
+    	template <typename StreamObj>
+    	Int stream(const StreamObj* obj, Int start)
+    	{
+    		if (obj != nullptr)
+    		{
+    			Int size 		= obj->size();
+    			Int remainder 	= size - start;
+
+    			Int to_read = (processed_ + remainder < max_) ? remainder : (max_ - processed_);
+
+    			auto i = processed_;
+
+    			obj->read(0, start, start + to_read, [&](Value v){
+    				data_[i++] = v;
+    			});
+
+    			return to_read;
+    		}
+    		else {
+    			return 0;
+    		}
+    	}
+
+
+    	void start_leaf() {}
+
+    	void end_leaf(Int skip) {
+    		processed_ += skip;
+    	}
+
+    	CtrSizeT result() const {
+    		return processed_;
+    	}
+
+    	bool stop() const {
+    		return processed_ >= max_;
+    	}
+    };
+
 
 
     CtrSizeT read(std::vector<Value>& data)
     {
-        MemBuffer<Value> buf(data);
-        return read(buf);
+    	auto& self = this->self();
+
+    	VectorReadWalker walker(data);
+
+    	return self.ctr().readStream2(self, walker);
     }
+
 
     Value value() const
     {
-    	MyType me = this->self();
+        MyType me = this->self();
 
         Value data;
         MemBuffer<Value> buf(&data, 1);
@@ -162,13 +162,13 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
         }
     }
 
-    void remove(CtrSizeT size)
-    {
-        auto& self = this->self();
-        self.ctr().remove(self, size);
-
-        self.ctr().markCtrUpdated();
-    }
+//    void remove(CtrSizeT size)
+//    {
+//        auto& self = this->self();
+//        self.ctr().remove(self, size);
+//
+//        self.ctr().markCtrUpdated();
+//    }
 
     std::vector<Value> subVector(CtrSizeT size)
     {
@@ -183,11 +183,19 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
         return data;
     }
 
-    CtrSizeT skipFw(CtrSizeT amount);
-    CtrSizeT skipBw(CtrSizeT amount);
-    CtrSizeT skip(CtrSizeT amount);
+    ItrSkipFwRtnType<Base, 0, CtrSizeT> skipFw(CtrSizeT amount) {
+    	return self().template _skipFw<0>(amount);
+    }
 
-    void seek(CtrSizeT pos)
+    ItrSkipBwRtnType<Base, 0, CtrSizeT> skipBw(CtrSizeT amount) {
+    	return self().template _skipBw<0>(amount);
+    }
+
+    ItrSkipRtnType<Base, 0, CtrSizeT> skip(CtrSizeT amount) {
+    	return self().template _skip<0>(amount);
+    }
+
+    ItrSkipRtnType<Base, 0, CtrSizeT> seek(CtrSizeT pos)
     {
         CtrSizeT current_pos = self().pos();
         self().skip(pos - current_pos);
@@ -218,14 +226,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
         return std::get<0>(fn.prefix_)[0] + self.key_idx();
     }
 
-    CtrSizeT dataPos() const
-    {
-        return self().idx();
-    }
-
     CtrSizeT prefix() const
     {
-        return self().cache().prefix();
+        return self().cache().size_prefix()[0];
     }
 
     Accumulator prefixes() const {
@@ -244,41 +247,13 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
         accum = prefixes();
     }
 
+
+
+
 MEMORIA_ITERATOR_PART_END
 
 #define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::mvector::ItrApiName)
 #define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
-
-M_PARAMS
-typename M_TYPE::CtrSizeT M_TYPE::skip(CtrSizeT amount)
-{
-    auto& self = this->self();
-
-    if (amount > 0)
-    {
-        return self.skipFw(amount);
-    }
-    else if (amount < 0) {
-        return self.skipBw(-amount);
-    }
-    else {
-        return 0;
-    }
-}
-
-
-M_PARAMS
-typename M_TYPE::CtrSizeT M_TYPE::skipFw(CtrSizeT amount)
-{
-    return self().template _findFw<Types::template SkipForwardWalker>(0, amount);
-}
-
-M_PARAMS
-typename M_TYPE::CtrSizeT M_TYPE::skipBw(CtrSizeT amount)
-{
-    return self().template _findBw<Types::template SkipBackwardWalker>(0, amount);
-}
-
 
 
 

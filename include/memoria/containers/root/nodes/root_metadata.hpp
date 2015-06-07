@@ -26,11 +26,11 @@ class RootCtrMetadata: public BalancedTreeMetadata<ID, Streams>
 
 public:
 
-    typedef typename MergeLists<
+    using FieldsList = MergeLists<
                 typename Base::FieldsList,
                 ConstValue<UInt, VERSION>,
                 decltype(model_name_counter_)
-    >::Result                                                                   FieldsList;
+    >;
 
     RootCtrMetadata() = default;
 

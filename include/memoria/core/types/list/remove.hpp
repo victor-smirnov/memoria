@@ -10,6 +10,7 @@
 #define _MEMORIA_CORE_TOOLS_TYPES_LIST_REMOVE_HPP
 
 #include <memoria/core/types/list/typelist.hpp>
+#include <memoria/core/types/list/append.hpp>
 
 namespace memoria    {
 

@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2013.
+// Copyright Victor Smirnov 2013+.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -50,7 +50,6 @@ public:
 };
 
 
-
 template <typename Types_>
 class PkdFTree: public PackedAllocatable {
 
@@ -69,17 +68,16 @@ public:
 
     static const Int BranchingFactor        = Types::BranchingFactor;
     static const Int ValuesPerBranch        = Types::ValuesPerBranch;
-    static const Int Indexes                = 1;
     static const Int Blocks                 = Types::Blocks;
+    static const Int Indexes                = Blocks;
 
     static const bool FixedSizeElement      = true;
 
     static const Int IOBatchSize            = Blocks <= 2 ? 256: (Blocks <= 4 ? 64 : (Blocks <= 16 ? 16 : 4));
 
     typedef core::StaticVector<IndexValue, Blocks>                              Values;
-    typedef core::StaticVector<IndexValue, Blocks + 1>                          Values2;
 
-    typedef Int                                                               	LayoutValue;
+    typedef Int                                                                 LayoutValue;
 
     typedef PackedTreeTools<BranchingFactor, ValuesPerBranch, LayoutValue>      TreeTools;
 
@@ -94,6 +92,10 @@ public:
     template <typename TreeType, typename MyType>
     using FindLEFnBase = FSEFindElementFnBase<TreeType, PackedCompareLT, MyType>;
 
+    using InputType = Values;
+
+    using InputBuffer = MyType;
+
 private:
 
     Int size_;
@@ -104,7 +106,7 @@ private:
 
 public:
 
-    typedef typename MergeLists<
+    using FieldsList = MergeLists<
                 typename Base::FieldsList,
                 ConstValue<UInt, VERSION>,
                 decltype(size_),
@@ -112,7 +114,7 @@ public:
                 decltype(index_size_),
                 IndexValue,
                 Value
-    >::Result                                                                   FieldsList;
+    >;
 
 
 
@@ -358,7 +360,12 @@ public:
 
     const Value& value(Int idx) const
     {
-        MEMORIA_ASSERT(idx, >=, 0);
+        if (idx >= raw_size()) {
+        	int a = 0;
+        	a++;
+        }
+
+    	MEMORIA_ASSERT(idx, >=, 0);
         MEMORIA_ASSERT(idx, <, raw_size());
 
         return *(values() + idx);
@@ -373,7 +380,12 @@ public:
 
     const Value& value(Int block, Int idx) const
     {
-        MEMORIA_ASSERT(idx, <, size());
+        if (idx >= size() || idx < 0 ) {
+        	int a = 0;a++;
+        }
+
+        MEMORIA_ASSERT(idx, >=, 0);
+    	MEMORIA_ASSERT(idx, <, size());
         return *(values(block) + idx);
     }
 
@@ -383,7 +395,8 @@ public:
         return 0;
     }
 
-    void setValues(Int idx, const core::StaticVector<Value, Blocks>& values)
+    template <typename T>
+    void setValues(Int idx, const core::StaticVector<T, Blocks>& values)
     {
         for (Int block = 0; block < Blocks; block++)
         {
@@ -393,7 +406,8 @@ public:
         reindex();
     }
 
-    void addValues(Int idx, const core::StaticVector<Value, Blocks>& values)
+    template <typename T>
+    void addValues(Int idx, const core::StaticVector<T, Blocks>& values)
     {
         for (Int block = 0; block < Blocks; block++)
         {
@@ -402,6 +416,7 @@ public:
 
         reindex();
     }
+
 
     void addValue(Int block, Int idx, Value value)
     {
@@ -413,8 +428,8 @@ public:
         reindex();
     }
 
-    template <typename Value, Int Indexes>
-    void addValues(Int idx, Int from, Int size, const core::StaticVector<Value, Indexes>& values)
+    template <typename T, Int Indexes>
+    void addValues(Int idx, Int from, Int size, const core::StaticVector<T, Indexes>& values)
     {
         for (Int block = 0; block < size; block++)
         {
@@ -466,6 +481,22 @@ public:
     Value first_value(Int block) const
     {
         return value(block, 0);
+    }
+
+    Values get_values(Int idx) const {
+    	Values v;
+
+    	for (Int i = 0; i < Indexes; i++)
+    	{
+    		v[i] = this->value(i, idx);
+    	}
+
+    	return v;
+    }
+
+    Value get_values(Int idx, Int index) const
+    {
+    	return this->value(index, idx);
     }
 
     void clearIndex()
@@ -653,6 +684,61 @@ public:
 
     // ==================================== Query ========================================== //
 
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void sum(AccumItem<T, Size>& accum) const
+    {
+    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		accum[block + Offset] += sum(block);
+    	}
+    }
+
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void sum(Int start, Int end, AccumItem<T, Size>& accum) const
+    {
+    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		accum[block + Offset] += sum(block, start, end);
+    	}
+    }
+
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void sum(Int idx, AccumItem<T, Size>& accum) const
+    {
+    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		accum[block + Offset] += value(block, idx);
+    	}
+    }
+
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void sub(Int idx, AccumItem<T, Size>& accum) const
+    {
+    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		accum[block + Offset] -= value(block, idx);
+    	}
+    }
+
+
+    template <Int Offset, Int From, Int To, typename T, template <typename, Int, Int> class AccumItem>
+    void sum(Int start, Int end, AccumItem<T, From, To>& accum) const
+    {
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		accum[block + Offset] += sum(block, start, end);
+    	}
+    }
+
+
     IndexValue sum(Int block) const
     {
         return sum(block, size_);
@@ -708,32 +794,58 @@ public:
         values += sums(from, to);
     }
 
-    void sums(Int from, Int to, Values2& values) const
-    {
-        values[0] += to - from;
-        values.sumUp(sums(from, to));
-    }
 
     void sums(Values& values) const
     {
         values += sums();
     }
 
-    void sums(Values2& values) const
-    {
-        values[0] += size();
-        values.sumUp(sums());
-    }
-
-    void sums(Int idx, Values2& values) const
-    {
-        addKeys(idx, values);
-    }
 
     void sums(Int idx, Values& values) const
     {
         addKeys(idx, values);
     }
+
+
+    template <typename T>
+    void _add(Int block, T& value) const
+    {
+    	value += sum(block);
+    }
+
+    template <typename T>
+    void _add(Int block, Int end, T& value) const
+    {
+    	value += sum(block, end);
+    }
+
+    template <typename T>
+    void _add(Int block, Int start, Int end, T& value) const
+    {
+    	value += sum(block, start, end);
+    }
+
+
+
+    template <typename T>
+    void _sub(Int block, T& value) const
+    {
+    	value -= sum(block);
+    }
+
+    template <typename T>
+    void _sub(Int block, Int end, T& value) const
+    {
+    	value -= sum(block, end);
+    }
+
+    template <typename T>
+    void _sub(Int block, Int start, Int end, T& value) const
+    {
+    	value -= sum(block, start, end);
+    }
+
+
 
     void addKeys(Int idx, Values& values) const
     {
@@ -743,15 +855,6 @@ public:
         }
     }
 
-    void addKeys(Int idx, Values2& values) const
-    {
-        values[0] += 1;
-
-        for (Int block = 0; block < Blocks; block++)
-        {
-            values[block + 1] += this->value(block, idx);
-        }
-    }
 
 
     ValueDescr findGTForward(Int block, Int start, IndexValue val) const
@@ -771,7 +874,8 @@ public:
             return ValueDescr(actual_value, pos - block_start, fn.sum() - prefix);
         }
         else {
-            return ValueDescr(0, size_, sum(block) - prefix);
+        	auto block_sum = raw_sum(block_start + size_);
+            return ValueDescr(0, size_, block_sum - prefix);
         }
     }
 
@@ -912,7 +1016,7 @@ public:
     }
 
 
-    void insert(Int idx, Int size, std::function<Values ()> provider)
+    void insert(Int idx, Int size, std::function<Values ()> provider, bool reindex = true)
     {
         insertSpace(idx, size);
 
@@ -930,14 +1034,16 @@ public:
             }
         }
 
-        reindex();
+        if (reindex) {
+        	this->reindex();
+        }
     }
 
-    void update(Int start, Int end, std::function<Values ()> provider)
+    void update(Int start, Int end, std::function<Values ()> provider, bool reindex = true)
     {
-    	Int my_size = this->size();
+        Int my_size = this->size();
 
-    	MEMORIA_ASSERT(start, >=, 0);
+        MEMORIA_ASSERT(start, >=, 0);
         MEMORIA_ASSERT(start, <=, end);
 
         Value* values = this->values();
@@ -952,14 +1058,19 @@ public:
             }
         }
 
-        reindex();
+        if (reindex) {
+        	this->reindex();
+        }
     }
+
+
+
 
     void read(Int start, Int end, std::function<void (const Values&)> consumer) const
     {
-    	Int my_size = this->size();
+        Int my_size = this->size();
 
-    	MEMORIA_ASSERT(start, >=, 0);
+        MEMORIA_ASSERT(start, >=, 0);
         MEMORIA_ASSERT(start, <=, end);
         MEMORIA_ASSERT(end, <=, my_size);
 
@@ -1005,11 +1116,46 @@ public:
         return cnt;
     }
 
-    void insert(Int idx, const Values& values)
+    template <typename T>
+    void insert(Int idx, const core::StaticVector<T, Indexes>& values)
     {
         insertSpace(idx, 1);
         setValues(idx, values);
     }
+
+    template <typename T>
+    void update(Int idx, const core::StaticVector<T, Indexes>& values)
+    {
+        setValues(idx, values);
+    }
+
+
+    template <Int Offset, Int Size, typename T1, typename T2, template <typename, Int> class AccumItem>
+    void _insert(Int idx, const core::StaticVector<T1, Indexes>& values, AccumItem<T2, Size>& accum)
+    {
+    	insert(idx, values);
+
+    	sum<Offset>(idx, accum);
+    }
+
+    template <Int Offset, Int Size, typename T1, typename T2, template <typename, Int> class AccumItem>
+    void _update(Int idx, const core::StaticVector<T1, Indexes>& values, AccumItem<T2, Size>& accum)
+    {
+    	sub<Offset>(idx, accum);
+
+    	update(idx, values);
+
+    	sum<Offset>(idx, accum);
+    }
+
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void _remove(Int idx, AccumItem<T, Size>& accum)
+    {
+    	sub<Offset>(idx, accum);
+    	remove(idx, idx + 1);
+    }
+
+
 
     void insertSpace(Int idx, Int room_length)
     {
@@ -1055,8 +1201,8 @@ public:
         MEMORIA_ASSERT_TRUE(end >= 0);
 
         Int room_length = end - start;
-
-        MEMORIA_ASSERT(room_length, <= , size() - start);
+        Int size = this->size();
+        MEMORIA_ASSERT(room_length, <= , size - start);
 
         Value* values = this->values();
 
@@ -1079,6 +1225,8 @@ public:
         size_ -= room_length;
 
         shrink(room_length);
+
+        reindex();
     }
 
     void copyTo(MyType* other, Int copy_from, Int count, Int copy_to) const
@@ -1158,7 +1306,7 @@ public:
 
     static Int computeDataLength(const Values& values)
     {
-    	return Blocks;
+        return Blocks;
     }
 
 
@@ -1461,8 +1609,15 @@ private:
 };
 
 
+template <typename Types>
+struct PkdStructSizeType<PkdFTree<Types>> {
+	static const PackedSizeType Value = PackedSizeType::FIXED;
+};
 
-
+template <typename T>
+struct StructSizeProvider<PkdFTree<T>> {
+    static const Int Value = PkdFTree<T>::Indexes;
+};
 
 }
 

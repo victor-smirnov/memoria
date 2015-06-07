@@ -37,7 +37,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vmap::CtrInsertName)
     typedef typename Base::NodeDispatcher                                       NodeDispatcher;
     typedef typename Base::RootDispatcher                                       RootDispatcher;
     typedef typename Base::LeafDispatcher                                       LeafDispatcher;
-    typedef typename Base::NonLeafDispatcher                                    NonLeafDispatcher;
+    typedef typename Base::BranchDispatcher                                    BranchDispatcher;
     typedef typename Base::DefaultDispatcher                                    DefaultDispatcher;
 
 

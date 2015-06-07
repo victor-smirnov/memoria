@@ -27,18 +27,18 @@ template<
     template <typename> class Type
 >
 struct LeafNodeTypes {
-    template <typename Types>
+    template <typename BrachTypes, typename LeafTypes>
     using AllTypesList = TypeList<
-            NodePageAdaptor<Type, Types>
+            NodePageAdaptor<Type, LeafTypes>
     >;
 
-    template <typename Types>
+    template <typename LeafTypes>
     using LeafTypesList = TypeList<
-            NodePageAdaptor<Type, Types>
+            NodePageAdaptor<Type, LeafTypes>
     >;
 
     template <typename Types>
-    using NonLeafTypesList = TypeList<>;
+    using BranchTypesList = TypeList<>;
 };
 
 
@@ -48,18 +48,18 @@ struct LeafNodeTypes {
 template<
     template <typename> class Type
 >
-struct NonLeafNodeTypes {
-    template <typename Types>
+struct BranchNodeTypes {
+    template <typename BranchTypes, typename LeafTypes>
     using AllTypesList = TypeList<
-            NodePageAdaptor<Type, Types>
+            NodePageAdaptor<Type, BranchTypes>
     >;
 
-    template <typename Types>
+    template <typename LeafTypes>
     using LeafTypesList = TypeList<>;
 
-    template <typename Types>
-    using NonLeafTypesList = TypeList<
-            NodePageAdaptor<Type, Types>
+    template <typename BranchTypes>
+    using BranchTypesList = TypeList<
+            NodePageAdaptor<Type, BranchTypes>
     >;
 };
 
@@ -74,35 +74,35 @@ struct TreeNodeType {
 };
 
 
-template <typename Types, typename NodeTypes> struct NodeTypeListBuilder;
+template <typename BranchTypes, typename LeafTypes, typename NodeTypes> struct NodeTypeListBuilder;
 
 
-template <typename Types, typename Head, typename... Tail>
-struct NodeTypeListBuilder<Types, TypeList<Head, Tail...>> {
+template <typename BranchTypes, typename LeafTypes, typename Head, typename... Tail>
+struct NodeTypeListBuilder<BranchTypes, LeafTypes, TypeList<Head, Tail...>> {
 
-    typedef typename MergeLists<
-            typename Head::template AllTypesList<Types>,
-            typename NodeTypeListBuilder<Types, TypeList<Tail...>>::AllTypesList
-    >::Result                                                                   AllTypesList;
+    typedef MergeLists<
+            typename Head::template AllTypesList<BranchTypes, LeafTypes>,
+            typename NodeTypeListBuilder<BranchTypes, LeafTypes, TypeList<Tail...>>::AllTypesList
+    >                                                                           AllTypesList;
 
 
-    typedef typename MergeLists<
-            typename Head::template LeafTypesList<Types>,
-            typename NodeTypeListBuilder<Types, TypeList<Tail...>>::LeafTypesList
-    >::Result                                                                   LeafTypesList;
+    typedef MergeLists<
+            typename Head::template LeafTypesList<LeafTypes>,
+            typename NodeTypeListBuilder<BranchTypes, LeafTypes, TypeList<Tail...>>::LeafTypesList
+    >                                                                           LeafTypesList;
 
-    typedef typename MergeLists<
-            typename Head::template NonLeafTypesList<Types>,
-            typename NodeTypeListBuilder<Types, TypeList<Tail...>>::NonLeafTypesList
-    >::Result                                                                   NonLeafTypesList;
+    typedef MergeLists<
+            typename Head::template BranchTypesList<BranchTypes>,
+            typename NodeTypeListBuilder<BranchTypes, LeafTypes, TypeList<Tail...>>::BranchTypesList
+    >                                                                           BranchTypesList;
 };
 
 
-template <typename Types>
-struct NodeTypeListBuilder<Types, TypeList<>> {
+template <typename BranchTypes, typename LeafTypes>
+struct NodeTypeListBuilder<BranchTypes, LeafTypes, TypeList<>> {
     typedef TypeList<>                                                          AllTypesList;
     typedef TypeList<>                                                          LeafTypesList;
-    typedef TypeList<>                                                          NonLeafTypesList;
+    typedef TypeList<>                                                          BranchTypesList;
 };
 
 
@@ -114,10 +114,10 @@ template <typename Types, typename NodeTypes> struct DefaultNodeTypeListBuilder;
 template <typename Types, typename Head, typename... Tail>
 struct DefaultNodeTypeListBuilder<Types, TypeList<Head, Tail...>> {
 
-    typedef typename MergeLists<
+    typedef MergeLists<
             typename Head::template Type<Types>,
             typename DefaultNodeTypeListBuilder<Types, TypeList<Tail...>>::List
-    >::Result                                                                   List;
+    >                                                                           List;
 };
 
 
@@ -130,53 +130,56 @@ struct DefaultNodeTypeListBuilder<Types, TypeList<>> {
 
 
 template <
-    typename Types1
+    typename Types
 >
-class BTreeDispatchers: public Types1 {
+class BTreeDispatchers {
 
-    typedef BTreeDispatchers<Types1>                                           MyType;
+    using MyType            = BTreeDispatchers<Types>;
 
-    typedef typename Types1::NodeTypes                                          Types;
-    typedef typename Types1::NodeList                                           NodeList_;
-    typedef typename Types1::DefaultNodeList                                    DefaultNodeList_;
-    typedef typename Types1::NodeBase                                           NodeBase_;
+    using BranchTypes       = typename Types::BranchNodeTypes;
+    using LeafTypes         = typename Types::LeafNodeTypes;
+
+    using NodeTypesList     = typename Types::NodeTypesList;
+    using NodeBaseG_        = typename Types::NodeBaseG;
+
+    using DefaultBranchNodeTypesList    = typename Types::DefaultBranchNodeTypesList;
+    using DefaultLeafNodeTypesList      = typename Types::DefaultLeafNodeTypesList;
 
 public:
-
-    struct NodeTypesBase: Types {
-        typedef NodeBase_ NodeBase;
+    struct NodeTypesBase {
+        using NodeBaseG = NodeBaseG_;
     };
 
-    struct AllTypes: NodeTypesBase {
-        typedef typename NodeTypeListBuilder<Types, NodeList_>::AllTypesList        List;
+    struct AllDTypes: NodeTypesBase {
+        using List = typename NodeTypeListBuilder<BranchTypes, LeafTypes, NodeTypesList>::AllTypesList;
     };
 
-    struct LeafTypes: NodeTypesBase {
-        typedef typename NodeTypeListBuilder<Types, NodeList_>::LeafTypesList       List;
+    struct LeafDTypes: NodeTypesBase {
+        using List = typename NodeTypeListBuilder<BranchTypes, LeafTypes, NodeTypesList>::LeafTypesList;
     };
 
-    struct NonLeafTypes: NodeTypesBase {
-        typedef typename NodeTypeListBuilder<Types, NodeList_>::NonLeafTypesList    List;
+    struct BranchDTypes: NodeTypesBase {
+        using List = typename NodeTypeListBuilder<BranchTypes, LeafTypes, NodeTypesList>::BranchTypesList;
     };
 
-    struct DefaultTypes: NodeTypesBase {
-        typedef typename DefaultNodeTypeListBuilder<Types, DefaultNodeList_>::List  List;
+    struct DefaultDTypes: NodeTypesBase {
+        using List = MergeLists<
+                typename DefaultNodeTypeListBuilder<LeafTypes, DefaultLeafNodeTypesList>::List,
+                typename DefaultNodeTypeListBuilder<BranchTypes, DefaultBranchNodeTypesList>::List
+        >;
     };
 
-    struct TreeTypes: NodeTypesBase {
-        typedef typename NodeTypeListBuilder<Types, NodeList_>::NonLeafTypesList    List;
-        typedef typename NodeTypeListBuilder<Types, NodeList_>::AllTypesList        ChildList;
+    struct TreeDTypes: NodeTypesBase {
+        using List      = typename NodeTypeListBuilder<BranchTypes, LeafTypes, NodeTypesList>::BranchTypesList;
+        using ChildList = typename NodeTypeListBuilder<BranchTypes, LeafTypes, NodeTypesList>::AllTypesList;
     };
 
-    typedef NDT<AllTypes>                                   NodeDispatcher;
-
-    typedef NDT<LeafTypes>                                  LeafDispatcher;
-    typedef NDT<NonLeafTypes>                               NonLeafDispatcher;
-    typedef NDT<DefaultTypes>                               DefaultDispatcher;
-    typedef NDT<TreeTypes>                                  TreeDispatcher;
+    using NodeDispatcher        = NDT<AllDTypes>;
+    using LeafDispatcher        = NDT<LeafDTypes>;
+    using BranchDispatcher      = NDT<BranchDTypes>;
+    using DefaultDispatcher     = NDT<DefaultDTypes>;
+    using TreeDispatcher        = NDTTree<TreeDTypes>;
 };
-
-
 
 }
 }

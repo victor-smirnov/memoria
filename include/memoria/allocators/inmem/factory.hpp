@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011-2013.
+// Copyright Victor Smirnov 2011-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -10,10 +10,10 @@
 #define _MEMORIA_ALLOCATORS_INMEM_FACTORY_HPP
 
 #include <memoria/containers/root/root_factory.hpp>
-#include <memoria/containers/map/map_factory.hpp>
-//#include <memoria/containers/vector/vctr_factory.hpp>
+//#include <memoria/containers/map/map_factory.hpp>
+#include <memoria/containers/vector/vctr_factory.hpp>
 //#include <memoria/containers/vector_map/vmap_factory.hpp>
-//#include <memoria/containers/seq_dense/seqd_factory.hpp>
+#include <memoria/containers/seq_dense/seqd_factory.hpp>
 //#include <memoria/containers/labeled_tree/ltree_factory.hpp>
 //#include <memoria/containers/wt/wt_factory.hpp>
 //#include <memoria/containers/vector_tree/vtree_factory.hpp>

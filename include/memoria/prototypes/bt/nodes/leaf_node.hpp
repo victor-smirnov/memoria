@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2013.
+// Copyright Victor Smirnov 2013-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -9,24 +9,22 @@
 #ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_NODES_LEAFNODE_HPP
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_NODES_LEAFNODE_HPP
 
-#include <memoria/core/types/typehash.hpp>
-#include <memoria/core/types/algo/select.hpp>
-#include <memoria/core/tools/reflection.hpp>
-
-#include <memoria/core/types/types.hpp>
-
-#include <memoria/core/packed/tree/packed_fse_tree.hpp>
-#include <memoria/core/packed/tree/packed_vle_tree.hpp>
-
-#include <memoria/core/packed/map/packed_map.hpp>
-
-#include <memoria/core/packed/array/packed_fse_array.hpp>
+#include <memoria/core/exceptions/memoria.hpp>
 #include <memoria/core/packed/tools/packed_allocator.hpp>
 #include <memoria/core/packed/tools/packed_dispatcher.hpp>
-
-#include <memoria/prototypes/bt/bt_tools.hpp>
-#include <memoria/prototypes/bt/bt_names.hpp>
+#include <memoria/core/packed/tree/packed_tree_tools.hpp>
+#include <memoria/core/tools/assert.hpp>
+#include <memoria/core/tools/config.hpp>
+#include <memoria/core/tools/idata.hpp>
+#include <memoria/core/types/fn_traits.hpp>
+#include <memoria/core/types/list/misc.hpp>
+#include <memoria/core/types/typehash.hpp>
+#include <memoria/core/types/types.hpp>
 #include <memoria/prototypes/bt/nodes/branch_node.hpp>
+
+#include <memoria/prototypes/bt/tools/bt_packed_struct_list_builder.hpp>
+#include <memoria/prototypes/bt/tools/bt_size_list_builder.hpp>
+#include <memoria/prototypes/bt/tools/bt_substreamgroup_dispatcher.hpp>
 
 
 namespace memoria   {
@@ -40,10 +38,6 @@ struct TreeLeafNodeTypes: Packed2TreeTypes<V, K> {
 
 };
 
-template <typename Types>
-struct LeafNodeStreamTypes: Types {
-    static const bool Leaf = true;
-};
 
 
 template <
@@ -51,8 +45,7 @@ template <
 >
 class LeafNode: public TreeNodeBase<typename Types::Metadata, typename Types::NodeBase>
 {
-
-    static const Int  BranchingFactor                                           = PackedTreeBranchingFactor;
+    static const Int BranchingFactor                                            = PackedTreeBranchingFactor;
 
     typedef LeafNode<Types>                                                     Me;
     typedef LeafNode<Types>                                                     MyType;
@@ -67,38 +60,120 @@ public:
                 typename Types::NodeBase
     >                                                                           Base;
 
-private:
-
-
-
-public:
-
     typedef typename Types::Accumulator                                         Accumulator;
     typedef typename Types::Position                                            Position;
 
-    template <
-            template <typename> class,
-            typename
-    >
+    template <template <typename> class, typename>
     friend class NodePageAdaptor;
 
-    typedef LeafNodeStreamTypes<Types>                                          StreamTypes;
+    using BranchSubstreamsStructList 	= typename Types::BranchStreamsStructList;
+    using LeafSubstreamsStructList 		= typename Types::LeafStreamsStructList;
 
-    typedef typename PackedStructListBuilder<
-                typename Types::StreamDescriptors
-    >::LeafStructList                                                           StreamsStructList;
+    using StreamDispatcherStructList = typename PackedDispatchersListBuilder<
+    		Linearize<LeafSubstreamsStructList>,
+    		Base::StreamsStart
+    >::Type;
 
-    typedef typename PackedDispatcherTool<
-    					Base::StreamsStart,
-    					StreamsStructList
-    >::Type           															Dispatcher;
+    using Dispatcher = PackedDispatcher<StreamDispatcherStructList>;
 
-    static const Int Streams                                                    = ListSize<StreamsStructList>::Value;
-    static const Int StreamsStart                                               = Base::StreamsStart;
-    static const Int StreamsEnd                                               	= Base::StreamsStart + Streams;
-    static const Int ValuesBlockIdx                                             = StreamsEnd;
+    template <Int StartIdx, Int EndIdx>
+    using SubrangeDispatcher = typename Dispatcher::template SubrangeDispatcher<StartIdx, EndIdx>;
+
+
+    template <typename SubstreamsPath>
+    using SubstreamsDispatcher = SubrangeDispatcher<
+    		memoria::list_tree::LeafCountInf<LeafSubstreamsStructList, SubstreamsPath>::Value,
+    		memoria::list_tree::LeafCountSup<LeafSubstreamsStructList, SubstreamsPath>::Value
+    >;
+
+    template <Int StreamIdx>
+    using StreamDispatcher = SubstreamsDispatcher<IntList<StreamIdx>>;
+
+    template <Int StreamIdx>
+    using StreamStartIdx = IntValue<
+    		memoria::list_tree::LeafCountInf<LeafSubstreamsStructList, IntList<StreamIdx>>::Value
+    >;
+
+
+
+    template <Int Stream, typename SubstreamIdxList>
+    using SubstreamsByIdxDispatcher = typename Dispatcher::template SubsetDispatcher<
+    		memoria::list_tree::AddToValueList<
+    			memoria::list_tree::LeafCount<LeafSubstreamsStructList, IntList<Stream>>::Value,
+    			SubstreamIdxList
+    		>,
+    		Stream
+    >;
+
+
+    static const Int Streams                                                    = ListSize<LeafSubstreamsStructList>::Value;
+
+    static const Int Substreams                                                 = Dispatcher::Size;
+
+    static const Int SubstreamsStart                                            = Dispatcher::AllocatorIdxStart;
+    static const Int SubstreamsEnd                                              = Dispatcher::AllocatorIdxEnd;
+
+
+    //FIXME: Use SubDispatcher
+
+    template <Int Idx, typename... Args>
+    using DispatchRtnFnType = auto(Args...) -> decltype(
+            Dispatcher::template dispatch<Idx>(std::declval<Args>()...)
+    );
+
+    template <typename... Args>
+    using DynDispatchRtnFnType = auto(Args...) -> decltype(
+            Dispatcher::template dispatch(std::declval<Args>()...)
+    );
+
+    template <Int Idx, typename Fn, typename... T>
+    using DispatchRtnType = typename FnTraits<
+            DispatchRtnFnType<Idx, PackedAllocator*, Fn, T...>
+    >::RtnType;
+
+    template <Int Idx, typename Fn, typename... T>
+    using DispatchRtnConstType = typename FnTraits<
+            DispatchRtnFnType<Idx, const PackedAllocator*, Fn, T...>
+    >::RtnType;
+
+    template <typename Fn, typename... T>
+    using DynDispatchRtnType = typename FnTraits<
+            DynDispatchRtnFnType<Int, PackedAllocator*, Fn, T...>
+    >::RtnType;
+
+    template <typename Fn, typename... T>
+    using DynDispatchRtnConstType = typename FnTraits<
+            DynDispatchRtnFnType<Int, const PackedAllocator*, Fn, T...>
+    >::RtnType;
+
+
+
+    template <typename Fn, typename... T>
+    using ProcessAllRtnType = typename Dispatcher::template ProcessAllRtnType<Fn, T...>;
+
+    template <typename Fn, typename... T>
+    using ProcessAllRtnConstType = typename Dispatcher::template ProcessAllRtnConstType<Fn, T...>;
+
+
+
+    template <typename SubstreamsPath, typename Fn, typename... T>
+    using ProcessSubstreamsRtnType = typename SubstreamsDispatcher<SubstreamsPath>::template ProcessAllRtnType<Fn, T...>;
+
+
+    template <typename SubstreamsPath, typename Fn, typename... T>
+    using ProcessSubstreamsRtnConstType = typename SubstreamsDispatcher<SubstreamsPath>::template ProcessAllRtnConstType<Fn, T...>;
+
+
+
+    template <Int Stream, typename SubstreamsIdxList, typename Fn, typename... T>
+    using ProcessSubstreamsByIdxRtnType = typename SubstreamsByIdxDispatcher<Stream, SubstreamsIdxList>::template ProcessAllRtnType<Fn, T...>;
+
+    template <Int Stream, typename SubstreamsIdxList, typename Fn, typename... T>
+    using ProcessSubstreamsByIdxRtnConstType = typename SubstreamsByIdxDispatcher<Stream, SubstreamsIdxList>::template ProcessAllRtnConstType<Fn, T...>;
+
 
     LeafNode() = default;
+
 
 private:
     struct InitFn {
@@ -120,7 +195,7 @@ public:
     static Int free_space(Int page_size, bool root)
     {
         Int block_size = page_size - sizeof(Me) + PackedAllocator::my_size();
-        Int client_area = PackedAllocator::client_area(block_size, StreamsStart + Streams + 1);
+        Int client_area = PackedAllocator::client_area(block_size, SubstreamsStart + Substreams + 1);
 
         return client_area - root * PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
     }
@@ -136,26 +211,26 @@ public:
         return Base::allocator();
     }
 
-    template <typename T>
-    T* get_stream(Int idx)
-    {
-        return allocator()->template get<T>(idx + StreamsStart);
-    }
+//    template <typename T>
+//    T* get_stream(Int idx)
+//    {
+//        return allocator()->template get<T>(idx + SubstreamsStart);
+//    }
+//
+//    template <typename T>
+//    const T* get_stream(Int idx) const
+//    {
+//        return allocator()->template get<T>(idx + SubstreamsStart);
+//    }
 
-    template <typename T>
-    const T* get_stream(Int idx) const
-    {
-        return allocator()->template get<T>(idx + StreamsStart);
-    }
-
-    bool is_stream_empty(Int idx) const
-    {
-        return allocator()->is_empty(idx + StreamsStart);
-    }
+//    bool is_stream_empty(Int idx) const
+//    {
+//        return allocator()->is_empty(idx + SubstreamsStart);
+//    }
 
     bool is_empty() const
     {
-        for (Int c = StreamsStart; c < StreamsEnd; c++)
+        for (Int c = SubstreamsStart; c < SubstreamsEnd; c++)
         {
             if (!allocator()->is_empty(c)) {
                 return false;
@@ -170,12 +245,12 @@ private:
     struct BlockSizeFn {
         Int size_ = 0;
 
-        template <Int StreamIndex, typename Node>
+        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename Node>
         void stream(Node*, const Position& sizes)
         {
-            if (sizes[StreamIndex] > 0)
+            if (sizes[StreamIdx] > 0)
             {
-                size_ += Node::block_size(sizes[StreamIndex]);
+                size_ += Node::block_size(sizes[StreamIdx]);
             }
         }
     };
@@ -185,7 +260,7 @@ public:
     {
         BlockSizeFn fn;
 
-        Dispatcher::dispatchAllStatic(fn, sizes);
+        MyType::processSubstreamGroupsStatic(fn, sizes);
 
         Int client_area = fn.size_;
 
@@ -206,7 +281,7 @@ public:
 
     void prepare()
     {
-        Base::initAllocator(StreamsStart + Streams);
+        Base::initAllocator(SubstreamsStart + Substreams); // +1?
     }
 
     void layout(const Position& sizes)
@@ -223,14 +298,14 @@ public:
 
 
     struct LayoutFn {
-        template <Int StreamIndex, typename Stream>
+        template <Int AllocatorIdx, Int Idx, typename Stream>
         void stream(Stream*, PackedAllocator* alloc, UBigInt streams)
         {
-            if (streams & (1<<StreamIndex))
+            if (streams & (1<<Idx))
             {
-                if (alloc->is_empty(StreamIndex + StreamsStart))
+                if (alloc->is_empty(AllocatorIdx))
                 {
-                    alloc->template allocateEmpty<Stream>(StreamIndex + StreamsStart);
+                    alloc->template allocateEmpty<Stream>(AllocatorIdx);
                 }
             }
         }
@@ -257,26 +332,26 @@ public:
 
 private:
 
-    struct InitStructFn {
-        template <Int StreamIndex, typename Tree>
-        void stream(Tree*, PackedAllocator* allocator, const Position& sizes)
-        {
-            if (sizes[StreamIndex] > -1)
-            {
-                Int block_size = Tree::block_size(sizes[StreamIndex]);
-                allocator->template allocate<Tree>(StreamIndex + StreamsStart, block_size);
-            }
-        }
-
-        template <Int StreamIndex, typename Tree>
-        void stream(Tree*, PackedAllocator* allocator, Int client_area)
-        {
-            if (StreamIndex == 0)
-            {
-                allocator->template allocate<Tree>(StreamIndex + StreamsStart, client_area);
-            }
-        }
-    };
+//    struct InitStructFn {
+//        template <Int AllocatorIdx, Int Idx, typename Tree>
+//        void stream(Tree*, PackedAllocator* allocator, const Position& sizes)
+//        {
+//            if (sizes[Idx] > -1)
+//            {
+//                Int block_size = Tree::block_size(sizes[Idx]);
+//                allocator->template allocate<Tree>(AllocatorIdx, block_size);
+//            }
+//        }
+//
+//        template <Int AllocatorIdx, Int Idx, typename Tree>
+//        void stream(Tree*, PackedAllocator* allocator, Int client_area)
+//        {
+//            if (Idx == 0)
+//            {
+//                allocator->template allocate<Tree>(AllocatorIdx, client_area);
+//            }
+//        }
+//    };
 
 public:
 
@@ -296,42 +371,42 @@ public:
 
 
     struct ObjectSizeFn {
-        template <Int StreamIndex, typename Tree>
+        template <typename Tree>
         void stream(const Tree* tree, PackedAllocator* allocator, const Int* size)
         {
             *size += tree->object_size();
         }
     };
 
-
     void init() {
-    	Base::initAllocator(StreamsStart + Streams);
+        Base::initAllocator(SubstreamsStart + Substreams);
     }
 
     Int object_size() const
     {
         Int size = 0;
         Dispatcher::dispatchNotEmpty(ObjectSizeFn(), allocator(), &size);
+
         return size;
     }
 
     void clearUnused() {}
 
     struct ReindexFn {
-        template <Int Idx, typename Tree>
-        void stream(Tree* tree)
-        {
-            tree->reindex();
-        }
+    	template <typename Tree>
+    	void stream(Tree* tree)
+    	{
+    		tree->reindex();
+    	}
     };
 
     void reindex()
     {
-        Dispatcher::dispatchNotEmpty(allocator(), ReindexFn());
+    	Dispatcher::dispatchNotEmpty(allocator(), ReindexFn());
     }
 
     struct CheckFn {
-        template <Int Idx, typename Tree>
+        template <typename Tree>
         void stream(const Tree* tree)
         {
             tree->check();
@@ -346,13 +421,13 @@ public:
 
     template <typename TreeType>
     struct TransferToFn {
-        template <Int Idx, typename Tree>
+        template <Int AllocatorIdx, Int Idx, typename Tree>
         void stream(const Tree* tree, TreeType* other)
         {
-            auto allocator = tree->allocator();
+            auto allocator 		 = tree->allocator();
             auto other_allocator = other->allocator();
 
-            other_allocator->importBlock(Idx + StreamsStart, allocator, Idx + StreamsStart);
+            other_allocator->importBlock(AllocatorIdx, allocator, AllocatorIdx);
         }
     };
 
@@ -374,12 +449,12 @@ public:
 
 
     struct MemUsedFn {
-        template <Int StreamIndex, typename Tree>
+        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename Tree>
         void stream(const Tree* tree, const Position& sizes, Int* mem_used, Int except)
         {
-            if (StreamIndex != except)
+            if (Idx != except)
             {
-                Int size = sizes[StreamIndex];
+                Int size = sizes[StreamIdx];
 
                 if (tree != nullptr || size > 0)
                 {
@@ -390,10 +465,8 @@ public:
     };
 
     struct Capacity3Fn {
-        typedef Int ResultType;
-
-        template <Int StreamIndex, typename Tree>
-        ResultType stream(const Tree* tree, Int free_mem)
+        template <typename Tree>
+        Int stream(const Tree* tree, Int free_mem)
         {
             Int size = tree != nullptr ? tree->size() : 0;
 
@@ -414,11 +487,11 @@ public:
         }
 
         Int mem_used = 0;
-        Dispatcher::dispatchAll(allocator(), MemUsedFn(), fillment, &mem_used, stream);
+        this->processSubstreamGroups(MemUsedFn(), fillment, &mem_used, stream);
 
         Int client_area = MyType::client_area(this->page_size(), this->is_root());
 
-        return Dispatcher::dispatchRtn(stream, allocator(), Capacity3Fn(), client_area - mem_used);
+        return Dispatcher::dispatch(stream, allocator(), Capacity3Fn(), client_area - mem_used);
     }
 
     Int capacity(const Int* sizes, Int stream) const
@@ -429,36 +502,6 @@ public:
         return capacity(psizes, stream);
     }
 
-    struct StaticCapacity3Fn {
-        typedef Int ResultType;
-
-        template <Int StreamIndex, typename Tree>
-        ResultType stream(const Tree* tree, Int free_mem)
-        {
-            Int size = tree != nullptr ? tree->size() : 0;
-
-            Int capacity = Tree::elements_for(free_mem) - size;
-
-            return capacity >= 0 ? capacity : 0;
-        }
-    };
-
-    static Int capacity(Int block_size, const Int* sizes, Int stream, bool root)
-    {
-        Position fillment;
-
-        for (Int c = 0; c < Streams; c++)
-        {
-            fillment[c] = sizes[c];
-        }
-
-        Int mem_used = 0;
-        Dispatcher::dispatchAllStatic(MemUsedFn(), fillment, &mem_used, stream);
-
-        Int client_area = MyType::client_area(block_size, root);
-
-        return Dispatcher::dispatchStaticRtn(stream, Capacity3Fn(), client_area - mem_used);
-    }
 
 
 
@@ -472,7 +515,7 @@ public:
 
     struct CheckCapacitiesFn {
 
-        template <Int StreamIdx, typename Tree>
+        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename Tree>
         void stream(const Tree* tree, const Position& sizes, Int* mem_size)
         {
             Int size = sizes[StreamIdx];
@@ -484,15 +527,15 @@ public:
         }
 
 
-        template <Int StreamIdx, typename Tree, typename Entropy>
+        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename Tree, typename Entropy>
         void stream(const Tree* tree, const Entropy& entropy, const Position& sizes, Int* mem_size)
         {
-        	Int size = sizes[StreamIdx];
+            Int size = sizes[StreamIdx];
 
-        	if (tree != nullptr || size > 0)
-        	{
-        		*mem_size += Tree::packed_block_size(size);
-        	}
+            if (tree != nullptr || size > 0)
+            {
+                *mem_size += Tree::packed_block_size(size);
+            }
         }
     };
 
@@ -519,30 +562,30 @@ public:
     template <typename Entropy>
     bool checkCapacities(const Entropy& entropy, const Position& sizes) const
     {
-    	Position fillment = this->sizes();
+        Position fillment = this->sizes();
 
-    	for (Int c = 0; c < Streams; c++)
-    	{
-    		fillment[c] += sizes[c];
-    	}
+        for (Int c = 0; c < Streams; c++)
+        {
+            fillment[c] += sizes[c];
+        }
 
-    	Int mem_size = 0;
+        Int mem_size = 0;
 
-    	Dispatcher::dispatchAll(allocator(), CheckCapacitiesFn(), entropy, fillment, &mem_size);
+//        Dispatcher::dispatchAll(allocator(), CheckCapacitiesFn(), entropy, fillment, &mem_size);
 
-    	Int free_space      = MyType::free_space(this->page_size(), this->is_root());
-    	Int client_area     = PackedAllocator::client_area(free_space, Streams);
+        this->processSubstreamGroups(CheckCapacitiesFn(), entropy, fillment, &mem_size);
 
-    	return client_area >= mem_size;
+        Int free_space      = MyType::free_space(this->page_size(), this->is_root());
+        Int client_area     = PackedAllocator::client_area(free_space, Streams);
+
+        return client_area >= mem_size;
     }
 
 
 
     struct SizeFn {
-        typedef Int ResultType;
-
-        template <Int Idx, typename Tree>
-        ResultType stream(const Tree* tree)
+        template <typename Tree>
+        Int stream(const Tree* tree)
         {
             return tree != nullptr ? tree->size() : 0;
         }
@@ -550,74 +593,50 @@ public:
 
     Int size(Int stream) const
     {
-        return Dispatcher::dispatchRtn(stream, allocator(), SizeFn());
+        return Dispatcher::dispatch(stream, allocator(), SizeFn());
+    }
+
+    template <Int StreamIdx>
+    Int streamSize() const
+    {
+    	return this->processStream<IntList<StreamIdx>>(SizeFn());
     }
 
     struct SizesFn {
-        template <Int Idx, typename Tree>
+        template <Int StreamIdx, typename Tree>
         void stream(const Tree* tree, Position& pos)
         {
-            pos[Idx] = tree->size();
+            pos[StreamIdx] = tree != nullptr ? tree->size() : 0;
         }
     };
 
     Position sizes() const
     {
         Position pos;
-        Dispatcher::dispatchNotEmpty(allocator(), SizesFn(), pos);
+        this->processStreamsStart(SizesFn(), pos);
         return pos;
     }
 
+    struct AccumSizesFn {
 
-    struct MaxSizeFn {
-        typedef Int ResultType;
+    	template <typename... Args>
+    	void stream(Args&&... args) {
 
-        template <Int Idx, typename Tree>
-        ResultType stream(const Tree* tree)
-        {
-            return tree->max_size();
-        }
+    	}
+
+    	template <Int Offset, bool StreamStart, Int ListIdx, typename StreamType, typename TupleItem>
+    	void stream(const StreamType* obj, TupleItem& accum, Position& sizes)
+    	{
+    		static_assert(StreamStart, "StreamStart must be true for structures at the start of a stream");
+    		sizes[ListIdx] = accum[0];
+    	}
     };
 
-    Int max_size(Int stream) const
+    static Position sizes(const Accumulator& sums)
     {
-        return Dispatcher::dispatchRtn(stream, allocator(), MaxSizeFn());
-    }
-
-    struct MaxSizesFn {
-        template <Int Idx, typename Tree>
-        void stream(const Tree* tree, Position& pos)
-        {
-            pos[Idx] = tree->max_size();
-        }
-    };
-
-    Position max_sizes() const
-    {
-        Position pos;
-        Dispatcher::dispatchNotEmpty(allocator(), MaxSizesFn(), pos);
-        return pos;
-    }
-
-
-    struct MaxOfSizesFn {
-        Int max_size_ = 0;
-
-        template <Int Idx, typename Tree>
-        void stream(const Tree* tree)
-        {
-            if (tree->size() > max_size_)
-            {
-                max_size_ = tree->size();
-            }
-        }
-    };
-
-    Int maxOfSizes() const
-    {
-        MaxOfSizesFn fn;
-        Dispatcher::dispatchNotEmpty(allocator(), fn);
-        return fn.max_size_;
+        Position sz;
+        processStreamsStartStaticAcc(AccumSizesFn(), sums, sz);
+        return sz;
     }
 
     bool isEmpty(Int stream) const
@@ -650,13 +669,14 @@ public:
     }
 
 
-    struct InitStreamIfEmpty {
-        template <Int Idx, typename Tree>
+    struct InitStreamIfEmpty
+    {
+        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename Tree>
         void stream(Tree* tree, PackedAllocator* allocator, const Position& sizes)
         {
-            if (tree == nullptr && sizes[Idx] > 0)
+            if (tree == nullptr && sizes[StreamIdx] > 0)
             {
-                allocator->template allocate<Tree>(Idx + StreamsStart, Tree::empty_size());
+                allocator->template allocate<Tree>(AllocatorIdx, Tree::empty_size());
             }
         }
     };
@@ -664,20 +684,20 @@ public:
 
     void initStreamsIfEmpty(const Position& sizes)
     {
-        Dispatcher::dispatchAll(allocator(), InitStreamIfEmpty(), allocator(), sizes);
+    	this->processSubstreamGroups(InitStreamIfEmpty(), allocator(), sizes);
     }
 
 
     struct InsertSpaceFn {
-        template <Int Idx, typename Tree>
+        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename Tree>
         void stream(Tree* tree, PackedAllocator* allocator, const Position& room_start, const Position& room_length)
         {
             if (tree != nullptr)
             {
-                tree->insertSpace(room_start[Idx], room_length[Idx]);
+                tree->insertSpace(room_start[StreamIdx], room_length[StreamIdx]);
             }
             else {
-                MEMORIA_ASSERT_TRUE(room_length[Idx] == 0);
+                MEMORIA_ASSERT_TRUE(room_length[StreamIdx] == 0);
             }
         }
     };
@@ -685,8 +705,7 @@ public:
     void insertSpace(const Position& room_start, const Position& room_length)
     {
         initStreamsIfEmpty(room_length);
-
-        Dispatcher::dispatchAll(allocator(), InsertSpaceFn(), allocator(), room_start, room_length);
+        this->processSubstreamGroups(InsertSpaceFn(), allocator(), room_start, room_length);
     }
 
     void insertSpace(Int stream, Int room_start, Int room_length)
@@ -695,13 +714,15 @@ public:
     }
 
     struct RemoveSpaceFn {
-        template <Int Idx, typename Tree>
+        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename Tree>
         void stream(Tree* tree, const Position& room_start, const Position& room_end)
         {
-            tree->removeSpace(room_start[Idx], room_end[Idx]);
+            if (tree != nullptr) {
+            	tree->removeSpace(room_start[StreamIdx], room_end[StreamIdx]);
+            }
         }
 
-        template <Int Idx, typename Tree>
+        template <typename Tree>
         void stream(Tree* tree, Int room_start, Int room_end)
         {
             if (tree != nullptr)
@@ -728,7 +749,7 @@ public:
         Accumulator accum;
         this->sums(room_start, room_end, accum);
 
-        Dispatcher::dispatchNotEmpty(allocator(), RemoveSpaceFn(), room_start, room_end);
+        this->processSubstreamGroups(RemoveSpaceFn(), room_start, room_end);
 
         removeEmptyStreams();
 
@@ -751,24 +772,24 @@ public:
     struct CanMergeWithFn {
         Int mem_used_ = 0;
 
-        template <Int StreamIdx, typename Tree>
+        template <Int AllocatorIdx, Int Idx, typename Tree>
         void stream(const Tree* tree, const MyType* other)
         {
             if (tree != nullptr)
             {
-                if (other->allocator()->is_empty(StreamIdx + StreamsStart))
+                if (other->allocator()->is_empty(AllocatorIdx))
                 {
                     mem_used_ += tree->block_size();
                 }
                 else {
-                    const Tree* other_tree = other->allocator()->template get<Tree>(StreamIdx + StreamsStart);
+                    const Tree* other_tree = other->allocator()->template get<Tree>(AllocatorIdx);
                     mem_used_ += tree->block_size(other_tree);
                 }
             }
             else {
-                if (!other->allocator()->is_empty(StreamIdx + StreamsStart))
+                if (!other->allocator()->is_empty(AllocatorIdx))
                 {
-                    Int element_size = other->allocator()->element_size(StreamIdx + StreamsStart);
+                    Int element_size = other->allocator()->element_size(AllocatorIdx);
                     mem_used_ += element_size;
                 }
             }
@@ -777,7 +798,7 @@ public:
 
     bool canBeMergedWith(const MyType* other) const
     {
-    	CanMergeWithFn fn;
+        CanMergeWithFn fn;
         Dispatcher::dispatchAll(allocator(), fn, other);
 
         Int free_space = this->allocator()->free_space();
@@ -788,19 +809,19 @@ public:
 
 
     struct MergeWithFn {
-        template <Int Idx, typename Tree>
+        template <Int AllocatorIdx, Int Idx, typename Tree>
         void stream(Tree* tree, MyType* other)
         {
             Int size = tree->size();
 
             if (size > 0)
             {
-                if (other->is_stream_empty(Idx))
+                if (other->allocator()->is_empty(AllocatorIdx))
                 {
-                    other->allocator()->template allocateEmpty<Tree>(Idx + StreamsStart);
+                    other->allocator()->template allocateEmpty<Tree>(AllocatorIdx);
                 }
 
-                Tree* other_tree = other->template get_stream<Tree>(Idx);
+                Tree* other_tree = other->allocator()->template get<Tree>(AllocatorIdx);
                 tree->mergeWith(other_tree);
             }
         }
@@ -812,10 +833,10 @@ public:
     }
 
     struct SplitToFn {
-        template <Int Idx, typename Tree>
+        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename Tree>
         void stream(Tree* tree, MyType* other, const Position& indexes)
         {
-            Int idx   = indexes[Idx];
+            Int idx   = indexes[StreamIdx];
             Int size  = tree->size();
 
             MEMORIA_ASSERT_TRUE(idx >= 0);
@@ -826,8 +847,7 @@ public:
                 Int size = tree->size();
                 if (size > 0)
                 {
-                    Tree* other_tree    = other->allocator()->template allocateEmpty<Tree>(Idx + StreamsStart);
-
+                    Tree* other_tree    = other->allocator()->template allocateEmpty<Tree>(AllocatorIdx);
                     tree->splitTo(other_tree, idx);
                 }
             }
@@ -843,14 +863,14 @@ public:
 
         sums(from, sizes, result);
 
-        Dispatcher::dispatchNotEmpty(allocator(), SplitToFn(), other, from);
+        this->processSubstreamGroups(SplitToFn(), other, from);
 
         return result;
     }
 
 
     struct CopyToFn {
-        template <Int Idx, typename Tree>
+        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename Tree>
         void stream(
                 const Tree* tree,
                 MyType* other,
@@ -859,7 +879,12 @@ public:
                 const Position& copy_to
         )
         {
-            tree->copyTo(other->allocator()->template get<Tree>(Idx + StreamsStart), copy_from[Idx], count[Idx], copy_to[Idx]);
+            tree->copyTo(
+            		other->allocator()->template get<Tree>(AllocatorIdx),
+            		copy_from[StreamIdx],
+            		count[StreamIdx],
+            		copy_to[StreamIdx]
+            );
         }
     };
 
@@ -869,137 +894,148 @@ public:
         MEMORIA_ASSERT_TRUE((copy_from + count).lteAll(sizes()));
         MEMORIA_ASSERT_TRUE((copy_to + count).lteAll(other->max_sizes()));
 
-        Dispatcher::dispatchNotEmpty(allocator(), CopyToFn(), other, copy_from, count, copy_to);
+        this->processSubstreamGroups(CopyToFn(), other, copy_from, count, copy_to);
     }
 
 
-    struct SumsFn {
-        template <Int StreamIdx, typename StreamType>
-        void stream(const StreamType* obj, Int start, Int end, Accumulator& accum)
-        {
-            obj->sums(start, end, std::get<StreamIdx>(accum));
-        }
 
-        template <Int StreamIdx, typename StreamType>
-        void stream(const StreamType* obj, Int block, Int start, Int end, BigInt& accum)
+    struct AccumulatorHandler
+    {
+        template <Int Offset, bool StreamStart, Int Idx, typename StreamType, typename TupleItem>
+        void stream(const StreamType* obj, TupleItem& accum, Int start, Int end)
         {
-            accum += obj->sum(block, start, end);
-        }
-
-        template <Int StreamIdx, typename StreamType>
-        void stream(const StreamType* obj, const Position& start, const Position& end, Accumulator& accum)
-        {
-            obj->sums(start[StreamIdx], end[StreamIdx], std::get<StreamIdx>(accum));
-        }
-
-        template <Int StreamIdx, typename StreamType>
-        void stream(const StreamType* obj, const Position& start, const Position& end, Accumulator& accum, UBigInt streams)
-        {
-            if (streams && (1ull<<StreamIdx))
+            if (obj != nullptr)
             {
-                obj->sums(start[StreamIdx], end[StreamIdx], std::get<StreamIdx>(accum));
+                if (StreamStart)
+                {
+                	accum[Offset - 1] += end - start;
+                }
+
+                obj->template sum<Offset>(start, end, accum);
             }
         }
 
-        template <Int StreamIdx, typename StreamType>
-        void stream(const StreamType* obj, Accumulator& accum)
+        template <Int Offset, bool StreamStart, Int Idx, typename StreamType, typename TupleItem>
+        void stream(const StreamType* obj, TupleItem& accum)
         {
-            obj->sums(std::get<StreamIdx>(accum));
+        	if (obj != nullptr)
+        	{
+        		if (StreamStart)
+        		{
+        			accum[Offset - 1] += obj->size();
+        		}
+
+        		obj->template sum<Offset>(accum);
+        	}
+        }
+
+        template <Int Offset, bool StreamStart, Int ListIdx, typename StreamType, typename TupleItem>
+        void stream(const StreamType* obj, TupleItem& accum, const Position& start, const Position& end)
+        {
+        	const Int StreamIdx = FindTopLevelIdx<LeafSubstreamsStructList, ListIdx>::Value;
+
+        	Int startIdx 	= start[StreamIdx];
+        	Int endIdx 		= end[StreamIdx];
+
+        	stream<Offset, StreamStart, ListIdx>(obj, accum, startIdx, endIdx);
         }
     };
 
+
     void sums(Int start, Int end, Accumulator& sums) const
     {
-        Dispatcher::dispatchNotEmpty(allocator(), SumsFn(), start, end, sums);
+        processAllSubstreamsAcc(AccumulatorHandler(), sums, start, end);
     }
 
-    void sums(Int stream, Int start, Int end, Accumulator& sums) const
-    {
-        Dispatcher::dispatch(stream, allocator(), SumsFn(), start, end, sums);
-    }
 
     void sums(const Position& start, const Position& end, Accumulator& sums) const
     {
-        Dispatcher::dispatchNotEmpty(allocator(), SumsFn(), start, end, sums);
+    	processAllSubstreamsAcc(AccumulatorHandler(), sums, start, end);
     }
 
-    void sums(const Position& start, const Position& end, Accumulator& sums, UBigInt active_stereams) const
-    {
-        Dispatcher::dispatchNotEmpty(allocator(), SumsFn(), start, end, sums, active_stereams);
-    }
-
-    void sum(Int stream, Int block_num, Int start, Int end, BigInt& accum) const
-    {
-        Dispatcher::dispatch(stream, allocator(), SumsFn(), block_num, start, end, &accum);
-    }
 
     void sums(Accumulator& sums) const
     {
-        Dispatcher::dispatchNotEmpty(allocator(), SumsFn(), sums);
+    	processAllSubstreamsAcc(AccumulatorHandler(), sums);
     }
 
     Accumulator sums() const
     {
         Accumulator sums;
-        Dispatcher::dispatchNotEmpty(allocator(), SumsFn(), sums);
+        processAllSubstreamsAcc(AccumulatorHandler(), sums);
         return sums;
+    }
+
+    struct SizeSumsFn {
+    	template <Int ListIdx, typename Tree>
+    	void stream(Tree* tree, Position& sizes)
+    	{
+    		sizes[ListIdx] = tree != nullptr ? tree->size() : 0;
+    	}
+    };
+
+    Position size_sums() const
+    {
+    	Position sums;
+    	processStreamsStart(SizeSumsFn(), sums);
+    	return sums;
     }
 
 
     struct InsertSourceFn
     {
-        template <Int Idx, typename Tree>
+        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename Tree>
         void stream(Tree* tree, ISource* src, const Position& pos, const Position& sizes)
         {
-            tree->insert(src->stream(Idx), pos[Idx], sizes[Idx]);
+            if (tree != nullptr) tree->insert(src->stream(StreamIdx), pos[StreamIdx], sizes[StreamIdx]);
         }
 
-        template <Int Idx, typename Tree, typename... TupleTypes>
+        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename Tree, typename... TupleTypes>
         void stream(Tree* tree, std::tuple<TupleTypes...>& src, const Position& pos, const Position& sizes)
         {
-        	tree->insert(std::get<Idx>(src), pos[Idx], sizes[Idx]);
+            if (tree != nullptr) tree->insert(std::get<StreamIdx>(src), pos[StreamIdx], sizes[StreamIdx]);
         }
     };
 
     void insert(ISource& src, const Position& pos, const Position& sizes)
     {
         initStreamsIfEmpty(sizes);
-        Dispatcher::dispatchNotEmpty(allocator(), InsertSourceFn(), &src, pos, sizes);
+        processSubstreamGroups(InsertSourceFn(), &src, pos, sizes);
     }
 
     template <typename... TupleTypes>
     void insert(std::tuple<TupleTypes...>& src, const Position& pos, const Position& sizes)
     {
-    	initStreamsIfEmpty(sizes);
-    	Dispatcher::dispatchNotEmpty(allocator(), InsertSourceFn(), src, pos, sizes);
+        initStreamsIfEmpty(sizes);
+        processSubstreamGroups(InsertSourceFn(), src, pos, sizes);
     }
 
 
     struct EstimateEntropyFn
     {
-    	template <Int Idx, typename Tree, typename... TupleTypes>
-    	void stream(const Tree* tree, std::tuple<TupleTypes...>& entropy, const Position& start, const Position& end)
-    	{
-    		tree->estimateEntropy(std::get<Idx>(entropy), start[Idx], end[Idx]);
-    	}
+        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename Tree, typename... TupleTypes>
+        void stream(const Tree* tree, std::tuple<TupleTypes...>& entropy, const Position& start, const Position& end)
+        {
+            if (tree != nullptr) tree->estimateEntropy(std::get<StreamIdx>(entropy), start[StreamIdx], end[StreamIdx]);
+        }
 
-    	template <Int Idx, typename Tree, typename... TupleTypes>
-    	void stream(const Tree* tree, std::tuple<TupleTypes...>& entropy)
-    	{
-    		tree->estimateEntropy(std::get<Idx>(entropy));
-    	}
+        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename Tree, typename... TupleTypes>
+        void stream(const Tree* tree, std::tuple<TupleTypes...>& entropy)
+        {
+            if (tree != nullptr) tree->estimateEntropy(std::get<StreamIdx>(entropy));
+        }
     };
 
     template <typename... TupleTypes>
     void estimateEntropy(std::tuple<TupleTypes...>& entropy, const Position& start, const Position& end)
     {
-    	Dispatcher::dispatchNotEmpty(allocator(), EstimateEntropyFn(), entropy, start, end);
+    	processSubstreamGroups(EstimateEntropyFn(), entropy, start, end);
     }
 
     template <typename... TupleTypes>
     void estimateEntropy(std::tuple<TupleTypes...>& entropy)
     {
-    	Dispatcher::dispatchNotEmpty(allocator(), EstimateEntropyFn(), entropy);
+        processSubstreamGroups(EstimateEntropyFn(), entropy);
     }
 
 
@@ -1007,148 +1043,427 @@ public:
 
     struct ComputeDataLengthsFn
     {
-    	template <Int Idx, typename Tree, typename EntryType, typename Lengths>
-    	void stream(Tree*, const EntryType& entry, Lengths& lengths)
-    	{
-    		Tree::computeDataLength(entry, lengths);
-    	}
+        template <typename Tree, typename EntryType, typename Lengths>
+        void stream(Tree*, const EntryType& entry, Lengths& lengths)
+        {
+            Tree::computeDataLength(entry, lengths);
+        }
     };
 
     template <typename EntryType, typename... TupleTypes>
     static void computeDataLengths(const EntryType& entry, std::tuple<TupleTypes...>& lengths)
     {
-    	Dispatcher::dispatchAllStatic(ComputeDataLengthsFn(), entry, lengths);
+        Dispatcher::dispatchAllStatic(ComputeDataLengthsFn(), entry, lengths);
     }
 
 
     struct AppendSourceFn {
-        template <Int Idx, typename Tree>
+        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename Tree>
         void stream(Tree* tree, ISource& src, const Position& sizes)
         {
-            tree->append(src.stream(Idx), sizes[Idx]);
+            tree->append(src.stream(StreamIdx), sizes[StreamIdx]);
         }
     };
 
     void append(ISource& src, const Position& sizes)
     {
         initStreamsIfEmpty(sizes);
-
-        Dispatcher::dispatchNotEmpty(allocator(), AppendSourceFn(), src, sizes);
+        processSubstreamGroups(AppendSourceFn(), src, sizes);
     }
 
 
 
     struct UpdateSourceFn {
-        template <Int Idx, typename Tree>
+        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename Tree>
         void stream(Tree* tree, ISource* src, const Position& pos, const Position& sizes)
         {
-            tree->update(src->stream(Idx), pos[Idx], sizes[Idx]);
+            if (tree != nullptr) tree->update(src->stream(StreamIdx), pos[StreamIdx], sizes[StreamIdx]);
         }
     };
 
     void update(ISource* src, const Position& pos, const Position& sizes)
     {
-        Dispatcher::dispatchNotEmpty(allocator(), UpdateSourceFn(), src, pos, sizes);
+    	processSubstreamGroups(UpdateSourceFn(), src, pos, sizes);
     }
 
 
     struct ReadToTargetFn {
-        template <Int Idx, typename Tree>
+        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename Tree>
         void stream(const Tree* tree, ITarget* tgt, const Position& pos, const Position& sizes)
         {
-            tree->read(tgt->stream(Idx), pos[Idx], sizes[Idx]);
+        	if (tree != nullptr) tree->read(tgt->stream(StreamIdx), pos[StreamIdx], sizes[StreamIdx]);
         }
 
-        template <Int Idx, typename Tree, typename... TupleTypes>
+        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename Tree, typename... TupleTypes>
         void stream(const Tree* tree, std::tuple<TupleTypes...>& tgt, const Position& starts, const Position& ends)
         {
-        	tree->read(std::get<Idx>(tgt), starts[Idx], ends[Idx]);
+        	if (tree != nullptr) tree->read(std::get<StreamIdx>(tgt), starts[StreamIdx], ends[StreamIdx]);
         }
     };
 
     void read(ITarget* tgt, const Position& pos, const Position& sizes) const
     {
-        Dispatcher::dispatchNotEmpty(allocator(), ReadToTargetFn(), tgt, pos, sizes);
+    	processSubstreamGroups(ReadToTargetFn(), tgt, pos, sizes);
     }
 
 
     template <typename... TupleTypes>
     void read(std::tuple<TupleTypes...>& tgt, const Position& starts, const Position& ends) const
     {
-    	Dispatcher::dispatchNotEmpty(allocator(), ReadToTargetFn(), tgt, starts, ends);
+    	processSubstreamGroups(ReadToTargetFn(), tgt, starts, ends);
     }
 
     struct UpdateTargetFn {
-
-        template <Int Idx, typename Tree, typename... TupleTypes>
+        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename Tree, typename... TupleTypes>
         void stream(Tree* tree, std::tuple<TupleTypes...>& tgt, const Position& starts, const Position& ends)
         {
-        	tree->update(std::get<Idx>(tgt), starts[Idx], ends[Idx]);
+        	if (tree != nullptr) tree->update(std::get<StreamIdx>(tgt), starts[StreamIdx], ends[StreamIdx]);
         }
     };
 
     template <typename... TupleTypes>
     void update(std::tuple<TupleTypes...>& tgt, const Position& starts, const Position& ends) const
     {
-    	Dispatcher::dispatchNotEmpty(allocator(), UpdateTargetFn(), tgt, starts, ends);
+    	processSubstreamGroups(UpdateTargetFn(), tgt, starts, ends);
+    }
+
+
+
+
+    template <typename Fn, typename... Args>
+    DynDispatchRtnConstType<Fn, Args...>
+    process(Int stream, Fn&& fn, Args&&... args) const
+    {
+        return Dispatcher::dispatch(
+        		stream,
+        		allocator(),
+        		std::forward<Fn>(fn),
+        		std::forward<Args>(args)...
+        );
+    }
+
+    template <typename Fn, typename... Args>
+    DynDispatchRtnType<Fn, Args...>
+    process(Int stream, Fn&& fn, Args&&... args)
+    {
+        return Dispatcher::dispatch(stream, allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
 
     template <typename Fn, typename... Args>
-    Int find(Int stream, Fn&& fn, Args&&... args) const
+    ProcessAllRtnConstType<Fn, Args...>
+    processAll(Fn&& fn, Args&&... args) const
     {
-        return Dispatcher::dispatchRtn(stream, allocator(), std::forward<Fn>(fn), args...);
+        return Dispatcher::dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+    }
+
+
+    template <typename Fn, typename... Args>
+    ProcessAllRtnType<Fn, Args...>
+    processAll(Fn&& fn, Args&&... args)
+    {
+        return Dispatcher::dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+    }
+
+    template <typename SubstreamsPath, typename Fn, typename... Args>
+    ProcessSubstreamsRtnConstType<SubstreamsPath, Fn, Args...>
+    processSubstreams(Fn&& fn, Args&&... args) const
+    {
+        return SubstreamsDispatcher<SubstreamsPath>::dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+    }
+
+
+    template <typename SubstreamsPath, typename Fn, typename... Args>
+    ProcessSubstreamsRtnType<SubstreamsPath, Fn, Args...>
+    processSubstreams(Fn&& fn, Args&&... args)
+    {
+        return SubstreamsDispatcher<SubstreamsPath>::dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+    }
+
+
+
+    struct ProcessSubstreamsAccFnAdaptor
+    {
+    	template <
+    		Int AccumulatorIdx,
+    		Int ListIdx,
+    		typename StreamType,
+    		typename Accum,
+    		typename Fn,
+    		typename... Args
+    	>
+    	void stream(StreamType* obj, Fn&& fn, Accum&& accum, Args&&... args)
+    	{
+    		const Int LeafIdx = AccumulatorIdx - SubstreamsStart;
+
+    		const Int BranchStructIdx 	= LeafToBranchIndexByValueTranslator<LeafSubstreamsStructList, LeafIdx>::BranchStructIdx;
+    		const Int LeafOffset 		= LeafToBranchIndexByValueTranslator<LeafSubstreamsStructList, LeafIdx>::LeafOffset;
+    		const bool IsStreamStart 	= LeafToBranchIndexByValueTranslator<LeafSubstreamsStructList, LeafIdx>::IsStreamStart;
+
+    		fn.template stream<LeafOffset, IsStreamStart, ListIdx>(
+    				obj,
+    				std::get<BranchStructIdx>(accum),
+    				std::forward<Args>(args)...
+    		);
+    	}
+    };
+
+
+
+    template <
+    	Int Stream,
+        typename Fn,
+        typename... Args
+    >
+    void processStreamAcc(Fn&& fn, Accumulator& accum, Args&&... args) const
+    {
+    	StreamDispatcher<Stream>::dispatchAll(
+    			allocator(),
+    			ProcessSubstreamsAccFnAdaptor(),
+    			std::forward<Fn>(fn),
+                accum,
+                std::forward<Args>(args)...
+        );
+    }
+
+    template <
+    	Int Stream,
+    	typename Fn,
+        typename... Args
+    >
+    void processStreamAcc(Fn&& fn, Accumulator& accum, Args&&... args)
+    {
+    	StreamDispatcher<Stream>::dispatchAll(
+    			allocator(),
+    			ProcessSubstreamsAccFnAdaptor(),
+    			std::forward<Fn>(fn),
+                accum,
+                std::forward<Args>(args)...
+        );
+    }
+
+
+
+
+    template <
+    	Int Stream,
+    	typename SubstreamsIdxList,
+    	typename Fn,
+        typename... Args
+    >
+    void processSubstreamsByIdxAcc(Fn&& fn, Accumulator& accum, Args&&... args) const
+    {
+    	SubstreamsByIdxDispatcher<Stream, SubstreamsIdxList>::dispatchAll(
+    			allocator(),
+    			ProcessSubstreamsAccFnAdaptor(),
+    			std::forward<Fn>(fn),
+                accum,
+                std::forward<Args>(args)...
+        );
+    }
+
+
+    template <
+    	Int Stream,
+    	typename SubstreamsIdxList,
+    	typename Fn,
+        typename... Args
+    >
+    void processSubstreamsByIdxAcc(Fn&& fn, Accumulator& accum, Args&&... args)
+    {
+    	SubstreamsByIdxDispatcher<Stream, SubstreamsIdxList>::dispatchAll(
+    			allocator(),
+    			ProcessSubstreamsAccFnAdaptor(),
+    			std::forward<Fn>(fn),
+                accum,
+                std::forward<Args>(args)...
+        );
+    }
+
+
+    template <
+        typename Fn,
+        typename... Args
+    >
+    void processAllSubstreamsAcc(Fn&& fn, Accumulator& accum, Args&&... args) const
+    {
+    	Dispatcher::dispatchAll(
+    			allocator(),
+    			ProcessSubstreamsAccFnAdaptor(),
+    			std::forward<Fn>(fn),
+    			accum,
+    			std::forward<Args>(args)...
+    	);
+    }
+
+    template <
+        typename Fn,
+        typename... Args
+    >
+    void processAllSubstreamsAcc(Fn&& fn, Accumulator& accum, Args&&... args)
+    {
+    	Dispatcher::dispatchAll(
+    			allocator(),
+    			ProcessSubstreamsAccFnAdaptor(),
+    			std::forward<Fn>(fn),
+    			accum,
+    			std::forward<Args>(args)...
+    	);
+    }
+
+
+
+
+    template <
+    	Int Stream,
+    	typename SubstreamsIdxList,
+    	typename Fn,
+        typename... Args
+    >
+    auto processSubstreamsByIdx(Fn&& fn, Args&&... args) const -> ProcessSubstreamsByIdxRtnConstType<Stream, SubstreamsIdxList, Fn, Args...>
+    {
+    	return SubstreamsByIdxDispatcher<Stream, SubstreamsIdxList>::dispatchAll(
+    			allocator(),
+    			std::forward<Fn>(fn),
+                std::forward<Args>(args)...
+        );
+    }
+
+    template <
+    	Int Stream,
+    	typename SubstreamsIdxList,
+    	typename Fn,
+        typename... Args
+    >
+    auto processSubstreamsByIdx(Fn&& fn, Args&&... args) -> ProcessSubstreamsByIdxRtnType<Stream, SubstreamsIdxList, Fn, Args...>
+    {
+    	return SubstreamsByIdxDispatcher<Stream, SubstreamsIdxList>::dispatchAll(
+    			allocator(),
+    			std::forward<Fn>(fn),
+                std::forward<Args>(args)...
+        );
+    }
+
+
+
+
+
+    template <typename SubstreamPath, typename Fn, typename... Args>
+    DispatchRtnType<memoria::list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>::Value, Fn, Args...>
+    processStream(Fn&& fn, Args&&... args) const
+    {
+        const Int StreamIdx = memoria::list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>::Value;
+        return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+    }
+
+    template <typename SubstreamPath, typename Fn, typename... Args>
+    DispatchRtnType<memoria::list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>::Value, Fn, Args...>
+    processStream(Fn&& fn, Args&&... args)
+    {
+        const Int StreamIdx = memoria::list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>::Value;
+        return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+    }
+
+
+    template <typename Fn, typename... Args>
+    void processSubstreamGroups(Fn&& fn, Args&&... args)
+    {
+    	using GroupsList = BuildTopLevelLeafSubsets<LeafSubstreamsStructList>;
+
+    	GroupDispatcher<Dispatcher, GroupsList>::dispatchGroups(
+    			allocator(),
+    			std::forward<Fn>(fn),
+    			std::forward<Args>(args)...
+    	);
     }
 
     template <typename Fn, typename... Args>
-    void process(Int stream, Fn&& fn, Args&&... args) const
+    void processSubstreamGroups(Fn&& fn, Args&&... args) const
     {
-        Dispatcher::dispatch(stream, allocator(), std::forward<Fn>(fn), args...);
+    	using GroupsList = BuildTopLevelLeafSubsets<LeafSubstreamsStructList>;
+
+    	GroupDispatcher<Dispatcher, GroupsList>::dispatchGroups(
+    			allocator(),
+    			std::forward<Fn>(fn),
+    			std::forward<Args>(args)...
+    	);
     }
 
     template <typename Fn, typename... Args>
-    void process(Int stream, Fn&& fn, Args&&... args)
+    static void processSubstreamGroupsStatic(Fn&& fn, Args&&... args)
     {
-        Dispatcher::dispatch(stream, allocator(), std::forward<Fn>(fn), args...);
+    	using GroupsList = BuildTopLevelLeafSubsets<LeafSubstreamsStructList>;
+
+    	GroupDispatcher<Dispatcher, GroupsList>::dispatchGroupsStatic(
+    			std::forward<Fn>(fn),
+    			std::forward<Args>(args)...
+    	);
     }
+
+
+
 
     template <typename Fn, typename... Args>
-    void processAll(Fn&& fn, Args&&... args) const
+    auto processStreamsStart(Fn&& fn, Args&&... args)
+    -> typename Dispatcher::template SubsetDispatcher<
+    		StreamsStartSubset<LeafSubstreamsStructList>
+       >::template ProcessAllRtnConstType<Fn, Args...>
     {
-        Dispatcher::dispatchAll(allocator(), std::forward<Fn>(fn), args...);
+    	using Subset = StreamsStartSubset<LeafSubstreamsStructList>;
+    	return Dispatcher::template SubsetDispatcher<Subset>::template dispatchAll(
+    			allocator(),
+    			std::forward<Fn>(fn),
+    			std::forward<Args>(args)...
+    	);
     }
+
 
     template <typename Fn, typename... Args>
-    void processAll(Fn&& fn, Args&&... args)
+    auto processStreamsStart(Fn&& fn, Args&&... args) const
+    -> typename Dispatcher::template SubsetDispatcher<
+    		StreamsStartSubset<LeafSubstreamsStructList>
+       >::template ProcessAllRtnConstType<Fn, Args...>
     {
-        Dispatcher::dispatchAll(allocator(), std::forward<Fn>(fn), args...);
+    	using Subset = StreamsStartSubset<LeafSubstreamsStructList>;
+    	return Dispatcher::template SubsetDispatcher<Subset>::template dispatchAll(
+    			allocator(),
+    			std::forward<Fn>(fn),
+    			std::forward<Args>(args)...
+    	);
     }
 
-    template <Int StreamIdx, typename Fn, typename... Args>
-    void processStream(Fn&& fn, Args&&... args) const
+
+    template <typename Fn, typename... Args>
+    static auto processStreamsStartStatic(Fn&& fn, Args&&... args)
+    -> typename Dispatcher::template SubsetDispatcher<
+    		StreamsStartSubset<LeafSubstreamsStructList>
+       >::template ProcessAllRtnConstType<Fn, Args...>
     {
-        Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
+    	using Subset = StreamsStartSubset<LeafSubstreamsStructList>;
+    	return Dispatcher::template SubsetDispatcher<Subset>::template dispatchAllStatic(
+    			std::forward<Fn>(fn),
+    			std::forward<Args>(args)...
+    	);
     }
 
-    template <Int StreamIdx, typename Fn, typename... Args>
-    void processStream(Fn&& fn, Args&&... args)
+
+
+
+    template <typename Fn, typename Accum, typename... Args>
+    static auto processStreamsStartStaticAcc(Fn&& fn, Accum&& accum, Args&&... args)
+    -> typename Dispatcher::template SubsetDispatcher<
+    		StreamsStartSubset<LeafSubstreamsStructList>
+       >::template ProcessAllRtnConstType<Fn, Args...>
     {
-        Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
+    	using Subset = StreamsStartSubset<LeafSubstreamsStructList>;
+    	return Dispatcher::template SubsetDispatcher<Subset>::template dispatchAllStatic(
+    			ProcessSubstreamsAccFnAdaptor(),
+    			std::forward<Fn>(fn),
+    			std::forward<Accum>(accum),
+    			std::forward<Args>(args)...
+    	);
     }
 
-    template <Int StreamIdx, typename Fn, typename... Args>
-    typename std::remove_reference<Fn>::type::ResultType
-    processStreamRtn(Fn&& fn, Args&&... args) const
-    {
-        return Dispatcher::template dispatchRtn<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
-    }
-
-    template <Int StreamIdx, typename Fn, typename... Args>
-    typename std::remove_reference<Fn>::type::ResultType
-    processStreamRtn(Fn&& fn, Args&&... args)
-    {
-        return Dispatcher::template dispatchRtn<StreamIdx>(allocator(), std::forward<Fn>(fn), args...);
-    }
 
 
     struct GenerateDataEventsFn {
@@ -1167,7 +1482,7 @@ public:
     }
 
     struct SerializeFn {
-        template <Int Idx, typename Tree>
+        template <typename Tree>
         void stream(const Tree* tree, SerializationData* buf)
         {
             tree->serialize(*buf);
@@ -1183,7 +1498,7 @@ public:
     }
 
     struct DeserializeFn {
-        template <Int Idx, typename Tree>
+        template <typename Tree>
         void stream(Tree* tree, DeserializationData* buf)
         {
             tree->deserialize(*buf);
@@ -1206,7 +1521,7 @@ public:
     }
 
     struct DumpFn {
-        template <Int Idx, typename Tree>
+        template <typename Tree>
         void stream(Tree* tree)
         {
             tree->dump();

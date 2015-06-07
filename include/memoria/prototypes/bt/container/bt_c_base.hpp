@@ -39,12 +39,10 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     typedef typename Types::NodeBase                                            NodeBase;
     typedef typename Types::NodeBaseG                                           NodeBaseG;
 
-    typedef typename Types::Pages::NodeDispatcher                               NodeDispatcher;
-    typedef typename Types::Pages::NodeDispatcher                               RootDispatcher;
-    typedef typename Types::Pages::LeafDispatcher                               LeafDispatcher;
-    typedef typename Types::Pages::NonLeafDispatcher                            NonLeafDispatcher;
-    typedef typename Types::Pages::NodeDispatcher                               NonRootDispatcher;
-    typedef typename Types::Pages::DefaultDispatcher                            DefaultDispatcher;
+    using NodeDispatcher = typename Types::Pages::NodeDispatcher;
+    using LeafDispatcher = typename Types::Pages::LeafDispatcher;
+    using BranchDispatcher = typename Types::Pages::BranchDispatcher;
+    using DefaultDispatcher = typename Types::Pages::DefaultDispatcher;
 
     typedef typename Types::Metadata                                            Metadata;
 
@@ -151,7 +149,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         NodeBaseG root = self.allocator().getPage(root_id, self.master_name());
 
-        return RootDispatcher::dispatchConstRtn(root.page(), GetModelNameFn(me()));
+        return NodeDispatcher::dispatch(root, GetModelNameFn(me()));
     }
 
     void setModelName(BigInt name)
@@ -160,7 +158,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         NodeBaseG root  = self().getRoot();
 
-        RootDispatcher::dispatch(root.page(), SetModelNameFn(me()), name);
+        NodeDispatcher::dispatch(root, SetModelNameFn(me()), name);
     }
 
     void initCtr(Int command)
@@ -360,7 +358,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
             size = meta.page_size();
         }
 
-        NodeBaseG node = DefaultDispatcher::dispatchStatic2Rtn(
+        NodeBaseG node = DefaultDispatcher::dispatch2(
                         leaf,
                         CreateNodeFn(me()), size
                     );
@@ -395,7 +393,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         auto& self = this->self();
 
-        NodeBaseG node = NodeDispatcher::dispatchStatic2Rtn(
+        NodeBaseG node = NodeDispatcher::dispatch2(
                     leaf,
                     CreateNodeFn(me()), metadata.page_size()
         );
@@ -432,7 +430,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         MEMORIA_ASSERT_TRUE(node.isSet());
 
-        NodeDispatcher::dispatch(node.page(), PrepareNodeFn(me()));
+        NodeDispatcher::dispatch(node, PrepareNodeFn(me()));
     }
 
     void markCtrUpdated()

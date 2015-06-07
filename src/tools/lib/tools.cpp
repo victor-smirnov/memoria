@@ -16,11 +16,9 @@
 #include <random>
 #include <functional>
 
-
 namespace memoria {
 
 using namespace std;
-
 
 std::uniform_int_distribution<int>      distribution;
 std::mt19937_64                         engine;

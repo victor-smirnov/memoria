@@ -49,7 +49,7 @@ struct BTTypes<Profile, DblMrkMap<Key_, Value_, BitsPerMark_> >:
     };
 
     typedef TypeList<
-            NonLeafNodeTypes<BranchNode>,
+            BranchNodeTypes<BranchNode>,
             LeafNodeTypes<LeafNode>
     >                                                                           NodeTypesList;
 
@@ -111,9 +111,9 @@ struct BTTypes<Profile, DblMrkMap<Key_, Value_, BitsPerMark_> >:
 
 
     template <typename Types>
-    using FindGEWalker              = dblmap::SecondMapFindGEWalker<Types>;
+    using FindGEWalker              = dblmap::SecondMapFindGEWalker<Types, 0>;
     template <typename Types>
-    using FindGTWalker              = dblmap::SecondMapFindGTWalker<Types>;
+    using FindGTWalker              = dblmap::SecondMapFindGTWalker<Types, 0>;
 
     template <typename Types>
     using SkipForwardWalker         = dblmap::SkipForwardWalker<Types>;

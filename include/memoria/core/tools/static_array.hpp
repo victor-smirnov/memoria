@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov, Ivan Yurchenko 2012.
+// Copyright Victor Smirnov, Ivan Yurchenko 2012-2015.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -13,7 +13,10 @@
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/types/type2type.hpp>
 
+#include <memoria/core/exceptions/bounds.hpp>
+
 #include <algorithm>
+#include <type_traits>
 
 namespace memoria    {
 namespace core       {
@@ -239,6 +242,7 @@ public:
 
     ElementType get() const
     {
+    	check(0);
         return values_[0];
     }
 
@@ -252,6 +256,8 @@ public:
 
     static MyType create(Int idx, const ElementType& value)
     {
+    	check(idx);
+
         MyType me;
 
         me[idx] = value;
@@ -272,22 +278,26 @@ public:
 
     const ElementType& value(Int idx) const
     {
+    	check(idx);
         return values_[idx];
     }
 
     ElementType& value(Int idx)
     {
+    	check(idx);
         return values_[idx];
     }
 
     const ElementType& operator[](Int idx) const
     {
+    	check(idx);
         return values_[idx];
     }
 
     ElementType& operator[](Int idx)
     {
-        return values_[idx];
+    	check(idx);
+    	return values_[idx];
     }
 
     void clear()
@@ -557,6 +567,18 @@ public:
         return *this;
     }
 
+    template <typename Value>
+    MyType& operator=(const Value& value)
+    {
+    	static_assert(Indexes == 1, "");
+
+    	values_[0] = value;
+    	return *this;
+    }
+
+
+
+
 //    MyType& operator=(const ElementType* keys)
 //    {
 //        for (Int c = 0; c < Indexes; c++)
@@ -575,7 +597,8 @@ public:
         return *this;
     }
 
-    MyType& operator+=(const MyType& other)
+    template <typename T>
+    MyType& operator+=(const StaticVector<T, Indexes>& other)
     {
         for (Int c = 0; c < Indexes; c++)
         {
@@ -607,6 +630,7 @@ public:
         return result;
     }
 
+
     MyType operator-(const MyType& other) const
     {
         MyType result = *this;
@@ -632,7 +656,8 @@ public:
     }
 
 
-    MyType& operator-=(const MyType& other)
+    template <typename T>
+    MyType& operator-=(const StaticVector<T, Indexes>& other)
     {
         for (Int c = 0; c < Indexes; c++)
         {
@@ -676,6 +701,12 @@ public:
 
         return value;
     }
+private:
+    static void check(Int idx) {
+    	if (idx < 0 || idx >= Indexes_) {
+    		throw vapi::BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid StaticVector index: "<<idx);
+    	}
+    }
 };
 
 
@@ -683,13 +714,15 @@ public:
 
 
 
-}
+template <typename T, typename... Args>
+auto MakeStaticVector(Args&&... args) -> StaticVector<T, sizeof...(Args)>
+{
+	return StaticVector<T, sizeof...(Args)>(std::forward<Args>(args)...);
 }
 
-namespace std {
 
 template <typename Key, memoria::Int Indexes>
-ostream& operator<<(ostream& out, const ::memoria::core::StaticVector<Key, Indexes>& accum)
+std::ostream& operator<<(std::ostream& out, const ::memoria::core::StaticVector<Key, Indexes>& accum)
 {
     out<<"[";
 
@@ -707,7 +740,11 @@ ostream& operator<<(ostream& out, const ::memoria::core::StaticVector<Key, Index
 
     return out;
 }
-}
 
+
+
+
+}
+}
 #endif
 

@@ -150,12 +150,12 @@ struct OstreamFn {
 template <typename ElementType_, Int Indexes_>
 void Clear(::memoria::core::StaticVector<ElementType_, Indexes_>& v)
 {
-	v.clear();
+    v.clear();
 }
 
 template <typename T>
 void Clear(T& t) {
-	t = 0;
+    t = 0;
 }
 
 
@@ -170,7 +170,7 @@ struct ClearFn {
     template <Int Idx>
     void operator()()
     {
-        Clear(get<Idx>(obj_));
+        Clear(std::get<Idx>(obj_));
     }
 };
 
@@ -231,7 +231,7 @@ void Clear(std::tuple<Types...>& obj)
 namespace std {
 
 template <typename... Args>
-ostream& operator<<(ostream& out, const ::memoria::tuple<Args...>& obj)
+ostream& operator<<(ostream& out, const tuple<Args...>& obj)
 {
     out<<"{";
 

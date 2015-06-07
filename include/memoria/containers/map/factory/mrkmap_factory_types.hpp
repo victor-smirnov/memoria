@@ -58,6 +58,7 @@ struct BTTypes<Profile, MrkMap<Key_, Value_, BitsPerMark_> >: public BTTypes<Pro
         typedef core::StaticVector<BigInt, 1>                       IteratorPrefixPart;
 
         typedef PkdFTree<Packed2TreeTypes<Key, Key, 1>>             NonLeafType;
+        typedef TL<TL<>>											IdxRangeList;
 
         typedef PackedFSEMarkableMap<PackedFSEMarkableMapTypes<
                 Key,

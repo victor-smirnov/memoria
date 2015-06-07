@@ -25,7 +25,7 @@ class LabelDispatcherListBuilder<TypeList<LabelDescr<Bits>, Tail...>, Idx> {
     typedef PkdFSSeq<typename PkdFSSeqTF<Bits>::Type>                           LabelStream;
 public:
      typedef typename MergeLists<
-                StreamDescr<LabelStream, Idx>,
+                SubstreamDescr<LabelStream, Idx>,
                 typename LabelDispatcherListBuilder<
                     TypeList<Tail...>,
                     Idx + 1
@@ -44,7 +44,7 @@ public:
 template <typename List> struct LabelsBlockSizeBuilder;
 
 template <typename LabelStream, Int Idx, typename... Tail>
-struct LabelsBlockSizeBuilder<TypeList<StreamDescr<LabelStream, Idx>, Tail...>> {
+struct LabelsBlockSizeBuilder<TypeList<SubstreamDescr<LabelStream, Idx>, Tail...>> {
     static const Int Value = LabelStream::Indexes +
             LabelsBlockSizeBuilder<TypeList<Tail...>>::Value;
 };
@@ -84,20 +84,18 @@ public:
     typedef typename memoria::internal::LabelDispatcherListBuilder<LabelsList>::Type        LabelsStructsList;
 
 
-    typedef typename PackedDispatcherTool<
-            HiddenLabelsOffset,
-            HiddenLabelsStructsList
-    >::Type                                                                     HiddenLabelsDispatcher;
+    using HiddenLabelsDispatcher =  PackedDispatcher <HiddenLabelsStructsList, HiddenLabelsOffset>;
 
-    typedef typename PackedDispatcherTool<
-            HiddenLabelsOffset + ListSize<HiddenLabelsList>::Value,
-            LabelsStructsList
-    >::Type                                                                     LabelsDispatcher;
+    using LabelsDispatcher = PackedDispatcher<
+            LabelsStructsList,
+            HiddenLabelsOffset + ListSize<HiddenLabelsList>::Value
+    >;
 
 
     static const Int LabelsIndexes  = memoria::internal::LabelsBlockSizeBuilder<HiddenLabelsStructsList>::Value +
                                       memoria::internal::LabelsBlockSizeBuilder<LabelsStructsList>::Value;
 
+    static const PackedSizeType LabelsSizeType = PackedListStructSizeType<LabelsStructsList>::Value;
 
     struct EmptySizeFn {
         Int size_ = 0;
@@ -171,29 +169,29 @@ public:
 
 
     struct LabelsDataLengthFn {
-    	template <Int StreamIdx, typename Stream, typename Entropy, typename Entry>
-    	void stream(Stream* stream, const Entry& entry, Entropy& entropy)
-    	{
-    		std::get<1 + StreamIdx + HiddenLabelsListSize>(entry) +=
-    				Stream::computeDataLength(std::get<StreamIdx>(entry.labels()));
-    	}
+        template <Int StreamIdx, typename Stream, typename Entropy, typename Entry>
+        void stream(Stream* stream, const Entry& entry, Entropy& entropy)
+        {
+            std::get<1 + StreamIdx + HiddenLabelsListSize>(entry) +=
+                    Stream::computeDataLength(std::get<StreamIdx>(entry.labels()));
+        }
     };
 
     struct HiddenLabelsDataLengthFn {
-    	template <Int StreamIdx, typename Stream, typename Entropy, typename Entry>
-    	void stream(Stream* stream, const Entry& entry, Entropy& entropy)
-    	{
-    		std::get<1 + StreamIdx>(entry) +=
-    				Stream::computeDataLength(std::get<StreamIdx>(entry.hidden_labels()));
-    	}
+        template <Int StreamIdx, typename Stream, typename Entropy, typename Entry>
+        void stream(Stream* stream, const Entry& entry, Entropy& entropy)
+        {
+            std::get<1 + StreamIdx>(entry) +=
+                    Stream::computeDataLength(std::get<StreamIdx>(entry.hidden_labels()));
+        }
     };
 
 
     template <typename Entropy, typename Entry>
     static void computeLabelsEntryDataLength(const Entry& entry, Entropy& entropy)
     {
-    	HiddenLabelsDispatcher::dispatchAllStatic(HiddenLabelsDataLengthFn(), entry, entropy);
-    	LabelsDispatcher::dispatchAllStatic(LabelsDataLengthFn(), entry, entropy);
+        HiddenLabelsDispatcher::dispatchAllStatic(HiddenLabelsDataLengthFn(), entry, entropy);
+        LabelsDispatcher::dispatchAllStatic(LabelsDataLengthFn(), entry, entropy);
     }
 
 
@@ -387,7 +385,7 @@ public:
 
     // ====================================== Labels Operations ====================================== //
 
-    struct GetLabelFn: RtnPkdHandlerBase<Int> {
+    struct GetLabelFn {
         template <Int StreamIdx, typename Stream>
         Int stream(const Stream* stream, Int idx)
         {
@@ -407,7 +405,7 @@ public:
     }
 
 
-    struct SetLabelFn: RtnPkdHandlerBase<Int> {
+    struct SetLabelFn {
         template <Int StreamIdx, typename Stream>
         Int stream(Stream* stream, Int idx, Int value)
         {
@@ -468,17 +466,14 @@ public:
 
 
     struct RankFn {
-
-        using ResultType = Int;
-
         template <Int StreamIdx, typename Stream>
-        ResultType stream(const Stream* stream, Int end, Int label)
+        Int stream(const Stream* stream, Int end, Int label)
         {
             return stream->rank(end, label);
         }
 
         template <Int StreamIdx, typename Stream>
-        ResultType stream(const Stream* stream, Int start, Int end, Int label)
+        Int stream(const Stream* stream, Int start, Int end, Int label)
         {
             return stream->rank(start, end, label);
         }
@@ -510,17 +505,14 @@ public:
 
 
     struct SelectFwFn {
-
-        using ResultType = SelectResult;
-
         template <Int StreamIdx, typename Stream>
-        ResultType stream(const Stream* stream, Int start, Int symbol, BigInt rank)
+        SelectResult stream(const Stream* stream, Int start, Int symbol, BigInt rank)
         {
             return stream->selectFw(start, symbol, rank);
         }
 
         template <Int StreamIdx, typename Stream>
-        ResultType stream(const Stream* stream, Int symbol, BigInt rank)
+        SelectResult stream(const Stream* stream, Int symbol, BigInt rank)
         {
             return stream->selectFw(symbol, rank);
         }
@@ -690,75 +682,75 @@ public:
 
     template <typename DataSource>
     struct InsertLabelsBatchFn {
-    	DataSource* src_;
-    	InsertLabelsBatchFn(DataSource* src): src_(src) {}
+        DataSource* src_;
+        InsertLabelsBatchFn(DataSource* src): src_(src) {}
 
-    	template <Int StreamIdx, typename Stream>
-    	void stream(const Stream* stream, SizeT start, Int idx, Int size)
-    	{
-    		src_->reset(start);
+        template <Int StreamIdx, typename Stream>
+        void stream(const Stream* stream, SizeT start, Int idx, Int size)
+        {
+            src_->reset(start);
 
-    		stream->insert(idx, size, [=](){
-    			return std::get<StreamIdx>(src_->get().labels());
-    		});
-    	}
+            stream->insert(idx, size, [=](){
+                return std::get<StreamIdx>(src_->get().labels());
+            });
+        }
     };
 
     template <typename DataSource>
     struct InsertHiddenLabelsBatchFn {
-    	DataSource* src_;
-    	InsertHiddenLabelsBatchFn(DataSource* src): src_(src) {}
+        DataSource* src_;
+        InsertHiddenLabelsBatchFn(DataSource* src): src_(src) {}
 
-    	template <Int StreamIdx, typename Stream>
-    	void stream(const Stream* stream, SizeT start, Int idx, Int size)
-    	{
-    		src_->reset(start);
+        template <Int StreamIdx, typename Stream>
+        void stream(const Stream* stream, SizeT start, Int idx, Int size)
+        {
+            src_->reset(start);
 
-    		stream->insert(idx, size, [=](){
-    			return std::get<StreamIdx>(src_->get().hidden_labels());
-    		});
-    	}
+            stream->insert(idx, size, [=](){
+                return std::get<StreamIdx>(src_->get().hidden_labels());
+            });
+        }
     };
 
 
     template <typename DataSource>
     void insertLabels(DataSource* src, SizeT start, Int idx, Int size)
     {
-    	HiddenLabelsDispatcher::dispatchAll(this, InsertHiddenLabelsBatchFn<DataSource>(src), start, idx, size);
-    	LabelsDispatcher::dispatchAll(this, InsertLabelsBatchFn<DataSource>(src), start, idx, size);
+        HiddenLabelsDispatcher::dispatchAll(this, InsertHiddenLabelsBatchFn<DataSource>(src), start, idx, size);
+        LabelsDispatcher::dispatchAll(this, InsertLabelsBatchFn<DataSource>(src), start, idx, size);
     }
 
 
     template <typename DataSource>
     struct UpdateLabelsBatchFn {
-    	DataSource* src_;
-    	UpdateLabelsBatchFn(DataSource* src): src_(src) {}
+        DataSource* src_;
+        UpdateLabelsBatchFn(DataSource* src): src_(src) {}
 
-    	template <Int StreamIdx, typename Stream>
-    	void stream(const Stream* stream, SizeT pos, Int start, Int end)
-    	{
-    		src_->reset(pos);
+        template <Int StreamIdx, typename Stream>
+        void stream(const Stream* stream, SizeT pos, Int start, Int end)
+        {
+            src_->reset(pos);
 
-    		stream->update(start, end, [=](){
-    			return std::get<StreamIdx>(src_->get().labels());
-    		});
-    	}
+            stream->update(start, end, [=](){
+                return std::get<StreamIdx>(src_->get().labels());
+            });
+        }
     };
 
     template <typename DataSource>
     struct UpdateHiddenLabelsBatchFn {
-    	DataSource* src_;
-    	UpdateHiddenLabelsBatchFn(DataSource* src): src_(src) {}
+        DataSource* src_;
+        UpdateHiddenLabelsBatchFn(DataSource* src): src_(src) {}
 
-    	template <Int StreamIdx, typename Stream>
-    	void stream(const Stream* stream, SizeT pos, Int start, Int end)
-    	{
-    		src_->reset(pos);
+        template <Int StreamIdx, typename Stream>
+        void stream(const Stream* stream, SizeT pos, Int start, Int end)
+        {
+            src_->reset(pos);
 
-    		stream->update(start, end, [=](){
-    			return std::get<StreamIdx>(src_->get().hidden_labels());
-    		});
-    	}
+            stream->update(start, end, [=](){
+                return std::get<StreamIdx>(src_->get().hidden_labels());
+            });
+        }
     };
 
 
@@ -766,8 +758,8 @@ public:
     template <typename DataSource>
     void updateLabels(DataSource* src, SizeT pos, Int start, Int end)
     {
-    	HiddenLabelsDispatcher::dispatchAll(this, UpdateHiddenLabelsBatchFn<DataSource>(src), pos, start, end);
-    	LabelsDispatcher::dispatchAll(this, UpdateLabelsBatchFn<DataSource>(src), pos, start, end);
+        HiddenLabelsDispatcher::dispatchAll(this, UpdateHiddenLabelsBatchFn<DataSource>(src), pos, start, end);
+        LabelsDispatcher::dispatchAll(this, UpdateLabelsBatchFn<DataSource>(src), pos, start, end);
     }
 
 
@@ -776,39 +768,39 @@ public:
 
     template <typename DataTarget>
     struct ReadLabelsBatchFn {
-    	DataTarget* tgt_;
-    	ReadLabelsBatchFn(DataTarget* tgt): tgt_(tgt) {}
+        DataTarget* tgt_;
+        ReadLabelsBatchFn(DataTarget* tgt): tgt_(tgt) {}
 
-    	template <Int StreamIdx, typename Stream>
-    	void stream(const Stream* stream, SizeT pos, Int start, Int end)
-    	{
-    		tgt_->reset(pos);
-    		stream->read(start, end, [=](typename Stream::Value label)
-    		{
-    			auto current = tgt_->peek();
-    			std::get<StreamIdx>(current.labels()) = label;
-    			tgt_->put(current);
-    		});
-    	}
+        template <Int StreamIdx, typename Stream>
+        void stream(const Stream* stream, SizeT pos, Int start, Int end)
+        {
+            tgt_->reset(pos);
+            stream->read(start, end, [=](typename Stream::Value label)
+            {
+                auto current = tgt_->peek();
+                std::get<StreamIdx>(current.labels()) = label;
+                tgt_->put(current);
+            });
+        }
     };
 
 
     template <typename DataTarget>
     struct ReadHiddenLabelsBatchFn {
-    	DataTarget* tgt_;
-    	ReadHiddenLabelsBatchFn(DataTarget* tgt): tgt_(tgt) {}
+        DataTarget* tgt_;
+        ReadHiddenLabelsBatchFn(DataTarget* tgt): tgt_(tgt) {}
 
-    	template <Int StreamIdx, typename Stream>
-    	void stream(const Stream* stream, SizeT pos, Int start, Int end)
-    	{
-    		tgt_->reset(pos);
-    		stream->read(start, end, [=](typename Stream::Value label)
-    		{
-    			auto current = tgt_->peek();
-    			std::get<StreamIdx>(current.hidden_labels()) = label;
-    			tgt_->put(current);
-    		});
-    	}
+        template <Int StreamIdx, typename Stream>
+        void stream(const Stream* stream, SizeT pos, Int start, Int end)
+        {
+            tgt_->reset(pos);
+            stream->read(start, end, [=](typename Stream::Value label)
+            {
+                auto current = tgt_->peek();
+                std::get<StreamIdx>(current.hidden_labels()) = label;
+                tgt_->put(current);
+            });
+        }
     };
 
 
@@ -816,8 +808,8 @@ public:
     template <typename DataTarget>
     void readLabels(DataTarget* tgt, SizeT pos, Int start, Int end) const
     {
-    	HiddenLabelsDispatcher::dispatchAll(this, ReadHiddenLabelsBatchFn<DataTarget>(tgt), pos, start, end);
-    	LabelsDispatcher::dispatchAll(this, ReadLabelsBatchFn<DataTarget>(tgt), pos, start, end);
+        HiddenLabelsDispatcher::dispatchAll(this, ReadHiddenLabelsBatchFn<DataTarget>(tgt), pos, start, end);
+        LabelsDispatcher::dispatchAll(this, ReadLabelsBatchFn<DataTarget>(tgt), pos, start, end);
     }
 
 

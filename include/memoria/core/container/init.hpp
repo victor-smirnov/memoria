@@ -51,7 +51,7 @@ struct ProfileListBuilder<-1> {
 #define MEMORIA_DECLARE_PROFILE(Profile, Order)                                 \
 template <>                                                                     \
 struct ProfileListBuilder<Order> {                                              \
-    typedef typename AppendTool<Profile, typename ProfileListBuilder<Order - 1>::Type>::Result   Type;   \
+    typedef typename AppendTool<Profile, typename ProfileListBuilder<Order - 1>::Type>::Type   Type;   \
 }
 
 }
