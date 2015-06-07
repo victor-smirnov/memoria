@@ -68,7 +68,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="include/memoria/prototypes/bt_ss/iter|composite|container|include/memoria/containers/root/pages|params.cpp|iterator|examples|include/memoria/containers/vector_map/iterator|nodes" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -160,7 +160,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="nodes|include/memoria/prototypes/bt_ss/iter|iterator|examples|params.cpp|include/memoria/containers/vector_map/iterator|container|include/memoria/containers/root/pages|composite" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
