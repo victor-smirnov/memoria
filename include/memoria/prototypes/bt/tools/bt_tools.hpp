@@ -321,6 +321,30 @@ std::ostream& operator<<(std::ostream& out, const BTree2IteratorPrefixCache<I, C
 
 
 
+template <Int...> struct Path;
+
+template <Int Head, Int... Tail>
+struct Path<Head, Tail...> {
+	template <typename T>
+	static auto get(T&& tuple) ->
+		typename std::tuple_element<
+			Head,
+			typename std::remove_reference<
+				decltype(Path<Tail...>::get(std::declval<decltype(tuple)>()))
+			>::type
+		>::type
+	{
+		return std::get<Head>(Path<Tail...>::get(tuple));
+	}
+};
+
+template <Int Head>
+struct Path<Head> {
+	template <typename T>
+	static auto get(T&& tuple) -> typename std::tuple_element<Head, typename std::remove_reference<T>::type>::type {
+		return std::get<Head>(tuple);
+	}
+};
 
 
 }

@@ -106,8 +106,13 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
     	return self().template _findBwGE<IntList<0>>(index, key);
     }
 
-    Key prefix() const {
-    	return std::get<0>(std::get<0>(self().cache().prefixes()))[0] + std::get<0>(std::get<0>(self().cache().leaf_prefixes()))[0];
+    Key prefix() const
+    {
+    	auto& self = this->self();
+    	auto& cache = self.cache();
+
+    	return bt::Path<0, 0>::get(cache.prefixes())[0] +
+    		   bt::Path<0, 0>::get(cache.leaf_prefixes())[0];
     }
 
 
