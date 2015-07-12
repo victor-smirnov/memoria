@@ -31,12 +31,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mmap::CtrApiName)
     using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
     using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
 
-    using Key 				= typename Types::Key;
-    using Value 			= typename Types::Value;
-    using CtrSizeT			= typename Types::CtrSizeT;
+    using Key 				    = typename Types::Key;
+    using Value 			    = typename Types::Value;
+    using CtrSizeT			  = typename Types::CtrSizeT;
 
     using Accumulator 		= typename Types::Accumulator;
-    using Position 			= typename Types::Position;
+    using Position 			  = typename Types::Position;
 
     static const Int Streams = Types::Streams;
 
