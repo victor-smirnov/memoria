@@ -710,8 +710,10 @@ private:
 };
 
 
-
-
+template <typename K, typename... Args>
+auto make_sv(Args&&... values) -> StaticVector<K, sizeof...(Args)>{
+	return StaticVector<K, sizeof...(Args)>({values...});
+}
 
 
 template <typename T, typename... Args>

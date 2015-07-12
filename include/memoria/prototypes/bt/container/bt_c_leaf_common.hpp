@@ -52,6 +52,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
     template <Int Stream>
     using StreamInputTuple = typename Types::template StreamInputTuple<Stream>;
 
+    template <typename TT>
+    using CtrInputProvider = typename Types::template CtrInputProvider<TT>;
+
 
     template <Int Stream, typename SubstreamsIdxList, typename... Args>
     using ReadLeafStreamEntryRtnType = DispatchConstRtnType<LeafDispatcher, SubstreamsSetNodeFn<Stream, SubstreamsIdxList>, GetLeafValuesFn, Args...>;
@@ -92,6 +95,42 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
     MEMORIA_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, Accumulator);
     Accumulator splitLeafNode(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at);
 
+
+    struct SumFn {
+    	template <typename Stream>
+    	auto stream(const Stream* s, Int block, Int from, Int to) -> decltype(s->sum(block, from, to))
+    	{
+    		return s->sum(block, from, to);
+    	}
+
+    	template <typename Stream>
+    	auto stream(const Stream* s, Int from, Int to) -> decltype(s->sums(from, to))
+    	{
+    		return s->sums(from, to);
+    	}
+    };
+
+    template <Int Stream, typename SubstreamsIdxList, typename... Args>
+    auto _sum(const NodeBaseG& leaf, Args&&... args) const
+    -> DispatchConstRtnType<LeafDispatcher, SubstreamsSetNodeFn<Stream, SubstreamsIdxList>, SumFn, Args...>
+    {
+    	return LeafDispatcher::dispatch(leaf, SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), SumFn(), std::forward<Args>(args)...);
+    }
+
+    struct FindFn {
+    	template <typename Stream, typename... Args>
+    	auto stream(const Stream* s, Args&&... args) -> decltype(s->findForward(args...).idx())
+    	{
+    		return s->findForward(std::forward<Args>(args)...).idx();
+    	}
+    };
+
+    template <Int Stream, typename SubstreamsIdxList, typename... Args>
+    auto _find(const NodeBaseG& leaf, Args&&... args) const
+    -> DispatchConstRtnType<LeafDispatcher, SubstreamsSetNodeFn<Stream, SubstreamsIdxList>, FindFn, Args...>
+    {
+    	return LeafDispatcher::dispatch(leaf, SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), FindFn(), std::forward<Args>(args)...);
+    }
 
 
     //==============================================================================================
@@ -227,6 +266,115 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
     template <typename LeafPosition, typename Buffer>
     LeafList createLeafList(InputBufferProvider<LeafPosition, Buffer>& provider);
 
+
+    // ============================================ Insert Data ======================================== //
+
+
+
+    class InsertDataBlockResult {
+    	Position inserted_size_;
+    	bool extra_space_;
+    public:
+    	InsertDataBlockResult(Position size, bool extra_space): inserted_size_(size), extra_space_(extra_space){}
+
+    	const Position& inserted_size() const {return inserted_size_;}
+    	bool has_extra_space() const {return extra_space_;}
+    };
+
+
+    template <typename TT>
+    Position insertDataIntoLeaf(NodeBaseG& leaf, const Position& pos, CtrInputProvider<TT>& provider)
+    {
+    	auto& self = this->self();
+
+    	self.updatePageG(leaf);
+
+    	self.layoutLeafNode(leaf, Position(0));
+
+    	if (provider.hasData())
+    	{
+    		auto inserted = self.fillLeaf(leaf, pos, provider);
+
+    		if (leaf->parent_id().isSet())
+    		{
+    			auto sums = self.sums(leaf, pos, inserted);
+    			self.updateParent(leaf, sums);
+    		}
+    	}
+
+    	return pos;
+    }
+
+    bool isAtTheEnd2(const NodeBaseG& leaf, const Position& pos) const
+    {
+    	return true;
+    }
+
+
+    template <typename TT>
+    Position fillLeaf(NodeBaseG& leaf, const Position& pos, CtrInputProvider<TT>& provider) {
+    	return provider.fill(leaf, pos);
+    }
+
+    class InsertDataResult {
+    	NodeBaseG leaf_;
+    	Position position_;
+    public:
+    	InsertDataResult(NodeBaseG leaf, const Position& position = Position()): leaf_(leaf), position_(position){}
+
+    	NodeBaseG& leaf() {return leaf_;}
+    	const NodeBaseG& leaf() const {return leaf_;}
+
+    	const Position& position() const {return position_;}
+    	Position& position() {return position_;}
+    };
+
+    template <typename TT>
+    InsertDataResult insertData(NodeBaseG& leaf, const Position& pos, CtrInputProvider<TT>& provider)
+    {
+    	auto& self = this->self();
+
+    	auto last_pos = self.insertDataIntoLeaf(leaf, pos, provider);
+
+    	if (provider.hasData())
+    	{
+    		if (!self.isAtTheEnd2(leaf, last_pos))
+    		{
+    			auto next_leaf = self.splitLeafP(leaf, Position(last_pos));
+
+    			self.insertDataIntoLeaf(leaf, last_pos, provider);
+
+    			if (provider.hasData())
+    			{
+    				return insertDataRest(leaf, next_leaf, provider);
+    			}
+    			else {
+    				return InsertDataResult(next_leaf, Position());
+    			}
+    		}
+    		else {
+    			auto next_leaf = self.getNextNodeP(leaf);
+
+    			if (next_leaf.isSet())
+    			{
+    				return insertDataRest(leaf, next_leaf, provider);
+    			}
+    			else {
+    				return insertDataRest(leaf, provider);
+    			}
+    		}
+    	}
+    	else {
+    		return InsertDataResult(leaf, last_pos);
+    	}
+    }
+
+
+
+    template <typename TT>
+    LeafList createLeafDataList(CtrInputProvider<TT>& provider);
+
+    // ============================================ Insert Data ======================================== //
 private:
 
     template <typename LeafPosition, typename Buffer>
@@ -304,6 +452,79 @@ private:
 
 
 
+    template <typename TT>
+    InsertDataResult insertDataRest(NodeBaseG& leaf, NodeBaseG& next_leaf, CtrInputProvider<TT>& provider)
+    {
+    	auto& self = this->self();
+
+    	Int path_parent_idx = leaf->parent_idx() + 1;
+
+    	auto leaf_list = self.createLeafDataList(provider);
+
+    	if (leaf_list.size() > 0)
+    	{
+    		using Provider = typename Base::ListLeafProvider;
+
+    		Provider list_provider(self, leaf_list.head(), leaf_list.size());
+
+    		NodeBaseG parent = self.getNodeParentForUpdate(leaf);
+
+    		self.insert_subtree(parent, path_parent_idx, list_provider);
+
+    		auto& last_leaf = leaf_list.tail();
+
+    		auto last_leaf_size = self.getLeafStreamSizes(last_leaf);
+
+    		if (self.mergeLeafNodes(last_leaf, next_leaf, [](const Position&){}))
+    		{
+    			return InsertDataResult(last_leaf, last_leaf_size);
+    		}
+    		else {
+    			return InsertDataResult(next_leaf);
+    		}
+    	}
+    	else {
+    		return InsertDataResult(next_leaf);
+    	}
+    }
+
+
+    template <typename TT>
+    InsertDataResult insertDataRest(NodeBaseG& leaf, CtrInputProvider<TT>& provider)
+    {
+    	auto& self = this->self();
+
+    	if (leaf->is_root())
+    	{
+    		self.newRootP(leaf);
+    	}
+
+    	Int path_parent_idx = leaf->parent_idx() + 1;
+
+    	auto leaf_list = self.createLeafDataList(provider);
+
+    	if (leaf_list.size() > 0)
+    	{
+    		using Provider = typename Base::ListLeafProvider;
+
+    		Provider list_provider(self, leaf_list.head(), leaf_list.size());
+
+    		NodeBaseG parent = self.getNodeParentForUpdate(leaf);
+
+    		self.insert_subtree(parent, path_parent_idx, list_provider);
+
+    		auto& last_leaf = leaf_list.tail();
+
+    		auto last_leaf_size = self.getLeafStreamSizes(last_leaf);
+
+    		return InsertDataResult(last_leaf, last_leaf_size);
+    	}
+    	else {
+    		auto leaf_size = self.getLeafStreamSizes(leaf);
+    		return InsertDataResult(leaf, leaf_size);
+    	}
+    }
+
 
 
 MEMORIA_CONTAINER_PART_END
@@ -361,7 +582,44 @@ typename M_TYPE::LeafList M_TYPE::createLeafList(InputBufferProvider<LeafPositio
     return LeafList(total, head, current);
 }
 
+M_PARAMS
+template <typename TT>
+typename M_TYPE::LeafList M_TYPE::createLeafDataList(CtrInputProvider<TT>& provider)
+{
+    auto& self = this->self();
 
+    CtrSizeT    total = 0;
+    NodeBaseG   head;
+    NodeBaseG   current;
+
+    Int page_size = self.getRootMetadata().page_size();
+
+    while (provider.hasData())
+    {
+    	NodeBaseG node = self.createNode1(0, false, true, page_size);
+
+    	self.insertDataIntoLeaf(node, Position(), provider);
+
+    	if (!self.isEmpty(node))
+    	{
+    		total++;
+
+    		if (head.isSet())
+    		{
+    			current->next_leaf_id() = node->id();
+    			current                 = node;
+    		}
+    		else {
+    			head = current = node;
+    		}
+    	}
+    	else {
+    		self.allocator().removePage(node->id(), self.master_name());
+    	}
+    }
+
+    return LeafList(total, head, current);
+}
 
 
 #undef M_TYPE

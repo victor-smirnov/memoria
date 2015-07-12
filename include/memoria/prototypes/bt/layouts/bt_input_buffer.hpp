@@ -804,12 +804,8 @@ auto get(CompoundInputBuffer<Types>* buf) -> void
 
 }
 
+
 }
 }
-
-
-
-
-
 
 #endif

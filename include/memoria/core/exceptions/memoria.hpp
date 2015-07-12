@@ -82,6 +82,14 @@ public:
 };
 
 
+class MEMORIA_API OOMException: public MemoriaThrowable {
+
+public:
+    OOMException(const char* source): MemoriaThrowable(source) {}
+};
+
+
+
 
 MEMORIA_API const char* ExtractMemoriaPath(const char* path);
 

@@ -11,8 +11,12 @@
 
 #include <memoria/prototypes/bt/bt_factory.hpp>
 
+#include <memoria/prototypes/bt_ss/btss_input.hpp>
+
 #include <memoria/prototypes/bt_ss/btss_names.hpp>
 #include <memoria/prototypes/bt_ss/btss_iterator.hpp>
+
+
 
 #include <memoria/prototypes/bt_ss/container/btss_c_leaf_common.hpp>
 #include <memoria/prototypes/bt_ss/container/btss_c_leaf_fixed.hpp>

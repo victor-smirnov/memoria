@@ -183,10 +183,26 @@ public:
         return leaf().isSet() ? idx() >= self.leaf_size() : true;
     }
 
+    bool isEnd(Int idx) const
+    {
+        auto& self = this->self();
+
+        return leaf().isSet() ? idx >= self.leaf_size() : true;
+    }
+
     bool isContent() const
     {
         auto& self = this->self();
         return !(self.isBegin() || self.isEnd());
+    }
+
+    bool isContent(Int idx) const
+    {
+    	auto& self = this->self();
+
+    	bool is_set = self.leaf().isSet();
+
+    	return is_set && idx >= 0 && idx < self.leaf_size();
     }
 
     bool isNotEnd() const
@@ -275,6 +291,9 @@ public:
     }
 
     void init() {}
+
+    template <typename Walker>
+    void finish_walking(Int idx, const Walker&, WalkCmd cmd) {}
 
 MEMORIA_BT_ITERATOR_BASE_CLASS_END
 

@@ -240,9 +240,11 @@ public:
         branch_size_prefix_	= iter.cache().size_prefix();
     }
 
-    void finish(Iterator& iter, Int idx) const
+    void finish(Iterator& iter, Int idx, WalkCmd cmd) const
     {
-        iter.idx() = idx;
+    	iter.finish_walking(idx, self(), cmd);
+
+    	iter.idx() = idx;
 
         iter.cache().prefixes() 	 = branch_prefix_;
         iter.cache().leaf_prefixes() = leaf_prefix_;
@@ -306,7 +308,9 @@ public:
 
     	Int index = node->template translateLeafIndexToBranchIndex<LeafPath>(self.leaf_index());
 
-    	return node->template processStream<LeafPath>(ProcessBranchCmdFn(self), cmd, index, std::forward<Args>(args)...);
+    	using BranchPath = typename bt::BranchNode<NodeTypes>::template BuildBranchPath<LeafPath>;
+
+    	return node->template processStream<BranchPath>(ProcessBranchCmdFn(self), cmd, index, std::forward<Args>(args)...);
     }
 
 

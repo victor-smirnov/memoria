@@ -19,14 +19,14 @@ template <
     typename Types,
     typename MyType
 >
-class SkipForwardWalkerBase2: public FindForwardWalkerBase2<Types, MyType> {
+class SkipForwardWalkerBase: public FindForwardWalkerBase<Types, MyType> {
 protected:
-    using Base  = FindForwardWalkerBase2<Types, MyType>;
+    using Base  = FindForwardWalkerBase<Types, MyType>;
     using CtrSizeT = typename Types::CtrSizeT;
 
 public:
 
-    SkipForwardWalkerBase2(CtrSizeT target):
+    SkipForwardWalkerBase(CtrSizeT target):
         Base(-1, target, SearchType::GT)
     {}
 
@@ -34,10 +34,6 @@ public:
     template <Int StreamIdx, typename Tree>
     StreamOpResult find_leaf(const Tree* tree, Int start)
     {
-        if (DebugCounter == 1) {
-        	int a = 0; a++;
-        }
-
     	auto& sum = Base::sum_;
 
         BigInt offset = Base::target_ - sum;
@@ -72,14 +68,14 @@ public:
 template <
     typename Types
 >
-class SkipForwardWalker2: public SkipForwardWalkerBase2<Types, SkipForwardWalker2<Types>> {
-    using Base  = SkipForwardWalkerBase2<Types, SkipForwardWalker2<Types>>;
+class SkipForwardWalker: public SkipForwardWalkerBase<Types, SkipForwardWalker<Types>> {
+    using Base  = SkipForwardWalkerBase<Types, SkipForwardWalker<Types>>;
 
     using CtrSizeT   = typename Base::CtrSizeT;
 
 public:
 
-    SkipForwardWalker2(CtrSizeT target):
+    SkipForwardWalker(CtrSizeT target):
         Base(target)
     {}
 };
@@ -91,15 +87,15 @@ template <
     typename Types,
     typename MyType
 >
-class SkipBackwardWalkerBase2: public FindBackwardWalkerBase2<Types,MyType> {
+class SkipBackwardWalkerBase: public FindBackwardWalkerBase<Types,MyType> {
 protected:
-    using Base  = FindBackwardWalkerBase2<Types,MyType>;
+    using Base  = FindBackwardWalkerBase<Types,MyType>;
 
     using CtrSizeT = typename Types::CtrSizeT;
 
 public:
 
-    SkipBackwardWalkerBase2(CtrSizeT target):
+    SkipBackwardWalkerBase(CtrSizeT target):
         Base(-1, target, SearchType::GE)
     {}
 
@@ -146,13 +142,13 @@ public:
 template <
     typename Types
 >
-class SkipBackwardWalker2: public SkipBackwardWalkerBase2<Types, SkipBackwardWalker2<Types>> {
-    using Base  = SkipBackwardWalkerBase2<Types,SkipBackwardWalker2<Types>>;
+class SkipBackwardWalker: public SkipBackwardWalkerBase<Types, SkipBackwardWalker<Types>> {
+    using Base  = SkipBackwardWalkerBase<Types,SkipBackwardWalker<Types>>;
 
     using CtrSizeT = typename Base::CtrSizeT;
 
 public:
-    SkipBackwardWalker2(CtrSizeT target):
+    SkipBackwardWalker(CtrSizeT target):
         Base(target)
     {}
 };

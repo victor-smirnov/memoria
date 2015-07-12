@@ -498,6 +498,7 @@ public:
 
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
+    	handler->startStruct();
         handler->startGroup("ARRAY");
 
         handler->value("ALLOCATOR",     &Base::allocator_offset());
@@ -511,6 +512,7 @@ public:
         handler->endGroup();
 
         handler->endGroup();
+    	handler->endStruct();
     }
 
     void serialize(SerializationData& buf) const

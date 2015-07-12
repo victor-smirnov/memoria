@@ -114,7 +114,7 @@ public:
     		typename MakeStreamEntryTL<Linearize<LeafType>>::Type,
     		typename PackedLeafStructListBuilder<
     			TypeList<Tail...>
-    		>::StructList
+    		>::StreamInputList
     >;
 
     using InputBufferList = AppendItemToList<

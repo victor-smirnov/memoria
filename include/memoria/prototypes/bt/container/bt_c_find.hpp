@@ -80,12 +80,6 @@ public:
     }
 
 
-    template <typename Walker>
-    Int findFw(NodeBaseG& node, Int stream, Int idx, Walker&& walker);
-
-    template <typename Walker>
-    Int findBw(NodeBaseG& node, Int stream, Int idx, Walker&& walker);
-
     struct NodeChain {
     	NodeBaseG node;
     	Int start;
@@ -102,7 +96,7 @@ public:
     	}
 
     	template <typename Walker>
-    	void processChain(Walker&& walker, Int leaf_cnt = 0)
+    	WalkCmd processChain(Walker&& walker, Int leaf_cnt = 0)
     	{
     		if (node->is_leaf())
     		{
@@ -132,19 +126,24 @@ public:
         		}
 
         		LeafDispatcher::dispatch(node, std::forward<Walker>(walker), cmd, start, end);
+
+        		return cmd;
     		}
     		else {
     			BranchDispatcher::dispatch(node, std::forward<Walker>(walker), WalkCmd::PREFIXES, start, end);
+
+    			return WalkCmd::PREFIXES;
     		}
     	}
     };
 
     struct FindResult {
-    	NodeBaseG node;
-    	Int idx;
-    	bool pass;
+    	NodeBaseG 	node;
+    	Int 		idx;
+    	bool 		pass;
+    	WalkCmd 	cmd;
 
-    	explicit FindResult(NodeBaseG _node, Int _idx, bool _pass = true): node(_node), idx(_idx), pass(_pass) {}
+    	explicit FindResult(NodeBaseG _node, Int _idx, WalkCmd _cmd, bool _pass = true): node(_node), idx(_idx), pass(_pass), cmd(_cmd) {}
     };
 
     template <typename Walker>
@@ -360,128 +359,6 @@ typename M_TYPE::Iterator M_TYPE::find0(Int stream, Walker&& walker)
 
 
 
-M_PARAMS
-template <typename Walker>
-Int M_TYPE::findFw(NodeBaseG& node, Int stream, Int start, Walker&& walker)
-{
-    auto& self = this->self();
-
-    if (node->is_root())
-    {
-        walker.direction()  = WalkDirection::DOWN;
-    }
-    else {
-        walker.direction()  = WalkDirection::UP;
-    }
-
-    Int size = self.getNodeSize(node, stream);
-
-    Int idx;
-
-    if (start < size)
-    {
-        idx = NodeDispatcher::dispatch(node, walker, start);
-    }
-    else {
-        idx = size;
-    }
-
-    if (idx >= size)
-    {
-        if (!node->is_root())
-        {
-            NodeBaseG parent = self.getNodeParent(node);
-
-            // Step up the tree
-            Int child_idx = findFw(parent, stream, node->parent_idx() + 1, walker);
-
-            Int parent_size = self.getNodeSize(parent, stream);
-            if (child_idx < parent_size)
-            {
-                // Step down the tree
-                node = self.getChild(parent, child_idx);
-
-                return NodeDispatcher::dispatch(node, walker, 0);
-            }
-            else {
-                // Step down the tree
-                node = self.getChild(parent, parent_size - 1);
-
-                return self.getNodeSize(node, stream);
-            }
-        }
-        else {
-            walker.direction()  = WalkDirection::DOWN;
-            return size;
-        }
-    }
-    else {
-        walker.direction()  = WalkDirection::DOWN;
-        return idx;
-    }
-}
-
-
-
-
-
-M_PARAMS
-template <typename Walker>
-Int M_TYPE::findBw(NodeBaseG& node, Int stream, Int start, Walker&& walker)
-{
-    auto& self = this->self();
-
-    if (node->is_root())
-    {
-        walker.direction()  = WalkDirection::DOWN;
-    }
-    else {
-        walker.direction()  = WalkDirection::UP;
-    }
-
-    Int idx;
-
-    if (start >= 0)
-    {
-        idx = NodeDispatcher::dispatch(node, walker, start);
-    }
-    else {
-        idx = -1;
-    }
-
-    if (idx < 0)
-    {
-        if (!node->is_root())
-        {
-            NodeBaseG parent = self.getNodeParent(node);
-
-            // Step up the tree
-            Int child_idx = findBw(parent, stream, node->parent_idx() - 1, walker);
-
-            if (child_idx >= 0)
-            {
-                // Step down the tree
-                node        = self.getChild(parent, child_idx);
-                Int start   = self.getNodeSize(node, stream) - !node->is_leaf();
-
-                return NodeDispatcher::dispatch(node, walker, start);
-            }
-            else {
-                // Step down the tree
-                node = self.getChild(parent, 0);
-
-                return -1;
-            }
-        }
-        else {
-            return -1;
-        }
-    }
-    else {
-        walker.direction()  = WalkDirection::DOWN;
-        return idx;
-    }
-}
 
 
 
@@ -506,8 +383,8 @@ typename M_TYPE::FindResult M_TYPE::findFw2(NodeChain node_chain, Walker&& walke
     	{
     		if (node->is_leaf())
     		{
-    			node_chain.processChain(std::forward<Walker>(walker));
-    			return FindResult(node, result.idx());
+    			auto cmd = node_chain.processChain(std::forward<Walker>(walker));
+    			return FindResult(node, result.idx(), cmd);
     		}
     		else {
     			auto child = self.getChild(node, result.idx());
@@ -529,8 +406,8 @@ typename M_TYPE::FindResult M_TYPE::findFw2(NodeChain node_chain, Walker&& walke
 
     		if (node->is_leaf())
     		{
-    			node_chain.processChain(std::forward<Walker>(walker));
-    			return FindResult(node, result.idx());
+    			auto cmd = node_chain.processChain(std::forward<Walker>(walker));
+    			return FindResult(node, result.idx(), cmd);
     		}
     		else if (!result.empty())
     		{
@@ -541,14 +418,14 @@ typename M_TYPE::FindResult M_TYPE::findFw2(NodeChain node_chain, Walker&& walke
     			return findFw2(NodeChain(child, 0, &node_chain), std::forward<Walker>(walker), WalkDirection::DOWN);
     		}
     		else {
-    			return FindResult(node, start, false);
+    			return FindResult(node, start, WalkCmd::NONE, false);
     		}
     	}
     }
     else if (node_chain.node->is_leaf())
     {
-    	node_chain.processChain(std::forward<Walker>(walker));
-    	return FindResult(node_chain.node, result.idx());
+    	auto cmd = node_chain.processChain(std::forward<Walker>(walker));
+    	return FindResult(node_chain.node, result.idx(), cmd);
     }
     else if (!result.out_of_range())
     {
@@ -586,8 +463,8 @@ typename M_TYPE::FindResult M_TYPE::findBw2(NodeChain node_chain, Walker&& walke
     	{
     		if (node_chain.node->is_leaf())
     		{
-    			node_chain.processChain(std::forward<Walker>(walker));
-    			return FindResult(node_chain.node, result.idx());
+    			auto cmd = node_chain.processChain(std::forward<Walker>(walker));
+    			return FindResult(node_chain.node, result.idx(), cmd);
     		}
     		else {
     			auto child = self.getChild(node_chain.node, result.idx());
@@ -609,8 +486,8 @@ typename M_TYPE::FindResult M_TYPE::findBw2(NodeChain node_chain, Walker&& walke
 
     		if (node_chain.node->is_leaf())
     		{
-    			node_chain.processChain(std::forward<Walker>(walker));
-    			return FindResult(node_chain.node, result.idx());
+    			auto cmd = node_chain.processChain(std::forward<Walker>(walker));
+    			return FindResult(node_chain.node, result.idx(), cmd);
     		}
     		else if (!result.empty())
     		{
@@ -621,14 +498,14 @@ typename M_TYPE::FindResult M_TYPE::findBw2(NodeChain node_chain, Walker&& walke
     			return findBw2(NodeChain(child, max, &node_chain), std::forward<Walker>(walker), WalkDirection::DOWN);
     		}
     		else {
-    			return FindResult(node_chain.node, node_chain.start, false);
+    			return FindResult(node_chain.node, node_chain.start, WalkCmd::NONE, false);
     		}
     	}
     }
     else if (node_chain.node->is_leaf())
     {
-    	node_chain.processChain(std::forward<Walker>(walker));
-    	return FindResult(node_chain.node, result.idx());
+    	auto cmd = node_chain.processChain(std::forward<Walker>(walker));
+    	return FindResult(node_chain.node, result.idx(), cmd);
     }
     else if (!result.out_of_range())
     {
@@ -683,7 +560,7 @@ typename M_TYPE::Iterator M_TYPE::find2(Walker&& walker)
 
         i.leaf() = node;
 
-        walker.finish(i, result.idx());
+        walker.finish(i, result.idx(), WalkCmd::LAST_LEAF);
 
         return i;
     }

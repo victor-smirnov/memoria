@@ -63,6 +63,9 @@ struct IPageDataEventHandler {
 
     virtual void symbols(const char* name, const UBigInt* value, Int count, Int bits_per_symbol)    = 0;
     virtual void symbols(const char* name, const UByte* value, Int count, Int bits_per_symbol)      = 0;
+
+    virtual void startStruct() 																	= 0;
+    virtual void endStruct() 																	= 0;
 };
 
 struct DataEventsParams {};
@@ -392,6 +395,13 @@ public:
     {
         dumpSymbols(out_, value, count, bits_per_symbol);
     }
+
+
+    virtual void startStruct() {
+    	out_<<std::endl;
+    }
+
+    virtual void endStruct() {}
 
 private:
 

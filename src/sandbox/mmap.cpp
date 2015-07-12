@@ -29,10 +29,29 @@ int main() {
 
 		CtrT map(&alloc);
 
-		auto iter = map.find(0);
+		auto iter = map.find(1);
 
-		iter.key();
+		iter.insertKey(1);
+		iter.addSize(1000);
 
+		iter.toLocalPos();
+
+		iter.dump();
+
+//		iter.key();
+//
+//		iter.seek(0);
+//
+//		iter+=1;
+//		iter-=1;
+//
+//		iter.toIndex();
+
+		mmap::RandomDataInputProvider<CtrT> provider(map, 1000, 1000);
+
+		using Position = mmap::RandomDataInputProvider<CtrT>::Position;
+
+		map.insertData(iter.leaf(), Position(), provider);
 
 		alloc.commit();
 

@@ -25,6 +25,7 @@
 #include <memoria/prototypes/bt/bt_walkers.hpp>
 
 #include <memoria/prototypes/bt/layouts/bt_input_buffer.hpp>
+#include <memoria/prototypes/bt/layouts/bt_input.hpp>
 
 #include <memoria/prototypes/bt/walkers/bt_skip_walkers.hpp>
 #include <memoria/prototypes/bt/walkers/bt_find_walkers.hpp>
@@ -174,34 +175,34 @@ struct BTTypes {
 
 
     template <typename Types, typename LeafPath>
-    using FindGTForwardWalker          = bt::FindGTForwardWalker2<WalkerTypes<Types, LeafPath>>;
+    using FindGTForwardWalker          = bt::FindGTForwardWalker<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using FindGTBackwardWalker         = bt::FindGTBackwardWalker2<WalkerTypes<Types, LeafPath>>;
+    using FindGTBackwardWalker         = bt::FindGTBackwardWalker<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using FindGEForwardWalker          = bt::FindGEForwardWalker2<WalkerTypes<Types, LeafPath>>;
+    using FindGEForwardWalker          = bt::FindGEForwardWalker<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using FindGEBackwardWalker         = bt::FindGEBackwardWalker2<WalkerTypes<Types, LeafPath>>;
+    using FindGEBackwardWalker         = bt::FindGEBackwardWalker<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using SkipForwardWalker     = bt::SkipForwardWalker2<WalkerTypes<Types, LeafPath>>;
+    using SkipForwardWalker     = bt::SkipForwardWalker<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using SkipBackwardWalker    = bt::SkipBackwardWalker2<WalkerTypes<Types, LeafPath>>;
+    using SkipBackwardWalker    = bt::SkipBackwardWalker<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using SelectForwardWalker   = bt::SelectForwardWalker2<WalkerTypes<Types, LeafPath>>;
+    using SelectForwardWalker   = bt::SelectForwardWalker<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using SelectBackwardWalker  = bt::SelectBackwardWalker2<WalkerTypes<Types, LeafPath>>;
+    using SelectBackwardWalker  = bt::SelectBackwardWalker<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using RankForwardWalker   = bt::RankForwardWalker2<WalkerTypes<Types, LeafPath>>;
+    using RankForwardWalker   = bt::RankForwardWalker<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using RankBackwardWalker  = bt::RankBackwardWalker2<WalkerTypes<Types, LeafPath>>;
+    using RankBackwardWalker  = bt::RankBackwardWalker<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types>
     using NextLeafWalker      = bt::ForwardLeafWalker<Types>;
@@ -210,10 +211,10 @@ struct BTTypes {
     using PrevLeafWalker      = bt::BackwardLeafWalker<Types>;
 
     template <typename Types, typename LeafPath>
-    using NextLeafMutistreamWalker 	= bt::SkipForwardWalker2<WalkerTypes<Types, LeafPath>>;
+    using NextLeafMutistreamWalker 	= bt::SkipForwardWalker<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using PrevLeafMutistreamWalker	= bt::SkipBackwardWalker2<WalkerTypes<Types, LeafPath>>;
+    using PrevLeafMutistreamWalker	= bt::SkipBackwardWalker<WalkerTypes<Types, LeafPath>>;
 };
 
 
@@ -268,8 +269,6 @@ public:
 
 
     using Accumulator_ = TypeListToTuple<typename AccumulatorBuilder<BranchStreamsStructList>::Type>;
-
-//    using IteratorPrefix_ = Accumulator_;
 
     struct NodeTypesBase: ContainerTypes {
         using NodeBase  = Page;
@@ -381,6 +380,14 @@ public:
         using InputTupleAdapter = StreamTupleHelper<StreamInputTuple<Stream>>;
 
         using InputBuffer = CompoundInputBuffer<typename MyType::NodeTypesBase>;
+
+        static const LeafDataLengthType LeafDataLength = LeafSizeType == PackedSizeType::FIXED ?
+        		LeafDataLengthType::FIXED : LeafDataLengthType::VARIABLE;
+
+        template <typename TT>
+        using CtrInputProvider = AbstractInputProvider<TT>;
+
+        using LeafType = typename Pages::LeafDispatcher::Head::Base;
     };
 
     typedef typename Types::CtrTypes                                            CtrTypes;

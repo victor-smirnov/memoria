@@ -188,7 +188,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
         return sums;
     }
 
-
     NodeBaseG getRoot() const
     {
         auto& self = this->self();

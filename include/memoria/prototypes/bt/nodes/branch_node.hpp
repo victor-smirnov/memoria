@@ -1230,7 +1230,7 @@ public:
         template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename StreamType>
         void stream(const StreamType* obj, const Position& start, const Position& end, Accumulator& accum)
         {
-            obj->sums(start[StreamIdx], end[StreamIdx], std::get<Idx>(accum));
+            obj->sums(start[StreamIdx], end[StreamIdx], std::get<AllocatorIdx - SubstreamsStart>(accum));
         }
 
         template <Int Idx, typename StreamType>

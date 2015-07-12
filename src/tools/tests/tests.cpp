@@ -51,6 +51,8 @@ int main(int argc, const char** argv, const char** envp)
 
     Term::init(argc, argv, envp);
 
+    SCtrTF<Map<BigInt, Vector<Byte>>>::Type::initMetadata();
+
     try {
     	SCtrTF<MapX<BigInt, BigInt>>::Type::initMetadata();
 

@@ -53,9 +53,10 @@ template <typename Types, int Idx>
 class NDT0 {
 
 	using MyType = NDT0<Types, Idx>;
-
+public:
     using Head      = SelectByIndex<Idx, typename Types::List>;
 
+private:
     static const Int HASH       = Head::PAGE_HASH;
     static const bool Leaf      = Head::Leaf;
 
@@ -249,9 +250,10 @@ template <typename Types>
 class NDT0<Types, 0> {
 
     static const Int Idx = 0;
-
+public:
     using Head      = SelectByIndex<Idx, typename Types::List>;
 
+private:
     static const Int HASH       = Head::PAGE_HASH;
     static const bool Leaf      = Head::Leaf;
 

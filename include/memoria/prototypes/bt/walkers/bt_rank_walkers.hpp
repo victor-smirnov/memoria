@@ -18,9 +18,9 @@ namespace bt {
 template <
     typename Types
 >
-class RankForwardWalker2: public SkipForwardWalkerBase2<Types, RankForwardWalker2<Types>> {
+class RankForwardWalker: public SkipForwardWalkerBase<Types, RankForwardWalker<Types>> {
 
-    using Base      = SkipForwardWalkerBase2<Types, RankForwardWalker2<Types>>;
+    using Base      = SkipForwardWalkerBase<Types, RankForwardWalker<Types>>;
     using Iterator  = typename Base::Iterator;
 
     using CtrSizeT = typename Types::CtrSizeT;
@@ -30,12 +30,12 @@ class RankForwardWalker2: public SkipForwardWalkerBase2<Types, RankForwardWalker
 
 public:
 
-    RankForwardWalker2(Int, Int symbol, CtrSizeT target):
+    RankForwardWalker(Int, Int symbol, CtrSizeT target):
         Base(target),
         symbol_(symbol)
     {}
 
-    RankForwardWalker2(Int symbol, CtrSizeT target):
+    RankForwardWalker(Int symbol, CtrSizeT target):
         Base(target),
         symbol_(symbol)
     {}
@@ -61,9 +61,9 @@ public:
     	rank_ += stream->sum(Base::branchIndex(symbol_), start, end);
     }
 
-    CtrSizeT finish(Iterator& iter, Int idx)
+    CtrSizeT finish(Iterator& iter, Int idx, WalkCmd cmd)
     {
-        Base::finish(iter, idx);
+        Base::finish(iter, idx, cmd);
 
         return rank_;
     }
@@ -73,9 +73,9 @@ public:
 template <
     typename Types
 >
-class RankBackwardWalker2: public SkipBackwardWalkerBase2<Types, RankBackwardWalker2<Types>> {
+class RankBackwardWalker: public SkipBackwardWalkerBase<Types, RankBackwardWalker<Types>> {
 
-    using Base      = SkipBackwardWalkerBase2<Types, RankBackwardWalker2<Types>>;
+    using Base      = SkipBackwardWalkerBase<Types, RankBackwardWalker<Types>>;
     using Iterator  = typename Base::Iterator;
 
     using CtrSizeT = typename Types::CtrSizeT;
@@ -85,12 +85,12 @@ class RankBackwardWalker2: public SkipBackwardWalkerBase2<Types, RankBackwardWal
 
 public:
 
-    RankBackwardWalker2(Int, Int symbol, CtrSizeT target):
+    RankBackwardWalker(Int, Int symbol, CtrSizeT target):
         Base(target),
         symbol_(symbol)
     {}
 
-    RankBackwardWalker2(Int symbol, CtrSizeT target):
+    RankBackwardWalker(Int symbol, CtrSizeT target):
         Base(target),
         symbol_(symbol)
     {}
@@ -121,9 +121,9 @@ public:
     	rank_ += stream->sum(Base::branchIndex(symbol_), end + 1, start + 1);
     }
 
-    CtrSizeT finish(Iterator& iter, Int idx)
+    CtrSizeT finish(Iterator& iter, Int idx, WalkCmd cmd)
     {
-        Base::finish(iter, idx);
+        Base::finish(iter, idx, cmd);
 
         return rank_;
     }

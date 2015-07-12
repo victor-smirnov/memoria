@@ -148,38 +148,20 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
     	 return self().ctr().template _readLeafEntry<Stream, SubstreamsIdxList>(self().leaf(), std::forward<Args>(args)...);
     }
 
-    void refreshCache()
+
+
+    template <Int StreamIdx>
+    void _refreshCache()
     {
     	auto& self = this->self();
 
-    	FindForwardWalker2<bt::WalkerTypes<Types, IntList<0>>> walker(0, 0);
+    	FindForwardWalker<bt::WalkerTypes<Types, IntList<StreamIdx>>> walker(0, 0);
 
     	self.cache().reset();
 
     	self.ctr().walkUp2(self.leaf(), self.idx(), walker);
 
-    	walker.finish(self, self.idx());
-    }
-
-    void split()
-    {
-    	auto& self = this->self();
-
-    	NodeBaseG& leaf = self.leaf();
-    	Int& idx        = self.idx();
-
-    	Int size        = self.leaf_size(0);
-    	Int split_idx   = size/2;
-
-    	auto right = self.ctr().splitLeafP(leaf, Position::create(0, split_idx));
-
-    	if (idx > split_idx)
-    	{
-    		leaf = right;
-    		idx -= split_idx;
-
-    		self.refreshCache();
-    	}
+    	walker.finish(self, self.idx(), WalkCmd::NONE);
     }
 
 

@@ -20,6 +20,7 @@
 #include <memoria/containers/multimap/mmap_tools.hpp>
 #include <memoria/containers/multimap/mmap_iterator.hpp>
 
+#include <memoria/prototypes/bt/layouts/bt_input.hpp>
 
 #include <tuple>
 
@@ -83,6 +84,13 @@ struct MultimapBTTypesBase: public BTTypes<Profile, memoria::BT> {
                 typename Base::IteratorPartsList,
                 memoria::mmap::ItrMiscName
     >;
+
+    template <typename Iterator, typename Container>
+    struct IteratorCacheFactory {
+        typedef ::memoria::mmap::MultimapIteratorPrefixCache<Iterator, Container>   Type;
+    };
+
+
 };
 
 
@@ -112,6 +120,17 @@ public:
         using IterTypes 		= MultimapIterTypes<Types>;
 
         using PageUpdateMgr 	= PageUpdateManager<CtrTypes>;
+
+        template <Int StreamIdx>
+        using InputTupleSizeAccessor = mmap::InputTupleSizeH<StreamIdx>;
+
+        template <Int StreamIdx>
+        using LeafStreamSizeAccessor = mmap::LeafStreamSizeH<StreamIdx>;
+
+        using StreamsSizes = TL<
+        	IntList<0, 0>
+        >;
+
     };
 
     using CtrTypes 	= typename Types::CtrTypes;

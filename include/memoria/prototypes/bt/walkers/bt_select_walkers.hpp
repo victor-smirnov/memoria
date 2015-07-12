@@ -19,14 +19,14 @@ template <
     typename Types,
     typename MyType
 >
-class SelectForwardWalkerBase2: public FindForwardWalkerBase2<Types, MyType> {
+class SelectForwardWalkerBase: public FindForwardWalkerBase<Types, MyType> {
 protected:
-    using Base  = FindForwardWalkerBase2<Types, MyType>;
+    using Base  = FindForwardWalkerBase<Types, MyType>;
     using CtrSizeT   = typename Types::CtrSizeT;
 
 public:
 
-    SelectForwardWalkerBase2(Int symbol, CtrSizeT rank):
+    SelectForwardWalkerBase(Int symbol, CtrSizeT rank):
         Base(symbol, rank, SearchType::GE)
     {}
 
@@ -65,13 +65,13 @@ public:
 template <
     typename Types
 >
-class SelectForwardWalker2: public SelectForwardWalkerBase2<Types,SelectForwardWalker2<Types>> {
+class SelectForwardWalker: public SelectForwardWalkerBase<Types,SelectForwardWalker<Types>> {
 
-    using Base  = SelectForwardWalkerBase2<Types,SelectForwardWalker2<Types>>;
+    using Base  = SelectForwardWalkerBase<Types,SelectForwardWalker<Types>>;
     using CtrSizeT   = typename Base::CtrSizeT;
 
 public:
-    SelectForwardWalker2(Int symbol, CtrSizeT rank):
+    SelectForwardWalker(Int symbol, CtrSizeT rank):
         Base(symbol, rank)
     {}
 
@@ -90,14 +90,14 @@ template <
     typename Types,
     typename MyType
 >
-class SelectBackwardWalkerBase2: public FindBackwardWalkerBase2<Types, MyType> {
+class SelectBackwardWalkerBase: public FindBackwardWalkerBase<Types, MyType> {
 protected:
-    using Base  = FindBackwardWalkerBase2<Types, MyType>;
+    using Base  = FindBackwardWalkerBase<Types, MyType>;
     using CtrSizeT   = typename Types::CtrSizeT;
 
 public:
 
-    SelectBackwardWalkerBase2(Int symbol, CtrSizeT rank):
+    SelectBackwardWalkerBase(Int symbol, CtrSizeT rank):
         Base(symbol, rank, SearchType::GE)
     {}
 
@@ -138,14 +138,14 @@ public:
 template <
     typename Types
 >
-class SelectBackwardWalker2: public SelectBackwardWalkerBase2<Types, SelectBackwardWalker2<Types>> {
+class SelectBackwardWalker: public SelectBackwardWalkerBase<Types, SelectBackwardWalker<Types>> {
 
-    using Base  = SelectBackwardWalkerBase2<Types, SelectBackwardWalker2<Types>>;
+    using Base  = SelectBackwardWalkerBase<Types, SelectBackwardWalker<Types>>;
     using CtrSizeT   = typename Base::CtrSizeT;
 
 public:
 
-    SelectBackwardWalker2(Int symbol, CtrSizeT target):
+    SelectBackwardWalker(Int symbol, CtrSizeT target):
         Base(symbol, target)
     {}
 

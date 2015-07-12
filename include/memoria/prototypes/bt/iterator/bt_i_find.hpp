@@ -35,12 +35,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorFindName)
     using TargetType = typename Container::Types::template TargetType<LeafPath>;
 
 
-    template <template <typename CtrTypes, typename LeafPath> class Walker>
-    BigInt _findFw(Int index, BigInt key);
-
-    template <template <typename CtrTypes, typename LeafPath> class Walker>
-    BigInt _findBw(Int index, BigInt key);
-
 
     template <typename Walker>
     auto _findFw2(Walker&& walker) ->
@@ -57,7 +51,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorFindName)
     	self.leaf() = result.node;
     	self.idx()  = result.idx;
 
-    	walker.finish(self, result.idx);
+    	walker.finish(self, result.idx, result.cmd);
 
     	return walker.result();
     }
@@ -77,7 +71,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorFindName)
         self.leaf() = result.node;
         self.idx()  = result.idx;
 
-        walker.finish(self, result.idx);
+        walker.finish(self, result.idx, result.cmd);
 
         return walker.result();
     }
@@ -164,37 +158,6 @@ MEMORIA_ITERATOR_PART_END
 #define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::bt::IteratorFindName)
 #define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
 
-M_PARAMS
-template <template <typename CtrTypes, typename LeafPath> class Walker>
-BigInt M_TYPE::_findFw(Int index, BigInt key)
-{
-    auto& self = this->self();
-    Int stream = self.stream();
-
-    Walker<Types, IntList<0>> walker(stream, index, key);
-
-    walker.prepare(self);
-
-    Int idx = self.model().findFw(self.leaf(), stream, self.key_idx(), walker);
-
-    return walker.finish(self, idx);
-}
-
-M_PARAMS
-template <template <typename CtrTypes, typename LeafPath> class Walker>
-BigInt M_TYPE::_findBw(Int index, BigInt key)
-{
-    auto& self = this->self();
-    Int stream = self.stream();
-
-    Walker<Types, IntList<0>> walker(stream, index, key);
-
-    walker.prepare(self);
-
-    Int idx = self.model().findBw(self.leaf(), stream, self.key_idx(), walker);
-
-    return walker.finish(self, idx);
-}
 
 
 

@@ -380,6 +380,13 @@ enum class IteratorMode {FORWARD, BACKWARD};
 enum class MergeType {NONE, LEFT, RIGHT};
 enum class MergePossibility {YES, NO, MAYBE};
 
+enum class LeafDataLengthType {FIXED, VARIABLE};
+
+template <typename T>
+struct TypeP {
+	using Type = T;
+};
+
 class NoParamCtr {};
 
 extern BigInt DebugCounter;
@@ -388,10 +395,6 @@ extern BigInt DebugCounter2;
 extern size_t MemBase;
 
 
-template <typename T>
-struct TypeP {
-	using Type = T;
-};
 
 }
 

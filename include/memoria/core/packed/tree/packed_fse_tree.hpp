@@ -789,10 +789,17 @@ public:
         return vals;
     }
 
-    void sums(Int from, Int to, Values& values) const
+    template <typename T>
+    void sums(Int from, Int to, StaticVector<T, Blocks>& values) const
     {
         values += sums(from, to);
     }
+
+
+//    void sums(Int from, Int to, Values& values) const
+//    {
+//    	values += sums(from, to);
+//    }
 
 
     void sums(Values& values) const
@@ -1130,6 +1137,7 @@ public:
     }
 
 
+
     template <Int Offset, Int Size, typename T1, typename T2, template <typename, Int> class AccumItem>
     void _insert(Int idx, const core::StaticVector<T1, Indexes>& values, AccumItem<T2, Size>& accum)
     {
@@ -1144,6 +1152,17 @@ public:
     	sub<Offset>(idx, accum);
 
     	update(idx, values);
+
+    	sum<Offset>(idx, accum);
+    }
+
+
+    template <Int Offset, Int Size, typename T1, typename T2, typename I, template <typename, Int> class AccumItem>
+    void _update(Int idx, const std::pair<T1, I>& values, AccumItem<T2, Size>& accum)
+    {
+    	sub<Offset>(idx, accum);
+
+    	this->setValue(values.first, idx, values.second);
 
     	sum<Offset>(idx, accum);
     }
@@ -1439,6 +1458,7 @@ public:
 
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
+    	handler->startStruct();
         handler->startGroup("FSE_TREE");
 
         handler->value("ALLOCATOR",     &Base::allocator_offset());
@@ -1477,6 +1497,8 @@ public:
         handler->endGroup();
 
         handler->endGroup();
+
+        handler->endStruct();
     }
 
     void serialize(SerializationData& buf) const
