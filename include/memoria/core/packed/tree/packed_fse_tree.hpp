@@ -1130,6 +1130,19 @@ public:
         setValues(idx, values);
     }
 
+    template <typename Adaptor>
+    void _insert(Int pos, Int size, Adaptor&& adaptor)
+    {
+    	insertSpace(pos, size);
+
+    	for (Int c = 0; c < size; c++)
+    	{
+    		auto item = adaptor(c);
+
+    		setValues(c + pos, item);
+    	}
+    }
+
     template <typename T>
     void update(Int idx, const core::StaticVector<T, Indexes>& values)
     {

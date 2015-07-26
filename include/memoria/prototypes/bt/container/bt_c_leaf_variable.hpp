@@ -51,7 +51,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafVariableName)
     template <Int Stream>
     using StreamInputTuple = typename Types::template StreamInputTuple<Stream>;
 
-    using CtrInputProvider = typename Types::CtrInputProvider;
+//    using CtrInputProvider = typename Types::CtrInputProvider;
 
     struct InsertEntryIntoStreamHanlder
     {

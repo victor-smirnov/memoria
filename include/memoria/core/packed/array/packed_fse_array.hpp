@@ -439,6 +439,17 @@ public:
     	}
     }
 
+    template <typename Adaptor>
+    void _insert(Int pos, Int size, Adaptor&& adaptor)
+    {
+    	insertSpace(pos, size);
+
+    	for (Int c = 0; c < size; c++)
+    	{
+    		value(c + pos) = adaptor(c);
+    	}
+    }
+
 
     template <Int Offset, typename Value, typename T, Int Size, template <typename, Int> class AccumItem>
     void _update(Int pos, Value val, AccumItem<T, Size>& accum)

@@ -154,7 +154,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
 
     	self.updatePageG(leaf);
 
-    	self.layoutLeafNode(leaf, 0);
+    	self.layoutLeafNode(leaf, Position(0));
 
     	auto first_pos = pos;
 
@@ -293,13 +293,15 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
 
     	if (provider.hasData())
     	{
-    		auto inserted = self.fillLeaf(leaf, pos, provider);
+    		auto end = self.fillLeaf(leaf, pos, provider);
 
     		if (leaf->parent_id().isSet())
     		{
-    			auto sums = self.sums(leaf, pos, inserted);
+    			auto sums = self.sums(leaf, pos, end);
     			self.updateParent(leaf, sums);
     		}
+
+    		return end;
     	}
 
     	return pos;

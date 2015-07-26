@@ -18,29 +18,97 @@
 namespace memoria 	{
 namespace btss 		{
 
+
+template <Int StreamIdx>
+struct InputTupleSizeH {
+	template <typename Tuple>
+	static auto get(Tuple&& buffer, Int idx) -> Int {
+		return 0;
+	}
+
+	template <typename Tuple, typename SizeT>
+	static void add(Tuple&& buffer, Int idx, SizeT value)
+	{}
+};
+
+
+template <Int StreamIdx>
+struct LeafStreamSizeH {
+	template <typename Stream, typename SizeT>
+	static void stream(Stream* buffer, Int idx, SizeT value)
+	{}
+};
+
+
+
 template <typename CtrT>
-class AbstractBTSSInputProvider: public AbstractCtrInputProvider<CtrT, 1, CtrT::Types::LeafDataLength> {
-	using Base = AbstractCtrInputProvider<CtrT, 1, CtrT::Types::LeafDataLength>;
+class AbstractBTSSInputProvider: public AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength> {
+	using Base = AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength>;
 
 public:
 
-	using LeafType = typename Base::LeafType;
-	using Position = typename Base::Position;
+
+
+	using Buffer 	= typename Base::Buffer;
+	using CtrSizeT	= typename Base::CtrSizeT;
+	using Position	= typename Base::Position;
+	using NodeBaseG	= typename Base::NodeBaseG;
+
 
 	using InputTuple 		= typename CtrT::Types::template StreamInputTuple<0>;
 	using InputTupleAdapter = typename CtrT::Types::template InputTupleAdapter<0>;
 
 public:
-	AbstractBTSSInputProvider(CtrT& ctr): Base(ctr) {}
+	AbstractBTSSInputProvider(CtrT& ctr, const Position& capacity): Base(ctr, capacity) {}
 
-	virtual bool hasData() const {
-		return false;
-	};
+	// must be an abstract method
+	virtual bool get(InputTuple& value) = 0;
 
-	virtual Position fill(LeafType* leaf, const Position& from)
+	virtual Position findCapacity(const NodeBaseG& leaf, const Position& sizes)
 	{
+		Int capacity = this->ctr_.getLeafNodeCapacity(leaf, 0);
 
+		if (capacity > sizes[0])
+		{
+			return sizes;
+		}
+		else {
+			return Position(capacity);
+		}
 	}
+
+	virtual bool populate_buffer()
+	{
+		Int cnt = 0;
+
+		this->start_.clear();
+		this->size_.clear();
+
+		Int capacity = this->buffer_capacity()[0];
+
+		while (true)
+		{
+			InputTuple value;
+
+			if (get(std::get<0>(this->buffer_)[cnt]))
+			{
+				if (cnt++ == capacity)
+				{
+					break;
+				}
+			}
+			else {
+				break;
+			}
+		}
+
+		this->size_[0] = cnt;
+
+		return cnt > 0;
+	}
+
+private:
+	virtual Int populate (Buffer& buffer) {return -1;}
 };
 
 

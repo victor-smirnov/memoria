@@ -19,7 +19,7 @@
 
 #include <malloc.h>
 #include <memory>
-
+#include <limits>
 
 namespace memoria {
 
@@ -92,6 +92,8 @@ private:
     // For Allocator copy initialization
     ID                  root_id0_;
 
+    size_t 				mem_limit_;
+    size_t				allocated_ = 0;
 
     class Properties: public IAllocatorProperties {
         public:
@@ -120,7 +122,7 @@ public:
         logger_("memoria::StreamAllocator", Logger::DERIVED, &memoria::vapi::logger),
         counter_(100), metadata_(MetadataRepository<Profile>::getMetadata()), me_(*this),
         type_name_("StreamAllocator"), allocs1_(0), allocs2_(0), roots_(this), root_map_(nullptr),
-        pool_(), root_id0_(0)
+        pool_(), root_id0_(0), mem_limit_(std::numeric_limits<size_t>::max())
     {
         root_map_ = new RootMapType(this, CTR_CREATE, 0);
     }
@@ -130,7 +132,7 @@ public:
             counter_(other.counter_), metadata_(other.metadata_), me_(*this),
             type_name_("StreamAllocator"), allocs1_(other.allocs1_), allocs2_(other.allocs2_), roots_(this),
             root_map_(nullptr),
-            pool_(), root_id0_(0)
+            pool_(), root_id0_(0), mem_limit_(other.mem_limit_)
     {
         for (auto i = other.pages_.begin(); i != other.pages_.end(); i++)
         {
@@ -185,6 +187,14 @@ public:
 
     ContainerMetadataRepository* getMetadata() const {
         return metadata_;
+    }
+
+    const size_t& mem_limit() const {
+    	return mem_limit_;
+    }
+
+    size_t& mem_limit() {
+    	return mem_limit_;
     }
 
     virtual Logger& logger() {
@@ -343,28 +353,36 @@ public:
      */
     virtual PageG createPage(Int initial_size, BigInt name)
     {
-        allocs1_++;
-        void* buf = malloc(initial_size);
+    	if (allocated_ + initial_size < mem_limit_) {
 
-        memset(buf, 0, initial_size);
+    		allocs1_++;
+    		void* buf = malloc(initial_size);
 
-        ID id = newId();
+    		memset(buf, 0, initial_size);
 
-        Page* p = new (buf) Page(id);
+    		ID id = newId();
 
-        p->page_size() = initial_size;
+    		Page* p = new (buf) Page(id);
 
-        pages_log_[id] = p;
+    		p->page_size() = initial_size;
 
-        Shared* shared  = pool_.allocate(id);
+    		pages_log_[id] = p;
 
-        shared->id()        = id;
-        shared->state()     = Shared::UPDATE;
+    		Shared* shared  = pool_.allocate(id);
 
-        shared->set_page(p);
-        shared->set_allocator(this);
+    		shared->id()        = id;
+    		shared->state()     = Shared::UPDATE;
 
-        return PageG(shared);
+    		shared->set_page(p);
+    		shared->set_allocator(this);
+
+    		allocated_ += initial_size;
+
+    		return PageG(shared);
+    	}
+    	else {
+    		throw Exception(MA_SRC, SBuf()<<"Allocator memory limit exceeded: "<<mem_limit_);
+    	}
     }
 
     virtual bool hasRoot(BigInt name)

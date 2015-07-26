@@ -152,12 +152,12 @@ struct BTTypes<Profile, memoria::Vector<VLen<Gr, Value_>> >: public BTTypes<Prof
 template <typename Profile, typename Value, typename T>
 class CtrTF<Profile, memoria::Vector<Value>, T>: public CtrTF<Profile, memoria::BTSingleStream, T> {
 
-    using Base = CtrTF<Profile, memoria::BT, T>;
+    using Base = CtrTF<Profile, memoria::BTSingleStream, T>;
 public:
 
     struct Types: Base::Types
     {
-        typedef Vector2CtrTypes<Types>                                          CtrTypes;
+    	typedef Vector2CtrTypes<Types>                                          CtrTypes;
         typedef Vector2IterTypes<Types>                                         IterTypes;
 
         typedef PageUpdateManager<CtrTypes>                                     PageUpdateMgr;

@@ -20,32 +20,33 @@ namespace memoria 	{
 namespace bt 		{
 
 
-template <typename T>
-T* Malloc(size_t size, const char* source = MA_SRC)
-{
-	T* ptr = T2T<T>(std::malloc(size));
 
-	if (ptr != nullptr) {
-		return ptr;
-	}
-	else {
-		throw OOMException(source);
-	}
-}
-
-
-template <typename T>
-T* Realloc(T* ptr, size_t new_size, const char* source = MA_SRC)
-{
-	T* new_ptr = T2T<T>(std::realloc(ptr, new_size));
-
-	if (new_ptr != nullptr) {
-		return new_ptr;
-	}
-	else {
-		throw OOMException(source);
-	}
-}
+//template <typename T>
+//T* Malloc(size_t size, const char* source = MA_SRC)
+//{
+//	T* ptr = T2T<T>(std::malloc(size));
+//
+//	if (ptr != nullptr) {
+//		return ptr;
+//	}
+//	else {
+//		throw OOMException(source);
+//	}
+//}
+//
+//
+//template <typename T>
+//T* Realloc(T* ptr, size_t new_size, const char* source = MA_SRC)
+//{
+//	T* new_ptr = T2T<T>(std::realloc(ptr, new_size));
+//
+//	if (new_ptr != nullptr) {
+//		return new_ptr;
+//	}
+//	else {
+//		throw OOMException(source);
+//	}
+//}
 
 
 
@@ -121,34 +122,23 @@ struct AsTuple<TL<Types...>> {
 };
 
 
-template <typename InputBuffer, Int Size = std::tuple_size<InputBuffer>::value, Int Idx = 0> struct ForAllTuple;
-template <typename InputBuffer, Int Size, Int Idx>
+template <Int Size, Int Idx = 0>
 struct ForAllTuple {
-	template <typename Fn, typename... Args>
-	static void process(InputBuffer& tuple, Fn&& fn, Args&&... args)
+	template <typename InputBuffer, typename Fn, typename... Args>
+	static void process(InputBuffer&& tuple, Fn&& fn, Args&&... args)
 	{
 		fn.template process<Idx>(std::get<Idx>(tuple), std::forward<Args>(args)...);
-		ForAllTuple<InputBuffer>::process(tuple, std::forward<Fn>(fn), std::forward<Args>(args)...);
-	}
-
-	template <typename Fn, typename... Args>
-	static void process(const InputBuffer& tuple, Fn&& fn, Args&&... args)
-	{
-		fn.template process<Idx>(std::get<Idx>(tuple), std::forward<Args>(args)...);
-		ForAllTuple<InputBuffer>::process(tuple, std::forward<Fn>(fn), std::forward<Args>(args)...);
+		ForAllTuple<Size, Idx + 1>::process(tuple, std::forward<Fn>(fn), std::forward<Args>(args)...);
 	}
 };
 
-template <typename InputBuffer, Int Idx>
-struct ForAllTuple<InputBuffer, Idx, Idx> {
-	template <typename Fn, typename... Args>
-	static void process(InputBuffer& tuple, Fn&& fn, Args&&... args)
-	{}
-
-	template <typename Fn, typename... Args>
-	static void process(const InputBuffer& tuple, Fn&& fn, Args&&... args)
+template <Int Idx>
+struct ForAllTuple<Idx, Idx> {
+	template <typename InputBuffer, typename Fn, typename... Args>
+	static void process(InputBuffer&& tuple, Fn&& fn, Args&&... args)
 	{}
 };
+
 
 
 template <typename InputBuffer, Int Idx = 0, Int Size = std::tuple_size<InputBuffer>::value - 1> struct RankHelper;
@@ -183,11 +173,15 @@ struct RankFn {
 	CtrSizeT pos_ = 0;
 	CtrSizeT target_;
 
+	Position start_;
+	Position size_;
 	Position prefix_;
 	Position indexes_;
 
-	RankFn(const Position& prefix, CtrSizeT target):
+	RankFn(const Position& start, const Position& size, const Position& prefix, CtrSizeT target):
 		target_(target),
+		start_(start),
+		size_(size),
 		prefix_(prefix),
 		indexes_(prefix)
 	{}
@@ -199,7 +193,7 @@ struct RankFn {
 		{
 			if (pos_ < target_)
 			{
-				auto next_length = TupleHelper<Idx>::get(std::get<Idx>(buffer), i + prefix_[Idx]);
+				auto next_length = TupleHelper<Idx>::get(std::get<Idx>(buffer), i + prefix_[Idx] + start_[Idx]);
 
 				indexes_[Idx]++;
 				pos_++;
@@ -216,7 +210,7 @@ struct RankFn {
 	template <Int Idx, typename Buffer>
 	void processLast(Buffer&& buffer, CtrSizeT length)
 	{
-		CtrSizeT size = std::get<Idx>(buffer).size();
+		CtrSizeT size = size_[Idx];
 
 		if (indexes_[Idx] + length > size)
 		{
@@ -278,16 +272,19 @@ template <
 >
 struct ExtendFn {
 
+	Position start_;
+	Position size_;
 	Position prefix_;
 	Position indexes_;
 
-	ExtendFn(const Position& prefix): prefix_(prefix), indexes_(prefix)
+	ExtendFn(const Position& start, const Position& size, const Position& prefix):
+		start_(start), size_(size), prefix_(prefix), indexes_(prefix)
 	{}
 
 	template <Int Idx, typename NextHelper, typename Buffer>
 	void process(Buffer&& buffer, CtrSizeT end)
 	{
-		CtrSizeT buffer_size = std::get<Idx>(buffer).size();
+		CtrSizeT buffer_size = size_[Idx] - start_[Idx];
 
 		if (end > buffer_size)
 		{
@@ -299,7 +296,7 @@ struct ExtendFn {
 		CtrSizeT size = 0;
 		for (auto i = 0; i < end; i++)
 		{
-			size += TupleHelper<Idx>::get(std::get<Idx>(buffer), i + prefix_[Idx]);
+			size += TupleHelper<Idx>::get(std::get<Idx>(buffer), i + prefix_[Idx] + start_[Idx]);
 		}
 
 		NextHelper::process(buffer, *this, size);
@@ -309,7 +306,7 @@ struct ExtendFn {
 	template <Int Idx, typename Buffer>
 	void processLast(Buffer&& buffer, CtrSizeT end)
 	{
-		CtrSizeT buffer_size = std::get<Idx>(buffer).size();
+		CtrSizeT buffer_size = size_[Idx] - start_[Idx];
 
 		if (end > buffer_size)
 		{
@@ -457,21 +454,25 @@ struct UpdateLeafH<Dispatcher, Fn, TL<>, Idx> {
 }
 
 
-
-
-
-
 template <
 	typename CtrT,
 	Int Streams,
 	LeafDataLengthType LeafDataLength
 >
-class AbstractCtrInputProvider: public AbstractInputProvider<typename CtrT::Types> {
+class AbstractCtrInputProvider;
+
+
+
+template <
+	typename CtrT,
+	Int Streams
+>
+class AbstractCtrInputProvider<CtrT, Streams, LeafDataLengthType::FIXED>: public AbstractInputProvider<typename CtrT::Types> {
 
 	using Base = AbstractInputProvider<typename CtrT::Types>;
 
 public:
-	using MyType = AbstractCtrInputProvider<CtrT, Streams, LeafDataLength>;
+	using MyType = AbstractCtrInputProvider<CtrT, Streams, LeafDataLengthType::FIXED>;
 
 	using NodeBaseG = typename CtrT::Types::NodeBaseG;
 	using CtrSizeT 	= typename CtrT::Types::CtrSizeT;
@@ -495,16 +496,20 @@ public:
 
 	using InputTupleSizeHelper = detail::InputTupleSizeHelper<InputTupleSizeAccessor, 0, std::tuple_size<Buffer>::value>;
 
+
+	using ForAllBuffer = detail::ForAllTuple<std::tuple_size<Buffer>::value>;
+
 protected:
 	Buffer buffer_;
+	Position start_;
+	Position size_;
+
+
 	Position prefix_;
+
 	CtrT& 	ctr_;
 
-	CtrSizeT capacity_;
-
 	Position pos_;
-
-
 
 	Position ancors_;
 	NodeBaseG leafs_[Streams];
@@ -513,13 +518,20 @@ protected:
 
 private:
 
-
+	struct ResizeBufferFn {
+		template <Int Idx, typename Buffer>
+		void process(Buffer&& buffer, const Position& sizes)
+		{
+			buffer.resize(sizes[Idx]);
+		}
+	};
 
 public:
-	AbstractCtrInputProvider(CtrT& ctr, CtrSizeT capacity): Base(),
-		ctr_(ctr), capacity_(capacity)
-	{
 
+	AbstractCtrInputProvider(CtrT& ctr, const Position& capacity): Base(),
+		ctr_(ctr)
+	{
+		ForAllBuffer::process(buffer_, ResizeBufferFn(), capacity);
 	}
 
 	CtrT& ctr() {return ctr_;}
@@ -548,13 +560,26 @@ public:
 				{
 					return pos;
 				}
+				else {
+					buffer_sizes = this->buffer_size();
+				}
 			}
 
-			auto capacity = this->findCapacity(leaf, pos);
+			auto capacity = this->findCapacity(leaf, buffer_sizes);
 
 			if (capacity.sum() > 0)
 			{
 				insertBuffer(leaf, pos, capacity);
+
+				auto rest = this->buffer_size();
+
+				if (rest.sum() > 0)
+				{
+					return pos + buffer_sizes;
+				}
+				else {
+					pos += capacity;
+				}
 			}
 			else {
 				return pos;
@@ -562,9 +587,8 @@ public:
 		}
 	}
 
-	virtual Position findCapacity(NodeBaseG& leaf, const Position& from)
+	virtual Position findCapacity(const NodeBaseG& leaf, const Position& sizes)
 	{
-		auto sizes = this->buffer_size();
 		auto size  = sizes.sum();
 
 		auto imax 			= size;
@@ -577,7 +601,7 @@ public:
 			{
 				auto mid = imin + ((imax - imin) / 2);
 
-				if (this->checkSize(leaf, from, mid))
+				if (this->checkSize(leaf, mid))
 				{
 					accepts++;
 					imin = mid + 1;
@@ -587,30 +611,71 @@ public:
 				}
 			}
 			else {
-				if (this->checkSize(leaf, from, imax))
+				if (this->checkSize(leaf, imax))
 				{
 					accepts++;
 				}
+
 				break;
 			}
 		}
 
-		return Position();
+		if (imax < size)
+		{
+			return rank(imax);
+		}
+		else {
+			return sizes;
+		}
 	}
 
-	bool checkSize(const NodeBaseG& leaf, const Position& from, CtrSizeT target_size)
+	bool checkSize(const NodeBaseG& leaf, CtrSizeT target_size)
 	{
 		auto rank = this->rank(target_size);
-
-		// FIXME: check if negation is necessary here?
 		return ctr_.checkCapacities(leaf, rank);
 	}
 
-	void insertBuffer(NodeBaseG& leaf, const Position& from, const Position sizes)
+
+	struct InsertBufferFn {
+
+		template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename StreamObj>
+		void stream(StreamObj* stream, const Position& at, const Position& starts, const Position& sizes, const Buffer& buffer)
+		{
+			static_assert(StreamIdx < Position::Indexes, "");
+			static_assert(StreamIdx < tuple_size<Buffer>::value, "");
+			static_assert(Idx < tuple_size<typename tuple_element<StreamIdx, Buffer>::type::value_type>::value, "");
+
+			stream->_insert(at[StreamIdx], sizes[StreamIdx], [&](Int idx){
+				return std::get<Idx>(std::get<StreamIdx>(buffer)[idx + starts[StreamIdx]]);
+			});
+		}
+
+
+		template <typename NodeTypes, typename... Args>
+		void treeNode(LeafNode<NodeTypes>* leaf, Args&&... args)
+		{
+			leaf->processSubstreamGroups(*this, std::forward<Args>(args)...);
+		}
+	};
+
+
+	virtual void insertBuffer(NodeBaseG& leaf, const Position& at, const Position& sizes)
 	{
-		// insert data to the leaf
-		// remove it from input buffer, forming ancors
-		// if necessaryy
+		CtrT::Types::Pages::LeafDispatcher::dispatch(leaf, InsertBufferFn(), at, start_, sizes, buffer_);
+
+		for (Int c = 0; c < Streams - 1; c++)
+		{
+			if (sizes[c] > 0)
+			{
+				ancors_[c] = at[c] + sizes[c] - 1;
+				leafs_[c]  = leaf;
+			}
+		}
+
+		auto ext = this->extend(sizes);
+		this->prefix_ = ext - sizes;
+
+		start_ += sizes;
 	}
 
 
@@ -628,7 +693,14 @@ public:
 		return prefix_;
 	}
 
-	struct BufferSizeFn {
+
+
+	Position buffer_size() const
+	{
+		return size_ - start_;
+	}
+
+	struct BufferCapacityFn {
 		template <Int Idx, typename Buffer>
 		void process(Buffer&& buffer, Position& pos)
 		{
@@ -636,10 +708,10 @@ public:
 		}
 	};
 
-	Position buffer_size() const
+	Position buffer_capacity() const
 	{
 		Position sizes;
-		detail::ForAllTuple<Buffer>::process(buffer_, BufferSizeFn(), sizes);
+		ForAllBuffer::process(buffer_, BufferCapacityFn(), sizes);
 		return sizes;
 	}
 
@@ -670,9 +742,6 @@ public:
 		}
 	}
 
-
-
-
 	Position rank() const {
 		return buffer_size();
 	}
@@ -682,9 +751,14 @@ public:
 	{
 		Int last_symbol = -1;
 
-		CtrSizeT cnt = 0;
+		Position cnt;
 
 		Position sizes;
+
+		start_.clear();
+		size_.clear();
+
+		auto capacity = this->buffer_capacity();
 
 		while (true)
 		{
@@ -692,9 +766,13 @@ public:
 
 			if (symbol >= 0)
 			{
-				cnt++;
+				cnt[symbol]++;
 
-				if (symbol < last_symbol)
+				if (symbol > last_symbol + 1)
+				{
+					throw Exception(MA_SRC, SBuf()<<"Invalid sequence state: last_symbol="<<last_symbol<<", symbol="<<symbol);
+				}
+				else if (symbol < last_symbol)
 				{
 					for (Int sym = last_symbol; sym > symbol; sym--)
 					{
@@ -711,14 +789,13 @@ public:
 					}
 				}
 
-
 				last_symbol = symbol;
 
 				buffer_sums_[symbol]++;
 				rank_[symbol]++;
 				sizes[symbol]++;
 
-				if (cnt == capacity_) {
+				if (cnt[symbol] == capacity[symbol]) {
 					break;
 				}
 			}
@@ -727,15 +804,12 @@ public:
 			}
 		}
 
-		return cnt > 0;
+		size_ = cnt;
+
+		return cnt.sum() > 0;
 	}
 
-
-
-	virtual Int populate(Buffer& buffer) const
-	{
-		return -1;
-	}
+	virtual Int populate(Buffer& buffer) = 0;
 
 private:
 
@@ -765,15 +839,16 @@ private:
 	template <Int Idx>
 	Position _rank(const Position& prefix, CtrSizeT length, CtrSizeT target) const
 	{
-		detail::RankFn<InputTupleSizeAccessor, CtrSizeT, Position> fn(prefix, target);
+		detail::RankFn<InputTupleSizeAccessor, CtrSizeT, Position> fn(start_, size_, prefix , target);
 		detail::RankHelper<Buffer>::process(buffer_, fn, length);
+
 		return fn.indexes_;
 	}
 
 	template <Int Idx>
 	Position _extend(const Position& prefix, CtrSizeT size) const
 	{
-		detail::ExtendFn<InputTupleSizeAccessor, CtrSizeT, Position> fn(prefix);
+		detail::ExtendFn<InputTupleSizeAccessor, CtrSizeT, Position> fn(start_, size_, prefix);
 		detail::RankHelper<Buffer>::process(buffer_, fn, size);
 		return fn.indexes_;
 	}

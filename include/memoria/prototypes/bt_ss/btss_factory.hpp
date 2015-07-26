@@ -71,6 +71,15 @@ public:
 
     struct Types: Base::Types
     {
+    	template <Int StreamIdx>
+    	using InputTupleSizeAccessor = btss::InputTupleSizeH<StreamIdx>;
+
+    	template <Int StreamIdx>
+    	using LeafStreamSizeAccessor = btss::LeafStreamSizeH<StreamIdx>;
+
+    	using StreamsSizes = TL<>;
+
+
     	using CtrTypes 			= BTSSCtrTypes<Types>;
         using IterTypes 		= BTSSIterTypes<Types>;
 

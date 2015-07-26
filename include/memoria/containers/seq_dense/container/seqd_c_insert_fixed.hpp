@@ -49,11 +49,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertFixedName)
 
     //==========================================================================================
 
-    MEMORIA_DECLARE_NODE_FN(LayoutNodeFn, layout);
-    void layoutLeafNode(NodeBaseG& node, Int size) const
-    {
-    	LeafDispatcher::dispatch(node, LayoutNodeFn(), Position(size));
-    }
+//    MEMORIA_DECLARE_NODE_FN(LayoutNodeFn, layout);
+//    void layoutLeafNode(NodeBaseG& node, Int size) const
+//    {
+//    	LeafDispatcher::dispatch(node, LayoutNodeFn(), Position(size));
+//    }
 
     struct InsertBufferIntoLeafFn
     {
