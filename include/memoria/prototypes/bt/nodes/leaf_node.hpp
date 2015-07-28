@@ -518,7 +518,7 @@ public:
         template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename Tree>
         void stream(const Tree* tree, const Position& sizes, Int* mem_size)
         {
-            Int size = sizes[StreamIdx];
+        	Int size = sizes[StreamIdx];
 
             if (tree != nullptr || size > 0)
             {
@@ -541,7 +541,7 @@ public:
 
     bool checkCapacities(const Position& sizes) const
     {
-        Position fillment = this->sizes();
+    	Position fillment = this->sizes();
 
         for (Int c = 0; c < Streams; c++)
         {
@@ -550,7 +550,7 @@ public:
 
         Int mem_size = 0;
 
-        Dispatcher::dispatchAll(allocator(), CheckCapacitiesFn(), fillment, &mem_size);
+        this->processSubstreamGroups(CheckCapacitiesFn(), fillment, &mem_size);
 
         Int free_space      = MyType::free_space(this->page_size(), this->is_root());
         Int client_area     = PackedAllocator::client_area(free_space, Streams);
@@ -570,8 +570,6 @@ public:
         }
 
         Int mem_size = 0;
-
-//        Dispatcher::dispatchAll(allocator(), CheckCapacitiesFn(), entropy, fillment, &mem_size);
 
         this->processSubstreamGroups(CheckCapacitiesFn(), entropy, fillment, &mem_size);
 

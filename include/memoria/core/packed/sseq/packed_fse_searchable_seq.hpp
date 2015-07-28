@@ -365,7 +365,7 @@ public:
         size() = 0;
     }
 
-protected:
+
 
     void enlargeData(Int length)
     {
@@ -379,6 +379,7 @@ protected:
         }
     }
 
+protected:
     void insertDataRoom(Int pos, Int length)
     {
         enlargeData(length);
@@ -1027,6 +1028,8 @@ public:
     {
         out<<"size       = "<<size()<<endl;
         out<<"max_size   = "<<max_size()<<endl;
+        out<<"symbols    = "<<Indexes<<endl;
+
 
         if (dump_index)
         {
@@ -1108,11 +1111,13 @@ public:
         FieldFactory<Value>::deserialize(buf, symbols(), symbol_buffer_size());
     }
 
-private:
+
     Tools tools() const {
         return Tools(*this);
     }
 
+
+private:
     Int symbol_buffer_size() const
     {
         Int bit_size    = this->element_size(SYMBOLS) * 8;

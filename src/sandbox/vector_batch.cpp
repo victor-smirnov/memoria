@@ -20,8 +20,8 @@ std::mt19937_64                         engine;
 auto                                    generator               = std::bind(distribution, engine);
 
 template <typename CtrT>
-class RandomVectorInputProvider: public memoria::btss::AbstractBTSSInputProvider<CtrT> {
-	using Base = memoria::btss::AbstractBTSSInputProvider<CtrT>;
+class RandomVectorInputProvider: public memoria::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength> {
+	using Base = memoria::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength>;
 
 public:
 
@@ -42,7 +42,7 @@ public:
 	Value curr_ = 0;
 
 public:
-	RandomVectorInputProvider(CtrT& ctr, CtrSizeT size, Value max = 100, const Position& capacity = Position(10000)):
+	RandomVectorInputProvider(CtrT& ctr, CtrSizeT size, Value max = 100, Int capacity = 10000):
 		Base(ctr, capacity),
 		bsize_(size),
 		max_(max)
@@ -87,7 +87,7 @@ int main() {
 
 		using Position = RandomVectorInputProvider<CtrT>::Position;
 
-		RandomVectorInputProvider<CtrT> provider(ctr, 100000000, 100, Position(10000));
+		RandomVectorInputProvider<CtrT> provider(ctr, 100000000, 100, 10000);
 
 		using Position = RandomVectorInputProvider<CtrT>::Position;
 

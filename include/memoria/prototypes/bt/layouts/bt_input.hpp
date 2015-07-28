@@ -10,7 +10,10 @@
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/packed/tools/packed_dispatcher.hpp>
 
+#include <memoria/core/packed/sseq/packed_fse_searchable_seq.hpp>
+
 #include <memoria/core/tools/bitmap.hpp>
+#include <memoria/core/packed/tools/packed_malloc.hpp>
 #include <memoria/core/exceptions/memoria.hpp>
 
 #include <cstdlib>
@@ -18,36 +21,6 @@
 
 namespace memoria 	{
 namespace bt 		{
-
-
-
-//template <typename T>
-//T* Malloc(size_t size, const char* source = MA_SRC)
-//{
-//	T* ptr = T2T<T>(std::malloc(size));
-//
-//	if (ptr != nullptr) {
-//		return ptr;
-//	}
-//	else {
-//		throw OOMException(source);
-//	}
-//}
-//
-//
-//template <typename T>
-//T* Realloc(T* ptr, size_t new_size, const char* source = MA_SRC)
-//{
-//	T* new_ptr = T2T<T>(std::realloc(ptr, new_size));
-//
-//	if (new_ptr != nullptr) {
-//		return new_ptr;
-//	}
-//	else {
-//		throw OOMException(source);
-//	}
-//}
-
 
 
 template <typename Types>
@@ -60,41 +33,7 @@ struct AbstractInputProvider {
 };
 
 
-template <typename Tuple, typename SizeT>
-class SizedTuple {
-	Tuple tuple_;
-	SizeT size_;
 
-public:
-	SizedTuple(const Tuple& tuple, SizeT size): tuple_(tuple), size_(size) {}
-
-	SizeT size() const {
-		return size_;
-	}
-
-	const Tuple& tuple() const {
-		return tuple_;
-	}
-};
-
-
-
-template <typename Tuple, Int Idx>
-class InputTupleView {
-	const Tuple& tuples_;
-	Int size_;
-public:
-	InputTupleView(const Tuple& tuples, Int size): tuples_(tuples), size_(size)
-	{}
-
-	Int size() const {
-		return size_;
-	}
-
-	auto get(Int idx) const {
-		return std::get<Idx>(tuples_[idx].tuple());
-	}
-};
 
 namespace detail {
 
@@ -113,6 +52,29 @@ template <typename Types, Int Streams>
 struct InputBufferBuilder<Types, Streams, Streams> {
 	using Type = TL<>;
 };
+
+
+template <typename Types, Int Streams, Int Idx = 0>
+struct InputTupleBuilder {
+	using InputTuple 	= typename Types::template StreamInputTuple<Idx>;
+
+
+	using Type = MergeLists<
+			InputTuple,
+			typename InputTupleBuilder<Types, Streams, Idx + 1>::Type
+	>;
+};
+
+template <typename Types, Int Streams>
+struct InputTupleBuilder<Types, Streams, Streams> {
+	using Type = TL<>;
+};
+
+
+
+
+
+
 
 template <typename List>  struct AsTuple;
 
@@ -170,7 +132,7 @@ template <
 	typename Position
 >
 struct RankFn {
-	CtrSizeT pos_ = 0;
+	CtrSizeT pos_;
 	CtrSizeT target_;
 
 	Position start_;
@@ -184,7 +146,9 @@ struct RankFn {
 		size_(size),
 		prefix_(prefix),
 		indexes_(prefix)
-	{}
+	{
+		pos_ = prefix.sum();
+	}
 
 	template <Int Idx, typename NextHelper, typename Buffer>
 	void process(Buffer&& buffer, CtrSizeT length)
@@ -210,11 +174,11 @@ struct RankFn {
 	template <Int Idx, typename Buffer>
 	void processLast(Buffer&& buffer, CtrSizeT length)
 	{
-		CtrSizeT size = size_[Idx];
+		CtrSizeT size = size_[Idx] - start_[Idx];
 
 		if (indexes_[Idx] + length > size)
 		{
-			length = size;
+			length = size - indexes_[Idx];
 		}
 
 		if (pos_ + length < target_)
@@ -454,6 +418,12 @@ struct UpdateLeafH<Dispatcher, Fn, TL<>, Idx> {
 }
 
 
+
+
+
+
+
+
 template <
 	typename CtrT,
 	Int Streams,
@@ -484,6 +454,13 @@ public:
 			>::Type
 	>::Type;
 
+	using Tuple = typename detail::AsTuple<
+			typename detail::InputTupleBuilder<
+				typename CtrT::Types,
+				Streams
+			>::Type
+	>::Type;
+
 	using Position	= typename Base::Position;
 
 	template <Int, Int> friend struct detail::ZeroExtendHelper;
@@ -496,27 +473,31 @@ public:
 
 	using InputTupleSizeHelper = detail::InputTupleSizeHelper<InputTupleSizeAccessor, 0, std::tuple_size<Buffer>::value>;
 
-
 	using ForAllBuffer = detail::ForAllTuple<std::tuple_size<Buffer>::value>;
+
+	static constexpr Int get_symbols_number(Int v) {
+		return v == 1 ?  0 : (v == 2 ? 1 : (v == 3 ? 2 : (v == 4 ? 2 : (v == 5 ? 3 : (v == 6 ? 3 : (v == 7 ? 3 : 4))))));
+	}
+
+	using Symbols = PkdFSSeq<typename PkdFSSeqTF<get_symbols_number(Streams)>::Type>;
 
 protected:
 	Buffer buffer_;
 	Position start_;
 	Position size_;
 
-
-	Position prefix_;
+	FreeUniquePtr<PackedAllocator> allocator_;
 
 	CtrT& 	ctr_;
 
-	Position pos_;
-
 	Position ancors_;
 	NodeBaseG leafs_[Streams];
-	Position buffer_sums_;
-	Position rank_;
+
+	Int last_symbol_ = -1;
 
 private:
+
+
 
 	struct ResizeBufferFn {
 		template <Int Idx, typename Buffer>
@@ -526,22 +507,42 @@ private:
 		}
 	};
 
+	Symbols* symbols() {
+		return allocator_->get<Symbols>(0);
+	}
+
+	const Symbols* symbols() const {
+		return allocator_->get<Symbols>(0);
+	}
+
 public:
 
 	AbstractCtrInputProvider(CtrT& ctr, const Position& capacity): Base(),
+		allocator_(AllocTool<PackedAllocator>::create(block_size(capacity.sum()), 1)),
 		ctr_(ctr)
 	{
 		ForAllBuffer::process(buffer_, ResizeBufferFn(), capacity);
+
+		allocator_->template allocate<Symbols>(0, Symbols::packed_block_size(capacity.sum()));
+
+		symbols()->enlargeData(capacity.sum());
+
+		cout<<"Log2: "<<Streams<<" "<<Log2(Streams)<<endl;
 	}
+private:
+	static Int block_size(Int capacity)
+	{
+		return Symbols::packed_block_size(capacity);
+	}
+public:
+
 
 	CtrT& ctr() {return ctr_;}
 	const CtrT& ctr() const {return ctr_;}
 
 	virtual bool hasData()
 	{
-		auto sizes = this->buffer_size();
-
-		bool buffer_has_data = pos_.sum() < sizes.sum();
+		bool buffer_has_data = start_.sum() < size_.sum();
 
 		return buffer_has_data || populate_buffer();
 	}
@@ -591,47 +592,55 @@ public:
 	{
 		auto size  = sizes.sum();
 
-		auto imax 			= size;
-		decltype(imax) imin = 0;
-		auto accepts 		= 0;
-
-		while (accepts < 50 && imax > imin)
+		if (checkSize(leaf, size))
 		{
-			if (imax - 1 != imin)
-			{
-				auto mid = imin + ((imax - imin) / 2);
-
-				if (this->checkSize(leaf, mid))
-				{
-					accepts++;
-					imin = mid + 1;
-				}
-				else {
-					imax = mid - 1;
-				}
-			}
-			else {
-				if (this->checkSize(leaf, imax))
-				{
-					accepts++;
-				}
-
-				break;
-			}
-		}
-
-		if (imax < size)
-		{
-			return rank(imax);
+			return sizes;
 		}
 		else {
-			return sizes;
+			auto imax 			= size;
+			decltype(imax) imin = 0;
+			auto accepts 		= 0;
+
+			while (accepts < 50 && imax > imin)
+			{
+				if (imax - 1 != imin)
+				{
+					auto mid = imin + ((imax - imin) / 2);
+
+					if (this->checkSize(leaf, mid))
+					{
+						accepts++;
+						imin = mid + 1;
+					}
+					else {
+						imax = mid - 1;
+					}
+				}
+				else {
+					if (this->checkSize(leaf, imax))
+					{
+						accepts++;
+					}
+
+					break;
+				}
+			}
+
+			if (imax < size)
+			{
+				return rank(imin);
+			}
+			else {
+				return sizes;
+			}
 		}
 	}
 
 	bool checkSize(const NodeBaseG& leaf, CtrSizeT target_size)
 	{
 		auto rank = this->rank(target_size);
+//		cout<<"CheckSize: "<<leaf->id()<<" "<<rank<<" "<<target_size<<endl;
+
 		return ctr_.checkCapacities(leaf, rank);
 	}
 
@@ -661,6 +670,8 @@ public:
 
 	virtual void insertBuffer(NodeBaseG& leaf, const Position& at, const Position& sizes)
 	{
+//		cout<<"InsertBuffer: "<<leaf->id()<<" "<<at<<" "<<sizes<<endl;
+
 		CtrT::Types::Pages::LeafDispatcher::dispatch(leaf, InsertBufferFn(), at, start_, sizes, buffer_);
 
 		for (Int c = 0; c < Streams - 1; c++)
@@ -672,28 +683,45 @@ public:
 			}
 		}
 
-		auto ext = this->extend(sizes);
-		this->prefix_ = ext - sizes;
+		DebugCounter++;
 
 		start_ += sizes;
 	}
 
 
+	struct PopulateFn {
+		template <Int Idx, typename Buffer>
+		void process(Buffer&& buffer, const Position& pos, Int sym, const Tuple& data)
+		{
+			if (sym == Idx)
+			{
+				buffer[pos[Idx]] = std::get<Idx>(data);
+			}
+		}
+	};
 
 
-	virtual CtrSizeT populate(Int stream) {
-		return 0;
+	virtual Int populate(const Position& pos)
+	{
+		Tuple value;
+
+		Int sym = get(value);
+
+		if (sym >= 0)
+		{
+			ForAllBuffer::process(buffer_, PopulateFn(), pos, sym, value);
+			return sym;
+		}
+		else {
+			return -1;
+		}
 	}
+
+	virtual Int get(Tuple& tuple) = 0;
 
 	const Buffer& buffer() const {
 		return buffer_;
 	}
-
-	const Position& prefix() const {
-		return prefix_;
-	}
-
-
 
 	Position buffer_size() const
 	{
@@ -718,28 +746,18 @@ public:
 
 	Position rank(CtrSizeT idx) const
 	{
-		auto prefix_size = prefix_.sum();
+		Position rnk;
 
-		if (idx > prefix_size)
+		Int start_pos = start_.sum();
+
+		auto symbols = this->symbols();
+
+		for (Int s = 0; s < Streams; s++)
 		{
-			return this->rank(prefix_, idx);
+			rnk[s] = symbols->rank(start_pos, idx + start_pos, s);
 		}
-		else {
-			return this->rank_p(idx);
-		}
-	}
 
-	Position extend(const Position& pos) const
-	{
-		auto prefix_size = prefix_.sum();
-
-		if (pos.sum() > prefix_size)
-		{
-			return this->extend(prefix_, pos);
-		}
-		else {
-			return this->extend_p(pos);
-		}
+		return rnk;
 	}
 
 	Position rank() const {
@@ -749,69 +767,113 @@ public:
 
 	virtual bool populate_buffer()
 	{
-		Int last_symbol = -1;
-
-		Position cnt;
-
 		Position sizes;
+		Position buffer_sums;
 
 		start_.clear();
 		size_.clear();
 
+		Int symbol_pos = 0;
+
 		auto capacity = this->buffer_capacity();
+
+		auto symbols = this->symbols();
+
+		symbols->size() = 0;
+
+		auto syms = symbols->symbols();
 
 		while (true)
 		{
-			Int symbol = populate(buffer_);
+			Int symbol = populate(size_);
 
 			if (symbol >= 0)
 			{
-				cnt[symbol]++;
+				symbols->size()++;
+				symbols->tools().set(syms, symbol_pos++, symbol);
 
-				if (symbol > last_symbol + 1)
+				size_[symbol]++;
+
+				if (symbol > last_symbol_ + 1)
 				{
-					throw Exception(MA_SRC, SBuf()<<"Invalid sequence state: last_symbol="<<last_symbol<<", symbol="<<symbol);
+					throw Exception(MA_SRC, SBuf()<<"Invalid sequence state: last_symbol="<<last_symbol_<<", symbol="<<symbol);
 				}
-				else if (symbol < last_symbol)
+				else if (symbol < last_symbol_)
 				{
-					for (Int sym = last_symbol; sym > symbol; sym--)
-					{
-						if (sizes[sym - 1] > 0)
-						{
-							InputTupleSizeHelper::add(sym - 1, buffer_, sizes[sym - 1], buffer_sums_[sym]);
-						}
-						else if (leafs_[sym - 1].isSet())
-						{
-							updateLeaf(sym - 1, ancors_[sym - 1], buffer_sums_[sym]);
-						}
-
-						buffer_sums_[sym] = 0;
-					}
+					this->finish_stream_run(symbol, last_symbol_, sizes, buffer_sums);
 				}
 
-				last_symbol = symbol;
-
-				buffer_sums_[symbol]++;
-				rank_[symbol]++;
+				buffer_sums[symbol]++;
 				sizes[symbol]++;
 
-				if (cnt[symbol] == capacity[symbol]) {
+				if (size_[symbol] == capacity[symbol])
+				{
+					this->finish_stream_run(0, Streams - 1, sizes, buffer_sums);
 					break;
 				}
+
+				last_symbol_ = symbol;
 			}
 			else {
+				this->finish_stream_run(0, Streams - 1, sizes, buffer_sums);
 				break;
 			}
 		}
 
-		size_ = cnt;
+//		cout<<"populate_buffer: "<<start_<<" "<<size_<<" rank="<<rank()<<endl;
 
-		return cnt.sum() > 0;
+		symbols->reindex();
+
+//		symbols->dump();
+
+		return symbol_pos > 0;
 	}
 
-	virtual Int populate(Buffer& buffer) = 0;
+	struct DumpFn {
+		template <Int Idx, typename Buffer>
+		void process(Buffer&& buffer, const Position& prefix, const Position& start, const Position& size)
+		{
+			cout<<"Level "<<Idx<<" prefix: "<<prefix[Idx]<<", start: "<<start[Idx]<<" size: "<<size[Idx]<<" capacity: "<<buffer.size()<<endl;
+			for (Int c = start[Idx]; c < size[Idx]; c++)
+			{
+				cout<<c<<": "<<buffer[c]<<endl;
+			}
+			cout<<endl;
+		}
+	};
+
+
+	void dumpBuffer() const
+	{
+		ForAllBuffer::process(buffer_, DumpFn(), Position(), start_, size_);
+
+		symbols()->dump();
+	}
 
 private:
+
+	void finish_stream_run(Int symbol, Int last_symbol, const Position& sizes, Position& buffer_sums)
+	{
+//		cout<<"finish_stream_run: "<<symbol<<" "<<last_symbol<<" "<<sizes<<" "<<buffer_sums<<endl;
+
+		for (Int sym = last_symbol; sym > symbol; sym--)
+		{
+			if (sizes[sym - 1] > 0)
+			{
+				if (buffer_sums[sym] > 0) {
+					InputTupleSizeHelper::add(sym - 1, buffer_, sizes[sym - 1] - 1, buffer_sums[sym]);
+				}
+			}
+			else if (leafs_[sym - 1].isSet())
+			{
+				if (buffer_sums[sym] > 0) {
+					updateLeaf(sym - 1, ancors_[sym - 1], buffer_sums[sym]);
+				}
+			}
+
+			buffer_sums[sym] = 0;
+		}
+	}
 
 	void updateLeaf(Int sym, CtrSizeT pos, CtrSizeT sum)
 	{
@@ -820,47 +882,6 @@ private:
 			CtrT::Types::template LeafStreamSizeAccessor,
 			typename CtrT::Types::StreamsSizes
 		>().process(sym, leafs_[sym], pos, sum);
-	}
-
-
-	Position rank(const Position& prefix, CtrSizeT target) const
-	{
-		return detail::ZeroRankHelper<0, std::tuple_size<Buffer>::value>::process(this, this->buffer_size(), prefix, target);
-	}
-
-	// rank inside prefix
-	Position rank_p(CtrSizeT target) const
-	{
-		return detail::ZeroRankHelper<0, std::tuple_size<Buffer>::value>::process(this, prefix_, prefix_, target);
-	}
-
-
-
-	template <Int Idx>
-	Position _rank(const Position& prefix, CtrSizeT length, CtrSizeT target) const
-	{
-		detail::RankFn<InputTupleSizeAccessor, CtrSizeT, Position> fn(start_, size_, prefix , target);
-		detail::RankHelper<Buffer>::process(buffer_, fn, length);
-
-		return fn.indexes_;
-	}
-
-	template <Int Idx>
-	Position _extend(const Position& prefix, CtrSizeT size) const
-	{
-		detail::ExtendFn<InputTupleSizeAccessor, CtrSizeT, Position> fn(start_, size_, prefix);
-		detail::RankHelper<Buffer>::process(buffer_, fn, size);
-		return fn.indexes_;
-	}
-
-	Position extend(const Position& prefix, const Position& pos) const
-	{
-		return detail::ZeroExtendHelper<0, std::tuple_size<Buffer>::value>::process(this, this->buffer_size(), prefix, pos);
-	}
-
-	Position extend_p(const Position& pos) const
-	{
-		return detail::ZeroExtendHelper<0, std::tuple_size<Buffer>::value>::process(this, prefix_, prefix_, pos);
 	}
 };
 

@@ -63,10 +63,7 @@ public:
 
     PackedAllocator() = default;
 
-    void setTopLevelAllocator()
-    {
-        allocator_offset() = 0;
-    }
+
 
     bool is_allocatable(Int idx) const
     {

@@ -12,6 +12,10 @@
 #include <memoria/core/container/metadata_repository.hpp>
 
 
+std::uniform_int_distribution<int>      distribution;
+std::mt19937_64                         engine;
+auto                                    generator               = std::bind(distribution, engine);
+
 
 using namespace memoria;
 using namespace std;
@@ -22,6 +26,7 @@ int main() {
 	try {
 		SmallInMemAllocator alloc;
 
+		alloc.mem_limit() = 1024*1024*1024;
 
 		using CtrT  = SCtrTF<Map<BigInt, Vector<Byte>>>::Type;
 
@@ -29,36 +34,20 @@ int main() {
 
 		CtrT map(&alloc);
 
-		auto iter = map.find(1);
+		auto iter = map.find(0);
 
-		iter.insertKey(1);
-		iter.addSize(1000);
+		using Provider = mmap::RandomDataInputProvider<CtrT, decltype(generator)>;
 
-		iter.toLocalPos();
+		Provider provider(map, 1000000, 200, generator);
 
-		iter.dump();
-
-//		iter.key();
-//
-//		iter.seek(0);
-//
-//		iter+=1;
-//		iter-=1;
-//
-//		iter.toIndex();
-
-		mmap::RandomDataInputProvider<CtrT> provider(map, 1000, 1000);
-
-		using Position = mmap::RandomDataInputProvider<CtrT>::Position;
+		using Position = Provider::Position;
 
 		map.insertData(iter.leaf(), Position(), provider);
 
 		alloc.commit();
 
 		OutputStreamHandler* os = FileOutputStreamHandler::create("mapxx.dump");
-
 		alloc.store(os);
-
 		delete os;
 	}
 	catch (memoria::vapi::Exception& ex) {

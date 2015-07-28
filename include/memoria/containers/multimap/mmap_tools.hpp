@@ -115,42 +115,83 @@ std::ostream& operator<<(std::ostream& out, const MultimapIteratorPrefixCache<I,
 
 
 
-template <typename CtrT>
+template <typename CtrT, typename Rng>
 class RandomDataInputProvider: public memoria::bt::AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength> {
 
 	using Base = memoria::bt::AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength>;
 
 public:
+
 	using Position 		= typename CtrT::Types::Position;
 	using CtrSizeT 		= typename CtrT::CtrSizeT;
-	using InputBuffer 	= typename CtrT::Types::InputBuffer;
+	using Buffer 		= typename Base::Buffer;
+	using Tuple 		= typename Base::Tuple;
 
 	using NodeBaseG		= typename Base::NodeBaseG;
+
+	template <Int StreamIdx>
+	using InputTuple 		= typename CtrT::Types::template StreamInputTuple<StreamIdx>;
+
+	template <Int StreamIdx>
+	using InputTupleAdapter = typename CtrT::Types::template InputTupleAdapter<StreamIdx>;
 
 private:
 	CtrSizeT keys_;
 	CtrSizeT mean_data_size_;
+	CtrSizeT data_size_cnt_ = 0;
+	CtrSizeT data_size_limit_ = 0;
 
+	CtrSizeT key_ = 0;
 
-	CtrSizeT buffer_size_ = 0;
-	CtrSizeT pos_ = 0;
-
-	CtrSizeT consumed_keys_ = 0;
-	CtrSizeT consumed_data_ = 0;
-
+	Rng rng_;
 public:
-	RandomDataInputProvider(CtrT& ctr, CtrSizeT keys, CtrSizeT mean_data_size):
-		Base(ctr, 10000),
-		keys_(keys), mean_data_size_(mean_data_size)
+	RandomDataInputProvider(CtrT& ctr, CtrSizeT keys, CtrSizeT mean_data_size, const Rng& rng):
+		Base(ctr, Position({1000, 10000})),
+		keys_(keys), mean_data_size_(mean_data_size),
+		rng_(rng)
 	{}
 
-	virtual bool hasData() {
-		return false;
+
+	virtual Int get(Tuple& value)
+	{
+		if (key_ <= keys_)
+		{
+			int sym;
+
+			if (key_ > 0)
+			{
+//				sym = (rng_() % (mean_data_size_ + 1)) > 0;
+
+				sym = (data_size_cnt_++ < data_size_limit_ ? 1 : 0);
+			}
+			else {
+				sym = 0;
+			}
+
+			if (sym == 0)
+			{
+				data_size_cnt_ = 0;
+				data_size_limit_ = (rng_() % (mean_data_size_*2 + 1));
+
+				if (++key_ <= keys_)
+				{
+					std::get<0>(value) = InputTupleAdapter<0>::convert(memoria::core::StaticVector<BigInt, 2>({1, 0}));
+				}
+				else {
+					return -1;
+				}
+			}
+			else {
+				std::get<1>(value) = InputTupleAdapter<1>::convert(key_ % 256);
+			}
+
+			return sym;
+		}
+		else {
+			return -1;
+		}
 	}
 
-	virtual Position fill(NodeBaseG& leaf, const Position& from)	{
-		return Position();
-	}
 };
 
 

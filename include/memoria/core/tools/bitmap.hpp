@@ -239,12 +239,12 @@ size_t PopCount(const T* buffer, size_t start, size_t stop)
 
         for (size_t c = (start >> divisor) + 1; c < (stop >> divisor); c++)
         {
-#if __GNUC__ == 4 && (__GNUC_MINOR__ == 7)
-            volatile T value = *(buffer + c);
-            total += PopCnt(value);
-#else
+//#if __GNUC__ == 4 && (__GNUC_MINOR__ == 7)
+//            volatile T value = *(buffer + c);
+//            total += PopCnt(value);
+//#else
             total += PopCnt(buffer[c]);
-#endif
+//#endif
         }
 
         size_t suffix = stop & mask;
@@ -848,29 +848,29 @@ size_t CountBw(const T* buffer, size_t from, size_t to, const char *lut, bool ze
     }
 }
 
-inline Int Log2(UInt value) {
+constexpr Int Log2(UInt value) {
     return 32 - __builtin_clz(value);
 }
 
-inline Int Log2(Int value) {
+constexpr Int Log2(Int value) {
     return 32 - __builtin_clz(value);
 }
 
 
-inline Int Log2(UBigInt value) {
+constexpr Int Log2(UBigInt value) {
     return 64 - __builtin_clzll(value);
 }
 
-inline Int Log2(BigInt value) {
+constexpr Int Log2(BigInt value) {
     return 64 - __builtin_clzll(value);
 }
 
 
-inline Int CountTrailingZeroes(UInt value) {
+constexpr Int CountTrailingZeroes(UInt value) {
     return __builtin_ctz(value);
 }
 
-inline Int CountTrailingZeroes(UBigInt value) {
+constexpr Int CountTrailingZeroes(UBigInt value) {
     return __builtin_ctzll(value);
 }
 

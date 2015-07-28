@@ -120,6 +120,12 @@ protected:
 
 public:
 
+    template <typename MyType, typename Base>
+    friend class PackedAllocatorBase;
+
+    friend class PackedAllocator;
+
+
     static const UInt VERSION                   = 1;
     static const Int AlignmentBlock             = PackedAllocationAlignment;
 
@@ -133,10 +139,11 @@ public:
 
     const Int& allocator_offset() const {return allocator_offset_;}
 
-    template <typename MyType, typename Base>
-    friend class PackedAllocatorBase;
+    void setTopLevelAllocator()
+    {
+    	allocator_offset() = 0;
+    }
 
-    friend class PackedAllocator;
 
     bool has_allocator() const
     {

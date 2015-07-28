@@ -41,56 +41,223 @@ struct LeafStreamSizeH {
 
 
 
+
+
+
+
+
+
 template <typename CtrT>
-class AbstractBTSSInputProvider: public AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength> {
-	using Base = AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength>;
+class AbstractBTSSInputProviderBase: public AbstractInputProvider<typename CtrT::Types> {
+	using Base = AbstractInputProvider<typename CtrT::Types>;
 
 public:
+	using NodeBaseG = typename CtrT::Types::NodeBaseG;
+	using CtrSizeT 	= typename CtrT::Types::CtrSizeT;
 
-
-
-	using Buffer 	= typename Base::Buffer;
-	using CtrSizeT	= typename Base::CtrSizeT;
 	using Position	= typename Base::Position;
-	using NodeBaseG	= typename Base::NodeBaseG;
-
 
 	using InputTuple 		= typename CtrT::Types::template StreamInputTuple<0>;
 	using InputTupleAdapter = typename CtrT::Types::template InputTupleAdapter<0>;
 
+	using Buffer = std::vector<InputTuple>;
+
+protected:
+	Buffer buffer_;
+	Int start_ = 0;
+	Int size_ = 0;
+
+	CtrT& 	ctr_;
+
+	Int last_symbol_ = -1;
+
 public:
-	AbstractBTSSInputProvider(CtrT& ctr, const Position& capacity): Base(ctr, capacity) {}
+
+	AbstractBTSSInputProviderBase(CtrT& ctr, Int capacity): Base(), buffer_(capacity), ctr_(ctr){}
+
+	CtrT& ctr() {return ctr_;}
+	const CtrT& ctr() const {return ctr_;}
+
+	virtual bool hasData()
+	{
+		bool buffer_has_data = start_ < size_;
+
+		return buffer_has_data || populate_buffer();
+	}
+
+	virtual Position fill(NodeBaseG& leaf, const Position& from)
+	{
+		Position pos = from;
+
+		while(true)
+		{
+			auto buffer_sizes = this->buffer_size();
+
+			if (buffer_sizes == 0)
+			{
+				if (!this->populate_buffer())
+				{
+					return pos;
+				}
+				else {
+					buffer_sizes = this->buffer_size();
+				}
+			}
+
+			auto capacity = this->findCapacity(leaf, buffer_sizes);
+
+			if (capacity > 0)
+			{
+				insertBuffer(leaf, pos[0], capacity);
+
+				auto rest = this->buffer_size();
+
+				if (rest > 0)
+				{
+					return Position(pos[0] + buffer_sizes);
+				}
+				else {
+					pos[0] += capacity;
+				}
+			}
+			else {
+				return pos;
+			}
+		}
+	}
+
+	virtual Int findCapacity(const NodeBaseG& leaf, Int size) = 0;
+
+//	virtual Int findCapacity(const NodeBaseG& leaf, Int size)
+//	{
+//		if (checkSize(leaf, size))
+//		{
+//			return size;
+//		}
+//		else {
+//			auto imax 			= size;
+//			decltype(imax) imin = 0;
+//			auto accepts 		= 0;
+//
+//			while (accepts < 50 && imax > imin)
+//			{
+//				if (imax - 1 != imin)
+//				{
+//					auto mid = imin + ((imax - imin) / 2);
+//
+//					if (this->checkSize(leaf, mid))
+//					{
+//						accepts++;
+//						imin = mid + 1;
+//					}
+//					else {
+//						imax = mid - 1;
+//					}
+//				}
+//				else {
+//					if (this->checkSize(leaf, imax))
+//					{
+//						accepts++;
+//					}
+//
+//					break;
+//				}
+//			}
+//
+//			if (imax < size)
+//			{
+//				return imax;
+//			}
+//			else {
+//				return size;
+//			}
+//		}
+//	}
+
+//	bool checkSize(const NodeBaseG& leaf, CtrSizeT target_size)
+//	{
+//		return ctr_.checkCapacities(leaf, Position(target_size));
+//	}
+
+
+//	virtual Int findCapacity(const NodeBaseG& leaf, Int size)
+//	{
+//		Int capacity = this->ctr_.getLeafNodeCapacity(leaf, 0);
+//
+//		if (capacity > size)
+//		{
+//			return size;
+//		}
+//		else {
+//			return capacity;
+//		}
+//	}
+
+
+
+
+	struct InsertBufferFn {
+
+		template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename StreamObj>
+		void stream(StreamObj* stream, Int at, Int start, Int size, const Buffer& buffer)
+		{
+			stream->_insert(at, size, [&](Int idx){
+				return std::get<Idx>(buffer[idx + start]);
+			});
+		}
+
+		template <typename NodeTypes, typename... Args>
+		void treeNode(LeafNode<NodeTypes>* leaf, Args&&... args)
+		{
+			leaf->processSubstreamGroups(*this, std::forward<Args>(args)...);
+		}
+	};
+
+
+	virtual void insertBuffer(NodeBaseG& leaf, Int at, Int size)
+	{
+		CtrT::Types::Pages::LeafDispatcher::dispatch(leaf, InsertBufferFn(), at, start_, size, buffer_);
+		start_ += size;
+	}
+
+
+	const Buffer& buffer() const {
+		return buffer_;
+	}
+
+	Int buffer_size() const
+	{
+		return size_ - start_;
+	}
+
+
+	void dumpBuffer() const
+	{
+		cout<<"Level 0"<<", start: "<<start_<<" size: "<<size_<<" capacity: "<<buffer_.size()<<endl;
+		for (Int c = start_; c < size_; c++)
+		{
+			cout<<c<<": "<<buffer_[c]<<endl;
+		}
+		cout<<endl;
+	}
 
 	// must be an abstract method
 	virtual bool get(InputTuple& value) = 0;
-
-	virtual Position findCapacity(const NodeBaseG& leaf, const Position& sizes)
-	{
-		Int capacity = this->ctr_.getLeafNodeCapacity(leaf, 0);
-
-		if (capacity > sizes[0])
-		{
-			return sizes;
-		}
-		else {
-			return Position(capacity);
-		}
-	}
 
 	virtual bool populate_buffer()
 	{
 		Int cnt = 0;
 
-		this->start_.clear();
-		this->size_.clear();
+		this->start_ = 0;
+		this->size_ = 0;
 
-		Int capacity = this->buffer_capacity()[0];
+		Int capacity = buffer_.size();
 
 		while (true)
 		{
 			InputTuple value;
 
-			if (get(std::get<0>(this->buffer_)[cnt]))
+			if (get(buffer_[cnt]))
 			{
 				if (cnt++ == capacity)
 				{
@@ -102,13 +269,118 @@ public:
 			}
 		}
 
-		this->size_[0] = cnt;
+		this->size_ = cnt;
 
 		return cnt > 0;
 	}
+};
 
-private:
-	virtual Int populate (Buffer& buffer) {return -1;}
+
+
+
+
+
+
+
+
+
+
+
+
+template <
+	typename CtrT,
+	LeafDataLengthType LeafDataLength
+>
+class AbstractBTSSInputProvider;
+
+
+
+
+template <typename CtrT>
+class AbstractBTSSInputProvider<CtrT, LeafDataLengthType::FIXED>: public AbstractBTSSInputProviderBase<CtrT> {
+	using Base = AbstractBTSSInputProviderBase<CtrT>;
+
+public:
+	using NodeBaseG = typename CtrT::Types::NodeBaseG;
+	using CtrSizeT 	= typename CtrT::Types::CtrSizeT;
+
+	using Position	= typename Base::Position;
+
+	using InputTuple 		= typename Base::InputTuple;
+	using InputTupleAdapter = typename Base::InputTupleAdapter;
+
+	using Buffer = typename Base::Buffer;
+
+public:
+
+	AbstractBTSSInputProvider(CtrT& ctr, Int capacity): Base(ctr, capacity) {}
+
+
+//	virtual Int findCapacity(const NodeBaseG& leaf, Int size)
+//	{
+//		if (checkSize(leaf, size))
+//		{
+//			return size;
+//		}
+//		else {
+//			auto imax 			= size;
+//			decltype(imax) imin = 0;
+//			auto accepts 		= 0;
+//
+//			while (accepts < 50 && imax > imin)
+//			{
+//				if (imax - 1 != imin)
+//				{
+//					auto mid = imin + ((imax - imin) / 2);
+//
+//					if (this->checkSize(leaf, mid))
+//					{
+//						accepts++;
+//						imin = mid + 1;
+//					}
+//					else {
+//						imax = mid - 1;
+//					}
+//				}
+//				else {
+//					if (this->checkSize(leaf, imax))
+//					{
+//						accepts++;
+//					}
+//
+//					break;
+//				}
+//			}
+//
+//			if (imax < size)
+//			{
+//				return imax;
+//			}
+//			else {
+//				return size;
+//			}
+//		}
+//	}
+
+
+	virtual Int findCapacity(const NodeBaseG& leaf, Int size)
+	{
+		Int capacity = this->ctr_.getLeafNodeCapacity(leaf, 0);
+
+		if (capacity > size)
+		{
+			return size;
+		}
+		else {
+			return capacity;
+		}
+	}
+
+
+//	bool checkSize(const NodeBaseG& leaf, CtrSizeT target_size)
+//	{
+//		return this->ctr_.checkCapacities(leaf, Position(target_size));
+//	}
 };
 
 
