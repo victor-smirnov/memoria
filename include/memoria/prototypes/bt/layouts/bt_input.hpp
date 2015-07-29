@@ -321,25 +321,21 @@ struct UpdateLeafH<Dispatcher, Fn, TL<>, Idx> {
 
 
 
-template <
-	typename CtrT,
-	Int Streams,
-	LeafDataLengthType LeafDataLength
->
-class AbstractCtrInputProvider;
+
 
 
 
 template <
-	typename CtrT,
-	Int Streams
+	typename CtrT
 >
-class AbstractCtrInputProvider<CtrT, Streams, LeafDataLengthType::FIXED>: public AbstractInputProvider<typename CtrT::Types> {
+class AbstractCtrInputProviderBase: public AbstractInputProvider<typename CtrT::Types> {
 
 	using Base = AbstractInputProvider<typename CtrT::Types>;
+protected:
+	static const Int Streams = CtrT::Types::Streams;
 
 public:
-	using MyType = AbstractCtrInputProvider<CtrT, Streams, LeafDataLengthType::FIXED>;
+	using MyType = AbstractCtrInputProviderBase<CtrT>;
 
 	using NodeBaseG = typename CtrT::Types::NodeBaseG;
 	using CtrSizeT 	= typename CtrT::Types::CtrSizeT;
@@ -407,17 +403,11 @@ private:
 		}
 	};
 
-	Symbols* symbols() {
-		return allocator_->get<Symbols>(0);
-	}
 
-	const Symbols* symbols() const {
-		return allocator_->get<Symbols>(0);
-	}
 
 public:
 
-	AbstractCtrInputProvider(CtrT& ctr, const Position& capacity): Base(),
+	AbstractCtrInputProviderBase(CtrT& ctr, const Position& capacity): Base(),
 		capacity_(capacity),
 		allocator_(AllocTool<PackedAllocator>::create(block_size(capacity.sum()), 1)),
 		ctr_(ctr)
@@ -487,70 +477,72 @@ public:
 		}
 	}
 
-	virtual Position findCapacity(const NodeBaseG& leaf, const Position& sizes)
-	{
-		auto size  = sizes.sum();
+	virtual Position findCapacity(const NodeBaseG& leaf, const Position& sizes) = 0;
 
-		if (checkSize(leaf, size))
-		{
-			return sizes;
-		}
-		else {
-			auto imax 			= size;
-			decltype(imax) imin = 0;
-			auto accepts 		= 0;
-
-			Int last = imin;
-
-			while (imax > imin)
-			{
-				if (imax - 1 != imin)
-				{
-					auto mid = imin + ((imax - imin) / 2);
-
-					if (this->checkSize(leaf, mid))
-					{
-						if (accepts++ >= 50)
-						{
-							return rank(mid);
-						}
-						else {
-							imin = mid + 1;
-						}
-
-						last = mid;
-					}
-					else {
-						imax = mid - 1;
-					}
-				}
-				else {
-					if (this->checkSize(leaf, imax))
-					{
-						return rank(imax);
-					}
-					else {
-						return rank(last);
-					}
-				}
-			}
-
-			return rank(last);
-		}
-	}
-
-
-
-	bool checkSize(const NodeBaseG& leaf, CtrSizeT target_size)
-	{
-		auto rank = this->rank(target_size);
-		return ctr_.checkCapacities(leaf, rank);
-	}
-
-	bool checkSize(const NodeBaseG& leaf, Position target_size)
-	{
-		return ctr_.checkCapacities(leaf, target_size);
-	}
+//	virtual Position findCapacity(const NodeBaseG& leaf, const Position& sizes)
+//	{
+//		auto size  = sizes.sum();
+//
+//		if (checkSize(leaf, size))
+//		{
+//			return sizes;
+//		}
+//		else {
+//			auto imax 			= size;
+//			decltype(imax) imin = 0;
+//			auto accepts 		= 0;
+//
+//			Int last = imin;
+//
+//			while (imax > imin)
+//			{
+//				if (imax - 1 != imin)
+//				{
+//					auto mid = imin + ((imax - imin) / 2);
+//
+//					if (this->checkSize(leaf, mid))
+//					{
+//						if (accepts++ >= 50)
+//						{
+//							return rank(mid);
+//						}
+//						else {
+//							imin = mid + 1;
+//						}
+//
+//						last = mid;
+//					}
+//					else {
+//						imax = mid - 1;
+//					}
+//				}
+//				else {
+//					if (this->checkSize(leaf, imax))
+//					{
+//						return rank(imax);
+//					}
+//					else {
+//						return rank(last);
+//					}
+//				}
+//			}
+//
+//			return rank(last);
+//		}
+//	}
+//
+//
+//
+//	bool checkSize(const NodeBaseG& leaf, CtrSizeT target_size)
+//	{
+//		auto rank = this->rank(target_size);
+//		return ctr_.checkCapacities(leaf, rank);
+//	}
+//
+//	bool checkSize(const NodeBaseG& leaf, Position target_size)
+//	{
+//		return ctr_.checkCapacities(leaf, target_size);
+//	}
 
 
 	struct InsertBufferFn {
@@ -734,6 +726,15 @@ public:
 		symbols()->dump();
 	}
 
+protected:
+	Symbols* symbols() {
+		return allocator_->get<Symbols>(0);
+	}
+
+	const Symbols* symbols() const {
+		return allocator_->get<Symbols>(0);
+	}
+
 private:
 
 	void finish_stream_run(Int symbol, Int last_symbol, const Position& sizes, Position& buffer_sums)
@@ -764,6 +765,117 @@ private:
 			CtrT::Types::template LeafStreamSizeAccessor,
 			typename CtrT::Types::StreamsSizes
 		>().process(sym, leafs_[sym], pos, sum);
+	}
+};
+
+
+
+
+
+
+
+
+
+
+
+template <
+	typename CtrT,
+	Int Streams,
+	LeafDataLengthType LeafDataLength
+>
+class AbstractCtrInputProvider;
+
+
+
+template <
+	typename CtrT,
+	Int Streams
+>
+class AbstractCtrInputProvider<CtrT, Streams, LeafDataLengthType::FIXED>: public AbstractCtrInputProviderBase<CtrT> {
+
+	using Base = AbstractCtrInputProviderBase<CtrT>;
+
+public:
+	using MyType = AbstractCtrInputProvider<CtrT, Streams, LeafDataLengthType::FIXED>;
+
+	using NodeBaseG = typename CtrT::Types::NodeBaseG;
+	using CtrSizeT 	= typename CtrT::Types::CtrSizeT;
+
+	using Buffer 	= typename Base::Buffer;
+	using Position	= typename Base::Position;
+
+	template <Int StreamIdx>
+	using InputTupleSizeAccessor = typename CtrT::Types::template InputTupleSizeAccessor<StreamIdx>;
+	using InputTupleSizeHelper 	 = detail::InputTupleSizeHelper<InputTupleSizeAccessor, 0, std::tuple_size<Buffer>::value>;
+
+
+public:
+
+	AbstractCtrInputProvider(CtrT& ctr, const Position& capacity):
+		Base(ctr, capacity)
+	{}
+
+	virtual Position findCapacity(const NodeBaseG& leaf, const Position& sizes)
+	{
+		auto size  = sizes.sum();
+
+		if (checkSize(leaf, size))
+		{
+			return sizes;
+		}
+		else {
+			auto imax 			= size;
+			decltype(imax) imin = 0;
+			auto accepts 		= 0;
+
+			Int last = imin;
+
+			while (imax > imin)
+			{
+				if (imax - 1 != imin)
+				{
+					auto mid = imin + ((imax - imin) / 2);
+
+					if (this->checkSize(leaf, mid))
+					{
+						if (accepts++ >= 50)
+						{
+							return this->rank(mid);
+						}
+						else {
+							imin = mid + 1;
+						}
+
+						last = mid;
+					}
+					else {
+						imax = mid - 1;
+					}
+				}
+				else {
+					if (this->checkSize(leaf, imax))
+					{
+						return this->rank(imax);
+					}
+					else {
+						return this->rank(last);
+					}
+				}
+			}
+
+			return this->rank(last);
+		}
+	}
+
+	bool checkSize(const NodeBaseG& leaf, CtrSizeT target_size)
+	{
+		auto rank = this->rank(target_size);
+		return this->ctr().checkCapacities(leaf, rank);
+	}
+
+	bool checkSize(const NodeBaseG& leaf, Position target_size)
+	{
+		return this->ctr().checkCapacities(leaf, target_size);
 	}
 };
 
