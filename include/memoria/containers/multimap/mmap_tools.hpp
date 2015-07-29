@@ -125,7 +125,8 @@ public:
 	using Position 		= typename CtrT::Types::Position;
 	using CtrSizeT 		= typename CtrT::CtrSizeT;
 	using Buffer 		= typename Base::Buffer;
-	using Tuple 		= typename Base::Tuple;
+
+	using RunDescr 		= typename Base::RunDescr;
 
 	using NodeBaseG		= typename Base::NodeBaseG;
 
@@ -152,15 +153,16 @@ public:
 	{}
 
 
-	virtual Int get(Tuple& value)
+	virtual RunDescr populate(const Position& pos)
 	{
 		if (key_ <= keys_)
 		{
-			int sym;
+			Int sym;
+			Int length = 1;
 
 			if (key_ > 0)
 			{
-				sym = (data_size_cnt_++ < data_size_limit_ ? 1 : 0);
+				sym = (data_size_cnt_ < data_size_limit_ ? 1 : 0);
 			}
 			else {
 				sym = 0;
@@ -170,28 +172,45 @@ public:
 			{
 				data_size_cnt_ = 0;
 				data_size_limit_ = (rng_() % (mean_data_size_*2 + 1));
-				cout<<"Limit: "<<data_size_limit_<<endl;
-
 
 				if (++key_ <= keys_)
 				{
-					std::get<0>(value) = InputTupleAdapter<0>::convert(memoria::core::StaticVector<BigInt, 2>({1, 0}));
+					std::get<0>(this->buffer_)[pos[0]] = InputTupleAdapter<0>::convert(memoria::core::StaticVector<BigInt, 2>({1, 0}));
 				}
 				else {
-					return -1;
+					return RunDescr(-1);
 				}
 			}
 			else {
-				std::get<1>(value) = InputTupleAdapter<1>::convert(key_ % 256);
+				CtrSizeT rest = data_size_limit_ - data_size_cnt_;
+
+				CtrSizeT capacity 	= this->capacity_[1];
+				CtrSizeT ppos 		= pos[1];
+
+				CtrSizeT limit;
+
+				if (ppos + rest > capacity) {
+					limit = capacity - ppos;
+				}
+				else {
+					limit = rest;
+				}
+
+				for (CtrSizeT c = ppos; c < ppos + limit; c++) {
+					std::get<1>(this->buffer_)[c] = InputTupleAdapter<1>::convert(key_ % 256);
+				}
+
+				data_size_cnt_ += limit;
+
+				length = limit;
 			}
 
-			return sym;
+			return RunDescr(sym, length);
 		}
 		else {
-			return -1;
+			return RunDescr(-1);
 		}
 	}
-
 };
 
 

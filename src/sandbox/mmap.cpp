@@ -38,7 +38,7 @@ int main() {
 
 		using Provider = mmap::RandomDataInputProvider<CtrT, decltype(generator)>;
 
-		Provider provider(map, 100, 200, generator);
+		Provider provider(map, 2000000, 100, generator);
 
 		using Position = Provider::Position;
 
@@ -46,9 +46,9 @@ int main() {
 
 		alloc.commit();
 
-		OutputStreamHandler* os = FileOutputStreamHandler::create("mapxx.dump");
-		alloc.store(os);
-		delete os;
+//		OutputStreamHandler* os = FileOutputStreamHandler::create("mapxx.dump");
+//		alloc.store(os);
+//		delete os;
 	}
 	catch (memoria::vapi::Exception& ex) {
 		cout<<ex.message()<<" at "<<ex.source()<<endl;
