@@ -38,7 +38,7 @@ int main() {
 
 		using Provider = mmap::RandomDataInputProvider<CtrT, decltype(generator)>;
 
-		Provider provider(map, 1000000, 200, generator);
+		Provider provider(map, 100, 200, generator);
 
 		using Position = Provider::Position;
 

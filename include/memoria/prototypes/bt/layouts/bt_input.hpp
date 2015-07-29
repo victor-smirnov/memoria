@@ -601,7 +601,9 @@ public:
 			decltype(imax) imin = 0;
 			auto accepts 		= 0;
 
-			while (accepts < 50 && imax > imin)
+			Int last = imin;
+
+			while (imax > imin)
 			{
 				if (imax - 1 != imin)
 				{
@@ -609,8 +611,15 @@ public:
 
 					if (this->checkSize(leaf, mid))
 					{
-						accepts++;
-						imin = mid + 1;
+						if (accepts++ >= 50)
+						{
+							return rank(mid);
+						}
+						else {
+							imin = mid + 1;
+						}
+
+						last = mid;
 					}
 					else {
 						imax = mid - 1;
@@ -619,29 +628,29 @@ public:
 				else {
 					if (this->checkSize(leaf, imax))
 					{
-						accepts++;
+						return rank(imax);
 					}
-
-					break;
+					else {
+						return rank(last);
+					}
 				}
 			}
 
-			if (imax < size)
-			{
-				return rank(imin);
-			}
-			else {
-				return sizes;
-			}
+			return rank(last);
 		}
 	}
+
+
 
 	bool checkSize(const NodeBaseG& leaf, CtrSizeT target_size)
 	{
 		auto rank = this->rank(target_size);
-//		cout<<"CheckSize: "<<leaf->id()<<" "<<rank<<" "<<target_size<<endl;
-
 		return ctr_.checkCapacities(leaf, rank);
+	}
+
+	bool checkSize(const NodeBaseG& leaf, Position target_size)
+	{
+		return ctr_.checkCapacities(leaf, target_size);
 	}
 
 
@@ -670,7 +679,7 @@ public:
 
 	virtual void insertBuffer(NodeBaseG& leaf, const Position& at, const Position& sizes)
 	{
-//		cout<<"InsertBuffer: "<<leaf->id()<<" "<<at<<" "<<sizes<<endl;
+//		cout<<"InsertBuffer: "<<leaf->id()<<" "<<at<<" "<<sizes<<" "<<sizes.sum()<<" "<<DebugCounter++<<" check:"<<checkSize(leaf, sizes)<<endl;
 
 		CtrT::Types::Pages::LeafDispatcher::dispatch(leaf, InsertBufferFn(), at, start_, sizes, buffer_);
 
@@ -682,8 +691,6 @@ public:
 				leafs_[c]  = leaf;
 			}
 		}
-
-		DebugCounter++;
 
 		start_ += sizes;
 	}

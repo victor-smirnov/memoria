@@ -138,8 +138,8 @@ public:
 private:
 	CtrSizeT keys_;
 	CtrSizeT mean_data_size_;
-	CtrSizeT data_size_cnt_ = 0;
-	CtrSizeT data_size_limit_ = 0;
+	CtrSizeT data_size_cnt_ 	= 0;
+	CtrSizeT data_size_limit_ 	= 0;
 
 	CtrSizeT key_ = 0;
 
@@ -160,8 +160,6 @@ public:
 
 			if (key_ > 0)
 			{
-//				sym = (rng_() % (mean_data_size_ + 1)) > 0;
-
 				sym = (data_size_cnt_++ < data_size_limit_ ? 1 : 0);
 			}
 			else {
@@ -172,6 +170,8 @@ public:
 			{
 				data_size_cnt_ = 0;
 				data_size_limit_ = (rng_() % (mean_data_size_*2 + 1));
+				cout<<"Limit: "<<data_size_limit_<<endl;
+
 
 				if (++key_ <= keys_)
 				{
