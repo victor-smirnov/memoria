@@ -20,13 +20,13 @@ auto                                    generator               = std::bind(dist
 using namespace memoria;
 using namespace std;
 
-int main() {
+int main(int argc, const char** argv, const char** envp) {
 	MEMORIA_INIT(SmallProfile<>);
 
 	try {
 		SmallInMemAllocator alloc;
 
-		alloc.mem_limit() = 1024*1024*1024;
+		alloc.mem_limit() = 2*1024*1024*1024ll;
 
 		using CtrT  = SCtrTF<Map<BigInt, Vector<Byte>>>::Type;
 
@@ -38,7 +38,7 @@ int main() {
 
 		using Provider = mmap::RandomDataInputProvider<CtrT, decltype(generator)>;
 
-		Provider provider(map, 2000000, 100, generator);
+		Provider provider(map, 10000000, 10, generator);
 
 		using Position = Provider::Position;
 
@@ -46,9 +46,18 @@ int main() {
 
 		alloc.commit();
 
-//		OutputStreamHandler* os = FileOutputStreamHandler::create("mapxx.dump");
-//		alloc.store(os);
-//		delete os;
+		if (argc > 1)
+		{
+			const char* dump_name = argv[1];
+
+			cout<<"Dump to: "<<dump_name<<endl;
+
+			OutputStreamHandler* os = FileOutputStreamHandler::create(dump_name);
+			alloc.store(os);
+			delete os;
+		}
+
+		cout<<"Done"<<endl;
 	}
 	catch (memoria::vapi::Exception& ex) {
 		cout<<ex.message()<<" at "<<ex.source()<<endl;

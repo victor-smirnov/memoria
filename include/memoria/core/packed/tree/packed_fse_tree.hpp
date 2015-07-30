@@ -1139,8 +1139,13 @@ public:
     	{
     		auto item = adaptor(c);
 
-    		setValues(c + pos, item);
+    		for (Int block = 0; block < Blocks; block++)
+    		{
+    			value(block, c) = item[block];
+    		}
     	}
+
+    	reindex();
     }
 
     template <typename T>

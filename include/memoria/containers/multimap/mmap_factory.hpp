@@ -9,7 +9,7 @@
 #ifndef _MEMORIA_CONTAINERS_MULTIMAP_FACTORY_HPP
 #define _MEMORIA_CONTAINERS_MULTIMAP_FACTORY_HPP
 
-#include <memoria/prototypes/bt_ss/btss_factory.hpp>
+#include <memoria/prototypes/bt_tl/bttl_factory.hpp>
 #include <memoria/prototypes/ctr_wrapper/ctrwrapper_factory.hpp>
 
 #include <memoria/containers/multimap/mmap_names.hpp>
@@ -33,9 +33,9 @@ template <
     typename Key_,
     typename Value_
 >
-struct MultimapBTTypesBase: public BTTypes<Profile, memoria::BT> {
+struct MultimapBTTypesBase: public BTTypes<Profile, memoria::BTTreeLayout> {
 
-    using Base = BTTypes<Profile, memoria::BT>;
+    using Base = BTTypes<Profile, memoria::BTTreeLayout>;
 
     using ValueType = typename IfThenElse<
                     IfTypesEqual<Value_, IDType>::Value,
@@ -110,8 +110,8 @@ struct BTTypes<Profile, memoria::Map<Key_, Vector<Value_>>>: public MultimapBTTy
 
 
 template <typename Profile, typename Key, typename Value, typename T>
-class CtrTF<Profile, memoria::Map<Key, Vector<Value>>, T>: public CtrTF<Profile, memoria::BT, T> {
-    using Base = CtrTF<Profile, memoria::BT, T>;
+class CtrTF<Profile, memoria::Map<Key, Vector<Value>>, T>: public CtrTF<Profile, memoria::BTTreeLayout, T> {
+    using Base = CtrTF<Profile, memoria::BTTreeLayout, T>;
 public:
 
     struct Types: Base::Types

@@ -220,7 +220,7 @@ inline Int PopCnt(UInt arg, Int start, Int length)
 }
 
 template <typename T>
-size_t PopCount(const T* buffer, size_t start, size_t stop)
+inline size_t PopCount(const T* buffer, size_t start, size_t stop)
 {
     const size_t bitsize    = TypeBitsize<T>();
     const size_t mask       = TypeBitmask<T>();
@@ -239,12 +239,7 @@ size_t PopCount(const T* buffer, size_t start, size_t stop)
 
         for (size_t c = (start >> divisor) + 1; c < (stop >> divisor); c++)
         {
-//#if __GNUC__ == 4 && (__GNUC_MINOR__ == 7)
-//            volatile T value = *(buffer + c);
-//            total += PopCnt(value);
-//#else
             total += PopCnt(buffer[c]);
-//#endif
         }
 
         size_t suffix = stop & mask;

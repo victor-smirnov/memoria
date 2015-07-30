@@ -116,9 +116,9 @@ std::ostream& operator<<(std::ostream& out, const MultimapIteratorPrefixCache<I,
 
 
 template <typename CtrT, typename Rng>
-class RandomDataInputProvider: public memoria::bt::AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength> {
+class RandomDataInputProvider: public memoria::bttl::AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength> {
 
-	using Base = memoria::bt::AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength>;
+	using Base = memoria::bttl::AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength>;
 
 public:
 
@@ -147,7 +147,7 @@ private:
 	Rng rng_;
 public:
 	RandomDataInputProvider(CtrT& ctr, CtrSizeT keys, CtrSizeT mean_data_size, const Rng& rng):
-		Base(ctr, Position({1000, 10000})),
+		Base(ctr, Position({5000, 5000})),
 		keys_(keys), mean_data_size_(mean_data_size),
 		rng_(rng)
 	{}
@@ -171,7 +171,8 @@ public:
 			if (sym == 0)
 			{
 				data_size_cnt_ = 0;
-				data_size_limit_ = (rng_() % (mean_data_size_*2 + 1));
+				//data_size_limit_ = (rng_() % (mean_data_size_*2 + 1));
+				data_size_limit_ = mean_data_size_;
 
 				if (++key_ <= keys_)
 				{
