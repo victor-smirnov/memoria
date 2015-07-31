@@ -100,6 +100,8 @@ public:
 
     using InputType = Values;
 
+    using InputBuffer = MyType;
+
     class Metadata {
         Int size_;
         Int data_size_;
@@ -605,6 +607,23 @@ public:
         codec.decode(values_, value, pos, data_size());
         return value;
     }
+
+    Values get_values(Int idx) const {
+    	Values v;
+
+    	for (Int i = 0; i < Indexes; i++)
+    	{
+    		v[i] = this->getValue(i, idx);
+    	}
+
+    	return v;
+    }
+
+    Value get_values(Int idx, Int index) const
+    {
+    	return this->getValue(index, idx);
+    }
+
 
     Value getValue(Int block, Int idx) const
     {
@@ -1494,7 +1513,38 @@ public:
 
     // ==================================== Sum ============================================ //
 
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void sum(AccumItem<T, Size>& accum) const
+    {
+    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
 
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		accum[block + Offset] += sum(block);
+    	}
+    }
+
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void sum(Int start, Int end, AccumItem<T, Size>& accum) const
+    {
+    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		accum[block + Offset] += sum(block, start, end);
+    	}
+    }
+
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void sum(Int idx, AccumItem<T, Size>& accum) const
+    {
+    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		accum[block + Offset] += value(block, idx);
+    	}
+    }
 
     IndexValue sum(Int block) const
     {

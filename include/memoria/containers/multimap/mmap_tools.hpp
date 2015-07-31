@@ -147,7 +147,7 @@ private:
 	Rng rng_;
 public:
 	RandomDataInputProvider(CtrT& ctr, CtrSizeT keys, CtrSizeT mean_data_size, const Rng& rng):
-		Base(ctr, Position({5000, 5000})),
+		Base(ctr, Position({500, 500})),
 		keys_(keys), mean_data_size_(mean_data_size),
 		rng_(rng)
 	{}

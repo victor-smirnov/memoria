@@ -466,7 +466,7 @@ public:
 	struct InsertBufferFn {
 
 		template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename StreamObj>
-		void stream(StreamObj* stream, const Position& at, const Position& starts, const Position& sizes, const Buffer& buffer)
+		bool stream(StreamObj* stream, const Position& at, const Position& starts, const Position& sizes, const Buffer& buffer)
 		{
 			static_assert(StreamIdx < Position::Indexes, "");
 			static_assert(StreamIdx < tuple_size<Buffer>::value, "");
@@ -475,13 +475,15 @@ public:
 			stream->_insert(at[StreamIdx], sizes[StreamIdx], [&](Int idx){
 				return std::get<Idx>(std::get<StreamIdx>(buffer)[idx + starts[StreamIdx]]);
 			});
+
+			return true;
 		}
 
 
 		template <typename NodeTypes, typename... Args>
-		void treeNode(LeafNode<NodeTypes>* leaf, Args&&... args)
+		auto treeNode(LeafNode<NodeTypes>* leaf, Args&&... args)
 		{
-			leaf->processSubstreamGroups(*this, std::forward<Args>(args)...);
+			return leaf->processSubstreamGroups(*this, std::forward<Args>(args)...);
 		}
 	};
 
@@ -798,6 +800,156 @@ public:
 		return this->ctr().checkCapacities(leaf, target_size);
 	}
 };
+
+
+
+
+
+
+
+
+template <
+	typename CtrT,
+	Int Streams
+>
+class AbstractCtrInputProvider<CtrT, Streams, LeafDataLengthType::VARIABLE>: public AbstractCtrInputProviderBase<CtrT> {
+
+	using Base = AbstractCtrInputProviderBase<CtrT>;
+
+public:
+	using MyType = AbstractCtrInputProvider<CtrT, Streams, LeafDataLengthType::VARIABLE>;
+
+	using NodeBaseG = typename CtrT::Types::NodeBaseG;
+	using CtrSizeT 	= typename CtrT::Types::CtrSizeT;
+
+	using Buffer 	= typename Base::Buffer;
+	using Position	= typename Base::Position;
+
+	template <Int StreamIdx>
+	using InputTupleSizeAccessor = typename CtrT::Types::template InputTupleSizeAccessor<StreamIdx>;
+	using InputTupleSizeHelper 	 = detail::InputTupleSizeHelper<InputTupleSizeAccessor, 0, std::tuple_size<Buffer>::value>;
+
+	using PageUpdateMgr			 = typename CtrT::Types::PageUpdateMgr;
+
+public:
+
+	AbstractCtrInputProvider(CtrT& ctr, const Position& capacity):
+		Base(ctr, capacity)
+	{}
+
+	virtual Position fill(NodeBaseG& leaf, const Position& from)
+	{
+		Position pos = from;
+
+		PageUpdateMgr mgr(this->ctr());
+
+		mgr.add(leaf);
+
+		while(this->hasData())
+		{
+			auto buffer_sizes = this->buffer_size();
+
+			auto inserted = insertBuffer(mgr, leaf, pos, buffer_sizes);
+
+			if (inserted.sum() > 0)
+			{
+				pos += inserted;
+
+				if (getFreeSpacePart(leaf) < 0.05)
+				{
+					break;
+				}
+			}
+			else {
+				break;
+			}
+		}
+
+		return pos;
+	}
+
+
+	virtual Position insertBuffer(PageUpdateMgr& mgr, NodeBaseG& leaf, Position at, Position size)
+	{
+		if (tryInsertBuffer(mgr, leaf, at, size))
+		{
+			this->start_ += size;
+			return size;
+		}
+		else {
+			auto imax = size.sum();
+			decltype(imax) imin  = 0;
+			decltype(imax) start = 0;
+
+			Position tmp = at;
+
+			while (imax > imin && (getFreeSpacePart(leaf) > 0.05))
+			{
+				if (imax - 1 != imin)
+				{
+					auto mid = imin + ((imax - imin) / 2);
+
+					Int try_block_size = mid - start;
+
+					auto sizes = this->rank(try_block_size);
+					if (tryInsertBuffer(mgr, leaf, at, sizes))
+					{
+						imin = mid + 1;
+
+						start = mid;
+						at += sizes;
+						this->start_ += sizes;
+					}
+					else {
+						imax = mid - 1;
+					}
+				}
+				else {
+					auto sizes = this->rank(1);
+					if (tryInsertBuffer(mgr, leaf, at, sizes))
+					{
+						start += 1;
+						at += sizes;
+						this->start_ += sizes;
+					}
+
+					break;
+				}
+			}
+
+			return at - tmp;
+		}
+	}
+
+protected:
+	virtual Position findCapacity(const NodeBaseG& leaf, const Position& size) {
+		return Position();
+	}
+
+	bool tryInsertBuffer(PageUpdateMgr& mgr, NodeBaseG& leaf, const Position& at, const Position& size)
+	{
+		try {
+			CtrT::Types::Pages::LeafDispatcher::dispatch(leaf, typename Base::InsertBufferFn(), at, this->start_, size, this->buffer_);
+			mgr.checkpoint(leaf);
+			return true;
+		}
+		catch (PackedOOMException& ex)
+		{
+			mgr.restoreNodeState();
+			return false;
+		}
+	}
+
+	float getFreeSpacePart(const NodeBaseG& node)
+	{
+		float client_area = node->allocator()->client_area();
+		float free_space = node->allocator()->free_space();
+
+		return free_space / client_area;
+	}
+};
+
+
 
 
 
