@@ -69,7 +69,7 @@ public:
 
 
 
-int main() {
+int main(int argc, const char** argv) {
 	MEMORIA_INIT(SmallProfile<>);
 
 	try {
@@ -77,7 +77,7 @@ int main() {
 
 		alloc.mem_limit() = 1024*1024*1024;
 
-		using CtrT  = SCtrTF<Vector<Int>>::Type;
+		using CtrT  = SCtrTF<Vector<VLen<Granularity::Byte, Int>>>::Type;
 
 		CtrT::initMetadata();
 
@@ -87,7 +87,7 @@ int main() {
 
 		using Position = RandomVectorInputProvider<CtrT>::Position;
 
-		RandomVectorInputProvider<CtrT> provider(ctr, 100000000, 100, 10000);
+		RandomVectorInputProvider<CtrT> provider(ctr, 100000000, 20, 1000);
 
 		using Position = RandomVectorInputProvider<CtrT>::Position;
 
@@ -97,9 +97,12 @@ int main() {
 
 		alloc.commit();
 
-//		OutputStreamHandler* os = FileOutputStreamHandler::create("vector_b.dump");
-//		alloc.store(os);
-//		delete os;
+		if (argc > 1)
+		{
+			OutputStreamHandler* os = FileOutputStreamHandler::create(argv[1]);
+			alloc.store(os);
+			delete os;
+		}
 	}
 	catch (memoria::vapi::Exception& ex) {
 		cout<<ex.message()<<" at "<<ex.source()<<endl;

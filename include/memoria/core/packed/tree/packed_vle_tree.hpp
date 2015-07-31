@@ -2253,6 +2253,45 @@ private:
         reindex();
     }
 
+public:
+    template <typename Adaptor>
+    void _insert(Int pos, Int processed, Adaptor&& adaptor)
+    {
+    	Codec codec;
+
+    	Dimension total_lengths;
+
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		for (SizeT c = 0; c < processed; c++)
+    		{
+    			total_lengths[block] += codec.length(adaptor(c)[block]);
+    		}
+    	}
+
+    	auto insertion_starts = insertSpace(pos, total_lengths);
+
+    	auto buffer = this->values();
+
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		size_t start = insertion_starts[block];
+    		size_t limit = start + total_lengths[block];
+
+    		for (SizeT c = 0; c < processed; c++)
+    		{
+    			IndexValue value = adaptor(c)[block];
+    			Int len = codec.encode(buffer, value, start, limit);
+    			start += len;
+    		}
+    	}
+
+    	this->size() += processed;
+
+    	reindex();
+    }
+private:
+
     void checkAndDump() {
         try {
             check();
