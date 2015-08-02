@@ -1141,7 +1141,7 @@ public:
 
     		for (Int block = 0; block < Blocks; block++)
     		{
-    			value(block, c) = item[block];
+    			value(block, c + pos) = item[block];
     		}
     	}
 

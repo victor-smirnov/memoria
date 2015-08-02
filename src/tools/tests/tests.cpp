@@ -28,6 +28,8 @@
 //#include "file_allocator/file_alloc_test_suite.hpp"
 //#include "mvcc/mvcc_test_suite.hpp"
 
+#include <memoria/containers/table/table_factory.hpp>
+
 #include <memoria/tools/cmdline.hpp>
 #include <memoria/tools/tools.hpp>
 #include <memoria/tools/tests.hpp>
@@ -52,6 +54,7 @@ int main(int argc, const char** argv, const char** envp)
     Term::init(argc, argv, envp);
 
     SCtrTF<Map<BigInt, Vector<Byte>>>::Type::initMetadata();
+    SCtrTF<Table<BigInt, Byte>>::Type::initMetadata();
 
     try {
     	SCtrTF<MapX<BigInt, BigInt>>::Type::initMetadata();

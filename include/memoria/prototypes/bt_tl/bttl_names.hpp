@@ -43,6 +43,7 @@ class ApiName               {};
 class ChecksName            {};
 class WalkName              {};
 class AllocatorName         {};
+class MiscName         		{};
 
 
 

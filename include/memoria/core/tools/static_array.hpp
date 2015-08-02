@@ -572,7 +572,7 @@ public:
     {
     	static_assert(Indexes == 1, "");
 
-    	values_[0] = value;
+    	for (Int c = 0; c < Indexes; c++) values_[c] = value;
     	return *this;
     }
 

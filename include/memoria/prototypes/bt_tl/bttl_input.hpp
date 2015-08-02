@@ -275,7 +275,7 @@ struct UpdateLeafH<Dispatcher, Fn, TL<Path, Tail...>, Idx> {
 			Dispatcher::dispatch(std::forward<PageG>(page), *this, std::forward<Args>(args)...);
 		}
 		else {
-			UpdateLeafH<Dispatcher, Fn, TL<Tail...>, Idx + 1>::process(stream, std::forward<PageG>(page), std::forward<Args>(args)...);
+			UpdateLeafH<Dispatcher, Fn, TL<Tail...>, Idx + 1>().process(stream, std::forward<PageG>(page), std::forward<Args>(args)...);
 		}
 	}
 };
@@ -289,7 +289,7 @@ template <
 >
 struct UpdateLeafH<Dispatcher, Fn, TL<>, Idx> {
 	template <typename PageG, typename... Args>
-	static void process(Int stream, PageG&& page, Args&&... args)
+	void process(Int stream, PageG&& page, Args&&... args)
 	{
 		throw vapi::Exception(MA_SRC, SBuf()<<"Failed to dispatch stream: "<<stream);
 	}

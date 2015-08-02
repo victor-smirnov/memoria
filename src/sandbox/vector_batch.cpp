@@ -87,7 +87,7 @@ int main(int argc, const char** argv) {
 
 		using Position = RandomVectorInputProvider<CtrT>::Position;
 
-		RandomVectorInputProvider<CtrT> provider(ctr, 100000000, 20, 1000);
+		RandomVectorInputProvider<CtrT> provider(ctr, 10000000, 20, 1000);
 
 		using Position = RandomVectorInputProvider<CtrT>::Position;
 

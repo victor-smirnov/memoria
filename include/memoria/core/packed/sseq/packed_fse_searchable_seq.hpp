@@ -925,16 +925,8 @@ public:
 
     Int rank(Int end, Int symbol) const
     {
-    	if (end < 0 || end > size()) {
-    		int a = 0; a++;
-    	}
-
         MEMORIA_ASSERT(end, <=, size());
         MEMORIA_ASSERT_TRUE(end >= 0);
-
-        if (symbol < 0 || symbol >= AlphabetSize) {
-        	int a = 0; a++;
-        }
 
         MEMORIA_ASSERT_TRUE(symbol >= 0 && symbol < AlphabetSize);
 
@@ -1156,9 +1148,9 @@ public:
                         BitsPerSymbol,
                         PackedTreeBranchingFactor,
                         256,
-                        PkdVTree,
-                        UByteExintCodec,
-                        VLEReindexFn,
+                        PkdFTree,
+                        ValueFSECodec,//UByteExintCodec,
+                        ReindexFn,
                         SeqSelectFn,
                         SeqRankFn,
                         SeqToolsFn

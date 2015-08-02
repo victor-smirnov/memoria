@@ -116,6 +116,9 @@ struct TypeHash<MapX<Key, Value>>:   UIntValue<
     HashHelper<1203, TypeHash<Key>::Value, TypeHash<Value>::Value>::Value
 > {};
 
+
+
+
 template <
     Int Indexes,
     typename Key,
@@ -210,7 +213,10 @@ public:
     static const UInt Value = md5::Md5Sum<TaggedValueList>::Result::Value32;
 };
 
-
+template <typename Key, typename Value>
+struct TypeHash<Table<Key, Value>>:   UIntValue<
+    HashHelper<3000, TypeHash<Key>::Value, TypeHash<Value>::Value>::Value
+> {};
 
 }
 

@@ -16,13 +16,15 @@
 #include <memoria/prototypes/bt_tl/bttl_names.hpp>
 #include <memoria/prototypes/bt_tl/bttl_iterator.hpp>
 
+#include <memoria/prototypes/bt_tl/bttl_tools.hpp>
 
+#include <memoria/prototypes/bt_tl/container/bttl_c_misc.hpp>
 
-//#include <memoria/prototypes/bt_ss/container/btss_c_leaf_common.hpp>
 //#include <memoria/prototypes/bt_ss/container/btss_c_leaf_fixed.hpp>
 //#include <memoria/prototypes/bt_ss/container/btss_c_leaf_variable.hpp>
 //
-//#include <memoria/prototypes/bt_ss/iterator/btss_i_misc.hpp>
+
+#include <memoria/prototypes/bt_tl/iterator/bttl_i_misc.hpp>
 
 #include <tuple>
 
@@ -37,27 +39,20 @@ struct BTTypes<Profile, memoria::BTTreeLayout>: public BTTypes<Profile, memoria:
 
     typedef BTTypes<Profile, memoria::BT>                                       Base;
 
-//    using CommonContainerPartsList = MergeLists<
-//                typename Base::CommonContainerPartsList,
-//                memoria::btss::LeafCommonName
-//    >;
-//
-//    using FixedLeafContainerPartsList = MergeLists<
-//    			typename Base::FixedLeafContainerPartsList,
-//    			memoria::btss::LeafFixedName
-//    >;
-//
-//
-//    using VariableLeafContainerPartsList = MergeLists<
-//    			typename Base::VariableLeafContainerPartsList,
-//    			memoria::btss::LeafVariableName
-//    >;
-//
-//    using IteratorPartsList = MergeLists<
-//                typename Base::IteratorPartsList,
-//                memoria::btss::IteratorMiscName
-//    >;
+    using CommonContainerPartsList = MergeLists<
+                typename Base::CommonContainerPartsList,
+                memoria::bttl::MiscName
+    >;
 
+    using IteratorPartsList = MergeLists<
+                typename Base::IteratorPartsList,
+                memoria::bttl::IteratorMiscName
+    >;
+
+    template <typename Iterator, typename Container>
+    struct IteratorCacheFactory {
+        typedef ::memoria::bttl::BTTLIteratorPrefixCache<Iterator, Container>   Type;
+    };
 };
 
 
