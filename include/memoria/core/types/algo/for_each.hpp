@@ -20,7 +20,7 @@ template <
         template <typename Config_, typename Item, typename LastResult> class Handler,
         typename Accumulator
 >
-struct ForEach;
+struct ForEachItem;
 
 
 template <
@@ -28,7 +28,7 @@ template <
         template <typename, typename, typename> class Handler,
         typename Accumulator
 >
-struct ForEach<Config, TypeList<>, Handler, Accumulator> {
+struct ForEachItem<Config, TypeList<>, Handler, Accumulator> {
     typedef Accumulator                                                         Result;
 };
 
@@ -39,14 +39,33 @@ template <
         template <typename, typename, typename> class Handler,
         typename Accumulator
 >
-struct ForEach<Config, TypeList<Head, Tail...>, Handler, Accumulator> {
-    typedef typename ForEach<
+struct ForEachItem<Config, TypeList<Head, Tail...>, Handler, Accumulator> {
+    typedef typename ForEachItem<
                 Config,
                 TypeList<Tail...>,
                 Handler,
                 Handler<Config, Head, Accumulator>
     >::Result                                                                   Result;
 };
+
+
+
+template <Int Idx, Int Size>
+struct ForEach {
+	template <typename Fn, typename... Args>
+	static void process(Fn&& fn, Args&&... args){
+		fn.template process<Idx>(std::forward<Args>(args)...);
+		ForEach<Idx + 1, Size>::process(std::forward<Fn>(fn), std::forward<Args>(args)...);
+	}
+};
+
+
+template <Int Idx>
+struct ForEach<Idx, Idx> {
+	template <typename... Args>
+	static void process(Args&&... args){}
+};
+
 
 
 

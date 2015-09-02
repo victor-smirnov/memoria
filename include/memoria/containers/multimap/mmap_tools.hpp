@@ -46,19 +46,6 @@ struct InputTupleSizeH<1> {
 };
 
 
-template <Int StreamIdx> struct LeafStreamSizeH;
-
-template <>
-struct LeafStreamSizeH<0> {
-	template <typename Stream, typename SizeT>
-	static void stream(Stream* buffer, Int idx, SizeT value)
-	{
-		buffer->value(1, idx) += value;
-	}
-};
-
-
-
 
 template <typename Iterator, typename Container>
 class MultimapIteratorPrefixCache: public bt::BTree2IteratorPrefixCache<Iterator, Container> {

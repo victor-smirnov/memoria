@@ -78,7 +78,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
         return LeafDispatcher::dispatch(self().leaf(), SizeFn(), self().stream());
     }
 
-    MEMORIA_DECLARE_NODE_FN_RTN(SizesFn, sizes, Int);
+    MEMORIA_DECLARE_NODE_FN_RTN(SizesFn, sizes, Position);
 
     Position leaf_sizes() const {
         return LeafDispatcher::dispatch(self().leaf(), SizesFn());

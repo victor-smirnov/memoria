@@ -44,7 +44,7 @@ class IndexOf {
 
 public:
 
-    static const Int Value = ForEach<
+    static const Int Value = ForEachItem<
                 NullType,
                 List,
                 Handler,

@@ -258,6 +258,7 @@ public:
 
     void init(Iterator*) {}
 
+
     void reset() {
     	prefix_ = IteratorPrefix();
     	leaf_prefix_ = IteratorPrefix();

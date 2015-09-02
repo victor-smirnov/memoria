@@ -133,12 +133,9 @@ public:
         template <Int StreamIdx>
         using InputTupleSizeAccessor = table::InputTupleSizeH<StreamIdx>;
 
-        template <Int StreamIdx>
-        using LeafStreamSizeAccessor = table::LeafStreamSizeH<StreamIdx>;
-
         using StreamsSizes = TL<
-        	IntList<0, 0>,
-        	IntList<1, 0>
+        	IntList<0, 0, 1>,
+        	IntList<1, 0, 1>
         >;
 
     };

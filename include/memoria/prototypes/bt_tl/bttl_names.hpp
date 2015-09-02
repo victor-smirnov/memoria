@@ -57,6 +57,7 @@ class IteratorRankName      {};
 class IteratorSkipName      {};
 class IteratorLeafName      {};
 class IteratorMiscName      {};
+class IteratorStreamRankName{};
 
 }
 

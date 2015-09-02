@@ -60,7 +60,7 @@ template <
     typename MyType
 >
 class WalkerBase {
-protected:
+public:
     typedef Iter<typename Types::IterTypes>                                     Iterator;
     typedef typename Types::IteratorAccumulator                                 IteratorAccumulator;
     typedef typename Types::LeafStreamsStructList                               LeafStructList;
@@ -71,12 +71,19 @@ protected:
 
     static const Int Streams                                                    = Types::Streams;
 
+    using Position = typename Types::Position;
     using LeafPath = typename Types::LeafPath;
+
+    static const Int Stream = ListHead<LeafPath>::Value;
+
+protected:
 
     Int leaf_index_;
 
-    StaticVector<BigInt, Streams> branch_size_prefix_;
+    Int idx_backup_;
+    Position branch_size_prefix_backup_;
 
+    Position branch_size_prefix_;
     IteratorAccumulator branch_prefix_;
     IteratorAccumulator leaf_prefix_;
 
@@ -87,7 +94,7 @@ protected:
 public:
 
     template <typename LeafPath>
-    using AccumItemH = AccumItem<LeafStructList, LeafPath, IteratorAccumulator>;
+    using AccumItemH = typename Types::template AccumItemH<LeafPath>;
 
 protected:
 
@@ -238,6 +245,9 @@ public:
         branch_prefix_ 		= iter.cache().prefixes();
         leaf_prefix_ 		= iter.cache().leaf_prefixes();
         branch_size_prefix_	= iter.cache().size_prefix();
+
+        branch_size_prefix_backup_	= iter.cache().size_prefix();
+        idx_backup_			= iter.idx();
     }
 
     void finish(Iterator& iter, Int idx, WalkCmd cmd) const
@@ -267,14 +277,21 @@ public:
     	return leaf_prefix_;
     }
 
-    const StaticVector<BigInt, Streams>& branch_size_prefix() const {
+    const Position& branch_size_prefix() const {
     	return branch_size_prefix_;
     }
 
-    StaticVector<BigInt, Streams>& branch_size_prefix() {
+    Position& branch_size_prefix() {
     	return branch_size_prefix_;
     }
 
+    const Position& branch_size_prefix_backup() const {
+    	return branch_size_prefix_backup_;
+    }
+
+    Int idx_backup() const {
+    	return idx_backup_;
+    }
 
     MyType& self() {return *T2T<MyType*>(this);}
     const MyType& self() const {return *T2T<const MyType*>(this);}

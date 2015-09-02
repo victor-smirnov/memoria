@@ -20,7 +20,7 @@ namespace bt {
 template <typename Types, typename MyType>
 class FindWalkerBase: public WalkerBase<Types, MyType> {
 
-protected:
+public:
     using Base 			= WalkerBase<Types, MyType>;
 
     using LeafPath 		= typename Types::LeafPath;
@@ -30,6 +30,7 @@ protected:
     using ThisType = FindWalkerBase<Types, MyType>;
     using Iterator = typename Base::Iterator;
 
+protected:
     TargetType sum_			= 0;
 
     TargetType target_;
@@ -62,15 +63,12 @@ public:
 
 template <typename Types, typename MyType>
 class FindForwardWalkerBase: public FindWalkerBase<Types, MyType> {
-
-protected:
-    using Base 			= FindWalkerBase<Types, MyType>;
-    using TargetType 	= typename Base::TargetType;
-
-
+	using Base 			= FindWalkerBase<Types, MyType>;
 
 public:
 
+    using TargetType 	= typename Base::TargetType;
+    using Position 		= typename Base::Position;
     using LeafPath 		 = typename Base::LeafPath;
 
     FindForwardWalkerBase(Int leaf_index, TargetType target, SearchType search_type):
@@ -187,6 +185,15 @@ public:
     		return StreamOpResult(0, 0, true, true);
     	}
     }
+
+    Position& branch_size_prefix() {
+    	return Base::branch_size_prefix();
+    }
+
+    const Position& branch_size_prefix() const {
+    	return Base::branch_size_prefix();
+    }
+
 
 	template <Int StreamIdx, typename StreamType>
 	void branch_size_prefix(const StreamType* stream, Int start, Int end)

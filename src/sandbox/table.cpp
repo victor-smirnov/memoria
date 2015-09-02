@@ -36,14 +36,18 @@ int main(int argc, const char** argv, const char** envp) {
 		CtrT ctr(&alloc);
 
 		auto iter = ctr.find(0);
+//		iter.template _skipFw<0>(1);
+//		iter.template _skipBw<0>(1);
 
 		using Provider = table::RandomDataInputProvider<CtrT, decltype(generator)>;
 
-		Provider provider(ctr, 1000, 10000, 10, generator);
+		Provider provider(ctr, 1000000, 10, 100, generator);
 
 		using Position = Provider::Position;
 
 		ctr.insertData(iter.leaf(), Position(), provider);
+
+		iter.leaf_rank(0);
 
 		alloc.commit();
 

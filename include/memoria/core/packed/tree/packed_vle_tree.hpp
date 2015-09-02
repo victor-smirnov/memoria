@@ -78,7 +78,7 @@ public:
     static const Int ValuesPerBranch        = Types::ValuesPerBranch;
     static const Int Indexes                = 2;
     static const Int Blocks                 = Types::Blocks;
-    static const Int IOBatchSize            = Blocks <= 2 ? 256: (Blocks <= 4 ? 64 : (Blocks <= 16 ? 16 : 4));
+    static const Int IOBatchSize            = Blocks <= 2 ? 128: (Blocks <= 4 ? 64 : (Blocks <= 16 ? 16 : 4));
     static const bool FixedSizeElement      = false;
 
     static const Int BITS_PER_OFFSET        = Codec::BitsPerOffset;
@@ -1509,7 +1509,47 @@ public:
         }
     }
 
+    template <typename Fn>
+    void read(Int block, Int start, Int end, Fn&& consumer) const
+    {
+    	MEMORIA_ASSERT(start, >=, 0);
+    	MEMORIA_ASSERT(start, <=, end);
+    	MEMORIA_ASSERT(end, <=, size());
 
+    	Value values[IOBatchSize];
+
+    	Int to_read = end - start;
+    	Int pos     = start;
+
+    	while (to_read > 0)
+    	{
+    		SizeT batch_size = to_read > IOBatchSize ? IOBatchSize : to_read;
+
+    		readData(block, values, pos, batch_size);
+
+    		for (Int c = 0; c < batch_size; c++)
+    		{
+    			consumer(values[c]);
+    		}
+
+    		pos     += batch_size;
+    		to_read -= batch_size;
+    	}
+    }
+
+
+    template <typename T>
+    void read(Int block, Int start, Int end, T* values) const
+    {
+    	MEMORIA_ASSERT(start, >=, 0);
+    	MEMORIA_ASSERT(start, <=, end);
+    	MEMORIA_ASSERT(end, <=, size());
+
+    	Int to_read = end - start;
+    	Int pos     = start;
+
+    	readData(block, values, pos, to_read);
+    }
 
     // ==================================== Sum ============================================ //
 
@@ -2373,6 +2413,28 @@ private:
             }
         }
     }
+
+    template <typename T>
+    void readData(Int block, T* values, Int pos, Int processed) const
+    {
+    	Codec codec;
+
+    	const auto* buffer  = this->values();
+    	Int size            = this->size();
+
+    	Int value_idx = size * block + pos;
+
+    	size_t start = this->value_offset(value_idx);
+
+    	for (SizeT c = 0; c < processed; c++)
+    	{
+    		Value v = 0;
+    		start += codec.decode(buffer, v, start);
+    		values[c] = v;
+    	}
+    }
+
+
 
     template <Int Offset, typename Vals>
     void sumsSmall(Vals& values) const

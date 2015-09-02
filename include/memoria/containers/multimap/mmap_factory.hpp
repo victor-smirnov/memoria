@@ -124,13 +124,9 @@ public:
         template <Int StreamIdx>
         using InputTupleSizeAccessor = mmap::InputTupleSizeH<StreamIdx>;
 
-        template <Int StreamIdx>
-        using LeafStreamSizeAccessor = mmap::LeafStreamSizeH<StreamIdx>;
-
         using StreamsSizes = TL<
-        	IntList<0, 0>
+        	IntList<0, 0, 1>
         >;
-
     };
 
     using CtrTypes 	= typename Types::CtrTypes;

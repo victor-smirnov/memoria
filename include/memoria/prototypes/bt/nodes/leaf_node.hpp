@@ -281,7 +281,7 @@ public:
 
     void prepare()
     {
-        Base::initAllocator(SubstreamsStart + Substreams); // +1?
+        Base::initAllocator(SubstreamsStart + Substreams); // FIXME +1?
     }
 
     void layout(const Position& sizes)
@@ -1343,8 +1343,21 @@ public:
     }
 
 
+    template <typename SubstreamPath>
+    auto substream()
+	{
+    	const Int SubstreamIdx = memoria::list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>::Value;
+    	using T = typename Dispatcher::template StreamTypeT<SubstreamIdx>::Type;
+    	return this->allocator()->template get<T>(SubstreamIdx + SubstreamsStart);
+    }
 
-
+    template <typename SubstreamPath>
+    auto substream() const
+	{
+    	const Int SubstreamIdx = memoria::list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>::Value;
+    	using T = typename Dispatcher::template StreamTypeT<SubstreamIdx>::Type;
+    	return this->allocator()->template get<T>(SubstreamIdx + SubstreamsStart);
+    }
 
     template <typename SubstreamPath, typename Fn, typename... Args>
     DispatchRtnType<memoria::list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>::Value, Fn, Args...>

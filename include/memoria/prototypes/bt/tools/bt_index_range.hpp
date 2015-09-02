@@ -21,6 +21,7 @@
 
 #include <iostream>
 #include <tuple>
+#include <utility>
 
 namespace memoria   {
 namespace bt        {
@@ -403,7 +404,7 @@ struct IndexRangeProc<std::tuple<IndexVector<T, From, To>>, Idx> {
 	using RtnType = T;
 
 	template <typename RangeList>
-	static T& value(Int index, RangeList&& accum)
+	static auto value(Int index, RangeList&& accum)
 	{
 		if (index >= From && index < To)
 		{
@@ -415,7 +416,7 @@ struct IndexRangeProc<std::tuple<IndexVector<T, From, To>>, Idx> {
 	}
 
 	template <Int Index, typename RangeList>
-	static T& value(RangeList&& accum)
+	static auto value(RangeList&& accum)
 	{
 		if (Index >= From && Index < To)
 		{
@@ -501,26 +502,27 @@ public:
 	static
 	Vector<Offset>& item(AccumType& accum)
 	{
-		return std::get<
-				detail::SearchForAccumItem<AccumRangeList, Offset>::Idx
-		>(std::get<BranchIdx>(accum));
+		return std::get<detail::SearchForAccumItem<AccumRangeList, Offset>::Idx>(std::get<BranchIdx>(accum));
+	}
+
+	template <Int Offset>
+	static
+	const Vector<Offset>& item(const AccumType& accum)
+	{
+		return std::get<detail::SearchForAccumItem<AccumRangeList, Offset>::Idx>(std::get<BranchIdx>(accum));
 	}
 
 	template <typename AccumTypeT>
-	static typename detail::IndexRangeProc<AccumRangeList>::RtnType& value(Int index, AccumTypeT&& accum)
+	static auto value(Int index, AccumTypeT&& accum)
 	{
-		return detail::IndexRangeProc<AccumRangeList>::value(index + LeafPrefix, std::forward<AccumRangeList>(std::get<BranchIdx>(std::forward<AccumTypeT>(accum))));
+		return detail::IndexRangeProc<AccumRangeList>::value(
+				index + LeafPrefix,
+				std::get<BranchIdx>(std::forward<AccumTypeT>(accum))
+		);
 	}
-
-	template <typename AccumTypeT>
-	static const typename detail::IndexRangeProc<AccumRangeList>::RtnType& cvalue(Int index, AccumTypeT&& accum)
-	{
-		return detail::IndexRangeProc<AccumRangeList>::value(index + LeafPrefix, std::forward<AccumRangeList>(std::get<BranchIdx>(std::forward<AccumTypeT>(accum))));
-	}
-
 
 	template <Int Index, typename AccumTypeT>
-	static typename detail::IndexRangeProc<AccumRangeList>::RtnType& value(AccumTypeT&& accum)
+	static auto value(AccumTypeT&& accum)
 	{
 		return detail::IndexRangeProc<AccumRangeList>::template value<Index + LeafPrefix>(std::forward<AccumRangeList>(std::get<BranchIdx>(std::forward<AccumTypeT>(accum))));
 	}

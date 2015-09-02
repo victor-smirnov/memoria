@@ -62,25 +62,6 @@ struct InputTupleSizeH<2> {
 };
 
 
-template <Int StreamIdx> struct LeafStreamSizeH;
-
-template <>
-struct LeafStreamSizeH<0> {
-	template <typename Stream, typename SizeT>
-	static void stream(Stream* buffer, Int idx, SizeT value)
-	{
-		buffer->value(1, idx) += value;
-	}
-};
-
-template <>
-struct LeafStreamSizeH<1> {
-	template <typename Stream, typename SizeT>
-	static void stream(Stream* buffer, Int idx, SizeT value)
-	{
-		buffer->value(1, idx) += value;
-	}
-};
 
 
 

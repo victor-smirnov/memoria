@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2014.
+// Copyright Victor Smirnov 2014+.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -21,7 +21,7 @@ struct SublistFromStart<ValueList<T, Head, Tail...>, Len> {
     static_assert(Len >= 0, "Len parameter must be >= 0");
     static_assert(Len <= sizeof...(Tail) + 1, "Len parameter must be <= the Length of value list");
 
-    using Type = MergeValueLists<
+    using Type = MergeValueListsT<
                 ConstValue<T, Head>,
                 typename SublistFromStart<ValueList<T, Tail...>, Len - 1>::Type
     >;

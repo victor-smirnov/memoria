@@ -1096,6 +1096,41 @@ public:
         }
     }
 
+    template <typename Fn>
+    void read(Int block, Int start, Int end, Fn&& consumer) const
+    {
+    	Int my_size = this->size();
+
+    	MEMORIA_ASSERT(start, >=, 0);
+    	MEMORIA_ASSERT(start, <=, end);
+    	MEMORIA_ASSERT(end, <=, my_size);
+
+    	const Value* values = this->values();
+    	Int offset = block * my_size;
+
+    	for (Int c = start; c < end; c++)
+    	{
+    		consumer(values[offset + c]);
+    	}
+    }
+
+    template <typename T>
+    void read(Int block, Int start, Int end, T* buffer) const
+    {
+    	Int my_size = this->size();
+
+    	MEMORIA_ASSERT(start, >=, 0);
+    	MEMORIA_ASSERT(start, <=, end);
+    	MEMORIA_ASSERT(end, <=, my_size);
+
+    	const Value* values = this->values();
+    	Int offset = block * my_size;
+
+    	for (Int c = start; c < end; c++)
+    	{
+    		buffer[c - start] = values[offset + c];
+    	}
+    }
 
     Int insert(Int idx, std::function<bool (Values&)> provider)
     {

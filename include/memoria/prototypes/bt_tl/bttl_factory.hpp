@@ -20,11 +20,9 @@
 
 #include <memoria/prototypes/bt_tl/container/bttl_c_misc.hpp>
 
-//#include <memoria/prototypes/bt_ss/container/btss_c_leaf_fixed.hpp>
-//#include <memoria/prototypes/bt_ss/container/btss_c_leaf_variable.hpp>
-//
-
 #include <memoria/prototypes/bt_tl/iterator/bttl_i_misc.hpp>
+#include <memoria/prototypes/bt_tl/iterator/bttl_i_srank.hpp>
+#include <memoria/prototypes/bt_tl/iterator/bttl_i_find.hpp>
 
 #include <tuple>
 
@@ -46,7 +44,9 @@ struct BTTypes<Profile, memoria::BTTreeLayout>: public BTTypes<Profile, memoria:
 
     using IteratorPartsList = MergeLists<
                 typename Base::IteratorPartsList,
-                memoria::bttl::IteratorMiscName
+                memoria::bttl::IteratorMiscName,
+				memoria::bttl::IteratorStreamRankName,
+				memoria::bttl::IteratorFindName
     >;
 
     template <typename Iterator, typename Container>
@@ -68,9 +68,6 @@ public:
     {
 //    	template <Int StreamIdx>
 //    	using InputTupleSizeAccessor = bttl::InputTupleSizeH<StreamIdx>;
-//
-//    	template <Int StreamIdx>
-//    	using LeafStreamSizeAccessor = bttl::LeafStreamSizeH<StreamIdx>;
 //
 //    	using StreamsSizes = TL<>;
 

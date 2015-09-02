@@ -13,6 +13,8 @@
 
 #include <memoria/prototypes/bt/layouts/bt_input.hpp>
 
+#include <memoria/prototypes/bt_tl/bttl_tools.hpp>
+
 namespace memoria 	{
 namespace bttl 		{
 
@@ -70,129 +72,6 @@ struct ForAllTuple<Idx, Idx> {
 
 
 
-template <typename InputBuffer, Int Idx = 0, Int Size = std::tuple_size<InputBuffer>::value - 1> struct RankHelper;
-template <typename InputBuffer, Int Idx, Int Size>
-struct RankHelper {
-	template <typename Fn, typename... Args>
-	static void process(const InputBuffer& tuple, Fn&& fn, Args&&... args)
-	{
-		using NextHelper = RankHelper<InputBuffer, Idx + 1, Size>;
-		fn.template process<Idx, NextHelper>(tuple, std::forward<Args>(args)...);
-	}
-};
-
-
-template <typename InputBuffer, Int Idx>
-struct RankHelper<InputBuffer, Idx, Idx> {
-	template <typename Fn, typename... Args>
-	static void process(const InputBuffer& tuple, Fn&& fn, Args&&... args)
-	{
-		fn.template processLast<Idx>(tuple, std::forward<Args>(args)...);
-	}
-};
-
-
-
-template <
-	template <Int> class TupleHelper,
-	typename CtrSizeT,
-	typename Position
->
-struct RankFn {
-	CtrSizeT pos_;
-	CtrSizeT target_;
-
-	Position start_;
-	Position size_;
-	Position prefix_;
-	Position indexes_;
-
-	RankFn(const Position& start, const Position& size, const Position& prefix, CtrSizeT target):
-		target_(target),
-		start_(start),
-		size_(size),
-		prefix_(prefix),
-		indexes_(prefix)
-	{
-		pos_ = prefix.sum();
-	}
-
-	template <Int Idx, typename NextHelper, typename Buffer>
-	void process(Buffer&& buffer, CtrSizeT length)
-	{
-		for (auto i = 0; i < length; i++)
-		{
-			if (pos_ < target_)
-			{
-				auto next_length = TupleHelper<Idx>::get(std::get<Idx>(buffer), i + prefix_[Idx] + start_[Idx]);
-
-				indexes_[Idx]++;
-				pos_++;
-
-				NextHelper::process(buffer, *this, next_length);
-			}
-			else {
-				break;
-			}
-		}
-	}
-
-
-	template <Int Idx, typename Buffer>
-	void processLast(Buffer&& buffer, CtrSizeT length)
-	{
-		CtrSizeT size = size_[Idx] - start_[Idx];
-
-		if (indexes_[Idx] + length > size)
-		{
-			length = size - indexes_[Idx];
-		}
-
-		if (pos_ + length < target_)
-		{
-			indexes_[Idx] += length;
-			pos_ += length;
-		}
-		else
-		{
-			auto limit = target_ - pos_;
-			indexes_[Idx] += limit;
-			pos_ += limit;
-		}
-	}
-};
-
-
-template <
-	Int Idx,
-	Int Size
->
-struct ZeroRankHelper
-{
-	template <typename Provider, typename Position1, typename Position2, typename... Args>
-	static auto process(const Provider* provider, Position1&& sizes, Position2&& prefix, Args&&... args)
-	{
-		auto size = sizes[Idx];
-		if (size > 0)
-		{
-			return provider->template _rank<Idx>(prefix, size, std::forward<Args>(args)...);
-		}
-		else {
-			return ZeroRankHelper<Idx + 1, Size>::process(provider, std::forward<Position1>(sizes), std::forward<Position2>(prefix), std::forward<Args>(args)...);
-		}
-	}
-};
-
-
-template <Int Idx>
-struct ZeroRankHelper<Idx, Idx> {
-	template <typename Provider, typename Position1, typename Position2, typename... Args>
-	static auto process(const Provider*, Position1&&, Position2&&, Args&&...)
-	{
-		return typename std::remove_reference<Position1>::type();
-	}
-};
-
 
 
 template <
@@ -246,7 +125,6 @@ struct InputTupleSizeHelper<SizeAccessor, Size, Size> {
 
 template <
 	typename Dispatcher,
-	template<Int> class Fn,
 	typename PathList,
 	Int Idx = 0
 >
@@ -254,17 +132,21 @@ struct UpdateLeafH;
 
 template <
 	typename Dispatcher,
-	template<Int> class Fn,
 	typename Path,
 	typename... Tail,
 	Int Idx
 >
-struct UpdateLeafH<Dispatcher, Fn, TL<Path, Tail...>, Idx> {
+struct UpdateLeafH<Dispatcher, TL<Path, Tail...>, Idx> {
 
-	template <typename NTypes, typename... Args>
-	void treeNode(LeafNode<NTypes>* node, Args&&... args)
+	template <typename NTypes, typename SizeT>
+	void treeNode(LeafNode<NTypes>* node, Int idx, SizeT value)
 	{
-		node->template processStream<Path>(Fn<Idx>(), std::forward<Args>(args)...);
+		using StreamPath = BTTLSizePath<Path>;
+		const Int index  = BTTLSizePathBlockIdx<Path>::Value;
+
+		auto substream = node->template substream<StreamPath>();
+
+		substream->value(index, idx) += value;
 	}
 
 	template <typename PageG, typename... Args>
@@ -275,7 +157,7 @@ struct UpdateLeafH<Dispatcher, Fn, TL<Path, Tail...>, Idx> {
 			Dispatcher::dispatch(std::forward<PageG>(page), *this, std::forward<Args>(args)...);
 		}
 		else {
-			UpdateLeafH<Dispatcher, Fn, TL<Tail...>, Idx + 1>().process(stream, std::forward<PageG>(page), std::forward<Args>(args)...);
+			UpdateLeafH<Dispatcher, TL<Tail...>, Idx + 1>().process(stream, std::forward<PageG>(page), std::forward<Args>(args)...);
 		}
 	}
 };
@@ -284,10 +166,9 @@ struct UpdateLeafH<Dispatcher, Fn, TL<Path, Tail...>, Idx> {
 
 template <
 	typename Dispatcher,
-	template<Int> class Fn,
 	Int Idx
 >
-struct UpdateLeafH<Dispatcher, Fn, TL<>, Idx> {
+struct UpdateLeafH<Dispatcher, TL<>, Idx> {
 	template <typename PageG, typename... Args>
 	void process(Int stream, PageG&& page, Args&&... args)
 	{
@@ -331,9 +212,6 @@ public:
 	>::Type;
 
 	using Position	= typename Base::Position;
-
-	template <Int, Int> friend struct detail::ZeroRankHelper;
-	template <template <Int> class T, typename, typename> friend struct detail::RankFn;
 
 	template <Int StreamIdx>
 	using InputTupleSizeAccessor = typename CtrT::Types::template InputTupleSizeAccessor<StreamIdx>;
@@ -544,10 +422,10 @@ public:
 
 		for (Int s = 0; s < Streams; s++)
 		{
-			rnk[s] = symbols->rank(start_pos, idx + start_pos, s);
+			rnk[s] = symbols->rank(idx + start_pos, s);
 		}
 
-		return rnk;
+		return rnk - start_;
 	}
 
 	Position rank() const {
@@ -684,7 +562,6 @@ private:
 	{
 		detail::UpdateLeafH<
 			typename CtrT::Types::Pages::LeafDispatcher,
-			CtrT::Types::template LeafStreamSizeAccessor,
 			typename CtrT::Types::StreamsSizes
 		>().process(sym, leafs_[sym], pos, sum);
 	}

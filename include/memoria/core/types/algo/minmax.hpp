@@ -55,7 +55,7 @@ class MinElement {
 
 public:
 
-    typedef typename ForEach<
+    typedef typename ForEachItem<
                 NullType,
                 List,
                 Handler,
@@ -97,7 +97,7 @@ class MaxElement {
         static const ValueType      MaxValue = ValueTraits<ValueType>::Min;
     };
 
-    typedef typename ForEach<
+    typedef typename ForEachItem<
                 NullType,
                 List,
                 Handler,

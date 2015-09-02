@@ -12,8 +12,12 @@
 #include <memoria/core/types/types.hpp>
 
 #include <memoria/prototypes/bt_tl/bttl_names.hpp>
+#include <memoria/prototypes/bt_tl/bttl_tools.hpp>
+
 #include <memoria/core/container/iterator.hpp>
 #include <memoria/core/container/macros.hpp>
+
+
 
 #include <iostream>
 
@@ -42,6 +46,33 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorMiscName)
     template <Int Stream, typename SubstreamsIdxList, typename... Args>
     using ReadLeafEntryRtnType = typename Container::template ReadLeafStreamEntryRtnType<Stream, SubstreamsIdxList, Args...>;
 
+
+    template <Int Stream>
+    using StreamSizesPath = typename Select<Stream, typename Container::Types::StreamsSizes>::Result;
+
+    static const Int Streams = Container::Types::Streams;
+
+    CtrSizeT toData(CtrSizeT pos)
+    {
+    	MEMORIA_ASSERT(pos, >=, 0);
+
+    	auto& self = this->self();
+
+    	Int stream = self.stream();
+
+    	if (stream < Streams - 1)
+    	{
+
+    	}
+    	else {
+    		return -1;
+    	}
+    }
+
+    void toIndex()
+    {
+
+    }
 
 //    void insertKey(Key key)
 //    {
@@ -243,18 +274,18 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorMiscName)
 //    	}
 //    }
 //
-//    CtrSizeT leaf_data_offset() const
-//    {
-//    	auto& self = this->self();
-//
-//    	auto data_prefix_by_idx = self.data_size_by_idx_prefix();
-//    	auto data_prefix 		= self.data_size_prefix();
-////    	auto keys_size_prefix 	= self.keys_size_prefix();
-//
-//    	auto node_data_offset 	= data_prefix_by_idx - data_prefix;// - keys_size_prefix;
-//
-//    	return node_data_offset;
-//    }
+    CtrSizeT leaf_data_offset() const
+    {
+    	auto& self = this->self();
+
+    	auto data_prefix_by_idx = self.data_size_by_idx_prefix();
+    	auto data_prefix 		= self.data_size_prefix();
+//    	auto keys_size_prefix 	= self.keys_size_prefix();
+
+    	auto node_data_offset 	= data_prefix_by_idx - data_prefix;// - keys_size_prefix;
+
+    	return node_data_offset;
+    }
 //
 //    CtrSizeT data_size_by_idx_prefix() const
 //    {
@@ -262,25 +293,23 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorMiscName)
 //    	return bt::Path<0, 0>::get(cache.prefixes())[0];
 //    }
 //
-//    CtrSizeT size() const {
-//    	return self().cache().data_size();
-//    }
-//
-//    CtrSizeT keys_size_prefix() const {
-//    	return self().cache().size_prefix()[0];
+    CtrSizeT size(Int stream) const {
+    	return self().cache().data_size(stream);
+    }
+
+//    CtrSizeT keys_size_prefix(Int stream) const {
+//    	return self().cache().size_prefix(stream);
 //    }
 //
 //    CtrSizeT data_size_prefix() const {
 //    	return self().cache().size_prefix()[1];
 //    }
-//
-//    CtrSizeT pos() const
-//    {
-//    	auto& self = this->self();
-//    	MEMORIA_ASSERT_TRUE(self.stream() == 1);
-//
-//    	return self.cache().data_pos();
-//    }
+
+    CtrSizeT pos() const
+    {
+    	auto& self = this->self();
+    	return self.cache().data_pos(self.stream());
+    }
 //
 //
 //
@@ -364,11 +393,39 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorMiscName)
 //    }
 //
 //
-//    auto idx_data_size(Int idx) const -> typename std::tuple_element<0, ReadLeafEntryRtnType<0, IntList<0>, Int, Int>>::type
-//    {
-//    	auto& self = this->self();
-//    	return std::get<0>(self.ctr().template _readLeafStreamEntry<0, IntList<0>>(self.leaf(), idx, 1));
-//    }
+
+    template <Int Stream>
+    struct IdxDataSizeFn {
+    	template <typename NTypes, typename... Args>
+    	auto treeNode(const LeafNode<NTypes>* node, Args&&... args)
+    	{
+    		using Path = StreamSizesPath<Stream>;
+
+			using StreamPath = bttl::BTTLSizePath<Path>;
+			const Int index  = bttl::BTTLSizePathBlockIdx<Path>::Value;
+
+    		return node->template substream<StreamPath>()->value(index, std::forward<Args>(args)...);
+    	}
+    };
+
+
+    template <Int Stream>
+    auto idx_data_size(Int idx) const
+    {
+    	auto& self = this->self();
+    	return LeafDispatcher::dispatch(self.leaf(), IdxDataSizeFn<Stream>(), idx);
+    }
+
+    CtrSizeT pfx_size(Int stream) const {
+    	return 0;
+    }
+
+    CtrSizeT pfx_count(Int stream) const {
+    	return 0;
+    }
+
+
+
 //
 //
 //    auto idx_raw_key(Int idx) const -> typename std::tuple_element<0, ReadLeafEntryRtnType<0, IntList<0>, Int, Int>>::type
@@ -395,113 +452,187 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorMiscName)
 //    }
 //
 //
-////    template <typename Walker>
-////    void finish_walking(Int idx, Walker& w, WalkCmd cmd) {
-////    	Base::finish_walking(idx, w, cmd);
-////    }
-//
-//    template <typename WWTypes>
-//    void finish_walking(Int idx, const FindForwardWalker<WWTypes>& walker, WalkCmd cmd)
-//    {
-//    	auto& self = this->self();
-//    	auto& cache = self.cache();
-//
-//    	MEMORIA_ASSERT(self.stream(), ==, 0);
-//
-//    	cache.data_pos() = 0;
-//
-//    	if (self.isContent(idx))
-//    	{
-//    		cache.data_size() = self.idx_data_size(idx);
-//    	}
-//    	else {
-//    		cache.data_size() = -1;
-//    	}
+//    template <typename Walker>
+//    void finish_walking(Int idx, Walker& w, WalkCmd cmd) {
+//    	Base::finish_walking(idx, w, cmd);
 //    }
 //
-//    template <typename WWTypes>
-//    void finish_walking(Int idx, const FindBackwardWalker<WWTypes>& walker, WalkCmd cmd)
-//    {
-//    	auto& self = this->self();
-//    	auto& cache = self.cache();
-//
-//    	MEMORIA_ASSERT(self.stream(), ==, 0);
-//
-//    	cache.data_pos() = 0;
-//
-//    	if (self.isContent(idx))
-//    	{
-//    		cache.data_size() = self.idx_data_size(idx);
-//    	}
-//    	else {
-//    		cache.data_size() = -1;
-//    	}
-//    }
-//
-//
-//    template <typename WWTypes>
-//    void finish_walking(Int idx, const FindGEForwardWalker<WWTypes>& walker, WalkCmd cmd)
-//    {
-//    	auto& self = this->self();
-//    	auto& cache = self.cache();
-//
-//    	MEMORIA_ASSERT(self.stream(), ==, 0);
-//
-//    	cache.data_pos() = 0;
-//
-//    	if (self.isContent(idx))
-//    	{
-//    		cache.data_size() = self.idx_data_size(idx);
-//    	}
-//    	else {
-//    		cache.data_size() = -1;
-//    	}
-//    }
-//
-//
-//    template <typename WTypes>
-//    void finish_walking(Int idx, const SkipForwardWalker<WTypes>& walker, WalkCmd cmd)
-//    {
-//    	auto& self = this->self();
-//    	auto& cache = self.cache();
-//
-//    	if (self.stream() == 0)
-//    	{
-//    		if (self.isContent(idx))
-//    		{
-//    			self.cache().data_size() = self.idx_data_size(idx);
-//    		}
-//    		else {
-//    			self.cache().data_size() = -1;
-//    		}
-//    	}
-//    	else {
-//    		cache.data_pos() += walker.sum();
-//    	}
-//    }
-//
-//    template <typename WTypes>
-//    void finish_walking(Int idx, const SkipBackwardWalker<WTypes>& walker, WalkCmd cmd)
-//    {
-//    	auto& self = this->self();
-//    	auto& cache = self.cache();
-//
-//    	if (self.stream() == 0)
-//    	{
-//    		cache.data_pos() 	= 0;
-//
-//    		if (self.isContent(idx))
-//    		{
-//    			self.cache().data_size() = self.idx_data_size(idx);
-//    		}
-//    		else {
-//    			self.cache().data_size() = -1;
-//    		}
-//    	}
-//    	else {
-//    		cache.data_pos() -= walker.sum();
-//    	}
-//    }
+
+    void update_leaf_ranks()
+    {
+    	auto& self = this->self();
+    	auto& prefixes = self.cache().ranks();
+    	self.compute_leaf_prefixes(prefixes);
+    }
+
+    void update_leaf_ranks(WalkCmd cmd)
+    {
+    	if (cmd == WalkCmd::LAST_LEAF){
+    		update_leaf_ranks();
+    	}
+    }
+
+    template <typename WWTypes>
+    void finish_walking(Int idx, const FindForwardWalker<WWTypes>& walker, WalkCmd cmd)
+    {
+    	constexpr Int Stream = FindForwardWalker<WWTypes>::Stream;
+
+    	auto& self = this->self();
+    	auto& cache = self.cache();
+
+    	auto& pos  = cache.data_pos();
+    	auto& size = cache.data_size();
+
+    	auto stream = self.stream();
+
+    	auto start 	 = walker.branch_size_prefix_backup()[stream] + walker.idx_backup();
+    	auto current = walker.branch_size_prefix()[stream] + idx;
+
+    	pos[stream] += current - start;
+
+    	if (stream < Streams - 1)
+    	{
+    		pos[stream + 1] = 0;
+
+    		if (self.isContent(idx))
+    		{
+    			size[stream + 1] = self.template idx_data_size<Stream>(idx);
+    		}
+    		else {
+    			size[stream + 1] = -1;
+    		}
+    	}
+
+    	update_leaf_ranks(cmd);
+    }
+
+    template <typename WWTypes>
+    void finish_walking(Int idx, const FindBackwardWalker<WWTypes>& walker, WalkCmd cmd)
+    {
+    	constexpr Int Stream = FindBackwardWalker<WWTypes>::Stream;
+
+    	auto& self = this->self();
+    	auto& cache = self.cache();
+
+    	auto& pos  = cache.data_pos();
+    	auto& size = cache.data_size();
+
+    	auto stream = self.stream();
+
+    	auto start 	 = walker.branch_size_prefix_backup()[stream] + walker.idx_backup();
+    	auto current = walker.branch_size_prefix()[stream] + idx;
+
+    	pos[stream] -= start - current;
+
+    	if (stream < Streams - 1)
+    	{
+    		pos[stream + 1] = 0;
+
+    		if (self.isContent(idx))
+    		{
+    			size[stream + 1] = self.template idx_data_size<Stream>(idx);
+    		}
+    		else {
+    			size[stream + 1] = -1;
+    		}
+    	}
+
+    	update_leaf_ranks(cmd);
+    }
+
+
+    template <typename WWTypes>
+    void finish_walking(Int idx, const FindGEForwardWalker<WWTypes>& walker, WalkCmd cmd)
+    {
+    	constexpr Int Stream = FindGEForwardWalker<WWTypes>::Stream;
+
+    	auto& self = this->self();
+    	auto& cache = self.cache();
+
+    	auto& pos  = cache.data_pos();
+    	auto& size = cache.data_size();
+
+    	auto stream = self.stream();
+
+    	auto start 	 = walker.branch_size_prefix_backup()[stream] + walker.idx_backup();
+    	auto current = walker.branch_size_prefix()[stream] + idx;
+
+    	pos[stream] += current - start;
+
+    	if (stream < Streams - 1)
+    	{
+    		pos[stream + 1] = 0;
+
+    		if (self.isContent(idx))
+    		{
+    			size[stream + 1] = self.template idx_data_size<Stream>(idx);
+    		}
+    		else {
+    			size[stream + 1] = -1;
+    		}
+    	}
+
+    	update_leaf_ranks(cmd);
+    }
+
+
+    template <typename WTypes>
+    void finish_walking(Int idx, const SkipForwardWalker<WTypes>& walker, WalkCmd cmd)
+    {
+    	constexpr Int Stream = SkipForwardWalker<WTypes>::Stream;
+
+    	auto& self = this->self();
+    	auto& cache = self.cache();
+
+    	auto& pos  = cache.data_pos();
+    	auto& size = cache.data_size();
+
+    	auto stream = self.stream();
+
+    	pos[stream] += walker.sum();
+
+    	if (stream < Streams - 1)
+    	{
+    		if (self.isContent(idx))
+    		{
+    			size[stream + 1] = self.template idx_data_size<Stream>(idx);
+    		}
+    		else {
+    			size[stream + 1] = -1;
+    		}
+    	}
+
+    	update_leaf_ranks(cmd);
+    }
+
+    template <typename WTypes>
+    void finish_walking(Int idx, const SkipBackwardWalker<WTypes>& walker, WalkCmd cmd)
+    {
+    	constexpr Int Stream = SkipBackwardWalker<WTypes>::Stream;
+
+    	auto& self = this->self();
+    	auto& cache = self.cache();
+
+    	auto& pos  = cache.data_pos();
+    	auto& size = cache.data_size();
+
+    	auto stream = self.stream();
+
+    	pos[stream] -= walker.sum();
+
+    	if (stream < Streams - 1)
+    	{
+    		if (self.isContent(idx))
+    		{
+    			size[stream + 1] = self.template idx_data_size<Stream>(idx);
+    		}
+    		else {
+    			size[stream + 1] = -1;
+    		}
+    	}
+
+    	update_leaf_ranks(cmd);
+    }
 
 
 MEMORIA_ITERATOR_PART_END

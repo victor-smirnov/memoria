@@ -381,6 +381,10 @@ public:
 
         using InputBuffer = CompoundInputBuffer<typename MyType::NodeTypesBase>;
 
+        template <typename LeafPath>
+        using AccumItemH = AccumItem<LeafStreamsStructList, LeafPath, IteratorAccumulator>;
+
+
         static const LeafDataLengthType LeafDataLength = LeafSizeType == PackedSizeType::FIXED ?
         		LeafDataLengthType::FIXED : LeafDataLengthType::VARIABLE;
 
