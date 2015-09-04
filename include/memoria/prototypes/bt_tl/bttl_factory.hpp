@@ -23,6 +23,7 @@
 #include <memoria/prototypes/bt_tl/iterator/bttl_i_misc.hpp>
 #include <memoria/prototypes/bt_tl/iterator/bttl_i_srank.hpp>
 #include <memoria/prototypes/bt_tl/iterator/bttl_i_find.hpp>
+#include <memoria/prototypes/bt_tl/iterator/bttl_i_skip.hpp>
 
 #include <tuple>
 
@@ -46,7 +47,8 @@ struct BTTypes<Profile, memoria::BTTreeLayout>: public BTTypes<Profile, memoria:
                 typename Base::IteratorPartsList,
                 memoria::bttl::IteratorMiscName,
 				memoria::bttl::IteratorStreamRankName,
-				memoria::bttl::IteratorFindName
+				memoria::bttl::IteratorFindName,
+				memoria::bttl::IteratorSkipName
     >;
 
     template <typename Iterator, typename Container>
@@ -75,6 +77,10 @@ public:
         using IterTypes 		= BTTLIterTypes<Types>;
 
         using PageUpdateMgr 	= PageUpdateManager<CtrTypes>;
+
+        using LeafPrefixRanks   = typename Base::Types::Position[Base::Types::Streams];
+
+        static const Int SearchableStreams = Base::Types::Streams - 1;
     };
 
     using CtrTypes 	= typename Types::CtrTypes;

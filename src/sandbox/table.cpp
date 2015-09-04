@@ -35,19 +35,32 @@ int main(int argc, const char** argv, const char** envp) {
 
 		CtrT ctr(&alloc);
 
-		auto iter = ctr.find(0);
-//		iter.template _skipFw<0>(1);
-//		iter.template _skipBw<0>(1);
+		auto iter = ctr.seek(0);
 
 		using Provider = table::RandomDataInputProvider<CtrT, decltype(generator)>;
 
-		Provider provider(ctr, 1000000, 10, 100, generator);
+		Provider provider(ctr, 100, 10, 10, generator);
 
 		using Position = Provider::Position;
 
 		ctr.insertData(iter.leaf(), Position(), provider);
 
-		iter.leaf_rank(0);
+		cout<<"Data inserted!"<<endl;
+
+		iter = ctr.seek(33);
+		iter.dumpHeader();
+
+		iter.toData(2);
+
+		iter.dumpHeader();
+		iter.dumpRanks();
+		iter.dumpExtent();
+
+//		for (int c = 0; c < 10; c++) {
+//			iter.skipFw(1);
+//
+//			iter.dumpHeader();
+//		}
 
 		alloc.commit();
 

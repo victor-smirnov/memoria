@@ -231,12 +231,12 @@ class BTTLIteratorPrefixCache: public bt::BTree2IteratorPrefixCache<Iterator, Co
 
 	static const Int Streams = Container::Types::Streams;
 
-	using Ranks 	= Position[Streams - 1];
+	using LeafPrefixRanks = typename Container::Types::LeafPrefixRanks;
 
 	Position data_size_;
 	Position data_pos_;
 
-	Ranks ranks_;
+	LeafPrefixRanks ranks_;
 
 public:
 	using MyType = BTTLIteratorPrefixCache<Iterator, Container>;
@@ -265,11 +265,11 @@ public:
 		return data_pos_[idx];
 	}
 
-	Ranks& ranks() {
+	LeafPrefixRanks& ranks() {
 		return ranks_;
 	}
 
-	const Ranks& ranks() const {
+	const LeafPrefixRanks& ranks() const {
 		return ranks_;
 	}
 
@@ -293,9 +293,9 @@ std::ostream& operator<<(std::ostream& out, const BTTLIteratorPrefixCache<I, C>&
 {
     out<<"BTTLIteratorPrefixCache[";
     out<<"Branch prefixes: "<<cache.prefixes()<<", Leaf Prefixes: "<<cache.leaf_prefixes();
-//    out<<", Size Prefixes: "<<cache.size_prefix();
-//    out<<", Data Size: "<<cache.data_size();
-//    out<<", Data Pos: "<<cache.data_pos();
+    out<<", Size Prefixes: "<<cache.size_prefix();
+    out<<", Data Size: "<<cache.data_size();
+    out<<", Data Pos: "<<cache.data_pos();
     out<<"]";
 
     return out;

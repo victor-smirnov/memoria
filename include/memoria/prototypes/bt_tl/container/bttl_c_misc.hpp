@@ -61,7 +61,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::MiscName)
     	return self().template _find2GE<IntList<0>>(0, key);
     }
 
-
+    Iterator seek(CtrSizeT pos)
+    {
+    	return self().template _seek<0>(pos);
+    }
 
 
 MEMORIA_CONTAINER_PART_END

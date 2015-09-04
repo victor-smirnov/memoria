@@ -52,57 +52,120 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorFindName)
     template <typename LeafPath>
     using AccumItemH = typename Container::Types::template AccumItemH<LeafPath>;
 
-    static const Int Streams = Container::Types::Streams;
+    static const Int Streams 				= Container::Types::Streams;
+    static const Int SearchableStreams 		= Container::Types::SearchableStreams;
 
-    using Prefixes = Position[Streams - 1];
-
-
-
-private:
-
-    struct FindFn {
-
-    	Position prefix_;
-    	Position sums_;
-    	Int stream_;
-    	CtrSizeT cnt_;
-
-    	FindFn(const Position& prefix, Position& sums, Int stream, Int end):
-    		prefix_(prefix), stream_(stream), cnt_(end)
-    	{}
-
-    	template <Int Stream, typename Leaf>
-    	void process(const Leaf* leaf)
-    	{
-    		if (Stream >= stream_)
-    		{
-    			using Path 		 = StreamSizesPath<Stream>;
-    			using StreamPath = bttl::BTTLSizePath<Path>;
-    			const Int index  = bttl::BTTLSizePathBlockIdx<Path>::Value;
-
-    			auto substream = leaf->template substream<StreamPath>();
-    			auto sum = substream->sum(index, prefix_[Stream], prefix_[Stream] + cnt_);
-
-    			sums_[Stream + 1] += sum;
-    			cnt_ = sum;
-    		}
-    	}
+    using LeafPrefixRanks = typename Container::Types::LeafPrefixRanks;
 
 
-    	template <typename NTypes>
-    	void treeNode(const LeafNode<NTypes>* leaf)
-    	{
-    		ForEach<0, Streams - 1>::process(*this, leaf);
-    	}
-    };
-
-
-    void count_downstream_items(const Position& prefix, Position& sums, Int stream, Int end) const
-    {
-    	return LeafDispatcher::dispatch(self().leaf(), CountStreamsItemsFn(prefix, sums, stream, end));
+    template <typename Walker>
+    void finish_walking(Int idx, Walker& w, WalkCmd cmd) {
+    	Base::finish_walking(idx, w, cmd);
     }
 
 
+    template <typename WWTypes>
+    void finish_walking(Int idx, const FindForwardWalker<WWTypes>& walker, WalkCmd cmd)
+    {
+    	constexpr Int Stream = FindForwardWalker<WWTypes>::Stream;
+
+    	auto& self = this->self();
+    	auto& cache = self.cache();
+
+    	auto& pos  = cache.data_pos();
+    	auto& size = cache.data_size();
+
+    	auto stream = self.stream();
+
+    	auto start 	 = walker.branch_size_prefix_backup()[stream] + walker.idx_backup();
+    	auto current = walker.branch_size_prefix()[stream] + idx;
+
+    	pos[stream] += current - start;
+
+    	if (stream < Streams - 1)
+    	{
+    		pos[stream + 1] = 0;
+
+    		if (self.isContent(idx))
+    		{
+    			size[stream + 1] = self.template idx_data_size<Stream>(idx);
+    		}
+    		else {
+    			size[stream + 1] = -1;
+    		}
+    	}
+
+    	self.update_leaf_ranks(cmd);
+    }
+
+    template <typename WWTypes>
+    void finish_walking(Int idx, const FindBackwardWalker<WWTypes>& walker, WalkCmd cmd)
+    {
+    	constexpr Int Stream = FindBackwardWalker<WWTypes>::Stream;
+
+    	auto& self = this->self();
+    	auto& cache = self.cache();
+
+    	auto& pos  = cache.data_pos();
+    	auto& size = cache.data_size();
+
+    	auto stream = self.stream();
+
+    	auto start 	 = walker.branch_size_prefix_backup()[stream] + walker.idx_backup();
+    	auto current = walker.branch_size_prefix()[stream] + idx;
+
+    	pos[stream] -= start - current;
+
+    	if (stream < Streams - 1)
+    	{
+    		pos[stream + 1] = 0;
+
+    		if (self.isContent(idx))
+    		{
+    			size[stream + 1] = self.template idx_data_size<Stream>(idx);
+    		}
+    		else {
+    			size[stream + 1] = -1;
+    		}
+    	}
+
+    	self.update_leaf_ranks(cmd);
+    }
+
+
+    template <typename WWTypes>
+    void finish_walking(Int idx, const FindGEForwardWalker<WWTypes>& walker, WalkCmd cmd)
+    {
+    	constexpr Int Stream = FindGEForwardWalker<WWTypes>::Stream;
+
+    	auto& self = this->self();
+    	auto& cache = self.cache();
+
+    	auto& pos  = cache.data_pos();
+    	auto& size = cache.data_size();
+
+    	auto stream = self.stream();
+
+    	auto start 	 = walker.branch_size_prefix_backup()[stream] + walker.idx_backup();
+    	auto current = walker.branch_size_prefix()[stream] + idx;
+
+    	pos[stream] += current - start;
+
+    	if (stream < Streams - 1)
+    	{
+    		pos[stream + 1] = 0;
+
+    		if (self.isContent(idx))
+    		{
+    			size[stream + 1] = self.template idx_data_size<Stream>(idx);
+    		}
+    		else {
+    			size[stream + 1] = -1;
+    		}
+    	}
+
+    	self.update_leaf_ranks(cmd);
+    }
 
 MEMORIA_ITERATOR_PART_END
 

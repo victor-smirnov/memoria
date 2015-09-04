@@ -52,11 +52,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorStreamRankName)
     template <typename LeafPath>
     using AccumItemH = typename Container::Types::template AccumItemH<LeafPath>;
 
-    static const Int Streams = Container::Types::Streams;
+    static const Int Streams 				= Container::Types::Streams;
+    static const Int SearchableStreams 		= Container::Types::SearchableStreams;
 
-    using Ranks = Position[Streams - 1];
+    using LeafPrefixRanks = typename Container::Types::LeafPrefixRanks;
 
-    Position leaf_rank(const Position& sizes, const Ranks& prefixes, Int pos) const
+    Position leaf_rank(const Position& sizes, const LeafPrefixRanks& prefixes, Int pos) const
     {
     	for (Int s = 0; s < Streams; s++)
     	{
@@ -80,7 +81,68 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorStreamRankName)
 
 
 
-    void compute_leaf_prefixes(Ranks& prefixes) const
+
+
+
+
+    Position leaf_extent() const
+    {
+    	const auto& self  = this->self();
+    	const auto& cache = self.cache();
+    	const auto& branch_prefix = cache.prefixes();
+
+    	Position expected_sizes;
+    	bttl::detail::ExpectedSizesHelper<StreamSizes, AccumItemH>::process(branch_prefix, expected_sizes);
+
+    	expected_sizes[0] = cache.size_prefix()[0];
+
+    	return expected_sizes - cache.size_prefix();
+    }
+
+
+    template <Int Stream>
+    struct _StreamsRankFn {
+    	template <typename NTypes, typename... Args>
+    	Position treeNode(const LeafNode<NTypes>* leaf, const Position& sizes, const Position& prefix, Int pos, Args&&... args)
+    	{
+    		bttl::detail::StreamsRankFn<
+				StreamSizesPath,
+				CtrSizeT,
+				Position
+			> fn(sizes, prefix, pos);
+
+    		bttl::detail::StreamsRankHelper<Stream, SearchableStreams>::process(leaf, fn, std::forward<Args>(args)...);
+
+    		return fn.indexes_;
+    	}
+    };
+
+    template <Int Stream, typename... Args>
+    Position _streams_rank(Args&&... args) const
+    {
+    	return LeafDispatcher::dispatch(self().leaf(), _StreamsRankFn<Stream>(), std::forward<Args>(args)...);
+    }
+
+    void dumpRanks(std::ostream& out = std::cout) const
+    {
+    	LeafPrefixRanks ranks;
+
+    	self().compute_leaf_prefixes(ranks);
+
+    	out<<"PrefixRanks:"<<endl;
+
+    	for (Int c = 0; c < Streams; c++) {
+    		out<<ranks[c]<<endl;
+    	}
+    }
+
+    void dumpExtent(std::ostream& out = std::cout) const
+    {
+    	out<<"LeafExtent:"<<self().leaf_extent()<<endl;
+    }
+
+
+    void compute_leaf_prefixes(LeafPrefixRanks& prefixes) const
     {
     	const auto& self  = this->self();
     	const auto& cache = self.cache();
@@ -98,51 +160,31 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorStreamRankName)
 
     	prefixes[Streams - 2][Streams - 1] = extent[Streams - 1];
 
-    	for (Int s = Streams - 2; s > 0; s--)
+    	for (Int s = SearchableStreams - 1; s > 0; s--)
     	{
-    		prefixes[s] = prefixes[s + 1];
-    		count_downstream_items(prefixes[s + 1], prefixes[s], s, extent[s]);
+    		prefixes[s - 1] = prefixes[s];
+    		count_downstream_items(prefixes[s], prefixes[s - 1], s, extent[s]);
+    		prefixes[s - 1][s] = extent[s];
     	}
     }
 
-    template <Int Stream>
-    struct _StreamsRankFn {
-    	template <typename NTypes, typename... Args>
-    	Position treeNode(const LeafNode<NTypes>* leaf, const Position& sizes, const Position& prefix, Int pos, Args&&... args)
-    	{
-    		bttl::detail::StreamsRankFn<
-				StreamSizesPath,
-				CtrSizeT,
-				Position
-			> fn(sizes, prefix, pos);
 
-    		bttl::detail::StreamsRankHelper<Stream, Streams - 1>::process(leaf, fn, std::forward<Args>(args)...);
-
-    		return fn.indexes_;
-    	}
-    };
-
-    template <Int Stream, typename... Args>
-    Position _streams_rank(Args&&... args) const
-    {
-    	return LeafDispatcher::dispatch(self().leaf(), _StreamsRankFn<Stream>(), std::forward<Args>(args)...);
-    }
 
 private:
 
     struct CountStreamsItemsFn {
 
     	Position prefix_;
-    	Position sums_;
+    	Position& sums_;
     	Int stream_;
     	CtrSizeT cnt_;
 
     	CountStreamsItemsFn(const Position& prefix, Position& sums, Int stream, Int end):
-    		prefix_(prefix), stream_(stream), cnt_(end)
+    		prefix_(prefix), sums_(sums), stream_(stream), cnt_(end)
     	{}
 
     	template <Int Stream, typename Leaf>
-    	void process(const Leaf* leaf)
+    	bool process(const Leaf* leaf)
     	{
     		if (Stream >= stream_)
     		{
@@ -156,13 +198,15 @@ private:
     			sums_[Stream + 1] += sum;
     			cnt_ = sum;
     		}
+
+    		return true;
     	}
 
 
     	template <typename NTypes>
     	void treeNode(const LeafNode<NTypes>* leaf)
     	{
-    		ForEach<0, Streams - 1>::process(*this, leaf);
+    		ForEach<0, SearchableStreams>::process(*this, leaf);
     	}
     };
 

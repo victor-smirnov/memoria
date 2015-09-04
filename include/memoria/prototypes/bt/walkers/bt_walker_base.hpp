@@ -355,7 +355,7 @@ public:
     {
     	using ItrAccList = memoria::list_tree::MakeValueList<Int, 0, std::tuple_size<IteratorAccumulator>::value>;
 
-    	detail::BranchAccumWaker1<
+    	detail::BranchAccumWalker1<
     		IteratorAccumulator,
     		ItrAccList
     	>::
@@ -367,7 +367,7 @@ public:
     	template <Int GroupIdx, Int AllocatorIdx, Int ListIdx, typename StreamObj, typename... Args>
     	void stream(const StreamObj* obj, MyType& walker, Args&&... args)
     	{
-    		walker.template branch_size_prefix<GroupIdx>(obj, std::forward<Args>(args)...);
+    		walker.template branch_size_prefix<ListIdx>(obj, std::forward<Args>(args)...);
     	}
     };
 
@@ -377,7 +377,7 @@ public:
     	template <Int GroupIdx, Int AllocatorIdx, Int ListIdx, typename StreamObj, typename... Args>
     	void stream(const StreamObj* obj, MyType& walker, Args&&... args)
     	{
-    		walker.template leaf_size_prefix<GroupIdx>(obj, std::forward<Args>(args)...);
+    		walker.template leaf_size_prefix<ListIdx>(obj, std::forward<Args>(args)...);
     	}
     };
 

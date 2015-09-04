@@ -53,9 +53,12 @@ struct ForEachItem<Config, TypeList<Head, Tail...>, Handler, Accumulator> {
 template <Int Idx, Int Size>
 struct ForEach {
 	template <typename Fn, typename... Args>
-	static void process(Fn&& fn, Args&&... args){
-		fn.template process<Idx>(std::forward<Args>(args)...);
-		ForEach<Idx + 1, Size>::process(std::forward<Fn>(fn), std::forward<Args>(args)...);
+	static void process(Fn&& fn, Args&&... args)
+	{
+		if (fn.template process<Idx>(std::forward<Args>(args)...))
+		{
+			ForEach<Idx + 1, Size>::process(std::forward<Fn>(fn), std::forward<Args>(args)...);
+		}
 	}
 };
 
@@ -67,7 +70,22 @@ struct ForEach<Idx, Idx> {
 };
 
 
+template <Int V1, Int V2> struct IfLess
+{
+	template <typename Fn, typename ElseFn, typename... Args>
+	static auto process(Fn&& fn, ElseFn&& else_fn, Args&&... args) {
+		return fn.template process<V1>(std::forward<Args>(args)...);
+	}
+};
 
+template <Int V2>
+struct IfLess<V2, V2>
+{
+	template <typename Fn, typename ElseFn, typename... Args>
+	static auto process(Fn&& fn, ElseFn&& else_fn, Args&&... args) {
+		return else_fn.template process<V2>(std::forward<Args>(args)...);
+	}
+};
 
 }
 

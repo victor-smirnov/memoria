@@ -120,7 +120,7 @@ public:
 		{
 			if (level_ == 0)
 			{
-				std::get<0>(this->buffer_)[pos[0]] = InputTupleAdapter<0>::convert(memoria::core::StaticVector<BigInt, 2>({200, 0}));
+				std::get<0>(this->buffer_)[pos[0]] = InputTupleAdapter<0>::convert(memoria::core::StaticVector<BigInt, 2>({1, 0}));
 
 				col_ = 0;
 

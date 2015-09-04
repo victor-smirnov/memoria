@@ -356,6 +356,11 @@ public:
     template <Int StartIdx, Int EndIdx>
     using SubrangeDispatcher = typename Dispatcher::template SubrangeDispatcher<StartIdx, EndIdx>;
 
+    template <Int StreamIdx>
+    using StreamStartIdx = IntValue<
+    	memoria::list_tree::LeafCountInf<BranchSubstreamsStructList, IntList<StreamIdx>>::Value
+	>;
+
 
     template <typename SubstreamsPath>
     using SubstreamsDispatcher = SubrangeDispatcher<
@@ -1461,6 +1466,7 @@ public:
        >::template ProcessAllRtnConstType<Fn, Args...>
     {
     	using Subset = StreamsStartSubset<BranchSubstreamsStructList>;
+
     	return Dispatcher::template SubsetDispatcher<Subset>::template dispatchAll(
     			allocator(),
     			std::forward<Fn>(fn),

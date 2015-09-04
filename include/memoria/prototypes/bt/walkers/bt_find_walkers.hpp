@@ -242,7 +242,7 @@ public:
 	{
 		if (obj != nullptr)
 		{
-			const Int Idx = Offset - std::remove_reference<decltype(item)>::type::From;
+			const Int Idx = Offset - AccumItem::From;
 
 			if (end - start == 1 && start > 0)
 			{
@@ -264,7 +264,7 @@ public:
 	template <Int Offset, Int From, Int Size, typename StreamObj, typename AccumItem>
 	void leaf_iterator_accumulator(const StreamObj* obj, AccumItem& item)
 	{
-		const Int Idx = Offset - std::remove_reference<decltype(item)>::type::From;
+		const Int Idx = Offset - AccumItem::From;
 
 		if (obj != nullptr) {
 			for (Int c = 0; c < Size; c++)
