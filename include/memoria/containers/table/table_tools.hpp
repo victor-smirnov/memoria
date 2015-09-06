@@ -112,10 +112,6 @@ public:
 
 	virtual RunDescr populate(const Position& pos)
 	{
-		if (key_ >= 10) {
-			DebugCounter = 1;
-		}
-
 		if (key_ < keys_)
 		{
 			if (level_ == 0)

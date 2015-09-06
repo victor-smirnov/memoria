@@ -108,18 +108,18 @@ public:
     	{
     		if (cmd == WalkCmd::THE_ONLY_LEAF)
     		{
-    			self.processLeafIteratorAccumulator(node, this->leaf_accumulator(), start, end);
+//    			self.processLeafIteratorAccumulator(node, this->leaf_accumulator(), start, end);
     		}
     		else if (cmd == WalkCmd::FIRST_LEAF)
     		{
     			// FIXME: is this call necessary here?
-    			self.processLeafIteratorAccumulator(node, this->leaf_accumulator(), start, end);
-    			self.processLeafIteratorAccumulator(node, this->branch_accumulator());
+//    			self.processLeafIteratorAccumulator(node, this->leaf_accumulator(), start, end);
+    			self.processBranchIteratorAccumulatorWithLeaf(node, this->branch_accumulator());
 
     			self.processLeafSizePrefix(node);
     		}
     		else if (cmd == WalkCmd::LAST_LEAF) {
-    			self.processLeafIteratorAccumulator(node, this->leaf_accumulator(), start, end);
+//    			self.processLeafIteratorAccumulator(node, this->leaf_accumulator(), start, end);
     		}
     		else {
     			// throw exception ?
@@ -186,11 +186,11 @@ public:
     	}
     }
 
-    Position& branch_size_prefix() {
+    auto& branch_size_prefix() {
     	return Base::branch_size_prefix();
     }
 
-    const Position& branch_size_prefix() const {
+    const auto& branch_size_prefix() const {
     	return Base::branch_size_prefix();
     }
 
@@ -430,15 +430,16 @@ public:
 
     	if (cmd == WalkCmd::THE_ONLY_LEAF)
     	{
-    		self.processLeafIteratorAccumulator(node, this->leaf_accumulator(), start, end);
+//    		self.processLeafIteratorAccumulator(node, this->leaf_accumulator(), start, end);
     	}
     	else if (cmd == WalkCmd::FIRST_LEAF)
     	{
-    		self.processLeafIteratorAccumulator(node, this->leaf_accumulator(), true);
+//    		self.processLeafIteratorAccumulator(node, this->leaf_accumulator(), true);
     	}
     	else if (cmd == WalkCmd::LAST_LEAF)  {
-    		self.processLeafIteratorAccumulator(node, this->leaf_accumulator(), start, end);
-    		self.processLeafIteratorAccumulator(node, this->branch_accumulator(), false);
+//    		self.processLeafIteratorAccumulator(node, this->leaf_accumulator(), start, end);
+    		self.processBranchIteratorAccumulatorWithLeaf(node, this->branch_accumulator(), false);
+
     		self.processLeafSizePrefix(node);
     	}
     	else {
@@ -455,6 +456,13 @@ public:
     	}
     }
 
+    auto& branch_size_prefix() {
+    	return Base::branch_size_prefix();
+    }
+
+    const auto& branch_size_prefix() const {
+    	return Base::branch_size_prefix();
+    }
 
 	template <Int StreamIdx, typename StreamType>
 	void branch_size_prefix(const StreamType* obj, Int start, Int end)

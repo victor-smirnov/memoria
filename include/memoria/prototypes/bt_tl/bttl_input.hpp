@@ -366,10 +366,8 @@ public:
 	};
 
 
-	virtual void insertBuffer(NodeBaseG& leaf, const Position& at, const Position& sizes)
+	void updateLeafAncors(const NodeBaseG& leaf, const Position& at, const Position& sizes)
 	{
-		CtrT::Types::Pages::LeafDispatcher::dispatch(leaf, InsertBufferFn(), at, start_, sizes, buffer_);
-
 		for (Int c = 0; c < Streams - 1; c++)
 		{
 			if (sizes[c] > 0)
@@ -378,6 +376,23 @@ public:
 				leafs_[c]  = leaf;
 			}
 		}
+	}
+
+
+	virtual void insertBuffer(NodeBaseG& leaf, const Position& at, const Position& sizes)
+	{
+		CtrT::Types::Pages::LeafDispatcher::dispatch(leaf, InsertBufferFn(), at, start_, sizes, buffer_);
+
+//		for (Int c = 0; c < Streams - 1; c++)
+//		{
+//			if (sizes[c] > 0)
+//			{
+//				ancors_[c] = at[c] + sizes[c] - 1;
+//				leafs_[c]  = leaf;
+//			}
+//		}
+
+		updateLeafAncors(leaf, at, sizes);
 
 		start_ += sizes;
 	}
@@ -808,6 +823,9 @@ protected:
 		try {
 			CtrT::Types::Pages::LeafDispatcher::dispatch(leaf, typename Base::InsertBufferFn(), at, this->start_, size, this->buffer_);
 			mgr.checkpoint(leaf);
+
+			this->updateLeafAncors(leaf, at, size);
+
 			return true;
 		}
 		catch (PackedOOMException& ex)

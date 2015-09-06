@@ -270,6 +270,9 @@ public:
     {
         self().dumpCache(out);
         self().dumpKeys(out);
+        if (self().leaf().isSet()) {
+        	cout<<"Node ID: "<<self().leaf()->id()<<endl;
+        }
     }
 
     void dumpKeys(std::ostream& out) const

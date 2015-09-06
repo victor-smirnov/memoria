@@ -231,15 +231,20 @@ class BTTLIteratorPrefixCache: public bt::BTree2IteratorPrefixCache<Iterator, Co
 
 	static const Int Streams = Container::Types::Streams;
 
-	using LeafPrefixRanks = typename Container::Types::LeafPrefixRanks;
-
 	Position data_size_;
 	Position data_pos_;
+	Position abs_pos_;
 
-	LeafPrefixRanks ranks_;
+
 
 public:
 	using MyType = BTTLIteratorPrefixCache<Iterator, Container>;
+
+	BTTLIteratorPrefixCache():
+		data_size_(-1),
+		data_pos_(-1),
+		abs_pos_(-1)
+	{}
 
 	Position& data_size() {
 		return data_size_;
@@ -247,10 +252,6 @@ public:
 
 	const Position& data_size() const {
 		return data_size_;
-	}
-
-	auto data_size(Int idx) const {
-		return data_size_[idx];
 	}
 
 	Position& data_pos() {
@@ -261,16 +262,12 @@ public:
 		return data_pos_;
 	}
 
-	auto data_pos(Int idx) const {
-		return data_pos_[idx];
+	Position& abs_pos() {
+		return abs_pos_;
 	}
 
-	LeafPrefixRanks& ranks() {
-		return ranks_;
-	}
-
-	const LeafPrefixRanks& ranks() const {
-		return ranks_;
+	const Position& abs_pos() const {
+		return abs_pos_;
 	}
 
     bool operator==(const MyType& other) const
@@ -296,6 +293,7 @@ std::ostream& operator<<(std::ostream& out, const BTTLIteratorPrefixCache<I, C>&
     out<<", Size Prefixes: "<<cache.size_prefix();
     out<<", Data Size: "<<cache.data_size();
     out<<", Data Pos: "<<cache.data_pos();
+    out<<", Abs Pos: "<<cache.abs_pos();
     out<<"]";
 
     return out;

@@ -106,7 +106,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
     	auto size = cache.data_size()[stream];
 
     	if (pos + n > size) {
-    		//n = size - pos;
+    		n = size - pos;
     	}
 
     	SkipFwFn fn;
@@ -145,14 +145,15 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
 
     CtrSizeT size() const {
     	auto stream = self().stream();
-    	return self().cache().data_size(stream);
+    	return self().cache().data_size()[stream];
     }
 
 
     CtrSizeT pos() const {
     	auto stream = self().stream();
-    	return self().cache().data_pos(stream);
+    	return self().cache().data_pos()[stream];
     }
+
 
     CtrSizeT toData(CtrSizeT offset = 0)
     {
@@ -172,19 +173,22 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
 
     		cache.data_pos()[stream + 1] = -full_substream_offset;
 
+    		self.update_substream_size(stream, idx, cache.data_size());
+
     		stream++;
     		idx = 0;
 
-    		return self.skipFw(full_substream_offset + offset);
+    		return self.skipFw(full_substream_offset + offset) - full_substream_offset;
     	}
     	else {
     		return 0;
     	}
     }
 
-    void toIndex()
+    void toIndex1()
     {
-    	auto& self = this->self();
+    	auto& self  = this->self();
+    	auto& cache = self.cache();
 
     	auto& stream = self.stream();
 
@@ -192,26 +196,111 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
 
     	if (stream > 0)
     	{
-    		auto stream_prefix = self.data_offset(stream - 1);
-    		if (idx >= stream_prefix)
+    		if (!self.isSEnd())
     		{
-    			auto parent_idx = self.find_offset(stream, idx);
+    			auto stream_prefix = self.data_offset(stream);
+    			if (idx >= stream_prefix)
+    			{
+    				auto parent_idx = self.find_offset(stream - 1, idx);
 
-    			stream--;
-    			idx = 0;
+    				stream--;
+    				idx = 0;
 
-    			self.skipFw(parent_idx);
+    				cache.data_pos()[stream] -= parent_idx;
+
+    				self.skipFw(parent_idx);
+    			}
+    			else {
+    				stream--;
+    				idx = 0;
+
+    				cache.data_pos()[stream]++;
+    				self.skipBw(1);
+    			}
     		}
     		else {
-    			stream--;
-    			idx = 0;
 
+    		}
+    	}
+    }
+
+
+    void toIndex()
+    {
+    	auto& self  = this->self();
+    	auto& cache = self.cache();
+
+    	auto& stream = self.stream();
+
+    	auto& idx = self.idx();
+
+    	if (stream > 0)
+    	{
+    		auto parent_idx = cache.abs_pos()[stream - 1];
+    		auto idx_prefix = cache.size_prefix()[stream - 1];
+
+			cache.data_pos()[stream] 	= -1;
+			cache.data_size()[stream] 	= -1;
+			cache.abs_pos()[stream] 	= -1;
+
+			stream--;
+			idx = 0;
+
+    		if (parent_idx >= idx_prefix)
+    		{
+    			auto offset = parent_idx - idx_prefix;
+
+    			cache.data_pos()[stream] -= offset;
+
+    			self.skipFw(offset);
+    		}
+    		else {
+    			cache.data_pos()[stream]++;
     			self.skipBw(1);
     		}
     	}
     }
 
 
+    Position positions_to() const
+    {
+    	auto path = self().cache().data_pos();
+    	auto stream = self().stream();
+
+    	for (Int c = stream + 1; c < Streams; c++)
+    	{
+    		path[c] = -1;
+    	}
+
+    	return path;
+    }
+
+    Position sizes_of() const
+    {
+    	auto path = self().cache().data_size();
+    	auto stream = self().stream();
+
+    	for (Int c = stream + 1; c < Streams; c++)
+    	{
+    		path[c] = -1;
+    	}
+
+    	return path;
+    }
+
+
+    bool isSEnd() const
+    {
+    	auto& self  = this->self();
+    	auto& cache = self.cache();
+
+    	auto& stream = self.stream();
+
+    	return cache.data_pos()[stream] >= cache.data_size()[stream];
+    }
+
+
+// Internal API
 
 
     struct FindOffsetFn {
@@ -373,6 +462,50 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
     }
 
 
+    struct UpdateSizeFn {
+    	template <Int Stream, typename Itr, typename Size>
+    	static void process(Itr&& iter, Int stream, Int idx, Size&& size)
+    	{
+    		if (iter.isContent(idx))
+    		{
+    			size[stream + 1] = iter.template idx_data_size<Stream>(idx);
+    		}
+    		else {
+    			size[stream + 1] = -1;
+    		}
+    	}
+    };
+
+    struct UpdateSizeElseFn {
+    	template <Int Stream, typename Itr, typename Size>
+    	static void process(Itr&& iter, Int stream, Int idx, Size&& size){}
+    };
+
+    template <Int Stream, typename... Args>
+    void _update_substream_size(Args&&... args)
+    {
+    	IfLess<Stream, SearchableStreams>::process(UpdateSizeFn(), UpdateSizeElseFn(), self(), std::forward<Args>(args)...);
+    }
+
+
+    struct UpdateSizeFn2 {
+    	template <Int StreamIdx, typename Iter, typename... Args>
+    	bool process(Iter&& iter, Int stream, Args&&... args)
+    	{
+    		if (StreamIdx == stream)
+    		{
+    			UpdateSizeFn::template process<StreamIdx>(iter, stream, std::forward<Args>(args)...);
+    			return false;
+    		}
+    		return true;
+    	}
+    };
+
+
+    template <typename... Args>
+    void update_substream_size(Int stream, Args&&... args) {
+    	ForEach<0, SearchableStreams>::process(UpdateSizeFn2(), self(), stream, std::forward<Args>(args)...);
+    }
 
 
     template <typename Walker>
@@ -386,20 +519,16 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
     template <typename WTypes>
     void finish_walking(Int idx, const SkipForwardWalker<WTypes>& walker, WalkCmd cmd)
     {
-    	constexpr Int Stream = SkipForwardWalker<WTypes>::Stream;
-
     	auto& self = this->self();
     	auto& cache = self.cache();
 
     	auto& pos  = cache.data_pos();
-    	auto& size = cache.data_size();
 
     	auto stream = self.stream();
 
     	pos[stream] += walker.sum();
 
-    	self.template _update_substream_size<Stream>(stream, idx, size);
-
+    	cache.abs_pos()[stream] = walker.branch_size_prefix()[stream] + idx;
 
     	self.update_leaf_ranks(cmd);
     }
@@ -407,19 +536,16 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
     template <typename WTypes>
     void finish_walking(Int idx, const SkipBackwardWalker<WTypes>& walker, WalkCmd cmd)
     {
-    	constexpr Int Stream = SkipBackwardWalker<WTypes>::Stream;
-
     	auto& self = this->self();
     	auto& cache = self.cache();
 
     	auto& pos  = cache.data_pos();
-    	auto& size = cache.data_size();
 
     	auto stream = self.stream();
 
     	pos[stream] -= walker.sum();
 
-    	self.template _update_substream_size<Stream>(stream, idx, size);
+    	cache.abs_pos()[stream] = walker.branch_size_prefix()[stream] + idx;
 
     	self.update_leaf_ranks(cmd);
     }

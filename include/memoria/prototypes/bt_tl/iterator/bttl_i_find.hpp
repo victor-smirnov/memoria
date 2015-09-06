@@ -95,6 +95,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorFindName)
     		}
     	}
 
+    	cache.abs_pos()[stream] = walker.branch_size_prefix()[stream] + idx;
+
     	self.update_leaf_ranks(cmd);
     }
 
@@ -114,6 +116,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorFindName)
     	auto start 	 = walker.branch_size_prefix_backup()[stream] + walker.idx_backup();
     	auto current = walker.branch_size_prefix()[stream] + idx;
 
+    	if (pos[stream] == -1) pos[stream] = 0;
     	pos[stream] -= start - current;
 
     	if (stream < Streams - 1)
@@ -128,6 +131,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorFindName)
     			size[stream + 1] = -1;
     		}
     	}
+
+    	cache.abs_pos()[stream] = walker.branch_size_prefix()[stream] + idx;
 
     	self.update_leaf_ranks(cmd);
     }
@@ -163,6 +168,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorFindName)
     			size[stream + 1] = -1;
     		}
     	}
+
+    	cache.abs_pos()[stream] = walker.branch_size_prefix()[stream] + idx;
 
     	self.update_leaf_ranks(cmd);
     }

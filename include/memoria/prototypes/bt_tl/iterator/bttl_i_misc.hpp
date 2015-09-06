@@ -70,32 +70,56 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorMiscName)
     	}
     }
 
-
-    struct UpdateSizeFn {
-    	template <Int Stream, typename Itr, typename Size>
-    	void process(Itr&& iter, Int stream, Int idx, Size&& size)
+    template <typename LeafPath>
+    struct ScanFn {
+    	template <typename Node, typename Fn>
+    	auto treeNode(const Node* node, Fn&& fn, Int from, CtrSizeT to)
     	{
-    		if (iter.isContent(idx))
-    		{
-    			size[stream + 1] = iter.template idx_data_size<Stream>(idx);
-    		}
-    		else {
-    			size[stream + 1] = -1;
-    		}
+    		auto stream = node->template substream<LeafPath>();
+    		Int stream_size = stream->size();
+
+    		Int limit = (to > stream_size) ? stream_size : to;
+
+    		fn(stream, from, limit);
+
+    		return limit - from;
     	}
     };
 
-    struct UpdateSizeElseFn {
-    	template <Int Stream, typename Itr, typename Size>
-    	void process(Itr&& iter, Int stream, Int idx, Size&& size){}
-    };
 
-    template <Int Stream, typename... Args>
-    void _update_substream_size(Args&&... args)
+
+    template <typename LeafPath, typename Fn>
+    CtrSizeT scan(Fn&& fn, CtrSizeT limit = -1)
     {
-    	IfLess<Stream, SearchableStreams>::process(UpdateSizeFn(), UpdateSizeElseFn(), self(), std::forward<Args>(args)...);
-    }
+    	auto& self 	= this->self();
+    	auto& cache = self.cache();
 
+    	constexpr Int StreamIdx = ListHead<LeafPath>::Value;
+
+    	MEMORIA_ASSERT(StreamIdx, ==, self.stream());
+
+    	auto size = cache.data_size()[StreamIdx];
+
+    	if (limit == -1 || limit > size) {
+    		limit = size;
+    	}
+
+    	auto pos = cache.data_pos()[StreamIdx];
+
+    	CtrSizeT total = 0;
+
+    	while (pos < limit)
+    	{
+    		auto idx 	= self.idx();
+    		Int processed = LeafDispatcher::dispatch(self.leaf(), ScanFn<LeafPath>(), std::forward<Fn>(fn), idx, idx + limit);
+
+    		total += self.skipFw(processed);
+
+    		pos = cache.data_pos()[StreamIdx];
+    	}
+
+    	return total;
+    }
 
 
 

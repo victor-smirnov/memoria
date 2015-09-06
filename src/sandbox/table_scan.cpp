@@ -12,6 +12,7 @@
 
 #include <memoria/core/container/metadata_repository.hpp>
 
+#include <memoria/core/tools/terminal.hpp>
 
 std::uniform_int_distribution<int>      distribution;
 std::mt19937_64                         engine;
@@ -19,7 +20,24 @@ auto                                    generator               = std::bind(dist
 
 
 using namespace memoria;
+using namespace memoria::tools;
 using namespace std;
+
+using CtrT 		= SCtrTF<Table<BigInt, Byte>>::Type;
+using Provider 	= table::RandomDataInputProvider<CtrT, decltype(generator)>;
+using Position  = Provider::Position;
+
+
+struct ScanFn {
+	BigInt value_ = 0;
+
+	template <typename Stream>
+	void operator()(const Stream* obj, Int start, Int end)
+	{
+		value_++;
+	}
+};
+
 
 int main(int argc, const char** argv, const char** envp) {
 	MEMORIA_INIT(SmallProfile<>);
@@ -29,50 +47,62 @@ int main(int argc, const char** argv, const char** envp) {
 
 		alloc.mem_limit() = 2*1024*1024*1024ll;
 
-		using CtrT  = SCtrTF<Table<BigInt, Byte>>::Type;
-
 		CtrT::initMetadata();
 
 		CtrT ctr(&alloc);
 
 		auto iter = ctr.seek(0);
 
-		using Provider = table::RandomDataInputProvider<CtrT, decltype(generator)>;
+		Int rows 		= 100000;
+		Int cols		= 100;
+		Int data_size	= 100;
 
-		Provider provider(ctr, 100, 10, 10, generator);
-
-		using Position = Provider::Position;
+		Provider provider(ctr, rows + 1, cols, data_size, generator);
 
 		ctr.insertData(iter.leaf(), Position(), provider);
 
-		cout<<"Data inserted!"<<endl;
-
-		cout<<"Stream 0"<<endl;
-		iter = ctr.seek(26);
-		iter.dumpHeader();
-		cout<<endl;
-
-		cout<<"Stream 1"<<endl;
-		iter.toData(9);
-		iter.dumpHeader();
-		cout<<endl;
-
-		cout<<"Stream 2"<<endl;
-		iter.toData(10);
-		iter.dumpHeader();
-		cout<<endl;
-
-		cout<<"Stream 1"<<endl;
-		iter.toIndex();
-		iter.dumpHeader();
-		cout<<endl;
-
-		cout<<"Stream 0"<<endl;
-		iter.toIndex();
-		iter.dumpHeader();
-		cout<<endl;
+		cout<<"Table Constructed"<<endl;
 
 		alloc.commit();
+
+		iter = ctr.seek(0);
+
+		ScanFn scan_fn;
+
+		BigInt t0 = getTimeInMillisT();
+
+		for (Int r = 0; r < rows; r++)
+		{
+			MEMORIA_ASSERT(iter.pos(), ==, r);
+			MEMORIA_ASSERT(iter.size(), ==, rows + 1);
+
+			iter.toData();
+
+			for (Int c = 0; c < cols; c++)
+			{
+				MEMORIA_ASSERT(iter.pos(), ==, c);
+				MEMORIA_ASSERT(iter.size(), ==, cols);
+
+				iter.toData();
+
+				iter.template scan<IntList<2>>(scan_fn);
+				MEMORIA_ASSERT_TRUE(iter.isSEnd());
+
+				iter.toIndex();
+				iter.skipFw(1);
+
+				if (c == cols){
+					MEMORIA_ASSERT_TRUE(iter.isSEnd());
+				}
+			}
+
+			iter.toIndex();
+			iter.skipFw(1);
+		}
+
+		BigInt t1 = getTimeInMillisT();
+
+		cout<<"Scan finished in "<<FormatTimeT(t1 - t0)<<endl;
 
 		if (argc > 1)
 		{

@@ -6,6 +6,8 @@
 #ifndef MEMORIA_CORE_TOOLS_TERMINAL_HPP_
 #define MEMORIA_CORE_TOOLS_TERMINAL_HPP_
 
+#include <memoria/core/types/types.hpp>
+
 namespace memoria   {
 namespace tools     {
 
@@ -41,6 +43,12 @@ class MonochomeTerminal: public TermImpl {
     virtual const char* greens() const  {return "";}
     virtual const char* greene() const  {return "";}
 };
+
+
+BigInt  getTimeInMillisT();
+
+String FormatTimeT(BigInt millis);
+
 
 
 }

@@ -12,6 +12,8 @@
 #include <memoria/prototypes/bt/walkers/bt_walker_tools.hpp>
 #include <memoria/prototypes/bt/walkers/bt_walker_base_detail.hpp>
 
+#include <memoria/core/types/algo/for_each.hpp>
+
 #include <tuple>
 
 namespace memoria {
@@ -347,6 +349,37 @@ public:
     		ListHead<LeafPath>::Value
     	>
     	::dispatchAll(node->allocator(), w, self(), accum, std::forward<Args>(args)...);
+    }
+
+
+    struct ProcessBranchIteratorAccumulatorWithLeaf
+	{
+    	template <Int StreamIdx, typename Node, typename Walker, typename Accum, typename... Args>
+    	static bool process(Node* node, Walker&& walker, Accum&& accum, Args&&... args)
+    	{
+        	detail::LeafAccumWalker<
+        		LeafStructList,
+        		LeafRangeList,
+        		LeafRangeOffsetList,
+        		Node::template StreamStartIdx<
+        			StreamIdx
+        		>::Value
+        	> w;
+
+        	Node::template StreamDispatcher<
+        		StreamIdx
+        	>
+        	::dispatchAll(node->allocator(), w, walker, accum, std::forward<Args>(args)...);
+
+        	return true;
+    	}
+    };
+
+
+    template <typename Node, typename... Args>
+    void processBranchIteratorAccumulatorWithLeaf(Node* node, IteratorAccumulator&accum, Args&&... args)
+    {
+    	ForEach<0, Streams>::process(ProcessBranchIteratorAccumulatorWithLeaf(), node, self(), accum, std::forward<Args>(args)...);
     }
 
 

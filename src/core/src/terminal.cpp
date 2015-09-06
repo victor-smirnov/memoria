@@ -8,11 +8,15 @@
 #include <unistd.h>
 #include <string>
 #include <iostream>
+#include <sys/timeb.h>
+
+#include <memoria/core/tools/strings.hpp>
 
 namespace memoria   {
 namespace tools     {
 
 using namespace std;
+using namespace vapi;
 
 const TermImpl* Term::term_;
 
@@ -53,6 +57,92 @@ void Term::init(int argc, const char** argv, const char** envp)
         term_ = & mono_terminal_;
     }
 }
+
+
+
+
+BigInt getTimeInMillisT()
+{
+    struct timeb tm;
+    ftime(&tm);
+    return tm.time * 1000 + tm.millitm;
+}
+
+
+String getMillisPartT(BigInt millis) {
+    return millis < 100 ? "0"+toString(millis) : toString(millis);
+}
+
+String getTwoDigitsPartT(BigInt value) {
+    return value < 10 ? "0"+toString(value) : toString(value);
+}
+
+String FormatTimeT(BigInt millis)
+{
+    if (millis < 1000)
+    {
+        return "0." + getMillisPartT(millis);
+    }
+    else if (millis < 60000)
+    {
+        BigInt seconds  = millis / 1000;
+        millis = millis % 1000;
+
+        return toString(seconds) +"." + getMillisPartT(millis);
+    }
+    else if (millis < 60000 * 60)
+    {
+        BigInt minutes  = millis / 60000;
+
+        millis -= minutes * 60000;
+
+        BigInt seconds  = millis / 1000;
+        millis = millis % 1000;
+
+        return toString(minutes) +":" + getTwoDigitsPartT(seconds) +"." + getMillisPartT(millis);
+    }
+    else if (millis < 60000 * 60 * 24)
+    {
+        BigInt hours    = millis / (60000 * 60);
+        millis -= hours * 60000 * 60;
+
+        BigInt minutes  = millis / 60000;
+
+        millis -= minutes * 60000;
+
+        BigInt seconds  = millis / 1000;
+        millis = millis % 1000;
+
+        return toString(hours) + ":" + getTwoDigitsPartT(minutes)
+                               + ":" + getTwoDigitsPartT(seconds)
+                               + "." + getMillisPartT(millis);
+    }
+    else
+    {
+        BigInt days     = millis / (60000 * 60 * 24);
+        millis -= days * 60000 * 60 * 24;
+
+        BigInt hours    = millis / (60000 * 60);
+        millis -= hours * 60000 * 60;
+
+        BigInt minutes  = millis / 60000;
+        millis -= minutes * 60000;
+
+        BigInt seconds  = millis / 1000;
+        millis = millis % 1000;
+
+        return toString(days) + (days == 1? "day " : "days ")
+                              + getTwoDigitsPartT(hours)
+                              + ":"
+                              + getTwoDigitsPartT(minutes)
+                              + ":"
+                              + getTwoDigitsPartT(seconds)
+                              + "."
+                              + getMillisPartT(millis);
+    }
+}
+
+
 
 
 }
