@@ -19,11 +19,13 @@
 #include <memoria/prototypes/bt_tl/bttl_tools.hpp>
 
 #include <memoria/prototypes/bt_tl/container/bttl_c_misc.hpp>
+#include <memoria/prototypes/bt_tl/container/bttl_c_insert.hpp>
 
 #include <memoria/prototypes/bt_tl/iterator/bttl_i_misc.hpp>
 #include <memoria/prototypes/bt_tl/iterator/bttl_i_srank.hpp>
 #include <memoria/prototypes/bt_tl/iterator/bttl_i_find.hpp>
 #include <memoria/prototypes/bt_tl/iterator/bttl_i_skip.hpp>
+#include <memoria/prototypes/bt_tl/iterator/bttl_i_update.hpp>
 
 #include <tuple>
 
@@ -40,7 +42,8 @@ struct BTTypes<Profile, memoria::BTTreeLayout>: public BTTypes<Profile, memoria:
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
-                memoria::bttl::MiscName
+                memoria::bttl::MiscName,
+				memoria::bttl::InsertName
     >;
 
     using IteratorPartsList = MergeLists<
@@ -48,7 +51,8 @@ struct BTTypes<Profile, memoria::BTTreeLayout>: public BTTypes<Profile, memoria:
                 memoria::bttl::IteratorMiscName,
 				memoria::bttl::IteratorStreamRankName,
 				memoria::bttl::IteratorFindName,
-				memoria::bttl::IteratorSkipName
+				memoria::bttl::IteratorSkipName,
+				memoria::bttl::IteratorUpdateName
     >;
 
     template <typename Iterator, typename Container>
@@ -68,11 +72,6 @@ public:
 
     struct Types: Base::Types
     {
-//    	template <Int StreamIdx>
-//    	using InputTupleSizeAccessor = bttl::InputTupleSizeH<StreamIdx>;
-//
-//    	using StreamsSizes = TL<>;
-
     	using CtrTypes 			= BTTLCtrTypes<Types>;
         using IterTypes 		= BTTLIterTypes<Types>;
 

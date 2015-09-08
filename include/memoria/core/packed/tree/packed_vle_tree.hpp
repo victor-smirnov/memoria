@@ -1341,6 +1341,16 @@ public:
     }
 
 
+    template <Int Offset, Int Size, typename T1, typename T2, template <typename, Int> class AccumItem>
+    void _insert(Int idx, const core::StaticVector<T1, Indexes>& values, AccumItem<T2, Size>& accum)
+    {
+    	insert(idx, values);
+
+    	sum<Offset>(idx, accum);
+    }
+
+
+
     void insert(IData* data, Int pos, Int length)
     {
         MEMORIA_ASSERT(pos, <=, size());

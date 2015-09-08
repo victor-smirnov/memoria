@@ -298,6 +298,8 @@ public:
     template <typename Walker>
     void finish_walking(Int idx, const Walker&, WalkCmd cmd) {}
 
+    void refresh() {}
+
 MEMORIA_BT_ITERATOR_BASE_CLASS_END
 
 } //memoria

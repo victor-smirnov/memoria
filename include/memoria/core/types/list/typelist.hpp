@@ -13,7 +13,7 @@
 
 #include <memoria/core/tools/type_name.hpp>
 
-#include <ostream>
+#include <iostream>
 
 namespace memoria    {
 
@@ -86,7 +86,7 @@ template <typename T> struct ListPrinter;
 
 template <typename Head, typename... Tail>
 struct ListPrinter<TypeList<Head, Tail...>> {
-    static std::ostream& print(std::ostream& out)
+    static std::ostream& print(std::ostream& out = std::cout)
     {
         out<<::memoria::vapi::TypeNameFactory<Head>::name()<<std::endl;
         return ListPrinter<TypeList<Tail...>>::print(out);
@@ -95,7 +95,7 @@ struct ListPrinter<TypeList<Head, Tail...>> {
 
 template <>
 struct ListPrinter<TypeList<>> {
-    static std::ostream& print(std::ostream& out)
+    static std::ostream& print(std::ostream& out = std::cout)
     {
     	return out;
     }
@@ -104,7 +104,7 @@ struct ListPrinter<TypeList<>> {
 
 template <typename T, T Head, T... Tail>
 struct ListPrinter<ValueList<T, Head, Tail...>> {
-    static std::ostream& print(std::ostream& out)
+    static std::ostream& print(std::ostream& out = std::cout)
     {
         out<<Head<<std::endl;
         return ListPrinter<ValueList<T, Tail...>>::print(out);
@@ -113,7 +113,7 @@ struct ListPrinter<ValueList<T, Head, Tail...>> {
 
 template <typename T>
 struct ListPrinter<ValueList<T>> {
-    static std::ostream& print(std::ostream& out)
+    static std::ostream& print(std::ostream& out = std::cout)
     {
     	return out;
     }
@@ -122,7 +122,7 @@ struct ListPrinter<ValueList<T>> {
 
 template <typename... T>
 struct TypesPrinter {
-	static std::ostream& print(std::ostream& out)
+	static std::ostream& print(std::ostream& out = std::cout)
 	{
 		return ListPrinter<TL<T...>>::print(out);
 	}

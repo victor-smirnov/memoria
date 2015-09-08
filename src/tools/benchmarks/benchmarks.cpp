@@ -61,17 +61,17 @@ int main(int argc, const char** argv, const char** envp)
 
         runner.registerTask(new PackedSetMemGraph());
 
-        runner.registerTask(new SetRandomReadGraph());
-        runner.registerTask(new SetLinearReadGraph());
-        runner.registerTask(new SetRandomBatchInsertGraph());
-        runner.registerTask(new SetCommitRateGraph());
+//        runner.registerTask(new SetRandomReadGraph());
+//        runner.registerTask(new SetLinearReadGraph());
+//        runner.registerTask(new SetRandomBatchInsertGraph());
+//        runner.registerTask(new SetCommitRateGraph());
 
 
         runner.registerTask(new MemmoveGraph());
 
-        runner.registerTask(new VectorRandomSmallReadGraph());
-        runner.registerTask(new VectorReadGraph());
-        runner.registerTask(new VectorInsertGraph());
+//        runner.registerTask(new VectorRandomSmallReadGraph());
+//        runner.registerTask(new VectorReadGraph());
+//        runner.registerTask(new VectorInsertGraph());
 
 //
 //        runner.registerTask(new VectorMapRandomGraph());
@@ -79,7 +79,7 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new VectorMapReadOverheadGraph());
 //        runner.registerTask(new VectorMapBatchinsertGraph());
 
-        runner.registerTask(new TestGraph());
+//        runner.registerTask(new TestGraph());
 
         runner.Configure(&cmd_line.getConfigurator());
 

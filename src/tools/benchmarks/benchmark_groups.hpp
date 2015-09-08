@@ -22,21 +22,21 @@
 #include "stl/stl_vector_insert.hpp"
 
 
-#include "set/set_scan.hpp"
-#include "set/set_append.hpp"
-#include "set/set_commit_append.hpp"
-#include "set/set_commit_random.hpp"
-#include "set/set_create_batch.hpp"
-#include "set/set_find.hpp"
-#include "set/set_insert.hpp"
-#include "set/set_insert_batch.hpp"
+//#include "set/set_scan.hpp"
+//#include "set/set_append.hpp"
+//#include "set/set_commit_append.hpp"
+//#include "set/set_commit_random.hpp"
+//#include "set/set_create_batch.hpp"
+//#include "set/set_find.hpp"
+//#include "set/set_insert.hpp"
+//#include "set/set_insert_batch.hpp"
 
-#include "vector/vector_append.hpp"
-#include "vector/vector_insert_batch.hpp"
-#include "vector/vector_read.hpp"
-#include "vector/vector_random_read.hpp"
-#include "vector/vector_sequential_read.hpp"
-#include "vector/vector_random_insert.hpp"
+//#include "vector/vector_append.hpp"
+//#include "vector/vector_insert_batch.hpp"
+//#include "vector/vector_read.hpp"
+//#include "vector/vector_random_read.hpp"
+//#include "vector/vector_sequential_read.hpp"
+//#include "vector/vector_random_insert.hpp"
 
 //#include "vector_map/vector_map_append.hpp"
 //#include "vector_map/vector_map_batch_insert.hpp"
@@ -151,23 +151,25 @@ public:
 
         agenda_location = "top right";
 
-        time_start  = 1024;
+        time_start  = 256*1024*1024;
         time_stop   = 256*1024*1024;
+
+	//time_stop   = 1*1024;
 
         xunit       = 1024;
 
-        AddGraph(new PSetMemBenchmark<2>(), GraphData("PackedTree<BigInt>, 2 children"));
-        AddGraph(new PSetMemBenchmark<4>(), GraphData("PackedTree<BigInt>, 4 children"));
-        AddGraph(new PSetMemBenchmark<8>(), GraphData("PackedTree<BigInt>, 8 children"));
-        AddGraph(new PSetMemBenchmark<16>(), GraphData("PackedTree<BigInt>, 16 children"));
-        AddGraph(new PSetMemBenchmark<32>(), GraphData("PackedTree<BigInt>, 32 children"));
-        AddGraph(new PSetMemBenchmark<64>(), GraphData("PackedTree<BigInt>, 64 children"));
+        //AddGraph(new PSetMemBenchmark<2>(), GraphData("PackedTree<BigInt>, 2 children"));
+        //AddGraph(new PSetMemBenchmark<4>(), GraphData("PackedTree<BigInt>, 4 children"));
+        //AddGraph(new PSetMemBenchmark<8>(), GraphData("PackedTree<BigInt>, 8 children"));
+        //AddGraph(new PSetMemBenchmark<16>(), GraphData("PackedTree<BigInt>, 16 children"));
+        //AddGraph(new PSetMemBenchmark<32>(), GraphData("PackedTree<BigInt>, 32 children"));
+        //AddGraph(new PSetMemBenchmark<64>(), GraphData("PackedTree<BigInt>, 64 children"));
 
         AddGraph(new StlSetMemBenchmark("StlSetMem"), GraphData("std::set, 2 children"));
     }
 };
 
-
+/*
 class SetRandomReadGraph: public LogXScaleGnuplotGraph {
 public:
     SetRandomReadGraph(): LogXScaleGnuplotGraph("SetRandomRead")
@@ -273,7 +275,7 @@ public:
         registerTask(new SetAppendBatchBenchmark("Append"));
     }
 };
-
+*/
 
 class MemmoveGraph: public LogXScaleGnuplotGraph {
 public:
@@ -297,7 +299,7 @@ public:
 };
 
 
-
+/*
 class VectorRandomSmallReadGraph: public LogXScaleGnuplotGraph {
 public:
     VectorRandomSmallReadGraph(): LogXScaleGnuplotGraph("VectorRandomSmallRead")
@@ -471,7 +473,7 @@ public:
 };
 
 */
-
+/*
 class TestGraph: public LogXScaleGnuplotGraph {
 public:
     TestGraph(): LogXScaleGnuplotGraph("Test", 2)
@@ -501,7 +503,7 @@ public:
         AddGraph(new StlSetSizeBenchmark("StlFindRandom"), GraphData("std::set"));
     }
 };
-
+*/
 
 }
 

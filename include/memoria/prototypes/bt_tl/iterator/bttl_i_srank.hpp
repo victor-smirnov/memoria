@@ -73,8 +73,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorStreamRankName)
 
     Position leaf_rank(Int pos) const
     {
-    	const auto& ranks = self().cache().ranks();
-//    	compute_leaf_prefixes(prefixes);
+    	LeafPrefixRanks ranks;
+    	compute_leaf_prefixes(ranks);
 
     	return leaf_rank(self().leaf_sizes(), ranks, pos);
     }

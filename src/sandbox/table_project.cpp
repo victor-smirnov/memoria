@@ -50,11 +50,12 @@ int main(int argc, const char** argv, const char** envp) {
 		CtrT::initMetadata();
 
 		CtrT ctr(&alloc);
+		
 
 		auto iter = ctr.seek(0);
 
-		Int rows 		= 100000;
-		Int cols		= 100;
+		Int rows 		= 1000000;
+		Int cols		= 10;
 		Int data_size	= 100;
 
 		BigInt c0 = getTimeInMillisT();
@@ -69,36 +70,52 @@ int main(int argc, const char** argv, const char** envp) {
 
 		alloc.commit();
 
-		iter = ctr.seek(0);
-
 		ScanFn scan_fn;
 
 		BigInt t0 = getTimeInMillisT();
 
-		for (Int r = 0; r < rows; r++)
+		for (Int x = 0; x < 30; x++)
 		{
-			MEMORIA_ASSERT(iter.pos(), ==, r);
-			MEMORIA_ASSERT(iter.size(), ==, rows + 1);
+			BigInt tt0 = getTimeInMillisT();
 
-			iter.toData(cols/2);
+			iter = ctr.seek(0);
 
-			MEMORIA_ASSERT(iter.pos(), ==, cols/2);
-			MEMORIA_ASSERT(iter.size(), ==, cols);
+			for (Int r = 0; r < rows; r++)
+			{
+				//iter = ctr.seek(r);
 
-			iter.toData();
+				MEMORIA_ASSERT(iter.pos(), ==, r);
+				MEMORIA_ASSERT(iter.size(), ==, rows + 1);
 
-			iter.template scan<IntList<2>>(scan_fn);
-			MEMORIA_ASSERT_TRUE(iter.isSEnd());
+				auto tmp = iter;
 
-			iter.toIndex(); // columns
-			iter.toIndex(); // rows
+				iter.toData(cols/2);
 
-			iter.skipFw(1); // next row
+				MEMORIA_ASSERT(iter.pos(), ==, cols/2);
+				MEMORIA_ASSERT(iter.size(), ==, cols);
+
+				iter.toData();
+
+				iter.template scan<IntList<2>>(scan_fn);
+				MEMORIA_ASSERT_TRUE(iter.isSEnd());
+
+				//iter.toIndex(); // columns
+				//iter.toIndex(); // rows
+
+				iter = tmp;
+
+				iter.skipFw(1); // next row
+			}
+
+			BigInt tt1 = getTimeInMillisT();
+
+			cout<<"One Projection finished in "<<FormatTimeT(tt1 - tt0)<<endl;
 		}
 
 		BigInt t1 = getTimeInMillisT();
 
-		cout<<"Projection finished in "<<FormatTimeT(t1 - t0)<<endl;
+		cout<<"All Projections finished in "<<FormatTimeT(t1 - t0)<<endl;
+
 
 		if (argc > 1)
 		{

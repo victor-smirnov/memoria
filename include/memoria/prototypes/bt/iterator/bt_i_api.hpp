@@ -15,6 +15,7 @@
 #include <memoria/prototypes/bt/bt_macros.hpp>
 #include <memoria/core/container/macros.hpp>
 
+#include <memoria/core/types/algo/for_each.hpp>
 
 #include <iostream>
 
@@ -32,13 +33,15 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
 
     typedef typename Base::Container::Accumulator                               Accumulator;
     typedef typename Base::Container                                            Container;
-    typedef typename Container::LeafDispatcher                                  LeafDispatcher;
+    typedef typename Container::Types::Pages::LeafDispatcher                    LeafDispatcher;
+    typedef typename Container::Types::Pages::BranchDispatcher                  BranchDispatcher;
+    typedef typename Container::Types::Pages::NodeDispatcher                    NodeDispatcher;
     typedef typename Types::Position                                            Position;
 
     typedef typename Container::Types::CtrSizeT                                 CtrSizeT;
 
 
-
+    static const Int Streams = Container::Types::Streams;
 
 
     bool nextLeaf();
@@ -149,7 +152,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
     }
 
 
-
+    // FIXME: Deprecated. Refactor using other methods
     template <Int StreamIdx>
     void _refreshCache()
     {
@@ -164,6 +167,78 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
     	walker.finish(self, self.idx(), WalkCmd::NONE);
     }
 
+
+    template <typename Walker>
+    void walkUpForRefresh(NodeBaseG node, Int idx, Walker&& walker) const
+    {
+    	if (!node->is_leaf())
+    	{
+    		BranchDispatcher::dispatch(node, walker, WalkCmd::PREFIXES, 0, idx);
+    	}
+
+    	while (!node->is_root())
+    	{
+    		idx = node->parent_idx();
+    		node = self().ctr().getNodeParent(node);
+
+    		NodeDispatcher::dispatch(node, walker, WalkCmd::PREFIXES, 0, idx);
+    	}
+    }
+
+    void refreshBranchPrefixes()
+    {
+    	auto& self  = this->self();
+    	auto& cache = self.cache();
+
+    	FindForwardWalker<bt::WalkerTypes<Types, IntList<0>>> walker(0, 0);
+
+    	cache.reset();
+
+    	self.walkUpForRefresh(self.leaf(), self.idx(), walker);
+
+    	walker.finish(self, self.idx(), WalkCmd::NONE);
+    }
+
+    template <int StreamIdx>
+    void _refreshLeafPrefixes()
+    {
+    	auto& self 	= this->self();
+    	auto idx 	= self.idx();
+
+    	FindForwardWalker<bt::WalkerTypes<Types, IntList<StreamIdx>>> walker(0, 0);
+    	LeafDispatcher::dispatch(self.leaf(), walker, WalkCmd::LAST_LEAF, 0, idx);
+    }
+
+
+    struct RefreshLeafPrefixesFn
+	{
+    	template <Int StreamIdx, typename Iter>
+    	bool process(Iter&& iter)
+    	{
+    		if (StreamIdx == iter.stream())
+    		{
+    			iter.template _refreshLeafPrefixes<StreamIdx>();
+    		}
+
+    		return true;
+    	}
+    };
+
+
+    void refreshLeafPrefixes()
+    {
+    	auto& self 	= this->self();
+    	ForEach<1, Streams>::process(RefreshLeafPrefixesFn(), self);
+    }
+
+
+    void refresh()
+    {
+    	Base::refresh();
+
+    	self().refreshBranchPrefixes();
+    	self().refreshLeafPrefixes();
+    }
 
 MEMORIA_ITERATOR_PART_END
 

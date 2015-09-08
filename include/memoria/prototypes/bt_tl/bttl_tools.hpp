@@ -270,6 +270,14 @@ public:
 		return abs_pos_;
 	}
 
+	void reset() {
+		Base::reset();
+
+		data_pos_.clear();
+		data_size_.clear();
+		abs_pos_.clear();
+	}
+
     bool operator==(const MyType& other) const
     {
     	return data_size_ == other.data_size_ && Base::operator==(other);

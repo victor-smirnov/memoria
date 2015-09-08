@@ -230,11 +230,11 @@ public:
 
 
 
-
-    StaticVector(std::initializer_list<ElementType> list)
+    template <typename T>
+    StaticVector(std::initializer_list<T> list)
     {
         Int idx = 0;
-        for (ElementType e: list)
+        for (T e: list)
         {
             values_[idx++] = e;
         }
@@ -564,6 +564,7 @@ public:
         {
             values_[c] = other.values_[c];
         }
+
         return *this;
     }
 
@@ -576,6 +577,27 @@ public:
     	return *this;
     }
 
+
+    template <typename Value>
+    MyType& operator=(const std::initializer_list<Value>& list)
+    {
+    	Int idx = 0;
+    	for (Value e: list)
+    	{
+    		values_[idx++] = e;
+
+    		if (idx >= Indexes)
+    		{
+    			break;
+    		}
+    	}
+
+    	for (Int c = idx; c < Indexes; c++) {
+    		values_[c] = 0;
+    	}
+
+    	return *this;
+    }
 
 
 

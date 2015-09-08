@@ -119,8 +119,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btss::IteratorMiscName)
     void refreshCache()
     {
     	auto& self = this->self();
-
-    	self.template _refreshCache<0>();
+    	self.refresh();
     }
 
     void split()
@@ -140,7 +139,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btss::IteratorMiscName)
     		leaf = right;
     		idx -= split_idx;
 
-    		self.refreshCache();
+    		self.refresh();
     	}
     }
 

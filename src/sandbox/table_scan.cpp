@@ -57,52 +57,66 @@ int main(int argc, const char** argv, const char** envp) {
 		Int cols		= 100;
 		Int data_size	= 100;
 
+		BigInt c0 = getTimeInMillisT();
+
 		Provider provider(ctr, rows + 1, cols, data_size, generator);
 
 		ctr.insertData(iter.leaf(), Position(), provider);
 
-		cout<<"Table Constructed"<<endl;
+		BigInt c1 = getTimeInMillisT();
+
+		cout<<"Table Constructed in "<<FormatTimeT(c1 - c0)<<" s"<<endl;
 
 		alloc.commit();
 
-		iter = ctr.seek(0);
+
 
 		ScanFn scan_fn;
 
 		BigInt t0 = getTimeInMillisT();
 
-		for (Int r = 0; r < rows; r++)
+		for (int x = 0; x < 10; x++)
 		{
-			MEMORIA_ASSERT(iter.pos(), ==, r);
-			MEMORIA_ASSERT(iter.size(), ==, rows + 1);
+			BigInt tt0 = getTimeInMillisT();
 
-			iter.toData();
-
-			for (Int c = 0; c < cols; c++)
+			iter = ctr.seek(0);
+			for (Int r = 0; r < rows; r++)
 			{
-				MEMORIA_ASSERT(iter.pos(), ==, c);
-				MEMORIA_ASSERT(iter.size(), ==, cols);
+				MEMORIA_ASSERT(iter.pos(), ==, r);
+				MEMORIA_ASSERT(iter.size(), ==, rows + 1);
 
 				iter.toData();
 
-				iter.template scan<IntList<2>>(scan_fn);
-				MEMORIA_ASSERT_TRUE(iter.isSEnd());
+				for (Int c = 0; c < cols; c++)
+				{
+					MEMORIA_ASSERT(iter.pos(), ==, c);
+					MEMORIA_ASSERT(iter.size(), ==, cols);
+
+					iter.toData();
+
+					iter.template scan<IntList<2>>(scan_fn);
+					MEMORIA_ASSERT_TRUE(iter.isSEnd());
+
+					iter.toIndex();
+					iter.skipFw(1);
+
+					if (c == cols){
+						MEMORIA_ASSERT_TRUE(iter.isSEnd());
+					}
+				}
 
 				iter.toIndex();
 				iter.skipFw(1);
-
-				if (c == cols){
-					MEMORIA_ASSERT_TRUE(iter.isSEnd());
-				}
 			}
 
-			iter.toIndex();
-			iter.skipFw(1);
+			BigInt tt1 = getTimeInMillisT();
+
+			cout<<"One Scan finished in "<<FormatTimeT(tt1 - tt0)<<endl;
 		}
 
 		BigInt t1 = getTimeInMillisT();
 
-		cout<<"Scan finished in "<<FormatTimeT(t1 - t0)<<endl;
+		cout<<"All Scans finished in "<<FormatTimeT(t1 - t0)<<endl;
 
 		if (argc > 1)
 		{
