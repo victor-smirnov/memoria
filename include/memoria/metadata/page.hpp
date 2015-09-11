@@ -42,13 +42,14 @@ struct IPageDataEventHandler {
 
     virtual ~IPageDataEventHandler() {}
 
-    virtual void startPage(const char* name)                                                    = 0;
+    virtual void startPage(const char* name, const void* ptr)                                   = 0;
     virtual void endPage()                                                                      = 0;
 
     virtual void startLine(const char* name, Int size = -1)                                     = 0;
     virtual void endLine()                                                                      = 0;
 
-    virtual void startGroup(const char* name, Int elements = -1)                                = 0;
+    virtual void startGroupWithAddr(const char* name, const void* ptr)               			= 0;
+    virtual void startGroup(const char* name, Int elements = -1)               					= 0;
     virtual void endGroup()                                                                     = 0;
 
     virtual void value(const char* name, const Byte* value, Int count = 1, Int kind = 0)        = 0;
@@ -220,9 +221,9 @@ public:
     TextPageDumper(std::ostream& out): out_(out), level_(0), cnt_(0), line_(false) {}
     virtual ~TextPageDumper() {}
 
-    virtual void startPage(const char* name)
+    virtual void startPage(const char* name, const void* ptr)
     {
-        out_<<name<<endl;
+        out_<<name<<" at "<<ptr<<endl;
         level_++;
     }
 
@@ -230,6 +231,16 @@ public:
     {
         out_<<endl;
         level_--;
+    }
+
+    virtual void startGroupWithAddr(const char* name, const void* ptr) {
+        cnt_ = 0;
+        Expand(out_, level_++);
+
+        out_<<name;
+
+        out_<<" at "<<ptr;
+        out_<<endl;
     }
 
     virtual void startGroup(const char* name, Int elements = -1)

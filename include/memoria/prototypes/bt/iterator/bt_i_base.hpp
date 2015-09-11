@@ -30,6 +30,8 @@ public:
     typedef typename Base::Container::Allocator                                         Allocator;
     typedef typename Base::Container::Accumulator                                       Accumulator;
 
+    typedef typename Base::Container::Iterator                                          Iterator;
+
     typedef typename Types::template IteratorCacheFactory<
             MyType,
             typename Base::Container
@@ -229,6 +231,12 @@ public:
     BigInt& keyNum()
     {
         return cache_.key_num();
+    }
+
+
+    bool has_same_leaf(const Iterator& other) const
+    {
+    	return self().leaf()->id() == other.leaf()->id();
     }
 
 

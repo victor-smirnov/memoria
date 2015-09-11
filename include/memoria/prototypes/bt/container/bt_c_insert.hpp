@@ -52,15 +52,17 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertName)
 
 
     template <Int Stream>
-    void insertStreamEntry(Iterator& iter, const StreamInputTuple<Stream>& entry)
+    SplitStatus insertStreamEntry(Iterator& iter, const StreamInputTuple<Stream>& entry)
     {
     	auto& self = this->self();
 
     	auto result = self.template tryInsertStreamEntry<Stream>(iter, entry);
 
+    	SplitStatus split_status;
+
     	if (!std::get<0>(result))
     	{
-    		iter.split();
+    		split_status = iter.split();
 
     		result = self.template tryInsertStreamEntry<Stream>(iter, entry);
 
@@ -69,10 +71,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertName)
     			throw Exception(MA_SRC, "Second insertion attempt failed");
     		}
     	}
+    	else {
+    		split_status = SplitStatus::NONE;
+    	}
 
     	self.updateParent(iter.leaf(), std::get<1>(result));
 
-    	iter.template _skipFw<Stream>(1);
+    	return split_status;
     }
 
 

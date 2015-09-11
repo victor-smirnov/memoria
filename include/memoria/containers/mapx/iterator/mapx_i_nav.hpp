@@ -48,6 +48,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
     			InputTupleAdapter<0>::convert(core::StaticVector<Key, 1>({delta}), value)
     	);
 
+    	self.skipFw(1);
+
     	if (!self.isEnd())
     	{
     		auto k = self.raw_key();

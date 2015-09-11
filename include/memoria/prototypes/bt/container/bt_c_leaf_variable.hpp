@@ -242,7 +242,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafVariableName)
      	}
      }
 
-
+     template <typename Fn, typename... Args>
+     bool update(Iterator& iter, Fn&& fn, Args&&... args)
+     {
+    	 auto& self = this->self();
+    	 return self.updateAtomic(iter, std::forward<Fn>(fn), VLSelector(), std::forward<Fn>(args)...);
+     }
 
      //==========================================================================================
 

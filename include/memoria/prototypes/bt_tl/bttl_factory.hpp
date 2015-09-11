@@ -26,6 +26,8 @@
 #include <memoria/prototypes/bt_tl/iterator/bttl_i_find.hpp>
 #include <memoria/prototypes/bt_tl/iterator/bttl_i_skip.hpp>
 #include <memoria/prototypes/bt_tl/iterator/bttl_i_update.hpp>
+#include <memoria/prototypes/bt_tl/iterator/bttl_i_remove.hpp>
+#include <memoria/prototypes/bt_tl/iterator/bttl_i_insert.hpp>
 
 #include <tuple>
 
@@ -52,7 +54,9 @@ struct BTTypes<Profile, memoria::BTTreeLayout>: public BTTypes<Profile, memoria:
 				memoria::bttl::IteratorStreamRankName,
 				memoria::bttl::IteratorFindName,
 				memoria::bttl::IteratorSkipName,
-				memoria::bttl::IteratorUpdateName
+				memoria::bttl::IteratorUpdateName,
+				memoria::bttl::IteratorRemoveName,
+				memoria::bttl::IteratorInsertName
     >;
 
     template <typename Iterator, typename Container>

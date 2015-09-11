@@ -119,7 +119,7 @@ public:
 
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
-        handler->startGroup("PACKED_TREE");
+        handler->startGroup("PACKED_TREE", this);
 
         handler->value("SIZE",          &size_);
         handler->value("MAX_SIZE",      &max_size_);

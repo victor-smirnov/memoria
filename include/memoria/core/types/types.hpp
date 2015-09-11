@@ -370,7 +370,7 @@ enum class WalkDirection {
 };
 
 enum class WalkCmd {
-    FIRST_LEAF, LAST_LEAF, THE_ONLY_LEAF, FIX_TARGET, NONE, PREFIXES
+    FIRST_LEAF, LAST_LEAF, THE_ONLY_LEAF, FIX_TARGET, NONE, PREFIXES, REFRESH
 };
 
 
@@ -391,6 +391,12 @@ struct TypeP {
 };
 
 class NoParamCtr {};
+
+
+class VLSelector {};
+class FLSelector {};
+
+enum class SplitStatus {NONE, LEFT, RIGHT, UNKNOWN};
 
 extern BigInt DebugCounter;
 extern BigInt DebugCounter1;

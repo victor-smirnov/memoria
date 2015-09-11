@@ -383,15 +383,6 @@ public:
 	{
 		CtrT::Types::Pages::LeafDispatcher::dispatch(leaf, InsertBufferFn(), at, start_, sizes, buffer_);
 
-//		for (Int c = 0; c < Streams - 1; c++)
-//		{
-//			if (sizes[c] > 0)
-//			{
-//				ancors_[c] = at[c] + sizes[c] - 1;
-//				leafs_[c]  = leaf;
-//			}
-//		}
-
 		updateLeafAncors(leaf, at, sizes);
 
 		start_ += sizes;
@@ -573,7 +564,9 @@ private:
 		}
 	}
 
-	void updateLeaf(Int sym, CtrSizeT pos, CtrSizeT sum)
+protected:
+
+	virtual void updateLeaf(Int sym, CtrSizeT pos, CtrSizeT sum)
 	{
 		detail::UpdateLeafH<
 			typename CtrT::Types::Pages::LeafDispatcher,

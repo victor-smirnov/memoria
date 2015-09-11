@@ -1,7 +1,7 @@
 include_directories(../tools/include)
 
 if (NOT DEFINED MEMORIA_SANDBOX)
-    set(MEMORIA_SANDBOX table_scan table_project)
+    set(MEMORIA_SANDBOX table_updates)
 endif()
 
 

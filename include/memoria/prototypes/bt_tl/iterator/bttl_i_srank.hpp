@@ -80,7 +80,13 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorStreamRankName)
     }
 
 
-
+//    Position leaf_rank(Int stream, Int idx) const
+//    {
+//    	LeafPrefixRanks ranks;
+//    	compute_leaf_prefixes(ranks);
+//
+//    	return leaf_rank(self().leaf_sizes(), ranks, pos);
+//    }
 
 
 

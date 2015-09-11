@@ -64,7 +64,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorLeafName)
 
 
 
-
 MEMORIA_ITERATOR_PART_END
 
 #define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::bt::IteratorLeafName)

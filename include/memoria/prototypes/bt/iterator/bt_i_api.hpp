@@ -196,7 +196,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
 
     	self.walkUpForRefresh(self.leaf(), self.idx(), walker);
 
-    	walker.finish(self, self.idx(), WalkCmd::NONE);
+    	walker.finish(self, self.idx(), WalkCmd::REFRESH);
     }
 
     template <int StreamIdx>

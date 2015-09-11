@@ -1687,7 +1687,7 @@ public:
                      ) const
         {
             const MyType* me = T2T<const MyType*>(page);
-            handler->startPage("BTREE_NODE");
+            handler->startPage("BTREE_NODE", this);
             me->generateDataEvents(handler);
             handler->endPage();
         }

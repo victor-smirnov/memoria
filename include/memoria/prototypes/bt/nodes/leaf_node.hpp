@@ -737,7 +737,7 @@ public:
 
         Dispatcher::dispatch(stream, allocator(), RemoveSpaceFn(), room_start, room_end);
 
-        removeEmptyStreams();
+//        removeEmptyStreams();
 
         return accum;
     }
@@ -749,23 +749,26 @@ public:
 
         this->processSubstreamGroups(RemoveSpaceFn(), room_start, room_end);
 
-        removeEmptyStreams();
+        // FIXME: enable once other methods (finders) are ready for
+        // this optimization
+        // removeEmptyStreams();
 
         return accum;
     }
 
-    void removeEmptyStreams()
-    {
-        Position sizes = this->sizes();
-
-        for (Int c = Position::Indexes - 1; c >= 0; c--)
-        {
-            if (sizes[c] == 0)
-            {
-                allocator()->free(c);
-            }
-        }
-    }
+//	  FIXME: this code doesn't work with substreams
+//    void removeEmptyStreams()
+//    {
+//        Position sizes = this->sizes();
+//
+//        for (Int c = Position::Indexes - 1; c >= 0; c--)
+//        {
+//            if (sizes[c] == 0)
+//            {
+//                allocator()->free(c);
+//            }
+//        }
+//    }
 
     struct CanMergeWithFn {
         Int mem_used_ = 0;

@@ -59,6 +59,8 @@ class IteratorLeafName      {};
 class IteratorMiscName      {};
 class IteratorStreamRankName{};
 class IteratorUpdateName    {};
+class IteratorRemoveName    {};
+class IteratorInsertName    {};
 
 }
 

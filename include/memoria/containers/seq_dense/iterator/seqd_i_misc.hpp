@@ -75,6 +75,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
     			self,
     			InputTupleAdapter<0>::convert(symbol)
     	);
+
+    	self.skipFw(1);
     }
 
 

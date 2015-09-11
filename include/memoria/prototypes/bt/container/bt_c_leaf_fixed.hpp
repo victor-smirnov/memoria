@@ -226,6 +226,21 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafFixedName)
      }
 
 
+     template <typename Fn, typename... Args>
+     bool update(Iterator& iter, Fn&& fn, Args&&... args)
+     {
+    	 auto& self = this->self();
+    	 LeafDispatcher::dispatch(
+    			 iter.leaf(),
+				 fn,
+				 FLSelector(),
+				 std::forward<Args>(args)...
+    	 );
+
+    	 return true;
+     }
+
+
 
      //==========================================================================================
 

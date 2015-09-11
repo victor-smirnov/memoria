@@ -122,7 +122,15 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorMiscName)
     }
 
 
-
+//    void refresh()
+//    {
+//    	Base::refresh();
+//
+//    	auto& self 	= this->self();
+//    	auto& cache	= self.cache();
+//
+//    	cache.data_size()[0] = self.ctr().sizes()[0];
+//    }
 
 MEMORIA_ITERATOR_PART_END
 

@@ -273,9 +273,9 @@ public:
 	void reset() {
 		Base::reset();
 
-		data_pos_.clear();
-		data_size_.clear();
-		abs_pos_.clear();
+		data_pos_ 	= Position(-1);
+		data_size_ 	= Position(-1);
+		abs_pos_ 	= Position(-1);
 	}
 
     bool operator==(const MyType& other) const

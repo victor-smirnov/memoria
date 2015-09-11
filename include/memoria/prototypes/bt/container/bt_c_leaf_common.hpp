@@ -527,7 +527,41 @@ private:
     	}
     }
 
+    template <typename Fn, typename... Args>
+    SplitStatus updateAtomic(Iterator& iter, Fn&& fn, Args&&... args)
+    {
+   	 auto& self = this->self();
 
+   	 PageUpdateMgr mgr(self);
+
+   	 self.updatePageG(iter.leaf());
+
+   	 mgr.add(iter.leaf());
+
+   	 try {
+   		 LeafDispatcher::dispatch(
+   				 iter.leaf(),
+				 fn,
+				 std::forward<Args>(args)...
+   		 );
+
+   		 return SplitStatus::NONE;
+   	 }
+   	 catch (PackedOOMException& e)
+   	 {
+   		 mgr.rollback();
+
+   		 SplitStatus status = iter.split();
+
+   		 LeafDispatcher::dispatch(
+   				 iter.leaf(),
+				 fn,
+				 std::forward<Args>(args)...
+   		 );
+
+   		 return status;
+   	 }
+    }
 
 MEMORIA_CONTAINER_PART_END
 

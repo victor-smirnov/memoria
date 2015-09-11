@@ -1992,7 +1992,7 @@ public:
     {
         Base::generateDataEvents(handler);
 
-        handler->startGroup("VLE_TREE");
+        handler->startGroupWithAddr("VLE_TREE", this);
 
         const Metadata* meta = this->metadata();
 

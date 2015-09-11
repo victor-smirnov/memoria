@@ -9,13 +9,9 @@
 #ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_SS_ITERATOR_MISC_HPP
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_SS_ITERATOR_MISC_HPP
 
-#include <memoria/prototypes/bt_ss/btss_names.hpp>
-
-#include <memoria/core/types/types.hpp>
-#include <memoria/core/container/iterator.hpp>
 #include <memoria/core/container/macros.hpp>
-
-#include <iostream>
+#include <memoria/core/types/types.hpp>
+#include <memoria/prototypes/bt_ss/btss_names.hpp>
 
 namespace memoria    {
 
@@ -122,7 +118,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btss::IteratorMiscName)
     	self.refresh();
     }
 
-    void split()
+    SplitStatus split()
     {
     	auto& self = this->self();
 
@@ -140,6 +136,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btss::IteratorMiscName)
     		idx -= split_idx;
 
     		self.refresh();
+
+    		return SplitStatus::RIGHT;
+    	}
+    	else {
+    		return SplitStatus::LEFT;
     	}
     }
 
