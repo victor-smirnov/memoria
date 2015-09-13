@@ -131,6 +131,17 @@ struct ShiftRangeList<TypeList<IndexRange<From, To>, Tail...>, Offset>
 };
 
 
+template <Int From, Int To, Int Offset>
+struct ShiftRangeList<IndexRange<From, To>, Offset>
+{
+	using Type = TL<
+			IndexRange<From + Offset, To + Offset>
+	>;
+
+	using OffsetList = IntList<From + Offset>;
+};
+
+
 template <Int Offset>
 struct ShiftRangeList<TypeList<>, Offset> {
 	using Type 		 = TypeList<>;
@@ -534,7 +545,7 @@ public:
 template <typename LeafStructList, typename LeafPath>
 struct PackedStructValueTypeH {
 	static const Int LeafIdx = memoria::list_tree::LeafCount<LeafStructList, LeafPath>::Value;
-	using PkdStruct = typename Select<LeafIdx, LeafStructList>::Result;
+	using PkdStruct = typename Select<LeafIdx, Linearize<LeafStructList>>::Result;
 
 	using Type = typename AccumType<PkdStruct>::Type;
 };

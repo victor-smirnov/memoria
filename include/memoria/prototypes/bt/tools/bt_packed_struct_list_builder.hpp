@@ -145,6 +145,9 @@ public:
     >;
 };
 
+template <typename... T>
+class Undefined;
+
 
 template <
     typename StructsTF,
@@ -162,6 +165,12 @@ class IteratorAccumulatorListBuilder<TypeList<StructsTF, Tail...>> {
     		LeafStructList,
     		IdxRangeList
     >::Type;
+
+//    using RangeListType = Undefined<
+//    		BranchStructList,
+//			LeafStructList,
+//			IdxRangeList
+//    >;
 
 	using RangeOffsetListType = typename BranchNodeRangeListBuilder<
 			BranchStructList,

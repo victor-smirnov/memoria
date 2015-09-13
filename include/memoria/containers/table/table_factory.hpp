@@ -52,24 +52,26 @@ struct TableBTTypesBase: public BTTypes<Profile, memoria::BTTreeLayout> {
 
     using CtrSizeT = BigInt;
 
-    struct Index1StreamTF {
-        using NonLeafType 	= PkdFTree<Packed2TreeTypes<Key, Key, Indexes + 1>>;
-        using LeafType 		= TL<
-        	PkdVTree<Packed2TreeTypes<Key, Key, Indexes, UByteI7Codec>>
-        >;
 
-        using IdxRangeList 	= TL<TL<IndexRange<0, Indexes>>>;
+    struct Stream1TF {
+        using NonLeafType 	= PkdFTree<Packed2TreeTypes<Key, Key, Indexes + 2>>;
+        using LeafType 		= TL<TL<
+        	PkdVTree<Packed2TreeTypes<Key, Key, Indexes, UByteI7Codec>>,
+			PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec>>
+        >>;
+
+        using IdxRangeList 	= TL<TL<TL<IndexRange<0, Indexes>>, TL<IndexRange<0, 1>>>>;
     };
 
-    struct Index2StreamTF {
-        using NonLeafType 	= PkdFTree<Packed2TreeTypes<Key, Key, Indexes + 1>>;
-        using LeafType 		= TL<
-        	PkdVTree<Packed2TreeTypes<Key, Key, Indexes, UByteI7Codec>>
-        >;
+    struct Stream2TF {
+        using NonLeafType 	= PkdFTree<Packed2TreeTypes<Key, Key, Indexes + 2>>;
+        using LeafType 		= TL<TL<
+        	PkdVTree<Packed2TreeTypes<Key, Key, Indexes, UByteI7Codec>>,
+			PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec>>
+        >>;
 
-        using IdxRangeList 	= TL<TL<IndexRange<0, Indexes>>>;
+        using IdxRangeList 	= TL<TL<TL<IndexRange<0, Indexes>>, TL<IndexRange<0, 1>>>>;
     };
-
 
 
     struct DataStreamTF {
@@ -80,8 +82,8 @@ struct TableBTTypesBase: public BTTypes<Profile, memoria::BTTreeLayout> {
     };
 
     using StreamDescriptors = TypeList<
-    		Index1StreamTF,
-    		Index2StreamTF,
+    		Stream1TF,
+    		Stream2TF,
     		DataStreamTF
     >;
 
@@ -129,15 +131,6 @@ public:
         using IterTypes 		= TableIterTypes<Types>;
 
         using PageUpdateMgr 	= PageUpdateManager<CtrTypes>;
-
-        template <Int StreamIdx>
-        using InputTupleSizeAccessor = table::InputTupleSizeH<StreamIdx>;
-
-        using StreamsSizes = TL<
-        	IntList<0, 0, 1>,
-        	IntList<1, 0, 1>
-        >;
-
     };
 
     using CtrTypes 	= typename Types::CtrTypes;

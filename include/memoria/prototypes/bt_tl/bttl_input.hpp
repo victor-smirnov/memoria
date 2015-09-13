@@ -18,14 +18,66 @@
 namespace memoria 	{
 namespace bttl 		{
 
-
-
 namespace detail {
+
+template <typename DataEntry, typename CtrSizeT>
+class BufferEntry {
+	DataEntry entry_;
+	CtrSizeT size_;
+public:
+
+	using EntryT = DataEntry;
+
+	static constexpr Int Size = std::tuple_size<DataEntry>::value + 1;
+
+	BufferEntry() {}
+	BufferEntry(const EntryT& entry):
+		entry_(entry),
+		size_(0)
+	{}
+
+	EntryT& entry(){
+		return entry_;
+	}
+
+	const EntryT& entry() const {
+		return entry_;
+	}
+
+	CtrSizeT& size() {
+		return size_;
+	}
+
+	const CtrSizeT& size() const {
+		return size_;
+	}
+};
+
+template <Int Idx, Int Disp>
+struct TupleAccessDispatcher {
+	template <typename BufferEntry>
+	static auto access(BufferEntry&& entry)
+	{
+		return std::get<Idx>(entry.entry());
+	}
+};
+
+
+template <Int Idx>
+struct TupleAccessDispatcher<Idx, Idx> {
+	template <typename BufferEntry>
+	static auto access(BufferEntry&& entry)
+	{
+		return entry.size();
+	}
+};
+
 
 template <typename Types, Int Streams, Int Idx = 0>
 struct InputBufferBuilder {
-	using InputTuple 	= typename Types::template StreamInputTuple<Idx>;
 	using SizeT 		= typename Types::CtrSizeT;
+	using InputTuple 	= BufferEntry<typename Types::template StreamInputTuple<Idx>, SizeT>;
+
 
 	using Type = MergeLists<
 			std::vector<InputTuple>,
@@ -75,33 +127,31 @@ struct ForAllTuple<Idx, Idx> {
 
 
 template <
-	template <Int> class SizeAccessor,
 	Int Idx,
 	Int Size
 >
 struct InputTupleSizeHelper {
-	template <typename Buffer, typename... Args>
-	static auto get(Int stream, Buffer&& buffer, Args&&... args) ->
-		decltype(SizeAccessor<Idx>::get(std::get<Idx>(buffer), std::forward<Args>(args)...))
+	template <typename Buffer>
+	static auto get(Int stream, Buffer&& buffer, size_t idx)
 	{
 		if (stream == Idx)
 		{
-			return SizeAccessor<Idx>::get(std::get<Idx>(buffer), std::forward<Args>(args)...);
+			return std::get<Idx>(buffer)[idx].size();
 		}
 		else {
-			return InputTupleSizeHelper<SizeAccessor, Idx + 1, Size>::get(stream, std::forward<Buffer>(buffer), std::forward<Args>(args)...);
+			return InputTupleSizeHelper<Idx + 1, Size>::get(stream, std::forward<Buffer>(buffer), idx);
 		}
 	}
 
-	template <typename Buffer, typename... Args>
-	static void add(Int stream, Buffer&& buffer, Args&&... args)
+	template <typename Buffer, typename T>
+	static void add(Int stream, Buffer&& buffer, size_t idx, T value)
 	{
 		if (stream == Idx)
 		{
-			SizeAccessor<Idx>::add(std::get<Idx>(buffer), std::forward<Args>(args)...);
+			std::get<Idx>(buffer)[idx].size() += value;
 		}
 		else {
-			InputTupleSizeHelper<SizeAccessor, Idx + 1, Size>::add(stream, std::forward<Buffer>(buffer), std::forward<Args>(args)...);
+			InputTupleSizeHelper<Idx + 1, Size>::add(stream, std::forward<Buffer>(buffer), idx, value);
 		}
 	}
 };
@@ -109,55 +159,66 @@ struct InputTupleSizeHelper {
 
 
 template <
-	template <Int> class SizeAccessor,
-	Int Size
->
-struct InputTupleSizeHelper<SizeAccessor, Size, Size> {
-	template <typename Buffer, typename... Args>
-	static Int get(Int stream, Buffer&& buffer, Args&&... args){
-		return 0;
-	}
-
-	template <typename Buffer, typename... Args>
-	static void add(Int stream, Buffer&& buffer, Args&&... args){}
-};
-
-
-template <
-	typename Dispatcher,
-	typename PathList,
-	Int Idx = 0
->
-struct UpdateLeafH;
-
-template <
-	typename Dispatcher,
-	typename Path,
-	typename... Tail,
 	Int Idx
 >
-struct UpdateLeafH<Dispatcher, TL<Path, Tail...>, Idx> {
+struct InputTupleSizeHelper<Idx, Idx> {
+	template <typename Buffer>
+	static auto get(Int stream, Buffer&& buffer, size_t idx)
+	{
+		if (stream == Idx)
+		{
+			return std::get<Idx>(buffer)[idx].size();
+		}
+		else {
+			throw vapi::Exception(MA_SRC, "Invalid stream number");
+		}
+	}
+
+	template <typename Buffer, typename T>
+	static void add(Int stream, Buffer&& buffer, size_t idx, T value)
+	{
+		if (stream == Idx)
+		{
+			std::get<Idx>(buffer)[idx].size() += value;
+		}
+		else {
+			throw vapi::Exception(MA_SRC, "Invalid stream number");
+		}
+	}
+};
+
+
+
+
+
+
+template <
+	typename Dispatcher,
+	Int Size,
+	template <Int> class PathListT,
+	Int StreamIdx = 0
+>
+struct UpdateLeafH {
 
 	template <typename NTypes, typename SizeT>
 	void treeNode(LeafNode<NTypes>* node, Int idx, SizeT value)
 	{
-		using StreamPath = BTTLSizePath<Path>;
-		const Int index  = BTTLSizePathBlockIdx<Path>::Value;
+		using Path = PathListT<StreamIdx>;
 
-		auto substream = node->template substream<StreamPath>();
+		auto substream = node->template substream<Path>();
 
-		substream->value(index, idx) += value;
+		substream->addValue(0, idx, value);
 	}
 
 	template <typename PageG, typename... Args>
 	void process(Int stream, PageG&& page, Args&&... args)
 	{
-		if (stream == Idx)
+		if (stream == StreamIdx)
 		{
 			Dispatcher::dispatch(std::forward<PageG>(page), *this, std::forward<Args>(args)...);
 		}
 		else {
-			UpdateLeafH<Dispatcher, TL<Tail...>, Idx + 1>().process(stream, std::forward<PageG>(page), std::forward<Args>(args)...);
+			UpdateLeafH<Dispatcher, Size, PathListT, StreamIdx + 1>().process(stream, std::forward<PageG>(page), std::forward<Args>(args)...);
 		}
 	}
 };
@@ -166,9 +227,10 @@ struct UpdateLeafH<Dispatcher, TL<Path, Tail...>, Idx> {
 
 template <
 	typename Dispatcher,
-	Int Idx
+	Int Size,
+	template <Int> class PathListT
 >
-struct UpdateLeafH<Dispatcher, TL<>, Idx> {
+struct UpdateLeafH<Dispatcher, Size, PathListT, Size> {
 	template <typename PageG, typename... Args>
 	void process(Int stream, PageG&& page, Args&&... args)
 	{
@@ -204,6 +266,8 @@ public:
 	using NodeBaseG = typename CtrT::Types::NodeBaseG;
 	using CtrSizeT 	= typename CtrT::Types::CtrSizeT;
 
+	using Iterator  = typename CtrT::Iterator;
+
 	using Buffer = typename detail::AsTuple<
 			typename detail::InputBufferBuilder<
 				typename CtrT::Types,
@@ -213,10 +277,7 @@ public:
 
 	using Position	= typename Base::Position;
 
-	template <Int StreamIdx>
-	using InputTupleSizeAccessor = typename CtrT::Types::template InputTupleSizeAccessor<StreamIdx>;
-
-	using InputTupleSizeHelper = detail::InputTupleSizeHelper<InputTupleSizeAccessor, 0, std::tuple_size<Buffer>::value>;
+	using InputTupleSizeHelper = detail::InputTupleSizeHelper<0, Streams - 1>;
 
 	using ForAllBuffer = detail::ForAllTuple<std::tuple_size<Buffer>::value>;
 
@@ -252,6 +313,8 @@ protected:
 
 	Int last_symbol_ = -1;
 
+	CtrSizeT fills_ = 0;
+
 private:
 
 
@@ -286,6 +349,35 @@ private:
 	}
 public:
 
+	Iterator compute_ancors(const NodeBaseG& leaf, const Position& start)
+	{
+		Iterator iter(this->ctr_);
+		iter.leaf() = leaf;
+		iter.refresh();
+
+		for (Int s = 0; s < Streams; s++)
+		{
+			if (start[s] > 0)
+			{
+				this->ancors_[s] = start[s] - 1;
+				this->leafs_[s]  = leaf;
+			}
+			else {
+				auto tmp = iter;
+				tmp.stream() = s;
+				tmp.idx() = 0;
+
+				if (tmp.skipBw(1) == 1)
+				{
+					this->ancors_[s] = tmp.idx();
+					this->leafs_[s]  = tmp.leaf();
+				}
+			}
+		}
+
+		return iter;
+	}
+
 
 	CtrT& ctr() {return ctr_;}
 	const CtrT& ctr() const {return ctr_;}
@@ -297,9 +389,35 @@ public:
 		return buffer_has_data || populate_buffer();
 	}
 
-	virtual Position fill(NodeBaseG& leaf, const Position& from)
+	virtual Position fill(NodeBaseG& leaf, const Position& start)
 	{
-		Position pos = from;
+		fills_++;
+
+		if (this->fills_ == 1)
+		{
+			compute_ancors(leaf, start);
+		}
+
+		auto end = fill0(leaf, start);
+
+		if (fills_ == 1 && this->hasData())
+		{
+			auto leaf_sizes = ctr().getLeafStreamSizes(leaf);
+
+			if (end.sum() < leaf_sizes.sum())
+			{
+				ctr().splitLeafP(leaf, end);
+
+				return fill0(leaf, end);
+			}
+		}
+
+		return end;
+	}
+
+	Position fill0(NodeBaseG& leaf, const Position& start)
+	{
+		Position pos = start;
 
 		while(true)
 		{
@@ -347,11 +465,19 @@ public:
 		bool stream(StreamObj* stream, const Position& at, const Position& starts, const Position& sizes, const Buffer& buffer)
 		{
 			static_assert(StreamIdx < Position::Indexes, "");
-			static_assert(StreamIdx < tuple_size<Buffer>::value, "");
-			static_assert(Idx < tuple_size<typename tuple_element<StreamIdx, Buffer>::type::value_type>::value, "");
+			static_assert(StreamIdx < std::tuple_size<Buffer>::value, "");
+
+			using BufferEntryT = typename std::tuple_element<StreamIdx, Buffer>::type::value_type;
+
+			static_assert(Idx < BufferEntryT::Size, "");
+
+			using Accessor = detail::TupleAccessDispatcher<
+					Idx,
+					std::tuple_size<typename BufferEntryT::EntryT>::value
+			>;
 
 			stream->_insert(at[StreamIdx], sizes[StreamIdx], [&](Int idx){
-				return std::get<Idx>(std::get<StreamIdx>(buffer)[idx + starts[StreamIdx]]);
+				return Accessor::access(std::get<StreamIdx>(buffer)[idx + starts[StreamIdx]]);
 			});
 
 			return true;
@@ -570,7 +696,8 @@ protected:
 	{
 		detail::UpdateLeafH<
 			typename CtrT::Types::Pages::LeafDispatcher,
-			typename CtrT::Types::StreamsSizes
+			CtrT::Types::Streams - 1,
+			CtrT::Types::template LeafSizesSubstreamPath
 		>().process(sym, leafs_[sym], pos, sum);
 	}
 };
@@ -611,9 +738,7 @@ public:
 	using Buffer 	= typename Base::Buffer;
 	using Position	= typename Base::Position;
 
-	template <Int StreamIdx>
-	using InputTupleSizeAccessor = typename CtrT::Types::template InputTupleSizeAccessor<StreamIdx>;
-	using InputTupleSizeHelper 	 = detail::InputTupleSizeHelper<InputTupleSizeAccessor, 0, std::tuple_size<Buffer>::value>;
+	using InputTupleSizeHelper 	 = detail::InputTupleSizeHelper<0, Streams - 1>;
 
 
 public:
@@ -701,20 +826,25 @@ class AbstractCtrInputProvider<CtrT, Streams, LeafDataLengthType::VARIABLE>: pub
 
 	using Base = AbstractCtrInputProviderBase<CtrT>;
 
+	static constexpr float FREE_SPACE_THRESHOLD = 0.05;
+
+
+
 public:
 	using MyType = AbstractCtrInputProvider<CtrT, Streams, LeafDataLengthType::VARIABLE>;
 
 	using NodeBaseG = typename CtrT::Types::NodeBaseG;
 	using CtrSizeT 	= typename CtrT::Types::CtrSizeT;
+	using Iterator 	= typename CtrT::Iterator;
 
 	using Buffer 	= typename Base::Buffer;
 	using Position	= typename Base::Position;
 
-	template <Int StreamIdx>
-	using InputTupleSizeAccessor = typename CtrT::Types::template InputTupleSizeAccessor<StreamIdx>;
-	using InputTupleSizeHelper 	 = detail::InputTupleSizeHelper<InputTupleSizeAccessor, 0, std::tuple_size<Buffer>::value>;
+	using InputTupleSizeHelper 	 = detail::InputTupleSizeHelper<0, Streams - 1>;
 
 	using PageUpdateMgr			 = typename CtrT::Types::PageUpdateMgr;
+
+	Position extent_;
 
 public:
 
@@ -722,7 +852,63 @@ public:
 		Base(ctr, capacity)
 	{}
 
-	virtual Position fill(NodeBaseG& leaf, const Position& from)
+	CtrT& ctr() {
+		return this->ctr_;
+	}
+
+	virtual Position fill(NodeBaseG& leaf, const Position& start)
+	{
+		this->fills_++;
+
+		if (this->fills_ == 1)
+		{
+			Iterator iter(this->ctr_);
+			iter.leaf() = leaf;
+			iter.refresh();
+
+			extent_ = iter.leaf_extent();
+
+			for (Int s = 0; s < Streams; s++)
+			{
+				if (start[s] > 0)
+				{
+					this->ancors_[s] = start[s] - 1;
+					this->leafs_[s]  = leaf;
+				}
+				else {
+					auto tmp = iter;
+					tmp.stream() = s;
+					tmp.idx() = 0;
+
+					if (tmp.skipBw(1) == 1)
+					{
+						this->ancors_[s] = tmp.idx();
+						this->leafs_[s]  = tmp.leaf();
+					}
+				}
+			}
+		}
+
+
+		auto end = fill0(leaf, start);
+
+		if (this->fills_ == 1 && this->hasData())
+		{
+			auto leaf_sizes = ctr().getLeafStreamSizes(leaf);
+
+			if (end.sum() < leaf_sizes.sum())
+			{
+				ctr().splitLeafP(leaf, end);
+
+				return fill0(leaf, end);
+			}
+		}
+
+		return end;
+	}
+
+
+	Position fill0(NodeBaseG& leaf, const Position& from)
 	{
 		Position pos = from;
 
@@ -740,7 +926,7 @@ public:
 			{
 				pos += inserted;
 
-				if (getFreeSpacePart(leaf) < 0.05)
+				if (!hasFreeSpace(leaf))
 				{
 					break;
 				}
@@ -768,7 +954,7 @@ public:
 
 			Position tmp = at;
 
-			while (imax > imin && (getFreeSpacePart(leaf) > 0.05))
+			while (imax > imin && hasFreeSpace(leaf))
 			{
 				if (imax - 1 != imin)
 				{
@@ -828,12 +1014,17 @@ protected:
 		}
 	}
 
-	float getFreeSpacePart(const NodeBaseG& node)
+	static float getFreeSpacePart(const NodeBaseG& node)
 	{
 		float client_area = node->allocator()->client_area();
 		float free_space = node->allocator()->free_space();
 
 		return free_space / client_area;
+	}
+
+	static bool hasFreeSpace(const NodeBaseG& node)
+	{
+		return getFreeSpacePart(node) > FREE_SPACE_THRESHOLD;
 	}
 };
 

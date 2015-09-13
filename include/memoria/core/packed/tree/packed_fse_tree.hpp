@@ -687,7 +687,7 @@ public:
     template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
     void sum(AccumItem<T, Size>& accum) const
     {
-    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+    	static_assert(Offset <= Size - Blocks, "Invalid balanced tree structure");
 
     	for (Int block = 0; block < Blocks; block++)
     	{
@@ -698,7 +698,7 @@ public:
     template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
     void sum(Int start, Int end, AccumItem<T, Size>& accum) const
     {
-    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+    	static_assert(Offset <= Size - Blocks, "Invalid balanced tree structure");
 
     	for (Int block = 0; block < Blocks; block++)
     	{
@@ -709,7 +709,7 @@ public:
     template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
     void sum(Int idx, AccumItem<T, Size>& accum) const
     {
-    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+    	static_assert(Offset <= Size - Blocks, "Invalid balanced tree structure");
 
     	for (Int block = 0; block < Blocks; block++)
     	{
@@ -720,7 +720,7 @@ public:
     template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
     void sub(Int idx, AccumItem<T, Size>& accum) const
     {
-    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+    	static_assert(Offset <= Size - Blocks, "Invalid balanced tree structure");
 
     	for (Int block = 0; block < Blocks; block++)
     	{
@@ -790,7 +790,7 @@ public:
     }
 
     template <typename T>
-    void sums(Int from, Int to, StaticVector<T, Blocks>& values) const
+    void sums(Int from, Int to, core::StaticVector<T, Blocks>& values) const
     {
         values += sums(from, to);
     }

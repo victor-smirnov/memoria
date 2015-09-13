@@ -18,51 +18,6 @@ namespace table   {
 
 
 
-template <Int StreamIdx> struct InputTupleSizeH;
-
-template <>
-struct InputTupleSizeH<0> {
-	template <typename Tuple>
-	static auto get(Tuple&& buffer, Int idx) -> decltype(std::get<0>(buffer[idx])[1]) {
-		return std::get<0>(buffer[idx])[1];
-	}
-
-	template <typename Tuple, typename SizeT>
-	static void add(Tuple&& buffer, Int idx, SizeT value)
-	{
-		std::get<0>(buffer[idx])[1] += value;
-	}
-};
-
-template <>
-struct InputTupleSizeH<1> {
-	template <typename Tuple>
-	static auto get(Tuple&& buffer, Int idx) -> decltype(std::get<0>(buffer[idx])[1]) {
-		return std::get<0>(buffer[idx])[1];
-	}
-
-	template <typename Tuple, typename SizeT>
-	static void add(Tuple&& buffer, Int idx, SizeT value)
-	{
-		std::get<0>(buffer[idx])[1] += value;
-	}
-};
-
-
-template <>
-struct InputTupleSizeH<2> {
-	template <typename Tuple>
-	static Int get(Tuple&& buffer, Int idx) {
-		return 0;
-	}
-
-	template <typename Tuple, typename SizeT>
-	static void add(Tuple&& buffer, Int idx, SizeT value)
-	{}
-};
-
-
-
 
 
 template <typename CtrT, typename Rng>

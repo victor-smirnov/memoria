@@ -71,6 +71,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafFixedName)
 
 
 
+    template <
+		template <Int Idx> class Accessor
+	>
     struct InsertEntryIntoStreamHanlder
     {
     	template <
@@ -83,7 +86,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafFixedName)
     	>
     	void stream(SubstreamType* obj, AccumulatorItem& accum, Int idx, const Entry& entry)
     	{
-    		obj->template _insert<Offset>(idx, std::get<Idx>(entry), accum);
+    		obj->template _insert<Offset>(idx, Accessor<Idx>::get(entry), accum);
 
     		if (StreamStart)
     		{
@@ -95,14 +98,17 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafFixedName)
 
 
 
-    template <Int Stream>
+    template <
+		Int Stream,
+		template <Int Idx> class Accessor
+	>
     struct InsertEntryIntoStreamFn
     {
     	template <typename NTypes, typename... Args>
     	void treeNode(LeafNode<NTypes>* node, Int idx, Accumulator& accum, Args&&... args)
     	{
     		node->layout(255);
-    		node->template processStreamAcc<Stream>(InsertEntryIntoStreamHanlder(), accum, idx, std::forward<Args>(args)...);
+    		node->template processStreamAcc<Stream>(InsertEntryIntoStreamHanlder<Accessor>(), accum, idx, std::forward<Args>(args)...);
     	}
     };
 
@@ -117,7 +123,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafFixedName)
     	if (self.checkCapacities(iter.leaf(), Position::create(Stream, 1)))
     	{
     		Accumulator accum;
-    		LeafDispatcher::dispatch(iter.leaf(), InsertEntryIntoStreamFn<Stream>(), iter.idx(), accum, entry);
+    		LeafDispatcher::dispatch(iter.leaf(), InsertEntryIntoStreamFn<Stream, bt::TupleEntryAccessor>(), iter.idx(), accum, entry);
     		return std::make_tuple(true, accum);
     	}
     	else {

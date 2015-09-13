@@ -26,6 +26,38 @@ namespace memoria   {
 namespace bt        {
 
 
+template <Int Streams, Int Idx = 0>
+struct ForEachStream {
+	template <typename Fn, typename... Args>
+	static auto process(Int stream, Fn&& fn, Args&&... args)
+	{
+		if (stream == Idx)
+		{
+			return fn.template process<Idx>(std::forward<Args>(args)...);
+		}
+		else {
+			return ForEachStream<Streams, Idx + 1>::process(stream, std::forward<Fn>(fn), std::forward<Args>(args)...);
+		}
+	}
+};
+
+
+template <Int Idx>
+struct ForEachStream<Idx, Idx> {
+	template <typename Fn, typename... Args>
+	static auto process(Int stream, Fn&& fn, Args&&... args)
+	{
+		if (stream == Idx)
+		{
+			return fn.template process<Idx>(std::forward<Args>(args)...);
+		}
+		else {
+			throw vapi::Exception(MA_SRC, SBuf()<<"Requested stream "<<stream<<" not found");
+		}
+	}
+};
+
+
 template <typename T, typename LeafPath, typename... Args>
 using ItrFindFwGTRtnType = decltype(std::declval<T>().template _findFwGT<LeafPath>(std::declval<Args>()...));
 
@@ -344,6 +376,16 @@ struct Path<Head> {
 	template <typename T>
 	static auto get(T&& tuple) -> typename std::tuple_element<Head, typename std::remove_reference<T>::type>::type {
 		return std::get<Head>(tuple);
+	}
+};
+
+
+
+template<Int Idx>
+struct TupleEntryAccessor {
+	template <typename Entry>
+	static auto get(Entry&& entry) {
+		return std::get<Idx>(entry);
 	}
 };
 

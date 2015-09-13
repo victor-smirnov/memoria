@@ -44,10 +44,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorStreamRankName)
     template <Int Stream, typename SubstreamsIdxList, typename... Args>
     using ReadLeafEntryRtnType = typename Container::template ReadLeafStreamEntryRtnType<Stream, SubstreamsIdxList, Args...>;
 
-    using StreamSizes = typename Container::Types::StreamsSizes;
 
-    template <Int Stream>
-    using StreamSizesPath = typename Select<Stream, StreamSizes>::Result;
+    template <Int StreamIdx>
+    using LeafSizesSubstreamPath = typename Container::Types::template LeafSizesSubstreamPath<StreamIdx>;
+
 
     template <typename LeafPath>
     using AccumItemH = typename Container::Types::template AccumItemH<LeafPath>;
@@ -80,17 +80,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorStreamRankName)
     }
 
 
-//    Position leaf_rank(Int stream, Int idx) const
-//    {
-//    	LeafPrefixRanks ranks;
-//    	compute_leaf_prefixes(ranks);
-//
-//    	return leaf_rank(self().leaf_sizes(), ranks, pos);
-//    }
-
-
-
-
     Position leaf_extent() const
     {
     	const auto& self  = this->self();
@@ -98,7 +87,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorStreamRankName)
     	const auto& branch_prefix = cache.prefixes();
 
     	Position expected_sizes;
-    	bttl::detail::ExpectedSizesHelper<StreamSizes, AccumItemH>::process(branch_prefix, expected_sizes);
+    	bttl::detail::ExpectedSizesHelper<Streams - 1, LeafSizesSubstreamPath, AccumItemH>::process(branch_prefix, expected_sizes);
 
     	expected_sizes[0] = cache.size_prefix()[0];
 
@@ -112,7 +101,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorStreamRankName)
     	Position treeNode(const LeafNode<NTypes>* leaf, const Position& sizes, const Position& prefix, Int pos, Args&&... args)
     	{
     		bttl::detail::StreamsRankFn<
-				StreamSizesPath,
+				LeafSizesSubstreamPath,
 				CtrSizeT,
 				Position
 			> fn(sizes, prefix, pos);
@@ -156,7 +145,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorStreamRankName)
     	const auto& branch_prefix = cache.prefixes();
 
     	Position expected_sizes;
-    	bttl::detail::ExpectedSizesHelper<StreamSizes, AccumItemH>::process(branch_prefix, expected_sizes);
+    	bttl::detail::ExpectedSizesHelper<Streams - 1, LeafSizesSubstreamPath, AccumItemH>::process(branch_prefix, expected_sizes);
 
     	const auto& actual_sizes = cache.size_prefix();
 
@@ -189,19 +178,28 @@ private:
     		prefix_(prefix), sums_(sums), stream_(stream), cnt_(end)
     	{}
 
-    	template <Int Stream, typename Leaf>
+    	template <typename Stream>
+    	auto stream(const Stream* substream, CtrSizeT start, CtrSizeT end) {
+    		return substream->sum(0, start, end);
+    	}
+
+
+    	template <Int StreamIdx, typename Leaf>
     	bool process(const Leaf* leaf)
     	{
-    		if (Stream >= stream_)
+    		if (StreamIdx >= stream_)
     		{
-    			using Path 		 = StreamSizesPath<Stream>;
-    			using StreamPath = bttl::BTTLSizePath<Path>;
-    			const Int index  = bttl::BTTLSizePathBlockIdx<Path>::Value;
+    			constexpr Int SubstreamIdx = Leaf::template StreamStartIdx<StreamIdx>::Value +
+    			    						 Leaf::template StreamSize<StreamIdx>::Value - 1;
 
-    			auto substream = leaf->template substream<StreamPath>();
-    			auto sum = substream->sum(index, prefix_[Stream], prefix_[Stream] + cnt_);
+    			auto sum = Leaf::Dispatcher::template dispatch<SubstreamIdx>(
+    					leaf->allocator(),
+						*this,
+						prefix_[StreamIdx],
+						prefix_[StreamIdx] + cnt_
+				);
 
-    			sums_[Stream + 1] += sum;
+    			sums_[StreamIdx + 1] += sum;
     			cnt_ = sum;
     		}
 

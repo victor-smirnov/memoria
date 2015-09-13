@@ -385,6 +385,13 @@ public:
         using AccumItemH = AccumItem<LeafStreamsStructList, LeafPath, IteratorAccumulator>;
 
 
+        template <Int SubstreamIdx>
+        using LeafPathT = typename memoria::list_tree::BuildTreePath<LeafStreamsStructList, SubstreamIdx>::Type;
+
+        template <Int SubstreamIdx>
+        using BranchPathT = typename memoria::list_tree::BuildTreePath<BranchStreamsStructList, SubstreamIdx>::Type;
+
+
         static const LeafDataLengthType LeafDataLength = LeafSizeType == PackedSizeType::FIXED ?
         		LeafDataLengthType::FIXED : LeafDataLengthType::VARIABLE;
 

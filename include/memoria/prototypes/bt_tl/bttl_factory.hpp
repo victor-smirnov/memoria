@@ -20,6 +20,7 @@
 
 #include <memoria/prototypes/bt_tl/container/bttl_c_misc.hpp>
 #include <memoria/prototypes/bt_tl/container/bttl_c_insert.hpp>
+#include <memoria/prototypes/bt_tl/container/bttl_c_counts.hpp>
 
 #include <memoria/prototypes/bt_tl/iterator/bttl_i_misc.hpp>
 #include <memoria/prototypes/bt_tl/iterator/bttl_i_srank.hpp>
@@ -45,7 +46,8 @@ struct BTTypes<Profile, memoria::BTTreeLayout>: public BTTypes<Profile, memoria:
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
                 memoria::bttl::MiscName,
-				memoria::bttl::InsertName
+				memoria::bttl::InsertName,
+				memoria::bttl::CountsName
     >;
 
     using IteratorPartsList = MergeLists<
@@ -82,6 +84,26 @@ public:
         using PageUpdateMgr 	= PageUpdateManager<CtrTypes>;
 
         using LeafPrefixRanks   = typename Base::Types::Position[Base::Types::Streams];
+
+        template <Int StreamIdx>
+        using LeafSizesSubstreamIdx = IntValue<
+        		memoria::list_tree::LeafCountSup<
+					typename Base::Types::LeafStreamsStructList,
+					IntList<StreamIdx>>::Value - 1
+		>;
+
+        template <Int StreamIdx>
+        using BranchSizesSubstreamIdx = IntValue<
+        		memoria::list_tree::LeafCountSup<
+					typename Base::Types::BranchStreamsStructList,
+					IntList<StreamIdx>>::Value - 1
+		>;
+
+        template <Int StreamIdx>
+        using LeafSizesSubstreamPath = typename Base::Types::template LeafPathT<LeafSizesSubstreamIdx<StreamIdx>::Value>;
+
+        template <Int StreamIdx>
+        using BranchSizesSubstreamPath = typename Base::Types::template BranchPathT<BranchSizesSubstreamIdx<StreamIdx>::Value>;
 
         static const Int SearchableStreams = Base::Types::Streams - 1;
     };

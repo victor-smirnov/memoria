@@ -57,7 +57,7 @@ int main(int argc, const char** argv, const char** envp) {
 
 		auto iter = ctr.seek(0);
 
-		Int rows 		= 10;
+		Int rows 		= 5;
 		Int cols		= 10;
 		Int data_size	= 100;
 
@@ -65,13 +65,20 @@ int main(int argc, const char** argv, const char** envp) {
 
 		ctr.insertData(iter.leaf(), Position(), provider);
 
-		iter = ctr.seek(3);
+		iter = ctr.seek(0);
 
-		iter.dump();
+		ctr.add_to_stream_counter(iter.leaf(), iter.stream(), iter.idx(), 1001);
+
+//		iter.dump();
 
 		iter.toData(5);
+		iter.toIndex();
+		iter.skipFw(1);
+		iter.skipBw(1);
 
-		iter.template _insert<1>(Adapter<1>::convert(IV{22, 0}));
+		iter.split();
+
+//		iter.template _insert<1>(Adapter<1>::convert(IV{22, 0}, IV{0}));
 
 //		iter.toData(1);
 

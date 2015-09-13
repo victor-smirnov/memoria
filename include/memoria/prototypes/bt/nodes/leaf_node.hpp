@@ -94,6 +94,11 @@ public:
     		memoria::list_tree::LeafCountInf<LeafSubstreamsStructList, IntList<StreamIdx>>::Value
     >;
 
+    template <Int StreamIdx>
+    using StreamSize = IntValue<
+    		memoria::list_tree::LeafCountSup<LeafSubstreamsStructList, IntList<StreamIdx>>::Value -
+    		memoria::list_tree::LeafCountInf<LeafSubstreamsStructList, IntList<StreamIdx>>::Value
+	>;
 
 
     template <Int Stream, typename SubstreamIdxList>
@@ -104,6 +109,13 @@ public:
     		>,
     		Stream
     >;
+
+    template <Int SubstreamIdx>
+    using LeafPathT = typename memoria::list_tree::BuildTreePath<LeafSubstreamsStructList, SubstreamIdx>::Type;
+
+    template <Int SubstreamIdx>
+    using BranchPathT = typename memoria::list_tree::BuildTreePath<BranchSubstreamsStructList, SubstreamIdx>::Type;
+
 
 
     static const Int Streams                                                    = ListSize<LeafSubstreamsStructList>::Value;
@@ -1346,6 +1358,7 @@ public:
     }
 
 
+
     template <typename SubstreamPath>
     auto substream()
 	{
@@ -1361,6 +1374,9 @@ public:
     	using T = typename Dispatcher::template StreamTypeT<SubstreamIdx>::Type;
     	return this->allocator()->template get<T>(SubstreamIdx + SubstreamsStart);
     }
+
+
+
 
     template <typename SubstreamPath, typename Fn, typename... Args>
     DispatchRtnType<memoria::list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>::Value, Fn, Args...>

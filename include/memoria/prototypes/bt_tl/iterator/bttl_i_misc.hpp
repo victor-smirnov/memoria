@@ -47,8 +47,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorMiscName)
     using ReadLeafEntryRtnType = typename Container::template ReadLeafStreamEntryRtnType<Stream, SubstreamsIdxList, Args...>;
 
 
-    template <Int Stream>
-    using StreamSizesPath = typename Select<Stream, typename Container::Types::StreamsSizes>::Result;
+//    template <Int Stream>
+//    using StreamSizesPath = typename Select<Stream, typename Container::Types::StreamsSizes>::Result;
 
     static const Int Streams 				= Container::Types::Streams;
     static const Int SearchableStreams 		= Container::Types::SearchableStreams;

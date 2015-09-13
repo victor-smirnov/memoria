@@ -44,10 +44,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
     template <Int Stream, typename SubstreamsIdxList, typename... Args>
     using ReadLeafEntryRtnType = typename Container::template ReadLeafStreamEntryRtnType<Stream, SubstreamsIdxList, Args...>;
 
-    using StreamSizes = typename Container::Types::StreamsSizes;
 
-    template <Int Stream>
-    using StreamSizesPath = typename Select<Stream, StreamSizes>::Result;
+    template <Int StreamIdx>
+    using LeafSizesSubstreamPath = typename Container::Types::template LeafSizesSubstreamPath<StreamIdx>;
+
 
     template <typename LeafPath>
     using AccumItemH = typename Container::Types::template AccumItemH<LeafPath>;
@@ -55,42 +55,21 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
     static const Int Streams 				= Container::Types::Streams;
     static const Int SearchableStreams 		= Container::Types::SearchableStreams;
 
-
     using LeafPrefixRanks = typename Container::Types::LeafPrefixRanks;
 
     struct SkipFwFn {
-
-    	CtrSizeT distance_ = 0;
-
-    	template <Int Stream, typename Itr>
-    	bool process(Itr&& iter, Int stream, CtrSizeT n)
+    	template <Int StreamIdx, typename Itr>
+    	auto process(Itr&& iter, CtrSizeT n)
     	{
-    		if (Stream == stream)
-    		{
-    			distance_ = iter.template _skipFw<Stream>(n);
-    			return false;
-    		}
-    		else {
-    			return true;
-    		}
+    		return iter.template _skipFw<StreamIdx>(n);
     	}
     };
 
     struct SkipBwFn {
-
-    	CtrSizeT distance_ = 0;
-
-    	template <Int Stream, typename Itr>
-    	bool process(Itr&& iter, Int stream, CtrSizeT n)
+    	template <Int StreamIdx, typename Itr>
+    	auto process(Itr&& iter, CtrSizeT n)
     	{
-    		if (Stream == stream)
-    		{
-    			distance_ = iter.template _skipBw<Stream>(n);
-    			return false;
-    		}
-    		else {
-    			return true;
-    		}
+    		return iter.template _skipBw<StreamIdx>(n);
     	}
     };
 
@@ -109,9 +88,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
     		n = size - pos;
     	}
 
-    	SkipFwFn fn;
-    	ForEach<0, Streams>::process(fn, self, stream, n);
-    	return fn.distance_;
+    	return bt::ForEachStream<Streams - 1>::process(stream, SkipFwFn(), self, n);
     }
 
 
@@ -128,9 +105,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
     		n = pos;
     	}
 
-    	SkipBwFn fn;
-    	ForEach<0, Streams>::process(fn, self, stream, n);
-    	return fn.distance_;
+    	return bt::ForEachStream<Streams - 1>::process(stream, SkipBwFn(), self, n);
     }
 
     CtrSizeT skip(CtrSizeT n)
@@ -298,74 +273,21 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
 // Internal API
 
 
-    struct FindOffsetFn {
-
-    	Int stream_;
-    	Int target_;
-    	Int idx_ = -2;
-
-    	FindOffsetFn(Int stream, Int target):
-    		stream_(stream), target_(target)
-    	{}
-
-    	template <Int Stream, typename Leaf>
-    	bool process(const Leaf* leaf)
-    	{
-    		if (Stream == stream_)
-    		{
-    			using Path 		 = StreamSizesPath<Stream>;
-    			using StreamPath = bttl::BTTLSizePath<Path>;
-    			const Int index  = bttl::BTTLSizePathBlockIdx<Path>::Value;
-
-    			auto substream = leaf->template substream<StreamPath>();
-    			auto result = substream->findGTForward(index, 0, target_);
-
-    			idx_ = result.idx();
-
-    			return false;
-    		}
-
-    		return true;
-    	}
-
-
-    	template <typename NTypes>
-    	Int treeNode(const LeafNode<NTypes>* leaf)
-    	{
-    		ForEach<0, SearchableStreams>::process(*this, leaf);
-    		return idx_;
-    	}
-    };
 
 
     Int find_offset(Int stream, Int idx) const
     {
-    	MEMORIA_ASSERT_TRUE(stream >= 0 && stream < SearchableStreams);
-    	MEMORIA_ASSERT(idx, >=, 0);
+    	auto& self = this->self();
 
-    	return LeafDispatcher::dispatch(self().leaf(), FindOffsetFn(stream, idx));
+    	self.ctr().find_offset(self.leaf(), stream, idx);
     }
 
-
-
     struct DataOffsetFn {
-    	CtrSizeT expected_size_ = -1;
-
-    	template <Int Stream, typename Cache>
-    	bool process(Cache&& cache, Int stream)
+    	template <Int StreamIdx, typename Cache>
+    	auto process(Cache&& cache)
     	{
-    		using Path		 = StreamSizesPath<Stream>;
-    		using StreamPath = bttl::BTTLSizePath<Path>;
-    		const Int index  = bttl::BTTLSizePathBlockIdx<Path>::Value;
-
-    		if (Stream == stream)
-    		{
-    			expected_size_ = AccumItemH<StreamPath>::value(index, cache.prefixes());
-    			return false;
-    		}
-    		else {
-    			return true;
-    		}
+    		using Path = LeafSizesSubstreamPath<StreamIdx>;
+    		return AccumItemH<Path>::value(0, cache.prefixes());
     	}
     };
 
@@ -377,15 +299,13 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
 
     	if (stream > 0)
     	{
-    		DataOffsetFn fn;
+    		auto expected_size = bt::ForEachStream<SearchableStreams>::process(stream, DataOffsetFn(), cache);
 
-    		ForEach<0, SearchableStreams>::process(fn, cache, stream - 1);
-
-    		MEMORIA_ASSERT(fn.expected_size_, >=, 0);
+    		MEMORIA_ASSERT(expected_size, >=, 0);
 
     		auto actual_size = cache.size_prefix()[stream];
 
-    		return fn.expected_size_ - actual_size;
+    		return expected_size - actual_size;
     	}
     	else {
     		return 0;
@@ -396,92 +316,22 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
     	return self().data_offset(stream);
     }
 
-    template <Int Stream>
-    struct IdxDataSizeFn {
-    	template <typename NTypes, typename... Args>
-    	auto treeNode(const LeafNode<NTypes>* node, Args&&... args)
-    	{
-    		using Path = StreamSizesPath<Stream>;
-
-			using StreamPath = bttl::BTTLSizePath<Path>;
-			const Int index  = bttl::BTTLSizePathBlockIdx<Path>::Value;
-
-    		return node->template substream<StreamPath>()->value(index, std::forward<Args>(args)...);
-    	}
-    };
 
     template <Int Stream>
     auto idx_data_size(Int idx) const
     {
     	auto& self = this->self();
-    	return LeafDispatcher::dispatch(self.leaf(), IdxDataSizeFn<Stream>(), idx);
-    }
-
-    template <Int Stream>
-    struct AddIdxDataSizeFn {
-    	template <typename NTypes>
-    	void treeNode(LeafNode<NTypes>* node, Int idx, CtrSizeT size)
-    	{
-    		using Path = StreamSizesPath<Stream>;
-
-			using StreamPath = bttl::BTTLSizePath<Path>;
-			const Int index  = bttl::BTTLSizePathBlockIdx<Path>::Value;
-
-    		node->template substream<StreamPath>()->addValue(index, idx, size);
-    	}
-    };
-
-    template <Int Stream>
-    auto add_idx_data_size(Int idx, CtrSizeT size)
-    {
-    	auto& self = this->self();
-    	LeafDispatcher::dispatch(self.leaf(), AddIdxDataSizeFn<Stream>(), idx, size);
+    	return self.ctr().template _get_stream_counter<Stream>(self.leaf(), idx);
     }
 
 
 
-    struct CountStreamItemsFn {
-
-    	Int stream_;
-    	CtrSizeT sum_ = 0;
-    	Int end_;
-
-    	CountStreamItemsFn(Int stream, Int end):
-    		stream_(stream), end_(end)
-    	{}
-
-    	template <Int Stream, typename Leaf>
-    	bool process(const Leaf* leaf)
-    	{
-    		if (Stream == stream_)
-    		{
-    			using Path 		 = StreamSizesPath<Stream>;
-    			using StreamPath = bttl::BTTLSizePath<Path>;
-    			const Int index  = bttl::BTTLSizePathBlockIdx<Path>::Value;
-
-    			auto substream = leaf->template substream<StreamPath>();
-
-    			sum_ = substream->sum(index, end_);
-
-    			return false;
-    		}
-
-    		return true;
-    	}
-
-
-    	template <typename NTypes>
-    	CtrSizeT treeNode(const LeafNode<NTypes>* leaf)
-    	{
-    		ForEach<0, SearchableStreams>::process(*this, leaf);
-    		return sum_;
-    	}
-    };
 
 
     CtrSizeT count_items(Int stream, Int end) const
     {
-    	return LeafDispatcher::dispatch(self().leaf(), CountStreamItemsFn(stream, end));
+    	auto& self = this->self();
+    	return self.ctr().count_items(self.leaf(), stream, end);
     }
 
 
@@ -513,70 +363,25 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
 
     struct GetSizeFn2 {
     	template <Int StreamIdx, typename Iter, typename... Args>
-    	bool process(Iter&& iter, Int stream, Args&&... args)
+    	void process(Iter&& iter, Int stream, Args&&... args)
     	{
-    		if (StreamIdx == stream)
-    		{
-    			GetSizeFn::template process<StreamIdx>(iter, stream, std::forward<Args>(args)...);
-    			return false;
-    		}
-    		return true;
+    		GetSizeFn::template process<StreamIdx>(iter, stream, std::forward<Args>(args)...);
     	}
     };
 
 
     template <typename... Args>
     void get_substream_size(Int stream, Args&&... args) const {
-    	ForEach<0, SearchableStreams>::process(GetSizeFn2(), self(), stream, std::forward<Args>(args)...);
+    	bt::ForEachStream<SearchableStreams - 1>::process(stream, GetSizeFn2(), self(), stream, std::forward<Args>(args)...);
     }
-
-
-
-
-
-
-    struct AddSizeFn {
-    	template <Int Stream, typename Itr, typename... Args>
-    	static void process(Itr&& iter, Int stream, Args&&... args)
-    	{
-    		if (Stream == stream)
-    		{
-    			iter.template add_idx_data_size<Stream>(std::forward<Args>(args)...);
-    		}
-    	}
-    };
-
-    struct AddSizeElseFn {
-    	template <Int Stream, typename... Args>
-    	static void process(Args&&...){}
-    };
-
-    template <Int Stream, typename... Args>
-    void _add_substream_size(Args&&... args)
-    {
-    	IfLess<Stream, SearchableStreams>::process(AddSizeFn(), AddSizeElseFn(), self(), std::forward<Args>(args)...);
-    }
-
-
-    struct AddSizeFn2 {
-    	template <Int StreamIdx, typename Iter, typename... Args>
-    	bool process(Iter&& iter, Int stream, Args&&... args)
-    	{
-    		if (StreamIdx == stream)
-    		{
-    			AddSizeFn::template process<StreamIdx>(iter, stream, std::forward<Args>(args)...);
-    			return false;
-    		}
-    		return true;
-    	}
-    };
-
 
 
 
     template <typename... Args>
-    SplitStatus add_substream_size(Int stream, Args&&... args) {
-    	ForEach<0, SearchableStreams>::process(AddSizeFn2(), self(), stream, std::forward<Args>(args)...);
+    SplitStatus add_substream_size(Int stream, Args&&... args)
+    {
+    	auto& self = this->self();
+    	self.ctr().add_to_stream_counter(self.leaf(), stream, std::forward<Args>(args)...);
     	return SplitStatus::NONE;
     }
 
@@ -585,8 +390,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
     void finish_walking(Int idx, Walker& w, WalkCmd cmd) {
     	Base::finish_walking(idx, w, cmd);
     }
-
-
 
 
     template <typename WTypes>

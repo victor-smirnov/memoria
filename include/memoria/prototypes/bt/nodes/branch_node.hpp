@@ -361,12 +361,26 @@ public:
     	memoria::list_tree::LeafCountInf<BranchSubstreamsStructList, IntList<StreamIdx>>::Value
 	>;
 
+    template <Int StreamIdx>
+    using StreamSize = IntValue<
+    		memoria::list_tree::LeafCountSup<BranchSubstreamsStructList, IntList<StreamIdx>>::Value -
+    		memoria::list_tree::LeafCountInf<BranchSubstreamsStructList, IntList<StreamIdx>>::Value
+	>;
+
+
 
     template <typename SubstreamsPath>
     using SubstreamsDispatcher = SubrangeDispatcher<
     		memoria::list_tree::LeafCountInf<BranchSubstreamsStructList, SubstreamsPath>::Value,
     		memoria::list_tree::LeafCountSup<BranchSubstreamsStructList, SubstreamsPath>::Value
     >;
+
+    template <Int SubstreamIdx>
+    using LeafPathT = typename memoria::list_tree::BuildTreePath<LeafSubstreamsStructList, SubstreamIdx>::Type;
+
+    template <Int SubstreamIdx>
+    using BranchPathT = typename memoria::list_tree::BuildTreePath<BranchSubstreamsStructList, SubstreamIdx>::Type;
+
 
     static const Int Streams                                                    = ListSize<BranchSubstreamsStructList>::Value;
 

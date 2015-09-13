@@ -26,6 +26,7 @@ class InsertBatchVariableName {};
 class InsertBatchFixedName  {};
 class InsertBatchCommonName {};
 class InsertToolsName       {};
+class StreamRankName        {};
 
 class RemoveName            {};
 class RemoveToolsName       {};
@@ -44,6 +45,7 @@ class ChecksName            {};
 class WalkName              {};
 class AllocatorName         {};
 class MiscName         		{};
+class CountsName         	{};
 
 
 

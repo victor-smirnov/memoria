@@ -44,10 +44,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorRemoveName)
     template <Int Stream, typename SubstreamsIdxList, typename... Args>
     using ReadLeafEntryRtnType = typename Container::template ReadLeafStreamEntryRtnType<Stream, SubstreamsIdxList, Args...>;
 
-    using StreamSizes = typename Container::Types::StreamsSizes;
-
-    template <Int Stream>
-    using StreamSizesPath = typename Select<Stream, StreamSizes>::Result;
+//    using StreamSizes = typename Container::Types::StreamsSizes;
+//
+//    template <Int Stream>
+//    using StreamSizesPath = typename Select<Stream, StreamSizes>::Result;
 
     template <typename LeafPath>
     using AccumItemH = typename Container::Types::template AccumItemH<LeafPath>;

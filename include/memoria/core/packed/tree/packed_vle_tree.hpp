@@ -1342,7 +1342,7 @@ public:
 
 
     template <Int Offset, Int Size, typename T1, typename T2, template <typename, Int> class AccumItem>
-    void _insert(Int idx, const core::StaticVector<T1, Indexes>& values, AccumItem<T2, Size>& accum)
+    void _insert(Int idx, const core::StaticVector<T1, Blocks>& values, AccumItem<T2, Size>& accum)
     {
     	insert(idx, values);
 
@@ -1566,10 +1566,11 @@ public:
     template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
     void sum(AccumItem<T, Size>& accum) const
     {
-    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+    	static_assert(Offset <= Size - Blocks, "Invalid balanced tree structure");
 
     	for (Int block = 0; block < Blocks; block++)
     	{
+
     		accum[block + Offset] += sum(block);
     	}
     }
@@ -1577,7 +1578,7 @@ public:
     template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
     void sum(Int start, Int end, AccumItem<T, Size>& accum) const
     {
-    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+    	static_assert(Offset <= Size - Blocks, "Invalid balanced tree structure");
 
     	for (Int block = 0; block < Blocks; block++)
     	{
@@ -1588,7 +1589,7 @@ public:
     template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
     void sum(Int idx, AccumItem<T, Size>& accum) const
     {
-    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+    	static_assert(Offset <= Size - Blocks, "Invalid balanced tree structure");
 
     	for (Int block = 0; block < Blocks; block++)
     	{
@@ -1663,7 +1664,7 @@ public:
 
     void sums(Int idx, Values& values) const
     {
-        for (Int c = 0; c < Values::Indexes; c++)
+        for (Int c = 0; c < Values::Blocks; c++)
         {
             values[c] = this->getValue(c, idx);
         }
@@ -1907,7 +1908,7 @@ public:
         for (Int c = 0; c < idx_max; c++)
         {
             out<<c<<" ";
-            for (Int block = 0; block < Indexes; block++)
+            for (Int block = 0; block < Blocks; block++)
             {
                 out<<indexes(block)[c]<<" ";
             }

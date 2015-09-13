@@ -14,6 +14,10 @@
 namespace memoria {
 namespace bttl    {
 
+
+
+
+
 template <typename FullPath>
 using BTTLSizePath = typename SublistFromStart<FullPath, ListSize<FullPath>::Value - 1>::Type;
 
@@ -145,11 +149,9 @@ private:
 		else {
 			Int limit = (idx + BufferSize) < size ? idx + BufferSize : size;
 
-			using Path 		 = StreamsSizesPath<Stream>;
-			using StreamPath = BTTLSizePath<Path>;
-			const Int index  = BTTLSizePathBlockIdx<Path>::Value;
+			using Path = StreamsSizesPath<Stream>;
 
-			node->template substream<StreamPath>()->read(index, idx, limit, buffer);
+			node->template substream<Path>()->read(0, idx, limit, buffer);
 
 			p0 = idx;
 			s0 = limit;
@@ -195,25 +197,31 @@ struct ZeroRankHelper<Idx, Idx> {
 
 
 
-template <typename PathList, template <typename> class AccumItemH> struct ExpectedSizesHelper;
-
-template <typename Path, typename... Tail, template <typename> class AccumItemH>
-struct ExpectedSizesHelper<TL<Path, Tail...>, AccumItemH> {
+template <
+	Int Size,
+	template <Int> class SizesPathT,
+	template <typename> class AccumItemH,
+	Int StreamIdx = 0
+> struct ExpectedSizesHelper
+{
 	template <typename Accumulator, typename Position>
 	static void process(Accumulator&& branch_prefix, Position& values, Int stream = 1)
 	{
-		using StreamPath = BTTLSizePath<Path>;
-		const Int index  = BTTLSizePathBlockIdx<Path>::Value;
+		using Path = SizesPathT<StreamIdx>;
 
-		values[stream] = AccumItemH<StreamPath>::value(index, branch_prefix);
+		values[stream] = AccumItemH<Path>::value(0, branch_prefix);
 
-		ExpectedSizesHelper<TL<Tail...>, AccumItemH>::process(branch_prefix, values, stream + 1);
+		ExpectedSizesHelper<Size, SizesPathT, AccumItemH, StreamIdx + 1>::process(branch_prefix, values, stream + 1);
 	}
 };
 
 
-template <template <typename> class AccumItemH>
-struct ExpectedSizesHelper<TL<>, AccumItemH> {
+template <
+	Int Size,
+	template <Int> class SizesPathT,
+	template <typename> class AccumItemH
+> struct ExpectedSizesHelper<Size, SizesPathT, AccumItemH, Size>
+ {
 	template <typename Accumulator, typename Position>
 	static void process(const Accumulator& branch_prefix, Position& values, Int stream = 1)
 	{}
