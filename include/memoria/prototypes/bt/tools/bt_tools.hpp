@@ -157,15 +157,39 @@ struct AccumulatorBuilder<TL<>> {
 template <typename Types>
 class PageUpdateManager {
 
+	using MyType = PageUpdateManager<Types>;
+
     typedef Ctr<Types>                                                          CtrT;
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef std::tuple<NodeBaseG, void*, Int>                                   TxnRecord;
 
     CtrT& ctr_;
 
-    StaticArray<TxnRecord, 4> pages_;
+    struct ClearFn {
+    	void operator()(TxnRecord& rec)
+    	{
+    		rec = TxnRecord(NodeBaseG(), nullptr, 0);
+    	}
+    };
+
+    StaticArray<TxnRecord, 4, ClearFn> pages_;
 
 public:
+
+    struct Remover {
+    	MyType& mgr_;
+    	const NodeBaseG& page_;
+
+    	Remover(MyType& mgr, const NodeBaseG& page):
+    		mgr_(mgr), page_(page)
+    	{}
+
+    	~Remover() {
+    		mgr_.remove(page_);
+    	}
+    };
+
+
     PageUpdateManager(CtrT& ctr): ctr_(ctr) {}
 
     ~PageUpdateManager() throw()
@@ -177,6 +201,21 @@ public:
         }
     }
 
+    bool contains(const NodeBaseG& node)
+    {
+    	MEMORIA_ASSERT_TRUE(node.isSet());
+
+    	for (Int c = pages_.getSize() - 1; c >= 0; c--)
+    	{
+    		if (node->id() == std::get<0>(pages_[c])->id())
+    		{
+    			return true;
+    		}
+    	}
+
+    	return false;
+    }
+
     void add(NodeBaseG& node)
     {
         MEMORIA_ASSERT_TRUE(node.isSet());
@@ -186,6 +225,9 @@ public:
             Int page_size = node->page_size();
 
             void* backup_buffer = ctr_.allocator().allocateMemory(page_size);
+
+//            cout<<"Add Page: "<<node.page()<<" -> "<<backup_buffer<<" "<<node->id()<<endl;
+
             CopyByteBuffer(node.page(), backup_buffer, page_size);
 
             pages_.append(TxnRecord(node, backup_buffer, page_size));
@@ -193,6 +235,22 @@ public:
         else {
             throw Exception(MA_SRC, "No space left for new pages in the PageUpdateMgr");
         }
+    }
+
+    void remove(const NodeBaseG& node)
+    {
+    	MEMORIA_ASSERT_TRUE(node.isSet());
+
+    	for (Int c = pages_.getSize() - 1; c >= 0; c--)
+    	{
+    		if (node->id() == std::get<0>(pages_[c])->id())
+    		{
+    			void* backup_buffer = std::get<1>(pages_[c]);
+    			ctr_.allocator().freeMemory(backup_buffer);
+
+    			pages_.remove(c);
+    		}
+    	}
     }
 
     void checkpoint(NodeBaseG& node)
@@ -203,14 +261,15 @@ public:
     		{
     			void* backup_buffer = std::get<1>(pages_[c]);
     			Int page_size       = std::get<2>(pages_[c]);
+
     			CopyByteBuffer(node.page(), backup_buffer, page_size);
 
     			return;
     		}
     	}
-
-    	throw Exception(MA_SRC, "Unregistered page checkpointing attempt in PageUpdateMgr");
     }
+
+
 
     // FIXME: unify with rollback()
     void restoreNodeState()

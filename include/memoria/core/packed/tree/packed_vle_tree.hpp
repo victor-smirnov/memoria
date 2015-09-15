@@ -2485,6 +2485,11 @@ struct StructSizeProvider<PkdVTree<T>> {
     static const Int Value = PkdVTree<T>::Blocks;
 };
 
+template <typename T>
+struct IndexesSize<PkdVTree<T>> {
+	static const Int Value = PkdVTree<T>::Blocks;
+};
+
 
 }
 

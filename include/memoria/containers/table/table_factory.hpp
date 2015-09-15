@@ -45,7 +45,7 @@ struct TableBTTypesBase: public BTTypes<Profile, memoria::BTTreeLayout> {
                     Value_
     >::Result;
 
-    static const Int Indexes  = 2;
+    static const Int Indexes  = 1;
 
     using Key 	= Key_;
     using Value	= Value_;

@@ -23,7 +23,7 @@ using namespace memoria;
 using namespace memoria::tools;
 using namespace std;
 
-using CtrT 		= SCtrTF<Table<BigInt, Byte>>::Type;
+using CtrT 		= SCtrTF<Table<BigInt, Short>>::Type;
 using Provider 	= table::RandomDataInputProvider<CtrT, decltype(generator)>;
 using Position  = Provider::Position;
 
@@ -57,28 +57,26 @@ int main(int argc, const char** argv, const char** envp) {
 
 		auto iter = ctr.seek(0);
 
-		Int rows 		= 5;
+		Int rows 		= 100;
 		Int cols		= 10;
-		Int data_size	= 100;
+		Int data_size	= 50;
 
 		Provider provider(ctr, rows + 1, cols, data_size, generator);
 
 		ctr.insertData(iter.leaf(), Position(), provider);
 
-		iter = ctr.seek(0);
+//		iter = ctr.seek(0);
 
-		ctr.add_to_stream_counter(iter.leaf(), iter.stream(), iter.idx(), 1001);
+//		ctr.add_to_stream_counter(iter.leaf(), iter.stream(), iter.idx(), 1001);
 
 //		iter.dump();
 
-		iter.toData(5);
-		iter.toIndex();
-		iter.skipFw(1);
-		iter.skipBw(1);
-
-		iter.split();
-
-//		iter.template _insert<1>(Adapter<1>::convert(IV{22, 0}, IV{0}));
+//		iter.toData(5);
+//		iter.toIndex();
+//		iter.skipFw(1);
+//		iter.skipBw(1);
+//
+//		iter.split();
 
 //		iter.toData(1);
 

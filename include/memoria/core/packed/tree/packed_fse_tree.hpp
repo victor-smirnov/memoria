@@ -499,6 +499,11 @@ public:
     	return this->value(index, idx);
     }
 
+    Value getValue(Int idx, Int index) const
+    {
+    	return this->value(index, idx);
+    }
+
     void clearIndex()
     {
         for (Int i = 0; i < Indexes; i++)

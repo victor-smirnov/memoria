@@ -79,7 +79,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::CountsName)
     template <Int StreamIdx, typename Fn, typename... Args>
     auto _process_count_substream(const NodeBaseG& node, Fn&& fn, Args&&... args) const
     {
-    	return LeafDispatcher::dispatch(
+    	return NodeDispatcher::dispatch(
     			node,
 				ProcessCountSubstreamFn<StreamIdx>(),
 				std::forward<Fn>(fn),

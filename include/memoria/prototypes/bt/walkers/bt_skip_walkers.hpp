@@ -103,7 +103,9 @@ public:
     template <Int StreamIdx, typename Tree>
     StreamOpResult find_leaf(const Tree* tree, Int start)
     {
-    	if (start > tree->size()) start = tree->size();
+    	auto size = tree != nullptr ? tree->size() : 0;
+
+    	if (start > size) start = size;
 
     	if (start >= 0)
     	{

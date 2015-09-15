@@ -53,8 +53,8 @@ int main(int argc, const char** argv, const char** envp) {
 
 		auto iter = ctr.seek(0);
 
-		Int rows 		= 100000;
-		Int cols		= 100;
+		Int rows 		= 1000000;
+		Int cols		= 10;
 		Int data_size	= 100;
 
 		BigInt c0 = getTimeInMillisT();
@@ -69,13 +69,11 @@ int main(int argc, const char** argv, const char** envp) {
 
 		alloc.commit();
 
-
-
 		ScanFn scan_fn;
 
 		BigInt t0 = getTimeInMillisT();
 
-		for (int x = 0; x < 10; x++)
+		for (int x = 0; x < 5; x++)
 		{
 			BigInt tt0 = getTimeInMillisT();
 

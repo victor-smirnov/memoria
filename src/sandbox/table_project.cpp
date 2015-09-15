@@ -74,7 +74,7 @@ int main(int argc, const char** argv, const char** envp) {
 
 		BigInt t0 = getTimeInMillisT();
 
-		for (Int x = 0; x < 30; x++)
+		for (Int x = 0; x < 10; x++)
 		{
 			BigInt tt0 = getTimeInMillisT();
 

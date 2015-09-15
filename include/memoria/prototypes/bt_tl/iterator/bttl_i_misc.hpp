@@ -46,10 +46,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorMiscName)
     template <Int Stream, typename SubstreamsIdxList, typename... Args>
     using ReadLeafEntryRtnType = typename Container::template ReadLeafStreamEntryRtnType<Stream, SubstreamsIdxList, Args...>;
 
-
-//    template <Int Stream>
-//    using StreamSizesPath = typename Select<Stream, typename Container::Types::StreamsSizes>::Result;
-
     static const Int Streams 				= Container::Types::Streams;
     static const Int SearchableStreams 		= Container::Types::SearchableStreams;
 
@@ -58,9 +54,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorMiscName)
 
     void update_leaf_ranks()
     {
-//    	auto& self = this->self();
-//    	auto& prefixes = self.cache().ranks();
-//    	self.compute_leaf_prefixes(prefixes);
     }
 
     void update_leaf_ranks(WalkCmd cmd)
@@ -122,15 +115,17 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorMiscName)
     }
 
 
-//    void refresh()
-//    {
-//    	Base::refresh();
-//
-//    	auto& self 	= this->self();
-//    	auto& cache	= self.cache();
-//
-//    	cache.data_size()[0] = self.ctr().sizes()[0];
-//    }
+    void refresh()
+    {
+    	Base::refresh();
+
+    	auto& self 	= this->self();
+    	auto& cache	= self.cache();
+
+    	cache.data_size()[0] = self.ctr().sizes()[0];
+    	cache.data_pos()[0] = 0;
+    	cache.abs_pos()[0] = 0;
+    }
 
 MEMORIA_ITERATOR_PART_END
 

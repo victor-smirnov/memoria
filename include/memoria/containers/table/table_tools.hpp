@@ -71,7 +71,7 @@ public:
 		{
 			if (level_ == 0)
 			{
-				std::get<0>(this->buffer_)[pos[0]] = InputTupleAdapter<0>::convert(memoria::core::StaticVector<BigInt, 2>({1, 0}));
+				std::get<0>(this->buffer_)[pos[0]] = InputTupleAdapter<0>::convert(memoria::core::StaticVector<BigInt, 1>({1}));
 
 				col_ = 0;
 
@@ -83,7 +83,7 @@ public:
 			}
 			else if (level_ == 1)
 			{
-				std::get<1>(this->buffer_)[pos[1]] = InputTupleAdapter<1>::convert(memoria::core::StaticVector<BigInt, 2>({1, 0}));
+				std::get<1>(this->buffer_)[pos[1]] = InputTupleAdapter<1>::convert(memoria::core::StaticVector<BigInt, 1>({1}));
 
 				col_++;
 

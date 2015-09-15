@@ -166,12 +166,6 @@ class IteratorAccumulatorListBuilder<TypeList<StructsTF, Tail...>> {
     		IdxRangeList
     >::Type;
 
-//    using RangeListType = Undefined<
-//    		BranchStructList,
-//			LeafStructList,
-//			IdxRangeList
-//    >;
-
 	using RangeOffsetListType = typename BranchNodeRangeListBuilder<
 			BranchStructList,
 			LeafStructList,

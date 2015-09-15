@@ -20,63 +20,10 @@ namespace bttl 		{
 
 namespace detail {
 
-template <typename DataEntry, typename CtrSizeT>
-class BufferEntry {
-	DataEntry entry_;
-	CtrSizeT size_;
-public:
-
-	using EntryT = DataEntry;
-
-	static constexpr Int Size = std::tuple_size<DataEntry>::value + 1;
-
-	BufferEntry() {}
-	BufferEntry(const EntryT& entry):
-		entry_(entry),
-		size_(0)
-	{}
-
-	EntryT& entry(){
-		return entry_;
-	}
-
-	const EntryT& entry() const {
-		return entry_;
-	}
-
-	CtrSizeT& size() {
-		return size_;
-	}
-
-	const CtrSizeT& size() const {
-		return size_;
-	}
-};
-
-template <Int Idx, Int Disp>
-struct TupleAccessDispatcher {
-	template <typename BufferEntry>
-	static auto access(BufferEntry&& entry)
-	{
-		return std::get<Idx>(entry.entry());
-	}
-};
-
-
-template <Int Idx>
-struct TupleAccessDispatcher<Idx, Idx> {
-	template <typename BufferEntry>
-	static auto access(BufferEntry&& entry)
-	{
-		return entry.size();
-	}
-};
-
-
 template <typename Types, Int Streams, Int Idx = 0>
 struct InputBufferBuilder {
 	using SizeT 		= typename Types::CtrSizeT;
-	using InputTuple 	= BufferEntry<typename Types::template StreamInputTuple<Idx>, SizeT>;
+	using InputTuple 	= typename Types::template StreamInputTuple<Idx>;
 
 
 	using Type = MergeLists<
@@ -89,9 +36,6 @@ template <typename Types, Int Streams>
 struct InputBufferBuilder<Types, Streams, Streams> {
 	using Type = TL<>;
 };
-
-
-
 
 
 
@@ -121,73 +65,6 @@ struct ForAllTuple<Idx, Idx> {
 	static void process(InputBuffer&& tuple, Fn&& fn, Args&&... args)
 	{}
 };
-
-
-
-
-
-template <
-	Int Idx,
-	Int Size
->
-struct InputTupleSizeHelper {
-	template <typename Buffer>
-	static auto get(Int stream, Buffer&& buffer, size_t idx)
-	{
-		if (stream == Idx)
-		{
-			return std::get<Idx>(buffer)[idx].size();
-		}
-		else {
-			return InputTupleSizeHelper<Idx + 1, Size>::get(stream, std::forward<Buffer>(buffer), idx);
-		}
-	}
-
-	template <typename Buffer, typename T>
-	static void add(Int stream, Buffer&& buffer, size_t idx, T value)
-	{
-		if (stream == Idx)
-		{
-			std::get<Idx>(buffer)[idx].size() += value;
-		}
-		else {
-			InputTupleSizeHelper<Idx + 1, Size>::add(stream, std::forward<Buffer>(buffer), idx, value);
-		}
-	}
-};
-
-
-
-template <
-	Int Idx
->
-struct InputTupleSizeHelper<Idx, Idx> {
-	template <typename Buffer>
-	static auto get(Int stream, Buffer&& buffer, size_t idx)
-	{
-		if (stream == Idx)
-		{
-			return std::get<Idx>(buffer)[idx].size();
-		}
-		else {
-			throw vapi::Exception(MA_SRC, "Invalid stream number");
-		}
-	}
-
-	template <typename Buffer, typename T>
-	static void add(Int stream, Buffer&& buffer, size_t idx, T value)
-	{
-		if (stream == Idx)
-		{
-			std::get<Idx>(buffer)[idx].size() += value;
-		}
-		else {
-			throw vapi::Exception(MA_SRC, "Invalid stream number");
-		}
-	}
-};
-
-
 
 
 
@@ -276,8 +153,6 @@ public:
 	>::Type;
 
 	using Position	= typename Base::Position;
-
-	using InputTupleSizeHelper = detail::InputTupleSizeHelper<0, Streams - 1>;
 
 	using ForAllBuffer = detail::ForAllTuple<std::tuple_size<Buffer>::value>;
 
@@ -462,22 +337,17 @@ public:
 	struct InsertBufferFn {
 
 		template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename StreamObj>
-		bool stream(StreamObj* stream, const Position& at, const Position& starts, const Position& sizes, const Buffer& buffer)
+		bool stream(StreamObj* stream, PackedAllocator* alloc, const Position& at, const Position& starts, const Position& sizes, const Buffer& buffer)
 		{
 			static_assert(StreamIdx < Position::Indexes, "");
 			static_assert(StreamIdx < std::tuple_size<Buffer>::value, "");
 
-			using BufferEntryT = typename std::tuple_element<StreamIdx, Buffer>::type::value_type;
-
-			static_assert(Idx < BufferEntryT::Size, "");
-
-			using Accessor = detail::TupleAccessDispatcher<
-					Idx,
-					std::tuple_size<typename BufferEntryT::EntryT>::value
-			>;
+//			if (stream == nullptr) {
+//				stream = alloc->template allocateEmpty<StreamObj>(AllocatorIdx);
+//			}
 
 			stream->_insert(at[StreamIdx], sizes[StreamIdx], [&](Int idx){
-				return Accessor::access(std::get<StreamIdx>(buffer)[idx + starts[StreamIdx]]);
+				return std::get<Idx>(std::get<StreamIdx>(buffer)[idx + starts[StreamIdx]]);
 			});
 
 			return true;
@@ -487,7 +357,8 @@ public:
 		template <typename NodeTypes, typename... Args>
 		auto treeNode(LeafNode<NodeTypes>* leaf, Args&&... args)
 		{
-			return leaf->processSubstreamGroups(*this, std::forward<Args>(args)...);
+			leaf->layout(255);
+			return leaf->processSubstreamGroups(*this, leaf->allocator(), std::forward<Args>(args)...);
 		}
 	};
 
@@ -641,12 +512,12 @@ public:
 		template <Int Idx, typename Buffer>
 		void process(Buffer&& buffer, const Position& prefix, const Position& start, const Position& size)
 		{
-			cout<<"Level "<<Idx<<" prefix: "<<prefix[Idx]<<", start: "<<start[Idx]<<" size: "<<size[Idx]<<" capacity: "<<buffer.size()<<endl;
+			std::cout<<"Level "<<Idx<<" prefix: "<<prefix[Idx]<<", start: "<<start[Idx]<<" size: "<<size[Idx]<<" capacity: "<<buffer.size()<<std::endl;
 			for (Int c = start[Idx]; c < size[Idx]; c++)
 			{
-				cout<<c<<": "<<buffer[c]<<endl;
+				std::cout<<c<<": "<<buffer[c]<<std::endl;
 			}
-			cout<<endl;
+			std::cout<<std::endl;
 		}
 	};
 
@@ -669,19 +540,34 @@ protected:
 
 private:
 
+
+	struct AddSizeFn {
+		template <Int SStreamIdx, typename Buffer, typename T1, typename T2>
+		void process(Buffer&& buffer, T1 idx, T2 value)
+		{
+			using BufferEntry 	  = typename std::tuple_element<SStreamIdx, typename std::remove_reference<Buffer>::type>::type::value_type;
+			constexpr Int SizeIdx = std::tuple_size<BufferEntry>::value - 1;
+
+			std::get<SizeIdx>(std::get<SStreamIdx>(buffer)[idx]) += value;
+		}
+	};
+
+
 	void finish_stream_run(Int symbol, Int last_symbol, const Position& sizes, Position& buffer_sums)
 	{
 		for (Int sym = last_symbol; sym > symbol; sym--)
 		{
 			if (sizes[sym - 1] > 0)
 			{
-				if (buffer_sums[sym] > 0) {
-					InputTupleSizeHelper::add(sym - 1, buffer_, sizes[sym - 1] - 1, buffer_sums[sym]);
+				if (buffer_sums[sym] > 0)
+				{
+					ForEachStream<Streams - 1>::process(sym - 1, AddSizeFn(), buffer_, sizes[sym - 1] - 1, buffer_sums[sym]);
 				}
 			}
 			else if (leafs_[sym - 1].isSet())
 			{
-				if (buffer_sums[sym] > 0) {
+				if (buffer_sums[sym] > 0)
+				{
 					updateLeaf(sym - 1, ancors_[sym - 1], buffer_sums[sym]);
 				}
 			}
@@ -737,9 +623,6 @@ public:
 
 	using Buffer 	= typename Base::Buffer;
 	using Position	= typename Base::Position;
-
-	using InputTupleSizeHelper 	 = detail::InputTupleSizeHelper<0, Streams - 1>;
-
 
 public:
 
@@ -840,16 +723,20 @@ public:
 	using Buffer 	= typename Base::Buffer;
 	using Position	= typename Base::Position;
 
-	using InputTupleSizeHelper 	 = detail::InputTupleSizeHelper<0, Streams - 1>;
-
 	using PageUpdateMgr			 = typename CtrT::Types::PageUpdateMgr;
 
 	Position extent_;
 
+	Position ancors_tmp_;
+	NodeBaseG leafs_tmp_[Streams];
+
+	PageUpdateMgr mgr_;
+
 public:
 
 	AbstractCtrInputProvider(CtrT& ctr, const Position& capacity):
-		Base(ctr, capacity)
+		Base(ctr, capacity),
+		mgr_(ctr)
 	{}
 
 	CtrT& ctr() {
@@ -877,10 +764,11 @@ public:
 				}
 				else {
 					auto tmp = iter;
+
 					tmp.stream() = s;
 					tmp.idx() = 0;
 
-					if (tmp.skipBw(1) == 1)
+					if (tmp.skipBw1() == 1)
 					{
 						this->ancors_[s] = tmp.idx();
 						this->leafs_[s]  = tmp.leaf();
@@ -908,22 +796,24 @@ public:
 	}
 
 
-	Position fill0(NodeBaseG& leaf, const Position& from)
+	Position fill0(NodeBaseG& leaf, const Position& start)
 	{
-		Position pos = from;
+		Position pos = start;
 
-		PageUpdateMgr mgr(this->ctr());
+		mgr_.add(leaf);
 
-		mgr.add(leaf);
+		typename PageUpdateMgr::Remover remover(mgr_, leaf);
 
 		while(this->hasData())
 		{
 			auto buffer_sizes = this->buffer_size();
 
-			auto inserted = insertBuffer(mgr, leaf, pos, buffer_sizes);
+			auto inserted = insertBuffer(leaf, pos, buffer_sizes);
 
 			if (inserted.sum() > 0)
 			{
+				this->updateLeafAncors(leaf, pos, inserted);
+
 				pos += inserted;
 
 				if (!hasFreeSpace(leaf))
@@ -940,9 +830,9 @@ public:
 	}
 
 
-	virtual Position insertBuffer(PageUpdateMgr& mgr, NodeBaseG& leaf, Position at, Position size)
+	virtual Position insertBuffer(NodeBaseG& leaf, Position at, Position size)
 	{
-		if (tryInsertBuffer(mgr, leaf, at, size))
+		if (tryInsertBuffer(leaf, at, size))
 		{
 			this->start_ += size;
 			return size;
@@ -963,7 +853,7 @@ public:
 					Int try_block_size = mid - start;
 
 					auto sizes = this->rank(try_block_size);
-					if (tryInsertBuffer(mgr, leaf, at, sizes))
+					if (tryInsertBuffer(leaf, at, sizes))
 					{
 						imin = mid + 1;
 
@@ -977,7 +867,7 @@ public:
 				}
 				else {
 					auto sizes = this->rank(1);
-					if (tryInsertBuffer(mgr, leaf, at, sizes))
+					if (tryInsertBuffer(leaf, at, sizes))
 					{
 						start += 1;
 						at += sizes;
@@ -997,19 +887,18 @@ protected:
 		return Position();
 	}
 
-	bool tryInsertBuffer(PageUpdateMgr& mgr, NodeBaseG& leaf, const Position& at, const Position& size)
+	bool tryInsertBuffer(NodeBaseG& leaf, const Position& at, const Position& size)
 	{
 		try {
 			CtrT::Types::Pages::LeafDispatcher::dispatch(leaf, typename Base::InsertBufferFn(), at, this->start_, size, this->buffer_);
-			mgr.checkpoint(leaf);
 
-			this->updateLeafAncors(leaf, at, size);
+			mgr_.checkpoint(leaf);
 
 			return true;
 		}
 		catch (PackedOOMException& ex)
 		{
-			mgr.restoreNodeState();
+			mgr_.restoreNodeState();
 			return false;
 		}
 	}
@@ -1025,6 +914,22 @@ protected:
 	static bool hasFreeSpace(const NodeBaseG& node)
 	{
 		return getFreeSpacePart(node) > FREE_SPACE_THRESHOLD;
+	}
+
+protected:
+
+	virtual void updateLeaf(Int sym, CtrSizeT pos, CtrSizeT sum)
+	{
+		//FIXME: handle page overflows
+		// split page if necessary
+
+		detail::UpdateLeafH<
+			typename CtrT::Types::Pages::LeafDispatcher,
+			CtrT::Types::Streams - 1,
+			CtrT::Types::template LeafSizesSubstreamPath
+		>().process(sym, this->leafs_[sym], pos, sum);
+
+		mgr_.checkpoint(this->leafs_[sym]);
 	}
 };
 

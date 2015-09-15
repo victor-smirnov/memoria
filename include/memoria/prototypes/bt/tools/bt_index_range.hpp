@@ -215,10 +215,6 @@ struct MakeTuple<std::tuple<Types...>> {
 
 
 
-template <typename PkdStruct>
-struct IndexesSize {
-	static const Int Value = PkdStruct::Indexes;
-};
 
 
 

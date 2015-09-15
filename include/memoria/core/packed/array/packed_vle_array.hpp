@@ -1897,6 +1897,12 @@ struct StructSizeProvider<PackedVLEArray<T>> {
     static const Int Value = 0;
 };
 
+template <typename T>
+struct IndexesSize<PackedVLEArray<T>> {
+	static const Int Value = 0;
+};
+
+
 
 }
 

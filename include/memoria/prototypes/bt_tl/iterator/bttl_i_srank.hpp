@@ -31,10 +31,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorStreamRankName)
     typedef typename Base::Container                                            Container;
     typedef typename Base::Container::Position                                  Position;
 
-    using CtrSizeT 	= typename Container::Types::CtrSizeT;
-    using Key		= typename Container::Types::Key;
-    using Value		= typename Container::Types::Value;
-    using IteratorAccumulator		= typename Container::Types::IteratorAccumulator;
+    using CtrSizeT 				= typename Container::Types::CtrSizeT;
+    using IteratorAccumulator 	= typename Container::Types::IteratorAccumulator;
 
     using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
 

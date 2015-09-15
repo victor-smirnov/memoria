@@ -398,6 +398,13 @@ class FLSelector {};
 
 enum class SplitStatus {NONE, LEFT, RIGHT, UNKNOWN};
 
+
+template <typename PkdStruct>
+struct IndexesSize {
+	static const Int Value = PkdStruct::Indexes;
+};
+
+
 extern BigInt DebugCounter;
 extern BigInt DebugCounter1;
 extern BigInt DebugCounter2;

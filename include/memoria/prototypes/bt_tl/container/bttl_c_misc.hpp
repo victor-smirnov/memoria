@@ -70,8 +70,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::MiscName)
     {
     	auto iter = self().template _seek<0>(pos);
 
-    	iter.cache().data_size()[0] = self().size();
-    	iter.cache().data_pos()[0]++;
+    	auto& cache = iter.cache();
+
+    	cache.data_size()[0] = self().size();
+    	cache.data_pos()[0]++;
 
     	return iter;
     }

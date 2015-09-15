@@ -105,6 +105,13 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
     		n = pos;
     	}
 
+    	return self.skipBw1(n);
+    }
+
+    CtrSizeT skipBw1(CtrSizeT n = 1)
+    {
+    	auto& self = this->self();
+    	auto stream = self.stream();
     	return bt::ForEachStream<Streams - 1>::process(stream, SkipBwFn(), self, n);
     }
 
@@ -269,7 +276,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
     	return sum + excess;
     }
 
-
 // Internal API
 
 
@@ -299,7 +305,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
 
     	if (stream > 0)
     	{
-    		auto expected_size = bt::ForEachStream<SearchableStreams>::process(stream, DataOffsetFn(), cache);
+    		auto expected_size = bt::ForEachStream<SearchableStreams - 1>::process(stream - 1, DataOffsetFn(), cache);
 
     		MEMORIA_ASSERT(expected_size, >=, 0);
 
@@ -339,6 +345,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
     	template <Int Stream, typename Itr, typename Size>
     	static void process(Itr&& iter, Int stream, Int idx, Size&& size)
     	{
+    		if (DebugCounter) {
+    			int a = 0; a++;
+    		}
+
     		if (iter.isContent(idx))
     		{
     			size[stream + 1] = iter.template idx_data_size<Stream>(idx);
