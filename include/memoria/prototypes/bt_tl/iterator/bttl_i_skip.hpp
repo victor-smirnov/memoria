@@ -276,6 +276,55 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
     	return sum + excess;
     }
 
+
+    Position leaf_rank(Int pos) const
+    {
+    	auto& self = this->self();
+
+    	LeafPrefixRanks ranks;
+    	self.ctr().compute_leaf_prefixes(self.leaf(), self.leaf_extent(), ranks);
+
+    	return self.ctr().leaf_rank(self.leaf(), self.leaf_sizes(), ranks, pos);
+    }
+
+
+    Position leaf_extent() const
+    {
+    	const auto& self  = this->self();
+    	const auto& cache = self.cache();
+    	const auto& branch_prefix = cache.prefixes();
+
+    	Position expected_sizes;
+    	bttl::detail::ExpectedSizesHelper<Streams - 1, LeafSizesSubstreamPath, AccumItemH>::process(branch_prefix, expected_sizes);
+
+    	expected_sizes[0] = cache.size_prefix()[0];
+
+    	return expected_sizes - cache.size_prefix();
+    }
+
+
+    void dumpRanks(std::ostream& out = std::cout) const
+    {
+    	auto& self = this->self();
+
+    	LeafPrefixRanks ranks;
+
+    	self.ctr().compute_leaf_prefixes(self.leaf(), self.leaf_extent(), ranks);
+
+    	out<<"PrefixRanks:"<<endl;
+
+    	for (Int c = 0; c < Streams; c++) {
+    		out<<ranks[c]<<endl;
+    	}
+    }
+
+    void dumpExtent(std::ostream& out = std::cout) const
+    {
+    	out<<"LeafExtent:"<<self().leaf_extent()<<endl;
+    }
+
+
+
 // Internal API
 
 

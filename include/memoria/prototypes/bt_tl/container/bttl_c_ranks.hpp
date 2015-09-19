@@ -5,8 +5,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_PROTOTYPES_BTTL_CTR_COUNTS_HPP
-#define _MEMORIA_PROTOTYPES_BTTL_CTR_COUNTS_HPP
+#ifndef _MEMORIA_PROTOTYPES_BTTL_CTR_RANKS_HPP
+#define _MEMORIA_PROTOTYPES_BTTL_CTR_RANKS_HPP
 
 
 #include <memoria/prototypes/bt_tl/bttl_names.hpp>
@@ -20,7 +20,7 @@
 
 namespace memoria    {
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::CountsName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
 
     using Types 			= typename Base::Types;
 
@@ -38,9 +38,15 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::CountsName)
     using Accumulator 		    = typename Types::Accumulator;
     using Position 			    = typename Types::Position;
 
-    static const Int Streams = Types::Streams;
+    static const Int Streams 			= Types::Streams;
+    static const Int SearchableStreams 	= Types::SearchableStreams;
 
     using PageUpdateMgt 	= typename Types::PageUpdateMgr;
+
+    using LeafPrefixRanks 	= typename Types::LeafPrefixRanks;
+
+    template <Int StreamIdx>
+    using LeafSizesSubstreamPath = typename Types::template LeafSizesSubstreamPath<StreamIdx>;
 
 
     template <Int StreamIdx>
@@ -269,9 +275,122 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::CountsName)
     	return totals;
     }
 
+
+    void compute_leaf_prefixes(const NodeBaseG leaf, const Position& extent, LeafPrefixRanks& prefixes) const
+    {
+    	const auto& self  = this->self();
+
+    	prefixes[Streams - 2][Streams - 1] = extent[Streams - 1];
+
+    	for (Int s = SearchableStreams - 1; s > 0; s--)
+    	{
+    		prefixes[s - 1] = prefixes[s];
+    		self.count_downstream_items(leaf, prefixes[s], prefixes[s - 1], s, extent[s]);
+    		prefixes[s - 1][s] = extent[s];
+    	}
+    }
+
+
+    Position leaf_rank(const NodeBaseG& leaf, const Position& sizes, const LeafPrefixRanks& prefixes, Int pos) const
+    {
+    	for (Int s = 0; s < Streams; s++)
+    	{
+    		Int sum = prefixes[s].sum();
+    		if (pos >= sum)
+    		{
+    			return bttl::detail::ZeroRankHelper<0, Streams>::process(this, leaf, sizes, prefixes[s], pos);
+    		}
+    	}
+
+    	return Position();
+    }
+
+
+    template <Int Stream>
+    struct _StreamsRankFn {
+    	template <typename NTypes, typename... Args>
+    	Position treeNode(const LeafNode<NTypes>* leaf, const Position& sizes, const Position& prefix, Int pos, Args&&... args)
+    	{
+    		bttl::detail::StreamsRankFn<
+				LeafSizesSubstreamPath,
+				CtrSizeT,
+				Position
+			> fn(sizes, prefix, pos);
+
+    		bttl::detail::StreamsRankHelper<Stream, SearchableStreams>::process(leaf, fn, std::forward<Args>(args)...);
+
+    		return fn.indexes_;
+    	}
+    };
+
+    template <Int Stream, typename... Args>
+    Position _streams_rank(const NodeBaseG& leaf, Args&&... args) const
+    {
+    	return LeafDispatcher::dispatch(leaf, _StreamsRankFn<Stream>(), std::forward<Args>(args)...);
+    }
+
+
+
+private:
+
+    struct CountStreamsItemsFn {
+
+    	Position prefix_;
+    	Position& sums_;
+    	Int stream_;
+    	CtrSizeT cnt_;
+
+    	CountStreamsItemsFn(const Position& prefix, Position& sums, Int stream, Int end):
+    		prefix_(prefix), sums_(sums), stream_(stream), cnt_(end)
+    	{}
+
+    	template <typename Stream>
+    	auto stream(const Stream* substream, CtrSizeT start, CtrSizeT end) {
+    		return substream->sum(0, start, end);
+    	}
+
+
+    	template <Int StreamIdx, typename Leaf>
+    	bool process(const Leaf* leaf)
+    	{
+    		if (StreamIdx >= stream_)
+    		{
+    			constexpr Int SubstreamIdx = Leaf::template StreamStartIdx<StreamIdx>::Value +
+    			    						 Leaf::template StreamSize<StreamIdx>::Value - 1;
+
+    			auto sum = Leaf::Dispatcher::template dispatch<SubstreamIdx>(
+    					leaf->allocator(),
+						*this,
+						prefix_[StreamIdx],
+						prefix_[StreamIdx] + cnt_
+				);
+
+    			sums_[StreamIdx + 1] += sum;
+    			cnt_ = sum;
+    		}
+
+    		return true;
+    	}
+
+
+    	template <typename NTypes>
+    	void treeNode(const LeafNode<NTypes>* leaf)
+    	{
+    		ForEach<0, SearchableStreams>::process(*this, leaf);
+    	}
+    };
+
+
+    void count_downstream_items(const NodeBaseG& leaf, const Position& prefix, Position& sums, Int stream, Int end) const
+    {
+    	return LeafDispatcher::dispatch(leaf, CountStreamsItemsFn(prefix, sums, stream, end));
+    }
+
+
+
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bttl::CountsName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bttl::RanksName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 

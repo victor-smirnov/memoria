@@ -45,7 +45,7 @@ class ChecksName            {};
 class WalkName              {};
 class AllocatorName         {};
 class MiscName         		{};
-class CountsName         	{};
+class RanksName         	{};
 
 
 

@@ -20,7 +20,7 @@
 
 #include <memoria/prototypes/bt_tl/container/bttl_c_misc.hpp>
 #include <memoria/prototypes/bt_tl/container/bttl_c_insert.hpp>
-#include <memoria/prototypes/bt_tl/container/bttl_c_counts.hpp>
+#include <memoria/prototypes/bt_tl/container/bttl_c_ranks.hpp>
 
 #include <memoria/prototypes/bt_tl/iterator/bttl_i_misc.hpp>
 #include <memoria/prototypes/bt_tl/iterator/bttl_i_srank.hpp>
@@ -47,7 +47,7 @@ struct BTTypes<Profile, memoria::BTTreeLayout>: public BTTypes<Profile, memoria:
                 typename Base::CommonContainerPartsList,
                 memoria::bttl::MiscName,
 				memoria::bttl::InsertName,
-				memoria::bttl::CountsName
+				memoria::bttl::RanksName
     >;
 
     using IteratorPartsList = MergeLists<

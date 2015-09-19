@@ -168,16 +168,21 @@ template <
 >
 struct ZeroRankHelper
 {
-	template <typename Iter, typename Position, typename... Args>
-	static auto process(const Iter* iter, Position&& sizes, Args&&... args)
+	template <typename Iter, typename Node, typename Position, typename... Args>
+	static auto process(const Iter* iter, Node&& node, Position&& sizes, Args&&... args)
 	{
 		auto size = sizes[Idx];
 		if (size > 0)
 		{
-			return iter->template _streams_rank<Idx>(sizes, std::forward<Args>(args)...);
+			return iter->template _streams_rank<Idx>(std::forward<Node>(node), sizes, std::forward<Args>(args)...);
 		}
 		else {
-			return ZeroRankHelper<Idx + 1, Size>::process(iter, sizes, std::forward<Args>(args)...);
+			return ZeroRankHelper<Idx + 1, Size>::process(
+					iter,
+					std::forward<Node>(node),
+					sizes,
+					std::forward<Args>(args)...
+			);
 		}
 	}
 };
@@ -185,8 +190,8 @@ struct ZeroRankHelper
 
 template <Int Idx>
 struct ZeroRankHelper<Idx, Idx> {
-	template <typename Iter, typename Position, typename... Args>
-	static auto process(const Iter*, Position&&, Args&&...)
+	template <typename Iter, typename Node, typename Position, typename... Args>
+	static auto process(const Iter*, Node&&, Position&&, Args&&...)
 	{
 		return typename std::remove_reference<Position>::type();
 	}

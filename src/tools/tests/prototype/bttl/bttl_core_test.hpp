@@ -110,6 +110,8 @@ public:
     	AssertEQ(MA_SRC, ctr_totals, sizes);
 
     	this->allocator()->commit();
+
+    	ctr.seek(0).split();
     }
 };
 
