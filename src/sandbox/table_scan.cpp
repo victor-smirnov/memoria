@@ -12,7 +12,7 @@
 
 #include <memoria/core/container/metadata_repository.hpp>
 
-#include <memoria/core/tools/terminal.hpp>
+#include <memoria/core/tools/time.hpp>
 
 std::uniform_int_distribution<int>      distribution;
 std::mt19937_64                         engine;
@@ -53,40 +53,63 @@ int main(int argc, const char** argv, const char** envp) {
 
 		auto iter = ctr.seek(0);
 
-		Int rows 		= 1000000;
+		Int rows 		= 200;
 		Int cols		= 10;
 		Int data_size	= 100;
 
-		BigInt c0 = getTimeInMillisT();
+		BigInt c0 = getTimeInMillis();
 
 		Provider provider(ctr, rows + 1, cols, data_size, generator);
 
 		ctr.insertData(iter.leaf(), Position(), provider);
 
-		BigInt c1 = getTimeInMillisT();
+		BigInt c1 = getTimeInMillis();
 
-		cout<<"Table Constructed in "<<FormatTimeT(c1 - c0)<<" s"<<endl;
+		cout<<"Table Constructed in "<<FormatTime(c1 - c0)<<" s"<<endl;
 
 		alloc.commit();
 
+		if (argc > 1)
+		{
+			const char* dump_name = argv[1];
+
+			cout<<"Dump to: "<<dump_name<<endl;
+
+			OutputStreamHandler* os = FileOutputStreamHandler::create(dump_name);
+			alloc.store(os);
+			delete os;
+		}
+
 		ScanFn scan_fn;
 
-		BigInt t0 = getTimeInMillisT();
+		BigInt t0 = getTimeInMillis();
 
 		for (int x = 0; x < 5; x++)
 		{
-			BigInt tt0 = getTimeInMillisT();
+			BigInt tt0 = getTimeInMillis();
 
 			iter = ctr.seek(0);
 			for (Int r = 0; r < rows; r++)
 			{
 				MEMORIA_ASSERT(iter.pos(), ==, r);
+				MEMORIA_ASSERT(iter.cache().abs_pos()[0], ==, r);
 				MEMORIA_ASSERT(iter.size(), ==, rows + 1);
 
+				if (r == 15) {
+					DebugCounter = 1;
+					iter.dump();
+				}
+
 				iter.toData();
+				iter.checkPrefix();
+
 
 				for (Int c = 0; c < cols; c++)
 				{
+					if (iter.size() != cols) {
+						iter.dumpHeader();
+					}
+
 					MEMORIA_ASSERT(iter.pos(), ==, c);
 					MEMORIA_ASSERT(iter.size(), ==, cols);
 
@@ -103,29 +126,31 @@ int main(int argc, const char** argv, const char** envp) {
 					}
 				}
 
+				if (r == 15) {
+					iter.dumpHeader();
+				}
+
 				iter.toIndex();
+
+				if (r == 15) {
+					iter.dumpHeader();
+				}
+
 				iter.skipFw(1);
+
+				if (r == 15) {
+					iter.dumpHeader();
+				}
 			}
 
-			BigInt tt1 = getTimeInMillisT();
+			BigInt tt1 = getTimeInMillis();
 
-			cout<<"One Scan finished in "<<FormatTimeT(tt1 - tt0)<<endl;
+			cout<<"One Scan finished in "<<FormatTime(tt1 - tt0)<<endl;
 		}
 
-		BigInt t1 = getTimeInMillisT();
+		BigInt t1 = getTimeInMillis();
 
-		cout<<"All Scans finished in "<<FormatTimeT(t1 - t0)<<endl;
-
-		if (argc > 1)
-		{
-			const char* dump_name = argv[1];
-
-			cout<<"Dump to: "<<dump_name<<endl;
-
-			OutputStreamHandler* os = FileOutputStreamHandler::create(dump_name);
-			alloc.store(os);
-			delete os;
-		}
+		cout<<"All Scans finished in "<<FormatTime(t1 - t0)<<endl;
 
 		cout<<"Done"<<endl;
 	}

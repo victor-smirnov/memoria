@@ -127,6 +127,17 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorMiscName)
     	cache.abs_pos()[0] = 0;
     }
 
+
+    void checkPrefix() {
+    	auto tmp = self();
+
+    	tmp.refresh();
+
+
+    	MEMORIA_ASSERT(self().cache(), ==, tmp.cache());
+    }
+
+
 MEMORIA_ITERATOR_PART_END
 
 #define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::bttl::IteratorMiscName)

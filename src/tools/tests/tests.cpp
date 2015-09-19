@@ -16,11 +16,17 @@
 //#include "packed/wavelet_tree/packed_wtree_suite.hpp"
 //
 //#include "ctr/ctr_test_suite.hpp"
-#include "map/map_test_suite.hpp"
-#include "vector/vector_test_suite.hpp"
+
+#include "prototype/bt/bt_test_suite.hpp"
+#include "prototype/bttl/bttl_test_suite.hpp"
+#include "prototype/btss/btss_test_suite.hpp"
+#include "table/table_test_suite.hpp"
+
+//#include "map/map_test_suite.hpp"
+//#include "vector/vector_test_suite.hpp"
 //#include "vector_map/vectormap_test_suite.hpp"
 //#include "dbl_map/dblmap_test_suite.hpp"
-#include "sequence/sequence_test_suite.hpp"
+//#include "sequence/sequence_test_suite.hpp"
 //#include "labeled_tree/ltree_test_suite.hpp"
 //#include "vector_tree/vtree_test_suite.hpp"
 //#include "wt/wt_test_suite.hpp"
@@ -89,11 +95,18 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new SymbolSeqTestSuite());
 ////
 //        runner.registerTask(new CtrTestSuite());
-        runner.registerTask(new MapTestSuite());
-        runner.registerTask(new VectorTestSuite());
+
+        runner.registerTask(new BTTestSuite());
+        runner.registerTask(new BTTLTestSuite());
+        runner.registerTask(new BTSSTestSuite());
+
+        runner.registerTask(new TableTestSuite());
+
+//        runner.registerTask(new MapTestSuite());
+//        runner.registerTask(new VectorTestSuite());
 //        runner.registerTask(new VectorMapTestSuite());
 //        runner.registerTask(new DblMapTestSuite());
-        runner.registerTask(new SequenceTestSuite());
+//        runner.registerTask(new SequenceTestSuite());
 //        runner.registerTask(new LabeledTreeTestSuite());
 //        runner.registerTask(new FileAllocatorTestSuite());
 //        runner.registerTask(new VTreeTestSuite());

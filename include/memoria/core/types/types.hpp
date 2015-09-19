@@ -410,7 +410,8 @@ extern BigInt DebugCounter1;
 extern BigInt DebugCounter2;
 extern size_t MemBase;
 
-
+template <typename T>
+using IL = std::initializer_list<T>;
 
 }
 

@@ -499,7 +499,7 @@ public:
     	return this->value(index, idx);
     }
 
-    Value getValue(Int idx, Int index) const
+    Value getValue(Int index, Int idx) const
     {
     	return this->value(index, idx);
     }

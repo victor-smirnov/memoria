@@ -44,13 +44,6 @@ class MonochomeTerminal: public TermImpl {
     virtual const char* greene() const  {return "";}
 };
 
-
-BigInt  getTimeInMillisT();
-
-String FormatTimeT(BigInt millis);
-
-
-
 }
 }
 

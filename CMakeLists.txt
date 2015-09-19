@@ -93,7 +93,7 @@ if (CMAKE_COMPILER_IS_GNUCXX OR CLANG_COMPILER OR MINGW)
     set(PROFILE "")
 
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -std=c++14 -Wall ")
-    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors -ftemplate-backtrace-limit=0 -ftime-report ${PROFILE}")
+    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors -ftemplate-backtrace-limit=0 ${PROFILE}")
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -Wcomment -Wunused-variable")
     
     set (MEMORIA_LINK_FLAGS "${MEMORIA_LINK_FLAGS} -lstdc++ ${PROFILE}")

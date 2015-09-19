@@ -42,7 +42,7 @@ void Term::init(int argc, const char** argv, const char** envp)
     {
         string entry(*envp);
 
-        if (entry == "TERM=linux" || entry == "TERM=xterm")
+        if (entry == "TERM=linux" || isStartsWith(entry, "TERM=xterm"))
         {
             color_term = true;
             break;

@@ -19,6 +19,10 @@ namespace memoria {
 
 using namespace std;
 
+template <typename ChildType = void>
+class TestProfile  {};
+
+
 #define MEMORIA_ADD_TEST_PARAM(paramName)\
     this->Add(#paramName, paramName)
 

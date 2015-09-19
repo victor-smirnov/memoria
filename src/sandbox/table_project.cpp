@@ -12,7 +12,7 @@
 
 #include <memoria/core/container/metadata_repository.hpp>
 
-#include <memoria/core/tools/terminal.hpp>
+#include <memoria/core/tools/time.hpp>
 
 std::uniform_int_distribution<int>      distribution;
 std::mt19937_64                         engine;
@@ -58,25 +58,25 @@ int main(int argc, const char** argv, const char** envp) {
 		Int cols		= 10;
 		Int data_size	= 100;
 
-		BigInt c0 = getTimeInMillisT();
+		BigInt c0 = getTimeInMillis();
 
 		Provider provider(ctr, rows + 1, cols, data_size, generator);
 
 		ctr.insertData(iter.leaf(), Position(), provider);
 
-		BigInt c1 = getTimeInMillisT();
+		BigInt c1 = getTimeInMillis();
 
-		cout<<"Table Constructed in "<<FormatTimeT(c1 - c0)<<" s"<<endl;
+		cout<<"Table Constructed in "<<FormatTime(c1 - c0)<<" s"<<endl;
 
 		alloc.commit();
 
 		ScanFn scan_fn;
 
-		BigInt t0 = getTimeInMillisT();
+		BigInt t0 = getTimeInMillis();
 
 		for (Int x = 0; x < 10; x++)
 		{
-			BigInt tt0 = getTimeInMillisT();
+			BigInt tt0 = getTimeInMillis();
 
 			iter = ctr.seek(0);
 
@@ -107,14 +107,14 @@ int main(int argc, const char** argv, const char** envp) {
 				iter.skipFw(1); // next row
 			}
 
-			BigInt tt1 = getTimeInMillisT();
+			BigInt tt1 = getTimeInMillis();
 
-			cout<<"One Projection finished in "<<FormatTimeT(tt1 - tt0)<<endl;
+			cout<<"One Projection finished in "<<FormatTime(tt1 - tt0)<<endl;
 		}
 
-		BigInt t1 = getTimeInMillisT();
+		BigInt t1 = getTimeInMillis();
 
-		cout<<"All Projections finished in "<<FormatTimeT(t1 - t0)<<endl;
+		cout<<"All Projections finished in "<<FormatTime(t1 - t0)<<endl;
 
 
 		if (argc > 1)

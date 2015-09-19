@@ -67,63 +67,7 @@ struct ForAllTuple<Idx, Idx> {
 };
 
 
-
-
-template <
-	typename Dispatcher,
-	Int Size,
-	template <Int> class PathListT,
-	Int StreamIdx = 0
->
-struct UpdateLeafH {
-
-	template <typename NTypes, typename SizeT>
-	void treeNode(LeafNode<NTypes>* node, Int idx, SizeT value)
-	{
-		using Path = PathListT<StreamIdx>;
-
-		auto substream = node->template substream<Path>();
-
-		substream->addValue(0, idx, value);
-	}
-
-	template <typename PageG, typename... Args>
-	void process(Int stream, PageG&& page, Args&&... args)
-	{
-		if (stream == StreamIdx)
-		{
-			Dispatcher::dispatch(std::forward<PageG>(page), *this, std::forward<Args>(args)...);
-		}
-		else {
-			UpdateLeafH<Dispatcher, Size, PathListT, StreamIdx + 1>().process(stream, std::forward<PageG>(page), std::forward<Args>(args)...);
-		}
-	}
-};
-
-
-
-template <
-	typename Dispatcher,
-	Int Size,
-	template <Int> class PathListT
->
-struct UpdateLeafH<Dispatcher, Size, PathListT, Size> {
-	template <typename PageG, typename... Args>
-	void process(Int stream, PageG&& page, Args&&... args)
-	{
-		throw vapi::Exception(MA_SRC, SBuf()<<"Failed to dispatch stream: "<<stream);
-	}
-};
-
 }
-
-
-
-
-
-
-
-
 
 
 
@@ -170,6 +114,10 @@ public:
 
 		Int symbol() const {return symbol_;}
 		Int length() const {return length_;}
+
+		void set_length(Int len) {
+			length_ = len;
+		}
 	};
 
 protected:
@@ -191,9 +139,6 @@ protected:
 	CtrSizeT fills_ = 0;
 
 private:
-
-
-
 	struct ResizeBufferFn {
 		template <Int Idx, typename Buffer>
 		void process(Buffer&& buffer, const Position& sizes)
@@ -242,7 +187,7 @@ public:
 				tmp.stream() = s;
 				tmp.idx() = 0;
 
-				if (tmp.skipBw(1) == 1)
+				if (tmp.skipBw1(1) == 1)
 				{
 					this->ancors_[s] = tmp.idx();
 					this->leafs_[s]  = tmp.leaf();
@@ -580,11 +525,7 @@ protected:
 
 	virtual void updateLeaf(Int sym, CtrSizeT pos, CtrSizeT sum)
 	{
-		detail::UpdateLeafH<
-			typename CtrT::Types::Pages::LeafDispatcher,
-			CtrT::Types::Streams - 1,
-			CtrT::Types::template LeafSizesSubstreamPath
-		>().process(sym, leafs_[sym], pos, sum);
+		this->ctr_.add_to_stream_counter(leafs_[sym], sym, pos, sum);
 	}
 };
 
@@ -709,7 +650,7 @@ class AbstractCtrInputProvider<CtrT, Streams, LeafDataLengthType::VARIABLE>: pub
 
 	using Base = AbstractCtrInputProviderBase<CtrT>;
 
-	static constexpr float FREE_SPACE_THRESHOLD = 0.05;
+	static constexpr float FREE_SPACE_THRESHOLD = 0.1;
 
 
 
@@ -923,13 +864,120 @@ protected:
 		//FIXME: handle page overflows
 		// split page if necessary
 
-		detail::UpdateLeafH<
-			typename CtrT::Types::Pages::LeafDispatcher,
-			CtrT::Types::Streams - 1,
-			CtrT::Types::template LeafSizesSubstreamPath
-		>().process(sym, this->leafs_[sym], pos, sum);
+		try {
 
-		mgr_.checkpoint(this->leafs_[sym]);
+			this->ctr_.add_to_stream_counter(this->leafs_[sym], sym, pos, sum);
+			mgr_.checkpoint(this->leafs_[sym]);
+		}
+		catch (PackedOOMException& ex) {
+			cout<<"FIXME: split VLE leafs!"<<endl;
+			throw ex;
+		}
+	}
+};
+
+
+
+
+
+
+
+
+
+template <Int StreamIdx> struct StreamTag {};
+
+namespace details {
+
+template <
+	template <Int> class Tag,
+	Int Size,
+	Int Idx = 0
+>
+struct PopulateHelper {
+	template <typename Chunk, typename Provider, typename Buffer, typename CtrSizesT, typename... Args>
+	static auto process(Chunk&& chunk, Provider&& provider, Buffer&& buffer, const CtrSizesT& start, Args&&... args) {
+		if (chunk.symbol() == Idx)
+		{
+			auto len  = chunk.length();
+			auto size = std::get<Idx>(buffer).size();
+			auto len0 = (start[Idx] + len <= size) ? len : size - start[Idx];
+
+			chunk.set_length(len0);
+
+			return provider.populate(Tag<Idx>(), std::get<Idx>(buffer), start[Idx], len0, std::forward<Args>(args)...);
+		}
+		else {
+			return PopulateHelper<Tag, Size, Idx + 1>::process(
+					chunk,
+					std::forward<Provider>(provider),
+					std::forward<Buffer>(buffer),
+					start,
+					std::forward<Args>(args)...
+			);
+		}
+	}
+};
+
+
+template <template <Int> class Tag, Int Size>
+struct PopulateHelper<Tag, Size, Size> {
+
+	template <typename Chunk, typename Provider, typename Buffer, typename CtrSizesT, typename... Args>
+	static auto process(Chunk&& chunk, Provider&& provider, Buffer&& buffer, const CtrSizesT& start, Args&&... args)
+	{
+		auto len  = chunk.length();
+		auto size = std::get<Size>(buffer).size();
+		auto len0 = (start[Size] + len <= size) ? len : size - start[Size];
+
+		chunk.set_length(len0);
+
+		return provider.populateLastStream(std::get<Size>(buffer), start[Size], len0, std::forward<Args>(args)...);
+	}
+};
+
+
+}
+
+
+template <
+	typename CtrT,
+	typename MyType
+>
+class StreamingCtrInputProvider: public memoria::bttl::AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength> {
+public:
+	using Base 		= memoria::bttl::AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength>;
+
+	using CtrSizesT = typename CtrT::Types::Position;
+	using RunDescr 	= typename Base::RunDescr;
+
+	static constexpr Int Streams = CtrT::Types::Streams;
+
+	StreamingCtrInputProvider(CtrT& ctr, const CtrSizesT& buffer_sizes):
+		Base(ctr, buffer_sizes)
+	{
+
+	}
+
+	virtual RunDescr populate(const CtrSizesT& start)
+	{
+		auto& self = this->self();
+
+		RunDescr chunk = self.query();
+
+		if (chunk.symbol() >= 0)
+		{
+			details::PopulateHelper<StreamTag, Streams - 1>::process(chunk, self, this->buffer_, start);
+		}
+
+		return chunk;
+	}
+
+	const MyType& self() const {
+		return *T2T<const MyType*>(this);
+	}
+
+	MyType& self() {
+		return *T2T<MyType*>(this);
 	}
 };
 

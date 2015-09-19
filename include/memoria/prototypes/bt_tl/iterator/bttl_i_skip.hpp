@@ -345,10 +345,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
     	template <Int Stream, typename Itr, typename Size>
     	static void process(Itr&& iter, Int stream, Int idx, Size&& size)
     	{
-    		if (DebugCounter) {
-    			int a = 0; a++;
-    		}
-
     		if (iter.isContent(idx))
     		{
     			size[stream + 1] = iter.template idx_data_size<Stream>(idx);

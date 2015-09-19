@@ -12,7 +12,7 @@
 
 #include <memoria/core/container/metadata_repository.hpp>
 
-#include <memoria/core/tools/terminal.hpp>
+#include <memoria/core/tools/time.hpp>
 
 std::uniform_int_distribution<int>      distribution;
 std::mt19937_64                         engine;

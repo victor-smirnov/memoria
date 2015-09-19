@@ -13,13 +13,14 @@
 #include <memoria/core/tools/strings.hpp>
 #include <memoria/core/tools/idata.hpp>
 #include <memoria/core/tools/terminal.hpp>
+#include <memoria/core/tools/random.hpp>
+#include <memoria/core/tools/time.hpp>
 #include <memoria/core/container/logs.hpp>
 
 #include <memoria/containers/vector/vctr_names.hpp>
 #include <memoria/containers/vector_map/vmap_names.hpp>
 
 #include <memoria/core/packed/tools/packed_allocator_types.hpp>
-
 
 #include <vector>
 #include <fstream>
@@ -202,21 +203,6 @@ size_t appendToSortedVector(std::vector<T, A>& vec, const T& value)
 }
 
 
-Int     getRandom();
-Int     getRandom(Int max);
-void    Seed(Int value);
-Int     getSeed();
-
-BigInt  getBIRandom();
-BigInt  getBIRandom(BigInt max);
-void    SeedBI(BigInt value);
-BigInt  getSeedBI();
-
-
-BigInt  getTimeInMillis();
-
-String FormatTime(BigInt millis);
-
 void Fill(char* buf, int size, char value);
 
 template <typename T>
@@ -247,8 +233,6 @@ vector<T> createSimpleBuffer(Int size, T value)
 
     return vec;
 }
-
-Int getNonZeroRandom(Int size);
 
 template <typename T>
 vector<T> createRandomBuffer(T fill_value, Int max_size)

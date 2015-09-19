@@ -51,7 +51,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::CountsName)
     		constexpr Int SubstreamIdx = Node::template StreamStartIdx<StreamIdx>::Value +
     									 Node::template StreamSize<StreamIdx>::Value - 1;
 
-    		return Node::Dispatcher::template dispatch<SubstreamIdx>(node->allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+    		return Node::Dispatcher::template dispatch<SubstreamIdx>(node->allocator(), std::forward<Fn>(fn), node->is_leaf(), std::forward<Args>(args)...);
     	}
 
     	template <typename Node, typename Fn, typename... Args>
@@ -60,7 +60,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::CountsName)
     		constexpr Int SubstreamIdx = Node::template StreamStartIdx<StreamIdx>::Value +
     									 Node::template StreamSize<StreamIdx>::Value - 1;
 
-    		return Node::Dispatcher::template dispatch<SubstreamIdx>(node->allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+    		return Node::Dispatcher::template dispatch<SubstreamIdx>(node->allocator(), std::forward<Fn>(fn), node->is_leaf(), std::forward<Args>(args)...);
     	}
     };
 
@@ -131,19 +131,20 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::CountsName)
 
     struct AddToStreamCounter {
     	template <typename Stream>
-    	void stream(Stream* obj, Int idx, CtrSizeT value)
+    	void stream(Stream* obj, bool leaf, Int idx, CtrSizeT value)
     	{
-    		obj->addValue(0, idx, value);
+    		auto block = leaf? 0 : (Stream::Blocks - 1);
+    		obj->addValue(block, idx, value);
     	}
 
     	template <typename Stream>
-    	void stream(const Stream* obj, Int idx, CtrSizeT value)
+    	void stream(const Stream* obj, bool leaf, Int idx, CtrSizeT value)
     	{
     		throw vapi::Exception(MA_SRC, "Incorrect static method dispatching");
     	}
     };
 
-
+    //FIXME: handle PackedOOM correctly for branch nodes
     void add_to_stream_counter(NodeBaseG node, Int stream, Int idx, CtrSizeT value)
     {
     	auto& self = this->self();
@@ -168,9 +169,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::CountsName)
 
     struct GetStreamCounter {
     	template <typename Stream>
-    	auto stream(const Stream* obj, Int idx)
+    	auto stream(const Stream* obj, bool leaf, Int idx)
     	{
-    		return obj->getValue(0, idx);
+    		auto block = leaf? 0 : (Stream::Blocks - 1);
+    		return obj->getValue(block, idx);
     	}
     };
 
@@ -192,11 +194,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::CountsName)
 
     struct SetStreamCounter {
     	template <typename Stream>
-    	auto stream(Stream* obj, Int idx, CtrSizeT value)
+    	auto stream(Stream* obj, bool leaf, Int idx, CtrSizeT value)
     	{
-    		auto current_value = obj->getValue(0, idx);
+    		auto block = leaf? 0 : (Stream::Blocks - 1);
+    		auto current_value = obj->getValue(block, idx);
 
-    		obj->setValue(0, idx, value);
+    		obj->setValue(block, idx, value);
 
     		return current_value;
     	}
@@ -210,9 +213,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::CountsName)
 
     struct FindOffsetFn {
     	template <typename Stream>
-    	auto stream(const Stream* substream, Int idx)
+    	auto stream(const Stream* substream, bool leaf, Int idx)
     	{
-			auto result = substream->findGTForward(0, 0, idx);
+    		auto block = leaf? 0 : (Stream::Blocks - 1);
+
+			auto result = substream->findGTForward(block, 0, idx);
 			return result.idx();
     	}
     };
@@ -231,9 +236,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::CountsName)
 
     struct CountStreamItemsFn {
     	template <typename Stream>
-    	auto stream(const Stream* substream, Int end)
+    	auto stream(const Stream* substream, bool leaf, Int end)
     	{
-    		return substream->sum(0, end);
+    		auto block = leaf? 0 : (Stream::Blocks - 1);
+
+    		return substream->sum(block, end);
     	}
     };
 
@@ -242,7 +249,25 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::CountsName)
     	return self().process_count_substreams(node, stream, CountStreamItemsFn(), end);
     }
 
+    Position total_counts() const
+    {
+    	auto& self = this->self();
 
+    	NodeBaseG root = self.getRoot();
+
+    	Position totals;
+
+    	Position sizes = self.getNodeSizes(root);
+
+    	totals[0] = self.sizes()[0];
+
+    	for (Int s = 1; s < Streams; s++)
+    	{
+    		totals[s] = self.count_items(root, s - 1, sizes[s - 1]);
+    	}
+
+    	return totals;
+    }
 
 MEMORIA_CONTAINER_PART_END
 
