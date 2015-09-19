@@ -41,53 +41,114 @@ class BTTLCoreTest: public BTTLTestBase<CtrName, AllocatorT, ProfileT> {
 
     using CtrSizesT 	 = typename Ctr::Types::Position;
 
-	Int rows 		= 1000000;
-	Int cols		= 10;
-	Int data_size	= 100;
+    static const Int Streams = Ctr::Types::Streams;
+
+	BigInt size 			= 1000000;
+	Int level_limit 		= 1000;
+	int last_level_limit 	= 100;
+
+	Int iterations 			= 5;
+
 
 public:
 
     BTTLCoreTest(String name):
     	Base(name)
     {
+    	MEMORIA_ADD_TEST_PARAM(size);
+
     	MEMORIA_ADD_TEST(testDetProvider);
     	MEMORIA_ADD_TEST(testRngProvider);
     }
 
     virtual ~BTTLCoreTest() throw () {}
 
+    CtrSizesT sampleTreeShape()
+    {
+    	CtrSizesT shape;
+
+    	CtrSizesT limits(level_limit);
+    	limits[Streams - 1] = last_level_limit;
+
+    	while(shape[0] == 0)
+    	{
+    		BigInt resource = size;
+
+    		for (Int c = Streams - 1; c > 0; c--)
+    		{
+    			Int level_size = getRandom(limits[c]) + 1;
+
+    			shape[c] = level_size;
+
+    			resource = resource / level_size;
+    		}
+
+    		shape[0] = resource;
+    	}
+
+    	return shape;
+    }
 
     void createAllocator(AllocatorSPtr& allocator) {
     	allocator = std::make_shared<Allocator>();
     }
 
 
+
     void testDetProvider()
     {
     	using Provider = DetInputProvider;
 
-    	Ctr ctr = this->createCtr();
+    	for (Int i = 0; i < iterations; i++)
+    	{
+    		this->out()<<"Iteration "<<(i + 1)<<endl;
 
-    	Provider provider(ctr, CtrSizesT({rows, cols, data_size}), 0);
+    		{
+    			Ctr ctr = this->createCtr();
 
-    	testProvider(ctr, provider);
+    			auto shape = sampleTreeShape();
+
+//    			auto shape = CtrSizesT({10, 50, 89});
+
+    			this->out()<<"shape: "<<shape<<endl;
+
+    			Provider provider(ctr, shape, 0);
+
+    			testProvider(ctr, provider);
+    		}
+
+    		this->storeAllocator("core.dump");
+
+    		createAllocator(this->allocator_);
+    	}
     }
 
     void testRngProvider()
     {
     	using Provider = RngInputProvider;
 
-    	Ctr ctr = this->createCtr();
+    	for (Int i = 0; i < iterations; i++)
+    	{
+    		this->out()<<"Iteration "<<(i + 1)<<endl;
+    		{
+    			Ctr ctr = this->createCtr();
 
-    	Provider provider(ctr, CtrSizesT({rows, cols, data_size}), 0, int_generator);
+    			auto shape = sampleTreeShape();
 
-    	testProvider(ctr, provider);
+    			this->out()<<"shape: "<<shape<<endl;
+
+    			Provider provider(ctr, shape, 0, int_generator);
+
+    			testProvider(ctr, provider);
+    		}
+
+    		createAllocator(this->allocator_);
+    	}
     }
 
 
-
     template <typename Provider>
-    void testProvider(Ctr& ctr, Provider& provider)
+    void fillCtr(Ctr& ctr, Provider& provider)
     {
     	auto iter = ctr.seek(0);
 
@@ -97,7 +158,7 @@ public:
 
     	long t1 = getTimeInMillis();
 
-    	cout<<FormatTime(t1 - t0)<<endl;
+    	this->out()<<"Creation time: "<<FormatTime(t1 - t0)<<endl;
 
     	auto sizes = ctr.sizes();
 
@@ -105,13 +166,94 @@ public:
 
     	auto ctr_totals = ctr.total_counts();
 
-    	cout<<"Totals: "<<ctr_totals<<" "<<sizes<<endl;
+    	this->out()<<"Totals: "<<ctr_totals<<" "<<sizes<<endl;
 
     	AssertEQ(MA_SRC, ctr_totals, sizes);
 
     	this->allocator()->commit();
+    }
 
-    	ctr.seek(0).split();
+
+    void checkExtents(Ctr& ctr)
+    {
+    	auto i = ctr.seek(0);
+
+    	CtrSizesT counts;
+    	CtrSizesT leaf_sizes;
+
+    	long t2 = getTimeInMillis();
+
+    	do
+    	{
+    		auto current_extent = i.leaf_extent();
+
+    		AssertEQ(MA_SRC, current_extent, counts - leaf_sizes);
+
+    		counts 		+= ctr.count_items(i.leaf());
+    		leaf_sizes  += ctr.getNodeSizes(i.leaf());
+    	}
+    	while(i.nextLeaf());
+
+    	long t3 = getTimeInMillis();
+
+    	this->out()<<"Extent verification time: "<<FormatTime(t3 - t2)<<endl;
+    }
+
+
+    void checkRanks(Ctr& ctr)
+    {
+    	auto i = ctr.seek(0);
+
+    	CtrSizesT counts;
+    	CtrSizesT leaf_sizes;
+
+    	long t2 = getTimeInMillis();
+
+    	do
+    	{
+    		auto sizes = i.leaf_sizes();
+
+    		auto total_leaf_rank = sizes.sum();
+
+    		typename Ctr::Types::LeafPrefixRanks prefix_ranks;
+
+    		ctr.compute_leaf_prefixes(i.leaf(), counts - leaf_sizes, prefix_ranks);
+
+    		auto total_ranks = ctr.leaf_rank(i.leaf(), sizes, prefix_ranks, sizes.sum());
+
+    		AssertEQ(MA_SRC, total_ranks, sizes);
+
+    		for (Int c = 0; c < total_leaf_rank; )
+    		{
+    			auto ranks = ctr.leaf_rank(i.leaf(), sizes, prefix_ranks, c);
+
+    			AssertEQ(MA_SRC, ranks.sum(), c);
+
+    			c += getRandom(100) + 1;
+    		}
+
+    		counts 		+= ctr.count_items(i.leaf());
+    		leaf_sizes  += ctr.getNodeSizes(i.leaf());
+    	}
+    	while(i.nextLeaf());
+
+    	long t3 = getTimeInMillis();
+
+    	this->out()<<"Rank verification time: "<<FormatTime(t3 - t2)<<endl;
+
+    }
+
+
+
+    template <typename Provider>
+    void testProvider(Ctr& ctr, Provider& provider)
+    {
+    	fillCtr(ctr, provider);
+
+    	checkExtents(ctr);
+    	checkRanks(ctr);
+
+    	this->out()<<endl;
     }
 };
 

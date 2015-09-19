@@ -481,6 +481,40 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
     	self.update_leaf_ranks(cmd);
     }
 
+//    template <typename WTypes>
+//    void finish_walking(Int idx, const ForwardLeafWalker<WTypes>& walker, WalkCmd cmd)
+//    {
+//    	auto& self = this->self();
+//    	auto& cache = self.cache();
+//
+//    	auto& pos  = cache.data_pos();
+//
+//    	auto stream = self.stream();
+//
+//    	pos[stream] += walker.sum();
+//
+//    	cache.abs_pos()[stream] = walker.branch_size_prefix()[stream] + idx;
+//
+//    	self.update_leaf_ranks(cmd);
+//    }
+//
+//    template <typename WTypes>
+//    void finish_walking(Int idx, const BackwardLeafWalker<WTypes>& walker, WalkCmd cmd)
+//    {
+//    	auto& self = this->self();
+//    	auto& cache = self.cache();
+//
+//    	auto& pos  = cache.data_pos();
+//
+//    	auto stream = self.stream();
+//
+//    	pos[stream] += walker.sum();
+//
+//    	cache.abs_pos()[stream] = walker.branch_size_prefix()[stream] + idx;
+//
+//    	self.update_leaf_ranks(cmd);
+//    }
+
 MEMORIA_ITERATOR_PART_END
 
 #define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::bttl::IteratorSkipName)

@@ -29,23 +29,67 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorLeafName)
     typedef typename Container::Accumulator                                         Accumulator;
     typedef typename Container::Iterator                                            Iterator;
 
+    using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
+
     using CtrSizeT = typename Container::Types::CtrSizeT;
 
 
 
 
 
+//    bool nextLeaf()
+//    {
+//        auto& self = this->self();
+//
+//        auto id = self.leaf()->id();
+//
+//        typename Types::template NextLeafWalker<Types> walker;
+//
+//        self._findFw2(walker);
+//
+//        return id != self.leaf()->id();
+//    }
+//
+//
+//    bool prevLeaf()
+//    {
+//        auto& self = this->self();
+//
+//        auto id = self.leaf()->id();
+//
+//        typename Types::template PrevLeafWalker<Types> walker;
+//
+//        self._findBw2(walker);
+//
+//        return id != self.leaf()->id();
+//    }
+
+
     bool nextLeaf()
     {
         auto& self = this->self();
 
-        auto id = self.leaf()->id();
+        auto current_leaf = self.leaf();
+        auto next_leaf    = self.ctr().getNextNodeP(self.leaf());
 
-        typename Types::template NextLeafWalker<Types> walker;
+        if (next_leaf.isSet())
+        {
+        	typename Types::template NextLeafWalker<Types> walker;
 
-        self._findFw2(walker);
+        	walker.prepare(self);
 
-        return id != self.leaf()->id();
+        	self.leaf() = next_leaf;
+
+        	LeafDispatcher::dispatch(current_leaf, walker, WalkCmd::FIRST_LEAF, 0, 0);
+
+        	walker.finish(self, 0, WalkCmd::NONE);
+
+        	return true;
+        }
+        else {
+        	self.leaf() = current_leaf;
+        	return false;
+        }
     }
 
 
@@ -53,13 +97,27 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorLeafName)
     {
         auto& self = this->self();
 
-        auto id = self.leaf()->id();
+        auto current_leaf = self.leaf();
+        auto prev_leaf    = self.ctr().getPrevNodeP(self.leaf());
 
-        typename Types::template PrevLeafWalker<Types> walker;
+        if (prev_leaf.isSet())
+        {
+        	typename Types::template PrevLeafWalker<Types> walker;
 
-        self._findBw2(walker);
+        	walker.prepare(self);
 
-        return id != self.leaf()->id();
+        	self.leaf() = prev_leaf;
+
+        	LeafDispatcher::dispatch(current_leaf, walker, WalkCmd::LAST_LEAF, 0, 0);
+
+        	walker.finish(self, 0, WalkCmd::NONE);
+
+        	return true;
+        }
+        else {
+        	self.leaf() = current_leaf;
+        	return false;
+        }
     }
 
 

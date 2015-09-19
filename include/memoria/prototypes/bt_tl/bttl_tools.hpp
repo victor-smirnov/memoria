@@ -50,6 +50,8 @@ struct StreamsRankHelper<Idx, Idx> {
 
 
 
+
+
 template <
 	template <Int> class StreamsSizesPath,
 	typename CtrSizeT,
@@ -69,18 +71,18 @@ struct StreamsRankFn {
 		target_(target),
 		sizes_(sizes),
 		prefix_(prefix),
-		indexes_(prefix)
+		indexes_()
 	{
 		pos_ = prefix.sum();
 	}
 
-	template <Int Stream, typename NextHelper, typename Node>
+	template <Int StreamIdx, typename NextHelper, typename Node>
 	void process(const Node* node) {
-		process<Stream, NextHelper>(node, sizes_[Stream]);
+		process<StreamIdx, NextHelper>(node, prefix_[StreamIdx], sizes_[StreamIdx]);
 	}
 
-	template <Int Stream, typename NextHelper, typename Node>
-	void process(const Node* node, CtrSizeT length)
+	template <Int StreamIdx, typename NextHelper, typename Node>
+	void process(const Node* node, CtrSizeT start, CtrSizeT end)
 	{
 		CtrSizeT buffer[BufferSize];
 		for (auto& v: buffer) v = 0;
@@ -88,20 +90,21 @@ struct StreamsRankFn {
 		Int buffer_pos = 0;
 		Int buffer_size = 0;
 
-		const Int size   = sizes_[Stream];
-		const Int offset = indexes_[Stream] + prefix_[Stream];
-		const Int limit  = (length + offset) < size ? length : (size - offset);
+		const Int size   = sizes_[StreamIdx];
+		const Int limit  = end <= size ? end : size;
 
-		for (auto i = 0; i < limit; i++)
+		for (auto i = start; i < limit; i++)
 		{
 			if (pos_ < target_)
 			{
-				auto next_length = this->template buffered_get<Stream>(node, i + offset, buffer_pos, buffer_size, size, buffer);
+				auto next_length = this->template buffered_get<StreamIdx>(node, i, buffer_pos, buffer_size, size, buffer);
 
-				indexes_[Stream]++;
+				indexes_[StreamIdx]++;
 				pos_++;
 
-				NextHelper::process(node, *this, next_length);
+				auto next_offset = prefix_[StreamIdx  + 1] + indexes_[StreamIdx + 1];
+
+				NextHelper::process(node, *this, next_offset, next_offset + next_length);
 			}
 			else {
 				break;
@@ -110,46 +113,43 @@ struct StreamsRankFn {
 	}
 
 
-	template <Int Stream, typename Node>
+	template <Int StreamIdx, typename Node>
 	void processLast(const Node* node) {
-		processLast<Stream>(node, sizes_[Stream]);
+		processLast<StreamIdx>(node, prefix_[StreamIdx], sizes_[StreamIdx]);
 	}
 
-	template <Int Stream, typename Node>
-	void processLast(const Node* node, CtrSizeT length)
+	template <Int StreamIdx, typename Node>
+	void processLast(const Node* node, CtrSizeT start, CtrSizeT end)
 	{
-		CtrSizeT size = node->template streamSize<Stream>();
+		CtrSizeT size = node->template streamSize<StreamIdx>();
 
-		if (indexes_[Stream] + length > size)
-		{
-			length = size - indexes_[Stream];
-		}
+		const Int limit = end <= size ? end : size;
 
-		if (pos_ + length < target_)
+		auto delta = target_ - pos_;
+
+		if (start + delta <= limit)
 		{
-			indexes_[Stream] += length;
-			pos_ += length;
+			indexes_[StreamIdx] += delta;
+			pos_ += delta;
 		}
-		else
-		{
-			auto limit = target_ - pos_;
-			indexes_[Stream] += limit;
-			pos_ += limit;
+		else {
+			indexes_[StreamIdx] += limit - start;
+			pos_ += limit - start;
 		}
 	}
 
 private:
 
-	template <Int Stream, typename Node>
+	template <Int StreamIdx, typename Node>
 	CtrSizeT buffered_get(const Node* node, Int idx, Int& p0, Int& s0, Int size, CtrSizeT buffer[BufferSize])
 	{
-		if (idx - p0 < s0) {
+		if (idx < s0) {
 			return buffer[idx - p0];
 		}
 		else {
 			Int limit = (idx + BufferSize) < size ? idx + BufferSize : size;
 
-			using Path = StreamsSizesPath<Stream>;
+			using Path = StreamsSizesPath<StreamIdx>;
 
 			node->template substream<Path>()->read(0, idx, limit, buffer);
 
@@ -160,6 +160,9 @@ private:
 		}
 	}
 };
+
+
+
 
 
 template <

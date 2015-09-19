@@ -20,15 +20,12 @@ template <
 class LeafWalkerBase {
 protected:
     typedef Iter<typename Types::IterTypes>                                     Iterator;
-    typedef typename Types::IteratorPrefix                                 		IteratorPrefix;
     typedef typename Types::IteratorAccumulator                                 IteratorAccumulator;
     typedef typename Types::LeafStreamsStructList                               LeafStructList;
     typedef typename Types::LeafRangeList                                 		LeafRangeList;
     typedef typename Types::LeafRangeOffsetList                                 LeafRangeOffsetList;
 
     static const Int Streams                                                    = Types::Streams;
-
-    IteratorPrefix prefix_;
 
     StaticVector<BigInt, Streams> branch_size_prefix_;
 
@@ -37,8 +34,6 @@ protected:
 
     bool compute_branch_ 	= true;
     bool compute_leaf_ 		= true;
-
-
 
 public:
 
@@ -122,8 +117,10 @@ public:
     	branch_size_prefix_	= iter.cache().size_prefix();
     }
 
-    BigInt finish(Iterator& iter, Int idx)
+    BigInt finish(Iterator& iter, Int idx, WalkCmd cmd)
     {
+    	iter.finish_walking(idx, self(), cmd);
+
     	iter.idx() = idx;
 
     	iter.cache().prefixes() 	 = branch_prefix_;
@@ -185,7 +182,7 @@ public:
     	template <Int GroupIdx, Int AllocatorIdx, Int ListIdx, typename StreamObj, typename... Args>
     	void stream(const StreamObj* obj, MyType& walker, Args&&... args)
     	{
-    		walker.template branch_size_prefix<GroupIdx>(obj, std::forward<Args>(args)...);
+    		walker.template branch_size_prefix<ListIdx>(obj, std::forward<Args>(args)...);
     	}
     };
 
@@ -195,7 +192,7 @@ public:
     	template <Int GroupIdx, Int AllocatorIdx, Int ListIdx, typename StreamObj, typename... Args>
     	void stream(const StreamObj* obj, MyType& walker, Args&&... args)
     	{
-    		walker.template leaf_size_prefix<GroupIdx>(obj, std::forward<Args>(args)...);
+    		walker.template leaf_size_prefix<ListIdx>(obj, std::forward<Args>(args)...);
     	}
     };
 
@@ -294,8 +291,6 @@ public:
 
 		for (Int c = 0; c < Size; c++)
 		{
-//			item[Idx + c] += obj->sum(c + From);
-
 			obj->_add(c + From, item[Idx + c]);
 		}
 	}

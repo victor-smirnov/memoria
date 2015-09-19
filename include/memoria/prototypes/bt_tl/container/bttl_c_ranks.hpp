@@ -255,24 +255,34 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
     	return self().process_count_substreams(node, stream, CountStreamItemsFn(), end);
     }
 
+    Position count_items(const NodeBaseG& node) const
+    {
+    	auto& self = this->self();
+    	auto sizes = self.getNodeSizes(node);
+
+    	Position counts;
+
+    	counts[0] = sizes[0];
+
+    	for (Int s = 1; s < Streams; s++)
+    	{
+    		counts[s] = self.count_items(node, s - 1, sizes[s - 1]);
+    	}
+
+    	return counts;
+    }
+
     Position total_counts() const
     {
     	auto& self = this->self();
 
     	NodeBaseG root = self.getRoot();
 
-    	Position totals;
+    	auto root_counts = self.count_items(root);
 
-    	Position sizes = self.getNodeSizes(root);
+    	root_counts[0] = self.sizes()[0];
 
-    	totals[0] = self.sizes()[0];
-
-    	for (Int s = 1; s < Streams; s++)
-    	{
-    		totals[s] = self.count_items(root, s - 1, sizes[s - 1]);
-    	}
-
-    	return totals;
+    	return root_counts;
     }
 
 
@@ -291,7 +301,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
     }
 
 
-    Position leaf_rank(const NodeBaseG& leaf, const Position& sizes, const LeafPrefixRanks& prefixes, Int pos) const
+    Position leaf_rank(const NodeBaseG& leaf, Position sizes, const LeafPrefixRanks& prefixes, Int pos) const
     {
     	for (Int s = 0; s < Streams; s++)
     	{
@@ -299,6 +309,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
     		if (pos >= sum)
     		{
     			return bttl::detail::ZeroRankHelper<0, Streams>::process(this, leaf, sizes, prefixes[s], pos);
+    		}
+    		else {
+    			sizes[s] = 0;
     		}
     	}
 
@@ -319,7 +332,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
 
     		bttl::detail::StreamsRankHelper<Stream, SearchableStreams>::process(leaf, fn, std::forward<Args>(args)...);
 
-    		return fn.indexes_;
+    		return fn.indexes_ + fn.prefix_;
     	}
     };
 

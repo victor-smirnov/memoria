@@ -650,7 +650,7 @@ class AbstractCtrInputProvider<CtrT, Streams, LeafDataLengthType::VARIABLE>: pub
 
 	using Base = AbstractCtrInputProviderBase<CtrT>;
 
-	static constexpr float FREE_SPACE_THRESHOLD = 0.1;
+	static constexpr float FREE_SPACE_THRESHOLD = 0.2;
 
 
 
