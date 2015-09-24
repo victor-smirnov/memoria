@@ -100,10 +100,19 @@ public:
 		}
 	}
 
+	template <typename Buffer>
+	void populate(StreamTag<0>, Buffer&& buffer, CtrSizeT start, CtrSizeT length)
+	{
+		buffer[start] = InputTupleAdapter<0>::convert(IL<BigInt>({2}));
+
+		counts_[0] += length;
+		totals_[0] += length;
+	}
+
 	template <Int StreamIdx, typename Buffer>
 	void populate(StreamTag<StreamIdx>, Buffer&& buffer, CtrSizeT start, CtrSizeT length)
 	{
-		buffer[start] = InputTupleAdapter<StreamIdx>::convert(IL<BigInt>({2}));
+		buffer[start] = InputTupleAdapter<StreamIdx>::convert(IL<BigInt>({0}));
 
 		counts_[StreamIdx] += length;
 		totals_[StreamIdx] += length;
@@ -201,10 +210,19 @@ public:
 		}
 	}
 
+	template <typename Buffer>
+	void populate(StreamTag<0>, Buffer&& buffer, CtrSizeT start, CtrSizeT length)
+	{
+		buffer[start] = InputTupleAdapter<0>::convert(IL<BigInt>({2}));
+
+		counts_[0] += length;
+		totals_[0] += length;
+	}
+
 	template <Int StreamIdx, typename Buffer>
 	void populate(StreamTag<StreamIdx>, Buffer&& buffer, CtrSizeT start, CtrSizeT length)
 	{
-		buffer[start] = InputTupleAdapter<StreamIdx>::convert(IL<BigInt>({2}));
+		buffer[start] = InputTupleAdapter<StreamIdx>::convert(IL<BigInt>({0}));
 
 		counts_[StreamIdx] += length;
 		totals_[StreamIdx] += length;

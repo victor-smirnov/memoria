@@ -11,7 +11,7 @@
 #include "../../tests_inc.hpp"
 
 #include "bttl_core_test.hpp"
-
+#include "bttl_iter_test.hpp"
 
 namespace memoria {
 
@@ -22,9 +22,10 @@ class BTTLTestSuite: public TestSuite {
 
 public:
 
-    BTTLTestSuite(): TestSuite("BT.TL.Suite")
+    BTTLTestSuite(): TestSuite("BT.TL")
     {
-    	registerTask(new BTTLCoreTest<Table<BigInt, Byte>>("Core"));
+    	registerTask(new BTTLCoreTest<Table<BigInt, Byte>>("Create"));
+    	registerTask(new BTTLIterTest<Table<BigInt, Byte>>("Iter"));
     }
 };
 

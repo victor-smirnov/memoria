@@ -108,8 +108,6 @@ public:
 
     			auto shape = sampleTreeShape();
 
-//    			auto shape = CtrSizesT({10, 50, 89});
-
     			this->out()<<"shape: "<<shape<<endl;
 
     			Provider provider(ctr, shape, 0);
@@ -147,39 +145,11 @@ public:
     }
 
 
-    template <typename Provider>
-    void fillCtr(Ctr& ctr, Provider& provider)
-    {
-    	auto iter = ctr.seek(0);
-
-    	long t0 = getTimeInMillis();
-
-    	ctr.insertData(iter.leaf(), CtrSizesT(), provider);
-
-    	long t1 = getTimeInMillis();
-
-    	this->out()<<"Creation time: "<<FormatTime(t1 - t0)<<endl;
-
-    	auto sizes = ctr.sizes();
-
-    	AssertEQ(MA_SRC, provider.consumed(), sizes);
-
-    	auto ctr_totals = ctr.total_counts();
-
-    	this->out()<<"Totals: "<<ctr_totals<<" "<<sizes<<endl;
-
-    	AssertEQ(MA_SRC, ctr_totals, sizes);
-
-    	this->allocator()->commit();
-    }
-
-
     void checkExtents(Ctr& ctr)
     {
     	auto i = ctr.seek(0);
 
-    	CtrSizesT counts;
-    	CtrSizesT leaf_sizes;
+    	CtrSizesT extent;
 
     	long t2 = getTimeInMillis();
 
@@ -187,10 +157,9 @@ public:
     	{
     		auto current_extent = i.leaf_extent();
 
-    		AssertEQ(MA_SRC, current_extent, counts - leaf_sizes);
+    		AssertEQ(MA_SRC, current_extent, extent);
 
-    		counts 		+= ctr.count_items(i.leaf());
-    		leaf_sizes  += ctr.getNodeSizes(i.leaf());
+    		extent += ctr.node_extents(i.leaf());
     	}
     	while(i.nextLeaf());
 
@@ -204,8 +173,7 @@ public:
     {
     	auto i = ctr.seek(0);
 
-    	CtrSizesT counts;
-    	CtrSizesT leaf_sizes;
+    	CtrSizesT extents;
 
     	long t2 = getTimeInMillis();
 
@@ -217,7 +185,7 @@ public:
 
     		typename Ctr::Types::LeafPrefixRanks prefix_ranks;
 
-    		ctr.compute_leaf_prefixes(i.leaf(), counts - leaf_sizes, prefix_ranks);
+    		ctr.compute_leaf_prefixes(i.leaf(), extents, prefix_ranks);
 
     		auto total_ranks = ctr.leaf_rank(i.leaf(), sizes, prefix_ranks, sizes.sum());
 
@@ -232,8 +200,7 @@ public:
     			c += getRandom(100) + 1;
     		}
 
-    		counts 		+= ctr.count_items(i.leaf());
-    		leaf_sizes  += ctr.getNodeSizes(i.leaf());
+    		extents += ctr.node_extents(i.leaf());
     	}
     	while(i.nextLeaf());
 
@@ -248,7 +215,7 @@ public:
     template <typename Provider>
     void testProvider(Ctr& ctr, Provider& provider)
     {
-    	fillCtr(ctr, provider);
+    	this->fillCtr(ctr, provider);
 
     	checkExtents(ctr);
     	checkRanks(ctr);

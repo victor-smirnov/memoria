@@ -592,6 +592,19 @@ public:
     }
 
 
+    struct Size2Fn {
+    	template <Int StreamIdx, typename T>
+    	Int process(const T* node)
+    	{
+    		return node->template streamSize<StreamIdx>();
+    	}
+    };
+
+
+    Int size(Int stream) const
+    {
+    	return ForEachStream<Streams - 1>::process(stream, Size2Fn(), this);
+    }
 
     struct SizeFn {
         template <typename Tree>
@@ -600,11 +613,6 @@ public:
             return tree != nullptr ? tree->size() : 0;
         }
     };
-
-    Int size(Int stream) const
-    {
-        return Dispatcher::dispatch(stream, allocator(), SizeFn());
-    }
 
     template <Int StreamIdx>
     Int streamSize() const

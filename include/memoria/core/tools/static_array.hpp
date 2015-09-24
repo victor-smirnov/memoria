@@ -571,8 +571,6 @@ public:
     template <typename Value>
     MyType& operator=(const Value& value)
     {
-    	static_assert(Indexes == 1, "");
-
     	for (Int c = 0; c < Indexes; c++) values_[c] = value;
     	return *this;
     }

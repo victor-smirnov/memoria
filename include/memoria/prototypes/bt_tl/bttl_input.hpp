@@ -235,6 +235,8 @@ public:
 		return end;
 	}
 
+protected:
+
 	Position fill0(NodeBaseG& leaf, const Position& start)
 	{
 		Position pos = start;
@@ -308,17 +310,6 @@ public:
 	};
 
 
-	void updateLeafAncors(const NodeBaseG& leaf, const Position& at, const Position& sizes)
-	{
-		for (Int c = 0; c < Streams - 1; c++)
-		{
-			if (sizes[c] > 0)
-			{
-				ancors_[c] = at[c] + sizes[c] - 1;
-				leafs_[c]  = leaf;
-			}
-		}
-	}
 
 
 	virtual void insertBuffer(NodeBaseG& leaf, const Position& at, const Position& sizes)
@@ -521,6 +512,19 @@ private:
 		}
 	}
 
+	void updateLeafAncors(const NodeBaseG& leaf, const Position& at, const Position& sizes)
+	{
+		for (Int c = 0; c < Streams - 1; c++)
+		{
+			if (sizes[c] > 0)
+			{
+				ancors_[c] = at[c] + sizes[c] - 1;
+				leafs_[c]  = leaf;
+			}
+		}
+	}
+
+
 protected:
 
 	virtual void updateLeaf(Int sym, CtrSizeT pos, CtrSizeT sum)
@@ -664,12 +668,18 @@ public:
 	using Buffer 	= typename Base::Buffer;
 	using Position	= typename Base::Position;
 
-	using PageUpdateMgr			 = typename CtrT::Types::PageUpdateMgr;
+	using PageUpdateMgr			= typename CtrT::Types::PageUpdateMgr;
+	using LeafPrefixRanks		= typename CtrT::Types::LeafPrefixRanks;
 
-	Position extent_;
+	using LeafExtents 			= memoria::core::StaticVector<Position, Streams>;
+
+	Position current_extent_;
+	LeafExtents leaf_extents_;
 
 	Position ancors_tmp_;
 	NodeBaseG leafs_tmp_[Streams];
+
+	NodeBaseG current_leaf_;
 
 	PageUpdateMgr mgr_;
 
@@ -686,6 +696,7 @@ public:
 
 	virtual Position fill(NodeBaseG& leaf, const Position& start)
 	{
+		current_leaf_ = leaf;
 		this->fills_++;
 
 		if (this->fills_ == 1)
@@ -694,25 +705,28 @@ public:
 			iter.leaf() = leaf;
 			iter.refresh();
 
-			extent_ = iter.leaf_extent();
+			current_extent_ = iter.leaf_extent();
 
 			for (Int s = 0; s < Streams; s++)
 			{
 				if (start[s] > 0)
 				{
-					this->ancors_[s] = start[s] - 1;
-					this->leafs_[s]  = leaf;
+					this->ancors_[s] 		= start[s] - 1;
+					this->leafs_[s]  	  	= leaf;
+					this->leaf_extents_[s] 	= current_extent_;
 				}
 				else {
 					auto tmp = iter;
 
 					tmp.stream() = s;
-					tmp.idx() = 0;
+					tmp.idx() 	 = 0;
 
 					if (tmp.skipBw1() == 1)
 					{
 						this->ancors_[s] = tmp.idx();
 						this->leafs_[s]  = tmp.leaf();
+
+						this->leaf_extents_[s] 	= tmp.leaf_extent();
 					}
 				}
 			}
@@ -731,6 +745,9 @@ public:
 
 				return fill0(leaf, end);
 			}
+		}
+		else {
+			current_extent_ += ctr().node_extents(leaf);
 		}
 
 		return end;
@@ -857,21 +874,46 @@ protected:
 		return getFreeSpacePart(node) > FREE_SPACE_THRESHOLD;
 	}
 
-protected:
 
 	virtual void updateLeaf(Int sym, CtrSizeT pos, CtrSizeT sum)
 	{
 		//FIXME: handle page overflows
 		// split page if necessary
 
-		try {
+		auto leaf = this->leafs_[sym];
 
-			this->ctr_.add_to_stream_counter(this->leafs_[sym], sym, pos, sum);
+		try {
+			this->ctr_.add_to_stream_counter(leaf, sym, pos, sum);
 			mgr_.checkpoint(this->leafs_[sym]);
 		}
-		catch (PackedOOMException& ex) {
+		catch (PackedOOMException& ex)
+		{
+//			auto sizes		= ctr().getNodeSizes(leaf);
+//			auto split_at 	= ctr().leaf_rank(leaf, sizes, leaf_extents_[sym], sizes.sum() / 2);
+//
+//			auto next_leaf  = ctr().splitLeafP(leaf, split_at);
+//
+//			lext_leaf.next_leaf_id() 	= leaf->next_leaf_id();
+//			leaf->next_leaf_id()		= next_leaf->id();
+
 			cout<<"FIXME: split VLE leafs!"<<endl;
 			throw ex;
+		}
+	}
+
+private:
+
+	void updateLeafAncors(const NodeBaseG& leaf, const Position& at, const Position& sizes)
+	{
+		for (Int c = 0; c < Streams; c++)
+		{
+			if (sizes[c] > 0)
+			{
+				this->ancors_[c] = at[c] + sizes[c] - 1;
+				this->leafs_[c]  = leaf;
+
+				this->leaf_extents_[c] = current_extent_;
+			}
 		}
 	}
 };

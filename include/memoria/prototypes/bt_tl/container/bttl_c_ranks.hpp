@@ -255,6 +255,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
     	return self().process_count_substreams(node, stream, CountStreamItemsFn(), end);
     }
 
+
     Position count_items(const NodeBaseG& node) const
     {
     	auto& self = this->self();
@@ -271,6 +272,17 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
 
     	return counts;
     }
+
+    Position node_extents(const NodeBaseG& node) const
+    {
+    	auto& self = this->self();
+
+    	auto counts = self.count_items(node);
+    	auto sizes  = self.getNodeSizes(node);
+
+    	return counts - sizes;
+    }
+
 
     Position total_counts() const
     {
@@ -298,6 +310,17 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
     		self.count_downstream_items(leaf, prefixes[s], prefixes[s - 1], s, extent[s]);
     		prefixes[s - 1][s] = extent[s];
     	}
+    }
+
+    Position leaf_rank(const NodeBaseG& leaf, const Position& sizes, const Position& extent, Int pos) const
+    {
+    	auto& self = this->self();
+
+    	LeafPrefixRanks prefixes;
+
+    	self.compute_leaf_prefixes(leaf, extent, prefixes);
+
+    	return self.leaf_rank(leaf, sizes, prefixes, pos);
     }
 
 
@@ -344,6 +367,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
 
 
 
+
+
 private:
 
     struct CountStreamsItemsFn {
@@ -358,14 +383,20 @@ private:
     	{}
 
     	template <typename Stream>
-    	auto stream(const Stream* substream, CtrSizeT start, CtrSizeT end) {
-    		return substream->sum(0, start, end);
+    	auto stream(const Stream* substream, CtrSizeT start, CtrSizeT end)
+    	{
+    		auto size = substream->size();
+    		return substream->sum(0, start, end < size ? end : size);
     	}
 
 
     	template <Int StreamIdx, typename Leaf>
     	bool process(const Leaf* leaf)
     	{
+    		if (DebugCounter == DebugCounter2) {
+    			int a = 0; a++;
+    		}
+
     		if (StreamIdx >= stream_)
     		{
     			constexpr Int SubstreamIdx = Leaf::template StreamStartIdx<StreamIdx>::Value +

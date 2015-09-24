@@ -204,7 +204,9 @@ public:
 
     	bool is_set = self.leaf().isSet();
 
-    	return is_set && idx >= 0 && idx < self.leaf_size();
+    	auto leaf_size = self.leaf_size();
+
+    	return is_set && idx >= 0 && idx < leaf_size;
     }
 
     bool isNotEnd() const

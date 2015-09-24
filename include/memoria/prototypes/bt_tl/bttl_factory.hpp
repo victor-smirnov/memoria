@@ -83,7 +83,7 @@ public:
 
         using PageUpdateMgr 	= PageUpdateManager<CtrTypes>;
 
-        using LeafPrefixRanks   = typename Base::Types::Position[Base::Types::Streams];
+        using LeafPrefixRanks   = memoria::core::StaticVector<typename Base::Types::Position, Base::Types::Streams>;
 
         template <Int StreamIdx>
         using LeafSizesSubstreamIdx = IntValue<

@@ -46,6 +46,11 @@ protected:
 
     using Allocator 	= AllocatorType;
 
+    using CtrSizesT		= typename Ctr::Types::Position;
+    using CtrSizeT		= typename Ctr::Types::CtrSizeT;
+
+    static const Int Streams = Ctr::Types::Streams;
+
 public:
 
     BTTLTestBase(StringRef name):
@@ -55,6 +60,61 @@ public:
     }
 
     virtual ~BTTLTestBase() throw() {}
+
+    CtrSizesT sampleTreeShape(Int level_limit, Int last_level_limit, CtrSizeT size)
+    {
+    	CtrSizesT shape;
+
+    	CtrSizesT limits(level_limit);
+    	limits[Streams - 1] = last_level_limit;
+
+    	while(shape[0] == 0)
+    	{
+    		BigInt resource = size;
+
+    		for (Int c = Streams - 1; c > 0; c--)
+    		{
+    			Int level_size = getRandom(limits[c]) + 1;
+
+    			shape[c] = level_size;
+
+    			resource = resource / level_size;
+    		}
+
+    		shape[0] = resource;
+    	}
+
+    	return shape;
+    }
+
+    template <typename Provider>
+    void fillCtr(Ctr& ctr, Provider& provider)
+    {
+    	auto iter = ctr.seek(0);
+
+    	long t0 = getTimeInMillis();
+
+    	ctr.insertData(iter.leaf(), CtrSizesT(), provider);
+
+    	long t1 = getTimeInMillis();
+
+    	this->out()<<"Creation time: "<<FormatTime(t1 - t0)<<endl;
+
+    	auto sizes = ctr.sizes();
+
+    	AssertEQ(MA_SRC, provider.consumed(), sizes);
+
+    	auto ctr_totals = ctr.total_counts();
+
+    	this->out()<<"Totals: "<<ctr_totals<<" "<<sizes<<endl;
+
+    	AssertEQ(MA_SRC, ctr_totals, sizes);
+
+    	this->allocator()->commit();
+
+    	this->storeAllocator("core.dump");
+    }
+
 };
 
 }

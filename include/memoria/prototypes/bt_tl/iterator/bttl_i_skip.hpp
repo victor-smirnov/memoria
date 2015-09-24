@@ -84,11 +84,16 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
     	auto pos  = cache.data_pos()[stream];
     	auto size = cache.data_size()[stream];
 
+    	CtrSizeT nn;
+
     	if (pos + n > size) {
-    		n = size - pos;
+    		nn = size - pos;
+    	}
+    	else {
+    		nn = n;
     	}
 
-    	return bt::ForEachStream<Streams - 1>::process(stream, SkipFwFn(), self, n);
+    	return bt::ForEachStream<Streams - 1>::process(stream, SkipFwFn(), self, nn);
     }
 
 
@@ -199,8 +204,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
     			self.skipFw(offset);
     		}
     		else {
-    			cache.data_pos()[stream]++;
-    			self.skipBw(1);
+    			auto delta = cache.size_prefix()[stream] - cache.abs_pos()[stream];
+
+    			cache.data_pos()[stream] += delta;
+    			self.skipBw(delta);
     		}
     	}
     }
