@@ -70,14 +70,27 @@ struct ForAllTuple<Idx, Idx> {
 }
 
 
+class RunDescr {
+	Int symbol_;
+	Int length_;
+public:
+	RunDescr(Int symbol, Int length = 1): symbol_(symbol), length_(length) {}
+
+	Int symbol() const {return symbol_;}
+	Int length() const {return length_;}
+
+	void set_length(Int len) {
+		length_ = len;
+	}
+};
+
 
 
 template <
 	typename CtrT
 >
-class AbstractCtrInputProviderBase: public memoria::bt::AbstractInputProvider<typename CtrT::Types> {
+class AbstractCtrInputProviderBase {
 
-	using Base = AbstractInputProvider<typename CtrT::Types>;
 protected:
 	static const Int Streams = CtrT::Types::Streams;
 
@@ -96,7 +109,7 @@ public:
 			>::Type
 	>::Type;
 
-	using Position	= typename Base::Position;
+	using Position	= typename CtrT::Types::Position;
 
 	using ForAllBuffer = detail::ForAllTuple<std::tuple_size<Buffer>::value>;
 
@@ -105,20 +118,6 @@ public:
 	}
 
 	using Symbols = PkdFSSeq<typename PkdFSSeqTF<get_symbols_number(Streams)>::Type>;
-
-	class RunDescr {
-		Int symbol_;
-		Int length_;
-	public:
-		RunDescr(Int symbol, Int length = 1): symbol_(symbol), length_(length) {}
-
-		Int symbol() const {return symbol_;}
-		Int length() const {return length_;}
-
-		void set_length(Int len) {
-			length_ = len;
-		}
-	};
 
 protected:
 	Buffer buffer_;
@@ -151,7 +150,8 @@ private:
 
 public:
 
-	AbstractCtrInputProviderBase(CtrT& ctr, const Position& capacity): Base(),
+	AbstractCtrInputProviderBase(CtrT& ctr, const Position& capacity):
+		//Base(),
 		capacity_(capacity),
 		allocator_(AllocTool<PackedAllocator>::create(block_size(capacity.sum()), 1)),
 		ctr_(ctr)
@@ -169,7 +169,7 @@ private:
 	}
 public:
 
-	Iterator compute_ancors(const NodeBaseG& leaf, const Position& start)
+	virtual void prepare(NodeBaseG& leaf, const Position& start)
 	{
 		Iterator iter(this->ctr_);
 		iter.leaf() = leaf;
@@ -185,7 +185,7 @@ public:
 			else {
 				auto tmp = iter;
 				tmp.stream() = s;
-				tmp.idx() = 0;
+				tmp.idx() 	 = 0;
 
 				if (tmp.skipBw1(1) == 1)
 				{
@@ -194,8 +194,6 @@ public:
 				}
 			}
 		}
-
-		return iter;
 	}
 
 
@@ -210,34 +208,6 @@ public:
 	}
 
 	virtual Position fill(NodeBaseG& leaf, const Position& start)
-	{
-		fills_++;
-
-		if (this->fills_ == 1)
-		{
-			compute_ancors(leaf, start);
-		}
-
-		auto end = fill0(leaf, start);
-
-		if (fills_ == 1 && this->hasData())
-		{
-			auto leaf_sizes = ctr().getLeafStreamSizes(leaf);
-
-			if (end.sum() < leaf_sizes.sum())
-			{
-				ctr().splitLeafP(leaf, end);
-
-				return fill0(leaf, end);
-			}
-		}
-
-		return end;
-	}
-
-protected:
-
-	Position fill0(NodeBaseG& leaf, const Position& start)
 	{
 		Position pos = start;
 
@@ -697,68 +667,43 @@ public:
 		return this->ctr_;
 	}
 
+	virtual void prepare(NodeBaseG& leaf, const Position& start)
+	{
+		Iterator iter(this->ctr_);
+		iter.leaf() = leaf;
+		iter.refresh();
+
+		current_extent_ = iter.leaf_extent();
+
+		for (Int s = 0; s < Streams; s++)
+		{
+			if (start[s] > 0)
+			{
+				this->ancors_[s] 		= start[s] - 1;
+				this->leafs_[s]  	  	= leaf;
+				this->leaf_extents_[s] 	= current_extent_;
+			}
+			else {
+				auto tmp = iter;
+
+				tmp.stream() = s;
+				tmp.idx() 	 = 0;
+
+				if (tmp.skipBw1() == 1)
+				{
+					this->ancors_[s] = tmp.idx();
+					this->leafs_[s]  = tmp.leaf();
+
+					this->leaf_extents_[s] 	= tmp.leaf_extent();
+				}
+			}
+		}
+	}
+
 	virtual Position fill(NodeBaseG& leaf, const Position& start)
 	{
 		current_leaf_ = leaf;
-		this->fills_++;
 
-		if (this->fills_ == 1)
-		{
-			Iterator iter(this->ctr_);
-			iter.leaf() = leaf;
-			iter.refresh();
-
-			current_extent_ = iter.leaf_extent();
-
-			for (Int s = 0; s < Streams; s++)
-			{
-				if (start[s] > 0)
-				{
-					this->ancors_[s] 		= start[s] - 1;
-					this->leafs_[s]  	  	= leaf;
-					this->leaf_extents_[s] 	= current_extent_;
-				}
-				else {
-					auto tmp = iter;
-
-					tmp.stream() = s;
-					tmp.idx() 	 = 0;
-
-					if (tmp.skipBw1() == 1)
-					{
-						this->ancors_[s] = tmp.idx();
-						this->leafs_[s]  = tmp.leaf();
-
-						this->leaf_extents_[s] 	= tmp.leaf_extent();
-					}
-				}
-			}
-		}
-
-
-		auto end = fill0(leaf, start);
-
-		if (this->fills_ == 1 && this->hasData())
-		{
-			auto leaf_sizes = ctr().getLeafStreamSizes(leaf);
-
-			if (end.sum() < leaf_sizes.sum())
-			{
-				ctr().splitLeafP(leaf, end);
-
-				return fill0(leaf, end);
-			}
-		}
-		else {
-			current_extent_ += ctr().node_extents(leaf);
-		}
-
-		return end;
-	}
-
-
-	Position fill0(NodeBaseG& leaf, const Position& start)
-	{
 		Position pos = start;
 
 		mgr_.add(leaf);
@@ -786,6 +731,8 @@ public:
 				break;
 			}
 		}
+
+		current_extent_ += ctr().node_extents(leaf);
 
 		return pos;
 	}
@@ -986,43 +933,34 @@ struct PopulateHelper<Tag, Size, Size> {
 
 template <
 	typename CtrT,
-	typename MyType
+	typename DataProvider
 >
 class StreamingCtrInputProvider: public memoria::bttl::AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength> {
 public:
 	using Base 		= memoria::bttl::AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength>;
 
 	using CtrSizesT = typename CtrT::Types::Position;
-	using RunDescr 	= typename Base::RunDescr;
 
 	static constexpr Int Streams = CtrT::Types::Streams;
+private:
 
-	StreamingCtrInputProvider(CtrT& ctr, const CtrSizesT& buffer_sizes):
-		Base(ctr, buffer_sizes)
-	{
-
-	}
+	DataProvider& data_provider_;
+public:
+	StreamingCtrInputProvider(CtrT& ctr, DataProvider& data_provider, const CtrSizesT& buffer_sizes = CtrSizesT(500)):
+		Base(ctr, buffer_sizes),
+		data_provider_(data_provider)
+	{}
 
 	virtual RunDescr populate(const CtrSizesT& start)
 	{
-		auto& self = this->self();
-
-		RunDescr chunk = self.query();
+		RunDescr chunk = data_provider_.query();
 
 		if (chunk.symbol() >= 0)
 		{
-			details::PopulateHelper<StreamTag, Streams - 1>::process(chunk, self, this->buffer_, start);
+			details::PopulateHelper<StreamTag, Streams - 1>::process(chunk, data_provider_, this->buffer_, start);
 		}
 
 		return chunk;
-	}
-
-	const MyType& self() const {
-		return *T2T<const MyType*>(this);
-	}
-
-	MyType& self() {
-		return *T2T<MyType*>(this);
 	}
 };
 

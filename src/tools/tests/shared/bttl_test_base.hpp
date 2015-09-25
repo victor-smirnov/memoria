@@ -102,7 +102,7 @@ public:
 
     	auto sizes = ctr.sizes();
 
-    	AssertEQ(MA_SRC, provider.consumed(), sizes);
+//    	AssertEQ(MA_SRC, provider.consumed(), sizes);
 
     	auto ctr_totals = ctr.total_counts();
 

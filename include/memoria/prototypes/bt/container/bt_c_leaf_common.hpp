@@ -52,13 +52,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
     template <Int Stream>
     using StreamInputTuple = typename Types::template StreamInputTuple<Stream>;
 
-    template <typename TT>
-    using CtrInputProvider = typename Types::template CtrInputProvider<TT>;
-
-
     template <Int Stream, typename SubstreamsIdxList, typename... Args>
     using ReadLeafStreamEntryRtnType = DispatchConstRtnType<LeafDispatcher, SubstreamsSetNodeFn<Stream, SubstreamsIdxList>, GetLeafValuesFn, Args...>;
-
 
     NodeBaseG splitLeafP(NodeBaseG& left_node, const Position& split_at)
     {
@@ -282,8 +277,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
     };
 
 
-    template <typename TT>
-    Position insertDataIntoLeaf(NodeBaseG& leaf, const Position& pos, CtrInputProvider<TT>& provider)
+    template <typename Provider>
+    Position insertDataIntoLeaf(NodeBaseG& leaf, const Position& pos, Provider& provider)
     {
     	auto& self = this->self();
 
@@ -307,14 +302,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
     	return pos;
     }
 
-    bool isAtTheEnd2(const NodeBaseG& leaf, const Position& pos) const
-    {
-    	return true;
-    }
 
-
-    template <typename TT>
-    Position fillLeaf(NodeBaseG& leaf, const Position& pos, CtrInputProvider<TT>& provider) {
+    template <typename Provider>
+    Position fillLeaf(NodeBaseG& leaf, const Position& pos, Provider& provider) {
     	return provider.fill(leaf, pos);
     }
 
@@ -331,15 +321,18 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
     	Position& position() {return position_;}
     };
 
-    template <typename TT>
-    InsertDataResult insertData(NodeBaseG& leaf, const Position& pos, CtrInputProvider<TT>& provider)
+    template <typename Provider>
+    InsertDataResult insertData(NodeBaseG& leaf, const Position& pos, Provider& provider)
     {
     	auto& self = this->self();
+
+    	provider.prepare(leaf, pos);
 
     	auto last_pos = self.insertDataIntoLeaf(leaf, pos, provider);
 
     	if (provider.hasData())
     	{
+    		// has to be defined in subclasses
     		if (!self.isAtTheEnd2(leaf, last_pos))
     		{
     			auto next_leaf = self.splitLeafP(leaf, Position(last_pos));
@@ -373,11 +366,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
 
 
 
-    template <typename TT>
-    LeafList createLeafDataList(CtrInputProvider<TT>& provider);
+    template <typename Provider>
+    LeafList createLeafDataList(Provider& provider);
 
     // ============================================ Insert Data ======================================== //
-private:
 
     template <typename LeafPosition, typename Buffer>
     InsertBuffersResult<LeafPosition> insertBuffersRest(NodeBaseG& leaf, NodeBaseG& next_leaf, InputBufferProvider<LeafPosition, Buffer>& provider)
@@ -454,8 +446,8 @@ private:
 
 
 
-    template <typename TT>
-    InsertDataResult insertDataRest(NodeBaseG& leaf, NodeBaseG& next_leaf, CtrInputProvider<TT>& provider)
+    template <typename Provider>
+    InsertDataResult insertDataRest(NodeBaseG& leaf, NodeBaseG& next_leaf, Provider& provider)
     {
     	auto& self = this->self();
 
@@ -465,9 +457,9 @@ private:
 
     	if (leaf_list.size() > 0)
     	{
-    		using Provider = typename Base::ListLeafProvider;
+    		using LeafListProvider = typename Base::ListLeafProvider;
 
-    		Provider list_provider(self, leaf_list.head(), leaf_list.size());
+    		LeafListProvider list_provider(self, leaf_list.head(), leaf_list.size());
 
     		NodeBaseG parent = self.getNodeParentForUpdate(leaf);
 
@@ -491,8 +483,8 @@ private:
     }
 
 
-    template <typename TT>
-    InsertDataResult insertDataRest(NodeBaseG& leaf, CtrInputProvider<TT>& provider)
+    template <typename Provider>
+    InsertDataResult insertDataRest(NodeBaseG& leaf, Provider& provider)
     {
     	auto& self = this->self();
 
@@ -507,9 +499,9 @@ private:
 
     	if (leaf_list.size() > 0)
     	{
-    		using Provider = typename Base::ListLeafProvider;
+    		using LeafListProvider = typename Base::ListLeafProvider;
 
-    		Provider list_provider(self, leaf_list.head(), leaf_list.size());
+    		LeafListProvider list_provider(self, leaf_list.head(), leaf_list.size());
 
     		NodeBaseG parent = self.getNodeParentForUpdate(leaf);
 
@@ -530,37 +522,37 @@ private:
     template <typename Fn, typename... Args>
     SplitStatus updateAtomic(Iterator& iter, Fn&& fn, Args&&... args)
     {
-   	 auto& self = this->self();
+    	auto& self = this->self();
 
-   	 PageUpdateMgr mgr(self);
+    	PageUpdateMgr mgr(self);
 
-   	 self.updatePageG(iter.leaf());
+    	self.updatePageG(iter.leaf());
 
-   	 mgr.add(iter.leaf());
+    	mgr.add(iter.leaf());
 
-   	 try {
-   		 LeafDispatcher::dispatch(
-   				 iter.leaf(),
-				 fn,
-				 std::forward<Args>(args)...
-   		 );
+    	try {
+    		LeafDispatcher::dispatch(
+    				iter.leaf(),
+					fn,
+					std::forward<Args>(args)...
+    		);
 
-   		 return SplitStatus::NONE;
-   	 }
-   	 catch (PackedOOMException& e)
-   	 {
-   		 mgr.rollback();
+    		return SplitStatus::NONE;
+    	}
+    	catch (PackedOOMException& e)
+    	{
+    		mgr.rollback();
 
-   		 SplitStatus status = iter.split();
+    		SplitStatus status = iter.split();
 
-   		 LeafDispatcher::dispatch(
-   				 iter.leaf(),
-				 fn,
-				 std::forward<Args>(args)...
-   		 );
+    		LeafDispatcher::dispatch(
+    				iter.leaf(),
+					fn,
+					std::forward<Args>(args)...
+    		);
 
-   		 return status;
-   	 }
+    		return status;
+    	}
     }
 
 MEMORIA_CONTAINER_PART_END
@@ -619,8 +611,8 @@ typename M_TYPE::LeafList M_TYPE::createLeafList(InputBufferProvider<LeafPositio
 }
 
 M_PARAMS
-template <typename TT>
-typename M_TYPE::LeafList M_TYPE::createLeafDataList(CtrInputProvider<TT>& provider)
+template <typename Provider>
+typename M_TYPE::LeafList M_TYPE::createLeafDataList(Provider& provider)
 {
     auto& self = this->self();
 

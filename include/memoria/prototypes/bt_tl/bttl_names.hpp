@@ -28,6 +28,14 @@ class InsertBatchCommonName {};
 class InsertToolsName       {};
 class StreamRankName        {};
 
+//class BranchCommonName      {};
+//class LeafCommonName        {};
+//class BranchFixedName       {};
+//class LeafFixedName         {};
+//class BranchVariableName    {};
+//class LeafVariableName      {};
+
+
 class RemoveName            {};
 class RemoveToolsName       {};
 class RemoveBatchName       {};

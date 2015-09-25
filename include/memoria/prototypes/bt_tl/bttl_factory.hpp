@@ -20,6 +20,12 @@
 
 #include <memoria/prototypes/bt_tl/container/bttl_c_misc.hpp>
 #include <memoria/prototypes/bt_tl/container/bttl_c_insert.hpp>
+#include <memoria/prototypes/bt_tl/container/bttl_c_leaf_common.hpp>
+#include <memoria/prototypes/bt_tl/container/bttl_c_leaf_fixed.hpp>
+#include <memoria/prototypes/bt_tl/container/bttl_c_leaf_variable.hpp>
+#include <memoria/prototypes/bt_tl/container/bttl_c_branch_common.hpp>
+#include <memoria/prototypes/bt_tl/container/bttl_c_branch_fixed.hpp>
+#include <memoria/prototypes/bt_tl/container/bttl_c_branch_variable.hpp>
 #include <memoria/prototypes/bt_tl/container/bttl_c_ranks.hpp>
 
 #include <memoria/prototypes/bt_tl/iterator/bttl_i_misc.hpp>
@@ -49,8 +55,31 @@ struct BTTypes<Profile, memoria::BTTreeLayout>: public BTTypes<Profile, memoria:
                 typename Base::CommonContainerPartsList,
                 memoria::bttl::MiscName,
 				memoria::bttl::InsertName,
+				memoria::bttl::BranchCommonName,
+				memoria::bttl::LeafCommonName,
 				memoria::bttl::RanksName
     >;
+
+    using FixedBranchContainerPartsList = MergeLists<
+    			typename Base::FixedBranchContainerPartsList,
+				memoria::bttl::BranchFixedName
+    >;
+
+    using VariableBranchContainerPartsList = MergeLists<
+    			typename Base::FixedBranchContainerPartsList,
+				memoria::bttl::BranchVariableName
+    >;
+
+    using FixedLeafContainerPartsList = MergeLists<
+        			typename Base::FixedLeafContainerPartsList,
+					memoria::bttl::LeafFixedName
+    >;
+
+    using VariableLeafContainerPartsList = MergeLists<
+        			typename Base::VariableLeafContainerPartsList,
+					memoria::bttl::LeafVariableName
+    >;
+
 
     using IteratorPartsList = MergeLists<
                 typename Base::IteratorPartsList,

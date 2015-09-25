@@ -393,10 +393,9 @@ public:
 
 
         static const LeafDataLengthType LeafDataLength = LeafSizeType == PackedSizeType::FIXED ?
-        		LeafDataLengthType::FIXED : LeafDataLengthType::VARIABLE;
+        												LeafDataLengthType::FIXED :
+														LeafDataLengthType::VARIABLE;
 
-        template <typename TT>
-        using CtrInputProvider = AbstractInputProvider<TT>;
 
         using LeafType = typename Pages::LeafDispatcher::Head::Base;
     };

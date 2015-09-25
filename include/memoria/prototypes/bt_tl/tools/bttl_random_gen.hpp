@@ -22,9 +22,8 @@ template <
 	typename CtrT,
 	typename RngT
 >
-class RandomDataInputProvider: public StreamingCtrInputProvider<CtrT, RandomDataInputProvider<CtrT, RngT>> {
+class RandomDataInputProvider {
 
-	using Base = StreamingCtrInputProvider<CtrT, RandomDataInputProvider<CtrT, RngT>>;
 
 public:
 
@@ -32,9 +31,6 @@ public:
 	using CtrSizeT 		= typename CtrT::CtrSizeT;
 
 	using Rng 			= RngT;
-
-	using RunDescr 		= typename Base::RunDescr;
-
 
 	template <Int StreamIdx>
 	using InputTuple 		= typename CtrT::Types::template StreamInputTuple<StreamIdx>;
@@ -54,14 +50,7 @@ private:
 
 	Rng& rng_;
 public:
-	RandomDataInputProvider(
-			CtrT& ctr,
-			const CtrSizesT& limits,
-			Int level,
-			Rng& rng,
-			const CtrSizesT& buffer_size = CtrSizesT(500)
-	):
-		Base(ctr, buffer_size),
+	RandomDataInputProvider(const CtrSizesT& limits, Rng& rng, Int level = 0):
 		limits_(limits),
 		level_(level),
 		rng_(rng)
@@ -150,16 +139,11 @@ private:
 template <
 	typename CtrT
 >
-class DeterministicDataInputProvider: public StreamingCtrInputProvider<CtrT, DeterministicDataInputProvider<CtrT>> {
-
-	using Base = StreamingCtrInputProvider<CtrT, DeterministicDataInputProvider<CtrT>>;
-
+class DeterministicDataInputProvider {
 public:
 
 	using CtrSizesT 	= typename CtrT::Types::Position;
 	using CtrSizeT 		= typename CtrT::CtrSizeT;
-
-	using RunDescr 		= typename Base::RunDescr;
 
 	template <Int StreamIdx>
 	using InputTupleAdapter = typename CtrT::Types::template InputTupleAdapter<StreamIdx>;
@@ -175,13 +159,7 @@ private:
 	Int level_;
 
 public:
-	DeterministicDataInputProvider(
-			CtrT& ctr,
-			const CtrSizesT& limits,
-			Int level = 0,
-			const CtrSizesT& buffer_size = CtrSizesT(500)
-	):
-		Base(ctr, buffer_size),
+	DeterministicDataInputProvider(const CtrSizesT& limits, Int level = 0):
 		limits_(limits),
 		level_(level)
 	{}

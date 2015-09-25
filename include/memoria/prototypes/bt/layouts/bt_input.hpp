@@ -22,14 +22,15 @@
 namespace memoria 	{
 namespace bt 		{
 
-template <typename Types>
-struct AbstractInputProvider {
-	using Position = typename Types::Position;
-	using NodeBaseG = typename Types::NodeBaseG;
-
-	virtual bool hasData() = 0;
-	virtual Position fill(NodeBaseG& leaf, const Position& from)	= 0;
-};
+//template <typename Types>
+//struct AbstractInputProvider {
+//	using Position = typename Types::Position;
+//	using NodeBaseG = typename Types::NodeBaseG;
+//
+//	virtual bool hasData() = 0;
+//	virtual Position fill(NodeBaseG& leaf, const Position& from) = 0;
+//	virtual void prepare(NodeBaseG& leaf, const Position& from)  = 0;
+//};
 
 }
 }

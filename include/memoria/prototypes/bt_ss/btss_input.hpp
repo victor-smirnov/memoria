@@ -48,14 +48,13 @@ struct LeafStreamSizeH {
 
 
 template <typename CtrT>
-class AbstractBTSSInputProviderBase: public AbstractInputProvider<typename CtrT::Types> {
-	using Base = AbstractInputProvider<typename CtrT::Types>;
+class AbstractBTSSInputProviderBase {
 
 public:
 	using NodeBaseG = typename CtrT::Types::NodeBaseG;
 	using CtrSizeT 	= typename CtrT::Types::CtrSizeT;
 
-	using Position	= typename Base::Position;
+	using Position	= typename CtrT::Types::Position;
 
 	using InputTuple 		= typename CtrT::Types::template StreamInputTuple<0>;
 	using InputTupleAdapter = typename CtrT::Types::template InputTupleAdapter<0>;
@@ -69,11 +68,11 @@ protected:
 
 	CtrT& 	ctr_;
 
-	Int last_symbol_ = -1;
-
 public:
 
-	AbstractBTSSInputProviderBase(CtrT& ctr, Int capacity): Base(), buffer_(capacity), ctr_(ctr){}
+	AbstractBTSSInputProviderBase(CtrT& ctr, Int capacity):
+		buffer_(capacity),
+		ctr_(ctr){}
 
 	CtrT& ctr() {return ctr_;}
 	const CtrT& ctr() const {return ctr_;}

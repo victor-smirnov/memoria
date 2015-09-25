@@ -90,8 +90,6 @@ public:
 
     void testDetProvider()
     {
-    	using Provider = DetInputProvider;
-
     	for (Int i = 0; i < iterations; i++)
     	{
     		this->out()<<"Iteration "<<(i + 1)<<endl;
@@ -103,7 +101,11 @@ public:
 
     			this->out()<<"shape: "<<shape<<endl;
 
-    			Provider provider(ctr, shape, 0);
+    			using Provider = bttl::StreamingCtrInputProvider<Ctr, DetInputProvider>;
+
+    			DetInputProvider p(shape);
+
+    			Provider provider(ctr, p);
 
     			testProvider(ctr, provider, shape);
     		}
@@ -147,7 +149,6 @@ public:
     			AssertEQ(MA_SRC, scanned, iter.size());
 
     			AssertTrue(MA_SRC, iter.isSEnd());
-
 
     			iter.toIndex();
     			iter.skipFw(1);
