@@ -81,11 +81,13 @@ MEMORIA_BT_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTreeIteratorBaseClassName)        
     }                                                                                   \
                                                                                         \
     MyType& self() {                                                                    \
-        return *static_cast<MyType*>(this);                                             \
+        /*return *static_cast<MyType*>(this);*/                                         \
+		return *(MyType*)(this);                                         				\
     }                                                                                   \
                                                                                         \
     const MyType& self() const {                                                        \
-        return *static_cast<const MyType*>(this);                                       \
+        /*return *static_cast<const MyType*>(this);*/                                   \
+		return *(MyType*)(this);                                       					\
     }                                                                                   \
 };
 

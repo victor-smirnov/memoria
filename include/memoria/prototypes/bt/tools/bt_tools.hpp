@@ -347,7 +347,7 @@ class BTree2IteratorPrefixCache {
 
 public:
 
-    void init(Iterator*) {}
+//    void init(Iterator*) {}
 
 
     void reset() {

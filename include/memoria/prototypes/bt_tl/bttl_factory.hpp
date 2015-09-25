@@ -30,6 +30,8 @@
 #include <memoria/prototypes/bt_tl/iterator/bttl_i_remove.hpp>
 #include <memoria/prototypes/bt_tl/iterator/bttl_i_insert.hpp>
 
+#include <memoria/prototypes/bt_tl/tools/bttl_random_gen.hpp>
+
 #include <tuple>
 
 namespace memoria {

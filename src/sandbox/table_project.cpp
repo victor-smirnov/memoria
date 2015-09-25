@@ -14,17 +14,13 @@
 
 #include <memoria/core/tools/time.hpp>
 
-std::uniform_int_distribution<int>      distribution;
-std::mt19937_64                         engine;
-auto                                    generator               = std::bind(distribution, engine);
-
 
 using namespace memoria;
 using namespace memoria::tools;
 using namespace std;
 
 using CtrT 		= SCtrTF<Table<BigInt, Byte>>::Type;
-using Provider 	= table::RandomDataInputProvider<CtrT, decltype(generator)>;
+using Provider 	= ::memoria::bttl::DeterministicDataInputProvider<CtrT>;
 using Position  = Provider::Position;
 
 
@@ -54,13 +50,13 @@ int main(int argc, const char** argv, const char** envp) {
 
 		auto iter = ctr.seek(0);
 
-		Int rows 		= 1000000;
+		Int rows 		= 1000;
 		Int cols		= 10;
 		Int data_size	= 100;
 
 		BigInt c0 = getTimeInMillis();
 
-		Provider provider(ctr, rows + 1, cols, data_size, generator);
+		Provider provider(ctr, {rows, cols, data_size});
 
 		ctr.insertData(iter.leaf(), Position(), provider);
 
@@ -85,7 +81,7 @@ int main(int argc, const char** argv, const char** envp) {
 				//iter = ctr.seek(r);
 
 				MEMORIA_ASSERT(iter.pos(), ==, r);
-				MEMORIA_ASSERT(iter.size(), ==, rows + 1);
+				MEMORIA_ASSERT(iter.size(), ==, rows);
 
 				auto tmp = iter;
 

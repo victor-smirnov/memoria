@@ -53,7 +53,7 @@ public:
     BTIteratorBase():
         Base(), idx_(0), stream_(0), found_(false)
     {
-        cache_.init(me());
+//        cache_.init(&self());
     }
 
     BTIteratorBase(ThisType&& other):
@@ -73,7 +73,7 @@ public:
         stream_(other.stream_),
         cache_(other.cache_)
     {
-        cache_.init(me());
+        //cache_.init(me());
     }
 
     void assign(ThisType&& other)
@@ -85,7 +85,7 @@ public:
 
         cache_      = other.cache_;
 
-        cache_.init(me());
+//        cache_.init(me());
 
         Base::assign(std::move(other));
     }
@@ -99,7 +99,7 @@ public:
 
         cache_      = other.cache_;
 
-        cache_.init(me());
+//        cache_.init(me());
 
         Base::assign(other);
     }

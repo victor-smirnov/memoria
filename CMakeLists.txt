@@ -93,10 +93,10 @@ if (CMAKE_COMPILER_IS_GNUCXX OR CLANG_COMPILER OR MINGW)
     set(PROFILE "")
 
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -std=c++14 -Wall ")
-    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors -ftemplate-backtrace-limit=0 ${PROFILE}")
+    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors -ftemplate-backtrace-limit=0 ${PROFILE}") #-fsanitize=undefined -fno-sanitize-recover
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -Wcomment -Wunused-variable")
     
-    set (MEMORIA_LINK_FLAGS "${MEMORIA_LINK_FLAGS} -lstdc++ ${PROFILE}")
+    set (MEMORIA_LINK_FLAGS "${MEMORIA_LINK_FLAGS} -lstdc++ ${PROFILE}") #-lubsan
     
     if (BUILD_ASAN AND NOT EMIT_LLVM)
         set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -fsanitize=address")

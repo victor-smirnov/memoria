@@ -14,17 +14,12 @@
 
 #include <memoria/core/tools/time.hpp>
 
-std::uniform_int_distribution<int>      distribution;
-std::mt19937_64                         engine;
-auto                                    generator               = std::bind(distribution, engine);
-
-
 using namespace memoria;
 using namespace memoria::tools;
 using namespace std;
 
 using CtrT 		= SCtrTF<Table<BigInt, Byte>>::Type;
-using Provider 	= table::RandomDataInputProvider<CtrT, decltype(generator)>;
+using Provider 	= ::memoria::bttl::DeterministicDataInputProvider<CtrT>;
 using Position  = Provider::Position;
 
 
@@ -55,11 +50,11 @@ int main(int argc, const char** argv, const char** envp) {
 
 		Int rows 		= 200;
 		Int cols		= 10;
-		Int data_size	= 100;
+		Int data_size	= 111;
 
 		BigInt c0 = getTimeInMillis();
 
-		Provider provider(ctr, rows + 1, cols, data_size, generator);
+		Provider provider(ctr, {rows, cols, data_size});
 
 		ctr.insertData(iter.leaf(), Position(), provider);
 
@@ -93,23 +88,12 @@ int main(int argc, const char** argv, const char** envp) {
 			{
 				MEMORIA_ASSERT(iter.pos(), ==, r);
 				MEMORIA_ASSERT(iter.cache().abs_pos()[0], ==, r);
-				MEMORIA_ASSERT(iter.size(), ==, rows + 1);
-
-				if (r == 15) {
-					DebugCounter = 1;
-					iter.dump();
-				}
+				MEMORIA_ASSERT(iter.size(), ==, rows);
 
 				iter.toData();
-				iter.checkPrefix();
-
 
 				for (Int c = 0; c < cols; c++)
 				{
-					if (iter.size() != cols) {
-						iter.dumpHeader();
-					}
-
 					MEMORIA_ASSERT(iter.pos(), ==, c);
 					MEMORIA_ASSERT(iter.size(), ==, cols);
 
@@ -121,26 +105,13 @@ int main(int argc, const char** argv, const char** envp) {
 					iter.toIndex();
 					iter.skipFw(1);
 
-					if (c == cols){
+					if (c == cols -1){
 						MEMORIA_ASSERT_TRUE(iter.isSEnd());
 					}
 				}
 
-				if (r == 15) {
-					iter.dumpHeader();
-				}
-
 				iter.toIndex();
-
-				if (r == 15) {
-					iter.dumpHeader();
-				}
-
 				iter.skipFw(1);
-
-				if (r == 15) {
-					iter.dumpHeader();
-				}
 			}
 
 			BigInt tt1 = getTimeInMillis();

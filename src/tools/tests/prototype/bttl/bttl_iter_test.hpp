@@ -51,12 +51,17 @@ class BTTLIterTest: public BTTLTestBase<CtrName, AllocatorT, ProfileT> {
 
 
 	struct ScanFn {
-		BigInt value_ = 0;
+		Byte expected_;
+
+		ScanFn(Byte expected): expected_(expected) {}
 
 		template <typename Stream>
 		void operator()(const Stream* obj, Int start, Int end)
 		{
-			value_++;
+			for (Int c = start; c < end; c++)
+			{
+				MEMORIA_ASSERT(obj->value(c), ==, expected_);
+			}
 		}
 	};
 
@@ -66,6 +71,9 @@ public:
     	Base(name)
     {
     	MEMORIA_ADD_TEST_PARAM(size);
+    	MEMORIA_ADD_TEST_PARAM(iterations);
+    	MEMORIA_ADD_TEST_PARAM(level_limit);
+    	MEMORIA_ADD_TEST_PARAM(last_level_limit);
 
     	MEMORIA_ADD_TEST(testDetProvider);
     }
@@ -113,8 +121,6 @@ public:
 
     	long t2 = getTimeInMillis();
 
-    	ScanFn scan_fn;
-
     	auto rows = sizes[0];
     	auto cols = sizes[1];
 
@@ -135,7 +141,11 @@ public:
 
     			iter.toData();
 
-    			iter.template scan<IntList<2>>(scan_fn);
+    			ScanFn scan_fn((c + 1) % 256);
+    			auto scanned = iter.template scan<IntList<2>>(scan_fn);
+
+    			AssertEQ(MA_SRC, scanned, iter.size());
+
     			AssertTrue(MA_SRC, iter.isSEnd());
 
 

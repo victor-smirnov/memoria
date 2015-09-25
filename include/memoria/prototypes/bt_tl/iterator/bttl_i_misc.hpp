@@ -103,8 +103,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorMiscName)
 
     	while (pos < limit)
     	{
-    		auto idx 	= self.idx();
-    		Int processed = LeafDispatcher::dispatch(self.leaf(), ScanFn<LeafPath>(), std::forward<Fn>(fn), idx, idx + limit);
+    		auto idx = self.idx();
+
+    		Int processed = LeafDispatcher::dispatch(self.leaf(), ScanFn<LeafPath>(), std::forward<Fn>(fn), idx, idx + (limit - pos));
 
     		total += self.skipFw(processed);
 

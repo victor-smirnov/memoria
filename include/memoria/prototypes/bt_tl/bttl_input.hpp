@@ -426,13 +426,16 @@ protected:
 				if (size_[symbol] == capacity[symbol])
 				{
 					this->finish_stream_run(0, Streams - 1, sizes, buffer_sums);
+					last_symbol_ = symbol;
 					break;
 				}
-
-				last_symbol_ = symbol;
+				else {
+					last_symbol_ = symbol;
+				}
 			}
 			else {
 				this->finish_stream_run(0, Streams - 1, sizes, buffer_sums);
+				last_symbol_ = -1;
 				break;
 			}
 		}
