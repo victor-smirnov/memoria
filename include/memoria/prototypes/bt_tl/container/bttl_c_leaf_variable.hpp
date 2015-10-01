@@ -58,7 +58,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::LeafVariableName)
     		// has to be defined in subclasses
     		if (!self.isAtTheEnd2(leaf, last_pos))
     		{
-    			auto next_leaf = self.splitLeafP(leaf, Position(last_pos));
+    			auto next_leaf = self.splitLeafP(leaf, last_pos);
 
     			self.insertDataIntoLeaf(leaf, last_pos, provider);
 
@@ -87,6 +87,68 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::LeafVariableName)
     	}
     }
 
+    template <typename Provider>
+    Position insertDataIntoLeaf(NodeBaseG& leaf, const Position& pos, Provider& provider)
+    {
+    	auto& self = this->self();
+
+    	self.updatePageG(leaf);
+
+    	self.layoutLeafNode(leaf, Position());
+
+    	auto end = self.fillLeaf(leaf, pos, provider);
+
+    	return end;
+    }
+
+
+
+    template <typename Provider>
+    typename Base::LeafList createLeafDataList(Provider& provider)
+    {
+        auto& self = this->self();
+
+        CtrSizeT    total = 0;
+        NodeBaseG   head;
+        NodeBaseG   current;
+
+        Int page_size = self.getRootMetadata().page_size();
+
+        while (provider.hasData())
+        {
+        	NodeBaseG node = self.createNode1(0, false, true, page_size);
+        	node.update(self.name());
+
+        	if (head.isSet())
+        	{
+        		current->next_leaf_id() = node->id();
+        	}
+        	else {
+        		head = node;
+        	}
+
+        	self.insertDataIntoLeaf(node, Position(), provider);
+
+        	current = node;
+
+        	total++;
+        }
+
+        total += provider.orphan_splits();
+
+        NodeBaseG tmp = head;
+        CtrSizeT cnt = 1;
+
+        while (tmp->next_leaf_id().isSet())
+        {
+        	tmp = self.allocator().getPage(tmp->next_leaf_id(), self.master_name());
+        	cnt++;
+        }
+
+        MEMORIA_ASSERT(cnt, ==, total);
+
+        return typename Base::LeafList(total, head, current);
+    }
 
 
 MEMORIA_CONTAINER_PART_END

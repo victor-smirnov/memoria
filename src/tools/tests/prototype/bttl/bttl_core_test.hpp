@@ -56,6 +56,9 @@ public:
     	Base(name)
     {
     	MEMORIA_ADD_TEST_PARAM(size);
+    	MEMORIA_ADD_TEST_PARAM(iterations);
+    	MEMORIA_ADD_TEST_PARAM(level_limit);
+    	MEMORIA_ADD_TEST_PARAM(last_level_limit);
 
     	MEMORIA_ADD_TEST(testDetProvider);
     	MEMORIA_ADD_TEST(testRngProvider);
@@ -63,37 +66,9 @@ public:
 
     virtual ~BTTLCoreTest() throw () {}
 
-    CtrSizesT sampleTreeShape()
-    {
-    	CtrSizesT shape;
-
-    	CtrSizesT limits(level_limit);
-    	limits[Streams - 1] = last_level_limit;
-
-    	while(shape[0] == 0)
-    	{
-    		BigInt resource = size;
-
-    		for (Int c = Streams - 1; c > 0; c--)
-    		{
-    			Int level_size = getRandom(limits[c]) + 1;
-
-    			shape[c] = level_size;
-
-    			resource = resource / level_size;
-    		}
-
-    		shape[0] = resource;
-    	}
-
-    	return shape;
-    }
-
     void createAllocator(AllocatorSPtr& allocator) {
     	allocator = std::make_shared<Allocator>();
     }
-
-
 
     void testDetProvider()
     {
@@ -104,7 +79,7 @@ public:
     		{
     			Ctr ctr = this->createCtr();
 
-    			auto shape = sampleTreeShape();
+    			auto shape = this->sampleTreeShape(level_limit, last_level_limit, size);
 
     			this->out()<<"shape: "<<shape<<endl;
 
@@ -116,8 +91,6 @@ public:
 
     			testProvider(ctr, provider);
     		}
-
-    		this->storeAllocator("core.dump");
 
     		createAllocator(this->allocator_);
     	}
@@ -131,7 +104,7 @@ public:
     		{
     			Ctr ctr = this->createCtr();
 
-    			auto shape = sampleTreeShape();
+    			auto shape = this->sampleTreeShape(level_limit, last_level_limit, size);
 
     			this->out()<<"shape: "<<shape<<endl;
 
@@ -162,6 +135,16 @@ public:
     		auto current_extent = i.leaf_extent();
 
     		AssertEQ(MA_SRC, current_extent, extent);
+
+    		for (Int c = 0; c < Streams; c++) {
+
+    			if (extent[c] < 0)
+    			{
+        			i.dump();
+    			}
+
+    			AssertGE(MA_SRC, extent[c], 0);
+    		}
 
     		extent += ctr.node_extents(i.leaf());
     	}

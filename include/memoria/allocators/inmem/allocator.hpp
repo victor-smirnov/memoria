@@ -356,9 +356,9 @@ public:
     	if (allocated_ + initial_size < mem_limit_) {
 
     		allocs1_++;
-    		void* buf = malloc(initial_size);
+    		void* buf = malloc(initial_size * 2);
 
-    		memset(buf, 0, initial_size);
+    		memset(buf, 0, initial_size * 2);
 
     		ID id = newId();
 
@@ -489,16 +489,29 @@ public:
     }
 
 
+//    virtual void resizePage(Shared* shared, Int new_size)
+//    {
+//        Page* page      = shared->get();
+//        Page* new_page  = T2T<Page*>(malloc(new_size));
+//
+//        CopyByteBuffer(page, new_page, page->page_size());
+//
+//        PageMetadata* pageMetadata = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
+//        pageMetadata->getPageOperations()->resize(page, new_page, new_size);
+//
+//        shared->set_page(new_page);
+//        ::free(page);
+//    }
+
     virtual void resizePage(Shared* shared, Int new_size)
     {
         Page* page      = shared->get();
-        Page* new_page  = T2T<Page*>(malloc(new_size));
-
         PageMetadata* pageMetadata = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
-        pageMetadata->getPageOperations()->resize(page, new_page, new_size);
 
-        shared->set_page(new_page);
-        ::free(page);
+//        Page* new_page  = T2T<Page*>(realloc(page, new_size));
+        pageMetadata->getPageOperations()->resize(page, page, new_size);
+
+        //shared->set_page(new_page);
     }
 
     virtual PageG getRoot(BigInt name, Int flags)

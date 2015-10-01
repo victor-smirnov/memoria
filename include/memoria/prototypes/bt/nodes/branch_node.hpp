@@ -209,6 +209,12 @@ public:
         }
     }
 
+    void resizePage(Int new_size)
+    {
+    	this->page_size() = new_size;
+    	allocator_.resizeBlock(new_size - sizeof(Me) + PackedAllocator::my_size());
+    }
+
 public:
 
     void generateDataEvents(IPageDataEventHandler* handler) const
@@ -1684,14 +1690,19 @@ public:
 
         virtual void resize(const void* page, void* buffer, Int new_size) const
         {
-            const MyType* me = T2T<const MyType*>(page);
+//            const MyType* me = T2T<const MyType*>(page);
             MyType* tgt = T2T<MyType*>(buffer);
+//
+//            tgt->copyFrom(me);
+//            tgt->page_size() = new_size;
+//            tgt->init();
+//
+//            me->transferDataTo(tgt);
+//
+//            tgt->clearUnused();
+//            tgt->reindex();
 
-            tgt->copyFrom(me);
-            me->transferDataTo(tgt);
-
-            tgt->clearUnused();
-            tgt->reindex();
+            tgt->resizePage(new_size);
         }
 
         virtual void generateDataEvents(
@@ -1701,7 +1712,7 @@ public:
                      ) const
         {
             const MyType* me = T2T<const MyType*>(page);
-            handler->startPage("BTREE_NODE", this);
+            handler->startPage("BTREE_NODE", me);
             me->generateDataEvents(handler);
             handler->endPage();
         }

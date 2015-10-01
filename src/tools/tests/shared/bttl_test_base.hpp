@@ -51,12 +51,16 @@ protected:
 
     static const Int Streams = Ctr::Types::Streams;
 
+    bool dump = false;
+
 public:
 
     BTTLTestBase(StringRef name):
         Base(name)
     {
         Ctr::initMetadata();
+
+        MEMORIA_ADD_TEST_PARAM(dump);
     }
 
     virtual ~BTTLTestBase() throw() {}
@@ -74,7 +78,7 @@ public:
 
     		for (Int c = Streams - 1; c > 0; c--)
     		{
-    			Int level_size = getRandom(limits[c]) + 1;
+    			Int level_size = getRandom(limits[c]) + ((c == Streams - 1)? 10 : 1);
 
     			shape[c] = level_size;
 
@@ -87,6 +91,11 @@ public:
     	return shape;
     }
 
+    virtual void checkAllocator(const char* msg, const char* source)
+    {
+    	::memoria::check<Allocator>(*this->allocator_.get(), msg, source);
+    }
+
     template <typename Provider>
     void fillCtr(Ctr& ctr, Provider& provider)
     {
@@ -96,13 +105,15 @@ public:
 
     	ctr.insertData(iter.leaf(), CtrSizesT(), provider);
 
+    	checkAllocator("bulk Insertion", MA_SRC);
+
     	long t1 = getTimeInMillis();
 
-    	this->out()<<"Creation time: "<<FormatTime(t1 - t0)<<endl;
+    	this->out()<<"Creation time: "<<FormatTime(t1 - t0)<<" consumed: "<<provider.data_provider().consumed()<<endl;
 
     	auto sizes = ctr.sizes();
 
-//    	AssertEQ(MA_SRC, provider.consumed(), sizes);
+    	AssertEQ(MA_SRC, provider.data_provider().consumed(), sizes);
 
     	auto ctr_totals = ctr.total_counts();
 
@@ -112,7 +123,8 @@ public:
 
     	this->allocator()->commit();
 
-    	this->storeAllocator("core.dump");
+    	if (dump)
+    		this->storeAllocator("core.dump");
     }
 
 };

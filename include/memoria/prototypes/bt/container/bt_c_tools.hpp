@@ -148,7 +148,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     }
 
 
-
+    MEMORIA_DECLARE_NODE_FN_RTN(NodeStreamSizesFn, size_sums, Position);
+    Position node_stream_sizes(const NodeBaseG& node) const
+    {
+        return NodeDispatcher::dispatch(node, NodeStreamSizesFn());
+    }
 
 
 

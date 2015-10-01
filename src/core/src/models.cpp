@@ -15,7 +15,7 @@ namespace memoria {
 
 BigInt DebugCounter = 0;
 BigInt DebugCounter1 = 0;
-BigInt DebugCounter2 = 0;
+BigInt DebugCounter2 = -1;
 size_t MemBase = 0;
 
 Int CtrRefCounters = 0;

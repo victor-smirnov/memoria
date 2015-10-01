@@ -55,7 +55,7 @@ const char* CFG_FILE    = "tests.properties";
 
 int main(int argc, const char** argv, const char** envp)
 {
-    MEMORIA_INIT(SmallProfile<>);
+	MEMORIA_INIT(SmallProfile<>);
 
     Term::init(argc, argv, envp);
 

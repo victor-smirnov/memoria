@@ -495,6 +495,10 @@ public:
         return resize(roundUpBytesToAlignmentBlocks(block_size_ - delta));
     }
 
+    void resizeBlock(Int new_size)
+    {
+    	block_size_ = new_size;
+    }
 
     Int resize(Int new_size)
     {

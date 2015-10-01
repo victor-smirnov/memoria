@@ -120,7 +120,7 @@ public:
 		totals_[Streams - 1] += length;
 	}
 
-	const CtrSizesT& consumed(){
+	const CtrSizesT& consumed() const{
 		return totals_;
 	}
 private:
@@ -219,7 +219,7 @@ public:
 		totals_[Streams - 1] += length;
 	}
 
-	const CtrSizesT& consumed(){
+	const CtrSizesT& consumed() const{
 		return totals_;
 	}
 };

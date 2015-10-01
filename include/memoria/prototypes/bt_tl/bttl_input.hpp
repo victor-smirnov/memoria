@@ -130,8 +130,10 @@ protected:
 
 	CtrT& 	ctr_;
 
-	Position ancors_;
+	Position anchors_;
+	Position anchor_values_;
 	NodeBaseG leafs_[Streams];
+
 
 	Int last_symbol_ = -1;
 
@@ -151,7 +153,6 @@ private:
 public:
 
 	AbstractCtrInputProviderBase(CtrT& ctr, const Position& capacity):
-		//Base(),
 		capacity_(capacity),
 		allocator_(AllocTool<PackedAllocator>::create(block_size(capacity.sum()), 1)),
 		ctr_(ctr)
@@ -179,7 +180,7 @@ public:
 		{
 			if (start[s] > 0)
 			{
-				this->ancors_[s] = start[s] - 1;
+				this->anchors_[s] = start[s] - 1;
 				this->leafs_[s]  = leaf;
 			}
 			else {
@@ -189,7 +190,7 @@ public:
 
 				if (tmp.skipBw1(1) == 1)
 				{
-					this->ancors_[s] = tmp.idx();
+					this->anchors_[s] = tmp.idx();
 					this->leafs_[s]  = tmp.leaf();
 				}
 			}
@@ -286,7 +287,7 @@ public:
 	{
 		CtrT::Types::Pages::LeafDispatcher::dispatch(leaf, InsertBufferFn(), at, start_, sizes, buffer_);
 
-		updateLeafAncors(leaf, at, sizes);
+		updateLeafAnchors(leaf, at, sizes);
 
 		start_ += sizes;
 	}
@@ -477,7 +478,7 @@ private:
 			{
 				if (buffer_sums[sym] > 0)
 				{
-					updateLeaf(sym - 1, ancors_[sym - 1], buffer_sums[sym]);
+					updateLeaf(sym - 1, anchors_[sym - 1], buffer_sums[sym]);
 				}
 			}
 
@@ -485,13 +486,13 @@ private:
 		}
 	}
 
-	void updateLeafAncors(const NodeBaseG& leaf, const Position& at, const Position& sizes)
+	void updateLeafAnchors(const NodeBaseG& leaf, const Position& at, const Position& sizes)
 	{
 		for (Int c = 0; c < Streams - 1; c++)
 		{
 			if (sizes[c] > 0)
 			{
-				ancors_[c] = at[c] + sizes[c] - 1;
+				anchors_[c] = at[c] + sizes[c] - 1;
 				leafs_[c]  = leaf;
 			}
 		}
@@ -627,7 +628,7 @@ class AbstractCtrInputProvider<CtrT, Streams, LeafDataLengthType::VARIABLE>: pub
 
 	using Base = AbstractCtrInputProviderBase<CtrT>;
 
-	static constexpr float FREE_SPACE_THRESHOLD = 0.2;
+	static constexpr float FREE_SPACE_THRESHOLD = 0.01;
 
 
 
@@ -649,22 +650,23 @@ public:
 	Position current_extent_;
 	LeafExtents leaf_extents_;
 
-	Position ancors_tmp_;
+	Position anchors_tmp_;
 	NodeBaseG leafs_tmp_[Streams];
 
-	NodeBaseG current_leaf_;
-
-	PageUpdateMgr mgr_;
+	CtrSizeT orphan_splits_ = 0;
 
 public:
 
 	AbstractCtrInputProvider(CtrT& ctr, const Position& capacity):
-		Base(ctr, capacity),
-		mgr_(ctr)
+		Base(ctr, capacity)
 	{}
 
 	CtrT& ctr() {
 		return this->ctr_;
+	}
+
+	CtrSizeT orphan_splits() const {
+		return orphan_splits_;
 	}
 
 	virtual void prepare(NodeBaseG& leaf, const Position& start)
@@ -679,7 +681,7 @@ public:
 		{
 			if (start[s] > 0)
 			{
-				this->ancors_[s] 		= start[s] - 1;
+				this->anchors_[s] 		= start[s] - 1;
 				this->leafs_[s]  	  	= leaf;
 				this->leaf_extents_[s] 	= current_extent_;
 			}
@@ -691,7 +693,7 @@ public:
 
 				if (tmp.skipBw1() == 1)
 				{
-					this->ancors_[s] = tmp.idx();
+					this->anchors_[s] = tmp.idx();
 					this->leafs_[s]  = tmp.leaf();
 
 					this->leaf_extents_[s] 	= tmp.leaf_extent();
@@ -702,23 +704,33 @@ public:
 
 	virtual Position fill(NodeBaseG& leaf, const Position& start)
 	{
-		current_leaf_ = leaf;
-
 		Position pos = start;
 
-		mgr_.add(leaf);
+		PageUpdateMgr mgr(ctr());
 
-		typename PageUpdateMgr::Remover remover(mgr_, leaf);
+		mgr.add(leaf);
 
 		while(this->hasData())
 		{
 			auto buffer_sizes = this->buffer_size();
 
-			auto inserted = insertBuffer(leaf, pos, buffer_sizes);
+			auto inserted = insertBuffer(mgr, leaf, pos, buffer_sizes);
 
 			if (inserted.sum() > 0)
 			{
-				this->updateLeafAncors(leaf, pos, inserted);
+				//TODO update leaf's parents here
+
+				auto end = pos + inserted;
+
+				if (leaf->parent_id().isSet())
+				{
+					auto sums = ctr().sums(leaf, pos, end);
+					ctr().updateParent(leaf, sums);
+				}
+
+				applyAnchorValues(mgr, leaf, pos);
+
+				this->updateLeafAnchors(leaf, pos, inserted);
 
 				pos += inserted;
 
@@ -738,9 +750,9 @@ public:
 	}
 
 
-	virtual Position insertBuffer(NodeBaseG& leaf, Position at, Position size)
+	virtual Position insertBuffer(PageUpdateMgr& mgr, NodeBaseG& leaf, Position at, Position size)
 	{
-		if (tryInsertBuffer(leaf, at, size))
+		if (tryInsertBuffer(mgr, leaf, at, size))
 		{
 			this->start_ += size;
 			return size;
@@ -761,7 +773,7 @@ public:
 					Int try_block_size = mid - start;
 
 					auto sizes = this->rank(try_block_size);
-					if (tryInsertBuffer(leaf, at, sizes))
+					if (tryInsertBuffer(mgr, leaf, at, sizes))
 					{
 						imin = mid + 1;
 
@@ -775,7 +787,7 @@ public:
 				}
 				else {
 					auto sizes = this->rank(1);
-					if (tryInsertBuffer(leaf, at, sizes))
+					if (tryInsertBuffer(mgr, leaf, at, sizes))
 					{
 						start += 1;
 						at += sizes;
@@ -795,18 +807,18 @@ protected:
 		return Position();
 	}
 
-	bool tryInsertBuffer(NodeBaseG& leaf, const Position& at, const Position& size)
+	bool tryInsertBuffer(PageUpdateMgr& mgr, NodeBaseG& leaf, const Position& at, const Position& size)
 	{
 		try {
 			CtrT::Types::Pages::LeafDispatcher::dispatch(leaf, typename Base::InsertBufferFn(), at, this->start_, size, this->buffer_);
 
-			mgr_.checkpoint(leaf);
+			mgr.checkpoint(leaf);
 
 			return true;
 		}
 		catch (PackedOOMException& ex)
 		{
-			mgr_.restoreNodeState();
+			mgr.restoreNodeState();
 			return false;
 		}
 	}
@@ -824,45 +836,249 @@ protected:
 		return getFreeSpacePart(node) > FREE_SPACE_THRESHOLD;
 	}
 
-
 	virtual void updateLeaf(Int sym, CtrSizeT pos, CtrSizeT sum)
 	{
-		//FIXME: handle page overflows
-		// split page if necessary
-
-		auto leaf = this->leafs_[sym];
-
-		try {
-			this->ctr_.add_to_stream_counter(leaf, sym, pos, sum);
-			mgr_.checkpoint(this->leafs_[sym]);
-		}
-		catch (PackedOOMException& ex)
-		{
-//			auto sizes		= ctr().getNodeSizes(leaf);
-//			auto split_at 	= ctr().leaf_rank(leaf, sizes, leaf_extents_[sym], sizes.sum() / 2);
-//
-//			auto next_leaf  = ctr().splitLeafP(leaf, split_at);
-//
-//			lext_leaf.next_leaf_id() 	= leaf->next_leaf_id();
-//			leaf->next_leaf_id()		= next_leaf->id();
-
-			cout<<"FIXME: split VLE leafs!"<<endl;
-			throw ex;
-		}
+		this->anchor_values_[sym] += sum;
 	}
 
 private:
 
-	void updateLeafAncors(const NodeBaseG& leaf, const Position& at, const Position& sizes)
+	void applyAnchorValues(PageUpdateMgr& mgr, NodeBaseG& current_leaf, Position& pos)
+	{
+		for (Int s = 0; s < Streams - 1; s++)
+		{
+			auto value = this->anchor_values_[s];
+
+			if (value > 0)
+			{
+				for (Int i = s + 1; i < Streams; i++)
+				{
+					if (this->leafs_[s] != this->leafs_[i])
+					{
+						leaf_extents_[i][s + 1] += value;
+					}
+				}
+
+				if (this->leafs_[s] != current_leaf)
+				{
+					current_extent_[s + 1] += value;
+				}
+			}
+		}
+
+		for (Int s = 0; s < Streams - 1; s++)
+		{
+			auto& leaf = this->leafs_[s];
+
+			if (leaf.isSet())
+			{
+				if (current_leaf == leaf)
+				{
+					processCurrentAnchor(s, mgr, current_leaf, pos);
+				}
+				else {
+					processAnchor(s);
+				}
+			}
+		}
+	}
+
+	void processAnchor(Int stream)
+	{
+		auto& ctr = this->ctr();
+
+		auto& leaf 			= this->leafs_[stream];
+		auto& anchor_value 	= this->anchor_values_[stream];
+		auto& anchor			= this->anchors_[stream];
+
+		if (anchor_value > 0)
+		{
+			PageUpdateMgr mgr(ctr);
+
+			mgr.add(leaf);
+
+			try {
+				ctr.add_to_stream_counter(leaf, stream, anchor, anchor_value);
+				anchor_value = 0;
+			}
+			catch (PackedOOMException& ex)
+			{
+				mgr.rollback();
+
+				auto sizes		= ctr.getNodeSizes(leaf);
+				auto split_at 	= ctr.leaf_rank(leaf, sizes, leaf_extents_[stream], sizes.sum() / 2);
+
+				NodeBaseG next_leaf;
+
+				if (leaf->is_root() || leaf->parent_id().isSet())
+				{
+					next_leaf = ctr.splitLeafP(leaf, split_at);
+				}
+				else {
+					orphan_splits_++;
+
+					auto page_size 	= ctr.getRootMetadata().page_size();
+					next_leaf 		= ctr.createNode1(0, false, true, page_size);
+
+					ctr.splitLeafNode(leaf, next_leaf, split_at);
+				}
+
+				next_leaf->next_leaf_id() 	= leaf->next_leaf_id();
+				leaf->next_leaf_id()		= next_leaf->id();
+
+				for (Int ss = 0; ss < Streams; ss++)
+				{
+					auto& lleaf 			= this->leafs_[ss];
+					auto& lanchor			= this->anchors_[ss];
+
+					if (lleaf == leaf) {
+						if (lanchor >= split_at[ss])
+						{
+							lanchor -= split_at[ss];
+
+							leaf_extents_[ss] += ctr.node_extents(leaf);
+
+							lleaf = next_leaf;
+						}
+					}
+				}
+
+				ctr.add_to_stream_counter(leaf, stream, anchor, anchor_value);
+				anchor_value = 0;
+			}
+		}
+	}
+
+
+	void processCurrentAnchor(Int stream, PageUpdateMgr& mgr, NodeBaseG& current_leaf, Position& pos)
+	{
+		auto& ctr = this->ctr();
+
+		auto& leaf 			= this->leafs_[stream];
+		auto& anchor_value 	= this->anchor_values_[stream];
+		auto& anchor		= this->anchors_[stream];
+
+		if (anchor_value > 0)
+		{
+			try {
+				ctr.add_to_stream_counter(leaf, stream, anchor, anchor_value);
+
+				mgr.checkpoint(leaf);
+
+				anchor_value = 0;
+			}
+			catch (PackedOOMException& ex)
+			{
+				mgr.restoreNodeState();
+
+				auto sizes		= ctr.getNodeSizes(leaf);
+				auto split_at 	= ctr.leaf_rank(leaf, sizes, leaf_extents_[stream], sizes.sum() / 2);
+
+				NodeBaseG next_leaf;
+
+				if (leaf->is_root() || leaf->parent_id().isSet())
+				{
+					next_leaf = ctr.splitLeafP(leaf, split_at);
+				}
+				else {
+					orphan_splits_++;
+
+					auto page_size 	= ctr.getRootMetadata().page_size();
+					next_leaf 		= ctr.createNode1(0, false, true, page_size);
+
+					ctr.splitLeafNode(leaf, next_leaf, split_at);
+
+					next_leaf->next_leaf_id() 	= leaf->next_leaf_id();
+					leaf->next_leaf_id()		= next_leaf->id();
+				}
+
+				if (pos.sum() >= split_at.sum())
+				{
+					pos -= split_at;
+
+					current_extent_ += ctr.node_extents(leaf);
+
+					mgr.remove(current_leaf);
+
+					current_leaf = next_leaf;
+
+					mgr.add(current_leaf);
+				}
+
+
+				for (Int ss = 0; ss < Streams; ss++)
+				{
+					auto& lleaf 			= this->leafs_[ss];
+					auto& lanchor			= this->anchors_[ss];
+
+					if (lleaf == leaf) {
+						if (lanchor >= split_at[ss])
+						{
+							lanchor -= split_at[ss];
+
+							leaf_extents_[ss] += ctr.node_extents(leaf);
+
+							lleaf = next_leaf;
+						}
+					}
+				}
+
+				ctr.add_to_stream_counter(current_leaf, stream, anchor, anchor_value);
+				mgr.checkpoint(current_leaf);
+				anchor_value = 0;
+			}
+		}
+	}
+
+
+
+	void processCurrentAnchor1(Int stream, PageUpdateMgr& mgr, NodeBaseG& current_leaf, Position& pos)
+	{
+		auto& ctr = this->ctr();
+
+		auto& leaf 			= this->leafs_[stream];
+		auto& anchor_value 	= this->anchor_values_[stream];
+		auto& anchor		= this->anchors_[stream];
+
+		if (anchor_value > 0)
+		{
+			try {
+				ctr.add_to_stream_counter(leaf, stream, anchor, anchor_value);
+
+				mgr.checkpoint(leaf);
+
+				anchor_value = 0;
+			}
+			catch (PackedOOMException& ex)
+			{
+				cout<<"Restore Current Anchor1: "<<stream<<" "<<anchor_value<<endl;
+
+				mgr.restoreNodeState();
+
+				leaf.resize(8192);
+
+				ctr.add_to_stream_counter(leaf, stream, anchor, anchor_value);
+				mgr.checkpoint(leaf);
+				anchor_value = 0;
+			}
+		}
+	}
+
+
+
+	void updateLeafAnchors(const NodeBaseG& leaf, const Position& at, const Position& sizes)
 	{
 		for (Int c = 0; c < Streams; c++)
 		{
 			if (sizes[c] > 0)
 			{
-				this->ancors_[c] = at[c] + sizes[c] - 1;
-				this->leafs_[c]  = leaf;
+				this->anchors_[c] 		= at[c] + sizes[c] - 1;
+				this->leafs_[c]  		= leaf;
+				this->anchor_values_[c] = 0;
 
 				this->leaf_extents_[c] = current_extent_;
+
+//				cout<<"Leaf Extents: ["<<c<<"] "<<leaf_extents_[c]<<endl;
 			}
 		}
 	}
@@ -961,6 +1177,10 @@ public:
 		}
 
 		return chunk;
+	}
+
+	const DataProvider& data_provider() const {
+		return data_provider_;
 	}
 };
 

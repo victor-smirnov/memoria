@@ -341,7 +341,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
     {
     	auto& self = this->self();
 
-    	self.ctr().find_offset(self.leaf(), stream, idx);
+    	return self.ctr().find_offset(self.leaf(), stream, idx);
     }
 
     struct DataOffsetFn {

@@ -857,21 +857,17 @@ public:
         template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename Tree>
         void stream(Tree* tree, MyType* other, const Position& indexes)
         {
-            Int idx   = indexes[StreamIdx];
-            Int size  = tree->size();
+            if (tree != nullptr)
+        	{
+        		Int idx   = indexes[StreamIdx];
+        		Int size  = tree->size();
 
-            MEMORIA_ASSERT_TRUE(idx >= 0);
-            MEMORIA_ASSERT_TRUE(idx <= size);
+        		MEMORIA_ASSERT_TRUE(idx >= 0);
+        		MEMORIA_ASSERT_TRUE(idx <= size);
 
-            if (size > 0)
-            {
-                Int size = tree->size();
-                if (size > 0)
-                {
-                    Tree* other_tree    = other->allocator()->template allocateEmpty<Tree>(AllocatorIdx);
-                    tree->splitTo(other_tree, idx);
-                }
-            }
+        		Tree* other_tree = other->allocator()->template allocateEmpty<Tree>(AllocatorIdx);
+        		tree->splitTo(other_tree, idx);
+        	}
         }
     };
 

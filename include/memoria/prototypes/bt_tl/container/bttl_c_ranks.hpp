@@ -155,6 +155,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
     {
     	auto& self = this->self();
 
+//    	if (DebugCounter == 4) {
+//    		self.dump(node);
+//    	}
+
     	if (value != 0)
     	{
     		AddToStreamCounter fn;
@@ -263,7 +267,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
 
     	Position counts;
 
-    	counts[0] = sizes[0];
+    	counts[0] = self.node_stream_sizes(node)[0];
 
     	for (Int s = 1; s < Streams; s++)
     	{
@@ -278,7 +282,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
     	auto& self = this->self();
 
     	auto counts = self.count_items(node);
-    	auto sizes  = self.getNodeSizes(node);
+    	auto sizes  = self.node_stream_sizes(node);
 
     	return counts - sizes;
     }
@@ -326,19 +330,25 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
 
     Position leaf_rank(const NodeBaseG& leaf, Position sizes, const LeafPrefixRanks& prefixes, Int pos) const
     {
-    	for (Int s = 0; s < Streams; s++)
-    	{
-    		Int sum = prefixes[s].sum();
-    		if (pos >= sum)
-    		{
-    			return bttl::detail::ZeroRankHelper<0, Streams>::process(this, leaf, sizes, prefixes[s], pos);
-    		}
-    		else {
-    			sizes[s] = 0;
-    		}
+    	if (pos >= sizes.sum()) {
+    		return sizes;
     	}
+    	else
+    	{
+    		for (Int s = 0; s < Streams; s++)
+    		{
+    			Int sum = prefixes[s].sum();
+    			if (pos >= sum)
+    			{
+    				return bttl::detail::ZeroRankHelper<0, Streams>::process(this, leaf, sizes, prefixes[s], pos);
+    			}
+    			else {
+    				sizes[s] = 0;
+    			}
+    		}
 
-    	return Position();
+    		return Position();
+    	}
     }
 
 
@@ -393,12 +403,12 @@ private:
     	template <Int StreamIdx, typename Leaf>
     	bool process(const Leaf* leaf)
     	{
-    		if (DebugCounter == DebugCounter2) {
-    			int a = 0; a++;
-    		}
-
     		if (StreamIdx >= stream_)
     		{
+    			if (DebugCounter == DebugCounter2) {
+    				int a = 0; a++;
+    			}
+
     			constexpr Int SubstreamIdx = Leaf::template StreamStartIdx<StreamIdx>::Value +
     			    						 Leaf::template StreamSize<StreamIdx>::Value - 1;
 
@@ -410,6 +420,7 @@ private:
 				);
 
     			sums_[StreamIdx + 1] += sum;
+
     			cnt_ = sum;
     		}
 
