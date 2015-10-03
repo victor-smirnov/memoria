@@ -74,6 +74,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
     template <Int StreamIdx, typename Fn, typename... Args>
     auto _process_count_substream(NodeBaseG& node, Fn&& fn, Args&&... args)
     {
+//    	if (DebugCounter)
+
     	return NodeDispatcher::dispatch(
     			node,
 				ProcessCountSubstreamFn<StreamIdx>(),

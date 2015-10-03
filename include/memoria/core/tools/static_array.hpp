@@ -233,10 +233,17 @@ public:
     template <typename T>
     StaticVector(std::initializer_list<T> list)
     {
+    	T last = 0;
+
         Int idx = 0;
         for (T e: list)
         {
-            values_[idx++] = e;
+            last = values_[idx++] = e;
+        }
+
+        for (Int c = idx; c < Indexes; c++)
+        {
+        	values_[c] = last;
         }
     }
 

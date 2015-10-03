@@ -356,9 +356,9 @@ public:
     	if (allocated_ + initial_size < mem_limit_) {
 
     		allocs1_++;
-    		void* buf = malloc(initial_size * 2);
+    		void* buf = malloc(initial_size);
 
-    		memset(buf, 0, initial_size * 2);
+    		memset(buf, 0, initial_size);
 
     		ID id = newId();
 

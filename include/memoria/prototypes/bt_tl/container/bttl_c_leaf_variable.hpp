@@ -53,6 +53,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::LeafVariableName)
 
     	auto last_pos = self.insertDataIntoLeaf(leaf, pos, provider);
 
+//    	self.dumpPath(leaf);
+
     	if (provider.hasData())
     	{
     		// has to be defined in subclasses
@@ -141,6 +143,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::LeafVariableName)
 
         while (tmp->next_leaf_id().isSet())
         {
+//        	cout<<"Leaf chain: "<<tmp->id()<<" "<<tmp->next_leaf_id()<<endl;
         	tmp = self.allocator().getPage(tmp->next_leaf_id(), self.master_name());
         	cnt++;
         }

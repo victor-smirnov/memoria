@@ -103,6 +103,10 @@ public:
         return Base::value() < other.value();
     }
 
+    operator bool() const {
+    	return this->isSet();
+    }
+
     operator BigInt () {
         return Base::value();
     }
@@ -921,6 +925,19 @@ private:
     }
 
 };
+
+
+template <typename T, typename A>
+ostream& operator<<(ostream& out, const PageGuard<T, A>& pg)
+{
+    if (pg.isSet()) {
+    	out<<pg->id();
+    }
+    else {
+    	out<<"nullptr"<<endl;
+    }
+    return out;
+}
 
 
 template <typename T, typename A>

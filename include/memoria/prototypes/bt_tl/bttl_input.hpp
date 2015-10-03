@@ -647,6 +647,8 @@ public:
 
 	using LeafExtents 			= memoria::core::StaticVector<Position, Streams>;
 
+	using NodePair = std::pair<NodeBaseG, NodeBaseG>;
+
 	Position current_extent_;
 	LeafExtents leaf_extents_;
 
@@ -654,6 +656,8 @@ public:
 	NodeBaseG leafs_tmp_[Streams];
 
 	CtrSizeT orphan_splits_ = 0;
+
+	NodePair split_watcher_;
 
 public:
 
@@ -663,6 +667,14 @@ public:
 
 	CtrT& ctr() {
 		return this->ctr_;
+	}
+
+	NodePair& split_watcher() {
+		return split_watcher_;
+	}
+
+	const NodePair& split_watcher() const {
+		return split_watcher_;
 	}
 
 	CtrSizeT orphan_splits() const {
@@ -728,11 +740,69 @@ public:
 					ctr().updateParent(leaf, sums);
 				}
 
-				applyAnchorValues(mgr, leaf, pos);
+				auto next_leaf = applyAnchorValues(mgr, leaf);
 
-				this->updateLeafAnchors(leaf, pos, inserted);
+				if (next_leaf == leaf)
+				{
+					updateLeafAnchors(leaf, pos, inserted);
+					pos += inserted;
+				}
+				else {
+					auto split_at = ctr().getNodeSizes(leaf);
 
-				pos += inserted;
+					auto start_pos 		= pos.sum();
+					auto split_at_pos 	= split_at.sum();
+					auto end_pos 		= (pos + inserted).sum();
+
+					if (start_pos >= split_at_pos)
+					{
+						pos -= split_at;
+
+						updateLeafAnchors(next_leaf, pos, inserted);
+
+						pos += inserted;
+
+						current_extent_ += ctr().node_extents(leaf);
+
+						mgr.remove(leaf);
+
+						leaf = next_leaf;
+
+						break;
+					}
+					else if (end_pos <= start_pos)
+					{
+						MEMORIA_ASSERT_TRUE(leaf->parent_id());
+
+						pos -= split_at;
+
+						updateLeafAnchors(leaf, pos, inserted);
+
+						mgr.checkpoint(leaf);
+
+						pos += inserted;
+					}
+					else {
+						auto leaf_inserted = split_at - pos;
+
+						updateLeafAnchors(leaf, pos, leaf_inserted);
+
+						auto next_leaf_inserted = pos + inserted - split_at;
+
+						updateLeafAnchors(next_leaf, Position(0), next_leaf_inserted);
+
+						pos -= split_at;
+						pos += inserted;
+
+						current_extent_ += ctr().node_extents(leaf);
+
+						mgr.remove(leaf);
+
+						leaf = next_leaf;
+
+						break;
+					}
+				}
 
 				if (!hasFreeSpace(leaf))
 				{
@@ -843,8 +913,10 @@ protected:
 
 private:
 
-	void applyAnchorValues(PageUpdateMgr& mgr, NodeBaseG& current_leaf, Position& pos)
+	NodeBaseG applyAnchorValues(PageUpdateMgr& mgr, NodeBaseG& current_leaf)
 	{
+		auto next_leaf = current_leaf;
+
 		for (Int s = 0; s < Streams - 1; s++)
 		{
 			auto value = this->anchor_values_[s];
@@ -874,13 +946,15 @@ private:
 			{
 				if (current_leaf == leaf)
 				{
-					processCurrentAnchor(s, mgr, current_leaf, pos);
+					next_leaf = processCurrentAnchor(s, mgr);
 				}
 				else {
 					processAnchor(s);
 				}
 			}
 		}
+
+		return next_leaf;
 	}
 
 	void processAnchor(Int stream)
@@ -889,7 +963,7 @@ private:
 
 		auto& leaf 			= this->leafs_[stream];
 		auto& anchor_value 	= this->anchor_values_[stream];
-		auto& anchor			= this->anchors_[stream];
+		auto& anchor		= this->anchors_[stream];
 
 		if (anchor_value > 0)
 		{
@@ -923,6 +997,10 @@ private:
 					ctr.splitLeafNode(leaf, next_leaf, split_at);
 				}
 
+				if (this->split_watcher_.first == leaf) {
+					this->split_watcher_.second = next_leaf;
+				}
+
 				next_leaf->next_leaf_id() 	= leaf->next_leaf_id();
 				leaf->next_leaf_id()		= next_leaf->id();
 
@@ -950,13 +1028,15 @@ private:
 	}
 
 
-	void processCurrentAnchor(Int stream, PageUpdateMgr& mgr, NodeBaseG& current_leaf, Position& pos)
+	NodeBaseG processCurrentAnchor(Int stream, PageUpdateMgr& mgr)
 	{
 		auto& ctr = this->ctr();
 
 		auto& leaf 			= this->leafs_[stream];
 		auto& anchor_value 	= this->anchor_values_[stream];
 		auto& anchor		= this->anchors_[stream];
+
+		auto next_leaf = leaf;
 
 		if (anchor_value > 0)
 		{
@@ -974,9 +1054,7 @@ private:
 				auto sizes		= ctr.getNodeSizes(leaf);
 				auto split_at 	= ctr.leaf_rank(leaf, sizes, leaf_extents_[stream], sizes.sum() / 2);
 
-				NodeBaseG next_leaf;
-
-				if (leaf->is_root() || leaf->parent_id().isSet())
+				if (leaf->is_root() || leaf->parent_id())
 				{
 					next_leaf = ctr.splitLeafP(leaf, split_at);
 				}
@@ -992,19 +1070,12 @@ private:
 					leaf->next_leaf_id()		= next_leaf->id();
 				}
 
-				if (pos.sum() >= split_at.sum())
+				if (this->split_watcher_.first == leaf)
 				{
-					pos -= split_at;
-
-					current_extent_ += ctr.node_extents(leaf);
-
-					mgr.remove(current_leaf);
-
-					current_leaf = next_leaf;
-
-					mgr.add(current_leaf);
+					this->split_watcher_.second = next_leaf;
 				}
 
+				NodeBaseG node_to_update = leaf;
 
 				for (Int ss = 0; ss < Streams; ss++)
 				{
@@ -1019,49 +1090,20 @@ private:
 							leaf_extents_[ss] += ctr.node_extents(leaf);
 
 							lleaf = next_leaf;
+
+							if (ss == stream) {
+								node_to_update = next_leaf;
+							}
 						}
 					}
 				}
 
-				ctr.add_to_stream_counter(current_leaf, stream, anchor, anchor_value);
-				mgr.checkpoint(current_leaf);
+				ctr.add_to_stream_counter(node_to_update, stream, anchor, anchor_value);
 				anchor_value = 0;
 			}
 		}
-	}
 
-
-
-	void processCurrentAnchor1(Int stream, PageUpdateMgr& mgr, NodeBaseG& current_leaf, Position& pos)
-	{
-		auto& ctr = this->ctr();
-
-		auto& leaf 			= this->leafs_[stream];
-		auto& anchor_value 	= this->anchor_values_[stream];
-		auto& anchor		= this->anchors_[stream];
-
-		if (anchor_value > 0)
-		{
-			try {
-				ctr.add_to_stream_counter(leaf, stream, anchor, anchor_value);
-
-				mgr.checkpoint(leaf);
-
-				anchor_value = 0;
-			}
-			catch (PackedOOMException& ex)
-			{
-				cout<<"Restore Current Anchor1: "<<stream<<" "<<anchor_value<<endl;
-
-				mgr.restoreNodeState();
-
-				leaf.resize(8192);
-
-				ctr.add_to_stream_counter(leaf, stream, anchor, anchor_value);
-				mgr.checkpoint(leaf);
-				anchor_value = 0;
-			}
-		}
+		return next_leaf;
 	}
 
 
@@ -1077,8 +1119,6 @@ private:
 				this->anchor_values_[c] = 0;
 
 				this->leaf_extents_[c] = current_extent_;
-
-//				cout<<"Leaf Extents: ["<<c<<"] "<<leaf_extents_[c]<<endl;
 			}
 		}
 	}
@@ -1162,7 +1202,7 @@ private:
 
 	DataProvider& data_provider_;
 public:
-	StreamingCtrInputProvider(CtrT& ctr, DataProvider& data_provider, const CtrSizesT& buffer_sizes = CtrSizesT(500)):
+	StreamingCtrInputProvider(CtrT& ctr, DataProvider& data_provider, const CtrSizesT& buffer_sizes = CtrSizesT(4000)):
 		Base(ctr, buffer_sizes),
 		data_provider_(data_provider)
 	{}

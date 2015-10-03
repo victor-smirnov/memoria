@@ -451,9 +451,16 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
     {
     	auto& self = this->self();
 
-    	Int path_parent_idx = leaf->parent_idx() + 1;
+    	provider.split_watcher().first = leaf;
 
     	auto leaf_list = self.createLeafDataList(provider);
+
+    	if (provider.split_watcher().second.isSet())
+    	{
+    		leaf = provider.split_watcher().second;
+    	}
+
+    	Int path_parent_idx = leaf->parent_idx() + 1;
 
     	if (leaf_list.size() > 0)
     	{
@@ -493,9 +500,16 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
     		self.newRootP(leaf);
     	}
 
-    	Int path_parent_idx = leaf->parent_idx() + 1;
+    	provider.split_watcher().first = leaf;
 
     	auto leaf_list = self.createLeafDataList(provider);
+
+    	if (provider.split_watcher().second.isSet())
+    	{
+    		leaf = provider.split_watcher().second;
+    	}
+
+    	Int path_parent_idx = leaf->parent_idx() + 1;
 
     	if (leaf_list.size() > 0)
     	{
