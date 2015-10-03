@@ -119,6 +119,8 @@ public:
 
 	using Symbols = PkdFSSeq<typename PkdFSSeqTF<get_symbols_number(Streams)>::Type>;
 
+	using NodePair = std::pair<NodeBaseG, NodeBaseG>;
+
 protected:
 	Buffer buffer_;
 	Position start_;
@@ -134,10 +136,12 @@ protected:
 	Position anchor_values_;
 	NodeBaseG leafs_[Streams];
 
-
 	Int last_symbol_ = -1;
 
-	CtrSizeT fills_ = 0;
+	CtrSizeT orphan_splits_ = 0;
+
+	NodePair split_watcher_;
+
 
 private:
 	struct ResizeBufferFn {
@@ -200,6 +204,18 @@ public:
 
 	CtrT& ctr() {return ctr_;}
 	const CtrT& ctr() const {return ctr_;}
+
+	NodePair& split_watcher() {
+		return split_watcher_;
+	}
+
+	const NodePair& split_watcher() const {
+		return split_watcher_;
+	}
+
+	CtrSizeT orphan_splits() const {
+		return orphan_splits_;
+	}
 
 	virtual bool hasData()
 	{
@@ -286,6 +302,14 @@ public:
 	virtual void insertBuffer(NodeBaseG& leaf, const Position& at, const Position& sizes)
 	{
 		CtrT::Types::Pages::LeafDispatcher::dispatch(leaf, InsertBufferFn(), at, start_, sizes, buffer_);
+
+		auto end = at + sizes;
+
+		if (leaf->parent_id().isSet())
+		{
+			auto sums = ctr().sums(leaf, at, end);
+			ctr().updateParent(leaf, sums);
+		}
 
 		updateLeafAnchors(leaf, at, sizes);
 
@@ -628,7 +652,7 @@ class AbstractCtrInputProvider<CtrT, Streams, LeafDataLengthType::VARIABLE>: pub
 
 	using Base = AbstractCtrInputProviderBase<CtrT>;
 
-	static constexpr float FREE_SPACE_THRESHOLD = 0.01;
+	static constexpr float FREE_SPACE_THRESHOLD = 0.05;
 
 
 
@@ -647,7 +671,7 @@ public:
 
 	using LeafExtents 			= memoria::core::StaticVector<Position, Streams>;
 
-	using NodePair = std::pair<NodeBaseG, NodeBaseG>;
+
 
 	Position current_extent_;
 	LeafExtents leaf_extents_;
@@ -655,9 +679,6 @@ public:
 	Position anchors_tmp_;
 	NodeBaseG leafs_tmp_[Streams];
 
-	CtrSizeT orphan_splits_ = 0;
-
-	NodePair split_watcher_;
 
 public:
 
@@ -669,17 +690,7 @@ public:
 		return this->ctr_;
 	}
 
-	NodePair& split_watcher() {
-		return split_watcher_;
-	}
 
-	const NodePair& split_watcher() const {
-		return split_watcher_;
-	}
-
-	CtrSizeT orphan_splits() const {
-		return orphan_splits_;
-	}
 
 	virtual void prepare(NodeBaseG& leaf, const Position& start)
 	{
@@ -989,7 +1000,7 @@ private:
 					next_leaf = ctr.splitLeafP(leaf, split_at);
 				}
 				else {
-					orphan_splits_++;
+					this->orphan_splits_++;
 
 					auto page_size 	= ctr.getRootMetadata().page_size();
 					next_leaf 		= ctr.createNode1(0, false, true, page_size);
@@ -1059,7 +1070,7 @@ private:
 					next_leaf = ctr.splitLeafP(leaf, split_at);
 				}
 				else {
-					orphan_splits_++;
+					this->orphan_splits_++;
 
 					auto page_size 	= ctr.getRootMetadata().page_size();
 					next_leaf 		= ctr.createNode1(0, false, true, page_size);

@@ -290,12 +290,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
     	{
     		auto end = self.fillLeaf(leaf, pos, provider);
 
-    		if (leaf->parent_id().isSet())
-    		{
-    			auto sums = self.sums(leaf, pos, end);
-    			self.updateParent(leaf, sums);
-    		}
-
     		return end;
     	}
 
@@ -624,6 +618,8 @@ typename M_TYPE::LeafList M_TYPE::createLeafList(InputBufferProvider<LeafPositio
     return LeafList(total, head, current);
 }
 
+
+
 M_PARAMS
 template <typename Provider>
 typename M_TYPE::LeafList M_TYPE::createLeafDataList(Provider& provider)
@@ -639,26 +635,24 @@ typename M_TYPE::LeafList M_TYPE::createLeafDataList(Provider& provider)
     while (provider.hasData())
     {
     	NodeBaseG node = self.createNode1(0, false, true, page_size);
+    	node.update(self.name());
+
+    	if (head.isSet())
+    	{
+    		current->next_leaf_id() = node->id();
+    	}
+    	else {
+    		head = node;
+    	}
 
     	self.insertDataIntoLeaf(node, Position(), provider);
 
-    	if (!self.isEmpty(node))
-    	{
-    		total++;
+    	current = node;
 
-    		if (head.isSet())
-    		{
-    			current->next_leaf_id() = node->id();
-    			current                 = node;
-    		}
-    		else {
-    			head = current = node;
-    		}
-    	}
-    	else {
-    		self.allocator().removePage(node->id(), self.master_name());
-    	}
+    	total++;
     }
+
+    total += provider.orphan_splits();
 
     return LeafList(total, head, current);
 }
