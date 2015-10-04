@@ -142,6 +142,11 @@ protected:
 
 	NodePair split_watcher_;
 
+	Int start_level_;
+
+	CtrSizeT total_symbols_ = 0;
+
+	Position totals_;
 
 private:
 	struct ResizeBufferFn {
@@ -156,10 +161,11 @@ private:
 
 public:
 
-	AbstractCtrInputProviderBase(CtrT& ctr, const Position& capacity):
+	AbstractCtrInputProviderBase(CtrT& ctr, Int start_level, const Position& capacity):
 		capacity_(capacity),
 		allocator_(AllocTool<PackedAllocator>::create(block_size(capacity.sum()), 1)),
-		ctr_(ctr)
+		ctr_(ctr),
+		start_level_(start_level)
 	{
 		ForAllBuffer::process(buffer_, ResizeBufferFn(), capacity);
 
@@ -217,6 +223,10 @@ public:
 		return orphan_splits_;
 	}
 
+	const Position& totals() const {
+		return totals_;
+	}
+
 	virtual bool hasData()
 	{
 		bool buffer_has_data = start_.sum() < size_.sum();
@@ -253,7 +263,7 @@ public:
 
 				if (rest.sum() > 0)
 				{
-					return pos + buffer_sizes;
+					return pos + capacity;
 				}
 				else {
 					pos += capacity;
@@ -264,6 +274,8 @@ public:
 			}
 		}
 	}
+
+	void nextLeaf(const NodeBaseG& leaf) {}
 
 	virtual Position findCapacity(const NodeBaseG& leaf, const Position& sizes) = 0;
 
@@ -396,15 +408,20 @@ public:
 
 			if (symbol >= 0)
 			{
+				if (total_symbols_ == 0 && (symbol != start_level_))
+				{
+					throw vapi::Exception(MA_SRC, SBuf()<<"Invalid start symbol: "<<symbol<<" expected: "<<start_level_);
+				}
+
 				symbols_size += length;
 				for (Int c = symbol_pos; c < symbol_pos + length; c++)
 				{
 					symbols->tools().set(syms, c, symbol);
 				}
 
-				symbol_pos += length;
-
-				size_[symbol] += length;
+				symbol_pos 		+= length;
+				total_symbols_ 	+= length;
+				size_[symbol] 	+= length;
 
 				if (symbol > last_symbol_ + 1)
 				{
@@ -416,7 +433,8 @@ public:
 				}
 
 				buffer_sums[symbol] += length;
-				sizes[symbol] += length;
+				sizes[symbol] 		+= length;
+				totals_[symbol] 	+= length;
 
 				if (size_[symbol] == capacity[symbol])
 				{
@@ -569,8 +587,8 @@ public:
 
 public:
 
-	AbstractCtrInputProvider(CtrT& ctr, const Position& capacity):
-		Base(ctr, capacity)
+	AbstractCtrInputProvider(CtrT& ctr, Int start_level, const Position& capacity):
+		Base(ctr, start_level, capacity)
 	{}
 
 	virtual Position findCapacity(const NodeBaseG& leaf, const Position& sizes)
@@ -652,7 +670,7 @@ class AbstractCtrInputProvider<CtrT, Streams, LeafDataLengthType::VARIABLE>: pub
 
 	using Base = AbstractCtrInputProviderBase<CtrT>;
 
-	static constexpr float FREE_SPACE_THRESHOLD = 0.05;
+	static constexpr float FREE_SPACE_THRESHOLD = 0.01;
 
 
 
@@ -682,8 +700,8 @@ public:
 
 public:
 
-	AbstractCtrInputProvider(CtrT& ctr, const Position& capacity):
-		Base(ctr, capacity)
+	AbstractCtrInputProvider(CtrT& ctr, Int start_level, const Position& capacity):
+		Base(ctr, start_level, capacity)
 	{}
 
 	CtrT& ctr() {
@@ -825,11 +843,12 @@ public:
 			}
 		}
 
-		current_extent_ += ctr().node_extents(leaf);
-
 		return pos;
 	}
 
+	void nextLeaf(const NodeBaseG& leaf) {
+		current_extent_ += ctr().node_extents(leaf);
+	}
 
 	virtual Position insertBuffer(PageUpdateMgr& mgr, NodeBaseG& leaf, Position at, Position size)
 	{
@@ -1213,8 +1232,8 @@ private:
 
 	DataProvider& data_provider_;
 public:
-	StreamingCtrInputProvider(CtrT& ctr, DataProvider& data_provider, const CtrSizesT& buffer_sizes = CtrSizesT(4000)):
-		Base(ctr, buffer_sizes),
+	StreamingCtrInputProvider(CtrT& ctr, DataProvider& data_provider, Int start_level, const CtrSizesT& buffer_sizes = CtrSizesT(4000)):
+		Base(ctr, start_level, buffer_sizes),
 		data_provider_(data_provider)
 	{}
 

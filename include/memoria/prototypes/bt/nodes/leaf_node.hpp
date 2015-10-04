@@ -862,8 +862,8 @@ public:
         		Int idx   = indexes[StreamIdx];
         		Int size  = tree->size();
 
-        		MEMORIA_ASSERT_TRUE(idx >= 0);
-        		MEMORIA_ASSERT_TRUE(idx <= size);
+        		MEMORIA_ASSERT(idx, >=, 0);
+        		MEMORIA_ASSERT(idx, <=, size);
 
         		Tree* other_tree = other->allocator()->template allocateEmpty<Tree>(AllocatorIdx);
         		tree->splitTo(other_tree, idx);

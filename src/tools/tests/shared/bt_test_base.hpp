@@ -47,12 +47,16 @@ protected:
 
     AllocatorSPtr allocator_;
 
+    String dump_name_;
+
 public:
 
     BTTestBase(StringRef name):
         TestTask(name)
     {
         Ctr::initMetadata();
+
+        MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
     }
 
     AllocatorSPtr& allocator() {
@@ -63,12 +67,20 @@ public:
     	return allocator_;
     }
 
+    void commit() {
+    	allocator_->commit();
+    }
+
     virtual ~BTTestBase() throw() {}
 
     virtual void createAllocator(AllocatorSPtr& allocator_) = 0;
 
     virtual Ctr createCtr() {
     	return Ctr(allocator_.get(), CTR_CREATE);
+    }
+
+    virtual Ctr findCtr(BigInt name) {
+    	return Ctr(allocator_.get(), CTR_FIND, name);
     }
 
     virtual Ctr createOrFindCtr(BigInt name) {
@@ -86,10 +98,34 @@ public:
     	allocator_ = AllocatorSPtr();
     }
 
-    virtual void storeAllocator(String file_name)
+    virtual void storeAllocator(String file_name) const
     {
     	unique_ptr <FileOutputStreamHandler> out(FileOutputStreamHandler::create(file_name.c_str()));
     	allocator_->store(out.get());
+    }
+
+
+    virtual void loadAllocator(StringRef file_name)
+    {
+        unique_ptr <FileInputStreamHandler> in(FileInputStreamHandler::create(file_name.c_str()));
+        allocator_->load(in.get());
+    }
+
+    virtual String Store()
+    {
+    	String file_name = this->getAllocatorFileName(".valid");
+    	storeAllocator(file_name);
+
+    	String file_name_invalid = this->getAllocatorFileName(".invalid");
+    	commit();
+    	storeAllocator(file_name_invalid);
+
+    	return file_name;
+    }
+
+    virtual String getAllocatorFileName(StringRef infix = "") const
+    {
+        return getResourcePath("Allocator"+infix+".dump");
     }
 };
 

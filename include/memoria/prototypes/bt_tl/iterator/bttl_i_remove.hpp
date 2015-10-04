@@ -44,10 +44,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorRemoveName)
     template <Int Stream, typename SubstreamsIdxList, typename... Args>
     using ReadLeafEntryRtnType = typename Container::template ReadLeafStreamEntryRtnType<Stream, SubstreamsIdxList, Args...>;
 
-//    using StreamSizes = typename Container::Types::StreamsSizes;
-//
-//    template <Int Stream>
-//    using StreamSizesPath = typename Select<Stream, StreamSizes>::Result;
+
 
     template <typename LeafPath>
     using AccumItemH = typename Container::Types::template AccumItemH<LeafPath>;
@@ -118,6 +115,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorRemoveName)
 
     // Returns leaf ranks of position idx in the specified
     // stream.
+
+    Position local_left_margin() const {
+    	auto& self = this->self();
+    	return self.local_left_margin(self.stream(), self.idx());
+    }
 
     Position local_left_margin(Int stream, Int idx) const
     {

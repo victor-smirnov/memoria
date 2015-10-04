@@ -148,8 +148,8 @@ public:
         tests_.push_back(new TypedTestDescriptor<T>(tmp, run_test, replay_test));
     }
 
-    virtual void            Replay(ostream& out, Configurator* cfg);
-    virtual void            Run(ostream& out);
+    virtual void Replay(ostream& out, Configurator* cfg);
+    virtual void Run(ostream& out);
 
 
     virtual void setReplayMode()

@@ -12,6 +12,7 @@
 
 #include "bttl_core_test.hpp"
 #include "bttl_iter_test.hpp"
+#include "bttl_insertion_test.hpp"
 
 namespace memoria {
 
@@ -26,6 +27,7 @@ public:
     {
     	registerTask(new BTTLCoreTest<Table<BigInt, Byte>>("Create"));
     	registerTask(new BTTLIterTest<Table<BigInt, Byte>>("Iter"));
+    	registerTask(new BTTLInsertionTest<Table<BigInt, Byte>>("Insert"));
     }
 };
 

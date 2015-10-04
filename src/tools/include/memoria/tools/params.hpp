@@ -463,6 +463,162 @@ protected:
 
 
 
+template <typename T, Int Size>
+class ParamDescriptor<StaticVector<T, Size>>: public AbstractParamDescriptor {
+
+	using ValueType = StaticVector<T, Size>;
+
+    using MyType = ParamDescriptor<ValueType>;
+
+
+
+    ParametersSet*      cfg_;
+
+    String              name_;
+    String              description_;
+
+    ValueType&          value_;
+
+    bool                mandatory_;
+    bool                state_parameter_;
+
+public:
+
+    ParamDescriptor(ParametersSet* cfg, String name, ValueType& value):
+        cfg_(cfg),
+        name_(name),
+        value_(value),
+
+        mandatory_(false),
+        state_parameter_(false)
+    {}
+
+
+    virtual ~ParamDescriptor() {}
+
+
+    virtual void Process(Configurator* cfg)
+    {
+        setValue(cfg, value_);
+    }
+
+    MyType* setDescription(StringRef descr)
+    {
+        description_ = descr;
+        return this;
+    }
+
+    virtual bool IsMandatory() const
+    {
+        return mandatory_;
+    }
+
+    virtual bool isStateParameter() const
+    {
+        return state_parameter_;
+    }
+
+    MyType* setMandatory(bool mandatory)
+    {
+        mandatory_ = mandatory;
+        return this;
+    }
+
+    MyType* state(bool state = true)
+    {
+        state_parameter_ = state;
+        return this;
+    }
+
+    virtual StringRef getName() const
+    {
+        return name_;
+    }
+
+    virtual String getPropertyName() const
+    {
+        if (isEmpty(prefix()))
+        {
+            return name_;
+        }
+        else {
+            return prefix()+"."+name_;
+        }
+    }
+
+    virtual void dump(std::ostream& os, bool dump_prefix) const
+    {
+        if (dump_prefix)
+        {
+            if (!isEmpty(description_))
+            {
+                os<<"#"<<description_<<endl;
+            }
+
+            os<<getPropertyName()<<" = "<<valueToString()<<endl;
+
+            os<<endl;
+        }
+        else {
+            os<<getName()<<" = "<<valueToString()<<endl;
+        }
+    }
+
+    String prefix() const
+    {
+        return cfg_->getFullName();
+    }
+
+protected:
+    void setValue(Configurator* cfg, ValueType& value)
+    {
+        StringRef prefix1 = prefix();
+
+        auto pos = prefix1.length();
+
+        while (true)
+        {
+            String name = prefix().substr(0, pos) + "." + name_;
+
+            if (cfg->IsPropertyDefined(name))
+            {
+                FromString<ValueType>::convert(value, cfg->getProperty(name));
+                return;
+            }
+            else {
+                pos = prefix().find_last_of(".", pos - 1);
+
+                if (pos == String::npos)
+                {
+                    break;
+                }
+            }
+        }
+
+        if (cfg->IsPropertyDefined(name_))
+        {
+            FromString<ValueType>::convert(value, cfg->getProperty(name_));
+            return;
+        }
+        else if (mandatory_)
+        {
+            throw Exception(MEMORIA_SOURCE, SBuf()<<"Property "<<name_<<" is not defined in the program configuration");
+        }
+    }
+
+    virtual String valueToString() const
+    {
+        stringstream str;
+
+        str<<value_;
+
+        return str.str();
+    }
+};
+
+
+
+
 
 }
 

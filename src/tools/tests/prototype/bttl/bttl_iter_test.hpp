@@ -39,6 +39,7 @@ class BTTLIterTest: public BTTLTestBase<CtrName, AllocatorT, ProfileT> {
 
     using Rng 			 = typename RngInputProvider::Rng;
 
+    using CtrSizeT 	 	 = typename Ctr::Types::CtrSizeT;
     using CtrSizesT 	 = typename Ctr::Types::Position;
 
     static const Int Streams = Ctr::Types::Streams;
@@ -76,6 +77,7 @@ public:
     	MEMORIA_ADD_TEST_PARAM(last_level_limit);
 
     	MEMORIA_ADD_TEST(testDetProvider);
+    	MEMORIA_ADD_TEST(testRngProvider);
     }
 
     virtual ~BTTLIterTest() throw () {}
@@ -101,13 +103,45 @@ public:
 
     			this->out()<<"shape: "<<shape<<endl;
 
-    			using Provider = bttl::StreamingCtrInputProvider<Ctr, DetInputProvider>;
+    			DetInputProvider provider(shape);
 
-    			DetInputProvider p(shape);
+    			this->fillCtr(ctr, provider);
 
-    			Provider provider(ctr, p);
+    			checkScan(ctr, shape);
 
-    			testProvider(ctr, provider, shape);
+    			this->out()<<endl;
+    		}
+
+    		createAllocator(this->allocator_);
+    	}
+    }
+
+    void testRngProvider()
+    {
+    	for (Int i = 0; i < iterations; i++)
+    	{
+    		this->out()<<"Iteration "<<(i + 1)<<endl;
+
+    		{
+    			Ctr ctr = this->createCtr();
+
+    			auto shape = this->sampleTreeShape(level_limit, last_level_limit, size);
+
+    			this->out()<<"shape: "<<shape<<endl;
+
+    			RngInputProvider provider(shape, int_generator);
+
+    			auto totals = this->fillCtr(ctr, provider);
+
+    			for (CtrSizeT r = 0; r < totals[0]; r++)
+    			{
+    				CtrSizesT path(-1);
+    				path[0] = r;
+
+    				this->checkSubtree(ctr, path);
+    			}
+
+    			this->out()<<endl;
     		}
 
     		createAllocator(this->allocator_);
@@ -163,18 +197,6 @@ public:
     	long t3 = getTimeInMillis();
 
     	this->out()<<"Scan time: "<<FormatTime(t3 - t2)<<endl;
-    }
-
-
-
-    template <typename Provider>
-    void testProvider(Ctr& ctr, Provider& provider, CtrSizesT shape)
-    {
-    	this->fillCtr(ctr, provider);
-
-    	checkScan(ctr, shape);
-
-    	this->out()<<endl;
     }
 };
 

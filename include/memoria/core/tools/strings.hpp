@@ -12,11 +12,14 @@
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/tools/config.hpp>
 
+#include <memoria/core/tools/static_array.hpp>
+
 #include <string>
 #include <iostream>
 
 namespace memoria { namespace vapi {
 
+using namespace core;
 
 MEMORIA_API String trimString(StringRef str);
 //MEMORIA_API String ReplaceFirst(StringRef str, StringRef txt);
@@ -152,6 +155,49 @@ struct FromString<T[Size]> {
         }
 
         for (size_t c = 0; c < Size; c++)
+        {
+            size_t pos = str.find_first_of(",", start);
+
+            String value = trimString(str.substr(start, pos != String::npos ? pos - start : pos));
+
+            if (!isEmpty(value))
+            {
+                values[c] = FromString<T>::convert(value);
+            }
+            else {
+                values[c] = 0;
+            }
+
+            if (pos != String::npos && pos < str.length())
+            {
+                start = pos + 1;
+            }
+            else {
+                break;
+            }
+        }
+    }
+};
+
+template <typename T, Int Size>
+struct FromString<StaticVector<T, Size>> {
+    static void convert(StaticVector<T, Size>& values, String str)
+    {
+        Int start = 0;
+
+        for (size_t c = 0; c < Size; c++)
+        {
+            values[c] = 0;
+        }
+
+        for (Int c = str.size() - 1; c >= 0; c--)
+        {
+        	if (str[c] == '[' || str[c] == ']') {
+        		str.erase(c, 1);
+        	}
+        }
+
+        for (Int c = 0; c < Size; c++)
         {
             size_t pos = str.find_first_of(",", start);
 

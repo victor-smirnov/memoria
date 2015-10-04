@@ -83,11 +83,7 @@ public:
 
     			this->out()<<"shape: "<<shape<<endl;
 
-    			using Provider = bttl::StreamingCtrInputProvider<Ctr, DetInputProvider>;
-
-    			DetInputProvider p(shape);
-
-    			Provider provider(ctr, p);
+    			DetInputProvider provider(shape);
 
     			testProvider(ctr, provider);
     		}
@@ -108,11 +104,7 @@ public:
 
     			this->out()<<"shape: "<<shape<<endl;
 
-    			using Provider = bttl::StreamingCtrInputProvider<Ctr, RngInputProvider>;
-
-    			RngInputProvider p(shape, int_generator);
-
-    			Provider provider(ctr, p);
+    			RngInputProvider provider(shape, int_generator);
 
     			testProvider(ctr, provider);
     		}
@@ -122,80 +114,10 @@ public:
     }
 
 
-    void checkExtents(Ctr& ctr)
-    {
-    	auto i = ctr.seek(0);
-
-    	CtrSizesT extent;
-
-    	long t2 = getTimeInMillis();
-
-    	do
-    	{
-    		auto current_extent = i.leaf_extent();
-
-    		AssertEQ(MA_SRC, current_extent, extent);
-
-    		for (Int c = 0; c < Streams; c++) {
-
-    			if (extent[c] < 0)
-    			{
-        			i.dump();
-    			}
-
-    			AssertGE(MA_SRC, extent[c], 0);
-    		}
-
-    		extent += ctr.node_extents(i.leaf());
-    	}
-    	while(i.nextLeaf());
-
-    	long t3 = getTimeInMillis();
-
-    	this->out()<<"Extent verification time: "<<FormatTime(t3 - t2)<<endl;
-    }
 
 
-    void checkRanks(Ctr& ctr)
-    {
-    	auto i = ctr.seek(0);
 
-    	CtrSizesT extents;
 
-    	long t2 = getTimeInMillis();
-
-    	do
-    	{
-    		auto sizes = i.leaf_sizes();
-
-    		auto total_leaf_rank = sizes.sum();
-
-    		typename Ctr::Types::LeafPrefixRanks prefix_ranks;
-
-    		ctr.compute_leaf_prefixes(i.leaf(), extents, prefix_ranks);
-
-    		auto total_ranks = ctr.leaf_rank(i.leaf(), sizes, prefix_ranks, sizes.sum());
-
-    		AssertEQ(MA_SRC, total_ranks, sizes);
-
-    		for (Int c = 0; c < total_leaf_rank; )
-    		{
-    			auto ranks = ctr.leaf_rank(i.leaf(), sizes, prefix_ranks, c);
-
-    			AssertEQ(MA_SRC, ranks.sum(), c);
-
-    			c += getRandom(100) + 1;
-    		}
-
-    		extents += ctr.node_extents(i.leaf());
-    	}
-    	while(i.nextLeaf());
-
-    	long t3 = getTimeInMillis();
-
-    	this->out()<<"Rank verification time: "<<FormatTime(t3 - t2)<<endl;
-
-    }
 
 
 
@@ -204,8 +126,8 @@ public:
     {
     	this->fillCtr(ctr, provider);
 
-    	checkExtents(ctr);
-    	checkRanks(ctr);
+    	this->checkExtents(ctr);
+    	this->checkRanks(ctr);
 
     	this->out()<<endl;
     }

@@ -31,20 +31,30 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::InsertName)
     using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
     using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
 
-    using Key 				    = typename Types::Key;
-    using Value 			    = typename Types::Value;
-    using CtrSizeT			  = typename Types::CtrSizeT;
+    using Key 				= typename Types::Key;
+    using Value 			= typename Types::Value;
+    using CtrSizeT			= typename Types::CtrSizeT;
+    using CtrSizesT			= typename Types::Position;
 
     using Accumulator 		= typename Types::Accumulator;
-    using Position 			  = typename Types::Position;
+
 
     static const Int Streams = Types::Streams;
 
     using PageUpdateMgt 	= typename Types::PageUpdateMgr;
 
-    Position insert(Iterator& iter)
+    template <typename Provider>
+    CtrSizesT _insert(Iterator& iter, Provider&& provider, const CtrSizesT& buffer = CtrSizesT(2000))
     {
-    	return Position();
+    	auto& self = this->self();
+
+    	bttl::StreamingCtrInputProvider<MyType, Provider> streamingProvider(self, provider, iter.stream(), buffer);
+
+    	auto pos = iter.local_left_margin();
+
+    	self.insertData(iter.leaf(), pos, streamingProvider);
+
+    	return streamingProvider.totals();
     }
 
 MEMORIA_CONTAINER_PART_END

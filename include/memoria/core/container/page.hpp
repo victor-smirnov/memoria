@@ -934,7 +934,7 @@ ostream& operator<<(ostream& out, const PageGuard<T, A>& pg)
     	out<<pg->id();
     }
     else {
-    	out<<"nullptr"<<endl;
+    	out<<"nullptr";
     }
     return out;
 }

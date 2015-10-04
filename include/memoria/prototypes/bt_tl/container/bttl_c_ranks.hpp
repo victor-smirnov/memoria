@@ -252,7 +252,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
     	{
     		auto block = leaf? 0 : (Stream::Blocks - 1);
 
-    		return substream->sum(block, end);
+    		return substream ? substream->sum(block, end) : 0;
     	}
     };
 

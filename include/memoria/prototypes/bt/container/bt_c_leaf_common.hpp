@@ -329,9 +329,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
     		// has to be defined in subclasses
     		if (!self.isAtTheEnd2(leaf, last_pos))
     		{
-    			auto next_leaf = self.splitLeafP(leaf, Position(last_pos));
+    			auto next_leaf = self.splitLeafP(leaf, last_pos);
 
     			self.insertDataIntoLeaf(leaf, last_pos, provider);
+
+    			provider.nextLeaf(leaf);
 
     			if (provider.hasData())
     			{
@@ -342,6 +344,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
     			}
     		}
     		else {
+    			provider.nextLeaf(leaf);
+
     			auto next_leaf = self.getNextNodeP(leaf);
 
     			if (next_leaf.isSet())
@@ -635,7 +639,6 @@ typename M_TYPE::LeafList M_TYPE::createLeafDataList(Provider& provider)
     while (provider.hasData())
     {
     	NodeBaseG node = self.createNode1(0, false, true, page_size);
-    	node.update(self.name());
 
     	if (head.isSet())
     	{
@@ -646,6 +649,8 @@ typename M_TYPE::LeafList M_TYPE::createLeafDataList(Provider& provider)
     	}
 
     	self.insertDataIntoLeaf(node, Position(), provider);
+
+    	provider.nextLeaf(node);
 
     	current = node;
 

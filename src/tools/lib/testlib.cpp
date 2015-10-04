@@ -141,8 +141,15 @@ void MemoriaTestRunner::Replay(ostream& out, StringRef task_folder)
         try {
             out<<"Task: "<<task->getFullName()<<endl;
             task->LoadProperties(task_file_name);
-            task->Replay(out, &cfg);
-            out<<"PASSED"<<endl;
+            task->setUp();
+            try {
+            	task->Replay(out, &cfg);
+            	out<<"PASSED"<<endl;
+            }
+            catch (...) {
+            	task->tearDown();
+            	throw;
+            }
         }
         catch (const std::exception& e)
         {
