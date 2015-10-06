@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2013-2015.
+// Copyright Victor Smirnov 2015+.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -15,7 +15,7 @@
 #include <memoria/prototypes/bt_tl/bttl_factory.hpp>
 #include <memoria/prototypes/bt_tl/tools/bttl_random_gen.hpp>
 
-#include "bt_test_base.hpp"
+#include "bttl_test_factory.hpp"
 
 #include <functional>
 
@@ -78,7 +78,7 @@ public:
 
     		for (Int c = Streams - 1; c > 0; c--)
     		{
-    			Int level_size = getRandom(limits[c]) + ((c == Streams - 1)? 10 : 1);
+    			Int level_size = this->getRandom(limits[c]) + ((c == Streams - 1)? 10 : 1);
 
     			shape[c] = level_size;
 
@@ -150,52 +150,50 @@ public:
     		}
     	}
 
-    	this->checkSubtree(iter, iter.stream(), 0);
+    	this->checkSubtree(iter, 1);
     }
 
 
-    void checkSubtree(Iterator& iter, Int level = 0, CtrSizeT scan_size = 1)
+    void checkSubtree(Iterator& iter, CtrSizeT scan_size = 1)
     {
-    	AssertEQ(MA_SRC, iter.stream(), level);
-
-    	for (Int s = 0; s < scan_size; s++)
+    	if (iter.stream() < Streams - 1)
     	{
-    		if (level > 0)
+    		for (Int s = 0; s < scan_size; s++)
     		{
-    			AssertEQ(MA_SRC, iter.pos(), s);
+    			CtrSizeT size = iter.substream_size();
+
+    			iter.toData();
+    			iter.checkPrefix();
+
+    			AssertEQ(MA_SRC, size, iter.size());
+
+    			checkSubtree(iter, size);
+
+    			iter.toIndex();
+    			iter.skipFw(1);
     		}
+    	}
+    	else {
+    		Int data = 0;
+    		CtrSizeT cnt = 0;
+    		if (scan_size == -1) scan_size = 0;
 
-    		iter.toData();
-    		iter.checkPrefix();
+    		auto scanned = iter.template scan<IntList<2>>([&](const auto* obj, Int start, Int end) {
+    			if (cnt == 0)
+    			{
+    				data = obj->value(start);
+    			}
 
-    		if (level < Streams - 1)
-    		{
-    			CtrSizeT size = iter.size();
-    			checkSubtree(iter, level + 1, size);
-    		}
-    		else {
+    			for (Int c = start; c < end; c++)
+    			{
+    				AssertEQ(MA_SRC, data, obj->value(c));
+    			}
 
-    			Int data = 0;
-    			CtrSizeT cnt = 0;
-    			auto scanned = iter.template scan<IntList<2>>([&](const auto* obj, Int start, Int end) {
-    				if (cnt == 0)
-    				{
-    					data = obj->value(start);
-    				}
+    			cnt += end - start;
+    		});
 
-    				for (Int c = start; c < end; c++)
-    				{
-    					AssertEQ(MA_SRC, data, obj->value(c));
-    				}
-
-    				cnt += end - start;
-    			});
-
-    			AssertEQ(MA_SRC, scanned, scan_size);
-    		}
-
-    		iter.toIndex();
-    		iter.skipFw(1);
+    		AssertEQ(MA_SRC, scanned, scan_size);
+    		AssertEQ(MA_SRC, scanned, cnt);
     	}
     }
 
@@ -227,7 +225,7 @@ public:
 
     			AssertEQ(MA_SRC, ranks.sum(), c);
 
-    			c += getRandom(100) + 1;
+    			c += this->getRandom(100) + 1;
     		}
 
     		extents += ctr.node_extents(i.leaf());
@@ -237,7 +235,6 @@ public:
     	long t3 = getTimeInMillis();
 
     	this->out()<<"Rank verification time: "<<FormatTime(t3 - t2)<<endl;
-
     }
 
 
@@ -255,8 +252,8 @@ public:
 
     		AssertEQ(MA_SRC, current_extent, extent);
 
-    		for (Int c = 0; c < Streams; c++) {
-
+    		for (Int c = 0; c < Streams; c++)
+    		{
     			if (extent[c] < 0)
     			{
     				i.dump(this->out());

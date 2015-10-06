@@ -88,6 +88,8 @@ public:
     }
 
     virtual void setUp() {
+    	Base::setUp();
+
     	createAllocator(allocator_);
 
     	MEMORIA_ASSERT_NOT_NULL(allocator_.get());
@@ -126,6 +128,13 @@ public:
     virtual String getAllocatorFileName(StringRef infix = "") const
     {
         return getResourcePath("Allocator"+infix+".dump");
+    }
+
+    bool checkSoftMemLimit()
+    {
+    	size_t allocated = allocator()->allocated();
+
+    	return allocated <= this->soft_memlimit_;
     }
 };
 

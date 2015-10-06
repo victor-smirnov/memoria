@@ -862,6 +862,10 @@ public:
         		Int idx   = indexes[StreamIdx];
         		Int size  = tree->size();
 
+        		if (idx < 0 || idx > size) {
+        			int a = 0; a++;
+        		}
+
         		MEMORIA_ASSERT(idx, >=, 0);
         		MEMORIA_ASSERT(idx, <=, size);
 

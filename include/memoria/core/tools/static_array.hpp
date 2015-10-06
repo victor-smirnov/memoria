@@ -729,7 +729,8 @@ public:
         return value;
     }
 private:
-    static void check(Int idx) {
+    static void check(Int idx)
+    {
 //    	if (idx < 0 || idx >= Indexes_) {
 //    		throw vapi::BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid StaticVector index: "<<idx);
 //    	}

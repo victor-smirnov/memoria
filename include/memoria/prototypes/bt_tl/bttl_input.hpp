@@ -121,6 +121,11 @@ public:
 
 	using NodePair = std::pair<NodeBaseG, NodeBaseG>;
 
+	using AnchorValueT 	= core::StaticVector<CtrSizeT, Streams - 1>;
+	using AnchorPosT 	= core::StaticVector<Int, Streams - 1>;
+	using AnchorNodeT 	= core::StaticVector<NodeBaseG, Streams - 1>;
+
+
 protected:
 	Buffer buffer_;
 	Position start_;
@@ -132,11 +137,11 @@ protected:
 
 	CtrT& 	ctr_;
 
-	Position anchors_;
-	Position anchor_values_;
-	NodeBaseG leafs_[Streams];
+	AnchorPosT 	 anchors_;
+	AnchorValueT anchor_values_;
+	AnchorNodeT	 leafs_;
 
-	Int last_symbol_ = -1;
+	Int last_symbol_;
 
 	CtrSizeT orphan_splits_ = 0;
 
@@ -165,6 +170,7 @@ public:
 		capacity_(capacity),
 		allocator_(AllocTool<PackedAllocator>::create(block_size(capacity.sum()), 1)),
 		ctr_(ctr),
+		last_symbol_(start_level - 1),
 		start_level_(start_level)
 	{
 		ForAllBuffer::process(buffer_, ResizeBufferFn(), capacity);
@@ -186,7 +192,7 @@ public:
 		iter.leaf() = leaf;
 		iter.refresh();
 
-		for (Int s = 0; s < Streams; s++)
+		for (Int s = 0; s < Streams - 1; s++)
 		{
 			if (start[s] > 0)
 			{
@@ -687,16 +693,10 @@ public:
 	using PageUpdateMgr			= typename CtrT::Types::PageUpdateMgr;
 	using LeafPrefixRanks		= typename CtrT::Types::LeafPrefixRanks;
 
-	using LeafExtents 			= memoria::core::StaticVector<Position, Streams>;
-
-
+	using LeafExtents 			= memoria::core::StaticVector<Position, Streams - 1>;
 
 	Position current_extent_;
 	LeafExtents leaf_extents_;
-
-	Position anchors_tmp_;
-	NodeBaseG leafs_tmp_[Streams];
-
 
 public:
 
@@ -708,40 +708,59 @@ public:
 		return this->ctr_;
 	}
 
+	void prepare(NodeBaseG& leaf, const Position& start) {}
 
+//	void prepare(NodeBaseG& leaf, const Position& start)
+//	{
+//		Iterator iter(this->ctr_);
+//		iter.leaf() = leaf;
+//		iter.refresh();
+//
+//		current_extent_ = iter.leaf_extent();
+//
+//		for (Int s = 0; s < Streams - 1; s++)
+//		{
+//			if (start[s] > 0)
+//			{
+//				this->anchors_[s] 		= start[s] - 1;
+//				this->leafs_[s]  	  	= leaf;
+//				this->leaf_extents_[s] 	= current_extent_;
+//			}
+//			else {
+//				auto tmp = iter;
+//
+//				tmp.stream() = s;
+//				tmp.idx() 	 = 0;
+//
+//				if (tmp.skipBw1() == 1)
+//				{
+//					this->anchors_[s] = tmp.idx();
+//					this->leafs_[s]   = tmp.leaf();
+//
+//					this->leaf_extents_[s] 	= tmp.leaf_extent();
+//				}
+//			}
+//		}
+//	}
 
-	virtual void prepare(NodeBaseG& leaf, const Position& start)
+	template <typename Iterator>
+	void prepare(Iterator iter, const Position& start)
 	{
-		Iterator iter(this->ctr_);
-		iter.leaf() = leaf;
-		iter.refresh();
-
 		current_extent_ = iter.leaf_extent();
 
-		for (Int s = 0; s < Streams; s++)
+		auto stream = iter.stream();
+
+		for (Int s = stream; s > 0; s--)
 		{
-			if (start[s] > 0)
-			{
-				this->anchors_[s] 		= start[s] - 1;
-				this->leafs_[s]  	  	= leaf;
-				this->leaf_extents_[s] 	= current_extent_;
-			}
-			else {
-				auto tmp = iter;
+			iter.toIndex();
 
-				tmp.stream() = s;
-				tmp.idx() 	 = 0;
-
-				if (tmp.skipBw1() == 1)
-				{
-					this->anchors_[s] = tmp.idx();
-					this->leafs_[s]  = tmp.leaf();
-
-					this->leaf_extents_[s] 	= tmp.leaf_extent();
-				}
-			}
+			auto ss = iter.stream();
+			this->leafs_[ss]  		= iter.leaf();
+			this->anchors_[ss] 		= iter.idx();
+			this->leaf_extents_[ss] = iter.leaf_extent();
 		}
 	}
+
 
 	virtual Position fill(NodeBaseG& leaf, const Position& start)
 	{
@@ -846,7 +865,8 @@ public:
 		return pos;
 	}
 
-	void nextLeaf(const NodeBaseG& leaf) {
+	void nextLeaf(const NodeBaseG& leaf)
+	{
 		current_extent_ += ctr().node_extents(leaf);
 	}
 
@@ -953,7 +973,7 @@ private:
 
 			if (value > 0)
 			{
-				for (Int i = s + 1; i < Streams; i++)
+				for (Int i = s + 1; i < Streams - 1; i++)
 				{
 					if (this->leafs_[s] != this->leafs_[i])
 					{
@@ -997,6 +1017,8 @@ private:
 
 		if (anchor_value > 0)
 		{
+			MEMORIA_ASSERT_TRUE(leaf);
+
 			PageUpdateMgr mgr(ctr);
 
 			mgr.add(leaf);
@@ -1034,7 +1056,7 @@ private:
 				next_leaf->next_leaf_id() 	= leaf->next_leaf_id();
 				leaf->next_leaf_id()		= next_leaf->id();
 
-				for (Int ss = 0; ss < Streams; ss++)
+				for (Int ss = 0; ss < Streams - 1; ss++)
 				{
 					auto& lleaf 			= this->leafs_[ss];
 					auto& lanchor			= this->anchors_[ss];
@@ -1067,6 +1089,8 @@ private:
 		auto& anchor		= this->anchors_[stream];
 
 		auto next_leaf = leaf;
+
+		MEMORIA_ASSERT_TRUE(leaf);
 
 		if (anchor_value > 0)
 		{
@@ -1107,7 +1131,7 @@ private:
 
 				NodeBaseG node_to_update = leaf;
 
-				for (Int ss = 0; ss < Streams; ss++)
+				for (Int ss = 0; ss < Streams - 1; ss++)
 				{
 					auto& lleaf 			= this->leafs_[ss];
 					auto& lanchor			= this->anchors_[ss];
@@ -1140,11 +1164,14 @@ private:
 
 	void updateLeafAnchors(const NodeBaseG& leaf, const Position& at, const Position& sizes)
 	{
-		for (Int c = 0; c < Streams; c++)
+		MEMORIA_ASSERT_TRUE(current_extent_.gteAll(0));
+
+		for (Int c = 0; c < Streams - 1; c++)
 		{
 			if (sizes[c] > 0)
 			{
 				this->anchors_[c] 		= at[c] + sizes[c] - 1;
+
 				this->leafs_[c]  		= leaf;
 				this->anchor_values_[c] = 0;
 

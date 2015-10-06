@@ -25,9 +25,9 @@ public:
 
     BTTLTestSuite(): TestSuite("BT.TL")
     {
-    	registerTask(new BTTLCoreTest<Table<BigInt, Byte>>("Create"));
-    	registerTask(new BTTLIterTest<Table<BigInt, Byte>>("Iter"));
-    	registerTask(new BTTLInsertionTest<Table<BigInt, Byte>>("Insert"));
+    	registerTask(new BTTLCoreTest<BTTLTestCtr<3, PackedSizeType::VARIABLE>>("Create"));
+    	registerTask(new BTTLIterTest<BTTLTestCtr<3, PackedSizeType::VARIABLE>>("Iter"));
+    	registerTask(new BTTLInsertionTest<BTTLTestCtr<3, PackedSizeType::VARIABLE>>("Insert"));
     }
 };
 

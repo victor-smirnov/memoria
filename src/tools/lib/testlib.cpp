@@ -32,6 +32,7 @@ void TestTask::Run(std::ostream& out)
 
         current_test_name_ = descr->name();
 
+        this->configureSeed();
         this->setUp();
 
         BigInt t0 = getTimeInMillis();
@@ -141,6 +142,7 @@ void MemoriaTestRunner::Replay(ostream& out, StringRef task_folder)
         try {
             out<<"Task: "<<task->getFullName()<<endl;
             task->LoadProperties(task_file_name);
+            task->configureSeed();
             task->setUp();
             try {
             	task->Replay(out, &cfg);

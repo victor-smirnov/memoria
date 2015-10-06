@@ -120,7 +120,7 @@ private:
 public:
     InMemAllocator() :
         logger_("memoria::StreamAllocator", Logger::DERIVED, &memoria::vapi::logger),
-        counter_(100), metadata_(MetadataRepository<Profile>::getMetadata()), me_(*this),
+        counter_(1), metadata_(MetadataRepository<Profile>::getMetadata()), me_(*this),
         type_name_("StreamAllocator"), allocs1_(0), allocs2_(0), roots_(this), root_map_(nullptr),
         pool_(), root_id0_(0), mem_limit_(std::numeric_limits<size_t>::max())
     {
@@ -138,7 +138,7 @@ public:
         {
             Page* page = i->second;
 
-            Byte* buffer = T2T<Byte*>(malloc(page->page_size()));
+            Byte* buffer = T2T<Byte*>(this->malloc(page->page_size()));
 
             CopyByteBuffer(page, buffer, page->page_size());
 
@@ -195,6 +195,10 @@ public:
 
     size_t& mem_limit() {
     	return mem_limit_;
+    }
+
+    size_t allocated() const {
+    	return allocated_;
     }
 
     virtual Logger& logger() {
@@ -267,7 +271,7 @@ public:
             {
                 Page* page = get0(id);
 
-                char* buffer = (char*) malloc(page->page_size());
+                char* buffer = (char*) this->malloc(page->page_size());
                 allocs1_++;
                 CopyByteBuffer(page, buffer, page->page_size());
                 Page* page2 = T2T<Page*>(buffer);
@@ -303,13 +307,34 @@ public:
         return getPage(page->id(), Base::READ, -1);
     }
 
+    void* malloc(size_t size)
+    {
+    	if (check_allocated_increment(size))
+    	{
+    		inc_allocated(size);
+
+    		return ::malloc(size);
+    	}
+    	else {
+    		throw Exception(MA_SRC, SBuf()<<"Allocator memory limit exceeded: "<<mem_limit_);
+    	}
+    }
+
+    void free(Page* page)
+    {
+    	dec_allocated(page->page_size());
+
+    	return ::free(page);
+    }
+
+
     virtual PageG updatePage(Shared* shared, BigInt name)
     {
         if (shared->state() == Shared::READ)
         {
             Int page_size = shared->get()->page_size();
 
-            Byte* buffer = (Byte*) malloc(page_size);
+            Byte* buffer = (Byte*) this->malloc(page_size);
             allocs1_++;
 
             CopyByteBuffer(shared->get(), buffer, page_size);
@@ -353,36 +378,28 @@ public:
      */
     virtual PageG createPage(Int initial_size, BigInt name)
     {
-    	if (allocated_ + initial_size < mem_limit_) {
+    	allocs1_++;
+    	void* buf = this->malloc(initial_size);
 
-    		allocs1_++;
-    		void* buf = malloc(initial_size);
+    	memset(buf, 0, initial_size);
 
-    		memset(buf, 0, initial_size);
+    	ID id = newId();
 
-    		ID id = newId();
+    	Page* p = new (buf) Page(id);
 
-    		Page* p = new (buf) Page(id);
+    	p->page_size() = initial_size;
 
-    		p->page_size() = initial_size;
+    	pages_log_[id] = p;
 
-    		pages_log_[id] = p;
+    	Shared* shared  = pool_.allocate(id);
 
-    		Shared* shared  = pool_.allocate(id);
+    	shared->id()    = id;
+    	shared->state()	= Shared::UPDATE;
 
-    		shared->id()        = id;
-    		shared->state()     = Shared::UPDATE;
+    	shared->set_page(p);
+    	shared->set_allocator(this);
 
-    		shared->set_page(p);
-    		shared->set_allocator(this);
-
-    		allocated_ += initial_size;
-
-    		return PageG(shared);
-    	}
-    	else {
-    		throw Exception(MA_SRC, SBuf()<<"Allocator memory limit exceeded: "<<mem_limit_);
-    	}
+    	return PageG(shared);
     }
 
     virtual bool hasRoot(BigInt name)
@@ -394,6 +411,42 @@ public:
         else {
             return false;
         }
+    }
+
+    void dec_allocated(size_t delta)
+    {
+    	if (allocated_ >= delta) {
+    		allocated_ -= delta;
+    	}
+    	else {
+    		allocated_ = 0;
+    	}
+    }
+
+    void inc_allocated(size_t delta)
+    {
+    	auto tmp = allocated_ + delta;
+
+    	if (tmp >= allocated_)
+    	{
+    		allocated_ += delta;
+    	}
+    	else {
+    		allocated_ = std::numeric_limits<size_t>::max();
+    	}
+    }
+
+    bool check_allocated_increment(size_t delta)
+    {
+    	auto tmp = allocated_ + delta;
+
+    	if (tmp >= allocated_)
+    	{
+    		return tmp <= mem_limit_;
+    	}
+    	else {
+    		return false;
+    	}
     }
 
     void stat() {
@@ -432,7 +485,7 @@ public:
                 auto j = pages_.find(op.id_);
                 if (j != pages_.end())
                 {
-                    ::free(j->second);
+                	free(j->second);
                     allocs2_--;
                 }
 
@@ -451,11 +504,11 @@ public:
                     Shared* shared = pool_.get(op.id_);
                     if (shared != NULL)
                     {
-                        ::free(shared->get());
+                    	free(shared->get());
                         shared->set_page((Page*)NULL);
                     }
                     else {
-                        ::free(j->second);
+                    	free(j->second);
                     }
 
                     pages_.erase(op.id_);
@@ -477,7 +530,7 @@ public:
         for (auto i = pages_log_.begin(); i != pages_log_.end(); i++)
         {
             PageOp op = i->second;
-            ::free(op.page_);
+            free(op.page_);
         }
 
         for (auto i = ctr_shared_.begin(); i != ctr_shared_.end(); i++)
@@ -644,9 +697,9 @@ public:
             Int page_hash;
             input->read(page_hash);
 
-            unique_ptr<Byte, void (*)(void*)> page_data((Byte*)malloc(page_data_size), free);
+            unique_ptr<Byte, void (*)(void*)> page_data((Byte*)::malloc(page_data_size), ::free);
 
-            Page* page      = T2T<Page*>(malloc(page_size));
+            Page* page = T2T<Page*>(this->malloc(page_size));
 
             input->read(page_data.get(), 0, page_data_size);
 
@@ -818,12 +871,12 @@ public:
 
     virtual void* allocateMemory(size_t size)
     {
-        return malloc(size);
+        return ::malloc(size);
     }
 
     virtual void freeMemory(void* ptr)
     {
-        free(ptr);
+    	::free(ptr);
     }
 
     virtual BigInt createCtrName()
@@ -873,7 +926,7 @@ private:
 
         PageMetadata* pageMetadata = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
 
-        unique_ptr<Byte, void (*)(void*)> buffer((Byte*)malloc(page->page_size()), free);
+        unique_ptr<Byte, void (*)(void*)> buffer((Byte*)::malloc(page->page_size()), ::free);
 
         const IPageOperations* operations = pageMetadata->getPageOperations();
 

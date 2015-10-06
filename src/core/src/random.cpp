@@ -7,54 +7,56 @@
 
 namespace memoria   {
 
-RngEngine 	int_rng_engine;
-RngEngine 	bigint_rng_engine;
+RngInt		int_generator;
+RngBigInt	bigint_generator;
 
-RngInt		int_generator 		= std::bind(UniformDistribution<Int>(), int_rng_engine);
-RngBigInt	bigint_generator	= std::bind(UniformDistribution<BigInt>(), bigint_rng_engine);
 
-Int getRandom()
+RngInt& getGlobalIntGenerator() {
+	return int_generator;
+}
+
+RngBigInt& getGlobalBigIntGenerator() {
+	return bigint_generator;
+}
+
+Int getRandomG()
 {
     return int_generator();
 }
 
-Int getRandom(Int max)
+Int getRandomG(Int max)
 {
     return max > 0 ? int_generator() % max : 0;
 }
 
 void Seed(Int value)
 {
-    int_rng_engine.seed(value);
+	std::seed_seq ss({value});
+	int_generator.engine().seed(ss);
 }
 
-Int getSeed() {
-    return 0;
-}
 
-BigInt getBIRandom()
+BigInt getBIRandomG()
 {
     return bigint_generator();
 }
 
-BigInt getBIRandom(BigInt max)
+BigInt getBIRandomG(BigInt max)
 {
     return max > 0 ? bigint_generator() % max : 0;
 }
 
 void SeedBI(BigInt value)
 {
-    bigint_rng_engine.seed(value);
+	std::seed_seq ss({value});
+	bigint_generator.engine().seed(ss);
 }
 
-BigInt getSeedBI() {
-    return 0;
-}
 
-Int getNonZeroRandom(Int size)
+Int getNonZeroRandomG(Int size)
 {
-    Int value = getRandom(size);
-    return value != 0 ? value : getNonZeroRandom(size);
+    Int value = getRandomG(size);
+    return value != 0 ? value : getNonZeroRandomG(size);
 }
 
 

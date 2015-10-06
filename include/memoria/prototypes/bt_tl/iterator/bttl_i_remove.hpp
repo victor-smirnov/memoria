@@ -129,9 +129,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorRemoveName)
 
     	ranks[stream] = idx;
 
-    	for (Int s = stream - 1; s > 0; s--)
+    	for (Int s = stream; s > 0; s--)
     	{
-    		ranks[s] = self.local_parent_idx(s, ranks[s + 1]);
+    		ranks[s - 1] = self.local_parent_idx(s, ranks[s]);
     	}
 
     	for (Int s = stream; s < SearchableStreams; s++)
@@ -141,6 +141,36 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorRemoveName)
 
     	return ranks;
     }
+
+    Position local_stream_pos_rank() const {
+    	auto& self = this->self();
+    	return self.local_stream_pos_rank(self.stream(), self.idx());
+    }
+
+    Position local_stream_pos_rank(Int stream, Int idx) const
+    {
+    	auto& self = this->self();
+
+    	Position ranks;
+
+    	auto sizes = self.leaf_sizes();
+
+    	ranks[stream] = idx;
+
+    	for (Int s = stream; s > 0; s--)
+    	{
+    		auto parent_idx = self.local_parent_idx(s, ranks[s]);
+    		ranks[s - 1] = parent_idx + (sizes[s - 1] > 0 ? 1 : 0);
+    	}
+
+    	for (Int s = stream; s < SearchableStreams; s++)
+    	{
+    		ranks[s + 1] = self.local_child_idx(s, ranks[s]);
+    	}
+
+    	return ranks;
+    }
+
 
 MEMORIA_ITERATOR_PART_END
 

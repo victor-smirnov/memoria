@@ -11,7 +11,7 @@
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
 
-#include "../../shared/bttl_test_base.hpp"
+#include "bttl_test_base.hpp"
 
 #include <vector>
 #include <algorithm>
@@ -50,25 +50,14 @@ class BTTLInsertionTest: public BTTLTestBase<CtrName, AllocatorT, ProfileT> {
 
 	Int iterations 			= 5;
 
+	Int level  = 0;
+
 
 	CtrSizesT 	shape_;
-	CtrSizeT	insertion_pos_;
+	CtrSizesT	insertion_pos_;
 	BigInt		ctr_name_;
 
-	struct ScanFn {
-		Byte expected_;
-
-		ScanFn(Byte expected): expected_(expected) {}
-
-		template <typename Stream>
-		void operator()(const Stream* obj, Int start, Int end)
-		{
-			for (Int c = start; c < end; c++)
-			{
-				MEMORIA_ASSERT(obj->value(c), ==, expected_);
-			}
-		}
-	};
+	Int level_;
 
 public:
 
@@ -79,21 +68,26 @@ public:
     	MEMORIA_ADD_TEST_PARAM(iterations);
     	MEMORIA_ADD_TEST_PARAM(level_limit);
     	MEMORIA_ADD_TEST_PARAM(last_level_limit);
+    	MEMORIA_ADD_TEST_PARAM(level);
 
     	MEMORIA_ADD_TEST_PARAM(shape_)->state();
     	MEMORIA_ADD_TEST_PARAM(insertion_pos_)->state();
     	MEMORIA_ADD_TEST_PARAM(ctr_name_)->state();
+    	MEMORIA_ADD_TEST_PARAM(level_)->state();
 
     	MEMORIA_ADD_TEST_WITH_REPLAY(testInsert, replayInsert);
     }
 
     virtual ~BTTLInsertionTest() throw () {}
 
+    virtual void defaultCoverage(Int size) {
 
+    }
 
     void createAllocator(AllocatorSPtr& allocator)
     {
     	allocator = std::make_shared<Allocator>();
+    	allocator->mem_limit() = this->hard_memlimit_;
     }
 
 
@@ -101,30 +95,55 @@ public:
 
     CtrSizesT testInsertionStep(Ctr& ctr)
     {
-    	DetInputProvider provider(shape_);
-
     	auto sizes = ctr.sizes();
 
+    	auto iter = ctr.seek(insertion_pos_[0]);
+
+    	for (Int s = 1; s <= level_; s++) {
+    		iter.toData(insertion_pos_[s]);
+    	}
+
+    	for (Int s = 0; s < level_; s++) {
+    		shape_[s] = 0;
+    	}
+
     	this->out()<<"Insert "<<shape_<<" data at: "<<insertion_pos_<<endl;
-    	auto iter = ctr.seek(insertion_pos_);
+
+    	DetInputProvider provider(shape_, level_);
 
     	auto totals = ctr._insert(iter, provider);
 
-    	this->checkAllocator(MA_SRC, "Insert: Container Check Failed");
-    	this->checkExtents(ctr);
-//    	this->checkRanks(ctr);
-
     	auto new_sizes = ctr.sizes();
-
     	AssertEQ(MA_SRC, new_sizes, sizes + totals);
 
-    	for (CtrSizeT c = insertion_pos_; c < insertion_pos_ + totals[0]; c++)
+    	this->checkAllocator(MA_SRC, "Insert: Container Check Failed");
+
+    	this->checkExtents(ctr);
+
+    	auto t0 = getTimeInMillis();
+
+    	if (level_ == 0)
     	{
-    		this->checkSubtree(ctr, c);
+    		for (CtrSizeT c = insertion_pos_[level_]; c < insertion_pos_[level_] + totals[level_]; c++)
+    		{
+    			this->checkSubtree(ctr, c);
+    		}
+    	}
+    	else
+    	{
+    		auto iter = ctr.seek(insertion_pos_[0]);
+
+    		for (Int s = 1; s <= level_; s++)
+    		{
+    			iter.toData(insertion_pos_[s]);
+    		}
+
+    		this->checkSubtree(iter, totals[level_]);
     	}
 
-    	return totals;
+    	this->out()<<"Check subtree is done in "<<FormatTime(getTimeInMillis() - t0)<<endl;
 
+    	return totals;
     }
 
     void replayInsert()
@@ -145,30 +164,42 @@ public:
     	}
     }
 
-    template <typename Provider>
-    CtrSizesT testProvider(Ctr& ctr, Provider& provider)
+    CtrSizeT sampleSize(Int iteration, CtrSizeT size)
     {
-    	auto sizes = ctr.sizes();
-
-    	CtrSizeT pos = getRandom(sizes[0] + 1);
-
-    	this->out()<<"Insert "<<shape_<<" data at: "<<pos<<endl;
-    	auto iter = ctr.seek(pos);
-
-    	auto totals = ctr._insert(iter, provider);
-
-    	this->checkAllocator(MA_SRC, "");
-
-    	auto new_sizes = ctr.sizes();
-
-    	AssertEQ(MA_SRC, new_sizes, sizes + totals);
-
-    	for (CtrSizeT c = pos; c < totals[0]; c++)
+    	if (iteration % 3 == 0)
     	{
-    		this->checkSubtree(ctr, c);
+    		return this->getRandom(size);
     	}
+    	else if (iteration % 3 == 1) {
+    		return size;
+    	}
+    	else {
+    		return 0;
+    	}
+    }
 
-    	return totals;
+    CtrSizeT sampleSizeNZ(Int iteration, CtrSizeT size)
+    {
+    	if (iteration % 2 == 0)
+    	{
+    		return size > 0 ? (this->getRandom(size - 1) + 1) : 0;
+    	}
+    	else
+    	{
+    		return size;
+    	}
+    }
+
+    CtrSizeT sampleSizeNZ(Int level, Int iteration, CtrSizeT size)
+    {
+    	if (iteration % 2 == 0)
+    	{
+    		return size > 0 ? (this->getRandom(size - 1) + 1) : 0;
+    	}
+    	else
+    	{
+    		return size;
+    	}
     }
 
     void testInsert()
@@ -179,16 +210,51 @@ public:
         this->commit();
 
         try {
-            for (Int c = 0; c < iterations; c++)
+            for (Int c = 0; c < iterations && this->checkSoftMemLimit(); c++)
             {
             	this->out()<<"Iteration: "<<c<<endl;
 
             	auto sizes = ctr.sizes();
 
-            	insertion_pos_ = getRandom(sizes[0] + 1);
-//            	insertion_pos_ = 0;
+            	insertion_pos_ = CtrSizesT(-1);
 
-//            	insertion_pos_ = sizes[0];
+        		insertion_pos_[0] = sampleSize(c, sizes[0]);
+
+        		CtrSizesT path_sizes;
+        		path_sizes[0] = sizes[0];
+
+
+            	auto iter = ctr.seek(insertion_pos_[0]);
+            	level_ = 0;
+
+            	for (Int s = 1; s <= level; s++)
+            	{
+            		if (insertion_pos_[s - 1] < path_sizes[s - 1])
+            		{
+            			auto local_size = iter.size();
+
+            			if (local_size > 0)
+            			{
+            				if (insertion_pos_[s - 1] > 0) {
+            					insertion_pos_[s] = sampleSize(c, local_size);
+            				}
+            				else {
+            					insertion_pos_[s] = sampleSizeNZ(c, local_size);
+            				}
+
+            				iter.toData(insertion_pos_[s]);
+            				level_ = s;
+
+            				path_sizes[s] = local_size;
+            			}
+            			else {
+            				break;
+            			}
+            		}
+            		else {
+            			break;
+            		}
+            	}
 
             	shape_ = this->sampleTreeShape(level_limit, last_level_limit, size);
 

@@ -237,7 +237,7 @@ vector<T> createSimpleBuffer(Int size, T value)
 template <typename T>
 vector<T> createRandomBuffer(T fill_value, Int max_size)
 {
-    return createBuffer<T>(getNonZeroRandom(max_size), fill_value);
+    return createBuffer<T>(getNonZeroRandomG(max_size), fill_value);
 }
 
 
@@ -358,7 +358,7 @@ bool CompareBuffer(Iter<Types>& iter, const MemBuffer& data, Int& c)
 template <typename T, typename A>
 Int getUniqueRandom(const vector<T, A> &vec)
 {
-    Int value = getRandom();
+    Int value = getRandomG();
 
     for (const T& item: vec)
     {
@@ -375,7 +375,7 @@ Int getUniqueRandom(const vector<T, A> &vec)
 template <typename T, typename A>
 BigInt getUniqueBIRandom(const vector<T, A> &vec, BigInt limit)
 {
-    Int value = getBIRandom(limit) + 1;
+    Int value = getBIRandomG(limit) + 1;
 
     for (const T& item: vec)
     {

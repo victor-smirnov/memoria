@@ -10,6 +10,8 @@
 
 #include <memoria/tools/task.hpp>
 
+#include <memoria/core/tools/random.hpp>
+
 #include <vector>
 #include <ostream>
 #include <fstream>
@@ -45,6 +47,13 @@ protected:
     Int     size_;
 
     String  current_test_name_;
+
+    RngInt  	int_generator_;
+    RngBigInt  	bigint_generator_;
+
+    size_t 		soft_memlimit_;
+    size_t 		hard_memlimit_;
+
 
     struct TestDescriptor {
         String name_;
@@ -106,6 +115,10 @@ public:
 
         Add("size", size_);
         Add("size_", size_);
+        Add("seed_", seed_);
+
+        Add("soft_memlimit_", soft_memlimit_);
+        Add("hard_memlimit_", hard_memlimit_);
     }
 
 
@@ -124,10 +137,98 @@ public:
     virtual void Configure(Configurator* cfg)
     {
         configurator_ = cfg;
+
+        String coverage 	= cfg->getValue<String>("coverage", "normal");
+        Int coverage_size	= cfg->getValue<Int>("coverage_size", 1);
+
+        if (coverage == "small")
+        {
+        	this->smallCoverage(coverage_size);
+        }
+        else if (coverage == "normal")
+        {
+        	this->normalCoverage(coverage_size);
+        }
+        else if (coverage == "large")
+        {
+        	this->largeCoverage(coverage_size);
+        }
+        else {
+            throw vapi::Exception(MA_SRC, SBuf()<<"Coverage type "+coverage+" is not recognized");
+        }
+
+        soft_memlimit_ = cfg->getValue<size_t>("soft_memlimit", 512 * 1024 * 1024);
+        hard_memlimit_ = cfg->getValue<size_t>("hard_memlimit", 1 * 1024 * 1024 * 1024);
+
         Process(cfg);
     }
 
+    virtual void defaultCoverage(Int size) {}
+
+    virtual void smallCoverage(Int size) {
+    	defaultCoverage(size);
+    }
+
+    virtual void normalCoverage(Int size) {
+    	defaultCoverage(size);
+    }
+
+    virtual void largeCoverage(Int size) {
+    	defaultCoverage(size);
+    }
+
+    RngInt& getIntTestGenerator() {
+    	return int_generator_;
+    }
+    RngBigInt& getBigIntTestGenerator() {
+    	return bigint_generator_;
+    }
+
+    const RngInt& getIntGenerator() const {
+    	return int_generator_;
+    }
+    const RngBigInt& getBigIntGenerator() const {
+    	return bigint_generator_;
+    }
+
+    virtual void configureSeed()
+    {
+    	Int seed = this->getSeed();
+    	if (seed == -1)
+    	{
+    		seed = getTimeInMillis() % 1000000;
+    		setSeed(seed);
+    	}
+
+    	std::seed_seq ss({seed});
+    	int_generator_.engine().seed(ss);
+    	bigint_generator_.engine().seed(ss);
+
+    	this->out()<<"seed = "<<seed<<endl;
+    }
+
+    Int getRandom()
+    {
+    	return int_generator_();
+    }
+
+    Int getRandom(Int max)
+    {
+    	return int_generator_(max);
+    }
+
+    BigInt getBIRandom()
+    {
+    	return bigint_generator_();
+    }
+
+    BigInt getBIRandom(BigInt max)
+    {
+    	return bigint_generator_(max);
+    }
+
     virtual void setUp() {}
+
     virtual void tearDown() {}
 
     template <typename T>

@@ -64,18 +64,11 @@ int main(int argc, const char** argv, const char** envp)
 
     	CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::REPLAY);
 
-        Int default_seed = getTimeInMillis() % 100000;
-
-        Int seed = cmd_line.getConfigurator().getValue<Int>("seed", default_seed);
-
-        // Emulate seed;
-        for (Int c = 0; c < seed; c++)
-        {
-            getRandom();
-            getBIRandom();
-        }
+        Int seed = cmd_line.getConfigurator().getValue<Int>("seed", -1);
 
         MemoriaTestRunner runner;
+
+        runner.setSeed(seed);
 
         runner.setRunCount(cmd_line.getCount());
 //
@@ -112,7 +105,6 @@ int main(int argc, const char** argv, const char** envp)
 //
 //        runner.registerTask(new MVCCTestSuite());
 
-
         runner.Configure(&cmd_line.getConfigurator());
 
         if (cmd_line.IsHelp())
@@ -129,6 +121,8 @@ int main(int argc, const char** argv, const char** envp)
             cout<<"    --replay <update_op.properties>  Replay the failed update operation"<<endl;
             cout<<"    --out <output folder>            Path where tests output will be put. "
                 <<"(It will be recreated if already exists)"<<endl;
+            cout<<"    --coverage <small|normal|large>  Test coverage. Default is normal."<<endl;
+            cout<<"    --coverage-size N                Test coverage size, N >= 1. Default is 1"<<endl;
         }
         else if (cmd_line.IsList())
         {
@@ -144,7 +138,9 @@ int main(int argc, const char** argv, const char** envp)
             DumpAllocator(cmd_line.getDumpFileName());
         }
         else {
-            cout<<"Seed: "<<seed<<endl;
+            if (seed >= 0) {
+            	cout<<"Seed: "<<seed<<endl;
+            }
 
             String default_output_folder = cmd_line.getImageName()+".out";
 

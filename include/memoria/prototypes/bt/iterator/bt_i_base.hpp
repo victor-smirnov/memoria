@@ -85,8 +85,6 @@ public:
 
         cache_      = other.cache_;
 
-//        cache_.init(me());
-
         Base::assign(std::move(other));
     }
 
@@ -98,8 +96,6 @@ public:
         stream_     = other.stream_;
 
         cache_      = other.cache_;
-
-//        cache_.init(me());
 
         Base::assign(other);
     }

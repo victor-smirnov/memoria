@@ -779,7 +779,6 @@ public:
         return *this;
     }
 
-//#ifndef __clang__
     MyType& operator=(MyType&& guard)
     {
         unref();
@@ -789,7 +788,7 @@ public:
         check();
         return *this;
     }
-//#endif
+
 
     template <typename P>
     MyType& operator=(PageGuard<P, AllocatorT>&& guard)
@@ -861,6 +860,8 @@ public:
     {
         return shared_->updated();
     }
+
+
 
     void update(BigInt name)
     {

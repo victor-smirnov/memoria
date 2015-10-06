@@ -135,6 +135,13 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
     	return self().cache().data_size()[stream];
     }
 
+    CtrSizeT substream_size() const {
+    	auto& self = this->self();
+    	auto stream = self.stream();
+    	auto idx = self.idx();
+
+    	return self.get_substream_size(stream, idx);
+    }
 
     CtrSizeT pos() const {
     	auto stream = self().stream();
@@ -160,7 +167,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
 
     		cache.data_pos()[stream + 1] = -full_substream_offset;
 
-    		self.get_substream_size(stream, idx, cache.data_size());
+    		cache.data_size()[stream + 1] = self.get_substream_size(stream, idx);
 
     		stream++;
     		idx = 0;
@@ -251,10 +258,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
 
     Int local_parent_idx(Int stream, Int idx) const
     {
-    	if (stream <= 0) {
-    		int a = 0; a++;
-    	}
-
     	MEMORIA_ASSERT(stream, >, 0);
 
     	auto& self = this->self();
@@ -263,7 +266,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
 
     	if (idx > excess)
     	{
-    		return self.find_offset(stream - 1, idx);
+    		return self.find_offset(stream - 1, idx - excess);
     	}
     	else {
     		return 0;
@@ -397,44 +400,49 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
     }
 
 
+
+
     struct GetSizeFn {
-    	template <Int Stream, typename Itr, typename Size>
-    	static void process(Itr&& iter, Int stream, Int idx, Size&& size)
+    	template <Int Stream, typename Itr>
+    	static CtrSizeT process(Itr&& iter, Int stream, Int idx)
     	{
     		if (iter.isContent(idx))
     		{
-    			size[stream + 1] = iter.template idx_data_size<Stream>(idx);
+    			return iter.template idx_data_size<Stream>(idx);
     		}
     		else {
-    			size[stream + 1] = -1;
+    			return -1;
     		}
     	}
     };
 
     struct GetSizeElseFn {
-    	template <Int Stream, typename Itr, typename Size>
-    	static void process(Itr&& iter, Int stream, Int idx, Size&& size){}
+    	template <Int Stream, typename Itr>
+    	static CtrSizeT process(Itr&& iter, Int stream, Int idx){
+    		return 0;
+    	}
     };
 
     template <Int Stream, typename... Args>
-    void _get_substream_size(Args&&... args) const
+    CtrSizeT _get_substream_size(Args&&... args) const
     {
-    	IfLess<Stream, SearchableStreams>::process(GetSizeFn(), GetSizeElseFn(), self(), std::forward<Args>(args)...);
+    	return IfLess<Stream, SearchableStreams>::process(GetSizeFn(), GetSizeElseFn(), self(), std::forward<Args>(args)...);
     }
 
 
     struct GetSizeFn2 {
     	template <Int StreamIdx, typename Iter, typename... Args>
-    	void process(Iter&& iter, Int stream, Args&&... args)
+    	CtrSizeT process(Iter&& iter, Int stream, Args&&... args)
     	{
-    		GetSizeFn::template process<StreamIdx>(iter, stream, std::forward<Args>(args)...);
+    		return GetSizeFn::template process<StreamIdx>(iter, stream, std::forward<Args>(args)...);
     	}
     };
 
 
     template <typename... Args>
-    void get_substream_size(Int stream, Args&&... args) const {
-    	bt::ForEachStream<SearchableStreams - 1>::process(stream, GetSizeFn2(), self(), stream, std::forward<Args>(args)...);
+    CtrSizeT get_substream_size(Int stream, Args&&... args) const
+    {
+    	return bt::ForEachStream<SearchableStreams - 1>::process(stream, GetSizeFn2(), self(), stream, std::forward<Args>(args)...);
     }
 
 

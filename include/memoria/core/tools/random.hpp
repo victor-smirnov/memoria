@@ -12,38 +12,66 @@
 #include <memoria/core/types/types.hpp>
 #include <random>
 #include <functional>
+#include <limits>
+#include <iostream>
 
 namespace memoria {
 
 //FIXME: this RNGs are single-threaded!
 
-using RngEngine = std::mt19937_64;
+using RngEngine64 = std::mt19937_64;
+using RngEngine32 = std::mt19937;
 
-template <typename T>
-using UniformDistribution = std::uniform_int_distribution<T>;
 
-template <typename T, typename Engine = RngEngine>
-using RngT = decltype(std::bind(std::declval<UniformDistribution<T>>(), std::declval<Engine>()));
+template <typename T, typename Engine>
+class RNG {
+	Engine engine_;
 
-using RngInt 	= RngT<Int>;
-using RngBigInt = RngT<BigInt>;
+	std::uniform_int_distribution<T> distribution_;
 
-extern RngEngine 	rng_engine;
-extern RngInt		int_generator;
-extern RngBigInt	bigint_generator;
+public:
+	RNG(){}
 
-Int     getRandom();
-Int     getRandom(Int max);
+	auto operator()()
+	{
+		return distribution_(engine_);
+	}
+
+
+	auto operator()(T max)
+	{
+		std::uniform_int_distribution<T> distribution(0, max);
+		return distribution(engine_);
+	}
+
+	Engine& engine() {
+		return engine_;
+	}
+
+	const Engine& engine() const {
+		return engine_;
+	}
+};
+
+using RngInt 	= RNG<Int, RngEngine32>;
+using RngBigInt = RNG<BigInt, RngEngine64>;
+
+
+RngInt& getGlobalIntGenerator();
+RngBigInt& getGlobalBigIntGenerator();
+
+Int     getRandomG();
+Int     getRandomG(Int max);
 void    Seed(Int value);
 Int     getSeed();
 
-BigInt  getBIRandom();
-BigInt  getBIRandom(BigInt max);
+BigInt  getBIRandomG();
+BigInt  getBIRandomG(BigInt max);
 void    SeedBI(BigInt value);
 BigInt  getSeedBI();
 
 
-Int getNonZeroRandom(Int size);
+Int getNonZeroRandomG(Int size);
 
 
 }

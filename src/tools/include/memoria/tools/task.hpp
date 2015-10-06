@@ -11,6 +11,7 @@
 #include <memoria/core/types/types.hpp>
 #include <memoria/tools/params.hpp>
 #include <memoria/core/tools/file.hpp>
+#include <memoria/core/tools/time.hpp>
 
 #include <vector>
 #include <ostream>
@@ -84,6 +85,8 @@ protected:
 
     fstream*            out_;
 
+    Int seed_ = -1;
+
 public:
     Task(StringRef name):
         TaskParametersSet(name),
@@ -93,6 +96,14 @@ public:
     {}
 
     virtual ~Task() throw ();
+
+    Int getSeed() const {
+    	return seed_;
+    }
+
+    void setSeed(Int v) {
+    	seed_ = v;
+    }
 
     virtual bool IsGroup() const {
         return false;
@@ -217,6 +228,8 @@ public:
 protected:
     Tasks   tasks_;
 
+
+
     struct FailureDescriptor {
         Int run_number;
         String task_name;
@@ -237,6 +250,9 @@ public:
     }
 
     virtual ~TaskGroup() throw ();
+
+
+
 
     virtual bool IsGroup() const {
         return true;
@@ -304,6 +320,12 @@ public:
     }
 
     virtual ~GroupRunner() throw() {}
+
+//    Int getSeed() const {
+//    	return seed_ >= 0 ? seed_ : (getTimeInMillis() % 1000000);
+//    }
+
+
 
     StringRef getOutput() const
     {

@@ -46,6 +46,12 @@ class CmdLine {
 
     Int             count_;
 
+    String 			coverage_ = "normal";
+    String 			coverage_size_ = "1";
+
+    String 			soft_memlimit_ = "2G";
+    String 			hard_memlimit_ = "4G";
+
 public:
 
     enum {NONE = 0, REPLAY = 1};
@@ -118,6 +124,24 @@ public:
     StringRef getReplayFile()
     {
         return replay_file_;
+    }
+
+    StringRef getCoverage() const
+    {
+    	return coverage_;
+    }
+
+    StringRef getCoverageSize() const {
+    	return coverage_size_;
+    }
+
+    StringRef getSoftMemLimit() const
+    {
+    	return soft_memlimit_;
+    }
+
+    StringRef getHardMemLimit() const {
+    	return hard_memlimit_;
     }
 
     void Process();

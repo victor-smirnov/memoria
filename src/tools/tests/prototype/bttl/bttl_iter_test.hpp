@@ -11,7 +11,7 @@
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
 
-#include "../../shared/bttl_test_base.hpp"
+#include "bttl_test_base.hpp"
 
 #include <vector>
 #include <algorithm>
@@ -86,6 +86,7 @@ public:
 
     void createAllocator(AllocatorSPtr& allocator) {
     	allocator = std::make_shared<Allocator>();
+    	allocator->mem_limit() = this->hard_memlimit_;
     }
 
 
@@ -129,7 +130,7 @@ public:
 
     			this->out()<<"shape: "<<shape<<endl;
 
-    			RngInputProvider provider(shape, int_generator);
+    			RngInputProvider provider(shape, this->getIntTestGenerator());
 
     			auto totals = this->fillCtr(ctr, provider);
 

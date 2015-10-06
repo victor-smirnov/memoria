@@ -145,6 +145,8 @@ void TaskGroup::Run(ostream& out)
             t->setOutputFolder(folder);
             t->setIteration(1);
 
+            t->setSeed(this->getSeed());
+
             if (t->Run())
             {
                 failures_.push_back(FailureDescriptor(t->getIteration(), t->getName()));
@@ -280,6 +282,10 @@ Int GroupRunner::Run()
 
                 t->setOutputFolder(folder);
                 t->setIteration(c);
+
+                Int seed = this->getSeed();
+
+                t->setSeed(seed);
 
                 if (Int failures = t->Run() > 0)
                 {

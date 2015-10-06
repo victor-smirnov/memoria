@@ -74,8 +74,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
     template <Int StreamIdx, typename Fn, typename... Args>
     auto _process_count_substream(NodeBaseG& node, Fn&& fn, Args&&... args)
     {
-//    	if (DebugCounter)
-
     	return NodeDispatcher::dispatch(
     			node,
 				ProcessCountSubstreamFn<StreamIdx>(),
@@ -156,10 +154,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
     void add_to_stream_counter(NodeBaseG node, Int stream, Int idx, CtrSizeT value)
     {
     	auto& self = this->self();
-
-//    	if (DebugCounter == 4) {
-//    		self.dump(node);
-//    	}
 
     	if (value != 0)
     	{
@@ -321,6 +315,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
     Position leaf_rank(const NodeBaseG& leaf, const Position& sizes, const Position& extent, Int pos) const
     {
     	auto& self = this->self();
+
+    	MEMORIA_ASSERT_TRUE(sizes.gteAll(0));
+    	MEMORIA_ASSERT_TRUE(extent.gteAll(0));
 
     	LeafPrefixRanks prefixes;
 

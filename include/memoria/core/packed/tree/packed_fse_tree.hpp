@@ -974,7 +974,15 @@ public:
             else if (target == 0)
             {
                 Value actual_value = value(block_start);
-                return ValueDescr(actual_value, 0, prefix - raw_sum(block_start) - actual_value);
+
+                auto data_start = trailingZeroes(block);
+
+                if (data_start > 0) {
+                	return ValueDescr(actual_value, data_start, prefix - raw_sum(block_start) - actual_value - value(block_start + data_start));
+                }
+                else {
+                	return ValueDescr(actual_value, data_start, prefix - raw_sum(block_start) - actual_value);
+                }
             }
             else {
                 return ValueDescr(0, -1, prefix);
@@ -1009,6 +1017,25 @@ public:
         }
     }
 
+    Int trailingZeroes(Int block) const
+    {
+    	Int size = this->size();
+
+    	auto* values = this->values(block);
+
+    	Int total = 0;
+
+    	for (Int c = 0; c < size; c++) {
+    		if (values[c] == 0) {
+    			total++;
+    		}
+    		else {
+    			break;
+    		}
+    	}
+
+    	return total;
+    }
 
 
     // ==================================== Update ========================================== //

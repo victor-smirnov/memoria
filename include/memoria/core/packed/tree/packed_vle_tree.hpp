@@ -589,7 +589,7 @@ public:
     {
         const auto* values_ = values();
 
-        if (idx >= raw_size())
+        if (idx < 0 || idx >= raw_size())
         {
             int a = 0; a++;
         }

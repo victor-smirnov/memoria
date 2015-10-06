@@ -46,6 +46,7 @@ public:
 
     void createAllocator(AllocatorSPtr& allocator) {
     	allocator = std::make_shared<Allocator>();
+    	allocator->mem_limit() = this->hard_memlimit_;
     }
 
 };
