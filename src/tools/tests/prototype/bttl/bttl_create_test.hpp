@@ -3,8 +3,8 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_BTTL_CORE_TEST_HPP_
-#define MEMORIA_TESTS_BTTL_CORE_TEST_HPP_
+#ifndef MEMORIA_TESTS_BTTL_CREATE_TEST_HPP_
+#define MEMORIA_TESTS_BTTL_CREATE_TEST_HPP_
 
 #include <memoria/memoria.hpp>
 
@@ -25,10 +25,10 @@ template <
 	typename AllocatorT 	= SmallInMemAllocator,
 	typename ProfileT		= SmallProfile<>
 >
-class BTTLCoreTest: public BTTLTestBase<CtrName, AllocatorT, ProfileT> {
+class BTTLCreateTest: public BTTLTestBase<CtrName, AllocatorT, ProfileT> {
 
     using Base 	 = BTTLTestBase<CtrName, AllocatorT, ProfileT>;
-    using MyType = BTTLCoreTest<CtrName, AllocatorT, ProfileT>;
+    using MyType = BTTLCreateTest<CtrName, AllocatorT, ProfileT>;
 
     using Allocator 	= typename Base::Allocator;
     using AllocatorSPtr = typename Base::AllocatorSPtr;
@@ -43,44 +43,37 @@ class BTTLCoreTest: public BTTLTestBase<CtrName, AllocatorT, ProfileT> {
 
     static const Int Streams = Ctr::Types::Streams;
 
-	BigInt size 			= 1000000;
-	Int level_limit 		= 1000;
-	int last_level_limit 	= 100;
 
-	Int iterations 			= 5;
 
 
 public:
 
-    BTTLCoreTest(String name):
+    BTTLCreateTest(String name):
     	Base(name)
     {
-    	MEMORIA_ADD_TEST_PARAM(size);
-    	MEMORIA_ADD_TEST_PARAM(iterations);
-    	MEMORIA_ADD_TEST_PARAM(level_limit);
-    	MEMORIA_ADD_TEST_PARAM(last_level_limit);
-
     	MEMORIA_ADD_TEST(testDetProvider);
     	MEMORIA_ADD_TEST(testRngProvider);
     }
 
-    virtual ~BTTLCoreTest() throw () {}
+    virtual ~BTTLCreateTest() throw () {}
 
     void createAllocator(AllocatorSPtr& allocator) {
     	allocator = std::make_shared<Allocator>();
     	allocator->mem_limit() = this->hard_memlimit_;
     }
 
+
+
     void testDetProvider()
     {
-    	for (Int i = 0; i < iterations; i++)
+    	for (Int i = 0; i < this->iterations; i++)
     	{
     		this->out()<<"Iteration "<<(i + 1)<<endl;
 
     		{
     			Ctr ctr = this->createCtr();
 
-    			auto shape = this->sampleTreeShape(level_limit, last_level_limit, size);
+    			auto shape = this->sampleTreeShape();
 
     			this->out()<<"shape: "<<shape<<endl;
 
@@ -95,13 +88,13 @@ public:
 
     void testRngProvider()
     {
-    	for (Int i = 0; i < iterations; i++)
+    	for (Int i = 0; i < this->iterations; i++)
     	{
     		this->out()<<"Iteration "<<(i + 1)<<endl;
     		{
     			Ctr ctr = this->createCtr();
 
-    			auto shape = this->sampleTreeShape(level_limit, last_level_limit, size);
+    			auto shape = this->sampleTreeShape();
 
     			this->out()<<"shape: "<<shape<<endl;
 

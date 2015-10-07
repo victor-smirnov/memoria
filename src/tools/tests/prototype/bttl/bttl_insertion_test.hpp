@@ -25,7 +25,17 @@ template <
 	typename AllocatorT 	= SmallInMemAllocator,
 	typename ProfileT		= SmallProfile<>
 >
-class BTTLInsertionTest: public BTTLTestBase<CtrName, AllocatorT, ProfileT> {
+class BTTLInsertionTest;
+
+template <
+	Int Levels,
+	PackedSizeType SizeType,
+	typename AllocatorT,
+	typename ProfileT
+>
+class BTTLInsertionTest<BTTLTestCtr<Levels, SizeType>, AllocatorT, ProfileT>: public BTTLTestBase<BTTLTestCtr<Levels, SizeType>, AllocatorT, ProfileT> {
+
+	using CtrName = BTTLTestCtr<Levels, SizeType>;
 
     using Base 	 = BTTLTestBase<CtrName, AllocatorT, ProfileT>;
     using MyType = BTTLInsertionTest<CtrName, AllocatorT, ProfileT>;
@@ -44,13 +54,7 @@ class BTTLInsertionTest: public BTTLTestBase<CtrName, AllocatorT, ProfileT> {
 
     static const Int Streams = Ctr::Types::Streams;
 
-    Int size 				= 1000000;
-	Int level_limit 		= 1000;
-	int last_level_limit 	= 100;
-
-	Int iterations 			= 5;
-
-	Int level  = 0;
+	Int level  = -1;
 
 
 	CtrSizesT 	shape_;
@@ -64,10 +68,7 @@ public:
     BTTLInsertionTest(String name):
     	Base(name)
     {
-    	MEMORIA_ADD_TEST_PARAM(size);
-    	MEMORIA_ADD_TEST_PARAM(iterations);
-    	MEMORIA_ADD_TEST_PARAM(level_limit);
-    	MEMORIA_ADD_TEST_PARAM(last_level_limit);
+
     	MEMORIA_ADD_TEST_PARAM(level);
 
     	MEMORIA_ADD_TEST_PARAM(shape_)->state();
@@ -80,8 +81,28 @@ public:
 
     virtual ~BTTLInsertionTest() throw () {}
 
-    virtual void defaultCoverage(Int size) {
+    virtual void smokeCoverage(Int scale)
+    {
+    	this->size 			= 10000;
+    	this->iterations	= 1 * scale;
+    }
 
+    virtual void smallCoverage(Int scale)
+    {
+    	this->size 			= 100000 ;
+    	this->iterations	= 3 * scale;
+    }
+
+    virtual void normalCoverage(Int scale)
+    {
+    	this->size 			= 100000;
+    	this->iterations	= 50 * scale;
+    }
+
+    virtual void largeCoverage(Int scale)
+    {
+    	this->size 			= 1000000;
+    	this->iterations	= 10 * scale;
     }
 
     void createAllocator(AllocatorSPtr& allocator)
@@ -202,15 +223,33 @@ public:
     	}
     }
 
-    void testInsert()
+    void testInsert() {
+
+    	if (level == -1)
+    	{
+    		for (Int c = 0; c < Levels - 1; c++)
+    		{
+    			testInsertForLevel(c);
+    			createAllocator(this->allocator());
+    			this->out()<<endl;
+    		}
+    	}
+    	else {
+    		testInsertForLevel(level);
+    	}
+    }
+
+    void testInsertForLevel(Int level)
     {
+    	this->out()<<"Test for level: "<<level<<endl;
+
     	Ctr ctr = this->createCtr();
         this->ctr_name_ = ctr.name();
 
         this->commit();
 
         try {
-            for (Int c = 0; c < iterations && this->checkSoftMemLimit(); c++)
+            for (Int c = 0; c < this->iterations && this->checkSoftMemLimit(); c++)
             {
             	this->out()<<"Iteration: "<<c<<endl;
 
@@ -256,7 +295,7 @@ public:
             		}
             	}
 
-            	shape_ = this->sampleTreeShape(level_limit, last_level_limit, size);
+            	shape_ = this->sampleTreeShape();
 
             	testInsertionStep(ctr);
 

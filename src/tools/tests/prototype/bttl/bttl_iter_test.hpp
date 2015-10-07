@@ -44,11 +44,6 @@ class BTTLIterTest: public BTTLTestBase<CtrName, AllocatorT, ProfileT> {
 
     static const Int Streams = Ctr::Types::Streams;
 
-	BigInt size 			= 1000000;
-	Int level_limit 		= 1000;
-	int last_level_limit 	= 100;
-
-	Int iterations 			= 5;
 
 
 	struct ScanFn {
@@ -71,11 +66,6 @@ public:
     BTTLIterTest(String name):
     	Base(name)
     {
-    	MEMORIA_ADD_TEST_PARAM(size);
-    	MEMORIA_ADD_TEST_PARAM(iterations);
-    	MEMORIA_ADD_TEST_PARAM(level_limit);
-    	MEMORIA_ADD_TEST_PARAM(last_level_limit);
-
     	MEMORIA_ADD_TEST(testDetProvider);
     	MEMORIA_ADD_TEST(testRngProvider);
     }
@@ -93,14 +83,14 @@ public:
 
     void testDetProvider()
     {
-    	for (Int i = 0; i < iterations; i++)
+    	for (Int i = 0; i < this->iterations; i++)
     	{
     		this->out()<<"Iteration "<<(i + 1)<<endl;
 
     		{
     			Ctr ctr = this->createCtr();
 
-    			auto shape = this->sampleTreeShape(level_limit, last_level_limit, size);
+    			auto shape = this->sampleTreeShape();
 
     			this->out()<<"shape: "<<shape<<endl;
 
@@ -119,14 +109,14 @@ public:
 
     void testRngProvider()
     {
-    	for (Int i = 0; i < iterations; i++)
+    	for (Int i = 0; i < this->iterations; i++)
     	{
     		this->out()<<"Iteration "<<(i + 1)<<endl;
 
     		{
     			Ctr ctr = this->createCtr();
 
-    			auto shape = this->sampleTreeShape(level_limit, last_level_limit, size);
+    			auto shape = this->sampleTreeShape();
 
     			this->out()<<"shape: "<<shape<<endl;
 

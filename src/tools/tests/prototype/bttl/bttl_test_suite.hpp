@@ -9,8 +9,8 @@
 
 
 #include "../../tests_inc.hpp"
+#include "bttl_create_test.hpp"
 
-#include "bttl_core_test.hpp"
 #include "bttl_iter_test.hpp"
 #include "bttl_insertion_test.hpp"
 
@@ -25,11 +25,26 @@ public:
 
     BTTLTestSuite(): TestSuite("BT.TL")
     {
-    	registerTask(new BTTLCoreTest<BTTLTestCtr<3, PackedSizeType::VARIABLE>>("Create.Vr"));
-    	registerTask(new BTTLIterTest<BTTLTestCtr<3, PackedSizeType::VARIABLE>>("Iter.Vr"));
+    	registerTask(new BTTLCreateTest<BTTLTestCtr<3, PackedSizeType::VARIABLE>>("Create.Vr.3"));
+    	registerTask(new BTTLCreateTest<BTTLTestCtr<3, PackedSizeType::FIXED>>("Create.Fx.3"));
 
-    	registerTask(new BTTLInsertionTest<BTTLTestCtr<3, PackedSizeType::FIXED>>("Insert.Fx"));
-    	registerTask(new BTTLInsertionTest<BTTLTestCtr<3, PackedSizeType::VARIABLE>>("Insert.Vr"));
+    	registerTask(new BTTLCreateTest<BTTLTestCtr<4, PackedSizeType::VARIABLE>>("Create.Vr.4"));
+    	registerTask(new BTTLCreateTest<BTTLTestCtr<4, PackedSizeType::FIXED>>("Create.Fx.4"));
+
+    	registerTask(new BTTLCreateTest<BTTLTestCtr<2, PackedSizeType::VARIABLE>>("Create.Vr.2"));
+    	registerTask(new BTTLCreateTest<BTTLTestCtr<2, PackedSizeType::FIXED>>("Create.Fx.2"));
+
+    	registerTask(new BTTLIterTest<BTTLTestCtr<3, PackedSizeType::VARIABLE>>("Iter.Vr.3"));
+    	registerTask(new BTTLIterTest<BTTLTestCtr<3, PackedSizeType::FIXED>>("Iter.Fx.3"));
+
+    	registerTask(new BTTLInsertionTest<BTTLTestCtr<2, PackedSizeType::FIXED>>("Insert.Fx.2"));
+    	registerTask(new BTTLInsertionTest<BTTLTestCtr<2, PackedSizeType::VARIABLE>>("Insert.Vr.2"));
+
+    	registerTask(new BTTLInsertionTest<BTTLTestCtr<3, PackedSizeType::FIXED>>("Insert.Fx.3"));
+    	registerTask(new BTTLInsertionTest<BTTLTestCtr<3, PackedSizeType::VARIABLE>>("Insert.Vr.3"));
+
+    	registerTask(new BTTLInsertionTest<BTTLTestCtr<4, PackedSizeType::FIXED>>("Insert.Fx.4"));
+    	registerTask(new BTTLInsertionTest<BTTLTestCtr<4, PackedSizeType::VARIABLE>>("Insert.Vr.4"));
     }
 };
 

@@ -142,6 +142,8 @@ int main(int argc, const char** argv, const char** envp)
             	cout<<"Seed: "<<seed<<endl;
             }
 
+            cout<<"Coverage: "<<cmd_line.getConfigurator().getValue<String>("coverage", "small")<<", Size: "<<cmd_line.getConfigurator().getValue<String>("coverage_size", "1")<<endl;
+
             String default_output_folder = cmd_line.getImageName()+".out";
 
             String output_folder = (cmd_line.getOutFolder() != NULL) ? cmd_line.getOutFolder() : default_output_folder;

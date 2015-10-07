@@ -141,6 +141,7 @@ void MemoriaTestRunner::Replay(ostream& out, StringRef task_folder)
     {
         try {
             out<<"Task: "<<task->getFullName()<<endl;
+            task->setOut(&out);
             task->LoadProperties(task_file_name);
             task->configureSeed();
             task->setUp();

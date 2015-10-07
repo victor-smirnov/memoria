@@ -157,9 +157,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorRemoveName)
 
     	ranks[stream] = idx;
 
+    	Int parent_idx = ranks[stream];
+
     	for (Int s = stream; s > 0; s--)
     	{
-    		auto parent_idx = self.local_parent_idx(s, ranks[s]);
+    		parent_idx = self.local_parent_idx(s, parent_idx);
     		ranks[s - 1] = parent_idx + (sizes[s - 1] > 0 ? 1 : 0);
     	}
 

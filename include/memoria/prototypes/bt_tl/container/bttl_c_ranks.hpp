@@ -395,7 +395,8 @@ private:
     	auto stream(const Stream* substream, CtrSizeT start, CtrSizeT end)
     	{
     		auto size = substream->size();
-    		return substream->sum(0, start, end < size ? end : size);
+    		auto limit = end < size ? end : size;
+    		return limit > start ? substream->sum(0, start, limit) : 0;
     	}
 
 
@@ -404,10 +405,6 @@ private:
     	{
     		if (StreamIdx >= stream_)
     		{
-    			if (DebugCounter == DebugCounter2) {
-    				int a = 0; a++;
-    			}
-
     			constexpr Int SubstreamIdx = Leaf::template StreamStartIdx<StreamIdx>::Value +
     			    						 Leaf::template StreamSize<StreamIdx>::Value - 1;
 

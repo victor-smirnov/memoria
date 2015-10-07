@@ -12,6 +12,7 @@
 #include <memoria/tools/profile_tests.hpp>
 #include <memoria/tools/tools.hpp>
 
+
 #include <memoria/prototypes/bt_tl/bttl_factory.hpp>
 #include <memoria/prototypes/bt_tl/tools/bttl_random_gen.hpp>
 
@@ -23,12 +24,23 @@ namespace memoria {
 
 using namespace std;
 
+
 template <
 	typename ContainerTypeName,
     typename AllocatorType,
 	typename Profile
 >
-class BTTLTestBase: public BTTestBase<ContainerTypeName, AllocatorType, Profile> {
+class BTTLTestBase;
+
+template <
+	Int Levels,
+	PackedSizeType SizeType,
+    typename AllocatorType,
+	typename Profile
+>
+class BTTLTestBase<BTTLTestCtr<Levels, SizeType>, AllocatorType, Profile>: public BTTestBase<BTTLTestCtr<Levels, SizeType>, AllocatorType, Profile> {
+
+	using ContainerTypeName = BTTLTestCtr<Levels, SizeType>;
 
     using MyType = BTTLTestBase<
                 ContainerTypeName,
@@ -53,6 +65,13 @@ protected:
 
     bool dump = false;
 
+    BigInt size 			= 1000000;
+    Int iterations 			= 5;
+	Int level_limit 		= 1000;
+	Int last_level_limit 	= 100;
+
+
+
 public:
 
     BTTLTestBase(StringRef name):
@@ -60,10 +79,42 @@ public:
     {
         Ctr::initMetadata();
 
+        MEMORIA_ADD_TEST_PARAM(size);
+        MEMORIA_ADD_TEST_PARAM(iterations);
         MEMORIA_ADD_TEST_PARAM(dump);
+        MEMORIA_ADD_TEST_PARAM(level_limit);
+        MEMORIA_ADD_TEST_PARAM(last_level_limit);
     }
 
     virtual ~BTTLTestBase() throw() {}
+
+    virtual void smokeCoverage(Int scale)
+    {
+    	size 		= 10000 * scale;
+    	iterations	= 1;
+    }
+
+    virtual void smallCoverage(Int scale)
+    {
+    	size 		= 100000 * scale;
+    	iterations	= 1;
+    }
+
+    virtual void normalCoverage(Int scale)
+    {
+    	size 		= 10000000 * scale;
+    	iterations	= 1;
+    }
+
+    virtual void largeCoverage(Int scale)
+    {
+    	size 		= 100000000 * scale;
+    	iterations	= 10;
+    }
+
+    CtrSizesT sampleTreeShape() {
+    	return sampleTreeShape(level_limit, last_level_limit, size);
+    }
 
     CtrSizesT sampleTreeShape(Int level_limit, Int last_level_limit, CtrSizeT size)
     {
@@ -178,7 +229,7 @@ public:
     		CtrSizeT cnt = 0;
     		if (scan_size == -1) scan_size = 0;
 
-    		auto scanned = iter.template scan<IntList<2>>([&](const auto* obj, Int start, Int end) {
+    		auto scanned = iter.template scan<IntList<Levels - 1>>([&](const auto* obj, Int start, Int end) {
     			if (cnt == 0)
     			{
     				data = obj->value(start);
@@ -223,7 +274,7 @@ public:
     		{
     			auto ranks = ctr.leaf_rank(i.leaf(), sizes, prefix_ranks, c);
 
-    			AssertEQ(MA_SRC, ranks.sum(), c);
+    			AssertEQ(MA_SRC, ranks.sum(), c, SBuf()<<DebugCounter);
 
     			c += this->getRandom(100) + 1;
     		}
