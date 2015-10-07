@@ -46,11 +46,11 @@ class CmdLine {
 
     Int             count_;
 
-    String 			coverage_ = "normal";
-    String 			coverage_size_ = "1";
+    String 			coverage_;
+    String 			coverage_size_;
 
-    String 			soft_memlimit_ = "2G";
-    String 			hard_memlimit_ = "4G";
+    String 			soft_memlimit_;
+    String 			hard_memlimit_;
 
 public:
 

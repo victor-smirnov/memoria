@@ -25,9 +25,11 @@ public:
 
     BTTLTestSuite(): TestSuite("BT.TL")
     {
-    	registerTask(new BTTLCoreTest<BTTLTestCtr<3, PackedSizeType::VARIABLE>>("Create"));
-    	registerTask(new BTTLIterTest<BTTLTestCtr<3, PackedSizeType::VARIABLE>>("Iter"));
-    	registerTask(new BTTLInsertionTest<BTTLTestCtr<3, PackedSizeType::VARIABLE>>("Insert"));
+    	registerTask(new BTTLCoreTest<BTTLTestCtr<3, PackedSizeType::VARIABLE>>("Create.Vr"));
+    	registerTask(new BTTLIterTest<BTTLTestCtr<3, PackedSizeType::VARIABLE>>("Iter.Vr"));
+
+    	registerTask(new BTTLInsertionTest<BTTLTestCtr<3, PackedSizeType::FIXED>>("Insert.Fx"));
+    	registerTask(new BTTLInsertionTest<BTTLTestCtr<3, PackedSizeType::VARIABLE>>("Insert.Vr"));
     }
 };
 

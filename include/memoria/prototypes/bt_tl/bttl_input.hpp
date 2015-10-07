@@ -186,33 +186,20 @@ private:
 	}
 public:
 
-	virtual void prepare(NodeBaseG& leaf, const Position& start)
+	template <typename Iterator>
+	void prepare(Iterator iter, const Position& start)
 	{
-		Iterator iter(this->ctr_);
-		iter.leaf() = leaf;
-		iter.refresh();
+		auto stream = iter.stream();
 
-		for (Int s = 0; s < Streams - 1; s++)
+		for (Int s = stream; s > 0; s--)
 		{
-			if (start[s] > 0)
-			{
-				this->anchors_[s] = start[s] - 1;
-				this->leafs_[s]  = leaf;
-			}
-			else {
-				auto tmp = iter;
-				tmp.stream() = s;
-				tmp.idx() 	 = 0;
+			iter.toIndex();
 
-				if (tmp.skipBw1(1) == 1)
-				{
-					this->anchors_[s] = tmp.idx();
-					this->leafs_[s]  = tmp.leaf();
-				}
-			}
+			auto ss = iter.stream();
+			this->leafs_[ss]  		= iter.leaf();
+			this->anchors_[ss] 		= iter.idx();
 		}
 	}
-
 
 	CtrT& ctr() {return ctr_;}
 	const CtrT& ctr() const {return ctr_;}
@@ -708,40 +695,6 @@ public:
 		return this->ctr_;
 	}
 
-	void prepare(NodeBaseG& leaf, const Position& start) {}
-
-//	void prepare(NodeBaseG& leaf, const Position& start)
-//	{
-//		Iterator iter(this->ctr_);
-//		iter.leaf() = leaf;
-//		iter.refresh();
-//
-//		current_extent_ = iter.leaf_extent();
-//
-//		for (Int s = 0; s < Streams - 1; s++)
-//		{
-//			if (start[s] > 0)
-//			{
-//				this->anchors_[s] 		= start[s] - 1;
-//				this->leafs_[s]  	  	= leaf;
-//				this->leaf_extents_[s] 	= current_extent_;
-//			}
-//			else {
-//				auto tmp = iter;
-//
-//				tmp.stream() = s;
-//				tmp.idx() 	 = 0;
-//
-//				if (tmp.skipBw1() == 1)
-//				{
-//					this->anchors_[s] = tmp.idx();
-//					this->leafs_[s]   = tmp.leaf();
-//
-//					this->leaf_extents_[s] 	= tmp.leaf_extent();
-//				}
-//			}
-//		}
-//	}
 
 	template <typename Iterator>
 	void prepare(Iterator iter, const Position& start)

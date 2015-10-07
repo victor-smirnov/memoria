@@ -229,10 +229,21 @@ void CmdLine::processTests()
         }
     }
 
-    cfg_cmdline_.AddProperty("coverage", coverage_);
-    cfg_cmdline_.AddProperty("coverage_size", coverage_size_);
-    cfg_cmdline_.AddProperty("soft_memlimit", soft_memlimit_);
-    cfg_cmdline_.AddProperty("hard_memlimit", hard_memlimit_);
+    if (coverage_ != "") {
+    	cfg_cmdline_.AddProperty("coverage", coverage_);
+    }
+
+    if (coverage_size_ != "") {
+    	cfg_cmdline_.AddProperty("coverage_size", coverage_size_);
+    }
+
+    if (soft_memlimit_ != "") {
+    	cfg_cmdline_.AddProperty("soft_memlimit", soft_memlimit_);
+    }
+
+    if (hard_memlimit_ != "") {
+    	cfg_cmdline_.AddProperty("hard_memlimit", hard_memlimit_);
+    }
 }
 
 

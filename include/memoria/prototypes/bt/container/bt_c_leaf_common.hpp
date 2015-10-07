@@ -320,8 +320,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
     {
     	auto& self = this->self();
 
-    	provider.prepare(leaf, pos);
-
     	auto last_pos = self.insertDataIntoLeaf(leaf, pos, provider);
 
     	if (provider.hasData())

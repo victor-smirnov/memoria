@@ -50,30 +50,45 @@ struct BTTLTestTypesBase: public BTTypes<Profile, BTTreeLayout> {
 
 
     template <Int Indexes>
-    struct Stream1TF {
+    struct Stream1VariableTF {
         using NonLeafType 	= PkdFTree<Packed2TreeTypes<Key, Key, Indexes + 2>>;
         using LeafType 		= TL<TL<
         	PkdVTree<Packed2TreeTypes<Key, Key, Indexes, UByteI7Codec>>,
 			PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec>>
-
-//        	PkdFTree<Packed2TreeTypes<Key, Key, Indexes>>,
-//			PkdFTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1>>
         >>;
 
         using IdxRangeList 	= TL<TL<TL<IndexRange<0, Indexes>>, TL<IndexRange<0, 1>>>>;
     };
 
-    struct Stream2TF {
+
+    template <Int Indexes>
+    struct Stream1FixedTF {
+        using NonLeafType 	= PkdFTree<Packed2TreeTypes<Key, Key, Indexes + 2>>;
+        using LeafType 		= TL<TL<
+        	PkdFTree<Packed2TreeTypes<Key, Key, Indexes>>,
+			PkdFTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1>>
+        >>;
+
+        using IdxRangeList 	= TL<TL<TL<IndexRange<0, Indexes>>, TL<IndexRange<0, 1>>>>;
+    };
+
+    struct StreamNVariableTF {
         using NonLeafType 	= PkdFTree<Packed2TreeTypes<Key, Key, 2>>;
         using LeafType 		= TL<TL<
 			PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec>>
+        >>;
 
-//        	PkdFTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1>>
+        using IdxRangeList 	= TL<TL<TL<IndexRange<0, 1>>>>;
+    };
+
+    struct StreamNFixedTF {
+        using NonLeafType 	= PkdFTree<Packed2TreeTypes<Key, Key, 2>>;
+        using LeafType 		= TL<TL<
+        	PkdFTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1>>
         >>;
 
         using IdxRangeList 	= TL<TL<TL<IndexRange<0, 1>>>>; //TL<IndexRange<0, Indexes>>,
     };
-
 
     struct DataStreamTF {
     	using NonLeafType 	= PkdFTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1>>;
@@ -82,11 +97,20 @@ struct BTTLTestTypesBase: public BTTypes<Profile, BTTreeLayout> {
     	using IdxRangeList 	= TL<TL<>>;
     };
 
-    using StreamDescriptors = TypeList<
-    		Stream1TF<1>,
-    		Stream2TF,
-    		DataStreamTF
-    >;
+
+    using StreamDescriptors = typename IfThenElse<
+    		SizeType == PackedSizeType::FIXED,
+			MergeLists<
+				Stream1FixedTF<1>,
+				typename MakeList<StreamNFixedTF, Levels - 2>::Type,
+				DataStreamTF
+			>,
+			MergeLists<
+				Stream1VariableTF<1>,
+				typename MakeList<StreamNVariableTF, Levels - 2>::Type,
+				DataStreamTF
+			>
+    >::Result;
 
     using Metadata = BalancedTreeMetadata<
             typename Base::ID,

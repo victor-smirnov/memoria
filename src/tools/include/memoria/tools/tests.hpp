@@ -138,10 +138,14 @@ public:
     {
         configurator_ = cfg;
 
-        String coverage 	= cfg->getValue<String>("coverage", "normal");
+        String coverage 	= cfg->getValue<String>("coverage", "small");
         Int coverage_size	= cfg->getValue<Int>("coverage_size", 1);
 
-        if (coverage == "small")
+        if (coverage == "smoke")
+        {
+        	this->smokeCoverage(coverage_size);
+        }
+        else if (coverage == "small")
         {
         	this->smallCoverage(coverage_size);
         }
@@ -157,13 +161,17 @@ public:
             throw vapi::Exception(MA_SRC, SBuf()<<"Coverage type "+coverage+" is not recognized");
         }
 
-        soft_memlimit_ = cfg->getValue<size_t>("soft_memlimit", 512 * 1024 * 1024);
-        hard_memlimit_ = cfg->getValue<size_t>("hard_memlimit", 1 * 1024 * 1024 * 1024);
+        soft_memlimit_ = cfg->getValue<size_t>("soft_memlimit", static_cast<size_t>(1) * 1024 * 1024 * 1024);
+        hard_memlimit_ = cfg->getValue<size_t>("hard_memlimit", static_cast<size_t>(2) * 1024 * 1024 * 1023);
 
         Process(cfg);
     }
 
     virtual void defaultCoverage(Int size) {}
+
+    virtual void smokeCoverage(Int size) {
+    	defaultCoverage(size);
+    }
 
     virtual void smallCoverage(Int size) {
     	defaultCoverage(size);
