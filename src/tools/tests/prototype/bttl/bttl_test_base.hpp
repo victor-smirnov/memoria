@@ -181,6 +181,12 @@ public:
     	return totals;
     }
 
+    void checkTree(Ctr& ctr)
+    {
+    	auto iter = ctr.seek(0);
+    	this->checkSubtree(iter, ctr.sizes()[0]);
+    }
+
     void checkSubtree(Ctr& ctr, CtrSizeT r)
     {
     	CtrSizesT path(-1);

@@ -40,7 +40,7 @@ public:
 
 	auto operator()(T max)
 	{
-		std::uniform_int_distribution<T> distribution(0, max);
+		std::uniform_int_distribution<T> distribution(0, max > 0 ? max - 1 : 0);
 		return distribution(engine_);
 	}
 

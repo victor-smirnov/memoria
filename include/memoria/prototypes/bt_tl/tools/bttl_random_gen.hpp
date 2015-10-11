@@ -18,9 +18,40 @@ namespace bttl    {
 
 
 
+template <typename CtrT>
+struct BTTLTupleFactory {
+	template <Int StreamIdx>
+	using InputTuple 		= typename CtrT::Types::template StreamInputTuple<StreamIdx>;
+
+	template <Int StreamIdx>
+	using InputTupleAdapter = typename CtrT::Types::template InputTupleAdapter<StreamIdx>;
+
+	using CtrSizeT 			= typename CtrT::CtrSizeT;
+
+	static constexpr Int Streams = CtrT::Types::Streams;
+
+
+	auto populate(StreamTag<0>, CtrSizeT col)
+	{
+		return InputTupleAdapter<0>::convert(IL<BigInt>({0}));
+	}
+
+	template <Int StreamIdx>
+	auto populate(StreamTag<StreamIdx>, CtrSizeT col)
+	{
+		return InputTupleAdapter<StreamIdx>::convert(IL<BigInt>({0}));
+	}
+
+	auto populateLastStream(CtrSizeT prev_col, CtrSizeT col)
+	{
+		return InputTupleAdapter<Streams - 1>::convert(prev_col % 256);
+	}
+};
+
 template <
 	typename CtrT,
-	typename RngT
+	typename RngT,
+	template <typename> class TupleFactory = BTTLTupleFactory
 >
 class RandomDataInputProvider {
 
@@ -49,6 +80,9 @@ private:
 	Int level_ = 0;
 
 	Rng& rng_;
+
+	TupleFactory<CtrT> tuple_factory_;
+
 public:
 	RandomDataInputProvider(const CtrSizesT& limits, Rng& rng, Int level = 0):
 		limits_(limits),
@@ -92,7 +126,12 @@ public:
 	template <typename Buffer>
 	void populate(StreamTag<0>, Buffer&& buffer, CtrSizeT start, CtrSizeT length)
 	{
-		buffer[start] = InputTupleAdapter<0>::convert(IL<BigInt>({2}));
+		auto c0 = counts_[0];
+
+		for (auto c = start; c < start + length; c++, c0++)
+		{
+			buffer[c] = tuple_factory_.populate(StreamTag<0>(), c0);
+		}
 
 		counts_[0] += length;
 		totals_[0] += length;
@@ -101,7 +140,12 @@ public:
 	template <Int StreamIdx, typename Buffer>
 	void populate(StreamTag<StreamIdx>, Buffer&& buffer, CtrSizeT start, CtrSizeT length)
 	{
-		buffer[start] = InputTupleAdapter<StreamIdx>::convert(IL<BigInt>({0}));
+		auto c0 = counts_[StreamIdx];
+
+		for (auto c = start; c < start + length; c++, c0++)
+		{
+			buffer[c] = tuple_factory_.populate(StreamTag<StreamIdx>(), c0);
+		}
 
 		counts_[StreamIdx] += length;
 		totals_[StreamIdx] += length;
@@ -111,9 +155,11 @@ public:
 	void populateLastStream(Buffer&& buffer, CtrSizeT start, CtrSizeT length)
 	{
 		auto col = counts_[Streams - 2];
+		auto c0 = counts_[Streams - 1];
 
-		for (auto c = start; c < start + length; c++) {
-			buffer[c] = InputTupleAdapter<Streams - 1>::convert(col % 256);
+		for (auto c = start; c < start + length; c++, c0++)
+		{
+			buffer[c] = tuple_factory_.populateLastStream(col % 256, c0);
 		}
 
 		counts_[Streams - 1] += length;
@@ -137,7 +183,8 @@ private:
 
 
 template <
-	typename CtrT
+	typename CtrT,
+	template <typename> class TupleFactory = BTTLTupleFactory
 >
 class DeterministicDataInputProvider {
 public:
@@ -157,6 +204,8 @@ private:
 	CtrSizesT totals_;
 
 	Int level_;
+
+	TupleFactory<CtrT> tuple_factory_;
 
 public:
 	DeterministicDataInputProvider(const CtrSizesT& limits, Int level = 0):
@@ -191,7 +240,12 @@ public:
 	template <typename Buffer>
 	void populate(StreamTag<0>, Buffer&& buffer, CtrSizeT start, CtrSizeT length)
 	{
-		buffer[start] = InputTupleAdapter<0>::convert(IL<BigInt>({2}));
+		auto c0 = counts_[0];
+
+		for (auto c = start; c < start + length; c++, c0++)
+		{
+			buffer[c] = tuple_factory_.populate(StreamTag<0>(), c0);
+		}
 
 		counts_[0] += length;
 		totals_[0] += length;
@@ -200,7 +254,12 @@ public:
 	template <Int StreamIdx, typename Buffer>
 	void populate(StreamTag<StreamIdx>, Buffer&& buffer, CtrSizeT start, CtrSizeT length)
 	{
-		buffer[start] = InputTupleAdapter<StreamIdx>::convert(IL<BigInt>({0}));
+		auto c0 = counts_[StreamIdx];
+
+		for (auto c = start; c < start + length; c++, c0++)
+		{
+			buffer[c] = tuple_factory_.populate(StreamTag<StreamIdx>(), c0);
+		}
 
 		counts_[StreamIdx] += length;
 		totals_[StreamIdx] += length;
@@ -210,9 +269,11 @@ public:
 	void populateLastStream(Buffer&& buffer, CtrSizeT start, CtrSizeT length)
 	{
 		auto col = counts_[Streams - 2];
+		auto c0 = counts_[Streams - 1];
 
-		for (auto c = start; c < start + length; c++) {
-			buffer[c] = InputTupleAdapter<Streams - 1>::convert(col % 256);
+		for (auto c = start; c < start + length; c++, c0++)
+		{
+			buffer[c] = tuple_factory_.populateLastStream(col % 256, c0);
 		}
 
 		counts_[Streams - 1] += length;

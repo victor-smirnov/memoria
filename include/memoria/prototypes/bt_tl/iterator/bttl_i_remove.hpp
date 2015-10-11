@@ -57,12 +57,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorRemoveName)
     template <Int Stream>
     using StreamInputTuple = typename Container::Types::template StreamInputTuple<Stream>;
 
-    void remove_subtrees(CtrSizeT n) {
+    Position remove_subtrees(CtrSizeT n) {
     	Accumulator sums;
 
     	self().remove_subtrees(n, sums);
 
-    	cout<<"Sums: "<<sums<<endl;
+    	return Position();
     }
 
     void remove_subtrees(CtrSizeT n, Accumulator& sums)
@@ -71,11 +71,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorRemoveName)
     	auto stream = self.stream();
     	auto tmp 	= self;
 
+    	auto start = self.adjust_to_indel();
+
     	auto start_abs_pos 	 = self.cache().abs_pos();
     	auto start_data_pos  = self.cache().data_pos();
     	auto start_data_size = self.cache().data_size();
-
-    	Position start = self.local_left_margin(stream, self.idx());
 
     	tmp.skipFw(n);
 
@@ -84,7 +84,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorRemoveName)
 
     	auto length_to_remove = end_abs_pos[stream] - start_abs_pos[stream];
 
-    	Position end = tmp.local_left_margin(stream, tmp.idx());
+    	Position end = tmp.adjust_to_indel();
 
     	self.ctr().removeEntries(self.leaf(), start, tmp.leaf(), end, sums, true);
 
@@ -103,14 +103,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorRemoveName)
     	if (stream > 0)
     	{
     		auto tmp2 = self;
-    		tmp2.toIndex();
 
-    		tmp2.dump();
+    		tmp2.toIndex();
 
     		tmp2.add_substream_size(tmp2.stream(), tmp2.idx(), -length_to_remove);
     	}
     }
-
 
 
     // Returns leaf ranks of position idx in the specified
@@ -153,7 +151,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorRemoveName)
 
     	Position ranks;
 
-    	auto sizes = self.leaf_sizes();
+//    	auto sizes = self.leaf_sizes();
+
+//    	auto extent = self.leaf_extent();
 
     	ranks[stream] = idx;
 
@@ -162,7 +162,13 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorRemoveName)
     	for (Int s = stream; s > 0; s--)
     	{
     		parent_idx = self.local_parent_idx(s, parent_idx);
-    		ranks[s - 1] = parent_idx + (sizes[s - 1] > 0 ? 1 : 0);
+
+    		if (parent_idx >= 0) {
+    			ranks[s - 1] = parent_idx + 1;//(sizes[s - 1] > 0 ? 1 : 0);
+    		}
+    		else {
+    			break;
+    		}
     	}
 
     	for (Int s = stream; s < SearchableStreams; s++)

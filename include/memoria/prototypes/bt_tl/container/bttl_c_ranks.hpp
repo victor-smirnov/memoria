@@ -159,6 +159,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
     	{
     		AddToStreamCounter fn;
 
+    		self.updatePageG(node);
+
     		self.process_count_substreams(node, stream, fn, idx, value);
 
     		while (node->parent_id().isSet())
@@ -166,6 +168,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
     			NodeBaseG parent = self.getNodeParentForUpdate(node);
     			Int parent_idx 	 = node->parent_idx();
 
+    			self.updatePageG(parent);
     			self.process_count_substreams(parent, stream, fn, parent_idx, value);
 
     			node = parent;

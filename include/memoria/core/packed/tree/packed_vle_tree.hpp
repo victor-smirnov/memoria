@@ -1062,6 +1062,10 @@ public:
 
         Int room_length = end - start;
 
+        if (room_length < 0) {
+        	int a = 0; a++;
+        }
+
         MEMORIA_ASSERT_TRUE(room_length >= 0);
         MEMORIA_ASSERT(room_length, <= , size - start);
 

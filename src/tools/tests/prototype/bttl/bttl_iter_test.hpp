@@ -96,9 +96,18 @@ public:
 
     			DetInputProvider provider(shape);
 
-    			this->fillCtr(ctr, provider);
+    			auto totals = this->fillCtr(ctr, provider);
 
-    			checkScan(ctr, shape);
+//    			checkScan(ctr, shape);
+//    			this->checkSubtree(ctr, path);
+
+    			for (CtrSizeT r = 0; r < totals[0]; r++)
+    			{
+    				CtrSizesT path(-1);
+    				path[0] = r;
+
+    				this->checkSubtree(ctr, path);
+    			}
 
     			this->out()<<endl;
     		}
@@ -140,55 +149,55 @@ public:
     }
 
 
-    void checkScan(Ctr& ctr, CtrSizesT sizes)
-    {
-    	auto i = ctr.seek(0);
-
-    	CtrSizesT extent;
-
-    	long t2 = getTimeInMillis();
-
-    	auto rows = sizes[0];
-    	auto cols = sizes[1];
-
-    	auto iter = ctr.seek(0);
-    	for (Int r = 0; r < rows; r++)
-    	{
-    		AssertEQ(MA_SRC, iter.pos(), r);
-    		AssertEQ(MA_SRC, iter.cache().abs_pos()[0], r);
-    		AssertEQ(MA_SRC, iter.size(), rows);
-
-    		iter.toData();
-    		iter.checkPrefix();
-
-    		for (Int c = 0; c < cols; c++)
-    		{
-    			AssertEQ(MA_SRC, iter.pos(), c);
-    			AssertEQ(MA_SRC, iter.size(), cols);
-
-    			iter.toData();
-
-    			ScanFn scan_fn((c + 1) % 256);
-    			auto scanned = iter.template scan<IntList<2>>(scan_fn);
-
-    			AssertEQ(MA_SRC, scanned, iter.size());
-
-    			AssertTrue(MA_SRC, iter.isSEnd());
-
-    			iter.toIndex();
-    			iter.skipFw(1);
-    		}
-
-
-    		iter.toIndex();
-
-    		iter.skipFw(1);
-    	}
-
-    	long t3 = getTimeInMillis();
-
-    	this->out()<<"Scan time: "<<FormatTime(t3 - t2)<<endl;
-    }
+//    void checkScan(Ctr& ctr, CtrSizesT sizes)
+//    {
+//    	auto i = ctr.seek(0);
+//
+//    	CtrSizesT extent;
+//
+//    	long t2 = getTimeInMillis();
+//
+//    	auto rows = sizes[0];
+//    	auto cols = sizes[1];
+//
+//    	auto iter = ctr.seek(0);
+//    	for (Int r = 0; r < rows; r++)
+//    	{
+//    		AssertEQ(MA_SRC, iter.pos(), r);
+//    		AssertEQ(MA_SRC, iter.cache().abs_pos()[0], r);
+//    		AssertEQ(MA_SRC, iter.size(), rows);
+//
+//    		iter.toData();
+//    		iter.checkPrefix();
+//
+//    		for (Int c = 0; c < cols; c++)
+//    		{
+//    			AssertEQ(MA_SRC, iter.pos(), c);
+//    			AssertEQ(MA_SRC, iter.size(), cols);
+//
+//    			iter.toData();
+//
+//    			ScanFn scan_fn((c + 1) % 256);
+//    			auto scanned = iter.template scan<IntList<2>>(scan_fn);
+//
+//    			AssertEQ(MA_SRC, scanned, iter.size());
+//
+//    			AssertTrue(MA_SRC, iter.isSEnd());
+//
+//    			iter.toIndex();
+//    			iter.skipFw(1);
+//    		}
+//
+//
+//    		iter.toIndex();
+//
+//    		iter.skipFw(1);
+//    	}
+//
+//    	long t3 = getTimeInMillis();
+//
+//    	this->out()<<"Scan time: "<<FormatTime(t3 - t2)<<endl;
+//    }
 };
 
 }

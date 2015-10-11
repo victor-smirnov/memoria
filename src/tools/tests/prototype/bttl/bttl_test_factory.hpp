@@ -13,9 +13,8 @@
 #include <memoria/tools/tools.hpp>
 
 #include <memoria/prototypes/bt_tl/bttl_factory.hpp>
-#include <memoria/prototypes/bt_tl/tools/bttl_random_gen.hpp>
-
 #include <memoria/core/types/typehash.hpp>
+#include <memoria/prototypes/bt_tl/tools/bttl_random_gen.hpp>
 
 
 #include "bttl_test_tools.hpp"
@@ -49,30 +48,7 @@ struct BTTLTestTypesBase: public BTTypes<Profile, BTTreeLayout> {
     using CtrSizeT = BigInt;
 
 
-    template <Int Indexes>
-    struct Stream1VariableTF {
-        using NonLeafType 	= PkdFTree<Packed2TreeTypes<Key, Key, Indexes + 2>>;
-        using LeafType 		= TL<TL<
-        	PkdVTree<Packed2TreeTypes<Key, Key, Indexes, UByteI7Codec>>,
-			PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec>>
-        >>;
-
-        using IdxRangeList 	= TL<TL<TL<IndexRange<0, Indexes>>, TL<IndexRange<0, 1>>>>;
-    };
-
-
-    template <Int Indexes>
-    struct Stream1FixedTF {
-        using NonLeafType 	= PkdFTree<Packed2TreeTypes<Key, Key, Indexes + 2>>;
-        using LeafType 		= TL<TL<
-        	PkdFTree<Packed2TreeTypes<Key, Key, Indexes>>,
-			PkdFTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1>>
-        >>;
-
-        using IdxRangeList 	= TL<TL<TL<IndexRange<0, Indexes>>, TL<IndexRange<0, 1>>>>;
-    };
-
-    struct StreamNVariableTF {
+    struct StreamVariableTF {
         using NonLeafType 	= PkdFTree<Packed2TreeTypes<Key, Key, 2>>;
         using LeafType 		= TL<TL<
 			PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec>>
@@ -81,13 +57,13 @@ struct BTTLTestTypesBase: public BTTypes<Profile, BTTreeLayout> {
         using IdxRangeList 	= TL<TL<TL<IndexRange<0, 1>>>>;
     };
 
-    struct StreamNFixedTF {
+    struct StreamFixedTF {
         using NonLeafType 	= PkdFTree<Packed2TreeTypes<Key, Key, 2>>;
         using LeafType 		= TL<TL<
         	PkdFTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1>>
         >>;
 
-        using IdxRangeList 	= TL<TL<TL<IndexRange<0, 1>>>>; //TL<IndexRange<0, Indexes>>,
+        using IdxRangeList 	= TL<TL<TL<IndexRange<0, 1>>>>;
     };
 
     struct DataStreamTF {
@@ -101,13 +77,11 @@ struct BTTLTestTypesBase: public BTTypes<Profile, BTTreeLayout> {
     using StreamDescriptors = typename IfThenElse<
     		SizeType == PackedSizeType::FIXED,
 			MergeLists<
-				Stream1FixedTF<1>,
-				typename MakeList<StreamNFixedTF, Levels - 2>::Type,
+				typename MakeList<StreamFixedTF, Levels - 1>::Type,
 				DataStreamTF
 			>,
 			MergeLists<
-				Stream1VariableTF<1>,
-				typename MakeList<StreamNVariableTF, Levels - 2>::Type,
+				typename MakeList<StreamVariableTF, Levels - 1>::Type,
 				DataStreamTF
 			>
     >::Result;

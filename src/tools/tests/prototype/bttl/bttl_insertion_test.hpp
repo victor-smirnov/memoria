@@ -270,7 +270,7 @@ public:
             	{
             		if (insertion_pos_[s - 1] < path_sizes[s - 1])
             		{
-            			auto local_size = iter.size();
+            			auto local_size = iter.substream_size();
 
             			if (local_size > 0)
             			{

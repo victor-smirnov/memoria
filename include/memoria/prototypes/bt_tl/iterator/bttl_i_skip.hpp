@@ -264,12 +264,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
 
     	Int excess = self.prefix_excess(stream);
 
-    	if (idx > excess)
+    	if (idx >= excess)
     	{
     		return self.find_offset(stream - 1, idx - excess);
     	}
     	else {
-    		return 0;
+    		return -1;
     	}
     }
 
@@ -335,8 +335,164 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
 
 
 
+    Position adjust_to_indel()
+    {
+    	auto& self = this->self();
+    	auto& cache = this->cache();
+
+    	auto size = self.size();
+    	auto pos  = self.pos();
+
+    	auto idx 		= self.idx();
+    	auto stream		= self.stream();
+
+    	if (idx > 0 || pos < size || stream == 0)
+    	{
+    		return self._local_stream_pos_rank(stream, idx);
+    	}
+    	else {
+    		auto abs_pos0 			 = cache.abs_pos()[stream];
+    		auto abs_pos 			 = cache.abs_pos()[stream - 1];
+    		auto abs_pos_leaf_prefix = cache.size_prefix()[stream - 1];
+
+    		auto local_pos 		 	 = abs_pos - abs_pos_leaf_prefix;
+
+    		if (local_pos < -1)
+    		{
+    			self._to_index(-1);
+    			return self._local_stream_pos_rank2(abs_pos0);
+    		}
+    		else {
+    			return self._local_stream_pos_rank(stream, idx);
+    		}
+    	}
+    }
+
+
+
 // Internal API
 
+private:
+
+    void _to_index(CtrSizeT d)
+    {
+    	auto& self  = this->self();
+    	auto& cache = self.cache();
+
+    	auto& stream = self.stream();
+
+    	auto& idx = self.idx();
+
+    	if (stream > 0)
+    	{
+    		auto parent_idx = cache.abs_pos()[stream - 1];
+    		auto idx_prefix = cache.size_prefix()[stream - 1];
+
+    		cache.data_pos()[stream] 	= -1;
+    		cache.data_size()[stream] 	= -1;
+    		cache.abs_pos()[stream] 	= -1;
+
+    		stream--;
+    		idx = 0;
+
+    		if (parent_idx >= idx_prefix)
+    		{
+    			auto offset = parent_idx - idx_prefix;
+
+    			cache.data_pos()[stream] -= offset;
+
+    			self.skipFw(offset);
+    		}
+    		else {
+    			auto delta = cache.size_prefix()[stream] - cache.abs_pos()[stream];
+
+    			cache.data_pos()[stream] += (delta + d);
+    			self.skipBw(delta + d);
+    		}
+    	}
+    }
+
+
+    Position _local_stream_pos_rank(Int stream, Int idx)
+    {
+    	auto& self = this->self();
+    	auto& cache = self.cache();
+
+    	Position ranks;
+
+    	ranks[stream] = idx;
+
+    	for (Int s = stream - 1; s >= 0; s--)
+    	{
+    		auto abs_pos 			 = cache.abs_pos()[s];
+    		auto abs_pos_leaf_prefix = cache.size_prefix()[s];
+
+    		auto pos = abs_pos - abs_pos_leaf_prefix;
+
+    		if (pos >= 0)
+    		{
+    			ranks[s] = pos + 1;
+    		}
+    		else {
+    			ranks[s] = 0;
+    		}
+    	}
+
+
+    	for (Int s = stream; s < SearchableStreams; s++)
+    	{
+    		ranks[s + 1] = self.local_child_idx(s, ranks[s]);
+    	}
+
+    	return ranks;
+    }
+
+    Position _local_stream_pos_rank2(CtrSizeT abs_pos)
+    {
+    	auto& self = this->self();
+    	auto& cache = self.cache();
+
+    	auto stream = self.stream();
+    	auto idx 	= self.idx();
+
+    	Position ranks;
+    	ranks[stream] = idx;
+
+    	for (Int s = stream - 1; s >= 0; s--)
+    	{
+    		auto abs_pos = cache.abs_pos()[s];
+    		auto abs_pos_leaf_prefix = cache.size_prefix()[s];
+
+    		auto pos = abs_pos - abs_pos_leaf_prefix;
+
+    		if (pos >= 0)
+    		{
+    			ranks[s] = pos + 1;
+    		}
+    		else {
+    			ranks[s] = 0;
+    		}
+    	}
+
+    	auto sizes = self.leaf_sizes();
+
+    	for (Int s = stream + 1; s < Streams; s++)
+    	{
+    		ranks[s] = sizes[s];
+    	}
+
+    	self.stream()++;
+
+    	auto stream_pp = self.stream();
+
+    	self.idx() = sizes[stream_pp];
+    	cache.data_pos()[stream_pp] = 0;
+    	cache.abs_pos()[stream_pp] 	= abs_pos;
+
+    	return ranks;
+    }
+
+public:
 
 
 
