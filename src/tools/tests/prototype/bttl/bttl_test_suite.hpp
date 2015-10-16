@@ -44,24 +44,24 @@ public:
 //    	registerTask(new BTTLIterTest<BTTLTestCtr<4, PackedSizeType::VARIABLE>>("Iter.Vr.4"));
 //    	registerTask(new BTTLIterTest<BTTLTestCtr<4, PackedSizeType::FIXED>>("Iter.Fx.4"));
 //
-    	registerTask(new BTTLInsertionTest<BTTLTestCtr<2, PackedSizeType::FIXED>>("Insert.Fx.2"));
-    	registerTask(new BTTLInsertionTest<BTTLTestCtr<2, PackedSizeType::VARIABLE>>("Insert.Vr.2"));
-
-    	registerTask(new BTTLInsertionTest<BTTLTestCtr<3, PackedSizeType::FIXED>>("Insert.Fx.3"));
-    	registerTask(new BTTLInsertionTest<BTTLTestCtr<3, PackedSizeType::VARIABLE>>("Insert.Vr.3"));
-
-    	registerTask(new BTTLInsertionTest<BTTLTestCtr<4, PackedSizeType::FIXED>>("Insert.Fx.4"));
-    	registerTask(new BTTLInsertionTest<BTTLTestCtr<4, PackedSizeType::VARIABLE>>("Insert.Vr.4"));
-
-
-//    	registerTask(new BTTLRemovalTest<BTTLTestCtr<2, PackedSizeType::VARIABLE>>("Remove.Vr.2"));
-//    	registerTask(new BTTLRemovalTest<BTTLTestCtr<2, PackedSizeType::FIXED>>("Remove.Fx.2"));
+//    	registerTask(new BTTLInsertionTest<BTTLTestCtr<2, PackedSizeType::FIXED>>("Insert.Fx.2"));
+//    	registerTask(new BTTLInsertionTest<BTTLTestCtr<2, PackedSizeType::VARIABLE>>("Insert.Vr.2"));
 //
-//    	registerTask(new BTTLRemovalTest<BTTLTestCtr<3, PackedSizeType::VARIABLE>>("Remove.Vr.3"));
-//    	registerTask(new BTTLRemovalTest<BTTLTestCtr<3, PackedSizeType::FIXED>>("Remove.Fx.3"));
+//    	registerTask(new BTTLInsertionTest<BTTLTestCtr<3, PackedSizeType::FIXED>>("Insert.Fx.3"));
+//    	registerTask(new BTTLInsertionTest<BTTLTestCtr<3, PackedSizeType::VARIABLE>>("Insert.Vr.3"));
 //
-//    	registerTask(new BTTLRemovalTest<BTTLTestCtr<4, PackedSizeType::VARIABLE>>("Remove.Vr.4"));
-//    	registerTask(new BTTLRemovalTest<BTTLTestCtr<4, PackedSizeType::FIXED>>("Remove.Fx.4"));
+//    	registerTask(new BTTLInsertionTest<BTTLTestCtr<4, PackedSizeType::FIXED>>("Insert.Fx.4"));
+//    	registerTask(new BTTLInsertionTest<BTTLTestCtr<4, PackedSizeType::VARIABLE>>("Insert.Vr.4"));
+
+
+    	registerTask(new BTTLRemovalTest<BTTLTestCtr<2, PackedSizeType::VARIABLE>>("Remove.Vr.2"));
+    	registerTask(new BTTLRemovalTest<BTTLTestCtr<2, PackedSizeType::FIXED>>("Remove.Fx.2"));
+
+    	registerTask(new BTTLRemovalTest<BTTLTestCtr<3, PackedSizeType::VARIABLE>>("Remove.Vr.3"));
+    	registerTask(new BTTLRemovalTest<BTTLTestCtr<3, PackedSizeType::FIXED>>("Remove.Fx.3"));
+
+    	registerTask(new BTTLRemovalTest<BTTLTestCtr<4, PackedSizeType::VARIABLE>>("Remove.Vr.4"));
+    	registerTask(new BTTLRemovalTest<BTTLTestCtr<4, PackedSizeType::FIXED>>("Remove.Fx.4"));
     }
 };
 

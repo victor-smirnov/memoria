@@ -34,7 +34,7 @@ struct NullPtrFunctor {
     template <typename Value>
     void operator()(Value& val)
     {
-        val = NULL;
+        val = nullptr;
     }
 };
 
@@ -127,6 +127,10 @@ public:
 
     Int getSize() const {
         return size_;
+    }
+
+    Int size() const {
+    	return size_;
     }
 
     Int capacity() const {
