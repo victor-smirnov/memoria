@@ -13,6 +13,7 @@
 #include <memoria/core/tools/optional.hpp>
 #include <memoria/core/tools/cow_tree/cow_tree_node.hpp>
 #include <memoria/core/tools/cow_tree/cow_tree_iterator.hpp>
+#include <memoria/core/tools/cow_tree/cow_tree_txn.hpp>
 
 #include <vector>
 
@@ -24,41 +25,130 @@ namespace memoria 	{
 namespace cow 		{
 namespace tree 		{
 
+class InvalidUpdateException: public std::exception {
+public:
+	virtual const char* what() const noexcept {
+		return "Invalid snapshot update";
+	}
+};
+
+template <typename NodeBase, typename Tree>
+class TxnData {
+	NodeBase* root_ = nullptr;
+
+	Int refs_ = 0;
+
+	Tree* tree_;
+
+public:
+	using NodeBaseT = NodeBase;
+
+	TxnData(NodeBase* root, Tree* tree): root_(root), tree_(tree) {}
+
+	NodeBase* root() {
+		return root_;
+	}
+
+	const NodeBase* root() const {
+		return root_;
+	}
+
+	void set_root(NodeBase* root) {
+		root_ = root;
+	}
+
+	BigInt txn_id() const {
+		return root_->txn_id();
+	}
+
+	void commit() {
+		tree_->commit_txn(this);
+	}
+
+	void rollback() {
+		tree_->rollback_txn(this);
+	}
+
+	void ref() {
+		refs_++;
+	}
+
+	void unref() {
+		--refs_;
+	}
+};
+
 template <typename Key, typename Value>
 class CoWTree {
 
 	static constexpr Int NodeIndexSize 	= 32;
 	static constexpr Int NodeSize 		= NodeIndexSize * 8;
 
+	using MyType 		= CoWTree<Key, Value>;
 
 	using LeafNodeT 	= LeafNode<Key, Value, NodeSize, NodeIndexSize>;
 	using BranchNodeT 	= BranchNode<Key, NodeSize, NodeIndexSize>;
 	using NodeBaseT 	= typename BranchNodeT::NodeBaseT;
 
-	using Iterator		= CoWTreeIterator<NodeBaseT, BranchNodeT, LeafNodeT>;
-	using Path			= typename Iterator::Path;
+	using TxnDataT		= TxnData<NodeBaseT, MyType>;
+	using TxnLogT		= TxnLog<NodeBaseT>;
+	using SnapshotT		= typename TxnLogT::SnapshotT;
+	using TransactionT	= Transaction<TxnDataT>;
 
-	NodeBaseT* current_root_;
+
+	using Iterator			= CoWTreeIterator<BranchNodeT, LeafNodeT>;
+	using ConstIterator		= CoWTreeConstIterator<BranchNodeT, LeafNodeT>;
+	using Path				= typename Iterator::Path;
+
+	TxnDataT txn_data_;
 
 	BigInt txn_id_counter_  = 0;
 	BigInt node_id_counter_ = 0;
 
-	BigInt current_txn_id_;
+	std::recursive_mutex lock_;
 
-	std::vector<NodeBaseT*> roots_;
+	TxnLogT txn_log_;
+
+	template <typename, typename> friend class TxnData;
 
 public:
-	CoWTree() {
-		current_root_ = create_leaf_node();
-	}
-
-	BigInt size() const {
-		return current_root_->metadata().size();
-	}
-
-	void assign(const Key& key, const Value& value)
+	CoWTree(): txn_data_(nullptr, this), lock_(), txn_log_()
 	{
-		Iterator iter = this->locate(current_root_, key);
+	}
+
+	SnapshotT snapshot()
+	{
+		return txn_log_.snapshot();
+	}
+
+	TransactionT transaction()
+	{
+		// lock container
+
+		if (txn_log_.size() > 0)
+		{
+			txn_data_ = clone_last_tx();
+		}
+		else {
+			txn_data_ = create_new_tx();
+		}
+
+		return TransactionT(txn_data_);
+	}
+
+	BigInt size(const TransactionT& txn) const
+	{
+		return txn.root()->metadata().size();
+	}
+
+	BigInt size(const SnapshotT& txn) const
+	{
+		return txn.root()->metadata().size();
+	}
+
+	void assign(TransactionT& txn, const Key& key, const Value& value)
+	{
+		auto iter = this->template locate<Iterator>(txn.root(), key);
 
 		if (!iter.is_end() && iter.key() == key)
 		{
@@ -69,9 +159,9 @@ public:
 		}
 	}
 
-	bool remove(const Key& key)
+	bool remove(TransactionT& txn, const Key& key)
 	{
-		Iterator iter = this->locate(current_root_, key);
+		auto iter = this->template locate<Iterator>(txn.root(), key);
 
 		if (!iter.is_end())
 		{
@@ -83,39 +173,56 @@ public:
 		}
 	}
 
-	Iterator locate(const Key& key) const {
-		return this->locate(current_root_, key);
+	auto locate(TransactionT& txn, const Key& key) const {
+		return this->template locate<Iterator>(txn.root(), key);
 	}
 
-	Iterator begin() const {
-		return this->locate_begin(current_root_);
+	auto locate(SnapshotT& txn, const Key& key) const {
+		return this->template locate<ConstIterator>(txn.root(), key);
 	}
 
-	Iterator rbegin() const
+	auto begin(SnapshotT& txn) const {
+		return this->template locate_begin<ConstIterator>(txn.root());
+	}
+
+	auto begin(TransactionT& txn) const {
+		return this->template locate_begin<Iterator>(txn.root());
+	}
+
+	template <typename TxnT>
+	auto rbegin(TxnT& txn) const
 	{
-		auto iter = this->end();
-
+		auto iter = this->end(txn);
 		iter--;
-
 		return iter;
 	}
 
-	Iterator end() const {
-		return this->locate_end(current_root_);
+
+
+	auto end(TransactionT& txn) const {
+		return this->template locate_end<Iterator>(txn.root());
 	}
 
-	Iterator rend() const
-	{
-		auto iter = this->begin();
-		iter--;
+	auto end(SnapshotT& txn) const {
+		return this->template locate_end<ConstIterator>(txn.root());
+	}
 
+	template <typename TxnT>
+	auto rend(TxnT& txn) const
+	{
+		auto iter = this->begin(txn);
+		iter--;
 		return iter;
 	}
 
-	Optional<Value>
-	find(BigInt txn, const Key& key) const
+	Optional<Value> find(TransactionT& txn, const Key& key) const
 	{
-		return this->find_value_in(current_root_, key);
+		return this->find_value_in(txn.root(), key);
+	}
+
+	Optional<Value> find(SnapshotT& txn, const Key& key) const
+	{
+		return this->find_value_in(txn.root(), key);
 	}
 
 	static BranchNodeT* to_branch_node(NodeBaseT* node) {
@@ -134,10 +241,33 @@ public:
 		return static_cast<const LeafNodeT*>(node);
 	}
 
+	void dump(const NodeBaseT* node, std::ostream& out = std::cout) const
+	{
+		if (node->is_leaf())
+		{
+			to_leaf_node(node)->dump(out);
+		}
+		else {
+			to_branch_node(node)->dump(out);
+		}
+	}
+
+	void dump_log(std::ostream& out = std::cout) const
+	{
+		txn_log_.dump(out);
+	}
+
 protected:
 
-	Optional<Value>
-	find_value_in(const NodeBaseT* node, const Key& key) const
+	void assert_current_txn(const NodeBaseT* node)
+	{
+		if (node->txn_id() != txn_data_.txn_id())
+		{
+			throw InvalidUpdateException();
+		}
+	}
+
+	Optional<Value> find_value_in(const NodeBaseT* node, const Key& key) const
 	{
 		while (node->is_branch())
 		{
@@ -158,10 +288,10 @@ protected:
 		}
 	}
 
-	Iterator
-	locate(NodeBaseT* node, const Key& key) const
+	template <typename IterT>
+	IterT locate(NodeBaseT* node, const Key& key) const
 	{
-		Iterator iter;
+		IterT iter;
 
 		iter.path().insert(0, node);
 
@@ -182,11 +312,10 @@ protected:
 		return iter;
 	}
 
-
-	Iterator
-	locate_begin(NodeBaseT* node) const
+	template <typename IterT>
+	IterT locate_begin(NodeBaseT* node) const
 	{
-		Iterator iter;
+		IterT iter;
 
 		iter.path().insert(0, node);
 
@@ -203,10 +332,10 @@ protected:
 		return iter;
 	}
 
-	Iterator
-	locate_end(NodeBaseT* node) const
+	template <typename IterT>
+	IterT locate_end(NodeBaseT* node) const
 	{
-		Iterator iter;
+		IterT iter;
 
 		iter.path().insert(0, node);
 
@@ -224,8 +353,40 @@ protected:
 		return iter;
 	}
 
+	void update_path(Path& path, Int level = 0)
+	{
+		if (level < path.size() - 1)
+		{
+			NodeBaseT* node = path[level];
+
+			if (node->txn_id() < txn_data_.txn_id())
+			{
+				BranchNodeT* parent = to_branch_node(path[level + 1]);
+				if (parent->txn_id() != txn_data_.txn_id())
+				{
+					update_path(path, level + 1);
+
+					parent = to_branch_node(path[level + 1]);
+				}
+
+				Int parent_idx = parent->find_child_node(node);
+
+				NodeBaseT* clone = clone_node(node);
+
+				parent->data(parent_idx)->unref();
+				parent->data(parent_idx) = clone;
+
+				clone->ref();
+
+				path[level] = clone;
+			}
+		}
+	}
+
 	void insert_to(Iterator& iter, const Key& key, const Value& value)
 	{
+		update_path(iter.path());
+
 		if (iter.leaf()->has_space())
 		{
 			iter.leaf()->insert(iter.idx(), key, value);
@@ -246,18 +407,20 @@ protected:
 			update_keys_up(iter.path(), iter.idx(), 0);
 		}
 
-		current_root_->metadata().add_size(1);
+		txn_data_.root()->metadata().add_size(1);
 	}
 
 	void remove_from(Iterator& iter)
 	{
+		update_path(iter.path());
+
 		LeafNodeT* leaf = iter.leaf();
 
 		leaf->remove(iter.idx(), iter.idx() + 1);
 
 		update_keys_up(iter.path(), iter.idx(), 0);
 
-		current_root_->metadata().add_size(-1);
+		txn_data_.root()->metadata().add_size(-1);
 
 		if (leaf->should_merge())
 		{
@@ -289,19 +452,44 @@ protected:
 		}
 	}
 
+	void remove_snapshot(NodeBaseT* node)
+	{
+		if (node->is_branch())
+		{
+			BranchNodeT* branch = to_branch_node(node);
+
+			for (Int c = 0; c < branch->size(); c++)
+			{
+				NodeBaseT* child = branch->data(c);
+				if (child->refs() <= 1)
+				{
+					remove_snapshot(child);
+					remove_node(child);
+				}
+
+			}
+		}
+	}
+
+	void insert_child_node(BranchNodeT* node, Int idx, NodeBaseT* child)
+	{
+		node->insert(idx, child->max_key(), child);
+		child->ref();
+	}
+
 	void split_path(Path& path, Path& next, Int level = 0)
 	{
 		NodeBaseT* node = path[level];
 
 		Int split_at = node->size() / 2;
 
-		NodeBaseT* right = create_node(level);
+		NodeBaseT* right = create_node(level, txn_data_.txn_id());
 		split_node(node, split_at, right);
 
 		if (level < path.size() - 1)
 		{
 			BranchNodeT* parent = to_branch_node(path[level + 1]);
-			Int parent_idx = parent->find_child_node(node);
+			Int parent_idx 		= parent->find_child_node(node);
 
 			parent->key(parent_idx) = node->max_key();
 			parent->reindex();
@@ -309,7 +497,8 @@ protected:
 
 			if (parent->has_space())
 			{
-				parent->insert(parent_idx + 1, right->max_key(), right);
+				insert_child_node(parent, parent_idx + 1, right);
+
 				update_keys_up(path, parent_idx + 1, level + 1);
 
 				next[level] = right;
@@ -321,16 +510,18 @@ protected:
 				{
 					path[level + 1] = next[level + 1];
 
-					Int next_parent_idx	= parent_idx - parent->size();
+					Int next_parent_idx		 = parent_idx - parent->size();
 					BranchNodeT* next_parent = to_branch_node(next[level + 1]);
 
-					next_parent->insert(next_parent_idx + 1, right->max_key(), right);
+					insert_child_node(next_parent, next_parent_idx + 1, right);
+
 					update_keys_up(next, next_parent_idx + 1, level + 1);
 				}
 				else {
 					next[level + 1] = path[level + 1];
 
-					parent->insert(parent_idx + 1, right->max_key(), right);
+					insert_child_node(parent, parent_idx + 1, right);
+
 					update_keys_up(path, parent_idx + 1, level + 1);
 				}
 
@@ -339,18 +530,18 @@ protected:
 		}
 		else
 		{
-			BranchNodeT* new_root = create_branch_node();
-			new_root->metadata() = current_root_->metadata();
+			BranchNodeT* new_root = create_branch_node(txn_data_.txn_id());
+			new_root->metadata() = txn_data_.root()->metadata();
 
-			new_root->insert(0, node->max_key(), node);
-			new_root->insert(1, node->max_key(), right);
+			insert_child_node(new_root, 0, node);
+			insert_child_node(new_root, 1, right);
 
 			path.insert(path.size(), new_root);
 			next.insert(path.size(), new_root);
 
 			next[level] = right;
 
-			this->current_root_ = new_root;
+			txn_data_.set_root(new_root);
 		}
 	}
 
@@ -398,6 +589,7 @@ protected:
 		}
 	}
 
+
 	void merge_paths(Path& path, Path& next, Int level = 0)
 	{
 		if (path[level + 1] != next[level + 1])
@@ -414,18 +606,19 @@ protected:
 		merge_from(node, right);
 		parent->key(parent_idx) = node->max_key();
 
-		parent->remove(parent_idx + 1, parent_idx + 2);
+		parent->remove(parent_idx + 1);
 
 		update_keys_up(path, parent_idx, level + 1);
 
-		if (parent == current_root_ && parent->size() == 1)
+		if (parent == txn_data_.root() && parent->size() == 1)
 		{
 			path.remove(path.size() - 1);
 			next.remove(path.size() - 1);
 
-			node->metadata() = current_root_->metadata();
+			node->metadata() = txn_data_.root()->metadata();
 
-			current_root_ = node;
+			txn_data_.set_root(node);
+			node->unref();
 		}
 
 		next[level] = node;
@@ -436,24 +629,114 @@ protected:
 		return ++txn_id_counter_;
 	}
 
+	void ref_children(BranchNodeT* node, BigInt txn_id)
+	{
+		for (Int c = 0; c < node->size(); c++)
+		{
+			NodeBaseT* child = node->data(c);
+
+			if (child->txn_id() < txn_id)
+			{
+				child->ref();
+			}
+		}
+	}
+
+//	void unref_children(BranchNodeT* node, BigInt txn_id) {
+//		unref_children(node, 0, node->size(), txn_id);
+//	}
+//
+//	void unref_children(BranchNodeT* node, Int start, Int end, BigInt txn_id)
+//	{
+//		for (Int c = start; c < end; c++)
+//		{
+//			NodeBaseT* child = node->data(c);
+//
+//			if (child->txn_id() < txn_id)
+//			{
+//				child->unref();
+//			}
+//		}
+//	}
+
+	NodeBaseT* create_node(Int level, BigInt txn_id)
+	{
+		if (level == 0) {
+			return create_leaf_node(txn_id);
+		}
+		else {
+			return create_branch_node(txn_id);
+		}
+	}
+
 	NodeBaseT* create_node(Int level)
 	{
 		if (level == 0) {
-			return create_leaf_node();
+			return create_leaf_node(txn_data_.txn_id());
 		}
 		else {
-			return create_branch_node();
+			return create_branch_node(txn_data_.txn_id());
 		}
 	}
 
-	BranchNodeT* create_branch_node()
+	NodeBaseT* clone_node(NodeBaseT* node, BigInt txn_id)
 	{
-		return new BranchNodeT(current_txn_id_, ++node_id_counter_);
+		if (node->is_leaf()) {
+			return clone_leaf_node(to_leaf_node(node), txn_id);
+		}
+		else {
+			return clone_branch_node(to_branch_node(node), txn_id);
+		}
 	}
 
-	LeafNodeT* create_leaf_node()
+	NodeBaseT* clone_node(NodeBaseT* node)
 	{
-		return new LeafNodeT(current_txn_id_, ++node_id_counter_);
+		if (node->is_leaf()) {
+			return clone_leaf_node(to_leaf_node(node), txn_data_.txn_id());
+		}
+		else {
+			return clone_branch_node(to_branch_node(node), txn_data_.txn_id());
+		}
+	}
+
+	BranchNodeT* create_branch_node(BigInt txn_id)
+	{
+		return new BranchNodeT(txn_id, ++node_id_counter_);
+	}
+
+	BranchNodeT* clone_branch_node(BranchNodeT* node, BigInt txn_id)
+	{
+		BranchNodeT* clone = clone_node_t(node, txn_id);
+
+		ref_children(node, txn_id);
+
+		return clone;
+	}
+
+	LeafNodeT* create_leaf_node(BigInt txn_id)
+	{
+		return new LeafNodeT(txn_id, ++node_id_counter_);
+	}
+
+	LeafNodeT* clone_leaf_node(LeafNodeT* node, BigInt txn_id)
+	{
+		return clone_node_t(node, txn_id);
+	}
+
+	template <typename NodeT>
+	NodeT* clone_node_t(NodeT* node, BigInt txn_id)
+	{
+		BigInt node_id = ++node_id_counter_;
+
+		NodeT* new_node = new NodeT(txn_id, node_id);
+
+		CopyBuffer(node, new_node, 1);
+
+		new_node->set_txn_id(txn_id);
+		new_node->set_node_id(node_id);
+		new_node->clear_refs();
+
+		return new_node;
 	}
 
 	void remove_node(NodeBaseT* node) const
@@ -461,18 +744,27 @@ protected:
 		delete node;
 	}
 
-	void dump(const NodeBaseT* node, std::ostream& out = std::cout) const
-	{
-		if (node->is_leaf())
-		{
-			to_leaf_node(node)->dump(out);
-		}
-		else {
-			to_branch_node(node)->dump(out);
-		}
-	}
+
 
 private:
+
+	TxnDataT clone_last_tx()
+	{
+		BigInt current_txn_id = new_txn_id();
+
+		NodeBaseT* root = txn_log_.front().root();
+
+		NodeBaseT* new_root = clone_node(root, current_txn_id);
+
+		return TxnDataT(new_root, this);
+	}
+
+	TxnDataT create_new_tx()
+	{
+		BigInt txn_id = new_txn_id();
+		return TxnDataT(create_leaf_node(txn_id), this);
+	}
+
 	void split_node(NodeBaseT* node, Int split_idx, NodeBaseT* to) const
 	{
 		if (node->is_leaf())
@@ -495,6 +787,19 @@ private:
 		}
 
 		remove_node(to);
+	}
+
+	void commit_txn(TxnDataT* data)
+	{
+		txn_log_.new_entry(data->root());
+
+		txn_data_ = TxnDataT(nullptr, this);
+	}
+
+	void rollback_txn(TxnDataT* data)
+	{
+		remove_snapshot(data->root());
+		txn_data_ = TxnDataT(nullptr, this);
 	}
 };
 

@@ -18,13 +18,13 @@ int main(int argc, const char** argv, const char** envp)
 {
 	CoWTree<BigInt, BigInt> tree;
 
-	Int size = 3000000;
+	Int size = 1000;
 
 	vector<BigInt> keys(size);
 
 	BigInt tr0 = getTimeInMillis();
 
-//	SeedBI(0xaa123bb213ce);
+	SeedBI(0xaa123bb213ce);
 
 	for (auto& k: keys)
 	{
@@ -35,46 +35,66 @@ int main(int argc, const char** argv, const char** envp)
 
 	BigInt t0 = getTimeInMillis();
 
+	auto txn = tree.transaction();
+
 	for (int c = 0; c < size; c++)
 	{
-		tree.assign(keys[c], c);
+		tree.assign(txn, keys[c], c);
 	}
 
 	cout<<"Tree created in: "<<FormatTime(getTimeInMillis() - t0)<<endl;
+	cout<<keys.size()<<" "<<tree.size(txn)<<endl;
+	txn.commit();
 
-	cout<<keys.size()<<" "<<tree.size()<<endl;
+	tree.dump_log();
+
+	auto txn2 = tree.transaction();
+
+	tree.assign(txn, 555, 333);
+
+	cout<<"Txn2: "<<tree.find(txn2, 555)<<endl;
+
+	tree.locate(txn2, 555).dumpPath();
+
+	txn2.commit();
+
+	tree.dump_log();
+
+/*
+	long tf0 = getTimeInMillis();
+
+	long finds = 0;
 
 	for (Int c = 0; c < size; c++)
 	{
 		auto key = keys[c];
 
-		auto op = tree.find(0, key + 1);
+		auto op = tree.find(txn, key + 1);
 
-		if (op) {
-			cout<<"False found! "<<key<<" "<<op<<endl;
-		}
+		finds += op;
 	}
+
+
+	long tf1 = getTimeInMillis();
 
 	for (Int c = 0; c < size; c++)
 	{
 		auto key = keys[c];
 
-		auto op = tree.find(0, key);
+		auto op = tree.find(txn, key);
 
-		if (op) {
-			if (op.value() != c)
-			{
-				cout<<"Incorrect key: "<<op.value()<<" "<<c<<endl;
-			}
-		}
-		else {
-			cout<<"Not found! "<<key<<endl;
-		}
+		finds += op;
 	}
+
+	long tf2 = getTimeInMillis();
+
+	cout<<"Find time: "<<FormatTime(tf1-tf0)<<" -- "<<FormatTime(tf2-tf1)<<" finds="<<finds<<endl;
+
+
 
 
 	Int cnt = 0;
-	for (auto iter = tree.begin(); !iter.is_end(); iter++)
+	for (auto iter = tree.begin(txn); !iter.is_end(); iter++)
 	{
 		cnt++;
 	}
@@ -83,32 +103,104 @@ int main(int argc, const char** argv, const char** envp)
 
 	cnt = 0;
 
-	for (auto iter = tree.rbegin(); !iter.is_start(); iter--)
+	for (auto iter = tree.rbegin(txn); !iter.is_start(); iter--)
 	{
 		cnt++;
 	}
 
 	cout<<"BW Cnt = "<<cnt<<endl;
-
-	long td0 = getTimeInMillis();
-
-	for (const auto& k: keys)
-	{
-		if (tree.remove(k))
-		{
-//			cout<<"Removed "<<k<<endl;
-		}
-		else {
-			cout<<"Didn't remove "<<k<<endl;
-		}
-
-	}
-
-	cout<<"After insertion = "<<tree.size()<<", time = "<<FormatTime(getTimeInMillis() - td0)<<endl;
-
-
-//	for (auto iter = tree.rbegin(); !iter.is_start(); iter--)
+*/
+//	long td0 = getTimeInMillis();
+//
+//
+//	for (const auto& k: keys)
 //	{
-//		cout<<"Iter: "<<iter.idx()<<": "<<iter.key()<<" = "<<iter.value()<<endl;
+//		if (tree.remove(txn, k))
+//		{
+//			//			cout<<"Removed "<<k<<endl;
+//		}
+//		else {
+//			cout<<"Didn't remove "<<k<<endl;
+//		}
+//
 //	}
+//
+//	cout<<"After insertion = "<<tree.size(txn)<<", time = "<<FormatTime(getTimeInMillis() - td0)<<endl;
+
+
+//	auto sn = tree.snapshot();
+//
+//
+//	cout<<keys.size()<<" "<<tree.size(sn)<<endl;
+//
+//	long tf0 = getTimeInMillis();
+//
+//	long finds = 0;
+//
+//	for (Int c = 0; c < size; c++)
+//	{
+//		auto key = keys[c];
+//
+//		auto op = tree.find(sn, key + 1);
+//
+//		finds += op;
+//	}
+//
+//
+//	long tf1 = getTimeInMillis();
+//
+//	for (Int c = 0; c < size; c++)
+//	{
+//		auto key = keys[c];
+//
+//		auto op = tree.find(sn, key);
+//
+//		finds += op;
+//	}
+//
+//	long tf2 = getTimeInMillis();
+//
+//	cout<<"Find time: "<<FormatTime(tf1-tf0)<<" -- "<<FormatTime(tf2-tf1)<<" finds="<<finds<<endl;
+//
+//
+/////*
+////
+//	Int cnt = 0;
+//	for (auto iter = tree.begin(sn); !iter.is_end(); iter++)
+//	{
+//		cnt++;
+//	}
+//
+//	cout<<"FW Cnt = "<<cnt<<endl;
+//
+//	cnt = 0;
+//
+//	for (auto iter = tree.rbegin(sn); !iter.is_start(); iter--)
+//	{
+//		cnt++;
+//	}
+//
+//	cout<<"BW Cnt = "<<cnt<<endl;
+//
+//	long td0 = getTimeInMillis();
+//
+//	auto tx2 = tree.transaction();
+//
+//	for (const auto& k: keys)
+//	{
+//		if (tree.remove(tx2, k))
+//		{
+////			cout<<"Removed "<<k<<endl;
+//		}
+//		else {
+//			cout<<"Didn't remove "<<k<<endl;
+//		}
+//
+//	}
+//
+//	tx2.commit();
+//
+//	auto sn2 = tree.snapshot();
+//
+//	cout<<"After insertion = "<<tree.size(sn2)<<", time = "<<FormatTime(getTimeInMillis() - td0)<<endl;
 }

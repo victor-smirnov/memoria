@@ -12,6 +12,7 @@
 #include <memoria/core/tools/optional.hpp>
 #include <memoria/core/tools/bitmap.hpp>
 
+#include <algorithm>
 
 namespace memoria 	{
 namespace cow 		{
@@ -37,6 +38,8 @@ public:
 		}
 	};
 private:
+
+	template <typename, typename> friend class CoWTree;
 
 	RootMetadata metadata_;
 
@@ -136,6 +139,21 @@ public:
 		return keys_[idx];
 	}
 
+//	Int find_key(const Key& key) const
+//	{
+//		int i1 = find_key1(key);
+//		int i2 = find_key2(key);
+//
+//		if (i1 != i2)
+//		{
+//			i2 = find_key2(key);
+//
+//			cout<<"key="<<key<<" "<<i1<<" "<<i2<<endl;
+//		}
+//
+//		return i1;
+//	}
+
 	Int find_key(const Key& key) const
 	{
 		Int last_idx = size_ / NodeIndexSize + (size_ % NodeIndexSize == 0 ? 0 : 1);
@@ -164,6 +182,39 @@ public:
 		}
 
 		return size_;
+	}
+
+	Int find_key2(const Key& key) const
+	{
+		Int last_idx = size_ / NodeIndexSize + (size_ % NodeIndexSize == 0 ? 0 : 1);
+
+		Int idx = 0;
+		for (Int c = 0; c < last_idx; c++)
+		{
+			idx += (key > index_[c]);
+		}
+
+		if (idx < last_idx)
+		{
+			idx *= NodeIndexSize;
+
+			Int max = (idx + NodeIndexSize) < size_ ? idx + NodeIndexSize : size_;
+
+			for (Int c = idx; c < max; c++)
+			{
+				idx += (key > keys_[c]);
+			}
+
+			return idx;
+		}
+
+		return size_;
+	}
+
+
+	Int find_key3(const Key& key) const
+	{
+		return std::distance(keys_, std::lower_bound(keys_, keys_ + size_, key));
 	}
 
 	void reindex()
@@ -243,6 +294,8 @@ public:
 	{
 		out<<"NodeType: "<<node_type()<<endl;
 		out<<"Size: "<<size_<<endl;
+		out<<"NodeId: "<<node_id_<<endl;
+		out<<"TxnId: "<<txn_id_<<endl;
 
 		out<<"Index: "<<endl;
 
@@ -269,6 +322,18 @@ protected:
 	void copy_to(const T* src, Int from, T* dst, Int to, Int size) const
 	{
 		CopyBuffer(src + from, dst + to, size);
+	}
+
+	void set_txn_id(BigInt txn_id) {
+		this->txn_id_ = txn_id;
+	}
+
+	void set_node_id(BigInt id) {
+		this->node_id_ = id;
+	}
+
+	void clear_refs() {
+		refs_ = 0;
 	}
 };
 
@@ -306,6 +371,10 @@ public:
 		this->insert_key(idx, key);
 	}
 
+	void remove(Int idx) {
+		remove(idx, idx + 1);
+	}
+
 	void remove(Int start, Int end)
 	{
 		this->shift_left(data_, end, start, this->size() - end);
@@ -335,19 +404,7 @@ public:
 		this->merge_keys_from(other);
 	}
 
-	void dump(std::ostream& out = std::cout) const
-	{
-		Base::dump(out);
 
-		out<<"Data: "<<endl;
-
-		for (Int c = 0; c < this->size(); c++)
-		{
-			out<<c<<": "<<this->key(c)<<" = "<<this->data(c)<<endl;
-		}
-
-		cout<<endl;
-	}
 };
 
 
@@ -403,6 +460,20 @@ public:
 		return this->data(this->size() - 1);
 	}
 
+	void dump(std::ostream& out = std::cout) const
+	{
+		Base::dump(out);
+
+		out<<"Data: "<<endl;
+
+		for (Int c = 0; c < this->size(); c++)
+		{
+			auto node = this->data(c);
+			out<<c<<": "<<this->key(c)<<" = "<<node<<" ("<<node->node_id()<<", "<<node->txn_id()<<")"<<endl;
+		}
+
+		cout<<endl;
+	}
 };
 
 template <typename Key, typename Value, Int NodeSize, Int NodeIndexSize>
@@ -414,6 +485,20 @@ public:
 	Int find(const Key& key) const
 	{
 		return this->find_key(key);
+	}
+
+	void dump(std::ostream& out = std::cout) const
+	{
+		Base::dump(out);
+
+		out<<"Data: "<<endl;
+
+		for (Int c = 0; c < this->size(); c++)
+		{
+			out<<c<<": "<<this->key(c)<<" = "<<this->data(c)<<endl;
+		}
+
+		cout<<endl;
 	}
 };
 

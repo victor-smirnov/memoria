@@ -20,7 +20,8 @@ class Optional {
 	T value_;
 	bool is_set_;
 public:
-	Optional(const T& value): value_(value), is_set_(true) {}
+	template <typename TT>
+	Optional(TT&& value, bool is_set = true): value_(value), is_set_(is_set) {}
 	Optional(): is_set_(false) {}
 
 	const T& value() const {

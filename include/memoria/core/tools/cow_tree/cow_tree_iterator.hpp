@@ -15,7 +15,7 @@
 
 #include <memoria/core/tools/static_array.hpp>
 
-#include <vector>
+#include <type_traits>
 
 /**
  * Serializable Copy-on-write B+Tree (Without leaf links).
@@ -25,14 +25,16 @@ namespace memoria 	{
 namespace cow 		{
 namespace tree 		{
 
-template <typename NodeBase, typename BranchNode, typename LeafNode>
-class CoWTreeIterator {
+template <typename BranchNode, typename LeafNode>
+class CoWTreeIteratorBase {
 public:
-	using Path = core::StaticArray<NodeBase*, 8, core::NullPtrFunctor>;
 
-	using NodeBaseT 	= NodeBase;
+
+	using NodeBaseT 	= typename LeafNode::NodeBaseT;
 	using LeafNodeT 	= LeafNode;
 	using BranchNodeT 	= BranchNode;
+
+	using Path = core::StaticArray<NodeBaseT*, 8, core::NullPtrFunctor>;
 
 protected:
 	Path path_;
@@ -42,31 +44,9 @@ protected:
 	template <typename, typename> friend class CoWTree;
 
 public:
-	CoWTreeIterator() {}
+	CoWTreeIteratorBase() {}
 
-	NodeBase* root() {
-		return path_[path_.size() - 1];
-	}
 
-	const NodeBase* root() const {
-		return path_[path_.size() - 1];
-	}
-
-	LeafNode* leaf() {
-		return static_cast<LeafNode*>(path_[0]);
-	}
-
-	const LeafNode* leaf() const {
-		return static_cast<const LeafNode*>(path_[0]);
-	}
-
-	Path& path() {
-		return path_;
-	}
-
-	const Path& path() const {
-		return path_;
-	}
 
 	Int idx() const {
 		return idx_;
@@ -160,13 +140,6 @@ public:
 		return leaf()->key(idx_);
 	}
 
-	const auto& value() const {
-		return leaf()->data(idx_);
-	}
-
-	auto& value() {
-		return leaf()->data(idx_);
-	}
 
 
 	static bool get_next_node(Path& path, Path& next, Int level)
@@ -232,20 +205,71 @@ public:
 		return static_cast<BranchNode*>(path[level]);
 	}
 
-	void dump(std::ostream& out = std::cout)
+	void dump(std::ostream& out = std::cout) const
 	{
 		if (path_.size() > 0)
 		{
 			out<<"CoWTree Iterator: idx = "<<idx_<<endl;
 			out<<"Leaf: "<<endl;
-			leaf()->dump(cout);
+			leaf()->dump(out);
 		}
 		else {
 			out<<"Empty Iterator"<<endl;
 		}
 	}
 
+	void dumpPath(std::ostream& out = std::cout) const
+	{
+		if (path_.size() > 0)
+		{
+			out<<"CoWTree Iterator: idx = "<<idx_<<endl;
+
+			for (Int c = path_.size() - 1; c >= 0; c--)
+			{
+				out<<"Node: "<<c<<endl;
+
+				NodeBaseT* node = path_[c];
+
+				if (node->is_leaf()) {
+					to_leaf_node(node)->dump(out);
+				}
+				else {
+					to_branch_node(node)->dump(out);
+				}
+
+				out<<endl;
+			}
+		}
+		else {
+			out<<"Empty Iterator"<<endl;
+		}
+	}
 protected:
+
+	NodeBaseT* root() {
+		return path_[path_.size() - 1];
+	}
+
+	const NodeBaseT* root() const {
+		return path_[path_.size() - 1];
+	}
+
+	LeafNode* leaf() {
+		return static_cast<LeafNode*>(path_[0]);
+	}
+
+	const LeafNode* leaf() const {
+		return static_cast<const LeafNode*>(path_[0]);
+	}
+
+	Path& path() {
+		return path_;
+	}
+
+	const Path& path() const {
+		return path_;
+	}
+
 
 	void set_idx(Int idx) {
 		idx_ = idx;
@@ -272,6 +296,32 @@ protected:
 	}
 
 };
+
+
+template <typename BranchNode, typename LeafNode>
+class CoWTreeIterator: public CoWTreeIteratorBase<BranchNode, LeafNode> {
+public:
+
+	const auto& value() const {
+		return this->leaf()->data(this->idx());
+	}
+
+	auto& value() {
+		return this->leaf()->data(this->idx());
+	}
+};
+
+template <typename BranchNode, typename LeafNode>
+class CoWTreeConstIterator: public CoWTreeIteratorBase<BranchNode, LeafNode> {
+	using Base = CoWTreeIteratorBase<BranchNode, LeafNode>;
+
+public:
+
+	const auto& value() const {
+		return this->leaf()->data(this->idx());
+	}
+};
+
 
 }
 }
