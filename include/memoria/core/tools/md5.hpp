@@ -26,7 +26,9 @@ class MD5Hash {
 
         Quad(): A_(0), B_(0), C_(0), D_(0) {}
         Quad(UInt A, UInt B, UInt C, UInt D): A_(A), B_(B), C_(C), D_(D) {}
+    public:
         Quad(const Quad& other): A_(other.A_), B_(other.B_), C_(other.C_), D_(other.D_) {}
+    private:
 
         friend class MD5Hash;
 
@@ -54,6 +56,11 @@ public:
     }
 
     void add(UInt value);
+    void add_ubi(UBigInt value)
+    {
+    	this->add(static_cast<UInt>(value & 0xFFFFFFFF));
+    	this->add(static_cast<UInt>((value >> 32) & 0xFFFFFFFF));
+    }
 
     void compute();
 

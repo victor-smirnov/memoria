@@ -29,12 +29,6 @@ project (Memoria)
 # EMIT_LLVM                        Emit LLVM bitcode for executables using clang compiler
 # BUILD_ASAN                       Build with address sanitizer enabled
 
-#SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-#SET(BUILD_SHARED_LIBRARIES false)
-#SET(BUILD_SHARED_LIBS false)
-#SET(CMAKE_EXE_LINKER_FLAGS "-static -pie")
-
-
 
 if (NOT DEFINED BUILD_STREAM_CONTAINER)
     set (BUILD_STREAM_CONTAINER true)

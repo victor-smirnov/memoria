@@ -11,6 +11,7 @@
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/tools/optional.hpp>
 #include <memoria/core/tools/bitmap.hpp>
+#include <memoria/core/tools/md5.hpp>
 
 #include <algorithm>
 
@@ -49,7 +50,9 @@ private:
 	BigInt txn_id_;
 	Int size_ = 0;
 
+protected:
 	BigInt refs_ = 0;
+private:
 
 	static constexpr Int Indexes =  NodeSize / NodeIndexSize + ((NodeSize % NodeIndexSize == 0)?  0 : 1);
 
@@ -339,6 +342,23 @@ protected:
 	void clear_refs() {
 		refs_ = 0;
 	}
+
+	void set_refs(Int refs) {
+		this->refs_ = refs;
+	}
+
+	void hash(MD5Hash& md5) const
+	{
+		md5.add((UInt)node_type_);
+		md5.add_ubi(metadata_.size());
+		md5.add_ubi(node_id_);
+		md5.add_ubi(txn_id_);
+		md5.add_ubi(size_);
+
+		for (Int c = 0; c < size_; c++) {
+			md5.add_ubi(keys_[c]);
+		}
+	}
 };
 
 
@@ -406,6 +426,21 @@ public:
 	{
 		this->copy_to(other->data_, 0, data_, this->size(), other->size());
 		this->merge_keys_from(other);
+	}
+
+	UBigInt hash() const
+	{
+		MD5Hash md5;
+
+		md5.add_ubi((UBigInt)this);
+
+		Base::hash(md5);
+
+		for (Int c = 0; c < this->size(); c++) {
+			md5.add_ubi((UBigInt)this->data(c));
+		}
+
+		return md5.result().hash64();
 	}
 };
 
@@ -476,6 +511,8 @@ public:
 
 		cout<<endl;
 	}
+
+
 };
 
 template <typename Key, typename Value, Int NodeSize, Int NodeIndexSize>
@@ -502,6 +539,8 @@ public:
 
 		cout<<endl;
 	}
+
+
 };
 
 

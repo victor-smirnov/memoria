@@ -15,6 +15,8 @@
 #include <memoria/core/tools/cow_tree/cow_tree_iterator.hpp>
 #include <memoria/core/tools/cow_tree/cow_tree_txn.hpp>
 
+#include <memoria/core/tools/md5.hpp>
+
 #include <mutex>
 
 /**
@@ -122,6 +124,8 @@ public:
 
 	void assign(TransactionT& txn, const Key& key, const Value& value)
 	{
+		check(txn);
+
 		auto iter = this->template locate<Iterator>(txn.root(), key);
 
 		if (!iter.is_end() && iter.key() == key)
@@ -135,6 +139,8 @@ public:
 
 	bool remove(TransactionT& txn, const Key& key)
 	{
+		check(txn);
+
 		auto iter = this->template locate<Iterator>(txn.root(), key);
 
 		if (!iter.is_end())
@@ -148,18 +154,22 @@ public:
 	}
 
 	auto locate(TransactionT& txn, const Key& key) const {
+		check(txn);
 		return this->template locate<Iterator>(txn.root(), key);
 	}
 
 	auto locate(SnapshotT& txn, const Key& key) const {
+		check(txn);
 		return this->template locate<ConstIterator>(txn.root(), key);
 	}
 
 	auto begin(SnapshotT& txn) const {
+		check(txn);
 		return this->template locate_begin<ConstIterator>(txn.root());
 	}
 
 	auto begin(TransactionT& txn) const {
+		check(txn);
 		return this->template locate_begin<Iterator>(txn.root());
 	}
 
@@ -174,10 +184,12 @@ public:
 
 
 	auto end(TransactionT& txn) const {
+		check(txn);
 		return this->template locate_end<Iterator>(txn.root());
 	}
 
 	auto end(SnapshotT& txn) const {
+		check(txn);
 		return this->template locate_end<ConstIterator>(txn.root());
 	}
 
@@ -191,11 +203,13 @@ public:
 
 	Optional<Value> find(TransactionT& txn, const Key& key) const
 	{
+		check(txn);
 		return this->find_value_in(txn.root(), key);
 	}
 
 	Optional<Value> find(SnapshotT& txn, const Key& key) const
 	{
+		check(txn);
 		return this->find_value_in(txn.root(), key);
 	}
 
@@ -237,7 +251,108 @@ public:
 		return do_cleanup_snapshots();
 	}
 
+	void check_log()
+	{
+		LockT lock(mutex_);
+		auto& events = txn_log_.events_;
+
+		for (size_t c = 0; c < events.size(); c++)
+		{
+			auto event = events[c];
+			auto hash = snapshot_hash(event->root());
+
+			cout<<"c: "<<c<<" "<<event->root()->txn_id()<<" "<<event->root()->node_id()<<" "<<hex<<event->md5_sum()<<" "<<hash<<dec<<" "<<(hash == event->md5_sum())<<endl;
+		}
+	}
+
 protected:
+
+	void check(TransactionT& txn) const
+	{
+		if (txn.get() != txn_data_)
+		{
+			throw CoWTreeException("Invalid transaction");
+		}
+	}
+
+	void check(SnapshotT& txn) const
+	{
+		if (txn.get() == nullptr)
+		{
+			throw CoWTreeException("Invalid snapshot");
+		}
+	}
+
+	UBigInt snapshot_hash(const NodeBaseT* root)
+	{
+		UBigInt sum = 0;
+
+		snapshot_hash(root, sum, root->txn_id());
+
+		return sum;
+	}
+
+//	void snapshot_hash(const NodeBaseT* node, MD5Hash& md5, BigInt txn_id)
+//	{
+//		if (node->txn_id() == txn_id)
+//		{
+//			if (node->is_leaf())
+//			{
+//				const LeafNodeT* leaf = to_leaf_node(node);
+//				auto hash = leaf->hash();
+//
+//				cout<<"Leaf Hash: "<<hash<<endl;
+//
+//				md5.add_ubi(hash);
+//				md5.add_ubi(hash);
+//				md5.add_ubi(hash);
+//			}
+//			else {
+//				const BranchNodeT* branch = to_branch_node(node);
+//
+//				auto hash = branch->hash();
+//				cout<<"Branch Hash: "<<hash<<endl;
+//
+//				md5.add_ubi(hash);
+//				md5.add_ubi(hash);
+//				md5.add_ubi(hash);
+//
+//				for (Int c = 0; c < branch->size(); c++)
+//				{
+//					snapshot_hash(branch->data(c), md5, txn_id);
+//				}
+//			}
+//		}
+//	}
+
+	void snapshot_hash(const NodeBaseT* node, UBigInt& sum, BigInt txn_id)
+	{
+		if (node->txn_id() == txn_id)
+		{
+			if (node->is_leaf())
+			{
+				const LeafNodeT* leaf = to_leaf_node(node);
+				auto hash = leaf->hash();
+
+//				cout<<"Leaf Hash: "<<hash<<endl;
+
+				sum ^= hash;
+			}
+			else {
+				const BranchNodeT* branch = to_branch_node(node);
+
+				auto hash = branch->hash();
+//				cout<<"Branch Hash: "<<hash<<endl;
+
+				sum ^= hash;
+
+				for (Int c = 0; c < branch->size(); c++)
+				{
+					snapshot_hash(branch->data(c), sum, txn_id);
+				}
+			}
+		}
+	}
 
 	void assert_current_txn(const NodeBaseT* node)
 	{
@@ -432,8 +547,10 @@ protected:
 		}
 	}
 
-	void remove_snapshot(NodeBaseT* node)
+	BigInt remove_snapshot(NodeBaseT* node)
 	{
+		BigInt removed = 0;
+
 		if (node->is_branch())
 		{
 			BranchNodeT* branch = to_branch_node(node);
@@ -443,16 +560,27 @@ protected:
 				NodeBaseT* child = branch->data(c);
 				if (child->refs() <= 1)
 				{
-					remove_snapshot(child);
-					remove_node(child);
+					removed += remove_snapshot(child);
 
 					if (node_budget_ < node_budget_max_)
 					{
 						node_budget_++;
 					}
 				}
+				else {
+					child->unref();
+				}
 			}
+
+			remove_node(branch);
+			removed++;
 		}
+		else {
+			remove_node(node);
+			removed++;
+		}
+
+		return removed;
 	}
 
 	void insert_child_node(BranchNodeT* node, Int idx, NodeBaseT* child)
@@ -714,22 +842,28 @@ protected:
 
 	void remove_node(NodeBaseT* node) const
 	{
-		delete node;
+		if (node->is_leaf()) {
+			delete to_leaf_node(node);
+		}
+		else {
+			delete to_branch_node(node);
+		}
+
 	}
 
 	void ensure_node_budget(BigInt adjustment)
 	{
-//		if (node_budget_ == 0)
-//		{
-//			do_cleanup_snapshots();
-//		}
-//
-//		if (node_budget_ >= adjustment) {
-//			node_budget_ -= adjustment;
-//		}
-//		else {
-//			node_budget_ = 0;
-//		}
+		if (node_budget_ == 0)
+		{
+			do_cleanup_snapshots();
+		}
+
+		if (node_budget_ >= adjustment) {
+			node_budget_ -= adjustment;
+		}
+		else {
+			node_budget_ = 0;
+		}
 	}
 
 	BigInt do_cleanup_snapshots()
@@ -755,7 +889,10 @@ protected:
 
 				if (event->locked())
 				{
+//					auto txn_id = event->root()->txn_id();
+//					auto removed =
 					remove_snapshot(event->root());
+//					cout<<"Removed snapshot: "<<txn_id<<" nodes: "<<removed<<endl;
 
 					typename TxnLogT::LockT lock(txn_log_.mutex());
 
@@ -814,7 +951,8 @@ private:
 
 	void commit_txn(TxnDataT* data)
 	{
-		txn_log_.new_entry(data->root());
+//		auto hash = snapshot_hash(data->root());
+		txn_log_.new_entry(data->root(), 0);
 		txn_data_ = nullptr;
 
 		mutex_.unlock();

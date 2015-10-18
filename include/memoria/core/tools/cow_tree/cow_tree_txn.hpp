@@ -101,12 +101,19 @@ class CoWTreeTxnLogEntry {
 
 	bool locked_ = false;
 
+
+	UBigInt md5_sum_;
+
 public:
 	using NodeBaseT = NodeBase;
 
-	CoWTreeTxnLogEntry(NodeBase* root, BigInt txn_id, MutexT* lock):
-		root_(root), txn_id_(txn_id), mutex_(lock)
+	CoWTreeTxnLogEntry(NodeBase* root, BigInt txn_id, MutexT* lock, UBigInt hash):
+		root_(root), txn_id_(txn_id), mutex_(lock), md5_sum_(hash)
 	{}
+
+	const UBigInt& md5_sum() const {
+		return md5_sum_;
+	}
 
 	bool locked() const {
 		return locked_;
@@ -222,16 +229,17 @@ public:
 			out<<(c++)
 			   <<": TxnId: "<<entry->txn_id()
 			   <<", NodeId: "<<entry->root()->node_id()
+			   <<", Hash: "<<hex<<entry->md5_sum()<<dec
 			   <<", size: "<<entry->root()->metadata().size()
 			   <<endl;
 		}
 	}
 protected:
 
-	void new_entry(NodeBase* root)
+	void new_entry(NodeBase* root, UBigInt hash)
 	{
 		LockT lock(mutex_);
-		LogEntryT* entry = new LogEntryT(root, root->txn_id(), &mutex_);
+		LogEntryT* entry = new LogEntryT(root, root->txn_id(), &mutex_, hash);
 		events_.push_front(entry);
 	}
 };

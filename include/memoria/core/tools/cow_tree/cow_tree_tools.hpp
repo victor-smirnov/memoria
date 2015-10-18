@@ -178,6 +178,8 @@ public:
 
 	TxnData* txn_data_;
 
+	template <typename, typename> friend class CoWTree;
+
 public:
 	using MyType = Transaction<TxnData>;
 

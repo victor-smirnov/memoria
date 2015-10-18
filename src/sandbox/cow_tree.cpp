@@ -47,9 +47,9 @@ int main(int argc, const char** argv, const char** envp)
 
 		RNG<Int, RngEngine32> rng0;
 
-//		rng0.seed(getTimeInMillis());
+		rng0.seed(getTimeInMillis());
 
-		for (Int c = 0; c < 10000000; c++) {
+		for (Int c = 0; c < 5000000; c++) {
 			tree.assign(tx0, rng0(), c);
 		}
 
@@ -66,51 +66,57 @@ int main(int argc, const char** argv, const char** envp)
 			operations.emplace_back(0);
 			founds.emplace_back(0);
 			threads.emplace_back(std::thread([&, c]() {
-				RNG<Int, RngEngine32> rng;
-				rng.seed(c);
+				try {
+					RNG<Int, RngEngine32> rng;
+					rng.seed(c);
 
-				for (BigInt epoch = 0; epoch < epochs && run; epoch++)
-				{
-					Int lfounds = 0;
-
-					BigInt t0 = getTimeInMillis();
-
-					for (int j = 0; j < 1000; j++)
+					for (BigInt epoch = 0; epoch < epochs && run; epoch++)
 					{
-						auto sn = tree.snapshot();
-						for (Int i = 0; i < 1000; i++)
+						Int lfounds = 0;
+
+						BigInt t0 = getTimeInMillis();
+
+						for (int j = 0; j < 1000; j++)
 						{
-							lfounds += tree.find(sn, rng());
+							auto sn = tree.snapshot();
+							for (Int i = 0; i < 1000; i++)
+							{
+								lfounds += tree.find(sn, rng());
+							}
 						}
+
+						BigInt t1 = getTimeInMillis();
+
+						operations[c] += t1 - t0;
+						founds[c] 	  += lfounds;
 					}
 
-					BigInt t1 = getTimeInMillis();
-
-					operations[c] += t1 - t0;
-					founds[c] += lfounds;
-
-//					{
-//						std::lock_guard<std::mutex> lock(mutex);
-//						cout<<"Thread_"<<c<<": epoch = "<<epoch<<", founds = "<<founds<<", time = "<<FormatTime(t1 - t0)<<endl;
-//					}
+					cout<<"Thread "<<c<<" finished"<<endl;
+				}
+				catch (std::exception& ex) {
+					cout<<"Exception: "<<ex.what()<<endl;
 				}
 			}));
 		}
 
-//		for (Int c = 0; c < 10; c++)
-//		{
-//			auto tx1 = tree.transaction();
-//
-//			for (Int c = 0; c < 1000000; c++) {
-//				tree.assign(tx0, rng0(), c);
-//			}
-//
-//			tx1.commit();
-//		}
+		for (Int s = 0; s < 500; s++)
+		{
+			auto tx1 = tree.transaction();
+
+			for (Int c = 0; c < 10000; c++) {
+				tree.assign(tx1, rng0(), c);
+			}
+
+			tx1.commit();
+		}
+
+		cout<<"Ingestion is done"<<endl;
 
 		for (auto& t : threads) {
 			t.join();
 		}
+
+		tree.cleanup_snapshots();
 
 		tree.dump_log();
 
