@@ -51,6 +51,11 @@ public:
 	const Engine& engine() const {
 		return engine_;
 	}
+
+	void seed(T value) {
+		std::seed_seq ss({value});
+		engine_.seed(ss);
+	}
 };
 
 using RngInt 	= RNG<Int, RngEngine32>;

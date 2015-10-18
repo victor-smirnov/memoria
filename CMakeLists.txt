@@ -29,6 +29,10 @@ project (Memoria)
 # EMIT_LLVM                        Emit LLVM bitcode for executables using clang compiler
 # BUILD_ASAN                       Build with address sanitizer enabled
 
+#SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+#SET(BUILD_SHARED_LIBRARIES false)
+#SET(BUILD_SHARED_LIBS false)
+#SET(CMAKE_EXE_LINKER_FLAGS "-static -pie")
 
 
 
@@ -92,7 +96,7 @@ if (CMAKE_COMPILER_IS_GNUCXX OR CLANG_COMPILER OR MINGW)
 
     set(PROFILE "")
 
-    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -std=c++14 -Wall ")
+    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -std=c++14 -Wall -fPIC ")
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors -ftemplate-backtrace-limit=0 ${PROFILE}") #-fsanitize=undefined -fno-sanitize-recover
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -Wcomment -Wunused-variable ")
     

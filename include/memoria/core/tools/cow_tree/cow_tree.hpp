@@ -719,17 +719,17 @@ protected:
 
 	void ensure_node_budget(BigInt adjustment)
 	{
-		if (node_budget_ == 0)
-		{
-			do_cleanup_snapshots();
-		}
-
-		if (node_budget_ >= adjustment) {
-			node_budget_ -= adjustment;
-		}
-		else {
-			node_budget_ = 0;
-		}
+//		if (node_budget_ == 0)
+//		{
+//			do_cleanup_snapshots();
+//		}
+//
+//		if (node_budget_ >= adjustment) {
+//			node_budget_ -= adjustment;
+//		}
+//		else {
+//			node_budget_ = 0;
+//		}
 	}
 
 	BigInt do_cleanup_snapshots()
@@ -738,28 +738,31 @@ protected:
 
 		auto& events = txn_log_.events_;
 
-		for (auto c = events.size() - 1; c > 0; c--)
+		if (events.size() > 0)
 		{
-			auto* event = events[c];
-
+			for (auto c = events.size() - 1; c > 0; c--)
 			{
-				typename TxnLogT::LockT lock(txn_log_.mutex());
+				auto* event = events[c];
 
-				if (event->refs() == 0)
 				{
-					event->lock();
+					typename TxnLogT::LockT lock(txn_log_.mutex());
+
+					if (event->refs() == 0)
+					{
+						event->lock();
+					}
 				}
-			}
 
-			if (event->locked())
-			{
-				remove_snapshot(event->root());
+				if (event->locked())
+				{
+					remove_snapshot(event->root());
 
-				typename TxnLogT::LockT lock(txn_log_.mutex());
+					typename TxnLogT::LockT lock(txn_log_.mutex());
 
-				events.erase(events.begin() + c);
+					events.erase(events.begin() + c);
 
-				removed++;
+					removed++;
+				}
 			}
 		}
 

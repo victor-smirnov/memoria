@@ -15,67 +15,118 @@ using namespace memoria;
 using namespace memoria::cow::tree;
 using namespace std;
 
-
-
-
-
 int main(int argc, const char** argv, const char** envp)
 {
 	CoWTree<BigInt, BigInt> tree;
+
+	Int threads_num;
+
+	if (argc > 1)
+	{
+		threads_num = strToL(String(argv[1]));
+	}
+	else {
+		threads_num = 1;
+	}
+
+	cout<<"Using threads: "<<threads_num<<endl;
+
+	vector<BigInt> operations;
+	vector<BigInt> founds;
+
+	vector<std::thread> threads;
+
+	std::mutex mutex;
+
+	bool run = true;
+
 	try {
-		Int size = 1000;
+		long tc0 = getTimeInMillis();
 
-		vector<BigInt> keys;
+		auto tx0 = tree.transaction();
 
-		BigInt tr0 = getTimeInMillis();
+		RNG<Int, RngEngine32> rng0;
 
-		for (Int c = 0; c < 1000; c++)
+//		rng0.seed(getTimeInMillis());
+
+		for (Int c = 0; c < 10000000; c++) {
+			tree.assign(tx0, rng0(), c);
+		}
+
+		tx0.commit();
+
+		cout<<"Tree created in "<<FormatTime(getTimeInMillis() - tc0)<<endl;
+
+		tree.dump_log();
+
+		const Int epochs = 20;
+
+		for (Int c = 0; c < threads_num; c++)
 		{
-			vector<BigInt> lkeys(size);
+			operations.emplace_back(0);
+			founds.emplace_back(0);
+			threads.emplace_back(std::thread([&, c]() {
+				RNG<Int, RngEngine32> rng;
+				rng.seed(c);
 
-			for (auto& k: lkeys)
-			{
-				k = getRandomG();
-			}
+				for (BigInt epoch = 0; epoch < epochs && run; epoch++)
+				{
+					Int lfounds = 0;
 
-			auto txn = tree.transaction();
+					BigInt t0 = getTimeInMillis();
 
-			for (auto c = 0; c < lkeys.size(); c++)
-			{
-				tree.assign(txn, lkeys[c], c);
-			}
+					for (int j = 0; j < 1000; j++)
+					{
+						auto sn = tree.snapshot();
+						for (Int i = 0; i < 1000; i++)
+						{
+							lfounds += tree.find(sn, rng());
+						}
+					}
 
-			txn.commit();
+					BigInt t1 = getTimeInMillis();
 
-			keys.insert(keys.end(), lkeys.begin(), lkeys.end());
+					operations[c] += t1 - t0;
+					founds[c] += lfounds;
+
+//					{
+//						std::lock_guard<std::mutex> lock(mutex);
+//						cout<<"Thread_"<<c<<": epoch = "<<epoch<<", founds = "<<founds<<", time = "<<FormatTime(t1 - t0)<<endl;
+//					}
+				}
+			}));
 		}
 
-		cout<<"Random array created in "<<FormatTime(getTimeInMillis() - tr0)<<endl;
+//		for (Int c = 0; c < 10; c++)
+//		{
+//			auto tx1 = tree.transaction();
+//
+//			for (Int c = 0; c < 1000000; c++) {
+//				tree.assign(tx0, rng0(), c);
+//			}
+//
+//			tx1.commit();
+//		}
 
-		auto txn2 = tree.transaction();
-
-		tree.assign(txn2, 555, 333);
-
-		txn2.commit();
+		for (auto& t : threads) {
+			t.join();
+		}
 
 		tree.dump_log();
 
-		cout<<"cleanup snapshots..."<<endl;
-		tree.cleanup_snapshots();
+		BigInt total = 0;
+		BigInt total_founds = 0;
 
-		tree.dump_log();
-
-		BigInt found = 0;
-
-		auto sn = tree.snapshot();
-
-		for (auto k: keys) {
-			found += tree.find(sn, k);
+		for (auto c = 0; c < (Int)operations.size(); c++)
+		{
+			total += operations[c] / epochs;
+			total_founds += founds[c];
 		}
 
-		found += tree.find(sn, 555);
+		cout<<"Total average thread time: "<<FormatTime(total/threads_num)<<endl;
+		cout<<"Total founds: "<<total_founds<<endl;
 
-		cout<<"Found "<<found<<" keys"<<endl;
+		cout<<"Done..."<<endl;
 	}
 	catch (std::exception& ex) {
 		cout<<ex.what()<<endl;

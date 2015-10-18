@@ -27,7 +27,7 @@ if (NOT DEFINED BUILD_EXAMPLES)
 endif()
 
 if (BUILD_TESTS) 
-    add_subdirectory(tests)
+    #add_subdirectory(tests)
 endif()
 
 if (BUILD_BENCHMARKS) 
