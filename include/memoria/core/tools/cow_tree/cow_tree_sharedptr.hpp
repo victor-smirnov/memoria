@@ -63,9 +63,6 @@ public:
 	using PtrType 			= CoWSharedPtr<ObjType, Handle>;
 	using LocalRefCntHandle = LocalRefCnt<Handle>;
 
-//	static_assert(std::is_base_of<PtrType, ObjType>::value, "");
-
-
 protected:
 	LocalRefCntHandle* handle_;
 

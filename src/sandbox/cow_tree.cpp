@@ -18,7 +18,7 @@ int main(int argc, const char** argv, const char** envp)
 {
 	CoWTree<BigInt, BigInt> tree;
 
-	Int size = 1000;
+	Int size = 1000000;
 
 	vector<BigInt> keys(size);
 
@@ -44,23 +44,11 @@ int main(int argc, const char** argv, const char** envp)
 
 	cout<<"Tree created in: "<<FormatTime(getTimeInMillis() - t0)<<endl;
 	cout<<keys.size()<<" "<<tree.size(txn)<<endl;
+
 	txn.commit();
 
-	tree.dump_log();
+	auto sn = tree.snapshot();
 
-	auto txn2 = tree.transaction();
-
-	tree.assign(txn, 555, 333);
-
-	cout<<"Txn2: "<<tree.find(txn2, 555)<<endl;
-
-	tree.locate(txn2, 555).dumpPath();
-
-	txn2.commit();
-
-	tree.dump_log();
-
-/*
 	long tf0 = getTimeInMillis();
 
 	long finds = 0;
@@ -69,7 +57,7 @@ int main(int argc, const char** argv, const char** envp)
 	{
 		auto key = keys[c];
 
-		auto op = tree.find(txn, key + 1);
+		auto op = tree.find(sn, key + 1);
 
 		finds += op;
 	}
@@ -81,7 +69,7 @@ int main(int argc, const char** argv, const char** envp)
 	{
 		auto key = keys[c];
 
-		auto op = tree.find(txn, key);
+		auto op = tree.find(sn, key);
 
 		finds += op;
 	}
@@ -90,11 +78,8 @@ int main(int argc, const char** argv, const char** envp)
 
 	cout<<"Find time: "<<FormatTime(tf1-tf0)<<" -- "<<FormatTime(tf2-tf1)<<" finds="<<finds<<endl;
 
-
-
-
 	Int cnt = 0;
-	for (auto iter = tree.begin(txn); !iter.is_end(); iter++)
+	for (auto iter = tree.begin(sn); !iter.is_end(); iter++)
 	{
 		cnt++;
 	}
@@ -103,104 +88,44 @@ int main(int argc, const char** argv, const char** envp)
 
 	cnt = 0;
 
-	for (auto iter = tree.rbegin(txn); !iter.is_start(); iter--)
+	for (auto iter = tree.rbegin(sn); !iter.is_start(); iter--)
 	{
 		cnt++;
 	}
 
 	cout<<"BW Cnt = "<<cnt<<endl;
-*/
-//	long td0 = getTimeInMillis();
-//
-//
-//	for (const auto& k: keys)
-//	{
-//		if (tree.remove(txn, k))
-//		{
-//			//			cout<<"Removed "<<k<<endl;
-//		}
-//		else {
-//			cout<<"Didn't remove "<<k<<endl;
-//		}
-//
-//	}
-//
-//	cout<<"After insertion = "<<tree.size(txn)<<", time = "<<FormatTime(getTimeInMillis() - td0)<<endl;
 
 
-//	auto sn = tree.snapshot();
-//
-//
-//	cout<<keys.size()<<" "<<tree.size(sn)<<endl;
-//
-//	long tf0 = getTimeInMillis();
-//
-//	long finds = 0;
-//
-//	for (Int c = 0; c < size; c++)
-//	{
-//		auto key = keys[c];
-//
-//		auto op = tree.find(sn, key + 1);
-//
-//		finds += op;
-//	}
-//
-//
-//	long tf1 = getTimeInMillis();
-//
-//	for (Int c = 0; c < size; c++)
-//	{
-//		auto key = keys[c];
-//
-//		auto op = tree.find(sn, key);
-//
-//		finds += op;
-//	}
-//
-//	long tf2 = getTimeInMillis();
-//
-//	cout<<"Find time: "<<FormatTime(tf1-tf0)<<" -- "<<FormatTime(tf2-tf1)<<" finds="<<finds<<endl;
-//
-//
-/////*
-////
-//	Int cnt = 0;
-//	for (auto iter = tree.begin(sn); !iter.is_end(); iter++)
-//	{
-//		cnt++;
-//	}
-//
-//	cout<<"FW Cnt = "<<cnt<<endl;
-//
-//	cnt = 0;
-//
-//	for (auto iter = tree.rbegin(sn); !iter.is_start(); iter--)
-//	{
-//		cnt++;
-//	}
-//
-//	cout<<"BW Cnt = "<<cnt<<endl;
-//
-//	long td0 = getTimeInMillis();
-//
-//	auto tx2 = tree.transaction();
-//
-//	for (const auto& k: keys)
-//	{
-//		if (tree.remove(tx2, k))
-//		{
-////			cout<<"Removed "<<k<<endl;
-//		}
-//		else {
-//			cout<<"Didn't remove "<<k<<endl;
-//		}
-//
-//	}
-//
-//	tx2.commit();
-//
-//	auto sn2 = tree.snapshot();
-//
-//	cout<<"After insertion = "<<tree.size(sn2)<<", time = "<<FormatTime(getTimeInMillis() - td0)<<endl;
+
+
+
+	long td0 = getTimeInMillis();
+
+	auto tx2 = tree.transaction();
+
+	BigInt removed = 0;
+
+	for (const auto& k: keys)
+	{
+		if (tree.remove(tx2, k))
+		{
+			removed++;
+		}
+		else {
+			cout<<"Didn't remove "<<k<<endl;
+		}
+	}
+
+	cout<<"After deletion = "<<tree.size(tx2)<<", removed = "<<removed<<", time = "<<FormatTime(getTimeInMillis() - td0)<<endl;
+
+	tree.begin(tx2).dump();
+
+	tx2.commit();
+
+
+	auto sn2 = tree.snapshot();
+
+	cout<<"After deletion, snapshot  = "<<tree.size(sn2)<<", time = "<<FormatTime(getTimeInMillis() - td0)<<endl;
+
+	tree.dump_log();
 }

@@ -77,10 +77,6 @@ class Snapshot: public CoWSharedPtr<Snapshot<LogEntry>, LogEntry> {
 
 	using NodeBaseT = typename LogEntry::NodeBaseT;
 
-private:
-	BigInt txn_id_;
-	NodeBaseT* root_;
-
 public:
 	using MyType = Snapshot<LogEntry>;
 
@@ -93,15 +89,15 @@ public:
 	~Snapshot() {}
 
 	BigInt txn_id() const  {
-		return txn_id_;
+		return root()->txn_id();
 	}
 
 	NodeBaseT* root() {
-		return root_;
+		return this->get()->root();
 	}
 
 	const NodeBaseT* root() const {
-		return root_;
+		return this->get()->root();
 	}
 };
 
