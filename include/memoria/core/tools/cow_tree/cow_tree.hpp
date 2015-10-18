@@ -15,7 +15,7 @@
 #include <memoria/core/tools/cow_tree/cow_tree_iterator.hpp>
 #include <memoria/core/tools/cow_tree/cow_tree_txn.hpp>
 
-#include <vector>
+#include <mutex>
 
 /**
  * Serializable Copy-on-write B+Tree (Without leaf links).
@@ -32,51 +32,7 @@ public:
 	}
 };
 
-template <typename NodeBase, typename Tree>
-class TxnData {
-	NodeBase* root_ = nullptr;
 
-	Int refs_ = 0;
-
-	Tree* tree_;
-
-public:
-	using NodeBaseT = NodeBase;
-
-	TxnData(NodeBase* root, Tree* tree): root_(root), tree_(tree) {}
-
-	NodeBase* root() {
-		return root_;
-	}
-
-	const NodeBase* root() const {
-		return root_;
-	}
-
-	void set_root(NodeBase* root) {
-		root_ = root;
-	}
-
-	BigInt txn_id() const {
-		return root_->txn_id();
-	}
-
-	void commit() {
-		tree_->commit_txn(this);
-	}
-
-	void rollback() {
-		tree_->rollback_txn(this);
-	}
-
-	void ref() {
-		refs_++;
-	}
-
-	void unref() {
-		--refs_;
-	}
-};
 
 template <typename Key, typename Value>
 class CoWTree {
@@ -100,20 +56,31 @@ class CoWTree {
 	using ConstIterator		= CoWTreeConstIterator<BranchNodeT, LeafNodeT>;
 	using Path				= typename Iterator::Path;
 
-	TxnDataT txn_data_;
+	using MutexT			= std::recursive_mutex;
+	using LockT				= std::lock_guard<MutexT>;
+
+	TxnDataT* txn_data_;
 
 	BigInt txn_id_counter_  = 0;
 	BigInt node_id_counter_ = 0;
 
-	std::recursive_mutex lock_;
+	MutexT mutex_;
 
 	TxnLogT txn_log_;
 
 	template <typename, typename> friend class TxnData;
 
+	BigInt node_budget_max_ 	= 100;
+	BigInt node_budget_ 		= 100;
+
+
 public:
-	CoWTree(): txn_data_(nullptr, this), lock_(), txn_log_()
+	CoWTree(): txn_data_(nullptr), mutex_(), txn_log_()
 	{
+	}
+
+	std::recursive_mutex& mutex() {
+		return mutex_;
 	}
 
 	SnapshotT snapshot()
@@ -123,7 +90,14 @@ public:
 
 	TransactionT transaction()
 	{
-		// lock container
+		mutex_.lock();
+
+		if (txn_data_)
+		{
+			mutex_.unlock();
+
+			throw CoWTreeException("There is another active transaction for this CoWTree");
+		}
 
 		if (txn_log_.size() > 0)
 		{
@@ -252,16 +226,22 @@ public:
 		}
 	}
 
-	void dump_log(std::ostream& out = std::cout) const
+	void dump_log(std::ostream& out = std::cout)
 	{
 		txn_log_.dump(out);
+	}
+
+	BigInt cleanup_snapshots()
+	{
+		LockT lock(mutex_);
+		return do_cleanup_snapshots();
 	}
 
 protected:
 
 	void assert_current_txn(const NodeBaseT* node)
 	{
-		if (node->txn_id() != txn_data_.txn_id())
+		if (node->txn_id() != txn_data_->txn_id())
 		{
 			throw InvalidUpdateException();
 		}
@@ -359,10 +339,10 @@ protected:
 		{
 			NodeBaseT* node = path[level];
 
-			if (node->txn_id() < txn_data_.txn_id())
+			if (node->txn_id() < txn_data_->txn_id())
 			{
 				BranchNodeT* parent = to_branch_node(path[level + 1]);
-				if (parent->txn_id() != txn_data_.txn_id())
+				if (parent->txn_id() < txn_data_->txn_id())
 				{
 					update_path(path, level + 1);
 
@@ -407,7 +387,7 @@ protected:
 			update_keys_up(iter.path(), iter.idx(), 0);
 		}
 
-		txn_data_.root()->metadata().add_size(1);
+		txn_data_->root()->metadata().add_size(1);
 	}
 
 	void remove_from(Iterator& iter)
@@ -420,7 +400,7 @@ protected:
 
 		update_keys_up(iter.path(), iter.idx(), 0);
 
-		txn_data_.root()->metadata().add_size(-1);
+		txn_data_->root()->metadata().add_size(-1);
 
 		if (leaf->should_merge())
 		{
@@ -465,8 +445,12 @@ protected:
 				{
 					remove_snapshot(child);
 					remove_node(child);
-				}
 
+					if (node_budget_ < node_budget_max_)
+					{
+						node_budget_++;
+					}
+				}
 			}
 		}
 	}
@@ -483,7 +467,7 @@ protected:
 
 		Int split_at = node->size() / 2;
 
-		NodeBaseT* right = create_node(level, txn_data_.txn_id());
+		NodeBaseT* right = create_node(level, txn_data_->txn_id());
 		split_node(node, split_at, right);
 
 		if (level < path.size() - 1)
@@ -530,8 +514,8 @@ protected:
 		}
 		else
 		{
-			BranchNodeT* new_root = create_branch_node(txn_data_.txn_id());
-			new_root->metadata() = txn_data_.root()->metadata();
+			BranchNodeT* new_root = create_branch_node(txn_data_->txn_id());
+			new_root->metadata() = txn_data_->root()->metadata();
 
 			insert_child_node(new_root, 0, node);
 			insert_child_node(new_root, 1, right);
@@ -541,7 +525,7 @@ protected:
 
 			next[level] = right;
 
-			txn_data_.set_root(new_root);
+			txn_data_->set_root(new_root);
 		}
 	}
 
@@ -610,14 +594,14 @@ protected:
 
 		update_keys_up(path, parent_idx, level + 1);
 
-		if (parent == txn_data_.root() && parent->size() == 1)
+		if (parent == txn_data_->root() && parent->size() == 1)
 		{
 			path.remove(path.size() - 1);
 			next.remove(path.size() - 1);
 
-			node->metadata() = txn_data_.root()->metadata();
+			node->metadata() = txn_data_->root()->metadata();
 
-			txn_data_.set_root(node);
+			txn_data_->set_root(node);
 			node->unref();
 		}
 
@@ -642,23 +626,6 @@ protected:
 		}
 	}
 
-//	void unref_children(BranchNodeT* node, BigInt txn_id) {
-//		unref_children(node, 0, node->size(), txn_id);
-//	}
-//
-//	void unref_children(BranchNodeT* node, Int start, Int end, BigInt txn_id)
-//	{
-//		for (Int c = start; c < end; c++)
-//		{
-//			NodeBaseT* child = node->data(c);
-//
-//			if (child->txn_id() < txn_id)
-//			{
-//				child->unref();
-//			}
-//		}
-//	}
-
 	NodeBaseT* create_node(Int level, BigInt txn_id)
 	{
 		if (level == 0) {
@@ -672,10 +639,10 @@ protected:
 	NodeBaseT* create_node(Int level)
 	{
 		if (level == 0) {
-			return create_leaf_node(txn_data_.txn_id());
+			return create_leaf_node(txn_data_->txn_id());
 		}
 		else {
-			return create_branch_node(txn_data_.txn_id());
+			return create_branch_node(txn_data_->txn_id());
 		}
 	}
 
@@ -692,15 +659,17 @@ protected:
 	NodeBaseT* clone_node(NodeBaseT* node)
 	{
 		if (node->is_leaf()) {
-			return clone_leaf_node(to_leaf_node(node), txn_data_.txn_id());
+			return clone_leaf_node(to_leaf_node(node), txn_data_->txn_id());
 		}
 		else {
-			return clone_branch_node(to_branch_node(node), txn_data_.txn_id());
+			return clone_branch_node(to_branch_node(node), txn_data_->txn_id());
 		}
 	}
 
 	BranchNodeT* create_branch_node(BigInt txn_id)
 	{
+		ensure_node_budget(1);
+
 		return new BranchNodeT(txn_id, ++node_id_counter_);
 	}
 
@@ -715,6 +684,8 @@ protected:
 
 	LeafNodeT* create_leaf_node(BigInt txn_id)
 	{
+		ensure_node_budget(1);
+
 		return new LeafNodeT(txn_id, ++node_id_counter_);
 	}
 
@@ -726,6 +697,8 @@ protected:
 	template <typename NodeT>
 	NodeT* clone_node_t(NodeT* node, BigInt txn_id)
 	{
+		ensure_node_budget(1);
+
 		BigInt node_id = ++node_id_counter_;
 
 		NodeT* new_node = new NodeT(txn_id, node_id);
@@ -744,25 +717,72 @@ protected:
 		delete node;
 	}
 
+	void ensure_node_budget(BigInt adjustment)
+	{
+		if (node_budget_ == 0)
+		{
+			do_cleanup_snapshots();
+		}
 
+		if (node_budget_ >= adjustment) {
+			node_budget_ -= adjustment;
+		}
+		else {
+			node_budget_ = 0;
+		}
+	}
+
+	BigInt do_cleanup_snapshots()
+	{
+		BigInt removed = 0;
+
+		auto& events = txn_log_.events_;
+
+		for (auto c = events.size() - 1; c > 0; c--)
+		{
+			auto* event = events[c];
+
+			{
+				typename TxnLogT::LockT lock(txn_log_.mutex());
+
+				if (event->refs() == 0)
+				{
+					event->lock();
+				}
+			}
+
+			if (event->locked())
+			{
+				remove_snapshot(event->root());
+
+				typename TxnLogT::LockT lock(txn_log_.mutex());
+
+				events.erase(events.begin() + c);
+
+				removed++;
+			}
+		}
+
+		return removed;
+	}
 
 private:
 
-	TxnDataT clone_last_tx()
+	TxnDataT* clone_last_tx()
 	{
 		BigInt current_txn_id = new_txn_id();
 
-		NodeBaseT* root = txn_log_.front().root();
+		NodeBaseT* root = txn_log_.events_.front()->root();
 
 		NodeBaseT* new_root = clone_node(root, current_txn_id);
 
-		return TxnDataT(new_root, this);
+		return new TxnDataT(new_root, this);
 	}
 
-	TxnDataT create_new_tx()
+	TxnDataT* create_new_tx()
 	{
 		BigInt txn_id = new_txn_id();
-		return TxnDataT(create_leaf_node(txn_id), this);
+		return new TxnDataT(create_leaf_node(txn_id), this);
 	}
 
 	void split_node(NodeBaseT* node, Int split_idx, NodeBaseT* to) const
@@ -792,14 +812,17 @@ private:
 	void commit_txn(TxnDataT* data)
 	{
 		txn_log_.new_entry(data->root());
+		txn_data_ = nullptr;
 
-		txn_data_ = TxnDataT(nullptr, this);
+		mutex_.unlock();
 	}
 
 	void rollback_txn(TxnDataT* data)
 	{
 		remove_snapshot(data->root());
-		txn_data_ = TxnDataT(nullptr, this);
+		txn_data_ = nullptr;
+
+		mutex_.unlock();
 	}
 };
 

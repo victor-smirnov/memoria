@@ -8,11 +8,10 @@
 #ifndef INCLUDE_MEMORIA_CORE_TOOLS_COW_TREE_TXN_HPP_
 #define INCLUDE_MEMORIA_CORE_TOOLS_COW_TREE_TXN_HPP_
 
+#include <memoria/core/tools/cow_tree/cow_tree_tools.hpp>
 #include <memoria/core/types/types.hpp>
 
 #include <memoria/core/tools/optional.hpp>
-#include <memoria/core/tools/cow_tree/cow_tree_sharedptr.hpp>
-
 #include <memoria/core/tools/static_array.hpp>
 
 #include <deque>
@@ -27,21 +26,95 @@ namespace memoria 	{
 namespace cow 		{
 namespace tree 		{
 
-template <typename NodeBase>
-class CoWTreeTxnLogEntry {
-	NodeBase* root_;
-	BigInt txn_id_;
+class CoWTreeException: std::exception {
+	const char* msg_;
+public:
+	CoWTreeException(const char* msg): msg_(msg) {}
 
-	std::mutex* lock_;
+	virtual const char* what() const throw() {
+		return msg_;
+	}
+};
+
+template <typename NodeBase, typename Tree>
+class TxnData {
+	NodeBase* root_ = nullptr;
 
 	Int refs_ = 0;
+
+	Tree* tree_;
+
+	bool commited_ = false;
 
 public:
 	using NodeBaseT = NodeBase;
 
-	CoWTreeTxnLogEntry(NodeBase* root, BigInt txn_id, std::mutex* lock):
-		root_(root), txn_id_(txn_id), lock_(lock)
+	TxnData(NodeBase* root, Tree* tree): root_(root), tree_(tree) {}
+
+	NodeBase* root() {
+		return root_;
+	}
+
+	const NodeBase* root() const {
+		return root_;
+	}
+
+	void set_root(NodeBase* root) {
+		root_ = root;
+	}
+
+	BigInt txn_id() const {
+		return root_->txn_id();
+	}
+
+	void commit() {
+		if (!commited_) {
+			tree_->commit_txn(this);
+			commited_ = true;
+		}
+	}
+
+	void rollback() {
+		if (!commited_) {
+			tree_->rollback_txn(this);
+		}
+	}
+
+	void ref() {
+		refs_++;
+	}
+
+	Int unref() {
+		return --refs_;
+	}
+};
+
+
+template <typename NodeBase, typename MutexT>
+class CoWTreeTxnLogEntry {
+	NodeBase* root_;
+	BigInt txn_id_;
+
+	MutexT* mutex_;
+
+	Int refs_ = 0;
+
+	bool locked_ = false;
+
+public:
+	using NodeBaseT = NodeBase;
+
+	CoWTreeTxnLogEntry(NodeBase* root, BigInt txn_id, MutexT* lock):
+		root_(root), txn_id_(txn_id), mutex_(lock)
 	{}
+
+	bool locked() const {
+		return locked_;
+	}
+
+	void lock() {
+		locked_ = true;
+	}
 
 	NodeBase* root() {
 		return root_;
@@ -55,92 +128,25 @@ public:
 		return txn_id_;
 	}
 
+	Int refs() const {
+		return refs_;
+	}
+
 	void ref()
 	{
-		// must be locked
+		std::lock_guard<MutexT> lock(*mutex_);
 		refs_++;
 	}
 
-	void unref()
+	Int unref()
 	{
-		// must be locked
+		std::lock_guard<MutexT> lock(*mutex_);
 		refs_--;
+		return refs_;
 	}
 };
 
 
-
-
-template <typename LogEntry>
-class Snapshot: public CoWSharedPtr<Snapshot<LogEntry>, LogEntry> {
-	using Base = CoWSharedPtr<Snapshot<LogEntry>, LogEntry>;
-
-	using NodeBaseT = typename LogEntry::NodeBaseT;
-
-public:
-	using MyType = Snapshot<LogEntry>;
-
-	Snapshot(): Base() {}
-	Snapshot(const MyType& other): Base(other) 			{}
-	Snapshot(MyType&& other): Base(std::move(other)) 	{}
-
-	Snapshot(LogEntry& entry): Base(&entry) {}
-
-	~Snapshot() {}
-
-	BigInt txn_id() const  {
-		return root()->txn_id();
-	}
-
-	NodeBaseT* root() {
-		return this->get()->root();
-	}
-
-	const NodeBaseT* root() const {
-		return this->get()->root();
-	}
-};
-
-
-template <typename TxnData>
-class Transaction: public CoWSharedPtr<Transaction<TxnData>, TxnData> {
-	using Base = CoWSharedPtr<Transaction<TxnData>, TxnData>;
-public:
-	using NodeBaseT = typename TxnData::NodeBaseT;
-
-
-public:
-	using MyType = Transaction<TxnData>;
-
-	Transaction(): Base() {}
-	Transaction(const MyType& other): Base(other) 		{}
-	Transaction(MyType&& other): Base(std::move(other)) {}
-
-	Transaction(TxnData& data): Base(&data) {}
-
-	~Transaction() 	{}
-
-	MyType new_tread() = delete;
-
-	void commit() {
-		this->get()->commit();
-	}
-	void rollback() {
-		this->get()->rollback();
-	}
-
-	BigInt txn_id() const  {
-		return root()->txn_id();
-	}
-
-	NodeBaseT* root() {
-		return this->get()->root();
-	}
-
-	const NodeBaseT* root() const {
-		return this->get()->root();
-	}
-};
 
 
 
@@ -148,74 +154,85 @@ public:
 template <typename NodeBase>
 class TxnLog {
 public:
-	using LogEntryT 	= CoWTreeTxnLogEntry<NodeBase>;
+	using MutexT		= std::recursive_mutex;
+	using LockT			= std::lock_guard<MutexT>;
+
+	using LogEntryT 	= CoWTreeTxnLogEntry<NodeBase, MutexT>;
 
 	using SnapshotT 	= Snapshot<LogEntryT>;
 
-protected:
-	std::mutex lock_;
+	template <typename, typename> friend class CoWTree;
 
-	std::deque<LogEntryT> events_;
+protected:
+	MutexT mutex_;
+
+	std::deque<LogEntryT*> events_;
 
 public:
 
 	TxnLog() {}
 
-	std::mutex& lock() {
-		return lock_;
+	MutexT& mutex() {
+		return mutex_;
 	}
 
-	void new_entry(NodeBase* root)
-	{
-		LogEntryT entry(root, root->txn_id(), &lock_);
-		events_.push_front(entry);
-	}
-
-	auto size() const {
+	auto size() {
+		LockT lock(mutex_);
 		return events_.size();
-	}
-
-	auto& front() {
-		return events_.front();
-	}
-
-	const auto& front() const {
-		return events_.front();
 	}
 
 	SnapshotT snapshot()
 	{
+		LockT lock(mutex_);
+
 		return SnapshotT(events_.front());
 	}
 
 	SnapshotT snapshot(BigInt txn_id)
 	{
+		LockT lock(mutex_);
+
 		LogEntryT* entry = nullptr;
 
 		for (LogEntryT& e: events_)
 		{
-			if (e.txn_id() == txn_id)
+			if (e.txn_id() == txn_id && !e.locked())
 			{
 				entry = &e;
 			}
 		}
 
-		return SnapshotT(entry);
+		if (entry) {
+			return SnapshotT(entry);
+		}
+		else {
+			throw new CoWTreeException("Snapshot is already deleted");
+		}
 	}
 
-	void dump(std::ostream& out = std::cout) const
+	void dump(std::ostream& out = std::cout)
 	{
+		LockT lock(mutex_);
+
 		out<<"TxnLog of "<<events_.size()<<" entries."<<endl;
 
 		Int c = 0;
-		for (const auto& entry: events_)
+		for (const auto* entry: events_)
 		{
-			out<<c
-			   <<": TxnId: "<<entry.txn_id()
-			   <<", NodeId: "<<entry.root()->node_id()
-			   <<", size: "<<entry.root()->metadata().size()
+			out<<(c++)
+			   <<": TxnId: "<<entry->txn_id()
+			   <<", NodeId: "<<entry->root()->node_id()
+			   <<", size: "<<entry->root()->metadata().size()
 			   <<endl;
 		}
+	}
+protected:
+
+	void new_entry(NodeBase* root)
+	{
+		LockT lock(mutex_);
+		LogEntryT* entry = new LogEntryT(root, root->txn_id(), &mutex_);
+		events_.push_front(entry);
 	}
 };
 

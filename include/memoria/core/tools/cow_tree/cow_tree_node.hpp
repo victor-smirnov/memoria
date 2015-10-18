@@ -123,6 +123,10 @@ public:
 		return size_ < max_size();
 	}
 
+	BigInt refs() const {
+		return refs_;
+	}
+
 	BigInt ref() {
 		return ++refs_;
 	}
@@ -403,8 +407,6 @@ public:
 		this->copy_to(other->data_, 0, data_, this->size(), other->size());
 		this->merge_keys_from(other);
 	}
-
-
 };
 
 
