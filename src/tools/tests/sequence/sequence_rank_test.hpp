@@ -67,8 +67,8 @@ public:
             {
                 this->out()<<c<<std::endl;
 
-                Int pos     = getRandom(this->size_);
-                Int symbol  = getRandom(Base::Symbols);
+                Int pos     = this->getRandom(this->size_);
+                Int symbol  = this->getRandom(Base::Symbols);
 
                 BigInt rank1 = ctr.rank(pos, symbol);
                 BigInt rank2 = seq.rank(pos, symbol);
@@ -105,9 +105,9 @@ public:
             {
                 this->out()<<c<<std::endl;
 
-                Int pos1    = getRandom(this->size_);
-                Int pos2    = pos1 + getRandom(this->size_ - pos1);
-                Int symbol  = getRandom(Base::Symbols);
+                Int pos1    = this->getRandom(this->size_);
+                Int pos2    = pos1 + this->getRandom(this->size_ - pos1);
+                Int symbol  = this->getRandom(Base::Symbols);
 
                 auto iter   = ctr.seek(pos1);
 

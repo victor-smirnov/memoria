@@ -61,7 +61,8 @@ struct MapXBTTypesBase: public BTTypes<Profile, memoria::BTSingleStream> {
 			PkdFTree<Packed2TreeTypes<Key_, Key_, Indexes>>, //UByteExintCodec
 			PackedFSEArray<PackedFSEArrayTypes<ValueType>>
 		>>,
-		TL<TL<TL<IndexRange<0, Indexes>>, TL<>>>
+		TL<TL<TL<IndexRange<0, Indexes>>, TL<>>>,
+		FSEBranchStructTF
     >;
 
     typedef Key_                                              					Key;

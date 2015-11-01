@@ -60,7 +60,8 @@ struct TableBTTypesBase: public BTTypes<Profile, memoria::BTTreeLayout> {
 //    		    PkdFTree<Packed2TreeTypes<Key, Key, Indexes>>,
 //    			PkdFTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1>>
     		>>,
-			TL<TL<TL<IndexRange<0, Indexes>>, TL<IndexRange<0, 1>>>>
+			TL<TL<TL<IndexRange<0, Indexes>>, TL<IndexRange<0, 1>>>>,
+			FSEBranchStructTF
     >;
 
 
@@ -70,14 +71,16 @@ struct TableBTTypesBase: public BTTypes<Profile, memoria::BTTreeLayout> {
     			PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec>>
 //    		    PkdFTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1>>
     		>>,
-			TL<TL<TL<IndexRange<0, 1>>>>
+			TL<TL<TL<IndexRange<0, 1>>>>,
+			FSEBranchStructTF
     >;
 
 
 
     using DataStreamTF = StreamTF<
     		TL<TL<PackedFSEArray<PackedFSEArrayTypes<Value>>>>,
-			TL<TL<TL<>>>
+			TL<TL<TL<>>>,
+			FSEBranchStructTF
     >;
 
     using StreamDescriptors = TypeList<

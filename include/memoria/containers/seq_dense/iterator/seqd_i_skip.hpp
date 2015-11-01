@@ -77,15 +77,16 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterSkipName)
         return self().leafSize(0);
     }
 
-    ItrSkipFwRtnType<Base, 0, CtrSizeT> skipFw(CtrSizeT amount) {
+
+    auto skipFw(CtrSizeT amount) {
     	return self().template _skipFw<0>(amount);
     }
 
-    ItrSkipBwRtnType<Base, 0, CtrSizeT>  skipBw(CtrSizeT amount) {
+    auto skipBw(CtrSizeT amount) {
     	return self().template _skipBw<0>(amount);
     }
 
-    ItrSkipRtnType<Base, 0, CtrSizeT>  skip(CtrSizeT amount) {
+    auto skip(CtrSizeT amount) {
     	return self().template _skip<0>(amount);
     }
 

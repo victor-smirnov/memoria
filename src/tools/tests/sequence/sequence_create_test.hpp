@@ -73,8 +73,8 @@ public:
         try {
             for (Int c = 0; c < this->size_; c++)
             {
-                Int bit1 = getRandom(Symbols);
-                Int idx = getRandom(c + 1);
+                Int bit1 = this->getRandom(Symbols);
+                Int idx  = this->getRandom(c + 1);
 
                 this->out() << c << " Insert: " << bit1 << " at " << idx << endl;
 
@@ -100,7 +100,7 @@ public:
 
             for (Int c = 0; c < size; c++)
             {
-                remove_idx_ = getRandom(size - c);
+                remove_idx_ = this->getRandom(size - c);
 
                 ctr.remove(remove_idx_);
 
@@ -190,7 +190,7 @@ public:
             {
                 this->out()<<"Append: "<<c<<" "<<ctr.size()<<std::endl;
 
-                Int symbol = last_symbol_ = getRandom(Symbols);
+                Int symbol = last_symbol_ = this->getRandom(Symbols);
                 iter.insert(symbol);
 
                 seq.push_back(symbol);

@@ -49,20 +49,16 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >: public BTTypes<Profile, me
     static constexpr Int Symbols                                                = 2;
     static constexpr Int BranchIndexes                                          = (1 << BitsPerSymbol) + 1;
 
+    using SequenceTypes = typename PkdFSSeqTF<BitsPerSymbol>::Type;
 
-    struct StreamTF {
-        typedef BigInt                                              Key;
-
-        typedef PkdFTree<Packed2TreeTypes<Key, Key, BranchIndexes>> NonLeafType;
-        typedef TL<TL<IndexRange<0, BranchIndexes - 1>>>			IdxRangeList;
-
-        typedef typename PkdFSSeqTF<BitsPerSymbol>::Type            SequenceTypes;
-
-        typedef TL<PkdFSSeq<SequenceTypes>>                         LeafType;
-    };
+    using SeqStreamTF = StreamTF<
+    	TL<TL<PkdFSSeq<SequenceTypes>>>,
+        TL<TL<TL<IndexRange<0, BranchIndexes - 1>>>>,
+		FSEBranchStructTF
+    >;
 
     typedef TypeList<
-                StreamTF
+    		SeqStreamTF
     >                                                                           StreamDescriptors;
 
     typedef BalancedTreeMetadata<

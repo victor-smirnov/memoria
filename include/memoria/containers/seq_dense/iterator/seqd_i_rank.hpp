@@ -72,15 +72,15 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterRankName)
 
     BigInt local_rank(Int idx, Int symbol) const;
 
-    ItrRankRtnType<Base, IntList<0>, Int, CtrSizeT> rank(BigInt delta, Int symbol) {
+    auto rank(BigInt delta, Int symbol) {
     	return self().template _rank<IntList<0>>(symbol, delta);
     }
 
-    ItrRankFwRtnType<Base, IntList<0>, Int, CtrSizeT> rankFw(BigInt delta, Int symbol) {
+    auto rankFw(BigInt delta, Int symbol) {
     	return self().template _rankFw<IntList<0>>(symbol, delta);
     }
 
-    ItrRankBwRtnType<Base, IntList<0>, Int, CtrSizeT> rankBw(BigInt delta, Int symbol) {
+    auto rankBw(BigInt delta, Int symbol) {
     	return self().template _rankBw<IntList<0>>(symbol, delta);
     }
 

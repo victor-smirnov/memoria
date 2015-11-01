@@ -52,19 +52,22 @@ struct BTTLTestTypesBase: public BTTypes<Profile, BTTreeLayout> {
         TL<TL<
 			PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec>>
         >>,
-        TL<TL<TL<IndexRange<0, 1>>>>
+        TL<TL<TL<IndexRange<0, 1>>>>,
+		FSEBranchStructTF
     >;
 
     using StreamFixedTF = StreamTF<
         TL<TL<
         	PkdFTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1>>
         >>,
-        TL<TL<TL<IndexRange<0, 1>>>>
+        TL<TL<TL<IndexRange<0, 1>>>>,
+		FSEBranchStructTF
     >;
 
     using DataStreamTF  = StreamTF<
     	TL<TL<PackedFSEArray<PackedFSEArrayTypes<Value>>>>,
-    	TL<TL<TL<>>>
+    	TL<TL<TL<>>>,
+		FSEBranchStructTF
     >;
 
 

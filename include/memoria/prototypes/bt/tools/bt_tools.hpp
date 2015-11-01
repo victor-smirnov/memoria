@@ -17,9 +17,9 @@
 #include <memoria/core/tools/idata.hpp>
 #include <memoria/core/tools/tuple_dispatcher.hpp>
 
-#include <memoria/prototypes/bt/tools/bt_packed_struct_list_builder.hpp>
-#include <memoria/prototypes/bt/tools/bt_streamdescr_factory.hpp>
-
+#include <memoria/prototypes/bt/tools/bt_tools_core.hpp>
+#include <memoria/prototypes/bt/tools/bt_tools_packed_struct_list_builder.hpp>
+#include <memoria/prototypes/bt/tools/bt_tools_streamdescr_factory.hpp>
 #include <ostream>
 #include <tuple>
 
@@ -56,99 +56,6 @@ struct ForEachStream<Idx, Idx> {
 			throw vapi::Exception(MA_SRC, SBuf()<<"Requested stream "<<stream<<" not found");
 		}
 	}
-};
-
-
-template <typename T, typename LeafPath, typename... Args>
-using ItrFindFwGTRtnType = decltype(std::declval<T>().template _findFwGT<LeafPath>(std::declval<Args>()...));
-
-template <typename T, typename LeafPath, typename... Args>
-using ItrFindFwGERtnType = decltype(std::declval<T>().template _findFwGE<LeafPath>(std::declval<Args>()...));
-
-template <typename T, typename LeafPath, typename... Args>
-using ItrFindBwGTRtnType = decltype(std::declval<T>().template _findBwGT<LeafPath>(std::declval<Args>()...));
-
-template <typename T, typename LeafPath, typename... Args>
-using ItrFindBwGERtnType = decltype(std::declval<T>().template _findBwGE<LeafPath>(std::declval<Args>()...));
-
-
-
-template <typename T, Int Stream, typename... Args>
-using ItrSkipFwRtnType = decltype(std::declval<T>().template _skipFw<Stream>(std::declval<Args>()...));
-
-template <typename T, Int Stream, typename... Args>
-using ItrSkipBwRtnType = decltype(std::declval<T>().template _skipBw<Stream>(std::declval<Args>()...));
-
-template <typename T, Int Stream, typename... Args>
-using ItrSkipRtnType = decltype(std::declval<T>().template _skip<Stream>(std::declval<Args>()...));
-
-
-
-template <typename T, typename LeafPath, typename... Args>
-using ItrSelectFwRtnType = decltype(std::declval<T>().template _selectFw<LeafPath>(std::declval<Args>()...));
-
-template <typename T, typename LeafPath, typename... Args>
-using ItrSelectBwRtnType = decltype(std::declval<T>().template _selectBw<LeafPath>(std::declval<Args>()...));
-
-template <typename T, typename LeafPath, typename... Args>
-using ItrSelectRtnType = decltype(std::declval<T>().template _select<LeafPath>(std::declval<Args>()...));
-
-
-template <typename T, typename LeafPath, typename... Args>
-using ItrRankFwRtnType = decltype(std::declval<T>().template _rankFw<LeafPath>(std::declval<Args>()...));
-
-template <typename T, typename LeafPath, typename... Args>
-using ItrRankBwRtnType = decltype(std::declval<T>().template _rankBw<LeafPath>(std::declval<Args>()...));
-
-template <typename T, typename LeafPath, typename... Args>
-using ItrRankRtnType = decltype(std::declval<T>().template _rank<LeafPath>(std::declval<Args>()...));
-
-
-
-
-
-template <typename List> struct TypeListToTupleH;
-
-template <typename List>
-using TypeListToTuple = typename TypeListToTupleH<List>::Type;
-
-template <typename... List>
-struct TypeListToTupleH<TL<List...>> {
-	using Type = std::tuple<List...>;
-};
-
-
-
-template <typename PkdStructList> struct MakeStreamEntryTL;
-
-template <typename Head, typename... Tail>
-struct MakeStreamEntryTL<TL<Head, Tail...>> {
-	using Type = AppendItemToList<
-			typename PkdStructInputType<Head>::Type,
-			typename MakeStreamEntryTL<TL<Tail...>>::Type
-	>;
-};
-
-template <>
-struct MakeStreamEntryTL<TL<>> {
-	using Type = TL<>;
-};
-
-
-
-template <typename T> struct AccumulatorBuilder;
-
-template <typename PackedStruct, typename... Tail>
-struct AccumulatorBuilder<TL<PackedStruct, Tail...>> {
-	using Type = MergeLists<
-					memoria::core::StaticVector<BigInt, StructSizeProvider<PackedStruct>::Value>,
-					typename AccumulatorBuilder<TL<Tail...>>::Type
-	>;
-};
-
-template <>
-struct AccumulatorBuilder<TL<>> {
-	using Type = TL<>;
 };
 
 
@@ -227,8 +134,6 @@ public:
 
             void* backup_buffer = ctr_.allocator().allocateMemory(page_size);
 
-//            cout<<"Add Page: "<<node.page()<<" -> "<<backup_buffer<<" "<<node->id()<<endl;
-
             CopyByteBuffer(node.page(), backup_buffer, page_size);
 
             pages_.append(TxnRecord(node, backup_buffer, page_size));
@@ -304,52 +209,22 @@ public:
 
 
 
-template <typename T>
-struct ExtendIntType {
-    typedef T Type;
-};
-
-template <>
-struct ExtendIntType<Short> {
-    typedef BigInt Type;
-};
-
-template <>
-struct ExtendIntType<Int> {
-    typedef BigInt Type;
-};
-
-
-template <>
-struct ExtendIntType<Byte> {
-    typedef Int Type;
-};
-
-template <>
-struct ExtendIntType<UByte> {
-    typedef Int Type;
-};
-
-
 
 
 
 template <typename Iterator, typename Container>
-class BTree2IteratorPrefixCache {
+class BTreeIteratorPrefixCache {
 
     using IteratorPrefix = typename Container::Types::IteratorAccumulator;
     using SizePrefix = core::StaticVector<BigInt, Container::Types::Streams>;
 
-    using MyType = BTree2IteratorPrefixCache<Iterator, Container>;
+    using MyType = BTreeIteratorPrefixCache<Iterator, Container>;
 
     IteratorPrefix 	prefix_;
     IteratorPrefix 	leaf_prefix_;
     SizePrefix		size_prefix_;
 
 public:
-
-//    void init(Iterator*) {}
-
 
     void reset() {
     	prefix_ = IteratorPrefix();
@@ -403,7 +278,7 @@ public:
 template <
     typename I, typename C
 >
-std::ostream& operator<<(std::ostream& out, const BTree2IteratorPrefixCache<I, C>& cache)
+std::ostream& operator<<(std::ostream& out, const BTreeIteratorPrefixCache<I, C>& cache)
 {
     out<<"IteratorPrefixCache[";
     out<<"Branch prefixes: "<<cache.prefixes()<<", Leaf Prefixes: "<<cache.leaf_prefixes()<<", Size Prefixes: "<<cache.size_prefix();
@@ -419,13 +294,7 @@ template <Int...> struct Path;
 template <Int Head, Int... Tail>
 struct Path<Head, Tail...> {
 	template <typename T>
-	static auto get(T&& tuple) ->
-		typename std::tuple_element<
-			Head,
-			typename std::remove_reference<
-				decltype(Path<Tail...>::get(std::declval<decltype(tuple)>()))
-			>::type
-		>::type
+	static auto get(T&& tuple)
 	{
 		return std::get<Head>(Path<Tail...>::get(tuple));
 	}
@@ -434,7 +303,7 @@ struct Path<Head, Tail...> {
 template <Int Head>
 struct Path<Head> {
 	template <typename T>
-	static auto get(T&& tuple) -> typename std::tuple_element<Head, typename std::remove_reference<T>::type>::type {
+	static auto get(T&& tuple) {
 		return std::get<Head>(tuple);
 	}
 };

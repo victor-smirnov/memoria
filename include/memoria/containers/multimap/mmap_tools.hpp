@@ -48,9 +48,9 @@ struct InputTupleSizeH<1> {
 
 
 template <typename Iterator, typename Container>
-class MultimapIteratorPrefixCache: public bt::BTree2IteratorPrefixCache<Iterator, Container> {
+class MultimapIteratorPrefixCache: public bt::BTreeIteratorPrefixCache<Iterator, Container> {
 
-	using Base = bt::BTree2IteratorPrefixCache<Iterator, Container>;
+	using Base = bt::BTreeIteratorPrefixCache<Iterator, Container>;
 	using CtrSizeT = typename Container::Types::CtrSizeT;
 
 	CtrSizeT data_size_ = 0;

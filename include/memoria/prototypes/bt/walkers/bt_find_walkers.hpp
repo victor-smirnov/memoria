@@ -222,7 +222,7 @@ public:
 	>
 	void branch_iterator_accumulator(const StreamObj* obj, IterAccumItem<T, From, To>& item, Int start, Int end)
 	{
-		static_assert(To <= StreamObj::Indexes, "Invalid BTree structure");
+		static_assert(To <= StructSizeProvider<StreamObj>::Value, "Invalid BTree structure");
 
 		for (Int c = 0; c < To - From; c++)
 		{
@@ -489,7 +489,7 @@ public:
 	>
 	void branch_iterator_accumulator(const StreamObj* obj, IterAccumItem<T, From, To>& item, Int start, Int end)
 	{
-		static_assert(To <= StreamObj::Indexes, "Invalid BTree structure");
+		static_assert(To <= StructSizeProvider<StreamObj>::Value, "Invalid BTree structure");
 
 		Int s = start > (obj->size() - 1) ? obj->size() - 1 : start;
 

@@ -26,7 +26,7 @@ struct StreamStartTag {
 };
 
 
-template <typename LeafTypeT, typename IndexRangeListT>
+template <typename LeafTypeT, typename IndexRangeListT, template <Int LeafIndexes> class BranchStructTF>
 struct StreamTF {};
 
 

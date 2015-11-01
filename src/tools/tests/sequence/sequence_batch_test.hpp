@@ -80,7 +80,7 @@ public:
         MemBuffer data(size);
         for (SizeT c = 0; c < size; c++)
         {
-            data.put(getRandom(1 << BitsPerSymbol));
+            data.put(this->getRandom(1 << BitsPerSymbol));
         }
 
         data.reset();

@@ -72,8 +72,8 @@ public:
             {
                 this->out()<<c<<std::endl;
 
-                Int symbol  = getRandom(Base::Symbols);
-                Int rank    = getRandom(ranks[symbol]);
+                Int symbol  = this->getRandom(Base::Symbols);
+                Int rank    = this->getRandom(ranks[symbol]);
 
                 if (rank == 0) rank = 1; //  rank of 0 is not defined for select()
 
@@ -117,14 +117,14 @@ public:
             {
                 this->out()<<c<<std::endl;
 
-                Int pos     = getRandom(size);
-                Int symbol  = getRandom(Base::Symbols);
+                Int pos     = this->getRandom(size);
+                Int symbol  = this->getRandom(Base::Symbols);
 
                 Int max_rank = seq.rank(pos, size, symbol);
 
                 if (max_rank > 0)
                 {
-                    Int rank    = getRandom(max_rank);
+                    Int rank    = this->getRandom(max_rank);
 
                     if (rank == 0) rank = 1;
 
@@ -181,14 +181,14 @@ public:
             {
                 this->out()<<c<<std::endl;
 
-                Int pos     = getRandom(size);
-                Int symbol  = getRandom(Base::Symbols);
+                Int pos     = this->getRandom(size);
+                Int symbol  = this->getRandom(Base::Symbols);
 
                 Int max_rank = seq.rank(0, pos, symbol);
 
                 if (max_rank > 0)
                 {
-                    Int rank    = getRandom(max_rank);
+                    Int rank    = this->getRandom(max_rank);
 
                     if (rank == 0) rank = 1;
 

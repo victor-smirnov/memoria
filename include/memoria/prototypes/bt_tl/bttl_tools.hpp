@@ -239,9 +239,9 @@ template <
 
 
 template <typename Iterator, typename Container>
-class BTTLIteratorPrefixCache: public bt::BTree2IteratorPrefixCache<Iterator, Container> {
+class BTTLIteratorPrefixCache: public bt::BTreeIteratorPrefixCache<Iterator, Container> {
 
-	using Base 		= bt::BTree2IteratorPrefixCache<Iterator, Container>;
+	using Base 		= bt::BTreeIteratorPrefixCache<Iterator, Container>;
 	using Position 	= typename Container::Types::Position;
 
 	static const Int Streams = Container::Types::Streams;

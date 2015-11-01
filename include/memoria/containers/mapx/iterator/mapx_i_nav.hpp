@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2014-2015.
+// Copyright Victor Smirnov 2014+.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -84,26 +84,22 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
 
 
 
-    auto findFwGT(Int index, Key key) ->
-    ItrFindFwGTRtnType<Base, IntList<0>, Int, Key>
+    auto findFwGT(Int index, Key key)
     {
     	return self().template _findFwGT<IntList<0>>(index, key);
     }
 
-    auto findFwGE(Int index, Key key) ->
-    ItrFindFwGERtnType<Base, IntList<0>, Int, Key>
+    auto findFwGE(Int index, Key key)
     {
     	return self().template _findFwGE<IntList<0>>(index, key);
     }
 
-    auto findBwGT(Int index, Key key) ->
-    ItrFindBwGTRtnType<Base, IntList<0>, Int, Key>
+    auto findBwGT(Int index, Key key)
     {
     	return self().template _findBwGT<IntList<0>>(index, key);
     }
 
-    auto findBwGE(Int index, Key key) ->
-    ItrFindBwGERtnType<Base, IntList<0>, Int, Key>
+    auto findBwGE(Int index, Key key)
     {
     	return self().template _findBwGE<IntList<0>>(index, key);
     }
@@ -121,7 +117,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
     template <typename SubstreamsIdxList, typename... Args>
     using ReadLeafEntryRtnType = typename Container::template ReadLeafEntryRtnType<SubstreamsIdxList, Args...>;
 
-    auto raw_key() const -> typename std::tuple_element<0, ReadLeafEntryRtnType<IntList<0>, Int>>::type
+    auto raw_key() const
     {
     	return std::get<0>(self().ctr().template _readLeafEntry<IntList<0>>(self().leaf(), self().idx()));
     }
@@ -131,12 +127,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
     	return self().raw_key(0) + self().prefix();
     }
 
-    auto raw_key(Int index) const -> typename std::tuple_element<0, ReadLeafEntryRtnType<IntList<0>, Int, Int>>::type
+    auto raw_key(Int index) const
     {
     	return std::get<0>(self().ctr().template _readLeafEntry<IntList<0>>(self().leaf(), self().idx(), index));
     }
 
-    auto value() const -> typename std::tuple_element<0, ReadLeafEntryRtnType<IntList<1>, Int>>::type
+    auto value() const
     {
     	return std::get<0>(self().ctr().template _readLeafEntry<IntList<1>>(self().leaf(), self().idx()));
     }

@@ -12,10 +12,10 @@
 #include <memoria/tools/profile_tests.hpp>
 #include <memoria/tools/tools.hpp>
 
-
 #include <memoria/prototypes/bt_tl/bttl_factory.hpp>
 #include <memoria/prototypes/bt_tl/tools/bttl_random_gen.hpp>
 
+#include "../../shared/bt_test_base.hpp"
 #include "bttl_test_factory.hpp"
 
 #include <functional>

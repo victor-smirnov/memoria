@@ -40,7 +40,8 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
 
     using VectorStreamTF = StreamTF<
         TL<TL<PackedFSEArray<PackedFSEArrayTypes<Value>>>>,
-        TL<TL<TL<>>>
+        TL<TL<TL<>>>,
+		FSEBranchStructTF
     >;
 
 
@@ -95,16 +96,13 @@ struct BTTypes<Profile, memoria::Vector<VLen<Gr, Value_>> >: public BTTypes<Prof
     typedef Value_                                                              Value;
 
     using VectorStreamTF = StreamTF<
-
-//        typedef core::StaticVector<BigInt, 1>                       AccumulatorPart;
-//        typedef core::StaticVector<BigInt, 1>                       IteratorPrefixPart;
-
         TL<TL<PackedVLEArray<
         				Packed2TreeTypes<
         					Value, Value, 1, CodecClassTF<Gr>::template Type
         				>
         >>>,
-        TL<TL<TL<>>>
+        TL<TL<TL<>>>,
+		FSEBranchStructTF
     >;
 
 

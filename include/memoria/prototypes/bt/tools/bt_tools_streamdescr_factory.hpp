@@ -28,11 +28,6 @@ namespace memoria   {
 namespace bt        {
 
 
-
-
-
-
-
 namespace details {
 
 	template <typename State, typename Element>
@@ -92,10 +87,14 @@ namespace details {
 
 
 template <Int LeafIndexes>
-struct BranchStructTF {
+struct FSEBranchStructTF {
 	using Type = PkdFTree<Packed2TreeTypes<BigInt, BigInt, LeafIndexes>>;
 };
 
+template <Int LeafIndexes>
+struct VLEBranchStructTF {
+	using Type = PkdVTree<Packed2TreeTypes<BigInt, BigInt, LeafIndexes, UByteExintCodec>>;
+};
 
 
 template <typename LeafStructList, template <Int> class BranchStructTF, Int Idx = 0> struct BTStreamDescritorsBuilder;

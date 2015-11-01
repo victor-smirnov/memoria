@@ -55,8 +55,8 @@ public:
     {
         PackedSeq seq(size, (BitsPerSymbol == 8) ? 10 : 1, 1);
 
-        seq.insert(0, size, [](){
-            return getRandom(Symbols);
+        seq.insert(0, size, [this](){
+            return this->getRandom(Symbols);
         });
 
         auto iter = ctr.Begin();

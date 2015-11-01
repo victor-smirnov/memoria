@@ -5,19 +5,17 @@
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/packed/tools/packed_dispatcher.hpp>
 
-#include <memoria/prototypes/bt/tools/bt_size_list_builder.hpp>
-#include <memoria/prototypes/bt/tools/bt_index_range.hpp>
-#include <memoria/prototypes/bt/tools/bt_streamdescr_factory.hpp>
-
 #include <memoria/core/types/list/linearize.hpp>
 
 #include <memoria/core/packed/tools/packed_allocator_types.hpp>
+#include <memoria/prototypes/bt/tools/bt_tools_core.hpp>
+#include <memoria/prototypes/bt/tools/bt_tools_index_range.hpp>
+#include <memoria/prototypes/bt/tools/bt_tools_size_list_builder.hpp>
+#include <memoria/prototypes/bt/tools/bt_tools_streamdescr_factory.hpp>
 
 
 namespace memoria   {
 namespace bt        {
-
-template <typename PkdStructList> struct MakeStreamEntryTL;
 
 namespace detail  {
 
@@ -95,9 +93,10 @@ class IteratorAccumulatorListBuilder;
 template <
     typename LeafType,
 	typename IdxRangeList,
+	template <Int LeafIndexes> class BranchStructTF,
     typename... Tail
 >
-class PackedLeafStructListBuilder<TypeList<StreamTF<LeafType, IdxRangeList>, Tail...>> {
+class PackedLeafStructListBuilder<TypeList<StreamTF<LeafType, IdxRangeList, BranchStructTF>, Tail...>> {
 
 	using BranchType 	= typename BTStreamDescritorsBuilder<FlattenLeafTree<LeafType>, BranchStructTF>::Type;
 
@@ -137,9 +136,10 @@ public:
 template <
     typename LeafType,
 	typename IdxRangeList,
+	template <Int LeafIndexes> class BranchStructTF,
     typename... Tail
 >
-class PackedBranchStructListBuilder<TypeList<StreamTF<LeafType, IdxRangeList>, Tail...>> {
+class PackedBranchStructListBuilder<TypeList<StreamTF<LeafType, IdxRangeList, BranchStructTF>, Tail...>> {
 
     using BranchType = typename BTStreamDescritorsBuilder<FlattenLeafTree<LeafType>, BranchStructTF>::Type;
 
@@ -159,9 +159,10 @@ class Undefined;
 template <
 	typename LeafType,
 	typename IdxRangeList,
+	template <Int LeafIndexes> class BranchStructTF,
     typename... Tail
 >
-class IteratorAccumulatorListBuilder<TypeList<StreamTF<LeafType, IdxRangeList>, Tail...>> {
+class IteratorAccumulatorListBuilder<TypeList<StreamTF<LeafType, IdxRangeList, BranchStructTF>, Tail...>> {
 
 	using BranchType = typename BTStreamDescritorsBuilder<FlattenLeafTree<LeafType>, BranchStructTF>::Type;
 
@@ -228,6 +229,22 @@ public:
 
 
 
+
+
+template <typename T> struct AccumulatorBuilder;
+
+template <typename PackedStruct, typename... Tail>
+struct AccumulatorBuilder<TL<PackedStruct, Tail...>> {
+	using Type = MergeLists<
+					memoria::core::StaticVector<BigInt, StructSizeProvider<PackedStruct>::Value>,
+					typename AccumulatorBuilder<TL<Tail...>>::Type
+	>;
+};
+
+template <>
+struct AccumulatorBuilder<TL<>> {
+	using Type = TL<>;
+};
 
 
 

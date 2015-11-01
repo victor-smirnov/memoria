@@ -21,10 +21,10 @@
 
 #include <memoria/prototypes/bt/tools/bt_tools.hpp>
 #include <memoria/prototypes/bt/bt_names.hpp>
+#include <memoria/prototypes/bt/tools/bt_tools_packed_struct_list_builder.hpp>
 
-#include <memoria/prototypes/bt/tools/bt_packed_struct_list_builder.hpp>
-#include <memoria/prototypes/bt/tools/bt_size_list_builder.hpp>
-#include <memoria/prototypes/bt/tools/bt_substreamgroup_dispatcher.hpp>
+#include <memoria/prototypes/bt/tools/bt_tools_size_list_builder.hpp>
+#include <memoria/prototypes/bt/tools/bt_tools_substreamgroup_dispatcher.hpp>
 
 
 namespace memoria   {

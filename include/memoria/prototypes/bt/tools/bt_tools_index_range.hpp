@@ -5,8 +5,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_ACCUMULATORS_HPP
-#define _MEMORIA_PROTOTYPES_BALANCEDTREE_ACCUMULATORS_HPP
+#ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_TOOLS_INDEX_RANGE_HPP
+#define _MEMORIA_PROTOTYPES_BALANCEDTREE_TOOLS_INDEX_RANGE_HPP
 
 #include <memoria/core/tools/static_array.hpp>
 
@@ -15,9 +15,8 @@
 #include <memoria/core/types/list/list_tree.hpp>
 #include <memoria/core/exceptions/bounds.hpp>
 
-#include <memoria/prototypes/bt/tools/bt_size_list_builder.hpp>
-
 #include <memoria/core/packed/tools/packed_allocator_types.hpp>
+#include <memoria/prototypes/bt/tools/bt_tools_size_list_builder.hpp>
 
 #include <iostream>
 #include <tuple>
