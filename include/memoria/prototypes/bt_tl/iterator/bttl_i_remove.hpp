@@ -80,7 +80,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorRemoveName)
     	tmp.skipFw(n);
 
     	auto end_abs_pos   = tmp.cache().abs_pos();
-    	auto end_data_pos  = tmp.cache().data_pos();
+//    	auto end_data_pos  = tmp.cache().data_pos();
 
     	auto length_to_remove = end_abs_pos[stream] - start_abs_pos[stream];
 

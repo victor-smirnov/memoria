@@ -124,23 +124,20 @@ struct LabelOffsetProc<TypeList<>> {
 };
 
 
-template <Int Indexes, typename Key_, typename Value_>
-struct MapXStreamTF{
-    typedef Key_                                                    Key;
-    typedef Value_                                                  Value;
-
-    using LeafType = TL<TL<
-    		PkdFTree<Packed2TreeTypes<Key, Key, Indexes>>, //UByteExintCodec
-    		PackedFSEArray<PackedFSEArrayTypes<Value>>
-    >>;
-
-    static const Int LeafIndexes                                    = Indexes + 1;
-
-    typedef PkdVTree<
-                Packed2TreeTypes<Key, Key, LeafIndexes, UByteExintCodec>
-    >                                                               NonLeafType;
-    typedef TL<TL<TL<IndexRange<0, Indexes>>, TL<>>>				IdxRangeList;
-};
+//template <Int Indexes, typename Key_, typename Value_>
+//struct MapXStreamTF{
+//    typedef Key_                                                    Key;
+//    typedef Value_                                                  Value;
+//
+//    using LeafType = TL<TL<
+//    		PkdFTree<Packed2TreeTypes<Key, Key, Indexes>>, //UByteExintCodec
+//    		PackedFSEArray<PackedFSEArrayTypes<Value>>
+//    >>;
+//
+//    static const Int LeafIndexes                                    = Indexes + 1;
+//
+//    typedef TL<TL<TL<IndexRange<0, Indexes>>, TL<>>>				IdxRangeList;
+//};
 
 
 

@@ -17,7 +17,6 @@ namespace bttl    {
 
 
 
-
 template <typename FullPath>
 using BTTLSizePath = typename SublistFromStart<FullPath, ListSize<FullPath>::Value - 1>::Type;
 

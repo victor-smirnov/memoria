@@ -86,7 +86,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
     	template <typename NodeTypes>
     	Int treeNode(const LeafNode<NodeTypes>* leaf, Int start)
     	{
-    		return std::get<0>(leaf->template processSubstreams<IntList<0, 0>>(*this, start));
+    		return std::get<0>(leaf->template processSubstreams<IntList<0>>(*this, start));
     	}
 
     	template <typename StreamObj>

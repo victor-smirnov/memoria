@@ -38,18 +38,13 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
 
     typedef Value_                                                              Value;
 
-    struct StreamTF {
-        typedef BigInt                                              Key;
-        typedef Value_                                              Value;
-
-        typedef PkdFTree<Packed2TreeTypes<Key, Key>>             	NonLeafType;
-        typedef TL<PackedFSEArray<PackedFSEArrayTypes<Value>>>      LeafType;
-
-        typedef TL<TL<>>											IdxRangeList;
-    };
+    using VectorStreamTF = StreamTF<
+        TL<TL<PackedFSEArray<PackedFSEArrayTypes<Value>>>>,
+        TL<TL<TL<>>>
+    >;
 
 
-    typedef TypeList<StreamTF>                                                  StreamDescriptors;
+    typedef TypeList<VectorStreamTF>                                             StreamDescriptors;
 
 
     typedef BalancedTreeMetadata<
@@ -99,25 +94,22 @@ struct BTTypes<Profile, memoria::Vector<VLen<Gr, Value_>> >: public BTTypes<Prof
 
     typedef Value_                                                              Value;
 
-    struct StreamTF {
-        typedef BigInt                                              Key;
-        typedef Value_                                              Value;
+    using VectorStreamTF = StreamTF<
 
-        typedef core::StaticVector<BigInt, 1>                       AccumulatorPart;
-        typedef core::StaticVector<BigInt, 1>                       IteratorPrefixPart;
+//        typedef core::StaticVector<BigInt, 1>                       AccumulatorPart;
+//        typedef core::StaticVector<BigInt, 1>                       IteratorPrefixPart;
 
-        typedef PkdFTree<Packed2TreeTypes<Key, Key, 1>>        		NonLeafType;
-        typedef TL<PackedVLEArray<
+        TL<TL<PackedVLEArray<
         				Packed2TreeTypes<
         					Value, Value, 1, CodecClassTF<Gr>::template Type
         				>
-        		>>      											LeafType;
-        typedef TL<TL<>>											IdxRangeList;
-    };
+        >>>,
+        TL<TL<TL<>>>
+    >;
 
 
     typedef TypeList<
-                StreamTF
+                VectorStreamTF
     >                                                                           StreamDescriptors;
 
     typedef BalancedTreeMetadata<

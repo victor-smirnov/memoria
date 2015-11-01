@@ -48,30 +48,24 @@ struct BTTLTestTypesBase: public BTTypes<Profile, BTTreeLayout> {
     using CtrSizeT = BigInt;
 
 
-    struct StreamVariableTF {
-        using NonLeafType 	= PkdFTree<Packed2TreeTypes<Key, Key, 2>>;
-        using LeafType 		= TL<TL<
+    using StreamVariableTF = StreamTF<
+        TL<TL<
 			PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec>>
-        >>;
+        >>,
+        TL<TL<TL<IndexRange<0, 1>>>>
+    >;
 
-        using IdxRangeList 	= TL<TL<TL<IndexRange<0, 1>>>>;
-    };
-
-    struct StreamFixedTF {
-        using NonLeafType 	= PkdFTree<Packed2TreeTypes<Key, Key, 2>>;
-        using LeafType 		= TL<TL<
+    using StreamFixedTF = StreamTF<
+        TL<TL<
         	PkdFTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1>>
-        >>;
+        >>,
+        TL<TL<TL<IndexRange<0, 1>>>>
+    >;
 
-        using IdxRangeList 	= TL<TL<TL<IndexRange<0, 1>>>>;
-    };
-
-    struct DataStreamTF {
-    	using NonLeafType 	= PkdFTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1>>;
-    	using LeafType 		= TL<PackedFSEArray<PackedFSEArrayTypes<Value>>>;
-
-    	using IdxRangeList 	= TL<TL<>>;
-    };
+    using DataStreamTF  = StreamTF<
+    	TL<TL<PackedFSEArray<PackedFSEArrayTypes<Value>>>>,
+    	TL<TL<TL<>>>
+    >;
 
 
     using StreamDescriptors = typename IfThenElse<

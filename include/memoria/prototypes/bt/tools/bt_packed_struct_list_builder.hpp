@@ -7,6 +7,7 @@
 
 #include <memoria/prototypes/bt/tools/bt_size_list_builder.hpp>
 #include <memoria/prototypes/bt/tools/bt_index_range.hpp>
+#include <memoria/prototypes/bt/tools/bt_streamdescr_factory.hpp>
 
 #include <memoria/core/types/list/linearize.hpp>
 
@@ -20,57 +21,60 @@ template <typename PkdStructList> struct MakeStreamEntryTL;
 
 namespace detail  {
 
-template <typename BranchSubstream, typename LeafSubstream>
-struct ValidateSubstreams {
-    static const bool Value = true;
-};
+	template <typename BranchSubstream, typename LeafSubstream>
+	struct ValidateSubstreams {
+		static const bool Value = true;
+	};
 
-template <typename T, typename... List>
-struct ValidateSubstreams<T, TypeList<List...>> {
-    static const bool Value = true;
-};
+	template <typename T, typename... List>
+	struct ValidateSubstreams<T, TypeList<List...>> {
+		static const bool Value = true;
+	};
 
-template <typename T, typename... List>
-struct ValidateSubstreams<TypeList<T>, TypeList<List...>> {
-    static const bool Value = true;
-};
+	template <typename T, typename... List>
+	struct ValidateSubstreams<TypeList<T>, TypeList<List...>> {
+		static const bool Value = true;
+	};
 
-template <typename T1, typename T2>
-struct ValidateSubstreams<TypeList<T1>, T2> {
-    static const bool Value = true;
-};
+	template <typename T1, typename T2>
+	struct ValidateSubstreams<TypeList<T1>, T2> {
+		static const bool Value = true;
+	};
 
-template <typename T1, typename... List1, typename T2, typename... List2>
-struct ValidateSubstreams<TypeList<T1, List1...>, TypeList<T2, List2...>> {
-    static const bool Value = (sizeof...(List1) == sizeof...(List2)) &&
-                                IsPlainList<TypeList<T1, List1...>>::Value;
-};
-
-
-template <typename List> struct InputBufferListBuilder;
-
-template <typename Head, typename... Tail>
-struct InputBufferListBuilder<TL<Head, Tail...>> {
-	using Type = MergeLists<
-					typename PkdStructInputBufferType<Head>::Type,
-					typename InputBufferListBuilder<TL<Tail...>>::Type
-	>;
-};
-
-template <typename... List, typename... Tail>
-struct InputBufferListBuilder<TL<TL<List...>, Tail...>> {
-	using Type = MergeLists<
-					TL<typename InputBufferListBuilder<TL<List...>>::Type>,
-					typename InputBufferListBuilder<TL<Tail...>>::Type
-	>;
-};
-
-template <>
-struct InputBufferListBuilder<TL<>> {
-	using Type = TL<>;
-};
+	template <typename T1, typename... List1, typename T2, typename... List2>
+	struct ValidateSubstreams<TypeList<T1, List1...>, TypeList<T2, List2...>> {
+		static const bool Value = (sizeof...(List1) == sizeof...(List2)) &&
+									IsPlainList<TypeList<T1, List1...>>::Value;
+	};
 
 
+	template <typename List> struct InputBufferListBuilder;
+
+	template <typename Head, typename... Tail>
+	struct InputBufferListBuilder<TL<Head, Tail...>> {
+		using Type = MergeLists<
+				typename PkdStructInputBufferType<Head>::Type,
+				typename InputBufferListBuilder<TL<Tail...>>::Type
+		>;
+	};
+
+	template <typename PackedStruct>
+	struct InputBufferListBuilder {
+		using Type = TL<typename PkdStructInputBufferType<PackedStruct>::Type>;
+	};
+
+	template <typename... List, typename... Tail>
+	struct InputBufferListBuilder<TL<TL<List...>, Tail...>> {
+		using Type = MergeLists<
+				TL<typename InputBufferListBuilder<TL<List...>>::Type>,
+				typename InputBufferListBuilder<TL<Tail...>>::Type
+		>;
+	};
+
+	template <>
+	struct InputBufferListBuilder<TL<>> {
+		using Type = TL<>;
+	};
 }
 
 
@@ -86,14 +90,16 @@ class PackedBranchStructListBuilder;
 template <typename List>
 class IteratorAccumulatorListBuilder;
 
+
+
 template <
-    typename StructsTF,
+    typename LeafType,
+	typename IdxRangeList,
     typename... Tail
 >
-class PackedLeafStructListBuilder<TypeList<StructsTF, Tail...>> {
+class PackedLeafStructListBuilder<TypeList<StreamTF<LeafType, IdxRangeList>, Tail...>> {
 
-    using BranchType 	= typename StructsTF::NonLeafType;
-    using LeafType 		= typename StructsTF::LeafType;
+	using BranchType 	= typename BTStreamDescritorsBuilder<FlattenLeafTree<LeafType>, BranchStructTF>::Type;
 
     static_assert(
             detail::ValidateSubstreams<BranchType, LeafType>::Value,
@@ -129,12 +135,13 @@ public:
 
 
 template <
-    typename StructsTF,
+    typename LeafType,
+	typename IdxRangeList,
     typename... Tail
 >
-class PackedBranchStructListBuilder<TypeList<StructsTF, Tail...>> {
+class PackedBranchStructListBuilder<TypeList<StreamTF<LeafType, IdxRangeList>, Tail...>> {
 
-    using BranchType = typename StructsTF::NonLeafType;
+    using BranchType = typename BTStreamDescritorsBuilder<FlattenLeafTree<LeafType>, BranchStructTF>::Type;
 
 public:
     using StructList = AppendItemToList<
@@ -150,26 +157,28 @@ class Undefined;
 
 
 template <
-    typename StructsTF,
+	typename LeafType,
+	typename IdxRangeList,
     typename... Tail
 >
-class IteratorAccumulatorListBuilder<TypeList<StructsTF, Tail...>> {
+class IteratorAccumulatorListBuilder<TypeList<StreamTF<LeafType, IdxRangeList>, Tail...>> {
 
-	using LeafStructList 	= FlattenLeafTree<typename StructsTF::LeafType>;
+	using BranchType = typename BTStreamDescritorsBuilder<FlattenLeafTree<LeafType>, BranchStructTF>::Type;
 
-    using BranchStructList 	= FlattenBranchTree<typename StructsTF::NonLeafType>;
-    using IdxRangeList 		= FlattenIndexRangeTree<typename StructsTF::IdxRangeList>;
+	using LeafStructList 	= FlattenLeafTree<LeafType>;
+    using BranchStructList 	= FlattenBranchTree<BranchType>;
+    using FlatIdxRangeList 	= FlattenIndexRangeTree<IdxRangeList>;
 
     using RangeListType = typename BranchNodeRangeListBuilder<
     		BranchStructList,
     		LeafStructList,
-    		IdxRangeList
+    		FlatIdxRangeList
     >::Type;
 
 	using RangeOffsetListType = typename BranchNodeRangeListBuilder<
 			BranchStructList,
 			LeafStructList,
-			IdxRangeList
+			FlatIdxRangeList
 	>::OffsetList;
 
     using AccType = typename IteratorAccumulatorBuilder<

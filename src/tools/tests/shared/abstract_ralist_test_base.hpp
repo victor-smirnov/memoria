@@ -179,7 +179,7 @@ public:
 
     Int getRandomBufferSize(Int max)
     {
-        return memoria::getRandom(max - 1) + 1;
+        return this->getRandom(max - 1) + 1;
     }
 
     MemBuffer createSuffixCheckBuffer(Iterator& iter)

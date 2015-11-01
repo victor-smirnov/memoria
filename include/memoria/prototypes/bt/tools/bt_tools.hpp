@@ -18,6 +18,7 @@
 #include <memoria/core/tools/tuple_dispatcher.hpp>
 
 #include <memoria/prototypes/bt/tools/bt_packed_struct_list_builder.hpp>
+#include <memoria/prototypes/bt/tools/bt_streamdescr_factory.hpp>
 
 #include <ostream>
 #include <tuple>

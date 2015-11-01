@@ -61,8 +61,8 @@ public:
         {
             Entry entry;
 
-            entry.key()     = getRandom(10) + 1;
-            entry.value()   = getRandom(100) + 1;
+            entry.key()     = this->getRandom(10) + 1;
+            entry.value()   = this->getRandom(100) + 1;
 
             item = entry;
         }
@@ -77,8 +77,8 @@ public:
         {
             Entry entry;
 
-            entry.key()     = getRandom(10) + 1;
-            entry.value()   = getRandom(100) + 1;
+            entry.key()     = this->getRandom(10) + 1;
+            entry.value()   = this->getRandom(100) + 1;
 
             item = entry;
         }

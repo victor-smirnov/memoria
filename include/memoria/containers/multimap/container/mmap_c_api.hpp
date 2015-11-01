@@ -61,9 +61,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mmap::CtrApiName)
     	return self().template _find2GE<IntList<0>>(0, key);
     }
 
-
-
-
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::mmap::CtrApiName)

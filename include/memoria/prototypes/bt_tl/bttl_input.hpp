@@ -1157,7 +1157,7 @@ struct PopulateHelper {
 		if (chunk.symbol() == Idx)
 		{
 			auto len  = chunk.length();
-			auto size = std::get<Idx>(buffer).size();
+			int size = std::get<Idx>(buffer).size();
 			auto len0 = (start[Idx] + len <= size) ? len : size - start[Idx];
 
 			chunk.set_length(len0);
@@ -1184,7 +1184,7 @@ struct PopulateHelper<Tag, Size, Size> {
 	static auto process(Chunk&& chunk, Provider&& provider, Buffer&& buffer, const CtrSizesT& start, Args&&... args)
 	{
 		auto len  = chunk.length();
-		auto size = std::get<Size>(buffer).size();
+		int size = std::get<Size>(buffer).size();
 		auto len0 = (start[Size] + len <= size) ? len : size - start[Size];
 
 		chunk.set_length(len0);

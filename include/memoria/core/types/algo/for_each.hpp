@@ -16,6 +16,7 @@
 
 namespace memoria    {
 
+
 template <
         typename Config,
         typename List,

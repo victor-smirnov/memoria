@@ -51,39 +51,34 @@ struct TableBTTypesBase: public BTTypes<Profile, memoria::BTTreeLayout> {
 
     using CtrSizeT = BigInt;
 
-
     template <Int Indexes>
-    struct Stream1TF {
-        using NonLeafType 	= PkdFTree<Packed2TreeTypes<Key, Key, Indexes + 2>>;
-        using LeafType 		= TL<TL<
-        	PkdVTree<Packed2TreeTypes<Key, Key, Indexes, UByteI7Codec>>,
-			PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec>>
+    using Stream1TF = StreamTF<
+    		TL<TL<
+				PkdVTree<Packed2TreeTypes<Key, Key, Indexes, UByteI7Codec>>,
+    			PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec>>
 
-//        	PkdFTree<Packed2TreeTypes<Key, Key, Indexes>>,
-//			PkdFTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1>>
-        >>;
-
-        using IdxRangeList 	= TL<TL<TL<IndexRange<0, Indexes>>, TL<IndexRange<0, 1>>>>;
-    };
-
-    struct Stream2TF {
-        using NonLeafType 	= PkdFTree<Packed2TreeTypes<Key, Key, 2>>;
-        using LeafType 		= TL<TL<
-			PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec>>
-
-//        	PkdFTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1>>
-        >>;
-
-        using IdxRangeList 	= TL<TL<TL<IndexRange<0, 1>>>>; //TL<IndexRange<0, Indexes>>,
-    };
+//    		    PkdFTree<Packed2TreeTypes<Key, Key, Indexes>>,
+//    			PkdFTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1>>
+    		>>,
+			TL<TL<TL<IndexRange<0, Indexes>>, TL<IndexRange<0, 1>>>>
+    >;
 
 
-    struct DataStreamTF {
-    	using NonLeafType 	= PkdFTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1>>;
-    	using LeafType 		= TL<PackedFSEArray<PackedFSEArrayTypes<Value>>>;
 
-    	using IdxRangeList 	= TL<TL<>>;
-    };
+    using Stream2TF = StreamTF<
+    		TL<TL<
+    			PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec>>
+//    		    PkdFTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1>>
+    		>>,
+			TL<TL<TL<IndexRange<0, 1>>>>
+    >;
+
+
+
+    using DataStreamTF = StreamTF<
+    		TL<TL<PackedFSEArray<PackedFSEArrayTypes<Value>>>>,
+			TL<TL<TL<>>>
+    >;
 
     using StreamDescriptors = TypeList<
     		Stream1TF<1>,

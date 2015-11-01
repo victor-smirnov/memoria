@@ -54,14 +54,14 @@ public:
 //    	registerTask(new BTTLInsertionTest<BTTLTestCtr<4, PackedSizeType::VARIABLE>>("Insert.Vr.4"));
 
 
-    	registerTask(new BTTLRemovalTest<BTTLTestCtr<2, PackedSizeType::VARIABLE>>("Remove.Vr.2"));
-    	registerTask(new BTTLRemovalTest<BTTLTestCtr<2, PackedSizeType::FIXED>>("Remove.Fx.2"));
+//    	registerTask(new BTTLRemovalTest<BTTLTestCtr<2, PackedSizeType::VARIABLE>>("Remove.Vr.2"));
+//    	registerTask(new BTTLRemovalTest<BTTLTestCtr<2, PackedSizeType::FIXED>>("Remove.Fx.2"));
 
     	registerTask(new BTTLRemovalTest<BTTLTestCtr<3, PackedSizeType::VARIABLE>>("Remove.Vr.3"));
     	registerTask(new BTTLRemovalTest<BTTLTestCtr<3, PackedSizeType::FIXED>>("Remove.Fx.3"));
 
-    	registerTask(new BTTLRemovalTest<BTTLTestCtr<4, PackedSizeType::VARIABLE>>("Remove.Vr.4"));
-    	registerTask(new BTTLRemovalTest<BTTLTestCtr<4, PackedSizeType::FIXED>>("Remove.Fx.4"));
+//    	registerTask(new BTTLRemovalTest<BTTLTestCtr<4, PackedSizeType::VARIABLE>>("Remove.Vr.4"));
+//    	registerTask(new BTTLRemovalTest<BTTLTestCtr<4, PackedSizeType::FIXED>>("Remove.Fx.4"));
     }
 };
 

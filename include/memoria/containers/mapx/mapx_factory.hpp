@@ -56,10 +56,16 @@ struct MapXBTTypesBase: public BTTypes<Profile, memoria::BTSingleStream> {
 
     static const Int Indexes                                                    = Indexes_;
 
-    using StreamTF = mapx::MapXStreamTF<Indexes, Key_, ValueType>;
+    using MapStreamTF = StreamTF<
+    	TL<TL<
+			PkdFTree<Packed2TreeTypes<Key_, Key_, Indexes>>, //UByteExintCodec
+			PackedFSEArray<PackedFSEArrayTypes<ValueType>>
+		>>,
+		TL<TL<TL<IndexRange<0, Indexes>>, TL<>>>
+    >;
 
-    typedef typename StreamTF::Key                                              Key;
-    typedef typename StreamTF::Value                                            Value;
+    typedef Key_                                              					Key;
+    typedef Value_                                            					Value;
 
     typedef std::tuple<Key, Value>                                              Entry;
 
@@ -69,7 +75,7 @@ struct MapXBTTypesBase: public BTTypes<Profile, memoria::BTSingleStream> {
     typedef std::tuple<DataSource*>                                             Source;
     typedef std::tuple<DataTarget*>                                             Target;
 
-    typedef TypeList<StreamTF>                              					StreamDescriptors;
+    typedef TypeList<MapStreamTF>                              					StreamDescriptors;
 
     typedef BalancedTreeMetadata<
             typename Base::ID,

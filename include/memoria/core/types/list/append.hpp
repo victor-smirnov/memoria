@@ -79,60 +79,60 @@ struct AppendTool<NullType, NullType>;
 
 namespace internal0 {
 
-template <typename Accumulator, typename ... Lists> class MergeTypeListsHelper;
+	template <typename Accumulator, typename ... Lists> class MergeTypeListsHelper;
 
-template <typename Accumulator, typename ... List, typename ... Tail>
-class MergeTypeListsHelper<Accumulator, TypeList<List...>, Tail...> {
-    using R0 = typename AppendTool<Accumulator, TypeList<List...> >::Type;
-public:
-    using Type = typename MergeTypeListsHelper<R0, Tail...>::Type;
-};
+	template <typename Accumulator, typename ... List, typename ... Tail>
+	class MergeTypeListsHelper<Accumulator, TypeList<List...>, Tail...> {
+		using R0 = typename AppendTool<Accumulator, TypeList<List...> >::Type;
+	public:
+		using Type = typename MergeTypeListsHelper<R0, Tail...>::Type;
+	};
 
-template <typename Accumulator, typename Item, typename ... Tail>
-class MergeTypeListsHelper<Accumulator, Item, Tail...> {
-    using R0 = typename AppendTool<Accumulator, TypeList<Item> >::Type;
-public:
-    using Type = typename MergeTypeListsHelper<R0, Tail...>::Type;
-};
-
-
-template <typename Accumulator>
-class MergeTypeListsHelper<Accumulator> {
-public:
-    using Type = Accumulator;
-};
+	template <typename Accumulator, typename Item, typename ... Tail>
+	class MergeTypeListsHelper<Accumulator, Item, Tail...> {
+		using R0 = typename AppendTool<Accumulator, TypeList<Item> >::Type;
+	public:
+		using Type = typename MergeTypeListsHelper<R0, Tail...>::Type;
+	};
 
 
-
-template <typename Accumulator, typename ... Lists> class MergeValueListsHelper;
-
-template <typename Accumulator, typename T, T... List, typename ... Tail>
-class MergeValueListsHelper<Accumulator, ValueList<T, List...>, Tail...> {
-    using R0 = typename AppendTool<Accumulator, ValueList<T, List...> >::Type;
-public:
-    using Type = typename MergeValueListsHelper<R0, Tail...>::Type;
-};
-
-template <typename Accumulator, typename T, T Value, typename ... Tail>
-class MergeValueListsHelper<Accumulator, ConstValue<T, Value>, Tail...> {
-    using R0 = typename AppendTool<Accumulator, ValueList<T, Value> >::Type;
-public:
-    using Type = typename MergeValueListsHelper<R0, Tail...>::Type;
-};
-
-template <typename Accumulator, typename ... Tail>
-class MergeValueListsHelper {
-public:
-    using Type = typename AppendTool<Accumulator, Tail... >::Type;
-};
+	template <typename Accumulator>
+	class MergeTypeListsHelper<Accumulator> {
+	public:
+		using Type = Accumulator;
+	};
 
 
 
-template <typename Accumulator>
-class MergeValueListsHelper<Accumulator> {
-public:
-    using Type = Accumulator;
-};
+	template <typename Accumulator, typename ... Lists> class MergeValueListsHelper;
+
+	template <typename Accumulator, typename T, T... List, typename ... Tail>
+	class MergeValueListsHelper<Accumulator, ValueList<T, List...>, Tail...> {
+		using R0 = typename AppendTool<Accumulator, ValueList<T, List...> >::Type;
+	public:
+		using Type = typename MergeValueListsHelper<R0, Tail...>::Type;
+	};
+
+	template <typename Accumulator, typename T, T Value, typename ... Tail>
+	class MergeValueListsHelper<Accumulator, ConstValue<T, Value>, Tail...> {
+		using R0 = typename AppendTool<Accumulator, ValueList<T, Value> >::Type;
+	public:
+		using Type = typename MergeValueListsHelper<R0, Tail...>::Type;
+	};
+
+	template <typename Accumulator, typename ... Tail>
+	class MergeValueListsHelper {
+	public:
+		using Type = typename AppendTool<Accumulator, Tail... >::Type;
+	};
+
+
+
+	template <typename Accumulator>
+	class MergeValueListsHelper<Accumulator> {
+	public:
+		using Type = Accumulator;
+	};
 
 }
 

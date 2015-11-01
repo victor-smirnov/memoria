@@ -10,6 +10,7 @@
 
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
+#include <memoria/core/tools/random.hpp>
 
 #include "map_test_base.hpp"
 
@@ -64,7 +65,7 @@ public:
 
         for (Int c = 1; c <= 1000; c++)
         {
-            last_key += getRandom(5) + 1;
+            last_key += this->getRandom(5) + 1;
 
             auto iter = map[last_key];
 

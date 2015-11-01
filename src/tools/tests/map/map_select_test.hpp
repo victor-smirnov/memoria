@@ -78,7 +78,7 @@ public:
 
         for (Int c = 1; c <= this->size_; c++)
         {
-            Int key = getRandom();
+            Int key = getRandomG();
 
             auto iter = map[key];
 
@@ -103,7 +103,7 @@ public:
         try {
             while(marked_keys.size() > 0)
             {
-                auto tgt_pos = getRandom(marked_keys.size());
+                auto tgt_pos = this->getRandom(marked_keys.size());
 
                 auto i = marked_keys.begin();
                 for (Int c = 0; c < tgt_pos; c++, i++);

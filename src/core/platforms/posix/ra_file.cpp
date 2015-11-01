@@ -116,7 +116,7 @@ UBigInt RAFile::seek(UBigInt pos, SeekType whence)
         throw Exception(MA_SRC, SBuf()<<"Can't lseek to the specified position: "
                                       <<toString(pos)<<" "<<String(strerror(errno)));
     }
-    else if ((seek_whence == SEEK_SET) && (offset != pos))
+    else if ((seek_whence == SEEK_SET) && (offset != (off_t)pos))
     {
         throw Exception(MA_SRC, SBuf()<<"Failed lseek to the specified position: "<<toString(pos));
     }
@@ -144,7 +144,7 @@ void RAFile::readAll(void* buf, UBigInt size)
     {
         throw Exception(MA_SRC, SBuf()<<String(strerror(errno)));
     }
-    else if (result < size)
+    else if (result < (ssize_t)size)
     {
         throw Exception(MA_SRC, SBuf()<<"Failed to read "<<toString(size)<<" bytes");
     }

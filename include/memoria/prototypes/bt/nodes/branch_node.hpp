@@ -140,7 +140,7 @@ public:
 
     bool has_root_metadata() const
     {
-        return allocator()->element_size(METADATA) >= sizeof(Metadata);
+        return allocator()->element_size(METADATA) >= (int)sizeof(Metadata);
     }
 
     const Metadata& root_metadata() const
@@ -195,7 +195,7 @@ public:
     void initAllocator(Int entries)
     {
         Int page_size = this->page_size();
-        MEMORIA_ASSERT(page_size, >, sizeof(Me) + PackedAllocator::my_size());
+        MEMORIA_ASSERT(page_size, >, (int)sizeof(Me) + PackedAllocator::my_size());
 
         allocator_.setTopLevelAllocator();
         allocator_.init(page_size - sizeof(Me) + PackedAllocator::my_size(), entries);

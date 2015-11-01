@@ -24,7 +24,7 @@ if (NOT DEFINED BUILD_TOOLS)
 endif()
 
 if (NOT DEFINED BUILD_SANDBOX)
-    set(BUILD_SANDBOX true)
+    set(BUILD_SANDBOX false)
 endif()
 
 if (BUILD_TOOLS) 

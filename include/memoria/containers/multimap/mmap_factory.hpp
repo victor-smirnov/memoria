@@ -10,8 +10,6 @@
 #define _MEMORIA_CONTAINERS_MULTIMAP_FACTORY_HPP
 
 #include <memoria/prototypes/bt_tl/bttl_factory.hpp>
-#include <memoria/prototypes/ctr_wrapper/ctrwrapper_factory.hpp>
-
 #include <memoria/containers/multimap/mmap_names.hpp>
 
 #include <memoria/containers/multimap/container/mmap_c_api.hpp>
@@ -85,10 +83,6 @@ struct MultimapBTTypesBase: public BTTypes<Profile, memoria::BTTreeLayout> {
                 memoria::mmap::ItrMiscName
     >;
 
-    template <typename Iterator, typename Container>
-    struct IteratorCacheFactory {
-        typedef ::memoria::mmap::MultimapIteratorPrefixCache<Iterator, Container>   Type;
-    };
 
 
 };
@@ -123,10 +117,6 @@ public:
 
         template <Int StreamIdx>
         using InputTupleSizeAccessor = mmap::InputTupleSizeH<StreamIdx>;
-
-        using StreamsSizes = TL<
-        	IntList<0, 0, 1>
-        >;
     };
 
     using CtrTypes 	= typename Types::CtrTypes;
