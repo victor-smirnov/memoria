@@ -13,7 +13,7 @@
 #include <memoria/tools/tools.hpp>
 
 #include <memoria/prototypes/bt_tl/bttl_factory.hpp>
-#include <memoria/prototypes/bt_tl/tools/bttl_random_gen.hpp>
+#include <memoria/prototypes/bt_tl/tools/bttl_tools_random_gen.hpp>
 #include <functional>
 
 namespace memoria {

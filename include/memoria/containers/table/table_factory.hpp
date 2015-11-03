@@ -54,24 +54,18 @@ struct TableBTTypesBase: public BTTypes<Profile, memoria::BTTreeLayout> {
     template <Int Indexes>
     using Stream1TF = StreamTF<
     		TL<TL<
-				PkdVTree<Packed2TreeTypes<Key, Key, Indexes, UByteI7Codec>>,
-    			PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec>>
-
-//    		    PkdFTree<Packed2TreeTypes<Key, Key, Indexes>>,
-//    			PkdFTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1>>
+				PkdVTree<Packed2TreeTypes<Key, Key, Indexes, UByteI7Codec>>
+//    			PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec>>
     		>>,
-			TL<TL<TL<IndexRange<0, Indexes>>, TL<IndexRange<0, 1>>>>,
+			TL<TL<TL<IndexRange<0, Indexes>>>>,
 			FSEBranchStructTF
     >;
 
 
 
     using Stream2TF = StreamTF<
-    		TL<TL<
-    			PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec>>
-//    		    PkdFTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1>>
-    		>>,
-			TL<TL<TL<IndexRange<0, 1>>>>,
+    		TL<>,
+			TL<>,
 			FSEBranchStructTF
     >;
 
@@ -83,11 +77,13 @@ struct TableBTTypesBase: public BTTypes<Profile, memoria::BTTreeLayout> {
 			FSEBranchStructTF
     >;
 
-    using StreamDescriptors = TypeList<
-    		Stream1TF<1>,
-    		Stream2TF,
-    		DataStreamTF
-    >;
+    using StreamDescriptors = typename bttl::BTTLAugmentStreamDescriptors<
+    		TypeList<
+				Stream1TF<1>,
+				Stream2TF,
+				DataStreamTF
+			>
+	>::Type;
 
     using Metadata = BalancedTreeMetadata<
             typename Base::ID,

@@ -235,7 +235,8 @@ public:
 
     typedef typename ContainerTypes::Value                                      Value;
 
-    static const Int Streams = ListSize<typename ContainerTypes::StreamDescriptors>::Value;
+    using StreamDescriptors = typename ContainerTypes::StreamDescriptors;
+    static const Int Streams = ListSize<StreamDescriptors>::Value;
 
 
 
@@ -244,7 +245,7 @@ public:
 
     using NodePageBase0     = TreeNodeBase<typename ContainerTypes::Metadata, Page>;
     using NodePageBase0G    = PageGuard<NodePageBase0, typename ContainerTypes::Allocator>;
-    using StreamDescriptors = typename ContainerTypes::StreamDescriptors;
+
 
     using BranchStreamsStructList 	= typename PackedBranchStructListBuilder<StreamDescriptors>::StructList;
 

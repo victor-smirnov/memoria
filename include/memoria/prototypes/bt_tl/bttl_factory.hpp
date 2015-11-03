@@ -35,7 +35,9 @@
 #include <memoria/prototypes/bt_tl/iterator/bttl_i_update.hpp>
 #include <memoria/prototypes/bt_tl/iterator/bttl_i_remove.hpp>
 #include <memoria/prototypes/bt_tl/iterator/bttl_i_insert.hpp>
-#include <memoria/prototypes/bt_tl/tools/bttl_random_gen.hpp>
+
+#include <memoria/prototypes/bt_tl/tools/bttl_tools_random_gen.hpp>
+#include <memoria/prototypes/bt_tl/tools/bttl_tools_streamdescr.hpp>
 
 #include <tuple>
 

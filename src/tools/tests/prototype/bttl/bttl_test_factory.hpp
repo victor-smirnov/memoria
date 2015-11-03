@@ -14,9 +14,7 @@
 
 #include <memoria/prototypes/bt_tl/bttl_factory.hpp>
 #include <memoria/core/types/typehash.hpp>
-#include <memoria/prototypes/bt_tl/tools/bttl_random_gen.hpp>
-
-
+#include <memoria/prototypes/bt_tl/tools/bttl_tools_random_gen.hpp>
 #include "bttl_test_tools.hpp"
 
 
@@ -48,19 +46,35 @@ struct BTTLTestTypesBase: public BTTypes<Profile, BTTreeLayout> {
     using CtrSizeT = BigInt;
 
 
+//    using StreamVariableTF = StreamTF<
+//        TL<TL<
+//			PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec>>
+//        >>,
+//        TL<TL<TL<IndexRange<0, 1>>>>,
+//		FSEBranchStructTF
+//    >;
+//
+//    using StreamFixedTF = StreamTF<
+//        TL<TL<
+//        	PkdFTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1>>
+//        >>,
+//        TL<TL<TL<IndexRange<0, 1>>>>,
+//		FSEBranchStructTF
+//    >;
+
     using StreamVariableTF = StreamTF<
-        TL<TL<
-			PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec>>
-        >>,
-        TL<TL<TL<IndexRange<0, 1>>>>,
+        TL<
+			//PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec>>
+        >,
+        TL<>, //TL<IndexRange<0, 1>>
 		FSEBranchStructTF
     >;
 
     using StreamFixedTF = StreamTF<
-        TL<TL<
-        	PkdFTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1>>
-        >>,
-        TL<TL<TL<IndexRange<0, 1>>>>,
+        TL<
+        	//PkdFTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1>>
+        >,
+        TL<>, //TL<IndexRange<0, 1>>
 		FSEBranchStructTF
     >;
 
@@ -71,7 +85,7 @@ struct BTTLTestTypesBase: public BTTypes<Profile, BTTreeLayout> {
     >;
 
 
-    using StreamDescriptors = typename IfThenElse<
+    using RawStreamDescriptors = typename IfThenElse<
     		SizeType == PackedSizeType::FIXED,
 			MergeLists<
 				typename MakeList<StreamFixedTF, Levels - 1>::Type,
@@ -82,6 +96,10 @@ struct BTTLTestTypesBase: public BTTypes<Profile, BTTreeLayout> {
 				DataStreamTF
 			>
     >::Result;
+
+    using StreamDescriptors = typename bttl::BTTLAugmentStreamDescriptors<
+    		RawStreamDescriptors
+	>::Type;
 
     using Metadata = BalancedTreeMetadata<
             typename Base::ID,
