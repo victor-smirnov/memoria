@@ -71,16 +71,7 @@ public:
 
     struct Types: Base::Types
     {
-    	template <Int StreamIdx>
-    	using InputTupleSizeAccessor = btss::InputTupleSizeH<StreamIdx>;
-
-    	template <Int StreamIdx>
-    	using LeafStreamSizeAccessor = btss::LeafStreamSizeH<StreamIdx>;
-
-    	using StreamsSizes = TL<>;
-
-
-    	using CtrTypes 			= BTSSCtrTypes<Types>;
+       	using CtrTypes 			= BTSSCtrTypes<Types>;
         using IterTypes 		= BTSSIterTypes<Types>;
 
         using PageUpdateMgr 	= PageUpdateManager<CtrTypes>;
@@ -88,7 +79,6 @@ public:
 
     using CtrTypes 	= typename Types::CtrTypes;
     using Type 		= Ctr<CtrTypes>;
-
 };
 
 

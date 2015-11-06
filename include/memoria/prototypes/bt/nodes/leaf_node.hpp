@@ -975,6 +975,27 @@ public:
     }
 
 
+    struct LeafSumsFn {
+    	template <typename StreamType>
+    	auto stream(const StreamType* obj, Int start, Int end)
+    	{
+    		return obj ? obj->sum(start, end) : decltype(obj->sum(start, end))();
+    	}
+
+    	template <typename StreamType>
+    	auto stream(const StreamType* obj, Int block, Int start, Int end)
+    	{
+    		return obj ? obj->sum(block, start, end) : 0;
+    	}
+    };
+
+
+    template <typename Path, typename... Args>
+    auto leaf_sums(Args&&... args) const
+    {
+    	return processStream<Path>(LeafSumsFn(), std::forward<Args>(args)...);
+    }
+
     void sums(Accumulator& sums) const
     {
     	processAllSubstreamsAcc(AccumulatorHandler(), sums);

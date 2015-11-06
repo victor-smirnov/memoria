@@ -73,6 +73,13 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btss::IteratorMiscName)
     	return self().template _skip<0>(amount);
     }
 
+    CtrSizeT pos() const
+    {
+    	auto& self = this->self();
+
+    	return self.idx() + self.cache().size_prefix()[0];
+    }
+
     void remove()
     {
         auto& self  = this->self();
@@ -142,6 +149,33 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btss::IteratorMiscName)
     	else {
     		return SplitStatus::LEFT;
     	}
+    }
+
+    template <typename InputProvider>
+    CtrSizeT insert(InputProvider& provider)
+    {
+    	auto& self = this->self();
+    	return self.ctr().insert(self, provider);
+    }
+
+    template <typename InputIterator>
+    CtrSizeT insert(InputIterator begin, InputIterator end)
+    {
+    	auto& self = this->self();
+
+    	btss::IteratorBTSSInputProvider<Container, InputIterator> provider(self.ctr(), begin, end);
+
+    	return self.insert(provider);
+    }
+
+    template <typename OutputIterator>
+    CtrSizeT read(OutputIterator begin, CtrSizeT length)
+    {
+    	auto& self = this->self();
+    	return self.ctr().read_entries(self, length, [&](const auto& entry) {
+    		*begin = entry;
+    		begin++;
+    	});
     }
 
 MEMORIA_ITERATOR_PART_END

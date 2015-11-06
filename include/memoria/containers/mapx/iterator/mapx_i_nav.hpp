@@ -109,8 +109,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
     	auto& self = this->self();
     	auto& cache = self.cache();
 
-    	return bt::Path<0, 0>::get(cache.prefixes())[0] +
-    		   bt::Path<0, 0>::get(cache.leaf_prefixes())[0];
+    	auto leaf_sum = self.ctr().template leaf_sums<IntList<0>>(self.leaf(), 0, 0, self.idx());
+
+    	return bt::Path<0, 0>::get(cache.prefixes())[0] + leaf_sum;
     }
 
 

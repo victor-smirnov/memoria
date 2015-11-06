@@ -18,7 +18,7 @@
 namespace memoria 	{
 namespace btss 		{
 
-
+/*
 template <Int StreamIdx>
 struct InputTupleSizeH {
 	template <typename Tuple>
@@ -38,7 +38,7 @@ struct LeafStreamSizeH {
 	static void stream(Stream* buffer, Int idx, SizeT value)
 	{}
 };
-
+*/
 
 
 
@@ -61,12 +61,18 @@ public:
 
 	using Buffer = std::vector<InputTuple>;
 
+	using NodePair = std::pair<NodeBaseG, NodeBaseG>;
+
 protected:
 	Buffer buffer_;
 	Int start_ = 0;
 	Int size_ = 0;
 
 	CtrT& 	ctr_;
+
+	NodePair split_watcher_;
+
+	CtrSizeT total_ = 0;
 
 public:
 
@@ -76,6 +82,24 @@ public:
 
 	CtrT& ctr() {return ctr_;}
 	const CtrT& ctr() const {return ctr_;}
+
+	CtrSizeT total() const {
+		return total_;
+	}
+
+	NodePair& split_watcher() {
+		return split_watcher_;
+	}
+
+	const NodePair& split_watcher() const {
+		return split_watcher_;
+	}
+
+	CtrSizeT orphan_splits() const {
+		return 0;
+	}
+
+	void nextLeaf(const NodeBaseG& leaf) {}
 
 	virtual bool hasData()
 	{
@@ -113,7 +137,7 @@ public:
 
 				if (rest > 0)
 				{
-					return Position(pos[0] + buffer_sizes);
+					return Position(pos[0] + capacity);
 				}
 				else {
 					pos[0] += capacity;
@@ -150,6 +174,12 @@ public:
 	{
 		CtrT::Types::Pages::LeafDispatcher::dispatch(leaf, InsertBufferFn(), at, start_, size, buffer_);
 		start_ += size;
+
+		if (leaf->parent_id().isSet())
+		{
+			auto sums = ctr().sums(leaf, at, at + size);
+			ctr().updateParent(leaf, sums);
+		}
 	}
 
 
@@ -192,6 +222,7 @@ public:
 			if (get(buffer_[cnt]))
 			{
 				cnt++;
+				total_++;
 				if (cnt == capacity)
 				{
 					break;
@@ -308,8 +339,20 @@ public:
 		return Position(pos);
 	}
 
-
 	virtual Int insertBuffer(PageUpdateMgr& mgr, NodeBaseG& leaf, Int at, Int size)
+	{
+		Int inserted = this->insertBuffer_(mgr, leaf, at, size);
+
+		if (leaf->parent_id().isSet())
+		{
+			auto sums = this->ctr().sums(leaf, at, at + inserted);
+			this->ctr().updateParent(leaf, sums);
+		}
+
+		return inserted;
+	}
+
+	Int insertBuffer_(PageUpdateMgr& mgr, NodeBaseG& leaf, Int at, Int size)
 	{
 		if (tryInsertBuffer(mgr, leaf, at, size))
 		{
@@ -385,6 +428,48 @@ protected:
 		float free_space = node->allocator()->free_space();
 
 		return free_space / client_area;
+	}
+};
+
+
+
+template <typename CtrT, typename InputIterator>
+class IteratorBTSSInputProvider: public memoria::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength> {
+	using Base = memoria::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength>;
+
+public:
+
+	using Buffer 	= typename Base::Buffer;
+	using CtrSizeT	= typename Base::CtrSizeT;
+	using Position	= typename Base::Position;
+
+	using Value = typename CtrT::Types::Value;
+
+	using InputTuple 		= typename CtrT::Types::template StreamInputTuple<0>;
+	using InputTupleAdapter = typename CtrT::Types::template InputTupleAdapter<0>;
+
+	InputIterator current_;
+	InputIterator end_;
+
+public:
+	IteratorBTSSInputProvider(CtrT& ctr, InputIterator begin, InputIterator end, Int capacity = 10000):
+		Base(ctr, capacity),
+		current_(begin),
+		end_(end)
+	{}
+
+	virtual bool get(InputTuple& value)
+	{
+		if (current_ != end_)
+		{
+			value = *current_;
+
+			current_++;
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 };
 

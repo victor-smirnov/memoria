@@ -11,7 +11,8 @@
 #include "../../tests_inc.hpp"
 
 #include "btss_core_test.hpp"
-
+#include "btss_batch_insertion_test.hpp"
+//#include "btss_batch_deletion_test.hpp"
 
 namespace memoria {
 
@@ -22,9 +23,13 @@ class BTSSTestSuite: public TestSuite {
 
 public:
 
-    BTSSTestSuite(): TestSuite("BT.SS.Suite")
+    BTSSTestSuite(): TestSuite("BT.SS")
     {
-    	registerTask(new BTSSCoreTest<Table<BigInt, Byte>>("Core"));
+//    	registerTask(new BTSSCoreTest<BTSSTestCtr<PackedSizeType::FIXED, PackedSizeType::FIXED>>("Core"));
+//    	registerTask(new BTSSBatchInsertionTest<BTSSTestCtr<PackedSizeType::FIXED, PackedSizeType::FIXED>>("Batch.FX.FX"));
+    	registerTask(new BTSSBatchInsertionTest<BTSSTestCtr<PackedSizeType::FIXED, PackedSizeType::VARIABLE>>("Batch.FX.VL"));
+//    	registerTask(new BTSSBatchInsertionTest<BTSSTestCtr<PackedSizeType::VARIABLE, PackedSizeType::FIXED>>("Batch.VL.FX"));
+//    	registerTask(new BTSSBatchInsertionTest<BTSSTestCtr<PackedSizeType::VARIABLE, PackedSizeType::VARIABLE>>("Batch.VL.VL"));
     }
 };
 

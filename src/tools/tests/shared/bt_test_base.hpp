@@ -125,6 +125,11 @@ public:
     	return file_name;
     }
 
+    virtual void checkAllocator(const char* msg, const char* source)
+    {
+    	::memoria::check<Allocator>(*this->allocator_.get(), msg, source);
+    }
+
     virtual String getAllocatorFileName(StringRef infix = "") const
     {
         return getResourcePath("Allocator"+infix+".dump");

@@ -611,7 +611,7 @@ public:
     Values get_values(Int idx) const {
     	Values v;
 
-    	for (Int i = 0; i < Indexes; i++)
+    	for (Int i = 0; i < Blocks; i++)
     	{
     		v[i] = this->getValue(i, idx);
     	}

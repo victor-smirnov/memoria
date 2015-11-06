@@ -12,6 +12,7 @@
 #include <memoria/tools/tools.hpp>
 
 #include "../../shared/btss_test_base.hpp"
+#include "btss_test_factory.hpp"
 
 #include <vector>
 #include <algorithm>

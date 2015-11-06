@@ -192,6 +192,20 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
         return sums;
     }
 
+    template <typename Path>
+    struct LeafSumsFn {
+    	template <typename Node, typename... Args>
+    	auto treeNode(const Node* node, Args&&... args) {
+    		return node->template leaf_sums<Path>(std::forward<Args>(args)...);
+    	}
+    };
+
+    template <typename Path, typename... Args>
+    auto leaf_sums(const NodeBaseG& node, Args&&... args) const
+    {
+    	return LeafDispatcher::dispatch(node, LeafSumsFn<Path>(), std::forward<Args>(args)...);
+    }
+
     NodeBaseG getRoot() const
     {
         auto& self = this->self();

@@ -141,10 +141,10 @@ public:
     	return shape;
     }
 
-    virtual void checkAllocator(const char* msg, const char* source)
-    {
-    	::memoria::check<Allocator>(*this->allocator_.get(), msg, source);
-    }
+//    virtual void checkAllocator(const char* msg, const char* source)
+//    {
+//    	::memoria::check<Allocator>(*this->allocator_.get(), msg, source);
+//    }
 
     template <typename Provider>
     CtrSizesT fillCtr(Ctr& ctr, Provider& provider)
