@@ -11,7 +11,7 @@
 
 #include <memoria/core/types/types.hpp>
 
-#include <memoria/containers/map/map_names.hpp>
+#include <memoria/containers/multimap/mmap_names.hpp>
 #include <memoria/core/container/iterator.hpp>
 #include <memoria/core/container/macros.hpp>
 
