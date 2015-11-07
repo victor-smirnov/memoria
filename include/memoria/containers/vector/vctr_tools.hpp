@@ -160,6 +160,48 @@ public:
 	}
 };
 
+
+template <typename CtrT, typename InputIterator>
+class IteratorVectorInputProvider: public memoria::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength> {
+	using Base = memoria::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength>;
+
+public:
+
+	using Buffer 	= typename Base::Buffer;
+	using CtrSizeT	= typename Base::CtrSizeT;
+	using Position	= typename Base::Position;
+
+	using Value = typename CtrT::Types::Value;
+
+	using InputTuple 		= typename CtrT::Types::template StreamInputTuple<0>;
+	using InputTupleAdapter = typename CtrT::Types::template InputTupleAdapter<0>;
+
+
+	InputIterator current_;
+	InputIterator end_;
+
+public:
+	IteratorVectorInputProvider(CtrT& ctr, InputIterator begin, InputIterator end, Int capacity = 10000):
+		Base(ctr, capacity),
+		current_(begin),
+		end_(end)
+	{}
+
+	virtual bool get(InputTuple& value)
+	{
+		if (current_ != end_)
+		{
+			value = InputTupleAdapter::convert(*current_);
+
+			current_++;
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+};
+
 }
 }
 

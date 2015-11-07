@@ -448,6 +448,7 @@ public:
 	using InputTuple 		= typename CtrT::Types::template StreamInputTuple<0>;
 	using InputTupleAdapter = typename CtrT::Types::template InputTupleAdapter<0>;
 
+
 	InputIterator current_;
 	InputIterator end_;
 

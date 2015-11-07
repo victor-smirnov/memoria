@@ -554,6 +554,14 @@ public:
         return getValue(value_idx);
     }
 
+    Value get_values(Int idx) const {
+    	return getValue(idx);
+    }
+
+    Value get_values(Int idx, Int index) const {
+    	return getValue(idx);
+    }
+
 
     Int setValue(Int idx, Value value)
     {

@@ -79,7 +79,7 @@ public:
 
     virtual void insert(Iterator& iter, vector<T>& data)
     {
-        iter.insert(data);
+        iter.insert_v(data);
     }
 
     virtual void read(Iterator& iter, vector<T>& data)

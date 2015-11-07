@@ -60,11 +60,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrApiName)
     }
 
 
-    MyType& operator<<(vector<Value>& v)
+    MyType& operator<<(const vector<Value>& v)
     {
         auto& self = this->self();
         auto i = self.seek(self.size());
-        i.insert(v);
+        i.insert_v(v);
         return self;
     }
 

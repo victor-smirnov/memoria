@@ -43,38 +43,14 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
     using InputBuffer = typename Container::Types::InputBuffer;
 
 
-    void insert(std::vector<Value>& data)
+    CtrSizeT insert_v(const std::vector<Value>& data)
     {
         auto& self = this->self();
-        auto& model = self.ctr();
 
-        auto& leaf = self.leaf();
+        mvector::IteratorVectorInputProvider<Container, typename std::vector<Value>::const_iterator> provider(self.ctr(), data.begin(), data.end());
 
-        mvector::StdVectorInputBuffer<InputBuffer> buf(data);
-
-        auto result = model.insertBuffers(leaf, self.idx(), buf.me());
-
-        self.leaf() = result.leaf();
-        self.idx() 	= result.position();
-
-        self.refreshCache();
-
-        model.markCtrUpdated();
+        return self.insert(provider);
     }
-
-    void insert(Value data)
-    {
-        auto& self = this->self();
-        auto& model = self.ctr();
-
-        MemBuffer<Value> buf(&data, 1);
-
-        model.insert(self, buf);
-
-        model.markCtrUpdated();
-    }
-
-
 
     struct VectorReadWalker {
     	std::vector<Value>& data_;
@@ -130,14 +106,14 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 
 
 
-    CtrSizeT read(std::vector<Value>& data)
-    {
-    	auto& self = this->self();
-
-    	VectorReadWalker walker(data);
-
-    	return self.ctr().readStream2(self, walker);
-    }
+//    CtrSizeT read(std::vector<Value>& data)
+//    {
+//    	auto& self = this->self();
+//
+//    	VectorReadWalker walker(data);
+//
+//    	return self.ctr().readStream2(self, walker);
+//    }
 
 
     Value value() const
@@ -176,7 +152,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 
         auto iter = self();
 
-        auto readed = iter.read(data);
+        auto begin = data.begin();
+
+        auto readed = iter.ctr().read_entries(iter, size, [&](const auto& entry) {
+        	*begin = std::get<0>(entry);
+        	begin++;
+        });
 
         MEMORIA_ASSERT(readed, ==, size);
 
