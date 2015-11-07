@@ -311,10 +311,6 @@ typename M_TYPE::NodeBaseG M_TYPE::createNextLeaf(NodeBaseG& left_node)
             self.insertNonLeafP(right_parent, 0, sums, other->id());
         }
     }
-    catch (Exception& ex) {
-        cout<<ex<<endl;
-        throw;
-    }
 
     return other;
 }
