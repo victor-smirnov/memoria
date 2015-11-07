@@ -9,20 +9,16 @@
 #ifndef _MEMORIA_CONTAINERS_MAPX_FACTORY_HPP
 #define _MEMORIA_CONTAINERS_MAPX_FACTORY_HPP
 
+#include <memoria/containers/map/container/map_c_insert.hpp>
+#include <memoria/containers/map/container/map_c_remove.hpp>
+#include <memoria/containers/map/iterator/map_i_nav.hpp>
+#include <memoria/containers/map/map_iterator.hpp>
+#include <memoria/containers/map/map_names.hpp>
+#include <memoria/containers/map/map_tools.hpp>
 #include <memoria/core/tools/idata.hpp>
 
 #include <memoria/prototypes/bt_ss/btss_factory.hpp>
 #include <memoria/prototypes/ctr_wrapper/ctrwrapper_factory.hpp>
-
-
-#include <memoria/containers/mapx/mapx_names.hpp>
-
-#include <memoria/containers/mapx/container/mapx_c_insert.hpp>
-#include <memoria/containers/mapx/container/mapx_c_remove.hpp>
-#include <memoria/containers/mapx/iterator/mapx_i_nav.hpp>
-
-#include <memoria/containers/mapx/mapx_tools.hpp>
-#include <memoria/containers/mapx/mapx_iterator.hpp>
 
 
 #include <tuple>

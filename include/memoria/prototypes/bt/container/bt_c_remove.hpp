@@ -9,12 +9,10 @@
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_CTR_REMOVE_HPP
 
 
-#include <memoria/containers/mapx/mapx_names.hpp>
+#include <memoria/containers/map/map_names.hpp>
+#include <memoria/containers/map/map_tools.hpp>
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
-
-#include <memoria/containers/mapx/mapx_tools.hpp>
-
 
 #include <vector>
 

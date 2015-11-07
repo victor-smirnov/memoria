@@ -6,9 +6,8 @@
 #ifndef MEMORIA_TESTS_MAP_MAP_MAPX_TEST_HPP_
 #define MEMORIA_TESTS_MAP_MAP_MAPX_TEST_HPP_
 
+#include <memoria/containers/map/map_factory.hpp>
 #include <memoria/memoria.hpp>
-
-#include <memoria/containers/mapx/mapx_factory.hpp>
 
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>

@@ -11,7 +11,7 @@
 #include <memoria/prototypes/bt/tools/bt_tools.hpp>
 #include <memoria/core/container/container.hpp>
 
-
+#include <memoria/core/packed/map/packed_map_labels_base.hpp>
 
 namespace memoria       {
 namespace mapx          {

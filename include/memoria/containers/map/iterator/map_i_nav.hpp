@@ -9,9 +9,9 @@
 #ifndef _MEMORIA_CONTAINERS_MAPX_ITER_NAV_HPP
 #define _MEMORIA_CONTAINERS_MAPX_ITER_NAV_HPP
 
+#include <memoria/containers/map/map_names.hpp>
 #include <memoria/core/types/types.hpp>
 
-#include <memoria/containers/mapx/mapx_names.hpp>
 #include <memoria/core/container/iterator.hpp>
 #include <memoria/core/container/macros.hpp>
 

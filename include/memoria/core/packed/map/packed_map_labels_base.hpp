@@ -1,4 +1,4 @@
-// Copyright Victor Smirnov 2013.
+// Copyright Victor Smirnov 2013+.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -8,6 +8,7 @@
 
 #include <memoria/core/packed/map/packed_map_fse_tree_base.hpp>
 #include <memoria/core/packed/map/packed_map_vle_tree_base.hpp>
+#include <memoria/core/packed/sseq/packed_fse_searchable_seq.hpp>
 
 namespace memoria {
 

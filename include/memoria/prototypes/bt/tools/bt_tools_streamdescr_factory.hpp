@@ -19,6 +19,8 @@
 
 
 #include <memoria/core/packed/tools/packed_allocator_types.hpp>
+#include <memoria/core/packed/tree/packed_fse_tree.hpp>
+#include <memoria/core/packed/tree/packed_vle_tree.hpp>
 
 #include <iostream>
 #include <tuple>

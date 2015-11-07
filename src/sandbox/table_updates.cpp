@@ -4,8 +4,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
+#include <memoria/containers/map/map_factory.hpp>
 #include <memoria/memoria.hpp>
-#include <memoria/containers/mapx/mapx_factory.hpp>
 #include <memoria/containers/table/table_factory.hpp>
 #include <memoria/containers/seq_dense/seqd_factory.hpp>
 #include <memoria/containers/vector/vctr_factory.hpp>

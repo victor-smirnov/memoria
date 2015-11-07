@@ -9,9 +9,8 @@
 #ifndef _MEMORIA_MODELS_ROOT_FACTORY_HPP
 #define _MEMORIA_MODELS_ROOT_FACTORY_HPP
 
+#include <memoria/containers/map/map_factory.hpp>
 #include <memoria/core/container/container.hpp>
-
-#include <memoria/containers/mapx/mapx_factory.hpp>
 
 #include <memoria/containers/root/container/root_c_api.hpp>
 

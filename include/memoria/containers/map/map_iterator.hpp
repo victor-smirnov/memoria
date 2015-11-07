@@ -8,8 +8,8 @@
 #ifndef MEMORIA_CONTAINERS_MAPX_ITERATOR_HPP_
 #define MEMORIA_CONTAINERS_MAPX_ITERATOR_HPP_
 
+#include <memoria/containers/map/map_names.hpp>
 #include <memoria/prototypes/ctr_wrapper/iterator.hpp>
-#include <memoria/containers/mapx/mapx_names.hpp>
 
 namespace memoria {
 

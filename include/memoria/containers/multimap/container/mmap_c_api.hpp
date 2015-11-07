@@ -9,12 +9,10 @@
 #define _MEMORIA_CONTAINERS_MULTIMAP_CTR_INSERT_HPP
 
 
-#include <memoria/containers/mapx/mapx_names.hpp>
+#include <memoria/containers/map/map_names.hpp>
+#include <memoria/containers/map/map_tools.hpp>
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/macros.hpp>
-
-#include <memoria/containers/mapx/mapx_tools.hpp>
-
 
 #include <vector>
 
