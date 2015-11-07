@@ -45,7 +45,7 @@ public:
     virtual ~BTSSCoreTest() throw () {}
 
 
-    void createAllocator(AllocatorSPtr& allocator) {
+    virtual void createAllocator(AllocatorSPtr& allocator) {
     	allocator = std::make_shared<Allocator>();
     }
 

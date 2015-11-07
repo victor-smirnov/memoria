@@ -46,51 +46,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertFixedName)
 
     typedef typename Types::CtrSizeT                                            CtrSizeT;
 
-
-    //==========================================================================================
-
-//    MEMORIA_DECLARE_NODE_FN(LayoutNodeFn, layout);
-//    void layoutLeafNode(NodeBaseG& node, Int size) const
-//    {
-//    	LeafDispatcher::dispatch(node, LayoutNodeFn(), Position(size));
-//    }
-
-    struct InsertBufferIntoLeafFn
-    {
-    	template <typename NTypes, typename LeafPosition, typename Buffer>
-    	void treeNode(LeafNode<NTypes>* node, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
-    	{
-    		node->processAll(*this, pos, start, size, buffer);
-    	}
-
-    	template <typename StreamType, typename LeafPosition, typename Buffer>
-    	void stream(StreamType* obj, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
-    	{
-    		obj->insert(buffer, pos, start, size);
-    	}
-    };
-
-    template <typename LeafPosition>
-    using InsertBufferResult = typename Base::template InsertBufferResult<LeafPosition>;
-
-    template <typename LeafPosition, typename Buffer>
-    InsertBufferResult<LeafPosition> insertBufferIntoLeaf(NodeBaseG& leaf, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
-    {
-    	auto& self = this->self();
-
-    	Int sizes = size - start;
-
-    	Int capacity = self.getLeafNodeCapacity(leaf, 0);
-
-    	Int to_insert = capacity >= sizes ? sizes : capacity;
-
-    	LeafDispatcher::dispatch(leaf, InsertBufferIntoLeafFn(), pos, start, to_insert, buffer);
-
-    	return InsertBufferResult<LeafPosition>(to_insert, capacity > to_insert);
-    }
-
-
-
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::seq_dense::CtrInsertFixedName)

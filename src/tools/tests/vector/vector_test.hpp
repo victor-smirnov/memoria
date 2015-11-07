@@ -35,7 +35,9 @@ class VectorTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT>
     typedef typename Base::Ctr                                                  Ctr;
     typedef typename Base::Iterator                                             Iterator;
     typedef typename Ctr::Accumulator                                           Accumulator;
-    typedef typename Base::ID                                                   ID;
+
+    using Allocator 	= typename Base::Allocator;
+    using AllocatorSPtr = typename Base::AllocatorSPtr;
 
 public:
     VectorTest(StringRef name):
@@ -44,6 +46,9 @@ public:
 
     }
 
+    virtual void createAllocator(AllocatorSPtr& allocator) {
+    	this->allocator_ = std::make_shared<Allocator>();
+    }
 };
 
 

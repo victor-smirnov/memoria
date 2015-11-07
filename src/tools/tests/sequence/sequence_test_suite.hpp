@@ -13,7 +13,6 @@
 #include "sequence_create_test.hpp"
 #include "sequence_rank_test.hpp"
 #include "sequence_select_test.hpp"
-#include "sequence_batch_test.hpp"
 #include "sequence_update_test.hpp"
 
 
@@ -39,8 +38,6 @@ public:
         registerTask(new SequenceSelectTest<1>("1.Select"));
 //        registerTask(new SequenceSelectTest<8>("8.Select"));
 
-        registerTask(new SequenceBatchTest<1>("1.Batch"));
-        registerTask(new SequenceBatchTest<8>("8.Batch"));
 //        registerTask(new SequenceUpdateTest<1>("1.Update"));
     }
 
