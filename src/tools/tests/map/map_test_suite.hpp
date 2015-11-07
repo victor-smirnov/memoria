@@ -14,7 +14,6 @@
 #include "map_create_test.hpp"
 #include "map_remove_test.hpp"
 #include "map_select_test.hpp"
-#include "map_batch_test.hpp"
 #include "map_mapx_test.hpp"
 
 #include <vector>
