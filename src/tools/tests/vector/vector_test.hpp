@@ -10,7 +10,7 @@
 #include <memoria/memoria.hpp>
 #include <memoria/tools/tests.hpp>
 
-#include "../shared/btss_test_base.hpp"
+#include "../prototype/btss/btss_test_base.hpp"
 
 #include <vector>
 

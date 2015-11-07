@@ -12,7 +12,7 @@
 #include <memoria/tools/profile_tests.hpp>
 #include <memoria/tools/tools.hpp>
 
-#include "bt_test_base.hpp"
+#include "../bt/bt_test_base.hpp"
 
 #include <functional>
 

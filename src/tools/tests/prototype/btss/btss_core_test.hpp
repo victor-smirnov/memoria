@@ -11,7 +11,7 @@
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
 
-#include "../../shared/btss_test_base.hpp"
+#include "../btss/btss_test_base.hpp"
 #include "btss_test_factory.hpp"
 
 #include <vector>

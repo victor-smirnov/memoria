@@ -14,7 +14,7 @@
 
 #include <memoria/prototypes/bt_tl/bttl_factory.hpp>
 #include <memoria/prototypes/bt_tl/tools/bttl_tools_random_gen.hpp>
-#include "../../shared/bt_test_base.hpp"
+#include "../bt/bt_test_base.hpp"
 #include "bttl_test_factory.hpp"
 
 #include <functional>
