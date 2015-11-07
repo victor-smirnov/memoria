@@ -398,52 +398,6 @@ public:
     static const Int ValuesBlockIdx                                             = SubstreamsEnd;
 
 
-
-    template <Int Idx, typename... Args>
-    using DispatchRtnFnType = auto(Args...) -> decltype(
-            Dispatcher::template dispatch<Idx>(std::declval<Args>()...)
-    );
-
-    template <typename... Args>
-    using DynDispatchRtnFnType = auto(Args...) -> decltype(
-            Dispatcher::template dispatch(std::declval<Args>()...)
-    );
-
-    template <Int Idx, typename Fn, typename... T>
-    using DispatchRtnType = typename FnTraits<
-            DispatchRtnFnType<Idx, PackedAllocator*, Fn, T...>
-    >::RtnType;
-
-    template <Int Idx, typename Fn, typename... T>
-    using DispatchRtnConstType = typename FnTraits<
-            DispatchRtnFnType<Idx, const PackedAllocator*, Fn, T...>
-    >::RtnType;
-
-    template <typename Fn, typename... T>
-    using DynDispatchRtnType = typename FnTraits<
-            DynDispatchRtnFnType<Int, PackedAllocator*, Fn, T...>
-    >::RtnType;
-
-    template <typename Fn, typename... T>
-    using DynDispatchRtnConstType = typename FnTraits<
-            DynDispatchRtnFnType<Int, const PackedAllocator*, Fn, T...>
-    >::RtnType;
-
-
-
-
-    template <typename Fn, typename... T>
-    using ProcessAllRtnType = typename Dispatcher::template ProcessAllRtnType<Fn, T...>;
-
-    template <typename Fn, typename... T>
-    using ProcessAllRtnConstType = typename Dispatcher::template ProcessAllRtnConstType<Fn, T...>;
-
-    template <typename SubstreamsPath, typename Fn, typename... T>
-    using ProcessSubstreamsRtnType = typename SubstreamsDispatcher<SubstreamsPath>::template ProcessAllRtnType<Fn, T...>;
-
-    template <typename SubstreamsPath, typename Fn, typename... T>
-    using ProcessSubstreamsRtnConstType = typename SubstreamsDispatcher<SubstreamsPath>::template ProcessAllRtnConstType<Fn, T...>;
-
     template <typename LeafPath>
     using BuildBranchPath = typename memoria::list_tree::BuildTreePath<
     		BranchSubstreamsStructList,
@@ -461,8 +415,6 @@ public:
     template <typename LeafPath>
     static Int translateLeafIndexToBranchIndex(Int leaf_index)
     {
-    	//return LeafToBranchIndexTranslator<LeafSubstreamsStructList, LeafPath, 0>::BranchIndex + leaf_index;
-
     	return LeafToBranchIndexTranslator<LeafSubstreamsStructList, LeafPath, 0>::translate(leaf_index);
     }
 
@@ -1328,21 +1280,20 @@ public:
 
 
     template <typename Fn, typename... Args>
-    void processNotEmpty(Fn&& fn, Args&&... args) const
+    auto processNotEmpty(Fn&& fn, Args&&... args) const
     {
-        Dispatcher::dispatchNotEmpty(allocator(), std::forward<Fn>(fn), args...);
+        return Dispatcher::dispatchNotEmpty(allocator(), std::forward<Fn>(fn), args...);
     }
 
     template <typename Fn, typename... Args>
-    void processNotEmpty(Fn&& fn, Args&&... args)
+    auto processNotEmpty(Fn&& fn, Args&&... args)
     {
-        Dispatcher::dispatchNotEmpty(allocator(), std::forward<Fn>(fn), args...);
+        return Dispatcher::dispatchNotEmpty(allocator(), std::forward<Fn>(fn), args...);
     }
 
 
     template <typename Fn, typename... Args>
-    DynDispatchRtnConstType<Fn, Args...>
-    process(Int stream, Fn&& fn, Args&&... args) const
+    auto process(Int stream, Fn&& fn, Args&&... args) const
     {
     	return Dispatcher::dispatch(
     			stream,
@@ -1353,39 +1304,34 @@ public:
     }
 
     template <typename Fn, typename... Args>
-    DynDispatchRtnType<Fn, Args...>
-    process(Int stream, Fn&& fn, Args&&... args)
+    auto process(Int stream, Fn&& fn, Args&&... args)
     {
     	return Dispatcher::dispatch(stream, allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
 
     template <typename Fn, typename... Args>
-    ProcessAllRtnConstType<Fn, Args...>
-    processAll(Fn&& fn, Args&&... args) const
+    auto processAll(Fn&& fn, Args&&... args) const
     {
     	return Dispatcher::dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
 
     template <typename Fn, typename... Args>
-    ProcessAllRtnType<Fn, Args...>
-    processAll(Fn&& fn, Args&&... args)
+    auto processAll(Fn&& fn, Args&&... args)
     {
     	return Dispatcher::dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
     template <typename SubstreamsPath, typename Fn, typename... Args>
-    ProcessSubstreamsRtnConstType<SubstreamsPath, Fn, Args...>
-    processSubstreams(Fn&& fn, Args&&... args) const
+    auto processSubstreams(Fn&& fn, Args&&... args) const
     {
     	return SubstreamsDispatcher<SubstreamsPath>::dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
 
     template <typename SubstreamsPath, typename Fn, typename... Args>
-    ProcessSubstreamsRtnType<SubstreamsPath, Fn, Args...>
-    processSubstreams(Fn&& fn, Args&&... args)
+    auto processSubstreams(Fn&& fn, Args&&... args)
     {
     	return SubstreamsDispatcher<SubstreamsPath>::dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
@@ -1393,16 +1339,14 @@ public:
 
 
     template <typename SubstreamPath, typename Fn, typename... Args>
-    DispatchRtnType<memoria::list_tree::LeafCount<BranchSubstreamsStructList, SubstreamPath>::Value, Fn, Args...>
-    processStream(Fn&& fn, Args&&... args) const
+    auto processStream(Fn&& fn, Args&&... args) const
     {
     	const Int StreamIdx = memoria::list_tree::LeafCount<BranchSubstreamsStructList, SubstreamPath>::Value;
     	return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
     template <typename SubstreamPath, typename Fn, typename... Args>
-    DispatchRtnType<memoria::list_tree::LeafCount<BranchSubstreamsStructList, SubstreamPath>::Value, Fn, Args...>
-    processStream(Fn&& fn, Args&&... args)
+    auto processStream(Fn&& fn, Args&&... args)
     {
     	const Int StreamIdx = memoria::list_tree::LeafCount<BranchSubstreamsStructList, SubstreamPath>::Value;
     	return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
@@ -1410,28 +1354,27 @@ public:
 
 
     template <Int StreamIdx, typename Fn, typename... Args>
-    //DispatchRtnType<StreamIdx, Fn, Args...>
-    void processStreamByIdx(Fn&& fn, Args&&... args) const
+    auto processStreamByIdx(Fn&& fn, Args&&... args) const
     {
-    	Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+    	return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
     template <Int StreamIdx, typename Fn, typename... Args>
-    //DispatchRtnType<StreamIdx, Fn, Args...>
-    void processStreamByIdx(Fn&& fn, Args&&... args)
+
+    auto processStreamByIdx(Fn&& fn, Args&&... args)
     {
-    	Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+    	return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
 
 
 
     template <typename Fn, typename... Args>
-    void processSubstreamGroups(Fn&& fn, Args&&... args)
+    auto processSubstreamGroups(Fn&& fn, Args&&... args)
     {
     	using GroupsList = BuildTopLevelLeafSubsets<BranchSubstreamsStructList>;
 
-    	GroupDispatcher<Dispatcher, GroupsList>::dispatchGroups(
+    	return GroupDispatcher<Dispatcher, GroupsList>::dispatchGroups(
     			allocator(),
     			std::forward<Fn>(fn),
     			std::forward<Args>(args)...
@@ -1439,11 +1382,11 @@ public:
     }
 
     template <typename Fn, typename... Args>
-    void processSubstreamGroups(Fn&& fn, Args&&... args) const
+    auto processSubstreamGroups(Fn&& fn, Args&&... args) const
     {
     	using GroupsList = BuildTopLevelLeafSubsets<BranchSubstreamsStructList>;
 
-    	GroupDispatcher<Dispatcher, GroupsList>::dispatchGroups(
+    	return GroupDispatcher<Dispatcher, GroupsList>::dispatchGroups(
     			allocator(),
     			std::forward<Fn>(fn),
     			std::forward<Args>(args)...
@@ -1451,11 +1394,11 @@ public:
     }
 
     template <typename Fn, typename... Args>
-    static void processSubstreamGroupsStatic(Fn&& fn, Args&&... args)
+    static auto processSubstreamGroupsStatic(Fn&& fn, Args&&... args)
     {
     	using GroupsList = BuildTopLevelLeafSubsets<BranchSubstreamsStructList>;
 
-    	GroupDispatcher<Dispatcher, GroupsList>::dispatchGroupsStatic(
+    	return GroupDispatcher<Dispatcher, GroupsList>::dispatchGroupsStatic(
     			std::forward<Fn>(fn),
     			std::forward<Args>(args)...
     	);
@@ -1466,9 +1409,6 @@ public:
 
     template <typename Fn, typename... Args>
     auto processStreamsStart(Fn&& fn, Args&&... args)
-    -> typename Dispatcher::template SubsetDispatcher<
-    		StreamsStartSubset<BranchSubstreamsStructList>
-       >::template ProcessAllRtnConstType<Fn, Args...>
     {
     	using Subset = StreamsStartSubset<BranchSubstreamsStructList>;
     	return Dispatcher::template SubsetDispatcher<Subset>::template dispatchAll(
@@ -1481,9 +1421,6 @@ public:
 
     template <typename Fn, typename... Args>
     auto processStreamsStart(Fn&& fn, Args&&... args) const
-    -> typename Dispatcher::template SubsetDispatcher<
-    		StreamsStartSubset<BranchSubstreamsStructList>
-       >::template ProcessAllRtnConstType<Fn, Args...>
     {
     	using Subset = StreamsStartSubset<BranchSubstreamsStructList>;
 

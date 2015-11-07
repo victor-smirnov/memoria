@@ -119,7 +119,6 @@ public:
 
     template <typename Fn, typename... Args>
     static auto dispatch(Int idx, PackedAllocator* alloc, Fn&& fn, Args&&... args)
-    -> detail::pd::FnRtnType<Fn, GroupIdx, AllocatorIdx, ListIdx, Head*, Args...>
     {
         if (idx == ListIdx)
         {
@@ -139,7 +138,6 @@ public:
 
     template <typename Fn, typename... Args>
     static auto dispatch(Int idx, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
-    -> detail::pd::FnRtnType<Fn, GroupIdx, AllocatorIdx, ListIdx, const Head*, Args...>
     {
         if (idx == ListIdx)
         {
@@ -159,14 +157,6 @@ public:
 
     template <Int StreamIdx, typename Fn, typename... Args>
     static auto dispatch(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
-    -> detail::pd::FnRtnType<
-		Fn,
-		GroupIdx,
-		StreamTypeT<StreamIdx>::Value,
-		StreamIdx,
-		const typename StreamTypeT<StreamIdx>::Type*,
-		Args...
-	>
     {
         using StreamDescrT 	= StreamTypeT<StreamIdx>;
         using StreamType 	= typename StreamDescrT::Type;
@@ -185,14 +175,6 @@ public:
 
     template <Int StreamIdx, typename Fn, typename... Args>
     static auto dispatch(PackedAllocator* alloc, Fn&& fn, Args&&... args)
-    -> detail::pd::FnRtnType<
-    		Fn,
-    		GroupIdx,
-    		StreamTypeT<StreamIdx>::Value,
-    		StreamIdx,
-    		typename StreamTypeT<StreamIdx>::Type*,
-    		Args...
-    >
     {
         using StreamDescrT 	= StreamTypeT<StreamIdx>;
         using StreamType 	= typename StreamDescrT::Type;
@@ -694,7 +676,6 @@ public:
 
     template <typename Fn, typename... Args>
     static auto dispatch(Int idx, PackedAllocator* alloc, Fn&& fn, Args&&... args)
-    -> detail::pd::FnRtnType<Fn, GroupIdx, AllocatorIdx, ListIdx, Head*, Args...>
     {
         if (idx == ListIdx)
         {
@@ -714,7 +695,6 @@ public:
 
     template <typename Fn, typename... Args>
     static auto dispatch(Int idx, const PackedAllocator* alloc, Fn&& fn, Args&&... args)
-    -> detail::pd::FnRtnType<Fn, GroupIdx, AllocatorIdx, ListIdx, const Head*, Args...>
     {
         if (idx == ListIdx)
         {
@@ -734,14 +714,6 @@ public:
 
     template <Int StreamIdx, typename Fn, typename... Args>
     static auto dispatch(PackedAllocator* alloc, Fn&& fn, Args&&... args)
-    -> detail::pd::FnRtnType<
-    		Fn,
-    		GroupIdx,
-    		StreamTypeT<StreamIdx>::Value,
-    		StreamIdx,
-    		typename StreamTypeT<StreamIdx>::Type*,
-    		Args...
-       >
     {
         using StreamDescrT 	= StreamTypeT<StreamIdx>;
         using StreamType 	= typename StreamDescrT::Type;
@@ -760,14 +732,6 @@ public:
 
     template <Int StreamIdx, typename Fn, typename... Args>
     static auto dispatch(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
-    -> detail::pd::FnRtnType<
-    		Fn,
-    		GroupIdx,
-    		StreamTypeT<StreamIdx>::Value,
-    		StreamIdx,
-    		const typename StreamTypeT<StreamIdx>::Type*,
-    		Args...
-       >
     {
         using StreamDescrT 	= StreamTypeT<StreamIdx>;
         using StreamType 	= typename StreamDescrT::Type;

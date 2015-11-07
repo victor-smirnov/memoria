@@ -37,15 +37,10 @@ class NDTTree {
     using NextNDT3 = NDTTree<Types, Idx - 1>;
 
 public:
-    template <typename... Args>
-    using DispatchTreeFnType = auto(Args...) -> decltype(NextNDT3::template dispatchTree(std::declval<Args>()...));
-
-    template <typename Fn, typename... Args>
-    using DispatchTreeRtnType = typename FnTraits<DispatchTreeFnType<typename std::remove_reference<Fn>::type, Args...>>::RtnType;
 
 
     template <typename Functor, typename... Args>
-    static DispatchTreeRtnType<const NodeBaseG&, const NodeBaseG&, Functor, Args...>
+    static auto
     dispatchTree(
             const NodeBaseG& parent,
             const NodeBaseG& child,
@@ -85,15 +80,10 @@ class NDTTree<Types, 0> {
 public:
     using NDT2Start = NDT2<Types, ListSize<typename Types::ChildList>::Value - 1>;
 
-    template <typename... Args>
-    using DispatchTreeFnType = auto(Args...) -> decltype(NDT2Start::template dispatchTree(std::declval<Args>()...));
-
-    template <typename Fn, typename... Args>
-    using DispatchTreeRtnType = typename FnTraits<DispatchTreeFnType<typename std::remove_reference<Fn>::type, Args...>>::RtnType;
 
 
     template <typename Functor, typename... Args>
-    static DispatchTreeRtnType<const Head*, const NodeBaseG&, Functor, Args...>
+    static auto
     dispatchTree(
             const NodeBaseG& parent,
             const NodeBaseG& child,
@@ -128,11 +118,6 @@ class NDT2 {
 
     static const Int HASH = Head::PAGE_HASH;
 
-    template <typename T, typename... Args>
-    using FnType = auto(Args...) -> decltype(std::declval<T>().template treeNode(std::declval<Args>()...));
-
-    template <typename Fn, typename... T>
-    using RtnType = typename FnTraits<FnType<typename std::remove_reference<Fn>::type, T...>>::RtnType;
 
 
 public:
@@ -143,7 +128,6 @@ public:
             Functor&& functor,
             Args&&... args
     )
-    -> RtnType<Functor, const Node*, const Head*, Args...>
     {
         if (HASH == child->page_type_hash())
         {
@@ -171,11 +155,6 @@ class NDT2<Types, 0> {
 
     static const Int HASH = Head::PAGE_HASH;
 
-    template <typename T, typename... Args>
-    using FnType = auto(Args...) -> decltype(std::declval<T>().template treeNode(std::declval<Args>()...));
-
-    template <typename Fn, typename... T>
-    using RtnType = typename FnTraits<FnType<typename std::remove_reference<Fn>::type, T...>>::RtnType;
 
 
 public:
@@ -186,7 +165,6 @@ public:
             Functor&& functor,
             Args&&... args
     )
-    -> RtnType<Functor, const Node*, const Head*, Args...>
     {
         if (HASH == child->page_type_hash())
         {

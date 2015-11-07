@@ -52,9 +52,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
     template <Int Stream>
     using StreamInputTuple = typename Types::template StreamInputTuple<Stream>;
 
-    template <Int Stream, typename SubstreamsIdxList, typename... Args>
-    using ReadLeafStreamEntryRtnType = DispatchConstRtnType<LeafDispatcher, SubstreamsSetNodeFn<Stream, SubstreamsIdxList>, GetLeafValuesFn, Args...>;
-
     NodeBaseG splitLeafP(NodeBaseG& left_node, const Position& split_at)
     {
         auto& self = this->self();
@@ -105,7 +102,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
 
     template <Int Stream, typename SubstreamsIdxList, typename... Args>
     auto _sum(const NodeBaseG& leaf, Args&&... args) const
-    -> DispatchConstRtnType<LeafDispatcher, SubstreamsSetNodeFn<Stream, SubstreamsIdxList>, SumFn, Args...>
+//    -> DispatchConstRtnType<LeafDispatcher, SubstreamsSetNodeFn<Stream, SubstreamsIdxList>, SumFn, Args...>
     {
     	return LeafDispatcher::dispatch(leaf, SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), SumFn(), std::forward<Args>(args)...);
     }
@@ -120,7 +117,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
 
     template <Int Stream, typename SubstreamsIdxList, typename... Args>
     auto _find(const NodeBaseG& leaf, Args&&... args) const
-    -> DispatchConstRtnType<LeafDispatcher, SubstreamsSetNodeFn<Stream, SubstreamsIdxList>, FindFn, Args...>
+//    -> DispatchConstRtnType<LeafDispatcher, SubstreamsSetNodeFn<Stream, SubstreamsIdxList>, FindFn, Args...>
     {
     	return LeafDispatcher::dispatch(leaf, SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), FindFn(), std::forward<Args>(args)...);
     }

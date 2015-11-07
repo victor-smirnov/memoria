@@ -26,9 +26,9 @@ public:
     BTSSTestSuite(): TestSuite("BT.SS")
     {
 //    	registerTask(new BTSSCoreTest<BTSSTestCtr<PackedSizeType::FIXED, PackedSizeType::FIXED>>("Core"));
-//    	registerTask(new BTSSBatchInsertionTest<BTSSTestCtr<PackedSizeType::FIXED, PackedSizeType::FIXED>>("Batch.FX.FX"));
-    	registerTask(new BTSSBatchInsertionTest<BTSSTestCtr<PackedSizeType::FIXED, PackedSizeType::VARIABLE>>("Batch.FX.VL"));
-//    	registerTask(new BTSSBatchInsertionTest<BTSSTestCtr<PackedSizeType::VARIABLE, PackedSizeType::FIXED>>("Batch.VL.FX"));
+    	registerTask(new BTSSBatchInsertionTest<BTSSTestCtr<PackedSizeType::FIXED, PackedSizeType::FIXED>>("Batch.FX.FX"));
+//    	registerTask(new BTSSBatchInsertionTest<BTSSTestCtr<PackedSizeType::FIXED, PackedSizeType::VARIABLE>>("Batch.FX.VL"));
+    	registerTask(new BTSSBatchInsertionTest<BTSSTestCtr<PackedSizeType::VARIABLE, PackedSizeType::FIXED>>("Batch.VL.FX"));
 //    	registerTask(new BTSSBatchInsertionTest<BTSSTestCtr<PackedSizeType::VARIABLE, PackedSizeType::VARIABLE>>("Batch.VL.VL"));
     }
 };

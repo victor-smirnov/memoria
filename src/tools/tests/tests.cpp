@@ -18,7 +18,7 @@
 //#include "ctr/ctr_test_suite.hpp"
 
 //#include "prototype/bt/bt_test_suite.hpp"
-//#include "prototype/bttl/bttl_test_suite.hpp"
+#include "prototype/bttl/bttl_test_suite.hpp"
 #include "prototype/btss/btss_test_suite.hpp"
 //#include "table/table_test_suite.hpp"
 
@@ -88,7 +88,7 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new CtrTestSuite());
 
 //        runner.registerTask(new BTTestSuite());
-//        runner.registerTask(new BTTLTestSuite());
+        runner.registerTask(new BTTLTestSuite());
         runner.registerTask(new BTSSTestSuite());
 
 //        runner.registerTask(new TableTestSuite());

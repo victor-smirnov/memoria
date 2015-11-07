@@ -259,7 +259,8 @@ public:
 
     void insertAtEnd(Ctr& ctr)
     {
-        Iterator iter = ctr.seek(ctr.size());
+    	Iterator iter = ctr.seek(ctr.size());
+
         checkIterator(iter, MA_SRC);
 
         MemBuffer prefix = createPrefixCheckBuffer(iter);
@@ -276,8 +277,6 @@ public:
         iter.skip(-data.size() - prefix.size());
 
         checkIterator(iter, MA_SRC);
-
-        iter.dump();
 
         checkBufferWritten(iter, prefix, MA_SRC);
         checkBufferWritten(iter, data, MA_SRC);

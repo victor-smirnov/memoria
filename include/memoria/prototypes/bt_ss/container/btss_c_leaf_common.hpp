@@ -50,9 +50,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::LeafCommonName)
 
 
     template <typename SubstreamsIdxList, typename... Args>
-    using ReadLeafEntryRtnType = DispatchConstRtnType<LeafDispatcher, SubstreamsSetNodeFn<0, SubstreamsIdxList>, GetLeafValuesFn, Args...>;
-
-    template <typename SubstreamsIdxList, typename... Args>
     auto _readLeafEntry(const NodeBaseG& leaf, Args&&... args) const
     {
     	 return self().template _applySubstreamsFn<0, SubstreamsIdxList>(leaf, GetLeafValuesFn(), std::forward<Args>(args)...);

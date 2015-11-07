@@ -155,7 +155,7 @@ public:
 
     	auto totals = ctr._insert(iter, provider);
 
-    	checkAllocator("Bulk Insertion", MA_SRC);
+    	this->checkAllocator("Bulk Insertion", MA_SRC);
 
     	long t1 = getTimeInMillis();
 

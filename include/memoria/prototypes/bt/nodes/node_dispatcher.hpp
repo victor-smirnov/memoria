@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011-2015.
+// Copyright Victor Smirnov 2011+.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -14,13 +14,6 @@
 
 namespace memoria       {
 namespace bt            {
-
-
-template <typename Dispatcher, typename Fn, typename... Args>
-using DispatchRtnType = decltype(Dispatcher::dispatch(std::declval<typename Dispatcher::NodeBaseG&>(), std::declval<Fn>(), std::declval<Args>()...));
-
-template <typename Dispatcher, typename Fn, typename... Args>
-using DispatchConstRtnType = decltype(Dispatcher::dispatch(std::declval<const typename Dispatcher::NodeBaseG&>(), std::declval<Fn>(), std::declval<Args>()...));
 
 
 template <typename Types, int idx> class NDT0;
@@ -65,21 +58,9 @@ private:
 public:
     using NodeBaseG = typename Types::NodeBaseG;
 
-    template <typename T, typename... Args>
-    using FnType = auto(Args...) -> decltype(std::declval<T>().template treeNode(std::declval<Args>()...));
-
-    template <typename Fn, typename... T>
-    using RtnType = typename FnTraits<FnType<typename std::remove_reference<Fn>::type, T...>>::RtnType;
-
-    template <typename... Args>
-    using DoubleDispatchFnType = auto(Args...) -> decltype(NextNDT0::template doubleDispatch(std::declval<Args>()...));
-
-    template <typename Fn, typename... Args>
-    using DoubleDispatchRtnType = typename FnTraits<DoubleDispatchFnType<typename std::remove_reference<Fn>::type, Args...>>::RtnType;
-
 public:
     template <template <typename> class Wrapper, typename Functor, typename... Args>
-    static RtnType<Functor, Head*, Head*, Args...>
+    static auto
     wrappedDispatch(NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args)
     {
         if (HASH == node1->page_type_hash())
@@ -95,7 +76,6 @@ public:
 
     template <typename Functor, typename... Args>
     static auto dispatch(NodeBaseG& node, Functor&& functor, Args&&... args)
-    -> RtnType<Functor, Head*, Args...>
     {
         if (HASH == node->page_type_hash())
         {
@@ -108,7 +88,6 @@ public:
 
     template <typename Functor, typename... Args>
     static auto dispatch(NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args)
-    -> RtnType<Functor, Head*, Head*, Args...>
     {
         if (HASH == node1->page_type_hash())
         {
@@ -121,7 +100,6 @@ public:
 
     template <typename Functor, typename... Args>
     static auto dispatch(const NodeBaseG& node, Functor&& functor, Args&&... args)
-    -> RtnType<Functor, const Head*, Args...>
     {
         if (HASH == node->page_type_hash())
         {
@@ -140,7 +118,6 @@ public:
             Functor&& functor,
             Args&&... args
     )
-    -> RtnType<Functor, const Head*, const Head*, Args...>
     {
         if (HASH == node1->page_type_hash())
         {
@@ -152,7 +129,7 @@ public:
     }
 
     template <typename Functor, typename... Args>
-    static DoubleDispatchRtnType<NodeBaseG&, NodeBaseG&, Functor, Args...>
+    static auto
     doubleDispatch(NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args)
     {
         if (HASH == node1->page_type_hash())
@@ -172,7 +149,7 @@ public:
 
 
     template <typename Functor, typename... Args>
-    static DoubleDispatchRtnType<NextNDT0, const NodeBaseG&, const NodeBaseG&, Functor, Args...>
+    static auto
     doubleDispatch(
             const NodeBaseG& node1,
             const NodeBaseG& node2,
@@ -202,7 +179,6 @@ public:
         typename... Args
     >
     static auto dispatch(bool leaf, Functor&& fn, Args&&... args)
-    -> RtnType<Functor, const Head*, Args...>
     {
         bool types_equal = IsTreeNode<TreeNode, Head>::Value;
 
@@ -221,7 +197,6 @@ public:
         typename... Args
     >
     static auto dispatch2(bool leaf, Functor&& fn, Args&&... args)
-    -> RtnType<Functor, const Head*, Args...>
     {
         if (leaf == Leaf)
         {
@@ -260,31 +235,16 @@ private:
 public:
     using NodeBaseG = typename Types::NodeBaseG;
 
-    template <typename T, typename... Args>
-    using FnType = auto(Args...) -> decltype(std::declval<T>().template treeNode(std::declval<Args>()...));
-
-    template <typename Fn, typename... T>
-    using RtnType = typename FnTraits<FnType<typename std::remove_reference<Fn>::type, T...>>::RtnType;
-
     using StartNDT1 = NDT1<Types, ListSize<typename Types::List>::Value - 1>;
 
 
-    template <typename... Args>
-    using DoubleDispatchFnType = auto(Args...) -> decltype(
-            StartNDT1::template dispatch(std::declval<Args>()...)
-    );
-
-    template <typename Fn, typename... Args>
-    using DoubleDispatchRtnType = typename FnTraits<
-            DoubleDispatchFnType<typename std::remove_reference<Fn>::type, Args...>
-    >::RtnType;
 
 
 public:
 
 
     template <template <typename> class Wrapper, typename Functor, typename... Args>
-    static RtnType<Functor, Head*, Head*, Args...>
+    static auto
     wrappedDispatch(NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args)
     {
         if (HASH == node1->page_type_hash())
@@ -300,7 +260,6 @@ public:
 
     template <typename Functor, typename... Args>
     static auto dispatch(NodeBaseG& node, Functor&& functor, Args&&... args)
-    -> RtnType<Functor, Head*, Args...>
     {
         if (HASH == node->page_type_hash())
         {
@@ -313,7 +272,6 @@ public:
 
     template <typename Functor, typename... Args>
     static auto dispatch(NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args)
-    -> RtnType<Functor, Head*, Head*, Args...>
     {
         if (HASH == node1->page_type_hash())
         {
@@ -327,7 +285,6 @@ public:
 
     template <typename Functor, typename... Args>
     static auto dispatch(const NodeBaseG& node, Functor&& functor, Args&&... args)
-    -> RtnType<Functor, const Head*, Args...>
     {
         if (HASH == node->page_type_hash())
         {
@@ -346,7 +303,6 @@ public:
             Functor&& functor,
             Args&&... args
     )
-    -> RtnType<Functor, const Head*, const Head*, Args...>
     {
         if (HASH == node1->page_type_hash())
         {
@@ -358,7 +314,7 @@ public:
     }
 
     template <typename Functor, typename... Args>
-    static DoubleDispatchRtnType<Head*, NodeBaseG&, Functor, Args...>
+    static auto
     doubleDispatch(NodeBaseG& node1, NodeBaseG& node2, Functor&& functor, Args&&... args)
     {
         if (HASH == node1->page_type_hash())
@@ -376,7 +332,7 @@ public:
     }
 
     template <typename Functor, typename... Args>
-    static DoubleDispatchRtnType<const Head*, const NodeBaseG&, Functor, Args...>
+    static auto
     doubleDispatch(const NodeBaseG& node1, const NodeBaseG& node2, Functor&& functor, Args&&... args)
     {
         if (HASH == node1->page_type_hash())
@@ -399,7 +355,6 @@ public:
         typename... Args
     >
     static auto dispatch(bool leaf, Functor&& fn, Args&&... args)
-    -> RtnType<Functor, const Head*, Args...>
     {
         bool types_equal = IsTreeNode<TreeNode, Head>::Value;
 
@@ -418,7 +373,6 @@ public:
         typename... Args
     >
     static auto dispatch2(bool leaf, Functor&& fn, Args&&... args)
-    -> RtnType<Functor, const Head*, Args...>
     {
         if (leaf == Leaf)
         {

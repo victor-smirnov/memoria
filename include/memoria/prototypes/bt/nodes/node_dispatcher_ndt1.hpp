@@ -32,13 +32,6 @@ class NDT1 {
     using NextNDT1 = NDT1<Types, Idx - 1>;
 
     static const Int HASH = Head::PAGE_HASH;
-public:
-    template <typename T, typename... Args>
-    using FnType = auto(Args...) -> decltype(std::declval<T>().template treeNode(std::declval<Args>()...));
-
-    template <typename Fn, typename... T>
-    using RtnType = typename FnTraits<FnType<typename std::remove_reference<Fn>::type, T...>>::RtnType;
-
 
 public:
 
@@ -49,7 +42,6 @@ public:
             Functor&& functor,
             Args&&... args
     )
-    -> RtnType<Functor, Node*, Head*, Args...>
     {
         if (HASH == node2->page_type_hash())
         {
@@ -72,7 +64,6 @@ public:
             Functor&& functor,
             Args&&... args
     )
-    -> RtnType<Functor, const Node*, const Head*, Args...>
     {
         if (HASH == node2->page_type_hash())
         {
@@ -100,17 +91,11 @@ class NDT1<Types, 0> {
 
     static const Int HASH = Head::PAGE_HASH;
 
-    template <typename T, typename... Args>
-    using FnType = auto(Args...) -> decltype(std::declval<T>().template treeNode(std::declval<Args>()...));
-
-    template <typename Fn, typename... T>
-    using RtnType = typename FnTraits<FnType<typename std::remove_reference<Fn>::type, T...>>::RtnType;
-
 
 public:
 
     template <typename Node, typename Functor, typename... Args>
-    static RtnType<Functor, Node*, Head*, Args...>
+    static auto
     dispatch(Node *node1, NodeBaseG& node2, Functor&& functor, Args&& ... args)
     {
         if (HASH == node2->page_type_hash())
@@ -128,7 +113,7 @@ public:
 
 
     template <typename Node, typename Functor, typename... Args>
-    static RtnType<Functor, const Node*, const Head*, Args...>
+    static auto
     dispatch(const Node* node1, const NodeBaseG& node2, Functor&& functor, Args&&... args)
     {
         if (HASH == node2->page_type_hash())

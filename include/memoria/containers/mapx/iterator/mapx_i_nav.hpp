@@ -115,9 +115,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
     }
 
 
-    template <typename SubstreamsIdxList, typename... Args>
-    using ReadLeafEntryRtnType = typename Container::template ReadLeafEntryRtnType<SubstreamsIdxList, Args...>;
-
     auto raw_key() const
     {
     	return std::get<0>(self().ctr().template _readLeafEntry<IntList<0>>(self().leaf(), self().idx()));
