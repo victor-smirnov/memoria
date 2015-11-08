@@ -53,6 +53,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btss::IteratorMiscName)
     	return self().skipBw(size);
 	}
 
+    Int size() const
+    {
+    	return self().leafSize(0);
+    }
+
     bool isEof() const {
     	return self().idx() >= self().size();
     }

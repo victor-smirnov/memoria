@@ -283,14 +283,14 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
     }
 
 
-    Position leaf_rank(Int pos) const
+    Position leafrank_(Int pos) const
     {
     	auto& self = this->self();
 
     	LeafPrefixRanks ranks;
     	self.ctr().compute_leaf_prefixes(self.leaf(), self.leaf_extent(), ranks);
 
-    	return self.ctr().leaf_rank(self.leaf(), self.leaf_sizes(), ranks, pos);
+    	return self.ctr().leafrank_(self.leaf(), self.leaf_sizes(), ranks, pos);
     }
 
 
@@ -344,7 +344,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
 
     	if (idx > 0 || pos < size || stream == 0)
     	{
-    		return self._local_stream_pos_rank(stream, idx);
+    		return self._local_stream_posrank_(stream, idx);
     	}
     	else {
     		auto abs_pos0 			 = cache.abs_pos()[stream];
@@ -359,7 +359,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
     			return self._local_stream_pos_rank2(abs_pos0);
     		}
     		else {
-    			return self._local_stream_pos_rank(stream, idx);
+    			return self._local_stream_posrank_(stream, idx);
     		}
     	}
     }
@@ -409,7 +409,7 @@ private:
     }
 
 
-    Position _local_stream_pos_rank(Int stream, Int idx)
+    Position _local_stream_posrank_(Int stream, Int idx)
     {
     	auto& self = this->self();
     	auto& cache = self.cache();

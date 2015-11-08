@@ -58,7 +58,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorSelectName)
 
     template <typename LeafPath>
     WalkerResultFnType<typename Types::template SelectForwardWalker<Types, LeafPath>>
-    _select(Int index, CtrSizeT rank)
+    select_(Int index, CtrSizeT rank)
     {
     	if (rank >= 0) {
     		return self().template _selectFw<LeafPath>(index, rank);

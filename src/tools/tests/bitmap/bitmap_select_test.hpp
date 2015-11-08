@@ -391,11 +391,11 @@ public:
 
         clearBitmap(bitmap_, bitsize, 0);
 
-        size_t bitmap_rank = PopCount(bitmap_, 0, bitsize);
+        size_t bitmaprank_ = PopCount(bitmap_, 0, bitsize);
 
         for (size_t start = bitsize; start > 0; start--)
         {
-            for (size_t rank = bitmap_rank; rank > 0; rank--)
+            for (size_t rank = bitmaprank_; rank > 0; rank--)
             {
                 assert_fn(this, start, 0, rank);
             }
@@ -403,7 +403,7 @@ public:
 
         for (size_t start = bitsize; start > 0; start--)
         {
-            for (size_t rank = bitmap_rank; rank > 0; rank--)
+            for (size_t rank = bitmaprank_; rank > 0; rank--)
             {
                 size_t stop  = start >= rank? start - rank : 0;
 
@@ -413,30 +413,30 @@ public:
 
         for (size_t start = bitsize; start > 0; start--)
         {
-            for (size_t rank = bitmap_rank; rank > 0; rank--)
+            for (size_t rank = bitmaprank_; rank > 0; rank--)
             {
-                assert_fn(this, start, 0, bitmap_rank + 10);
+                assert_fn(this, start, 0, bitmaprank_ + 10);
             }
         }
 
         for (size_t start = bitsize; start > 0; start--)
         {
-            for (size_t rank = bitmap_rank; rank > 0; rank--)
+            for (size_t rank = bitmaprank_; rank > 0; rank--)
             {
                 size_t stop  = start >= rank? start - rank : 0;
 
-                assert_fn(this, start, stop, bitmap_rank + 10);
+                assert_fn(this, start, stop, bitmaprank_ + 10);
             }
         }
 
 
         makeRandomBitmap(bitmap_, bitsize);
 
-        bitmap_rank = PopCount(bitmap_, 0, bitsize);
+        bitmaprank_ = PopCount(bitmap_, 0, bitsize);
 
         for (size_t start = bitsize; start > 0; start--)
         {
-            for (size_t rank = bitmap_rank; rank > 0; rank--)
+            for (size_t rank = bitmaprank_; rank > 0; rank--)
             {
                 assert_fn(this, start, 0, rank);
             }
@@ -444,7 +444,7 @@ public:
 
         for (size_t start = bitsize; start > 0; start--)
         {
-            for (size_t rank = bitmap_rank; rank > 0; rank--)
+            for (size_t rank = bitmaprank_; rank > 0; rank--)
             {
                 size_t stop  = start >= rank? start - rank : 0;
 
@@ -455,19 +455,19 @@ public:
 
         for (size_t start = bitsize; start > 0; start--)
         {
-            for (size_t rank = bitmap_rank; rank > 0; rank--)
+            for (size_t rank = bitmaprank_; rank > 0; rank--)
             {
-                assert_fn(this, start, 0, bitmap_rank + 10);
+                assert_fn(this, start, 0, bitmaprank_ + 10);
             }
         }
 
         for (size_t start = bitsize; start > 0; start--)
         {
-            for (size_t rank = bitmap_rank; rank > 0; rank--)
+            for (size_t rank = bitmaprank_; rank > 0; rank--)
             {
                 size_t stop  = start >= rank? start - rank : 0;
 
-                assert_fn(this, start, stop, bitmap_rank + 10);
+                assert_fn(this, start, stop, bitmaprank_ + 10);
             }
         }
     }

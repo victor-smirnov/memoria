@@ -59,8 +59,8 @@ public:
 class LoudsNodeRange: public LoudsNode {
     BigInt count_;
 public:
-    LoudsNodeRange(BigInt node, BigInt node_rank, Int value, BigInt count):
-        LoudsNode(node, node_rank, value),
+    LoudsNodeRange(BigInt node, BigInt noderank_, Int value, BigInt count):
+        LoudsNode(node, noderank_, value),
         count_(count)
     {}
 

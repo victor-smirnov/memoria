@@ -43,13 +43,23 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::MiscName)
     using PageUpdateMgt 	= typename Types::PageUpdateMgr;
 
     Iterator Begin() {
-    	return self().template _seek<0>(0);
+    	return self().template seek_stream<0>(0);
     }
 
     Iterator End() {
     	auto& self = this->self();
-    	return self.template _seek<0>(self.sizes()[0]);
+    	return self.template seek_stream<0>(self.sizes()[0]);
     }
+
+    Iterator begin() {
+    	return self().template seek_stream<0>(0);
+    }
+
+    Iterator end() {
+    	auto& self = this->self();
+    	return self.template seek_stream<0>(self.size());
+    }
+
 
 
     CtrSizeT size() const {
@@ -58,7 +68,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::MiscName)
 
     Iterator find(Key key)
     {
-    	auto iter = self().template _find2GE<IntList<0>>(0, key);
+    	auto iter = self().template find_ge<IntList<0>>(0, key);
 
     	iter.cache().data_size()[0] = self().size();
     	iter.cache().data_pos()[0]++;
@@ -68,7 +78,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::MiscName)
 
     Iterator seek(CtrSizeT pos)
     {
-    	auto iter = self().template _seek<0>(pos);
+    	auto iter = self().template seek_stream<0>(pos);
 
     	auto& cache = iter.cache();
 

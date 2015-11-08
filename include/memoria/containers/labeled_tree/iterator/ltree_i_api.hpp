@@ -40,7 +40,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
 
     typedef typename Container::Types::CtrSizeT                                 CtrSizeT;
 
-    CtrSizeT node_rank() const
+    CtrSizeT noderank_() const
     {
         auto& self = this->self();
 //      return self.cache().rank1() + (self.symbol() == 1);
@@ -196,7 +196,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
 
     CtrSizeT rank1() const
     {
-        return node_rank();
+        return noderank_();
     }
 
     CtrSizeT rank0() const
@@ -262,7 +262,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
     Int label_idx(Int node_idx) const
     {
         auto& self = this->self();
-        return self.local_rank(node_idx, 1);
+        return self.localrank_(node_idx, 1);
     }
 
 

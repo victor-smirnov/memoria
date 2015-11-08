@@ -88,18 +88,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::LeafCommonName)
     	self().template removeStreamEntry<0>(iter);
     }
 
-
-    Iterator seek(CtrSizeT position)
-    {
-    	return self().template _seek<0>(position);
-    }
-
-
-    template <typename OutputIterator>
-    CtrSizeT read(Iterator& iter, OutputIterator begin, CtrSizeT length)
-    {
-    	return 0;
-    }
+//    template <typename OutputIterator>
+//    CtrSizeT read(Iterator& iter, OutputIterator begin, CtrSizeT length)
+//    {
+//    	return 0;
+//    }
 
     template <typename InputProvider>
     CtrSizeT insert(Iterator& iter, InputProvider& provider)

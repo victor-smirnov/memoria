@@ -57,7 +57,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorRankName)
 
     template <typename LeafPath>
     WalkerResultFnType<typename Types::template RankForwardWalker<Types, LeafPath>>
-    _rank(Int index, CtrSizeT pos)
+    rank_(Int index, CtrSizeT pos)
     {
     	if (pos >= 0)
     	{

@@ -149,18 +149,18 @@ public:
         for (Int n = 0; n < num_maxs; n++)
         {
             Int max      = 0;
-            Int max_rank = 0;
+            Int maxrank_ = 0;
 
             for (Int c = 0; c < 255; c++)
             {
-                if (ranks[c] > max_rank)
+                if (ranks[c] > maxrank_)
                 {
                     max = c;
-                    max_rank = ranks[c];
+                    maxrank_ = ranks[c];
                 }
             }
 
-            result.push_back(pair<Int, Int>(max, max_rank));
+            result.push_back(pair<Int, Int>(max, maxrank_));
             ranks[max] = 0;
         }
 

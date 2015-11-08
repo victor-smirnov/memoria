@@ -955,10 +955,10 @@ public:
 
     SelectResult selectFw(Int start, Int symbol, BigInt rank) const
     {
-        Int start_rank = this->rank(start, symbol);
-        auto result = selectFw(symbol, start_rank + rank);
+        Int startrank_ = this->rank(start, symbol);
+        auto result = selectFw(symbol, startrank_ + rank);
 
-        result.rank() -= start_rank;
+        result.rank() -= startrank_;
 
         return result;
     }
@@ -982,11 +982,11 @@ public:
 
                 typename Types::template SelectFn<MyType> fn(*this);
 
-                Int local_rank = rank - result.prefix();
+                Int localrank_ = rank - result.prefix();
 
                 Int size = this->size();
 
-                return fn(start, size, symbol, local_rank);
+                return fn(start, size, symbol, localrank_);
             }
             else {
                 return SelectResult(result.idx(), result.prefix(), false);
@@ -1000,14 +1000,14 @@ public:
 
     SelectResult selectBw(Int start, Int symbol, BigInt rank) const
     {
-        Int local_rank = this->rank(start, symbol);
+        Int localrank_ = this->rank(start, symbol);
 
-        if (local_rank >= rank)
+        if (localrank_ >= rank)
         {
-            return selectFw(symbol, local_rank - rank + 1);
+            return selectFw(symbol, localrank_ - rank + 1);
         }
         else {
-            return SelectResult(-1,local_rank,false);
+            return SelectResult(-1,localrank_,false);
         }
     }
 

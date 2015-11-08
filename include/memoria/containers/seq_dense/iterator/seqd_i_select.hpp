@@ -41,7 +41,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterSelectName)
 
     auto select(BigInt rank_delta, Int symbol)
     {
-    	return self().template _select<IntList<0>>(symbol, rank_delta);
+    	return self().template select_<IntList<0>>(symbol, rank_delta);
     }
 
     auto selectFw(BigInt rank_delta, Int symbol)

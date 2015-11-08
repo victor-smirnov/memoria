@@ -156,7 +156,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
 
     	self.cache().reset();
 
-    	self.ctr().walkUp2(self.leaf(), self.idx(), walker);
+    	self.ctr().walkUp(self.leaf(), self.idx(), walker);
 
     	walker.finish(self, self.idx(), WalkCmd::NONE);
     }

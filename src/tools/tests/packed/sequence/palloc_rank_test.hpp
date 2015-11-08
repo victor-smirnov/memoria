@@ -150,10 +150,10 @@ public:
 
     void assertRank(const Seq* seq, size_t start, size_t end, Value symbol)
     {
-        Int local_rank  = seq->rank(start, end, symbol);
+        Int localrank_  = seq->rank(start, end, symbol);
         Int popc        = this->rank(seq, start, end, symbol);
 
-        AssertEQ(MA_SRC, local_rank, popc);
+        AssertEQ(MA_SRC, localrank_, popc);
     }
 
     void assertRank(const Seq* seq, size_t end, Value symbol)

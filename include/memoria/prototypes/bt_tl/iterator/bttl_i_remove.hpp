@@ -135,12 +135,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorRemoveName)
     	return ranks;
     }
 
-    Position local_stream_pos_rank() const {
+    Position local_stream_posrank_() const {
     	auto& self = this->self();
-    	return self.local_stream_pos_rank(self.stream(), self.idx());
+    	return self.local_stream_posrank_(self.stream(), self.idx());
     }
 
-    Position local_stream_pos_rank(Int stream, Int idx) const
+    Position local_stream_posrank_(Int stream, Int idx) const
     {
     	auto& self = this->self();
 

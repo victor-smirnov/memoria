@@ -265,19 +265,19 @@ public:
     	{
     		auto sizes = i.leaf_sizes();
 
-    		auto total_leaf_rank = sizes.sum();
+    		auto total_leafrank_ = sizes.sum();
 
     		typename Ctr::Types::LeafPrefixRanks prefix_ranks;
 
     		ctr.compute_leaf_prefixes(i.leaf(), extents, prefix_ranks);
 
-    		auto total_ranks = ctr.leaf_rank(i.leaf(), sizes, prefix_ranks, sizes.sum());
+    		auto total_ranks = ctr.leafrank_(i.leaf(), sizes, prefix_ranks, sizes.sum());
 
     		AssertEQ(MA_SRC, total_ranks, sizes);
 
-    		for (Int c = 0; c < total_leaf_rank; )
+    		for (Int c = 0; c < total_leafrank_; )
     		{
-    			auto ranks = ctr.leaf_rank(i.leaf(), sizes, prefix_ranks, c);
+    			auto ranks = ctr.leafrank_(i.leaf(), sizes, prefix_ranks, c);
 
     			AssertEQ(MA_SRC, ranks.sum(), c, SBuf()<<DebugCounter);
 

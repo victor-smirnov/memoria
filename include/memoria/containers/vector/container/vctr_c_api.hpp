@@ -56,7 +56,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrApiName)
     {
     	typename Types::template SkipForwardWalker<Types, IntList<0>> walker(pos);
 
-    	return self().find2(walker);
+    	return self().find_(walker);
     }
 
 

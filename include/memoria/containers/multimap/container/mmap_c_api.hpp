@@ -56,7 +56,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mmap::CtrApiName)
 
     Iterator find(Key key)
     {
-    	return self().template _find2GE<IntList<0>>(0, key);
+    	return self().template find_ge<IntList<0>>(0, key);
     }
 
 MEMORIA_CONTAINER_PART_END

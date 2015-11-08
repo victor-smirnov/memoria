@@ -46,7 +46,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorFindName)
 
     	typename Container::NodeChain node_chain(self.leaf(), self.key_idx());
 
-    	auto result = self.ctr().findFw2(node_chain, walker);
+    	auto result = self.ctr().find_fw(node_chain, walker);
 
     	self.leaf() = result.node;
     	self.idx()  = result.idx;
@@ -66,7 +66,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorFindName)
 
         typename Container::NodeChain node_chain(self.leaf(), self.key_idx());
 
-        auto result = self.ctr().findBw2(node_chain, walker);
+        auto result = self.ctr().find_bw(node_chain, walker);
 
         self.leaf() = result.node;
         self.idx()  = result.idx;

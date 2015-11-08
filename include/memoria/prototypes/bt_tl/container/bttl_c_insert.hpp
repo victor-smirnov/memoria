@@ -50,7 +50,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::InsertName)
 
     	bttl::StreamingCtrInputProvider<MyType, Provider> streamingProvider(self, provider, iter.stream(), buffer);
 
-    	auto pos = iter.local_stream_pos_rank();
+    	auto pos = iter.local_stream_posrank_();
 
     	streamingProvider.prepare(iter, pos);
 

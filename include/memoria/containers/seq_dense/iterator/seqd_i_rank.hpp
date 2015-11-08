@@ -70,10 +70,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterRankName)
     BigInt rank(Int symbol) const;
     BigInt ranki(Int symbol) const;
 
-    BigInt local_rank(Int idx, Int symbol) const;
+    BigInt localrank_(Int idx, Int symbol) const;
 
     auto rank(BigInt delta, Int symbol) {
-    	return self().template _rank<IntList<0>>(symbol, delta);
+    	return self().template rank_<IntList<0>>(symbol, delta);
     }
 
     auto rankFw(BigInt delta, Int symbol) {
@@ -106,7 +106,7 @@ BigInt M_TYPE::rank(Int symbol) const
 }
 
 M_PARAMS
-BigInt M_TYPE::local_rank(Int idx, Int symbol) const
+BigInt M_TYPE::localrank_(Int idx, Int symbol) const
 {
     auto& self = this->self();
 

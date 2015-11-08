@@ -43,9 +43,9 @@ inline size_t SelectFW(UBigInt arg, size_t rank)
 
     UInt argl = static_cast<UInt>(v + (v >> 32));
     argl += (argl >> 16);
-    size_t full_rank = (argl + (argl >> 8)) & 0x7F;
+    size_t fullrank_ = (argl + (argl >> 8)) & 0x7F;
 
-    if (full_rank >= rank)
+    if (fullrank_ >= rank)
     {
         size_t r = 0;
 
@@ -71,10 +71,10 @@ inline size_t SelectFW(UBigInt arg, size_t rank)
             }
         }
 
-        return 100 + full_rank;
+        return 100 + fullrank_;
     }
     else {
-        return 100 + full_rank;
+        return 100 + fullrank_;
     }
 }
 
@@ -89,9 +89,9 @@ inline size_t SelectBW(UBigInt arg, size_t rank)
 
     UInt argl = static_cast<UInt>(v + (v >> 32));
     argl += (argl >> 16);
-    size_t full_rank = (argl + (argl >> 8)) & 0x7F;
+    size_t fullrank_ = (argl + (argl >> 8)) & 0x7F;
 
-    if (full_rank >= rank)
+    if (fullrank_ >= rank)
     {
         size_t r = 0;
 
@@ -121,7 +121,7 @@ inline size_t SelectBW(UBigInt arg, size_t rank)
         return 0;
     }
     else {
-        return 100 + full_rank;
+        return 100 + fullrank_;
     }
 }
 

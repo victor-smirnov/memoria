@@ -176,7 +176,7 @@ struct ZeroRankHelper
 		auto size = sizes[Idx];
 		if (size > 0)
 		{
-			return iter->template _streams_rank<Idx>(std::forward<Node>(node), sizes, std::forward<Args>(args)...);
+			return iter->template _streamsrank_<Idx>(std::forward<Node>(node), sizes, std::forward<Args>(args)...);
 		}
 		else {
 			return ZeroRankHelper<Idx + 1, Size>::process(

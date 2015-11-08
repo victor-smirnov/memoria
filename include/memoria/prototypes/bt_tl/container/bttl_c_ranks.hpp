@@ -315,7 +315,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
     	}
     }
 
-    Position leaf_rank(const NodeBaseG& leaf, const Position& sizes, const Position& extent, Int pos) const
+    Position leafrank_(const NodeBaseG& leaf, const Position& sizes, const Position& extent, Int pos) const
     {
     	auto& self = this->self();
 
@@ -326,11 +326,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
 
     	self.compute_leaf_prefixes(leaf, extent, prefixes);
 
-    	return self.leaf_rank(leaf, sizes, prefixes, pos);
+    	return self.leafrank_(leaf, sizes, prefixes, pos);
     }
 
 
-    Position leaf_rank(const NodeBaseG& leaf, Position sizes, const LeafPrefixRanks& prefixes, Int pos) const
+    Position leafrank_(const NodeBaseG& leaf, Position sizes, const LeafPrefixRanks& prefixes, Int pos) const
     {
     	if (pos >= sizes.sum()) {
     		return sizes;
@@ -372,7 +372,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
     };
 
     template <Int Stream, typename... Args>
-    Position _streams_rank(const NodeBaseG& leaf, Args&&... args) const
+    Position _streamsrank_(const NodeBaseG& leaf, Args&&... args) const
     {
     	return LeafDispatcher::dispatch(leaf, _StreamsRankFn<Stream>(), std::forward<Args>(args)...);
     }

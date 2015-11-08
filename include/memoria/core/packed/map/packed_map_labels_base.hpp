@@ -481,7 +481,7 @@ public:
     };
 
 
-    BigInt h_rank(Int label_num, Int end, Int label) const
+    BigInt hrank_(Int label_num, Int end, Int label) const
     {
         return HiddenLabelsDispatcher::dispatchRtn(label_num, this, RankFn(), end, label);
     }
@@ -492,7 +492,7 @@ public:
     }
 
 
-    BigInt h_rank(Int label_num, Int start, Int end, Int label) const
+    BigInt hrank_(Int label_num, Int start, Int end, Int label) const
     {
         return HiddenLabelsDispatcher::dispatchRtn(label_num, this, RankFn(), start, end, label);
     }

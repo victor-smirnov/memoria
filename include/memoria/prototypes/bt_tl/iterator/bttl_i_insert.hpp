@@ -63,7 +63,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorInsertName)
 
     	if (full_leaf_size > 1)
     	{
-    		auto half_ranks = self.leaf_rank(full_leaf_size/2);
+    		auto half_ranks = self.leafrank_(full_leaf_size/2);
     		auto right = self.ctr().splitLeafP(leaf, half_ranks);
 
     		auto& idx = self.idx();

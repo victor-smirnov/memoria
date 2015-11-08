@@ -40,10 +40,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
 
     typedef typename Types::CtrSizeT                                            CtrSizeT;
 
-    CtrSizeT size() const
-    {
-        return self().sizes()[0];
-    }
+
 
     CtrSizeT rank(CtrSizeT idx, Int symbol)
     {
@@ -51,7 +48,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
 
         typename Types::template RankForwardWalker<Types, IntList<0>> walker(0, symbol, idx);
 
-        auto iter = self.find2(walker);
+        auto iter = self.find_(walker);
 
         return walker.rank();
     }
@@ -80,7 +77,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
 
         typename Types::template SelectForwardWalker<Types, IntList<0>> walker(symbol, rank);
 
-        auto iter = self.find2(walker);
+        auto iter = self.find_(walker);
 
         return iter;
     }
@@ -96,18 +93,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
         return iter;
     }
 
-    Iterator seek(Int pos)
-    {
-    	typename Types::template SkipForwardWalker<Types, IntList<0>> walker(pos);
-
-    	return self().find2(walker);
-    }
-
-
     Int symbol(Int idx)
     {
         auto& self = this->self();
-        return seek(idx).symbol();
+        return self.seek(idx).symbol();
     }
 
 

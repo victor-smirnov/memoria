@@ -344,9 +344,9 @@ public:
 
         this->populateRandom(seq, this->size_);
 
-        Int max_rank = seq->rank(1) + 1;
+        Int maxrank_ = seq->rank(1) + 1;
 
-        for (Int rank = 1; rank < max_rank; rank++)
+        for (Int rank = 1; rank < maxrank_; rank++)
         {
             auto result1 = seq->selectFw(0, 1, rank);
             auto result2 = seq->selectFw(1, rank);
@@ -449,8 +449,8 @@ public:
 
         this->out()<<endl;
 
-        Int seq_rank = this->rank(seq, 0, seq->size(), symbol);
-        assertSelectBW(seq, seq->size(), seq_rank/2, symbol);
+        Int seqrank_ = this->rank(seq, 0, seq->size(), symbol);
+        assertSelectBW(seq, seq->size(), seqrank_/2, symbol);
     }
 };
 

@@ -985,7 +985,7 @@ private:
 				mgr.rollback();
 
 				auto sizes		= ctr.getNodeSizes(leaf);
-				auto split_at 	= ctr.leaf_rank(leaf, sizes, leaf_extents_[stream], sizes.sum() / 2);
+				auto split_at 	= ctr.leafrank_(leaf, sizes, leaf_extents_[stream], sizes.sum() / 2);
 
 				NodeBaseG next_leaf;
 
@@ -1059,7 +1059,7 @@ private:
 				mgr.restoreNodeState();
 
 				auto sizes		= ctr.getNodeSizes(leaf);
-				auto split_at 	= ctr.leaf_rank(leaf, sizes, leaf_extents_[stream], sizes.sum() / 2);
+				auto split_at 	= ctr.leafrank_(leaf, sizes, leaf_extents_[stream], sizes.sum() / 2);
 
 				if (leaf->is_root() || leaf->parent_id())
 				{

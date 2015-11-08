@@ -120,11 +120,11 @@ public:
                 Int pos     = this->getRandom(size);
                 Int symbol  = this->getRandom(Base::Symbols);
 
-                Int max_rank = seq.rank(pos, size, symbol);
+                Int maxrank_ = seq.rank(pos, size, symbol);
 
-                if (max_rank > 0)
+                if (maxrank_ > 0)
                 {
-                    Int rank    = this->getRandom(max_rank);
+                    Int rank    = this->getRandom(maxrank_);
 
                     if (rank == 0) rank = 1;
 
@@ -184,11 +184,11 @@ public:
                 Int pos     = this->getRandom(size);
                 Int symbol  = this->getRandom(Base::Symbols);
 
-                Int max_rank = seq.rank(0, pos, symbol);
+                Int maxrank_ = seq.rank(0, pos, symbol);
 
-                if (max_rank > 0)
+                if (maxrank_ > 0)
                 {
-                    Int rank    = this->getRandom(max_rank);
+                    Int rank    = this->getRandom(maxrank_);
 
                     if (rank == 0) rank = 1;
 

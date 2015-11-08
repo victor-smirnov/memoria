@@ -37,46 +37,39 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::FindName)
 
     using CtrSizeT = typename Types::CtrSizeT;
 
-    static const Int MAIN_STREAM = 0;
-
-private:
-
 
 public:
 
     template <typename Walker>
-    Iterator find0(Int stream, Walker&& walker);
-
-    template <typename Walker>
-    Iterator find2(Walker&& walker);
+    Iterator find_(Walker&& walker);
 
 
     template <typename LeafPath>
-    Iterator _find2GT(Int index, TargetType<LeafPath> key)
+    Iterator find_gt(Int index, TargetType<LeafPath> key)
     {
     	typename Types::template FindGTForwardWalker<Types, LeafPath> walker(index, key);
-    	return self().find2(walker);
+    	return self().find_(walker);
     }
 
     template <typename LeafPath>
-    Iterator _find2GE(Int index, TargetType<LeafPath> key)
+    Iterator find_ge(Int index, TargetType<LeafPath> key)
     {
     	typename Types::template FindGEForwardWalker<Types, LeafPath> walker(index, key);
-    	return self().find2(walker);
+    	return self().find_(walker);
     }
 
     template <typename LeafPath>
-    Iterator _rank(Int index, CtrSizeT pos)
+    Iterator rank_(Int index, CtrSizeT pos)
     {
     	typename Types::template RankForwardWalker<Types, LeafPath> walker(index, pos);
-    	return self().find2(walker);
+    	return self().find_(walker);
     }
 
     template <typename LeafPath>
-    Iterator _select(Int index, CtrSizeT rank)
+    Iterator select_(Int index, CtrSizeT rank)
     {
     	typename Types::template SelectForwardWalker<Types, LeafPath> walker(index, rank);
-    	return self().find2(walker);
+    	return self().find_(walker);
     }
 
 
@@ -147,20 +140,20 @@ public:
     };
 
     template <typename Walker>
-    StreamOpResult findFw2(NodeBaseG& node, Int stream, Int idx, Walker&& walker);
+    StreamOpResult find_fw(NodeBaseG& node, Int stream, Int idx, Walker&& walker);
 
     template <typename Walker>
-    FindResult findFw2(NodeChain node_chain, Walker&& walker, WalkDirection direction = WalkDirection::UP);
+    FindResult find_fw(NodeChain node_chain, Walker&& walker, WalkDirection direction = WalkDirection::UP);
 
 
     template <typename Walker>
-    FindResult findBw2(NodeChain node_chain, Walker&& walker, WalkDirection direction = WalkDirection::UP);
+    FindResult find_bw(NodeChain node_chain, Walker&& walker, WalkDirection direction = WalkDirection::UP);
 
     template <Int Stream>
-    Iterator _seek(CtrSizeT position)
+    Iterator seek_stream(CtrSizeT position)
     {
     	typename Types::template SkipForwardWalker<Types, IntList<Stream>> walker(position);
-    	return self().find2(walker);
+    	return self().find_(walker);
     }
 
 
@@ -171,97 +164,8 @@ public:
     	return NodeDispatcher::dispatch(node, SizesFn());
     }
 
-    MEMORIA_PUBLIC Iterator streamBegin(Int stream)
-    {
-        return self().template _seek<0>(0);
-    }
-
-    MEMORIA_PUBLIC Iterator Begin()
-    {
-        return streamBegin(MAIN_STREAM);
-    }
-
-    MEMORIA_PUBLIC Iterator begin()
-    {
-        return streamBegin(MAIN_STREAM);
-    }
-
-    MEMORIA_PUBLIC Iterator streamRBegin(Int stream)
-    {
-        typename Types::template FindRBeginWalker<Types> walker(stream, self());
-        return self().find0(stream, walker);
-    }
-
-    MEMORIA_PUBLIC Iterator RBegin()
-    {
-        return streamRBegin(MAIN_STREAM);
-    }
-
-    MEMORIA_PUBLIC Iterator streamEnd(Int stream)
-    {
-        typename Types::template FindEndWalker<Types> walker(stream, self());
-        return self().find0(stream, walker);
-    }
-
-    MEMORIA_PUBLIC Iterator End()
-    {
-        return streamEnd(MAIN_STREAM);
-    }
-
-
-    MEMORIA_PUBLIC Iterator end()
-    {
-        Iterator iter(*me());
-        iter.type() = Iterator::END;
-        return iter;
-    }
-
-    MEMORIA_PUBLIC IterEndMark endm()
-    {
-        return IterEndMark();
-    }
-
-    MEMORIA_PUBLIC Iterator streamREnd(Int stream)
-    {
-        typename Types::template FindREndWalker<Types> walker(stream, self());
-        return self().find0(stream, walker);
-    }
-
-    MEMORIA_PUBLIC Iterator REnd()
-    {
-        return streamREnd(MAIN_STREAM);
-    }
-
-    Iterator findGT(Int stream, BigInt key, Int key_num)
-    {
-        typename Types::template FindGTWalker<Types, IntList<0>> walker(stream, key_num - 1, key);
-
-        return self().find0(walker);
-    }
-
-    Iterator findGE(Int stream, BigInt key, Int key_num)
-    {
-        typename Types::template FindGEWalker<Types, IntList<0>> walker(stream, key_num - 1, key);
-
-        return self().find0(stream, walker);
-    }
-
     template <typename Walker>
     void walkUp(NodeBaseG node, Int idx, Walker&& walker) const
-    {
-        NodeDispatcher::dispatch(node, walker, idx);
-
-        while (!node->is_root())
-        {
-            idx = node->parent_idx();
-            node = self().getNodeParent(node);
-
-            NodeDispatcher::dispatch(node, walker, idx);
-        }
-    }
-
-    template <typename Walker>
-    void walkUp2(NodeBaseG node, Int idx, Walker&& walker) const
     {
     	if (node->is_leaf())
     	{
@@ -288,75 +192,75 @@ MEMORIA_CONTAINER_PART_END
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 
-M_PARAMS
-template <typename Walker>
-typename M_TYPE::Iterator M_TYPE::find0(Int stream, Walker&& walker)
-{
-    auto& self = this->self();
-    walker.direction()  = WalkDirection::DOWN;
-
-    NodeBaseG node = self.getRoot();
-    if (node.isSet())
-    {
-        Iterator i(self);
-
-        i.stream() = stream;
-
-        Int size = self.getNodeSize(node, stream);
-
-        if (size > 0)
-        {
-            bool out_of_range = false;
-
-            while (!node->is_leaf())
-            {
-                Int idx;
-                if (!out_of_range)
-                {
-                    idx = NodeDispatcher::dispatch(node, walker, 0);
-
-                    size = self.getNodeSize(node, stream);
-
-                    if (idx >= size)
-                    {
-                        out_of_range = true;
-                        idx = size - 1;
-                    }
-                }
-                else {
-                    idx = self.getNodeSize(node, stream) - 1;
-                }
-
-                node = self.getChild(node, idx);
-            }
-
-            Int idx;
-            if (!out_of_range)
-            {
-                i.idx() = idx = NodeDispatcher::dispatch(node, walker, 0);
-            }
-            else {
-                i.idx() = idx = self.getNodeSize(node, stream);
-            }
-
-            i.leaf() = node;
-
-            walker.finish(i, idx);
-        }
-        else {
-            i.leaf() = node;
-
-            walker.empty(i);
-        }
-
-        i.init();
-        return i;
-    }
-    else {
-        return Iterator(self);
-    }
-}
-
+//M_PARAMS
+//template <typename Walker>
+//typename M_TYPE::Iterator M_TYPE::find0(Int stream, Walker&& walker)
+//{
+//    auto& self = this->self();
+//    walker.direction()  = WalkDirection::DOWN;
+//
+//    NodeBaseG node = self.getRoot();
+//    if (node.isSet())
+//    {
+//        Iterator i(self);
+//
+//        i.stream() = stream;
+//
+//        Int size = self.getNodeSize(node, stream);
+//
+//        if (size > 0)
+//        {
+//            bool out_of_range = false;
+//
+//            while (!node->is_leaf())
+//            {
+//                Int idx;
+//                if (!out_of_range)
+//                {
+//                    idx = NodeDispatcher::dispatch(node, walker, 0);
+//
+//                    size = self.getNodeSize(node, stream);
+//
+//                    if (idx >= size)
+//                    {
+//                        out_of_range = true;
+//                        idx = size - 1;
+//                    }
+//                }
+//                else {
+//                    idx = self.getNodeSize(node, stream) - 1;
+//                }
+//
+//                node = self.getChild(node, idx);
+//            }
+//
+//            Int idx;
+//            if (!out_of_range)
+//            {
+//                i.idx() = idx = NodeDispatcher::dispatch(node, walker, 0);
+//            }
+//            else {
+//                i.idx() = idx = self.getNodeSize(node, stream);
+//            }
+//
+//            i.leaf() = node;
+//
+//            walker.finish(i, idx);
+//        }
+//        else {
+//            i.leaf() = node;
+//
+//            walker.empty(i);
+//        }
+//
+//        i.init();
+//        return i;
+//    }
+//    else {
+//        return Iterator(self);
+//    }
+//}
+//
 
 
 
@@ -367,7 +271,7 @@ typename M_TYPE::Iterator M_TYPE::find0(Int stream, Walker&& walker)
 
 M_PARAMS
 template <typename Walker>
-typename M_TYPE::FindResult M_TYPE::findFw2(NodeChain node_chain, Walker&& walker, WalkDirection direction)
+typename M_TYPE::FindResult M_TYPE::find_fw(NodeChain node_chain, Walker&& walker, WalkDirection direction)
 {
     auto& self = this->self();
 
@@ -388,7 +292,7 @@ typename M_TYPE::FindResult M_TYPE::findFw2(NodeChain node_chain, Walker&& walke
     		}
     		else {
     			auto child = self.getChild(node, result.idx());
-    			return findFw2(NodeChain(child, 0, &node_chain), std::forward<Walker>(walker), WalkDirection::DOWN);
+    			return find_fw(NodeChain(child, 0, &node_chain), std::forward<Walker>(walker), WalkDirection::DOWN);
     		}
     	}
     	else {
@@ -396,7 +300,7 @@ typename M_TYPE::FindResult M_TYPE::findFw2(NodeChain node_chain, Walker&& walke
     		{
     			auto parent 		= self.getNodeParent(node);
     			auto parent_idx 	= node->parent_idx() + 1;
-    			auto parent_result  = findFw2(NodeChain(parent, parent_idx, &node_chain), std::forward<Walker>(walker), WalkDirection::UP);
+    			auto parent_result  = find_fw(NodeChain(parent, parent_idx, &node_chain), std::forward<Walker>(walker), WalkDirection::UP);
 
     			if (parent_result.pass)
     			{
@@ -415,7 +319,7 @@ typename M_TYPE::FindResult M_TYPE::findFw2(NodeChain node_chain, Walker&& walke
     			node_chain.end = result.idx() - 1;
 
     			auto child = self.getChild(node, result.idx() - 1);
-    			return findFw2(NodeChain(child, 0, &node_chain), std::forward<Walker>(walker), WalkDirection::DOWN);
+    			return find_fw(NodeChain(child, 0, &node_chain), std::forward<Walker>(walker), WalkDirection::DOWN);
     		}
     		else {
     			return FindResult(node, start, WalkCmd::NONE, false);
@@ -430,7 +334,7 @@ typename M_TYPE::FindResult M_TYPE::findFw2(NodeChain node_chain, Walker&& walke
     else if (!result.out_of_range())
     {
     	auto child = self.getChild(node_chain.node, result.idx());
-    	return findFw2(NodeChain(child, 0, &node_chain), std::forward<Walker>(walker), WalkDirection::DOWN);
+    	return find_fw(NodeChain(child, 0, &node_chain), std::forward<Walker>(walker), WalkDirection::DOWN);
     }
     else
     {
@@ -438,7 +342,7 @@ typename M_TYPE::FindResult M_TYPE::findFw2(NodeChain node_chain, Walker&& walke
     	node_chain.end = result.idx() - 1;
 
     	auto child = self.getChild(node_chain.node, result.idx() - 1);
-    	return findFw2(NodeChain(child, 0, &node_chain), std::forward<Walker>(walker), WalkDirection::DOWN);
+    	return find_fw(NodeChain(child, 0, &node_chain), std::forward<Walker>(walker), WalkDirection::DOWN);
     }
 
 }
@@ -448,7 +352,7 @@ typename M_TYPE::FindResult M_TYPE::findFw2(NodeChain node_chain, Walker&& walke
 
 M_PARAMS
 template <typename Walker>
-typename M_TYPE::FindResult M_TYPE::findBw2(NodeChain node_chain, Walker&& walker, WalkDirection direction)
+typename M_TYPE::FindResult M_TYPE::find_bw(NodeChain node_chain, Walker&& walker, WalkDirection direction)
 {
     auto& self = this->self();
 
@@ -468,7 +372,7 @@ typename M_TYPE::FindResult M_TYPE::findBw2(NodeChain node_chain, Walker&& walke
     		}
     		else {
     			auto child = self.getChild(node_chain.node, result.idx());
-    			return findBw2(NodeChain(child, max, &node_chain), std::forward<Walker>(walker), WalkDirection::DOWN);
+    			return find_bw(NodeChain(child, max, &node_chain), std::forward<Walker>(walker), WalkDirection::DOWN);
     		}
     	}
     	else {
@@ -476,7 +380,7 @@ typename M_TYPE::FindResult M_TYPE::findBw2(NodeChain node_chain, Walker&& walke
     		{
     			auto parent 		= self.getNodeParent(node_chain.node);
     			auto parent_idx 	= node_chain.node->parent_idx() - 1;
-    			auto parent_result  = findBw2(NodeChain(parent, parent_idx, &node_chain), std::forward<Walker>(walker), WalkDirection::UP);
+    			auto parent_result  = find_bw(NodeChain(parent, parent_idx, &node_chain), std::forward<Walker>(walker), WalkDirection::UP);
 
     			if (parent_result.pass)
     			{
@@ -495,7 +399,7 @@ typename M_TYPE::FindResult M_TYPE::findBw2(NodeChain node_chain, Walker&& walke
     			node_chain.end = result.idx();
 
     			auto child = self.getChild(node_chain.node, result.idx() + 1);
-    			return findBw2(NodeChain(child, max, &node_chain), std::forward<Walker>(walker), WalkDirection::DOWN);
+    			return find_bw(NodeChain(child, max, &node_chain), std::forward<Walker>(walker), WalkDirection::DOWN);
     		}
     		else {
     			return FindResult(node_chain.node, node_chain.start, WalkCmd::NONE, false);
@@ -510,7 +414,7 @@ typename M_TYPE::FindResult M_TYPE::findBw2(NodeChain node_chain, Walker&& walke
     else if (!result.out_of_range())
     {
     	auto child = self.getChild(node_chain.node, result.idx());
-    	return findBw2(NodeChain(child, max, &node_chain), std::forward<Walker>(walker), WalkDirection::DOWN);
+    	return find_bw(NodeChain(child, max, &node_chain), std::forward<Walker>(walker), WalkDirection::DOWN);
     }
     else
     {
@@ -518,7 +422,7 @@ typename M_TYPE::FindResult M_TYPE::findBw2(NodeChain node_chain, Walker&& walke
     	node_chain.end = result.idx();
 
     	auto child = self.getChild(node_chain.node, result.idx() + 1);
-    	return findBw2(NodeChain(child, max, &node_chain), std::forward<Walker>(walker), WalkDirection::DOWN);
+    	return find_bw(NodeChain(child, max, &node_chain), std::forward<Walker>(walker), WalkDirection::DOWN);
     }
 
 }
@@ -529,7 +433,7 @@ typename M_TYPE::FindResult M_TYPE::findBw2(NodeChain node_chain, Walker&& walke
 
 M_PARAMS
 template <typename Walker>
-typename M_TYPE::Iterator M_TYPE::find2(Walker&& walker)
+typename M_TYPE::Iterator M_TYPE::find_(Walker&& walker)
 {
     auto& self = this->self();
 
