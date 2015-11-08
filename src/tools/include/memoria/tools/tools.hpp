@@ -18,7 +18,6 @@
 #include <memoria/core/container/logs.hpp>
 
 #include <memoria/containers/vector/vctr_names.hpp>
-#include <memoria/containers/vector_map/vmap_names.hpp>
 
 #include <memoria/core/packed/tools/packed_allocator_types.hpp>
 
@@ -317,17 +316,6 @@ void checkBufferWritten(BAIterator& iter, const MemBuffer& data, const char* err
     }
 }
 
-template <typename Types, typename Item>
-void checkBufferWritten(
-        Iter<VectorMap2IterTypes<Types>>& iter, const vector<Item>& data, const char* err_msg, const char* source
-     )
-{
-    Int pos = 0;
-    if (!CompareBuffer(iter.ba_iter(), data, pos))
-    {
-        throw TestException(source, SBuf()<<err_msg<<": pos="<<pos);
-    }
-}
 
 
 template <typename Types, typename MemBuffer>
