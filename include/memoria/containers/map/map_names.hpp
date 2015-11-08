@@ -12,7 +12,7 @@
 #include <memoria/prototypes/bt/bt_names.hpp>
 
 namespace memoria    {
-namespace mapx       {
+namespace map        {
 
 class CtrApiName        {};
 class CtrCApiName       {};
@@ -35,18 +35,18 @@ class ItrMrkValueName {};
 }
 
 template <typename Types>
-struct MapXCtrTypesT: CtrTypesT<Types> {};
+struct MapCtrTypesT: CtrTypesT<Types> {};
 
 template <typename Types>
-struct MapXIterTypesT: IterTypesT<Types> {};
+struct MapIterTypesT: IterTypesT<Types> {};
 
 
 
 template <typename Types>
-using MapXCtrTypes  = BTCtrTypes<MapXCtrTypesT<Types>>;
+using MapCtrTypes  = BTCtrTypes<MapCtrTypesT<Types>>;
 
 template <typename Types>
-using MapXIterTypes = BTIterTypes<MapXIterTypesT<Types>>;
+using MapIterTypes = BTIterTypes<MapIterTypesT<Types>>;
 
 
 }

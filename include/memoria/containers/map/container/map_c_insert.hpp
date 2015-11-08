@@ -18,7 +18,7 @@
 
 namespace memoria    {
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::mapx::CtrRemoveName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrRemoveName)
 
     typedef typename Base::Types                                                Types;
 
@@ -73,7 +73,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mapx::CtrRemoveName)
 
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::mapx::CtrRemoveName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::map::CtrRemoveName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 #undef M_PARAMS

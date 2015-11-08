@@ -37,10 +37,6 @@ struct MapBTTypesBase: public BTTypes<Profile, memoria::BTSingleStream> {
 
     typedef BTTypes<Profile, memoria::BTSingleStream>                           Base;
 
-    using HiddenLabelsTuple = std::tuple<>;
-
-    using LabelsTuple = std::tuple<>;
-
     static const Int Labels                                                     = 0;
     static const Int HiddenLabels                                               = 0;
 
@@ -82,14 +78,14 @@ struct MapBTTypesBase: public BTTypes<Profile, memoria::BTSingleStream> {
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
-                memoria::mapx::CtrInsertName,
-                memoria::mapx::CtrRemoveName
+                memoria::map::CtrInsertName,
+                memoria::map::CtrRemoveName
     >;
 
 
     using IteratorPartsList = MergeLists<
                 typename Base::IteratorPartsList,
-                memoria::mapx::ItrNavName
+                memoria::map::ItrNavName
     >;
 
 
@@ -115,7 +111,7 @@ struct BTTypes<Profile, memoria::Map<Key_, Value_>>:
 
     using ContainerPartsList = MergeLists<
                     typename Base::ContainerPartsList,
-                    mapx::CtrInsertName
+                    memoria::map::CtrInsertName
     >;
 
     using IteratorPartsList = MergeLists<

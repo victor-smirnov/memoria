@@ -20,7 +20,7 @@
 namespace memoria    {
 
 
-MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
+MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavName)
 
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
@@ -151,7 +151,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
 
 MEMORIA_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::mapx::ItrNavName)
+#define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::map::ItrNavName)
 #define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
 
 
