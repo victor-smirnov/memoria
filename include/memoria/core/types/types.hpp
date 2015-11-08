@@ -162,50 +162,22 @@ struct Map          {};
 template <typename Key, typename Value>
 struct MapX         {};
 
-template <typename Key, typename Value>
-struct Map2         {};
 
 template <typename Key, typename Value>
 struct Table        {};
 
 
 
-template <typename K, typename V>
-using DblMap = Map<K, Map<K, V>>;
-
-template <typename K, typename V>
-using DblMap2 = Map2<K, Map2<K, V>>;
-
-template <
-    Int Indexes,
-    typename Key,
-    typename Value,
-    typename LabelsList         = TypeList<>,
-    typename HiddenLabelsList   = TypeList<>
->
-struct MetaMap      {};
-
-
-
-template <typename Value>
-struct VectorProto  {};
-
-typedef Map<BigInt, BigInt>       Map1;
 
 template <typename Key, Int Indexes = 1>
 using Set = Map<Key, EmptyValue>;
 
-
 typedef Set<BigInt, 1>       Set1;
 typedef Set<BigInt, 2>       Set2;
 
-template <typename Key, typename Value>
-struct VectorMap    {};
 
 template <typename T>
 struct Vector       {};
-
-struct ASequence    {};
 
 template <Int BitsPerSymbol, bool Dense = true>
 struct Sequence {};
@@ -216,8 +188,6 @@ using BitVector = Sequence<1, Dense>;
 template <typename ChildType = void>
 class DefaultProfile  {};
 
-template <typename ChildType = void>
-class FileProfile  {};
 
 enum class Granularity  {Bit, Byte};
 enum class Indexed      {No, Yes};
@@ -256,25 +226,6 @@ using CMap = Map<VLen<gr>, BigInt>;
 
 template <Granularity gr = Granularity::Byte>
 using CCMap = Map<VLen<gr>, VLen<gr>>;
-
-// A map with marked K/V pairs
-template <typename Key, typename Value, Int BitsPerMark = 1>
-struct MrkMap       {};
-
-// A map with marked K/V pairs
-template <typename Key, typename Value, Int BitsPerMark = 1>
-struct MrkMap2      {};
-
-// A map with marked K/V pairs, with search over marks
-template <typename Key, typename Value, Int BitsPerMark = 1>
-struct SMrkMap      {};
-
-template <typename K, typename V, Int BitsPerMark>
-using DblMrkMap = Map<K, MrkMap<K, V, BitsPerMark>>;
-
-template <typename K, typename V, Int BitsPerMark>
-using DblMrkMap2 = Map2<K, MrkMap2<K, V, BitsPerMark>>;
-
 
 
 

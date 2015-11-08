@@ -79,37 +79,13 @@ struct TypeHash<T[Size]> {
     static const UInt Value = HashHelper<TypeHash<T>::Value, TypeHashes::ARRAY, Size>::Value;
 };
 
-template <typename Key, typename Value>
-struct TypeHash<VectorMap<Key, Value>>: UIntValue<
-    HashHelper<1000, TypeHash<Key>::Value, TypeHash<Value>::Value>::Value
-> {};
-
 
 template <typename Key, typename Value>
 struct TypeHash<Map<Key, Value>>:   UIntValue<
     HashHelper<1100, TypeHash<Key>::Value, TypeHash<Value>::Value>::Value
 > {};
 
-template <typename Key, typename Value, Int BitsPerMark>
-struct TypeHash<SMrkMap<Key, Value, BitsPerMark>>:   UIntValue<
-    HashHelper<1101, TypeHash<Key>::Value, TypeHash<Value>::Value, BitsPerMark>::Value
-> {};
 
-template <typename Key, typename Value, Int BitsPerMark>
-struct TypeHash<MrkMap<Key, Value, BitsPerMark>>:   UIntValue<
-    HashHelper<1102, TypeHash<Key>::Value, TypeHash<Value>::Value, BitsPerMark>::Value
-> {};
-
-template <typename Key, typename Value, Int BitsPerMark>
-struct TypeHash<MrkMap2<Key, Value, BitsPerMark>>:   UIntValue<
-    HashHelper<11021, TypeHash<Key>::Value, TypeHash<Value>::Value, BitsPerMark>::Value
-> {};
-
-
-template <typename Key, typename Value>
-struct TypeHash<Map2<Key, Value>>:   UIntValue<
-    HashHelper<1103, TypeHash<Key>::Value, TypeHash<Value>::Value>::Value
-> {};
 
 template <typename Key, typename Value>
 struct TypeHash<MapX<Key, Value>>:   UIntValue<
@@ -119,24 +95,6 @@ struct TypeHash<MapX<Key, Value>>:   UIntValue<
 
 
 
-template <
-    Int Indexes,
-    typename Key,
-    typename Value,
-    typename LabelsList,
-    typename HiddenLabelsList
-    >
-struct TypeHash<MetaMap<Indexes, Key, Value, HiddenLabelsList, LabelsList>>: UIntValue<
-    HashHelper<
-        1111,
-        Indexes,
-        TypeHash<Key>::Value,
-        TypeHash<Value>::Value,
-        TypeHash<LabelsList>::Value,
-        TypeHash<HiddenLabelsList>::Value,
-        1
-    >::Value
-> {};
 
 
 template <typename T, Granularity gr>
@@ -221,5 +179,5 @@ struct TypeHash<Table<Key, Value>>:   UIntValue<
 }
 
 
-#endif  /* _MEMORIA_CORE_TOOLS_TYPES_HIERARCHY_HPP */
+#endif
 
