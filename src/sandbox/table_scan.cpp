@@ -18,7 +18,7 @@ using namespace memoria;
 using namespace memoria::tools;
 using namespace std;
 
-using CtrT 		= SCtrTF<Table<BigInt, Byte>>::Type;
+using CtrT 		= DCtrTF<Table<BigInt, Byte>>::Type;
 using Provider 	= ::memoria::bttl::DeterministicDataInputProvider<CtrT>;
 using Position  = Provider::Position;
 
@@ -35,7 +35,7 @@ struct ScanFn {
 
 
 int main(int argc, const char** argv, const char** envp) {
-	MEMORIA_INIT(SmallProfile<>);
+	MEMORIA_INIT(DefaultProfile<>);
 
 	try {
 		SmallInMemAllocator alloc;

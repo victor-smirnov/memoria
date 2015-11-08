@@ -21,7 +21,7 @@ public:
 
 private:
     typedef vector<Pair> PairVector;
-    typedef SCtrTF<VectorMap<BigInt, Byte>>::Type                               Ctr;
+    typedef DCtrTF<VectorMap<BigInt, Byte>>::Type                               Ctr;
     typedef typename Ctr::Iterator                                              Iterator;
     typedef typename Ctr::ID                                                    ID;
 

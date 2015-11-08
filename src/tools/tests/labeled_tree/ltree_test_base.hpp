@@ -31,7 +31,7 @@ class LabeledTreeTestBase: public SPTestTask {
 protected:
 
 
-    typedef typename SCtrTF<
+    typedef typename DCtrTF<
                         LabeledTree<
                             FLabel<UByte>,
                             VLabel<BigInt, Granularity::Bit, Indexed::Yes>

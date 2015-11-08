@@ -37,7 +37,7 @@ int main(void) {
 
     cout<<md5.result().hash64()<<endl;
 
-    cout<<TypeHash<SmallProfile<>>::Value<<endl;
+    cout<<TypeHash<DefaultProfile<>>::Value<<endl;
 
     return 0;
 }

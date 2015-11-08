@@ -31,7 +31,7 @@ class VectorTreeTestBase: public SPTestTask {
 protected:
 
 
-    typedef typename SCtrTF<VTree>::Type                                        Ctr;
+    typedef typename DCtrTF<VTree>::Type                                        Ctr;
 
     typedef typename Ctr::Iterator                                              Iterator;
     typedef typename Ctr::Value                                                 Value;

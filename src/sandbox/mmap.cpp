@@ -21,14 +21,14 @@ using namespace memoria;
 using namespace std;
 
 int main(int argc, const char** argv, const char** envp) {
-	MEMORIA_INIT(SmallProfile<>);
+	MEMORIA_INIT(DefaultProfile<>);
 
 	try {
 		SmallInMemAllocator alloc;
 
 		alloc.mem_limit() = 2*1024*1024*1024ll;
 
-		using CtrT  = SCtrTF<Map<BigInt, Vector<Byte>>>::Type;
+		using CtrT  = DCtrTF<Map<BigInt, Vector<Byte>>>::Type;
 
 		CtrT::initMetadata();
 

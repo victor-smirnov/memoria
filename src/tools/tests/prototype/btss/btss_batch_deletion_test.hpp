@@ -24,7 +24,7 @@ namespace memoria {
 template <
     typename CtrName,
 	typename AllocatorT 	= SmallInMemAllocator,
-	typename ProfileT		= SmallProfile<>
+	typename ProfileT		= DefaultProfile<>
 >
 class BTSSBatchDeletionTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT> {
 

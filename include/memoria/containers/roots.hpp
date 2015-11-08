@@ -13,7 +13,7 @@
 
 namespace memoria {
 
-MEMORIA_DECLARE_PROFILE(SmallProfile<>, 0);
+MEMORIA_DECLARE_PROFILE(DefaultProfile<>, 0);
 
 }
 

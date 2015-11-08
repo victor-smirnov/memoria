@@ -68,9 +68,9 @@ public:
 };
 
 template<typename T = EmptyType>
-class SPBenchmarkTaskT: public ProfileBenchmarkTask<SmallProfile<>, SmallInMemAllocator> {
+class SPBenchmarkTaskT: public ProfileBenchmarkTask<DefaultProfile<>, SmallInMemAllocator> {
 
-    typedef ProfileBenchmarkTask<SmallProfile<>, SmallInMemAllocator> Base;
+    typedef ProfileBenchmarkTask<DefaultProfile<>, SmallInMemAllocator> Base;
 
 public:
     SPBenchmarkTaskT(StringRef name): Base(name) {}

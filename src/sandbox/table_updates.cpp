@@ -23,7 +23,7 @@ using namespace memoria;
 using namespace memoria::tools;
 using namespace std;
 
-using CtrT 		= SCtrTF<Table<BigInt, Short>>::Type;
+using CtrT 		= DCtrTF<Table<BigInt, Short>>::Type;
 using Provider 	= table::RandomDataInputProvider<CtrT, decltype(generator)>;
 using Position  = Provider::Position;
 
@@ -44,7 +44,7 @@ struct ScanFn {
 
 
 int main(int argc, const char** argv, const char** envp) {
-	MEMORIA_INIT(SmallProfile<>);
+	MEMORIA_INIT(DefaultProfile<>);
 
 	try {
 		SmallInMemAllocator alloc;

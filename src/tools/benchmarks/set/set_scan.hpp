@@ -25,7 +25,7 @@ class SetScanBenchmark: public SPBenchmarkTask {
     typedef typename Base::Allocator    Allocator;
     typedef typename Base::Profile      Profile;
 
-    typedef typename SCtrTF<Set1>::Type                                 SetCtrType;
+    typedef typename DCtrTF<Set1>::Type                                 SetCtrType;
     typedef typename SetCtrType::Iterator                               Iterator;
     typedef typename SetCtrType::ID                                     ID;
     typedef typename SetCtrType::Accumulator                            Accumulator;

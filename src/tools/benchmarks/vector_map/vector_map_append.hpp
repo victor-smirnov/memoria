@@ -28,7 +28,7 @@ class VectorMapAppendBenchmark: public SPBenchmarkTask {
     typedef typename Base::Profile                                              Profile;
 
 
-    typedef typename SCtrTF<VectorMap<BigInt, Byte>>::Type                      Ctr;
+    typedef typename DCtrTF<VectorMap<BigInt, Byte>>::Type                      Ctr;
     typedef typename Ctr::Iterator                                              Iterator;
     typedef typename Ctr::ID                                                    ID;
 

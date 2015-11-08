@@ -25,7 +25,7 @@ class VectorReadBenchmark: public SPBenchmarkTask {
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::Profile                                              Profile;
 
-    typedef typename SCtrTF<Vector<BigInt>>::Type                               VectorCtrType;
+    typedef typename DCtrTF<Vector<BigInt>>::Type                               VectorCtrType;
     typedef typename VectorCtrType::Iterator                                    Iterator;
 
 

@@ -26,8 +26,8 @@ class CreateCtrTest: public SPTestTask {
 
     typedef KVPair<BigInt, BigInt>                                              Pair;
     typedef vector<Pair>                                                        PairVector;
-    typedef SCtrTF<WT>::Type                                                    WTCtr;
-    typedef SCtrTF<Map<BigInt, BigInt>>::Type                                   MapCtr;
+    typedef DCtrTF<WT>::Type                                                    WTCtr;
+    typedef DCtrTF<Map<BigInt, BigInt>>::Type                                   MapCtr;
 
     PairVector pairs_;
 

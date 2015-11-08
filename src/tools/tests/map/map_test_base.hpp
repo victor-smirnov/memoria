@@ -30,7 +30,7 @@ public:
 
 protected:
     typedef vector<Pair> PairVector;
-    typedef typename SCtrTF<MapName>::Type Ctr;
+    typedef typename DCtrTF<MapName>::Type Ctr;
     typedef typename Ctr::Iterator Iterator;
     typedef typename Ctr::ID ID;
     typedef typename Ctr::Accumulator Accumulator;

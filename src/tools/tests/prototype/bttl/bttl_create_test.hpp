@@ -23,7 +23,7 @@ namespace memoria {
 template <
     typename CtrName,
 	typename AllocatorT 	= SmallInMemAllocator,
-	typename ProfileT		= SmallProfile<>
+	typename ProfileT		= DefaultProfile<>
 >
 class BTTLCreateTest: public BTTLTestBase<CtrName, AllocatorT, ProfileT> {
 

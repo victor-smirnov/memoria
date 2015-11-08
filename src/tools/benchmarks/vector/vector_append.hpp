@@ -31,7 +31,7 @@ public:
     typedef typename Base::Profile      Profile;
 
 
-    typedef typename SCtrTF<Vector<UByte>>::Type                                Ctr;
+    typedef typename DCtrTF<Vector<UByte>>::Type                                Ctr;
     typedef typename Ctr::Iterator                                              Iterator;
     typedef typename Ctr::ID                                                    ID;
 

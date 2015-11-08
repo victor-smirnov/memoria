@@ -214,7 +214,7 @@ template <bool Dense = true>
 using BitVector = Sequence<1, Dense>;
 
 template <typename ChildType = void>
-class SmallProfile  {};
+class DefaultProfile  {};
 
 template <typename ChildType = void>
 class FileProfile  {};

@@ -28,7 +28,7 @@ class SequenceTestBase: public SPTestTask {
 
 protected:
 
-    typedef typename SCtrTF<Sequence<BitsPerSymbol, Dense> >::Type              Ctr;
+    typedef typename DCtrTF<Sequence<BitsPerSymbol, Dense> >::Type              Ctr;
     typedef typename Ctr::Iterator                                              Iterator;
     typedef typename Ctr::Accumulator                                           Accumulator;
     typedef typename Ctr::ID                                                    ID;

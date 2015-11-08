@@ -26,7 +26,7 @@ class VectorSequentialReadBenchmark: public SPBenchmarkTask {
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::Profile                                              Profile;
 
-    typedef typename SCtrTF<Vector<UByte>>::Type                                VectorCtrType;
+    typedef typename DCtrTF<Vector<UByte>>::Type                                VectorCtrType;
     typedef typename VectorCtrType::Iterator                                    Iterator;
 
     Allocator*      allocator_;

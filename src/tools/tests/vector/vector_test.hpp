@@ -24,7 +24,7 @@ using namespace std;
 template <
     typename CtrName,
 	typename AllocatorT 	= SmallInMemAllocator,
-	typename ProfileT		= SmallProfile<>
+	typename ProfileT		= DefaultProfile<>
 >
 class VectorTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT>
 {

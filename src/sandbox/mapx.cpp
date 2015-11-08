@@ -17,13 +17,13 @@ using namespace memoria;
 using namespace std;
 
 int main() {
-	MEMORIA_INIT(SmallProfile<>);
+	MEMORIA_INIT(DefaultProfile<>);
 
 	try {
 		SmallInMemAllocator alloc;
 
 
-		using MapT  = SCtrTF<MapX<BigInt, BigInt>>::Type;
+		using MapT  = DCtrTF<MapX<BigInt, BigInt>>::Type;
 
 		MapT::initMetadata();
 

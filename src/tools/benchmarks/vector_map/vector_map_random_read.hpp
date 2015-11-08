@@ -26,7 +26,7 @@ class VectorMapRandomReadBenchmark: public SPBenchmarkTask {
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::Profile                                              Profile;
 
-    typedef typename SCtrTF<VectorMap<BigInt, Byte>>::Type                      Ctr;
+    typedef typename DCtrTF<VectorMap<BigInt, Byte>>::Type                      Ctr;
     typedef typename Ctr::Iterator                                              Iterator;
 
     static const Int MAX_DATA_SIZE                                              = 256;

@@ -22,7 +22,7 @@ class WTTest: public SPTestTask {
     typedef SPTestTask                                                      Base;
     typedef WTTest                                                          MyType;
 
-    typedef typename SCtrTF<WT>::Type                                       Ctr;
+    typedef typename DCtrTF<WT>::Type                                       Ctr;
     typedef typename Ctr::Iterator                                          Iterator;
 
 

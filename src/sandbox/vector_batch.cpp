@@ -70,14 +70,14 @@ public:
 
 
 int main(int argc, const char** argv) {
-	MEMORIA_INIT(SmallProfile<>);
+	MEMORIA_INIT(DefaultProfile<>);
 
 	try {
 		SmallInMemAllocator alloc;
 
 		alloc.mem_limit() = 1024*1024*1024;
 
-		using CtrT  = SCtrTF<Vector<VLen<Granularity::Byte, Int>>>::Type;
+		using CtrT  = DCtrTF<Vector<VLen<Granularity::Byte, Int>>>::Type;
 
 		CtrT::initMetadata();
 

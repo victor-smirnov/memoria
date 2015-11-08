@@ -48,12 +48,12 @@ const char* CFG_FILE    = "tests.properties";
 
 int main(int argc, const char** argv, const char** envp)
 {
-	MEMORIA_INIT(SmallProfile<>);
+	MEMORIA_INIT(DefaultProfile<>);
 
     Term::init(argc, argv, envp);
 
     try {
-    	SCtrTF<MapX<BigInt, BigInt>>::Type::initMetadata();
+    	DCtrTF<MapX<BigInt, BigInt>>::Type::initMetadata();
 
     	CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::REPLAY);
 

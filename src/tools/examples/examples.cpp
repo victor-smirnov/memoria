@@ -28,7 +28,7 @@ const char* CFG_FILE    = "examples.properties";
 
 int main(int argc, const char** argv, const char** envp)
 {
-    MEMORIA_INIT(SmallProfile<>);
+    MEMORIA_INIT(DefaultProfile<>);
 
     try {
         CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::REPLAY);
