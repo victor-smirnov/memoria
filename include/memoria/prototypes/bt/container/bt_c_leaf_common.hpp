@@ -52,41 +52,47 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
     template <Int Stream>
     using StreamInputTuple = typename Types::template StreamInputTuple<Stream>;
 
-    NodeBaseG splitLeafP(NodeBaseG& left_node, const Position& split_at)
+    MEMORIA_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, Accumulator);
+    Accumulator split_leaf_node(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at)
+    {
+    	return LeafDispatcher::dispatch(src, tgt, SplitNodeFn(), split_at);
+    }
+
+    NodeBaseG split_leaf_p(NodeBaseG& left_node, const Position& split_at)
     {
         auto& self = this->self();
 
         return self.splitP(left_node, [&self, &split_at](NodeBaseG& left, NodeBaseG& right){
-            return self.splitLeafNode(left, right, split_at);
+            return self.split_leaf_node(left, right, split_at);
         });
     }
 
+
+
+
+
     template <Int Stream, typename SubstreamsIdxList, typename Fn, typename... Args>
-    auto _applySubstreamsFn(NodeBaseG& leaf, Fn&& fn, Args&&... args)
+    auto apply_substreams_fn(NodeBaseG& leaf, Fn&& fn, Args&&... args)
     {
     	return LeafDispatcher::dispatch(leaf, SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
     template <Int Stream, typename SubstreamsIdxList, typename Fn, typename... Args>
-    auto _applySubstreamsFn(const NodeBaseG& leaf, Fn&& fn, Args&&... args) const
+    auto apply_substreams_fn(const NodeBaseG& leaf, Fn&& fn, Args&&... args) const
     {
     	return LeafDispatcher::dispatch(leaf, SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
 
     template <Int Stream, typename SubstreamsIdxList, typename... Args>
-    auto _readLeafStreamEntry(const NodeBaseG& leaf, Args&&... args) const
+    auto read_stream_entry_leaf(const NodeBaseG& leaf, Args&&... args) const
     {
-    	 return self().template _applySubstreamsFn<Stream, SubstreamsIdxList>(leaf, GetLeafValuesFn(), std::forward<Args>(args)...);
+    	 return self().template apply_substreams_fn<Stream, SubstreamsIdxList>(leaf, GetLeafValuesFn(), std::forward<Args>(args)...);
     }
 
 
 
-    MEMORIA_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, Accumulator);
-    Accumulator splitLeafNode(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at)
-    {
-        return LeafDispatcher::dispatch(src, tgt, SplitNodeFn(), split_at);
-    }
+
 
 
 
@@ -119,13 +125,15 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
     };
 
     template <Int Stream, typename SubstreamsIdxList, typename... Args>
-    auto _find(const NodeBaseG& leaf, Args&&... args) const
+    auto find_forward(const NodeBaseG& leaf, Args&&... args) const
     {
     	return LeafDispatcher::dispatch(leaf, SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), FindFn(), std::forward<Args>(args)...);
     }
 
 
-    //==============================================================================================
+
+    // ============================================ Insert Data ======================================== //
+
 
     class LeafList {
     	CtrSizeT size_;
@@ -142,8 +150,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
     	NodeBaseG& tail() {return tail_;}
     };
 
-    // ============================================ Insert Data ======================================== //
-
 
 
     class InsertDataBlockResult {
@@ -158,7 +164,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
 
 
     template <typename Provider>
-    Position insertDataIntoLeaf(NodeBaseG& leaf, const Position& pos, Provider& provider)
+    Position insert_data_into_leaf(NodeBaseG& leaf, const Position& pos, Provider& provider)
     {
     	auto& self = this->self();
 
@@ -168,7 +174,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
 
     	if (provider.hasData())
     	{
-    		auto end = self.fillLeaf(leaf, pos, provider);
+    		auto end = provider.fill(leaf, pos);
 
     		return end;
     	}
@@ -177,10 +183,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
     }
 
 
-    template <typename Provider>
-    Position fillLeaf(NodeBaseG& leaf, const Position& pos, Provider& provider) {
-    	return provider.fill(leaf, pos);
-    }
 
     class InsertDataResult {
     	NodeBaseG leaf_;
@@ -196,20 +198,20 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
     };
 
     template <typename Provider>
-    InsertDataResult insertData(NodeBaseG& leaf, const Position& pos, Provider& provider)
+    InsertDataResult insert_provided_data(NodeBaseG& leaf, const Position& pos, Provider& provider)
     {
     	auto& self = this->self();
 
-    	auto last_pos = self.insertDataIntoLeaf(leaf, pos, provider);
+    	auto last_pos = self.insert_data_into_leaf(leaf, pos, provider);
 
     	if (provider.hasData())
     	{
     		// has to be defined in subclasses
     		if (!self.isAtTheEnd2(leaf, last_pos))
     		{
-    			auto next_leaf = self.splitLeafP(leaf, last_pos);
+    			auto next_leaf = self.split_leaf_p(leaf, last_pos);
 
-    			self.insertDataIntoLeaf(leaf, last_pos, provider);
+    			self.insert_data_into_leaf(leaf, last_pos, provider);
 
     			provider.nextLeaf(leaf);
 
@@ -265,7 +267,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
         		head = node;
         	}
 
-        	self.insertDataIntoLeaf(node, Position(), provider);
+        	self.insert_data_into_leaf(node, Position(), provider);
 
         	provider.nextLeaf(node);
 

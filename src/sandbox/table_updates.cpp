@@ -63,7 +63,7 @@ int main(int argc, const char** argv, const char** envp) {
 
 		Provider provider(ctr, rows + 1, cols, data_size, generator);
 
-		ctr.insertData(iter.leaf(), Position(), provider);
+		ctr.insert_provided_data(iter.leaf(), Position(), provider);
 
 //		iter = ctr.seek(0);
 

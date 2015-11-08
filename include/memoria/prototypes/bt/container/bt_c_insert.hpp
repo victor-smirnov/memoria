@@ -52,7 +52,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertName)
 
 
     template <Int Stream>
-    SplitStatus insertStreamEntry(Iterator& iter, const StreamInputTuple<Stream>& entry)
+    SplitStatus insert_stream_entry(Iterator& iter, const StreamInputTuple<Stream>& entry)
     {
     	auto& self = this->self();
 
@@ -75,7 +75,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertName)
     		split_status = SplitStatus::NONE;
     	}
 
-    	self.updateParent(iter.leaf(), std::get<1>(result));
+    	self.update_parent(iter.leaf(), std::get<1>(result));
 
     	return split_status;
     }

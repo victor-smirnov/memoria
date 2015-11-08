@@ -50,18 +50,18 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::LeafCommonName)
 
 
     template <typename SubstreamsIdxList, typename... Args>
-    auto _readLeafEntry(const NodeBaseG& leaf, Args&&... args) const
+    auto read_leaf_entry(const NodeBaseG& leaf, Args&&... args) const
     {
-    	 return self().template _applySubstreamsFn<0, SubstreamsIdxList>(leaf, GetLeafValuesFn(), std::forward<Args>(args)...);
+    	 return self().template apply_substreams_fn<0, SubstreamsIdxList>(leaf, GetLeafValuesFn(), std::forward<Args>(args)...);
     }
 
 
-    template <typename LeafPosition>
-    bool isAtTheEnd(const NodeBaseG& leaf, LeafPosition pos)
-    {
-    	Int size = self().template getLeafStreamSize<0>(leaf);
-    	return pos >= size;
-    }
+//    template <typename LeafPosition>
+//    bool isAtTheEnd(const NodeBaseG& leaf, LeafPosition pos)
+//    {
+//    	Int size = self().template getLeafStreamSize<0>(leaf);
+//    	return pos >= size;
+//    }
 
 
     bool isAtTheEnd2(const NodeBaseG& leaf, const Position& pos)
@@ -71,21 +71,21 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::LeafCommonName)
     }
 
 
-    void insertEntry(Iterator& iter, const InputTuple& entry)
+    void insert_entry(Iterator& iter, const InputTuple& entry)
     {
-    	self().template insertStreamEntry<0>(iter, entry);
+    	self().template insert_stream_entry<0>(iter, entry);
     }
 
 
     template <typename SubstreamsList, typename... TupleTypes>
-    void updateEntry(Iterator& iter, const std::tuple<TupleTypes...>& entry)
+    void update_entry(Iterator& iter, const std::tuple<TupleTypes...>& entry)
     {
-    	self().template updateStreamEntry<0, SubstreamsList>(iter, entry);
+    	self().template update_stream_entry<0, SubstreamsList>(iter, entry);
     }
 
 
     void removeEntry(Iterator& iter) {
-    	self().template removeStreamEntry<0>(iter);
+    	self().template remove_stream_entry<0>(iter);
     }
 
 //    template <typename OutputIterator>
@@ -103,7 +103,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::LeafCommonName)
 
     	auto id = iter.leaf()->id();
 
-    	auto result = self.insertData(iter.leaf(), pos, provider);
+    	auto result = self.insert_provided_data(iter.leaf(), pos, provider);
 
     	iter.leaf() = result.leaf();
     	iter.idx() = result.position()[0];

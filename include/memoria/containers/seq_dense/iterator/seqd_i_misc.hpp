@@ -52,7 +52,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
     Int symbol() const
     {
         auto& self  = this->self();
-        return std::get<0>(self.ctr().template _readLeafEntry<0, IntList<0>>(self.leaf(), self.idx()));
+        return std::get<0>(self.ctr().template read_leaf_entry<0, IntList<0>>(self.leaf(), self.idx()));
     }
 
 
@@ -60,7 +60,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
     {
     	auto& self  = this->self();
 
-    	self.ctr().template updateStreamEntry<0, IntList<0>>(self, std::make_tuple(symbol));
+    	self.ctr().template update_stream_entry<0, IntList<0>>(self, std::make_tuple(symbol));
     }
 
 
@@ -71,7 +71,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
     	auto& self  = this->self();
         auto& ctr   = self.ctr();
 
-    	ctr.insertEntry(
+    	ctr.insert_entry(
     			self,
     			InputTupleAdapter<0>::convert(symbol)
     	);

@@ -115,14 +115,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
 //
 //        if (self.insertIntoLeaf(leaf, idx, symbol, sums))
 //        {
-//            self.updateParent(leaf, sums);
+//            self.update_parent(leaf, sums);
 //        }
 //        else
 //        {
 //            Int size        = iter.leaf_size(0);
 //            Int split_idx   = size/2;
 //
-//            auto right = self.splitLeafP(leaf, Position::create(0, split_idx));
+//            auto right = self.split_leaf_p(leaf, Position::create(0, split_idx));
 //
 //            if (idx > split_idx)
 //            {
@@ -132,7 +132,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
 //
 //            bool result = self.insertIntoLeaf(leaf, idx, symbol, sums);
 //            MEMORIA_ASSERT_TRUE(result);
-//            self.updateParent(leaf, sums);
+//            self.update_parent(leaf, sums);
 //        }
 //
 //        iter++;

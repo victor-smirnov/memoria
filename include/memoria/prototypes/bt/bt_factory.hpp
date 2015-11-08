@@ -43,9 +43,6 @@
 #include <memoria/prototypes/bt/container/bt_c_base.hpp>
 #include <memoria/prototypes/bt/container/bt_c_tools.hpp>
 #include <memoria/prototypes/bt/container/bt_c_checks.hpp>
-#include <memoria/prototypes/bt/container/bt_c_insbatch_variable.hpp>
-#include <memoria/prototypes/bt/container/bt_c_insbatch_fixed.hpp>
-#include <memoria/prototypes/bt/container/bt_c_insbatch_common.hpp>
 #include <memoria/prototypes/bt/container/bt_c_insert.hpp>
 #include <memoria/prototypes/bt/container/bt_c_read.hpp>
 #include <memoria/prototypes/bt/container/bt_c_update.hpp>
@@ -55,8 +52,6 @@
 #include <memoria/prototypes/bt/container/bt_c_leaf_common.hpp>
 #include <memoria/prototypes/bt/container/bt_c_leaf_variable.hpp>
 #include <memoria/prototypes/bt/container/bt_c_leaf_fixed.hpp>
-#include <memoria/prototypes/bt/container/bt_c_remtools.hpp>
-#include <memoria/prototypes/bt/container/bt_c_rembatch.hpp>
 #include <memoria/prototypes/bt/container/bt_c_find.hpp>
 #include <memoria/prototypes/bt/container/bt_c_walk.hpp>
 #include <memoria/prototypes/bt/container/bt_c_allocator.hpp>
@@ -66,6 +61,11 @@
 
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/tools/assert.hpp>
+#include <memoria/prototypes/bt/container/bt_c_insert_batch_common.hpp>
+#include <memoria/prototypes/bt/container/bt_c_insert_batch_fixed.hpp>
+#include <memoria/prototypes/bt/container/bt_c_insert_batch_variable.hpp>
+#include <memoria/prototypes/bt/container/bt_c_remove_batch.hpp>
+#include <memoria/prototypes/bt/container/bt_c_remove_tools.hpp>
 
 
 namespace memoria    {

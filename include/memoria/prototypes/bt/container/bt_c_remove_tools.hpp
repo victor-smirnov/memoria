@@ -197,7 +197,7 @@ void M_TYPE::removeNodeContent(NodeBaseG& node, Int start, Int end, Accumulator&
 
     VectorAdd(sums, deleted_sums);
 
-    self.updateParent(node, -deleted_sums);
+    self.update_parent(node, -deleted_sums);
 
     self.updateChildren(node, start);
 }
@@ -215,7 +215,7 @@ void M_TYPE::removeNonLeafNodeEntry(NodeBaseG& node, Int start)
 
     self.updateChildren(node, start);
 
-    self.updateParent(node, sums);
+    self.update_parent(node, sums);
 }
 
 
@@ -229,7 +229,7 @@ typename M_TYPE::Accumulator M_TYPE::removeLeafContent(NodeBaseG& node, const Po
 
     Accumulator sums = LeafDispatcher::dispatch(node, RemoveLeafContentFn(), start, end);
 
-    self.updateParent(node, -sums);
+    self.update_parent(node, -sums);
 
     return sums;
 }
@@ -243,7 +243,7 @@ typename M_TYPE::Accumulator M_TYPE::removeLeafContent(NodeBaseG& node, Int stre
 
     Accumulator sums = LeafDispatcher::dispatch(node, RemoveLeafContentFn(), stream, start, end);
 
-    self.updateParent(node, -sums);
+    self.update_parent(node, -sums);
 
     return sums;
 }

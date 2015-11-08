@@ -65,7 +65,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchFixedName)
     void updatePath(NodeBaseG& node, Int& idx, const UpdateData& keys);
 
     template <typename UpdateData>
-    void updateParent(NodeBaseG& node, const UpdateData& sums);
+    void update_parent(NodeBaseG& node, const UpdateData& sums);
 
 
 
@@ -190,7 +190,7 @@ void M_TYPE::updatePath(NodeBaseG& node, Int& idx, const UpdateData& keys)
 
 M_PARAMS
 template <typename UpdateData>
-void M_TYPE::updateParent(NodeBaseG& node, const UpdateData& sums)
+void M_TYPE::update_parent(NodeBaseG& node, const UpdateData& sums)
 {
     auto& self = this->self();
 

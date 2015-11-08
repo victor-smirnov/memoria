@@ -194,15 +194,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchCommonName)
     void updateChildren(const NodeBaseG& node, Int start, Int end);
 
     MEMORIA_DECLARE_NODE_FN_RTN(IsEmptyFn, isEmpty, bool);
-    MEMORIA_DECLARE_NODE_FN_RTN(IsAfterEndFn, isAfterEnd, bool);
-
     bool isEmpty(const NodeBaseG& node) {
         return NodeDispatcher::dispatch(node, IsEmptyFn());
-    }
-
-    bool isAfterEnd(const NodeBaseG& node, const Position& idx, UBigInt active_streams)
-    {
-        return NodeDispatcher::dispatch(node, IsAfterEndFn(), idx, active_streams);
     }
 
 private:

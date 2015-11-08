@@ -192,7 +192,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
         Int split_idx = size / 2;
         Int label_idx = iter.label_idx(split_idx);
 
-        auto right = self.splitLeafP(leaf, {split_idx, label_idx, label_idx});
+        auto right = self.split_leaf_p(leaf, {split_idx, label_idx, label_idx});
 
         if (idx > split_idx)
         {
@@ -214,7 +214,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
 
         if (self.insertLoudsNode(leaf, idx, label_idx, sums, labels))
         {
-            self.updateParent(leaf, sums);
+            self.update_parent(leaf, sums);
         }
         else
         {
@@ -224,7 +224,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
 
             bool result = self.insertLoudsNode(leaf, idx, label_idx, sums, labels);
             MEMORIA_ASSERT_TRUE(result);
-            self.updateParent(leaf, sums);
+            self.update_parent(leaf, sums);
         }
 
         Position sizes(1);
@@ -243,7 +243,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
 
         if (self.insertLoudsZero(leaf, idx, sums))
         {
-            self.updateParent(leaf, sums);
+            self.update_parent(leaf, sums);
         }
         else
         {
@@ -252,7 +252,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
             bool result = self.insertLoudsZero(leaf, idx, sums);
 
             MEMORIA_ASSERT_TRUE(result);
-            self.updateParent(leaf, sums);
+            self.update_parent(leaf, sums);
         }
 
         self.addTotalKeyCount(Position::create(0, 1));
@@ -375,7 +375,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
 
         if (self.template updateNodeLabel<SetLabelValueFn>(leaf, label, label_idx, sums, value))
         {
-            self.updateParent(leaf, sums);
+            self.update_parent(leaf, sums);
         }
         else
         {
@@ -384,7 +384,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
             label_idx = iter.label_idx();
 
             MEMORIA_ASSERT_TRUE(self.template updateNodeLabel<SetLabelValueFn>(leaf, label, label_idx, sums, value));
-            self.updateParent(leaf, sums);
+            self.update_parent(leaf, sums);
         }
     }
 
@@ -448,7 +448,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
 
         if (updateNodeLabel<AddLabelValueFn>(leaf, label, label_idx, sums, value))
         {
-            self.updateParent(leaf, sums);
+            self.update_parent(leaf, sums);
         }
         else
         {
@@ -457,7 +457,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
             label_idx = iter.label_idx();
 
             MEMORIA_ASSERT_TRUE(updateNodeLabel<AddLabelValueFn>(leaf, label, label_idx, sums, value));
-            self.updateParent(leaf, sums);
+            self.update_parent(leaf, sums);
         }
     }
 

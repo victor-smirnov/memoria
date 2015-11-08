@@ -122,7 +122,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
         auto& self = this->self();
         auto& ctr  = self.model();
 
-        auto next = ctr.splitLeafP(self.leaf(), self.leaf_sizes());
+        auto next = ctr.split_leaf_p(self.leaf(), self.leaf_sizes());
 
         self.leaf() = next;
 
@@ -135,14 +135,14 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
     	auto& self = this->self();
     	auto& ctr  = self.model();
 
-    	ctr.template updateStreamEntry<Stream, SubstreamsList>(self, std::make_tuple(std::forward<Args>(args)...));
+    	ctr.template update_stream_entry<Stream, SubstreamsList>(self, std::make_tuple(std::forward<Args>(args)...));
     }
 
 
     template <Int Stream, typename SubstreamsIdxList, typename... Args>
-    auto _readLeafEntry(Args&&... args) const
+    auto read_leaf_entry(Args&&... args) const
     {
-    	 return self().ctr().template _readLeafEntry<Stream, SubstreamsIdxList>(self().leaf(), std::forward<Args>(args)...);
+    	 return self().ctr().template read_leaf_entry<Stream, SubstreamsIdxList>(self().leaf(), std::forward<Args>(args)...);
     }
 
     template <typename Walker>

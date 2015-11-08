@@ -42,7 +42,7 @@ int main(int argc, const char** argv, const char** envp) {
 
 		using Position = Provider::Position;
 
-		map.insertData(iter.leaf(), Position(), provider);
+		map.insert_provided_data(iter.leaf(), Position(), provider);
 
 		alloc.commit();
 

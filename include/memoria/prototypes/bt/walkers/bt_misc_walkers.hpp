@@ -82,50 +82,26 @@ public:
 
 template <typename MyType, typename BranchPath, typename LeafPath>
 struct NodeWalkerBase {
-private:
-
-    template <typename T, typename... Args>
-    using BranchRtnFnType = auto(Args...) -> decltype(
-            std::declval<T>().template processStream<BranchPath>(std::declval<Args>()...)
-    );
-
-    template <typename T, typename Fn, typename... Args>
-    using BranchRtnType = typename FnTraits<BranchRtnFnType<T, Fn, Args...>>::RtnType;
-
-
-    template <typename T, typename... Args>
-    using LeafRtnFnType = auto(Args...) -> decltype(
-            std::declval<T>().template processStream<LeafPath>(std::declval<Args>()...)
-    );
-
-    template <typename T, typename Fn, typename... Args>
-    using LeafRtnType = typename FnTraits<LeafRtnFnType<T, Fn, Args...>>::RtnType;
-
-public:
     template <typename NodeTypes, typename... Args>
     auto treeNode(bt::LeafNode<NodeTypes>* node, Args&&... args)
-        -> LeafRtnType<bt::LeafNode<NodeTypes>, MyType, Args...>
     {
         return node->template processStream<LeafPath>(self(), std::forward<Args>(args)...);
     }
 
     template <typename NodeTypes, typename... Args>
     auto treeNode(bt::BranchNode<NodeTypes>* node, Args&&... args)
-        -> BranchRtnType<bt::BranchNode<NodeTypes>, MyType, Args...>
     {
         return node->template processStream<BranchPath>(self(), std::forward<Args>(args)...);
     }
 
     template <typename NodeTypes, typename... Args>
     auto treeNode(const bt::LeafNode<NodeTypes>* node, Args&&... args)
-        -> LeafRtnType<const bt::LeafNode<NodeTypes>, MyType, Args...>
     {
         return node->template processStream<LeafPath>(self(), std::forward<Args>(args)...);
     }
 
     template <typename NodeTypes, typename... Args>
     auto treeNode(const bt::BranchNode<NodeTypes>* node, Args&&... args)
-        -> BranchRtnType<const bt::BranchNode<NodeTypes>, MyType, Args...>
     {
         return node->template processStream<BranchPath>(self(), std::forward<Args>(args)...);
     }
@@ -138,21 +114,8 @@ public:
 
 template <Int Stream, typename SubstreamsIdxList>
 struct SubstreamsSetNodeFn {
-
-private:
-
-    template <typename T, typename... Args>
-    using LeafRtnFnType = auto(Args...) -> decltype(
-            std::declval<T>().template processSubstreamsByIdx<Stream, SubstreamsIdxList>(std::declval<Args>()...)
-    );
-
-    template <typename T, typename... Args>
-    using LeafRtnType = typename FnTraits<LeafRtnFnType<T, Args...>>::RtnType;
-
-public:
     template <typename NodeTypes, typename... Args>
     auto treeNode(bt::LeafNode<NodeTypes>* node, Args&&... args)
-        -> LeafRtnType<bt::LeafNode<NodeTypes>, Args...>
     {
         return node->template processSubstreamsByIdx<Stream, SubstreamsIdxList>(std::forward<Args>(args)...);
     }
@@ -160,29 +123,15 @@ public:
 
     template <typename NodeTypes, typename... Args>
     auto treeNode(const bt::LeafNode<NodeTypes>* node, Args&&... args)
-        -> LeafRtnType<const bt::LeafNode<NodeTypes>, Args...>
     {
         return node->template processSubstreamsByIdx<Stream, SubstreamsIdxList>(std::forward<Args>(args)...);
     }
-
-//
-//    MyType& self() {return *T2T<MyType*>(this);}
-//    const MyType& self() const {return *T2T<const MyType*>(this);}
 };
 
 
-
 struct GetLeafValuesFn {
-
-    template <typename T, typename... Args>
-    using FnType = auto (Args...)-> decltype(std::declval<T>().get_values(std::declval<Args>()...));
-
-    template <typename T, typename... Args>
-    using RtnType = typename FnTraits<FnType<typename std::remove_reference<T>::type, Args...>>::RtnType;
-
-
 	template <typename StreamType, typename... Args>
-	auto stream(const StreamType* obj, Args&&... args) -> RtnType<const StreamType, Args...>
+	auto stream(const StreamType* obj, Args&&... args)
 	{
 		return obj->get_values(std::forward<Args>(args)...);
 	}
@@ -191,23 +140,12 @@ struct GetLeafValuesFn {
 
 
 struct SetLeafValuesFn {
-
-    template <typename T, typename... Args>
-    using FnType = auto (Args...)-> decltype(std::declval<T>().set_values(std::declval<Args>()...));
-
-    template <typename T, typename... Args>
-    using RtnType = typename FnTraits<FnType<typename std::remove_reference<T>::type, Args...>>::RtnType;
-
-
 	template <typename StreamType, typename... Args>
-	auto stream(const StreamType* obj, Args&&... args) -> RtnType<const StreamType, Args...>
+	auto stream(const StreamType* obj, Args&&... args)
 	{
 		return obj->set_values(std::forward<Args>(args)...);
 	}
 };
-
-
-
 
 
 }

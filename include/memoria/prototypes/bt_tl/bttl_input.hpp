@@ -313,7 +313,7 @@ public:
 		if (leaf->parent_id().isSet())
 		{
 			auto sums = ctr().sums(leaf, at, end);
-			ctr().updateParent(leaf, sums);
+			ctr().update_parent(leaf, sums);
 		}
 
 		updateLeafAnchors(leaf, at, sizes);
@@ -738,7 +738,7 @@ public:
 				if (leaf->parent_id().isSet())
 				{
 					auto sums = ctr().sums(leaf, pos, end);
-					ctr().updateParent(leaf, sums);
+					ctr().update_parent(leaf, sums);
 				}
 
 				auto next_leaf = applyAnchorValues(mgr, leaf);
@@ -991,7 +991,7 @@ private:
 
 				if (leaf->is_root() || leaf->parent_id().isSet())
 				{
-					next_leaf = ctr.splitLeafP(leaf, split_at);
+					next_leaf = ctr.split_leaf_p(leaf, split_at);
 				}
 				else {
 					this->orphan_splits_++;
@@ -999,7 +999,7 @@ private:
 					auto page_size 	= ctr.getRootMetadata().page_size();
 					next_leaf 		= ctr.createNode1(0, false, true, page_size);
 
-					ctr.splitLeafNode(leaf, next_leaf, split_at);
+					ctr.split_leaf_node(leaf, next_leaf, split_at);
 				}
 
 				if (this->split_watcher_.first == leaf) {
@@ -1063,7 +1063,7 @@ private:
 
 				if (leaf->is_root() || leaf->parent_id())
 				{
-					next_leaf = ctr.splitLeafP(leaf, split_at);
+					next_leaf = ctr.split_leaf_p(leaf, split_at);
 				}
 				else {
 					this->orphan_splits_++;
@@ -1071,7 +1071,7 @@ private:
 					auto page_size 	= ctr.getRootMetadata().page_size();
 					next_leaf 		= ctr.createNode1(0, false, true, page_size);
 
-					ctr.splitLeafNode(leaf, next_leaf, split_at);
+					ctr.split_leaf_node(leaf, next_leaf, split_at);
 
 					next_leaf->next_leaf_id() 	= leaf->next_leaf_id();
 					leaf->next_leaf_id()		= next_leaf->id();

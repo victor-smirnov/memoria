@@ -54,7 +54,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::InsertName)
 
     	streamingProvider.prepare(iter, pos);
 
-    	self.insertData(iter.leaf(), pos, streamingProvider);
+    	self.insert_provided_data(iter.leaf(), pos, streamingProvider);
 
     	return streamingProvider.totals();
     }

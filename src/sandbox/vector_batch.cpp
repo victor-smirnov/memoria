@@ -91,7 +91,7 @@ int main(int argc, const char** argv) {
 
 		using Position = RandomVectorInputProvider<CtrT>::Position;
 
-		ctr.insertData(iter.leaf(), Position(), provider);
+		ctr.insert_provided_data(iter.leaf(), Position(), provider);
 
 		cout<<"data created"<<endl;
 

@@ -140,7 +140,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrRemoveName)
 
         Position sizes = removeFromLeaf(leaf, idx, sums);
 
-        self.updateParent(leaf, sums);
+        self.update_parent(leaf, sums);
 
         self.addTotalKeyCount(sizes);
 

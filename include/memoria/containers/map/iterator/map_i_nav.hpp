@@ -43,7 +43,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
 
     	auto delta = key - self.prefix();
 
-    	self.ctr().insertEntry(
+    	self.ctr().insert_entry(
     			self,
     			InputTupleAdapter<0>::convert(core::StaticVector<Key, 1>({delta}), value)
     	);
@@ -56,7 +56,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
 
     		MEMORIA_ASSERT_TRUE((k - StaticVector<BigInt, 1>(delta))[0] >= 0);
 
-    		self.ctr().template updateEntry<IntList<0>>(self, std::make_tuple(k - StaticVector<BigInt, 1>(delta)));
+    		self.ctr().template update_entry<IntList<0>>(self, std::make_tuple(k - StaticVector<BigInt, 1>(delta)));
     	}
     }
 
@@ -78,7 +78,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
 
     		auto kk = self.raw_key();
 
-    		self.ctr().template updateEntry<IntList<0>>(self, std::make_tuple(k + kk));
+    		self.ctr().template update_entry<IntList<0>>(self, std::make_tuple(k + kk));
     	}
     }
 
@@ -117,7 +117,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
 
     auto raw_key() const
     {
-    	return std::get<0>(self().ctr().template _readLeafEntry<IntList<0>>(self().leaf(), self().idx()));
+    	return std::get<0>(self().ctr().template read_leaf_entry<IntList<0>>(self().leaf(), self().idx()));
     }
 
     auto key() const -> Key
@@ -127,19 +127,19 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
 
     auto raw_key(Int index) const
     {
-    	return std::get<0>(self().ctr().template _readLeafEntry<IntList<0>>(self().leaf(), self().idx(), index));
+    	return std::get<0>(self().ctr().template read_leaf_entry<IntList<0>>(self().leaf(), self().idx(), index));
     }
 
     auto value() const
     {
-    	return std::get<0>(self().ctr().template _readLeafEntry<IntList<1>>(self().leaf(), self().idx()));
+    	return std::get<0>(self().ctr().template read_leaf_entry<IntList<1>>(self().leaf(), self().idx()));
     }
 
 
     template <typename TValue>
     void setValue(TValue&& v)
     {
-    	self().ctr().template updateEntry<IntList<1>>(self(), std::make_tuple(v));
+    	self().ctr().template update_entry<IntList<1>>(self(), std::make_tuple(v));
     }
 
     bool isFound(Key k) const

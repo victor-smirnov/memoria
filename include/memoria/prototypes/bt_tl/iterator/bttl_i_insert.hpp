@@ -64,7 +64,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorInsertName)
     	if (full_leaf_size > 1)
     	{
     		auto half_ranks = self.leafrank_(full_leaf_size/2);
-    		auto right = self.ctr().splitLeafP(leaf, half_ranks);
+    		auto right = self.ctr().split_leaf_p(leaf, half_ranks);
 
     		auto& idx = self.idx();
 
@@ -82,7 +82,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorInsertName)
     		}
     	}
     	else {
-    		self.ctr().splitLeafP(leaf, sizes);
+    		self.ctr().split_leaf_p(leaf, sizes);
     		return SplitStatus::LEFT;
     	}
     }
@@ -99,7 +99,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorInsertName)
 
     	MEMORIA_ASSERT(StreamIdx, ==, stream);
 
-    	auto main_split_status = self.ctr().template insertStreamEntry<StreamIdx>(self, data);
+    	auto main_split_status = self.ctr().template insert_stream_entry<StreamIdx>(self, data);
 
     	auto tmp = self;
     	tmp.toIndex();

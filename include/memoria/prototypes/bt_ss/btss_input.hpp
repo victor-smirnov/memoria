@@ -178,7 +178,7 @@ public:
 		if (leaf->parent_id().isSet())
 		{
 			auto sums = ctr().sums(leaf, at, at + size);
-			ctr().updateParent(leaf, sums);
+			ctr().update_parent(leaf, sums);
 		}
 	}
 
@@ -346,7 +346,7 @@ public:
 		if (leaf->parent_id().isSet())
 		{
 			auto sums = this->ctr().sums(leaf, at, at + inserted);
-			this->ctr().updateParent(leaf, sums);
+			this->ctr().update_parent(leaf, sums);
 		}
 
 		return inserted;

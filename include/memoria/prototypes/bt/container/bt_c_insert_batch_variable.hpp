@@ -122,7 +122,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchVariableName)
     	if (update_hierarchy)
     	{
     		Accumulator sums = self.sums(node, idx0, idx);
-    		self.updateParent(node, sums);
+    		self.update_parent(node, sums);
     		self.updateChildIndexes(node, idx);
     	}
 
@@ -337,7 +337,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchVariableName)
     				if (provider.size() == 0)
     				{
     					auto sums = self.sums(next, 0, next_result.idx());
-    					self.updateParent(next, sums);
+    					self.update_parent(next, sums);
 
     					self.updateChildIndexes(next, next_result.idx());
 

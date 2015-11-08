@@ -208,7 +208,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafFixedName)
 
 
      template <Int Stream, typename SubstreamsList, typename... TupleTypes>
-     std::tuple<bool, Accumulator> tryUpdateStreamEntry(Iterator& iter, const std::tuple<TupleTypes...>& entry)
+     std::tuple<bool, Accumulator> try_update_stream_entry(Iterator& iter, const std::tuple<TupleTypes...>& entry)
      {
      	static_assert(
      			ListSize<SubstreamsList>::Value == sizeof...(TupleTypes),

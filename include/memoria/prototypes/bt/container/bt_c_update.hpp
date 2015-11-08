@@ -54,17 +54,17 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::UpdateName)
     using StreamInputTuple = typename Types::template StreamInputTuple<Stream>;
 
     template <Int Stream, typename SubstreamsList, typename... TupleTypes>
-    void updateStreamEntry(Iterator& iter, const std::tuple<TupleTypes...>& entry)
+    void update_stream_entry(Iterator& iter, const std::tuple<TupleTypes...>& entry)
     {
-    	auto& self      = this->self();
+    	auto& self = this->self();
 
-    	auto result = self.template tryUpdateStreamEntry<Stream, SubstreamsList>(iter, entry);
+    	auto result = self.template try_update_stream_entry<Stream, SubstreamsList>(iter, entry);
 
     	if (!std::get<0>(result))
     	{
     		iter.split();
 
-    		result = self.template tryUpdateStreamEntry<Stream, SubstreamsList>(iter, entry);
+    		result = self.template try_update_stream_entry<Stream, SubstreamsList>(iter, entry);
 
     		if (!std::get<0>(result))
     		{
@@ -72,7 +72,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::UpdateName)
     		}
     	}
 
-    	self.updateParent(iter.leaf(), std::get<1>(result));
+    	self.update_parent(iter.leaf(), std::get<1>(result));
     }
 
 

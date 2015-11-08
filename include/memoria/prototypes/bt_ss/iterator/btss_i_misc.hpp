@@ -133,7 +133,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btss::IteratorMiscName)
     	Int size        = self.leaf_size(0);
     	Int split_idx   = size/2;
 
-    	auto right = self.ctr().splitLeafP(leaf, Position::create(0, split_idx));
+    	auto right = self.ctr().split_leaf_p(leaf, Position::create(0, split_idx));
 
     	if (idx > split_idx)
     	{

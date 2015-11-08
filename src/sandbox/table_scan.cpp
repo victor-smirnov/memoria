@@ -56,7 +56,7 @@ int main(int argc, const char** argv, const char** envp) {
 
 		Provider provider(ctr, {rows, cols, data_size});
 
-		ctr.insertData(iter.leaf(), Position(), provider);
+		ctr.insert_provided_data(iter.leaf(), Position(), provider);
 
 		BigInt c1 = getTimeInMillis();
 
