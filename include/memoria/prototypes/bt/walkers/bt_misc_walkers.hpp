@@ -129,6 +129,24 @@ struct SubstreamsSetNodeFn {
 };
 
 
+template <Int Stream>
+struct StreamNodeFn {
+    template <typename NodeTypes, typename... Args>
+    auto treeNode(bt::LeafNode<NodeTypes>* node, Args&&... args)
+    {
+        return node->template processStream<IntList<Stream>>(std::forward<Args>(args)...);
+    }
+
+
+    template <typename NodeTypes, typename... Args>
+    auto treeNode(const bt::LeafNode<NodeTypes>* node, Args&&... args)
+    {
+        return node->template processStream<IntList<Stream>>(std::forward<Args>(args)...);
+    }
+};
+
+
+
 struct GetLeafValuesFn {
 	template <typename StreamType, typename... Args>
 	auto stream(const StreamType* obj, Args&&... args)

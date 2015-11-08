@@ -43,9 +43,112 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ReadName)
     typedef typename Types::Position                                            Position;
     typedef typename Types::CtrSizeT                                            CtrSizeT;
 
+    template <Int StreamIdx>
+    using TemplateInputTuple = typename Types::template StreamInputTuple<0>;
 
     static const Int Streams                                                    = Types::Streams;
 
+
+
+    template <Int StreamIdx>
+    struct ReadEntriesFn {
+
+    	template <Int ListIdx, typename StreamObj, typename Entry, typename... Args>
+    	auto stream(const StreamObj* obj, Entry&& entry, Args&&... args)
+    	{
+    		get<ListIdx>(entry) = obj->get_values(std::forward<Args>(args)...);
+    	}
+
+    	template <typename Node, typename Fn>
+    	Int treeNode(const Node* node, Fn&& fn, Int from, CtrSizeT to)
+    	{
+    		Int limit = node->size(0);
+
+    		if (to < limit) {
+    			limit = to;
+    		}
+
+    		for (Int c = from; c < limit; c++)
+    		{
+    			TemplateInputTuple<StreamIdx> tuple;
+
+    			node->template processStream<IntList<StreamIdx>>(*this, tuple, c);
+    			fn(tuple);
+    		}
+
+    		return limit - from;
+    	}
+    };
+
+
+
+    template <Int StreamIdx, typename Fn>
+    CtrSizeT read_entries(Iterator& iter, CtrSizeT length, Fn&& fn)
+    {
+    	CtrSizeT total = 0;
+
+    	while (total < length)
+    	{
+    		auto idx = iter.idx();
+
+    		Int processed = LeafDispatcher::dispatch(iter.leaf(), ReadEntriesFn<StreamIdx>(), std::forward<Fn>(fn), idx, idx + (length - total));
+
+    		if (processed > 0) {
+    			total += iter.skipFw(processed);
+    		}
+    		else {
+    			break;
+    		}
+    	}
+
+    	return total;
+    }
+
+    template <typename SubstreamPath>
+    struct ReadSubstreamFn {
+
+    	template <typename StreamObj, typename Fn>
+    	auto stream(const StreamObj* obj, Int block, Int from, Int to, Fn&& fn)
+    	{
+    		obj->read(block, from, to, std::forward<Fn>(fn));
+    	}
+
+    	template <typename Node, typename Fn>
+    	Int treeNode(const Node* node, Int block, Int from, CtrSizeT to, Fn&& fn)
+    	{
+    		Int limit = node->size(0);
+
+    		if (to < limit) {
+    			limit = to;
+    		}
+
+    		node->template processStream<SubstreamPath>(*this, block, from, limit, std::forward<Fn>(fn));
+
+    		return limit - from;
+    	}
+    };
+
+    template <typename SubstreamPath, typename Fn>
+    CtrSizeT read_substream(Iterator& iter, Int block, CtrSizeT length, Fn&& fn)
+    {
+    	CtrSizeT total = 0;
+
+    	while (total < length)
+    	{
+    		auto idx = iter.idx();
+
+    		Int processed = LeafDispatcher::dispatch(iter.leaf(), ReadSubstreamFn<SubstreamPath>(), block, idx, idx + (length - total), std::forward<Fn>(fn));
+
+    		if (processed > 0) {
+    			total += iter.skipFw(processed);
+    		}
+    		else {
+    			break;
+    		}
+    	}
+
+    	return total;
+    }
 
 
 MEMORIA_CONTAINER_PART_END

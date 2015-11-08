@@ -83,11 +83,24 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
     	return LeafDispatcher::dispatch(leaf, SubstreamsSetNodeFn<Stream, SubstreamsIdxList>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
+    template <Int Stream, typename Fn, typename... Args>
+    auto apply_stream_fn(const NodeBaseG& leaf, Fn&& fn, Args&&... args) const
+    {
+    	return LeafDispatcher::dispatch(leaf, StreamNodeFn<Stream>(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+    }
 
     template <Int Stream, typename SubstreamsIdxList, typename... Args>
-    auto read_stream_entry_leaf(const NodeBaseG& leaf, Args&&... args) const
+    auto read_substreams(const NodeBaseG& leaf, Args&&... args) const
     {
     	 return self().template apply_substreams_fn<Stream, SubstreamsIdxList>(leaf, GetLeafValuesFn(), std::forward<Args>(args)...);
+    }
+
+
+
+    template <Int Stream, typename... Args>
+    auto read_stream(const NodeBaseG& leaf, Args&&... args) const
+    {
+    	 return self().template apply_stream_fn<Stream>(leaf, GetLeafValuesFn(), std::forward<Args>(args)...);
     }
 
 

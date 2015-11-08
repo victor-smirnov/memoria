@@ -7,6 +7,7 @@
 #ifndef MEMORIA_TESTS_VECTOR_TEST_SUITE_HPP_
 #define MEMORIA_TESTS_VECTOR_TEST_SUITE_HPP_
 
+#include <memoria/core/types/types.hpp>
 
 #include "vector_test.hpp"
 
@@ -21,7 +22,9 @@ public:
 
     VectorTestSuite(): TestSuite("Vector")
     {
-    	registerTask(new VectorTest<Vector<Int>>("Int"));
+    	registerTask(new VectorTest<Vector<Int>>("Int.FX"));
+    	registerTask(new VectorTest<Vector<VLen<Granularity::Byte>>>("Int.VL.Byte"));
+    	registerTask(new VectorTest<Vector<VLen<Granularity::Bit>>>("Int.VL.Bit"));
     }
 };
 

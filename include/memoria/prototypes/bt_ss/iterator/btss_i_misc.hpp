@@ -170,7 +170,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btss::IteratorMiscName)
     CtrSizeT read(OutputIterator begin, CtrSizeT length)
     {
     	auto& self = this->self();
-    	return self.ctr().read_entries(self, length, [&](const auto& entry) {
+    	return self.ctr().template read_entries<0>(self, length, [&](const auto& entry) {
     		*begin = entry;
     		begin++;
     	});
