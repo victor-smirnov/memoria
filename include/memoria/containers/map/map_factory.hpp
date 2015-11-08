@@ -33,7 +33,7 @@ template <
     typename Key_,
     typename Value_
 >
-struct MapXBTTypesBase: public BTTypes<Profile, memoria::BTSingleStream> {
+struct MapBTTypesBase: public BTTypes<Profile, memoria::BTSingleStream> {
 
     typedef BTTypes<Profile, memoria::BTSingleStream>                           Base;
 
@@ -106,11 +106,11 @@ template <
     typename Key_,
     typename Value_
 >
-struct BTTypes<Profile, memoria::MapX<Key_, Value_>>:
-    public MapXBTTypesBase<Profile, 1, Key_, Value_>
+struct BTTypes<Profile, memoria::Map<Key_, Value_>>:
+    public MapBTTypesBase<Profile, 1, Key_, Value_>
 {
 
-    using Base = MapXBTTypesBase<Profile, 1, Key_, Value_>;
+    using Base = MapBTTypesBase<Profile, 1, Key_, Value_>;
 
 
     using ContainerPartsList = MergeLists<
@@ -125,7 +125,7 @@ struct BTTypes<Profile, memoria::MapX<Key_, Value_>>:
 
 
 template <typename Profile, typename Key, typename Value, typename T>
-class CtrTF<Profile, memoria::MapX<Key, Value>, T>: public CtrTF<Profile, memoria::BTSingleStream, T> {
+class CtrTF<Profile, memoria::Map<Key, Value>, T>: public CtrTF<Profile, memoria::BTSingleStream, T> {
 };
 
 

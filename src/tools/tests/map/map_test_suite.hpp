@@ -48,8 +48,8 @@ public:
 //        registerTask(new MapCreateTest<CMap<Granularity::Byte>>("CMap2.Create"));
 //        registerTask(new MapRemoveTest<CMap<Granularity::Byte>>("CMap2.Remove"));
 
-    	registerTask(new MapRemoveTest<MapX<BigInt, BigInt>>("MapX.Remove"));
-    	registerTask(new MapCreateTest<MapX<BigInt, BigInt>>("MapX.Create"));
+    	registerTask(new MapRemoveTest<Map<BigInt, BigInt>>("MapX.Remove"));
+    	registerTask(new MapCreateTest<Map<BigInt, BigInt>>("MapX.Create"));
 
 //        registerTask(new MapXTest<MapX<BigInt, BigInt>>("MapX"));
     }

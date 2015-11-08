@@ -53,8 +53,6 @@ int main(int argc, const char** argv, const char** envp)
     Term::init(argc, argv, envp);
 
     try {
-    	DCtrTF<MapX<BigInt, BigInt>>::Type::initMetadata();
-
     	CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::REPLAY);
 
         Int seed = cmd_line.getConfigurator().getValue<Int>("seed", -1);

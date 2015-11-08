@@ -87,11 +87,6 @@ struct TypeHash<Map<Key, Value>>:   UIntValue<
 
 
 
-template <typename Key, typename Value>
-struct TypeHash<MapX<Key, Value>>:   UIntValue<
-    HashHelper<1203, TypeHash<Key>::Value, TypeHash<Value>::Value>::Value
-> {};
-
 
 
 
