@@ -10,20 +10,18 @@
 #define _MEMORIA_CORE_TOOLS_ISEQUENCEDATA_HPP
 
 
-#include <memoria/core/tools/idata.hpp>
-
 namespace memoria    {
 namespace vapi       {
 
 
 template <typename T, Int BitsPerSymbol>
-struct ISequenceDataSource: IDataSource<T> {
+struct ISequenceDataSource {
     virtual ~ISequenceDataSource() throw() {}
 };
 
 
 template <typename T, Int BitsPerSymbol>
-struct ISequenceDataTarget: IDataTarget<T> {
+struct ISequenceDataTarget {
     virtual ~ISequenceDataTarget() throw() {}
 };
 

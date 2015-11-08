@@ -825,8 +825,7 @@ public:
         template <Int Idx, typename StreamType>
         void stream(StreamType* obj, Int idx, const Accumulator& keys)
         {
-            ValueSource<typename std::tuple_element<Idx, Accumulator>::type> src(std::get<Idx>(keys));
-            obj->insert(&src, idx, 1);
+        	obj->insert(idx, std::get<Idx>(keys));
         }
     };
 

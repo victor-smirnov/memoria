@@ -15,7 +15,6 @@
 #include <memoria/containers/map/map_iterator.hpp>
 #include <memoria/containers/map/map_names.hpp>
 #include <memoria/containers/map/map_tools.hpp>
-#include <memoria/core/tools/idata.hpp>
 
 #include <memoria/prototypes/bt_ss/btss_factory.hpp>
 #include <memoria/prototypes/ctr_wrapper/ctrwrapper_factory.hpp>
@@ -61,12 +60,6 @@ struct MapBTTypesBase: public BTTypes<Profile, memoria::BTSingleStream> {
     typedef Value_                                            					Value;
 
     typedef std::tuple<Key, Value>                                              Entry;
-
-    typedef IDataSource<Entry>                                                  DataSource;
-    typedef IDataTarget<Entry>                                                  DataTarget;
-
-    typedef std::tuple<DataSource*>                                             Source;
-    typedef std::tuple<DataTarget*>                                             Target;
 
     typedef TypeList<MapStreamTF>                              					StreamDescriptors;
 

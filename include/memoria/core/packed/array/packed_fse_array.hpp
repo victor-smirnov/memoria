@@ -10,7 +10,6 @@
 
 #include <memoria/core/packed/tools/packed_allocator_types.hpp>
 #include <memoria/core/tools/accessors.hpp>
-#include <memoria/core/tools/idata.hpp>
 
 namespace memoria {
 

@@ -15,7 +15,6 @@
 #include <memoria/core/packed/tree/packed_tree_tools.hpp>
 #include <memoria/core/tools/assert.hpp>
 #include <memoria/core/tools/config.hpp>
-#include <memoria/core/tools/idata.hpp>
 #include <memoria/core/types/fn_traits.hpp>
 #include <memoria/core/types/list/misc.hpp>
 #include <memoria/core/types/typehash.hpp>
@@ -967,34 +966,6 @@ public:
     }
 
 
-    struct InsertSourceFn
-    {
-        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename Tree>
-        void stream(Tree* tree, ISource* src, const Position& pos, const Position& sizes)
-        {
-            if (tree != nullptr) tree->insert(src->stream(StreamIdx), pos[StreamIdx], sizes[StreamIdx]);
-        }
-
-        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename Tree, typename... TupleTypes>
-        void stream(Tree* tree, std::tuple<TupleTypes...>& src, const Position& pos, const Position& sizes)
-        {
-            if (tree != nullptr) tree->insert(std::get<StreamIdx>(src), pos[StreamIdx], sizes[StreamIdx]);
-        }
-    };
-
-    void insert(ISource& src, const Position& pos, const Position& sizes)
-    {
-        initStreamsIfEmpty(sizes);
-        processSubstreamGroups(InsertSourceFn(), &src, pos, sizes);
-    }
-
-    template <typename... TupleTypes>
-    void insert(std::tuple<TupleTypes...>& src, const Position& pos, const Position& sizes)
-    {
-        initStreamsIfEmpty(sizes);
-        processSubstreamGroups(InsertSourceFn(), src, pos, sizes);
-    }
-
 
     struct EstimateEntropyFn
     {
@@ -1042,75 +1013,6 @@ public:
     }
 
 
-    struct AppendSourceFn {
-        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename Tree>
-        void stream(Tree* tree, ISource& src, const Position& sizes)
-        {
-            tree->append(src.stream(StreamIdx), sizes[StreamIdx]);
-        }
-    };
-
-    auto append(ISource& src, const Position& sizes)
-    {
-        initStreamsIfEmpty(sizes);
-        return processSubstreamGroups(AppendSourceFn(), src, sizes);
-    }
-
-
-
-    struct UpdateSourceFn {
-        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename Tree>
-        void stream(Tree* tree, ISource* src, const Position& pos, const Position& sizes)
-        {
-            if (tree != nullptr) tree->update(src->stream(StreamIdx), pos[StreamIdx], sizes[StreamIdx]);
-        }
-    };
-
-    auto update(ISource* src, const Position& pos, const Position& sizes)
-    {
-    	return processSubstreamGroups(UpdateSourceFn(), src, pos, sizes);
-    }
-
-
-    struct ReadToTargetFn {
-        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename Tree>
-        void stream(const Tree* tree, ITarget* tgt, const Position& pos, const Position& sizes)
-        {
-        	if (tree != nullptr) tree->read(tgt->stream(StreamIdx), pos[StreamIdx], sizes[StreamIdx]);
-        }
-
-        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename Tree, typename... TupleTypes>
-        void stream(const Tree* tree, std::tuple<TupleTypes...>& tgt, const Position& starts, const Position& ends)
-        {
-        	if (tree != nullptr) tree->read(std::get<StreamIdx>(tgt), starts[StreamIdx], ends[StreamIdx]);
-        }
-    };
-
-    auto read(ITarget* tgt, const Position& pos, const Position& sizes) const
-    {
-    	return processSubstreamGroups(ReadToTargetFn(), tgt, pos, sizes);
-    }
-
-
-    template <typename... TupleTypes>
-    auto read(std::tuple<TupleTypes...>& tgt, const Position& starts, const Position& ends) const
-    {
-    	return processSubstreamGroups(ReadToTargetFn(), tgt, starts, ends);
-    }
-
-    struct UpdateTargetFn {
-        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename Tree, typename... TupleTypes>
-        void stream(Tree* tree, std::tuple<TupleTypes...>& tgt, const Position& starts, const Position& ends)
-        {
-        	if (tree != nullptr) tree->update(std::get<StreamIdx>(tgt), starts[StreamIdx], ends[StreamIdx]);
-        }
-    };
-
-    template <typename... TupleTypes>
-    auto update(std::tuple<TupleTypes...>& tgt, const Position& starts, const Position& ends) const
-    {
-    	return processSubstreamGroups(UpdateTargetFn(), tgt, starts, ends);
-    }
 
 
 

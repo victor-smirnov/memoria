@@ -18,8 +18,6 @@
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/types/type2type.hpp>
 
-#include <memoria/core/tools/idata.hpp>
-
 #include <vector>
 #include <iostream>
 #include <vector>
@@ -30,36 +28,211 @@
 namespace memoria    {
 namespace vapi       {
 
-template <typename T1, typename T2>
-constexpr static T2 DivUp0(T1 v, T2 d) {
-    return v / d + (v % d > 0);
+	template <typename T1, typename T2>
+	constexpr static T2 DivUp0(T1 v, T2 d) {
+		return v / d + (v % d > 0);
+	}
+
+	template <typename T, Int BitsPerSymbol>
+	SizeT RoundSymbolsToStorageType(SizeT length)
+	{
+		SizeT bitsize               = length * BitsPerSymbol;
+		const SizeT item_bitsize    = sizeof(T) * 8;
+
+		SizeT result = DivUp0(bitsize, item_bitsize);
+
+		return result * sizeof(T);
+	};
+
+
+	namespace detail {
+
+	template <Int BitsPerSymbol>
+	struct SymbolsTypeSelector {
+		using Type = UBigInt;
+	};
+
+	template <>
+	struct SymbolsTypeSelector<8> {
+		using Type = UByte;
+	};
+
 }
 
-template <typename T, Int BitsPerSymbol>
-SizeT RoundSymbolsToStorageType(SizeT length)
+
+//
+enum class IDataAPI: Int {
+    None = 0, Batch = 1, Single = 2, Both = 3
+};
+
+inline constexpr IDataAPI operator&(IDataAPI m1, IDataAPI m2)
 {
-    SizeT bitsize               = length * BitsPerSymbol;
-    const SizeT item_bitsize    = sizeof(T) * 8;
-
-    SizeT result = DivUp0(bitsize, item_bitsize);
-
-    return result * sizeof(T);
-};
-
-
-namespace detail {
-
-template <Int BitsPerSymbol>
-struct SymbolsTypeSelector {
-	using Type = UBigInt;
-};
-
-template <>
-struct SymbolsTypeSelector<8> {
-	using Type = UByte;
-};
-
+    return static_cast<IDataAPI>(static_cast<Int>(m1) & static_cast<Int>(m2));
 }
+
+inline constexpr IDataAPI operator|(IDataAPI m1, IDataAPI m2)
+{
+    return static_cast<IDataAPI>(static_cast<Int>(m1) | static_cast<Int>(m2));
+}
+
+inline constexpr bool to_bool(IDataAPI mode) {
+    return static_cast<Int>(mode) > 0;
+}
+
+
+
+template <typename T>
+class AbstractData {
+protected:
+    SizeT   start_;
+    SizeT   length_;
+
+public:
+
+    AbstractData(SizeT start, SizeT length):
+        start_(start),
+        length_(length)
+    {}
+
+    virtual ~AbstractData() throw ()
+    {}
+
+
+
+    virtual SizeT skip(SizeT length)
+    {
+        if (start_ + length <= length_)
+        {
+            start_ += length;
+            return length;
+        }
+
+        SizeT distance = length_ - start_;
+        start_ = length_;
+        return distance;
+    }
+
+    virtual SizeT getStart() const
+    {
+        return start_;
+    }
+
+    virtual SizeT getRemainder() const
+    {
+        return length_ - start_;
+    }
+
+    virtual SizeT getAdvance() const
+    {
+        return getRemainder();
+    }
+
+    virtual SizeT getSize() const
+    {
+        return length_;
+    }
+
+    SizeT size() const
+    {
+        return getSize();
+    }
+
+    virtual void setSize(SizeT size)
+    {
+        length_ = size;
+    }
+
+    virtual IDataAPI api() const                                                = 0;
+    virtual SizeT put(const T* buffer, SizeT start, SizeT length)               = 0;
+    virtual SizeT get(T* buffer, SizeT start, SizeT length)                     = 0;
+    virtual T peek()                                                            = 0;
+
+
+    virtual T get()                                                             = 0;
+    virtual void put(const T& value)                                            = 0;
+
+    virtual void reset(BigInt pos = 0)
+    {
+        start_ = pos;
+    }
+};
+
+
+template <typename T>
+class AbstractDataSource {
+protected:
+    SizeT   start_;
+    SizeT   length_;
+
+public:
+
+    AbstractDataSource(SizeT start, SizeT length):
+        start_(start),
+        length_(length)
+    {}
+
+    virtual ~AbstractDataSource() throw ()
+    {}
+
+
+
+    virtual SizeT skip(SizeT length)
+    {
+        if (start_ + length <= length_)
+        {
+            start_ += length;
+            return length;
+        }
+
+        SizeT distance = length_ - start_;
+        start_ = length_;
+        return distance;
+    }
+
+    virtual SizeT getStart() const
+    {
+        return start_;
+    }
+
+    virtual SizeT getRemainder() const
+    {
+        return length_ - start_;
+    }
+
+    virtual SizeT getAdvance() const
+    {
+        return getRemainder();
+    }
+
+    virtual SizeT getSize() const
+    {
+        return length_;
+    }
+
+    SizeT size() const
+    {
+        return getSize();
+    }
+
+    virtual void setSize(SizeT size)
+    {
+        length_ = size;
+    }
+
+    virtual IDataAPI api() const                                                = 0;
+
+    virtual SizeT get(T* buffer, SizeT start, SizeT length)                     = 0;
+    virtual T get()                                                             = 0;
+
+
+    virtual void reset(BigInt pos = 0)
+    {
+        start_ = pos;
+    }
+};
+
+
+
 
 template <Int BitsPerSymbol, typename T = typename detail::SymbolsTypeSelector<BitsPerSymbol>::Type>
 class SymbolsBuffer: public AbstractData<T> {

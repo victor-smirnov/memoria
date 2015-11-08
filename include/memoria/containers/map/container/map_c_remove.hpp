@@ -39,11 +39,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertName)
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
-    typedef ValuePair<Accumulator, Value>                                       Element;
-
-    typedef typename Types::Entry                                               MapEntry;
-
-
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::map::CtrInsertName)

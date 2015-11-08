@@ -10,7 +10,6 @@
 #define _MEMORIA_CORE_TOOLS_SYMBOLSEQUENCE_HPP
 
 
-#include <memoria/core/tools/idata.hpp>
 #include <memoria/core/tools/isequencedata.hpp>
 #include <memoria/core/packed/sseq/packed_fse_searchable_seq.hpp>
 

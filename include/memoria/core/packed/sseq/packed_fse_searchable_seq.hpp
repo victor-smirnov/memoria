@@ -454,80 +454,6 @@ public:
 
 
 
-    // ====================================== Batch IO ================================= //
-
-    template <typename IData>
-    void read(IData* data, Int pos, Int start, Int length) const
-    {
-        IDataAPI api_type = data->api();
-
-        auto symbols = this->symbols();
-
-        MEMORIA_ASSERT_TRUE(api_type == IDataAPI::Batch || api_type == IDataAPI::Both);
-
-        SizeT remainder     = data->getRemainder();
-        SizeT to_read_local = length <= remainder ? length : remainder;
-
-        while (to_read_local > 0)
-        {
-            SizeT processed = data->putc(symbols, start, pos, to_read_local);
-
-            pos             += processed;
-            to_read_local   -= processed;
-        }
-    }
-
-    void insert(IData* data, Int pos, Int length)
-    {
-        IDataSource<Value>* tgt = static_cast<IDataSource<Value>*>(data);
-
-        IDataAPI api_type = tgt->api();
-
-        auto symbols = this->symbols();
-
-        MEMORIA_ASSERT_TRUE(api_type == IDataAPI::Batch || api_type == IDataAPI::Both);
-
-        SizeT remainder         = tgt->getRemainder();
-        SizeT to_process_local  = length <= remainder ? length : remainder;
-
-        insertDataRoom(pos, to_process_local);
-
-        while (to_process_local > 0)
-        {
-            SizeT processed = tgt->get(symbols, pos, to_process_local);
-
-            pos                 += processed;
-            to_process_local    -= processed;
-        }
-
-        reindex();
-    }
-
-
-    template <typename IData>
-    void insert(const IData* data, Int pos, Int start, Int length)
-    {
-    	IDataAPI api_type = data->api();
-
-    	auto symbols = this->symbols();
-
-    	MEMORIA_ASSERT_TRUE(api_type == IDataAPI::Batch || api_type == IDataAPI::Both);
-
-    	SizeT remainder         = data->getRemainder();
-    	SizeT to_process_local  = length <= remainder ? length : remainder;
-
-    	insertDataRoom(pos, to_process_local);
-
-    	while (to_process_local > 0)
-    	{
-    		SizeT processed = data->getc(symbols, start, pos, to_process_local);
-
-    		pos                 += processed;
-    		to_process_local    -= processed;
-    	}
-
-    	reindex();
-    }
 
 
     void fill(Int start, Int end, std::function<Value ()> fn)
@@ -609,37 +535,6 @@ public:
     	remove(idx, idx + 1);
     }
 
-
-
-
-    void append(IData* data, Int length)
-    {
-        insert(data, size(), length);
-    }
-
-    void update(IData* data, Int pos, Int length)
-    {
-        IDataSource<Value>* tgt = static_cast<IDataSource<Value>*>(data);
-
-        IDataAPI api_type = tgt->api();
-
-        auto symbols = this->symbols();
-
-        MEMORIA_ASSERT_TRUE(api_type == IDataAPI::Batch || api_type == IDataAPI::Both);
-
-        SizeT remainder         = tgt->getRemainder();
-        SizeT to_process_local  = length <= remainder ? length : remainder;
-
-        while (to_process_local > 0)
-        {
-            SizeT processed = tgt->get(symbols, pos, to_process_local);
-
-            pos                 += processed;
-            to_process_local    -= processed;
-        }
-
-        reindex();
-    }
 
     // ========================================= Node ================================== //
 

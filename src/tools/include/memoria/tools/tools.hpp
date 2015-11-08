@@ -11,7 +11,6 @@
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/exceptions/exceptions.hpp>
 #include <memoria/core/tools/strings.hpp>
-#include <memoria/core/tools/idata.hpp>
 #include <memoria/core/tools/terminal.hpp>
 #include <memoria/core/tools/random.hpp>
 #include <memoria/core/tools/time.hpp>
@@ -292,12 +291,6 @@ bool CompareBuffer(Iter<Vector2IterTypes<Types>>& iter, const vector<T>& data, I
     {
         if (buf[c] != data[c])
         {
-            MemBuffer<T> mbuf(&buf[0], buf.size());
-            MemBuffer<const T> mdata(&data[0], data.size());
-
-            mbuf.dump(cout);
-            mdata.dump(cout);
-
             return false;
         }
     }

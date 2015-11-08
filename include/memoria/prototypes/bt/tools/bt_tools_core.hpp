@@ -13,8 +13,6 @@
 #include <memoria/core/packed/tools/packed_dispatcher.hpp>
 
 #include <memoria/prototypes/bt/bt_names.hpp>
-
-#include <memoria/core/tools/idata.hpp>
 #include <memoria/core/tools/tuple_dispatcher.hpp>
 
 

@@ -8,13 +8,12 @@
 
 #include <memoria/metadata/tools.hpp>
 #include <memoria/metadata/page.hpp>
-#include <memoria/core/tools/idata.hpp>
 #include <memoria/core/tools/dump.hpp>
 
 #include <sstream>
 #include <string>
 
-namespace memoria {namespace vapi    {
+namespace memoria {
 
 using namespace std;
 
@@ -24,6 +23,7 @@ void Expand(ostream& os, Int level)
 }
 
 
+namespace vapi {
 
 void dumpPage(PageMetadata* meta, const Page* page, std::ostream& out)
 {

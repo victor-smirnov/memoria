@@ -11,7 +11,6 @@
 #include <memoria/prototypes/bt/tools/bt_tools.hpp>
 
 #include <memoria/core/tools/static_array.hpp>
-#include <memoria/core/tools/idata.hpp>
 #include <memoria/core/tools/bitmap.hpp>
 #include <memoria/core/container/container.hpp>
 

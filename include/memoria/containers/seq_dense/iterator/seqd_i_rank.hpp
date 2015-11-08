@@ -10,7 +10,6 @@
 #define _MEMORIA_CONTAINERS_SEQD_ITERATOR_RANK_HPP
 
 #include <memoria/core/types/types.hpp>
-#include <memoria/core/tools/idata.hpp>
 #include <memoria/core/tools/dump.hpp>
 
 #include <memoria/containers/seq_dense/seqd_names.hpp>

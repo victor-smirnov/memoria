@@ -10,7 +10,6 @@
 #define _MEMORIA_VAPI_METADATA_PAGE_HPP
 
 #include <memoria/metadata/group.hpp>
-#include <memoria/core/tools/idata.hpp>
 #include <memoria/core/tools/dump.hpp>
 
 #include <tuple>
@@ -235,7 +234,7 @@ public:
 
     virtual void startGroupWithAddr(const char* name, const void* ptr) {
         cnt_ = 0;
-        Expand(out_, level_++);
+        memoria::Expand(out_, level_++);
 
         out_<<name;
 
@@ -246,7 +245,7 @@ public:
     virtual void startGroup(const char* name, Int elements = -1)
     {
         cnt_ = 0;
-        Expand(out_, level_++);
+        memoria::Expand(out_, level_++);
 
         out_<<name;
 
@@ -422,24 +421,24 @@ private:
     void dumpFieldHeader(ostream &out, Int level, Int idx, StringRef name)
     {
         stringstream str;
-        Expand(str, level);
+        memoria::Expand(str, level);
         str<<"FIELD: ";
         str<<idx<<" "<<name;
 
         int size = str.str().size();
-        Expand(str, 30 - size);
+        memoria::Expand(str, 30 - size);
         out<<str.str();
     }
 
     void dumpLineHeader(ostream &out, Int level, Int idx, StringRef name)
     {
         stringstream str;
-        Expand(str, level);
+        memoria::Expand(str, level);
         str<<name<<": ";
         str<<idx<<" ";
 
         int size = str.str().size();
-        Expand(str, 15 - size);
+        memoria::Expand(str, 15 - size);
         out<<str.str();
     }
 

@@ -7,7 +7,6 @@
 
 
 #include <memoria/metadata/tools.hpp>
-#include <memoria/core/tools/idata.hpp>
 #include <memoria/core/tools/md5.hpp>
 
 #include <iostream>

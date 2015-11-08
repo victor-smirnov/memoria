@@ -10,7 +10,6 @@
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_FACTORY_HPP
 
 #include <memoria/core/types/type2type.hpp>
-#include <memoria/core/tools/idata.hpp>
 #include <memoria/core/tools/vector_tuple.hpp>
 
 #include <memoria/core/packed/tree/packed_fse_tree.hpp>

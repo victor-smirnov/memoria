@@ -10,7 +10,6 @@
 #define _MEMORIA_CONTAINER_vctr_ITERATOR_API_HPP
 
 #include <memoria/core/types/types.hpp>
-#include <memoria/core/tools/idata.hpp>
 #include <memoria/core/tools/dump.hpp>
 
 #include <memoria/containers/vector/vctr_names.hpp>
@@ -118,18 +117,15 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 
     Value value() const
     {
-        MyType me = this->self();
+        auto me = this->self();
 
-        Value data;
-        MemBuffer<Value> buf(&data, 1);
+        auto v = me.subVector(1);
 
-        CtrSizeT length = me.read(buf);
-
-        if (length == 1)
+        if (v.size() == 1)
         {
-            return data;
+            return v[0];
         }
-        else if (length == 0)
+        else if (v.size() == 0)
         {
             throw Exception(MA_SRC, "Attempt to read vector after its end");
         }
@@ -148,7 +144,14 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 
     std::vector<Value> subVector(CtrSizeT size)
     {
-        std::vector<Value> data(size);
+    	auto& self = this->self();
+
+    	auto pos = self.pos();
+    	auto ctr_size = self.size();
+
+    	auto length = pos + size <= ctr_size ? size : ctr_size - pos;
+
+        std::vector<Value> data(length);
 
         auto iter = self();
 
