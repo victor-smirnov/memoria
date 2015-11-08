@@ -153,7 +153,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
     	self.leaf() = result.leaf();
     	self.idx() = result.position();
 
-    	self.refreshCache();
+    	self.refresh();
 
     	model.markCtrUpdated();
     }
@@ -164,7 +164,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
 
     	auto tmp = self;
 
-    	tmp.refreshCache();
+    	tmp.refresh();
 
     	if (self.cache() != tmp.cache())
     	{

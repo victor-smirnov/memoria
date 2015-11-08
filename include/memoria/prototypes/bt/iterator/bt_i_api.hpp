@@ -145,23 +145,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
     	 return self().ctr().template _readLeafEntry<Stream, SubstreamsIdxList>(self().leaf(), std::forward<Args>(args)...);
     }
 
-
-    // FIXME: Deprecated. Refactor using other methods
-    template <Int StreamIdx>
-    void _refreshCache()
-    {
-    	auto& self = this->self();
-
-    	FindForwardWalker<bt::WalkerTypes<Types, IntList<StreamIdx>>> walker(0, 0);
-
-    	self.cache().reset();
-
-    	self.ctr().walkUp(self.leaf(), self.idx(), walker);
-
-    	walker.finish(self, self.idx(), WalkCmd::NONE);
-    }
-
-
     template <typename Walker>
     void walkUpForRefresh(NodeBaseG node, Int idx, Walker&& walker) const
     {

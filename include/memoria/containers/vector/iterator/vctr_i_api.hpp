@@ -165,15 +165,15 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
     }
 
     auto skipFw(CtrSizeT amount) {
-    	return self().template _skipFw<0>(amount);
+    	return self().template skip_fw_<0>(amount);
     }
 
     auto skipBw(CtrSizeT amount) {
-    	return self().template _skipBw<0>(amount);
+    	return self().template skip_bw_<0>(amount);
     }
 
     auto skip(CtrSizeT amount) {
-    	return self().template _skip<0>(amount);
+    	return self().template skip_<0>(amount);
     }
 
     auto seek(CtrSizeT pos)

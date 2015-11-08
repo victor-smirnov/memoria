@@ -67,15 +67,15 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btss::IteratorMiscName)
     }
 
     CtrSizeT skipFw(CtrSizeT amount) {
-    	return self().template _skipFw<0>(amount);
+    	return self().template skip_fw_<0>(amount);
     }
 
     CtrSizeT skipBw(CtrSizeT amount) {
-    	return self().template _skipBw<0>(amount);
+    	return self().template skip_bw_<0>(amount);
     }
 
     CtrSizeT skip(CtrSizeT amount) {
-    	return self().template _skip<0>(amount);
+    	return self().template skip_<0>(amount);
     }
 
     CtrSizeT pos() const
@@ -118,16 +118,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btss::IteratorMiscName)
 
         self.idx() = to_pos.get();
 
-        self.refreshCache();
+        self.refresh();
 
         return self.ctr().getStreamSizes(keys)[0];
-    }
-
-
-    void refreshCache()
-    {
-    	auto& self = this->self();
-    	self.refresh();
     }
 
     SplitStatus split()

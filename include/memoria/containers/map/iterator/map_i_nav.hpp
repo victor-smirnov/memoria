@@ -86,22 +86,22 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mapx::ItrNavName)
 
     auto findFwGT(Int index, Key key)
     {
-    	return self().template _findFwGT<IntList<0>>(index, key);
+    	return self().template find_fw_gt<IntList<0>>(index, key);
     }
 
     auto findFwGE(Int index, Key key)
     {
-    	return self().template _findFwGE<IntList<0>>(index, key);
+    	return self().template find_fw_ge<IntList<0>>(index, key);
     }
 
     auto findBwGT(Int index, Key key)
     {
-    	return self().template _findBwGT<IntList<0>>(index, key);
+    	return self().template find_bw_gt<IntList<0>>(index, key);
     }
 
     auto findBwGE(Int index, Key key)
     {
-    	return self().template _findBwGE<IntList<0>>(index, key);
+    	return self().template find_bw_ge<IntList<0>>(index, key);
     }
 
     Key prefix() const

@@ -258,7 +258,7 @@ public:
     {
     	auto tmp = iter;
 
-    	tmp.refreshCache();
+    	tmp.refresh();
 
     	if (iter.cache() != tmp.cache())
     	{

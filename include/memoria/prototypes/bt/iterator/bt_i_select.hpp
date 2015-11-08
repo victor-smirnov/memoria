@@ -33,41 +33,26 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorSelectName)
 
 
     template <typename LeafPath>
-    WalkerResultFnType<typename Types::template SelectForwardWalker<Types, LeafPath>>
-    _selectFw(Int index, CtrSizeT rank)
+    auto select_fw_(Int index, CtrSizeT rank)
     {
     	MEMORIA_ASSERT(index, >=, 0);
     	MEMORIA_ASSERT(rank, >=, 0);
 
     	typename Types::template SelectForwardWalker<Types, LeafPath> walker(index, rank);
 
-    	return self()._findFw2(walker);
+    	return self().find_fw(walker);
     }
 
     template <typename LeafPath>
-    WalkerResultFnType<typename Types::template SelectBackwardWalker<Types, LeafPath>>
-    _selectBw(Int index, CtrSizeT rank)
+    auto select_bw_(Int index, CtrSizeT rank)
     {
     	MEMORIA_ASSERT(index, >=, 0);
     	MEMORIA_ASSERT(rank, >=, 0);
 
     	typename Types::template SelectBackwardWalker<Types, LeafPath> walker(index, rank);
 
-    	return self()._findBw2(walker);
+    	return self().find_bw(walker);
     }
-
-    template <typename LeafPath>
-    WalkerResultFnType<typename Types::template SelectForwardWalker<Types, LeafPath>>
-    select_(Int index, CtrSizeT rank)
-    {
-    	if (rank >= 0) {
-    		return self().template _selectFw<LeafPath>(index, rank);
-    	}
-    	else {
-    		return self().template _selectBw<LeafPath>(index, -rank);
-    	}
-    }
-
 MEMORIA_ITERATOR_PART_END
 
 #define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::bt::IteratorSelectName)

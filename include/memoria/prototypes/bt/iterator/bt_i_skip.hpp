@@ -34,8 +34,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorSkipName)
 
 
     template <Int Stream>
-    auto _skipFw(CtrSizeT amount) ->
-    WalkerResultFnType<typename Types::template SkipForwardWalker<Types, IntList<Stream>>>
+    auto skip_fw_(CtrSizeT amount)
     {
     	if (amount < 0) {
     		int a = 0; a++;
@@ -45,32 +44,30 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorSkipName)
 
     	typename Types::template SkipForwardWalker<Types, IntList<Stream>> walker(amount);
 
-        return self()._findFw2(walker);
+        return self().find_fw(walker);
     }
 
     template <Int Stream>
-    auto _skipBw(CtrSizeT amount) ->
-    WalkerResultFnType<typename Types::template SkipForwardWalker<Types, IntList<Stream>>>
+    auto skip_bw_(CtrSizeT amount)
     {
     	MEMORIA_ASSERT(amount, >=, 0);
 
     	typename Types::template SkipBackwardWalker<Types, IntList<Stream>> walker(amount);
 
-    	return self()._findBw2(walker);
+    	return self().find_bw(walker);
     }
 
     template <Int Stream>
-    auto _skip(CtrSizeT amount) ->
-    WalkerResultFnType<typename Types::template SkipForwardWalker<Types, IntList<Stream>>>
+    auto skip_(CtrSizeT amount)
     {
         auto& self = this->self();
 
         if (amount >= 0)
         {
-            return self.template _skipFw<Stream>(amount);
+            return self.template skip_fw_<Stream>(amount);
         }
         else {
-            return self.template _skipBw<Stream>(-amount);
+            return self.template skip_bw_<Stream>(-amount);
         }
     }
 

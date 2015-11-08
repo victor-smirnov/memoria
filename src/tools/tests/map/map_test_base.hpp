@@ -150,7 +150,7 @@ public:
     	auto cache1 = iter.cache();
 
     	auto tmp = iter;
-    	tmp.refreshCache();
+    	tmp.refresh();
 
     	auto cache2 = tmp.cache();
 

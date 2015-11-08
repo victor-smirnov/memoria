@@ -33,38 +33,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorLeafName)
 
     using CtrSizeT = typename Container::Types::CtrSizeT;
 
-
-
-
-
-//    bool nextLeaf()
-//    {
-//        auto& self = this->self();
-//
-//        auto id = self.leaf()->id();
-//
-//        typename Types::template NextLeafWalker<Types> walker;
-//
-//        self._findFw2(walker);
-//
-//        return id != self.leaf()->id();
-//    }
-//
-//
-//    bool prevLeaf()
-//    {
-//        auto& self = this->self();
-//
-//        auto id = self.leaf()->id();
-//
-//        typename Types::template PrevLeafWalker<Types> walker;
-//
-//        self._findBw2(walker);
-//
-//        return id != self.leaf()->id();
-//    }
-
-
     bool nextLeaf()
     {
         auto& self = this->self();

@@ -53,10 +53,6 @@ public:
 
 
 
-template <typename W>
-using WalkerResultFnType = decltype(std::declval<const W>().result());
-
-
 template <
     typename Types,
     typename MyType

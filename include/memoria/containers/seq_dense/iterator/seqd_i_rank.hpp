@@ -77,11 +77,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterRankName)
     }
 
     auto rankFw(BigInt delta, Int symbol) {
-    	return self().template _rankFw<IntList<0>>(symbol, delta);
+    	return self().template rank_fw_<IntList<0>>(symbol, delta);
     }
 
     auto rankBw(BigInt delta, Int symbol) {
-    	return self().template _rankBw<IntList<0>>(symbol, delta);
+    	return self().template rank_bw_<IntList<0>>(symbol, delta);
     }
 
 MEMORIA_ITERATOR_PART_END
@@ -158,7 +158,7 @@ BigInt M_TYPE::ranki(Int symbol) const
 //    typename Types::template RankFWWalker<Types, IntList<0>> walker(symbol, delta);
 //
 //
-//    return self._findFw2(walker);
+//    return self.find_fw(walker);
 //}
 //
 //M_PARAMS
@@ -170,7 +170,7 @@ BigInt M_TYPE::ranki(Int symbol) const
 //
 //    typename Types::template RankBWWalker<Types, IntList<0>> walker(symbol, delta);
 //
-//    return self.template _findBw2(walker);
+//    return self.template find_bw(walker);
 //}
 
 

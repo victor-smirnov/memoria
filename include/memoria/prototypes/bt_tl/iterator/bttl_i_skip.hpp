@@ -57,7 +57,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
     	template <Int StreamIdx, typename Itr>
     	auto process(Itr&& iter, CtrSizeT n)
     	{
-    		return iter.template _skipFw<StreamIdx>(n);
+    		return iter.template skip_fw_<StreamIdx>(n);
     	}
     };
 
@@ -65,7 +65,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
     	template <Int StreamIdx, typename Itr>
     	auto process(Itr&& iter, CtrSizeT n)
     	{
-    		return iter.template _skipBw<StreamIdx>(n);
+    		return iter.template skip_bw_<StreamIdx>(n);
     	}
     };
 
