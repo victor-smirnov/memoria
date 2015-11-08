@@ -76,8 +76,7 @@ public:
     {}
 
     template <typename... Args>
-    auto treeNode(Args&&... args) ->
-    decltype(std::declval<Base>().treeNode(std::declval<Args>()...))
+    auto treeNode(Args&&... args) -> decltype(Base::treeNode(std::forward<Args>(args)...))
     {
     	return Base::treeNode(std::forward<Args>(args)...);
     }

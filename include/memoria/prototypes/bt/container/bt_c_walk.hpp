@@ -96,12 +96,6 @@ private:
     {
         auto& self = this->self();
 
-//      TextPageDumper dumper(cout);
-//
-//      node->generateDataEvents(&dumper);
-//
-//      self.dump(node);
-
         self.beginNode(node, walker);
 
         if (!node->is_leaf())

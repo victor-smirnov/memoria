@@ -74,37 +74,32 @@ public:
 
 
     template <typename LeafPath>
-    auto branch_index(Int index) ->
-    decltype(AccumItemH<LeafPath>::value(index, branch_prefix_))
+    auto branch_index(Int index)
     {
     	return AccumItemH<LeafPath>::value(index, branch_prefix_);
     }
 
     template <typename LeafPath>
-    auto branch_index(Int index) const ->
-    decltype(AccumItemH<LeafPath>::cvalue(index, branch_prefix_))
+    auto branch_index(Int index) const
     {
     	return AccumItemH<LeafPath>::cvalue(index, branch_prefix_);
     }
 
     template <typename LeafPath>
-    auto leaf_index(Int index) ->
-    decltype(AccumItemH<LeafPath>::value(index, leaf_prefix_))
+    auto leaf_index(Int index)
     {
     	return AccumItemH<LeafPath>::value(index, leaf_prefix_);
     }
 
     template <typename LeafPath>
-    auto leaf_index(Int index) const ->
-    decltype(AccumItemH<LeafPath>::cvalue(index, leaf_prefix_))
+    auto leaf_index(Int index) const
     {
     	return AccumItemH<LeafPath>::cvalue(index, leaf_prefix_);
     }
 
 
     template <typename LeafPath>
-    auto total_index(Int index) const ->
-    typename std::remove_reference<decltype(AccumItemH<LeafPath>::value(index, branch_prefix_))>::type
+    auto total_index(Int index) const
     {
     	return AccumItemH<LeafPath>::cvalue(index, branch_prefix_) +
     			AccumItemH<LeafPath>::cvalue(index, leaf_prefix_);

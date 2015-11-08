@@ -9,7 +9,6 @@
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/types/list/list_tree.hpp>
-#include <memoria/prototypes/bt/walkers/bt_walker_tools.hpp>
 
 
 #include <tuple>

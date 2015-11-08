@@ -22,22 +22,13 @@ template <typename MyType, typename BranchPath, typename LeafPath>
 class LeveledNodeWalkerBase {
 
     struct LeafStreamFn {
-        template <Int StreamIdx, typename... Args>
-        using RtnFnType = auto(Args...) -> decltype(
-                std::declval<MyType>().template leafStream<StreamIdx>(std::declval<Args>()...)
-        );
-
-        template <Int StreamIdx, typename Fn, typename... Args>
-        using RtnType = typename FnTraits<RtnFnType<StreamIdx, Fn, Args...>>::RtnType;
-
 
         MyType& walker_;
 
         LeafStreamFn(MyType& walker): walker_(walker) {}
 
         template <Int StreamIdx, typename Stream, typename... Args>
-        RtnType<StreamIdx, const Stream*, Args...>
-        stream(const Stream* stream, Args&&... args)
+        auto stream(const Stream* stream, Args&&... args)
         {
             return walker_.template leafStream<StreamIdx>(stream, args...);
         }
@@ -45,69 +36,39 @@ class LeveledNodeWalkerBase {
 
 
     struct NonLeafStreamFn {
-        template <Int StreamIdx, typename... Args>
-        using RtnFnType = auto(Args...) -> decltype(
-                std::declval<MyType>().template nonLeafStream<StreamIdx>(std::declval<Args>()...)
-        );
-
-        template <Int StreamIdx, typename Fn, typename... Args>
-        using RtnType = typename FnTraits<RtnFnType<StreamIdx, Fn, Args...>>::RtnType;
-
-
         MyType& walker_;
 
         NonLeafStreamFn(MyType& walker): walker_(walker) {}
 
         template <Int StreamIdx, typename Stream, typename... Args>
-        RtnType<StreamIdx, const Stream*, Args...>
-        stream(const Stream* stream, Args&&... args)
+        auto stream(const Stream* stream, Args&&... args)
         {
             return walker_.template nonLeafStream<StreamIdx>(stream, args...);
         }
     };
 
-    template <typename T, typename... Args>
-    using BranchRtnFnType = auto(Args...) -> decltype(
-        std::declval<T>().template processStream<BranchPath>(std::declval<Args>()...)
-    );
-
-    template <typename T, typename Fn, typename... Args>
-    using BranchRtnType = typename FnTraits<BranchRtnFnType<T, Fn, Args...>>::RtnType;
-
-    template <typename T, typename... Args>
-    using LeafRtnFnType = auto(Args...) -> decltype(
-        std::declval<T>().template processStream<LeafPath>(std::declval<Args>()...)
-    );
-
-    template <typename T, typename Fn, typename... Args>
-    using LeafRtnType = typename FnTraits<LeafRtnFnType<T, Fn, Args...>>::RtnType;
-
 public:
 
     template <typename NodeTypes, typename... Args>
     auto treeNode(const bt::LeafNode<NodeTypes>* node, Args&&... args)
-        -> LeafRtnType<const bt::LeafNode<NodeTypes>, LeafStreamFn, Args...>
     {
         return node->template processStream<LeafPath>(LeafStreamFn(self()), args...);
     }
 
     template <typename NodeTypes, typename... Args>
     auto treeNode(const bt::BranchNode<NodeTypes>* node, Args&&... args)
-        -> BranchRtnType<const bt::BranchNode<NodeTypes>, NonLeafStreamFn, Args...>
     {
         return node->template processStream<BranchPath>(NonLeafStreamFn(self()), args...);
     }
 
     template <typename NodeTypes, typename... Args>
     auto treeNode(bt::LeafNode<NodeTypes>* node, Args&&... args)
-        -> LeafRtnType<bt::LeafNode<NodeTypes>, LeafStreamFn, Args...>
     {
         return node->template processStream<LeafPath>(LeafStreamFn(self()), args...);
     }
 
     template <typename NodeTypes, typename... Args>
     auto treeNode(bt::BranchNode<NodeTypes>* node, Args&&... args)
-        -> BranchRtnType<bt::BranchNode<NodeTypes>, NonLeafStreamFn, Args...>
     {
         return node->template processStream<BranchPath>(NonLeafStreamFn(self()), args...);
     }
