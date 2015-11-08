@@ -89,12 +89,9 @@ int main(int argc, const char** argv, const char** envp)
         runner.registerTask(new VectorTestSuite());
         runner.registerTask(new SequenceTestSuite());
 //        runner.registerTask(new LabeledTreeTestSuite());
-//        runner.registerTask(new FileAllocatorTestSuite());
 //        runner.registerTask(new VTreeTestSuite());
 //        runner.registerTask(new WTTestSuite());
-//
-//
-//        runner.registerTask(new MVCCTestSuite());
+
 
         runner.Configure(&cmd_line.getConfigurator());
 
