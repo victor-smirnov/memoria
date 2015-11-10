@@ -1,7 +1,7 @@
 include_directories(../tools/include)
 
 if (NOT DEFINED MEMORIA_SANDBOX)
-    set(MEMORIA_SANDBOX mpl)
+    set(MEMORIA_SANDBOX packed_q_tree)
 endif()
 
 #set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
