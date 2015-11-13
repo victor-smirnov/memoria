@@ -14,39 +14,61 @@
 #include <memoria/core/packed/tree/packed_vle_tree.hpp>
 #include <memoria/core/packed/tools/packed_allocator.hpp>
 
+#include <memoria/core/packed/tree/packed_fse_quick_tree.hpp>
+
 namespace memoria {
 
 using namespace memoria::vapi;
 using namespace std;
 
 template <
-    template <typename> class TreeType,
-    template <typename> class CodecType = ValueFSECodec,
-    Int Blocks      = 1,
-    Int VPB         = PackedTreeBranchingFactor,
-    Int BF          = PackedTreeBranchingFactor
+//    template <typename> class TreeType,
+//    template <typename> class CodecType = ValueFSECodec,
+//    Int Blocks      = 1,
+//    Int VPB         = PackedTreeBranchingFactor,
+//    Int BF          = PackedTreeBranchingFactor
+
+	typename PackedTreeT
 >
 class PackedTreeTestBase: public TestTask {
 protected:
-    typedef Packed2TreeTypes<
-            Int,
-            Int,
-            Blocks,
-            CodecType,
-            BF,
-            VPB
-    >                                                                           Types;
+//    typedef Packed2TreeTypes<
+//            Int,
+//            Int,
+//            Blocks,
+//            CodecType,
+//            BF,
+//            VPB
+//    >                                                                           Types;
 
-    typedef TreeType<Types>                                                     Tree;
+
+
+    using Tree = PackedTreeT;
 
     typedef typename Tree::Value                                                Value;
     typedef typename Tree::IndexValue                                           IndexValue;
     typedef typename Tree::Values                                               Values;
 
+    static constexpr Int Blocks = Tree::Blocks;
+
 public:
 
     PackedTreeTestBase(StringRef name): TestTask(name)
     {}
+
+    template <typename T>
+    IndexValue sum(const vector<T>& tree, Int block, Int start, Int end)
+    {
+    	IndexValue sum = 0;
+
+    	for (Int c = start; c < end; c++)
+    	{
+    		sum += tree[c][block];
+    	}
+
+    	return sum;
+    }
+
 
     Tree* createEmptyTree(Int block_size = 65536)
     {
@@ -91,7 +113,7 @@ public:
 
         Int size = tree->insert(0, [&](Values& values) -> bool {
             for (Int b = 0; b < Blocks; b++) {
-                values[b] = getRandom(max_value);
+                values[b] = this->getRandom(max_value);
             }
 
             vals.push_back(values);
@@ -99,6 +121,18 @@ public:
         });
 
         truncate(vals, size);
+
+        AssertEQ(MA_SRC, size, tree->size());
+
+        for (Int b = 0; b < Blocks; b++)
+        {
+        	auto values = tree->values(b);
+
+        	for (Int c = 0; c < size; c++)
+        	{
+        		AssertEQ(MA_SRC, values[c], vals[c][b]);
+        	}
+        }
 
         return vals;
     }
@@ -225,6 +259,14 @@ public:
         AssertEQ(MA_SRC, tree->data_size(), 0);
         AssertEQ(MA_SRC, tree->block_size(), empty_size);
         AssertEQ(MA_SRC, tree->index_size(), 0);
+    }
+
+    template <typename T>
+    void dump(const std::vector<T>& v, std::ostream& out = std::cout)
+    {
+    	for (Int c = 0; c < v.size(); c++) {
+    		out<<c<<": "<<v[c]<<endl;
+    	}
     }
 };
 

@@ -19,7 +19,7 @@ else()
     
         add_executable(tests ${SRCS})
         set_target_properties(tests PROPERTIES COMPILE_FLAGS "-g ${MEMORIA_COMPILE_FLAGS} -DMEMORIA_TESTS -DMEMORIA_STATIC")
-        set_target_properties(tests PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS} -pthread")        
+        set_target_properties(tests PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")        
         
         target_link_libraries(tests Memoria MemoriaTools ${MEMORIA_LIBS})
     endif()

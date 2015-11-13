@@ -16,49 +16,24 @@ namespace memoria {
 
 using namespace std;
 
-template <
-    template <typename> class TreeType,
-    template <typename> class CodecType = ValueFSECodec,
-    Int Blocks      = 1,
-    Int VPB         = PackedTreeBranchingFactor,
-    Int BF          = PackedTreeBranchingFactor
->
-class PackedTreeSumTest: public PackedTreeTestBase <
-    TreeType,
-    CodecType,
-    Blocks,
-    VPB,
-    BF
-> {
+template <typename PackedTreeT>
+class PackedTreeSumTest: public PackedTreeTestBase <PackedTreeT> {
 
-    typedef PackedTreeSumTest<
-            TreeType,
-            CodecType,
-            Blocks,
-            VPB,
-            BF
-    >                                                                           MyType;
-
-    typedef PackedTreeTestBase <
-        TreeType,
-        CodecType,
-        Blocks,
-        VPB,
-        BF
-    >                                                                           Base;
+    using MyType = PackedTreeSumTest<PackedTreeT>;
+    using Base 	 = PackedTreeTestBase <PackedTreeT>;
 
     typedef typename Base::Tree                                                 Tree;
     typedef typename Base::Values                                               Values;
     typedef typename Tree::IndexValue                                           IndexValue;
 
-    Int iterations_;
+    Int iterations_ = 1000;
 
 public:
 
 
     PackedTreeSumTest(StringRef name): Base(name)
     {
-        this->size_ = 8192;
+        this->size_ = 65536;
 
         MEMORIA_ADD_TEST_PARAM(iterations_);
 
@@ -82,17 +57,6 @@ public:
 
 
 
-    IndexValue sum(const vector<Values>& tree, Int block, Int start, Int end)
-    {
-        IndexValue sum = 0;
-
-        for (Int c = start; c < end; c++)
-        {
-            sum += tree[c][block];
-        }
-
-        return sum;
-    }
 
     void testBlockSum()
     {
@@ -115,14 +79,14 @@ public:
 
         for (Int c = 0; c < iterations_; c++)
         {
-            Int end     = getRandom(size / 2) + size / 2;
-            Int start   = getRandom(size / 2);
+            Int end     = this->getRandom(size / 2) + size / 2;
+            Int start   = this->getRandom(size / 2);
 
-            Int block   = getRandom(Tree::Blocks);
+            Int block   = this->getRandom(Tree::Blocks);
 
             Int sum1 = tree->sum(block, start, end);
-            Int sum2 = sum(values, block, start, end);
-            Int sum3 = sum(tree, block, start, end);
+            Int sum2 = Base::sum(values, block, start, end);
+            Int sum3 = this->sum(tree, block, start, end);
 
             AssertEQ(MA_SRC, sum2, sum3);
             AssertEQ(MA_SRC, sum1, sum2);

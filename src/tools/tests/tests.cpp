@@ -8,7 +8,7 @@
 //#include "bitmap/bitmap_test_suite.hpp"
 //
 //#include "packed/allocator/palloc_test_suite.hpp"
-//#include "packed/tree/packed_tree_test_suite.hpp"
+#include "packed/tree/packed_tree_test_suite.hpp"
 //#include "packed/array/packed_array_test_suite.hpp"
 //#include "packed/sequence/packed_seq_suite.hpp"
 //#include "packed/louds/packed_louds_suite.hpp"
@@ -66,7 +66,7 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new BitmapTestSuite());
 ////
 //        runner.registerTask(new PackedAllocatorTestSuite());
-//        runner.registerTask(new PackedTreeTestSuite());
+        runner.registerTask(new PackedTreeTestSuite());
 //        runner.registerTask(new PackedArrayTestSuite());
 //        runner.registerTask(new PackedSequenceTestSuite());
 //        runner.registerTask(new PackedLoudsTestSuite());
@@ -84,8 +84,8 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new TableTestSuite());
 
         runner.registerTask(new MapTestSuite());
-        runner.registerTask(new VectorTestSuite());
-        runner.registerTask(new SequenceTestSuite());
+//        runner.registerTask(new VectorTestSuite());
+//        runner.registerTask(new SequenceTestSuite());
 //        runner.registerTask(new LabeledTreeTestSuite());
 //        runner.registerTask(new VTreeTestSuite());
 //        runner.registerTask(new WTTestSuite());

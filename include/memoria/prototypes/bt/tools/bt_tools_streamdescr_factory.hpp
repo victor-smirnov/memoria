@@ -21,6 +21,7 @@
 #include <memoria/core/packed/tools/packed_allocator_types.hpp>
 #include <memoria/core/packed/tree/packed_fse_tree.hpp>
 #include <memoria/core/packed/tree/packed_vle_tree.hpp>
+#include <memoria/core/packed/tree/packed_fse_quick_tree.hpp>
 
 #include <iostream>
 #include <tuple>
@@ -90,7 +91,7 @@ namespace details {
 
 template <Int LeafIndexes>
 struct FSEBranchStructTF {
-	using Type = PkdFTree<Packed2TreeTypes<BigInt, BigInt, LeafIndexes>>;
+	using Type = PkdFQTree<BigInt, LeafIndexes>;
 };
 
 template <Int LeafIndexes>

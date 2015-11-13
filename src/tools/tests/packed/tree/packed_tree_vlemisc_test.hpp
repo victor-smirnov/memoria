@@ -17,33 +17,13 @@ namespace memoria {
 using namespace std;
 
 template <
-    template <typename> class CodecType = ValueFSECodec,
-    Int Blocks      = 1,
-    Int VPB         = PackedTreeBranchingFactor,
-    Int BF          = PackedTreeBranchingFactor
+    typename PackedTreeT
 >
-class PackedTreeVLEMiscTest: public PackedTreeTestBase <
-    PkdVTree,
-    CodecType,
-    Blocks,
-    VPB,
-    BF
-> {
+class PackedTreeVLEMiscTest: public PackedTreeTestBase <PackedTreeT> {
 
-    typedef PackedTreeVLEMiscTest<
-            CodecType,
-            Blocks,
-            VPB,
-            BF
-    >                                                                           MyType;
+    using MyType = PackedTreeVLEMiscTest<PackedTreeT>;
 
-    typedef PackedTreeTestBase <
-        PkdVTree,
-        CodecType,
-        Blocks,
-        VPB,
-        BF
-    >                                                                           Base;
+    using Base = PackedTreeTestBase <PackedTreeT>;
 
     typedef typename Base::Tree                                                 Tree;
     typedef typename Base::Values                                               Values;

@@ -1,0 +1,362 @@
+
+// Copyright Victor Smirnov 2015+.
+// Distributed under the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE_1_0.txt or copy at
+// http://www.boost.org/LICENSE_1_0.txt)
+
+
+#ifndef MEMORIA_CORE_PACKED_FSE_QUICK_TREE_HPP_
+#define MEMORIA_CORE_PACKED_FSE_QUICK_TREE_HPP_
+
+#include <memoria/core/packed/tools/packed_allocator.hpp>
+
+#include <memoria/core/packed/tree/packed_tree_walkers.hpp>
+#include <memoria/core/packed/tree/packed_tree_tools.hpp>
+
+#include <memoria/core/tools/static_array.hpp>
+#include <memoria/core/tools/dump.hpp>
+#include <memoria/core/tools/reflection.hpp>
+#include <memoria/core/tools/accessors.hpp>
+#include <memoria/core/tools/static_array.hpp>
+
+
+#include <type_traits>
+
+namespace memoria {
+
+
+
+template <typename IndexValueT, Int kBranchingFactor, Int kValuesPerBranch, Int SegmentsPerBlock, typename MetadataT>
+class PkdQTreeBase: public PackedAllocator {
+
+    using Base = PackedAllocator;
+
+public:
+    static constexpr UInt VERSION = 1;
+
+    using IndexValue 	= IndexValueT;
+    using Metadata		= MetadataT;
+
+    static const Int BranchingFactor        = kBranchingFactor;
+    static const Int ValuesPerBranch        = kValuesPerBranch;
+
+    static const bool FixedSizeElement      = true;
+
+    static constexpr Int ValuesPerBranchMask 	= ValuesPerBranch - 1;
+    static constexpr Int BranchingFactorMask 	= BranchingFactor - 1;
+
+    static constexpr Int ValuesPerBranchLog2 	= Log2(ValuesPerBranch) - 1;
+    static constexpr Int BranchingFactorLog2 	= Log2(BranchingFactor) - 1;
+
+    static constexpr Int METADATA = 0;
+
+
+    struct TreeLayout {
+    	const IndexValue* indexes = nullptr;
+    	Int level_starts[32];
+    	Int level_sizes[32];
+    	Int levels_max = 0;
+    	Int index_size = 0;
+    };
+
+
+
+public:
+
+    PkdQTreeBase() = default;
+
+    using FieldsList = MergeLists<
+                typename Base::FieldsList,
+                ConstValue<UInt, VERSION>,
+				ConstValue<Int, kBranchingFactor>,
+				ConstValue<Int, kValuesPerBranch>,
+                decltype(Metadata::size_),
+                decltype(Metadata::max_size_),
+                decltype(Metadata::index_size_),
+				IndexValue
+    >;
+
+
+    static Int index_size(Int capacity)
+    {
+    	TreeLayout layout;
+    	compute_tree_layout(capacity, layout);
+    	return layout.index_size;
+    }
+
+    Metadata* metadata() {
+    	return this->template get<Metadata>(METADATA);
+    }
+    const Metadata* metadata() const {
+    	return this->template get<Metadata>(METADATA);
+    }
+
+
+    IndexValue* index(Int block) {
+    	return this->template get<IndexValue>(block * SegmentsPerBlock + 1);
+    }
+    const IndexValue* index(Int block) const {
+    	return this->template get<IndexValue>(block * SegmentsPerBlock + 1);
+    }
+
+
+    const Int& size() const {
+    	return metadata()->size();
+    }
+
+    Int& size() {
+    	return metadata()->size();
+    }
+
+    Int index_size() const {
+    	return metadata()->index_size();
+    }
+
+    Int max_size() const {
+    	return metadata()->max_size();
+    }
+
+
+
+protected:
+
+    static constexpr Int divUpV(Int value) {
+    	return (value >> ValuesPerBranchLog2) + ((value & ValuesPerBranchMask) ? 1 : 0);
+    }
+
+    static constexpr Int divUpI(Int value) {
+    	return (value >> BranchingFactorLog2) + ((value & BranchingFactorMask) ? 1 : 0);
+    }
+
+
+    Int compute_tree_layout(const Metadata* meta, TreeLayout& layout) const {
+    	return compute_tree_layout(meta->max_size(), layout);
+    }
+
+    static Int compute_tree_layout(Int size, TreeLayout& layout)
+    {
+    	if (size <= ValuesPerBranch)
+    	{
+    		layout.levels_max = -1;
+    		layout.index_size = 0;
+
+    		return 0;
+    	}
+    	else {
+    		Int level = 0;
+
+    		layout.level_sizes[level] = divUpV(size);
+    		level++;
+
+    		while((layout.level_sizes[level] = divUpI(layout.level_sizes[level - 1])) > 1)
+    		{
+    			level++;
+    		}
+
+    		level++;
+
+    		for (int c = 0; c < level / 2; c++)
+    		{
+    			auto tmp = layout.level_sizes[c];
+    			layout.level_sizes[c] = layout.level_sizes[level - c - 1];
+    			layout.level_sizes[level - c - 1] = tmp;
+    		}
+
+    		Int level_start = 0;
+
+    		for (int c = 0; c < level; c++)
+    		{
+    			layout.level_starts[c] = level_start;
+    			level_start += layout.level_sizes[c];
+    		}
+
+    		layout.index_size = level_start;
+    		layout.levels_max = level - 1;
+
+    		return level;
+    	}
+    }
+
+    auto sum_index(TreeLayout& layout, Int block, Int start, Int end) const
+    {
+    	layout.indexes = this->index(block);
+
+    	IndexValue sum = 0;
+
+    	this->sum_index(layout, sum, start, end, layout.levels_max);
+
+    	return sum;
+    }
+
+
+
+    void sum_index(const TreeLayout& layout, IndexValue& sum, Int start, Int end, Int level) const
+    {
+    	Int level_start = layout.level_starts[level];
+
+    	Int branch_end = (start | BranchingFactorMask) + 1;
+    	Int branch_start = end & ~BranchingFactorMask;
+
+    	if (end <= branch_end || branch_start == branch_end)
+    	{
+    		for (Int c = start + level_start; c < end + level_start; c++)
+    		{
+    			sum += layout.indexes[c];
+    		}
+    	}
+    	else {
+    		for (Int c = start + level_start; c < branch_end + level_start; c++)
+    		{
+    			sum += layout.indexes[c];
+    		}
+
+    		sum_index(
+    				layout,
+    				sum,
+					branch_end >> BranchingFactorLog2,
+					branch_start >> BranchingFactorLog2,
+					level - 1
+    		);
+
+    		for (Int c = branch_start + level_start; c < end + level_start; c++)
+    		{
+    			sum += layout.indexes[c];
+    		}
+    	}
+    }
+
+
+    template <typename Walker>
+    Int walk_index_fw(const TreeLayout& data, Int start, Int level, Walker&& walker) const
+    {
+    	Int level_start = data.level_starts[level];
+
+    	Int branch_end = (start | BranchingFactorMask) + 1;
+
+    	for (Int c = level_start + start; c < branch_end + level_start; c++)
+    	{
+    		if (walker.compare(data.indexes[c]))
+    		{
+    			if (level < data.levels_max)
+    			{
+    				return walk_index_fw(
+    						data,
+							(c - level_start) << BranchingFactorLog2,
+							level + 1,
+							std::forward<Walker>(walker)
+    				);
+    			}
+    			else {
+    				return c - level_start;
+    			}
+    		}
+    		else {
+    			walker.next();
+    		}
+    	}
+
+    	if (level > 0)
+    	{
+    		return walk_index_fw(
+    				data,
+					branch_end >> BranchingFactorLog2,
+					level - 1,
+					std::forward<Walker>(walker)
+    		);
+    	}
+    	else {
+    		return -1;
+    	}
+    }
+
+
+    template <typename Walker>
+    Int walk_index_bw(const TreeLayout& data, Int start, Int level, Walker&& walker) const
+    {
+    	Int level_start = data.level_starts[level];
+    	Int level_size  = data.level_sizes[level];
+
+    	Int branch_end = (start & ~BranchingFactorMask) - 1;
+
+    	if (start >= level_size) {
+    		start = level_size - 1;
+    	}
+
+    	for (Int c = level_start + start; c > branch_end + level_start; c--)
+    	{
+    		if (walker.compare(data.indexes[c]))
+    		{
+    			if (level < data.levels_max)
+    			{
+    				return walk_index_bw(
+    						data,
+							((c - level_start + 1) << BranchingFactorLog2) - 1,
+							level + 1,
+							std::forward<Walker>(walker)
+    				);
+    			}
+    			else {
+    				return c - level_start;
+    			}
+    		}
+    		else {
+    			walker.next();
+    		}
+    	}
+
+    	if (level > 0)
+    	{
+    		return walk_index_bw(
+    				data,
+					branch_end >> BranchingFactorLog2,
+					level - 1,
+					std::forward<Walker>(walker)
+    		);
+    	}
+    	else {
+    		return -1;
+    	}
+    }
+
+
+
+    template <typename Walker>
+    Int find_index(const TreeLayout& data, Walker&& walker) const
+    {
+    	Int branch_start = 0;
+
+    	for (Int level = 1; level <= data.levels_max; level++)
+    	{
+    		Int level_start = data.level_starts[level];
+
+    		for (int c = level_start + branch_start; c < level_start + data.level_sizes[level]; c++)
+    		{
+    			if (walker.compare(data.indexes[c]))
+    			{
+    				if (level < data.levels_max)
+    				{
+    					branch_start = (c - level_start) << BranchingFactorLog2;
+    					goto next_level;
+    				}
+    				else {
+    					return (c - level_start);
+    				}
+    			}
+    			else {
+    				walker.next();
+    			}
+    		}
+
+    		return -1;
+
+    		next_level:;
+    	}
+
+    	return -1;
+    }
+};
+
+}
+
+
+#endif

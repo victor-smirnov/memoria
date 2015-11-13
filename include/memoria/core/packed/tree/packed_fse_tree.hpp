@@ -809,7 +809,7 @@ public:
 
     void sums(Values& values) const
     {
-        values += sums();
+        values += this->sums();
     }
 
 
@@ -822,7 +822,7 @@ public:
     template <typename T>
     void _add(Int block, T& value) const
     {
-    	value += sum(block);
+    	value += this->sum(block);
     }
 
     template <typename T>

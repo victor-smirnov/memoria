@@ -19,6 +19,7 @@
 #include <memoria/prototypes/bt_ss/btss_factory.hpp>
 #include <memoria/prototypes/ctr_wrapper/ctrwrapper_factory.hpp>
 
+#include <memoria/core/packed/tree/packed_fse_quick_tree.hpp>
 
 #include <tuple>
 
@@ -49,7 +50,8 @@ struct MapBTTypesBase: public BTTypes<Profile, memoria::BTSingleStream> {
 
     using MapStreamTF = StreamTF<
     	TL<TL<
-			PkdFTree<Packed2TreeTypes<Key_, Key_, Indexes>>, //UByteExintCodec
+			//PkdFTree<Packed2TreeTypes<Key_, Key_, Indexes>>, //UByteExintCodec
+			PkdFQTree<Key_, Indexes>,
 			PackedFSEArray<PackedFSEArrayTypes<ValueType>>
 		>>,
 		TL<TL<TL<IndexRange<0, Indexes>>, TL<>>>,

@@ -16,36 +16,12 @@ namespace memoria {
 
 using namespace std;
 
-template <
-    template <typename> class TreeType,
-    template <typename> class CodecType = ValueFSECodec,
-    Int Blocks      = 1,
-    Int VPB         = PackedTreeBranchingFactor,
-    Int BF          = PackedTreeBranchingFactor
->
-class PackedTreeFindTest: public PackedTreeTestBase <
-    TreeType,
-    CodecType,
-    Blocks,
-    VPB,
-    BF
-> {
+template <typename PackedTreeT>
+class PackedTreeFindTest: public PackedTreeTestBase<PackedTreeT> {
 
-    typedef PackedTreeFindTest<
-            TreeType,
-            CodecType,
-            Blocks,
-            VPB,
-            BF
-    >                                                                           MyType;
+    using MyType = PackedTreeFindTest<PackedTreeT>;
 
-    typedef PackedTreeTestBase <
-        TreeType,
-        CodecType,
-        Blocks,
-        VPB,
-        BF
-    >                                                                           Base;
+    using Base = PackedTreeTestBase<PackedTreeT>;
 
     typedef typename Base::Tree                                                 Tree;
     typedef typename Base::Values                                               Values;
@@ -58,7 +34,7 @@ public:
 
     PackedTreeFindTest(StringRef name): Base(name)
     {
-        this->size_ = 8192;
+        this->size_ = 65536;
 
         MEMORIA_ADD_TEST_PARAM(iterations_);
 
@@ -68,54 +44,51 @@ public:
 
     virtual ~PackedTreeFindTest() throw() {}
 
-    template <template <typename, typename> class Comparator>
-    IndexValue find_fw(const Tree* tree, Int block, Int start, Value limit)
+
+    template <typename Walker>
+    Int find_fw(const Tree* tree, Int block, Int start, IndexValue limit)
     {
-        IndexValue sum = 0;
+    	Int end = tree->size();
 
-        Int end = tree->size();
-        Comparator<IndexValue, IndexValue> compare;
+    	Walker walker(limit);
 
-        for (Int c = start; c < end; c++)
-        {
-            Value value = tree->value(block, c);
+    	for (Int c = start; c < end; c++)
+    	{
+    		Value value = tree->value(block, c);
 
-            if (compare(value, limit))
-            {
-                sum     += value;
-                limit   -= value;
-            }
-            else {
-                return c;
-            }
-        }
+    		if (walker.compare(value))
+    		{
+    			return c;
+    		}
+    		else {
+    			walker.next();
+    		}
+    	}
 
-        return end;
+    	return end;
     }
 
-    template <template <typename, typename> class Comparator>
-    IndexValue find_bw(const Tree* tree, Int block, Int start, Value limit)
+    template <typename Walker>
+    Int find_bw(const Tree* tree, Int block, Int start, IndexValue limit)
     {
-        IndexValue sum = 0;
+    	Walker walker(limit);
 
-        Comparator<IndexValue, IndexValue> compare;
+    	for (Int c = start; c >= 0; c--)
+    	{
+    		Value value = tree->value(block, c);
 
-        for (Int c = start; c >= 0; c--)
-        {
-            Value value = tree->value(block, c);
+    		if (walker.compare(value))
+    		{
+    			return c;
+    		}
+    		else {
+    			walker.next();
+    		}
+    	}
 
-            if (compare(value, limit))
-            {
-                sum     += value;
-                limit   -= value;
-            }
-            else {
-                return c;
-            }
-        }
-
-        return 0;
+    	return -1;
     }
+
 
 
     void testFindForward()
@@ -139,11 +112,11 @@ public:
 
         for (Int c = 0; c < iterations_; c++)
         {
-            Int start   = getRandom(size - 2);
-            Int rnd     = getRandom(size - start - 2);
+            Int start   = this->getRandom(size - 2);
+            Int rnd     = this->getRandom(size - start - 2);
             Int end     = start + rnd + 2;
 
-            Int block   = getRandom(Tree::Blocks);
+            Int block   = this->getRandom(Tree::Blocks);
 
             Int sum     = tree->sum(block, start, end);
 
@@ -152,8 +125,8 @@ public:
             auto result1_lt = tree->findGTForward(block, start, sum).idx();
             auto result1_le = tree->findGEForward(block, start, sum).idx();
 
-            auto result2_lt = find_fw<PackedCompareLE>(tree, block, start, sum);
-            auto result2_le = find_fw<PackedCompareLT>(tree, block, start, sum);
+            auto result2_lt = find_fw<typename Tree::FindGTWalker>(tree, block, start, sum);
+            auto result2_le = find_fw<typename Tree::FindGEWalker>(tree, block, start, sum);
 
             AssertEQ(MA_SRC, result1_lt, result2_lt, SBuf()<<start<<" "<<sum<<" "<<block);
             AssertEQ(MA_SRC, result1_le, result2_le, SBuf()<<start<<" "<<sum<<" "<<block);
@@ -182,10 +155,10 @@ public:
 
         for (Int c = 0; c < iterations_; c++)
         {
-            Int start   = getRandom(size - 2) + 2;
-            Int rnd     = getRandom(start - 2) + 1;
+            Int start   = this->getRandom(size - 2) + 2;
+            Int rnd     = this->getRandom(start - 2) + 1;
             Int end     = start - rnd;
-            Int block   = getRandom(Tree::Blocks);
+            Int block   = this->getRandom(Tree::Blocks);
 
             AssertGE(MA_SRC, end, 0);
 
@@ -197,8 +170,8 @@ public:
             auto result1_lt = tree->findGTBackward(block, start, sum).idx();
             auto result1_le = tree->findGEBackward(block, start, sum).idx();
 
-            auto result2_lt = find_bw<PackedCompareLT>(tree, block, start, sum);
-            auto result2_le = find_bw<PackedCompareLE>(tree, block, start, sum);
+            auto result2_lt = find_bw<typename Tree::FindGTWalker>(tree, block, start, sum);
+            auto result2_le = find_bw<typename Tree::FindGEWalker>(tree, block, start, sum);
 
             AssertEQ(MA_SRC, result1_lt, result2_lt, SBuf()<<" - "<<start<<" "<<sum<<" "<<block);
             AssertEQ(MA_SRC, result1_le, result2_le, SBuf()<<" - "<<start<<" "<<sum<<" "<<block);

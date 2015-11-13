@@ -17,38 +17,17 @@ namespace memoria {
 using namespace std;
 
 template <
-    template <typename> class TreeType,
-    template <typename> class CodecType = ValueFSECodec,
-    Int Blocks      = 1,
-    Int VPB         = PackedTreeBranchingFactor,
-    Int BF          = PackedTreeBranchingFactor
+	typename PackedTreeT
 >
-class PackedTreeMiscTest: public PackedTreeTestBase <
-    TreeType,
-    CodecType,
-    Blocks,
-    VPB,
-    BF
-> {
+class PackedTreeMiscTest: public PackedTreeTestBase <PackedTreeT> {
 
-    typedef PackedTreeMiscTest<
-            TreeType,
-            CodecType,
-            Blocks,
-            VPB,
-            BF
-    >                                                                           MyType;
-
-    typedef PackedTreeTestBase <
-        TreeType,
-        CodecType,
-        Blocks,
-        VPB,
-        BF
-    >                                                                           Base;
+    using MyType = PackedTreeMiscTest<PackedTreeT>;
+    using Base 	 = PackedTreeTestBase<PackedTreeT>;
 
     typedef typename Base::Tree                                                 Tree;
     typedef typename Base::Values                                               Values;
+
+    static constexpr Int Blocks = Base::Blocks;
 
     Int iterations_ = 10;
 
@@ -157,7 +136,7 @@ public:
         for (Int c = 0; c < iterations_; c++)
         {
             Values value = Base::createRandom();
-            Int idx = getRandom(tree->size());
+            Int idx = this->getRandom(tree->size());
 
             tree->addValues(idx, value);
             Base::assertIndexCorrect(MA_SRC, tree);
@@ -191,7 +170,7 @@ public:
 
         Base::fillVector(tree1, tree_values1);
 
-        Int idx = getRandom(size);
+        Int idx = this->getRandom(size);
 
         tree1->splitTo(tree2, idx);
 
@@ -227,7 +206,7 @@ public:
         Base::fillVector(tree1, tree_values1);
         Base::fillVector(tree2, tree_values2);
 
-        Int idx = getRandom(size);
+        Int idx = this->getRandom(size);
 
         tree1->splitTo(tree2, idx);
 
@@ -255,8 +234,8 @@ public:
 
             for (Int c = 0; c < this->iterations_; c++)
             {
-                Int start   = getRandom(tree->size());
-                Int end     = start + getRandom(tree->size() - start);
+                Int start   = this->getRandom(tree->size());
+                Int end     = start + this->getRandom(tree->size() - start);
 
                 Int block_size = tree->block_size();
 

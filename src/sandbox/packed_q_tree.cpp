@@ -17,7 +17,7 @@ using namespace std;
 int main() {
 
 	try {
-		using Tree = PkdFQTree<BigInt>;
+		using Tree = PkdFQTree<BigInt, 1>;
 
 		Int block_size = 4096*1000;
 
@@ -27,7 +27,7 @@ int main() {
 		Tree* tree = T2T<Tree*>(block);
 		tree->setTopLevelAllocator();
 
-		tree->init(block_size, 1);
+		tree->init(block_size);
 
 		for (Int c = 0; c < tree->max_size(); c++)
 		{
@@ -36,13 +36,13 @@ int main() {
 
 		tree->size() = tree->max_size();
 
-		tree->reindex(1);
+		tree->reindex();
 
-		tree->dump_index(1);
+		tree->dump_index();
 
 		auto max = tree->sum(0);
 
-		cout<<"find: "<<tree->find_ge(0, 1523688-6)<<endl;
+		cout<<"find: "<<tree->find_ge(0, 1523688-6).idx()<<endl;
 		cout<<tree->sum(0, 0, tree->size())<<endl;
 
 
@@ -63,10 +63,10 @@ int main() {
 		for (Int c = tree->size() - 1; c > 0; c--)
 		{
 			Int key = (c + 1) * 3;
-			cout<<c<<": "<<key<<"  "<<tree->find_ge_bw(0, c, key)<<endl;
+			cout<<c<<": "<<key<<"  "<<tree->findGEBackward(0, c, key).idx()<<endl;
 		}
 
-		cout<<tree->find_ge_bw(0, 4951, max)<<endl;
+		cout<<tree->find_ge_bw(0, 4952, max).idx()<<endl;
 	}
 	catch (vapi::Exception& ex) {
 		cout<<ex<<endl;

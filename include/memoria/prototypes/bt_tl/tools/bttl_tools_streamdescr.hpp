@@ -49,7 +49,7 @@ namespace details {
 
 		using Type = typename IfThenElse<
 				LeafSizeType == PackedSizeType::FIXED,
-				PkdFTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1>>,
+				PkdFQTree<CtrSizeT, 1>,
 				PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec>>
 		>::Result;
 	};
