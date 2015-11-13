@@ -19,13 +19,15 @@ int main() {
 	try {
 		using Tree = PkdFQTree<BigInt>;
 
-		void* block = malloc(4096);
-		memset(block, 0, 4096);
+		Int block_size = 4096*1000;
+
+		void* block = malloc(block_size);
+		memset(block, 0, block_size);
 
 		Tree* tree = T2T<Tree*>(block);
 		tree->setTopLevelAllocator();
 
-		tree->init(4096, 1);
+		tree->init(block_size, 1);
 
 		for (Int c = 0; c < tree->max_size(); c++)
 		{
@@ -34,11 +36,37 @@ int main() {
 
 		tree->size() = tree->max_size();
 
-		tree->reindex();
+		tree->reindex(1);
 
-		tree->dump();
+		tree->dump_index(1);
 
-		cout<<"find: "<<tree->find_ge(0, 1000)<<endl;
+		auto max = tree->sum(0);
+
+		cout<<"find: "<<tree->find_ge(0, 1523688-6)<<endl;
+		cout<<tree->sum(0, 0, tree->size())<<endl;
+
+
+//		cout<<"----------------------FW"<<endl;
+//
+//
+//
+//		for (Int c = 0; c < tree->size(); c++)
+//		{
+//			Int key = max - c * 3;
+//			cout<<c<<": "<<key<<"  "<<tree->find_ge_fw(0, c, key)<<endl;
+//		}
+//
+//		cout<<"----------------------BW"<<endl;
+//
+//
+//
+		for (Int c = tree->size() - 1; c > 0; c--)
+		{
+			Int key = (c + 1) * 3;
+			cout<<c<<": "<<key<<"  "<<tree->find_ge_bw(0, c, key)<<endl;
+		}
+
+		cout<<tree->find_ge_bw(0, 4951, max)<<endl;
 	}
 	catch (vapi::Exception& ex) {
 		cout<<ex<<endl;
