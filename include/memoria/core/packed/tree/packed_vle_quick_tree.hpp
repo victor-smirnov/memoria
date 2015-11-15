@@ -5,19 +5,20 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef MEMORIA_CORE_PACKED_FSE_QUICK_TREE_HPP_
-#define MEMORIA_CORE_PACKED_FSE_QUICK_TREE_HPP_
+#ifndef MEMORIA_CORE_PACKED_VLE_QUICK_TREE_HPP_
+#define MEMORIA_CORE_PACKED_VLE_QUICK_TREE_HPP_
 
-#include <memoria/core/packed/tree/packed_fse_quick_tree_base.hpp>
+#include <memoria/core/packed/tree/packed_vle_quick_tree_base.hpp>
 
 
 namespace memoria {
 
+/*
 template <typename IndexValueT, Int kBlocks, typename ValueT = IndexValueT, Int kBranchingFactor = PackedTreeBranchingFactor, Int kValuesPerBranch = PackedTreeBranchingFactor>
-class PkdFQTree: public PkdFQTreeBase<IndexValueT, ValueT, kBranchingFactor, kValuesPerBranch> {
+class PkdVQTree: public PkdVQTreeBase<IndexValueT, ValueT, kBranchingFactor, kValuesPerBranch> {
 
-	using Base 		= PkdFQTreeBase<IndexValueT, ValueT, kBranchingFactor, kValuesPerBranch>;
-	using MyType 	= PkdFQTree<IndexValueT, kBlocks, ValueT, kBranchingFactor, kValuesPerBranch>;
+	using Base 		= PkdVQTreeBase<IndexValueT, ValueT, kBranchingFactor, kValuesPerBranch>;
+	using MyType 	= PkdVQTree<IndexValueT, kBlocks, ValueT, kBranchingFactor, kValuesPerBranch>;
 
 public:
     static constexpr UInt VERSION = 1;
@@ -750,22 +751,22 @@ public:
 };
 
 template <typename IndexValueT, Int kBlocks, typename ValueT, Int kBranchingFactor, Int kValuesPerBranch>
-struct PkdStructSizeType<PkdFQTree<IndexValueT, kBlocks, ValueT, kBranchingFactor, kValuesPerBranch>> {
+struct PkdStructSizeType<PkdVQTree<IndexValueT, kBlocks, ValueT, kBranchingFactor, kValuesPerBranch>> {
 	static const PackedSizeType Value = PackedSizeType::FIXED;
 };
 
 
 template <typename IndexValueT, Int kBlocks, typename ValueT, Int kBranchingFactor, Int kValuesPerBranch>
-struct StructSizeProvider<PkdFQTree<IndexValueT, kBlocks, ValueT, kBranchingFactor, kValuesPerBranch>> {
+struct StructSizeProvider<PkdVQTree<IndexValueT, kBlocks, ValueT, kBranchingFactor, kValuesPerBranch>> {
     static const Int Value = kBlocks;
 };
 
 template <typename IndexValueT, Int kBlocks, typename ValueT, Int kBranchingFactor, Int kValuesPerBranch>
-struct IndexesSize<PkdFQTree<IndexValueT, kBlocks, ValueT, kBranchingFactor, kValuesPerBranch>> {
+struct IndexesSize<PkdVQTree<IndexValueT, kBlocks, ValueT, kBranchingFactor, kValuesPerBranch>> {
 	static const Int Value = kBlocks;
 };
 
-
+*/
 }
 
 

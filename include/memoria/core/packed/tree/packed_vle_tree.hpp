@@ -1354,53 +1354,7 @@ public:
     }
 
 
-//
-//    void insert(IData* data, Int pos, Int length)
-//    {
-//        MEMORIA_ASSERT(pos, <=, size());
-//
-//        IDataSource<Values>* src = static_cast<IDataSource<Values>*>(data);
-//
-//        IDataAPI api_type = src->api();
-//
-//        Values values[IOBatchSize];
-//        BigInt to_write_local = length;
-//
-//        if (api_type == IDataAPI::Batch || api_type == IDataAPI::Both)
-//        {
-//            while (to_write_local > 0)
-//            {
-//                SizeT remainder     = src->getRemainder();
-//                SizeT batch_size    = remainder > IOBatchSize ? IOBatchSize : remainder;
-//
-//                SizeT processed     = src->get(&values[0], 0, batch_size);
-//
-//                insertData(values, pos, processed);
-//
-//                pos             += processed;
-//                to_write_local  -= processed;
-//            }
-//        }
-//        else {
-//            while (to_write_local > 0)
-//            {
-//                SizeT remainder     = src->getRemainder();
-//                SizeT batch_size    = remainder > IOBatchSize ? IOBatchSize : remainder;
-//
-//                for (Int c = 0; c < batch_size; c++)
-//                {
-//                    values[c] = src->get();
-//                }
-//
-//                insertData(values, pos, batch_size);
-//
-//                pos             += batch_size;
-//                to_write_local  -= batch_size;
-//            }
-//        }
-//
-//        reindex();
-//    }
+
 
     template <Int LineWidth, typename T>
     void insertBlock(const T* data, Int blocks)
@@ -1426,73 +1380,6 @@ public:
         reindex();
     }
 
-
-//    void append(IData* src, Int pos, Int length)
-//    {
-//        insert(src, size(), length);
-//    }
-//
-//    void update(IData* data, Int pos, Int length)
-//    {
-//        removeSpace(pos, pos + length);
-//        insert(data, pos, length);
-//    }
-//
-//
-//
-//
-//
-//    void read(IData* data, Int pos, Int length)
-//    {
-//        IDataTarget<Values>* tgt = static_cast<IDataTarget<Values>*>(data);
-//
-//        IDataAPI api_type = tgt->api();
-//
-//        Values values[IOBatchSize];
-//        BigInt to_read = length;
-//
-//        if (api_type == IDataAPI::Batch || api_type == IDataAPI::Both)
-//        {
-//            while (to_read > 0)
-//            {
-//                SizeT remainder     = tgt->getRemainder();
-//                SizeT batch_size    = remainder > IOBatchSize ? IOBatchSize : remainder;
-//
-//                readData(values, pos, batch_size);
-//
-//                Int local_pos = 0;
-//                Int to_read_local = batch_size;
-//
-//                while (to_read_local > 0)
-//                {
-//                    SizeT processed = tgt->put(&values[0], local_pos, batch_size);
-//
-//                    local_pos       += processed;
-//                    to_read_local   -= processed;
-//                }
-//
-//                pos     += batch_size;
-//                to_read -= batch_size;
-//            }
-//        }
-//        else {
-//            while (to_read > 0)
-//            {
-//                SizeT remainder     = tgt->getRemainder();
-//                SizeT batch_size    = remainder > IOBatchSize ? IOBatchSize : remainder;
-//
-//                readData(values, pos, batch_size);
-//
-//                for (Int c = 0; c < batch_size; c++)
-//                {
-//                    tgt->put(values[c]);
-//                }
-//
-//                pos     += batch_size;
-//                to_read -= batch_size;
-//            }
-//        }
-//    }
 
 
 

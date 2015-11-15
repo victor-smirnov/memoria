@@ -225,6 +225,7 @@ public:
         return *(T2T<const Int*>(buffer_) + idx);
     }
 
+    //TODO: rename to segment_size ?
     Int element_size(Int idx) const
     {
         Int size2 = element_offset(idx + 1);

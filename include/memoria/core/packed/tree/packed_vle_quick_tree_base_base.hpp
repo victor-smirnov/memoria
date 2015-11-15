@@ -5,8 +5,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef MEMORIA_CORE_PACKED_FSE_QUICK_TREE_HPP_
-#define MEMORIA_CORE_PACKED_FSE_QUICK_TREE_HPP_
+#ifndef MEMORIA_CORE_PACKED_VLE_QUICK_TREE_BASE_BASE_HPP_
+#define MEMORIA_CORE_PACKED_VLE_QUICK_TREE_BASE_BASE_HPP_
 
 #include <memoria/core/packed/tools/packed_allocator.hpp>
 
@@ -27,7 +27,7 @@ namespace memoria {
 
 
 template <typename IndexValueT, Int kBranchingFactor, Int kValuesPerBranch, Int SegmentsPerBlock, typename MetadataT>
-class PkdQTreeBase: public PackedAllocator {
+class PkdVQTreeBaseBase: public PackedAllocator {
 
     using Base = PackedAllocator;
 
@@ -48,22 +48,31 @@ public:
     static constexpr Int ValuesPerBranchLog2 	= Log2(ValuesPerBranch) - 1;
     static constexpr Int BranchingFactorLog2 	= Log2(BranchingFactor) - 1;
 
-    static constexpr Int METADATA = 0;
 
+
+    enum {
+    	METADATA, VALUE_INDEX, SIZE_INDEX, OFFSETS, VALUES
+    };
 
     struct TreeLayout {
-    	const IndexValue* indexes = nullptr;
-    	Int level_starts[32];
-    	Int level_sizes[32];
+    	Int level_starts[8];
+    	Int level_sizes[8];
     	Int levels_max = 0;
     	Int index_size = 0;
+
+    	const IndexValueT* indexes;
+    	const Int* valaue_block_size_prefix;
+
+    	IndexValueT value_sum = 0;
+    	Int size_prefix_sum   = 0;
     };
+
 
 
 
 public:
 
-    PkdQTreeBase() = default;
+    PkdVQTreeBaseBase() = default;
 
     using FieldsList = MergeLists<
                 typename Base::FieldsList,
@@ -71,7 +80,6 @@ public:
 				ConstValue<Int, kBranchingFactor>,
 				ConstValue<Int, kValuesPerBranch>,
                 decltype(Metadata::size_),
-                decltype(Metadata::max_size_),
                 decltype(Metadata::index_size_),
 				IndexValue
     >;
@@ -92,12 +100,24 @@ public:
     }
 
 
-    IndexValue* index(Int block) {
-    	return this->template get<IndexValue>(block * SegmentsPerBlock + 1);
+
+    IndexValueT* value_index(Int block) {
+    	return this->template get<IndexValueT>(block * SegmentsPerBlock + VALUE_INDEX);
     }
-    const IndexValue* index(Int block) const {
-    	return this->template get<IndexValue>(block * SegmentsPerBlock + 1);
+
+
+    const IndexValueT* value_index(Int block) const {
+    	return this->template get<IndexValueT>(block * SegmentsPerBlock + VALUE_INDEX);
     }
+
+    Int* size_index(Int block) {
+    	return this->template get<Int>(block * SegmentsPerBlock + SIZE_INDEX);
+    }
+
+    const Int* size_index(Int block) const {
+    	return this->template get<Int>(block * SegmentsPerBlock + SIZE_INDEX);
+    }
+
 
 
     const Int& size() const {
@@ -112,12 +132,6 @@ public:
     	return metadata()->index_size();
     }
 
-    Int max_size() const {
-    	return metadata()->max_size();
-    }
-
-
-
 protected:
 
     static constexpr Int divUpV(Int value) {
@@ -128,10 +142,16 @@ protected:
     	return (value >> BranchingFactorLog2) + ((value & BranchingFactorMask) ? 1 : 0);
     }
 
+    template <Int Divisor>
+    static constexpr Int divUp(Int value, Int divisor) {
+    	return (value / Divisor) + ((value % Divisor) ? 1 : 0);
+    }
+
 
     Int compute_tree_layout(const Metadata* meta, TreeLayout& layout) const {
     	return compute_tree_layout(meta->max_size(), layout);
     }
+
 
     static Int compute_tree_layout(Int size, TreeLayout& layout)
     {
@@ -177,20 +197,23 @@ protected:
     	}
     }
 
+
     auto sum_index(TreeLayout& layout, Int block, Int start, Int end) const
     {
-    	layout.indexes = this->index(block);
+    	layout.indexes = this->value_index(block);
+    	layout.valaue_block_size_prefix = this->size_index(block);
 
-    	IndexValue sum = 0;
+    	IndexValueT sum = 0;
+    	Int size_prefix_sum = 0;
 
-    	this->sum_index(layout, sum, start, end, layout.levels_max);
+    	this->sum_index(layout, sum, size_prefix_sum, start, end, layout.levels_max);
 
     	return sum;
     }
 
 
 
-    void sum_index(const TreeLayout& layout, IndexValue& sum, Int start, Int end, Int level) const
+    void sum_index(const TreeLayout& layout, Int start, Int end, Int level) const
     {
     	Int level_start = layout.level_starts[level];
 
@@ -201,26 +224,28 @@ protected:
     	{
     		for (Int c = start + level_start; c < end + level_start; c++)
     		{
-    			sum += layout.indexes[c];
+    			layout.sum += layout.indexes[c];
+    			layout.size_prefix_sum += layout.valaue_block_size_prefix[c];
     		}
     	}
     	else {
     		for (Int c = start + level_start; c < branch_end + level_start; c++)
     		{
-    			sum += layout.indexes[c];
+    			layout.sum += layout.indexes[c];
+    			layout.size_prefix_sum += layout.valaue_block_size_prefix[c];
     		}
 
     		sum_index(
     				layout,
-    				sum,
-					branch_end >> BranchingFactorLog2,
+    				branch_end >> BranchingFactorLog2,
 					branch_start >> BranchingFactorLog2,
 					level - 1
     		);
 
     		for (Int c = branch_start + level_start; c < end + level_start; c++)
     		{
-    			sum += layout.indexes[c];
+    			layout.sum += layout.indexes[c];
+    			layout.size_prefix_sum += layout.valaue_block_size_prefix[c];
     		}
     	}
     }
@@ -251,6 +276,7 @@ protected:
     			}
     		}
     		else {
+    			data.size_prefix_sum += data.valaue_block_size_prefix[c];
     			walker.next();
     		}
     	}
@@ -259,7 +285,7 @@ protected:
     	{
     		return walk_index_fw(
     				data,
-					branch_end >> BranchingFactorLog2,
+    				branch_end >> BranchingFactorLog2,
 					level - 1,
 					std::forward<Walker>(walker)
     		);
@@ -300,6 +326,7 @@ protected:
     			}
     		}
     		else {
+    			data.size_prefix_sum += data.valaue_block_size_prefix[c];
     			walker.next();
     		}
     	}
@@ -343,6 +370,7 @@ protected:
     				}
     			}
     			else {
+    				data.size_prefix_sum += data.valaue_block_size_prefix[c];
     				walker.next();
     			}
     		}
@@ -354,6 +382,100 @@ protected:
 
     	return -1;
     }
+
+
+//    class Location {
+//    	Int window_num_;
+//    	Int size_prefix_;
+//    public:
+//    	Location(Int window_num, Int size_prefix): window_num_(window_num), size_prefix_(size_prefix) {}
+//
+//    	Int window_num() const {return window_num_;}
+//    	Int size_prefix() const {return size_prefix_;}
+//    };
+
+
+    Int locate_index(const TreeLayout& data, Int idx) const
+    {
+    	Int branch_start = 0;
+
+    	Int sum = 0;
+
+    	for (Int level = 1; level <= data.levels_max; level++)
+    	{
+    		Int level_start = data.level_starts[level];
+
+    		for (int c = level_start + branch_start; c < level_start + data.level_sizes[level]; c++)
+    		{
+    			if (sum + data.valaue_block_size_prefix[c] > idx)
+    			{
+    				if (level < data.levels_max)
+    				{
+    					branch_start = (c - level_start) << BranchingFactorLog2;
+    					goto next_level;
+    				}
+    				else {
+    					data.size_prefix_sum = sum;
+    					return (c - level_start);
+    				}
+    			}
+    			else {
+    				data.size_prefix_sum += data.valaue_block_size_prefix[c];
+    				sum += data.valaue_block_size_prefix[c];
+    			}
+    		}
+
+    		data.size_prefix_sum = sum;
+    		return -1;
+
+    		next_level:;
+    	}
+
+    	data.size_prefix_sum = sum;
+    	return -1;
+    }
+
+
+    Int locate_index_with_sum(const TreeLayout& data, Int idx) const
+    {
+    	Int branch_start = 0;
+
+    	Int sum = 0;
+
+    	for (Int level = 1; level <= data.levels_max; level++)
+    	{
+    		Int level_start = data.level_starts[level];
+
+    		for (int c = level_start + branch_start; c < level_start + data.level_sizes[level]; c++)
+    		{
+    			if (sum + data.valaue_block_size_prefix[c] > idx)
+    			{
+    				if (level < data.levels_max)
+    				{
+    					branch_start = (c - level_start) << BranchingFactorLog2;
+    					goto next_level;
+    				}
+    				else {
+    					data.size_prefix_sum = sum;
+    					return (c - level_start);
+    				}
+    			}
+    			else {
+    				sum += data.valaue_block_size_prefix[c];
+    				data.value_sum += data.indexes[c];
+    			}
+    		}
+
+    		data.size_prefix_sum = sum;
+    		return -1;
+
+    		next_level:;
+    	}
+
+    	data.size_prefix_sum = sum;
+    	return -1;
+    }
+
 };
 
 }

@@ -6,6 +6,7 @@
 
 #include <memoria/core/packed/tree/packed_fse_tree.hpp>
 #include <memoria/core/packed/tree/packed_fse_quick_tree.hpp>
+#include <memoria/core/packed/tree/packed_vle_quick_tree.hpp>
 #include <memoria/core/packed/tree/packed_tree_tools.hpp>
 
 #include <iostream>
