@@ -19,7 +19,11 @@ class PkdFQTree: public PkdFQTreeBase<IndexValueT, ValueT, kBranchingFactor, kVa
 	using Base 		= PkdFQTreeBase<IndexValueT, ValueT, kBranchingFactor, kValuesPerBranch>;
 	using MyType 	= PkdFQTree<IndexValueT, kBlocks, ValueT, kBranchingFactor, kValuesPerBranch>;
 
+
+
 public:
+	using Base::SegmentsPerBlock;
+
     static constexpr UInt VERSION = 1;
     static constexpr Int Blocks = kBlocks;
 
@@ -295,12 +299,12 @@ protected:
     void resize(Metadata* meta, Int size)
     {
     	Int new_data_size  = meta->max_size() + size;
-    	Int new_index_size =  MyType::index_size(new_data_size);
+    	Int new_index_size = MyType::index_size(new_data_size);
 
     	for (Int block = 0; block < Blocks; block++)
     	{
-    		Base::resizeBlock(2* block + 1, new_index_size * sizeof(IndexValueT));
-    		Base::resizeBlock(2* block + 2, new_data_size * sizeof(ValueT));
+    		Base::resizeBlock(SegmentsPerBlock * block + 1, new_index_size * sizeof(IndexValueT));
+    		Base::resizeBlock(SegmentsPerBlock * block + 2, new_data_size * sizeof(ValueT));
     	}
 
     	meta->max_size() 	+= size;

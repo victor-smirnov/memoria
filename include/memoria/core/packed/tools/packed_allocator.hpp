@@ -264,6 +264,11 @@ public:
 
         MEMORIA_ASSERT_ALIGN(addr, 8);
 
+//        if (T2T<std::ptrdiff_t>(addr) % 8 != 0) {
+//                    throw ::memoria::vapi::Exception(MEMORIA_SOURCE,
+//                        SBuf()<<"ASSERT FAILURE: \""<<"addr"<<"\" is not properly aligned ("<<8<<")");
+//                }
+
         __builtin_prefetch(addr);
         return addr;
     }
@@ -274,6 +279,11 @@ public:
         T* addr = T2T<T*>(base() + element_offset(idx));
 
         MEMORIA_ASSERT_ALIGN(addr, 8);
+
+//        if (T2T<std::ptrdiff_t>(addr) % 8 != 0) {
+//                            throw ::memoria::vapi::Exception(MEMORIA_SOURCE,
+//                                SBuf()<<"ASSERT FAILURE: \""<<"addr"<<"\" is not properly aligned ("<<8<<")");
+//                        }
 
         __builtin_prefetch(addr);
 

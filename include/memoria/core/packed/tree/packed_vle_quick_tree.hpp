@@ -13,14 +13,48 @@
 
 namespace memoria {
 
-/*
-template <typename IndexValueT, Int kBlocks, typename ValueT = IndexValueT, Int kBranchingFactor = PackedTreeBranchingFactor, Int kValuesPerBranch = PackedTreeBranchingFactor>
-class PkdVQTree: public PkdVQTreeBase<IndexValueT, ValueT, kBranchingFactor, kValuesPerBranch> {
+template <typename Codec>
+struct PkdVQTreeShapeProvider {
+	static constexpr Int BitsPerElement = Codec::ElementSize;
+	static constexpr Int BlockSize = 128;// bytes
 
-	using Base 		= PkdVQTreeBase<IndexValueT, ValueT, kBranchingFactor, kValuesPerBranch>;
-	using MyType 	= PkdVQTree<IndexValueT, kBlocks, ValueT, kBranchingFactor, kValuesPerBranch>;
+	static constexpr Int BranchingFactor = PackedTreeBranchingFactor;
+	static constexpr Int ValuesPerBranch = BlockSize * 8 / BitsPerElement;
+};
+
+
+template <
+	typename IndexValueT,
+	Int kBlocks,
+	template <typename> class CodecT,
+	typename ValueT = IndexValueT,
+	Int kBranchingFactor = PkdVQTreeShapeProvider<CodecT<ValueT>>::BranchingFactor,
+	Int kValuesPerBranch = PkdVQTreeShapeProvider<CodecT<ValueT>>::ValuesPerBranch
+>
+class PkdVQTree: public PkdVQTreeBase<IndexValueT, ValueT, CodecT, kBranchingFactor, kValuesPerBranch> {
+
+	using Base 		= PkdVQTreeBase<IndexValueT, ValueT, CodecT, kBranchingFactor, kValuesPerBranch>;
+	using MyType 	= PkdVQTree<IndexValueT, kBlocks, CodecT, ValueT, kBranchingFactor, kValuesPerBranch>;
 
 public:
+    using Base::BlocksStart;
+    using Base::SegmentsPerBlock;
+    using Base::compute_tree_layout;
+
+    using Base::METADATA;
+    using Base::DATA_SIZES;
+
+    using Base::VALUES;
+    using Base::VALUE_INDEX;
+    using Base::OFFSETS;
+    using Base::SIZE_INDEX;
+
+    using typename Base::Metadata;
+    using typename Base::TreeLayout;
+
+
+    using typename Base::Codec;
+
     static constexpr UInt VERSION = 1;
     static constexpr Int Blocks = kBlocks;
 
@@ -32,14 +66,19 @@ public:
 
     using Values = core::StaticVector<IndexValueT, Blocks>;
 
-    using Metadata = typename Base::Metadata;
-
     using InputBuffer 	= MyType;
     using InputType 	= Values;
+
+    using SizesT = core::StaticVector<Int, Blocks>;
 
     void init(Int data_block_size)
     {
     	Base::init(data_block_size, Blocks);
+    }
+
+    void init_tl(Int data_block_size)
+    {
+    	Base::init_tl(data_block_size, Blocks);
     }
 
     void init()
@@ -81,12 +120,25 @@ public:
         return block_size(items_num);
     }
 
+    ValueT value(Int block, Int idx) const
+    {
+    	Int data_size	  = this->data_size(block);
+    	auto values 	  = this->values(block);
+    	TreeLayout layout = this->compute_tree_layout(data_size);
+		Int start_pos  	  = this->locate(layout, values, block, idx);
 
+		Codec codec;
+		ValueT value;
 
+		codec.decode(values, value, start_pos);
 
-    Int data_size() const {
-    	return this->size() * sizeof (ValueT) * Blocks;
+		return value;
     }
+
+
+//    Int data_size() const {
+//    	return this->size() * sizeof (ValueT) * Blocks;
+//    }
 
     static Int empty_size()
     {
@@ -293,50 +345,50 @@ public:
     // ========================================= Insert/Remove/Resize ============================================== //
 
 protected:
-    void resize(Metadata* meta, Int size)
+    void resize(Int block, Int data_size, Int start, Int length)
     {
-    	Int new_data_size  = meta->max_size() + size;
-    	Int new_index_size =  MyType::index_size(new_data_size);
+    	Int new_data_size = data_size + length;
 
-    	for (Int block = 0; block < Blocks; block++)
-    	{
-    		Base::resizeBlock(2* block + 1, new_index_size * sizeof(IndexValueT));
-    		Base::resizeBlock(2* block + 2, new_data_size * sizeof(ValueT));
-    	}
+    	Int data_segment_size 	 = PackedAllocator::roundUpBitsToAlignmentBlocks(new_data_size * Codec::ElementSize);
+    	Int index_size 	 	   	 = Base::index_size(new_data_size);
+    	Int offsets_segment_size = Base::offsets_segment_size(new_data_size);
 
-    	meta->max_size() 	+= size;
-    	meta->index_size() 	= new_index_size;
+    	this->resizeBlock(block * SegmentsPerBlock + VALUES + BlocksStart, data_segment_size);
+    	this->resizeBlock(block * SegmentsPerBlock + OFFSETS + BlocksStart, offsets_segment_size);
+    	this->resizeBlock(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart, index_size * sizeof(Int));
+    	this->resizeBlock(block * SegmentsPerBlock + VALUE_INDEX + BlocksStart, index_size * sizeof(IndexValueT));
     }
 
-    void insertSpace(Int idx, Int room_length)
+
+    auto insert_space(Int block, Int start, Int length)
     {
-    	auto meta = this->metadata();
+    	Int data_size = this->data_size(block);
+    	resize(block, data_size, start, length);
 
-    	Int capacity  = meta->capacity();
+    	auto values = this->values(block);
 
-    	if (capacity < room_length)
-    	{
-    		resize(meta, room_length - capacity);
-    	}
+    	Codec codec;
+    	codec.move(values, start, start + length, data_size - start);
 
-    	for (Int block = 0; block < Blocks; block++)
-    	{
-    		auto* values = this->values(block);
+    	this->data_size(block) += length;
 
-    		CopyBuffer(
-    				values + idx,
-					values + idx + room_length,
-					meta->size() - idx
-    		);
-
-    		for (Int c = idx; c < idx + room_length; c++) {
-    			values[c] = 0;
-    		}
-    	}
-
-    	meta->size() += room_length;
+    	return values;
     }
 
+    auto remove_space(Int block, Int start, Int end)
+    {
+    	Int data_size = this->data_size(block);
+    	resize(block, data_size, start, end - start);
+
+    	auto values = this->values(block);
+
+    	Codec codec;
+    	codec.move(values, end, start, data_size - end);
+
+    	this->data_size(block) -= (end - start);
+
+    	return values;
+    }
 
 
     void copyTo(MyType* other, Int copy_from, Int count, Int copy_to) const
@@ -414,106 +466,76 @@ public:
 
     void remove(Int start, Int end)
     {
-    	auto meta = this->metadata();
-
-    	Int room_length = end - start;
-    	Int size = meta->size();
-
-    	for (Int block = Blocks - 1; block >= 0; block--)
+    	for (Int block = 0; block < Blocks; block++)
     	{
-    		auto values = this->values(block);
+    		const Int data_size	= this->data_size(block);
+    		auto values			= this->values(block);
+    		TreeLayout layout 	= compute_tree_layout(data_size);
 
-    		CopyBuffer(
-    				values + end,
-					values + start,
-					size - end
-    		);
+    		size_t start_pos = this->locate(layout, values, block, start);
+    		size_t end_pos   = this->locate(layout, values, block, end);
 
-    		for (Int c = start + size - end; c < size; c++)
-    		{
-    			values[c] = 0;
-    		}
+    		this->remove_space(block, start_pos, end_pos);
     	}
 
-    	meta->size() -= room_length;
-
-    	resize(meta, -room_length);
+    	this->size() -= end - start;
 
     	reindex();
     }
 
 
-    void insert(Int idx, Int size, std::function<Values ()> provider, bool reindex = true)
-    {
-    	insertSpace(idx, size);
 
-    	typename Base::Value* values[Blocks];
-    	for (Int block  = 0; block < Blocks; block++)
-    	{
-    		values[block] = this->values(block);
-    	}
-
-    	for (Int c = idx; c < idx + size; c++)
-    	{
-    		Values vals = provider();
-
-    		for (Int block = 0; block < Blocks; block++)
-    		{
-    			values[block][c] = vals[block];
-    		}
-    	}
-
-    	if (reindex) {
-    		this->reindex();
-    	}
-    }
-
-    Int insert(Int idx, std::function<bool (Values&)> provider, bool reindex = true)
-    {
-    	Values vals;
-    	Int cnt = 0;
-
-    	while(provider(vals) && check_capacity(1))
-    	{
-    		insertSpace(idx, 1);
-
-    		for (Int block = 0; block < Blocks; block++)
-    		{
-    			auto values   = this->values(block);
-    			values[idx] = vals[block];
-    		}
-
-    		idx++;
-    		cnt++;
-    	}
-
-    	this->reindex();
-
-    	return cnt;
-    }
 
     template <typename T>
     void insert(Int idx, const core::StaticVector<T, Blocks>& values)
     {
-    	insertSpace(idx, 1);
+    	insert_space(idx, 1);
     	setValues(idx, values);
     }
 
 
     template <typename Adaptor>
-    void _insert(Int pos, Int size, Adaptor&& adaptor)
+    void _insert(Int pos, Int processed, Adaptor&& adaptor)
     {
-    	insertSpace(pos, size);
+    	Codec codec;
 
-    	for (Int c = 0; c < size; c++)
+    	SizesT total_lengths;
+
+    	for (Int block = 0; block < Blocks; block++)
     	{
-    		auto item = adaptor(c);
-
-    		for (Int block = 0; block < Blocks; block++)
+    		for (SizeT c = pos; c < pos + processed; c++)
     		{
-    			this->value(block, c + pos) = item[block];
+    			auto value = adaptor(c)[block];
+    			auto len = codec.length(value);
+
+    			total_lengths[block] += len;
     		}
     	}
+
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		Int data_size		= this->data_size(block);
+    		auto values			= this->values(block);
+    		TreeLayout layout 	= compute_tree_layout(data_size);
+
+    		auto lr = this->locate(layout, values, block, pos);
+
+    		size_t insertion_pos = lr.idx;
+
+    		this->insert_space(block, insertion_pos, total_lengths[block]);
+
+    		data_size = this->data_size(block);
+    		values	  = this->values(block);
+
+    		for (Int c = pos; c < pos + processed; c++)
+    		{
+    			auto value = adaptor(c)[block];
+    			Int len = codec.encode(values, value, insertion_pos, data_size);
+    			insertion_pos += len;
+    		}
+    	}
+
+    	this->size() += processed;
 
     	reindex();
     }
@@ -562,18 +584,120 @@ public:
     	remove(idx, idx + 1);
     }
 
-
-    BigInt setValue(Int block, Int idx, ValueT value)
+    template <typename UpdateFn>
+    void update_values(Int start, Int end, UpdateFn&& update_fn)
     {
-    	if (value != 0)
-    	{
-    		ValueT val = this->value(block, idx);
-    		this->value(block, idx) = value;
+    	Codec codec;
 
-    		return val - value;
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		auto values			= this->values(block);
+    		size_t data_size 	= this->data_size(block);
+    		TreeLayout layout 	= compute_tree_layout(data_size);
+    		size_t data_start	= this->locate(layout, values, block, start);
+
+    		for (Int window_start = start; window_start < end; window_start += 32)
+    		{
+    			Int window_end = (window_start + 32) < end ? window_start + 32 : end;
+
+    			Int old_length = 0;
+    			Int new_length = 0;
+
+    			auto values	= this->values(block);
+
+    			size_t data_start_tmp = data_start;
+
+    			ValueT buffer[32];
+
+    			for (Int c = window_start; c < window_end; c++)
+    			{
+    				ValueT old_value;
+    				auto len = codec.decode(values, old_value, data_start_tmp, data_size);
+
+    				auto new_value = update_fn(block, c, old_value);
+
+    				buffer[c - window_start] = new_value;
+
+    				old_length += len;
+    				new_length += codec.length(new_value);
+
+    				data_start_tmp += len;
+    			}
+
+    			if (new_length > old_length)
+    			{
+    				auto delta = new_length - old_length;
+    				this->insert_space(block, data_start, delta);
+
+        			values = this->values(block);
+        			data_size = this->data_size(block);
+    			}
+    			else if (new_length < old_length)
+    			{
+    				auto delta = old_length - new_length;
+    				this->remove_space(block, data_start, delta);
+
+        			values = this->values(block);
+        			data_size = this->data_size(block);
+    			}
+
+    			for (Int c = window_start; c < window_end; c++)
+    			{
+    				data_start += codec.encode(values, buffer[c], data_start, data_size);
+    			}
+    		}
+
+    		this->reindex_block(block);
     	}
-    	else {
-    		return 0;
+    }
+
+
+    template <typename UpdateFn>
+    void update_values(Int start, UpdateFn&& update_fn)
+    {
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		update_value(block, start, std::forward<UpdateFn>(update_fn));
+    	}
+    }
+
+
+    template <typename UpdateFn>
+    void update_value(Int block, Int start, UpdateFn&& update_fn)
+    {
+    	Codec codec;
+
+    	size_t data_size = this->data_size(block);
+
+    	auto values			= this->values(block);
+    	TreeLayout layout 	= compute_tree_layout(data_size);
+    	size_t insertion_pos = this->locate(layout, values, block, start);
+
+    	ValueT value;
+    	size_t old_length = codec.decode(values, value, insertion_pos, data_size);
+    	auto new_value = update_fn(block, value);
+
+    	if (new_value != value)
+    	{
+    		size_t new_length = codec.length(new_value);
+
+    		if (new_length > old_length)
+    		{
+    			this->insert_space(block, insertion_pos, new_length - old_length);
+    			values = this->values(block);
+    			data_size = this->data_size(block);
+
+    		}
+    		else if (old_length > new_length)
+    		{
+    			this->remove_space(block, insertion_pos, old_length - new_length);
+    			values = this->values(block);
+    			data_size = this->data_size(block);
+    		}
+
+    		codec.encode(values, new_value, insertion_pos, data_size);
+
+    		this->reindex_block(block);
     	}
     }
 
@@ -582,32 +706,25 @@ public:
     template <typename T>
     void setValues(Int idx, const core::StaticVector<T, Blocks>& values)
     {
-    	for (Int b = 0; b < Blocks; b++) {
-    		this->values(b)[idx] = values[b];
-    	}
-
-    	reindex();
+    	update_values(idx, [&](Int block, auto old_value){return values[block];});
     }
 
     template <typename T>
     void addValues(Int idx, const core::StaticVector<T, Blocks>& values)
     {
-    	for (Int b = 0; b < Blocks; b++) {
-    		this->values(b)[idx] += values[b];
-    	}
+    	update_values(idx, [&](Int block, auto old_value){return values[block] + old_value;});
+    }
 
-    	reindex();
+    template <typename T>
+    void subValues(Int idx, const core::StaticVector<T, Blocks>& values)
+    {
+    	update_values(idx, [&](Int block, auto old_value){return values[block] + old_value;});
     }
 
 
     void addValue(Int block, Int idx, ValueT value)
     {
-    	if (value != 0)
-    	{
-    		this->value(block, idx) += value;
-    	}
-
-    	reindex();
+    	update_value(block, idx, [&](Int block, auto old_value){return value + old_value;});
     }
 
     template <typename T, Int Indexes>
@@ -615,7 +732,7 @@ public:
     {
     	for (Int block = 0; block < size; block++)
     	{
-    		this->value(block, idx) += values[block + from];
+    		update_value(block, idx, [&](Int block, auto old_value){return values[block + from] + old_value;});
     	}
 
     	reindex();
@@ -750,23 +867,47 @@ public:
     }
 };
 
-template <typename IndexValueT, Int kBlocks, typename ValueT, Int kBranchingFactor, Int kValuesPerBranch>
-struct PkdStructSizeType<PkdVQTree<IndexValueT, kBlocks, ValueT, kBranchingFactor, kValuesPerBranch>> {
+
+
+
+template <
+	typename IndexValueT,
+	Int kBlocks,
+	template <typename> class CodecT,
+	typename ValueT,
+	Int kBranchingFactor,
+	Int kValuesPerBranch
+>
+struct PkdStructSizeType<PkdVQTree<IndexValueT, kBlocks, CodecT, ValueT, kBranchingFactor, kValuesPerBranch>> {
 	static const PackedSizeType Value = PackedSizeType::FIXED;
 };
 
 
-template <typename IndexValueT, Int kBlocks, typename ValueT, Int kBranchingFactor, Int kValuesPerBranch>
-struct StructSizeProvider<PkdVQTree<IndexValueT, kBlocks, ValueT, kBranchingFactor, kValuesPerBranch>> {
+template <
+	typename IndexValueT,
+	Int kBlocks,
+	template <typename> class CodecT,
+	typename ValueT,
+	Int kBranchingFactor,
+	Int kValuesPerBranch
+>
+struct StructSizeProvider<PkdVQTree<IndexValueT, kBlocks, CodecT, ValueT, kBranchingFactor, kValuesPerBranch>> {
     static const Int Value = kBlocks;
 };
 
-template <typename IndexValueT, Int kBlocks, typename ValueT, Int kBranchingFactor, Int kValuesPerBranch>
-struct IndexesSize<PkdVQTree<IndexValueT, kBlocks, ValueT, kBranchingFactor, kValuesPerBranch>> {
+template <
+	typename IndexValueT,
+	Int kBlocks,
+	template <typename> class CodecT,
+	typename ValueT,
+	Int kBranchingFactor,
+	Int kValuesPerBranch
+>
+struct IndexesSize<PkdVQTree<IndexValueT, kBlocks, CodecT, ValueT, kBranchingFactor, kValuesPerBranch>> {
 	static const Int Value = kBlocks;
 };
 
-*/
+
 }
 
 

@@ -51,8 +51,13 @@ public:
 
 
     enum {
-    	METADATA, VALUE_INDEX, SIZE_INDEX, OFFSETS, VALUES
+    	VALUE_INDEX, SIZE_INDEX, OFFSETS, VALUES
     };
+
+
+    static constexpr Int METADATA 	 	= 0;
+    static constexpr Int DATA_SIZES 	= 1;
+    static constexpr Int BlocksStart 	= 2;
 
     struct TreeLayout {
     	Int level_starts[8];
@@ -63,8 +68,9 @@ public:
     	const IndexValueT* indexes;
     	const Int* valaue_block_size_prefix;
 
-    	IndexValueT value_sum = 0;
-    	Int size_prefix_sum   = 0;
+//    	IndexValueT value_sum 		= 0;
+//    	Int size_prefix_sum   		= 0;
+//    	Int size_prefix_idx_sum   	= 0;
     };
 
 
@@ -79,8 +85,6 @@ public:
                 ConstValue<UInt, VERSION>,
 				ConstValue<Int, kBranchingFactor>,
 				ConstValue<Int, kValuesPerBranch>,
-                decltype(Metadata::size_),
-                decltype(Metadata::index_size_),
 				IndexValue
     >;
 
@@ -95,27 +99,43 @@ public:
     Metadata* metadata() {
     	return this->template get<Metadata>(METADATA);
     }
+
     const Metadata* metadata() const {
     	return this->template get<Metadata>(METADATA);
     }
 
+    const Int* data_sizes() const {
+    	return this->template get<Int>(DATA_SIZES);
+    }
+
+    Int* data_sizes() {
+    	return this->template get<Int>(DATA_SIZES);
+    }
+
+    Int& data_size(Int block) {
+    	return data_sizes()[block];
+    }
+
+    const Int& data_size(Int block) const {
+    	return data_sizes()[block];
+    }
 
 
     IndexValueT* value_index(Int block) {
-    	return this->template get<IndexValueT>(block * SegmentsPerBlock + VALUE_INDEX);
+    	return this->template get<IndexValueT>(block * SegmentsPerBlock + VALUE_INDEX + BlocksStart);
     }
 
 
     const IndexValueT* value_index(Int block) const {
-    	return this->template get<IndexValueT>(block * SegmentsPerBlock + VALUE_INDEX);
+    	return this->template get<IndexValueT>(block * SegmentsPerBlock + VALUE_INDEX + BlocksStart);
     }
 
     Int* size_index(Int block) {
-    	return this->template get<Int>(block * SegmentsPerBlock + SIZE_INDEX);
+    	return this->template get<Int>(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart);
     }
 
     const Int* size_index(Int block) const {
-    	return this->template get<Int>(block * SegmentsPerBlock + SIZE_INDEX);
+    	return this->template get<Int>(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart);
     }
 
 
@@ -148,10 +168,17 @@ protected:
     }
 
 
-    Int compute_tree_layout(const Metadata* meta, TreeLayout& layout) const {
-    	return compute_tree_layout(meta->max_size(), layout);
-    }
+//    Int compute_tree_layout(const Metadata* meta, TreeLayout& layout) const {
+//    	return compute_tree_layout(meta->max_size(), layout);
+//    }
 
+
+    static TreeLayout compute_tree_layout(Int size)
+    {
+    	TreeLayout layout;
+    	compute_tree_layout(size, layout);
+    	return layout;
+    }
 
     static Int compute_tree_layout(Int size, TreeLayout& layout)
     {
@@ -250,9 +277,12 @@ protected:
     	}
     }
 
+    struct WalkerState {
+    	Int size_sum = 0;
+    };
 
     template <typename Walker>
-    Int walk_index_fw(const TreeLayout& data, Int start, Int level, Walker&& walker) const
+    Int walk_index_fw(const TreeLayout& data, WalkerState& state, Int start, Int level, Walker&& walker) const
     {
     	Int level_start = data.level_starts[level];
 
@@ -266,6 +296,7 @@ protected:
     			{
     				return walk_index_fw(
     						data,
+							state,
 							(c - level_start) << BranchingFactorLog2,
 							level + 1,
 							std::forward<Walker>(walker)
@@ -276,7 +307,7 @@ protected:
     			}
     		}
     		else {
-    			data.size_prefix_sum += data.valaue_block_size_prefix[c];
+    			state.size_sum += data.valaue_block_size_prefix[c];
     			walker.next();
     		}
     	}
@@ -285,6 +316,7 @@ protected:
     	{
     		return walk_index_fw(
     				data,
+					state,
     				branch_end >> BranchingFactorLog2,
 					level - 1,
 					std::forward<Walker>(walker)
@@ -297,7 +329,7 @@ protected:
 
 
     template <typename Walker>
-    Int walk_index_bw(const TreeLayout& data, Int start, Int level, Walker&& walker) const
+    Int walk_index_bw(const TreeLayout& data, WalkerState& state, Int start, Int level, Walker&& walker) const
     {
     	Int level_start = data.level_starts[level];
     	Int level_size  = data.level_sizes[level];
@@ -316,6 +348,7 @@ protected:
     			{
     				return walk_index_bw(
     						data,
+							state,
 							((c - level_start + 1) << BranchingFactorLog2) - 1,
 							level + 1,
 							std::forward<Walker>(walker)
@@ -326,7 +359,7 @@ protected:
     			}
     		}
     		else {
-    			data.size_prefix_sum += data.valaue_block_size_prefix[c];
+    			state.size_sum -= data.valaue_block_size_prefix[c];
     			walker.next();
     		}
     	}
@@ -335,6 +368,7 @@ protected:
     	{
     		return walk_index_bw(
     				data,
+					state,
 					branch_end >> BranchingFactorLog2,
 					level - 1,
 					std::forward<Walker>(walker)
@@ -348,7 +382,7 @@ protected:
 
 
     template <typename Walker>
-    Int find_index(const TreeLayout& data, Walker&& walker) const
+    Int find_index(const TreeLayout& data, WalkerState& state, Walker&& walker) const
     {
     	Int branch_start = 0;
 
@@ -370,7 +404,7 @@ protected:
     				}
     			}
     			else {
-    				data.size_prefix_sum += data.valaue_block_size_prefix[c];
+    				state.size_sum += data.valaue_block_size_prefix[c];
     				walker.next();
     			}
     		}
@@ -384,18 +418,22 @@ protected:
     }
 
 
-//    class Location {
-//    	Int window_num_;
-//    	Int size_prefix_;
-//    public:
-//    	Location(Int window_num, Int size_prefix): window_num_(window_num), size_prefix_(size_prefix) {}
-//
-//    	Int window_num() const {return window_num_;}
-//    	Int size_prefix() const {return size_prefix_;}
-//    };
+    struct LocateResult {
+    	Int idx = 0;
+    	Int index_cnt = 0;
+    	IndexValue value_sum = 0;
+
+    	LocateResult(Int idx_, Int index_cnt_ = 0, Int value_sum_ = 0) :
+    		idx(idx_), index_cnt(index_cnt_), value_sum(value_sum_)
+    	{}
+
+    	LocateResult() {}
+
+    	Int local_cnt() const {return idx - index_cnt;}
+    };
 
 
-    Int locate_index(const TreeLayout& data, Int idx) const
+    LocateResult locate_index(TreeLayout& data, Int idx) const
     {
     	Int branch_start = 0;
 
@@ -415,32 +453,29 @@ protected:
     					goto next_level;
     				}
     				else {
-    					data.size_prefix_sum = sum;
-    					return (c - level_start);
+    					return LocateResult(c - level_start, sum);
     				}
     			}
     			else {
-    				data.size_prefix_sum += data.valaue_block_size_prefix[c];
     				sum += data.valaue_block_size_prefix[c];
     			}
     		}
 
-    		data.size_prefix_sum = sum;
-    		return -1;
+    		return LocateResult(-1, sum);
 
     		next_level:;
     	}
 
-    	data.size_prefix_sum = sum;
-    	return -1;
+    	return LocateResult(-1, sum);
     }
 
 
-    Int locate_index_with_sum(const TreeLayout& data, Int idx) const
+    LocateResult locate_index_with_sum(const TreeLayout& data, Int idx) const
     {
     	Int branch_start = 0;
 
     	Int sum = 0;
+    	IndexValueT value_sum = 0;
 
     	for (Int level = 1; level <= data.levels_max; level++)
     	{
@@ -456,24 +491,21 @@ protected:
     					goto next_level;
     				}
     				else {
-    					data.size_prefix_sum = sum;
-    					return (c - level_start);
+    					return LocateResult(c - level_start, sum, value_sum);
     				}
     			}
     			else {
     				sum += data.valaue_block_size_prefix[c];
-    				data.value_sum += data.indexes[c];
+    				value_sum += data.indexes[c];
     			}
     		}
 
-    		data.size_prefix_sum = sum;
-    		return -1;
+    		return LocateResult(-1, sum, value_sum);
 
     		next_level:;
     	}
 
-    	data.size_prefix_sum = sum;
-    	return -1;
+    	return LocateResult(-1, sum, value_sum);
     }
 
 };

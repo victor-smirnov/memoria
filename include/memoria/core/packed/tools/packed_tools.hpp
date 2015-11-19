@@ -90,7 +90,7 @@ static Int FindTotalElementsNumber2(Int block_size, Fn&& fn)
 
             max_size = middle;
 
-            for (Int c = 0; c < 128; c++)
+            for (Int c = 0; c < 256; c++)
             {
                 if (fn.block_size(middle + c) <= block_size)
                 {
@@ -108,7 +108,7 @@ static Int FindTotalElementsNumber2(Int block_size, Fn&& fn)
 
     max_size = first;
 
-    for (Int c = 0; c < 64; c++)
+    for (Int c = 0; c < 1024; c++)
     {
         Int bs = fn.block_size(first + c);
         if (bs <= block_size)
@@ -126,6 +126,66 @@ static Int FindTotalElementsNumber2(Int block_size, Fn&& fn)
 }
 
 
+template <typename Fn>
+static Int FindTotalElementsNumber3(Int block_size, Fn&& fn)
+{
+    Int first       = 0;
+    Int last        = fn.max_elements(block_size);
+
+    Int max_size    = 0;
+
+    while (first < last - 1)
+    {
+        Int middle = (first + last) / 2;
+
+        Int size = fn.block_size(middle);
+
+        if (size < block_size)
+        {
+            first = middle;
+        }
+        else if (size > block_size)
+        {
+            last = middle;
+        }
+        else {
+
+            max_size = middle;
+
+            for (Int c = 0; c < 256; c++)
+            {
+                if (fn.block_size(middle + c) <= block_size)
+                {
+                    max_size = middle + c;
+                }
+                else {
+                    return max_size;
+                }
+            }
+
+            throw Exception(MA_SRC, "Can't find max_size in 64 steps. Stop.");
+        }
+    }
+
+
+    max_size = first;
+
+    for (Int c = 0; c < 1024; c++)
+    {
+        Int bs = fn.block_size(first + c);
+        if (bs <= block_size)
+        {
+            max_size = first + c;
+        }
+        else {
+            return max_size;
+        }
+    }
+
+    throw Exception(MA_SRC, "Can't find max_size in 64 steps. Stop.");
+
+    return max_size;
+}
 
 
 
