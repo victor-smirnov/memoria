@@ -366,13 +366,28 @@ protected:
 
     	if (level > 0)
     	{
-    		return walk_index_bw(
-    				data,
-					state,
-					branch_end >> BranchingFactorLog2,
-					level - 1,
-					std::forward<Walker>(walker)
-    		);
+    		if (branch_end >= 0)
+    		{
+    			return walk_index_bw(
+    					data,
+						state,
+						branch_end >> BranchingFactorLog2,
+						level - 1,
+						std::forward<Walker>(walker)
+    			);
+    		}
+    		else if (level < data.levels_max) {
+    			return walk_index_bw(
+    					data,
+						state,
+						0,
+						level + 1,
+						std::forward<Walker>(walker)
+    			);
+    		}
+    		else {
+    			return 0;
+    		}
     	}
     	else {
     		return -1;

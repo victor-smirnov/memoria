@@ -96,7 +96,7 @@ struct FSEBranchStructTF {
 
 template <Int LeafIndexes>
 struct VLEBranchStructTF {
-	using Type = PkdVTree<Packed2TreeTypes<BigInt, BigInt, LeafIndexes, UByteExintCodec>>;
+	using Type = PkdVTree<Packed2TreeTypes<BigInt, BigInt, LeafIndexes, UByteExintCodec, 32, 128>>;
 };
 
 

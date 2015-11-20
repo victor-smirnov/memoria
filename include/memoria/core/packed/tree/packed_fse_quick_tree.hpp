@@ -45,6 +45,11 @@ public:
     	Base::init(data_block_size, Blocks);
     }
 
+    void init_tl(Int data_block_size)
+    {
+    	Base::init_tl(data_block_size, Blocks);
+    }
+
     void init()
     {
     	Base::init(0, Blocks);

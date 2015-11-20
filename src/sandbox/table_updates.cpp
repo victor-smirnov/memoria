@@ -13,10 +13,7 @@
 #include <memoria/core/container/metadata_repository.hpp>
 
 #include <memoria/core/tools/time.hpp>
-
-std::uniform_int_distribution<int>      distribution;
-std::mt19937_64                         engine;
-auto                                    generator               = std::bind(distribution, engine);
+#include <memoria/core/tools/random.hpp>
 
 
 using namespace memoria;
@@ -24,8 +21,7 @@ using namespace memoria::tools;
 using namespace std;
 
 using CtrT 		= DCtrTF<Table<BigInt, Short>>::Type;
-using Provider 	= table::RandomDataInputProvider<CtrT, decltype(generator)>;
-using Position  = Provider::Position;
+using Provider 	= bttl::RandomDataInputProvider<CtrT, RngInt>;
 
 template<Int StreamIdx>
 using Adapter	= CtrT::Types::template InputTupleAdapter<StreamIdx>;
@@ -57,13 +53,13 @@ int main(int argc, const char** argv, const char** envp) {
 
 		auto iter = ctr.seek(0);
 
-		Int rows 		= 100;
+		Int rows 		= 1000000;
 		Int cols		= 10;
 		Int data_size	= 50;
 
-		Provider provider(ctr, rows + 1, cols, data_size, generator);
+		Provider provider({rows + 1, cols, data_size}, getGlobalIntGenerator());
 
-		ctr.insert_provided_data(iter.leaf(), Position(), provider);
+		ctr._insert(iter, provider);
 
 //		iter = ctr.seek(0);
 

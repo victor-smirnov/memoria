@@ -30,7 +30,7 @@ template <typename T> struct StructSizeProvider;
 
 
 
-enum class PackedSizeType {FIXED, VARIABLE};
+
 
 template <typename PkdStruct>
 struct PkdStructSizeType {

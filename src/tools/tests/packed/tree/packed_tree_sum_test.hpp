@@ -33,7 +33,7 @@ public:
 
     PackedTreeSumTest(StringRef name): Base(name)
     {
-        this->size_ = 65536;
+        this->size_ = 8192;
 
         MEMORIA_ADD_TEST_PARAM(iterations_);
 
@@ -66,14 +66,14 @@ public:
         }
     }
 
-    void testBlockSum(Int block_size)
+    void testBlockSum(Int tree_size)
     {
-        Base::out()<<block_size<<endl;
+        Base::out()<<tree_size<<endl;
 
-        Tree* tree = Base::createEmptyTree(block_size);
+        Tree* tree = Base::createEmptyTree();
         PARemover remover(tree);
 
-        auto values = Base::fillRandom(tree);
+        auto values = Base::fillRandom(tree, tree_size);
 
         Int size = tree->size();
 

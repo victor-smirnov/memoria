@@ -61,6 +61,9 @@ int main(int argc, const char** argv, const char** envp)
 
         runner.setSeed(seed);
 
+        DCtrTF<Table<BigInt, Byte, PackedSizeType::FIXED>>::Type::initMetadata();
+        DCtrTF<Table<BigInt, Byte, PackedSizeType::VARIABLE>>::Type::initMetadata();
+
         runner.setRunCount(cmd_line.getCount());
 //
 //        runner.registerTask(new BitmapTestSuite());

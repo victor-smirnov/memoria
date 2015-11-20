@@ -167,8 +167,13 @@ public:
 };
 
 template <typename Key, typename Value>
-struct TypeHash<Table<Key, Value>>:   UIntValue<
-    HashHelper<3000, TypeHash<Key>::Value, TypeHash<Value>::Value>::Value
+struct TypeHash<Table<Key, Value, PackedSizeType::FIXED>>:   UIntValue<
+    HashHelper<3098, TypeHash<Key>::Value, TypeHash<Value>::Value>::Value
+> {};
+
+template <typename Key, typename Value>
+struct TypeHash<Table<Key, Value, PackedSizeType::VARIABLE>>:   UIntValue<
+    HashHelper<3099, TypeHash<Key>::Value, TypeHash<Value>::Value>::Value
 > {};
 
 }

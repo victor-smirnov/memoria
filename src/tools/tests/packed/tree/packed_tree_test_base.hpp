@@ -15,32 +15,21 @@
 #include <memoria/core/packed/tools/packed_allocator.hpp>
 
 #include <memoria/core/packed/tree/packed_fse_quick_tree.hpp>
+#include <memoria/core/packed/tree/packed_vle_quick_tree.hpp>
+
+#include <memoria/core/tools/i7_codec.hpp>
 
 namespace memoria {
 
 using namespace memoria::vapi;
 using namespace std;
 
-template <
-//    template <typename> class TreeType,
-//    template <typename> class CodecType = ValueFSECodec,
-//    Int Blocks      = 1,
-//    Int VPB         = PackedTreeBranchingFactor,
-//    Int BF          = PackedTreeBranchingFactor
-
-	typename PackedTreeT
->
+template <typename PackedTreeT>
 class PackedTreeTestBase: public TestTask {
+	using Base = TestTask;
 protected:
-//    typedef Packed2TreeTypes<
-//            Int,
-//            Int,
-//            Blocks,
-//            CodecType,
-//            BF,
-//            VPB
-//    >                                                                           Types;
 
+	static constexpr Int MEMBUF_SIZE = 1024*1024*64;
 
 
     using Tree = PackedTreeT;
@@ -52,6 +41,8 @@ protected:
     static constexpr Int Blocks = Tree::Blocks;
 
 public:
+
+    using Base::getRandom;
 
     PackedTreeTestBase(StringRef name): TestTask(name)
     {}
@@ -70,11 +61,11 @@ public:
     }
 
 
-    Tree* createEmptyTree(Int block_size = 65536)
+    Tree* createEmptyTree()
     {
-        void* block = malloc(block_size);
+        void* block = malloc(MEMBUF_SIZE);
         PackedAllocator* allocator = T2T<PackedAllocator*>(block);
-        allocator->init(block_size, 1);
+        allocator->init(MEMBUF_SIZE, 1);
         allocator->setTopLevelAllocator();
 
         Tree* tree = allocator->template allocateEmpty<Tree>(0);
@@ -107,17 +98,18 @@ public:
         }
     }
 
-    vector<Values> fillRandom(Tree* tree, Int max_value = 100)
+    vector<Values> fillRandom(Tree* tree, Int size, Int max_value = 300)
     {
-        vector<Values> vals;
+        vector<Values> vals(size);
+        for (auto& v: vals)
+        {
+        	for (Int b = 0; b < Blocks; b++) {
+        		v[b] = getRandom(max_value);
+        	}
+        }
 
-        Int size = tree->insert(0, [&](Values& values) -> bool {
-            for (Int b = 0; b < Blocks; b++) {
-                values[b] = this->getRandom(max_value);
-            }
-
-            vals.push_back(values);
-            return true;
+        tree->_insert(0, size, [&](Int idx) {
+        	return vals[idx];
         });
 
         truncate(vals, size);
@@ -126,12 +118,9 @@ public:
 
         for (Int b = 0; b < Blocks; b++)
         {
-        	auto values = tree->values(b);
-
-        	for (Int c = 0; c < size; c++)
-        	{
-        		AssertEQ(MA_SRC, values[c], vals[c][b]);
-        	}
+        	tree->scan(b, 0, tree->size(), [&](Int idx, auto v){
+        		AssertEQ(MA_SRC, v, vals[idx][b]);
+        	});
         }
 
         return vals;
@@ -174,9 +163,8 @@ public:
 
     void fillVector(Tree* tree, const vector<Values>& vals)
     {
-        Int cnt = 0;
-        tree->insert(0, vals.size(), [&]() {
-            return vals[cnt++];
+        tree->_insert(0, vals.size(), [&](Int idx) {
+            return vals[idx];
         });
     }
 
@@ -191,7 +179,7 @@ public:
         return values;
     }
 
-    vector<Values> createRandomValuesVector(Int size, Int max_value = 100)
+    vector<Values> createRandomValuesVector(Int size, Int max_value = 300)
     {
         vector<Values> vals(size);
 
@@ -256,9 +244,7 @@ public:
         Int empty_size = Tree::empty_size();
 
         AssertEQ(MA_SRC, tree->size(), 0);
-        AssertEQ(MA_SRC, tree->data_size(), 0);
         AssertEQ(MA_SRC, tree->block_size(), empty_size);
-        AssertEQ(MA_SRC, tree->index_size(), 0);
     }
 
     template <typename T>

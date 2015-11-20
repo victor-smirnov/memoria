@@ -27,7 +27,7 @@ template <
 	typename IndexValueT,
 	Int kBlocks,
 	template <typename> class CodecT,
-	typename ValueT = IndexValueT,
+	typename ValueT = BigInt,
 	Int kBranchingFactor = PkdVQTreeShapeProvider<CodecT<ValueT>>::BranchingFactor,
 	Int kValuesPerBranch = PkdVQTreeShapeProvider<CodecT<ValueT>>::ValuesPerBranch
 >
@@ -125,7 +125,9 @@ public:
     	Int data_size	  = this->data_size(block);
     	auto values 	  = this->values(block);
     	TreeLayout layout = this->compute_tree_layout(data_size);
-		Int start_pos  	  = this->locate(layout, values, block, idx);
+		Int start_pos  	  = this->locate(layout, values, block, idx).idx;
+
+		MEMORIA_ASSERT(start_pos, <, data_size);
 
 		Codec codec;
 		ValueT value;
@@ -375,21 +377,43 @@ protected:
     	return values;
     }
 
+    void dump_values(Int block, std::ostream& out = std::cout)
+    {
+    	out<<"Dump values"<<std::endl;
+    	Codec codec;
+    	size_t pos = 0;
+
+    	auto values 	= this->values(block);
+    	auto data_size 	= this->data_size(block);
+
+    	for(Int c = 0; pos < data_size; c++)
+    	{
+    		ValueT value;
+    		auto len = codec.decode(values, value, pos);
+
+    		out<<c<<": "<<pos<<" "<<value<<std::endl;
+
+    		pos += len;
+    	}
+
+    	out<<std::endl;
+    }
+
+
     auto remove_space(Int block, Int start, Int end)
     {
     	Int data_size = this->data_size(block);
-    	resize(block, data_size, start, end - start);
-
     	auto values = this->values(block);
 
     	Codec codec;
     	codec.move(values, end, start, data_size - end);
 
+    	resize(block, data_size, start, -(end - start));
+
     	this->data_size(block) -= (end - start);
 
     	return values;
     }
-
 
     void copyTo(MyType* other, Int copy_from, Int count, Int copy_to) const
     {
@@ -412,54 +436,65 @@ protected:
 public:
     void splitTo(MyType* other, Int idx)
     {
-    	Int total = this->size() - idx;
-    	other->insertSpace(0, total);
+    	Codec codec;
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		Int start = this->locate(block, idx);
+    		Int size  = this->data_size(block) - start;
 
-    	copyTo(other, idx, total, 0);
-    	other->reindex();
+    		other->insert_space(block, 0, size);
+    		codec.copy(this->values(block), start, other->values(block), 0, size);
+    	}
 
-    	removeSpace(idx, this->size());
-    	reindex();
+    	Int size = this->size();
+        other->size() += size - idx;
+
+        other->reindex();
+
+        remove(idx, size);
     }
+
 
     void mergeWith(MyType* other)
     {
-    	Int my_size     = this->size();
-    	Int other_size  = other->size();
+    	Codec codec;
 
-    	other->insertSpace(other_size, my_size);
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		Int data_size = this->data_size(block);
+    		Int other_data_size = other->data_size(block);
+    		Int start = other_data_size;
+    		other->insert_space(block, other_data_size, data_size);
 
-    	copyTo(other, 0, my_size, other_size);
+    		codec.copy(this->values(block), 0, other->values(block), start, data_size);
+    	}
 
-    	removeSpace(0, my_size);
+    	other->size() += this->size();
 
-    	reindex();
     	other->reindex();
+
+    	this->clear();
     }
+
+
 
     template <typename TreeType>
     void transferDataTo(TreeType* other) const
     {
-    	other->insertSpace(0, this->size());
-
-    	Int size = this->size();
+    	Codec codec;
 
     	for (Int block = 0; block < Blocks; block++)
     	{
-    		const auto* my_values   = this->values(block);
-    		auto* other_values      = other->values(block);
-
-    		for (Int c = 0; c < size; c++)
-    		{
-    			other_values[c] = my_values[c];
-    		}
+    		Int data_size = this->data_size(block);
+    		other->insertSpace(block, 0, data_size);
+    		codec.copy(this->values(block), 0, other->values(block), 0, data_size);
     	}
 
     	other->reindex();
     }
 
 
-    void removeSpace(Int start, Int end)
+    void remove_space(Int start, Int end)
     {
     	remove(start, end);
     }
@@ -472,8 +507,8 @@ public:
     		auto values			= this->values(block);
     		TreeLayout layout 	= compute_tree_layout(data_size);
 
-    		size_t start_pos = this->locate(layout, values, block, start);
-    		size_t end_pos   = this->locate(layout, values, block, end);
+    		Int start_pos = this->locate(layout, values, block, start).idx;
+    		Int end_pos   = this->locate(layout, values, block, end).idx;
 
     		this->remove_space(block, start_pos, end_pos);
     	}
@@ -671,7 +706,7 @@ public:
 
     	auto values			= this->values(block);
     	TreeLayout layout 	= compute_tree_layout(data_size);
-    	size_t insertion_pos = this->locate(layout, values, block, start);
+    	size_t insertion_pos = this->locate(layout, values, block, start).idx;
 
     	ValueT value;
     	size_t old_length = codec.decode(values, value, insertion_pos, data_size);
@@ -745,27 +780,18 @@ public:
 
     void clear()
     {
-        init();
-
         if (Base::has_allocator())
         {
             auto alloc = this->allocator();
             Int empty_size = MyType::empty_size();
             alloc->resizeBlock(this, empty_size);
         }
+
+        init();
     }
 
     void clear(Int start, Int end)
     {
-        for (Int block = 0; block < Blocks; block++)
-        {
-            auto values = this->values(block);
-
-            for (Int c = start; c < end; c++)
-            {
-                values[c] = 0;
-            }
-        }
     }
 
     void generateDataEvents(IPageDataEventHandler* handler) const

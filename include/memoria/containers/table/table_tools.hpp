@@ -31,7 +31,7 @@ public:
 	using CtrSizeT 		= typename CtrT::CtrSizeT;
 	using Buffer 		= typename Base::Buffer;
 
-	using RunDescr 		= typename Base::RunDescr;
+	using RunDescr 		= bttl::RunDescr;
 
 	using NodeBaseG		= typename Base::NodeBaseG;
 

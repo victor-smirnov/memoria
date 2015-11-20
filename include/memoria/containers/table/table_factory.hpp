@@ -33,7 +33,8 @@ namespace memoria {
 template <
     typename Profile,
     typename Key_,
-    typename Value_
+    typename Value_,
+	PackedSizeType SizeType
 >
 struct TableBTTypesBase: public BTTypes<Profile, memoria::BTTreeLayout> {
 
@@ -51,39 +52,48 @@ struct TableBTTypesBase: public BTTypes<Profile, memoria::BTTreeLayout> {
 
     using CtrSizeT = BigInt;
 
-    template <Int Indexes>
-    using Stream1TF = StreamTF<
-    		TL<TL<
-				PkdVTree<Packed2TreeTypes<Key, Key, Indexes, UByteI7Codec>>
-//    			PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec>>
-    		>>,
-			TL<TL<TL<IndexRange<0, Indexes>>>>,
-			FSEBranchStructTF
+    static constexpr Int Levels = 3;
+
+
+    using StreamVariableTF = StreamTF<
+        TL<
+			//PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec>>
+        >,
+        TL<>, //TL<IndexRange<0, 1>>
+		VLEBranchStructTF
+    >;
+
+    using StreamFixedTF = StreamTF<
+        TL<
+        	//PkdFTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1>>
+        >,
+        TL<>, //TL<IndexRange<0, 1>>
+		FSEBranchStructTF
+    >;
+
+    using DataStreamTF  = StreamTF<
+    	TL<TL<PackedFSEArray<PackedFSEArrayTypes<Value>>>>,
+    	TL<TL<TL<>>>,
+		FSEBranchStructTF
     >;
 
 
-
-    using Stream2TF = StreamTF<
-    		TL<>,
-			TL<>,
-			FSEBranchStructTF
-    >;
-
-
-
-    using DataStreamTF = StreamTF<
-    		TL<TL<PackedFSEArray<PackedFSEArrayTypes<Value>>>>,
-			TL<TL<TL<>>>,
-			FSEBranchStructTF
-    >;
-
-    using StreamDescriptors = typename bttl::BTTLAugmentStreamDescriptors<
-    		TypeList<
-				Stream1TF<1>,
-				Stream2TF,
+    using RawStreamDescriptors = typename IfThenElse<
+    		SizeType == PackedSizeType::FIXED,
+			MergeLists<
+				typename MakeList<StreamFixedTF, Levels - 1>::Type,
+				DataStreamTF
+			>,
+			MergeLists<
+				typename MakeList<StreamVariableTF, Levels - 1>::Type,
 				DataStreamTF
 			>
+    >::Result;
+
+    using StreamDescriptors = typename bttl::BTTLAugmentStreamDescriptors<
+    		RawStreamDescriptors
 	>::Type;
+
 
     using Metadata = BalancedTreeMetadata<
             typename Base::ID,
@@ -111,15 +121,16 @@ struct TableBTTypesBase: public BTTypes<Profile, memoria::BTTreeLayout> {
 template <
     typename Profile,
     typename Key_,
-    typename Value_
+    typename Value_,
+	PackedSizeType SizeType
 >
-struct BTTypes<Profile, memoria::Table<Key_, Value_>>: public TableBTTypesBase<Profile, Key_, Value_>
+struct BTTypes<Profile, memoria::Table<Key_, Value_, SizeType>>: public TableBTTypesBase<Profile, Key_, Value_, SizeType>
 {
 };
 
 
-template <typename Profile, typename Key, typename Value, typename T>
-class CtrTF<Profile, memoria::Table<Key, Value>, T>: public CtrTF<Profile, memoria::BTTreeLayout, T> {
+template <typename Profile, typename Key, typename Value, PackedSizeType SizeType, typename T>
+class CtrTF<Profile, memoria::Table<Key, Value, SizeType>, T>: public CtrTF<Profile, memoria::BTTreeLayout, T> {
     using Base = CtrTF<Profile, memoria::BTTreeLayout, T>;
 public:
 

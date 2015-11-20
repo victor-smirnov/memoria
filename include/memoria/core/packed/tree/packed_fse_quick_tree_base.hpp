@@ -119,6 +119,25 @@ public:
     	}
     }
 
+    void init_tl(Int data_block_size, Int blocks)
+    {
+    	Base::init(data_block_size, blocks * SegmentsPerBlock + 1);
+
+    	Metadata* meta = this->template allocate<Metadata>(METADATA);
+
+    	Int max_size        = 0;
+
+    	meta->size()        = 0;
+    	meta->max_size()   	= max_size;
+    	meta->index_size()  = MyType::index_size(max_size);
+
+    	for (Int block = 0; block < blocks; block++)
+    	{
+    		this->template allocateArrayBySize<IndexValue>(block * SegmentsPerBlock + 1, meta->index_size());
+    		this->template allocateArrayBySize<Value>(block * SegmentsPerBlock + 2, max_size);
+    	}
+    }
+
     void init(Int blocks)
     {
     	Base::init(block_size, blocks * SegmentsPerBlock + 1);
@@ -783,7 +802,19 @@ public:
 
 
 
+    template <typename ConsumerFn>
+    Int scan(Int block, Int start, Int end, ConsumerFn&& fn) const
+    {
+    	auto values = this->values(block);
 
+    	Int c;
+    	for (c = start; c < end; c++)
+    	{
+    		fn(c, values[c]);
+    	}
+
+    	return c;
+    }
 
 
 

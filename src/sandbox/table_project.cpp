@@ -19,9 +19,8 @@ using namespace memoria;
 using namespace memoria::tools;
 using namespace std;
 
-using CtrT 		= DCtrTF<Table<BigInt, Byte>>::Type;
+using CtrT 		= DCtrTF<Table<BigInt, Byte, PackedSizeType::VARIABLE>>::Type;
 using Provider 	= ::memoria::bttl::DeterministicDataInputProvider<CtrT>;
-using Position  = Provider::Position;
 
 
 struct ScanFn {
@@ -50,15 +49,15 @@ int main(int argc, const char** argv, const char** envp) {
 
 		auto iter = ctr.seek(0);
 
-		Int rows 		= 1000;
+		Int rows 		= 1000000;
 		Int cols		= 10;
 		Int data_size	= 100;
 
 		BigInt c0 = getTimeInMillis();
 
-		Provider provider(ctr, {rows, cols, data_size});
+		Provider provider({rows, cols, data_size});
 
-		ctr.insert_provided_data(iter.leaf(), Position(), provider);
+		ctr._insert(iter, provider);
 
 		BigInt c1 = getTimeInMillis();
 

@@ -36,23 +36,24 @@ typedef std::uint16_t           UShort;
 typedef char                    Byte;
 typedef std::uint8_t            UByte;
 
+enum class PackedSizeType {FIXED, VARIABLE};
 
 namespace internal {
-template <int size> struct PlatformLongHelper;
+	template <int size> struct PlatformLongHelper;
 
-template <>
-struct PlatformLongHelper<4> {
-    typedef Int             LongType;
-    typedef UInt            ULongType;
-    typedef Int             SizeTType;
-};
+	template <>
+	struct PlatformLongHelper<4> {
+		typedef Int             LongType;
+		typedef UInt            ULongType;
+		typedef Int             SizeTType;
+	};
 
-template <>
-struct PlatformLongHelper<8> {
-    typedef BigInt          LongType;
-    typedef UBigInt         ULongType;
-    typedef BigInt          SizeTType;
-};
+	template <>
+	struct PlatformLongHelper<8> {
+		typedef BigInt          LongType;
+		typedef UBigInt         ULongType;
+		typedef BigInt          SizeTType;
+	};
 }
 
 const BigInt CTR_DEFAULT_NAME           = -1;
@@ -159,7 +160,7 @@ class CtrWrapper    {};
 template <typename Key, typename Value>
 struct Map          {};
 
-template <typename Key, typename Value>
+template <typename Key, typename Value, PackedSizeType SizeType>
 struct Table        {};
 
 

@@ -416,47 +416,53 @@ public:
     	auto values = this->values(block);
     	TreeLayout layout = Base::compute_tree_layout(this->data_size(block));
 
-    	return locate(layout, values, block, idx);
+    	return locate(layout, values, block, idx).idx;
     }
 
     LocateResult locate(TreeLayout& layout, const ValueData* values, Int block, Int idx) const
     {
     	size_t data_size = this->data_size(block);
 
-    	LocateResult locate_result;
+    	if (data_size > 0) {
 
-    	if (layout.levels_max >= 0)
-    	{
-    		layout.valaue_block_size_prefix = this->size_index(block);
-    		layout.indexes = this->value_index(block);
+    		LocateResult locate_result;
 
-    		locate_result = this->locate_index(layout, idx);
-    	}
-
-    	Int window_num = locate_result.idx;
-
-    	Int window_start = window_num << ValuesPerBranchLog2;
-    	if (window_start >= 0)
-    	{
-    		Codec codec;
-
-    		size_t offset = this->offset(block, window_num);
-
-    		Int c = 0;
-    		Int local_idx = idx - locate_result.index_cnt;
-    		size_t pos;
-    		for (pos = window_start + offset; pos < data_size && c < local_idx; c++)
+    		if (layout.levels_max >= 0)
     		{
-    			auto len = codec.length(values, pos, data_size);
-    			pos += len;
+    			layout.valaue_block_size_prefix = this->size_index(block);
+    			layout.indexes = this->value_index(block);
+
+    			locate_result = this->locate_index(layout, idx);
     		}
 
-    		locate_result.idx = pos;
+    		Int window_num = locate_result.idx;
 
-    		return locate_result;
+    		Int window_start = window_num << ValuesPerBranchLog2;
+    		if (window_start >= 0)
+    		{
+    			Codec codec;
+
+    			size_t offset = this->offset(block, window_num);
+
+    			Int c = 0;
+    			Int local_idx = idx - locate_result.index_cnt;
+    			size_t pos;
+    			for (pos = window_start + offset; pos < data_size && c < local_idx; c++)
+    			{
+    				auto len = codec.length(values, pos, data_size);
+    				pos += len;
+    			}
+
+    			locate_result.idx = pos;
+
+    			return locate_result;
+    		}
+    		else {
+    			return LocateResult(data_size, locate_result.index_cnt);
+    		}
     	}
     	else {
-    		return LocateResult(data_size, locate_result.index_cnt);
+    		return LocateResult(0, 0);
     	}
     }
 
@@ -464,42 +470,47 @@ public:
     LocateResult locate_with_sum(TreeLayout& layout, const ValueData* values, Int block, Int idx) const
     {
     	size_t data_size = this->data_size(block);
-
-    	LocateResult locate_result;
-
-    	if (layout.levels_max >= 0)
+    	if (data_size > 0)
     	{
-    		layout.valaue_block_size_prefix = this->size_index(block);
-    		layout.indexes = this->value_index(block);
+    		LocateResult locate_result;
 
-    		locate_result = this->locate_index_with_sum(layout, idx);
-    	}
-
-    	Int window_num = locate_result.idx;
-
-    	Int window_start = (window_num << ValuesPerBranchLog2);
-    	if (window_start >= 0)
-    	{
-    		Codec codec;
-
-    		size_t offset = this->offset(block, window_num);
-
-    		Int c = 0;
-    		Int local_idx = idx - locate_result.index_cnt;
-    		for (size_t pos = window_start + offset; pos < data_size && c < local_idx; c++)
+    		if (layout.levels_max >= 0)
     		{
-    			Value value;
-    			auto len = codec.decode(values, value, pos, data_size);
-    			pos += len;
-    			locate_result.value_sum += value;
+    			layout.valaue_block_size_prefix = this->size_index(block);
+    			layout.indexes = this->value_index(block);
+
+    			locate_result = this->locate_index_with_sum(layout, idx);
     		}
 
-    		locate_result.idx = c + locate_result.index_cnt;
+    		Int window_num = locate_result.idx;
 
-    		return locate_result;
+    		Int window_start = (window_num << ValuesPerBranchLog2);
+    		if (window_start >= 0)
+    		{
+    			Codec codec;
+
+    			size_t offset = this->offset(block, window_num);
+
+    			Int c = 0;
+    			Int local_idx = idx - locate_result.index_cnt;
+    			for (size_t pos = window_start + offset; pos < data_size && c < local_idx; c++)
+    			{
+    				Value value;
+    				auto len = codec.decode(values, value, pos, data_size);
+    				pos += len;
+    				locate_result.value_sum += value;
+    			}
+
+    			locate_result.idx = c + locate_result.index_cnt;
+
+    			return locate_result;
+    		}
+    		else {
+    			return LocateResult(data_size, locate_result.index_cnt, locate_result.value_sum);
+    		}
     	}
     	else {
-    		return data_size;
+    		return LocateResult(0, 0, 0);
     	}
     }
 
@@ -740,9 +751,9 @@ public:
 
     		for (Int c = local_c - 1; c >= 0; c--)
     		{
-    			if (walker.compare(values[c]))
+    			if (walker.compare(value_data[c]))
     			{
-    				return walker.idx(c + window_size_prefix, values[c], -1);
+    				return walker.idx(c + window_size_prefix, value_data[c], -1);
     			}
     			else {
     				walker.next();
@@ -777,12 +788,14 @@ public:
         			value_data[c] = value;
         		}
 
+        		state.size_sum -= c;
+
         		c--;
     			for (; c >= 0; c--)
     			{
-    				if (walker.compare(values[c]))
+    				if (walker.compare(value_data[c]))
     				{
-    					return walker.idx(c, values[c], 0);
+    					return walker.idx(c + state.size_sum, value_data[c], 0);
     				}
     				else {
     					walker.next();
@@ -1091,7 +1104,27 @@ public:
     }
 
 
+    template <typename ConsumerFn>
+    Int scan(Int block, Int start, Int end, ConsumerFn&& fn) const
+    {
+    	auto values = this->values(block);
+    	TreeLayout layout = this->compute_tree_layout(this->data_size(block));
+    	size_t pos = this->locate(layout, values, block, start).idx;
+    	size_t data_size = this->data_size(block);
 
+    	Codec codec;
+
+    	Int c;
+    	for (c = start; c < end && pos < data_size; c++)
+    	{
+    		Value value;
+    		auto len = codec.decode(values, value, pos);
+    		fn(c, value);
+    		pos += len;
+    	}
+
+    	return c;
+    }
 
 
 
@@ -1100,7 +1133,7 @@ public:
 protected:
     void reindex_block(Int block)
     {
-    	TreeLayout layout = compute_tree_layout(this->data_size(block));
+    	TreeLayout layout = this->compute_tree_layout(this->data_size(block));
     	reindex_block(block, layout);
     }
 

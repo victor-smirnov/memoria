@@ -855,6 +855,32 @@ public:
         Base::template allocateArrayByLength<BufferType>(VALUES, values_block_length);
     }
 
+    void init_tl(Int block_size)
+    {
+    	Base::init(block_size, 5);
+
+    	Metadata* meta = Base::template allocate<Metadata>(METADATA);
+
+    	Int max_size        = 0;
+
+    	meta->size()        = 0;
+    	meta->data_size()   = 0;
+    	meta->index_size()  = 0;
+
+    	Int offsets_length  = getOffsetsBlockLength(max_size);
+    	Base::template allocateArrayByLength<OffsetsType>(OFFSETS, offsets_length);
+
+    	Int layout_size = MyType::index_layout_size(max_size);
+    	Base::template allocateArrayBySize<LayoutValue>(LAYOUT, layout_size);
+    	TreeTools::buildIndexTreeLayout(index_layout(), max_size, layout_size);
+
+    	Int index_size = meta->index_size();
+    	Base::template allocateArrayBySize<IndexValue>(INDEX, index_size * Indexes);
+
+    	Int values_block_length = Base::roundUpBitsToAlignmentBlocks(max_size * Codec::ElementSize);
+    	Base::template allocateArrayByLength<BufferType>(VALUES, values_block_length);
+    }
+
     void inits(Int capacity)
     {
         Int block_size = MyType::block_size(capacity);
@@ -1714,6 +1740,34 @@ public:
             return findGEBackward(block, start, val);
         }
     }
+
+    template <typename ConsumerFn>
+    Int scan(Int block, Int start, Int end, ConsumerFn&& fn) const
+    {
+    	Int block_start = this->size() * block;
+
+    	auto values = this->values();
+
+    	size_t pos = this->locate(block_start + start);
+
+    	Int size = this->size();
+
+    	Int limit = end <= size ? end : size;
+
+    	Codec codec;
+
+    	Int c;
+    	for (c = start; c < limit; c++)
+    	{
+    		Value value;
+    		auto len = codec.decode(values, value, pos);
+    		fn(c, value);
+    		pos += len;
+    	}
+
+    	return c;
+    }
+
 
     // ==================================== Dump =========================================== //
 

@@ -34,7 +34,7 @@ public:
 
     PackedTreeFindTest(StringRef name): Base(name)
     {
-        this->size_ = 65536;
+        this->size_ = 4096;
 
         MEMORIA_ADD_TEST_PARAM(iterations_);
 
@@ -99,14 +99,14 @@ public:
         }
     }
 
-    void testFindForward(Int block_size)
+    void testFindForward(Int tree_size)
     {
-        Base::out()<<block_size<<endl;
+        Base::out()<<tree_size<<endl;
 
-        Tree* tree = Base::createEmptyTree(block_size);
+        Tree* tree = Base::createEmptyTree();
         PARemover remover(tree);
 
-        auto values = Base::fillRandom(tree);
+        auto values = Base::fillRandom(tree, tree_size);
 
         Int size = tree->size();
 
@@ -142,20 +142,20 @@ public:
         }
     }
 
-    void testFindBackward(Int block_size)
+    void testFindBackward(Int tree_size)
     {
-        Base::out()<<block_size<<endl;
+        Base::out()<<tree_size<<endl;
 
-        Tree* tree = Base::createEmptyTree(block_size);
+        Tree* tree = Base::createEmptyTree();
         PARemover remover(tree);
 
-        auto values = Base::fillRandom(tree);
+        auto values = Base::fillRandom(tree, tree_size);
 
         Int size = tree->size();
 
         for (Int c = 0; c < iterations_; c++)
         {
-            Int start   = this->getRandom(size - 2) + 2;
+        	Int start   = this->getRandom(size - 2) + 2;
             Int rnd     = this->getRandom(start - 2) + 1;
             Int end     = start - rnd;
             Int block   = this->getRandom(Tree::Blocks);
