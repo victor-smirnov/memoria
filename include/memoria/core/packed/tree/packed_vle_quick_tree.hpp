@@ -51,6 +51,8 @@ public:
 
     using typename Base::Metadata;
     using typename Base::TreeLayout;
+    using typename Base::OffsetsType;
+    using typename Base::ValueData;
 
 
     using typename Base::Codec;
@@ -122,9 +124,13 @@ public:
 
     ValueT value(Int block, Int idx) const
     {
+    	MEMORIA_ASSERT(idx, >=, 0);
+    	MEMORIA_ASSERT(idx, <, this->size());
+
     	Int data_size	  = this->data_size(block);
     	auto values 	  = this->values(block);
     	TreeLayout layout = this->compute_tree_layout(data_size);
+
 		Int start_pos  	  = this->locate(layout, values, block, idx).idx;
 
 		MEMORIA_ASSERT(start_pos, <, data_size);
@@ -499,6 +505,10 @@ public:
     	remove(start, end);
     }
 
+    void removeSpace(Int start, Int end) {
+    	remove(start, end);
+    }
+
     void remove(Int start, Int end)
     {
     	for (Int block = 0; block < Blocks; block++)
@@ -524,8 +534,14 @@ public:
     template <typename T>
     void insert(Int idx, const core::StaticVector<T, Blocks>& values)
     {
-    	insert_space(idx, 1);
-    	setValues(idx, values);
+    	this->_insert(idx, 1, [&](Int idx){
+    		return values;
+    	});
+    }
+
+    template <typename Adaptor>
+    void insert(Int pos, Int processed, Adaptor&& adaptor) {
+    	_insert(pos, processed, std::forward<Adaptor>(adaptor));
     }
 
 
@@ -538,7 +554,7 @@ public:
 
     	for (Int block = 0; block < Blocks; block++)
     	{
-    		for (SizeT c = pos; c < pos + processed; c++)
+    		for (SizeT c = 0; c < processed; c++)
     		{
     			auto value = adaptor(c)[block];
     			auto len = codec.length(value);
@@ -562,7 +578,7 @@ public:
     		data_size = this->data_size(block);
     		values	  = this->values(block);
 
-    		for (Int c = pos; c < pos + processed; c++)
+    		for (Int c = 0; c < processed; c++)
     		{
     			auto value = adaptor(c)[block];
     			Int len = codec.encode(values, value, insertion_pos, data_size);
@@ -682,7 +698,12 @@ public:
     			}
     		}
 
-    		this->reindex_block(block);
+    		if (data_size >= kValuesPerBranch) {
+    			this->reindex_block(block);
+    		}
+    		else {
+    			Base::clear(block * SegmentsPerBlock + Base::OFFSETS + BlocksStart);
+    		}
     	}
     }
 
@@ -732,7 +753,12 @@ public:
 
     		codec.encode(values, new_value, insertion_pos, data_size);
 
-    		this->reindex_block(block);
+    		if (data_size >= kValuesPerBranch) {
+    			this->reindex_block(block);
+    		}
+    		else {
+    			Base::clear(block * SegmentsPerBlock + Base::OFFSETS + BlocksStart);
+    		}
     	}
     }
 
@@ -799,53 +825,62 @@ public:
     	Base::generateDataEvents(handler);
 
     	handler->startStruct();
-    	handler->startGroup("FSE_TREE");
+    	handler->startGroup("QVLE_TREE");
 
     	auto meta = this->metadata();
 
-    	handler->value("SIZE",          &meta->size());
-    	handler->value("MAX_SIZE",      &meta->max_size());
-    	handler->value("INDEX_SIZE",    &meta->index_size());
+    	handler->value("SIZE",      &meta->size());
+    	handler->value("DATA_SIZE", this->data_sizes(), Blocks);
 
-    	handler->startGroup("INDEXES", meta->index_size());
 
-    	auto index_size = meta->index_size();
+    	handler->startGroup("INDEXES", Blocks);
 
-    	const IndexValueT* index[Blocks];
-
-    	for (Int b = 0; b < Blocks; b++) {
-    		index[b] = this->index(b);
-    	}
-
-    	for (Int c = 0; c < index_size; c++)
+    	for (Int block = 0; block < Blocks; block++)
     	{
-    		IndexValueT indexes[Blocks];
-    		for (Int block = 0; block < Blocks; block++)
+    		Int index_size = this->index_size(this->data_size(block));
+
+    		handler->startGroup("BLOCK_INDEX", block);
+
+    		auto value_indexes = this->value_index(block);
+    		auto size_indexes  = this->size_index(block);
+
+    		for (Int c = 0; c < index_size; c++)
     		{
-    			indexes[block] = index[block][c];
+    			BigInt indexes[] = {
+    				value_indexes[c],
+					size_indexes[c]
+    			};
+
+    			handler->value("INDEX", indexes, 2);
     		}
 
-    		handler->value("INDEX", indexes, Blocks);
+    		handler->endGroup();
     	}
 
     	handler->endGroup();
 
+
     	handler->startGroup("DATA", meta->size());
 
-
-
-    	const ValueT* values[Blocks];
-
+    	const ValueData* values[Blocks];
     	for (Int b = 0; b < Blocks; b++) {
     		values[b] = this->values(b);
     	}
 
-    	for (Int idx = 0; idx < meta->size() ; idx++)
+    	size_t positions[Blocks];
+    	for (auto& p: positions) p = 0;
+
+    	Int size = this->size();
+
+    	Codec codec;
+
+    	for (Int idx = 0; idx < size; idx++)
     	{
     		ValueT values_data[Blocks];
     		for (Int block = 0; block < Blocks; block++)
     		{
-    			values_data[block] = values[block][idx];
+    			auto len = codec.decode(values[block], values_data[block], positions[block]);
+    			positions[block] += len;
     		}
 
     		handler->value("TREE_ITEM", values_data, Blocks);
@@ -862,16 +897,18 @@ public:
     {
     	Base::serialize(buf);
 
-    	const Metadata* meta = this->metadata();
+    	auto meta = this->metadata();
 
     	FieldFactory<Int>::serialize(buf, meta->size());
-        FieldFactory<Int>::serialize(buf, meta->max_size());
-        FieldFactory<Int>::serialize(buf, meta->index_size());
 
-        for (Int b = 0; b < Blocks; b++)
+    	FieldFactory<Int>::serialize(buf, this->data_sizes(), Blocks);
+
+        for (Int block = 0; block < Blocks; block++)
         {
-        	FieldFactory<IndexValueT>::serialize(buf, this->index(b), meta->index_size());
-        	FieldFactory<ValueT>::serialize(buf, this->values(b), meta->size());
+        	Base::template serializeSegment<IndexValueT>(buf, block * SegmentsPerBlock + BlocksStart + VALUE_INDEX);
+        	Base::template serializeSegment<Int>(buf, block * SegmentsPerBlock + BlocksStart + SIZE_INDEX);
+        	Base::template serializeSegment<OffsetsType>(buf, block * SegmentsPerBlock + BlocksStart + OFFSETS);
+        	FieldFactory<ValueData>::serialize(buf, this->values(block), this->data_size(block));
         }
     }
 
@@ -879,16 +916,18 @@ public:
     {
         Base::deserialize(buf);
 
-        Metadata* meta = this->metadata();
+        auto meta = this->metadata();
 
-        FieldFactory<Int>::deserialize(buf, meta->size());
-        FieldFactory<Int>::deserialize(buf, meta->max_size());
-        FieldFactory<Int>::deserialize(buf, meta->index_size());
+    	FieldFactory<Int>::deserialize(buf, meta->size());
 
-        for (Int b = 0; b < Blocks; b++)
+    	FieldFactory<Int>::deserialize(buf, this->data_sizes(), Blocks);
+
+    	for (Int block = 0; block < Blocks; block++)
         {
-        	FieldFactory<IndexValueT>::deserialize(buf, this->index(b), meta->index_size());
-        	FieldFactory<ValueT>::deserialize(buf, this->values(b), meta->size());
+        	Base::template deserializeSegment<IndexValueT>(buf, block * SegmentsPerBlock + BlocksStart + VALUE_INDEX);
+        	Base::template deserializeSegment<Int>(buf, block * SegmentsPerBlock + BlocksStart + SIZE_INDEX);
+        	Base::template deserializeSegment<OffsetsType>(buf, block * SegmentsPerBlock + BlocksStart + OFFSETS);
+        	FieldFactory<ValueData>::deserialize(buf, this->values(block), this->data_size(block));
         }
     }
 };
@@ -905,7 +944,7 @@ template <
 	Int kValuesPerBranch
 >
 struct PkdStructSizeType<PkdVQTree<IndexValueT, kBlocks, CodecT, ValueT, kBranchingFactor, kValuesPerBranch>> {
-	static const PackedSizeType Value = PackedSizeType::FIXED;
+	static const PackedSizeType Value = PackedSizeType::VARIABLE;
 };
 
 

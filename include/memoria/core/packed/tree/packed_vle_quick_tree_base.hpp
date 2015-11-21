@@ -193,7 +193,7 @@ public:
     	Metadata* meta = this->template allocate<Metadata>(Base::METADATA);
     	this->template allocateArrayBySize<Int>(Base::DATA_SIZES, blocks);
 
-    	meta->size()        = 0;
+    	meta->size() = 0;
 
     	for (Int block = 0; block < blocks; block++)
     	{
@@ -916,6 +916,9 @@ public:
     		{
     			this->reindex_block(block, layout);
     		}
+    		else {
+    			this->clear(block * SegmentsPerBlock + Base::OFFSETS + BlocksStart);
+    		}
     	}
     }
 
@@ -1007,12 +1010,6 @@ public:
     			}
     			out<<endl;
 
-    			out<<"Offsets: ";
-    			for (Int c = 0; c <= this->divUpV(data_size); c++) {
-    				out<<this->offset(block, c)<<" ";
-    			}
-    			out<<endl;
-
     			auto value_indexes = this->value_index(block);
     			auto size_indexes = this->size_index(block);
 
@@ -1024,6 +1021,13 @@ public:
     		}
 
     		out<<endl;
+
+    		out<<"Offsets: ";
+    		for (Int c = 0; c <= this->divUpV(data_size); c++) {
+    			out<<this->offset(block, c)<<" ";
+    		}
+    		out<<endl;
+
     		out<<"Values: "<<endl;
 
     		auto values = this->values(block);
@@ -1127,7 +1131,17 @@ public:
     }
 
 
+    template <typename T>
+    void read(Int block, Int start, Int end, T* values) const
+    {
+    	MEMORIA_ASSERT(start, >=, 0);
+    	MEMORIA_ASSERT(start, <=, end);
+    	MEMORIA_ASSERT(end, <=, size());
 
+    	scan(block, start, end, [&](Int c, auto value){
+    		values[c - start] = value;
+    	});
+    }
 
 
 protected:

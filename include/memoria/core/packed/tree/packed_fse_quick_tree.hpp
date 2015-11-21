@@ -451,7 +451,7 @@ public:
     }
 
 
-    void insert(Int idx, Int size, std::function<Values ()> provider, bool reindex = true)
+    void insert(Int idx, Int size, std::function<Values (Int)> provider, bool reindex = true)
     {
     	insertSpace(idx, size);
 
@@ -463,7 +463,7 @@ public:
 
     	for (Int c = idx; c < idx + size; c++)
     	{
-    		Values vals = provider();
+    		Values vals = provider(c - idx);
 
     		for (Int block = 0; block < Blocks; block++)
     		{
@@ -476,29 +476,29 @@ public:
     	}
     }
 
-    Int insert(Int idx, std::function<bool (Values&)> provider, bool reindex = true)
-    {
-    	Values vals;
-    	Int cnt = 0;
-
-    	while(provider(vals) && check_capacity(1))
-    	{
-    		insertSpace(idx, 1);
-
-    		for (Int block = 0; block < Blocks; block++)
-    		{
-    			auto values   = this->values(block);
-    			values[idx] = vals[block];
-    		}
-
-    		idx++;
-    		cnt++;
-    	}
-
-    	this->reindex();
-
-    	return cnt;
-    }
+//    Int insert(Int idx, std::function<bool (Values&)> provider, bool reindex = true)
+//    {
+//    	Values vals;
+//    	Int cnt = 0;
+//
+//    	while(provider(vals) && check_capacity(1))
+//    	{
+//    		insertSpace(idx, 1);
+//
+//    		for (Int block = 0; block < Blocks; block++)
+//    		{
+//    			auto values   = this->values(block);
+//    			values[idx] = vals[block];
+//    		}
+//
+//    		idx++;
+//    		cnt++;
+//    	}
+//
+//    	this->reindex();
+//
+//    	return cnt;
+//    }
 
     template <typename T>
     void insert(Int idx, const core::StaticVector<T, Blocks>& values)

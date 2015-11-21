@@ -816,7 +816,17 @@ public:
     	return c;
     }
 
+    template <typename T>
+    void read(Int block, Int start, Int end, T* values) const
+    {
+    	MEMORIA_ASSERT(start, >=, 0);
+    	MEMORIA_ASSERT(start, <=, end);
+    	MEMORIA_ASSERT(end, <=, size());
 
+    	scan(block, start, end, [&](Int c, auto value){
+    		values[c - start] = value;
+    	});
+    }
 
 
 protected:

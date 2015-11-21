@@ -46,11 +46,11 @@ int main(int argc, const char** argv, const char** envp) {
 
 		CtrT ctr(&alloc);
 
-//		ctr.setNewPageSize(1024*256);
+		ctr.setNewPageSize(1024*256);
 
 		auto iter = ctr.seek(0);
 
-		Int rows 		= 1000;
+		Int rows 		= 1000000;
 		Int cols		= 10;
 		Int data_size	= 111;
 
@@ -58,9 +58,7 @@ int main(int argc, const char** argv, const char** envp) {
 
 		Provider provider({rows, cols, data_size});
 
-//		ctr.insert_provided_data(iter.leaf(), Position(), provider);
-
-		ctr._insert(iter, provider); //, {100000}
+		ctr._insert(iter, provider, {100000}); //,
 
 
 		BigInt c1 = getTimeInMillis();

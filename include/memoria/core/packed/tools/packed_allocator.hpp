@@ -584,7 +584,19 @@ public:
         FieldFactory<Bitmap>::deserialize(buf, bitmap(), bitmap_size_/sizeof(Bitmap));
     }
 
+    template <typename T>
+    void serializeSegment(SerializationData& buf, Int segment) const
+    {
+    	auto data = this->describe(segment);
+    	FieldFactory<T>::serialize(buf, T2T<const T*>(data.ptr()), data.size() / (Int)sizeof(T));
+    }
 
+    template <typename T>
+    void deserializeSegment(DeserializationData& buf, Int segment)
+    {
+    	auto data = this->describe(segment);
+    	FieldFactory<T>::deserialize(buf, T2T<T*>(data.ptr()), data.size() / (Int)sizeof(T));
+    }
 
 
     constexpr static Int my_size()

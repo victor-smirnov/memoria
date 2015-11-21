@@ -94,9 +94,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchFixedName)
     	template <Int ListIdx, typename StreamType>
     	void stream(StreamType* obj, Int from, Int to, const BranchNodeEntry* entries)
     	{
-    		Int idx = 0;
-    		obj->insert(from, to - from, [entries, &idx]() {
-    			return std::get<ListIdx>(entries[idx++].accum());
+    		obj->insert(from, to - from, [entries](Int idx) {
+    			return std::get<ListIdx>(entries[idx].accum());
     		});
     	}
     };

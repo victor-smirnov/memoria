@@ -67,7 +67,7 @@ struct BTTypes<Profile, memoria::BTTreeLayout>: public BTTypes<Profile, memoria:
     >;
 
     using VariableBranchContainerPartsList = MergeLists<
-    			typename Base::FixedBranchContainerPartsList,
+    			typename Base::VariableBranchContainerPartsList,
 				memoria::bttl::BranchVariableName
     >;
 
