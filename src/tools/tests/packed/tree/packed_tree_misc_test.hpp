@@ -152,7 +152,7 @@ public:
 
     void testSplitToEmpty()
     {
-        for (int c = 2; c <= this->size_; c*=2)
+        for (int c = 64; c <= this->size_; c*=2)
         {
             testSplitToEmpty(c);
         }
@@ -269,7 +269,7 @@ public:
 
             tree->remove(0, tree->size());
 
-//            this->assertEmpty(tree);
+            this->assertEmpty(tree);
         }
     }
 

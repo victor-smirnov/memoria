@@ -664,7 +664,7 @@ public:
     	Base::generateDataEvents(handler);
 
     	handler->startStruct();
-    	handler->startGroup("FSE_TREE");
+    	handler->startGroup("FSQ_TREE");
 
     	auto meta = this->metadata();
 

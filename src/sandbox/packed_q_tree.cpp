@@ -7,6 +7,7 @@
 #include <memoria/core/packed/tree/packed_fse_tree.hpp>
 #include <memoria/core/packed/tree/packed_fse_quick_tree.hpp>
 #include <memoria/core/packed/tree/packed_vle_quick_tree.hpp>
+#include <memoria/core/packed/tree/packed_vle_dense_tree.hpp>
 #include <memoria/core/packed/tree/packed_vle_tree.hpp>
 #include <memoria/core/packed/tree/packed_tree_tools.hpp>
 
@@ -27,8 +28,8 @@ int main() {
 		constexpr Int Block = 1;
 		constexpr Int Blocks = Block + 1;
 
-//		using Tree = PkdVQTree<BigInt, Blocks, UBigIntEliasCodec>;
-		using Tree = PkdVQTree<BigInt, Blocks, UByteExintCodec, BigInt, PackedTreeBranchingFactor, 32>;
+//		using Tree = PkdVQTree<BigInt, Blocks, UByteI7Codec>;
+		using Tree = PkdVDTree<BigInt, Blocks, UByteI7Codec, BigInt, PackedTreeBranchingFactor, 128>;
 //		using Tree = PkdFQTree<BigInt, Blocks>;
 //		using Tree = PkdVTree<Packed2TreeTypes<BigInt, BigInt, Blocks, UByteI7Codec, PackedTreeBranchingFactor, 128>>;
 
@@ -46,11 +47,11 @@ int main() {
 
 		tree->init_tl(block_size);
 
-		Int size = 10000000;
+		Int size = 1000000;
 
 		vector<Values> data(size);
 
-		for (auto& v: data) v = Values{1 + getRandomG(300)};
+		for (auto& v: data) v = Values{1 + getRandomG(300), 1 + getRandomG(300)};
 
 		long t0 = getTimeInMillis();
 		tree->_insert(0, size, [&](Int idx){return data[idx];});
@@ -75,56 +76,56 @@ int main() {
 		long ts2 = getTimeInMillis();
 
 
-		auto max = tree->sum(0, size);
+		auto max = tree->sum(Block, size);
 
 		cout<<"MAX: "<<max<<endl;
 
+		cout<<tree->sum(0, size)<<endl;
+		cout<<tree->sum(1, size)<<endl;
+
 		cout<<"find:    "<<tree->findGEForward(Block, 0, max).idx()<<endl;
 		cout<<"find_bw: "<<tree->findGEBackward(Block, size - 1, max).idx()<<endl;
-//		cout<<"find:    "<<tree->findGEForward(Block, max).idx()<<endl;
-
-
 
 
 		long t2 = getTimeInMillis();
 
 		cout<<"----------------------FindStart"<<endl;
-//		for (Int c = 0; c < size; c++)
-//		{
-//			auto key = tree->sum(0, c + 1);
-//			auto idx = tree->find_ge(Block, key).idx();
-//
-//			if (idx != c)
-//			{
-//				cout<<c<<": "<<key<<"  "<<idx<<endl;
-//			}
-//		}
+		for (Int c = 0; c < size; c++)
+		{
+			auto key = tree->sum(Block, c + 1);
+			auto idx = tree->find_ge(Block, key).idx();
+
+			if (idx != c)
+			{
+				cout<<c<<": "<<key<<"  "<<idx<<endl;
+			}
+		}
 
 		long t3 = getTimeInMillis();
 
 		cout<<"----------------------FW"<<endl;
-//		for (Int c = 0; c < size; c++)
-//		{
-//			auto key = tree->sum(Block, c, size);
-//			auto idx = tree->find_ge_fw(Block, c, key).idx();
-//
-//			if (idx != size - 1) {
-//				cout<<c<<": "<<key<<"  "<<idx<<endl;
-//			}
-//		}
+		for (Int c = 0; c < size; c++)
+		{
+			auto key = tree->sum(Block, c, size);
+			auto idx = tree->find_ge_fw(Block, c, key).idx();
+
+			if (idx != size - 1) {
+				cout<<c<<": "<<key<<"  "<<idx<<endl;
+			}
+		}
 
 		long t4 = getTimeInMillis();
 
 		cout<<"----------------------BW"<<endl;
-//		for (Int c = tree->size() - 1; c >= 0; c--)
-//		{
-//			auto key = tree->sum(Block, c + 1);
-//
-//			auto idx = tree->findGEBackward(Block, c, key).idx();
-//			if (idx != 0) {
-//				cout<<c<<": "<<key<<"  "<<idx<<endl;
-//			}
-//		}
+		for (Int c = tree->size() - 1; c >= 0; c--)
+		{
+			auto key = tree->sum(Block, c + 1);
+
+			auto idx = tree->findGEBackward(Block, c, key).idx();
+			if (idx != 0) {
+				cout<<c<<": "<<key<<"  "<<idx<<endl;
+			}
+		}
 
 		long t5 = getTimeInMillis();
 
@@ -154,13 +155,13 @@ int main() {
 
 		long t8 = getTimeInMillis();
 
-//		for (auto k: keys_s)
-//		{
-//			auto idx = tree->find_ge(0, k).idx();
-//			if (idx == size) {
-//				cout<<k<<"  "<<idx<<endl;
-//			}
-//		}
+		for (auto k: keys_s)
+		{
+			auto idx = tree->find_ge(0, k).idx();
+			if (idx == size) {
+				cout<<k<<"  "<<idx<<endl;
+			}
+		}
 
 		long t9 = getTimeInMillis();
 

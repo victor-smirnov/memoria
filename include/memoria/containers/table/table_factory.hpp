@@ -23,6 +23,8 @@
 #include <memoria/prototypes/bt/layouts/bt_input.hpp>
 
 #include <memoria/core/tools/i7_codec.hpp>
+#include <memoria/core/packed/tree/packed_vle_dense_tree.hpp>
+
 
 #include <tuple>
 
@@ -109,8 +111,8 @@ struct TableBTTypesBase: public BTTypes<Profile, memoria::BTTreeLayout> {
     >::Result;
 
     using StreamDescriptors = typename bttl::BTTLAugmentStreamDescriptors<
-    		RawStreamDescriptors//,
-//			PkdVQTree<CtrSizeT, 1, UByteI7Codec>
+    		RawStreamDescriptors,
+			PkdVDTree<CtrSizeT, 1, UByteI7Codec>
 			//PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec, 32, 128>>
 	>::Type;
 

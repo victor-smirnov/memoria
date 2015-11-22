@@ -188,6 +188,7 @@ public:
 
     void init(Int blocks)
     {
+    	Int block_size = MyType::tree_size(blocks, 0);
     	Base::init(block_size, blocks * SegmentsPerBlock + BlocksStart);
 
     	Metadata* meta = this->template allocate<Metadata>(Base::METADATA);
@@ -323,6 +324,16 @@ public:
     	IndexValue prefix() const {
     		return sum_;
     	}
+
+    	FindGEWalker& adjust(Int base, Int size) {
+    		idx_ -= base;
+
+    		if (idx_ > size) {
+    			idx_ = size;
+    		}
+
+    		return *this;
+    	}
     };
 
     struct FindGTWalker {
@@ -362,37 +373,47 @@ public:
     	IndexValue prefix() const {
     		return sum_;
     	}
+
+    	FindGTWalker& adjust(Int base, Int size) {
+    		idx_ -= base;
+
+    		if (idx_ > size) {
+    			idx_ = size;
+    		}
+
+    		return *this;
+    	}
     };
 
 
 
-    auto find_ge(Int block, IndexValue value) const
+    auto gfind_ge(Int block, IndexValue value) const
     {
     	return find(block, FindGEWalker(value));
     }
 
-    auto find_gt(Int block, IndexValue value) const
+    auto gfind_gt(Int block, IndexValue value) const
     {
     	return find(block, FindGTWalker(value));
     }
 
-    auto find_ge_fw(Int block, Int start, IndexValue value) const
+    auto gfind_ge_fw(Int block, Int start, IndexValue value) const
     {
     	return walk_fw(block, start, FindGEWalker(value));
     }
 
-    auto find_gt_fw(Int block, Int start, IndexValue value) const
+    auto gfind_gt_fw(Int block, Int start, IndexValue value) const
     {
     	return walk_fw(block, start, FindGTWalker(value));
     }
 
 
-    auto find_ge_bw(Int block, Int start, IndexValue value) const
+    auto gfind_ge_bw(Int block, Int start, IndexValue value) const
     {
     	return walk_bw(block, start, FindGEWalker(value));
     }
 
-    auto find_gt_bw(Int block, Int start, IndexValue value) const
+    auto gfind_gt_bw(Int block, Int start, IndexValue value) const
     {
     	return walk_bw(block, start, FindGTWalker(value));
     }
@@ -588,13 +609,11 @@ public:
     template <typename Walker>
     auto walk_fw(Int block, Int start, Walker&& walker) const
     {
-    	auto metadata = this->metadata();
+    	Int size = metadata()->size();
     	auto values = this->values(block);
 
     	Int data_size = this->data_size(block);
     	TreeLayout layout = this->compute_tree_layout(data_size);
-
-    	Int size = metadata->size();
 
     	auto lr = this->locate(layout, values, block, start);
 
@@ -814,25 +833,25 @@ public:
 
 
 
-    IndexValue sum(Int block) const
+    IndexValue gsum(Int block) const
     {
     	auto meta = this->metadata();
     	TreeLayout layout = this->compute_tree_layout(this->data_size(block));
 
-    	return sum(layout, meta, block, meta->size());
+    	return gsum(layout, meta, block, meta->size());
     }
 
 
 
-    IndexValue sum(Int block, Int end) const
+    IndexValue gsum(Int block, Int end) const
     {
     	auto meta = this->metadata();
     	TreeLayout layout = this->compute_tree_layout(this->data_size(block));
 
-    	return sum(layout, meta, block, end);
+    	return gsum(layout, meta, block, end);
     }
 
-    IndexValue plain_sum(Int block, Int end) const
+    IndexValue plain_gsum(Int block, Int end) const
     {
     	IndexValue sum = 0;
 
@@ -856,14 +875,14 @@ public:
     	return sum;
     }
 
-    IndexValue sum(Int block, Int start, Int end) const
+    IndexValue gsum(Int block, Int start, Int end) const
     {
     	TreeLayout layout = this->compute_tree_layout(this->data_size(block));
 
-    	return sum(layout, this->metadata(), block, start, end);
+    	return gsum(layout, this->metadata(), block, start, end);
     }
 
-    IndexValue sum(TreeLayout& layout, const Metadata* meta, Int block, Int end) const
+    IndexValue gsum(TreeLayout& layout, const Metadata* meta, Int block, Int end) const
     {
     	if (end < meta->size())
     	{
@@ -896,10 +915,10 @@ public:
     	}
     }
 
-    IndexValue sum(TreeLayout& layout, const Metadata* meta, Int block, Int start, Int end) const
+    IndexValue gsum(TreeLayout& layout, const Metadata* meta, Int block, Int start, Int end) const
     {
-    	auto end_sum = sum(layout, meta, block, end);
-    	auto start_sum = sum(layout, meta, block, start);
+    	auto end_sum = gsum(layout, meta, block, end);
+    	auto start_sum = gsum(layout, meta, block, start);
 
     	return end_sum - start_sum;
     }
@@ -912,23 +931,22 @@ public:
     		Int data_size = this->data_size(block);
     		TreeLayout layout = this->compute_tree_layout(data_size);
 
-    		if (layout.levels_max >= 0)
-    		{
-    			this->reindex_block(block, layout);
-    		}
-    		else {
-    			this->clear(block * SegmentsPerBlock + Base::OFFSETS + BlocksStart);
-    		}
+    		this->reindex_block(block, layout);
     	}
     }
 
-    const Int& size() const {
-    	return metadata()->size();
+
+    void check(Int blocks) const
+    {
+    	for (Int block = 0; block < blocks; block++)
+    	{
+    		Int data_size = this->data_size(block);
+    		TreeLayout layout = this->compute_tree_layout(data_size);
+
+    		this->check_block(block, layout);
+    	}
     }
 
-    Int& size() {
-    	return metadata()->size();
-    }
 
     void dump_index(Int blocks, std::ostream& out = cout) const
     {
@@ -977,171 +995,10 @@ public:
     }
 
 
-    void dump(Int blocks, std::ostream& out = cout) const
-    {
-    	auto meta = this->metadata();
-
-    	out<<"size_         = "<<meta->size()<<std::endl;
-
-    	for (Int block = 0; block < blocks; block++)
-    	{
-    		out<<"++++++++++++++++++ Block: "<<block<<" ++++++++++++++++++"<<endl;
-
-    		auto data_size  = this->data_size(block);
-    		auto index_size = this->index_size(data_size);
-
-    		out<<"index_size_   = "<<index_size<<std::endl;
-
-    		TreeLayout layout = this->compute_tree_layout(data_size);
-
-    		if (layout.levels_max >= 0)
-    		{
-    			out<<"TreeLayout: "<<endl;
-
-    			out<<"Level sizes: ";
-    			for (Int c = 0; c <= layout.levels_max; c++) {
-    				out<<layout.level_sizes[c]<<" ";
-    			}
-    			out<<endl;
-
-    			out<<"Level starts: ";
-    			for (Int c = 0; c <= layout.levels_max; c++) {
-    				out<<layout.level_starts[c]<<" ";
-    			}
-    			out<<endl;
-
-    			auto value_indexes = this->value_index(block);
-    			auto size_indexes = this->size_index(block);
-
-    			out<<"Index:"<<endl;
-    			for (Int c = 0; c < index_size; c++)
-    			{
-    				out<<c<<": "<<value_indexes[c]<<" "<<size_indexes[c]<<std::endl;
-    			}
-    		}
-
-    		out<<endl;
-
-    		out<<"Offsets: ";
-    		for (Int c = 0; c <= this->divUpV(data_size); c++) {
-    			out<<this->offset(block, c)<<" ";
-    		}
-    		out<<endl;
-
-    		out<<"Values: "<<endl;
-
-    		auto values = this->values(block);
-
-    		Codec codec;
-
-    		size_t pos = 0;
-
-    		for (Int c = 0; pos < this->data_size(block); c++)
-    		{
-    			Value value;
-    			auto len = codec.decode(values, value, pos, this->data_size(block));
-
-    			out<<c<<": "<<pos<<" "<<value<<endl;
-
-    			pos += len;
-    		}
-    	}
-    }
 
 
 
-    auto findGTForward(Int block, Int start, IndexValue val) const
-    {
-        return this->find_gt_fw(block, start, val);
-    }
 
-
-
-    auto findGTBackward(Int block, Int start, IndexValue val) const
-    {
-    	return this->find_gt_bw(block, start, val);
-    }
-
-
-
-    auto findGEForward(Int block, Int start, IndexValue val) const
-    {
-    	return this->find_ge_fw(block, start, val);
-    }
-
-    auto findGEBackward(Int block, Int start, IndexValue val) const
-    {
-    	return this->find_ge_bw(block, start, val);
-    }
-
-    class FindResult {
-    	IndexValue prefix_;
-    	Int idx_;
-    public:
-    	template <typename Fn>
-    	FindResult(Fn&& fn): prefix_(fn.prefix()), idx_(fn.idx()) {}
-
-    	IndexValue prefix() {return prefix_;}
-    	Int idx() const {return idx_;}
-    };
-
-    auto findForward(SearchType search_type, Int block, Int start, IndexValue val) const
-    {
-        if (search_type == SearchType::GT)
-        {
-            return FindResult(findGTForward(block, start, val));
-        }
-        else {
-            return FindResult(findGEForward(block, start, val));
-        }
-    }
-
-    auto findBackward(SearchType search_type, Int block, Int start, IndexValue val) const
-    {
-        if (search_type == SearchType::GT)
-        {
-            return FindResult(findGTBackward(block, start, val));
-        }
-        else {
-            return FindResult(findGEBackward(block, start, val));
-        }
-    }
-
-
-    template <typename ConsumerFn>
-    Int scan(Int block, Int start, Int end, ConsumerFn&& fn) const
-    {
-    	auto values = this->values(block);
-    	TreeLayout layout = this->compute_tree_layout(this->data_size(block));
-    	size_t pos = this->locate(layout, values, block, start).idx;
-    	size_t data_size = this->data_size(block);
-
-    	Codec codec;
-
-    	Int c;
-    	for (c = start; c < end && pos < data_size; c++)
-    	{
-    		Value value;
-    		auto len = codec.decode(values, value, pos);
-    		fn(c, value);
-    		pos += len;
-    	}
-
-    	return c;
-    }
-
-
-    template <typename T>
-    void read(Int block, Int start, Int end, T* values) const
-    {
-    	MEMORIA_ASSERT(start, >=, 0);
-    	MEMORIA_ASSERT(start, <=, end);
-    	MEMORIA_ASSERT(end, <=, size());
-
-    	scan(block, start, end, [&](Int c, auto value){
-    		values[c - start] = value;
-    	});
-    }
 
 
 protected:
@@ -1153,90 +1010,206 @@ protected:
 
     void reindex_block(Int block, TreeLayout& layout)
     {
-    	auto values = this->values(block);
-    	auto indexes = this->value_index(block);
-    	auto size_index = this->size_index(block);
-    	auto offsets = this->offsets(block);
-
-    	this->clear(block * SegmentsPerBlock + Base::VALUE_INDEX + BlocksStart);
-    	this->clear(block * SegmentsPerBlock + Base::SIZE_INDEX + BlocksStart);
-    	this->clear(block * SegmentsPerBlock + Base::OFFSETS + BlocksStart);
-
-    	layout.indexes = indexes;
-    	layout.valaue_block_size_prefix = size_index;
-
-    	Int levels = layout.levels_max + 1;
-
-    	Int level_start = layout.level_starts[levels - 1];
-
-    	Int data_size = this->data_size(block);
-
-    	Codec codec;
-
-    	size_t pos = 0;
-    	IndexValueT value_sum = 0;
-    	Int size_cnt = 0;
-    	size_t threshold = ValuesPerBranch;
-
-    	set_offset(offsets, 0, 0);
-
-    	Int idx = 0;
-    	while(pos < data_size)
+    	if (layout.levels_max >= 0)
     	{
-    		if (pos >= threshold)
+    		auto values 	= this->values(block);
+    		auto indexes 	= this->value_index(block);
+    		auto size_index = this->size_index(block);
+    		auto offsets 	= this->offsets(block);
+
+    		this->clear(block * SegmentsPerBlock + Base::VALUE_INDEX + BlocksStart);
+    		this->clear(block * SegmentsPerBlock + Base::SIZE_INDEX + BlocksStart);
+    		this->clear(block * SegmentsPerBlock + Base::OFFSETS + BlocksStart);
+
+    		layout.indexes = indexes;
+    		layout.valaue_block_size_prefix = size_index;
+
+    		Int levels = layout.levels_max + 1;
+
+    		Int level_start = layout.level_starts[levels - 1];
+
+    		Int data_size = this->data_size(block);
+
+    		Codec codec;
+
+    		size_t pos = 0;
+    		IndexValueT value_sum = 0;
+    		Int size_cnt = 0;
+    		size_t threshold = ValuesPerBranch;
+
+    		set_offset(offsets, 0, 0);
+
+    		Int idx = 0;
+    		while(pos < data_size)
     		{
-    			set_offset(offsets, idx + 1, pos - threshold);
+    			if (pos >= threshold)
+    			{
+    				set_offset(offsets, idx + 1, pos - threshold);
 
-    			indexes[level_start + idx] = value_sum;
-    			size_index[level_start + idx] = size_cnt;
+    				indexes[level_start + idx] = value_sum;
+    				size_index[level_start + idx] = size_cnt;
 
-    			threshold += ValuesPerBranch;
+    				threshold += ValuesPerBranch;
 
-    			idx++;
+    				idx++;
 
-    			value_sum = 0;
-    			size_cnt  = 0;
-    		}
-
-    		Value value;
-    		auto len = codec.decode(values, value, pos, data_size);
-
-    		value_sum += value;
-    		size_cnt++;
-
-    		pos += len;
-    	}
-
-    	indexes[level_start + idx] = value_sum;
-    	size_index[level_start + idx] = size_cnt;
-
-    	for (Int level = levels - 1; level > 0; level--)
-    	{
-    		Int previous_level_start = layout.level_starts[level - 1];
-    		Int previous_level_size  = layout.level_sizes[level - 1];
-
-    		Int current_level_start  = layout.level_starts[level];
-
-    		Int current_level_size = layout.level_sizes[level];
-
-    		for (int i = 0; i < previous_level_size; i++)
-    		{
-    			IndexValue sum = 0;
-    			Int sizes_sum  = 0;
-
-    			Int start 		= (i << BranchingFactorLog2) + current_level_start;
-    			Int window_end 	= ((i + 1) << BranchingFactorLog2);
-
-    			Int end = (window_end <= current_level_size ? window_end : current_level_size) + current_level_start;
-
-    			for (Int c = start; c < end; c++) {
-    				sum += indexes[c];
-    				sizes_sum += size_index[c];
+    				value_sum = 0;
+    				size_cnt  = 0;
     			}
 
-    			indexes[previous_level_start + i] = sum;
-    			size_index[previous_level_start + i] = sizes_sum;
+    			Value value;
+    			auto len = codec.decode(values, value, pos, data_size);
+
+    			value_sum += value;
+    			size_cnt++;
+
+    			pos += len;
     		}
+
+    		indexes[level_start + idx] = value_sum;
+    		size_index[level_start + idx] = size_cnt;
+
+    		for (Int level = levels - 1; level > 0; level--)
+    		{
+    			Int previous_level_start = layout.level_starts[level - 1];
+    			Int previous_level_size  = layout.level_sizes[level - 1];
+
+    			Int current_level_start  = layout.level_starts[level];
+
+    			Int current_level_size = layout.level_sizes[level];
+
+    			for (int i = 0; i < previous_level_size; i++)
+    			{
+    				IndexValue sum = 0;
+    				Int sizes_sum  = 0;
+
+    				Int start 		= (i << BranchingFactorLog2) + current_level_start;
+    				Int window_end 	= ((i + 1) << BranchingFactorLog2);
+
+    				Int end = (window_end <= current_level_size ? window_end : current_level_size) + current_level_start;
+
+    				for (Int c = start; c < end; c++) {
+    					sum += indexes[c];
+    					sizes_sum += size_index[c];
+    				}
+
+    				indexes[previous_level_start + i] = sum;
+    				size_index[previous_level_start + i] = sizes_sum;
+    			}
+    		}
+    	}
+    	else {
+    		this->clear(block * SegmentsPerBlock + Base::OFFSETS + BlocksStart);
+    	}
+    }
+
+
+    void check_block(Int block, TreeLayout& layout) const
+    {
+    	Int data_size 	 = this->data_size(block);
+    	Int offsets_size = this->element_size(block * SegmentsPerBlock + Base::OFFSETS + BlocksStart);
+
+    	if (layout.levels_max >= 0)
+    	{
+    		MEMORIA_ASSERT(this->element_size(block * SegmentsPerBlock + VALUE_INDEX + BlocksStart), >, 0);
+    		MEMORIA_ASSERT(this->element_size(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart), >, 0);
+
+    		auto values 	= this->values(block);
+    		auto indexes 	= this->value_index(block);
+    		auto size_index = this->size_index(block);
+    		auto offsets 	= this->offsets(block);
+
+    		layout.indexes = indexes;
+    		layout.valaue_block_size_prefix = size_index;
+
+    		Int levels = layout.levels_max + 1;
+
+    		Int level_start = layout.level_starts[levels - 1];
+
+    		Codec codec;
+
+    		size_t pos = 0;
+    		IndexValueT value_sum = 0;
+    		Int size_cnt = 0;
+    		size_t threshold = ValuesPerBranch;
+
+    		MEMORIA_ASSERT(offset(offsets, 0), ==, 0);
+
+    		Int idx = 0;
+    		while(pos < data_size)
+    		{
+    			if (pos >= threshold)
+    			{
+    				MEMORIA_ASSERT(offset(offsets, idx + 1), ==, pos - threshold);
+
+    				MEMORIA_ASSERT(indexes[level_start + idx], ==, value_sum);
+    				MEMORIA_ASSERT(size_index[level_start + idx], ==, size_cnt);
+
+    				threshold += ValuesPerBranch;
+
+    				idx++;
+
+    				value_sum = 0;
+    				size_cnt  = 0;
+    			}
+
+    			Value value;
+    			auto len = codec.decode(values, value, pos, data_size);
+
+    			value_sum += value;
+    			size_cnt++;
+
+    			pos += len;
+    		}
+
+    		MEMORIA_ASSERT((Int)pos, ==, data_size);
+
+    		MEMORIA_ASSERT(indexes[level_start + idx], ==, value_sum);
+    		MEMORIA_ASSERT(size_index[level_start + idx], ==, size_cnt);
+
+    		for (Int level = levels - 1; level > 0; level--)
+    		{
+    			Int previous_level_start = layout.level_starts[level - 1];
+    			Int previous_level_size  = layout.level_sizes[level - 1];
+
+    			Int current_level_start  = layout.level_starts[level];
+
+    			Int current_level_size = layout.level_sizes[level];
+
+    			for (int i = 0; i < previous_level_size; i++)
+    			{
+    				IndexValue sum = 0;
+    				Int sizes_sum  = 0;
+
+    				Int start 		= (i << BranchingFactorLog2) + current_level_start;
+    				Int window_end 	= ((i + 1) << BranchingFactorLog2);
+
+    				Int end = (window_end <= current_level_size ? window_end : current_level_size) + current_level_start;
+
+    				for (Int c = start; c < end; c++) {
+    					sum += indexes[c];
+    					sizes_sum += size_index[c];
+    				}
+
+    				MEMORIA_ASSERT(indexes[previous_level_start + i], ==, sum);
+    				MEMORIA_ASSERT(size_index[previous_level_start + i], ==, sizes_sum);
+    			}
+    		}
+    	}
+    	else {
+    		MEMORIA_ASSERT(this->element_size(block * SegmentsPerBlock + VALUE_INDEX + BlocksStart), ==, 0);
+    		MEMORIA_ASSERT(this->element_size(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart), ==, 0);
+
+    		if (data_size > 0)
+    		{
+    			MEMORIA_ASSERT(offsets_size, ==, sizeof(OffsetsType));
+    			MEMORIA_ASSERT(this->offset(block, 0), ==, 0);
+    		}
+    		else {
+    			MEMORIA_ASSERT(offsets_size, ==, 0);
+    		}
+
+    		MEMORIA_ASSERT(this->data_size(block), <=, kValuesPerBranch);
     	}
     }
 };

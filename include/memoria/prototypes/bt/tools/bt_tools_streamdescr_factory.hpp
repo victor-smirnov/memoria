@@ -23,6 +23,7 @@
 #include <memoria/core/packed/tree/packed_vle_tree.hpp>
 #include <memoria/core/packed/tree/packed_fse_quick_tree.hpp>
 #include <memoria/core/packed/tree/packed_vle_quick_tree.hpp>
+#include <memoria/core/packed/tree/packed_vle_dense_tree.hpp>
 
 #include <memoria/core/tools/i7_codec.hpp>
 #include <memoria/core/tools/elias_codec.hpp>
@@ -100,8 +101,18 @@ struct FSEBranchStructTF {
 };
 
 template <Int LeafIndexes>
-struct VLEBranchStructTF {
+struct VLQBranchStructTF {
 	using Type = PkdVQTree<BigInt, LeafIndexes, UByteI7Codec>;
+};
+
+template <Int LeafIndexes>
+struct VLDBranchStructTF {
+	using Type = PkdVDTree<BigInt, LeafIndexes, UByteI7Codec>;
+};
+
+template <Int LeafIndexes>
+struct VLEBranchStructTF {
+	using Type = PkdVTree<Packed2TreeTypes<BigInt, BigInt, LeafIndexes, UByteI7Codec, 32, 128>>;
 };
 
 

@@ -168,11 +168,6 @@ protected:
     }
 
 
-//    Int compute_tree_layout(const Metadata* meta, TreeLayout& layout) const {
-//    	return compute_tree_layout(meta->max_size(), layout);
-//    }
-
-
     static TreeLayout compute_tree_layout(Int size)
     {
     	TreeLayout layout;

@@ -1,7 +1,7 @@
 include_directories(../tools/include)
 
 if (NOT DEFINED MEMORIA_SANDBOX)
-    set(MEMORIA_SANDBOX packed_q_tree table_scan)
+    set(MEMORIA_SANDBOX packed_q_tree)
 endif()
 
 

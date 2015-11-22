@@ -16,6 +16,7 @@
 
 #include <memoria/core/packed/tree/packed_fse_quick_tree.hpp>
 #include <memoria/core/packed/tree/packed_vle_quick_tree.hpp>
+#include <memoria/core/packed/tree/packed_vle_dense_tree.hpp>
 
 #include <memoria/core/tools/i7_codec.hpp>
 
@@ -206,7 +207,7 @@ public:
                 v[b] = tree->value(b, c);
             }
 
-            AssertEQ(MA_SRC, vals[c], v);
+            AssertEQ(MA_SRC, vals[c], v, SBuf()<<"Index: "<<c);
         }
     }
 
@@ -223,7 +224,7 @@ public:
                 v2[b] = tree2->value(b, c);
             }
 
-            AssertEQ(MA_SRC, v1, v2);
+            AssertEQ(MA_SRC, v1, v2, SBuf()<<"Index: "<<c);
         }
     }
 

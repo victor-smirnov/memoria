@@ -65,7 +65,7 @@ struct BTSSTestStreamTF<PackedSizeType::FIXED, PackedSizeType::VARIABLE, CtrSize
 				PkdFQTree<CtrSizeT, Indexes>
 			>>,
 			TL<TL<TL<IndexRange<0, Indexes>>>>,
-			VLEBranchStructTF
+			VLQBranchStructTF
 	>;
 };
 
@@ -77,7 +77,7 @@ struct BTSSTestStreamTF<PackedSizeType::VARIABLE, PackedSizeType::VARIABLE, CtrS
 				PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, Indexes, UByteI7Codec>>
 			>>,
 			TL<TL<TL<IndexRange<0, Indexes>>>>,
-			VLEBranchStructTF
+			VLQBranchStructTF
 	>;
 };
 

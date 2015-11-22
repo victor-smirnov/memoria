@@ -53,7 +53,7 @@ struct BTTypes<Profile, memoria::Sequence<8, true> >: public BTTypes<Profile, me
     using SeqStreamTF = StreamTF<
     	TL<TL<PkdFSSeq<SequenceTypes>>>,
         TL<TL<TL<>>>,
-		VLEBranchStructTF
+		VLQBranchStructTF
     >;
 
 

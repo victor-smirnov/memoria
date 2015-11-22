@@ -25,18 +25,21 @@ public:
 
     PackedTreeTestSuite(): TestSuite("Packed.Tree")
     {
-        registerTask(new PackedTreeMiscTest<PkdFQTree<BigInt, 4>>("Misc.4.FSE"));
-        registerTask(new PackedTreeFindTest<PkdFQTree<BigInt, 4>>("Find.4.FSE"));
-        registerTask(new PackedTreeSumTest<PkdFQTree<BigInt, 4>>("Sum.4.FSE"));
+        registerTask(new PackedTreeMiscTest<PkdFQTree<BigInt, 4>>("Misc.4.FSQ"));
+        registerTask(new PackedTreeFindTest<PkdFQTree<BigInt, 4>>("Find.4.FSQ"));
+        registerTask(new PackedTreeSumTest<PkdFQTree<BigInt, 4>>("Sum.4.FSQ"));
 
-        registerTask(new PackedTreeMiscTest<PkdVQTree<BigInt, 4, UByteI7Codec>>("Misc.4.VLE.I7"));
-        registerTask(new PackedTreeMiscTest<PkdVQTree<BigInt, 4, UBigIntEliasCodec>>("Misc.4.VLE.Elias"));
+        registerTask(new PackedTreeMiscTest<PkdVQTree<BigInt, 4, UByteI7Codec>>("Misc.4.VLQ.I7"));
+        registerTask(new PackedTreeMiscTest<PkdVQTree<BigInt, 4, UBigIntEliasCodec>>("Misc.4.VLQ.Elias"));
+        registerTask(new PackedTreeMiscTest<PkdVDTree<BigInt, 4, UBigIntEliasCodec>>("Misc.4.VLD.Elias"));
 
-        registerTask(new PackedTreeSumTest<PkdVQTree<BigInt, 4,  UByteI7Codec>>("Sum.4.VLE.I7"));
-        registerTask(new PackedTreeSumTest<PkdVQTree<BigInt, 4,  UBigIntEliasCodec>>("Sum.4.VLE.Elias"));
+        registerTask(new PackedTreeSumTest<PkdVQTree<BigInt, 4,  UByteI7Codec>>("Sum.4.VLQ.I7"));
+        registerTask(new PackedTreeSumTest<PkdVQTree<BigInt, 4,  UBigIntEliasCodec>>("Sum.4.VLQ.Elias"));
+    	registerTask(new PackedTreeSumTest<PkdVDTree<BigInt, 4,  UBigIntEliasCodec>>("Sum.4.VLD.Elias"));
 
-        registerTask(new PackedTreeFindTest<PkdVQTree<BigInt, 4, UBigIntEliasCodec>>("Find.4.VLE.Elias"));
-        registerTask(new PackedTreeFindTest<PkdVQTree<BigInt, 4, UByteI7Codec>>("Find.4.VLE.I7"));
+        registerTask(new PackedTreeFindTest<PkdVQTree<BigInt, 4, UBigIntEliasCodec>>("Find.4.VLQ.Elias"));
+        registerTask(new PackedTreeFindTest<PkdVQTree<BigInt, 4, UByteI7Codec>>("Find.4.VLQ.I7"));
+    	registerTask(new PackedTreeFindTest<PkdVDTree<BigInt, 4, UByteI7Codec>>("Find.4.VLD.I7"));
     }
 
 };

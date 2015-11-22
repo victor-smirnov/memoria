@@ -97,8 +97,17 @@ struct BTTLTestTypesBase: public BTTypes<Profile, BTTreeLayout> {
 			>
     >::Result;
 
+
+    using BTTLNavigationStruct = typename IfThenElse<
+    		SizeType == PackedSizeType::FIXED,
+			PkdFQTree<CtrSizeT, 1>,
+			PkdVQTree<CtrSizeT, 1, UByteI7Codec>
+    >::Result;
+
+
     using StreamDescriptors = typename bttl::BTTLAugmentStreamDescriptors<
-    		RawStreamDescriptors
+    		RawStreamDescriptors,
+			BTTLNavigationStruct
 	>::Type;
 
     using Metadata = BalancedTreeMetadata<
