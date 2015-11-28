@@ -100,24 +100,6 @@ public:
 				Value
     >;
 
-    void init(Int data_block_size, Int blocks)
-    {
-    	Base::init(data_block_size, blocks * SegmentsPerBlock + 1);
-
-    	Metadata* meta = this->template allocate<Metadata>(METADATA);
-
-    	Int max_size        = FindTotalElementsNumber2(data_block_size, InitFn(blocks));
-
-    	meta->size()        = 0;
-    	meta->max_size()   	= max_size;
-    	meta->index_size()  = MyType::index_size(max_size);
-
-    	for (Int block = 0; block < blocks; block++)
-    	{
-    		this->template allocateArrayBySize<IndexValue>(block * SegmentsPerBlock + 1, meta->index_size());
-    		this->template allocateArrayBySize<Value>(block * SegmentsPerBlock + 2, max_size);
-    	}
-    }
 
     void init_tl(Int data_block_size, Int blocks)
     {
@@ -138,24 +120,7 @@ public:
     	}
     }
 
-    void init(Int blocks)
-    {
-    	Base::init(block_size, blocks * SegmentsPerBlock + 1);
 
-    	Metadata* meta = this->template allocate<Metadata>(METADATA);
-
-    	Int max_size        = 0;
-
-    	meta->size()        = 0;
-    	meta->data_size()   = 0;
-    	meta->index_size()  = 0;
-
-    	for (Int block = 0; block < blocks; block++)
-    	{
-    		this->template allocateArrayBySize<IndexValue>(block * SegmentsPerBlock + 1, meta->index_size());
-    		this->template allocateArrayBySize<Value>(block * SegmentsPerBlock + 2, max_size);
-    	}
-    }
 
     static Int block_size(Int blocks, Int capacity)
     {
@@ -748,13 +713,20 @@ public:
         return this->find_gt_fw(block, start, val);
     }
 
-
+    auto findGTForward(Int block, IndexValue val) const
+    {
+    	return this->find_gt(block, val);
+    }
 
     auto findGTBackward(Int block, Int start, IndexValue val) const
     {
     	return this->find_gt_bw(block, start, val);
     }
 
+    auto findGTBackward(Int block, IndexValue val) const
+    {
+    	return this->find_gt_bw(block, this->size() - 1, val);
+    }
 
 
     auto findGEForward(Int block, Int start, IndexValue val) const
@@ -762,9 +734,19 @@ public:
     	return this->find_ge_fw(block, start, val);
     }
 
+    auto findGEForward(Int block, IndexValue val) const
+    {
+    	return this->find_ge(block, val);
+    }
+
     auto findGEBackward(Int block, Int start, IndexValue val) const
     {
     	return this->find_ge_bw(block, start, val);
+    }
+
+    auto findGEBackward(Int block, IndexValue val) const
+    {
+    	return this->find_ge_bw(block, this->size() - 1, val);
     }
 
     class FindResult {
@@ -797,6 +779,28 @@ public:
         }
         else {
             return FindResult(findGEBackward(block, start, val));
+        }
+    }
+
+    auto findForward(SearchType search_type, Int block, IndexValue val) const
+    {
+        if (search_type == SearchType::GT)
+        {
+            return FindResult(findGTForward(block, val));
+        }
+        else {
+            return FindResult(findGEForward(block, val));
+        }
+    }
+
+    auto findBackward(SearchType search_type, Int block, IndexValue val) const
+    {
+        if (search_type == SearchType::GT)
+        {
+            return FindResult(findGTBackward(block, val));
+        }
+        else {
+            return FindResult(findGEBackward(block, val));
         }
     }
 

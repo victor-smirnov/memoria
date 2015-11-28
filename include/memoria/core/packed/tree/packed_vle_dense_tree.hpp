@@ -45,6 +45,7 @@ public:
     using Base::walk_fw;
     using Base::walk_bw;
     using Base::metadata;
+    using Base::offsets_segment_size;
 
     using Base::METADATA;
     using Base::DATA_SIZES;
@@ -82,25 +83,76 @@ public:
 
     using SizesT = core::StaticVector<Int, Blocks>;
 
-    void init(Int data_block_size)
+    static Int estimate_block_size(Int tree_capacity, Int density_hi = 1000, Int density_lo = 333)
     {
-    	Base::init(data_block_size, TreeBlocks);
+        Int max_tree_capacity = (tree_capacity * Blocks * density_hi) / density_lo;
+        return block_size(max_tree_capacity);
     }
+
+
 
     void init_tl(Int data_block_size)
     {
     	Base::init_tl(data_block_size, TreeBlocks);
     }
 
+    void init(const SizesT& sizes) {
+    	MyType::init(sizes.sum());
+    }
+
+    void init(Int total_capacity)
+    {
+    	Base::init(empty_size(), TreeBlocks * SegmentsPerBlock + BlocksStart);
+
+    	Metadata* meta = this->template allocate<Metadata>(METADATA);
+    	this->template allocateArrayBySize<Int>(DATA_SIZES, TreeBlocks);
+
+    	meta->size()        = 0;
+
+    	for (Int block = 0; block < TreeBlocks; block++)
+    	{
+    		Int capacity        = total_capacity;
+    		Int offsets_size 	= offsets_segment_size(capacity);
+    		Int index_size		= this->index_size(capacity);
+    		Int values_segment_length = this->value_segment_size(capacity);
+
+    		this->resizeBlock(block * SegmentsPerBlock + VALUE_INDEX + BlocksStart, index_size * sizeof(IndexValueT));
+    		this->resizeBlock(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart, index_size * sizeof(Int));
+    		this->resizeBlock(block * SegmentsPerBlock + OFFSETS + BlocksStart, offsets_size);
+    		this->resizeBlock(block * SegmentsPerBlock + VALUES + BlocksStart, values_segment_length);
+    	}
+    }
+
     void init()
     {
-    	Base::init(0, TreeBlocks);
+    	Base::init(empty_size(), TreeBlocks * SegmentsPerBlock + BlocksStart);
+
+    	Metadata* meta = this->template allocate<Metadata>(METADATA);
+    	this->template allocateArrayBySize<Int>(DATA_SIZES, TreeBlocks);
+
+    	meta->size() = 0;
+    	Int offsets_size = offsets_segment_size(0);
+
+    	for (Int block = 0; block < TreeBlocks; block++)
+    	{
+    		this->template allocateArrayBySize<IndexValueT>(block * SegmentsPerBlock + VALUE_INDEX + BlocksStart, 0);
+    		this->template allocateArrayBySize<Int>(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart, 0);
+    		this->template allocateArrayBySize<Byte>(block * SegmentsPerBlock + OFFSETS + BlocksStart, offsets_size);
+    		this->template allocateArrayBySize<Byte>(block * SegmentsPerBlock + VALUES + BlocksStart, 0);
+    	}
     }
+
 
     static Int block_size(Int capacity)
     {
     	return Base::block_size(TreeBlocks, capacity * Blocks);
     }
+
+    static Int block_size(const SizesT& capacity)
+    {
+    	return Base::block_size_equi(TreeBlocks, capacity.sum());
+    }
+
 
     static Int packed_block_size(Int tree_capacity)
     {
@@ -115,7 +167,7 @@ public:
 
     Int block_size(const MyType* other) const
     {
-        return block_size(this->size() + other->size());
+        return block_size(this->data_size_v() + other->data_size_v());
     }
 
     ValueData* values() {
@@ -139,6 +191,18 @@ public:
     	return this->metadata()->size() / Blocks;
     }
 
+    SizesT data_size_v() const
+    {
+    	SizesT sizes;
+
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		sizes[block] = this->data_size(block);
+    	}
+
+    	return sizes;
+    }
+
     static Int elements_for(Int block_size)
     {
         return Base::tree_size(TreeBlocks, block_size);
@@ -148,6 +212,8 @@ public:
     {
         return block_size(items_num);
     }
+
+
 
     ValueT value(Int block, Int idx) const
     {
@@ -179,7 +245,7 @@ public:
 
     static Int empty_size()
     {
-    	return block_size(0);
+    	return block_size(SizesT());
     }
 
     void reindex() {
@@ -404,27 +470,7 @@ protected:
     	data_size -= length;
     }
 
-    void dump_values(Int block, std::ostream& out = std::cout)
-    {
-    	out<<"Dump values"<<std::endl;
-    	Codec codec;
-    	size_t pos = 0;
 
-    	auto values 	= this->values(block);
-    	auto data_size 	= this->data_size(block);
-
-    	for(Int c = 0; pos < data_size; c++)
-    	{
-    		ValueT value;
-    		auto len = codec.decode(values, value, pos);
-
-    		out<<c<<": "<<pos<<" "<<value<<std::endl;
-
-    		pos += len;
-    	}
-
-    	out<<std::endl;
-    }
 
 
 //    void copyTo(MyType* other, Int copy_from, Int count, Int copy_to) const
@@ -639,9 +685,11 @@ public:
 
     	values = this->values();
 
+    	Int shift = 0;
+
     	for (Int block = 0; block < Blocks; block++)
     	{
-    		size_t insertion_pos = positions[block];
+    		size_t insertion_pos = positions[block] + shift;
     		codec.move(values, insertion_pos, insertion_pos + total_lengths[block], data_size - insertion_pos);
 
     		for (Int c = 0; c < inserted; c++)
@@ -651,9 +699,7 @@ public:
     			insertion_pos += len;
     		}
 
-    		for (Int b1 = block + 1; b1 < Blocks; b1++) {
-    			positions[b1] += total_lengths[block];
-    		}
+    		shift += total_lengths[block];
 
     		data_size += total_lengths[block];
     	}
@@ -662,6 +708,46 @@ public:
 
     	reindex();
     }
+
+
+    template <typename Adaptor>
+    SizesT populate(SizesT at, const SizesT& total_lengths, Int size, Adaptor&& adaptor)
+    {
+    	Codec codec;
+
+    	size_t data_size = this->data_size();
+    	auto values	= this->values();
+
+    	Int shift = 0;
+
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		size_t insertion_pos = at[block] + shift;
+
+    		codec.move(values, insertion_pos, insertion_pos + total_lengths[block], data_size - insertion_pos);
+
+    		for (Int c = 0; c < size; c++)
+    		{
+    			auto value = adaptor(block, c);
+
+    			Int len = codec.encode(values, value, insertion_pos);
+    			insertion_pos += len;
+    		}
+
+    		at[block] = insertion_pos;
+
+    		shift += total_lengths[block];
+
+    		data_size += total_lengths[block];
+    	}
+
+    	this->data_size() = data_size;
+
+    	metadata()->size() += (size * Blocks);
+
+    	return at;
+    }
+
 
     template <typename T>
     void update(Int idx, const core::StaticVector<T, Blocks>& values)
@@ -724,6 +810,7 @@ public:
     		starts[block] = this->locate(layout, values, 0, block * size + start);
     	}
 
+    	Int shift = 0;
 
     	for (Int block = 0; block < Blocks; block++)
     	{
@@ -755,7 +842,7 @@ public:
     				data_start_tmp += len;
     			}
 
-    			size_t data_start = starts[block];
+    			size_t data_start = starts[block] + shift;
 
     			if (new_length > old_length)
     			{
@@ -782,9 +869,11 @@ public:
     			}
     		}
 
-    		for (Int b1 = block; b1 < Blocks; b1++) {
-    			starts[b1] += total_delta;
-    		}
+    		shift += total_delta;
+
+//    		for (Int b1 = block; b1 < Blocks; b1++) {
+//    			starts[b1] += total_delta;
+//    		}
     	}
 
     	reindex();
@@ -843,6 +932,7 @@ public:
     		reindex();
     	}
     }
+
 
 
 
@@ -1014,28 +1104,71 @@ public:
     {
     	Int size = this->size();
     	Int block_start = block * size;
-    	return walk_fw(0, block_start, FindGEWalker(value)).adjust(block_start, size);
+
+    	auto sum = this->gsum(0, block_start);
+
+    	auto result = find(0, FindGEWalker(value + sum));
+
+    	if (result.idx() < block_start + size)
+    	{
+    		return result.adjust_s(block_start, size, sum);
+    	}
+    	else {
+    		auto block_sum = this->gsum(0, block_start + size) - sum;
+    		return result.adjust(block_start, size, block_sum);
+    	}
     }
 
     auto find_gt(Int block, IndexValueT value) const
     {
     	Int size = this->size();
     	Int block_start = block * size;
-    	return find(0, FindGTWalker(value)).adjust(block_start, size);
+
+    	auto sum = this->gsum(0, block_start);
+
+    	auto result = find(0, FindGTWalker(value + sum));
+
+    	if (result.idx() < block_start + size)
+    	{
+    		return result.adjust_s(block_start, size, sum);
+    	}
+    	else {
+    		auto block_sum = this->gsum(0, block_start + size) - sum;
+    		return result.adjust(block_start, size, block_sum);
+    	}
     }
 
     auto find_ge_fw(Int block, Int start, IndexValueT value) const
     {
     	Int size = this->size();
     	Int block_start = block * size;
-    	return walk_fw(0, block_start + start, FindGEWalker(value)).adjust(block_start, size);
+    	auto result = walk_fw(0, block_start + start, size, FindGEWalker(value));
+
+    	if (result.idx() < block_start + size)
+    	{
+    		return result.adjust(block_start, size);
+    	}
+    	else {
+    		auto sum = this->sum(block, start, size);
+    		return result.adjust(block_start, size, sum);
+    	}
     }
 
     auto find_gt_fw(Int block, Int start, IndexValueT value) const
     {
     	Int size = this->size();
     	Int block_start = block * size;
-    	return walk_fw(0, block_start + start, FindGTWalker(value)).adjust(block_start, size);
+    	auto result = walk_fw(0, block_start + start, size, FindGTWalker(value));
+
+
+    	if (result.idx() < block_start + size)
+    	{
+    		return result.adjust(block_start, size);
+    	}
+    	else {
+    		auto sum = this->sum(block, start, size);
+    		return result.adjust(block_start, size, sum);
+    	}
     }
 
 
@@ -1043,14 +1176,32 @@ public:
     {
     	Int size = this->size();
     	Int block_start = block * size;
-    	return walk_bw(0, block_start + start, FindGEWalker(value)).adjust(block_start, size);
+    	auto result = walk_bw(0, block_start + start, FindGEWalker(value));
+
+    	if (result.idx() >= block_start)
+    	{
+    		return result.adjust(block_start, size);
+    	}
+    	else {
+    		auto sum = this->sum(block, 1, start + 1);
+    		return result.adjust(block_start, size, sum);
+    	}
     }
 
     auto find_gt_bw(Int block, Int start, IndexValueT value) const
     {
     	Int size = this->size();
     	Int block_start = block * size;
-    	return walk_bw(0, block_start + start, FindGTWalker(value)).adjust(block_start, size);
+    	auto result = walk_bw(0, block_start + start, FindGTWalker(value));
+
+    	if (result.idx() >= block_start)
+    	{
+    		return result.adjust(block_start, size);
+    	}
+    	else {
+    		auto sum = this->sum(block, 1, start + 1);
+    		return result.adjust(block_start, size, sum);
+    	}
     }
 
 
@@ -1087,11 +1238,21 @@ public:
         return this->find_gt_fw(block, start, val);
     }
 
+    auto findGTForward(Int block, IndexValueT val) const
+    {
+    	return this->find_gt(block, val);
+    }
+
 
 
     auto findGTBackward(Int block, Int start, IndexValueT val) const
     {
     	return this->find_gt_bw(block, start, val);
+    }
+
+    auto findGTBackward(Int block, IndexValueT val) const
+    {
+    	return this->find_gt_bw(block, this->size() - 1, val);
     }
 
 
@@ -1101,9 +1262,19 @@ public:
     	return this->find_ge_fw(block, start, val);
     }
 
+    auto findGEForward(Int block, IndexValueT val) const
+    {
+    	return this->find_ge(block, val);
+    }
+
     auto findGEBackward(Int block, Int start, IndexValueT val) const
     {
     	return this->find_ge_bw(block, start, val);
+    }
+
+    auto findGEBackward(Int block, IndexValueT val) const
+    {
+    	return this->find_ge_bw(block, this->size() - 1, val);
     }
 
     class FindResult {
@@ -1189,13 +1360,19 @@ public:
     	out<<"block_size_   = "<<this->block_size()<<std::endl;
     	out<<"data_size_    = "<<data_size<<std::endl;
 
-    	size_t block_starts[Blocks];
+    	Int block_starts[Blocks];
 
     	for (Int block = 0; block < Blocks; block++)
     	{
     		block_starts[block] = this->locate(0, block * size);
-    		out<<"block_data_size_["<<block<<"] = "<<block_starts[block]<<std::endl;
     	}
+
+    	for (Int block = 0; block < Blocks - 1; block++)
+    	{
+    		out<<"block_data_size_["<<block<<"] = "<<block_starts[block + 1] - block_starts[block]<<std::endl;
+    	}
+
+    	out<<"block_data_size_["<<(Blocks - 1)<<"] = "<<data_size - block_starts[Blocks - 1]<<std::endl;
 
     	auto index_size = this->index_size(data_size);
 

@@ -10,9 +10,8 @@
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
 
-#include "palloc_test_base.hpp"
-
 #include <memory>
+#include "pseq_test_base.hpp"
 
 namespace memoria {
 
@@ -20,8 +19,7 @@ using namespace std;
 
 template <
     Int Bits,
-    template <typename> class IndexType     = PkdFTree,
-    template <typename> class CodecType     = ValueFSECodec,
+    typename IndexType,
     template <typename> class ReindexFnType = BitmapReindexFn,
     template <typename> class SelectFnType  = BitmapSelectFn,
     template <typename> class RankFnType    = BitmapRankFn,
@@ -30,7 +28,6 @@ template <
 class PackedSearchableSequenceRankTest: public PackedSearchableSequenceTestBase<
     Bits,
     IndexType,
-    CodecType,
     ReindexFnType,
     SelectFnType,
     RankFnType,
@@ -40,7 +37,6 @@ class PackedSearchableSequenceRankTest: public PackedSearchableSequenceTestBase<
     typedef PackedSearchableSequenceRankTest<
             Bits,
             IndexType,
-            CodecType,
             ReindexFnType,
             SelectFnType,
             RankFnType,
@@ -50,7 +46,6 @@ class PackedSearchableSequenceRankTest: public PackedSearchableSequenceTestBase<
     typedef PackedSearchableSequenceTestBase<
             Bits,
             IndexType,
-            CodecType,
             ReindexFnType,
             SelectFnType,
             RankFnType,

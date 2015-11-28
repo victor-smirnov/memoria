@@ -92,12 +92,12 @@ public:
     	InitFn(Int blocks): blocks_(blocks) {}
 
     	Int block_size(Int items_number) const {
-    		return MyType::block_size(blocks_, items_number);
+    		return MyType::block_size_equi(blocks_, items_number);
     	}
 
     	Int max_elements(Int block_size)
     	{
-    		return block_size;
+    		return block_size * 8 / BITS_PER_DATA_VALUE;
     	}
     };
 
@@ -138,29 +138,29 @@ public:
     }
 
 
-    void init(Int data_block_size, Int blocks)
-    {
-    	Base::init(data_block_size, blocks * SegmentsPerBlock + BlocksStart);
-
-    	Metadata* meta = this->template allocate<Metadata>(METADATA);
-    	this->template allocateArrayBySize<Int>(DATA_SIZES, blocks);
-
-    	meta->size()        = 0;
-
-    	Int max_size        = FindTotalElementsNumber3(data_block_size, InitFn(blocks));
-    	Int offsets_size 	= offsets_segment_size(max_size);
-
-    	Int values_segment_length = this->value_segment_size(max_size);
-    	Int index_size		= this->index_size(max_size);
-
-    	for (Int block = 0; block < blocks; block++)
-    	{
-    		this->template allocateArrayBySize<IndexValue>(block * SegmentsPerBlock + VALUE_INDEX + BlocksStart, index_size);
-    		this->template allocateArrayBySize<Int>(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart, index_size);
-    		this->template allocateArrayBySize<Byte>(block * SegmentsPerBlock + OFFSETS + BlocksStart, offsets_size);
-    		this->template allocateArrayBySize<Byte>(block * SegmentsPerBlock + VALUES + BlocksStart, values_segment_length);
-    	}
-    }
+//    void init(Int data_block_size, Int blocks)
+//    {
+//    	Base::init(data_block_size, blocks * SegmentsPerBlock + BlocksStart);
+//
+//    	Metadata* meta = this->template allocate<Metadata>(METADATA);
+//    	this->template allocateArrayBySize<Int>(DATA_SIZES, blocks);
+//
+//    	meta->size()        = 0;
+//
+//    	Int max_size        = FindTotalElementsNumber3(data_block_size, InitFn(blocks));
+//    	Int offsets_size 	= offsets_segment_size(max_size);
+//
+//    	Int values_segment_length = this->value_segment_size(max_size);
+//    	Int index_size		= this->index_size(max_size);
+//
+//    	for (Int block = 0; block < blocks; block++)
+//    	{
+//    		this->template allocateArrayBySize<IndexValue>(block * SegmentsPerBlock + VALUE_INDEX + BlocksStart, index_size);
+//    		this->template allocateArrayBySize<Int>(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart, index_size);
+//    		this->template allocateArrayBySize<Byte>(block * SegmentsPerBlock + OFFSETS + BlocksStart, offsets_size);
+//    		this->template allocateArrayBySize<Byte>(block * SegmentsPerBlock + VALUES + BlocksStart, values_segment_length);
+//    	}
+//    }
 
     void init_tl(Int data_block_size, Int blocks)
     {
@@ -186,26 +186,29 @@ public:
     	}
     }
 
-    void init(Int blocks)
-    {
-    	Int block_size = MyType::tree_size(blocks, 0);
-    	Base::init(block_size, blocks * SegmentsPerBlock + BlocksStart);
+//    void init(Int blocks)
+//    {
+//    	Int block_size = MyType::tree_size(blocks, 0);
+//    	Base::init(block_size, blocks * SegmentsPerBlock + BlocksStart);
+//
+//    	Metadata* meta = this->template allocate<Metadata>(Base::METADATA);
+//    	this->template allocateArrayBySize<Int>(Base::DATA_SIZES, blocks);
+//
+//    	meta->size() = 0;
+//
+//    	for (Int block = 0; block < blocks; block++)
+//    	{
+//    		this->template allocateArrayBySize<IndexValue>(block * SegmentsPerBlock + VALUE_INDEX + BlocksStart, 0);
+//    		this->template allocateArrayBySize<Value>(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart, 0);
+//    		this->template allocateArrayBySize<Byte>(block * SegmentsPerBlock + OFFSETS + BlocksStart, 0);
+//    		this->template allocateArrayBySize<ValueData>(block * SegmentsPerBlock + VALUES + BlocksStart, 0);
+//    	}
+//    }
 
-    	Metadata* meta = this->template allocate<Metadata>(Base::METADATA);
-    	this->template allocateArrayBySize<Int>(Base::DATA_SIZES, blocks);
 
-    	meta->size() = 0;
 
-    	for (Int block = 0; block < blocks; block++)
-    	{
-    		this->template allocateArrayBySize<IndexValue>(block * SegmentsPerBlock + VALUE_INDEX + BlocksStart, 0);
-    		this->template allocateArrayBySize<Value>(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart, 0);
-    		this->template allocateArrayBySize<Byte>(block * SegmentsPerBlock + OFFSETS + BlocksStart, 0);
-    		this->template allocateArrayBySize<ValueData>(block * SegmentsPerBlock + VALUES + BlocksStart, 0);
-    	}
-    }
-
-    static Int block_size(Int blocks, Int capacity)
+    //FIXME: invalid block size calculation by capacity
+    static Int block_size_equi(Int blocks, Int capacity)
     {
     	Int metadata_length = Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
 
@@ -219,13 +222,18 @@ public:
 
     	Int offsets_length 	= offsets_segment_size(capacity);
 
+    	Int  blocks_length  = index_length + values_length + offsets_length + sizes_length;
+
     	return Base::block_size(
     			metadata_length +
 				data_sizes_length +
-				(index_length + values_length + offsets_length + sizes_length) * blocks,
+				blocks_length * blocks,
 				blocks * SegmentsPerBlock + BlocksStart
 		);
     }
+
+
+
 
     Int block_size() const
     {
@@ -286,6 +294,7 @@ public:
     	return this->element_size(block * SegmentsPerBlock + VALUE_INDEX + BlocksStart) > 0;
     }
 
+
     struct FindGEWalker {
     	IndexValue sum_ = 0;
     	IndexValue target_;
@@ -293,8 +302,6 @@ public:
     	IndexValue next_;
 
     	Int idx_;
-
-    	ValueT value_;
 
     public:
     	FindGEWalker(IndexValue target): target_(target) {}
@@ -313,11 +320,8 @@ public:
     	Int& idx() {return idx_;}
     	const Int& idx() const {return idx_;}
 
-    	ValueT value() const {return value_;}
-
-    	FindGEWalker& idx(Int idx, ValueT value, size_t) {
+    	FindGEWalker& idx(Int idx) {
     		idx_ = idx;
-    		value_ = value;
     		return *this;
     	}
 
@@ -334,6 +338,30 @@ public:
 
     		return *this;
     	}
+
+    	FindGEWalker& adjust(Int base, Int size, IndexValue sum) {
+    		idx_ -= base;
+
+    		if (idx_ > size) {
+    			idx_ = size;
+    		}
+
+    		this->sum_ = sum;
+
+    		return *this;
+    	}
+
+    	FindGEWalker& adjust_s(Int base, Int size, IndexValue sum) {
+    		idx_ -= base;
+
+    		if (idx_ > size) {
+    			idx_ = size;
+    		}
+
+    		this->sum_ -= sum;
+
+    		return *this;
+    	}
     };
 
     struct FindGTWalker {
@@ -343,8 +371,6 @@ public:
     	IndexValue next_;
 
     	Int idx_;
-
-    	ValueT value_;
     public:
     	FindGTWalker(IndexValue target): target_(target) {}
 
@@ -359,14 +385,11 @@ public:
     		sum_ += next_;
     	}
 
-    	ValueT value() const {return value_;}
-
     	Int& idx() {return idx_;}
     	const Int& idx() const {return idx_;}
 
-    	FindGTWalker& idx(Int idx, ValueT value, size_t) {
+    	FindGTWalker& idx(Int idx) {
     		idx_ = idx;
-    		value_ = value;
     		return *this;
     	}
 
@@ -380,6 +403,30 @@ public:
     		if (idx_ > size) {
     			idx_ = size;
     		}
+
+    		return *this;
+    	}
+
+    	FindGTWalker& adjust(Int base, Int size, IndexValue sum) {
+    		idx_ -= base;
+
+    		if (idx_ > size) {
+    			idx_ = size;
+    		}
+
+    		this->sum_ = sum;
+
+    		return *this;
+    	}
+
+    	FindGTWalker& adjust_s(Int base, Int size, IndexValue sum) {
+    		idx_ -= base;
+
+    		if (idx_ > size) {
+    			idx_ = size;
+    		}
+
+    		this->sum_ -= sum;
 
     		return *this;
     	}
@@ -557,7 +604,7 @@ public:
 
     			if (walker.compare(value))
     			{
-    				return walker.idx(c, value, pos);
+    				return walker.idx(c);
     			}
     			else {
     				pos += length;
@@ -565,7 +612,7 @@ public:
     			}
     		}
 
-    		return walker.idx(size, 0, data_size);
+    		return walker.idx(size);
     	}
     	else {
     		TreeLayout data = this->compute_tree_layout(data_size);
@@ -588,7 +635,7 @@ public:
 
     				if (walker.compare(value))
     				{
-    					return walker.idx(local_idx, value, local_pos);
+    					return walker.idx(local_idx);
     				}
     				else {
     					local_pos += length;
@@ -596,10 +643,10 @@ public:
     				}
     			}
 
-    			return walker.idx(size, 0, data_size);
+    			return walker.idx(size);
     		}
     		else {
-    			return walker.idx(size, 0, data_size);
+    			return walker.idx(size);
     		}
     	}
     }
@@ -607,9 +654,8 @@ public:
 
 
     template <typename Walker>
-    auto walk_fw(Int block, Int start, Walker&& walker) const
+    auto walk_fw(Int block, Int start, Int size, Walker&& walker) const
     {
-    	Int size = metadata()->size();
     	auto values = this->values(block);
 
     	Int data_size = this->data_size(block);
@@ -618,6 +664,8 @@ public:
     	auto lr = this->locate(layout, values, block, start);
 
     	size_t pos = lr.idx;
+
+    	Int limit = start + size;
 
     	if (pos < data_size)
     	{
@@ -630,9 +678,9 @@ public:
     				Value value;
     				auto len = codec.decode(values, value, pos, data_size);
 
-    				if (walker.compare(value))
+    				if (c == limit || walker.compare(value))
     				{
-    					return walker.idx(c, value, pos);
+    					return walker.idx(c);
     				}
     				else {
     					pos += len;
@@ -640,7 +688,7 @@ public:
     				}
     			}
 
-    			return walker.idx(size, 0, data_size);
+    			return walker.idx(limit);
     		}
     		else {
     			WalkerState state;
@@ -655,9 +703,9 @@ public:
     				Value value;
     				auto len = codec.decode(values, value, pos, data_size);
 
-    				if (walker.compare(value))
+    				if (c == limit || walker.compare(value))
     				{
-    					return walker.idx(c, value, pos);
+    					return walker.idx(c);
     				}
     				else {
     					state.size_sum++;
@@ -683,9 +731,9 @@ public:
     					Value value;
     					size_t length = codec.decode(values, value, local_pos, data_size);
 
-    					if (walker.compare(value))
+    					if (local_idx == limit || walker.compare(value))
     					{
-    						return walker.idx(local_idx, value, local_pos);
+    						return walker.idx(local_idx);
     					}
     					else {
     						local_pos += length;
@@ -693,15 +741,15 @@ public:
     					}
     				}
 
-    				return walker.idx(size, 0, data_size);
+    				return walker.idx(limit);
     			}
     			else {
-    				return walker.idx(size, 0, data_size);
+    				return walker.idx(limit);
     			}
     		}
     	}
     	else {
-    		return walker.idx(size, 0, data_size);
+    		return walker.idx(limit);
     	}
     }
 
@@ -739,14 +787,14 @@ public:
     		{
     			if (walker.compare(value_data[c]))
     			{
-    				return walker.idx(c, value_data[c], -1);
+    				return walker.idx(c);
     			}
     			else {
     				walker.next();
     			}
     		}
 
-    		return walker.idx(-1, 0, 0);
+    		return walker.idx(-1);
     	}
     	else {
     		size_t window_start = (pos & ~ValuesPerBranchMask) + this->offset(offsets, pos >> ValuesPerBranchLog2);
@@ -772,7 +820,7 @@ public:
     		{
     			if (walker.compare(value_data[c]))
     			{
-    				return walker.idx(c + window_size_prefix, value_data[c], -1);
+    				return walker.idx(c + window_size_prefix);
     			}
     			else {
     				walker.next();
@@ -814,17 +862,17 @@ public:
     			{
     				if (walker.compare(value_data[c]))
     				{
-    					return walker.idx(c + state.size_sum, value_data[c], 0);
+    					return walker.idx(c + state.size_sum);
     				}
     				else {
     					walker.next();
     				}
     			}
 
-    			return walker.idx(-1, 0, 0);
+    			return walker.idx(-1);
     		}
     		else {
-    			return walker.idx(-1, 0, 0);
+    			return walker.idx(-1);
     		}
     	}
     }
@@ -994,7 +1042,27 @@ public:
     	}
     }
 
+    void dump_block(Int block, std::ostream& out = std::cout) const
+    {
+    	out<<"Dump values"<<std::endl;
+    	Codec codec;
+    	size_t pos = 0;
 
+    	auto values 	= this->values(block);
+    	auto data_size 	= this->data_size(block);
+
+    	for(Int c = 0; pos < data_size; c++)
+    	{
+    		ValueT value;
+    		auto len = codec.decode(values, value, pos);
+
+    		out<<c<<": "<<pos<<" "<<value<<std::endl;
+
+    		pos += len;
+    	}
+
+    	out<<std::endl;
+    }
 
 
 

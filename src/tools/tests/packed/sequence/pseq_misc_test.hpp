@@ -10,9 +10,8 @@
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
 
-#include "palloc_test_base.hpp"
-
 #include <memory>
+#include "pseq_test_base.hpp"
 
 namespace memoria {
 
@@ -20,8 +19,7 @@ using namespace std;
 
 template <
     Int Bits,
-    template <typename> class IndexType     = PkdFTree,
-    template <typename> class CodecType     = ValueFSECodec,
+    typename IndexType,
     template <typename> class ReindexFnType = BitmapReindexFn,
     template <typename> class SelectFnType  = BitmapSelectFn,
     template <typename> class RankFnType    = BitmapRankFn,
@@ -30,7 +28,6 @@ template <
 class PackedSearchableSequenceMiscTest: public PackedSearchableSequenceTestBase<
     Bits,
     IndexType,
-    CodecType,
     ReindexFnType,
     SelectFnType,
     RankFnType,
@@ -40,7 +37,6 @@ class PackedSearchableSequenceMiscTest: public PackedSearchableSequenceTestBase<
     typedef PackedSearchableSequenceMiscTest<
             Bits,
             IndexType,
-            CodecType,
             ReindexFnType,
             SelectFnType,
             RankFnType,
@@ -50,7 +46,6 @@ class PackedSearchableSequenceMiscTest: public PackedSearchableSequenceTestBase<
     typedef PackedSearchableSequenceTestBase<
             Bits,
             IndexType,
-            CodecType,
             ReindexFnType,
             SelectFnType,
             RankFnType,
@@ -65,6 +60,8 @@ class PackedSearchableSequenceMiscTest: public PackedSearchableSequenceTestBase<
     static const Int Blocks                 = Seq::Indexes;
     static const Int Symbols                = 1<<Bits;
     static const Int VPB                    = Seq::ValuesPerBranch;
+
+    using Base::getRandom;
 
 public:
 
@@ -84,7 +81,7 @@ public:
 
     void testCreate()
     {
-        for (Int size = 1; size < this->size_; size *= 2)
+        for (Int size = 2048; size <= this->size_; size *= 2)
         {
             this->out()<<size<<std::endl;
 
@@ -127,7 +124,7 @@ public:
 
     void testInsertMultiple()
     {
-        for (Int size = 1; size <= this->size_; size *= 2)
+        for (Int size = 8192; size <= this->size_; size *= 2)
         {
             this->out()<<size<<std::endl;
 

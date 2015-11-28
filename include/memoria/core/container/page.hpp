@@ -128,17 +128,17 @@ struct TypeHash<PageID<T>>: UIntValue<
     HashHelper<101, TypeHash<T>::Value>::Value
 > {};
 
-typedef struct
+struct IDKeyHash
 {
     template <typename T>
     long operator() (const PageID<T> &k) const { return k.value(); }
-} IDKeyHash;
+};
 
-typedef struct
+struct IDKeyEq
 {
     template <typename T>
     bool operator() (const PageID<T> &x, const PageID<T> &y) const { return x == y; }
-} IDKeyEq;
+};
 
 
 

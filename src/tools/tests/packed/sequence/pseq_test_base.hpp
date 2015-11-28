@@ -20,8 +20,7 @@ using namespace std;
 
 template <
     Int Bits,
-    template <typename> class IndexType,
-    template <typename> class CodecType,
+    typename IndexType,
     template <typename> class ReindexFnType,
     template <typename> class SelectFnType,
     template <typename> class RankFnType,
@@ -32,7 +31,6 @@ class PackedSearchableSequenceTestBase: public TestTask {
     typedef PackedSearchableSequenceTestBase<
             Bits,
             IndexType,
-            CodecType,
             ReindexFnType,
             SelectFnType,
             RankFnType,
@@ -41,10 +39,8 @@ class PackedSearchableSequenceTestBase: public TestTask {
 
     typedef PkdFSSeqTypes<
                 Bits,
-                PackedTreeBranchingFactor,
                 1024,
                 IndexType,
-                CodecType,
                 ReindexFnType,
                 SelectFnType,
                 RankFnType,
@@ -96,13 +92,17 @@ public:
 
     vector<Int> populate(Seq* seq, Int size, Value value = 0)
     {
-        vector<Int> symbols;
+        vector<Int> symbols(size);
+
+        for (auto& s: symbols) s = value;
 
         seq->clear();
         seq->insert(0, size, [&](){
-            symbols.push_back(value);
             return value;
         });
+
+        this->assertEqual(seq, symbols);
+        this->assertIndexCorrect(MA_SRC, seq);
 
         return symbols;
     }
@@ -122,6 +122,11 @@ public:
             symbols.push_back(sym);
             return sym;
         });
+
+        seq->check();
+
+        this->assertIndexCorrect(MA_SRC, seq);
+        this->assertEqual(seq, symbols);
 
         return symbols;
     }
@@ -161,9 +166,18 @@ public:
     {
         AssertEQ(MA_SRC, seq->size(), (Int)symbols.size());
 
+        try {
+
         for (Int c = 0; c < seq->size(); c++)
         {
-            AssertEQ(MA_SRC, seq->symbol(c), (Value)symbols[c]);
+            AssertEQ(MA_SRC, (UBigInt)seq->symbol(c), (UBigInt)symbols[c], SBuf()<<"Index: "<<c);
+        }
+
+        }
+        catch(...) {
+        	seq->dump(this->out());
+
+        	throw;
         }
     }
 };

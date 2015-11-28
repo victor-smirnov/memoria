@@ -22,10 +22,12 @@ class PkdFQTree: public PkdFQTreeBase<IndexValueT, ValueT, kBranchingFactor, kVa
 
 
 public:
-	using Base::SegmentsPerBlock;
-
-    static constexpr UInt VERSION = 1;
+	static constexpr UInt VERSION = 1;
     static constexpr Int Blocks = kBlocks;
+
+    using Base::METADATA;
+    using Base::index_size;
+    using Base::SegmentsPerBlock;
 
     using FieldsList = MergeLists<
                 typename Base::FieldsList,
@@ -40,9 +42,14 @@ public:
     using InputBuffer 	= MyType;
     using InputType 	= Values;
 
-    void init(Int data_block_size)
+    using SizesT = core::StaticVector<Int, Blocks>;
+
+    static Int estimate_block_size(Int tree_capacity, Int density_hi = 1, Int density_lo = 1)
     {
-    	Base::init(data_block_size, Blocks);
+    	MEMORIA_ASSERT(density_hi, ==, 1); // data density should not be set for this type of trees
+    	MEMORIA_ASSERT(density_lo, ==, 1);
+
+    	return block_size(tree_capacity);
     }
 
     void init_tl(Int data_block_size)
@@ -50,9 +57,26 @@ public:
     	Base::init_tl(data_block_size, Blocks);
     }
 
-    void init()
+    void init(Int capacity = 0)
     {
-    	Base::init(0, Blocks);
+    	Base::init(empty_size(), Blocks * SegmentsPerBlock + 1);
+
+    	Metadata* meta = this->template allocate<Metadata>(METADATA);
+
+    	meta->size()        = 0;
+    	meta->max_size()   	= capacity;
+    	meta->index_size()  = MyType::index_size(capacity);
+
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		this->template allocateArrayBySize<IndexValueT>(block * SegmentsPerBlock + 1, meta->index_size());
+    		this->template allocateArrayBySize<ValueT>(block * SegmentsPerBlock + 2, capacity);
+    	}
+    }
+
+    void init(const SizesT& sizes)
+    {
+    	MyType::init(sizes[0]);
     }
 
     static Int block_size(Int capacity)
@@ -90,11 +114,6 @@ public:
     }
 
 
-
-
-    Int data_size() const {
-    	return this->size() * sizeof (ValueT) * Blocks;
-    }
 
     static Int empty_size()
     {

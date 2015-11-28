@@ -10,12 +10,18 @@
 #include "../../tests_inc.hpp"
 
 
-#include "palloc_rank_test.hpp"
-#include "palloc_select_test.hpp"
-#include "palloc_misc_test.hpp"
-#include "palloc_speed_test.hpp"
-
 #include <memoria/core/tools/i64_codec.hpp>
+#include <memoria/core/tools/i7_codec.hpp>
+#include <memoria/core/tools/elias_codec.hpp>
+
+#include <memoria/core/packed/tree/packed_fse_quick_tree.hpp>
+#include <memoria/core/packed/tree/packed_vle_quick_tree.hpp>
+#include <memoria/core/packed/tree/packed_vle_dense_tree.hpp>
+
+#include "pseq_misc_test.hpp"
+#include "pseq_rank_test.hpp"
+#include "pseq_select_test.hpp"
+#include "pseq_speed_test.hpp"
 
 namespace memoria {
 
@@ -26,14 +32,20 @@ class PackedSequenceTestSuite: public TestSuite {
 
 public:
 
-    PackedSequenceTestSuite(): TestSuite("Packed.SequenceSuite")
+    PackedSequenceTestSuite(): TestSuite("PackedSeq")
     {
-        registerTask(new PackedSearchableSequenceMiscTest<1>("Misc.1"));
+        registerTask(new PackedSearchableSequenceMiscTest<
+        		1,
+				PkdFQTree<Int, 2>,
+				::memoria::BitmapReindexFn,
+				BitmapSelectFn,
+				BitmapRankFn,
+				BitmapToolsFn
+		>("Misc.1"));
 
         registerTask(new PackedSearchableSequenceMiscTest<
                         4,
-                        PkdFTree,
-                        ValueFSECodec,
+                        PkdFQTree<Int, 16>,
                         ::memoria::ReindexFn,
                         SeqSelectFn,
                         SeqRankFn,
@@ -42,8 +54,7 @@ public:
 
         registerTask(new PackedSearchableSequenceMiscTest<
                         4,
-                        PkdVTree,
-                        UBigIntEliasCodec,
+                        PkdVDTree<Int, 16, UBigIntEliasCodec>,
                         VLEReindexFn,
                         SeqSelectFn,
                         SeqRankFn,
@@ -52,8 +63,7 @@ public:
 
         registerTask(new PackedSearchableSequenceMiscTest<
                         4,
-                        PkdVTree,
-                        UByteExintCodec,
+                        PkdVQTree<Int, 16, UByteExintCodec>,
                         VLEReindexFn,
                         SeqSelectFn,
                         SeqRankFn,
@@ -62,8 +72,7 @@ public:
 
         registerTask(new PackedSearchableSequenceMiscTest<
                         8,
-                        PkdVTree,
-                        UBigIntEliasCodec,
+                        PkdVDTree<BigInt, 256, UBigIntEliasCodec>,
                         VLEReindex8Fn,
                         Seq8SelectFn,
                         Seq8RankFn,
@@ -72,8 +81,7 @@ public:
 
         registerTask(new PackedSearchableSequenceMiscTest<
                 8,
-                PkdVTree,
-                UBigIntI64Codec,
+                PkdVDTree<BigInt, 256, UBigIntI64Codec>,
                 VLEReindex8BlkFn,
                 Seq8SelectFn,
                 Seq8RankFn,
@@ -82,12 +90,18 @@ public:
 
 
 
-        registerTask(new PackedSearchableSequenceRankTest<1>("Rank.1"));
+        registerTask(new PackedSearchableSequenceRankTest<
+        		1,
+				PkdFQTree<Int, 2>,
+				::memoria::BitmapReindexFn,
+				 BitmapSelectFn,
+				 BitmapRankFn,
+				 BitmapToolsFn
+		>("Rank.1"));
 
         registerTask(new PackedSearchableSequenceRankTest<
                 4,
-                PkdFTree,
-                ValueFSECodec,
+                PkdFQTree<Int, 16>,
                 ::memoria::ReindexFn,
                 SeqSelectFn,
                 SeqRankFn,
@@ -96,8 +110,7 @@ public:
 
         registerTask(new PackedSearchableSequenceRankTest<
                 4,
-                PkdVTree,
-                UBigIntEliasCodec,
+                PkdVDTree<BigInt, 16, UBigIntEliasCodec>,
                 VLEReindexFn,
                 SeqSelectFn,
                 SeqRankFn,
@@ -106,8 +119,7 @@ public:
 
         registerTask(new PackedSearchableSequenceRankTest<
                 8,
-                PkdVTree,
-                UBigIntI64Codec,
+                PkdVDTree<BigInt, 256, UBigIntI64Codec>,
                 VLEReindex8BlkFn,
                 Seq8SelectFn,
                 Seq8RankFn,
@@ -119,12 +131,18 @@ public:
 
 
 
-        registerTask(new PackedSearchableSequenceSelectTest<1>("Select.1"));
+        registerTask(new PackedSearchableSequenceSelectTest<
+        		1,
+				PkdFQTree<Int, 2>,
+				::memoria::BitmapReindexFn,
+				 BitmapSelectFn,
+				 BitmapRankFn,
+				 BitmapToolsFn
+		>("Select.1"));
 
         registerTask(new PackedSearchableSequenceSelectTest<
                 4,
-                PkdFTree,
-                ValueFSECodec,
+                PkdFQTree<Int, 16>,
                 ::memoria::ReindexFn,
                 SeqSelectFn,
                 SeqRankFn,
@@ -133,8 +151,7 @@ public:
 
         registerTask(new PackedSearchableSequenceSelectTest<
                 4,
-                PkdVTree,
-                UBigIntEliasCodec,
+                PkdVDTree<BigInt, 16, UBigIntEliasCodec>,
                 VLEReindexFn,
                 SeqSelectFn,
                 SeqRankFn,
@@ -143,20 +160,20 @@ public:
 
         registerTask(new PackedSearchableSequenceSelectTest<
                 8,
-                PkdVTree,
-                UBigIntI64Codec,
+                PkdVDTree<BigInt, 256, UBigIntI64Codec>,
                 VLEReindex8BlkFn,
                 Seq8SelectFn,
                 Seq8RankFn,
                 Seq8ToolsFn
         >("Select.8.VLE"));
 
+
+
         registerTask(new PackedSearchableSequenceSpeedTest<
                 4,
-                PkdVTree,
+                PkdVQTree<BigInt, 16, UBigIntI64Codec>,
                 //UBigIntEliasCodec,
                 //UByteExintCodec,
-                UBigIntI64Codec,
                 VLEReindexFn,
                 SeqSelectFn,
                 SeqRankFn,
@@ -166,10 +183,9 @@ public:
 
         registerTask(new PackedSearchableSequenceSpeedTest<
                         8,
-                        PkdVTree,
+                        PkdVDTree<BigInt, 256, UBigIntI64Codec>,
 //                      UBigIntEliasCodec,
 //                      UByteExintCodec,
-                        UBigIntI64Codec,
                         VLEReindex8BlkFn,
                         Seq8SelectFn,
                         Seq8RankFn,

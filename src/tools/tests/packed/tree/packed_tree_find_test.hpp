@@ -39,14 +39,18 @@ public:
         MEMORIA_ADD_TEST_PARAM(iterations_);
 
         MEMORIA_ADD_TEST(testFindForward);
+        MEMORIA_ADD_TEST(testFindForwardFromStart);
+
         MEMORIA_ADD_TEST(testFindBackward);
+        MEMORIA_ADD_TEST(testFindBackwardFromEnd);
     }
 
     virtual ~PackedTreeFindTest() throw() {}
 
 
+
     template <typename Walker>
-    Int find_fw(const Tree* tree, Int block, Int start, IndexValue limit)
+    auto find_fw(const Tree* tree, Int block, Int start, IndexValue limit)
     {
     	Int end = tree->size();
 
@@ -58,18 +62,18 @@ public:
 
     		if (walker.compare(value))
     		{
-    			return c;
+    			return walker.idx(c);
     		}
     		else {
     			walker.next();
     		}
     	}
 
-    	return end;
+    	return walker.idx(end);
     }
 
     template <typename Walker>
-    Int find_bw(const Tree* tree, Int block, Int start, IndexValue limit)
+    auto find_bw(const Tree* tree, Int block, Int start, IndexValue limit)
     {
     	Walker walker(limit);
 
@@ -79,14 +83,14 @@ public:
 
     		if (walker.compare(value))
     		{
-    			return c;
+    			return walker.idx(c);
     		}
     		else {
     			walker.next();
     		}
     	}
 
-    	return -1;
+    	return walker.idx(-1);
     }
 
 
@@ -122,16 +126,64 @@ public:
 
             if (sum == 0) continue;
 
-            auto result1_lt = tree->findGTForward(block, start, sum).idx();
-            auto result1_le = tree->findGEForward(block, start, sum).idx();
+            auto result1_lt = tree->findGTForward(block, start, sum);
+            auto result1_le = tree->findGEForward(block, start, sum);
 
             auto result2_lt = find_fw<typename Tree::FindGTWalker>(tree, block, start, sum);
             auto result2_le = find_fw<typename Tree::FindGEWalker>(tree, block, start, sum);
 
-            AssertEQ(MA_SRC, result1_lt, result2_lt, SBuf()<<start<<" "<<sum<<" "<<block);
-            AssertEQ(MA_SRC, result1_le, result2_le, SBuf()<<start<<" "<<sum<<" "<<block);
+            AssertEQ(MA_SRC, result1_lt.idx(), result2_lt.idx(), SBuf()<<start<<" "<<sum<<" "<<block);
+            AssertEQ(MA_SRC, result1_lt.prefix(), result2_lt.prefix(), SBuf()<<start<<" "<<sum<<" "<<block);
+
+            AssertEQ(MA_SRC, result1_le.idx(), result2_le.idx(), SBuf()<<start<<" "<<sum<<" "<<block);
+            AssertEQ(MA_SRC, result1_le.prefix(), result2_le.prefix(), SBuf()<<start<<" "<<sum<<" "<<block);
         }
     }
+
+    void testFindForwardFromStart()
+    {
+        for (Int c = 1024; c <= this->size_; c += 1024)
+        {
+            testFindForwardFromStart(c);
+        }
+    }
+
+    void testFindForwardFromStart(Int tree_size)
+    {
+    	Base::out()<<tree_size<<endl;
+
+    	Tree* tree = Base::createEmptyTree();
+    	PARemover remover(tree);
+
+    	auto values = Base::fillRandom(tree, tree_size);
+
+    	Int size = tree->size();
+
+    	for (Int c = 0; c < iterations_; c++)
+    	{
+    		Int rnd     = this->getRandom(size - 2);
+    		Int end     = rnd + 2;
+
+    		Int block   = this->getRandom(Tree::Blocks);
+
+    		Int sum     = tree->sum(block, 0, end);
+
+    		if (sum == 0) continue;
+
+    		auto result1_lt = tree->findGTForward(block, sum);
+    		auto result1_le = tree->findGEForward(block, sum);
+
+    		auto result2_lt = find_fw<typename Tree::FindGTWalker>(tree, block, 0, sum);
+    		auto result2_le = find_fw<typename Tree::FindGEWalker>(tree, block, 0, sum);
+
+    		AssertEQ(MA_SRC, result1_lt.idx(), result2_lt.idx(), SBuf()<<sum<<" "<<block);
+    		AssertEQ(MA_SRC, result1_lt.prefix(), result2_lt.prefix(), SBuf()<<" "<<sum<<" "<<block);
+
+    		AssertEQ(MA_SRC, result1_le.idx(), result2_le.idx(), SBuf()<<" "<<sum<<" "<<block);
+    		AssertEQ(MA_SRC, result1_le.prefix(), result2_le.prefix(), SBuf()<<" "<<sum<<" "<<block);
+    	}
+    }
+
 
 
     void testFindBackward()
@@ -167,15 +219,65 @@ public:
             // we do not handle zero sums correctly in this test yet
             if (sum == 0) continue;
 
-            auto result1_lt = tree->findGTBackward(block, start, sum).idx();
-            auto result1_le = tree->findGEBackward(block, start, sum).idx();
+            auto result1_lt = tree->findGTBackward(block, start, sum);
+            auto result1_le = tree->findGEBackward(block, start, sum);
 
             auto result2_lt = find_bw<typename Tree::FindGTWalker>(tree, block, start, sum);
             auto result2_le = find_bw<typename Tree::FindGEWalker>(tree, block, start, sum);
 
-            AssertEQ(MA_SRC, result1_lt, result2_lt, SBuf()<<" - "<<start<<" "<<sum<<" "<<block);
-            AssertEQ(MA_SRC, result1_le, result2_le, SBuf()<<" - "<<start<<" "<<sum<<" "<<block);
+            AssertEQ(MA_SRC, result1_lt.idx(), result2_lt.idx(), SBuf()<<start<<" "<<sum<<" "<<block);
+            AssertEQ(MA_SRC, result1_lt.prefix(), result2_lt.prefix(), SBuf()<<start<<" "<<sum<<" "<<block);
+
+            AssertEQ(MA_SRC, result1_le.idx(), result2_le.idx(), SBuf()<<start<<" "<<sum<<" "<<block);
+            AssertEQ(MA_SRC, result1_le.prefix(), result2_le.prefix(), SBuf()<<start<<" "<<sum<<" "<<block);
         }
+    }
+
+    void testFindBackwardFromEnd()
+    {
+    	for (Int c = 1024; c <= this->size_; c += 1024)
+    	{
+    		testFindBackwardFromEnd(c);
+    	}
+    }
+
+    void testFindBackwardFromEnd(Int tree_size)
+    {
+    	Base::out()<<tree_size<<endl;
+
+    	Tree* tree = Base::createEmptyTree();
+    	PARemover remover(tree);
+
+    	auto values = Base::fillRandom(tree, tree_size);
+
+    	Int size = tree->size();
+
+    	for (Int c = 0; c < iterations_; c++)
+    	{
+    		Int start   = size - 1;
+    		Int rnd     = this->getRandom(start - 2) + 1;
+    		Int end     = start - rnd;
+    		Int block   = this->getRandom(Tree::Blocks);
+
+    		AssertGE(MA_SRC, end, 0);
+
+    		Int sum     = tree->sum(block, end + 1, start + 1);
+
+    		// we do not handle zero sums correctly in this test yet
+			if (sum == 0) continue;
+
+    		auto result1_lt = tree->findGTBackward(block, sum);
+    		auto result1_le = tree->findGEBackward(block, sum);
+
+    		auto result2_lt = find_bw<typename Tree::FindGTWalker>(tree, block, start, sum);
+    		auto result2_le = find_bw<typename Tree::FindGEWalker>(tree, block, start, sum);
+
+    		AssertEQ(MA_SRC, result1_lt.idx(), result2_lt.idx(), SBuf()<<start<<" "<<sum<<" "<<block);
+    		AssertEQ(MA_SRC, result1_lt.prefix(), result2_lt.prefix(), SBuf()<<start<<" "<<sum<<" "<<block);
+
+    		AssertEQ(MA_SRC, result1_le.idx(), result2_le.idx(), SBuf()<<start<<" "<<sum<<" "<<block);
+    		AssertEQ(MA_SRC, result1_le.prefix(), result2_le.prefix(), SBuf()<<start<<" "<<sum<<" "<<block);
+    	}
     }
 };
 

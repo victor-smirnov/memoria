@@ -10,14 +10,6 @@
 //#include "packed/allocator/palloc_test_suite.hpp"
 #include "packed/tree/packed_tree_test_suite.hpp"
 //#include "packed/array/packed_array_test_suite.hpp"
-//#include "packed/sequence/packed_seq_suite.hpp"
-//#include "packed/louds/packed_louds_suite.hpp"
-//#include "packed/louds_cardinal/packed_lcardinal_suite.hpp"
-//#include "packed/wavelet_tree/packed_wtree_suite.hpp"
-//
-//#include "ctr/ctr_test_suite.hpp"
-
-//#include "prototype/bt/bt_test_suite.hpp"
 #include "prototype/bttl/bttl_test_suite.hpp"
 #include "prototype/btss/btss_test_suite.hpp"
 //#include "table/table_test_suite.hpp"
@@ -36,6 +28,7 @@
 
 
 #include <iostream>
+#include "packed/sequence/pseq_test_suite.hpp"
 
 using namespace std;
 using namespace memoria;
@@ -71,7 +64,7 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new PackedAllocatorTestSuite());
         runner.registerTask(new PackedTreeTestSuite());
 //        runner.registerTask(new PackedArrayTestSuite());
-//        runner.registerTask(new PackedSequenceTestSuite());
+        runner.registerTask(new PackedSequenceTestSuite());
 //        runner.registerTask(new PackedLoudsTestSuite());
 //        runner.registerTask(new PackedLoudsCardinalTestSuite());
 //        runner.registerTask(new PackedWaveletTreeTestSuite());

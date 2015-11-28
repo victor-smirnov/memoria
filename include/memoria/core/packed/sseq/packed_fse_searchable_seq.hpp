@@ -10,8 +10,8 @@
 
 #include <memoria/core/packed/tools/packed_allocator.hpp>
 #include <memoria/core/packed/tree/packed_tree_tools.hpp>
-#include <memoria/core/packed/tree/packed_fse_tree.hpp>
-#include <memoria/core/packed/tree/packed_vle_tree.hpp>
+#include <memoria/core/packed/tree/packed_fse_quick_tree.hpp>
+#include <memoria/core/packed/tree/packed_vle_dense_tree.hpp>
 
 
 #include <memoria/core/packed/sseq/sseq_fn/pkd_f_sseq_rank_fn.hpp>
@@ -24,17 +24,19 @@
 
 #include <ostream>
 
-
 namespace memoria {
 
 
-template <
-    Int BitsPerSymbol_      = 1,
-    Int BF                  = PackedTreeBranchingFactor,
-    Int VPB                 = 512,
 
-    template <typename> class IndexType     = PkdFTree,
-    template <typename> class CodecType     = ValueFSECodec,
+
+template <
+    Int BitsPerSymbol_,
+    Int VPB,
+
+//    template <typename> class IndexType     = PkdFTree,
+//    template <typename> class CodecType     = ValueFSECodec,
+
+	typename IndexType,
     template <typename> class ReindexFnType = BitmapReindexFn,
     template <typename> class SelectFnType  = BitmapSelectFn,
     template <typename> class RankFnType    = BitmapRankFn,
@@ -43,15 +45,13 @@ template <
 struct PkdFSSeqTypes {
 
     static const Int Blocks                 = 1 << BitsPerSymbol_;
-    static const Int BranchingFactor        = BF;
     static const Int ValuesPerBranch        = VPB;
     static const Int BitsPerSymbol          = BitsPerSymbol_;
 
-    template <typename T>
-    using Index     = IndexType<T>;
+    using Index     = IndexType;
 
-    template <typename V>
-    using Codec     = CodecType<V>;
+//    template <typename V>
+//    using Codec     = CodecType<V>;
 
     template <typename Seq>
     using ReindexFn = ReindexFnType<Seq>;
@@ -82,7 +82,7 @@ public:
 
     typedef Int                                                                 IndexValue;
 
-    static const Int BranchingFactor        = Types::BranchingFactor;
+
     static const Int ValuesPerBranch        = Types::ValuesPerBranch;
     static const Int Indexes                = Types::Blocks;
     static const Int BitsPerSymbol          = Types::BitsPerSymbol;
@@ -98,17 +98,7 @@ public:
             UBigInt
     >::Result                                                                   Value;
 
-    typedef Packed2TreeTypes<
-                UBigInt,
-                IndexValue,
-                1<<BitsPerSymbol,
-                Types::template Codec,
-                BranchingFactor,
-                512
-    >                                                                           IndexTypes;
-
-    typedef typename Types::template Index<IndexTypes>                          Index;
-    typedef typename Index::Codec                                               Codec;
+    typedef typename Types::Index                          						Index;
 
     static const Int IndexSizeThreshold                                         = 0;
     static const PackedSizeType SizeType										= PkdStructSizeType<Index>::Value;
@@ -128,7 +118,7 @@ public:
     };
 
 public:
-    PkdFSSeq() {}
+    PkdFSSeq() = default;
 
     Int& size() {return metadata()->size();}
     const Int& size() const {return metadata()->size();}
@@ -320,15 +310,19 @@ public:
         Base::free(INDEX);
     }
 
-    void createIndex(Int index_size)
+    template <typename IndexSizeT>
+    void createIndex(IndexSizeT&& index_size)
     {
         Int index_block_size = Index::block_size(index_size);
         Base::resizeBlock(INDEX, index_block_size);
 
         Index* index = this->index();
-        index->init(index_block_size);
         index->setAllocatorOffset(this);
+
+        index->init(index_size);
     }
+
+
 
     std::pair<Int, Int> density() const {
         return std::pair<Int, Int>(1,1);
@@ -345,8 +339,10 @@ public:
 
     void check() const
     {
-        if (has_index()) {
-            index()->check();
+        if (has_index())
+        {
+            //FIXME check sequence data with index
+        	index()->check();
         }
     }
 
@@ -869,7 +865,7 @@ public:
 
             Int index_size = index->size();
 
-            auto result = index->findGEForward(symbol, 0, rank);
+            auto result = index->findGEForward(symbol, rank);
 
             if (result.idx() < index_size)
             {
@@ -941,7 +937,6 @@ public:
             return this->get(idx);
         });
     }
-
 
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
@@ -1028,10 +1023,8 @@ public:
                 BitsPerSymbol == 1,
                 PkdFSSeqTypes<
                     1,
-                    PackedTreeBranchingFactor,
                     1024,
-                    PkdFTree,
-                    ValueFSECodec,
+                    PkdFQTree<Int, 2>,
                     BitmapReindexFn,
                     BitmapSelectFn,
                     BitmapRankFn,
@@ -1041,10 +1034,8 @@ public:
                     (BitsPerSymbol > 1 && BitsPerSymbol < 8),
                     PkdFSSeqTypes<
                         BitsPerSymbol,
-                        PackedTreeBranchingFactor,
                         256,
-                        PkdFTree,
-                        ValueFSECodec,//UByteExintCodec,
+                        PkdFQTree<Int, 1<<BitsPerSymbol>,
                         ReindexFn,
                         SeqSelectFn,
                         SeqRankFn,
@@ -1052,10 +1043,8 @@ public:
                     >,
                     PkdFSSeqTypes<
                         BitsPerSymbol,
-                        PackedTreeBranchingFactor,
                         1024,
-                        PkdVTree,
-                        UBigIntI64Codec,
+                        PkdVDTree<BigInt, 1<<BitsPerSymbol, UBigIntI64Codec>,
                         VLEReindex8BlkFn,
                         Seq8SelectFn,
                         Seq8RankFn,

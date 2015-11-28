@@ -10,11 +10,10 @@
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
 
-#include "palloc_test_base.hpp"
-
 #include <memory>
 #include <vector>
 #include <functional>
+#include "pseq_test_base.hpp"
 
 namespace memoria {
 
@@ -22,8 +21,7 @@ using namespace std;
 
 template <
     Int Bits,
-    template <typename> class IndexType     = PkdFTree,
-    template <typename> class CodecType     = ValueFSECodec,
+    typename IndexType,
     template <typename> class ReindexFnType = BitmapReindexFn,
     template <typename> class SelectFnType  = BitmapSelectFn,
     template <typename> class RankFnType    = BitmapRankFn,
@@ -32,7 +30,6 @@ template <
 class PackedSearchableSequenceSelectTest: public PackedSearchableSequenceTestBase<
     Bits,
     IndexType,
-    CodecType,
     ReindexFnType,
     SelectFnType,
     RankFnType,
@@ -42,7 +39,6 @@ class PackedSearchableSequenceSelectTest: public PackedSearchableSequenceTestBas
     typedef PackedSearchableSequenceSelectTest<
             Bits,
             IndexType,
-            CodecType,
             ReindexFnType,
             SelectFnType,
             RankFnType,
@@ -52,7 +48,6 @@ class PackedSearchableSequenceSelectTest: public PackedSearchableSequenceTestBas
     typedef PackedSearchableSequenceTestBase<
             Bits,
             IndexType,
-            CodecType,
             ReindexFnType,
             SelectFnType,
             RankFnType,
@@ -131,7 +126,13 @@ public:
 
         if (!result1.is_found())
         {
-            AssertEQ(MA_SRC, result1.rank(), result2.rank(), SBuf()<<start<<" "<<rank);
+            try {
+            	AssertEQ(MA_SRC, result1.rank(), result2.rank(), SBuf()<<start<<" "<<rank);
+            }
+            catch (...) {
+            	seq->dump(this->out());
+            	throw;
+            }
         }
         else {
             AssertEQ(MA_SRC, result1.idx(),  result2.idx(), SBuf()<<start<<" "<<rank);
@@ -295,6 +296,7 @@ public:
         this->out()<<"Random bitmap, random positions"<<endl;
 
         this->populateRandom(seq, this->size_);
+        starts = createStarts(seq);
 
         for (Int start: starts)
         {
@@ -310,6 +312,8 @@ public:
 
         this->out()<<endl;
         this->out()<<"Random bitmap, "<<(Int)symbol<<"-set positions"<<endl;
+
+        starts = createStarts(seq);
 
         for (Int start : starts)
         {

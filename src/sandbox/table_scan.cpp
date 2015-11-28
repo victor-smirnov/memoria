@@ -18,7 +18,7 @@ using namespace memoria;
 using namespace memoria::tools;
 using namespace std;
 
-using CtrT 		= DCtrTF<Table<BigInt, Byte, PackedSizeType::VARIABLE>>::Type;
+using CtrT 		= DCtrTF<Table<BigInt, Byte, PackedSizeType::FIXED>>::Type;
 using Provider 	= ::memoria::bttl::DeterministicDataInputProvider<CtrT>;
 using Position  = CtrT::Types::Position;
 
@@ -46,7 +46,7 @@ int main(int argc, const char** argv, const char** envp) {
 
 		CtrT ctr(&alloc);
 
-		ctr.setNewPageSize(1024*256);
+		ctr.setNewPageSize(16*1024);
 
 		auto iter = ctr.seek(0);
 
