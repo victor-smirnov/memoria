@@ -13,8 +13,65 @@
 
 namespace memoria {
 
+namespace packed_seq {
 
+	template <typename Values, Int WindowSize, Int RawBufferSize = 1024>
+	struct IndexBuffer {
+		static constexpr Int NSymbols = Values::Indexes;
+		using IndexType = typename Values::ElementType;
 
+		static constexpr Int BatchSize = RawBufferSize / sizeof(IndexType) / NSymbols;
+	private:
+
+		Values buffer_[BatchSize];
+		Int window_start_ 	= 0;
+		Int window_end_		= WindowSize;
+
+		Int size_;
+
+	public:
+		IndexBuffer(Int size): size_(size)
+	{}
+
+		Values* buffer() {return buffer_;}
+		const Values* buffer() const {return buffer_;}
+
+		template <typename Fn>
+		Int process(Fn&& fn)
+		{
+			if (window_start_ < size_)
+			{
+				Int buffer_pos;
+
+				for (buffer_pos = 0; buffer_pos < BatchSize; buffer_pos++)
+				{
+					if (window_end_ < size_)
+					{
+						buffer_[buffer_pos] = fn(window_start_, window_end_);
+
+						window_start_ += WindowSize;
+						window_end_ += WindowSize;
+					}
+					else {
+						buffer_[buffer_pos] = fn(window_start_, size_);
+
+						window_start_ += WindowSize;
+						window_end_ += WindowSize;
+
+						return buffer_pos + 1;
+					}
+				}
+
+				return buffer_pos;
+			}
+			else
+			{
+				return 0;
+			}
+		}
+	};
+
+}
 
 
 template <typename Seq>
@@ -27,6 +84,10 @@ class BitmapReindexFn {
     static const Int Blocks                                                     = Index::Blocks;
     static const bool FixedSizeElementIndex                                     = Index::FixedSizeElement;
 
+    using BufferType = packed_seq::IndexBuffer<Values, ValuesPerBranch>;
+    static constexpr Int BatchSize = BufferType::BatchSize;
+
+
     static_assert(BitsPerSymbol == 1,
             "BitmapReindexFn<> can only be used with 1-bit sequences");
 
@@ -34,7 +95,7 @@ class BitmapReindexFn {
             "BitmapReindexFn<> can only be used with PkdFTree<>-indexed sequences ");
 
 public:
-    void operator()(Seq& seq)
+    void reindex(Seq& seq)
     {
         Int size = seq.size();
 
@@ -45,27 +106,82 @@ public:
 
             Index* index = seq.index();
 
-            Int pos = 0;
-
             auto symbols = seq.symbols();
 
-            index->_insert(0, index_size, [&](Int c) -> Values
+            BufferType buffer(size);
+
+            auto fn = [&](Int start, Int end) {
+            	Values histogramm;
+
+            	histogramm[1] = PopCount(symbols, start, end);
+            	histogramm[0] = (end - start) - histogramm[1];
+
+            	return histogramm;
+            };
+
+            Int at = 0;
+
+            Int buffer_size;
+            while ((buffer_size = buffer.process(fn)) > 0)
             {
-                Int next = pos + ValuesPerBranch;
-                Int max = next <= size ? next : size;
+            	index->populate(at, buffer_size, [&](Int block, Int idx) {
+            		return buffer.buffer()[idx][block];
+            	});
 
-                Values values;
+            	at += buffer_size;
+            }
 
-                values[1] = PopCount(symbols, pos, max);
-                values[0] = (max - pos) - values[1];
-
-                pos = next;
-
-                return values;
-            });
+            index->reindex();
         }
         else {
             seq.removeIndex();
+        }
+    }
+
+    void check(const Seq& seq)
+    {
+        Int size = seq.size();
+
+        if (size > ValuesPerBranch)
+        {
+            Int index_size  = size / ValuesPerBranch + (size % ValuesPerBranch == 0 ? 0 : 1);
+
+            auto index = seq.index();
+
+            MEMORIA_ASSERT(index->size(), ==, index_size);
+
+
+            auto symbols = seq.symbols();
+
+            BufferType buffer(size);
+
+            auto fn = [&](Int start, Int end) {
+            	Values histogramm;
+
+            	histogramm[1] = PopCount(symbols, start, end);
+            	histogramm[0] = (end - start) - histogramm[1];
+
+            	return histogramm;
+            };
+
+            Int at = 0;
+
+            Int buffer_size;
+            while ((buffer_size = buffer.process(fn)) > 0)
+            {
+            	for (Int b = 0; b < Blocks; b++)
+            	{
+            		for (Int c = 0; c < buffer_size; c++)
+            		{
+            			MEMORIA_ASSERT(index->value(b, c + at), ==, buffer.buffer()[c][b]);
+            		}
+            	}
+
+            	at += buffer_size;
+            }
+        }
+        else {
+            MEMORIA_ASSERT_FALSE(seq.has_index());
         }
     }
 };
@@ -81,6 +197,10 @@ class ReindexFn {
     static const Int Blocks                                                     = Index::Blocks;
     static const bool FixedSizeElementIndex                                     = Index::FixedSizeElement;
 
+    using BufferType = packed_seq::IndexBuffer<Values, ValuesPerBranch>;
+    static constexpr Int BatchSize = BufferType::BatchSize;
+
+
     static_assert(BitsPerSymbol >= 2,
                 "ReindexFn<> can only be used with 2-8-bit sequences");
 
@@ -88,7 +208,7 @@ class ReindexFn {
                     "ReindexFn<> can only be used with PkdFTree<>-indexed sequences ");
 
 public:
-    void operator()(Seq& seq)
+    void reindex(Seq& seq)
     {
         Int size = seq.size();
 
@@ -99,28 +219,88 @@ public:
 
             Index* index = seq.index();
 
-            Int pos = 0;
+            auto symbols = seq.symbols();
 
-            index->_insert(0, index_size, [&](Int c) -> Values
+            auto fn = [&](Int start, Int end) {
+            	Values histogramm;
+
+            	for (Int idx = start; idx < end; idx++)
+            	{
+            		Int symbol = GetBits(symbols, idx * BitsPerSymbol, BitsPerSymbol);
+            		histogramm[symbol]++;
+            	}
+
+            	return histogramm;
+            };
+
+            Int at = 0;
+
+            BufferType buffer(size);
+
+            Int buffer_size;
+            while ((buffer_size = buffer.process(fn)) > 0)
             {
-                auto symbols = seq.symbols();
+            	index->populate(at, buffer_size, [&](Int block, Int idx) {
+            		return buffer.buffer()[idx][block];
+            	});
 
-                Int next = pos + ValuesPerBranch;
-                Int max = next <= size ? next : size;
+            	at += buffer_size;
+            }
 
-                Values values;
-
-                for (; pos < max; pos++)
-                {
-                    Int symbol = GetBits(symbols, pos * BitsPerSymbol, BitsPerSymbol);
-                    values[symbol]++;
-                }
-
-                return values;
-            });
+            index->reindex();
         }
         else {
             seq.removeIndex();
+        }
+    }
+
+
+    void check(const Seq& seq)
+    {
+        Int size = seq.size();
+
+        if (size > ValuesPerBranch)
+        {
+            Int index_size  = size / ValuesPerBranch + (size % ValuesPerBranch == 0 ? 0 : 1);
+
+            auto index = seq.index();
+
+            MEMORIA_ASSERT(index->size(), ==, index_size);
+
+            auto symbols = seq.symbols();
+
+            BufferType buffer(size);
+
+            auto fn = [&](Int start, Int end) {
+            	Values histogramm;
+
+            	for (Int idx = start; idx < end; idx++)
+            	{
+            		Int symbol = GetBits(symbols, idx * BitsPerSymbol, BitsPerSymbol);
+            		histogramm[symbol]++;
+            	}
+
+            	return histogramm;
+            };
+
+            Int at = 0;
+
+            Int buffer_size;
+            while ((buffer_size = buffer.process(fn)) > 0)
+            {
+            	for (Int b = 0; b < Blocks; b++)
+            	{
+            		for (Int c = 0; c < buffer_size; c++)
+            		{
+            			MEMORIA_ASSERT(index->value(b, c + at), ==, buffer.buffer()[c][b]);
+            		}
+            	}
+
+            	at += buffer_size;
+            }
+        }
+        else {
+            MEMORIA_ASSERT_FALSE(seq.has_index());
         }
     }
 };
@@ -133,10 +313,15 @@ class VLEReindexFn {
     typedef typename Index::Codec                                               Codec;
     typedef typename Index::SizesT                                              SizesT;
 
+
+
     static const Int BitsPerSymbol                                              = Seq::BitsPerSymbol;
     static const Int ValuesPerBranch                                            = Seq::ValuesPerBranch;
     static const Int Blocks                                                     = Index::Blocks;
     static const bool FixedSizeElementIndex                                     = Index::FixedSizeElement;
+
+    using BufferType = packed_seq::IndexBuffer<Values, ValuesPerBranch>;
+    static constexpr Int BatchSize = BufferType::BatchSize;
 
     static_assert(BitsPerSymbol > 1 && BitsPerSymbol < 8,
                 "VLEReindexFn<> can only be used with 2-7-bit sequences");
@@ -145,7 +330,7 @@ class VLEReindexFn {
                 "VLEReindexFn<> can only be used with PkdVTree<>-indexed sequences ");
 
 public:
-    void operator()(Seq& seq)
+    void reindex(Seq& seq)
     {
         Int size = seq.size();
 
@@ -182,38 +367,82 @@ public:
 
             symbols = seq.symbols();
 
+            BufferType buffer(size);
+
+            auto fn = [&](Int start, Int end) {
+            	Values histogramm;
+
+            	for (Int idx = start; idx < end; idx++)
+            	{
+            		Int symbol = GetBits(symbols, idx * BitsPerSymbol, BitsPerSymbol);
+            		histogramm[symbol]++;
+            	}
+
+            	return histogramm;
+            };
+
+            Int buffer_size;
             SizesT at;
-
-            for (Int b = 0; b < size; b += ValuesPerBranch)
+            while ((buffer_size = buffer.process(fn)) > 0)
             {
-            	Int next = b + ValuesPerBranch;
-            	Int max = next <= size ? next : size;
-
-            	Values values;
-
-            	for (Int pos = b; pos < max; pos++)
-            	{
-            		Int symbol = GetBits(symbols, pos * BitsPerSymbol, BitsPerSymbol);
-            		values[symbol]++;
-            	}
-
-            	SizesT lengths;
-
-            	for (Int c = 0; c < Blocks; c++)
-            	{
-            		lengths[c] = codec.length(values[c]);
-            	}
-
-            	at = index->populate(at, lengths, 1, [&](Int block, Int idx){
-            		return values[block];
+            	at = index->populate(at, buffer_size, [&](Int block, Int idx) {
+            		return buffer.buffer()[idx][block];
             	});
             }
 
             index->reindex();
         }
         else {
-            seq.removeIndex();
+        	seq.removeIndex();
         }
+    }
+
+
+    void check(const Seq& seq)
+    {
+    	Int size = seq.size();
+
+    	if (size > ValuesPerBranch)
+    	{
+    		auto index = seq.index();
+
+    		auto symbols = seq.symbols();
+
+    		auto fn = [&](Int start, Int end) {
+    			Values histogramm;
+
+    			for (Int idx = start; idx < end; idx++)
+    			{
+    				Int symbol = GetBits(symbols, idx * BitsPerSymbol, BitsPerSymbol);
+    				histogramm[symbol]++;
+    			}
+
+    			return histogramm;
+    		};
+
+    		BufferType buffer(size);
+            Int at = 0;
+
+            Int buffer_size;
+            while ((buffer_size = buffer.process(fn)) > 0)
+            {
+            	for (Int b = 0; b < Blocks; b++)
+            	{
+            		for (Int c = 0; c < buffer_size; c++)
+            		{
+            			auto idx_value = index->value(b, c + at);
+            			auto buf_value = buffer.buffer()[c][b];
+
+            			MEMORIA_ASSERT(idx_value, ==, buf_value);
+            		}
+            	}
+
+            	at += buffer_size;
+            }
+    	}
+    	else {
+    		MEMORIA_ASSERT_FALSE(seq.has_index());
+    	}
     }
 };
 
@@ -231,6 +460,9 @@ class VLEReindex8Fn {
     static const Int Blocks                                                     = Index::Blocks;
     static const bool FixedSizeElementIndex                                     = Index::FixedSizeElement;
 
+    using BufferType = packed_seq::IndexBuffer<Values, ValuesPerBranch, 4096>;
+    static constexpr Int BatchSize = BufferType::BatchSize;
+
     static_assert(BitsPerSymbol == 8,
                 "VLEReindex8Fn<> can only be used with 8-bit sequences");
 
@@ -238,7 +470,7 @@ class VLEReindex8Fn {
                 "VLEReindex8Fn<> can only be used with PkdVTree<>-indexed sequences ");
 
 public:
-    void operator()(Seq& seq)
+    void reindex(Seq& seq)
     {
         Int size = seq.size();
 
@@ -275,30 +507,27 @@ public:
 
             Index* index = seq.index();
 
+            BufferType buffer(size);
+
             SizesT at;
 
-            for (Int b = 0; b < size; b += ValuesPerBranch)
+            auto fn = [&](Int start, Int end) {
+            	Values histogramm;
+
+            	for (Int idx = start; idx < end; idx++)
+            	{
+            		Int symbol = symbols[idx];
+            		histogramm[symbol]++;
+            	}
+
+            	return histogramm;
+            };
+
+            Int buffer_size;
+            while ((buffer_size = buffer.process(fn)) > 0)
             {
-            	Int next = b + ValuesPerBranch;
-            	Int max = next <= size ? next : size;
-
-            	Values values;
-
-            	for (Int pos = b; pos < max; pos++)
-            	{
-            		Int symbol = symbols[pos];
-            		values[symbol]++;
-            	}
-
-            	SizesT lengths;
-
-            	for (Int c = 0; c < Blocks; c++)
-            	{
-            		lengths[c] = codec.length(values[c]);
-            	}
-
-            	at = index->populate(at, lengths, 1, [&](Int block, Int idx){
-            		return values[block];
+            	at = index->populate(at, buffer_size, [&](Int block, Int idx) {
+            		return buffer.buffer()[idx][block];
             	});
             }
 
@@ -308,6 +537,51 @@ public:
             seq.removeIndex();
         }
     }
+
+    void check(const Seq& seq)
+    {
+    	Int size = seq.size();
+
+    	if (size > ValuesPerBranch)
+    	{
+    		auto index = seq.index();
+
+    		auto symbols = seq.symbols();
+
+    		auto fn = [&](Int start, Int end) {
+    			Values histogramm;
+
+            	for (Int idx = start; idx < end; idx++)
+            	{
+            		Int symbol = symbols[idx];
+            		histogramm[symbol]++;
+            	}
+
+    			return histogramm;
+    		};
+
+    		BufferType buffer(size);
+            Int at = 0;
+
+            Int buffer_size;
+            while ((buffer_size = buffer.process(fn)) > 0)
+            {
+            	for (Int b = 0; b < Blocks; b++)
+            	{
+            		for (Int c = 0; c < buffer_size; c++)
+            		{
+            			MEMORIA_ASSERT(index->value(b, c + at), ==, buffer.buffer()[c][b]);
+            		}
+            	}
+
+            	at += buffer_size;
+            }
+    	}
+    	else {
+    		MEMORIA_ASSERT_FALSE(seq.has_index());
+    	}
+    }
+
 };
 
 
@@ -332,7 +606,7 @@ class VLEReindex8BlkFn: public VLEReindex8Fn<Seq> {
                 "VLEReindex8Fn<> can only be used with PkdVTree<>-indexed sequences ");
 
 public:
-    void operator()(Seq& seq)
+    void reindex(Seq& seq)
     {
         Int size = seq.size();
 
@@ -388,7 +662,7 @@ public:
 ////            index->_insert(0, )
 //        }
         else {
-            Base::operator ()(seq);
+            Base::reindex(seq);
         }
     }
 };

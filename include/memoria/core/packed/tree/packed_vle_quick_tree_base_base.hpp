@@ -5,8 +5,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef MEMORIA_CORE_PACKED_VLE_QUICK_TREE_BASE_BASE_HPP_
-#define MEMORIA_CORE_PACKED_VLE_QUICK_TREE_BASE_BASE_HPP_
+#ifndef MEMORIA_CORE_PACKED_VLE_QUICK_ARRAY_BASE_BASE_HPP_
+#define MEMORIA_CORE_PACKED_VLE_QUICK_ARRAY_BASE_BASE_HPP_
 
 #include <memoria/core/packed/tools/packed_allocator.hpp>
 
@@ -67,10 +67,6 @@ public:
 
     	const IndexValueT* indexes;
     	const Int* valaue_block_size_prefix;
-
-//    	IndexValueT value_sum 		= 0;
-//    	Int size_prefix_sum   		= 0;
-//    	Int size_prefix_idx_sum   	= 0;
     };
 
 
@@ -433,7 +429,7 @@ protected:
     	Int index_cnt = 0;
     	IndexValue value_sum = 0;
 
-    	LocateResult(Int idx_, Int index_cnt_ = 0, Int value_sum_ = 0) :
+    	LocateResult(Int idx_, Int index_cnt_ = 0, IndexValue value_sum_ = 0) :
     		idx(idx_), index_cnt(index_cnt_), value_sum(value_sum_)
     	{}
 

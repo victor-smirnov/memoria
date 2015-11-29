@@ -1,0 +1,267 @@
+
+// Copyright Victor Smirnov 2015+.
+// Distributed under the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE_1_0.txt or copy at
+// http://www.boost.org/LICENSE_1_0.txt)
+
+
+#ifndef MEMORIA_CORE_PACKED_VLE_DENSE_ARRAY_BASE_BASE_HPP_
+#define MEMORIA_CORE_PACKED_VLE_DENSE_ARRAY_BASE_BASE_HPP_
+
+#include <memoria/core/packed/tools/packed_allocator.hpp>
+
+#include <memoria/core/packed/tree/packed_tree_walkers.hpp>
+#include <memoria/core/packed/tree/packed_tree_tools.hpp>
+
+#include <memoria/core/tools/static_array.hpp>
+#include <memoria/core/tools/dump.hpp>
+#include <memoria/core/tools/reflection.hpp>
+#include <memoria/core/tools/accessors.hpp>
+#include <memoria/core/tools/static_array.hpp>
+
+
+#include <type_traits>
+
+namespace memoria {
+
+
+
+template <Int kBranchingFactor, Int kValuesPerBranch, Int SegmentsPerBlock, typename MetadataT>
+class PkdVDArrayBaseBase: public PackedAllocator {
+
+    using Base = PackedAllocator;
+
+public:
+    static constexpr UInt VERSION = 1;
+
+    using Metadata		= MetadataT;
+
+    static const Int BranchingFactor        = kBranchingFactor;
+    static const Int ValuesPerBranch        = kValuesPerBranch;
+
+    static const bool FixedSizeElement      = true;
+
+    static constexpr Int ValuesPerBranchMask 	= ValuesPerBranch - 1;
+    static constexpr Int BranchingFactorMask 	= BranchingFactor - 1;
+
+    static constexpr Int ValuesPerBranchLog2 	= Log2(ValuesPerBranch) - 1;
+    static constexpr Int BranchingFactorLog2 	= Log2(BranchingFactor) - 1;
+
+
+
+    enum {
+    	SIZE_INDEX, OFFSETS, VALUES
+    };
+
+
+    static constexpr Int METADATA 	 	= 0;
+    static constexpr Int DATA_SIZES 	= 1;
+    static constexpr Int BlocksStart 	= 2;
+
+    struct TreeLayout {
+    	Int level_starts[8];
+    	Int level_sizes[8];
+    	Int levels_max = 0;
+    	Int index_size = 0;
+
+    	const Int* valaue_block_size_prefix;
+    };
+
+
+public:
+
+    PkdVDArrayBaseBase() = default;
+
+    using FieldsList = MergeLists<
+                typename Base::FieldsList,
+                ConstValue<UInt, VERSION>,
+				ConstValue<Int, kBranchingFactor>,
+				ConstValue<Int, kValuesPerBranch>
+    >;
+
+
+    static Int index_size(Int capacity)
+    {
+    	TreeLayout layout;
+    	compute_tree_layout(capacity, layout);
+    	return layout.index_size;
+    }
+
+    Metadata* metadata() {
+    	return this->template get<Metadata>(METADATA);
+    }
+
+    const Metadata* metadata() const {
+    	return this->template get<Metadata>(METADATA);
+    }
+
+    const Int* data_sizes() const {
+    	return this->template get<Int>(DATA_SIZES);
+    }
+
+    Int* data_sizes() {
+    	return this->template get<Int>(DATA_SIZES);
+    }
+
+    Int& data_size(Int block) {
+    	return data_sizes()[block];
+    }
+
+    const Int& data_size(Int block) const {
+    	return data_sizes()[block];
+    }
+
+    Int* size_index(Int block) {
+    	return this->template get<Int>(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart);
+    }
+
+    const Int* size_index(Int block) const {
+    	return this->template get<Int>(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart);
+    }
+
+
+
+    const Int& size() const {
+    	return metadata()->size();
+    }
+
+    Int& size() {
+    	return metadata()->size();
+    }
+
+    Int index_size() const {
+    	return metadata()->index_size();
+    }
+
+protected:
+
+    static constexpr Int divUpV(Int value) {
+    	return (value >> ValuesPerBranchLog2) + ((value & ValuesPerBranchMask) ? 1 : 0);
+    }
+
+    static constexpr Int divUpI(Int value) {
+    	return (value >> BranchingFactorLog2) + ((value & BranchingFactorMask) ? 1 : 0);
+    }
+
+    template <Int Divisor>
+    static constexpr Int divUp(Int value, Int divisor) {
+    	return (value / Divisor) + ((value % Divisor) ? 1 : 0);
+    }
+
+
+    static TreeLayout compute_tree_layout(Int size)
+    {
+    	TreeLayout layout;
+    	compute_tree_layout(size, layout);
+    	return layout;
+    }
+
+    static Int compute_tree_layout(Int size, TreeLayout& layout)
+    {
+    	if (size <= ValuesPerBranch)
+    	{
+    		layout.levels_max = -1;
+    		layout.index_size = 0;
+
+    		return 0;
+    	}
+    	else {
+    		Int level = 0;
+
+    		layout.level_sizes[level] = divUpV(size);
+    		level++;
+
+    		while((layout.level_sizes[level] = divUpI(layout.level_sizes[level - 1])) > 1)
+    		{
+    			level++;
+    		}
+
+    		level++;
+
+    		for (int c = 0; c < level / 2; c++)
+    		{
+    			auto tmp = layout.level_sizes[c];
+    			layout.level_sizes[c] = layout.level_sizes[level - c - 1];
+    			layout.level_sizes[level - c - 1] = tmp;
+    		}
+
+    		Int level_start = 0;
+
+    		for (int c = 0; c < level; c++)
+    		{
+    			layout.level_starts[c] = level_start;
+    			level_start += layout.level_sizes[c];
+    		}
+
+    		layout.index_size = level_start;
+    		layout.levels_max = level - 1;
+
+    		return level;
+    	}
+    }
+
+
+
+
+
+
+
+
+    struct LocateResult {
+    	Int idx = 0;
+    	Int index_cnt = 0;
+
+    	LocateResult(Int idx_, Int index_cnt_ = 0) :
+    		idx(idx_), index_cnt(index_cnt_)
+    	{}
+
+    	LocateResult() {}
+
+    	Int local_cnt() const {return idx - index_cnt;}
+    };
+
+
+    LocateResult locate_index(TreeLayout& data, Int idx) const
+    {
+    	Int branch_start = 0;
+
+    	Int sum = 0;
+
+    	for (Int level = 1; level <= data.levels_max; level++)
+    	{
+    		Int level_start = data.level_starts[level];
+
+    		for (int c = level_start + branch_start; c < level_start + data.level_sizes[level]; c++)
+    		{
+    			if (sum + data.valaue_block_size_prefix[c] > idx)
+    			{
+    				if (level < data.levels_max)
+    				{
+    					branch_start = (c - level_start) << BranchingFactorLog2;
+    					goto next_level;
+    				}
+    				else {
+    					return LocateResult(c - level_start, sum);
+    				}
+    			}
+    			else {
+    				sum += data.valaue_block_size_prefix[c];
+    			}
+    		}
+
+    		return LocateResult(-1, sum);
+
+    		next_level:;
+    	}
+
+    	return LocateResult(-1, sum);
+    }
+
+
+
+};
+
+}
+
+
+#endif

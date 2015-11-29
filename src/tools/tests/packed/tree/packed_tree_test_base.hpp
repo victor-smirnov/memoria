@@ -109,8 +109,8 @@ public:
         	}
         }
 
-        tree->_insert(0, size, [&](Int idx) {
-        	return vals[idx];
+        tree->_insert(0, size, [&](Int block, Int idx) {
+        	return vals[idx][block];
         });
 
         truncate(vals, size);
@@ -164,8 +164,8 @@ public:
 
     void fillVector(Tree* tree, const vector<Values>& vals)
     {
-        tree->_insert(0, vals.size(), [&](Int idx) {
-            return vals[idx];
+        tree->_insert(0, vals.size(), [&](Int block, Int idx) {
+            return vals[idx][block];
         });
     }
 

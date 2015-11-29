@@ -2309,7 +2309,7 @@ public:
     	{
     		for (SizeT c = 0; c < processed; c++)
     		{
-    			total_lengths[block] += codec.length(adaptor(c)[block]);
+    			total_lengths[block] += codec.length(adaptor(block, c));
     		}
     	}
 
@@ -2324,7 +2324,7 @@ public:
 
     		for (SizeT c = 0; c < processed; c++)
     		{
-    			IndexValue value = adaptor(c)[block];
+    			IndexValue value = adaptor(block, c);
     			Int len = codec.encode(buffer, value, start, limit);
     			start += len;
     		}

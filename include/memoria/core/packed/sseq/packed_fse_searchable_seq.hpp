@@ -328,15 +328,17 @@ public:
     void reindex()
     {
         typename Types::template ReindexFn<MyType> reindex_fn;
-        reindex_fn(*this);
+        reindex_fn.reindex(*this);
     }
 
     void check() const
     {
         if (has_index())
         {
-            //FIXME check sequence data with index
-        	index()->check();
+            index()->check();
+
+            typename Types::template ReindexFn<MyType> reindex_fn;
+            reindex_fn.check(*this);
         }
     }
 

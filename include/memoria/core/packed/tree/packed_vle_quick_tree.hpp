@@ -618,16 +618,16 @@ public:
 
     	SizesT total_lengths;
 
-    	for (Int block = 0; block < Blocks; block++)
+    	for (SizeT c = 0; c < processed; c++)
     	{
-    		for (SizeT c = 0; c < processed; c++)
+    		for (Int block = 0; block < Blocks; block++)
     		{
-    			auto value = adaptor(c)[block];
+    			auto value = adaptor(block, c);
     			auto len = codec.length(value);
-
     			total_lengths[block] += len;
     		}
     	}
+
 
     	for (Int block = 0; block < Blocks; block++)
     	{
@@ -641,11 +641,11 @@ public:
 
     		this->insert_space(block, insertion_pos, total_lengths[block]);
 
-    		values	  = this->values(block);
+    		values = this->values(block);
 
     		for (Int c = 0; c < processed; c++)
     		{
-    			auto value = adaptor(c)[block];
+    			auto value = adaptor(block, c);
     			Int len = codec.encode(values, value, insertion_pos);
     			insertion_pos += len;
     		}
@@ -682,6 +682,43 @@ public:
 
     	return at + total_lengths;
     }
+
+    template <typename Adaptor>
+    SizesT populate(const SizesT& at, Int size, Adaptor&& adaptor)
+    {
+    	Codec codec;
+
+    	SizesT total_lengths;
+
+    	for (Int c = 0; c < size; c++)
+    	{
+    		for (Int block = 0; block < Blocks; block++)
+    		{
+    			total_lengths[block] += codec.length(adaptor(block, c));
+    		}
+    	}
+
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		size_t insertion_pos = at[block];
+
+    		auto values = this->values(block);
+
+    		for (Int c = 0; c < size; c++)
+    		{
+    			auto value = adaptor(block, c);
+    			Int len = codec.encode(values, value, insertion_pos);
+    			insertion_pos += len;
+    		}
+
+    		this->data_size(block) += total_lengths[block];
+    	}
+
+    	this->size() += size;
+
+    	return at + total_lengths;
+    }
+
 
     template <typename T>
     void update(Int idx, const core::StaticVector<T, Blocks>& values)

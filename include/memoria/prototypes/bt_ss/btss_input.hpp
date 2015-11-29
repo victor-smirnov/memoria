@@ -18,33 +18,6 @@
 namespace memoria 	{
 namespace btss 		{
 
-/*
-template <Int StreamIdx>
-struct InputTupleSizeH {
-	template <typename Tuple>
-	static auto get(Tuple&& buffer, Int idx) -> Int {
-		return 0;
-	}
-
-	template <typename Tuple, typename SizeT>
-	static void add(Tuple&& buffer, Int idx, SizeT value)
-	{}
-};
-
-
-template <Int StreamIdx>
-struct LeafStreamSizeH {
-	template <typename Stream, typename SizeT>
-	static void stream(Stream* buffer, Int idx, SizeT value)
-	{}
-};
-*/
-
-
-
-
-
-
 
 
 template <typename CtrT>
@@ -157,7 +130,15 @@ public:
 		template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename StreamObj>
 		void stream(StreamObj* stream, Int at, Int start, Int size, const Buffer& buffer)
 		{
-			stream->_insert(at, size, [&](Int idx){
+			stream->_insert(at, size, [&](Int block, Int idx){
+				return std::get<Idx>(buffer[idx + start])[block];
+			});
+		}
+
+		template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename PTypes>
+		void stream(PackedFSEArray<PTypes>* stream, Int at, Int start, Int size, const Buffer& buffer)
+		{
+			stream->_insert(at, size, [&](Int block, Int idx){
 				return std::get<Idx>(buffer[idx + start]);
 			});
 		}

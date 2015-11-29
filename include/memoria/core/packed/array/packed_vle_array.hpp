@@ -49,7 +49,7 @@ public:
 
 
 template <typename Types_>
-class PackedVLEArray: public PackedAllocator
+class PackedVLEArray1: public PackedAllocator
 {
     typedef PackedAllocator                                                     Base;
 
@@ -57,7 +57,7 @@ public:
     static const UInt VERSION                                                   = 1;
 
     typedef Types_                                                              Types;
-    typedef PackedVLEArray<Types>                                               MyType;
+    typedef PackedVLEArray1<Types>                                               MyType;
 
     typedef PackedAllocator                                                     Allocator;
 
@@ -121,7 +121,7 @@ public:
     };
 
 public:
-    PackedVLEArray() {}
+    PackedVLEArray1() {}
 
 public:
     Metadata* metadata() {
@@ -1896,17 +1896,17 @@ private:
 
 
 template <typename Types>
-struct PkdStructSizeType<PackedVLEArray<Types>> {
+struct PkdStructSizeType<PackedVLEArray1<Types>> {
 	static const PackedSizeType Value = PackedSizeType::VARIABLE;
 };
 
 template <typename T>
-struct StructSizeProvider<PackedVLEArray<T>> {
+struct StructSizeProvider<PackedVLEArray1<T>> {
     static const Int Value = 0;
 };
 
 template <typename T>
-struct IndexesSize<PackedVLEArray<T>> {
+struct IndexesSize<PackedVLEArray1<T>> {
 	static const Int Value = 0;
 };
 

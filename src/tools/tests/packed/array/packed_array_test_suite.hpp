@@ -11,7 +11,6 @@
 
 
 #include "packed_array_misc_test.hpp"
-#include "packed_array_vlemisc_test.hpp"
 
 namespace memoria {
 
@@ -24,12 +23,8 @@ public:
 
     PackedArrayTestSuite(): TestSuite("Packed.Array")
     {
-        registerTask(new PackedArrayMiscTest<PackedVLEArray, UByteExintCodec, PackedTreeExintVPB>("Misc.VLE.Exint"));
-        registerTask(new PackedArrayMiscTest<PackedVLEArray, UBigIntEliasCodec, PackedTreeEliasVPB>("Misc.VLE.Elias"));
-
-//        registerTask(new PackedArrayVLEMiscTest<UByteExintCodec, PackedTreeExintVPB>("VLEMisc.Exint"));
-//        registerTask(new PackedArrayVLEMiscTest<UBigIntEliasCodec, PackedTreeEliasVPB>("VLEMisc.Elias"));
-
+        registerTask(new PackedArrayMiscTest<PkdVDArray<BigInt, 1, UByteExintCodec>>("Misc.VLD.Exint"));
+        registerTask(new PackedArrayMiscTest<PkdVDArray<BigInt, 1, UBigIntEliasCodec>>("Misc.VLD.Elias"));
     }
 
 };

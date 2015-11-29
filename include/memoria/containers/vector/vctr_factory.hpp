@@ -96,11 +96,9 @@ struct BTTypes<Profile, memoria::Vector<VLen<Gr, Value_>> >: public BTTypes<Prof
     typedef Value_                                                              Value;
 
     using VectorStreamTF = StreamTF<
-        TL<TL<PackedVLEArray<
-        				Packed2TreeTypes<
-        					Value, Value, 1, CodecClassTF<Gr>::template Type
-        				>
-        >>>,
+        TL<TL<
+			PkdVDArray<Value, 1, CodecClassTF<Gr>::template Type>
+    	>>,
         TL<TL<TL<>>>,
 		FSEBranchStructTF
     >;

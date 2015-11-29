@@ -54,7 +54,7 @@ int main() {
 		for (auto& v: data) v = Values{1 + getRandomG(300), 1 + getRandomG(300)};
 
 		long t0 = getTimeInMillis();
-		tree->_insert(0, size, [&](Int idx){return data[idx];});
+		tree->_insert(0, size, [&](Int block, Int idx){return data[idx][block];});
 
 		long t1 = getTimeInMillis();
 

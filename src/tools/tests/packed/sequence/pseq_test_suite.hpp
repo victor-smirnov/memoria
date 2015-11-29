@@ -172,8 +172,6 @@ public:
         registerTask(new PackedSearchableSequenceSpeedTest<
                 4,
                 PkdVQTree<BigInt, 16, UBigIntI64Codec>,
-                //UBigIntEliasCodec,
-                //UByteExintCodec,
                 VLEReindexFn,
                 SeqSelectFn,
                 SeqRankFn,
@@ -184,8 +182,6 @@ public:
         registerTask(new PackedSearchableSequenceSpeedTest<
                         8,
                         PkdVDTree<BigInt, 256, UBigIntI64Codec>,
-//                      UBigIntEliasCodec,
-//                      UByteExintCodec,
                         VLEReindex8BlkFn,
                         Seq8SelectFn,
                         Seq8RankFn,

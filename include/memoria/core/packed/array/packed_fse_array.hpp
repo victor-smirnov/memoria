@@ -49,6 +49,8 @@ public:
 
     using InputBuffer = MyType;
 
+    using Values = core::StaticVector<Value, Blocks>;
+
 private:
 
     Int size_;
@@ -445,7 +447,7 @@ public:
 
     	for (Int c = 0; c < size; c++)
     	{
-    		value(c + pos) = adaptor(c);
+    		value(c + pos) = adaptor(0, c);
     	}
     }
 

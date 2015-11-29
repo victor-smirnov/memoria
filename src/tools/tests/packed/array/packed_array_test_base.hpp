@@ -9,34 +9,20 @@
 
 #include "../../tests_inc.hpp"
 
-#include <memoria/core/packed/array/packed_vle_array.hpp>
+#include <memoria/core/packed/array/packed_vle_dense_array.hpp>
 
 namespace memoria {
 
 using namespace memoria::vapi;
 using namespace std;
 
-template <
-    template <typename> class TreeType,
-    template <typename> class CodecType,
-    Int VPB,
-    Int BF
->
+template <typename TreeType>
 class PackedArrayTestBase: public TestTask {
 protected:
-    typedef Packed2TreeTypes<
-    		BigInt,
-			BigInt,
-            1,
-            CodecType,
-            BF,
-            VPB
-    >                                                                           Types;
 
-    typedef TreeType<Types>                                                     Tree;
+    typedef TreeType                                                     		Tree;
 
     typedef typename Tree::Value                                                Value;
-    typedef typename Tree::IndexValue                                           IndexValue;
     typedef typename Tree::Values                                               Values;
 
     static const Int Blocks                                                     = 1;
@@ -46,7 +32,7 @@ public:
     PackedArrayTestBase(StringRef name): TestTask(name)
     {}
 
-    Tree* createEmptyTree(Int block_size = 65536)
+    Tree* createEmptyTree(Int block_size = 1024*1024*64)
     {
         void* block = malloc(block_size);
 
@@ -87,64 +73,61 @@ public:
         }
     }
 
-    vector<Values> fillRandom(Tree* tree, Int max_value = 100)
+    vector<Values> fillRandom(Tree* tree, Int size, Int max_value = 300)
     {
-        vector<Values> vals;
+        vector<Values> vals(size);
 
-        Int size = tree->insert(0, [&](Values& values) -> bool {
-            for (Int b = 0; b < Blocks; b++) {
-                values[b] = getRandom(max_value);
-            }
+        for (auto& v: vals) {
+        	for (Int b = 0; b < Blocks; b++)
+        	{
+        		v[b] = getRandom(max_value);
+        	}
+        }
 
-            vals.push_back(values);
-            return true;
+        tree->insert(0, size, [&](Int block, Int idx) {
+            return vals[idx][block];
         });
-
-        truncate(vals, size);
 
         return vals;
     }
 
-    vector<Values> fillSolid(Tree* tree, const Values& values)
+    vector<Values> fillSolid(Tree* tree, Int size, const Values& values)
     {
-        vector<Values> vals;
+        vector<Values> vals(size);
 
-        Int size = tree->insert(0, [&](Values& v) -> bool {
-            v = values;
-            vals.push_back(values);
+        for (auto& v: vals) {
+        	v = values;
+        }
 
-            return true;
+        tree->insert(0, [&](Int block, Int idx) -> bool {
+            return values[block];
         });
-
-        truncate(vals, size);
 
         return vals;
     }
 
-    vector<Values> fillSolid(Tree* tree, Int value)
+    vector<Values> fillSolid(Tree* tree, Int size, Int value)
     {
-        vector<Values> vals;
+        vector<Values> vals(size);
 
-        Int size = tree->insert(0, [&](Values& v) -> bool {
-            for (Int b = 0; b < Blocks; b++) {
-                v[b] = value;
-            }
+        for (auto& v: vals) {
+        	for (Int b = 0; b < Blocks; b++)
+        	{
+        		v[b] = value;
+        	}
+        }
 
-            vals.push_back(v);
-
-            return true;
+        tree->insert(0, [&](Int block, Int idx) -> bool {
+        	return value;
         });
-
-        truncate(vals, size);
 
         return vals;
     }
 
     void fillVector(Tree* tree, const vector<Values>& vals)
     {
-        Int cnt = 0;
-        tree->insert(0, vals.size(), [&]() {
-            return vals[cnt++];
+        tree->insert(0, vals.size(), [&](Int block, Int idx) {
+            return vals[idx][block];
         });
     }
 
@@ -226,7 +209,7 @@ public:
         AssertEQ(MA_SRC, tree->size(), 0);
         AssertEQ(MA_SRC, tree->data_size(), 0);
         AssertEQ(MA_SRC, tree->block_size(), empty_size);
-        AssertEQ(MA_SRC, tree->index_size(), 0);
+//        AssertEQ(MA_SRC, tree->index_size(), 0);
     }
 };
 

@@ -530,19 +530,23 @@ public:
     template <typename Adaptor>
     void _insert(Int pos, Int size, Adaptor&& adaptor)
     {
+    	populate(pos, size, std::forward<Adaptor>(adaptor));
+    	reindex();
+    }
+
+    template <typename Adaptor>
+    void populate(Int pos, Int size, Adaptor&& adaptor)
+    {
     	insertSpace(pos, size);
 
     	for (Int c = 0; c < size; c++)
     	{
-    		auto item = adaptor(c);
-
     		for (Int block = 0; block < Blocks; block++)
     		{
-    			this->value(block, c + pos) = item[block];
+    			auto item = adaptor(block, c);
+    			this->value(block, c + pos) = item;
     		}
     	}
-
-    	reindex();
     }
 
     template <typename T>
@@ -550,7 +554,6 @@ public:
     {
         setValues(idx, values);
     }
-
 
 
     template <Int Offset, Int Size, typename T1, typename T2, template <typename, Int> class AccumItem>
