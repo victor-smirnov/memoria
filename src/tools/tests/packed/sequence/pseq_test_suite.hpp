@@ -32,7 +32,7 @@ class PackedSequenceTestSuite: public TestSuite {
 
 public:
 
-    PackedSequenceTestSuite(): TestSuite("PackedSeq")
+    PackedSequenceTestSuite(): TestSuite("Packed.Seq")
     {
         registerTask(new PackedSearchableSequenceMiscTest<
         		1,

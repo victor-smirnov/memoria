@@ -1142,14 +1142,14 @@ public:
     {
     	Int size = this->size();
     	Int block_start = block * size;
-    	auto result = walk_fw(0, block_start + start, size, FindGEWalker(value));
+    	auto result = walk_fw(0, block_start + start, block_start + size, FindGEWalker(value));
 
     	if (result.idx() < block_start + size)
     	{
     		return result.adjust(block_start, size);
     	}
     	else {
-    		auto sum = this->sum(block, start, size);
+    		auto sum = this->gsum(block, block_start + start, block_start + size);
     		return result.adjust(block_start, size, sum);
     	}
     }
@@ -1158,7 +1158,7 @@ public:
     {
     	Int size = this->size();
     	Int block_start = block * size;
-    	auto result = walk_fw(0, block_start + start, size, FindGTWalker(value));
+    	auto result = walk_fw(0, block_start + start, block_start + size, FindGTWalker(value));
 
 
     	if (result.idx() < block_start + size)
@@ -1166,7 +1166,7 @@ public:
     		return result.adjust(block_start, size);
     	}
     	else {
-    		auto sum = this->sum(block, start, size);
+    		auto sum = this->sum(block, block_start + start, block_start + size);
     		return result.adjust(block_start, size, sum);
     	}
     }
@@ -1183,7 +1183,7 @@ public:
     		return result.adjust(block_start, size);
     	}
     	else {
-    		auto sum = this->sum(block, 1, start + 1);
+    		auto sum = this->gsum(block, block_start + 1, block_start + start + 1);
     		return result.adjust(block_start, size, sum);
     	}
     }
@@ -1199,7 +1199,7 @@ public:
     		return result.adjust(block_start, size);
     	}
     	else {
-    		auto sum = this->sum(block, 1, start + 1);
+    		auto sum = this->gsum(block, block_start + 1, block_start + start + 1);
     		return result.adjust(block_start, size, sum);
     	}
     }

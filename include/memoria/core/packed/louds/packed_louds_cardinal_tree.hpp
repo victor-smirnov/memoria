@@ -73,7 +73,7 @@ public:
     void removeLeaf(const PackedLoudsNode& node)
     {
         Int idx = node.rank1() - 1;
-        labels()->removeSpace(idx, 1);
+        labels()->removeSpace(idx, idx + 1);
         tree()->removeLeaf(node);
     }
 

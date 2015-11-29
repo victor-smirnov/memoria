@@ -19,7 +19,7 @@ class PackedLoudsCardinalTestSuite: public TestSuite {
 
 public:
 
-    PackedLoudsCardinalTestSuite(): TestSuite("Packed.LoudsCardinalSuite")
+    PackedLoudsCardinalTestSuite(): TestSuite("Packed.LoudsCardinal")
     {
         registerTask(new PackedLoudsCardinalTest());
     }

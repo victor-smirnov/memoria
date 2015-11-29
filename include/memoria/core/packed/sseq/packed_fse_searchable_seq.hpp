@@ -33,9 +33,6 @@ template <
     Int BitsPerSymbol_,
     Int VPB,
 
-//    template <typename> class IndexType     = PkdFTree,
-//    template <typename> class CodecType     = ValueFSECodec,
-
 	typename IndexType,
     template <typename> class ReindexFnType = BitmapReindexFn,
     template <typename> class SelectFnType  = BitmapSelectFn,
@@ -49,9 +46,6 @@ struct PkdFSSeqTypes {
     static const Int BitsPerSymbol          = BitsPerSymbol_;
 
     using Index     = IndexType;
-
-//    template <typename V>
-//    using Codec     = CodecType<V>;
 
     template <typename Seq>
     using ReindexFn = ReindexFnType<Seq>;

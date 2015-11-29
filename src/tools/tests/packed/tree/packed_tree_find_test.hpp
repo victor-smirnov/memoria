@@ -122,7 +122,10 @@ public:
 
             Int block   = this->getRandom(Tree::Blocks);
 
-            Int sum     = tree->sum(block, start, end);
+            auto sum     = tree->sum(block, start, end);
+            auto sum_v   = this->sum(values, block, start, end);
+
+            AssertEQ(MA_SRC, sum, sum_v, SBuf()<<"SUMS "<<start<<" "<<end);
 
             if (sum == 0) continue;
 
@@ -132,11 +135,12 @@ public:
             auto result2_lt = find_fw<typename Tree::FindGTWalker>(tree, block, start, sum);
             auto result2_le = find_fw<typename Tree::FindGEWalker>(tree, block, start, sum);
 
-            AssertEQ(MA_SRC, result1_lt.idx(), result2_lt.idx(), SBuf()<<start<<" "<<sum<<" "<<block);
-            AssertEQ(MA_SRC, result1_lt.prefix(), result2_lt.prefix(), SBuf()<<start<<" "<<sum<<" "<<block);
 
-            AssertEQ(MA_SRC, result1_le.idx(), result2_le.idx(), SBuf()<<start<<" "<<sum<<" "<<block);
-            AssertEQ(MA_SRC, result1_le.prefix(), result2_le.prefix(), SBuf()<<start<<" "<<sum<<" "<<block);
+            AssertEQ(MA_SRC, result1_lt.idx(), result2_lt.idx(), SBuf()<<"IDX "<<start<<" "<<sum<<" "<<block);
+            AssertEQ(MA_SRC, result1_lt.prefix(), result2_lt.prefix(), SBuf()<<"SUM "<<start<<" "<<sum<<" "<<block);
+
+            AssertEQ(MA_SRC, result1_le.idx(), result2_le.idx(), SBuf()<<"IDX "<<start<<" "<<sum<<" "<<block);
+            AssertEQ(MA_SRC, result1_le.prefix(), result2_le.prefix(), SBuf()<<"SUM "<<start<<" "<<sum<<" "<<block);
         }
     }
 
@@ -176,11 +180,11 @@ public:
     		auto result2_lt = find_fw<typename Tree::FindGTWalker>(tree, block, 0, sum);
     		auto result2_le = find_fw<typename Tree::FindGEWalker>(tree, block, 0, sum);
 
-    		AssertEQ(MA_SRC, result1_lt.idx(), result2_lt.idx(), SBuf()<<sum<<" "<<block);
-    		AssertEQ(MA_SRC, result1_lt.prefix(), result2_lt.prefix(), SBuf()<<" "<<sum<<" "<<block);
+    		AssertEQ(MA_SRC, result1_lt.idx(), result2_lt.idx(), SBuf()<<"IDX "<<sum<<" "<<block);
+    		AssertEQ(MA_SRC, result1_lt.prefix(), result2_lt.prefix(), SBuf()<<"SUM "<<" "<<sum<<" "<<block);
 
-    		AssertEQ(MA_SRC, result1_le.idx(), result2_le.idx(), SBuf()<<" "<<sum<<" "<<block);
-    		AssertEQ(MA_SRC, result1_le.prefix(), result2_le.prefix(), SBuf()<<" "<<sum<<" "<<block);
+    		AssertEQ(MA_SRC, result1_le.idx(), result2_le.idx(), SBuf()<<"IDX "<<" "<<sum<<" "<<block);
+    		AssertEQ(MA_SRC, result1_le.prefix(), result2_le.prefix(), SBuf()<<"SUM "<<" "<<sum<<" "<<block);
     	}
     }
 
@@ -225,11 +229,11 @@ public:
             auto result2_lt = find_bw<typename Tree::FindGTWalker>(tree, block, start, sum);
             auto result2_le = find_bw<typename Tree::FindGEWalker>(tree, block, start, sum);
 
-            AssertEQ(MA_SRC, result1_lt.idx(), result2_lt.idx(), SBuf()<<start<<" "<<sum<<" "<<block);
-            AssertEQ(MA_SRC, result1_lt.prefix(), result2_lt.prefix(), SBuf()<<start<<" "<<sum<<" "<<block);
+            AssertEQ(MA_SRC, result1_lt.idx(), result2_lt.idx(), SBuf()<<"IDX "<<start<<" "<<sum<<" "<<block);
+            AssertEQ(MA_SRC, result1_lt.prefix(), result2_lt.prefix(), SBuf()<<"SUM "<<start<<" "<<sum<<" "<<block);
 
-            AssertEQ(MA_SRC, result1_le.idx(), result2_le.idx(), SBuf()<<start<<" "<<sum<<" "<<block);
-            AssertEQ(MA_SRC, result1_le.prefix(), result2_le.prefix(), SBuf()<<start<<" "<<sum<<" "<<block);
+            AssertEQ(MA_SRC, result1_le.idx(), result2_le.idx(), SBuf()<<"IDX "<<start<<" "<<sum<<" "<<block);
+            AssertEQ(MA_SRC, result1_le.prefix(), result2_le.prefix(), SBuf()<<"SUM "<<start<<" "<<sum<<" "<<block);
         }
     }
 
@@ -272,11 +276,11 @@ public:
     		auto result2_lt = find_bw<typename Tree::FindGTWalker>(tree, block, start, sum);
     		auto result2_le = find_bw<typename Tree::FindGEWalker>(tree, block, start, sum);
 
-    		AssertEQ(MA_SRC, result1_lt.idx(), result2_lt.idx(), SBuf()<<start<<" "<<sum<<" "<<block);
-    		AssertEQ(MA_SRC, result1_lt.prefix(), result2_lt.prefix(), SBuf()<<start<<" "<<sum<<" "<<block);
+    		AssertEQ(MA_SRC, result1_lt.idx(), result2_lt.idx(), SBuf()<<"IDX "<<start<<" "<<sum<<" "<<block);
+    		AssertEQ(MA_SRC, result1_lt.prefix(), result2_lt.prefix(), SBuf()<<"SUM "<<start<<" "<<sum<<" "<<block);
 
-    		AssertEQ(MA_SRC, result1_le.idx(), result2_le.idx(), SBuf()<<start<<" "<<sum<<" "<<block);
-    		AssertEQ(MA_SRC, result1_le.prefix(), result2_le.prefix(), SBuf()<<start<<" "<<sum<<" "<<block);
+    		AssertEQ(MA_SRC, result1_le.idx(), result2_le.idx(), SBuf()<<"IDX "<<start<<" "<<sum<<" "<<block);
+    		AssertEQ(MA_SRC, result1_le.prefix(), result2_le.prefix(), SBuf()<<"SUM "<<start<<" "<<sum<<" "<<block);
     	}
     }
 };

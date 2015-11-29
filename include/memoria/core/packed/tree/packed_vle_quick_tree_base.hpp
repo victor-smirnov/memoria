@@ -665,8 +665,6 @@ public:
 
     	size_t pos = lr.idx;
 
-    	Int limit = start + size;
-
     	if (pos < data_size)
     	{
     		Codec codec;
@@ -678,7 +676,7 @@ public:
     				Value value;
     				auto len = codec.decode(values, value, pos, data_size);
 
-    				if (c == limit || walker.compare(value))
+    				if (walker.compare(value))
     				{
     					return walker.idx(c);
     				}
@@ -688,7 +686,7 @@ public:
     				}
     			}
 
-    			return walker.idx(limit);
+    			return walker.idx(size);
     		}
     		else {
     			WalkerState state;
@@ -703,7 +701,7 @@ public:
     				Value value;
     				auto len = codec.decode(values, value, pos, data_size);
 
-    				if (c == limit || walker.compare(value))
+    				if (walker.compare(value))
     				{
     					return walker.idx(c);
     				}
@@ -731,7 +729,7 @@ public:
     					Value value;
     					size_t length = codec.decode(values, value, local_pos, data_size);
 
-    					if (local_idx == limit || walker.compare(value))
+    					if (walker.compare(value))
     					{
     						return walker.idx(local_idx);
     					}
@@ -741,15 +739,15 @@ public:
     					}
     				}
 
-    				return walker.idx(limit);
+    				return walker.idx(size);
     			}
     			else {
-    				return walker.idx(limit);
+    				return walker.idx(size);
     			}
     		}
     	}
     	else {
-    		return walker.idx(limit);
+    		return walker.idx(size);
     	}
     }
 

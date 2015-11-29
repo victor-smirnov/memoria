@@ -21,10 +21,7 @@ using namespace std;
 
 template <
     Int BitsPerSymbol_ = 8,
-
-    template <typename> class IndexType     = PkdVTree,
-    template <typename> class CodecType     = UBigIntEliasCodec,
-
+	typename IndexType = PkdVDTree<BigInt, 1<<BitsPerSymbol_, UBigIntI64Codec>,
     template <typename> class ReindexFnType = VLEReindex8Fn,
     template <typename> class SelectFnType  = Seq8SelectFn,
     template <typename> class RankFnType    = Seq8RankFn,
@@ -33,11 +30,7 @@ template <
 struct PackedCxMultiSequenceTypes {
     static const Int BitsPerSymbol = BitsPerSymbol_;
 
-    template <typename T>
-    using Index     = IndexType<T>;
-
-    template <typename V>
-    using Codec     = CodecType<V>;
+    using Index = IndexType;
 
     template <typename Seq>
     using ReindexFn = ReindexFnType<Seq>;
@@ -67,10 +60,8 @@ public:
 
     typedef PkdFSSeqTypes<
             Types::BitsPerSymbol,
-            PackedTreeBranchingFactor,
             512,
-            Types::template Index,
-            Types::template Codec,
+            typename Types::Index,
             Types::template ReindexFn,
             Types::template SelectFn,
             Types::template RankFn,

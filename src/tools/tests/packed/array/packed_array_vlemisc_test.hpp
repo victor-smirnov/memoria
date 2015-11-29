@@ -46,6 +46,8 @@ class PackedArrayVLEMiscTest: public PackedArrayTestBase <
 
     Int iterations_ = 1000;
 
+    using Base::getRandom;
+
 public:
 
 

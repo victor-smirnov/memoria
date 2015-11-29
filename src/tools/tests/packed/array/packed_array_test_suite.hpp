@@ -22,13 +22,13 @@ class PackedArrayTestSuite: public TestSuite {
 
 public:
 
-    PackedArrayTestSuite(): TestSuite("Packed.ArraySuite")
+    PackedArrayTestSuite(): TestSuite("Packed.Array")
     {
         registerTask(new PackedArrayMiscTest<PackedVLEArray, UByteExintCodec, PackedTreeExintVPB>("Misc.VLE.Exint"));
         registerTask(new PackedArrayMiscTest<PackedVLEArray, UBigIntEliasCodec, PackedTreeEliasVPB>("Misc.VLE.Elias"));
 
-        registerTask(new PackedArrayVLEMiscTest<UByteExintCodec, PackedTreeExintVPB>("VLEMisc.Exint"));
-        registerTask(new PackedArrayVLEMiscTest<UBigIntEliasCodec, PackedTreeEliasVPB>("VLEMisc.Elias"));
+//        registerTask(new PackedArrayVLEMiscTest<UByteExintCodec, PackedTreeExintVPB>("VLEMisc.Exint"));
+//        registerTask(new PackedArrayVLEMiscTest<UBigIntEliasCodec, PackedTreeEliasVPB>("VLEMisc.Elias"));
 
     }
 

@@ -48,6 +48,8 @@ class PackedArrayMiscTest: public PackedArrayTestBase <
 
     Int iterations_ = 10;
 
+    using Base::getRandom;
+
 public:
 
 

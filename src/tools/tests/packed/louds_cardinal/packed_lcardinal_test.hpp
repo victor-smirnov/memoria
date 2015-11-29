@@ -132,6 +132,8 @@ public:
             checkTreeContent(tree, paths);
         }
 
+
+
         while (paths.size() > 0)
         {
             Int idx = getRandom(paths.size());

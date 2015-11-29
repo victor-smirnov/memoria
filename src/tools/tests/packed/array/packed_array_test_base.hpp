@@ -10,7 +10,6 @@
 #include "../../tests_inc.hpp"
 
 #include <memoria/core/packed/array/packed_vle_array.hpp>
-#include <memoria/core/packed/map/packed_vle_map.hpp>
 
 namespace memoria {
 
@@ -25,7 +24,9 @@ template <
 >
 class PackedArrayTestBase: public TestTask {
 protected:
-    typedef PackedVLEMapTypes<
+    typedef Packed2TreeTypes<
+    		BigInt,
+			BigInt,
             1,
             CodecType,
             BF,
