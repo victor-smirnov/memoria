@@ -22,7 +22,7 @@ using namespace std;
 
 template <
     Int BitsPerSymbol_ = 8,
-	typename IndexType = PkdVDTree<BigInt, 1<<BitsPerSymbol_, UBigIntI64Codec>,
+	typename IndexType = PkdVDTreeT<BigInt, 1<<BitsPerSymbol_, UBigIntI64Codec>,
     template <typename> class ReindexFnType = VLEReindex8Fn,
     template <typename> class SelectFnType  = Seq8SelectFn,
     template <typename> class RankFnType    = Seq8RankFn,

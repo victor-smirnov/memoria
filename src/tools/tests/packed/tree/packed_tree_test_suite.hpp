@@ -29,17 +29,17 @@ public:
         registerTask(new PackedTreeFindTest<PkdFQTreeT<BigInt, 4>>("Find.4.FSQ"));
         registerTask(new PackedTreeSumTest<PkdFQTreeT<BigInt, 4>>("Sum.4.FSQ"));
 
-        registerTask(new PackedTreeMiscTest<PkdVQTree<BigInt, 4, UByteI7Codec>>("Misc.4.VLQ.I7"));
-        registerTask(new PackedTreeMiscTest<PkdVQTree<BigInt, 4, UBigIntEliasCodec>>("Misc.4.VLQ.Elias"));
-        registerTask(new PackedTreeMiscTest<PkdVDTree<BigInt, 4, UBigIntEliasCodec>>("Misc.4.VLD.Elias"));
+        registerTask(new PackedTreeMiscTest<PkdVQTreeT<BigInt, 4, UByteI7Codec>>("Misc.4.VLQ.I7"));
+        registerTask(new PackedTreeMiscTest<PkdVQTreeT<BigInt, 4, UBigIntEliasCodec>>("Misc.4.VLQ.Elias"));
+        registerTask(new PackedTreeMiscTest<PkdVDTreeT<BigInt, 4, UBigIntEliasCodec>>("Misc.4.VLD.Elias"));
 
-        registerTask(new PackedTreeSumTest<PkdVQTree<BigInt, 4,  UByteI7Codec>>("Sum.4.VLQ.I7"));
-        registerTask(new PackedTreeSumTest<PkdVQTree<BigInt, 4,  UBigIntEliasCodec>>("Sum.4.VLQ.Elias"));
-    	registerTask(new PackedTreeSumTest<PkdVDTree<BigInt, 4,  UBigIntEliasCodec>>("Sum.4.VLD.Elias"));
+        registerTask(new PackedTreeSumTest<PkdVQTreeT<BigInt, 4,  UByteI7Codec>>("Sum.4.VLQ.I7"));
+        registerTask(new PackedTreeSumTest<PkdVQTreeT<BigInt, 4,  UBigIntEliasCodec>>("Sum.4.VLQ.Elias"));
+    	registerTask(new PackedTreeSumTest<PkdVDTreeT<BigInt, 4,  UBigIntEliasCodec>>("Sum.4.VLD.Elias"));
 
-        registerTask(new PackedTreeFindTest<PkdVQTree<BigInt, 4, UBigIntEliasCodec>>("Find.4.VLQ.Elias"));
-        registerTask(new PackedTreeFindTest<PkdVQTree<BigInt, 4, UByteI7Codec>>("Find.4.VLQ.I7"));
-    	registerTask(new PackedTreeFindTest<PkdVDTree<BigInt, 4, UByteI7Codec>>("Find.4.VLD.I7"));
+        registerTask(new PackedTreeFindTest<PkdVQTreeT<BigInt, 4, UBigIntEliasCodec>>("Find.4.VLQ.Elias"));
+        registerTask(new PackedTreeFindTest<PkdVQTreeT<BigInt, 4, UByteI7Codec>>("Find.4.VLQ.I7"));
+    	registerTask(new PackedTreeFindTest<PkdVDTreeT<BigInt, 4, UByteI7Codec>>("Find.4.VLD.I7"));
     }
 
 };

@@ -100,12 +100,12 @@ struct FSEBranchStructTF {
 
 template <Int LeafIndexes>
 struct VLQBranchStructTF {
-	using Type = PkdVQTree<BigInt, LeafIndexes, UByteI7Codec>;
+	using Type = PkdVQTreeT<BigInt, LeafIndexes, UByteI7Codec>;
 };
 
 template <Int LeafIndexes>
 struct VLDBranchStructTF {
-	using Type = PkdVDTree<BigInt, LeafIndexes, UByteI7Codec>;
+	using Type = PkdVDTreeT<BigInt, LeafIndexes, UByteI7Codec>;
 };
 
 

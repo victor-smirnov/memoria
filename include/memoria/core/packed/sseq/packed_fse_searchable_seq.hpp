@@ -1045,7 +1045,7 @@ public:
                     PkdFSSeqTypes<
                         BitsPerSymbol,
                         1024,
-                        PkdVDTree<BigInt, 1<<BitsPerSymbol, UBigIntI64Codec>,
+                        PkdVDTreeT<BigInt, 1<<BitsPerSymbol, UBigIntI64Codec>,
                         VLEReindex8BlkFn,
                         Seq8SelectFn,
                         Seq8RankFn,

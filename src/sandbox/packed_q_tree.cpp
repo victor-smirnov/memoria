@@ -28,10 +28,10 @@ int main() {
 		constexpr Int Block = 1;
 		constexpr Int Blocks = Block + 1;
 
-//		using Tree = PkdVQTree<BigInt, Blocks, UByteI7Codec>;
-		using Tree = PkdVDTree<BigInt, Blocks, UByteI7Codec, BigInt, PackedTreeBranchingFactor, 128>;
-//		using Tree = PkdFQTree<BigInt, Blocks>;
-//		using Tree = PkdVTree<Packed2TreeTypes<BigInt, BigInt, Blocks, UByteI7Codec, PackedTreeBranchingFactor, 128>>;
+//		using Tree = PkdVQTreeT<BigInt, Blocks, UByteI7Codec>;
+		using Tree = PkdVDTreeT<BigInt, Blocks, UByteI7Codec, BigInt, PackedTreeBranchingFactor, 128>;
+//		using Tree = PkdFQTreeT<BigInt, Blocks>;
+
 
 		using Values = Tree::Values;
 

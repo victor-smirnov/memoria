@@ -114,8 +114,7 @@ struct TableBTTypesBase: public BTTypes<Profile, memoria::BTTreeLayout> {
 
     using StreamDescriptors = typename bttl::BTTLAugmentStreamDescriptors<
     		RawStreamDescriptors,
-			PkdVDTree<CtrSizeT, 1, UByteI7Codec>
-			//PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec, 32, 128>>
+			PkdVDTreeT<CtrSizeT, 1, UByteI7Codec>
 	>::Type;
 
 

@@ -51,7 +51,7 @@ struct MultimapBTTypesBase: public BTTypes<Profile, memoria::BTTreeLayout> {
     struct IndexStreamTF {
         using NonLeafType 	= PkdFQTreeT<Key, Indexes + 1>;
         using LeafType 		= TL<
-        	PkdVDTree<Key, Indexes, UByteExintCodec>
+        	PkdVDTreeT<Key, Indexes, UByteExintCodec>
         >;
 
         using IdxRangeList 	= TL<TL<IndexRange<0, Indexes>>>;
