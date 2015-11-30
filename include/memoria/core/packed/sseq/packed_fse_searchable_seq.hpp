@@ -1025,7 +1025,7 @@ public:
                 PkdFSSeqTypes<
                     1,
                     1024,
-                    PkdFQTree<Int, 2>,
+                    PkdFQTreeT<Int, 2>,
                     BitmapReindexFn,
                     BitmapSelectFn,
                     BitmapRankFn,
@@ -1036,7 +1036,7 @@ public:
                     PkdFSSeqTypes<
                         BitsPerSymbol,
                         256,
-                        PkdFQTree<Int, 1<<BitsPerSymbol>,
+                        PkdFQTreeT<Int, 1<<BitsPerSymbol>,
                         ReindexFn,
                         SeqSelectFn,
                         SeqRankFn,

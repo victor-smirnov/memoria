@@ -25,9 +25,9 @@ public:
 
     PackedTreeTestSuite(): TestSuite("Packed.Tree")
     {
-        registerTask(new PackedTreeMiscTest<PkdFQTree<BigInt, 4>>("Misc.4.FSQ"));
-        registerTask(new PackedTreeFindTest<PkdFQTree<BigInt, 4>>("Find.4.FSQ"));
-        registerTask(new PackedTreeSumTest<PkdFQTree<BigInt, 4>>("Sum.4.FSQ"));
+        registerTask(new PackedTreeMiscTest<PkdFQTreeT<BigInt, 4>>("Misc.4.FSQ"));
+        registerTask(new PackedTreeFindTest<PkdFQTreeT<BigInt, 4>>("Find.4.FSQ"));
+        registerTask(new PackedTreeSumTest<PkdFQTreeT<BigInt, 4>>("Sum.4.FSQ"));
 
         registerTask(new PackedTreeMiscTest<PkdVQTree<BigInt, 4, UByteI7Codec>>("Misc.4.VLQ.I7"));
         registerTask(new PackedTreeMiscTest<PkdVQTree<BigInt, 4, UBigIntEliasCodec>>("Misc.4.VLQ.Elias"));

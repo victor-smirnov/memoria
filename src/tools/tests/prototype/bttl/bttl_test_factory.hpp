@@ -100,7 +100,7 @@ struct BTTLTestTypesBase: public BTTypes<Profile, BTTreeLayout> {
 
     using BTTLNavigationStruct = typename IfThenElse<
     		SizeType == PackedSizeType::FIXED,
-			PkdFQTree<CtrSizeT, 1>,
+			PkdFQTreeT<CtrSizeT, 1>,
 			PkdVQTree<CtrSizeT, 1, UByteI7Codec>
     >::Result;
 

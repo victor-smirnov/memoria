@@ -36,7 +36,7 @@ public:
     {
         registerTask(new PackedSearchableSequenceMiscTest<
         		1,
-				PkdFQTree<Int, 2>,
+				PkdFQTreeT<Int, 2>,
 				::memoria::BitmapReindexFn,
 				BitmapSelectFn,
 				BitmapRankFn,
@@ -45,7 +45,7 @@ public:
 
         registerTask(new PackedSearchableSequenceMiscTest<
                         4,
-                        PkdFQTree<Int, 16>,
+                        PkdFQTreeT<Int, 16>,
                         ::memoria::ReindexFn,
                         SeqSelectFn,
                         SeqRankFn,
@@ -92,7 +92,7 @@ public:
 
         registerTask(new PackedSearchableSequenceRankTest<
         		1,
-				PkdFQTree<Int, 2>,
+				PkdFQTreeT<Int, 2>,
 				::memoria::BitmapReindexFn,
 				 BitmapSelectFn,
 				 BitmapRankFn,
@@ -101,7 +101,7 @@ public:
 
         registerTask(new PackedSearchableSequenceRankTest<
                 4,
-                PkdFQTree<Int, 16>,
+                PkdFQTreeT<Int, 16>,
                 ::memoria::ReindexFn,
                 SeqSelectFn,
                 SeqRankFn,
@@ -133,7 +133,7 @@ public:
 
         registerTask(new PackedSearchableSequenceSelectTest<
         		1,
-				PkdFQTree<Int, 2>,
+				PkdFQTreeT<Int, 2>,
 				::memoria::BitmapReindexFn,
 				 BitmapSelectFn,
 				 BitmapRankFn,
@@ -142,7 +142,7 @@ public:
 
         registerTask(new PackedSearchableSequenceSelectTest<
                 4,
-                PkdFQTree<Int, 16>,
+                PkdFQTreeT<Int, 16>,
                 ::memoria::ReindexFn,
                 SeqSelectFn,
                 SeqRankFn,

@@ -49,7 +49,7 @@ struct MultimapBTTypesBase: public BTTypes<Profile, memoria::BTTreeLayout> {
     using CtrSizeT = BigInt;
 
     struct IndexStreamTF {
-        using NonLeafType 	= PkdFQTree<Key, Indexes + 1>;
+        using NonLeafType 	= PkdFQTreeT<Key, Indexes + 1>;
         using LeafType 		= TL<
         	PkdVDTree<Key, Indexes, UByteExintCodec>
         >;
@@ -59,7 +59,7 @@ struct MultimapBTTypesBase: public BTTypes<Profile, memoria::BTTreeLayout> {
 
 
     struct DataStreamTF {
-    	using NonLeafType 	= PkdFQTree<CtrSizeT, 1>;
+    	using NonLeafType 	= PkdFQTreeT<CtrSizeT, 1>;
     	using LeafType 		= TL<PackedFSEArray<PackedFSEArrayTypes<Value>>>;
 
     	using IdxRangeList 	= TL<TL<>>;

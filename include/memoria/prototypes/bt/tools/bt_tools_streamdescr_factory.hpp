@@ -95,7 +95,7 @@ namespace details {
 
 template <Int LeafIndexes>
 struct FSEBranchStructTF {
-	using Type = PkdFQTree<BigInt, LeafIndexes>;
+	using Type = PkdFQTreeT<BigInt, LeafIndexes>;
 };
 
 template <Int LeafIndexes>
@@ -108,10 +108,6 @@ struct VLDBranchStructTF {
 	using Type = PkdVDTree<BigInt, LeafIndexes, UByteI7Codec>;
 };
 
-//template <Int LeafIndexes>
-//struct VLEBranchStructTF {
-//	using Type = PkdVTree1<Packed2TreeTypes<BigInt, BigInt, LeafIndexes, UByteI7Codec, 32, 128>>;
-//};
 
 
 template <typename LeafStructList, template <Int> class BranchStructTF, Int Idx = 0> struct BTStreamDescritorsBuilder;

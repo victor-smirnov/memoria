@@ -14,16 +14,32 @@
 namespace memoria {
 
 template <typename IndexValueT, Int kBlocks, typename ValueT = IndexValueT, Int kBranchingFactor = PackedTreeBranchingFactor, Int kValuesPerBranch = PackedTreeBranchingFactor>
-class PkdFQTree: public PkdFQTreeBase<IndexValueT, ValueT, kBranchingFactor, kValuesPerBranch> {
+struct PkdFQTreeTypes {
+	using IndexValue 	= IndexValueT;
+	using Value 		= ValueT;
 
-	using Base 		= PkdFQTreeBase<IndexValueT, ValueT, kBranchingFactor, kValuesPerBranch>;
-	using MyType 	= PkdFQTree<IndexValueT, kBlocks, ValueT, kBranchingFactor, kValuesPerBranch>;
+	static constexpr Int Blocks = kBlocks;
+	static constexpr Int BranchingFactor = kBranchingFactor;
+	static constexpr Int ValuesPerBranch = kValuesPerBranch;
+};
+
+template <typename Types> class PkdFQTree;
 
 
+template <typename IndexValueT, Int kBlocks, typename ValueT = IndexValueT, Int kBranchingFactor = PackedTreeBranchingFactor, Int kValuesPerBranch = PackedTreeBranchingFactor>
+using PkdFQTreeT = PkdFQTree<PkdFQTreeTypes<IndexValueT, kBlocks, ValueT, kBranchingFactor, kValuesPerBranch>>;
+
+
+
+template <typename Types>
+class PkdFQTree: public PkdFQTreeBase<typename Types::IndexValue, typename Types::Value, Types::BranchingFactor, Types::ValuesPerBranch> {
+
+	using Base 		= PkdFQTreeBase<typename Types::IndexValue, typename Types::Value, Types::BranchingFactor, Types::ValuesPerBranch>;
+	using MyType 	= PkdFQTree<Types>;
 
 public:
 	static constexpr UInt VERSION = 1;
-    static constexpr Int Blocks = kBlocks;
+    static constexpr Int Blocks = Types::Blocks;
 
     using Base::METADATA;
     using Base::index_size;
@@ -35,7 +51,10 @@ public:
 				ConstValue<UInt, Blocks>
     >;
 
-    using Values = core::StaticVector<IndexValueT, Blocks>;
+    using IndexValue = typename Types::IndexValue;
+    using Value		 = typename Types::Value;
+
+    using Values = core::StaticVector<IndexValue, Blocks>;
 
     using Metadata = typename Base::Metadata;
 
@@ -69,8 +88,8 @@ public:
 
     	for (Int block = 0; block < Blocks; block++)
     	{
-    		this->template allocateArrayBySize<IndexValueT>(block * SegmentsPerBlock + 1, meta->index_size());
-    		this->template allocateArrayBySize<ValueT>(block * SegmentsPerBlock + 2, capacity);
+    		this->template allocateArrayBySize<IndexValue>(block * SegmentsPerBlock + 1, meta->index_size());
+    		this->template allocateArrayBySize<Value>(block * SegmentsPerBlock + 2, capacity);
     	}
     }
 
@@ -303,12 +322,12 @@ public:
     	return v;
     }
 
-    ValueT get_values(Int idx, Int index) const
+    Value get_values(Int idx, Int index) const
     {
     	return this->value(index, idx);
     }
 
-    ValueT getValue(Int index, Int idx) const
+    Value getValue(Int index, Int idx) const
     {
     	return this->value(index, idx);
     }
@@ -327,8 +346,8 @@ protected:
 
     	for (Int block = 0; block < Blocks; block++)
     	{
-    		Base::resizeBlock(SegmentsPerBlock * block + 1, new_index_size * sizeof(IndexValueT));
-    		Base::resizeBlock(SegmentsPerBlock * block + 2, new_data_size * sizeof(ValueT));
+    		Base::resizeBlock(SegmentsPerBlock * block + 1, new_index_size * sizeof(IndexValue));
+    		Base::resizeBlock(SegmentsPerBlock * block + 2, new_data_size * sizeof(Value));
     	}
 
     	meta->max_size() 	+= size;
@@ -593,11 +612,11 @@ public:
     }
 
 
-    BigInt setValue(Int block, Int idx, ValueT value)
+    BigInt setValue(Int block, Int idx, Value value)
     {
     	if (value != 0)
     	{
-    		ValueT val = this->value(block, idx);
+    		Value val = this->value(block, idx);
     		this->value(block, idx) = value;
 
     		return val - value;
@@ -630,7 +649,7 @@ public:
     }
 
 
-    void addValue(Int block, Int idx, ValueT value)
+    void addValue(Int block, Int idx, Value value)
     {
     	if (value != 0)
     	{
@@ -698,7 +717,7 @@ public:
 
     	auto index_size = meta->index_size();
 
-    	const IndexValueT* index[Blocks];
+    	const IndexValue* index[Blocks];
 
     	for (Int b = 0; b < Blocks; b++) {
     		index[b] = this->index(b);
@@ -706,7 +725,7 @@ public:
 
     	for (Int c = 0; c < index_size; c++)
     	{
-    		IndexValueT indexes[Blocks];
+    		IndexValue indexes[Blocks];
     		for (Int block = 0; block < Blocks; block++)
     		{
     			indexes[block] = index[block][c];
@@ -721,7 +740,7 @@ public:
 
 
 
-    	const ValueT* values[Blocks];
+    	const Value* values[Blocks];
 
     	for (Int b = 0; b < Blocks; b++) {
     		values[b] = this->values(b);
@@ -729,7 +748,7 @@ public:
 
     	for (Int idx = 0; idx < meta->size() ; idx++)
     	{
-    		ValueT values_data[Blocks];
+    		Value values_data[Blocks];
     		for (Int block = 0; block < Blocks; block++)
     		{
     			values_data[block] = values[block][idx];
@@ -757,8 +776,8 @@ public:
 
         for (Int b = 0; b < Blocks; b++)
         {
-        	FieldFactory<IndexValueT>::serialize(buf, this->index(b), meta->index_size());
-        	FieldFactory<ValueT>::serialize(buf, this->values(b), meta->size());
+        	FieldFactory<IndexValue>::serialize(buf, this->index(b), meta->index_size());
+        	FieldFactory<Value>::serialize(buf, this->values(b), meta->size());
         }
     }
 
@@ -774,26 +793,26 @@ public:
 
         for (Int b = 0; b < Blocks; b++)
         {
-        	FieldFactory<IndexValueT>::deserialize(buf, this->index(b), meta->index_size());
-        	FieldFactory<ValueT>::deserialize(buf, this->values(b), meta->size());
+        	FieldFactory<IndexValue>::deserialize(buf, this->index(b), meta->index_size());
+        	FieldFactory<Value>::deserialize(buf, this->values(b), meta->size());
         }
     }
 };
 
-template <typename IndexValueT, Int kBlocks, typename ValueT, Int kBranchingFactor, Int kValuesPerBranch>
-struct PkdStructSizeType<PkdFQTree<IndexValueT, kBlocks, ValueT, kBranchingFactor, kValuesPerBranch>> {
+template <typename Types>
+struct PkdStructSizeType<PkdFQTree<Types>> {
 	static const PackedSizeType Value = PackedSizeType::FIXED;
 };
 
 
-template <typename IndexValueT, Int kBlocks, typename ValueT, Int kBranchingFactor, Int kValuesPerBranch>
-struct StructSizeProvider<PkdFQTree<IndexValueT, kBlocks, ValueT, kBranchingFactor, kValuesPerBranch>> {
-    static const Int Value = kBlocks;
+template <typename Types>
+struct StructSizeProvider<PkdFQTree<Types>> {
+    static const Int Value = Types::Blocks;
 };
 
-template <typename IndexValueT, Int kBlocks, typename ValueT, Int kBranchingFactor, Int kValuesPerBranch>
-struct IndexesSize<PkdFQTree<IndexValueT, kBlocks, ValueT, kBranchingFactor, kValuesPerBranch>> {
-	static const Int Value = kBlocks;
+template <typename Types>
+struct IndexesSize<PkdFQTree<Types>> {
+	static const Int Value = Types::Blocks;
 };
 
 

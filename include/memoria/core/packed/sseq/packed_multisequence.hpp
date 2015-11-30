@@ -55,7 +55,7 @@ class PackedCxMultiSequence: public PackedAllocator {
 
 public:
 
-    typedef PkdFQTree<Int, 1>                                           		LabelArray;
+    typedef PkdFQTreeT<Int, 1>                                           		LabelArray;
     typedef typename LabelArray::Values                                         LabelArrayValues;
 
     typedef PkdFSSeqTypes<

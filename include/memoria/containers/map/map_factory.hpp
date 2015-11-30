@@ -52,8 +52,7 @@ struct MapBTTypesBase: public BTTypes<Profile, memoria::BTSingleStream> {
 
     using MapStreamTF = StreamTF<
     	TL<TL<
-			//PkdFTree<Packed2TreeTypes<Key_, Key_, Indexes>>, //UByteExintCodec
-			PkdFQTree<Key_, Indexes>,
+			PkdFQTreeT<Key_, Indexes>,
 			PackedFSEArray<PackedFSEArrayTypes<ValueType>>
 		>>,
 		TL<TL<TL<IndexRange<0, Indexes>>, TL<>>>,
