@@ -8,7 +8,7 @@
 #ifndef MEMORIA_CORE_PACKED_VLE_QUICK_TREE_BASE_HPP_
 #define MEMORIA_CORE_PACKED_VLE_QUICK_TREE_BASE_HPP_
 
-#include <memoria/core/packed/tree/packed_vle_quick_tree_base_base.hpp>
+#include <memoria/core/packed/tree/vle/packed_vle_quick_tree_base_base.hpp>
 
 
 namespace memoria {

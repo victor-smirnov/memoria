@@ -12,8 +12,9 @@
 #include <memoria/core/types/type2type.hpp>
 #include <memoria/core/tools/vector_tuple.hpp>
 
-#include <memoria/core/packed/tree/packed_fse_tree.hpp>
-#include <memoria/core/packed/tree/packed_vle_tree.hpp>
+#include <memoria/core/packed/tree/fse/packed_fse_quick_tree.hpp>
+#include <memoria/core/packed/tree/vle/packed_vle_quick_tree.hpp>
+#include <memoria/core/packed/tree/vle/packed_vle_dense_tree.hpp>
 
 #include <memoria/core/packed/sseq/packed_fse_searchable_seq.hpp>
 

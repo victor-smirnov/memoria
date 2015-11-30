@@ -19,7 +19,9 @@
 #include <memoria/prototypes/bt_ss/btss_factory.hpp>
 #include <memoria/prototypes/ctr_wrapper/ctrwrapper_factory.hpp>
 
-#include <memoria/core/packed/tree/packed_fse_quick_tree.hpp>
+#include <memoria/core/packed/tree/fse/packed_fse_quick_tree.hpp>
+#include <memoria/core/packed/tree/vle/packed_vle_quick_tree.hpp>
+#include <memoria/core/packed/tree/vle/packed_vle_dense_tree.hpp>
 
 #include <tuple>
 

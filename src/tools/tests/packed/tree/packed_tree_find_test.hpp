@@ -112,6 +112,10 @@ public:
 
         auto values = Base::fillRandom(tree, tree_size);
 
+//        tree->dump();
+//
+//        auto result1_lt = tree->findGTForward(2, 965, 9649);
+
         Int size = tree->size();
 
         for (Int c = 0; c < iterations_; c++)

@@ -12,7 +12,6 @@
 #include <memoria/core/exceptions/memoria.hpp>
 #include <memoria/core/packed/tools/packed_allocator.hpp>
 #include <memoria/core/packed/tools/packed_dispatcher.hpp>
-#include <memoria/core/packed/tree/packed_tree_tools.hpp>
 #include <memoria/core/tools/assert.hpp>
 #include <memoria/core/tools/config.hpp>
 #include <memoria/core/types/fn_traits.hpp>
@@ -29,13 +28,13 @@
 namespace memoria   {
 namespace bt        {
 
-template <
-    typename K,
-    typename V
->
-struct TreeLeafNodeTypes: Packed2TreeTypes<V, K> {
-
-};
+//template <
+//    typename K,
+//    typename V
+//>
+//struct TreeLeafNodeTypes: Packed2TreeTypes<V, K> {
+//
+//};
 
 
 

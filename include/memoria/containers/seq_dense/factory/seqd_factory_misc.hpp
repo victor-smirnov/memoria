@@ -10,7 +10,5 @@
 #define _MEMORIA_CONTAINERS_SEQD_FACTORY_FACTORY_MISC_HPP
 
 #include <memoria/core/packed/sseq/packed_fse_searchable_seq.hpp>
-#include <memoria/core/packed/tree/packed_fse_tree.hpp>
-#include <memoria/core/packed/tree/packed_vle_tree.hpp>
 
 #endif

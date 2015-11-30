@@ -11,10 +11,10 @@
 #include <memoria/core/types/type2type.hpp>
 
 #include <memoria/core/packed/tools/packed_allocator_types.hpp>
-#include <memoria/core/packed/tree/packed_fse_tree.hpp>
 
 #include <memoria/core/tools/bitmap.hpp>
 #include <memoria/core/tools/dump.hpp>
+#include <memoria/core/tools/assert.hpp>
 
 #include <type_traits>
 
@@ -32,8 +32,6 @@ class PackedAllocator: public PackedAllocatable {
     typedef PackedAllocatable                                                   Base;
     typedef PackedAllocator                                                     MyType;
     typedef PackedAllocator                                                     Allocator;
-
-    typedef Packed2TreeTypes <Int>                                              LayoutTypes;
 
 public:
 

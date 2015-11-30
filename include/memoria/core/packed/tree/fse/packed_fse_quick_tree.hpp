@@ -8,7 +8,7 @@
 #ifndef MEMORIA_CORE_PACKED_FSE_QUICK_TREE_HPP_
 #define MEMORIA_CORE_PACKED_FSE_QUICK_TREE_HPP_
 
-#include <memoria/core/packed/tree/packed_fse_quick_tree_base.hpp>
+#include <memoria/core/packed/tree/fse/packed_fse_quick_tree_base.hpp>
 
 
 namespace memoria {

@@ -14,9 +14,9 @@
 #include <memoria/core/tools/i7_codec.hpp>
 #include <memoria/core/tools/elias_codec.hpp>
 
-#include <memoria/core/packed/tree/packed_fse_quick_tree.hpp>
-#include <memoria/core/packed/tree/packed_vle_quick_tree.hpp>
-#include <memoria/core/packed/tree/packed_vle_dense_tree.hpp>
+#include <memoria/core/packed/tree/fse/packed_fse_quick_tree.hpp>
+#include <memoria/core/packed/tree/vle/packed_vle_quick_tree.hpp>
+#include <memoria/core/packed/tree/vle/packed_vle_dense_tree.hpp>
 
 #include "pseq_misc_test.hpp"
 #include "pseq_rank_test.hpp"

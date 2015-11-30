@@ -9,8 +9,9 @@
 #define MEMORIA_CORE_PACKED2_CXMULTISEQUENCE_HPP_
 
 #include <memoria/core/packed/sseq/packed_fse_searchable_seq.hpp>
-#include <memoria/core/packed/tree/packed_vle_tree.hpp>
-#include <memoria/core/packed/tree/packed_fse_tree.hpp>
+#include <memoria/core/packed/tree/vle/packed_vle_quick_tree.hpp>
+#include <memoria/core/packed/tree/vle/packed_vle_dense_tree.hpp>
+#include <memoria/core/packed/tree/fse/packed_fse_quick_tree.hpp>
 #include <memoria/core/tools/elias_codec.hpp>
 
 #include <functional>
@@ -54,7 +55,6 @@ class PackedCxMultiSequence: public PackedAllocator {
 
 public:
 
-    typedef Packed2TreeTypes<Int>                                               LabelArrayTypes;
     typedef PkdFQTree<Int, 1>                                           		LabelArray;
     typedef typename LabelArray::Values                                         LabelArrayValues;
 

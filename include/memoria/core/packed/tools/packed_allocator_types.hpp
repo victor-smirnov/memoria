@@ -212,6 +212,10 @@ public:
         return bits / 8 + (bits % 8 > 0);
     }
 
+    static constexpr Int divUp(Int value, Int divider) {
+    	return (value / divider) + (value % divider ? 1 : 0);
+    }
+
     void serialize(SerializationData& buf) const
     {
         FieldFactory<Int>::serialize(buf, allocator_offset_);
@@ -221,7 +225,6 @@ public:
     {
         FieldFactory<Int>::deserialize(buf, allocator_offset_);
     }
-
 };
 
 template <Int Alignment = PackedAllocationAlignment>

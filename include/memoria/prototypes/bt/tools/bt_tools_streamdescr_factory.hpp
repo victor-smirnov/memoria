@@ -19,11 +19,9 @@
 
 
 #include <memoria/core/packed/tools/packed_allocator_types.hpp>
-#include <memoria/core/packed/tree/packed_fse_tree.hpp>
-#include <memoria/core/packed/tree/packed_vle_tree.hpp>
-#include <memoria/core/packed/tree/packed_fse_quick_tree.hpp>
-#include <memoria/core/packed/tree/packed_vle_quick_tree.hpp>
-#include <memoria/core/packed/tree/packed_vle_dense_tree.hpp>
+#include <memoria/core/packed/tree/fse/packed_fse_quick_tree.hpp>
+#include <memoria/core/packed/tree/vle/packed_vle_quick_tree.hpp>
+#include <memoria/core/packed/tree/vle/packed_vle_dense_tree.hpp>
 
 #include <memoria/core/tools/i7_codec.hpp>
 #include <memoria/core/tools/elias_codec.hpp>
@@ -110,10 +108,10 @@ struct VLDBranchStructTF {
 	using Type = PkdVDTree<BigInt, LeafIndexes, UByteI7Codec>;
 };
 
-template <Int LeafIndexes>
-struct VLEBranchStructTF {
-	using Type = PkdVTree1<Packed2TreeTypes<BigInt, BigInt, LeafIndexes, UByteI7Codec, 32, 128>>;
-};
+//template <Int LeafIndexes>
+//struct VLEBranchStructTF {
+//	using Type = PkdVTree1<Packed2TreeTypes<BigInt, BigInt, LeafIndexes, UByteI7Codec, 32, 128>>;
+//};
 
 
 template <typename LeafStructList, template <Int> class BranchStructTF, Int Idx = 0> struct BTStreamDescritorsBuilder;

@@ -4,12 +4,12 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#include <memoria/core/packed/tree/packed_fse_tree.hpp>
-#include <memoria/core/packed/tree/packed_fse_quick_tree.hpp>
-#include <memoria/core/packed/tree/packed_vle_quick_tree.hpp>
-#include <memoria/core/packed/tree/packed_vle_dense_tree.hpp>
-#include <memoria/core/packed/tree/packed_vle_tree.hpp>
-#include <memoria/core/packed/tree/packed_tree_tools.hpp>
+
+#include <memoria/core/packed/tree/fse/packed_fse_quick_tree.hpp>
+#include <memoria/core/packed/tree/vle/packed_vle_quick_tree.hpp>
+#include <memoria/core/packed/tree/vle/packed_vle_dense_tree.hpp>
+
+
 
 #include <memoria/core/tools/i7_codec.hpp>
 #include <memoria/core/tools/elias_codec.hpp>

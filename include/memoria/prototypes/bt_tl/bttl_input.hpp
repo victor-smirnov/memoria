@@ -285,7 +285,24 @@ public:
 //				stream = alloc->template allocateEmpty<StreamObj>(AllocatorIdx);
 //			}
 
-			stream->_insert(at[StreamIdx], sizes[StreamIdx], [&](Int idx){
+			stream->_insert(at[StreamIdx], sizes[StreamIdx], [&](Int block, Int idx){
+				return std::get<Idx>(std::get<StreamIdx>(buffer)[idx + starts[StreamIdx]])[block];
+			});
+
+			return true;
+		}
+
+		template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename PTypes>
+		bool stream(PackedFSEArray<PTypes>* stream, PackedAllocator* alloc, const Position& at, const Position& starts, const Position& sizes, const Buffer& buffer)
+		{
+			static_assert(StreamIdx < Position::Indexes, "");
+			static_assert(StreamIdx < std::tuple_size<Buffer>::value, "");
+
+//			if (stream == nullptr) {
+//				stream = alloc->template allocateEmpty<StreamObj>(AllocatorIdx);
+//			}
+
+			stream->_insert(at[StreamIdx], sizes[StreamIdx], [&](Int block, Int idx){
 				return std::get<Idx>(std::get<StreamIdx>(buffer)[idx + starts[StreamIdx]]);
 			});
 

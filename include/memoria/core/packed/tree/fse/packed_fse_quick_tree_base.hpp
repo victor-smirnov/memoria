@@ -8,7 +8,7 @@
 #ifndef MEMORIA_CORE_PACKED_FSE_QUICK_TREE_BASE_HPP_
 #define MEMORIA_CORE_PACKED_FSE_QUICK_TREE_BASE_HPP_
 
-#include <memoria/core/packed/tree/packed_fse_quick_tree_base_base.hpp>
+#include <memoria/core/packed/tree/fse/packed_fse_quick_tree_base_base.hpp>
 
 
 namespace memoria {
@@ -52,7 +52,7 @@ public:
 
     using IndexValue 	= IndexValueT;
     using Value 		= ValueT;
-    using TreeTools		= PackedTreeTools<kBranchingFactor, kValuesPerBranch, Int>;
+//    using TreeTools		= PackedTreeTools<kBranchingFactor, kValuesPerBranch, Int>;
 
     using Metadata		= typename Base::Metadata;
     using TreeLayout	= typename Base::template IndexedTreeLayout<IndexValue>;

@@ -10,9 +10,6 @@
 
 #include <memoria/core/packed/tools/packed_allocator.hpp>
 
-#include <memoria/core/packed/tree/packed_tree_walkers.hpp>
-#include <memoria/core/packed/tree/packed_tree_tools.hpp>
-
 #include <memoria/core/tools/static_array.hpp>
 #include <memoria/core/tools/dump.hpp>
 #include <memoria/core/tools/reflection.hpp>

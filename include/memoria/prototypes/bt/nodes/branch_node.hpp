@@ -15,9 +15,9 @@
 #include <memoria/core/tools/bitmap.hpp>
 
 #include <memoria/core/types/types.hpp>
-#include <memoria/core/packed/tree/packed_fse_tree.hpp>
 #include <memoria/core/packed/tools/packed_allocator.hpp>
 #include <memoria/core/packed/tools/packed_dispatcher.hpp>
+#include <memoria/core/packed/tools/packed_tools.hpp>
 
 #include <memoria/prototypes/bt/tools/bt_tools.hpp>
 #include <memoria/prototypes/bt/bt_names.hpp>

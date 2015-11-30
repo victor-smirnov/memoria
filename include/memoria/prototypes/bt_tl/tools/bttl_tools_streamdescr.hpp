@@ -13,8 +13,10 @@
 #include <memoria/prototypes/bt/tools/bt_tools.hpp>
 #include <memoria/core/packed/tools/packed_allocator_types.hpp>
 #include <memoria/core/tools/i7_codec.hpp>
-#include <memoria/core/packed/tree/packed_vle_quick_tree.hpp>
-#include <memoria/core/packed/tree/packed_vle_dense_tree.hpp>
+#include <memoria/core/packed/tree/vle/packed_vle_quick_tree.hpp>
+#include <memoria/core/packed/tree/vle/packed_vle_dense_tree.hpp>
+#include <memoria/core/packed/tree/fse/packed_fse_quick_tree.hpp>
+
 #include <memoria/core/container/container.hpp>
 
 namespace memoria {

@@ -9,9 +9,9 @@
 #define MEMORIA_CORE_PACKED_FSE_SEARCHABLESEQ_HPP_
 
 #include <memoria/core/packed/tools/packed_allocator.hpp>
-#include <memoria/core/packed/tree/packed_tree_tools.hpp>
-#include <memoria/core/packed/tree/packed_fse_quick_tree.hpp>
-#include <memoria/core/packed/tree/packed_vle_dense_tree.hpp>
+#include <memoria/core/packed/tree/fse/packed_fse_quick_tree.hpp>
+#include <memoria/core/packed/tree/vle/packed_vle_dense_tree.hpp>
+#include <memoria/core/packed/tree/vle/packed_vle_quick_tree.hpp>
 
 
 #include <memoria/core/packed/sseq/sseq_fn/pkd_f_sseq_rank_fn.hpp>
@@ -21,6 +21,11 @@
 
 #include <memoria/core/types/algo/select.hpp>
 #include <memoria/core/tools/static_array.hpp>
+
+#include <memoria/core/tools/i64_codec.hpp>
+#include <memoria/core/tools/elias_codec.hpp>
+#include <memoria/core/tools/exint_codec.hpp>
+#include <memoria/core/tools/i7_codec.hpp>
 
 #include <ostream>
 
@@ -289,7 +294,7 @@ public:
     static Int estimate_block_size(Int size, Int density_hi = 1, Int density_lo = 1)
     {
         Int symbols_block_size  = Base::roundUpBitsToAlignmentBlocks(size * BitsPerSymbol);
-        Int index_size          = divUp(size , ValuesPerBranch);
+        Int index_size          = PackedAllocatable::divUp(size , ValuesPerBranch);
         Int index_block_size    = Index::estimate_block_size(index_size, density_hi, density_lo);
         Int metadata_block_size = Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
 
