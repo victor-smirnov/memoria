@@ -9,31 +9,50 @@
 #define MEMORIA_CORE_PACKED_VLE_DENSE_ARRAY_HPP_
 
 #include <memoria/core/packed/array/packed_vle_dense_array_base.hpp>
-
+#include <memoria/core/packed/tree/vle/packed_vle_tools.hpp>
 
 namespace memoria {
 
-template <typename Codec>
-struct PkdVDArrayShapeProvider {
-	static constexpr Int BitsPerElement = Codec::ElementSize;
-	static constexpr Int BlockSize = 128;// bytes
-
-	static constexpr Int BranchingFactor = PackedTreeBranchingFactor;
-	static constexpr Int ValuesPerBranch = BlockSize * 8 / BitsPerElement;
-};
 
 
 template <
 	typename ValueT,
 	Int kBlocks,
 	template <typename> class CodecT,
-	Int kBranchingFactor = PkdVDArrayShapeProvider<CodecT<ValueT>>::BranchingFactor,
-	Int kValuesPerBranch = PkdVDArrayShapeProvider<CodecT<ValueT>>::ValuesPerBranch
+	Int kBranchingFactor = PkdVLETreeShapeProvider<CodecT<ValueT>>::BranchingFactor,
+	Int kValuesPerBranch = PkdVLETreeShapeProvider<CodecT<ValueT>>::ValuesPerBranch
 >
-class PkdVDArray: public PkdVDArrayBase<ValueT, CodecT, kBranchingFactor, kValuesPerBranch> {
+struct PkdVLEArrayTypes {
+	using Value = ValueT;
 
-	using Base 		= PkdVDArrayBase<ValueT, CodecT, kBranchingFactor, kValuesPerBranch>;
-	using MyType 	= PkdVDArray<ValueT, kBlocks, CodecT, kBranchingFactor, kValuesPerBranch>;
+	template <typename T>
+	using Codec = CodecT<T>;
+
+	static constexpr Int Blocks = kBlocks;
+	static constexpr Int BranchingFactor = kBranchingFactor;
+	static constexpr Int ValuesPerBranch = kValuesPerBranch;
+};
+
+
+
+template <typename Types> class PkdVDArray;
+
+template <
+	typename ValueT,
+	Int kBlocks,
+	template <typename> class CodecT,
+
+	Int kBranchingFactor = PkdVLETreeShapeProvider<CodecT<ValueT>>::BranchingFactor,
+	Int kValuesPerBranch = PkdVLETreeShapeProvider<CodecT<ValueT>>::ValuesPerBranch
+>
+using PkdVDArrayT = PkdVDArray<PkdVLEArrayTypes<ValueT, kBlocks, CodecT, kBranchingFactor, kValuesPerBranch>>;
+
+
+template <typename Types>
+class PkdVDArray: public PkdVDArrayBase<typename Types::Value, Types::template Codec, Types::BranchingFactor, Types::ValuesPerBranch> {
+
+	using Base 		= PkdVDArrayBase<typename Types::Value, Types::template Codec, Types::BranchingFactor, Types::ValuesPerBranch>;
+	using MyType 	= PkdVDArray<Types>;
 
 public:
     using Base::BlocksStart;
@@ -61,7 +80,7 @@ public:
 
     static constexpr UInt VERSION = 1;
     static constexpr Int TreeBlocks = 1;
-    static constexpr Int Blocks = kBlocks;
+    static constexpr Int Blocks = Types::Blocks;
 
     using FieldsList = MergeLists<
                 typename Base::FieldsList,
@@ -70,7 +89,9 @@ public:
     			ConstValue<UInt, Blocks>
     >;
 
-    using Values = core::StaticVector<ValueT, Blocks>;
+    using Value		 = typename Types::Value;
+
+    using Values = core::StaticVector<Value, Blocks>;
 
     using InputBuffer 	= MyType;
     using InputType 	= Values;
@@ -207,7 +228,7 @@ public:
 
 
 
-    ValueT value(Int block, Int idx) const
+    Value value(Int block, Int idx) const
     {
     	Int size = this->size();
 
@@ -224,7 +245,7 @@ public:
 		MEMORIA_ASSERT(start_pos, <, data_size);
 
 		Codec codec;
-		ValueT value;
+		Value value;
 
 		codec.decode(values, value, start_pos);
 
@@ -311,12 +332,12 @@ public:
 		return values_data;
     }
 
-    ValueT get_values(Int idx, Int index) const
+    Value get_values(Int idx, Int index) const
     {
     	return this->value(index, idx);
     }
 
-    ValueT getValue(Int index, Int idx) const
+    Value getValue(Int index, Int idx) const
     {
     	return this->value(index, idx);
     }
@@ -654,11 +675,11 @@ public:
 
     			size_t data_start_tmp = starts[block];
 
-    			ValueT buffer[32];
+    			Value buffer[32];
 
     			for (Int c = window_start; c < window_end; c++)
     			{
-    				ValueT old_value;
+    				Value old_value;
     				auto len = codec.decode(values, old_value, data_start_tmp);
 
     				auto new_value = update_fn(block, c, old_value);
@@ -725,8 +746,8 @@ public:
 
     	size_t insertion_pos0 = insertion_pos;
 
-    	ValueT old_values[Blocks];
-    	ValueT new_values[Blocks];
+    	Value old_values[Blocks];
+    	Value new_values[Blocks];
 
     	size_t new_length = 0;
 
@@ -780,7 +801,7 @@ public:
 
     	size_t insertion_pos = this->locate(layout, values, 0, global_idx).idx;
 
-    	ValueT value;
+    	Value value;
     	size_t old_length = codec.decode(values, value, insertion_pos);
     	auto new_value    = update_fn(block, value);
 
@@ -827,7 +848,7 @@ public:
     }
 
 
-    void addValue(Int block, Int idx, ValueT value)
+    void addValue(Int block, Int idx, Value value)
     {
     	update_value(block, idx, [&](Int block, auto old_value){return value + old_value;});
     }
@@ -908,7 +929,7 @@ public:
 
     	for (Int idx = 0; idx < size; idx++)
     	{
-    		ValueT values_data[Blocks];
+    		Value values_data[Blocks];
     		for (Int block = 0; block < Blocks; block++)
     		{
     			auto len = codec.decode(values, values_data[block], positions[block]);
@@ -985,7 +1006,7 @@ public:
     	Int c;
     	for (c = start; c < end && pos < data_size; c++)
     	{
-    		ValueT value;
+    		Value value;
     		auto len = codec.decode(values, value, pos);
     		fn(value);
     		pos += len;
@@ -1084,7 +1105,7 @@ public:
     		out<<"c: "<<c<<" ";
     		for (Int block = 0; block < Blocks; block++)
     		{
-    			ValueT value;
+    			Value value;
     			auto len = codec.decode(values, value, pos);
     			out<<value<<" ";
     			pos += len;
@@ -1097,37 +1118,19 @@ public:
 
 
 
-template <
-	typename ValueT,
-	Int kBlocks,
-	template <typename> class CodecT,
-	Int kBranchingFactor,
-	Int kValuesPerBranch
->
-struct PkdStructSizeType<PkdVDArray<ValueT, kBlocks, CodecT, kBranchingFactor, kValuesPerBranch>> {
+template <typename Types>
+struct PkdStructSizeType<PkdVDArray<Types>> {
 	static const PackedSizeType Value = PackedSizeType::VARIABLE;
 };
 
 
-template <
-	typename ValueT,
-	Int kBlocks,
-	template <typename> class CodecT,
-	Int kBranchingFactor,
-	Int kValuesPerBranch
->
-struct StructSizeProvider<PkdVDArray<ValueT, kBlocks, CodecT, kBranchingFactor, kValuesPerBranch>> {
+template <typename Types>
+struct StructSizeProvider<PkdVDArray<Types>> {
     static const Int Value = 0;
 };
 
-template <
-	typename ValueT,
-	Int kBlocks,
-	template <typename> class CodecT,
-	Int kBranchingFactor,
-	Int kValuesPerBranch
->
-struct IndexesSize<PkdVDArray<ValueT, kBlocks, CodecT, kBranchingFactor, kValuesPerBranch>> {
+template <typename Types>
+struct IndexesSize<PkdVDArray<Types>> {
 	static const Int Value = 0;
 };
 

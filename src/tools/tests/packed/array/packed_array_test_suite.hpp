@@ -23,8 +23,8 @@ public:
 
     PackedArrayTestSuite(): TestSuite("Packed.Array")
     {
-        registerTask(new PackedArrayMiscTest<PkdVDArray<BigInt, 1, UByteExintCodec>>("Misc.VLD.Exint"));
-        registerTask(new PackedArrayMiscTest<PkdVDArray<BigInt, 1, UBigIntEliasCodec>>("Misc.VLD.Elias"));
+        registerTask(new PackedArrayMiscTest<PkdVDArrayT<BigInt, 1, UByteExintCodec>>("Misc.VLD.Exint"));
+        registerTask(new PackedArrayMiscTest<PkdVDArrayT<BigInt, 1, UBigIntEliasCodec>>("Misc.VLD.Elias"));
     }
 
 };
