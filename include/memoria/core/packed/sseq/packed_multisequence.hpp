@@ -55,7 +55,7 @@ class PackedCxMultiSequence: public PackedAllocator {
 public:
 
     typedef Packed2TreeTypes<Int>                                               LabelArrayTypes;
-    typedef PkdFTree<LabelArrayTypes>                                           LabelArray;
+    typedef PkdFQTree<Int, 1>                                           		LabelArray;
     typedef typename LabelArray::Values                                         LabelArrayValues;
 
     typedef PkdFSSeqTypes<
@@ -121,7 +121,7 @@ public:
         const Sequence*     seq     = sequence();
         const LabelArray*   labels  = this->labels();
 
-        MEMORIA_ASSERT(to, <=, labels->value(subseq_num));
+        MEMORIA_ASSERT(to, <=, labels->value(0, subseq_num));
 
         Int seq_pefix   = labels->sum(0, subseq_num);
 
@@ -133,7 +133,7 @@ public:
         const Sequence*     seq     = sequence();
         const LabelArray*   labels  = this->labels();
 
-        Int seq_size    = labels->value(subseq_num);
+        Int seq_size    = labels->value(0, subseq_num);
         Int seq_prefix  = labels->sum(0, subseq_num);
         Int rank_prefix = seq->rank(seq_prefix, symbol);
 
@@ -165,11 +165,12 @@ public:
 
         Int seq_prefix  = labels->sum(0, subseq_num);
 
-        MEMORIA_ASSERT(idx, <=, labels->value(subseq_num));
+        MEMORIA_ASSERT(idx, <=, labels->value(0, subseq_num));
 
         seq->insert(seq_prefix + idx, symbol);
 
-        labels->value(subseq_num)++;
+        labels->value(0, subseq_num)++;
+//        labels->setValue(0, subseq_num)++;
 
         labels->reindex();
 
@@ -183,11 +184,11 @@ public:
 
         Int seq_prefix  = labels->sum(0, subseq_num);
 
-        MEMORIA_ASSERT(idx, <=, labels->value(subseq_num));
+        MEMORIA_ASSERT(idx, <=, labels->value(0, subseq_num));
 
         seq->removeSymbol(seq_prefix + idx);
 
-        labels->value(subseq_num)--;
+        labels->value(0, subseq_num)--;
 
         labels->reindex();
 
@@ -197,7 +198,7 @@ public:
     void appendSymbol(Int subseq_num, Int symbol)
     {
         LabelArray* labels  = this->labels();
-        Int size            = labels->value(subseq_num);
+        Int size            = labels->value(0, subseq_num);
 
         insertSymbol(subseq_num, size, symbol);
     }
@@ -212,7 +213,7 @@ public:
 
     Int subseq_size(Int seq_num) const
     {
-        return labels()->value(seq_num);
+        return labels()->value(0, seq_num);
     }
 
     Int length(Int seq_num) const
@@ -230,7 +231,7 @@ public:
     symbol(Int seq_num, Int idx) const
     {
         Int seq_prefix  = labels()->sum(0, seq_num);
-        Int size        = labels()->value(seq_num);
+        Int size        = labels()->value(0, seq_num);
 
         MEMORIA_ASSERT(idx, <, size);
 
@@ -273,7 +274,7 @@ public:
 
             for (Int c = 0; c <labels->size(); c++)
             {
-                Int size = labels->value(c);
+                Int size = labels->value(0, c);
 
                 out<<"seq: "<<c<<" offset: "<<offset<<" size: "<<size<<endl;
 

@@ -649,7 +649,7 @@ public:
     }
 
 
-    void dump(Int blocks, std::ostream& out = cout) const
+    void dump(Int blocks, std::ostream& out = cout, bool dump_index = true) const
     {
     	auto meta = this->metadata();
 
@@ -658,32 +658,35 @@ public:
 
     	out<<std::endl;
 
-    	TreeLayout layout;
+		TreeLayout layout;
 
-    	Int levels = this->compute_tree_layout(meta->max_size(), layout);
+		Int levels = this->compute_tree_layout(meta->max_size(), layout);
 
-    	if (levels > 0)
+    	if (dump_index)
     	{
-    		out<<"TreeLayout: "<<endl;
+    		if (levels > 0)
+    		{
+    			out<<"TreeLayout: "<<endl;
 
-    		out<<"Level sizes: ";
-    		for (Int c = 0; c <= layout.levels_max; c++) {
-    			out<<layout.level_sizes[c]<<" ";
-    		}
-    		out<<endl;
+    			out<<"Level sizes: ";
+    			for (Int c = 0; c <= layout.levels_max; c++) {
+    				out<<layout.level_sizes[c]<<" ";
+    			}
+    			out<<endl;
 
-    		out<<"Level starts: ";
-    		for (Int c = 0; c <= layout.levels_max; c++) {
-    			out<<layout.level_starts[c]<<" ";
+    			out<<"Level starts: ";
+    			for (Int c = 0; c <= layout.levels_max; c++) {
+    				out<<layout.level_starts[c]<<" ";
+    			}
+    			out<<endl;
     		}
-    		out<<endl;
     	}
 
     	for (Int block = 0; block < blocks; block++)
     	{
     		out<<"++++++++++++++++++ Block: "<<block<<" ++++++++++++++++++"<<endl;
 
-    		if (levels > 0)
+    		if (dump_index && levels > 0)
     		{
     			auto indexes = this->index(block);
 
@@ -695,6 +698,7 @@ public:
     		}
 
     		out<<endl;
+
     		out<<"Values: "<<endl;
 
     		auto values = this->values(block);

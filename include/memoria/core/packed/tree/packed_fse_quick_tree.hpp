@@ -128,8 +128,8 @@ public:
     	Base::dump_index(Blocks, out);
     }
 
-    void dump(std::ostream& out = cout) const {
-    	Base::dump(Blocks, out);
+    void dump(std::ostream& out = cout, bool dump_index = true) const {
+    	Base::dump(Blocks, out, dump_index);
     }
 
     bool check_capacity(Int size) const

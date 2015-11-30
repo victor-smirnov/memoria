@@ -51,7 +51,7 @@ public:
 
 
 template <typename Types_>
-class PkdFTree: public PackedAllocatable {
+class PkdFTree1: public PackedAllocatable {
 
     typedef PackedAllocatable                                                   Base;
 
@@ -59,7 +59,7 @@ public:
     static const UInt VERSION                                                   = 1;
 
     typedef Types_                                                              Types;
-    typedef PkdFTree<Types>                                                     MyType;
+    typedef PkdFTree1<Types>                                                     MyType;
 
     typedef typename Types::Allocator                                           Allocator;
 
@@ -118,7 +118,7 @@ public:
 
 
 
-    PkdFTree() {}
+    PkdFTree1() {}
 
     Int raw_size() const {return size_ * Blocks;}
     Int raw_capacity() const {return max_size_ * Blocks;}
@@ -1596,13 +1596,13 @@ private:
 
 
 template <typename Types>
-struct PkdStructSizeType<PkdFTree<Types>> {
+struct PkdStructSizeType<PkdFTree1<Types>> {
 	static const PackedSizeType Value = PackedSizeType::FIXED;
 };
 
 template <typename T>
-struct StructSizeProvider<PkdFTree<T>> {
-    static const Int Value = PkdFTree<T>::Indexes;
+struct StructSizeProvider<PkdFTree1<T>> {
+    static const Int Value = PkdFTree1<T>::Indexes;
 };
 
 }
