@@ -51,7 +51,7 @@ public:
 
 
 template <typename Types_>
-class PkdVTree: public PackedAllocator
+class PkdVTree1: public PackedAllocator
 {
     typedef PackedAllocator                                                     Base;
 
@@ -59,7 +59,7 @@ public:
     static const UInt VERSION                                                   = 1;
 
     typedef Types_                                                              Types;
-    typedef PkdVTree<Types>                                                     MyType;
+    typedef PkdVTree1<Types>                                                     MyType;
 
     typedef PackedAllocator                                                     Allocator;
 
@@ -121,7 +121,7 @@ public:
     };
 
 public:
-    PkdVTree() {}
+    PkdVTree1() {}
 
 public:
     Metadata* metadata() {
@@ -2419,18 +2419,18 @@ private:
 
 
 template <typename Types>
-struct PkdStructSizeType<PkdVTree<Types>> {
+struct PkdStructSizeType<PkdVTree1<Types>> {
 	static const PackedSizeType Value = PackedSizeType::VARIABLE;
 };
 
 template <typename T>
-struct StructSizeProvider<PkdVTree<T>> {
-    static const Int Value = PkdVTree<T>::Blocks;
+struct StructSizeProvider<PkdVTree1<T>> {
+    static const Int Value = PkdVTree1<T>::Blocks;
 };
 
 template <typename T>
-struct IndexesSize<PkdVTree<T>> {
-	static const Int Value = PkdVTree<T>::Blocks;
+struct IndexesSize<PkdVTree1<T>> {
+	static const Int Value = PkdVTree1<T>::Blocks;
 };
 
 

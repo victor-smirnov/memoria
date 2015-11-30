@@ -594,8 +594,8 @@ public:
     template <typename T>
     void insert(Int idx, const core::StaticVector<T, Blocks>& values)
     {
-    	this->_insert(idx, 1, [&](Int idx){
-    		return values;
+    	this->_insert(idx, 1, [&](Int block, Int idx) {
+    		return values[block];
     	});
     }
 

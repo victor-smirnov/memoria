@@ -50,7 +50,7 @@ template <typename CtrSizeT, Int Indexes>
 struct BTSSTestStreamTF<PackedSizeType::VARIABLE, PackedSizeType::FIXED, CtrSizeT, Indexes> {
 	using Type = StreamTF<
 			TL<TL<
-				PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, Indexes, UByteI7Codec>>
+				PkdVQTree<CtrSizeT, Indexes, UByteI7Codec>
 			>>,
 			TL<TL<TL<IndexRange<0, Indexes>>>>,
 			FSEBranchStructTF
@@ -74,7 +74,7 @@ template <typename CtrSizeT, Int Indexes>
 struct BTSSTestStreamTF<PackedSizeType::VARIABLE, PackedSizeType::VARIABLE, CtrSizeT, Indexes> {
 	using Type = StreamTF<
 			TL<TL<
-				PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, Indexes, UByteI7Codec>>
+				PkdVDTree<CtrSizeT, Indexes, UByteI7Codec>
 			>>,
 			TL<TL<TL<IndexRange<0, Indexes>>>>,
 			VLQBranchStructTF

@@ -72,6 +72,7 @@ public:
     {
         Ctr::initMetadata();
 
+        MEMORIA_ADD_TEST_PARAM(size_);
         MEMORIA_ADD_TEST_PARAM(max_block_size_);
         MEMORIA_ADD_TEST_PARAM(check_size_);
 

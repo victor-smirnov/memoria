@@ -13,6 +13,8 @@
 #include <memoria/prototypes/bt/tools/bt_tools.hpp>
 #include <memoria/core/packed/tools/packed_allocator_types.hpp>
 #include <memoria/core/tools/i7_codec.hpp>
+#include <memoria/core/packed/tree/packed_vle_quick_tree.hpp>
+#include <memoria/core/packed/tree/packed_vle_dense_tree.hpp>
 #include <memoria/core/container/container.hpp>
 
 namespace memoria {
@@ -50,7 +52,7 @@ namespace details {
 		using Type = typename IfThenElse<
 				LeafSizeType == PackedSizeType::FIXED,
 				PkdFQTree<CtrSizeT, 1>,
-				PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec, 32, 128>>
+				PkdVQTree<CtrSizeT, 1, UByteI7Codec>
 		>::Result;
 	};
 

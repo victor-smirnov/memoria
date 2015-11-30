@@ -112,7 +112,7 @@ struct VLDBranchStructTF {
 
 template <Int LeafIndexes>
 struct VLEBranchStructTF {
-	using Type = PkdVTree<Packed2TreeTypes<BigInt, BigInt, LeafIndexes, UByteI7Codec, 32, 128>>;
+	using Type = PkdVTree1<Packed2TreeTypes<BigInt, BigInt, LeafIndexes, UByteI7Codec, 32, 128>>;
 };
 
 
