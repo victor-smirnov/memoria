@@ -1175,6 +1175,8 @@ protected:
     	Int data_size 	 = this->data_size(block);
     	Int offsets_size = this->element_size(block * SegmentsPerBlock + Base::OFFSETS + BlocksStart);
 
+
+
     	if (layout.levels_max >= 0)
     	{
     		MEMORIA_ASSERT(this->element_size(block * SegmentsPerBlock + VALUE_INDEX + BlocksStart), >, 0);
@@ -1198,6 +1200,7 @@ protected:
     		IndexValueT value_sum = 0;
     		Int size_cnt = 0;
     		size_t threshold = ValuesPerBranch;
+    		Int total_size = 0;
 
     		MEMORIA_ASSERT(offset(offsets, 0), ==, 0);
 
@@ -1214,6 +1217,8 @@ protected:
     				threshold += ValuesPerBranch;
 
     				idx++;
+
+    				total_size += size_cnt;
 
     				value_sum = 0;
     				size_cnt  = 0;
@@ -1232,6 +1237,8 @@ protected:
 
     		MEMORIA_ASSERT(indexes[level_start + idx], ==, value_sum);
     		MEMORIA_ASSERT(size_index[level_start + idx], ==, size_cnt);
+
+    		MEMORIA_ASSERT(this->size(), ==, size_cnt + total_size);
 
     		for (Int level = levels - 1; level > 0; level--)
     		{

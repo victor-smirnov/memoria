@@ -24,7 +24,7 @@ namespace memoria {
 
 
 template <Int kBranchingFactor, Int kValuesPerBranch, Int SegmentsPerBlock, typename MetadataT>
-class PkdVDArrayBaseBase: public PackedAllocator {
+class PkdVLEArrayBaseBase: public PackedAllocator {
 
     using Base = PackedAllocator;
 
@@ -53,7 +53,7 @@ public:
 
     static constexpr Int METADATA 	 	= 0;
     static constexpr Int DATA_SIZES 	= 1;
-    static constexpr Int BlocksStart 	= 2;
+    static constexpr Int BlocksStart 	= 1;
 
     struct TreeLayout {
     	Int level_starts[8];
@@ -67,7 +67,7 @@ public:
 
 public:
 
-    PkdVDArrayBaseBase() = default;
+    PkdVLEArrayBaseBase() = default;
 
     using FieldsList = MergeLists<
                 typename Base::FieldsList,
@@ -92,22 +92,6 @@ public:
     	return this->template get<Metadata>(METADATA);
     }
 
-    const Int* data_sizes() const {
-    	return this->template get<Int>(DATA_SIZES);
-    }
-
-    Int* data_sizes() {
-    	return this->template get<Int>(DATA_SIZES);
-    }
-
-    Int& data_size(Int block) {
-    	return data_sizes()[block];
-    }
-
-    const Int& data_size(Int block) const {
-    	return data_sizes()[block];
-    }
-
     Int* size_index(Int block) {
     	return this->template get<Int>(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart);
     }
@@ -126,8 +110,20 @@ public:
     	return metadata()->size();
     }
 
-    Int index_size() const {
-    	return metadata()->index_size();
+    const Int& data_size(Int block) const {
+    	return metadata()->data_size(block);
+    }
+
+    Int& data_size(Int block) {
+    	return metadata()->data_size(block);
+    }
+
+    const Int& max_data_size(Int block) const {
+    	return metadata()->max_data_size(block);
+    }
+
+    Int& max_data_size(Int block) {
+    	return metadata()->max_data_size(block);
     }
 
 protected:

@@ -8,13 +8,16 @@
 #ifndef MEMORIA_CORE_PACKED_VLE_DENSE_ARRAY_BASE_HPP_
 #define MEMORIA_CORE_PACKED_VLE_DENSE_ARRAY_BASE_HPP_
 
-#include <memoria/core/packed/array/packed_vle_dense_array_base_base.hpp>
+#include <memoria/core/packed/array/packed_vle_array_base_base.hpp>
 
 
 namespace memoria {
 
+template <Int Blocks>
 class PkdVDArrayMetadata {
 	Int size_;
+
+	Int data_size_[Blocks];
 
 public:
 	PkdVDArrayMetadata() = default;
@@ -22,21 +25,26 @@ public:
 	Int& size() {return size_;}
 	const Int& size() const {return size_;}
 
-	template <typename, template <typename> class Codec, Int, Int> friend class PkdVDArrayBase;
+	Int& data_size(Int block) {return data_size_[block];}
+	const Int& data_size(Int block) const {return data_size_[block];}
+
+	template <Int, typename, template <typename> class Codec, Int, Int, typename> friend class PkdVLEArrayBase;
 };
 
 
 
 template <
+	Int Blocks,
 	typename ValueT,
 	template <typename> class CodecT,
 	Int kBranchingFactor,
-	Int kValuesPerBranch
+	Int kValuesPerBranch,
+	typename MetadataT = PkdVDArrayMetadata<Blocks>
 >
-class PkdVDArrayBase: public PkdVDArrayBaseBase<kBranchingFactor, kValuesPerBranch, 4, PkdVDArrayMetadata> {
+class PkdVLEArrayBase: public PkdVLEArrayBaseBase<kBranchingFactor, kValuesPerBranch, 3, MetadataT> {
 
-	using Base 		= PkdVDArrayBaseBase<kBranchingFactor, kValuesPerBranch, 4, PkdVDArrayMetadata>;
-	using MyType 	= PkdVDArrayBase<ValueT, CodecT, kBranchingFactor, kValuesPerBranch>;
+	using Base 		= PkdVLEArrayBaseBase<kBranchingFactor, kValuesPerBranch, 3, MetadataT>;
+	using MyType 	= PkdVLEArrayBase<Blocks, ValueT, CodecT, kBranchingFactor, kValuesPerBranch, MetadataT>;
 
 public:
     static constexpr UInt VERSION = 1;
@@ -64,7 +72,7 @@ public:
     static constexpr Int ValuesPerBranchLog2 	= Log2(ValuesPerBranch) - 1;
     static constexpr Int BranchingFactorLog2 	= Log2(BranchingFactor) - 1;
 
-    static constexpr Int SegmentsPerBlock = 4;
+    static constexpr Int SegmentsPerBlock = 3;
 
 
     static constexpr Int BITS_PER_OFFSET        = Codec::BitsPerOffset;
@@ -102,7 +110,7 @@ public:
     using Base::metadata;
     using Base::data_size;
 
-    PkdVDArrayBase() = default;
+    PkdVLEArrayBase() = default;
 
     using FieldsList = MergeLists<
                 typename Base::FieldsList,
@@ -162,8 +170,6 @@ public:
     {
     	Int metadata_length = Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
 
-    	Int data_sizes_length = Base::roundUpBytesToAlignmentBlocks(blocks * sizeof(Int));
-
     	Int index_size      = MyType::index_size(total_capacity);
     	Int sizes_length	= Base::roundUpBytesToAlignmentBlocks(index_size * sizeof(Int));
 
@@ -175,7 +181,6 @@ public:
 
     	return Base::block_size(
     			metadata_length +
-				data_sizes_length +
 				blocks_length * blocks,
 				blocks * SegmentsPerBlock + BlocksStart
 		);
@@ -267,15 +272,15 @@ public:
     Int locate(Int block, Int idx) const
     {
     	auto values = this->values(block);
-    	TreeLayout layout = Base::compute_tree_layout(this->data_size(block));
+    	auto data_size = this->data_size(block);
 
-    	return locate(layout, values, block, idx).idx;
+    	TreeLayout layout = Base::compute_tree_layout(data_size);
+
+    	return locate(layout, values, block, idx, data_size).idx;
     }
 
-    LocateResult locate(TreeLayout& layout, const ValueData* values, Int block, Int idx) const
+    LocateResult locate(TreeLayout& layout, const ValueData* values, Int block, Int idx, size_t data_size) const
     {
-    	size_t data_size = this->data_size(block);
-
     	if (data_size > 0) {
 
     		LocateResult locate_result;
@@ -325,7 +330,7 @@ public:
     		Int data_size = this->data_size(block);
     		TreeLayout layout = this->compute_tree_layout(data_size);
 
-    		this->reindex_block(block, layout);
+    		this->reindex_block(block, layout, data_size);
     	}
     }
 
@@ -337,7 +342,7 @@ public:
     		Int data_size = this->data_size(block);
     		TreeLayout layout = this->compute_tree_layout(data_size);
 
-    		this->check_block(block, layout);
+    		this->check_block(block, layout, data_size);
     	}
     }
 
@@ -418,11 +423,12 @@ public:
 protected:
     void reindex_block(Int block)
     {
-    	TreeLayout layout = this->compute_tree_layout(this->data_size(block));
-    	reindex_block(block, layout);
+    	auto data_size = this->data_size(block);
+    	TreeLayout layout = this->compute_tree_layout(data_size);
+    	reindex_block(block, layout, data_size);
     }
 
-    void reindex_block(Int block, TreeLayout& layout)
+    void reindex_block(Int block, TreeLayout& layout, Int data_size)
     {
     	if (layout.levels_max >= 0)
     	{
@@ -438,8 +444,6 @@ protected:
     		Int levels = layout.levels_max + 1;
 
     		Int level_start = layout.level_starts[levels - 1];
-
-    		Int data_size = this->data_size(block);
 
     		Codec codec;
 
@@ -506,9 +510,8 @@ protected:
     }
 
 
-    void check_block(Int block, TreeLayout& layout) const
+    void check_block(Int block, TreeLayout& layout, Int data_size) const
     {
-    	Int data_size 	 = this->data_size(block);
     	Int offsets_size = this->element_size(block * SegmentsPerBlock + Base::OFFSETS + BlocksStart);
 
     	if (layout.levels_max >= 0)
@@ -548,7 +551,7 @@ protected:
     			}
 
     			Value value;
-    			auto len = codec.decode(values, value, pos, data_size);
+    			auto len = codec.decode(values, value, pos);
 
     			size_cnt++;
 
@@ -593,7 +596,7 @@ protected:
     			MEMORIA_ASSERT(this->offset(block, 0), ==, 0);
     		}
     		else {
-    			MEMORIA_ASSERT(offsets_size, ==, 0);
+//    			MEMORIA_ASSERT(offsets_size, ==, 0);
     		}
 
     		MEMORIA_ASSERT(this->data_size(block), <=, kValuesPerBranch);

@@ -8,7 +8,7 @@
 #ifndef MEMORIA_CORE_PACKED_VLE_DENSE_ARRAY_HPP_
 #define MEMORIA_CORE_PACKED_VLE_DENSE_ARRAY_HPP_
 
-#include <memoria/core/packed/array/packed_vle_dense_array_base.hpp>
+#include <memoria/core/packed/array/packed_vle_array_base.hpp>
 #include <memoria/core/packed/tree/vle/packed_vle_tools.hpp>
 
 namespace memoria {
@@ -49,9 +49,9 @@ using PkdVDArrayT = PkdVDArray<PkdVLEArrayTypes<ValueT, kBlocks, CodecT, kBranch
 
 
 template <typename Types>
-class PkdVDArray: public PkdVDArrayBase<typename Types::Value, Types::template Codec, Types::BranchingFactor, Types::ValuesPerBranch> {
+class PkdVDArray: public PkdVLEArrayBase<1, typename Types::Value, Types::template Codec, Types::BranchingFactor, Types::ValuesPerBranch> {
 
-	using Base 		= PkdVDArrayBase<typename Types::Value, Types::template Codec, Types::BranchingFactor, Types::ValuesPerBranch>;
+	using Base 		= PkdVLEArrayBase<1, typename Types::Value, Types::template Codec, Types::BranchingFactor, Types::ValuesPerBranch>;
 	using MyType 	= PkdVDArray<Types>;
 
 public:
@@ -120,9 +120,8 @@ public:
     	Base::init(empty_size(), TreeBlocks * SegmentsPerBlock + BlocksStart);
 
     	Metadata* meta = this->template allocate<Metadata>(METADATA);
-    	this->template allocateArrayBySize<Int>(DATA_SIZES, TreeBlocks);
 
-    	meta->size()        = 0;
+    	meta->size() = 0;
 
     	for (Int block = 0; block < TreeBlocks; block++)
     	{
@@ -142,7 +141,6 @@ public:
     	Base::init(empty_size(), TreeBlocks * SegmentsPerBlock + BlocksStart);
 
     	Metadata* meta = this->template allocate<Metadata>(METADATA);
-    	this->template allocateArrayBySize<Int>(DATA_SIZES, TreeBlocks);
 
     	meta->size() = 0;
     	Int offsets_size = offsets_segment_size(0);
@@ -240,7 +238,7 @@ public:
     	TreeLayout layout = this->compute_tree_layout(data_size);
 
     	Int global_idx    = idx * Blocks + block;
-		Int start_pos  	  = this->locate(layout, values, 0, global_idx).idx;
+		Int start_pos  	  = this->locate(layout, values, 0, global_idx, data_size).idx;
 
 		MEMORIA_ASSERT(start_pos, <, data_size);
 
@@ -486,7 +484,7 @@ public:
     {
     	if (end > start)
     	{
-    		Int& data_size	= this->data_size();
+    		Int& data_size		= this->data_size();
     		auto values			= this->values();
     		TreeLayout layout 	= compute_tree_layout(data_size);
     		Int size			= this->size();
@@ -498,8 +496,8 @@ public:
 
     		for (Int block = 0; block < Blocks; block++)
     		{
-    			start_pos[block] = this->locate(layout, values, 0, start + size * block).idx;
-    			Int end_pos 	 = this->locate(layout, values, 0, end + size * block).idx;
+    			start_pos[block] = this->locate(layout, values, 0, start + size * block, data_size).idx;
+    			Int end_pos 	 = this->locate(layout, values, 0, end + size * block, data_size).idx;
 
     			lengths[block] = end_pos - start_pos[block];
     		}
@@ -552,13 +550,14 @@ public:
 
     	Codec codec;
 
-    	size_t data_size = this->data_size();
+    	auto metadata = this->metadata();
+    	size_t data_size = metadata->data_size(0);
 
     	TreeLayout layout = compute_tree_layout(data_size);
 
     	auto values			 = this->values();
     	Int global_idx  	 = idx * Blocks;
-    	size_t insertion_pos = this->locate(layout, values, 0, global_idx).idx;
+    	size_t insertion_pos = this->locate(layout, values, 0, global_idx, data_size).idx;
 
     	size_t total_length = 0;
 
@@ -589,9 +588,9 @@ public:
     		}
     	}
 
-    	this->data_size() += total_length;
+    	metadata->data_size(0) += total_length;
 
-    	metadata()->size() += (inserted * Blocks);
+    	metadata->size() += (inserted * Blocks);
 
     	reindex();
     }
@@ -742,7 +741,7 @@ public:
     	auto values			= this->values();
     	TreeLayout layout 	= compute_tree_layout(data_size);
 
-    	size_t insertion_pos = this->locate(layout, values, 0, global_idx).idx;
+    	size_t insertion_pos = this->locate(layout, values, 0, global_idx, data_size).idx;
 
     	size_t insertion_pos0 = insertion_pos;
 
@@ -887,7 +886,7 @@ public:
     	auto meta = this->metadata();
 
     	handler->value("SIZE",      &meta->size());
-    	handler->value("DATA_SIZE", this->data_sizes(), TreeBlocks);
+    	handler->value("DATA_SIZE", &meta->data_size(0), TreeBlocks);
 
     	handler->startGroup("INDEXES", TreeBlocks);
 
@@ -954,7 +953,7 @@ public:
 
     	FieldFactory<Int>::serialize(buf, meta->size());
 
-    	FieldFactory<Int>::serialize(buf, this->data_sizes(), TreeBlocks);
+    	FieldFactory<Int>::serialize(buf, meta->data_size(0), TreeBlocks);
 
         for (Int block = 0; block < TreeBlocks; block++)
         {
@@ -972,7 +971,7 @@ public:
 
     	FieldFactory<Int>::deserialize(buf, meta->size());
 
-    	FieldFactory<Int>::deserialize(buf, this->data_sizes(), TreeBlocks);
+    	FieldFactory<Int>::deserialize(buf, meta->data_size(0), TreeBlocks);
 
     	for (Int block = 0; block < TreeBlocks; block++)
         {
@@ -1038,20 +1037,6 @@ public:
     	out<<"size_         = "<<size<<std::endl;
     	out<<"block_size_   = "<<this->block_size()<<std::endl;
     	out<<"data_size_    = "<<data_size<<std::endl;
-
-//    	Int block_starts[Blocks];
-//
-//    	for (Int block = 0; block < Blocks; block++)
-//    	{
-//    		block_starts[block] = this->locate(0, block * size);
-//    	}
-//
-//    	for (Int block = 0; block < Blocks - 1; block++)
-//    	{
-//    		out<<"block_data_size_["<<block<<"] = "<<block_starts[block + 1] - block_starts[block]<<std::endl;
-//    	}
-//
-//    	out<<"block_data_size_["<<(Blocks - 1)<<"] = "<<data_size - block_starts[Blocks - 1]<<std::endl;
 
     	auto index_size = this->index_size(data_size);
 

@@ -13,6 +13,7 @@
 #include "packed_tree_misc_test.hpp"
 #include "packed_tree_sum_test.hpp"
 #include "packed_tree_find_test.hpp"
+#include "packed_tree_buffer_test.hpp"
 
 namespace memoria {
 
@@ -40,6 +41,9 @@ public:
         registerTask(new PackedTreeFindTest<PkdVQTreeT<BigInt, 4, UBigIntEliasCodec>>("Find.4.VLQ.Elias"));
         registerTask(new PackedTreeFindTest<PkdVQTreeT<BigInt, 4, UByteI7Codec>>("Find.4.VLQ.I7"));
     	registerTask(new PackedTreeFindTest<PkdVDTreeT<BigInt, 4, UByteI7Codec>>("Find.4.VLD.I7"));
+
+    	registerTask(new PackedTreeInputBufferTest<PkdVQTreeT<BigInt, 4, UByteI7Codec>>("Buffer.4.VLQ.I7"));
+    	registerTask(new PackedTreeInputBufferTest<PkdVQTreeT<BigInt, 4, UBigIntEliasCodec>>("Buffer.4.VLQ.Elias"));
     }
 
 };

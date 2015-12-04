@@ -20,10 +20,10 @@ template <typename TreeType>
 class PackedArrayTestBase: public TestTask {
 protected:
 
-    typedef TreeType                                                     		Tree;
+    typedef TreeType                                                     		Array;
 
-    typedef typename Tree::Value                                                Value;
-    typedef typename Tree::Values                                               Values;
+    typedef typename Array::Value                                                Value;
+    typedef typename Array::Values                                               Values;
 
     static const Int Blocks                                                     = 1;
 
@@ -32,7 +32,7 @@ public:
     PackedArrayTestBase(StringRef name): TestTask(name)
     {}
 
-    Tree* createEmptyTree(Int block_size = 1024*1024*64)
+    Array* createEmptyArray(Int block_size = 1024*1024*64)
     {
         void* block = malloc(block_size);
 
@@ -41,14 +41,14 @@ public:
         allocator->init(block_size, 1);
         allocator->setTopLevelAllocator();
 
-        Tree* tree = allocator->template allocateEmpty<Tree>(0);
+        Array* array = allocator->template allocateEmpty<Array>(0);
 
-        return tree;
+        return array;
     }
 
-    Tree* createTree(Int tree_capacity, Int free_space = 0)
+    Array* createArray(Int tree_capacity, Int free_space = 0)
     {
-        Int tree_block_size = Tree::block_size(tree_capacity);
+        Int tree_block_size = Array::block_size(tree_capacity);
 
         Int allocator_size  = PackedAllocator::block_size(tree_block_size + free_space, 1);
 
@@ -59,7 +59,7 @@ public:
         allocator->init(tree_block_size, 1);
         allocator->setTopLevelAllocator();
 
-        Tree* tree = allocator->allocate<Tree>(0, tree_block_size);
+        Array* tree = allocator->allocate<Array>(0, tree_block_size);
 
         return tree;
     }
@@ -73,7 +73,7 @@ public:
         }
     }
 
-    vector<Values> fillRandom(Tree* tree, Int size, Int max_value = 300)
+    vector<Values> fillRandom(Array* tree, Int size, Int max_value = 300)
     {
         vector<Values> vals(size);
 
@@ -91,7 +91,7 @@ public:
         return vals;
     }
 
-    vector<Values> fillSolid(Tree* tree, Int size, const Values& values)
+    vector<Values> fillSolid(Array* tree, Int size, const Values& values)
     {
         vector<Values> vals(size);
 
@@ -106,7 +106,7 @@ public:
         return vals;
     }
 
-    vector<Values> fillSolid(Tree* tree, Int size, Int value)
+    vector<Values> fillSolid(Array* tree, Int size, Int value)
     {
         vector<Values> vals(size);
 
@@ -124,7 +124,7 @@ public:
         return vals;
     }
 
-    void fillVector(Tree* tree, const vector<Values>& vals)
+    void fillVector(Array* tree, const vector<Values>& vals)
     {
         tree->insert(0, vals.size(), [&](Int block, Int idx) {
             return vals[idx][block];
@@ -157,7 +157,7 @@ public:
         return vals;
     }
 
-    void assertEqual(const Tree* tree, const vector<Values>& vals)
+    void assertEqual(const Array* tree, const vector<Values>& vals)
     {
         AssertEQ(MA_SRC, tree->size(), (Int)vals.size());
 
@@ -173,7 +173,7 @@ public:
         }
     }
 
-    void assertEqual(const Tree* tree1, const Tree* tree2)
+    void assertEqual(const Array* tree1, const Array* tree2)
     {
         AssertEQ(MA_SRC, tree1->size(), tree2->size());
 
@@ -190,7 +190,7 @@ public:
         }
     }
 
-    void assertIndexCorrect(const char* src, const Tree* tree)
+    void assertIndexCorrect(const char* src, const Array* tree)
     {
         try {
             tree->check();
@@ -202,14 +202,13 @@ public:
         }
     }
 
-    void assertEmpty(const Tree* tree)
+    void assertEmpty(const Array* tree)
     {
-        Int empty_size = Tree::empty_size();
+        Int empty_size = Array::empty_size();
 
         AssertEQ(MA_SRC, tree->size(), 0);
         AssertEQ(MA_SRC, tree->data_size(), 0);
         AssertEQ(MA_SRC, tree->block_size(), empty_size);
-//        AssertEQ(MA_SRC, tree->index_size(), 0);
     }
 };
 

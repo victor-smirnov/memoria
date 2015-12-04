@@ -23,7 +23,7 @@ class PackedArrayMiscTest: public PackedArrayTestBase <TreeType> {
 
     typedef PackedArrayTestBase <TreeType>                                      Base;
 
-    typedef typename Base::Tree                                                 Tree;
+    typedef typename Base::Array                                                Array;
     typedef typename Base::Values                                               Values;
 
     Int iterations_ = 10;
@@ -41,19 +41,19 @@ public:
 
         MEMORIA_ADD_TEST(testInsertVector);
 
-//        MEMORIA_ADD_TEST(testFillTree);
-//
-//        MEMORIA_ADD_TEST(testAddValue);
-//
-//        MEMORIA_ADD_TEST(testMerge);
-//
-//        MEMORIA_ADD_TEST(testSplitToEmpty);
-//        MEMORIA_ADD_TEST(testSplitToPreFilled);
-//
-//        MEMORIA_ADD_TEST(testRemoveMulti);
-//        MEMORIA_ADD_TEST(testRemoveAll);
-//
-//        MEMORIA_ADD_TEST(testClear);
+        MEMORIA_ADD_TEST(testFillTree);
+
+        MEMORIA_ADD_TEST(testAddValue);
+
+        MEMORIA_ADD_TEST(testMerge);
+
+        MEMORIA_ADD_TEST(testSplitToEmpty);
+        MEMORIA_ADD_TEST(testSplitToPreFilled);
+
+        MEMORIA_ADD_TEST(testRemoveMulti);
+        MEMORIA_ADD_TEST(testRemoveAll);
+
+        MEMORIA_ADD_TEST(testClear);
     }
 
     virtual ~PackedArrayMiscTest() throw() {}
@@ -70,7 +70,7 @@ public:
     {
         Base::out()<<size<<std::endl;
 
-        Tree* tree = Base::createEmptyTree();
+        Array* tree = Base::createEmptyArray();
         PARemover remover(tree);
 
         vector<Values> v = Base::createRandomValuesVector(size);
@@ -94,7 +94,7 @@ public:
     {
         Base::out()<<array_size/1024<<std::endl;
 
-        Tree* tree = Base::createEmptyTree();
+        Array* tree = Base::createEmptyArray();
         PARemover remover(tree);
 
         vector<Values> v = Base::fillRandom(tree, array_size);
@@ -125,7 +125,7 @@ public:
     {
         Base::out()<<size<<std::endl;
 
-        Tree* tree = Base::createEmptyTree(4*1024*1024);
+        Array* tree = Base::createEmptyArray(4*1024*1024);
         PARemover remover(tree);
 
         auto tree_values = Base::createRandomValuesVector(size);
@@ -159,10 +159,10 @@ public:
     {
         Base::out()<<size<<std::endl;
 
-        Tree* tree1 = Base::createEmptyTree(16*1024*1024);
+        Array* tree1 = Base::createEmptyArray(16*1024*1024);
         PARemover remover1(tree1);
 
-        Tree* tree2 = Base::createEmptyTree(16*1024*1024);
+        Array* tree2 = Base::createEmptyArray(16*1024*1024);
         PARemover remover2(tree2);
 
         auto tree_values1 = Base::createRandomValuesVector(size);
@@ -193,10 +193,10 @@ public:
     {
         Base::out()<<size<<std::endl;
 
-        Tree* tree1 = Base::createEmptyTree(16*1024*1024);
+        Array* tree1 = Base::createEmptyArray(16*1024*1024);
         PARemover remover1(tree1);
 
-        Tree* tree2 = Base::createEmptyTree(16*1024*1024);
+        Array* tree2 = Base::createEmptyArray(16*1024*1024);
         PARemover remover2(tree2);
 
         auto tree_values1 = Base::createRandomValuesVector(size);
@@ -225,7 +225,7 @@ public:
             this->out()<<size<<std::endl;
 
 
-            Tree* tree = Base::createEmptyTree(16*1024*1024);
+            Array* tree = Base::createEmptyArray(16*1024*1024);
             auto tree_values = Base::createRandomValuesVector(size);
 
             Base::fillVector(tree, tree_values);
@@ -259,7 +259,7 @@ public:
         {
             this->out()<<size<<std::endl;
 
-            Tree* tree = Base::createEmptyTree(16*1024*1024);
+            Array* tree = Base::createEmptyArray(16*1024*1024);
             auto tree_values = Base::createRandomValuesVector(size);
             Base::fillVector(tree, tree_values);
 
@@ -285,10 +285,10 @@ public:
     {
         Base::out()<<size<<std::endl;
 
-        Tree* tree1 = Base::createEmptyTree(16*1024*1024);
+        Array* tree1 = Base::createEmptyArray(16*1024*1024);
         PARemover remover1(tree1);
 
-        Tree* tree2 = Base::createEmptyTree(16*1024*1024);
+        Array* tree2 = Base::createEmptyArray(16*1024*1024);
         PARemover remover2(tree2);
 
         auto tree_values1 = Base::createRandomValuesVector(size);
@@ -317,7 +317,7 @@ public:
     {
         Base::out()<<size<<std::endl;
 
-        Tree* tree = Base::createEmptyTree(16*1024*1024);
+        Array* tree = Base::createEmptyArray(16*1024*1024);
         PARemover remover(tree);
 
         auto tree_values = Base::createRandomValuesVector(size);

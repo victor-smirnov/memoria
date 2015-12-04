@@ -8,6 +8,7 @@
 #ifndef MEMORIA_CORE_PACKED_VLE_QUICK_TREE_HPP_
 #define MEMORIA_CORE_PACKED_VLE_QUICK_TREE_HPP_
 
+#include <memoria/core/packed/tree/vle/packed_vle_input_buffer.hpp>
 #include <memoria/core/packed/tree/vle/packed_vle_quick_tree_base.hpp>
 #include <memoria/core/packed/tree/vle/packed_vle_tools.hpp>
 
@@ -78,7 +79,7 @@ public:
 
     using Values = core::StaticVector<IndexValue, Blocks>;
 
-    using InputBuffer 	= MyType;
+    using InputBuffer 	= PkdVLEInputBuffer<Types>;
     using InputType 	= Values;
 
     using SizesT = core::StaticVector<Int, Blocks>;
@@ -646,7 +647,7 @@ public:
     		for (Int c = 0; c < processed; c++)
     		{
     			auto value = adaptor(block, c);
-    			Int len = codec.encode(values, value, insertion_pos);
+    			auto len = codec.encode(values, value, insertion_pos);
     			insertion_pos += len;
     		}
     	}
@@ -656,32 +657,50 @@ public:
     	reindex();
     }
 
+    SizesT positions(Int idx) const
+    {
+    	MEMORIA_ASSERT(idx, >=, 0);
+    	MEMORIA_ASSERT(idx, <=, this->size());
 
-    template <typename Adaptor>
-    SizesT populate(const SizesT& at, const SizesT& total_lengths, Int size, Adaptor&& adaptor)
+    	SizesT pos;
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		Int data_size		= this->data_size(block);
+    		auto values			= this->values(block);
+    		TreeLayout layout 	= compute_tree_layout(data_size);
+
+    		pos[block] = this->locate(layout, values, block, idx).idx;
+    	}
+    	return pos;
+    }
+
+
+    SizesT insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, Int size)
     {
     	Codec codec;
 
+    	SizesT total_lengths = ends - starts;
+
     	for (Int block = 0; block < Blocks; block++)
     	{
+    		auto values	= this->values(block);
+
     		size_t insertion_pos = at[block];
 
-    		auto values = this->values(block);
+    		this->insert_space(block, insertion_pos, total_lengths[block]);
 
-    		for (Int c = 0; c < size; c++)
-    		{
-    			auto value = adaptor(block, c);
-    			Int len = codec.encode(values, value, insertion_pos);
-    			insertion_pos += len;
-    		}
+    		values = this->values(block);
 
-    		this->data_size(block) += total_lengths[block];
+    		codec.copy(buffer->values(block), starts[block], values[block], total_lengths[block]);
     	}
 
     	this->size() += size;
 
+    	reindex();
+
     	return at + total_lengths;
     }
+
 
     template <typename Adaptor>
     SizesT populate(const SizesT& at, Int size, Adaptor&& adaptor)
@@ -707,7 +726,7 @@ public:
     		for (Int c = 0; c < size; c++)
     		{
     			auto value = adaptor(block, c);
-    			Int len = codec.encode(values, value, insertion_pos);
+    			auto len = codec.encode(values, value, insertion_pos);
     			insertion_pos += len;
     		}
 

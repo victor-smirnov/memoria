@@ -314,6 +314,18 @@ public:
     }
 
     template <typename T>
+    T* allocateSpace(Int idx, Int block_size)
+    {
+        static_assert(std::is_base_of<PackedAllocatable, T>::value,
+                "Only derived classes of PackedAllocatable "
+                "should be instantiated this way");
+
+        AllocationBlock block = allocate(idx, block_size, PackedBlockType::ALLOCATABLE);
+
+        return block.cast<T>();
+    }
+
+    template <typename T>
     T* allocateEmpty(Int idx)
     {
         static_assert(std::is_base_of<PackedAllocatable, T>::value,
@@ -504,7 +516,7 @@ public:
             Allocator* alloc = allocator();
             block_size_ = alloc->resizeBlock(this, new_size);
         }
-        else if (new_size < block_size_)
+        else if (new_size <= block_size_)
         {
             if (new_size >= allocated() + my_size() + layout_size_ + bitmap_size_)
             {
