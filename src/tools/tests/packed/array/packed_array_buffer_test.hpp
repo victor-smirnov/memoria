@@ -51,15 +51,16 @@ public:
 
         MEMORIA_ADD_TEST_PARAM(iterations_);
 
-        MEMORIA_ADD_TEST(testCreate);
-        MEMORIA_ADD_TEST(testValue);
+//        MEMORIA_ADD_TEST(testCreate);
+
 
         if (PkdStructSizeType<Array>::Value == PackedSizeType::VARIABLE)
         {
-        	MEMORIA_ADD_TEST(testPosition);
+        	MEMORIA_ADD_TEST(testValue);
+//        	MEMORIA_ADD_TEST(testPosition);
         }
 
-        MEMORIA_ADD_TEST(testInsertion);
+//        MEMORIA_ADD_TEST(testInsertion);
     }
 
     virtual ~PackedArrayInputBufferTest() throw() {}
@@ -141,7 +142,7 @@ public:
     {
     	testValue(0);
 
-    	for (Int c = 1; c <= this->size_; c *= 2)
+    	for (Int c = 0; c <= this->size_; c *= 2)
     	{
     		testValue(c);
     	}
@@ -160,7 +161,7 @@ public:
         {
         	for (size_t c = 0; c < values.size(); c++)
         	{
-        		AssertEQ(MA_SRC, values[c][b], buffer->value(b, c));
+        		AssertEQ(MA_SRC, values[c][b], buffer->value(b, c), SBuf()<<b<<", "<<c);
         	}
         }
     }

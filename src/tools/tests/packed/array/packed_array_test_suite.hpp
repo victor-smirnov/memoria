@@ -27,10 +27,10 @@ public:
 //        registerTask(new PackedArrayMiscTest<PkdVDArrayT<BigInt, 1, UByteExintCodec>>("Misc.VLD.Exint"));
 //        registerTask(new PackedArrayMiscTest<PkdVDArrayT<BigInt, 1, UBigIntEliasCodec>>("Misc.VLD.Elias"));
 
-//        registerTask(new PackedArrayInputBufferTest<PkdVDArrayT<BigInt, 4, UByteI7Codec>>("Buffer.4.VLD.I7"));
+        registerTask(new PackedArrayInputBufferTest<PkdVDArrayT<BigInt, 4, UByteI7Codec>>("Buffer.4.VLD.I7"));
 //        registerTask(new PackedArrayInputBufferTest<PkdVDArrayT<BigInt, 4, UBigIntEliasCodec>>("Buffer.4.VLD.Elias"));
-
-        registerTask(new PackedArrayInputBufferTest<PkdFSQArrayT<BigInt, 4>>("Buffer.4.FSQ"));
+//
+//        registerTask(new PackedArrayInputBufferTest<PkdFSQArrayT<BigInt, 4>>("Buffer.4.FSQ"));
     }
 
 };

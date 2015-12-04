@@ -175,7 +175,7 @@ public:
 
     	auto pos = locate(layout, values, 0, idx * Blocks, data_size).idx;
 
-    	if (idx < meta->size() / Blocks)
+    	if (idx < meta->size())
     	{
     		Codec codec;
 
