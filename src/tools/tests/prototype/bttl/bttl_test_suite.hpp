@@ -26,8 +26,8 @@ public:
 
     BTTLTestSuite(): TestSuite("BT.TL")
     {
-    	registerTask(new BTTLCreateTest<BTTLTestCtr<3, PackedSizeType::VARIABLE>>("Create.Vr.3"));
-    	registerTask(new BTTLCreateTest<BTTLTestCtr<3, PackedSizeType::FIXED>>("Create.Fx.3"));
+//    	registerTask(new BTTLCreateTest<BTTLTestCtr<3, PackedSizeType::VARIABLE>>("Create.Vr.3"));
+//    	registerTask(new BTTLCreateTest<BTTLTestCtr<3, PackedSizeType::FIXED>>("Create.Fx.3"));
 //
 //    	registerTask(new BTTLCreateTest<BTTLTestCtr<4, PackedSizeType::VARIABLE>>("Create.Vr.4"));
 //    	registerTask(new BTTLCreateTest<BTTLTestCtr<4, PackedSizeType::FIXED>>("Create.Fx.4"));

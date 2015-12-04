@@ -5,8 +5,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef MEMORIA_CORE_PACKED_VLE_INPUT_BUFFER_HPP_
-#define MEMORIA_CORE_PACKED_VLE_INPUT_BUFFER_HPP_
+#ifndef MEMORIA_CORE_PACKED_VLE_INPUT_BUFFER_COLUMN_ORDER_HPP_
+#define MEMORIA_CORE_PACKED_VLE_INPUT_BUFFER_COLUMN_ORDER_HPP_
 
 #include <memoria/core/packed/tree/vle/packed_vle_quick_tree_base.hpp>
 #include <memoria/core/packed/tree/vle/packed_vle_tools.hpp>
@@ -46,7 +46,7 @@ public:
 
 
 template <typename Types>
-class PkdVLEInputBuffer: public PkdVLEArrayBase<
+class PkdVLEColumnOrderInputBuffer: public PkdVLEArrayBase<
 	Types::Blocks,
 	typename Types::Value,
 	Types::template Codec,
@@ -64,7 +64,7 @@ class PkdVLEInputBuffer: public PkdVLEArrayBase<
 			PkdVLEInputBufferMetadata<Types::Blocks>
 	>;
 
-	using MyType = PkdVLEInputBuffer<Types>;
+	using MyType = PkdVLEColumnOrderInputBuffer<Types>;
 
 public:
     using Base::BlocksStart;
@@ -324,16 +324,16 @@ public:
     	SizesT pos;
     	for (Int block = 0; block < Blocks; block++)
     	{
-    		Int data_size		= metadata->max_data_size(block);
+    		Int data_size		= metadata->data_size(block);
     		auto values			= this->values(block);
-    		TreeLayout layout 	= compute_tree_layout(data_size);
+    		TreeLayout layout 	= compute_tree_layout(metadata->max_data_size(block));
 
     		pos[block] = this->locate(layout, values, block, idx, data_size).idx;
     	}
     	return pos;
     }
 
-    SizesT capacity() const
+    SizesT capacities() const
     {
     	return this->metadata()->capacity();
     }

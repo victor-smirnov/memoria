@@ -4,13 +4,13 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_PACKED_PACKED_TREE_BUFFER_HPP_
-#define MEMORIA_TESTS_PACKED_PACKED_TREE_BUFFER_HPP_
+#ifndef MEMORIA_TESTS_PACKED_PACKED_ARRAY_BUFFER_HPP_
+#define MEMORIA_TESTS_PACKED_PACKED_ARRAY_BUFFER_HPP_
 
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
 
-#include "packed_tree_test_base.hpp"
+#include "packed_array_test_base.hpp"
 
 namespace memoria {
 
@@ -19,33 +19,33 @@ using namespace std;
 template <
 	typename PackedTreeT
 >
-class PackedTreeInputBufferTest: public PackedTreeTestBase<PackedTreeT> {
+class PackedArrayInputBufferTest: public PackedArrayTestBase<PackedTreeT> {
 
-    using MyType = PackedTreeInputBufferTest<PackedTreeT>;
-    using Base 	 = PackedTreeTestBase<PackedTreeT>;
+    using MyType = PackedArrayInputBufferTest<PackedTreeT>;
+    using Base 	 = PackedArrayTestBase<PackedTreeT>;
 
-    typedef typename Base::Tree                                                 Tree;
+    typedef typename Base::Array                                                Array;
     typedef typename Base::Values                                               Values;
 
-    using InputBuffer = typename Tree::InputBuffer;
-    using SizesT 	  = typename Tree::InputBuffer::SizesT;
+    using InputBuffer = typename Array::InputBuffer;
+    using SizesT 	  = typename Array::InputBuffer::SizesT;
 
-    static constexpr Int Blocks = Base::Blocks;
+    static constexpr Int Blocks = Array::Blocks;
     static constexpr Int SafetyMargin = InputBuffer::SafetyMargin;
 
     Int iterations_ = 10;
 
 public:
 
-    using Base::createEmptyTree;
+    using Base::createEmptyArray;
     using Base::getRandom;
     using Base::fillRandom;
     using Base::assertEqual;
     using Base::out;
-    using Base::MEMBUF_SIZE;
 
 
-    PackedTreeInputBufferTest(StringRef name): Base(name)
+
+    PackedArrayInputBufferTest(StringRef name): Base(name)
     {
         this->size_ = 8192*8;
 
@@ -53,11 +53,16 @@ public:
 
         MEMORIA_ADD_TEST(testCreate);
         MEMORIA_ADD_TEST(testValue);
-        MEMORIA_ADD_TEST(testPosition);
+
+        if (PkdStructSizeType<Array>::Value == PackedSizeType::VARIABLE)
+        {
+        	MEMORIA_ADD_TEST(testPosition);
+        }
+
         MEMORIA_ADD_TEST(testInsertion);
     }
 
-    virtual ~PackedTreeInputBufferTest() throw() {}
+    virtual ~PackedArrayInputBufferTest() throw() {}
 
     InputBuffer* createInputBuffer(Int capacity, Int free_space = 0)
     {
@@ -129,14 +134,7 @@ public:
 
         out()<<"Block size="<<buffer->block_size()<<endl;
 
-        try {
-
         fillBuffer(buffer);
-        }
-        catch (...) {
-        	buffer->dump(out());
-        	throw;
-        }
     }
 
     void testValue()
@@ -192,14 +190,14 @@ public:
 
         	auto pos2 = buffer->positions(c);
 
-        	AssertEQ(MA_SRC, pos1, pos2);
+        	AssertEQ(MA_SRC, pos1[0], pos2[0]);
         }
     }
 
 
     void testInsertion()
     {
-    	for (Int c = 256; c <= this->size_; c *= 2)
+    	for (Int c = 32; c <= this->size_; c *= 2)
     	{
     		testInsertion(c);
     	}
@@ -209,8 +207,8 @@ public:
     {
     	out()<<"Buffer capacity: "<<size<<std::endl;
 
-    	Tree* tree = createEmptyTree();
-    	auto tree_data = fillRandom(tree, size);
+    	auto array = createEmptyArray();
+    	auto tree_data = fillRandom(array, size);
 
     	InputBuffer* buffer = createInputBuffer(size);
     	PARemover remover(buffer);
@@ -219,19 +217,19 @@ public:
 
     	for (Int c = 0; c < 5; c++)
     	{
-    		Int pos = getRandom(tree->size());
-
-    		SizesT at = tree->positions(pos);
+    		Int pos = getRandom(array->size());
 
     		Int buffer_size = buffer->size();
-    		auto buffer_starts = buffer->positions(0);
-    		auto buffer_ends = buffer->positions(buffer_size);
 
-    		tree->insert_buffer(at, buffer, buffer_starts, buffer_ends, buffer_size);
+    		auto array_size = array->size();
+
+    		array->insert_buffer(pos, buffer, 0, buffer_size);
+
+    		AssertEQ(MA_SRC, array->size(), buffer->size() + array_size);
 
     		tree_data.insert(tree_data.begin() + pos, values.begin(), values.end());
 
-    		assertEqual(tree, tree_data);
+    		assertEqual(array, tree_data);
     	}
     }
 };

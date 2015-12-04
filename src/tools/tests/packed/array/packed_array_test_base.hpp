@@ -10,6 +10,7 @@
 #include "../../tests_inc.hpp"
 
 #include <memoria/core/packed/array/packed_vle_dense_array.hpp>
+#include <memoria/core/packed/array/packed_fse_array.hpp>
 
 namespace memoria {
 
@@ -22,10 +23,10 @@ protected:
 
     typedef TreeType                                                     		Array;
 
-    typedef typename Array::Value                                                Value;
-    typedef typename Array::Values                                               Values;
+    typedef typename Array::Value                                               Value;
+    typedef typename Array::Values                                              Values;
 
-    static const Int Blocks                                                     = 1;
+    static const Int Blocks                                                     = Array::Blocks;
 
 public:
 
@@ -169,7 +170,7 @@ public:
                 v[b] = tree->value(b, c);
             }
 
-            AssertEQ(MA_SRC, vals[c], v);
+            AssertEQ(MA_SRC, vals[c], v, SBuf()<<c);
         }
     }
 

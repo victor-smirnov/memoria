@@ -138,8 +138,10 @@ public:
 		template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename PTypes>
 		void stream(PackedFSEArray<PTypes>* stream, Int at, Int start, Int size, const Buffer& buffer)
 		{
-			stream->_insert(at, size, [&](Int block, Int idx){
-				return std::get<Idx>(buffer[idx + start]);
+			using SizesT = typename PackedFSEArray<PTypes>::SizesT;
+
+			stream->_insert(at, size, [&](){
+				return SizesT(std::get<Idx>(buffer[start++]));
 			});
 		}
 

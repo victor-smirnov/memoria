@@ -8,7 +8,7 @@
 #ifndef MEMORIA_CORE_PACKED_VLE_DENSE_TREE_HPP_
 #define MEMORIA_CORE_PACKED_VLE_DENSE_TREE_HPP_
 
-#include <memoria/core/packed/tree/vle/packed_vle_input_buffer.hpp>
+#include <memoria/core/packed/buffer/packed_vle_input_buffer_co.hpp>
 #include <memoria/core/packed/tree/vle/packed_vle_quick_tree_base.hpp>
 #include <memoria/core/packed/tree/vle/packed_vle_tools.hpp>
 
@@ -78,7 +78,7 @@ public:
 
     using Values = core::StaticVector<IndexValue, Blocks>;
 
-    using InputBuffer 	= PkdVLEInputBuffer<Types>;
+    using InputBuffer 	= PkdVLEColumnOrderInputBuffer<Types>;
     using InputType 	= Values;
 
     using SizesT = core::StaticVector<Int, Blocks>;

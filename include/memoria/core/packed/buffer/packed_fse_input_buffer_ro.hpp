@@ -1,16 +1,16 @@
 
-// Copyright Victor Smirnov 2013+.
+// Copyright Victor Smirnov 2015+.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef MEMORIA_CORE_PACKED_FSE_ARRAYHPP_
-#define MEMORIA_CORE_PACKED_FSE_ARRAYHPP_
+#ifndef MEMORIA_CORE_PACKED_FSE_INPUT_BUFFER_ROW_ORDER_HPP_
+#define MEMORIA_CORE_PACKED_FSE_INPUT_BUFFER_ROW_ORDER_HPP_
 
 #include <memoria/core/packed/tools/packed_allocator_types.hpp>
-#include <memoria/core/packed/buffer/packed_fse_input_buffer_ro.hpp>
 #include <memoria/core/tools/accessors.hpp>
+#include <memoria/core/tools/assert.hpp>
 
 namespace memoria {
 
@@ -18,20 +18,18 @@ namespace memoria {
 
 template <
     typename V,
-    Int Blocks_ = 1
+    Int Blocks_ = 1,
+    typename Allocator_ = PackedAllocator
 >
-struct PackedFSEArrayTypes {
+struct PackedFSERowOrderInputBufferTypes {
     typedef V               	Value;
     static const Int Blocks		= Blocks_;
 };
 
-template <typename Types> class PackedFSEArray;
 
-template <typename V, Int Blocks = 1>
-using PkdFSQArrayT = PackedFSEArray<PackedFSEArrayTypes<V, Blocks>>;
 
 template <typename Types_>
-class PackedFSEArray: public PackedAllocatable {
+class PackedFSERowOrderInputBuffer: public PackedAllocatable {
 
     typedef PackedAllocatable                                                   Base;
 
@@ -39,18 +37,18 @@ public:
     static const UInt VERSION                                                   = 1;
 
     typedef Types_                                                              Types;
-    typedef PackedFSEArray<Types>                                               MyType;
+    typedef PackedFSERowOrderInputBuffer<Types>                                 MyType;
 
-    typedef PackedAllocator                                           			Allocator;
+    typedef PackedAllocator                                            			Allocator;
     typedef typename Types::Value                                               Value;
 
-    static constexpr Int Indexes 													= 0;
-    static constexpr Int Blocks 													= Types::Blocks;
+    static constexpr Int Indexes 	= 0;
+    static constexpr Int Blocks 	= Types::Blocks;
 
-    static constexpr Int SafetyMargin 												= 0;
+    static constexpr Int SafetyMargin = 0;
 
     using InputType = Value;
-    using InputBuffer = PackedFSERowOrderInputBuffer<PackedFSERowOrderInputBufferTypes<Value, Blocks>>;
+    using InputBuffer = MyType;
 
     using Values = core::StaticVector<Value, Blocks>;
     using SizesT = core::StaticVector<Int, Blocks>;
@@ -63,7 +61,7 @@ private:
     Value buffer_[];
 
 public:
-    PackedFSEArray() {}
+    PackedFSERowOrderInputBuffer() {}
 
     Int& size() {return size_;}
     const Int& size() const {return size_;}
@@ -141,11 +139,6 @@ public:
         return sizeof(MyType);
     }
 
-    void initEmpty()
-    {
-    	size_ = 0;
-        max_size_   = 0;
-    }
 
     void init()
     {
@@ -153,11 +146,6 @@ public:
         max_size_   = 0;
     }
 
-    Int object_size() const
-    {
-        Int object_size = sizeof(MyType) + sizeof(Value) * size_ * Blocks;
-        return PackedAllocator::roundUpBytesToAlignmentBlocks(object_size);
-    }
 
     Value& value(Int block, Int idx) {
         return buffer_[idx * Blocks + block];
@@ -168,17 +156,7 @@ public:
     }
 
 
-    Value get_values(Int idx) const {
-    	return value(0, idx);
-    }
 
-    Value get_values(Int idx, Int index) const {
-    	return value(index, idx);
-    }
-
-    Value* data() {
-        return buffer_;
-    }
 
     const Value* data() const {
         return buffer_;
@@ -192,38 +170,6 @@ public:
         return buffer_;
     }
 
-//    Value* values(Int block) {
-//        return buffer_ + block * size_;
-//    }
-//
-//    const Value* values(Int block) const {
-//        return buffer_ + block * size_;
-//    }
-
-
-    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
-    void sum(AccumItem<T, Size>& accum) const
-    {
-    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
-    }
-
-    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
-    void sum(Int start, Int end, AccumItem<T, Size>& accum) const
-    {
-    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
-    }
-
-    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
-    void sub(Int start, AccumItem<T, Size>& accum) const
-    {
-    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
-    }
-
-    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
-    void sum(Int idx, AccumItem<T, Size>& accum) const
-    {
-    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
-    }
 
 
     // =================================== Update ========================================== //
@@ -312,9 +258,7 @@ public:
         clear(idx, idx + room_length);
     }
 
-    void clearValues(Int idx) {
-        buffer_[idx] = 0;
-    }
+
 
     void clear(Int start, Int end)
     {
@@ -334,62 +278,6 @@ public:
     	size_ = 0;
     }
 
-
-    void splitTo(MyType* other, Int idx)
-    {
-        MEMORIA_ASSERT(other->size(), ==, 0);
-
-        Int split_size = this->size() - idx;
-        other->insertSpace(0, split_size);
-
-        copyTo(other, idx, split_size, 0);
-
-        removeSpace(idx, this->size());
-    }
-
-    void mergeWith(MyType* other)
-    {
-        Int my_size     = this->size();
-        Int other_size  = other->size();
-
-        other->insertSpace(other_size, my_size);
-
-        copyTo(other, 0, my_size, other_size);
-
-        removeSpace(0, my_size);
-
-        reindex();
-    }
-
-
-    void copyTo(MyType* other, Int copy_from, Int count, Int copy_to) const
-    {
-        MEMORIA_ASSERT_TRUE(copy_from >= 0);
-        MEMORIA_ASSERT_TRUE(count >= 0);
-
-        CopyBuffer(
-        		this->values() + copy_from * Blocks,
-				other->values() + copy_to * Blocks,
-				count * Blocks
-        );
-
-    }
-
-    template <typename TreeType>
-    void transferDataTo(TreeType* other) const
-    {
-        const auto* my_values   = values();
-        auto* other_values      = other->values();
-
-        Int size = this->size() * Blocks;
-
-        for (Int c = 0; c < size; c++)
-        {
-            other_values[c] = my_values[c];
-        }
-
-        other->size() = size;
-    }
 
     void resize(Int delta)
     {
@@ -422,54 +310,41 @@ public:
     	}
     }
 
-    template <typename Adaptor>
-    void insert(Int pos, Int size, Adaptor&& adaptor)
-    {
-    	insertSpace(pos, size);
-
-    	auto values = this->values();
-
-    	for (Int c = 0; c < size; c++)
-    	{
-    		for (Int block = 0; block < Blocks; block++)
-    		{
-    			Value val = adaptor(block, c);
-    			values[c * Blocks + block] = val;
-    		}
-    	}
-    }
-
-
-    SizesT insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, Int size)
-    {
-    	insertSpace(at[0], size);
-
-    	auto buffer_values = buffer->values();
-
-    	Int start = starts[0];
-    	Int end   = ends[0];
-
-    	CopyBuffer(buffer_values + start * Blocks, this->values() + at[0] * Blocks, (end - start) * Blocks);
-
-    	return at + SizesT(size);
-    }
-
-    Int insert_buffer(Int at, const InputBuffer* buffer, Int start, Int size)
-    {
-    	insertSpace(at, size);
-
-    	auto buffer_values = buffer->values();
-
-    	Int end = start + size;
-
-    	CopyBuffer(buffer_values + start * Blocks, this->values() + at * Blocks, (end - start) * Blocks);
-
-    	return at + size;
-    }
 
     SizesT positions(Int idx) const {
     	return SizesT(idx);
     }
+
+    SizesT capacities() const {
+    	return SizesT(capacity());
+    }
+
+    template <typename Adaptor>
+    void append(SizesT& at, Int size, Adaptor&& adaptor)
+    {
+    	auto values = this->values();
+
+    	Int start = at[0];
+
+    	for (Int c = 0; c < size; c++)
+    	{
+    		auto value = adaptor(c);
+
+    		for (Int block = 0; block < Blocks; block++)
+    		{
+    			values[(start + c) * Blocks + block] = value[block];
+    		}
+    	}
+
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		at[block] += size;
+    	}
+
+    	this->size() += size;
+    }
+
+
 
 
     template <typename Adaptor>
@@ -490,46 +365,6 @@ public:
     }
 
 
-    template <Int Offset, typename Value, typename T, Int Size, template <typename, Int> class AccumItem>
-    void _update(Int pos, Value val, AccumItem<T, Size>& accum)
-    {
-        value(0, pos) = val;
-    }
-
-    template <Int Offset, typename Value, typename T, Int Size, template <typename, Int> class AccumItem>
-    void _insert(Int pos, Value val, AccumItem<T, Size>& accum)
-    {
-    	insert(0, pos, val);
-    }
-
-    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
-    void _remove(Int idx, AccumItem<T, Size>& accum)
-    {
-    	remove(idx, idx + 1);
-    }
-
-
-    template <typename Fn>
-    void read(Int block, Int start, Int end, Fn&& fn) const
-    {
-        MEMORIA_ASSERT(start, <, size_);
-        MEMORIA_ASSERT(start, >=, 0);
-        MEMORIA_ASSERT(end, >=, 0);
-        MEMORIA_ASSERT(end, <=, size_);
-
-        auto values = this->values();
-
-        for (Int c = start; c < end; c++)
-        {
-        	fn(values[c * Blocks + block]);
-        }
-    }
-
-    template <typename Fn>
-    void read(Int start, Int end, Fn&& fn) const
-    {
-        scan(start, end, std::forward<Fn>(fn));
-    }
 
 
 
@@ -588,56 +423,9 @@ public:
         	}
         }
     }
-
-
-    void generateDataEvents(IPageDataEventHandler* handler) const
-    {
-    	handler->startStruct();
-        handler->startGroup("ARRAY");
-
-        handler->value("ALLOCATOR",     &Base::allocator_offset());
-        handler->value("SIZE",          &size_);
-        handler->value("MAX_SIZE",      &max_size_);
-
-        handler->startGroup("DATA", size_);
-
-        vapi::ValueHelper<Value>::setup(handler, "DATA_ITEM", buffer_, size_ * Blocks, IPageDataEventHandler::BYTE_ARRAY);
-
-        handler->endGroup();
-
-        handler->endGroup();
-    	handler->endStruct();
-    }
-
-    void serialize(SerializationData& buf) const
-    {
-        FieldFactory<Int>::serialize(buf, Base::allocator_offset_);
-        FieldFactory<Int>::serialize(buf, size_);
-        FieldFactory<Int>::serialize(buf, max_size_);
-
-        FieldFactory<Value>::serialize(buf, buffer_, size_ * Blocks);
-    }
-
-    void deserialize(DeserializationData& buf)
-    {
-        FieldFactory<Int>::deserialize(buf, Base::allocator_offset_);
-        FieldFactory<Int>::deserialize(buf, size_);
-        FieldFactory<Int>::deserialize(buf, max_size_);
-
-        FieldFactory<Value>::deserialize(buf, buffer_, size_ * Blocks);
-    }
 };
 
 
-template <typename Types>
-struct PkdStructSizeType<PackedFSEArray<Types>> {
-	static const PackedSizeType Value = PackedSizeType::FIXED;
-};
-
-template <typename T>
-struct StructSizeProvider<PackedFSEArray<T>> {
-    static const Int Value = 0;
-};
 
 
 

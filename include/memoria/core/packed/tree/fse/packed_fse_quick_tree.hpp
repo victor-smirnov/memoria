@@ -9,7 +9,7 @@
 #define MEMORIA_CORE_PACKED_FSE_QUICK_TREE_HPP_
 
 #include <memoria/core/packed/tree/fse/packed_fse_quick_tree_base.hpp>
-
+#include <memoria/core/packed/buffer/packed_fse_input_buffer_ro.hpp>
 
 namespace memoria {
 
@@ -58,7 +58,7 @@ public:
 
     using Metadata = typename Base::Metadata;
 
-    using InputBuffer 	= MyType;
+    using InputBuffer 	= PackedFSERowOrderInputBuffer<PackedFSERowOrderInputBufferTypes<Value, Blocks>>;
     using InputType 	= Values;
 
     using SizesT = core::StaticVector<Int, Blocks>;
@@ -566,6 +566,21 @@ public:
     			this->value(block, c + pos) = item;
     		}
     	}
+    }
+
+    SizesT positions(Int idx) const {
+    	return SizesT(idx);
+    }
+
+    SizesT insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, Int inserted)
+    {
+    	auto buffer_values = buffer->values() + starts[0] * Blocks;
+
+    	_insert(at[0], inserted, [=](Int block, Int idx) {
+    		return buffer_values[idx * Blocks + block];
+    	});
+
+		return at + SizesT(inserted);
     }
 
     template <typename T>

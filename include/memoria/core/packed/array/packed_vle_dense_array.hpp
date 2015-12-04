@@ -10,6 +10,7 @@
 
 #include <memoria/core/packed/array/packed_vle_array_base.hpp>
 #include <memoria/core/packed/tree/vle/packed_vle_tools.hpp>
+#include <memoria/core/packed/buffer/packed_vle_input_buffer_ro.hpp>
 
 namespace memoria {
 
@@ -60,6 +61,7 @@ public:
     using Base::compute_tree_layout;
 
     using Base::metadata;
+    using Base::locate;
     using Base::offsets_segment_size;
 
     using Base::METADATA;
@@ -82,6 +84,8 @@ public:
     static constexpr Int TreeBlocks = 1;
     static constexpr Int Blocks = Types::Blocks;
 
+    static constexpr Int SafetyMargin = 128 / Codec::ElementSize;
+
     using FieldsList = MergeLists<
                 typename Base::FieldsList,
                 ConstValue<UInt, VERSION>,
@@ -93,7 +97,8 @@ public:
 
     using Values = core::StaticVector<Value, Blocks>;
 
-    using InputBuffer 	= MyType;
+
+    using InputBuffer 	= PkdVLERowOrderInputBuffer<Types>;
     using InputType 	= Values;
 
     using SizesT = core::StaticVector<Int, Blocks>;
@@ -224,6 +229,15 @@ public:
         return block_size(items_num);
     }
 
+    Int locate(Int block, Int idx) const
+    {
+    	auto values = this->values();
+    	auto data_size = this->data_size();
+
+    	TreeLayout layout = Base::compute_tree_layout(data_size);
+
+    	return locate(layout, values, block, idx * Blocks + block, data_size).idx;
+    }
 
 
     Value value(Int block, Int idx) const
@@ -593,6 +607,68 @@ public:
     	metadata->size() += (inserted * Blocks);
 
     	reindex();
+    }
+
+
+    SizesT positions(Int idx) const
+    {
+    	Int size = this->size();
+
+    	MEMORIA_ASSERT(idx, >=, 0);
+    	MEMORIA_ASSERT(idx, <=, size);
+
+    	Int data_size		= this->data_size();
+    	auto values			= this->values();
+    	TreeLayout layout 	= compute_tree_layout(data_size);
+
+    	SizesT pos;
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		pos[block] = this->locate(layout, values, 0, idx * Blocks + block).idx;
+    	}
+
+    	return pos;
+    }
+
+    SizesT capacities() const
+    {
+    	return SizesT(0);
+    }
+
+
+    Int insert_buffer(Int at, const InputBuffer* buffer, Int start, Int size)
+    {
+    	if (size > 0) {
+    		Codec codec;
+
+    		auto meta = this->metadata();
+
+    		size_t data_size = meta->data_size(0);
+
+    		Int buffer_start = buffer->locate(0, start);
+    		Int buffer_end = buffer->locate(Blocks - 1, start + size);
+
+    		Int total_length = buffer_end - buffer_start;
+
+    		resize_segments(data_size + total_length);
+
+    		auto values 		= this->values();
+    		auto buffer_values 	= buffer->values(0);
+
+    		size_t insertion_pos = locate(0, at);
+    		codec.move(values, insertion_pos, insertion_pos + total_length, data_size - insertion_pos);
+
+    		codec.copy(buffer_values, buffer_start, values, insertion_pos, total_length);
+
+    		meta->data_size(0) += total_length;
+
+    		meta->size() += (size * Blocks);
+
+    		reindex();
+    	}
+
+
+    	return at + size;
     }
 
 
