@@ -145,7 +145,7 @@ public:
 
     static Int block_size(Int capacity)
     {
-    	return Base::block_size(TreeBlocks, capacity * Blocks);
+    	return Base::block_size_equi(TreeBlocks, capacity * Blocks);
     }
 
     static Int block_size(const SizesT& capacity)
@@ -167,7 +167,7 @@ public:
 
     Int block_size(const MyType* other) const
     {
-        return block_size(this->data_size_v() + other->data_size_v());
+        return block_size(this->data_size() + other->data_size());
     }
 
     ValueData* values() {
@@ -191,17 +191,6 @@ public:
     	return this->metadata()->size() / Blocks;
     }
 
-    SizesT data_size_v() const
-    {
-    	SizesT sizes;
-
-    	for (Int block = 0; block < Blocks; block++)
-    	{
-    		sizes[block] = this->data_size(block);
-    	}
-
-    	return sizes;
-    }
 
     static Int elements_for(Int block_size)
     {
@@ -767,6 +756,48 @@ public:
 
     	return at;
     }
+
+
+    void insert_buffer(Int pos, const InputBuffer* buffer, Int start, Int inserted)
+    {
+    	Codec codec;
+
+    	size_t data_size = this->data_size();
+
+    	SizesT starts = buffer->positions(start);
+    	SizesT ends   = buffer->positions(start + inserted);
+    	SizesT at     = this->positions(pos);
+
+    	SizesT total_lengths = ends - starts;
+    	Int total_length = total_lengths.sum();
+
+    	resize_segments(data_size + total_length);
+
+    	auto values = this->values();
+
+    	Int shift = 0;
+
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		size_t insertion_pos = at[block] + shift;
+    		codec.move(values, insertion_pos, insertion_pos + total_lengths[block], data_size - insertion_pos);
+
+    		codec.copy(buffer->values(block), starts[block], values, insertion_pos, total_lengths[block]);
+
+    		shift += total_lengths[block];
+
+    		data_size += total_lengths[block];
+
+    		at[block] = insertion_pos + total_lengths[block];
+    	}
+
+    	this->data_size() += total_length;
+
+    	metadata()->size() += (inserted * Blocks);
+
+    	reindex();
+    }
+
 
 
 

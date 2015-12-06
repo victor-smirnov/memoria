@@ -28,15 +28,6 @@
 namespace memoria   {
 namespace bt        {
 
-//template <
-//    typename K,
-//    typename V
-//>
-//struct TreeLeafNodeTypes: Packed2TreeTypes<V, K> {
-//
-//};
-
-
 
 template <
     typename Types
@@ -164,22 +155,7 @@ public:
         return Base::allocator();
     }
 
-//    template <typename T>
-//    T* get_stream(Int idx)
-//    {
-//        return allocator()->template get<T>(idx + SubstreamsStart);
-//    }
-//
-//    template <typename T>
-//    const T* get_stream(Int idx) const
-//    {
-//        return allocator()->template get<T>(idx + SubstreamsStart);
-//    }
 
-//    bool is_stream_empty(Int idx) const
-//    {
-//        return allocator()->is_empty(idx + SubstreamsStart);
-//    }
 
     bool is_empty() const
     {
@@ -194,36 +170,38 @@ public:
     }
 
 
-private:
-    struct BlockSizeFn {
-        Int size_ = 0;
-
-        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename Node>
-        void stream(Node*, const Position& sizes)
-        {
-            if (sizes[StreamIdx] > 0)
-            {
-                size_ += Node::block_size(sizes[StreamIdx]);
-            }
-        }
-    };
-
-public:
-    static Int block_size(const Position& sizes)
-    {
-        BlockSizeFn fn;
-
-        MyType::processSubstreamGroupsStatic(fn, sizes);
-
-        Int client_area = fn.size_;
-
-        return PackedAllocator::block_size(client_area, Streams);
-    }
-
-
+//private:
+//    struct BlockSizeFn {
+//        Int size_ = 0;
+//
+//        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename Node>
+//        void stream(Node*, const Position& sizes)
+//        {
+//            if (sizes[StreamIdx] > 0)
+//            {
+//                size_ += Node::block_size(sizes[StreamIdx]);
+//            }
+//        }
+//    };
+//
+//public:
+//    static Int block_size(const Position& sizes)
+//    {
+//        BlockSizeFn fn;
+//
+//        MyType::processSubstreamGroupsStatic(fn, sizes);
+//
+//        Int client_area = fn.size_;
+//
+//        return PackedAllocator::block_size(client_area, Streams);
+//    }
+//
+//
     static Int client_area(Int block_size, bool root)
     {
         Int free_space = MyType::free_space(block_size, root);
+
+        //FIXME Check if Streams value below is correct.
         return PackedAllocator::client_area(free_space, Streams);
     }
 

@@ -18,8 +18,7 @@ namespace memoria {
 
 template <
     typename V,
-    Int Blocks_ = 1,
-    typename Allocator_ = PackedAllocator
+    Int Blocks_ = 1
 >
 struct PackedFSERowOrderInputBufferTypes {
     typedef V               	Value;
@@ -140,13 +139,6 @@ public:
     }
 
 
-    void init()
-    {
-        size_ = 0;
-        max_size_   = 0;
-    }
-
-
     Value& value(Int block, Int idx) {
         return buffer_[idx * Blocks + block];
     }
@@ -177,101 +169,11 @@ public:
     void reindex() {}
     void check() const {}
 
-    bool ensureCapacity(Int size)
-    {
-        Int capacity = this->capacity();
-        if (capacity < size)
-        {
-            enlarge(size - capacity);
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-
-    void enlarge(Int items_num)
-    {
-        Allocator* alloc = allocator();
-
-        Int requested_block_size    = (max_size_ + items_num) * sizeof(Value) * Blocks + empty_size();
-        Int new_size                = alloc->resizeBlock(this, requested_block_size);
-        max_size_                   = max_size_for(new_size);
-    }
-
-    void shrink(Int items_num)
-    {
-        MEMORIA_ASSERT(max_size_ - items_num, >=, size_);
-
-        enlarge(-items_num);
-    }
-
-    void remove(Int start, Int end)
-    {
-    	MEMORIA_ASSERT_TRUE(start >= 0);
-    	MEMORIA_ASSERT_TRUE(end >= 0);
-
-    	Int room_length = end - start;
-    	Int size = this->size();
-    	MEMORIA_ASSERT(room_length, <= , size - start);
-
-    	Value* values = this->values();
-
-    	CopyBuffer(
-    			values + end * Blocks,
-				values + start * Blocks,
-				(size_ - end) * Blocks
-    	);
-
-    	size_ -= room_length;
-
-    	shrink(room_length);
-    }
-
-    void removeSpace(Int room_start, Int room_end) {
-        remove(room_start, room_end);
-    }
-
-    void insertSpace(Int idx, Int room_length)
-    {
-        MEMORIA_ASSERT(idx, <=, this->size());
-        MEMORIA_ASSERT(idx, >=, 0);
-        MEMORIA_ASSERT(room_length, >=, 0);
-
-        Int capacity = this->capacity();
-
-        if (capacity < room_length)
-        {
-            enlarge(room_length - capacity);
-        }
-
-        auto values = this->values();
-
-        CopyBuffer(
-        		values + idx * Blocks,
-				values + (idx + room_length) * Blocks,
-				(size_ - idx) * Blocks
-        );
-
-        size_ += room_length;
-
-        clear(idx, idx + room_length);
-    }
 
 
 
-    void clear(Int start, Int end)
-    {
-    	auto values = this->values();
 
-    	for (Int c = start; c < end; c++)
-    	{
-    		for (Int block = 0; block < Blocks; block++)
-    		{
-    			values[c * Blocks + block] = 0;
-    		}
-    	}
-    }
+
 
     void reset()
     {
@@ -279,90 +181,36 @@ public:
     }
 
 
-    void resize(Int delta)
-    {
-        if (delta > 0)
-        {
-            insertSpace(size_, delta);
-        }
-        else {
-            removeSpace(size_, -delta);
-        }
-    }
-
-    // ===================================== IO ============================================ //
-
-    void insert(Int block, Int pos, Value val)
-    {
-        insertSpace(pos, 1);
-        value(block, pos) = val;
-    }
-
-    void insert(Int pos, Int start, Int size, const InputBuffer* buffer)
-    {
-    	insertSpace(pos, size);
-
-    	for (Int block = 0; block < Blocks; block++)
-    	{
-    		Value* vals 		= values(block);
-    		const Value* data 	= buffer->values(block);
-    		CopyBuffer(data + start, vals + pos, size);
-    	}
-    }
-
-
     SizesT positions(Int idx) const {
     	return SizesT(idx);
     }
 
-    SizesT capacities() const {
-    	return SizesT(capacity());
-    }
+
+
 
     template <typename Adaptor>
-    void append(SizesT& at, Int size, Adaptor&& adaptor)
+    Int append(Int size, Adaptor&& adaptor)
     {
     	auto values = this->values();
 
-    	Int start = at[0];
+    	Int start = size_;
+    	Int limit = (start + size) <= max_size_ ? size : max_size_ - start;
 
-    	for (Int c = 0; c < size; c++)
+    	for (Int c = 0; c < limit; c++)
     	{
-    		auto value = adaptor(c);
-
     		for (Int block = 0; block < Blocks; block++)
     		{
-    			values[(start + c) * Blocks + block] = value[block];
+    			auto value = adaptor(block, c);
+    			values[(start + c) * Blocks + block] = value;
     		}
     	}
 
-    	for (Int block = 0; block < Blocks; block++)
-    	{
-    		at[block] += size;
-    	}
+    	size_ += limit;
 
-    	this->size() += size;
+    	return limit;
     }
 
 
-
-
-    template <typename Adaptor>
-    void _insert(Int pos, Int size, Adaptor&& adaptor)
-    {
-    	insertSpace(pos, size);
-
-    	auto values = this->values();
-
-    	for (Int c = pos; c < pos + size; c++)
-    	{
-    		auto item = adaptor();
-
-    		for (Int b = 0; b < Blocks; b++) {
-    			values[c * Blocks + b] = item[b];
-    		}
-    	}
-    }
 
 
 
@@ -423,6 +271,37 @@ public:
         	}
         }
     }
+
+    void generateDataEvents(IPageDataEventHandler* handler) const
+    {
+    	handler->startStruct();
+    	handler->startGroup("FSE_ROW_ORDER_INPUT_BUFFER");
+
+    	handler->value("ALLOCATOR",     &Base::allocator_offset());
+    	handler->value("SIZE",          &size_);
+    	handler->value("MAX_SIZE",      &max_size_);
+
+    	handler->startGroup("DATA", size_);
+
+    	if (Blocks == 1)
+    	{
+    		vapi::ValueHelper<Value>::setup(handler, "DATA_ITEM", buffer_, size_ * Blocks, IPageDataEventHandler::BYTE_ARRAY);
+    	}
+    	else {
+    		auto values = this->values();
+
+    		for (Int c = 0; c < size_; c++)
+    		{
+    			handler->value("DATA_ITEM", values + c * Blocks, Blocks);
+    		}
+    	}
+
+    	handler->endGroup();
+
+    	handler->endGroup();
+    	handler->endStruct();
+    }
+
 };
 
 

@@ -437,6 +437,20 @@ public:
     }
 
 
+    bool ltAll( const MyType& other ) const
+    {
+        for (Int c = 0; c < Indexes; c++)
+        {
+            if (values_[c] >= other.values_[c])
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
     bool gteAll(const ElementType& other) const
     {
         for (Int c = 0; c < Indexes; c++)
@@ -732,6 +746,37 @@ public:
 
         return value;
     }
+
+    auto max() const
+    {
+    	ElementType value = values_[0];
+
+    	for (Int c = 1; c < Indexes; c++)
+    	{
+    		if (values_[c] > value)
+    		{
+    			value = values_[c];
+    		}
+    	}
+
+    	return value;
+    }
+
+    auto min() const
+    {
+    	ElementType value = values_[0];
+
+    	for (Int c = 1; c < Indexes; c++)
+    	{
+    		if (values_[c] < value)
+    		{
+    			value = values_[c];
+    		}
+    	}
+
+    	return value;
+    }
+
 private:
     static void check(Int idx)
     {

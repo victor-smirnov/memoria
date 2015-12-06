@@ -392,6 +392,9 @@ public:
         template <Int SubstreamIdx>
         using BranchPathT = typename memoria::list_tree::BuildTreePath<BranchStreamsStructList, SubstreamIdx>::Type;
 
+        template <Int StreamIdx>
+        using StreamInputBufferStructList = typename Select<StreamIdx, InputBufferStructList>::Result;
+
 
         static const LeafDataLengthType LeafDataLength = LeafSizeType == PackedSizeType::FIXED ?
         												LeafDataLengthType::FIXED :

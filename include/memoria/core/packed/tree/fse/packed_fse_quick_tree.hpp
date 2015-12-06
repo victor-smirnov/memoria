@@ -514,30 +514,6 @@ public:
     	}
     }
 
-//    Int insert(Int idx, std::function<bool (Values&)> provider, bool reindex = true)
-//    {
-//    	Values vals;
-//    	Int cnt = 0;
-//
-//    	while(provider(vals) && check_capacity(1))
-//    	{
-//    		insertSpace(idx, 1);
-//
-//    		for (Int block = 0; block < Blocks; block++)
-//    		{
-//    			auto values   = this->values(block);
-//    			values[idx] = vals[block];
-//    		}
-//
-//    		idx++;
-//    		cnt++;
-//    	}
-//
-//    	this->reindex();
-//
-//    	return cnt;
-//    }
-
     template <typename T>
     void insert(Int idx, const core::StaticVector<T, Blocks>& values)
     {
@@ -581,6 +557,15 @@ public:
     	});
 
 		return at + SizesT(inserted);
+    }
+
+    void insert_buffer(Int at, const InputBuffer* buffer, Int start, Int inserted)
+    {
+    	auto buffer_values = buffer->values() + start * Blocks;
+
+    	_insert(at, inserted, [=](Int block, Int idx) {
+    		return buffer_values[idx * Blocks + block];
+    	});
     }
 
     template <typename T>

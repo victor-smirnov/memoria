@@ -45,7 +45,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavName)
 
     	self.ctr().insert_entry(
     			self,
-    			InputTupleAdapter<0>::convert(core::StaticVector<Key, 1>({delta}), value)
+    			InputTupleAdapter<0>::convert(core::StaticVector<Key, 1>({delta}), core::StaticVector<Value, 1>{value})
     	);
 
     	self.skipFw(1);

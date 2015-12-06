@@ -31,6 +31,9 @@ public:
 	Int& size() {return size_;}
 	const Int& size() const {return size_;}
 
+	SizesT& data_size() {return data_size_;}
+	const SizesT& data_size() const {return data_size_;}
+
 	Int& data_size(Int block) {return data_size_[block];}
 	const Int& data_size(Int block) const {return data_size_[block];}
 
@@ -116,7 +119,7 @@ public:
 
     void init(const SizesT& sizes)
     {
-    	Base::init(empty_size(), Blocks * SegmentsPerBlock + BlocksStart);
+    	Base::init(block_size(sizes), Blocks * SegmentsPerBlock + BlocksStart);
 
     	Metadata* meta = this->template allocate<Metadata>(METADATA);
 
@@ -124,7 +127,7 @@ public:
 
     	for (Int block = 0; block < Blocks; block++)
     	{
-    		Int capacity        = sizes[block];
+    		Int capacity        = sizes[block] + SafetyMargin;
     		Int offsets_size 	= offsets_segment_size(capacity);
     		Int index_size		= this->index_size(capacity);
     		Int values_segment_length = this->value_segment_size(capacity);
@@ -138,26 +141,9 @@ public:
     }
 
 
-
-    void init()
-    {
-    	Base::init(empty_size(), Blocks * SegmentsPerBlock + BlocksStart);
-
-    	this->template allocate<Metadata>(METADATA);
-
-    	Int offsets_size = offsets_segment_size(0);
-
-    	for (Int block = 0; block < Blocks; block++)
-    	{
-    		this->template allocateArrayBySize<Int>(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart, 0);
-    		this->template allocateArrayBySize<Byte>(block * SegmentsPerBlock + OFFSETS + BlocksStart, offsets_size);
-    		this->template allocateArrayBySize<Byte>(block * SegmentsPerBlock + VALUES + BlocksStart, 0);
-    	}
-    }
-
     static Int block_size(Int capacity)
     {
-    	return Base::block_size_equi(Blocks, capacity);
+    	return Base::block_size_equi(Blocks, capacity + SafetyMargin);
     }
 
 
@@ -171,12 +157,14 @@ public:
 
     	for (Int block = 0; block < Blocks; block++)
     	{
-    		Int index_size      = MyType::index_size(capacity[block]);
+    		Int block_capacity 	= capacity[block] + SafetyMargin;
+
+    		Int index_size      = MyType::index_size(block_capacity);
     		Int sizes_length	= Base::roundUpBytesToAlignmentBlocks(index_size * sizeof(Int));
 
-    		Int values_length   = Base::roundUpBitsToAlignmentBlocks(capacity[block] * BITS_PER_DATA_VALUE);
+    		Int values_length   = Base::roundUpBitsToAlignmentBlocks(block_capacity * BITS_PER_DATA_VALUE);
 
-    		Int offsets_length 	= offsets_segment_size(capacity[block]);
+    		Int offsets_length 	= offsets_segment_size(block_capacity);
 
     		segments_length += values_length + offsets_length + sizes_length;
     	}
@@ -333,233 +321,47 @@ public:
     	return pos;
     }
 
-    SizesT capacities() const
-    {
-    	return this->metadata()->capacity();
-    }
-
-
-
-
-    // ========================================= Insert/Remove/Resize ============================================== //
-
-protected:
-    void resize(Int block, Int data_size, Int start, Int length)
-    {
-    	Int new_data_size = data_size + length;
-
-    	Int data_segment_size 	 = PackedAllocator::roundUpBitsToAlignmentBlocks(new_data_size * Codec::ElementSize);
-    	Int index_size 	 	   	 = Base::index_size(new_data_size);
-    	Int offsets_segment_size = Base::offsets_segment_size(new_data_size);
-
-    	this->resizeBlock(block * SegmentsPerBlock + VALUES + BlocksStart, data_segment_size);
-    	this->resizeBlock(block * SegmentsPerBlock + OFFSETS + BlocksStart, offsets_segment_size);
-    	this->resizeBlock(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart, index_size * sizeof(Int));
-    }
-
-
-    void insert_space(Int block, Int start, Int length)
-    {
-    	auto metadata = this->metadata();
-    	Int data_size = metadata->data_size(block);
-    	auto values   = this->values(block);
-
-    	Codec codec;
-    	codec.move(values, start, start + length, data_size - start);
-
-    	metadata->data_size(block) += length;
-
-    	MEMORIA_ASSERT(metadata->data_size(block), <=, metadata->max_data_size(block));
-    }
-
-
-    void remove_space(Int block, Int start, Int length)
-    {
-    	auto metadata = this->metadata();
-
-    	Int data_size = metadata->data_size(block);
-    	auto values   = this->values(block);
-
-    	Codec codec;
-    	Int end = start + length;
-    	codec.move(values, end, start, data_size - end);
-
-    	MEMORIA_ASSERT(data_size + (end - start), <=, metadata->max_data_size(block));
-
-    	metadata->data_size(block) -= (end - start);
-    }
-
-public:
-
-
-    void remove_space(Int start, Int end)
-    {
-    	remove(start, end);
-    }
-
-    void removeSpace(Int start, Int end) {
-    	remove(start, end);
-    }
-
-    void remove(Int start, Int end)
-    {
-    	auto metadata = this->metadata();
-
-    	for (Int block = 0; block < Blocks; block++)
-    	{
-    		Int data_size		= metadata->data_size(block);
-    		auto values			= this->values(block);
-    		TreeLayout layout 	= compute_tree_layout(metadata->max_data_size(block));
-
-    		Int start_pos = this->locate(layout, values, block, start, data_size).idx;
-    		Int end_pos   = this->locate(layout, values, block, end, data_size).idx;
-
-    		this->remove_space(block, start_pos, end_pos - start_pos);
-    	}
-
-    	this->size() -= end - start;
-
-    	reindex();
-    }
-
-
-
-
-    template <typename T>
-    void insert(Int idx, const core::StaticVector<T, Blocks>& values)
-    {
-    	this->_insert(idx, 1, [&](Int block, Int idx) {
-    		return values[block];
-    	});
-    }
-
-
 
 
     template <typename Adaptor>
-    void insert(Int pos, Int processed, Adaptor&& adaptor)
-    {
-    	Int size = this->size();
-
-    	MEMORIA_ASSERT(pos, >=, 0);
-    	MEMORIA_ASSERT(pos, <=, size);
-    	MEMORIA_ASSERT(processed, >=, 0);
-
-    	Codec codec;
-
-    	SizesT total_lengths;
-
-    	for (SizeT c = 0; c < processed; c++)
-    	{
-    		for (Int block = 0; block < Blocks; block++)
-    		{
-    			auto value = adaptor(block, c);
-    			auto len = codec.length(value);
-    			total_lengths[block] += len;
-    		}
-    	}
-
-    	auto meta = this->metadata();
-
-
-    	for (Int block = 0; block < Blocks; block++)
-    	{
-    		Int data_size		= meta->data_size(block);
-    		auto values			= this->values(block);
-    		TreeLayout layout 	= compute_tree_layout(meta->max_data_size(block));
-
-    		auto lr = this->locate(layout, values, block, pos, data_size);
-
-    		size_t insertion_pos = lr.idx;
-
-    		this->insert_space(block, insertion_pos, total_lengths[block]);
-
-    		values = this->values(block);
-
-    		for (Int c = 0; c < processed; c++)
-    		{
-    			auto value = adaptor(block, c);
-    			auto len = codec.encode(values, value, insertion_pos);
-    			insertion_pos += len;
-    		}
-    	}
-
-    	this->size() += processed;
-
-    	reindex();
-    }
-
-
-
-
-    template <typename Adaptor>
-    SizesT populate(const SizesT& at, Int size, Adaptor&& adaptor)
-    {
-    	Codec codec;
-
-    	SizesT total_lengths;
-
-    	for (Int c = 0; c < size; c++)
-    	{
-    		for (Int block = 0; block < Blocks; block++)
-    		{
-    			total_lengths[block] += codec.length(adaptor(block, c));
-    		}
-    	}
-
-    	for (Int block = 0; block < Blocks; block++)
-    	{
-    		size_t insertion_pos = at[block];
-
-    		auto values = this->values(block);
-
-    		for (Int c = 0; c < size; c++)
-    		{
-    			auto value = adaptor(block, c);
-    			auto len = codec.encode(values, value, insertion_pos);
-    			insertion_pos += len;
-    		}
-
-    		this->data_size(block) += total_lengths[block];
-    	}
-
-    	this->size() += size;
-
-    	return at + total_lengths;
-    }
-
-
-    template <typename Adaptor>
-    void append(SizesT& at, Int size, Adaptor&& adaptor)
+    Int append(Int size, Adaptor&& adaptor)
     {
     	Codec codec;
 
     	auto metadata = this->metadata();
-    	SizesT at0 = at;
 
+    	using DataSizesT = core::StaticVector<size_t, Blocks>;
+
+    	DataSizesT positions, limits;
     	ValueData* values[Blocks];
+
     	for (Int block = 0; block < Blocks; block++)
     	{
-    		values[block] = this->values(block);
+    		values[block] 	 = this->values(block);
+    		positions[block] = metadata->data_size(block);
+    		limits[block]	 = metadata->max_data_size(block) - SafetyMargin;
     	}
 
-    	for (Int c = 0; c < size; c++)
+    	Int c;
+    	for (c = 0; c < size && positions.ltAll(limits); c++)
     	{
-    		auto value = adaptor(c);
-
     		for (Int block = 0; block < Blocks; block++)
     		{
-    			at[block] += codec.encode(values[block], value[block], at[block]);
+    			auto value = adaptor(block, c);
+    			positions[block] += codec.encode(values[block], value, positions[block]);
     		}
     	}
 
     	for (Int block = 0; block < Blocks; block++)
     	{
-    		metadata->data_size(block) += at[block] - at0[block];
+    		metadata->data_size(block) = positions[block];
     	}
 
-    	this->size() += size;
+    	metadata->size() += c;
+
+    	return c;
     }
+
 
 
     void check_indexless(Int block, Int data_size) const
@@ -747,6 +549,76 @@ public:
     		}
     		out<<endl;
     	}
+    }
+
+    void generateDataEvents(IPageDataEventHandler* handler) const
+    {
+    	Base::generateDataEvents(handler);
+
+    	handler->startStruct();
+    	handler->startGroup("VLE_COLUN_ORDER_INPUT_BUFFER");
+
+    	auto meta = this->metadata();
+
+    	handler->value("SIZE",      &meta->size());
+    	handler->value("DATA_SIZE", this->data_sizes(), Blocks);
+
+    	handler->startGroup("INDEXES", Blocks);
+
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		Int index_size = this->index_size(this->data_size(block));
+
+    		handler->startGroup("BLOCK_INDEX", block);
+
+    		auto size_indexes  = this->size_index(block);
+
+    		for (Int c = 0; c < index_size; c++)
+    		{
+    			BigInt indexes[] = {
+    					size_indexes[c]
+    			};
+
+    			handler->value("INDEX", indexes, 1);
+    		}
+
+    		handler->endGroup();
+    	}
+
+    	handler->endGroup();
+
+
+    	handler->startGroup("DATA", meta->size());
+
+    	const ValueData* values[Blocks];
+    	for (Int b = 0; b < Blocks; b++) {
+    		values[b] = this->values(b);
+    	}
+
+    	size_t positions[Blocks];
+    	for (auto& p: positions) p = 0;
+
+    	Int size = this->size();
+
+    	Codec codec;
+
+    	for (Int idx = 0; idx < size; idx++)
+    	{
+    		Value values_data[Blocks];
+    		for (Int block = 0; block < Blocks; block++)
+    		{
+    			auto len = codec.decode(values[block], values_data[block], positions[block]);
+    			positions[block] += len;
+    		}
+
+    		handler->value("ARRAY_ITEM", values_data, Blocks);
+    	}
+
+    	handler->endGroup();
+
+    	handler->endGroup();
+
+    	handler->endStruct();
     }
 };
 

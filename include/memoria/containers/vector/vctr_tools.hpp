@@ -18,6 +18,8 @@
 
 
 
+
+
 namespace memoria       {
 namespace mvector       {
 
@@ -161,12 +163,11 @@ namespace mvector       {
 
 
 template <typename CtrT, typename InputIterator>
-class IteratorVectorInputProvider: public memoria::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength> {
+class IteratorVectorInputProvider2: public memoria::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength> {
+
 	using Base = memoria::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength>;
 
 public:
-
-	using Buffer 	= typename Base::Buffer;
 	using CtrSizeT	= typename Base::CtrSizeT;
 	using Position	= typename Base::Position;
 
@@ -181,7 +182,7 @@ public:
 	BigInt processed_ = 0;
 
 public:
-	IteratorVectorInputProvider(CtrT& ctr, InputIterator start, BigInt length, Int capacity = 10000):
+	IteratorVectorInputProvider2(CtrT& ctr, InputIterator start, BigInt length, Int capacity = 10000):
 		Base(ctr, capacity),
 		current_(start),
 		length_(length)
@@ -202,6 +203,67 @@ public:
 		}
 	}
 };
+
+
+template <typename CtrT, typename InputIterator>
+class IteratorVectorInputProvider: public memoria::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength> {
+	using Base = memoria::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength>;
+
+public:
+
+	using CtrSizeT	= typename Base::CtrSizeT;
+	using Position	= typename Base::Position;
+	using InputBuffer = typename Base::InputBuffer;
+
+	using InputTuple 		= typename CtrT::Types::template StreamInputTuple<0>;
+	using InputTupleAdapter = typename CtrT::Types::template InputTupleAdapter<0>;
+
+	using InputValue = InputTuple;
+
+	InputIterator current_;
+	BigInt length_;
+
+
+
+	Int input_start_ = 0;
+	Int input_size_ = 0;
+	static constexpr Int INPUT_END = 1000;
+
+	InputValue input_value_buffer_[INPUT_END];
+
+public:
+	IteratorVectorInputProvider(CtrT& ctr, InputIterator start, BigInt length, Int capacity = 10000):
+		Base(ctr, capacity),
+		current_(start),
+		length_(length)
+	{
+	}
+
+	virtual Int get(InputBuffer* buffer, Int pos)
+	{
+		if (input_start_ == input_size_)
+		{
+			input_start_ = 0;
+
+			for (input_size_ = 0 ;length_ > 0 && input_size_ < INPUT_END; input_size_++, current_++, length_--)
+			{
+				input_value_buffer_[input_size_] = InputTupleAdapter::convert(*current_);
+			}
+		}
+
+		if (input_start_ < input_size_)
+		{
+			auto inserted = buffer->append(input_value_buffer_, input_start_, input_size_ - input_start_);
+
+			input_start_ += inserted;
+
+			return inserted;
+		}
+
+		return -1;
+	}
+};
+
 
 }
 }

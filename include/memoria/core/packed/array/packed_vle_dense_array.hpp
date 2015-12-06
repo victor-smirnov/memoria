@@ -101,6 +101,7 @@ public:
     using InputBuffer 	= PkdVLERowOrderInputBuffer<Types>;
     using InputType 	= Values;
 
+
     using SizesT = core::StaticVector<Int, Blocks>;
 
     static Int estimate_block_size(Int tree_capacity, Int density_hi = 1000, Int density_lo = 333)

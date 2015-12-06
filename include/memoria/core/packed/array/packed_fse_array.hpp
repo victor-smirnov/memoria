@@ -14,8 +14,6 @@
 
 namespace memoria {
 
-
-
 template <
     typename V,
     Int Blocks_ = 1
@@ -49,7 +47,8 @@ public:
 
     static constexpr Int SafetyMargin 												= 0;
 
-    using InputType = Value;
+    using InputType = core::StaticVector<Value, Blocks>;
+
     using InputBuffer = PackedFSERowOrderInputBuffer<PackedFSERowOrderInputBufferTypes<Value, Blocks>>;
 
     using Values = core::StaticVector<Value, Blocks>;
@@ -191,14 +190,6 @@ public:
     const Value* values() const {
         return buffer_;
     }
-
-//    Value* values(Int block) {
-//        return buffer_ + block * size_;
-//    }
-//
-//    const Value* values(Int block) const {
-//        return buffer_ + block * size_;
-//    }
 
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
@@ -433,7 +424,7 @@ public:
     	{
     		for (Int block = 0; block < Blocks; block++)
     		{
-    			Value val = adaptor(block, c);
+    			auto val = adaptor(block, c);
     			values[c * Blocks + block] = val;
     		}
     	}
@@ -479,27 +470,27 @@ public:
 
     	auto values = this->values();
 
-    	for (Int c = pos; c < pos + size; c++)
+    	for (Int c = 0; c < size; c++)
     	{
-    		auto item = adaptor();
-
     		for (Int b = 0; b < Blocks; b++) {
-    			values[c * Blocks + b] = item[b];
+    			values[(c + pos) * Blocks + b] = adaptor(b, c);
     		}
     	}
     }
 
 
     template <Int Offset, typename Value, typename T, Int Size, template <typename, Int> class AccumItem>
-    void _update(Int pos, Value val, AccumItem<T, Size>& accum)
+    void _update(Int pos, Value&& val, AccumItem<T, Size>& accum)
     {
         value(0, pos) = val;
     }
 
     template <Int Offset, typename Value, typename T, Int Size, template <typename, Int> class AccumItem>
-    void _insert(Int pos, Value val, AccumItem<T, Size>& accum)
+    void _insert(Int pos, Value&& val, AccumItem<T, Size>& accum)
     {
-    	insert(0, pos, val);
+    	_insert(pos, 1, [&](int block, int idx){
+    		return val[block];
+    	});
     }
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
@@ -611,7 +602,7 @@ public:
 
     void serialize(SerializationData& buf) const
     {
-        FieldFactory<Int>::serialize(buf, Base::allocator_offset_);
+    	FieldFactory<Int>::serialize(buf, Base::allocator_offset_);
         FieldFactory<Int>::serialize(buf, size_);
         FieldFactory<Int>::serialize(buf, max_size_);
 

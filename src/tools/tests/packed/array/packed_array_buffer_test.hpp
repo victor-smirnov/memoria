@@ -51,16 +51,15 @@ public:
 
         MEMORIA_ADD_TEST_PARAM(iterations_);
 
-//        MEMORIA_ADD_TEST(testCreate);
-
+        MEMORIA_ADD_TEST(testCreate);
 
         if (PkdStructSizeType<Array>::Value == PackedSizeType::VARIABLE)
         {
         	MEMORIA_ADD_TEST(testValue);
-//        	MEMORIA_ADD_TEST(testPosition);
+        	MEMORIA_ADD_TEST(testPosition);
         }
 
-//        MEMORIA_ADD_TEST(testInsertion);
+        MEMORIA_ADD_TEST(testInsertion);
     }
 
     virtual ~PackedArrayInputBufferTest() throw() {}
@@ -83,24 +82,33 @@ public:
     	return buffer;
     }
 
-    std::vector<Values> fillBuffer(InputBuffer* buffer, Int max_value = 500) {
-    	SizesT pos;
-
+    std::vector<Values> fillBuffer(InputBuffer* buffer, Int max_value = 500)
+    {
     	std::vector<Values> data;
 
-    	while(buffer->capacities().gtAll((Int)InputBuffer::SafetyMargin))
+    	while(true)
     	{
-    		buffer->append(pos, 1, [&, this](Int idx) {
-    			Values values;
+    		constexpr Int BUF_SIZE = 10;
+    		Values values[BUF_SIZE];
+
+    		for (Int c = 0; c < 10; c++)
+    		{
     			for (Int b = 0; b < Blocks; b++) {
-    				values[b] = this->getRandom(500);
+    				values[c][b] = this->getRandom(max_value);
     			}
+    		}
 
-    			data.push_back(values);
-
-    			return values;
+    		Int size = buffer->append(BUF_SIZE, [&](Int block, Int idx) {
+    			return values[idx][block];
     		});
+
+    		data.insert(data.end(), values, values + size);
+
+    		if (size < BUF_SIZE) {
+    			break;
+    		}
     	}
+
     	buffer->reindex();
 
     	AssertEQ(MA_SRC, buffer->size(), (Int)data.size());
@@ -142,7 +150,7 @@ public:
     {
     	testValue(0);
 
-    	for (Int c = 0; c <= this->size_; c *= 2)
+    	for (Int c = 1; c <= this->size_; c *= 2)
     	{
     		testValue(c);
     	}

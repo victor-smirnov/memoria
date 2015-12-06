@@ -10,8 +10,6 @@
 
 #include <memoria/prototypes/bt_ss/btss_factory.hpp>
 
-#include <memoria/core/packed/array/packed_fse_array.hpp>
-
 #include <memoria/containers/vector/vctr_walkers.hpp>
 #include <memoria/containers/vector/vctr_tools.hpp>
 #include <memoria/containers/vector/vctr_names.hpp>
@@ -26,6 +24,9 @@
 #include <memoria/containers/vector/iterator/vctr_i_api.hpp>
 
 #include <memoria/containers/vector/vctr_names.hpp>
+
+#include <memoria/core/packed/array/packed_fse_array.hpp>
+#include <memoria/core/packed/array/packed_vle_dense_array.hpp>
 
 namespace memoria    {
 
@@ -77,7 +78,7 @@ template <Granularity Gr> struct CodecClassTF;
 template <>
 struct CodecClassTF<Granularity::Byte> {
 	template <typename V>
-	using Type = UByteExintCodec<V>;
+	using Type = UByteI7Codec<V>;
 };
 
 

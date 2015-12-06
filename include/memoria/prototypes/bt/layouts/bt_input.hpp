@@ -9,6 +9,7 @@
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/packed/tools/packed_dispatcher.hpp>
+#include <memoria/core/packed/tools/packed_allocator.hpp>
 
 #include <memoria/core/packed/sseq/packed_fse_searchable_seq.hpp>
 
@@ -22,15 +23,470 @@
 namespace memoria 	{
 namespace bt 		{
 
-//template <typename Types>
-//struct AbstractInputProvider {
-//	using Position = typename Types::Position;
-//	using NodeBaseG = typename Types::NodeBaseG;
-//
-//	virtual bool hasData() = 0;
-//	virtual Position fill(NodeBaseG& leaf, const Position& from) = 0;
-//	virtual void prepare(NodeBaseG& leaf, const Position& from)  = 0;
-//};
+template <
+    typename SubstreamsStructList
+>
+class StreamInputBuffer: public PackedAllocator {
+public:
+	using Base = PackedAllocator;
+	using MyType = StreamInputBuffer<SubstreamsStructList>;
+
+    static const UInt VERSION = 1;
+
+    using StreamDispatcherStructList = typename PackedDispatchersListBuilder<
+    		Linearize<SubstreamsStructList>
+    >::Type;
+
+    using Dispatcher = PackedDispatcher<StreamDispatcherStructList>;
+
+    template <Int StartIdx, Int EndIdx>
+    using SubrangeDispatcher = typename Dispatcher::template SubrangeDispatcher<StartIdx, EndIdx>;
+
+
+    template <typename SubstreamsPath>
+    using SubstreamsDispatcher = SubrangeDispatcher<
+    		memoria::list_tree::LeafCountInf<SubstreamsStructList, SubstreamsPath>::Value,
+    		memoria::list_tree::LeafCountSup<SubstreamsStructList, SubstreamsPath>::Value
+    >;
+
+    template <Int StreamIdx>
+    using StreamDispatcher = SubstreamsDispatcher<IntList<StreamIdx>>;
+
+    template <Int StreamIdx>
+    using StreamStartIdx = IntValue<
+    		memoria::list_tree::LeafCountInf<SubstreamsStructList, IntList<StreamIdx>>::Value
+    >;
+
+    template <Int StreamIdx>
+    using StreamSize = IntValue<
+    		memoria::list_tree::LeafCountSup<SubstreamsStructList, IntList<StreamIdx>>::Value -
+    		memoria::list_tree::LeafCountInf<SubstreamsStructList, IntList<StreamIdx>>::Value
+	>;
+
+
+    template <Int Stream, typename SubstreamIdxList>
+    using SubstreamsByIdxDispatcher = typename Dispatcher::template SubsetDispatcher<
+    		memoria::list_tree::AddToValueList<
+    			memoria::list_tree::LeafCount<SubstreamsStructList, IntList<Stream>>::Value,
+    			SubstreamIdxList
+    		>,
+    		Stream
+    >;
+
+    template <Int SubstreamIdx>
+    using PathT = typename memoria::list_tree::BuildTreePath<SubstreamsStructList, SubstreamIdx>::Type;
+
+    static const Int Streams = 1;
+
+    static const Int Substreams                                                 = Dispatcher::Size;
+
+    static const Int SubstreamsStart                                            = Dispatcher::AllocatorIdxStart;
+    static const Int SubstreamsEnd                                              = Dispatcher::AllocatorIdxEnd;
+
+private:
+    struct InitFn {
+        Int block_size(Int items_number) const
+        {
+            return MyType::block_size(items_number);
+        }
+
+        Int max_elements(Int block_size)
+        {
+            return block_size;
+        }
+    };
+
+    struct LayoutFn {
+    	template <Int AllocatorIdx, Int Idx, typename Stream>
+    	void stream(Stream*, PackedAllocator* alloc, Int capacity)
+    	{
+    		Stream* buffer = alloc->template allocateSpace<Stream>(AllocatorIdx, Stream::empty_size());
+
+    		using SizesT = typename Stream::SizesT;
+    		buffer->init(SizesT(capacity));
+    	}
+    };
+
+public:
+
+    void init(Int buffer_block_size, Int capacity)
+    {
+    	Base::init(buffer_block_size, Substreams);
+
+    	Dispatcher::dispatchAllStatic(LayoutFn(), allocator(), capacity);
+	}
+
+    static Int free_space(Int page_size)
+    {
+        Int block_size = page_size - sizeof(MyType) + PackedAllocator::my_size();
+        Int client_area = PackedAllocator::client_area(block_size, SubstreamsStart + Substreams + 1);
+
+        return client_area;
+    }
+
+
+
+
+    PackedAllocator* allocator()
+    {
+        return this;
+    }
+
+    const PackedAllocator* allocator() const
+    {
+        return this;
+    }
+
+
+    bool is_empty() const
+    {
+        for (Int c = SubstreamsStart; c < SubstreamsEnd; c++)
+        {
+            if (!allocator()->is_empty(c)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
+private:
+    struct BlockSizeFn {
+        Int size_ = 0;
+
+        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename Node>
+        void stream(Node*, Int size)
+        {
+            size_ += Node::block_size(size);
+        }
+    };
+
+public:
+    static Int block_size(Int size)
+    {
+        BlockSizeFn fn;
+
+        MyType::processSubstreamGroupsStatic(fn, size);
+
+        Int client_area = fn.size_;
+
+        return PackedAllocator::block_size(client_area, SubstreamsStart + Substreams + 1);
+    }
+
+    Int total_size() const
+    {
+        return allocator()->allocated();
+    }
+
+    struct ReindexFn {
+    	template <typename Tree>
+    	void stream(Tree* tree)
+    	{
+    		tree->reindex();
+    	}
+    };
+
+    void reindex()
+    {
+    	Dispatcher::dispatchNotEmpty(allocator(), ReindexFn());
+    }
+
+    struct ResetFn {
+    	template <typename Tree>
+    	void stream(Tree* tree)
+    	{
+    		tree->reset();
+    	}
+    };
+
+    void reset()
+    {
+    	Dispatcher::dispatchNotEmpty(allocator(), ResetFn());
+    }
+
+    struct CheckFn {
+        template <typename Tree>
+        void stream(const Tree* tree)
+        {
+            tree->check();
+        }
+    };
+
+    void check() const
+    {
+        Dispatcher::dispatchNotEmpty(allocator(), CheckFn());
+    }
+
+
+    struct SizeFn {
+        template <typename Tree>
+        Int stream(const Tree* tree)
+        {
+            return tree != nullptr ? tree->size() : 0;
+        }
+    };
+
+
+    Int size() const
+    {
+    	return this->processStream<IntList<0>>(SizeFn());
+    }
+
+    bool isEmpty() const
+    {
+        return size() == 0;
+    }
+
+
+    struct AppendFn {
+
+    	core::StaticVector<Int, Substreams> sizes;
+
+    	template <Int Idx, typename StreamObj, typename Tuple>
+    	void stream(StreamObj* stream, Tuple&& tuple)
+    	{
+    		sizes[Idx] = stream->append(1, [&](Int block, Int idx){
+    			return std::get<Idx>(tuple)[block];
+    		});
+    	}
+
+    	template <Int Idx, typename StreamObj, typename Tuple>
+    	void stream(StreamObj* stream, Tuple&& tuples, Int start, Int size)
+    	{
+    		sizes[Idx] = stream->append(size, [&](Int block, Int idx){
+    			return std::get<Idx>(tuples[start + idx])[block];
+    		});
+    	}
+    };
+
+    template <typename... Args>
+    auto append(Args&&... args)
+    {
+    	AppendFn fn;
+    	processSubstreamGroups(fn, std::forward<Args>(args)...);
+    	return fn.sizes.min();
+    }
+
+
+    template <typename Fn, typename... Args>
+    auto process(Int stream, Fn&& fn, Args&&... args) const
+    {
+        return Dispatcher::dispatch(
+        		stream,
+        		allocator(),
+        		std::forward<Fn>(fn),
+        		std::forward<Args>(args)...
+        );
+    }
+
+    template <typename Fn, typename... Args>
+    auto process(Int stream, Fn&& fn, Args&&... args)
+    {
+        return Dispatcher::dispatch(stream, allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+    }
+
+
+    template <typename Fn, typename... Args>
+    auto processAll(Fn&& fn, Args&&... args) const
+    {
+        return Dispatcher::dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+    }
+
+
+    template <typename Fn, typename... Args>
+    auto processAll(Fn&& fn, Args&&... args)
+    {
+        return Dispatcher::dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+    }
+
+    template <typename SubstreamsPath, typename Fn, typename... Args>
+    auto processSubstreams(Fn&& fn, Args&&... args) const
+    {
+        return SubstreamsDispatcher<SubstreamsPath>::dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+    }
+
+
+    template <typename SubstreamsPath, typename Fn, typename... Args>
+    auto processSubstreams(Fn&& fn, Args&&... args)
+    {
+        return SubstreamsDispatcher<SubstreamsPath>::dispatchAll(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+    }
+
+
+
+
+
+
+    template <
+    	Int Stream,
+    	typename SubstreamsIdxList,
+    	typename Fn,
+        typename... Args
+    >
+    auto processSubstreamsByIdx(Fn&& fn, Args&&... args) const
+    {
+    	return SubstreamsByIdxDispatcher<Stream, SubstreamsIdxList>::dispatchAll(
+    			allocator(),
+    			std::forward<Fn>(fn),
+                std::forward<Args>(args)...
+        );
+    }
+
+    template <
+    	Int Stream,
+    	typename SubstreamsIdxList,
+    	typename Fn,
+        typename... Args
+    >
+    auto processSubstreamsByIdx(Fn&& fn, Args&&... args)
+    {
+    	return SubstreamsByIdxDispatcher<Stream, SubstreamsIdxList>::dispatchAll(
+    			allocator(),
+    			std::forward<Fn>(fn),
+                std::forward<Args>(args)...
+        );
+    }
+
+
+
+    template <typename SubstreamPath>
+    auto substream()
+	{
+    	const Int SubstreamIdx = memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value;
+    	using T = typename Dispatcher::template StreamTypeT<SubstreamIdx>::Type;
+    	return this->allocator()->template get<T>(SubstreamIdx + SubstreamsStart);
+    }
+
+    template <typename SubstreamPath>
+    auto substream() const
+	{
+    	const Int SubstreamIdx = memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value;
+    	using T = typename Dispatcher::template StreamTypeT<SubstreamIdx>::Type;
+    	return this->allocator()->template get<T>(SubstreamIdx + SubstreamsStart);
+    }
+
+    template <Int SubstreamIdx>
+    auto substream_by_idx()
+    {
+    	using T = typename Dispatcher::template StreamTypeT<SubstreamIdx>::Type;
+    	return this->allocator()->template get<T>(SubstreamIdx + SubstreamsStart);
+    }
+
+    template <Int SubstreamIdx>
+    auto substream_by_idx() const
+    {
+    	using T = typename Dispatcher::template StreamTypeT<SubstreamIdx>::Type;
+    	return this->allocator()->template get<T>(SubstreamIdx + SubstreamsStart);
+    }
+
+
+
+
+    template <typename SubstreamPath, typename Fn, typename... Args>
+    auto processStream(Fn&& fn, Args&&... args) const
+    {
+        const Int StreamIdx = memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value;
+        return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+    }
+
+    template <typename SubstreamPath, typename Fn, typename... Args>
+    auto processStream(Fn&& fn, Args&&... args)
+    {
+        const Int StreamIdx = memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value;
+        return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+    }
+
+
+    template <typename Fn, typename... Args>
+    auto processSubstreamGroups(Fn&& fn, Args&&... args)
+    {
+    	using GroupsList = BuildTopLevelLeafSubsets<SubstreamsStructList>;
+
+    	return GroupDispatcher<Dispatcher, GroupsList>::dispatchGroups(
+    			allocator(),
+    			std::forward<Fn>(fn),
+    			std::forward<Args>(args)...
+    	);
+    }
+
+    template <typename Fn, typename... Args>
+    auto processSubstreamGroups(Fn&& fn, Args&&... args) const
+    {
+    	using GroupsList = BuildTopLevelLeafSubsets<SubstreamsStructList>;
+
+    	return GroupDispatcher<Dispatcher, GroupsList>::dispatchGroups(
+    			allocator(),
+    			std::forward<Fn>(fn),
+    			std::forward<Args>(args)...
+    	);
+    }
+
+    template <typename Fn, typename... Args>
+    static auto processSubstreamGroupsStatic(Fn&& fn, Args&&... args)
+    {
+    	using GroupsList = BuildTopLevelLeafSubsets<SubstreamsStructList>;
+
+    	return GroupDispatcher<Dispatcher, GroupsList>::dispatchGroupsStatic(
+    			std::forward<Fn>(fn),
+    			std::forward<Args>(args)...
+    	);
+    }
+
+
+
+
+    template <typename Fn, typename... Args>
+    auto processStreamsStart(Fn&& fn, Args&&... args)
+    {
+    	using Subset = StreamsStartSubset<SubstreamsStructList>;
+    	return Dispatcher::template SubsetDispatcher<Subset>::template dispatchAll(
+    			allocator(),
+    			std::forward<Fn>(fn),
+    			std::forward<Args>(args)...
+    	);
+    }
+
+
+    template <typename Fn, typename... Args>
+    auto processStreamsStart(Fn&& fn, Args&&... args) const
+    {
+    	using Subset = StreamsStartSubset<SubstreamsStructList>;
+    	return Dispatcher::template SubsetDispatcher<Subset>::template dispatchAll(
+    			allocator(),
+    			std::forward<Fn>(fn),
+    			std::forward<Args>(args)...
+    	);
+    }
+
+
+    template <typename Fn, typename... Args>
+    static auto processStreamsStartStatic(Fn&& fn, Args&&... args)
+    {
+    	using Subset = StreamsStartSubset<SubstreamsStructList>;
+    	return Dispatcher::template SubsetDispatcher<Subset>::template dispatchAllStatic(
+    			std::forward<Fn>(fn),
+    			std::forward<Args>(args)...
+    	);
+    }
+
+
+
+    struct GenerateDataEventsFn {
+        template <Int Idx, typename Tree>
+        void stream(const Tree* tree, IPageDataEventHandler* handler)
+        {
+            tree->generateDataEvents(handler);
+        }
+    };
+
+    void generateDataEvents(IPageDataEventHandler* handler) const
+    {
+        Base::generateDataEvents(handler);
+        Dispatcher::dispatchNotEmpty(allocator(), GenerateDataEventsFn(), handler);
+    }
+};
+
 
 }
 }

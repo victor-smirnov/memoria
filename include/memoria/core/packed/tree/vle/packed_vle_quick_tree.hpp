@@ -702,6 +702,36 @@ public:
     	return at + total_lengths;
     }
 
+    void insert_buffer(Int pos, const InputBuffer* buffer, Int start, Int size)
+    {
+    	Codec codec;
+
+    	SizesT starts = buffer->positions(start);
+    	SizesT ends   = buffer->positions(start + size);
+
+    	SizesT at 	  = this->positions(pos);
+
+    	SizesT total_lengths = ends - starts;
+
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		auto values	= this->values(block);
+
+    		size_t insertion_pos = at[block];
+
+    		this->insert_space(block, insertion_pos, total_lengths[block]);
+
+    		values = this->values(block);
+
+    		codec.copy(buffer->values(block), starts[block], values, insertion_pos, total_lengths[block]);
+    	}
+
+    	this->size() += size;
+
+    	reindex();
+    }
+
+
 
     template <typename Adaptor>
     SizesT populate(const SizesT& at, Int size, Adaptor&& adaptor)
