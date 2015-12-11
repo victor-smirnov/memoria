@@ -59,6 +59,22 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::InsertName)
     	return streamingProvider.totals();
     }
 
+    template <typename Provider>
+    CtrSizesT _insert2(Iterator& iter, Provider&& provider, const Int total_capacity = 2000)
+    {
+    	auto& self = this->self();
+
+    	bttl::StreamingCtrInputProvider2<MyType, Provider> streamingProvider(self, provider, iter.stream(), total_capacity);
+
+    	auto pos = iter.local_stream_posrank_();
+
+    	streamingProvider.prepare(iter, pos);
+
+    	self.insert_provided_data(iter.leaf(), pos, streamingProvider);
+
+    	return streamingProvider.totals();
+    }
+
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bttl::InsertName)

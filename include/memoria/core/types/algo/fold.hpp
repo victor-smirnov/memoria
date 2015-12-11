@@ -58,6 +58,7 @@ struct FoldTLLeft<TL<>, FoldingFn>
 	using Type = FoldingFn<EmptyType, EmptyType>;
 };
 
+
 }
 
 #endif

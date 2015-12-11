@@ -84,37 +84,12 @@ public:
         return sizeof(MyType) + max_size_ * sizeof(Value) * Blocks;
     }
 
-    Int block_size(const MyType* other) const
-    {
-        return block_size(size_ + other->size_);
-    }
 
 public:
 
     static constexpr Int block_size(Int array_size)
     {
         return PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(MyType) + array_size * sizeof(Value) * Blocks);
-    }
-
-    static constexpr Int packed_block_size(Int array_size)
-    {
-        return PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(MyType) + array_size * sizeof(Value) * Blocks);
-    }
-
-    static constexpr Int elements_for(Int block_size)
-    {
-        return max_size_for(block_size);
-    }
-
-    Int allocated_block_size() const
-    {
-        if (Base::allocator_offset() != 0)
-        {
-            return this->allocator()->element_size(this);
-        }
-        else {
-            return block_size();
-        }
     }
 
     void init(Int block_size)
@@ -131,6 +106,11 @@ public:
 
     static constexpr Int max_size_for(Int block_size) {
         return (block_size - empty_size()) / (sizeof(Value) * Blocks);
+    }
+
+    bool has_capacity_for(const SizesT& sizes) const
+    {
+    	return sizes[0] <= max_size_;
     }
 
     static constexpr Int empty_size()
@@ -164,13 +144,17 @@ public:
 
 
 
-    // =================================== Update ========================================== //
+
 
     void reindex() {}
     void check() const {}
 
 
-
+    template <typename Adaptor>
+    static SizesT calculate_size(Int size, Adaptor&& fn)
+    {
+    	return SizesT(size);
+    }
 
 
 

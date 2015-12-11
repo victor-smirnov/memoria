@@ -90,6 +90,27 @@ struct IfLess<V2, V2>
 	}
 };
 
+
+template <typename List, template <typename Item> class Mapper> struct MapTL;
+
+template <typename Head, typename... Tail, template <typename Item> class Mapper>
+struct MapTL<TL<Head, Tail...>, Mapper> {
+	using Type = MergeLists<
+			typename Mapper<Head>::Type,
+			typename MapTL<TL<Tail...>, Mapper>::Type
+	>;
+};
+
+template <template <typename Item> class Mapper>
+struct MapTL<TL<>, Mapper>{
+	using Type = TL<>;
+};
+
+template <typename T>
+struct WithType {
+	using Type = T;
+};
+
 }
 
 #endif  //_MEMORIA_CORE_TOOLS_TYPES_ALGO_FOR_EACH_HPP

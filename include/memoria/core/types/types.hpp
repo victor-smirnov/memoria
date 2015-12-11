@@ -16,6 +16,7 @@
 
 #include <memoria/core/tools/config.hpp>
 #include <type_traits>
+#include <tuple>
 
 namespace memoria    {
 
@@ -360,6 +361,19 @@ extern size_t MemBase;
 
 template <typename T>
 using IL = std::initializer_list<T>;
+
+template <typename List>  struct AsTupleH;
+
+template <typename List>
+using AsTuple = typename AsTupleH<List>::Type;
+
+template <typename... Types>
+struct AsTupleH<TL<Types...>> {
+	using Type = std::tuple<Types...>;
+};
+
+
+
 
 }
 

@@ -137,6 +137,14 @@ public:
     	);
     }
 
+    bool has_capacity_for(const SizesT& sizes) const
+    {
+    	auto capacity = this->metadata()->meta->max_data_size(0);
+    	auto sum = sizes.sum();
+
+    	return sum <= capacity;
+    }
+
 
     Int locate(Int block, Int idx) const
     {
@@ -260,6 +268,23 @@ public:
 
     	return pos;
     }
+
+    template <typename Adaptor>
+    static SizesT calculate_size(Int size, Adaptor&& fn)
+    {
+    	Codec codec;
+    	SizesT sizes;
+
+    	for (Int c = 0; c < size; c++) {
+    		for (Int b = 0; b < Blocks; b++)
+    		{
+    			sizes[b] += codec.length(fn(b, c));
+    		}
+    	}
+
+    	return sizes;
+    }
+
 
 
 

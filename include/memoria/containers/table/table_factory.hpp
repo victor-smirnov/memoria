@@ -92,7 +92,7 @@ struct TableBTTypesBase: public BTTypes<Profile, memoria::BTTreeLayout> {
     >;
 
     using DataStreamTF  = StreamTF<
-    	TL<TL<PackedFSEArray<PackedFSEArrayTypes<Value>>>>,
+    	TL<TL<PkdFSQArrayT<Value, 1>>>,
     	TL<TL<TL<>>>,
 		FSEBranchStructTF
     >;

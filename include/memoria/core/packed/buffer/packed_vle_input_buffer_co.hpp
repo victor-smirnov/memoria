@@ -169,7 +169,7 @@ public:
     		segments_length += values_length + offsets_length + sizes_length;
     	}
 
-    	return PackedAllocator::block_size(
+    	return PackedAllocator::block_size (
     			metadata_length +
 				data_sizes_length +
 				segments_length,
@@ -178,10 +178,19 @@ public:
     }
 
 
-
-    static Int packed_block_size(Int tree_capacity)
+    bool has_capacity_for(const SizesT& sizes) const
     {
-    	return block_size(tree_capacity);
+    	auto meta = this->metadata();
+
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		if(sizes[block] > meta->max_data_size(block))
+    		{
+    			return false;
+    		}
+    	}
+
+    	return true;
     }
 
 
@@ -190,34 +199,8 @@ public:
     	return Base::block_size();
     }
 
-    Int block_size(const MyType* other) const
-    {
-        return block_size(this->data_size_v() + other->data_size_v());
-    }
 
 
-    SizesT data_size_v() const
-    {
-    	SizesT sizes;
-
-    	for (Int block = 0; block < Blocks; block++)
-    	{
-    		sizes[block] = this->data_size(block);
-    	}
-
-    	return sizes;
-    }
-
-
-    static Int elements_for(Int block_size)
-    {
-        return Base::tree_size(Blocks, block_size);
-    }
-
-    static Int expected_block_size(Int items_num)
-    {
-        return block_size(items_num);
-    }
 
     Value value(Int block, Int idx) const
     {
@@ -321,6 +304,22 @@ public:
     	return pos;
     }
 
+
+    template <typename Adaptor>
+    static SizesT calculate_size(Int size, Adaptor&& fn)
+    {
+    	Codec codec;
+    	SizesT sizes;
+
+    	for (Int c = 0; c < size; c++) {
+    		for (Int b = 0; b < Blocks; b++)
+    		{
+    			sizes[b] += codec.length(fn(b, c));
+    		}
+    	}
+
+    	return sizes;
+    }
 
 
     template <typename Adaptor>

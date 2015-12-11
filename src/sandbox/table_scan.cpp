@@ -13,13 +13,15 @@
 #include <memoria/core/container/metadata_repository.hpp>
 
 #include <memoria/core/tools/time.hpp>
+#include <memoria/core/tools/random.hpp>
 
 using namespace memoria;
 using namespace memoria::tools;
 using namespace std;
 
-using CtrT 		= DCtrTF<Table<BigInt, Byte, PackedSizeType::FIXED>>::Type;
-using Provider 	= ::memoria::bttl::DeterministicDataInputProvider<CtrT>;
+using CtrT 		= DCtrTF<Table<BigInt, Byte, PackedSizeType::VARIABLE>>::Type;
+//using Provider 	= ::memoria::bttl::RandomDataInputProvider2<CtrT, RngInt>;
+using Provider 	= ::memoria::bttl::DeterministicDataInputProvider2<CtrT>;
 using Position  = CtrT::Types::Position;
 
 
@@ -37,6 +39,9 @@ struct ScanFn {
 int main(int argc, const char** argv, const char** envp) {
 	MEMORIA_INIT(DefaultProfile<>);
 
+	Seed(123);
+	SeedBI(456);
+
 	try {
 		SmallInMemAllocator alloc;
 
@@ -46,19 +51,20 @@ int main(int argc, const char** argv, const char** envp) {
 
 		CtrT ctr(&alloc);
 
-		ctr.setNewPageSize(16*1024);
+//		ctr.setNewPageSize(256*1024);
 
 		auto iter = ctr.seek(0);
 
-		Int rows 		= 1000000;
+		Int rows 		= 100;
 		Int cols		= 10;
 		Int data_size	= 111;
 
 		BigInt c0 = getTimeInMillis();
 
+//		Provider provider({rows, cols, data_size}, getGlobalIntGenerator());
 		Provider provider({rows, cols, data_size});
 
-		ctr._insert(iter, provider, {100000}); //,
+		ctr._insert2(iter, provider, 1000000);
 
 
 		BigInt c1 = getTimeInMillis();
@@ -82,7 +88,7 @@ int main(int argc, const char** argv, const char** envp) {
 
 		BigInt t0 = getTimeInMillis();
 
-		for (int x = 0; x < 5; x++)
+		for (int x = 0; x < 1; x++)
 		{
 			BigInt tt0 = getTimeInMillis();
 
