@@ -237,12 +237,12 @@ public:
     		auto scanned = iter.template scan<IntList<Levels - 1>>([&](const auto* obj, Int start, Int end) {
     			if (cnt == 0)
     			{
-    				data = obj->value(start);
+    				data = obj->value(0, start);
     			}
 
     			for (Int c = start; c < end; c++)
     			{
-    				AssertEQ(MA_SRC, data, obj->value(c));
+    				AssertEQ(MA_SRC, data, obj->value(0, c));
     			}
 
     			cnt += end - start;

@@ -184,7 +184,7 @@ public:
 
     	for (Int block = 0; block < Blocks; block++)
     	{
-    		if(sizes[block] > meta->max_data_size(block))
+    		if(sizes[block] > meta->max_data_size(block) - SafetyMargin)
     		{
     			return false;
     		}
@@ -261,6 +261,7 @@ public:
     void reset() {
     	auto meta = this->metadata();
     	meta->data_size().clear();
+    	meta->size() = 0;
     }
 
     Values get_values(Int idx) const
@@ -560,7 +561,7 @@ public:
     	auto meta = this->metadata();
 
     	handler->value("SIZE",      &meta->size());
-    	handler->value("DATA_SIZE", this->data_sizes(), Blocks);
+    	handler->value("DATA_SIZE", &meta->data_size(0), Blocks);
 
     	handler->startGroup("INDEXES", Blocks);
 

@@ -12,7 +12,6 @@
 #include <memoria/prototypes/bt/bt_factory.hpp>
 
 #include <memoria/prototypes/bt_tl/bttl_input.hpp>
-#include <memoria/prototypes/bt_tl/bttl_input_2.hpp>
 
 #include <memoria/prototypes/bt_tl/bttl_names.hpp>
 #include <memoria/prototypes/bt_tl/bttl_iterator.hpp>

@@ -20,30 +20,6 @@ namespace bttl 		{
 
 namespace detail {
 
-template <typename Types, Int Streams, Int Idx = 0>
-struct InputBufferBuilder {
-	using SizeT 		= typename Types::CtrSizeT;
-	using InputTuple 	= typename Types::template StreamInputTuple<Idx>;
-
-
-	using Type = MergeLists<
-			std::vector<InputTuple>,
-			typename InputBufferBuilder<Types, Streams, Idx + 1>::Type
-	>;
-};
-
-template <typename Types, Int Streams>
-struct InputBufferBuilder<Types, Streams, Streams> {
-	using Type = TL<>;
-};
-
-
-
-
-
-
-
-
 template <Int Size, Int Idx = 0>
 struct ForAllTuple {
 	template <typename InputBuffer, typename Fn, typename... Args>
@@ -60,6 +36,204 @@ struct ForAllTuple<Idx, Idx> {
 	static void process(InputBuffer&& tuple, Fn&& fn, Args&&... args)
 	{}
 };
+
+
+
+template <typename T>
+class InputBufferHandle {
+	T* ref_;
+public:
+	using MyType = InputBufferHandle<T>;
+	using PtrType = T;
+
+	InputBufferHandle(T* ref): ref_(ref) {}
+	InputBufferHandle(): ref_(nullptr) {}
+	InputBufferHandle(const MyType& other) = delete;
+	InputBufferHandle(MyType&& other): ref_(other.ref_) {
+		other.ref_ = nullptr;
+	}
+
+	~InputBufferHandle() {
+		if (ref_) ::free(ref_);
+	}
+
+	T* get() {
+		return ref_;
+	}
+
+	const T* get() const {
+		return ref_;
+	}
+
+	MyType& operator=(const MyType& other) = delete;
+
+	void operator=(MyType&& other) {
+		if (ref_) ::free(ref_);
+		ref_ = other.ref_;
+		other.ref_ = nullptr;
+	}
+
+	T* operator->() {return ref_;}
+	const T* operator->() const {return ref_;}
+
+	bool is_null() const {
+		return ref_ == nullptr;
+	}
+};
+
+
+
+template <typename DataBuffer, typename CtrSizeT>
+struct BTSSStreamInputBufferBase {
+	using Buffer 	= DataBuffer;
+private:
+
+	DataBuffer buffer_;
+
+public:
+	BTSSStreamInputBufferBase()
+	{}
+
+	void init(DataBuffer&& buffer)
+	{
+		buffer_ = std::move(buffer);
+	}
+
+
+	DataBuffer& buffer() {return buffer_;}
+	const DataBuffer& buffer() const {return buffer_;}
+
+
+	void reset() {
+		if (!buffer_.is_null()) {
+			buffer_->reset();
+		}
+	}
+};
+
+
+
+template <typename StreamEntry, typename DataBuffer, typename CtrSizeT, bool LastStream>
+struct BTSSStreamInputBuffer: BTSSStreamInputBufferBase<DataBuffer, CtrSizeT> {
+	using Base = BTSSStreamInputBufferBase<DataBuffer, CtrSizeT>;
+
+	using BufferT = typename DataBuffer::PtrType;
+	using EntryT = StreamEntry;
+
+	using Sizes = std::vector<CtrSizeT>;
+	using EntryBuffer = std::vector<EntryT>;
+
+private:
+
+	EntryBuffer entry_buffer_;
+	size_t eb_head_ = 0;
+
+public:
+	BTSSStreamInputBuffer() {}
+
+	void init(DataBuffer&& buffer, Int capacity)
+	{
+		Base::init(std::move(buffer), capacity);
+	}
+
+
+	void init(DataBuffer&& buffer)
+	{
+		Base::init(std::move(buffer));
+	}
+
+	void reset()
+	{
+		Base::reset();
+		eb_head_ = 0;
+	}
+
+	void finish()
+	{
+		auto buffer_sizes = BufferT::compute_buffer_sizes_for(eb_head_, entry_buffer_);
+
+		if (this->buffer().is_null() || !this->buffer()->has_capacity_for(buffer_sizes))
+		{
+			Int block_size = BufferT::block_size(buffer_sizes);
+			BufferT* buffer = T2T<BufferT*>(malloc(block_size));
+			if (buffer)
+			{
+				buffer->setTopLevelAllocator();
+				buffer->init(block_size, buffer_sizes);
+				this->init(DataBuffer(buffer));
+			}
+			else {
+				throw OOMException(MA_SRC);
+			}
+		}
+
+		this->buffer()->append(entry_buffer_, 0, eb_head_);
+		this->buffer()->reindex();
+	}
+
+	void add_size(Int idx, CtrSizeT value)
+	{
+		constexpr Int SizeIdx = std::tuple_size<EntryT>::value - 1;
+		std::get<SizeIdx>(entry_buffer_[idx]) += value;
+	}
+
+
+	void append_entry(const EntryT& entry)
+	{
+		if (entry_buffer_.size() == eb_head_)
+		{
+			entry_buffer_.resize(entry_buffer_.size() + 1, entry);
+		}
+		else {
+			entry_buffer_[eb_head_] = entry;
+		}
+
+		eb_head_++;
+	}
+
+	Int size() const {
+		return eb_head_;
+	}
+};
+
+
+template <typename StreamEntry, typename DataBuffer, typename CtrSizeT>
+struct BTSSStreamInputBuffer<StreamEntry, DataBuffer, CtrSizeT, true>: BTSSStreamInputBufferBase<DataBuffer, CtrSizeT> {
+	void finish() {
+		this->buffer()->reindex();
+	}
+};
+
+
+
+
+
+
+template <typename Types, Int Streams, Int Idx = 0>
+struct InputBufferBuilder {
+	using InputBuffer = StreamInputBuffer<
+		typename Types::template StreamInputBufferStructList<Idx>
+	>;
+
+	using StreamEntry = typename Types::template StreamInputTuple<Idx>;
+
+	using UInputBufferPtr = InputBufferHandle<InputBuffer>;
+
+	using SizedBuffer = BTSSStreamInputBuffer<StreamEntry, UInputBufferPtr, typename Types::CtrSizeT, Idx == Streams - 1>;
+
+	using Type = MergeLists<
+			SizedBuffer,
+			typename InputBufferBuilder<Types, Streams, Idx + 1>::Type
+	>;
+};
+
+template <typename Types, Int Streams>
+struct InputBufferBuilder<Types, Streams, Streams> {
+	using Type = TL<>;
+};
+
+
+
 
 
 }
@@ -81,9 +255,7 @@ public:
 
 
 
-template <
-	typename CtrT
->
+template <typename CtrT>
 class AbstractCtrInputProviderBase {
 
 protected:
@@ -126,7 +298,7 @@ protected:
 	Position start_;
 	Position size_;
 
-	Position capacity_;
+	Int total_capacity_;
 
 	FreeUniquePtr<PackedAllocator> allocator_;
 
@@ -149,36 +321,95 @@ protected:
 	Position totals_;
 
 private:
-	struct ResizeBufferFn {
+	struct CreateBufferFn {
 		template <Int Idx, typename Buffer>
-		void process(Buffer&& buffer, const Position& sizes)
+		void process(Buffer&& buffer, Int total_capacity)
 		{
-			buffer.resize(sizes[Idx]);
+			using SizesBufferHandleType 	= typename std::remove_reference<Buffer>::type;
+			using BufferHandleType 			= typename SizesBufferHandleType::Buffer;
+			using BufferType 	  			= typename BufferHandleType::PtrType;
+
+			if (Idx == Streams - 1)
+			{
+				Int object_size = BufferType::block_size(total_capacity);
+
+				void* ptr = malloc(object_size);
+
+				if (ptr != nullptr)
+				{
+					BufferType* pbuffer = T2T<BufferType*>(ptr);
+
+					pbuffer->setTopLevelAllocator();
+
+					pbuffer->init(object_size, total_capacity);
+
+					buffer.init(BufferHandleType(pbuffer));
+				}
+				else {
+					throw vapi::OOMException(MA_SRC);
+				}
+			}
 		}
 	};
 
 
+	struct FinishBufferFn {
+		template <Int Idx, typename Buffer>
+		void process(Buffer&& buffer)
+		{
+			buffer.finish();
+		}
+	};
+
+	struct DumpBufferFn {
+		template <Int Idx, typename Buffer, typename EventConsumer>
+		void process(Buffer&& buffer, EventConsumer&& consumer, std::ostream& out)
+		{
+			out<<"Begin Stream Dump: "<<Idx<<std::endl;
+			buffer.buffer()->generateDataEvents(&consumer);
+			out<<"End Stream Dump: "<<Idx<<std::endl<<std::endl<<std::endl<<std::endl;
+		}
+	};
+
+	struct ResetBufferFn {
+		template <Int Idx, typename Buffer>
+		void process(Buffer&& buffer)
+		{
+			buffer.reset();
+		}
+	};
 
 public:
 
-	AbstractCtrInputProviderBase(CtrT& ctr, Int start_level, const Position& capacity):
-		capacity_(capacity),
-		allocator_(AllocTool<PackedAllocator>::create(block_size(capacity.sum()), 1)),
+	AbstractCtrInputProviderBase(CtrT& ctr, Int start_level, Int total_capacity):
+		total_capacity_(total_capacity),
+		allocator_(AllocTool<PackedAllocator>::create(block_size(total_capacity), 1)),
 		ctr_(ctr),
 		last_symbol_(start_level - 1),
 		start_level_(start_level)
 	{
-		ForAllBuffer::process(buffer_, ResizeBufferFn(), capacity);
+		ForAllBuffer::process(buffer_, CreateBufferFn(), total_capacity);
 
-		allocator_->template allocate<Symbols>(0, Symbols::packed_block_size(capacity.sum()));
+		allocator_->template allocate<Symbols>(0, Symbols::packed_block_size(total_capacity));
 
-		symbols()->enlargeData(capacity.sum());
+		symbols()->enlargeData(total_capacity);
 	}
 private:
 	static Int block_size(Int capacity)
 	{
 		return Symbols::packed_block_size(capacity);
 	}
+
+	void finish_buffer()
+	{
+		ForAllBuffer::process(buffer_, FinishBufferFn());
+	}
+
+	void reset_buffer()
+	{
+		ForAllBuffer::process(buffer_, ResetBufferFn());
+	}
+
 public:
 
 	template <typename Iterator>
@@ -276,34 +507,15 @@ public:
 			static_assert(StreamIdx < Position::Indexes, "");
 			static_assert(StreamIdx < std::tuple_size<Buffer>::value, "");
 
-//			if (stream == nullptr) {
-//				stream = alloc->template allocateEmpty<StreamObj>(AllocatorIdx);
-//			}
-
-			stream->_insert(at[StreamIdx], sizes[StreamIdx], [&](Int block, Int idx){
-				return std::get<Idx>(std::get<StreamIdx>(buffer)[idx + starts[StreamIdx]])[block];
-			});
-
-			return true;
-		}
-
-		template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename PTypes>
-		bool stream(PackedFSEArray<PTypes>* stream, PackedAllocator* alloc, const Position& at, const Position& starts, const Position& sizes, const Buffer& buffer)
-		{
-			static_assert(StreamIdx < Position::Indexes, "");
-			static_assert(StreamIdx < std::tuple_size<Buffer>::value, "");
-
-//			if (stream == nullptr) {
-//				stream = alloc->template allocateEmpty<StreamObj>(AllocatorIdx);
-//			}
-
-			stream->_insert(at[StreamIdx], sizes[StreamIdx], [&](Int block, Int idx){
-				return std::get<Idx>(std::get<StreamIdx>(buffer)[idx + starts[StreamIdx]]);
-			});
+			stream->insert_buffer(
+					at[StreamIdx],
+					std::get<StreamIdx>(buffer).buffer()->template substream_by_idx<Idx>(),
+					starts[StreamIdx],
+					sizes[StreamIdx]
+			);
 
 			return true;
 		}
-
 
 		template <typename NodeTypes, typename... Args>
 		auto treeNode(LeafNode<NodeTypes>* leaf, Args&&... args)
@@ -342,26 +554,6 @@ public:
 		return size_ - start_;
 	}
 
-	struct BufferCapacityFn {
-		template <Int Idx, typename Buffer>
-		void process(Buffer&& buffer, Position& pos)
-		{
-			pos[Idx] = buffer.size();
-		}
-	};
-
-	Position capacity() const
-	{
-		return capacity_;
-	}
-
-	Position buffer_capacity() const
-	{
-		Position sizes;
-		ForAllBuffer::process(buffer_, BufferCapacityFn(), sizes);
-		return sizes;
-	}
-
 
 	Position rank(CtrSizeT idx) const
 	{
@@ -386,15 +578,17 @@ public:
 
 	virtual bool populate_buffer()
 	{
+		reset_buffer();
+
 		Position sizes;
 		Position buffer_sums;
 
 		start_.clear();
 		size_.clear();
 
-		Int symbol_pos = 0;
+		Int capacity = total_capacity_;
 
-		auto capacity = this->buffer_capacity();
+		Int symbol_pos = 0;
 
 		auto symbols = this->symbols();
 
@@ -406,49 +600,59 @@ public:
 
 		while (true)
 		{
-			RunDescr run = populate(size_);
+			RunDescr run = populate(capacity);
 
 			Int symbol = run.symbol();
 			Int length = run.length();
 
 			if (symbol >= 0)
 			{
-				if (total_symbols_ == 0 && (symbol != start_level_))
+				if (length > 0)
 				{
-					throw vapi::Exception(MA_SRC, SBuf()<<"Invalid start symbol: "<<symbol<<" expected: "<<start_level_);
-				}
+					if (total_symbols_ == 0 && (symbol != start_level_))
+					{
+						throw vapi::Exception(MA_SRC, SBuf()<<"Invalid start symbol: "<<symbol<<" expected: "<<start_level_);
+					}
 
-				symbols_size += length;
-				for (Int c = symbol_pos; c < symbol_pos + length; c++)
-				{
-					symbols->tools().set(syms, c, symbol);
-				}
+					symbols_size += length;
+					for (Int c = symbol_pos; c < symbol_pos + length; c++)
+					{
+						symbols->tools().set(syms, c, symbol);
+					}
 
-				symbol_pos 		+= length;
-				total_symbols_ 	+= length;
-				size_[symbol] 	+= length;
+					symbol_pos 		+= length;
+					total_symbols_ 	+= length;
+					size_[symbol] 	+= length;
+					capacity 		-= length;
 
-				if (symbol > last_symbol_ + 1)
-				{
-					throw Exception(MA_SRC, SBuf()<<"Invalid sequence state: last_symbol="<<last_symbol_<<", symbol="<<symbol);
-				}
-				else if (symbol < last_symbol_)
-				{
-					this->finish_stream_run(symbol, last_symbol_, sizes, buffer_sums);
-				}
+					if (symbol > last_symbol_ + 1)
+					{
+						throw Exception(MA_SRC, SBuf()<<"Invalid sequence state: last_symbol="<<last_symbol_<<", symbol="<<symbol);
+					}
+					else if (symbol < last_symbol_)
+					{
+						this->finish_stream_run(symbol, last_symbol_, sizes, buffer_sums);
+					}
 
-				buffer_sums[symbol] += length;
-				sizes[symbol] 		+= length;
-				totals_[symbol] 	+= length;
+					buffer_sums[symbol] += length;
+					sizes[symbol] 		+= length;
+					totals_[symbol] 	+= length;
 
-				if (size_[symbol] == capacity[symbol])
-				{
-					this->finish_stream_run(0, Streams - 1, sizes, buffer_sums);
-					last_symbol_ = symbol;
-					break;
+					if (capacity <= 0)
+					{
+						this->finish_stream_run(0, Streams - 1, sizes, buffer_sums);
+						last_symbol_ = symbol;
+						break;
+					}
+					else {
+						last_symbol_ = symbol;
+					}
 				}
 				else {
-					last_symbol_ = symbol;
+					// buffer is full
+					cout<<"Buffer is full: "<<size_<<endl;
+					this->finish_stream_run(0, Streams - 1, sizes, buffer_sums);
+					break;
 				}
 			}
 			else {
@@ -460,30 +664,22 @@ public:
 
 		symbols->reindex();
 
+		finish_buffer();
+
 		return symbol_pos > 0;
 	}
 
-	virtual RunDescr populate(const Position& pos) = 0;
-
-	struct DumpFn {
-		template <Int Idx, typename Buffer>
-		void process(Buffer&& buffer, const Position& prefix, const Position& start, const Position& size)
-		{
-			std::cout<<"Level "<<Idx<<" prefix: "<<prefix[Idx]<<", start: "<<start[Idx]<<" size: "<<size[Idx]<<" capacity: "<<buffer.size()<<std::endl;
-			for (Int c = start[Idx]; c < size[Idx]; c++)
-			{
-				std::cout<<c<<": "<<buffer[c]<<std::endl;
-			}
-			std::cout<<std::endl;
-		}
-	};
+	virtual RunDescr populate(Int capacity) = 0;
 
 
-	void dumpBuffer() const
+	void dump_buffer(std::ostream& out = std::cout) const
 	{
-		ForAllBuffer::process(buffer_, DumpFn(), Position(), start_, size_);
+		TextPageDumper dumper(out);
+		ForAllBuffer::process(buffer_, DumpBufferFn(), dumper, out);
 
-		symbols()->dump();
+		out<<"Begin Symbols"<<std::endl;
+		symbols()->generateDataEvents(&dumper);
+		out<<"End Symbols"<<std::endl<<std::endl<<std::endl<<std::endl;
 	}
 
 protected:
@@ -502,10 +698,7 @@ private:
 		template <Int SStreamIdx, typename Buffer, typename T1, typename T2>
 		void process(Buffer&& buffer, T1 idx, T2 value)
 		{
-			using BufferEntry 	  = typename std::tuple_element<SStreamIdx, typename std::remove_reference<Buffer>::type>::type::value_type;
-			constexpr Int SizeIdx = std::tuple_size<BufferEntry>::value - 1;
-
-			std::get<SizeIdx>(std::get<SStreamIdx>(buffer)[idx]) += value;
+			std::get<SStreamIdx>(buffer).add_size(idx, value);
 		}
 	};
 
@@ -518,7 +711,7 @@ private:
 			{
 				if (buffer_sums[sym] > 0)
 				{
-					ForEachStream<Streams - 1>::process(sym - 1, AddSizeFn(), buffer_, sizes[sym - 1] - 1, buffer_sums[sym]);
+					ForEachStream<Streams - 2>::process(sym - 1, AddSizeFn(), buffer_, sizes[sym - 1] - 1, buffer_sums[sym]);
 				}
 			}
 			else if (leafs_[sym - 1].isSet())
@@ -592,8 +785,8 @@ public:
 
 public:
 
-	AbstractCtrInputProvider(CtrT& ctr, Int start_level, const Position& capacity):
-		Base(ctr, start_level, capacity)
+	AbstractCtrInputProvider(CtrT& ctr, Int start_level, Int total_capacity):
+		Base(ctr, start_level, total_capacity)
 	{}
 
 	virtual Position findCapacity(const NodeBaseG& leaf, const Position& sizes)
@@ -678,7 +871,6 @@ class AbstractCtrInputProvider<CtrT, Streams, LeafDataLengthType::VARIABLE>: pub
 	static constexpr float FREE_SPACE_THRESHOLD = 0.01;
 
 
-
 public:
 	using MyType = AbstractCtrInputProvider<CtrT, Streams, LeafDataLengthType::VARIABLE>;
 
@@ -699,8 +891,8 @@ public:
 
 public:
 
-	AbstractCtrInputProvider(CtrT& ctr, Int start_level, const Position& capacity):
-		Base(ctr, start_level, capacity)
+	AbstractCtrInputProvider(CtrT& ctr, Int start_level, Int total_capacity):
+		Base(ctr, start_level, total_capacity)
 	{}
 
 	CtrT& ctr() {
@@ -1129,6 +1321,10 @@ private:
 
 	void updateLeafAnchors(const NodeBaseG& leaf, const Position& at, const Position& sizes)
 	{
+		if (!current_extent_.gteAll(0)) {
+			int a = 0; a++;
+		}
+
 		MEMORIA_ASSERT_TRUE(current_extent_.gteAll(0));
 
 		for (Int c = 0; c < Streams - 1; c++)
@@ -1164,24 +1360,28 @@ template <
 	Int Idx = 0
 >
 struct PopulateHelper {
-	template <typename Chunk, typename Provider, typename Buffer, typename CtrSizesT, typename... Args>
-	static auto process(Chunk&& chunk, Provider&& provider, Buffer&& buffer, const CtrSizesT& start, Args&&... args) {
+	template <typename Chunk, typename Provider, typename Buffer, typename... Args>
+	static void process(Chunk&& chunk, Provider&& provider, Buffer&& buffer, Int capacity, Args&&... args)
+	{
 		if (chunk.symbol() == Idx)
 		{
-			auto len  = chunk.length();
-			Int size = std::get<Idx>(buffer).size();
-			auto len0 = (start[Idx] + len <= size) ? len : size - start[Idx];
+			auto len1  = chunk.length();
 
-			chunk.set_length(len0);
+			if (len1 > capacity)
+			{
+				len1 = capacity;
+			}
 
-			return provider.populate(Tag<Idx>(), std::get<Idx>(buffer), start[Idx], len0, std::forward<Args>(args)...);
+			auto len2 = provider.populate(Tag<Idx>(), std::get<Idx>(buffer), len1, std::forward<Args>(args)...);
+
+			chunk.set_length(len2);
 		}
 		else {
-			return PopulateHelper<Tag, Size, Idx + 1>::process(
+			PopulateHelper<Tag, Size, Idx + 1>::process(
 					chunk,
 					std::forward<Provider>(provider),
 					std::forward<Buffer>(buffer),
-					start,
+					capacity,
 					std::forward<Args>(args)...
 			);
 		}
@@ -1192,16 +1392,19 @@ struct PopulateHelper {
 template <template <Int> class Tag, Int Size>
 struct PopulateHelper<Tag, Size, Size> {
 
-	template <typename Chunk, typename Provider, typename Buffer, typename CtrSizesT, typename... Args>
-	static auto process(Chunk&& chunk, Provider&& provider, Buffer&& buffer, const CtrSizesT& start, Args&&... args)
+	template <typename Chunk, typename Provider, typename Buffer, typename... Args>
+	static void process(Chunk&& chunk, Provider&& provider, Buffer&& buffer, Int capacity, Args&&... args)
 	{
-		auto len  = chunk.length();
-		int size = std::get<Size>(buffer).size();
-		auto len0 = (start[Size] + len <= size) ? len : size - start[Size];
+		auto len1  = chunk.length();
 
-		chunk.set_length(len0);
+		if (len1 > capacity)
+		{
+			len1 = capacity;
+		}
 
-		return provider.populateLastStream(std::get<Size>(buffer), start[Size], len0, std::forward<Args>(args)...);
+		auto len2 = provider.populateLastStream(std::get<Size>(buffer), len1, std::forward<Args>(args)...);
+
+		chunk.set_length(len2);
 	}
 };
 
@@ -1224,18 +1427,18 @@ private:
 
 	DataProvider& data_provider_;
 public:
-	StreamingCtrInputProvider(CtrT& ctr, DataProvider& data_provider, Int start_level, const CtrSizesT& buffer_sizes = CtrSizesT(4000)):
-		Base(ctr, start_level, buffer_sizes),
+	StreamingCtrInputProvider(CtrT& ctr, DataProvider& data_provider, Int start_level, Int total_capacity = 4000):
+		Base(ctr, start_level, total_capacity),
 		data_provider_(data_provider)
 	{}
 
-	virtual RunDescr populate(const CtrSizesT& start)
+	virtual RunDescr populate(Int capacity)
 	{
 		RunDescr chunk = data_provider_.query();
 
 		if (chunk.symbol() >= 0)
 		{
-			details::PopulateHelper<StreamTag, Streams - 1>::process(chunk, data_provider_, this->buffer_, start);
+			details::PopulateHelper<StreamTag, Streams - 1>::process(chunk, data_provider_, this->buffer_, capacity);
 		}
 
 		return chunk;
@@ -1245,7 +1448,6 @@ public:
 		return data_provider_;
 	}
 };
-
 
 
 

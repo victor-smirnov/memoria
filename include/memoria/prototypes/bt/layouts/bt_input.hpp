@@ -258,7 +258,11 @@ private:
         template <Int Idx, typename Node>
         void stream(Node*, const BufferSizesT& sizes)
         {
-        	size_ += PackedAllocatable::roundUpBytesToAlignmentBlocks(Node::block_size(std::get<Idx>(sizes)));
+        	size_ += PackedAllocatable::roundUpBytesToAlignmentBlocks(
+        			Node::block_size(
+        					std::get<Idx>(sizes)
+					)
+        	);
         }
     };
 

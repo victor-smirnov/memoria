@@ -211,6 +211,7 @@ public:
     void reset() {
     	auto meta = this->metadata();
     	meta->data_size().clear();
+    	meta->size() = 0;
     }
 
     Value value(Int block, Int idx) const

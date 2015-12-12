@@ -20,8 +20,8 @@ using namespace memoria::tools;
 using namespace std;
 
 using CtrT 		= DCtrTF<Table<BigInt, Byte, PackedSizeType::VARIABLE>>::Type;
-//using Provider 	= ::memoria::bttl::RandomDataInputProvider2<CtrT, RngInt>;
-using Provider 	= ::memoria::bttl::DeterministicDataInputProvider2<CtrT>;
+//using Provider 	= ::memoria::bttl::RandomDataInputProvider<CtrT, RngInt>;
+using Provider 	= ::memoria::bttl::DeterministicDataInputProvider<CtrT>;
 using Position  = CtrT::Types::Position;
 
 
@@ -64,7 +64,7 @@ int main(int argc, const char** argv, const char** envp) {
 //		Provider provider({rows, cols, data_size}, getGlobalIntGenerator());
 		Provider provider({rows, cols, data_size});
 
-		ctr._insert2(iter, provider, 1000000);
+		ctr._insert(iter, provider, 1000000);
 
 
 		BigInt c1 = getTimeInMillis();

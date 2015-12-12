@@ -43,28 +43,28 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::InsertName)
 
     using PageUpdateMgt 	= typename Types::PageUpdateMgr;
 
+//    template <typename Provider>
+//    CtrSizesT _insert(Iterator& iter, Provider&& provider, const CtrSizesT& buffer = CtrSizesT(2000))
+//    {
+//    	auto& self = this->self();
+//
+//    	bttl::StreamingCtrInputProvider2<MyType, Provider> streamingProvider(self, provider, iter.stream(), buffer.sum());
+//
+//    	auto pos = iter.local_stream_posrank_();
+//
+//    	streamingProvider.prepare(iter, pos);
+//
+//    	self.insert_provided_data(iter.leaf(), pos, streamingProvider);
+//
+//    	return streamingProvider.totals();
+//    }
+
     template <typename Provider>
-    CtrSizesT _insert(Iterator& iter, Provider&& provider, const CtrSizesT& buffer = CtrSizesT(2000))
+    CtrSizesT _insert(Iterator& iter, Provider&& provider, const Int total_capacity = 2000)
     {
     	auto& self = this->self();
 
-    	bttl::StreamingCtrInputProvider<MyType, Provider> streamingProvider(self, provider, iter.stream(), buffer);
-
-    	auto pos = iter.local_stream_posrank_();
-
-    	streamingProvider.prepare(iter, pos);
-
-    	self.insert_provided_data(iter.leaf(), pos, streamingProvider);
-
-    	return streamingProvider.totals();
-    }
-
-    template <typename Provider>
-    CtrSizesT _insert2(Iterator& iter, Provider&& provider, const Int total_capacity = 2000)
-    {
-    	auto& self = this->self();
-
-    	bttl::StreamingCtrInputProvider2<MyType, Provider> streamingProvider(self, provider, iter.stream(), total_capacity);
+    	bttl::StreamingCtrInputProvider<MyType, Provider> streamingProvider(self, provider, iter.stream(), total_capacity);
 
     	auto pos = iter.local_stream_posrank_();
 

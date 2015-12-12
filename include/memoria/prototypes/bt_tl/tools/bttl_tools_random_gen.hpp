@@ -48,253 +48,14 @@ struct BTTLTupleFactory {
 	}
 };
 
+
+
 template <
 	typename CtrT,
 	typename RngT,
 	template <typename> class TupleFactory = BTTLTupleFactory
 >
 class RandomDataInputProvider {
-
-
-public:
-
-	using CtrSizesT 	= typename CtrT::Types::Position;
-	using CtrSizeT 		= typename CtrT::CtrSizeT;
-
-	using Rng 			= RngT;
-
-	template <Int StreamIdx>
-	using InputTuple 		= typename CtrT::Types::template StreamInputTuple<StreamIdx>;
-
-	template <Int StreamIdx>
-	using InputTupleAdapter = typename CtrT::Types::template InputTupleAdapter<StreamIdx>;
-
-	static constexpr Int Streams = CtrT::Types::Streams;
-
-private:
-	CtrSizesT counts_;
-	CtrSizesT limits_;
-	CtrSizesT current_limits_;
-	CtrSizesT totals_;
-
-	Int level_ = 0;
-
-	Rng& rng_;
-
-	TupleFactory<CtrT> tuple_factory_;
-
-public:
-	RandomDataInputProvider(const CtrSizesT& limits, Rng& rng, Int level = 0):
-		limits_(limits),
-		level_(level),
-		rng_(rng)
-	{
-		current_limits_[0] = limits_[0];
-
-		for (Int c = 1; c < Streams; c++)
-		{
-			current_limits_[c] = getRandom(limits_[c]);
-		}
-	}
-
-	auto query()
-	{
-		if (counts_[level_] < current_limits_[level_])
-		{
-			if (level_ < Streams - 1)
-			{
-				return RunDescr(level_++, 1);
-			}
-			else {
-				return RunDescr(level_, current_limits_[level_] - counts_[level_]);
-			}
-		}
-		else if (level_ > 0)
-		{
-			counts_[level_] = 0;
-			current_limits_[level_] = getRandom(limits_[level_]);
-
-			level_--;
-
-			return this->query();
-		}
-		else {
-			return RunDescr(-1);
-		}
-	}
-
-	template <typename Buffer>
-	void populate(StreamTag<0>, Buffer&& buffer, CtrSizeT start, CtrSizeT length)
-	{
-		auto c0 = counts_[0];
-
-		for (auto c = start; c < start + length; c++, c0++)
-		{
-			buffer[c] = tuple_factory_.populate(StreamTag<0>(), c0);
-		}
-
-		counts_[0] += length;
-		totals_[0] += length;
-	}
-
-	template <Int StreamIdx, typename Buffer>
-	void populate(StreamTag<StreamIdx>, Buffer&& buffer, CtrSizeT start, CtrSizeT length)
-	{
-		auto c0 = counts_[StreamIdx];
-
-		for (auto c = start; c < start + length; c++, c0++)
-		{
-			buffer[c] = tuple_factory_.populate(StreamTag<StreamIdx>(), c0);
-		}
-
-		counts_[StreamIdx] += length;
-		totals_[StreamIdx] += length;
-	}
-
-	template <typename Buffer>
-	void populateLastStream(Buffer&& buffer, CtrSizeT start, CtrSizeT length)
-	{
-		auto col = counts_[Streams - 2];
-		auto c0 = counts_[Streams - 1];
-
-		for (auto c = start; c < start + length; c++, c0++)
-		{
-			buffer[c] = tuple_factory_.populateLastStream(col % 256, c0);
-		}
-
-		counts_[Streams - 1] += length;
-		totals_[Streams - 1] += length;
-	}
-
-	const CtrSizesT& consumed() const{
-		return totals_;
-	}
-private:
-	CtrSizeT getRandom(CtrSizeT limit)
-	{
-		return 1 + rng_() % (2 * limit - 1);
-	}
-};
-
-
-
-
-
-
-
-template <
-	typename CtrT,
-	template <typename> class TupleFactory = BTTLTupleFactory
->
-class DeterministicDataInputProvider {
-public:
-
-	using CtrSizesT 	= typename CtrT::Types::Position;
-	using CtrSizeT 		= typename CtrT::CtrSizeT;
-
-	template <Int StreamIdx>
-	using InputTupleAdapter = typename CtrT::Types::template InputTupleAdapter<StreamIdx>;
-
-	static constexpr Int Streams = CtrT::Types::Streams;
-
-private:
-	CtrSizesT counts_;
-	CtrSizesT limits_;
-
-	CtrSizesT totals_;
-
-	Int level_;
-
-	TupleFactory<CtrT> tuple_factory_;
-
-public:
-	DeterministicDataInputProvider(const CtrSizesT& limits, Int level = 0):
-		limits_(limits),
-		level_(level)
-	{}
-
-	auto query()
-	{
-		if (counts_[level_] < limits_[level_])
-		{
-			if (level_ < Streams - 1)
-			{
-				return RunDescr(level_++, 1);
-			}
-			else {
-				return RunDescr(level_, limits_[level_] - counts_[level_]);
-			}
-		}
-		else if (level_ > 0)
-		{
-			counts_[level_] = 0;
-			level_--;
-
-			return this->query();
-		}
-		else {
-			return RunDescr(-1);
-		}
-	}
-
-	template <typename Buffer>
-	void populate(StreamTag<0>, Buffer&& buffer, CtrSizeT start, CtrSizeT length)
-	{
-		auto c0 = counts_[0];
-
-		for (auto c = start; c < start + length; c++, c0++)
-		{
-			buffer[c] = tuple_factory_.populate(StreamTag<0>(), c0);
-		}
-
-		counts_[0] += length;
-		totals_[0] += length;
-	}
-
-	template <Int StreamIdx, typename Buffer>
-	void populate(StreamTag<StreamIdx>, Buffer&& buffer, CtrSizeT start, CtrSizeT length)
-	{
-		auto c0 = counts_[StreamIdx];
-
-		for (auto c = start; c < start + length; c++, c0++)
-		{
-			buffer[c] = tuple_factory_.populate(StreamTag<StreamIdx>(), c0);
-		}
-
-		counts_[StreamIdx] += length;
-		totals_[StreamIdx] += length;
-	}
-
-	template <typename Buffer>
-	void populateLastStream(Buffer&& buffer, CtrSizeT start, CtrSizeT length)
-	{
-		auto col = counts_[Streams - 2];
-		auto c0 = counts_[Streams - 1];
-
-		for (auto c = start; c < start + length; c++, c0++)
-		{
-			buffer[c] = tuple_factory_.populateLastStream(col % 256, c0);
-		}
-
-		counts_[Streams - 1] += length;
-		totals_[Streams - 1] += length;
-	}
-
-	const CtrSizesT& consumed() const{
-		return totals_;
-	}
-};
-
-
-
-
-
-template <
-	typename CtrT,
-	typename RngT,
-	template <typename> class TupleFactory = BTTLTupleFactory
->
-class RandomDataInputProvider2 {
 
 
 public:
@@ -329,7 +90,7 @@ private:
 	StreamEntryBuffer<LastStreamEntry> last_stream_buf_;
 
 public:
-	RandomDataInputProvider2(const CtrSizesT& limits, Rng& rng, Int level = 0):
+	RandomDataInputProvider(const CtrSizesT& limits, Rng& rng, Int level = 0):
 		limits_(limits),
 		level_(level),
 		rng_(rng)
@@ -444,7 +205,7 @@ template <
 	typename CtrT,
 	template <typename> class TupleFactory = BTTLTupleFactory
 >
-class DeterministicDataInputProvider2 {
+class DeterministicDataInputProvider {
 public:
 
 	using CtrSizesT 	= typename CtrT::Types::Position;
@@ -471,7 +232,7 @@ private:
 
 
 public:
-	DeterministicDataInputProvider2(const CtrSizesT& limits, Int level = 0):
+	DeterministicDataInputProvider(const CtrSizesT& limits, Int level = 0):
 		limits_(limits),
 		level_(level),
 		last_stream_buf_(1000)

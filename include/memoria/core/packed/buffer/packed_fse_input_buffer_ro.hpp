@@ -92,6 +92,11 @@ public:
         return PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(MyType) + array_size * sizeof(Value) * Blocks);
     }
 
+    static constexpr Int block_size(const SizesT& array_size)
+    {
+    	return PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(MyType) + array_size[0] * sizeof(Value) * Blocks);
+    }
+
     void init(Int block_size)
     {
         size_ = 0;
