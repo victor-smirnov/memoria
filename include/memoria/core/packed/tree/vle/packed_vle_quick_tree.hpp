@@ -661,6 +661,11 @@ public:
     SizesT positions(Int idx) const
     {
     	MEMORIA_ASSERT(idx, >=, 0);
+
+    	if(idx > this->size()) {
+    		this->dump();
+    	}
+
     	MEMORIA_ASSERT(idx, <=, this->size());
 
     	SizesT pos;
@@ -893,6 +898,12 @@ public:
     template <typename UpdateFn>
     void update_value(Int block, Int start, UpdateFn&& update_fn)
     {
+    	if(start > this->size()) {
+//    		this->dump();
+    		cout<<"Update Value!"<<endl;
+    		int a = 0; a++;
+    	}
+
     	MEMORIA_ASSERT(start, <=, this->size());
     	MEMORIA_ASSERT(start, >=, 0);
     	MEMORIA_ASSERT(block, >=, 0);

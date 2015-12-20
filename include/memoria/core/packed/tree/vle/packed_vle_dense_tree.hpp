@@ -1282,8 +1282,8 @@ public:
     		return result.adjust(block_start, size);
     	}
     	else {
-    		auto sum = this->gsum(0, block_start + 1, block_start + start + 1);
-    		return result.adjust(block_start, size, sum);
+    		auto sum = this->gsum(0, block_start, block_start + start + 1);
+    		return result.adjust_bw(sum);
     	}
     }
 
@@ -1298,8 +1298,8 @@ public:
     		return result.adjust(block_start, size);
     	}
     	else {
-    		auto sum = this->gsum(0, block_start + 1, block_start + start + 1);
-    		return result.adjust(block_start, size, sum);
+    		auto sum = this->gsum(0, block_start, block_start + start + 1);
+    		return result.adjust_bw(sum);
     	}
     }
 

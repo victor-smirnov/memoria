@@ -52,7 +52,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorRemoveName)
     template <Int Stream>
     using StreamInputTuple = typename Container::Types::template StreamInputTuple<Stream>;
 
-    Position remove_subtrees(CtrSizeT n) {
+    Position remove_subtrees(CtrSizeT n)
+    {
     	Accumulator sums;
 
     	self().remove_subtrees(n, sums);

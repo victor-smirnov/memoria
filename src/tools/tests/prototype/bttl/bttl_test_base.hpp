@@ -312,13 +312,17 @@ public:
     		{
     			if (extent[c] < 0)
     			{
-    				i.dump(this->out());
+    				i.dumpPath(this->out());
     			}
 
-    			AssertGE(MA_SRC, extent[c], 0);
+    			AssertGE(MA_SRC, extent[c], 0, SBuf()<<"Extent: "<<extent);
     		}
 
-    		extent += ctr.node_extents(i.leaf());
+    		auto ex = ctr.node_extents(i.leaf());
+
+    		extent += ex;
+
+//    		cout<<"checkExtent: "<<i.leaf()->id()<<" "<<ex<<" "<<extent<<endl;
     	}
     	while(i.nextLeaf());
 

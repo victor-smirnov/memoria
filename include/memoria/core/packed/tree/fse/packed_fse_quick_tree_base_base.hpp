@@ -240,10 +240,20 @@ protected:
     Int walk_index_fw(const IndexedTreeLayout<IndexT>& data, Int start, Int level, Walker&& walker) const
     {
     	Int level_start = data.level_starts[level];
+    	Int level_size = data.level_sizes[level];
 
     	Int branch_end = (start | BranchingFactorMask) + 1;
 
-    	for (Int c = level_start + start; c < branch_end + level_start; c++)
+    	Int branch_limit;
+
+    	if (branch_end > level_size) {
+    		branch_limit = level_size;
+    	}
+    	else {
+    		branch_limit = branch_end;
+    	}
+
+    	for (Int c = level_start + start; c < branch_limit + level_start; c++)
     	{
     		if (walker.compare(data.indexes[c]))
     		{
@@ -286,42 +296,48 @@ protected:
     	Int level_start = data.level_starts[level];
     	Int level_size  = data.level_sizes[level];
 
-    	Int branch_end = (start & ~BranchingFactorMask) - 1;
-
-    	if (start >= level_size) {
-    		start = level_size - 1;
-    	}
-
-    	for (Int c = level_start + start; c > branch_end + level_start; c--)
+    	if (start >= 0)
     	{
-    		if (walker.compare(data.indexes[c]))
+    		Int branch_end = (start & ~BranchingFactorMask) - 1;
+
+    		if (start >= level_size) {
+    			start = level_size - 1;
+    		}
+
+    		for (Int c = level_start + start; c > branch_end + level_start; c--)
     		{
-    			if (level < data.levels_max)
+    			if (walker.compare(data.indexes[c]))
     			{
-    				return walk_index_bw(
-    						data,
-							((c - level_start + 1) << BranchingFactorLog2) - 1,
-							level + 1,
-							std::forward<Walker>(walker)
-    				);
+    				if (level < data.levels_max)
+    				{
+    					return walk_index_bw(
+    							data,
+								((c - level_start + 1) << BranchingFactorLog2) - 1,
+								level + 1,
+								std::forward<Walker>(walker)
+    					);
+    				}
+    				else {
+    					return c - level_start;
+    				}
     			}
     			else {
-    				return c - level_start;
+    				walker.next();
     			}
     		}
-    		else {
-    			walker.next();
-    		}
-    	}
 
-    	if (level > 0)
-    	{
-    		return walk_index_bw(
-    				data,
-					branch_end >> BranchingFactorLog2,
-					level - 1,
-					std::forward<Walker>(walker)
-    		);
+    		if (level > 0)
+    		{
+    			return walk_index_bw(
+    					data,
+						branch_end >> BranchingFactorLog2,
+						level - 1,
+						std::forward<Walker>(walker)
+    			);
+    		}
+    		else {
+    			return -1;
+    		}
     	}
     	else {
     		return -1;

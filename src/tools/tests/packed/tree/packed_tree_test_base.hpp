@@ -98,13 +98,13 @@ public:
         }
     }
 
-    vector<Values> fillRandom(Tree* tree, Int size, Int max_value = 300)
+    vector<Values> fillRandom(Tree* tree, Int size, Int max_value = 300, Int min = 1)
     {
         vector<Values> vals(size);
         for (auto& v: vals)
         {
         	for (Int b = 0; b < Blocks; b++) {
-        		v[b] = getRandom(max_value);
+        		v[b] = getRandom(max_value) + min;
         	}
         }
 

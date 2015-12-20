@@ -260,7 +260,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
 
     	Int excess = self.prefix_excess(stream);
 
-    	if (idx >= excess)
+    	Int size = self.leaf_size(stream);
+
+    	if (idx >= excess && idx < size)
     	{
     		return self.find_offset(stream - 1, idx - excess);
     	}

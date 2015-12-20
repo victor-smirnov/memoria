@@ -48,6 +48,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
     template <Int StreamIdx>
     using LeafSizesSubstreamPath = typename Types::template LeafSizesSubstreamPath<StreamIdx>;
 
+    using AnchorValueT 	= core::StaticVector<CtrSizeT, Streams - 1>;
+    using AnchorPosT 	= core::StaticVector<Int, Streams - 1>;
 
     template <Int StreamIdx>
     struct ProcessCountSubstreamFn {
@@ -162,6 +164,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
     		self.updatePageG(node);
 
     		self.process_count_substreams(node, stream, fn, idx, value);
+
+//    		cout<<"Add_to_stream_counter: "<<node->id()<<" "<<stream<<" "<<idx<<" "<<value<<endl;
 
     		while (node->parent_id().isSet())
     		{
@@ -301,7 +305,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
     }
 
 
-    void compute_leaf_prefixes(const NodeBaseG leaf, const Position& extent, LeafPrefixRanks& prefixes) const
+    void compute_leaf_prefixes(const NodeBaseG& leaf, const Position& extent, LeafPrefixRanks& prefixes, const AnchorPosT& anchors = AnchorPosT(-1), const AnchorValueT& anchor_values = AnchorValueT(0)) const
     {
     	const auto& self  = this->self();
 
@@ -310,12 +314,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
     	for (Int s = SearchableStreams - 1; s > 0; s--)
     	{
     		prefixes[s - 1] = prefixes[s];
-    		self.count_downstream_items(leaf, prefixes[s], prefixes[s - 1], s, extent[s]);
+    		self.count_downstream_items(leaf, prefixes[s], prefixes[s - 1], s, extent[s], anchors, anchor_values);
     		prefixes[s - 1][s] = extent[s];
     	}
     }
 
-    Position leafrank_(const NodeBaseG& leaf, const Position& sizes, const Position& extent, Int pos) const
+    template <typename... Args>
+    Position leafrank_(const NodeBaseG& leaf, const Position& sizes, const Position& extent, Int pos, const AnchorPosT& anchors = AnchorPosT(-1), const AnchorValueT& anchor_values = AnchorValueT(0)) const
     {
     	auto& self = this->self();
 
@@ -324,13 +329,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
 
     	LeafPrefixRanks prefixes;
 
-    	self.compute_leaf_prefixes(leaf, extent, prefixes);
+    	self.compute_leaf_prefixes(leaf, extent, prefixes, anchors, anchor_values);
 
-    	return self.leafrank_(leaf, sizes, prefixes, pos);
+    	return self.leafrank_(leaf, sizes, prefixes, pos, anchors, anchor_values);
     }
 
 
-    Position leafrank_(const NodeBaseG& leaf, Position sizes, const LeafPrefixRanks& prefixes, Int pos) const
+    template <typename... Args>
+    Position leafrank_(const NodeBaseG& leaf, Position sizes, const LeafPrefixRanks& prefixes, Int pos, Args&&... args) const
     {
     	if (pos >= sizes.sum()) {
     		return sizes;
@@ -342,7 +348,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
     			Int sum = prefixes[s].sum();
     			if (pos >= sum)
     			{
-    				return bttl::detail::ZeroRankHelper<0, Streams>::process(this, leaf, sizes, prefixes[s], pos);
+    				return bttl::detail::ZeroRankHelper<0, Streams>::process(this, leaf, sizes, prefixes[s], pos, std::forward<Args>(args)...);
     			}
     			else {
     				sizes[s] = 0;
@@ -356,6 +362,20 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
 
     template <Int Stream>
     struct _StreamsRankFn {
+    	template <typename NTypes, typename... Args, typename T1, typename T2>
+    	Position treeNode(const LeafNode<NTypes>* leaf, const Position& sizes, const Position& prefix, Int pos, T1&& anchors, T2&& anchor_values, Args&&... args)
+    	{
+    		bttl::detail::StreamsRankFn<
+				LeafSizesSubstreamPath,
+				CtrSizeT,
+				Position
+			> fn(sizes, prefix, pos, anchors, anchor_values);
+
+    		bttl::detail::StreamsRankHelper<Stream, SearchableStreams>::process(leaf, fn, std::forward<Args>(args)...);
+
+    		return fn.indexes_ + fn.prefix_;
+    	}
+
     	template <typename NTypes, typename... Args>
     	Position treeNode(const LeafNode<NTypes>* leaf, const Position& sizes, const Position& prefix, Int pos, Args&&... args)
     	{
@@ -390,8 +410,11 @@ private:
     	Int stream_;
     	CtrSizeT cnt_;
 
-    	CountStreamsItemsFn(const Position& prefix, Position& sums, Int stream, Int end):
-    		prefix_(prefix), sums_(sums), stream_(stream), cnt_(end)
+    	const AnchorPosT& anchors_;
+    	const AnchorValueT& anchor_values_;
+
+    	CountStreamsItemsFn(const Position& prefix, Position& sums, Int stream, Int end, const AnchorPosT& anchors,	const AnchorValueT& anchor_values):
+    		prefix_(prefix), sums_(sums), stream_(stream), cnt_(end), anchors_(anchors), anchor_values_(anchor_values)
     	{}
 
     	template <typename Stream>
@@ -399,7 +422,9 @@ private:
     	{
     		auto size = substream->size();
     		auto limit = end < size ? end : size;
-    		return limit > start ? substream->sum(0, start, limit) : 0;
+    		auto sum = limit > start ? substream->sum(0, start, limit) : 0;
+
+    		return sum;
     	}
 
 
@@ -411,16 +436,23 @@ private:
     			constexpr Int SubstreamIdx = Leaf::template StreamStartIdx<StreamIdx>::Value +
     			    						 Leaf::template StreamSize<StreamIdx>::Value - 1;
 
+    			auto start 	= prefix_[StreamIdx];
+    			auto end 	= prefix_[StreamIdx] + cnt_;
+
     			auto sum = Leaf::Dispatcher::template dispatch<SubstreamIdx>(
     					leaf->allocator(),
 						*this,
-						prefix_[StreamIdx],
-						prefix_[StreamIdx] + cnt_
+						start,
+						end
 				);
 
-    			sums_[StreamIdx + 1] += sum;
+    			auto anchor = anchors_[StreamIdx];
 
-    			cnt_ = sum;
+    			auto fix = (anchor >= start && anchor < end) ? anchor_values_[StreamIdx] : 0;
+
+    			sums_[StreamIdx + 1] += sum + fix;
+
+    			cnt_ = sum + fix;
     		}
 
     		return true;
@@ -435,9 +467,9 @@ private:
     };
 
 
-    void count_downstream_items(const NodeBaseG& leaf, const Position& prefix, Position& sums, Int stream, Int end) const
+    void count_downstream_items(const NodeBaseG& leaf, const Position& prefix, Position& sums, Int stream, Int end, const AnchorPosT& anchors, const AnchorValueT& anchor_values) const
     {
-    	return LeafDispatcher::dispatch(leaf, CountStreamsItemsFn(prefix, sums, stream, end));
+    	return LeafDispatcher::dispatch(leaf, CountStreamsItemsFn(prefix, sums, stream, end, anchors, anchor_values));
     }
 
 

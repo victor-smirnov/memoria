@@ -57,7 +57,8 @@ template <
 	typename Position
 >
 struct StreamsRankFn {
-	static const Int BufferSize = 8;
+	static constexpr Int BufferSize = 32;
+	static constexpr Int Streams = Position::Indexes;
 
 	CtrSizeT pos_;
 	CtrSizeT target_;
@@ -66,11 +67,30 @@ struct StreamsRankFn {
 	Position prefix_;
 	Position indexes_;
 
+
+	using AnchorValueT 	= core::StaticVector<CtrSizeT, Streams - 1>;
+	using AnchorPosT 	= core::StaticVector<Int, Streams - 1>;
+
+	AnchorPosT anchors_;
+	AnchorValueT anchor_values_;
+
+	StreamsRankFn(const Position& sizes, const Position& prefix, CtrSizeT target, const AnchorPosT& anchors, const AnchorValueT& anchor_values):
+		target_(target),
+		sizes_(sizes),
+		prefix_(prefix),
+		indexes_(),
+		anchors_(anchors),
+		anchor_values_(anchor_values)
+	{
+		pos_ = prefix.sum();
+	}
+
 	StreamsRankFn(const Position& sizes, const Position& prefix, CtrSizeT target):
 		target_(target),
 		sizes_(sizes),
 		prefix_(prefix),
-		indexes_()
+		indexes_(),
+		anchors_(-1)
 	{
 		pos_ = prefix.sum();
 	}
@@ -112,13 +132,17 @@ struct StreamsRankFn {
 	}
 
 
+
+
+
+
 	template <Int StreamIdx, typename Node>
 	void processLast(const Node* node) {
 		processLast<StreamIdx>(node, prefix_[StreamIdx], sizes_[StreamIdx]);
 	}
 
-	template <Int StreamIdx, typename Node>
-	void processLast(const Node* node, CtrSizeT start, CtrSizeT end)
+	template <Int StreamIdx, typename Node, typename... Args>
+	void processLast(const Node* node, CtrSizeT start, CtrSizeT end, Args&&...)
 	{
 		CtrSizeT size = node->template streamSize<StreamIdx>();
 
@@ -151,6 +175,12 @@ private:
 			using Path = StreamsSizesPath<StreamIdx>;
 
 			node->template substream<Path>()->read(0, idx, limit, buffer);
+
+			Int anchor = anchors_[StreamIdx];
+			if (anchor >= idx && anchor < limit)
+			{
+				buffer[anchor - idx] += anchor_values_[StreamIdx];
+			}
 
 			p0 = idx;
 			s0 = limit;

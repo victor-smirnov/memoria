@@ -258,6 +258,7 @@ public:
 
     	Int room_length = end - start;
     	Int size = this->size();
+
     	MEMORIA_ASSERT(room_length, <= , size - start);
 
     	Value* values = this->values();

@@ -889,6 +889,9 @@ public:
 	Position current_extent_;
 	LeafExtents leaf_extents_;
 
+	using typename Base::AnchorValueT;
+	using typename Base::AnchorPosT;
+
 public:
 
 	AbstractCtrInputProvider(CtrT& ctr, Int start_level, Int total_capacity):
@@ -921,6 +924,8 @@ public:
 
 	virtual Position fill(NodeBaseG& leaf, const Position& start)
 	{
+//		cout<<"Fill page: "<<leaf->id()<<endl;
+
 		Position pos = start;
 
 		PageUpdateMgr mgr(ctr());
@@ -942,10 +947,11 @@ public:
 				if (leaf->parent_id().isSet())
 				{
 					auto sums = ctr().sums(leaf, pos, end);
+//					cout<<"Update Parent: "<<leaf->id()<<" "<<sums<<" parent:  "<<leaf->parent_id()<<" "<<leaf->parent_idx()<<endl;
 					ctr().update_parent(leaf, sums);
 				}
 
-				auto next_leaf = applyAnchorValues(mgr, leaf);
+				auto next_leaf = applyAnchorValues(mgr, leaf, pos, inserted);
 
 				if (next_leaf == leaf)
 				{
@@ -961,6 +967,7 @@ public:
 
 					if (start_pos >= split_at_pos)
 					{
+//						cout<<"Split 1"<<endl;
 						pos -= split_at;
 
 						updateLeafAnchors(next_leaf, pos, inserted);
@@ -975,11 +982,10 @@ public:
 
 						break;
 					}
-					else if (end_pos <= start_pos)
+					else if (end_pos < split_at_pos)
 					{
+//						cout<<"Split 2"<<endl;
 						MEMORIA_ASSERT_TRUE(leaf->parent_id());
-
-						pos -= split_at;
 
 						updateLeafAnchors(leaf, pos, inserted);
 
@@ -988,11 +994,12 @@ public:
 						pos += inserted;
 					}
 					else {
+//						cout<<"Target split!"<<endl;
 						auto leaf_inserted = split_at - pos;
 
 						updateLeafAnchors(leaf, pos, leaf_inserted);
 
-						auto next_leaf_inserted = pos + inserted - split_at;
+						auto next_leaf_inserted = inserted - leaf_inserted;
 
 						updateLeafAnchors(next_leaf, Position(0), next_leaf_inserted);
 
@@ -1120,13 +1127,13 @@ protected:
 
 private:
 
-	NodeBaseG applyAnchorValues(PageUpdateMgr& mgr, NodeBaseG& current_leaf)
+	NodeBaseG applyAnchorValues(PageUpdateMgr& mgr, NodeBaseG& current_leaf, const Position& pos, const Position& inserted)
 	{
 		auto next_leaf = current_leaf;
 
 		for (Int s = 0; s < Streams - 1; s++)
 		{
-			auto value = this->anchor_values_[s];
+			const auto value = this->anchor_values_[s];
 
 			if (value > 0)
 			{
@@ -1153,7 +1160,12 @@ private:
 			{
 				if (current_leaf == leaf)
 				{
-					next_leaf = processCurrentAnchor(s, mgr);
+					auto leaf2 = processCurrentAnchor(s, mgr, pos, inserted);
+
+					if (leaf2 != leaf)
+					{
+						next_leaf = leaf2;
+					}
 				}
 				else {
 					processAnchor(s);
@@ -1189,7 +1201,26 @@ private:
 				mgr.rollback();
 
 				auto sizes		= ctr.getNodeSizes(leaf);
-				auto split_at 	= ctr.leafrank_(leaf, sizes, leaf_extents_[stream], sizes.sum() / 2);
+
+				auto anchors 		= this->anchors_;
+				auto anchor_values 	= this->anchor_values_;
+
+				for (Int c = 0; c < Streams - 1; c++) {
+					if (this->leafs_[c].isEmpty() || this->leafs_[c] != leaf)
+					{
+						anchors[c] = -1;
+					}
+				}
+
+				auto extent1 = leaf_extents_[stream];
+
+				for (Int c = 0; c < Streams; c++) {
+					if (extent1[c] > sizes[c]) {
+						extent1[c] = sizes[c];
+					}
+				}
+
+				auto split_at 	= ctr.leafrank_(leaf, sizes, extent1, sizes.sum() / 2, anchors, anchor_values);
 
 				NodeBaseG next_leaf;
 
@@ -1206,6 +1237,8 @@ private:
 					ctr.split_leaf_node(leaf, next_leaf, split_at);
 				}
 
+//				cout<<"Split1 page: "<<leaf->id()<<leaf->parent_idx()<<" "<<next_leaf->id()<<" "<<next_leaf->parent_id()<<" "<<next_leaf->parent_idx()<<endl;
+
 				if (this->split_watcher_.first == leaf) {
 					this->split_watcher_.second = next_leaf;
 				}
@@ -1213,17 +1246,25 @@ private:
 				next_leaf->next_leaf_id() 	= leaf->next_leaf_id();
 				leaf->next_leaf_id()		= next_leaf->id();
 
+
+				// FIXME rewrite this stupid code.
+				auto current_leaf_id = leaf->id();
+
 				for (Int ss = 0; ss < Streams - 1; ss++)
 				{
 					auto& lleaf 			= this->leafs_[ss];
 					auto& lanchor			= this->anchors_[ss];
 
-					if (lleaf == leaf) {
+					if (lleaf.isSet() && lleaf->id() == current_leaf_id)
+					{
 						if (lanchor >= split_at[ss])
 						{
 							lanchor -= split_at[ss];
 
 							leaf_extents_[ss] += ctr.node_extents(leaf);
+
+							mgr.remove(leaf);
+							mgr.add(next_leaf);
 
 							lleaf = next_leaf;
 						}
@@ -1237,7 +1278,7 @@ private:
 	}
 
 
-	NodeBaseG processCurrentAnchor(Int stream, PageUpdateMgr& mgr)
+	NodeBaseG processCurrentAnchor(Int stream, PageUpdateMgr& mgr, const Position& pos, const Position& inserted)
 	{
 		auto& ctr = this->ctr();
 
@@ -1262,8 +1303,8 @@ private:
 			{
 				mgr.restoreNodeState();
 
-				auto sizes		= ctr.getNodeSizes(leaf);
-				auto split_at 	= ctr.leafrank_(leaf, sizes, leaf_extents_[stream], sizes.sum() / 2);
+
+				auto split_at = pos;
 
 				if (leaf->is_root() || leaf->parent_id())
 				{
@@ -1281,19 +1322,22 @@ private:
 					leaf->next_leaf_id()		= next_leaf->id();
 				}
 
+//				cout<<"Split2 page: "<<leaf->id()<<" "<<next_leaf->id()<<endl;
+
 				if (this->split_watcher_.first == leaf)
 				{
 					this->split_watcher_.second = next_leaf;
 				}
 
-				NodeBaseG node_to_update = leaf;
+				auto node_to_update  = leaf;
+				auto current_leaf_id = leaf->id();
 
 				for (Int ss = 0; ss < Streams - 1; ss++)
 				{
 					auto& lleaf 			= this->leafs_[ss];
 					auto& lanchor			= this->anchors_[ss];
 
-					if (lleaf == leaf) {
+					if (lleaf.isSet() && lleaf->id() == current_leaf_id) {
 						if (lanchor >= split_at[ss])
 						{
 							lanchor -= split_at[ss];
@@ -1321,10 +1365,6 @@ private:
 
 	void updateLeafAnchors(const NodeBaseG& leaf, const Position& at, const Position& sizes)
 	{
-		if (!current_extent_.gteAll(0)) {
-			int a = 0; a++;
-		}
-
 		MEMORIA_ASSERT_TRUE(current_extent_.gteAll(0));
 
 		for (Int c = 0; c < Streams - 1; c++)

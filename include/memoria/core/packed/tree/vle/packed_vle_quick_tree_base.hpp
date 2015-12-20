@@ -351,6 +351,15 @@ public:
     		return *this;
     	}
 
+    	FindGEWalker& adjust_bw(IndexValue sum) {
+    		idx_ = -1;
+
+    		this->sum_ = sum;
+
+    		return *this;
+    	}
+
+
     	FindGEWalker& adjust_s(Int base, Int size, IndexValue sum) {
     		idx_ -= base;
 
@@ -413,6 +422,14 @@ public:
     		if (idx_ > size) {
     			idx_ = size;
     		}
+
+    		this->sum_ = sum;
+
+    		return *this;
+    	}
+
+    	FindGTWalker& adjust_bw(IndexValue sum) {
+    		idx_ = -1;
 
     		this->sum_ = sum;
 

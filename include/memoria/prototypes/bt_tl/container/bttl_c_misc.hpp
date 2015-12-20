@@ -33,10 +33,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::MiscName)
 
     using Key 				    = typename Types::Key;
     using Value 			    = typename Types::Value;
-    using CtrSizeT			  = typename Types::CtrSizeT;
 
     using Accumulator 		= typename Types::Accumulator;
-    using Position 			  = typename Types::Position;
+    using Position 			= typename Types::Position;
+    using CtrSizeT 			= typename Types::CtrSizeT;
+    using CtrSizesT			= Position;
 
     static const Int Streams = Types::Streams;
 
@@ -89,6 +90,26 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::MiscName)
     }
 
 
+    CtrSizesT compute_extent(const NodeBaseG& leaf)
+    {
+    	auto& self = this->self();
+
+    	auto i = self.seek(0);
+
+    	CtrSizesT extent;
+
+    	while (i.leaf() != leaf)
+    	{
+    		extent += self.node_extents(i.leaf());
+
+    		if (!i.nextLeaf())
+    		{
+    			throw vapi::Exception(MA_SRC, "Premature end of tree");
+    		}
+    	}
+
+    	return extent;
+    }
 
 
 MEMORIA_CONTAINER_PART_END

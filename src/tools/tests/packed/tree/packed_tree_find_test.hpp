@@ -38,11 +38,11 @@ public:
 
         MEMORIA_ADD_TEST_PARAM(iterations_);
 
-        MEMORIA_ADD_TEST(testFindForward);
-        MEMORIA_ADD_TEST(testFindForwardFromStart);
-
+//        MEMORIA_ADD_TEST(testFindForward);
+//        MEMORIA_ADD_TEST(testFindForwardFromStart);
+//
         MEMORIA_ADD_TEST(testFindBackward);
-        MEMORIA_ADD_TEST(testFindBackwardFromEnd);
+//        MEMORIA_ADD_TEST(testFindBackwardFromEnd);
     }
 
     virtual ~PackedTreeFindTest() throw() {}
@@ -97,7 +97,12 @@ public:
 
     void testFindForward()
     {
-        for (Int c = 1024; c <= this->size_; c += 1024)
+    	for (Int c = 4; c < 1024; c *= 2)
+    	{
+    		testFindForward(c);
+    	}
+
+        for (Int c = 1024*3; c <= this->size_; c += 1024)
         {
             testFindForward(c);
         }
@@ -112,11 +117,31 @@ public:
 
         auto values = Base::fillRandom(tree, tree_size);
 
-//        tree->dump();
-//
-//        auto result1_lt = tree->findGTForward(2, 965, 9649);
-
         Int size = tree->size();
+
+        Int block_t    = this->getRandom(Tree::Blocks);
+        auto total_sum = tree->sum(block_t, 0, size);
+
+        auto result_lt_t = tree->findGTForward(block_t, 0, total_sum);
+        auto result_le_t = tree->findGEForward(block_t, 0, total_sum);
+
+        Int last = size;
+
+        AssertEQ(MA_SRC, result_lt_t.idx(), last);
+        AssertEQ(MA_SRC, result_lt_t.prefix(), total_sum);
+
+        AssertEQ(MA_SRC, result_le_t.idx(), last - 1);
+        AssertEQ(MA_SRC, result_le_t.prefix(), total_sum - tree->value(block_t, last - 1));
+
+        result_lt_t = tree->findGTForward(block_t, 0, total_sum + 100);
+        result_le_t = tree->findGEForward(block_t, 0, total_sum + 100);
+
+        AssertEQ(MA_SRC, result_lt_t.idx(), size);
+        AssertEQ(MA_SRC, result_lt_t.prefix(), total_sum);
+
+        AssertEQ(MA_SRC, result_le_t.idx(), size);
+        AssertEQ(MA_SRC, result_le_t.prefix(), total_sum);
+
 
         for (Int c = 0; c < iterations_; c++)
         {
@@ -145,6 +170,18 @@ public:
 
             AssertEQ(MA_SRC, result1_le.idx(), result2_le.idx(), SBuf()<<"IDX "<<start<<" "<<sum<<" "<<block);
             AssertEQ(MA_SRC, result1_le.prefix(), result2_le.prefix(), SBuf()<<"SUM "<<start<<" "<<sum<<" "<<block);
+
+
+            auto sum0 = tree->sum(block, start, size);
+
+            result_lt_t = tree->findGTForward(block, start, sum0 + 100);
+            result_le_t = tree->findGEForward(block, start, sum0 + 100);
+
+            AssertEQ(MA_SRC, result_lt_t.idx(), size, SBuf()<<"IDX "<<start<<" "<<sum0<<" "<<block);
+            AssertEQ(MA_SRC, result_lt_t.prefix(), sum0, SBuf()<<"IDX "<<start<<" "<<sum0<<" "<<block);
+
+            AssertEQ(MA_SRC, result_le_t.idx(), size, SBuf()<<"IDX "<<start<<" "<<sum0<<" "<<block);
+            AssertEQ(MA_SRC, result_le_t.prefix(), sum0, SBuf()<<"IDX "<<start<<" "<<sum0<<" "<<block);
         }
     }
 
@@ -196,6 +233,11 @@ public:
 
     void testFindBackward()
     {
+    	for (Int c = 4; c < 1024; c *= 2)
+    	{
+    		testFindBackward(c);
+    	}
+
         for (Int c = 1024; c <= this->size_; c += 1024)
         {
             testFindBackward(c);
@@ -211,7 +253,27 @@ public:
 
         auto values = Base::fillRandom(tree, tree_size);
 
-        Int size = tree->size();
+        Int size 		= tree->size();
+        Int block_t    = this->getRandom(Tree::Blocks);
+        auto total_sum = tree->sum(block_t, 0, size);
+
+        auto result_lt_t = tree->findGTBackward(block_t, size - 1, total_sum);
+        auto result_le_t = tree->findGEBackward(block_t, size - 1, total_sum);
+
+        AssertEQ(MA_SRC, result_lt_t.idx(), -1);
+        AssertEQ(MA_SRC, result_lt_t.prefix(), total_sum);
+
+        AssertEQ(MA_SRC, result_le_t.idx(), 0);
+        AssertEQ(MA_SRC, result_le_t.prefix(), total_sum - tree->value(block_t, 0));
+
+        result_lt_t = tree->findGTBackward(block_t, size - 1, total_sum + 100);
+        result_le_t = tree->findGEBackward(block_t, size - 1, total_sum + 100);
+
+        AssertEQ(MA_SRC, result_lt_t.idx(), -1);
+        AssertEQ(MA_SRC, result_lt_t.prefix(), total_sum);
+
+        AssertEQ(MA_SRC, result_le_t.idx(), -1);
+        AssertEQ(MA_SRC, result_le_t.prefix(), total_sum);
 
         for (Int c = 0; c < iterations_; c++)
         {
