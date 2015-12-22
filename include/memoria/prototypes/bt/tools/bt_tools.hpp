@@ -125,7 +125,9 @@ public:
 
     void add(NodeBaseG& node)
     {
-        MEMORIA_ASSERT_TRUE(node.isSet());
+    	MEMORIA_ASSERT_TRUE(node.isSet());
+
+//    	cout<<"Register node state for "<<node->id()<<" "<<node->parent_id()<<" "<<node->parent_idx()<<endl;
 
         if (pages_.capacity() > 0)
         {
@@ -160,6 +162,8 @@ public:
 
     void checkpoint(NodeBaseG& node)
     {
+//    	cout<<"Checkpoint node state for "<<node->id()<<" "<<node->parent_id()<<" "<<node->parent_idx()<<endl;
+
     	for (Int c = 0; c < pages_.getSize(); c++)
     	{
     		if (std::get<0>(pages_[c])->id() == node->id())
@@ -185,7 +189,11 @@ public:
             void* backup_buffer = std::get<1>(pages_[c]);
             Int page_size       = std::get<2>(pages_[c]);
 
+//            cout<<"Restore (1) node state for "<<node->id()<<" "<<node->parent_id()<<" "<<node->parent_idx()<<endl;
+
             CopyByteBuffer(backup_buffer, node.page(), page_size);
+
+//            cout<<"Restore (2) node state for "<<node->id()<<" "<<node->parent_id()<<" "<<node->parent_idx()<<endl;
         }
     }
 
@@ -196,6 +204,8 @@ public:
             NodeBaseG& node     = std::get<0>(pages_[c]);
             void* backup_buffer = std::get<1>(pages_[c]);
             Int page_size       = std::get<2>(pages_[c]);
+
+//            cout<<"Rollback node state for "<<node->id()<<" "<<node->parent_id()<<" "<<node->parent_idx()<<endl;
 
             CopyByteBuffer(backup_buffer, node.page(), page_size);
 

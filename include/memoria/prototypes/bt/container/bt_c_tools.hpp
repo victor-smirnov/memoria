@@ -251,7 +251,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
         }
     }
 
-    void dumpPath(NodeBaseG node, std::ostream& out = std::cout) const
+    void dumpPath(NodeBaseG node, std::ostream& out = std::cout, Int depth = 100) const
     {
         auto& self = this->self();
 
@@ -259,7 +259,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
         self.dump(node, out);
 
-        while (!node->is_root())
+        while (!node->is_root() && node->level() < depth)
         {
             node = self.getNodeParent(node);
             self.dump(node, out);

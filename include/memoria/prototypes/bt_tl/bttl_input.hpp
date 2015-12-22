@@ -924,7 +924,7 @@ public:
 
 	virtual Position fill(NodeBaseG& leaf, const Position& start)
 	{
-//		cout<<"Fill page: "<<leaf->id()<<endl;
+//		cout<<"Fill page: "<<leaf->id()<<" start "<<start<<endl;
 
 		Position pos = start;
 
@@ -1127,7 +1127,7 @@ protected:
 
 private:
 
-	NodeBaseG applyAnchorValues(PageUpdateMgr& mgr, NodeBaseG& current_leaf, const Position& pos, const Position& inserted)
+	NodeBaseG applyAnchorValues(PageUpdateMgr& mgr, NodeBaseG current_leaf, const Position& pos, const Position& inserted)
 	{
 		auto next_leaf = current_leaf;
 
@@ -1152,6 +1152,8 @@ private:
 			}
 		}
 
+		Int splits = 0;
+
 		for (Int s = 0; s < Streams - 1; s++)
 		{
 			auto& leaf = this->leafs_[s];
@@ -1168,15 +1170,19 @@ private:
 					}
 				}
 				else {
-					processAnchor(s);
+					processAnchor(mgr, s, splits);
 				}
 			}
+		}
+
+		if (splits > 0) {
+			mgr.checkpoint(current_leaf);
 		}
 
 		return next_leaf;
 	}
 
-	void processAnchor(Int stream)
+	void processAnchor(PageUpdateMgr& main_mgr, Int stream, Int& splits)
 	{
 		auto& ctr = this->ctr();
 
@@ -1198,6 +1204,7 @@ private:
 			}
 			catch (PackedOOMException& ex)
 			{
+				splits++;
 				mgr.rollback();
 
 				auto sizes		= ctr.getNodeSizes(leaf);
@@ -1273,6 +1280,9 @@ private:
 
 				ctr.add_to_stream_counter(leaf, stream, anchor, anchor_value);
 				anchor_value = 0;
+
+				main_mgr.checkpoint(leaf);
+				main_mgr.checkpoint(next_leaf);
 			}
 		}
 	}
@@ -1302,7 +1312,6 @@ private:
 			catch (PackedOOMException& ex)
 			{
 				mgr.restoreNodeState();
-
 
 				auto split_at = pos;
 
@@ -1355,6 +1364,9 @@ private:
 
 				ctr.add_to_stream_counter(node_to_update, stream, anchor, anchor_value);
 				anchor_value = 0;
+
+				mgr.checkpoint(leaf);
+				mgr.checkpoint(next_leaf);
 			}
 		}
 
