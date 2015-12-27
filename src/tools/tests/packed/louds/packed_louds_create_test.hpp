@@ -36,8 +36,7 @@ public:
 
     void testCreateRandom()
     {
-        LoudsTree* tree = createRandomTree(100000);
-        PARemover remover(tree);
+        auto tree = createRandomTree(100000);
 
         Int nodes = tree->rank1();
 
@@ -45,7 +44,7 @@ public:
         {
             PackedLoudsNode node(tree->select1(c), c);
 
-            checkTreeStructure(tree, node);
+            checkTreeStructure(tree.get(), node);
         }
     }
 
@@ -75,17 +74,16 @@ public:
 
     void testRemoveAll()
     {
-        LoudsTree* tree = createRandomTree(5000);
-        PARemover remover(tree);
+        auto tree = createRandomTree(5000);
 
         while (tree->tree_size() > 1)
         {
             this->out()<<tree->tree_size()<<std::endl;
 
-            auto leaf = findRandomLeaf(tree);
+            auto leaf = findRandomLeaf(tree.get());
             tree->removeLeaf(leaf);
 
-            checkTreeStructure(tree);
+            checkTreeStructure(tree.get());
         }
     }
 };

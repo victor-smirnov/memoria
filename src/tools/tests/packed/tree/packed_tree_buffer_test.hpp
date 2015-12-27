@@ -28,6 +28,8 @@ class PackedTreeInputBufferTest: public PackedTreeTestBase<PackedTreeT> {
     typedef typename Base::Values                                               Values;
 
     using InputBuffer = typename Tree::InputBuffer;
+    using InputBufferPtr = PkdStructSPtr<InputBuffer>;
+
     using SizesT 	  = typename Tree::InputBuffer::SizesT;
 
     static constexpr Int Blocks = Base::Blocks;
@@ -59,25 +61,14 @@ public:
 
     virtual ~PackedTreeInputBufferTest() throw() {}
 
-    InputBuffer* createInputBuffer(Int capacity, Int free_space = 0)
+    InputBufferPtr createInputBuffer(Int capacity, Int free_space = 0)
     {
     	Int object_block_size = InputBuffer::block_size(capacity);
 
-    	Int allocator_size  = PackedAllocator::block_size(object_block_size + free_space, 1);
-
-    	void* block = malloc(allocator_size);
-    	PackedAllocator* allocator = T2T<PackedAllocator*>(block);
-    	allocator->init(allocator_size, 1);
-    	allocator->setTopLevelAllocator();
-
-    	InputBuffer* buffer = allocator->allocateSpace<InputBuffer>(0, object_block_size);
-
-    	buffer->init(SizesT(capacity));
-
-    	return buffer;
+    	return MakeSharedPackedStructByBlock<InputBuffer>(object_block_size + free_space, SizesT(capacity));
     }
 
-    std::vector<Values> fillBuffer(InputBuffer* buffer, Int max_value = 500)
+    std::vector<Values> fillBuffer(InputBufferPtr& buffer, Int max_value = 500)
     {
     	std::vector<Values> data;
 
@@ -133,14 +124,12 @@ public:
     {
         out()<<"Buffer capacity: "<<size<<std::endl;
 
-        InputBuffer* buffer = createInputBuffer(size);
-        PARemover remover(buffer);
+        auto buffer = createInputBuffer(size);
 
         out()<<"Block size="<<buffer->block_size()<<endl;
 
         try {
-
-        fillBuffer(buffer);
+        	fillBuffer(buffer);
         }
         catch (...) {
         	buffer->dump(out());
@@ -162,8 +151,7 @@ public:
     {
         out()<<"Buffer capacity: "<<size<<std::endl;
 
-        InputBuffer* buffer = createInputBuffer(size);
-        PARemover remover(buffer);
+        auto buffer = createInputBuffer(size);
 
         auto values = fillBuffer(buffer);
 
@@ -190,8 +178,7 @@ public:
     {
         out()<<"Buffer capacity: "<<size<<std::endl;
 
-        InputBuffer* buffer = createInputBuffer(size);
-        PARemover remover(buffer);
+        auto buffer = createInputBuffer(size);
 
         auto values = fillBuffer(buffer);
 
@@ -218,11 +205,11 @@ public:
     {
     	out()<<"Buffer capacity: "<<size<<std::endl;
 
-    	Tree* tree = createEmptyTree();
+    	auto tree = createEmptyTree();
     	auto tree_data = fillRandom(tree, size);
 
-    	InputBuffer* buffer = createInputBuffer(size);
-    	PARemover remover(buffer);
+    	auto buffer = createInputBuffer(size);
+
 
     	auto values = fillBuffer(buffer);
 
@@ -236,7 +223,7 @@ public:
     		auto buffer_starts = buffer->positions(0);
     		auto buffer_ends = buffer->positions(buffer_size);
 
-    		tree->insert_buffer(at, buffer, buffer_starts, buffer_ends, buffer_size);
+    		tree->insert_buffer(at, buffer.get(), buffer_starts, buffer_ends, buffer_size);
 
     		tree_data.insert(tree_data.begin() + pos, values.begin(), values.end());
 

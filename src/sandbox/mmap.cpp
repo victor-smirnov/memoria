@@ -36,15 +36,18 @@ int main(int argc, const char** argv, const char** envp) {
 
 		auto iter = map.find(0);
 
-		using Provider = mmap::RandomDataInputProvider<CtrT, decltype(generator)>;
+//		using Provider = bttl::RandomDataInputProvider<CtrT, decltype(generator)>;
+//		Provider provider({10000000, 10}, generator);
 
-		Provider provider(map, 10000000, 10, generator);
+		using Provider = bttl::DeterministicDataInputProvider<CtrT>;
+		Provider provider({10000000, 10});
 
-		using Position = Provider::Position;
 
-		map.insert_provided_data(iter.leaf(), Position(), provider);
+		map._insert(iter, provider);
 
 		alloc.commit();
+
+		cout<<"Allocated: "<<(alloc.allocated()/1024)<<"K"<<endl;
 
 		if (argc > 1)
 		{

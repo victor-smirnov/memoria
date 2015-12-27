@@ -11,6 +11,7 @@
 #include <memoria/tools/tools.hpp>
 
 #include <memoria/core/packed/louds/packed_louds_tree.hpp>
+#include <memoria/core/packed/tools/packed_struct_ptrs.hpp>
 
 #include <memory>
 
@@ -21,7 +22,9 @@ using namespace std;
 class PackedLoudsTestBase: public TestTask {
 
 protected:
-    typedef PackedLoudsTree<LoudsTreeTypes<>>                                   LoudsTree;
+    using LoudsTree = PackedLoudsTree<LoudsTreeTypes<>>;
+
+    using LoudsTreePtr = PkdStructSPtr<LoudsTree>;
 
 public:
 
@@ -123,19 +126,15 @@ public:
         }
     }
 
-    LoudsTree* createEmptyLouds(Int block_size = 64*1024)
+    LoudsTreePtr createEmptyLouds(Int block_size = 64*1024)
     {
-        PackedAllocator* alloc = T2T<PackedAllocator*>(malloc(block_size));
-        alloc->init(block_size, 1);
-        alloc->setTopLevelAllocator();
-
-        return alloc->template allocateEmpty<LoudsTree>(0);
+        return MakeSharedPackedStructByBlock<LoudsTree>(block_size);
     }
 
     template <typename T>
-    LoudsTree* createLouds(vector<T>& degrees)
+    LoudsTreePtr createLouds(vector<T>& degrees)
     {
-        LoudsTree* tree = createEmptyLouds();
+        auto tree = createEmptyLouds();
 
         for (auto d: degrees)
         {
@@ -147,9 +146,9 @@ public:
         return tree;
     }
 
-    LoudsTree* createRandomTree(Int size, Int max_children = 10)
+    LoudsTreePtr createRandomTree(Int size, Int max_children = 10)
     {
-        LoudsTree* tree = createEmptyLouds();
+        auto tree = createEmptyLouds();
 
         vector<Int> level;
 

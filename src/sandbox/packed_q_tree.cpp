@@ -16,15 +16,78 @@
 #include <memoria/core/tools/time.hpp>
 #include <memoria/core/tools/random.hpp>
 
+#include <memoria/core/packed/tools/packed_struct_ptrs.hpp>
+
 #include <iostream>
+
+#include <cstddef>
 
 using namespace memoria;
 using namespace std;
 
 
+//template <class Tp>
+//struct SimpleAllocator {
+//  typedef Tp value_type;
+//  SimpleAllocator() {}
+//
+//  template <class T> SimpleAllocator(const SimpleAllocator<T>& other) {
+//	  cout<<"CopyAllocator: "<<endl;
+//  }
+//
+//  Tp* allocate(std::size_t n) {
+//
+//	  cout<<"Allocate: "<<n<<endl;
+//
+//	  return T2T<Tp*>(malloc(sizeof(Tp) * n));
+//  }
+//
+//  Tp* allocate(std::size_t n, const void* cvptr) {
+//	  cout<<"Allocate CVPTR: "<<n<<endl;
+//	  return nullptr;
+//  }
+//
+//  void deallocate(Tp* p, std::size_t n) {
+//	  cout<<"DeAllocate: "<<n<<endl;
+//
+//	  ::free(p);
+//  }
+//
+//  template <typename Args>
+//  void construct(Tp* xptr, Args&& args) {
+//	  cout<<"Construct "<<xptr<<endl;
+//	  *xptr = args;
+//  }
+//
+//
+//  void destroy(Tp* xptr) {
+//	  cout<<"Destroy "<<xptr<<endl;
+//  }
+//};
+//template <class T, class U>
+//bool operator==(const SimpleAllocator<T>&, const SimpleAllocator<U>&) {
+//	return true;
+//}
+//
+//template <class T, class U>
+//bool operator!=(const SimpleAllocator<T>&, const SimpleAllocator<U>&) {
+//	return false;
+//}
+
+
+
+
 int main() {
 
 	try {
+
+//		auto ptr0 = std::allocate_shared<Int>(SimpleAllocator<Int>(), 456);
+//
+//		auto ptr1 = std::make_shared<Int>(123);
+//
+//		cout<<"Value: "<<*ptr1<<endl;
+//		cout<<"Value: "<<*ptr0<<endl;
+
 		constexpr Int Block = 1;
 		constexpr Int Blocks = Block + 1;
 
@@ -32,22 +95,15 @@ int main() {
 		using Tree = PkdVDTreeT<BigInt, Blocks, UByteI7Codec, BigInt, PackedTreeBranchingFactor, 128>;
 //		using Tree = PkdFQTreeT<BigInt, Blocks>;
 
-
 		using Values = Tree::Values;
 
 		Int block_size = 4096*100000;
 
-		void* block = malloc(block_size);
-		memset(block, 0, block_size);
-
-		Tree* tree = T2T<Tree*>(block);
-		tree->setTopLevelAllocator();
+		auto tree = MakeSharedPackedStructByBlock<Tree>(block_size);
 
 		Seed(1234);
 
-		tree->init_tl(block_size);
-
-		Int size = 1000000;
+		Int size = 1000;
 
 		vector<Values> data(size);
 
@@ -174,6 +230,10 @@ int main() {
 
 		cout<<"FindRnd: "<<FormatTime(t7 - t6)<<endl;
 		cout<<"FindSeq: "<<FormatTime(t9 - t8)<<endl;
+	}
+	catch (PackedOOMException& ex) {
+		cout<<ex.source()<<endl;
+		cout<<ex<<endl;
 	}
 	catch (vapi::Exception& ex) {
 		cout<<ex.source()<<endl;

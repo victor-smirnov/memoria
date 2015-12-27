@@ -40,9 +40,6 @@ public:
         sequence_(sequence)
     {}
 
-    virtual IDataAPI api() const {
-        return IDataAPI::Both;
-    }
 
     virtual SizeT skip(SizeT length)
     {

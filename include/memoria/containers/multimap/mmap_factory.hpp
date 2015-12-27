@@ -41,31 +41,62 @@ struct MultimapBTTypesBase: public BTTypes<Profile, memoria::BTTreeLayout> {
                     Value_
     >::Result;
 
-    static const Int Indexes  = 2;
+    static constexpr PackedSizeType SizeType = PackedSizeType::FIXED;
 
     using Key 	= Key_;
     using Value	= Value_;
 
     using CtrSizeT = BigInt;
 
-    struct IndexStreamTF {
-        using NonLeafType 	= PkdFQTreeT<Key, Indexes + 1>;
-        using LeafType 		= TL<
-        	PkdVDTreeT<Key, Indexes, UByteExintCodec>
-        >;
 
-        using IdxRangeList 	= TL<TL<IndexRange<0, Indexes>>>;
-    };
+    using FirstStreamVariableTF = StreamTF<
+    	TL<
+			//PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec>>
+		>,
+		TL<
+			//IndexRange<0, 1>
+    	>,
+		FSEBranchStructTF
+	>;
 
 
-    struct DataStreamTF {
-    	using NonLeafType 	= PkdFQTreeT<CtrSizeT, 1>;
-    	using LeafType 		= TL<PackedFSEArray<PackedFSEArrayTypes<Value>>>;
 
-    	using IdxRangeList 	= TL<TL<>>;
-    };
+    using FirstStreamFixedTF = StreamTF<
+        TL<
+        	//PkdFQTree<CtrSizeT, 1>
+        >,
+        TL<
+			//TL<IndexRange<0, 1>>
+		>,
+		FSEBranchStructTF
+    >;
 
-    using StreamDescriptors = TypeList<IndexStreamTF, DataStreamTF>;
+
+    using DataStreamTF  = StreamTF<
+    	TL<TL<PkdFSQArrayT<Value, 1>>>,
+    	TL<TL<TL<>>>,
+		FSEBranchStructTF
+    >;
+
+
+    using RawStreamDescriptors = typename IfThenElse<
+    		SizeType == PackedSizeType::FIXED,
+			MergeLists<
+				FirstStreamFixedTF,
+				DataStreamTF
+			>,
+			MergeLists<
+				FirstStreamVariableTF,
+				DataStreamTF
+			>
+    >::Result;
+
+    using StreamDescriptors = typename bttl::BTTLAugmentStreamDescriptors<
+    		RawStreamDescriptors,
+			//PkdVDTreeT<CtrSizeT, 1, UByteI7Codec>
+			PkdFQTreeT<CtrSizeT, 1>
+	>::Type;
+
 
     using Metadata = BalancedTreeMetadata<
             typename Base::ID,

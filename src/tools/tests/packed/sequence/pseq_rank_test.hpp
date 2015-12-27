@@ -55,14 +55,24 @@ class PackedSearchableSequenceRankTest: public PackedSearchableSequenceTestBase<
 
 
 
-    typedef typename Base::Seq                                                  Seq;
+    using typename Base::Seq;
+    using typename Base::SeqPtr;
 
-    typedef typename Seq::Value                                                 Value;
+
+    using Value = typename Seq::Value;
 
 
     static const Int Blocks                 = Seq::Indexes;
     static const Int Symbols                = 1<<Bits;
     static const Int VPB                    = Seq::ValuesPerBranch;
+
+    using Base::getRandom;
+    using Base::createEmptySequence;
+    using Base::fillRandom;
+    using Base::assertIndexCorrect;
+    using Base::assertEqual;
+    using Base::assertEmpty;
+    using Base::out;
 
 public:
 
@@ -79,7 +89,7 @@ public:
 
 
 
-    vector<size_t> createStarts(const Seq* seq)
+    vector<size_t> createStarts(const SeqPtr& seq)
     {
         size_t max_block  = seq->size() / VPB + (seq->size() % VPB == 0 ? 0 : 1);
 
@@ -106,7 +116,7 @@ public:
     }
 
 
-    vector<size_t> createEnds(const Seq* seq, size_t start)
+    vector<size_t> createEnds(const SeqPtr& seq, size_t start)
     {
         size_t max_block  = seq->size() / VPB + (seq->size() % VPB == 0 ? 0 : 1);
 
@@ -143,7 +153,7 @@ public:
         }
     }
 
-    void assertRank(const Seq* seq, size_t start, size_t end, Value symbol)
+    void assertRank(const SeqPtr& seq, size_t start, size_t end, Value symbol)
     {
         Int localrank_  = seq->rank(start, end, symbol);
         Int popc        = this->rank(seq, start, end, symbol);
@@ -151,7 +161,7 @@ public:
         AssertEQ(MA_SRC, localrank_, popc);
     }
 
-    void assertRank(const Seq* seq, size_t end, Value symbol)
+    void assertRank(const SeqPtr& seq, size_t end, Value symbol)
     {
         Int rank = seq->rank(end, symbol);
         Int popc = seq->rank(0, end, symbol);
@@ -161,12 +171,11 @@ public:
 
     void runTest1()
     {
-        this->out()<<"Parameters: Bits="<<Bits<<endl;
+        out()<<"Parameters: Bits="<<Bits<<endl;
 
-        Seq* seq = this->createEmptySequence();
-        PARemover remover(seq);
+        auto seq = createEmptySequence();
 
-        this->fillRandom(seq, this->size_);
+        fillRandom(seq, this->size_);
 
         assertRank(seq, 10, seq->size() - 10, 0);
 
@@ -174,7 +183,7 @@ public:
 
         for (size_t start: starts)
         {
-            this->out()<<start<<endl;
+            out()<<start<<endl;
 
             auto ends = createEnds(seq, start);
 
@@ -188,12 +197,11 @@ public:
 
     void runTest3()
     {
-        this->out()<<"Parameters: Bits="<<Bits<<endl;
+        out()<<"Parameters: Bits="<<Bits<<endl;
 
-        Seq* seq = this->createEmptySequence();
-        PARemover remover(seq);
+        auto seq = createEmptySequence();
 
-        this->fillRandom(seq, this->size_);
+        fillRandom(seq, this->size_);
 
         Int stop = seq->size() - 1;
 
@@ -206,12 +214,11 @@ public:
 
     void runTest4()
     {
-        this->out()<<"Parameters: Bits="<<Bits<<endl;
+        out()<<"Parameters: Bits="<<Bits<<endl;
 
-        Seq* seq = this->createEmptySequence();
-        PARemover remover(seq);
+        auto seq = createEmptySequence();
 
-        this->fillRandom(seq, this->size_);
+        fillRandom(seq, this->size_);
 
         for (Int c = 0; c <= seq->size(); c++)
         {

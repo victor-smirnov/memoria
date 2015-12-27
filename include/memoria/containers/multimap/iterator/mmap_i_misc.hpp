@@ -39,12 +39,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mmap::ItrMiscName)
     template <Int Stream>
     using InputTupleAdapter = typename Container::Types::template InputTupleAdapter<Stream>;
 
-    template <Int Stream, typename SubstreamsIdxList, typename... Args>
-    using ReadLeafEntryRtnType = typename Container::template ReadLeafStreamEntryRtnType<Stream, SubstreamsIdxList, Args...>;
-
-
-
-
 MEMORIA_ITERATOR_PART_END
 
 #define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::mmap::ItrMiscName)

@@ -17,9 +17,9 @@ namespace memoria {
 
 using namespace std;
 
-class LoudsTree: public PackedFSESequence<1> {
+class LoudsTree1: public PackedFSESequence<1> {
 
-    typedef LoudsTree                                                           MyType;
+    typedef LoudsTree1                                                           MyType;
     typedef PackedFSESequence<1>                                                Base;
 
 public:
@@ -29,17 +29,21 @@ public:
 
 public:
 
-    LoudsTree(): Base()
+    LoudsTree1(): Base()
     {}
 
-    LoudsTree(Int capacity): Base(capacity)
+    LoudsTree1(Int capacity): Base(capacity)
     {}
 
-    LoudsTree(const MyType& other): Base(other)
+    LoudsTree1(const MyType& other): Base(other)
     {}
 
-    LoudsTree(MyType&& other): Base(other)
+    LoudsTree1(MyType&& other): Base(other)
     {}
+
+    Int root() const {
+    	return 0;
+    }
 
     Int parent(Int idx) const
     {
@@ -212,7 +216,7 @@ public:
         return (*this)[node] != 0;
     }
 
-    LoudsTree getSubtree(Int node) const
+    auto getSubtree(Int node) const
     {
         Int tree_size = 0;
 
@@ -224,7 +228,7 @@ public:
             }
         });
 
-        LoudsTree tree(tree_size);
+        MyType tree(tree_size);
 
         this->traverseSubtree(node, [&tree, this](Int left, Int right, Int level)
         {
@@ -286,7 +290,7 @@ public:
         return count;
     }
 
-    void insertAt(Int tgt_node, const LoudsTree& tree)
+    void insertAt(Int tgt_node, const MyType& tree)
     {
         MyType& me = *this;
 
@@ -372,7 +376,7 @@ private:
     template <typename T>
     void dumpTmp(ISequenceDataSource<T, 1>& src)
     {
-        LoudsTree tree;
+        MyType tree;
 
         tree.append(src);
 

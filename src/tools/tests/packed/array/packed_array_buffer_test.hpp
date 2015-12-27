@@ -27,8 +27,9 @@ class PackedArrayInputBufferTest: public PackedArrayTestBase<PackedTreeT> {
     typedef typename Base::Array                                                Array;
     typedef typename Base::Values                                               Values;
 
-    using InputBuffer = typename Array::InputBuffer;
-    using SizesT 	  = typename Array::InputBuffer::SizesT;
+    using InputBuffer 	 = typename Array::InputBuffer;
+    using InputBufferPtr = PkdStructSPtr<InputBuffer>;
+    using SizesT 	  	 = typename Array::InputBuffer::SizesT;
 
     static constexpr Int Blocks = Array::Blocks;
     static constexpr Int SafetyMargin = InputBuffer::SafetyMargin;
@@ -64,25 +65,27 @@ public:
 
     virtual ~PackedArrayInputBufferTest() throw() {}
 
-    InputBuffer* createInputBuffer(Int capacity, Int free_space = 0)
+    InputBufferPtr createInputBuffer(Int capacity, Int free_space = 0)
     {
     	Int object_block_size = InputBuffer::block_size(capacity);
 
-    	Int allocator_size  = PackedAllocator::block_size(object_block_size + free_space, 1);
+    	return MakeSharedPackedStructByBlock<InputBuffer>(object_block_size, SizesT(capacity));
 
-    	void* block = malloc(allocator_size);
-    	PackedAllocator* allocator = T2T<PackedAllocator*>(block);
-    	allocator->init(allocator_size, 1);
-    	allocator->setTopLevelAllocator();
-
-    	InputBuffer* buffer = allocator->allocateSpace<InputBuffer>(0, object_block_size);
-
-    	buffer->init(SizesT(capacity));
-
-    	return buffer;
+//    	Int allocator_size  = PackedAllocator::block_size(object_block_size + free_space, 1);
+//
+//    	void* block = malloc(allocator_size);
+//    	PackedAllocator* allocator = T2T<PackedAllocator*>(block);
+//    	allocator->init(allocator_size, 1);
+//    	allocator->setTopLevelAllocator();
+//
+//    	InputBuffer* buffer = allocator->allocateSpace<InputBuffer>(0, object_block_size);
+//
+//    	buffer->init(SizesT(capacity));
+//
+//    	return buffer;
     }
 
-    std::vector<Values> fillBuffer(InputBuffer* buffer, Int max_value = 500)
+    std::vector<Values> fillBuffer(const InputBufferPtr& buffer, Int max_value = 500)
     {
     	std::vector<Values> data;
 
@@ -138,8 +141,7 @@ public:
     {
         out()<<"Buffer capacity: "<<size<<std::endl;
 
-        InputBuffer* buffer = createInputBuffer(size);
-        PARemover remover(buffer);
+        auto buffer = createInputBuffer(size);
 
         out()<<"Block size="<<buffer->block_size()<<endl;
 
@@ -160,8 +162,7 @@ public:
     {
         out()<<"Buffer capacity: "<<size<<std::endl;
 
-        InputBuffer* buffer = createInputBuffer(size);
-        PARemover remover(buffer);
+        auto buffer = createInputBuffer(size);
 
         auto values = fillBuffer(buffer);
 
@@ -188,8 +189,7 @@ public:
     {
         out()<<"Buffer capacity: "<<size<<std::endl;
 
-        InputBuffer* buffer = createInputBuffer(size);
-        PARemover remover(buffer);
+        auto buffer = createInputBuffer(size);
 
         auto values = fillBuffer(buffer);
 
@@ -219,8 +219,7 @@ public:
     	auto array = createEmptyArray();
     	auto tree_data = fillRandom(array, size);
 
-    	InputBuffer* buffer = createInputBuffer(size);
-    	PARemover remover(buffer);
+    	auto buffer = createInputBuffer(size);
 
     	auto values = fillBuffer(buffer);
 
@@ -232,7 +231,7 @@ public:
 
     		auto array_size = array->size();
 
-    		array->insert_buffer(pos, buffer, 0, buffer_size);
+    		array->insert_buffer(pos, buffer.get(), 0, buffer_size);
 
     		AssertEQ(MA_SRC, array->size(), buffer->size() + array_size);
 

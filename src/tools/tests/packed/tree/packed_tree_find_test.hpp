@@ -28,6 +28,18 @@ class PackedTreeFindTest: public PackedTreeTestBase<PackedTreeT> {
     typedef typename Base::Value                                                Value;
     typedef typename Tree::IndexValue                                           IndexValue;
 
+    using typename Base::TreePtr;
+
+    using Base::createEmptyTree;
+    using Base::fillVector;
+    using Base::fillRandom;
+    using Base::assertIndexCorrect;
+    using Base::assertEqual;
+    using Base::getRandom;
+    using Base::createRandomValuesVector;
+    using Base::assertEmpty;
+    using Base::out;
+
 public:
 
     Int iterations_ = 1000;
@@ -38,11 +50,11 @@ public:
 
         MEMORIA_ADD_TEST_PARAM(iterations_);
 
-//        MEMORIA_ADD_TEST(testFindForward);
-//        MEMORIA_ADD_TEST(testFindForwardFromStart);
-//
+        MEMORIA_ADD_TEST(testFindForward);
+        MEMORIA_ADD_TEST(testFindForwardFromStart);
+
         MEMORIA_ADD_TEST(testFindBackward);
-//        MEMORIA_ADD_TEST(testFindBackwardFromEnd);
+        MEMORIA_ADD_TEST(testFindBackwardFromEnd);
     }
 
     virtual ~PackedTreeFindTest() throw() {}
@@ -50,7 +62,7 @@ public:
 
 
     template <typename Walker>
-    auto find_fw(const Tree* tree, Int block, Int start, IndexValue limit)
+    auto find_fw(const TreePtr& tree, Int block, Int start, IndexValue limit)
     {
     	Int end = tree->size();
 
@@ -73,7 +85,7 @@ public:
     }
 
     template <typename Walker>
-    auto find_bw(const Tree* tree, Int block, Int start, IndexValue limit)
+    auto find_bw(const TreePtr& tree, Int block, Int start, IndexValue limit)
     {
     	Walker walker(limit);
 
@@ -110,12 +122,11 @@ public:
 
     void testFindForward(Int tree_size)
     {
-        Base::out()<<tree_size<<endl;
+        out()<<tree_size<<endl;
 
-        Tree* tree = Base::createEmptyTree();
-        PARemover remover(tree);
+        auto tree = createEmptyTree();
 
-        auto values = Base::fillRandom(tree, tree_size);
+        auto values = fillRandom(tree, tree_size);
 
         Int size = tree->size();
 
@@ -195,12 +206,10 @@ public:
 
     void testFindForwardFromStart(Int tree_size)
     {
-    	Base::out()<<tree_size<<endl;
+    	out()<<tree_size<<endl;
 
-    	Tree* tree = Base::createEmptyTree();
-    	PARemover remover(tree);
-
-    	auto values = Base::fillRandom(tree, tree_size);
+    	auto tree = createEmptyTree();
+    	auto values = fillRandom(tree, tree_size);
 
     	Int size = tree->size();
 
@@ -246,16 +255,15 @@ public:
 
     void testFindBackward(Int tree_size)
     {
-        Base::out()<<tree_size<<endl;
+        out()<<tree_size<<endl;
 
-        Tree* tree = Base::createEmptyTree();
-        PARemover remover(tree);
+        auto tree = createEmptyTree();
 
-        auto values = Base::fillRandom(tree, tree_size);
+        auto values = fillRandom(tree, tree_size);
 
         Int size 		= tree->size();
-        Int block_t    = this->getRandom(Tree::Blocks);
-        auto total_sum = tree->sum(block_t, 0, size);
+        Int block_t    	= getRandom(Tree::Blocks);
+        auto total_sum 	= tree->sum(block_t, 0, size);
 
         auto result_lt_t = tree->findGTBackward(block_t, size - 1, total_sum);
         auto result_le_t = tree->findGEBackward(block_t, size - 1, total_sum);
@@ -277,10 +285,10 @@ public:
 
         for (Int c = 0; c < iterations_; c++)
         {
-        	Int start   = this->getRandom(size - 2) + 2;
-            Int rnd     = this->getRandom(start - 2) + 1;
+        	Int start   = getRandom(size - 2) + 2;
+            Int rnd     = getRandom(start - 2) + 1;
             Int end     = start - rnd;
-            Int block   = this->getRandom(Tree::Blocks);
+            Int block   = getRandom(Tree::Blocks);
 
             AssertGE(MA_SRC, end, 0);
 
@@ -313,21 +321,19 @@ public:
 
     void testFindBackwardFromEnd(Int tree_size)
     {
-    	Base::out()<<tree_size<<endl;
+    	out()<<tree_size<<endl;
 
-    	Tree* tree = Base::createEmptyTree();
-    	PARemover remover(tree);
-
-    	auto values = Base::fillRandom(tree, tree_size);
+    	auto tree = createEmptyTree();
+    	auto values = fillRandom(tree, tree_size);
 
     	Int size = tree->size();
 
     	for (Int c = 0; c < iterations_; c++)
     	{
     		Int start   = size - 1;
-    		Int rnd     = this->getRandom(start - 2) + 1;
+    		Int rnd     = getRandom(start - 2) + 1;
     		Int end     = start - rnd;
-    		Int block   = this->getRandom(Tree::Blocks);
+    		Int block   = getRandom(Tree::Blocks);
 
     		AssertGE(MA_SRC, end, 0);
 

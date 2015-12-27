@@ -11,6 +11,7 @@
 
 #include <memoria/core/packed/array/packed_vle_dense_array.hpp>
 #include <memoria/core/packed/array/packed_fse_array.hpp>
+#include <memoria/core/packed/tools/packed_struct_ptrs.hpp>
 
 namespace memoria {
 
@@ -22,6 +23,7 @@ class PackedArrayTestBase: public TestTask {
 protected:
 
     typedef TreeType                                                     		Array;
+    typedef PkdStructSPtr<Array>												ArrayPtr;
 
     typedef typename Array::Value                                               Value;
     typedef typename Array::Values                                              Values;
@@ -33,36 +35,16 @@ public:
     PackedArrayTestBase(StringRef name): TestTask(name)
     {}
 
-    Array* createEmptyArray(Int block_size = 1024*1024*64)
+    ArrayPtr createEmptyArray(Int block_size = 1024*1024*64)
     {
-        void* block = malloc(block_size);
-
-        PackedAllocator* allocator = T2T<PackedAllocator*>(block);
-
-        allocator->init(block_size, 1);
-        allocator->setTopLevelAllocator();
-
-        Array* array = allocator->template allocateEmpty<Array>(0);
-
-        return array;
+        return MakeSharedPackedStructByBlock<Array>(block_size);
     }
 
-    Array* createArray(Int tree_capacity, Int free_space = 0)
+    ArrayPtr createArray(Int tree_capacity, Int free_space = 0)
     {
         Int tree_block_size = Array::block_size(tree_capacity);
 
-        Int allocator_size  = PackedAllocator::block_size(tree_block_size + free_space, 1);
-
-        void* block = malloc(allocator_size);
-
-        PackedAllocator* allocator = T2T<PackedAllocator*>(block);
-
-        allocator->init(tree_block_size, 1);
-        allocator->setTopLevelAllocator();
-
-        Array* tree = allocator->allocate<Array>(0, tree_block_size);
-
-        return tree;
+        return MakeSharedPackedStructByBlock<Array>(tree_block_size + free_space);
     }
 
     void truncate(vector<Values>& v, Int size) {
@@ -74,7 +56,7 @@ public:
         }
     }
 
-    vector<Values> fillRandom(Array* tree, Int size, Int max_value = 300)
+    vector<Values> fillRandom(ArrayPtr& tree, Int size, Int max_value = 300)
     {
         vector<Values> vals(size);
 
@@ -92,7 +74,7 @@ public:
         return vals;
     }
 
-    vector<Values> fillSolid(Array* tree, Int size, const Values& values)
+    vector<Values> fillSolid(ArrayPtr& tree, Int size, const Values& values)
     {
         vector<Values> vals(size);
 
@@ -107,7 +89,7 @@ public:
         return vals;
     }
 
-    vector<Values> fillSolid(Array* tree, Int size, Int value)
+    vector<Values> fillSolid(ArrayPtr& tree, Int size, Int value)
     {
         vector<Values> vals(size);
 
@@ -125,7 +107,7 @@ public:
         return vals;
     }
 
-    void fillVector(Array* tree, const vector<Values>& vals)
+    void fillVector(ArrayPtr& tree, const vector<Values>& vals)
     {
         tree->insert(0, vals.size(), [&](Int block, Int idx) {
             return vals[idx][block];
@@ -158,7 +140,7 @@ public:
         return vals;
     }
 
-    void assertEqual(const Array* tree, const vector<Values>& vals)
+    void assertEqual(const ArrayPtr& tree, const vector<Values>& vals)
     {
         AssertEQ(MA_SRC, tree->size(), (Int)vals.size());
 
@@ -174,7 +156,7 @@ public:
         }
     }
 
-    void assertEqual(const Array* tree1, const Array* tree2)
+    void assertEqual(const ArrayPtr& tree1, const ArrayPtr& tree2)
     {
         AssertEQ(MA_SRC, tree1->size(), tree2->size());
 
@@ -191,7 +173,7 @@ public:
         }
     }
 
-    void assertIndexCorrect(const char* src, const Array* tree)
+    void assertIndexCorrect(const char* src, const ArrayPtr& tree)
     {
         try {
             tree->check();
@@ -203,13 +185,10 @@ public:
         }
     }
 
-    void assertEmpty(const Array* tree)
+    void assertEmpty(const ArrayPtr& tree)
     {
-        Int empty_size = Array::empty_size();
-
         AssertEQ(MA_SRC, tree->size(), 0);
         AssertEQ(MA_SRC, tree->data_size(), 0);
-        AssertEQ(MA_SRC, tree->block_size(), empty_size);
     }
 };
 

@@ -12,6 +12,7 @@
 
 #include <memoria/core/packed/wavelet_tree/packed_wavelet_tree.hpp>
 #include <memoria/core/packed/sseq/packed_multisequence.hpp>
+#include <memoria/core/packed/tools/packed_struct_ptrs.hpp>
 
 #include <memory>
 #include <map>
@@ -27,9 +28,10 @@ class PackedWaveletTreeTest: public TestTask {
 
     typedef PackedWaveletTreeTypes<>                                        Types;
 
-    typedef PackedWaveletTree<Types>                                        Tree;
+    using WaveletTree 	 = PackedWaveletTree<Types>;
+    using WaveletTreePtr = PkdStructSPtr<WaveletTree>;
 
-    typedef typename Tree::CardinalTree::LoudsTree                          LoudsTree;
+    typedef typename WaveletTree::CardinalTree::LoudsTree                   LoudsTree;
 
     typedef pair<UInt, Int>                                                 Pair;
 
@@ -79,20 +81,14 @@ public:
 
 
 
-    Tree* createTree(Int block_size = 128*1024)
+    WaveletTreePtr createTree(Int block_size = 128*1024)
     {
-        PackedAllocator* alloc = T2T<PackedAllocator*>(malloc(block_size));
-        alloc->init(block_size, 1);
-        alloc->setTopLevelAllocator();
-
-        Tree* tree = alloc->allocateEmpty<Tree>(0);
-
-        return tree;
+        return MakeSharedPackedStructByBlock<WaveletTree>(block_size);
     }
 
-    vector <UInt> createRandomAlphabet(Int size)
+    vector<UInt> createRandomAlphabet(Int size)
     {
-        vector <UInt> text(size);
+        vector<UInt> text(size);
 
         for (auto& v: text)
         {
@@ -102,7 +98,7 @@ public:
         return text;
     }
 
-    vector <UInt> createRandomText(Int size, const vector<UInt>& alphabet)
+    vector<UInt> createRandomText(Int size, const vector<UInt>& alphabet)
     {
         vector <UInt> text(size);
 
@@ -171,7 +167,7 @@ public:
         return text.size();
     }
 
-    void assertText(const Tree* tree, const vector<UInt>& text)
+    void assertText(const WaveletTreePtr& tree, const vector<UInt>& text)
     {
         AssertEQ(MA_SRC, tree->size(), (Int)text.size());
 
@@ -187,8 +183,7 @@ public:
 
     void testCreateTree()
     {
-        Tree* tree = createTree();
-        PARemover remover(tree);
+        auto tree = createTree();
 
         tree->prepare();
 
@@ -246,8 +241,7 @@ public:
 
     void testRemoveTree()
     {
-        Tree* tree = createTree();
-        PARemover remover(tree);
+        auto tree = createTree();
 
         tree->prepare();
 
@@ -258,7 +252,7 @@ public:
         testRemoveTree(tree);
     }
 
-    void testRemoveTree(Tree* tree)
+    void testRemoveTree(WaveletTreePtr& tree)
     {
         auto fn = [](const PackedLoudsNode& node, Int level) {
             AssertEQ(MA_SRC, level, 3);

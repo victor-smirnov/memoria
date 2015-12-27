@@ -60,8 +60,6 @@ public:
 
     PackedAllocator() = default;
 
-
-
     bool is_allocatable(Int idx) const
     {
         const Bitmap* bmp = bitmap();
@@ -112,6 +110,10 @@ public:
 
     Int block_size() const {
         return block_size_;
+    }
+
+    void set_block_size(Int block_size) {
+    	this->block_size_ = block_size;
     }
 
     void init(Int block_size, Int blocks)

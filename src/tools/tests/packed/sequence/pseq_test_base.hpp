@@ -11,6 +11,7 @@
 #include <memoria/tools/tools.hpp>
 
 #include <memoria/core/packed/sseq/packed_fse_searchable_seq.hpp>
+#include <memoria/core/packed/tools/packed_struct_ptrs.hpp>
 
 #include <memory>
 
@@ -49,7 +50,9 @@ class PackedSearchableSequenceTestBase: public TestTask {
 
 protected:
 
-    typedef PkdFSSeq<Types>                                     Seq;
+    using Seq = PkdFSSeq<Types>;
+    using SeqPtr = PkdStructSPtr<Seq>;
+
 
     typedef typename Seq::Value                                                 Value;
 
@@ -71,26 +74,14 @@ public:
 
     virtual ~PackedSearchableSequenceTestBase() throw() {}
 
-    Seq* createEmptySequence(Int block_size = 1024*1024)
+    SeqPtr createEmptySequence(Int block_size = 1024*1024)
     {
-        void* memory_block = malloc(block_size);
-        memset(memory_block, 0, block_size);
-
-        PackedAllocator* allocator = T2T<PackedAllocator*>(memory_block);
-
-        allocator->init(block_size, 1);
-        allocator->setTopLevelAllocator();
-
-        allocator->allocateEmpty<Seq>(0);
-
-        Seq* seq = allocator->template get<Seq>(0);
-
-        return seq;
+        return MakeSharedPackedStructByBlock<Seq>(block_size);
     }
 
 
 
-    vector<Int> populate(Seq* seq, Int size, Value value = 0)
+    vector<Int> populate(SeqPtr& seq, Int size, Value value = 0)
     {
         vector<Int> symbols(size);
 
@@ -101,19 +92,19 @@ public:
             return value;
         });
 
-        this->assertEqual(seq, symbols);
-        this->assertIndexCorrect(MA_SRC, seq);
+        assertEqual(seq, symbols);
+        assertIndexCorrect(MA_SRC, seq);
 
         return symbols;
     }
 
-    vector<Int> populateRandom(Seq* seq, Int size)
+    vector<Int> populateRandom(SeqPtr& seq, Int size)
     {
         seq->clear();
         return fillRandom(seq, size);
     }
 
-    vector<Int> fillRandom(Seq* seq, Int size)
+    vector<Int> fillRandom(SeqPtr& seq, Int size)
     {
         vector<Int> symbols;
 
@@ -131,7 +122,7 @@ public:
         return symbols;
     }
 
-    Int rank(const Seq* seq, Int start, Int end, Int symbol)
+    Int rank(const SeqPtr& seq, Int start, Int end, Int symbol)
     {
         Int rank = 0;
 
@@ -143,7 +134,7 @@ public:
         return rank;
     }
 
-    void assertIndexCorrect(const char* src, const Seq* seq)
+    void assertIndexCorrect(const char* src, const SeqPtr& seq)
     {
         try {
             seq->check();
@@ -155,28 +146,24 @@ public:
         }
     }
 
-    void assertEmpty(const Seq* seq)
+    void assertEmpty(const SeqPtr& seq)
     {
         AssertEQ(MA_SRC, seq->size(), 0);
-        AssertEQ(MA_SRC, seq->block_size(), Seq::empty_size());
         AssertFalse(MA_SRC, seq->has_index());
     }
 
-    void assertEqual(const Seq* seq, const vector<Int>& symbols)
+    void assertEqual(const SeqPtr& seq, const vector<Int>& symbols)
     {
         AssertEQ(MA_SRC, seq->size(), (Int)symbols.size());
 
         try {
-
-        for (Int c = 0; c < seq->size(); c++)
-        {
-            AssertEQ(MA_SRC, (UBigInt)seq->symbol(c), (UBigInt)symbols[c], SBuf()<<"Index: "<<c);
-        }
-
+        	for (Int c = 0; c < seq->size(); c++)
+        	{
+        		AssertEQ(MA_SRC, (UBigInt)seq->symbol(c), (UBigInt)symbols[c], SBuf()<<"Index: "<<c);
+        	}
         }
         catch(...) {
         	seq->dump(this->out());
-
         	throw;
         }
     }

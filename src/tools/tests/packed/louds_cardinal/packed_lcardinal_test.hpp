@@ -23,7 +23,10 @@ class PackedLoudsCardinalTest: public PackedLoudsCardinalTreeTestBase {
     typedef PackedLoudsCardinalTreeTestBase                                     Base;
     typedef PackedLoudsCardinalTest                                             MyType;
 
-    typedef typename Base::Tree                                                 CardinalTree;
+
+
+    using CardinalTree = typename Base::Tree;
+    using CardinalTreePtr = typename Base::TreePtr;
 
     typedef typename CardinalTree::LoudsTree                                    LoudsTree;
     typedef typename CardinalTree::LabelArray                                   LabelArray;
@@ -39,19 +42,12 @@ public:
 
     virtual ~PackedLoudsCardinalTest() throw() {}
 
-    CardinalTree* createCardinalTree(Int block_size = 64*1024)
+    CardinalTreePtr createCardinalTree(Int block_size = 64*1024)
     {
-        PackedAllocator* alloc = T2T<PackedAllocator*>(malloc(block_size));
-
-        alloc->init(block_size, 1);
-        alloc->setTopLevelAllocator();
-
-        CardinalTree* tree = alloc->template allocateEmpty<CardinalTree>(0);
-
-        return tree;
+        return MakeSharedPackedStructByBlock<CardinalTree>(block_size);
     }
 
-    UBigInt buildPath(PackedLoudsNode node, Int level, const CardinalTree* ctree)
+    UBigInt buildPath(PackedLoudsNode node, Int level, const CardinalTreePtr& ctree)
     {
         const LoudsTree* tree       = ctree->tree();
         const LabelArray* labels    = ctree->labels();
@@ -70,7 +66,7 @@ public:
         return path;
     }
 
-    void checkTreeContent(const CardinalTree* tree, set<UBigInt>& paths)
+    void checkTreeContent(const CardinalTreePtr& tree, set<UBigInt>& paths)
     {
         traverseTreePaths(tree, [this, tree, &paths](const PackedLoudsNode& node, Int level) {
             AssertEQ(MA_SRC, level, 4);
@@ -82,8 +78,7 @@ public:
 
     void testCreateCardinalTree()
     {
-        CardinalTree* tree = createCardinalTree();
-        PARemover remover(tree);
+        auto tree = createCardinalTree();
 
         tree->prepare();
 
@@ -110,8 +105,7 @@ public:
 
     void testRemoveCardinalTree()
     {
-        CardinalTree* tree = createCardinalTree();
-        PARemover remover(tree);
+        auto tree = createCardinalTree();
 
         tree->prepare();
 

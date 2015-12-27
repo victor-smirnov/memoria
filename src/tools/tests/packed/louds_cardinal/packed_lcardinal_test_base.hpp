@@ -11,6 +11,7 @@
 #include <memoria/tools/tools.hpp>
 
 #include <memoria/core/packed/louds/packed_louds_cardinal_tree.hpp>
+#include <memoria/core/packed/tools/packed_struct_ptrs.hpp>
 
 #include <memory>
 
@@ -25,7 +26,10 @@ protected:
         static const Int BitsPerLabel = 8;
     };
 
-    typedef PackedLoudsCardinalTree<CardinalTreeTypes>                          Tree;
+    using Tree = PackedLoudsCardinalTree<CardinalTreeTypes>;
+    using TreePtr = PkdStructSPtr<Tree>;
+
+
     typedef typename Tree::LoudsTree                                            LoudsTree;
 
 public:
@@ -35,16 +39,12 @@ public:
 
     virtual ~PackedLoudsCardinalTreeTestBase() throw() {}
 
-    Tree* createEmptyTree(Int block_size = 1024*1024)
+    TreePtr createEmptyTree(Int block_size = 1024*1024)
     {
-        PackedAllocator* alloc = T2T<PackedAllocator*>(malloc(block_size));
-        alloc->init(block_size, 1);
-        alloc->setTopLevelAllocator();
-
-        return alloc->template allocateEmpty<Tree>(0);
+        return MakeSharedPackedStructByBlock<Tree>(block_size);
     }
 
-    void traverseTreePaths(const Tree* ctree, function<void (const PackedLoudsNode&, Int)> fn, Int level = 0)
+    void traverseTreePaths(const TreePtr& ctree, function<void (const PackedLoudsNode&, Int)> fn, Int level = 0)
     {
         auto tree = ctree->tree();
         traverseTreePaths(tree, tree->root(), PackedLoudsNode(), fn, level);

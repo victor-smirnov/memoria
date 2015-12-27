@@ -12,6 +12,8 @@
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/exceptions/exceptions.hpp>
 
+#include <memory>
+
 namespace memoria {
 
 template <typename Fn>

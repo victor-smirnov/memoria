@@ -52,16 +52,26 @@ class PackedSearchableSequenceSpeedTest: public PackedSearchableSequenceTestBase
             ToolsFnType
     >                                                                           Base;
 
-    typedef typename Base::Seq                                                  Seq;
+    using typename Base::Seq;
+    using typename Base::SeqPtr;
 
-    typedef typename Seq::Value                                                 Value;
+    using Value = typename Seq::Value;
 
 
     static const Int Blocks                 = Seq::Indexes;
     static const Int Symbols                = 1<<Bits;
     static const Int VPB                    = Seq::ValuesPerBranch;
 
+
     using Base::getRandom;
+    using Base::createEmptySequence;
+    using Base::fillRandom;
+    using Base::assertIndexCorrect;
+    using Base::assertEqual;
+    using Base::assertEmpty;
+    using Base::out;
+
+
 public:
 
     PackedSearchableSequenceSpeedTest(StringRef name): Base(name)
@@ -76,17 +86,11 @@ public:
 
     void testInsertRemove()
     {
-        Seq* seq = this->createEmptySequence();
-        PARemover remover(seq);
+        auto seq = createEmptySequence();
 
         BigInt t0 = getTimeInMillis();
 
-        this->fillRandom(seq, this->size_);
-
-//        Int rs = seq->index()->raw_size();
-//        Int ds = seq->index()->data_size();
-//        Base::out()<<"BPE: "<<ds/(float)rs<<" BS: "<<seq->index()->block_size()<<endl;
-
+        fillRandom(seq, this->size_);
 
 
         BigInt t1 = getTimeInMillis();
@@ -104,7 +108,7 @@ public:
 
         BigInt t2 = getTimeInMillis();
 
-        Base::out()<<FormatTime(t1 - t0)<<" "<<FormatTime(t2 - t1)<<endl;
+        out()<<FormatTime(t1 - t0)<<" "<<FormatTime(t2 - t1)<<endl;
     }
 
 

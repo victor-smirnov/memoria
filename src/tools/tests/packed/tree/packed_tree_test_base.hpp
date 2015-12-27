@@ -15,6 +15,8 @@
 #include <memoria/core/packed/tree/vle/packed_vle_quick_tree.hpp>
 #include <memoria/core/packed/tree/vle/packed_vle_dense_tree.hpp>
 
+#include <memoria/core/packed/tools/packed_struct_ptrs.hpp>
+
 #include <memoria/core/tools/i7_codec.hpp>
 #include <memoria/core/tools/elias_codec.hpp>
 #include <memoria/core/tools/exint_codec.hpp>
@@ -32,7 +34,8 @@ protected:
 	static constexpr Int MEMBUF_SIZE = 1024*1024*64;
 
 
-    using Tree = PackedTreeT;
+    using Tree 		= PackedTreeT;
+    using TreePtr 	= PkdStructSPtr<Tree>;
 
     typedef typename Tree::Value                                                Value;
     typedef typename Tree::IndexValue                                           IndexValue;
@@ -61,32 +64,15 @@ public:
     }
 
 
-    Tree* createEmptyTree()
+    TreePtr createEmptyTree(Int block_size = MEMBUF_SIZE)
     {
-        void* block = malloc(MEMBUF_SIZE);
-        PackedAllocator* allocator = T2T<PackedAllocator*>(block);
-        allocator->init(MEMBUF_SIZE, 1);
-        allocator->setTopLevelAllocator();
-
-        Tree* tree = allocator->template allocateEmpty<Tree>(0);
-
-        return tree;
+        return MakeSharedPackedStructByBlock<Tree>(block_size);
     }
 
-    Tree* createTree(Int tree_capacity, Int free_space = 0)
+    TreePtr createTree(Int tree_capacity, Int free_space = 0)
     {
-        Int tree_block_size = Tree::block_size(tree_capacity);
-
-        Int allocator_size  = PackedAllocator::block_size(tree_block_size + free_space, 1);
-
-        void* block = malloc(allocator_size);
-        PackedAllocator* allocator = T2T<PackedAllocator*>(block);
-        allocator->init(tree_block_size, 1);
-        allocator->setTopLevelAllocator();
-
-        Tree* tree = allocator->allocate<Tree>(0, tree_block_size);
-
-        return tree;
+    	Int tree_block_size = Tree::block_size(tree_capacity);
+    	return MakeSharedPackedStructByBlock<Tree>(tree_block_size + free_space);
     }
 
     void truncate(vector<Values>& v, Int size) {
@@ -98,7 +84,7 @@ public:
         }
     }
 
-    vector<Values> fillRandom(Tree* tree, Int size, Int max_value = 300, Int min = 1)
+    vector<Values> fillRandom(TreePtr& tree, Int size, Int max_value = 300, Int min = 1)
     {
         vector<Values> vals(size);
         for (auto& v: vals)
@@ -126,7 +112,7 @@ public:
         return vals;
     }
 
-    vector<Values> fillSolid(Tree* tree, const Values& values)
+    vector<Values> fillSolid(TreePtr& tree, const Values& values)
     {
         vector<Values> vals;
 
@@ -161,7 +147,7 @@ public:
         return vals;
     }
 
-    void fillVector(Tree* tree, const vector<Values>& vals)
+    void fillVector(TreePtr& tree, const vector<Values>& vals)
     {
         tree->_insert(0, vals.size(), [&](Int block, Int idx) {
             return vals[idx][block];
@@ -194,7 +180,7 @@ public:
         return vals;
     }
 
-    void assertEqual(const Tree* tree, const vector<Values>& vals)
+    void assertEqual(const TreePtr& tree, const vector<Values>& vals)
     {
         AssertEQ(MA_SRC, tree->size(), (Int)vals.size());
 
@@ -210,7 +196,7 @@ public:
         }
     }
 
-    void assertEqual(const Tree* tree1, const Tree* tree2)
+    void assertEqual(const TreePtr& tree1, const TreePtr& tree2)
     {
         AssertEQ(MA_SRC, tree1->size(), tree2->size());
 
@@ -227,7 +213,7 @@ public:
         }
     }
 
-    void assertIndexCorrect(const char* src, const Tree* tree)
+    void assertIndexCorrect(const char* src, const TreePtr& tree)
     {
         try {
             tree->check();
@@ -239,12 +225,9 @@ public:
         }
     }
 
-    void assertEmpty(const Tree* tree)
+    void assertEmpty(const TreePtr& tree)
     {
-        Int empty_size = Tree::empty_size();
-
         AssertEQ(MA_SRC, tree->size(), 0);
-        AssertEQ(MA_SRC, tree->block_size(), empty_size);
     }
 
     template <typename T>

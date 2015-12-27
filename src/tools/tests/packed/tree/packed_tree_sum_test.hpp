@@ -26,6 +26,8 @@ class PackedTreeSumTest: public PackedTreeTestBase <PackedTreeT> {
     typedef typename Base::Values                                               Values;
     typedef typename Tree::IndexValue                                           IndexValue;
 
+    using typename Base::TreePtr;
+
     Int iterations_ = 1000;
 
 public:
@@ -42,7 +44,7 @@ public:
 
     virtual ~PackedTreeSumTest() throw() {}
 
-    IndexValue sum(const Tree* tree, Int block, Int start, Int end)
+    IndexValue sum(const TreePtr& tree, Int block, Int start, Int end)
     {
         IndexValue sum = 0;
 
@@ -70,8 +72,7 @@ public:
     {
         Base::out()<<tree_size<<endl;
 
-        Tree* tree = Base::createEmptyTree();
-        PARemover remover(tree);
+        auto tree = Base::createEmptyTree();
 
         auto values = Base::fillRandom(tree, tree_size);
 
