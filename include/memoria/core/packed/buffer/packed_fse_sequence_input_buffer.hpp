@@ -13,18 +13,21 @@
 #include <memoria/core/tools/dump.hpp>
 
 #include <memoria/core/packed/sseq/sseq_fn/pkd_f_sseq_tools_fn.hpp>
+#include <memoria/core/packed/sseq/small_symbols_buffer.hpp>
 
 namespace memoria {
 
 
-
 template <
     Int BitsPerSymbol_,
-    typename V = UBigInt
+    template <typename> class ToolsFnType   = BitmapToolsFn
 >
 struct PackedFSESequenceInputBufferTypes {
-    static const Int        BitsPerSymbol           = BitsPerSymbol_;
-    typedef V               Value;
+
+	static const Int        BitsPerSymbol           = BitsPerSymbol_;
+
+    template <typename Seq>
+    using ToolsFn = ToolsFnType<Seq>;
 };
 
 
@@ -32,19 +35,31 @@ struct PackedFSESequenceInputBufferTypes {
 template <typename Types_>
 class PkdFSESequenceInputBuffer: public PackedAllocatable {
 
-    typedef PackedAllocatable                                                   Base;
+    using Base = PackedAllocatable;
 
 public:
-    static const UInt VERSION                                                   = 1;
+    static const UInt VERSION = 1;
 
-    typedef Types_                                                              Types;
-    typedef PackedFSEBitmap<Types>                                              MyType;
+    using Types  = Types_;
+    using MyType = PkdFSESequenceInputBuffer<Types>;
 
-    typedef PackedAllocator                                           			Allocator;
-    typedef typename Types::Value                                               Value;
+    static const Int BitsPerSymbol = Types::BitsPerSymbol;
+    static const Int Indexes                = 1<<BitsPerSymbol;
+    static const Int AlphabetSize           = 1<<BitsPerSymbol;
 
-    static const Int BitsPerSymbol                                              = Types::BitsPerSymbol;
+    using Values = core::StaticVector<BigInt, Indexes>;
 
+    using Value = typename IfThenElse<
+                BitsPerSymbol == 8,
+                UByte,
+                UBigInt
+    >::Result;
+
+    using Tools = typename Types::template ToolsFn<MyType>;
+
+    using SymbolsBuffer = SmallSymbolBuffer<BitsPerSymbol>;
+
+    using SizesT = core::StaticVector<Int, 1>;
 
 private:
 
@@ -72,6 +87,11 @@ public:
         max_size_   = capacity;
     }
 
+    void init(SizesT capacity)
+    {
+    	init(capacity[0]);
+    }
+
     void init()
     {
         init(empty_size());
@@ -82,8 +102,12 @@ public:
         return sizeof(MyType) + roundUpBitsToAlignmentBlocks(elements * BitsPerSymbol);
     }
 
+    void reset() {
+    	size_ = 0;
+    }
+
     Int block_size() const {
-        const Allocator* alloc = this->allocator();
+        const PackedAllocator* alloc = this->allocator();
         return alloc->element_size(this);
     }
 
@@ -91,12 +115,9 @@ public:
         return sizeof(MyType);
     }
 
-    static constexpr Int block_size_bs(Int block_size)
-    {
-        return sizeof(MyType) + block_size;
+    Tools tools() const {
+    	return Tools(*this);
     }
-
-
 
     Value* symbols() {
         return buffer_;
@@ -110,52 +131,45 @@ public:
         return max_size_ - size_;
     }
 
+    Int symbol(Int idx) const {
+    	return tools().get(symbols(), idx);
+    }
 
-    bool insertSpace(Int idx, Int space)
+    void check() const   {}
+    void reindex() const {}
+
+    template <typename Adaptor>
+    Int append(Int size, Adaptor&& adaptor)
     {
-        MEMORIA_ASSERT(idx, >=, 0);
-        MEMORIA_ASSERT(idx, <=, size_);
-        MEMORIA_ASSERT(size_ + space, <=, max_size_);
+    	auto symbols = this->symbols();
 
-        Int remainder = (size_ - idx) * BitsPerSymbol;
+    	Int start = size_;
+    	Int limit = (start + size) <= max_size_ ? size : max_size_ - start;
 
-        Value* data = this->data();
+    	auto buf = adaptor(limit);
 
-        MoveBits(data, data, idx * BitsPerSymbol, (idx + space) * BitsPerSymbol, remainder);
+    	tools().move(buf.symbols(), symbols, 0, size_, buf.size());
 
-        size_ += space;
+    	size_ += buf.size();
 
-        return true;
+    	return buf.size();
     }
 
-    void insert(Int idx, Value value)
+    template <typename Adaptor>
+    Int append(Adaptor&& adaptor)
     {
-        insertSpace(idx, 1);
-        this->value(idx) = value;
+    	auto symbols = this->symbols();
+
+    	Int limit = max_size_ - size_;
+
+    	auto buf = adaptor(limit);
+
+    	tools().move(buf.symbols(), symbols, 0, size_, buf.size());
+
+    	size_ += buf.size();
+
+    	return buf.size();
     }
-
-    void remove(Int start, Int end) {
-        removeSpace(start, end);
-    }
-
-    void removeSpace(Int start, Int end)
-    {
-        MEMORIA_ASSERT(start, >=, 0);
-        MEMORIA_ASSERT(start, <=, size_);
-        MEMORIA_ASSERT(end, <=, size_);
-
-        Value* data = this->data();
-
-        Int remainder = (size_ - end) * BitsPerSymbol;
-        MoveBits(data, data, end * BitsPerSymbol, start * BitsPerSymbol, remainder);
-
-        size_ -= (end - start);
-    }
-
-    void check() const {}
-
-
-
 
 
     // ==================================== Dump =========================================== //
@@ -169,33 +183,29 @@ public:
 
         out<<"Data:"<<endl;
 
-        dumpSymbols<Value>(out, size_, BitsPerSymbol, [this](Int pos) -> Value {
-            return this->value(pos);
+        dumpSymbols<Int>(out, size_, BitsPerSymbol, [this](Int pos) -> Int {
+            return this->symbol(pos);
         });
     }
 
-
-private:
-    Int symbols_buffer_size() const
+    void generateDataEvents(IPageDataEventHandler* handler) const
     {
-        Int block_size  = this->block_size();
-        Int buffer_size = block_size - sizeof(MyType);
+    	handler->startGroup("PACKED_FSE_INPUT_BUFFER");
 
-        Int bit_size    = buffer_size * 8;
-        Int byte_size   = Base::roundUpBitsToAlignmentBlocks(bit_size);
+    	handler->value("PARENT_ALLOCATOR", &(Base::allocator_offset_));
 
-        return byte_size / sizeof(Value);
+    	handler->value("SIZE", &size_);
+    	handler->value("MAX_SIZE", &max_size_);
+
+    	handler->startGroup("DATA", size());
+
+    	handler->symbols("SYMBOLS", buffer_, size(), BitsPerSymbol);
+
+    	handler->endGroup();
+
+    	handler->endGroup();
     }
 
-    void move(Value* symbols, Int from, Int to, Int lenght) const
-    {
-        MoveBits(symbols, symbols, from * BitsPerSymbol, to * BitsPerSymbol, lenght * BitsPerSymbol);
-    }
-
-    void move(const Value* src, Value* dst, Int from, Int to, Int lenght) const
-    {
-        MoveBits(src, dst, from * BitsPerSymbol, to * BitsPerSymbol, lenght * BitsPerSymbol);
-    }
 };
 
 

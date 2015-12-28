@@ -19,6 +19,8 @@
 #include <memoria/core/packed/sseq/sseq_fn/pkd_f_sseq_select_fn.hpp>
 #include <memoria/core/packed/sseq/sseq_fn/pkd_f_sseq_tools_fn.hpp>
 
+#include <memoria/core/packed/buffer/packed_fse_sequence_input_buffer.hpp>
+
 #include <memoria/core/types/algo/select.hpp>
 #include <memoria/core/tools/static_array.hpp>
 
@@ -107,7 +109,9 @@ public:
     typedef typename Types::template ToolsFn<MyType>                            Tools;
 
     using InputType 	= Value;
-    using InputBuffer 	= MyType;
+//    using InputBuffer 	= MyType;
+
+    using InputBuffer = PkdFSESequenceInputBuffer<Types>;
 
     class Metadata {
         Int size_;
@@ -115,6 +119,8 @@ public:
         Int& size()                 {return size_;}
         const Int& size() const     {return size_;}
     };
+
+    using SizesT = core::StaticVector<Int, 1>;
 
 public:
     PkdFSSeq() = default;
@@ -463,6 +469,13 @@ public:
             Value val = fn();
             tools.set(symbols, c, val);
         }
+    }
+
+    void insert_buffer(Int at, const InputBuffer* buffer, Int start, Int size)
+    {
+    	insertDataRoom(at, size);
+    	tools().move(buffer->symbols(), this->symbols(), start, at, size);
+    	reindex();
     }
 
 
@@ -1045,7 +1058,7 @@ public:
                     PkdFSSeqTypes<
                         BitsPerSymbol,
                         1024,
-                        PkdVDTreeT<BigInt, 1<<BitsPerSymbol, UBigIntI64Codec>,
+                        PkdVDTreeT<BigInt, 1<<BitsPerSymbol, UByteI7Codec>,
                         VLEReindex8BlkFn,
                         Seq8SelectFn,
                         Seq8RankFn,

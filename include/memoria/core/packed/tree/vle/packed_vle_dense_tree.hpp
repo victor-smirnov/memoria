@@ -626,8 +626,8 @@ public:
     template <typename T>
     void insert(Int idx, const core::StaticVector<T, Blocks>& values)
     {
-    	this->_insert(idx, 1, [&](Int idx){
-    		return values;
+    	this->_insert(idx, 1, [&](Int block, Int idx){
+    		return values[block];
     	});
     }
 
@@ -1175,6 +1175,11 @@ public:
         	Base::template serializeSegment<IndexValue>(buf, block * SegmentsPerBlock + BlocksStart + VALUE_INDEX);
         	Base::template serializeSegment<Int>(buf, block * SegmentsPerBlock + BlocksStart + SIZE_INDEX);
         	Base::template serializeSegment<OffsetsType>(buf, block * SegmentsPerBlock + BlocksStart + OFFSETS);
+
+//        	this->dump();
+//
+//        	cout<<"DS1: "<<Base::data_size(block)<<endl;
+
         	FieldFactory<ValueData>::serialize(buf, Base::values(block), Base::data_size(block));
         }
     }

@@ -164,6 +164,9 @@ public:
 			SizeTMapper
     >::Type>;
 
+    template <Int SubstreamIdx>
+    using StreamTypeT = typename Dispatcher::template StreamTypeT<SubstreamIdx>::Type;
+
 private:
     struct InitFn {
         Int block_size(Int items_number) const

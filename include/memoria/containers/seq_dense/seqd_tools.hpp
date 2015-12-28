@@ -11,6 +11,7 @@
 
 #include <memoria/prototypes/bt/layouts/bt_input_buffer.hpp>
 #include <memoria/core/tools/isymbols.hpp>
+#include <memoria/core/tools/random.hpp>
 
 namespace memoria       {
 namespace seq_dense     {
@@ -73,6 +74,104 @@ public:
 
 	virtual bool hasData() const {
 		return next_ || start_ < size_;
+	}
+};
+
+
+template <typename CtrT>
+class SequenceInputProviderBase: public memoria::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength> {
+	using Base = memoria::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength>;
+
+public:
+
+	using typename Base::InputBuffer;
+
+	using SequenceInputBuffer = typename InputBuffer::template StreamTypeT<0>;
+
+public:
+	SequenceInputProviderBase(CtrT& ctr, Int capacity = 10000):
+		Base(ctr, capacity)
+	{}
+
+	virtual Int get(InputBuffer* buffer, Int pos) {
+		return get(buffer->template substream_by_idx<0>(), pos);
+	}
+
+	virtual Int get(SequenceInputBuffer* buffer, Int pos) = 0;
+};
+
+template <typename CtrT>
+class FnSequenceInputProvider: public SequenceInputProviderBase<CtrT> {
+	using Base = SequenceInputProviderBase<CtrT>;
+
+public:
+
+	using typename Base::SequenceInputBuffer;
+
+public:
+	FnSequenceInputProvider(CtrT& ctr, Int capacity = 10000):
+		Base(ctr, capacity)
+	{}
+
+	virtual Int get(SequenceInputBuffer* buffer, Int pos)
+	{
+
+	}
+};
+
+
+template <typename CtrT, typename RngT = RngBigInt>
+class RandomSequenceInputProvider: public SequenceInputProviderBase<CtrT> {
+	using Base = SequenceInputProviderBase<CtrT>;
+
+	RngT& rng_;
+
+public:
+
+	using typename Base::SequenceInputBuffer;
+
+	BigInt total_ = 0;
+	BigInt length_;
+
+public:
+	RandomSequenceInputProvider(CtrT& ctr, RngT& rng, BigInt length, Int capacity = 10000):
+		Base(ctr, capacity),
+		rng_(rng),
+		length_(length)
+	{}
+
+	virtual Int get(SequenceInputBuffer* buffer, Int pos)
+	{
+		using SymbolsBuffer = typename SequenceInputBuffer::SymbolsBuffer;
+
+		if (total_ < length_)
+		{
+			return buffer->append([&, this](Int size) {
+
+				SymbolsBuffer buf;
+				Int limit = size > buf.capacity() ? buf.capacity() : size;
+
+				if (total_ + limit > length_) {
+					limit = length_ - total_;
+				}
+
+				buf.resize(limit);
+
+				auto symbols = buf.symbols();
+
+				for (Int c = 0; c < SymbolsBuffer::BufSize; c++)
+				{
+					symbols[c] = this->rng_();
+				}
+
+				this->total_ += limit;
+
+				return buf;
+			});
+		}
+		else {
+			return -1;
+		}
 	}
 };
 

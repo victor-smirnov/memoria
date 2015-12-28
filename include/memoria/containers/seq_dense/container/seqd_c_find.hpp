@@ -40,7 +40,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
 
     typedef typename Types::CtrSizeT                                            CtrSizeT;
 
-
+    CtrSizeT size() {
+    	return self().sizes()[0];
+    }
 
     CtrSizeT rank(CtrSizeT idx, Int symbol)
     {
