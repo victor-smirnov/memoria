@@ -172,6 +172,23 @@ public:
     }
 
 
+    Int append(const Value* src_symbols, Int start, Int lenght)
+    {
+    	auto symbols = this->symbols();
+
+    	Int limit = max_size_ - size_;
+
+    	Int limit0 = lenght < limit ? lenght : limit;
+
+    	tools().move(src_symbols, symbols, 0, size_, limit0);
+
+    	size_ += limit0;
+
+    	return limit0;
+    }
+
+
+
     // ==================================== Dump =========================================== //
 
 

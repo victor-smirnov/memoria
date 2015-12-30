@@ -21,7 +21,7 @@ int main(int argc, const char** argv, const char** envp) {
 
 		alloc.mem_limit() = 2*1024*1024*1024ll;
 
-		constexpr Int BitsPerSymbol = 8;
+		constexpr Int BitsPerSymbol = 1;
 
 		using CtrT = DCtrTF<Sequence<BitsPerSymbol>>::Type;
 
@@ -29,12 +29,12 @@ int main(int argc, const char** argv, const char** envp) {
 
 		CtrT ctr(&alloc);
 
-		ctr.setNewPageSize(32*1024);
+//		ctr.setNewPageSize(32*1024);
 
 		auto iter = ctr.seek(0);
 
 		using Provider = seq_dense::RandomSequenceInputProvider<CtrT>;
-		Provider provider(ctr, getGlobalBigIntGenerator(), 100000000, 1000000);
+		Provider provider(ctr, getGlobalBigIntGenerator(), 4000000, 1000000);
 
 		ctr.insert(iter, provider);
 
@@ -57,10 +57,18 @@ int main(int argc, const char** argv, const char** envp) {
 
 		auto size = ctr.size();
 
-		cout<<"ctr rank0: "<<ctr.rank(0, size, 0)<<endl;
-		cout<<"ctr rank1: "<<ctr.rank(0, size, 1)<<endl;
+		cout<<"ctr rank0: "<<ctr.rank(0, size+1000, 0)<<endl;
+		cout<<"ctr rank1: "<<ctr.rank(0, size+1000, 1)<<endl;
+
+
+		auto ii = ctr.seek(size - 1);
+
+		cout<<"ii rank0: "<<i1.rankBw(size - 1, 0)<<endl;
 
 		cout<<"Allocated: "<<(alloc.allocated()/1024)<<"K"<<endl;
+
+		auto r0 = ctr.rank(0, size, 0);
+		cout<<"select0: "<<ctr.select(0, r0/2).pos()<<endl;
 
 		if (argc > 1)
 		{

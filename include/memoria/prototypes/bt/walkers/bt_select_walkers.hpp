@@ -39,7 +39,7 @@ public:
         auto& sum       = Base::sum_;
         auto symbol     = Base::leaf_index();
 
-        BigInt rank     = Base::target_ - sum;
+        CtrSizeT rank   = Base::target_ - sum;
         auto result     = self().template select<StreamIdx>(seq, start, symbol, rank);
 
         if (result.is_found())
@@ -111,7 +111,7 @@ public:
 
         if (start > size) start = size;
 
-        BigInt target   = Base::target_ - Base::sum_;
+        CtrSizeT target = Base::target_ - Base::sum_;
 
         auto& sum       = Base::sum_;
         auto symbol     = Base::leaf_index();

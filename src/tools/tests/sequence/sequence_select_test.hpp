@@ -32,6 +32,10 @@ class SequenceSelectTest: public SequenceTestBase<BitsPerSymbol, Dense> {
     Int ctr_name_;
     Int iterations_ = 100000;
 
+    using Base::fillRandom;
+    using Base::getRandom;
+    using Base::out;
+
 public:
     SequenceSelectTest(StringRef name):
         Base(name)
@@ -60,25 +64,25 @@ public:
         allocator.commit();
 
         try {
-            auto seq = Base::fillRandom(ctr, this->size_);
+            auto seq = fillRandom(ctr, this->size_);
 
             this->forceCheck(allocator, MA_SRC);
 
             allocator.commit();
 
-            auto ranks = seq.ranks();
+            auto ranks = seq->ranks();
 
             for (Int c = 0; c < iterations_; c++)
             {
-                this->out()<<c<<std::endl;
+                out()<<c<<std::endl;
 
-                Int symbol  = this->getRandom(Base::Symbols);
-                Int rank    = this->getRandom(ranks[symbol]);
+                Int symbol  = getRandom(Base::Symbols);
+                Int rank    = getRandom(ranks[symbol]);
 
                 if (rank == 0) rank = 1; //  rank of 0 is not defined for select()
 
                 auto iter1 = ctr.select(symbol, rank);
-                auto iter2 = seq.select(symbol, rank);
+                auto iter2 = seq->selectFw(symbol, rank);
 
                 AssertFalse(MA_SRC, iter1.isEof());
                 AssertTrue(MA_SRC,  iter2.is_found());
@@ -117,14 +121,14 @@ public:
             {
                 this->out()<<c<<std::endl;
 
-                Int pos     = this->getRandom(size);
-                Int symbol  = this->getRandom(Base::Symbols);
+                Int pos     = getRandom(size);
+                Int symbol  = getRandom(Base::Symbols);
 
-                Int maxrank_ = seq.rank(pos, size, symbol);
+                Int maxrank_ = seq->rank(pos, size, symbol);
 
                 if (maxrank_ > 0)
                 {
-                    Int rank    = this->getRandom(maxrank_);
+                    Int rank    = getRandom(maxrank_);
 
                     if (rank == 0) rank = 1;
 
@@ -136,7 +140,7 @@ public:
 
                     BigInt pos_delta1 = iter.selectFw(rank, symbol);
 
-                    auto tgt_pos2 = seq.selectFw(pos, symbol, rank);
+                    auto tgt_pos2 = seq->selectFw(pos, symbol, rank);
 
                     AssertEQ(MA_SRC, iter.pos(), tgt_pos2.idx());
 
@@ -179,12 +183,12 @@ public:
 
             for (Int c = 0; c < iterations_; c++)
             {
-                this->out()<<c<<std::endl;
+                out()<<c<<std::endl;
 
                 Int pos     = this->getRandom(size);
                 Int symbol  = this->getRandom(Base::Symbols);
 
-                Int maxrank_ = seq.rank(0, pos, symbol);
+                Int maxrank_ = seq->rank(0, pos, symbol);
 
                 if (maxrank_ > 0)
                 {
@@ -194,7 +198,7 @@ public:
 
                     auto iter   = ctr.seek(pos);
 
-                    auto tgt_pos        = seq.selectBw(pos, symbol, rank);
+                    auto tgt_pos        = seq->selectBw(pos, symbol, rank);
                     BigInt pos_delta1   = iter.selectBw(rank, symbol);
 
                     AssertEQ(MA_SRC, iter.pos(), tgt_pos.idx());

@@ -9,6 +9,93 @@
 #ifndef _MEMORIA_CONTAINERS_SEQD_FACTORY_FACTORY_MISC_HPP
 #define _MEMORIA_CONTAINERS_SEQD_FACTORY_FACTORY_MISC_HPP
 
+#include <memoria/prototypes/bt/bt_factory.hpp>
+
 #include <memoria/core/packed/sseq/packed_fse_searchable_seq.hpp>
+
+#include <memoria/containers/seq_dense/seqd_names.hpp>
+#include <memoria/containers/seq_dense/seqd_tools.hpp>
+
+#include <memoria/containers/seq_dense/container/seqd_c_find.hpp>
+#include <memoria/containers/seq_dense/container/seqd_c_insert.hpp>
+#include <memoria/containers/seq_dense/container/seqd_c_insert_fixed.hpp>
+#include <memoria/containers/seq_dense/container/seqd_c_insert_variable.hpp>
+#include <memoria/containers/seq_dense/container/seqd_c_remove.hpp>
+
+#include <memoria/containers/seq_dense/iterator/seqd_i_count.hpp>
+#include <memoria/containers/seq_dense/iterator/seqd_i_misc.hpp>
+#include <memoria/containers/seq_dense/iterator/seqd_i_rank.hpp>
+#include <memoria/containers/seq_dense/iterator/seqd_i_select.hpp>
+#include <memoria/containers/seq_dense/iterator/seqd_i_skip.hpp>
+
+namespace memoria {
+
+
+template <typename Profile, Int BitsPerSymbol_>
+struct BTTypes<Profile, memoria::Sequence<BitsPerSymbol_, true> >: public BTTypes<Profile, memoria::BTSingleStream> {
+
+    typedef BTTypes<Profile, memoria::BTSingleStream>                           Base;
+
+    typedef UByte                                                             	Value;
+
+    static const Int BitsPerSymbol                                              = BitsPerSymbol_;
+    static const Int Symbols                                              		= 1<<BitsPerSymbol;
+
+    using SequenceTypes = typename PkdFSSeqTF<BitsPerSymbol>::Type;
+
+    using SeqStreamTF = StreamTF<
+    	TL<TL<PkdFSSeq<SequenceTypes>>>,
+        TL<TL<TL<>>>,
+		VLDBranchStructTF
+//		FSEBranchStructTF
+    >;
+
+
+    typedef TypeList<
+                SeqStreamTF
+    >                                                                           StreamDescriptors;
+
+    typedef BalancedTreeMetadata<
+                typename Base::ID,
+                ListSize<StreamDescriptors>::Value
+    >                                                                           Metadata;
+
+
+    typedef MergeLists<
+                typename Base::CommonContainerPartsList,
+
+                seq_dense::CtrFindName,
+                seq_dense::CtrInsertName,
+                seq_dense::CtrRemoveName
+    >                                                                   		CommonContainerPartsList;
+
+
+    using FixedLeafContainerPartsList = MergeLists<
+                typename Base::FixedLeafContainerPartsList,
+
+                seq_dense::CtrInsertFixedName
+    >;
+
+    using VariableLeafContainerPartsList = MergeLists<
+                typename Base::VariableLeafContainerPartsList,
+
+                seq_dense::CtrInsertVariableName
+    >;
+
+
+
+    typedef MergeLists<
+                typename Base::IteratorPartsList,
+
+                seq_dense::IterSelectName,
+                seq_dense::IterMiscName,
+                seq_dense::IterCountName,
+                seq_dense::IterRankName,
+                seq_dense::IterSkipName
+
+    >                                                                   		IteratorPartsList;
+};
+
+}
 
 #endif

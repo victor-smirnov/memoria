@@ -9,12 +9,8 @@
 
 #include "../tests_inc.hpp"
 
-
-#include "sequence_create_test.hpp"
 #include "sequence_rank_test.hpp"
 #include "sequence_select_test.hpp"
-#include "sequence_update_test.hpp"
-
 
 #include <vector>
 
@@ -29,16 +25,13 @@ public:
 
     SequenceTestSuite(): TestSuite("SequenceSuite")
     {
-//        registerTask(new SequenceCreateTest<1>("1.Create"));
-//        registerTask(new SequenceCreateTest<8>("8.Create"));
-//
         registerTask(new SequenceRankTest<1>("1.Rank"));
+        registerTask(new SequenceRankTest<4>("4.Rank"));
         registerTask(new SequenceRankTest<8>("8.Rank"));
-//
-        registerTask(new SequenceSelectTest<1>("1.Select"));
-//        registerTask(new SequenceSelectTest<8>("8.Select"));
 
-//        registerTask(new SequenceUpdateTest<1>("1.Update"));
+        registerTask(new SequenceSelectTest<1>("1.Select"));
+        registerTask(new SequenceSelectTest<4>("4.Select"));
+        registerTask(new SequenceSelectTest<8>("8.Select"));
     }
 
 };

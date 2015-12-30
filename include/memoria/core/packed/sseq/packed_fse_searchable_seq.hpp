@@ -109,7 +109,6 @@ public:
     typedef typename Types::template ToolsFn<MyType>                            Tools;
 
     using InputType 	= Value;
-//    using InputBuffer 	= MyType;
 
     using InputBuffer = PkdFSESequenceInputBuffer<Types>;
 
@@ -491,6 +490,35 @@ public:
         reindex();
     }
 
+
+    template <typename Adaptor>
+    void fill_with_buf(Int start, Int length, Adaptor&& adaptor)
+    {
+    	Int size = this->size();
+
+    	MEMORIA_ASSERT(start, >=, 0);
+    	MEMORIA_ASSERT(start, <=, size);
+    	MEMORIA_ASSERT(length, >=, 0);
+
+    	insertDataRoom(start, length);
+
+    	auto symbols = this->symbols();
+
+    	Int total = 0;
+
+    	while (total < length)
+    	{
+    		auto buf = adaptor(length - total);
+
+    		tools().move(buf.symbols(), symbols, 0, start + total, buf.size());
+
+    		total += buf.size();
+    	}
+
+    	reindex();
+    }
+
+
     void update(Int start, Int end, std::function<Value ()> fn)
     {
         MEMORIA_ASSERT(start, >=, 0);
@@ -646,6 +674,12 @@ public:
 
         return vals;
     }
+
+    Values ranks() const
+    {
+    	return this->ranks(this->size());
+    }
+
 
 
 
@@ -1048,9 +1082,9 @@ public:
                     (BitsPerSymbol > 1 && BitsPerSymbol < 8),
                     PkdFSSeqTypes<
                         BitsPerSymbol,
-                        256,
+                        1024,
                         PkdFQTreeT<Int, 1<<BitsPerSymbol>,
-                        ReindexFn,
+						ReindexFn,
                         SeqSelectFn,
                         SeqRankFn,
                         SeqToolsFn

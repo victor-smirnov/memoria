@@ -30,6 +30,9 @@ class SequenceRankTest: public SequenceTestBase<BitsPerSymbol, Dense> {
     Int ctr_name_;
     Int iterations_ = 100000;
 
+    using Base::getRandom;
+    using Base::fillRandom;
+
 public:
     SequenceRankTest(StringRef name):
         Base(name)
@@ -57,7 +60,7 @@ public:
         allocator.commit();
 
         try {
-            auto seq = Base::fillRandom(ctr, this->size_);
+            auto seq = fillRandom(ctr, this->size_);
 
             this->forceCheck(allocator, MA_SRC);
 
@@ -67,11 +70,11 @@ public:
             {
                 this->out()<<c<<std::endl;
 
-                Int pos     = this->getRandom(this->size_);
-                Int symbol  = this->getRandom(Base::Symbols);
+                Int pos     = getRandom(this->size_);
+                Int symbol  = getRandom(Base::Symbols);
 
                 BigInt rank1 = ctr.rank(pos, symbol);
-                BigInt rank2 = seq.rank(pos, symbol);
+                BigInt rank2 = seq->rank(pos, symbol);
 
                 AssertEQ(MA_SRC, rank1, rank2);
             }
@@ -95,7 +98,7 @@ public:
         allocator.commit();
 
         try {
-            auto seq = Base::fillRandom(ctr, this->size_);
+            auto seq = fillRandom(ctr, this->size_);
 
             this->forceCheck(allocator, MA_SRC);
 
@@ -105,14 +108,14 @@ public:
             {
                 this->out()<<c<<std::endl;
 
-                Int pos1    = this->getRandom(this->size_);
-                Int pos2    = pos1 + this->getRandom(this->size_ - pos1);
-                Int symbol  = this->getRandom(Base::Symbols);
+                Int pos1    = getRandom(this->size_);
+                Int pos2    = pos1 + getRandom(this->size_ - pos1);
+                Int symbol  = getRandom(Base::Symbols);
 
                 auto iter   = ctr.seek(pos1);
 
                 BigInt rank1 = iter.rank(pos2 - pos1, symbol);
-                BigInt rank2 = seq.rank(pos1, pos2, symbol);
+                BigInt rank2 = seq->rank(pos1, pos2, symbol);
 
                 AssertEQ(MA_SRC, iter.pos(), pos2);
                 AssertEQ(MA_SRC, rank1, rank2);

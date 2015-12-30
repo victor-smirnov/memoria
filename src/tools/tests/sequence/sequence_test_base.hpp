@@ -37,6 +37,14 @@ protected:
 
     typedef SymbolsBuffer<BitsPerSymbol>                                        MemBuffer;
 
+
+    using PSeqTypes  = typename PkdFSSeqTF<BitsPerSymbol>::Type;
+    using PackedSeq1 = PkdFSSeq<PSeqTypes>;
+    using PackedSeq1Ptr = PkdStructSPtr<PackedSeq1>;
+
+
+    using Seq = PkdFSSeq<PSeqTypes>;
+
     static const Int Symbols                                                    = 1<<BitsPerSymbol;
 
     String dump_name_;
@@ -46,74 +54,68 @@ public:
     {
         Ctr::initMetadata();
 
-        this->size_ = 100000;
+        this->size_ = 10000000;
 
         MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
     }
 
-    PackedSeq fillRandom(Ctr& ctr, Int size)
+    PackedSeq1Ptr createEmptyPackedSeq(Int size)
     {
-        PackedSeq seq(size, (BitsPerSymbol == 8) ? 10 : 1, 1);
+    	Int block_size;
 
-        seq.insert(0, size, [this](){
-            return this->getRandom(Symbols);
-        });
+    	if (BitsPerSymbol == 1) {
+    		block_size = PackedSeq1::estimate_block_size(size, 1, 1);
+    	}
+    	else if (BitsPerSymbol == 4) {
+    		block_size = PackedSeq1::estimate_block_size(size, 1, 1);
+    	}
+    	else {
+    		block_size = PackedSeq1::estimate_block_size(size, 3, 2);
+    	}
 
-        auto iter = ctr.Begin();
+    	return MakeSharedPackedStructByBlock<PackedSeq1>(block_size);
+    }
+
+    PackedSeq1Ptr fillRandom(Ctr& ctr, Int size)
+    {
+        PackedSeq1Ptr seq = createEmptyPackedSeq(size);
+
+        using SymbolsBuffer = SmallSymbolBuffer<BitsPerSymbol>;
 
         BigInt t0 = getTimeInMillis();
 
-        for (Int c = 0; c <size; c++)
-        {
-            iter.insert(seq[c]);
-        }
+        seq->fill_with_buf(0, size, [this](Int len) {
+
+			SymbolsBuffer buf;
+			Int limit = len > buf.capacity() ? buf.capacity() : len;
+
+			buf.resize(limit);
+
+			auto symbols = buf.symbols();
+
+			for (Int c = 0; c < SymbolsBuffer::BufSize; c++)
+			{
+				symbols[c] = this->getRandom();
+			}
+
+			return buf;
+        });
 
         BigInt t1 = getTimeInMillis();
 
-        this->out()<<"Sequence creation time: "<<FormatTime(t1 - t0)<<std::endl;
+        auto iter = ctr.Begin();
+
+		using Provider = seq_dense::SymbolSequenceInputProvider<Ctr>;
+		Provider provider(ctr, seq->symbols(), 0, 4000000);
+
+		ctr.insert(iter, provider);
+
+        BigInt t2 = getTimeInMillis();
+
+        this->out()<<"Sequence creation time: "<<FormatTime(t1 - t0)<<" "<<FormatTime(t2 - t1)<<std::endl;
 
         return seq;
     }
-
-    virtual MemBuffer createBuffer(Int size, Int symbol)
-    {
-        MemBuffer data(size);
-        for (SizeT c = 0; c < size; c++)
-        {
-            data.put(symbol);
-        }
-
-        data.reset();
-
-        return data;
-    }
-
-    virtual MemBuffer createRandomBuffer(Int size)
-    {
-        MemBuffer data(size);
-        for (SizeT c = 0; c < size; c++)
-        {
-            data.put(getRandom(1 << BitsPerSymbol));
-        }
-
-        data.reset();
-
-        return data;
-    }
-
-    virtual void compareBuffers(const MemBuffer& src, const MemBuffer& tgt, const char* source)
-    {
-        AssertEQ(source, src.size(), tgt.size(), SBuf()<<"buffer sizes are not equal");
-
-        for (size_t c = 0; c < src.size(); c++)
-        {
-            typename MemBuffer::value_type v1 = src[c];
-            typename MemBuffer::value_type v2 = tgt[c];
-
-            AssertEQ(source, v1, v2, [=](){return SBuf()<<"c="<<c;});
-        }
-    }
-
 };
 
 

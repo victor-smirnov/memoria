@@ -12,6 +12,7 @@
 #include <memoria/prototypes/bt/layouts/bt_input_buffer.hpp>
 #include <memoria/core/tools/isymbols.hpp>
 #include <memoria/core/tools/random.hpp>
+#include <memoria/core/packed/wrappers/symbol_sequence.hpp>
 
 namespace memoria       {
 namespace seq_dense     {
@@ -175,6 +176,45 @@ public:
 	}
 };
 
+
+template <typename CtrT>
+class SymbolSequenceInputProvider: public SequenceInputProviderBase<CtrT> {
+	using Base = SequenceInputProviderBase<CtrT>;
+
+public:
+
+	using typename Base::SequenceInputBuffer;
+	using Symbols = typename SequenceInputBuffer::Value;
+
+	static constexpr Int BitsPerSymbol = CtrT::Types::BitsPerSymbol;
+private:
+
+	const Symbols* symbols_;
+
+	Int start_;
+	Int length_;
+
+public:
+	SymbolSequenceInputProvider(CtrT& ctr, const Symbols* symbols, Int start, Int length, Int capacity = 100000):
+		Base(ctr, capacity),
+		symbols_(symbols),
+		start_(start),
+		length_(length)
+	{}
+
+	virtual Int get(SequenceInputBuffer* buffer, Int pos)
+	{
+		if (start_ < length_)
+		{
+			Int inserted = buffer->append(symbols_, start_, length_);
+			start_ += inserted;
+			return inserted;
+		}
+		else {
+			return -1;
+		}
+	}
+};
 
 
 }
