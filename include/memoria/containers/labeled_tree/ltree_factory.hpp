@@ -30,11 +30,15 @@ namespace memoria {
 
 
 template <typename Profile, typename... LabelDescriptors>
-struct BTTypes<Profile, memoria::LabeledTree<LabelDescriptors...>>: BTTypes<Profile, memoria::Sequence<1, true>> {
+struct BTTypes<Profile, memoria::LabeledTree<LabelDescriptors...>>: BTTypes<Profile, memoria::BT> {
 
-    typedef BTTypes<Profile, memoria::Sequence<1, true>>                        Base;
+    typedef BTTypes<Profile, memoria::BT>                        				Base;
 
     typedef UBigInt                                                             Value;
+
+
+    static constexpr Int BitsPerSymbol 	= 1;
+    static constexpr Int Symbols 		= 2;
 
     typedef TypeList<
                 BranchNodeTypes<BranchNode>,
@@ -46,92 +50,79 @@ struct BTTypes<Profile, memoria::LabeledTree<LabelDescriptors...>>: BTTypes<Prof
                 TreeNodeType<BranchNode>
     >                                                                           DefaultNodeTypesList;
 
+    using StreamDescriptors = MergeLists<
+    		StreamTF<
+				PkdFSSeq<typename PkdFSSeqTF<1>::Type>,
+				TL<TL<>>,
+				FSEBranchStructTF
+			>,
+			StreamTF<
+				TL<typename louds::StreamDescriptorsListHelper<LabelDescriptors...>::LeafType>,
+				TL<typename louds::StreamDescriptorsListHelper<LabelDescriptors...>::IdxList>,
+				FSEBranchStructTF
+			>
+    >;
 
-    typedef typename louds::StreamDescriptorsListBuilder<
-            LabelDescriptors...
-    >::Type                                                                     StreamDescriptors;
 
-    typedef BalancedTreeMetadata<
+
+    using Metadata = BalancedTreeMetadata<
             typename Base::ID,
             ListSize<StreamDescriptors>::Value
-    >                                                                           Metadata;
+    >;
 
 
-    typedef typename MergeLists<
-                typename Base::ContainerPartsList,
-                bt::NodeComprName,
-                louds::CtrApiName,
-                louds::CtrFindName,
-                louds::CtrInsertName,
-                louds::CtrUpdateName,
-                louds::CtrRemoveName,
-                louds::CtrChecksName
-    >::Result                                                                   ContainerPartsList;
+    using CommonContainerPartsList = MergeLists<
+                typename Base::CommonContainerPartsList,
+
+                seq_dense::CtrFindName,
+                seq_dense::CtrInsertName,
+                seq_dense::CtrRemoveName,
+
+				louds::CtrApiName,
+				louds::CtrFindName,
+				louds::CtrInsertName,
+				louds::CtrUpdateName,
+				louds::CtrRemoveName,
+				louds::CtrChecksName
+    >;
+
+    using FixedLeafContainerPartsList = MergeLists<
+                typename Base::FixedLeafContainerPartsList,
+
+                seq_dense::CtrInsertFixedName
+    >;
+
+    using VariableLeafContainerPartsList = MergeLists<
+                typename Base::VariableLeafContainerPartsList,
+
+                seq_dense::CtrInsertVariableName
+    >;
 
 
-    typedef typename MergeLists<
+    using IteratorPartsList = MergeLists<
                 typename Base::IteratorPartsList,
+
+				seq_dense::IterSelectName,
+				seq_dense::IterMiscName,
+				seq_dense::IterCountName,
+				seq_dense::IterRankName,
+				seq_dense::IterSkipName,
+
                 louds::ItrApiName
-    >::Result                                                                   IteratorPartsList;
+    >;
 
-    typedef typename louds::LabelsTupleTF<LabelDescriptors...>::Type            LabelsTuple;
-
+    using LabelsTuple = typename louds::LabelsTupleTF<LabelDescriptors...>::Type;
 
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {
         typedef memoria::louds::LOUDSIteratorCache<Iterator, Container> Type;
     };
-
-
-
-    template <typename Types>
-    using FindGTWalker          = louds::SkipForwardWalker<Types, 0>;
-
-
-    template <typename Types>
-    using RankFWWalker          = louds::RankFWWalker<Types, 0>;
-
-    template <typename Types>
-    using RankBWWalker          = louds::RankBWWalker<Types, 0>;
-
-
-    template <typename Types>
-    using SelectFwWalker        = louds::SelectForwardWalker<Types, 0>;
-
-    template <typename Types>
-    using SelectBwWalker        = louds::SelectBackwardWalker<Types, 0>;
-
-
-    template <typename Types>
-    using SkipForwardWalker     = louds::SkipForwardWalker<Types, 0>;
-
-    template <typename Types>
-    using SkipBackwardWalker    = louds::SkipBackwardWalker<Types, 0>;
-
-
-    template <typename Types>
-    using NextLeafWalker        = bt::NextLeafWalker<Types, 0>;
-
-    template <typename Types>
-    using PrevLeafWalker        = bt::PrevLeafWalker<Types, 0>;
-
-    template <typename Types>
-    using FindBeginWalker       = louds::FindBeginWalker<Types>;
-
-    template <typename Types>
-    using FindEndWalker         = louds::FindEndWalker<Types>;
-
-    template <typename Types>
-    using FindRBeginWalker      = louds::FindRBeginWalker<Types>;
-
-    template <typename Types>
-    using FindREndWalker        = louds::FindREndWalker<Types>;
 };
 
 
 
 template <typename Profile, typename... LabelDescriptors, typename T>
-class CtrTF<Profile, memoria::LabeledTree<LabelDescriptors...>, T>: public CtrTF<Profile, memoria::Sequence<1, true>, T> {
+class CtrTF<Profile, memoria::LabeledTree<LabelDescriptors...>, T>: public CtrTF<Profile, memoria::BT, T> {
 };
 
 

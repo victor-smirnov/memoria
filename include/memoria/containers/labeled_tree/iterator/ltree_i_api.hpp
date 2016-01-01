@@ -40,6 +40,62 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
 
     typedef typename Container::Types::CtrSizeT                                 CtrSizeT;
 
+    bool operator++() {
+    	return self().skipFw(1);
+    }
+
+    bool operator--() {
+    	return self().skipBw(1);
+    }
+
+    bool operator++(int) {
+    	return self().skipFw(1);
+    }
+
+    bool operator--(int) {
+    	return self().skipFw(1);
+    }
+
+    CtrSizeT operator+=(CtrSizeT size) {
+    	return self().skipFw(size);
+    }
+
+    CtrSizeT operator-=(CtrSizeT size) {
+    	return self().skipBw(size);
+	}
+
+    Int size() const
+    {
+    	return self().leafSize(0);
+    }
+
+    bool isEof() const {
+    	return self().idx() >= self().size();
+    }
+
+    bool isBof() const {
+    	return self().idx() < 0;
+    }
+
+    CtrSizeT skipFw(CtrSizeT amount) {
+    	return self().template skip_fw_<0>(amount);
+    }
+
+    CtrSizeT skipBw(CtrSizeT amount) {
+    	return self().template skip_bw_<0>(amount);
+    }
+
+    CtrSizeT skip(CtrSizeT amount) {
+    	return self().template skip_<0>(amount);
+    }
+
+    CtrSizeT pos() const
+    {
+    	auto& self = this->self();
+
+    	return self.idx() + self.cache().size_prefix()[0];
+    }
+
     CtrSizeT noderank_() const
     {
         auto& self = this->self();
@@ -299,7 +355,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
 
 
         template <Int Idx, typename StreamTypes>
-        void stream(const PkdVTree<StreamTypes>* obj, Int idx)
+        void stream(const PkdVQTree<StreamTypes>* obj, Int idx)
         {
             if (obj != nullptr)
             {
@@ -310,7 +366,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
         }
 
         template <Int Idx, typename StreamTypes>
-        void stream(const PkdFTree<StreamTypes>* obj, Int idx)
+        void stream(const PkdFQTree<StreamTypes>* obj, Int idx)
         {
             if (obj != nullptr)
             {
@@ -359,6 +415,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
 //    {
 //      return IDataAdapter<WrappedIterator>(*me()->iter(), length);
 //    }
+
+
+    void remove() {
+    	auto& self = this->self();
+    	self.ctr().remove(self);
+    }
 
 MEMORIA_ITERATOR_PART_END
 

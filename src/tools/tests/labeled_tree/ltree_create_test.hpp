@@ -35,7 +35,7 @@ public:
 
     LabeledTreeCreateTest(): LabeledTreeTestBase("Create")
     {
-        size_ = 100000;
+        size_ = 20000;
 
         MEMORIA_ADD_TEST_PARAM(max_degree_);
         MEMORIA_ADD_TEST_PARAM(iterations_);

@@ -14,6 +14,8 @@
 
 #include <memoria/core/tools/labeled_tree.hpp>
 
+#include <memoria/containers/labeled_tree/ltree_factory.hpp>
+
 #include <vector>
 #include <algorithm>
 #include <sstream>
@@ -31,12 +33,12 @@ class LabeledTreeTestBase: public SPTestTask {
 protected:
 
 
-    typedef typename DCtrTF<
+    using Ctr = typename DCtrTF<
                         LabeledTree<
                             FLabel<UByte>,
                             VLabel<BigInt, Granularity::Bit, Indexed::Yes>
                         >
-    >::Type                                                                     Ctr;
+    >::Type;
 
     typedef typename Ctr::Iterator                                              Iterator;
 

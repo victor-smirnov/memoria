@@ -31,7 +31,10 @@ struct PackedFSEBitmapTypes {
     typedef Allocator_      Allocator;
 };
 
+template <typename Types_> class PackedFSEBitmap;
 
+template <Int BitsPerSymbol>
+using PackedFSEBitmapT = PackedFSEBitmap<PackedFSEBitmapTypes<BitsPerSymbol>>;
 
 template <typename Types_>
 class PackedFSEBitmap: public PackedAllocatable {

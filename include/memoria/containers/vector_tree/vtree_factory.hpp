@@ -38,17 +38,17 @@ struct CompositeTypes<Profile_, VTree>: public CompositeTypes<Profile_, Composit
 
     typedef CompositeTypes<Profile_, Composite>                                 Base;
 
-    typedef typename MergeLists<
+    using CtrList = MergeLists<
             typename Base::ContainerPartsList,
 
             vtree::CtrApiName
-    >::Result                                                                   CtrList;
+    >;
 
-    typedef typename MergeLists<
+    using IterList = MergeLists<
             typename Base::IteratorPartsList,
 
             vtree::ItrApiName
-    >::Result                                                                   IterList;
+    >;
 
 
     template <typename Types_>

@@ -50,7 +50,7 @@ public:
     typedef typename PrependToList<
             typename LabelsTypeListBuilder<Tail...>::Type,
             LabelDataType
-    >::Result                                                                   Type;
+    >::Type                                                                     Type;
 };
 
 template <>

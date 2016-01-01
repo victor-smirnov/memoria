@@ -17,9 +17,9 @@ namespace louds     {
 
 
 template <typename Iterator, typename Container>
-class LOUDSIteratorCache: public bt::BTreeIteratorCache<Iterator, Container> {
+class LOUDSIteratorCache: public bt::BTreeIteratorPrefixCache<Iterator, Container> {
 
-    typedef bt::BTreeIteratorCache<Iterator, Container>     Base;
+    typedef bt::BTreeIteratorPrefixCache<Iterator, Container>     Base;
 
     BigInt pos_     = 0;
     BigInt rank1_   = 0;

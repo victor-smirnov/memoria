@@ -43,41 +43,49 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
     static const Int Streams                                                    = Types::Streams;
 
 
-    struct InsertLabelsFn {
+    template <typename SubstreamsIdxList, typename... Args>
+    auto read_leaf_entry(const NodeBaseG& leaf, Args&&... args) const
+    {
+    	return self().template apply_substreams_fn<0, SubstreamsIdxList>(leaf, GetLeafValuesFn(), std::forward<Args>(args)...);
+    }
 
-        Accumulator& delta_;
+    struct InsertLabelsFn
+    {
         const LabelsTuple& labels_;
 
-        InsertLabelsFn(Accumulator& delta, const LabelsTuple& labels):
-            delta_(delta),
-            labels_(labels)
+        InsertLabelsFn(const LabelsTuple& labels):
+        	labels_(labels)
         {}
 
-        template <Int Idx, typename SeqTypes>
-        void stream(PkdFSSeq<SeqTypes>* seq, Int idx) {}
-
-        template <Int Idx, typename StreamTypes>
-        void stream(PackedFSEArray<StreamTypes>* labels, Int idx)
+        template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename AccumulatorItem>
+        void stream(PackedFSEArray<StreamTypes>* labels, AccumulatorItem& accum, Int idx)
         {
-            labels->insert(idx, std::get<Idx - 1>(labels_));
+            labels->insert(idx, std::get<Idx>(labels_));
 
-            std::get<Idx>(delta_)[0] = 1;
+            if (StreamStart)
+            {
+            	accum[0] += 1;
+            }
         }
 
-        template <Int Idx, typename StreamTypes>
-        void stream(PkdVTree<StreamTypes>* sizes, Int idx)
+        template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename AccumulatorItem>
+        void stream(PkdVQTree<StreamTypes>* sizes, AccumulatorItem& accum, Int idx)
         {
-            typedef typename PkdVTree<StreamTypes>::Values Values;
+            typedef typename PkdVQTree<StreamTypes>::Values Values;
 
-            auto size = std::get<Idx - 1>(labels_);
+            auto size = std::get<Idx>(labels_);
 
             Values values;
             values[0] = size;
 
             sizes->insert(idx, values);
 
-            std::get<Idx>(delta_)[0] = 1;
-            std::get<Idx>(delta_)[1] = size;
+            if (StreamStart)
+            {
+            	accum[0] += 1;
+            }
+
+            accum[Offset] += size;
         }
     };
 
@@ -85,7 +93,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
 
 
     struct InsertNodeFn {
-
         Accumulator& delta_;
         const LabelsTuple& labels_;
 
@@ -109,17 +116,17 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
         void treeNode(LeafNode<NTypes>* node, Int node_idx, Int label_idx, Int symbol)
         {
             node->layout(-1);
-            node->template processStream<0>(*this, node_idx, symbol);
+            node->template processStream<IntList<0>>(*this, node_idx, symbol);
 
-            InsertLabelsFn fn(delta_, labels_);
-            node->processAll(fn, label_idx);
+            InsertLabelsFn fn(labels_);
+            node->template processStreamAcc<1>(fn, delta_, label_idx);
         }
 
         template <typename NTypes, typename... Labels>
         void treeNode(LeafNode<NTypes>* node, Int node_idx)
         {
             node->layout(1);
-            node->template processStream<0>(*this, node_idx, 0);
+            node->template processStream<IntList<0>>(*this, node_idx, 0);
         }
     };
 
@@ -130,7 +137,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
 
     bool insertLoudsNode(NodeBaseG& leaf, Int node_idx, Int label_idx, Accumulator& sums, const LabelsTuple& labels)
     {
-        auto& self = this->self();
+    	auto& self = this->self();
 
         PageUpdateMgr mgr(self);
 
@@ -192,7 +199,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
         Int split_idx = size / 2;
         Int label_idx = iter.label_idx(split_idx);
 
-        auto right = self.split_leaf_p(leaf, {split_idx, label_idx, label_idx});
+        auto right = self.split_leaf_p(leaf, {split_idx, label_idx});
 
         if (idx > split_idx)
         {
@@ -226,10 +233,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
             MEMORIA_ASSERT_TRUE(result);
             self.update_parent(leaf, sums);
         }
-
-        Position sizes(1);
-
-        self.addTotalKeyCount(sizes);
     }
 
     void insertZero(Iterator& iter)
@@ -254,8 +257,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
             MEMORIA_ASSERT_TRUE(result);
             self.update_parent(leaf, sums);
         }
-
-        self.addTotalKeyCount(Position::create(0, 1));
     }
 
     LoudsNode newNodeAt(const LoudsNode& node, const LabelsTuple& labels)
@@ -309,7 +310,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
         }
 
         template <Int Idx, typename StreamTypes>
-        void stream(PkdVTree<StreamTypes>* obj, Int idx)
+        void stream(PkdVQTree<StreamTypes>* obj, Int idx)
         {
             BigInt delta = obj->setValue1(0, idx, value_);
 
@@ -318,7 +319,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
         }
 
         template <Int Idx, typename StreamTypes>
-        void stream(PkdFTree<StreamTypes>* obj, Int idx)
+        void stream(PkdFQTree<StreamTypes>* obj, Int idx)
         {
             BigInt delta = obj->setValue(0, idx, value_);
 
@@ -411,7 +412,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
         }
 
         template <Int Idx, typename StreamTypes>
-        void stream(PkdVTree<StreamTypes>* obj, Int idx)
+        void stream(PkdVQTree<StreamTypes>* obj, Int idx)
         {
             obj->addValue(0, idx, value_);
 
@@ -420,7 +421,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
         }
 
         template <Int Idx, typename StreamTypes>
-        void stream(PkdFTree<StreamTypes>* obj, Int idx)
+        void stream(PkdFQTree<StreamTypes>* obj, Int idx)
         {
             obj->addValue(0, idx, value_);
 

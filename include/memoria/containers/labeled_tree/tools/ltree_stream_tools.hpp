@@ -10,6 +10,9 @@
 
 #include <memoria/core/tools/isequencedata.hpp>
 #include <memoria/core/packed/array/packed_fse_bitmap.hpp>
+#include <memoria/core/packed/array/packed_fse_array.hpp>
+#include <memoria/core/packed/array/packed_vle_dense_array.hpp>
+
 #include <memoria/core/types/types.hpp>
 
 
@@ -17,28 +20,35 @@ namespace memoria   {
 namespace louds     {
 
 template <typename... List> struct StreamDescriptorsListHelper;
-template <typename T>       struct StreamDescrTF;
+template <typename T>       struct LeafTypeTF;
+template <typename T>       struct IdxListTF;
 
 
 
-struct LoudsStreamTF {
-    typedef BigInt                                              Key;
-    typedef BigInt                                              Value;
+using LoudsStreamTF = StreamTF<
+	PkdFSSeq<typename PkdFSSeqTF<1>::Type>,
+	TL<TL<>>,
+	FSEBranchStructTF
+>;
 
-    typedef core::StaticVector<BigInt, 3>                       AccumulatorPart;
-    typedef core::StaticVector<BigInt, 1>                       IteratorPrefixPart;
-
-    typedef PkdFTree<Packed2TreeTypes<Key, Key, 3>>             NonLeafType;
-    typedef TL<TL<>>											IdxRangeList;
-
-
-    static const Int BitsPerSymbol = 1;
-
-    typedef typename PkdFSSeqTF<BitsPerSymbol>::Type            SequenceTypes;
-
-    typedef PkdFSSeq<SequenceTypes>                             LeafType;
-
-};
+//struct LoudsStreamTF {
+//    typedef BigInt                                              Key;
+//    typedef BigInt                                              Value;
+//
+//    typedef core::StaticVector<BigInt, 3>                       AccumulatorPart;
+//    typedef core::StaticVector<BigInt, 1>                       IteratorPrefixPart;
+//
+//    typedef PkdFQTreeT<Key, 3>             NonLeafType;
+//    typedef TL<TL<>>											IdxRangeList;
+//
+//
+//    static const Int BitsPerSymbol = 1;
+//
+//    typedef typename PkdFSSeqTF<BitsPerSymbol>::Type            SequenceTypes;
+//
+//    typedef PkdFSSeq<SequenceTypes>                             LeafType;
+//
+//};
 
 
 template <typename... List>
@@ -48,7 +58,7 @@ public:
     typedef typename PrependToList<
             typename StreamDescriptorsListHelper<List...>::Type,
             LoudsStreamDescriptor
-    >::Result                                                                   Type;
+    >::Type                                                                     Type;
 };
 
 template <typename... List>
@@ -58,7 +68,7 @@ public:
     typedef typename PrependToList<
             typename StreamDescriptorsListHelper<List...>::Type,
             LoudsStreamDescriptor
-    >::Result                                                                   Type;
+    >::Type                                                                     Type;
 };
 
 
@@ -70,11 +80,8 @@ struct LabelFTreeNodeTFBase {
     typedef core::StaticVector<BigInt, Indexes>                                 AccumulatorPart;
     typedef core::StaticVector<BigInt, 1>                                       IteratorPrefixPart;
 
-    typedef Packed2TreeTypes<
-            BigInt, BigInt, Indexes
-    >                                                                           TreeTypes;
 
-    typedef PkdFTree<TreeTypes>                                                 NonLeafType;
+    typedef PkdFQTreeT<BigInt, Indexes>                                                 NonLeafType;
     typedef TL<TL<>>															IdxRangeList;
 };
 
@@ -82,13 +89,8 @@ struct LabelFTreeNodeTFBase {
 template <typename Value>
 struct LabelFTreeIndexedTF: LabelFTreeNodeTFBase<2> {
 
-    typedef Packed2TreeTypes<
-            Value,
-            BigInt,
-            1
-    > TreeTypes;
 
-    typedef PkdFTree<TreeTypes>                                                 LeafType;
+    typedef PkdFQTreeT<BigInt, 1, Value>                                                 LeafType;
 };
 
 
@@ -126,13 +128,13 @@ struct LabelVTreeNodeTFBase {
     typedef core::StaticVector<BigInt, Indexes>                                 AccumulatorPart;
     typedef core::StaticVector<BigInt, 1>                                       IteratorPrefixPart;
 
-    typedef Packed2TreeTypes<
-            BigInt, BigInt, Indexes, UByteExintCodec,
-            PackedTreeBranchingFactor,
-            PackedTreeExintVPB
-    > TreeTypes;
+//    typedef Packed2TreeTypes<
+//            BigInt, BigInt, Indexes, UByteExintCodec,
+//            PackedTreeBranchingFactor,
+//            PackedTreeExintVPB
+//    > TreeTypes;
 
-    typedef PkdVTree<TreeTypes>                                                 NonLeafType;
+    typedef PkdVQTreeT<BigInt, Indexes, UByteI7Codec>                           NonLeafType;
     typedef TL<TL<>>															IdxRangeList;
 };
 
@@ -141,16 +143,16 @@ struct LabelVTreeNodeTFBase {
 template <typename Value, Int Indexes>
 struct LabelVTreeByteTF: LabelVTreeNodeTFBase<Indexes> {
 
-    typedef Packed2TreeTypes<
-            Value,
-            typename bt::ExtendIntType<Value>::Type,
-            1,
-            UByteExintCodec,
-            PackedTreeBranchingFactor,
-            PackedTreeExintVPB
-    > TreeTypes;
+//    typedef Packed2TreeTypes<
+//            Value,
+//            typename bt::ExtendIntType<Value>::Type,
+//            1,
+//            UByteExintCodec,
+//            PackedTreeBranchingFactor,
+//            PackedTreeExintVPB
+//    > TreeTypes;
 
-    typedef PkdVTree<TreeTypes>                                                 LeafType;
+    typedef PkdVQTreeT<BigInt, 1, UByteI7Codec, Value>                                                 LeafType;
 };
 
 
@@ -158,34 +160,35 @@ struct LabelVTreeByteTF: LabelVTreeNodeTFBase<Indexes> {
 template <typename Value, Int Indexes>
 struct LabelVTreeBitTF: LabelVTreeNodeTFBase<Indexes> {
 
-    typedef Packed2TreeTypes<
-            Value,
-            typename bt::ExtendIntType<Value>::Type,
-            1,
-            UBigIntI64Codec,
-            PackedTreeBranchingFactor,
-            PackedTreeEliasVPB
-    > TreeTypes;
+//    typedef Packed2TreeTypes<
+//            Value,
+//            typename bt::ExtendIntType<Value>::Type,
+//            1,
+//            UBigIntI64Codec,
+//            PackedTreeBranchingFactor,
+//            PackedTreeEliasVPB
+//    > TreeTypes;
 
-    typedef PkdVTree<TreeTypes>                                                 LeafType;
+    typedef PkdVDTreeT<BigInt, 1, UBigIntI64Codec, Value>                                                 LeafType;
 };
 
 
 
 template <typename T>
-struct StreamDescrTF<FLabel<T, Indexed::Yes>> {
-    using Type = LabelFTreeIndexedTF<T>;
+struct LeafTypeTF<FLabel<T, Indexed::Yes>> {
+    using Type = PkdFQTreeT<BigInt, 1, T>;
+
 };
 
 
 template <typename T>
-struct StreamDescrTF<FLabel<T, Indexed::No>> {
-    using Type = LabelFTreeArrayTF<T>;
+struct LeafTypeTF<FLabel<T, Indexed::No>> {
+    using Type = PkdFSQArrayT<T>;
 };
 
 template <Int BitsPerSymbol>
-struct StreamDescrTF<FBLabel<BitsPerSymbol>> {
-    using Type = LabelFTreeBitmapTF<BitsPerSymbol>;
+struct LeafTypeTF<FBLabel<BitsPerSymbol>> {
+    using Type = PackedFSEBitmapT<BitsPerSymbol>;
 };
 
 
@@ -193,44 +196,51 @@ struct StreamDescrTF<FBLabel<BitsPerSymbol>> {
 
 
 template <typename T>
-struct StreamDescrTF<VLabel<T, Granularity::Bit, Indexed::Yes>> {
-    using Type = LabelVTreeBitTF<T, 2>;
+struct LeafTypeTF<VLabel<T, Granularity::Bit, Indexed::Yes>> {
+    using Type = PkdVQTreeT<BigInt, 1, UBigIntI64Codec, T>;
 };
 
 template <typename T>
-struct StreamDescrTF<VLabel<T, Granularity::Byte, Indexed::Yes>> {
-    using Type = LabelVTreeByteTF<T, 2>;
+struct LeafTypeTF<VLabel<T, Granularity::Byte, Indexed::Yes>> {
+    using Type = PkdVQTreeT<BigInt, 1, UByteI7Codec, T>;
 };
 
 template <typename T>
-struct StreamDescrTF<VLabel<T, Granularity::Bit, Indexed::No>> {
-    using Type = LabelVTreeBitTF<T, 1>;
+struct LeafTypeTF<VLabel<T, Granularity::Bit, Indexed::No>> {
+    using Type = PkdVDArrayT<T, 1, UBigIntI64Codec>;
 };
 
 template <typename T>
-struct StreamDescrTF<VLabel<T, Granularity::Byte, Indexed::No>> {
-    using Type = LabelVTreeByteTF<T, 1>;
+struct LeafTypeTF<VLabel<T, Granularity::Byte, Indexed::No>> {
+    using Type = PkdVDArrayT<T, 1, UByteI7Codec>;
 };
 
 
-
+template <typename T>
+struct IdxListTF {
+	using Type = TL<>;
+};
 
 
 template <typename Head, typename... Tail >
 struct StreamDescriptorsListHelper<Head, Tail...> {
 
-    typedef typename StreamDescrTF<Head>::Type Descriptor;
+    using LeafType = MergeLists<
+    		typename LeafTypeTF<Head>::Type,
+            typename StreamDescriptorsListHelper<Tail...>::LeafType
+    >;
 
-    typedef typename AppendTool<
-            Descriptor,
-            typename StreamDescriptorsListHelper<Tail...>::Type
-    >::Result                                                                   Type;
+    using IdxList = MergeLists<
+    		TL<typename IdxListTF<Head>::Type>,
+			typename StreamDescriptorsListHelper<Tail...>::IdxList
+	>;
 
 };
 
 template <>
 struct StreamDescriptorsListHelper<> {
-    typedef TypeList<>                                                          Type;
+    using LeafType = TypeList<>;
+    using IdxList  = TypeList<>;
 };
 
 
@@ -240,4 +250,4 @@ struct StreamDescriptorsListHelper<> {
 }
 
 
-#endif /* LBLTREE_TOOLS_HPP_ */
+#endif

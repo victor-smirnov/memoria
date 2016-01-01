@@ -301,7 +301,7 @@ public:
 
     void insert(Int at, IDataSrc& src)
     {
-        sequence_->insert(&src, at, src.getRemainder());
+        //sequence_->insert(&src, at, src.getRemainder());
     }
 
     void insert(Int at, Int symbol)
@@ -321,8 +321,8 @@ public:
 
     void append(IDataSrc& src)
     {
-        Int at = sequence_->size();
-        sequence_->insert(&src, at, src.getRemainder());
+//        Int at = sequence_->size();
+        //sequence_->insert(&src, at, src.getRemainder());
     }
 
     void append(Int length, std::function<Symbol ()> fn)

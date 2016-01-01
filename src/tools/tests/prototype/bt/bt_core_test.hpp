@@ -11,7 +11,7 @@
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
 
-#include "../../shared/bt_test_base.hpp"
+#include "bt_test_base.hpp"
 
 #include <vector>
 #include <algorithm>

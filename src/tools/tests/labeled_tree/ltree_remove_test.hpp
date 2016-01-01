@@ -35,7 +35,7 @@ public:
 
     LabeledTreeRemoveTest(): LabeledTreeTestBase("Remove")
     {
-        size_ = 20000;
+        size_ = 40000;
 
         MEMORIA_ADD_TEST_PARAM(iterations_);
         MEMORIA_ADD_TEST_PARAM(max_degree_);
@@ -98,6 +98,7 @@ public:
 
         try {
             TreeNode root = this->fillRandom(tree, size_, max_degree_);
+            forceCheck(allocator, MA_SRC);
 
             allocator.commit();
 

@@ -118,11 +118,46 @@ template <> struct FieldFactory<Type> {                                         
 }
 
 
+template <> struct FieldFactory<UBigInt> {
+
+	using Type = UBigInt;
+
+    static void serialize(SerializationData& data, const Type& field) {
+        memmove(data.buf, &field, sizeof(Type));
+        data.buf += sizeof(Type);
+        data.total += sizeof(Type);
+    }
+    static void deserialize(DeserializationData& data, Type& field) {
+        memmove(&field, data.buf, sizeof(Type));
+        data.buf += sizeof(Type);
+    }
+
+    static void serialize(SerializationData& data, const Type& field, Int count) {
+        memmove(data.buf, &field, count*sizeof(Type));
+        data.buf += count * sizeof(Type);
+        data.total += count * sizeof(Type);
+    }
+    static void deserialize(DeserializationData& data, Type& field, Int count) {
+        memmove(&field, data.buf, count*sizeof(Type));
+        data.buf += count*sizeof(Type);
+    }
+    static void serialize(SerializationData& data, const Type* field, Int count) {
+        memmove(data.buf, field, count*sizeof(Type));
+        data.buf += count * sizeof(Type);
+        data.total += count * sizeof(Type);
+    }
+    static void deserialize(DeserializationData& data, Type* field, Int count) {
+        memmove(field, data.buf, count*sizeof(Type));
+        data.buf += count*sizeof(Type);
+    }
+};
+
+
 MEMORIA_TYPED_FIELD(Byte);
 MEMORIA_TYPED_FIELD(Short);
 MEMORIA_TYPED_FIELD(Int);
 MEMORIA_TYPED_FIELD(BigInt);
-MEMORIA_TYPED_FIELD(UBigInt);
+//MEMORIA_TYPED_FIELD(UBigInt);
 MEMORIA_TYPED_FIELD(UByte);
 MEMORIA_TYPED_FIELD(UShort);
 MEMORIA_TYPED_FIELD(UInt);

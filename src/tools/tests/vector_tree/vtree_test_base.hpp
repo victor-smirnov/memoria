@@ -14,6 +14,8 @@
 
 #include <memoria/core/tools/labeled_tree.hpp>
 
+#include <memoria/containers/vector_tree/vtree_factory.hpp>
+
 #include <vector>
 #include <algorithm>
 #include <sstream>

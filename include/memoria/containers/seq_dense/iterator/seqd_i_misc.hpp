@@ -51,7 +51,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
     Int symbol() const
     {
         auto& self  = this->self();
-        return std::get<0>(self.ctr().template read_leaf_entry<0, IntList<0>>(self.leaf(), self.idx()));
+        return std::get<0>(self.ctr().template read_leaf_entry<IntList<0>>(self.leaf(), self.idx()));
     }
 
 

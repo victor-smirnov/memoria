@@ -28,6 +28,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrApiName)
 
     typedef typename Base::Types::CtrSizeT                                      CtrSizeT;
 
+
     Iterator findNode(const LoudsNode& node)
     {
         return self().seek(node.node());

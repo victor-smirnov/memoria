@@ -11,11 +11,14 @@
 #include <memoria/core/container/container.hpp>
 
 #include <memoria/containers/vector_tree/vtree_names.hpp>
+#include <memoria/containers/labeled_tree/tools/ltree_tree_tools.hpp>
 
 #include <functional>
 
 namespace memoria {
 
+
+using louds::LoudsNode;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::vtree::CtrApiName)
 
@@ -27,6 +30,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vtree::CtrApiName)
     typedef typename Base::Iterator                                             Iterator;
 
     typedef typename Tree::Types::CtrSizeT                                      CtrSizeT;
+
+
 
     CtrSizeT nodes() {
         return self().tree().nodes();

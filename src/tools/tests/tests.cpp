@@ -16,6 +16,7 @@
 #include "packed/wavelet_tree/packed_wtree_suite.hpp"
 
 
+#include "prototype/bt/bt_test_suite.hpp"
 #include "prototype/bttl/bttl_test_suite.hpp"
 #include "prototype/btss/btss_test_suite.hpp"
 //#include "table/table_test_suite.hpp"
@@ -23,6 +24,10 @@
 #include "map/map_test_suite.hpp"
 #include "vector/vector_test_suite.hpp"
 #include "sequence/sequence_test_suite.hpp"
+#include "labeled_tree/ltree_test_suite.hpp"
+//#include "vector_tree/vtree_test_suite.hpp"
+
+
 
 #include <memoria/tools/cmdline.hpp>
 #include <memoria/tools/tools.hpp>
@@ -74,12 +79,11 @@ int main(int argc, const char** argv, const char** envp)
         runner.registerTask(new PackedLoudsTestSuite());
         runner.registerTask(new PackedLoudsCardinalTestSuite());
         runner.registerTask(new PackedWaveletTreeTestSuite());
-////
-//        runner.registerTask(new SymbolSeqTestSuite());
-////
+
+
 //        runner.registerTask(new CtrTestSuite());
 
-//        runner.registerTask(new BTTestSuite());
+        runner.registerTask(new BTTestSuite());
         runner.registerTask(new BTTLTestSuite());
         runner.registerTask(new BTSSTestSuite());
 
@@ -88,7 +92,7 @@ int main(int argc, const char** argv, const char** envp)
         runner.registerTask(new MapTestSuite());
         runner.registerTask(new VectorTestSuite());
         runner.registerTask(new SequenceTestSuite());
-//        runner.registerTask(new LabeledTreeTestSuite());
+        runner.registerTask(new LabeledTreeTestSuite());
 //        runner.registerTask(new VTreeTestSuite());
 //        runner.registerTask(new WTTestSuite());
 

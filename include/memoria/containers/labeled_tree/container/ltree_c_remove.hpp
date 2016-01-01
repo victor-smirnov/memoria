@@ -48,13 +48,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrRemoveName)
 
         RemoveFromLeafFn(Accumulator& delta): delta_(delta) {}
 
-        template <Int Idx, typename SeqTypes>
-        void stream(PkdFSSeq<SeqTypes>* seq, Int idx)
+        template <Int Offset, bool StreamStart, Int Idx, typename SeqTypes, typename AccumulatorItem>
+        void stream(PkdFSSeq<SeqTypes>* seq, AccumulatorItem& accum, Int idx)
         {
             MEMORIA_ASSERT_TRUE(seq != nullptr);
-
-            typedef PkdFSSeq<SeqTypes>  Seq;
-            typedef typename Seq::Values2                Values;
 
             Int sym = seq->symbol(idx);
 
@@ -67,39 +64,43 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrRemoveName)
 
             seq->remove(idx, idx + 1);
 
-            Values indexes;
-
-            indexes[0]       = -1;
-            indexes[sym + 1] = -1;
-
-            std::get<Idx>(delta_) = indexes;
+            accum[0] -= 1;
+            accum[Offset + sym] -= 1;
 
             sizes_[Idx] = -1;
         }
 
-        template <Int Idx, typename StreamTypes>
-        void stream(PackedFSEArray<StreamTypes>* labels, Int idx)
+        template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename AccumulatorItem>
+        void stream(PackedFSEArray<StreamTypes>* labels, AccumulatorItem& accum, Int idx)
         {
             if (label_idx_ >= 0)
             {
                 labels->remove(label_idx_, label_idx_ + 1);
-                std::get<Idx>(delta_)[0] = -1;
 
                 sizes_[Idx] = -1;
+
+                if (StreamStart)
+                {
+                	accum[0] -= 1;
+                }
             }
         }
 
-        template <Int Idx, typename StreamTypes>
-        void stream(PkdVTree<StreamTypes>* sizes, Int idx)
+        template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename AccumulatorItem>
+        void stream(PkdVQTree<StreamTypes>* sizes, AccumulatorItem& accum, Int idx)
         {
             if (label_idx_ >= 0)
             {
-                typename PkdVTree<StreamTypes>::Value size = sizes->value(0, label_idx_);
+                auto size = sizes->value(0, label_idx_);
 
                 sizes->remove(label_idx_, label_idx_ + 1);
 
-                std::get<Idx>(delta_)[0] = -1;
-                std::get<Idx>(delta_)[1] = -size;
+                if (StreamStart)
+                {
+                	accum[0] -= 1;
+                }
+
+                accum[Offset] -= size;
 
                 sizes_[Idx] = -1;
             }
@@ -110,13 +111,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrRemoveName)
         template <typename NTypes>
         void treeNode(LeafNode<NTypes>* node, Int idx)
         {
-            node->processAll(*this, idx);
+            node->template processStreamAcc<0>(*this, delta_, idx);
+            node->template processStreamAcc<1>(*this, delta_, idx);
         }
     };
 
     Position removeFromLeaf(NodeBaseG& leaf, Int idx, Accumulator& indexes)
     {
-        RemoveFromLeafFn fn(indexes);
+    	RemoveFromLeafFn fn(indexes);
         LeafDispatcher::dispatch(leaf, fn, idx);
 
         return fn.sizes_;
@@ -138,14 +140,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrRemoveName)
 
         Accumulator sums;
 
-        Position sizes = removeFromLeaf(leaf, idx, sums);
+        removeFromLeaf(leaf, idx, sums);
 
         self.update_parent(leaf, sums);
 
-        self.addTotalKeyCount(sizes);
-
-        self.mergeWithSiblings(leaf);
+        self.mergeLeafWithRightSibling(leaf);
     }
+
+
 
 
     void removeLeaf(const LoudsNode& node)

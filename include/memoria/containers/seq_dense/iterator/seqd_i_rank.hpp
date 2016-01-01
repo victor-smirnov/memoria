@@ -57,6 +57,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterRankName)
         }
 
         template <typename NodeTypes>
+        void treeNode(const LeafNode<NodeTypes>* node, Int idx)
+        {
+        	node->template processStream<IntList<0>>(*this, idx);
+        }
+
+        template <typename NodeTypes>
         void treeNode(const BranchNode<NodeTypes>* node, WalkCmd, Int start, Int idx)
         {
             if (node != nullptr)
@@ -111,7 +117,7 @@ BigInt M_TYPE::localrank_(Int idx, Int symbol) const
 
     RankFn fn(symbol);
 
-    LeafDispatcher::dispatchConst(self.leaf(), fn, idx);
+    LeafDispatcher::dispatch(self.leaf(), fn, idx);
 
     return fn.rank_;
 }

@@ -186,6 +186,12 @@ public:
     	return Base::data_size(0);
     }
 
+    Int data_block_size(Int block) const
+    {
+    	Int size = this->element_size(block * SegmentsPerBlock + VALUES + BlocksStart);
+    	return PackedAllocatable::roundUpBytesToAlignmentBlocks(size) / sizeof(ValueData);
+    }
+
     Int size() const
     {
     	return this->metadata()->size() / Blocks;
@@ -1176,11 +1182,9 @@ public:
         	Base::template serializeSegment<Int>(buf, block * SegmentsPerBlock + BlocksStart + SIZE_INDEX);
         	Base::template serializeSegment<OffsetsType>(buf, block * SegmentsPerBlock + BlocksStart + OFFSETS);
 
-//        	this->dump();
-//
-//        	cout<<"DS1: "<<Base::data_size(block)<<endl;
+        	Int data_size = this->data_block_size(block);
 
-        	FieldFactory<ValueData>::serialize(buf, Base::values(block), Base::data_size(block));
+        	FieldFactory<ValueData>::serialize(buf, Base::values(block), data_size);
         }
     }
 
@@ -1199,7 +1203,10 @@ public:
         	Base::template deserializeSegment<IndexValue>(buf, block * SegmentsPerBlock + BlocksStart + VALUE_INDEX);
         	Base::template deserializeSegment<Int>(buf, block * SegmentsPerBlock + BlocksStart + SIZE_INDEX);
         	Base::template deserializeSegment<OffsetsType>(buf, block * SegmentsPerBlock + BlocksStart + OFFSETS);
-        	FieldFactory<ValueData>::deserialize(buf, Base::values(block), Base::data_size(block));
+
+        	Int data_size = this->data_block_size(block);
+
+        	FieldFactory<ValueData>::deserialize(buf, Base::values(block), data_size);
         }
     }
 

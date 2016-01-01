@@ -396,6 +396,16 @@ public:
 
     // ===================================== IO ============================================ //
 
+    void insert(Int pos, Value val)
+    {
+    	insertSpace(pos, 1);
+
+    	for (Int block = 0;  block < Blocks; block++)
+    	{
+    		value(block, pos) = val;
+    	}
+    }
+
     void insert(Int block, Int pos, Value val)
     {
         insertSpace(pos, 1);

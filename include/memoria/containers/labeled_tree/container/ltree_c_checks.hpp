@@ -100,7 +100,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrChecksName)
         }
 
         template <Int Idx, typename StreamTypes>
-        void stream(const PkdVTree<StreamTypes>* labels)
+        void stream(const PkdVQTree<StreamTypes>* labels)
         {
             checkLabelsSize<Idx>(labels);
         }
@@ -121,7 +121,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrChecksName)
             {
                 CheckContentFn fn(self(), node->id(), node->is_root());
 
-                LeafDispatcher::dispatchConst(node, fn);
+                LeafDispatcher::dispatch(node, fn);
 
                 return fn.errors_;
             }

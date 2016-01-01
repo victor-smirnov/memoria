@@ -122,10 +122,10 @@ template <typename... LabelDescriptors>
 struct TypeHash<LabeledTree<LabelDescriptors...>> {
 private:
     typedef typename TypeToValueList<TypeList<LabelDescriptors...>>::Type   ValueList;
-    typedef typename AppendValueTool<UInt, 1600, ValueList>::Result         TaggedValueList;
+    typedef typename AppendValueTool<UInt, 1600, ValueList>::Type         TaggedValueList;
 
 public:
-    static const UInt Value = md5::Md5Sum<TaggedValueList>::Result::Value32;
+    static const UInt Value = md5::Md5Sum<TaggedValueList>::Type::Value32;
 };
 
 

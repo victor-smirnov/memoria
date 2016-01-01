@@ -50,6 +50,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrFindName)
         return self().rank(idx + 1, 0);
     }
 
+    Iterator seek(CtrSizeT idx) {
+    	return self().template seek_stream<0>(idx);
+    }
+
 
     struct LabelsFn {
 
@@ -65,23 +69,23 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrFindName)
         {
             if (labels)
             {
-                std::get<Idx - 1>(labels_) = labels->value(idx);
+                std::get<Idx>(labels_) = labels->value(0, idx);
             }
             else {
-                std::get<Idx - 1>(labels_) = 0;
+                std::get<Idx>(labels_) = 0;
             }
         }
 
 
         template <Int Idx, typename StreamTypes>
-        void stream(const PkdVTree<StreamTypes>* labels, Int idx)
+        void stream(const PkdVQTree<StreamTypes>* labels, Int idx)
         {
             if (labels)
             {
-                std::get<Idx - 1>(labels_) = labels->value(0, idx);
+                std::get<Idx>(labels_) = labels->value(0, idx);
             }
             else {
-                std::get<Idx - 1>(labels_) = 0;
+                std::get<Idx>(labels_) = 0;
             }
         }
 
@@ -89,7 +93,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrFindName)
         template <typename NTypes>
         void treeNode(const LeafNode<NTypes>* node, Int label_idx)
         {
-            node->processAll(*this, label_idx);
+            node->template processSubstreams<IntList<1>>(*this, label_idx);
         }
     };
 
@@ -97,7 +101,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrFindName)
     {
         LabelsFn fn;
 
-        LeafDispatcher::dispatchConst(leaf, fn, idx);
+        LeafDispatcher::dispatch(leaf, fn, idx);
 
         return fn.labels_;
     }
