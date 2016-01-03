@@ -27,7 +27,7 @@ class LabeledTreeRemoveTest: public LabeledTreeTestBase {
     typedef LabeledTreeTestBase                                                 Base;
     typedef LabeledTreeRemoveTest                                               MyType;
 
-    Int     iterations_     = 1000;
+    Int     iterations_     = 200;
     Int     max_degree_     = 10;
     Int     remove_batch_   = 100;
 
@@ -101,6 +101,8 @@ public:
             forceCheck(allocator, MA_SRC);
 
             allocator.commit();
+
+            out()<<"Tree created"<<endl;
 
             StoreResource(allocator, "rtree_c", 0);
 

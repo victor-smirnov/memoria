@@ -8,13 +8,17 @@
 #ifndef MEMORIA_CONTAINERS_LBLTREE_C_INSERT_HPP
 #define MEMORIA_CONTAINERS_LBLTREE_C_INSERT_HPP
 
-#include <memoria/core/container/container.hpp>
 #include <memoria/containers/labeled_tree/ltree_names.hpp>
-#include <memoria/containers/labeled_tree/ltree_tools.hpp>
-#include <memoria/containers/seq_dense/seqd_walkers.hpp>
-
-
-#include <memoria/prototypes/ctr_wrapper/iterator.hpp>
+#include <memoria/containers/labeled_tree/tools/ltree_tree_tools.hpp>
+#include <memoria/core/container/macros.hpp>
+#include <memoria/core/packed/array/packed_fse_array.hpp>
+#include <memoria/core/packed/sseq/packed_fse_searchable_seq.hpp>
+#include <memoria/core/packed/tree/fse/packed_fse_quick_tree.hpp>
+#include <memoria/core/packed/tree/vle/packed_vle_quick_tree.hpp>
+#include <memoria/core/tools/assert.hpp>
+#include <memoria/core/types/types.hpp>
+#include <memoria/prototypes/bt/nodes/leaf_node.hpp>
+#include <memoria/prototypes/bt/walkers/bt_misc_walkers.hpp>
 
 namespace memoria    {
 
@@ -223,9 +227,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
         {
             self.update_parent(leaf, sums);
         }
-        else
-        {
-            self.split(iter);
+        else {
+        	self.split(iter);
 
             label_idx = iter.label_idx();
 

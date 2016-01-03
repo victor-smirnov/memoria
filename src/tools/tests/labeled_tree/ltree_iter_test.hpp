@@ -33,7 +33,7 @@ public:
 
     LabeledTreeIterTest(): LabeledTreeTestBase("Iter")
     {
-        size_ = 20000;
+        size_ = 60000;
 
         MEMORIA_ADD_TEST_PARAM(iterations_);
         MEMORIA_ADD_TEST_PARAM(max_degree_);
@@ -54,48 +54,49 @@ public:
 
         StoreResource(allocator, "iter", 0);
 
-        auto skip_iter = ctr.seek(0);
-
-        assertIterator(skip_iter);
-
         Int nodes = ctr.nodes();
 
-        out()<<"Forward skip"<<std::endl;
-        while (!skip_iter.isEof())
-        {
-            skip_iter++;
-            assertIterator(skip_iter);
-        }
-        out()<<std::endl;
+        auto skip_iter = ctr.seek(0);
 
-        out()<<"Backward skip"<<std::endl;
-        while (!skip_iter.isBegin())
-        {
-            if (skip_iter.pos() == 0)
-            {
-                int a = 0; a++;
-            }
+        assertIterator(MA_SRC, skip_iter);
 
-            skip_iter--;
-            assertIterator(skip_iter);
-        }
-        out()<<std::endl;
 
         out()<<"Forward skip"<<std::endl;
         while (!skip_iter.isEof())
         {
             skip_iter++;
-            assertIterator(skip_iter);
+            assertIterator(MA_SRC, skip_iter);
         }
         out()<<std::endl;
 
-        out()<<"Backward skip"<<std::endl;
-        while (!skip_iter.isBegin())
+//        out()<<"Backward skip"<<std::endl;
+//        while (!skip_iter.isBegin())
+//        {
+//            if (skip_iter.pos() == 0)
+//            {
+//                int a = 0; a++;
+//            }
+//
+//            skip_iter--;
+//            assertIterator(skip_iter);
+//        }
+//        out()<<std::endl;
+
+        out()<<"Forward skip"<<std::endl;
+        while (!skip_iter.isEof())
         {
-            skip_iter--;
-            assertIterator(skip_iter);
+            skip_iter++;
+            assertIterator(MA_SRC, skip_iter);
         }
         out()<<std::endl;
+
+//        out()<<"Backward skip"<<std::endl;
+//        while (!skip_iter.isBegin())
+//        {
+//            skip_iter--;
+//            assertIterator(skip_iter);
+//        }
+//        out()<<std::endl;
 
         out()<<"Random forward select/skip"<<std::endl;
         for (Int c = 0; c < iterations_; c++)
@@ -105,7 +106,7 @@ public:
             Int node = getRandom(nodes / 2) + 1;
             auto iter = ctr.select1(node);
 
-            assertIterator(iter);
+            assertIterator(MA_SRC, iter);
 
             Int skip = getRandom(nodes / 2 - 1);
 
@@ -115,13 +116,13 @@ public:
             auto iter_skip      = iter;
 
             iter_select0.selectFw(skip, 0);
-            assertIterator(iter_select0);
+            assertIterator(MA_SRC, iter_select0);
 
             iter_select1.selectFw(skip, 1);
-            assertIterator(iter_select1);
+            assertIterator(MA_SRC, iter_select1);
 
             iter_skip.skipFw(skip * 2);
-            assertIterator(iter_skip);
+            assertIterator(MA_SRC, iter_skip);
         }
         out()<<std::endl;
 
@@ -133,7 +134,7 @@ public:
             Int node = getRandom(nodes / 2) + nodes / 2 - 1;
             auto iter = ctr.select1(node);
 
-            assertIterator(iter);
+            assertIterator(MA_SRC, iter);
 
             Int skip = getRandom(nodes / 2);
 
@@ -143,13 +144,14 @@ public:
             auto iter_skip      = iter;
 
             iter_select0.selectBw(skip, 0);
-            assertIterator(iter_select0);
+
+            assertIterator(MA_SRC, iter_select0);
 
             iter_select1.selectBw(skip, 1);
-            assertIterator(iter_select1);
+            assertIterator(MA_SRC, iter_select1);
 
             iter_skip.skipBw(skip * 2);
-            assertIterator(iter_skip);
+            assertIterator(MA_SRC, iter_skip);
         }
         out()<<std::endl;
 
@@ -161,7 +163,7 @@ public:
             Int node = getRandom(ctr.size() / 2);
             auto iter = ctr.seek(node);
 
-            assertIterator(iter);
+            assertIterator(MA_SRC, iter);
 
             Int skip = getRandom(nodes / 2 - 1);
 
@@ -169,26 +171,16 @@ public:
             auto iter_rankfw1   = iter;
 
             iter_rankfw0.rank(skip, 0);
-            assertIterator(iter_rankfw0);
+            assertIterator(MA_SRC, iter_rankfw0);
 
             iter_rankfw0.rank(-skip, 0);
-            assertIterator(iter_rankfw0);
+            assertIterator(MA_SRC, iter_rankfw0);
 
             iter_rankfw1.rank(skip, 1);
-            assertIterator(iter_rankfw1);
+            assertIterator(MA_SRC, iter_rankfw1);
 
             iter_rankfw1.rank(-skip, 1);
-            assertIterator(iter_rankfw1);
-        }
-    }
-
-    void assertIterator(Iterator& iter)
-    {
-//      AssertEQ(MA_SRC, iter.pos(), iter.gpos());
-
-        if (!(iter.isEof() || iter.isBof()))
-        {
-            AssertEQ(MA_SRC, iter.rank1(), iter.ranki(1));
+            assertIterator(MA_SRC, iter_rankfw1);
         }
     }
 };

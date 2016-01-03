@@ -13,7 +13,7 @@
 namespace memoria {
 namespace bt {
 
-
+struct FixTargetTag {};
 
 /***********************************************************************/
 
@@ -89,6 +89,7 @@ public:
         if (cmd == WalkCmd::FIX_TARGET)
         {
         	self.processCmd(node, cmd, start, end);
+        	self.processBranchSizePrefix(node, start, end, FixTargetTag());
         }
         else if (cmd == WalkCmd::PREFIXES)
         {
@@ -204,9 +205,26 @@ public:
 
 
 	template <Int StreamIdx, typename StreamType>
+	void branch_size_prefix(const StreamType* stream, Int start, Int end, FixTargetTag)
+	{
+//        auto sum = stream->sum(0, start, end);
+//
+//        if (DebugCounter) {
+//        	stream->dump();
+//        }
+//
+//		Base::branch_size_prefix()[StreamIdx] += sum;
+	}
+
+
+	template <Int StreamIdx, typename StreamType>
 	void leaf_size_prefix(const StreamType* stream)
 	{
         auto size = stream->size();
+
+        if (DebugCounter) {
+        	stream->dump();
+        }
 
 		Base::branch_size_prefix()[StreamIdx] += size;
 	}
@@ -414,6 +432,7 @@ public:
     	if (cmd == WalkCmd::FIX_TARGET)
     	{
     		self.processCmd(node, cmd, start, end);
+    		self.processBranchSizePrefix(node, start, end, FixTargetTag());
     	}
     	else if (cmd == WalkCmd::PREFIXES)
     	{
@@ -466,16 +485,27 @@ public:
 	template <Int StreamIdx, typename StreamType>
 	void branch_size_prefix(const StreamType* obj, Int start, Int end)
 	{
+        if (DebugCounter) {
+        	obj->dump();
+        }
+
 		Int s = start > (obj->size() - 1) ? obj->size() - 1 : start;
 
 		obj->_sub(0, end + 1, s + 1, Base::branch_size_prefix()[StreamIdx]);
 	}
 
+	template <Int StreamIdx, typename StreamType>
+	void branch_size_prefix(const StreamType* obj, Int start, Int end, FixTargetTag)
+	{
+		obj->_add(0, end + 1, end + 2, Base::branch_size_prefix()[StreamIdx]);
+	}
+
+
 
 	template <Int StreamIdx, typename StreamType>
 	void leaf_size_prefix(const StreamType* obj)
 	{
-		Base::branch_size_prefix()[StreamIdx] -= obj->size();
+        Base::branch_size_prefix()[StreamIdx] -= obj->size();
 	}
 
 

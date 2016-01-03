@@ -276,7 +276,11 @@ M_PARAMS
 template <typename Walker>
 typename M_TYPE::FindResult M_TYPE::find_bw(NodeChain node_chain, Walker&& walker, WalkDirection direction)
 {
-    auto& self = this->self();
+    if (DebugCounter) {
+    	int a = 0; a++;
+    }
+
+	auto& self = this->self();
 
     auto result = NodeDispatcher::dispatch(node_chain.node, std::forward<Walker>(walker), direction, node_chain.start);
     node_chain.end = result.idx();

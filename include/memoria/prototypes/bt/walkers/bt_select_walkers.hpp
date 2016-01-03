@@ -107,6 +107,10 @@ public:
     {
         MEMORIA_ASSERT_TRUE(seq);
 
+        if (DebugCounter) {
+        	int a = 0; a++;
+        }
+
         auto size = seq->size();
 
         if (start > size) start = size;

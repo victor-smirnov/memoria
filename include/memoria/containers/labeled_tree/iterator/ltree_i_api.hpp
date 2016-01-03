@@ -137,7 +137,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
 
     CtrSizeT nodeIdx() const
     {
-        return self().pos();
+        return self().gpos();
     }
 
     CtrSizeT countFw(Int symbol)
@@ -421,6 +421,106 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
     	auto& self = this->self();
     	self.ctr().remove(self);
     }
+
+
+    auto skip_for_rank(CtrSizeT& r0, CtrSizeT r1)
+    {
+    	auto& self = this->self();
+
+    	auto sym = self.value();
+
+    	if (sym) {
+    		r1++;
+    	}
+    	else {
+    		r0++;
+    	}
+
+    	return self.skipFw(1);
+    }
+
+    auto raw_rank(CtrSizeT& r0, CtrSizeT& r1, CtrSizeT idx)
+    {
+    	auto& self = this->self();
+
+    	while (idx > 0 && !self.isEnd())
+    	{
+    		auto sym = self.value();
+
+    		if (sym)
+    		{
+    			r1++;
+    		}
+    		else {
+    			r0++;
+    		}
+
+    		idx--;
+
+    		self.skipFw(1);
+    	}
+    }
+
+    auto raw_select(Int symbol, CtrSizeT rank)
+    {
+    	auto& self = this->self();
+    	CtrSizeT cnt = 0;
+
+    	while (!self.isEnd())
+    	{
+    		auto sym = self.value();
+
+    		if (sym == symbol)
+    		{
+    			rank--;
+
+    			if (!rank) {
+    				break;
+    			}
+    		}
+
+    		cnt++;
+    		self.skipFw(1);
+    	}
+
+    	return cnt;
+    }
+
+    struct GPosFn {
+        CtrSizeT pos_ = 0;
+
+        GPosFn()  {}
+
+        template <typename NodeTypes>
+        void treeNode(const LeafNode<NodeTypes>* node, WalkCmd, Int start, Int idx)
+        {}
+
+        template <typename NodeTypes>
+        void treeNode(const LeafNode<NodeTypes>* node, Int idx)
+        {}
+
+        template <typename NodeTypes>
+        void treeNode(const BranchNode<NodeTypes>* node, WalkCmd, Int start, Int idx)
+        {
+            if (node != nullptr)
+            {
+                node->sum(0, 0, 0, idx, pos_);
+            }
+        }
+    };
+
+
+    CtrSizeT gpos() const
+    {
+        auto& self = this->self();
+
+        GPosFn fn;
+
+        self.ctr().walkUp(self.leaf(), self.idx(), fn);
+
+        return fn.pos_ + self.idx();
+    }
+
 
 MEMORIA_ITERATOR_PART_END
 

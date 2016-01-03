@@ -35,7 +35,7 @@ public:
 
     LabeledTreeCreateTest(): LabeledTreeTestBase("Create")
     {
-        size_ = 20000;
+        size_ = 100000;
 
         MEMORIA_ADD_TEST_PARAM(max_degree_);
         MEMORIA_ADD_TEST_PARAM(iterations_);
@@ -54,14 +54,28 @@ public:
 
         Ctr tree(&allocator);
 
+        tree.setNewPageSize(512);
+
         try {
-            TreeNode root = this->fillRandom(tree, size_, max_degree_);
+            TreeNode root = fillRandom(tree, size_, max_degree_);
 
             forceCheck(allocator, MA_SRC);
 
             allocator.commit();
 
             StoreResource(allocator, "ftree", 0);
+
+//            Int cnt0 = 0;
+//
+//            traverseTree(tree, [&](const auto& node){
+//            	auto labels = tree.labels(node);
+//            	cout<<"CtrNode: "<<(cnt0++)<<") "<<node<<" "<<labels<<endl;
+//            });
+//
+//            Int cnt1 = 0;
+//            traverseTree(root, [&](const auto& node){
+//            	cout<<"TreNode: "<<(cnt1++)<<") "<<node<<endl;
+//            });
 
             checkTree(tree, root);
         }

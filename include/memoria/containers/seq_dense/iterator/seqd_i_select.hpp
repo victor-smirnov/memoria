@@ -38,17 +38,17 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterSelectName)
     using CtrSizeT = typename Container::Types::CtrSizeT;
 
 
-    auto select(BigInt rank_delta, Int symbol)
+    auto select(CtrSizeT rank_delta, Int symbol)
     {
     	return self().template select_<IntList<0>>(symbol, rank_delta);
     }
 
-    auto selectFw(BigInt rank_delta, Int symbol)
+    auto selectFw(CtrSizeT rank_delta, Int symbol)
     {
     	return self().template select_fw_<IntList<0>>(symbol, rank_delta);
     }
 
-    auto selectBw(BigInt rank_delta, Int symbol)
+    auto selectBw(CtrSizeT rank_delta, Int symbol)
     {
     	return self().template select_bw_<IntList<0>>(symbol, rank_delta);
     }
