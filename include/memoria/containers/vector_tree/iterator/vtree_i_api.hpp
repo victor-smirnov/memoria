@@ -82,24 +82,28 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::vtree::ItrApiName)
     void insert(Value value)
     {
         self().vector_iter().insert(value);
-        self().tree_iter().addLabel(1, 1);
+        self().tree_iter().template addLabel<1>(1);
     }
 
     void insert(const std::vector<Value>& values)
     {
         auto& self = this->self();
 
-        std::vector<Value> copy = values;
+        mvector::IteratorVectorInputProvider<
+			typename ContainerType::Vec,
+			typename std::vector<Value>::const_iterator
+		>
+        provider(self.ctr().vector(), values.begin(), values.size());
 
-        self.vector_iter().insert(copy);
+        self.vector_iter().insert(provider);
 
-        self.tree_iter().addLabel(1, values.size());
+        self.tree_iter().template addLabel<1>(values.size());
     }
 
     void insert(std::vector<Value>& values)
     {
         self().vector_iter().insert(values);
-        self().tree_iter().addLabel(1, values.size());
+        self().tree_iter().template addLabel<1>(values.size());
     }
 
     CtrSizeT lobBase() const
@@ -160,7 +164,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::vtree::ItrApiName)
     std::vector<Value> read()
     {
         CtrSizeT data_size = self().lobSize();
-        return self().vector_iter().subVector(data_size);
+        auto viter = self().vector_iter();
+        return viter.read(data_size);
     }
 
 MEMORIA_ITERATOR_PART_END

@@ -33,14 +33,14 @@ MEMORIA_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(VTreeCtrBase)
     typedef typename Base::CtrShared                                            CtrShared;
 
     typedef LabeledTree<
-                FLabel<UByte>,
+                FLabel<Short>,
                 VLabel<BigInt,
-                    Granularity::Bit,
+                    Granularity::Byte,
                     Indexed::Yes
                 >
     >                                                                           TreeName;
 
-    typedef Vector<UByte>                                                       VectorName;
+    typedef Vector<Short>                                                       VectorName;
 
     typedef typename CtrTF<Profile, TreeName, TreeName>::Type                   Tree;
     typedef typename CtrTF<Profile, VectorName, VectorName>::Type               Vec;
@@ -161,6 +161,8 @@ public:
                                     Base::getContainerInterface()
                                   )
             );
+
+            MetadataRepository<typename Types::Profile>::registerMetadata(Base::getMetadata());
         }
 
         return hash;

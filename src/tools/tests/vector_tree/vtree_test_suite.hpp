@@ -23,7 +23,7 @@ class VTreeTestSuite: public TestSuite {
 
 public:
 
-    VTreeTestSuite(): TestSuite("VTreeSuite")
+    VTreeTestSuite(): TestSuite("VTree")
     {
         registerTask(new VectorTreeCreateTest());
         registerTask(new VectorTreeRemoveTest());

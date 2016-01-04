@@ -85,6 +85,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btss::IteratorMiscName)
     	return self.idx() + self.cache().size_prefix()[0];
     }
 
+
     void remove()
     {
         auto& self  = this->self();

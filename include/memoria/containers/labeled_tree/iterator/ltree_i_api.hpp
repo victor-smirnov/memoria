@@ -351,35 +351,33 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
     template <Int LabelIdx>
     struct SumLabelFn {
         CtrSizeT sum_ = 0;
-        Int block_ = 0;
 
+        using LeafPath = IntList<1, 0, LabelIdx>;
 
-        template <Int Idx, typename StreamTypes>
-        void stream(const PkdVQTree<StreamTypes>* obj, Int idx)
+        template <Int Idx, typename Stream>
+        void stream(const Stream* obj, Int block, Int idx)
         {
             if (obj != nullptr)
             {
-                sum_ += obj->sum(block_, 0, idx);
+                sum_ += obj->sum(block, 0, idx);
             }
-
-            block_ = 1;
         }
 
-        template <Int Idx, typename StreamTypes>
-        void stream(const PkdFQTree<StreamTypes>* obj, Int idx)
+        template <typename NodeTypes>
+        void treeNode(const BranchNode<NodeTypes>* node, WalkCmd, Int start, Int idx)
         {
-            if (obj != nullptr)
-            {
-                sum_ += obj->sum(block_, 0, idx);
-            }
+        	using BNode = BranchNode<NodeTypes>;
+        	using BranchPath = typename BNode::template BuildBranchPath<LeafPath>;
 
-            block_ = 1;
+        	Int block = BNode::template translateLeafIndexToBranchIndex<LeafPath>(0);
+
+        	node->template processStream<BranchPath>(*this, block, idx);
         }
 
-        template <typename Node>
-        void treeNode(const Node* node, Int idx)
+        template <typename NodeTypes>
+        void treeNode(const LeafNode<NodeTypes>* node, WalkCmd, Int start, Int idx)
         {
-            node->template processStream<LabelIdx + 1>(*this, idx);
+            node->template processStream<LeafPath>(*this, 0, idx);
         }
     };
 
@@ -398,24 +396,19 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
         return fn.sum_;
     }
 
-    void setLabel(Int label, BigInt value)
+    template <Int LabelIdx, typename T>
+    void setLabel(T&& value)
     {
         auto& self = this->self();
-        self.ctr().setLabel(self, label, value);
+        self.ctr().template setLabel<LabelIdx>(self, std::forward<T>(value));
     }
 
-    void addLabel(Int label, BigInt value)
+    template <Int LabelIdx, typename T>
+    void addLabel(T&& value)
     {
         auto& self = this->self();
-        self.ctr().addLabel(self, label, value);
+        self.ctr().template addLabel<LabelIdx>(self, std::forward<T>(value));
     }
-
-
-//    IDataAdapter<WrappedIterator> source(BigInt length = -1) const
-//    {
-//      return IDataAdapter<WrappedIterator>(*me()->iter(), length);
-//    }
-
 
     void remove() {
     	auto& self = this->self();

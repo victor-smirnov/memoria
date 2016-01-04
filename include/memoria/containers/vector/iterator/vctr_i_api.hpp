@@ -104,7 +104,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 
         std::vector<Value> data(length);
 
-        auto iter = self();
+        auto iter = self;
 
         auto begin = data.begin();
 

@@ -1101,6 +1101,40 @@ public:
     }
 
 
+    template <
+    	typename SubstreamPath,
+        typename Fn,
+        typename... Args
+    >
+    auto processStreamAccP(Fn&& fn, Accumulator& accum, Args&&... args) const
+    {
+    	const Int SubstreamIdx = memoria::list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>::Value;
+    	return SubrangeDispatcher<SubstreamIdx, SubstreamIdx + 1>::dispatchAll(
+    			allocator(),
+    			ProcessSubstreamsAccFnAdaptor(),
+    			std::forward<Fn>(fn),
+                accum,
+                std::forward<Args>(args)...
+        );
+    }
+
+
+    template <
+    	typename SubstreamPath,
+        typename Fn,
+        typename... Args
+    >
+    auto processStreamAccP(Fn&& fn, Accumulator& accum, Args&&... args)
+    {
+    	const Int SubstreamIdx = memoria::list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>::Value;
+    	return SubrangeDispatcher<SubstreamIdx, SubstreamIdx + 1>::dispatchAll(
+    			allocator(),
+    			ProcessSubstreamsAccFnAdaptor(),
+    			std::forward<Fn>(fn),
+                accum,
+                std::forward<Args>(args)...
+        );
+    }
 
 
     template <

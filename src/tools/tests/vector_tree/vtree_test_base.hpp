@@ -40,7 +40,7 @@ protected:
 
     String dump_name_;
 
-    typedef LblTreeNode<std::vector<Value>, UByte, BigInt>                      TreeNode;
+    typedef LblTreeNode<std::vector<Value>, Short, BigInt>                      TreeNode;
 
     static const Int LabelNumber                                                = 2;
 
