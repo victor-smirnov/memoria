@@ -95,13 +95,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
 //        }
 //    }
 //
-//    void insert(CtrSizeT idx, Int symbol)
-//    {
-//        auto& self  = this->self();
-//        auto iter   = self.seek(idx);
-//
-//        self.insert(iter, symbol);
-//    }
+
+    void insert_symbol(CtrSizeT idx, Int symbol)
+    {
+        auto& self  = this->self();
+        auto iter   = self.seek(idx);
+
+        iter.insert(symbol);
+    }
 //
 //    void insert(Iterator& iter, Int symbol)
 //    {

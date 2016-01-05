@@ -202,6 +202,13 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         Base::setCtrShared(shared);
     }
 
+    void initCtr(const ID& root_id, BigInt name)
+    {
+    	// FIXME: Why root_id is not in use here?
+    	CtrShared* shared = self().getOrCreateCtrShared(name);
+    	Base::setCtrShared(shared);
+    }
+
     void configureNewCtrShared(CtrShared* shared, PageG root) const
     {
         T2T<BTreeCtrShared*>(shared)->configure_metadata(self().getCtrRootMetadata(root));

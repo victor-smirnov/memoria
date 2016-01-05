@@ -51,8 +51,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::wt::CtrChecksName)
         {}
 
 
-        template <Int Idx, typename StreamTypes>
-        void stream(const PkdVTree<StreamTypes>* labels)
+        template <Int Idx, typename Stream>
+        void stream(const Stream* labels)
         {
             if (labels != nullptr)
             {
@@ -80,7 +80,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::wt::CtrChecksName)
         template <typename Node>
         void treeNode(const Node* node)
         {
-            node->template processStream<2>(*this);
+            node->template processStream<IntList<1, 0, 1>>(*this);
         }
     };
 
@@ -93,7 +93,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::wt::CtrChecksName)
             {
                 CheckContentFn fn(self(), node->id(), node->is_root());
 
-                LeafDispatcher::dispatchConst(node, fn);
+                LeafDispatcher::dispatch(node, fn);
 
                 return fn.errors_;
             }

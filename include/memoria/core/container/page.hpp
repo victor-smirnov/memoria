@@ -107,13 +107,13 @@ public:
     	return this->isSet();
     }
 
-    operator BigInt () {
-        return Base::value();
-    }
-
-    operator BigInt () const {
-        return Base::value();
-    }
+//    operator BigInt () {
+//        return Base::value();
+//    }
+//
+//    operator BigInt () const {
+//        return Base::value();
+//    }
 
     ValueType& operator+=(const ValueType& other)
     {

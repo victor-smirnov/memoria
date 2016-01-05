@@ -8,7 +8,7 @@
 #ifndef _MEMORIA_CONTAINERS_WT_TOOLS_HPP
 #define _MEMORIA_CONTAINERS_WT_TOOLS_HPP
 
-#include <memoria/prototypes/bt/bt_tools.hpp>
+#include <memoria/prototypes/bt/tools/bt_tools.hpp>
 #include <memoria/containers/wt/wt_names.hpp>
 
 #include <memoria/core/types/typehash.hpp>

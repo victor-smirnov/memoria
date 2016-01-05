@@ -127,12 +127,12 @@ public:
         Base::setCtrShared(NULL);
     }
 
-    void initCtr(const ID& root_id)
+    void initCtr(const ID& root_id, BigInt name)
     {
         auto& self = this->self();
 
         tree_.initCtr(&self.allocator(), root_id);
-        vector_.initCtr(&tree_, get_ctr_root(self.allocator(), root_id, -1, 0));
+        vector_.initCtr(&tree_, get_ctr_root(self.allocator(), root_id, name, 0));
 
         Base::setCtrShared(NULL);
     }

@@ -654,7 +654,7 @@ public:
 
         //FIXME: init logger correctly
 
-        Base::initCtr(root_id);
+        Base::initCtr(root_id, name_);
 
         ref();
     }

@@ -122,8 +122,8 @@ private:
 
         BigInt seq_base = node.template sumLabel<1>();
 
-        seq.insert(seq_base + idx, label);
-        node.addLabel(1, 1);
+        seq.insert_symbol(seq_base + idx, label);
+        node.template addLabel<1>(1);
 
         BigInt rank = seq.rank(seq_base, idx + 1, label);
 
@@ -182,7 +182,7 @@ private:
 
         seq_base = node.template sumLabel<1>();
         seq.seek(seq_base + idx).remove();
-        node.addLabel(1, -1);
+        node.template addLabel<1>(-1);
 
         CtrSizeT seq_length = std::get<1>(node.labels());
 

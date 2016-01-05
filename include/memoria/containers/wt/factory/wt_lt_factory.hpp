@@ -21,10 +21,10 @@ struct BTTypes<Profile, wt::WTLabeledTree<LabelDescriptors...>>:
 
     typedef BTTypes<Profile, memoria::LabeledTree<LabelDescriptors...>>         Base;
 
-    typedef typename MergeLists<
-                    typename Base::ContainerPartsList,
+    using CommonContainerPartsList = MergeLists<
+                    typename Base::CommonContainerPartsList,
                     wt::CtrChecksName
-    >::Result                                                                   ContainerPartsList;
+    >;
 
 };
 

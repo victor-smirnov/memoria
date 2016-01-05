@@ -39,18 +39,18 @@ struct CompositeTypes<Profile_, WT>: public CompositeTypes<Profile_, Composite> 
 
     typedef CompositeTypes<Profile_, Composite>                                 Base;
 
-    typedef typename MergeLists<
+    using CtrList = MergeLists<
             typename Base::ContainerPartsList,
 
             wt::CtrApiName,
             wt::CtrCTreeName
-    >::Result                                                                   CtrList;
+    >;
 
-    typedef typename MergeLists<
+    using IterList = MergeLists<
             typename Base::IteratorPartsList,
 
             wt::ItrApiName
-    >::Result                                                                   IterList;
+    >;
 
 
     template <typename Types_>

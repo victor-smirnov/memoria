@@ -10,6 +10,8 @@
 #include <memoria/tools/profile_tests.hpp>
 #include <memoria/tools/tools.hpp>
 
+#include <memoria/containers/wt/wt_factory.hpp>
+
 #include <memory>
 #include <map>
 

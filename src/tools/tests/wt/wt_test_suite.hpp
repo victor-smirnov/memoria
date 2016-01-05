@@ -22,7 +22,7 @@ class WTTestSuite: public TestSuite {
 
 public:
 
-    WTTestSuite(): TestSuite("WTSuite")
+    WTTestSuite(): TestSuite("WT")
     {
         registerTask(new WTTest("Int"));
     }

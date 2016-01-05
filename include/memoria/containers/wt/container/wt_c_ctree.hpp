@@ -68,7 +68,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::wt::CtrCTreeName)
         {
             for (Int c = start_; c < end_; c++)
             {
-                Int lbl = labels->value(c);
+                Int lbl = labels->value(0, c);
 
                 if (lbl >= label_)
                 {
@@ -81,11 +81,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::wt::CtrCTreeName)
         template <typename Node>
         void treeNode(const Node* node, Int start)
         {
-            node->template processStream<0>(*this, start);
+            node->template processStream<IntList<0>>(*this, start);
 
             if (end_ > start_)
             {
-                node->template processStream<1>(*this);
+                node->template processStream<IntList<1, 0, 0>>(*this);
             }
         }
     };
@@ -104,7 +104,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::wt::CtrCTreeName)
             FindChildFn fn(label);
             Int idx = iter.idx();
 
-            Tree::LeafDispatcher::dispatchConst(iter.leaf(), fn, idx);
+            Tree::LeafDispatcher::dispatch(iter.leaf(), fn, idx);
 
             if (fn.target_idx_ >= 0)
             {

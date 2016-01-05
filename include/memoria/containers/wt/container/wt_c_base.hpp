@@ -34,8 +34,9 @@ MEMORIA_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(WTCtrBase)
 
     typedef WTLabeledTree<
                 FLabel<UByte>,
-                VLabel<BigInt,
-                    Granularity::Bit,
+                VLabel<
+					BigInt,
+                    Granularity::Byte,
                     Indexed::Yes
                 >
     >                                                                           TreeName;
@@ -131,7 +132,7 @@ public:
         auto& self = this->self();
 
         tree_.initCtr(&self.allocator(), root_id, name);
-        seq_.initCtr(&tree_, get_ctr_root(self.allocator(), root_id, name, 0), 0);
+        seq_.initCtr(&tree_, get_ctr_root(self.allocator(), root_id, name, 0));
 
         Base::setCtrShared(NULL);
     }
@@ -157,8 +158,10 @@ public:
                                     list,
                                     TypeHash<typename Types::ContainerTypeName>::Value,
                                     Base::getContainerInterface()
-                                  )
+                             )
             );
+
+            MetadataRepository<typename Types::Profile>::registerMetadata(Base::getMetadata());
         }
 
         return hash;
