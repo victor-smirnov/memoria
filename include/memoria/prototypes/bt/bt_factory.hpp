@@ -29,6 +29,7 @@
 
 #include <memoria/prototypes/bt/walkers/bt_skip_walkers.hpp>
 #include <memoria/prototypes/bt/walkers/bt_find_walkers.hpp>
+#include <memoria/prototypes/bt/walkers/bt_findmax_walkers.hpp>
 #include <memoria/prototypes/bt/walkers/bt_select_walkers.hpp>
 #include <memoria/prototypes/bt/walkers/bt_misc_walkers.hpp>
 #include <memoria/prototypes/bt/walkers/bt_leaf_walkers.hpp>
@@ -178,10 +179,17 @@ struct BTTypes {
     using FindGTForwardWalker          = bt::FindGTForwardWalker<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
+    using FindMaxGTWalker          	   = bt::FindMaxGTWalker<WalkerTypes<Types, LeafPath>>;
+
+
+    template <typename Types, typename LeafPath>
     using FindGTBackwardWalker         = bt::FindGTBackwardWalker<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
     using FindGEForwardWalker          = bt::FindGEForwardWalker<WalkerTypes<Types, LeafPath>>;
+
+    template <typename Types, typename LeafPath>
+    using FindMaxGEWalker              = bt::FindMaxGEWalker<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
     using FindGEBackwardWalker         = bt::FindGEBackwardWalker<WalkerTypes<Types, LeafPath>>;
@@ -269,7 +277,7 @@ public:
     >;
 
 
-    using Accumulator_ = TypeListToTuple<typename AccumulatorBuilder<BranchStreamsStructList>::Type>;
+    using Accumulator_ = TypeListToTuple<typename AccumulatorBuilder<Linearize<BranchStreamsStructList>>::Type>;
 
     struct NodeTypesBase: ContainerTypes {
         using NodeBase  = Page;

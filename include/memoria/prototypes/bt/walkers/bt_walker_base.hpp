@@ -376,7 +376,7 @@ public:
     template <typename Node, typename... Args>
     void processBranchIteratorAccumulator(Node* node, Args&&... args)
     {
-    	using ItrAccList = memoria::list_tree::MakeValueList<Int, 0, std::tuple_size<IteratorAccumulator>::value>;
+    	using ItrAccList = memoria::list_tree::MakeValueList<Int, 0, Node::Streams>;
 
     	detail::BranchAccumWalker1<
     		IteratorAccumulator,

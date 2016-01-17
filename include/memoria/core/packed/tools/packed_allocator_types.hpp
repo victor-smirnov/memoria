@@ -26,10 +26,22 @@ struct PkdStructInputType {
 	using Type = typename PkdStruct::InputType;
 };
 
+
+
+
+enum class PkdSearchType {SUM, MAX};
+
+template <typename PkdStruct>
+struct PkdSearchTypeProvider {
+	static constexpr PkdSearchType Value = PkdStruct::SearchType;
+};
+
+template <typename PkdStruct>
+struct PkdSearchKeyTypeProvider {
+	using Type = typename PkdStruct::IndexValue;
+};
+
 template <typename T> struct StructSizeProvider;
-
-
-
 
 
 template <typename PkdStruct>
@@ -41,6 +53,8 @@ template <typename PkdStruct>
 struct PkdStructInputBufferType {
 	using Type = typename PkdStruct::InputBuffer;
 };
+
+
 
 
 template <typename List> struct PackedListStructSizeType;

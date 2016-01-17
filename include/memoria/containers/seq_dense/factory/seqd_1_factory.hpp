@@ -51,7 +51,7 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >: public BTTypes<Profile, me
 
     using SeqStreamTF = StreamTF<
     	TL<TL<PkdFSSeq<SequenceTypes>>>,
-        TL<TL<TL<IndexRange<0, BranchIndexes - 1>>>>,
+        TL<TL<TL<SumRange<0, BranchIndexes - 1>>>>,
 		FSEBranchStructTF
     >;
 

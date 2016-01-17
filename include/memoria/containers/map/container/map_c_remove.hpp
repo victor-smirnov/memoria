@@ -18,7 +18,7 @@
 
 namespace memoria    {
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertName)
+MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrRemoveName)
 
     typedef typename Base::Types                                                Types;
 

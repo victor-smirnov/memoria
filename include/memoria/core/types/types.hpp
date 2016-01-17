@@ -102,6 +102,7 @@ using BoolValue = ConstValue<bool, Value>;
 class EmptyValue {
 public:
     EmptyValue() {}
+    EmptyValue(const Int) {}
     EmptyValue(const BigInt) {}
     EmptyValue(const EmptyValue& other) {}
     EmptyValue& operator=(const EmptyValue& other) {
@@ -373,7 +374,27 @@ struct AsTupleH<TL<Types...>> {
 };
 
 
+template <typename T>
+struct HasType {
+	using Type = T;
+};
 
+template <typename T, T V_>
+struct HasValue {
+	static constexpr T Value = V_;
+};
+
+
+namespace {
+	template <typename T, bool Flag>
+	struct FailIfT {
+		static_assert(!Flag, "Template failed");
+		using Type = T;
+	};
+}
+
+template <typename T, bool Flag = true>
+using FailIf = typename FailIfT<T, Flag>::Type;
 
 }
 

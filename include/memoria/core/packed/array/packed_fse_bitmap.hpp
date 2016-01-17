@@ -44,6 +44,8 @@ class PackedFSEBitmap: public PackedAllocatable {
 public:
     static const UInt VERSION                                                   = 1;
 
+    static constexpr PkdSearchType SearchType = PkdSearchType::SUM;
+
     typedef Types_                                                              Types;
     typedef PackedFSEBitmap<Types>                                              MyType;
 

@@ -84,10 +84,12 @@ public:
     typedef Int                                                                 IndexValue;
 
 
-    static const Int ValuesPerBranch        = Types::ValuesPerBranch;
-    static const Int Indexes                = Types::Blocks;
-    static const Int BitsPerSymbol          = Types::BitsPerSymbol;
-    static const Int AlphabetSize           = 1<<BitsPerSymbol;
+    static constexpr Int ValuesPerBranch        = Types::ValuesPerBranch;
+    static constexpr Int Indexes                = Types::Blocks;
+    static constexpr Int BitsPerSymbol          = Types::BitsPerSymbol;
+    static constexpr Int AlphabetSize           = 1 << BitsPerSymbol;
+
+    static constexpr PkdSearchType SearchType = PkdSearchType::SUM;
 
     enum {
         METADATA, INDEX, SYMBOLS

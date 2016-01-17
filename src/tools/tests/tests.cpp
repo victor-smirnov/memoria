@@ -10,16 +10,17 @@
 
 #include "packed/allocator/palloc_test_suite.hpp"
 #include "packed/tree/packed_tree_test_suite.hpp"
+#include "packed/maxtree/packed_maxtree_test_suite.hpp"
 #include "packed/louds/packed_louds_suite.hpp"
 #include "packed/louds_cardinal/packed_lcardinal_suite.hpp"
 #include "packed/array/packed_array_test_suite.hpp"
 #include "packed/wavelet_tree/packed_wtree_suite.hpp"
 
 
-#include "prototype/bt/bt_test_suite.hpp"
+//#include "prototype/bt/bt_test_suite.hpp"
 #include "prototype/bttl/bttl_test_suite.hpp"
 #include "prototype/btss/btss_test_suite.hpp"
-#include "table/table_test_suite.hpp"
+//#include "table/table_test_suite.hpp"
 
 #include "map/map_test_suite.hpp"
 #include "vector/vector_test_suite.hpp"
@@ -66,6 +67,8 @@ int main(int argc, const char** argv, const char** envp)
 
         runner.setSeed(seed);
 
+        DCtrTF<Map<double, BigInt>>::Type::initMetadata();
+
         DCtrTF<Table<BigInt, Byte, PackedSizeType::FIXED>>::Type::initMetadata();
         DCtrTF<Table<BigInt, Byte, PackedSizeType::VARIABLE>>::Type::initMetadata();
 
@@ -75,6 +78,7 @@ int main(int argc, const char** argv, const char** envp)
 ////
         runner.registerTask(new PackedAllocatorTestSuite());
         runner.registerTask(new PackedTreeTestSuite());
+        runner.registerTask(new PackedMaxTreeTestSuite());
         runner.registerTask(new PackedArrayTestSuite());
         runner.registerTask(new PackedSequenceTestSuite());
         runner.registerTask(new PackedLoudsTestSuite());

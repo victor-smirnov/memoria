@@ -107,7 +107,28 @@ template <
 	typename... Tail,
 	Int... RTail
 >
-struct LeafIndexRangeWalker<AccumItemH, TL<memoria::bt::IndexRange<From, To>, Tail...>, IntList<Offset, RTail...>> {
+struct LeafIndexRangeWalker<AccumItemH, TL<memoria::bt::SumRange<From, To>, Tail...>, IntList<Offset, RTail...>> {
+
+	template <typename StreamObj, typename Walker, typename Accum, typename... Args>
+	static void process(const StreamObj* obj, Walker& walker, Accum& accum, Args&&... args)
+	{
+		auto& item = AccumItemH::template item<Offset>(accum);
+
+		walker.template leaf_iterator_accumulator<Offset, From, To - From>(obj, item, std::forward<Args>(args)...);
+
+		LeafIndexRangeWalker<AccumItemH, TL<Tail...>, IntList<RTail...>>::process(obj, walker, accum, std::forward<Args>(args)...);
+	}
+};
+
+template <
+	typename AccumItemH,
+	Int From,
+	Int To,
+	Int Offset,
+	typename... Tail,
+	Int... RTail
+>
+struct LeafIndexRangeWalker<AccumItemH, TL<memoria::bt::MaxRange<From, To>, Tail...>, IntList<Offset, RTail...>> {
 
 	template <typename StreamObj, typename Walker, typename Accum, typename... Args>
 	static void process(const StreamObj* obj, Walker& walker, Accum& accum, Args&&... args)

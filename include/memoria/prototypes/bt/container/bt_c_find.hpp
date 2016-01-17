@@ -52,11 +52,27 @@ public:
     }
 
     template <typename LeafPath>
-    Iterator find_ge(Int index, TargetType<LeafPath> key)
+    Iterator find_max_gt(Int index, TargetType<LeafPath> key)
     {
-    	typename Types::template FindGEForwardWalker<Types, LeafPath> walker(index, key);
+    	typename Types::template FindGTForwardWalker<Types, LeafPath> walker(index, key);
     	return self().find_(walker);
     }
+
+
+    template <typename LeafPath>
+    Iterator find_ge(Int index, TargetType<LeafPath> key)
+    {
+    	typename Types::template FindMaxGEWalker<Types, LeafPath> walker(index, key);
+    	return self().find_(walker);
+    }
+
+    template <typename LeafPath>
+    Iterator find_max_ge(Int index, TargetType<LeafPath> key)
+    {
+    	typename Types::template FindMaxGEWalker<Types, LeafPath> walker(index, key);
+    	return self().find_(walker);
+    }
+
 
     template <typename LeafPath>
     Iterator rank_(Int index, CtrSizeT pos)

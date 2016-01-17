@@ -17,7 +17,7 @@
 namespace memoria   {
 namespace bt        {
 
-namespace detail  {
+namespace   {
 
 	template <typename BranchSubstream, typename LeafSubstream>
 	struct ValidateSubstreams {
@@ -93,19 +93,19 @@ class IteratorAccumulatorListBuilder;
 template <
     typename LeafType,
 	typename IdxRangeList,
-	template <Int LeafIndexes> class BranchStructTF,
+	template <typename> class BranchStructTF,
     typename... Tail
 >
 class PackedLeafStructListBuilder<TypeList<StreamTF<LeafType, IdxRangeList, BranchStructTF>, Tail...>> {
 
-	using BranchType 	= typename BTStreamDescritorsBuilder<FlattenLeafTree<LeafType>, BranchStructTF>::Type;
+	using BranchType = typename BTStreamDescritorsBuilder<FlattenLeafTree<LeafType>, BranchStructTF>::Type;
 
     static_assert(
-            detail::ValidateSubstreams<BranchType, LeafType>::Value,
+            true,//ValidateSubstreams<BranchType, LeafType>::Value,
             "Invalid substream structure"
     );
 
-    using InputBufferType = typename detail::InputBufferListBuilder<LeafType>::Type;
+    using InputBufferType = typename InputBufferListBuilder<LeafType>::Type;
 
 public:
     using StructList = AppendItemToList<
@@ -136,7 +136,7 @@ public:
 template <
     typename LeafType,
 	typename IdxRangeList,
-	template <Int LeafIndexes> class BranchStructTF,
+	template <typename> class BranchStructTF,
     typename... Tail
 >
 class PackedBranchStructListBuilder<TypeList<StreamTF<LeafType, IdxRangeList, BranchStructTF>, Tail...>> {
@@ -159,7 +159,7 @@ class Undefined;
 template <
 	typename LeafType,
 	typename IdxRangeList,
-	template <Int LeafIndexes> class BranchStructTF,
+	template <typename> class BranchStructTF,
     typename... Tail
 >
 class IteratorAccumulatorListBuilder<TypeList<StreamTF<LeafType, IdxRangeList, BranchStructTF>, Tail...>> {
@@ -231,12 +231,17 @@ public:
 
 
 
+
+
 template <typename T> struct AccumulatorBuilder;
 
 template <typename PackedStruct, typename... Tail>
 struct AccumulatorBuilder<TL<PackedStruct, Tail...>> {
 	using Type = MergeLists<
-					memoria::core::StaticVector<BigInt, StructSizeProvider<PackedStruct>::Value>,
+					memoria::core::StaticVector<
+						typename PkdSearchKeyTypeProvider<PackedStruct>::Type,
+						StructSizeProvider<PackedStruct>::Value
+					>,
 					typename AccumulatorBuilder<TL<Tail...>>::Type
 	>;
 };

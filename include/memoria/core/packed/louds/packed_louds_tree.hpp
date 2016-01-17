@@ -100,6 +100,8 @@ class PackedLoudsTree: public PkdFSSeq<PkdFSSeqTypes <1, Types::ValuesPerBranch,
 
     typedef typename Base::Value                                                Value;
 
+    static constexpr PkdSearchType SearchType = PkdSearchType::SUM;
+
 public:
     PackedLoudsTree() {}
 

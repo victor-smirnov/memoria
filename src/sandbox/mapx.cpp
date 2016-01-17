@@ -22,8 +22,11 @@ int main() {
 	try {
 		SmallInMemAllocator alloc;
 
+		cout<<"Dummy: "<<sizeof(DCtrTF<Map<double, BigInt>>::Types::Boo)<<endl;
 
-		using MapT  = DCtrTF<MapX<BigInt, BigInt>>::Type;
+		using MapT  = DCtrTF<Map<double, BigInt>>::Type;
+
+
 
 		MapT::initMetadata();
 
@@ -31,7 +34,7 @@ int main() {
 
 		auto iter = map.Begin();
 
-		int size = 10000;
+		int size = 300;
 
 		for (int c = 0; c < size; c++) {
 			iter.insert(c + 1, c);
@@ -40,7 +43,7 @@ int main() {
 		iter = map.find(1);
 
 		while (!iter.isEnd()) {
-			cout<<iter.key()<<" -- "<<iter.value()<<" "<<iter.prefix()<<endl;
+			cout<<iter.key()<<" -- "<<iter.value()<<endl;
 			iter++;
 		}
 

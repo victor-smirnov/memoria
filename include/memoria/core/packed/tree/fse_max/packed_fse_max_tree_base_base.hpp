@@ -1,12 +1,12 @@
 
-// Copyright Victor Smirnov 2015+.
+// Copyright Victor Smirnov 2016+.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef MEMORIA_CORE_PACKED_FSE_QUICK_TREE_BASE_BASE_HPP_
-#define MEMORIA_CORE_PACKED_FSE_QUICK_TREE_BASE_BASE_HPP_
+#ifndef MEMORIA_CORE_PACKED_FSE_MAX_TREE_BASE_BASE_HPP_
+#define MEMORIA_CORE_PACKED_FSE_MAX_TREE_BASE_BASE_HPP_
 
 #include <memoria/core/packed/tools/packed_allocator.hpp>
 
@@ -24,7 +24,7 @@ namespace memoria {
 
 
 template <typename IndexValueT, Int kBranchingFactor, Int kValuesPerBranch, Int SegmentsPerBlock, typename MetadataT>
-class PkdFQTreeBaseBase: public PackedAllocator {
+class PkdFMTreeBaseBase: public PackedAllocator {
 
     using Base = PackedAllocator;
 
@@ -34,7 +34,7 @@ public:
     using IndexValue 	= IndexValueT;
     using Metadata		= MetadataT;
 
-    static constexpr PkdSearchType SearchType = PkdSearchType::SUM;
+    static constexpr PkdSearchType SearchType = PkdSearchType::MAX;
 
     static const Int BranchingFactor        = kBranchingFactor;
     static const Int ValuesPerBranch        = kValuesPerBranch;
@@ -65,7 +65,7 @@ public:
 
 public:
 
-    PkdFQTreeBaseBase() = default;
+    PkdFMTreeBaseBase() = default;
 
     using FieldsList = MergeLists<
                 typename Base::FieldsList,
@@ -101,6 +101,10 @@ public:
     template <typename IndexT, Int IndexNum>
     const IndexT* index(Int block) const {
     	return this->template get<IndexT>(block * SegmentsPerBlock + 1 + IndexNum);
+    }
+
+    bool has_index() const {
+    	return this->element_size(METADATA + 1) > 0;
     }
 
 
@@ -188,163 +192,6 @@ protected:
     }
 
 
-    template <typename IndexT, Int IndexNum>
-    auto sum_index(IndexedTreeLayout<IndexT>& layout, Int block, Int start, Int end) const
-    {
-    	layout.indexes = this->template index<IndexT, IndexNum>(block);
-
-    	IndexT sum = 0;
-
-    	this->sum_index(layout, sum, start, end, layout.levels_max);
-
-    	return sum;
-    }
-
-
-    template <typename IndexT>
-    void sum_index(const IndexedTreeLayout<IndexT>& layout, IndexT& sum, Int start, Int end, Int level) const
-    {
-    	Int level_start = layout.level_starts[level];
-
-    	Int branch_end = (start | BranchingFactorMask) + 1;
-    	Int branch_start = end & ~BranchingFactorMask;
-
-    	if (end <= branch_end || branch_start == branch_end)
-    	{
-    		for (Int c = start + level_start; c < end + level_start; c++)
-    		{
-    			sum += layout.indexes[c];
-    		}
-    	}
-    	else {
-    		for (Int c = start + level_start; c < branch_end + level_start; c++)
-    		{
-    			sum += layout.indexes[c];
-    		}
-
-    		sum_index(
-    				layout,
-    				sum,
-					branch_end >> BranchingFactorLog2,
-					branch_start >> BranchingFactorLog2,
-					level - 1
-    		);
-
-    		for (Int c = branch_start + level_start; c < end + level_start; c++)
-    		{
-    			sum += layout.indexes[c];
-    		}
-    	}
-    }
-
-
-    template <typename IndexT, typename Walker>
-    Int walk_index_fw(const IndexedTreeLayout<IndexT>& data, Int start, Int level, Walker&& walker) const
-    {
-    	Int level_start = data.level_starts[level];
-    	Int level_size = data.level_sizes[level];
-
-    	Int branch_end = (start | BranchingFactorMask) + 1;
-
-    	Int branch_limit;
-
-    	if (branch_end > level_size) {
-    		branch_limit = level_size;
-    	}
-    	else {
-    		branch_limit = branch_end;
-    	}
-
-    	for (Int c = level_start + start; c < branch_limit + level_start; c++)
-    	{
-    		if (walker.compare(data.indexes[c]))
-    		{
-    			if (level < data.levels_max)
-    			{
-    				return walk_index_fw(
-    						data,
-							(c - level_start) << BranchingFactorLog2,
-							level + 1,
-							std::forward<Walker>(walker)
-    				);
-    			}
-    			else {
-    				return c - level_start;
-    			}
-    		}
-    		else {
-    			walker.next();
-    		}
-    	}
-
-    	if (level > 0)
-    	{
-    		return walk_index_fw(
-    				data,
-					branch_end >> BranchingFactorLog2,
-					level - 1,
-					std::forward<Walker>(walker)
-    		);
-    	}
-    	else {
-    		return -1;
-    	}
-    }
-
-
-    template <typename IndexT, typename Walker>
-    Int walk_index_bw(const IndexedTreeLayout<IndexT>& data, Int start, Int level, Walker&& walker) const
-    {
-    	Int level_start = data.level_starts[level];
-    	Int level_size  = data.level_sizes[level];
-
-    	if (start >= 0)
-    	{
-    		Int branch_end = (start & ~BranchingFactorMask) - 1;
-
-    		if (start >= level_size) {
-    			start = level_size - 1;
-    		}
-
-    		for (Int c = level_start + start; c > branch_end + level_start; c--)
-    		{
-    			if (walker.compare(data.indexes[c]))
-    			{
-    				if (level < data.levels_max)
-    				{
-    					return walk_index_bw(
-    							data,
-								((c - level_start + 1) << BranchingFactorLog2) - 1,
-								level + 1,
-								std::forward<Walker>(walker)
-    					);
-    				}
-    				else {
-    					return c - level_start;
-    				}
-    			}
-    			else {
-    				walker.next();
-    			}
-    		}
-
-    		if (level > 0)
-    		{
-    			return walk_index_bw(
-    					data,
-						branch_end >> BranchingFactorLog2,
-						level - 1,
-						std::forward<Walker>(walker)
-    			);
-    		}
-    		else {
-    			return -1;
-    		}
-    	}
-    	else {
-    		return -1;
-    	}
-    }
 
 
 

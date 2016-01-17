@@ -40,7 +40,7 @@ struct BTSSTestStreamTF<PackedSizeType::FIXED, PackedSizeType::FIXED, CtrSizeT, 
 			TL<TL<
 				PkdFQTreeT<CtrSizeT, Indexes>
 			>>,
-			TL<TL<TL<IndexRange<0, Indexes>>>>,
+			TL<TL<TL<SumRange<0, Indexes>>>>,
 			FSEBranchStructTF
 	>;
 };
@@ -52,7 +52,7 @@ struct BTSSTestStreamTF<PackedSizeType::VARIABLE, PackedSizeType::FIXED, CtrSize
 			TL<TL<
 				PkdVQTreeT<CtrSizeT, Indexes, UByteI7Codec>
 			>>,
-			TL<TL<TL<IndexRange<0, Indexes>>>>,
+			TL<TL<TL<SumRange<0, Indexes>>>>,
 			FSEBranchStructTF
 	>;
 };
@@ -64,7 +64,7 @@ struct BTSSTestStreamTF<PackedSizeType::FIXED, PackedSizeType::VARIABLE, CtrSize
 			TL<TL<
 				PkdFQTreeT<CtrSizeT, Indexes>
 			>>,
-			TL<TL<TL<IndexRange<0, Indexes>>>>,
+			TL<TL<TL<SumRange<0, Indexes>>>>,
 			VLQBranchStructTF
 	>;
 };
@@ -76,7 +76,7 @@ struct BTSSTestStreamTF<PackedSizeType::VARIABLE, PackedSizeType::VARIABLE, CtrS
 			TL<TL<
 				PkdVDTreeT<CtrSizeT, Indexes, UByteI7Codec>
 			>>,
-			TL<TL<TL<IndexRange<0, Indexes>>>>,
+			TL<TL<TL<SumRange<0, Indexes>>>>,
 			VLQBranchStructTF
 	>;
 };

@@ -1196,6 +1196,12 @@ struct IndexesSize<PkdVDArray<Types>> {
 	static const Int Value = 0;
 };
 
+template <typename T>
+struct PkdSearchKeyTypeProvider<PkdVDArray<T>> {
+	using Type = typename PkdVDArray<T>::Value;
+};
+
+
 
 }
 

@@ -1,21 +1,20 @@
 
-// Copyright Victor Smirnov 2015+.
+// Copyright Victor Smirnov 2016+.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef MEMORIA_CORE_PACKED_FSE_QUICK_TREE_HPP_
-#define MEMORIA_CORE_PACKED_FSE_QUICK_TREE_HPP_
+#ifndef MEMORIA_CORE_PACKED_FSE_MAX_TREE_HPP_
+#define MEMORIA_CORE_PACKED_FSE_MAX_TREE_HPP_
 
-#include <memoria/core/packed/tree/fse/packed_fse_quick_tree_base.hpp>
+#include <memoria/core/packed/tree/fse_max/packed_fse_max_tree_base.hpp>
 #include <memoria/core/packed/buffer/packed_fse_input_buffer_ro.hpp>
 
 namespace memoria {
 
-template <typename IndexValueT, Int kBlocks, typename ValueT = IndexValueT, Int kBranchingFactor = PackedTreeBranchingFactor, Int kValuesPerBranch = PackedTreeBranchingFactor>
-struct PkdFQTreeTypes {
-	using IndexValue 	= IndexValueT;
+template <typename ValueT, Int kBlocks, Int kBranchingFactor = PackedTreeBranchingFactor, Int kValuesPerBranch = PackedTreeBranchingFactor>
+struct PkdFMTreeTypes {
 	using Value 		= ValueT;
 
 	static constexpr Int Blocks = kBlocks;
@@ -23,25 +22,25 @@ struct PkdFQTreeTypes {
 	static constexpr Int ValuesPerBranch = kValuesPerBranch;
 };
 
-template <typename Types> class PkdFQTree;
+template <typename Types> class PkdFMTree;
 
 
-template <typename IndexValueT, Int kBlocks, typename ValueT = IndexValueT, Int kBranchingFactor = PackedTreeBranchingFactor, Int kValuesPerBranch = PackedTreeBranchingFactor>
-using PkdFQTreeT = PkdFQTree<PkdFQTreeTypes<IndexValueT, kBlocks, ValueT, kBranchingFactor, kValuesPerBranch>>;
+template <typename ValueT, Int kBlocks, Int kBranchingFactor = PackedTreeBranchingFactor, Int kValuesPerBranch = PackedTreeBranchingFactor>
+using PkdFMTreeT = PkdFMTree<PkdFMTreeTypes<ValueT, kBlocks, kBranchingFactor, kValuesPerBranch>>;
 
 
 
 template <typename Types>
-class PkdFQTree: public PkdFQTreeBase<typename Types::IndexValue, typename Types::Value, Types::BranchingFactor, Types::ValuesPerBranch> {
+class PkdFMTree: public PkdFMTreeBase<typename Types::Value, Types::BranchingFactor, Types::ValuesPerBranch> {
 
-	using Base 		= PkdFQTreeBase<typename Types::IndexValue, typename Types::Value, Types::BranchingFactor, Types::ValuesPerBranch>;
-	using MyType 	= PkdFQTree<Types>;
+	using Base 		= PkdFMTreeBase<typename Types::Value, Types::BranchingFactor, Types::ValuesPerBranch>;
+	using MyType 	= PkdFMTree<Types>;
 
 public:
-//	static constexpr PackedTreeType TreeType = PackedTreeType::SUM;
-
 	static constexpr UInt VERSION = 1;
     static constexpr Int Blocks = Types::Blocks;
+
+//    static constexpr PackedTreeType TreeType = PackedTreeType::MAX;
 
     using Base::METADATA;
     using Base::index_size;
@@ -53,7 +52,7 @@ public:
 				ConstValue<UInt, Blocks>
     >;
 
-    using IndexValue = typename Types::IndexValue;
+    using IndexValue = typename Types::Value;
     using Value		 = typename Types::Value;
 
     using Values = core::StaticVector<IndexValue, Blocks>;
@@ -168,149 +167,8 @@ public:
     }
 
 
-    // ================================ Container API =========================================== //
-
-    Values sums(Int from, Int to) const
-    {
-    	Values vals;
-
-    	for (Int block = 0; block < Blocks; block++)
-    	{
-    		vals[block] = this->sum(block, from, to);
-    	}
-
-    	return vals;
-    }
 
 
-    Values sums() const
-    {
-    	Values vals;
-
-    	for (Int block = 0; block < Blocks; block++)
-    	{
-    		vals[block] = this->sum(block);
-    	}
-
-    	return vals;
-    }
-
-    template <typename T>
-    void sums(Int from, Int to, core::StaticVector<T, Blocks>& values) const
-    {
-    	values += this->sums(from, to);
-    }
-
-    void sums(Values& values) const
-    {
-        values += this->sums();
-    }
-
-
-    void sums(Int idx, Values& values) const
-    {
-        addKeys(idx, values);
-    }
-
-
-
-    template <typename... Args>
-    auto sum(Args&&... args) const -> decltype(Base::sum(std::forward<Args>(args)...)) {
-    	return Base::sum(std::forward<Args>(args)...);
-    }
-
-    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
-    void sum(AccumItem<T, Size>& accum) const
-    {
-    	static_assert(Offset <= Size - Blocks, "Invalid balanced tree structure");
-
-    	for (Int block = 0; block < Blocks; block++)
-    	{
-    		accum[block + Offset] += this->sum(block);
-    	}
-    }
-
-    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
-    void sum(Int start, Int end, AccumItem<T, Size>& accum) const
-    {
-    	static_assert(Offset <= Size - Blocks, "Invalid balanced tree structure");
-
-    	for (Int block = 0; block < Blocks; block++)
-    	{
-    		accum[block + Offset] += this->sum(block, start, end);
-    	}
-    }
-
-    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
-    void sum(Int idx, AccumItem<T, Size>& accum) const
-    {
-    	static_assert(Offset <= Size - Blocks, "Invalid balanced tree structure");
-
-    	for (Int block = 0; block < Blocks; block++)
-    	{
-    		accum[block + Offset] += this->value(block, idx);
-    	}
-    }
-
-    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
-    void sub(Int idx, AccumItem<T, Size>& accum) const
-    {
-    	static_assert(Offset <= Size - Blocks, "Invalid balanced tree structure");
-
-    	for (Int block = 0; block < Blocks; block++)
-    	{
-    		accum[block + Offset] -= this->value(block, idx);
-    	}
-    }
-
-
-    template <Int Offset, Int From, Int To, typename T, template <typename, Int, Int> class AccumItem>
-    void sum(Int start, Int end, AccumItem<T, From, To>& accum) const
-    {
-    	for (Int block = 0; block < Blocks; block++)
-    	{
-    		accum[block + Offset] += this->sum(block, start, end);
-    	}
-    }
-
-
-    template <typename T>
-    void _add(Int block, T& value) const
-    {
-    	value += this->sum(block);
-    }
-
-    template <typename T>
-    void _add(Int block, Int end, T& value) const
-    {
-    	value += this->sum(block, end);
-    }
-
-    template <typename T>
-    void _add(Int block, Int start, Int end, T& value) const
-    {
-    	value += this->sum(block, start, end);
-    }
-
-
-
-    template <typename T>
-    void _sub(Int block, T& value) const
-    {
-    	value -= this->sum(block);
-    }
-
-    template <typename T>
-    void _sub(Int block, Int end, T& value) const
-    {
-    	value -= this->sum(block, end);
-    }
-
-    template <typename T>
-    void _sub(Int block, Int start, Int end, T& value) const
-    {
-    	value -= this->sum(block, start, end);
-    }
 
     Values get_values(Int idx) const
     {
@@ -335,6 +193,84 @@ public:
     }
 
 
+    Value max(Int block) const
+    {
+    	auto size = this->size();
+    	MEMORIA_ASSERT(size , >, 0);
+
+    	return this->value(block, size - 1);
+    }
+
+    template <typename T>
+    void addValues(Int idx, const core::StaticVector<T, Blocks>& values)
+    {
+    	for (Int b = 0; b < Blocks; b++) {
+    		this->values(b)[idx] = values[b];
+    	}
+
+    	reindex();
+    }
+
+    void sums(Values& values) const
+    {
+    	for (Int c = 0; c < Blocks; c++) {
+    		values[c] = this->max(c);
+    	}
+    }
+
+    void sums(Int start, Int end, Values& values) const
+    {
+    	if (end - 1 > start)
+    	{
+    		for (Int c = 0; c < Blocks; c++)
+    		{
+    			values[c] = this->values(c)[end - 1];
+    		}
+    	}
+    }
+
+
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void sum(AccumItem<T, Size>& accum) const
+    {
+    	static_assert(Offset <= Size - Blocks, "Invalid balanced tree structure");
+
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		accum[block + Offset] = this->max(block);
+    	}
+    }
+
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void sum(Int start, Int end, AccumItem<T, Size>& accum) const
+    {
+    	static_assert(Offset <= Size - Blocks, "Invalid balanced tree structure");
+
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		accum[block + Offset] = this->value(block, end);
+    	}
+    }
+
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void sum(Int idx, AccumItem<T, Size>& accum) const
+    {
+    	static_assert(Offset <= Size - Blocks, "Invalid balanced tree structure");
+
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		accum[block + Offset] = this->value(block, idx);
+    	}
+    }
+
+    template <Int Offset, Int From, Int To, typename T, template <typename, Int, Int> class AccumItem>
+    void sum(Int start, Int end, AccumItem<T, From, To>& accum) const
+    {
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		accum[block + Offset] = this->value(block, end);
+    	}
+    }
 
 
 
@@ -491,6 +427,41 @@ public:
     }
 
 
+    template <Int Offset, Int Size, typename T1, typename T2, template <typename, Int> class AccumItem>
+    void _insert(Int idx, const core::StaticVector<T1, Blocks>& values, AccumItem<T2, Size>& accum)
+    {
+    	insert(idx, values);
+
+    	sum<Offset>(this->size() - 1, accum);
+    }
+
+    template <Int Offset, Int Size, typename T1, typename T2, template <typename, Int> class AccumItem>
+    void _update(Int idx, const core::StaticVector<T1, Blocks>& values, AccumItem<T2, Size>& accum)
+    {
+    	update(idx, values);
+
+    	sum<Offset>(this->size() - 1, accum);
+    }
+
+
+    template <Int Offset, Int Size, typename T1, typename T2, typename I, template <typename, Int> class AccumItem>
+    void _update(Int idx, const std::pair<T1, I>& values, AccumItem<T2, Size>& accum)
+    {
+    	this->setValue(values.first, idx, values.second);
+
+    	sum<Offset>(this->size() - 1, accum);
+    }
+
+    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
+    void _remove(Int idx, AccumItem<T, Size>& accum)
+    {
+    	remove(idx, idx + 1);
+
+    	sum<Offset>(this->size() - 1, accum);
+    }
+
+
+
     void insert(Int idx, Int size, std::function<Values (Int)> provider, bool reindex = true)
     {
     	insertSpace(idx, size);
@@ -577,41 +548,6 @@ public:
     }
 
 
-    template <Int Offset, Int Size, typename T1, typename T2, template <typename, Int> class AccumItem>
-    void _insert(Int idx, const core::StaticVector<T1, Blocks>& values, AccumItem<T2, Size>& accum)
-    {
-    	insert(idx, values);
-
-    	sum<Offset>(idx, accum);
-    }
-
-    template <Int Offset, Int Size, typename T1, typename T2, template <typename, Int> class AccumItem>
-    void _update(Int idx, const core::StaticVector<T1, Blocks>& values, AccumItem<T2, Size>& accum)
-    {
-    	sub<Offset>(idx, accum);
-
-    	update(idx, values);
-
-    	sum<Offset>(idx, accum);
-    }
-
-
-    template <Int Offset, Int Size, typename T1, typename T2, typename I, template <typename, Int> class AccumItem>
-    void _update(Int idx, const std::pair<T1, I>& values, AccumItem<T2, Size>& accum)
-    {
-    	sub<Offset>(idx, accum);
-
-    	this->setValue(values.first, idx, values.second);
-
-    	sum<Offset>(idx, accum);
-    }
-
-    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
-    void _remove(Int idx, AccumItem<T, Size>& accum)
-    {
-    	sub<Offset>(idx, accum);
-    	remove(idx, idx + 1);
-    }
 
 
     BigInt setValue(Int block, Int idx, Value value)
@@ -639,40 +575,6 @@ public:
 
     	reindex();
     }
-
-    template <typename T>
-    void addValues(Int idx, const core::StaticVector<T, Blocks>& values)
-    {
-    	for (Int b = 0; b < Blocks; b++) {
-    		this->values(b)[idx] += values[b];
-    	}
-
-    	reindex();
-    }
-
-
-    void addValue(Int block, Int idx, Value value)
-    {
-    	if (value != 0)
-    	{
-    		this->value(block, idx) += value;
-    	}
-
-    	reindex();
-    }
-
-    template <typename T, Int Indexes>
-    void addValues(Int idx, Int from, Int size, const core::StaticVector<T, Indexes>& values)
-    {
-    	for (Int block = 0; block < size; block++)
-    	{
-    		this->value(block, idx) += values[block + from];
-    	}
-
-    	reindex();
-    }
-
-
 
 
     void check() const {}
@@ -707,7 +609,7 @@ public:
     	Base::generateDataEvents(handler);
 
     	handler->startStruct();
-    	handler->startGroup("FSQ_TREE");
+    	handler->startGroup("FSM_TREE");
 
     	auto meta = this->metadata();
 
@@ -802,19 +704,19 @@ public:
 };
 
 template <typename Types>
-struct PkdStructSizeType<PkdFQTree<Types>> {
+struct PkdStructSizeType<PkdFMTree<Types>> {
 	static const PackedSizeType Value = PackedSizeType::FIXED;
 };
 
 
 template <typename Types>
-struct StructSizeProvider<PkdFQTree<Types>> {
-    static const Int Value = Types::Blocks;
+struct StructSizeProvider<PkdFMTree<Types>> {
+    static const Int Value = PkdFMTree<Types>::Blocks;
 };
 
 template <typename Types>
-struct IndexesSize<PkdFQTree<Types>> {
-	static const Int Value = Types::Blocks;
+struct IndexesSize<PkdFMTree<Types>> {
+	static const Int Value = PkdFMTree<Types>::Blocks;
 };
 
 

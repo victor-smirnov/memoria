@@ -37,6 +37,8 @@ template <> struct TypeHash<Int>:       UIntValue<6> {};
 template <> struct TypeHash<UInt>:      UIntValue<7> {};
 template <> struct TypeHash<BigInt>:    UIntValue<8> {};
 template <> struct TypeHash<UBigInt>:   UIntValue<9> {};
+template <> struct TypeHash<float>:   	UIntValue<10> {};
+template <> struct TypeHash<double>:   	UIntValue<11> {};
 
 template <> struct TypeHash<EmptyValue>:    UIntValue<10> {};
 
@@ -94,7 +96,8 @@ struct TypeHash<Map<Key, Value>>:   UIntValue<
 
 template <typename T, Granularity gr>
 struct TypeHash<VLen<gr, T>>: UIntValue<
-    HashHelper<1113, TypeHash<T>::Value, static_cast<UInt>(gr)>::Value
+
+HashHelper<1113, TypeHash<T>::Value, static_cast<UInt>(gr)>::Value
 > {};
 
 

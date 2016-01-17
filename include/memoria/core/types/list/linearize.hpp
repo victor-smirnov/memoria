@@ -52,41 +52,44 @@ struct IsPlainList<TypeList<List...>> {
 
 
 
+namespace {
+
+	template <typename T, Int MaxDepth = 1>
+	struct LinearizeT {
+		using Type = TypeList<T>;
+	};
+
+	// This case is not defined
+	template <typename T>
+	struct LinearizeT<T, 0>;
 
 
-template <typename T, Int MaxDepth = 1>
-struct LinearizeT {
-    using Type = TypeList<T>;
-};
+	template <typename T, typename... Tail, Int MaxDepth>
+	struct LinearizeT<TypeList<T, Tail...>, MaxDepth> {
+		using Type = typename IfThenElse<
+				ListDepth<T>::Value < MaxDepth,
+				MergeLists<
+					TypeList<T>,
+					typename LinearizeT<TypeList<Tail...>, MaxDepth>::Type
+				>,
+				MergeLists<
+					typename LinearizeT<T, MaxDepth>::Type,
+					typename LinearizeT<TypeList<Tail...>, MaxDepth>::Type
+				>
+		>::Result;
+	};
+
+
+	template <Int MaxDepth>
+	struct LinearizeT<TypeList<>, MaxDepth> {
+		using Type = TypeList<>;
+	};
+
+
+}
 
 template <typename T, Int MaxDepth = 1>
 using Linearize = typename LinearizeT<T, MaxDepth>::Type;
-
-// This case is not defined
-template <typename T>
-struct LinearizeT<T, 0>;
-
-
-template <typename T, typename... Tail, Int MaxDepth>
-struct LinearizeT<TypeList<T, Tail...>, MaxDepth> {
-    using Type = typename IfThenElse<
-            ListDepth<T>::Value < MaxDepth,
-            MergeLists<
-                TypeList<T>,
-                typename LinearizeT<TypeList<Tail...>, MaxDepth>::Type
-            >,
-            MergeLists<
-                typename LinearizeT<T, MaxDepth>::Type,
-                typename LinearizeT<TypeList<Tail...>, MaxDepth>::Type
-            >
-    >::Result;
-};
-
-
-template <Int MaxDepth>
-struct LinearizeT<TypeList<>, MaxDepth> {
-    using Type = TypeList<>;
-};
 
 
 template <typename List, typename Set> struct ListSubsetH;

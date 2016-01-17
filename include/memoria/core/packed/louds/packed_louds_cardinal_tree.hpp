@@ -33,6 +33,8 @@ public:
     typedef PackedFSEBitmapTypes<BitsPerLabel>                                  LabelArrayTypes;
     typedef PackedFSEBitmap<LabelArrayTypes>                                    LabelArray;
 
+    static constexpr PkdSearchType SearchType = PkdSearchType::SUM;
+
     enum {
         TREE, LABELS
     };

@@ -36,6 +36,8 @@ class PackedFSEArray: public PackedAllocatable {
 public:
     static const UInt VERSION                                                   = 1;
 
+    static constexpr PkdSearchType SearchType = PkdSearchType::SUM;
+
     typedef Types_                                                              Types;
     typedef PackedFSEArray<Types>                                               MyType;
 
@@ -639,6 +641,12 @@ struct PkdStructSizeType<PackedFSEArray<Types>> {
 template <typename T>
 struct StructSizeProvider<PackedFSEArray<T>> {
     static const Int Value = 0;
+};
+
+
+template <typename T>
+struct PkdSearchKeyTypeProvider<PackedFSEArray<T>> {
+	using Type = typename PackedFSEArray<T>::Value;
 };
 
 

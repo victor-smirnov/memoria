@@ -1,21 +1,17 @@
 
-// Copyright Victor Smirnov 2013.
+// Copyright Victor Smirnov 2016.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_PACKED_TREE_TEST_BASE_HPP_
-#define MEMORIA_TESTS_PACKED_TREE_TEST_BASE_HPP_
+#ifndef MEMORIA_TESTS_PACKED_MAXTREE_TEST_BASE_HPP_
+#define MEMORIA_TESTS_PACKED_MAXTREE_TEST_BASE_HPP_
 
 #include "../../tests_inc.hpp"
 
 #include <memoria/core/packed/tools/packed_allocator.hpp>
 
-#include <memoria/core/packed/tree/fse/packed_fse_quick_tree.hpp>
 #include <memoria/core/packed/tree/fse_max/packed_fse_max_tree.hpp>
-#include <memoria/core/packed/tree/vle/packed_vle_quick_tree.hpp>
-#include <memoria/core/packed/tree/vle/packed_vle_dense_tree.hpp>
-
 #include <memoria/core/packed/tools/packed_struct_ptrs.hpp>
 
 #include <memoria/core/tools/i7_codec.hpp>
@@ -28,7 +24,7 @@ using namespace memoria::vapi;
 using namespace std;
 
 template <typename PackedTreeT>
-class PackedTreeTestBase: public TestTask {
+class PackedMaxTreeTestBase: public TestTask {
 	using Base = TestTask;
 protected:
 
@@ -48,21 +44,9 @@ public:
 
     using Base::getRandom;
 
-    PackedTreeTestBase(StringRef name): TestTask(name)
+    PackedMaxTreeTestBase(StringRef name): TestTask(name)
     {}
 
-    template <typename T>
-    IndexValue sum(const vector<T>& tree, Int block, Int start, Int end)
-    {
-    	IndexValue sum = 0;
-
-    	for (Int c = start; c < end; c++)
-    	{
-    		sum += tree[c][block];
-    	}
-
-    	return sum;
-    }
 
 
     TreePtr createEmptyTree(Int block_size = MEMBUF_SIZE)
@@ -87,11 +71,14 @@ public:
 
     vector<Values> fillRandom(TreePtr& tree, Int size, Int max_value = 300, Int min = 1)
     {
+    	Values accum;
+
         vector<Values> vals(size);
         for (auto& v: vals)
         {
         	for (Int b = 0; b < Blocks; b++) {
-        		v[b] = getRandom(max_value) + min;
+        		v[b] = accum[b] + getRandom(max_value) + min;
+        		accum[b] = v[b];
         	}
         }
 
@@ -113,40 +100,7 @@ public:
         return vals;
     }
 
-    vector<Values> fillSolid(TreePtr& tree, const Values& values)
-    {
-        vector<Values> vals;
 
-        Int size = tree->insert(0, [&](Values& v) -> bool {
-            v = values;
-            vals.push_back(values);
-
-            return true;
-        });
-
-        truncate(vals, size);
-
-        return vals;
-    }
-
-    vector<Values> fillSolid(Tree* tree, Int value)
-    {
-        vector<Values> vals;
-
-        Int size = tree->insert(0, [&](Values& v) -> bool {
-            for (Int b = 0; b < Blocks; b++) {
-                v[b] = value;
-            }
-
-            vals.push_back(v);
-
-            return true;
-        });
-
-        truncate(vals, size);
-
-        return vals;
-    }
 
     void fillVector(TreePtr& tree, const vector<Values>& vals)
     {

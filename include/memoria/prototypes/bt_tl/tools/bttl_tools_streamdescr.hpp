@@ -22,14 +22,14 @@
 namespace memoria {
 namespace bttl    {
 
-namespace details {
+namespace {
 	template <typename StreamDescriptorsList> struct GetLeafList;
 
 	template <
 		typename... Tail,
 		typename LeafType,
 		typename IndexRangeList,
-		template <Int LeafIndexes> class BranchStructTF
+		template <typename> class BranchStructTF
 	>
 	struct GetLeafList<TL<memoria::bt::StreamTF<LeafType, IndexRangeList, BranchStructTF>, Tail...>> {
 		using Type = MergeLists<
@@ -48,7 +48,7 @@ namespace details {
 
 	template <typename StreamDescriptorsList, typename CtrSizeT = BigInt>
 	struct InferSizeStruct {
-		using LeafStreamsStructList = typename details::GetLeafList<StreamDescriptorsList>::Type;
+		using LeafStreamsStructList = typename GetLeafList<StreamDescriptorsList>::Type;
 		static const PackedSizeType LeafSizeType = PackedListStructSizeType<Linearize<LeafStreamsStructList>>::Value;
 
 		using Type = typename IfThenElse<
@@ -91,21 +91,21 @@ namespace details {
 
 template <
 	typename StreamDescriptorsList,
-	typename SizeStruct 	= typename details::InferSizeStruct<StreamDescriptorsList>::Type,
-	typename SizeIndexes	= TL<IndexRange<0, 1>>
+	typename SizeStruct 	= typename InferSizeStruct<StreamDescriptorsList>::Type,
+	typename SizeIndexes	= TL<SumRange<0, 1>>
 > class BTTLAugmentStreamDescriptors;
 
 template <
 	typename... Tail,
 	typename LeafType,
 	typename IndexRangeList,
-	template <Int LeafIndexes> class BranchStructTF,
+	template <typename> class BranchStructTF,
 	typename SizeStruct,
 	typename SizeIndexes
 >
 class BTTLAugmentStreamDescriptors<TL<memoria::bt::StreamTF<LeafType, IndexRangeList, BranchStructTF>, Tail...>, SizeStruct, SizeIndexes> {
-	using NewLeafType 		= typename details::AppendSizeStruct<LeafType, SizeStruct>::Type;
-	using NewIndexRangeList = typename details::AppendSizeIndexes<IndexRangeList, SizeIndexes>::Type;
+	using NewLeafType 		= typename AppendSizeStruct<LeafType, SizeStruct>::Type;
+	using NewIndexRangeList = typename AppendSizeIndexes<IndexRangeList, SizeIndexes>::Type;
 public:
 	using Type = MergeLists<
 		memoria::bt::StreamTF<NewLeafType, NewIndexRangeList, BranchStructTF>,
@@ -118,7 +118,7 @@ public:
 template <
 	typename LeafType,
 	typename IndexRangeList,
-	template <Int LeafIndexes> class BranchStructTF,
+	template <typename> class BranchStructTF,
 	typename SizeStruct,
 	typename SizeIndexes
 >

@@ -27,7 +27,13 @@ namespace bt        {
 
 
 template <Int From_, Int To_ = From_ +1>
-struct IndexRange {
+struct SumRange {
+	static const Int From = From_;
+	static const Int To = To_;
+};
+
+template <Int From_, Int To_ = From_ +1>
+struct MaxRange {
 	static const Int From = From_;
 	static const Int To = To_;
 };
@@ -39,7 +45,7 @@ using Indexes = typename IndexesH<T>::Type;
 
 template <Int Head, Int... Tail>
 struct IndexesH<IntList<Head, Tail...>>:
-	MergeListsMF<IndexRange<Head>, typename IndexesH<IntList<Tail...>>::Type>
+	MergeListsMF<SumRange<Head>, typename IndexesH<IntList<Tail...>>::Type>
 {};
 
 
@@ -48,7 +54,7 @@ using FlattenIndexRangeTree = Linearize<IndexRangeTree, 3>;
 
 template <Int Head>
 struct IndexesH<IntList<Head>>:
-	TypeP<TypeList<IndexRange<Head>>>
+	TypeP<TypeList<SumRange<Head>>>
 {};
 
 
@@ -57,12 +63,14 @@ struct IndexesH<IntList<Head>>:
 template <typename T, typename RangesList>
 struct IndexDescr {};
 
-namespace detail {
-
-template <typename T, typename List, Int Max> struct AccumBuilderH;
+template <typename T, Int From_, Int To_>
+struct SumVector: public memoria::core::StaticVector<T, To_ - From_> {
+	static const Int To 	= To_;
+	static const Int From 	= From_;
+};
 
 template <typename T, Int From_, Int To_>
-struct IndexVector: public memoria::core::StaticVector<T, To_ - From_> {
+struct MaxVector: public memoria::core::StaticVector<T, To_ - From_> {
 	static const Int To 	= To_;
 	static const Int From 	= From_;
 };
@@ -88,126 +96,198 @@ std::ostream& operator<<(std::ostream& out, const EmptyVector<T>& v) {
 }
 
 
-template <typename T, Int From, Int To, typename... Tail, Int Max>
-struct AccumBuilderH<T, TypeList<IndexRange<From, To>, Tail...>, Max>:
-	MergeListsMF<
-		IndexVector<T, From, To>,
+namespace {
+
+	template <typename T, typename List, Int Max> struct AccumBuilderH;
+
+	template <typename T, Int From, Int To, typename... Tail, Int Max>
+	struct AccumBuilderH<T, TypeList<SumRange<From, To>, Tail...>, Max>: HasType<
+		MergeLists<
+			SumVector<T, From, To>,
+			typename AccumBuilderH<T, TypeList<Tail...>, Max>::Type
+		>
+	>
+	{
+		static_assert(To <= Max, "Index range must not exceed the limit");
+	};
+
+	template <typename T, Int From, Int To, Int Max>
+	struct AccumBuilderH<T, TypeList<SumRange<From, To>>, Max>
+	{
+		using Type = TL<SumVector<T, From, To>>;
+		static_assert(To <= Max, "Index range must not exceed the limit");
+	};
+
+
+	template <typename T, Int From, Int To, typename... Tail, Int Max>
+	struct AccumBuilderH<T, TypeList<MaxRange<From, To>, Tail...>, Max>:
+		MergeListsMF<
+		MaxVector<T, From, To>,
 		typename AccumBuilderH<T, TypeList<Tail...>, Max>::Type
 	>
-{
-	static_assert(To <= Max, "Index range must not exceed the limit");
-};
+	{
+		static_assert(To <= Max, "Max range must not exceed the limit");
+	};
 
-template <typename T, Int From, Int To, Int Max>
-struct AccumBuilderH<T, TypeList<IndexRange<From, To>>, Max>
-{
-	using Type = TL<IndexVector<T, From, To>>;
-	static_assert(To <= Max, "Index range must not exceed the limit");
-};
-
-
-template <typename T, Int Max>
-struct AccumBuilderH<T, TypeList<>, Max>:
-	TypeP<TypeList<EmptyVector<T>>>
-{};
+	template <typename T, Int From, Int To, Int Max>
+	struct AccumBuilderH<T, TypeList<MaxRange<From, To>>, Max>
+	{
+		using Type = TL<MaxVector<T, From, To>>;
+		static_assert(To <= Max, "Max range must not exceed the limit");
+	};
 
 
-
-template <typename List, Int Offset> struct ShiftRangeList;
-
-template <Int From, Int To, typename... Tail, Int Offset>
-struct ShiftRangeList<TypeList<IndexRange<From, To>, Tail...>, Offset>
-{
-	using Type = MergeLists<
-			IndexRange<From + Offset, To + Offset>,
-			typename ShiftRangeList<TypeList<Tail...>, Offset>::Type
-	>;
-
-	using OffsetList = typename MergeValueLists<
-			IntList<From + Offset>,
-			typename ShiftRangeList<TypeList<Tail...>, Offset>::OffsetList
-	>::Type;
-};
+	template <typename T, Int Max>
+	struct AccumBuilderH<T, TypeList<>, Max>: TypeP<TypeList<EmptyVector<T>>>
+	{};
 
 
-template <Int From, Int To, Int Offset>
-struct ShiftRangeList<IndexRange<From, To>, Offset>
-{
-	using Type = TL<
-			IndexRange<From + Offset, To + Offset>
-	>;
 
-	using OffsetList = IntList<From + Offset>;
-};
+	template <typename List, Int Offset> struct ShiftRangeList;
 
+	template <Int From, Int To, typename... Tail, Int Offset>
+	struct ShiftRangeList<TypeList<SumRange<From, To>, Tail...>, Offset>
+	{
+		using Type = MergeLists<
+				SumRange<From + Offset, To + Offset>,
+				typename ShiftRangeList<TypeList<Tail...>, Offset>::Type
+		>;
 
-template <Int Offset>
-struct ShiftRangeList<TypeList<>, Offset> {
-	using Type 		 = TypeList<>;
-	using OffsetList = IntList<>;
-};
-
-
-template <typename RangeList> struct GlueRanges;
-
-template <Int From, Int Middle, Int To, typename... Tail>
-struct GlueRanges<TypeList<IndexRange<From, Middle>, IndexRange<Middle, To>, Tail...>> {
-	static_assert(From >= 0, "From must be >= 0");
-	static_assert(Middle > From, "To must be > From");
-	static_assert(To > Middle, "To must be > From");
-
-	using Type = typename GlueRanges<TypeList<IndexRange<From, To>, Tail...>>::Type;
-};
-
-template <Int From, Int To, typename... Tail>
-struct GlueRanges<TypeList<IndexRange<From, To>, Tail...>> {
-	static_assert(From >= 0, "From must be >= 0");
-	static_assert(To > From, "To must be > From");
-
-	using Type = MergeLists<
-			IndexRange<From, To>,
-			typename GlueRanges<TypeList<Tail...>>::Type
-	>;
-};
-
-template <>
-struct GlueRanges<TL<>> {
-	using Type = TL<>;
-};
+		using OffsetList = typename MergeValueLists<
+				IntList<From + Offset>,
+				typename ShiftRangeList<TypeList<Tail...>, Offset>::OffsetList
+		>::Type;
+	};
 
 
-template <Int Max, typename List>
-struct CheckRangeList;
+	template <Int From, Int To, Int Offset>
+	struct ShiftRangeList<SumRange<From, To>, Offset>
+	{
+		using Type = TL<
+				SumRange<From + Offset, To + Offset>
+		>;
 
-template <Int Max, typename Head, typename... Tail>
-struct CheckRangeList<Max, TL<Head, Tail...>> {
-	static const bool Value = CheckRangeList<Max, TL<Tail...>>::Value;
-};
+		using OffsetList = IntList<From + Offset>;
+	};
 
-template <Int Max, Int From, Int To>
-struct CheckRangeList<Max, TL<IndexRange<From, To>>> {
-	static const bool Value = To <= Max;
-};
+	template <Int From, Int To, typename... Tail, Int Offset>
+	struct ShiftRangeList<TypeList<MaxRange<From, To>, Tail...>, Offset>
+	{
+		using Type = MergeLists<
+				MaxRange<From + Offset, To + Offset>,
+				typename ShiftRangeList<TypeList<Tail...>, Offset>::Type
+		>;
 
-template <Int Max>
-struct CheckRangeList<Max, TL<>> {
-	static const bool Value = true;
-};
-
-
-template <typename List> struct MakeTuple;
-
-template <typename... Types>
-struct MakeTuple<TypeList<Types...>> {
-    using Type = std::tuple<Types...>;
-};
-
-template <typename... Types>
-struct MakeTuple<std::tuple<Types...>> {
-    using type = std::tuple<Types...>;
-};
+		using OffsetList = typename MergeValueLists<
+				IntList<From + Offset>,
+				typename ShiftRangeList<TypeList<Tail...>, Offset>::OffsetList
+		>::Type;
+	};
 
 
+	template <Int From, Int To, Int Offset>
+	struct ShiftRangeList<MaxRange<From, To>, Offset>
+	{
+		using Type = TL<
+				MaxRange<From + Offset, To + Offset>
+		>;
+
+		using OffsetList = IntList<From + Offset>;
+	};
+
+
+
+	template <Int Offset>
+	struct ShiftRangeList<TypeList<>, Offset> {
+		using Type 		 = TypeList<>;
+		using OffsetList = IntList<>;
+	};
+
+
+	template <typename RangeList> struct GlueRanges;
+
+	template <Int From, Int Middle, Int To, typename... Tail>
+	struct GlueRanges<TypeList<SumRange<From, Middle>, SumRange<Middle, To>, Tail...>> {
+		static_assert(From >= 0, "From must be >= 0");
+		static_assert(Middle > From, "To must be > From");
+		static_assert(To > Middle, "To must be > From");
+
+		using Type = typename GlueRanges<TypeList<SumRange<From, To>, Tail...>>::Type;
+	};
+
+	template <Int From, Int To, typename... Tail>
+	struct GlueRanges<TypeList<SumRange<From, To>, Tail...>> {
+		static_assert(From >= 0, "From must be >= 0");
+		static_assert(To > From, "To must be > From");
+
+		using Type = MergeLists<
+				SumRange<From, To>,
+				typename GlueRanges<TypeList<Tail...>>::Type
+		>;
+	};
+
+
+	template <Int From, Int Middle, Int To, typename... Tail>
+	struct GlueRanges<TypeList<MaxRange<From, Middle>, MaxRange<Middle, To>, Tail...>> {
+		static_assert(From >= 0, "From must be >= 0");
+		static_assert(Middle > From, "To must be > From");
+		static_assert(To > Middle, "To must be > From");
+
+		using Type = typename GlueRanges<TypeList<MaxRange<From, To>, Tail...>>::Type;
+	};
+
+	template <Int From, Int To, typename... Tail>
+	struct GlueRanges<TypeList<MaxRange<From, To>, Tail...>> {
+		static_assert(From >= 0, "From must be >= 0");
+		static_assert(To > From, "To must be > From");
+
+		using Type = MergeLists<
+				MaxRange<From, To>,
+				typename GlueRanges<TypeList<Tail...>>::Type
+		>;
+	};
+
+	template <>
+	struct GlueRanges<TL<>> {
+		using Type = TL<>;
+	};
+
+
+	template <Int Max, typename List>
+	struct CheckRangeList;
+
+	template <Int Max, typename Head, typename... Tail>
+	struct CheckRangeList<Max, TL<Head, Tail...>> {
+		static const bool Value = CheckRangeList<Max, TL<Tail...>>::Value;
+	};
+
+	template <Int Max, Int From, Int To>
+	struct CheckRangeList<Max, TL<SumRange<From, To>>> {
+		static const bool Value = To <= Max;
+	};
+
+	template <Int Max, Int From, Int To>
+	struct CheckRangeList<Max, TL<MaxRange<From, To>>> {
+		static const bool Value = To <= Max;
+	};
+
+	template <Int Max>
+	struct CheckRangeList<Max, TL<>> {
+		static const bool Value = true;
+	};
+
+
+	template <typename List> struct MakeTuple;
+
+	template <typename... Types>
+	struct MakeTuple<TypeList<Types...>> {
+		using Type = std::tuple<Types...>;
+	};
+
+	template <typename... Types>
+	struct MakeTuple<std::tuple<Types...>> {
+		using type = std::tuple<Types...>;
+	};
 }
 
 
@@ -227,12 +307,12 @@ template <
 >
 struct RangeListBuilder<BranchStruct, TypeList<LeafStruct, LTail...>, RangeList, Offset> {
 private:
-	using ShiftedRangeList = typename detail::ShiftRangeList<
+	using ShiftedRangeList = typename ShiftRangeList<
 			typename ListHead<RangeList>::Type,
 			Offset
 	>::Type;
 
-	using RangeOffsetList = typename detail::ShiftRangeList<
+	using RangeOffsetList = typename ShiftRangeList<
 			typename ListHead<RangeList>::Type,
 			Offset
 	>::OffsetList;
@@ -262,8 +342,8 @@ public:
 
 template <typename BranchStruct, typename LeafStruct, typename RangeList, Int Offset>
 struct RangeListBuilder {
-	using Type 		 = typename detail::ShiftRangeList<RangeList, Offset>::Type;
-	using OffsetList = typename detail::ShiftRangeList<RangeList, Offset>::OffsetList;
+	using Type 		 = typename ShiftRangeList<RangeList, Offset>::Type;
+	using OffsetList = typename ShiftRangeList<RangeList, Offset>::OffsetList;
 };
 
 template <
@@ -306,11 +386,11 @@ struct BranchNodeRangeListBuilder<TypeList<BranchStruct, BTail...>, TypeList<Lea
 			Offset
 	>::OffsetList;
 
-	static_assert(memoria::bt::detail::CheckRangeList<IndexesSize<BranchStruct>::Value, List>::Value, "RangeList exceeds PackedStruct size");
+	static_assert(memoria::bt::CheckRangeList<IndexesSize<BranchStruct>::Value, List>::Value, "RangeList exceeds PackedStruct size");
 
 	using Type = MergeLists<
 			TL<
-				typename memoria::bt::detail::GlueRanges<List>::Type
+				typename memoria::bt::GlueRanges<List>::Type
 			>,
 			typename BranchNodeRangeListBuilder<
 				TypeList<BTail...>,
@@ -349,8 +429,8 @@ template <typename BranchStructList, typename RangeLists> struct IteratorAccumul
 template <typename BranchStruct, typename... BTail, typename RangeList, typename... RTail>
 struct IteratorAccumulatorBuilder<TL<BranchStruct, BTail...>, TL<RangeList, RTail...>> {
 	using Type = MergeLists<
-			typename detail::MakeTuple<
-				typename detail::AccumBuilderH<
+			typename MakeTuple<
+				typename AccumBuilderH<
 					typename memoria::AccumType<BranchStruct>::Type,
 					RangeList,
 					IndexesSize<BranchStruct>::Value
@@ -371,114 +451,122 @@ struct IteratorAccumulatorBuilder<TL<>, TL<>> {
 
 
 
-namespace detail {
+namespace {
 
-template <typename RangeList, Int Idx = 0> struct IndexRangeProc;
+	template <typename RangeList, Int Idx = 0> struct IndexRangeProc;
 
-template <typename T, Int From, Int To, typename... Tail, Int Idx>
-struct IndexRangeProc<std::tuple<IndexVector<T, From, To>, Tail...>, Idx> {
+	template <typename T, Int From, Int To, typename... Tail, Int Idx, template <typename, Int, Int> class IndexVector>
+	struct IndexRangeProc<std::tuple<IndexVector<T, From, To>, Tail...>, Idx> {
 
-	using RtnType = T;
+		using RtnType = T;
 
-	template <typename RangeList>
-	static T& value(Int index, RangeList&& accum)
-	{
-		if (index >= From && index < To)
+		template <typename RangeList>
+		static T& value(Int index, RangeList&& accum)
 		{
-			return std::get<Idx>(accum)[index - From];
+			if (index >= From && index < To)
+			{
+				return std::get<Idx>(accum)[index - From];
+			}
+			else {
+				return IndexRangeProc<std::tuple<Tail...>, Idx + 1>::value(index, std::forward<RangeList>(accum));
+			}
 		}
-		else {
-			return IndexRangeProc<std::tuple<Tail...>, Idx + 1>::value(index, std::forward<RangeList>(accum));
-		}
-	}
 
-	template <Int Index, typename RangeList>
-	static T& value(RangeList&& accum)
-	{
-		if (Index >= From && Index < To)
+		template <Int Index, typename RangeList>
+		static T& value(RangeList&& accum)
 		{
-			return std::get<Idx>(accum)[Index - From];
+			if (Index >= From && Index < To)
+			{
+				return std::get<Idx>(accum)[Index - From];
+			}
+			else {
+				return IndexRangeProc<std::tuple<Tail...>, Idx + 1>::template value<Index>(std::forward<RangeList>(accum));
+			}
 		}
-		else {
-			return IndexRangeProc<std::tuple<Tail...>, Idx + 1>::template value<Index>(std::forward<RangeList>(accum));
-		}
-	}
-};
+	};
 
 
-template <typename T, Int From, Int To, Int Idx>
-struct IndexRangeProc<std::tuple<IndexVector<T, From, To>>, Idx> {
 
-	using RtnType = T;
 
-	template <typename RangeList>
-	static auto value(Int index, RangeList&& accum)
-	{
-		if (index >= From && index < To)
+
+	template <typename T, Int From, Int To, Int Idx, template <typename, Int, Int> class IndexVector>
+	struct IndexRangeProc<std::tuple<IndexVector<T, From, To>>, Idx> {
+
+		using RtnType = T;
+
+		template <typename RangeList>
+		static auto value(Int index, RangeList&& accum)
 		{
-			return std::get<Idx>(accum)[index - From];
+			if (index >= From && index < To)
+			{
+				return std::get<Idx>(accum)[index - From];
+			}
+			else {
+				throw vapi::BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid index value: "<<index);
+			}
 		}
-		else {
+
+		template <Int Index, typename RangeList>
+		static auto value(RangeList&& accum)
+		{
+			if (Index >= From && Index < To)
+			{
+				return std::get<Idx>(accum)[Index - From];
+			}
+			else {
+				throw vapi::BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid index value: "<<Index);
+			}
+		}
+	};
+
+
+
+	template <typename T, Int Idx>
+	struct IndexRangeProc<std::tuple<EmptyVector<T>>, Idx> {
+
+		using RtnType = T;
+
+		template <typename RangeList>
+		static RtnType& value(Int index, RangeList&& accum)
+		{
 			throw vapi::BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid index value: "<<index);
 		}
-	}
 
-	template <Int Index, typename RangeList>
-	static auto value(RangeList&& accum)
-	{
-		if (Index >= From && Index < To)
+		template <Int Index, typename RangeList>
+		static RtnType& value(RangeList&& accum)
 		{
-			return std::get<Idx>(accum)[Index - From];
-		}
-		else {
 			throw vapi::BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid index value: "<<Index);
 		}
-	}
-};
+	};
 
 
 
-template <typename T, Int Idx>
-struct IndexRangeProc<std::tuple<EmptyVector<T>>, Idx> {
+	template <typename AccumTuple, Int Offset, Int Tmp = 0> struct SearchForAccumItem;
 
-	using RtnType = T;
-
-	template <typename RangeList>
-	static RtnType& value(Int index, RangeList&& accum)
+	template <typename T, Int From, Int To, Int Offset, Int Tmp, typename... Tail>
+	struct SearchForAccumItem<std::tuple<SumVector<T, From, To>, Tail...>, Offset, Tmp>
 	{
-		throw vapi::BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid index value: "<<index);
-	}
+		static constexpr Int Idx = (Offset >= From && Offset < To) ?
+				Tmp :
+				SearchForAccumItem<std::tuple<Tail...>, Offset, Tmp + 1>::Idx;
+	};
 
-	template <Int Index, typename RangeList>
-	static RtnType& value(RangeList&& accum)
+
+	template <typename T, Int From, Int To, Int Offset, Int Tmp, typename... Tail>
+	struct SearchForAccumItem<std::tuple<MaxVector<T, From, To>, Tail...>, Offset, Tmp>
 	{
-		throw vapi::BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid index value: "<<Index);
-	}
-};
-
-
-
-template <typename AccumTuple, Int Offset, Int Tmp = 0> struct SearchForAccumItem;
-
-template <typename T, Int From, Int To, Int Offset, Int Tmp, typename... Tail>
-struct SearchForAccumItem<std::tuple<IndexVector<T, From, To>, Tail...>, Offset, Tmp>
-{
-	static constexpr Int Idx = (Offset >= From && Offset < To) ?
-					Tmp :
-					SearchForAccumItem<std::tuple<Tail...>, Offset, Tmp + 1>::Idx;
-};
+		static constexpr Int Idx = (Offset >= From && Offset < To) ?
+				Tmp :
+				SearchForAccumItem<std::tuple<Tail...>, Offset, Tmp + 1>::Idx;
+	};
 
 
 
 
-
-
-template <Int Offset, Int Tmp>
-struct SearchForAccumItem<std::tuple<>, Offset, Tmp> {
-	static constexpr Int Idx = -1;
-};
-
-
+	template <Int Offset, Int Tmp>
+	struct SearchForAccumItem<std::tuple<>, Offset, Tmp> {
+		static constexpr Int Idx = -1;
+	};
 
 }
 
@@ -500,7 +588,7 @@ public:
 
 	template <Int Offset>
 	using Vector = typename std::tuple_element<
-		detail::SearchForAccumItem<AccumRangeList, Offset>::Idx,
+		SearchForAccumItem<AccumRangeList, Offset>::Idx,
 		AccumRangeList
 	>::type;
 
@@ -510,20 +598,20 @@ public:
 	static
 	Vector<Offset>& item(AccumType& accum)
 	{
-		return std::get<detail::SearchForAccumItem<AccumRangeList, Offset>::Idx>(std::get<BranchIdx>(accum));
+		return std::get<SearchForAccumItem<AccumRangeList, Offset>::Idx>(std::get<BranchIdx>(accum));
 	}
 
 	template <Int Offset>
 	static
 	const Vector<Offset>& item(const AccumType& accum)
 	{
-		return std::get<detail::SearchForAccumItem<AccumRangeList, Offset>::Idx>(std::get<BranchIdx>(accum));
+		return std::get<SearchForAccumItem<AccumRangeList, Offset>::Idx>(std::get<BranchIdx>(accum));
 	}
 
 	template <typename AccumTypeT>
 	static auto value(Int index, AccumTypeT&& accum)
 	{
-		return detail::IndexRangeProc<AccumRangeList>::value(
+		return IndexRangeProc<AccumRangeList>::value(
 				index + LeafPrefix,
 				std::get<BranchIdx>(std::forward<AccumTypeT>(accum))
 		);
@@ -532,7 +620,7 @@ public:
 	template <Int Index, typename AccumTypeT>
 	static auto value(AccumTypeT&& accum)
 	{
-		return detail::IndexRangeProc<AccumRangeList>::template value<Index + LeafPrefix>(std::forward<AccumRangeList>(std::get<BranchIdx>(std::forward<AccumTypeT>(accum))));
+		return IndexRangeProc<AccumRangeList>::template value<Index + LeafPrefix>(std::forward<AccumRangeList>(std::get<BranchIdx>(std::forward<AccumTypeT>(accum))));
 	}
 };
 

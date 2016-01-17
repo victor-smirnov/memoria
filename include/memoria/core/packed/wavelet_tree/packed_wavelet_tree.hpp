@@ -34,6 +34,8 @@ class PackedWaveletTree: public PackedAllocator {
 
     typedef typename Types::Allocator                                           Allocator;
 
+    static constexpr PkdSearchType SearchType = PkdSearchType::SUM;
+
     struct CardinalTreeTypes {
         static const Int BitsPerLabel   = Types::BitsPerLabel;
     };

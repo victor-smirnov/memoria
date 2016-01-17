@@ -29,12 +29,12 @@ struct StreamStartTag {
 template <
 	typename LeafTypeT,
 	typename IndexRangeListT,
-	template <Int LeafIndexes> class BranchStructTF
+	template <typename T> class BranchStructTF
 >
 struct StreamTF {};
 
 
-namespace detail {
+namespace {
 
 	template <typename List> struct FixStreamStart;
 
@@ -62,7 +62,7 @@ namespace detail {
 		Int Idx                 = 0,
 		Int Max                 = ListSize<List>::Value
 	>
-	class TagStreamsStart {
+	class TagStreamsStartT {
 		static const Int StreamOffset = list_tree::LeafCount<List, IntList<Idx>, 2>::Value;
 
 		using StreamStart = typename Select<StreamOffset, OffsetList>::Result;
@@ -71,47 +71,80 @@ namespace detail {
 				OffsetList,
 				StreamStartTag<typename FixStreamStart<StreamStart>::Type>,
 				StreamOffset
-				>;
+		>;
 
 	public:
-		using Type = typename TagStreamsStart<FixedList, List, Idx + 1, Max>::Type;
+		using Type = typename TagStreamsStartT<FixedList, List, Idx + 1, Max>::Type;
 	};
 
 	template <typename OffsetList, typename List, Int Idx>
-	class TagStreamsStart<OffsetList, List, Idx, Idx> {
+	class TagStreamsStartT<OffsetList, List, Idx, Idx> {
 	public:
 		using Type = OffsetList;
 	};
 
+	template <typename OffsetList, typename List>
+	using TagStreamsStart = typename TagStreamsStartT<OffsetList, List>::Type;
 
-	template <typename List> struct OffsetBuilder;
+
+//	template <
+//		typename OffsetList,
+//		typename List,
+//		Int Idx                 = 0,
+//		Int Max                 = ListSize<List>::Value
+//	>
+//	class TagStreamsStart1 {
+//		static const Int StreamOffset = list_tree::LeafCount<List, IntList<Idx>, 2>::Value;
+//
+//		using StreamStart = typename Select<StreamOffset, OffsetList>::Result;
+//
+//		using FixedList = FailIf<Replace<
+//				OffsetList,
+//				StreamStartTag<typename FixStreamStart<StreamStart>::Type>,
+//				StreamOffset
+//		>>;
+//
+//	public:
+//		using Type = typename TagStreamsStart1<FixedList, List, Idx + 1, Max>::Type;
+//	};
+//
+//	template <typename OffsetList, typename List, Int Idx>
+//	class TagStreamsStart1<OffsetList, List, Idx, Idx> {
+//	public:
+//		using Type = OffsetList;
+//	};
+
+
+	template <typename List> struct OffsetBuilderT;
+	template <typename List> using OffsetBuilder = typename OffsetBuilderT<List>::Type;
+
 	template <typename List, Int Offset> struct InternalOffsetBuilder;
 
 	template <
 		typename Head,
 		typename... Tail
 	>
-	struct OffsetBuilder<TypeList<Head, Tail...>> {
+	struct OffsetBuilderT<TypeList<Head, Tail...>> {
 		using Type = MergeLists<
 				IntList<0>,
-				typename OffsetBuilder<TypeList<Tail...>>::Type
-				>;
+				OffsetBuilder<TypeList<Tail...>>
+		>;
 	};
 
 	template <
 		typename... Head,
 		typename... Tail
 	>
-	struct OffsetBuilder<TypeList<TypeList<Head...>, Tail...>> {
+	struct OffsetBuilderT<TypeList<TypeList<Head...>, Tail...>> {
 		using Type = MergeLists<
 				typename InternalOffsetBuilder<TypeList<Head...>, 0>::Type,
-				typename OffsetBuilder<TypeList<Tail...>>::Type
-				>;
+				OffsetBuilder<TypeList<Tail...>>
+		>;
 	};
 
 
 	template <>
-	struct OffsetBuilder<TypeList<>> {
+	struct OffsetBuilderT<TypeList<>> {
 		using Type = TypeList<>;
 	};
 
@@ -163,24 +196,29 @@ namespace detail {
 	public:
 		using Type = IntList<>;
 	};
-
-
 }
 
 
 template <typename LeafTree>
 class LeafOffsetListBuilder {
     using LinearLeafList = FlattenLeafTree<LeafTree>;
-    using OffsetList = typename detail::OffsetBuilder<LinearLeafList>::Type;
+    using OffsetList = OffsetBuilder<LinearLeafList>;
 public:
-    using Type = typename detail::TagStreamsStart<OffsetList, LeafTree>::Type;
+    using Type = TagStreamsStart<OffsetList, LeafTree>;
 };
 
 
+//template <typename LeafTree>
+//class LeafOffsetListBuilder1 {
+//    using LinearLeafList = FailIf<FlattenLeafTree<LeafTree>, false>;
+//    using OffsetList = FailIf<OffsetBuilder<LinearLeafList>, false>;
+//public:
+//    using Type = FailIf<TagStreamsStart<OffsetList, LeafTree>>;
+//};
 
 
 template <typename List, typename Path>
-using LeafSubsetInf = typename detail::ForAllTopLevelElements<
+using LeafSubsetInf = typename ForAllTopLevelElements<
 		typename memoria::list_tree::Subtree<List, Path>::Type,
 		memoria::list_tree::LeafCount<List, Path>::Value
 >::Type;
@@ -224,7 +262,7 @@ struct FindTopLevelIdx<TypeList<>, Idx, Pos> {
 template <typename List, Int Idx, Int Pos = 0> struct FindLocalLeafOffsetV;
 template <typename List, Int Idx, Int Pos = 0> struct FindLocalLeafOffsetT;
 
-namespace detail {
+namespace {
 
 	template <typename List, Int Idx, Int Pos, bool Condition> struct FindLocalLeafOffsetHelperV;
 	template <typename List, Int Idx, Int Pos, bool Condition> struct FindLocalLeafOffsetHelperT;
@@ -339,7 +377,7 @@ private:
 	static const Int LocalSize = ListSize<LocalList>::Value;
 public:
 
-	static const Int Value = detail::FindLocalLeafOffsetHelperV<
+	static const Int Value = FindLocalLeafOffsetHelperV<
 		TypeList<TypeList<List...>, Tail...>,
 		Idx,
 		Pos,
@@ -359,7 +397,7 @@ struct FindLocalLeafOffsetT<TypeList<IntList<List...>, Tail...>, Idx, Pos> {
 private:
 	static const Int LocalSize = ListSize<IntList<List...>>::Value;
 public:
-	using Type = typename detail::FindLocalLeafOffsetHelperT<
+	using Type = typename FindLocalLeafOffsetHelperT<
 			TypeList<IntList<List...>, Tail...>,
 			Idx,
 			Pos,
@@ -379,7 +417,7 @@ struct FindLocalLeafOffsetT<TypeList<StreamStartTag<IntList<List...>>, Tail...>,
 private:
 	static const Int LocalSize = ListSize<IntList<List...>>::Value;
 public:
-	using Type = typename detail::FindLocalLeafOffsetHelperT<
+	using Type = typename FindLocalLeafOffsetHelperT<
 			TypeList<StreamStartTag<IntList<List...>>, Tail...>,
 			Idx,
 			Pos,
@@ -468,7 +506,7 @@ struct IsStreamStart<IntList<>, Idx> {
 
 
 
-namespace detail {
+namespace {
 	template <typename List> struct IsStreamStartTag;
 
 	template <Int... List>
@@ -503,7 +541,7 @@ public:
 
 	static const Int BranchStructIdx = memoria::list_tree::LeafCount<LeafStructList, LeafPath, 2>::Value - LocalLeafOffset;
 
-	static const bool IsStreamStart = LocalLeafOffset == 0 && detail::IsStreamStartTag<LocalLeafGroup>::Value;
+	static const bool IsStreamStart = LocalLeafOffset == 0 && IsStreamStartTag<LocalLeafGroup>::Value;
 };
 
 
@@ -544,7 +582,62 @@ public:
 
 
 
+//template <typename LeafStructList, Int LeafIdx>
+//struct LeafToBranchIndexByValueTranslator1 {
+//protected:
+//	using LeafOffsets = FailIf<typename LeafOffsetListBuilder1<LeafStructList>::Type>;
+//
+//	using Leafs = FlattenLeafTree<LeafStructList>;
+//
+//	static const Int LocalLeafOffset = FindLocalLeafOffsetV<Leafs, LeafIdx>::Value;
+//
+//	using LocalLeafGroup = typename FindLocalLeafOffsetT<LeafOffsets, LeafIdx>::Type;
+//
+//	using LeafPath = typename memoria::list_tree::BuildTreePath<LeafStructList, LeafIdx>::Type;
+//
+//public:
+//	static const Int LeafOffset = GetLeafPrefix<LocalLeafGroup, LocalLeafOffset>::Value;
+//
+//	static const Int BranchStructIdx = memoria::list_tree::LeafCount<LeafStructList, LeafPath, 2>::Value - LocalLeafOffset;
+//
+//	static const bool IsStreamStart = LocalLeafOffset == 0 && IsStreamStartTag<LocalLeafGroup>::Value;
+//};
 
+//
+//
+//
+//template <typename LeafStructList, typename LeafPath, Int LeafIndex = 0>
+//struct LeafToBranchIndexTranslator1 {
+//protected:
+//	using LeafOffsets = FailIf<typename LeafOffsetListBuilder<LeafStructList>::Type>;
+//
+//	using Leafs = FlattenLeafTree<LeafStructList>;
+//
+//	static const Int LeafIdx 			= memoria::list_tree::LeafCount<LeafStructList, LeafPath>::Value;
+//	static const Int LocalLeafOffset	= FindLocalLeafOffsetV<Leafs, LeafIdx>::Value;
+//
+//	using LocalLeafGroup = typename FindLocalLeafOffsetT<LeafOffsets, LeafIdx>::Type;
+//
+//public:
+//	static const Int BranchIndex = LeafIndex
+//									+ GetLeafPrefix<LocalLeafGroup, LocalLeafOffset>::Value;
+//
+//
+//	static Int translate(Int leaf_index) {
+//
+//		const Int LeafIdx 			= memoria::list_tree::LeafCount<LeafStructList, LeafPath>::Value;
+//		const Int LocalLeafOffset	= FindLocalLeafOffsetV<Leafs, LeafIdx>::Value;
+//
+//		using LocalLeafGroup = typename FindLocalLeafOffsetT<LeafOffsets, LeafIdx>::Type;
+//
+//		const Int LeafPrefix = GetLeafPrefix<LocalLeafGroup, LocalLeafOffset>::Value;
+//
+//		const Int BranchIndex = leaf_index + LeafPrefix;
+//
+//		return BranchIndex;
+//	}
+//};
+//
 
 
 }
