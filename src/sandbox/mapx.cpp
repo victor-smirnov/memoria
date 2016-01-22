@@ -26,8 +26,6 @@ int main() {
 
 		using MapT  = DCtrTF<Map<double, BigInt>>::Type;
 
-
-
 		MapT::initMetadata();
 
 		MapT map(&alloc);

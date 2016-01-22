@@ -44,7 +44,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
     typedef typename Base::Metadata                                             Metadata;
 
-    typedef typename Types::Accumulator                                         Accumulator;
+    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     static const Int Streams                                                    = Types::Streams;
@@ -157,37 +157,37 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
 
     MEMORIA_DECLARE_NODE_FN(SumsFn, sums);
-    void sums(const NodeBaseG& node, Accumulator& sums) const
+    void sums(const NodeBaseG& node, BranchNodeEntry& sums) const
     {
         NodeDispatcher::dispatch(node, SumsFn(), sums);
     }
 
-    MEMORIA_DECLARE_NODE_FN_RTN(SumsRtnFn, sums, Accumulator);
-    Accumulator sums(const NodeBaseG& node) const
+    MEMORIA_DECLARE_NODE_FN_RTN(SumsRtnFn, sums, BranchNodeEntry);
+    BranchNodeEntry sums(const NodeBaseG& node) const
     {
         return NodeDispatcher::dispatch(node, SumsRtnFn());
     }
 
-    void sums(const NodeBaseG& node, Int start, Int end, Accumulator& sums) const
+    void sums(const NodeBaseG& node, Int start, Int end, BranchNodeEntry& sums) const
     {
         NodeDispatcher::dispatch(node, SumsFn(), start, end, sums);
     }
 
-    Accumulator sums(const NodeBaseG& node, Int start, Int end) const
+    BranchNodeEntry sums(const NodeBaseG& node, Int start, Int end) const
     {
-        Accumulator sums;
+        BranchNodeEntry sums;
         NodeDispatcher::dispatch(node, SumsFn(), start, end, sums);
         return sums;
     }
 
-    void sums(const NodeBaseG& node, const Position& start, const Position& end, Accumulator& sums) const
+    void sums(const NodeBaseG& node, const Position& start, const Position& end, BranchNodeEntry& sums) const
     {
         NodeDispatcher::dispatch(node, SumsFn(), start, end, sums);
     }
 
-    Accumulator sums(const NodeBaseG& node, const Position& start, const Position& end) const
+    BranchNodeEntry sums(const NodeBaseG& node, const Position& start, const Position& end) const
     {
-        Accumulator sums;
+        BranchNodeEntry sums;
         NodeDispatcher::dispatch(node, SumsFn(), start, end, sums);
         return sums;
     }
@@ -222,7 +222,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     MEMORIA_DECLARE_NODE_FN(SetKeysFn, setKeys);
 
 
-    void setBranchKeys(NodeBaseG& node, Int idx, const Accumulator& keys) const
+    void setBranchKeys(NodeBaseG& node, Int idx, const BranchNodeEntry& keys) const
     {
         self().updatePageG(node);
         BranchDispatcher::dispatch(node, SetKeysFn(), idx, keys);
@@ -393,7 +393,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     }
 
 
-    Position getStreamSizes(const Accumulator& sums) const
+    Position getStreamSizes(const BranchNodeEntry& sums) const
     {
     	return LeafDispatcher::template dispatch<LeafNode>(true, GetLeafNodeStreamSizesStatic(), sums);
     }

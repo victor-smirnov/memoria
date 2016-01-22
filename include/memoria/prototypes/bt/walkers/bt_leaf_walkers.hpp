@@ -20,7 +20,7 @@ template <
 class LeafWalkerBase {
 protected:
     typedef Iter<typename Types::IterTypes>                                     Iterator;
-    typedef typename Types::IteratorAccumulator                                 IteratorAccumulator;
+    typedef typename Types::IteratorBranchNodeEntry                                 IteratorBranchNodeEntry;
     typedef typename Types::LeafStreamsStructList                               LeafStructList;
     typedef typename Types::LeafRangeList                                 		LeafRangeList;
     typedef typename Types::LeafRangeOffsetList                                 LeafRangeOffsetList;
@@ -29,8 +29,8 @@ protected:
 
     StaticVector<BigInt, Streams> branch_size_prefix_;
 
-    IteratorAccumulator branch_prefix_;
-    IteratorAccumulator leaf_prefix_;
+    IteratorBranchNodeEntry branch_prefix_;
+    IteratorBranchNodeEntry leaf_prefix_;
 
     bool compute_branch_ 	= true;
     bool compute_leaf_ 		= true;
@@ -38,7 +38,7 @@ protected:
 public:
 
     template <typename LeafPath>
-    using AccumItemH = memoria::bt::AccumItem<LeafStructList, LeafPath, IteratorAccumulator>;
+    using AccumItemH = memoria::bt::AccumItem<LeafStructList, LeafPath, IteratorBranchNodeEntry>;
 
 protected:
 
@@ -125,19 +125,19 @@ public:
     	return 0;
     }
 
-    const IteratorAccumulator& branch_accumulator() const {
+    const IteratorBranchNodeEntry& branch_BranchNodeEntry() const {
     	return branch_prefix_;
     }
 
-    IteratorAccumulator& branch_accumulator() {
+    IteratorBranchNodeEntry& branch_BranchNodeEntry() {
     	return branch_prefix_;
     }
 
-    const IteratorAccumulator& leaf_accumulator() const {
+    const IteratorBranchNodeEntry& leaf_BranchNodeEntry() const {
     	return leaf_prefix_;
     }
 
-    IteratorAccumulator& leaf_accumulator() {
+    IteratorBranchNodeEntry& leaf_BranchNodeEntry() {
     	return leaf_prefix_;
     }
 
@@ -160,7 +160,7 @@ public:
 
 
     template <typename Node, typename... Args>
-    void processLeafIteratorAccumulator(Node* node, IteratorAccumulator&accum, Args&&... args)
+    void processLeafIteratorBranchNodeEntry(Node* node, IteratorBranchNodeEntry&accum, Args&&... args)
     {
     	detail::LeafAccumWalker<
     		LeafStructList,
@@ -214,7 +214,7 @@ class ForwardLeafWalker: public LeafWalkerBase<Types, ForwardLeafWalker<Types>> 
 protected:
 	using Base = LeafWalkerBase<Types, ForwardLeafWalker<Types>>;
 
-	using IteratorAccumulator = typename Base::IteratorAccumulator;
+	using IteratorBranchNodeEntry = typename Base::IteratorBranchNodeEntry;
 
 public:
 
@@ -260,15 +260,15 @@ public:
 
     	if (cmd == WalkCmd::THE_ONLY_LEAF)
     	{
-    		self.leaf_accumulator() = IteratorAccumulator();
+    		self.leaf_BranchNodeEntry() = IteratorBranchNodeEntry();
     	}
     	else if (cmd == WalkCmd::FIRST_LEAF)
     	{
-    		self.processLeafIteratorAccumulator(node, this->branch_accumulator());
+    		self.processLeafIteratorBranchNodeEntry(node, this->branch_BranchNodeEntry());
     		self.processLeafSizePrefix(node);
     	}
     	else {
-    		self.leaf_accumulator() = IteratorAccumulator();
+    		self.leaf_BranchNodeEntry() = IteratorBranchNodeEntry();
     	}
     }
 
@@ -280,7 +280,7 @@ public:
 	}
 
 	template <Int Offset, Int From, Int Size, typename StreamObj, typename AccumItem>
-	void leaf_iterator_accumulator(const StreamObj* obj, AccumItem& item)
+	void leaf_iterator_BranchNodeEntry(const StreamObj* obj, AccumItem& item)
 	{
 		const Int Idx = Offset - std::remove_reference<decltype(item)>::type::From;
 
@@ -299,7 +299,7 @@ template <
 class BackwardLeafWalker: public LeafWalkerBase<Types, BackwardLeafWalker<Types>> {
 protected:
 	using Base = LeafWalkerBase<Types, BackwardLeafWalker<Types>>;
-	using IteratorAccumulator = typename Base::IteratorAccumulator;
+	using IteratorBranchNodeEntry = typename Base::IteratorBranchNodeEntry;
 
 public:
 
@@ -343,13 +343,13 @@ public:
 
     	if (cmd == WalkCmd::THE_ONLY_LEAF)
     	{
-    		self.leaf_accumulator() = IteratorAccumulator();
+    		self.leaf_BranchNodeEntry() = IteratorBranchNodeEntry();
     	}
     	else if (cmd == WalkCmd::LAST_LEAF)
     	{
-    		self.leaf_accumulator() = IteratorAccumulator();
+    		self.leaf_BranchNodeEntry() = IteratorBranchNodeEntry();
 
-    		self.processLeafIteratorAccumulator(node, this->branch_accumulator());
+    		self.processLeafIteratorBranchNodeEntry(node, this->branch_BranchNodeEntry());
     		self.processLeafSizePrefix(node);
     	}
     }
@@ -362,7 +362,7 @@ public:
 	}
 
 	template <Int Offset, Int From, Int Size, typename StreamObj, typename AccumItem>
-	void leaf_iterator_accumulator(const StreamObj* obj, AccumItem& item)
+	void leaf_iterator_BranchNodeEntry(const StreamObj* obj, AccumItem& item)
 	{
 		const Int Idx = Offset - std::remove_reference<decltype(item)>::type::From;
 

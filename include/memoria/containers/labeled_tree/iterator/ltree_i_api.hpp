@@ -33,7 +33,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
     typedef typename Container::Allocator                                       Allocator;
     typedef typename Container::NodeBaseG                                       NodeBaseG;
 
-    typedef typename Container::Accumulator                                     Accumulator;
+    typedef typename Container::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Container::LeafDispatcher                                  LeafDispatcher;
     typedef typename Container::Position                                        Position;
     typedef typename Container::Types::LabelsTuple                              LabelsTuple;

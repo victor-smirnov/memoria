@@ -39,19 +39,19 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchVariableName)
 
     typedef typename Base::Metadata                                             Metadata;
 
-    typedef typename Types::Accumulator                                         Accumulator;
+    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
-    typedef std::function<Accumulator (NodeBaseG&, NodeBaseG&)>                 SplitFn;
+    typedef std::function<BranchNodeEntry (NodeBaseG&, NodeBaseG&)>                 SplitFn;
 
 
     static const Int Streams                                                    = Types::Streams;
 
 
     MEMORIA_DECLARE_NODE_FN(InsertFn, insert);
-    void insertToBranchNodeP(NodeBaseG& node, Int idx, const Accumulator& keys, const ID& id);
+    void insertToBranchNodeP(NodeBaseG& node, Int idx, const BranchNodeEntry& keys, const ID& id);
 
     NodeBaseG splitPathP(NodeBaseG& node, Int split_at);
     NodeBaseG splitP(NodeBaseG& node, SplitFn split_fn);
@@ -87,7 +87,7 @@ M_PARAMS
 void M_TYPE::insertToBranchNodeP(
         NodeBaseG& node,
         Int idx,
-        const Accumulator& sums,
+        const BranchNodeEntry& sums,
         const ID& id
 )
 {
@@ -125,7 +125,7 @@ typename M_TYPE::NodeBaseG M_TYPE::splitP(NodeBaseG& left_node, SplitFn split_fn
 
     NodeBaseG other  = self.createNode1(left_node->level(), false, left_node->is_leaf(), left_node->page_size());
 
-    Accumulator sums = split_fn(left_node, other);
+    BranchNodeEntry sums = split_fn(left_node, other);
 
     Int parent_idx   = left_node->parent_idx();
 
@@ -296,7 +296,7 @@ bool M_TYPE::tryMergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src)
 
         self.updateChildren(tgt, tgt_size);
 
-        Accumulator sums        = self.sums(src_parent, parent_idx, parent_idx + 1);
+        BranchNodeEntry sums        = self.sums(src_parent, parent_idx, parent_idx + 1);
 
         self.removeNonLeafNodeEntry(src_parent, parent_idx);
 

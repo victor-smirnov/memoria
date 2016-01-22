@@ -28,7 +28,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrRemoveName)
 
     typedef typename Base::LeafDispatcher                                       LeafDispatcher;
 
-    typedef typename Types::Accumulator                                         Accumulator;
+    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
@@ -41,15 +41,15 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrRemoveName)
 
 
     struct RemoveFromLeafFn {
-        Accumulator& delta_;
+        BranchNodeEntry& delta_;
         Position sizes_;
 
         Int label_idx_;
 
-        RemoveFromLeafFn(Accumulator& delta): delta_(delta) {}
+        RemoveFromLeafFn(BranchNodeEntry& delta): delta_(delta) {}
 
-        template <Int Offset, bool StreamStart, Int Idx, typename SeqTypes, typename AccumulatorItem>
-        void stream(PkdFSSeq<SeqTypes>* seq, AccumulatorItem& accum, Int idx)
+        template <Int Offset, bool StreamStart, Int Idx, typename SeqTypes, typename BranchNodeEntryItem>
+        void stream(PkdFSSeq<SeqTypes>* seq, BranchNodeEntryItem& accum, Int idx)
         {
             MEMORIA_ASSERT_TRUE(seq != nullptr);
 
@@ -70,8 +70,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrRemoveName)
             sizes_[Idx] = -1;
         }
 
-        template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename AccumulatorItem>
-        void stream(PackedFSEArray<StreamTypes>* labels, AccumulatorItem& accum, Int idx)
+        template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename BranchNodeEntryItem>
+        void stream(PackedFSEArray<StreamTypes>* labels, BranchNodeEntryItem& accum, Int idx)
         {
             if (label_idx_ >= 0)
             {
@@ -86,8 +86,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrRemoveName)
             }
         }
 
-        template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename AccumulatorItem>
-        void stream(PkdVQTree<StreamTypes>* sizes, AccumulatorItem& accum, Int idx)
+        template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename BranchNodeEntryItem>
+        void stream(PkdVQTree<StreamTypes>* sizes, BranchNodeEntryItem& accum, Int idx)
         {
             if (label_idx_ >= 0)
             {
@@ -116,7 +116,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrRemoveName)
         }
     };
 
-    Position removeFromLeaf(NodeBaseG& leaf, Int idx, Accumulator& indexes)
+    Position removeFromLeaf(NodeBaseG& leaf, Int idx, BranchNodeEntry& indexes)
     {
     	RemoveFromLeafFn fn(indexes);
         LeafDispatcher::dispatch(leaf, fn, idx);
@@ -138,7 +138,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrRemoveName)
         auto& leaf  = iter.leaf();
         Int& idx    = iter.idx();
 
-        Accumulator sums;
+        BranchNodeEntry sums;
 
         removeFromLeaf(leaf, idx, sums);
 

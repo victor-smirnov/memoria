@@ -27,14 +27,14 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorInsertName)
     typedef typename Base::NodeBaseG                                            NodeBaseG;
 
 
-    typedef typename Base::Container::Accumulator                               Accumulator;
+    typedef typename Base::Container::BranchNodeEntry                               BranchNodeEntry;
     typedef typename Base::Container                                            Container;
     typedef typename Base::Container::Position                                  Position;
 
     using CtrSizeT 	= typename Container::Types::CtrSizeT;
     using Key		= typename Container::Types::Key;
     using Value		= typename Container::Types::Value;
-    using IteratorAccumulator		= typename Container::Types::IteratorAccumulator;
+    using IteratorBranchNodeEntry		= typename Container::Types::IteratorBranchNodeEntry;
 
     using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
 

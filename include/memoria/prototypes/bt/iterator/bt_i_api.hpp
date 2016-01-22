@@ -31,7 +31,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
     typedef typename Base::NodeBase                                             NodeBase;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
 
-    typedef typename Base::Container::Accumulator                               Accumulator;
+    typedef typename Base::Container::BranchNodeEntry                               BranchNodeEntry;
     typedef typename Base::Container                                            Container;
     typedef typename Container::Types::Pages::LeafDispatcher                    LeafDispatcher;
     typedef typename Container::Types::Pages::BranchDispatcher                  BranchDispatcher;

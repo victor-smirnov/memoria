@@ -32,7 +32,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
     typedef typename Base::NodeBaseG                                            NodeBaseG;
 
     typedef typename Container::Value                                           Value;
-    typedef typename Container::Accumulator                                     Accumulator;
+    typedef typename Container::BranchNodeEntry                                     BranchNodeEntry;
 
     typedef typename Container::Types::Pages::LeafDispatcher                    LeafDispatcher;
     typedef typename Container::Position                                        Position;

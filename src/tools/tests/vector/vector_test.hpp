@@ -34,7 +34,7 @@ class VectorTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT>
 
     typedef typename Base::Ctr                                                  Ctr;
     typedef typename Base::Iterator                                             Iterator;
-    typedef typename Ctr::Accumulator                                           Accumulator;
+    typedef typename Ctr::BranchNodeEntry                                           BranchNodeEntry;
 
     using Value = typename Ctr::Types::Value;
 

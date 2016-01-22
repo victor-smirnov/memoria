@@ -69,7 +69,7 @@ using RangeOffsetListType = BranchNodeRangeListBuilder<
 >::OffsetList;
 
 
-using AccType = IteratorAccumulatorBuilder<
+using AccType = IteratorBranchNodeEntryBuilder<
 		BranchStructList,
 		RangeListType
 >::Type;

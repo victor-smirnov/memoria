@@ -36,7 +36,7 @@ public:
     using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
     using TreeDispatcher 	= typename Types::Pages::TreeDispatcher;
 
-    typedef typename Types::Accumulator                                         Accumulator;
+    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
 
 
 //PROTECETED API:
@@ -186,10 +186,10 @@ bool M_TYPE::checkTypedNodeContent(const Node1 *parent, const Node2* node, Int p
 {
     bool errors = false;
 
-    Accumulator sums;
+    BranchNodeEntry sums;
     node->sums(sums);
 
-    Accumulator keys = parent->keysAt(parent_idx);
+    BranchNodeEntry keys = parent->keysAt(parent_idx);
 
     if (sums != keys)
     {

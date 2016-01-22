@@ -29,12 +29,12 @@ struct PMapFindTypes {
     static const Int Blocks             = 1;
     static const Int BranchingFactor    = 32;
 
-    typedef Accumulators<Key, Blocks>   Accumulator;
+    typedef BranchNodeEntrys<Key, Blocks>   BranchNodeEntry;
 };
 
 typedef PMapFindTypes<BigInt>           Types;
 
-typedef Types::Accumulator              Accumulator;
+typedef Types::BranchNodeEntry              BranchNodeEntry;
 typedef Types::Key                      Key;
 typedef Types::Value                    Value;
 

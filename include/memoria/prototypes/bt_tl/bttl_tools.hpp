@@ -241,8 +241,8 @@ template <
 	Int StreamIdx = 0
 > struct ExpectedSizesHelper
 {
-	template <typename Accumulator, typename Position>
-	static void process(Accumulator&& branch_prefix, Position& values, Int stream = 1)
+	template <typename BranchNodeEntry, typename Position>
+	static void process(BranchNodeEntry&& branch_prefix, Position& values, Int stream = 1)
 	{
 		using Path = SizesPathT<StreamIdx>;
 
@@ -259,8 +259,8 @@ template <
 	template <typename> class AccumItemH
 > struct ExpectedSizesHelper<Size, SizesPathT, AccumItemH, Size>
  {
-	template <typename Accumulator, typename Position>
-	static void process(const Accumulator& branch_prefix, Position& values, Int stream = 1)
+	template <typename BranchNodeEntry, typename Position>
+	static void process(const BranchNodeEntry& branch_prefix, Position& values, Int stream = 1)
 	{}
 };
 

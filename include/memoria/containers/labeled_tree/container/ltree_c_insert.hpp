@@ -35,7 +35,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
 
     typedef typename Base::LeafDispatcher                                       LeafDispatcher;
 
-    typedef typename Types::Accumulator                                         Accumulator;
+    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
@@ -61,8 +61,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
         	labels_(labels)
         {}
 
-        template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename AccumulatorItem>
-        void stream(PackedFSEArray<StreamTypes>* labels, AccumulatorItem& accum, Int idx)
+        template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename BranchNodeEntryItem>
+        void stream(PackedFSEArray<StreamTypes>* labels, BranchNodeEntryItem& accum, Int idx)
         {
             labels->insert(idx, std::get<Idx>(labels_));
 
@@ -72,8 +72,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
             }
         }
 
-        template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename AccumulatorItem>
-        void stream(PkdVQTree<StreamTypes>* sizes, AccumulatorItem& accum, Int idx)
+        template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename BranchNodeEntryItem>
+        void stream(PkdVQTree<StreamTypes>* sizes, BranchNodeEntryItem& accum, Int idx)
         {
             typedef typename PkdVQTree<StreamTypes>::Values Values;
 
@@ -97,10 +97,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
 
 
     struct InsertNodeFn {
-        Accumulator& delta_;
+        BranchNodeEntry& delta_;
         const LabelsTuple& labels_;
 
-        InsertNodeFn(Accumulator& delta, const LabelsTuple& labels):
+        InsertNodeFn(BranchNodeEntry& delta, const LabelsTuple& labels):
             delta_(delta),
             labels_(labels)
         {}
@@ -139,7 +139,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
 
 
 
-    bool insertLoudsNode(NodeBaseG& leaf, Int node_idx, Int label_idx, Accumulator& sums, const LabelsTuple& labels)
+    bool insertLoudsNode(NodeBaseG& leaf, Int node_idx, Int label_idx, BranchNodeEntry& sums, const LabelsTuple& labels)
     {
     	auto& self = this->self();
 
@@ -171,7 +171,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
 
 
 
-    bool insertLoudsZero(NodeBaseG& leaf, Int node_idx, Accumulator& sums)
+    bool insertLoudsZero(NodeBaseG& leaf, Int node_idx, BranchNodeEntry& sums)
     {
         auto& self = this->self();
 
@@ -221,7 +221,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
 
         Int label_idx = iter.label_idx();
 
-        Accumulator sums;
+        BranchNodeEntry sums;
 
         if (self.insertLoudsNode(leaf, idx, label_idx, sums, labels))
         {
@@ -245,7 +245,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
         Int& idx    = iter.idx();
 
 
-        Accumulator sums;
+        BranchNodeEntry sums;
 
         if (self.insertLoudsZero(leaf, idx, sums))
         {

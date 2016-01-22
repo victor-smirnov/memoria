@@ -32,7 +32,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrRemoveName)
     typedef typename Types::Key                                                 Key;
     typedef typename Types::Value                                               Value;
 
-    typedef typename Types::Accumulator                                         Accumulator;
+    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     static const Int Streams                                                    = Types::Streams;

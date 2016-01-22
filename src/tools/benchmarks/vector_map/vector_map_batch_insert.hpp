@@ -31,7 +31,7 @@ class VectorMapBatchInsertBenchmark: public SPBenchmarkTask {
 
     typedef typename Ctr::IdxSet                                                SetCtrType;
 
-    typedef typename SetCtrType::Accumulator                                    Accumulator;
+    typedef typename SetCtrType::BranchNodeEntry                                    BranchNodeEntry;
 
     typedef typename SetCtrType::ISubtreeProvider                               ISubtreeProvider;
     typedef typename SetCtrType::DefaultSubtreeProviderBase                     DefaultSubtreeProviderBase;
@@ -51,7 +51,7 @@ class VectorMapBatchInsertBenchmark: public SPBenchmarkTask {
 
         virtual LeafNodeKeyValuePair getLeafKVPair(BigInt begin)
         {
-            Accumulator acc;
+            BranchNodeEntry acc;
 
             acc[0] = 1;
             acc[1] = data_size_;

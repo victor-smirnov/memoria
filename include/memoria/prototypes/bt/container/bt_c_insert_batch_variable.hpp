@@ -40,7 +40,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchVariableName)
 
     typedef typename Base::Metadata                                             Metadata;
 
-    typedef typename Types::Accumulator                                         Accumulator;
+    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
@@ -96,7 +96,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchVariableName)
     				child->parent_id() 	= node->id();
     				child->parent_idx() = idx + c;
 
-        			Accumulator sums = self.sums(child);
+        			BranchNodeEntry sums = self.sums(child);
         			BranchDispatcher::dispatch(node, InsertChildFn(), idx + c, sums, child->id());
     			}
 
@@ -121,7 +121,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchVariableName)
 
     	if (update_hierarchy)
     	{
-    		Accumulator sums = self.sums(node, idx0, idx);
+    		BranchNodeEntry sums = self.sums(node, idx0, idx);
     		self.update_parent(node, sums);
     		self.updateChildIndexes(node, idx);
     	}

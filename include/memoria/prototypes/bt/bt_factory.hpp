@@ -261,23 +261,23 @@ public:
     using StreamsInputTypeList 		= typename PackedLeafStructListBuilder<StreamDescriptors>::StreamInputList;
     using InputBufferStructList 	= typename PackedLeafStructListBuilder<StreamDescriptors>::InputBufferList;
 
-    using IteratorAccumulator = TypeListToTuple<
+    using IteratorBranchNodeEntry = TypeListToTuple<
     			Linearize<
-    				typename IteratorAccumulatorListBuilder<StreamDescriptors>::AccumTuple
+    				typename IteratorBranchNodeEntryListBuilder<StreamDescriptors>::AccumTuple
                 >
     >;
 
     using LeafRangeOffsetList = Linearize<
-    				typename IteratorAccumulatorListBuilder<StreamDescriptors>::RangeOffsetList
+    				typename IteratorBranchNodeEntryListBuilder<StreamDescriptors>::RangeOffsetList
     >;
 
     using LeafRangeList = Linearize<
-    				typename IteratorAccumulatorListBuilder<StreamDescriptors>::IndexRangeList,
+    				typename IteratorBranchNodeEntryListBuilder<StreamDescriptors>::IndexRangeList,
     				2
     >;
 
 
-    using Accumulator_ = TypeListToTuple<typename AccumulatorBuilder<Linearize<BranchStreamsStructList>>::Type>;
+    using BranchNodeEntry_ = TypeListToTuple<typename BranchNodeEntryBuilder<Linearize<BranchStreamsStructList>>::Type>;
 
     struct NodeTypesBase: ContainerTypes {
         using NodeBase  = Page;
@@ -285,12 +285,12 @@ public:
         using Metadata  = typename ContainerTypes::Metadata;
         using ID        = typename MyType::ID;
 
-        using Accumulator   = Accumulator_;
+        using BranchNodeEntry   = BranchNodeEntry_;
         using Position      = Position_;
 
         using LeafStreamsStructList 	= typename MyType::LeafStreamsStructList;
         using BranchStreamsStructList 	= typename MyType::BranchStreamsStructList;
-        using IteratorAccumulator 		= typename MyType::IteratorAccumulator;
+        using IteratorBranchNodeEntry 		= typename MyType::IteratorBranchNodeEntry;
         using StreamsInputTypeList		= typename MyType::StreamsInputTypeList;
         using InputBufferStructList		= typename MyType::InputBufferStructList;
     };
@@ -363,7 +363,7 @@ public:
 
         static const Int Streams                                                = MyType::Streams;
 
-        typedef Accumulator_                                                    Accumulator;
+        typedef BranchNodeEntry_                                                    BranchNodeEntry;
 
         typedef Position_                                                       Position;
 
@@ -375,7 +375,7 @@ public:
 
         using BranchStreamsStructList 	= typename MyType::BranchStreamsStructList;
 
-        using IteratorAccumulator 		= typename MyType::IteratorAccumulator;
+        using IteratorBranchNodeEntry 		= typename MyType::IteratorBranchNodeEntry;
         using LeafRangeOffsetList 		= typename MyType::LeafRangeOffsetList;
         using LeafRangeList				= typename MyType::LeafRangeList;
 
@@ -391,7 +391,7 @@ public:
         using InputBuffer = CompoundInputBuffer<typename MyType::NodeTypesBase>;
 
         template <typename LeafPath>
-        using AccumItemH = AccumItem<LeafStreamsStructList, LeafPath, IteratorAccumulator>;
+        using AccumItemH = AccumItem<LeafStreamsStructList, LeafPath, IteratorBranchNodeEntry>;
 
 
         template <Int SubstreamIdx>

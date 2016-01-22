@@ -28,7 +28,7 @@ public:
     typedef typename Base::Container::NodeBase                                          NodeBase;
     typedef typename Base::Container::NodeBaseG                                         NodeBaseG;
     typedef typename Base::Container::Allocator                                         Allocator;
-    typedef typename Base::Container::Accumulator                                       Accumulator;
+    typedef typename Base::Container::BranchNodeEntry                                       BranchNodeEntry;
 
     typedef typename Base::Container::Iterator                                          Iterator;
 

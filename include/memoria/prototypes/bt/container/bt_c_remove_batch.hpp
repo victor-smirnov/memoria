@@ -26,7 +26,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveBatchName)
     using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
     using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
 
-    typedef typename Types::Accumulator                                         Accumulator;
+    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     typedef typename Base::Metadata                                             Metadata;
@@ -37,19 +37,19 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveBatchName)
             Position&  from_idx,
             NodeBaseG& to,
             Position&  to_idx,
-            Accumulator& sums,
+            BranchNodeEntry& sums,
             bool merge                  = true
     );
 
 
 
-    void removeAllNodes(NodeBaseG& start, NodeBaseG& stop, Accumulator& sums);
+    void removeAllNodes(NodeBaseG& start, NodeBaseG& stop, BranchNodeEntry& sums);
 
-    void removeNodesFromStart(NodeBaseG& stop, const Position& stop_idx, Accumulator& sums);
-    void removeBranchNodesFromStart(NodeBaseG& stop, Int stop_idx, Accumulator& sums);
+    void removeNodesFromStart(NodeBaseG& stop, const Position& stop_idx, BranchNodeEntry& sums);
+    void removeBranchNodesFromStart(NodeBaseG& stop, Int stop_idx, BranchNodeEntry& sums);
 
-    void removeNodesAtEnd(NodeBaseG& start, const Position& start_idx, Accumulator& sums);
-    void removeBranchNodesAtEnd(NodeBaseG& start, Int start_idx, Accumulator& sums);
+    void removeNodesAtEnd(NodeBaseG& start, const Position& start_idx, BranchNodeEntry& sums);
+    void removeBranchNodesAtEnd(NodeBaseG& start, Int start_idx, BranchNodeEntry& sums);
 
     void removeNodes(
             NodeBaseG& start,
@@ -58,7 +58,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveBatchName)
             NodeBaseG& stop,
             Position& stop_idx,
 
-            Accumulator& sums
+            BranchNodeEntry& sums
     );
 
     void tryMergeNodesAfterRemove(
@@ -81,7 +81,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveBatchName)
             NodeBaseG& stop,
             Int stop_idx,
 
-            Accumulator& sums
+            BranchNodeEntry& sums
     );
 
 
@@ -114,7 +114,7 @@ void M_TYPE::removeEntries(
         Position&  start_idx,
         NodeBaseG& stop,
         Position&  stop_idx,
-        Accumulator& sums,
+        BranchNodeEntry& sums,
         bool merge
 )
 {
@@ -222,7 +222,7 @@ void M_TYPE::removeEntries(
 
 
 M_PARAMS
-void M_TYPE::removeAllNodes(NodeBaseG& start, NodeBaseG& stop, Accumulator& sums)
+void M_TYPE::removeAllNodes(NodeBaseG& start, NodeBaseG& stop, BranchNodeEntry& sums)
 {
     auto& self = this->self();
 
@@ -244,7 +244,7 @@ void M_TYPE::removeAllNodes(NodeBaseG& start, NodeBaseG& stop, Accumulator& sums
 
 
 M_PARAMS
-void M_TYPE::removeBranchNodesFromStart(NodeBaseG& stop, Int stop_idx, Accumulator& sums)
+void M_TYPE::removeBranchNodesFromStart(NodeBaseG& stop, Int stop_idx, BranchNodeEntry& sums)
 {
     auto& self = this->self();
 
@@ -269,7 +269,7 @@ void M_TYPE::removeBranchNodesFromStart(NodeBaseG& stop, Int stop_idx, Accumulat
 
 
 M_PARAMS
-void M_TYPE::removeNodesFromStart(NodeBaseG& stop, const Position& stop_idx, Accumulator& sums)
+void M_TYPE::removeNodesFromStart(NodeBaseG& stop, const Position& stop_idx, BranchNodeEntry& sums)
 {
     auto& self = this->self();
 
@@ -291,7 +291,7 @@ void M_TYPE::removeNodesFromStart(NodeBaseG& stop, const Position& stop_idx, Acc
 
 
 M_PARAMS
-void M_TYPE::removeBranchNodesAtEnd(NodeBaseG& start, Int start_idx, Accumulator& sums)
+void M_TYPE::removeBranchNodesAtEnd(NodeBaseG& start, Int start_idx, BranchNodeEntry& sums)
 {
     auto& self = this->self();
 
@@ -317,7 +317,7 @@ void M_TYPE::removeBranchNodesAtEnd(NodeBaseG& start, Int start_idx, Accumulator
 
 
 M_PARAMS
-void M_TYPE::removeNodesAtEnd(NodeBaseG& start, const Position& start_idx, Accumulator& sums)
+void M_TYPE::removeNodesAtEnd(NodeBaseG& start, const Position& start_idx, BranchNodeEntry& sums)
 {
     auto& self = this->self();
 
@@ -343,7 +343,7 @@ void M_TYPE::removeNodes(
         NodeBaseG& stop,
         Position& stop_idx,
 
-        Accumulator& sums
+        BranchNodeEntry& sums
 ) {
 
     auto& self = this->self();
@@ -411,7 +411,7 @@ void M_TYPE::removeBranchNodes(
             NodeBaseG& stop,
             Int stop_idx,
 
-            Accumulator& sums
+            BranchNodeEntry& sums
 )
 {
     auto& self = this->self();

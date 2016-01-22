@@ -40,7 +40,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchFixedName)
 
     typedef typename Base::Metadata                                             Metadata;
 
-    typedef typename Types::Accumulator                                         Accumulator;
+    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
@@ -62,24 +62,24 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchFixedName)
     	CtrSizeT subtree_size() const {return subtree_size_;}
     };
 
-    class BranchNodeEntry {
-    	Accumulator accum_;
+    class BranchNodeEntryT {
+    	BranchNodeEntry accum_;
     	ID child_id_;
     public:
-    	BranchNodeEntry(const Accumulator& accum, const ID& id): accum_(accum), child_id_(id) {}
-    	BranchNodeEntry() : child_id_(0) {}
+    	BranchNodeEntryT(const BranchNodeEntryT& accum, const ID& id): accum_(accum), child_id_(id) {}
+    	BranchNodeEntryT() : child_id_(0) {}
 
-    	const Accumulator& accum() const {return accum_;}
+    	const BranchNodeEntry& accum() const {return accum_;}
     	const ID& child_id() const {return child_id_;}
 
-    	Accumulator& accum() {return accum_;}
+    	BranchNodeEntry& accum() {return accum_;}
     	ID& child_id() {return child_id_;}
     };
 
 
     struct InsertChildrenFn {
     	template <typename NodeTypes>
-    	void treeNode(BranchNode<NodeTypes>* node, Int from, Int to, const BranchNodeEntry* entries)
+    	void treeNode(BranchNode<NodeTypes>* node, Int from, Int to, const BranchNodeEntryT* entries)
     	{
     		int old_size = node->size();
 
@@ -92,7 +92,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchFixedName)
     	}
 
     	template <Int ListIdx, typename StreamType>
-    	void stream(StreamType* obj, Int from, Int to, const BranchNodeEntry* entries)
+    	void stream(StreamType* obj, Int from, Int to, const BranchNodeEntryT* entries)
     	{
     		obj->insert(from, to - from, [entries](Int idx) {
     			return std::get<ListIdx>(entries[idx].accum());
@@ -115,7 +115,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchFixedName)
 
     	for (Int c = 0; c < capacity; c+= batch_size)
     	{
-    		BranchNodeEntry subtrees[batch_size];
+    		BranchNodeEntryT subtrees[batch_size];
 
     		Int i, batch_max = (c + batch_size) < capacity ? batch_size : (capacity - c);
     		for (i = 0; i < batch_max && provider.size() > 0; i++)
@@ -141,7 +141,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchFixedName)
 
     	if (update_hierarchy)
     	{
-    		Accumulator sums = self.sums(node, idx, max);
+    		BranchNodeEntry sums = self.sums(node, idx, max);
     		self.update_parent(node, sums);
     		self.updateChildIndexes(node, max);
     	}

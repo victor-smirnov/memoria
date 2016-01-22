@@ -93,7 +93,7 @@ public:
         }
         else if (cmd == WalkCmd::PREFIXES)
         {
-        	self.processBranchIteratorAccumulator(node, start, end);
+        	self.processBranchIteratorBranchNodeEntry(node, start, end);
         	self.processBranchSizePrefix(node, start, end);
         }
     }
@@ -108,18 +108,18 @@ public:
     	{
     		if (cmd == WalkCmd::THE_ONLY_LEAF)
     		{
-//    			self.processLeafIteratorAccumulator(node, this->leaf_accumulator(), start, end);
+//    			self.processLeafIteratorBranchNodeEntry(node, this->leaf_BranchNodeEntry(), start, end);
     		}
     		else if (cmd == WalkCmd::FIRST_LEAF)
     		{
     			// FIXME: is this call necessary here?
-//    			self.processLeafIteratorAccumulator(node, this->leaf_accumulator(), start, end);
-    			self.processBranchIteratorAccumulatorWithLeaf(node, this->branch_accumulator());
+//    			self.processLeafIteratorBranchNodeEntry(node, this->leaf_BranchNodeEntry(), start, end);
+    			self.processBranchIteratorBranchNodeEntryWithLeaf(node, this->branch_BranchNodeEntry());
 
     			self.processLeafSizePrefix(node);
     		}
     		else if (cmd == WalkCmd::LAST_LEAF) {
-//    			self.processLeafIteratorAccumulator(node, this->leaf_accumulator(), start, end);
+//    			self.processLeafIteratorBranchNodeEntry(node, this->leaf_BranchNodeEntry(), start, end);
     		}
     		else {
     			// throw exception ?
@@ -237,7 +237,7 @@ public:
 		Int To,
 		template <typename, Int, Int> class IterAccumItem
 	>
-	void branch_iterator_accumulator(const StreamObj* obj, IterAccumItem<T, From, To>& item, Int start, Int end)
+	void branch_iterator_BranchNodeEntry(const StreamObj* obj, IterAccumItem<T, From, To>& item, Int start, Int end)
 	{
 		static_assert(To <= StructSizeProvider<StreamObj>::Value, "Invalid BTree structure");
 
@@ -252,10 +252,10 @@ public:
 		typename T,
 		template <typename> class AccumItem
 	>
-	void branch_iterator_accumulator(const StreamObj* obj, AccumItem<T>& item, Int start, Int end){}
+	void branch_iterator_BranchNodeEntry(const StreamObj* obj, AccumItem<T>& item, Int start, Int end){}
 
 	template <Int Offset, Int From, Int Size, typename StreamObj, typename AccumItem>
-	void leaf_iterator_accumulator(const StreamObj* obj, AccumItem& item, Int start, Int end)
+	void leaf_iterator_BranchNodeEntry(const StreamObj* obj, AccumItem& item, Int start, Int end)
 	{
 		if (obj != nullptr)
 		{
@@ -279,7 +279,7 @@ public:
 	}
 
 	template <Int Offset, Int From, Int Size, typename StreamObj, typename AccumItem>
-	void leaf_iterator_accumulator(const StreamObj* obj, AccumItem& item)
+	void leaf_iterator_BranchNodeEntry(const StreamObj* obj, AccumItem& item)
 	{
 		const Int Idx = Offset - AccumItem::From;
 
@@ -436,7 +436,7 @@ public:
     	}
     	else if (cmd == WalkCmd::PREFIXES)
     	{
-    		self.processBranchIteratorAccumulator(node, start, end);
+    		self.processBranchIteratorBranchNodeEntry(node, start, end);
     		self.processBranchSizePrefix(node, start, end);
     	}
     }
@@ -448,15 +448,15 @@ public:
 
     	if (cmd == WalkCmd::THE_ONLY_LEAF)
     	{
-//    		self.processLeafIteratorAccumulator(node, this->leaf_accumulator(), start, end);
+//    		self.processLeafIteratorBranchNodeEntry(node, this->leaf_BranchNodeEntry(), start, end);
     	}
     	else if (cmd == WalkCmd::FIRST_LEAF)
     	{
-//    		self.processLeafIteratorAccumulator(node, this->leaf_accumulator(), true);
+//    		self.processLeafIteratorBranchNodeEntry(node, this->leaf_BranchNodeEntry(), true);
     	}
     	else if (cmd == WalkCmd::LAST_LEAF)  {
-//    		self.processLeafIteratorAccumulator(node, this->leaf_accumulator(), start, end);
-    		self.processBranchIteratorAccumulatorWithLeaf(node, this->branch_accumulator(), false);
+//    		self.processLeafIteratorBranchNodeEntry(node, this->leaf_BranchNodeEntry(), start, end);
+    		self.processBranchIteratorBranchNodeEntryWithLeaf(node, this->branch_BranchNodeEntry(), false);
 
     		self.processLeafSizePrefix(node);
     	}
@@ -516,7 +516,7 @@ public:
 		Int To,
 		template <typename, Int, Int> class IterAccumItem
 	>
-	void branch_iterator_accumulator(const StreamObj* obj, IterAccumItem<T, From, To>& item, Int start, Int end)
+	void branch_iterator_BranchNodeEntry(const StreamObj* obj, IterAccumItem<T, From, To>& item, Int start, Int end)
 	{
 		static_assert(To <= StructSizeProvider<StreamObj>::Value, "Invalid BTree structure");
 
@@ -533,10 +533,10 @@ public:
 		typename T,
 		template <typename> class AccumItem
 	>
-	void branch_iterator_accumulator(const StreamObj* obj, AccumItem<T>& item, Int start, Int end){}
+	void branch_iterator_BranchNodeEntry(const StreamObj* obj, AccumItem<T>& item, Int start, Int end){}
 
 	template <Int Offset, Int From, Int Size, typename StreamObj, typename AccumItem>
-	void leaf_iterator_accumulator(const StreamObj* obj, AccumItem& item, Int start, Int end)
+	void leaf_iterator_BranchNodeEntry(const StreamObj* obj, AccumItem& item, Int start, Int end)
 	{
 		const Int Idx = Offset - std::remove_reference<decltype(item)>::type::From;
 
@@ -550,7 +550,7 @@ public:
 	}
 
 	template <Int Offset, Int From, Int Size, typename StreamObj, typename AccumItem>
-	void leaf_iterator_accumulator(const StreamObj* obj, AccumItem& item, bool leaf)
+	void leaf_iterator_BranchNodeEntry(const StreamObj* obj, AccumItem& item, bool leaf)
 	{
 		const Int Idx = Offset - std::remove_reference<decltype(item)>::type::From;
 

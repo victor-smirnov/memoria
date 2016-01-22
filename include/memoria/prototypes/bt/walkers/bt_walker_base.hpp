@@ -59,7 +59,7 @@ template <
 class WalkerBase {
 public:
     typedef Iter<typename Types::IterTypes>                                     Iterator;
-    typedef typename Types::IteratorAccumulator                                 IteratorAccumulator;
+    typedef typename Types::IteratorBranchNodeEntry                                 IteratorBranchNodeEntry;
     typedef typename Types::LeafStreamsStructList                               LeafStructList;
     typedef typename Types::LeafRangeList                                 		LeafRangeList;
     typedef typename Types::LeafRangeOffsetList                                 LeafRangeOffsetList;
@@ -81,8 +81,8 @@ protected:
     Position branch_size_prefix_backup_;
 
     Position branch_size_prefix_;
-    IteratorAccumulator branch_prefix_;
-    IteratorAccumulator leaf_prefix_;
+    IteratorBranchNodeEntry branch_prefix_;
+    IteratorBranchNodeEntry leaf_prefix_;
 
     bool compute_branch_ 	= true;
     bool compute_leaf_ 		= true;
@@ -253,19 +253,19 @@ public:
         iter.cache().size_prefix() 	 = branch_size_prefix_;
     }
 
-    const IteratorAccumulator& branch_accumulator() const {
+    const IteratorBranchNodeEntry& branch_BranchNodeEntry() const {
     	return branch_prefix_;
     }
 
-    IteratorAccumulator& branch_accumulator() {
+    IteratorBranchNodeEntry& branch_BranchNodeEntry() {
     	return branch_prefix_;
     }
 
-    const IteratorAccumulator& leaf_accumulator() const {
+    const IteratorBranchNodeEntry& leaf_BranchNodeEntry() const {
     	return leaf_prefix_;
     }
 
-    IteratorAccumulator& leaf_accumulator() {
+    IteratorBranchNodeEntry& leaf_BranchNodeEntry() {
     	return leaf_prefix_;
     }
 
@@ -324,7 +324,7 @@ public:
 
 
     template <typename Node, typename... Args>
-    void processLeafIteratorAccumulator(Node* node, IteratorAccumulator&accum, Args&&... args)
+    void processLeafIteratorBranchNodeEntry(Node* node, IteratorBranchNodeEntry&accum, Args&&... args)
     {
     	detail::LeafAccumWalker<
     		LeafStructList,
@@ -342,7 +342,7 @@ public:
     }
 
 
-    struct ProcessBranchIteratorAccumulatorWithLeaf
+    struct ProcessBranchIteratorBranchNodeEntryWithLeaf
 	{
     	template <Int StreamIdx, typename Node, typename Walker, typename Accum, typename... Args>
     	static bool process(Node* node, Walker&& walker, Accum&& accum, Args&&... args)
@@ -367,22 +367,22 @@ public:
 
 
     template <typename Node, typename... Args>
-    void processBranchIteratorAccumulatorWithLeaf(Node* node, IteratorAccumulator&accum, Args&&... args)
+    void processBranchIteratorBranchNodeEntryWithLeaf(Node* node, IteratorBranchNodeEntry&accum, Args&&... args)
     {
-    	ForEach<0, Streams>::process(ProcessBranchIteratorAccumulatorWithLeaf(), node, self(), accum, std::forward<Args>(args)...);
+    	ForEach<0, Streams>::process(ProcessBranchIteratorBranchNodeEntryWithLeaf(), node, self(), accum, std::forward<Args>(args)...);
     }
 
 
     template <typename Node, typename... Args>
-    void processBranchIteratorAccumulator(Node* node, Args&&... args)
+    void processBranchIteratorBranchNodeEntry(Node* node, Args&&... args)
     {
     	using ItrAccList = memoria::list_tree::MakeValueList<Int, 0, Node::Streams>;
 
     	detail::BranchAccumWalker1<
-    		IteratorAccumulator,
+    		IteratorBranchNodeEntry,
     		ItrAccList
     	>::
-    	process(self(), node, branch_accumulator(), std::forward<Args>(args)...);
+    	process(self(), node, branch_BranchNodeEntry(), std::forward<Args>(args)...);
     }
 
     struct BranchSizePrefix

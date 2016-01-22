@@ -224,7 +224,7 @@ public:
 template <typename Iterator, typename Container>
 class BTreeIteratorPrefixCache {
 
-    using IteratorPrefix = typename Container::Types::IteratorAccumulator;
+    using IteratorPrefix = typename Container::Types::IteratorBranchNodeEntry;
     using SizePrefix = core::StaticVector<BigInt, Container::Types::Streams>;
 
     using MyType = BTreeIteratorPrefixCache<Iterator, Container>;

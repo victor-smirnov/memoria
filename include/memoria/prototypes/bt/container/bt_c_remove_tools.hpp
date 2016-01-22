@@ -32,27 +32,27 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveToolsName)
     using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
     using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
 
-    typedef typename Types::Accumulator                                         Accumulator;
+    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     typedef typename Base::Metadata                                             Metadata;
 
     typedef std::function<void (const Position&)>                          		MergeFn;
 
-    void removeNode(NodeBaseG& node, Accumulator& accum);
+    void removeNode(NodeBaseG& node, BranchNodeEntry& accum);
     void removeNode(NodeBaseG& node);
     void removeRootNode(NodeBaseG& node);
 
     MEMORIA_DECLARE_NODE_FN(RemoveNodeContentFn, removeSpace);
-    void removeNodeContent(NodeBaseG& node, Int start, Int end, Accumulator& sums);
+    void removeNodeContent(NodeBaseG& node, Int start, Int end, BranchNodeEntry& sums);
 
-    MEMORIA_DECLARE_NODE_FN_RTN(RemoveLeafContentFn, removeSpace, Accumulator);
-    Accumulator removeLeafContent(NodeBaseG& node, const Position& start, const Position& end);
+    MEMORIA_DECLARE_NODE_FN_RTN(RemoveLeafContentFn, removeSpace, BranchNodeEntry);
+    BranchNodeEntry removeLeafContent(NodeBaseG& node, const Position& start, const Position& end);
 
-    Accumulator removeLeafContent(NodeBaseG& node, Int stream, Int start, Int end);
+    BranchNodeEntry removeLeafContent(NodeBaseG& node, Int stream, Int start, Int end);
 
 
-    MEMORIA_DECLARE_NODE_FN_RTN(RemoveNonLeafNodeEntryFn, removeSpaceAcc, Accumulator);
+    MEMORIA_DECLARE_NODE_FN_RTN(RemoveNonLeafNodeEntryFn, removeSpaceAcc, BranchNodeEntry);
     void removeNonLeafNodeEntry(NodeBaseG& node, Int idx);
 
 
@@ -101,7 +101,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveToolsName)
 
 
 
-    MEMORIA_DECLARE_NODE_FN_RTN(RemoveSpaceFn, removeSpace, Accumulator);
+    MEMORIA_DECLARE_NODE_FN_RTN(RemoveSpaceFn, removeSpace, BranchNodeEntry);
 
 
     MEMORIA_PUBLIC void drop()
@@ -121,7 +121,7 @@ MEMORIA_CONTAINER_PART_END
 
 
 M_PARAMS
-void M_TYPE::removeNode(NodeBaseG& node, Accumulator& sums)
+void M_TYPE::removeNode(NodeBaseG& node, BranchNodeEntry& sums)
 {
     auto& self = this->self();
 
@@ -147,7 +147,7 @@ void M_TYPE::removeNode(NodeBaseG& node)
 {
     auto& self = this->self();
 
-    Accumulator sums;
+    BranchNodeEntry sums;
     Position sizes;
 
     if (!node->is_root())
@@ -170,7 +170,7 @@ void M_TYPE::removeRootNode(NodeBaseG& node)
 
     MEMORIA_ASSERT_TRUE(node->is_root());
 
-    Accumulator sums;
+    BranchNodeEntry sums;
     Position sizes;
 
     self.removeNode(node, sums, sizes);
@@ -179,13 +179,13 @@ void M_TYPE::removeRootNode(NodeBaseG& node)
 
 
 M_PARAMS
-void M_TYPE::removeNodeContent(NodeBaseG& node, Int start, Int end, Accumulator& sums)
+void M_TYPE::removeNodeContent(NodeBaseG& node, Int start, Int end, BranchNodeEntry& sums)
 {
     auto& self = this->self();
 
     MEMORIA_ASSERT_TRUE(!node->is_leaf());
 
-    Accumulator deleted_sums;
+    BranchNodeEntry deleted_sums;
 
     self.forAllIDs(node, start, end, [&, this](const ID& id, Int idx){
         auto& self = this->self();
@@ -211,7 +211,7 @@ void M_TYPE::removeNonLeafNodeEntry(NodeBaseG& node, Int start)
     MEMORIA_ASSERT_TRUE(!node->is_leaf());
 
     self.updatePageG(node);
-    Accumulator sums = BranchDispatcher::dispatch(node, RemoveNonLeafNodeEntryFn(), start, start + 1);
+    BranchNodeEntry sums = BranchDispatcher::dispatch(node, RemoveNonLeafNodeEntryFn(), start, start + 1);
 
     self.updateChildren(node, start);
 
@@ -221,13 +221,13 @@ void M_TYPE::removeNonLeafNodeEntry(NodeBaseG& node, Int start)
 
 
 M_PARAMS
-typename M_TYPE::Accumulator M_TYPE::removeLeafContent(NodeBaseG& node, const Position& start, const Position& end)
+typename M_TYPE::BranchNodeEntry M_TYPE::removeLeafContent(NodeBaseG& node, const Position& start, const Position& end)
 {
     auto& self = this->self();
 
     self.updatePageG(node);
 
-    Accumulator sums = LeafDispatcher::dispatch(node, RemoveLeafContentFn(), start, end);
+    BranchNodeEntry sums = LeafDispatcher::dispatch(node, RemoveLeafContentFn(), start, end);
 
     self.update_parent(node, -sums);
 
@@ -235,13 +235,13 @@ typename M_TYPE::Accumulator M_TYPE::removeLeafContent(NodeBaseG& node, const Po
 }
 
 M_PARAMS
-typename M_TYPE::Accumulator M_TYPE::removeLeafContent(NodeBaseG& node, Int stream, Int start, Int end)
+typename M_TYPE::BranchNodeEntry M_TYPE::removeLeafContent(NodeBaseG& node, Int stream, Int start, Int end)
 {
     auto& self = this->self();
 
     self.updatePageG(node);
 
-    Accumulator sums = LeafDispatcher::dispatch(node, RemoveLeafContentFn(), stream, start, end);
+    BranchNodeEntry sums = LeafDispatcher::dispatch(node, RemoveLeafContentFn(), stream, start, end);
 
     self.update_parent(node, -sums);
 

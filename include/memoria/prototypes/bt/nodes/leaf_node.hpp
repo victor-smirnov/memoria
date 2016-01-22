@@ -49,7 +49,7 @@ public:
                 typename Types::NodeBase
     >                                                                           Base;
 
-    typedef typename Types::Accumulator                                         Accumulator;
+    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     template <template <typename> class, typename>
@@ -569,7 +569,7 @@ public:
     	}
     };
 
-    static Position sizes(const Accumulator& sums)
+    static Position sizes(const BranchNodeEntry& sums)
     {
         Position sz;
         processStreamsStartStaticAcc(AccumSizesFn(), sums, sz);
@@ -669,9 +669,9 @@ public:
         }
     };
 
-    Accumulator removeSpace(Int stream, Int room_start, Int room_end)
+    BranchNodeEntry removeSpace(Int stream, Int room_start, Int room_end)
     {
-        Accumulator accum;
+        BranchNodeEntry accum;
         this->sums(stream, room_start, room_end, accum);
 
         Dispatcher::dispatch(stream, allocator(), RemoveSpaceFn(), room_start, room_end);
@@ -681,9 +681,9 @@ public:
         return accum;
     }
 
-    Accumulator removeSpace(const Position& room_start, const Position& room_end)
+    BranchNodeEntry removeSpace(const Position& room_start, const Position& room_end)
     {
-        Accumulator accum;
+        BranchNodeEntry accum;
         this->sums(room_start, room_end, accum);
 
         this->processSubstreamGroups(RemoveSpaceFn(), room_start, room_end);
@@ -795,9 +795,9 @@ public:
     };
 
 
-    Accumulator splitTo(MyType* other, const Position& from)
+    BranchNodeEntry splitTo(MyType* other, const Position& from)
     {
-        Accumulator result;
+        BranchNodeEntry result;
 
         Position sizes = this->sizes();
 
@@ -839,7 +839,7 @@ public:
 
 
 
-    struct AccumulatorHandler
+    struct BranchNodeEntryHandler
     {
         template <Int Offset, bool StreamStart, Int Idx, typename StreamType, typename TupleItem>
         void stream(const StreamType* obj, TupleItem& accum, Int start, Int end)
@@ -882,15 +882,15 @@ public:
     };
 
 
-    void sums(Int start, Int end, Accumulator& sums) const
+    void sums(Int start, Int end, BranchNodeEntry& sums) const
     {
-        processAllSubstreamsAcc(AccumulatorHandler(), sums, start, end);
+        processAllSubstreamsAcc(BranchNodeEntryHandler(), sums, start, end);
     }
 
 
-    void sums(const Position& start, const Position& end, Accumulator& sums) const
+    void sums(const Position& start, const Position& end, BranchNodeEntry& sums) const
     {
-    	processAllSubstreamsAcc(AccumulatorHandler(), sums, start, end);
+    	processAllSubstreamsAcc(BranchNodeEntryHandler(), sums, start, end);
     }
 
 
@@ -915,15 +915,15 @@ public:
     	return processStream<Path>(LeafSumsFn(), std::forward<Args>(args)...);
     }
 
-    void sums(Accumulator& sums) const
+    void sums(BranchNodeEntry& sums) const
     {
-    	processAllSubstreamsAcc(AccumulatorHandler(), sums);
+    	processAllSubstreamsAcc(BranchNodeEntryHandler(), sums);
     }
 
-    Accumulator sums() const
+    BranchNodeEntry sums() const
     {
-        Accumulator sums;
-        processAllSubstreamsAcc(AccumulatorHandler(), sums);
+        BranchNodeEntry sums;
+        processAllSubstreamsAcc(BranchNodeEntryHandler(), sums);
         return sums;
     }
 
@@ -1043,7 +1043,7 @@ public:
     struct ProcessSubstreamsAccFnAdaptor
     {
     	template <
-    		Int AccumulatorIdx,
+    		Int BranchNodeEntryIdx,
     		Int ListIdx,
     		typename StreamType,
     		typename Accum,
@@ -1052,7 +1052,7 @@ public:
     	>
     	void stream(StreamType* obj, Fn&& fn, Accum&& accum, Args&&... args)
     	{
-    		const Int LeafIdx = AccumulatorIdx - SubstreamsStart;
+    		const Int LeafIdx = BranchNodeEntryIdx - SubstreamsStart;
 
     		const Int BranchStructIdx 	= LeafToBranchIndexByValueTranslator<LeafSubstreamsStructList, LeafIdx>::BranchStructIdx;
     		const Int LeafOffset 		= LeafToBranchIndexByValueTranslator<LeafSubstreamsStructList, LeafIdx>::LeafOffset;
@@ -1073,7 +1073,7 @@ public:
         typename Fn,
         typename... Args
     >
-    auto processStreamAcc(Fn&& fn, Accumulator& accum, Args&&... args) const
+    auto processStreamAcc(Fn&& fn, BranchNodeEntry& accum, Args&&... args) const
     {
     	return StreamDispatcher<Stream>::dispatchAll(
     			allocator(),
@@ -1089,7 +1089,7 @@ public:
     	typename Fn,
         typename... Args
     >
-    auto processStreamAcc(Fn&& fn, Accumulator& accum, Args&&... args)
+    auto processStreamAcc(Fn&& fn, BranchNodeEntry& accum, Args&&... args)
     {
     	return StreamDispatcher<Stream>::dispatchAll(
     			allocator(),
@@ -1106,7 +1106,7 @@ public:
         typename Fn,
         typename... Args
     >
-    auto processStreamAccP(Fn&& fn, Accumulator& accum, Args&&... args) const
+    auto processStreamAccP(Fn&& fn, BranchNodeEntry& accum, Args&&... args) const
     {
     	const Int SubstreamIdx = memoria::list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>::Value;
     	return SubrangeDispatcher<SubstreamIdx, SubstreamIdx + 1>::dispatchAll(
@@ -1124,7 +1124,7 @@ public:
         typename Fn,
         typename... Args
     >
-    auto processStreamAccP(Fn&& fn, Accumulator& accum, Args&&... args)
+    auto processStreamAccP(Fn&& fn, BranchNodeEntry& accum, Args&&... args)
     {
     	const Int SubstreamIdx = memoria::list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>::Value;
     	return SubrangeDispatcher<SubstreamIdx, SubstreamIdx + 1>::dispatchAll(
@@ -1143,7 +1143,7 @@ public:
     	typename Fn,
         typename... Args
     >
-    auto processSubstreamsByIdxAcc(Fn&& fn, Accumulator& accum, Args&&... args) const
+    auto processSubstreamsByIdxAcc(Fn&& fn, BranchNodeEntry& accum, Args&&... args) const
     {
     	return SubstreamsByIdxDispatcher<Stream, SubstreamsIdxList>::dispatchAll(
     			allocator(),
@@ -1161,7 +1161,7 @@ public:
     	typename Fn,
         typename... Args
     >
-    auto processSubstreamsByIdxAcc(Fn&& fn, Accumulator& accum, Args&&... args)
+    auto processSubstreamsByIdxAcc(Fn&& fn, BranchNodeEntry& accum, Args&&... args)
     {
     	return SubstreamsByIdxDispatcher<Stream, SubstreamsIdxList>::dispatchAll(
     			allocator(),
@@ -1177,7 +1177,7 @@ public:
         typename Fn,
         typename... Args
     >
-    auto processAllSubstreamsAcc(Fn&& fn, Accumulator& accum, Args&&... args) const
+    auto processAllSubstreamsAcc(Fn&& fn, BranchNodeEntry& accum, Args&&... args) const
     {
     	return Dispatcher::dispatchAll(
     			allocator(),
@@ -1192,7 +1192,7 @@ public:
         typename Fn,
         typename... Args
     >
-    auto processAllSubstreamsAcc(Fn&& fn, Accumulator& accum, Args&&... args)
+    auto processAllSubstreamsAcc(Fn&& fn, BranchNodeEntry& accum, Args&&... args)
     {
     	return Dispatcher::dispatchAll(
     			allocator(),

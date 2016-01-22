@@ -38,7 +38,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrInsertName)
 
     typedef typename Base::Metadata                                             Metadata;
 
-    typedef typename Types::Accumulator                                         Accumulator;
+    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
 

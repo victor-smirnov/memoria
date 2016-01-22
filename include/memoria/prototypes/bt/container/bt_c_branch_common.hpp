@@ -40,12 +40,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchCommonName)
 
     typedef typename Base::Metadata                                             Metadata;
 
-    typedef typename Types::Accumulator                                         Accumulator;
+    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
-    typedef std::function<Accumulator (NodeBaseG&, NodeBaseG&)>                 SplitFn;
+    typedef std::function<BranchNodeEntry (NodeBaseG&, NodeBaseG&)>                 SplitFn;
 
     static const Int Streams                                                    = Types::Streams;
 
@@ -58,8 +58,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchCommonName)
     }
 
 
-    MEMORIA_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, Accumulator);
-    Accumulator splitBranchNode(NodeBaseG& src, NodeBaseG& tgt, Int split_at);
+    MEMORIA_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, BranchNodeEntry);
+    BranchNodeEntry splitBranchNode(NodeBaseG& src, NodeBaseG& tgt, Int split_at);
 
 MEMORIA_CONTAINER_PART_END
 
@@ -68,11 +68,11 @@ MEMORIA_CONTAINER_PART_END
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
-typename M_TYPE::Accumulator M_TYPE::splitBranchNode(NodeBaseG& src, NodeBaseG& tgt, Int split_at)
+typename M_TYPE::BranchNodeEntry M_TYPE::splitBranchNode(NodeBaseG& src, NodeBaseG& tgt, Int split_at)
 {
     auto& self = this->self();
 
-    Accumulator accum = BranchDispatcher::dispatch(src, tgt, SplitNodeFn(), split_at);
+    BranchNodeEntry accum = BranchDispatcher::dispatch(src, tgt, SplitNodeFn(), split_at);
 
     self.updateChildren(tgt);
 
@@ -96,7 +96,7 @@ void M_TYPE::newRootP(NodeBaseG& root)
 
     self.root2Node(root);
 
-    Accumulator keys = self.sums(root);
+    BranchNodeEntry keys = self.sums(root);
 
     self.insertToBranchNodeP(new_root, 0, keys, root->id());
 

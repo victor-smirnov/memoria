@@ -33,7 +33,7 @@ protected:
     typedef typename DCtrTF<MapName>::Type Ctr;
     typedef typename Ctr::Iterator Iterator;
     typedef typename Ctr::ID ID;
-    typedef typename Ctr::Accumulator Accumulator;
+    typedef typename Ctr::BranchNodeEntry BranchNodeEntry;
 
     PairVector pairs;
     PairVector pairs_sorted;

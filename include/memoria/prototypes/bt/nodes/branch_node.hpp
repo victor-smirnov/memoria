@@ -342,7 +342,7 @@ public:
 
 public:
 
-    typedef typename Types::Accumulator                                         Accumulator;
+    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     typedef typename Types::ID                                                  Value;
@@ -823,13 +823,13 @@ public:
 
     struct InsertFn {
         template <Int Idx, typename StreamType>
-        void stream(StreamType* obj, Int idx, const Accumulator& keys)
+        void stream(StreamType* obj, Int idx, const BranchNodeEntry& keys)
         {
         	obj->insert(idx, std::get<Idx>(keys));
         }
     };
 
-    void insert(Int idx, const Accumulator& keys, const Value& value)
+    void insert(Int idx, const BranchNodeEntry& keys, const Value& value)
     {
         Int size = this->size();
 
@@ -937,9 +937,9 @@ public:
         }
     };
 
-    Accumulator removeSpace(const Position& from_pos, const Position& end_pos)
+    BranchNodeEntry removeSpace(const Position& from_pos, const Position& end_pos)
     {
-        Accumulator sums;
+        BranchNodeEntry sums;
 
         this->sums(from_pos.get(), end_pos.get(), sums);
         this->removeSpace(from_pos.get(), end_pos.get());
@@ -947,9 +947,9 @@ public:
         return sums;
     }
 
-    Accumulator removeSpaceAcc(Int room_start, Int room_end)
+    BranchNodeEntry removeSpaceAcc(Int room_start, Int room_end)
     {
-        Accumulator sums;
+        BranchNodeEntry sums;
 
         this->sums(room_start, room_end, sums);
         removeSpace(room_start, room_end);
@@ -975,9 +975,9 @@ public:
         allocator()->resizeBlock(values, requested_block_size);
     }
 
-    Accumulator removeSpace(Int stream, Int room_start, Int room_end)
+    BranchNodeEntry removeSpace(Int stream, Int room_start, Int room_end)
     {
-        Accumulator accum;
+        BranchNodeEntry accum;
 
         sum(stream, room_start, room_end, accum);
 
@@ -1106,14 +1106,14 @@ public:
     };
 
 
-    Accumulator splitTo(MyType* other, Int split_idx)
+    BranchNodeEntry splitTo(MyType* other, Int split_idx)
     {
         Int size        = this->size();
         Int remainder   = size - split_idx;
 
         MEMORIA_ASSERT(split_idx, <=, size);
 
-        Accumulator result;
+        BranchNodeEntry result;
         this->sums(split_idx, size, result);
 
         Dispatcher::dispatchNotEmpty(allocator(), SplitToFn(), other, split_idx);
@@ -1136,7 +1136,7 @@ public:
 
     struct KeysAtFn {
         template <Int Idx, typename Tree>
-        void stream(const Tree* tree, Int idx, Accumulator* acc)
+        void stream(const Tree* tree, Int idx, BranchNodeEntry* acc)
         {
             const Int Blocks = Tree::Blocks;
 
@@ -1147,9 +1147,9 @@ public:
         }
     };
 
-    Accumulator keysAt(Int idx) const
+    BranchNodeEntry keysAt(Int idx) const
     {
-        Accumulator acc;
+        BranchNodeEntry acc;
 
         Dispatcher::dispatchNotEmpty(allocator(), KeysAtFn(), idx, &acc);
 
@@ -1158,7 +1158,7 @@ public:
 
     struct SetKeysFn {
         template <Int Idx, typename Tree>
-        void stream(Tree* tree, Int idx, const Accumulator& keys)
+        void stream(Tree* tree, Int idx, const BranchNodeEntry& keys)
         {
             for (Int c = 0; c < Tree::Blocks; c++)
             {
@@ -1170,7 +1170,7 @@ public:
         }
     };
 
-    void setKeys(Int idx, const Accumulator& keys)
+    void setKeys(Int idx, const BranchNodeEntry& keys)
     {
         Dispatcher::dispatchNotEmpty(allocator(), SetKeysFn(), idx, keys);
     }
@@ -1198,19 +1198,19 @@ public:
 
     struct SumsFn {
         template <Int Idx, typename StreamType>
-        void stream(const StreamType* obj, Int start, Int end, Accumulator& accum)
+        void stream(const StreamType* obj, Int start, Int end, BranchNodeEntry& accum)
         {
             obj->sums(start, end, std::get<Idx>(accum));
         }
 
         template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename StreamType>
-        void stream(const StreamType* obj, const Position& start, const Position& end, Accumulator& accum)
+        void stream(const StreamType* obj, const Position& start, const Position& end, BranchNodeEntry& accum)
         {
             obj->sums(start[StreamIdx], end[StreamIdx], std::get<AllocatorIdx - SubstreamsStart>(accum));
         }
 
         template <Int Idx, typename StreamType>
-        void stream(const StreamType* obj, Accumulator& accum)
+        void stream(const StreamType* obj, BranchNodeEntry& accum)
         {
             obj->sums(std::get<Idx>(accum));
         }
@@ -1222,24 +1222,24 @@ public:
         }
     };
 
-    void sums(Int start, Int end, Accumulator& sums) const
+    void sums(Int start, Int end, BranchNodeEntry& sums) const
     {
         Dispatcher::dispatchNotEmpty(allocator(), SumsFn(), start, end, sums);
     }
 
-    void sums(const Position& start, const Position& end, Accumulator& sums) const
+    void sums(const Position& start, const Position& end, BranchNodeEntry& sums) const
     {
     	processSubstreamGroups(SumsFn(), start, end, sums);
     }
 
-    void sums(Accumulator& sums) const
+    void sums(BranchNodeEntry& sums) const
     {
         Dispatcher::dispatchNotEmpty(allocator(), SumsFn(), sums);
     }
 
-    Accumulator sums() const
+    BranchNodeEntry sums() const
     {
-        Accumulator sums;
+        BranchNodeEntry sums;
         Dispatcher::dispatchNotEmpty(allocator(), SumsFn(), sums);
         return sums;
     }
@@ -1433,23 +1433,23 @@ public:
 
     struct UpdateUpFn {
         template <Int Idx, typename StreamType>
-        void stream(StreamType* tree, Int idx, const Accumulator& accum)
+        void stream(StreamType* tree, Int idx, const BranchNodeEntry& accum)
         {
             tree->addValues(idx, std::get<Idx>(accum));
         }
     };
 
 
-    void updateUp(Int idx, const Accumulator& keys)
+    void updateUp(Int idx, const BranchNodeEntry& keys)
     {
         Dispatcher::dispatchNotEmpty(allocator(), UpdateUpFn(), idx, keys);
     }
 
 
     //FIXME: remove?
-    Accumulator keys(Int pos) const
+    BranchNodeEntry keys(Int pos) const
     {
-        Accumulator value;
+        BranchNodeEntry value;
         return sums(pos, pos + 1, value);
         return value;
     }

@@ -36,7 +36,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::InsertName)
     using CtrSizeT			= typename Types::CtrSizeT;
     using CtrSizesT			= typename Types::Position;
 
-    using Accumulator 		= typename Types::Accumulator;
+    using BranchNodeEntry 		= typename Types::BranchNodeEntry;
 
 
     static const Int Streams = Types::Streams;

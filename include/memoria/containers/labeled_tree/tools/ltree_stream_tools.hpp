@@ -35,7 +35,7 @@ using LoudsStreamTF = StreamTF<
 //    typedef BigInt                                              Key;
 //    typedef BigInt                                              Value;
 //
-//    typedef core::StaticVector<BigInt, 3>                       AccumulatorPart;
+//    typedef core::StaticVector<BigInt, 3>                       BranchNodeEntryPart;
 //    typedef core::StaticVector<BigInt, 1>                       IteratorPrefixPart;
 //
 //    typedef PkdFQTreeT<Key, 3>             NonLeafType;
@@ -77,7 +77,7 @@ public:
 template <Int Indexes>
 struct LabelFTreeNodeTFBase {
 
-    typedef core::StaticVector<BigInt, Indexes>                                 AccumulatorPart;
+    typedef core::StaticVector<BigInt, Indexes>                                 BranchNodeEntryPart;
     typedef core::StaticVector<BigInt, 1>                                       IteratorPrefixPart;
 
 
@@ -125,7 +125,7 @@ struct LabelFTreeBitmapTF: LabelFTreeNodeTFBase<1> {
 template <Int Indexes>
 struct LabelVTreeNodeTFBase {
 
-    typedef core::StaticVector<BigInt, Indexes>                                 AccumulatorPart;
+    typedef core::StaticVector<BigInt, Indexes>                                 BranchNodeEntryPart;
     typedef core::StaticVector<BigInt, 1>                                       IteratorPrefixPart;
 
 //    typedef Packed2TreeTypes<

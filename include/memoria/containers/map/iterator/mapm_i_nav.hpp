@@ -27,7 +27,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavMaxName)
 
     typedef typename Base::Container::Value                                     Value;
     typedef typename Base::Container::Key                                       Key;
-    typedef typename Base::Container::Accumulator                               Accumulator;
+    typedef typename Base::Container::BranchNodeEntry                               BranchNodeEntry;
     typedef typename Base::Container                                            Container;
     typedef typename Base::Container::Position                                  Position;
 

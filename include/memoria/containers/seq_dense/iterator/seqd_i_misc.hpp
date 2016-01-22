@@ -32,7 +32,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
 
-    typedef typename Container::Accumulator                                     Accumulator;
+    typedef typename Container::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Container::Iterator                                     	Iterator;
 
     typedef typename Container::Types::Pages::LeafDispatcher                    LeafDispatcher;

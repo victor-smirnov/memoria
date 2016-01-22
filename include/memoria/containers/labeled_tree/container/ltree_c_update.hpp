@@ -29,7 +29,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrUpdateName)
 
     typedef typename Base::LeafDispatcher                                       LeafDispatcher;
 
-    typedef typename Types::Accumulator                                         Accumulator;
+    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
@@ -41,29 +41,29 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrUpdateName)
     template <Int LabelIdx>
     struct SetLabelValueFn {
 
-        Accumulator& delta_;
+        BranchNodeEntry& delta_;
 
 
-        SetLabelValueFn(Accumulator& delta):
+        SetLabelValueFn(BranchNodeEntry& delta):
             delta_(delta)
         {}
 
 
-        template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename AccumulatorItem, typename T>
-        void stream(PackedFSEArray<StreamTypes>* labels, AccumulatorItem& , Int idx, T&& value)
+        template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename BranchNodeEntryItem, typename T>
+        void stream(PackedFSEArray<StreamTypes>* labels, BranchNodeEntryItem& , Int idx, T&& value)
         {
             labels->value(0, idx) = value;
         }
 
-        template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename AccumulatorItem, typename T>
-        void stream(PkdVQTree<StreamTypes>* obj, AccumulatorItem& accum, Int idx, T&& value)
+        template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename BranchNodeEntryItem, typename T>
+        void stream(PkdVQTree<StreamTypes>* obj, BranchNodeEntryItem& accum, Int idx, T&& value)
         {
             auto delta = obj->setValue1(0, idx, value);
             accum[Offset] += delta;
         }
 
-        template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename AccumulatorItem, typename T>
-        void stream(PkdFQTree<StreamTypes>* obj, AccumulatorItem& accum, Int idx, T&& value)
+        template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename BranchNodeEntryItem, typename T>
+        void stream(PkdFQTree<StreamTypes>* obj, BranchNodeEntryItem& accum, Int idx, T&& value)
         {
             auto delta = obj->setValue(0, idx, value);
 
@@ -112,7 +112,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrUpdateName)
 
         Int label_idx = iter.label_idx();
 
-        Accumulator sums;
+        BranchNodeEntry sums;
 
         if (self.updateNodeLabel(leaf, SetLabelValueFn<LabelIdx>(sums), label_idx, value))
         {
@@ -136,28 +136,28 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrUpdateName)
     template <Int LabelIdx>
     struct AddLabelValueFn {
 
-        Accumulator& delta_;
+        BranchNodeEntry& delta_;
 
-        AddLabelValueFn(Accumulator& delta):
+        AddLabelValueFn(BranchNodeEntry& delta):
             delta_(delta)
         {}
 
 
-        template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename AccumulatorItem, typename T>
-        void stream(PackedFSEArray<StreamTypes>* labels, AccumulatorItem& accum, Int idx, T&& value)
+        template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename BranchNodeEntryItem, typename T>
+        void stream(PackedFSEArray<StreamTypes>* labels, BranchNodeEntryItem& accum, Int idx, T&& value)
         {
             labels->value(0, idx) += value;
         }
 
-        template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename AccumulatorItem, typename T>
-        void stream(PkdVQTree<StreamTypes>* obj, AccumulatorItem& accum, Int idx, T&& value)
+        template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename BranchNodeEntryItem, typename T>
+        void stream(PkdVQTree<StreamTypes>* obj, BranchNodeEntryItem& accum, Int idx, T&& value)
         {
             obj->addValue(0, idx, value);
             accum[Offset] += value;
         }
 
-        template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename AccumulatorItem, typename T>
-        void stream(PkdFQTree<StreamTypes>* obj, AccumulatorItem& accum, Int idx, T&& value)
+        template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename BranchNodeEntryItem, typename T>
+        void stream(PkdFQTree<StreamTypes>* obj, BranchNodeEntryItem& accum, Int idx, T&& value)
         {
             obj->addValue(0, idx, value);
             accum[Offset] += value;
@@ -180,7 +180,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrUpdateName)
 
         Int label_idx = iter.label_idx();
 
-        Accumulator sums;
+        BranchNodeEntry sums;
 
         if (self.updateNodeLabel(leaf, AddLabelValueFn<LabelIdx>(sums), label_idx, value))
         {

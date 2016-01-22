@@ -21,7 +21,7 @@ protected:
     typedef Iter<typename Types::IterTypes> Iterator;
     typedef Ctr<typename Types::CtrTypes>   Container;
 
-    typedef typename Types::Accumulator     Accumulator;
+    typedef typename Types::BranchNodeEntry     BranchNodeEntry;
 
     WalkDirection direction_;
 
@@ -34,7 +34,7 @@ public:
 
     void empty(Iterator& iter)
     {
-//      iter.cache().setup(Accumulator());
+//      iter.cache().setup(BranchNodeEntry());
     }
 };
 
@@ -47,9 +47,9 @@ class FindEndWalker: public FindEdgeWalkerBase<Types> {
     typedef typename Base::Iterator         Iterator;
     typedef typename Base::Container        Container;
 
-    typedef typename Types::Accumulator     Accumulator;
+    typedef typename Types::BranchNodeEntry     BranchNodeEntry;
 
-    Accumulator prefix_;
+    BranchNodeEntry prefix_;
 
 public:
     typedef Int ReturnType;
@@ -84,7 +84,7 @@ class FindREndWalker: public FindEdgeWalkerBase<Types> {
     typedef FindEdgeWalkerBase<Types>       Base;
     typedef typename Base::Iterator         Iterator;
     typedef typename Base::Container        Container;
-    typedef typename Types::Accumulator     Accumulator;
+    typedef typename Types::BranchNodeEntry     BranchNodeEntry;
 
 public:
     typedef Int ReturnType;
@@ -101,7 +101,7 @@ public:
     {
         iter.key_idx() = idx - 1;
 
-        iter.cache().setup(Accumulator());
+        iter.cache().setup(BranchNodeEntry());
     }
 };
 
@@ -113,7 +113,7 @@ class FindBeginWalker: public FindEdgeWalkerBase<Types> {
     typedef FindEdgeWalkerBase<Types>       Base;
     typedef typename Base::Iterator         Iterator;
     typedef typename Base::Container        Container;
-    typedef typename Types::Accumulator     Accumulator;
+    typedef typename Types::BranchNodeEntry     BranchNodeEntry;
 
 public:
     typedef Int ReturnType;
@@ -141,9 +141,9 @@ class FindRBeginWalker: public FindEdgeWalkerBase<Types> {
     typedef typename Base::Iterator         Iterator;
     typedef typename Base::Container        Container;
 
-    typedef typename Types::Accumulator     Accumulator;
+    typedef typename Types::BranchNodeEntry     BranchNodeEntry;
 
-    Accumulator prefix_;
+    BranchNodeEntry prefix_;
 
 public:
     FindRBeginWalker(Int stream, const Container&) {}

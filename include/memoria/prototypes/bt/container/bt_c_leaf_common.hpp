@@ -40,7 +40,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
 
     typedef typename Base::Metadata                                             Metadata;
 
-    typedef typename Types::Accumulator                                         Accumulator;
+    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
@@ -52,8 +52,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
     template <Int Stream>
     using StreamInputTuple = typename Types::template StreamInputTuple<Stream>;
 
-    MEMORIA_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, Accumulator);
-    Accumulator split_leaf_node(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at)
+    MEMORIA_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, BranchNodeEntry);
+    BranchNodeEntry split_leaf_node(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at)
     {
     	return LeafDispatcher::dispatch(src, tgt, SplitNodeFn(), split_at);
     }

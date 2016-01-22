@@ -26,7 +26,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::table::ItrMiscName)
     typedef typename Base::NodeBaseG                                            NodeBaseG;
 
 
-    typedef typename Base::Container::Accumulator                               Accumulator;
+    typedef typename Base::Container::BranchNodeEntry                               BranchNodeEntry;
     typedef typename Base::Container                                            Container;
     typedef typename Base::Container::Position                                  Position;
 

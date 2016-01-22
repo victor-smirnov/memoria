@@ -69,37 +69,37 @@ int main(int argc, const char** argv, const char** envp)
 
         DCtrTF<Map<double, BigInt>>::Type::initMetadata();
 
-        DCtrTF<Table<BigInt, Byte, PackedSizeType::FIXED>>::Type::initMetadata();
-        DCtrTF<Table<BigInt, Byte, PackedSizeType::VARIABLE>>::Type::initMetadata();
+//        DCtrTF<Table<BigInt, Byte, PackedSizeType::FIXED>>::Type::initMetadata();
+//        DCtrTF<Table<BigInt, Byte, PackedSizeType::VARIABLE>>::Type::initMetadata();
 
         runner.setRunCount(cmd_line.getCount());
 //
 //        runner.registerTask(new BitmapTestSuite());
 ////
-        runner.registerTask(new PackedAllocatorTestSuite());
-        runner.registerTask(new PackedTreeTestSuite());
-        runner.registerTask(new PackedMaxTreeTestSuite());
-        runner.registerTask(new PackedArrayTestSuite());
-        runner.registerTask(new PackedSequenceTestSuite());
-        runner.registerTask(new PackedLoudsTestSuite());
-        runner.registerTask(new PackedLoudsCardinalTestSuite());
-        runner.registerTask(new PackedWaveletTreeTestSuite());
+//        runner.registerTask(new PackedAllocatorTestSuite());
+//        runner.registerTask(new PackedTreeTestSuite());
+//        runner.registerTask(new PackedMaxTreeTestSuite());
+//        runner.registerTask(new PackedArrayTestSuite());
+//        runner.registerTask(new PackedSequenceTestSuite());
+//        runner.registerTask(new PackedLoudsTestSuite());
+//        runner.registerTask(new PackedLoudsCardinalTestSuite());
+//        runner.registerTask(new PackedWaveletTreeTestSuite());
 
 
 //        runner.registerTask(new CtrTestSuite());
 
 //        runner.registerTask(new BTTestSuite());
-        runner.registerTask(new BTTLTestSuite());
-        runner.registerTask(new BTSSTestSuite());
+//        runner.registerTask(new BTTLTestSuite());
+//        runner.registerTask(new BTSSTestSuite());
 
 //        runner.registerTask(new TableTestSuite());
 
         runner.registerTask(new MapTestSuite());
-        runner.registerTask(new VectorTestSuite());
-        runner.registerTask(new SequenceTestSuite());
-        runner.registerTask(new LabeledTreeTestSuite());
-        runner.registerTask(new VTreeTestSuite());
-        runner.registerTask(new WTTestSuite());
+//        runner.registerTask(new VectorTestSuite());
+//        runner.registerTask(new SequenceTestSuite());
+//        runner.registerTask(new LabeledTreeTestSuite());
+//        runner.registerTask(new VTreeTestSuite());
+//        runner.registerTask(new WTTestSuite());
 
 
         runner.Configure(&cmd_line.getConfigurator());

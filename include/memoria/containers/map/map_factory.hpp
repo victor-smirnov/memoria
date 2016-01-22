@@ -215,9 +215,9 @@ public:
 //    	using InputBufferStructList		= FailIf<typename BaseTypes::InputBufferStructList>;
 //    	using BranchStreamsStructList	= FailIf<typename BaseTypes::BranchStreamsStructList>;
 
-//    	using Accumulator				= FailIf<typename BaseTypes::Accumulator>;
+//    	using BranchNodeEntry				= FailIf<typename BaseTypes::BranchNodeEntry>;
 
-//    	using IteratorAccumulator		= FailIf<typename BaseTypes::IteratorAccumulator>;
+//    	using IteratorBranchNodeEntry		= FailIf<typename BaseTypes::IteratorBranchNodeEntry>;
 
 //    	static constexpr Int Value1 = LeafToBranchIndexByValueTranslator1<LeafStreamsStructList, 1>::LeafOffset;
 

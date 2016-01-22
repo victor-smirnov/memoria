@@ -22,7 +22,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btss::IteratorMiscName)
     typedef typename Base::Container                                                Container;
 
     typedef typename Container::Allocator                                           Allocator;
-    typedef typename Container::Accumulator                                         Accumulator;
+    typedef typename Container::BranchNodeEntry                                         BranchNodeEntry;
     typedef typename Container::Iterator                                            Iterator;
 
     using Position = typename Container::Types::Position;
@@ -113,7 +113,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btss::IteratorMiscName)
         auto& to_path       = to.leaf();
         Position to_pos     = Position(to.idx());
 
-        Accumulator keys;
+        BranchNodeEntry keys;
 
         self.ctr().removeEntries(from_path, from_pos, to_path, to_pos, keys, true);
 

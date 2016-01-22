@@ -86,7 +86,7 @@ template <typename List>
 class PackedBranchStructListBuilder;
 
 template <typename List>
-class IteratorAccumulatorListBuilder;
+class IteratorBranchNodeEntryListBuilder;
 
 
 
@@ -162,7 +162,7 @@ template <
 	template <typename> class BranchStructTF,
     typename... Tail
 >
-class IteratorAccumulatorListBuilder<TypeList<StreamTF<LeafType, IdxRangeList, BranchStructTF>, Tail...>> {
+class IteratorBranchNodeEntryListBuilder<TypeList<StreamTF<LeafType, IdxRangeList, BranchStructTF>, Tail...>> {
 
 	using BranchType = typename BTStreamDescritorsBuilder<FlattenLeafTree<LeafType>, BranchStructTF>::Type;
 
@@ -182,7 +182,7 @@ class IteratorAccumulatorListBuilder<TypeList<StreamTF<LeafType, IdxRangeList, B
 			FlatIdxRangeList
 	>::OffsetList;
 
-    using AccType = typename IteratorAccumulatorBuilder<
+    using AccType = typename IteratorBranchNodeEntryBuilder<
     		BranchStructList,
     		RangeListType
     >::Type;
@@ -190,17 +190,17 @@ class IteratorAccumulatorListBuilder<TypeList<StreamTF<LeafType, IdxRangeList, B
 public:
     using AccumTuple = AppendItemToList<
     		AccType,
-    		typename IteratorAccumulatorListBuilder<TypeList<Tail...>>::AccumTuple
+    		typename IteratorBranchNodeEntryListBuilder<TypeList<Tail...>>::AccumTuple
     >;
 
     using RangeOffsetList = AppendItemToList<
     		RangeOffsetListType,
-    		typename IteratorAccumulatorListBuilder<TypeList<Tail...>>::RangeOffsetList
+    		typename IteratorBranchNodeEntryListBuilder<TypeList<Tail...>>::RangeOffsetList
     >;
 
     using IndexRangeList = AppendItemToList<
     		IdxRangeList,
-    		typename IteratorAccumulatorListBuilder<TypeList<Tail...>>::IndexRangeList
+    		typename IteratorBranchNodeEntryListBuilder<TypeList<Tail...>>::IndexRangeList
     >;
 };
 
@@ -220,7 +220,7 @@ public:
 };
 
 template <>
-class IteratorAccumulatorListBuilder<TypeList<>> {
+class IteratorBranchNodeEntryListBuilder<TypeList<>> {
 public:
     using AccumTuple 		= TypeList<>;
     using RangeOffsetList 	= TypeList<>;
@@ -233,21 +233,21 @@ public:
 
 
 
-template <typename T> struct AccumulatorBuilder;
+template <typename T> struct BranchNodeEntryBuilder;
 
 template <typename PackedStruct, typename... Tail>
-struct AccumulatorBuilder<TL<PackedStruct, Tail...>> {
+struct BranchNodeEntryBuilder<TL<PackedStruct, Tail...>> {
 	using Type = MergeLists<
 					memoria::core::StaticVector<
 						typename PkdSearchKeyTypeProvider<PackedStruct>::Type,
 						StructSizeProvider<PackedStruct>::Value
 					>,
-					typename AccumulatorBuilder<TL<Tail...>>::Type
+					typename BranchNodeEntryBuilder<TL<Tail...>>::Type
 	>;
 };
 
 template <>
-struct AccumulatorBuilder<TL<>> {
+struct BranchNodeEntryBuilder<TL<>> {
 	using Type = TL<>;
 };
 

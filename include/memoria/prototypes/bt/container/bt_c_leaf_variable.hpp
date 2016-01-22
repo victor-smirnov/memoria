@@ -39,7 +39,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafVariableName)
 
     typedef typename Base::Metadata                                             Metadata;
 
-    typedef typename Types::Accumulator                                         Accumulator;
+    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
@@ -58,10 +58,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafVariableName)
     	    bool StreamStart,
     	    Int Idx,
     		typename SubstreamType,
-    		typename AccumulatorItem,
+    		typename BranchNodeEntryItem,
     		typename Entry
     	>
-    	void stream(SubstreamType* obj, AccumulatorItem& accum, Int idx, const Entry& entry)
+    	void stream(SubstreamType* obj, BranchNodeEntryItem& accum, Int idx, const Entry& entry)
     	{
     		obj->template _insert<Offset>(idx, std::get<Idx>(entry), accum);
 
@@ -79,7 +79,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafVariableName)
     struct InsertEntryIntoStreamFn
     {
     	template <typename NTypes, typename... Args>
-    	void treeNode(LeafNode<NTypes>* node, Int idx, Accumulator& accum, Args&&... args)
+    	void treeNode(LeafNode<NTypes>* node, Int idx, BranchNodeEntry& accum, Args&&... args)
     	{
     		node->layout(255);
     		node->template processStreamAcc<Stream>(InsertEntryIntoStreamHanlder(), accum, idx, std::forward<Args>(args)...);
@@ -90,7 +90,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafVariableName)
 
 
     template <Int Stream>
-    std::tuple<bool, Accumulator> tryInsertStreamEntry(Iterator& iter, const StreamInputTuple<Stream>& entry)
+    std::tuple<bool, BranchNodeEntry> tryInsertStreamEntry(Iterator& iter, const StreamInputTuple<Stream>& entry)
     {
     	auto& self = this->self();
 
@@ -101,14 +101,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafVariableName)
     	mgr.add(iter.leaf());
 
     	try {
-    		Accumulator accum;
+    		BranchNodeEntry accum;
     		LeafDispatcher::dispatch(iter.leaf(), InsertEntryIntoStreamFn<Stream>(), iter.idx(), accum, entry);
     		return std::make_tuple(true, accum);
     	}
     	catch (PackedOOMException& e)
     	{
     		mgr.rollback();
-    		return std::make_tuple(false, Accumulator());
+    		return std::make_tuple(false, BranchNodeEntry());
     	}
     }
 
@@ -122,9 +122,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafVariableName)
     		bool StreamStart,
     		Int Idx,
     		typename SubstreamType,
-    		typename AccumulatorItem
+    		typename BranchNodeEntryItem
     	>
-    	void stream(SubstreamType* obj, AccumulatorItem& accum, Int idx)
+    	void stream(SubstreamType* obj, BranchNodeEntryItem& accum, Int idx)
     	{
     		obj->template _remove<Offset>(idx, accum);
 
@@ -135,7 +135,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafVariableName)
     	}
 
     	template <typename NTypes>
-        void treeNode(LeafNode<NTypes>* node, Int idx, Accumulator& accum)
+        void treeNode(LeafNode<NTypes>* node, Int idx, BranchNodeEntry& accum)
         {
     		node->layout(255);
             node->template processStreamAcc<Stream>(*this, accum, idx);
@@ -144,7 +144,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafVariableName)
 
 
     template <Int Stream>
-    std::tuple<bool, Accumulator> tryRemoveStreamEntry(Iterator& iter)
+    std::tuple<bool, BranchNodeEntry> tryRemoveStreamEntry(Iterator& iter)
     {
     	auto& self = this->self();
 
@@ -155,14 +155,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafVariableName)
     	mgr.add(iter.leaf());
 
     	try {
-    		Accumulator accum;
+    		BranchNodeEntry accum;
     		LeafDispatcher::dispatch(iter.leaf(), RemoveFromLeafFn<Stream>(), iter.idx(), accum);
     		return std::make_tuple(true, accum);
     	}
     	catch (PackedOOMException& e)
     	{
     		mgr.rollback();
-    		return std::make_tuple(false, Accumulator());
+    		return std::make_tuple(false, BranchNodeEntry());
     	}
     }
 
@@ -178,10 +178,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafVariableName)
      		bool Start,
      		Int Idx,
      		typename SubstreamType,
-     		typename AccumulatorItem,
+     		typename BranchNodeEntryItem,
      		typename Entry
      	>
-     	void stream(SubstreamType* obj, AccumulatorItem& accum, Int idx, const Entry& entry)
+     	void stream(SubstreamType* obj, BranchNodeEntryItem& accum, Int idx, const Entry& entry)
      	{
      		obj->template _update<Offset>(idx, std::get<Idx>(entry), accum);
      	}
@@ -191,7 +191,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafVariableName)
      struct UpdateStreamEntryFn
      {
      	template <typename NTypes, typename... Args>
-     	void treeNode(LeafNode<NTypes>* node, Int idx, Accumulator& accum, Args&&... args)
+     	void treeNode(LeafNode<NTypes>* node, Int idx, BranchNodeEntry& accum, Args&&... args)
      	{
      		node->template processSubstreamsByIdxAcc<
      			Stream,
@@ -207,7 +207,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafVariableName)
 
 
      template <Int Stream, typename SubstreamsList, typename... TupleTypes>
-     std::tuple<bool, Accumulator> try_update_stream_entry(Iterator& iter, const std::tuple<TupleTypes...>& entry)
+     std::tuple<bool, BranchNodeEntry> try_update_stream_entry(Iterator& iter, const std::tuple<TupleTypes...>& entry)
      {
      	static_assert(
      			ListSize<SubstreamsList>::Value == sizeof...(TupleTypes),
@@ -223,7 +223,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafVariableName)
      	mgr.add(iter.leaf());
 
      	try {
-     		Accumulator accum;
+     		BranchNodeEntry accum;
      		LeafDispatcher::dispatch(
      				iter.leaf(),
      				UpdateStreamEntryFn<Stream, SubstreamsList>(),
@@ -236,7 +236,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafVariableName)
      	catch (PackedOOMException& e)
      	{
      		mgr.rollback();
-     		return std::make_tuple(false, Accumulator());
+     		return std::make_tuple(false, BranchNodeEntry());
      	}
      }
 
@@ -279,7 +279,7 @@ typename M_TYPE::NodeBaseG M_TYPE::createNextLeaf(NodeBaseG& left_node)
 
     NodeBaseG other  = self.createNode1(left_node->level(), false, left_node->is_leaf(), left_node->page_size());
 
-    Accumulator sums;
+    BranchNodeEntry sums;
 
     Int parent_idx = left_node->parent_idx();
 
@@ -342,7 +342,7 @@ bool M_TYPE::tryMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 
         self.updateChildren(tgt, tgt_size);
 
-        Accumulator sums        = self.sums(src_parent, parent_idx, parent_idx + 1);
+        BranchNodeEntry sums        = self.sums(src_parent, parent_idx, parent_idx + 1);
 
         self.removeNonLeafNodeEntry(src_parent, parent_idx);
 

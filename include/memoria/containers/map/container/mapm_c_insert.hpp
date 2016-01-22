@@ -32,14 +32,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertMaxName)
     typedef typename Types::Key                                                 Key;
     typedef typename Types::Value                                               Value;
 
-    typedef typename Types::Accumulator                                         Accumulator;
+    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     static const Int Streams                                                    = Types::Streams;
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
-    typedef ValuePair<Accumulator, Value>                                       Element;
+    typedef ValuePair<BranchNodeEntry, Value>                                       Element;
 
     typedef typename Types::Entry                                               MapEntry;
 

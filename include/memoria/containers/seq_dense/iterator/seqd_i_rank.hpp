@@ -30,7 +30,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterRankName)
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
 
-    typedef typename Container::Accumulator                                     Accumulator;
+    typedef typename Container::BranchNodeEntry                                     BranchNodeEntry;
 
     typedef typename Container::LeafDispatcher                                  LeafDispatcher;
     typedef typename Container::Position                                        Position;

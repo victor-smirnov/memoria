@@ -39,7 +39,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
 
     typedef typename Base::Metadata                                             Metadata;
 
-    typedef typename Types::Accumulator                                         Accumulator;
+    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
@@ -49,7 +49,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
 //    struct InsertIntoLeafFn {
 //
 //        template <Int Idx, typename SeqTypes>
-//        void stream(PkdFSSeq<SeqTypes>* seq, Int idx, Int symbol, Accumulator* delta)
+//        void stream(PkdFSSeq<SeqTypes>* seq, Int idx, Int symbol, BranchNodeEntry* delta)
 //        {
 //            MEMORIA_ASSERT_TRUE(seq != nullptr);
 //
@@ -66,7 +66,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
 //
 //
 //        template <typename NTypes>
-//        void treeNode(LeafNode<NTypes>* node, Int stream, Int idx, Int symbol, Accumulator* delta)
+//        void treeNode(LeafNode<NTypes>* node, Int stream, Int idx, Int symbol, BranchNodeEntry* delta)
 //        {
 //            node->layout(1);
 //            node->process(stream, *this, idx, symbol, delta);
@@ -75,7 +75,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
 //
 //
 //
-//    bool insertIntoLeaf(NodeBaseG& leaf, Int idx, Int symbol, Accumulator& indexes)
+//    bool insertIntoLeaf(NodeBaseG& leaf, Int idx, Int symbol, BranchNodeEntry& indexes)
 //    {
 //        auto& self = this->self();
 //
@@ -112,7 +112,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
 //
 //        self.updatePageG(leaf);
 //
-//        Accumulator sums;
+//        BranchNodeEntry sums;
 //
 //        if (self.insertIntoLeaf(leaf, idx, symbol, sums))
 //        {

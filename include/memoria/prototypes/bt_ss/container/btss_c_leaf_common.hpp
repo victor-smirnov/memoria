@@ -35,10 +35,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::LeafCommonName)
 
 
 
-	using Accumulator 	= typename Types::Accumulator;
+	using BranchNodeEntry 	= typename Types::BranchNodeEntry;
 	using Position		= typename Types::Position;
 
-    using SplitFn = std::function<Accumulator (NodeBaseG&, NodeBaseG&)>;
+    using SplitFn = std::function<BranchNodeEntry (NodeBaseG&, NodeBaseG&)>;
     using MergeFn = std::function<void (const Position&)>;
 
     using CtrSizeT = typename Types::CtrSizeT;

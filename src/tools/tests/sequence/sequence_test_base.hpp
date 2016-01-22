@@ -30,7 +30,7 @@ protected:
 
     typedef typename DCtrTF<Sequence<BitsPerSymbol, Dense> >::Type              Ctr;
     typedef typename Ctr::Iterator                                              Iterator;
-    typedef typename Ctr::Accumulator                                           Accumulator;
+    typedef typename Ctr::BranchNodeEntry                                           BranchNodeEntry;
     typedef typename Ctr::ID                                                    ID;
 
     typedef PackedFSESequence<BitsPerSymbol>                                    PackedSeq;

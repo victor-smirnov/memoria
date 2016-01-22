@@ -34,7 +34,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::MiscName)
     using Key 				    = typename Types::Key;
     using Value 			    = typename Types::Value;
 
-    using Accumulator 		= typename Types::Accumulator;
+    using BranchNodeEntry 		= typename Types::BranchNodeEntry;
     using Position 			= typename Types::Position;
     using CtrSizeT 			= typename Types::CtrSizeT;
     using CtrSizesT			= Position;

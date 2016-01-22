@@ -27,7 +27,7 @@ template <typename Types>
 class FindWalkerBase {
 protected:
     typedef typename Types::Key                                                 Key;
-    typedef typename Types::Accumulator                                         Accumulator;
+    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
 
     typedef Iter<typename Types::IterTypes>                                     Iterator;
 
@@ -118,7 +118,7 @@ protected:
     typedef Iter<typename Types::IterTypes> Iterator;
     typedef Ctr<typename Types::CtrTypes>   Container;
 
-    typedef typename Types::Accumulator     Accumulator;
+    typedef typename Types::BranchNodeEntry     BranchNodeEntry;
 
     WalkDirection direction_;
 
@@ -131,7 +131,7 @@ public:
 
     void empty(Iterator& iter)
     {
-        iter.cache().setup(Accumulator());
+        iter.cache().setup(BranchNodeEntry());
     }
 };
 
@@ -143,7 +143,7 @@ class FindBeginWalker: public FindRangeWalkerBase<Types> {
     typedef FindRangeWalkerBase<Types>      Base;
     typedef typename Base::Iterator         Iterator;
     typedef typename Base::Container        Container;
-    typedef typename Types::Accumulator     Accumulator;
+    typedef typename Types::BranchNodeEntry     BranchNodeEntry;
 
 public:
     typedef Int ReturnType;
@@ -162,7 +162,7 @@ public:
     {
         iter.idx() = 0;
 
-        iter.cache().setup(Accumulator());
+        iter.cache().setup(BranchNodeEntry());
     }
 };
 

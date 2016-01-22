@@ -53,7 +53,7 @@ protected:
     using Ctr 			= typename CtrTF<Profile, ContainerTypeName>::Type;
     using Iterator 		= typename Ctr::Iterator;
     using ID 			= typename Ctr::ID;
-    using Accumulator 	= typename Ctr::Accumulator;
+    using BranchNodeEntry 	= typename Ctr::BranchNodeEntry;
 
     using Allocator 	= AllocatorType;
 

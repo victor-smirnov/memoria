@@ -424,10 +424,10 @@ struct BranchNodeRangeListBuilder<TypeList<>, TypeList<>, TypeList<>, Offset>
 /**
  * Converts branch node range list to list of IndexVector types
  */
-template <typename BranchStructList, typename RangeLists> struct IteratorAccumulatorBuilder;
+template <typename BranchStructList, typename RangeLists> struct IteratorBranchNodeEntryBuilder;
 
 template <typename BranchStruct, typename... BTail, typename RangeList, typename... RTail>
-struct IteratorAccumulatorBuilder<TL<BranchStruct, BTail...>, TL<RangeList, RTail...>> {
+struct IteratorBranchNodeEntryBuilder<TL<BranchStruct, BTail...>, TL<RangeList, RTail...>> {
 	using Type = MergeLists<
 			typename MakeTuple<
 				typename AccumBuilderH<
@@ -436,12 +436,12 @@ struct IteratorAccumulatorBuilder<TL<BranchStruct, BTail...>, TL<RangeList, RTai
 					IndexesSize<BranchStruct>::Value
 				>::Type
 			>::Type,
-			typename IteratorAccumulatorBuilder<TL<BTail...>, TL<RTail...>>::Type
+			typename IteratorBranchNodeEntryBuilder<TL<BTail...>, TL<RTail...>>::Type
 	>;
 };
 
 template <>
-struct IteratorAccumulatorBuilder<TL<>, TL<>> {
+struct IteratorBranchNodeEntryBuilder<TL<>, TL<>> {
 	using Type = TL<>;
 };
 
