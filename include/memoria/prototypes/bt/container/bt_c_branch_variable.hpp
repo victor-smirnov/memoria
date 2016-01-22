@@ -58,7 +58,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchVariableName)
     MEMORIA_DECLARE_NODE_FN(UpdateNodeFn, updateUp);
 
     template <typename UpdateData>
-    bool updateNode(NodeBaseG& node, Int idx, const UpdateData& sums);
+    bool updateBranchNode(NodeBaseG& node, Int idx, const UpdateData& sums);
 
     template <typename UpdateData>
     void updateBranchNodes(NodeBaseG& node, Int& idx, const UpdateData& sums);
@@ -176,7 +176,7 @@ typename M_TYPE::NodeBaseG M_TYPE::splitPathP(NodeBaseG& left_node, Int split_at
 
 M_PARAMS
 template <typename UpdateData>
-bool M_TYPE::updateNode(NodeBaseG& node, Int idx, const UpdateData& sums)
+bool M_TYPE::updateBranchNode(NodeBaseG& node, Int idx, const UpdateData& sums)
 {
     auto& self = this->self();
 
@@ -207,7 +207,7 @@ void M_TYPE::updateBranchNodes(NodeBaseG& node, Int& idx, const UpdateData& sums
 
     self.updatePageG(node);
 
-    if (!self.updateNode(node, idx, sums))
+    if (!self.updateBranchNode(node, idx, sums))
     {
         Int size        = self.getNodeSize(node, 0);
         Int split_idx   = size / 2;
@@ -220,7 +220,7 @@ void M_TYPE::updateBranchNodes(NodeBaseG& node, Int& idx, const UpdateData& sums
             node = right;
         }
 
-        bool result = self.updateNode(node, idx, sums);
+        bool result = self.updateBranchNode(node, idx, sums);
         MEMORIA_ASSERT_TRUE(result);
     }
 
@@ -259,7 +259,7 @@ void M_TYPE::updateBranchNodesNoBackup(NodeBaseG& node, Int idx, const UpdateDat
 {
     auto& self = this->self();
 
-    self.updateNode(node, idx, sums);
+    self.updateBranchNode(node, idx, sums);
 
     if(!node->is_root())
     {

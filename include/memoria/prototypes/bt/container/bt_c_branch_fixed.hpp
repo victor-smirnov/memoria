@@ -59,7 +59,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchFixedName)
 
     MEMORIA_DECLARE_NODE_FN(UpdateNodeFn, updateUp);
     template <typename UpdateData>
-    bool updateNode(NodeBaseG& node, Int idx, const UpdateData& keys);
+    bool updateBranchNode(NodeBaseG& node, Int idx, const UpdateData& keys);
 
     template <typename UpdateData>
     void updateBranchNodes(NodeBaseG& node, Int& idx, const UpdateData& keys);
@@ -155,7 +155,7 @@ typename M_TYPE::NodeBaseG M_TYPE::splitPathP(NodeBaseG& left_node, Int split_at
 
 M_PARAMS
 template <typename UpdateData>
-bool M_TYPE::updateNode(NodeBaseG& node, Int idx, const UpdateData& keys)
+bool M_TYPE::updateBranchNode(NodeBaseG& node, Int idx, const UpdateData& keys)
 {
     self().updatePageG(node);
     BranchDispatcher::dispatch(node, UpdateNodeFn(), idx, keys);
@@ -173,14 +173,14 @@ void M_TYPE::updateBranchNodes(NodeBaseG& node, Int& idx, const UpdateData& keys
 
     NodeBaseG tmp = node;
 
-    self.updateNode(tmp, idx, keys);
+    self.updateBranchNode(tmp, idx, keys);
 
     while(!tmp->is_root())
     {
         Int parent_idx = tmp->parent_idx();
         tmp = self.getNodeParentForUpdate(tmp);
 
-        self.updateNode(tmp, parent_idx, keys);
+        self.updateBranchNode(tmp, parent_idx, keys);
     }
 }
 
