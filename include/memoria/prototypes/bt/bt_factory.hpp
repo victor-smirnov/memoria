@@ -290,7 +290,7 @@ public:
 
         using LeafStreamsStructList 	= typename MyType::LeafStreamsStructList;
         using BranchStreamsStructList 	= typename MyType::BranchStreamsStructList;
-        using IteratorBranchNodeEntry 		= typename MyType::IteratorBranchNodeEntry;
+        using IteratorBranchNodeEntry 	= typename MyType::IteratorBranchNodeEntry;
         using StreamsInputTypeList		= typename MyType::StreamsInputTypeList;
         using InputBufferStructList		= typename MyType::InputBufferStructList;
     };

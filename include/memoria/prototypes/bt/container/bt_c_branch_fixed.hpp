@@ -62,7 +62,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchFixedName)
     bool updateNode(NodeBaseG& node, Int idx, const UpdateData& keys);
 
     template <typename UpdateData>
-    void updatePath(NodeBaseG& node, Int& idx, const UpdateData& keys);
+    void updateBranchNodes(NodeBaseG& node, Int& idx, const UpdateData& keys);
 
     template <typename UpdateData>
     void update_parent(NodeBaseG& node, const UpdateData& sums);
@@ -102,7 +102,7 @@ void M_TYPE::insertToBranchNodeP(NodeBaseG& node, Int idx, const BranchNodeEntry
     if (!node->is_root())
     {
         NodeBaseG parent = self.getNodeParentForUpdate(node);
-        self.updatePath(parent, node->parent_idx(), keys);
+        self.updateBranchNodes(parent, node->parent_idx(), keys);
     }
 }
 
@@ -127,7 +127,7 @@ typename M_TYPE::NodeBaseG M_TYPE::splitP(NodeBaseG& left_node, SplitFn split_fn
 
     Int parent_idx   = left_node->parent_idx();
 
-    self.updatePath(left_parent, parent_idx, -keys);
+    self.updateBranchNodes(left_parent, parent_idx, -keys);
 
     if (self.getBranchNodeCapacity(left_parent, -1) > 0)
     {
@@ -167,7 +167,7 @@ bool M_TYPE::updateNode(NodeBaseG& node, Int idx, const UpdateData& keys)
 
 M_PARAMS
 template <typename UpdateData>
-void M_TYPE::updatePath(NodeBaseG& node, Int& idx, const UpdateData& keys)
+void M_TYPE::updateBranchNodes(NodeBaseG& node, Int& idx, const UpdateData& keys)
 {
     auto& self = this->self();
 
@@ -200,7 +200,7 @@ void M_TYPE::update_parent(NodeBaseG& node, const UpdateData& sums)
 
         Int parent_idx = node->parent_idx();
 
-        self.updatePath(parent, parent_idx, sums);
+        self.updateBranchNodes(parent, parent_idx, sums);
     }
 }
 
@@ -239,18 +239,18 @@ void M_TYPE::doMergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src)
 
     self.updateChildren(tgt, tgt_size);
 
-    NodeBaseG src_parent    = self.getNodeParent(src);
-    Int parent_idx          = src->parent_idx();
+    NodeBaseG src_parent = self.getNodeParent(src);
+    Int parent_idx       = src->parent_idx();
 
     MEMORIA_ASSERT(parent_idx, >, 0);
 
-    BranchNodeEntry sums        = self.sums(src_parent, parent_idx, parent_idx + 1);
+    BranchNodeEntry sums = self.sums(src_parent, parent_idx, parent_idx + 1);
 
     self.removeNonLeafNodeEntry(src_parent, parent_idx);
 
     Int idx = parent_idx - 1;
 
-    self.updatePath(src_parent, idx, sums);
+    self.updateBranchNodes(src_parent, idx, sums);
 
     self.allocator().removePage(src->id(), self.master_name());
 }

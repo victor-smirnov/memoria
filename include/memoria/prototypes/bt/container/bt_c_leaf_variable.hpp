@@ -342,13 +342,13 @@ bool M_TYPE::tryMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 
         self.updateChildren(tgt, tgt_size);
 
-        BranchNodeEntry sums        = self.sums(src_parent, parent_idx, parent_idx + 1);
+        BranchNodeEntry sums = self.sums(src_parent, parent_idx, parent_idx + 1);
 
         self.removeNonLeafNodeEntry(src_parent, parent_idx);
 
         Int idx = parent_idx - 1;
 
-        self.updatePath(src_parent, idx, sums);
+        self.updateBranchNodes(src_parent, idx, sums);
 
         self.allocator().removePage(src->id(), self.master_name());
 

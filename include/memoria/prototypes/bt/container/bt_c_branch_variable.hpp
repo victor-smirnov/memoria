@@ -39,13 +39,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchVariableName)
 
     typedef typename Base::Metadata                                             Metadata;
 
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
+    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
-    typedef std::function<BranchNodeEntry (NodeBaseG&, NodeBaseG&)>                 SplitFn;
-
+    typedef std::function<BranchNodeEntry (NodeBaseG&, NodeBaseG&)>             SplitFn;
 
     static const Int Streams                                                    = Types::Streams;
 
@@ -62,13 +61,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchVariableName)
     bool updateNode(NodeBaseG& node, Int idx, const UpdateData& sums);
 
     template <typename UpdateData>
-    void updatePath(NodeBaseG& node, Int& idx, const UpdateData& sums);
+    void updateBranchNodes(NodeBaseG& node, Int& idx, const UpdateData& sums);
 
     template <typename UpdateData>
     void update_parent(NodeBaseG& node, const UpdateData& sums);
 
     template <typename UpdateData>
-    void updatePathNoBackup(NodeBaseG& node, Int idx, const UpdateData& sums);
+    void updateBranchNodesNoBackup(NodeBaseG& node, Int idx, const UpdateData& sums);
 
 
     MEMORIA_DECLARE_NODE_FN(TryMergeNodesFn, mergeWith);
@@ -101,7 +100,7 @@ void M_TYPE::insertToBranchNodeP(
     {
         NodeBaseG parent = self.getNodeParentForUpdate(node);
         Int parent_idx = node->parent_idx();
-        self.updatePath(parent, parent_idx, sums);
+        self.updateBranchNodes(parent, parent_idx, sums);
     }
 }
 
@@ -129,7 +128,7 @@ typename M_TYPE::NodeBaseG M_TYPE::splitP(NodeBaseG& left_node, SplitFn split_fn
 
     Int parent_idx   = left_node->parent_idx();
 
-    self.updatePathNoBackup(left_parent, parent_idx, -sums);
+    self.updateBranchNodesNoBackup(left_parent, parent_idx, -sums);
 
     PageUpdateMgr mgr(self);
     mgr.add(left_parent);
@@ -202,7 +201,7 @@ bool M_TYPE::updateNode(NodeBaseG& node, Int idx, const UpdateData& sums)
 
 M_PARAMS
 template <typename UpdateData>
-void M_TYPE::updatePath(NodeBaseG& node, Int& idx, const UpdateData& sums)
+void M_TYPE::updateBranchNodes(NodeBaseG& node, Int& idx, const UpdateData& sums)
 {
     auto& self = this->self();
 
@@ -230,7 +229,7 @@ void M_TYPE::updatePath(NodeBaseG& node, Int& idx, const UpdateData& sums)
         Int parent_idx = node->parent_idx();
         NodeBaseG parent = self.getNodeParentForUpdate(node);
 
-        self.updatePath(parent, parent_idx, sums);
+        self.updateBranchNodes(parent, parent_idx, sums);
     }
 }
 
@@ -247,7 +246,7 @@ void M_TYPE::update_parent(NodeBaseG& node, const UpdateData& sums)
     {
         NodeBaseG parent = self.getNodeParentForUpdate(node);
         Int parent_idx = node->parent_idx();
-        self.updatePath(parent, parent_idx, sums);
+        self.updateBranchNodes(parent, parent_idx, sums);
     }
 }
 
@@ -256,7 +255,7 @@ void M_TYPE::update_parent(NodeBaseG& node, const UpdateData& sums)
 
 M_PARAMS
 template <typename UpdateData>
-void M_TYPE::updatePathNoBackup(NodeBaseG& node, Int idx, const UpdateData& sums)
+void M_TYPE::updateBranchNodesNoBackup(NodeBaseG& node, Int idx, const UpdateData& sums)
 {
     auto& self = this->self();
 
@@ -267,7 +266,7 @@ void M_TYPE::updatePathNoBackup(NodeBaseG& node, Int idx, const UpdateData& sums
         Int parent_idx = node->parent_idx();
         NodeBaseG parent = self.getNodeParentForUpdate(node);
 
-        self.updatePathNoBackup(parent, parent_idx, sums);
+        self.updateBranchNodesNoBackup(parent, parent_idx, sums);
     }
 }
 
@@ -302,7 +301,7 @@ bool M_TYPE::tryMergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src)
 
         Int idx = parent_idx - 1;
 
-        self.updatePath(src_parent, idx, sums);
+        self.updateBranchNodes(src_parent, idx, sums);
 
         self.allocator().removePage(src->id(), self.master_name());
 

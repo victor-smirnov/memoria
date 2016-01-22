@@ -294,7 +294,7 @@ void M_TYPE::doMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src)
 
     Int idx = parent_idx - 1;
 
-    self.updatePath(src_parent, idx, sums);
+    self.updateBranchNodes(src_parent, idx, sums);
 
     self.allocator().removePage(src->id(), self.master_name());
 }
