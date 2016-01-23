@@ -43,6 +43,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavName)
 
     	auto delta = key - self.prefix();
 
+    	MEMORIA_ASSERT_TRUE(delta > 0);
+
     	self.ctr().insert_entry(
     			self,
     			InputTupleAdapter<0>::convert(core::StaticVector<Key, 1>({delta}), core::StaticVector<Value, 1>{value})

@@ -89,64 +89,6 @@ struct VLDBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
 namespace {
 
-	template <typename State, typename Element>
-	struct PackedStructsIndexesSum
-	{
-		static constexpr Int Value = StructSizeProvider<Element>::Value + State::Value;
-	};
-
-	template <typename Element>
-	struct PackedStructsIndexesSum<EmptyType, Element>
-	{
-		static constexpr Int Value = StructSizeProvider<Element>::Value;
-	};
-
-	template <>
-	struct PackedStructsIndexesSum<EmptyType, EmptyType>
-	{
-		static constexpr Int Value = 0;
-	};
-
-
-
-	template <typename LeafStruct, template <typename, Int> class BranchStructTF>
-	struct BTBuildBranchStruct
-	{
-		using Type = typename BranchStructTF<
-				BigInt,
-				StructSizeProvider<LeafStruct>::Value
-		>::Type;
-	};
-
-	template <typename... LeafStructs, template <typename, Int> class BranchStructTF>
-	struct BTBuildBranchStruct<TL<LeafStructs...>, BranchStructTF>
-	{
-		using Type = typename BranchStructTF<
-				BigInt,
-				FoldTLRight<TL<LeafStructs...>, PackedStructsIndexesSum>::Type::Value
-		>::Type;
-	};
-
-
-
-	template <typename LeafStruct, template <typename, Int> class BranchStructTF>
-	struct BTBuildBranchStructSS: HasType<
-		typename BranchStructTF<
-				BigInt,
-				StructSizeProvider<LeafStruct>::Value + 1
-		>::Type
-	>{};
-
-	template <typename... LeafStructs, template <typename, Int> class BranchStructTF>
-	struct BTBuildBranchStructSS<TL<LeafStructs...>, BranchStructTF>: HasType<
-		typename BranchStructTF<
-				BigInt,
-				FoldTLRight<TL<LeafStructs...>, PackedStructsIndexesSum>::Type::Value + 1
-		>::Type
-	>{};
-
-
-
 	template <typename List> struct CheckKeysHaveSameType;
 
 	template <typename PkdStruct1, typename PkdStruct2, typename... Tail>
@@ -190,16 +132,16 @@ namespace {
 	};
 
 
-	template <typename T1, typename T2, bool LT = sizeof(T1) < sizeof(T2) > struct SeletMaxTypeT;
+	template <typename T1, typename T2, bool LT = sizeof(T1) < sizeof(T2) > struct SelectMaxTypeT;
 
 	template <typename T1, typename T2>
-	using SeletMaxType = typename SeletMaxTypeT<T1, T2>::Type;
+	using SelectMaxType = typename SelectMaxTypeT<T1, T2>::Type;
 
 	template <typename T1, typename T2>
-	struct SeletMaxTypeT<T1, T2, true>: HasType<T2> {};
+	struct SelectMaxTypeT<T1, T2, true>: HasType<T2> {};
 
 	template <typename T1, typename T2>
-	struct SeletMaxTypeT<T1, T2, false>: HasType<T1> {};
+	struct SelectMaxTypeT<T1, T2, false>: HasType<T1> {};
 
 
 	template <typename List> struct GetSUPSearchKeyTypeT;
@@ -207,7 +149,7 @@ namespace {
 
 	template <PkdSearchType SearchType, typename KeyType, Int Indexes, typename... Tail>
 	struct GetSUPSearchKeyTypeT<TL<IdxSearchType<SearchType, KeyType, Indexes>, Tail...>>: HasType <
-		SeletMaxType<
+		SelectMaxType<
 				KeyType,
 				GetSUPSearchKeyType<TL<Tail...>>
 		>
@@ -215,9 +157,6 @@ namespace {
 
 	template <PkdSearchType SearchType, typename KeyType, Int Indexes>
 	struct GetSUPSearchKeyTypeT<TL<IdxSearchType<SearchType, KeyType, Indexes>>>: HasType <KeyType> {};
-
-
-
 
 	template <typename List> struct BuildKeyMetadataListT;
 

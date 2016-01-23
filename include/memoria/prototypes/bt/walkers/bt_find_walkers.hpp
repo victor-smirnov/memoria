@@ -222,10 +222,6 @@ public:
 	{
         auto size = stream->size();
 
-        if (DebugCounter) {
-        	stream->dump();
-        }
-
 		Base::branch_size_prefix()[StreamIdx] += size;
 	}
 

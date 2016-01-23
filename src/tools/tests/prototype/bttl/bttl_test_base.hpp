@@ -141,11 +141,6 @@ public:
     	return shape;
     }
 
-//    virtual void checkAllocator(const char* msg, const char* source)
-//    {
-//    	::memoria::check<Allocator>(*this->allocator_.get(), msg, source);
-//    }
-
     template <typename Provider>
     CtrSizesT fillCtr(Ctr& ctr, Provider& provider)
     {
@@ -154,6 +149,11 @@ public:
     	long t0 = getTimeInMillis();
 
     	auto totals = ctr._insert(iter, provider);
+
+    	this->allocator()->commit();
+
+    	if (dump)
+    		this->storeAllocator("core.dump");
 
     	this->checkAllocator("Bulk Insertion", MA_SRC);
 
@@ -172,10 +172,7 @@ public:
 
     	AssertEQ(MA_SRC, ctr_totals, sizes);
 
-    	this->allocator()->commit();
 
-    	if (dump)
-    		this->storeAllocator("core.dump");
 
     	return totals;
     }

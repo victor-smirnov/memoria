@@ -187,7 +187,7 @@ bool M_TYPE::checkTypedNodeContent(const Node1 *parent, const Node2* node, Int p
     bool errors = false;
 
     BranchNodeEntry sums;
-    node->sums(sums);
+    node->max(sums);
 
     BranchNodeEntry keys = parent->keysAt(parent_idx);
 

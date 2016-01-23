@@ -44,7 +44,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchVariableName)
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
-    typedef std::function<BranchNodeEntry (NodeBaseG&, NodeBaseG&)>             SplitFn;
+    typedef std::function<void (NodeBaseG&, NodeBaseG&)>             			SplitFn;
 
     static const Int Streams                                                    = Types::Streams;
 
@@ -57,17 +57,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchVariableName)
 
     MEMORIA_DECLARE_NODE_FN(UpdateNodeFn, updateUp);
 
-    template <typename UpdateData>
-    bool updateBranchNode(NodeBaseG& node, Int idx, const UpdateData& sums);
 
-    template <typename UpdateData>
-    void updateBranchNodes(NodeBaseG& node, Int& idx, const UpdateData& sums);
+    bool updateBranchNode(NodeBaseG& node, Int idx, const BranchNodeEntry& entry);
 
-    template <typename UpdateData>
-    void update_parent(NodeBaseG& node, const UpdateData& sums);
+    void updateBranchNodes(NodeBaseG& node, Int& idx, const BranchNodeEntry& entry);
 
-    template <typename UpdateData>
-    void updateBranchNodesNoBackup(NodeBaseG& node, Int idx, const UpdateData& sums);
+    void update_parent(NodeBaseG& node, const BranchNodeEntry& sums);
+
+    void updateBranchNodesNoBackup(NodeBaseG& node, Int idx, const BranchNodeEntry& entry);
 
 
     MEMORIA_DECLARE_NODE_FN(TryMergeNodesFn, mergeWith);
@@ -100,7 +97,9 @@ void M_TYPE::insertToBranchNodeP(
     {
         NodeBaseG parent = self.getNodeParentForUpdate(node);
         Int parent_idx = node->parent_idx();
-        self.updateBranchNodes(parent, parent_idx, sums);
+
+        auto max = self.max(node);
+        self.updateBranchNodes(parent, parent_idx, max);
     }
 }
 
@@ -120,23 +119,26 @@ typename M_TYPE::NodeBaseG M_TYPE::splitP(NodeBaseG& left_node, SplitFn split_fn
         self.updatePageG(left_node);
     }
 
-    NodeBaseG left_parent  = self.getNodeParentForUpdate(left_node);
+    NodeBaseG left_parent = self.getNodeParentForUpdate(left_node);
 
-    NodeBaseG other  = self.createNode1(left_node->level(), false, left_node->is_leaf(), left_node->page_size());
+    NodeBaseG right_node = self.createNode1(left_node->level(), false, left_node->is_leaf(), left_node->page_size());
 
-    BranchNodeEntry sums = split_fn(left_node, other);
+    split_fn(left_node, right_node);
 
-    Int parent_idx   = left_node->parent_idx();
+    auto left_max  = self.max(left_node);
+    auto right_max = self.max(right_node);
 
-    self.updateBranchNodesNoBackup(left_parent, parent_idx, -sums);
+    Int parent_idx = left_node->parent_idx();
+
+    self.updateBranchNodes(left_parent, parent_idx, left_max);
 
     PageUpdateMgr mgr(self);
     mgr.add(left_parent);
 
     try {
-        self.insertToBranchNodeP(left_parent, parent_idx + 1, sums, other->id());
+        self.insertToBranchNodeP(left_parent, parent_idx + 1, right_max, right_node->id());
     }
-    catch (PackedOOMException ex)
+    catch (PackedOOMException& ex)
     {
         mgr.rollback();
 
@@ -145,21 +147,21 @@ typename M_TYPE::NodeBaseG M_TYPE::splitP(NodeBaseG& left_node, SplitFn split_fn
         mgr.add(right_parent);
 
         try {
-            self.insertToBranchNodeP(right_parent, 0, sums, other->id());
+            self.insertToBranchNodeP(right_parent, 0, right_max, right_node->id());
         }
-        catch (PackedOOMException ex2)
+        catch (PackedOOMException& ex2)
         {
             mgr.rollback();
 
-            Int right_parent_size = self.template getNodeSize(right_parent, 0);
+            Int right_parent_size = self.getNodeSize(right_parent, 0);
 
             splitPathP(right_parent, right_parent_size / 2);
 
-            self.insertToBranchNodeP(right_parent, 0, sums, other->id());
+            self.insertToBranchNodeP(right_parent, 0, right_max, right_node->id());
         }
     }
 
-    return other;
+    return right_node;
 }
 
 M_PARAMS
@@ -175,8 +177,7 @@ typename M_TYPE::NodeBaseG M_TYPE::splitPathP(NodeBaseG& left_node, Int split_at
 
 
 M_PARAMS
-template <typename UpdateData>
-bool M_TYPE::updateBranchNode(NodeBaseG& node, Int idx, const UpdateData& sums)
+bool M_TYPE::updateBranchNode(NodeBaseG& node, Int idx, const BranchNodeEntry& entry)
 {
     auto& self = this->self();
 
@@ -185,7 +186,7 @@ bool M_TYPE::updateBranchNode(NodeBaseG& node, Int idx, const UpdateData& sums)
     mgr.add(node);
 
     try {
-        BranchDispatcher::dispatch(node, UpdateNodeFn(), idx, sums);
+        BranchDispatcher::dispatch(node, UpdateNodeFn(), idx, entry);
         return true;
     }
     catch (PackedOOMException ex)
@@ -200,14 +201,13 @@ bool M_TYPE::updateBranchNode(NodeBaseG& node, Int idx, const UpdateData& sums)
 
 
 M_PARAMS
-template <typename UpdateData>
-void M_TYPE::updateBranchNodes(NodeBaseG& node, Int& idx, const UpdateData& sums)
+void M_TYPE::updateBranchNodes(NodeBaseG& node, Int& idx, const BranchNodeEntry& entry)
 {
     auto& self = this->self();
 
     self.updatePageG(node);
 
-    if (!self.updateBranchNode(node, idx, sums))
+    if (!self.updateBranchNode(node, idx, entry))
     {
         Int size        = self.getNodeSize(node, 0);
         Int split_idx   = size / 2;
@@ -220,7 +220,7 @@ void M_TYPE::updateBranchNodes(NodeBaseG& node, Int& idx, const UpdateData& sums
             node = right;
         }
 
-        bool result = self.updateBranchNode(node, idx, sums);
+        bool result = self.updateBranchNode(node, idx, entry);
         MEMORIA_ASSERT_TRUE(result);
     }
 
@@ -229,7 +229,8 @@ void M_TYPE::updateBranchNodes(NodeBaseG& node, Int& idx, const UpdateData& sums
         Int parent_idx = node->parent_idx();
         NodeBaseG parent = self.getNodeParentForUpdate(node);
 
-        self.updateBranchNodes(parent, parent_idx, sums);
+        auto max = self.max(node);
+        self.updateBranchNodes(parent, parent_idx, max);
     }
 }
 
@@ -237,8 +238,7 @@ void M_TYPE::updateBranchNodes(NodeBaseG& node, Int& idx, const UpdateData& sums
 
 
 M_PARAMS
-template <typename UpdateData>
-void M_TYPE::update_parent(NodeBaseG& node, const UpdateData& sums)
+void M_TYPE::update_parent(NodeBaseG& node, const BranchNodeEntry& entry)
 {
     auto& self = this->self();
 
@@ -246,7 +246,7 @@ void M_TYPE::update_parent(NodeBaseG& node, const UpdateData& sums)
     {
         NodeBaseG parent = self.getNodeParentForUpdate(node);
         Int parent_idx = node->parent_idx();
-        self.updateBranchNodes(parent, parent_idx, sums);
+        self.updateBranchNodes(parent, parent_idx, entry);
     }
 }
 
@@ -254,19 +254,18 @@ void M_TYPE::update_parent(NodeBaseG& node, const UpdateData& sums)
 
 
 M_PARAMS
-template <typename UpdateData>
-void M_TYPE::updateBranchNodesNoBackup(NodeBaseG& node, Int idx, const UpdateData& sums)
+void M_TYPE::updateBranchNodesNoBackup(NodeBaseG& node, Int idx, const BranchNodeEntry& entry)
 {
     auto& self = this->self();
 
-    self.updateBranchNode(node, idx, sums);
+    self.updateBranchNode(node, idx, entry);
 
     if(!node->is_root())
     {
         Int parent_idx = node->parent_idx();
         NodeBaseG parent = self.getNodeParentForUpdate(node);
 
-        self.updateBranchNodesNoBackup(parent, parent_idx, sums);
+        self.updateBranchNodesNoBackup(parent, parent_idx, entry);
     }
 }
 
@@ -295,13 +294,13 @@ bool M_TYPE::tryMergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src)
 
         self.updateChildren(tgt, tgt_size);
 
-        BranchNodeEntry sums        = self.sums(src_parent, parent_idx, parent_idx + 1);
+        auto max = self.max(tgt);
 
         self.removeNonLeafNodeEntry(src_parent, parent_idx);
 
         Int idx = parent_idx - 1;
 
-        self.updateBranchNodes(src_parent, idx, sums);
+        self.updateBranchNodes(src_parent, idx, max);
 
         self.allocator().removePage(src->id(), self.master_name());
 

@@ -532,12 +532,12 @@ public:
 	{
 		CtrT::Types::Pages::LeafDispatcher::dispatch(leaf, InsertBufferFn(), at, start_, sizes, buffer_);
 
-		auto end = at + sizes;
+//		auto end = at + sizes;
 
 		if (leaf->parent_id().isSet())
 		{
-			auto sums = ctr().sums(leaf, at, end);
-			ctr().update_parent(leaf, sums);
+			auto max = ctr().max(leaf);
+			ctr().update_parent(leaf, max);
 		}
 
 		updateLeafAnchors(leaf, at, sizes);
@@ -942,13 +942,12 @@ public:
 			{
 				//TODO update leaf's parents here
 
-				auto end = pos + inserted;
+//				auto end = pos + inserted;
 
 				if (leaf->parent_id().isSet())
 				{
-					auto sums = ctr().sums(leaf, pos, end);
-//					cout<<"Update Parent: "<<leaf->id()<<" "<<sums<<" parent:  "<<leaf->parent_id()<<" "<<leaf->parent_idx()<<endl;
-					ctr().update_parent(leaf, sums);
+					auto max = ctr().max(leaf);
+					ctr().update_parent(leaf, max);
 				}
 
 				auto next_leaf = applyAnchorValues(mgr, leaf, pos, inserted);
@@ -1243,8 +1242,6 @@ private:
 
 					ctr.split_leaf_node(leaf, next_leaf, split_at);
 				}
-
-//				cout<<"Split1 page: "<<leaf->id()<<leaf->parent_idx()<<" "<<next_leaf->id()<<" "<<next_leaf->parent_id()<<" "<<next_leaf->parent_idx()<<endl;
 
 				if (this->split_watcher_.first == leaf) {
 					this->split_watcher_.second = next_leaf;

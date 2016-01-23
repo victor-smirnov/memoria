@@ -951,7 +951,7 @@ public:
     {
         BranchNodeEntry sums;
 
-        this->sums(room_start, room_end, sums);
+//        this->sums(room_start, room_end, sums);
         removeSpace(room_start, room_end);
 
         return -sums;
@@ -1114,7 +1114,7 @@ public:
         MEMORIA_ASSERT(split_idx, <=, size);
 
         BranchNodeEntry result;
-        this->sums(split_idx, size, result);
+//        this->sums(split_idx, size, result);
 
         Dispatcher::dispatchNotEmpty(allocator(), SplitToFn(), other, split_idx);
 
@@ -1249,6 +1249,19 @@ public:
         Dispatcher::dispatch(stream, allocator(), SumsFn(), block_num, start, end, accum);
     }
 
+
+    struct MaxFn {
+    	template <Int Idx, typename StreamType>
+    	void stream(const StreamType* obj, BranchNodeEntry& accum)
+    	{
+    		obj->max(std::get<Idx>(accum));
+    	}
+    };
+
+    void max(BranchNodeEntry& entry) const
+    {
+        Dispatcher::dispatchNotEmpty(allocator(), MaxFn(), entry);
+    }
 
 
 
@@ -1435,7 +1448,7 @@ public:
         template <Int Idx, typename StreamType>
         void stream(StreamType* tree, Int idx, const BranchNodeEntry& accum)
         {
-            tree->addValues(idx, std::get<Idx>(accum));
+            tree->setValues(idx, std::get<Idx>(accum));
         }
     };
 

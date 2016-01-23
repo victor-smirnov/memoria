@@ -122,7 +122,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchFixedName)
     		{
     			NodeBaseG child = child_fn();
 
-    			subtrees[i].accum() 	= self.sums(child);
+    			subtrees[i].accum() 	= self.max(child);
     			subtrees[i].child_id() 	= child->id();
 
     			child->parent_id() = node->id();
@@ -141,7 +141,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchFixedName)
 
     	if (update_hierarchy)
     	{
-    		BranchNodeEntry sums = self.sums(node, idx, max);
+    		BranchNodeEntry sums = self.max(node);
     		self.update_parent(node, sums);
     		self.updateChildIndexes(node, max);
     	}

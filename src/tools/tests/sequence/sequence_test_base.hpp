@@ -11,7 +11,7 @@
 #include <memoria/tools/profile_tests.hpp>
 
 #include <memoria/core/packed/wrappers/symbol_sequence.hpp>
-
+#include <memoria/core/packed/tools/packed_struct_ptrs.hpp>
 
 #include <vector>
 

@@ -55,10 +55,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveName)
     			throw Exception(MA_SRC, "Second removal attempt failed");
     		}
 
-    		self.update_parent(iter.leaf(), std::get<1>(result));
+    		auto max = self.max(iter.leaf());
+
+    		self.update_parent(iter.leaf(), max);
     	}
     	else {
-    		self.update_parent(iter.leaf(), std::get<1>(result));
+    		auto max = self.max(iter.leaf());
+
+    		self.update_parent(iter.leaf(), max);
 
     		auto next = self.getNextNodeP(iter.leaf());
 

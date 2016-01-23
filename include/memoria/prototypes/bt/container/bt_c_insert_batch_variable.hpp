@@ -68,7 +68,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchVariableName)
     {
     	auto& self = this->self();
 
-    	Int idx0 = idx;
+//    	Int idx0 = idx;
 
     	Int batch_size = 32;
 
@@ -96,7 +96,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchVariableName)
     				child->parent_id() 	= node->id();
     				child->parent_idx() = idx + c;
 
-        			BranchNodeEntry sums = self.sums(child);
+        			BranchNodeEntry sums = self.max(child);
         			BranchDispatcher::dispatch(node, InsertChildFn(), idx + c, sums, child->id());
     			}
 
@@ -121,7 +121,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchVariableName)
 
     	if (update_hierarchy)
     	{
-    		BranchNodeEntry sums = self.sums(node, idx0, idx);
+    		BranchNodeEntry sums = self.max(node);
     		self.update_parent(node, sums);
     		self.updateChildIndexes(node, idx);
     	}
@@ -336,7 +336,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchVariableName)
 
     				if (provider.size() == 0)
     				{
-    					auto sums = self.sums(next, 0, next_result.idx());
+    					auto sums = self.max(next);
     					self.update_parent(next, sums);
 
     					self.updateChildIndexes(next, next_result.idx());

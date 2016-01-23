@@ -86,7 +86,7 @@ public:
 
                 this->checkIterator(iter, MEMORIA_SOURCE);
 
-                Base::check(allocator, MEMORIA_SOURCE);
+                Base::forceCheck(allocator, MEMORIA_SOURCE);
 
                 PairVector tmp = pairs_sorted;
 
@@ -133,7 +133,7 @@ public:
 
         Base::checkIterator(iter, MEMORIA_SOURCE);
 
-        Base::check(allocator, MEMORIA_SOURCE);
+        Base::forceCheck(allocator, MEMORIA_SOURCE);
 
         appendToSortedVector(pairs_sorted, pairs[vector_idx_]);
 
@@ -192,9 +192,9 @@ public:
 //            Iterator i2 = ctr.RBegin();
 //            AssertEQ(MA_SRC, i2.key(), v[v.size() - 1]);
 
-            Iterator i3 = ctr.End();
-            AssertTrue(MA_SRC, i3.isEnd());
-            AssertEQ(MA_SRC, i3.idx(), ctr.getNodeSize(i3.leaf(), 0));
+//            Iterator i3 = ctr.End();
+//            AssertTrue(MA_SRC, i3.isEnd());
+//            AssertEQ(MA_SRC, i3.idx(), ctr.getNodeSize(i3.leaf(), 0));
 
 //            Iterator i4 = ctr.REnd();
 //            AssertTrue(MA_SRC, i4.isBegin());

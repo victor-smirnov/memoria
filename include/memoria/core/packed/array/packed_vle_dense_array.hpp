@@ -293,26 +293,32 @@ public:
 
 
 
-    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
-    void sum(AccumItem<T, Size>& accum) const
+    template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
+    void max(BranchNodeEntryItem<T, Size>& accum) const
     {
     	static_assert(Offset <= Size, "Invalid balanced tree structure");
     }
 
-    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
-    void sum(Int start, Int end, AccumItem<T, Size>& accum) const
+    template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
+    void sum(BranchNodeEntryItem<T, Size>& accum) const
     {
     	static_assert(Offset <= Size, "Invalid balanced tree structure");
     }
 
-    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
-    void sub(Int start, AccumItem<T, Size>& accum) const
+    template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
+    void sum(Int start, Int end, BranchNodeEntryItem<T, Size>& accum) const
     {
     	static_assert(Offset <= Size, "Invalid balanced tree structure");
     }
 
-    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
-    void sum(Int idx, AccumItem<T, Size>& accum) const
+    template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
+    void sub(Int start, BranchNodeEntryItem<T, Size>& accum) const
+    {
+    	static_assert(Offset <= Size, "Invalid balanced tree structure");
+    }
+
+    template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
+    void sum(Int idx, BranchNodeEntryItem<T, Size>& accum) const
     {
     	static_assert(Offset <= Size, "Invalid balanced tree structure");
     }
@@ -683,16 +689,16 @@ public:
 
 
 
-    template <Int Offset, Int Size, typename T1, typename T2, template <typename, Int> class AccumItem>
-    void _insert(Int idx, const core::StaticVector<T1, Blocks>& values, AccumItem<T2, Size>& accum)
+    template <Int Offset, Int Size, typename T1, typename T2, template <typename, Int> class BranchNodeEntryItem>
+    void _insert(Int idx, const core::StaticVector<T1, Blocks>& values, BranchNodeEntryItem<T2, Size>& accum)
     {
     	insert(idx, values);
 
     	sum<Offset>(idx, accum);
     }
 
-    template <Int Offset, Int Size, typename T1, typename T2, template <typename, Int> class AccumItem>
-    void _update(Int idx, const core::StaticVector<T1, Blocks>& values, AccumItem<T2, Size>& accum)
+    template <Int Offset, Int Size, typename T1, typename T2, template <typename, Int> class BranchNodeEntryItem>
+    void _update(Int idx, const core::StaticVector<T1, Blocks>& values, BranchNodeEntryItem<T2, Size>& accum)
     {
     	sub<Offset>(idx, accum);
 
@@ -702,8 +708,8 @@ public:
     }
 
 
-    template <Int Offset, Int Size, typename T1, typename T2, typename I, template <typename, Int> class AccumItem>
-    void _update(Int idx, const std::pair<T1, I>& values, AccumItem<T2, Size>& accum)
+    template <Int Offset, Int Size, typename T1, typename T2, typename I, template <typename, Int> class BranchNodeEntryItem>
+    void _update(Int idx, const std::pair<T1, I>& values, BranchNodeEntryItem<T2, Size>& accum)
     {
     	sub<Offset>(idx, accum);
 
@@ -712,8 +718,8 @@ public:
     	sum<Offset>(idx, accum);
     }
 
-    template <Int Offset, Int Size, typename T, template <typename, Int> class AccumItem>
-    void _remove(Int idx, AccumItem<T, Size>& accum)
+    template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
+    void _remove(Int idx, BranchNodeEntryItem<T, Size>& accum)
     {
     	sub<Offset>(idx, accum);
     	remove(idx, idx + 1);

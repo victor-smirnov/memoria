@@ -29,8 +29,10 @@ public:
 
     MapTestSuite(): TestSuite("MapSuite")
     {
-    	registerTask(new MapRemoveTest<Map<BigInt, BigInt>>("MapX.Remove"));
-    	registerTask(new MapCreateTest<Map<BigInt, BigInt>>("MapX.Create"));
+    	registerTask(new MapRemoveTest<Map<BigInt, BigInt>>("MapF.Remove"));
+    	registerTask(new MapCreateTest<Map<BigInt, BigInt>>("MapF.Create"));
+    	registerTask(new MapCreateTest<Map<double, BigInt>>("MapM.Create"));
+    	registerTask(new MapCreateTest<Map<double, BigInt>>("MapM.Remove"));
     }
 
 };

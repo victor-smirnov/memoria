@@ -96,9 +96,9 @@ void M_TYPE::newRootP(NodeBaseG& root)
 
     self.root2Node(root);
 
-    BranchNodeEntry keys = self.sums(root);
+    BranchNodeEntry max = self.max(root);
 
-    self.insertToBranchNodeP(new_root, 0, keys, root->id());
+    self.insertToBranchNodeP(new_root, 0, max, root->id());
 
     root->parent_id()  = new_root->id();
     root->parent_idx() = 0;

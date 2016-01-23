@@ -799,9 +799,9 @@ public:
     {
         BranchNodeEntry result;
 
-        Position sizes = this->sizes();
+//        Position sizes = this->sizes();
 
-        sums(from, sizes, result);
+//        sums(from, sizes, result);
 
         this->processSubstreamGroups(SplitToFn(), other, from);
 
@@ -882,6 +882,26 @@ public:
     };
 
 
+    struct BranchNodeEntryMaxHandler
+    {
+
+    	template <Int Offset, bool StreamStart, Int Idx, typename StreamType, typename TupleItem>
+    	void stream(const StreamType* obj, TupleItem& accum)
+    	{
+    		if (obj != nullptr)
+    		{
+    			if (StreamStart)
+    			{
+    				accum[Offset - 1] += obj->size();
+    			}
+
+    			obj->template max<Offset>(accum);
+    		}
+    	}
+    };
+
+
+
     void sums(Int start, Int end, BranchNodeEntry& sums) const
     {
         processAllSubstreamsAcc(BranchNodeEntryHandler(), sums, start, end);
@@ -915,17 +935,23 @@ public:
     	return processStream<Path>(LeafSumsFn(), std::forward<Args>(args)...);
     }
 
-    void sums(BranchNodeEntry& sums) const
+//    void sums(BranchNodeEntry& sums) const
+//    {
+//    	processAllSubstreamsAcc(BranchNodeEntryHandler(), sums);
+//    }
+//
+//    BranchNodeEntry sums() const
+//    {
+//        BranchNodeEntry sums;
+//        processAllSubstreamsAcc(BranchNodeEntryHandler(), sums);
+//        return sums;
+//    }
+
+    void max(BranchNodeEntry& entry) const
     {
-    	processAllSubstreamsAcc(BranchNodeEntryHandler(), sums);
+    	processAllSubstreamsAcc(BranchNodeEntryMaxHandler(), entry);
     }
 
-    BranchNodeEntry sums() const
-    {
-        BranchNodeEntry sums;
-        processAllSubstreamsAcc(BranchNodeEntryHandler(), sums);
-        return sums;
-    }
 
     struct SizeSumsFn {
     	template <Int ListIdx, typename Tree>

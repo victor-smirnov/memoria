@@ -33,7 +33,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(VTreeCtrBase)
     typedef typename Base::CtrShared                                            CtrShared;
 
     typedef LabeledTree<
-                FLabel<Short>,
+                FLabel<BigInt>,
                 VLabel<BigInt,
                     Granularity::Byte,
                     Indexed::Yes

@@ -162,6 +162,22 @@ public:
     }
 
 
+    template <typename T, typename A>
+    BigInt getUniqueBIRandom(const vector<T, A> &vec, BigInt limit)
+    {
+        Int value = getBIRandom(limit) + 1;
+
+        for (const T& item: vec)
+        {
+            if (item == value)
+            {
+                return getUniqueBIRandom(vec, limit);
+            }
+        }
+
+        return value;
+    }
+
     virtual void setUp()
     {
         pairs.clear();

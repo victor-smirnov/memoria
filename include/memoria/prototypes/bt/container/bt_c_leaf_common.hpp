@@ -40,7 +40,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
 
     typedef typename Base::Metadata                                             Metadata;
 
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
+    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;

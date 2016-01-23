@@ -192,6 +192,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
         return sums;
     }
 
+    MEMORIA_DECLARE_NODE_FN(MaxFn, max);
+    BranchNodeEntry max(const NodeBaseG& node) const
+    {
+    	BranchNodeEntry entry;
+    	NodeDispatcher::dispatch(node, MaxFn(), entry);
+    	return entry;
+    }
+
     template <typename Path>
     struct LeafSumsFn {
     	template <typename Node, typename... Args>

@@ -37,11 +37,8 @@ struct BTTLTestTypesBase: public BTTypes<Profile, BTTreeLayout> {
 
     using Base = BTTypes<Profile, BTTreeLayout>;
 
-    using ValueType = Byte;
-
-
     using Key 	= BigInt;
-    using Value	= Byte;
+    using Value	= BigInt;
 
     using CtrSizeT = BigInt;
 

@@ -40,12 +40,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchFixedName)
 
     typedef typename Base::Metadata                                             Metadata;
 
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
+    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
-    typedef std::function<BranchNodeEntry (NodeBaseG&, NodeBaseG&)>                 SplitFn;
+    typedef std::function<void (NodeBaseG&, NodeBaseG&)>             			SplitFn;
 
     static const Int Streams                                                    = Types::Streams;
 
@@ -58,14 +58,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchFixedName)
     NodeBaseG splitP(NodeBaseG& node, SplitFn split_fn);
 
     MEMORIA_DECLARE_NODE_FN(UpdateNodeFn, updateUp);
-    template <typename UpdateData>
-    bool updateBranchNode(NodeBaseG& node, Int idx, const UpdateData& keys);
+    bool updateBranchNode(NodeBaseG& node, Int idx, const BranchNodeEntry& entry);
 
-    template <typename UpdateData>
-    void updateBranchNodes(NodeBaseG& node, Int& idx, const UpdateData& keys);
+    void updateBranchNodes(NodeBaseG& node, Int& idx, const BranchNodeEntry& entry);
 
-    template <typename UpdateData>
-    void update_parent(NodeBaseG& node, const UpdateData& sums);
+    void update_parent(NodeBaseG& node, const BranchNodeEntry& entry);
 
 
 
@@ -102,7 +99,8 @@ void M_TYPE::insertToBranchNodeP(NodeBaseG& node, Int idx, const BranchNodeEntry
     if (!node->is_root())
     {
         NodeBaseG parent = self.getNodeParentForUpdate(node);
-        self.updateBranchNodes(parent, node->parent_idx(), keys);
+        auto max = self.max(node);
+        self.updateBranchNodes(parent, node->parent_idx(), max);
     }
 }
 
@@ -121,25 +119,28 @@ typename M_TYPE::NodeBaseG M_TYPE::splitP(NodeBaseG& left_node, SplitFn split_fn
     self.updatePageG(left_node);
     NodeBaseG left_parent = self.getNodeParentForUpdate(left_node);
 
-    NodeBaseG other  = self.createNode1(left_node->level(), false, left_node->is_leaf(), left_node->page_size());
+    NodeBaseG right_node = self.createNode1(left_node->level(), false, left_node->is_leaf(), left_node->page_size());
 
-    BranchNodeEntry keys = split_fn(left_node, other);
+    split_fn(left_node, right_node);
 
-    Int parent_idx   = left_node->parent_idx();
+    auto left_max  = self.max(left_node);
+    auto right_max = self.max(right_node);
 
-    self.updateBranchNodes(left_parent, parent_idx, -keys);
+    Int parent_idx = left_node->parent_idx();
+
+    self.updateBranchNodes(left_parent, parent_idx, left_max);
 
     if (self.getBranchNodeCapacity(left_parent, -1) > 0)
     {
-        self.insertToBranchNodeP(left_parent, parent_idx + 1, keys, other->id());
+        self.insertToBranchNodeP(left_parent, parent_idx + 1, right_max, right_node->id());
     }
     else {
         NodeBaseG right_parent = splitPathP(left_parent, parent_idx + 1);
 
-        self.insertToBranchNodeP(right_parent, 0, keys, other->id());
+        self.insertToBranchNodeP(right_parent, 0, right_max, right_node->id());
     }
 
-    return other;
+    return right_node;
 }
 
 M_PARAMS
@@ -154,8 +155,7 @@ typename M_TYPE::NodeBaseG M_TYPE::splitPathP(NodeBaseG& left_node, Int split_at
 
 
 M_PARAMS
-template <typename UpdateData>
-bool M_TYPE::updateBranchNode(NodeBaseG& node, Int idx, const UpdateData& keys)
+bool M_TYPE::updateBranchNode(NodeBaseG& node, Int idx, const BranchNodeEntry& keys)
 {
     self().updatePageG(node);
     BranchDispatcher::dispatch(node, UpdateNodeFn(), idx, keys);
@@ -166,21 +166,22 @@ bool M_TYPE::updateBranchNode(NodeBaseG& node, Int idx, const UpdateData& keys)
 
 
 M_PARAMS
-template <typename UpdateData>
-void M_TYPE::updateBranchNodes(NodeBaseG& node, Int& idx, const UpdateData& keys)
+void M_TYPE::updateBranchNodes(NodeBaseG& node, Int& idx, const BranchNodeEntry& entry)
 {
     auto& self = this->self();
 
     NodeBaseG tmp = node;
 
-    self.updateBranchNode(tmp, idx, keys);
+    self.updateBranchNode(tmp, idx, entry);
 
     while(!tmp->is_root())
     {
-        Int parent_idx = tmp->parent_idx();
+        auto max 		= self.max(tmp);
+    	Int parent_idx 	= tmp->parent_idx();
+
         tmp = self.getNodeParentForUpdate(tmp);
 
-        self.updateBranchNode(tmp, parent_idx, keys);
+        self.updateBranchNode(tmp, parent_idx, max);
     }
 }
 
@@ -189,8 +190,7 @@ void M_TYPE::updateBranchNodes(NodeBaseG& node, Int& idx, const UpdateData& keys
 
 
 M_PARAMS
-template <typename UpdateData>
-void M_TYPE::update_parent(NodeBaseG& node, const UpdateData& sums)
+void M_TYPE::update_parent(NodeBaseG& node, const BranchNodeEntry& entry)
 {
     auto& self = this->self();
 
@@ -200,7 +200,7 @@ void M_TYPE::update_parent(NodeBaseG& node, const UpdateData& sums)
 
         Int parent_idx = node->parent_idx();
 
-        self.updateBranchNodes(parent, parent_idx, sums);
+        self.updateBranchNodes(parent, parent_idx, entry);
     }
 }
 
@@ -244,13 +244,13 @@ void M_TYPE::doMergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src)
 
     MEMORIA_ASSERT(parent_idx, >, 0);
 
-    BranchNodeEntry sums = self.sums(src_parent, parent_idx, parent_idx + 1);
+    auto max = self.max(tgt);
 
     self.removeNonLeafNodeEntry(src_parent, parent_idx);
 
     Int idx = parent_idx - 1;
 
-    self.updateBranchNodes(src_parent, idx, sums);
+    self.updateBranchNodes(src_parent, idx, max);
 
     self.allocator().removePage(src->id(), self.master_name());
 }

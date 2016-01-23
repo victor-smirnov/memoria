@@ -24,25 +24,31 @@ int main() {
 
 		cout<<"Dummy: "<<sizeof(DCtrTF<Map<double, BigInt>>::Types::Boo)<<endl;
 
-		using MapT  = DCtrTF<Map<double, BigInt>>::Type;
+		using MapT = DCtrTF<Map<BigInt, BigInt>>::Type;
 
 		MapT::initMetadata();
 
 		MapT map(&alloc);
 
-		auto iter = map.Begin();
+		try {
 
-		int size = 300;
+			auto iter = map.Begin();
 
-		for (int c = 0; c < size; c++) {
-			iter.insert(c + 1, c);
+			int size = 300;
+
+			for (int c = 0; c < size; c++) {
+				iter.insert((c + 1)*2, c);
+			}
+
+			iter = map.find(1);
+
+			while (!iter.isEnd()) {
+				cout<<iter.key()<<" -- "<<iter.value()<<endl;
+				iter++;
+			}
 		}
-
-		iter = map.find(1);
-
-		while (!iter.isEnd()) {
-			cout<<iter.key()<<" -- "<<iter.value()<<endl;
-			iter++;
+		catch (memoria::vapi::Exception& ex) {
+			cout<<ex.message()<<" at "<<ex.source()<<endl;
 		}
 
 		alloc.commit();

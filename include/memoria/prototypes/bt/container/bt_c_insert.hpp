@@ -75,7 +75,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertName)
     		split_status = SplitStatus::NONE;
     	}
 
-    	self.update_parent(iter.leaf(), std::get<1>(result));
+    	auto max = self.max(iter.leaf());
+
+    	self.update_parent(iter.leaf(), max);
 
     	return split_status;
     }

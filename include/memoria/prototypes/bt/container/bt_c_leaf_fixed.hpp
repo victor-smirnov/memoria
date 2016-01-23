@@ -288,13 +288,13 @@ void M_TYPE::doMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src)
 
     MEMORIA_ASSERT(parent_idx, >, 0);
 
-    BranchNodeEntry sums        = self.sums(src_parent, parent_idx, parent_idx + 1);
-
     self.removeNonLeafNodeEntry(src_parent, parent_idx);
 
     Int idx = parent_idx - 1;
 
-    self.updateBranchNodes(src_parent, idx, sums);
+    auto max = self.max(tgt);
+
+    self.updateBranchNodes(src_parent, idx, max);
 
     self.allocator().removePage(src->id(), self.master_name());
 }

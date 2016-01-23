@@ -72,7 +72,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::UpdateName)
     		}
     	}
 
-    	self.update_parent(iter.leaf(), std::get<1>(result));
+    	auto max = self.max(iter.leaf());
+
+    	self.update_parent(iter.leaf(), max);
     }
 
 

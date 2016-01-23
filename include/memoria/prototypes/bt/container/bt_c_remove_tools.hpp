@@ -136,7 +136,7 @@ void M_TYPE::removeNode(NodeBaseG& node, BranchNodeEntry& sums)
         });
     }
     else {
-        self.sums(node, sums);
+        sums = self.max(node);
     }
 
     self.allocator().removePage(node->id(), self.master_name());
@@ -211,11 +211,12 @@ void M_TYPE::removeNonLeafNodeEntry(NodeBaseG& node, Int start)
     MEMORIA_ASSERT_TRUE(!node->is_leaf());
 
     self.updatePageG(node);
-    BranchNodeEntry sums = BranchDispatcher::dispatch(node, RemoveNonLeafNodeEntryFn(), start, start + 1);
+    BranchDispatcher::dispatch(node, RemoveNonLeafNodeEntryFn(), start, start + 1);
 
     self.updateChildren(node, start);
 
-    self.update_parent(node, sums);
+    auto max = self.max(node);
+    self.update_parent(node, max);
 }
 
 

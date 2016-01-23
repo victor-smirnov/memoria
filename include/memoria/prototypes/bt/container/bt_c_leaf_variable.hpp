@@ -247,7 +247,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafVariableName)
     	 return self.updateAtomic(iter, std::forward<Fn>(fn), VLSelector(), std::forward<Fn>(args)...);
      }
 
-
+     // FIXME: not used
      NodeBaseG createNextLeaf(NodeBaseG& leaf);
 
      MEMORIA_DECLARE_NODE_FN(TryMergeNodesFn, mergeWith);
@@ -342,13 +342,13 @@ bool M_TYPE::tryMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 
         self.updateChildren(tgt, tgt_size);
 
-        BranchNodeEntry sums = self.sums(src_parent, parent_idx, parent_idx + 1);
+        BranchNodeEntry max = self.max(tgt);
 
         self.removeNonLeafNodeEntry(src_parent, parent_idx);
 
         Int idx = parent_idx - 1;
 
-        self.updateBranchNodes(src_parent, idx, sums);
+        self.updateBranchNodes(src_parent, idx, max);
 
         self.allocator().removePage(src->id(), self.master_name());
 
