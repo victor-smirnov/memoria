@@ -38,7 +38,7 @@ struct BTTLTestTypesBase: public BTTypes<Profile, BTTreeLayout> {
     using Base = BTTypes<Profile, BTTreeLayout>;
 
     using Key 	= BigInt;
-    using Value	= BigInt;
+    using Value	= Byte;
 
     using CtrSizeT = BigInt;
 
@@ -82,7 +82,7 @@ struct BTTLTestTypesBase: public BTTypes<Profile, BTTreeLayout> {
     >;
 
 
-    using RawStreamDescriptors = typename IfThenElse<
+    using RawStreamDescriptors = IfThenElse<
     		SizeType == PackedSizeType::FIXED,
 			MergeLists<
 				typename MakeList<StreamFixedTF, Levels - 1>::Type,
@@ -92,14 +92,14 @@ struct BTTLTestTypesBase: public BTTypes<Profile, BTTreeLayout> {
 				typename MakeList<StreamVariableTF, Levels - 1>::Type,
 				DataStreamTF
 			>
-    >::Result;
+    >;
 
 
-    using BTTLNavigationStruct = typename IfThenElse<
+    using BTTLNavigationStruct = IfThenElse<
     		SizeType == PackedSizeType::FIXED,
 			PkdFQTreeT<CtrSizeT, 1>,
 			PkdVQTreeT<CtrSizeT, 1, UByteI7Codec>
-    >::Result;
+    >;
 
 
     using StreamDescriptors = typename bttl::BTTLAugmentStreamDescriptors<

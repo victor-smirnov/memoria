@@ -65,8 +65,8 @@ namespace {
 
 
 	template <typename T, typename... Tail, Int MaxDepth>
-	struct LinearizeT<TypeList<T, Tail...>, MaxDepth> {
-		using Type = typename IfThenElse<
+	struct LinearizeT<TypeList<T, Tail...>, MaxDepth>: HasType<
+		IfThenElse<
 				ListDepth<T>::Value < MaxDepth,
 				MergeLists<
 					TypeList<T>,
@@ -76,8 +76,8 @@ namespace {
 					typename LinearizeT<T, MaxDepth>::Type,
 					typename LinearizeT<TypeList<Tail...>, MaxDepth>::Type
 				>
-		>::Result;
-	};
+		>
+	> {};
 
 
 	template <Int MaxDepth>

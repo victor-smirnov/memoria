@@ -52,11 +52,11 @@ class findColumn {
     struct Handler {
         static const bool Equal = Item::Name == Name;
         
-        typedef typename IfThenElse<
+        typedef IfThenElse<
                     Equal,
                     Item,
                     typename Accumulator::Result
-        >::Result                                                               Result;
+        >                                                               		Result;
     };
 
     struct Init {
@@ -74,7 +74,7 @@ class findColumn {
 
 public:
 
-    typedef typename IfThenElse<Found, Result0, ColumnNotFound<Name> >::Result  Result;
+    typedef IfThenElse<Found, Result0, ColumnNotFound<Name> >  					Result;
 };
 
 

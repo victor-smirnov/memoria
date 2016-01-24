@@ -44,11 +44,11 @@ struct TableBTTypesBase: public BTTypes<Profile, memoria::BTTreeLayout> {
 
     using Base = BTTypes<Profile, memoria::BTTreeLayout>;
 
-    using ValueType = typename IfThenElse<
+    using ValueType = IfThenElse<
                     IfTypesEqual<Value_, IDType>::Value,
                     typename Base::ID,
                     Value_
-    >::Result;
+    >;
 
 
     using Key 	= Key_;
@@ -98,7 +98,7 @@ struct TableBTTypesBase: public BTTypes<Profile, memoria::BTTreeLayout> {
     >;
 
 
-    using RawStreamDescriptors = typename IfThenElse<
+    using RawStreamDescriptors = IfThenElse<
     		SizeType == PackedSizeType::FIXED,
 			MergeLists<
 				FirstStreamFixedTF,
@@ -110,7 +110,7 @@ struct TableBTTypesBase: public BTTypes<Profile, memoria::BTTreeLayout> {
 				typename MakeList<StreamVariableTF, Levels - 2>::Type,
 				DataStreamTF
 			>
-    >::Result;
+    >;
 
     using StreamDescriptors = typename bttl::BTTLAugmentStreamDescriptors<
     		RawStreamDescriptors,

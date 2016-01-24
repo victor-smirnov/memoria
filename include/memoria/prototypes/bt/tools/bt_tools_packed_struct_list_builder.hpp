@@ -79,26 +79,27 @@ namespace   {
 
 
 
-template <typename List>
+template <typename SumType, typename List>
 class PackedLeafStructListBuilder;
 
-template <typename List>
+template <typename SumType, typename List>
 class PackedBranchStructListBuilder;
 
-template <typename List>
+template <typename SumType, typename List>
 class IteratorBranchNodeEntryListBuilder;
 
 
 
 template <
+	typename SumType,
     typename LeafType,
 	typename IdxRangeList,
 	template <typename> class BranchStructTF,
     typename... Tail
 >
-class PackedLeafStructListBuilder<TypeList<StreamTF<LeafType, IdxRangeList, BranchStructTF>, Tail...>> {
+class PackedLeafStructListBuilder<SumType, TypeList<StreamTF<LeafType, IdxRangeList, BranchStructTF>, Tail...>> {
 
-	using BranchType = typename BTStreamDescritorsBuilder<FlattenLeafTree<LeafType>, BranchStructTF>::Type;
+	using BranchType = typename BTStreamDescritorsBuilder<FlattenLeafTree<LeafType>, BranchStructTF, SumType>::Type;
 
     static_assert(
             true,//ValidateSubstreams<BranchType, LeafType>::Value,
@@ -111,6 +112,7 @@ public:
     using StructList = AppendItemToList<
                 LeafType,
                 typename PackedLeafStructListBuilder<
+					SumType,
                     TypeList<Tail...>
                 >::StructList
     >;
@@ -118,6 +120,7 @@ public:
     using StreamInputList = AppendItemToList<
     		typename MakeStreamEntryTL<Linearize<LeafType>>::Type,
     		typename PackedLeafStructListBuilder<
+				SumType,
     			TypeList<Tail...>
     		>::StreamInputList
     >;
@@ -125,6 +128,7 @@ public:
     using InputBufferList = AppendItemToList<
     		InputBufferType,
     		typename PackedLeafStructListBuilder<
+						SumType,
     					TypeList<Tail...>
     		>::InputBufferList
     >;
@@ -134,19 +138,21 @@ public:
 
 
 template <
+	typename SumType,
     typename LeafType,
 	typename IdxRangeList,
 	template <typename> class BranchStructTF,
     typename... Tail
 >
-class PackedBranchStructListBuilder<TypeList<StreamTF<LeafType, IdxRangeList, BranchStructTF>, Tail...>> {
+class PackedBranchStructListBuilder<SumType, TypeList<StreamTF<LeafType, IdxRangeList, BranchStructTF>, Tail...>> {
 
-    using BranchType = typename BTStreamDescritorsBuilder<FlattenLeafTree<LeafType>, BranchStructTF>::Type;
+    using BranchType = typename BTStreamDescritorsBuilder<FlattenLeafTree<LeafType>, BranchStructTF, SumType>::Type;
 
 public:
     using StructList = AppendItemToList<
                 BranchType,
                 typename PackedBranchStructListBuilder<
+					SumType,
                     TypeList<Tail...>
                 >::StructList
     >;
@@ -157,14 +163,15 @@ class Undefined;
 
 
 template <
+	typename SumType,
 	typename LeafType,
 	typename IdxRangeList,
 	template <typename> class BranchStructTF,
     typename... Tail
 >
-class IteratorBranchNodeEntryListBuilder<TypeList<StreamTF<LeafType, IdxRangeList, BranchStructTF>, Tail...>> {
+class IteratorBranchNodeEntryListBuilder<SumType, TypeList<StreamTF<LeafType, IdxRangeList, BranchStructTF>, Tail...>> {
 
-	using BranchType = typename BTStreamDescritorsBuilder<FlattenLeafTree<LeafType>, BranchStructTF>::Type;
+	using BranchType = typename BTStreamDescritorsBuilder<FlattenLeafTree<LeafType>, BranchStructTF, SumType>::Type;
 
 	using LeafStructList 	= FlattenLeafTree<LeafType>;
     using BranchStructList 	= FlattenBranchTree<BranchType>;
@@ -190,22 +197,22 @@ class IteratorBranchNodeEntryListBuilder<TypeList<StreamTF<LeafType, IdxRangeLis
 public:
     using AccumTuple = AppendItemToList<
     		AccType,
-    		typename IteratorBranchNodeEntryListBuilder<TypeList<Tail...>>::AccumTuple
+    		typename IteratorBranchNodeEntryListBuilder<SumType, TypeList<Tail...>>::AccumTuple
     >;
 
     using RangeOffsetList = AppendItemToList<
     		RangeOffsetListType,
-    		typename IteratorBranchNodeEntryListBuilder<TypeList<Tail...>>::RangeOffsetList
+    		typename IteratorBranchNodeEntryListBuilder<SumType, TypeList<Tail...>>::RangeOffsetList
     >;
 
     using IndexRangeList = AppendItemToList<
     		IdxRangeList,
-    		typename IteratorBranchNodeEntryListBuilder<TypeList<Tail...>>::IndexRangeList
+    		typename IteratorBranchNodeEntryListBuilder<SumType, TypeList<Tail...>>::IndexRangeList
     >;
 };
 
-template <>
-class PackedLeafStructListBuilder<TypeList<>> {
+template <typename SumType>
+class PackedLeafStructListBuilder<SumType, TypeList<>> {
 public:
     using StructList 		= TypeList<>;
     using StreamInputList 	= TypeList<>;
@@ -213,14 +220,14 @@ public:
 };
 
 
-template <>
-class PackedBranchStructListBuilder<TypeList<>> {
+template <typename SumType>
+class PackedBranchStructListBuilder<SumType, TypeList<>> {
 public:
     using StructList = TypeList<>;
 };
 
-template <>
-class IteratorBranchNodeEntryListBuilder<TypeList<>> {
+template <typename SumType>
+class IteratorBranchNodeEntryListBuilder<SumType, TypeList<>> {
 public:
     using AccumTuple 		= TypeList<>;
     using RangeOffsetList 	= TypeList<>;

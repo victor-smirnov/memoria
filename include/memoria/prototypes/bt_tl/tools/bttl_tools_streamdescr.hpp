@@ -51,11 +51,11 @@ namespace {
 		using LeafStreamsStructList = typename GetLeafList<StreamDescriptorsList>::Type;
 		static const PackedSizeType LeafSizeType = PackedListStructSizeType<Linearize<LeafStreamsStructList>>::Value;
 
-		using Type = typename IfThenElse<
+		using Type = IfThenElse<
 				LeafSizeType == PackedSizeType::FIXED,
 				PkdFQTreeT<CtrSizeT, 1>,
 				PkdVQTreeT<CtrSizeT, 1, UByteI7Codec>
-		>::Result;
+		>;
 	};
 
 

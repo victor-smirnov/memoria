@@ -41,11 +41,11 @@ class MinElement {
 
         static const ValueType MinValue = IsMin ? Value : Accumulator::MinValue;
 
-        typedef typename IfThenElse<
+        typedef IfThenElse<
                     IsMin,
                     Item,
                     typename Accumulator::MinElement
-        >::Result                                                               MinElement;
+        >                                                               		MinElement;
     };
 
     struct Init {
@@ -85,11 +85,11 @@ class MaxElement {
 
         static const ValueType MaxValue = IsMax ? Value : Accumulator::MaxValue;
 
-        typedef typename IfThenElse<
+        typedef IfThenElse<
                     IsMax,
                     Item,
                     typename Accumulator::MaxElement
-        >::Result                                                               MaxElement;
+        >                                                               		MaxElement;
     };
 
     struct Init {

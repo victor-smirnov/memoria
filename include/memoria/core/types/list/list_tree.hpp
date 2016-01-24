@@ -103,11 +103,11 @@ template <
     Int... PathTail
 >
 struct Subtree<TypeList<Head, Tail...>, IntList<Idx, PathTail...>, Idx> {
-    using Type = typename IfThenElse<
+    using Type = IfThenElse<
     		(sizeof...(PathTail) > 0),
     		typename Subtree<Head, IntList<PathTail...>>::Type,
     		Head
-    >::Result;
+    >;
 };
 
 template <

@@ -254,25 +254,26 @@ public:
     using NodePageBase0     = TreeNodeBase<typename ContainerTypes::Metadata, Page>;
     using NodePageBase0G    = PageGuard<NodePageBase0, typename ContainerTypes::Allocator>;
 
+    using CtrSizeT 					= typename ContainerTypes::CtrSizeT;
 
-    using BranchStreamsStructList 	= typename PackedBranchStructListBuilder<StreamDescriptors>::StructList;
+    using BranchStreamsStructList 	= typename PackedBranchStructListBuilder<CtrSizeT, StreamDescriptors>::StructList;
 
-    using LeafStreamsStructList 	= typename PackedLeafStructListBuilder<StreamDescriptors>::StructList;
-    using StreamsInputTypeList 		= typename PackedLeafStructListBuilder<StreamDescriptors>::StreamInputList;
-    using InputBufferStructList 	= typename PackedLeafStructListBuilder<StreamDescriptors>::InputBufferList;
+    using LeafStreamsStructList 	= typename PackedLeafStructListBuilder<CtrSizeT, StreamDescriptors>::StructList;
+    using StreamsInputTypeList 		= typename PackedLeafStructListBuilder<CtrSizeT, StreamDescriptors>::StreamInputList;
+    using InputBufferStructList 	= typename PackedLeafStructListBuilder<CtrSizeT, StreamDescriptors>::InputBufferList;
 
     using IteratorBranchNodeEntry = TypeListToTuple<
     			Linearize<
-    				typename IteratorBranchNodeEntryListBuilder<StreamDescriptors>::AccumTuple
+    				typename IteratorBranchNodeEntryListBuilder<CtrSizeT, StreamDescriptors>::AccumTuple
                 >
     >;
 
     using LeafRangeOffsetList = Linearize<
-    				typename IteratorBranchNodeEntryListBuilder<StreamDescriptors>::RangeOffsetList
+    				typename IteratorBranchNodeEntryListBuilder<CtrSizeT, StreamDescriptors>::RangeOffsetList
     >;
 
     using LeafRangeList = Linearize<
-    				typename IteratorBranchNodeEntryListBuilder<StreamDescriptors>::IndexRangeList,
+    				typename IteratorBranchNodeEntryListBuilder<CtrSizeT, StreamDescriptors>::IndexRangeList,
     				2
     >;
 
@@ -323,17 +324,17 @@ public:
 
 
 
-    using CtrListBranch = typename IfThenElse<
+    using CtrListBranch = IfThenElse<
     						BranchSizeType == PackedSizeType::FIXED,
     						typename ContainerTypes::FixedBranchContainerPartsList,
     						typename ContainerTypes::VariableBranchContainerPartsList
-    >::Result;
+    >;
 
-    using CtrListLeaf = typename IfThenElse<
+    using CtrListLeaf = IfThenElse<
     					LeafSizeType == PackedSizeType::FIXED,
     					typename ContainerTypes::FixedLeafContainerPartsList,
     					typename ContainerTypes::VariableLeafContainerPartsList
-    >::Result;
+    >;
 
     using CtrList = MergeLists<
     		typename ContainerTypes::ContainerPartsList,

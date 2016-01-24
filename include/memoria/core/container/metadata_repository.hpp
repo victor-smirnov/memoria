@@ -66,11 +66,11 @@ template <
 class SimpleOrderedBuilder {
     typedef typename Decl<Value>::Type                          DeclType;
 
-    typedef typename IfThenElse<
+    typedef IfThenElse<
         IfTypesEqual<DeclType, NotDefined>::Value,
         List,
         typename AppendTool<DeclType, List>::Type
-    >::Result                                                   NewList;
+    >                                                   		NewList;
 
 public:
     typedef typename SimpleOrderedBuilder<Decl, Value - 1, NewList>::Type   Type;

@@ -49,11 +49,11 @@ public:
 
     using Values = core::StaticVector<BigInt, Indexes>;
 
-    using Value = typename IfThenElse<
+    using Value = IfThenElse<
                 BitsPerSymbol == 8,
                 UByte,
                 UBigInt
-    >::Result;
+    >;
 
     using Tools = typename Types::template ToolsFn<MyType>;
 

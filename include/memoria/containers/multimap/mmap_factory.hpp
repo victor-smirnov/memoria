@@ -35,11 +35,11 @@ struct MultimapBTTypesBase: public BTTypes<Profile, memoria::BTTreeLayout> {
 
     using Base = BTTypes<Profile, memoria::BTTreeLayout>;
 
-    using ValueType = typename IfThenElse<
+    using ValueType = IfThenElse<
                     IfTypesEqual<Value_, IDType>::Value,
                     typename Base::ID,
                     Value_
-    >::Result;
+    >;
 
     static constexpr PackedSizeType SizeType = PackedSizeType::FIXED;
 
@@ -79,7 +79,7 @@ struct MultimapBTTypesBase: public BTTypes<Profile, memoria::BTTreeLayout> {
     >;
 
 
-    using RawStreamDescriptors = typename IfThenElse<
+    using RawStreamDescriptors = IfThenElse<
     		SizeType == PackedSizeType::FIXED,
 			MergeLists<
 				FirstStreamFixedTF,
@@ -89,7 +89,7 @@ struct MultimapBTTypesBase: public BTTypes<Profile, memoria::BTTreeLayout> {
 				FirstStreamVariableTF,
 				DataStreamTF
 			>
-    >::Result;
+    >;
 
     using StreamDescriptors = typename bttl::BTTLAugmentStreamDescriptors<
     		RawStreamDescriptors,

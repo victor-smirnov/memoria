@@ -95,11 +95,11 @@ public:
         METADATA, INDEX, SYMBOLS
     };
 
-    typedef typename IfThenElse<
+    typedef IfThenElse<
             BitsPerSymbol == 8,
             UByte,
             UBigInt
-    >::Result                                                                   Value;
+    >                                                                   		Value;
 
     typedef typename Types::Index                          						Index;
 
@@ -1079,9 +1079,8 @@ struct StructSizeProvider<PkdFSSeq<T>> {
 
 
 template <Int BitsPerSymbol>
-class PkdFSSeqTF {
-public:
-    typedef typename IfThenElse<
+struct PkdFSSeqTF: HasType<
+	IfThenElse<
                 BitsPerSymbol == 1,
                 PkdFSSeqTypes<
                     1,
@@ -1092,7 +1091,7 @@ public:
                     BitmapRankFn,
                     BitmapToolsFn
                 >,
-                typename IfThenElse<
+                IfThenElse<
                     (BitsPerSymbol > 1 && BitsPerSymbol < 8),
                     PkdFSSeqTypes<
                         BitsPerSymbol,
@@ -1112,9 +1111,9 @@ public:
                         Seq8RankFn,
                         Seq8ToolsFn
                     >
-                >::Result
-    >::Result                                                                   Type;
-};
+                >
+    >
+> {};
 
 
 }

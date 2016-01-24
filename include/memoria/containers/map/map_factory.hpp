@@ -46,11 +46,11 @@ struct MapBTTypesBase: public BTTypes<Profile, memoria::BTSingleStream> {
     static const Int Labels                                                     = 0;
     static const Int HiddenLabels                                               = 0;
 
-    typedef typename IfThenElse<
+    typedef IfThenElse<
                     IfTypesEqual<Value_, IDType>::Value,
                     typename Base::ID,
                     Value_
-    >::Result                                                                   ValueType;
+    >                                                                   		ValueType;
 
     static const Int Indexes                                                    = Indexes_;
 
@@ -104,11 +104,11 @@ struct MapBTTypesBase<Profile, Indexes_, double, Value_>: public BTTypes<Profile
     static const Int Labels                                                     = 0;
     static const Int HiddenLabels                                               = 0;
 
-    typedef typename IfThenElse<
+    typedef IfThenElse<
                     IfTypesEqual<Value_, IDType>::Value,
                     typename Base::ID,
                     Value_
-    >::Result                                                                   ValueType;
+    >                                                                   		ValueType;
 
     static const Int Indexes                                                    = Indexes_;
 

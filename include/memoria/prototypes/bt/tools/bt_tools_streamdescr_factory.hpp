@@ -89,21 +89,21 @@ struct VLDBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
 namespace {
 
-	template <typename List> struct CheckKeysHaveSameType;
+	template <typename List> struct CheckPackedStructsHaveSameSearchType;
 
 	template <typename PkdStruct1, typename PkdStruct2, typename... Tail>
-	struct CheckKeysHaveSameType<TL<PkdStruct1, PkdStruct2, Tail...>>
+	struct CheckPackedStructsHaveSameSearchType<TL<PkdStruct1, PkdStruct2, Tail...>>
 	{
 		static constexpr PkdSearchType SearchType1 = PkdSearchTypeProvider<PkdStruct1>::Value;
 		static constexpr PkdSearchType SearchType2 = PkdSearchTypeProvider<PkdStruct2>::Value;
 
-		static constexpr bool Value = SearchType1 == SearchType2 && CheckKeysHaveSameType<
+		static constexpr bool Value = SearchType1 == SearchType2 && CheckPackedStructsHaveSameSearchType<
 				TL<PkdStruct2, Tail...>
 		>::Value;
 	};
 
 	template <typename PkdStruct1, typename PkdStruct2>
-	struct CheckKeysHaveSameType<TL<PkdStruct1, PkdStruct2>>
+	struct CheckPackedStructsHaveSameSearchType<TL<PkdStruct1, PkdStruct2>>
 	{
 		static constexpr PkdSearchType SearchType1 = PkdSearchTypeProvider<PkdStruct1>::Value;
 		static constexpr PkdSearchType SearchType2 = PkdSearchTypeProvider<PkdStruct2>::Value;
@@ -112,11 +112,41 @@ namespace {
 	};
 
 	template <typename PkdStruct>
-	struct CheckKeysHaveSameType<TL<PkdStruct>>: HasValue<bool, true> {};
+	struct CheckPackedStructsHaveSameSearchType<TL<PkdStruct>>: HasValue<bool, true> {};
+
+//	template <>
+//	struct CheckPackedStructsHaveSameSearchType<TL<>>: HasValue<bool, true> {};
 
 
-	template <>
-	struct CheckKeysHaveSameType<TL<>>: HasValue<bool, true> {};
+
+
+
+	template <typename List> struct CheckPackedStructsHaveSameKeyType;
+
+	template <typename PkdStruct1, typename PkdStruct2, typename... Tail>
+	struct CheckPackedStructsHaveSameKeyType<TL<PkdStruct1, PkdStruct2, Tail...>>
+	{
+		using KeyType1 = typename PkdSearchKeyTypeProvider<PkdStruct1>::Type;
+		using KeyType2 = typename PkdSearchKeyTypeProvider<PkdStruct2>::Type;
+
+		static constexpr bool Value = std::is_same<KeyType1, KeyType2>::value && CheckPackedStructsHaveSameKeyType<
+				TL<PkdStruct2, Tail...>
+		>::Value;
+	};
+
+	template <typename PkdStruct1, typename PkdStruct2>
+	struct CheckPackedStructsHaveSameKeyType<TL<PkdStruct1, PkdStruct2>>
+	{
+		using KeyType1 = typename PkdSearchKeyTypeProvider<PkdStruct1>::Type;
+		using KeyType2 = typename PkdSearchKeyTypeProvider<PkdStruct2>::Type;
+
+		static constexpr bool Value = std::is_same<KeyType1, KeyType2>::value;
+	};
+
+	template <typename PkdStruct>
+	struct CheckPackedStructsHaveSameKeyType<TL<PkdStruct>>: HasValue<bool, true> {};
+
+
 
 
 	template <typename List> struct SumIndexes;
@@ -148,7 +178,7 @@ namespace {
 	template <typename List> using GetSUPSearchKeyType = typename GetSUPSearchKeyTypeT<List>::Type;
 
 	template <PkdSearchType SearchType, typename KeyType, Int Indexes, typename... Tail>
-	struct GetSUPSearchKeyTypeT<TL<IdxSearchType<SearchType, KeyType, Indexes>, Tail...>>: HasType <
+	struct GetSUPSearchKeyTypeT<TL<IdxSearchType<SearchType, KeyType, Indexes>, Tail...>>: HasType<
 		SelectMaxType<
 				KeyType,
 				GetSUPSearchKeyType<TL<Tail...>>
@@ -158,53 +188,84 @@ namespace {
 	template <PkdSearchType SearchType, typename KeyType, Int Indexes>
 	struct GetSUPSearchKeyTypeT<TL<IdxSearchType<SearchType, KeyType, Indexes>>>: HasType <KeyType> {};
 
-	template <typename List> struct BuildKeyMetadataListT;
-
-	template <typename List>
-	using BuildKeyMetadataList = typename BuildKeyMetadataListT<List>::Type;
 
 
-	template <typename PkdStruct, typename... Tail>
-	struct BuildKeyMetadataListT<TL<PkdStruct, Tail...>>: HasType<
-		MergeLists<
+
+
+	template <typename List, typename SumType, Int Idx> struct BuildKeyMetadataListT;
+
+	template <typename List, typename SumType, Int Idx = 0>
+	using BuildKeyMetadataList = typename BuildKeyMetadataListT<List, SumType, Idx>::Type;
+
+
+	template <typename PkdStruct, typename... Tail, typename SumType, Int Idx>
+	struct BuildKeyMetadataListT<TL<PkdStruct, Tail...>, SumType, Idx>
+	{
+
+		using KeyType = typename PkdSearchKeyTypeProvider<PkdStruct>::Type;
+		static constexpr PkdSearchType SearchType = PkdSearchTypeProvider<PkdStruct>::Value;
+
+		using Type = MergeLists<
 				IdxSearchType<
 					PkdSearchTypeProvider<PkdStruct>::Value,
-					typename PkdSearchKeyTypeProvider<PkdStruct>::Type,
+					IfThenElse<
+						SearchType == PkdSearchType::SUM,
+						SelectMaxType<
+							SumType,
+							KeyType
+						>,
+						KeyType
+					>,
 					IndexesSize<PkdStruct>::Value
 				>,
-				BuildKeyMetadataList<TL<Tail...>>
-		>
-	>{};
+				BuildKeyMetadataList<TL<Tail...>, SumType, Idx + 1>
+		>;
+	};
 
-	template <typename PkdStruct, typename... Tail1, typename... Tail2>
-	struct BuildKeyMetadataListT<TL<TL<PkdStruct, Tail1...>, Tail2...>>
+	template <typename PkdStruct, typename... Tail1, typename... Tail2, typename SumType, Int Idx>
+	struct BuildKeyMetadataListT<TL<TL<PkdStruct, Tail1...>, Tail2...>, SumType, Idx>
 	{
 		using List = TL<PkdStruct, Tail1...>;
 
 		static_assert(
-				CheckKeysHaveSameType<List>::Value,
+				CheckPackedStructsHaveSameSearchType<List>::Value,
 				"All grouped together leaf packed structs must be of the same search type"
 		);
 
-		using LeafStructGroupKeyMetadataList = BuildKeyMetadataList<List>;
+		static constexpr PkdSearchType SearchType = PkdSearchTypeProvider<PkdStruct>::Value;
+
+		static_assert(
+				SearchType != PkdSearchType::MAX || CheckPackedStructsHaveSameKeyType<List>::Value,
+				"All grouped together leaf packed structs with MAX search type must have the same key type"
+		);
+
+		using LeafStructGroupKeyMetadataList = BuildKeyMetadataList<List, SumType>;
 
 		static constexpr PkdSearchType GroupSearchType = PkdSearchTypeProvider<PkdStruct>::Value;
 
-		static constexpr Int TotalIndexes 	= SumIndexes<LeafStructGroupKeyMetadataList>::Value;
-		using LargestKeyType 				= GetSUPSearchKeyType<LeafStructGroupKeyMetadataList>;
+		static constexpr Int TotalIndexes = SumIndexes<LeafStructGroupKeyMetadataList>::Value;
+
+		using GroupKeyType = IfThenElse<
+				GroupSearchType == PkdSearchType::SUM,
+				SelectMaxType<
+					SumType,
+					GetSUPSearchKeyType<LeafStructGroupKeyMetadataList>
+				>,
+				typename PkdSearchKeyTypeProvider<PkdStruct>::Type
+		>;
 
 		using Type = MergeLists<
 				IdxSearchType<
 					GroupSearchType,
-					LargestKeyType,
+					GroupKeyType,
 					TotalIndexes
 				>,
-				BuildKeyMetadataList<TL<Tail2...>>
+				BuildKeyMetadataList<TL<Tail2...>, SumType, Idx + 1>
 		>;
 	};
 
-	template <>
-	struct BuildKeyMetadataListT<TL<>> {
+	template <typename SumType, Int Idx>
+	struct BuildKeyMetadataListT<TL<>, SumType, Idx> {
 		using Type = TL<>;
 	};
 
@@ -243,10 +304,10 @@ namespace {
 
 
 
-template <typename LeafStructList, template <typename> class BranchStructTF> struct BTStreamDescritorsBuilder;
+template <typename LeafStructList, template <typename> class BranchStructTF, typename SumType> struct BTStreamDescritorsBuilder;
 
-template <typename LeafStruct, typename... Tail, template <typename> class BranchStructTF>
-struct BTStreamDescritorsBuilder<TL<LeafStruct, Tail...>, BranchStructTF>
+template <typename LeafStruct, typename... Tail, template <typename> class BranchStructTF, typename SumType>
+struct BTStreamDescritorsBuilder<TL<LeafStruct, Tail...>, BranchStructTF, SumType>
 {
 	static_assert(
 			PkdSearchTypeProvider<LeafStruct>::Value == PkdSearchType::SUM,
@@ -255,15 +316,15 @@ struct BTStreamDescritorsBuilder<TL<LeafStruct, Tail...>, BranchStructTF>
 
 	using StructList = TL<LeafStruct, Tail...>;
 
-	using RawKeyMetadataList = BuildKeyMetadataList<StructList>;
+	using RawKeyMetadataList = BuildKeyMetadataList<StructList, SumType>;
 
 	using KeyMetadataList = IncStreamStartStructsIndexSize<RawKeyMetadataList>;
 
 	using Type = BranchStructListBuilder<KeyMetadataList, BranchStructTF>;
 };
 
-template <typename LeafStruct, typename... Tail1, typename... Tail2, template <typename> class BranchStructTF>
-struct BTStreamDescritorsBuilder<TL<TL<LeafStruct, Tail1...>, Tail2...>, BranchStructTF>
+template <typename LeafStruct, typename... Tail1, typename... Tail2, template <typename> class BranchStructTF, typename SumType>
+struct BTStreamDescritorsBuilder<TL<TL<LeafStruct, Tail1...>, Tail2...>, BranchStructTF, SumType>
 {
 	static_assert(
 			PkdSearchTypeProvider<LeafStruct>::Value == PkdSearchType::SUM,
@@ -272,7 +333,7 @@ struct BTStreamDescritorsBuilder<TL<TL<LeafStruct, Tail1...>, Tail2...>, BranchS
 
 	using StructList = TL<TL<LeafStruct, Tail1...>, Tail2...>;
 
-	using RawKeyMetadataList = BuildKeyMetadataList<StructList>;
+	using RawKeyMetadataList = BuildKeyMetadataList<StructList, SumType>;
 
 	using KeyMetadataList = IncStreamStartStructsIndexSize<RawKeyMetadataList>;
 

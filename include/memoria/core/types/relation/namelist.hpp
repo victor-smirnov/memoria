@@ -28,7 +28,7 @@ class AddIfNotcontains {
 public:
     static const Int Idx = IndexOfTool<Item, List>::Value;
 public:
-    typedef typename IfThenElse<Idx == -1, TL<Item, List>, List>::Result Result;
+    typedef IfThenElse<Idx == -1, TL<Item, List>, List> Result;
 };
 
 

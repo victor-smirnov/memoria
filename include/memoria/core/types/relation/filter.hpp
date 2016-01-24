@@ -29,11 +29,11 @@ class Filter {
     template <typename Config, typename Record, typename Accumulator>
     struct Handler {
         static const bool Value = Evaluator<Metadata, Expression, Record>::Value;
-        typedef typename IfThenElse<
+        typedef IfThenElse<
                     Value,
                     typename AppendTool<Record, typename Accumulator::Result>::Result,
                     typename Accumulator::Result
-        >::Result                                                               Result;
+        >                                                               		Result;
     };
 
     struct Init {

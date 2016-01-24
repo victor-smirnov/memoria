@@ -81,18 +81,18 @@ public:
     using HasVoidConst = pd::ContainsVoidRtnTypeConst<List, GroupIdx, ListIdx, Fn, Args...>;
 
     template <typename Fn, typename... Args>
-    using ProcessAllRtnType = typename IfThenElse<
+    using ProcessAllRtnType = IfThenElse<
         HasVoid<Fn, Args...>::Value,
         void,
         RtnTuple<Fn, Args...>
-    >::Result;
+    >;
 
     template <typename Fn, typename... Args>
-    using ProcessAllRtnConstType = typename IfThenElse<
+    using ProcessAllRtnConstType = IfThenElse<
         HasVoid<Fn, Args...>::Value,
         void,
         ConstRtnTuple<Fn, Args...>
-    >::Result;
+    >;
 
 
 
@@ -641,18 +641,18 @@ public:
     using HasVoidConst = pd::ContainsVoidRtnTypeConst<List, GroupIdx, ListIdx, Fn, Args...>;
 
     template <typename Fn, typename... Args>
-    using ProcessAllRtnType = typename IfThenElse<
+    using ProcessAllRtnType = IfThenElse<
         HasVoid<Fn, Args...>::Value,
         void,
         RtnTuple<Fn, Args...>
-    >::Result;
+    >;
 
     template <typename Fn, typename... Args>
-    using ProcessAllRtnConstType = typename IfThenElse<
+    using ProcessAllRtnConstType = IfThenElse<
         HasVoid<Fn, Args...>::Value,
         void,
         ConstRtnTuple<Fn, Args...>
-    >::Result;
+    >;
 
 
     template <Int From = 0, Int To = 1, Int GroupIdx_ = GroupIdx>

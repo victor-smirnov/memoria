@@ -38,11 +38,11 @@ class Sort {
 
     MEMORIA_STATIC_ASSERT(IsList<SrcList>::Value);
 
-    typedef typename IfThenElse<
+    typedef IfThenElse<
                 Asc,
                 typename MinElement<SrcList, ValueProvider, ValueType>::Result,
                 typename MaxElement<SrcList, ValueProvider, ValueType>::Result
-    >::Result                                                                   Element;
+    >                                                                   		Element;
 
     typedef typename AppendTool<Element, Result>::Result                        List_;
 

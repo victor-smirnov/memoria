@@ -143,19 +143,19 @@ using FnList = TypeList<
 
 
 template <typename Fn, Int GroupIdx, Int AllocIdx, Int Idx, typename... Args>
-using FnRtnType = typename IfThenElse<
+using FnRtnType = IfThenElse<
 		(HasFn4<Fn, GroupIdx, AllocIdx, Idx, Args...>::Value > 0),
 		typename HasFn4<Fn, GroupIdx, AllocIdx, Idx, Args...>::RtnType,
-		typename IfThenElse<
+		IfThenElse<
 			(HasFn3<Fn, GroupIdx, AllocIdx, Idx, Args...>::Value > 0),
 			typename HasFn3<Fn, GroupIdx, AllocIdx, Idx, Args...>::RtnType,
-			typename IfThenElse<
+			IfThenElse<
 				(HasFn2<Fn, GroupIdx, AllocIdx, Idx, Args...>::Value > 0),
 				typename HasFn2<Fn, GroupIdx, AllocIdx, Idx, Args...>::RtnType,
 				typename HasFn1<Fn, GroupIdx, AllocIdx, Idx, Args...>::RtnType
-			>::Result
-		>::Result
->::Result;
+			>
+		>
+>;
 
 
 
