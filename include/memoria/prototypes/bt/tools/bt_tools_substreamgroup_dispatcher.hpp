@@ -103,7 +103,7 @@ struct GroupDispatcher<Dispatcher, TypeList<Group, Tail...>, GroupIdx>
 	template <Int GroupIdx_, typename Allocator, typename Fn, typename... Args>
 	static void dispatchGroup(Allocator* allocator, Fn&& fn, Args&&... args)
 	{
-		using TargetGroup = typename Select<GroupIdx_, TypeList<Group, Tail...>>::Result;
+		using TargetGroup = Select<GroupIdx_, TypeList<Group, Tail...>>;
 
 		using SubgroupDispatcher = typename Dispatcher::template SubsetDispatcher<TargetGroup, GroupIdx_>;
 
@@ -113,7 +113,7 @@ struct GroupDispatcher<Dispatcher, TypeList<Group, Tail...>, GroupIdx>
 	template <Int GroupIdx_, typename Fn, typename... Args>
 	static void dispatchGroupStatic(Fn&& fn, Args&&... args)
 	{
-		using TargetGroup = typename Select<GroupIdx_, TypeList<Group, Tail...>>::Result;
+		using TargetGroup = Select<GroupIdx_, TypeList<Group, Tail...>>;
 
 		using SubgroupDispatcher = typename Dispatcher::template SubsetDispatcher<TargetGroup, GroupIdx_>;
 

@@ -384,7 +384,7 @@ public:
         using TargetType = typename PackedStructValueTypeH<LeafStreamsStructList, LeafPath>::Type;
 
         template <Int Stream>
-        using StreamInputTuple = TypeListToTuple<typename Select<Stream, StreamsInputTypeList>::Result>;
+        using StreamInputTuple = TypeListToTuple<Select<Stream, StreamsInputTypeList>>;
 
         template <Int Stream>
         using InputTupleAdapter = StreamTupleHelper<StreamInputTuple<Stream>>;
@@ -402,7 +402,7 @@ public:
         using BranchPathT = typename memoria::list_tree::BuildTreePath<BranchStreamsStructList, SubstreamIdx>::Type;
 
         template <Int StreamIdx>
-        using StreamInputBufferStructList = typename Select<StreamIdx, InputBufferStructList>::Result;
+        using StreamInputBufferStructList = Select<StreamIdx, InputBufferStructList>;
 
 
         static const LeafDataLengthType LeafDataLength = LeafSizeType == PackedSizeType::FIXED ?

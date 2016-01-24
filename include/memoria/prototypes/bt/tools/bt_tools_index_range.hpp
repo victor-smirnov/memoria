@@ -630,7 +630,7 @@ public:
 template <typename LeafStructList, typename LeafPath>
 struct PackedStructValueTypeH {
 	static const Int LeafIdx = memoria::list_tree::LeafCount<LeafStructList, LeafPath>::Value;
-	using PkdStruct = typename Select<LeafIdx, Linearize<LeafStructList>>::Result;
+	using PkdStruct = Select<LeafIdx, Linearize<LeafStructList>>;
 
 	using Type = typename AccumType<PkdStruct>::Type;
 };

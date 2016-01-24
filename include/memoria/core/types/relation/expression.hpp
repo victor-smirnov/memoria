@@ -132,7 +132,7 @@ class Evaluator<Metadata, ValueOp<Name, Op, Type, ExValue>, Record> {
 
     static const Int OpIdx = Op;
 
-    typedef typename Select<
+    using SelectResult = Select<
                 OpIdx,
                 TypeList<
                     ConstValue<Int, EqVal>,
@@ -142,7 +142,7 @@ class Evaluator<Metadata, ValueOp<Name, Op, Type, ExValue>, Record> {
                     ConstValue<Int, LTEVal>,
                     ConstValue<Int, NEVal>
                 >
-    >::Result                                                                   SelectResult;
+    >;
 
 
 public:

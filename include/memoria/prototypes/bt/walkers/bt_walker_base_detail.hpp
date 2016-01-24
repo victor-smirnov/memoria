@@ -168,8 +168,8 @@ struct LeafAccumWalker {
 		using LeafPath   = typename memoria::list_tree::BuildTreePath<LeafStructList, SubstreamIdx>::Type;
 		using AccumItemH = memoria::bt::AccumItem<LeafStructList, LeafPath, Accum>;
 
-		using RangeList = typename Select<SubstreamIdx, Linearize<LeafRangeList, 2>>::Result;
-		using RangeOffsetList = typename Select<SubstreamIdx, Linearize<LeafRangeOffsetList>>::Result;
+		using RangeList = Select<SubstreamIdx, Linearize<LeafRangeList, 2>>;
+		using RangeOffsetList = Select<SubstreamIdx, Linearize<LeafRangeOffsetList>>;
 
 		LeafIndexRangeWalker<AccumItemH, RangeList, RangeOffsetList>::process(obj, walker, accum, std::forward<Args>(args)...);
 	}

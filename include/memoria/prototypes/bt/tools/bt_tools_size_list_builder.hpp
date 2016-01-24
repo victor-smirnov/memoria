@@ -65,7 +65,7 @@ namespace {
 	class TagStreamsStartT {
 		static const Int StreamOffset = list_tree::LeafCount<List, IntList<Idx>, 2>::Value;
 
-		using StreamStart = typename Select<StreamOffset, OffsetList>::Result;
+		using StreamStart = Select<StreamOffset, OffsetList>;
 
 		using FixedList = Replace<
 				OffsetList,
@@ -85,35 +85,6 @@ namespace {
 
 	template <typename OffsetList, typename List>
 	using TagStreamsStart = typename TagStreamsStartT<OffsetList, List>::Type;
-
-
-//	template <
-//		typename OffsetList,
-//		typename List,
-//		Int Idx                 = 0,
-//		Int Max                 = ListSize<List>::Value
-//	>
-//	class TagStreamsStart1 {
-//		static const Int StreamOffset = list_tree::LeafCount<List, IntList<Idx>, 2>::Value;
-//
-//		using StreamStart = typename Select<StreamOffset, OffsetList>::Result;
-//
-//		using FixedList = FailIf<Replace<
-//				OffsetList,
-//				StreamStartTag<typename FixStreamStart<StreamStart>::Type>,
-//				StreamOffset
-//		>>;
-//
-//	public:
-//		using Type = typename TagStreamsStart1<FixedList, List, Idx + 1, Max>::Type;
-//	};
-//
-//	template <typename OffsetList, typename List, Int Idx>
-//	class TagStreamsStart1<OffsetList, List, Idx, Idx> {
-//	public:
-//		using Type = OffsetList;
-//	};
-
 
 	template <typename List> struct OffsetBuilderT;
 	template <typename List> using OffsetBuilder = typename OffsetBuilderT<List>::Type;
@@ -477,12 +448,12 @@ template <typename List, Int Idx> struct GetLeafPrefix;
 
 template <typename List, Int Idx>
 struct GetLeafPrefix {
-	static const Int Value = Select<Idx, List>::Value;
+	static const Int Value = SelectV<Idx, List>::Value;
 };
 
 template <typename List, Int Idx>
 struct GetLeafPrefix<StreamStartTag<List>, Idx> {
-	static const Int Value = Select<Idx, List>::Value;
+	static const Int Value = SelectV<Idx, List>::Value;
 };
 
 

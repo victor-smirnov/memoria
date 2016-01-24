@@ -18,36 +18,40 @@
 
 namespace memoria    {
 
-template <Int Value, typename List, Int idx = 0> struct Select;
+namespace {
 
-template <Int Value, typename Head, typename ... Tail>
-struct Select<Value, TypeList<Head, Tail...>, Value> {
-    typedef Head                                                                Result;
-};
+	template <Int Num, typename List, Int Idx> struct SelectT;
 
-template <Int Value, typename Head, typename ... Tail, Int Idx>
-struct Select<Value, TypeList<Head, Tail...>, Idx> {
-    typedef typename Select<Value, TypeList<Tail...>, Idx + 1>::Result          Result;
-};
+	template <Int Num, typename Head, typename ... Tail>
+	struct SelectT<Num, TypeList<Head, Tail...>, Num>: HasType<Head> {};
 
-template <Int Value, Int Idx>
-struct Select<Value, TypeList<>, Idx>;
+	template <Int Num, typename Head, typename ... Tail, Int Idx>
+	struct SelectT<Num, TypeList<Head, Tail...>, Idx>: HasType<
+		typename SelectT<Num, TypeList<Tail...>, Idx + 1>::Type
+	> {};
+
+	template <Int Num, Int Idx>
+	struct SelectT<Num, TypeList<>, Idx>;
+}
+
+template <Int Num, typename List>
+using Select = typename SelectT<Num, List, 0>::Type;
 
 
-//template <Int Value, typename List, Int idx = 0> struct Select;
+template <Int Value, typename List, Int idx = 0> struct SelectV;
 
 template <Int Pos, typename T, T Head, T ... Tail>
-struct Select<Pos, ValueList<T, Head, Tail...>, Pos> {
+struct SelectV<Pos, ValueList<T, Head, Tail...>, Pos> {
     static const T Value = Head;
 };
 
 template <Int Pos, typename T, T Head, T ... Tail, Int Idx>
-struct Select<Pos, ValueList<T, Head, Tail...>, Idx> {
-    static const T Value = Select<Pos, ValueList<T, Tail...>, Idx + 1>::Value;
+struct SelectV<Pos, ValueList<T, Head, Tail...>, Idx> {
+    static const T Value = SelectV<Pos, ValueList<T, Tail...>, Idx + 1>::Value;
 };
 
 template <Int Value, typename T, Int Idx>
-struct Select<Value, ValueList<T>, Idx>;
+struct SelectV<Value, ValueList<T>, Idx>;
 
 
 
@@ -77,10 +81,10 @@ struct IfThenElseT {
 };
 
 template <bool Value, typename ResultIfTrue, typename Else>
-using IfThenElse = typename Select<
+using IfThenElse = Select<
         Value ? 0 : 1,
         TypeList<ResultIfTrue, Else>
->::Result;
+>;
 
 
 template <typename Type1, typename Type2>

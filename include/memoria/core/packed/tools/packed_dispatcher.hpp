@@ -55,7 +55,7 @@ public:
     static const Int Size = ListSize<List>::Value;
 
     static const Int AllocatorIdxStart 	= Index;
-    static const Int AllocatorIdxEnd 	= Select<Size - 1, List>::Result::Value + 1;
+    static const Int AllocatorIdxEnd 	= Select<Size - 1, List>::Value + 1;
 
 
     template<typename, Int, Int> friend class PackedDispatcher;
