@@ -14,50 +14,58 @@
 
 namespace memoria    {
 
+namespace {
 
-template <typename List, template <typename, typename> class FoldingFn, typename State = EmptyType> struct FoldTLRight;
+	template <typename List, template <typename, typename> class FoldingFn, typename State = EmptyType> struct FoldTLRightT;
 
-template <typename Head, typename... Tail, template <typename, typename> class FoldingFn, typename State>
-struct FoldTLRight<TL<Head, Tail...>, FoldingFn, State>
-{
-	using NewState 	= FoldingFn<State, Head>;
-	using Type 		= typename FoldTLRight<TL<Tail...>, FoldingFn, NewState>::Type;
-};
+	template <typename Head, typename... Tail, template <typename, typename> class FoldingFn, typename State>
+	struct FoldTLRightT<TL<Head, Tail...>, FoldingFn, State>
+	{
+		using NewState 	= FoldingFn<State, Head>;
+		using Type 		= typename FoldTLRightT<TL<Tail...>, FoldingFn, NewState>::Type;
+	};
 
-template <typename Element, template <typename, typename> class FoldingFn, typename State>
-struct FoldTLRight<TL<Element>, FoldingFn, State>
-{
-	using Type = FoldingFn<State, Element>;
-};
+	template <typename Element, template <typename, typename> class FoldingFn, typename State>
+	struct FoldTLRightT<TL<Element>, FoldingFn, State>
+	{
+		using Type = FoldingFn<State, Element>;
+	};
 
-template <template <typename, typename> class FoldingFn, typename State>
-struct FoldTLRight<TL<>, FoldingFn, State>
-{
-	using Type = FoldingFn<State, EmptyType>;
-};
+	template <template <typename, typename> class FoldingFn, typename State>
+	struct FoldTLRightT<TL<>, FoldingFn, State>
+	{
+		using Type = FoldingFn<State, EmptyType>;
+	};
 
 
 
-template <typename List, template <typename, typename> class FoldingFn> struct FoldTLLeft;
+	template <typename List, template <typename, typename> class FoldingFn> struct FoldTLLeftT;
 
-template <typename Head, typename... Tail, template <typename, typename> class FoldingFn>
-struct FoldTLLeft<TL<Head, Tail...>, FoldingFn>
-{
-	using Type = FoldingFn<typename FoldTLLeft<TL<Tail...>, FoldingFn>::Type, Head>;
-};
+	template <typename Head, typename... Tail, template <typename, typename> class FoldingFn>
+	struct FoldTLLeftT<TL<Head, Tail...>, FoldingFn>
+	{
+		using Type = FoldingFn<typename FoldTLLeftT<TL<Tail...>, FoldingFn>::Type, Head>;
+	};
 
-template <typename Head, template <typename, typename> class FoldingFn>
-struct FoldTLLeft<TL<Head>, FoldingFn>
-{
-	using Type = FoldingFn<EmptyType, Head>;
-};
+	template <typename Head, template <typename, typename> class FoldingFn>
+	struct FoldTLLeftT<TL<Head>, FoldingFn>
+	{
+		using Type = FoldingFn<EmptyType, Head>;
+	};
 
-template <template <typename, typename> class FoldingFn>
-struct FoldTLLeft<TL<>, FoldingFn>
-{
-	using Type = FoldingFn<EmptyType, EmptyType>;
-};
+	template <template <typename, typename> class FoldingFn>
+	struct FoldTLLeftT<TL<>, FoldingFn>
+	{
+		using Type = FoldingFn<EmptyType, EmptyType>;
+	};
 
+}
+
+template <typename List, template <typename, typename> class FoldingFn, typename State = EmptyType>
+using FoldTLRight = typename FoldTLRightT<List, FoldingFn, State>::Type;
+
+template <typename List, template <typename, typename> class FoldingFn>
+using FoldTLLeft = typename FoldTLLeftT<List, FoldingFn>::Type;
 
 }
 
