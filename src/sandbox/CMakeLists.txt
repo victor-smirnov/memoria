@@ -1,7 +1,7 @@
 include_directories(../tools/include)
 
 if (NOT DEFINED MEMORIA_SANDBOX)
-    set(MEMORIA_SANDBOX mapx)
+    set(MEMORIA_SANDBOX uuid)
 endif()
 
 
@@ -24,7 +24,7 @@ FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX})
         
  	    add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
         set_target_properties(${MEMORIA_TARGET} PROPERTIES COMPILE_FLAGS "-g ${MEMORIA_COMPILE_FLAGS} -DMEMORIA_STATIC")
-        set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
+        set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS} -luuid")
         set_target_properties(${MEMORIA_TARGET} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}/sandbox")
         
         #set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_SEARCH_START_STATIC 1)
