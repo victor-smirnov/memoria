@@ -583,7 +583,7 @@ public:
             return root();
         }
         else {
-            return roots_->get_value_for_key(name);
+            return this->get_value_for_key(name);
         }
     }
 
@@ -732,7 +732,7 @@ public:
     virtual void store(OutputStreamHandler *output)
     {
         char signature[12] = "MEMORIA";
-        for (UInt c = 7; c < sizeof(signature); c++) signature[c] = 0;
+        for (size_t c = 7; c < sizeof(signature); c++) signature[c] = 0;
 
         output->write(&signature, 0, sizeof(signature));
 

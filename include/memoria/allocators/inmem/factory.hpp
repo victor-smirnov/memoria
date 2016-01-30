@@ -36,28 +36,20 @@ class ContainerCollectionCfg;
 template <typename T>
 class ContainerCollectionCfg<DefaultProfile<T> > {
 public:
-    typedef BasicContainerCollectionCfg<DefaultProfile<T> >                       Types;
+	using Types = BasicContainerCollectionCfg<DefaultProfile<T>>;
 };
 
 
-typedef memoria::InMemAllocator<
-            DefaultProfile<>,
-            ContainerCollectionCfg<DefaultProfile<> >::Types::Page
-        >                                                                       SmallInMemAllocator;
+using SmallInMemAllocator = memoria::InMemAllocator<
+	DefaultProfile<>,
+	ContainerCollectionCfg<DefaultProfile<> >::Types::Page
+>;
 
 
 template <typename CtrName>
 using DCtrTF = CtrTF<DefaultProfile<>, CtrName>;
 
-typedef PageID<BigInt> ID8;
-
-MEMORIA_EXTERN_TREE(BigInt, BigInt,     1);
-MEMORIA_EXTERN_TREE(BigInt, EmptyValue, 1);
-MEMORIA_EXTERN_TREE(BigInt, ID8,        1);
-
-
-MEMORIA_EXTERN_TREE(BigInt, EmptyValue, 2);
-MEMORIA_EXTERN_TREE(BigInt, ID8,        2);
+using ID8 = PageID<BigInt> ;
 
 }
 

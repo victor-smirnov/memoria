@@ -19,7 +19,7 @@
 #include <iostream>
 
 /**
- * Serializable Copy-on-write B+Tree. Transaction Log.
+ * MRSW Copy-on-write B+Tree. Transaction Log.
  */
 
 namespace memoria 	{

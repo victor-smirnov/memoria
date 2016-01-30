@@ -20,7 +20,7 @@
 #include <type_traits>
 
 /**
- * Serializable Copy-on-write B+Tree. Shared Resource Handle.
+ * MRSW Copy-on-write B+Tree. Shared Resource Handle.
  */
 
 namespace memoria 	{

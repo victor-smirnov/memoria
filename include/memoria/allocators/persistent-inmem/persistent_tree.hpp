@@ -1,132 +1,80 @@
 
-// Copyright Victor Smirnov 2015+.
+// Copyright Victor Smirnov 2016.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef INCLUDE_MEMORIA_CORE_TOOLS_COW_TREE_COW_TREE_HPP_
-#define INCLUDE_MEMORIA_CORE_TOOLS_COW_TREE_COW_TREE_HPP_
+#ifndef _MEMORIA_ALLOCATORS_PERSISTENT_INMEM_PERSISTENT_TREE_HPP
+#define _MEMORIA_ALLOCATORS_PERSISTENT_INMEM_PERSISTENT_TREE_HPP
 
-#include <memoria/core/types/types.hpp>
+#include <memoria/allocators/persistent-inmem/persistent_tree_node.hpp>
+#include <memoria/allocators/persistent-inmem/persistent_tree_txn.hpp>
+#include <memoria/allocators/persistent-inmem/persistent_tree_iterator.hpp>
+
+#include <memoria/core/exceptions/memoria.hpp>
 
 #include <memoria/core/tools/optional.hpp>
-#include <memoria/core/tools/cow_tree/cow_tree_node.hpp>
-#include <memoria/core/tools/cow_tree/cow_tree_iterator.hpp>
-#include <memoria/core/tools/cow_tree/cow_tree_txn.hpp>
 
-#include <memoria/core/tools/md5.hpp>
+#include <vector>
+#include <unordered_map>
 
-#include <mutex>
+namespace memoria {
+namespace persistent_inmem   {
 
-/**
- * MRSW Copy-on-write B+Tree (Without leaf links).
- */
 
-namespace memoria 	{
-namespace cow 		{
-namespace tree 		{
-
-class InvalidUpdateException: public std::exception {
+template <typename BranchNodeT, typename LeafNodeT, typename RootProvider>
+class PersistentTree {
 public:
-	virtual const char* what() const noexcept {
-		return "Invalid snapshot update";
-	}
-};
-
-
-
-template <typename Key, typename Value>
-class CoWTree {
-
-	static constexpr Int NodeIndexSize 	= 32;
-	static constexpr Int NodeSize 		= NodeIndexSize * 8;
-
-	using MyType 		= CoWTree<Key, Value>;
-
-	using LeafNodeT 	= LeafNode<Key, Value, NodeSize, NodeIndexSize>;
-	using BranchNodeT 	= BranchNode<Key, NodeSize, NodeIndexSize>;
+	using NodeId		= typename LeafNodeT::NodeId;
+	using TxnId			= typename LeafNodeT::TxnId;
+	using Key			= typename LeafNodeT::Key;
+	using Value			= typename LeafNodeT::Value;
 	using NodeBaseT 	= typename BranchNodeT::NodeBaseT;
+	using NodeBasePtr   = NodeBaseT*;
 
-	using TxnDataT		= TxnData<NodeBaseT, MyType>;
-	using TxnLogT		= TxnLog<NodeBaseT>;
-	using SnapshotT		= typename TxnLogT::SnapshotT;
-	using TransactionT	= Transaction<TxnDataT>;
-
-
-	using Iterator			= CoWTreeIterator<BranchNodeT, LeafNodeT>;
-	using ConstIterator		= CoWTreeConstIterator<BranchNodeT, LeafNodeT>;
+	using Iterator			= PersistentTreeIterator<BranchNodeT, LeafNodeT>;
+	using ConstIterator		= PersistentTreeConstIterator<BranchNodeT, LeafNodeT>;
 	using Path				= typename Iterator::Path;
 
-	using MutexT			= std::recursive_mutex;
-	using LockT				= std::lock_guard<MutexT>;
-
-	TxnDataT* txn_data_;
-
-	BigInt txn_id_counter_  = 0;
-	BigInt node_id_counter_ = 0;
-
-	MutexT mutex_;
-
-	TxnLogT txn_log_;
-
-	template <typename, typename> friend class TxnData;
-
-	BigInt node_budget_max_ 	= 100;
-	BigInt node_budget_ 		= 100;
-
+private:
+	RootProvider* root_provider_;
 
 public:
-	CoWTree(): txn_data_(nullptr), mutex_(), txn_log_()
+
+	PersistentTree(RootProvider* root_provider):
+		root_provider_(root_provider)
 	{
-	}
-
-	std::recursive_mutex& mutex() {
-		return mutex_;
-	}
-
-	SnapshotT snapshot()
-	{
-		return txn_log_.snapshot();
-	}
-
-	TransactionT transaction()
-	{
-		mutex_.lock();
-
-		if (txn_data_)
+		if (root_provider_->is_active())
 		{
-			mutex_.unlock();
-
-			throw CoWTreeException("There is another active transaction for this CoWTree");
+			MEMORIA_ASSERT_TRUE(root_provider_->parent()->is_committed());
+			auto new_root = clone_node(root_provider_->parent()->root());
+			root_provider_->set_root(new_root);
 		}
-
-		if (txn_log_.size() > 0)
-		{
-			txn_data_ = clone_last_tx();
-		}
-		else {
-			txn_data_ = create_new_tx();
-		}
-
-		return TransactionT(txn_data_);
 	}
 
-	BigInt size(const TransactionT& txn) const
-	{
-		return txn.root()->metadata().size();
+
+	NodeBasePtr root() {
+		return root_provider_->root();
 	}
 
-	BigInt size(const SnapshotT& txn) const
-	{
-		return txn.root()->metadata().size();
+	const NodeBasePtr root() const {
+		return root_provider_->root();
 	}
 
-	void assign(TransactionT& txn, const Key& key, const Value& value)
-	{
-		check(txn);
+	const TxnId& txn_id() const {
+		return root_provider_->txn_id();
+	}
 
-		auto iter = this->template locate<Iterator>(txn.root(), key);
+
+	BigInt size() const
+	{
+		return this->root()->metadata().size();
+	}
+
+	void assign(const Key& key, const Value& value)
+	{
+		auto iter = this->locate(key);
 
 		if (!iter.is_end() && iter.key() == key)
 		{
@@ -137,11 +85,9 @@ public:
 		}
 	}
 
-	bool remove(TransactionT& txn, const Key& key)
+	bool remove(const Key& key)
 	{
-		check(txn);
-
-		auto iter = this->template locate<Iterator>(txn.root(), key);
+		auto iter = this->locate(key);
 
 		if (!iter.is_end())
 		{
@@ -153,64 +99,62 @@ public:
 		}
 	}
 
-	auto locate(TransactionT& txn, const Key& key) const {
-		check(txn);
-		return this->template locate<Iterator>(txn.root(), key);
+	auto locate(const Key& key) const {
+		return this->template locate<ConstIterator>(this->root(), key);
 	}
 
-	auto locate(SnapshotT& txn, const Key& key) const {
-		check(txn);
-		return this->template locate<ConstIterator>(txn.root(), key);
+	auto locate(const Key& key) {
+		return this->template locate<Iterator>(this->root(), key);
 	}
 
-	auto begin(SnapshotT& txn) const {
-		check(txn);
-		return this->template locate_begin<ConstIterator>(txn.root());
+	auto begin() const {
+		return this->template locate_begin<ConstIterator>(this->root());
 	}
 
-	auto begin(TransactionT& txn) const {
-		check(txn);
-		return this->template locate_begin<Iterator>(txn.root());
+	auto begin() {
+		return this->template locate_begin<Iterator>(this->root());
 	}
 
-	template <typename TxnT>
-	auto rbegin(TxnT& txn) const
+	auto rbegin() const
 	{
-		auto iter = this->end(txn);
+		auto iter = this->end();
+		iter--;
+		return iter;
+	}
+
+	auto rbegin()
+	{
+		auto iter = this->end();
 		iter--;
 		return iter;
 	}
 
 
-
-	auto end(TransactionT& txn) const {
-		check(txn);
-		return this->template locate_end<Iterator>(txn.root());
+	auto end() const {
+		return this->template locate_end<ConstIterator>(this->root());
 	}
 
-	auto end(SnapshotT& txn) const {
-		check(txn);
-		return this->template locate_end<ConstIterator>(txn.root());
+	auto end() {
+		return this->template locate_end<Iterator>(this->root());
 	}
 
-	template <typename TxnT>
-	auto rend(TxnT& txn) const
+	auto rend() const
 	{
-		auto iter = this->begin(txn);
+		auto iter = this->begin();
 		iter--;
 		return iter;
 	}
 
-	Optional<Value> find(TransactionT& txn, const Key& key) const
+	auto rend()
 	{
-		check(txn);
-		return this->find_value_in(txn.root(), key);
+		auto iter = this->begin();
+		iter--;
+		return iter;
 	}
 
-	Optional<Value> find(SnapshotT& txn, const Key& key) const
+	Optional<Value> find(const Key& key) const
 	{
-		check(txn);
-		return this->find_value_in(txn.root(), key);
+		return this->find_value_in(this->root(), key);
 	}
 
 	static BranchNodeT* to_branch_node(NodeBaseT* node) {
@@ -240,79 +184,29 @@ public:
 		}
 	}
 
-	void dump_log(std::ostream& out = std::cout)
-	{
-		txn_log_.dump(out);
+
+	void walk_tree(std::function<void (NodeBaseT*)> fn) {
+		walk_tree( root(), fn);
 	}
 
-	BigInt cleanup_snapshots()
-	{
-		LockT lock(mutex_);
-		return do_cleanup_snapshots();
-	}
-
-	void check_log()
-	{
-		LockT lock(mutex_);
-		auto& events = txn_log_.events_;
-
-		for (size_t c = 0; c < events.size(); c++)
-		{
-			auto event = events[c];
-			auto hash = snapshot_hash(event->root());
-
-			cout<<"c: "<<c<<" "<<event->root()->txn_id()<<" "<<event->root()->node_id()<<" "<<hex<<event->md5_sum()<<" "<<hash<<dec<<" "<<(hash == event->md5_sum())<<endl;
-		}
-	}
 
 protected:
 
-	void check(TransactionT& txn) const
+	void walk_tree(NodeBaseT* node, std::function<void (NodeBaseT*)> fn)
 	{
-		if (txn.get() != txn_data_)
-		{
-			throw CoWTreeException("Invalid transaction");
-		}
-	}
+		const auto& txn_id = root_provider_->txn_id();
 
-	void check(SnapshotT& txn) const
-	{
-		if (txn.get() == nullptr)
-		{
-			throw CoWTreeException("Invalid snapshot");
-		}
-	}
-
-	UBigInt snapshot_hash(const NodeBaseT* root)
-	{
-		UBigInt sum = 0;
-
-		snapshot_hash(root, sum, root->txn_id());
-
-		return sum;
-	}
-
-	void snapshot_hash(const NodeBaseT* node, UBigInt& sum, BigInt txn_id)
-	{
 		if (node->txn_id() == txn_id)
 		{
-			if (node->is_leaf())
+			fn(node);
+
+			if (!node->is_leaf())
 			{
-				const LeafNodeT* leaf = to_leaf_node(node);
-				auto hash = leaf->hash();
-
-				sum ^= hash;
-			}
-			else {
-				const BranchNodeT* branch = to_branch_node(node);
-
-				auto hash = branch->hash();
-
-				sum ^= hash;
-
-				for (Int c = 0; c < branch->size(); c++)
+				auto branch_node = to_branch_node(node);
+				for (Int c = 0; c < branch_node->size(); c++)
 				{
-					snapshot_hash(branch->data(c), sum, txn_id);
+					auto child = branch_node->data(c);
+					walk_tree(child, fn);
 				}
 			}
 		}
@@ -320,9 +214,9 @@ protected:
 
 	void assert_current_txn(const NodeBaseT* node)
 	{
-		if (node->txn_id() != txn_data_->txn_id())
+		if (node->txn_id() != this->txn_id())
 		{
-			throw InvalidUpdateException();
+			throw vapi::Exception(MA_SRC, SBuf()<<"Transaction IDs do not match: "<<node->txn_id()<<" "<<this->txn_id());
 		}
 	}
 
@@ -346,6 +240,9 @@ protected:
 			return Optional<Value>();
 		}
 	}
+
+
+
 
 	template <typename IterT>
 	IterT locate(NodeBaseT* node, const Key& key) const
@@ -418,10 +315,10 @@ protected:
 		{
 			NodeBaseT* node = path[level];
 
-			if (node->txn_id() < txn_data_->txn_id())
+			if (node->txn_id() < this->txn_id())
 			{
 				BranchNodeT* parent = to_branch_node(path[level + 1]);
-				if (parent->txn_id() < txn_data_->txn_id())
+				if (parent->txn_id() < this->txn_id())
 				{
 					update_path(path, level + 1);
 
@@ -466,7 +363,7 @@ protected:
 			update_keys_up(iter.path(), iter.idx(), 0);
 		}
 
-		txn_data_->root()->metadata().add_size(1);
+		this->root()->metadata().add_size(1);
 	}
 
 	void remove_from(Iterator& iter)
@@ -479,7 +376,7 @@ protected:
 
 		update_keys_up(iter.path(), iter.idx(), 0);
 
-		txn_data_->root()->metadata().add_size(-1);
+		this->root()->metadata().add_size(-1);
 
 		if (leaf->should_merge())
 		{
@@ -511,41 +408,7 @@ protected:
 		}
 	}
 
-	BigInt remove_snapshot(NodeBaseT* node)
-	{
-		BigInt removed = 0;
 
-		if (node->is_branch())
-		{
-			BranchNodeT* branch = to_branch_node(node);
-
-			for (Int c = 0; c < branch->size(); c++)
-			{
-				NodeBaseT* child = branch->data(c);
-				if (child->refs() <= 1)
-				{
-					removed += remove_snapshot(child);
-
-					if (node_budget_ < node_budget_max_)
-					{
-						node_budget_++;
-					}
-				}
-				else {
-					child->unref();
-				}
-			}
-
-			remove_node(branch);
-			removed++;
-		}
-		else {
-			remove_node(node);
-			removed++;
-		}
-
-		return removed;
-	}
 
 	void insert_child_node(BranchNodeT* node, Int idx, NodeBaseT* child)
 	{
@@ -559,7 +422,7 @@ protected:
 
 		Int split_at = node->size() / 2;
 
-		NodeBaseT* right = create_node(level, txn_data_->txn_id());
+		NodeBaseT* right = create_node(level, this->txn_id());
 		split_node(node, split_at, right);
 
 		if (level < path.size() - 1)
@@ -606,8 +469,8 @@ protected:
 		}
 		else
 		{
-			BranchNodeT* new_root = create_branch_node(txn_data_->txn_id());
-			new_root->metadata() = txn_data_->root()->metadata();
+			BranchNodeT* new_root = create_branch_node(this->txn_id());
+			new_root->metadata() = this->root()->metadata();
 
 			insert_child_node(new_root, 0, node);
 			insert_child_node(new_root, 1, right);
@@ -617,7 +480,7 @@ protected:
 
 			next[level] = right;
 
-			txn_data_->set_root(new_root);
+			root_provider_->set_root(new_root);
 		}
 	}
 
@@ -686,14 +549,14 @@ protected:
 
 		update_keys_up(path, parent_idx, level + 1);
 
-		if (parent == txn_data_->root() && parent->size() == 1)
+		if (parent == this->root() && parent->size() == 1)
 		{
 			path.remove(path.size() - 1);
 			next.remove(path.size() - 1);
 
-			node->metadata() = txn_data_->root()->metadata();
+			node->metadata() = this->root()->metadata();
 
-			txn_data_->set_root(node);
+			root_provider_->set_root(node);
 			node->unref();
 		}
 
@@ -701,11 +564,8 @@ protected:
 	}
 
 
-	BigInt new_txn_id() {
-		return ++txn_id_counter_;
-	}
 
-	void ref_children(BranchNodeT* node, BigInt txn_id)
+	void ref_children(BranchNodeT* node, const TxnId& txn_id)
 	{
 		for (Int c = 0; c < node->size(); c++)
 		{
@@ -718,7 +578,7 @@ protected:
 		}
 	}
 
-	NodeBaseT* create_node(Int level, BigInt txn_id)
+	NodeBaseT* create_node(Int level, const TxnId& txn_id)
 	{
 		if (level == 0) {
 			return create_leaf_node(txn_id);
@@ -731,10 +591,10 @@ protected:
 	NodeBaseT* create_node(Int level)
 	{
 		if (level == 0) {
-			return create_leaf_node(txn_data_->txn_id());
+			return create_leaf_node(this->txn_id());
 		}
 		else {
-			return create_branch_node(txn_data_->txn_id());
+			return create_branch_node(this->txn_id());
 		}
 	}
 
@@ -751,21 +611,21 @@ protected:
 	NodeBaseT* clone_node(NodeBaseT* node)
 	{
 		if (node->is_leaf()) {
-			return clone_leaf_node(to_leaf_node(node), txn_data_->txn_id());
+			return clone_leaf_node(to_leaf_node(node), this->txn_id());
 		}
 		else {
-			return clone_branch_node(to_branch_node(node), txn_data_->txn_id());
+			return clone_branch_node(to_branch_node(node), this->txn_id());
 		}
 	}
 
-	BranchNodeT* create_branch_node(BigInt txn_id)
+	BranchNodeT* create_branch_node(const TxnId& txn_id)
 	{
 		ensure_node_budget(1);
 
-		return new BranchNodeT(txn_id, ++node_id_counter_);
+		return new BranchNodeT(txn_id, root_provider_->new_node_id());
 	}
 
-	BranchNodeT* clone_branch_node(BranchNodeT* node, BigInt txn_id)
+	BranchNodeT* clone_branch_node(BranchNodeT* node, const TxnId& txn_id)
 	{
 		BranchNodeT* clone = clone_node_t(node, txn_id);
 
@@ -774,24 +634,24 @@ protected:
 		return clone;
 	}
 
-	LeafNodeT* create_leaf_node(BigInt txn_id)
+	LeafNodeT* create_leaf_node(const TxnId& txn_id)
 	{
 		ensure_node_budget(1);
 
-		return new LeafNodeT(txn_id, ++node_id_counter_);
+		return new LeafNodeT(txn_id, root_provider_->new_node_id());
 	}
 
-	LeafNodeT* clone_leaf_node(LeafNodeT* node, BigInt txn_id)
+	LeafNodeT* clone_leaf_node(LeafNodeT* node, const TxnId& txn_id)
 	{
 		return clone_node_t(node, txn_id);
 	}
 
 	template <typename NodeT>
-	NodeT* clone_node_t(NodeT* node, BigInt txn_id)
+	NodeT* clone_node_t(NodeT* node, const TxnId& txn_id)
 	{
 		ensure_node_budget(1);
 
-		BigInt node_id = ++node_id_counter_;
+		auto node_id = root_provider_->new_node_id();
 
 		NodeT* new_node = new NodeT(txn_id, node_id);
 
@@ -817,76 +677,6 @@ protected:
 
 	void ensure_node_budget(BigInt adjustment)
 	{
-		if (node_budget_ == 0)
-		{
-			do_cleanup_snapshots();
-		}
-
-		if (node_budget_ >= adjustment) {
-			node_budget_ -= adjustment;
-		}
-		else {
-			node_budget_ = 0;
-		}
-	}
-
-	BigInt do_cleanup_snapshots()
-	{
-		BigInt removed = 0;
-
-		auto& events = txn_log_.events_;
-
-		if (events.size() > 0)
-		{
-			for (auto c = events.size() - 1; c > 0; c--)
-			{
-				auto* event = events[c];
-
-				{
-					typename TxnLogT::LockT lock(txn_log_.mutex());
-
-					if (event->refs() == 0)
-					{
-						event->lock();
-					}
-				}
-
-				if (event->locked())
-				{
-//					auto txn_id = event->root()->txn_id();
-//					auto removed =
-					remove_snapshot(event->root());
-//					cout<<"Removed snapshot: "<<txn_id<<" nodes: "<<removed<<endl;
-
-					typename TxnLogT::LockT lock(txn_log_.mutex());
-
-					events.erase(events.begin() + c);
-
-					removed++;
-				}
-			}
-		}
-
-		return removed;
-	}
-
-private:
-
-	TxnDataT* clone_last_tx()
-	{
-		BigInt current_txn_id = new_txn_id();
-
-		NodeBaseT* root = txn_log_.events_.front()->root();
-
-		NodeBaseT* new_root = clone_node(root, current_txn_id);
-
-		return new TxnDataT(new_root, this);
-	}
-
-	TxnDataT* create_new_tx()
-	{
-		BigInt txn_id = new_txn_id();
-		return new TxnDataT(create_leaf_node(txn_id), this);
 	}
 
 	void split_node(NodeBaseT* node, Int split_idx, NodeBaseT* to) const
@@ -912,28 +702,12 @@ private:
 
 		remove_node(to);
 	}
-
-	void commit_txn(TxnDataT* data)
-	{
-//		auto hash = snapshot_hash(data->root());
-		txn_log_.new_entry(data->root(), 0);
-		txn_data_ = nullptr;
-
-		mutex_.unlock();
-	}
-
-	void rollback_txn(TxnDataT* data)
-	{
-		remove_snapshot(data->root());
-		txn_data_ = nullptr;
-
-		mutex_.unlock();
-	}
 };
 
 
 }
 }
-}
 
-#endif /* INCLUDE_MEMORIA_CORE_TOOLS_COW_TREE_HPP_ */
+
+
+#endif

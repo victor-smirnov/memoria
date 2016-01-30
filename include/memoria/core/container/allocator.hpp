@@ -40,9 +40,6 @@ struct IAllocatorProperties {
     virtual void setLastCommitId(BigInt txn_id)                                 = 0;
     virtual BigInt newTxnId()                                                   = 0;
 
-    virtual bool isMVCC() const                                                 = 0;
-    virtual void setMVCC(bool mvcc)                                             = 0;
-
     virtual ~IAllocatorProperties() {}
 };
 
@@ -50,7 +47,7 @@ struct IAllocatorProperties {
 template <typename PageType>
 struct IAllocator: ICtrDirectory<typename PageType::ID> {
 
-    enum {READ, UPDATE};
+    enum {UNDEFINED, READ, UPDATE};
 
     typedef IAllocator<PageType>                                                MyType;
 
@@ -96,6 +93,7 @@ struct IAllocator: ICtrDirectory<typename PageType::ID> {
     virtual Logger& logger()                                                    = 0;
     virtual IAllocatorProperties& properties()                                  = 0;
 
+    virtual ~IAllocator() {}
 
 };
 

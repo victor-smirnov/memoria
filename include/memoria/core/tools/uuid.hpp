@@ -47,12 +47,34 @@ public:
 		return hi_ == uuid.hi_ && lo_ == uuid.lo_;
 	}
 
+	bool operator!=(const UUID& uuid) const {
+		return hi_ != uuid.hi_ || lo_ != uuid.lo_;
+	}
+
+	bool operator<(const UUID& other) const {
+		return hi_ <= other.hi_ && lo_ < other.lo_;
+	}
+
+	bool operator<=(const UUID& other) const {
+		return hi_ <= other.hi_ && lo_ <= other.lo_;
+	}
+
 	static UUID make_random();
 	static UUID parse(const char* in);
 };
 
 std::ostream& operator<<(std::ostream& out, const UUID& uuid);
 std::istream& operator>>(std::istream& in, UUID& uuid);
+
+struct UUIDKeyHash
+{
+    long operator() (const UUID &k) const { return k.hi() ^ k.lo(); }
+};
+
+struct UUIDKeyEq
+{
+    bool operator() (const UUID &x, const UUID &y) const { return x == y; }
+};
 
 
 }
