@@ -9,30 +9,50 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 
 using namespace memoria;
 using namespace std;
 
-int main() {
-	PersistentInMemAllocator<> alloc;
+int main()
+{
+	MEMORIA_INIT(DefaultProfile<>);
 
-	auto txn = alloc.master();
+	DCtr<Vector<Byte>>::initMetadata();
 
-	txn->commit();
+	try {
+		auto alloc = std::make_shared<PersistentInMemAllocator<>>();
 
-	txn->set_as_master();
+		auto txn = alloc->master();
 
+		DCtr<Vector<Byte>> ctr(txn.get(), CTR_CREATE);
 
-//	FSDumpAllocator(&alloc, "pdump.dir");
+		vector<Byte> data(100000);
 
-//	std::string file_name = "store.dump";
+		ctr.seek(0).insert(data.begin(), data.size());
 
-//	unique_ptr <FileOutputStreamHandler> out(FileOutputStreamHandler::create(file_name.c_str()));
-//	alloc.store(out.get());
+		txn->commit();
 
+		txn->set_as_master();
 
-//	unique_ptr <FileInputStreamHandler> in(FileInputStreamHandler::create(file_name.c_str()));
-//	auto alloc2 = PersistentInMemAllocator<>::load(in.get());
+		FSDumpAllocator(txn.get(), "pdump1.dir");
+
+		std::string file_name = "store.dump";
+
+		unique_ptr <FileOutputStreamHandler> out(FileOutputStreamHandler::create(file_name.c_str()));
+		alloc->store(out.get());
+
+		unique_ptr <FileInputStreamHandler> in(FileInputStreamHandler::create(file_name.c_str()));
+		auto alloc2 = PersistentInMemAllocator<>::load(in.get());
+
+		FSDumpAllocator(alloc2->master().get(), "pdump2.dir");
+	}
+	catch (vapi::Exception& ex) {
+		cout<<ex.source()<<": "<<ex.message()<<endl;
+	}
+	catch (vapi::Exception* ex) {
+		cout<<ex->source()<<": "<<ex->message()<<endl;
+	}
 }
 
 

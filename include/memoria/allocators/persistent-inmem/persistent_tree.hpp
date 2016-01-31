@@ -47,9 +47,11 @@ public:
 	{
 		if (root_provider_->is_active())
 		{
-			MEMORIA_ASSERT_TRUE(root_provider_->parent()->is_committed());
-			auto new_root = clone_node(root_provider_->parent()->root());
-			root_provider_->set_root(new_root);
+			if (root_provider_->parent()) {
+				MEMORIA_ASSERT_TRUE(root_provider_->parent()->is_committed());
+				auto new_root = clone_node(root_provider_->parent()->root());
+				root_provider_->set_root(new_root);
+			}
 		}
 	}
 
@@ -171,6 +173,10 @@ public:
 
 	static const LeafNodeT* to_leaf_node(const NodeBaseT* node) {
 		return static_cast<const LeafNodeT*>(node);
+	}
+
+	void dump(std::ostream& out = std::cout) const {
+		dump(root_provider_->root(), out);
 	}
 
 	void dump(const NodeBaseT* node, std::ostream& out = std::cout) const

@@ -104,6 +104,11 @@ public:
         return Base::value() < other.value();
     }
 
+    bool operator<=(const ValueType& other) const
+    {
+    	return Base::value() <= other.value();
+    }
+
     operator bool() const {
     	return this->isSet();
     }

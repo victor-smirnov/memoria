@@ -49,6 +49,9 @@ using SmallInMemAllocator = memoria::InMemAllocator<
 template <typename CtrName>
 using DCtrTF = CtrTF<DefaultProfile<>, CtrName>;
 
+template <typename CtrName>
+using DCtr = typename CtrTF<DefaultProfile<>, CtrName>::Type;
+
 using ID8 = PageID<BigInt> ;
 
 }

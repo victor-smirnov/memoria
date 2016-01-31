@@ -65,7 +65,7 @@ std::ostream& operator<<(std::ostream& out, const UUID& uuid)
 
 	uuid_unparse(uu, out_buffer);
 
-	out<<out_buffer<<std::endl;
+	out<<out_buffer;
 
 	return out;
 }

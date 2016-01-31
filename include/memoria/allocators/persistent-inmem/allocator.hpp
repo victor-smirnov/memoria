@@ -62,9 +62,21 @@ vapi::InputStreamHandler& operator>>(vapi::InputStreamHandler& in, PersistentTre
     return in;
 }
 
+template <typename V, typename T>
+std::ostream& operator<<(std::ostream& out, const PersistentTreeValue<V, T>& value)
+{
+	out<<"PersistentTreeValue[";
+    out << value.page();
+    out<<", ";
+    out << value.txn_id();
+    out<<"]";
+
+    return out;
+}
+
 
 template <typename Profile, typename PageType>
-class PersistentInMemAllocatorT {
+class PersistentInMemAllocatorT: public enable_shared_from_this<PersistentInMemAllocatorT<Profile, PageType>> {
 public:
 
 	static constexpr Int NodeIndexSize 	= 32;
@@ -191,6 +203,9 @@ public:
 
 	struct HistoryNodeBuffer {
 
+		template <typename, typename>
+		friend class PersistentInMemAllocatorT;
+
 	private:
 		TxnId parent_;
 		std::vector<TxnId> children_;
@@ -206,6 +221,10 @@ public:
 		HistoryNodeBuffer(){}
 
 		const TxnId& txn_id() const {
+			return txn_id_;
+		}
+
+		TxnId& txn_id() {
 			return txn_id_;
 		}
 
@@ -273,14 +292,16 @@ private:
 
 	ContainerMetadataRepository*  metadata_;
 
-	std::weak_ptr<MyType> self_;
+	Int tag_;
 
 public:
 
 	PersistentInMemAllocatorT():
 		metadata_(MetadataRepository<Profile>::getMetadata()),
-		self_(std::shared_ptr<MyType>(this))
+		tag_(1)
 	{
+		SnapshotT::initMetadata();
+
 		history_tree_ = new HistoryNode(nullptr, HistoryNode::Status::ACTIVE);
 
 		auto leaf = new LeafNodeT(history_tree_->txn_id(), UUID::make_random());
@@ -288,7 +309,7 @@ public:
 
 		master_ = history_tree_;
 
-		SnapshotT txn(history_tree_, self_.lock());
+		SnapshotT txn(history_tree_, this);
 
 		txn.commit();
 	}
@@ -297,8 +318,9 @@ private:
 
 	PersistentInMemAllocatorT(Int):
 		metadata_(MetadataRepository<Profile>::getMetadata()),
-		self_(std::shared_ptr<MyType>(this))
-	{}
+		tag_(2)
+	{
+	}
 
 public:
 
@@ -328,7 +350,10 @@ public:
 	SnapshotPtr master()
 	{
 		HistoryNode* node = new HistoryNode(master_);
-		return std::make_shared<SnapshotT>(node, self_.lock());
+
+		snapshot_map_[node->txn_id()] = node;
+
+		return std::make_shared<SnapshotT>(node, this->shared_from_this());
 	}
 
 	void set_master(const TxnId& txn_id)
@@ -503,7 +528,7 @@ public:
 			throw vapi::Exception(MA_SRC, SBuf()<<"Specified master uuid "<<metadata.master()<<" is not found in the data");
 		}
 
-		return allocator->self_.lock();
+		return std::shared_ptr<MyType>(allocator);
 	}
 
 private:
@@ -625,7 +650,7 @@ private:
 			map[page->uuid()] = page;
 		}
 		else {
-			throw vapi::Exception(MA_SRC, SBuf()<<"Page "<<page->uuid()<<" already registered");
+			throw vapi::Exception(MA_SRC, SBuf()<<"Page "<<page->uuid()<<" was already registered");
 		}
 	}
 
@@ -644,7 +669,7 @@ private:
 			map[buffer->node_id()] = std::make_pair(buffer, node);
 		}
 		else {
-			throw vapi::Exception(MA_SRC, SBuf()<<"PersistentTree LeafNode "<<buffer->node_id()<<" already registered");
+			throw vapi::Exception(MA_SRC, SBuf()<<"PersistentTree LeafNode "<<buffer->node_id()<<" was already registered");
 		}
 	}
 
@@ -663,7 +688,7 @@ private:
 			map[buffer->node_id()] = std::make_pair(buffer, node);
 		}
 		else {
-			throw vapi::Exception(MA_SRC, SBuf()<<"PersistentTree BranchNode "<<buffer->node_id()<<" already registered");
+			throw vapi::Exception(MA_SRC, SBuf()<<"PersistentTree BranchNode "<<buffer->node_id()<<" was already registered");
 		}
 	}
 
@@ -674,12 +699,34 @@ private:
 	{
 		HistoryNodeBuffer* node = new HistoryNodeBuffer();
 
+		Int status;
+
+		in >> status;
+
+		node->status() = status ? HistoryNode::Status::COMMITTED : HistoryNode::Status::ACTIVE;
+
+		in >> node->txn_id();
+		in >> node->root();
+
+		in >> node->parent();
+
+		BigInt children;
+		in >>children;
+
+		for (BigInt c = 0; c < children; c++)
+		{
+			TxnId child_txn_id;
+			in >> child_txn_id;
+
+			node->children().push_back(child_txn_id);
+		}
+
 		if (map.find(node->txn_id()) == map.end())
 		{
 			map[node->txn_id()] = node;
 		}
 		else {
-			throw vapi::Exception(MA_SRC, SBuf()<<"HistoryTree Node "<<node->txn_id()<<" already registered");
+			throw vapi::Exception(MA_SRC, SBuf()<<"HistoryTree Node "<<node->txn_id()<<" was already registered");
 		}
 	}
 
@@ -722,8 +769,8 @@ private:
 
 	void walk_version_tree(const HistoryNode* node, std::function<void (const HistoryNode*, SnapshotT*)> fn)
 	{
-		SnapshotT txn(history_tree_, self_.lock());
-		fn(history_tree_, &txn);
+		SnapshotT txn(history_tree_, this->shared_from_this());
+		fn(node, &txn);
 
 		for (auto child: node->children())
 		{

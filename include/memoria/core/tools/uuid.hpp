@@ -60,6 +60,10 @@ public:
 		return hi_ <= other.hi_ && lo_ <= other.lo_;
 	}
 
+	operator bool() const {
+		return lo_ != 0 || hi_ != 0;
+	}
+
 	static UUID make_random();
 	static UUID parse(const char* in);
 };

@@ -37,6 +37,7 @@ class Snapshot: public IWalkableAllocator<PageType> {
 	using SnapshotPtr 		= std::shared_ptr<Snapshot>;
 
 	using Status 			= typename HistoryNode::Status;
+public:
 
 	using typename Base::Page;
 	using typename Base::ID;
@@ -45,6 +46,7 @@ class Snapshot: public IWalkableAllocator<PageType> {
 	using typename Base::AbstractAllocator;
 	using typename Base::CtrShared;
 
+private:
 	using RootMapType 	= Ctr<typename CtrTF<Profile, Root>::CtrTypes>;
 	using CtrSharedMap 	= std::unordered_map<BigInt, CtrShared*>;
 
@@ -68,6 +70,7 @@ class Snapshot: public IWalkableAllocator<PageType> {
 
 	HistoryNode* 	history_node_;
 	HistoryTreePtr  history_tree_;
+	HistoryTree*  	history_tree_raw_ = nullptr;
 
 	PersitentTree persistent_tree_;
 
@@ -77,7 +80,7 @@ class Snapshot: public IWalkableAllocator<PageType> {
 
 	Properties properties_;
 
-	RootMapType* root_map_;
+	std::unique_ptr<RootMapType> root_map_;
 
 	size_t mem_limit_;
 	size_t allocated_ = 0;
@@ -94,6 +97,7 @@ public:
 	Snapshot(HistoryNode* history_node, const HistoryTreePtr& history_tree):
 		history_node_(history_node),
 		history_tree_(history_tree),
+		history_tree_raw_(history_tree.get()),
 		persistent_tree_(history_node_),
 		logger_("PersistentInMemAllocatorTxn"),
 		root_map_(nullptr),
@@ -101,15 +105,34 @@ public:
 		root_id0_(0),
 		metadata_(MetadataRepository<Profile>::getMetadata())
 	{
-		root_map_ = new RootMapType(this, CTR_CREATE, 0);
+		root_map_ = std::make_unique<RootMapType>(this, CTR_CREATE, 0);
+	}
+
+	Snapshot(HistoryNode* history_node, HistoryTree* history_tree):
+		history_node_(history_node),
+		history_tree_raw_(history_tree),
+		persistent_tree_(history_node_),
+		logger_("PersistentInMemAllocatorTxn"),
+		root_map_(nullptr),
+		mem_limit_(std::numeric_limits<size_t>::max()),
+		root_id0_(0),
+		metadata_(MetadataRepository<Profile>::getMetadata())
+	{
+		root_map_ = std::make_unique<RootMapType>(this, CTR_CREATE, 0);
 	}
 
 	virtual ~Snapshot()
 	{
 		// FIXME: autocommit ?
 		history_node_->commit();
+	}
 
-		delete root_map_;
+	static void initMetadata() {
+		RootMapType::initMetadata();
+	}
+
+	ContainerMetadataRepository* getMetadata() const {
+		return metadata_;
 	}
 
 	void commit()
@@ -141,7 +164,7 @@ public:
 
 	void set_as_master()
 	{
-		history_tree_->set_master(history_node_->txn_id());
+		history_tree_raw_->set_master(history_node_->txn_id());
 	}
 
 	SnapshotPtr branch()
@@ -149,7 +172,7 @@ public:
 		if (history_node_->is_committed())
 		{
 			HistoryNode* history_node = new HistoryNode(history_node_);
-			history_tree_->snapshot_map[history_node->root_id()] = history_node;
+			history_tree_raw_->snapshot_map[history_node->root_id()] = history_node;
 
 			return std::make_shared<Snapshot>(history_node, history_tree_);
 		}
@@ -165,7 +188,7 @@ public:
 	{
 		if (id.isSet())
 		{
-			Shared* shared = get_shared(id);
+			Shared* shared = get_shared(id, Shared::READ);
 
 			if (!shared->get())
 			{
@@ -186,7 +209,7 @@ public:
 					shared->set_page(page_opt.value().page());
 				}
 				else {
-					throw new vapi::Exception(MA_SRC, SBuf()<<"Page is not found for the specified id: "<<id);
+					throw vapi::Exception(MA_SRC, SBuf()<<"Page is not found for the specified id: "<<id);
 				}
 			}
 
@@ -201,7 +224,7 @@ public:
 	{
 		if (id.isSet())
 		{
-			Shared* shared = get_shared(id);
+			Shared* shared = get_shared(id, Shared::UPDATE);
 
 			if (!shared->get())
 			{
@@ -214,7 +237,6 @@ public:
 					if (page_opt.value().txn_id() != txn_id)
 					{
 						Page* new_page = clone_page(page_opt.value().page());
-
 						shared->set_page(new_page);
 
 						shared->refresh();
@@ -228,7 +250,7 @@ public:
 					}
 				}
 				else {
-					throw new vapi::Exception(MA_SRC, SBuf()<<"Page is not found for the specified id: "<<id);
+					throw vapi::Exception(MA_SRC, SBuf()<<"Page is not found for the specified id: "<<id);
 				}
 			}
 			else if (shared->state() == Shared::READ)
@@ -245,11 +267,15 @@ public:
 					shared->refresh();
 				}
 				else {
-					throw new vapi::Exception(MA_SRC, SBuf()<<"Page is not found for the specified id: "<<id);
+					throw vapi::Exception(MA_SRC, SBuf()<<"Page is not found for the specified id: "<<id);
 				}
 			}
+			else if (shared->state() == Shared::UPDATE)
+			{
+				//MEMORIA_ASEERT();
+			}
 			else {
-				throw new vapi::Exception(MA_SRC, SBuf()<<"Invalid PageShared state: "<<shared->state());
+				throw vapi::Exception(MA_SRC, SBuf()<<"Invalid PageShared state: "<<shared->state());
 			}
 
 			shared->state() = Shared::UPDATE;
@@ -427,7 +453,7 @@ public:
 	}
 
 	virtual ID newId() {
-		return history_tree_->newId();
+		return history_tree_raw_->newId();
 	}
 
 	virtual BigInt currentTxnId() const {
@@ -465,17 +491,29 @@ public:
 
 	virtual void markUpdated(BigInt name) {}
 
-	virtual bool hasRoot(BigInt name) {
-		return false;
+	virtual bool hasRoot(BigInt name)
+	{
+		if (root_map_)
+		{
+			return get_value_for_key(name) != ID(0);
+		}
+		else {
+			return false;
+		}
 	}
 
-	virtual BigInt createCtrName() {
-		return 0;
+	virtual BigInt createCtrName()
+	{
+        auto meta = root_map_->getRootMetadata();
+
+        BigInt new_name = ++meta.model_name_counter();
+
+        root_map_->setRootMetadata(meta);
+
+        return new_name;
 	}
 
-    RootMapType* roots() {
-        return root_map_;
-    }
+
 
 	virtual void flush(bool force_sync = false) {}
 	virtual void rollback(bool force_sync = false) {}
@@ -559,7 +597,7 @@ protected:
 		return shared;
 	}
 
-	Shared* get_shared(const ID& id)
+	Shared* get_shared(const ID& id, Int state)
 	{
 		Shared* shared = pool_.get(id);
 
@@ -568,7 +606,7 @@ protected:
 			shared = pool_.allocate(id);
 
 			shared->id()        = id;
-			shared->state()     = Shared::UNDEFINED;
+			shared->state()     = state;
 			shared->set_page((Page*)nullptr);
 			shared->set_allocator(this);
 		}
