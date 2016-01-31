@@ -27,14 +27,41 @@
 #include <malloc.h>
 #include <memory>
 #include <limits>
+#include <unordered_map>
 
 namespace memoria {
 
-namespace detail = memoria::persistent_inmem;
+template <typename ValueT, typename TxnIdT>
+class PersistentTreeValue {
+	ValueT page_;
+	TxnIdT txn_id_;
+public:
+	PersistentTreeValue() {}
+	PersistentTreeValue(const ValueT& page, const TxnIdT& txn_id): page_(page), txn_id_(txn_id) {}
 
-using namespace std;
+	const ValueT& page() const {return page_;}
+	ValueT& page() {return page_;}
 
-using namespace memoria::vapi;
+	const TxnIdT& txn_id() const {return txn_id_;}
+	TxnIdT& txn_id() {return txn_id_;}
+};
+
+template <typename V, typename T>
+vapi::OutputStreamHandler& operator<<(vapi::OutputStreamHandler& out, const PersistentTreeValue<V, T>& value)
+{
+    out << value.page();
+    out << value.txn_id();
+    return out;
+}
+
+template <typename V, typename T>
+vapi::InputStreamHandler& operator>>(vapi::InputStreamHandler& in, PersistentTreeValue<V, T>& value)
+{
+	in >> value.page();
+	in >> value.txn_id();
+    return in;
+}
+
 
 template <typename Profile, typename PageType>
 class PersistentInMemAllocatorT {
@@ -51,28 +78,17 @@ public:
 	using Key 			= typename PageType::ID;
 	using Value 		= PageType*;
 
-	using TxnId 		 = UUID;
-	using PTreeNodeId 	 = UUID;
+	using TxnId 		 	= UUID;
+	using PTreeNodeId 	 	= UUID;
 
-	class PersistentTreeValue {
-		Value page_;
-		TxnId txn_id_;
-	public:
-		PersistentTreeValue() {}
-		PersistentTreeValue(const Value& page, const TxnId& txn_id): page_(page), txn_id_(txn_id) {}
+	using LeafNodeT 		= memoria::persistent_inmem::LeafNode<Key, PersistentTreeValue<PageType*, TxnId>, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
+	using LeafNodeBufferT 	= memoria::persistent_inmem::LeafNode<Key, PersistentTreeValue<typename PageType::ID, TxnId>, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
 
-		const Value& page() const {return page_;}
-		const TxnId& txn_id() const {return txn_id_;}
-	};
+	using BranchNodeT 		= memoria::persistent_inmem::BranchNode<Key, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
+	using BranchNodeBufferT = memoria::persistent_inmem::BranchNode<Key, NodeSize, NodeIndexSize, PTreeNodeId, TxnId, PTreeNodeId>;
+	using NodeBaseT 		= typename BranchNodeT::NodeBaseT;
+	using NodeBaseBufferT 	= typename BranchNodeBufferT::NodeBaseT;
 
-	using LeafNodeT 	= memoria::persistent_inmem::LeafNode<Key, PersistentTreeValue, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
-	using BranchNodeT 	= memoria::persistent_inmem::BranchNode<Key, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
-	using NodeBaseT 	= typename BranchNodeT::NodeBaseT;
-	using NodeBasePtr   = NodeBaseT*;
-
-	struct HistoryNode;
-
-	using HistoryNodePtr = HistoryNode*;
 
 
 	struct HistoryNode {
@@ -80,10 +96,10 @@ public:
 		enum class Status {ACTIVE, COMMITTED};
 
 	private:
-		HistoryNodePtr parent_;
-		std::vector<HistoryNodePtr> children_;
+		HistoryNode* parent_;
+		std::vector<HistoryNode*> children_;
 
-		NodeBasePtr root_;
+		NodeBaseT* root_;
 
 		Status status_;
 
@@ -91,7 +107,7 @@ public:
 
 	public:
 
-		HistoryNode(HistoryNodePtr parent, Status status = Status::ACTIVE):
+		HistoryNode(HistoryNode* parent, Status status = Status::ACTIVE):
 			parent_(parent),
 			root_(nullptr),
 			status_(status),
@@ -102,7 +118,18 @@ public:
 			}
 		}
 
-		void remove_child(NodeBasePtr child)
+		HistoryNode(const TxnId& txn_id, HistoryNode* parent, Status status):
+			parent_(parent),
+			root_(nullptr),
+			status_(status),
+			txn_id_(txn_id)
+		{
+			if (parent_) {
+				parent_->children().push_back(this);
+			}
+		}
+
+		void remove_child(NodeBaseT* child)
 		{
 			for (size_t c = 0; c < children_.size(); c++)
 			{
@@ -126,15 +153,15 @@ public:
 			return txn_id_;
 		}
 
-		const NodeBasePtr root() const {
+		const auto& root() const {
 			return root_;
 		}
 
-		NodeBasePtr root() {
+		auto root() {
 			return root_;
 		}
 
-		void set_root(NodeBasePtr new_root) {
+		void set_root(NodeBaseT* new_root) {
 			root_ = new_root;
 		}
 
@@ -142,14 +169,14 @@ public:
 			return UUID::make_random();
 		}
 
-		const HistoryNodePtr& parent() const {return parent_;}
-		HistoryNodePtr& parent() {return parent_;}
+		const auto& parent() const {return parent_;}
+		auto& parent() {return parent_;}
 
-		std::vector<HistoryNodePtr>& children() {
+		auto& children() {
 			return children_;
 		}
 
-		const std::vector<HistoryNodePtr>& children() const {
+		const auto& children() const {
 			return children_;
 		}
 
@@ -162,18 +189,84 @@ public:
 		}
 	};
 
+	struct HistoryNodeBuffer {
+
+	private:
+		TxnId parent_;
+		std::vector<TxnId> children_;
+
+		PTreeNodeId root_;
+
+		typename HistoryNode::Status status_;
+
+		TxnId txn_id_;
+
+	public:
+
+		HistoryNodeBuffer(){}
+
+		const TxnId& txn_id() const {
+			return txn_id_;
+		}
+
+		const auto& root() const {
+			return root_;
+		}
+
+		auto& root() {
+			return root_;
+		}
+
+
+		const auto& parent() const {return parent_;}
+		auto& parent() {return parent_;}
+
+		std::vector<TxnId>& children() {
+			return children_;
+		}
+
+		const std::vector<TxnId>& children() const {
+			return children_;
+		}
+
+
+		auto& status() {return status_;}
+		const auto& status() const {return status_;}
+	};
+
+
 	using PersistentTreeT 	= memoria::persistent_inmem::PersistentTree<BranchNodeT, LeafNodeT, HistoryNode>;
 	using TransactionT 	 	= memoria::persistent_inmem::Transaction<Profile, PageType, HistoryNode, PersistentTreeT, MyType>;
 	using TransactionPtr 	= std::shared_ptr<TransactionT>;
 
-	using TxnMap		 	= std::unordered_map<TxnId, HistoryNodePtr, UUIDKeyHash, UUIDKeyEq>;
+	using TxnMap		 		= std::unordered_map<TxnId, HistoryNode*, UUIDKeyHash, UUIDKeyEq>;
+
+	using HistoryTreeNodeMap	= std::unordered_map<PTreeNodeId, HistoryNodeBuffer*, UUIDKeyHash, UUIDKeyEq>;
+	using PersistentTreeNodeMap	= std::unordered_map<PTreeNodeId, std::pair<NodeBaseBufferT*, NodeBaseT*>, UUIDKeyHash, UUIDKeyEq>;
+	using PageMap				= std::unordered_map<typename PageType::ID, PageType*, IDKeyHash, IDKeyEq>;
 
 	template <typename, typename, typename, typename>
 	friend class Transaction;
 
+	class AllocatorMetadata {
+		TxnId master_;
+		TxnId root_;
+	public:
+		AllocatorMetadata() {}
+
+		TxnId& master() {return master_;}
+		TxnId& root() {return root_;}
+
+		const TxnId& master() const {return master_;}
+		const TxnId& root()   const {return root_;}
+	};
+
 private:
-	HistoryNodePtr history_tree_ = nullptr;
-	HistoryNodePtr master_ = nullptr;
+
+	enum {TYPE_UNKNOWN, TYPE_HISTORY_NODE, TYPE_BRANCH_NODE, TYPE_LEAF_NODE, TYPE_DATA_PAGE};
+
+	HistoryNode* history_tree_ = nullptr;
+	HistoryNode* master_ = nullptr;
 
 	TxnMap transaction_map_;
 
@@ -181,9 +274,13 @@ private:
 
 	ContainerMetadataRepository*  metadata_;
 
+	std::weak_ptr<MyType> self_;
+
 public:
 
-	PersistentInMemAllocatorT(): metadata_(MetadataRepository<Profile>::getMetadata())
+	PersistentInMemAllocatorT():
+		metadata_(MetadataRepository<Profile>::getMetadata()),
+		self_(std::shared_ptr<MyType>(this))
 	{
 		history_tree_ = new HistoryNode(nullptr, HistoryNode::Status::ACTIVE);
 
@@ -192,9 +289,23 @@ public:
 
 		master_ = history_tree_;
 
-		TransactionT txn(history_tree_, this);
+		TransactionT txn(history_tree_, self_.lock());
 
 		txn.commit();
+	}
+
+private:
+
+	PersistentInMemAllocatorT(Int):
+		metadata_(MetadataRepository<Profile>::getMetadata()),
+		self_(std::shared_ptr<MyType>(this))
+	{}
+
+public:
+
+	virtual ~PersistentInMemAllocatorT()
+	{
+		free_memory(history_tree_);
 	}
 
 	auto newId()
@@ -217,23 +328,41 @@ public:
 
 	TransactionPtr master()
 	{
-		HistoryNodePtr node = new HistoryNode(master_);
-		return std::make_shared<TransactionT>(node, this);
+		HistoryNode* node = new HistoryNode(master_);
+		return std::make_shared<TransactionT>(node, self_.lock());
+	}
+
+	void set_master(const TxnId& txn_id)
+	{
+		auto iter = transaction_map_.find(txn_id);
+		if (iter != transaction_map_.end())
+		{
+			if (iter->second->is_committed())
+			{
+				master_ = iter->second;
+			}
+			else {
+				throw vapi::Exception(MA_SRC, SBuf()<<"Transaction "<<txn_id<<" hasn't been committed yet");
+			}
+		}
+		else {
+			throw vapi::Exception(MA_SRC, SBuf()<<"Transaction "<<txn_id<<" is not known in this allocator");
+		}
+	}
+
+	ContainerMetadataRepository* getMetadata() const {
+		return metadata_;
 	}
 
 	virtual void walkContainers(vapi::ContainerWalker* walker, const char* allocator_descr = nullptr)
 	{
 		walker->beginAllocator("PersistentInMemAllocator", allocator_descr);
-		walk_version_tree(history_tree_, [](auto* txn){
 
+		walk_version_tree(history_tree_, [&](auto* history_tree_node, auto* txn){
+			txn->walkContainers(walker);
 		});
+
 		walker->endAllocator();
-	}
-
-
-	virtual void load(InputStreamHandler *input)
-	{
-
 	}
 
 	virtual void store(OutputStreamHandler *output)
@@ -243,24 +372,359 @@ public:
 
 		output->write(&signature, 0, sizeof(signature));
 
-		walk_version_tree(history_tree_, [](auto* txn){
+		AllocatorMetadata meta;
 
+		meta.master() 	= master_->txn_id();
+		meta.root() 	= history_tree_->txn_id();
+
+		write(*output, meta);
+
+		walk_version_tree(history_tree_, [&](auto* history_tree_node, auto* txn) {
+			write(*output, history_tree_node);
 		});
 
 		output->close();
 	}
 
-	ContainerMetadataRepository* getMetadata() const {
-		return metadata_;
-	}
 
+	static std::shared_ptr<MyType> load(InputStreamHandler *input)
+	{
+		MyType* allocator = new MyType(0);
+
+		char signature[12];
+
+		input->read(signature, sizeof(signature));
+
+		if (!(
+				signature[0] == 'M' &&
+				signature[1] == 'E' &&
+				signature[2] == 'M' &&
+				signature[3] == 'O' &&
+				signature[4] == 'R' &&
+				signature[5] == 'I' &&
+				signature[6] == 'A'))
+		{
+			throw vapi::Exception(MEMORIA_SOURCE, SBuf()<<"The stream does not start from MEMORIA signature: "<<signature);
+		}
+
+		if (!(signature[7] == 0 || signature[7] == 1))
+		{
+			throw vapi::BoundsException(MEMORIA_SOURCE, SBuf()<<"Endiannes filed value is out of bounds "<<signature[7]);
+		}
+
+		if (signature[8] != 0)
+		{
+			throw vapi::Exception(MEMORIA_SOURCE, "This is not an in-memory container");
+		}
+
+		allocator->master_ = allocator->history_tree_ = nullptr;
+
+		allocator->transaction_map_.clear();
+
+		BigInt size = input->size();
+
+		HistoryTreeNodeMap 		history_node_map;
+		PersistentTreeNodeMap	ptree_node_map;
+		PageMap					page_map;
+
+		AllocatorMetadata metadata;
+
+		*input >> metadata.master();
+		*input >> metadata.root();
+
+		while (input->pos() < size)
+		{
+			UByte type;
+			*input >> type;
+
+			switch (type)
+			{
+				case TYPE_DATA_PAGE: 	allocator->read_data_page(*input, page_map); break;
+				case TYPE_LEAF_NODE: 	allocator->read_leaf_node(*input, ptree_node_map); break;
+				case TYPE_BRANCH_NODE: 	allocator->read_branch_node(*input, ptree_node_map); break;
+				case TYPE_HISTORY_NODE: allocator->read_history_node(*input, history_node_map); break;
+				default:
+					throw vapi::Exception(MA_SRC, SBuf()<<"Unknown record type: "<<(Int)type);
+			}
+		}
+
+		for (auto& entry: ptree_node_map)
+		{
+			auto buffer = entry.second.first;
+			auto node   = entry.second.second;
+
+			if (buffer->is_leaf())
+			{
+				LeafNodeBufferT* leaf_buffer = static_cast<LeafNodeBufferT*>(buffer);
+				LeafNodeT* leaf_node 		 = static_cast<LeafNodeT*>(node);
+
+				for (Int c = 0; c < leaf_node->size(); c++)
+				{
+					const auto& descr = leaf_buffer->data(c);
+
+					auto page_iter = page_map.find(descr.page());
+
+					if (page_iter != page_map.end())
+					{
+						leaf_node->data(c) = typename LeafNodeT::Value(page_iter->second, descr.txn_id());
+					}
+					else {
+						throw vapi::Exception(MA_SRC, SBuf()<<"Specified uuid "<<descr.page()<<" is not found in the page map");
+					}
+				}
+			}
+			else {
+				BranchNodeBufferT* branch_buffer = static_cast<BranchNodeBufferT*>(buffer);
+				BranchNodeT* branch_node 		   = static_cast<BranchNodeT*>(node);
+
+				for (Int c = 0; c < branch_node->size(); c++)
+				{
+					const auto& node_id = branch_buffer->data(c);
+
+					auto iter = ptree_node_map.find(node_id);
+
+					if (iter != ptree_node_map.end())
+					{
+						branch_node->data(c) = iter->second.second;
+					}
+					else {
+						throw vapi::Exception(MA_SRC, SBuf()<<"Specified uuid "<<node_id<<" is not found in the persistent tree node map");
+					}
+				}
+			}
+		}
+
+		allocator->history_tree_ = allocator->build_history_tree(metadata.root(), nullptr, history_node_map, ptree_node_map);
+
+		if (allocator->transaction_map_.find(metadata.master()) != allocator->transaction_map_.end())
+		{
+			allocator->master_ = allocator->transaction_map_[metadata.master()];
+		}
+		else {
+			throw vapi::Exception(MA_SRC, SBuf()<<"Specified master uuid "<<metadata.master()<<" is not found in the data");
+		}
+
+		return allocator->self_.lock();
+	}
 
 private:
 
-	void walk_version_tree(const HistoryNode* node, std::function<void (TransactionT*)> fn)
+	HistoryNode* build_history_tree(
+		const TxnId& txn_id,
+		HistoryNode* parent,
+		const HistoryTreeNodeMap& history_map,
+		const PersistentTreeNodeMap& ptree_map
+	)
 	{
-		TransactionT txn(history_tree_, this);
-		fn(&txn);
+		auto iter = history_map.find(txn_id);
+
+		if (iter != history_map.end())
+		{
+			HistoryNodeBuffer* buffer = iter->second;
+
+			HistoryNode* node = new HistoryNode(txn_id, parent, buffer->status());
+
+			transaction_map_[txn_id] = node;
+
+			auto ptree_iter = ptree_map.find(buffer->root());
+
+			if (ptree_iter != ptree_map.end())
+			{
+				node->set_root(ptree_iter->second.second);
+
+				for (const auto& child_txn_id: buffer->children())
+				{
+					auto child = build_history_tree(child_txn_id, node, history_map, ptree_map);
+					node->children().push_back(child);
+				}
+
+				return node;
+			}
+			else {
+				throw vapi::Exception(MA_SRC, SBuf()<<"Specified node_id "<<buffer->root()<<" is not found in persistent tree data");
+			}
+		}
+		else {
+			throw vapi::Exception(MA_SRC, SBuf()<<"Specified txn_id "<<txn_id<<" is not found in history data");
+		}
+	}
+
+
+	void free_memory(HistoryNode* node)
+	{
+		for (auto child: node->children())
+		{
+			free_memory(child);
+		}
+
+		free_memory(node->root());
+
+		delete node;
+	}
+
+
+	void free_memory(const NodeBaseT* node)
+	{
+		const auto& txn_id = node->txn_id();
+		if (node->is_leaf())
+		{
+			auto leaf = PersistentTreeT::to_leaf_node(node);
+
+			for (Int c = 0; c < leaf->size(); c++)
+			{
+				auto& data = leaf->data(c);
+				if (data.txn_id() == txn_id)
+				{
+					::free(data.page());
+				}
+			}
+
+			delete leaf;
+		}
+		else {
+			auto branch = PersistentTreeT::to_branch_node(node);
+
+			for (Int c = 0; c < branch->size(); c++)
+			{
+				auto child = branch->data(c);
+				if (child->txn_id() == txn_id)
+				{
+					free_memory(child);
+				}
+			}
+
+			delete branch;
+		}
+	}
+
+
+	void read_data_page(InputStreamHandler& in, PageMap& map)
+	{
+		Int page_data_size;
+		in >> page_data_size;
+
+		Int page_size;
+		in >> page_size;
+
+		Int ctr_hash;
+		in >> ctr_hash;
+
+		Int page_hash;
+		in >> page_hash;
+
+		unique_ptr<Byte, void (*)(void*)> page_data((Byte*)::malloc(page_data_size), ::free);
+
+		Page* page = T2T<Page*>(::malloc(page_size));
+
+		in.read(page_data.get(), 0, page_data_size);
+
+		PageMetadata* pageMetadata = metadata_->getPageMetadata(ctr_hash, page_hash);
+		pageMetadata->getPageOperations()->deserialize(page_data.get(), page_data_size, T2T<void*>(page));
+
+		if (map.find(page->uuid()) == map.end())
+		{
+			map[page->uuid()] = page;
+		}
+		else {
+			throw vapi::Exception(MA_SRC, SBuf()<<"Page "<<page->uuid()<<" already registered");
+		}
+	}
+
+
+	void read_leaf_node(InputStreamHandler& in, PersistentTreeNodeMap& map)
+	{
+		LeafNodeBufferT* buffer = new LeafNodeBufferT();
+
+		buffer->read(in);
+
+		if (map.find(buffer->node_id()) == map.end())
+		{
+			NodeBaseT* node = new LeafNodeT();
+			node->populate_as_buffer(buffer);
+
+			map[buffer->node_id()] = std::make_pair(buffer, node);
+		}
+		else {
+			throw vapi::Exception(MA_SRC, SBuf()<<"PersistentTree LeafNode "<<buffer->node_id()<<" already registered");
+		}
+	}
+
+
+	void read_branch_node(InputStreamHandler& in, PersistentTreeNodeMap& map)
+	{
+		BranchNodeBufferT* buffer = new BranchNodeBufferT();
+
+		buffer->read(in);
+
+		if (map.find(buffer->node_id()) == map.end())
+		{
+			NodeBaseT* node = new BranchNodeT();
+			node->populate_as_buffer(buffer);
+
+			map[buffer->node_id()] = std::make_pair(buffer, node);
+		}
+		else {
+			throw vapi::Exception(MA_SRC, SBuf()<<"PersistentTree BranchNode "<<buffer->node_id()<<" already registered");
+		}
+	}
+
+
+
+
+	void read_history_node(InputStreamHandler& in, HistoryTreeNodeMap& map)
+	{
+		HistoryNodeBuffer* node = new HistoryNodeBuffer();
+
+		if (map.find(node->txn_id()) == map.end())
+		{
+			map[node->txn_id()] = node;
+		}
+		else {
+			throw vapi::Exception(MA_SRC, SBuf()<<"HistoryTree Node "<<node->txn_id()<<" already registered");
+		}
+	}
+
+
+
+
+
+
+
+	std::unique_ptr<LeafNodeBufferT> to_leaf_buffer(const LeafNodeT* node)
+	{
+		std::unique_ptr<LeafNodeBufferT> buf = std::make_unique<LeafNodeBufferT>();
+
+		buf->populate_as_buffer(node);
+
+		for (Int c = 0; c < node->size(); c++)
+		{
+			buf->data(c) = typename LeafNodeBufferT::Value(
+				node->data(c).page()->uuid(),
+				node->data(c).txn_id()
+			);
+		}
+
+		return buf;
+	}
+
+	std::unique_ptr<BranchNodeBufferT> to_branch_buffer(const BranchNodeT* node)
+	{
+		std::unique_ptr<BranchNodeBufferT> buf = std::make_unique<BranchNodeBufferT>();
+
+		buf->populate_as_buffer(node);
+
+		for (Int c = 0; c < node->size(); c++)
+		{
+			buf->data(c) = node->data(c)->node_id();
+		}
+
+		return buf;
+	}
+
+	void walk_version_tree(const HistoryNode* node, std::function<void (const HistoryNode*, TransactionT*)> fn)
+	{
+		TransactionT txn(history_tree_, self_.lock());
+		fn(history_tree_, &txn);
 
 		for (auto child: node->children())
 		{
@@ -269,6 +733,112 @@ private:
 				walk_version_tree(child, fn);
 			}
 		}
+	}
+
+	void write(OutputStreamHandler& out, const AllocatorMetadata& meta)
+	{
+		out << meta.master();
+		out << meta.root();
+	}
+
+	void write(OutputStreamHandler& out, const HistoryNode* history_node)
+	{
+		UByte type = TYPE_HISTORY_NODE;
+		out << type;
+		out << (Int)history_node->status();
+		out << history_node->txn_id();
+		out << history_node->root()->node_id();
+
+		if (history_node->parent())
+		{
+			out << history_node->parent()->txn_id();
+		}
+		else {
+			out << UUID();
+		}
+
+		out << (BigInt)history_node->children().size();
+
+		for (auto child: history_node->children())
+		{
+			out << child->txn_id();
+		}
+
+		write_persistent_tree(out, history_node->root());
+	}
+
+	void write_persistent_tree(OutputStreamHandler& out, const NodeBaseT* node)
+	{
+		const auto& txn_id = node->txn_id();
+
+		if (node->is_leaf())
+		{
+			auto leaf = PersistentTreeT::to_leaf_node(node);
+			auto buf  = to_leaf_buffer(leaf);
+
+			write(out, buf.get());
+
+			for (Int c = 0; c < leaf->size(); c++)
+			{
+				if (leaf->data(c).txn_id() == txn_id)
+				{
+					write(out, leaf->data(c).page());
+				}
+			}
+		}
+		else {
+			auto branch = PersistentTreeT::to_branch_node(node);
+			auto buf    = to_branch_buffer(branch);
+
+			write(out, buf.get());
+
+			for (Int c = 0; c < branch->size(); c++)
+			{
+				auto child = branch->data(c);
+
+				if (child->txn_id() == txn_id)
+				{
+					write_persistent_tree(out, child);
+				}
+			}
+		}
+	}
+
+
+	void write(OutputStreamHandler& out, const BranchNodeBufferT* node)
+	{
+		UByte type = TYPE_BRANCH_NODE;
+		out << type;
+		node->write(out);
+	}
+
+	void write(OutputStreamHandler& out, const LeafNodeBufferT* node)
+	{
+		UByte type = TYPE_LEAF_NODE;
+		out << type;
+		node->write(out);
+	}
+
+	void write(OutputStreamHandler& out, const PageType* page)
+	{
+		UByte type = TYPE_DATA_PAGE;
+		out << type;
+
+        PageMetadata* pageMetadata = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
+
+        auto page_size = page->page_size();
+        unique_ptr<Byte, void (*)(void*)> buffer((Byte*)::malloc(page_size), ::free);
+
+        const IPageOperations* operations = pageMetadata->getPageOperations();
+
+        Int total_data_size = operations->serialize(page, buffer.get());
+
+        out << total_data_size;
+        out << page->page_size();
+        out << page->ctr_type_hash();
+        out << page->page_type_hash();
+
+        out.write(buffer.get(), 0, total_data_size);
 	}
 };
 

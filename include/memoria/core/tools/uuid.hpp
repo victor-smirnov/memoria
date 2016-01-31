@@ -11,6 +11,7 @@
 
 
 #include <memoria/core/types/types.hpp>
+#include <memoria/core/tools/stream.hpp>
 
 #include <iostream>
 
@@ -75,6 +76,22 @@ struct UUIDKeyEq
 {
     bool operator() (const UUID &x, const UUID &y) const { return x == y; }
 };
+
+
+inline vapi::InputStreamHandler& operator>>(vapi::InputStreamHandler& in, UUID& value) {
+	value.lo() = in.readUBigInt();
+	value.hi() = in.readUBigInt();
+	return in;
+}
+
+
+
+inline vapi::OutputStreamHandler& operator<<(vapi::OutputStreamHandler& out, const UUID& value) {
+	out.write(value.lo());
+	out.write(value.hi());
+	return out;
+}
+
 
 
 }

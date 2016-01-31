@@ -14,6 +14,7 @@
 
 #include <memoria/core/tools/buffer.hpp>
 #include <memoria/core/tools/id.hpp>
+#include <memoria/core/tools/stream.hpp>
 #include <memoria/core/types/typehash.hpp>
 
 #include <memoria/core/container/logs.hpp>
@@ -225,7 +226,7 @@ private:
     UBigInt     target_block_pos_;
 
     PageIdType  id_;
-    PageIdType  gid_;
+    PageIdType  uuid_;
 
     FlagsType   flags_;
 
@@ -242,6 +243,7 @@ public:
                 ConstValue<UInt, VERSION>,
                 decltype(flags_),
                 decltype(id_),
+				decltype(uuid_),
                 decltype(crc_),
                 decltype(master_ctr_type_hash_),
                 decltype(owner_ctr_type_hash_),
@@ -258,7 +260,7 @@ public:
 
     AbstractPage() = default;
 
-    AbstractPage(const PageIdType &id): id_(id), gid_(id), flags_() {}
+    AbstractPage(const PageIdType &id): id_(id), uuid_(id), flags_() {}
 
     const PageIdType &id() const {
         return id_;
@@ -268,12 +270,12 @@ public:
         return id_;
     }
 
-    const PageIdType &gid() const {
-        return gid_;
+    const PageIdType &uuid() const {
+        return uuid_;
     }
 
-    PageIdType &gid() {
-        return gid_;
+    PageIdType &uuid() {
+        return uuid_;
     }
 
     void init() {}
@@ -397,7 +399,7 @@ public:
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
         IDValue id(&id_);
-        IDValue gid(&gid_);
+        IDValue gid(&uuid_);
 
         handler->value("GID",               &gid);
         handler->value("ID",                &id);
@@ -445,7 +447,7 @@ public:
         FieldFactory<UBigInt>::serialize(buf, target_block_pos_);
 
         FieldFactory<PageIdType>::serialize(buf, id());
-        FieldFactory<PageIdType>::serialize(buf, gid());
+        FieldFactory<PageIdType>::serialize(buf, uuid());
 
         FieldFactory<Int>::serialize(buf, references_);
         FieldFactory<Int>::serialize(buf, deleted_);
@@ -465,7 +467,7 @@ public:
         FieldFactory<UBigInt>::deserialize(buf, target_block_pos_);
 
         FieldFactory<PageIdType>::deserialize(buf, id());
-        FieldFactory<PageIdType>::deserialize(buf, gid());
+        FieldFactory<PageIdType>::deserialize(buf, uuid());
 
         FieldFactory<Int>::deserialize(buf, references_);
         FieldFactory<Int>::deserialize(buf, deleted_);
@@ -949,11 +951,6 @@ LogHandler* logIt(LogHandler* log, const PageGuard<T, A>& value) {
 }
 
 
-}
-
-namespace std {
-
-using namespace memoria;
 
 template <typename T>
 ostream& operator<<(ostream& out, const PageID<T>& id)
@@ -961,6 +958,21 @@ ostream& operator<<(ostream& out, const PageID<T>& id)
     IDValue idv(id);
     out<<idv;
     return out;
+}
+
+
+template <typename T>
+vapi::OutputStreamHandler& operator<<(vapi::OutputStreamHandler& out, const PageID<T>& id)
+{
+    out << id.value();
+    return out;
+}
+
+template <typename T>
+vapi::InputStreamHandler& operator>>(vapi::InputStreamHandler& in, PageID<T>& id)
+{
+    in >> id.value();
+    return in;
 }
 
 }

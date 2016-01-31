@@ -32,8 +32,8 @@ template <typename Profile, typename PageType, typename HistoryNode, typename Pe
 class Transaction: public IWalkableAllocator<PageType> {
 	using Base 				= IAllocator<PageType>;
 	using MyType 			= Transaction;
-	using HistoryNodePtr 	= HistoryNode*;
-	using HistoryTreePtr 	= HistoryTree*;
+
+	using HistoryTreePtr 	= std::shared_ptr<HistoryTree>;
 	using TransactionPtr 	= std::shared_ptr<Transaction>;
 
 	using Status 			= typename HistoryNode::Status;
@@ -66,8 +66,8 @@ class Transaction: public IWalkableAllocator<PageType> {
 
 	CtrSharedMap ctr_shared_;
 
-	HistoryNodePtr history_node_;
-	HistoryTreePtr history_tree_;
+	HistoryNode* 	history_node_;
+	HistoryTreePtr  history_tree_;
 
 	PersitentTree persistent_tree_;
 
@@ -91,7 +91,7 @@ class Transaction: public IWalkableAllocator<PageType> {
 
 public:
 
-	Transaction(HistoryNodePtr history_node, HistoryTreePtr history_tree):
+	Transaction(HistoryNode* history_node, const HistoryTreePtr& history_tree):
 		history_node_(history_node),
 		history_tree_(history_tree),
 		persistent_tree_(history_node_),
@@ -138,11 +138,17 @@ public:
 		}
 	}
 
+
+	void set_master()
+	{
+		history_tree_->set_master(history_node_->txn_id());
+	}
+
 	TransactionPtr branch()
 	{
 		if (history_node_->is_committed())
 		{
-			HistoryNodePtr history_node = new HistoryNode(history_node_);
+			HistoryNode* history_node = new HistoryNode(history_node_);
 			return std::make_shared<Transaction>(history_node, history_tree_);
 		}
 		else
@@ -484,7 +490,7 @@ public:
 
 			ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(page->ctr_type_hash());
 
-			result = ctr_meta->getCtrInterface()->check(&page->gid(), ctr_name, this) || result;
+			result = ctr_meta->getCtrInterface()->check(&page->id(), ctr_name, this) || result;
 
 			iter++;
 		}
@@ -494,7 +500,7 @@ public:
 
 	virtual void walkContainers(vapi::ContainerWalker* walker, const char* allocator_descr = nullptr)
 	{
-        walker->beginSnapshot("Transaction");
+        walker->beginSnapshot((SBuf()<<"Transaction-"<<history_node_->txn_id()).str().c_str());
 
         auto iter = root_map_->Begin();
 
@@ -510,7 +516,7 @@ public:
 
             ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(master_hash != 0 ? master_hash : ctr_hash);
 
-            ctr_meta->getCtrInterface()->walk(&page->gid(), ctr_name, this, walker);
+            ctr_meta->getCtrInterface()->walk(&page->id(), ctr_name, this, walker);
 
             iter++;
         }
@@ -525,7 +531,11 @@ protected:
 		char* buffer = (char*) this->malloc(page->page_size());
 
 		CopyByteBuffer(page, buffer, page->page_size());
-		return T2T<Page*>(buffer);
+		Page* new_page = T2T<Page*>(buffer);
+
+		new_page->uuid() = newId();
+
+		return new_page;
 	}
 
 	Shared* get_shared(Page* page)

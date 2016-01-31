@@ -10,6 +10,7 @@
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/tools/uuid.hpp>
+#include <memoria/core/tools/stream.hpp>
 
 namespace memoria 			 {
 namespace persistent_inmem   {
@@ -41,6 +42,13 @@ public:
 
 	template <typename BranchNodeT, typename LeafNodeT, typename RootProvider>
 	friend class PersistentTree;
+
+	template <typename Profile, typename PageType>
+	friend class PersistentInMemAllocatorT;
+
+	template <typename, Int, Int, typename, typename>
+	friend class NodeBase;
+
 private:
 
 	RootMetadata metadata_;
@@ -62,11 +70,35 @@ private:
 	Key keys_ [NodeSize];
 
 public:
+	NodeBase() {}
+
 	NodeBase(const TxnId& txn_id, const NodeId& node_id, NodeType node_type):
 		node_type_(node_type),
 		node_id_(node_id),
 		txn_id_(txn_id)
-{}
+	{}
+
+	template <typename Base>
+	void populate_as_buffer(const Base* node)
+	{
+		node_type_ 	= node->node_type();
+		node_id_	= node->node_id();
+		txn_id_		= node->txn_id();
+
+		metadata_ 	= node->metadata();
+		size_		= node->size();
+		refs_		= node->refs();
+
+		for (Int c = 0; c < NodeIndexSize; c++)
+		{
+			index_[c] = node->index_[c];
+		}
+
+		for (Int c = 0; c < size_; c++)
+		{
+			keys_[c] = node->key(c);
+		}
+	}
 
 	RootMetadata& metadata() {
 		return metadata_;
@@ -299,6 +331,53 @@ public:
 		}
 	}
 
+	void write(OutputStreamHandler& out) const
+	{
+		out << this->metadata().size();
+
+		out << (Int)this->node_type();
+		out << this->node_id();
+		out << this->txn_id();
+		out << this->size();
+		out << this->refs();
+
+		for (const auto& v: index_)
+		{
+			out << v;
+		}
+
+		for (Int c = 0; c < size_; c++)
+		{
+			out << keys_[c];
+		}
+	}
+
+	void read(InputStreamHandler& in)
+	{
+		in >> this->metadata().size();
+
+		int node_type;
+		in >> node_type;
+
+		this->node_type_ = (NodeType)node_type;
+
+		in >> node_id_;
+		in >> txn_id_;
+		in >> size_;
+		in >> refs_;
+
+		for (auto& v: index_)
+		{
+			in >> v;
+		}
+
+		for (Int c = 0; c < size_; c++)
+		{
+			in >> keys_[c];
+		}
+	}
+
+
 protected:
 	template <typename T>
 	void shift_right(T* data, Int from, Int to, Int size) const
@@ -360,6 +439,7 @@ public:
 	using MyType 	= Node<Key, Data, NodeSize, NodeIndexSize, NodeId, TxnId>;
 	using NodeBaseT	= Base;
 
+	Node() {}
 
 	Node(const TxnId& txn_id, const NodeId& node_id, NodeType node_type):
 		Base(txn_id, node_id, node_type)
@@ -429,15 +509,44 @@ public:
 
 		return md5.result().hash64();
 	}
+
+	void write(OutputStreamHandler& out) const
+	{
+		Base::write(out);
+
+		for (Int c = 0; c < this->size(); c++)
+		{
+			out << data_[c];
+		}
+	}
+
+	void read(InputStreamHandler& in)
+	{
+		Base::read(in);
+
+		for (Int c = 0; c < this->size(); c++)
+		{
+			in >> data_[c];
+		}
+	}
 };
 
 
-template <typename Key, Int NodeSize, Int NodeIndexSize, typename NodeId, typename TxnId>
-class BranchNode: public Node<Key, NodeBase<Key, NodeSize, NodeIndexSize, NodeId, TxnId>*, NodeSize, NodeIndexSize, NodeId, TxnId> {
-	using Base = Node<Key, NodeBase<Key, NodeSize, NodeIndexSize, NodeId, TxnId>*, NodeSize, NodeIndexSize, NodeId, TxnId>;
+template <
+	typename Key,
+	Int NodeSize,
+	Int NodeIndexSize,
+	typename NodeId,
+	typename TxnId,
+	typename ChildPtrType = NodeBase<Key, NodeSize, NodeIndexSize, NodeId, TxnId>*
+	>
+class BranchNode: public Node<Key, ChildPtrType, NodeSize, NodeIndexSize, NodeId, TxnId> {
+	using Base = Node<Key, ChildPtrType, NodeSize, NodeIndexSize, NodeId, TxnId>;
 
 public:
 	using NodeBaseT = NodeBase<Key, NodeSize, NodeIndexSize, NodeId, TxnId>;
+
+	BranchNode() {}
 
 	BranchNode(const TxnId& txn_id, const NodeId& node_id):
 		Base(txn_id, node_id, NodeType::BRANCH)
@@ -509,7 +618,10 @@ class LeafNode: public Node<Key, Value_, NodeSize, NodeIndexSize, NodeId, TxnId>
 public:
 	using Value = Value_;
 
-	LeafNode(const TxnId& txn_id, const NodeId& node_id): Base(txn_id, node_id, NodeType::LEAF) {}
+	LeafNode() {}
+	LeafNode(const TxnId& txn_id, const NodeId& node_id):
+		Base(txn_id, node_id, NodeType::LEAF)
+	{}
 
 	Int find(const Key& key) const
 	{

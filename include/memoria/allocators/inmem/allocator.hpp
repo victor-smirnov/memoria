@@ -770,7 +770,7 @@ public:
     // Allocator implementaion
 
 
-    virtual memoria::vapi::Page* createPageWrapper()
+    virtual memoria::Page* createPageWrapper()
     {
         return new PageWrapper<Page>();
     }
@@ -784,7 +784,7 @@ public:
         return pages_.size();
     }
 
-    void getPage(memoria::vapi::Page* page, const IDValue& idValue)
+    void getPage(memoria::Page* page, const IDValue& idValue)
     {
         if (page == NULL)
         {
