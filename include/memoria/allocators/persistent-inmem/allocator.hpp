@@ -19,12 +19,12 @@
 #include <memoria/core/tools/uuid.hpp>
 
 #include <memoria/allocators/persistent-inmem/persistent_tree_node.hpp>
-#include <memoria/allocators/persistent-inmem/persistent_tree_txn.hpp>
 #include <memoria/allocators/persistent-inmem/persistent_tree.hpp>
 
 #include <memoria/allocators/inmem/factory.hpp>
 
 #include <malloc.h>
+#include <memoria/allocators/persistent-inmem/persistent_tree_snapshot.hpp>
 #include <memory>
 #include <limits>
 #include <unordered_map>
@@ -229,15 +229,14 @@ public:
 			return children_;
 		}
 
-
 		auto& status() {return status_;}
 		const auto& status() const {return status_;}
 	};
 
 
 	using PersistentTreeT 	= memoria::persistent_inmem::PersistentTree<BranchNodeT, LeafNodeT, HistoryNode>;
-	using TransactionT 	 	= memoria::persistent_inmem::Transaction<Profile, PageType, HistoryNode, PersistentTreeT, MyType>;
-	using TransactionPtr 	= std::shared_ptr<TransactionT>;
+	using SnapshotT 	 	= memoria::persistent_inmem::Snapshot<Profile, PageType, HistoryNode, PersistentTreeT, MyType>;
+	using SnapshotPtr 	= std::shared_ptr<SnapshotT>;
 
 	using TxnMap		 		= std::unordered_map<TxnId, HistoryNode*, UUIDKeyHash, UUIDKeyEq>;
 
@@ -246,7 +245,7 @@ public:
 	using PageMap				= std::unordered_map<typename PageType::ID, PageType*, IDKeyHash, IDKeyEq>;
 
 	template <typename, typename, typename, typename>
-	friend class Transaction;
+	friend class Snapshot;
 
 	class AllocatorMetadata {
 		TxnId master_;
@@ -268,7 +267,7 @@ private:
 	HistoryNode* history_tree_ = nullptr;
 	HistoryNode* master_ = nullptr;
 
-	TxnMap transaction_map_;
+	TxnMap snapshot_map_;
 
 	BigInt id_counter_ = 1;
 
@@ -289,7 +288,7 @@ public:
 
 		master_ = history_tree_;
 
-		TransactionT txn(history_tree_, self_.lock());
+		SnapshotT txn(history_tree_, self_.lock());
 
 		txn.commit();
 	}
@@ -313,40 +312,40 @@ public:
 		return typename PageType::ID(id_counter_++);
 	}
 
-	TransactionPtr find(const TxnId& branch_id)
+	SnapshotPtr find(const TxnId& branch_id)
 	{
-		auto iter = transaction_map_.find(branch_id);
-		if (iter != transaction_map_.end())
+		auto iter = snapshot_map_.find(branch_id);
+		if (iter != snapshot_map_.end())
 		{
 			auto history_node = iter.second;
-			return std::make_shared<TransactionT>(history_node, this);
+			return std::make_shared<SnapshotT>(history_node, this);
 		}
 		else {
-			throw vapi::Exception(MA_SRC, SBuf()<<"Transaction id "<<branch_id<<" is not known");
+			throw vapi::Exception(MA_SRC, SBuf()<<"Snapshot id "<<branch_id<<" is not known");
 		}
 	}
 
-	TransactionPtr master()
+	SnapshotPtr master()
 	{
 		HistoryNode* node = new HistoryNode(master_);
-		return std::make_shared<TransactionT>(node, self_.lock());
+		return std::make_shared<SnapshotT>(node, self_.lock());
 	}
 
 	void set_master(const TxnId& txn_id)
 	{
-		auto iter = transaction_map_.find(txn_id);
-		if (iter != transaction_map_.end())
+		auto iter = snapshot_map_.find(txn_id);
+		if (iter != snapshot_map_.end())
 		{
 			if (iter->second->is_committed())
 			{
 				master_ = iter->second;
 			}
 			else {
-				throw vapi::Exception(MA_SRC, SBuf()<<"Transaction "<<txn_id<<" hasn't been committed yet");
+				throw vapi::Exception(MA_SRC, SBuf()<<"Snapshot "<<txn_id<<" hasn't been committed yet");
 			}
 		}
 		else {
-			throw vapi::Exception(MA_SRC, SBuf()<<"Transaction "<<txn_id<<" is not known in this allocator");
+			throw vapi::Exception(MA_SRC, SBuf()<<"Snapshot "<<txn_id<<" is not known in this allocator");
 		}
 	}
 
@@ -419,7 +418,7 @@ public:
 
 		allocator->master_ = allocator->history_tree_ = nullptr;
 
-		allocator->transaction_map_.clear();
+		allocator->snapshot_map_.clear();
 
 		BigInt size = input->size();
 
@@ -496,9 +495,9 @@ public:
 
 		allocator->history_tree_ = allocator->build_history_tree(metadata.root(), nullptr, history_node_map, ptree_node_map);
 
-		if (allocator->transaction_map_.find(metadata.master()) != allocator->transaction_map_.end())
+		if (allocator->snapshot_map_.find(metadata.master()) != allocator->snapshot_map_.end())
 		{
-			allocator->master_ = allocator->transaction_map_[metadata.master()];
+			allocator->master_ = allocator->snapshot_map_[metadata.master()];
 		}
 		else {
 			throw vapi::Exception(MA_SRC, SBuf()<<"Specified master uuid "<<metadata.master()<<" is not found in the data");
@@ -524,7 +523,7 @@ private:
 
 			HistoryNode* node = new HistoryNode(txn_id, parent, buffer->status());
 
-			transaction_map_[txn_id] = node;
+			snapshot_map_[txn_id] = node;
 
 			auto ptree_iter = ptree_map.find(buffer->root());
 
@@ -721,9 +720,9 @@ private:
 		return buf;
 	}
 
-	void walk_version_tree(const HistoryNode* node, std::function<void (const HistoryNode*, TransactionT*)> fn)
+	void walk_version_tree(const HistoryNode* node, std::function<void (const HistoryNode*, SnapshotT*)> fn)
 	{
-		TransactionT txn(history_tree_, self_.lock());
+		SnapshotT txn(history_tree_, self_.lock());
 		fn(history_tree_, &txn);
 
 		for (auto child: node->children())

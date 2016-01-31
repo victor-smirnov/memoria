@@ -9,8 +9,8 @@
 #define _MEMORIA_ALLOCATORS_PERSISTENT_INMEM_PERSISTENT_TREE_HPP
 
 #include <memoria/allocators/persistent-inmem/persistent_tree_node.hpp>
-#include <memoria/allocators/persistent-inmem/persistent_tree_txn.hpp>
 #include <memoria/allocators/persistent-inmem/persistent_tree_iterator.hpp>
+#include <memoria/allocators/persistent-inmem/persistent_tree_snapshot.hpp>
 
 #include <memoria/core/exceptions/memoria.hpp>
 

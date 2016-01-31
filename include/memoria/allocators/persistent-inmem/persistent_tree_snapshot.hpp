@@ -29,12 +29,12 @@ namespace persistent_inmem {
 
 
 template <typename Profile, typename PageType, typename HistoryNode, typename PersitentTree, typename HistoryTree>
-class Transaction: public IWalkableAllocator<PageType> {
+class Snapshot: public IWalkableAllocator<PageType> {
 	using Base 				= IAllocator<PageType>;
-	using MyType 			= Transaction;
+	using MyType 			= Snapshot;
 
 	using HistoryTreePtr 	= std::shared_ptr<HistoryTree>;
-	using TransactionPtr 	= std::shared_ptr<Transaction>;
+	using SnapshotPtr 		= std::shared_ptr<Snapshot>;
 
 	using Status 			= typename HistoryNode::Status;
 
@@ -91,7 +91,7 @@ class Transaction: public IWalkableAllocator<PageType> {
 
 public:
 
-	Transaction(HistoryNode* history_node, const HistoryTreePtr& history_tree):
+	Snapshot(HistoryNode* history_node, const HistoryTreePtr& history_tree):
 		history_node_(history_node),
 		history_tree_(history_tree),
 		persistent_tree_(history_node_),
@@ -104,7 +104,7 @@ public:
 		root_map_ = new RootMapType(this, CTR_CREATE, 0);
 	}
 
-	virtual ~Transaction()
+	virtual ~Snapshot()
 	{
 		// FIXME: autocommit ?
 		history_node_->commit();
@@ -119,7 +119,7 @@ public:
 			history_node_->commit();
 		}
 		else {
-			throw vapi::Exception(MA_SRC, SBuf()<<"Invalid transaction state: "<<(Int)history_node_->status());
+			throw vapi::Exception(MA_SRC, SBuf()<<"Invalid Snapshot state: "<<(Int)history_node_->status());
 		}
 	}
 
@@ -131,10 +131,10 @@ public:
 		}
 		else if (history_node_->is_committed())
 		{
-			throw vapi::Exception(MA_SRC, "Transaction has been already committed");
+			throw vapi::Exception(MA_SRC, "Snapshot has been already committed");
 		}
 		else {
-			throw vapi::Exception(MA_SRC, SBuf()<<"Invalid transaction state: "<<(Int)history_node_->status());
+			throw vapi::Exception(MA_SRC, SBuf()<<"Invalid Snapshot state: "<<(Int)history_node_->status());
 		}
 	}
 
@@ -144,20 +144,20 @@ public:
 		history_tree_->set_master(history_node_->txn_id());
 	}
 
-	TransactionPtr branch()
+	SnapshotPtr branch()
 	{
 		if (history_node_->is_committed())
 		{
 			HistoryNode* history_node = new HistoryNode(history_node_);
-			return std::make_shared<Transaction>(history_node, history_tree_);
+			return std::make_shared<Snapshot>(history_node, history_tree_);
 		}
 		else
 		{
-			throw vapi::Exception(MA_SRC, "Transaction is still active. Commit it first");
+			throw vapi::Exception(MA_SRC, "Snapshot is still active. Commit it first");
 		}
 	}
 
-	void join(TransactionPtr txn) {}
+	void join(SnapshotPtr txn) {}
 
 	virtual PageG getPage(const ID& id, BigInt name)
 	{
@@ -500,7 +500,7 @@ public:
 
 	virtual void walkContainers(vapi::ContainerWalker* walker, const char* allocator_descr = nullptr)
 	{
-        walker->beginSnapshot((SBuf()<<"Transaction-"<<history_node_->txn_id()).str().c_str());
+        walker->beginSnapshot((SBuf()<<"Snapshot-"<<history_node_->txn_id()).str().c_str());
 
         auto iter = root_map_->Begin();
 
