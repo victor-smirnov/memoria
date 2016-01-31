@@ -139,7 +139,7 @@ public:
 	}
 
 
-	void set_master()
+	void set_as_master()
 	{
 		history_tree_->set_master(history_node_->txn_id());
 	}
@@ -149,11 +149,13 @@ public:
 		if (history_node_->is_committed())
 		{
 			HistoryNode* history_node = new HistoryNode(history_node_);
+			history_tree_->snapshot_map[history_node->root_id()] = history_node;
+
 			return std::make_shared<Snapshot>(history_node, history_tree_);
 		}
 		else
 		{
-			throw vapi::Exception(MA_SRC, "Snapshot is still active. Commit it first");
+			throw vapi::Exception(MA_SRC, "Snapshot is still being active. Commit it first.");
 		}
 	}
 

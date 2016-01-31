@@ -18,16 +18,21 @@ int main() {
 
 	auto txn = alloc.master();
 
-	FSDumpAllocator(&alloc, "pdump.dir");
+	txn->commit();
 
-	std::string file_name = "store.dump";
-
-	unique_ptr <FileOutputStreamHandler> out(FileOutputStreamHandler::create(file_name.c_str()));
-	alloc.store(out.get());
+	txn->set_as_master();
 
 
-	unique_ptr <FileInputStreamHandler> in(FileInputStreamHandler::create(file_name.c_str()));
-	auto alloc2 = PersistentInMemAllocator<>::load(in.get());
+//	FSDumpAllocator(&alloc, "pdump.dir");
+
+//	std::string file_name = "store.dump";
+
+//	unique_ptr <FileOutputStreamHandler> out(FileOutputStreamHandler::create(file_name.c_str()));
+//	alloc.store(out.get());
+
+
+//	unique_ptr <FileInputStreamHandler> in(FileInputStreamHandler::create(file_name.c_str()));
+//	auto alloc2 = PersistentInMemAllocator<>::load(in.get());
 }
 
 
