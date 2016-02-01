@@ -23,11 +23,13 @@ int main()
 	try {
 		auto alloc = std::make_shared<PersistentInMemAllocator<>>();
 
-		auto txn = alloc->master();
+		auto txn = alloc->master()->branch();
 
 		DCtr<Vector<Byte>> ctr(txn.get(), CTR_CREATE);
 
-		vector<Byte> data(100000);
+		vector<Byte> data(10000);
+
+		for (auto& v: data) v = getRandomG(255);
 
 		ctr.seek(0).insert(data.begin(), data.size());
 
@@ -37,6 +39,8 @@ int main()
 
 		FSDumpAllocator(txn.get(), "pdump1.dir");
 
+		FSDumpAllocator(alloc->master().get(), "pdump2.dir");
+
 		std::string file_name = "store.dump";
 
 		unique_ptr <FileOutputStreamHandler> out(FileOutputStreamHandler::create(file_name.c_str()));
@@ -45,7 +49,7 @@ int main()
 		unique_ptr <FileInputStreamHandler> in(FileInputStreamHandler::create(file_name.c_str()));
 		auto alloc2 = PersistentInMemAllocator<>::load(in.get());
 
-		FSDumpAllocator(alloc2->master().get(), "pdump2.dir");
+		FSDumpAllocator(alloc2->master().get(), "pdump3.dir");
 	}
 	catch (vapi::Exception& ex) {
 		cout<<ex.source()<<": "<<ex.message()<<endl;

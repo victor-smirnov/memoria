@@ -113,6 +113,8 @@ public:
 
 		NodeBaseT* root_;
 
+		typename PageType::ID root_id_;
+
 		Status status_;
 
 		TxnId txn_id_;
@@ -122,6 +124,7 @@ public:
 		HistoryNode(HistoryNode* parent, Status status = Status::ACTIVE):
 			parent_(parent),
 			root_(nullptr),
+			root_id_(0),
 			status_(status),
 			txn_id_(UUID::make_random())
 		{
@@ -133,6 +136,7 @@ public:
 		HistoryNode(const TxnId& txn_id, HistoryNode* parent, Status status):
 			parent_(parent),
 			root_(nullptr),
+			root_id_(0),
 			status_(status),
 			txn_id_(txn_id)
 		{
@@ -161,17 +165,14 @@ public:
 			return status_ == Status::ACTIVE;
 		}
 
-		const TxnId& txn_id() const {
-			return txn_id_;
-		}
+		const TxnId& txn_id() const {return txn_id_;}
 
-		const auto& root() const {
-			return root_;
-		}
+		const auto& root() const {return root_;}
 
-		auto root() {
-			return root_;
-		}
+		auto root() {return root_;}
+
+		auto& root_id() {return root_id_;}
+		const auto& root_id() const {return root_id_;}
 
 		void set_root(NodeBaseT* new_root) {
 			root_ = new_root;
@@ -211,6 +212,7 @@ public:
 		std::vector<TxnId> children_;
 
 		PTreeNodeId root_;
+		typename PageType::ID root_id_;
 
 		typename HistoryNode::Status status_;
 
@@ -228,23 +230,21 @@ public:
 			return txn_id_;
 		}
 
-		const auto& root() const {
-			return root_;
-		}
+		const auto& root() const {return root_;}
 
-		auto& root() {
-			return root_;
-		}
+		auto& root() {return root_;}
 
+		auto& root_id() {return root_id_;}
+		const auto& root_id() const {return root_id_;}
 
 		const auto& parent() const {return parent_;}
 		auto& parent() {return parent_;}
 
-		std::vector<TxnId>& children() {
+		auto& children() {
 			return children_;
 		}
 
-		const std::vector<TxnId>& children() const {
+		const auto& children() const {
 			return children_;
 		}
 
@@ -263,8 +263,10 @@ public:
 	using PersistentTreeNodeMap	= std::unordered_map<PTreeNodeId, std::pair<NodeBaseBufferT*, NodeBaseT*>, UUIDKeyHash, UUIDKeyEq>;
 	using PageMap				= std::unordered_map<typename PageType::ID, PageType*, IDKeyHash, IDKeyEq>;
 
-	template <typename, typename, typename, typename>
-	friend class Snapshot;
+	template <typename, typename, typename, typename, typename>
+	friend class memoria::persistent_inmem::Snapshot;
+
+private:
 
 	class AllocatorMetadata {
 		TxnId master_;
@@ -279,9 +281,14 @@ public:
 		const TxnId& root()   const {return root_;}
 	};
 
-private:
+	class Checksum {
+		BigInt records_;
+	public:
+		BigInt& records() {return records_;}
+		const BigInt& records() const {return records_;}
+	};
 
-	enum {TYPE_UNKNOWN, TYPE_HISTORY_NODE, TYPE_BRANCH_NODE, TYPE_LEAF_NODE, TYPE_DATA_PAGE};
+	enum {TYPE_UNKNOWN, TYPE_HISTORY_NODE, TYPE_BRANCH_NODE, TYPE_LEAF_NODE, TYPE_DATA_PAGE, TYPE_CHECKSUM};
 
 	HistoryNode* history_tree_ = nullptr;
 	HistoryNode* master_ = nullptr;
@@ -293,6 +300,8 @@ private:
 	ContainerMetadataRepository*  metadata_;
 
 	Int tag_;
+
+	BigInt records_ = 0;
 
 public:
 
@@ -349,11 +358,7 @@ public:
 
 	SnapshotPtr master()
 	{
-		HistoryNode* node = new HistoryNode(master_);
-
-		snapshot_map_[node->txn_id()] = node;
-
-		return std::make_shared<SnapshotT>(node, this->shared_from_this());
+		return std::make_shared<SnapshotT>(master_, this->shared_from_this());
 	}
 
 	void set_master(const TxnId& txn_id)
@@ -391,6 +396,8 @@ public:
 
 	virtual void store(OutputStreamHandler *output)
 	{
+		records_ = 0;
+
 		char signature[12] = "MEMORIA";
 		for (size_t c = 7; c < sizeof(signature); c++) signature[c] = 0;
 
@@ -406,6 +413,11 @@ public:
 		walk_version_tree(history_tree_, [&](auto* history_tree_node, auto* txn) {
 			write(*output, history_tree_node);
 		});
+
+		Checksum checksum;
+		checksum.records() = records_;
+
+		write(*output, checksum);
 
 		output->close();
 	}
@@ -456,6 +468,12 @@ public:
 		*input >> metadata.master();
 		*input >> metadata.root();
 
+		allocator->records_++;
+
+//		std::cout<<"Read Allocator Metadata: "<<allocator->records_<<" "<<metadata.master()<<" "<<metadata.root()<<std::endl;
+
+		Checksum checksum;
+
 		while (input->pos() < size)
 		{
 			UByte type;
@@ -467,9 +485,15 @@ public:
 				case TYPE_LEAF_NODE: 	allocator->read_leaf_node(*input, ptree_node_map); break;
 				case TYPE_BRANCH_NODE: 	allocator->read_branch_node(*input, ptree_node_map); break;
 				case TYPE_HISTORY_NODE: allocator->read_history_node(*input, history_node_map); break;
+				case TYPE_CHECKSUM: 	allocator->read_checksum(*input, checksum); break;
 				default:
 					throw vapi::Exception(MA_SRC, SBuf()<<"Unknown record type: "<<(Int)type);
 			}
+		}
+
+		if (allocator->records_ != checksum.records())
+		{
+			throw vapi::Exception(MA_SRC, SBuf()<<"Invalid records checksum: actual="<<allocator->records_<<", expected="<<checksum.records());
 		}
 
 		for (auto& entry: ptree_node_map)
@@ -499,7 +523,7 @@ public:
 			}
 			else {
 				BranchNodeBufferT* branch_buffer = static_cast<BranchNodeBufferT*>(buffer);
-				BranchNodeT* branch_node 		   = static_cast<BranchNodeT*>(node);
+				BranchNodeT* branch_node 		 = static_cast<BranchNodeT*>(node);
 
 				for (Int c = 0; c < branch_node->size(); c++)
 				{
@@ -528,6 +552,25 @@ public:
 			throw vapi::Exception(MA_SRC, SBuf()<<"Specified master uuid "<<metadata.master()<<" is not found in the data");
 		}
 
+		for (auto& entry: ptree_node_map)
+		{
+			auto buffer = entry.second.first;
+
+			if (buffer->is_leaf())
+			{
+				delete static_cast<LeafNodeBufferT*>(buffer);
+			}
+			else {
+				delete static_cast<BranchNodeBufferT*>(buffer);
+			}
+		}
+
+		for (auto& entry: history_node_map)
+		{
+			auto node = entry.second;
+			delete node;
+		}
+
 		return std::shared_ptr<MyType>(allocator);
 	}
 
@@ -548,6 +591,8 @@ private:
 
 			HistoryNode* node = new HistoryNode(txn_id, parent, buffer->status());
 
+			node->root_id() = buffer->root_id();
+
 			snapshot_map_[txn_id] = node;
 
 			auto ptree_iter = ptree_map.find(buffer->root());
@@ -558,8 +603,7 @@ private:
 
 				for (const auto& child_txn_id: buffer->children())
 				{
-					auto child = build_history_tree(child_txn_id, node, history_map, ptree_map);
-					node->children().push_back(child);
+					build_history_tree(child_txn_id, node, history_map, ptree_map);
 				}
 
 				return node;
@@ -621,6 +665,10 @@ private:
 		}
 	}
 
+	void read_checksum(InputStreamHandler& in, Checksum& checksum)
+	{
+		in >> checksum.records();
+	}
 
 	void read_data_page(InputStreamHandler& in, PageMap& map)
 	{
@@ -652,6 +700,8 @@ private:
 		else {
 			throw vapi::Exception(MA_SRC, SBuf()<<"Page "<<page->uuid()<<" was already registered");
 		}
+
+		records_++;
 	}
 
 
@@ -671,6 +721,8 @@ private:
 		else {
 			throw vapi::Exception(MA_SRC, SBuf()<<"PersistentTree LeafNode "<<buffer->node_id()<<" was already registered");
 		}
+
+		records_++;
 	}
 
 
@@ -690,6 +742,8 @@ private:
 		else {
 			throw vapi::Exception(MA_SRC, SBuf()<<"PersistentTree BranchNode "<<buffer->node_id()<<" was already registered");
 		}
+
+		records_++;
 	}
 
 
@@ -707,6 +761,7 @@ private:
 
 		in >> node->txn_id();
 		in >> node->root();
+		in >> node->root_id();
 
 		in >> node->parent();
 
@@ -728,6 +783,8 @@ private:
 		else {
 			throw vapi::Exception(MA_SRC, SBuf()<<"HistoryTree Node "<<node->txn_id()<<" was already registered");
 		}
+
+		records_++;
 	}
 
 
@@ -785,6 +842,15 @@ private:
 	{
 		out << meta.master();
 		out << meta.root();
+
+		records_++;
+	}
+
+	void write(OutputStreamHandler& out, const Checksum& checksum)
+	{
+		UByte type = TYPE_CHECKSUM;
+		out << type;
+		out << checksum.records();
 	}
 
 	void write(OutputStreamHandler& out, const HistoryNode* history_node)
@@ -794,6 +860,7 @@ private:
 		out << (Int)history_node->status();
 		out << history_node->txn_id();
 		out << history_node->root()->node_id();
+		out << history_node->root_id();
 
 		if (history_node->parent())
 		{
@@ -809,6 +876,8 @@ private:
 		{
 			out << child->txn_id();
 		}
+
+		records_++;
 
 		write_persistent_tree(out, history_node->root());
 	}
@@ -856,6 +925,8 @@ private:
 		UByte type = TYPE_BRANCH_NODE;
 		out << type;
 		node->write(out);
+
+		records_++;
 	}
 
 	void write(OutputStreamHandler& out, const LeafNodeBufferT* node)
@@ -863,6 +934,8 @@ private:
 		UByte type = TYPE_LEAF_NODE;
 		out << type;
 		node->write(out);
+
+		records_++;
 	}
 
 	void write(OutputStreamHandler& out, const PageType* page)
@@ -885,6 +958,18 @@ private:
         out << page->page_type_hash();
 
         out.write(buffer.get(), 0, total_data_size);
+
+        records_++;
+	}
+
+
+	void dump(const Page* page, std::ostream& out = std::cout)
+	{
+		TextPageDumper dumper(out);
+
+		PageMetadata* meta = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
+
+		meta->getPageOperations()->generateDataEvents(page, DataEventsParams(), &dumper);
 	}
 };
 

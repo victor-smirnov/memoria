@@ -28,6 +28,7 @@ namespace persistent_inmem {
 
 
 
+
 template <typename Profile, typename PageType, typename HistoryNode, typename PersitentTree, typename HistoryTree>
 class Snapshot: public IWalkableAllocator<PageType> {
 	using Base 				= IAllocator<PageType>;
@@ -85,8 +86,6 @@ private:
 	size_t mem_limit_;
 	size_t allocated_ = 0;
 
-	ID root_id0_;
-
 	ContainerMetadataRepository*  metadata_;
 
 	template <typename, typename>
@@ -102,10 +101,9 @@ public:
 		logger_("PersistentInMemAllocatorTxn"),
 		root_map_(nullptr),
 		mem_limit_(std::numeric_limits<size_t>::max()),
-		root_id0_(0),
 		metadata_(MetadataRepository<Profile>::getMetadata())
 	{
-		root_map_ = std::make_unique<RootMapType>(this, CTR_CREATE, 0);
+		root_map_ = std::make_unique<RootMapType>(this, history_node->is_active() ? CTR_CREATE : CTR_FIND, 0);
 	}
 
 	Snapshot(HistoryNode* history_node, HistoryTree* history_tree):
@@ -115,10 +113,9 @@ public:
 		logger_("PersistentInMemAllocatorTxn"),
 		root_map_(nullptr),
 		mem_limit_(std::numeric_limits<size_t>::max()),
-		root_id0_(0),
 		metadata_(MetadataRepository<Profile>::getMetadata())
 	{
-		root_map_ = std::make_unique<RootMapType>(this, CTR_CREATE, 0);
+		root_map_ = std::make_unique<RootMapType>(this, history_node->is_active() ? CTR_CREATE : CTR_FIND, 0);
 	}
 
 	virtual ~Snapshot()
@@ -172,7 +169,7 @@ public:
 		if (history_node_->is_committed())
 		{
 			HistoryNode* history_node = new HistoryNode(history_node_);
-			history_tree_raw_->snapshot_map[history_node->root_id()] = history_node;
+			history_tree_raw_->snapshot_map_[history_node->txn_id()] = history_node;
 
 			return std::make_shared<Snapshot>(history_node, history_tree_);
 		}
@@ -222,6 +219,8 @@ public:
 
 	virtual PageG getPageForUpdate(const ID& id, BigInt name)
 	{
+		MEMORIA_ASSERT_TRUE(history_node_->is_active());
+
 		if (id.isSet())
 		{
 			Shared* shared = get_shared(id, Shared::UPDATE);
@@ -291,6 +290,8 @@ public:
 
 	virtual PageG updatePage(Shared* shared, BigInt name)
 	{
+		MEMORIA_ASSERT_TRUE(history_node_->is_active());
+
         if (shared->state() == Shared::READ)
         {
         	Page* new_page = clone_page(shared->get());
@@ -309,6 +310,8 @@ public:
 
 	virtual void removePage(const ID& id, BigInt name)
 	{
+		MEMORIA_ASSERT_TRUE(history_node_->is_active());
+
 		auto page_opt = persistent_tree_.find(id);
 
 		if (page_opt)
@@ -334,6 +337,8 @@ public:
 
 	virtual PageG createPage(Int initial_size, BigInt name)
 	{
+		MEMORIA_ASSERT_TRUE(history_node_->is_active());
+
 		if (initial_size == -1)
 		{
 			initial_size = properties_.defaultPageSize();
@@ -365,6 +370,8 @@ public:
 
 	virtual void resizePage(Shared* shared, Int new_size)
 	{
+		MEMORIA_ASSERT_TRUE(history_node_->is_active());
+
 		if (shared->state() == Shared::READ)
 		{
 			Page* page = shared->get();
@@ -683,11 +690,11 @@ protected:
     	{
     		this->set_value_for_key(name, page_id);
     	}
+    	else {
+    		history_node_->root_id() = page_id;
+    	}
     }
 
-    void set_root(const ID& id) {
-        root_map_->set_root(id);
-    }
 
     void remove_by_key(BigInt name)
     {
@@ -711,15 +718,21 @@ protected:
 
     ID get_value_for_key(BigInt name)
     {
-        auto iter = root_map_->find(name);
+    	if (name != 0)
+    	{
+    		auto iter = root_map_->find(name);
 
-        if (!iter.isEnd())
-        {
-            return iter.value();
-        }
-        else {
-            return ID(0);
-        }
+    		if (!iter.isEnd())
+    		{
+    			return iter.value();
+    		}
+    		else {
+    			return ID(0);
+    		}
+    	}
+    	else {
+    		return history_node_->root_id();
+    	}
     }
 
     virtual void new_root(BigInt name, const ID &page_id)
@@ -739,6 +752,9 @@ protected:
     	{
     		this->remove_by_key(name);
     	}
+    	else {
+    		throw vapi::Exception(MA_SRC, SBuf()<<"Allocator directory removal attempted");
+    	}
     }
 
 
@@ -751,7 +767,7 @@ protected:
         }
         else
         {
-            return root_id0_;
+            return history_node_->root_id();
         }
     }
 };
