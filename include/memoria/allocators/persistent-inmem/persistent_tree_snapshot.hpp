@@ -89,6 +89,9 @@ private:
 	template <typename, typename>
 	friend class PersistentInMemAllocatorT;
 
+	template <typename T>
+	friend struct std::allocator_traits;
+
 public:
 
 	Snapshot(HistoryNode* history_node, const HistoryTreePtr& history_tree):
@@ -163,6 +166,22 @@ public:
 	void set_as_branch(StringRef name)
 	{
 		history_tree_raw_->set_branch(name, history_node_->txn_id());
+	}
+
+	StringRef metadata() const {
+		return history_node_->metadata();
+	}
+
+	void set_metadata(StringRef metadata)
+	{
+		if (history_node_->is_active())
+		{
+			history_node_->metadata() = metadata;
+		}
+		else
+		{
+			throw vapi::Exception(MA_SRC, "Snapshot is already committed.");
+		}
 	}
 
 	SnapshotPtr branch()

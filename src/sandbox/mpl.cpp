@@ -22,7 +22,7 @@ int main()
 	DCtr<Vector<Byte>>::initMetadata();
 
 	try {
-		auto alloc = std::make_shared<PersistentInMemAllocator<>>();
+		auto alloc = PersistentInMemAllocator<>::create();
 
 		auto txn = alloc->master()->branch();
 
@@ -34,10 +34,13 @@ int main()
 
 		ctr.seek(0).insert(data.begin(), data.size());
 
+		txn->set_metadata("Transaction's metadata in plain text");
+
 		txn->commit();
 
 		txn->set_as_master();
 		txn->set_as_branch("MyCoolBranch");
+
 
 		FSDumpAllocator(txn, "pdump1.dir");
 
@@ -61,6 +64,9 @@ int main()
 		cout<<"Store: "<<FormatTime(t1 - t0)<<" Load: "<<FormatTime(t2 - t1)<<endl;
 
 		FSDumpAllocator(alloc2->master(), "pdump3.dir");
+		FSDumpAllocator(alloc2->find_branch("MyCoolBranch"), "pdump3_nb.dir");
+
+		cout<<alloc2->find_branch("MyCoolBranch")->metadata()<<endl;
 	}
 	catch (vapi::Exception& ex) {
 		cout<<ex.source()<<": "<<ex.message()<<endl;

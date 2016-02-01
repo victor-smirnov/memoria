@@ -110,6 +110,8 @@ public:
 
 	private:
 		HistoryNode* parent_;
+		String metadata_;
+
 		std::vector<HistoryNode*> children_;
 
 		NodeBaseT* root_;
@@ -198,6 +200,9 @@ public:
 		Status& status() {return status_;}
 		const Status& status() const {return status_;}
 
+		auto& metadata() {return metadata_;}
+		const auto& metadata() const {return metadata_;}
+
 		void commit() {
 			status_ = Status::COMMITTED;
 		}
@@ -210,6 +215,9 @@ public:
 
 	private:
 		TxnId parent_;
+
+		String metadata_;
+
 		std::vector<TxnId> children_;
 
 		PTreeNodeId root_;
@@ -251,6 +259,9 @@ public:
 
 		auto& status() {return status_;}
 		const auto& status() const {return status_;}
+
+		auto& metadata() {return metadata_;}
+		const auto& metadata() const {return metadata_;}
 	};
 
 
@@ -311,8 +322,6 @@ private:
 
 	BigInt records_ = 0;
 
-public:
-
 	PersistentInMemAllocatorT():
 		metadata_(MetadataRepository<Profile>::getMetadata())
 	{
@@ -330,12 +339,14 @@ public:
 		txn.commit();
 	}
 
-private:
+
 
 	PersistentInMemAllocatorT(Int):
 		metadata_(MetadataRepository<Profile>::getMetadata())
 	{
 	}
+
+
 
 public:
 
@@ -343,6 +354,14 @@ public:
 	{
 		free_memory(history_tree_);
 	}
+
+	struct shared : public MyType {};
+
+	static auto create()
+	{
+		return std::make_shared<shared>();
+	}
+
 
 	auto newId()
 	{
@@ -443,7 +462,7 @@ public:
 		write_metadata(*output);
 
 		walk_version_tree(history_tree_, [&](const HistoryNode* history_tree_node, SnapshotT* txn) {
-			writeH(*output, history_tree_node);
+			write_history_node(*output, history_tree_node);
 		});
 
 		Checksum checksum;
@@ -635,6 +654,7 @@ private:
 			HistoryNode* node = new HistoryNode(txn_id, parent, buffer->status());
 
 			node->root_id() = buffer->root_id();
+			node->metadata() = buffer->metadata();
 
 			snapshot_map_[txn_id] = node;
 
@@ -827,6 +847,8 @@ private:
 
 		in >> node->parent();
 
+		in >> node->metadata();
+
 		BigInt children;
 		in >>children;
 
@@ -924,7 +946,7 @@ private:
 		out << checksum.records() + 1;
 	}
 
-	void writeH(OutputStreamHandler& out, const HistoryNode* history_node)
+	void write_history_node(OutputStreamHandler& out, const HistoryNode* history_node)
 	{
 		UByte type = TYPE_HISTORY_NODE;
 		out << type;
@@ -940,6 +962,8 @@ private:
 		else {
 			out << UUID();
 		}
+
+		out << history_node->metadata();
 
 		out << (BigInt)history_node->children().size();
 
