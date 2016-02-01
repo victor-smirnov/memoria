@@ -40,7 +40,7 @@ public:
 		}
 	};
 
-	template <typename BranchNodeT, typename LeafNodeT, typename RootProvider>
+	template <typename, typename, typename, typename>
 	friend class PersistentTree;
 
 	template <typename Profile, typename PageType>

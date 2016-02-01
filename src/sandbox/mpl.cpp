@@ -37,10 +37,12 @@ int main()
 		txn->commit();
 
 		txn->set_as_master();
+		txn->set_as_branch("MyCoolBranch");
 
-		FSDumpAllocator(txn.get(), "pdump1.dir");
+		FSDumpAllocator(txn, "pdump1.dir");
 
-		FSDumpAllocator(alloc->master().get(), "pdump2.dir");
+		FSDumpAllocator(alloc->master(), "pdump2.dir");
+		FSDumpAllocator(alloc->find_branch("MyCoolBranch"), "pdump2_nb.dir");
 
 		BigInt t0 = getTimeInMillis();
 
@@ -58,7 +60,7 @@ int main()
 
 		cout<<"Store: "<<FormatTime(t1 - t0)<<" Load: "<<FormatTime(t2 - t1)<<endl;
 
-		FSDumpAllocator(alloc2->master().get(), "pdump3.dir");
+		FSDumpAllocator(alloc2->master(), "pdump3.dir");
 	}
 	catch (vapi::Exception& ex) {
 		cout<<ex.source()<<": "<<ex.message()<<endl;

@@ -236,7 +236,7 @@ private:
     FlagsType   flags_;
 
 
-    Int         references_;
+    BigInt      references_;
     Int         deleted_;
 
 
@@ -328,11 +328,11 @@ public:
         return page_type_hash_;
     }
 
-    Int &references() {
+    auto &references() {
         return references_;
     }
 
-    const Int references() const {
+    const auto& references() const {
         return references_;
     }
 
@@ -352,11 +352,11 @@ public:
         return page_size_;
     }
 
-    Int ref() {
+    auto ref() {
         return ++references_;
     }
 
-    Int unref() {
+    auto unref() {
         return --references_;
     }
 
@@ -454,7 +454,7 @@ public:
         FieldFactory<PageIdType>::serialize(buf, id());
         FieldFactory<PageIdType>::serialize(buf, uuid());
 
-        FieldFactory<Int>::serialize(buf, references_);
+        FieldFactory<BigInt>::serialize(buf, references_);
         FieldFactory<Int>::serialize(buf, deleted_);
     }
 
@@ -474,7 +474,7 @@ public:
         FieldFactory<PageIdType>::deserialize(buf, id());
         FieldFactory<PageIdType>::deserialize(buf, uuid());
 
-        FieldFactory<Int>::deserialize(buf, references_);
+        FieldFactory<BigInt>::deserialize(buf, references_);
         FieldFactory<Int>::deserialize(buf, deleted_);
     }
 };

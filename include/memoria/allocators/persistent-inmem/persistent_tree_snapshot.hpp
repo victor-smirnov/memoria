@@ -83,8 +83,6 @@ private:
 
 	std::unique_ptr<RootMapType> root_map_;
 
-	size_t mem_limit_;
-	size_t allocated_ = 0;
 
 	ContainerMetadataRepository*  metadata_;
 
@@ -100,7 +98,6 @@ public:
 		persistent_tree_(history_node_),
 		logger_("PersistentInMemAllocatorTxn"),
 		root_map_(nullptr),
-		mem_limit_(std::numeric_limits<size_t>::max()),
 		metadata_(MetadataRepository<Profile>::getMetadata())
 	{
 		root_map_ = std::make_unique<RootMapType>(this, history_node->is_active() ? CTR_CREATE : CTR_FIND, 0);
@@ -112,7 +109,6 @@ public:
 		persistent_tree_(history_node_),
 		logger_("PersistentInMemAllocatorTxn"),
 		root_map_(nullptr),
-		mem_limit_(std::numeric_limits<size_t>::max()),
 		metadata_(MetadataRepository<Profile>::getMetadata())
 	{
 		root_map_ = std::make_unique<RootMapType>(this, history_node->is_active() ? CTR_CREATE : CTR_FIND, 0);
@@ -162,6 +158,11 @@ public:
 	void set_as_master()
 	{
 		history_tree_raw_->set_master(history_node_->txn_id());
+	}
+
+	void set_as_branch(StringRef name)
+	{
+		history_tree_raw_->set_branch(name, history_node_->txn_id());
 	}
 
 	SnapshotPtr branch()
@@ -312,26 +313,19 @@ public:
 	{
 		MEMORIA_ASSERT_TRUE(history_node_->is_active());
 
-		auto page_opt = persistent_tree_.find(id);
+		auto iter = persistent_tree_.locate(id);
 
-		if (page_opt)
+		if (!iter.is_end())
 		{
-			const auto& txn_id = history_node_->txn_id();
+			auto shared = pool_.get(id);
 
-			if (page_opt.value().txn_id() == txn_id)
+			if (!shared)
 			{
-				auto shared = pool_.get(id);
-
-				if (!shared)
-				{
-					this->free(page_opt.value().page());
-				}
-				else {
-					shared->state() = Shared::DELETE;
-				}
+				persistent_tree_.remove(iter);
 			}
-
-			persistent_tree_.remove(id);
+			else {
+				shared->state() = Shared::DELETE;
+			}
 		}
 	}
 
@@ -363,6 +357,8 @@ public:
 		shared->set_allocator(this);
 
 		set_page(p);
+
+
 
 		return PageG(shared);
 	}
@@ -404,7 +400,7 @@ public:
 	{
 		if (shared->state() == Shared::DELETE)
 		{
-			this->free(shared->get());
+			persistent_tree_.remove(shared->get()->id());
 		}
 
 		pool_.release(shared->id());
@@ -580,7 +576,8 @@ protected:
 		CopyByteBuffer(page, buffer, page->page_size());
 		Page* new_page = T2T<Page*>(buffer);
 
-		new_page->uuid() = newId();
+		new_page->uuid() 		= newId();
+		new_page->references() 	= 0;
 
 		return new_page;
 	}
@@ -623,62 +620,13 @@ protected:
 
     void* malloc(size_t size)
     {
-    	if (check_allocated_increment(size))
-    	{
-    		inc_allocated(size);
-
-    		return ::malloc(size);
-    	}
-    	else {
-    		throw Exception(MA_SRC, SBuf()<<"Allocator memory limit exceeded: "<<mem_limit_);
-    	}
-    }
-
-    void free(Page* page)
-    {
-    	dec_allocated(page->page_size());
-
-    	return ::free(page);
-    }
-
-    void dec_allocated(size_t delta)
-    {
-    	if (allocated_ >= delta) {
-    		allocated_ -= delta;
-    	}
-    	else {
-    		allocated_ = 0;
-    	}
-    }
-
-    void inc_allocated(size_t delta)
-    {
-    	auto tmp = allocated_ + delta;
-
-    	if (tmp >= allocated_)
-    	{
-    		allocated_ += delta;
-    	}
-    	else {
-    		allocated_ = std::numeric_limits<size_t>::max();
-    	}
-    }
-
-    bool check_allocated_increment(size_t delta)
-    {
-    	auto tmp = allocated_ + delta;
-
-    	if (tmp >= allocated_)
-    	{
-    		return tmp <= mem_limit_;
-    	}
-    	else {
-    		return false;
-    	}
+    	return ::malloc(size);
     }
 
     void set_page(Page* page)
     {
+    	page->ref();
+
     	const auto& txn_id = history_node_->txn_id();
     	using Value = typename PersitentTree::Value;
     	persistent_tree_.assign(page->id(), Value(page, txn_id));

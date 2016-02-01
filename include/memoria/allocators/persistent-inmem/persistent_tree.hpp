@@ -18,12 +18,14 @@
 
 #include <vector>
 #include <unordered_map>
+#include <memory>
+#include <malloc.h>
 
 namespace memoria {
 namespace persistent_inmem   {
 
 
-template <typename BranchNodeT, typename LeafNodeT, typename RootProvider>
+template <typename BranchNodeT, typename LeafNodeT, typename RootProvider, typename PageType>
 class PersistentTree {
 public:
 	using NodeId		= typename LeafNodeT::NodeId;
@@ -99,6 +101,10 @@ public:
 		else {
 			return false;
 		}
+	}
+
+	void remove(Iterator& iter) {
+		remove_from(iter);
 	}
 
 	auto locate(const Key& key) const {
@@ -378,6 +384,13 @@ protected:
 
 		LeafNodeT* leaf = iter.leaf();
 
+		auto page = leaf->data(iter.idx()).page();
+
+		if (page->unref() == 0)
+		{
+			::free(page);
+		}
+
 		leaf->remove(iter.idx(), iter.idx() + 1);
 
 		update_keys_up(iter.path(), iter.idx(), 0);
@@ -649,7 +662,14 @@ protected:
 
 	LeafNodeT* clone_leaf_node(LeafNodeT* node, const TxnId& txn_id)
 	{
-		return clone_node_t(node, txn_id);
+		auto clone = clone_node_t(node, txn_id);
+
+		for (Int c = 0; c < clone->size(); c++)
+		{
+			clone->data(c).page()->ref();
+		}
+
+		return clone;
 	}
 
 	template <typename NodeT>

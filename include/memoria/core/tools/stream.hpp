@@ -14,6 +14,7 @@
 #include <memoria/core/tools/strings.hpp>
 
 #include <fstream>
+#include <limits>
 
 namespace memoria    {
 namespace vapi       {
@@ -25,7 +26,7 @@ struct MEMORIA_API InputStreamHandler {
     virtual Int bufferSize()                            = 0;
     virtual BigInt pos() const                          = 0;
     virtual BigInt size() const                         = 0;
-    virtual Int read(void* mem, Int offset, Int length) = 0;
+    virtual size_t read(void* mem, size_t offset, size_t length) = 0;
 
 
     virtual Byte readByte()				= 0;
@@ -52,7 +53,8 @@ struct MEMORIA_API InputStreamHandler {
     {
         Int size0 = size;
         Int ptr = 0;
-        while (size > 0) {
+        while (size > 0)
+        {
             Int r = read(mem, ptr, size);
             if (r < 0) {
                 if (size != size0) {
@@ -79,7 +81,7 @@ struct MEMORIA_API OutputStreamHandler {
     virtual void flush() = 0;
     virtual void close() = 0;
     virtual BigInt pos() = 0;
-    virtual void write(const void* mem, int offset, int lenght) = 0;
+    virtual void write(const void* mem, size_t offset, size_t lenght) = 0;
 
     virtual void write(Byte value) 		= 0;
     virtual void write(UByte value) 	= 0;
@@ -154,12 +156,12 @@ public:
         }
     }
 
-    virtual void write(const void* mem, int offset, int length)
+    virtual void write(const void* mem, size_t offset, size_t length)
     {
         const char* data = static_cast<const char*>(mem) + offset;
         size_t total_size = fwrite(data, 1, length, fd_);
 
-        if (total_size != (size_t)length)
+        if (total_size != length)
         {
             throw Exception(MEMORIA_SOURCE, SBuf()<<"Can't write "<<length<<" bytes to file");
         }
@@ -283,11 +285,11 @@ public:
 
 
 
-    virtual Int read(void* mem, int offset, int length)
+    virtual size_t read(void* mem, size_t offset, size_t length)
     {
         char* data = static_cast<char*>(mem) + offset;
         size_t size = ::fread(data, 1, length, fd_);
-        return size == (size_t)length ? size : -1;
+        return size == length ? size : std::numeric_limits<size_t>::max();
     }
 
     virtual Byte readByte() {
@@ -340,7 +342,7 @@ private:
     {
     	T value;
 
-    	Int len = read(&value, 0, sizeof(T));
+    	auto len = read(&value, 0, sizeof(T));
 
     	if (len == sizeof(T)) {
     		return value;
@@ -407,10 +409,31 @@ inline InputStreamHandler& operator>>(InputStreamHandler& in, double& value) {
 	return in;
 }
 
+inline InputStreamHandler& operator>>(InputStreamHandler& in, String& value)
+{
+	BigInt size = in.readBigInt();
+
+	value.clear();
+	value.insert(0, size, 0);
+
+	in.read(&value[0], size);
+
+	return in;
+}
+
 
 template <typename T>
 OutputStreamHandler& operator<<(OutputStreamHandler& out, const T& value) {
 	out.write(value);
+	return out;
+}
+
+
+inline OutputStreamHandler& operator<<(OutputStreamHandler& out, const String& value)
+{
+	out << (BigInt)value.length();
+
+	out.write(value.c_str(), 0, value.length());
 	return out;
 }
 

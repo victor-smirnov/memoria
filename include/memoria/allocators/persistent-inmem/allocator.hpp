@@ -11,12 +11,13 @@
 #include <unordered_map>
 #include <string>
 
-#include <memoria/core/tools/stream.hpp>
+
 
 #include <memoria/core/container/metadata_repository.hpp>
 
 #include <memoria/core/tools/pool.hpp>
 #include <memoria/core/tools/uuid.hpp>
+#include <memoria/core/tools/stream.hpp>
 
 #include <memoria/allocators/persistent-inmem/persistent_tree_node.hpp>
 #include <memoria/allocators/persistent-inmem/persistent_tree.hpp>
@@ -253,15 +254,16 @@ public:
 	};
 
 
-	using PersistentTreeT 	= memoria::persistent_inmem::PersistentTree<BranchNodeT, LeafNodeT, HistoryNode>;
+	using PersistentTreeT 	= memoria::persistent_inmem::PersistentTree<BranchNodeT, LeafNodeT, HistoryNode, PageType>;
 	using SnapshotT 	 	= memoria::persistent_inmem::Snapshot<Profile, PageType, HistoryNode, PersistentTreeT, MyType>;
-	using SnapshotPtr 	= std::shared_ptr<SnapshotT>;
+	using SnapshotPtr 		= std::shared_ptr<SnapshotT>;
 
 	using TxnMap		 		= std::unordered_map<TxnId, HistoryNode*, UUIDKeyHash, UUIDKeyEq>;
 
 	using HistoryTreeNodeMap	= std::unordered_map<PTreeNodeId, HistoryNodeBuffer*, UUIDKeyHash, UUIDKeyEq>;
 	using PersistentTreeNodeMap	= std::unordered_map<PTreeNodeId, std::pair<NodeBaseBufferT*, NodeBaseT*>, UUIDKeyHash, UUIDKeyEq>;
 	using PageMap				= std::unordered_map<typename PageType::ID, PageType*, IDKeyHash, IDKeyEq>;
+	using BranchMap				= std::unordered_map<String, HistoryNode*>;
 
 	template <typename, typename, typename, typename, typename>
 	friend class memoria::persistent_inmem::Snapshot;
@@ -271,6 +273,9 @@ private:
 	class AllocatorMetadata {
 		TxnId master_;
 		TxnId root_;
+
+		std::unordered_map<String, TxnId> named_branches_;
+
 	public:
 		AllocatorMetadata() {}
 
@@ -279,6 +284,9 @@ private:
 
 		const TxnId& master() const {return master_;}
 		const TxnId& root()   const {return root_;}
+
+		auto& named_branches() {return named_branches_;}
+		const auto& named_branches() const {return named_branches_;}
 	};
 
 	class Checksum {
@@ -288,26 +296,25 @@ private:
 		const BigInt& records() const {return records_;}
 	};
 
-	enum {TYPE_UNKNOWN, TYPE_HISTORY_NODE, TYPE_BRANCH_NODE, TYPE_LEAF_NODE, TYPE_DATA_PAGE, TYPE_CHECKSUM};
+	enum {TYPE_UNKNOWN, TYPE_METADATA, TYPE_HISTORY_NODE, TYPE_BRANCH_NODE, TYPE_LEAF_NODE, TYPE_DATA_PAGE, TYPE_CHECKSUM};
 
 	HistoryNode* history_tree_ = nullptr;
 	HistoryNode* master_ = nullptr;
 
 	TxnMap snapshot_map_;
 
+	BranchMap named_branches_;
+
 	BigInt id_counter_ = 1;
 
 	ContainerMetadataRepository*  metadata_;
-
-	Int tag_;
 
 	BigInt records_ = 0;
 
 public:
 
 	PersistentInMemAllocatorT():
-		metadata_(MetadataRepository<Profile>::getMetadata()),
-		tag_(1)
+		metadata_(MetadataRepository<Profile>::getMetadata())
 	{
 		SnapshotT::initMetadata();
 
@@ -326,8 +333,7 @@ public:
 private:
 
 	PersistentInMemAllocatorT(Int):
-		metadata_(MetadataRepository<Profile>::getMetadata()),
-		tag_(2)
+		metadata_(MetadataRepository<Profile>::getMetadata())
 	{
 	}
 
@@ -343,16 +349,29 @@ public:
 		return typename PageType::ID(id_counter_++);
 	}
 
-	SnapshotPtr find(const TxnId& branch_id)
+	SnapshotPtr find(const TxnId& snapshot_id)
 	{
-		auto iter = snapshot_map_.find(branch_id);
+		auto iter = snapshot_map_.find(snapshot_id);
 		if (iter != snapshot_map_.end())
 		{
-			auto history_node = iter.second;
-			return std::make_shared<SnapshotT>(history_node, this);
+			auto history_node = iter->second;
+			return std::make_shared<SnapshotT>(history_node, this->shared_from_this());
 		}
 		else {
-			throw vapi::Exception(MA_SRC, SBuf()<<"Snapshot id "<<branch_id<<" is not known");
+			throw vapi::Exception(MA_SRC, SBuf()<<"Snapshot id "<<snapshot_id<<" is not known");
+		}
+	}
+
+	SnapshotPtr find_branch(StringRef name)
+	{
+		auto iter = named_branches_.find(name);
+		if (iter != named_branches_.end())
+		{
+			auto history_node = iter->second;
+			return std::make_shared<SnapshotT>(history_node, this->shared_from_this());
+		}
+		else {
+			throw vapi::Exception(MA_SRC, SBuf()<<"Named branch \""<<name<<"\" is not known");
 		}
 	}
 
@@ -369,6 +388,24 @@ public:
 			if (iter->second->is_committed())
 			{
 				master_ = iter->second;
+			}
+			else {
+				throw vapi::Exception(MA_SRC, SBuf()<<"Snapshot "<<txn_id<<" hasn't been committed yet");
+			}
+		}
+		else {
+			throw vapi::Exception(MA_SRC, SBuf()<<"Snapshot "<<txn_id<<" is not known in this allocator");
+		}
+	}
+
+	void set_branch(StringRef name, const TxnId& txn_id)
+	{
+		auto iter = snapshot_map_.find(txn_id);
+		if (iter != snapshot_map_.end())
+		{
+			if (iter->second->is_committed())
+			{
+				named_branches_[name] = iter->second;
 			}
 			else {
 				throw vapi::Exception(MA_SRC, SBuf()<<"Snapshot "<<txn_id<<" hasn't been committed yet");
@@ -403,12 +440,7 @@ public:
 
 		output->write(&signature, 0, sizeof(signature));
 
-		AllocatorMetadata meta;
-
-		meta.master() 	= master_->txn_id();
-		meta.root() 	= history_tree_->txn_id();
-
-		writeM(*output, meta);
+		write_metadata(*output);
 
 		walk_version_tree(history_tree_, [&](const HistoryNode* history_tree_node, SnapshotT* txn) {
 			writeH(*output, history_tree_node);
@@ -465,13 +497,6 @@ public:
 
 		AllocatorMetadata metadata;
 
-		*input >> metadata.master();
-		*input >> metadata.root();
-
-		allocator->records_++;
-
-//		std::cout<<"Read Allocator Metadata: "<<allocator->records_<<" "<<metadata.master()<<" "<<metadata.root()<<std::endl;
-
 		Checksum checksum;
 
 		while (input->pos() < size)
@@ -481,6 +506,7 @@ public:
 
 			switch (type)
 			{
+				case TYPE_METADATA: 	allocator->read_metadata(*input, metadata); break;
 				case TYPE_DATA_PAGE: 	allocator->read_data_page(*input, page_map); break;
 				case TYPE_LEAF_NODE: 	allocator->read_leaf_node(*input, ptree_node_map); break;
 				case TYPE_BRANCH_NODE: 	allocator->read_branch_node(*input, ptree_node_map); break;
@@ -489,6 +515,8 @@ public:
 				default:
 					throw vapi::Exception(MA_SRC, SBuf()<<"Unknown record type: "<<(Int)type);
 			}
+
+			allocator->records_++;
 		}
 
 		if (allocator->records_ != checksum.records())
@@ -551,6 +579,21 @@ public:
 		else {
 			throw vapi::Exception(MA_SRC, SBuf()<<"Specified master uuid "<<metadata.master()<<" is not found in the data");
 		}
+
+		for (auto& entry: metadata.named_branches())
+		{
+			auto iter = allocator->snapshot_map_.find(entry.second);
+
+			if (iter != allocator->snapshot_map_.end())
+			{
+				allocator->named_branches_[entry.first] = iter->second;
+			}
+			else {
+				throw vapi::Exception(MA_SRC, SBuf()<<"Specified snapshot uuid "<<entry.first<<" is not found");
+			}
+		}
+
+		// Delete temporary buffers
 
 		for (auto& entry: ptree_node_map)
 		{
@@ -631,6 +674,10 @@ private:
 	}
 
 
+	/**
+	 * Deletes recursively all data quickly. Must not be used to delete data of a selected snapshot.
+	 */
+
 	void free_memory(const NodeBaseT* node)
 	{
 		const auto& txn_id = node->txn_id();
@@ -662,6 +709,27 @@ private:
 			}
 
 			delete branch;
+		}
+	}
+
+	void read_metadata(InputStreamHandler& in, AllocatorMetadata& metadata)
+	{
+		in >> metadata.master();
+		in >> metadata.root();
+
+		BigInt size;
+
+		in >>size;
+
+		for (BigInt c = 0; c < size; c++)
+		{
+			String name;
+			in >> name;
+
+			TxnId value;
+			in >> value;
+
+			metadata.named_branches()[name] = value;
 		}
 	}
 
@@ -700,8 +768,6 @@ private:
 		else {
 			throw vapi::Exception(MA_SRC, SBuf()<<"Page "<<page->uuid()<<" was already registered");
 		}
-
-		records_++;
 	}
 
 
@@ -721,8 +787,6 @@ private:
 		else {
 			throw vapi::Exception(MA_SRC, SBuf()<<"PersistentTree LeafNode "<<buffer->node_id()<<" was already registered");
 		}
-
-		records_++;
 	}
 
 
@@ -742,8 +806,6 @@ private:
 		else {
 			throw vapi::Exception(MA_SRC, SBuf()<<"PersistentTree BranchNode "<<buffer->node_id()<<" was already registered");
 		}
-
-		records_++;
 	}
 
 
@@ -783,8 +845,6 @@ private:
 		else {
 			throw vapi::Exception(MA_SRC, SBuf()<<"HistoryTree Node "<<node->txn_id()<<" was already registered");
 		}
-
-		records_++;
 	}
 
 
@@ -838,10 +898,21 @@ private:
 		}
 	}
 
-	void writeM(OutputStreamHandler& out, const AllocatorMetadata& meta)
+	void write_metadata(OutputStreamHandler& out)
 	{
-		out << meta.master();
-		out << meta.root();
+		UByte type = TYPE_METADATA;
+		out << type;
+
+		out << master_->txn_id();
+		out << history_tree_->txn_id();
+
+		out << (BigInt) named_branches_.size();
+
+		for (auto& entry: named_branches_)
+		{
+			out<<entry.first;
+			out<<entry.second->txn_id();
+		}
 
 		records_++;
 	}
@@ -850,7 +921,7 @@ private:
 	{
 		UByte type = TYPE_CHECKSUM;
 		out << type;
-		out << checksum.records();
+		out << checksum.records() + 1;
 	}
 
 	void writeH(OutputStreamHandler& out, const HistoryNode* history_node)

@@ -394,6 +394,15 @@ void FSDumpAllocator(Allocator* allocator, StringRef path)
     allocator->walkContainers(&walker);
 }
 
+template <typename Allocator>
+void FSDumpAllocator(const std::shared_ptr<Allocator>& allocator, StringRef path)
+{
+    typedef FSDumpContainerWalker<typename Allocator::Page> Walker;
+
+    Walker walker(allocator->getMetadata(), path);
+    allocator->walkContainers(&walker);
+}
+
 
 
 }}

@@ -41,7 +41,7 @@ protected:
 
 	Int idx_;
 
-	template <typename BranchNodeT, typename LeafNodeT, typename RootProvider>
+	template <typename, typename, typename, typename>
 	friend class PersistentTree;
 
 public:
