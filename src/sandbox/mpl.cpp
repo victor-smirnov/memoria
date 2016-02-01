@@ -36,7 +36,7 @@ int main()
 
 		txn->set_metadata("Transaction's metadata in plain text");
 
-		txn->commit();
+		txn->freeze();
 
 		txn->set_as_master();
 		txn->set_as_branch("MyCoolBranch");

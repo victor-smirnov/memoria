@@ -131,7 +131,7 @@ public:
 		return metadata_;
 	}
 
-	void commit()
+	void freeze()
 	{
 		if (history_node_->is_active())
 		{
@@ -150,7 +150,7 @@ public:
 		}
 		else if (history_node_->is_committed())
 		{
-			throw vapi::Exception(MA_SRC, "Snapshot has been already committed");
+			throw vapi::Exception(MA_SRC, "Snapshot has been already freezed");
 		}
 		else {
 			throw vapi::Exception(MA_SRC, SBuf()<<"Invalid Snapshot state: "<<(Int)history_node_->status());
@@ -180,7 +180,7 @@ public:
 		}
 		else
 		{
-			throw vapi::Exception(MA_SRC, "Snapshot is already committed.");
+			throw vapi::Exception(MA_SRC, "Snapshot is already freezed.");
 		}
 	}
 
@@ -195,7 +195,7 @@ public:
 		}
 		else
 		{
-			throw vapi::Exception(MA_SRC, "Snapshot is still being active. Commit it first.");
+			throw vapi::Exception(MA_SRC, "Snapshot is still being active. Freeze it first.");
 		}
 	}
 

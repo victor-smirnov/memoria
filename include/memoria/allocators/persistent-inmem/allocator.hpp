@@ -336,7 +336,7 @@ private:
 
 		SnapshotT txn(history_tree_, this);
 
-		txn.commit();
+		txn.freeze();
 	}
 
 
