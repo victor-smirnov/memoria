@@ -24,41 +24,6 @@
 namespace memoria    {
 namespace vapi       {
 
-struct MEMORIA_API ContainerMetadataRepository: public MetadataGroup {
-
-public:
-
-    ContainerMetadataRepository(StringRef name, const MetadataList &content);
-
-    virtual ~ContainerMetadataRepository() throw () {}
-
-    virtual Int hash() const {
-        return hash_;
-    }
-
-    PageMetadata* getPageMetadata(Int model_hash, Int page_hash) const;
-    ContainerMetadata* getContainerMetadata(Int model_hash) const;
-
-
-    virtual void registerMetadata(ContainerMetadata* metadata)
-    {
-        process_model(metadata);
-    }
-
-    virtual void unregisterMetadata(ContainerMetadata* metadata) {}
-
-    void dumpMetadata(std::ostream& out);
-
-private:
-    Int                     hash_;
-    PageMetadataMap         page_map_;
-    ContainerMetadataMap    model_map_;
-
-    void process_model(ContainerMetadata* model);
-};
-
-
-
 struct ContainerWalker {
     virtual void beginAllocator(const char* type, const char* desc)             = 0;
     virtual void endAllocator()                                                 = 0;
@@ -87,7 +52,11 @@ struct ContainerWalker {
     virtual void endSection()                                                   = 0;
 
     virtual void content(const char* name, const char* content)                 = 0;
+
+    virtual ~ContainerWalker() {}
 };
+
+
 
 
 struct ContainerInterface {
@@ -129,7 +98,10 @@ public:
         }
     }
 
-    virtual ~ContainerMetadata() throw () {}
+    virtual ~ContainerMetadata() throw ()
+    {
+    	delete container_interface_;
+    }
 
     virtual Int ctr_hash() const {
         return ctr_hash_;
@@ -159,6 +131,53 @@ private:
 
     Int                     ctr_hash_;
 };
+
+
+
+struct MEMORIA_API ContainerMetadataRepository: public MetadataGroup {
+
+public:
+
+    ContainerMetadataRepository(StringRef name, const MetadataList &content);
+
+    virtual ~ContainerMetadataRepository() throw ()
+    {
+    	//FIXME need to rewrite ownership for metadata objects
+    	for (auto entry: model_map_)
+    	{
+    		delete entry.second;
+    	}
+    }
+
+    virtual Int hash() const {
+        return hash_;
+    }
+
+    PageMetadata* getPageMetadata(Int model_hash, Int page_hash) const;
+    ContainerMetadata* getContainerMetadata(Int model_hash) const;
+
+
+    virtual void registerMetadata(ContainerMetadata* metadata)
+    {
+        process_model(metadata);
+    }
+
+    virtual void unregisterMetadata(ContainerMetadata* metadata) {}
+
+    void dumpMetadata(std::ostream& out);
+
+private:
+    Int                     hash_;
+    PageMetadataMap         page_map_;
+    ContainerMetadataMap    model_map_;
+
+    void process_model(ContainerMetadata* model);
+};
+
+
+
+
+
 
 
 

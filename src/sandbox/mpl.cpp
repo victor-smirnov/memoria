@@ -6,6 +6,7 @@
 
 
 #include <memoria/allocators/persistent-inmem/factory.hpp>
+#include <memoria/core/tools/time.hpp>
 
 #include <iostream>
 #include <string>
@@ -27,7 +28,7 @@ int main()
 
 		DCtr<Vector<Byte>> ctr(txn.get(), CTR_CREATE);
 
-		vector<Byte> data(10000);
+		vector<Byte> data(100000);
 
 		for (auto& v: data) v = getRandomG(255);
 
@@ -41,13 +42,21 @@ int main()
 
 		FSDumpAllocator(alloc->master().get(), "pdump2.dir");
 
+		BigInt t0 = getTimeInMillis();
+
 		std::string file_name = "store.dump";
 
 		unique_ptr <FileOutputStreamHandler> out(FileOutputStreamHandler::create(file_name.c_str()));
 		alloc->store(out.get());
 
+		BigInt t1 = getTimeInMillis();
+
 		unique_ptr <FileInputStreamHandler> in(FileInputStreamHandler::create(file_name.c_str()));
 		auto alloc2 = PersistentInMemAllocator<>::load(in.get());
+
+		BigInt t2 = getTimeInMillis();
+
+		cout<<"Store: "<<FormatTime(t1 - t0)<<" Load: "<<FormatTime(t2 - t1)<<endl;
 
 		FSDumpAllocator(alloc2->master().get(), "pdump3.dir");
 	}
@@ -57,6 +66,8 @@ int main()
 	catch (vapi::Exception* ex) {
 		cout<<ex->source()<<": "<<ex->message()<<endl;
 	}
+
+	MetadataRepository<DefaultProfile<>>::cleanup();
 }
 
 

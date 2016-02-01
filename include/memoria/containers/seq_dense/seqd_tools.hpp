@@ -116,7 +116,7 @@ public:
 
 	virtual Int get(SequenceInputBuffer* buffer, Int pos)
 	{
-
+		return 0;
 	}
 };
 

@@ -219,6 +219,8 @@ public:
         {
             return TypeNameFactory<ContainerTypeName>::name();
         }
+
+        virtual ~CtrInterfaceImpl() {}
     };
 
 

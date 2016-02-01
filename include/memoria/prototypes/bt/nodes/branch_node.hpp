@@ -1609,6 +1609,8 @@ public:
 
     class PageOperations: public IPageOperations
     {
+    	virtual ~PageOperations() {}
+
         virtual Int serialize(const void* page, void* buf) const
         {
             const MyType* me = T2T<const MyType*>(page);
@@ -1686,7 +1688,10 @@ public:
         if (page_metadata_ == NULL)
         {
             Int attrs = 0;
-            page_metadata_ = new PageMetadata("BTREE_PAGE", attrs, hash(), new PageOperations());
+
+            PageOperations* ops = new PageOperations();
+
+            page_metadata_ = new PageMetadata("BTREE_PAGE", attrs, hash(), ops);
         }
         else {}
 

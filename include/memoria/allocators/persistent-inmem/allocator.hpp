@@ -408,10 +408,10 @@ public:
 		meta.master() 	= master_->txn_id();
 		meta.root() 	= history_tree_->txn_id();
 
-		write(*output, meta);
+		writeM(*output, meta);
 
-		walk_version_tree(history_tree_, [&](auto* history_tree_node, auto* txn) {
-			write(*output, history_tree_node);
+		walk_version_tree(history_tree_, [&](const HistoryNode* history_tree_node, SnapshotT* txn) {
+			writeH(*output, history_tree_node);
 		});
 
 		Checksum checksum;
@@ -838,7 +838,7 @@ private:
 		}
 	}
 
-	void write(OutputStreamHandler& out, const AllocatorMetadata& meta)
+	void writeM(OutputStreamHandler& out, const AllocatorMetadata& meta)
 	{
 		out << meta.master();
 		out << meta.root();
@@ -853,7 +853,7 @@ private:
 		out << checksum.records();
 	}
 
-	void write(OutputStreamHandler& out, const HistoryNode* history_node)
+	void writeH(OutputStreamHandler& out, const HistoryNode* history_node)
 	{
 		UByte type = TYPE_HISTORY_NODE;
 		out << type;

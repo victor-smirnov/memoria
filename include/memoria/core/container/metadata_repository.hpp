@@ -50,6 +50,13 @@ public:
             metadata_ = new ContainerMetadataRepository(TypeNameFactory<Profile>::name(), MetadataList());
         }
     }
+
+    static void cleanup() {
+    	if (metadata_) {
+    		delete metadata_;
+    		metadata_ = nullptr;
+    	}
+    }
 };
 
 template <typename Profile>

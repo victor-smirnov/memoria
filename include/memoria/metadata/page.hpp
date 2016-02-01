@@ -33,6 +33,8 @@ struct IPageLayoutEventHandler {
     virtual void endGroup()                                                         = 0;
 
     virtual void Layout(const char* name, Int type, Int ptr, Int size, Int count)   = 0;
+
+    virtual ~IPageLayoutEventHandler(){}
 };
 
 struct IPageDataEventHandler {
@@ -90,6 +92,8 @@ struct IPageOperations
                     const void* page,
                     const LayoutEventsParams& params,
                     IPageLayoutEventHandler* handler) const                                     = 0;
+
+    virtual ~IPageOperations() {}
 };
 
 
@@ -101,7 +105,9 @@ struct MEMORIA_API PageMetadata: public MetadataGroup
             Int hash0,
             const IPageOperations* page_operations);
 
-    virtual ~PageMetadata() throw () {}
+    virtual ~PageMetadata() throw () {
+    	delete page_operations_;
+    }
 
     virtual Int hash() const {
         return hash_;
