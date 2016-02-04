@@ -106,7 +106,7 @@ public:
 
 	struct HistoryNode {
 
-		enum class Status {ACTIVE, COMMITTED};
+		enum class Status {ACTIVE, COMMITTED, CLEARED};
 
 	private:
 		HistoryNode* parent_;
@@ -121,6 +121,8 @@ public:
 		Status status_;
 
 		TxnId txn_id_;
+
+		BigInt references_ = 0;
 
 	public:
 
@@ -205,6 +207,15 @@ public:
 
 		void commit() {
 			status_ = Status::COMMITTED;
+		}
+
+		auto references() {return references_;}
+		auto ref() {
+			return ++references_;
+		}
+
+		auto unref() {
+			return --references_;
 		}
 	};
 
@@ -322,6 +333,8 @@ private:
 
 	BigInt records_ = 0;
 
+	BigInt active_snapshots_ = 0;
+
 	PersistentInMemAllocatorT():
 		metadata_(MetadataRepository<Profile>::getMetadata())
 	{
@@ -339,14 +352,10 @@ private:
 		txn.freeze();
 	}
 
-
-
 	PersistentInMemAllocatorT(Int):
 		metadata_(MetadataRepository<Profile>::getMetadata())
 	{
 	}
-
-
 
 public:
 
@@ -355,13 +364,16 @@ public:
 		free_memory(history_tree_);
 	}
 
+	BigInt active_snapshots() const {
+		return active_snapshots_;
+	}
+
 	struct shared : public MyType {};
 
 	static auto create()
 	{
 		return std::make_shared<shared>();
 	}
-
 
 	auto newId()
 	{
@@ -1065,6 +1077,14 @@ private:
 		PageMetadata* meta = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
 
 		meta->getPageOperations()->generateDataEvents(page, DataEventsParams(), &dumper);
+	}
+
+	auto ref_active() {
+		return ++active_snapshots_;
+	}
+
+	auto unref_active() {
+		return --active_snapshots_;
 	}
 };
 

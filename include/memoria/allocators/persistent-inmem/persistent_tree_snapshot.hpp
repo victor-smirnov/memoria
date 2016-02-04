@@ -103,7 +103,20 @@ public:
 		root_map_(nullptr),
 		metadata_(MetadataRepository<Profile>::getMetadata())
 	{
-		root_map_ = std::make_unique<RootMapType>(this, history_node->is_active() ? CTR_CREATE : CTR_FIND, 0);
+		history_node_->ref();
+
+		Int ctr_op;
+
+		if (history_node->is_active())
+		{
+			history_tree_raw_->ref_active();
+			ctr_op = CTR_CREATE;
+		}
+		else {
+			ctr_op = CTR_FIND;
+		}
+
+		root_map_ = std::make_unique<RootMapType>(this, ctr_op, 0);
 	}
 
 	Snapshot(HistoryNode* history_node, HistoryTree* history_tree):
@@ -114,13 +127,30 @@ public:
 		root_map_(nullptr),
 		metadata_(MetadataRepository<Profile>::getMetadata())
 	{
-		root_map_ = std::make_unique<RootMapType>(this, history_node->is_active() ? CTR_CREATE : CTR_FIND, 0);
+		history_node_->ref();
+
+		Int ctr_op;
+
+		if (history_node->is_active())
+		{
+			history_tree_raw_->ref_active();
+			ctr_op = CTR_CREATE;
+		}
+		else {
+			ctr_op = CTR_FIND;
+		}
+
+		root_map_ = std::make_unique<RootMapType>(this, ctr_op, 0);
 	}
 
 	virtual ~Snapshot()
 	{
-		// FIXME: autocommit ?
-		history_node_->commit();
+		history_node_->unref();
+
+		if (history_node_->is_active())
+		{
+			clear();
+		}
 	}
 
 	static void initMetadata() {
@@ -136,6 +166,7 @@ public:
 		if (history_node_->is_active())
 		{
 			history_node_->commit();
+			history_tree_raw_->unref_active();
 		}
 		else {
 			throw vapi::Exception(MA_SRC, SBuf()<<"Invalid Snapshot state: "<<(Int)history_node_->status());
@@ -146,6 +177,8 @@ public:
 	{
 		if (history_node_->is_active())
 		{
+
+
 			// do clear
 		}
 		else if (history_node_->is_committed())
