@@ -55,7 +55,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavMaxName)
     void remove() {
     	auto& self = this->self();
 
-    	auto k = self.raw_key();
+//    	auto k = self.raw_key();
 
     	self.ctr().removeEntry(self);
 

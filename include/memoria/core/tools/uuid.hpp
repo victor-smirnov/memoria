@@ -22,7 +22,11 @@ class UUID {
 	UBigInt hi_;
 	UBigInt lo_;
 public:
-	UUID(): hi_(0), lo_(0) {}
+	constexpr UUID(): hi_(0), lo_(0) {}
+	constexpr UUID(UBigInt value): hi_(0), lo_(value) {}
+	constexpr UUID(BigInt value): hi_(0), lo_(value) {}
+	constexpr UUID(Int value): hi_(0), lo_(value) {}
+	constexpr UUID(UInt value): hi_(0), lo_(value) {}
 
 	UBigInt hi() const {
 		return hi_;
@@ -60,6 +64,10 @@ public:
 		return hi_ <= other.hi_ && lo_ <= other.lo_;
 	}
 
+
+	void operator+=(BigInt size) {}
+	void operator-=(BigInt size) {}
+
 	operator bool() const {
 		return lo_ != 0 || hi_ != 0;
 	}
@@ -70,6 +78,12 @@ public:
 
 std::ostream& operator<<(std::ostream& out, const UUID& uuid);
 std::istream& operator>>(std::istream& in, UUID& uuid);
+
+template <typename T>
+struct TypeHash;
+
+template <>
+struct TypeHash<UUID>: UIntValue<741231> {};
 
 struct UUIDKeyHash
 {
@@ -95,6 +109,7 @@ inline vapi::OutputStreamHandler& operator<<(vapi::OutputStreamHandler& out, con
 	out.write(value.hi());
 	return out;
 }
+
 
 
 

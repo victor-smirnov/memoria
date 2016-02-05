@@ -10,6 +10,7 @@
 #define _MEMORIA_CORE_CONTAINER_CTR_SHARED_HPP
 
 #include <memoria/core/tools/static_array.hpp>
+#include <memoria/core/tools/uuid.hpp>
 
 namespace memoria    {
 
@@ -24,7 +25,7 @@ public:
 private:
 
     Int     references_;
-    BigInt  name_;
+    UUID 	name_;
     ID root_;
     ID root_log_;
     bool updated_;
@@ -36,10 +37,10 @@ private:
 
 public:
 
-    ContainerShared(BigInt name0):
+    ContainerShared(const UUID& name0):
         references_(0), name_(name0), root_(0), root_log_(0), updated_(false), children_(), parent_(NULL) {}
 
-    ContainerShared(BigInt name0, CtrShared* parent):
+    ContainerShared(const UUID& name0, CtrShared* parent):
         references_(0), name_(name0), root_(0), root_log_(0), updated_(false), children_(), parent_(parent) {}
 
     //FIXME virtual destructor
@@ -64,12 +65,12 @@ public:
         return references_;
     }
 
-    BigInt name() const
+    const auto& name() const
     {
         return name_;
     }
 
-    BigInt& name()
+    auto& name()
     {
         return name_;
     }
@@ -110,7 +111,7 @@ public:
 
     void registerChild(CtrShared* child)
     {
-        if (children_.getSize() < child->name())
+        if (children_.getSize() < child->name().lo())
         {
             for (Int c = children_.getSize(); c < child->name(); c++)
             {
@@ -118,31 +119,31 @@ public:
             }
         }
 
-        children_[child->name()] = child;
+        children_[child->name().lo()] = child;
     }
 
     void unregisterChild(CtrShared* shared)
     {
-        children_[shared->name()] = NULL;
+        children_[shared->name().lo()] = NULL;
     }
 
-    bool isChildRegistered(BigInt name)
+    bool isChildRegistered(const UUID& name)
     {
-        if (name < children_.getSize())
+        if (name.lo() < children_.getSize())
         {
-            return children_[name] != NULL;
+            return children_[name.lo()] != NULL;
         }
 
         return false;
     }
 
-    CtrShared* get(BigInt name)
+    CtrShared* get(const UUID& name)
     {
         CtrShared* child = NULL;
 
-        if (name < children_.getSize())
+        if (name.lo() < children_.getSize())
         {
-            child = children_[name];
+            child = children_[name.lo()];
         }
 
         if (child != NULL)

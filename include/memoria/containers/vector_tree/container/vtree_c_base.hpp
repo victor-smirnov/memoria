@@ -137,9 +137,9 @@ public:
         Base::setCtrShared(NULL);
     }
 
-    virtual bool hasRoot(BigInt name)
+    virtual bool hasRoot(const UUID& name)
     {
-        throw vapi::Exception(MA_SRC, "Allocator::hasRoot(BigInt) method must be properly implements for this container");
+        throw vapi::Exception(MA_SRC, "Allocator::hasRoot(UUID) method must be properly implements for this container");
     }
 
 
@@ -168,7 +168,7 @@ public:
         return hash;
     }
 
-    virtual ID getRootID(BigInt name)
+    virtual ID getRootID(const UUID& name)
     {
         return self().tree().getRootID(name);
     }
@@ -176,7 +176,7 @@ public:
 
 
 
-    virtual void setRoot(BigInt name, const ID& root_id)
+    virtual void setRoot(const UUID& name, const ID& root_id)
     {
         self().tree().setRoot(name, root_id);
     }

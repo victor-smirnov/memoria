@@ -25,7 +25,6 @@ namespace bt     {
 
 MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
-
     typedef typename Base::Types                                                Types;
 
     typedef typename Base::Allocator                                            Allocator;
@@ -34,7 +33,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     typedef typename Allocator::ID                                              ID;
     typedef typename Base::CtrShared                                            CtrShared;
 
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
+    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
 
     typedef typename Types::NodeBase                                            NodeBase;
     typedef typename Types::NodeBaseG                                           NodeBaseG;
@@ -56,8 +55,8 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     public:
 
-        BTreeCtrShared(BigInt name): CtrShared(name), metadata_updated(false)                            {}
-        BTreeCtrShared(BigInt name, CtrShared* parent): CtrShared(name, parent), metadata_updated(false) {}
+        BTreeCtrShared(const UUID& name): CtrShared(name), metadata_updated(false)                            {}
+        BTreeCtrShared(const UUID& name, CtrShared* parent): CtrShared(name, parent), metadata_updated(false) {}
 
         const Metadata& root_metadata() const { return metadata_updated ? metadata_log_ : metadata_ ;}
 
@@ -119,7 +118,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 
     template <typename Node>
-    Int getModelNameFn(const Node* node) const
+    UUID getModelNameFn(const Node* node) const
     {
         return node->root_metadata().model_name();
     }
@@ -128,7 +127,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
 
     template <typename Node>
-    void setModelNameFn(Node* node, Int name)
+    void setModelNameFn(Node* node, const UUID& name)
     {
         node->root_metadata().model_name() = name;
     }
@@ -141,7 +140,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
      * \brief Get model name from the root node
      * \param root_id must be a root node ID
      */
-    BigInt getModelName(ID root_id) const
+    UUID getModelName(ID root_id) const
     {
         MEMORIA_ASSERT_NOT_EMPTY(root_id);
 
@@ -152,11 +151,9 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return NodeDispatcher::dispatch(root, GetModelNameFn(me()));
     }
 
-    void setModelName(BigInt name)
+    void setModelName(const UUID& name)
     {
-        MEMORIA_ASSERT_EXPR(name >= 0, "Container name must not be positive")
-
-        NodeBaseG root  = self().getRoot();
+        NodeBaseG root = self().getRoot();
 
         NodeDispatcher::dispatch(root, SetModelNameFn(me()), name);
     }
@@ -215,10 +212,8 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     }
 
 
-    virtual ID getRootID(BigInt name)
+    virtual ID getRootID(const UUID& name)
     {
-        MEMORIA_ASSERT(name, >=, 0);
-
         auto& self = this->self();
 
         NodeBaseG root = self.allocator().getPage(self.root(), self.master_name());
@@ -229,7 +224,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     MEMORIA_FN_WRAPPER_RTN(SetRootIdFn, setRootIdFn, Metadata);
 
-    virtual void  setRoot(BigInt name, const ID& root_id)
+    virtual void setRoot(const UUID& name, const ID& root_id)
     {
         auto& self = this->self();
 
@@ -242,7 +237,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         shared->update_metadata(metadata);
     }
 
-    BTreeCtrShared* createCtrShared(BigInt name)
+    BTreeCtrShared* createCtrShared(const UUID& name)
     {
         return new (&self().allocator()) BTreeCtrShared(name);
     }
@@ -471,10 +466,8 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     }
 
 
-    virtual bool hasRoot(BigInt name)
+    virtual bool hasRoot(const UUID& name)
     {
-        MEMORIA_ASSERT(name, >=, 0);
-
         auto& self = this->self();
 
         NodeBaseG root = self.allocator().getPage(self.root(), self.master_name());

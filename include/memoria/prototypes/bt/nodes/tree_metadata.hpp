@@ -30,7 +30,7 @@ class BalancedTreeMetadata
 
     static const Int ROOTS = 2;
 
-    BigInt  model_name_;
+    UUID 	model_name_;
 
     Int     branching_factor_;
 
@@ -54,12 +54,12 @@ public:
 
     BalancedTreeMetadata()  = default;
 
-    BigInt &model_name()
+    UUID &model_name()
     {
         return model_name_;
     }
 
-    const BigInt &model_name() const
+    const UUID &model_name() const
     {
         return model_name_;
     }
@@ -111,9 +111,9 @@ public:
 
     void serialize(SerializationData& buf) const
     {
-        FieldFactory<BigInt>::serialize(buf, model_name_);
-        FieldFactory<Int>::serialize(buf,    branching_factor_);
-        FieldFactory<Int>::serialize(buf,    page_size_);
+        FieldFactory<UUID>::serialize(buf, model_name_);
+        FieldFactory<Int>::serialize(buf,  branching_factor_);
+        FieldFactory<Int>::serialize(buf,  page_size_);
 
         for (Int c = 0; c < ROOTS; c++)
         {
@@ -125,9 +125,9 @@ public:
 
     void deserialize(DeserializationData& buf)
     {
-        FieldFactory<BigInt>::deserialize(buf, model_name_);
-        FieldFactory<Int>::deserialize(buf,    branching_factor_);
-        FieldFactory<Int>::deserialize(buf,    page_size_);
+        FieldFactory<UUID>::deserialize(buf, model_name_);
+        FieldFactory<Int>::deserialize(buf,  branching_factor_);
+        FieldFactory<Int>::deserialize(buf,  page_size_);
 
         for (Int c = 0; c < ROOTS; c++)
         {

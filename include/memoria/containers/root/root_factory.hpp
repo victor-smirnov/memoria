@@ -11,6 +11,7 @@
 
 #include <memoria/containers/map/map_factory.hpp>
 #include <memoria/core/container/container.hpp>
+#include <memoria/core/tools/uuid.hpp>
 
 #include <memoria/containers/root/container/root_c_api.hpp>
 
@@ -19,7 +20,7 @@
 namespace memoria {
 
 template <typename Profile>
-struct BTTypes<Profile, memoria::Root>: public BTTypes<Profile, memoria::Map<BigInt, IDType> > {
+struct BTTypes<Profile, memoria::Root>: public BTTypes<Profile, memoria::Map<UUID, IDType> > {
 
     typedef BTTypes<Profile, memoria::Map<BigInt, IDType>>                      Base;
 

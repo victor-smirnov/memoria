@@ -58,7 +58,7 @@ public:
     }
 
 
-    virtual CtrShared* getCtrShared(BigInt name)
+    virtual CtrShared* getCtrShared(const UUID& name)
     {
         return self().shared()->get(name);
     }
@@ -73,7 +73,7 @@ public:
         self().shared()->registerChild(shared);
     }
 
-    virtual bool isCtrSharedRegistered(BigInt name)
+    virtual bool isCtrSharedRegistered(const UUID& name)
     {
         return self().shared()->isChildRegistered(name);
     }
@@ -86,7 +86,7 @@ public:
 //      return isCtrSharedRegistered(name); // Is it correct?
 //    }
 
-    virtual void markUpdated(BigInt name)
+    virtual void markUpdated(const UUID& name)
     {
         return self().allocator().markUpdated(name);
     }
@@ -97,21 +97,21 @@ public:
 
 
 
-    virtual PageG getPage(const ID& id, BigInt name)
+    virtual PageG getPage(const ID& id, const UUID& name)
     {
         return self().allocator().getPage(id, name);
     }
 
-    virtual PageG getPageForUpdate(const ID& id, BigInt name)
+    virtual PageG getPageForUpdate(const ID& id, const UUID& name)
     {
         return self().allocator().getPageForUpdate(id, name);
     }
 
-    virtual PageG updatePage(Shared* shared, BigInt name);
+    virtual PageG updatePage(Shared* shared, const UUID& name);
 
-    virtual void  removePage(const ID& id, BigInt name);
+    virtual void  removePage(const ID& id, const UUID& name);
 
-    virtual PageG createPage(Int initial_size, BigInt name);
+    virtual PageG createPage(Int initial_size, const UUID& name);
 
 
     virtual PageG getPageG(Page* page);
@@ -126,7 +126,7 @@ public:
 
     virtual void freeMemory(void* ptr);
 
-    virtual BigInt createCtrName()
+    virtual UUID createCtrName()
     {
         return self().allocator().createCtrName();
     }
@@ -153,17 +153,17 @@ typename M_TYPE::PageG M_TYPE::getPageG(Page* page) {
 }
 
 M_PARAMS
-typename M_TYPE::PageG M_TYPE::updatePage(Shared* shared, BigInt name) {
+typename M_TYPE::PageG M_TYPE::updatePage(Shared* shared, const UUID& name) {
     return self().allocator().updatePage(shared, name);
 }
 
 M_PARAMS
-void M_TYPE::removePage(const ID& id, BigInt name) {
+void M_TYPE::removePage(const ID& id, const UUID& name) {
     self().allocator().removePage(id, name);
 }
 
 M_PARAMS
-typename M_TYPE::PageG M_TYPE::createPage(Int initial_size, BigInt name) {
+typename M_TYPE::PageG M_TYPE::createPage(Int initial_size, const UUID& name) {
     return self().allocator().createPage(initial_size, name);
 }
 

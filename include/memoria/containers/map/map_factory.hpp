@@ -27,6 +27,8 @@
 #include <memoria/core/packed/tree/vle/packed_vle_dense_tree.hpp>
 #include <memoria/core/packed/misc/packed_sized_struct.hpp>
 
+#include <memoria/core/tools/uuid.hpp>
+
 #include <tuple>
 
 namespace memoria {
@@ -170,6 +172,68 @@ struct MapBTTypesBase<Profile, Indexes_, double, Value_>: public BTTypes<Profile
 
 
 
+template <
+    typename Profile,
+    Int Indexes_,
+    typename Value_
+>
+struct MapBTTypesBase<Profile, Indexes_, UUID, Value_>: public BTTypes<Profile, memoria::BTSingleStream> {
+
+    typedef BTTypes<Profile, memoria::BTSingleStream>                           Base;
+
+    static const Int Labels                                                     = 0;
+    static const Int HiddenLabels                                               = 0;
+
+    typedef IfThenElse<
+                    IfTypesEqual<Value_, IDType>::Value,
+                    typename Base::ID,
+                    Value_
+    >                                                                   		ValueType;
+
+    static const Int Indexes                                                    = Indexes_;
+
+
+    typedef UUID                                              					Key;
+    typedef Value_                                            					Value;
+
+    using MapStreamTF = StreamTF<
+        	TL<
+					PackedFSEArray<PackedFSEArrayTypes<ValueType>>,
+    				TL<PkdFMTreeT<Key, Indexes>>
+    		>,
+    		TL<
+    				TL<>, TL<TL<>>
+    		>,
+
+		FSEBranchStructTF
+    >;
+
+
+    typedef std::tuple<Key, Value>                                              Entry;
+
+    typedef TypeList<MapStreamTF>                              					StreamDescriptors;
+
+    typedef BalancedTreeMetadata<
+            typename Base::ID,
+            ListSize<StreamDescriptors>::Value
+    >                                                                           Metadata;
+
+
+    using CommonContainerPartsList = MergeLists<
+                typename Base::CommonContainerPartsList,
+                memoria::map::CtrInsertMaxName,
+                memoria::map::CtrRemoveName
+    >;
+
+
+    using IteratorPartsList = MergeLists<
+                typename Base::IteratorPartsList,
+                memoria::map::ItrNavMaxName
+    >;
+};
+
+
+
 
 
 
@@ -209,22 +273,6 @@ public:
     struct Types: Base::Types
     {
     	using BaseTypes = typename Base::Types;
-
-    	using LeafStreamsStructList 	= FailIf<typename BaseTypes::LeafStreamsStructList, false>;
-//    	using StreamsInputTypeList 		= FailIf<typename BaseTypes::StreamsInputTypeList>;
-//    	using InputBufferStructList		= FailIf<typename BaseTypes::InputBufferStructList>;
-//    	using BranchStreamsStructList	= FailIf<typename BaseTypes::BranchStreamsStructList>;
-
-//    	using BranchNodeEntry				= FailIf<typename BaseTypes::BranchNodeEntry>;
-
-//    	using IteratorBranchNodeEntry		= FailIf<typename BaseTypes::IteratorBranchNodeEntry>;
-
-//    	static constexpr Int Value1 = LeafToBranchIndexByValueTranslator1<LeafStreamsStructList, 1>::LeafOffset;
-
-//    	using Boo = FailIf<IntValue<Value1>>;
-
-    	using Boo = EmptyType;
-
 
     	typedef BTCtrTypes<Types>                                               CtrTypes;
     	typedef BTIterTypes<Types>                                              IterTypes;

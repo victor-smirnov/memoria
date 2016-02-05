@@ -503,7 +503,7 @@ public:
 
 		write_metadata(*output);
 
-		walk_version_tree(history_tree_, [&](const HistoryNode* history_tree_node, SnapshotT* txn) {
+		walk_version_tree(history_tree_, [&](const HistoryNode* history_tree_node) {
 			write_history_node(*output, history_tree_node);
 		});
 
@@ -976,6 +976,16 @@ private:
 
 	}
 
+	void walk_version_tree(const HistoryNode* node, std::function<void (const HistoryNode*)> fn)
+	{
+		fn(node);
+
+		for (auto child: node->children())
+		{
+			walk_version_tree(child, fn);
+		}
+	}
+
 	void write_metadata(OutputStreamHandler& out)
 	{
 		UByte type = TYPE_METADATA;
@@ -1057,9 +1067,11 @@ private:
 
 			for (Int c = 0; c < leaf->size(); c++)
 			{
-				if (leaf->data(c).txn_id() == txn_id)
+				const auto& data = leaf->data(c);
+
+				if (data.txn_id() == txn_id || data.page()->references() == 1)
 				{
-					write(out, leaf->data(c).page());
+					write(out, data.page());
 				}
 			}
 		}
@@ -1073,7 +1085,7 @@ private:
 			{
 				auto child = branch->data(c);
 
-				if (child->txn_id() == txn_id)
+				if (child->txn_id() == txn_id || child->refs() == 1)
 				{
 					write_persistent_tree(out, child);
 				}

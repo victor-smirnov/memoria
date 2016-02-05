@@ -41,12 +41,17 @@ int main()
 
 		auto txn1 = alloc->master()->branch();
 
-		DCtr<Vector<Byte>> ctr1(txn1.get(), CTR_CREATE);
 
-		auto ctr_name = ctr1.name();
+		UUID ctr_name;
 
-		vector<Byte> data1 = create_random_vector(10000);
-		ctr1.seek(0).insert(data1.begin(), data1.size());
+		{
+			DCtr<Vector<Byte>> ctr1(txn1.get(), CTR_CREATE);
+
+			ctr_name = ctr1.name();
+
+			vector<Byte> data1 = create_random_vector(10000);
+			ctr1.seek(0).insert(data1.begin(), data1.size());
+		}
 
 		txn1->freeze();
 
@@ -55,14 +60,14 @@ int main()
 		cout<<"Create new snapshot"<<endl;
 		auto txn2 = txn1->branch();
 
-		DCtr<Vector<Byte>> ctr2(txn2.get(), CTR_FIND, ctr_name);
+		{
+			DCtr<Vector<Byte>> ctr2(txn2.get(), CTR_FIND, ctr_name);
 
-		vector<Byte> data2 = create_vector(10000, 0x22);
-		ctr2.End().insert(data2.begin(), data2.size());
+			vector<Byte> data2 = create_vector(10000, 0x22);
+			ctr2.End().insert(data2.begin(), data2.size());
+		}
 
-//		txn2->dump_persistent_tree();
-
-//		FSDumpAllocator(txn2, "pdump2_t.dir");
+		FSDumpAllocator(txn2, "pdump2_t.dir");
 
 		txn2->freeze();
 		txn2->set_as_master();
@@ -70,8 +75,6 @@ int main()
 		cout<<"Clear Txn1"<<endl;
 		txn1->drop();
 		txn1.reset();
-
-//		txn2->dump_persistent_tree();
 
 		FSDumpAllocator(txn2, "pdump2_t.dir");
 

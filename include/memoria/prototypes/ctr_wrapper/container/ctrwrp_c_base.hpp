@@ -129,13 +129,13 @@ public:
     }
 
 
-    virtual ID getRootID(BigInt name)
+    virtual ID getRootID(const UUID& name)
     {
         return me()->ctr().getRootID(name);
     }
 
 
-    virtual void setRoot(BigInt name, const ID& root_id)
+    virtual void setRoot(const UUID& name, const ID& root_id)
     {
         me()->ctr().setRoot(name, root_id);
     }

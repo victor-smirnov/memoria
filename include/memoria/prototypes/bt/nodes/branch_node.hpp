@@ -47,7 +47,7 @@ public:
     typedef typename Base::ID                   ID;
 
 
-    static_assert(std::is_trivial<Metadata>::value, "TreeNodeBase: metadata must be a trivial type");
+//    static_assert(std::is_trivial<Metadata>::value, "TreeNodeBase: metadata must be a trivial type");
     static_assert(std::is_trivial<Base_>::value,    "TreeNodeBase: base must be a trivial type");
     static_assert(std::is_trivial<ID>::value,       "TreeNodeBase: ID must be a trivial type");
 

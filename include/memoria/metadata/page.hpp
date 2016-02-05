@@ -11,6 +11,7 @@
 
 #include <memoria/metadata/group.hpp>
 #include <memoria/core/tools/dump.hpp>
+#include <memoria/core/tools/uuid.hpp>
 
 #include <tuple>
 
@@ -64,6 +65,7 @@ struct IPageDataEventHandler {
     virtual void value(const char* name, const IDValue* value, Int count = 1, Int kind = 0)     = 0;
     virtual void value(const char* name, const float* value, Int count = 1, Int kind = 0)     	= 0;
     virtual void value(const char* name, const double* value, Int count = 1, Int kind = 0)      = 0;
+    virtual void value(const char* name, const UUID* value, Int count = 1, Int kind = 0)        = 0;
 
     virtual void symbols(const char* name, const UBigInt* value, Int count, Int bits_per_symbol)    = 0;
     virtual void symbols(const char* name, const UByte* value, Int count, Int bits_per_symbol)      = 0;
@@ -422,6 +424,17 @@ public:
         {
             out_<<endl;
         }
+    }
+
+    virtual void value(const char* name, const UUID* value, Int count = 1, Int kind = 0)
+    {
+    	if (kind == BYTE_ARRAY)
+    	{
+    		::memoria::dumpArray<double>(out_, count, [=](Int idx){return value[idx];});
+    	}
+    	else {
+    		OutNumber(name, value, count, kind);
+    	}
     }
 
 

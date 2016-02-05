@@ -14,6 +14,7 @@
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/tools/reflection.hpp>
 #include <memoria/core/tools/assert.hpp>
+#include <memoria/core/tools/uuid.hpp>
 
 #include <memoria/metadata/container.hpp>
 
@@ -31,8 +32,7 @@
 
 
 #define MEMORIA_MODEL_METHOD_IS_NOT_IMPLEMENTED() \
-        throw Exception(MEMORIA_SOURCE, SBuf()<<"Method is not implemented for "\
-        <<me()->typeName())
+        throw Exception(MEMORIA_SOURCE, SBuf()<<"Method is not implemented for "<<me()->typeName())
 
 namespace memoria    {
 
@@ -45,30 +45,32 @@ template <typename Types> class Iter;
 
 template <typename Profile> class MetadataRepository;
 
+constexpr UUID CTR_DEFAULT_NAME           = UUID(-1);
+constexpr BigInt INITAL_CTR_NAME_COUNTER    = 1000000;
 
 class CtrInitData {
-    BigInt master_name_;
+    UUID master_name_;
     Int master_ctr_type_hash_;
     Int owner_ctr_type_hash_;
 
 public:
-    CtrInitData(BigInt master_name, Int master_hash, Int owner_hash):
+    CtrInitData(const UUID& master_name, Int master_hash, Int owner_hash):
         master_name_(master_name),
         master_ctr_type_hash_(master_hash),
         owner_ctr_type_hash_(owner_hash)
     {}
 
     CtrInitData(Int master_hash):
-        master_name_(-1),
+        master_name_(),
         master_ctr_type_hash_(master_hash),
         owner_ctr_type_hash_(0)
     {}
 
-    BigInt master_name() const {
+    const auto& master_name() const {
         return master_name_;
     }
 
-    void set_master_name(BigInt name){
+    void set_master_name(UUID name){
         master_name_ = name;
     }
 
@@ -260,17 +262,17 @@ public:
         return PageG();
     }
 
-    BigInt getModelName(ID root_id)
+    UUID getModelName(ID root_id)
     {
         return -1;
     }
 
-    CtrShared* createCtrShared(BigInt name)
+    CtrShared* createCtrShared(const UUID& name)
     {
         return new (&me()->allocator()) CtrShared(name);
     }
 
-    CtrShared* getOrCreateCtrShared(BigInt name)
+    CtrShared* getOrCreateCtrShared(const UUID& name)
     {
         if (me()->allocator().isCtrSharedRegistered(name))
         {
@@ -480,7 +482,7 @@ public:
 private:
 
     Allocator*  allocator_;
-    BigInt      name_;
+    UUID      	name_;
     const char* model_type_name_;
 
     Logger          logger_;
@@ -496,7 +498,7 @@ public:
     MEMORIA_PUBLIC Ctr(
             Allocator* allocator,
             Int command = CTR_CREATE,
-            BigInt name = CTR_DEFAULT_NAME,
+            const UUID& name = CTR_DEFAULT_NAME,
             const char* mname = NULL
     ):
         Base(CtrInitData(Base::CONTAINER_HASH)),
@@ -519,7 +521,7 @@ public:
         }
     }
 
-    void checkCommandArguments(Int command, BigInt name)
+    void checkCommandArguments(Int command, const UUID& name)
     {
         if ((command & CTR_CREATE) == 0 && (command & CTR_FIND) == 0)
         {
@@ -624,7 +626,7 @@ public:
         logger_.configure(model_type_name_, Logger::DERIVED, &allocator_->logger());
     }
 
-    void initCtr(Allocator* allocator, BigInt name, Int command, const char* mname = NULL)
+    void initCtr(Allocator* allocator, const UUID& name, Int command, const char* mname = NULL)
     {
         MEMORIA_ASSERT(name, >=, 0);
 
@@ -719,11 +721,11 @@ public:
         return class_logger_;
     }
 
-    MEMORIA_PUBLIC BigInt name() const {
+    const auto& name() const {
         return name_;
     }
 
-    MEMORIA_PUBLIC BigInt master_name() const
+    const auto& master_name() const
     {
         return Base::init_data().master_name();
     }

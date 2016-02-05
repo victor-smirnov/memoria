@@ -151,12 +151,14 @@ public:
 	{
 		if (history_node_->unref() == 0)
 		{
-			if (history_node_->is_active() || history_node_->is_dropped())
+			if (history_node_->is_active())
 			{
-				root_map_.reset();
 				do_drop();
 
 				history_tree_raw_->forget_snapshot(history_node_);
+			}
+			else if(history_node_->is_dropped()) {
+				do_drop();
 			}
 		}
 	}
@@ -246,7 +248,7 @@ public:
 		//TODO
 	}
 
-	virtual PageG getPage(const ID& id, BigInt name)
+	virtual PageG getPage(const ID& id, const UUID& name)
 	{
 		if (id.isSet())
 		{
@@ -289,7 +291,7 @@ public:
 		cout<<msg<<": "<<id<<" "<<shared->get()<<" "<<shared->get()->uuid()<<" "<<shared->state()<<endl;
 	}
 
-	virtual PageG getPageForUpdate(const ID& id, BigInt name)
+	virtual PageG getPageForUpdate(const ID& id, const UUID& name)
 	{
 		// FIXME: Though this check prohibits new page acquiring for update,
 		// already acquired updatable pages can be updated further.
@@ -366,7 +368,7 @@ public:
 
 
 
-	virtual PageG updatePage(Shared* shared, BigInt name)
+	virtual PageG updatePage(Shared* shared, const UUID& name)
 	{
 		// FIXME: Though this check prohibits new page acquiring for update,
 		// already acquired updatable pages can be updated further.
@@ -389,7 +391,7 @@ public:
         return PageG(shared);
 	}
 
-	virtual void removePage(const ID& id, BigInt name)
+	virtual void removePage(const ID& id, const UUID& name)
 	{
 		MEMORIA_ASSERT_TRUE(history_node_->is_active());
 
@@ -414,7 +416,7 @@ public:
 
 
 
-	virtual PageG createPage(Int initial_size, BigInt name)
+	virtual PageG createPage(Int initial_size, const UUID& name)
 	{
 		MEMORIA_ASSERT_TRUE(history_node_->is_active());
 
@@ -496,7 +498,7 @@ public:
 		throw vapi::Exception(MA_SRC, "Method getPageG is not implemented for this allocator");
 	}
 
-	virtual CtrShared* getCtrShared(BigInt name)
+	virtual CtrShared* getCtrShared(const UUID& name)
 	{
         auto i = ctr_shared_.find(name);
 
@@ -510,7 +512,7 @@ public:
         }
 	}
 
-	virtual bool isCtrSharedRegistered(BigInt name)
+	virtual bool isCtrSharedRegistered(const UUID& name)
 	{
 		return ctr_shared_.find(name) != ctr_shared_.end();
 	}
@@ -562,9 +564,9 @@ public:
 		return properties_;
 	}
 
-	virtual ID getRootID(BigInt name)
+	virtual ID getRootID(const UUID& name)
 	{
-		if (name == 0)
+		if (name.is_null())
 		{
 			return root();
 		}
@@ -573,27 +575,27 @@ public:
 		}
 	}
 
-	virtual void setRoot(BigInt name, const ID& root)
+	virtual void setRoot(const UUID& name, const ID& root)
 	{
 		new_root(name, root);
 	}
 
-	virtual void markUpdated(BigInt name) {}
+	virtual void markUpdated(const UUID& name) {}
 
-	virtual bool hasRoot(BigInt name)
+	virtual bool hasRoot(const UUID& name)
 	{
 		return get_value_for_key(name) != ID(0);
 	}
 
-	virtual BigInt createCtrName()
+	virtual UUID createCtrName()
 	{
-        auto meta = root_map_->getRootMetadata();
+//        auto meta = root_map_->getRootMetadata();
+//
+//        BigInt new_name = ++meta.model_name_counter();
+//
+//        root_map_->setRootMetadata(meta);
 
-        BigInt new_name = ++meta.model_name_counter();
-
-        root_map_->setRootMetadata(meta);
-
-        return new_name;
+        return UUID::make_random();
 	}
 
 
@@ -728,12 +730,12 @@ protected:
     }
 
 
-    void remove_by_key(BigInt name)
+    void remove_by_key(UUID name)
     {
         root_map_->remove(name);
     }
 
-    void set_value_for_key(BigInt name, const ID& page_id)
+    void set_value_for_key(UUID name, const ID& page_id)
     {
     	auto iter = root_map_->find(name);
 
@@ -840,8 +842,6 @@ protected:
 				}
 			}
 		});
-
-		root_map_.reset();
 	}
 
 };
