@@ -322,10 +322,13 @@ public:
 		out<<"Size: "<<size_<<endl;
 		out<<"NodeId: "<<node_id_<<endl;
 		out<<"TxnId: "<<txn_id_<<endl;
+		out<<"Refs: "<<refs_<<endl;
 
 		out<<"Index: "<<endl;
 
-		for (Int c = 0; c < Indexes; c++)
+		Int last_idx = size_ / NodeIndexSize + (size_ % NodeIndexSize == 0 ? 0 : 1);
+
+		for (Int c = 0; c < last_idx; c++)
 		{
 			out<<c<<": "<<index_[c]<<endl;
 		}
@@ -341,9 +344,10 @@ public:
 		out << this->size();
 		out << this->refs();
 
-		for (const auto& v: index_)
+		Int last_idx = size_ / NodeIndexSize + (size_ % NodeIndexSize == 0 ? 0 : 1);
+		for (Int c = 0; c < last_idx; c++)
 		{
-			out << v;
+			out << index_[c];
 		}
 
 		for (Int c = 0; c < size_; c++)
@@ -366,9 +370,10 @@ public:
 		in >> size_;
 		in >> refs_;
 
-		for (auto& v: index_)
+		Int last_idx = size_ / NodeIndexSize + (size_ % NodeIndexSize == 0 ? 0 : 1);
+		for (Int c = 0; c < last_idx; c++)
 		{
-			in >> v;
+			in >> index_[c];
 		}
 
 		for (Int c = 0; c < size_; c++)

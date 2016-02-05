@@ -37,6 +37,10 @@ class Snapshot: public IWalkableAllocator<PageType> {
 	using HistoryTreePtr 	= std::shared_ptr<HistoryTree>;
 	using SnapshotPtr 		= std::shared_ptr<Snapshot>;
 
+	using NodeBaseT			= typename PersitentTree::NodeBaseT;
+	using LeafNodeT			= typename PersitentTree::LeafNodeT;
+	using PTreeValue		= typename PersitentTree::LeafNodeT::Value;
+
 	using Status 			= typename HistoryNode::Status;
 public:
 
@@ -110,7 +114,7 @@ public:
 		if (history_node->is_active())
 		{
 			history_tree_raw_->ref_active();
-			ctr_op = CTR_CREATE;
+			ctr_op = CTR_CREATE | CTR_FIND;
 		}
 		else {
 			ctr_op = CTR_FIND;
@@ -134,7 +138,7 @@ public:
 		if (history_node->is_active())
 		{
 			history_tree_raw_->ref_active();
-			ctr_op = CTR_CREATE;
+			ctr_op = CTR_CREATE | CTR_FIND;
 		}
 		else {
 			ctr_op = CTR_FIND;
@@ -145,11 +149,15 @@ public:
 
 	virtual ~Snapshot()
 	{
-		history_node_->unref();
-
-		if (history_node_->is_active())
+		if (history_node_->unref() == 0)
 		{
-			clear();
+			if (history_node_->is_active() || history_node_->is_dropped())
+			{
+				root_map_.reset();
+				do_drop();
+
+				history_tree_raw_->forget_snapshot(history_node_);
+			}
 		}
 	}
 
@@ -173,23 +181,10 @@ public:
 		}
 	}
 
-	void clear()
+	void drop()
 	{
-		if (history_node_->is_active())
-		{
-
-
-			// do clear
-		}
-		else if (history_node_->is_committed())
-		{
-			throw vapi::Exception(MA_SRC, "Snapshot has been already freezed");
-		}
-		else {
-			throw vapi::Exception(MA_SRC, SBuf()<<"Invalid Snapshot state: "<<(Int)history_node_->status());
-		}
+		history_node_->mark_to_clear();
 	}
-
 
 	void set_as_master()
 	{
@@ -242,6 +237,8 @@ public:
 
 			if (!shared->get())
 			{
+				checkReadAllowed();
+
 				auto page_opt = persistent_tree_.find(id);
 
 				if (page_opt)
@@ -270,9 +267,17 @@ public:
 		}
 	}
 
+	void dumpAccess(const char* msg, ID id, const Shared* shared)
+	{
+		cout<<msg<<": "<<id<<" "<<shared->get()<<" "<<shared->get()->uuid()<<" "<<shared->state()<<endl;
+	}
+
 	virtual PageG getPageForUpdate(const ID& id, BigInt name)
 	{
-		MEMORIA_ASSERT_TRUE(history_node_->is_active());
+		// FIXME: Though this check prohibits new page acquiring for update,
+		// already acquired updatable pages can be updated further.
+		// To guarantee non-updatability, MMU-protection should be used
+		checkUpdateAllowed();
 
 		if (id.isSet())
 		{
@@ -289,6 +294,9 @@ public:
 					if (page_opt.value().txn_id() != txn_id)
 					{
 						Page* new_page = clone_page(page_opt.value().page());
+
+						set_page(new_page);
+
 						shared->set_page(new_page);
 
 						shared->refresh();
@@ -343,7 +351,10 @@ public:
 
 	virtual PageG updatePage(Shared* shared, BigInt name)
 	{
-		MEMORIA_ASSERT_TRUE(history_node_->is_active());
+		// FIXME: Though this check prohibits new page acquiring for update,
+		// already acquired updatable pages can be updated further.
+		// To guarantee non-updatability, MMU-protection should be used
+		checkUpdateAllowed();
 
         if (shared->state() == Shared::READ)
         {
@@ -380,6 +391,11 @@ public:
 			}
 		}
 	}
+
+
+
+
+
 
 	virtual PageG createPage(Int initial_size, BigInt name)
 	{
@@ -529,7 +545,8 @@ public:
 		return properties_;
 	}
 
-	virtual ID getRootID(BigInt name) {
+	virtual ID getRootID(BigInt name)
+	{
 		if (name == 0)
 		{
 			return root();
@@ -548,13 +565,7 @@ public:
 
 	virtual bool hasRoot(BigInt name)
 	{
-		if (root_map_)
-		{
-			return get_value_for_key(name) != ID(0);
-		}
-		else {
-			return false;
-		}
+		return get_value_for_key(name) != ID(0);
 	}
 
 	virtual BigInt createCtrName()
@@ -617,6 +628,10 @@ public:
         }
 
         walker->endSnapshot();
+	}
+
+	void dump_persistent_tree() {
+		persistent_tree_.dump();
 	}
 
 protected:
@@ -712,8 +727,6 @@ protected:
     	else {
     		iter.insert(name, page_id);
     	}
-
-        root_map_->find(name).setValue(page_id);
     }
 
     ID get_value_for_key(BigInt name)
@@ -761,15 +774,59 @@ protected:
 
     const ID &root() const
     {
-        if (root_map_ != nullptr)
+    	if (root_map_ != nullptr)
         {
             return root_map_->root();
         }
         else
         {
-            return history_node_->root_id();
+        	return history_node_->root_id();
         }
     }
+
+    void checkReadAllowed()
+    {
+    	if (!history_node_->root())
+    	{
+    		throw vapi::Exception(MA_SRC, "Snapshot has been already cleared");
+    	}
+    }
+
+    void checkUpdateAllowed()
+    {
+    	checkReadAllowed();
+
+    	if (!history_node_->is_active())
+    	{
+    		throw vapi::Exception(MA_SRC, "Snapshot has been already freezed");
+    	}
+    }
+
+
+	void do_drop()
+	{
+		persistent_tree_.delete_tree([&](LeafNodeT* leaf){
+			for (Int c = 0; c < leaf->size(); c++)
+			{
+				auto& page_descr = leaf->data(c);
+				if (page_descr.page()->unref() == 0)
+				{
+					auto shared = pool_.get(page_descr.page()->id());
+
+					if (!shared)
+					{
+						::free(page_descr.page());
+					}
+					else {
+						shared->state() = Shared::DELETE;
+					}
+				}
+			}
+		});
+
+		root_map_.reset();
+	}
+
 };
 
 

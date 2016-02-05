@@ -25,14 +25,16 @@ namespace memoria {
 namespace persistent_inmem   {
 
 
-template <typename BranchNodeT, typename LeafNodeT, typename RootProvider, typename PageType>
+template <typename BranchNodeT, typename LeafNodeT_, typename RootProvider, typename PageType>
 class PersistentTree {
 public:
+	using LeafNodeT 	= LeafNodeT_;
 	using NodeId		= typename LeafNodeT::NodeId;
 	using TxnId			= typename LeafNodeT::TxnId;
 	using Key			= typename LeafNodeT::Key;
 	using Value			= typename LeafNodeT::Value;
 	using NodeBaseT 	= typename BranchNodeT::NodeBaseT;
+
 	using NodeBasePtr   = NodeBaseT*;
 
 	using Iterator			= PersistentTreeIterator<BranchNodeT, LeafNodeT>;
@@ -49,10 +51,39 @@ public:
 	{
 		if (root_provider_->is_active())
 		{
-			if (root_provider_->parent()) {
+			if (root_provider_->parent())
+			{
 				MEMORIA_ASSERT_TRUE(root_provider_->parent()->is_committed());
-				auto new_root = clone_node(root_provider_->parent()->root());
-				root_provider_->set_root(new_root);
+
+				auto root_provider = root_provider_->parent();
+
+				RootProvider* target = nullptr;
+
+				while (root_provider)
+				{
+					if (!root_provider->is_dropped())
+					{
+						target = root_provider;
+						break;
+					}
+
+					root_provider = root_provider->parent();
+				}
+
+				if (target)
+				{
+					auto new_root = clone_node(target->root());
+					new_root->ref();
+
+					root_provider_->set_root(new_root);
+					root_provider_->root_id() = target->root_id();
+				}
+				else {
+					throw vapi::Exception(MA_SRC, "Internal error. HistoryNode.root is null for transaction.");
+				}
+			}
+			else if (!root_provider_->root()) {
+				throw vapi::Exception(MA_SRC, "Internal error. HistoryNode.root is null for transaction.");
 			}
 		}
 	}
@@ -201,6 +232,14 @@ public:
 		walk_tree( root(), fn);
 	}
 
+	void delete_tree(std::function<void (LeafNodeT*)> fn)
+	{
+		delete_tree( root(), fn);
+
+		root_provider_->set_root(nullptr);
+		root_provider_->root_id() = typename PageType::ID();
+	}
+
 
 protected:
 
@@ -220,6 +259,30 @@ protected:
 					auto child = branch_node->data(c);
 					walk_tree(child, fn);
 				}
+			}
+		}
+	}
+
+	void delete_tree(NodeBaseT* node, std::function<void (LeafNodeT*)> fn)
+	{
+		if (node->unref() == 0)
+		{
+			if (!node->is_leaf())
+			{
+				auto branch_node = to_branch_node(node);
+				for (Int c = 0; c < branch_node->size(); c++)
+				{
+					auto child = branch_node->data(c);
+					delete_tree(child, fn);
+				}
+
+				delete branch_node;
+			}
+			else {
+				auto leaf_node = to_leaf_node(node);
+				fn(leaf_node);
+
+				delete leaf_node;
 			}
 		}
 	}

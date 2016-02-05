@@ -106,7 +106,7 @@ public:
 
 	struct HistoryNode {
 
-		enum class Status {ACTIVE, COMMITTED, CLEARED};
+		enum class Status {ACTIVE, COMMITTED, DROPPED};
 
 	private:
 		HistoryNode* parent_;
@@ -150,7 +150,7 @@ public:
 			}
 		}
 
-		void remove_child(NodeBaseT* child)
+		void remove_child(HistoryNode* child)
 		{
 			for (size_t c = 0; c < children_.size(); c++)
 			{
@@ -162,12 +162,22 @@ public:
 			}
 		}
 
+		void remove_from_parent() {
+			if (parent_) {
+				parent_->remove_child(this);
+			}
+		}
+
 		bool is_committed() const {
 			return status_ == Status::COMMITTED;
 		}
 
 		bool is_active() const {
 			return status_ == Status::ACTIVE;
+		}
+
+		bool is_dropped() const {
+			return status_ == Status::DROPPED;
 		}
 
 		const TxnId& txn_id() const {return txn_id_;}
@@ -207,6 +217,10 @@ public:
 
 		void commit() {
 			status_ = Status::COMMITTED;
+		}
+
+		void mark_to_clear() {
+			status_ = Status::DROPPED;
 		}
 
 		auto references() {return references_;}
@@ -340,16 +354,14 @@ private:
 	{
 		SnapshotT::initMetadata();
 
-		history_tree_ = new HistoryNode(nullptr, HistoryNode::Status::ACTIVE);
+		master_ = history_tree_ = new HistoryNode(nullptr, HistoryNode::Status::ACTIVE);
 
 		auto leaf = new LeafNodeT(history_tree_->txn_id(), UUID::make_random());
+		leaf->ref();
 		history_tree_->set_root(leaf);
 
-		master_ = history_tree_;
-
-		SnapshotT txn(history_tree_, this);
-
-		txn.freeze();
+		SnapshotT snapshot(history_tree_, this);
+		snapshot.freeze();
 	}
 
 	PersistentInMemAllocatorT(Int):
@@ -386,7 +398,14 @@ public:
 		if (iter != snapshot_map_.end())
 		{
 			auto history_node = iter->second;
-			return std::make_shared<SnapshotT>(history_node, this->shared_from_this());
+
+			if (history_node->is_committed())
+			{
+				return std::make_shared<SnapshotT>(history_node, this->shared_from_this());
+			}
+			else {
+				throw vapi::Exception(MA_SRC, SBuf()<<"Snapshot "<<history_node->txn_id()<<" is "<<(history_node->is_active() ? "active" : "dropped"));
+			}
 		}
 		else {
 			throw vapi::Exception(MA_SRC, SBuf()<<"Snapshot id "<<snapshot_id<<" is not known");
@@ -399,7 +418,14 @@ public:
 		if (iter != named_branches_.end())
 		{
 			auto history_node = iter->second;
-			return std::make_shared<SnapshotT>(history_node, this->shared_from_this());
+
+			if (history_node->is_committed())
+			{
+				return std::make_shared<SnapshotT>(history_node, this->shared_from_this());
+			}
+			else {
+				throw vapi::Exception(MA_SRC, SBuf()<<"Snapshot "<<history_node->txn_id()<<" is "<<(history_node->is_active() ? "active" : "dropped"));
+			}
 		}
 		else {
 			throw vapi::Exception(MA_SRC, SBuf()<<"Named branch \""<<name<<"\" is not known");
@@ -464,6 +490,10 @@ public:
 
 	virtual void store(OutputStreamHandler *output)
 	{
+		if (active_snapshots_) {
+			throw vapi::Exception(MA_SRC, "There are active snapshots");
+		}
+
 		records_ = 0;
 
 		char signature[12] = "MEMORIA";
@@ -670,21 +700,32 @@ private:
 
 			snapshot_map_[txn_id] = node;
 
-			auto ptree_iter = ptree_map.find(buffer->root());
-
-			if (ptree_iter != ptree_map.end())
+			if (!buffer->root().is_null())
 			{
-				node->set_root(ptree_iter->second.second);
+				auto ptree_iter = ptree_map.find(buffer->root());
 
+				if (ptree_iter != ptree_map.end())
+				{
+					node->set_root(ptree_iter->second.second);
+
+					for (const auto& child_txn_id: buffer->children())
+					{
+						build_history_tree(child_txn_id, node, history_map, ptree_map);
+					}
+
+					return node;
+				}
+				else {
+					throw vapi::Exception(MA_SRC, SBuf()<<"Specified node_id "<<buffer->root()<<" is not found in persistent tree data");
+				}
+			}
+			else {
 				for (const auto& child_txn_id: buffer->children())
 				{
 					build_history_tree(child_txn_id, node, history_map, ptree_map);
 				}
 
 				return node;
-			}
-			else {
-				throw vapi::Exception(MA_SRC, SBuf()<<"Specified node_id "<<buffer->root()<<" is not found in persistent tree data");
 			}
 		}
 		else {
@@ -700,7 +741,9 @@ private:
 			free_memory(child);
 		}
 
-		free_memory(node->root());
+		if (node->root()) {
+			free_memory(node->root());
+		}
 
 		delete node;
 	}
@@ -851,7 +894,7 @@ private:
 
 		in >> status;
 
-		node->status() = status ? HistoryNode::Status::COMMITTED : HistoryNode::Status::ACTIVE;
+		node->status() = static_cast<typename HistoryNode::Status>(status);
 
 		in >> node->txn_id();
 		in >> node->root();
@@ -920,16 +963,17 @@ private:
 
 	void walk_version_tree(const HistoryNode* node, std::function<void (const HistoryNode*, SnapshotT*)> fn)
 	{
-		SnapshotT txn(history_tree_, this->shared_from_this());
-		fn(node, &txn);
+		if (node->is_committed())
+		{
+			SnapshotT txn(history_tree_, this->shared_from_this());
+			fn(node, &txn);
+		}
 
 		for (auto child: node->children())
 		{
-			if (child->is_committed())
-			{
-				walk_version_tree(child, fn);
-			}
+			walk_version_tree(child, fn);
 		}
+
 	}
 
 	void write_metadata(OutputStreamHandler& out)
@@ -964,7 +1008,15 @@ private:
 		out << type;
 		out << (Int)history_node->status();
 		out << history_node->txn_id();
-		out << history_node->root()->node_id();
+
+		if (history_node->root())
+		{
+			out << history_node->root()->node_id();
+		}
+		else {
+			out << PTreeNodeId();
+		}
+
 		out << history_node->root_id();
 
 		if (history_node->parent())
@@ -972,7 +1024,7 @@ private:
 			out << history_node->parent()->txn_id();
 		}
 		else {
-			out << UUID();
+			out << TxnId();
 		}
 
 		out << history_node->metadata();
@@ -986,7 +1038,10 @@ private:
 
 		records_++;
 
-		write_persistent_tree(out, history_node->root());
+		if (history_node->root())
+		{
+			write_persistent_tree(out, history_node->root());
+		}
 	}
 
 	void write_persistent_tree(OutputStreamHandler& out, const NodeBaseT* node)
@@ -1085,6 +1140,15 @@ private:
 
 	auto unref_active() {
 		return --active_snapshots_;
+	}
+
+	auto forget_snapshot(HistoryNode* history_node)
+	{
+		snapshot_map_.erase(history_node->txn_id());
+
+		history_node->remove_from_parent();
+
+		delete history_node;
 	}
 };
 
