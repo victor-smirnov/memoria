@@ -227,7 +227,24 @@ public:
 		}
 	}
 
-	void join(SnapshotPtr txn) {}
+	SnapshotPtr parent()
+	{
+		if (history_node_->parent())
+		{
+			HistoryNode* history_node = history_node_->parent();
+			history_tree_raw_->snapshot_map_[history_node->txn_id()] = history_node;
+
+			return std::make_shared<Snapshot>(history_node, history_tree_);
+		}
+		else
+		{
+			throw vapi::Exception(MA_SRC, "Snapshot has no parent.");
+		}
+	}
+
+	void join(SnapshotPtr txn) {
+		//TODO
+	}
 
 	virtual PageG getPage(const ID& id, BigInt name)
 	{
