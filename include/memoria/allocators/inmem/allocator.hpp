@@ -45,8 +45,8 @@ public:
     typedef typename RootMapType::Metadata                                      RootMetatata;
     typedef typename RootMapType::BTreeCtrShared                                RootCtrShared;
 
-    typedef IJournaledAllocator<Page>                                           JournaledAllocator;
-    typedef IWalkableAllocator<Page>                                            WalkableAllocator;
+//    typedef IJournaledAllocator<Page>                                           JournaledAllocator;
+//    typedef IWalkableAllocator<Page>                                            WalkableAllocator;
 
 private:
 

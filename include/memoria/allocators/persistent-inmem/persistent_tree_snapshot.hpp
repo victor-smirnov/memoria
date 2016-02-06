@@ -79,7 +79,7 @@ public:
 	using typename Base::ID;
 	using typename Base::PageG;
 	using typename Base::Shared;
-	using typename Base::AbstractAllocator;
+
 
 private:
 	using RootMapType = Ctr<typename CtrTF<Profile, Root>::CtrTypes>;
