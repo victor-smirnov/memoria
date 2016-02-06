@@ -49,11 +49,10 @@ public:
 	using typename Base::PageG;
 	using typename Base::Shared;
 	using typename Base::AbstractAllocator;
-	using typename Base::CtrShared;
 
 private:
-	using RootMapType 	= Ctr<typename CtrTF<Profile, Root>::CtrTypes>;
-	using CtrSharedMap 	= std::unordered_map<UUID, CtrShared*, UUIDKeyHash, UUIDKeyEq>;
+	using RootMapType = Ctr<typename CtrTF<Profile, Root>::CtrTypes>;
+
 
 	class Properties: public IAllocatorProperties {
 	public:
@@ -71,8 +70,6 @@ private:
 		virtual BigInt newTxnId() {return 0;}
 	};
 
-	CtrSharedMap ctr_shared_;
-
 	HistoryNode* 	history_node_;
 	HistoryTreePtr  history_tree_;
 	HistoryTree*  	history_tree_raw_ = nullptr;
@@ -85,7 +82,7 @@ private:
 
 	Properties properties_;
 
-	std::unique_ptr<RootMapType> root_map_;
+	std::shared_ptr<RootMapType> root_map_;
 
 
 	ContainerMetadataRepository*  metadata_;
@@ -504,56 +501,13 @@ public:
 		throw vapi::Exception(MA_SRC, "Method getPageG is not implemented for this allocator");
 	}
 
-	virtual CtrShared* getCtrShared(const UUID& name)
-	{
-        auto i = ctr_shared_.find(name);
-
-        if (i != ctr_shared_.end())
-        {
-            return i->second;
-        }
-        else
-        {
-            throw vapi::Exception(MEMORIA_SOURCE, SBuf()<<"Unknown CtrShared requested for name "<<name);
-        }
-	}
-
-	virtual bool isCtrSharedRegistered(const UUID& name)
-	{
-		return ctr_shared_.find(name) != ctr_shared_.end();
-	}
-
-	virtual void unregisterCtrShared(CtrShared* shared)
-	{
-		ctr_shared_.erase(shared->name());
-	}
-
-	virtual void registerCtrShared(CtrShared* shared)
-	{
-        auto name = shared->name();
-
-        auto i = ctr_shared_.find(name);
-
-        if (i == ctr_shared_.end())
-        {
-            ctr_shared_[name] = shared;
-        }
-        else if (i->second == NULL)
-        {
-            i->second = shared;
-        }
-        else
-        {
-            throw Exception(MEMORIA_SOURCE, SBuf()<<"CtrShared for name "<<name<<" is already registered");
-        }
-	}
 
 	virtual ID newId() {
 		return history_tree_raw_->newId();
 	}
 
-	virtual BigInt currentTxnId() const {
-		return 0;
+	virtual UUID currentTxnId() const {
+		return history_node_->txn_id();
 	}
 
 	// memory pool allocator

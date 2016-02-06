@@ -29,69 +29,17 @@ public:
     typedef typename Allocator::Page::ID                                        ID;
     typedef typename Allocator::PageG                                           PageG;
     typedef typename Allocator::Shared                                          Shared;
-    typedef typename Allocator::CtrShared                                       CtrShared;
-
-
-    void set_root(const ID &root)
-    {
-        self().shared()->root_log()  = root;
-        self().shared()->updated()   = true;
-
-        self().allocator().setRoot(self().name(), root);
-    }
-
-    const ID &root() const
-    {
-        const CtrShared* shared = self().shared();
-
-        if (shared->updated())
-        {
-            return shared->root_log();
-        }
-        else {
-            return shared->root();
-        }
-    }
 
     bool isNew() const {
-        return self().shared() == nullptr;
+        return self().root().is_null();
     }
-
-
-    virtual CtrShared* getCtrShared(const UUID& name)
-    {
-        return self().shared()->get(name);
-    }
-
-    virtual void unregisterCtrShared(CtrShared* shared)
-    {
-        self().shared()->unregisterChild(shared);
-    }
-
-    virtual void registerCtrShared(CtrShared* shared)
-    {
-        self().shared()->registerChild(shared);
-    }
-
-    virtual bool isCtrSharedRegistered(const UUID& name)
-    {
-        return self().shared()->isChildRegistered(name);
-    }
-
-
-    // Allocator directory interface part
-//    virtual bool hasRoot(BigInt name)
-//    {
-////        throw vapi::Exception(MA_SRC, "Allocator::hasRoot(BigInt) method must be properly implements for this container");
-//      return isCtrSharedRegistered(name); // Is it correct?
-//    }
 
     virtual void markUpdated(const UUID& name)
     {
         return self().allocator().markUpdated(name);
     }
 
-    virtual BigInt currentTxnId() const {
+    virtual UUID currentTxnId() const {
         return self().allocator().currentTxnId();
     }
 

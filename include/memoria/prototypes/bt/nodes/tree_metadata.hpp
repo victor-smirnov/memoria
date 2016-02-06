@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2011-2012.
+// Copyright Victor Smirnov 2011.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -12,6 +12,7 @@
 #include <memoria/prototypes/bt/bt_names.hpp>
 #include <memoria/core/tools/reflection.hpp>
 #include <memoria/core/types/typehash.hpp>
+#include <memoria/core/tools/uuid.hpp>
 
 
 namespace memoria    {
@@ -26,27 +27,28 @@ class BalancedTreeMetadata
 
     static const Int ROOTS = 2;
 
-    UUID 	model_name_;
+    UUID  model_name_;
 
-    Int     branching_factor_;
+    Int   branching_factor_;
 
-    Int     page_size_;
+    Int   page_size_;
 
-    ID      roots_[ROOTS];
+    ID    roots_[ROOTS];
 
-    BigInt  txn_id_;
+    UUID  txn_id_;
 
 public:
 
-    typedef TypeList<
+    using FieldsList = TL<
                 ConstValue<UInt, VERSION>,
                 ConstValue<UInt, ROOTS>,
                 decltype(model_name_),
                 ConstValue<UInt, Streams>,
                 decltype(branching_factor_),
                 decltype(page_size_),
+				decltype(txn_id_),
                 ID
-    >                                                                           FieldsList;
+    >;
 
     BalancedTreeMetadata()  = default;
 
@@ -115,7 +117,7 @@ public:
             FieldFactory<ID>::serialize(buf, roots_[c]);
         }
 
-        FieldFactory<BigInt>::serialize(buf, txn_id_);
+        FieldFactory<UUID>::serialize(buf, txn_id_);
     }
 
     void deserialize(DeserializationData& buf)
@@ -129,7 +131,7 @@ public:
             FieldFactory<ID>::deserialize(buf, roots_[c]);
         }
 
-        FieldFactory<BigInt>::deserialize(buf, txn_id_);
+        FieldFactory<UUID>::deserialize(buf, txn_id_);
     }
 
     const ID& roots(const UUID& idx) const {
@@ -140,11 +142,11 @@ public:
         return roots_[idx.lo()];
     }
 
-    BigInt& txn_id() {
+    auto& txn_id() {
         return txn_id_;
     }
 
-    const BigInt& txn_id() const {
+    const auto& txn_id() const {
         return txn_id_;
     }
 };

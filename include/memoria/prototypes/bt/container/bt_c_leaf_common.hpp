@@ -270,7 +270,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
 
         while (provider.hasData())
         {
-        	NodeBaseG node = self.createNode1(0, false, true, page_size);
+        	NodeBaseG node = self.createNode(0, false, true, page_size);
 
         	if (head.isSet())
         	{

@@ -87,7 +87,7 @@ void M_TYPE::newRootP(NodeBaseG& root)
 
     self.updatePageG(root);
 
-    NodeBaseG new_root = self.createNode1(root->level() + 1, true, false, root->page_size());
+    NodeBaseG new_root = self.createNode(root->level() + 1, true, false, root->page_size());
 
     UBigInt root_active_streams = self.getActiveStreams(root);
     self.layoutBranchNode(new_root, root_active_streams);

@@ -10,7 +10,6 @@
 #define _MEMORIA_CORE_CONTAINER_ALLOCATOR_HPP
 
 #include <memoria/core/container/names.hpp>
-#include <memoria/core/container/ctr_shared.hpp>
 #include <memoria/core/container/page.hpp>
 
 #include <memoria/metadata/container.hpp>
@@ -60,30 +59,19 @@ struct IAllocator: ICtrDirectory<typename PageType::ID> {
 
     typedef IAllocator<PageType>                                                AbstractAllocator;
 
-    typedef ContainerShared<ID>                                                 CtrShared;
-
-
     virtual PageG getPage(const ID& id, const UUID& name)                       = 0;
     virtual PageG getPageForUpdate(const ID& id, const UUID& name)              = 0;
-
 
     virtual PageG updatePage(Shared* shared, const UUID& name)                  = 0;
     virtual void  removePage(const ID& id, const UUID&name)                     = 0;
     virtual PageG createPage(Int initial_size, const UUID& name)                = 0;
 
-
     virtual void  resizePage(Shared* page, Int new_size)                        = 0;
     virtual void  releasePage(Shared* shared) noexcept                          = 0;
     virtual PageG getPageG(Page* page)                                          = 0;
 
-    virtual CtrShared* getCtrShared(const UUID& name)                           = 0;
-    virtual bool isCtrSharedRegistered(const UUID& name)                        = 0;
-
-    virtual void unregisterCtrShared(CtrShared* shared)                         = 0;
-    virtual void registerCtrShared(CtrShared* shared)                           = 0;
-
     virtual ID newId()                                                          = 0;
-    virtual BigInt currentTxnId() const                                         = 0;
+    virtual UUID currentTxnId() const                                         	= 0;
 
     // memory pool allocator
 

@@ -31,7 +31,6 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     typedef typename Allocator::Page                                            Page;
     typedef typename Allocator::PageG                                           PageG;
     typedef typename Allocator::ID                                              ID;
-    typedef typename Base::CtrShared                                            CtrShared;
 
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
 
@@ -45,60 +44,62 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     typedef typename Types::Metadata                                            Metadata;
 
+    using Base::CONTAINER_HASH;
 
-    class BTreeCtrShared: public CtrShared {
 
-        Metadata metadata_;
-        Metadata metadata_log_;
-
-        bool metadata_updated;
-
-    public:
-
-        BTreeCtrShared(const UUID& name): CtrShared(name), metadata_updated(false)                            {}
-        BTreeCtrShared(const UUID& name, CtrShared* parent): CtrShared(name, parent), metadata_updated(false) {}
-
-        const Metadata& root_metadata() const { return metadata_updated ? metadata_log_ : metadata_ ;}
-
-        void update_metadata(const Metadata& metadata)
-        {
-            metadata_log_       = metadata;
-            metadata_updated    = true;
-        }
-
-        void configure_metadata(const Metadata& metadata)
-        {
-            metadata_           = metadata;
-            metadata_updated    = false;
-        }
-
-        bool is_metadata_updated() const
-        {
-            return metadata_updated;
-        }
-
-        virtual void commit()
-        {
-            CtrShared::commit();
-
-            if (is_metadata_updated())
-            {
-                metadata_           = metadata_log_;
-                metadata_updated    = false;
-            }
-        }
-
-        virtual void rollback()
-        {
-            CtrShared::rollback();
-
-            if (is_metadata_updated())
-            {
-                metadata_updated    = false;
-            }
-        }
-    };
-
+//    class BTreeCtrShared: public CtrShared {
+//
+//        Metadata metadata_;
+//        Metadata metadata_log_;
+//
+//        bool metadata_updated;
+//
+//    public:
+//
+//        BTreeCtrShared(const UUID& name): CtrShared(name), metadata_updated(false)                            {}
+//        BTreeCtrShared(const UUID& name, CtrShared* parent): CtrShared(name, parent), metadata_updated(false) {}
+//
+//        const Metadata& root_metadata() const { return metadata_updated ? metadata_log_ : metadata_ ;}
+//
+//        void update_metadata(const Metadata& metadata)
+//        {
+//            metadata_log_       = metadata;
+//            metadata_updated    = true;
+//        }
+//
+//        void configure_metadata(const Metadata& metadata)
+//        {
+//            metadata_           = metadata;
+//            metadata_updated    = false;
+//        }
+//
+//        bool is_metadata_updated() const
+//        {
+//            return metadata_updated;
+//        }
+//
+//        virtual void commit()
+//        {
+//            CtrShared::commit();
+//
+//            if (is_metadata_updated())
+//            {
+//                metadata_           = metadata_log_;
+//                metadata_updated    = false;
+//            }
+//        }
+//
+//        virtual void rollback()
+//        {
+//            CtrShared::rollback();
+//
+//            if (is_metadata_updated())
+//            {
+//                metadata_updated    = false;
+//            }
+//        }
+//    };
+//
 
 
 
@@ -112,7 +113,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     }
 
     PageG createRoot() const {
-        return me()->createNode1(0, true, true);
+        return self().createNode(0, true, true);
     }
 
 
@@ -194,21 +195,13 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     void initCtr(const ID& root_id)
     {
-        // FIXME: Why root_id is not in use here?
-        CtrShared* shared = self().getOrCreateCtrShared(self().name());
-        Base::setCtrShared(shared);
+    	self().set_root_id(root_id);
     }
 
     void initCtr(const ID& root_id, const UUID& name)
     {
-    	// FIXME: Why root_id is not in use here?
-    	CtrShared* shared = self().getOrCreateCtrShared(name);
-    	Base::setCtrShared(shared);
-    }
-
-    void configureNewCtrShared(CtrShared* shared, PageG root) const
-    {
-        T2T<BTreeCtrShared*>(shared)->configure_metadata(self().getCtrRootMetadata(root));
+    	auto& self = this->self();
+    	self.set_root_id(root_id);
     }
 
 
@@ -232,15 +225,8 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         Metadata& metadata = root->root_metadata();
         metadata.roots(name) = root_id;
-
-        BTreeCtrShared* shared = T2T<BTreeCtrShared*>(self.shared());
-        shared->update_metadata(metadata);
     }
 
-    BTreeCtrShared* createCtrShared(const UUID& name)
-    {
-        return new (&self().allocator()) BTreeCtrShared(name);
-    }
 
     static Metadata getCtrRootMetadata(NodeBaseG node)
     {
@@ -265,9 +251,13 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         node->setMetadata(metadata);
     }
 
-    const Metadata& getRootMetadata() const
+    Metadata getRootMetadata() const
     {
-        return T2T<const BTreeCtrShared*>(self().shared())->root_metadata();
+    	auto& self 		 	= this->self();
+    	const auto& root_id = self.root();
+        NodeBaseG root 		= self.allocator().getPage(root_id, self.master_name());
+
+    	return root->root_metadata();
     }
 
     void setRootMetadata(const Metadata& metadata) const
@@ -285,9 +275,6 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     void setRootMetadata(NodeBaseG& node, const Metadata& metadata) const
     {
         setCtrRootMetadata(node, metadata);
-
-        BTreeCtrShared* shared = T2T<BTreeCtrShared*>(self().shared());
-        shared->update_metadata(metadata);
     }
 
     BigInt getContainerName() const
@@ -305,7 +292,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         metadata.page_size()        = DEFAULT_BLOCK_SIZE;
         metadata.branching_factor() = 0;
 
-        BigInt txn_id = self().allocator().currentTxnId();
+        auto txn_id = self().allocator().currentTxnId();
         metadata.txn_id() = txn_id;
 
         return metadata;
@@ -339,7 +326,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     MEMORIA_CONST_STATIC_FN_WRAPPER_RTN(CreateNodeFn, createNodeFn, NodeBaseG);
 
-    NodeBaseG createNode1(Short level, bool root, bool leaf, Int size = -1) const
+    NodeBaseG createNode(Short level, bool root, bool leaf, Int size = -1) const
     {
         MEMORIA_ASSERT(level, >=, 0);
 
@@ -389,7 +376,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return node;
     }
 
-    NodeBaseG createRootNode1(Short level, bool leaf, const Metadata& metadata) const
+    NodeBaseG createRootNode(Short level, bool leaf, const Metadata& metadata) const
     {
         MEMORIA_ASSERT(level, >=, 0);
 
@@ -405,7 +392,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         node->master_ctr_type_hash()    = self.init_data().master_ctr_type_hash();
         node->owner_ctr_type_hash()     = self.init_data().owner_ctr_type_hash();
 
-        node->parent_id()               = ID(0);
+        node->parent_id()               = ID();
         node->parent_idx()              = 0;
 
         node->set_root(true);
@@ -479,27 +466,36 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     void findCtrByName()
     {
-        CtrShared* shared = self().getOrCreateCtrShared(self().name());
-        Base::setCtrShared(shared);
+    	auto& self = this->self();
+
+    	auto name = self.master_name();
+
+    	ID root_id = self.allocator().getRootID(name);
+
+    	if (!root_id.is_null())
+    	{
+    		PageG node = self.allocator().getPage(root_id, name);
+
+    		if (node->ctr_type_hash() == CONTAINER_HASH)
+    		{
+    			self.set_root_id(root_id);
+    		}
+    		else {
+    			throw CtrTypeException(MEMORIA_SOURCE, SBuf()<<"Invalid container type: "<<node->ctr_type_hash());
+    		}
+    	}
+    	else {
+    		throw NoCtrException(MEMORIA_SOURCE, SBuf()<<"Container with name "<<name<<" does not exists");
+    	}
     }
 
     void createCtrByName()
     {
         auto& self = this->self();
 
-        BTreeCtrShared* shared = self.createCtrShared(self.name());
-        self.allocator().registerCtrShared(shared);
+        NodeBaseG node = self.createRoot();
 
-        NodeBaseG node          = self.createRoot();
-
-        self.allocator().setRoot(self.name(), node->id());
-
-        shared->root_log()      = node->id();
-        shared->updated()       = true;
-
-        self.configureNewCtrShared(shared, node);
-
-        Base::setCtrShared(shared);
+        self.set_root(node->id());
     }
 
 MEMORIA_BT_MODEL_BASE_CLASS_END

@@ -104,7 +104,6 @@ public:
     typedef typename Allocator::Page                                            Page;
     typedef typename Allocator::PageG                                           PageG;
     typedef typename Allocator::Page::ID                                        PageId;
-    typedef typename Allocator::CtrShared                                       CtrShared;
 
 
     typedef Iter<typename Types::IterTypes>                                     Iterator;
@@ -114,44 +113,55 @@ public:
 protected:
     static ContainerMetadata*   reflection_;
 
-    CtrShared* shared_;
+    ID root_;
 
     CtrInitData init_data_;
 
 public:
-    CtrBase(const CtrInitData& data): shared_(nullptr), init_data_(data)
+    CtrBase(const CtrInitData& data): init_data_(data)
     {}
 
     CtrBase(const ThisType& other):
-        shared_(other.shared_),
         init_data_(other.init_data_)
     {}
 
     CtrBase(const ThisType& other, Allocator* allocator):
-        shared_(other.shared_),
         init_data_(other.init_data_)
     {}
 
     //shared_ is configured in move constructors of subclasses.
     CtrBase(ThisType&& other):
-        shared_(other.shared_),
         init_data_(other.init_data_)
     {
-        other.shared_ = NULL;
     }
 
     CtrBase(ThisType&& other, Allocator* allocator):
-        shared_(other.shared_),
         init_data_(other.init_data_)
     {
-        other.shared_ = NULL;
     }
 
     virtual ~CtrBase() throw () {}
 
+
+    void set_root(const ID &root)
+    {
+    	root_ = root;
+
+    	self().allocator().setRoot(self().master_name(), root);
+    }
+
+    void set_root_id(const ID &root)
+    {
+    	root_ = root;
+    }
+
+    const ID &root() const
+    {
+        return root_;
+    }
+
     void operator=(ThisType&& other)
     {
-        shared_     = other.shared_;
         init_data_  = other.init_data_;
 
         other.shared_ = NULL;
@@ -159,7 +169,6 @@ public:
 
     void operator=(const ThisType& other)
     {
-        shared_     = other.shared_;
         init_data_  = other.init_data_;
     }
 
@@ -174,14 +183,14 @@ public:
     
     static void destroyMetadata()
     {
-        if (reflection_ != NULL)
+        if (reflection_ != nullptr)
         {
             delete reflection_->getCtrInterface();
 
             MetadataRepository<typename Types::Profile>::unregisterMetadata(reflection_);
 
             delete reflection_;
-            reflection_ = NULL;
+            reflection_ = nullptr;
         }
     }
 
@@ -232,7 +241,7 @@ public:
 
     static Int initMetadata(Int salt = 0)
     {
-        if (reflection_ == NULL)
+        if (reflection_ == nullptr)
         {
             MetadataList list;
 
@@ -257,76 +266,12 @@ public:
         return init_data_;
     }
 
-    PageG createRoot() {
-        return PageG();
-    }
 
     UUID getModelName(ID root_id)
     {
         return UUID();
     }
 
-    CtrShared* createCtrShared(const UUID& name)
-    {
-        return new (&me()->allocator()) CtrShared(name);
-    }
-
-    CtrShared* getOrCreateCtrShared(const UUID& name)
-    {
-        if (me()->allocator().isCtrSharedRegistered(name))
-        {
-            return me()->allocator().getCtrShared(name);
-        }
-        else {
-            ID root_id = self().allocator().getRootID(name);
-            PageG node = self().allocator().getPage(root_id, name);
-
-            if (node.isSet())
-            {
-                CtrShared* shared = me()->createCtrShared(name);
-                me()->allocator().registerCtrShared(shared);
-
-                if (node->ctr_type_hash() == CONTAINER_HASH)
-                {
-                    if (node.is_updated())
-                    {
-                        shared->root_log() = node->id();
-                        shared->updated() = true;
-                    }
-                    else {
-                        shared->root() = node->id();
-                        shared->updated() = false;
-                    }
-
-                    me()->configureNewCtrShared(shared, node);
-
-                    return shared;
-                }
-                else {
-                    throw CtrTypeException(MEMORIA_SOURCE, SBuf()<<"Invalid container type: "<<node->ctr_type_hash());
-                }
-            }
-            else {
-                throw NoCtrException(MEMORIA_SOURCE, SBuf()<<"Container with name "<<name<<" does not exists");
-            }
-        }
-    }
-
-    void configureNewCtrShared(CtrShared* shared, PageG root) const {}
-
-    void removeCtrShared(CtrShared* shared)
-    {
-        shared->~CtrShared();
-        me()->allocator().freeMemory(shared);
-    }
-
-    const CtrShared* shared() const {
-        return shared_;
-    }
-
-    CtrShared* shared() {
-        return shared_;
-    }
 
     void initCtr(Int command) {}
     void initCtr(const ID& root_id) {}
@@ -342,20 +287,9 @@ protected:
         reflection_ = metadata;
     }
 
-    void setCtrShared(CtrShared* shared)
-    {
-        this->shared_ = shared;
-    }
 
 private:
 
-    MyType* me() {
-        return static_cast<MyType*>(this);
-    }
-
-    const MyType* me() const {
-        return static_cast<const MyType*>(this);
-    }
 
     MyType& self()
     {
@@ -469,7 +403,6 @@ public:
     typedef Ctr<Types>                                                          MyType;
 
     typedef typename Types::Allocator                                           Allocator;
-    typedef typename Types::Allocator::CtrShared                                CtrShared;
     typedef typename Types::Allocator::PageG                                    PageG;
     typedef typename PageG::Page::ID                                            ID;
 
@@ -597,7 +530,7 @@ public:
 
     MEMORIA_PUBLIC Ctr(const CtrInitData& data):
         Base(data),
-        allocator_(NULL),
+        allocator_(),
         model_type_name_(TypeNameFactory<ContainerTypeName>::cname()),
         logger_(model_type_name_, Logger::DERIVED, NULL),
         debug_(false)
@@ -761,13 +694,13 @@ public:
         return *this;
     }
 
-    void inc () {
-        CtrRefCounters++;
-    }
-
-    void dec() {
-        CtrUnrefCounters--;
-    }
+//    void inc () {
+//        CtrRefCounters++;
+//    }
+//
+//    void dec() {
+//        CtrUnrefCounters--;
+//    }
 
 
 private:
@@ -783,27 +716,27 @@ private:
 
     void ref()
     {
-        if (me()->shared() != NULL)
-        {
-            inc();
-            me()->shared()->ref();
-        }
+//        if (me()->shared() != NULL)
+//        {
+//            inc();
+//            me()->shared()->ref();
+//        }
     }
 
     void unref()
     {
-        CtrShared* shared = me()->shared();
-        if (shared != NULL)
-        {
-            dec();
-            if (shared->unref() == 0)
-            {
-                allocator_->unregisterCtrShared(shared);
-                me()->removeCtrShared(shared);
-
-                Base::setCtrShared(NULL);
-            }
-        }
+//        CtrShared* shared = me()->shared();
+//        if (shared != NULL)
+//        {
+//            dec();
+//            if (shared->unref() == 0)
+//            {
+//                allocator_->unregisterCtrShared(shared);
+//                me()->removeCtrShared(shared);
+//
+//                Base::setCtrShared(NULL);
+//            }
+//        }
     }
 };
 
