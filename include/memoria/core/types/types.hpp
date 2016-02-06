@@ -63,7 +63,7 @@ enum {
     CTR_NONE                = 0,
     CTR_CREATE              = 1,
     CTR_FIND                = 1<<1,
-    CTR_THROW_IF_EXISTS     = 1<<2,
+//    CTR_THROW_IF_EXISTS     = 1<<2,
 };
 
 /**

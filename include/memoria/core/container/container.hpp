@@ -427,7 +427,7 @@ private:
 
 public:
 
-    MEMORIA_PUBLIC Ctr(
+    Ctr(
             Allocator* allocator,
             Int command = CTR_CREATE,
             const UUID& name = CTR_DEFAULT_NAME,
@@ -489,7 +489,6 @@ public:
         debug_(other.debug_)
     {
         Base::setCtrShared(other.shared_);
-        ref();
     }
 
     MEMORIA_PUBLIC Ctr(const MyType& other, Allocator* allocator):
@@ -502,7 +501,6 @@ public:
         MEMORIA_ASSERT_NOT_NULL(allocator);
 
         Base::setCtrShared(other.shared_);
-        ref();
     }
 
 
@@ -512,9 +510,7 @@ public:
         model_type_name_(other.model_type_name_),
         logger_(other.logger_),
         debug_(other.debug_)
-    {
-        //FIXME: ref() ???
-    }
+    {}
 
     Ctr(MyType&& other, Allocator* allocator):
         Base(std::move(other), allocator),
@@ -524,7 +520,6 @@ public:
         debug_(other.debug_)
     {
         MEMORIA_ASSERT_NOT_NULL(allocator);
-        //FIXME: ref() ???
     }
 
 
@@ -536,13 +531,10 @@ public:
         debug_(false)
     {
         Base::setCtrShared(NULL);
-        //FIXME: ref() ???
     }
 
-    MEMORIA_PUBLIC virtual ~Ctr() throw()
-    {
-        unref();
-    }
+    virtual ~Ctr() throw()
+    {}
 
     void initLogger(Logger* other)
     {
@@ -569,26 +561,19 @@ public:
         //FIXME: init logger correctly
 
         Base::initCtr(command);
-
-        ref();
     }
 
     void initCtr(Allocator* allocator, const ID& root_id, const char* mname = NULL)
     {
         MEMORIA_ASSERT_EXPR(!root_id.is_null(), "Container root ID must not be empty");
 
-//        this->init_data().set_master_name(master_name);
-
         allocator_          = allocator;
         model_type_name_    = mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname();
         name_               = this->getModelName(root_id);
 
-
         //FIXME: init logger correctly
 
         Base::initCtr(root_id, name_);
-
-        ref();
     }
 
     Int owner_ctr_type_hash () const {
@@ -667,11 +652,7 @@ public:
             logger_             = other.logger_;
             debug_              = other.debug_;
 
-            unref();
-
             Base::operator=(other);
-
-            ref();
         }
 
         return *this;
@@ -686,21 +667,12 @@ public:
             logger_             = other.logger_;
             debug_              = other.debug_;
 
-            unref();
-
             Base::operator=(std::move(other));
         }
 
         return *this;
     }
 
-//    void inc () {
-//        CtrRefCounters++;
-//    }
-//
-//    void dec() {
-//        CtrUnrefCounters--;
-//    }
 
 
 private:
@@ -712,31 +684,6 @@ private:
     const MyType* me() const
     {
         return this;
-    }
-
-    void ref()
-    {
-//        if (me()->shared() != NULL)
-//        {
-//            inc();
-//            me()->shared()->ref();
-//        }
-    }
-
-    void unref()
-    {
-//        CtrShared* shared = me()->shared();
-//        if (shared != NULL)
-//        {
-//            dec();
-//            if (shared->unref() == 0)
-//            {
-//                allocator_->unregisterCtrShared(shared);
-//                me()->removeCtrShared(shared);
-//
-//                Base::setCtrShared(NULL);
-//            }
-//        }
     }
 };
 

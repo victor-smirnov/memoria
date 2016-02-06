@@ -26,16 +26,41 @@
 namespace memoria {
 namespace persistent_inmem {
 
+namespace {
+
+template <typename CtrT, typename Allocator>
+class SharedCtr: public CtrT {
+
+	std::shared_ptr<Allocator> allocator_;
+
+public:
+	SharedCtr(const std::shared_ptr<Allocator>& allocator, Int command, const UUID& name):
+		CtrT(allocator.get(), command, name),
+		allocator_(allocator)
+	{}
+
+	auto snapshot() const {
+		return allocator_;
+	}
+};
+
+
+}
 
 
 
 template <typename Profile, typename PageType, typename HistoryNode, typename PersitentTree, typename HistoryTree>
-class Snapshot: public IWalkableAllocator<PageType> {
+class Snapshot:
+		public IWalkableAllocator<PageType>,
+		public std::enable_shared_from_this<
+			Snapshot<Profile, PageType, HistoryNode, PersitentTree, HistoryTree>
+		>
+{
 	using Base 				= IAllocator<PageType>;
-	using MyType 			= Snapshot;
+	using MyType 			= Snapshot<Profile, PageType, HistoryNode, PersitentTree, HistoryTree>;
 
 	using HistoryTreePtr 	= std::shared_ptr<HistoryTree>;
-	using SnapshotPtr 		= std::shared_ptr<Snapshot>;
+	using SnapshotPtr 		= std::shared_ptr<MyType>;
 
 	using NodeBaseT			= typename PersitentTree::NodeBaseT;
 	using LeafNodeT			= typename PersitentTree::LeafNodeT;
@@ -43,6 +68,12 @@ class Snapshot: public IWalkableAllocator<PageType> {
 
 	using Status 			= typename HistoryNode::Status;
 public:
+
+	template <typename CtrName>
+	using CtrT = SharedCtr<typename CtrTF<Profile, CtrName>::Type, MyType>;
+
+	template <typename CtrName>
+	using CtrPtr = std::shared_ptr<CtrT<CtrName>>;
 
 	using typename Base::Page;
 	using typename Base::ID;
@@ -90,8 +121,6 @@ private:
 	template <typename, typename>
 	friend class PersistentInMemAllocatorT;
 
-	template <typename T>
-	friend struct std::allocator_traits;
 
 public:
 
@@ -117,7 +146,7 @@ public:
 			ctr_op = CTR_FIND;
 		}
 
-		root_map_ = std::make_unique<RootMapType>(this, ctr_op, UUID());
+		root_map_ = std::make_shared<RootMapType>(this, ctr_op, UUID());
 	}
 
 	Snapshot(HistoryNode* history_node, HistoryTree* history_tree):
@@ -141,7 +170,7 @@ public:
 			ctr_op = CTR_FIND;
 		}
 
-		root_map_ = std::make_unique<RootMapType>(this, ctr_op, UUID());
+		root_map_ = std::make_shared<RootMapType>(this, ctr_op, UUID());
 	}
 
 	virtual ~Snapshot()
@@ -218,7 +247,7 @@ public:
 			HistoryNode* history_node = new HistoryNode(history_node_);
 			history_tree_raw_->snapshot_map_[history_node->txn_id()] = history_node;
 
-			return std::make_shared<Snapshot>(history_node, history_tree_);
+			return std::make_shared<Snapshot>(history_node, history_tree_->shared_from_this());
 		}
 		else
 		{
@@ -231,9 +260,7 @@ public:
 		if (history_node_->parent())
 		{
 			HistoryNode* history_node = history_node_->parent();
-			history_tree_raw_->snapshot_map_[history_node->txn_id()] = history_node;
-
-			return std::make_shared<Snapshot>(history_node, history_tree_);
+			return std::make_shared<Snapshot>(history_node, history_tree_->shared_from_this());
 		}
 		else
 		{
@@ -613,6 +640,33 @@ public:
 		persistent_tree_.dump();
 	}
 
+
+
+	template <typename CtrName>
+	auto find_or_create(const UUID& name)
+	{
+		return std::make_shared<CtrT<CtrName>>(this, CTR_FIND | CTR_CREATE, name);
+	}
+
+	template <typename CtrName>
+	auto create(const UUID& name)
+	{
+		return std::make_shared<CtrT<CtrName>>(this, CTR_CREATE, name);
+	}
+
+	template <typename CtrName>
+	auto create()
+	{
+		return std::make_shared<CtrT<CtrName>>(this->shared_from_this(), CTR_CREATE, CTR_DEFAULT_NAME);
+	}
+
+	template <typename CtrName>
+	auto find(const UUID& name)
+	{
+		return std::make_shared<CtrT<CtrName>>(this->shared_from_this(), CTR_FIND, name);
+	}
+
+
 protected:
 
 	Page* clone_page(const Page* page)
@@ -806,8 +860,33 @@ protected:
 
 };
 
-
 }
+
+template <typename CtrName, typename Profile, typename PageType, typename HistoryNode, typename PersitentTree, typename HistoryTree>
+auto create(const std::shared_ptr<persistent_inmem::Snapshot<Profile, PageType, HistoryNode, PersitentTree, HistoryTree>>& alloc, const UUID& name)
+{
+	return alloc->template create<CtrName>(name);
+}
+
+template <typename CtrName, typename Profile, typename PageType, typename HistoryNode, typename PersitentTree, typename HistoryTree>
+auto create(const std::shared_ptr<persistent_inmem::Snapshot<Profile, PageType, HistoryNode, PersitentTree, HistoryTree>>& alloc)
+{
+	return alloc->template create<CtrName>();
+}
+
+template <typename CtrName, typename Profile, typename PageType, typename HistoryNode, typename PersitentTree, typename HistoryTree>
+auto find_or_create(const std::shared_ptr<persistent_inmem::Snapshot<Profile, PageType, HistoryNode, PersitentTree, HistoryTree>>& alloc, const UUID& name)
+{
+	return alloc->template find_or_create<CtrName>(name);
+}
+
+template <typename CtrName, typename Profile, typename PageType, typename HistoryNode, typename PersitentTree, typename HistoryTree>
+auto find(const std::shared_ptr<persistent_inmem::Snapshot<Profile, PageType, HistoryNode, PersitentTree, HistoryTree>>& alloc, const UUID& name)
+{
+	return alloc->template find<CtrName>(name);
+}
+
+
 }
 
 

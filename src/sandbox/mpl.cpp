@@ -41,17 +41,16 @@ int main()
 
 		auto txn1 = alloc->master()->branch();
 
-
 		UUID ctr_name;
 
-		{
-			DCtr<Vector<Byte>> ctr1(txn1.get(), CTR_CREATE);
 
-			ctr_name = ctr1.name();
+		auto ctr1 = create<Vector<Byte>>(txn1);
 
-			vector<Byte> data1 = create_random_vector(10000);
-			ctr1.seek(0).insert(data1.begin(), data1.size());
-		}
+		ctr_name = ctr1->master_name();
+
+		vector<Byte> data1 = create_random_vector(10000);
+		ctr1->seek(0).insert(data1.begin(), data1.size());
+
 
 		txn1->freeze();
 
@@ -60,12 +59,12 @@ int main()
 		cout<<"Create new snapshot"<<endl;
 		auto txn2 = txn1->branch();
 
-		{
-			DCtr<Vector<Byte>> ctr2(txn2.get(), CTR_FIND, ctr_name);
 
-			vector<Byte> data2 = create_vector(10000, 0x22);
-			ctr2.End().insert(data2.begin(), data2.size());
-		}
+		auto ctr2 = find<Vector<Byte>>(txn2, ctr_name);
+
+		vector<Byte> data2 = create_vector(10000, 0x22);
+		ctr2->End().insert(data2.begin(), data2.size());
+
 
 		FSDumpAllocator(txn2, "pdump2_t.dir");
 
