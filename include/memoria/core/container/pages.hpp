@@ -18,6 +18,7 @@
 #include <memoria/core/types/typehash.hpp>
 #include <memoria/core/tools/reflection.hpp>
 #include <memoria/core/tools/id.hpp>
+#include <memoria/core/tools/uuid.hpp>
 
 #include <memoria/core/exceptions/exceptions.hpp>
 
@@ -29,7 +30,7 @@ using namespace memoria::vapi;
 
 struct MEMORIA_API Page {
 
-    virtual IDValue getId() const                    = 0;
+    virtual UUID getId() const                    	 = 0;
     virtual Int getContainerHash() const             = 0;
     virtual Int getPageTypeHash() const              = 0;
     virtual BigInt getFlags() const                  = 0;
@@ -60,11 +61,11 @@ public:
         return page_ == NULL;
     }
 
-    virtual IDValue getId() const
+    virtual UUID getId() const
     {
         if (page_ != NULL)
         {
-            return IDValue(&page_->id());
+            return page_->id();
         }
         else {
             throw NullPointerException(MEMORIA_SOURCE, "Page data is not set");
@@ -163,11 +164,11 @@ public:
         return page_ == NULL;
     }
 
-    virtual IDValue getId() const
+    virtual UUID getId() const
     {
         if (page_ != NULL)
         {
-            return IDValue(&page_->id());
+            return page_->id();
         }
         else {
             throw NullPointerException(MEMORIA_SOURCE, "Page data is not set");

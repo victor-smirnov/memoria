@@ -15,6 +15,7 @@
 #include <memoria/core/tools/file.hpp>
 #include <memoria/core/tools/assert.hpp>
 #include <memoria/core/tools/platform.hpp>
+#include <memoria/core/tools/uuid.hpp>
 
 #include <stack>
 #include <sstream>
@@ -31,10 +32,10 @@ struct ContainerWalker {
     virtual void beginSnapshot(const char* descr)                               = 0;
     virtual void endSnapshot()                                                  = 0;
 
-    virtual void beginCompositeCtr(const char* descr, BigInt name)              = 0;
+    virtual void beginCompositeCtr(const char* descr, const UUID& name)         = 0;
     virtual void endCompositeCtr()                                              = 0;
 
-    virtual void beginCtr(const char* descr, BigInt name, const IDValue& root)  = 0;
+    virtual void beginCtr(const char* descr, const UUID& name, const UUID& root)= 0;
     virtual void endCtr()                                                       = 0;
 
     virtual void beginRoot(Int idx, const void* page)                           = 0;
@@ -60,10 +61,10 @@ struct ContainerWalker {
 
 
 struct ContainerInterface {
-    virtual bool check(const void* id, BigInt name, void* allocator) const      = 0;
+    virtual bool check(const void* id, const UUID& name, void* allocator) const      = 0;
     virtual void walk(
             const void* id,
-            BigInt name,
+            const UUID& name,
             void* allocator,
             ContainerWalker* walker
     ) const                                                                     = 0;
@@ -228,7 +229,7 @@ public:
         path_.pop();
     }
 
-    virtual void beginCompositeCtr(const char* descr, BigInt name)
+    virtual void beginCompositeCtr(const char* descr, const UUID& name)
     {
         stringstream str;
 
@@ -243,7 +244,7 @@ public:
         path_.pop();
     }
 
-    virtual void beginCtr(const char* descr, BigInt name, const IDValue& root)
+    virtual void beginCtr(const char* descr, const UUID& name, const UUID& root)
     {
         stringstream str;
 

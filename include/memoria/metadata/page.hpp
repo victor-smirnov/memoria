@@ -430,7 +430,7 @@ public:
     {
     	if (kind == BYTE_ARRAY)
     	{
-    		::memoria::dumpArray<double>(out_, count, [=](Int idx){return value[idx];});
+    		::memoria::dumpArray<UUID>(out_, count, [=](Int idx){return value[idx];});
     	}
     	else {
     		OutNumber(name, value, count, kind);

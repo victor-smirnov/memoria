@@ -23,15 +23,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::root::CtrApiName)
     typedef typename Base::NodeBase                                             NodeBase;
     typedef typename Base::Page                                                 Page;
 
-    Metadata createNewRootMetadata() const
-    {
-        Metadata meta = Base::createNewRootMetadata();
-
-        meta.model_name_counter() = INITAL_CTR_NAME_COUNTER;
-
-        return meta;
-    }
-
 
     BigInt getModelNameCounter() const
     {

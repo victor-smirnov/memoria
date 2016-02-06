@@ -129,7 +129,7 @@ public:
 		HistoryNode(HistoryNode* parent, Status status = Status::ACTIVE):
 			parent_(parent),
 			root_(nullptr),
-			root_id_(0),
+			root_id_(),
 			status_(status),
 			txn_id_(UUID::make_random())
 		{
@@ -141,7 +141,7 @@ public:
 		HistoryNode(const TxnId& txn_id, HistoryNode* parent, Status status):
 			parent_(parent),
 			root_(nullptr),
-			root_id_(0),
+			root_id_(),
 			status_(status),
 			txn_id_(txn_id)
 		{
@@ -298,7 +298,7 @@ public:
 
 	using HistoryTreeNodeMap	= std::unordered_map<PTreeNodeId, HistoryNodeBuffer*, UUIDKeyHash, UUIDKeyEq>;
 	using PersistentTreeNodeMap	= std::unordered_map<PTreeNodeId, std::pair<NodeBaseBufferT*, NodeBaseT*>, UUIDKeyHash, UUIDKeyEq>;
-	using PageMap				= std::unordered_map<typename PageType::ID, PageType*, IDKeyHash, IDKeyEq>;
+	using PageMap				= std::unordered_map<typename PageType::ID, PageType*, UUIDKeyHash, UUIDKeyEq>;
 	using BranchMap				= std::unordered_map<String, HistoryNode*>;
 
 	template <typename, typename, typename, typename, typename>
@@ -341,8 +341,6 @@ private:
 
 	BranchMap named_branches_;
 
-	BigInt id_counter_ = 1;
-
 	ContainerMetadataRepository*  metadata_;
 
 	BigInt records_ = 0;
@@ -366,8 +364,7 @@ private:
 
 	PersistentInMemAllocatorT(Int):
 		metadata_(MetadataRepository<Profile>::getMetadata())
-	{
-	}
+	{}
 
 public:
 
@@ -389,7 +386,7 @@ public:
 
 	auto newId()
 	{
-		return typename PageType::ID(id_counter_++);
+		return PageType::ID::make_random();
 	}
 
 	SnapshotPtr find(const TxnId& snapshot_id)

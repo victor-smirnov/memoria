@@ -46,7 +46,7 @@ public:
         walker->beginCtr(
                         TypeNameFactory<typename Types::ContainerTypeName>::name().c_str(),
                         self.name(),
-                        IDValue(root->id())
+                        root->id()
                 );
 
         this->traverseTree(root, walker);

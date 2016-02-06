@@ -336,7 +336,7 @@ protected:
     		);
 
     		for (Int c = idx; c < idx + room_length; c++) {
-    			values[c] = 0;
+    			values[c] = Value();
     		}
     	}
 
@@ -437,7 +437,7 @@ public:
 
     		for (Int c = start + size - end; c < size; c++)
     		{
-    			values[c] = 0;
+    			values[c] = Value();
     		}
     	}
 
@@ -456,6 +456,12 @@ public:
 
     	sum<Offset>(this->size() - 1, accum);
     }
+
+//    template <Int Offset, typename T1>
+//    void _insert(Int idx, const core::StaticVector<T1, Blocks>& values)
+//    {
+//    	insert(idx, values);
+//    }
 
     template <Int Offset, Int Size, typename T1, typename T2, template <typename, Int> class BranchNodeEntryItem>
     void _update(Int idx, const core::StaticVector<T1, Blocks>& values, BranchNodeEntryItem<T2, Size>& accum)

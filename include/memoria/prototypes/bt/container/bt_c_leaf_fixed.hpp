@@ -86,12 +86,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafFixedName)
     	>
     	void stream(SubstreamType* obj, BranchNodeEntryItem& accum, Int idx, const Entry& entry)
     	{
-    		obj->template _insert<Offset>(idx, Accessor<Idx>::get(entry), accum);
-
-    		if (StreamStart)
-    		{
-    			accum[0] += 1;
-    		}
+    		BatchEntryMaxHelper<Offset, StreamStart>::insert_entry(accum, Accessor<Idx>::get(entry), obj, idx);
+//
+//    		obj->template _insert<Offset>(idx, Accessor<Idx>::get(entry), accum);
+//
+//    		if (StreamStart)
+//    		{
+//    			accum[0] += 1;
+//    		}
     	}
     };
 
@@ -152,12 +154,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafFixedName)
     	>
     	void stream(SubstreamType* obj, BranchNodeEntryItem& accum, Int idx)
     	{
-    		obj->template _remove<Offset>(idx, accum);
-
-    		if (StreamStart)
-    		{
-    			accum[0] -= 1;
-    		}
+    		BatchEntryMaxHelper<Offset, StreamStart>::remove_entry(accum, obj, idx);
     	}
     };
 

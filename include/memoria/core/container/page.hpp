@@ -15,6 +15,7 @@
 #include <memoria/core/tools/buffer.hpp>
 #include <memoria/core/tools/id.hpp>
 #include <memoria/core/tools/stream.hpp>
+#include <memoria/core/tools/uuid.hpp>
 #include <memoria/core/types/typehash.hpp>
 
 #include <memoria/core/container/logs.hpp>
@@ -32,8 +33,9 @@ extern Int PageDtrCnt[10];
 extern Int PageCtr;
 extern Int PageDtr;
 
-extern bool GlobalDebug;
+//extern bool GlobalDebug;
 
+/*
 template <typename T>
 class PageID: public ValueBuffer<T> {
 public:
@@ -146,7 +148,7 @@ struct IDKeyEq
     bool operator() (const PageID<T> &x, const PageID<T> &y) const { return x == y; }
 };
 
-
+*/
 
 
 template <typename T>
@@ -211,7 +213,7 @@ public:
 
 template <typename PageIdType, Int FlagsCount = 32>
 class AbstractPage {
-    static_assert(std::is_trivial<PageIdType>::value, "PageIdType must be a trivial type");
+//    static_assert(std::is_trivial<PageIdType>::value, "PageIdType must be a trivial type");
 
 public:
     static const UInt VERSION                                                   = 1;
@@ -403,11 +405,11 @@ public:
 
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
-        IDValue id(&id_);
-        IDValue gid(&uuid_);
+//        IDValue id(&id_);
+//        IDValue gid(&uuid_);
 
-        handler->value("GID",               &gid);
-        handler->value("ID",                &id);
+        handler->value("GID",               &uuid_);
+        handler->value("ID",                &id_);
         handler->value("CRC",               &crc_);
         handler->value("MASTER_MODEL_HASH", &master_ctr_type_hash_);
         handler->value("OWNER_MODEL_HASH",  &owner_ctr_type_hash_);
@@ -661,7 +663,7 @@ public:
 
     void init()
     {
-        id_         = 0;
+        id_         = ID();
         references_ = 0;
         state_      = READ;
         page_       = nullptr;
@@ -870,7 +872,7 @@ public:
 
 
 
-    void update(BigInt name)
+    void update(const UUID& name)
     {
         if (shared_)// && !shared_->updated())
         {

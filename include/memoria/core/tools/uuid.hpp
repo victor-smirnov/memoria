@@ -18,17 +18,20 @@
 
 namespace memoria    {
 
+class UUID;
+
+std::ostream& operator<<(std::ostream& out, const UUID& uuid);
+std::istream& operator>>(std::istream& in, UUID& uuid);
+
 class UUID {
 	UBigInt hi_;
 	UBigInt lo_;
 public:
-	constexpr UUID(): hi_(0), lo_(0) {}
-	constexpr UUID(UBigInt value): hi_(0), lo_(value) {}
-	constexpr UUID(BigInt value): hi_(0), lo_(value) {}
-	constexpr UUID(Int value): hi_(0), lo_(value) {}
-	constexpr UUID(UInt value): hi_(0), lo_(value) {}
+	constexpr UUID(): hi_(), lo_() {}
 
-	UBigInt hi() const {
+	constexpr UUID(UBigInt hi, UBigInt lo): hi_(hi), lo_(lo) {}
+
+	const UBigInt& hi() const {
 		return hi_;
 	}
 
@@ -36,7 +39,7 @@ public:
 		return hi_;
 	}
 
-	UBigInt lo() const {
+	const UBigInt& lo() const {
 		return lo_;
 	}
 
@@ -56,28 +59,42 @@ public:
 		return hi_ != uuid.hi_ || lo_ != uuid.lo_;
 	}
 
+
 	bool operator<(const UUID& other) const {
-		return hi_ <= other.hi_ && lo_ < other.lo_;
+		return hi_ < other.hi_ || (hi_ == other.hi_ && lo_ < other.lo_);
 	}
 
 	bool operator<=(const UUID& other) const {
-		return hi_ <= other.hi_ && lo_ <= other.lo_;
+		return hi_ < other.hi_ || (hi_ == other.hi_ && lo_ <= other.lo_);
+	}
+
+	bool operator>(const UUID& other) const {
+		return hi_ > other.hi_ || (hi_ == other.hi_ && lo_ > other.lo_);
+	}
+
+	bool operator>=(const UUID& other) const {
+		return hi_ > other.hi_ || (hi_ == other.hi_ && lo_ >= other.lo_);
 	}
 
 
-	void operator+=(BigInt size) {}
-	void operator-=(BigInt size) {}
 
-	operator bool() const {
-		return lo_ != 0 || hi_ != 0;
+	bool isSet() const {
+		return hi_ != 0 || lo_ != 0;
+	}
+
+	void clear() {
+		hi_ = lo_ = 0;
 	}
 
 	static UUID make_random();
 	static UUID parse(const char* in);
+
+	static constexpr UUID make(UBigInt hi, UBigInt lo) {
+		return UUID(hi, lo);
+	}
 };
 
-std::ostream& operator<<(std::ostream& out, const UUID& uuid);
-std::istream& operator>>(std::istream& in, UUID& uuid);
+
 
 template <typename T>
 struct TypeHash;

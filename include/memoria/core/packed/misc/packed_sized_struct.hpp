@@ -15,23 +15,23 @@
 namespace memoria {
 
 
-
+template <typename Value_ = BigInt, Int Indexes_ = 0, PkdSearchType SearchType_ = PkdSearchType::SUM>
 class PackedSizedStruct: public PackedAllocatable {
 
     typedef PackedAllocatable                                                   Base;
 
 public:
     static const UInt VERSION = 1;
-    static constexpr Int Indexes = 0;
-    static constexpr PkdSearchType SearchType = PkdSearchType::SUM;
+    static constexpr Int Indexes = Indexes_;
+    static constexpr PkdSearchType SearchType = SearchType_;
 
 
     using MyType = PackedSizedStruct;
 
 
-    using Value = Int;
+    using Value = typename std::remove_reference<Value_>::type;
 
-    static constexpr Int Blocks = 0;
+    static constexpr Int Blocks = Indexes;
 
     using InputType = Value;
 
@@ -92,6 +92,26 @@ public:
     {
         size_ = 0;
     }
+
+    template <typename T>
+    void max(T& accum) const
+    {
+
+    }
+
+    template <typename T>
+    void setValues(Int idx, T&&) {}
+
+    template <typename T>
+    void insert(Int idx, T&&) {
+    	insertSpace(idx, 1);
+    }
+
+    template <Int Offset, typename T>
+    void _insert(Int idx, T&&) {
+    	insertSpace(idx, 1);
+    }
+
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
     void max(BranchNodeEntryItem<T, Size>& accum) const
@@ -215,6 +235,10 @@ public:
     	return at + size;
     }
 
+    Value value(Int, Int) const {
+    	return Value();
+    }
+
     SizesT positions(Int idx) const {
     	return SizesT(idx);
     }
@@ -234,9 +258,7 @@ public:
     template <Int Offset, typename Value, typename T, Int Size, template <typename, Int> class BranchNodeEntryItem>
     void _insert(Int pos, Value&& val, BranchNodeEntryItem<T, Size>& accum)
     {
-    	_insert(pos, 1, [&](int block, int idx){
-    		return Value();
-    	});
+    	insertSpace(pos, 1);
     }
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
@@ -320,14 +342,14 @@ public:
 };
 
 
-template <>
-struct PkdStructSizeType<PackedSizedStruct> {
+template <typename T, Int V, PkdSearchType S>
+struct PkdStructSizeType<PackedSizedStruct<T, V, S>> {
 	static const PackedSizeType Value = PackedSizeType::FIXED;
 };
 
-template <>
-struct StructSizeProvider<PackedSizedStruct> {
-    static const Int Value = 0;
+template <typename T, Int V, PkdSearchType S>
+struct StructSizeProvider<PackedSizedStruct<T, V, S>> {
+    static const Int Value = PackedSizedStruct<T, V, S>::Blocks;
 };
 
 

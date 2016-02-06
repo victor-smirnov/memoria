@@ -71,7 +71,7 @@ template <> class STATIC_ASSERT_FAILURE <true> {};
         }
 
 #define MEMORIA_ASSERT_NOT_EMPTY(Operand)                                                                       \
-        if (Operand.isEmpty()) {                                                                                    \
+        if (Operand.is_null()) {                                                                                    \
             throw ::memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "<<#Operand<<" must not be 0"); \
         }
 

@@ -25,6 +25,7 @@
 
 #include <memoria/prototypes/bt/tools/bt_tools_size_list_builder.hpp>
 #include <memoria/prototypes/bt/tools/bt_tools_substreamgroup_dispatcher.hpp>
+#include <memoria/core/tools/uuid.hpp>
 
 
 namespace memoria   {
@@ -48,8 +49,8 @@ public:
 
 
 //    static_assert(std::is_trivial<Metadata>::value, "TreeNodeBase: metadata must be a trivial type");
-    static_assert(std::is_trivial<Base_>::value,    "TreeNodeBase: base must be a trivial type");
-    static_assert(std::is_trivial<ID>::value,       "TreeNodeBase: ID must be a trivial type");
+//    static_assert(std::is_trivial<Base_>::value,    "TreeNodeBase: base must be a trivial type");
+//    static_assert(std::is_trivial<ID>::value,       "TreeNodeBase: ID must be a trivial type");
 
     static const Int StreamsStart               = 1;
 
@@ -225,12 +226,9 @@ public:
         handler->value("LEAF",  &leaf_);
         handler->value("LEVEL", &level_);
 
-        IDValue next_id(next_leaf_id_);
+        handler->value("NEXT_LEAF_ID_", &next_leaf_id_);
 
-        handler->value("NEXT_LEAF_ID_", &next_id);
-
-        IDValue parent_id(parent_id_);
-        handler->value("PARENT_ID", &parent_id);
+        handler->value("PARENT_ID", &parent_id_);
         handler->value("PARENT_IDX", &parent_idx_);
 
         allocator()->generateDataEvents(handler);
@@ -321,10 +319,10 @@ template <
 class BranchNode: public TreeNodeBase<typename Types::Metadata, typename Types::NodeBase>
 {
 
-    static_assert(
-            std::is_trivial<TreeNodeBase<typename Types::Metadata, typename Types::NodeBase>>::value,
-            "TreeNodeBase must be a trivial type"
-            );
+//    static_assert(
+//            std::is_trivial<TreeNodeBase<typename Types::Metadata, typename Types::NodeBase>>::value,
+//            "TreeNodeBase must be a trivial type"
+//            );
 
     static const Int  BranchingFactor                                           = PackedTreeBranchingFactor;
 
@@ -911,7 +909,7 @@ public:
 
         for (Int c = room_start; c < room_start + room_length; c++)
         {
-            values[c] = 0;
+            values[c] = Value();
         }
     }
 
@@ -954,7 +952,7 @@ public:
 //        this->sums(room_start, room_end, sums);
         removeSpace(room_start, room_end);
 
-        return -sums;
+        return sums;
     }
 
     void removeSpace(Int room_start, Int room_end)
@@ -1540,7 +1538,7 @@ public:
 
         Int size = this->size();
 
-        FieldFactory<Value>::serialize(buf, *values(), size);
+        FieldFactory<Value>::serialize(buf, values(), size);
     }
 
     struct DeserializeFn {
@@ -1560,7 +1558,7 @@ public:
 
         Int size = this->size();
 
-        FieldFactory<Value>::deserialize(buf, *values(), size);
+        FieldFactory<Value>::deserialize(buf, values(), size);
     }
 
     static void InitType() {}
@@ -1584,7 +1582,7 @@ public:
 
     static const UInt PAGE_HASH = TypeHash<Base>::Value;
 
-    static_assert(std::is_trivial<TreeNode<Types>>::value, "TreeNode must be a trivial type");
+//    static_assert(std::is_trivial<TreeNode<Types>>::value, "TreeNode must be a trivial type");
 
 
     template <

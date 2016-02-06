@@ -17,6 +17,37 @@ namespace memoria {
 
 void Expand(std::ostream& os, Int level);
 
+namespace {
+
+template <typename T>
+struct OutputHelepr {
+	static std::ostream& out(std::ostream& o, const T& value)
+	{
+		o<<value;
+		return o;
+	}
+};
+
+template <>
+struct OutputHelepr<Byte> {
+	static std::ostream& out(std::ostream& o, const Byte& value)
+	{
+		o<<(Int)(UByte)value;
+		return o;
+	}
+};
+
+template <>
+struct OutputHelepr<UByte> {
+	static std::ostream& out(std::ostream& o, const UByte& value)
+	{
+		o<<(Int)value;
+		return o;
+	}
+};
+
+}
+
 template <typename V>
 void dumpArray(std::ostream& out, Int count, function<V(Int)> fn)
 {
@@ -53,13 +84,8 @@ void dumpArray(std::ostream& out, Int count, function<V(Int)> fn)
         {
             out<<hex;
             out.width(width);
-            if (sizeof(V) == 1)
-            {
-                out<<(Int)(UByte)fn(c + d);
-            }
-            else {
-                out<<fn(c + d);
-            }
+
+            OutputHelepr<V>::out(out, fn(c + d));
         }
 
         out<<dec<<endl;
@@ -109,13 +135,7 @@ void dumpSymbols(ostream& out_, Int size_, Int bits_per_symbol, function<V(Int)>
             {
                 out_<<hex;
                 out_.width(width);
-
-                if (sizeof(V) > 1) {
-                    out_<<fn(c + d);
-                }
-                else {
-                    out_<<(Int)fn(c + d);
-                }
+                OutputHelepr<V>::out(out_, fn(c + d));
             }
 
             out_<<dec<<endl;
@@ -161,13 +181,8 @@ void dumpArray(std::ostream& out_, const T* data, Int count)
         {
             out_<<hex;
             out_.width(width);
-            if (sizeof(T) == 1)
-            {
-                out_<<(Int)(UByte)data[c + d];
-            }
-            else {
-                out_<<data[c + d];
-            }
+
+            OutputHelepr<T>::out(out_, data[c + d]);
         }
 
         out_<<dec<<endl;

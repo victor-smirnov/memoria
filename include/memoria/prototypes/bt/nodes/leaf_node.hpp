@@ -890,12 +890,14 @@ public:
     	{
     		if (obj != nullptr)
     		{
-    			if (StreamStart)
-    			{
-    				accum[Offset - 1] += obj->size();
-    			}
+//    			if (StreamStart)
+//    			{
+//    				accum[Offset - 1] += obj->size();
+//    			}
+//
+//    			obj->template max<Offset>(accum);
 
-    			obj->template max<Offset>(accum);
+    			BatchEntryMaxHelper<Offset, StreamStart>::assign_max(accum, obj);
     		}
     	}
     };

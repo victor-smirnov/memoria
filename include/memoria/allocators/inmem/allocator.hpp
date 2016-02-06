@@ -63,8 +63,8 @@ private:
         PageOp(): id_(), page_(NULL), op_(NONE)                         {}
     };
 
-    typedef std::unordered_map<ID, Page*, IDKeyHash, IDKeyEq>                   IDPageMap;
-    typedef std::unordered_map<ID, PageOp, IDKeyHash, IDKeyEq>                  IDPageOpMap;
+    typedef std::unordered_map<ID, Page*, UUIDKeyHash, UUIDKeyEq>                   IDPageMap;
+    typedef std::unordered_map<ID, PageOp, UUIDKeyHash, UUIDKeyEq>                  IDPageOpMap;
     typedef std::unordered_map<BigInt, CtrShared*>                              CtrSharedMap;
 
 

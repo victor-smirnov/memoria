@@ -328,6 +328,74 @@ struct TupleEntryAccessor {
 };
 
 
+
+template <Int Offset, bool StreamStart>
+struct BatchEntryMaxHelper {
+	template <typename T1, typename T2>
+	static void assign_max(T1&& accum, T2&&obj)
+	{
+		obj->template max<Offset>(accum);
+	}
+
+	template <typename T1, typename T2>
+	static void remove_entry(T1&& accum, T2&&obj, Int idx)
+	{
+		obj->template _remove<Offset>(idx, accum);
+	}
+
+	template <typename T1, typename T2, typename T3>
+	static void insert_entry(T1&& accum, T2&& entry, T3&&obj, Int idx)
+	{
+		obj->template _insert<Offset>(idx, entry, accum);
+	}
+};
+
+template <>
+struct BatchEntryMaxHelper<0, true> {
+	template <typename T1, typename T2>
+	static void assign_max(T1&& accum, T2&& obj)
+	{
+		accum[0] = obj->size();
+	}
+
+	template <typename T1, typename T2>
+	static void remove_entry(T1&& accum, T2&&obj, Int idx)
+	{
+		accum[0] -= 1;
+	}
+
+	template <typename T1, typename T2, typename T3>
+	static void insert_entry(T1&& accum, T2&& entry, T3&&obj, Int idx)
+	{
+		accum[0] += 1;
+	}
+};
+
+template <>
+struct BatchEntryMaxHelper<1, true> {
+	template <typename T1, typename T2>
+	static void assign_max(T1&& accum, T2&& obj)
+	{
+		accum[0] = obj->size();
+		obj->template max<1>(accum);
+	}
+
+	template <typename T1, typename T2>
+	static void remove_entry(T1&& accum, T2&&obj, Int idx)
+	{
+		obj->template _remove<1>(idx, accum);
+		accum[0] -= 1;
+	}
+
+	template <typename T1, typename T2, typename T3>
+	static void insert_entry(T1&& accum, T2&& entry, T3&&obj, Int idx)
+	{
+		obj->template _insert<1>(idx, entry, accum);
+		accum[0] += 1;
+	}
+};
+
+
 }
 }
 

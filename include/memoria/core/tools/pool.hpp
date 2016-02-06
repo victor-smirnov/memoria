@@ -37,7 +37,7 @@ public:
     {
         for (Int c = 0; c < Size; c++)
         {
-            ids_[c] = 0;
+            ids_[c] = ID();
         }
     }
 
@@ -49,11 +49,9 @@ public:
 
     Object* get(const ID& id)
     {
-        const T idv = id.value();
-
         for (Int c = 0; c < Max; c++)
         {
-            if (ids_[c] == idv)
+            if (ids_[c] == id)
             {
                 return &objects_[c];
             }
@@ -87,7 +85,7 @@ public:
             if (ids_[c] == id)
             {
                 size_--;
-                ids_[c] = 0;
+                ids_[c] = ID();
                 return;
             }
         }
@@ -108,7 +106,7 @@ public:
         Int cnt = 0;
         for (Int c = 0; c < Size; c++)
         {
-            if (ids_[c] == 0)
+            if (ids_[c] == ID())
             {
                 cnt++;
             }
@@ -120,14 +118,14 @@ public:
     void clear() {
         for (Int c = 0; c < Size; c++)
         {
-            ids_[c] = ID(0);
+            ids_[c] = ID();
         }
     }
 
 private:
     Int selectFirst0Idx()
     {
-        const ID EMPTY(0);
+        const ID EMPTY;
         for (Int c = 0; c < Size; c++)
         {
             if (ids_[c] == EMPTY)

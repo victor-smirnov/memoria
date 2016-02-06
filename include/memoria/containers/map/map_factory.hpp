@@ -198,11 +198,13 @@ struct MapBTTypesBase<Profile, Indexes_, UUID, Value_>: public BTTypes<Profile, 
 
     using MapStreamTF = StreamTF<
         	TL<
-					PackedFSEArray<PackedFSEArrayTypes<ValueType>>,
-    				TL<PkdFMTreeT<Key, Indexes>>
+				TL<PackedSizedStruct<>>,
+				TL<PkdFMTreeT<Key, Indexes>>,
+				TL<PackedFSEArray<PackedFSEArrayTypes<ValueType>>>
+
     		>,
     		TL<
-    				TL<>, TL<TL<>>
+    				TL<TL<>>, TL<TL<>>, TL<TL<>>
     		>,
 
 		FSEBranchStructTF
@@ -266,13 +268,16 @@ class CtrTF<Profile, memoria::Map<Key, Value>, T>: public CtrTF<Profile, memoria
 
 
 template <typename Profile, typename Value, typename T>
-class CtrTF<Profile, memoria::Map<double, Value>, T>: public CtrTF<Profile, memoria::BTSingleStream, T>
+class CtrTF<Profile, memoria::Map<UUID, Value>, T>: public CtrTF<Profile, memoria::BTSingleStream, T>
 {
 	using Base = CtrTF<Profile, memoria::BTSingleStream, T>;
 public:
     struct Types: Base::Types
     {
     	using BaseTypes = typename Base::Types;
+
+    	using BranchStreamsStructList 	= FailIf<typename BaseTypes::BranchStreamsStructList, false>;
+    	using LeafStreamsStructList 	= FailIf<typename BaseTypes::LeafStreamsStructList, false>;
 
     	typedef BTCtrTypes<Types>                                               CtrTypes;
     	typedef BTIterTypes<Types>                                              IterTypes;

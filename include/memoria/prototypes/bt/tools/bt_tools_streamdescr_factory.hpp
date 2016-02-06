@@ -23,6 +23,7 @@
 #include <memoria/core/packed/tree/fse_max/packed_fse_max_tree.hpp>
 #include <memoria/core/packed/tree/vle/packed_vle_quick_tree.hpp>
 #include <memoria/core/packed/tree/vle/packed_vle_dense_tree.hpp>
+#include <memoria/core/packed/misc/packed_sized_struct.hpp>
 
 #include <memoria/core/tools/i7_codec.hpp>
 #include <memoria/core/tools/elias_codec.hpp>
@@ -52,9 +53,20 @@ struct FSEBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>> {
 	using Type = PkdFQTreeT<KeyType, Indexes>;
 };
 
+template <typename KeyType>
+struct FSEBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, 0>> {
+	using Type = PackedSizedStruct<KeyType, 0, PkdSearchType::SUM>;
+};
+
+
 template <typename KeyType, Int Indexes>
 struct FSEBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 	using Type = PkdFMTreeT<KeyType, Indexes>;
+};
+
+template <typename KeyType>
+struct FSEBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, 0>> {
+	using Type = PackedSizedStruct<KeyType, 0, PkdSearchType::MAX>;
 };
 
 

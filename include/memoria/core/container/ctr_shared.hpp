@@ -38,10 +38,10 @@ private:
 public:
 
     ContainerShared(const UUID& name0):
-        references_(0), name_(name0), root_(0), root_log_(0), updated_(false), children_(), parent_(NULL) {}
+        references_(0), name_(name0), root_(), root_log_(), updated_(false), children_(), parent_(NULL) {}
 
     ContainerShared(const UUID& name0, CtrShared* parent):
-        references_(0), name_(name0), root_(0), root_log_(0), updated_(false), children_(), parent_(parent) {}
+        references_(0), name_(name0), root_(), root_log_(), updated_(false), children_(), parent_(parent) {}
 
     //FIXME virtual destructor
     ~ContainerShared() throw ()
@@ -113,7 +113,7 @@ public:
     {
         if (children_.getSize() < child->name().lo())
         {
-            for (Int c = children_.getSize(); c < child->name(); c++)
+            for (Int c = children_.getSize(); c < child->name().lo(); c++)
             {
                 children_.append(NULL);
             }
@@ -181,7 +181,7 @@ public:
         if (updated())
         {
             root()      = root_log();
-            root_log()  = 0;
+            root_log().clear();
             updated()   = false;
         }
 
@@ -198,8 +198,8 @@ public:
     {
         if (updated())
         {
-            root_log()  = 0;
-            updated()   = false;
+            root_log().clear();
+            updated() = false;
         }
 
         for (Int c = 0; c < children_.getSize(); c++)

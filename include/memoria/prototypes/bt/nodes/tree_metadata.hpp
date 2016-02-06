@@ -19,10 +19,6 @@ namespace memoria    {
 using namespace memoria::bt;
 
 
-
-// FIXME: Make one more level of root metadata hierarchy and
-// move model_name and page_size fields into it.
-
 template <typename ID, Int Streams>
 class BalancedTreeMetadata
 {
@@ -36,7 +32,7 @@ class BalancedTreeMetadata
 
     Int     page_size_;
 
-    ID      roots_[2];
+    ID      roots_[ROOTS];
 
     BigInt  txn_id_;
 
@@ -98,8 +94,7 @@ public:
 
         for (Int c = 0; c < ROOTS; c++)
         {
-            IDValue id(roots_[c]);
-            handler->value("ROOT",  &id);
+            handler->value("ROOT",  &roots_[c]);
         }
 
         handler->endLine();
@@ -117,7 +112,7 @@ public:
 
         for (Int c = 0; c < ROOTS; c++)
         {
-            FieldFactory<ID>::serialize(buf, roots(c));
+            FieldFactory<ID>::serialize(buf, roots_[c]);
         }
 
         FieldFactory<BigInt>::serialize(buf, txn_id_);
@@ -131,18 +126,18 @@ public:
 
         for (Int c = 0; c < ROOTS; c++)
         {
-            FieldFactory<ID>::deserialize(buf, roots(c));
+            FieldFactory<ID>::deserialize(buf, roots_[c]);
         }
 
         FieldFactory<BigInt>::deserialize(buf, txn_id_);
     }
 
-    const ID& roots(Int idx) const {
-        return roots_[idx];
+    const ID& roots(const UUID& idx) const {
+        return roots_[idx.lo()];
     }
 
-    ID& roots(Int idx) {
-        return roots_[idx];
+    ID& roots(const UUID& idx) {
+        return roots_[idx.lo()];
     }
 
     BigInt& txn_id() {

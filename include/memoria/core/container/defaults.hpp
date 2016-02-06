@@ -30,7 +30,7 @@ template <
 >
 struct BasicContainerCollectionCfg {
 
-    typedef PageID<IDValueType>                                                 ID;
+    typedef UUID                                                 				ID;
     typedef AbstractPage <ID, FlagsCount>                                       Page;
     typedef TransactionType                                                     Transaction;
 

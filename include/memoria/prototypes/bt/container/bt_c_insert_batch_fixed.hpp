@@ -67,7 +67,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchFixedName)
     	ID child_id_;
     public:
     	BranchNodeEntryT(const BranchNodeEntryT& accum, const ID& id): accum_(accum), child_id_(id) {}
-    	BranchNodeEntryT() : child_id_(0) {}
+    	BranchNodeEntryT() : child_id_() {}
 
     	const BranchNodeEntry& accum() const {return accum_;}
     	const ID& child_id() const {return child_id_;}

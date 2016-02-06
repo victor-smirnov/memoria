@@ -18,7 +18,7 @@ namespace memoria {
 
 template <typename PkdStruct>
 struct AccumType {
-	using Type = BigInt;
+	using Type = typename PkdStruct::Value;
 };
 
 template <typename PkdStruct>

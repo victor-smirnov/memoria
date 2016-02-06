@@ -45,8 +45,7 @@ template <typename Types> class Iter;
 
 template <typename Profile> class MetadataRepository;
 
-constexpr UUID CTR_DEFAULT_NAME           = UUID(-1);
-constexpr BigInt INITAL_CTR_NAME_COUNTER    = 1000000;
+constexpr UUID CTR_DEFAULT_NAME = UUID(-1ull, -1ull);
 
 class CtrInitData {
     UUID master_name_;
@@ -63,7 +62,7 @@ public:
     CtrInitData(Int master_hash):
         master_name_(),
         master_ctr_type_hash_(master_hash),
-        owner_ctr_type_hash_(0)
+        owner_ctr_type_hash_()
     {}
 
     const auto& master_name() const {
@@ -189,7 +188,7 @@ public:
 
     struct CtrInterfaceImpl: public ContainerInterface {
 
-        virtual bool check(const void* id, BigInt name, void* allocator) const
+        virtual bool check(const void* id, const UUID& name, void* allocator) const
         {
             Allocator* alloc = T2T<Allocator*>(allocator);
             ID* root_id = T2T<ID*>(id);
@@ -202,7 +201,7 @@ public:
 
         virtual void walk(
                 const void* id,
-                BigInt name,
+                const UUID& name,
                 void* allocator,
                 ContainerWalker* walker
         ) const
@@ -264,7 +263,7 @@ public:
 
     UUID getModelName(ID root_id)
     {
-        return -1;
+        return UUID();
     }
 
     CtrShared* createCtrShared(const UUID& name)
@@ -538,7 +537,7 @@ public:
     MEMORIA_PUBLIC Ctr(Allocator* allocator, const ID& root_id, const CtrInitData& ctr_init_data, const char* mname = NULL):
         Base(ctr_init_data),
         allocator_(allocator),
-        name_(-1),
+        name_(),
         model_type_name_(mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname()),
         debug_(false)
     {
@@ -628,10 +627,6 @@ public:
 
     void initCtr(Allocator* allocator, const UUID& name, Int command, const char* mname = NULL)
     {
-        MEMORIA_ASSERT(name, >=, 0);
-
-        //auto& self = this->self();
-
         allocator_          = allocator;
         name_               = name;
         model_type_name_    = mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname();
@@ -647,7 +642,7 @@ public:
 
     void initCtr(Allocator* allocator, const ID& root_id, const char* mname = NULL)
     {
-        MEMORIA_ASSERT_EXPR(root_id.isNotEmpty(), "Container root ID must not be empty");
+        MEMORIA_ASSERT_EXPR(!root_id.is_null(), "Container root ID must not be empty");
 
 //        this->init_data().set_master_name(master_name);
 

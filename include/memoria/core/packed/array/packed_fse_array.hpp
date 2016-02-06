@@ -325,7 +325,7 @@ public:
     	{
     		for (Int block = 0; block < Blocks; block++)
     		{
-    			values[c * Blocks + block] = 0;
+    			values[c * Blocks + block] = Value();
     		}
     	}
     }

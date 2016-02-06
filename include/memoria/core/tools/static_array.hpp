@@ -220,7 +220,7 @@ public:
     {
         for (Int c = 0; c < Indexes; c++)
         {
-            values_[c] = 0;
+            values_[c] = ElementType_();
         }
     }
 
@@ -237,10 +237,10 @@ public:
     template <typename T>
     StaticVector(std::initializer_list<T> list)
     {
-    	T last = 0;
+    	T last = T();
 
         Int idx = 0;
-        for (T e: list)
+        for (const T& e: list)
         {
             last = values_[idx++] = e;
         }

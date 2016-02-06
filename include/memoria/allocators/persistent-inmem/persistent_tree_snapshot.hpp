@@ -53,7 +53,7 @@ public:
 
 private:
 	using RootMapType 	= Ctr<typename CtrTF<Profile, Root>::CtrTypes>;
-	using CtrSharedMap 	= std::unordered_map<BigInt, CtrShared*>;
+	using CtrSharedMap 	= std::unordered_map<UUID, CtrShared*, UUIDKeyHash, UUIDKeyEq>;
 
 	class Properties: public IAllocatorProperties {
 	public:
@@ -120,7 +120,7 @@ public:
 			ctr_op = CTR_FIND;
 		}
 
-		root_map_ = std::make_unique<RootMapType>(this, ctr_op, 0);
+		root_map_ = std::make_unique<RootMapType>(this, ctr_op, UUID());
 	}
 
 	Snapshot(HistoryNode* history_node, HistoryTree* history_tree):
@@ -144,7 +144,7 @@ public:
 			ctr_op = CTR_FIND;
 		}
 
-		root_map_ = std::make_unique<RootMapType>(this, ctr_op, 0);
+		root_map_ = std::make_unique<RootMapType>(this, ctr_op, UUID());
 	}
 
 	virtual ~Snapshot()
@@ -275,6 +275,10 @@ public:
 					shared->set_page(page_opt.value().page());
 				}
 				else {
+					persistent_tree_.dump();
+
+					persistent_tree_.find(id);
+
 					throw vapi::Exception(MA_SRC, SBuf()<<"Page is not found for the specified id: "<<id);
 				}
 			}
@@ -329,6 +333,8 @@ public:
 					}
 				}
 				else {
+					persistent_tree_.dump();
+
 					throw vapi::Exception(MA_SRC, SBuf()<<"Page is not found for the specified id: "<<id);
 				}
 			}
@@ -584,7 +590,7 @@ public:
 
 	virtual bool hasRoot(const UUID& name)
 	{
-		return get_value_for_key(name) != ID(0);
+		return get_value_for_key(name) != ID();
 	}
 
 	virtual UUID createCtrName()
@@ -609,7 +615,7 @@ public:
 
 		for (auto iter = root_map_->Begin(); !iter.isEnd(); )
 		{
-			BigInt ctr_name = iter.key();
+			auto ctr_name = iter.key();
 
 			PageG page = this->getPage(iter.value(), ctr_name);
 
@@ -718,9 +724,9 @@ protected:
     	persistent_tree_.assign(page->id(), Value(page, txn_id));
     }
 
-    void set_root(BigInt name, const ID &page_id)
+    void set_root(const UUID& name, const ID &page_id)
     {
-    	if (name != 0)
+    	if (!name.is_null())
     	{
     		this->set_value_for_key(name, page_id);
     	}
@@ -730,12 +736,12 @@ protected:
     }
 
 
-    void remove_by_key(UUID name)
+    void remove_by_key(const UUID& name)
     {
         root_map_->remove(name);
     }
 
-    void set_value_for_key(UUID name, const ID& page_id)
+    void set_value_for_key(const UUID& name, const ID& page_id)
     {
     	auto iter = root_map_->find(name);
 
@@ -748,9 +754,9 @@ protected:
     	}
     }
 
-    ID get_value_for_key(BigInt name)
+    ID get_value_for_key(const UUID& name)
     {
-    	if (name != 0)
+    	if (!name.is_null())
     	{
     		auto iter = root_map_->find(name);
 
@@ -759,7 +765,7 @@ protected:
     			return iter.value();
     		}
     		else {
-    			return ID(0);
+    			return ID();
     		}
     	}
     	else {
@@ -767,9 +773,9 @@ protected:
     	}
     }
 
-    virtual void new_root(BigInt name, const ID &page_id)
+    virtual void new_root(const UUID& name, const ID &page_id)
     {
-    	if (page_id.isNull())
+    	if (page_id.is_null())
     	{
     		remove_root(name);
     	}
@@ -778,9 +784,9 @@ protected:
     	}
     }
 
-    void remove_root(BigInt name)
+    void remove_root(const UUID& name)
     {
-    	if (name != 0)
+    	if (!name.is_null())
     	{
     		this->remove_by_key(name);
     	}

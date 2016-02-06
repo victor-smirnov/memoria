@@ -123,7 +123,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return node->root_metadata().model_name();
     }
 
-    MEMORIA_CONST_FN_WRAPPER_RTN(GetModelNameFn, getModelNameFn, Int);
+    MEMORIA_CONST_FN_WRAPPER_RTN(GetModelNameFn, getModelNameFn, UUID);
 
 
     template <typename Node>
@@ -132,7 +132,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         node->root_metadata().model_name() = name;
     }
 
-    MEMORIA_CONST_FN_WRAPPER_RTN(SetModelNameFn, setModelNameFn, Int);
+    MEMORIA_CONST_FN_WRAPPER(SetModelNameFn, setModelNameFn);
 
 
 
@@ -199,7 +199,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         Base::setCtrShared(shared);
     }
 
-    void initCtr(const ID& root_id, BigInt name)
+    void initCtr(const ID& root_id, const UUID& name)
     {
     	// FIXME: Why root_id is not in use here?
     	CtrShared* shared = self().getOrCreateCtrShared(name);
@@ -371,7 +371,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         node->master_ctr_type_hash()    = self.init_data().master_ctr_type_hash();
         node->owner_ctr_type_hash()     = self.init_data().owner_ctr_type_hash();
 
-        node->parent_id()               = ID(0);
+        node->parent_id()               = ID();
         node->parent_idx()              = 0;
 
         node->set_root(root);
@@ -472,7 +472,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         NodeBaseG root = self.allocator().getPage(self.root(), self.master_name());
 
-        return root->root_metadata().roots(name).isSet();
+        return !root->root_metadata().roots(name).is_null();
     }
 
  private:

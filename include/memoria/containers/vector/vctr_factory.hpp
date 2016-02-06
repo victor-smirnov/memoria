@@ -50,7 +50,7 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
 
 
     typedef BalancedTreeMetadata<
-                typename Base::ID,
+                FailIf<typename Base::ID, false>,
                 ListSize<StreamDescriptors>::Value
     >                                                                           Metadata;
 
