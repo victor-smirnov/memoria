@@ -29,53 +29,10 @@ vector<Byte> create_vector(size_t size, Byte fill_value = 0)
 	return data;
 }
 
-//class T1 {};
-//class T2 {};
-//class T3 {};
-//
-//class TT1 {};
-//class TT2 {};
-//class TT3 {};
-//
-//
-//namespace memoria {
-//
-//template <>
-//struct StructSizeProvider<T1> {
-//    static const Int Value = 0;
-//};
-//
-//template <>
-//struct StructSizeProvider<T2> {
-//    static const Int Value = 1;
-//};
-//
-//
-//template <>
-//struct StructSizeProvider<T3> {
-//    static const Int Value = 1;
-//};
-//}
-//
-//
-//using List = TL<
-//	TL<
-//		TL<T1>,
-//		TL<T2>,
-//		TL<T3>
-//	>
-//>;
-//
-//using BranchList = TL<TT1, TT2, TT3>;
-//
-//
+
 
 int main()
 {
-//	TypePrinter<BrachStructAccessorTool<List, BranchList, IntList<0, 1>>>::print(cout)<<endl;
-
-
-
 	MEMORIA_INIT(DefaultProfile<>);
 
 	DCtr<Vector<Byte>>::initMetadata();
@@ -93,9 +50,9 @@ int main()
 		ctr1->seek(0).insert(data1.begin(), data1.size());
 
 
-		txn1->freeze();
+		txn1->commit();
 
-//		FSDumpAllocator(txn1, "pdump1.dir");
+		FSDumpAllocator(txn1, "pdump1.dir");
 
 		cout<<"Create new snapshot"<<endl;
 		auto txn2 = txn1->branch();
@@ -105,17 +62,12 @@ int main()
 
 		vector<Byte> data2 = create_vector(10000, 0x22);
 
-		DebugCounter = 1;
 		auto iter = ctr2->End();
-
-		iter.dump();
-
 		ctr2->End().insert(data2.begin(), data2.size());
-
 
 		FSDumpAllocator(txn2, "pdump2_t.dir");
 
-		txn2->freeze();
+		txn2->commit();
 		txn2->set_as_master();
 
 		cout<<"Clear Txn1"<<endl;

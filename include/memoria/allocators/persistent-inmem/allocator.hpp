@@ -359,7 +359,7 @@ private:
 		history_tree_->set_root(leaf);
 
 		SnapshotT snapshot(history_tree_, this);
-		snapshot.freeze();
+		snapshot.commit();
 	}
 
 	PersistentInMemAllocatorT(Int):
