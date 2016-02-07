@@ -49,14 +49,12 @@ int main()
 		vector<Byte> data1 = create_random_vector(10000);
 		ctr1->seek(0).insert(data1.begin(), data1.size());
 
-
 		txn1->commit();
 
 		FSDumpAllocator(txn1, "pdump1.dir");
 
 		cout<<"Create new snapshot"<<endl;
 		auto txn2 = txn1->branch();
-
 
 		auto ctr2 = find<Vector<Byte>>(txn2, ctr_name);
 
@@ -101,6 +99,12 @@ int main()
 	}
 	catch (vapi::Exception* ex) {
 		cout<<ex->source()<<": "<<ex->message()<<endl;
+	}
+	catch (vapi::MemoriaThrowable& ex) {
+		ex.dump(cout);
+	}
+	catch (PackedOOMException& ex) {
+		ex.dump(cout);
 	}
 
 	MetadataRepository<DefaultProfile<>>::cleanup();

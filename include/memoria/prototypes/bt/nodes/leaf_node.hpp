@@ -217,14 +217,7 @@ public:
 
     void layout(const Position& sizes)
     {
-        UBigInt streams = 0;
-
-        for (Int c = 0; c < Streams; c++)
-        {
-            streams |= 1<<c;
-        }
-
-        layout(streams);
+        layout(-1ull);
     }
 
 
@@ -383,7 +376,7 @@ public:
         template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename Tree>
         void stream(const Tree* tree, const Position& sizes, Int* mem_used, Int except)
         {
-            if (Idx != except)
+            if (StreamIdx != except)
             {
                 Int size = sizes[StreamIdx];
 
@@ -394,53 +387,6 @@ public:
             }
         }
     };
-
-    struct Capacity3Fn {
-        template <typename Tree>
-        Int stream(const Tree* tree, Int free_mem)
-        {
-            Int size = tree != nullptr ? tree->size() : 0;
-
-            Int capacity = Tree::elements_for(free_mem) - size;
-
-            return capacity >= 0 ? capacity : 0;
-        }
-    };
-
-
-    Int capacity(const Position& sizes, Int stream) const
-    {
-        Position fillment = this->sizes();
-
-        for (Int c = 0; c < Streams; c++)
-        {
-            fillment[c] += sizes[c];
-        }
-
-        Int mem_used = 0;
-        this->processSubstreamGroups(MemUsedFn(), fillment, &mem_used, stream);
-
-        Int client_area = MyType::client_area(this->page_size(), this->is_root());
-
-        return Dispatcher::dispatch(stream, allocator(), Capacity3Fn(), client_area - mem_used);
-    }
-
-    Int capacity(const Int* sizes, Int stream) const
-    {
-        Position psizes;
-        for (Int c = 0; c < Streams; c++) psizes[c] = sizes[c];
-
-        return capacity(psizes, stream);
-    }
-
-
-
-
-    Int capacity(Int stream) const
-    {
-        Position sizes = this->sizes();
-        return capacity(sizes, stream);
-    }
 
 
 
@@ -508,6 +454,42 @@ public:
         Int client_area     = PackedAllocator::client_area(free_space, Streams);
 
         return client_area >= mem_size;
+    }
+
+
+    struct SingleStreamCapacityFn {
+
+        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename Tree>
+        void stream(const Tree* tree, Int size, Int& mem_size)
+        {
+        	mem_size += Tree::packed_block_size(size);
+        }
+    };
+
+
+    Int stream_block_size(Int size) const
+    {
+    	Int mem_size = 0;
+
+    	StreamDispatcher<0>::dispatchAllStatic(SingleStreamCapacityFn(), size, mem_size);
+
+    	return mem_size;
+    }
+
+
+    Int single_stream_capacity(Int max_hops) const
+    {
+    	Int min = sizes()[0];
+    	Int max = this->page_size() * 8;
+
+    	Int free_space      = MyType::free_space(this->page_size(), this->is_root());
+    	Int client_area     = PackedAllocator::client_area(free_space, Streams);
+
+    	Int total = FindTotalElementsNumber(min, max, client_area, max_hops, [&](Int stream_size){
+    		return stream_block_size(stream_size);
+    	});
+
+    	return total - min;
     }
 
 
@@ -890,14 +872,7 @@ public:
     	{
     		if (obj != nullptr)
     		{
-//    			if (StreamStart)
-//    			{
-//    				accum[Offset - 1] += obj->size();
-//    			}
-//
-//    			obj->template max<Offset>(accum);
-
-    			BatchEntryMaxHelper<Offset, StreamStart>::assign_max(accum, obj);
+    			obj->template max<Offset>(accum);
     		}
     	}
     };
@@ -937,17 +912,6 @@ public:
     	return processStream<Path>(LeafSumsFn(), std::forward<Args>(args)...);
     }
 
-//    void sums(BranchNodeEntry& sums) const
-//    {
-//    	processAllSubstreamsAcc(BranchNodeEntryHandler(), sums);
-//    }
-//
-//    BranchNodeEntry sums() const
-//    {
-//        BranchNodeEntry sums;
-//        processAllSubstreamsAcc(BranchNodeEntryHandler(), sums);
-//        return sums;
-//    }
 
     void max(BranchNodeEntry& entry) const
     {

@@ -153,47 +153,43 @@ static Int FindTotalElementsNumber3(Int block_size, Fn&& fn)
         else {
 
             max_size = middle;
-
-//            for (Int c = 1; c < 64; c++)
-//            {
-//                if (fn.block_size(middle + c) <= block_size)
-//                {
-//                    max_size = middle + c;
-//                }
-//                else {
-//                    return max_size;
-//                }
-//            }
-//
-//            cout<<fn.block_size(middle + 63)<<endl;
-//
-//            throw Exception(MA_SRC, "Can't find max_size in 64 steps. Stop.");
-
             return max_size;
         }
     }
 
-
     max_size = first;
 
     return max_size;
-//
-//    for (Int c = 1; c < 64; c++)
-//    {
-//        Int bs = fn.block_size(first + c);
-//        if (bs <= block_size)
-//        {
-//            max_size = first + c;
-//        }
-//        else {
-//            return max_size;
-//        }
-//    }
-//
-//    throw Exception(MA_SRC, "Can't find max_size in 64 steps. Stop.");
-//
-//    return max_size;
 }
+
+
+
+template <typename Fn>
+static Int FindTotalElementsNumber(Int first, Int last, Int block_size, Int max_hops, Fn&& fn)
+{
+    while (first < last - 1 && max_hops > 0)
+    {
+        Int middle = (first + last) / 2;
+
+        Int size = fn(middle);
+
+        if (size < block_size)
+        {
+        	max_hops--;
+            first = middle;
+        }
+        else if (size > block_size)
+        {
+            last = middle;
+        }
+        else {
+            return middle;
+        }
+    }
+
+    return first;
+}
+
 
 
 

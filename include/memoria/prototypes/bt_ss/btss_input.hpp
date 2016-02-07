@@ -264,7 +264,7 @@ public:
 
 	virtual Int findCapacity(const NodeBaseG& leaf, Int size)
 	{
-		Int capacity = this->ctr_.getLeafNodeCapacity(leaf, 0);
+		Int capacity = this->ctr_.getLeafNodeCapacity(leaf);
 
 		if (capacity > size)
 		{

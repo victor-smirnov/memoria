@@ -248,7 +248,7 @@ public:
     {
         stringstream str;
 
-        str<<name<<"__"<<root;
+        str<<descr<<": "<<name;
 
         pushFolder(str.str().c_str());
 

@@ -24,6 +24,7 @@
 #include <memoria/core/packed/tree/vle/packed_vle_quick_tree.hpp>
 #include <memoria/core/packed/tree/vle/packed_vle_dense_tree.hpp>
 #include <memoria/core/packed/misc/packed_sized_struct.hpp>
+#include <memoria/core/packed/misc/packed_empty_struct.hpp>
 
 #include <memoria/core/tools/i7_codec.hpp>
 #include <memoria/core/tools/elias_codec.hpp>
@@ -55,7 +56,7 @@ struct FSEBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>> {
 
 template <typename KeyType>
 struct FSEBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, 0>> {
-	using Type = PackedSizedStruct<KeyType, 0, PkdSearchType::SUM>;
+	using Type = PackedEmptyStruct<KeyType, PkdSearchType::SUM>;
 };
 
 
@@ -66,7 +67,7 @@ struct FSEBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
 template <typename KeyType>
 struct FSEBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, 0>> {
-	using Type = PackedSizedStruct<KeyType, 0, PkdSearchType::MAX>;
+	using Type = PackedEmptyStruct<KeyType, PkdSearchType::MAX>;
 };
 
 
@@ -298,19 +299,6 @@ namespace {
 
 	template <template <typename> class BranchStructTF>
 	struct BranchStructListBuilderT<TL<>, BranchStructTF>: HasType<TL<>>{};
-
-
-
-	template <typename List> struct IncStreamStartStructsIndexSizeT;
-	template <typename List> using IncStreamStartStructsIndexSize = typename IncStreamStartStructsIndexSizeT<List>::Type;
-
-	template <PkdSearchType SearchType, typename KeyType, Int Indexes, typename... Tail>
-	struct IncStreamStartStructsIndexSizeT<TL<IdxSearchType<SearchType, KeyType, Indexes>, Tail...>>: HasType<
-		MergeLists<
-			IdxSearchType<SearchType, KeyType, Indexes + 1>,
-			Tail...
-		>
-	> {};
 }
 
 
@@ -328,9 +316,7 @@ struct BTStreamDescritorsBuilder<TL<LeafStruct, Tail...>, BranchStructTF, SumTyp
 
 	using StructList = TL<LeafStruct, Tail...>;
 
-	using RawKeyMetadataList = BuildKeyMetadataList<StructList, SumType>;
-
-	using KeyMetadataList = IncStreamStartStructsIndexSize<RawKeyMetadataList>;
+	using KeyMetadataList = BuildKeyMetadataList<StructList, SumType>;
 
 	using Type = BranchStructListBuilder<KeyMetadataList, BranchStructTF>;
 };
@@ -345,9 +331,7 @@ struct BTStreamDescritorsBuilder<TL<TL<LeafStruct, Tail1...>, Tail2...>, BranchS
 
 	using StructList = TL<TL<LeafStruct, Tail1...>, Tail2...>;
 
-	using RawKeyMetadataList = BuildKeyMetadataList<StructList, SumType>;
-
-	using KeyMetadataList = IncStreamStartStructsIndexSize<RawKeyMetadataList>;
+	using KeyMetadataList = BuildKeyMetadataList<StructList, SumType>;
 
 	using Type = BranchStructListBuilder<KeyMetadataList, BranchStructTF>;
 };

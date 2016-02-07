@@ -27,6 +27,7 @@
 
 #include <memoria/core/packed/array/packed_fse_array.hpp>
 #include <memoria/core/packed/array/packed_vle_dense_array.hpp>
+#include <memoria/core/packed/misc/packed_sized_struct.hpp>
 
 namespace memoria    {
 
@@ -40,8 +41,13 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
     typedef Value_                                                              Value;
 
     using VectorStreamTF = StreamTF<
-        TL<TL<PackedFSEArray<PackedFSEArrayTypes<Value>>>>,
-        TL<TL<TL<>>>,
+        TL<
+			TL<
+				StreamSize,
+				PackedFSEArray<PackedFSEArrayTypes<Value>>
+			>
+    	>,
+        TL<TL<TL<>, TL<>>>,
 		FSEBranchStructTF
     >;
 

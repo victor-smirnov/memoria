@@ -5,8 +5,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef MEMORIA_CORE_PACKED_SIZED_STRUCT_HPP_
-#define MEMORIA_CORE_PACKED_SIZED_STRUCT_HPP_
+#ifndef MEMORIA_CORE_PACKED_EMPTY_STRUCT_HPP_
+#define MEMORIA_CORE_PACKED_EMPTY_STRUCT_HPP_
 
 #include <memoria/core/packed/tools/packed_allocator_types.hpp>
 #include <memoria/core/packed/buffer/packed_fse_input_buffer_ro.hpp>
@@ -17,25 +17,23 @@
 namespace memoria {
 
 
-template <typename Value_ = BigInt, Int Indexes_ = 0, PkdSearchType SearchType_ = PkdSearchType::SUM>
-class PackedSizedStruct: public PackedAllocatable {
+template <typename Value_ = BigInt, PkdSearchType SearchType_ = PkdSearchType::SUM>
+class PackedEmptyStruct: public PackedAllocatable {
 
     typedef PackedAllocatable                                                   Base;
 
 public:
     static const UInt VERSION = 1;
-    static constexpr Int Indexes = Indexes_;
+    static constexpr Int Indexes = 0;
     static constexpr PkdSearchType SearchType = SearchType_;
 
 
-    using MyType = PackedSizedStruct;
+    using MyType = PackedEmptyStruct<Value_, SearchType_>;
 
 
     using Value = typename std::remove_reference<Value_>::type;
 
     static constexpr Int Blocks = Indexes;
-
-
 
     using InputBuffer = MyType;
 
@@ -47,14 +45,10 @@ public:
 
 private:
 
-    Int size_;
-
 public:
-    PackedSizedStruct() {}
+    PackedEmptyStruct() = default;
 
-    Int& size() {return size_;}
-    const Int& size() const {return size_;}
-
+    Int size() const {return 0;}
 
     Int block_size() const
     {
@@ -63,7 +57,7 @@ public:
 
     Int block_size(const MyType* other) const
     {
-        return block_size(size_ + other->size_);
+        return block_size();
     }
 
     static constexpr Int block_size(Int array_size)
@@ -84,15 +78,9 @@ public:
     }
 
 
-    void init(Int block_size)
-    {
-        size_ = 0;
-    }
+    void init(Int block_size){}
 
-    void init(const SizesT& capacities)
-    {
-        size_ = 0;
-    }
+    void init(const SizesT& capacities){}
 
     static constexpr Int empty_size()
     {
@@ -102,41 +90,28 @@ public:
 
     void init()
     {
-        size_ = 0;
+
     }
 
     template <typename T>
     void max(T& accum) const
     {
-    	if (Indexes > 0)
-    	{
-    		accum[0] = size_;
-    	}
     }
 
     template <typename T>
     void setValues(Int idx, T&&) {}
 
     template <typename T>
-    void insert(Int idx, T&&) {
-    	insertSpace(idx, 1);
-    }
+    void insert(Int idx, T&&) {}
 
     template <Int Offset, typename T>
-    void _insert(Int idx, T&&) {
-    	insertSpace(idx, 1);
-    }
+    void _insert(Int idx, T&&) {}
 
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
     void max(BranchNodeEntryItem<T, Size>& accum) const
     {
     	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
-
-    	if (Indexes > 0)
-    	{
-    		accum[Offset] = size_;
-    	}
     }
 
 
@@ -167,8 +142,6 @@ public:
     template <typename T>
     Int append(Int size, T&&)
     {
-    	this->size_ += size;
-
     	return size;
     }
 
@@ -179,86 +152,50 @@ public:
 
     void remove(Int start, Int end)
     {
-    	MEMORIA_ASSERT_TRUE(start >= 0);
-    	MEMORIA_ASSERT_TRUE(end >= 0);
 
-    	Int room_length = end - start;
-
-    	size_ -= room_length;
     }
 
     void removeSpace(Int room_start, Int room_end) {
         remove(room_start, room_end);
     }
 
-    void insertSpace(Int idx, Int room_length)
-    {
-        MEMORIA_ASSERT(idx, <=, this->size());
-        MEMORIA_ASSERT(idx, >=, 0);
-        MEMORIA_ASSERT(room_length, >=, 0);
 
-        size_ += room_length;
-    }
 
     void reset()
     {
-    	size_ = 0;
+
     }
 
 
     void splitTo(MyType* other, Int idx)
-    {
-        MEMORIA_ASSERT(other->size(), ==, 0);
-
-        Int split_size = this->size() - idx;
-        other->insertSpace(0, split_size);
-
-        removeSpace(idx, this->size());
-    }
+    {}
 
     void mergeWith(MyType* other)
-    {
-        Int my_size     = this->size();
-        Int other_size  = other->size();
-
-        other->insertSpace(other_size, my_size);
-
-        removeSpace(0, my_size);
-    }
+    {}
 
     // ===================================== IO ============================================ //
 
     void insert(Int pos, Value val)
-    {
-    	insertSpace(pos, 1);
-    }
+    {}
 
     void insert(Int block, Int pos, Value val)
-    {
-        insertSpace(pos, 1);
-    }
+    {}
 
     void insert(Int pos, Int start, Int size, const InputBuffer* buffer)
-    {
-    	insertSpace(pos, size);
-    }
+    {}
 
     template <typename Adaptor>
     void insert(Int pos, Int size, Adaptor&& adaptor)
-    {
-    	insertSpace(pos, size);
-    }
+    {}
 
 
     SizesT insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, Int size)
     {
-    	insertSpace(at[0], size);
     	return at + SizesT(size);
     }
 
     Int insert_buffer(Int at, const InputBuffer* buffer, Int start, Int size)
     {
-    	insertSpace(at, size);
     	return at + size;
     }
 
@@ -274,7 +211,6 @@ public:
     template <typename Adaptor>
     void _insert(Int pos, Int size, Adaptor&& adaptor)
     {
-    	insertSpace(pos, size);
     }
 
 
@@ -285,39 +221,24 @@ public:
     template <Int Offset, typename Value, typename T, Int Size, template <typename, Int> class BranchNodeEntryItem>
     void _insert(Int pos, Value&& val, BranchNodeEntryItem<T, Size>& accum)
     {
-    	if (Offset < Size)
-    	{
-    		accum[Offset] += 1;
-    	}
-
-    	insertSpace(pos, 1);
     }
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
     void _remove(Int idx, BranchNodeEntryItem<T, Size>& accum)
     {
-    	remove(idx, idx + 1);
+
     }
 
 
     template <typename Fn>
     void read(Int block, Int start, Int end, Fn&& fn) const
     {
-        MEMORIA_ASSERT(start, <, size_);
-        MEMORIA_ASSERT(start, >=, 0);
-        MEMORIA_ASSERT(end, >=, 0);
-        MEMORIA_ASSERT(end, <=, size_);
-
-        for (Int c = start; c < end; c++)
-        {
-        	fn(Value());
-        }
     }
 
     template <typename Fn>
     void read(Int start, Int end, Fn&& fn) const
     {
-        scan(start, end, std::forward<Fn>(fn));
+
     }
 
 
@@ -325,16 +246,6 @@ public:
     template <typename Fn>
     SizesT scan(Int start, Int end, Fn&& fn) const
     {
-        MEMORIA_ASSERT(start, <=, size_);
-        MEMORIA_ASSERT(start, >=, 0);
-        MEMORIA_ASSERT(end, >=, 0);
-        MEMORIA_ASSERT(end, <=, size_);
-
-        for (Int c = start; c < end; c++)
-        {
-        	fn(Values());
-        }
-
         return SizesT(end);
     }
 
@@ -343,18 +254,15 @@ public:
 
 
     void dump(std::ostream& out = cout) const
-    {
-        out<<"size_ = "<<size_<<endl;
-    }
+    {}
 
 
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
     	handler->startStruct();
-        handler->startGroup("SIZED_STRUCT");
+        handler->startGroup("EMPTY_STRUCT");
 
         handler->value("ALLOCATOR",     &Base::allocator_offset());
-        handler->value("SIZE",          &size_);
 
         handler->endGroup();
     	handler->endStruct();
@@ -363,27 +271,25 @@ public:
     void serialize(SerializationData& buf) const
     {
     	FieldFactory<Int>::serialize(buf, Base::allocator_offset_);
-        FieldFactory<Int>::serialize(buf, size_);
     }
 
     void deserialize(DeserializationData& buf)
     {
         FieldFactory<Int>::deserialize(buf, Base::allocator_offset_);
-        FieldFactory<Int>::deserialize(buf, size_);
     }
 };
 
 
-using StreamSize = PackedSizedStruct<BigInt, 1, PkdSearchType::SUM>;
 
-template <typename T, Int V, PkdSearchType S>
-struct PkdStructSizeType<PackedSizedStruct<T, V, S>> {
+
+template <typename T, PkdSearchType S>
+struct PkdStructSizeType<PackedEmptyStruct<T, S>> {
 	static const PackedSizeType Value = PackedSizeType::FIXED;
 };
 
-template <typename T, Int V, PkdSearchType S>
-struct StructSizeProvider<PackedSizedStruct<T, V, S>> {
-    static const Int Value = PackedSizedStruct<T, V, S>::Blocks;
+template <typename T, PkdSearchType S>
+struct StructSizeProvider<PackedEmptyStruct<T, S>> {
+    static const Int Value = PackedEmptyStruct<T, S>::Blocks;
 };
 
 

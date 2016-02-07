@@ -78,20 +78,6 @@ public:
     	return self().find_(walker);
     }
 
-//    template <typename LeafPath>
-//    Iterator find_max_ge2(Int index, FailIf<TargetType2<LeafPath>, false, IntValue<LeafToBranchIndexTranslator2<LeafStreamsStructList, LeafPath>::BranchIndex>> key)
-//    {
-//    	typename Types::template FindMaxGEWalker<Types, LeafPath> walker(index, key);
-//    	return self().find_(walker);
-//    }
-
-    template <typename LeafPath>
-    Iterator find_max_ge2(Int index, TargetType2<LeafPath> key)
-    {
-    	typename Types::template FindMaxGEWalker<Types, LeafPath> walker(index, key);
-    	return self().find_(walker);
-    }
-
     template <typename LeafPath>
     Iterator rank_(Int index, CtrSizeT pos)
     {
@@ -310,11 +296,7 @@ M_PARAMS
 template <typename Walker>
 typename M_TYPE::FindResult M_TYPE::find_bw(NodeChain node_chain, Walker&& walker, WalkDirection direction)
 {
-    if (DebugCounter) {
-    	int a = 0; a++;
-    }
-
-	auto& self = this->self();
+    auto& self = this->self();
 
     auto result = NodeDispatcher::dispatch(node_chain.node, std::forward<Walker>(walker), direction, node_chain.start);
     node_chain.end = result.idx();
@@ -395,11 +377,7 @@ M_PARAMS
 template <typename Walker>
 typename M_TYPE::Iterator M_TYPE::find_(Walker&& walker)
 {
-    if (DebugCounter) {
-    	int a = 0; a++;
-    }
-
-	auto& self = this->self();
+    auto& self = this->self();
 
     NodeBaseG node = self.getRoot();
     if (node.isSet())

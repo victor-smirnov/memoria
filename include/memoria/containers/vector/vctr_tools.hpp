@@ -247,7 +247,7 @@ public:
 
 			for (input_size_ = 0 ;length_ > 0 && input_size_ < INPUT_END; input_size_++, current_++, length_--)
 			{
-				input_value_buffer_[input_size_] = InputTupleAdapter::convert(*current_);
+				input_value_buffer_[input_size_] = InputTupleAdapter::convert(0, *current_);
 			}
 		}
 

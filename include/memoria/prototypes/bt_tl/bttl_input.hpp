@@ -924,8 +924,6 @@ public:
 
 	virtual Position fill(NodeBaseG& leaf, const Position& start)
 	{
-//		cout<<"Fill page: "<<leaf->id()<<" start "<<start<<endl;
-
 		Position pos = start;
 
 		PageUpdateMgr mgr(ctr());
@@ -941,9 +939,6 @@ public:
 			if (inserted.sum() > 0)
 			{
 				//TODO update leaf's parents here
-
-//				auto end = pos + inserted;
-
 				if (leaf->parent_id().isSet())
 				{
 					auto max = ctr().max(leaf);
@@ -966,7 +961,6 @@ public:
 
 					if (start_pos >= split_at_pos)
 					{
-//						cout<<"Split 1"<<endl;
 						pos -= split_at;
 
 						updateLeafAnchors(next_leaf, pos, inserted);
@@ -983,7 +977,6 @@ public:
 					}
 					else if (end_pos < split_at_pos)
 					{
-//						cout<<"Split 2"<<endl;
 						MEMORIA_ASSERT_TRUE(leaf->parent_id());
 
 						updateLeafAnchors(leaf, pos, inserted);
@@ -993,7 +986,6 @@ public:
 						pos += inserted;
 					}
 					else {
-//						cout<<"Target split!"<<endl;
 						auto leaf_inserted = split_at - pos;
 
 						updateLeafAnchors(leaf, pos, leaf_inserted);

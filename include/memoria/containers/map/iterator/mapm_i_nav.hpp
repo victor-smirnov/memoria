@@ -118,7 +118,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavMaxName)
     bool isFound(Key k) const
     {
     	auto& self = this->self();
-
     	return (!self.isEnd()) && self.key() == k;
     }
 

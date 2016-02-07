@@ -525,11 +525,11 @@ public:
                 block_size_ = new_size;
             }
             else {
-                throw PackedOOMException(MA_SRC, allocated(), new_size, free_space());
+                throw PackedOOMException(MA_RAW_SRC, allocated(), new_size, free_space());
             }
         }
         else {
-            throw PackedOOMException(MA_SRC, allocated(), new_size, free_space());
+            throw PackedOOMException(MA_RAW_SRC, allocated(), new_size, free_space());
         }
 
         return block_size_;

@@ -36,26 +36,6 @@ struct StreamTF {};
 
 namespace {
 
-	template <typename List> struct FixStreamStart;
-
-
-	template <Int Head, Int... Tail>
-	struct FixStreamStart<IntList<Head, Tail...>> {
-		using Type = MergeValueListsT<
-				IntList<Head + 1>,
-				typename FixStreamStart<IntList<Tail...>>::Type
-		>;
-	};
-
-
-	template <>
-	struct FixStreamStart<IntList<>> {
-		using Type = IntList<>;
-	};
-
-
-
-
 	template <
 		typename OffsetList,
 		typename List,
@@ -63,13 +43,13 @@ namespace {
 		Int Max                 = ListSize<List>::Value
 	>
 	class TagStreamsStartT {
-		static const Int StreamOffset = list_tree::LeafCount<List, IntList<Idx>, 2>::Value;
+		static constexpr Int StreamOffset = list_tree::LeafCount<List, IntList<Idx>, 2>::Value;
 
 		using StreamStart = Select<StreamOffset, OffsetList>;
 
 		using FixedList = Replace<
 				OffsetList,
-				StreamStartTag<typename FixStreamStart<StreamStart>::Type>,
+				StreamStartTag<StreamStart>,
 				StreamOffset
 		>;
 
@@ -173,19 +153,12 @@ namespace {
 template <typename LeafTree>
 class LeafOffsetListBuilder {
     using LinearLeafList = FlattenLeafTree<LeafTree>;
-    using OffsetList = OffsetBuilder<LinearLeafList>;
+    using OffsetList = FailIf<OffsetBuilder<LinearLeafList>, false>;
 public:
-    using Type = TagStreamsStart<OffsetList, LeafTree>;
+    using Type = FailIf<TagStreamsStart<OffsetList, LeafTree>, false>;
 };
 
 
-//template <typename LeafTree>
-//class LeafOffsetListBuilder1 {
-//    using LinearLeafList = FailIf<FlattenLeafTree<LeafTree>, false>;
-//    using OffsetList = FailIf<OffsetBuilder<LinearLeafList>, false>;
-//public:
-//    using Type = FailIf<TagStreamsStart<OffsetList, LeafTree>>;
-//};
 
 
 template <typename List, typename Path>

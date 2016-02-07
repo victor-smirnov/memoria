@@ -56,18 +56,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafFixedName)
     template <Int Stream>
     using StreamInputTuple = typename Types::template StreamInputTuple<Stream>;
 
-    MEMORIA_DECLARE_NODE_FN_RTN(GetStreamCapacityFn, capacity, Int);
-
-    Int getLeafNodeCapacity(const NodeBaseG& node, Int stream) const
-    {
-        Position reservation;
-        return getLeafNodeCapacity(node, reservation, stream);
-    }
-
-    Int getLeafNodeCapacity(const NodeBaseG& node, const Position& reservation, Int stream) const
-    {
-        return LeafDispatcher::dispatch(node, GetStreamCapacityFn(), reservation, stream);
-    }
 
 
 
@@ -86,14 +74,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafFixedName)
     	>
     	void stream(SubstreamType* obj, BranchNodeEntryItem& accum, Int idx, const Entry& entry)
     	{
-    		BatchEntryMaxHelper<Offset, StreamStart>::insert_entry(accum, Accessor<Idx>::get(entry), obj, idx);
-//
-//    		obj->template _insert<Offset>(idx, Accessor<Idx>::get(entry), accum);
-//
-//    		if (StreamStart)
-//    		{
-//    			accum[0] += 1;
-//    		}
+    		obj->template _insert<Offset>(idx, Accessor<Idx>::get(entry), accum);
     	}
     };
 
@@ -154,7 +135,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafFixedName)
     	>
     	void stream(SubstreamType* obj, BranchNodeEntryItem& accum, Int idx)
     	{
-    		BatchEntryMaxHelper<Offset, StreamStart>::remove_entry(accum, obj, idx);
+    		obj->template _remove<Offset>(idx, accum);
     	}
     };
 

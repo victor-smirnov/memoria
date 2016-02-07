@@ -76,7 +76,9 @@
 #define MEMORIA_AT MEMORIA_TOSTRING(__LINE__)
 
 #define MEMORIA_SOURCE ::memoria::vapi::ExtractMemoriaPath(__FILE__ ":" MEMORIA_AT)
+#define MEMORIA_RAW_SOURCE ::memoria::vapi::ExtractMemoriaPath(__FILE__ ":" MEMORIA_AT)
 #define MA_SRC MEMORIA_SOURCE
+#define MA_RAW_SRC MEMORIA_RAW_SOURCE
 
 #define MEMORIA_PUBLIC
 #define MEMORIA_DEPRECATED

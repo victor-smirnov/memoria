@@ -1,5 +1,5 @@
 
-// Copyright Victor Smirnov 2014+.
+// Copyright Victor Smirnov 2014.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -198,13 +198,13 @@ struct MapBTTypesBase<Profile, Indexes_, UUID, Value_>: public BTTypes<Profile, 
 
     using MapStreamTF = StreamTF<
         	TL<
-				TL<PackedSizedStruct<>>,
+				TL<StreamSize>,
 				TL<PkdFMTreeT<Key, Indexes>>,
 				TL<PackedFSEArray<PackedFSEArrayTypes<ValueType>>>
 
     		>,
     		TL<
-    				TL<TL<>>, TL<TL<>>, TL<TL<>>
+    			TL<TL<>>, TL<TL<>>, TL<TL<>>
     		>,
 
 		FSEBranchStructTF
@@ -276,8 +276,8 @@ public:
     {
     	using BaseTypes = typename Base::Types;
 
-//    	using BranchStreamsStructList 	= FailIf<typename BaseTypes::BranchStreamsStructList, false>;
-//    	using LeafStreamsStructList 	= FailIf<typename BaseTypes::LeafStreamsStructList, false>;
+    	using BranchStreamsStructList 	= FailIf<typename BaseTypes::BranchStreamsStructList, false>;
+    	using LeafStreamsStructList 	= FailIf<typename BaseTypes::LeafStreamsStructList, false>;
 
     	typedef BTCtrTypes<Types>                                               CtrTypes;
     	typedef BTIterTypes<Types>                                              IterTypes;

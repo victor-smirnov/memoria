@@ -50,6 +50,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::LeafFixedName)
 
     static const Int Streams                                                    = Types::Streams;
 
+    MEMORIA_DECLARE_NODE_FN_RTN(GetStreamCapacityFn, single_stream_capacity, Int);
+
+    Int getLeafNodeCapacity(const NodeBaseG& node, int max_hops = 100) const
+    {
+    	return LeafDispatcher::dispatch(node, GetStreamCapacityFn(), max_hops);
+    }
+
+
 MEMORIA_CONTAINER_PART_END
 
 
