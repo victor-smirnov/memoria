@@ -636,41 +636,44 @@ struct PackedStructValueTypeH {
 };
 
 
+
+
+
+
+
 template <typename Tuple> struct StreamTupleHelper;
 
 
-namespace detail {
+namespace {
 
-template <typename T, T A, T B>
-struct min {
-	static const T Value = A < B ? A : B;
-};
-
-
-template <
-	typename T1,
-	typename T2,
-	Int Idx = 0,
-	Int Max = min<Int, std::tuple_size<T1>::value, std::tuple_size<T2>::value>::Value
->
-struct StreamT2TCvtHelper {
-
-	static void _convert(T1& t1, const T2& t2)
-	{
-		std::get<Idx>(t1) = std::get<Idx>(t2);
-
-		StreamT2TCvtHelper<T1, T2, Idx + 1, Max>::_convert(t1, t2);
-	}
-};
+	template <typename T, T A, T B>
+	struct min {
+		static const T Value = A < B ? A : B;
+	};
 
 
-template <typename T1, typename T2, Int Idx>
-struct StreamT2TCvtHelper<T1, T2, Idx, Idx> {
+	template <
+		typename T1,
+		typename T2,
+		Int Idx = 0,
+		Int Max = min<Int, std::tuple_size<T1>::value, std::tuple_size<T2>::value>::Value
+	>
+	struct StreamT2TCvtHelper {
 
-	static void _convert(T1& t1, const T2& t2){}
-};
+		static void _convert(T1& t1, const T2& t2)
+		{
+			std::get<Idx>(t1) = std::get<Idx>(t2);
+
+			StreamT2TCvtHelper<T1, T2, Idx + 1, Max>::_convert(t1, t2);
+		}
+	};
 
 
+	template <typename T1, typename T2, Int Idx>
+	struct StreamT2TCvtHelper<T1, T2, Idx, Idx> {
+
+		static void _convert(T1& t1, const T2& t2){}
+	};
 }
 
 
@@ -701,7 +704,7 @@ struct StreamTupleHelper {
 	{
 		Tuple tuple;
 
-		detail::StreamT2TCvtHelper<Tuple, std::tuple<Args...>>::_convert(tuple, other);
+		StreamT2TCvtHelper<Tuple, std::tuple<Args...>>::_convert(tuple, other);
 
 		return tuple;
 	}

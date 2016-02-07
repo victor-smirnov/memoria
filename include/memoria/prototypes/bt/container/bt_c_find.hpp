@@ -32,8 +32,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::FindName)
     using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
     using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
 
+
+    using LeafStreamsStructList = typename Types::LeafStreamsStructList;
+
     template <typename LeafPath>
     using TargetType = typename Types::template TargetType<LeafPath>;
+    template <typename LeafPath>
+    using TargetType2 = typename Types::template TargetType2<LeafPath>;
 
     using CtrSizeT = typename Types::CtrSizeT;
 
@@ -73,6 +78,19 @@ public:
     	return self().find_(walker);
     }
 
+//    template <typename LeafPath>
+//    Iterator find_max_ge2(Int index, FailIf<TargetType2<LeafPath>, false, IntValue<LeafToBranchIndexTranslator2<LeafStreamsStructList, LeafPath>::BranchIndex>> key)
+//    {
+//    	typename Types::template FindMaxGEWalker<Types, LeafPath> walker(index, key);
+//    	return self().find_(walker);
+//    }
+
+    template <typename LeafPath>
+    Iterator find_max_ge2(Int index, TargetType2<LeafPath> key)
+    {
+    	typename Types::template FindMaxGEWalker<Types, LeafPath> walker(index, key);
+    	return self().find_(walker);
+    }
 
     template <typename LeafPath>
     Iterator rank_(Int index, CtrSizeT pos)
@@ -377,7 +395,11 @@ M_PARAMS
 template <typename Walker>
 typename M_TYPE::Iterator M_TYPE::find_(Walker&& walker)
 {
-    auto& self = this->self();
+    if (DebugCounter) {
+    	int a = 0; a++;
+    }
+
+	auto& self = this->self();
 
     NodeBaseG node = self.getRoot();
     if (node.isSet())

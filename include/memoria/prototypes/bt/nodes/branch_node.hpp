@@ -437,7 +437,7 @@ public:
 
     static Int free_space(Int page_size, bool root)
     {
-        Int block_size = page_size - sizeof(MyType) + PackedAllocator::my_size();
+        Int block_size  = page_size - sizeof(MyType) + PackedAllocator::my_size();
         Int client_area = PackedAllocator::client_area(block_size, SubstreamsStart + Substreams + 1);
 
         return client_area - root * PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(Metadata));

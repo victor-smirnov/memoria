@@ -385,15 +385,18 @@ struct HasValue {
 
 
 namespace {
-	template <typename T, bool Flag>
+	template <typename T, bool Flag, typename T2>
 	struct FailIfT {
 		static_assert(!Flag, "Template failed");
 		using Type = T;
 	};
 }
 
-template <typename T, bool Flag = true>
-using FailIf = typename FailIfT<T, Flag>::Type;
+template <typename T, bool Flag = true, typename T2 = void>
+using FailIf = typename FailIfT<T, Flag, T2>::Type;
+
+template <Int V, bool Flag = true, typename T2 = void>
+using FailIfV = typename FailIfT<IntValue<V>, Flag, T2>::Type;
 
 }
 

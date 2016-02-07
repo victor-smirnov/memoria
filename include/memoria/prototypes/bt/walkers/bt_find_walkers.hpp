@@ -31,7 +31,7 @@ public:
     using Iterator = typename Base::Iterator;
 
 protected:
-    TargetType sum_			= 0;
+    TargetType sum_;
 
     TargetType target_;
 
@@ -40,7 +40,7 @@ protected:
 public:
 
     FindWalkerBase(Int leaf_index, TargetType target, SearchType search_type):
-        Base(leaf_index), target_(target), search_type_(search_type)
+        Base(leaf_index), sum_(), target_(target), search_type_(search_type)
     {}
 
     const SearchType& search_type() const {

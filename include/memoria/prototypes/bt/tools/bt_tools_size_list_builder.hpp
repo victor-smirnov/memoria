@@ -552,63 +552,33 @@ public:
 
 
 
+template <typename LeafStructList, typename BranchStructList, typename LeafPath>
+using BuildBranchPath = typename memoria::list_tree::BuildTreePath<
+    		BranchStructList,
+    		memoria::list_tree::LeafCountInf<LeafStructList, LeafPath, 2>::Value -
+    			FindLocalLeafOffsetV<
+    				FlattenLeafTree<LeafStructList>,
+    				memoria::list_tree::LeafCount<LeafStructList, LeafPath>::Value
+    			>::Value
+>::Type;
 
-//template <typename LeafStructList, Int LeafIdx>
-//struct LeafToBranchIndexByValueTranslator1 {
-//protected:
-//	using LeafOffsets = FailIf<typename LeafOffsetListBuilder1<LeafStructList>::Type>;
-//
-//	using Leafs = FlattenLeafTree<LeafStructList>;
-//
-//	static const Int LocalLeafOffset = FindLocalLeafOffsetV<Leafs, LeafIdx>::Value;
-//
-//	using LocalLeafGroup = typename FindLocalLeafOffsetT<LeafOffsets, LeafIdx>::Type;
-//
-//	using LeafPath = typename memoria::list_tree::BuildTreePath<LeafStructList, LeafIdx>::Type;
-//
-//public:
-//	static const Int LeafOffset = GetLeafPrefix<LocalLeafGroup, LocalLeafOffset>::Value;
-//
-//	static const Int BranchStructIdx = memoria::list_tree::LeafCount<LeafStructList, LeafPath, 2>::Value - LocalLeafOffset;
-//
-//	static const bool IsStreamStart = LocalLeafOffset == 0 && IsStreamStartTag<LocalLeafGroup>::Value;
-//};
 
-//
-//
-//
-//template <typename LeafStructList, typename LeafPath, Int LeafIndex = 0>
-//struct LeafToBranchIndexTranslator1 {
-//protected:
-//	using LeafOffsets = FailIf<typename LeafOffsetListBuilder<LeafStructList>::Type>;
-//
-//	using Leafs = FlattenLeafTree<LeafStructList>;
-//
-//	static const Int LeafIdx 			= memoria::list_tree::LeafCount<LeafStructList, LeafPath>::Value;
-//	static const Int LocalLeafOffset	= FindLocalLeafOffsetV<Leafs, LeafIdx>::Value;
-//
-//	using LocalLeafGroup = typename FindLocalLeafOffsetT<LeafOffsets, LeafIdx>::Type;
-//
-//public:
-//	static const Int BranchIndex = LeafIndex
-//									+ GetLeafPrefix<LocalLeafGroup, LocalLeafOffset>::Value;
-//
-//
-//	static Int translate(Int leaf_index) {
-//
-//		const Int LeafIdx 			= memoria::list_tree::LeafCount<LeafStructList, LeafPath>::Value;
-//		const Int LocalLeafOffset	= FindLocalLeafOffsetV<Leafs, LeafIdx>::Value;
-//
-//		using LocalLeafGroup = typename FindLocalLeafOffsetT<LeafOffsets, LeafIdx>::Type;
-//
-//		const Int LeafPrefix = GetLeafPrefix<LocalLeafGroup, LocalLeafOffset>::Value;
-//
-//		const Int BranchIndex = leaf_index + LeafPrefix;
-//
-//		return BranchIndex;
-//	}
-//};
-//
+
+template <
+	typename LeafStructList,
+	typename BranchStructList,
+	typename LeafPath
+>
+using BrachStructAccessorTool = Select<
+		memoria::list_tree::LeafCountInf<LeafStructList, LeafPath, 2>::Value -
+			FindLocalLeafOffsetV<
+				FlattenLeafTree<LeafStructList>,
+				memoria::list_tree::LeafCount<LeafStructList, LeafPath>::Value
+		>::Value,
+		Linearize<BranchStructList>
+>;
+
+
 
 
 }

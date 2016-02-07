@@ -380,8 +380,27 @@ public:
         using LeafRangeOffsetList 		= typename MyType::LeafRangeOffsetList;
         using LeafRangeList				= typename MyType::LeafRangeList;
 
+//        template <typename LeafPath>
+//        using TargetType = typename PackedStructValueTypeH<LeafStreamsStructList, LeafPath>::Type;
+
         template <typename LeafPath>
-        using TargetType = typename PackedStructValueTypeH<LeafStreamsStructList, LeafPath>::Type;
+        using TargetType = typename AccumType<
+        		BrachStructAccessorTool<
+					LeafStreamsStructList,
+					BranchStreamsStructList,
+					LeafPath
+				>
+        >::Type;
+
+        template <typename LeafPath>
+        using TargetType2 = typename AccumType<
+        		BrachStructAccessorTool<
+					LeafStreamsStructList,
+					BranchStreamsStructList,
+					LeafPath
+				>
+        >::Type;
+
 
         template <Int Stream>
         using StreamInputTuple = TypeListToTuple<Select<Stream, StreamsInputTypeList>>;

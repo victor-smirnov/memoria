@@ -55,7 +55,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertMaxName)
     template <typename K>
     Iterator find(const K& k)
     {
-    	return self().template find_max_ge<IntList<0, 1>>(0, k);
+    	return self().template find_max_ge2<IntList<0, 1>>(0, k);
     }
 
     template <typename K>
