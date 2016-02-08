@@ -209,10 +209,6 @@ public:
 	{
 //        auto sum = stream->sum(0, start, end);
 //
-//        if (DebugCounter) {
-//        	stream->dump();
-//        }
-//
 //		Base::branch_size_prefix()[StreamIdx] += sum;
 	}
 
@@ -481,10 +477,6 @@ public:
 	template <Int StreamIdx, typename StreamType>
 	void branch_size_prefix(const StreamType* obj, Int start, Int end)
 	{
-        if (DebugCounter) {
-        	obj->dump();
-        }
-
 		Int s = start > (obj->size() - 1) ? obj->size() - 1 : start;
 
 		obj->_sub(0, end + 1, s + 1, Base::branch_size_prefix()[StreamIdx]);

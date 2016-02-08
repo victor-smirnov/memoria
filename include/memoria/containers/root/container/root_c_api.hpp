@@ -24,29 +24,29 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::root::CtrApiName)
     typedef typename Base::Page                                                 Page;
 
 
-    BigInt getModelNameCounter() const
-    {
-        const Metadata& meta = me()->getRootMetadata();
-        return meta.model_name_counter();
-    }
-
-    void setModelNameCounter(BigInt value)
-    {
-        Metadata meta = me()->getRootMetadata();
-
-        meta.model_name_counter() = value;
-
-        me()->setRootMetadata(meta);
-    }
-
-    void addModelNameCounter(BigInt value)
-    {
-        Metadata meta = me()->getRootMetadata();
-
-        meta.model_name_counter() += value;
-
-        me()->setRootMetadata(meta);
-    }
+//    BigInt getModelNameCounter() const
+//    {
+//        const Metadata& meta = self().getRootMetadata();
+//        return meta.model_name_counter();
+//    }
+//
+//    void setModelNameCounter(BigInt value)
+//    {
+//        Metadata meta = self().getRootMetadata();
+//
+//        meta.model_name_counter() = value;
+//
+//        self().setRootMetadata(meta);
+//    }
+//
+//    void addModelNameCounter(BigInt value)
+//    {
+//        Metadata meta = self().getRootMetadata();
+//
+//        meta.model_name_counter() += value;
+//
+//        self().setRootMetadata(meta);
+//    }
 
     static bool isRoot(const Page* page)
     {

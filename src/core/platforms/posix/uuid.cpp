@@ -38,6 +38,16 @@ UUID UUID::make_random()
 	return make_uuid(uuid);
 }
 
+UUID UUID::make_time()
+{
+	uuid_t uuid;
+
+	uuid_generate_time_safe(uuid);
+
+	return make_uuid(uuid);
+}
+
+
 UUID UUID::parse(const char* in)
 {
 	uuid_t uu;

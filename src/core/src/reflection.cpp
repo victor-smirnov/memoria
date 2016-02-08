@@ -84,7 +84,7 @@ PageMetadata* ContainerMetadataRepository::getPageMetadata(Int model_hash, Int p
 
 ContainerMetadata* ContainerMetadataRepository::getContainerMetadata(Int hashCode) const
 {
-    ContainerMetadataMap::const_iterator i = model_map_.find(hashCode);
+    auto i = model_map_.find(hashCode);
     if (i != model_map_.end())
     {
         return i->second;

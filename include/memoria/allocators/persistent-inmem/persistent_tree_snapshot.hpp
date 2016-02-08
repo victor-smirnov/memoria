@@ -538,7 +538,6 @@ public:
 	}
 
 	// memory pool allocator
-
 	virtual void* allocateMemory(size_t size) {
 		return ::malloc(size);
 	}
@@ -553,42 +552,73 @@ public:
 
 	virtual ID getRootID(const UUID& name)
 	{
-		if (name.is_null())
+		if (!name.is_null())
 		{
-			return root();
+			auto iter = root_map_->find(name);
+
+			if (iter.isFound(name))
+			{
+				return iter.value();
+			}
+			else {
+				return ID();
+			}
 		}
 		else {
-			return this->get_value_for_key(name);
+			return history_node_->root_id();
 		}
 	}
 
 	virtual void setRoot(const UUID& name, const ID& root)
 	{
-		new_root(name, root);
+		if (root.is_null())
+		{
+			if (!name.is_null())
+			{
+				root_map_->remove(name);
+			}
+			else {
+				throw vapi::Exception(MA_SRC, SBuf()<<"Allocator directory removal attempted");
+			}
+		}
+		else {
+			if (!name.is_null())
+			{
+				auto iter = root_map_->find(name);
+
+				if (iter.isFound(name))
+				{
+					iter.setValue(root);
+				}
+				else {
+					iter.insert(name, root);
+				}
+			}
+			else {
+				history_node_->root_id() = root;
+			}
+		}
 	}
 
 	virtual void markUpdated(const UUID& name) {}
 
 	virtual bool hasRoot(const UUID& name)
 	{
-		return get_value_for_key(name) != ID();
+		if (!name.is_null())
+		{
+			auto iter = root_map_->find(name);
+			return iter.isFound(name);
+		}
+		else {
+			return !history_node_->root_id().is_null();
+		}
 	}
 
 	virtual UUID createCtrName()
 	{
-//        auto meta = root_map_->getRootMetadata();
-//
-//        BigInt new_name = ++meta.model_name_counter();
-//
-//        root_map_->setRootMetadata(meta);
-
         return UUID::make_random();
 	}
 
-
-
-	virtual void flush(bool force_sync = false) {}
-	virtual void rollback(bool force_sync = false) {}
 
 	virtual bool check()
 	{
@@ -732,90 +762,6 @@ protected:
     	persistent_tree_.assign(page->id(), Value(page, txn_id));
     }
 
-    void set_root(const UUID& name, const ID &page_id)
-    {
-    	if (!name.is_null())
-    	{
-    		this->set_value_for_key(name, page_id);
-    	}
-    	else {
-    		history_node_->root_id() = page_id;
-    	}
-    }
-
-
-    void remove_by_key(const UUID& name)
-    {
-        root_map_->remove(name);
-    }
-
-    void set_value_for_key(const UUID& name, const ID& page_id)
-    {
-    	auto iter = root_map_->find(name);
-
-    	if (iter.isFound(name))
-    	{
-    		iter.setValue(page_id);
-    	}
-    	else {
-    		iter.insert(name, page_id);
-    	}
-    }
-
-    ID get_value_for_key(const UUID& name)
-    {
-    	if (!name.is_null())
-    	{
-    		auto iter = root_map_->find(name);
-
-    		if (!iter.isEnd())
-    		{
-    			return iter.value();
-    		}
-    		else {
-    			return ID();
-    		}
-    	}
-    	else {
-    		return history_node_->root_id();
-    	}
-    }
-
-    virtual void new_root(const UUID& name, const ID &page_id)
-    {
-    	if (page_id.is_null())
-    	{
-    		remove_root(name);
-    	}
-    	else {
-    		set_root(name, page_id);
-    	}
-    }
-
-    void remove_root(const UUID& name)
-    {
-    	if (!name.is_null())
-    	{
-    		this->remove_by_key(name);
-    	}
-    	else {
-    		throw vapi::Exception(MA_SRC, SBuf()<<"Allocator directory removal attempted");
-    	}
-    }
-
-
-
-    const ID &root() const
-    {
-    	if (root_map_ != nullptr)
-        {
-            return root_map_->root();
-        }
-        else
-        {
-        	return history_node_->root_id();
-        }
-    }
 
     void checkReadAllowed()
     {

@@ -194,10 +194,6 @@ public:
 	{
 //        auto sum = stream->sum(0, start, end);
 //
-//        if (DebugCounter) {
-//        	stream->dump();
-//        }
-//
 //		Base::branch_size_prefix()[StreamIdx] += sum;
 	}
 
@@ -206,10 +202,6 @@ public:
 	void leaf_size_prefix(const StreamType* stream)
 	{
         auto size = stream->size();
-
-        if (DebugCounter) {
-        	stream->dump();
-        }
 
 		Base::branch_size_prefix()[StreamIdx] += size;
 	}

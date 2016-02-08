@@ -15,16 +15,18 @@
 using namespace memoria;
 using namespace std;
 
-vector<Byte> create_random_vector(size_t size)
+template <typename T>
+vector<T> create_random_vector(size_t size, T max = 255)
 {
-	vector<Byte> data(size);
-	for (auto& v: data) v = getRandomG(255);
+	vector<T> data(size);
+	for (auto& v: data) v = getRandomG(max);
 	return data;
 }
 
-vector<Byte> create_vector(size_t size, Byte fill_value = 0)
+template <typename T>
+vector<T> create_vector(size_t size, T fill_value = 0)
 {
-	vector<Byte> data(size);
+	vector<T> data(size);
 	for (auto& v: data) v = fill_value;
 	return data;
 }
@@ -36,18 +38,28 @@ int main()
 	MEMORIA_INIT(DefaultProfile<>);
 
 	DCtr<Vector<Byte>>::initMetadata();
+	DCtr<Vector<VLen<Granularity::Byte>>>::initMetadata();
+	DCtr<Vector<BigInt>>::initMetadata();
 
 	try {
 		auto alloc = PersistentInMemAllocator<>::create();
 
 		auto txn1 = alloc->master()->branch();
 
-		auto ctr1 = create<Vector<Byte>>(txn1);
+		auto ctr1 	= create<Vector<Byte>>(txn1);
+		auto ctr1_v = create<Vector<VLen<Granularity::Byte>>>(txn1);
+		auto ctr1_vv = create<Vector<BigInt>>(txn1);
+
+
+		auto data1 = create_random_vector<Byte>(10000, 127);
+		ctr1->seek(0).insert(data1.begin(), data1.size());
+
+		auto data1v = create_random_vector<BigInt>(10000);
+		ctr1_v->seek(0).insert(data1v.begin(), data1v.size());
+
+		ctr1_vv->seek(0).insert(data1v.begin(), data1v.size());
 
 		auto ctr_name = ctr1->master_name();
-
-		vector<Byte> data1 = create_random_vector(10000);
-		ctr1->seek(0).insert(data1.begin(), data1.size());
 
 		txn1->commit();
 
@@ -58,7 +70,7 @@ int main()
 
 		auto ctr2 = find<Vector<Byte>>(txn2, ctr_name);
 
-		vector<Byte> data2 = create_vector(10000, 0x22);
+		auto data2 = create_vector<Byte>(10000, 0x22);
 
 		auto iter = ctr2->End();
 		ctr2->End().insert(data2.begin(), data2.size());

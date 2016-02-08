@@ -121,24 +121,6 @@ public:
     CtrBase(const CtrInitData& data): init_data_(data)
     {}
 
-    CtrBase(const ThisType& other):
-        init_data_(other.init_data_)
-    {}
-
-    CtrBase(const ThisType& other, Allocator* allocator):
-        init_data_(other.init_data_)
-    {}
-
-    //shared_ is configured in move constructors of subclasses.
-    CtrBase(ThisType&& other):
-        init_data_(other.init_data_)
-    {
-    }
-
-    CtrBase(ThisType&& other, Allocator* allocator):
-        init_data_(other.init_data_)
-    {
-    }
 
     virtual ~CtrBase() throw () {}
 
@@ -321,20 +303,8 @@ class CtrHelper: public CtrPart<
 
 public:
     CtrHelper(const CtrInitData& data): Base(data) {}
-    CtrHelper(const ThisType& other): Base(other) {}
-    CtrHelper(ThisType&& other): Base(std::move(other)) {}
-    CtrHelper(ThisType&& other, Allocator0* allocator): Base(std::move(other), allocator)   {}
-    CtrHelper(const ThisType& other, Allocator0* allocator): Base(other, allocator)         {}
 
     virtual ~CtrHelper() throw () {}
-
-    void operator=(ThisType&& other) {
-        Base::operator=(std::move(other));
-    }
-
-    void operator=(const ThisType& other) {
-        Base::operator=(other);
-    }
 };
 
 template <typename Types>
@@ -348,10 +318,6 @@ public:
     typedef typename Types::Allocator                           Allocator0;
 
     CtrHelper(const CtrInitData& data): Base(data) {}
-    CtrHelper(const ThisType& other): Base(other) {}
-    CtrHelper(ThisType&& other): Base(std::move(other)) {}
-    CtrHelper(ThisType&& other, Allocator0* allocator): Base(std::move(other), allocator)    {}
-    CtrHelper(const ThisType& other, Allocator0* allocator): Base(other, allocator)          {}
 
     virtual ~CtrHelper() throw () {}
 
@@ -377,18 +343,6 @@ class CtrStart: public CtrHelper<ListSize<typename Types::List>::Value - 1, Type
 
 public:
     CtrStart(const CtrInitData& data): Base(data) {}
-    CtrStart(const ThisType& other): Base(other) {}
-    CtrStart(ThisType&& other): Base(std::move(other)) {}
-    CtrStart(ThisType&& other, Allocator0* allocator): Base(std::move(other), allocator) {}
-    CtrStart(const ThisType& other, Allocator0* allocator): Base(other, allocator)       {}
-
-    void operator=(ThisType&& other) {
-        Base::operator=(std::move(other));
-    }
-
-    void operator=(const ThisType& other) {
-        Base::operator=(other);
-    }
 };
 
 
@@ -480,48 +434,6 @@ public:
 
         initCtr(allocator, root_id, mname);
     }
-
-    MEMORIA_PUBLIC Ctr(const MyType& other):
-        Base(other, other.allocator_),
-        allocator_(other.allocator_),
-        model_type_name_(other.model_type_name_),
-        logger_(other.logger_),
-        debug_(other.debug_)
-    {
-        Base::setCtrShared(other.shared_);
-    }
-
-    MEMORIA_PUBLIC Ctr(const MyType& other, Allocator* allocator):
-        Base(other, allocator),
-        allocator_(allocator),
-        model_type_name_(other.model_type_name_),
-        logger_(other.logger_),
-        debug_(other.debug_)
-    {
-        MEMORIA_ASSERT_NOT_NULL(allocator);
-
-        Base::setCtrShared(other.shared_);
-    }
-
-
-    MEMORIA_PUBLIC Ctr(MyType&& other):
-        Base(std::move(other), other.allocator_),
-        allocator_(other.allocator_),
-        model_type_name_(other.model_type_name_),
-        logger_(other.logger_),
-        debug_(other.debug_)
-    {}
-
-    Ctr(MyType&& other, Allocator* allocator):
-        Base(std::move(other), allocator),
-        allocator_(allocator),
-        model_type_name_(other.model_type_name_),
-        logger_(other.logger_),
-        debug_(other.debug_)
-    {
-        MEMORIA_ASSERT_NOT_NULL(allocator);
-    }
-
 
     MEMORIA_PUBLIC Ctr(const CtrInitData& data):
         Base(data),
@@ -671,19 +583,6 @@ public:
         }
 
         return *this;
-    }
-
-
-
-private:
-    MyType* me()
-    {
-        return this;
-    }
-
-    const MyType* me() const
-    {
-        return this;
     }
 };
 

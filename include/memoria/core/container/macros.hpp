@@ -144,10 +144,6 @@ public:
 #define MEMORIA_CONTAINER_PART_BEGIN(PartName)                                  \
     MEMORIA_CONTAINER_PART_NO_CTR_BEGIN(PartName)                               \
     CtrPart(const CtrInitData& data): Base(data)  {}                            \
-    CtrPart(const ThisType& other): Base(other)  {}                             \
-    CtrPart(ThisType&& other): Base(std::move(other))  {}                       \
-    CtrPart(ThisType&& other, typename TypesType::Allocator* allocator): Base(std::move(other), allocator)  {}  \
-    CtrPart(const ThisType& other, typename TypesType::Allocator* allocator): Base(other, allocator)        {}  \
     virtual ~CtrPart() throw() {}                                               \
     void operator=(ThisType&& other) {                                          \
         Base::operator=(std::move(other));                                      \
@@ -164,13 +160,6 @@ public:
                                                                                 \
     const MyType& self() const {                                                \
         return *static_cast<const MyType*>(this);                               \
-    }                                                                           \
-                                                                                \
-    MyType* me() {                                                              \
-        return static_cast<MyType*>(this);                                      \
-    }                                                                           \
-    const MyType* me() const {                                                  \
-        return static_cast<const MyType*>(this);                                \
     }                                                                           \
 };
 

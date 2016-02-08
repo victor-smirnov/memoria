@@ -37,80 +37,14 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     typedef typename Types::NodeBase                                            NodeBase;
     typedef typename Types::NodeBaseG                                           NodeBaseG;
 
-    using NodeDispatcher = typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher = typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher = typename Types::Pages::BranchDispatcher;
+    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
+    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
+    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
     using DefaultDispatcher = typename Types::Pages::DefaultDispatcher;
 
     typedef typename Types::Metadata                                            Metadata;
 
     using Base::CONTAINER_HASH;
-
-
-//    class BTreeCtrShared: public CtrShared {
-//
-//        Metadata metadata_;
-//        Metadata metadata_log_;
-//
-//        bool metadata_updated;
-//
-//    public:
-//
-//        BTreeCtrShared(const UUID& name): CtrShared(name), metadata_updated(false)                            {}
-//        BTreeCtrShared(const UUID& name, CtrShared* parent): CtrShared(name, parent), metadata_updated(false) {}
-//
-//        const Metadata& root_metadata() const { return metadata_updated ? metadata_log_ : metadata_ ;}
-//
-//        void update_metadata(const Metadata& metadata)
-//        {
-//            metadata_log_       = metadata;
-//            metadata_updated    = true;
-//        }
-//
-//        void configure_metadata(const Metadata& metadata)
-//        {
-//            metadata_           = metadata;
-//            metadata_updated    = false;
-//        }
-//
-//        bool is_metadata_updated() const
-//        {
-//            return metadata_updated;
-//        }
-//
-//        virtual void commit()
-//        {
-//            CtrShared::commit();
-//
-//            if (is_metadata_updated())
-//            {
-//                metadata_           = metadata_log_;
-//                metadata_updated    = false;
-//            }
-//        }
-//
-//        virtual void rollback()
-//        {
-//            CtrShared::rollback();
-//
-//            if (is_metadata_updated())
-//            {
-//                metadata_updated    = false;
-//            }
-//        }
-//    };
-//
-
-
-
-
-    void operator=(ThisType&& other) {
-        Base::operator=(std::move(other));
-    }
-
-    void operator=(const ThisType& other) {
-        Base::operator=(other);
-    }
 
     PageG createRoot() const {
         return self().createNode(0, true, true);
@@ -149,14 +83,14 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         NodeBaseG root = self.allocator().getPage(root_id, self.master_name());
 
-        return NodeDispatcher::dispatch(root, GetModelNameFn(me()));
+        return NodeDispatcher::dispatch(root, GetModelNameFn(self));
     }
 
     void setModelName(const UUID& name)
     {
         NodeBaseG root = self().getRoot();
 
-        NodeDispatcher::dispatch(root, SetModelNameFn(me()), name);
+        NodeDispatcher::dispatch(root, SetModelNameFn(self()), name);
     }
 
     void initCtr(Int command)
@@ -182,9 +116,9 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
                 createCtrByName();
             }
             else {
-                throw CtrAlreadyExistsException (
+            	throw CtrAlreadyExistsException (
                         MEMORIA_SOURCE,
-                        SBuf()<<"Container with name "<<self.name()<<" already exists"
+                        SBuf()<<"Container with name "<<self.master_name()<<" already exists"
                 );
             }
         }
@@ -349,7 +283,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         NodeBaseG node = DefaultDispatcher::dispatch2(
                         leaf,
-                        CreateNodeFn(me()), size
+                        CreateNodeFn(self), size
                     );
 
 
@@ -384,7 +318,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         NodeBaseG node = NodeDispatcher::dispatch2(
                     leaf,
-                    CreateNodeFn(me()), metadata.page_size()
+                    CreateNodeFn(self), metadata.page_size()
         );
 
 
@@ -419,7 +353,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     {
         MEMORIA_ASSERT_TRUE(node.isSet());
 
-        NodeDispatcher::dispatch(node, PrepareNodeFn(me()));
+        NodeDispatcher::dispatch(node, PrepareNodeFn(self()));
     }
 
     void markCtrUpdated()

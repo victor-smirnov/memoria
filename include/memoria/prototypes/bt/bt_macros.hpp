@@ -95,47 +95,47 @@ MEMORIA_BT_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTreeIteratorBaseClassName)        
 
 #define MEMORIA_FN_WRAPPER(WrapperName, TargetMethod)   \
 struct WrapperName {                                    \
-    MyType* me_;                                        \
-    WrapperName(MyType* v): me_(v) {}                   \
+    MyType& me_;                                        \
+    WrapperName(MyType& v): me_(v) {}                   \
     template <typename T, typename... Args>             \
     void treeNode(T&& arg, Args&&... args)                \
     {                                                   \
-        me_->TargetMethod(std::forward<T>(arg), std::forward<Args>(args)...);\
+        me_.TargetMethod(std::forward<T>(arg), std::forward<Args>(args)...);\
     }                                                   \
 }
 
 #define MEMORIA_FN_WRAPPER_RTN(WrapperName, TargetMethod, ReturnType_)\
 struct WrapperName {                                    \
     typedef ReturnType_ ReturnType;                     \
-    MyType* me_;                                        \
-    WrapperName(MyType* v): me_(v) {}                   \
+    MyType& me_;                                        \
+    WrapperName(MyType& v): me_(v) {}                   \
     template <typename T, typename... Args>             \
     ReturnType treeNode(T arg, Args&&... args)          \
     {                                                   \
-        return me_->TargetMethod(arg, std::forward<Args>(args)...);\
+        return me_.TargetMethod(arg, std::forward<Args>(args)...);\
     }                                                   \
 }
 
 #define MEMORIA_CONST_FN_WRAPPER(WrapperName, TargetMethod) \
 struct WrapperName {                                        \
-    const MyType* me_;                                      \
-    WrapperName(const MyType* v): me_(v) {}                 \
+    const MyType& me_;                                      \
+    WrapperName(const MyType& v): me_(v) {}                 \
     template <typename T, typename... Args>                 \
     void treeNode(T&& arg, Args&&... args) const              \
     {                                                       \
-        me_->TargetMethod(std::forward<T>(arg), std::forward<Args>(args)...);\
+        me_.TargetMethod(std::forward<T>(arg), std::forward<Args>(args)...);\
     }                                                       \
 }
 
 #define MEMORIA_CONST_FN_WRAPPER_RTN(WrapperName, TargetMethod, ReturnType_)\
 struct WrapperName {                                    \
     typedef ReturnType_ ReturnType;                     \
-    const MyType* me_;                                  \
-    WrapperName(const MyType* v): me_(v) {}             \
+    const MyType& me_;                                  \
+    WrapperName(const MyType& v): me_(v) {}             \
     template <typename T, typename... Args>             \
     ReturnType treeNode(T&& arg, Args&&... args) const    \
     {                                                   \
-        return me_->TargetMethod(std::forward<T>(arg), std::forward<Args>(args)...);\
+        return me_.TargetMethod(std::forward<T>(arg), std::forward<Args>(args)...);\
     }                                                   \
 }
 
@@ -145,12 +145,12 @@ struct WrapperName {                                    \
 #define MEMORIA_CONST_STATIC_FN_WRAPPER_RTN(WrapperName, TargetMethod, ReturnType_)\
 struct WrapperName {                                    \
     typedef ReturnType_ ReturnType;                     \
-    const MyType* me_;                                  \
-    WrapperName(const MyType* v): me_(v) {}             \
+    const MyType& me_;                                  \
+    WrapperName(const MyType& v): me_(v) {}             \
     template <typename T, typename... Args>             \
     ReturnType treeNode(const T*, Args&&... args) const \
     {                                                   \
-        return me_->template TargetMethod<T>(std::forward<Args>(args)...);\
+        return me_.template TargetMethod<T>(std::forward<Args>(args)...);\
     }                                                   \
 }
 
@@ -158,7 +158,7 @@ struct WrapperName {                                    \
 #define MEMORIA_DECLARE_NODE_FN(WrapperName, NodeMethodName)\
 struct WrapperName {                                        \
     template <typename T, typename... Args>                 \
-    void treeNode(T node, Args&&... args) const             \
+    void treeNode(T&& node, Args&&... args) const             \
     {                                                       \
         node->NodeMethodName(std::forward<Args>(args)...);\
     }                                                       \
@@ -167,7 +167,7 @@ struct WrapperName {                                        \
 #define MEMORIA_DECLARE_NODE2_FN(WrapperName, NodeMethodName)\
 struct WrapperName {                                        \
     template <typename T, typename... Args>                 \
-    void treeNode(T node1, T node2, Args&&... args) const   \
+    void treeNode(T&& node1, T&& node2, Args&&... args) const   \
     {                                                       \
         node1->NodeMethodName(node2, std::forward<Args>(args)...);\
     }                                                       \
@@ -177,7 +177,7 @@ struct WrapperName {                                        \
 struct WrapperName {                                        \
     typedef ReturnType_ ReturnType;                         \
     template <typename T, typename... Args>                 \
-    ReturnType treeNode(T node, Args&&... args) const       \
+    ReturnType treeNode(T&& node, Args&&... args) const       \
     {                                                       \
         return node->NodeMethodName(std::forward<Args>(args)...);\
     }                                                       \
@@ -187,7 +187,7 @@ struct WrapperName {                                        \
 struct WrapperName {                                        \
     typedef ReturnType_ ReturnType;                         \
     template <typename T, typename... Args>                 \
-    ReturnType treeNode(T node1, T node2, Args&&... args) const \
+    ReturnType treeNode(T&& node1, T&& node2, Args&&... args) const \
     {                                                       \
         return node1->NodeMethodName(node2, std::forward<Args>(args)...);\
     }                                                       \

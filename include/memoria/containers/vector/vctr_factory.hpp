@@ -104,9 +104,10 @@ struct BTTypes<Profile, memoria::Vector<VLen<Gr, Value_>> >: public BTTypes<Prof
 
     using VectorStreamTF = StreamTF<
         TL<TL<
+			StreamSize,
 			PkdVDArrayT<Value, 1, CodecClassTF<Gr>::template Type>
     	>>,
-        TL<TL<TL<>>>,
+        TL<TL<TL<>, TL<>>>,
 		FSEBranchStructTF
     >;
 

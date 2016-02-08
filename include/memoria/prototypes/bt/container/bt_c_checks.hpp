@@ -73,7 +73,7 @@ public:
         {
             self().dump(node);
 
-            MEMORIA_ERROR(me(), ex.message());
+            MEMORIA_ERROR(self(), ex.message());
             return true;
         }
     }
@@ -108,7 +108,7 @@ bool M_TYPE::checkTree() const
         return errors;
     }
     else {
-        MEMORIA_ERROR(me(), "No root node for container");
+        MEMORIA_ERROR(self, "No root node for container");
         return true;
     }
 }
@@ -130,7 +130,7 @@ void M_TYPE::checkTreeStructure(const NodeBaseG& parent, Int parent_idx, const N
 
     if (!node->is_root())
     {
-        errors = TreeDispatcher::dispatchTree(parent, node, CheckTypedNodeContentFn(me()), parent_idx) || errors;
+        errors = TreeDispatcher::dispatchTree(parent, node, CheckTypedNodeContentFn(self), parent_idx) || errors;
 
         if (!node->is_leaf())
         {
@@ -139,7 +139,7 @@ void M_TYPE::checkTreeStructure(const NodeBaseG& parent, Int parent_idx, const N
             if (children == 0 && !node->is_root())
             {
                 errors = true;
-                MEMORIA_ERROR(me(), "children == 0 for non-root node", node->id());
+                MEMORIA_ERROR(self, "children == 0 for non-root node", node->id());
                 self.dump(node);
             }
         }
@@ -158,20 +158,20 @@ void M_TYPE::checkTreeStructure(const NodeBaseG& parent, Int parent_idx, const N
             if (child->id() != child_id)
             {
                 errors = true;
-                MEMORIA_ERROR(me(), "child.id != child_id", child->id(), child->id(), child_id);
+                MEMORIA_ERROR(self, "child.id != child_id", child->id(), child->id(), child_id);
             }
 
             if (child->parent_idx() != c)
             {
                 errors = true;
-                MEMORIA_ERROR(me(), "child.parent_idx != idx", child->parent_idx(), c, node->id(), child->id());
+                MEMORIA_ERROR(self, "child.parent_idx != idx", child->parent_idx(), c, node->id(), child->id());
                 cout<<"parent_idx: "<<child->parent_idx()<<" "<<c<<endl;
             }
 
             if (child->parent_id() != node->id())
             {
                 errors = true;
-                MEMORIA_ERROR(me(), "child.parent_id != node.id", child->parent_id(), node->id());
+                MEMORIA_ERROR(self, "child.parent_id != node.id", child->parent_id(), node->id());
                 cout<<"parent_idx: "<<child->parent_id()<<" "<<node->id()<<endl;
             }
 
@@ -194,7 +194,7 @@ bool M_TYPE::checkTypedNodeContent(const Node1 *parent, const Node2* node, Int p
     if (sums != keys)
     {
         MEMORIA_ERROR(
-                me(),
+        		self(),
                 "Invalid parent-child nodes chain",
                 (SBuf()<<sums).str(),
                 (SBuf()<<keys).str(),

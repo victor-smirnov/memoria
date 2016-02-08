@@ -36,9 +36,9 @@ template <
     template <typename Base> class NodeExtender                     = DefaultNodeExtender,
     template <typename KeyType, typename ValueType> class Map       = DefaultLRUMap
 >
-class LRUCache {
+class LFUCache {
 
-    typedef LRUCache<Key, EvictionPredicate, NodeExtender, Map>     MyType;
+    typedef LFUCache<Key, EvictionPredicate, NodeExtender, Map>     MyType;
 
     template <
         template <typename> class NodeExtender1
@@ -111,7 +111,7 @@ private:
 
 public:
 
-    LRUCache(std::size_t max_size): max_size_(max_size) {}
+    LFUCache(std::size_t max_size): max_size_(max_size) {}
 
     MapType& map() {
         return map_;

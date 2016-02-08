@@ -193,10 +193,10 @@ public:
     	IndexValue target_;
     	Int idx_;
     public:
-    	FindGEWalker(IndexValue target): target_(target) {}
+    	FindGEWalker(const IndexValue& target): target_(target) {}
 
     	template <typename T>
-    	bool compare(T value)
+    	bool compare(T&& value)
     	{
     		return value >= target_;
     	}
@@ -217,10 +217,10 @@ public:
 
     	Int idx_;
     public:
-    	FindGTWalker(IndexValue target): target_(target) {}
+    	FindGTWalker(const IndexValue& target): target_(target) {}
 
     	template <typename T>
-    	bool compare(T value)
+    	bool compare(T&& value)
     	{
     		return value > target_;
     	}

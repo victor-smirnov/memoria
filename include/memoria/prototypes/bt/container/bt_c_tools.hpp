@@ -107,7 +107,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     MEMORIA_CONST_FN_WRAPPER_RTN(GetChildFn, getChildFn, NodeBaseG);
     NodeBaseG getChild(const NodeBaseG& node, Int idx) const
     {
-        NodeBaseG result = BranchDispatcher::dispatch(node, GetChildFn(me()), idx);
+        NodeBaseG result = BranchDispatcher::dispatch(node, GetChildFn(self()), idx);
 
         if (result.isSet())
         {
@@ -123,7 +123,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     MEMORIA_CONST_FN_WRAPPER_RTN(GetChildForUpdateFn, getChildForUpdateFn, NodeBaseG);
     NodeBaseG getChildForUpdate(const NodeBaseG& node, Int idx) const
     {
-        NodeBaseG result = BranchDispatcher::dispatch(node, GetChildForUpdateFn(me()), idx);
+        NodeBaseG result = BranchDispatcher::dispatch(node, GetChildForUpdateFn(self()), idx);
 
         if (result.isSet())
         {
@@ -249,7 +249,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
         if (page)
         {
             PageWrapper<const Page> pw(page);
-            PageMetadata* meta = me()->getMetadata()->getPageMetadata(pw.getContainerHash(), pw.getPageTypeHash());
+            PageMetadata* meta = self().getMetadata()->getPageMetadata(pw.getContainerHash(), pw.getPageTypeHash());
             memoria::vapi::dumpPage(meta, &pw, out);
             out<<std::endl;
             out<<std::endl;

@@ -76,8 +76,6 @@ public:
 		return hi_ > other.hi_ || (hi_ == other.hi_ && lo_ >= other.lo_);
 	}
 
-
-
 	bool isSet() const {
 		return hi_ != 0 || lo_ != 0;
 	}
@@ -87,6 +85,7 @@ public:
 	}
 
 	static UUID make_random();
+	static UUID make_time();
 	static UUID parse(const char* in);
 
 	static constexpr UUID make(UBigInt hi, UBigInt lo) {
