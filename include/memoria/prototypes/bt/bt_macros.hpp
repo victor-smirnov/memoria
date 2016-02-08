@@ -19,30 +19,20 @@ class BTreeCtrBaseClassName: public CtrBase<TypesType> {                        
                                                                                         \
     typedef BTreeCtrBaseClassName<TypesType>                              ThisType;     \
     typedef CtrBase<TypesType>                                            Base;         \
-    typedef Ctr<TypesType>                                                      MyType; \
+    typedef Ctr<TypesType>                                                MyType; 		\
                                                                                         \
+    template <typename, typename, typename > friend class CtrPart;						\
 public:
 
 #define MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBaseClassName)                        \
     MEMORIA_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(BTreeCtrBaseClassName)                    \
                                                                                         \
     BTreeCtrBaseClassName(const CtrInitData& data): Base(data) {}                       \
-    BTreeCtrBaseClassName(const ThisType& other): Base(other) {}                        \
-    BTreeCtrBaseClassName(ThisType&& other): Base(std::move(other)) {}                  \
-    BTreeCtrBaseClassName(ThisType&& other, typename TypesType::Allocator* allocator):  \
-        Base(std::move(other), allocator)  {}                                           \
-    BTreeCtrBaseClassName(const ThisType& other, typename TypesType::Allocator* allocator): \
-        Base(other, allocator)        {}                                                \
+
 
 
 #define MEMORIA_BT_MODEL_BASE_CLASS_END                                                 \
-    MyType* me() {                                                                      \
-        return static_cast<MyType*>(this);                                              \
-    }                                                                                   \
-    const MyType* me() const {                                                          \
-        return static_cast<const MyType*>(this);                                        \
-    }                                                                                   \
-                                                                                        \
+private:																				\
     MyType& self() {                                                                    \
         return *static_cast<MyType*>(this);                                             \
     }                                                                                   \
@@ -61,6 +51,8 @@ class BTreeIteratorBaseClassName: public IteratorBase<TypesType>                
 {                                                                                       \
     typedef IteratorBase<TypesType>                                             Base;   \
     typedef BTreeIteratorBaseClassName<TypesType>                               ThisType;\
+    template <typename, typename, typename> friend class CtrPart;						\
+    template <typename, typename, typename> friend class IterPart;						\
 public:                                                                                 \
     typedef Iter<TypesType>                                                     MyType;
 
@@ -73,13 +65,6 @@ MEMORIA_BT_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTreeIteratorBaseClassName)        
 
 
 #define MEMORIA_BT_ITERATOR_BASE_CLASS_END                                              \
-    MyType* me() {                                                                      \
-        return static_cast<MyType*>(this);                                              \
-    }                                                                                   \
-    const MyType* me() const {                                                          \
-        return static_cast<const MyType*>(this);                                        \
-    }                                                                                   \
-                                                                                        \
     MyType& self() {                                                                    \
         /*return *static_cast<MyType*>(this);*/                                         \
 		return *(MyType*)(this);                                         				\

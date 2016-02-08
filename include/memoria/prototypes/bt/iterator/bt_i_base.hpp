@@ -63,7 +63,7 @@ public:
         stream_(other.stream_),
         cache_(std::move(other.cache_))
     {
-        cache_.init(me());
+        cache_.init(&self());
     }
 
     BTIteratorBase(const ThisType& other):
@@ -259,7 +259,7 @@ public:
     void dumpPath(std::ostream& out = std::cout, const char* header = nullptr) const
     {
         auto& self  = this->self();
-        out<<(header != NULL ? header : me()->getDumpHeader())<<std::endl;
+        out<<(header != NULL ? header : self.getDumpHeader())<<std::endl;
         dumpCache(out);
         dumpKeys(out);
         self.ctr().dumpPath(self.leaf(), out);

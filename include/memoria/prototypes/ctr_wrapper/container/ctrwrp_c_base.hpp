@@ -46,26 +46,7 @@ public:
         ctr_(data.owner(Base::CONTAINER_HASH))
     {}
 
-    CtrWrapperCtrBase1(const ThisType& other, Allocator* allocator):
-        Base(other, allocator),
-        ctr_(other.ctr_, allocator)
-    {}
 
-    CtrWrapperCtrBase1(ThisType&& other, Allocator* allocator):
-        Base(std::move(other), allocator),
-        ctr_(std::move(other.ctr_), allocator)
-    {}
-
-    //broken constructor
-    CtrWrapperCtrBase1(const ThisType& other):
-        Base(other),
-        ctr_(other.init_data_.owner(Base::CONTAINER_HASH))
-    {}
-
-    CtrWrapperCtrBase1(ThisType&& other):
-        Base(std::move(other)),
-        ctr_(other.init_data_.owner(Base::CONTAINER_HASH))
-    {}
 
     WrappedCtr& ctr() {
         return ctr_;
@@ -91,14 +72,14 @@ public:
 
     void initCtr(Int command)
     {
-        ctr_.initCtr(&me()->allocator(), me()->name(), command);
+        ctr_.initCtr(&self().allocator(), self().name(), command);
 
         Base::setCtrShared(NULL);
     }
 
     void initCtr(const ID& root_id)
     {
-        ctr_.initCtr(&me()->allocator(), root_id);
+        ctr_.initCtr(&self().allocator(), root_id);
 
         Base::setCtrShared(NULL);
     }
@@ -131,13 +112,13 @@ public:
 
     virtual ID getRootID(const UUID& name)
     {
-        return me()->ctr().getRootID(name);
+        return self().ctr().getRootID(name);
     }
 
 
     virtual void setRoot(const UUID& name, const ID& root_id)
     {
-        me()->ctr().setRoot(name, root_id);
+        self().ctr().setRoot(name, root_id);
     }
 
     bool check(void* ptr = NULL)

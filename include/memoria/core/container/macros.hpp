@@ -138,6 +138,8 @@ class CtrPart<PartName, Base1, TypesType>: public Base1 {                       
     typedef Base1 Base;                                                         \
     typedef CtrPart<PartName, Base1, TypesType> ThisType;                       \
     typedef Ctr<TypesType> MyType;                                              \
+    template <typename, typename, typename> friend class CtrPart;				\
+    template <typename, typename, typename> friend class IterPart;				\
 public:
 
 
@@ -145,15 +147,11 @@ public:
     MEMORIA_CONTAINER_PART_NO_CTR_BEGIN(PartName)                               \
     CtrPart(const CtrInitData& data): Base(data)  {}                            \
     virtual ~CtrPart() throw() {}                                               \
-    void operator=(ThisType&& other) {                                          \
-        Base::operator=(std::move(other));                                      \
-    }                                                                           \
-    void operator=(const ThisType& other) {                                     \
-        Base::operator=(other);                                                 \
-    }
+
 
 
 #define MEMORIA_CONTAINER_PART_END                                              \
+	private:																	\
     MyType& self() {                                                            \
         return *static_cast<MyType*>(this);                                     \
     }                                                                           \
