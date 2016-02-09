@@ -85,15 +85,17 @@ public:
 };
 
 template <typename T = EmptyType>
-class SPTestTaskT: public ProfileTestTask<DefaultProfile<>, SmallInMemAllocator> {
+class SPTestTaskT: public ProfileTestTask<DefaultProfile<>, PersistentInMemAllocator<DefaultProfile<>>> {
 
-    typedef ProfileTestTask<DefaultProfile<>, SmallInMemAllocator> Base;
+    using Base = ProfileTestTask<DefaultProfile<>, PersistentInMemAllocator<DefaultProfile<>>>;
+
+    using Base::Allocator;
 
 public:
     SPTestTaskT(StringRef name): Base(name) {}
     virtual ~SPTestTaskT() throw () {};
 
-    void check(Allocator& allocator, const char* source)
+    void check(const std::shared_ptr<Allocator>& allocator, const char* source)
     {
         Int step_count = getcheckStep();
 
@@ -105,12 +107,12 @@ public:
         check_count++;
     }
 
-    void forceCheck(Allocator& allocator, const char* source)
+    void forceCheck(const std::shared_ptr<Allocator>& allocator, const char* source)
     {
         ::memoria::check<Allocator>(allocator, "Allocator check failed", source);
     }
 
-    void check(Allocator& allocator, const char* message, const char* source)
+    void check(const std::shared_ptr<Allocator>& allocator, const char* message, const char* source)
     {
         Int step_count = getcheckStep();
 

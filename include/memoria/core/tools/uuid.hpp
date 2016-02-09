@@ -126,6 +126,18 @@ inline vapi::OutputStreamHandler& operator<<(vapi::OutputStreamHandler& out, con
 	return out;
 }
 
+namespace vapi {
+
+	template <typename T> struct FromString;
+
+	template <>
+	struct FromString<UUID> {
+		static UUID convert(StringRef str)
+		{
+			return UUID::parse(str.c_str());
+		}
+	};
+}
 
 
 

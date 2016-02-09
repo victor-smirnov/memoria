@@ -32,6 +32,9 @@ struct ContainerWalker {
     virtual void beginSnapshot(const char* descr)                               = 0;
     virtual void endSnapshot()                                                  = 0;
 
+    virtual void beginSnapshotSet(const char* descr, size_t number)             = 0;
+    virtual void endSnapshotSet()                                               = 0;
+
     virtual void beginCompositeCtr(const char* descr, const UUID& name)         = 0;
     virtual void endCompositeCtr()                                              = 0;
 
@@ -207,6 +210,16 @@ public:
         }
 
         path_.push(root_path);
+    }
+
+    virtual void beginSnapshotSet(const char* descr, size_t number)
+    {
+    	pushFolder(descr);
+    }
+
+    virtual void endSnapshotSet()
+    {
+    	path_.pop();
     }
 
     virtual void beginAllocator(const char* type, const char* desc)
@@ -386,14 +399,14 @@ private:
 };
 
 
-template <typename Allocator>
-void FSDumpAllocator(Allocator* allocator, StringRef path)
-{
-    typedef FSDumpContainerWalker<typename Allocator::Page> Walker;
-
-    Walker walker(allocator->getMetadata(), path);
-    allocator->walkContainers(&walker);
-}
+//template <typename Allocator>
+//void FSDumpAllocator(Allocator* allocator, StringRef path)
+//{
+//    typedef FSDumpContainerWalker<typename Allocator::Page> Walker;
+//
+//    Walker walker(allocator->getMetadata(), path);
+//    allocator->walkContainers(&walker);
+//}
 
 template <typename Allocator>
 void FSDumpAllocator(const std::shared_ptr<Allocator>& allocator, StringRef path)

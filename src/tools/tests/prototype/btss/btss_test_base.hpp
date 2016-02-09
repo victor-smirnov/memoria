@@ -114,8 +114,6 @@ public:
 
             iter.insert(data.begin(), data.end());
 
-            alloc.flush();
-
             total += tmp_size;
         }
     }

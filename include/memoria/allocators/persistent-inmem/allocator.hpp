@@ -80,10 +80,13 @@ template <typename Profile, typename PageType>
 class PersistentInMemAllocatorT: public enable_shared_from_this<PersistentInMemAllocatorT<Profile, PageType>> {
 public:
 
+
+
 	static constexpr Int NodeIndexSize 	= 32;
 	static constexpr Int NodeSize 		= NodeIndexSize * 8;
 
 	using MyType 		= PersistentInMemAllocatorT<Profile, PageType>;
+
 
 	using Page 			= PageType;
 
@@ -101,8 +104,6 @@ public:
 	using BranchNodeBufferT = memoria::persistent_inmem::BranchNode<Key, NodeSize, NodeIndexSize, PTreeNodeId, TxnId, PTreeNodeId>;
 	using NodeBaseT 		= typename BranchNodeT::NodeBaseT;
 	using NodeBaseBufferT 	= typename BranchNodeBufferT::NodeBaseT;
-
-
 
 	struct HistoryNode {
 
@@ -290,9 +291,10 @@ public:
 	};
 
 
-	using PersistentTreeT 	= memoria::persistent_inmem::PersistentTree<BranchNodeT, LeafNodeT, HistoryNode, PageType>;
-	using SnapshotT 	 	= memoria::persistent_inmem::Snapshot<Profile, PageType, HistoryNode, PersistentTreeT, MyType>;
-	using SnapshotPtr 		= std::shared_ptr<SnapshotT>;
+	using PersistentTreeT 		= memoria::persistent_inmem::PersistentTree<BranchNodeT, LeafNodeT, HistoryNode, PageType>;
+	using SnapshotT 	 		= memoria::persistent_inmem::Snapshot<Profile, PageType, HistoryNode, PersistentTreeT, MyType>;
+	using SnapshotPtr 			= std::shared_ptr<SnapshotT>;
+	using AllocatorPtr 			= std::shared_ptr<MyType>;
 
 	using TxnMap		 		= std::unordered_map<TxnId, HistoryNode*, UUIDKeyHash, UUIDKeyEq>;
 
@@ -334,6 +336,8 @@ private:
 
 	enum {TYPE_UNKNOWN, TYPE_METADATA, TYPE_HISTORY_NODE, TYPE_BRANCH_NODE, TYPE_LEAF_NODE, TYPE_DATA_PAGE, TYPE_CHECKSUM};
 
+	Logger logger_;
+
 	HistoryNode* history_tree_ = nullptr;
 	HistoryNode* master_ = nullptr;
 
@@ -347,12 +351,16 @@ private:
 
 	BigInt active_snapshots_ = 0;
 
+public:
 	PersistentInMemAllocatorT():
+		logger_("PersistentInMemAllocator"),
 		metadata_(MetadataRepository<Profile>::getMetadata())
 	{
 		SnapshotT::initMetadata();
 
 		master_ = history_tree_ = new HistoryNode(nullptr, HistoryNode::Status::ACTIVE);
+
+		snapshot_map_[history_tree_->txn_id()] = history_tree_;
 
 		auto leaf = new LeafNodeT(history_tree_->txn_id(), UUID::make_random());
 		leaf->ref();
@@ -362,6 +370,7 @@ private:
 		snapshot.commit();
 	}
 
+private:
 	PersistentInMemAllocatorT(Int):
 		metadata_(MetadataRepository<Profile>::getMetadata())
 	{}
@@ -373,15 +382,32 @@ public:
 		free_memory(history_tree_);
 	}
 
+	// return true in case of errors
+	bool check() {
+		return false;
+	}
+
+	const Logger& logger() const {
+		return logger_;
+	}
+
+	Logger& logger() {
+		return logger_;
+	}
+
 	BigInt active_snapshots() const {
 		return active_snapshots_;
 	}
 
-	struct shared : public MyType {};
+	void pack()
+	{
+		do_pack(history_tree_);
+	}
+
 
 	static auto create()
 	{
-		return std::make_shared<shared>();
+		return std::make_shared<MyType>();
 	}
 
 	auto newId()
@@ -443,6 +469,10 @@ public:
 			{
 				master_ = iter->second;
 			}
+			else if (iter->second->is_dropped())
+			{
+				throw vapi::Exception(MA_SRC, SBuf()<<"Snapshot "<<txn_id<<" has been dropped");
+			}
 			else {
 				throw vapi::Exception(MA_SRC, SBuf()<<"Snapshot "<<txn_id<<" hasn't been committed yet");
 			}
@@ -478,9 +508,7 @@ public:
 	{
 		walker->beginAllocator("PersistentInMemAllocator", allocator_descr);
 
-		walk_version_tree(history_tree_, [&](auto* history_tree_node, auto* txn){
-			txn->walkContainers(walker);
-		});
+		walk_containers(history_tree_, walker);
 
 		walker->endAllocator();
 	}
@@ -671,6 +699,9 @@ public:
 			auto node = entry.second;
 			delete node;
 		}
+
+		allocator->do_delete_dropped();
+		allocator->pack();
 
 		return std::shared_ptr<MyType>(allocator);
 	}
@@ -958,11 +989,11 @@ private:
 		return buf;
 	}
 
-	void walk_version_tree(const HistoryNode* node, std::function<void (const HistoryNode*, SnapshotT*)> fn)
+	void walk_version_tree(HistoryNode* node, std::function<void (HistoryNode*, SnapshotT*)> fn)
 	{
 		if (node->is_committed())
 		{
-			SnapshotT txn(history_tree_, this->shared_from_this());
+			SnapshotT txn(node, this);
 			fn(node, &txn);
 		}
 
@@ -970,16 +1001,34 @@ private:
 		{
 			walk_version_tree(child, fn);
 		}
-
 	}
 
-	void walk_version_tree(const HistoryNode* node, std::function<void (const HistoryNode*)> fn)
+	void walk_version_tree(HistoryNode* node, std::function<void (HistoryNode*)> fn)
 	{
 		fn(node);
 
 		for (auto child: node->children())
 		{
 			walk_version_tree(child, fn);
+		}
+	}
+
+	void walk_containers(HistoryNode* node, vapi::ContainerWalker* walker)
+	{
+		if (node->is_committed())
+		{
+			SnapshotT txn(node, this);
+			txn.walkContainers(walker);
+		}
+
+		if (node->children().size())
+		{
+			walker->beginSnapshotSet("Branches", node->children().size());
+			for (auto child: node->children())
+			{
+				walk_containers(child, walker);
+			}
+			walker->endSnapshotSet();
 		}
 	}
 
@@ -1159,6 +1208,51 @@ private:
 
 		delete history_node;
 	}
+
+	void do_pack(HistoryNode* node)
+	{
+		for (auto child: node->children())
+		{
+			do_pack(child);
+		}
+
+		if (node->root() == nullptr && node->references() == 0)
+		{
+			if (node->children().size() == 0)
+			{
+				node->remove_from_parent();
+				delete node;
+			}
+			else if (node->children().size() == 1)
+			{
+				auto parent = node->parent();
+				auto child  = node->children()[0];
+
+				node->remove_from_parent();
+				delete node;
+
+				parent->children().push_back(child);
+			}
+		}
+	}
+
+	void do_delete_dropped() {
+		do_delete_dropped(history_tree_);
+	}
+
+	void do_delete_dropped(HistoryNode* node)
+	{
+		if (node->is_dropped() && node->root() != nullptr)
+		{
+			SnapshotT::delete_snapshot(node);
+		}
+
+		for (auto child: node->children())
+		{
+			do_delete_dropped(child);
+		}
+	}
+
 };
 
 

@@ -14,12 +14,13 @@
 #include <memoria/core/tools/stream.hpp>
 
 #include <memoria/core/container/metadata_repository.hpp>
-
 #include <memoria/core/tools/pool.hpp>
 
 #include <malloc.h>
 #include <memory>
 #include <limits>
+
+#error "Boo!"
 
 namespace memoria {
 

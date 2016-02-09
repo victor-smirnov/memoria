@@ -239,6 +239,9 @@ public:
 
     virtual void tearDown() {}
 
+    virtual void onException() {}
+    virtual void prepareReplay() {}
+
     template <typename T>
     using TaskMethodPtr = void (T::*) ();
 

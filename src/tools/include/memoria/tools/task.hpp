@@ -143,7 +143,7 @@ public:
 
     void setOutputFolder(StringRef folder)
     {
-        output_folder_ = folder;
+    	output_folder_ = folder;
     }
 
     String getResourcePath(StringRef name) const

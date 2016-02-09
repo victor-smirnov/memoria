@@ -7,6 +7,10 @@
 
 #include <memoria/allocators/persistent-inmem/factory.hpp>
 #include <memoria/core/tools/time.hpp>
+#include <memoria/core/tools/random.hpp>
+
+#include <memoria/containers/vector/vctr_factory.hpp>
+#include <memoria/containers/map/map_factory.hpp>
 
 #include <iostream>
 #include <string>

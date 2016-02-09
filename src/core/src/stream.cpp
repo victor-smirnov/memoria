@@ -29,12 +29,12 @@ using namespace std;
 
 
 
-FileOutputStreamHandler* FileOutputStreamHandler::create(const char* file) {
-    return new FileOutputStreamHandlerImpl(file);
+std::unique_ptr<FileOutputStreamHandler> FileOutputStreamHandler::create(const char* file) {
+    return std::make_unique<FileOutputStreamHandlerImpl>(file);
 }
 
-FileInputStreamHandler* FileInputStreamHandler::create(const char* file) {
-    return new FileInputStreamHandlerImpl(file);
+std::unique_ptr<FileInputStreamHandler> FileInputStreamHandler::create(const char* file) {
+    return std::make_unique<FileInputStreamHandlerImpl>(file);
 }
 
 

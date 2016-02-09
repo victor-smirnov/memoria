@@ -10,7 +10,11 @@
 #include <memoria/memoria.hpp>
 #include <memoria/tools/tests.hpp>
 
+#include <memoria/containers/vector/vctr_factory.hpp>
+
 #include "../prototype/btss/btss_test_base.hpp"
+
+
 
 #include <vector>
 
@@ -23,7 +27,7 @@ using namespace std;
 
 template <
     typename CtrName,
-	typename AllocatorT 	= SmallInMemAllocator,
+	typename AllocatorT 	= PersistentInMemAllocator<>,
 	typename ProfileT		= DefaultProfile<>
 >
 class VectorTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT>
@@ -32,32 +36,38 @@ class VectorTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT>
 
     using Base = BTSSTestBase<CtrName, AllocatorT, ProfileT>;
 
-    typedef typename Base::Ctr                                                  Ctr;
-    typedef typename Base::Iterator                                             Iterator;
-    typedef typename Ctr::BranchNodeEntry                                           BranchNodeEntry;
+    using typename Base::Ctr;
+    using typename Base::Iterator;
+
+    using BranchNodeEntry = typename Ctr::BranchNodeEntry;
 
     using Value = typename Ctr::Types::Value;
 
-    using Allocator 	= typename Base::Allocator;
-    using AllocatorSPtr = typename Base::AllocatorSPtr;
+    using typename Base::Allocator;
+    using typename Base::AllocatorPtr;
 
-    BigInt size = 1024*1024;
+    BigInt size = 1024*10;
+
+    using Base::allocator;
+    using Base::snapshot;
+    using Base::branch;
+    using Base::commit;
+    using Base::drop;
+    using Base::out;
 
 public:
     VectorTest(StringRef name):
         Base(name)
     {
-    	MEMORIA_ADD_TEST(testCreate);
-    }
-
-    virtual void createAllocator(AllocatorSPtr& allocator) {
-    	this->allocator_ = std::make_shared<Allocator>();
+    	MEMORIA_ADD_TEST_WITH_REPLAY(testCreate, replayCreate);
     }
 
 
     void testCreate()
     {
-    	Ctr ctr(this->allocator_.get(), CTR_CREATE);
+    	auto snp = branch();
+
+    	auto ctr = create<CtrName>(snp);
 
     	std::vector<Value> data(size);
 
@@ -66,13 +76,13 @@ public:
     		d = this->getRandom(100);
     	}
 
-    	ctr.begin().insert(data.begin(), data.size());
+    	ctr->begin().insert(data.begin(), data.size());
 
-    	AssertEQ(MA_SRC, ctr.size(), data.size());
+    	AssertEQ(MA_SRC, ctr->size(), data.size());
 
     	std::vector<Value> data2(size);
 
-    	auto read = ctr.begin().read(data2.begin(), data2.size());
+    	auto read = ctr->begin().read(data2.begin(), data2.size());
 
     	AssertEQ(MA_SRC, read, data2.size());
 
@@ -80,6 +90,12 @@ public:
     	{
     		AssertEQ(MA_SRC, data[c], data2[c]);
     	}
+
+    	commit();
+    }
+
+    void replayCreate() {
+
     }
 };
 

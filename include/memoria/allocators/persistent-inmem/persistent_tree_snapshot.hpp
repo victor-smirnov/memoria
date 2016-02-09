@@ -24,6 +24,10 @@
 #include <memory>
 
 namespace memoria {
+
+template <typename Profile, typename PageType>
+class PersistentInMemAllocatorT;
+
 namespace persistent_inmem {
 
 namespace {
@@ -119,7 +123,7 @@ private:
 	ContainerMetadataRepository*  metadata_;
 
 	template <typename, typename>
-	friend class PersistentInMemAllocatorT;
+	friend class ::memoria::PersistentInMemAllocatorT;
 
 
 public:
@@ -129,7 +133,7 @@ public:
 		history_tree_(history_tree),
 		history_tree_raw_(history_tree.get()),
 		persistent_tree_(history_node_),
-		logger_("PersistentInMemAllocatorTxn"),
+		logger_("PersistentInMemAllocatorSnp", Logger::DERIVED, &history_tree->logger_),
 		root_map_(nullptr),
 		metadata_(MetadataRepository<Profile>::getMetadata())
 	{
@@ -197,6 +201,10 @@ public:
 		return metadata_;
 	}
 
+	const auto& uuid() const {
+		return history_node_->txn_id();
+	}
+
 	void commit()
 	{
 		if (history_node_->is_active())
@@ -211,7 +219,13 @@ public:
 
 	void drop()
 	{
-		history_node_->mark_to_clear();
+		if (history_node_->parent() != nullptr)
+		{
+			history_node_->mark_to_clear();
+		}
+		else {
+			throw vapi::Exception(MA_SRC, "Can't drop root snapshot");
+		}
 	}
 
 	void set_as_master()
@@ -423,7 +437,7 @@ public:
 
 	virtual void removePage(const ID& id, const UUID& name)
 	{
-		MEMORIA_ASSERT_TRUE(history_node_->is_active());
+		checkUpdateAllowed();
 
 		auto iter = persistent_tree_.locate(id);
 
@@ -448,7 +462,7 @@ public:
 
 	virtual PageG createPage(Int initial_size, const UUID& name)
 	{
-		MEMORIA_ASSERT_TRUE(history_node_->is_active());
+		checkUpdateAllowed();
 
 		if (initial_size == -1)
 		{
@@ -483,7 +497,7 @@ public:
 
 	virtual void resizePage(Shared* shared, Int new_size)
 	{
-		MEMORIA_ASSERT_TRUE(history_node_->is_active());
+		checkUpdateAllowed();
 
 		if (shared->state() == Shared::READ)
 		{
@@ -782,7 +796,7 @@ protected:
     }
 
 
-	void do_drop()
+	void do_drop() throw ()
 	{
 		persistent_tree_.delete_tree([&](LeafNodeT* leaf){
 			for (Int c = 0; c < leaf->size(); c++)
@@ -802,6 +816,25 @@ protected:
 				}
 			}
 		});
+	}
+
+	static void delete_snapshot(HistoryNode* node) throw ()
+	{
+		PersitentTree persistent_tree(node);
+
+		persistent_tree.delete_tree([&](LeafNodeT* leaf){
+			for (Int c = 0; c < leaf->size(); c++)
+			{
+				auto& page_descr = leaf->data(c);
+				if (page_descr.page()->unref() == 0)
+				{
+					::free(page_descr.page());
+				}
+			}
+		});
+
+		node->set_root(nullptr);
+		node->root_id() = ID();
 	}
 
 };

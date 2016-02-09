@@ -52,6 +52,7 @@ void TestTask::Run(std::ostream& out)
             BigInt t1 = getTimeInMillis();
 
             out<<"TEST FAILED in "<<FormatTime(t1 - t0)<<std::endl;
+            this->onException();
             this->tearDown();
             throw;
         }
@@ -73,6 +74,9 @@ void TestTask::Replay(ostream& out, Configurator* cfg)
     if (descr->hasReplay())
     {
         Base::Configure(configurator_);
+
+        this->prepareReplay();
+
         descr->replay(this, out);
     }
     else {
@@ -142,6 +146,7 @@ void MemoriaTestRunner::Replay(ostream& out, StringRef task_folder)
         try {
             out<<"Task: "<<task->getFullName()<<endl;
             task->setOut(&out);
+            task->setReplayMode();
             task->LoadProperties(task_file_name);
             task->configureSeed();
             task->setUp();

@@ -7,20 +7,19 @@
 #ifndef MEMORIA_TESTS_DUMP_HPP
 #define MEMORIA_TESTS_DUMP_HPP
 
-//#include <memoria/allocators/file/factory.hpp>
-#include <memoria/allocators/inmem/factory.hpp>
-//#include <memoria/allocators/mvcc/mvcc_allocator.hpp>
 
+#include <memoria/allocators/persistent-inmem/factory.hpp>
 #include <memoria/metadata/container.hpp>
+
+#include <memory>
 
 namespace memoria {
 
-
-static void LoadFile(SmallInMemAllocator& allocator, const char* file)
+template <typename AllocatorT>
+static void LoadFile(const std::shared_ptr<AllocatorT>& allocator, const char* file)
 {
-    FileInputStreamHandler* in = FileInputStreamHandler::create(file);
-    allocator.load(in);
-    delete in;
+    auto in = FileInputStreamHandler::create(file);
+    allocator->load(in.get());
 }
 
 static String getPath(String dump_name)
@@ -60,33 +59,9 @@ static Int DumpAllocator(String file_name)
             return 1;
         }
         
-//        Int status = GenericFileAllocator::testFile(file.getPath());
-//
-//        if (status == 7)
-//        {
-//          cout<<"Load FileAllocator file: "+file.getPath()<<endl;
-//          GenericFileAllocator allocator(file.getPath(), OpenMode::READ);
-//
-//          GenericFileAllocator::initMetadata();
-//
-//          if (allocator.properties().isMVCC())
-//          {
-//              cout<<"Dump MVCCV FileAllocator"<<endl;
-//
-//              typedef MVCCAllocator<FileProfile<>, GenericFileAllocator::Page>    TxnMgr;
-//
-//              TxnMgr::initMetadata();
-//
-//              TxnMgr mvcc_allocator(&allocator);
-//
-//              FSDumpAllocator(&mvcc_allocator, path.getAbsolutePath());
-//          }
-//          else {
-//              FSDumpAllocator(&allocator, path.getAbsolutePath());
-//          }
-//        }
-//        else {
-            SmallInMemAllocator allocator;
+        	auto is = FileInputStreamHandler::create(file.getPath().c_str());
+
+            auto allocator = PersistentInMemAllocator<>::load(is.get());
             
             cout<<"Load InMemAllocator file: "+file.getPath()<<endl;
 
@@ -98,9 +73,7 @@ static Int DumpAllocator(String file_name)
 
             cout<<"Loading time: "<<FormatTime(end-start)<<endl;
 
-            FSDumpAllocator(&allocator, path.getAbsolutePath());
-//        }
-
+            FSDumpAllocator(allocator, path.getAbsolutePath());
     }
     catch (Exception& ex) {
         cout<<"Exception "<<ex.source()<<" "<<ex<<endl;

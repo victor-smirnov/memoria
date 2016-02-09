@@ -15,6 +15,7 @@
 
 #include <fstream>
 #include <limits>
+#include <memory>
 
 namespace memoria    {
 namespace vapi       {
@@ -100,14 +101,14 @@ struct MEMORIA_API OutputStreamHandler {
 
 class MEMORIA_API FileOutputStreamHandler: public OutputStreamHandler {
 public:
-    static FileOutputStreamHandler* create(const char* file);
+    static std::unique_ptr<FileOutputStreamHandler> create(const char* file);
 
     virtual ~FileOutputStreamHandler() throw() {}
 };
 
 class MEMORIA_API FileInputStreamHandler: public InputStreamHandler {
 public:
-    static FileInputStreamHandler* create(const char* file);
+    static std::unique_ptr<FileInputStreamHandler> create(const char* file);
     virtual ~FileInputStreamHandler() throw() {}
 };
 

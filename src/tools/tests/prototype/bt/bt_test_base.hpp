@@ -40,12 +40,12 @@ protected:
     typedef typename Ctr::ID                                                    ID;
     typedef typename Ctr::BranchNodeEntry                                           BranchNodeEntry;
 
-    typedef AllocatorType                                                       Allocator;
+    using Allocator 	= AllocatorType;
+    using AllocatorPtr 	= typename Allocator::AllocatorPtr;
+    using SnapshotPtr 	= typename Allocator::SnapshotPtr;
 
-    using AllocatorSPtr = std::shared_ptr<Allocator>;
-    using AllocatorUPtr = std::unique_ptr<Allocator>;
-
-    AllocatorSPtr allocator_;
+    AllocatorPtr allocator_;
+    SnapshotPtr  snapshot_;
 
     String dump_name_;
 
@@ -59,75 +59,128 @@ public:
         MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
     }
 
-    AllocatorSPtr& allocator() {
-    	return allocator_;
-    }
-
-    const AllocatorSPtr& allocator() const {
-    	return allocator_;
-    }
-
-    void commit() {
-    	allocator_->commit();
-    }
-
     virtual ~BTTestBase() throw() {}
 
-    virtual void createAllocator(AllocatorSPtr& allocator_) = 0;
-
-    virtual Ctr createCtr() {
-    	return Ctr(allocator_.get(), CTR_CREATE);
+    auto& allocator() {
+    	return allocator_;
     }
 
-    virtual Ctr findCtr(BigInt name) {
-    	return Ctr(allocator_.get(), CTR_FIND, name);
+    const auto& allocator() const {
+    	return allocator_;
     }
 
-    virtual Ctr createOrFindCtr(BigInt name) {
-    	return Ctr(allocator_.get(), CTR_CREATE | CTR_FIND, name);
+    auto& snapshot() {
+    	return snapshot_;
     }
 
-    virtual void setUp() {
+    const auto& snapshot() const {
+    	return snapshot_;
+    }
+
+    auto& branch()
+    {
+    	if (snapshot_) {
+    		snapshot_ = snapshot_->branch();
+    	}
+    	else {
+    		snapshot_ = allocator_->master()->branch();
+    	}
+
+    	return snapshot_;
+    }
+
+    void commit()
+    {
+    	snapshot_->commit();
+    	snapshot_->set_as_master();
+    }
+
+    void drop()
+    {
+    	auto parent = snapshot_->parent();
+
+    	snapshot_->drop();
+    	snapshot_.reset();
+
+    	parent->set_as_master();
+
+    	snapshot_ = parent;
+
+    	allocator_->pack();
+    }
+
+    // FIXME: remove it
+    virtual void createAllocator(AllocatorPtr& allocator)
+    {
+    	allocator = Allocator::create();
+    }
+
+    virtual void setUp()
+    {
     	Base::setUp();
 
-    	createAllocator(allocator_);
-
-    	MEMORIA_ASSERT_NOT_NULL(allocator_.get());
+    	if (!isReplayMode())
+    	{
+    		createAllocator(allocator_);
+    		MEMORIA_ASSERT_NOT_NULL(allocator_.get());
+    	}
+    	else {
+    		loadAllocator(dump_name_);
+    		snapshot_ = allocator_->master();
+    	}
     }
 
     virtual void tearDown()
     {
-    	allocator_ = AllocatorSPtr();
+    	allocator_.reset();
+    }
+
+    virtual void onException()
+    {
+    	commit();
+
+    	auto file_name_invalid = this->getAllocatorFileName(".invalid");
+    	storeAllocator(file_name_invalid);
+
+    	drop();
+
+    	dump_name_ = this->getAllocatorFileName(".valid");
+    	storeAllocator(dump_name_);
     }
 
     virtual void storeAllocator(String file_name) const
     {
-    	unique_ptr <FileOutputStreamHandler> out(FileOutputStreamHandler::create(file_name.c_str()));
+    	auto out = FileOutputStreamHandler::create(file_name.c_str());
     	allocator_->store(out.get());
     }
 
 
     virtual void loadAllocator(StringRef file_name)
     {
-        unique_ptr <FileInputStreamHandler> in(FileInputStreamHandler::create(file_name.c_str()));
-        allocator_->load(in.get());
+        auto in = FileInputStreamHandler::create(file_name.c_str());
+        allocator_ = Allocator::load(in.get());
     }
 
-    virtual String Store()
+    virtual void dumpAllocator()
     {
-    	String file_name = this->getAllocatorFileName(".valid");
-    	storeAllocator(file_name);
-
-    	String file_name_invalid = this->getAllocatorFileName(".invalid");
-    	commit();
-    	storeAllocator(file_name_invalid);
-
-    	return file_name;
+    	String file_name = this->getAllocatorFileName("-allocator.dump");
+    	FSDumpAllocator(allocator_, file_name);
     }
+
+    virtual void dumpSnapshot()
+    {
+    	if (snapshot_)
+    	{
+    		String file_name = this->getAllocatorFileName("-snapshot.dump");
+    		FSDumpAllocator(snapshot_, file_name);
+    	}
+    }
+
+
 
     virtual void checkAllocator(const char* msg, const char* source)
     {
-    	::memoria::check<Allocator>(*this->allocator_.get(), msg, source);
+    	::memoria::check<Allocator>(this->allocator(), msg, source);
     }
 
     virtual String getAllocatorFileName(StringRef infix = "") const

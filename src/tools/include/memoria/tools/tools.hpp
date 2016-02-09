@@ -244,20 +244,20 @@ vector<T> createRandomBuffer(T fill_value, Int max_size)
 
 
 template <typename Allocator>
-void check(Allocator& allocator, const char* message,  const char* source)
+void check(const std::shared_ptr<Allocator>& allocator, const char* message,  const char* source)
 {
-    Int level = allocator.logger().level();
+    Int level = allocator->logger().level();
 
-    allocator.logger().level() = Logger::ERROR;
+    allocator->logger().level() = Logger::ERROR;
 
-    if (allocator.check())
+    if (allocator->check())
     {
-        allocator.logger().level() = level;
+        allocator->logger().level() = level;
 
         throw TestException(source, message);
     }
 
-    allocator.logger().level() = level;
+    allocator->logger().level() = level;
 }
 
 template <typename Ctr>
