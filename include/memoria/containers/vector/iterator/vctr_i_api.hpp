@@ -129,7 +129,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
     {
     	auto& self = this->self();
 
-    	return self.ctr().template read_substream<IntList<0>>(self, 0, length, std::forward<Fn>(fn));
+    	return self.ctr().template read_substream<IntList<0, 0, 1>>(self, 0, length, std::forward<Fn>(fn));
     }
 
 

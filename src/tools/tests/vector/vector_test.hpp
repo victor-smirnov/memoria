@@ -46,7 +46,7 @@ class VectorTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT>
     using typename Base::Allocator;
     using typename Base::AllocatorPtr;
 
-    BigInt size = 1024*10;
+    BigInt size = 1024*1024;
 
     using Base::allocator;
     using Base::snapshot;
@@ -59,6 +59,8 @@ public:
     VectorTest(StringRef name):
         Base(name)
     {
+    	MEMORIA_ADD_TEST_PARAM(size);
+
     	MEMORIA_ADD_TEST_WITH_REPLAY(testCreate, replayCreate);
     }
 
