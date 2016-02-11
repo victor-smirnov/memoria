@@ -181,6 +181,12 @@ public:
         return leaf().isSet() ? idx() >= self.leaf_size() : true;
     }
 
+    bool is_end() const
+    {
+    	auto& self = this->self();
+    	return leaf().isSet() ? idx() >= self.leaf_size() : true;
+    }
+
     bool isEnd(Int idx) const
     {
         auto& self = this->self();

@@ -85,9 +85,13 @@ std::istream& operator>>(std::istream& in, UUID& uuid)
 	char in_buffer[37];
 	memset(in_buffer, 0, sizeof(in_buffer));
 
-	in.get(in_buffer, sizeof(in_buffer) - 1);
+	std::istream::sentry s(in);
 
-	uuid = UUID::parse(in_buffer);
+	if (s)
+	{
+		in.read(in_buffer, sizeof(in_buffer)-1);
+		uuid = UUID::parse(in_buffer);
+	}
 
 	return in;
 }

@@ -77,6 +77,11 @@ Int Task::Run()
     catch (const std::exception& e)
     {
         (*out_)<<"FAILED: STL exception: "<<e.what()<<" "<<endl;
+
+        String path = getTaskParametersFilePath();
+
+        StoreProperties(path);
+
         result = true;
     }
     catch (const Exception& e) {

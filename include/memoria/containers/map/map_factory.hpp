@@ -48,11 +48,11 @@ struct MapBTTypesBase: public BTTypes<Profile, memoria::BTSingleStream> {
     static const Int Labels                                                     = 0;
     static const Int HiddenLabels                                               = 0;
 
-    typedef IfThenElse<
+    using ValueType = IfThenElse<
                     IfTypesEqual<Value_, IDType>::Value,
                     typename Base::ID,
                     Value_
-    >                                                                   		ValueType;
+    >;
 
     static const Int Indexes                                                    = Indexes_;
 
@@ -62,7 +62,11 @@ struct MapBTTypesBase: public BTTypes<Profile, memoria::BTSingleStream> {
 			PkdFQTreeT<Key_, Indexes>,
 			PackedFSEArray<PackedFSEArrayTypes<ValueType>>
 		>>,
-		TL<TL<TL<>, TL<SumRange<0, Indexes>>, TL<>>>,
+		TL<TL<
+			TL<>,
+			TL<SumRange<0, Indexes>>,
+			TL<>
+    	>>,
 		FSEBranchStructTF
     >;
 
@@ -261,9 +265,6 @@ public:
     struct Types: Base::Types
     {
     	using BaseTypes = typename Base::Types;
-
-    	using BranchStreamsStructList 	= FailIf<typename BaseTypes::BranchStreamsStructList, false>;
-    	using LeafStreamsStructList 	= FailIf<typename BaseTypes::LeafStreamsStructList, false>;
 
     	typedef BTCtrTypes<Types>                                               CtrTypes;
     	typedef BTIterTypes<Types>                                              IterTypes;

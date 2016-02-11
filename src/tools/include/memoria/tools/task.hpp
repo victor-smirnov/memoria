@@ -188,9 +188,13 @@ public:
 
     virtual void storeAdditionalProperties(fstream& file) const {}
 
+    virtual void debug1() {}
+    virtual void debug2() {}
+    virtual void debug3() {}
+
     virtual void StoreProperties(StringRef file_name)
     {
-        fstream file;
+    	fstream file;
         file.open(file_name.c_str(), fstream::out | fstream::trunc | fstream::trunc);
 
         file<<"task = "<<this->getFullName()<<endl;

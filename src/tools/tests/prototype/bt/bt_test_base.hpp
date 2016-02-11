@@ -26,19 +26,19 @@ template <
 >
 class BTTestBase: public TestTask {
 
-    typedef BTTestBase<
+    using MyType = BTTestBase<
                 Profile,
                 AllocatorType,
                 ContainerTypeName
-    >                                                                           MyType;
+    >;
 
-    typedef TestTask                                                            Base;
+    using Base = TestTask;
 
 protected:
-    typedef typename CtrTF<Profile, ContainerTypeName>::Type                    Ctr;
-    typedef typename Ctr::Iterator                                              Iterator;
-    typedef typename Ctr::ID                                                    ID;
-    typedef typename Ctr::BranchNodeEntry                                           BranchNodeEntry;
+    using Ctr 				= typename CtrTF<Profile, ContainerTypeName>::Type;
+    using Iterator 			= typename Ctr::Iterator;
+    using ID 				= typename Ctr::ID;
+    using BranchNodeEntry 	= typename Ctr::BranchNodeEntry;
 
     using Allocator 	= AllocatorType;
     using AllocatorPtr 	= typename Allocator::AllocatorPtr;
@@ -107,6 +107,11 @@ public:
     	snapshot_ = parent;
 
     	allocator_->pack();
+    }
+
+    void check(const SnapshotPtr& snapshot, const char* source)
+    {
+
     }
 
     // FIXME: remove it

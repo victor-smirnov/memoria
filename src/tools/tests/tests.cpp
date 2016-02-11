@@ -22,7 +22,7 @@
 //#include "prototype/btss/btss_test_suite.hpp"
 //#include "table/table_test_suite.hpp"
 
-//#include "map/map_test_suite.hpp"
+#include "map/map_test_suite.hpp"
 #include "vector/vector_test_suite.hpp"
 //#include "sequence/sequence_test_suite.hpp"
 //#include "labeled_tree/ltree_test_suite.hpp"
@@ -67,8 +67,6 @@ int main(int argc, const char** argv, const char** envp)
 
         runner.setSeed(seed);
 
-//        DCtrTF<Map<double, BigInt>>::Type::initMetadata();
-
 //        DCtrTF<Table<BigInt, Byte, PackedSizeType::FIXED>>::Type::initMetadata();
 //        DCtrTF<Table<BigInt, Byte, PackedSizeType::VARIABLE>>::Type::initMetadata();
 
@@ -94,7 +92,7 @@ int main(int argc, const char** argv, const char** envp)
 
 //        runner.registerTask(new TableTestSuite());
 
-//        runner.registerTask(new MapTestSuite());
+        runner.registerTask(new MapTestSuite());
         runner.registerTask(new VectorTestSuite());
 //        runner.registerTask(new SequenceTestSuite());
 //        runner.registerTask(new LabeledTreeTestSuite());

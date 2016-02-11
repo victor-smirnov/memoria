@@ -8,10 +8,14 @@
 
 #include <memoria/memoria.hpp>
 
+#include <memoria/containers/map/map_factory.hpp>
+
 #include <memoria/tools/profile_tests.hpp>
 
 #include <memoria/tools/tests.hpp>
 #include <memoria/tools/tools.hpp>
+
+#include "../prototype/btss/btss_test_base.hpp"
 
 #include <vector>
 #include <algorithm>
@@ -21,19 +25,48 @@
 
 namespace memoria {
 
+namespace {
+
+template <typename T>
+struct RNGTool {
+	template <typename Test>
+	static T next(const Test* test) {
+		return test->getBIRandom();
+	}
+};
+
+
+template <>
+struct RNGTool<UUID> {
+	template <typename Test>
+	static UUID next(const Test* test) {
+		return UUID::make_random();
+	}
+};
+
+}
+
+
 template<typename MapName>
-class MapTestBase: public SPTestTask {
-    typedef MapTestBase MyType;
+class MapTestBase: public BTSSTestBase<MapName, PersistentInMemAllocator<>, DefaultProfile<>> {
+    using MyType = MapTestBase<MapName>;
+    using Base = BTSSTestBase<MapName, PersistentInMemAllocator<>, DefaultProfile<>>;
 
 public:
-    typedef KVPair<BigInt, BigInt> Pair;
+    using typename Base::Ctr;
+    using typename Base::Iterator;
+
+    using Base::out;
+
+    using Key 		= typename Ctr::Types::Key;
+    using Value 	= typename Ctr::Types::Value;
+
+    using Pair = KVPair<Key, Value>;
+
+
 
 protected:
     typedef vector<Pair> PairVector;
-    typedef typename DCtrTF<MapName>::Type Ctr;
-    typedef typename Ctr::Iterator Iterator;
-    typedef typename Ctr::ID ID;
-    typedef typename Ctr::BranchNodeEntry BranchNodeEntry;
 
     PairVector pairs;
     PairVector pairs_sorted;
@@ -41,8 +74,8 @@ protected:
     Int vector_idx_;
     Int step_;
 
-    BigInt ctr_name_;
-    String dump_name_;
+    UUID ctr_name_;
+
     String pairs_data_file_;
     String pairs_sorted_data_file_;
 
@@ -52,23 +85,26 @@ protected:
     Int data_check_count_ = 100;
     Int data_check_counter_ = 0;
 
+    BigInt size_;
+
     bool throw_ex_ = false;
 
 public:
 
-    MapTestBase(StringRef name): SPTestTask(name)
+    MapTestBase(StringRef name): Base(name)
     {
         Ctr::initMetadata();
 
         size_ = 10000;
 
+
+        MEMORIA_ADD_TEST_PARAM(size_);
         MEMORIA_ADD_TEST_PARAM(throw_ex_);
 
         MEMORIA_ADD_TEST_PARAM(vector_idx_)->state();
         MEMORIA_ADD_TEST_PARAM(step_)->state();
 
         MEMORIA_ADD_TEST_PARAM(ctr_name_)->state();
-        MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
         MEMORIA_ADD_TEST_PARAM(pairs_data_file_)->state();
         MEMORIA_ADD_TEST_PARAM(pairs_sorted_data_file_)->state();
 
@@ -82,16 +118,24 @@ public:
     virtual ~MapTestBase() throw () {
     }
 
-    void checkContainerData(Ctr& map, PairVector& pairs) {
-        if (data_check_counter_ % data_check_count_ == 0) {
+    Key getRandomKey()
+    {
+    	return RNGTool<Key>::next(this);
+    }
 
+    template <typename CtrT>
+    void checkContainerData(const std::shared_ptr<CtrT>& map, PairVector& pairs)
+    {
+        if (data_check_counter_ % data_check_count_ == 0)
+        {
             Int pairs_size = (Int) pairs.size();
 
             Int idx = 0;
-            for (auto iter = map.Begin(); !iter.isEnd();) {
-                BigInt key = iter.key();
+            for (auto iter = map->begin(); !iter.is_end();)
+            {
+                auto key = iter.key();
 
-                BigInt value = iter.value();
+                auto value = iter.value();
 
                 if (pairs[idx].key_ != key) {
                     iter.dump();
@@ -109,40 +153,9 @@ public:
             }
 
             AssertEQ(MA_SRC, idx, pairs_size);
-
-//            idx = pairs_size - 1;
-//            for (auto iter = map.RBegin(); !iter.isBegin();)
-//            {
-//                BigInt key = iter.key();
-//                BigInt value = iter.value();
-//
-//                AssertEQ(MA_SRC, pairs[idx].key_, key, SBuf()<<idx);
-//                AssertEQ(MA_SRC, pairs[idx].value_, value, SBuf()<<idx);
-//
-//                iter--;
-//
-//                idx--;
-//            }
-//
-//            AssertEQ(MA_SRC,idx, -1, SBuf()<<"pairs_size="<<pairs_size);
         }
 
         data_check_counter_++;
-    }
-
-    void StorePairs(const PairVector& pairs, const PairVector& pairs_sorted)
-    {
-        String basic_name = "Data." + getName();
-
-        String pairs_name = basic_name + ".pairs.txt";
-        pairs_data_file_ = getResourcePath(pairs_name);
-
-        StoreVector(pairs, pairs_data_file_);
-
-        String pairs_sorted_name = basic_name + ".pairs_sorted.txt";
-        pairs_sorted_data_file_ = getResourcePath(pairs_sorted_name);
-
-        StoreVector(pairs_sorted, pairs_sorted_data_file_);
     }
 
     virtual void checkIterator(Iterator& iter, const char* source)
@@ -161,32 +174,45 @@ public:
         }
     }
 
+    virtual Key makeRandomKey() = 0;
+    virtual Value makeRandomValue() = 0;
 
-    template <typename T, typename A>
-    BigInt getUniqueBIRandom(const vector<T, A> &vec, BigInt limit)
-    {
-        Int value = getBIRandom(limit) + 1;
-
-        for (const T& item: vec)
-        {
-            if (item == value)
-            {
-                return getUniqueBIRandom(vec, limit);
-            }
-        }
-
-        return value;
-    }
 
     virtual void setUp()
     {
-        pairs.clear();
-        pairs_sorted.clear();
+    	Base::setUp();
 
-        for (Int c = 0; c < size_; c++)
-        {
-            pairs.push_back(Pair(getUniqueBIRandom(pairs, 1000000), getBIRandom(100000)));
-        }
+    	if (!this->isReplayMode())
+    	{
+            pairs.clear();
+            pairs_sorted.clear();
+
+            for (Int c = 0; c < size_; c++)
+            {
+                pairs.push_back(Pair(makeRandomKey(), makeRandomValue()));
+            }
+    	}
+    	else {
+    		LoadVector(pairs, pairs_data_file_);
+    		LoadVector(pairs_sorted, pairs_sorted_data_file_);
+    	}
+    }
+
+    virtual void onException()
+    {
+    	Base::onException();
+
+    	String basic_name = "Data." + this->getName();
+
+    	String pairs_name = basic_name + ".pairs.txt";
+    	pairs_data_file_ = this->getResourcePath(pairs_name);
+
+    	StoreVector(pairs, pairs_data_file_);
+
+    	String pairs_sorted_name = basic_name + ".pairs_sorted.txt";
+    	pairs_sorted_data_file_ = this->getResourcePath(pairs_sorted_name);
+
+    	StoreVector(pairs_sorted, pairs_sorted_data_file_);
     }
 };
 

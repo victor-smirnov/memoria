@@ -570,7 +570,7 @@ public:
 		{
 			auto iter = root_map_->find(name);
 
-			if (iter.isFound(name))
+			if (iter.is_found(name))
 			{
 				return iter.value();
 			}
@@ -598,15 +598,7 @@ public:
 		else {
 			if (!name.is_null())
 			{
-				auto iter = root_map_->find(name);
-
-				if (iter.isFound(name))
-				{
-					iter.setValue(root);
-				}
-				else {
-					iter.insert(name, root);
-				}
+				root_map_->assign(name, root);
 			}
 			else {
 				history_node_->root_id() = root;
@@ -621,7 +613,7 @@ public:
 		if (!name.is_null())
 		{
 			auto iter = root_map_->find(name);
-			return iter.isFound(name);
+			return iter.is_found(name);
 		}
 		else {
 			return !history_node_->root_id().is_null();

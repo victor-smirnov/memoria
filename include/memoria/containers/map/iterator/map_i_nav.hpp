@@ -37,7 +37,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavName)
     using InputTupleAdapter = typename Container::Types::template InputTupleAdapter<Stream>;
 
 
-    void insert(Key key, Value value)
+    void insert_(Key key, Value value)
     {
     	auto& self = this->self();
 
@@ -47,7 +47,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavName)
 
     	self.ctr().insert_entry(
     			self,
-    			InputTupleAdapter<0>::convert(core::StaticVector<Key, 1>({delta}), core::StaticVector<Value, 1>{value})
+    			InputTupleAdapter<0>::convert(0, core::StaticVector<Key, 1>({delta}), core::StaticVector<Value, 1>{value})
     	);
 
     	self.skipFw(1);
@@ -58,11 +58,15 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavName)
 
     		MEMORIA_ASSERT_TRUE((k - StaticVector<BigInt, 1>(delta))[0] >= 0);
 
-    		self.ctr().template update_entry<IntList<0>>(self, std::make_tuple(k - StaticVector<BigInt, 1>(delta)));
+    		self.ctr().template update_entry<IntList<1>>(self, std::make_tuple(k - StaticVector<BigInt, 1>(delta)));
     	}
     }
 
+    template <typename InputIterator>
+    void insert(InputIterator&&, InputIterator&&) {}
 
+    template <typename Provider>
+    void insert(Provider&&) {}
 
     void remove() {
     	auto& self = this->self();
@@ -111,7 +115,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavName)
     	auto& self = this->self();
     	auto& cache = self.cache();
 
-    	auto leaf_sum = self.ctr().template leaf_sums<IntList<0>>(self.leaf(), 0, 0, self.idx());
+    	auto leaf_sum = self.ctr().template leaf_sums<IntList<0, 0, 1>>(self.leaf(), 0, 0, self.idx());
 
     	return bt::Path<0, 0>::get(cache.prefixes())[0] + leaf_sum;
     }
@@ -119,7 +123,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavName)
 
     auto raw_key() const
     {
-    	return std::get<0>(self().ctr().template read_leaf_entry<IntList<0>>(self().leaf(), self().idx()));
+    	return std::get<0>(self().ctr().template read_leaf_entry<IntList<1>>(self().leaf(), self().idx()));
     }
 
     auto key() const -> Key
@@ -129,22 +133,20 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavName)
 
     auto raw_key(Int index) const
     {
-    	return std::get<0>(self().ctr().template read_leaf_entry<IntList<0>>(self().leaf(), self().idx(), index));
+    	return std::get<0>(self().ctr().template read_leaf_entry<IntList<1>>(self().leaf(), self().idx(), index));
     }
 
     auto value() const
     {
-    	return std::get<0>(self().ctr().template read_leaf_entry<IntList<1>>(self().leaf(), self().idx()));
+    	return std::get<0>(self().ctr().template read_leaf_entry<IntList<2>>(self().leaf(), self().idx()));
     }
 
-
-    template <typename TValue>
-    void setValue(TValue&& v)
+    void setValue(const Value& v)
     {
     	self().ctr().template update_entry<IntList<1>>(self(), std::make_tuple(v));
     }
 
-    bool isFound(Key k) const
+    bool isFound(const Key& k) const
     {
     	auto& self = this->self();
 

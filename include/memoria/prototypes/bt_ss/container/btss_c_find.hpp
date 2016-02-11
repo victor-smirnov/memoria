@@ -43,7 +43,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::FindName)
 
     using CtrSizeT = typename Types::CtrSizeT;
 
-    static const Int Streams                                                    = Types::Streams;
+    static const Int Streams = Types::Streams;
+
+    auto size() const {
+    	return self().sizes()[0];
+    }
 
     Iterator seek(CtrSizeT position)
     {

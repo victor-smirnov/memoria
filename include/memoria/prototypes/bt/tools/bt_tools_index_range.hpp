@@ -362,7 +362,7 @@ struct RangeListBuilder<BranchStruct, TypeList<>, RangeList, Offset> {
  * Several leaf structs may belong to one branch struct.
  */
 
-template <typename BranchStructList, typename LeafStructLists, typename RangeList, Int Offset = 1> struct BranchNodeRangeListBuilder;
+template <typename BranchStructList, typename LeafStructLists, typename RangeList, Int Offset = 0> struct BranchNodeRangeListBuilder;
 
 template <
 	typename BranchStruct, typename... BTail,

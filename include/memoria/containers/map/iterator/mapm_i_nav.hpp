@@ -37,7 +37,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavMaxName)
     using InputTupleAdapter = typename Container::Types::template InputTupleAdapter<Stream>;
 
 
-    void insert(Key key, Value value)
+    void insert_(const Key& key, const Value& value)
     {
     	auto& self = this->self();
 
@@ -50,9 +50,14 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavMaxName)
     	self.skipFw(1);
     }
 
+    template <typename InputIterator>
+    void insert(InputIterator&&, InputIterator&&) {}
 
+    template <typename Provider>
+    void insert(Provider&&) {}
 
-    void remove() {
+    void remove()
+    {
     	auto& self = this->self();
 
     	self.ctr().removeEntry(self);
@@ -85,22 +90,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavMaxName)
     	return self().template find_bw_ge<IntList<1>>(index, key);
     }
 
-
-
-
-    auto raw_key() const
-    {
-    	return std::get<0>(self().ctr().template read_leaf_entry<IntList<1>>(self().leaf(), self().idx()));
-    }
-
     auto key() const -> Key
     {
-    	return self().raw_key(0);
-    }
-
-    auto raw_key(Int index) const
-    {
-    	return std::get<0>(self().ctr().template read_leaf_entry<IntList<1>>(self().leaf(), self().idx(), index));
+    	return std::get<0>(self().ctr().template read_leaf_entry<IntList<1>>(self().leaf(), self().idx(), 0));
     }
 
     auto value() const
@@ -108,17 +100,15 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavMaxName)
     	return std::get<0>(self().ctr().template read_leaf_entry<IntList<2>>(self().leaf(), self().idx()));
     }
 
-
-    template <typename TValue>
-    void setValue(TValue&& v)
+    void assign(const Value& v)
     {
     	self().ctr().template update_entry<IntList<2>>(self(), std::make_tuple(v));
     }
 
-    bool isFound(Key k) const
+    bool is_found(const Key& k) const
     {
     	auto& self = this->self();
-    	return (!self.isEnd()) && self.key() == k;
+    	return (!self.is_end()) && self.key() == k;
     }
 
 MEMORIA_ITERATOR_PART_END

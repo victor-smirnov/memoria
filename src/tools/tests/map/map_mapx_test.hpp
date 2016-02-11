@@ -35,10 +35,6 @@ class MapXTest: public SPTestTask {
     typedef typename Ctr::ID ID;
     typedef typename Ctr::BranchNodeEntry BranchNodeEntry;
 
-
-//    typedef typename Base::Allocator                                            Allocator;
-//    typedef typename Base::Ctr                                                  Ctr;
-
     Int key_        = 0;
     Int skip_bw_    = 0;
     Int select_bw_  = 0;
@@ -55,6 +51,8 @@ public:
     }
 
     virtual ~MapXTest() throw () {}
+
+
 
 
     void runTest()

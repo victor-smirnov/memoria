@@ -127,6 +127,11 @@ istream& operator>>(std::istream& in, std::vector<T, A>& vec)
             throw Exception(MEMORIA_SOURCE, "Invalid data record format");
         }
 
+        if (in.fail())
+        {
+        	throw Exception(MEMORIA_SOURCE, SBuf()<< "Can't read file at pos "<<in.tellg());
+        }
+
         vec.push_back(value);
     }
     while (true);
@@ -140,13 +145,12 @@ istream& operator>>(std::istream& in, std::vector<UByte, A>& vec)
     Int value;
 
     do {
-        in>>std::hex>>value;
+        in>>value;
         if (in.eof()) break;
         if (in.bad())
         {
             throw Exception(MEMORIA_SOURCE, "Invalid data record format");
         }
-
         vec.push_back(value);
     }
     while (true);
@@ -158,6 +162,8 @@ template <typename T, typename A>
 void LoadVector(std::vector<T, A>& vec, StringRef file_name)
 {
     std::fstream file;
+
+//    file.exceptions(std::ifstream::failbit);
 
     file.open(file_name.c_str(), std::fstream::in);
 

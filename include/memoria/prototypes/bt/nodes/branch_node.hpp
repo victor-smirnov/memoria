@@ -752,7 +752,7 @@ public:
     {
         SizeFn fn;
         //FIXME: use correct procedure to get number of children
-        Dispatcher::dispatchNotEmpty(allocator(), fn);
+        Dispatcher::dispatch(0, allocator(), fn);
         return fn.size_;
     }
 
@@ -830,6 +830,9 @@ public:
     void insert(Int idx, const BranchNodeEntry& keys, const Value& value)
     {
         Int size = this->size();
+
+        MEMORIA_ASSERT(idx, >=, 0);
+        MEMORIA_ASSERT(idx, <=, size);
 
         Dispatcher::dispatchNotEmpty(allocator(), InsertFn(), idx, keys);
 

@@ -39,7 +39,7 @@ protected:
     using Ctr 			= typename CtrTF<Profile, ContainerTypeName>::Type;
     using Iterator 		= typename Ctr::Iterator;
     using ID 			= typename Ctr::ID;
-    using BranchNodeEntry 	= typename Ctr::BranchNodeEntry;
+    using BranchNodeEntry = typename Ctr::BranchNodeEntry;
 
     using Allocator 	= AllocatorType;
 
@@ -48,6 +48,7 @@ protected:
 
     using MemBuffer		= std::vector<Entry>;
 
+    using Base::getRandom;
 
 public:
 
@@ -63,12 +64,13 @@ public:
     	return MemBuffer(size);
     }
 
-    MemBuffer createRandomBuffer(Int size) {
+    MemBuffer createRandomBuffer(Int size)
+    {
     	auto buffer = MemBuffer(size);
 
     	for (auto& v: buffer)
     	{
-    		v = EntryAdapter::convert(this->getRandom(100));
+    		v = EntryAdapter::convert(getRandom(100));
     	}
 
     	return buffer;
@@ -89,7 +91,7 @@ public:
 
     virtual void fillRandom(Ctr& ctr, BigInt size)
     {
-        MemBuffer data = this->createRandomBuffer(size);
+        MemBuffer data = createRandomBuffer(size);
 
         btss::IteratorBTSSInputProvider<Ctr, typename MemBuffer::const_iterator> provider(ctr, data.begin(), data.end());
 
@@ -110,7 +112,7 @@ public:
         {
             BigInt tmp_size = size - total > block_size ? block_size : size - total;
 
-            MemBuffer data = this->createRandomBuffer(tmp_size);
+            MemBuffer data = createRandomBuffer(tmp_size);
 
             iter.insert(data.begin(), data.end());
 

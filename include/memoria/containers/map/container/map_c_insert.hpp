@@ -32,32 +32,42 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertName)
     typedef typename Types::Key                                                 Key;
     typedef typename Types::Value                                               Value;
 
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
+    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
-
-    static const Int Streams                                                    = Types::Streams;
-
-    typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
-
-    typedef ValuePair<BranchNodeEntry, Value>                                       Element;
-
-    typedef typename Types::Entry                                               MapEntry;
 
     template <typename LeafPath>
     using TargetType = typename Types::template TargetType<LeafPath>;
 
-    using CtrSizeT = typename Types::CtrSizeT;
+//    using CtrSizeT = typename Types::CtrSizeT;
 
-    CtrSizeT size() const {
-    	return self().sizes()[0];
-    }
+//    CtrSizeT size() const {
+//    	return self().sizes()[0];
+//    }
 
-    Iterator find(const TargetType<IntList<0>>& k)
+    template <typename T>
+    Iterator find(T&& k)
     {
-    	return self().template find_ge<IntList<0>>(0, k);
+    	return self().template find_ge<IntList<0, 0, 1>>(0, k);
     }
 
-    bool remove(const TargetType<IntList<0>>& k)
+    template <typename K, typename V>
+    Iterator assign(K&& key, V&& value)
+    {
+    	auto iter = self().find(key);
+
+    	if (iter.is_found(key))
+    	{
+    		iter.assign(value);
+    	}
+    	else {
+    		iter.insert_(key, value);
+    	}
+
+    	return iter;
+    }
+
+    template <typename T>
+    bool remove(T&& k)
     {
     	auto iter = find(k);
 

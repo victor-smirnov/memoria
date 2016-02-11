@@ -132,7 +132,7 @@ typename M_TYPE::NodeBaseG M_TYPE::splitP(NodeBaseG& left_node, SplitFn split_fn
 
     if (self.getBranchNodeCapacity(left_parent, -1) > 0)
     {
-        self.insertToBranchNodeP(left_parent, parent_idx + 1, right_max, right_node->id());
+    	self.insertToBranchNodeP(left_parent, parent_idx + 1, right_max, right_node->id());
     }
     else {
         NodeBaseG right_parent = splitPathP(left_parent, parent_idx + 1);
