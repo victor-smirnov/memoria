@@ -18,7 +18,7 @@
 #include <memoria/core/tools/pool.hpp>
 #include <memoria/core/tools/bitmap.hpp>
 
-#include <memoria/containers/root/root_factory.hpp>
+#include <memoria/containers/map/map_factory.hpp>
 
 #include <vector>
 #include <memory>
@@ -86,7 +86,7 @@ public:
 
 
 private:
-	using RootMapType = Ctr<typename CtrTF<Profile, Root>::CtrTypes>;
+	using RootMapType = Ctr<typename CtrTF<Profile, Map<UUID, ID>>::CtrTypes>;
 
 
 	class Properties: public IAllocatorProperties {
@@ -203,6 +203,18 @@ public:
 
 	const auto& uuid() const {
 		return history_node_->txn_id();
+	}
+
+	bool is_active() const {
+		return history_node_->is_active();
+	}
+
+	bool is_marked_to_clear() const {
+		return history_node_->mark_to_clear();
+	}
+
+	bool is_committed() const {
+		return history_node_->is_committed();
 	}
 
 	void commit()
@@ -630,7 +642,7 @@ public:
 	{
 		bool result = false;
 
-		for (auto iter = root_map_->Begin(); !iter.isEnd(); )
+		for (auto iter = root_map_->begin(); !iter.is_end(); )
 		{
 			auto ctr_name = iter.key();
 

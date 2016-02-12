@@ -35,66 +35,66 @@ namespace memoria {
 
 
 
-template <
-    typename Profile,
-    Int Indexes_,
-    typename Key_,
-    typename Value_
->
-struct MapBTTypesBase: public BTTypes<Profile, memoria::BTSingleStream> {
-
-    typedef BTTypes<Profile, memoria::BTSingleStream>                           Base;
-
-    static const Int Labels                                                     = 0;
-    static const Int HiddenLabels                                               = 0;
-
-    using ValueType = IfThenElse<
-                    IfTypesEqual<Value_, IDType>::Value,
-                    typename Base::ID,
-                    Value_
-    >;
-
-    static const Int Indexes                                                    = Indexes_;
-
-    using MapStreamTF = StreamTF<
-    	TL<TL<
-			StreamSize,
-			PkdFQTreeT<Key_, Indexes>,
-			PackedFSEArray<PackedFSEArrayTypes<ValueType>>
-		>>,
-		TL<TL<
-			TL<>,
-			TL<SumRange<0, Indexes>>,
-			TL<>
-    	>>,
-		FSEBranchStructTF
-    >;
-
-    typedef Key_                                              					Key;
-    typedef Value_                                            					Value;
-
-    typedef std::tuple<Key, Value>                                              Entry;
-
-    typedef TypeList<MapStreamTF>                              					StreamDescriptors;
-
-    typedef BalancedTreeMetadata<
-            typename Base::ID,
-            ListSize<StreamDescriptors>::Value
-    >                                                                           Metadata;
-
-
-    using CommonContainerPartsList = MergeLists<
-                typename Base::CommonContainerPartsList,
-                memoria::map::CtrInsertName,
-                memoria::map::CtrRemoveName
-    >;
-
-
-    using IteratorPartsList = MergeLists<
-                typename Base::IteratorPartsList,
-                memoria::map::ItrNavName
-    >;
-};
+//template <
+//    typename Profile,
+//    Int Indexes_,
+//    typename Key_,
+//    typename Value_
+//>
+//struct MapBTTypesBase: public BTTypes<Profile, memoria::BTSingleStream> {
+//
+//    typedef BTTypes<Profile, memoria::BTSingleStream>                           Base;
+//
+//    static const Int Labels                                                     = 0;
+//    static const Int HiddenLabels                                               = 0;
+//
+//    using ValueType = IfThenElse<
+//                    IfTypesEqual<Value_, IDType>::Value,
+//                    typename Base::ID,
+//                    Value_
+//    >;
+//
+//    static const Int Indexes                                                    = Indexes_;
+//
+//    using MapStreamTF = StreamTF<
+//    	TL<TL<
+//			StreamSize,
+//			PkdFQTreeT<Key_, Indexes>,
+//			PackedFSEArray<PackedFSEArrayTypes<ValueType>>
+//		>>,
+//		TL<TL<
+//			TL<>,
+//			TL<SumRange<0, Indexes>>,
+//			TL<>
+//    	>>,
+//		FSEBranchStructTF
+//    >;
+//
+//    typedef Key_                                              					Key;
+//    typedef Value_                                            					Value;
+//
+//    typedef std::tuple<Key, Value>                                              Entry;
+//
+//    typedef TypeList<MapStreamTF>                              					StreamDescriptors;
+//
+//    typedef BalancedTreeMetadata<
+//            typename Base::ID,
+//            ListSize<StreamDescriptors>::Value
+//    >                                                                           Metadata;
+//
+//
+//    using CommonContainerPartsList = MergeLists<
+//                typename Base::CommonContainerPartsList,
+//                memoria::map::CtrInsertName,
+//                memoria::map::CtrRemoveName
+//    >;
+//
+//
+//    using IteratorPartsList = MergeLists<
+//                typename Base::IteratorPartsList,
+//                memoria::map::ItrNavName
+//    >;
+//};
 
 
 
@@ -164,34 +164,25 @@ struct MapBTTypesBase: public BTTypes<Profile, memoria::BTSingleStream> {
 
 template <
     typename Profile,
-    Int Indexes_,
+    typename Key_,
     typename Value_
 >
-struct MapBTTypesBase<Profile, Indexes_, UUID, Value_>: public BTTypes<Profile, memoria::BTSingleStream> {
+struct MapBTTypesBase: public BTTypes<Profile, memoria::BTSingleStream> {
 
-    typedef BTTypes<Profile, memoria::BTSingleStream>                           Base;
-
-    static const Int Labels                                                     = 0;
-    static const Int HiddenLabels                                               = 0;
-
-    typedef IfThenElse<
-                    IfTypesEqual<Value_, IDType>::Value,
-                    typename Base::ID,
-                    Value_
-    >                                                                   		ValueType;
-
-    static const Int Indexes                                                    = Indexes_;
+    using Base = BTTypes<Profile, memoria::BTSingleStream>;
 
 
-    typedef UUID                                              					Key;
-    typedef Value_                                            					Value;
+    static constexpr Int Indexes = 1;
+
+    using Key 	= Key_;
+    using Value = Value_;
+
 
     using MapStreamTF = StreamTF<
         	TL<
 				TL<StreamSize>,
 				TL<PkdFMTreeT<Key, Indexes>>,
-				TL<PackedFSEArray<PackedFSEArrayTypes<ValueType>>>
-
+				TL<PkdFSQArrayT<Value>>
     		>,
     		TL<
     			TL<TL<>>, TL<TL<>>, TL<TL<>>
@@ -201,14 +192,14 @@ struct MapBTTypesBase<Profile, Indexes_, UUID, Value_>: public BTTypes<Profile, 
     >;
 
 
-    typedef std::tuple<Key, Value>                                              Entry;
+    using Entry = std::tuple<Key, Value>;
 
-    typedef TypeList<MapStreamTF>                              					StreamDescriptors;
+    using StreamDescriptors = TypeList<MapStreamTF>;
 
-    typedef BalancedTreeMetadata<
+    using Metadata = BalancedTreeMetadata<
             typename Base::ID,
             ListSize<StreamDescriptors>::Value
-    >                                                                           Metadata;
+    >;
 
 
     using CommonContainerPartsList = MergeLists<
@@ -235,11 +226,9 @@ template <
     typename Value_
 >
 struct BTTypes<Profile, memoria::Map<Key_, Value_>>:
-    public MapBTTypesBase<Profile, 1, Key_, Value_>
+    public MapBTTypesBase<Profile, Key_, Value_>
 {
-
-    using Base = MapBTTypesBase<Profile, 1, Key_, Value_>;
-
+    using Base = MapBTTypesBase<Profile, Key_, Value_>;
 
     using ContainerPartsList = MergeLists<
                     typename Base::ContainerPartsList,
@@ -257,25 +246,25 @@ class CtrTF<Profile, memoria::Map<Key, Value>, T>: public CtrTF<Profile, memoria
 };
 
 
-template <typename Profile, typename Value, typename T>
-class CtrTF<Profile, memoria::Map<UUID, Value>, T>: public CtrTF<Profile, memoria::BTSingleStream, T>
-{
-	using Base = CtrTF<Profile, memoria::BTSingleStream, T>;
-public:
-    struct Types: Base::Types
-    {
-    	using BaseTypes = typename Base::Types;
-
-    	typedef BTCtrTypes<Types>                                               CtrTypes;
-    	typedef BTIterTypes<Types>                                              IterTypes;
-
-        typedef PageUpdateManager<CtrTypes>                                     PageUpdateMgr;
-    };
-
-
-    typedef typename Types::CtrTypes                                            CtrTypes;
-    typedef Ctr<CtrTypes>                                                       Type;
-};
+//template <typename Profile, typename Value, typename T>
+//class CtrTF<Profile, memoria::Map<UUID, Value>, T>: public CtrTF<Profile, memoria::BTSingleStream, T>
+//{
+//	using Base = CtrTF<Profile, memoria::BTSingleStream, T>;
+//public:
+//    struct Types: Base::Types
+//    {
+//    	using BaseTypes = typename Base::Types;
+//
+//    	typedef BTCtrTypes<Types>                                               CtrTypes;
+//    	typedef BTIterTypes<Types>                                              IterTypes;
+//
+//        typedef PageUpdateManager<CtrTypes>                                     PageUpdateMgr;
+//    };
+//
+//
+//    typedef typename Types::CtrTypes                                            CtrTypes;
+//    typedef Ctr<CtrTypes>                                                       Type;
+//};
 
 }
 

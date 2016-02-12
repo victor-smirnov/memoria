@@ -13,7 +13,7 @@
 namespace memoria {
 
 template <>
-struct CtrNameDeclarator<0>: TypeDef<Root> {};
+struct CtrNameDeclarator<0>: TypeDef<Map<UUID, UUID>> {};
 
 }
 

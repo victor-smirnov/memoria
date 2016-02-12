@@ -25,16 +25,36 @@ template <
 >
 class MapCreateTest: public MapTestBase<MapName> {
 
-    typedef MapCreateTest<MapName>                                              MyType;
-    typedef MapTestBase<MapName>                                                Base;
+    using MyType = MapCreateTest<MapName>;
+    using Base 	 = MapTestBase<MapName>;
 
-    typedef typename Base::Allocator                                            Allocator;
-    typedef typename Base::Iterator                                             Iterator;
-    typedef typename Base::Ctr                                                  Ctr;
-    typedef typename Base::PairVector                                           PairVector;
 
-    BigInt  key_;
-    BigInt  value_;
+    using typename Base::Allocator;
+    using typename Base::Iterator;
+    using typename Base::Pair;
+    using typename Base::PairVector;
+    using typename Base::Key;
+    using typename Base::Value;
+
+    using Base::size_;
+    using Base::ctr_name_;
+    using Base::vector_idx_;
+    using Base::pairs;
+    using Base::pairs_sorted;
+
+    using Base::commit;
+    using Base::drop;
+    using Base::branch;
+    using Base::allocator;
+    using Base::snapshot;
+    using Base::check;
+    using Base::checkContainerData;
+    using Base::out;
+    using Base::checkIterator;
+
+
+    Key  	key_;
+    Value  	value_;
 
 public:
 
@@ -47,193 +67,86 @@ public:
         MEMORIA_ADD_TEST_PARAM(value_)->state();
 
         MEMORIA_ADD_TEST_WITH_REPLAY(runCreateTest, replayCreateTest);
-        MEMORIA_ADD_TEST_WITH_REPLAY(runIteratorTest, replayIteratorTest);
     }
 
     virtual ~MapCreateTest() throw () {}
 
+    virtual Key makeRandomKey() {
+    	return Key::make_random();
+    }
+
+    virtual Value makeRandomValue() {
+    	return this->getBIRandom();
+    }
+
 
     void runCreateTest()
     {
-        DefaultLogHandlerImpl logHandler(Base::out());
+    	auto snp = branch();
+    	auto map = create<MapName>(snp);
 
-        Allocator allocator;
-        allocator.getLogger()->setHandler(&logHandler);
+        map->setNewPageSize(4096);
 
-        Ctr map(&allocator);
+        ctr_name_ = map->name();
 
-        allocator.commit();
 
-        map.setNewPageSize(4096);
+        for (vector_idx_ = 0; vector_idx_ < size_; vector_idx_++)
+        {
+        	out()<<vector_idx_<<endl;
 
-        Base::ctr_name_ = map.name();
+        	auto key 	= pairs[vector_idx_].key_;
+        	auto value 	= pairs[vector_idx_].value_;
 
-        auto& vector_idx    = Base::vector_idx_;
-        auto& pairs         = Base::pairs;
-        auto& pairs_sorted  = Base::pairs_sorted;
+        	{
+        		auto iter = map->assign(key, value);
 
-        try {
+        		checkIterator(iter, MA_SRC);
+        	}
 
-            for (vector_idx = 0; vector_idx < Base::size_; vector_idx++)
-            {
-                this->out()<<vector_idx<<endl;
+        	check(snp, MA_SRC);
 
-                auto key = pairs[vector_idx].key_;
+        	PairVector tmp = pairs_sorted;
 
-                auto iter = map.find(key);
+        	appendToSortedVector(tmp, pairs[vector_idx_]);
 
-                iter.insert(key, pairs[vector_idx].value_);
+        	checkContainerData(map, tmp);
 
-                this->checkIterator(iter, MEMORIA_SOURCE);
+        	commit();
 
-                Base::forceCheck(allocator, MEMORIA_SOURCE);
+        	snp = branch();
+        	map = find<MapName>(snp, ctr_name_);
 
-                PairVector tmp = pairs_sorted;
-
-                appendToSortedVector(tmp, pairs[vector_idx]);
-
-                Base::checkContainerData(map, tmp);
-
-                allocator.commit();
-
-                Base::check(allocator, MEMORIA_SOURCE);
-
-                pairs_sorted = tmp;
-            }
-        }
-        catch (...) {
-            Base::StorePairs(pairs, pairs_sorted);
-            Base::dump_name_ = Base::Store(allocator);
-            throw;
+        	pairs_sorted = tmp;
         }
 
-        this->StoreAllocator(allocator, this->getResourcePath("create.dump"));
+        if (snapshot()->is_active())
+        {
+        	commit();
+        }
     }
 
     void replayCreateTest()
     {
-        DefaultLogHandlerImpl logHandler(Base::out());
-        Allocator allocator;
-        allocator.getLogger()->setHandler(&logHandler);
-
-        auto& vector_idx_   = Base::vector_idx_;
-        auto& pairs         = Base::pairs;
-        auto& pairs_sorted  = Base::pairs_sorted;
-
-        Base::LoadAllocator(allocator, Base::dump_name_);
-
-        LoadVector(pairs, Base::pairs_data_file_);
-        LoadVector(pairs_sorted, Base::pairs_sorted_data_file_);
-
-        Ctr map(&allocator, CTR_FIND, Base::ctr_name_);
+    	auto snp = branch();
+    	auto map = find<MapName>(snp, ctr_name_);
 
         auto key = pairs[vector_idx_].key_;
-        auto iter = map.find(key);
-        iter.insert(key, pairs[vector_idx_].value_);
+        auto value = pairs[vector_idx_].value_;
 
-        Base::checkIterator(iter, MEMORIA_SOURCE);
+        {
+        	auto iter = map->assign(key, value);
 
-        Base::forceCheck(allocator, MEMORIA_SOURCE);
+        	checkIterator(iter, MA_SRC);
+        }
+
+        check(snp, MA_SRC);
 
         appendToSortedVector(pairs_sorted, pairs[vector_idx_]);
 
-        Base::checkContainerData(map, pairs_sorted);
+        checkContainerData(map, pairs_sorted);
 
-        allocator.commit();
-
-        Base::check(allocator, MEMORIA_SOURCE);
+        commit();
     }
-
-    vector<Int> fillVector(Allocator& allocator, Ctr& ctr, Int size)
-    {
-        vector<Int> v;
-
-        for (int c = 1; c <= size; c++)
-        {
-            allocator.commit();
-
-            key_ = value_ = c;
-
-            Base::out()<<c<<endl;
-
-            auto iter = ctr.find(c);
-            iter.insert(c, c);
-
-            v.push_back(c);
-
-            auto i = ctr.find(c);
-
-            AssertEQ(MA_SRC, i.key(), c);
-            AssertEQ(MA_SRC, i.value(), c);
-        }
-
-        return v;
-    }
-
-
-    void runIteratorTest()
-    {
-        DefaultLogHandlerImpl logHandler(Base::out());
-        Allocator allocator;
-        allocator.getLogger()->setHandler(&logHandler);
-
-        allocator.commit();
-
-        try {
-            Ctr ctr(&allocator);
-
-            Base::ctr_name_ = ctr.name();
-
-            vector<Int> v = fillVector(allocator, ctr, Base::size_);
-
-            Iterator i1 = ctr.Begin();
-            AssertEQ(MA_SRC, i1.key(), v[0]);
-
-//            Iterator i2 = ctr.RBegin();
-//            AssertEQ(MA_SRC, i2.key(), v[v.size() - 1]);
-
-//            Iterator i3 = ctr.End();
-//            AssertTrue(MA_SRC, i3.isEnd());
-//            AssertEQ(MA_SRC, i3.idx(), ctr.getNodeSize(i3.leaf(), 0));
-
-//            Iterator i4 = ctr.REnd();
-//            AssertTrue(MA_SRC, i4.isBegin());
-//            AssertEQ(MA_SRC, i4.idx(), -1);
-
-            allocator.commit();
-        }
-        catch (...) {
-            Base::dump_name_ = Base::Store(allocator);
-            throw;
-        }
-
-        this->StoreAllocator(allocator, this->getResourcePath("iterator.dump"));
-    }
-
-    void replayIteratorTest()
-    {
-        DefaultLogHandlerImpl logHandler(Base::out());
-        Allocator allocator;
-        allocator.getLogger()->setHandler(&logHandler);
-
-        Base::LoadAllocator(allocator, Base::dump_name_);
-
-        Base::check(allocator, MA_SRC);
-
-        Ctr ctr(&allocator, CTR_FIND, Base::ctr_name_);
-
-        //ctr[key_] = value_;
-
-        auto iter = ctr.find(key_);
-
-        iter.insert(key_, value_);
-
-        auto i = ctr.find(key_);
-
-        AssertEQ(MA_SRC, i.key(), key_);
-        AssertEQ(MA_SRC, i.value(), value_);
-    }
-
 };
 
 }

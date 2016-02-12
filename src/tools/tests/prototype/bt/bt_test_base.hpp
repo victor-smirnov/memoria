@@ -111,7 +111,7 @@ public:
 
     void check(const SnapshotPtr& snapshot, const char* source)
     {
-
+    	::memoria::check(snapshot, "Snapshot check failed", source);
     }
 
     // FIXME: remove it
@@ -138,18 +138,22 @@ public:
     virtual void tearDown()
     {
     	allocator_.reset();
+
+    	if (snapshot_) {
+    		snapshot_.reset();
+    	}
     }
 
     virtual void onException()
     {
     	commit();
 
-    	auto file_name_invalid = this->getAllocatorFileName(".invalid");
+    	auto file_name_invalid = getAllocatorFileName(".invalid");
     	storeAllocator(file_name_invalid);
 
     	drop();
 
-    	dump_name_ = this->getAllocatorFileName(".valid");
+    	dump_name_ = getAllocatorFileName(".valid");
     	storeAllocator(dump_name_);
     }
 
@@ -168,7 +172,7 @@ public:
 
     virtual void dumpAllocator()
     {
-    	String file_name = this->getAllocatorFileName("-allocator.dump");
+    	String file_name = getAllocatorFileName("-allocator.dump");
     	FSDumpAllocator(allocator_, file_name);
     }
 
@@ -176,7 +180,7 @@ public:
     {
     	if (snapshot_)
     	{
-    		String file_name = this->getAllocatorFileName("-snapshot.dump");
+    		String file_name = getAllocatorFileName("-snapshot.dump");
     		FSDumpAllocator(snapshot_, file_name);
     	}
     }

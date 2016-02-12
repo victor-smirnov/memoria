@@ -77,10 +77,6 @@ public:
 
     void runRemoveTest()
     {
-//        DefaultLogHandlerImpl logHandler(out());
-//
-//        allocator()->logger().setHandler(&logHandler);
-
         auto snp = branch();
 
         auto map = create<MapName>(snp);
@@ -149,6 +145,11 @@ public:
         	check(snp, MA_SRC);
 
         	pairs_sorted = pairs_sorted_tmp;
+        }
+
+        if (snapshot()->is_active())
+        {
+        	commit();
         }
     }
 

@@ -10,11 +10,8 @@
 
 #include "../tests_inc.hpp"
 
-//#include "map_api_test.hpp"
 #include "map_create_test.hpp"
 #include "map_remove_test.hpp"
-//#include "map_select_test.hpp"
-//#include "map_mapx_test.hpp"
 
 #include <vector>
 
@@ -30,7 +27,7 @@ public:
     MapTestSuite(): TestSuite("MapSuite")
     {
     	registerTask(new MapRemoveTest<Map<UUID, BigInt>>("MapM.Remove"));
-//    	registerTask(new MapCreateTest<Map<UUID, BigInt>>("MapM.Create"));
+    	registerTask(new MapCreateTest<Map<UUID, BigInt>>("MapM.Create"));
     }
 
 };

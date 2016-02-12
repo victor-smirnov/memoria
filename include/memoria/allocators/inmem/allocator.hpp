@@ -20,8 +20,6 @@
 #include <memory>
 #include <limits>
 
-#error "Boo!"
-
 namespace memoria {
 
 using namespace std;
