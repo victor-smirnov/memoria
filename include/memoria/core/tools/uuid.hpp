@@ -51,6 +51,10 @@ public:
 		return lo_ == 0 && hi_ == 0;
 	}
 
+	bool is_set() const {
+		return lo_ != 0 || hi_ != 0;
+	}
+
 	bool operator==(const UUID& uuid) const {
 		return hi_ == uuid.hi_ && lo_ == uuid.lo_;
 	}

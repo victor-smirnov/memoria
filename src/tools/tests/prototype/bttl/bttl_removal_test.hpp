@@ -22,7 +22,7 @@ namespace memoria {
 
 template <
     typename CtrName,
-	typename AllocatorT 	= SmallInMemAllocator,
+	typename AllocatorT 	= PersistentInMemAllocator<>,
 	typename ProfileT		= DefaultProfile<>
 >
 class BTTLRemovalTest;
@@ -41,7 +41,7 @@ class BTTLRemovalTest<BTTLTestCtr<Levels, SizeType>, AllocatorT, ProfileT>: publ
     using MyType = BTTLRemovalTest<CtrName, AllocatorT, ProfileT>;
 
     using Allocator 	= typename Base::Allocator;
-    using AllocatorSPtr = typename Base::AllocatorSPtr;
+    using AllocatorPtr 	= typename Base::AllocatorPtr;
     using Ctr 			= typename Base::Ctr;
 
     using DetInputProvider  	= bttl::DeterministicDataInputProvider<Ctr>;
@@ -54,12 +54,39 @@ class BTTLRemovalTest<BTTLTestCtr<Levels, SizeType>, AllocatorT, ProfileT>: publ
 
     static const Int Streams = Ctr::Types::Streams;
 
-	Int level  = -1;
+    using Base::commit;
+    using Base::drop;
+    using Base::branch;
+    using Base::allocator;
+    using Base::snapshot;
+    using Base::check;
+    using Base::out;
+    using Base::storeAllocator;
+    using Base::isReplayMode;
+    using Base::getResourcePath;
+    using Base::checkSoftMemLimit;
+    using Base::getRandom;
 
+    using Base::fillCtr;
+    using Base::checkRanks;
+    using Base::checkExtents;
+    using Base::checkSubtree;
+    using Base::checkTree;
+    using Base::sampleTreeShape;
+    using Base::getIntTestGenerator;
+
+    using Base::dump;
+    using Base::size;
+    using Base::iterations;
+    using Base::level_limit;
+    using Base::last_level_limit;
+
+
+	Int level  = -1;
 
 	CtrSizeT 	length_;
 	CtrSizesT	removal_pos_;
-	BigInt		ctr_name_;
+	UUID		ctr_name_;
 
 	Int level_;
 
@@ -105,13 +132,6 @@ public:
     	this->iterations	= 10;
     }
 
-    void createAllocator(AllocatorSPtr& allocator)
-    {
-    	allocator = std::make_shared<Allocator>();
-    	allocator->mem_limit() = this->hard_memlimit_;
-    }
-
-
 
     void testRemovalStep(Ctr& ctr)
     {
@@ -123,41 +143,34 @@ public:
 
     	auto sizes_before = ctr.sizes();
 
-    	this->out()<<"Remove "<<length_<<" elements data at: "<<removal_pos_<<" size: "<<sizes_before<<endl;
+    	out()<<"Remove "<<length_<<" elements data at: "<<removal_pos_<<" size: "<<sizes_before<<endl;
 
     	iter.remove_subtrees(length_);
 
     	auto sizes_after = ctr.sizes();
     	auto ctr_totals = ctr.total_counts();
 
-    	this->out()<<"Totals: "<<ctr_totals<<" "<<sizes_after<<endl;
+    	out()<<"Totals: "<<ctr_totals<<" "<<sizes_after<<endl;
     	AssertEQ(MA_SRC, ctr_totals, sizes_after);
 
-    	this->checkAllocator(MA_SRC, "Remove: Container Check Failed");
+    	check(MA_SRC, "Remove: Container Check Failed");
 
-    	this->checkExtents(ctr);
+    	checkExtents(ctr);
 
-    	this->checkTree(ctr);
+    	checkTree(ctr);
     }
 
     void replayRemove()
     {
-    	this->out()<<"Replay!"<<endl;
+    	out()<<"Replay!"<<endl;
 
-    	this->loadAllocator(this->dump_name_);
+    	auto snp = branch();
 
-    	this->checkAllocator(MA_SRC, "Replay: Container Check Failed");
+    	auto ctr = find<CtrName>(snp, ctr_name_);
 
-    	Ctr ctr = this->findCtr(ctr_name_);
+    	testRemovalStep(*ctr.get());
 
-    	try {
-    		testRemovalStep(ctr);
-    	}
-    	catch (...) {
-    		this->commit();
-    		this->storeAllocator(this->dump_name_+"-repl");
-    		throw;
-    	}
+    	commit();
     }
 
     CtrSizeT sampleSize(Int iteration, CtrSizeT size)
@@ -181,8 +194,7 @@ public:
     		for (Int c = 0; c < Levels; c++)
     		{
     			testRemovalForLevel(c);
-    			createAllocator(this->allocator());
-    			this->out()<<endl;
+    			out()<<endl;
     		}
     	}
     	else {
@@ -192,78 +204,86 @@ public:
 
     void testRemovalForLevel(Int level)
     {
-    	this->out()<<"Test for level: "<<level<<endl;
+    	out()<<"Test for level: "<<level<<endl;
 
-    	Ctr ctr = this->createCtr();
-        this->ctr_name_ = ctr.name();
+    	auto snp = branch();
 
-		auto shape = this->sampleTreeShape();
+    	auto ctr_name = create<CtrName>(snp)->name();
 
-		this->out()<<"shape: "<<shape<<endl;
+    	commit();
 
-		RngInputProvider provider(shape, this->getIntTestGenerator());
+		auto shape = sampleTreeShape();
 
-        this->fillCtr(ctr, provider);
+		BigInt total_sum;
 
-        this->commit();
+		{
+			auto snp = branch();
+			auto ctr = find<CtrName>(snp, ctr_name);
 
-        try {
-            for (Int c = 0; c < this->iterations && ctr.sizes().sum() > 0; c++)
-            {
-            	this->out()<<"Iteration: "<<c<<endl;
+			out()<<"shape: "<<shape<<endl;
 
-            	if (c == 3) {
-            		int a = 0; a++;
-            	}
+			RngInputProvider provider(shape, this->getIntTestGenerator());
 
-            	auto sizes = ctr.sizes();
+			fillCtr(*ctr.get(), provider);
 
-            	removal_pos_ = CtrSizesT(-1);
+			total_sum = ctr->sizes().sum();
 
-        		removal_pos_[0] = sampleSize(c, sizes[0]);
+			commit();
+		}
 
-            	auto iter = ctr.seek(removal_pos_[0]);
-            	level_ = 0;
 
-            	for (Int s = 1; s <= level; s++)
-            	{
-            		auto local_size = iter.substream_size();
+		for (Int c = 0; c < iterations && total_sum > 0; c++)
+		{
+			out()<<"Iteration: "<<c<<endl;
 
-            		if (local_size > 0)
-            		{
-            			removal_pos_[s] = sampleSize(c, local_size);
+			auto snp = branch();
+			auto ctr = find<CtrName>(snp, ctr_name);
 
-            			iter.toData(removal_pos_[s]);
-            			level_ = s;
-            		}
-            		else {
-            			break;
-            		}
-            	}
+			auto sizes = ctr->sizes();
 
-            	auto pos = iter.pos();
-            	auto size = iter.size();
+			removal_pos_ = CtrSizesT(-1);
 
-            	auto len = size - pos;
+			removal_pos_[0] = sampleSize(c, sizes[0]);
 
-            	if (len > 0) {
-            		length_ = this->getRandom(len - 1) + 1;
-            	}
-            	else {
-            		length_ = 0;
-            	}
+			auto iter = ctr->seek(removal_pos_[0]);
+			level_ = 0;
 
-            	testRemovalStep(ctr);
+			for (Int s = 1; s <= level; s++)
+			{
+				auto local_size = iter.substream_size();
 
-                this->out()<<"Sizes: "<<ctr.sizes()<<endl<<endl;
+				if (local_size > 0)
+				{
+					removal_pos_[s] = sampleSize(c, local_size);
 
-                this->commit();
-            }
-        }
-        catch (...) {
-        	this->dump_name_ = this->Store();
-            throw;
-        }
+					iter.toData(removal_pos_[s]);
+					level_ = s;
+				}
+				else {
+					break;
+				}
+			}
+
+			auto pos  = iter.pos();
+			auto size = iter.size();
+
+			auto len = size - pos;
+
+			if (len > 0) {
+				length_ = getRandom(len - 1) + 1;
+			}
+			else {
+				length_ = 0;
+			}
+
+			testRemovalStep(*ctr.get());
+
+			out()<<"Sizes: "<<ctr->sizes()<<endl<<endl;
+
+			total_sum = ctr->sizes().sum();
+
+			commit();
+		}
     }
 };
 

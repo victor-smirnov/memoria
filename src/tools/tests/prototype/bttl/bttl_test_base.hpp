@@ -62,6 +62,20 @@ protected:
 
     static const Int Streams = Ctr::Types::Streams;
 
+
+    using Base::commit;
+    using Base::drop;
+    using Base::branch;
+    using Base::allocator;
+    using Base::snapshot;
+    using Base::check;
+    using Base::out;
+    using Base::storeAllocator;
+    using Base::isReplayMode;
+    using Base::getResourcePath;
+
+
+
     bool dump = false;
 
     BigInt size 			= 1000000;
@@ -150,16 +164,11 @@ public:
 
     	auto totals = ctr._insert(iter, provider);
 
-    	this->allocator()->commit();
-
-    	if (dump)
-    		this->storeAllocator("core.dump");
-
-    	this->checkAllocator("Bulk Insertion", MA_SRC);
+    	check("Bulk Insertion", MA_SRC);
 
     	long t1 = getTimeInMillis();
 
-    	this->out()<<"Creation time: "<<FormatTime(t1 - t0)<<" consumed: "<<provider.consumed()<<endl;
+    	out()<<"Creation time: "<<FormatTime(t1 - t0)<<" consumed: "<<provider.consumed()<<endl;
 
     	auto sizes = ctr.sizes();
 
@@ -168,11 +177,9 @@ public:
 
     	auto ctr_totals = ctr.total_counts();
 
-    	this->out()<<"Totals: "<<ctr_totals<<" "<<sizes<<endl;
+    	out()<<"Totals: "<<ctr_totals<<" "<<sizes<<endl;
 
     	AssertEQ(MA_SRC, ctr_totals, sizes);
-
-
 
     	return totals;
     }

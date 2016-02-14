@@ -22,7 +22,7 @@ namespace memoria {
 
 template <
     typename CtrName,
-	typename AllocatorT 	= SmallInMemAllocator,
+	typename AllocatorT 	= PersistentInMemAllocator<>,
 	typename ProfileT		= DefaultProfile<>
 >
 class BTTLInsertionTest;
@@ -41,7 +41,7 @@ class BTTLInsertionTest<BTTLTestCtr<Levels, SizeType>, AllocatorT, ProfileT>: pu
     using MyType = BTTLInsertionTest<CtrName, AllocatorT, ProfileT>;
 
     using Allocator 	= typename Base::Allocator;
-    using AllocatorSPtr = typename Base::AllocatorSPtr;
+    using AllocatorPtr  = typename Base::AllocatorPtr;
     using Ctr 			= typename Base::Ctr;
 
     using DetInputProvider  	= bttl::DeterministicDataInputProvider<Ctr>;
@@ -54,12 +54,38 @@ class BTTLInsertionTest<BTTLTestCtr<Levels, SizeType>, AllocatorT, ProfileT>: pu
 
     static const Int Streams = Ctr::Types::Streams;
 
+    using Base::commit;
+    using Base::drop;
+    using Base::branch;
+    using Base::allocator;
+    using Base::snapshot;
+    using Base::check;
+    using Base::out;
+    using Base::storeAllocator;
+    using Base::isReplayMode;
+    using Base::getResourcePath;
+    using Base::checkSoftMemLimit;
+
+    using Base::fillCtr;
+    using Base::checkRanks;
+    using Base::checkExtents;
+    using Base::checkSubtree;
+    using Base::sampleTreeShape;
+    using Base::getIntTestGenerator;
+
+    using Base::dump;
+    using Base::size;
+    using Base::iterations;
+    using Base::level_limit;
+    using Base::last_level_limit;
+
+
 	Int level  = -1;
 
 
 	CtrSizesT 	shape_;
 	CtrSizesT	insertion_pos_;
-	BigInt		ctr_name_;
+	UUID		ctr_name_;
 
 	Int level_;
 
@@ -68,7 +94,6 @@ public:
     BTTLInsertionTest(String name):
     	Base(name)
     {
-
     	MEMORIA_ADD_TEST_PARAM(level);
 
     	MEMORIA_ADD_TEST_PARAM(shape_)->state();
@@ -105,15 +130,6 @@ public:
     	this->iterations	= 10 * scale;
     }
 
-    void createAllocator(AllocatorSPtr& allocator)
-    {
-    	allocator = std::make_shared<Allocator>();
-    	allocator->mem_limit() = this->hard_memlimit_;
-    }
-
-
-
-
     CtrSizesT testInsertionStep(Ctr& ctr)
     {
     	auto sizes = ctr.sizes();
@@ -137,9 +153,9 @@ public:
     	auto new_sizes = ctr.sizes();
     	AssertEQ(MA_SRC, new_sizes, sizes + totals);
 
-    	this->checkAllocator(MA_SRC, "Insert: Container Check Failed");
+    	check(MA_SRC, "Insert: Container Check Failed");
 
-    	this->checkExtents(ctr);
+    	checkExtents(ctr);
 
     	auto t0 = getTimeInMillis();
 
@@ -169,20 +185,15 @@ public:
 
     void replayInsert()
     {
-    	this->out()<<"Replay!"<<endl;
+    	out()<<"Replay!"<<endl;
 
-    	this->loadAllocator(this->dump_name_);
+    	auto snp = branch();
 
-    	Ctr ctr = this->findCtr(ctr_name_);
+    	auto ctr = find<CtrName>(snp, ctr_name_);
 
-    	try {
-    		testInsertionStep(ctr);
-    	}
-    	catch (...) {
-    		this->commit();
-    		this->storeAllocator(this->dump_name_+"-repl");
-    		throw;
-    	}
+    	testInsertionStep(*ctr.get());
+
+    	commit();
     }
 
     CtrSizeT sampleSize(Int iteration, CtrSizeT size)
@@ -230,8 +241,8 @@ public:
     		for (Int c = 0; c < Levels - 1; c++)
     		{
     			testInsertForLevel(c);
-    			createAllocator(this->allocator());
-    			this->out()<<endl;
+
+    			out()<<endl;
     		}
     	}
     	else {
@@ -241,73 +252,71 @@ public:
 
     void testInsertForLevel(Int level)
     {
-    	this->out()<<"Test for level: "<<level<<endl;
+    	out()<<"Test for level: "<<level<<endl;
 
-    	Ctr ctr = this->createCtr();
-        this->ctr_name_ = ctr.name();
+    	auto snp = branch();
 
-        this->commit();
+    	auto ctr_name = create<CtrName>(snp)->name();
 
-        try {
-            for (Int c = 0; c < this->iterations && this->checkSoftMemLimit(); c++)
-            {
-            	this->out()<<"Iteration: "<<c<<endl;
+    	commit();
 
-            	auto sizes = ctr.sizes();
+    	for (Int c = 0; c < iterations && checkSoftMemLimit(); c++)
+    	{
+    		out()<<"Iteration: "<<c<<endl;
 
-            	insertion_pos_ = CtrSizesT(-1);
+    		auto snp = branch();
+    		auto ctr = find<CtrName>(snp, ctr_name);
 
-        		insertion_pos_[0] = sampleSize(c, sizes[0]);
+    		auto sizes = ctr->sizes();
 
-        		CtrSizesT path_sizes;
-        		path_sizes[0] = sizes[0];
+    		insertion_pos_ = CtrSizesT(-1);
+
+    		insertion_pos_[0] = sampleSize(c, sizes[0]);
+
+    		CtrSizesT path_sizes;
+    		path_sizes[0] = sizes[0];
 
 
-            	auto iter = ctr.seek(insertion_pos_[0]);
-            	level_ = 0;
+    		auto iter = ctr->seek(insertion_pos_[0]);
+    		level_ = 0;
 
-            	for (Int s = 1; s <= level; s++)
-            	{
-            		if (insertion_pos_[s - 1] < path_sizes[s - 1])
-            		{
-            			auto local_size = iter.substream_size();
+    		for (Int s = 1; s <= level; s++)
+    		{
+    			if (insertion_pos_[s - 1] < path_sizes[s - 1])
+    			{
+    				auto local_size = iter.substream_size();
 
-            			if (local_size > 0)
-            			{
-            				if (insertion_pos_[s - 1] > 0) {
-            					insertion_pos_[s] = sampleSize(c, local_size);
-            				}
-            				else {
-            					insertion_pos_[s] = sampleSizeNZ(c, local_size);
-            				}
+    				if (local_size > 0)
+    				{
+    					if (insertion_pos_[s - 1] > 0) {
+    						insertion_pos_[s] = sampleSize(c, local_size);
+    					}
+    					else {
+    						insertion_pos_[s] = sampleSizeNZ(c, local_size);
+    					}
 
-            				iter.toData(insertion_pos_[s]);
-            				level_ = s;
+    					iter.toData(insertion_pos_[s]);
+    					level_ = s;
 
-            				path_sizes[s] = local_size;
-            			}
-            			else {
-            				break;
-            			}
-            		}
-            		else {
-            			break;
-            		}
-            	}
+    					path_sizes[s] = local_size;
+    				}
+    				else {
+    					break;
+    				}
+    			}
+    			else {
+    				break;
+    			}
+    		}
 
-            	shape_ = this->sampleTreeShape();
+    		shape_ = this->sampleTreeShape();
 
-            	testInsertionStep(ctr);
+    		testInsertionStep(*ctr.get());
 
-                this->out()<<"Sizes: "<<ctr.sizes()<<endl<<endl;
+    		out()<<"Sizes: "<<ctr->sizes()<<endl<<endl;
 
-                this->commit();
-            }
-        }
-        catch (...) {
-        	this->dump_name_ = this->Store();
-            throw;
-        }
+    		commit();
+    	}
     }
 };
 

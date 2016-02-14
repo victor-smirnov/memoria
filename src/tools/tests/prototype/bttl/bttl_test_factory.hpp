@@ -118,15 +118,15 @@ struct BTTLTestTypesBase: public BTTypes<Profile, BTTreeLayout> {
     >;
 
 
-    using CommonContainerPartsList = MergeLists<
-                typename Base::CommonContainerPartsList,
-                memoria::table::CtrApiName
-    >;
-
-    using IteratorPartsList = MergeLists<
-                typename Base::IteratorPartsList,
-                memoria::table::ItrMiscName
-    >;
+//    using CommonContainerPartsList = MergeLists<
+//                typename Base::CommonContainerPartsList,
+//                memoria::table::CtrApiName
+//    >;
+//
+//    using IteratorPartsList = MergeLists<
+//                typename Base::IteratorPartsList,
+//                memoria::table::ItrMiscName
+//    >;
 };
 
 

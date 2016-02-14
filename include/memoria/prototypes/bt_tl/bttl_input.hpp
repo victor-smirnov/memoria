@@ -977,7 +977,7 @@ public:
 					}
 					else if (end_pos < split_at_pos)
 					{
-						MEMORIA_ASSERT_TRUE(leaf->parent_id());
+						MEMORIA_ASSERT_TRUE(!leaf->parent_id().is_null());
 
 						updateLeafAnchors(leaf, pos, inserted);
 
@@ -1230,7 +1230,7 @@ private:
 					this->orphan_splits_++;
 
 					auto page_size 	= ctr.getRootMetadata().page_size();
-					next_leaf 		= ctr.createNode1(0, false, true, page_size);
+					next_leaf 		= ctr.createNode(0, false, true, page_size);
 
 					ctr.split_leaf_node(leaf, next_leaf, split_at);
 				}
@@ -1304,7 +1304,7 @@ private:
 
 				auto split_at = pos;
 
-				if (leaf->is_root() || leaf->parent_id())
+				if (leaf->is_root() || leaf->parent_id().is_set())
 				{
 					next_leaf = ctr.split_leaf_p(leaf, split_at);
 				}
@@ -1312,15 +1312,13 @@ private:
 					this->orphan_splits_++;
 
 					auto page_size 	= ctr.getRootMetadata().page_size();
-					next_leaf 		= ctr.createNode1(0, false, true, page_size);
+					next_leaf 		= ctr.createNode(0, false, true, page_size);
 
 					ctr.split_leaf_node(leaf, next_leaf, split_at);
 
 					next_leaf->next_leaf_id() 	= leaf->next_leaf_id();
 					leaf->next_leaf_id()		= next_leaf->id();
 				}
-
-//				cout<<"Split2 page: "<<leaf->id()<<" "<<next_leaf->id()<<endl;
 
 				if (this->split_watcher_.first == leaf)
 				{

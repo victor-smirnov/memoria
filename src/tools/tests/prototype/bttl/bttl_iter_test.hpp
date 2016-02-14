@@ -22,7 +22,7 @@ namespace memoria {
 
 template <
     typename CtrName,
-	typename AllocatorT 	= SmallInMemAllocator,
+	typename AllocatorT 	= PersistentInMemAllocator<>,
 	typename ProfileT		= DefaultProfile<>
 >
 class BTTLIterTest: public BTTLTestBase<CtrName, AllocatorT, ProfileT> {
@@ -31,7 +31,7 @@ class BTTLIterTest: public BTTLTestBase<CtrName, AllocatorT, ProfileT> {
     using MyType = BTTLIterTest<CtrName, AllocatorT, ProfileT>;
 
     using Allocator 	= typename Base::Allocator;
-    using AllocatorSPtr = typename Base::AllocatorSPtr;
+    using AllocatorPtr  = typename Base::AllocatorPtr;
     using Ctr 			= typename Base::Ctr;
 
     using DetInputProvider  	= bttl::DeterministicDataInputProvider<Ctr>;
@@ -44,7 +44,29 @@ class BTTLIterTest: public BTTLTestBase<CtrName, AllocatorT, ProfileT> {
 
     static const Int Streams = Ctr::Types::Streams;
 
+    using Base::commit;
+    using Base::drop;
+    using Base::branch;
+    using Base::allocator;
+    using Base::snapshot;
+    using Base::check;
+    using Base::out;
+    using Base::storeAllocator;
+    using Base::isReplayMode;
+    using Base::getResourcePath;
 
+    using Base::fillCtr;
+    using Base::checkRanks;
+    using Base::checkExtents;
+    using Base::checkSubtree;
+    using Base::sampleTreeShape;
+    using Base::getIntTestGenerator;
+
+    using Base::dump;
+    using Base::size;
+    using Base::iterations;
+    using Base::level_limit;
+    using Base::last_level_limit;
 
 	struct ScanFn {
 		Byte expected_;
@@ -73,78 +95,77 @@ public:
     virtual ~BTTLIterTest() throw () {}
 
 
-
-    void createAllocator(AllocatorSPtr& allocator) {
-    	allocator = std::make_shared<Allocator>();
-    	allocator->mem_limit() = this->hard_memlimit_;
-    }
-
-
-
     void testDetProvider()
     {
-    	for (Int i = 0; i < this->iterations; i++)
+    	auto snp = branch();
+
+    	auto ctr_name = create<CtrName>(snp)->name();
+
+    	commit();
+
+    	for (Int i = 0; i < iterations; i++)
     	{
-    		this->out()<<"Iteration "<<(i + 1)<<endl;
+    		out()<<"Iteration "<<(i + 1)<<endl;
 
+    		snp = branch();
+    		auto ctr = find<CtrName>(snp, ctr_name);
+
+    		auto shape = sampleTreeShape();
+
+    		out()<<"shape: "<<shape<<endl;
+
+    		DetInputProvider provider(shape);
+
+    		auto totals = fillCtr(*ctr.get(), provider);
+
+    		//    			checkScan(ctr, shape);
+    		//    			this->checkSubtree(ctr, path);
+
+    		for (CtrSizeT r = 0; r < totals[0]; r++)
     		{
-    			Ctr ctr = this->createCtr();
+    			CtrSizesT path(-1);
+    			path[0] = r;
 
-    			auto shape = this->sampleTreeShape();
-
-    			this->out()<<"shape: "<<shape<<endl;
-
-    			DetInputProvider provider(shape);
-
-    			auto totals = this->fillCtr(ctr, provider);
-
-//    			checkScan(ctr, shape);
-//    			this->checkSubtree(ctr, path);
-
-    			for (CtrSizeT r = 0; r < totals[0]; r++)
-    			{
-    				CtrSizesT path(-1);
-    				path[0] = r;
-
-    				this->checkSubtree(ctr, path);
-    			}
-
-    			this->out()<<endl;
+    			checkSubtree(*ctr.get(), path);
     		}
 
-    		createAllocator(this->allocator_);
+    		out()<<endl;
+
     	}
     }
 
     void testRngProvider()
     {
-    	for (Int i = 0; i < this->iterations; i++)
+    	auto snp = branch();
+
+    	auto ctr_name = create<CtrName>(snp)->name();
+
+    	commit();
+
+    	for (Int i = 0; i < iterations; i++)
     	{
-    		this->out()<<"Iteration "<<(i + 1)<<endl;
+    		out()<<"Iteration "<<(i + 1)<<endl;
 
+    		snp = branch();
+    		auto ctr = find<CtrName>(snp, ctr_name);
+
+    		auto shape = sampleTreeShape();
+
+    		out()<<"shape: "<<shape<<endl;
+
+    		RngInputProvider provider(shape, getIntTestGenerator());
+
+    		auto totals = fillCtr(*ctr.get(), provider);
+
+    		for (CtrSizeT r = 0; r < totals[0]; r++)
     		{
-    			Ctr ctr = this->createCtr();
+    			CtrSizesT path(-1);
+    			path[0] = r;
 
-    			auto shape = this->sampleTreeShape();
-
-    			this->out()<<"shape: "<<shape<<endl;
-
-    			RngInputProvider provider(shape, this->getIntTestGenerator());
-
-    			auto totals = this->fillCtr(ctr, provider);
-
-    			for (CtrSizeT r = 0; r < totals[0]; r++)
-    			{
-    				CtrSizesT path(-1);
-    				path[0] = r;
-
-    				this->checkSubtree(ctr, path);
-    			}
-
-    			this->out()<<endl;
+    			checkSubtree(*ctr.get(), path);
     		}
 
-    		createAllocator(this->allocator_);
+    		out()<<endl;
     	}
     }
 

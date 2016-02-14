@@ -239,9 +239,11 @@ public:
 
     bool checkSoftMemLimit()
     {
-    	size_t allocated = allocator()->allocated();
+//    	size_t allocated = allocator()->allocated();
+//
+//    	return allocated <= this->soft_memlimit_;
 
-    	return allocated <= this->soft_memlimit_;
+    	return true;
     }
 };
 

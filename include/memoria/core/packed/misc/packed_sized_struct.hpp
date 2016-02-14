@@ -71,6 +71,11 @@ public:
         return sizeof(MyType);
     }
 
+    static constexpr Int block_size(SizesT array_size)
+    {
+    	return sizeof(MyType);
+    }
+
     static constexpr Int packed_block_size(Int array_size)
     {
         return sizeof(MyType);
@@ -103,6 +108,17 @@ public:
     void init()
     {
         size_ = 0;
+    }
+
+    template <typename Adaptor>
+    static SizesT calculate_size(Int size, Adaptor&& fn)
+    {
+    	return SizesT(size);
+    }
+
+    bool has_capacity_for(const SizesT& sizes) const
+    {
+    	return true;
     }
 
     template <typename T>

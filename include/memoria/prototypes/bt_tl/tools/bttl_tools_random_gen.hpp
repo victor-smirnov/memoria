@@ -33,18 +33,18 @@ struct BTTLTupleFactory {
 
 	auto populate(StreamTag<0>, CtrSizeT col)
 	{
-		return InputTupleAdapter<0>::convert(IL<BigInt>({0}));
+		return InputTupleAdapter<0>::convert(0, IL<BigInt>({0}));
 	}
 
 	template <Int StreamIdx>
 	auto populate(StreamTag<StreamIdx>, CtrSizeT col)
 	{
-		return InputTupleAdapter<StreamIdx>::convert(IL<BigInt>({0}));
+		return InputTupleAdapter<StreamIdx>::convert(0, IL<BigInt>({0}));
 	}
 
 	auto populateLastStream(CtrSizeT prev_col, CtrSizeT col)
 	{
-		return InputTupleAdapter<Streams - 1>::convert(prev_col % 256);
+		return InputTupleAdapter<Streams - 1>::convert(0, prev_col % 256);
 	}
 };
 

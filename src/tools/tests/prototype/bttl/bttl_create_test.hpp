@@ -22,7 +22,7 @@ namespace memoria {
 
 template <
     typename CtrName,
-	typename AllocatorT 	= SmallInMemAllocator,
+	typename AllocatorT 	= PersistentInMemAllocator<>,
 	typename ProfileT		= DefaultProfile<>
 >
 class BTTLCreateTest: public BTTLTestBase<CtrName, AllocatorT, ProfileT> {
@@ -31,7 +31,7 @@ class BTTLCreateTest: public BTTLTestBase<CtrName, AllocatorT, ProfileT> {
     using MyType = BTTLCreateTest<CtrName, AllocatorT, ProfileT>;
 
     using Allocator 	= typename Base::Allocator;
-    using AllocatorSPtr = typename Base::AllocatorSPtr;
+    using AllocatorPtr  = typename Base::AllocatorPtr;
     using Ctr 			= typename Base::Ctr;
 
     using DetInputProvider  	= bttl::DeterministicDataInputProvider<Ctr>;
@@ -43,7 +43,28 @@ class BTTLCreateTest: public BTTLTestBase<CtrName, AllocatorT, ProfileT> {
 
     static const Int Streams = Ctr::Types::Streams;
 
+    using Base::commit;
+    using Base::drop;
+    using Base::branch;
+    using Base::allocator;
+    using Base::snapshot;
+    using Base::check;
+    using Base::out;
+    using Base::storeAllocator;
+    using Base::isReplayMode;
+    using Base::getResourcePath;
 
+    using Base::fillCtr;
+    using Base::checkRanks;
+    using Base::checkExtents;
+    using Base::checkSubtree;
+    using Base::sampleTreeShape;
+
+    using Base::dump;
+    using Base::size;
+    using Base::iterations;
+    using Base::level_limit;
+    using Base::last_level_limit;
 
 
 public:
@@ -57,53 +78,60 @@ public:
 
     virtual ~BTTLCreateTest() throw () {}
 
-    void createAllocator(AllocatorSPtr& allocator) {
-    	allocator = std::make_shared<Allocator>();
-    	allocator->mem_limit() = this->hard_memlimit_;
-    }
-
 
 
     void testDetProvider()
     {
-    	for (Int i = 0; i < this->iterations; i++)
+    	auto snp = branch();
+
+    	auto ctr_name = create<CtrName>(snp)->name();
+
+    	commit();
+
+    	for (Int i = 0; i < iterations; i++)
     	{
-    		this->out()<<"Iteration "<<(i + 1)<<endl;
+    		out()<<"Iteration "<<(i + 1)<<endl;
 
-    		{
-    			Ctr ctr = this->createCtr();
+    		snp = branch();
 
-    			auto shape = this->sampleTreeShape();
+    		auto ctr = find<CtrName>(snp, ctr_name);
+    		auto shape = sampleTreeShape();
 
-    			this->out()<<"shape: "<<shape<<endl;
+    		out()<<"shape: "<<shape<<endl;
 
-    			DetInputProvider provider(shape);
+    		DetInputProvider provider(shape);
 
-    			testProvider(ctr, provider);
-    		}
+    		testProvider(*ctr.get(), provider);
 
-    		createAllocator(this->allocator_);
+    		commit();
     	}
     }
 
     void testRngProvider()
     {
-    	for (Int i = 0; i < this->iterations; i++)
+    	auto snp = branch();
+
+    	auto ctr_name = create<CtrName>(snp)->name();
+
+    	commit();
+
+    	for (Int i = 0; i < iterations; i++)
     	{
-    		this->out()<<"Iteration "<<(i + 1)<<endl;
-    		{
-    			Ctr ctr = this->createCtr();
+    		out()<<"Iteration "<<(i + 1)<<endl;
 
-    			auto shape = this->sampleTreeShape();
+    		auto snp = branch();
 
-    			this->out()<<"shape: "<<shape<<endl;
+    		auto ctr = find<CtrName>(snp, ctr_name);
 
-    			RngInputProvider provider(shape, this->getIntTestGenerator());
+    		auto shape = this->sampleTreeShape();
 
-    			testProvider(ctr, provider);
-    		}
+    		out()<<"shape: "<<shape<<endl;
 
-    		createAllocator(this->allocator_);
+    		RngInputProvider provider(shape, this->getIntTestGenerator());
+
+    		testProvider(*ctr.get(), provider);
+
+    		commit();
     	}
     }
 
@@ -118,12 +146,12 @@ public:
     template <typename Provider>
     void testProvider(Ctr& ctr, Provider& provider)
     {
-    	this->fillCtr(ctr, provider);
+    	fillCtr(ctr, provider);
 
-    	this->checkExtents(ctr);
-    	this->checkRanks(ctr);
+    	checkExtents(ctr);
+    	checkRanks(ctr);
 
-    	this->out()<<endl;
+    	out()<<endl;
     }
 };
 
