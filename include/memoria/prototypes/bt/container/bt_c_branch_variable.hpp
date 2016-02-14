@@ -121,7 +121,7 @@ typename M_TYPE::NodeBaseG M_TYPE::splitP(NodeBaseG& left_node, SplitFn split_fn
 
     NodeBaseG left_parent = self.getNodeParentForUpdate(left_node);
 
-    NodeBaseG right_node = self.createNode1(left_node->level(), false, left_node->is_leaf(), left_node->page_size());
+    NodeBaseG right_node = self.createNode(left_node->level(), false, left_node->is_leaf(), left_node->page_size());
 
     split_fn(left_node, right_node);
 

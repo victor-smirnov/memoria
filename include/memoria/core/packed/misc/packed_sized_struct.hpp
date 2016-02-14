@@ -144,24 +144,28 @@ public:
     void sum(BranchNodeEntryItem<T, Size>& accum) const
     {
     	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+    	accum[Offset] += size_;
     }
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
     void sum(Int start, Int end, BranchNodeEntryItem<T, Size>& accum) const
     {
     	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+    	accum[Offset] += end - start;
     }
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
     void sub(Int start, BranchNodeEntryItem<T, Size>& accum) const
     {
     	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+
     }
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
     void sum(Int idx, BranchNodeEntryItem<T, Size>& accum) const
     {
     	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+    	accum[Offset] += idx;
     }
 
     template <typename T>
@@ -268,6 +272,14 @@ public:
 
     SizesT positions(Int idx) const {
     	return SizesT(idx);
+    }
+
+    Values get_values(Int) const {
+    	return Values();
+    }
+
+    Values get_values(Int, Int) const {
+    	return Values();
     }
 
 

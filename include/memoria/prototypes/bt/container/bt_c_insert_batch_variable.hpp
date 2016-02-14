@@ -138,7 +138,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchVariableName)
     	{
     		if (level >= 1)
     		{
-    			NodeBaseG node = self.createNode1(level, false, false);
+    			NodeBaseG node = self.createNode(level, false, false);
 
     			self.layoutBranchNode(node, 0xFF);
 

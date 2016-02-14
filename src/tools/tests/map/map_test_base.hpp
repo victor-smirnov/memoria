@@ -198,7 +198,7 @@ public:
     	}
     }
 
-    virtual void onException()
+    virtual void onException() noexcept
     {
     	Base::onException();
 

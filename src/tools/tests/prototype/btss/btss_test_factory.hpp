@@ -13,10 +13,15 @@
 #include <memoria/tools/tools.hpp>
 
 #include <memoria/prototypes/bt_tl/bttl_factory.hpp>
-#include <memoria/core/types/typehash.hpp>
 #include <memoria/prototypes/bt_tl/tools/bttl_tools_random_gen.hpp>
 
+#include <memoria/core/types/typehash.hpp>
+#include <memoria/core/packed/tree/fse/packed_fse_quick_tree.hpp>
+#include <memoria/core/packed/tree/vle/packed_vle_dense_tree.hpp>
+#include <memoria/core/packed/tree/vle/packed_vle_quick_tree.hpp>
+#include <memoria/core/packed/misc/packed_sized_struct.hpp>
 
+#include <memoria/containers/table/table_factory.hpp>
 
 
 #include <functional>
@@ -38,9 +43,10 @@ template <typename CtrSizeT, Int Indexes>
 struct BTSSTestStreamTF<PackedSizeType::FIXED, PackedSizeType::FIXED, CtrSizeT, Indexes> {
 	using Type = StreamTF<
 			TL<TL<
+				StreamSize,
 				PkdFQTreeT<CtrSizeT, Indexes>
 			>>,
-			TL<TL<TL<SumRange<0, Indexes>>>>,
+			TL<TL<TL<>, TL<SumRange<0, Indexes>>>>,
 			FSEBranchStructTF
 	>;
 };
@@ -50,9 +56,10 @@ template <typename CtrSizeT, Int Indexes>
 struct BTSSTestStreamTF<PackedSizeType::VARIABLE, PackedSizeType::FIXED, CtrSizeT, Indexes> {
 	using Type = StreamTF<
 			TL<TL<
+				StreamSize,
 				PkdVQTreeT<CtrSizeT, Indexes, UByteI7Codec>
 			>>,
-			TL<TL<TL<SumRange<0, Indexes>>>>,
+			TL<TL<TL<>, TL<SumRange<0, Indexes>>>>,
 			FSEBranchStructTF
 	>;
 };
@@ -62,9 +69,10 @@ template <typename CtrSizeT, Int Indexes>
 struct BTSSTestStreamTF<PackedSizeType::FIXED, PackedSizeType::VARIABLE, CtrSizeT, Indexes> {
 	using Type = StreamTF<
 			TL<TL<
+				StreamSize,
 				PkdFQTreeT<CtrSizeT, Indexes>
 			>>,
-			TL<TL<TL<SumRange<0, Indexes>>>>,
+			TL<TL<TL<>, TL<SumRange<0, Indexes>>>>,
 			VLQBranchStructTF
 	>;
 };
@@ -74,9 +82,10 @@ template <typename CtrSizeT, Int Indexes>
 struct BTSSTestStreamTF<PackedSizeType::VARIABLE, PackedSizeType::VARIABLE, CtrSizeT, Indexes> {
 	using Type = StreamTF<
 			TL<TL<
+				StreamSize,
 				PkdVDTreeT<CtrSizeT, Indexes, UByteI7Codec>
 			>>,
-			TL<TL<TL<SumRange<0, Indexes>>>>,
+			TL<TL<TL<>, TL<SumRange<0, Indexes>>>>,
 			VLQBranchStructTF
 	>;
 };

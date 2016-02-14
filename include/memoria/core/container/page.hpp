@@ -16,6 +16,7 @@
 #include <memoria/core/tools/id.hpp>
 #include <memoria/core/tools/stream.hpp>
 #include <memoria/core/tools/uuid.hpp>
+#include <memoria/core/tools/assert.hpp>
 #include <memoria/core/types/typehash.hpp>
 
 #include <memoria/core/container/logs.hpp>
@@ -26,149 +27,6 @@
 namespace memoria    {
 
 using namespace memoria::vapi;
-
-extern Int PageCtrCnt[10];
-extern Int PageDtrCnt[10];
-
-extern Int PageCtr;
-extern Int PageDtr;
-
-//extern bool GlobalDebug;
-
-/*
-template <typename T>
-class PageID: public ValueBuffer<T> {
-public:
-    typedef PageID<T>                                                           ValueType;
-    typedef ValueBuffer<T>                                                      Base;
-
-
-    PageID() = default;
-    PageID(const PageID<T>&) = default;
-
-    PageID(const T& t): Base(t) {}
-
-    PageID(const memoria::vapi::IDValue& id): Base()
-    {
-        Base::copyFrom(id.ptr());
-    }
-
-    static_assert(std::is_trivial<ValueBuffer<T>>::value, "ValueBuffer<> must be a trivial type");
-
-    bool isNull() const {
-        return isEmpty();
-    }
-
-    bool isEmpty() const {
-        return Base::value() == 0;
-    }
-
-    bool isNotEmpty() const {
-        return Base::value() != 0;
-    }
-
-    bool isNotNull() const {
-        return !isNull();
-    }
-
-    bool isSet() const {
-        return Base::value() != 0;
-    }
-
-    void setNull() {
-        Base::clear();
-    }
-
-    ValueType& operator=(const ValueType& other) = default;
-//    {
-//        Base::value() = other.value();
-//        return *this;
-//    }
-
-    ValueType& operator=(const T& other)
-    {
-        Base::value() = other;
-        return *this;
-    }
-
-    bool operator==(const ValueType& other) const
-    {
-        return Base::value() == other.value();
-    }
-
-    bool operator!=(const ValueType& other) const
-    {
-        return Base::value() != other.value();
-    }
-
-    bool operator<(const ValueType& other) const
-    {
-        return Base::value() < other.value();
-    }
-
-    bool operator<=(const ValueType& other) const
-    {
-    	return Base::value() <= other.value();
-    }
-
-    operator bool() const {
-    	return this->isSet();
-    }
-
-//    operator BigInt () {
-//        return Base::value();
-//    }
-//
-//    operator BigInt () const {
-//        return Base::value();
-//    }
-
-    ValueType& operator+=(const ValueType& other)
-    {
-        Base::value() += other.value();
-        return *this;
-    }
-};
-
-
-template <typename T>
-struct TypeHash<PageID<T>>: UIntValue<
-    HashHelper<101, TypeHash<T>::Value>::Value
-> {};
-
-struct IDKeyHash
-{
-    template <typename T>
-    long operator() (const PageID<T> &k) const { return k.value(); }
-};
-
-struct IDKeyEq
-{
-    template <typename T>
-    bool operator() (const PageID<T> &x, const PageID<T> &y) const { return x == y; }
-};
-
-*/
-
-
-template <typename T>
-static LogHandler& operator<<(LogHandler &log, const PageID<T>& value)
-{
-    IDValue id(&value);
-    log.log(id);
-    log.log(" ");
-    return log;
-}
-
-template <typename T>
-static LogHandler* logIt(LogHandler* log, const PageID<T>& value)
-{
-    IDValue id(&value);
-    log->log(id);
-    log->log(" ");
-    return log;
-}
-
 
 template <Int Size>
 class BitBuffer: public StaticBuffer<Size % 32 == 0 ? Size / 32 : ((Size / 32) + 1)> {
@@ -355,11 +213,21 @@ public:
     }
 
     auto ref() {
-        return ++references_;
+    	auto r = ++references_;
+
+        return r;
     }
 
     auto unref() {
-        return --references_;
+    	auto r = --references_;
+
+    	MEMORIA_ASSERT(r, >=, 0);
+
+//    	if (r <= 0) {
+//    		cerr << "PageUnref: " << uuid_ << " " << r << endl;
+//    	}
+
+        return r;
     }
 
     Int data_size() const {

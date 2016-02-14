@@ -27,7 +27,7 @@ protected:
 public:
 
     SkipForwardWalkerBase(CtrSizeT target):
-        Base(-1, target, SearchType::GT)
+        Base(0, target, SearchType::GT)
     {}
 
 
@@ -96,7 +96,7 @@ protected:
 public:
 
     SkipBackwardWalkerBase(CtrSizeT target):
-        Base(-1, target, SearchType::GE)
+        Base(0, target, SearchType::GE)
     {}
 
 

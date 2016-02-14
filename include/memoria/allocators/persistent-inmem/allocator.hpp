@@ -37,7 +37,7 @@ class PersistentTreeValue {
 	ValueT page_;
 	TxnIdT txn_id_;
 public:
-	PersistentTreeValue() {}
+	PersistentTreeValue(): page_(), txn_id_() {}
 	PersistentTreeValue(const ValueT& page, const TxnIdT& txn_id): page_(page), txn_id_(txn_id) {}
 
 	const ValueT& page() const {return page_;}
@@ -190,7 +190,20 @@ public:
 		auto& root_id() {return root_id_;}
 		const auto& root_id() const {return root_id_;}
 
-		void set_root(NodeBaseT* new_root) {
+		void set_root(NodeBaseT* new_root)
+		{
+			if (root_) {
+				root_->unref1();
+			}
+
+			root_ = new_root;
+
+			if (root_) {
+				root_->ref2();
+			}
+		}
+
+		void assign_root_no_ref(NodeBaseT* new_root) {
 			root_ = new_root;
 		}
 
@@ -363,7 +376,6 @@ public:
 		snapshot_map_[history_tree_->txn_id()] = history_tree_;
 
 		auto leaf = new LeafNodeT(history_tree_->txn_id(), UUID::make_random());
-		leaf->ref();
 		history_tree_->set_root(leaf);
 
 		SnapshotT snapshot(history_tree_, this);
@@ -401,7 +413,7 @@ public:
 
 	void pack()
 	{
-		do_pack(history_tree_);
+		do_pack(history_tree_, 0);
 	}
 
 
@@ -687,10 +699,10 @@ public:
 
 			if (buffer->is_leaf())
 			{
-				delete static_cast<LeafNodeBufferT*>(buffer);
+				static_cast<LeafNodeBufferT*>(buffer)->del();
 			}
 			else {
-				delete static_cast<BranchNodeBufferT*>(buffer);
+				static_cast<BranchNodeBufferT*>(buffer)->del();
 			}
 		}
 
@@ -734,7 +746,7 @@ private:
 
 				if (ptree_iter != ptree_map.end())
 				{
-					node->set_root(ptree_iter->second.second);
+					node->assign_root_no_ref(ptree_iter->second.second);
 
 					for (const auto& child_txn_id: buffer->children())
 					{
@@ -769,8 +781,9 @@ private:
 			free_memory(child);
 		}
 
-		if (node->root()) {
-			free_memory(node->root());
+		if (node->root())
+		{
+			SnapshotT::delete_snapshot(node);
 		}
 
 		delete node;
@@ -797,7 +810,8 @@ private:
 				}
 			}
 
-			delete leaf;
+//			delete leaf;
+			leaf->del();
 		}
 		else {
 			auto branch = PersistentTreeT::to_branch_node(node);
@@ -811,7 +825,8 @@ private:
 				}
 			}
 
-			delete branch;
+//			delete branch;
+			branch->del();
 		}
 	}
 
@@ -958,26 +973,57 @@ private:
 
 
 
-	std::unique_ptr<LeafNodeBufferT> to_leaf_buffer(const LeafNodeT* node)
+//	std::unique_ptr<LeafNodeBufferT> to_leaf_buffer(const LeafNodeT* node)
+//	{
+//		std::unique_ptr<LeafNodeBufferT> buf = std::make_unique<LeafNodeBufferT>();
+//
+//		buf->populate_as_buffer(node);
+//
+//		for (Int c = 0; c < node->size(); c++)
+//		{
+//			buf->data(c) = typename LeafNodeBufferT::Value(
+//				node->data(c).page()->uuid(),
+//				node->data(c).txn_id()
+//			);
+//		}
+//
+//		return buf;
+//	}
+//
+//	std::unique_ptr<BranchNodeBufferT> to_branch_buffer(const BranchNodeT* node)
+//	{
+//		std::unique_ptr<BranchNodeBufferT> buf = std::make_unique<BranchNodeBufferT>();
+//
+//		buf->populate_as_buffer(node);
+//
+//		for (Int c = 0; c < node->size(); c++)
+//		{
+//			buf->data(c) = node->data(c)->node_id();
+//		}
+//
+//		return buf;
+//	}
+
+	LeafNodeBufferT* to_leaf_buffer(const LeafNodeT* node)
 	{
-		std::unique_ptr<LeafNodeBufferT> buf = std::make_unique<LeafNodeBufferT>();
+		LeafNodeBufferT* buf = new LeafNodeBufferT();
 
 		buf->populate_as_buffer(node);
 
 		for (Int c = 0; c < node->size(); c++)
 		{
 			buf->data(c) = typename LeafNodeBufferT::Value(
-				node->data(c).page()->uuid(),
-				node->data(c).txn_id()
+					node->data(c).page()->uuid(),
+					node->data(c).txn_id()
 			);
 		}
 
 		return buf;
 	}
 
-	std::unique_ptr<BranchNodeBufferT> to_branch_buffer(const BranchNodeT* node)
+	BranchNodeBufferT* to_branch_buffer(const BranchNodeT* node)
 	{
-		std::unique_ptr<BranchNodeBufferT> buf = std::make_unique<BranchNodeBufferT>();
+		BranchNodeBufferT* buf = new BranchNodeBufferT();
 
 		buf->populate_as_buffer(node);
 
@@ -1109,7 +1155,7 @@ private:
 			auto leaf = PersistentTreeT::to_leaf_node(node);
 			auto buf  = to_leaf_buffer(leaf);
 
-			write(out, buf.get());
+			write(out, buf);
 
 			for (Int c = 0; c < leaf->size(); c++)
 			{
@@ -1120,12 +1166,14 @@ private:
 					write(out, data.page());
 				}
 			}
+
+			buf->del();
 		}
 		else {
 			auto branch = PersistentTreeT::to_branch_node(node);
 			auto buf    = to_branch_buffer(branch);
 
-			write(out, buf.get());
+			write(out, buf);
 
 			for (Int c = 0; c < branch->size(); c++)
 			{
@@ -1136,6 +1184,8 @@ private:
 					write_persistent_tree(out, child);
 				}
 			}
+
+			buf->del();
 		}
 	}
 
@@ -1209,11 +1259,11 @@ private:
 		delete history_node;
 	}
 
-	void do_pack(HistoryNode* node)
+	void do_pack(HistoryNode* node, Int depth)
 	{
 		for (auto child: node->children())
 		{
-			do_pack(child);
+			do_pack(child, depth + 1);
 		}
 
 		if (node->root() == nullptr && node->references() == 0)
@@ -1229,14 +1279,17 @@ private:
 				auto child  = node->children()[0];
 
 				node->remove_from_parent();
+
 				delete node;
 
 				parent->children().push_back(child);
+				child->parent() = parent;
 			}
 		}
 	}
 
-	void do_delete_dropped() {
+	void do_delete_dropped()
+	{
 		do_delete_dropped(history_tree_);
 	}
 

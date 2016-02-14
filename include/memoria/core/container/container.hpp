@@ -421,7 +421,7 @@ public:
     }
 
 
-    MEMORIA_PUBLIC Ctr(Allocator* allocator, const ID& root_id, const CtrInitData& ctr_init_data, const char* mname = NULL):
+    Ctr(Allocator* allocator, const ID& root_id, const CtrInitData& ctr_init_data, const char* mname = NULL):
         Base(ctr_init_data),
         allocator_(allocator),
         name_(),
@@ -435,7 +435,7 @@ public:
         initCtr(allocator, root_id, mname);
     }
 
-    MEMORIA_PUBLIC Ctr(const CtrInitData& data):
+    Ctr(const CtrInitData& data):
         Base(data),
         allocator_(),
         model_type_name_(TypeNameFactory<ContainerTypeName>::cname()),
@@ -444,6 +444,9 @@ public:
     {
         Base::setCtrShared(NULL);
     }
+
+    Ctr(const MyType& other) = delete;
+    Ctr(MyType&& other) = delete;
 
     virtual ~Ctr() throw()
     {}

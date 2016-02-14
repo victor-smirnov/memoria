@@ -72,7 +72,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ReadName)
     		{
     			TemplateInputTuple<StreamIdx> tuple;
 
-    			node->template processStream<IntList<StreamIdx>>(*this, tuple, c);
+    			node->template processSubstreams<IntList<StreamIdx>>(*this, tuple, c);
     			fn(tuple);
     		}
 

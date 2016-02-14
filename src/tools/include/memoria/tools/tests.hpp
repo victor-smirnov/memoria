@@ -44,8 +44,7 @@ class TestTask: public Task {
 protected:
     typedef Task Base;
 
-    Int     size_;
-
+    BigInt	size_;
     String  current_test_name_;
 
     RngInt  	int_generator_;

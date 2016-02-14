@@ -197,7 +197,9 @@ void M_TYPE::removeNodeContent(NodeBaseG& node, Int start, Int end, BranchNodeEn
 
     VectorAdd(sums, deleted_sums);
 
-    self.update_parent(node, -deleted_sums);
+    auto max = self.max(node);
+
+    self.update_parent(node, max);
 
     self.updateChildren(node, start);
 }
@@ -228,11 +230,13 @@ typename M_TYPE::BranchNodeEntry M_TYPE::removeLeafContent(NodeBaseG& node, cons
 
     self.updatePageG(node);
 
-    BranchNodeEntry sums = LeafDispatcher::dispatch(node, RemoveLeafContentFn(), start, end);
+    LeafDispatcher::dispatch(node, RemoveLeafContentFn(), start, end);
 
-    self.update_parent(node, -sums);
+    auto max = self.max(node);
 
-    return sums;
+    self.update_parent(node, max);
+
+    return max;
 }
 
 M_PARAMS
@@ -244,9 +248,11 @@ typename M_TYPE::BranchNodeEntry M_TYPE::removeLeafContent(NodeBaseG& node, Int 
 
     BranchNodeEntry sums = LeafDispatcher::dispatch(node, RemoveLeafContentFn(), stream, start, end);
 
-    self.update_parent(node, -sums);
+    auto max = self.max(node);
 
-    return sums;
+    self.update_parent(node, max);
+
+    return max;
 }
 
 

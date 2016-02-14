@@ -23,7 +23,7 @@ namespace memoria {
 
 template <
     typename CtrName,
-	typename AllocatorT 	= SmallInMemAllocator,
+	typename AllocatorT 	= PersistentInMemAllocator<>,
 	typename ProfileT		= DefaultProfile<>
 >
 class BTSSCoreTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT> {

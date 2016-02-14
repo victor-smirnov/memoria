@@ -93,6 +93,17 @@ public:
     {
     	snapshot_->commit();
     	snapshot_->set_as_master();
+
+    	if (snapshot_->has_parent())
+    	{
+    		auto parent = snapshot_->parent();
+
+    		if (parent->has_parent())
+    		{
+    			parent->drop();
+    			allocator_->pack();
+    		}
+    	}
     }
 
     void drop()
@@ -112,6 +123,21 @@ public:
     void check(const SnapshotPtr& snapshot, const char* source)
     {
     	::memoria::check(snapshot, "Snapshot check failed", source);
+    }
+
+    void check(const char* source)
+    {
+    	::memoria::check(snapshot_, "Snapshot check failed", source);
+    }
+
+    void check(const SnapshotPtr& snapshot, const char* msg, const char* source)
+    {
+    	::memoria::check(snapshot, msg, source);
+    }
+
+    void check(const char* msg, const char* source)
+    {
+    	::memoria::check(snapshot_, msg, source);
     }
 
     // FIXME: remove it
@@ -137,24 +163,38 @@ public:
 
     virtual void tearDown()
     {
-    	allocator_.reset();
-
     	if (snapshot_) {
     		snapshot_.reset();
     	}
+
+    	allocator_.reset();
     }
 
-    virtual void onException()
+    virtual void onException() noexcept
     {
-    	commit();
+    	try {
 
-    	auto file_name_invalid = getAllocatorFileName(".invalid");
-    	storeAllocator(file_name_invalid);
+    		if (snapshot_->is_active())
+    		{
+    			commit();
 
-    	drop();
+    			auto file_name_invalid = getAllocatorFileName(".invalid");
+    			storeAllocator(file_name_invalid);
 
-    	dump_name_ = getAllocatorFileName(".valid");
-    	storeAllocator(dump_name_);
+    			drop();
+
+    			dump_name_ = getAllocatorFileName(".valid");
+    			storeAllocator(dump_name_);
+    		}
+    		else if (snapshot_->is_committed())
+    		{
+    			dump_name_ = getAllocatorFileName(".valid");
+    			storeAllocator(dump_name_);
+    		}
+    	}
+    	catch (...) {
+    		out() << "Exception is thrown in BTTestBase::onException()";
+    	}
     }
 
     virtual void storeAllocator(String file_name) const

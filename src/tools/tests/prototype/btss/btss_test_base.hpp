@@ -70,7 +70,7 @@ public:
 
     	for (auto& v: buffer)
     	{
-    		v = EntryAdapter::convert(getRandom(100));
+    		v = EntryAdapter::convert(0, getRandom(100));
     	}
 
     	return buffer;

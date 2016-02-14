@@ -19,7 +19,7 @@
 
 //#include "prototype/bt/bt_test_suite.hpp"
 //#include "prototype/bttl/bttl_test_suite.hpp"
-//#include "prototype/btss/btss_test_suite.hpp"
+#include "prototype/btss/btss_test_suite.hpp"
 //#include "table/table_test_suite.hpp"
 
 #include "map/map_test_suite.hpp"
@@ -88,7 +88,7 @@ int main(int argc, const char** argv, const char** envp)
 
 //        runner.registerTask(new BTTestSuite());
 //        runner.registerTask(new BTTLTestSuite());
-//        runner.registerTask(new BTSSTestSuite());
+        runner.registerTask(new BTSSTestSuite());
 
 //        runner.registerTask(new TableTestSuite());
 
@@ -147,6 +147,9 @@ int main(int argc, const char** argv, const char** envp)
 
             Int failed = runner.Run();
             cout<<"Done..."<<endl;
+
+            MetadataRepository<DefaultProfile<>>::cleanup();
+
             return failed;
         }
     }
@@ -154,6 +157,8 @@ int main(int argc, const char** argv, const char** envp)
     {
         cerr<<e.source()<<" ERROR: "<<e<<endl;
     }
+
+    MetadataRepository<DefaultProfile<>>::cleanup();
 
     return 1;
 }

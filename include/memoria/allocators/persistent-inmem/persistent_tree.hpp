@@ -73,8 +73,6 @@ public:
 				if (target)
 				{
 					auto new_root = clone_node(target->root());
-					new_root->ref();
-
 					root_provider_->set_root(new_root);
 					root_provider_->root_id() = target->root_id();
 				}
@@ -107,16 +105,23 @@ public:
 		return this->root()->metadata().size();
 	}
 
-	void assign(const Key& key, const Value& value)
+	Value assign(const Key& key, const Value& value)
 	{
 		auto iter = this->locate(key);
 
 		if (!iter.is_end() && iter.key() == key)
 		{
+			update_path(iter.path());
+
+			auto tmp = iter.value();
+
 			iter.value() = value;
+
+			return tmp;
 		}
 		else {
-			this->insert_to(iter, key, value);
+			insert_to(iter, key, value);
+			return Value();
 		}
 	}
 
@@ -126,7 +131,7 @@ public:
 
 		if (!iter.is_end())
 		{
-			this->remove_from(iter);
+			remove_from(iter);
 			return true;
 		}
 		else {
@@ -236,7 +241,7 @@ public:
 	{
 		delete_tree( root(), fn);
 
-		root_provider_->set_root(nullptr);
+		root_provider_->assign_root_no_ref(nullptr);
 		root_provider_->root_id() = typename PageType::ID();
 	}
 
@@ -265,24 +270,27 @@ protected:
 
 	void delete_tree(NodeBaseT* node, std::function<void (LeafNodeT*)> fn)
 	{
-		if (node->unref() == 0)
+		if (node->unref1() == 0)
 		{
-			if (!node->is_leaf())
+			if (node->is_leaf())
 			{
+				auto leaf_node = to_leaf_node(node);
+
+				fn(leaf_node);
+
+				leaf_node->del();
+			}
+			else {
 				auto branch_node = to_branch_node(node);
+
 				for (Int c = 0; c < branch_node->size(); c++)
 				{
 					auto child = branch_node->data(c);
+
 					delete_tree(child, fn);
 				}
 
-				delete branch_node;
-			}
-			else {
-				auto leaf_node = to_leaf_node(node);
-				fn(leaf_node);
-
-				delete leaf_node;
+				branch_node->del();
 			}
 		}
 	}
@@ -390,10 +398,10 @@ protected:
 		{
 			NodeBaseT* node = path[level];
 
-			if (node->txn_id() < this->txn_id())
+			if (node->txn_id() != this->txn_id())
 			{
 				BranchNodeT* parent = to_branch_node(path[level + 1]);
-				if (parent->txn_id() < this->txn_id())
+				if (parent->txn_id() != this->txn_id())
 				{
 					update_path(path, level + 1);
 
@@ -404,10 +412,10 @@ protected:
 
 				NodeBaseT* clone = clone_node(node);
 
-				parent->data(parent_idx)->unref();
+				parent->data(parent_idx)->unref1();
 				parent->data(parent_idx) = clone;
 
-				clone->ref();
+				clone->ref2();
 
 				path[level] = clone;
 			}
@@ -458,7 +466,7 @@ protected:
 
 		update_keys_up(iter.path(), iter.idx(), 0);
 
-		this->root()->metadata().add_size(-1);
+		root()->metadata().add_size(-1);
 
 		if (leaf->should_merge())
 		{
@@ -468,6 +476,7 @@ protected:
 			{
 				if (can_merge_paths(iter.path(), next))
 				{
+					update_path(next);
 					merge_paths(iter.path(), next);
 				}
 			}
@@ -479,6 +488,7 @@ protected:
 					if (can_merge_paths(prev, iter.path()))
 					{
 						Int prev_leaf_size = prev[0]->size();
+						update_path(prev);
 						merge_paths(prev, iter.path());
 
 						iter.path() = prev;
@@ -495,7 +505,7 @@ protected:
 	void insert_child_node(BranchNodeT* node, Int idx, NodeBaseT* child)
 	{
 		node->insert(idx, child->max_key(), child);
-		child->ref();
+		child->ref2();
 	}
 
 	void split_path(Path& path, Path& next, Int level = 0)
@@ -558,7 +568,7 @@ protected:
 			insert_child_node(new_root, 1, right);
 
 			path.insert(path.size(), new_root);
-			next.insert(path.size(), new_root);
+			next.insert(next.size(), new_root);
 
 			next[level] = right;
 
@@ -631,15 +641,22 @@ protected:
 
 		update_keys_up(path, parent_idx, level + 1);
 
-		if (parent == this->root() && parent->size() == 1)
+		auto root = this->root();
+
+		if (parent == root && parent->size() == 1)
 		{
 			path.remove(path.size() - 1);
-			next.remove(path.size() - 1);
+			next.remove(next.size() - 1);
 
-			node->metadata() = this->root()->metadata();
+			node->metadata() = root->metadata();
 
 			root_provider_->set_root(node);
-			node->unref();
+
+			node->unref1();
+
+			remove_node(root);
+
+			MEMORIA_ASSERT(node->refs(), ==, 1);
 		}
 
 		next[level] = node;
@@ -653,10 +670,7 @@ protected:
 		{
 			NodeBaseT* child = node->data(c);
 
-			if (child->txn_id() < txn_id)
-			{
-				child->ref();
-			}
+			child->ref2();
 		}
 	}
 
@@ -755,13 +769,13 @@ protected:
 
 	void remove_node(NodeBaseT* node) const
 	{
-		if (node->is_leaf()) {
-			delete to_leaf_node(node);
+		if (node->is_leaf())
+		{
+			to_leaf_node(node)->del();
 		}
 		else {
-			delete to_branch_node(node);
+			to_branch_node(node)->del();
 		}
-
 	}
 
 	void ensure_node_budget(BigInt adjustment)

@@ -187,7 +187,10 @@ public:
 
 				history_tree_raw_->forget_snapshot(history_node_);
 			}
-			else if(history_node_->is_dropped()) {
+			else if(history_node_->is_dropped())
+			{
+				check_tree_structure(history_node_->root());
+
 				do_drop();
 			}
 		}
@@ -279,6 +282,10 @@ public:
 		{
 			throw vapi::Exception(MA_SRC, "Snapshot is still being active. Commit it first.");
 		}
+	}
+
+	bool has_parent() const {
+		return history_node_->parent() != nullptr;
 	}
 
 	SnapshotPtr parent()
@@ -693,13 +700,13 @@ public:
 	template <typename CtrName>
 	auto find_or_create(const UUID& name)
 	{
-		return std::make_shared<CtrT<CtrName>>(this, CTR_FIND | CTR_CREATE, name);
+		return std::make_shared<CtrT<CtrName>>(this->shared_from_this(), CTR_FIND | CTR_CREATE, name);
 	}
 
 	template <typename CtrName>
 	auto create(const UUID& name)
 	{
-		return std::make_shared<CtrT<CtrName>>(this, CTR_CREATE, name);
+		return std::make_shared<CtrT<CtrName>>(this->shared_from_this(), CTR_CREATE, name);
 	}
 
 	template <typename CtrName>
@@ -777,7 +784,11 @@ protected:
 
     	const auto& txn_id = history_node_->txn_id();
     	using Value = typename PersitentTree::Value;
-    	persistent_tree_.assign(page->id(), Value(page, txn_id));
+    	auto old_value = persistent_tree_.assign(page->id(), Value(page, txn_id));
+
+    	if (old_value.page()) {
+    		old_value.page()->unref();
+    	}
     }
 
 
@@ -837,10 +848,42 @@ protected:
 			}
 		});
 
-		node->set_root(nullptr);
+		node->assign_root_no_ref(nullptr);
 		node->root_id() = ID();
 	}
 
+
+	void check_tree_structure(const NodeBaseT* node)
+	{
+//		if (node->txn_id() == history_node_->txn_id())
+//		{
+//			if (node->refs() != 1)
+//			{
+//				cerr << "NodeRefProblem1 for: " << endl;
+//				node->dump(cerr);
+//			}
+//		}
+//		else {
+//			if (node->refs() < 1)
+//			{
+//				cerr << "NodeRefProblem2 for: " << endl;
+//				node->dump(cerr);
+//			}
+//		}
+//
+//		if (node->is_leaf())
+//		{
+//			//auto leaf_node = PersitentTree::to_leaf_node(node);
+//		}
+//		else {
+//			auto branch_node = PersitentTree::to_branch_node(node);
+//
+//			for (Int c = 0; c < branch_node->size(); c++)
+//			{
+//				check_tree_structure(branch_node->data(c));
+//			}
+//		}
+	}
 };
 
 }

@@ -155,7 +155,7 @@ class LeafOffsetListBuilder {
     using LinearLeafList = FlattenLeafTree<LeafTree>;
     using OffsetList = FailIf<OffsetBuilder<LinearLeafList>, false>;
 public:
-    using Type = FailIf<TagStreamsStart<OffsetList, LeafTree>, false>;
+    using Type = TagStreamsStart<OffsetList, LeafTree>;
 };
 
 
@@ -326,7 +326,7 @@ public:
 		Idx,
 		Pos,
 		Idx < Pos + LocalSize
-		>::Value;
+	>::Value;
 };
 
 
@@ -508,8 +508,8 @@ public:
 									+ GetLeafPrefix<LocalLeafGroup, LocalLeafOffset>::Value;
 
 
-	static Int translate(Int leaf_index) {
-
+	static Int translate(Int leaf_index)
+	{
 		const Int LeafIdx 			= memoria::list_tree::LeafCount<LeafStructList, LeafPath>::Value;
 		const Int LocalLeafOffset	= FindLocalLeafOffsetV<Leafs, LeafIdx>::Value;
 

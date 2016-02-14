@@ -23,7 +23,7 @@ namespace memoria {
 
 template <
     typename CtrName,
-	typename AllocatorT 	= SmallInMemAllocator,
+	typename AllocatorT 	= PersistentInMemAllocator<>,
 	typename ProfileT		= DefaultProfile<>
 >
 class BTSSBatchTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT> {
@@ -32,7 +32,7 @@ class BTSSBatchTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT> {
     using MyType = BTSSBatchTest<CtrName, AllocatorT, ProfileT>;
 
     using Allocator 	= typename Base::Allocator;
-    using AllocatorSPtr = typename Base::AllocatorSPtr;
+    using AllocatorPtr  = typename Base::AllocatorPtr;
     using Ctr 			= typename Base::Ctr;
     using Iterator 		= typename Ctr::Iterator;
 
@@ -40,19 +40,31 @@ class BTSSBatchTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT> {
 
     using MemBuffer		= std::vector<Entry>;
 
+    using Base::commit;
+    using Base::drop;
+    using Base::branch;
+    using Base::allocator;
+    using Base::snapshot;
+    using Base::check;
+    using Base::out;
+    using Base::fillRandom;
+    using Base::size_;
+    using Base::storeAllocator;
+    using Base::isReplayMode;
+    using Base::getResourcePath;
+
 public:
 
-    BigInt size_			= 1024*1024;
 
-    Int max_block_size_     = 1024*4;
+
+    Int max_block_size_     = 1024;
     Int check_size_         = 1000;
 
-    Int ctr_name_;
+    UUID ctr_name_;
     Int prefix_size_;
     Int suffix_size_;
     Int block_size_;
     Int random_position_;
-    String dump_name_;
 
     BigInt iteration_ = 0;
 
@@ -60,8 +72,6 @@ public:
 
     Int cnt_i_ = 0;
     Int cnt_r_ = 0;
-
-    OpenMode mode_ = OpenMode::READ | OpenMode::WRITE | OpenMode::CREATE | OpenMode::TRUNC;
 
     typedef std::function<void (MyType*, Ctr&)> TestFn;
 
@@ -72,7 +82,8 @@ public:
     {
         Ctr::initMetadata();
 
-        MEMORIA_ADD_TEST_PARAM(size_);
+        size_ = 1024 * 102;
+
         MEMORIA_ADD_TEST_PARAM(max_block_size_);
         MEMORIA_ADD_TEST_PARAM(check_size_);
 
@@ -80,7 +91,6 @@ public:
         MEMORIA_ADD_TEST_PARAM(block_size_)->state();
         MEMORIA_ADD_TEST_PARAM(prefix_size_)->state();
         MEMORIA_ADD_TEST_PARAM(suffix_size_)->state();
-        MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
         MEMORIA_ADD_TEST_PARAM(random_position_)->state();
 
         MEMORIA_ADD_TEST_PARAM(iteration_)->state();
@@ -99,10 +109,6 @@ public:
     }
 
     virtual ~BTSSBatchTest() throw() {}
-
-    virtual void createAllocator(AllocatorSPtr& allocator) {
-    	allocator = std::make_shared<Allocator>();
-    }
 
     virtual BigInt getRandomPosition(Ctr& array)
     {
@@ -208,6 +214,7 @@ public:
 
     	if (iter.cache() != tmp.cache())
     	{
+    		iter.dumpPath(out());
     		throw TestException(
     				source,
     				SBuf()<<"Iterator cache mismatch: having: "<<iter.cache()<<", should be: "<<tmp.cache()
@@ -228,8 +235,6 @@ public:
         BigInt size = ctr.size();
 
         iter.insert(data.begin(), data.end());
-
-        this->checkAllocator("", MA_SRC);
 
         BigInt size2 = ctr.size();
 
@@ -498,93 +503,86 @@ public:
 
     virtual void testInsert(TestFn test_fn)
     {
-    	auto allocator = this->allocator_;
+    	ctr_name_ = UUID::make_random();
 
-    	DefaultLogHandlerImpl logHandler(out());
-    	allocator->getLogger()->setHandler(&logHandler);
-    	allocator->getLogger()->level() = Logger::ERROR;
+    	iteration_ = 0;
 
-    	Ctr ctr(allocator.get());
-    	this->ctr_name_ = ctr.name();
+    	BigInt size = 0;
 
-    	allocator->commit();
+    	while (size < this->size_)
+    	{
+    		auto snp = branch();
 
-    	try {
-    		this->iteration_ = 0;
+    		auto ctr = find_or_create<CtrName>(snp, ctr_name_);
 
-    		while (ctr.size() < this->size_)
-    		{
-    			test_fn(this, ctr);
+    		test_fn(this, *ctr.get());
 
-    			out()<<"Size: "<<ctr.size()<<endl;
+    		out()<<"Size: "<<ctr->size()<<endl;
 
-    			this->checkAllocator("Insert: Container Check Failed", MA_SRC);
+    		check(snp, "Insert: Container Check Failed", MA_SRC);
 
-    			this->iteration_++;
-    			this->allocator_->commit();
-    		}
+    		iteration_++;
 
-    		this->storeAllocator(this->getResourcePath(SBuf()<<"insert"<<(++cnt_i_)<<".dump"));
+    		commit();
+
+    		size = ctr->size();
     	}
-    	catch (...) {
-    		this->dump_name_ = this->Store();
-    		throw;
+
+    	if (!isReplayMode())
+    	{
+    		storeAllocator(getResourcePath((SBuf()<<"Insert_"<<(++cnt_i_)<<".dump").str()));
     	}
     }
 
 
     virtual void testRemove(TestFn test_fn)
     {
-    	auto allocator = this->allocator_;
+    	ctr_name_ = UUID::make_random();
 
-    	DefaultLogHandlerImpl logHandler(out());
-    	allocator->getLogger()->setHandler(&logHandler);
+    	auto snp = branch();
+    	auto ctr = find_or_create<CtrName>(snp, ctr_name_);
 
-    	Ctr ctr(allocator.get());
-    	this->ctr_name_ = ctr.name();
+    	fillRandom(*ctr.get(), size_);
 
-    	allocator->commit();
+    	commit();
 
-    	try {
+    	iteration_ = 0;
 
-    		this->fillRandom(ctr, Base::size_);
+    	BigInt size = ctr->size();
 
-    		allocator->commit();
-    		this->iteration_ = 0;
-    		while (ctr.size() > 0)
-    		{
-    			test_fn(this, ctr);
+    	while (size > 0)
+    	{
+    		snp = branch();
+    		ctr = find<CtrName>(snp, ctr_name_);
 
-    			out()<<"Size: "<<ctr.size()<<endl;
+    		test_fn(this, *ctr.get());
 
-    			this->checkAllocator("Remove: Container Check Failed", MA_SRC);
+    		out()<<"Size: "<<ctr->size()<<endl;
 
-    			this->iteration_++;
-    			allocator->commit();
-    		}
+    		check("Remove: Container Check Failed", MA_SRC);
 
-    		this->storeAllocator(this->getResourcePath(SBuf()<<"remove"<<(++cnt_r_)<<".dump"));
+    		size = ctr->size();
+
+    		iteration_++;
+    		commit();
     	}
-    	catch (...) {
-    		this->dump_name_ = this->Store();
-    		throw;
+
+    	if (!isReplayMode())
+    	{
+    		storeAllocator(getResourcePath((SBuf()<<"Remove_"<<(++cnt_i_)<<".dump").str()));
     	}
     }
 
     virtual void replay(TestFn test_fn)
     {
-    	this->loadAllocator(this->dump_name_);
+    	auto snp = branch();
+    	auto ctr = find_or_create<CtrName>(snp, ctr_name_);
 
-    	auto allocator = this->allocator_;
+    	test_fn(this, *ctr.get());
 
-    	DefaultLogHandlerImpl logHandler(out());
-    	allocator->getLogger()->setHandler(&logHandler);
+    	check(snp, "Replay: Container Check Failed", MA_SRC);
 
-    	Ctr ctr = this->findCtr(ctr_name_);
-
-    	test_fn(this, ctr);
-
-    	this->checkAllocator("Replay: Container Check Failed", MA_SRC);
+    	commit();
     }
 };
 

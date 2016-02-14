@@ -164,12 +164,28 @@ public:
 		return refs_;
 	}
 
-	BigInt ref() {
-		return ++refs_;
+	BigInt ref2()
+	{
+		auto r = ++refs_;
+
+//		cerr << "PTreeNode.Ref " << r << " " << node_id_ << " " << node_id_.lo() << " "<< node_type_ << " " << refs_ <<endl;
+
+		return r;
 	}
 
-	BigInt unref() {
-		return --refs_;
+	BigInt unref1()
+	{
+		auto r = --refs_;
+
+//		if (node_type_ != NodeType::LEAF && node_type_ != NodeType::BRANCH) {
+//			int a = 0; a++;
+//		}
+//
+//		cerr << "PTreeNode.UnRef " << r << " " << node_id_ << " " << node_id_.lo() << " "<< node_type_ << " " << refs_ <<endl;
+
+		MEMORIA_ASSERT(r, >=, 0);
+
+		return r;
 	}
 
 	const Key& key(Int idx) const {
@@ -473,9 +489,11 @@ public:
 
 	void remove(Int start, Int end)
 	{
-		this->shift_left(data_, end, start, this->size() - end);
+		auto size = this->size();
 
-		for (Int c = this->size() - (end - start); c < this->size(); c++) {
+		this->shift_left(data_, end, start, size - end);
+
+		for (Int c = size - (end - start); c < size; c++) {
 			data_[c] = Data();
 		}
 
@@ -557,6 +575,15 @@ public:
 		Base(txn_id, node_id, NodeType::BRANCH)
 	{}
 
+	~BranchNode() {
+
+	}
+
+
+	void del() const {
+		delete this;
+	}
+
 	NodeBaseT* find_child(const Key& key) const
 	{
 		Int idx = Base::find_key(key);
@@ -610,7 +637,7 @@ public:
 			out<<c<<": "<<this->key(c)<<" = "<<node<<" ("<<node->node_id()<<", "<<node->txn_id()<<")"<<endl;
 		}
 
-		cout<<endl;
+		out<<endl;
 	}
 
 
@@ -628,6 +655,14 @@ public:
 		Base(txn_id, node_id, NodeType::LEAF)
 	{}
 
+
+	~LeafNode() {}
+
+
+	void del() const {
+		delete this;
+	}
+
 	Int find(const Key& key) const
 	{
 		return this->find_key(key);
@@ -644,7 +679,7 @@ public:
 			out<<c<<": "<<this->key(c)<<" = "<<this->data(c)<<endl;
 		}
 
-		cout<<endl;
+		out<<endl;
 	}
 };
 

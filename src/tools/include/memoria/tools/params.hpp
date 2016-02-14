@@ -54,6 +54,14 @@ public:
     ParametersSet(StringRef name): name_(name), context_(nullptr)  {}
     ParametersSet(const ParametersSet&) = delete;
 
+    virtual ~ParametersSet()
+    {
+    	for (auto d: descriptors_)
+    	{
+    		delete d;
+    	}
+    }
+
     virtual String getFullName() const
     {
         if (context_)

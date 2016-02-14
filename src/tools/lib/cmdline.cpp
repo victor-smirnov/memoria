@@ -135,7 +135,7 @@ void CmdLine::processTests()
                 c += 1;
             }
             else {
-                throw Exception(MEMORIA_SOURCE, "Incorrect --out parameters number");
+                throw Exception(MEMORIA_SOURCE, "Incorrect --count parameters number");
             }
         }
         else if (arg == "--coverage")

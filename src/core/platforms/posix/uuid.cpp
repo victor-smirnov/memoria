@@ -12,6 +12,8 @@
 
 namespace memoria {
 
+UBigInt cnt = 1;
+
 UUID make_uuid(uuid_t uuid)
 {
 	UUID uuid2;

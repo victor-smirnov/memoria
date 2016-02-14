@@ -236,7 +236,7 @@ void M_TYPE::removeAllNodes(NodeBaseG& start, NodeBaseG& stop, BranchNodeEntry& 
 
     Metadata meta = self.getRootMetadata();
 
-    NodeBaseG new_root = self.createRootNode1(0, true, meta);
+    NodeBaseG new_root = self.createRootNode(0, true, meta);
     self.set_root(new_root->id());
 
     start = stop = new_root;
