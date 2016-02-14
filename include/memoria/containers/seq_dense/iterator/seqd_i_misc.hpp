@@ -63,7 +63,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
     }
 
 
-    void insert(Int symbol)
+    void insert_symbol(Int symbol)
     {
         MEMORIA_ASSERT(symbol, <, Symbols);
 
@@ -138,7 +138,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
     }
 
 
-    void insert(vapi::SymbolsBuffer<BitsPerSymbol>& data)
+    void insert_symbols(vapi::SymbolsBuffer<BitsPerSymbol>& data)
     {
     	auto& self = this->self();
     	auto& model = self.ctr();

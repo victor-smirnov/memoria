@@ -20,18 +20,33 @@ namespace memoria {
 template <Int BitsPerSymbol, bool Dense = true>
 class SequenceRankTest: public SequenceTestBase<BitsPerSymbol, Dense> {
 
-    typedef SequenceRankTest<BitsPerSymbol, Dense>                              MyType;
-    typedef SequenceTestBase<BitsPerSymbol, Dense>                              Base;
+    using MyType = SequenceRankTest<BitsPerSymbol, Dense>;
+    using Base   = SequenceTestBase<BitsPerSymbol, Dense>;
 
-    typedef typename Base::Allocator                                            Allocator;
-    typedef typename Base::Iterator                                             Iterator;
-    typedef typename Base::Ctr                                                  Ctr;
 
-    Int ctr_name_;
+    using typename Base::Iterator;
+    using typename Base::Ctr;
+    using typename Base::CtrName;
+
+
     Int iterations_ = 100000;
 
+    using Base::commit;
+    using Base::drop;
+    using Base::branch;
+    using Base::allocator;
+    using Base::snapshot;
+    using Base::check;
+    using Base::out;
+    using Base::fillRandomSeq;
+    using Base::size_;
+    using Base::storeAllocator;
+    using Base::isReplayMode;
+    using Base::getResourcePath;
+    using Base::ctr_name_;
     using Base::getRandom;
-    using Base::fillRandom;
+
+
 
 public:
     SequenceRankTest(StringRef name):
@@ -41,8 +56,6 @@ public:
 
         MEMORIA_ADD_TEST_PARAM(iterations_);
 
-        MEMORIA_ADD_TEST_PARAM(ctr_name_)->state();
-
         MEMORIA_ADD_TEST(testCtrRank);
         MEMORIA_ADD_TEST(testIterRank);
     }
@@ -50,86 +63,64 @@ public:
 
     void testCtrRank()
     {
-        DefaultLogHandlerImpl logHandler(Base::out());
+    	auto snp = branch();
 
-        Allocator allocator;
-        allocator.getLogger()->setHandler(&logHandler);
+    	auto ctr = create<CtrName>(snp);
 
-        Ctr ctr(&allocator);
+    	auto seq = fillRandomSeq(*ctr.get(), size_);
 
-        allocator.commit();
+    	check(MA_SRC);
 
-        try {
-            auto seq = fillRandom(ctr, this->size_);
+        for (Int c = 0; c < iterations_; c++)
+        {
+        	out()<<c<<std::endl;
 
-            this->forceCheck(allocator, MA_SRC);
+        	Int pos     = getRandom(size_);
+        	Int symbol  = getRandom(Base::Symbols);
 
-            allocator.commit();
+        	BigInt rank1 = ctr->rank(pos, symbol);
+        	BigInt rank2 = seq->rank(pos, symbol);
 
-            for (Int c = 0; c < iterations_; c++)
-            {
-                this->out()<<c<<std::endl;
-
-                Int pos     = getRandom(this->size_);
-                Int symbol  = getRandom(Base::Symbols);
-
-                BigInt rank1 = ctr.rank(pos, symbol);
-                BigInt rank2 = seq->rank(pos, symbol);
-
-                AssertEQ(MA_SRC, rank1, rank2);
-            }
+        	AssertEQ(MA_SRC, rank1, rank2);
         }
-        catch (...) {
-            Base::dump_name_ = Base::Store(allocator);
-            throw;
-        }
+
+        commit();
     }
 
 
     void testIterRank()
     {
-        DefaultLogHandlerImpl logHandler(Base::out());
+    	auto snp = branch();
 
-        Allocator allocator;
-        allocator.getLogger()->setHandler(&logHandler);
+    	auto ctr = create<CtrName>(snp);
 
-        Ctr ctr(&allocator);
+    	auto seq = fillRandomSeq(*ctr.get(), size_);
 
-        allocator.commit();
+    	check(MA_SRC);
 
-        try {
-            auto seq = fillRandom(ctr, this->size_);
+    	for (Int c = 0; c < iterations_; c++)
+    	{
+    		out()<<c<<std::endl;
 
-            this->forceCheck(allocator, MA_SRC);
+    		Int pos1    = getRandom(size_);
+    		Int pos2    = pos1 + getRandom(size_ - pos1);
+    		Int symbol  = getRandom(Base::Symbols);
 
-            allocator.commit();
+    		auto iter   = ctr->seek(pos1);
 
-            for (Int c = 0; c < iterations_; c++)
-            {
-                this->out()<<c<<std::endl;
+    		BigInt rank1 = iter.rank(pos2 - pos1, symbol);
+    		BigInt rank2 = seq->rank(pos1, pos2, symbol);
 
-                Int pos1    = getRandom(this->size_);
-                Int pos2    = pos1 + getRandom(this->size_ - pos1);
-                Int symbol  = getRandom(Base::Symbols);
+    		AssertEQ(MA_SRC, iter.pos(), pos2);
+    		AssertEQ(MA_SRC, rank1, rank2);
 
-                auto iter   = ctr.seek(pos1);
+    		BigInt rank3 = iter.rank(pos1 - pos2, symbol);
 
-                BigInt rank1 = iter.rank(pos2 - pos1, symbol);
-                BigInt rank2 = seq->rank(pos1, pos2, symbol);
+    		AssertEQ(MA_SRC, iter.pos(), pos1);
+    		AssertEQ(MA_SRC, rank1, rank3);
+    	}
 
-                AssertEQ(MA_SRC, iter.pos(), pos2);
-                AssertEQ(MA_SRC, rank1, rank2);
-
-                BigInt rank3 = iter.rank(pos1 - pos2, symbol);
-
-                AssertEQ(MA_SRC, iter.pos(), pos1);
-                AssertEQ(MA_SRC, rank1, rank3);
-            }
-        }
-        catch (...) {
-            Base::dump_name_ = Base::Store(allocator);
-            throw;
-        }
+    	commit();
     }
 };
 

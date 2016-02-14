@@ -20,21 +20,34 @@ namespace memoria {
 template <Int BitsPerSymbol, bool Dense = true>
 class SequenceSelectTest: public SequenceTestBase<BitsPerSymbol, Dense> {
 
-    typedef SequenceSelectTest<BitsPerSymbol, Dense>                            MyType;
-    typedef SequenceTestBase<BitsPerSymbol, Dense>                              Base;
+	using MyType = SequenceSelectTest<BitsPerSymbol, Dense>;
+	using Base   = SequenceTestBase<BitsPerSymbol, Dense>;
 
-    typedef typename Base::Allocator                                            Allocator;
-    typedef typename Base::Iterator                                             Iterator;
-    typedef typename Base::Ctr                                                  Ctr;
+    using typename Base::Iterator;
+    using typename Base::Ctr;
+    using typename Base::CtrName;
 
-    static const Int Symbols                                                    = Base::Symbols;
 
-    Int ctr_name_;
-    Int iterations_ = 100000;
+    static const Int Symbols  = Base::Symbols;
 
-    using Base::fillRandom;
-    using Base::getRandom;
+    using Base::commit;
+    using Base::drop;
+    using Base::branch;
+    using Base::allocator;
+    using Base::snapshot;
+    using Base::check;
     using Base::out;
+    using Base::fillRandomSeq;
+    using Base::size_;
+    using Base::storeAllocator;
+    using Base::isReplayMode;
+    using Base::getResourcePath;
+    using Base::ctr_name_;
+    using Base::getRandom;
+
+
+
+    Int iterations_ = 100000;
 
 public:
     SequenceSelectTest(StringRef name):
@@ -44,8 +57,6 @@ public:
 
         MEMORIA_ADD_TEST_PARAM(iterations_);
 
-        MEMORIA_ADD_TEST_PARAM(ctr_name_)->state();
-
         MEMORIA_ADD_TEST(testCtrSelect);
         MEMORIA_ADD_TEST(testIterSelectFw);
         MEMORIA_ADD_TEST(testIterSelectBw);
@@ -54,169 +65,129 @@ public:
 
     void testCtrSelect()
     {
-        DefaultLogHandlerImpl logHandler(Base::out());
+    	auto snp = branch();
 
-        Allocator allocator;
-        allocator.getLogger()->setHandler(&logHandler);
+    	auto ctr = create<CtrName>(snp);
 
-        Ctr ctr(&allocator);
+    	auto seq = fillRandomSeq(*ctr.get(), size_);
 
-        allocator.commit();
+    	check(MA_SRC);
 
-        try {
-            auto seq = fillRandom(ctr, this->size_);
+    	auto ranks = seq->ranks();
 
-            this->forceCheck(allocator, MA_SRC);
+    	for (Int c = 0; c < iterations_; c++)
+    	{
+    		out()<<c<<std::endl;
 
-            allocator.commit();
+    		Int symbol  = getRandom(Base::Symbols);
+    		Int rank    = getRandom(ranks[symbol]);
 
-            auto ranks = seq->ranks();
+    		if (rank == 0) rank = 1; //  rank of 0 is not defined for select()
 
-            for (Int c = 0; c < iterations_; c++)
-            {
-                out()<<c<<std::endl;
+    		auto iter1 = ctr->select(symbol, rank);
+    		auto iter2 = seq->selectFw(symbol, rank);
 
-                Int symbol  = getRandom(Base::Symbols);
-                Int rank    = getRandom(ranks[symbol]);
+    		AssertFalse(MA_SRC, iter1.isEof());
+    		AssertTrue(MA_SRC,  iter2.is_found());
 
-                if (rank == 0) rank = 1; //  rank of 0 is not defined for select()
+    		AssertEQ(MA_SRC, iter1.pos(), iter2.idx());
+    	}
 
-                auto iter1 = ctr.select(symbol, rank);
-                auto iter2 = seq->selectFw(symbol, rank);
-
-                AssertFalse(MA_SRC, iter1.isEof());
-                AssertTrue(MA_SRC,  iter2.is_found());
-
-                AssertEQ(MA_SRC, iter1.pos(), iter2.idx());
-            }
-        }
-        catch (...) {
-            Base::dump_name_ = Base::Store(allocator);
-            throw;
-        }
+    	commit();
     }
 
 
     void testIterSelectFw()
     {
-        DefaultLogHandlerImpl logHandler(Base::out());
+    	auto snp = branch();
 
-        Allocator allocator;
-        allocator.getLogger()->setHandler(&logHandler);
+    	auto ctr = create<CtrName>(snp);
 
-        Ctr ctr(&allocator);
+    	auto seq = fillRandomSeq(*ctr.get(), size_);
 
-        allocator.commit();
+    	check(MA_SRC);
 
-        try {
-            auto seq = Base::fillRandom(ctr, this->size_);
+    	for (Int c = 0; c < iterations_; c++)
+    	{
+    		out()<<c<<std::endl;
 
-            this->forceCheck(allocator, MA_SRC);
+    		Int pos     = getRandom(size_);
+    		Int symbol  = getRandom(Base::Symbols);
 
-            allocator.commit();
+    		Int maxrank_ = seq->rank(pos, size_, symbol);
 
-            Int size = this->size_;
+    		if (maxrank_ > 0)
+    		{
+    			Int rank    = getRandom(maxrank_);
 
-            for (Int c = 0; c < iterations_; c++)
-            {
-                this->out()<<c<<std::endl;
+    			if (rank == 0) rank = 1;
 
-                Int pos     = getRandom(size);
-                Int symbol  = getRandom(Base::Symbols);
+    			auto iter   = ctr->seek(pos);
 
-                Int maxrank_ = seq->rank(pos, size, symbol);
+    			auto pos0 = iter.pos();
 
-                if (maxrank_ > 0)
-                {
-                    Int rank    = getRandom(maxrank_);
+    			AssertEQ(MA_SRC, pos0, pos);
 
-                    if (rank == 0) rank = 1;
+    			BigInt pos_delta1 = iter.selectFw(rank, symbol);
 
-                    auto iter   = ctr.seek(pos);
+    			auto tgt_pos2 = seq->selectFw(pos, symbol, rank);
 
-                    auto pos0 = iter.pos();
+    			AssertEQ(MA_SRC, iter.pos(), tgt_pos2.idx());
 
-                    AssertEQ(MA_SRC, pos0, pos);
+    			if (tgt_pos2.is_found()) {
+    				AssertEQ(MA_SRC, pos_delta1, rank);
+    			}
+    			else {
+    				AssertEQ(MA_SRC, pos_delta1, tgt_pos2.rank());
+    			}
+    		}
+    	}
 
-                    BigInt pos_delta1 = iter.selectFw(rank, symbol);
-
-                    auto tgt_pos2 = seq->selectFw(pos, symbol, rank);
-
-                    AssertEQ(MA_SRC, iter.pos(), tgt_pos2.idx());
-
-                    if (tgt_pos2.is_found()) {
-                    	AssertEQ(MA_SRC, pos_delta1, rank);
-                    }
-                    else {
-                    	AssertEQ(MA_SRC, pos_delta1, tgt_pos2.rank());
-                    }
-                }
-            }
-        }
-        catch (...) {
-            Base::dump_name_ = Base::Store(allocator);
-            throw;
-        }
+    	commit();
     }
-
-
 
     void testIterSelectBw()
     {
-        DefaultLogHandlerImpl logHandler(Base::out());
+    	auto snp = branch();
 
-        Allocator allocator;
-        allocator.getLogger()->setHandler(&logHandler);
+    	auto ctr = create<CtrName>(snp);
 
-        Ctr ctr(&allocator);
+    	auto seq = fillRandomSeq(*ctr.get(), size_);
 
-        allocator.commit();
+    	check(MA_SRC);
 
-        try {
-            auto seq = Base::fillRandom(ctr, this->size_);
+    	for (Int c = 0; c < iterations_; c++)
+    	{
+    		out()<<c<<std::endl;
 
-            this->forceCheck(allocator, MA_SRC);
+    		Int pos     = getRandom(size_);
+    		Int symbol  = getRandom(Base::Symbols);
 
-            allocator.commit();
+    		Int maxrank_ = seq->rank(0, pos, symbol);
 
-            Int size = this->size_;
+    		if (maxrank_ > 0)
+    		{
+    			Int rank    = getRandom(maxrank_);
 
-            for (Int c = 0; c < iterations_; c++)
-            {
-                out()<<c<<std::endl;
+    			if (rank == 0) rank = 1;
 
-                Int pos     = this->getRandom(size);
-                Int symbol  = this->getRandom(Base::Symbols);
+    			auto iter   = ctr->seek(pos);
 
-                Int maxrank_ = seq->rank(0, pos, symbol);
+    			auto tgt_pos 		= seq->selectBw(pos, symbol, rank);
+    			BigInt pos_delta1   = iter.selectBw(rank, symbol);
 
-                if (maxrank_ > 0)
-                {
-                    Int rank    = this->getRandom(maxrank_);
+    			AssertEQ(MA_SRC, iter.pos(), tgt_pos.idx());
 
-                    if (rank == 0) rank = 1;
+    			if (tgt_pos.is_found())
+    			{
+    				AssertEQ(MA_SRC, pos_delta1, rank);
+    			}
+    			else {
+    				AssertEQ(MA_SRC, pos_delta1, tgt_pos.rank());
+    			}
+    		}
+    	}
 
-                    auto iter   = ctr.seek(pos);
-
-                    auto tgt_pos        = seq->selectBw(pos, symbol, rank);
-                    BigInt pos_delta1   = iter.selectBw(rank, symbol);
-
-                    AssertEQ(MA_SRC, iter.pos(), tgt_pos.idx());
-
-                    if (tgt_pos.is_found())
-                    {
-                    	AssertEQ(MA_SRC, pos_delta1, rank);
-                    }
-                    else {
-                    	AssertEQ(MA_SRC, pos_delta1, tgt_pos.rank());
-                    }
-                }
-            }
-        }
-        catch (...) {
-            Base::dump_name_ = Base::Store(allocator);
-            throw;
-        }
     }
 
 };

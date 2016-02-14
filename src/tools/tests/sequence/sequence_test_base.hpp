@@ -10,8 +10,13 @@
 #include <memoria/memoria.hpp>
 #include <memoria/tools/profile_tests.hpp>
 
+#include <memoria/containers/seq_dense/seqd_factory.hpp>
+
 #include <memoria/core/packed/wrappers/symbol_sequence.hpp>
 #include <memoria/core/packed/tools/packed_struct_ptrs.hpp>
+#include <memoria/core/tools/isymbols.hpp>
+
+#include "../prototype/btss/btss_test_base.hpp"
 
 #include <vector>
 
@@ -22,15 +27,18 @@ using namespace std;
 
 
 template <Int BitsPerSymbol, bool Dense = true>
-class SequenceTestBase: public SPTestTask {
-    typedef SequenceTestBase<BitsPerSymbol, Dense>                              MyType;
-    typedef SPTestTask                                                          Base;
+class SequenceTestBase: public BTTestBase<Sequence<BitsPerSymbol, Dense>, PersistentInMemAllocator<>, DefaultProfile<>> {
+
+    using MyType = SequenceTestBase<BitsPerSymbol, Dense>;
+
+    using Base 	 = BTTestBase<Sequence<BitsPerSymbol, Dense>, PersistentInMemAllocator<>, DefaultProfile<>>;
 
 protected:
+    using CtrName = Sequence<BitsPerSymbol, Dense>;
 
     typedef typename DCtrTF<Sequence<BitsPerSymbol, Dense> >::Type              Ctr;
     typedef typename Ctr::Iterator                                              Iterator;
-    typedef typename Ctr::BranchNodeEntry                                           BranchNodeEntry;
+    typedef typename Ctr::BranchNodeEntry                                       BranchNodeEntry;
     typedef typename Ctr::ID                                                    ID;
 
     typedef PackedFSESequence<BitsPerSymbol>                                    PackedSeq;
@@ -47,16 +55,28 @@ protected:
 
     static const Int Symbols                                                    = 1<<BitsPerSymbol;
 
-    String dump_name_;
+    using Base::commit;
+    using Base::drop;
+    using Base::branch;
+    using Base::allocator;
+    using Base::snapshot;
+    using Base::check;
+    using Base::out;
+    using Base::size_;
+    using Base::storeAllocator;
+    using Base::isReplayMode;
+    using Base::getResourcePath;
+
+    UUID ctr_name_;
 
 public:
     SequenceTestBase(StringRef name): Base(name)
     {
         Ctr::initMetadata();
 
-        this->size_ = 10000000;
+        size_ = 10000000;
 
-        MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
+        MEMORIA_ADD_TEST_PARAM(ctr_name_)->state();
     }
 
     PackedSeq1Ptr createEmptyPackedSeq(Int size)
@@ -76,7 +96,7 @@ public:
     	return MakeSharedPackedStructByBlock<PackedSeq1>(block_size);
     }
 
-    PackedSeq1Ptr fillRandom(Ctr& ctr, Int size)
+    PackedSeq1Ptr fillRandomSeq(Ctr& ctr, Int size)
     {
         PackedSeq1Ptr seq = createEmptyPackedSeq(size);
 
