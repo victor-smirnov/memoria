@@ -30,7 +30,6 @@ MEMORIA_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(VTreeCtrBase)
 
     typedef typename Base::ID                                                   ID;
     typedef typename Base::Allocator                                            Allocator;
-    typedef typename Base::CtrShared                                            CtrShared;
 
     typedef LabeledTree<
                 FLabel<BigInt>,
@@ -122,19 +121,15 @@ public:
         auto& self = this->self();
 
         tree_.initCtr(&self.allocator(), self.master_name(), command);
-        vector_. initCtr(&tree_, 0, command);
-
-        Base::setCtrShared(NULL);
+        vector_. initCtr(&tree_, UUID(), command);
     }
 
-    void initCtr(const ID& root_id, BigInt name)
+    void initCtr(const ID& root_id, UUID name)
     {
         auto& self = this->self();
 
         tree_.initCtr(&self.allocator(), root_id);
         vector_.initCtr(&tree_, get_ctr_root(self.allocator(), root_id, name, 0));
-
-        Base::setCtrShared(NULL);
     }
 
     virtual bool hasRoot(const UUID& name)
@@ -189,14 +184,6 @@ public:
         return tree_errors || seq_errors;
     }
 
-    const CtrShared* shared() const {
-        return tree_.shared();
-    }
-
-    CtrShared* shared() {
-        return tree_.shared();
-    }
-
     void walkTree(ContainerWalker* walker)
     {
         auto& self = this->self();
@@ -214,7 +201,7 @@ public:
 
 private:
 
-    static ID get_ctr_root(Allocator& allocator, const ID& root_id, BigInt ctr_name, BigInt name)
+    static ID get_ctr_root(Allocator& allocator, const ID& root_id, const UUID& ctr_name, const BigInt& name)
     {
         typedef typename Tree::NodeBaseG   NodeBaseG;
         typedef typename Tree::Metadata    Metadata;
@@ -222,7 +209,7 @@ private:
         NodeBaseG root  = allocator.getPage(root_id, ctr_name);
         Metadata  meta  = Tree::getCtrRootMetadata(root);
 
-        return meta.roots(name);
+        return meta.roots(UUID(0, name));
     }
 
 MEMORIA_BT_MODEL_BASE_CLASS_END

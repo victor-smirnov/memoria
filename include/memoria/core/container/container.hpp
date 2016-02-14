@@ -442,7 +442,6 @@ public:
         logger_(model_type_name_, Logger::DERIVED, NULL),
         debug_(false)
     {
-        Base::setCtrShared(NULL);
     }
 
     Ctr(const MyType& other) = delete;

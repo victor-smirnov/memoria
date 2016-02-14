@@ -11,6 +11,7 @@
 #include <memoria/core/container/container.hpp>
 
 #include <memoria/containers/vector_tree/vtree_names.hpp>
+#include <memoria/containers/vector/vctr_tools.hpp>
 
 #include <functional>
 

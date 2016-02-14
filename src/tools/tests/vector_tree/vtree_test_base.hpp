@@ -16,7 +16,8 @@
 
 #include <memoria/containers/vector_tree/vtree_factory.hpp>
 
-#include <vector>
+#include "../prototype/bt/bt_test_base.hpp"
+
 #include <algorithm>
 #include <sstream>
 #include <memory>
@@ -26,19 +27,32 @@ namespace memoria {
 
 using memoria::tools::LblTreeNode;
 
-class VectorTreeTestBase: public SPTestTask {
+class VectorTreeTestBase: public BTTestBase<VTree, PersistentInMemAllocator<>, DefaultProfile<>> {
 
-    typedef VectorTreeTestBase                                                  MyType;
+    using MyType = VectorTreeTestBase;
+    using Base 	 = BTTestBase<VTree, PersistentInMemAllocator<>, DefaultProfile<>>;
 
 protected:
 
+    using typename Base::Ctr;
+    using typename Base::Iterator;
+    using typename Base::CtrName;
 
-    typedef typename DCtrTF<VTree>::Type                                        Ctr;
+    using Base::commit;
+    using Base::drop;
+    using Base::branch;
+    using Base::allocator;
+    using Base::snapshot;
+    using Base::check;
+    using Base::out;
+    using Base::size_;
+    using Base::storeAllocator;
+    using Base::isReplayMode;
+    using Base::getResourcePath;
 
-    typedef typename Ctr::Iterator                                              Iterator;
-    typedef typename Ctr::Value                                                 Value;
+    using Value = typename Ctr::Value;
 
-    String dump_name_;
+
 
     typedef LblTreeNode<std::vector<Value>, Byte, BigInt>                      TreeNode;
 
@@ -48,12 +62,11 @@ protected:
 
 public:
 
-    VectorTreeTestBase(StringRef name): SPTestTask(name)
+    VectorTreeTestBase(StringRef name): Base(name)
     {
         Ctr::initMetadata();
 
         MEMORIA_ADD_TEST_PARAM(max_data_size_);
-        MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
     }
 
     virtual ~VectorTreeTestBase() throw () {}

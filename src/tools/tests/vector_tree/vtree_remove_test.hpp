@@ -24,8 +24,8 @@ using namespace memoria::louds;
 
 class VectorTreeRemoveTest: public VectorTreeTestBase {
 
-    typedef VectorTreeTestBase                                                  Base;
-    typedef VectorTreeRemoveTest                                                MyType;
+    using Base 		= VectorTreeTestBase;
+    using MyType 	= VectorTreeRemoveTest;
 
     Int     iterations_     = 1000;
     Int     max_degree_     = 10;
@@ -33,7 +33,7 @@ class VectorTreeRemoveTest: public VectorTreeTestBase {
 
 public:
 
-    VectorTreeRemoveTest(): VectorTreeTestBase("Remove")
+    VectorTreeRemoveTest(): Base("Remove")
     {
         size_ = 20000;
 
@@ -89,34 +89,33 @@ public:
 
     void testRemoveNodes()
     {
-        Allocator allocator;
-        Ctr tree(&allocator);
+        auto snp = branch();
 
-        try {
-            TreeNode root = this->fillRandom(tree, size_, max_degree_);
+        auto tree = create<CtrName>(snp);
 
-            allocator.commit();
+        TreeNode root = fillRandom(*tree.get(), size_, max_degree_);
 
-            StoreResource(allocator, "rtree_c", 0);
+        commit();
 
-            for (Int c = 0; c < iterations_ && tree.nodes() > 1; c++)
-            {
-                out()<<c<<std::endl;
+        auto ctr_name = tree->name();
 
-                removeNodes(tree, root, remove_batch_);
+        BigInt tree_nodes = tree->nodes();
 
-                forceCheck(allocator, MA_SRC);
+        tree.reset();
 
-                checkTree(tree, root);
+        for (Int c = 0; c < iterations_ && tree_nodes; c++)
+        {
+        	out()<<c<<std::endl;
 
-                allocator.commit();
-            }
+        	snp = branch();
 
-            StoreResource(allocator, "rtree_d", 0);
-        }
-        catch (...) {
-            this->dump_name_ =  Store(allocator);
-            throw;
+        	tree = find<CtrName>(snp, ctr_name);
+
+        	removeNodes(*tree.get(), root, remove_batch_);
+
+        	check(MA_SRC);
+
+        	checkTree(*tree.get(), root);
         }
     }
 };

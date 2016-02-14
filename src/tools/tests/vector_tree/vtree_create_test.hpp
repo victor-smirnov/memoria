@@ -25,8 +25,8 @@ using namespace memoria::louds;
 
 class VectorTreeCreateTest: public VectorTreeTestBase {
 
-    typedef VectorTreeTestBase                                                  Base;
-    typedef VectorTreeCreateTest                                                MyType;
+    using Base 	 = VectorTreeTestBase;
+    using MyType = VectorTreeCreateTest;
 
     Int max_degree_ = 10;
     Int iterations_ = 1;
@@ -47,24 +47,17 @@ public:
 
     void testFillTree()
     {
-        Allocator allocator;
-        Ctr tree(&allocator);
+    	auto snp = branch();
 
-        try {
-            TreeNode root = this->fillRandom(tree, size_, max_degree_);
+    	auto tree = create<CtrName>(snp);
 
-            allocator.commit();
+    	TreeNode root = fillRandom(*tree.get(), size_, max_degree_);
 
-            StoreResource(allocator, "vtree", 0);
+    	check(MA_SRC);
 
-            forceCheck(allocator, MA_SRC);
+    	checkTree(*tree.get(), root);
 
-            checkTree(tree, root);
-        }
-        catch (...) {
-            this->dump_name_ =  Store(allocator);
-            throw;
-        }
+    	commit();
     }
 };
 

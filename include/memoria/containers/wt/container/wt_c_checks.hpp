@@ -37,7 +37,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::wt::CtrChecksName)
 
     struct CheckContentFn {
 
-        const MyType*   ctr_;
+        const MyType&   ctr_;
         ID              id_;
         bool            root_;
 
@@ -45,7 +45,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::wt::CtrChecksName)
 
 
         CheckContentFn(const MyType& ctr, ID id, bool root):
-            ctr_(&ctr),
+            ctr_(ctr),
             id_(id),
             root_(root)
         {}

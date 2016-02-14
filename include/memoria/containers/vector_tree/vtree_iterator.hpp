@@ -27,7 +27,6 @@ class Iter<VTreeIterTypes<Types> >: public IterStart<VTreeIterTypes<Types> >
 
     typedef typename Types::Profile                                             Profile;
     typedef typename Types::Allocator                                           Allocator;
-    typedef typename Types::Allocator::CtrShared                                CtrShared;
     typedef typename Types::Allocator::PageG                                    PageG;
     typedef typename PageG::Page::ID                                            ID;
 

@@ -12,6 +12,8 @@
 
 #include <memoria/containers/wt/wt_factory.hpp>
 
+#include "../prototype/bt/bt_test_base.hpp"
+
 #include <memory>
 #include <map>
 
@@ -19,13 +21,26 @@ namespace memoria {
 
 using namespace std;
 
-class WTTest: public SPTestTask {
+class WTTest: public BTTestBase<WT, PersistentInMemAllocator<>, DefaultProfile<>> {
 
-    typedef SPTestTask                                                      Base;
-    typedef WTTest                                                          MyType;
+    using Base 		= BTTestBase<WT, PersistentInMemAllocator<>, DefaultProfile<>>;
+    using MyType 	= WTTest;
 
-    typedef typename DCtrTF<WT>::Type                                       Ctr;
-    typedef typename Ctr::Iterator                                          Iterator;
+    using typename Base::Ctr;
+    using typename Base::Iterator;
+    using typename Base::CtrName;
+
+    using Base::commit;
+    using Base::drop;
+    using Base::branch;
+    using Base::allocator;
+    using Base::snapshot;
+    using Base::check;
+    using Base::out;
+    using Base::size_;
+    using Base::storeAllocator;
+    using Base::isReplayMode;
+    using Base::getResourcePath;
 
 
     typedef pair<UInt, Int>                                                 Pair;
@@ -35,7 +50,7 @@ class WTTest: public SPTestTask {
 
 public:
 
-    WTTest(StringRef name): SPTestTask(name)
+    WTTest(StringRef name): Base(name)
     {
         Ctr::initMetadata();
 
@@ -47,7 +62,7 @@ public:
         MEMORIA_ADD_TEST(testCreate);
         MEMORIA_ADD_TEST(testRemove);
 
-        MEMORIA_ADD_TEST(testStore);
+//        MEMORIA_ADD_TEST(testStore);
     }
 
     virtual ~WTTest() throw() {}
@@ -56,193 +71,146 @@ public:
 
     void testCreate()
     {
-        DefaultLogHandlerImpl logHandler(Base::out());
-
-        Allocator allocator;
-        allocator.getLogger()->setHandler(&logHandler);
-        allocator.logger().level() = Logger::ERROR;
-
-        Ctr ctr(&allocator);
-
-        allocator.commit();
-
-        try {
-            ctr.prepare();
-
-            auto alphabet = createRandomAlphabet(alphabet_size_);
-            auto text = createRandomText(this->size_, alphabet);
-
-            for (UInt c = 0; c < text.size(); c++)
-            {
-                out()<<c<<" "<<hex<<text[c]<<dec<<std::endl;
-
-                UBigInt value1 = text[c];
-
-                ctr.insert(c, value1);
-
-                check(allocator, MA_SRC);
-
-                allocator.commit();
-            }
-
-            StoreResource(allocator, "wtc");
-
-            forceCheck(allocator, MA_SRC);
-
-            assertText(ctr, text);
-
-            auto ranks = getRankedSymbols(text);
-
-            out()<<"Check ranks"<<std::endl;
-
-            for (auto& rnk: ranks)
-            {
-                UInt sym = rnk.first;
-
-                for (UInt c = 0; c < text.size(); c += 100)
-                {
-                    Int rank1 = ctr.rank(c, sym);
-                    Int rank2 = rank(text, c, sym);
-
-                    AssertEQ(MA_SRC, rank1, rank2);
-                }
-            }
-
-            out()<<"Check selects"<<std::endl;
-
-            for (auto& rnk: ranks)
-            {
-                UInt sym = rnk.first;
-                Int rank = rnk.second;
-
-                for (Int r = 1; r <= rank; r++)
-                {
-                    Int idx1 = ctr.select(r, sym);
-                    Int idx2 = select(text, r, sym);
-
-                    AssertEQ(MA_SRC, idx1, idx2);
-                }
-            }
+    	auto snp = branch();
+        auto ctr = create<CtrName>(snp);
 
 
+        ctr->prepare();
+
+        auto alphabet = createRandomAlphabet(alphabet_size_);
+        auto text = createRandomText(size_, alphabet);
+
+        for (UInt c = 0; c < text.size(); c++)
+        {
+        	out()<<c<<" "<<hex<<text[c]<<dec<<std::endl;
+
+        	UBigInt value1 = text[c];
+
+        	ctr->insert(c, value1);
+
+        	check(MA_SRC);
         }
-        catch (...) {
-             Store(allocator);
-             throw;
+
+
+        assertText(*ctr.get(), text);
+
+        auto ranks = getRankedSymbols(text);
+
+        out()<<"Check ranks"<<std::endl;
+
+        for (auto& rnk: ranks)
+        {
+        	UInt sym = rnk.first;
+
+        	for (UInt c = 0; c < text.size(); c += 100)
+        	{
+        		Int rank1 = ctr->rank(c, sym);
+        		Int rank2 = rank(text, c, sym);
+
+        		AssertEQ(MA_SRC, rank1, rank2);
+        	}
         }
+
+        out()<<"Check selects"<<std::endl;
+
+        for (auto& rnk: ranks)
+        {
+        	UInt sym = rnk.first;
+        	Int rank = rnk.second;
+
+        	for (Int r = 1; r <= rank; r++)
+        	{
+        		Int idx1 = ctr->select(r, sym);
+        		Int idx2 = select(text, r, sym);
+
+        		AssertEQ(MA_SRC, idx1, idx2);
+        	}
+        }
+
+        commit();
+
     }
 
     void testRemove()
     {
-        DefaultLogHandlerImpl logHandler(Base::out());
+    	auto snp = branch();
+    	auto ctr = create<CtrName>(snp);
 
-        Allocator allocator;
-        allocator.getLogger()->setHandler(&logHandler);
 
-        Ctr ctr(&allocator);
+    	ctr->prepare();
 
-        allocator.commit();
+    	auto alphabet = createRandomAlphabet(alphabet_size_);
+    	auto text = createRandomText(size_, alphabet);
 
-        try {
-            ctr.prepare();
+    	for (UInt c = 0; c < text.size(); c++)
+    	{
+    		out()<<c<<" "<<hex<<text[c]<<dec<<std::endl;
 
-            auto alphabet = createRandomAlphabet(alphabet_size_);
-            auto text = createRandomText(this->size_, alphabet);
+    		UBigInt value1 = text[c];
 
-            for (UInt c = 0; c < text.size(); c++)
-            {
-                out()<<c<<" "<<hex<<text[c]<<dec<<std::endl;
+    		ctr->insert(c, value1);
+    	}
 
-                UBigInt value1 = text[c];
+    	assertText(*ctr.get(), text);
 
-                ctr.insert(c, value1);
-            }
 
-            assertText(ctr, text);
 
-            allocator.commit();
+    	Int cnt = 0;
+    	while (ctr->size() > 0)
+    	{
+    		Int idx = getRandom(ctr->size());
 
-            Int cnt = 0;
-            while (ctr.size() > 0)
-            {
-                Int idx = getRandom(ctr.size());
+    		out()<<"Remove at "<<idx<<endl;
 
-                out()<<"Remove at "<<idx<<endl;
+    		ctr->remove(idx);
+    		text.erase(text.begin() + idx);
 
-                ctr.remove(idx);
-                text.erase(text.begin() + idx);
+    		if ((cnt++) % remove_check_ == 0)
+    		{
+    			assertText(*ctr.get(), text);
+    		}
 
-                if ((cnt++) % remove_check_ == 0)
-                {
-                    assertText(ctr, text);
-                }
-
-                check(allocator, MA_SRC);
-
-                allocator.commit();
-            }
-
-            StoreResource(allocator, "wtr");
-
-            forceCheck(allocator, MA_SRC);
-        }
-        catch (...) {
-            Store(allocator);
-            throw;
-        }
+    		check(MA_SRC);
+    	}
     }
 
-    void testStore()
-    {
-        DefaultLogHandlerImpl logHandler(Base::out());
-
-        Allocator allocator;
-        allocator.getLogger()->setHandler(&logHandler);
-
-        Ctr ctr(&allocator);
-
-        allocator.commit();
-
-        try {
-            ctr.prepare();
-
-            auto alphabet = createRandomAlphabet(alphabet_size_);
-            auto text = createRandomText(this->size_, alphabet);
-
-            for (UInt c = 0; c < text.size(); c++)
-            {
-                out()<<c<<" "<<hex<<text[c]<<dec<<std::endl;
-
-                UBigInt value1 = text[c];
-
-                ctr.insert(c, value1);
-            }
-
-            forceCheck(allocator, MA_SRC);
-
-            assertText(ctr, text);
-
-            allocator.commit();
-
-            StoreResource(allocator, "wts");
-
-            Allocator alloc2;
-
-            LoadResource(alloc2, "wts");
-
-            forceCheck(alloc2, MA_SRC);
-
-            Ctr wt2(&alloc2, CTR_FIND, ctr.name());
-
-            assertText(wt2, text);
-        }
-        catch (...) {
-            Store(allocator);
-            throw;
-        }
-
-
-    }
+//    void testStore()
+//    {
+//    	auto snp = branch();
+//    	auto ctr = create<CtrName>(snp);
+//
+//    	ctr->prepare();
+//
+//    	auto alphabet = createRandomAlphabet(alphabet_size_);
+//    	auto text = createRandomText(this->size_, alphabet);
+//
+//    	for (UInt c = 0; c < text.size(); c++)
+//    	{
+//    		out()<<c<<" "<<hex<<text[c]<<dec<<std::endl;
+//
+//    		UBigInt value1 = text[c];
+//
+//    		ctr->insert(c, value1);
+//    	}
+//
+//    	forceCheck(allocator, MA_SRC);
+//
+//    	assertText(ctr, text);
+//
+//    	allocator.commit();
+//
+//    	StoreResource(allocator, "wts");
+//
+//    	Allocator alloc2;
+//
+//    	LoadResource(alloc2, "wts");
+//
+//    	check(alloc2, MA_SRC);
+//
+//    	Ctr wt2(&alloc2, CTR_FIND, ctr->name());
+//
+//    	assertText(wt2, text);
+//    }
 
 
     vector <UInt> createRandomAlphabet(Int size)

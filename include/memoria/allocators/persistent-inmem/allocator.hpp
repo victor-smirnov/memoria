@@ -22,8 +22,6 @@
 #include <memoria/allocators/persistent-inmem/persistent_tree_node.hpp>
 #include <memoria/allocators/persistent-inmem/persistent_tree.hpp>
 
-#include <memoria/allocators/inmem/factory.hpp>
-
 #include <malloc.h>
 #include <memoria/allocators/persistent-inmem/persistent_tree_snapshot.hpp>
 #include <memory>

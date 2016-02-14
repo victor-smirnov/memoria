@@ -18,26 +18,32 @@
 
 #include <memoria/core/container/metadata_repository.hpp>
 
-#include "../inmem/names.hpp"
 #include "allocator.hpp"
 
 namespace memoria {
 
-//template <typename Profile>
-//class ContainerCollectionCfg;
-//
-//template <typename T>
-//class ContainerCollectionCfg<DefaultProfile<T> > {
-//public:
-//	using Types = BasicContainerCollectionCfg<DefaultProfile<T>>;
-//};
-//
-//
-//using PersistentInMemAllocator = memoria::PersistentInMemAllocatorT<
+template <typename Profile>
+class ContainerCollectionCfg;
+
+template <typename T>
+class ContainerCollectionCfg<DefaultProfile<T> > {
+public:
+	using Types = BasicContainerCollectionCfg<DefaultProfile<T>>;
+};
+
+
+//using SmallInMemAllocator = memoria::InMemAllocator<
 //	DefaultProfile<>,
-//	ContainerCollectionCfg<DefaultProfile<>>::Types::Page
+//	ContainerCollectionCfg<DefaultProfile<> >::Types::Page
 //>;
-//
+
+
+template <typename CtrName>
+using DCtrTF = CtrTF<DefaultProfile<>, CtrName>;
+
+template <typename CtrName>
+using DCtr = typename CtrTF<DefaultProfile<>, CtrName>::Type;
+
 
 }
 
