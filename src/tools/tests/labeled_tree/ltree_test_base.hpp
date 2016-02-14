@@ -16,6 +16,8 @@
 
 #include <memoria/containers/labeled_tree/ltree_factory.hpp>
 
+#include "../prototype/bt/bt_test_base.hpp"
+
 #include <vector>
 #include <algorithm>
 #include <sstream>
@@ -26,23 +28,34 @@ namespace memoria {
 
 using memoria::tools::LblTreeNode;
 
-class LabeledTreeTestBase: public SPTestTask {
+using LTreeCtrName = LabeledTree<
+        FLabel<UShort>,
+        VLabel<BigInt, Granularity::Bit, Indexed::Yes>
+    >;
 
-    typedef LabeledTreeTestBase                                                 MyType;
+class LabeledTreeTestBase: public BTTestBase<LTreeCtrName, PersistentInMemAllocator<>, DefaultProfile<>> {
+
+	using Base 	 = BTTestBase<LTreeCtrName, PersistentInMemAllocator<>, DefaultProfile<>>;
+    using MyType = LabeledTreeTestBase;
 
 protected:
 
+    using typename Base::CtrName;
+    using typename Base::Ctr;
+    using typename Base::Iterator;
 
-    using Ctr = typename DCtrTF<
-                        LabeledTree<
-                            FLabel<UShort>,
-                            VLabel<BigInt, Granularity::Bit, Indexed::Yes>
-                        >
-    >::Type;
+    using Base::commit;
+    using Base::drop;
+    using Base::branch;
+    using Base::allocator;
+    using Base::snapshot;
+    using Base::check;
+    using Base::out;
+    using Base::size_;
+    using Base::storeAllocator;
+    using Base::isReplayMode;
+    using Base::getResourcePath;
 
-    typedef typename Ctr::Iterator                                              Iterator;
-
-    String dump_name_;
 
     typedef LblTreeNode<EmptyType, UShort, BigInt>                              TreeNode;
 
@@ -52,11 +65,9 @@ protected:
 
 public:
 
-    LabeledTreeTestBase(StringRef name): SPTestTask(name)
+    LabeledTreeTestBase(StringRef name): Base(name)
     {
         Ctr::initMetadata();
-
-        MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
     }
 
     virtual ~LabeledTreeTestBase() throw () {}

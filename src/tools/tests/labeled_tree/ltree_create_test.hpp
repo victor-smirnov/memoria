@@ -47,42 +47,19 @@ public:
 
     void testFillTree()
     {
-        DefaultLogHandlerImpl logHandler(Base::out());
+    	auto snp = branch();
 
-        Allocator allocator;
-        allocator.getLogger()->setHandler(&logHandler);
+    	auto tree = create<CtrName>(snp);
 
-        Ctr tree(&allocator);
+        tree->setNewPageSize(512);
 
-        tree.setNewPageSize(512);
+        TreeNode root = fillRandom(*tree.get(), size_, max_degree_);
 
-        try {
-            TreeNode root = fillRandom(tree, size_, max_degree_);
+        check(MA_SRC);
 
-            forceCheck(allocator, MA_SRC);
+        checkTree(*tree.get(), root);
 
-            allocator.commit();
-
-            StoreResource(allocator, "ftree", 0);
-
-//            Int cnt0 = 0;
-//
-//            traverseTree(tree, [&](const auto& node){
-//            	auto labels = tree.labels(node);
-//            	cout<<"CtrNode: "<<(cnt0++)<<") "<<node<<" "<<labels<<endl;
-//            });
-//
-//            Int cnt1 = 0;
-//            traverseTree(root, [&](const auto& node){
-//            	cout<<"TreNode: "<<(cnt1++)<<") "<<node<<endl;
-//            });
-
-            checkTree(tree, root);
-        }
-        catch (...) {
-            this->dump_name_ =  Store(allocator);
-            throw;
-        }
+        commit();
     }
 };
 

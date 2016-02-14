@@ -89,42 +89,44 @@ public:
 
     void testRemoveNodes()
     {
-        DefaultLogHandlerImpl logHandler(Base::out());
+    	auto snp = branch();
 
-        Allocator allocator;
-        allocator.getLogger()->setHandler(&logHandler);
+    	UUID ctr_name;
+    	BigInt nodes;
+    	TreeNode root;
 
-        Ctr tree(&allocator);
+    	{
+    		auto tree = create<CtrName>(snp);
+    		ctr_name = tree->name();
 
-        try {
-            TreeNode root = this->fillRandom(tree, size_, max_degree_);
-            forceCheck(allocator, MA_SRC);
+    		root = fillRandom(*tree.get(), size_, max_degree_);
 
-            allocator.commit();
+    		nodes = tree->nodes();
 
-            out()<<"Tree created"<<endl;
+    		check(MA_SRC);
+    		commit();
+    	}
 
-            StoreResource(allocator, "rtree_c", 0);
+    	out()<<"Tree created"<<endl;
 
-            for (Int c = 0; c < iterations_ && tree.nodes() > 1; c++)
-            {
-                out()<<c<<std::endl;
+    	for (Int c = 0; c < iterations_ && nodes > 1; c++)
+    	{
+    		out()<<c<<std::endl;
 
-                removeNodes(tree, root, remove_batch_);
+    		snp = branch();
 
-                forceCheck(allocator, MA_SRC);
+    		auto tree = find<CtrName>(snp, ctr_name);
 
-                checkTree(tree, root);
+    		removeNodes(*tree.get(), root, remove_batch_);
 
-                allocator.commit();
-            }
+    		nodes = tree->nodes();
 
-            StoreResource(allocator, "rtree_d", 0);
-        }
-        catch (...) {
-            this->dump_name_ =  Store(allocator);
-            throw;
-        }
+    		check(MA_SRC);
+
+    		checkTree(*tree.get(), root);
+
+    		commit();
+    	}
     }
 };
 

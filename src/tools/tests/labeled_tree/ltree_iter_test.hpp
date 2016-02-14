@@ -24,7 +24,7 @@ using namespace memoria::louds;
 
 class LabeledTreeIterTest: public LabeledTreeTestBase {
 
-    typedef LabeledTreeIterTest                                                  MyType;
+    using MyType = LabeledTreeIterTest;
 
     Int iterations_ = 1000;
     Int max_degree_ = 4;
@@ -45,21 +45,27 @@ public:
 
     void testIteratorCache()
     {
-        Allocator allocator;
-        Ctr ctr(&allocator);
+    	auto snp = branch();
 
-        this->fillRandom(ctr, size_, max_degree_);
+    	auto ctr = create<CtrName>(snp);
 
-        allocator.commit();
+        fillRandom(*ctr.get(), size_, max_degree_);
 
-        StoreResource(allocator, "iter", 0);
+        Int nodes = ctr->nodes();
 
-        Int nodes = ctr.nodes();
-
-        auto skip_iter = ctr.seek(0);
+        auto skip_iter = ctr->seek(0);
 
         assertIterator(MA_SRC, skip_iter);
 
+        out()<<"Forward skip"<<std::endl;
+
+        while (!skip_iter.isEof())
+        {
+            skip_iter++;
+            assertIterator(MA_SRC, skip_iter);
+        }
+        out()<<std::endl;
+
 
         out()<<"Forward skip"<<std::endl;
         while (!skip_iter.isEof())
@@ -68,35 +74,6 @@ public:
             assertIterator(MA_SRC, skip_iter);
         }
         out()<<std::endl;
-
-//        out()<<"Backward skip"<<std::endl;
-//        while (!skip_iter.isBegin())
-//        {
-//            if (skip_iter.pos() == 0)
-//            {
-//                int a = 0; a++;
-//            }
-//
-//            skip_iter--;
-//            assertIterator(skip_iter);
-//        }
-//        out()<<std::endl;
-
-        out()<<"Forward skip"<<std::endl;
-        while (!skip_iter.isEof())
-        {
-            skip_iter++;
-            assertIterator(MA_SRC, skip_iter);
-        }
-        out()<<std::endl;
-
-//        out()<<"Backward skip"<<std::endl;
-//        while (!skip_iter.isBegin())
-//        {
-//            skip_iter--;
-//            assertIterator(skip_iter);
-//        }
-//        out()<<std::endl;
 
         out()<<"Random forward select/skip"<<std::endl;
         for (Int c = 0; c < iterations_; c++)
@@ -104,7 +81,7 @@ public:
             out()<<"FW: "<<c<<std::endl;
 
             Int node = getRandom(nodes / 2) + 1;
-            auto iter = ctr.select1(node);
+            auto iter = ctr->select1(node);
 
             assertIterator(MA_SRC, iter);
 
@@ -132,7 +109,7 @@ public:
             out()<<"BW: "<<c<<std::endl;
 
             Int node = getRandom(nodes / 2) + nodes / 2 - 1;
-            auto iter = ctr.select1(node);
+            auto iter = ctr->select1(node);
 
             assertIterator(MA_SRC, iter);
 
@@ -160,8 +137,8 @@ public:
         {
             out()<<"Rank: "<<c<<std::endl;
 
-            Int node = getRandom(ctr.size() / 2);
-            auto iter = ctr.seek(node);
+            Int node = getRandom(ctr->size() / 2);
+            auto iter = ctr->seek(node);
 
             assertIterator(MA_SRC, iter);
 
@@ -182,6 +159,8 @@ public:
             iter_rankfw1.rank(-skip, 1);
             assertIterator(MA_SRC, iter_rankfw1);
         }
+
+        commit();
     }
 };
 

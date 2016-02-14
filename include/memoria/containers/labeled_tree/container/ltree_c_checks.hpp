@@ -42,7 +42,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrChecksName)
 
     struct CheckContentFn {
 
-        const MyType*   ctr_;
+        const MyType&   ctr_;
         Int             rank1_;
         bool            errors_     = false;
         bool            has_seq_;
@@ -50,7 +50,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrChecksName)
         bool            root_;
 
         CheckContentFn(const MyType& ctr, ID id, bool root):
-            ctr_(&ctr),
+            ctr_(ctr),
             id_(id),
             root_(root)
         {}
