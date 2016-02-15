@@ -24,41 +24,38 @@ using namespace std;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::FindName)
 
-	using Types = TypesType;
-	using NodeBaseG = typename Types::NodeBaseG;
+	using typename Base::Types;
 
-	using Iterator = typename Base::Iterator;
+	using typename Base::NodeBaseG;
+	using typename Base::IteratorPtr;
 
-	using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
-	using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
-	using BranchDispatcher = typename Types::Pages::BranchDispatcher;
-
-
-
-	using BranchNodeEntry 	= typename Types::BranchNodeEntry;
-	using Position		= typename Types::Position;
+	using typename Base::NodeDispatcher;
+	using typename Base::LeafDispatcher;
+	using typename Base::BranchDispatcher;
+	using typename Base::Position;
+	using typename Base::BranchNodeEntry;
+	using typename Base::PageUpdateMgr;
+	using typename Base::CtrSizeT;
 
     using SplitFn = std::function<BranchNodeEntry (NodeBaseG&, NodeBaseG&)>;
     using MergeFn = std::function<void (const Position&)>;
 
-    using CtrSizeT = typename Types::CtrSizeT;
-
-    static const Int Streams = Types::Streams;
+    using Base::Streams;
 
     auto size() const {
     	return self().sizes()[0];
     }
 
-    Iterator seek(CtrSizeT position)
+    IteratorPtr seek(CtrSizeT position)
     {
     	return self().template seek_stream<0>(position);
     }
 
-    Iterator Begin() {
+    IteratorPtr Begin() {
     	return self().seek(0);
     }
 
-    Iterator End()
+    IteratorPtr End()
     {
     	auto size = self().size();
     	if (size > 0)
@@ -70,11 +67,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::FindName)
     	}
     }
 
-    Iterator begin() {
+    IteratorPtr begin() {
     	return self().Begin();
     }
 
-    Iterator end() {
+    IteratorPtr end() {
     	return self().End();
     }
 

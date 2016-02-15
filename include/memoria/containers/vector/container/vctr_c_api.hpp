@@ -22,37 +22,27 @@ using namespace memoria::bt;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrApiName)
 
-    typedef typename Base::Types                                                Types;
-    typedef typename Base::Allocator                                            Allocator;
+	using typename Base::Types;
 
-    typedef typename Base::ID                                                   ID;
+	using typename Base::NodeBaseG;
+	using typename Base::IteratorPtr;
 
-    typedef typename Types::NodeBase                                            NodeBase;
-    typedef typename Types::NodeBaseG                                           NodeBaseG;
-    typedef typename Base::Iterator                                             Iterator;
+	using typename Base::NodeDispatcher;
+	using typename Base::LeafDispatcher;
+	using typename Base::BranchDispatcher;
+	using typename Base::Position;
+	using typename Base::BranchNodeEntry;
+	using typename Base::PageUpdateMgr;
+	using typename Base::CtrSizeT;
 
-    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
-
-    typedef typename Types::Value                                               Value;
-
-    typedef typename Base::Metadata                                             Metadata;
-
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
-    typedef typename Types::Position                                            Position;
-
-    typedef typename Types::CtrSizeT                                            CtrSizeT;
-
-    static const Int Streams                                                    = Types::Streams;
-
+	using Value = typename Types::Value;
 
 
     CtrSizeT size() const {
         return self().sizes()[0];
     }
 
-    Iterator seek(CtrSizeT pos)
+    IteratorPtr seek(CtrSizeT pos)
     {
     	typename Types::template SkipForwardWalker<Types, IntList<0>> walker(pos);
 

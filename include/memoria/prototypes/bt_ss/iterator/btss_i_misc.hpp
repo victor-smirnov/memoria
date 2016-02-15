@@ -33,6 +33,14 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btss::IteratorMiscName)
     	return self().skipFw(1);
     }
 
+    bool next() {
+    	return self().skipFw(1);
+    }
+
+    bool prev() {
+    	return self().skipBw(1);
+    }
+
     bool operator--() {
     	return self().skipBw(1);
     }

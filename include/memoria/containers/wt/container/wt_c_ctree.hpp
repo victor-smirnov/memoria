@@ -92,7 +92,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::wt::CtrCTreeName)
 
 
 
-    TreeIterator findChild(TreeIterator& node, Int label)
+    auto findChild(TreeIterator& node, Int label)
     {
         auto& self = this->self();
         auto& tree = self.tree();
@@ -102,32 +102,32 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::wt::CtrCTreeName)
         while (true)
         {
             FindChildFn fn(label);
-            Int idx = iter.idx();
+            Int idx = iter->idx();
 
-            Tree::LeafDispatcher::dispatch(iter.leaf(), fn, idx);
+            Tree::LeafDispatcher::dispatch(iter->leaf(), fn, idx);
 
             if (fn.target_idx_ >= 0)
             {
                 if (idx + fn.target_idx_ < fn.size_)
                 {
-                    iter.idx() += fn.target_idx_;
+                    iter->idx() += fn.target_idx_;
                 }
 
                 break;
             }
             else if (fn.try_next_)
             {
-                Int leaf_rest = iter.leaf_size(0) - iter.idx();
+                Int leaf_rest = iter->leaf_size(0) - iter->idx();
 
-                iter.skipFw(leaf_rest);
+                iter->skipFw(leaf_rest);
 
-                if (iter.isEof())
+                if (iter->isEof())
                 {
                     break;
                 }
             }
             else {
-                iter.idx() += fn.end_ - fn.start_;
+                iter->idx() += fn.end_ - fn.start_;
                 break;
             }
         }

@@ -37,7 +37,7 @@ class BTSSTestBase: public BTTestBase<ContainerTypeName, AllocatorType, Profile>
 
 protected:
     using Ctr 			= typename CtrTF<Profile, ContainerTypeName>::Type;
-    using Iterator 		= typename Ctr::Iterator;
+    using IteratorPtr 	= typename Ctr::IteratorPtr;
     using ID 			= typename Ctr::ID;
     using BranchNodeEntry = typename Ctr::BranchNodeEntry;
 
@@ -64,17 +64,9 @@ public:
     	return MemBuffer(size);
     }
 
-    MemBuffer createRandomBuffer(Int size)
-    {
-    	auto buffer = MemBuffer(size);
+    virtual MemBuffer createRandomBuffer(Int size) = 0;
 
-    	for (auto& v: buffer)
-    	{
-    		v = EntryAdapter::convert(0, getRandom(100));
-    	}
 
-    	return buffer;
-    }
 
     void compareBuffers(const MemBuffer& src, const MemBuffer& tgt, const char* source)
     {
@@ -95,8 +87,8 @@ public:
 
         btss::IteratorBTSSInputProvider<Ctr, typename MemBuffer::const_iterator> provider(ctr, data.begin(), data.end());
 
-        Iterator iter = ctr.seek(0);
-        iter.insert(provider);
+        auto iter = ctr.seek(0);
+        iter->insert(provider);
     }
 
 
@@ -106,7 +98,7 @@ public:
 
         BigInt total = 0;
 
-        Iterator iter = ctr.seek(0);
+        auto iter = ctr.seek(0);
 
         while (total < size)
         {
@@ -114,7 +106,7 @@ public:
 
             MemBuffer data = createRandomBuffer(tmp_size);
 
-            iter.insert(data.begin(), data.end());
+            iter->insert(data.begin(), data.end());
 
             total += tmp_size;
         }

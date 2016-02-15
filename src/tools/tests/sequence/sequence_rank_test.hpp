@@ -108,15 +108,15 @@ public:
 
     		auto iter   = ctr->seek(pos1);
 
-    		BigInt rank1 = iter.rank(pos2 - pos1, symbol);
+    		BigInt rank1 = iter->rank(pos2 - pos1, symbol);
     		BigInt rank2 = seq->rank(pos1, pos2, symbol);
 
-    		AssertEQ(MA_SRC, iter.pos(), pos2);
+    		AssertEQ(MA_SRC, iter->pos(), pos2);
     		AssertEQ(MA_SRC, rank1, rank2);
 
-    		BigInt rank3 = iter.rank(pos1 - pos2, symbol);
+    		BigInt rank3 = iter->rank(pos1 - pos2, symbol);
 
-    		AssertEQ(MA_SRC, iter.pos(), pos1);
+    		AssertEQ(MA_SRC, iter->pos(), pos1);
     		AssertEQ(MA_SRC, rank1, rank3);
     	}
 

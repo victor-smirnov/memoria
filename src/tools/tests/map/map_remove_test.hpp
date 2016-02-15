@@ -105,9 +105,9 @@ public:
         std::sort(tmp.begin(), tmp.end());
         checkContainerData(map, tmp);
 
-        for (auto iter = map->begin(); iter != map->endm(); iter++)
+        for (auto iter = map->begin(); !iter->is_end(); iter->next())
         {
-        	pairs_sorted.push_back(Pair(iter.key(), iter.value()));
+        	pairs_sorted.push_back(Pair(iter->key(), iter->value()));
         }
 
         map_creation_ = false;

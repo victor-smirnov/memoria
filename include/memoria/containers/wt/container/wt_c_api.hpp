@@ -31,11 +31,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::wt::CtrApiName)
         auto& self = this->self();
         auto& tree = self.tree();
 
-        TreeIterator iter = tree.seek(0);
+        auto iter = tree.seek(0);
 
-        iter.insertNode(std::make_tuple(0, 0));
-        iter++;
-        iter.insertZero();
+        iter->insertNode(std::make_tuple(0, 0));
+        iter->next();
+        iter->insertZero();
     }
 
     CtrSizeT size()
@@ -43,9 +43,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::wt::CtrApiName)
         auto& self = this->self();
         auto root = self.tree().seek(0);
 
-        if (!root.isEof())
+        if (!root->isEof())
         {
-            return std::get<1>(root.labels());
+            return std::get<1>(root->labels());
         }
         else {
             return 0;
@@ -59,7 +59,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::wt::CtrApiName)
 
         auto root = tree.seek(0);
 
-        insert(root, idx, value, 3);
+        insert(*root.get(), idx, value, 3);
     }
 
     void remove(Int idx)
@@ -69,7 +69,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::wt::CtrApiName)
 
         auto root = tree.seek(0);
 
-        removeValue(idx, root, 3);
+        removeValue(idx, *root.get(), 3);
     }
 
 
@@ -83,7 +83,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::wt::CtrApiName)
 
         auto root = tree.seek(0);
 
-        buildValue(idx, root, value, 3);
+        buildValue(idx, *root.get(), value, 3);
 
         return value;
     }
@@ -96,7 +96,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::wt::CtrApiName)
 
         auto root = tree.seek(0);
 
-        return buildRank(root, idx, symbol, 3);
+        return buildRank(*root.get(), idx, symbol, 3);
     }
 
 
@@ -107,7 +107,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::wt::CtrApiName)
 
         auto root = tree.seek(0);
 
-        return select(root, rank, symbol, 3) - 1;
+        return select(*root.get(), rank, symbol, 3) - 1;
     }
 
 private:
@@ -133,10 +133,10 @@ private:
 
             if (rank == 1)
             {
-                tree.newNodeAt(child, std::make_tuple(label, 0));
+                tree.newNodeAt(*child.get(), std::make_tuple(label, 0));
             }
 
-            insert(child, rank - 1, value, level - 1);
+            insert(*child.get(), rank - 1, value, level - 1);
         }
     }
 
@@ -147,7 +147,7 @@ private:
         auto& seq  = self.seq();
 
         CtrSizeT seq_base   = node.template sumLabel<1>();
-        UBigInt label       = seq.seek(seq_base + idx).symbol();
+        UBigInt label       = seq.seek(seq_base + idx)->symbol();
         CtrSizeT  rank      = seq.rank(seq_base, idx + 1, label);
 
         value |= label << (level * 8);
@@ -155,7 +155,7 @@ private:
         if (level > 0)
         {
             auto child = self.findChild(node, label);
-            buildValue(rank - 1, child, value, level - 1);
+            buildValue(rank - 1, *child.get(), value, level - 1);
         }
     }
 
@@ -169,19 +169,19 @@ private:
         CtrSizeT node_pos   = node.pos();
 
         CtrSizeT seq_base   = node.template sumLabel<1>();
-        UBigInt label       = seq.seek(seq_base + idx).symbol();
+        UBigInt label       = seq.seek(seq_base + idx)->symbol();
         CtrSizeT  rank      = seq.rank(seq_base, idx + 1, label);
 
         if (level > 0)
         {
             auto child = self.findChild(node, label);
-            removeValue(rank - 1, child, level - 1);
+            removeValue(rank - 1, *child.get(), level - 1);
         }
 
-        node = tree.seek(node_pos);
+        node = *tree.seek(node_pos).get();
 
         seq_base = node.template sumLabel<1>();
-        seq.seek(seq_base + idx).remove();
+        seq.seek(seq_base + idx)->remove();
         node.template addLabel<1>(-1);
 
         CtrSizeT seq_length = std::get<1>(node.labels());
@@ -207,11 +207,11 @@ private:
 
             auto child = self.findChild(node, label);
 
-            CtrSizeT rnk = select(child, rank, symbol, level - 1);
+            CtrSizeT rnk = select(*child.get(), rank, symbol, level - 1);
 
             CtrSizeT seq_base = node.template sumLabel<1>();
 
-            BigInt pos = seq.select(seq_base, rnk, label).pos() + 1;
+            BigInt pos = seq.select(seq_base, rnk, label)->pos() + 1;
 
             return pos - seq_base;
         }
@@ -235,7 +235,7 @@ private:
         if (level > 0)
         {
             auto child = self.findChild(node, label);
-            return buildRank(child, rank - 1, symbol, level - 1);
+            return buildRank(*child.get(), rank - 1, symbol, level - 1);
         }
         else {
             return rank;

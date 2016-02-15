@@ -20,28 +20,27 @@ namespace memoria    {
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertMaxName)
 
-    typedef typename Base::Types                                                Types;
+    using typename Base::Types;
 
-    typedef typename Types::NodeBaseG                                           NodeBaseG;
-    typedef typename Base::Iterator                                             Iterator;
+    using typename Base::NodeBaseG;
+    using typename Base::IteratorPtr;
 
-    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
+    using typename Base::NodeDispatcher;
+    using typename Base::LeafDispatcher;
+    using typename Base::BranchDispatcher;
+    using typename Base::Position;
+    using typename Base::BranchNodeEntry;
+    using typename Base::PageUpdateMgr;
 
-    typedef typename Types::Key                                                 Key;
-    typedef typename Types::Value                                               Value;
+    using Key = typename Types::Key;
+    using Value = typename Types::Value;
 
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
-    typedef typename Types::Position                                            Position;
 
-    static const Int Streams                                                    = Types::Streams;
 
-    typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
+    static const Int Streams = Types::Streams;
 
-    typedef ValuePair<BranchNodeEntry, Value>                                       Element;
-
-    typedef typename Types::Entry                                               MapEntry;
+    using Element 	= ValuePair<BranchNodeEntry, Value>;
+    using MapEntry 	= typename Types::Entry;
 
     template <typename LeafPath>
     using TargetType = typename Types::template TargetType<LeafPath>;
@@ -53,7 +52,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertMaxName)
     }
 
     template <typename K>
-    Iterator find(const K& k)
+    IteratorPtr find(const K& k)
     {
     	return self().template find_max_ge<IntList<0, 1>>(0, k);
     }
@@ -63,9 +62,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertMaxName)
     {
     	auto iter = find(k);
 
-    	if (iter.key() == k)
+    	if (iter->key() == k)
     	{
-    		iter.remove();
+    		iter->remove();
     		return true;
     	}
     	else {

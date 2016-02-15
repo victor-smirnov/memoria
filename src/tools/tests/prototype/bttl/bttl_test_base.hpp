@@ -162,7 +162,7 @@ public:
 
     	long t0 = getTimeInMillis();
 
-    	auto totals = ctr._insert(iter, provider);
+    	auto totals = ctr._insert(*iter.get(), provider);
 
     	check("Bulk Insertion", MA_SRC);
 
@@ -187,7 +187,7 @@ public:
     void checkTree(Ctr& ctr)
     {
     	auto iter = ctr.seek(0);
-    	this->checkSubtree(iter, ctr.sizes()[0]);
+    	checkSubtree(*iter.get(), ctr.sizes()[0]);
     }
 
     void checkSubtree(Ctr& ctr, CtrSizeT r)
@@ -267,30 +267,30 @@ public:
 
     	do
     	{
-    		auto sizes = i.leaf_sizes();
+    		auto sizes = i->leaf_sizes();
 
     		auto total_leafrank_ = sizes.sum();
 
     		typename Ctr::Types::LeafPrefixRanks prefix_ranks;
 
-    		ctr.compute_leaf_prefixes(i.leaf(), extents, prefix_ranks);
+    		ctr.compute_leaf_prefixes(i->leaf(), extents, prefix_ranks);
 
-    		auto total_ranks = ctr.leafrank_(i.leaf(), sizes, prefix_ranks, sizes.sum());
+    		auto total_ranks = ctr.leafrank_(i->leaf(), sizes, prefix_ranks, sizes.sum());
 
     		AssertEQ(MA_SRC, total_ranks, sizes);
 
     		for (Int c = 0; c < total_leafrank_; )
     		{
-    			auto ranks = ctr.leafrank_(i.leaf(), sizes, prefix_ranks, c);
+    			auto ranks = ctr.leafrank_(i->leaf(), sizes, prefix_ranks, c);
 
     			AssertEQ(MA_SRC, ranks.sum(), c, SBuf()<<DebugCounter);
 
     			c += this->getRandom(100) + 1;
     		}
 
-    		extents += ctr.node_extents(i.leaf());
+    		extents += ctr.node_extents(i->leaf());
     	}
-    	while(i.nextLeaf());
+    	while(i->nextLeaf());
 
     	long t3 = getTimeInMillis();
 
@@ -308,7 +308,7 @@ public:
 
     	do
     	{
-    		auto current_extent = i.leaf_extent();
+    		auto current_extent = i->leaf_extent();
 
     		AssertEQ(MA_SRC, current_extent, extent);
 
@@ -316,19 +316,17 @@ public:
     		{
     			if (extent[c] < 0)
     			{
-    				i.dumpPath(this->out());
+    				i->dumpPath(this->out());
     			}
 
     			AssertGE(MA_SRC, extent[c], 0, SBuf()<<"Extent: "<<extent);
     		}
 
-    		auto ex = ctr.node_extents(i.leaf());
+    		auto ex = ctr.node_extents(i->leaf());
 
     		extent += ex;
-
-//    		cout<<"checkExtent: "<<i.leaf()->id()<<" "<<ex<<" "<<extent<<endl;
     	}
-    	while(i.nextLeaf());
+    	while(i->nextLeaf());
 
     	long t3 = getTimeInMillis();
 

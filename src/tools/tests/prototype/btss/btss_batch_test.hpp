@@ -31,14 +31,18 @@ class BTSSBatchTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT> {
     using Base 	 = BTSSTestBase<CtrName, AllocatorT, ProfileT>;
     using MyType = BTSSBatchTest<CtrName, AllocatorT, ProfileT>;
 
-    using Allocator 	= typename Base::Allocator;
-    using AllocatorPtr  = typename Base::AllocatorPtr;
-    using Ctr 			= typename Base::Ctr;
-    using Iterator 		= typename Ctr::Iterator;
+    using typename Base::Allocator;
+    using typename Base::AllocatorPtr;
+    using typename Base::Ctr;
+    using typename Base::MemBuffer;
+    using typename Base::Entry;
+    using typename Base::EntryAdapter;
 
-    using Entry 		= typename Ctr::Types::template StreamInputTuple<0>;
+    using IteratorPtr 	= typename Ctr::IteratorPtr;
 
-    using MemBuffer		= std::vector<Entry>;
+
+
+
 
     using Base::commit;
     using Base::drop;
@@ -52,6 +56,9 @@ class BTSSBatchTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT> {
     using Base::storeAllocator;
     using Base::isReplayMode;
     using Base::getResourcePath;
+    using Base::createBuffer;
+    using Base::compareBuffers;
+    using Base::getRandom;
 
 public:
 
@@ -82,7 +89,7 @@ public:
     {
         Ctr::initMetadata();
 
-        size_ = 1024 * 102;
+        size_ = 1024 * 1024;
 
         MEMORIA_ADD_TEST_PARAM(max_block_size_);
         MEMORIA_ADD_TEST_PARAM(check_size_);
@@ -110,6 +117,19 @@ public:
 
     virtual ~BTSSBatchTest() throw() {}
 
+    virtual MemBuffer createRandomBuffer(Int size)
+    {
+    	auto buffer = MemBuffer(size);
+
+    	for (auto& v: buffer)
+    	{
+    		v = EntryAdapter::convert(0, getRandom(100));
+    	}
+
+    	return buffer;
+    }
+
+
     virtual BigInt getRandomPosition(Ctr& array)
     {
         if (this->isReplayMode())
@@ -128,7 +148,7 @@ public:
         return this->getRandom(max - 1) + 1;
     }
 
-    MemBuffer createSuffixCheckBuffer(Iterator& iter)
+    MemBuffer createSuffixCheckBuffer(IteratorPtr& iter)
     {
         BigInt length;
 
@@ -136,8 +156,8 @@ public:
             length              = suffix_size_;
         }
         else {
-            BigInt current_pos  = iter.pos();
-            BigInt size         = iter.ctr().size();
+            BigInt current_pos  = iter->pos();
+            BigInt size         = iter->ctr().size();
             BigInt remainder    = size - current_pos;
 
             suffix_size_ = length = check_size_ >= remainder ? remainder : check_size_;
@@ -145,18 +165,18 @@ public:
 
         MemBuffer buf = this->createBuffer(length);
 
-        iter.read(buf.begin(), buf.size());
+        iter->read(buf.begin(), buf.size());
 
         checkIterator(iter, MA_SRC);
 
-        iter.skip(-length);
+        iter->skip(-length);
 
         checkIterator(iter, MA_SRC);
 
         return buf;
     }
 
-    MemBuffer createPrefixCheckBuffer(Iterator& iter)
+    MemBuffer createPrefixCheckBuffer(const IteratorPtr& iter)
     {
         BigInt length;
 
@@ -164,17 +184,17 @@ public:
             length              = prefix_size_;
         }
         else {
-            BigInt current_pos  = iter.pos();
+            BigInt current_pos  = iter->pos();
             prefix_size_ = length = check_size_ >= current_pos ? current_pos : check_size_;
         }
 
         MemBuffer buf = this->createBuffer(length);
 
-        iter.skip(-length);
+        iter->skip(-length);
 
         checkIterator(iter, MA_SRC);
 
-        iter.read(buf.begin(), buf.size());
+        iter->read(buf.begin(), buf.size());
 
         checkIterator(iter, MA_SRC);
 
@@ -182,12 +202,13 @@ public:
     }
 
 
-    virtual void checkBufferWritten(Iterator& iter, const MemBuffer& buffer, const char* source)
+    virtual void checkBufferWritten(const IteratorPtr& iter, const MemBuffer& buffer, const char* source)
     {
-        MemBuffer data = this->createBuffer(buffer.size());
+        MemBuffer data = createBuffer(buffer.size());
 
-        iter.read(data.begin(), data.size());
-        this->compareBuffers(buffer, data, source);
+        iter->read(data.begin(), data.size());
+
+        compareBuffers(buffer, data, source);
     }
 
     MemBuffer createDataBuffer()
@@ -201,23 +222,23 @@ public:
         }
     }
 
-    virtual void checkIterator(Iterator& iter, const char* source)
+    virtual void checkIterator(const IteratorPtr& iter, const char* source)
     {
         checkIteratorPrefix(iter, source);
     }
 
-    virtual void checkIteratorPrefix(Iterator& iter, const char* source)
+    virtual void checkIteratorPrefix(const IteratorPtr& iter, const char* source)
     {
-    	auto tmp = iter;
+    	auto tmp = iter->clone();
 
-    	tmp.refresh();
+    	tmp->refresh();
 
-    	if (iter.cache() != tmp.cache())
+    	if (iter->cache() != tmp->cache())
     	{
-    		iter.dumpPath(out());
+    		iter->dumpPath(out());
     		throw TestException(
     				source,
-    				SBuf()<<"Iterator cache mismatch: having: "<<iter.cache()<<", should be: "<<tmp.cache()
+    				SBuf() << "Iterator cache mismatch: having: " << iter->cache() << ", should be: " << tmp->cache()
     		);
     	}
     }
@@ -227,24 +248,24 @@ public:
 
     void insertFromStart(Ctr& ctr)
     {
-        Iterator iter = ctr.seek(0);
+        auto iter = ctr.seek(0);
 
         MemBuffer suffix = createSuffixCheckBuffer(iter);
         MemBuffer data   = createDataBuffer();
 
         BigInt size = ctr.size();
 
-        iter.insert(data.begin(), data.end());
+        iter->insert(data.begin(), data.end());
 
         BigInt size2 = ctr.size();
 
         AssertEQ(MA_SRC, size2, size + data.size());
 
-        AssertEQ(MA_SRC, iter.pos(), data.size());
+        AssertEQ(MA_SRC, iter->pos(), data.size());
 
         checkIterator(iter, MA_SRC);
 
-        iter.skip(-data.size());
+        iter->skip(-data.size());
 
         checkIterator(iter, MA_SRC);
 
@@ -265,22 +286,22 @@ public:
 
     void insertAtEnd(Ctr& ctr)
     {
-    	Iterator iter = ctr.seek(ctr.size());
+    	auto iter = ctr.seek(ctr.size());
 
         checkIterator(iter, MA_SRC);
 
         MemBuffer prefix = createPrefixCheckBuffer(iter);
         MemBuffer data   = createDataBuffer();
 
-        BigInt position = iter.pos();
+        BigInt position = iter->pos();
 
-        iter.insert(data.begin(), data.end());
+        iter->insert(data.begin(), data.end());
 
         checkIterator(iter, MA_SRC);
 
-        AssertEQ(MA_SRC, iter.pos(), position + data.size());
+        AssertEQ(MA_SRC, iter->pos(), position + data.size());
 
-        iter.skip(-data.size() - prefix.size());
+        iter->skip(-data.size() - prefix.size());
 
         checkIterator(iter, MA_SRC);
 
@@ -305,25 +326,25 @@ public:
 
     void insertInTheMiddle(Ctr& ctr)
     {
-        Iterator iter    = ctr.seek(getRandomPosition(ctr));
+        auto iter = ctr.seek(getRandomPosition(ctr));
 
         MemBuffer prefix = createPrefixCheckBuffer(iter);
         MemBuffer suffix = createSuffixCheckBuffer(iter);
 
         MemBuffer data   = createDataBuffer();
 
-        iter.insert(data.begin(), data.end());
+        iter->insert(data.begin(), data.end());
 
         checkIterator(iter, MA_SRC);
 
-        iter.skip(-data.size());
-        iter.skip(-prefix.size());
+        iter->skip(-data.size());
+        iter->skip(-prefix.size());
 
         try {
             checkBufferWritten(iter, prefix, MA_SRC);
         }
         catch (...) {
-            iter.dumpPath();
+            iter->dumpPath();
             throw;
         }
 
@@ -331,7 +352,7 @@ public:
         	checkBufferWritten(iter, data,   MA_SRC);
         }
         catch (...) {
-        	iter.dumpPath();
+        	iter->dumpPath();
         	throw;
         }
 
@@ -363,15 +384,15 @@ public:
             block_size_ = size = getRandomBufferSize(ctr_size < max_block_size_ ? ctr_size : max_block_size_);
         }
 
-        Iterator iter = ctr.seek(size);
+        auto iter = ctr.seek(size);
 
         MemBuffer suffix = createSuffixCheckBuffer(iter);
 
-        iter.skip(-size);
+        iter->skip(-size);
 
-        iter.remove(size);
+        iter->remove(size);
 
-        AssertEQ(MA_SRC, iter.pos(), 0);
+        AssertEQ(MA_SRC, iter->pos(), 0);
 
         checkIterator(iter, MA_SRC);
 
@@ -401,7 +422,7 @@ public:
             block_size_ = size = getRandomBufferSize(ctr_size < max_block_size_ ? ctr_size : max_block_size_);
         }
 
-        Iterator iter = ctr.seek(ctr_size - size);
+        auto iter = ctr.seek(ctr_size - size);
 
         checkIterator(iter, MA_SRC);
 
@@ -409,7 +430,7 @@ public:
 
         BigInt last_size = ctr.size();
 
-        iter.remove(size);
+        iter->remove(size);
 
         checkIterator(iter, MA_SRC);
 
@@ -417,11 +438,11 @@ public:
 
         checkIterator(iter, MA_SRC);
 
-        AssertEQ(MA_SRC, iter.pos(), ctr.size());
+        AssertEQ(MA_SRC, iter->pos(), ctr.size());
 
-        iter.skip(-prefix.size());
+        iter->skip(-prefix.size());
 
-        AssertEQ(MA_SRC, iter.pos(), ctr.size() - prefix.size());
+        AssertEQ(MA_SRC, iter->pos(), ctr.size() - prefix.size());
 
         checkBufferWritten(iter, prefix, MA_SRC);
     }
@@ -438,7 +459,7 @@ public:
 
     void removeInTheMiddle(Ctr& ctr)
     {
-        Iterator iter    = ctr.seek(getRandomPosition(ctr));
+        auto iter = ctr.seek(getRandomPosition(ctr));
 
         BigInt size;
 
@@ -446,9 +467,9 @@ public:
             size = block_size_;
         }
         else {
-            BigInt pos       = iter.pos();
-            BigInt ctr_size  = ctr.size();
-            BigInt remainder = ctr_size - pos;
+            auto pos = iter->pos();
+            auto ctr_size  = ctr.size();
+            auto remainder = ctr_size - pos;
 
             if (max_block_size_ < remainder) {
                 size = getRandomBufferSize(max_block_size_);
@@ -463,25 +484,25 @@ public:
 
         MemBuffer prefix = createPrefixCheckBuffer(iter);
 
-        BigInt position = iter.pos();
+        BigInt position = iter->pos();
 
-        iter.skip(size);
+        iter->skip(size);
 
         MemBuffer suffix = createSuffixCheckBuffer(iter);
 
-        iter.skip(-size);
+        iter->skip(-size);
 
-        iter.remove(size);
+        iter->remove(size);
 
         checkIterator(iter, MA_SRC);
 
-        AssertEQ(MA_SRC, iter.pos(), position);
+        AssertEQ(MA_SRC, iter->pos(), position);
 
-        iter.skip(-prefix.size());
+        iter->skip(-prefix.size());
 
         checkBufferWritten(iter, prefix, MA_SRC);
 
-        AssertEQ(MA_SRC, iter.pos(), position);
+        AssertEQ(MA_SRC, iter->pos(), position);
         checkBufferWritten(iter, suffix, MA_SRC);
     }
 

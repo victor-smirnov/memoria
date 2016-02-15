@@ -30,12 +30,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrFindName)
 
     typedef typename Base::Types::CtrSizeT                                      CtrSizeT;
 
-    Iterator select0(CtrSizeT rank)
+    auto select0(CtrSizeT rank)
     {
         return self().select(0, rank);
     }
 
-    Iterator select1(CtrSizeT rank)
+    auto select1(CtrSizeT rank)
     {
         return self().select(1, rank);
     }
@@ -50,7 +50,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrFindName)
         return self().rank(idx + 1, 0);
     }
 
-    Iterator seek(CtrSizeT idx) {
+    auto seek(CtrSizeT idx) {
     	return self().template seek_stream<0>(idx);
     }
 
@@ -108,7 +108,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrFindName)
 
     LabelsTuple labels(const LoudsNode& node)
     {
-        return self().seek(node.node()).labels();
+        return self().seek(node.node())->labels();
     }
 
 MEMORIA_CONTAINER_PART_END

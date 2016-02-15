@@ -100,6 +100,11 @@ public:
         Base::assign(other);
     }
 
+    auto clone() const
+    {
+    	return self().ctr().make_iterator(self());
+    }
+
     const bool& found() const {
         return found_;
     }

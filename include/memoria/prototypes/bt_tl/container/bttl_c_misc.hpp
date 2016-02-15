@@ -22,41 +22,42 @@ namespace memoria    {
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::MiscName)
 
-    using Types 			= typename Base::Types;
+	using typename Base::Types;
 
-    using NodeBaseG 		= typename Types::NodeBaseG;
-    using Iterator  		= typename Base::Iterator;
+	using typename Base::NodeBaseG;
+	using typename Base::IteratorPtr;
 
-    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
+	using typename Base::NodeDispatcher;
+	using typename Base::LeafDispatcher;
+	using typename Base::BranchDispatcher;
+	using typename Base::Position;
+	using typename Base::BranchNodeEntry;
+	using typename Base::PageUpdateMgr;
+	using typename Base::CtrSizeT;
 
-    using Key 				    = typename Types::Key;
-    using Value 			    = typename Types::Value;
+	using Key 	= typename Types::Key;
+	using Value = typename Types::Value;
 
-    using BranchNodeEntry 		= typename Types::BranchNodeEntry;
-    using Position 			= typename Types::Position;
-    using CtrSizeT 			= typename Types::CtrSizeT;
-    using CtrSizesT			= Position;
+    using CtrSizesT	= Position;
 
     static const Int Streams = Types::Streams;
 
     using PageUpdateMgt 	= typename Types::PageUpdateMgr;
 
-    Iterator Begin() {
+    auto Begin() {
     	return self().template seek_stream<0>(0);
     }
 
-    Iterator End() {
+    auto End() {
     	auto& self = this->self();
     	return self.template seek_stream<0>(self.sizes()[0]);
     }
 
-    Iterator begin() {
+    auto begin() {
     	return self().template seek_stream<0>(0);
     }
 
-    Iterator end() {
+    auto end() {
     	auto& self = this->self();
     	return self.template seek_stream<0>(self.size());
     }
@@ -67,7 +68,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::MiscName)
     	return self().sizes()[0];
     }
 
-    Iterator find(Key key)
+    auto find(Key key)
     {
     	auto iter = self().template find_ge<IntList<0>>(0, key);
 
@@ -77,11 +78,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::MiscName)
     	return iter;
     }
 
-    Iterator seek(CtrSizeT pos)
+    auto seek(CtrSizeT pos)
     {
     	auto iter = self().template seek_stream<0>(pos);
 
-    	auto& cache = iter.cache();
+    	auto& cache = iter->cache();
 
     	cache.data_size()[0] = self().size();
     	cache.data_pos()[0]++;

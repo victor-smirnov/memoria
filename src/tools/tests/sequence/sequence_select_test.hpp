@@ -77,7 +77,7 @@ public:
 
     	for (Int c = 0; c < iterations_; c++)
     	{
-    		out()<<c<<std::endl;
+    		out() << c <<std::endl;
 
     		Int symbol  = getRandom(Base::Symbols);
     		Int rank    = getRandom(ranks[symbol]);
@@ -87,10 +87,10 @@ public:
     		auto iter1 = ctr->select(symbol, rank);
     		auto iter2 = seq->selectFw(symbol, rank);
 
-    		AssertFalse(MA_SRC, iter1.isEof());
+    		AssertFalse(MA_SRC, iter1->isEof());
     		AssertTrue(MA_SRC,  iter2.is_found());
 
-    		AssertEQ(MA_SRC, iter1.pos(), iter2.idx());
+    		AssertEQ(MA_SRC, iter1->pos(), iter2.idx());
     	}
 
     	commit();
@@ -109,7 +109,7 @@ public:
 
     	for (Int c = 0; c < iterations_; c++)
     	{
-    		out()<<c<<std::endl;
+    		out() << c << std::endl;
 
     		Int pos     = getRandom(size_);
     		Int symbol  = getRandom(Base::Symbols);
@@ -122,17 +122,17 @@ public:
 
     			if (rank == 0) rank = 1;
 
-    			auto iter   = ctr->seek(pos);
+    			auto iter = ctr->seek(pos);
 
-    			auto pos0 = iter.pos();
+    			auto pos0 = iter->pos();
 
     			AssertEQ(MA_SRC, pos0, pos);
 
-    			BigInt pos_delta1 = iter.selectFw(rank, symbol);
+    			BigInt pos_delta1 = iter->selectFw(rank, symbol);
 
     			auto tgt_pos2 = seq->selectFw(pos, symbol, rank);
 
-    			AssertEQ(MA_SRC, iter.pos(), tgt_pos2.idx());
+    			AssertEQ(MA_SRC, iter->pos(), tgt_pos2.idx());
 
     			if (tgt_pos2.is_found()) {
     				AssertEQ(MA_SRC, pos_delta1, rank);
@@ -173,10 +173,10 @@ public:
 
     			auto iter   = ctr->seek(pos);
 
-    			auto tgt_pos 		= seq->selectBw(pos, symbol, rank);
-    			BigInt pos_delta1   = iter.selectBw(rank, symbol);
+    			auto tgt_pos 	= seq->selectBw(pos, symbol, rank);
+    			auto pos_delta1	= iter->selectBw(rank, symbol);
 
-    			AssertEQ(MA_SRC, iter.pos(), tgt_pos.idx());
+    			AssertEQ(MA_SRC, iter->pos(), tgt_pos.idx());
 
     			if (tgt_pos.is_found())
     			{

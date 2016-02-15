@@ -55,6 +55,8 @@ class MapTestBase: public BTSSTestBase<MapName, PersistentInMemAllocator<>, Defa
 public:
     using typename Base::Ctr;
     using typename Base::Iterator;
+    using typename Base::MemBuffer;
+    using typename Base::EntryAdapter;
 
     using Base::out;
 
@@ -123,6 +125,19 @@ public:
     	return RNGTool<Key>::next(this);
     }
 
+    virtual MemBuffer createRandomBuffer(Int size)
+    {
+    	auto buffer = MemBuffer(size);
+
+    	for (auto& v: buffer)
+    	{
+    		v = EntryAdapter::convert(0, getRandomKey());
+    	}
+
+    	return buffer;
+    }
+
+
     template <typename CtrT>
     void checkContainerData(const std::shared_ptr<CtrT>& map, PairVector& pairs)
     {
@@ -131,24 +146,24 @@ public:
             Int pairs_size = (Int) pairs.size();
 
             Int idx = 0;
-            for (auto iter = map->begin(); !iter.is_end();)
+            for (auto iter = map->begin(); !iter->is_end();)
             {
-                auto key = iter.key();
+                auto key = iter->key();
 
-                auto value = iter.value();
+                auto value = iter->value();
 
                 if (pairs[idx].key_ != key) {
-                    iter.dump();
+                    iter->dump();
                 }
 
                 if (pairs[idx].value_ != value) {
-                    iter.dump();
+                    iter->dump();
                 }
 
                 AssertEQ(MA_SRC, pairs[idx].key_, key);
                 AssertEQ(MA_SRC, pairs[idx].value_, value);
 
-                iter++;
+                iter->next();
                 idx++;
             }
 

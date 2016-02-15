@@ -100,7 +100,7 @@ public:
         	{
         		auto iter = map->assign(key, value);
 
-        		checkIterator(iter, MA_SRC);
+        		checkIterator(*iter.get(), MA_SRC);
         	}
 
         	check(snp, MA_SRC);
@@ -136,7 +136,7 @@ public:
         {
         	auto iter = map->assign(key, value);
 
-        	checkIterator(iter, MA_SRC);
+        	checkIterator(*iter.get(), MA_SRC);
         }
 
         check(snp, MA_SRC);

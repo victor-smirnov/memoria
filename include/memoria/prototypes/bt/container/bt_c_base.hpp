@@ -25,26 +25,34 @@ namespace bt     {
 
 MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
-    typedef typename Base::Types                                                Types;
+    using Types = typename Base::Types;
 
-    typedef typename Base::Allocator                                            Allocator;
-    typedef typename Allocator::Page                                            Page;
-    typedef typename Allocator::PageG                                           PageG;
-    typedef typename Allocator::ID                                              ID;
+    using typename Base::Allocator;
 
-    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
+    using typename Base::Page;
+    using typename Base::PageG;
+    using typename Base::ID;
 
-    typedef typename Types::NodeBase                                            NodeBase;
-    typedef typename Types::NodeBaseG                                           NodeBaseG;
+    using BranchNodeEntry = typename Types::BranchNodeEntry;
+
+    using NodeBase 	= typename Types::NodeBase;
+    using NodeBaseG = typename Types::NodeBaseG;
+
+    using Position 	= typename Types::Position;
+    using CtrSizeT 	= typename Types::CtrSizeT;
 
     using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
     using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
     using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
     using DefaultDispatcher = typename Types::Pages::DefaultDispatcher;
 
-    typedef typename Types::Metadata                                            Metadata;
+    using Metadata = typename Types::Metadata;
+
+    using PageUpdateMgr = typename Types::PageUpdateMgr;
 
     using Base::CONTAINER_HASH;
+
+    static const Int Streams = Types::Streams;
 
     PageG createRoot() const {
         return self().createNode(0, true, true);

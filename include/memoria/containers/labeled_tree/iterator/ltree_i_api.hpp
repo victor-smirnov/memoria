@@ -48,6 +48,15 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
     	return self().skipBw(1);
     }
 
+    bool next() {
+    	return self().skipFw(1);
+    }
+
+    bool prev() {
+    	return self().skipBw(1);
+    }
+
+
     bool operator++(int) {
     	return self().skipFw(1);
     }

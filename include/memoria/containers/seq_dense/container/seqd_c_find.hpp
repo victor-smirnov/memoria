@@ -65,12 +65,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
 
         auto iter = self.seek(start);
 
-        return iter.rankFw(idx, symbol);
+        return iter->rankFw(idx, symbol);
     }
 
 
 
-    Iterator select(Int symbol, CtrSizeT rank)
+    auto select(Int symbol, CtrSizeT rank)
     {
         auto& self = this->self();
 
@@ -79,18 +79,16 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
 
         typename Types::template SelectForwardWalker<Types, IntList<0>> walker(symbol, rank);
 
-        auto iter = self.find_(walker);
-
-        return iter;
+        return self.find_(walker);
     }
 
-    Iterator select(CtrSizeT start, Int symbol, CtrSizeT rank)
+    auto select(CtrSizeT start, Int symbol, CtrSizeT rank)
     {
         auto& self = this->self();
 
         auto iter = self.seek(start);
 
-        iter.selectFw(symbol, rank);
+        iter->selectFw(symbol, rank);
 
         return iter;
     }
@@ -98,7 +96,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
     Int symbol(Int idx)
     {
         auto& self = this->self();
-        return self.seek(idx).symbol();
+        return self.seek(idx)->symbol();
     }
 
 

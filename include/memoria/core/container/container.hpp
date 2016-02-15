@@ -28,6 +28,7 @@
 #include <memoria/core/container/init.hpp>
 
 #include <string>
+#include <memory>
 
 
 
@@ -92,23 +93,24 @@ template <typename TypesType>
 class CtrBase: public TypesType::Allocator {
 public:
 
-    typedef CtrBase<TypesType>                                                  ThisType;
-    typedef Ctr<TypesType>                                                      MyType;
+    using ThisType  = CtrBase<TypesType>;
+    using MyType	= Ctr<TypesType>;
 
-    typedef typename TypesType::ContainerTypeName                               ContainerTypeName;
-    typedef ContainerTypeName                                                   Name;
-    typedef TypesType                                                           Types;
+    using ContainerTypeName = typename TypesType::ContainerTypeName;
+    using Name 				= ContainerTypeName;
+    using Types 			= TypesType;
 
-    typedef typename Types::Allocator                                           Allocator;
-    typedef typename Allocator::ID                                              ID;
-    typedef typename Allocator::Page                                            Page;
-    typedef typename Allocator::PageG                                           PageG;
-    typedef typename Allocator::Page::ID                                        PageId;
+    using Allocator = typename Types::Allocator;
+    using ID 		= typename Allocator::ID;
+    using Page 		= typename Allocator::Page;
+    using PageG		= typename Allocator::PageG;
 
-
-    typedef Iter<typename Types::IterTypes>                                     Iterator;
+    using Iterator		= Iter<typename Types::IterTypes>;
+    using IteratorPtr	= std::shared_ptr<Iterator>;
     
-    static const Int CONTAINER_HASH                                             = TypeHash<Name>::Value;
+    static const Int CONTAINER_HASH = TypeHash<Name>::Value;
+
+    template <typename> friend class BTIteratorBase;
 
 protected:
     static ContainerMetadata*   reflection_;
@@ -123,7 +125,6 @@ public:
 
 
     virtual ~CtrBase() throw () {}
-
 
     void set_root(const ID &root)
     {
@@ -259,6 +260,11 @@ public:
     void initCtr(const ID& root_id) {}
 
 protected:
+
+    template <typename... Args>
+    IteratorPtr make_iterator(Args&&... args) const {
+    	return make_shared<Iterator>(std::forward<Args>(args)...);
+    }
 
     /**
      * \brief Set container reflection metadata.

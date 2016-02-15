@@ -59,18 +59,18 @@ public:
 
         out()<<"Forward skip"<<std::endl;
 
-        while (!skip_iter.isEof())
+        while (!skip_iter->isEof())
         {
-            skip_iter++;
+            skip_iter->next();
             assertIterator(MA_SRC, skip_iter);
         }
         out()<<std::endl;
 
 
         out()<<"Forward skip"<<std::endl;
-        while (!skip_iter.isEof())
+        while (!skip_iter->isEof())
         {
-            skip_iter++;
+            skip_iter->next();
             assertIterator(MA_SRC, skip_iter);
         }
         out()<<std::endl;
@@ -87,18 +87,18 @@ public:
 
             Int skip = getRandom(nodes / 2 - 1);
 
-            auto iter_select0   = iter;
-            auto iter_select1   = iter;
+            auto iter_select0   = iter->clone();
+            auto iter_select1   = iter->clone();
 
-            auto iter_skip      = iter;
+            auto iter_skip      = iter->clone();
 
-            iter_select0.selectFw(skip, 0);
+            iter_select0->selectFw(skip, 0);
             assertIterator(MA_SRC, iter_select0);
 
-            iter_select1.selectFw(skip, 1);
+            iter_select1->selectFw(skip, 1);
             assertIterator(MA_SRC, iter_select1);
 
-            iter_skip.skipFw(skip * 2);
+            iter_skip->skipFw(skip * 2);
             assertIterator(MA_SRC, iter_skip);
         }
         out()<<std::endl;
@@ -115,19 +115,19 @@ public:
 
             Int skip = getRandom(nodes / 2);
 
-            auto iter_select0   = iter;
-            auto iter_select1   = iter;
+            auto iter_select0   = iter->clone();
+            auto iter_select1   = iter->clone();
 
-            auto iter_skip      = iter;
+            auto iter_skip      = iter->clone();
 
-            iter_select0.selectBw(skip, 0);
+            iter_select0->selectBw(skip, 0);
 
             assertIterator(MA_SRC, iter_select0);
 
-            iter_select1.selectBw(skip, 1);
+            iter_select1->selectBw(skip, 1);
             assertIterator(MA_SRC, iter_select1);
 
-            iter_skip.skipBw(skip * 2);
+            iter_skip->skipBw(skip * 2);
             assertIterator(MA_SRC, iter_skip);
         }
         out()<<std::endl;
@@ -144,19 +144,19 @@ public:
 
             Int skip = getRandom(nodes / 2 - 1);
 
-            auto iter_rankfw0   = iter;
-            auto iter_rankfw1   = iter;
+            auto iter_rankfw0   = iter->clone();
+            auto iter_rankfw1   = iter->clone();
 
-            iter_rankfw0.rank(skip, 0);
+            iter_rankfw0->rank(skip, 0);
             assertIterator(MA_SRC, iter_rankfw0);
 
-            iter_rankfw0.rank(-skip, 0);
+            iter_rankfw0->rank(-skip, 0);
             assertIterator(MA_SRC, iter_rankfw0);
 
-            iter_rankfw1.rank(skip, 1);
+            iter_rankfw1->rank(skip, 1);
             assertIterator(MA_SRC, iter_rankfw1);
 
-            iter_rankfw1.rank(-skip, 1);
+            iter_rankfw1->rank(-skip, 1);
             assertIterator(MA_SRC, iter_rankfw1);
         }
 

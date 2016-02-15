@@ -42,7 +42,7 @@ protected:
 
     using typename Base::CtrName;
     using typename Base::Ctr;
-    using typename Base::Iterator;
+    using typename Base::IteratorPtr;
 
     using Base::commit;
     using Base::drop;
@@ -87,9 +87,9 @@ public:
         TreeNode tree_node = createRandomLabeledTree(size, max_degree);
 
         auto iter = tree.seek(0);
-        tree.insertZero(iter);
+        tree.insertZero(*iter.get());
 
-        LoudsNode root = tree.seek(0).node();
+        LoudsNode root = tree.seek(0)->node();
 
         insertNode(tree, root, tree_node);
 
@@ -111,7 +111,7 @@ public:
     void checkTree(Ctr& tree, TreeNode& root_node)
     {
         Int size = 1;
-        auto root = tree.seek(0).node();
+        auto root = tree.seek(0)->node();
 
         checkTree(tree, root, root_node, size, 0);
 
@@ -145,7 +145,7 @@ public:
 
     void traverseTree(Ctr& tree, std::function<void (LoudsNode node)> fn)
     {
-        auto root = tree.seek(0).node();
+        auto root = tree.seek(0)->node();
 
         traverseTree(tree, root, fn);
     }
@@ -170,9 +170,9 @@ public:
     	{
     		BigInt r0 = 0, r1 = 0;
 
-    		auto rank_iter = iter;
+    		auto rank_iter = iter->clone();
 
-    		rank_iter.raw_rank(r0, r1, c);
+    		rank_iter->raw_rank(r0, r1, c);
 
     		auto rr0 = tree.rank0(c - 1);
     		auto rr1 = tree.rank1(c - 1);
@@ -185,25 +185,25 @@ public:
     			auto select0_iter = iter;
     			auto select1_iter = iter;
 
-    			select0_iter.raw_select(0, r0);
-    			select1_iter.raw_select(1, r1);
+    			select0_iter->raw_select(0, r0);
+    			select1_iter->raw_select(1, r1);
 
-    			auto pps0 = tree.select0(r0).pos();
-    			auto pps1 = tree.select1(r1).pos();
+    			auto pps0 = tree.select0(r0)->pos();
+    			auto pps1 = tree.select1(r1)->pos();
 
-    			AssertEQ(MA_SRC, select0_iter.pos(), pps0);
-    			AssertEQ(MA_SRC, select1_iter.pos(), pps1);
+    			AssertEQ(MA_SRC, select0_iter->pos(), pps0);
+    			AssertEQ(MA_SRC, select1_iter->pos(), pps1);
     		}
     	}
     }
 
-    void assertIterator(const char* msg, Iterator& iter)
+    void assertIterator(const char* msg, const IteratorPtr& iter)
     {
-    	AssertEQ(msg, iter.pos(), iter.gpos());
+    	AssertEQ(msg, iter->pos(), iter->gpos());
 
-    	if (!(iter.isEof() || iter.isBof()))
+    	if (!(iter->isEof() || iter->isBof()))
     	{
-    		AssertEQ(msg, iter.rank1(), iter.ranki(1));
+    		AssertEQ(msg, iter->rank1(), iter->ranki(1));
     	}
     }
 
@@ -237,11 +237,11 @@ private:
 
         if (node.node() > 0)
         {
-            BigInt parentIdx = tree.parent(node).pos();
+            BigInt parentIdx = tree.parent(node)->pos();
             AssertEQ(MA_SRC, parentIdx, parent.node());
         }
 
-        Iterator children = tree.children(node);
+        auto children = tree.children(node);
 
 //      LoudsNodeRange children = tree.children(node);
 
@@ -252,9 +252,9 @@ private:
 //          checkTreeStructure(tree, child, node, count);
 //      }
 
-        while (children.next_sibling())
+        while (children->next_sibling())
         {
-            checkTreeStructure(tree, children.node(), node, count);
+            checkTreeStructure(tree, children->node(), node, count);
         }
     }
 
@@ -277,14 +277,14 @@ private:
     {
     	assertTreeNode(tree, node, tree_node);
 
-        Iterator children = tree.children(node);
+        auto children = tree.children(node);
 
         Int child_idx = 0;
 
-        while (children.next_sibling())
+        while (children->next_sibling())
         {
             AssertLT(MA_SRC, child_idx, tree_node.children());
-            checkTree(tree, children.node(), node, tree_node.child(child_idx), tree_node, size, level+1);
+            checkTree(tree, children->node(), node, tree_node.child(child_idx), tree_node, size, level+1);
 
             child_idx++;
         }
@@ -306,16 +306,16 @@ private:
 
         size++;
 
-        BigInt parentIdx = tree.parent(node).pos();
+        BigInt parentIdx = tree.parent(node)->pos();
         AssertEQ(MA_SRC, parentIdx, parent.node());
 
-        Iterator children = tree.children(node);
+        auto children = tree.children(node);
 
         Int child_idx = 0;
-        while (children.next_sibling())
+        while (children->next_sibling())
         {
             AssertLT(MA_SRC, child_idx, tree_node.children());
-            checkTree(tree, children.node(), node, tree_node.child(child_idx), tree_node, size, level + 1);
+            checkTree(tree, children->node(), node, tree_node.child(child_idx), tree_node, size, level + 1);
 
             child_idx++;
         }
@@ -328,11 +328,11 @@ private:
     {
         fn(node);
 
-        Iterator children = tree.children(node);
+        auto children = tree.children(node);
 
-        while(children.next_sibling())
+        while(children->next_sibling())
         {
-            traverseTree(tree, children.node(), fn);
+            traverseTree(tree, children->node(), fn);
         }
     }
 

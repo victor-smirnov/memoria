@@ -56,12 +56,12 @@ int main()
 
 
 		auto data1 = create_random_vector<Byte>(10000, 127);
-		ctr1->seek(0).insert(data1.begin(), data1.size());
+		ctr1->seek(0)->insert(data1.begin(), data1.size());
 
 		auto data1v = create_random_vector<BigInt>(10000);
-		ctr1_v->seek(0).insert(data1v.begin(), data1v.size());
+		ctr1_v->seek(0)->insert(data1v.begin(), data1v.size());
 
-		ctr1_vv->seek(0).insert(data1v.begin(), data1v.size());
+		ctr1_vv->seek(0)->insert(data1v.begin(), data1v.size());
 
 		auto ctr_name = ctr1->master_name();
 
@@ -76,8 +76,8 @@ int main()
 
 		auto data2 = create_vector<Byte>(10000, 0x22);
 
-		auto iter = ctr2->End();
-		ctr2->End().insert(data2.begin(), data2.size());
+		auto iter = ctr2->end();
+		iter->insert(data2.begin(), data2.size());
 
 		FSDumpAllocator(txn2, "pdump2_t.dir");
 

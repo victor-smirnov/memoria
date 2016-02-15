@@ -29,61 +29,61 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrApiName)
     typedef typename Base::Types::CtrSizeT                                      CtrSizeT;
 
 
-    Iterator findNode(const LoudsNode& node)
+    auto findNode(const LoudsNode& node)
     {
         return self().seek(node.node());
     }
 
-    Iterator findNode(CtrSizeT node_idx)
+    auto findNode(CtrSizeT node_idx)
     {
         return self().seek(node_idx);
     }
 
-    Iterator rootNode()
+    auto rootNode()
     {
         return self().seek(0);
     }
 
-    Iterator parent(const LoudsNode& node)
+    auto parent(const LoudsNode& node)
     {
         return self().select1(node.rank0());
     }
 
 
-    Iterator children(const LoudsNode& node)
+    auto children(const LoudsNode& node)
     {
         return self().preFirstChild(node);
     }
 
 
-    Iterator child(const LoudsNode& node, CtrSizeT child_num)
+    auto child(const LoudsNode& node, CtrSizeT child_num)
     {
-        Iterator iter = firstChild(node);
+        auto iter = firstChild(node);
 
-        iter.skipFw(child_num);
+        iter->skipFw(child_num);
 
         return iter;
     }
 
-    Iterator firstChild(const LoudsNode& node)
+    auto firstChild(const LoudsNode& node)
     {
-        Iterator iter = self().select0(node.rank1());
+        auto iter = self().select0(node.rank1());
 
-        iter++;
+        iter->next();
 
         return iter;
     }
 
-    Iterator preFirstChild(const LoudsNode& node)
+    auto preFirstChild(const LoudsNode& node)
     {
         return self().select0(node.rank1());
     }
 
-    Iterator lastChild(const LoudsNode& node)
+    auto lastChild(const LoudsNode& node)
     {
-        Iterator iter   = self().select0(node.rank1() + 1);
+        auto iter = self().select0(node.rank1() + 1);
 
-        iter--;
+        iter->prev();
 
         return iter;
     }

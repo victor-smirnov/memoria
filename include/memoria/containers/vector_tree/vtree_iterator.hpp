@@ -210,19 +210,19 @@ public:
         return vec_iter_.isNotEnd();
     }
 
-    template <typename T>
-    T operator=(const T & value)
-    {
-        AssignToItem(*this, value);
-        return value;
-    }
+//    template <typename T>
+//    T operator=(const T & value)
+//    {
+//        AssignToItem(*this, value);
+//        return value;
+//    }
 
-    template <typename T>
-    T operator=(T&& value)
-    {
-        AssignToItem(*this, std::forward<T>(value));
-        return value;
-    }
+//    template <typename T>
+//    T operator=(T&& value)
+//    {
+//        AssignToItem(*this, std::forward<T>(value));
+//        return value;
+//    }
 };
 
 

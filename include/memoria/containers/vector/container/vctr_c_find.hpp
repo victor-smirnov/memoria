@@ -22,37 +22,32 @@ using namespace memoria::bt;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrFindName)
 
-    typedef typename Base::Types                                                Types;
-    typedef typename Base::Allocator                                            Allocator;
+	using typename Base::Types;
 
-    typedef typename Base::ID                                                   ID;
+	using typename Base::NodeBaseG;
+	using typename Base::IteratorPtr;
 
-    typedef typename Types::NodeBase                                            NodeBase;
-    typedef typename Types::NodeBaseG                                           NodeBaseG;
-    typedef typename Base::Iterator                                             Iterator;
+	using typename Base::NodeDispatcher;
+	using typename Base::LeafDispatcher;
+	using typename Base::BranchDispatcher;
+	using typename Base::Position;
+	using typename Base::BranchNodeEntry;
+	using typename Base::PageUpdateMgr;
+	using typename Base::CtrSizeT;
 
-    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
+	using Value = typename Types::Value;
 
-    typedef typename Base::Metadata                                             Metadata;
+//    Iterator Begin() {
+//    	return self().seek(0);
+//    }
+//
+//    Iterator End()
+//    {
+//        auto& self = this->self();
+//        return self.seek(self.size());
+//    }
 
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
-    typedef typename Types::Position                                            Position;
-
-    static const Int Streams                                                    = Types::Streams;
-
-    Iterator Begin() {
-    	return self().seek(0);
-    }
-
-    MEMORIA_PUBLIC Iterator End()
-    {
-        auto& self = this->self();
-        return self.seek(self.size());
-    }
-
-    MEMORIA_PUBLIC Iterator RBegin()
+    IteratorPtr RBegin()
     {
         auto& self  = this->self();
         auto size   = self.size();
@@ -66,7 +61,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrFindName)
         }
     }
 
-    MEMORIA_PUBLIC Iterator REnd()
+    IteratorPtr REnd()
     {
         auto& self  = this->self();
         auto size   = self.size();
@@ -75,7 +70,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrFindName)
 
         if (size > 0)
         {
-            iter--;
+            iter->prev();
         }
 
         return iter;

@@ -266,15 +266,15 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
     {
         auto& self = this->self();
 
-        Iterator iter = self.findNode(node);
+        auto iter = self.findNode(node);
 
-        self.insertNode(iter, labels);
+        self.insertNode(*iter.get(), labels);
 
-        iter = self.firstChild(iter.node());
+        iter = self.firstChild(iter->node());
 
-        self.insertZero(iter);
+        self.insertZero(*iter.get());
 
-        return iter.node();
+        return iter->node();
     }
 
     void newNodeAt(Iterator& iter, const LabelsTuple& labels)

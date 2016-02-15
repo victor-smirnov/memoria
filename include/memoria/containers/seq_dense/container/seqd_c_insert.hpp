@@ -101,7 +101,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertName)
         auto& self  = this->self();
         auto iter   = self.seek(idx);
 
-        iter.insert_symbol(symbol);
+        iter->insert_symbol(symbol);
     }
 //
 //    void insert(Iterator& iter, Int symbol)

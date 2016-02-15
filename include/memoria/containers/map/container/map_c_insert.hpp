@@ -20,20 +20,21 @@ namespace memoria    {
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertName)
 
-    typedef typename Base::Types                                                Types;
+	using typename Base::Types;
 
-    typedef typename Types::NodeBaseG                                           NodeBaseG;
-    typedef typename Base::Iterator                                             Iterator;
+	using typename Base::NodeBaseG;
+	using typename Base::IteratorPtr;
 
-    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
+	using typename Base::NodeDispatcher;
+	using typename Base::LeafDispatcher;
+	using typename Base::BranchDispatcher;
+	using typename Base::Position;
+	using typename Base::BranchNodeEntry;
+	using typename Base::PageUpdateMgr;
 
-    typedef typename Types::Key                                                 Key;
-    typedef typename Types::Value                                               Value;
+	using Key = typename Types::Key;
+	using Value = typename Types::Value;
 
-    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
-    typedef typename Types::Position                                            Position;
 
     template <typename LeafPath>
     using TargetType = typename Types::template TargetType<LeafPath>;
@@ -45,22 +46,22 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertName)
 //    }
 
     template <typename T>
-    Iterator find(T&& k)
+    IteratorPtr find(T&& k)
     {
     	return self().template find_ge<IntList<0, 0, 1>>(0, k);
     }
 
     template <typename K, typename V>
-    Iterator assign(K&& key, V&& value)
+    IteratorPtr assign(K&& key, V&& value)
     {
     	auto iter = self().find(key);
 
-    	if (iter.is_found(key))
+    	if (iter->is_found(key))
     	{
-    		iter.assign(value);
+    		iter->assign(value);
     	}
     	else {
-    		iter.insert_(key, value);
+    		iter->insert_(key, value);
     	}
 
     	return iter;
@@ -71,9 +72,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertName)
     {
     	auto iter = find(k);
 
-    	if (iter.key() == k)
+    	if (iter->key() == k)
     	{
-    		iter.remove();
+    		iter->remove();
     		return true;
     	}
     	else {

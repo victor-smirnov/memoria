@@ -154,18 +154,18 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrRemoveName)
     {
         auto& self = this->self();
 
-        Iterator iter = self.findNode(node);
+        auto iter = self.findNode(node);
 
-        MEMORIA_ASSERT_TRUE(iter.symbol() == 1);
+        MEMORIA_ASSERT_TRUE(iter->symbol() == 1);
 
-        iter.firstChild();
+        iter->firstChild();
 
-        MEMORIA_ASSERT_TRUE(iter.symbol() == 0);
+        MEMORIA_ASSERT_TRUE(iter->symbol() == 0);
 
-        iter.remove();
+        iter->remove();
 
         iter = self.findNode(node);
-        iter.remove();
+        iter->remove();
     }
 
     void removeLeaf(Iterator& iter)
@@ -187,7 +187,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrRemoveName)
 
         iter.remove();
 
-        iter = self.seek(idx);
+        iter = *self.seek(idx).get();
         iter.remove();
     }
 

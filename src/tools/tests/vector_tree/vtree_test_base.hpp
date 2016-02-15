@@ -87,7 +87,7 @@ public:
 
         tree.prepare();
 
-        LoudsNode root = tree.seek(0).node();
+        LoudsNode root = tree.seek(0)->node();
 
         insertNode(tree, root, tree_node);
 
@@ -98,9 +98,9 @@ public:
     {
         auto iter = tree.seek(node.node());
 
-        auto first_child = tree.insert(iter, std::get<0>(tree_node.labels()));
+        auto first_child = tree.insert(*iter.get(), std::get<0>(tree_node.labels()));
 
-        iter.insert(tree_node.data());
+        iter->insert(tree_node.data());
 
 //      assertTreeNode(tree, node, tree_node);
 
@@ -115,7 +115,7 @@ public:
     void checkTree(Ctr& tree, TreeNode& root_node)
     {
         Int size = 1;
-        auto root = tree.seek(0).node();
+        auto root = tree.seek(0)->node();
 
         checkTree(tree, root, root_node, size);
 
@@ -149,7 +149,7 @@ public:
 
     void traverseTree(Ctr& tree, std::function<void (LoudsNode node)> fn)
     {
-        auto root = tree.seek(0).node();
+        auto root = tree.seek(0)->node();
 
         traverseTree(tree, root, fn);
     }
@@ -207,15 +207,15 @@ private:
 
         if (node.node() > 0)
         {
-            BigInt parentIdx = tree.parent(node).node().node();
+            auto parentIdx = tree.parent(node)->node().node();
             AssertEQ(MA_SRC, parentIdx, parent.node());
         }
 
-        Iterator children = tree.children(node);
+        auto children = tree.children(node);
 
-        while (children.next_sibling())
+        while (children->next_sibling())
         {
-            checkTreeStructure(tree, children.node(), node, count);
+            checkTreeStructure(tree, children->node(), node, count);
         }
     }
 
@@ -229,7 +229,7 @@ private:
         AssertEQ(MA_SRC, labels, tree_node.labels());
 
         auto vtree_node = ctr.seek(node.node());
-        auto data = vtree_node.read();
+        auto data = vtree_node->read();
 
         AssertEQ(MA_SRC, data.size(), tree_node.data().size());
 
@@ -243,10 +243,10 @@ private:
         {
             vtree_node = ctr.seek(node.node());
 
-            vtree_node.tree_iter().dump();
-            vtree_node.vector_iter().dump();
+            vtree_node->tree_iter().dump();
+            vtree_node->vector_iter().dump();
 
-            data = vtree_node.read();
+            data = vtree_node->read();
 
             throw;
         }
@@ -256,13 +256,13 @@ private:
     {
         assertTreeNode(tree, node, tree_node);
 
-        Iterator children = tree.children(node);
+        auto children = tree.children(node);
 
         Int child_idx = 0;
-        while (children.next_sibling())
+        while (children->next_sibling())
         {
             AssertLE(MA_SRC, child_idx, tree_node.children());
-            checkTree(tree, children.node(), node, tree_node.child(child_idx), tree_node, size);
+            checkTree(tree, children->node(), node, tree_node.child(child_idx), tree_node, size);
 
             child_idx++;
         }
@@ -283,16 +283,16 @@ private:
 
         size++;
 
-        BigInt parentIdx = tree.parent(node).node().node();
+        auto parentIdx = tree.parent(node)->node().node();
         AssertEQ(MA_SRC, parentIdx, parent.node());
 
-        Iterator children = tree.children(node);
+        auto children = tree.children(node);
 
         Int child_idx = 0;
-        while (children.next_sibling())
+        while (children->next_sibling())
         {
             AssertLE(MA_SRC, child_idx, tree_node.children());
-            checkTree(tree, children.node(), node, tree_node.child(child_idx), tree_node, size);
+            checkTree(tree, children->node(), node, tree_node.child(child_idx), tree_node, size);
 
             child_idx++;
         }
@@ -305,11 +305,11 @@ private:
     {
         fn(node);
 
-        Iterator children = tree.children(node);
+        auto children = tree.children(node);
 
-        while(children.next_sibling())
+        while(children->next_sibling())
         {
-            traverseTree(tree, children.node(), fn);
+            traverseTree(tree, children->node(), fn);
         }
     }
 

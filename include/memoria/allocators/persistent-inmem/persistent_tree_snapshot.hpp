@@ -589,9 +589,9 @@ public:
 		{
 			auto iter = root_map_->find(name);
 
-			if (iter.is_found(name))
+			if (iter->is_found(name))
 			{
-				return iter.value();
+				return iter->value();
 			}
 			else {
 				return ID();
@@ -632,7 +632,7 @@ public:
 		if (!name.is_null())
 		{
 			auto iter = root_map_->find(name);
-			return iter.is_found(name);
+			return iter->is_found(name);
 		}
 		else {
 			return !history_node_->root_id().is_null();
@@ -649,17 +649,17 @@ public:
 	{
 		bool result = false;
 
-		for (auto iter = root_map_->begin(); !iter.is_end(); )
+		for (auto iter = root_map_->begin(); !iter->is_end(); )
 		{
-			auto ctr_name = iter.key();
+			auto ctr_name = iter->key();
 
-			PageG page = this->getPage(iter.value(), ctr_name);
+			PageG page = this->getPage(iter->value(), ctr_name);
 
 			ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(page->ctr_type_hash());
 
 			result = ctr_meta->getCtrInterface()->check(&page->id(), ctr_name, this) || result;
 
-			iter++;
+			iter->next();
 		}
 
 		return result;
@@ -671,10 +671,10 @@ public:
 
         auto iter = root_map_->Begin();
 
-        while (!iter.isEnd())
+        while (!iter->isEnd())
         {
-            auto ctr_name   = iter.key();
-            auto root_id    = iter.value();
+            auto ctr_name   = iter->key();
+            auto root_id    = iter->value();
 
             auto page       = this->getPage(root_id, ctr_name);
 
@@ -685,7 +685,7 @@ public:
 
             ctr_meta->getCtrInterface()->walk(&page->id(), ctr_name, this, walker);
 
-            iter++;
+            iter->next();
         }
 
         walker->endSnapshot();

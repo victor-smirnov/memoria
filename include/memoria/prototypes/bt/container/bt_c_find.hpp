@@ -22,15 +22,20 @@ using namespace memoria::bt;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::FindName)
 
-    typedef TypesType                                                           Types;
-    typedef typename Types::Allocator                                           Allocator;
-    typedef typename Types::Position                                            Position;
-    typedef typename Base::NodeBaseG                                            NodeBaseG;
-    typedef typename Base::Iterator                                             Iterator;
+    using Types = TypesType;
 
-    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
+	using typename Base::Allocator;
+
+    using typename Base::NodeBaseG;
+    using typename Base::Iterator;
+    using typename Base::IteratorPtr;
+    using typename Base::Position;
+    using typename Base::CtrSizeT;
+
+    using typename Base::NodeDispatcher;
+    using typename Base::LeafDispatcher;
+    using typename Base::BranchDispatcher;
+
 
 
     using LeafStreamsStructList = typename Types::LeafStreamsStructList;
@@ -40,24 +45,24 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::FindName)
     template <typename LeafPath>
     using TargetType2 = typename Types::template TargetType2<LeafPath>;
 
-    using CtrSizeT = typename Types::CtrSizeT;
+
 
 
 public:
 
     template <typename Walker>
-    Iterator find_(Walker&& walker);
+    IteratorPtr find_(Walker&& walker);
 
 
     template <typename LeafPath>
-    Iterator find_gt(Int index, TargetType<LeafPath> key)
+    IteratorPtr find_gt(Int index, TargetType<LeafPath> key)
     {
     	typename Types::template FindGTForwardWalker<Types, LeafPath> walker(index, key);
     	return self().find_(walker);
     }
 
     template <typename LeafPath>
-    Iterator find_max_gt(Int index, TargetType<LeafPath> key)
+    IteratorPtr find_max_gt(Int index, TargetType<LeafPath> key)
     {
     	typename Types::template FindMaxGTWalker<Types, LeafPath> walker(index, key);
     	return self().find_(walker);
@@ -65,28 +70,28 @@ public:
 
 
     template <typename LeafPath>
-    Iterator find_ge(Int index, TargetType<LeafPath> key)
+    IteratorPtr find_ge(Int index, TargetType<LeafPath> key)
     {
     	typename Types::template FindGEForwardWalker<Types, LeafPath> walker(index, key);
     	return self().find_(walker);
     }
 
     template <typename LeafPath>
-    Iterator find_max_ge(Int index, TargetType<LeafPath> key)
+    IteratorPtr find_max_ge(Int index, TargetType<LeafPath> key)
     {
     	typename Types::template FindMaxGEWalker<Types, LeafPath> walker(index, key);
     	return self().find_(walker);
     }
 
     template <typename LeafPath>
-    Iterator rank_(Int index, CtrSizeT pos)
+    IteratorPtr rank_(Int index, CtrSizeT pos)
     {
     	typename Types::template RankForwardWalker<Types, LeafPath> walker(index, pos);
     	return self().find_(walker);
     }
 
     template <typename LeafPath>
-    Iterator select_(Int index, CtrSizeT rank)
+    IteratorPtr select_(Int index, CtrSizeT rank)
     {
     	typename Types::template SelectForwardWalker<Types, LeafPath> walker(index, rank);
     	return self().find_(walker);
@@ -170,7 +175,7 @@ public:
     FindResult find_bw(NodeChain node_chain, Walker&& walker, WalkDirection direction = WalkDirection::UP);
 
     template <Int Stream>
-    Iterator seek_stream(CtrSizeT position)
+    IteratorPtr seek_stream(CtrSizeT position)
     {
     	typename Types::template SkipForwardWalker<Types, IntList<Stream>> walker(position);
     	return self().find_(walker);
@@ -178,7 +183,7 @@ public:
 
 
     MEMORIA_DECLARE_NODE_FN_RTN(SizesFn, size_sums, Position);
-    MEMORIA_PUBLIC Position sizes() const
+    Position sizes() const
     {
     	NodeBaseG node = self().getRoot();
     	return NodeDispatcher::dispatch(node, SizesFn());
@@ -375,15 +380,15 @@ typename M_TYPE::FindResult M_TYPE::find_bw(NodeChain node_chain, Walker&& walke
 
 M_PARAMS
 template <typename Walker>
-typename M_TYPE::Iterator M_TYPE::find_(Walker&& walker)
+typename M_TYPE::IteratorPtr M_TYPE::find_(Walker&& walker)
 {
     auto& self = this->self();
+
+    IteratorPtr i = self.make_iterator(self);
 
     NodeBaseG node = self.getRoot();
     if (node.isSet())
     {
-        Iterator i(self);
-
         while (!node->is_leaf())
         {
         	auto result = BranchDispatcher::dispatch(node, walker, WalkDirection::DOWN, 0);
@@ -404,15 +409,12 @@ typename M_TYPE::Iterator M_TYPE::find_(Walker&& walker)
 
         LeafDispatcher::dispatch(node, walker, WalkCmd::LAST_LEAF, 0, result.idx());
 
-        i.leaf() = node;
+        i->leaf() = node;
 
-        walker.finish(i, result.idx(), WalkCmd::LAST_LEAF);
+        walker.finish(*i.get(), result.idx(), WalkCmd::LAST_LEAF);
+    }
 
-        return i;
-    }
-    else {
-        return Iterator(self);
-    }
+    return i;
 }
 
 

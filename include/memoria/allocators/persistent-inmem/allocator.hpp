@@ -971,57 +971,26 @@ private:
 
 
 
-//	std::unique_ptr<LeafNodeBufferT> to_leaf_buffer(const LeafNodeT* node)
-//	{
-//		std::unique_ptr<LeafNodeBufferT> buf = std::make_unique<LeafNodeBufferT>();
-//
-//		buf->populate_as_buffer(node);
-//
-//		for (Int c = 0; c < node->size(); c++)
-//		{
-//			buf->data(c) = typename LeafNodeBufferT::Value(
-//				node->data(c).page()->uuid(),
-//				node->data(c).txn_id()
-//			);
-//		}
-//
-//		return buf;
-//	}
-//
-//	std::unique_ptr<BranchNodeBufferT> to_branch_buffer(const BranchNodeT* node)
-//	{
-//		std::unique_ptr<BranchNodeBufferT> buf = std::make_unique<BranchNodeBufferT>();
-//
-//		buf->populate_as_buffer(node);
-//
-//		for (Int c = 0; c < node->size(); c++)
-//		{
-//			buf->data(c) = node->data(c)->node_id();
-//		}
-//
-//		return buf;
-//	}
-
-	LeafNodeBufferT* to_leaf_buffer(const LeafNodeT* node)
+	std::unique_ptr<LeafNodeBufferT> to_leaf_buffer(const LeafNodeT* node)
 	{
-		LeafNodeBufferT* buf = new LeafNodeBufferT();
+		std::unique_ptr<LeafNodeBufferT> buf = std::make_unique<LeafNodeBufferT>();
 
 		buf->populate_as_buffer(node);
 
 		for (Int c = 0; c < node->size(); c++)
 		{
 			buf->data(c) = typename LeafNodeBufferT::Value(
-					node->data(c).page()->uuid(),
-					node->data(c).txn_id()
+				node->data(c).page()->uuid(),
+				node->data(c).txn_id()
 			);
 		}
 
 		return buf;
 	}
 
-	BranchNodeBufferT* to_branch_buffer(const BranchNodeT* node)
+	std::unique_ptr<BranchNodeBufferT> to_branch_buffer(const BranchNodeT* node)
 	{
-		BranchNodeBufferT* buf = new BranchNodeBufferT();
+		std::unique_ptr<BranchNodeBufferT> buf = std::make_unique<BranchNodeBufferT>();
 
 		buf->populate_as_buffer(node);
 
@@ -1032,6 +1001,37 @@ private:
 
 		return buf;
 	}
+
+//	LeafNodeBufferT* to_leaf_buffer(const LeafNodeT* node)
+//	{
+//		LeafNodeBufferT* buf = new LeafNodeBufferT();
+//
+//		buf->populate_as_buffer(node);
+//
+//		for (Int c = 0; c < node->size(); c++)
+//		{
+//			buf->data(c) = typename LeafNodeBufferT::Value(
+//					node->data(c).page()->uuid(),
+//					node->data(c).txn_id()
+//			);
+//		}
+//
+//		return buf;
+//	}
+//
+//	BranchNodeBufferT* to_branch_buffer(const BranchNodeT* node)
+//	{
+//		BranchNodeBufferT* buf = new BranchNodeBufferT();
+//
+//		buf->populate_as_buffer(node);
+//
+//		for (Int c = 0; c < node->size(); c++)
+//		{
+//			buf->data(c) = node->data(c)->node_id();
+//		}
+//
+//		return buf;
+//	}
 
 	void walk_version_tree(HistoryNode* node, std::function<void (HistoryNode*, SnapshotT*)> fn)
 	{
@@ -1153,7 +1153,7 @@ private:
 			auto leaf = PersistentTreeT::to_leaf_node(node);
 			auto buf  = to_leaf_buffer(leaf);
 
-			write(out, buf);
+			write(out, buf.get());
 
 			for (Int c = 0; c < leaf->size(); c++)
 			{
@@ -1164,14 +1164,12 @@ private:
 					write(out, data.page());
 				}
 			}
-
-			buf->del();
 		}
 		else {
 			auto branch = PersistentTreeT::to_branch_node(node);
 			auto buf    = to_branch_buffer(branch);
 
-			write(out, buf);
+			write(out, buf.get());
 
 			for (Int c = 0; c < branch->size(); c++)
 			{
@@ -1182,8 +1180,6 @@ private:
 					write_persistent_tree(out, child);
 				}
 			}
-
-			buf->del();
 		}
 	}
 

@@ -38,13 +38,16 @@ class VectorTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT>
 
     using typename Base::Ctr;
     using typename Base::Iterator;
+    using typename Base::Allocator;
+    using typename Base::AllocatorPtr;
+    using typename Base::MemBuffer;
+    using typename Base::Entry;
+    using typename Base::EntryAdapter;
+
 
     using BranchNodeEntry = typename Ctr::BranchNodeEntry;
 
     using Value = typename Ctr::Types::Value;
-
-    using typename Base::Allocator;
-    using typename Base::AllocatorPtr;
 
     BigInt size = 1024*1024;
 
@@ -54,6 +57,7 @@ class VectorTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT>
     using Base::commit;
     using Base::drop;
     using Base::out;
+    using Base::getRandom;
 
 public:
     VectorTest(StringRef name):
@@ -62,6 +66,18 @@ public:
     	MEMORIA_ADD_TEST_PARAM(size);
 
     	MEMORIA_ADD_TEST_WITH_REPLAY(testCreate, replayCreate);
+    }
+
+    virtual MemBuffer createRandomBuffer(Int size)
+    {
+    	auto buffer = MemBuffer(size);
+
+    	for (auto& v: buffer)
+    	{
+    		v = EntryAdapter::convert(0, getRandom(100));
+    	}
+
+    	return buffer;
     }
 
 
@@ -78,13 +94,13 @@ public:
     		d = this->getRandom(100);
     	}
 
-    	ctr->begin().insert(data.begin(), data.size());
+    	ctr->begin()->insert(data.begin(), data.size());
 
     	AssertEQ(MA_SRC, ctr->size(), data.size());
 
     	std::vector<Value> data2(size);
 
-    	auto read = ctr->begin().read(data2.begin(), data2.size());
+    	auto read = ctr->begin()->read(data2.begin(), data2.size());
 
     	AssertEQ(MA_SRC, read, data2.size());
 
