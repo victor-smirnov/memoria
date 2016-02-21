@@ -121,6 +121,7 @@ public:
 
     static constexpr Int number_of_offsets(Int values)
     {
+    	//FIXME: Number of offsets cant be zero
     	return Base::divUpV(values);
     }
 

@@ -16,6 +16,8 @@
 
 #include <memoria/core/container/logs.hpp>
 
+#include <memory>
+
 namespace memoria    {
 
 using namespace memoria::vapi;
@@ -61,14 +63,37 @@ public:
 template <typename Types>
 class IterStart: public IterHelper<ListSize<typename Types::List>::Value - 1, Types> {
 
-    typedef Iter<Types>                                                             MyType;
-    typedef IterStart<Types>                                                        ThisType;
+    using MyType 	= Iter<Types>;
+    using ThisType 	= IterStart<Types>;
+    using Base 		= IterHelper<ListSize<typename Types::List>::Value - 1, Types>;
+    using ContainerType = Ctr<typename Types::CtrTypes>;
 
-    typedef IterHelper<ListSize<typename Types::List>::Value - 1, Types> Base;
+    using CtrPtr	= std::shared_ptr<ContainerType>;
+
+    CtrPtr ctr_ptr_;
+    ContainerType* model_;
+
+
 public:
-    IterStart(): Base() {}
-    IterStart(ThisType&& other): Base(std::move(other)) {}
-    IterStart(const ThisType& other): Base(other) {}
+    IterStart(const CtrPtr& ptr): Base(), ctr_ptr_(ptr), model_(ptr.get()) {}
+    IterStart(ThisType&& other): Base(std::move(other)), ctr_ptr_(std::move(other.ctr_ptr_)), model_(other.model_) {}
+    IterStart(const ThisType& other): Base(other), ctr_ptr_(other.ctr_ptr_), model_(other.model_) {}
+
+    ContainerType& model() {
+        return *model_;
+    }
+
+    const ContainerType& model() const {
+        return *model_;
+    }
+
+    ContainerType& ctr() {
+        return *model_;
+    }
+
+    const ContainerType& ctr() const {
+        return *model_;
+    }
 };
 
 
@@ -89,7 +114,7 @@ public:
     enum {NORMAL = 0, END = 1, START = 2, EMPTY = 3};
     
 private:
-    Logger  logger_;
+    Logger logger_;
 
     Int type_;
 

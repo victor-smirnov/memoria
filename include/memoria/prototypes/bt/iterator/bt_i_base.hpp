@@ -102,7 +102,7 @@ public:
 
     auto clone() const
     {
-    	return self().ctr().make_iterator(self());
+    	return self().ctr().clone_iterator(self());
     }
 
     const bool& found() const {

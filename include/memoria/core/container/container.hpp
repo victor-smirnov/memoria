@@ -90,7 +90,7 @@ public:
 
 
 template <typename TypesType>
-class CtrBase: public TypesType::Allocator {
+class CtrBase: public TypesType::Allocator, public std::enable_shared_from_this<Ctr<TypesType>> {
 public:
 
     using ThisType  = CtrBase<TypesType>;
@@ -112,8 +112,17 @@ public:
 
     template <typename> friend class BTIteratorBase;
 
+    template <typename> friend class Iter;
+    template <typename, typename, typename> friend class IterPart;
+    template <typename> friend class IterStart;
+
+    template <typename> friend class CtrStart;
+    template <typename, typename, typename> friend class CtrPart;
+    template <typename> friend class Ctr;
+
+
 protected:
-    static ContainerMetadata*   reflection_;
+    static ContainerMetadata* reflection_;
 
     ID root_;
 
@@ -155,11 +164,11 @@ public:
         init_data_  = other.init_data_;
     }
 
-    MEMORIA_PUBLIC static Int hash() {
+    static Int hash() {
         return CONTAINER_HASH;
     }
 
-    MEMORIA_PUBLIC static ContainerMetadata* getMetadata()
+    static ContainerMetadata* getMetadata()
     {
         return reflection_;
     }
@@ -263,8 +272,24 @@ protected:
 
     template <typename... Args>
     IteratorPtr make_iterator(Args&&... args) const {
+    	return make_shared<Iterator>(this->shared_from_this(), std::forward<Args>(args)...);
+    }
+
+    template <typename... Args>
+    IteratorPtr make_iterator(Args&&... args) {
+    	return make_shared<Iterator>(this->shared_from_this(), std::forward<Args>(args)...);
+    }
+
+    template <typename... Args>
+    IteratorPtr clone_iterator(Args&&... args) const {
     	return make_shared<Iterator>(std::forward<Args>(args)...);
     }
+
+    template <typename... Args>
+    IteratorPtr clone_iterator(Args&&... args) {
+    	return make_shared<Iterator>(std::forward<Args>(args)...);
+    }
+
 
     /**
      * \brief Set container reflection metadata.

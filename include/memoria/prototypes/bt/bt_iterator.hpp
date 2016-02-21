@@ -39,7 +39,9 @@ class Iter<BTIterTypes<Types>>: public IterStart<BTIterTypes<Types>>
 
     typedef typename ContainerType::Types::NodeBaseG                            NodeBaseG;
 
-    ContainerType&      model_;
+    using CtrPtr = std::shared_ptr<ContainerType>;
+
+//    ContainerType& model_;
 
 public:
 
@@ -47,28 +49,28 @@ public:
 
     typedef ContainerType                                                       Container;
     
-    Iter(Container &model): Base(), model_(model)
+    Iter(const CtrPtr& ptr): Base(ptr)
     {
         Base::idx() = 0;
     }
     
-    Iter(const MyType& other): Base(other), model_(other.model_) {}
+    Iter(const MyType& other): Base(other) {}
 
-    ContainerType& model() {
-        return model_;
-    }
-
-    const ContainerType& model() const {
-        return model_;
-    }
-
-    ContainerType& ctr() {
-        return model_;
-    }
-
-    const ContainerType& ctr() const {
-        return model_;
-    }
+//    ContainerType& model() {
+//        return model_;
+//    }
+//
+//    const ContainerType& model() const {
+//        return model_;
+//    }
+//
+//    ContainerType& ctr() {
+//        return model_;
+//    }
+//
+//    const ContainerType& ctr() const {
+//        return model_;
+//    }
 
     MyType& operator=(MyType&& other)
     {

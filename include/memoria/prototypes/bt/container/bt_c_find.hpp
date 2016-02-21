@@ -384,7 +384,7 @@ typename M_TYPE::IteratorPtr M_TYPE::find_(Walker&& walker)
 {
     auto& self = this->self();
 
-    IteratorPtr i = self.make_iterator(self);
+    IteratorPtr i = self.make_iterator();
 
     NodeBaseG node = self.getRoot();
     if (node.isSet())

@@ -30,8 +30,7 @@ class Iter<VTreeIterTypes<Types> >: public IterStart<VTreeIterTypes<Types> >
     typedef typename Types::Allocator::PageG                                    PageG;
     typedef typename PageG::Page::ID                                            ID;
 
-
-    ContainerType&      model_;
+    using CtrPtr = std::shared_ptr<ContainerType>;
 
     TreeIterator        tree_iter_;
     VectorIterator      vec_iter_;
@@ -39,30 +38,30 @@ class Iter<VTreeIterTypes<Types> >: public IterStart<VTreeIterTypes<Types> >
 
 public:
 
-    Iter(ContainerType &model):
-        model_(model), tree_iter_(model.tree()), vec_iter_(model.seq()), exists_(false) {}
+    Iter(const CtrPtr& ptr): Base(ptr),
+        tree_iter_(model.tree()), vec_iter_(model.seq()), exists_(false) {}
 
-    Iter(const MyType& other):
-        model_(other.model_), tree_iter_(other.tree_iter_), vec_iter_(other.vec_iter_), exists_(other.exists_) {}
+    Iter(const MyType& other): Base(other),
+        tree_iter_(other.tree_iter_), vec_iter_(other.vec_iter_), exists_(other.exists_) {}
 
-    Iter(ContainerType &model, const TreeIterator& tree_iter, const VectorIterator& seq_iter, bool exists = false):
-        model_(model), tree_iter_(tree_iter), vec_iter_(seq_iter), exists_(exists) {}
+    Iter(const CtrPtr& ptr, const TreeIterator& tree_iter, const VectorIterator& seq_iter, bool exists = false): Base(ptr),
+        tree_iter_(tree_iter), vec_iter_(seq_iter), exists_(exists) {}
 
-    Iter(ContainerType &model, const TreeIterator& tree_iter, bool exists = false):
-        model_(model), tree_iter_(tree_iter), vec_iter_(model.seq()), exists_(exists) {}
+    Iter(const CtrPtr& ptr, const TreeIterator& tree_iter, bool exists = false): Base(ptr),
+        tree_iter_(tree_iter), vec_iter_(model.seq()), exists_(exists) {}
 
-    Iter(ContainerType &model, const VectorIterator& seq_iter, bool exists = false):
-        model_(model), tree_iter_(model.tree()), vec_iter_(seq_iter), exists_(exists) {}
+    Iter(const CtrPtr& ptr, const VectorIterator& seq_iter, bool exists = false): Base(Ptr),
+        tree_iter_(model.tree()), vec_iter_(seq_iter), exists_(exists) {}
 
     //We have no move constructors for iterator
 
-    MyType* me() {
-        return this;
-    }
-
-    const MyType* me() const {
-        return this;
-    }
+//    MyType* me() {
+//        return this;
+//    }
+//
+//    const MyType* me() const {
+//        return this;
+//    }
 
     MyType& self() {
         return *this;
@@ -72,21 +71,21 @@ public:
         return *this;
     }
 
-    ContainerType& model() {
-        return model_;
-    }
-
-    const ContainerType& model() const {
-        return model_;
-    }
-
-    ContainerType& ctr() {
-        return model_;
-    }
-
-    const ContainerType& ctr() const {
-        return model_;
-    }
+//    ContainerType& model() {
+//        return model_;
+//    }
+//
+//    const ContainerType& model() const {
+//        return model_;
+//    }
+//
+//    ContainerType& ctr() {
+//        return model_;
+//    }
+//
+//    const ContainerType& ctr() const {
+//        return model_;
+//    }
 
     MyType& operator=(MyType&& other)
     {

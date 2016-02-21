@@ -140,6 +140,8 @@ if (EMIT_AST)
     endif()
 endif()
 
+include_directories(../boost_1_60_0)
+
 set_property (GLOBAL PROPERTY GLOBAL_SOURCES)
 
 add_subdirectory(src/build-tools)

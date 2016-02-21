@@ -843,29 +843,29 @@ size_t CountBw(const T* buffer, size_t from, size_t to, const char *lut, bool ze
     }
 }
 
-constexpr Int Log2(UInt value) {
+inline constexpr Int Log2(UInt value) {
     return 32 - __builtin_clz(value);
 }
 
-constexpr Int Log2(Int value) {
+inline constexpr Int Log2(Int value) {
     return 32 - __builtin_clz(value);
 }
 
 
-constexpr Int Log2(UBigInt value) {
+inline constexpr Int Log2(UBigInt value) {
     return 64 - __builtin_clzll(value);
 }
 
-constexpr Int Log2(BigInt value) {
+inline constexpr Int Log2(BigInt value) {
     return 64 - __builtin_clzll(value);
 }
 
 
-constexpr Int CountTrailingZeroes(UInt value) {
+inline constexpr Int CountTrailingZeroes(UInt value) {
     return __builtin_ctz(value);
 }
 
-constexpr Int CountTrailingZeroes(UBigInt value) {
+inline constexpr Int CountTrailingZeroes(UBigInt value) {
     return __builtin_ctzll(value);
 }
 
