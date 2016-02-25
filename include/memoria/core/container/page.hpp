@@ -26,7 +26,6 @@
 
 namespace memoria    {
 
-using namespace memoria::vapi;
 
 template <Int Size>
 class BitBuffer: public StaticBuffer<Size % 32 == 0 ? Size / 32 : ((Size / 32) + 1)> {
@@ -837,14 +836,14 @@ ostream& operator<<(ostream& out, const PageID<T>& id)
 
 
 template <typename T>
-vapi::OutputStreamHandler& operator<<(vapi::OutputStreamHandler& out, const PageID<T>& id)
+OutputStreamHandler& operator<<(OutputStreamHandler& out, const PageID<T>& id)
 {
     out << id.value();
     return out;
 }
 
 template <typename T>
-vapi::InputStreamHandler& operator>>(vapi::InputStreamHandler& in, PageID<T>& id)
+InputStreamHandler& operator>>(InputStreamHandler& in, PageID<T>& id)
 {
     in >> id.value();
     return in;

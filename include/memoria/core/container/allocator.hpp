@@ -88,7 +88,7 @@ template <typename PageType>
 struct IWalkableAllocator: IAllocator<PageType> {
     virtual bool check()                                                        = 0;
 
-    virtual void walkContainers(vapi::ContainerWalker* walker, const char* allocator_descr = nullptr) = 0;
+    virtual void walkContainers(ContainerWalker* walker, const char* allocator_descr = nullptr) = 0;
 };
 
 

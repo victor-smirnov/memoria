@@ -16,7 +16,6 @@
 
 namespace memoria {
 
-using namespace memoria::vapi;
 using namespace std;
 
 class SequenceTestSuite: public TestSuite {

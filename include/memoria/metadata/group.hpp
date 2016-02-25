@@ -12,7 +12,6 @@
 #include <memoria/metadata/metadata.hpp>
 
 namespace memoria    {
-namespace vapi       {
 
 struct MEMORIA_API MetadataGroup: public Metadata {
 public:
@@ -77,6 +76,6 @@ inline bool isGroup(Metadata *meta)
 
 
 
-}}
+}
 
 #endif

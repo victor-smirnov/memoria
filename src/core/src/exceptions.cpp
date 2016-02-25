@@ -1,6 +1,6 @@
 #include <memoria/core/exceptions/memoria.hpp>
 
-namespace memoria{ namespace vapi {
+namespace memoria{
 
 #ifndef MEMORIA_SRC
 #error "MEMORIA_SRC symbol must be defined at compile time"
@@ -28,7 +28,7 @@ ostream& operator<<(ostream& out, const MemoriaThrowable& t) {
 }
 
 
-}}
+}
 
 
 

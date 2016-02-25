@@ -442,12 +442,12 @@ public:
     {
         if ((command & CTR_CREATE) == 0 && (command & CTR_FIND) == 0)
         {
-            throw memoria::vapi::Exception(MEMORIA_SOURCE, "Either CTR_CREATE, CTR_FIND or both must be specified");
+            throw memoria::Exception(MEMORIA_SOURCE, "Either CTR_CREATE, CTR_FIND or both must be specified");
         }
 
         if ((command & CTR_FIND) && name == CTR_DEFAULT_NAME)
         {
-            throw memoria::vapi::Exception(MEMORIA_SOURCE, "Container name must be specified for the CTR_FIND operation");
+            throw memoria::Exception(MEMORIA_SOURCE, "Container name must be specified for the CTR_FIND operation");
         }
     }
 
@@ -567,15 +567,15 @@ public:
         return logger_.isLogEnabled(level);
     }
 
-    MEMORIA_PUBLIC const memoria::vapi::Logger& logger() const {
+    MEMORIA_PUBLIC const memoria::Logger& logger() const {
         return logger_;
     }
 
-    MEMORIA_PUBLIC memoria::vapi::Logger& logger() {
+    MEMORIA_PUBLIC memoria::Logger& logger() {
             return logger_;
         }
 
-    static memoria::vapi::Logger& class_logger() {
+    static memoria::Logger& class_logger() {
         return class_logger_;
     }
 
@@ -622,7 +622,7 @@ public:
 template<
         typename Types
 >
-Logger Ctr<Types>::class_logger_(typeid(typename Types::ContainerTypeName).name(), Logger::DERIVED, &memoria::vapi::logger);
+Logger Ctr<Types>::class_logger_(typeid(typename Types::ContainerTypeName).name(), Logger::DERIVED, &memoria::logger);
 
 
 }

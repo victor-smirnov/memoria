@@ -17,7 +17,6 @@
 #include <memory>
 
 namespace memoria    {
-namespace vapi       {
 
 struct MEMORIA_API InputStreamHandler {
 
@@ -348,7 +347,7 @@ private:
     		return value;
     	}
     	else {
-    		throw vapi::Exception(MA_SRC, "Can't read value from InputStreamHandler");
+    		throw Exception(MA_SRC, "Can't read value from InputStreamHandler");
     	}
     }
 };
@@ -438,6 +437,6 @@ inline OutputStreamHandler& operator<<(OutputStreamHandler& out, const String& v
 }
 
 }
-}
+
 
 #endif

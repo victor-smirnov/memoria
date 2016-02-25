@@ -18,8 +18,6 @@
 
 namespace memoria {
 
-using namespace memoria::vapi;
-
 struct RAFileImpl {
     Int fd_ = 0;
 };

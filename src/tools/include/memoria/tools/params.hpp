@@ -24,10 +24,6 @@
 namespace memoria {
 
 using namespace std;
-using namespace memoria::vapi;
-
-
-
 
 class AbstractParamDescriptor {
 public:

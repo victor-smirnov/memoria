@@ -18,7 +18,7 @@ namespace memoria    {
 
 template <typename T> class PageID;
 
-namespace vapi       {
+
 
 class MEMORIA_API IDValue {
     Byte data_[8];
@@ -153,15 +153,7 @@ private:
 };
 
 
-
-
-
-}
-}
-
-namespace std {
-
-MEMORIA_API ostream& operator<<(ostream& os, const memoria::vapi::IDValue& id);
+std::ostream& operator<<(std::ostream& os, const memoria::IDValue& id);
 
 }
 #endif

@@ -148,7 +148,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
     	template <typename Stream>
     	void stream(const Stream* obj, bool leaf, Int idx, CtrSizeT value)
     	{
-    		throw vapi::Exception(MA_SRC, "Incorrect static method dispatching");
+    		throw Exception(MA_SRC, "Incorrect static method dispatching");
     	}
     };
 
@@ -164,8 +164,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
     		self.updatePageG(node);
 
     		self.process_count_substreams(node, stream, fn, idx, value);
-
-//    		cout<<"Add_to_stream_counter: "<<node->id()<<" "<<stream<<" "<<idx<<" "<<value<<endl;
 
     		while (node->parent_id().isSet())
     		{

@@ -55,7 +55,7 @@ struct ForEachStream<Idx, Idx> {
 			return fn.template process<Idx>(std::forward<Args>(args)...);
 		}
 		else {
-			throw vapi::Exception(MA_SRC, SBuf()<<"Requested stream "<<stream<<" not found");
+			throw Exception(MA_SRC, SBuf()<<"Requested stream "<<stream<<" not found");
 		}
 	}
 };

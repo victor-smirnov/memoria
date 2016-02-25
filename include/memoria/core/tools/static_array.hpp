@@ -781,7 +781,7 @@ private:
     static void check(Int idx)
     {
 //    	if (idx < 0 || idx >= Indexes_) {
-//    		throw vapi::BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid StaticVector index: "<<idx);
+//    		throw BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid StaticVector index: "<<idx);
 //    	}
     }
 };
@@ -825,7 +825,7 @@ std::ostream& operator<<(std::ostream& out, const ::memoria::core::StaticVector<
 
 }
 
-namespace vapi {
+
 template <typename T> struct FromString;
 
 
@@ -872,7 +872,7 @@ struct FromString<core::StaticVector<T, Size>> {
     }
 };
 
-}
+
 
 }
 #endif

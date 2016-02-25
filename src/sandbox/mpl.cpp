@@ -110,13 +110,13 @@ int main()
 
 		FSDumpAllocator(alloc2->master(), "pdump3.dir");
 	}
-	catch (vapi::Exception& ex) {
+	catch (Exception& ex) {
 		cout<<ex.source()<<": "<<ex.message()<<endl;
 	}
-	catch (vapi::Exception* ex) {
+	catch (Exception* ex) {
 		cout<<ex->source()<<": "<<ex->message()<<endl;
 	}
-	catch (vapi::MemoriaThrowable& ex) {
+	catch (MemoriaThrowable& ex) {
 		ex.dump(cout);
 	}
 	catch (PackedOOMException& ex) {

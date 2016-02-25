@@ -135,7 +135,7 @@ public:
 
     virtual bool hasRoot(const UUID& name)
     {
-        throw vapi::Exception(MA_SRC, "Allocator::hasRoot(UUID) method must be properly implements for this container");
+        throw Exception(MA_SRC, "Allocator::hasRoot(UUID) method must be properly implements for this container");
     }
 
     static Int initMetadata()

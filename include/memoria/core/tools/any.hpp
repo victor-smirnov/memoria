@@ -13,11 +13,11 @@ namespace memoria {
 
 template <typename> struct Any2Type;
 
-namespace vapi {
+
 
 const char* ExtractMemoriaPath(const char*);
 
-}
+
 
 
 

@@ -15,10 +15,6 @@ namespace memoria    {
 
 using namespace std;
 
-using namespace memoria::vapi;
-
-
-
 inline UBigInt BroadwordGTZ8 (UBigInt x)
 {
     UBigInt H8 = 0x8080808080808080;

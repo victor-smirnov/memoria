@@ -59,7 +59,7 @@ int main()
 		cout<<ex.source()<<endl;
 		cout<<ex<<endl;
 	}
-	catch (vapi::Exception& ex) {
+	catch (Exception& ex) {
 		cout<<ex.source()<<endl;
 		cout<<ex<<endl;
 	}

@@ -17,10 +17,8 @@
 #include <memory>
 #include <iostream>
 
-namespace memoria    {
+namespace memoria {
 
-
-using namespace memoria::vapi;
 using namespace std;
 
 StringList::StringList(StringRef list, StringRef separators)

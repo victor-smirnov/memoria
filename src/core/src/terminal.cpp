@@ -16,7 +16,6 @@ namespace memoria   {
 namespace tools     {
 
 using namespace std;
-using namespace vapi;
 
 const TermImpl* Term::term_;
 

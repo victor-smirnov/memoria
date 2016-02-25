@@ -10,7 +10,6 @@
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_NAMES_HPP
 
 #include <memoria/core/container/container.hpp>
-#include <memoria/core/tools/static_array.hpp>
 
 namespace memoria    {
 

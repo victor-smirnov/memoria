@@ -18,8 +18,6 @@
 
 namespace memoria {
 
-using namespace memoria::vapi;
-
 class ListOfStrings;
 class Configurator;
 

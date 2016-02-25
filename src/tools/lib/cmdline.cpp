@@ -12,8 +12,6 @@
 
 namespace memoria {
 
-using namespace memoria::vapi;
-
 void CmdLine::Process()
 {
     String image_name = getImageName();

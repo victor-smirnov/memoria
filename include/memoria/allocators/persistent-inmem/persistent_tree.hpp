@@ -77,11 +77,11 @@ public:
 					root_provider_->root_id() = target->root_id();
 				}
 				else {
-					throw vapi::Exception(MA_SRC, "Internal error. HistoryNode.root is null for transaction.");
+					throw Exception(MA_SRC, "Internal error. HistoryNode.root is null for transaction.");
 				}
 			}
 			else if (!root_provider_->root()) {
-				throw vapi::Exception(MA_SRC, "Internal error. HistoryNode.root is null for transaction.");
+				throw Exception(MA_SRC, "Internal error. HistoryNode.root is null for transaction.");
 			}
 		}
 	}
@@ -299,7 +299,7 @@ protected:
 	{
 		if (node->txn_id() != this->txn_id())
 		{
-			throw vapi::Exception(MA_SRC, SBuf()<<"Transaction IDs do not match: "<<node->txn_id()<<" "<<this->txn_id());
+			throw Exception(MA_SRC, SBuf()<<"Transaction IDs do not match: "<<node->txn_id()<<" "<<this->txn_id());
 		}
 	}
 

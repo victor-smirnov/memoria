@@ -250,7 +250,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
         {
             PageWrapper<const Page> pw(page);
             PageMetadata* meta = self().getMetadata()->getPageMetadata(pw.getContainerHash(), pw.getPageTypeHash());
-            memoria::vapi::dumpPage(meta, &pw, out);
+            memoria::dumpPage(meta, &pw, out);
             out<<std::endl;
             out<<std::endl;
         }

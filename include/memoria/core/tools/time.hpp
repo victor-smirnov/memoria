@@ -11,7 +11,7 @@
 
 namespace memoria   {
 
-using namespace memoria::vapi;
+
 
 BigInt  getTimeInMillis();
 String FormatTime(BigInt millis);

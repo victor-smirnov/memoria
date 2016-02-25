@@ -274,7 +274,7 @@ public:
 
     	if (Blocks == 1)
     	{
-    		vapi::ValueHelper<Value>::setup(handler, "DATA_ITEM", buffer_, size_ * Blocks, IPageDataEventHandler::BYTE_ARRAY);
+    		ValueHelper<Value>::setup(handler, "DATA_ITEM", buffer_, size_ * Blocks, IPageDataEventHandler::BYTE_ARRAY);
     	}
     	else {
     		auto values = this->values();

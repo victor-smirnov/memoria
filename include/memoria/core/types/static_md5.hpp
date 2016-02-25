@@ -33,9 +33,9 @@ struct TypeToValueList<TypeList<>> {
 };
 
 
-namespace md5       {
+namespace md5 {
 
-using namespace memoria::vapi;
+
 using namespace std;
 
 template <UInt X, UInt Y, UInt Z>

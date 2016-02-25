@@ -20,7 +20,7 @@
 
 namespace memoria    {
 
-using namespace memoria::vapi;
+
 
 template <typename Types> class Ctr;
 template <typename Types> class Iter;
@@ -120,7 +120,7 @@ private:
 
 public:
     IteratorBase():
-        logger_("Iterator", Logger::DERIVED, &memoria::vapi::logger),
+        logger_("Iterator", Logger::DERIVED, &memoria::logger),
         type_(NORMAL)
     {}
 
@@ -171,7 +171,7 @@ public:
         return logger_.isLogEnabled(level);
     }
 
-    memoria::vapi::Logger& logger()
+    memoria::Logger& logger()
     {
           return logger_;
     }

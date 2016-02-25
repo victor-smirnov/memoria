@@ -23,7 +23,7 @@
 #include <ostream>
 
 namespace memoria    {
-namespace vapi       {
+
 
 struct ContainerWalker {
     virtual void beginAllocator(const char* type, const char* desc)             = 0;
@@ -419,7 +419,7 @@ void FSDumpAllocator(const std::shared_ptr<Allocator>& allocator, StringRef path
 
 
 
-}}
+}
 
 
 #endif

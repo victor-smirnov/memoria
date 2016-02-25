@@ -46,7 +46,7 @@ public:
 };
 
 template <typename V, typename T>
-vapi::OutputStreamHandler& operator<<(vapi::OutputStreamHandler& out, const PersistentTreeValue<V, T>& value)
+OutputStreamHandler& operator<<(OutputStreamHandler& out, const PersistentTreeValue<V, T>& value)
 {
     out << value.page();
     out << value.txn_id();
@@ -54,7 +54,7 @@ vapi::OutputStreamHandler& operator<<(vapi::OutputStreamHandler& out, const Pers
 }
 
 template <typename V, typename T>
-vapi::InputStreamHandler& operator>>(vapi::InputStreamHandler& in, PersistentTreeValue<V, T>& value)
+InputStreamHandler& operator>>(InputStreamHandler& in, PersistentTreeValue<V, T>& value)
 {
 	in >> value.page();
 	in >> value.txn_id();
@@ -437,11 +437,11 @@ public:
 				return std::make_shared<SnapshotT>(history_node, this->shared_from_this());
 			}
 			else {
-				throw vapi::Exception(MA_SRC, SBuf()<<"Snapshot "<<history_node->txn_id()<<" is "<<(history_node->is_active() ? "active" : "dropped"));
+				throw Exception(MA_SRC, SBuf()<<"Snapshot "<<history_node->txn_id()<<" is "<<(history_node->is_active() ? "active" : "dropped"));
 			}
 		}
 		else {
-			throw vapi::Exception(MA_SRC, SBuf()<<"Snapshot id "<<snapshot_id<<" is not known");
+			throw Exception(MA_SRC, SBuf()<<"Snapshot id "<<snapshot_id<<" is not known");
 		}
 	}
 
@@ -457,11 +457,11 @@ public:
 				return std::make_shared<SnapshotT>(history_node, this->shared_from_this());
 			}
 			else {
-				throw vapi::Exception(MA_SRC, SBuf()<<"Snapshot "<<history_node->txn_id()<<" is "<<(history_node->is_active() ? "active" : "dropped"));
+				throw Exception(MA_SRC, SBuf()<<"Snapshot "<<history_node->txn_id()<<" is "<<(history_node->is_active() ? "active" : "dropped"));
 			}
 		}
 		else {
-			throw vapi::Exception(MA_SRC, SBuf()<<"Named branch \""<<name<<"\" is not known");
+			throw Exception(MA_SRC, SBuf()<<"Named branch \""<<name<<"\" is not known");
 		}
 	}
 
@@ -481,14 +481,14 @@ public:
 			}
 			else if (iter->second->is_dropped())
 			{
-				throw vapi::Exception(MA_SRC, SBuf()<<"Snapshot "<<txn_id<<" has been dropped");
+				throw Exception(MA_SRC, SBuf()<<"Snapshot "<<txn_id<<" has been dropped");
 			}
 			else {
-				throw vapi::Exception(MA_SRC, SBuf()<<"Snapshot "<<txn_id<<" hasn't been committed yet");
+				throw Exception(MA_SRC, SBuf()<<"Snapshot "<<txn_id<<" hasn't been committed yet");
 			}
 		}
 		else {
-			throw vapi::Exception(MA_SRC, SBuf()<<"Snapshot "<<txn_id<<" is not known in this allocator");
+			throw Exception(MA_SRC, SBuf()<<"Snapshot "<<txn_id<<" is not known in this allocator");
 		}
 	}
 
@@ -502,11 +502,11 @@ public:
 				named_branches_[name] = iter->second;
 			}
 			else {
-				throw vapi::Exception(MA_SRC, SBuf()<<"Snapshot "<<txn_id<<" hasn't been committed yet");
+				throw Exception(MA_SRC, SBuf()<<"Snapshot "<<txn_id<<" hasn't been committed yet");
 			}
 		}
 		else {
-			throw vapi::Exception(MA_SRC, SBuf()<<"Snapshot "<<txn_id<<" is not known in this allocator");
+			throw Exception(MA_SRC, SBuf()<<"Snapshot "<<txn_id<<" is not known in this allocator");
 		}
 	}
 
@@ -514,7 +514,7 @@ public:
 		return metadata_;
 	}
 
-	virtual void walkContainers(vapi::ContainerWalker* walker, const char* allocator_descr = nullptr)
+	virtual void walkContainers(ContainerWalker* walker, const char* allocator_descr = nullptr)
 	{
 		walker->beginAllocator("PersistentInMemAllocator", allocator_descr);
 
@@ -526,7 +526,7 @@ public:
 	virtual void store(OutputStreamHandler *output)
 	{
 		if (active_snapshots_) {
-			throw vapi::Exception(MA_SRC, "There are active snapshots");
+			throw Exception(MA_SRC, "There are active snapshots");
 		}
 
 		records_ = 0;
@@ -568,17 +568,17 @@ public:
 				signature[5] == 'I' &&
 				signature[6] == 'A'))
 		{
-			throw vapi::Exception(MEMORIA_SOURCE, SBuf()<<"The stream does not start from MEMORIA signature: "<<signature);
+			throw Exception(MEMORIA_SOURCE, SBuf()<<"The stream does not start from MEMORIA signature: "<<signature);
 		}
 
 		if (!(signature[7] == 0 || signature[7] == 1))
 		{
-			throw vapi::BoundsException(MEMORIA_SOURCE, SBuf()<<"Endiannes filed value is out of bounds "<<signature[7]);
+			throw BoundsException(MEMORIA_SOURCE, SBuf()<<"Endiannes filed value is out of bounds "<<signature[7]);
 		}
 
 		if (signature[8] != 0)
 		{
-			throw vapi::Exception(MEMORIA_SOURCE, "This is not an in-memory container");
+			throw Exception(MEMORIA_SOURCE, "This is not an in-memory container");
 		}
 
 		allocator->master_ = allocator->history_tree_ = nullptr;
@@ -609,7 +609,7 @@ public:
 				case TYPE_HISTORY_NODE: allocator->read_history_node(*input, history_node_map); break;
 				case TYPE_CHECKSUM: 	allocator->read_checksum(*input, checksum); break;
 				default:
-					throw vapi::Exception(MA_SRC, SBuf()<<"Unknown record type: "<<(Int)type);
+					throw Exception(MA_SRC, SBuf()<<"Unknown record type: "<<(Int)type);
 			}
 
 			allocator->records_++;
@@ -617,7 +617,7 @@ public:
 
 		if (allocator->records_ != checksum.records())
 		{
-			throw vapi::Exception(MA_SRC, SBuf()<<"Invalid records checksum: actual="<<allocator->records_<<", expected="<<checksum.records());
+			throw Exception(MA_SRC, SBuf()<<"Invalid records checksum: actual="<<allocator->records_<<", expected="<<checksum.records());
 		}
 
 		for (auto& entry: ptree_node_map)
@@ -641,7 +641,7 @@ public:
 						leaf_node->data(c) = typename LeafNodeT::Value(page_iter->second, descr.txn_id());
 					}
 					else {
-						throw vapi::Exception(MA_SRC, SBuf()<<"Specified uuid "<<descr.page()<<" is not found in the page map");
+						throw Exception(MA_SRC, SBuf()<<"Specified uuid "<<descr.page()<<" is not found in the page map");
 					}
 				}
 			}
@@ -660,7 +660,7 @@ public:
 						branch_node->data(c) = iter->second.second;
 					}
 					else {
-						throw vapi::Exception(MA_SRC, SBuf()<<"Specified uuid "<<node_id<<" is not found in the persistent tree node map");
+						throw Exception(MA_SRC, SBuf()<<"Specified uuid "<<node_id<<" is not found in the persistent tree node map");
 					}
 				}
 			}
@@ -673,7 +673,7 @@ public:
 			allocator->master_ = allocator->snapshot_map_[metadata.master()];
 		}
 		else {
-			throw vapi::Exception(MA_SRC, SBuf()<<"Specified master uuid "<<metadata.master()<<" is not found in the data");
+			throw Exception(MA_SRC, SBuf()<<"Specified master uuid "<<metadata.master()<<" is not found in the data");
 		}
 
 		for (auto& entry: metadata.named_branches())
@@ -685,7 +685,7 @@ public:
 				allocator->named_branches_[entry.first] = iter->second;
 			}
 			else {
-				throw vapi::Exception(MA_SRC, SBuf()<<"Specified snapshot uuid "<<entry.first<<" is not found");
+				throw Exception(MA_SRC, SBuf()<<"Specified snapshot uuid "<<entry.first<<" is not found");
 			}
 		}
 
@@ -754,7 +754,7 @@ private:
 					return node;
 				}
 				else {
-					throw vapi::Exception(MA_SRC, SBuf()<<"Specified node_id "<<buffer->root()<<" is not found in persistent tree data");
+					throw Exception(MA_SRC, SBuf()<<"Specified node_id "<<buffer->root()<<" is not found in persistent tree data");
 				}
 			}
 			else {
@@ -767,7 +767,7 @@ private:
 			}
 		}
 		else {
-			throw vapi::Exception(MA_SRC, SBuf()<<"Specified txn_id "<<txn_id<<" is not found in history data");
+			throw Exception(MA_SRC, SBuf()<<"Specified txn_id "<<txn_id<<" is not found in history data");
 		}
 	}
 
@@ -882,7 +882,7 @@ private:
 			map[page->uuid()] = page;
 		}
 		else {
-			throw vapi::Exception(MA_SRC, SBuf()<<"Page "<<page->uuid()<<" was already registered");
+			throw Exception(MA_SRC, SBuf()<<"Page "<<page->uuid()<<" was already registered");
 		}
 	}
 
@@ -901,7 +901,7 @@ private:
 			map[buffer->node_id()] = std::make_pair(buffer, node);
 		}
 		else {
-			throw vapi::Exception(MA_SRC, SBuf()<<"PersistentTree LeafNode "<<buffer->node_id()<<" was already registered");
+			throw Exception(MA_SRC, SBuf()<<"PersistentTree LeafNode "<<buffer->node_id()<<" was already registered");
 		}
 	}
 
@@ -920,7 +920,7 @@ private:
 			map[buffer->node_id()] = std::make_pair(buffer, node);
 		}
 		else {
-			throw vapi::Exception(MA_SRC, SBuf()<<"PersistentTree BranchNode "<<buffer->node_id()<<" was already registered");
+			throw Exception(MA_SRC, SBuf()<<"PersistentTree BranchNode "<<buffer->node_id()<<" was already registered");
 		}
 	}
 
@@ -961,7 +961,7 @@ private:
 			map[node->txn_id()] = node;
 		}
 		else {
-			throw vapi::Exception(MA_SRC, SBuf()<<"HistoryTree Node "<<node->txn_id()<<" was already registered");
+			throw Exception(MA_SRC, SBuf()<<"HistoryTree Node "<<node->txn_id()<<" was already registered");
 		}
 	}
 
@@ -1057,7 +1057,7 @@ private:
 		}
 	}
 
-	void walk_containers(HistoryNode* node, vapi::ContainerWalker* walker)
+	void walk_containers(HistoryNode* node, ContainerWalker* walker)
 	{
 		if (node->is_committed())
 		{

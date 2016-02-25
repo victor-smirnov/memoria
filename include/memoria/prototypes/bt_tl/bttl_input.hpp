@@ -346,7 +346,7 @@ private:
 					buffer.init(BufferHandleType(pbuffer));
 				}
 				else {
-					throw vapi::OOMException(MA_SRC);
+					throw OOMException(MA_SRC);
 				}
 			}
 		}
@@ -611,7 +611,7 @@ public:
 				{
 					if (total_symbols_ == 0 && (symbol != start_level_))
 					{
-						throw vapi::Exception(MA_SRC, SBuf()<<"Invalid start symbol: "<<symbol<<" expected: "<<start_level_);
+						throw Exception(MA_SRC, SBuf()<<"Invalid start symbol: "<<symbol<<" expected: "<<start_level_);
 					}
 
 					symbols_size += length;

@@ -19,7 +19,6 @@
 #include <stdlib.h>
 
 namespace memoria    {
-namespace vapi       {
 
 using namespace std;
 
@@ -88,15 +87,6 @@ public:
 };
 
 
-class MEMORIA_API BoundsException: public ::memoria::vapi::Exception {
-
-public:
-    BoundsException(const char* source, StringRef message):
-                Exception(source, message) {}
-
-    BoundsException(const char* source, const SBuf& message):
-                Exception(source, message) {}
-};
 
 
 
@@ -106,6 +96,6 @@ MEMORIA_API const char* ExtractMemoriaPath(const char* path);
 ostream& operator<<(ostream& out, const MemoriaThrowable& t);
 
 }
-}
+
 
 #endif

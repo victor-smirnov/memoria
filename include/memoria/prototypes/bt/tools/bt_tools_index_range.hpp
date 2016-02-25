@@ -502,7 +502,7 @@ namespace {
 				return std::get<Idx>(accum)[index - From];
 			}
 			else {
-				throw vapi::BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid index value: "<<index);
+				throw BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid index value: "<<index);
 			}
 		}
 
@@ -514,7 +514,7 @@ namespace {
 				return std::get<Idx>(accum)[Index - From];
 			}
 			else {
-				throw vapi::BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid index value: "<<Index);
+				throw BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid index value: "<<Index);
 			}
 		}
 	};
@@ -529,13 +529,13 @@ namespace {
 		template <typename RangeList>
 		static RtnType& value(Int index, RangeList&& accum)
 		{
-			throw vapi::BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid index value: "<<index);
+			throw BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid index value: "<<index);
 		}
 
 		template <Int Index, typename RangeList>
 		static RtnType& value(RangeList&& accum)
 		{
-			throw vapi::BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid index value: "<<Index);
+			throw BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid index value: "<<Index);
 		}
 	};
 

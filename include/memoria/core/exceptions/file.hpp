@@ -13,7 +13,7 @@
 #include <string>
 
 namespace memoria    {
-namespace vapi       {
+
 
 using namespace std;
 
@@ -29,5 +29,5 @@ public:
 
 
 }
-}
+
 #endif

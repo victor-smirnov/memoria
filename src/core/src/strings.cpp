@@ -7,10 +7,11 @@
 
 
 #include <memoria/core/exceptions/exceptions.hpp>
-#include <errno.h>
 #include <memoria/core/tools/strings/strings.hpp>
 
-namespace memoria{ namespace vapi {
+#include <errno.h>
+
+namespace memoria {
 
 using namespace std;
 
@@ -168,14 +169,14 @@ Int getValueMultiplier(const char* chars, const char* ptr)
         return 1000*1000*1000;
     }
     else {
-        throw ::memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"Invalid number format: "<<chars);
+        throw ::memoria::Exception(MEMORIA_SOURCE, SBuf()<<"Invalid number format: "<<chars);
     }
 }
 
 void checkError(const char* chars, const char* ptr)
 {
     if (*ptr != 0) {
-        throw ::memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"Invalid number format: "<<chars);
+        throw ::memoria::Exception(MEMORIA_SOURCE, SBuf()<<"Invalid number format: "<<chars);
     }
 }
 
@@ -256,10 +257,10 @@ bool ConvertToBool(StringRef str)
         return false;
     }
     else {
-        throw ::memoria::vapi::Exception(MEMORIA_SOURCE, SBuf()<<"Invalid boolean format: "<<str);
+        throw ::memoria::Exception(MEMORIA_SOURCE, SBuf()<<"Invalid boolean format: "<<str);
     }
 }
 
-}}
+}
 
 

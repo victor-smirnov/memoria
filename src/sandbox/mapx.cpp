@@ -47,7 +47,7 @@ int main() {
 				iter++;
 			}
 		}
-		catch (memoria::vapi::Exception& ex) {
+		catch (memoria::Exception& ex) {
 			cout<<ex.message()<<" at "<<ex.source()<<endl;
 		}
 
@@ -59,7 +59,7 @@ int main() {
 
 		delete os;
 	}
-	catch (memoria::vapi::Exception& ex) {
+	catch (memoria::Exception& ex) {
 		cout<<ex.message()<<" at "<<ex.source()<<endl;
 	}
 }

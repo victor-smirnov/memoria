@@ -23,7 +23,7 @@ void Expand(ostream& os, Int level)
 }
 
 
-namespace vapi {
+
 
 void dumpPage(PageMetadata* meta, const Page* page, std::ostream& out)
 {
@@ -41,6 +41,6 @@ void dumpPageData(PageMetadata* meta, const void* page, std::ostream& out)
 }
 
 
-}}
+}
 
 

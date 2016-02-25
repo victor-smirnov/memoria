@@ -17,7 +17,6 @@
 
 using namespace std;
 using namespace memoria;
-using namespace memoria::vapi;
 
 int main(void) {
 

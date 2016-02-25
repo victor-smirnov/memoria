@@ -129,16 +129,16 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
 
 
 
-    BigInt read(vapi::SymbolsBuffer<BitsPerSymbol>& data)
+    BigInt read(SymbolsBuffer<BitsPerSymbol>& data)
     {
         auto& self = this->self();
-        ReadWalker<vapi::SymbolsBuffer<BitsPerSymbol>> target(data);
+        ReadWalker<SymbolsBuffer<BitsPerSymbol>> target(data);
 
         return self.ctr().readStream2(self, target);
     }
 
 
-    void insert_symbols(vapi::SymbolsBuffer<BitsPerSymbol>& data)
+    void insert_symbols(SymbolsBuffer<BitsPerSymbol>& data)
     {
     	auto& self = this->self();
     	auto& model = self.ctr();

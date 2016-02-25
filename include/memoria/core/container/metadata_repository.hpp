@@ -19,7 +19,7 @@
 
 namespace memoria {
 
-using memoria::vapi::ContainerMetadataRepository;
+using memoria::ContainerMetadataRepository;
 
 template <typename Profile, typename SelectorType, typename ContainerTypeName = SelectorType> class CtrTF;
 

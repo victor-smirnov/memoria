@@ -12,14 +12,12 @@
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/tools/config.hpp>
 
-//#include <memoria/core/tools/static_array.hpp>
+
 
 #include <string>
-#include <iostream>
+#include <sstream>
 
-namespace memoria { namespace vapi {
-
-//using namespace core;
+namespace memoria {
 
 MEMORIA_API String trimString(StringRef str);
 //MEMORIA_API String ReplaceFirst(StringRef str, StringRef txt);
@@ -181,6 +179,6 @@ struct FromString<T[Size]> {
 
 
 
-}}
+}
 
 #endif

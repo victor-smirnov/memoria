@@ -22,7 +22,7 @@
 
 
 
-namespace memoria { namespace vapi {
+namespace memoria {
 
 using namespace std;
 
@@ -39,6 +39,5 @@ std::unique_ptr<FileInputStreamHandler> FileInputStreamHandler::create(const cha
 
 
 
-}}
-
+}
 

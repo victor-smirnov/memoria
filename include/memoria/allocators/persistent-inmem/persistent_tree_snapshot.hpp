@@ -228,7 +228,7 @@ public:
 			history_tree_raw_->unref_active();
 		}
 		else {
-			throw vapi::Exception(MA_SRC, SBuf()<<"Invalid Snapshot state: "<<(Int)history_node_->status());
+			throw Exception(MA_SRC, SBuf()<<"Invalid Snapshot state: "<<(Int)history_node_->status());
 		}
 	}
 
@@ -239,7 +239,7 @@ public:
 			history_node_->mark_to_clear();
 		}
 		else {
-			throw vapi::Exception(MA_SRC, "Can't drop root snapshot");
+			throw Exception(MA_SRC, "Can't drop root snapshot");
 		}
 	}
 
@@ -265,7 +265,7 @@ public:
 		}
 		else
 		{
-			throw vapi::Exception(MA_SRC, "Snapshot is already committed.");
+			throw Exception(MA_SRC, "Snapshot is already committed.");
 		}
 	}
 
@@ -280,7 +280,7 @@ public:
 		}
 		else
 		{
-			throw vapi::Exception(MA_SRC, "Snapshot is still being active. Commit it first.");
+			throw Exception(MA_SRC, "Snapshot is still being active. Commit it first.");
 		}
 	}
 
@@ -297,7 +297,7 @@ public:
 		}
 		else
 		{
-			throw vapi::Exception(MA_SRC, "Snapshot has no parent.");
+			throw Exception(MA_SRC, "Snapshot has no parent.");
 		}
 	}
 
@@ -336,7 +336,7 @@ public:
 
 					persistent_tree_.find(id);
 
-					throw vapi::Exception(MA_SRC, SBuf()<<"Page is not found for the specified id: "<<id);
+					throw Exception(MA_SRC, SBuf()<<"Page is not found for the specified id: "<<id);
 				}
 			}
 
@@ -392,7 +392,7 @@ public:
 				else {
 					persistent_tree_.dump();
 
-					throw vapi::Exception(MA_SRC, SBuf()<<"Page is not found for the specified id: "<<id);
+					throw Exception(MA_SRC, SBuf()<<"Page is not found for the specified id: "<<id);
 				}
 			}
 			else if (shared->state() == Shared::READ)
@@ -409,7 +409,7 @@ public:
 					shared->refresh();
 				}
 				else {
-					throw vapi::Exception(MA_SRC, SBuf()<<"Page is not found for the specified id: "<<id);
+					throw Exception(MA_SRC, SBuf()<<"Page is not found for the specified id: "<<id);
 				}
 			}
 			else if (shared->state() == Shared::UPDATE)
@@ -417,7 +417,7 @@ public:
 				//MEMORIA_ASEERT();
 			}
 			else {
-				throw vapi::Exception(MA_SRC, SBuf()<<"Invalid PageShared state: "<<shared->state());
+				throw Exception(MA_SRC, SBuf()<<"Invalid PageShared state: "<<shared->state());
 			}
 
 			shared->state() = Shared::UPDATE;
@@ -558,7 +558,7 @@ public:
 
 	virtual PageG getPageG(Page* page)
 	{
-		throw vapi::Exception(MA_SRC, "Method getPageG is not implemented for this allocator");
+		throw Exception(MA_SRC, "Method getPageG is not implemented for this allocator");
 	}
 
 
@@ -611,7 +611,7 @@ public:
 				root_map_->remove(name);
 			}
 			else {
-				throw vapi::Exception(MA_SRC, SBuf()<<"Allocator directory removal attempted");
+				throw Exception(MA_SRC, SBuf()<<"Allocator directory removal attempted");
 			}
 		}
 		else {
@@ -665,7 +665,7 @@ public:
 		return result;
 	}
 
-	virtual void walkContainers(vapi::ContainerWalker* walker, const char* allocator_descr = nullptr)
+	virtual void walkContainers(ContainerWalker* walker, const char* allocator_descr = nullptr)
 	{
         walker->beginSnapshot((SBuf()<<"Snapshot-"<<history_node_->txn_id()).str().c_str());
 
@@ -796,7 +796,7 @@ protected:
     {
     	if (!history_node_->root())
     	{
-    		throw vapi::Exception(MA_SRC, "Snapshot has been already cleared");
+    		throw Exception(MA_SRC, "Snapshot has been already cleared");
     	}
     }
 
@@ -806,7 +806,7 @@ protected:
 
     	if (!history_node_->is_active())
     	{
-    		throw vapi::Exception(MA_SRC, "Snapshot has been already committed");
+    		throw Exception(MA_SRC, "Snapshot has been already committed");
     	}
     }
 

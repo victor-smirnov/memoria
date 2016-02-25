@@ -14,7 +14,6 @@
 
 namespace memoria {
 
-using namespace memoria::vapi;
 using namespace std;
 
 class PackedMaxTreeTestSuite: public TestSuite {

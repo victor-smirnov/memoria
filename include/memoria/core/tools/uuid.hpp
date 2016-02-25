@@ -116,37 +116,28 @@ struct UUIDKeyEq
 };
 
 
-inline vapi::InputStreamHandler& operator>>(vapi::InputStreamHandler& in, UUID& value) {
+inline InputStreamHandler& operator>>(InputStreamHandler& in, UUID& value) {
 	value.lo() = in.readUBigInt();
 	value.hi() = in.readUBigInt();
 	return in;
 }
 
-
-
-inline vapi::OutputStreamHandler& operator<<(vapi::OutputStreamHandler& out, const UUID& value) {
+inline OutputStreamHandler& operator<<(OutputStreamHandler& out, const UUID& value) {
 	out.write(value.lo());
 	out.write(value.hi());
 	return out;
 }
 
-namespace vapi {
+template <typename T> struct FromString;
 
-	template <typename T> struct FromString;
-
-	template <>
-	struct FromString<UUID> {
-		static UUID convert(StringRef str)
-		{
-			return UUID::parse(str.c_str());
-		}
-	};
-}
-
+template <>
+struct FromString<UUID> {
+	static UUID convert(StringRef str)
+	{
+		return UUID::parse(str.c_str());
+	}
+};
 
 
 }
-
-
-
 #endif

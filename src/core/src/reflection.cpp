@@ -8,17 +8,13 @@
 #include <memoria/core/tools/strings/strings.hpp>
 #include <memoria/metadata/container.hpp>
 
-namespace std {
 
-ostream& operator<<(ostream& os, const memoria::vapi::IDValue& id) {
+namespace memoria {
+
+ostream& operator<<(ostream& os, const memoria::IDValue& id) {
     os<<id.str();
     return os;
 }
-
-}
-
-namespace memoria {
-namespace vapi {
 
 
 
@@ -131,6 +127,6 @@ PageMetadata::PageMetadata(
 
 
 }
-}
+
 
 

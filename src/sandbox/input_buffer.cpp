@@ -169,7 +169,7 @@ int main(int argc, const char** argv, const char** envp) {
 
 		cout<<"Done"<<endl;
 	}
-	catch (memoria::vapi::Exception& ex) {
+	catch (memoria::Exception& ex) {
 		cout<<ex.message()<<" at "<<ex.source()<<endl;
 	}
 }

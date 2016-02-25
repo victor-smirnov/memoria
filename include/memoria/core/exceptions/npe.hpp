@@ -12,7 +12,6 @@
 #include <memoria/core/exceptions/memoria.hpp>
 
 namespace memoria    {
-namespace vapi       {
 
 using namespace std;
 
@@ -32,6 +31,6 @@ public:
 
 
 }
-}
+
 
 #endif

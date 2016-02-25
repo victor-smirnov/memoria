@@ -11,8 +11,6 @@
 
 
 namespace memoria    {
-namespace vapi       {
-
 
 template <typename T, Int BitsPerSymbol>
 struct ISequenceDataSource {
@@ -27,7 +25,7 @@ struct ISequenceDataTarget {
 
 
 }
-}
+
 
 
 

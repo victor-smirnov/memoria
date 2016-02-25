@@ -87,7 +87,7 @@ struct PackedSizeTypeList<> {
 	static const PackedSizeType Value = PackedSizeType::FIXED;
 };
 
-class MEMORIA_API PackedOOMException: public vapi::MemoriaThrowable {
+class MEMORIA_API PackedOOMException: public MemoriaThrowable {
 
     Int total_;
     Int requested_;

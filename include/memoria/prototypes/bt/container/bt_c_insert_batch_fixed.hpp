@@ -206,7 +206,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchFixedName)
     			return node;
     		}
     		else {
-    			throw memoria::vapi::BoundsException(MA_SRC, "Leaf List is empty");
+    			throw memoria::BoundsException(MA_SRC, "Leaf List is empty");
     		}
     	}
 

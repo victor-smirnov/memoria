@@ -24,10 +24,6 @@
 
 namespace memoria    {
 
-using namespace memoria::vapi;
-
-
-
 struct MEMORIA_API Page {
 
     virtual UUID getId() const                    	 = 0;

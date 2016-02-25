@@ -25,11 +25,9 @@
 #include <type_traits>
 #include <string.h>
 
-namespace memoria    {
+namespace memoria {
 
 using namespace std;
-
-using namespace memoria::vapi;
 
 const char kPopCountFW_LUT [] = {0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,5,0,1,0,2,0,1,0,3,0,1,0,2,\
                                  0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,6,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,\

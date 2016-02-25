@@ -19,13 +19,13 @@ namespace seq_dense     {
 
 
 template <Int Bits>
-class SymbolsInputBufferProvider: public bt::InputBufferProvider<Int, vapi::SymbolsBuffer<Bits>> {
+class SymbolsInputBufferProvider: public bt::InputBufferProvider<Int, SymbolsBuffer<Bits>> {
 
-	using Buffer = vapi::SymbolsBuffer<Bits>;
+	using Buffer = SymbolsBuffer<Bits>;
 
 	using Position = Int;
 
-	vapi::SymbolsBuffer<Bits>& data_;
+	SymbolsBuffer<Bits>& data_;
 	Position start_ = 0;
 	Position size_ = 0;
 

@@ -23,7 +23,6 @@
 
 namespace memoria {
 
-using namespace memoria::vapi;
 using namespace std;
 
 template <typename PackedTreeT>

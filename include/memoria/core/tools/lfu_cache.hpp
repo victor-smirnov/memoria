@@ -230,10 +230,10 @@ public:
             }
             else if (max_size_ > 0)
             {
-                throw vapi::Exception(MA_SRC, "Nothing to evict");
+                throw Exception(MA_SRC, "Nothing to evict");
             }
             else {
-                throw vapi::Exception(MA_SRC, "The cache is configured empty");
+                throw Exception(MA_SRC, "The cache is configured empty");
             }
         }
         else {

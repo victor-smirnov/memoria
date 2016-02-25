@@ -15,21 +15,18 @@
 #include <string>
 
 namespace memoria    {
-namespace vapi       {
 
-//class MEMORIA_API BoundsException: public ::memoria::vapi::Exception {
-//
-//public:
-//    BoundsException(const char* source, StringRef message):
-//                Exception(source, message) {}
-//
-//    BoundsException(const char* source, const SBuf& message):
-//                Exception(source, message) {}
-//
-//
-//};
+class BoundsException: public Exception {
+
+public:
+    BoundsException(const char* source, StringRef message):
+                Exception(source, message) {}
+
+    BoundsException(const char* source, const SBuf& message):
+                Exception(source, message) {}
+};
 
 
 }
-}
+
 #endif

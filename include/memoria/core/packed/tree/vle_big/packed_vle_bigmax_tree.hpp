@@ -17,11 +17,10 @@
 
 namespace memoria {
 
-namespace vapi {
 
 class TextPageDumper;
 
-}
+
 
 template <typename> class ValueCodec;
 

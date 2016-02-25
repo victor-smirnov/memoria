@@ -22,7 +22,7 @@ namespace memoria    {
 template <typename T> class PageID;
 
 
-namespace vapi       {
+
 
 enum {BTREE = 1, ROOT = 2, LEAF = 4, BITMAP = 8};
 
@@ -539,6 +539,6 @@ void DumpStruct(const Struct* s, std::ostream& out = std::cout)
 
 
 
-}}
+}
 
 #endif

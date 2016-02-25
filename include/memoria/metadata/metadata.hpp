@@ -24,7 +24,6 @@
 #include <string>
 
 namespace memoria    {
-namespace vapi       {
 
 struct Metadata;
 struct PageMetadata;
@@ -83,6 +82,6 @@ private:
 
 
 
-}}
+}
 
 #endif

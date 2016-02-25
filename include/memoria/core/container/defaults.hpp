@@ -22,8 +22,6 @@ public:
     AbstractTransaction() {}
 };
 
-using namespace memoria::vapi;
-
 
 template <
     typename Profile, typename IDValueType = BigInt, int FlagsCount = 32, typename TransactionType = AbstractTransaction

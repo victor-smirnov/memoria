@@ -222,7 +222,7 @@ private:
     		return buffer;
     	}
     	else {
-    		throw vapi::OOMException(MA_SRC);
+    		throw OOMException(MA_SRC);
     	}
 	}
 

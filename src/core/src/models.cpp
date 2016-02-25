@@ -15,19 +15,10 @@ namespace memoria {
 BigInt DebugCounter = 0;
 BigInt DebugCounter1 = 0;
 BigInt DebugCounter2 = -1;
-size_t MemBase = 0;
-
-Int CtrRefCounters = 0;
-Int CtrUnrefCounters = 0;
-
-namespace vapi {
 
 LogHandler* Logger::default_handler_ = new DefaultLogHandlerImpl();
 Logger logger("Memoria", Logger::INFO, NULL);
 
-
-
-
-}}
+}
 
 

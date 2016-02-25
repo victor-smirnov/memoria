@@ -105,7 +105,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::MiscName)
 
     		if (!i.nextLeaf())
     		{
-    			throw vapi::Exception(MA_SRC, "Premature end of tree");
+    			throw Exception(MA_SRC, "Premature end of tree");
     		}
     	}
 

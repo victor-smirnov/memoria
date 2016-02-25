@@ -27,7 +27,6 @@
 
 namespace memoria {
 
-using namespace memoria::vapi;
 using tools::Term;
 
 class PARemover {

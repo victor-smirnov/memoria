@@ -13,7 +13,6 @@
 #include <memoria/core/tools/strings/string_buffer.hpp>
 
 namespace memoria    {
-namespace vapi       {
 
 using namespace std;
 
@@ -42,6 +41,6 @@ public:
 
 
 }
-}
+
 
 #endif

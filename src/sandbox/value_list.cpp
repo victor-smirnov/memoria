@@ -14,7 +14,6 @@
 
 using namespace std;
 using namespace memoria;
-using namespace memoria::vapi;
 
 
 typedef IntList<1,2,3,4,5> SrcList;

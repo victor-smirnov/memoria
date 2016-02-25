@@ -15,8 +15,6 @@
 
 namespace memoria {
 
-using namespace memoria::vapi;
-
 
 class TemplateTestTask: public SPTestTask {
 

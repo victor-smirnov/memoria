@@ -6,8 +6,8 @@
 
 
 
-#ifndef _MEMORIA_CONTAINERS_vctr_NAMES_HPP
-#define _MEMORIA_CONTAINERS_vctr_NAMES_HPP
+#ifndef _MEMORIA_CONTAINERS_VCTR_NAMES_HPP
+#define _MEMORIA_CONTAINERS_VCTR_NAMES_HPP
 
 #include <memoria/prototypes/bt/bt_names.hpp>
 

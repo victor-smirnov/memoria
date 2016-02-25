@@ -16,9 +16,9 @@
 
 
 
-namespace memoria { namespace vapi {
+namespace memoria {
 
-using namespace memoria::vapi;
+
 using namespace std;
 
 //Long StrToL(StringRef value) {
@@ -50,5 +50,5 @@ using namespace std;
 //}
 
 
-}}
+}
 

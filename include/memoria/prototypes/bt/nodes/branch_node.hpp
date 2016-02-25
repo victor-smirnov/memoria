@@ -1518,7 +1518,7 @@ public:
 
         for (Int idx = 0; idx < size(); idx++)
         {
-            vapi::ValueHelper<Value>::setup(handler, "CHILD_ID", value(idx));
+            ValueHelper<Value>::setup(handler, "CHILD_ID", value(idx));
         }
 
         handler->endGroup();

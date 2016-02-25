@@ -612,7 +612,7 @@ public:
 
         handler->startGroup("DATA", size_);
 
-        vapi::ValueHelper<Value>::setup(handler, "DATA_ITEM", buffer_, size_ * Blocks, IPageDataEventHandler::BYTE_ARRAY);
+        ValueHelper<Value>::setup(handler, "DATA_ITEM", buffer_, size_ * Blocks, IPageDataEventHandler::BYTE_ARRAY);
 
         handler->endGroup();
 

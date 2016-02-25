@@ -157,7 +157,7 @@ public:
         	this->largeCoverage(coverage_size);
         }
         else {
-            throw vapi::Exception(MA_SRC, SBuf()<<"Coverage type "+coverage+" is not recognized");
+            throw Exception(MA_SRC, SBuf()<<"Coverage type "+coverage+" is not recognized");
         }
 
         soft_memlimit_ = cfg->getValue<size_t>("soft_memlimit", static_cast<size_t>(1) * 1024 * 1024 * 1024);
