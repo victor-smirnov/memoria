@@ -12,11 +12,14 @@
 #include <memoria/core/packed/tools/packed_allocator.hpp>
 
 #include <memoria/core/packed/tree/fse_max/packed_fse_max_tree.hpp>
+#include <memoria/core/packed/tree/vle_big/packed_vle_bigmax_tree.hpp>
 #include <memoria/core/packed/tools/packed_struct_ptrs.hpp>
 
 #include <memoria/core/tools/i7_codec.hpp>
 #include <memoria/core/tools/elias_codec.hpp>
 #include <memoria/core/tools/exint_codec.hpp>
+
+#include <memoria/core/tools/bignum/cppint_codec.hpp>
 
 namespace memoria {
 

@@ -107,7 +107,7 @@ public:
 
     		Int block   = this->getRandom(Tree::Blocks);
 
-    		Int max     = tree->value(block, end);
+    		auto max     = tree->value(block, end);
 
     		auto result1_lt = tree->findGTForward(block, max);
     		auto result1_le = tree->findGEForward(block, max);

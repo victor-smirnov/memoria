@@ -23,8 +23,11 @@ public:
 
     PackedMaxTreeTestSuite(): TestSuite("Packed.MaxTree")
     {
-    	registerTask(new PackedMaxTreeMiscTest<PkdFMTreeT<BigInt, 1>>("Misc.1.FSM"));
-        registerTask(new PackedMaxTreeFindTest<PkdFMTreeT<BigInt, 1>>("Find.4.FSM"));
+//    	registerTask(new PackedMaxTreeMiscTest<PkdFMTreeT<BigInt, 1>>("Misc.1.FSM"));
+//        registerTask(new PackedMaxTreeFindTest<PkdFMTreeT<BigInt, 1>>("Find.4.FSM"));
+
+        registerTask(new PackedMaxTreeMiscTest<PkdVBMTreeT<BigInteger>>("Misc.1.VBM"));
+        registerTask(new PackedMaxTreeFindTest<PkdVBMTreeT<BigInteger>>("Find.1.VBM"));
     }
 
 };

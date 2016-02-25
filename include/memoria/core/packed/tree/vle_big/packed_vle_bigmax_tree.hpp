@@ -58,8 +58,7 @@ public:
     static constexpr UInt VERSION 	= 1;
 
 
-//	static constexpr Int SegmentsPerBlock 	= 3;
-//	static constexpr Int BlocksStart 		= 2;
+    static constexpr Int Blocks 	= 1;
 
 	static const Int BranchingFactorI        	= PackedTreeBranchingFactor;
 	static const Int BranchingFactorV        	= Types::BranchingFactor;
@@ -87,8 +86,9 @@ public:
     using FieldsList = MergeLists<>;
 
     using OffsetsType	= UShort;
-    using IndexValue 	= Int;
+    using SizesValue 	= Int;
     using Value		 	= typename Types::Value;
+    using IndexValue	= typename Types::Value;
 
     using Values 		= core::StaticVector<Value, 1>;
 
@@ -136,7 +136,6 @@ public:
     	this->template allocateArrayBySize<Int>(SIZE_INDEX, 0);
     	this->template allocateArrayBySize<OffsetsType>(OFFSETS, number_of_offsets(0));
     	this->template allocateArrayBySize<ValueData>(VALUES, 0);
-
     }
 
     Int block_size() const
@@ -155,9 +154,6 @@ public:
     }
 
 
-
-
-
     const Int& size() const {
     	return metadata()->size();
     }
@@ -165,9 +161,6 @@ public:
     Int& size() {
     	return metadata()->size();
     }
-
-
-
 
     Value value(Int block, Int idx) const
     {
@@ -265,7 +258,7 @@ public:
 
     	Codec codec;
 
-    	Int start 		= locate(layout, values, idx);
+    	Int start 		= locate(layout, values, idx).idx;
     	Int data_size  	= meta->data_size() - start;
 
     	other->insert_space(0, data_size);
@@ -714,7 +707,7 @@ public:
     		index()->serialize(buf);
     	}
 
-    	Base::template serializeSegment<IndexValue>(buf, SIZE_INDEX);
+    	Base::template serializeSegment<SizesValue>(buf, SIZE_INDEX);
     	Base::template serializeSegment<OffsetsType>(buf, OFFSETS);
 
     	Int data_block_size = this->data_block_size();
@@ -836,6 +829,15 @@ public:
     	return this->find_ge(val);
     }
 
+    auto findGTForward(Int block, const Value& val) const
+    {
+    	return this->find_gt(val);
+    }
+
+    auto findGEForward(Int block, const Value& val) const
+    {
+    	return this->find_ge(val);
+    }
 
 
 
@@ -875,7 +877,7 @@ public:
 
 
     template <typename ConsumerFn>
-    Int scan(Int start, Int end, ConsumerFn&& fn) const
+    Int scan(Int block, Int start, Int end, ConsumerFn&& fn) const
     {
     	auto meta = this->metadata();
 
@@ -900,7 +902,7 @@ public:
 
 
     template <typename T>
-    void read(Int start, Int end, T* values) const
+    void read(Int block, Int start, Int end, T* values) const
     {
     	MEMORIA_ASSERT(start, >=, 0);
     	MEMORIA_ASSERT(start, <=, end);
@@ -932,7 +934,7 @@ public:
     }
 
 
-protected:
+
 
     struct FindGEWalker {
     	Value target_;
@@ -982,7 +984,7 @@ protected:
     };
 
 
-
+protected:
 
     Int data_block_size() const
     {
@@ -1207,7 +1209,7 @@ protected:
 
     	this->resizeBlock(VALUES, data_segment_size);
     	this->resizeBlock(OFFSETS, offsets_segment_size);
-    	this->resizeBlock(SIZE_INDEX, index_size * sizeof(IndexValue));
+    	this->resizeBlock(SIZE_INDEX, index_size * sizeof(SizesValue));
     }
 
 
@@ -1274,7 +1276,7 @@ protected:
     		Codec codec;
 
     		size_t pos = 0;
-    		IndexValue size_cnt = 0;
+    		SizesValue size_cnt = 0;
     		size_t threshold = BranchingFactorV;
     		size_t buffer_pos = 0;
 
@@ -1322,7 +1324,7 @@ protected:
 
     			for (int i = 0; i < previous_level_size; i++)
     			{
-    				IndexValue sizes_sum  = 0;
+    				SizesValue sizes_sum  = 0;
 
     				Int start 		= (i << BranchingFactorILog2) + current_level_start;
     				Int window_end 	= ((i + 1) << BranchingFactorILog2);
@@ -1375,7 +1377,7 @@ protected:
     		Codec codec;
 
     		size_t pos = 0;
-    		IndexValue size_cnt = 0;
+    		SizesValue size_cnt = 0;
     		size_t threshold = BranchingFactorV;
     		Int total_size = 0;
 
@@ -1434,7 +1436,7 @@ protected:
 
     			for (int i = 0; i < previous_level_size; i++)
     			{
-    				IndexValue sizes_sum  = 0;
+    				SizesValue sizes_sum  = 0;
 
     				Int start 		= (i << BranchingFactorILog2) + current_level_start;
     				Int window_end 	= ((i + 1) << BranchingFactorILog2);
