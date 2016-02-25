@@ -10,8 +10,8 @@
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_TOOLS_HPP
 
 #include <memoria/metadata/tools.hpp>
-#include <memoria/core/tools/strings.hpp>
 #include <memoria/core/container/macros.hpp>
+#include <memoria/core/tools/strings/strings.hpp>
 
 #include <memoria/prototypes/bt/nodes/branch_node.hpp>
 #include <memoria/prototypes/bt/bt_macros.hpp>

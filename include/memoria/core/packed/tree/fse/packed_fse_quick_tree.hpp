@@ -11,6 +11,8 @@
 #include <memoria/core/packed/tree/fse/packed_fse_quick_tree_base.hpp>
 #include <memoria/core/packed/buffer/packed_fse_input_buffer_ro.hpp>
 
+#include <memoria/core/tools/static_array.hpp>
+
 namespace memoria {
 
 template <typename IndexValueT, Int kBlocks, typename ValueT = IndexValueT, Int kBranchingFactor = PackedTreeBranchingFactor, Int kValuesPerBranch = PackedTreeBranchingFactor>
@@ -30,6 +32,7 @@ template <typename IndexValueT, Int kBlocks, typename ValueT = IndexValueT, Int 
 using PkdFQTreeT = PkdFQTree<PkdFQTreeTypes<IndexValueT, kBlocks, ValueT, kBranchingFactor, kValuesPerBranch>>;
 
 
+using ::memoria::core::StaticVector;
 
 template <typename Types>
 class PkdFQTree: public PkdFQTreeBase<typename Types::IndexValue, typename Types::Value, Types::BranchingFactor, Types::ValuesPerBranch> {
@@ -38,6 +41,8 @@ class PkdFQTree: public PkdFQTreeBase<typename Types::IndexValue, typename Types
 	using MyType 	= PkdFQTree<Types>;
 
 public:
+
+
 
 	static constexpr UInt VERSION = 1;
     static constexpr Int Blocks = Types::Blocks;

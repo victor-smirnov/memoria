@@ -9,22 +9,25 @@
 #define _MEMORIA_VAPI_EXCEPTIONS_BOUNDS_HPP
 
 #include <memoria/core/exceptions/memoria.hpp>
+
+
+
 #include <string>
 
 namespace memoria    {
 namespace vapi       {
 
-class MEMORIA_API BoundsException: public Exception {
-
-public:
-    BoundsException(const char* source, StringRef message):
-                Exception(source, message) {}
-
-    BoundsException(const char* source, const SBuf& message):
-                Exception(source, message) {}
-
-
-};
+//class MEMORIA_API BoundsException: public ::memoria::vapi::Exception {
+//
+//public:
+//    BoundsException(const char* source, StringRef message):
+//                Exception(source, message) {}
+//
+//    BoundsException(const char* source, const SBuf& message):
+//                Exception(source, message) {}
+//
+//
+//};
 
 
 }

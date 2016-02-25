@@ -8,9 +8,9 @@
 #ifndef BENCHMARKS_INC_HPP_
 #define BENCHMARKS_INC_HPP_
 
+#include <memoria/core/tools/strings/string_buffer.hpp>
 #include <memoria/tools/tools.hpp>
 #include <memoria/core/types/types.hpp>
-#include <memoria/core/tools/string_buffer.hpp>
 
 
 #endif /* SHARED_HPP_ */

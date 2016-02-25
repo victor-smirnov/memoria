@@ -10,7 +10,6 @@
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/exceptions/exceptions.hpp>
-#include <memoria/core/tools/strings.hpp>
 #include <memoria/core/tools/terminal.hpp>
 #include <memoria/core/tools/random.hpp>
 #include <memoria/core/tools/time.hpp>
@@ -24,6 +23,7 @@
 #include <fstream>
 
 #include <malloc.h>
+#include <memoria/core/tools/strings/strings.hpp>
 
 namespace memoria {
 

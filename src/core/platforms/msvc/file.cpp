@@ -8,8 +8,6 @@
 
 
 #include <memoria/core/exceptions/exceptions.hpp>
-#include <memoria/core/tools/strings.hpp>
-
 #include <memoria/core/tools/file.hpp>
 
 #include <windows.h>
@@ -22,6 +20,7 @@
 #include <io.h>
 #include <string.h>
 #include <errno.h>
+#include <memoria/core/tools/strings/strings.hpp>
 #include <stdio.h>
 #include <sstream>
 #include <iostream>

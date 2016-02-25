@@ -1,25 +1,25 @@
 
-// Copyright Victor Smirnov 2011-2013.
+// Copyright Victor Smirnov 2011.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
 
-#ifndef _MEMORIA_VAPI_TOOLS_STRINGS_HPP
-#define _MEMORIA_VAPI_TOOLS_STRINGS_HPP
+#ifndef _MEMORIA_VAPI_TOOLS_STRINGS_STRINGS1_HPP
+#define _MEMORIA_VAPI_TOOLS_STRINGS_STRINGS1_HPP
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/tools/config.hpp>
 
-#include <memoria/core/tools/static_array.hpp>
+//#include <memoria/core/tools/static_array.hpp>
 
 #include <string>
 #include <iostream>
 
 namespace memoria { namespace vapi {
 
-using namespace core;
+//using namespace core;
 
 MEMORIA_API String trimString(StringRef str);
 //MEMORIA_API String ReplaceFirst(StringRef str, StringRef txt);
@@ -179,48 +179,6 @@ struct FromString<T[Size]> {
     }
 };
 
-template <typename T, Int Size>
-struct FromString<StaticVector<T, Size>> {
-    static void convert(StaticVector<T, Size>& values, String str)
-    {
-        Int start = 0;
-
-        for (size_t c = 0; c < Size; c++)
-        {
-            values[c] = 0;
-        }
-
-        for (Int c = str.size() - 1; c >= 0; c--)
-        {
-        	if (str[c] == '[' || str[c] == ']') {
-        		str.erase(c, 1);
-        	}
-        }
-
-        for (Int c = 0; c < Size; c++)
-        {
-            size_t pos = str.find_first_of(",", start);
-
-            String value = trimString(str.substr(start, pos != String::npos ? pos - start : pos));
-
-            if (!isEmpty(value))
-            {
-                values[c] = FromString<T>::convert(value);
-            }
-            else {
-                values[c] = 0;
-            }
-
-            if (pos != String::npos && pos < str.length())
-            {
-                start = pos + 1;
-            }
-            else {
-                break;
-            }
-        }
-    }
-};
 
 
 }}

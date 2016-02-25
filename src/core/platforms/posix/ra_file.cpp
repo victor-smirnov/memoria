@@ -6,7 +6,6 @@
 
 
 #include <memoria/core/tools/file.hpp>
-#include <memoria/core/tools/strings.hpp>
 #include <memoria/core/exceptions/memoria.hpp>
 
 #include <unistd.h>
@@ -15,6 +14,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <errno.h>
+#include <memoria/core/tools/strings/strings.hpp>
 
 namespace memoria {
 

@@ -12,7 +12,10 @@
 #include <string>
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/tools/config.hpp>
-#include <memoria/core/tools/string_buffer.hpp>
+#include <memoria/core/tools/strings/string_buffer.hpp>
+
+
+
 #include <stdlib.h>
 
 namespace memoria    {
@@ -34,7 +37,7 @@ public:
 };
 
 
-class MEMORIA_API Exception: public MemoriaThrowable {
+class Exception: public MemoriaThrowable {
 
     String message_;
 public:
@@ -50,31 +53,27 @@ public:
     }
 };
 
-class MEMORIA_API CtrTypeException: public Exception {
+class CtrTypeException: public Exception {
 
 public:
     CtrTypeException(const char* source, StringRef message): Exception(source, message)     {}
     CtrTypeException(const char* source, const SBuf& message): Exception(source, message)   {}
 };
 
-class MEMORIA_API NoCtrException: public Exception {
+class NoCtrException: public Exception {
 
 public:
     NoCtrException(const char* source, StringRef message): Exception(source, message)     {}
     NoCtrException(const char* source, const SBuf& message): Exception(source, message)   {}
 };
 
-class MEMORIA_API CtrAlreadyExistsException: public Exception {
+class CtrAlreadyExistsException: public Exception {
 
 public:
     CtrAlreadyExistsException(const char* source, StringRef message): Exception(source, message)     {}
     CtrAlreadyExistsException(const char* source, const SBuf& message): Exception(source, message)   {}
 };
 
-class MemoriaSigSegv: public Exception {
-public:
-    MemoriaSigSegv(const char* source, StringRef message): Exception(source, message) {}
-};
 
 class RollbackException: public Exception {
 public:
@@ -89,18 +88,24 @@ public:
 };
 
 
+class MEMORIA_API BoundsException: public ::memoria::vapi::Exception {
+
+public:
+    BoundsException(const char* source, StringRef message):
+                Exception(source, message) {}
+
+    BoundsException(const char* source, const SBuf& message):
+                Exception(source, message) {}
+};
+
+
 
 
 MEMORIA_API const char* ExtractMemoriaPath(const char* path);
 
-}
-}
-
-namespace std {
-using namespace memoria::vapi;
-
 ostream& operator<<(ostream& out, const MemoriaThrowable& t);
 
+}
 }
 
 #endif

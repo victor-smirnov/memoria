@@ -8,10 +8,10 @@
 
 
 #include <memoria/core/exceptions/exceptions.hpp>
-#include <memoria/core/tools/strings.hpp>
 #include <memoria/core/tools/file.hpp>
 
 #include <errno.h>
+#include <memoria/core/tools/strings/strings.hpp>
 #include <stdlib.h>
 
 

@@ -13,8 +13,7 @@
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/tools/config.hpp>
 #include <memoria/core/exceptions/exceptions.hpp>
-#include <memoria/core/tools/string_buffer.hpp>
-
+#include <memoria/core/tools/strings/string_buffer.hpp>
 #include <iostream>
 
 namespace memoria    {

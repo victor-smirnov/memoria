@@ -11,6 +11,9 @@
 #include <memoria/core/packed/tree/fse_max/packed_fse_max_tree_base.hpp>
 #include <memoria/core/packed/buffer/packed_fse_input_buffer_ro.hpp>
 
+#include <memoria/core/tools/static_array.hpp>
+
+
 namespace memoria {
 
 template <typename ValueT, Int kBlocks, Int kBranchingFactor = PackedTreeBranchingFactor, Int kValuesPerBranch = PackedTreeBranchingFactor>
@@ -37,6 +40,10 @@ class PkdFMTree: public PkdFMTreeBase<typename Types::Value, Types::BranchingFac
 	using MyType 	= PkdFMTree<Types>;
 
 public:
+
+
+
+
 	static constexpr UInt VERSION = 1;
     static constexpr Int Blocks = Types::Blocks;
 
@@ -232,7 +239,7 @@ public:
     }
 
     template <typename T>
-    void max(StaticVector<T, Blocks>& accum) const
+    void max(core::StaticVector<T, Blocks>& accum) const
     {
     	for (Int block = 0; block < Blocks; block++)
     	{

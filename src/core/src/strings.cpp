@@ -7,11 +7,8 @@
 
 
 #include <memoria/core/exceptions/exceptions.hpp>
-#include <memoria/core/tools/strings.hpp>
-
-
-
 #include <errno.h>
+#include <memoria/core/tools/strings/strings.hpp>
 
 namespace memoria{ namespace vapi {
 
