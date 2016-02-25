@@ -6,7 +6,7 @@
 #ifndef MEMORIA_CORE_TOOLS_TIME_HPP_
 #define MEMORIA_CORE_TOOLS_TIME_HPP_
 
-#include <memoria/core/tools/strings/strings.hpp>
+#include <memoria/core/tools/strings/string.hpp>
 #include <memoria/core/types/types.hpp>
 
 namespace memoria   {

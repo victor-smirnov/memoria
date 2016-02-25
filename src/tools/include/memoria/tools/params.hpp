@@ -11,7 +11,7 @@
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/types/type2type.hpp>
 #include <memoria/core/exceptions/exceptions.hpp>
-#include <memoria/core/tools/strings/strings.hpp>
+#include <memoria/core/tools/strings/string.hpp>
 #include <memoria/core/tools/static_array.hpp>
 #include <memoria/tools/configuration.hpp>
 

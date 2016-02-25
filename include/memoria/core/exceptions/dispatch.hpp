@@ -10,7 +10,7 @@
 #define _MEMORIA_VAPI_EXCEPTIONS_DISPATCH_HPP
 
 #include <memoria/core/exceptions/memoria.hpp>
-#include <memoria/core/tools/strings/string_buffer.hpp>
+#include <memoria/core/tools/strings/string.hpp>
 
 namespace memoria    {
 

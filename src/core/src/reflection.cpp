@@ -5,7 +5,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#include <memoria/core/tools/strings/strings.hpp>
+#include <memoria/core/tools/strings/string.hpp>
 #include <memoria/metadata/container.hpp>
 
 

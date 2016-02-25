@@ -7,7 +7,7 @@
 
 
 #include <memoria/core/tools/stream.hpp>
-#include <memoria/core/tools/strings/strings.hpp>
+#include <memoria/core/tools/strings/string.hpp>
 
 
 #ifdef __GNUC__

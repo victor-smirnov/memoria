@@ -35,25 +35,30 @@ using namespace boost::multiprecision;
 int main()
 {
 	try {
-		using Tree = PkdVBMTreeT<BigInteger>;
-		auto block = AllocateAllocator(1024*10240);
+		String str = "abc";
 
-		auto tree = block->template allocateEmpty<Tree>(0);
-
-		BigInteger num("12345670000000000000000000000000000000000000000000000");
-
-		tree->_insert(0, 100000, [&](Int, Int c) -> BigInteger {
-			return (num++);
-		});
-
-		DumpStruct(tree);
+		cout<<sizeof(str)<<endl;
 
 
-		auto tgt = num - 60;
-		cout<<"Looking for: "<<tgt<<endl;
-		cout<<"Find: "<<tree->find_ge(tgt).idx()<<endl;
-
-		tree->check();
+//		using Tree = PkdVBMTreeT<BigInteger>;
+//		auto block = AllocateAllocator(1024*10240);
+//
+//		auto tree = block->template allocateEmpty<Tree>(0);
+//
+//		BigInteger num("12345670000000000000000000000000000000000000000000000");
+//
+//		tree->_insert(0, 100000, [&](Int, Int c) -> BigInteger {
+//			return (num++);
+//		});
+//
+//		DumpStruct(tree);
+//
+//
+//		auto tgt = num - 60;
+//		cout<<"Looking for: "<<tgt<<endl;
+//		cout<<"Find: "<<tree->find_ge(tgt).idx()<<endl;
+//
+//		tree->check();
 	}
 	catch (PackedOOMException& ex) {
 		cout<<ex.source()<<endl;

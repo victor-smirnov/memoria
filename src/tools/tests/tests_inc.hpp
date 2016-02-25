@@ -8,7 +8,7 @@
 #ifndef BENCHMARKS_INC_HPP_
 #define BENCHMARKS_INC_HPP_
 
-#include <memoria/core/tools/strings/string_buffer.hpp>
+#include <memoria/core/tools/strings/string.hpp>
 #include <memoria/tools/tools.hpp>
 #include <memoria/core/types/types.hpp>
 

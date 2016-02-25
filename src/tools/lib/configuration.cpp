@@ -10,7 +10,7 @@
 #include <memoria/tools/configuration.hpp>
 #include <memoria/core/tools/file.hpp>
 #include <memoria/core/exceptions/exceptions.hpp>
-#include <memoria/core/tools/strings/strings.hpp>
+#include <memoria/core/tools/strings/string.hpp>
 
 #include <map>
 #include <fstream>

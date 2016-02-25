@@ -13,6 +13,7 @@
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/types/type2type.hpp>
 
+#include <memoria/core/tools/strings/string.hpp>
 
 namespace memoria    {
 

@@ -75,8 +75,7 @@ typedef internal::PlatformLongHelper<sizeof(void*)>::LongType                   
 typedef internal::PlatformLongHelper<sizeof(void*)>::ULongType                  ULong;
 typedef internal::PlatformLongHelper<sizeof(void*)>::SizeTType                  SizeT;
 
-typedef std::string                                                             String;
-typedef const String&                                                           StringRef;
+
 
 template <typename T, T V> struct ConstValue {
     static constexpr T Value = V;

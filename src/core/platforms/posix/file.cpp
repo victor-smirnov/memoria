@@ -10,6 +10,7 @@
 #include <memoria/core/exceptions/exceptions.hpp>
 #include <memoria/core/tools/file.hpp>
 
+#include <memoria/core/tools/strings/string.hpp>
 
 #include <stddef.h>
 #include <stdio.h>
@@ -18,7 +19,7 @@
 #include <dirent.h>
 #include <string.h>
 #include <errno.h>
-#include <memoria/core/tools/strings/strings.hpp>
+
 #include <stdio.h>
 #include <sstream>
 #include <iostream>

@@ -11,7 +11,7 @@
 
 #include <memoria/metadata/metadata.hpp>
 #include <memoria/core/exceptions/exceptions.hpp>
-#include <memoria/core/tools/strings/strings.hpp>
+#include <memoria/core/tools/strings/string.hpp>
 #include <fstream>
 #include <limits>
 #include <memory>

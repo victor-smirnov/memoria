@@ -23,7 +23,7 @@
 #include <fstream>
 
 #include <malloc.h>
-#include <memoria/core/tools/strings/strings.hpp>
+#include <memoria/core/tools/strings/string.hpp>
 
 namespace memoria {
 

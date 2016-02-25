@@ -10,7 +10,7 @@
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/tools/platform.hpp>
 #include <memoria/core/exceptions/exceptions.hpp>
-#include <memoria/core/tools/strings/strings.hpp>
+#include <memoria/core/tools/strings/string.hpp>
 
 #include <map>
 #include <set>

@@ -11,7 +11,7 @@
 #include <memoria/core/tools/file.hpp>
 
 #include <errno.h>
-#include <memoria/core/tools/strings/strings.hpp>
+#include <memoria/core/tools/strings/string.hpp>
 #include <stdlib.h>
 
 

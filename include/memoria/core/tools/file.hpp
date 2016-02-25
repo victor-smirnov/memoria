@@ -11,6 +11,7 @@
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/tools/config.hpp>
+#include <memoria/core/tools/strings/string.hpp>
 
 #include <vector>
 #include <memory>

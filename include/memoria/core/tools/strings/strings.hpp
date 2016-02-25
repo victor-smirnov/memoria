@@ -12,12 +12,13 @@
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/tools/config.hpp>
 
-
-
 #include <string>
 #include <sstream>
 
 namespace memoria {
+
+using String 	= std::string;
+using StringRef = const String&;
 
 MEMORIA_API String trimString(StringRef str);
 //MEMORIA_API String ReplaceFirst(StringRef str, StringRef txt);

@@ -14,7 +14,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <errno.h>
-#include <memoria/core/tools/strings/strings.hpp>
+#include <memoria/core/tools/strings/string.hpp>
 
 namespace memoria {
 
