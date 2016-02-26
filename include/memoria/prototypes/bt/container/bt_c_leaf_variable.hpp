@@ -65,10 +65,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafVariableName)
     	{
     		obj->template _insert<Offset>(idx, std::get<Idx>(entry), accum);
 
-    		if (StreamStart)
-    		{
-    			accum[0] += 1;
-    		}
+//    		if (StreamStart)
+//    		{
+//    			accum[0] += 1;
+//    		}
     	}
     };
 
@@ -127,11 +127,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafVariableName)
     	void stream(SubstreamType* obj, BranchNodeEntryItem& accum, Int idx)
     	{
     		obj->template _remove<Offset>(idx, accum);
-
-    		if (StreamStart)
-    		{
-    			accum[0] -= 1;
-    		}
     	}
 
     	template <typename NTypes>

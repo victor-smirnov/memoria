@@ -10,11 +10,6 @@
 #define _MEMORIA_ALLOCATORS_PERSISTENT_INMEM_FACTORY_HPP
 
 #include <memoria/containers/map/map_factory.hpp>
-//#include <memoria/containers/vector/vctr_factory.hpp>
-//#include <memoria/containers/multimap/mmap_factory.hpp>
-//#include <memoria/containers/seq_dense/seqd_factory.hpp>
-//#include <memoria/containers/table/table_factory.hpp>
-
 
 #include <memoria/core/container/metadata_repository.hpp>
 

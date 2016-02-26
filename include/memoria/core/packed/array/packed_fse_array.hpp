@@ -36,7 +36,7 @@ class PackedFSEArray: public PackedAllocatable {
 public:
     static const UInt VERSION                                                   = 1;
 
-    static constexpr PkdSearchType SearchType = PkdSearchType::SUM;
+    static constexpr PkdSearchType KeySearchType = PkdSearchType::SUM;
 
     typedef Types_                                                              Types;
     typedef PackedFSEArray<Types>                                               MyType;

@@ -44,7 +44,7 @@ public:
     static constexpr Int ValuesPerBranchLog2 	= Log2(ValuesPerBranch) - 1;
     static constexpr Int BranchingFactorLog2 	= Log2(BranchingFactor) - 1;
 
-    static constexpr PkdSearchType SearchType = PkdSearchType::SUM;
+    static constexpr PkdSearchType KeySearchType = PkdSearchType::SUM;
 
     enum {
     	SIZE_INDEX, OFFSETS, VALUES

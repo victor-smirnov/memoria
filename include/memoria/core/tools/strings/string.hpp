@@ -23,6 +23,13 @@ namespace memoria {
 using String 	= std::string;
 using StringRef = const String&;
 
+template <typename T> struct TypeHash;
+
+template <>
+struct TypeHash<String> {
+    static const UInt Value = 60;
+};
+
 }
 
 #endif

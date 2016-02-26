@@ -25,7 +25,7 @@ class PackedSizedStruct: public PackedAllocatable {
 public:
     static const UInt VERSION = 1;
     static constexpr Int Indexes = Indexes_;
-    static constexpr PkdSearchType SearchType = SearchType_;
+    static constexpr PkdSearchType KeySearchType = SearchType_;
 
 
     using MyType = PackedSizedStruct;

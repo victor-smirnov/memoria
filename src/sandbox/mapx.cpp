@@ -4,8 +4,9 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#include <memoria/containers/map/map_factory.hpp>
 #include <memoria/memoria.hpp>
+
+#include <memoria/containers/map/map_factory.hpp>
 #include <memoria/containers/seq_dense/seqd_factory.hpp>
 #include <memoria/containers/vector/vctr_factory.hpp>
 
@@ -19,47 +20,41 @@ using namespace std;
 int main() {
 	MEMORIA_INIT(DefaultProfile<>);
 
+	DCtr<Map<BigInteger, BigInt>>::initMetadata();
+
 	try {
-		SmallInMemAllocator alloc;
+		auto alloc = PersistentInMemAllocator<>::create();
+		auto snp = alloc->master()->branch();
 
-		cout<<"Dummy: "<<sizeof(DCtrTF<Map<double, BigInt>>::Types::Boo)<<endl;
+		auto map = create<Map<BigInteger, BigInt>>(snp);
 
-		using MapT = DCtrTF<Map<BigInt, BigInt>>::Type;
-
-		MapT::initMetadata();
-
-		MapT map(&alloc);
-
-		try {
-
-			auto iter = map.Begin();
-
-			int size = 300;
-
-			for (int c = 0; c < size; c++) {
-				iter.insert((c + 1)*2, c);
-			}
-
-			iter = map.find(1);
-
-			while (!iter.isEnd()) {
-				cout<<iter.key()<<" -- "<<iter.value()<<endl;
-				iter++;
-			}
-		}
-		catch (memoria::Exception& ex) {
-			cout<<ex.message()<<" at "<<ex.source()<<endl;
+		for (int c = -10000; c < 10000; c++) {
+			map->assign(c, c);
 		}
 
-		alloc.commit();
+		for (auto c = map->begin(); !c->is_end(); c->next())
+		{
+			cout << c->key() << " -- " << c->value() << endl;
+		}
 
-		OutputStreamHandler* os = FileOutputStreamHandler::create("mapxx.dump");
+		for (int c = -10000; c < 10000; c++) {
+			map->remove(c);
+		}
 
-		alloc.store(os);
+		cout << "After remove" << endl;
 
-		delete os;
+		for (auto c = map->begin(); !c->is_end(); c->next())
+		{
+			cout << c->key() << " -- " << c->value() << endl;
+		}
+
+		snp->commit();
+
+		FSDumpAllocator(snp, "mapx.dir");
 	}
 	catch (memoria::Exception& ex) {
-		cout<<ex.message()<<" at "<<ex.source()<<endl;
+		cout << ex.message() << " at " << ex.source() << endl;
 	}
+
+	MetadataRepository<DefaultProfile<>>::cleanup();
 }

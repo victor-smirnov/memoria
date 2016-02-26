@@ -33,7 +33,7 @@ enum class PkdSearchType {SUM, MAX};
 
 template <typename PkdStruct>
 struct PkdSearchTypeProvider {
-	static constexpr PkdSearchType Value = PkdStruct::SearchType;
+	static constexpr PkdSearchType Value = PkdStruct::KeySearchType;
 };
 
 template <typename PkdStruct>

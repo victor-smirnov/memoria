@@ -72,6 +72,22 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertMaxName)
     	}
     }
 
+    template <typename K, typename V>
+    IteratorPtr assign(K&& key, V&& value)
+    {
+    	auto iter = self().find(key);
+
+    	if (iter->is_found(key))
+    	{
+    		iter->assign(value);
+    	}
+    	else {
+    		iter->insert_(key, value);
+    	}
+
+    	return iter;
+    }
+
 MEMORIA_CONTAINER_PART_END
 
 #define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::map::CtrRemoveName)

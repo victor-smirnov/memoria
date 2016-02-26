@@ -261,7 +261,7 @@ public:
     {
         stringstream str;
 
-        str<<descr<<": "<<name;
+        str<<shorten(descr)<<": "<<name;
 
         pushFolder(str.str().c_str());
 
@@ -395,6 +395,21 @@ private:
         str<<"___"<<id;
 
         return str.str();
+    }
+
+private:
+    String shorten(const char* txt)
+    {
+    	String text = txt;
+
+    	auto start = text.find_first_of("<");
+
+    	if (start != String::npos)
+    	{
+    		text.erase(start);
+    	}
+
+    	return text;
     }
 };
 

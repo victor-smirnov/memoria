@@ -9,9 +9,12 @@
 
 
 #include <memoria/core/types/types.hpp>
-#include <memoria/core/tools/bitmap.hpp>
+
+#include <memoria/core/tools/bignum/cppint_codec.hpp>
 
 #include <boost/multiprecision/cpp_int.hpp>
+
+
 
 #include <ostream>
 
@@ -263,6 +266,12 @@ private:
 
 using BigInteger = boost::multiprecision::cpp_int;
 
+template <typename T> struct TypeHash;
+
+template <>
+struct TypeHash<BigInteger> {
+    static const UInt Value = 50;
+};
 
 
 }

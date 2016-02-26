@@ -104,10 +104,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::LeafCommonName)
     	return provider.total();
     }
 
-
-
-
-
 MEMORIA_CONTAINER_PART_END
 
 

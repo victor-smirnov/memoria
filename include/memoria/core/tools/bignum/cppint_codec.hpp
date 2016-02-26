@@ -9,6 +9,7 @@
 
 
 #include <memoria/core/types/types.hpp>
+#include <memoria/core/tools/bitmap.hpp>
 
 #include <boost/multiprecision/cpp_int.hpp>
 

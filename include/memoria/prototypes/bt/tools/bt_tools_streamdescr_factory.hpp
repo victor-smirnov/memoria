@@ -23,8 +23,12 @@
 #include <memoria/core/packed/tree/fse_max/packed_fse_max_tree.hpp>
 #include <memoria/core/packed/tree/vle/packed_vle_quick_tree.hpp>
 #include <memoria/core/packed/tree/vle/packed_vle_dense_tree.hpp>
+#include <memoria/core/packed/tree/vle_big/packed_vle_bigmax_tree.hpp>
 #include <memoria/core/packed/misc/packed_sized_struct.hpp>
 #include <memoria/core/packed/misc/packed_empty_struct.hpp>
+
+#include <memoria/core/tools/bignum/bigint.hpp>
+#include <memoria/core/tools/strings/string.hpp>
 
 #include <memoria/core/tools/i7_codec.hpp>
 #include <memoria/core/tools/elias_codec.hpp>
@@ -33,6 +37,7 @@
 #include <iostream>
 #include <tuple>
 #include <utility>
+#include <type_traits>
 
 namespace memoria   {
 namespace bt        {
@@ -80,7 +85,25 @@ struct VLQBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>> {
 
 template <typename KeyType, Int Indexes>
 struct VLQBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
-	using Type = PkdFMTreeT<KeyType, Indexes>;
+
+	static_assert(
+			std::is_arithmetic<KeyType>::value ||
+			std::is_same<KeyType, BigInteger>::value ||
+			std::is_same<KeyType, String>::value,
+			"Only arithmetic types, BigNumber and String are supported for VLQBranchStructTF<>"
+	);
+
+	using Type = IfThenElse<
+			std::is_arithmetic<KeyType>::value,
+			IfThenElse<
+				std::is_integral<KeyType>::value,
+				PkdVBMTreeT<KeyType>,
+				PkdFMTreeT<KeyType, Indexes>
+			>,
+			PkdVBMTreeT<KeyType>
+	>;
+
+	static_assert(IndexesSize<Type>::Value == Indexes, "Packed struct has different number of indexes than requested");
 };
 
 
