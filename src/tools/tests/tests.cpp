@@ -8,6 +8,7 @@
 //#include "bitmap/bitmap_test_suite.hpp"
 //
 
+#include "packed/codecs/packed_codecs_test_suite.hpp"
 //#include "packed/allocator/palloc_test_suite.hpp"
 //#include "packed/tree/packed_tree_test_suite.hpp"
 #include "packed/maxtree/packed_maxtree_test_suite.hpp"
@@ -74,9 +75,10 @@ int main(int argc, const char** argv, const char** envp)
 //
 //        runner.registerTask(new BitmapTestSuite());
 //
+        runner.registerTask(new PackedCodecsTestSuite());
 //        runner.registerTask(new PackedAllocatorTestSuite());
 //        runner.registerTask(new PackedTreeTestSuite());
-        runner.registerTask(new PackedMaxTreeTestSuite());
+//        runner.registerTask(new PackedMaxTreeTestSuite());
 //        runner.registerTask(new PackedArrayTestSuite());
 //        runner.registerTask(new PackedSequenceTestSuite());
 //        runner.registerTask(new PackedLoudsTestSuite());

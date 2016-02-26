@@ -10,6 +10,7 @@
 
 #include <memoria/core/tools/strings/string.hpp>
 #include <memoria/tools/tools.hpp>
+#include <memoria/tools/tests.hpp>
 #include <memoria/core/types/types.hpp>
 
 
