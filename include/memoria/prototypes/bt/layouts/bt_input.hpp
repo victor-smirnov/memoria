@@ -8,14 +8,20 @@
 #define MEMORIA_PROTOTYPES_BT_INPUT_HPP_
 
 #include <memoria/core/types/types.hpp>
+
+#include <memoria/prototypes/bt/tools/bt_tools_substreamgroup_dispatcher.hpp>
+
 #include <memoria/core/packed/tools/packed_dispatcher.hpp>
 #include <memoria/core/packed/tools/packed_allocator.hpp>
 
 #include <memoria/core/packed/sseq/packed_fse_searchable_seq.hpp>
 
 #include <memoria/core/tools/bitmap.hpp>
+#include <memoria/core/types/algo/for_each.hpp>
 #include <memoria/core/packed/tools/packed_malloc.hpp>
 #include <memoria/core/exceptions/memoria.hpp>
+
+
 
 #include <cstdlib>
 #include <tuple>
@@ -184,10 +190,11 @@ private:
     	template <Int AllocatorIdx, Int Idx, typename Stream>
     	void stream(Stream*, PackedAllocator* alloc, Int capacity)
     	{
-    		Stream* buffer = alloc->template allocateSpace<Stream>(AllocatorIdx, Stream::empty_size());
+    		using BSizesT = typename Stream::SizesT;
+    		Stream* buffer = alloc->template allocateSpace<Stream>(AllocatorIdx, Stream::block_size(BSizesT(capacity)));
 
-    		using SizesT = typename Stream::SizesT;
-    		buffer->init(SizesT(capacity));
+
+    		buffer->init(BSizesT(capacity));
     	}
 
     	template <Int AllocatorIdx, Int Idx, typename Stream>
@@ -443,7 +450,7 @@ public:
     	void stream(StreamObj* stream, Tuple&& tuples, Int start, Int size)
     	{
     		sizes[Idx] = stream->append(size, [&](Int block, Int idx){
-    			return std::get<Idx>(tuples[start + idx])[block];
+    			return std::get<Idx>(tuples[start + idx]) [block];
     		});
     	}
 
@@ -710,6 +717,11 @@ public:
     {
         Base::generateDataEvents(handler);
         Dispatcher::dispatchNotEmpty(allocator(), GenerateDataEventsFn(), handler);
+    }
+
+    void dump(std::ostream& out = std::cout) {
+    	TextPageDumper dumper(out);
+    	generateDataEvents(&dumper);
     }
 };
 

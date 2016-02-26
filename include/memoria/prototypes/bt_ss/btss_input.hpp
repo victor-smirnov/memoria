@@ -15,8 +15,14 @@
 
 #include <memoria/prototypes/bt/layouts/bt_input.hpp>
 
+#include <memoria/prototypes/bt/nodes/leaf_node.hpp>
+#include <memoria/prototypes/bt/nodes/branch_node.hpp>
+
+
 namespace memoria 	{
 namespace btss 		{
+
+using bt::LeafNode;
 
 template <typename CtrT>
 class AbstractBTSSInputProviderBase {
@@ -32,7 +38,7 @@ public:
 	using InputTupleAdapter = typename CtrT::Types::template InputTupleAdapter<0>;
 
 
-	using InputBuffer = StreamInputBuffer<
+	using InputBuffer = bt::StreamInputBuffer<
 			typename CtrT::Types::template StreamInputBufferStructList<0>
 	>;
 
@@ -453,9 +459,7 @@ public:
 		Base(ctr, capacity),
 		current_(start),
 		end_(end)
-	{
-//		for (auto& v: input_value_buffer_) v = 0;
-	}
+	{}
 
 	virtual Int get(InputBuffer* buffer, Int pos)
 	{

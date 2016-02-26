@@ -13,56 +13,61 @@
 #include <memoria/core/container/metadata_repository.hpp>
 
 #include <memory>
+#include <vector>
 
 using namespace memoria;
 using namespace std;
 
+template <typename T>
+using SVector = shared_ptr<vector<T>>;
 
+class MapEntryProvider {
+	size_t pos_ = 0;
+	shared_ptr<vector<String>> data_;
+public:
+	MapEntryProvider(const shared_ptr<vector<String>>& data): data_(data) {}
+	MapEntryProvider() {}
+
+	bool has_next() const {
+		return pos_ < data_->size();
+	}
+
+	auto next()
+	{
+		auto entry = make_pair(data_->at(pos_), pos_);
+		pos_++;
+
+		return entry;
+	}
+};
 
 
 int main() {
 	MEMORIA_INIT(DefaultProfile<>);
 
-	DCtr<Map<String, BigInt>>::initMetadata();
+	DCtr<Map<String, double>>::initMetadata();
 
 	try {
 		auto alloc = PersistentInMemAllocator<>::create();
 		auto snp = alloc->master()->branch();
 
-		auto map = create<Map<String, BigInt>>(snp);
+		auto map = create<Map<String, double>>(snp);
 
-		for (int c = -10000; c < 10000; c++) {
-			map->assign(toString(c), c);
+		auto data = make_shared<vector<String>>(1000000);
+
+		for (size_t c = 0; c < data->size(); c++) {
+			data->operator[](c) = "str_"+toString(c);
 		}
 
-		MEMORIA_ASSERT(map->size(), ==, 20000);
+		std::sort(data->begin(), data->end());
 
-		check_snapshot(snp);
-
-		for (auto c = map->begin(); !c->is_end(); c->next())
-		{
-			cout << c->key() << " -- " << c->value() << endl;
-		}
-
-
-		for (int c = -10000; c < 10000; c++) {
-			map->remove(toString(c));
-		}
-
-		cout << "After remove" << endl;
-
-		for (auto c = map->begin(); !c->is_end(); c->next())
-		{
-			cout << c->key() << " -- " << c->value() << endl;
-		}
-
-		MEMORIA_ASSERT(map->size(), ==, 0);
+		map->begin()->insert_entries(MapEntryProvider(data));
 
 		snp->commit();
 
 		check_snapshot(snp);
 
-		FSDumpAllocator(snp, "mapx.dir");
+		FSDumpAllocator(snp, "map_batch.dir");
 	}
 	catch (memoria::Exception& ex) {
 		cout << ex.message() << " at " << ex.source() << endl;

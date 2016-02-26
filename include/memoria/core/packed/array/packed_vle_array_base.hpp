@@ -125,7 +125,7 @@ public:
 
     static constexpr Int number_of_offsets(Int values)
     {
-    	return Base::divUpV(values);
+    	return values > 0 ? Base::divUpV(values) : 1;
     }
 
     static constexpr Int offsets_segment_size(Int values)

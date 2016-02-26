@@ -37,6 +37,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavMaxName)
     using InputTupleAdapter = typename Container::Types::template InputTupleAdapter<Stream>;
 
 
+
     void insert_(const Key& key, const Value& value)
     {
     	auto& self = this->self();
@@ -46,7 +47,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavMaxName)
     			InputTupleAdapter<0>::convert(0, core::StaticVector<Key, 1>{key}, core::StaticVector<Value, 1>{value})
     	);
 
-
     	self.skipFw(1);
     }
 
@@ -55,6 +55,14 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavMaxName)
 
     template <typename Provider>
     void insert(Provider&&) {}
+
+    template <typename EntriesProvider>
+    void insert_entries(EntriesProvider&& provider, Int ib_capacity = 10000)
+    {
+    	map::MapEntryInputProvider<Container, EntriesProvider> ip(self().ctr(), provider, ib_capacity);
+
+    	Base::insert(ip);
+    }
 
     void remove()
     {

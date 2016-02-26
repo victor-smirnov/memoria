@@ -33,10 +33,16 @@ template <
 >
 struct PkdVBMTreeTypes {
 	using Value = ValueT;
+	using IndexValue = ValueT;
 
 	template <typename T>
 	using Codec = CodecT<T>;
-	static constexpr Int BranchingFactor = kBranchingFactor;
+	static constexpr Int ValueBranchingFactor = kBranchingFactor;
+
+	static constexpr Int Blocks = 1;
+
+	static constexpr Int BranchingFactor = 32;
+	static constexpr Int ValuesPerBranch = kBranchingFactor;
 };
 
 template <typename Types> class PkdVBMTree;
@@ -64,7 +70,7 @@ public:
     static constexpr PkdSearchType KeySearchType = PkdSearchType::MAX;
 
 	static const Int BranchingFactorI        	= PackedTreeBranchingFactor;
-	static const Int BranchingFactorV        	= Types::BranchingFactor;
+	static const Int BranchingFactorV        	= Types::ValueBranchingFactor;
 
     static constexpr Int BranchingFactorVMask 	= BranchingFactorV - 1;
     static constexpr Int BranchingFactorVLog2 	= Log2(BranchingFactorV) - 1;
@@ -208,11 +214,6 @@ public:
     	TreeLayout layout = compute_tree_layout(data_size);
 
 		Int start_pos  	  = locate(layout, values, idx).idx;
-
-		if (start_pos >= data_size) {
-			int a = 0; a++;
-			this->dump();
-		}
 
 		MEMORIA_ASSERT(start_pos, <, data_size);
 
@@ -633,7 +634,7 @@ public:
     	auto values			= this->values();
     	TreeLayout layout 	= compute_tree_layout(data_size);
 
-    	return locate(layout, values, idx).idx;
+    	return SizesT(locate(layout, values, idx).idx);
     }
 
 
@@ -682,7 +683,7 @@ public:
 
     	values = this->values();
 
-    	codec.copy(buffer->values(), starts[0], values, insertion_pos, total_lengths[0]);
+    	codec.copy(buffer->values(0), starts[0], values, insertion_pos, total_lengths[0]);
 
     	this->size() += size;
 

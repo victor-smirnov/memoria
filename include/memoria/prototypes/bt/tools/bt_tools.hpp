@@ -398,6 +398,17 @@ struct TupleEntryAccessor {
 //	}
 //};
 
+template <typename T>
+auto get_array_value(T&& v, Int idx) {
+	return v;
+}
+
+
+template <typename T, Int I>
+auto get_array_value(const memoria::core::StaticVector<T, I>&v, Int idx) {
+	return v[idx];
+}
+
 
 }
 }
