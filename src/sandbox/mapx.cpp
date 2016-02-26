@@ -32,25 +32,32 @@ int main() {
 			map->assign(toString(c), c);
 		}
 
+		MEMORIA_ASSERT(map->size(), ==, 20000);
+
+		check_snapshot(snp);
+
 		for (auto c = map->begin(); !c->is_end(); c->next())
 		{
 			cout << c->key() << " -- " << c->value() << endl;
 		}
 
-//		for (int c = -10000; c < 10000; c++) {
-//			map->remove(toString(c));
-//		}
-//
-//		cout << "After remove" << endl;
-//
-//		for (auto c = map->begin(); !c->is_end(); c->next())
-//		{
-//			cout << c->key() << " -- " << c->value() << endl;
-//		}
+
+		for (int c = -10000; c < 10000; c++) {
+			map->remove(toString(c));
+		}
+
+		cout << "After remove" << endl;
+
+		for (auto c = map->begin(); !c->is_end(); c->next())
+		{
+			cout << c->key() << " -- " << c->value() << endl;
+		}
+
+		MEMORIA_ASSERT(map->size(), ==, 0);
 
 		snp->commit();
 
-		alloc->check();
+		check_snapshot(snp);
 
 		FSDumpAllocator(snp, "mapx.dir");
 	}

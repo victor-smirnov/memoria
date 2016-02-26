@@ -1701,11 +1701,11 @@ protected:
 
     		if (data_size > 0)
     		{
-    			MEMORIA_ASSERT(offsets_size, ==, Base::roundUpBytesToAlignmentBlocks(sizeof(OffsetsType)));
+    			MEMORIA_ASSERT(offsets_size, ==, offsets_segment_size(data_size));
     			MEMORIA_ASSERT(offset(0), ==, 0);
     		}
     		else {
-    			MEMORIA_ASSERT(offsets_size, ==, 0);
+    			MEMORIA_ASSERT(offsets_size, ==, Base::roundUpBytesToAlignmentBlocks(sizeof(OffsetsType)));
     		}
 
     		MEMORIA_ASSERT(meta->data_size(), <=, BranchingFactorV);

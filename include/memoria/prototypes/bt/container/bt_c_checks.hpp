@@ -73,7 +73,7 @@ public:
         {
             self().dump(node);
 
-            MEMORIA_ERROR(self(), ex.message());
+            MEMORIA_ERROR(self(), "Node content check failed", ex.message(), ex.source());
             return true;
         }
     }

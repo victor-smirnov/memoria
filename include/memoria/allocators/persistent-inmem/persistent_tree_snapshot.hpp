@@ -913,6 +913,31 @@ auto find(const std::shared_ptr<persistent_inmem::Snapshot<Profile, PageType, Hi
 }
 
 
+template <typename Allocator>
+void check_snapshot(const std::shared_ptr<Allocator>& allocator, const char* message,  const char* source)
+{
+    Int level = allocator->logger().level();
+
+    allocator->logger().level() = Logger::ERROR;
+
+    if (allocator->check())
+    {
+        allocator->logger().level() = level;
+
+        throw Exception(source, message);
+    }
+
+    allocator->logger().level() = level;
+}
+
+template <typename Allocator>
+void check_snapshot(const std::shared_ptr<Allocator>& allocator)
+{
+	check_snapshot(allocator, "Snapshot check failed", MA_RAW_SRC);
+}
+
+
+
 }
 
 
