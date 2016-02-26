@@ -12,7 +12,9 @@
 #include <memoria/core/packed/tree/vle/packed_vle_quick_tree_base.hpp>
 #include <memoria/core/packed/tree/vle/packed_vle_tools.hpp>
 
-
+#include <memoria/core/tools/strings/string_codec.hpp>
+#include <memoria/core/tools/bignum/cppint_codec.hpp>
+#include <memoria/core/tools/bignum/int64_codec.hpp>
 #include <memory>
 
 namespace memoria {
@@ -1183,7 +1185,7 @@ public:
     	template <typename T>
     	bool compare(T&& value)
     	{
-    		return value >= target_;
+    		return compare_ge(value, target_);
     	}
 
     	void next() {}
@@ -1207,7 +1209,7 @@ public:
     	template <typename T>
     	bool compare(T&& value)
     	{
-    		return value > target_;
+    		return compare_gt(value, target_);
     	}
 
     	void next() {}

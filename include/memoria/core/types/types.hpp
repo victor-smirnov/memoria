@@ -397,6 +397,32 @@ using FailIf = typename FailIfT<T, Flag, T2>::Type;
 template <Int V, bool Flag = true, typename T2 = void>
 using FailIfV = typename FailIfT<IntValue<V>, Flag, T2>::Type;
 
+
+template <typename T1, typename T2>
+constexpr bool compare_gt(T1&& first, T2&& second) {
+	return first > second;
+}
+
+template <typename T1, typename T2>
+constexpr bool compare_eq(T1&& first, T2&& second) {
+	return first == second;
+}
+
+template <typename T1, typename T2>
+constexpr bool compare_lt(T1&& first, T2&& second) {
+	return first < second;
+}
+
+template <typename T1, typename T2>
+constexpr bool compare_ge(T1&& first, T2&& second) {
+	return first >= second;
+}
+
+template <typename T1, typename T2>
+constexpr bool compare_le(T1&& first, T2&& second) {
+	return first <= second;
+}
+
 }
 
 #endif

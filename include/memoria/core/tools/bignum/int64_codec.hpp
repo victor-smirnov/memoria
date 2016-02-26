@@ -7,8 +7,8 @@
 #ifndef MEMORIA_CORE_TOOLS_BIGNUM_INT64_CODEC_HPP_
 #define MEMORIA_CORE_TOOLS_BIGNUM_INT64_CODEC_HPP_
 
-
-#include <memoria/core/types/types.hpp>
+#include <memoria/core/tools/strings/string.hpp>
+#include <memoria/core/tools/bitmap.hpp>
 
 namespace memoria {
 

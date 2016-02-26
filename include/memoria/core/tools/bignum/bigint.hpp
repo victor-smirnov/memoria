@@ -273,7 +273,6 @@ struct TypeHash<BigInteger> {
     static const UInt Value = 50;
 };
 
-
 }
 
 #endif

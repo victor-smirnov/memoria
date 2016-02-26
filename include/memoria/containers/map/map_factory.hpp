@@ -29,6 +29,8 @@
 #include <memoria/core/packed/misc/packed_sized_struct.hpp>
 
 #include <memoria/core/tools/bignum/bigint.hpp>
+#include <memoria/core/tools/strings/string.hpp>
+#include <memoria/core/tools/strings/string_codec.hpp>
 
 #include <memoria/core/tools/uuid.hpp>
 
@@ -139,6 +141,54 @@ struct MapBTTypesBase<Profile, BigInteger, Value_>: public BTTypes<Profile, memo
 };
 
 
+
+template <
+    typename Profile,
+    typename Value_
+>
+struct MapBTTypesBase<Profile, String, Value_>: public BTTypes<Profile, memoria::BTSingleStream> {
+
+    using Base = BTTypes<Profile, memoria::BTSingleStream>;
+
+    using Key 	= String;
+    using Value = Value_;
+
+    using MapStreamTF = StreamTF<
+        	TL<
+				TL<StreamSize>,
+				TL<PkdVBMTreeT<Key>>,
+				TL<PkdFSQArrayT<Value>>
+    		>,
+    		TL<
+    			TL<TL<>>, TL<TL<>>, TL<TL<>>
+    		>,
+
+			VLQBranchStructTF
+    >;
+
+
+    using Entry = std::tuple<Key, Value>;
+
+    using StreamDescriptors = TypeList<MapStreamTF>;
+
+    using Metadata = BalancedTreeMetadata<
+            typename Base::ID,
+            ListSize<StreamDescriptors>::Value
+    >;
+
+
+    using CommonContainerPartsList = MergeLists<
+                typename Base::CommonContainerPartsList,
+                memoria::map::CtrInsertMaxName,
+                memoria::map::CtrRemoveName
+    >;
+
+
+    using IteratorPartsList = MergeLists<
+                typename Base::IteratorPartsList,
+                memoria::map::ItrNavMaxName
+    >;
+};
 
 
 

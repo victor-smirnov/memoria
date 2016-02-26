@@ -20,16 +20,16 @@ using namespace std;
 int main() {
 	MEMORIA_INIT(DefaultProfile<>);
 
-	DCtr<Map<BigInteger, BigInt>>::initMetadata();
+	DCtr<Map<String, BigInt>>::initMetadata();
 
 	try {
 		auto alloc = PersistentInMemAllocator<>::create();
 		auto snp = alloc->master()->branch();
 
-		auto map = create<Map<BigInteger, BigInt>>(snp);
+		auto map = create<Map<String, BigInt>>(snp);
 
 		for (int c = -10000; c < 10000; c++) {
-			map->assign(c, c);
+			map->assign(toString(c), c);
 		}
 
 		for (auto c = map->begin(); !c->is_end(); c->next())
@@ -37,18 +37,20 @@ int main() {
 			cout << c->key() << " -- " << c->value() << endl;
 		}
 
-		for (int c = -10000; c < 10000; c++) {
-			map->remove(c);
-		}
-
-		cout << "After remove" << endl;
-
-		for (auto c = map->begin(); !c->is_end(); c->next())
-		{
-			cout << c->key() << " -- " << c->value() << endl;
-		}
+//		for (int c = -10000; c < 10000; c++) {
+//			map->remove(toString(c));
+//		}
+//
+//		cout << "After remove" << endl;
+//
+//		for (auto c = map->begin(); !c->is_end(); c->next())
+//		{
+//			cout << c->key() << " -- " << c->value() << endl;
+//		}
 
 		snp->commit();
+
+		alloc->check();
 
 		FSDumpAllocator(snp, "mapx.dir");
 	}

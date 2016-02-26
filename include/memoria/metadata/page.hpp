@@ -14,6 +14,7 @@
 #include <memoria/core/tools/uuid.hpp>
 
 #include <memoria/core/tools/bignum/bigint.hpp>
+#include <memoria/core/tools/strings/string.hpp>
 
 #include <tuple>
 
@@ -70,6 +71,7 @@ struct IPageDataEventHandler {
     virtual void value(const char* name, const UUID* value, Int count = 1, Int kind = 0)        = 0;
 
     virtual void value(const char* name, const BigInteger* value, Int count = 1, Int kind = 0)  = 0;
+    virtual void value(const char* name, const String* value, Int count = 1, Int kind = 0)  	= 0;
 
     virtual void symbols(const char* name, const UBigInt* value, Int count, Int bits_per_symbol)    = 0;
     virtual void symbols(const char* name, const UByte* value, Int count, Int bits_per_symbol)      = 0;
@@ -445,6 +447,17 @@ public:
     	if (kind == BYTE_ARRAY)
     	{
     		::memoria::dumpArray<BigInteger>(out_, count, [=](Int idx){return value[idx];});
+    	}
+    	else {
+    		OutNumber(name, value, count, kind);
+    	}
+    }
+
+    virtual void value(const char* name, const String* value, Int count = 1, Int kind = 0)
+    {
+    	if (kind == BYTE_ARRAY)
+    	{
+    		::memoria::dumpArray<String>(out_, count, [=](Int idx){return value[idx];});
     	}
     	else {
     		OutNumber(name, value, count, kind);
