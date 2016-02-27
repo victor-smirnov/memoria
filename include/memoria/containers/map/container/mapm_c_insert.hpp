@@ -82,7 +82,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertMaxName)
     		iter->assign(value);
     	}
     	else {
-    		iter->insert_(key, value);
+    		iter->insert(key, value);
     	}
 
     	return iter;

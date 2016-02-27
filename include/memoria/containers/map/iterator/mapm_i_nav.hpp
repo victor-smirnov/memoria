@@ -38,7 +38,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavMaxName)
 
 
 
-    void insert_(const Key& key, const Value& value)
+    void insert(const Key& key, const Value& value)
     {
     	auto& self = this->self();
 
@@ -50,18 +50,20 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavMaxName)
     	self.skipFw(1);
     }
 
-    template <typename InputIterator>
-    void insert(InputIterator&&, InputIterator&&) {}
-
-    template <typename Provider>
-    void insert(Provider&&) {}
+//    template <typename InputIterator>
+//    void insert(InputIterator&&, InputIterator&&) {}
+//
+//    template <typename Provider>
+//    void insert(Provider&&) {}
 
     template <typename EntriesProvider>
-    void insert_entries(EntriesProvider&& provider, Int ib_capacity = 10000)
+    auto bulk_insert(EntriesProvider&& provider, Int ib_capacity = 10000)
     {
-    	map::MapEntryInputProvider<Container, EntriesProvider> ip(self().ctr(), provider, ib_capacity);
+    	using Provider = map::MapEntryInputProvider<Container, EntriesProvider>;
 
-    	Base::insert(ip);
+    	auto bulk = std::make_unique<Provider>(self().ctr(), provider, ib_capacity);
+
+    	return Base::insert(*bulk.get());
     }
 
     void remove()

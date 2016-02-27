@@ -505,6 +505,7 @@ protected:
     		}
     	}
     	else {
+    		// FIXME resize segment to the proper size
     		this->clear(block * SegmentsPerBlock + Base::OFFSETS + BlocksStart);
     	}
     }
@@ -550,8 +551,7 @@ protected:
     				size_cnt  = 0;
     			}
 
-    			Value value;
-    			auto len = codec.decode(values, value, pos);
+    			auto len = codec.length(values, pos, -1ull);
 
     			size_cnt++;
 

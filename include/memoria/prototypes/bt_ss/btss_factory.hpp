@@ -36,7 +36,9 @@ template <
 >
 struct BTTypes<Profile, memoria::BTSingleStream>: public BTTypes<Profile, memoria::BT> {
 
-    typedef BTTypes<Profile, memoria::BT>                                       Base;
+    using Base = BTTypes<Profile, memoria::BT>;
+
+    using Metadata = BalancedTreeMetadata<typename Base::ID, 1>;
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,

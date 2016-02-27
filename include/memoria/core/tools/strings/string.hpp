@@ -30,27 +30,27 @@ struct TypeHash<String> {
     static const UInt Value = 60;
 };
 
-inline constexpr bool compare_gt(const String& first, String& second) {
+inline bool compare_gt(const String& first, const String& second) {
 	return first.compare(second) > 0;
 }
 
 
-constexpr bool compare_eq(const String& first, String& second) {
+inline bool compare_eq(const String& first, const String& second) {
 	return first.compare(second) == 0;
 }
 
 
-constexpr bool compare_lt(const String& first, String& second) {
+inline bool compare_lt(const String& first, const String& second) {
 	return first.compare(second) > 0;
 }
 
 
-constexpr bool compare_ge(const String& first, String& second) {
+inline bool compare_ge(const String& first, const String& second) {
 	return first.compare(second) >= 0;
 }
 
 
-constexpr bool compare_le(const String& first, String& second) {
+inline bool compare_le(const String& first, const String& second) {
 	return first.compare(second) <= 0;
 }
 

@@ -18,7 +18,7 @@ namespace memoria {
 
 template <typename ValueT, Int kBlocks, Int kBranchingFactor = PackedTreeBranchingFactor, Int kValuesPerBranch = PackedTreeBranchingFactor>
 struct PkdFMTreeTypes {
-	using Value 		= ValueT;
+	using Value = ValueT;
 
 	static constexpr Int Blocks = kBlocks;
 	static constexpr Int BranchingFactor = kBranchingFactor;
@@ -28,7 +28,7 @@ struct PkdFMTreeTypes {
 template <typename Types> class PkdFMTree;
 
 
-template <typename ValueT, Int kBlocks, Int kBranchingFactor = PackedTreeBranchingFactor, Int kValuesPerBranch = PackedTreeBranchingFactor>
+template <typename ValueT, Int kBlocks = 1, Int kBranchingFactor = PackedTreeBranchingFactor, Int kValuesPerBranch = PackedTreeBranchingFactor>
 using PkdFMTreeT = PkdFMTree<PkdFMTreeTypes<ValueT, kBlocks, kBranchingFactor, kValuesPerBranch>>;
 
 

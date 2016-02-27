@@ -156,6 +156,41 @@ struct TypeHash<BalancedTreeMetadata<ID, Streams>>: UIntValue<
     HashHelper<2500, TypeHash<ID>::Value, Streams>::Value
 > {};
 
+
+template <typename ID, Int Streams>
+struct FieldFactory<BalancedTreeMetadata<ID, Streams>> {
+
+	using Type = BalancedTreeMetadata<ID, Streams>;
+
+    static void serialize(SerializationData& data, const Type& field)
+    {
+        field.serialize(data);
+    }
+
+    static void serialize(SerializationData& data, const Type* field, Int size)
+    {
+        for (Int c = 0; c < size; c++)
+        {
+            field[c].serialize(data);
+        }
+    }
+
+
+    static void deserialize(DeserializationData& data, Type& field)
+    {
+        field.deserialize(data);
+    }
+
+    static void deserialize(DeserializationData& data, Type* field, Int size)
+    {
+        for (Int c = 0; c < size; c++)
+        {
+            field[c].deserialize(data);
+        }
+    }
+};
+
+
 }
 
 #endif

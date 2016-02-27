@@ -34,7 +34,8 @@ typedef std::int32_t            Int;
 typedef std::uint32_t           UInt;
 typedef std::int16_t            Short;
 typedef std::uint16_t           UShort;
-typedef char                    Byte;
+typedef char                    Char;
+typedef std::int8_t             Byte;
 typedef std::uint8_t            UByte;
 
 enum class PackedSizeType {FIXED, VARIABLE};
@@ -356,7 +357,6 @@ struct IndexesSize {
 extern BigInt DebugCounter;
 extern BigInt DebugCounter1;
 extern BigInt DebugCounter2;
-extern size_t MemBase;
 
 template <typename T>
 using IL = std::initializer_list<T>;
@@ -422,6 +422,66 @@ template <typename T1, typename T2>
 constexpr bool compare_le(T1&& first, T2&& second) {
 	return first <= second;
 }
+
+
+template <typename T> class ValueCodec;
+template <typename T> struct FieldFactory;
+
+template <typename T>
+class ValuePtrT1 {
+	const T* addr_;
+	size_t length_;
+public:
+	ValuePtrT1(): addr_(), length_() {}
+	ValuePtrT1(const T* addr, size_t length): addr_(addr), length_(length) {}
+
+	const T* addr() const {return addr_;}
+	size_t length() const {return length_;}
+};
+
+template <typename T>
+class ValuePtrT2 {
+	const T* addr_;
+	size_t offset_;
+	size_t length_;
+public:
+	ValuePtrT2(): addr_(), offset_(0), length_() {}
+	ValuePtrT2(const T* addr, size_t offset, size_t length): addr_(addr), offset_(offset), length_(length) {}
+
+	const T* addr() const {return addr_;}
+	size_t length() const {return length_;}
+	size_t offset() const {return offset_;}
+};
+
+
+namespace {
+	template <typename T> struct Void {
+		using Type = void;
+	};
+
+	template <typename T>
+	struct IsCompleteHelper {
+	    template <typename U>
+	    static auto test(U*)  -> std::integral_constant<bool, sizeof(U) == sizeof(U)>;
+	    static auto test(...) -> std::false_type;
+	    using Type = decltype(test((T*)0));
+	};
+}
+
+template <typename T>
+struct IsComplete : IsCompleteHelper<T>::Type {};
+
+
+template <typename T>
+struct HasValueCodec: HasValue<bool, IsComplete<ValueCodec<T>>::type::value> {};
+
+template <typename T>
+struct HasFieldFactory: HasValue<bool, IsComplete<FieldFactory<T>>::type::value> {};
+
+
+template <typename T>
+struct IsExternalizable: HasValue<bool, HasValueCodec<T>::Value || HasFieldFactory<T>::Value> {};
+
 
 }
 

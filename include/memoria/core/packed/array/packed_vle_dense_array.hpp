@@ -20,8 +20,8 @@ template <
 	typename ValueT,
 	Int kBlocks,
 	template <typename> class CodecT,
-	Int kBranchingFactor = PkdVLETreeShapeProvider<CodecT<ValueT>>::BranchingFactor,
-	Int kValuesPerBranch = PkdVLETreeShapeProvider<CodecT<ValueT>>::ValuesPerBranch
+	Int kBranchingFactor,// = PkdVLETreeShapeProvider<CodecT<ValueT>>::BranchingFactor,
+	Int kValuesPerBranch// = PkdVLETreeShapeProvider<CodecT<ValueT>>::ValuesPerBranch
 >
 struct PkdVLEArrayTypes {
 	using Value = ValueT;
@@ -40,8 +40,8 @@ template <typename Types> class PkdVDArray;
 
 template <
 	typename ValueT,
-	Int kBlocks,
-	template <typename> class CodecT,
+	Int kBlocks = 1,
+	template <typename> class CodecT = ValueCodec,
 
 	Int kBranchingFactor = PkdVLETreeShapeProvider<CodecT<ValueT>>::BranchingFactor,
 	Int kValuesPerBranch = PkdVLETreeShapeProvider<CodecT<ValueT>>::ValuesPerBranch

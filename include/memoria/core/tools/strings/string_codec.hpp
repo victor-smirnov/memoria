@@ -22,10 +22,17 @@ public:
     using T 			= BufferType;
     using V 			= String;
 
+    using ValuePtr		= ValuePtrT1<BufferType>;
+
     ValueCodec<int64_t> size_codec_;
 
     static const Int BitsPerOffset  = 16;
     static const Int ElementSize    = 8; // In bits;
+
+    ValuePtr describe(const T* buffer, size_t idx)
+    {
+    	return ValuePtr(buffer + idx, length(buffer, idx, -1ull));
+    }
 
     size_t length(const T* buffer, size_t idx, size_t limit) const
     {
@@ -69,6 +76,13 @@ public:
 
     	return pos - idx;
     }
+
+    size_t encode(T* buffer, const ValuePtr& value, size_t idx) const
+    {
+    	copy(value.addr(), 0, buffer, idx, value.length());
+    	return value.length();
+    }
+
 
     size_t encode(T* buffer, const V& value, size_t idx, size_t limit) const
     {

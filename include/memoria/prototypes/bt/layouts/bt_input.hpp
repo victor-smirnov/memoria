@@ -29,7 +29,7 @@
 namespace memoria 	{
 namespace bt 		{
 
-
+template <Int StreamIdx> struct StreamTag {};
 
 
 template <typename T>
@@ -101,14 +101,13 @@ public:
 
 
 template <
+	Int InputBufferStreamIdx,
     typename SubstreamsStructList
 >
 class StreamInputBuffer: public PackedAllocator {
 public:
 	using Base = PackedAllocator;
-	using MyType = StreamInputBuffer<SubstreamsStructList>;
-
-    static const UInt VERSION = 1;
+	using MyType = StreamInputBuffer<InputBufferStreamIdx, SubstreamsStructList>;
 
     using StreamDispatcherStructList = typename PackedDispatchersListBuilder<
     		Linearize<SubstreamsStructList>
@@ -498,6 +497,28 @@ public:
     {
     	AppendBufferFn<core::StaticVector<Int, Substreams>> fn;
     	Dispatcher::dispatchAll(allocator(), fn, buffer);
+    	return fn.sizes.min();
+    }
+
+
+    template <typename Sizes>
+    struct AppendVBufferFn {
+    	Sizes sizes;
+
+    	template <Int Idx, typename StreamObj, typename BufferProvider>
+    	void stream(StreamObj* stream, BufferProvider&& buffer, Int start, Int size)
+    	{
+    		sizes[Idx] = stream->append(size, [&](Int block, Int idx) {
+    			return buffer->buffer(StreamTag<InputBufferStreamIdx>(), StreamTag<Idx>(), start + idx, block);
+    		});
+    	}
+    };
+
+    template <typename... Args>
+    auto append_vbuffer(Args&&... args)
+    {
+    	AppendVBufferFn<core::StaticVector<Int, Substreams>> fn;
+    	Dispatcher::dispatchAll(allocator(), fn, std::forward<Args>(args)...);
     	return fn.sizes.min();
     }
 

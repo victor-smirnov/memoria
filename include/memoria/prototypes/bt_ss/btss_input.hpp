@@ -39,6 +39,7 @@ public:
 
 
 	using InputBuffer = bt::StreamInputBuffer<
+			0,
 			typename CtrT::Types::template StreamInputBufferStructList<0>
 	>;
 
@@ -216,7 +217,7 @@ public:
 private:
 	static InputBuffer* create_input_buffer(Int capacity)
 	{
-		Int buffer_size = InputBuffer::block_size(capacity);
+		Int buffer_size = InputBuffer::block_size(capacity) + 256;
 
     	void* block = malloc(buffer_size);
     	if (block != nullptr)

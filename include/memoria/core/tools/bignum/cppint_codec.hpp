@@ -33,8 +33,15 @@ public:
     using T 			= BufferType;
     using V 			= mp::number<mp::cpp_int_backend<MinDigits, MaxDigits, SignType, Checked, Allocator>, ExpressionTemplates>;
 
+    using ValuePtr		= ValuePtrT1<BufferType>;
+
     static const Int BitsPerOffset  = 16;
     static const Int ElementSize    = 8; // In bits;
+
+    ValuePtr describe(const T* buffer, size_t idx)
+    {
+    	return ValuePtr(buffer + idx, length(buffer, idx, -1ull));
+    }
 
     size_t length(const T* buffer, size_t idx, size_t limit) const
     {
@@ -145,6 +152,12 @@ public:
     	}
     }
 
+    size_t encode(T* buffer, const ValuePtr& value, size_t idx) const
+    {
+    	copy(value.addr(), 0, buffer, idx, value.length());
+    	return value.length();
+    }
+
     size_t encode(T* buffer, const V& value, size_t idx, size_t limit) const
     {
         return encode(buffer, value, idx);
@@ -228,10 +241,6 @@ public:
 
 private:
 
-//    auto canonical_value(V&& v) {
-//    	return static_cast<typename mp::detail::canonical<V, Backend>::type>(v);
-//    }
-
     static size_t serialize_limb(T* buffer, unsigned long value, size_t idx)
     {
     	UInt len = bytes(value);
@@ -295,75 +304,6 @@ private:
 		return bytes(data[size - 1]) + (size - 1) * sizeof(T);
 	}
 };
-
-
-
-
-//
-//
-//template <
-//		unsigned MinDigits,
-//        unsigned MaxDigits,
-//		mp::cpp_integer_type SignType,
-//		mp::cpp_int_check_type Checked,
-//        class Allocator,
-//		mp::expression_template_option ExpressionTemplates
-//>
-//class ValueCodec<mp::number<mp::cpp_int_backend<MinDigits, MaxDigits, SignType, Checked, Allocator>, ExpressionTemplates>>:
-//	protected CPPIntBackendCodec<mp::cpp_int_backend<MinDigits, MaxDigits, SignType, Checked, Allocator>>
-//{
-//	using Base = CPPIntBackendCodec<mp::cpp_int_backend<MinDigits, MaxDigits, SignType, Checked, Allocator>>;
-//
-//public:
-//    using BufferType 	= UByte;
-//    using T 			= BufferType;
-//    using V 			= mp::number<mp::cpp_int_backend<MinDigits, MaxDigits, SignType, Checked, Allocator>, ExpressionTemplates>;
-//
-//    static const Int BitsPerOffset  = 16;
-//    static const Int ElementSize    = 8; // In bits;
-//
-//    size_t length(const T* buffer, size_t idx, size_t limit) const
-//    {
-//    	return Base::length(buffer, idx, limit);
-//    }
-//
-//    size_t length(const V& value) const
-//    {
-//    	return Base::length(value.backend());
-//    }
-//
-//    size_t decode(const T* buffer, V& value, size_t idx, size_t limit) const
-//    {
-//        return decode(buffer, value, idx);
-//    }
-//
-//    size_t decode(const T* buffer, V& value, size_t idx) const
-//    {
-//    	return Base::decode(buffer, value.backend(), idx);
-//    }
-//
-//    size_t encode(T* buffer, const V& value, size_t idx, size_t limit) const
-//    {
-//        return encode(buffer, value, idx);
-//    }
-//
-//    size_t encode(T* buffer, const V& value, size_t idx) const
-//    {
-//    	return Base::encode(buffer, value.backend(), idx);
-//    }
-//
-//    void move(T* buffer, size_t from, size_t to, size_t size) const
-//    {
-//        Base::move(buffer, from, to, size);
-//    }
-//
-//    void copy(const T* src, size_t from, T* tgt, size_t to, size_t size) const
-//    {
-//        Base::copy(src, from, tgt, to, size);
-//    }
-//};
-
-
 
 }
 

@@ -24,7 +24,7 @@ inline BigInt PtrToLong(const void *ptr) {
 template <typename T> struct FieldFactory;
 
 template <typename Type>
-struct FieldFactory {
+struct CompositeFieldFactory {
 
     static void serialize(SerializationData& data, const Type& field)
     {
@@ -153,16 +153,17 @@ template <> struct FieldFactory<UBigInt> {
 };
 
 
+MEMORIA_TYPED_FIELD(Char);
 MEMORIA_TYPED_FIELD(Byte);
 MEMORIA_TYPED_FIELD(Short);
 MEMORIA_TYPED_FIELD(Int);
 MEMORIA_TYPED_FIELD(BigInt);
-//MEMORIA_TYPED_FIELD(UBigInt);
 MEMORIA_TYPED_FIELD(UByte);
 MEMORIA_TYPED_FIELD(UShort);
 MEMORIA_TYPED_FIELD(UInt);
 MEMORIA_TYPED_FIELD(float);
 MEMORIA_TYPED_FIELD(double);
+MEMORIA_TYPED_FIELD(bool);
 
 
 namespace internal {

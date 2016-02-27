@@ -1389,7 +1389,7 @@ private:
 
 
 
-template <Int StreamIdx> struct StreamTag {};
+
 
 namespace details {
 

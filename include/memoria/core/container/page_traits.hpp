@@ -23,7 +23,7 @@ template <typename T> struct FieldFactory;
 template <typename T>
 struct FieldFactory<PageID<T> > {
 private:
-    typedef PageID<T>                                                   Type;
+    using Type = PageID<T>;
 
 public:
     static void serialize(SerializationData& data, const Type& field, Int count = 1)
@@ -58,7 +58,7 @@ public:
 
 template <Int Size>
 struct FieldFactory<BitBuffer<Size> > {
-    typedef BitBuffer<Size>                                                     Type;
+	using Type = BitBuffer<Size>;
 
     static void serialize(SerializationData& data, const Type& field)
     {
@@ -76,4 +76,4 @@ struct FieldFactory<BitBuffer<Size> > {
 
 }
 
-#endif  // _MEMORIA_CORE_CONTAINER_PAGES_HPP
+#endif

@@ -19,8 +19,8 @@ template <typename Types> class PkdVQTree;
 
 template <
 	typename IndexValueT,
-	Int kBlocks,
-	template <typename> class CodecT,
+	Int kBlocks = 1,
+	template <typename> class CodecT = ValueCodec,
 	typename ValueT = BigInt,
 	Int kBranchingFactor = PkdVLETreeShapeProvider<CodecT<ValueT>>::BranchingFactor,
 	Int kValuesPerBranch = PkdVLETreeShapeProvider<CodecT<ValueT>>::ValuesPerBranch

@@ -12,6 +12,8 @@
 
 #include <memoria/core/container/metadata_repository.hpp>
 
+#include <memoria/core/tools/time.hpp>
+
 #include <memory>
 #include <vector>
 
@@ -21,11 +23,12 @@ using namespace std;
 template <typename T>
 using SVector = shared_ptr<vector<T>>;
 
+template <typename KeyType, typename ValueType>
 class MapEntryProvider {
 	size_t pos_ = 0;
-	shared_ptr<vector<String>> data_;
+	SVector<pair<KeyType, ValueType>> data_;
 public:
-	MapEntryProvider(const shared_ptr<vector<String>>& data): data_(data) {}
+	MapEntryProvider(const SVector<pair<KeyType, ValueType>>& data): data_(data) {}
 	MapEntryProvider() {}
 
 	bool has_next() const {
@@ -34,43 +37,84 @@ public:
 
 	auto next()
 	{
-		auto entry = make_pair(data_->at(pos_), pos_);
-		pos_++;
-
-		return entry;
+		Incrementer incr(pos_);
+		return std::pair<const KeyType&, const ValueType&>(data_->at(pos_).first, data_->at(pos_).second);
 	}
+
+private:
+	class Incrementer {
+		size_t& value_;
+	public:
+		Incrementer(size_t& value): value_(value) {}
+		~Incrementer() {value_++;}
+	};
 };
 
 
 int main() {
 	MEMORIA_INIT(DefaultProfile<>);
 
-	DCtr<Map<String, double>>::initMetadata();
+	cout<<"Field Factory: "<<HasFieldFactory<double>::Value<<endl;
+	cout<<"ValueCodec: "<<HasValueCodec<double>::Value<<endl;
+
+	ListPrinter<TL<int8_t, char, uint8_t>>::print(cout)<<endl;
+
+	using KeyType = BigInt;
+	using ValueType = UByte;
+
+	DInit<Map<KeyType, ValueType>>();
 
 	try {
 		auto alloc = PersistentInMemAllocator<>::create();
-		auto snp = alloc->master()->branch();
+		auto snp   = alloc->master()->branch();
 
-		auto map = create<Map<String, double>>(snp);
+		auto map = create<Map<KeyType, ValueType>>(snp);
 
-		auto data = make_shared<vector<String>>(1000000);
+		auto data = make_shared<vector<pair<KeyType, ValueType>>>(10000);
 
-		for (size_t c = 0; c < data->size(); c++) {
-			data->operator[](c) = "str_"+toString(c);
+		for (size_t c = 0; c < data->size(); c++)
+		{
+			//data->operator[](c) = make_pair(toString(c, true), (ValueType)c);
+			data->operator[](c) = make_pair((KeyType)c, (ValueType)c);
+
+//			data->operator[](c) = make_pair(toString(c), toString(c));
 		}
 
-		std::sort(data->begin(), data->end());
+		BigInt t0 = getTimeInMillis();
 
-		map->begin()->insert_entries(MapEntryProvider(data));
+		cout << "Inserted: " << map->begin()->bulk_insert(MapEntryProvider<KeyType, ValueType>(data)) << endl;
+
+		BigInt t1 = getTimeInMillis();
+
+		cout << "Insertion time: " << FormatTime(t1 - t0) << " s" << endl;
 
 		snp->commit();
 
+		BigInt t2 = getTimeInMillis();
+
 		check_snapshot(snp);
 
-		FSDumpAllocator(snp, "map_batch.dir");
+		BigInt t3 = getTimeInMillis();
+
+		cout << "Check time: " << FormatTime(t3 - t2) << " s" << endl;
+
+		BigInt t4 = getTimeInMillis();
+
+		FSDumpAllocator(snp, "map_batch_data.dir");
+
+		unique_ptr <FileOutputStreamHandler> out(FileOutputStreamHandler::create("map_batch_data.dump"));
+		alloc->store(out.get());
+
+		BigInt t5 = getTimeInMillis();
+
+		cout << "Dump time: " << FormatTime(t5 - t4) << " s" << endl;
 	}
 	catch (memoria::Exception& ex) {
 		cout << ex.message() << " at " << ex.source() << endl;
+	}
+
+	catch (memoria::PackedOOMException& ex) {
+		cout << "PackedOOMException at " << ex.source() << endl;
 	}
 
 	MetadataRepository<DefaultProfile<>>::cleanup();

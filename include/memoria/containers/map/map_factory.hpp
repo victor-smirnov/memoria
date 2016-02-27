@@ -26,6 +26,8 @@
 #include <memoria/core/packed/tree/vle/packed_vle_quick_tree.hpp>
 #include <memoria/core/packed/tree/vle/packed_vle_dense_tree.hpp>
 #include <memoria/core/packed/tree/vle_big/packed_vle_bigmax_tree.hpp>
+#include <memoria/core/packed/array/packed_fse_array.hpp>
+#include <memoria/core/packed/array/packed_vle_dense_array.hpp>
 #include <memoria/core/packed/misc/packed_sized_struct.hpp>
 
 #include <memoria/core/tools/bignum/bigint.hpp>
@@ -41,41 +43,17 @@ namespace memoria {
 
 template <
     typename Profile,
-    typename Key_,
+	typename Key_,
     typename Value_
 >
-struct MapBTTypesBase: public BTTypes<Profile, memoria::BTSingleStream> {
+struct MapBTTypesBaseBase: public BTTypes<Profile, memoria::BTSingleStream> {
 
     using Base = BTTypes<Profile, memoria::BTSingleStream>;
-
-    static constexpr Int Indexes = 1;
 
     using Key 	= Key_;
     using Value = Value_;
 
-    using MapStreamTF = StreamTF<
-        	TL<
-				TL<StreamSize>,
-				TL<PkdFMTreeT<Key, Indexes>>,
-				TL<PkdFSQArrayT<Value>>
-    		>,
-    		TL<
-    			TL<TL<>>, TL<TL<>>, TL<TL<>>
-    		>,
-
-		FSEBranchStructTF
-    >;
-
-
     using Entry = std::tuple<Key, Value>;
-
-    using StreamDescriptors = TypeList<MapStreamTF>;
-
-    using Metadata = BalancedTreeMetadata<
-            typename Base::ID,
-            ListSize<StreamDescriptors>::Value
-    >;
-
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
@@ -94,101 +72,43 @@ struct MapBTTypesBase: public BTTypes<Profile, memoria::BTSingleStream> {
 
 template <
     typename Profile,
-    typename Value_
+    typename Key,
+    typename Value,
+	Int Special = 0
 >
-struct MapBTTypesBase<Profile, BigInteger, Value_>: public BTTypes<Profile, memoria::BTSingleStream> {
+struct MapBTTypesBase: public MapBTTypesBaseBase<Profile, Key, Value> {
 
-    using Base = BTTypes<Profile, memoria::BTSingleStream>;
+	static_assert(
+			IsExternalizable<Key>::Value ,
+			"Key type must have either ValueCodec or FieldFactory defined"
+	);
 
-    using Key 	= BigInteger;
-    using Value = Value_;
+	static_assert(
+			IsExternalizable<Value>::Value ,
+			"Value type must have either ValueCodec or FieldFactory defined"
+	);
 
-    using MapStreamTF = StreamTF<
-        	TL<
-				TL<StreamSize>,
-				TL<PkdVBMTreeT<Key>>,
-				TL<PkdFSQArrayT<Value>>
-    		>,
-    		TL<
-    			TL<TL<>>, TL<TL<>>, TL<TL<>>
-    		>,
+	using LeafKeyStruct = typename map::MapKeyStructTF<Key, HasFieldFactory<Key>::Value>::Type;
 
-			VLQBranchStructTF
-    >;
+	using LeafValueStruct = typename map::MapValueStructTF<Key, HasFieldFactory<Key>::Value>::Type;
 
+	using StreamDescriptors = TL<
+    		StreamTF<
+				TL<
+					TL<StreamSize>,
+					TL<LeafKeyStruct>,
+					TL<LeafValueStruct>
+				>,
+				TL<
+					TL<TL<>>, TL<TL<>>, TL<TL<>>
+				>,
 
-    using Entry = std::tuple<Key, Value>;
-
-    using StreamDescriptors = TypeList<MapStreamTF>;
-
-    using Metadata = BalancedTreeMetadata<
-            typename Base::ID,
-            ListSize<StreamDescriptors>::Value
-    >;
-
-
-    using CommonContainerPartsList = MergeLists<
-                typename Base::CommonContainerPartsList,
-                memoria::map::CtrInsertMaxName,
-                memoria::map::CtrRemoveName
-    >;
-
-
-    using IteratorPartsList = MergeLists<
-                typename Base::IteratorPartsList,
-                memoria::map::ItrNavMaxName
+				map::MapBranchStructTF
+			>
     >;
 };
 
 
-
-template <
-    typename Profile,
-    typename Value_
->
-struct MapBTTypesBase<Profile, String, Value_>: public BTTypes<Profile, memoria::BTSingleStream> {
-
-    using Base = BTTypes<Profile, memoria::BTSingleStream>;
-
-    using Key 	= String;
-    using Value = Value_;
-
-    using MapStreamTF = StreamTF<
-        	TL<
-				TL<StreamSize>,
-				TL<PkdVBMTreeT<Key>>,
-				TL<PkdFSQArrayT<Value>>
-    		>,
-    		TL<
-    			TL<TL<>>, TL<TL<>>, TL<TL<>>
-    		>,
-
-			VLQBranchStructTF
-    >;
-
-
-    using Entry = std::tuple<Key, Value>;
-
-    using StreamDescriptors = TypeList<MapStreamTF>;
-
-    using Metadata = BalancedTreeMetadata<
-            typename Base::ID,
-            ListSize<StreamDescriptors>::Value
-    >;
-
-
-    using CommonContainerPartsList = MergeLists<
-                typename Base::CommonContainerPartsList,
-                memoria::map::CtrInsertMaxName,
-                memoria::map::CtrRemoveName
-    >;
-
-
-    using IteratorPartsList = MergeLists<
-                typename Base::IteratorPartsList,
-                memoria::map::ItrNavMaxName
-    >;
-};
 
 
 
@@ -205,25 +125,6 @@ class CtrTF<Profile, memoria::Map<Key, Value>, T>: public CtrTF<Profile, memoria
 };
 
 
-//template <typename Profile, typename Value, typename T>
-//class CtrTF<Profile, memoria::Map<UUID, Value>, T>: public CtrTF<Profile, memoria::BTSingleStream, T>
-//{
-//	using Base = CtrTF<Profile, memoria::BTSingleStream, T>;
-//public:
-//    struct Types: Base::Types
-//    {
-//    	using BaseTypes = typename Base::Types;
-//
-//    	typedef BTCtrTypes<Types>                                               CtrTypes;
-//    	typedef BTIterTypes<Types>                                              IterTypes;
-//
-//        typedef PageUpdateManager<CtrTypes>                                     PageUpdateMgr;
-//    };
-//
-//
-//    typedef typename Types::CtrTypes                                            CtrTypes;
-//    typedef Ctr<CtrTypes>                                                       Type;
-//};
 
 }
 

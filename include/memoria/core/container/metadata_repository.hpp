@@ -138,6 +138,8 @@ public:
 #define MEMORIA_INIT(Profile)\
     MetadataInitializer<Profile>::init()
 
+
+
 }
 
 #endif

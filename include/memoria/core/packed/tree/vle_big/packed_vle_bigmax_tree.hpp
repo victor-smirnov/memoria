@@ -1525,7 +1525,7 @@ protected:
 
     		Int idx = 0;
 
-    		Value value;
+    		typename Codec::ValuePtr value;
 
     		while(pos < data_size)
     		{
@@ -1536,17 +1536,17 @@ protected:
 
     				threshold += BranchingFactorV;
 
-    				buffer_pos += codec.encode(buffer.get(), value, buffer_pos, data_size);
+    				buffer_pos += codec.encode(buffer.get(), value, buffer_pos);
 
     				idx++;
     				size_cnt  = 0;
     			}
 
-    			auto len = codec.decode(values, value, pos, data_size);
+    			value = codec.describe(values, pos);
 
     			size_cnt++;
 
-    			pos += len;
+    			pos += value.length();
     		}
 
     		buffer_pos += codec.encode(buffer.get(), value, buffer_pos);
