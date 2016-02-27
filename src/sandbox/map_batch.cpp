@@ -70,7 +70,9 @@ int main() {
 
 		auto map = create<Map<KeyType, ValueType>>(snp);
 
-		auto data = make_shared<vector<pair<KeyType, ValueType>>>(10000);
+		map->assign(-1, 0xFF);
+
+		auto data = make_shared<vector<pair<KeyType, ValueType>>>(10);
 
 		for (size_t c = 0; c < data->size(); c++)
 		{
@@ -82,7 +84,7 @@ int main() {
 
 		BigInt t0 = getTimeInMillis();
 
-		cout << "Inserted: " << map->begin()->bulk_insert(MapEntryProvider<KeyType, ValueType>(data)) << endl;
+		cout << "Inserted: " << map->end()->bulk_insert(MapEntryProvider<KeyType, ValueType>(data)) << endl;
 
 		BigInt t1 = getTimeInMillis();
 

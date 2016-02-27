@@ -310,6 +310,10 @@ public:
     void _update(Int pos, Value&& val, BranchNodeEntryItem<T, Size>& accum)
     {}
 
+    template <Int Offset, typename T, Int Size, template <typename, Int> class BranchNodeEntryItem, typename AccessorFn>
+    void _update_b(Int pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&&)
+    {}
+
     template <Int Offset, typename Value, typename T, Int Size, template <typename, Int> class BranchNodeEntryItem>
     void _insert(Int pos, Value&& val, BranchNodeEntryItem<T, Size>& accum)
     {
@@ -320,6 +324,19 @@ public:
 
     	insertSpace(pos, 1);
     }
+
+
+    template <Int Offset, typename T, Int Size, template <typename, Int> class BranchNodeEntryItem, typename AccessorFn>
+    void _insert_b(Int pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&&)
+    {
+    	if (Offset < Size)
+    	{
+    		accum[Offset] += 1;
+    	}
+
+    	insertSpace(pos, 1);
+    }
+
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
     void _remove(Int idx, BranchNodeEntryItem<T, Size>& accum)

@@ -23,16 +23,20 @@ using namespace std;
 int main() {
 	MEMORIA_INIT(DefaultProfile<>);
 
-	DCtr<Map<String, BigInt>>::initMetadata();
+	using Key 	= BigInt;
+	using Value = BigInt;
+
+	DInit<Map<Key, Value>>();
 
 	try {
 		auto alloc = PersistentInMemAllocator<>::create();
 		auto snp = alloc->master()->branch();
 
-		auto map = create<Map<String, BigInt>>(snp);
+		auto map = create<Map<Key, Value>>(snp);
 
 		for (int c = -10000; c < 10000; c++) {
-			map->assign(toString(c), c);
+//			map->assign(toString(c), c);
+			map->assign(c, c);
 		}
 
 		MEMORIA_ASSERT(map->size(), ==, 20000);
@@ -46,7 +50,8 @@ int main() {
 
 
 		for (int c = -10000; c < 10000; c++) {
-			map->remove(toString(c));
+//			map->remove(toString(c));
+			map->remove(c);
 		}
 
 		cout << "After remove" << endl;

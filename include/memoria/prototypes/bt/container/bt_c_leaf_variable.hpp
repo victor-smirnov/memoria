@@ -49,9 +49,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafVariableName)
     static const Int Streams                                                    = Types::Streams;
 
     template <Int Stream>
-    using StreamInputTuple = typename Types::template StreamInputTuple<Stream>;
-
-    struct InsertEntryIntoStreamHanlder
+    struct InsertStreamEntryFn
     {
     	template <
     		Int Offset,
@@ -63,34 +61,25 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafVariableName)
     	>
     	void stream(SubstreamType* obj, BranchNodeEntryItem& accum, Int idx, const Entry& entry)
     	{
-    		obj->template _insert<Offset>(idx, std::get<Idx>(entry), accum);
-
-//    		if (StreamStart)
-//    		{
-//    			accum[0] += 1;
-//    		}
+    		obj->template _insert_b<Offset>(idx, accum, [&](Int block){
+    			return entry.get(StreamTag<Stream>(), StreamTag<Idx>(), block);
+    		});
     	}
-    };
 
 
-
-
-    template <Int Stream>
-    struct InsertEntryIntoStreamFn
-    {
     	template <typename NTypes, typename... Args>
     	void treeNode(LeafNode<NTypes>* node, Int idx, BranchNodeEntry& accum, Args&&... args)
     	{
     		node->layout(255);
-    		node->template processStreamAcc<Stream>(InsertEntryIntoStreamHanlder(), accum, idx, std::forward<Args>(args)...);
+    		node->template processStreamAcc<Stream>(*this, accum, idx, std::forward<Args>(args)...);
     	}
     };
 
 
 
 
-    template <Int Stream>
-    std::tuple<bool, BranchNodeEntry> tryInsertStreamEntry(Iterator& iter, const StreamInputTuple<Stream>& entry)
+    template <Int Stream, typename Entry>
+    std::tuple<bool, BranchNodeEntry> try_insert_stream_entry(Iterator& iter, const Entry& entry)
     {
     	auto& self = this->self();
 
@@ -102,7 +91,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafVariableName)
 
     	try {
     		BranchNodeEntry accum;
-    		LeafDispatcher::dispatch(iter.leaf(), InsertEntryIntoStreamFn<Stream>(), iter.idx(), accum, entry);
+    		LeafDispatcher::dispatch(iter.leaf(), InsertStreamEntryFn<Stream>(), iter.idx(), accum, entry);
     		return std::make_tuple(true, accum);
     	}
     	catch (PackedOOMException& e)
@@ -111,6 +100,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafVariableName)
     		return std::make_tuple(false, BranchNodeEntry());
     	}
     }
+
+
+
 
 
 
@@ -139,7 +131,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafVariableName)
 
 
     template <Int Stream>
-    std::tuple<bool, BranchNodeEntry> tryRemoveStreamEntry(Iterator& iter)
+    std::tuple<bool, BranchNodeEntry> try_remove_stream_entry(Iterator& iter)
     {
     	auto& self = this->self();
 
@@ -166,89 +158,83 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafVariableName)
 
     //=========================================================================================
 
-     struct UpdateStreamEntryHanlder
-     {
-     	template <
-     		Int Offset,
-     		bool Start,
-     		Int Idx,
-     		typename SubstreamType,
-     		typename BranchNodeEntryItem,
-     		typename Entry
-     	>
-     	void stream(SubstreamType* obj, BranchNodeEntryItem& accum, Int idx, const Entry& entry)
-     	{
-     		obj->template _update<Offset>(idx, std::get<Idx>(entry), accum);
-     	}
-     };
+    template <Int Stream, typename SubstreamsList>
+    struct UpdateStreamEntryBufferFn
+	{
+    	template <
+			Int Offset,
+			bool Start,
+			Int Idx,
+			typename SubstreamType,
+			typename BranchNodeEntryItem,
+			typename Entry
+		>
+    	void stream(SubstreamType* obj, BranchNodeEntryItem& accum, Int idx, const Entry& entry)
+    	{
+    		obj->template _update_b<Offset>(idx, accum, [&](Int block){
+    			return entry.get(StreamTag<Stream>(), StreamTag<Idx>(), block);
+    		});
+    	}
 
-     template <Int Stream, typename SubstreamsList>
-     struct UpdateStreamEntryFn
-     {
-     	template <typename NTypes, typename... Args>
-     	void treeNode(LeafNode<NTypes>* node, Int idx, BranchNodeEntry& accum, Args&&... args)
-     	{
-     		node->template processSubstreamsByIdxAcc<
-     			Stream,
-     			SubstreamsList
-     		>(
-     			UpdateStreamEntryHanlder(),
-     			accum,
-     			idx,
-     			std::forward<Args>(args)...
-     		);
-     	}
-     };
+    	template <typename NTypes, typename... Args>
+    	void treeNode(LeafNode<NTypes>* node, Int idx, BranchNodeEntry& accum, Args&&... args)
+    	{
+    		node->template processSubstreamsByIdxAcc<
+				Stream,
+				SubstreamsList
+			>(
+					*this,
+					accum,
+					idx,
+					std::forward<Args>(args)...
+			);
+    	}
+	};
 
 
-     template <Int Stream, typename SubstreamsList, typename... TupleTypes>
-     std::tuple<bool, BranchNodeEntry> try_update_stream_entry(Iterator& iter, const std::tuple<TupleTypes...>& entry)
-     {
-     	static_assert(
-     			ListSize<SubstreamsList>::Value == sizeof...(TupleTypes),
-     			"Input tuple size must match SubstreamsList size"
-     	);
+    template <Int Stream, typename SubstreamsList, typename Entry>
+    std::tuple<bool, BranchNodeEntry> try_update_stream_entry(Iterator& iter, const Entry& entry)
+	{
+    	auto& self = this->self();
 
-     	auto& self = this->self();
+    	PageUpdateMgr mgr(self);
 
-     	PageUpdateMgr mgr(self);
+    	self.updatePageG(iter.leaf());
 
-     	self.updatePageG(iter.leaf());
+    	mgr.add(iter.leaf());
 
-     	mgr.add(iter.leaf());
+    	try {
+    		BranchNodeEntry accum;
+    		LeafDispatcher::dispatch(
+    				iter.leaf(),
+					UpdateStreamEntryBufferFn<Stream, SubstreamsList>(),
+					iter.idx(),
+					accum,
+					entry
+    		);
+    		return std::make_tuple(true, accum);
+    	}
+    	catch (PackedOOMException& e)
+    	{
+    		mgr.rollback();
+    		return std::make_tuple(false, BranchNodeEntry());
+    	}
+	}
 
-     	try {
-     		BranchNodeEntry accum;
-     		LeafDispatcher::dispatch(
-     				iter.leaf(),
-     				UpdateStreamEntryFn<Stream, SubstreamsList>(),
-     				iter.idx(),
-     				accum,
-     				entry
-     		);
-     		return std::make_tuple(true, accum);
-     	}
-     	catch (PackedOOMException& e)
-     	{
-     		mgr.rollback();
-     		return std::make_tuple(false, BranchNodeEntry());
-     	}
-     }
+    template <typename Fn, typename... Args>
+    bool update(Iterator& iter, Fn&& fn, Args&&... args)
+    {
+    	auto& self = this->self();
+    	return self.updateAtomic(iter, std::forward<Fn>(fn), VLSelector(), std::forward<Fn>(args)...);
+    }
 
-     template <typename Fn, typename... Args>
-     bool update(Iterator& iter, Fn&& fn, Args&&... args)
-     {
-    	 auto& self = this->self();
-    	 return self.updateAtomic(iter, std::forward<Fn>(fn), VLSelector(), std::forward<Fn>(args)...);
-     }
+    // FIXME: not used
+    NodeBaseG createNextLeaf(NodeBaseG& leaf);
 
-     // FIXME: not used
-     NodeBaseG createNextLeaf(NodeBaseG& leaf);
-
-     MEMORIA_DECLARE_NODE_FN(TryMergeNodesFn, mergeWith);
-     bool tryMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn = [](const Position&){});
-     bool mergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&){});
-     bool mergeCurrentLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&){});
+    MEMORIA_DECLARE_NODE_FN(TryMergeNodesFn, mergeWith);
+    bool tryMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn = [](const Position&){});
+    bool mergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&){});
+    bool mergeCurrentLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&){});
 
 MEMORIA_CONTAINER_PART_END
 

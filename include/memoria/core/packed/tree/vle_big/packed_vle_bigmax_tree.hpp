@@ -446,6 +446,17 @@ public:
     	sum<Offset>(this->size() - 1, accum);
     }
 
+    template <Int Offset, Int Size, typename T2, template <typename, Int> class BranchNodeEntryItem, typename AccessorFn>
+    void _insert_b(Int idx, BranchNodeEntryItem<T2, Size>& accum, AccessorFn&& values)
+    {
+    	this->_insert(idx, 1, [&](Int block, Int idx) {
+    		return values(block);
+    	});
+
+    	sum<Offset>(this->size() - 1, accum);
+    }
+
+
 //    template <Int Offset, typename T1>
 //    void _insert(Int idx, const core::StaticVector<T1, Blocks>& values)
 //    {
@@ -456,6 +467,16 @@ public:
     void _update(Int idx, const core::StaticVector<T1, Blocks>& values, BranchNodeEntryItem<T2, Size>& accum)
     {
     	update(idx, values);
+
+    	sum<Offset>(this->size() - 1, accum);
+    }
+
+    template <Int Offset, Int Size, typename T2, template <typename, Int> class BranchNodeEntryItem, typename AccessorFn>
+    void _update_b(Int idx, BranchNodeEntryItem<T2, Size>& accum, AccessorFn&& values)
+    {
+    	update(idx, idx + 1, [&](Int block, Int idx){
+    		return values(block);
+    	});
 
     	sum<Offset>(this->size() - 1, accum);
     }

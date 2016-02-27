@@ -44,8 +44,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavMaxName)
 
     	self.ctr().insert_entry(
     			self,
-    			InputTupleAdapter<0>::convert(0, core::StaticVector<Key, 1>{key}, core::StaticVector<Value, 1>{value})
+				map::KeyValueEntry<Key, Value, CtrSizeT>(key, value)
     	);
+
 
     	self.skipFw(1);
     }
@@ -112,7 +113,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavMaxName)
 
     void assign(const Value& v)
     {
-    	self().ctr().template update_entry<IntList<2>>(self(), std::make_tuple(v));
+    	self().ctr().template update_entry<IntList<2>>(self(), map::ValueBuffer<Value>(v));
     }
 
     bool is_found(const Key& k) const

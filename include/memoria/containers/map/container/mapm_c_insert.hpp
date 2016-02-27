@@ -51,14 +51,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertMaxName)
     	return self().sizes()[0];
     }
 
-    template <typename K>
-    IteratorPtr find(const K& k)
+
+    IteratorPtr find(const Key& k)
     {
     	return self().template find_max_ge<IntList<0, 1>>(0, k);
     }
 
-    template <typename K>
-    bool remove(const K& k)
+
+    bool remove(const Key& k)
     {
     	auto iter = find(k);
 
@@ -72,8 +72,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertMaxName)
     	}
     }
 
-    template <typename K, typename V>
-    IteratorPtr assign(K&& key, V&& value)
+    IteratorPtr assign(const Key& key, const Value& value)
     {
     	auto iter = self().find(key);
 

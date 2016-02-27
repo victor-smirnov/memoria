@@ -505,6 +505,12 @@ public:
         value(0, pos) = val;
     }
 
+    template <Int Offset, typename T, Int Size, template <typename, Int> class BranchNodeEntryItem, typename AccessorFn>
+    void _update_b(Int pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&& val)
+    {
+    	value(0, pos) = val(0);
+    }
+
     template <Int Offset, typename Value, typename T, Int Size, template <typename, Int> class BranchNodeEntryItem>
     void _insert(Int pos, Value&& val, BranchNodeEntryItem<T, Size>& accum)
     {
@@ -512,6 +518,15 @@ public:
     		return val[block];
     	});
     }
+
+    template <Int Offset, typename T, Int Size, template <typename, Int> class BranchNodeEntryItem, typename AccessorFn>
+    void _insert_b(Int pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&& val)
+    {
+    	_insert(pos, 1, [&](int block, int idx){
+    		return val(block);
+    	});
+    }
+
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
     void _remove(Int idx, BranchNodeEntryItem<T, Size>& accum)
@@ -604,7 +619,7 @@ public:
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
     	handler->startStruct();
-        handler->startGroup("ARRAY");
+        handler->startGroup("FSE_ARRAY");
 
         handler->value("ALLOCATOR",     &Base::allocator_offset());
         handler->value("SIZE",          &size_);

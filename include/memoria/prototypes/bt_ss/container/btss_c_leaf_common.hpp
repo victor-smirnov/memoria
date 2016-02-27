@@ -62,15 +62,17 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::LeafCommonName)
     	return pos[0] >= size;
     }
 
-
-    void insert_entry(Iterator& iter, const InputTuple& entry)
+    template <typename EntryBuffer>
+    void insert_entry(Iterator& iter, const EntryBuffer& entry)
     {
     	self().template insert_stream_entry<0>(iter, entry);
     }
 
 
-    template <typename SubstreamsList, typename... TupleTypes>
-    void update_entry(Iterator& iter, const std::tuple<TupleTypes...>& entry)
+
+
+    template <typename SubstreamsList, typename EntryBuffer>
+    void update_entry(Iterator& iter, const EntryBuffer& entry)
     {
     	self().template update_stream_entry<0, SubstreamsList>(iter, entry);
     }

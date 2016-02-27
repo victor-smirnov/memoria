@@ -90,7 +90,7 @@ struct MapBTTypesBase: public MapBTTypesBaseBase<Profile, Key, Value> {
 
 	using LeafKeyStruct = typename map::MapKeyStructTF<Key, HasFieldFactory<Key>::Value>::Type;
 
-	using LeafValueStruct = typename map::MapValueStructTF<Key, HasFieldFactory<Key>::Value>::Type;
+	using LeafValueStruct = typename map::MapValueStructTF<Value, HasFieldFactory<Value>::Value>::Type;
 
 	using StreamDescriptors = TL<
     		StreamTF<

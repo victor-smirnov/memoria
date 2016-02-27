@@ -27,7 +27,7 @@ namespace memoria       {
 namespace map           {
 
 using bt::IdxSearchType;
-
+using bt::StreamTag;
 
 template <typename KeyType, Int Selector> struct MapKeyStructTF;
 
@@ -160,21 +160,50 @@ public:
 		return -1;
 	}
 
-	const auto& buffer(bt::StreamTag<0>, bt::StreamTag<0>, Int idx, Int block) {
+	const auto& buffer(StreamTag<0>, StreamTag<0>, Int idx, Int block) {
 		return zero_;
 	}
 
-	const auto& buffer(bt::StreamTag<0>, bt::StreamTag<1>, Int idx, Int block) {
+	const auto& buffer(StreamTag<0>, StreamTag<1>, Int idx, Int block) {
 		return std::get<0>(input_value_buffer_[idx]);
 	}
 
-	const auto& buffer(bt::StreamTag<0>, bt::StreamTag<2>, Int idx, Int block) {
+	const auto& buffer(StreamTag<0>, StreamTag<2>, Int idx, Int block) {
 		return std::get<1>(input_value_buffer_[idx]);
 	}
 };
 
+template <typename Key, typename Value, typename CtrSizeT = BigInt>
+class KeyValueEntry {
+	const Key& key_;
+	const Value& value_;
 
+public:
+	KeyValueEntry(const Key& key, const Value& value): key_(key), value_(value) {}
 
+	auto get(StreamTag<0>, StreamTag<0>, Int) const {
+		return 0;
+	}
+
+	auto get(StreamTag<0>, StreamTag<1>, Int) const {
+		return key_;
+	}
+
+	auto get(StreamTag<0>, StreamTag<2>, Int) const {
+		return value_;
+	}
+};
+
+template <typename T, Int SubstreamIdx = 0>
+class ValueBuffer {
+	const T& value_;
+public:
+	ValueBuffer(const T& value): value_(value) {}
+
+	auto get(StreamTag<0>, StreamTag<SubstreamIdx>, Int) const {
+		return value_;
+	}
+};
 
 }
 }
