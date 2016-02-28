@@ -335,7 +335,7 @@ public:
     	TreeLayout layout = this->compute_tree_layout(data_size);
 
     	Int global_idx 	  = idx * size;
-		Int start_pos  	  = this->locate(layout, values, 0, global_idx).idx;
+		Int start_pos  	  = this->locate(layout, values, 0, idx, global_idx).idx;
 
 		MEMORIA_ASSERT(start_pos, <, data_size);
 
@@ -697,6 +697,18 @@ public:
     	sum<Offset>(idx, accum);
     }
 
+    template <Int Offset, Int Size, typename T2, template <typename, Int> class BranchNodeEntryItem, typename Fn>
+    void _insert_b(Int idx, BranchNodeEntryItem<T2, Size>& accum, Fn&& fn)
+    {
+    	_insert(idx, 1, [&](Int block, Int c){
+    		return fn(block);
+    	});
+
+    	sum<Offset>(idx, accum);
+    }
+
+
+
     template <Int Offset, Int Size, typename T1, typename T2, template <typename, Int> class BranchNodeEntryItem>
     void _update(Int idx, const core::StaticVector<T1, Blocks>& values, BranchNodeEntryItem<T2, Size>& accum)
     {
@@ -706,6 +718,19 @@ public:
 
     	sum<Offset>(idx, accum);
     }
+
+    template <Int Offset, Int Size, typename T2, template <typename, Int> class BranchNodeEntryItem, typename Fn>
+    void _update_b(Int idx, BranchNodeEntryItem<T2, Size>& accum, Fn&& fn)
+    {
+    	sub<Offset>(idx, accum);
+
+    	update_values(idx, [&](Int block, auto old_value){
+    		return fn(block);
+    	});
+
+    	sum<Offset>(idx, accum);
+    }
+
 
 
     template <Int Offset, Int Size, typename T1, typename T2, typename I, template <typename, Int> class BranchNodeEntryItem>

@@ -723,9 +723,9 @@ public:
         CanMergeWithFn fn;
         Dispatcher::dispatchAll(allocator(), fn, other);
 
-        Int free_space = this->allocator()->free_space();
+        Int client_area = this->allocator()->client_area();
 
-        return free_space >= fn.mem_used_;
+        return client_area >= fn.mem_used_;
     }
 
 

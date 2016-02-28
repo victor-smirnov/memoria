@@ -62,7 +62,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertMaxName)
     {
     	auto iter = find(k);
 
-    	if (iter->key() == k)
+    	if (iter->is_found(k))
     	{
     		iter->remove();
     		return true;

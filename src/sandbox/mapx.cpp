@@ -32,42 +32,54 @@ int main() {
 		auto alloc = PersistentInMemAllocator<>::create();
 		auto snp = alloc->master()->branch();
 
-		auto map = create<Map<Key, Value>>(snp);
+		try {
 
-		for (int c = -10000; c < 10000; c++) {
-//			map->assign(toString(c), c);
-			map->assign(c, c);
+			auto map = create<Map<Key, Value>>(snp);
+
+			int from = -10000;
+			int to 	 = 10000;
+
+			for (int c = from; c < to; c++) {
+				// map->assign(toString(c), c);
+				//map->assign(c, toString(c));
+				map->assign(c, c);
+			}
+
+			FSDumpAllocator(snp, "mapx_orig.dir");
+
+			MEMORIA_ASSERT(map->size(), ==, to - from);
+
+			check_snapshot(snp);
+
+			for (auto c = map->begin(); !c->is_end(); c->next())
+			{
+				cout << c->key() << " -- " << c->value() << endl;
+			}
+
+			for (int c = from; c < to; c++)
+			{
+				map->remove(c);
+			}
+
+			cout << "After remove" << endl;
+
+			for (auto c = map->begin(); !c->is_end(); c->next())
+			{
+				cout << c->key() << " -- " << c->value() << endl;
+			}
+
+			MEMORIA_ASSERT(map->size(), ==, 0);
+
+			snp->commit();
+
+			check_snapshot(snp);
+
+			FSDumpAllocator(snp, "mapx.dir");
 		}
-
-		MEMORIA_ASSERT(map->size(), ==, 20000);
-
-		check_snapshot(snp);
-
-		for (auto c = map->begin(); !c->is_end(); c->next())
-		{
-			cout << c->key() << " -- " << c->value() << endl;
+		catch (...) {
+			FSDumpAllocator(snp, "mapx.dir");
+			throw;
 		}
-
-
-		for (int c = -10000; c < 10000; c++) {
-//			map->remove(toString(c));
-			map->remove(c);
-		}
-
-		cout << "After remove" << endl;
-
-		for (auto c = map->begin(); !c->is_end(); c->next())
-		{
-			cout << c->key() << " -- " << c->value() << endl;
-		}
-
-		MEMORIA_ASSERT(map->size(), ==, 0);
-
-		snp->commit();
-
-		check_snapshot(snp);
-
-		FSDumpAllocator(snp, "mapx.dir");
 	}
 	catch (memoria::Exception& ex) {
 		cout << ex.message() << " at " << ex.source() << endl;

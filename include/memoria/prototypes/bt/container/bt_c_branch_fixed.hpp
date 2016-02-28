@@ -69,7 +69,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchFixedName)
     MEMORIA_DECLARE_NODE2_FN_RTN(CanMergeFn, canBeMergedWith, bool);
     bool canMerge(const NodeBaseG& tgt, const NodeBaseG& src)
     {
-        return NodeDispatcher::dispatch(src, tgt, CanMergeFn());
+    	return NodeDispatcher::dispatch(src, tgt, CanMergeFn());
     }
 
 

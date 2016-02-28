@@ -40,7 +40,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveName)
     template <Int Stream>
     void remove_stream_entry(Iterator& iter)
     {
-    	auto& self      = this->self();
+    	auto& self = this->self();
 
     	auto result = self.template try_remove_stream_entry<Stream>(iter);
 

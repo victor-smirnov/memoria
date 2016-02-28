@@ -1043,7 +1043,7 @@ public:
         CanMergeWithFn fn;
         Dispatcher::dispatchAll(allocator(), fn, other);
 
-        Int free_space = this->allocator()->free_space();
+        Int client_area = this->allocator()->client_area();
 
         Int my_data_size    = this->allocator()->element_size(ValuesBlockIdx);
         Int other_data_size = other->allocator()->element_size(ValuesBlockIdx);
@@ -1051,7 +1051,7 @@ public:
         fn.mem_used_ += my_data_size;
         fn.mem_used_ += other_data_size;
 
-        return free_space >= fn.mem_used_;
+        return client_area >= fn.mem_used_;
     }
 
     struct MergeWithFn {
