@@ -39,48 +39,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertName)
 
     typedef typename Base::Metadata                                             Metadata;
 
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
+    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
-
-    template <Int Stream>
-    using StreamInputTuple = typename Types::template StreamInputTuple<Stream>;
-
-    static const Int Streams                                                    = Types::Streams;
-
-
-
-//    template <Int Stream>
-//    SplitStatus insert_stream_entry(Iterator& iter, const StreamInputTuple<Stream>& entry)
-//    {
-//    	auto& self = this->self();
-//
-//    	auto result = self.template tryInsertStreamEntry<Stream>(iter, entry);
-//
-//    	SplitStatus split_status;
-//
-//    	if (!std::get<0>(result))
-//    	{
-//    		split_status = iter.split();
-//
-//    		result = self.template tryInsertStreamEntry<Stream>(iter, entry);
-//
-//    		if (!std::get<0>(result))
-//    		{
-//    			throw Exception(MA_SRC, "Second insertion attempt failed");
-//    		}
-//    	}
-//    	else {
-//    		split_status = SplitStatus::NONE;
-//    	}
-//
-//    	auto max = self.max(iter.leaf());
-//
-//    	self.update_parent(iter.leaf(), max);
-//
-//    	return split_status;
-//    }
 
     template <Int Stream, typename Entry>
     SplitStatus insert_stream_entry(Iterator& iter, const Entry& entry)

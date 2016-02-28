@@ -16,7 +16,7 @@
 namespace memoria {
 namespace bttl    {
 
-
+using bt::StreamTag;
 
 template <typename CtrT>
 struct BTTLTupleFactory {

@@ -45,10 +45,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::LeafCommonName)
 
     static const Int Streams                                                    = Types::Streams;
 
-
-    using InputTuple = typename Types::template StreamInputTuple<0>;
-
-
     template <typename SubstreamsIdxList, typename... Args>
     auto read_leaf_entry(const NodeBaseG& leaf, Args&&... args) const
     {

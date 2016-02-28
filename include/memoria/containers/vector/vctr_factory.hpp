@@ -54,11 +54,7 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
 
     typedef TypeList<VectorStreamTF>                                             StreamDescriptors;
 
-
-    typedef BalancedTreeMetadata<
-                FailIf<typename Base::ID, false>,
-                ListSize<StreamDescriptors>::Value
-    >                                                                           Metadata;
+    using Entry = Value;
 
 
     using CommonContainerPartsList = MergeLists<
@@ -116,11 +112,7 @@ struct BTTypes<Profile, memoria::Vector<VLen<Gr, Value_>> >: public BTTypes<Prof
                 VectorStreamTF
     >                                                                           StreamDescriptors;
 
-    typedef BalancedTreeMetadata<
-                typename Base::ID,
-                ListSize<StreamDescriptors>::Value
-    >                                                                           Metadata;
-
+    using Entry = Value;
 
     using CommonContainerPartsList = MergeLists<
             typename Base::CommonContainerPartsList,

@@ -102,76 +102,6 @@ struct MapBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
 
 
-template <typename CtrT, typename EntryProvider, Int EntryBufferSize = 1000>
-class MapEntryInputProvider: public memoria::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength> {
-	using Base = memoria::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength>;
-
-public:
-
-	using typename Base::CtrSizeT;
-	using typename Base::Position;
-	using typename Base::InputBuffer;
-
-	using Entry	= typename CtrT::Types::Entry;
-
-	using InputTuple 		= typename CtrT::Types::template StreamInputTuple<0>;
-	using InputTupleAdapter = typename CtrT::Types::template InputTupleAdapter<0>;
-
-	EntryProvider provider_;
-
-	Int input_start_ = 0;
-	Int input_size_ = 0;
-	static constexpr Int INPUT_END = EntryBufferSize;
-
-	Entry input_value_buffer_[INPUT_END];
-
-	BigInt zero_ = 0;
-
-public:
-	MapEntryInputProvider(CtrT& ctr, Int capacity = 10000):
-		Base(ctr, capacity)
-	{}
-
-	MapEntryInputProvider(CtrT& ctr, const EntryProvider& provider, Int capacity = 10000):
-		Base(ctr, capacity),
-		provider_(provider)
-	{}
-
-	virtual Int get(InputBuffer* buffer, Int pos)
-	{
-		if (input_start_ == input_size_)
-		{
-			input_start_ = 0;
-
-			for (input_size_ = 0 ; provider_.has_next() && input_size_ < INPUT_END; input_size_++)
-			{
-				input_value_buffer_[input_size_] = provider_.next();
-			}
-		}
-
-		if (input_start_ < input_size_)
-		{
-			auto inserted = buffer->append_vbuffer(this, input_start_, input_size_ - input_start_);
-			input_start_ += inserted;
-
-			return inserted;
-		}
-
-		return -1;
-	}
-
-	const auto& buffer(StreamTag<0>, StreamTag<0>, Int idx, Int block) {
-		return zero_;
-	}
-
-	const auto& buffer(StreamTag<0>, StreamTag<1>, Int idx, Int block) {
-		return std::get<0>(input_value_buffer_[idx]);
-	}
-
-	const auto& buffer(StreamTag<0>, StreamTag<2>, Int idx, Int block) {
-		return std::get<1>(input_value_buffer_[idx]);
-	}
-};
 
 template <typename Key, typename Value, typename CtrSizeT = BigInt>
 class KeyValueEntry {
@@ -204,6 +134,46 @@ public:
 		return value_;
 	}
 };
+
+
+
+
+template <typename CtrT, typename InputIterator, Int EntryBufferSize = 1000>
+class MapEntryIteratorInputProvider: public memoria::btss::AbstractIteratorBTSSInputProvider<
+	CtrT,
+	MapEntryIteratorInputProvider<CtrT, InputIterator, EntryBufferSize>,
+	InputIterator
+>
+{
+	using Base = memoria::btss::AbstractIteratorBTSSInputProvider<
+			CtrT,
+			MapEntryIteratorInputProvider<CtrT, InputIterator, EntryBufferSize>,
+			InputIterator
+	>;
+
+public:
+
+	using typename Base::CtrSizeT;
+
+public:
+	MapEntryIteratorInputProvider(CtrT& ctr, const InputIterator& start, const InputIterator& end, Int capacity = 10000):
+		Base(ctr, start, end, capacity)
+	{}
+
+	auto buffer(StreamTag<0>, StreamTag<0>, Int idx, Int block) {
+		return CtrSizeT();
+	}
+
+	const auto& buffer(StreamTag<0>, StreamTag<1>, Int idx, Int block) {
+		return std::get<0>(Base::input_value_buffer_[idx]);
+	}
+
+	const auto& buffer(StreamTag<0>, StreamTag<2>, Int idx, Int block) {
+		return std::get<1>(Base::input_value_buffer_[idx]);
+	}
+};
+
+
 
 }
 }

@@ -30,7 +30,7 @@ namespace {
 template <typename T>
 struct RNGTool {
 	template <typename Test>
-	static T next(const Test* test) {
+	static T next(Test* test) {
 		return test->getBIRandom();
 	}
 };
@@ -39,7 +39,7 @@ struct RNGTool {
 template <>
 struct RNGTool<UUID> {
 	template <typename Test>
-	static UUID next(const Test* test) {
+	static UUID next(Test* test) {
 		return UUID::make_random();
 	}
 };
@@ -56,7 +56,7 @@ public:
     using typename Base::Ctr;
     using typename Base::Iterator;
     using typename Base::MemBuffer;
-    using typename Base::EntryAdapter;
+    using typename Base::Entry;
 
     using Base::out;
 
@@ -64,8 +64,6 @@ public:
     using Value 	= typename Ctr::Types::Value;
 
     using Pair = KVPair<Key, Value>;
-
-
 
 protected:
     typedef vector<Pair> PairVector;
@@ -125,13 +123,18 @@ public:
     	return RNGTool<Key>::next(this);
     }
 
+    Value getRandomValue()
+    {
+    	return RNGTool<Value>::next(this);
+    }
+
     virtual MemBuffer createRandomBuffer(Int size)
     {
     	auto buffer = MemBuffer(size);
 
     	for (auto& v: buffer)
     	{
-    		v = EntryAdapter::convert(0, getRandomKey());
+    		v = Entry(getRandomKey(), getRandomValue());
     	}
 
     	return buffer;

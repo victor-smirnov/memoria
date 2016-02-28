@@ -15,18 +15,18 @@
 
 namespace memoria    {
 
+using bt::StreamTag;
 
 MEMORIA_ITERATOR_PART_BEGIN(memoria::btss::IteratorMiscName)
 
-    typedef typename Base::NodeBaseG                                                NodeBaseG;
-    typedef typename Base::Container                                                Container;
+    using typename Base::NodeBaseG;
+    using typename Base::Container;
 
     typedef typename Container::Allocator                                           Allocator;
-    typedef typename Container::BranchNodeEntry                                         BranchNodeEntry;
+    typedef typename Container::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Container::Iterator                                            Iterator;
 
     using Position = typename Container::Types::Position;
-
     using CtrSizeT = typename Container::Types::CtrSizeT;
 
     bool operator++() {
@@ -158,31 +158,49 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btss::IteratorMiscName)
     	}
     }
 
-    template <typename InputProvider>
-    CtrSizeT insert(InputProvider& provider)
+    auto bulk_insert(btss::AbstractBTSSInputProvider<Container>& provider)
     {
     	auto& self = this->self();
     	return self.ctr().insert(self, provider);
     }
 
     template <typename InputIterator>
-    CtrSizeT insert(InputIterator begin, InputIterator end)
+    auto bulk_insert(InputIterator begin, InputIterator end)
     {
     	auto& self = this->self();
 
-    	btss::IteratorBTSSInputProvider<Container, InputIterator> provider(self.ctr(), begin, end);
+    	btss::BTSSIteratorInputProvider<Container, InputIterator> provider(self.ctr(), begin, end);
 
-    	return self.insert(provider);
+    	return self.ctr().insert(self, provider);
     }
+
+    template <typename Iterator>
+    class EntryAdaptor {
+    	Iterator current_;
+    public:
+    	EntryAdaptor(const Iterator& current): current_(current) {}
+
+    	template <typename V>
+    	void put(StreamTag<0>, StreamTag<0>, V&& entry) {}
+
+    	template <Int SubstreamIdx, typename V>
+    	void put(StreamTag<0>, StreamTag<SubstreamIdx>, V&& entry) {
+    		*current_ = entry[0];
+    	}
+
+    	void next() {
+    		current_++;
+    	}
+    };
 
     template <typename OutputIterator>
     CtrSizeT read(OutputIterator begin, CtrSizeT length)
     {
     	auto& self = this->self();
-    	return self.ctr().template read_entries<0>(self, length, [&](const auto& entry) {
-    		*begin = entry;
-    		begin++;
-    	});
+
+    	EntryAdaptor<OutputIterator> adaptor(begin);
+
+    	return self.ctr().template read_entries<0>(self, length, adaptor);
     }
 
 MEMORIA_ITERATOR_PART_END

@@ -50,33 +50,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::UpdateName)
 
     using CtrSizeT = typename Types::CtrSizeT;
 
-    template <Int Stream>
-    using StreamInputTuple = typename Types::template StreamInputTuple<Stream>;
-
-//    template <Int Stream, typename SubstreamsList, typename... TupleTypes>
-//    void update_stream_entry(Iterator& iter, const std::tuple<TupleTypes...>& entry)
-//    {
-//    	auto& self = this->self();
-//
-//    	auto result = self.template try_update_stream_entry<Stream, SubstreamsList>(iter, entry);
-//
-//    	if (!std::get<0>(result))
-//    	{
-//    		iter.split();
-//
-//    		result = self.template try_update_stream_entry<Stream, SubstreamsList>(iter, entry);
-//
-//    		if (!std::get<0>(result))
-//    		{
-//    			throw Exception(MA_SRC, "Second insertion attempt failed");
-//    		}
-//    	}
-//
-//    	auto max = self.max(iter.leaf());
-//
-//    	self.update_parent(iter.leaf(), max);
-//    }
-
 
     template <Int Stream, typename SubstreamsList, typename Buffer>
     void update_stream_entry(Iterator& iter, const Buffer& entry)

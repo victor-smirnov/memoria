@@ -43,8 +43,7 @@ protected:
 
     using Allocator 	= AllocatorType;
 
-    using Entry 		= typename Ctr::Types::template StreamInputTuple<0>;
-    using EntryAdapter 	= typename Ctr::Types::template InputTupleAdapter<0>;
+    using Entry 		= typename Ctr::Types::Entry;
 
     using MemBuffer		= std::vector<Entry>;
 
@@ -85,10 +84,8 @@ public:
     {
         MemBuffer data = createRandomBuffer(size);
 
-        btss::IteratorBTSSInputProvider<Ctr, typename MemBuffer::const_iterator> provider(ctr, data.begin(), data.end());
-
-        auto iter = ctr.seek(0);
-        iter->insert(provider);
+        auto iter = ctr.end();
+        iter->bulk_insert(data.begin(), data.end());
     }
 
 
@@ -106,7 +103,7 @@ public:
 
             MemBuffer data = createRandomBuffer(tmp_size);
 
-            iter->insert(data.begin(), data.end());
+            iter->bulk_insert(data.begin(), data.end());
 
             total += tmp_size;
         }

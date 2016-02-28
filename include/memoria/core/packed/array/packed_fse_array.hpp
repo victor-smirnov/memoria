@@ -538,50 +538,39 @@ public:
     template <typename Fn>
     void read(Int block, Int start, Int end, Fn&& fn) const
     {
-        MEMORIA_ASSERT(start, <, size_);
-        MEMORIA_ASSERT(start, >=, 0);
-        MEMORIA_ASSERT(end, >=, 0);
-        MEMORIA_ASSERT(end, <=, size_);
+    	MEMORIA_ASSERT(end, <=, size_);
+    	MEMORIA_ASSERT(start, >=, 0);
+    	MEMORIA_ASSERT(start, <=, end);
 
         auto values = this->values();
 
         for (Int c = start; c < end; c++)
         {
         	fn(values[c * Blocks + block]);
+        	fn.next();
         }
     }
+
+
 
     template <typename Fn>
     void read(Int start, Int end, Fn&& fn) const
     {
-        scan(start, end, std::forward<Fn>(fn));
-    }
-
-
-
-    template <typename Fn>
-    SizesT scan(Int start, Int end, Fn&& fn) const
-    {
-        MEMORIA_ASSERT(start, <=, size_);
-        MEMORIA_ASSERT(start, >=, 0);
-        MEMORIA_ASSERT(end, >=, 0);
-        MEMORIA_ASSERT(end, <=, size_);
+    	MEMORIA_ASSERT(end, <=, size_);
+    	MEMORIA_ASSERT(start, >=, 0);
+    	MEMORIA_ASSERT(start, <=, end);
 
         auto values = this->values();
 
         for (Int c = start; c < end; c++)
         {
-        	Values item;
         	for (Int b = 0; b < Blocks; b++) {
-        		item[b] = values[c * Blocks + b];
+        		fn(b, values[c * Blocks + b]);
         	}
 
-        	fn(item);
+        	fn.next();
         }
-
-        return SizesT(end);
     }
-
 
     // ==================================== Dump =========================================== //
 

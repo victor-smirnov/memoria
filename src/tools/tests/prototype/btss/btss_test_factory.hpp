@@ -12,8 +12,8 @@
 #include <memoria/tools/profile_tests.hpp>
 #include <memoria/tools/tools.hpp>
 
-#include <memoria/prototypes/bt_tl/bttl_factory.hpp>
-#include <memoria/prototypes/bt_tl/tools/bttl_tools_random_gen.hpp>
+//#include <memoria/prototypes/bt_tl/bttl_factory.hpp>
+//#include <memoria/prototypes/bt_tl/tools/bttl_tools_random_gen.hpp>
 
 #include <memoria/core/types/typehash.hpp>
 #include <memoria/core/packed/tree/fse/packed_fse_quick_tree.hpp>
@@ -21,7 +21,7 @@
 #include <memoria/core/packed/tree/vle/packed_vle_quick_tree.hpp>
 #include <memoria/core/packed/misc/packed_sized_struct.hpp>
 
-#include <memoria/containers/table/table_factory.hpp>
+//#include <memoria/containers/table/table_factory.hpp>
 
 
 #include <functional>
@@ -100,10 +100,6 @@ struct BTSSTestTypesBase: public BTTypes<Profile, BTSingleStream> {
 
     using Base = BTTypes<Profile, BTSingleStream>;
 
-    using ValueType = Byte;
-
-    using Key 	= BigInt;
-    using Value	= Byte;
 
     using CtrSizeT = BigInt;
 
@@ -111,21 +107,23 @@ struct BTSSTestTypesBase: public BTTypes<Profile, BTSingleStream> {
     		typename BTSSTestStreamTF<LeafSizeType, BranchSizeType, CtrSizeT, 1>::Type
 	>;
 
+    using Entry = CtrSizeT;
+
     using Metadata = BalancedTreeMetadata<
             typename Base::ID,
             ListSize<StreamDescriptors>::Value
     >;
 
 
-    using CommonContainerPartsList = MergeLists<
-                typename Base::CommonContainerPartsList,
-                memoria::table::CtrApiName
-    >;
-
-    using IteratorPartsList = MergeLists<
-                typename Base::IteratorPartsList,
-                memoria::table::ItrMiscName
-    >;
+//    using CommonContainerPartsList = MergeLists<
+//                typename Base::CommonContainerPartsList,
+//                memoria::table::CtrApiName
+//    >;
+//
+//    using IteratorPartsList = MergeLists<
+//                typename Base::IteratorPartsList,
+//                memoria::table::ItrMiscName
+//    >;
 };
 
 

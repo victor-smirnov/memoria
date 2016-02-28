@@ -361,6 +361,43 @@ public:
     	return this->value(index, idx);
     }
 
+    template <typename Fn>
+    void read(Int block, Int start, Int end, Fn&& fn) const
+    {
+    	MEMORIA_ASSERT(end, <=, this->size());
+    	MEMORIA_ASSERT(start, >=, 0);
+    	MEMORIA_ASSERT(start, <=, end);
+
+        auto values = this->values();
+
+        for (Int c = start; c < end; c++)
+        {
+        	fn(values[c * Blocks + block]);
+        	fn.next();
+        }
+    }
+
+
+
+    template <typename Fn>
+    void read(Int start, Int end, Fn&& fn) const
+    {
+    	MEMORIA_ASSERT(end, <=, this->size());
+        MEMORIA_ASSERT(start, >=, 0);
+        MEMORIA_ASSERT(start, <=, end);
+
+        auto values = this->values();
+
+        for (Int c = start; c < end; c++)
+        {
+        	for (Int b = 0; b < Blocks; b++) {
+        		fn(b, values[c * Blocks + b]);
+        	}
+
+        	fn.next();
+        }
+    }
+
 
 
 

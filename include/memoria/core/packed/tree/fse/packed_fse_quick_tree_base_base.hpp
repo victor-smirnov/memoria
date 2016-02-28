@@ -34,7 +34,7 @@ public:
     using IndexValue 	= IndexValueT;
     using Metadata		= MetadataT;
 
-    static constexpr PkdSearchType SearchType = PkdSearchType::SUM;
+    static constexpr PkdSearchType KeySearchType = PkdSearchType::SUM;
 
     static const Int BranchingFactor        = kBranchingFactor;
     static const Int ValuesPerBranch        = kValuesPerBranch;

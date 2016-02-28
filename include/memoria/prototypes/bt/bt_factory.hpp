@@ -241,7 +241,7 @@ public:
     
     typedef typename ContainerTypes::Allocator::Page::ID                        ID;
 
-    typedef typename ContainerTypes::Value                                      Value;
+//    typedef typename ContainerTypes::Value                                      Value;
 
     using StreamDescriptors = typename ContainerTypes::StreamDescriptors;
     static const Int Streams = ListSize<StreamDescriptors>::Value;
@@ -402,11 +402,11 @@ public:
         >::Type;
 
 
-        template <Int Stream>
-        using StreamInputTuple = TypeListToTuple<Select<Stream, StreamsInputTypeList>>;
-
-        template <Int Stream>
-        using InputTupleAdapter = StreamTupleHelper<StreamInputTuple<Stream>>;
+//        template <Int Stream>
+//        using StreamInputTuple = TypeListToTuple<Select<Stream, StreamsInputTypeList>>;
+//
+//        template <Int Stream>
+//        using InputTupleAdapter = StreamTupleHelper<StreamInputTuple<Stream>>;
 
         using InputBuffer = CompoundInputBuffer<typename MyType::NodeTypesBase>;
 

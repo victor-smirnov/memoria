@@ -41,8 +41,6 @@ class VectorTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT>
     using typename Base::AllocatorPtr;
     using typename Base::MemBuffer;
     using typename Base::Entry;
-    using typename Base::EntryAdapter;
-
 
     using BranchNodeEntry = typename Ctr::BranchNodeEntry;
 
@@ -73,7 +71,7 @@ public:
 
     	for (auto& v: buffer)
     	{
-    		v = EntryAdapter::convert(0, getRandom(100));
+    		v = getRandom(100);
     	}
 
     	return buffer;
@@ -93,7 +91,7 @@ public:
     		d = this->getRandom(100);
     	}
 
-    	ctr->begin()->insert(data.begin(), data.size());
+    	ctr->begin()->bulk_insert(data.begin(), data.end());
 
     	AssertEQ(MA_SRC, ctr->size(), data.size());
 

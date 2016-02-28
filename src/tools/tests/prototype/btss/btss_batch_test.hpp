@@ -36,12 +36,8 @@ class BTSSBatchTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT> {
     using typename Base::Ctr;
     using typename Base::MemBuffer;
     using typename Base::Entry;
-    using typename Base::EntryAdapter;
 
     using IteratorPtr 	= typename Ctr::IteratorPtr;
-
-
-
 
 
     using Base::commit;
@@ -123,7 +119,7 @@ public:
 
     	for (auto& v: buffer)
     	{
-    		v = EntryAdapter::convert(0, getRandom(100));
+    		v = Entry(getRandom(100));
     	}
 
     	return buffer;
@@ -255,7 +251,7 @@ public:
 
         BigInt size = ctr.size();
 
-        iter->insert(data.begin(), data.end());
+        iter->bulk_insert(data.begin(), data.end());
 
         BigInt size2 = ctr.size();
 
@@ -295,7 +291,7 @@ public:
 
         BigInt position = iter->pos();
 
-        iter->insert(data.begin(), data.end());
+        iter->bulk_insert(data.begin(), data.end());
 
         checkIterator(iter, MA_SRC);
 
@@ -333,7 +329,7 @@ public:
 
         MemBuffer data   = createDataBuffer();
 
-        iter->insert(data.begin(), data.end());
+        iter->bulk_insert(data.begin(), data.end());
 
         checkIterator(iter, MA_SRC);
 

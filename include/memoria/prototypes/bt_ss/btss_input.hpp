@@ -23,6 +23,7 @@ namespace memoria 	{
 namespace btss 		{
 
 using bt::LeafNode;
+using bt::StreamTag;
 
 template <typename CtrT>
 class AbstractBTSSInputProviderBase {
@@ -33,10 +34,6 @@ public:
 	using CtrSizeT 	= typename CtrT::Types::CtrSizeT;
 
 	using Position	= typename CtrT::Types::Position;
-
-	using InputTuple 		= typename CtrT::Types::template StreamInputTuple<0>;
-	using InputTupleAdapter = typename CtrT::Types::template InputTupleAdapter<0>;
-
 
 	using InputBuffer = bt::StreamInputBuffer<
 			0,
@@ -245,7 +242,7 @@ private:
 
 template <
 	typename CtrT,
-	LeafDataLengthType LeafDataLength
+	LeafDataLengthType LeafDataLength = CtrT::Types::LeafDataLength
 >
 class AbstractBTSSInputProvider;
 
@@ -261,9 +258,6 @@ public:
 	using CtrSizeT 	= typename CtrT::Types::CtrSizeT;
 
 	using Position	= typename Base::Position;
-
-	using InputTuple 		= typename Base::InputTuple;
-	using InputTupleAdapter = typename Base::InputTupleAdapter;
 
 public:
 
@@ -294,9 +288,6 @@ public:
 	using CtrSizeT 	= typename CtrT::Types::CtrSizeT;
 
 	using Position	= typename Base::Position;
-
-	using InputTuple 		= typename Base::InputTuple;
-	using InputTupleAdapter = typename Base::InputTupleAdapter;
 
 	using PageUpdateMgr		= typename CtrT::Types::PageUpdateMgr;
 
@@ -439,9 +430,6 @@ public:
 	using Position	= typename Base::Position;
 	using InputBuffer = typename Base::InputBuffer;
 
-	using InputTuple 		= typename CtrT::Types::template StreamInputTuple<0>;
-	using InputTupleAdapter = typename CtrT::Types::template InputTupleAdapter<0>;
-
 	using InputValue = typename InputIterator::value_type;
 
 	InputIterator current_;
@@ -476,7 +464,7 @@ public:
 
 		if (input_start_ < input_size_)
 		{
-			auto inserted = buffer->append(input_value_buffer_, input_start_, input_size_ - input_start_);
+			auto inserted = buffer->append_vbuffer(this, input_start_, input_size_ - input_start_);
 
 			input_start_ += inserted;
 
@@ -485,11 +473,159 @@ public:
 
 		return -1;
 	}
+
+	auto buffer(StreamTag<0>, StreamTag<0>, Int idx, Int block) {
+		return CtrSizeT();
+	}
+
+	const auto& buffer(StreamTag<0>, StreamTag<1>, Int idx, Int block) {
+		return std::get<0>(input_value_buffer_[idx]);
+	}
 };
 
 
 
 
+
+template <typename CtrT, typename MyType, Int BufferSize = 1000, typename EntryT = typename CtrT::Types::Entry>
+class AbstractBufferedBTSSInputProvider: public memoria::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength> {
+
+	using Base = memoria::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength>;
+
+protected:
+
+	using typename Base::CtrSizeT;
+	using typename Base::Position;
+	using typename Base::InputBuffer;
+
+	using Entry = EntryT;
+
+	Int input_start_ 	= 0;
+	Int input_size_ 	= 0;
+
+	static constexpr Int INPUT_END = BufferSize;
+
+	Entry input_value_buffer_[INPUT_END];
+
+public:
+	AbstractBufferedBTSSInputProvider(CtrT& ctr, Int capacity = 10000):
+		Base(ctr, capacity)
+	{}
+
+	virtual Int get(InputBuffer* buffer, Int pos)
+	{
+		auto& self = this->self();
+
+		if (input_start_ == input_size_)
+		{
+			input_start_ = 0;
+
+			for (input_size_ = 0; self.has_next() && input_size_ < INPUT_END; input_size_++)
+			{
+				input_value_buffer_[input_size_] = self.next();
+			}
+		}
+
+		if (input_start_ < input_size_)
+		{
+			auto inserted = buffer->append_vbuffer(&self, input_start_, input_size_ - input_start_);
+
+			input_start_ += inserted;
+
+			return inserted;
+		}
+
+		return -1;
+	}
+
+	MyType& self() {return *static_cast<MyType*>(this);}
+	const MyType& self() const {return *static_cast<MyType*>(this);}
+};
+
+
+
+template <
+	typename CtrT,
+	typename MyType,
+	typename InputIterator,
+	Int BufferSize = 1000,
+	typename BufferEntry = typename CtrT::Types::Entry
+>
+class AbstractIteratorBTSSInputProvider: public AbstractBufferedBTSSInputProvider<CtrT, MyType, BufferSize, BufferEntry>
+{
+	using Base = AbstractBufferedBTSSInputProvider<CtrT, MyType, BufferSize, BufferEntry>;
+
+protected:
+
+	using typename Base::CtrSizeT;
+
+	using InputValue = typename InputIterator::value_type;
+
+	InputIterator current_;
+	InputIterator end_;
+
+public:
+	AbstractIteratorBTSSInputProvider(CtrT& ctr, InputIterator start, InputIterator end, Int capacity = 10000):
+		Base(ctr, capacity),
+		current_(start),
+		end_(end)
+	{}
+
+	bool has_next() {
+		return current_ != end_;
+	}
+
+	template <typename T>
+	auto convert(T&& value) const {
+		return value;
+	}
+
+	auto next() {
+		Incrementer inc(current_);
+		return this->self().convert(*current_);
+	}
+
+private:
+	class Incrementer {
+		InputIterator& value_;
+	public:
+		Incrementer(InputIterator& value): value_(value) {}
+		~Incrementer() {value_++;}
+	};
+};
+
+
+
+template <typename CtrT, typename InputIterator, Int EntryBufferSize = 1000>
+class BTSSIteratorInputProvider: public AbstractIteratorBTSSInputProvider<
+	CtrT,
+	BTSSIteratorInputProvider<CtrT, InputIterator, EntryBufferSize>,
+	InputIterator
+>
+{
+	using Base = AbstractIteratorBTSSInputProvider<
+			CtrT,
+			BTSSIteratorInputProvider<CtrT, InputIterator, EntryBufferSize>,
+			InputIterator
+	>;
+
+public:
+
+	using typename Base::CtrSizeT;
+
+public:
+	BTSSIteratorInputProvider(CtrT& ctr, const InputIterator& start, const InputIterator& end, Int capacity = 10000):
+		Base(ctr, start, end, capacity)
+	{}
+
+	auto buffer(StreamTag<0>, StreamTag<0>, Int idx, Int block) {
+		return CtrSizeT();
+	}
+
+	const auto& buffer(StreamTag<0>, StreamTag<1>, Int idx, Int block) {
+		return Base::input_value_buffer_[idx];
+	}
+};
 
 
 

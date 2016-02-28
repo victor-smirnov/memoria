@@ -1139,9 +1139,13 @@ public:
 
 
     template <typename ConsumerFn>
-    Int scan(Int block, Int start, Int end, ConsumerFn&& fn) const
+    void read(Int block, Int start, Int end, ConsumerFn&& fn) const
     {
     	auto meta = this->metadata();
+
+    	MEMORIA_ASSERT(start, >=, 0);
+    	MEMORIA_ASSERT(start, <=, end);
+    	MEMORIA_ASSERT(end, <=, meta->size());
 
     	auto values 		= this->values();
     	TreeLayout layout 	= compute_tree_layout(meta->data_size());
@@ -1155,24 +1159,18 @@ public:
     	{
     		Value value;
     		auto len = codec.decode(values, value, pos);
-    		fn(c, value);
+    		fn(block, value);
+    		fn.next();
+
     		pos += len;
     	}
-
-    	return c;
     }
 
 
-    template <typename T>
-    void read(Int block, Int start, Int end, T* values) const
+    template <typename ConsumerFn>
+    void read(Int start, Int end, ConsumerFn&& fn) const
     {
-    	MEMORIA_ASSERT(start, >=, 0);
-    	MEMORIA_ASSERT(start, <=, end);
-    	MEMORIA_ASSERT(end, <=, this->size());
-
-    	scan(start, end, [&](Int c, auto&& value){
-    		values[c - start] = value;
-    	});
+    	read(0, start, end, std::forward<ConsumerFn>(fn));
     }
 
     void reindex()

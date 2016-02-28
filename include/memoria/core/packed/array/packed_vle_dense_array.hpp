@@ -1066,16 +1066,53 @@ public:
 
 
     template <typename Fn>
-    Int read(Int block, Int start, Int end, Fn&& fn) const {
-    	return scan(block, start, end, std::forward<Fn>(fn));
+    void read(Int start, Int end, Fn&& fn) const
+    {
+    	Int size = this->size();
+
+    	MEMORIA_ASSERT(start, >=, 0);
+    	MEMORIA_ASSERT(start, <=, end);
+    	MEMORIA_ASSERT(end, <=, size);
+
+    	size_t positions[Blocks];
+
+    	for (Int b = 0; b < Blocks; b++)
+    	{
+    		Int global_idx = b * size + start;
+    		positions[b] = this->locate(0, global_idx);
+    	}
+
+    	Codec codec;
+
+    	auto values = this->values();
+
+    	for (Int c = start; c < end; c++)
+    	{
+    		for (Int b = 0; b < Blocks; b++)
+    		{
+    			Value value;
+    			auto len = codec.decode(values, value, positions[b]);
+
+    			fn(b, value);
+
+    			positions[b] += len;
+    		}
+
+    		fn.next();
+    	}
     }
 
 
 
     template <typename ConsumerFn>
-    Int scan(Int block, Int start, Int end, ConsumerFn&& fn) const
+    void read(Int block, Int start, Int end, ConsumerFn&& fn) const
     {
     	Int size = this->size();
+
+    	MEMORIA_ASSERT(start, >=, 0);
+    	MEMORIA_ASSERT(start, <=, end);
+    	MEMORIA_ASSERT(end, <=, size);
+
     	Int global_idx = block * size + start;
 
     	size_t pos = this->locate(0, global_idx);
@@ -1085,27 +1122,23 @@ public:
 
     	auto values = this->values();
 
-    	Int c;
-    	for (c = start; c < end && pos < data_size; c++)
+    	for (Int c = start; c < end && pos < data_size; c++)
     	{
     		Value value;
     		auto len = codec.decode(values, value, pos);
-    		fn(value);
+
+    		fn(block, value);
+    		fn.next();
+
     		pos += len;
     	}
-
-    	return c;
     }
 
 
     template <typename T>
     void read(Int block, Int start, Int end, T* values) const
     {
-    	MEMORIA_ASSERT(start, >=, 0);
-    	MEMORIA_ASSERT(start, <=, end);
-    	MEMORIA_ASSERT(end, <=, size());
-
-    	scan(block, start, end, [&](Int c, auto value){
+    	read(block, start, end, [&](Int c, auto value){
     		values[c - start] = value;
     	});
     }

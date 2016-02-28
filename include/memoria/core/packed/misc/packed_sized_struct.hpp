@@ -345,30 +345,17 @@ public:
     }
 
 
-    template <typename Fn>
-    void read(Int block, Int start, Int end, Fn&& fn) const
-    {
-        MEMORIA_ASSERT(start, <, size_);
-        MEMORIA_ASSERT(start, >=, 0);
-        MEMORIA_ASSERT(end, >=, 0);
-        MEMORIA_ASSERT(end, <=, size_);
-
-        for (Int c = start; c < end; c++)
-        {
-        	fn(Value());
-        }
-    }
 
     template <typename Fn>
     void read(Int start, Int end, Fn&& fn) const
     {
-        scan(start, end, std::forward<Fn>(fn));
+        read(0, start, end, std::forward<Fn>(fn));
     }
 
 
 
     template <typename Fn>
-    SizesT scan(Int start, Int end, Fn&& fn) const
+    void read(Int block, Int start, Int end, Fn&& fn) const
     {
         MEMORIA_ASSERT(start, <=, size_);
         MEMORIA_ASSERT(start, >=, 0);
@@ -377,10 +364,9 @@ public:
 
         for (Int c = start; c < end; c++)
         {
-        	fn(Values());
+        	fn(block, Value());
+        	fn.next();
         }
-
-        return SizesT(end);
     }
 
 

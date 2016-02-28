@@ -1310,25 +1310,62 @@ public:
 
 
     template <typename ConsumerFn>
-    Int scan(Int block, Int start, Int end, ConsumerFn&& fn) const
+    void read(Int block, Int start, Int end, ConsumerFn&& fn) const
     {
+    	MEMORIA_ASSERT(start, >=, 0);
+    	MEMORIA_ASSERT(start, <=, end);
+    	MEMORIA_ASSERT(end, <=, this->size());
+
     	auto values = this->values(block);
     	TreeLayout layout = this->compute_tree_layout(this->data_size(block));
     	size_t pos = this->locate(layout, values, block, start).idx;
-    	size_t data_size = this->data_size(block);
 
     	Codec codec;
 
     	Int c;
-    	for (c = start; c < end && pos < data_size; c++)
+    	for (c = start; c < end; c++)
     	{
     		Value value;
     		auto len = codec.decode(values, value, pos);
-    		fn(c, value);
+    		fn(block, value);
+    		fn.next();
     		pos += len;
     	}
+    }
 
-    	return c;
+    template <typename ConsumerFn>
+    void read(Int start, Int end, ConsumerFn&& fn) const
+    {
+    	MEMORIA_ASSERT(start, >=, 0);
+    	MEMORIA_ASSERT(start, <=, end);
+    	MEMORIA_ASSERT(end, <=, this->size());
+
+    	const ValueData* values[Blocks];
+    	size_t positions[Blocks];
+
+    	for (Int b = 0; b < Blocks; b++)
+    	{
+    		values[b] = this->values(b);
+
+    		TreeLayout layout 	= this->compute_tree_layout(this->data_size(b));
+    		positions[b] 		= this->locate(layout, values[b], b, start).idx;
+    	}
+
+    	Codec codec;
+
+    	for (Int c = start; c < end; c++)
+    	{
+    		for (Int b = 0; b < Blocks; b++)
+    		{
+    			Value value;
+    			auto len = codec.decode(values[b], value, positions[b]);
+
+    			fn(b, value);
+    			fn.next();
+
+    			positions[b] += len;
+    		}
+    	}
     }
 
 
@@ -1337,11 +1374,12 @@ public:
     {
     	MEMORIA_ASSERT(start, >=, 0);
     	MEMORIA_ASSERT(start, <=, end);
-    	MEMORIA_ASSERT(end, <=, this->metadata()->size());
+    	MEMORIA_ASSERT(end, <=, this->size());
 
-    	scan(block, start, end, [&](Int c, auto value){
-    		values[c - start] = value;
-    	});
+    	Int c = 0;
+    	read(block, start, end, make_fn_with_next([&](Int c, auto&& value){
+    		values[c] = value;
+    	}, [&]{c++;}));
     }
 
     void dump_block_values(std::ostream& out = cout) const

@@ -10,6 +10,8 @@
 
 #include <memoria/core/packed/tree/fse_max/packed_fse_max_tree_base.hpp>
 #include <memoria/core/packed/buffer/packed_fse_input_buffer_ro.hpp>
+#include <memoria/core/packed/tools/packed_tools.hpp>
+
 
 #include <memoria/core/tools/static_array.hpp>
 
@@ -639,7 +641,51 @@ public:
     	reindex();
     }
 
+    template <typename Fn>
+    void read(Int start, Int end, Fn&& fn) const
+    {
+    	auto meta = this->metadata();
 
+    	MEMORIA_ASSERT(start, >=, 0);
+    	MEMORIA_ASSERT(start, <=, end);
+    	MEMORIA_ASSERT(end, <=, meta->size());
+
+    	const Value* values[Blocks];
+    	for (Int b = 0; b < Blocks; b++)
+    	{
+    		values[b] = this->values(b);
+    	}
+
+    	for (Int c = start; c < end; c++)
+    	{
+    		for (Int b = 0; b < Blocks; b++)
+    		{
+    			fn(b, values[b][c]);
+    		}
+
+    		fn.next();
+    	}
+    }
+
+
+    template <typename Fn>
+    void read(Int block, Int start, Int end, Fn&& fn) const
+    {
+    	auto meta = this->metadata();
+
+    	MEMORIA_ASSERT(start, >=, 0);
+    	MEMORIA_ASSERT(start, <=, end);
+    	MEMORIA_ASSERT(end, <=, meta->size());
+
+    	auto values = this->values(block);
+    	for (Int c = start; c < end; c++)
+    	{
+    		fn(block, values[c]);
+    		fn.next();
+    	}
+    }
+
+    // FIXME: implement content checking
     void check() const {}
 
     void clear()

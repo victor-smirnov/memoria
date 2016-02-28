@@ -212,7 +212,8 @@ struct BTSSStreamInputBuffer<StreamEntry, DataBuffer, CtrSizeT, true>: BTSSStrea
 template <typename Types, Int Streams, Int Idx = 0>
 struct InputBufferBuilder {
 	using InputBuffer = StreamInputBuffer<
-		typename Types::template StreamInputBufferStructList<Idx>
+			Idx,
+			typename Types::template StreamInputBufferStructList<Idx>
 	>;
 
 	using StreamEntry = typename Types::template StreamInputTuple<Idx>;

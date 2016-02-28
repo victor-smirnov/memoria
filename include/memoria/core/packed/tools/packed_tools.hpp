@@ -263,6 +263,56 @@ private:
 };
 
 
+namespace {
+	template <typename Fn, typename Next>
+	class MultiValueFNHelper {
+		Fn fn_;
+		Next next_;
+
+	public:
+		MultiValueFNHelper(Fn fn, Next next): fn_(fn), next_(next) {}
+
+		template <typename V>
+		void operator()(Int block, V&& value) {
+			fn_(block, std::forward<V>(value));
+		}
+
+		void next() {
+			next_();
+		}
+	};
+
+	template <typename Fn>
+	class MultiValueFNHelper1 {
+		Fn fn_;
+
+	public:
+		MultiValueFNHelper1(Fn fn): fn_(fn){}
+
+		template <typename V>
+		void operator()(Int block, V&& value) {
+			fn_(block, std::forward<V>(value));
+		}
+
+		void next() {}
+	};
+}
+
+template <typename Fn, typename NextFn>
+auto make_fn_with_next(Fn&& fn, NextFn&& next) {
+	return MultiValueFNHelper<Fn, NextFn>(fn, next);
+}
+
+template <typename Fn>
+auto make_fn_with_next(Fn&& fn)
+{
+	return MultiValueFNHelper1<Fn>(fn);
+}
+
+
+
+
+
 
 
 }

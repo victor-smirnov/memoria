@@ -41,19 +41,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 
     using InputBuffer = typename Container::Types::InputBuffer;
 
-    template <typename... Args>
-    auto insert(Args&&... args) -> decltype(Base::insert(std::forward<Args>(args)...)) {
-    	return Base::insert(std::forward<Args>(args)...);
-    }
-
     template <typename InputIterator>
-    CtrSizeT insert(const InputIterator& start, BigInt length)
+    auto bulk_insert(const InputIterator& start, const InputIterator& end)
     {
-        auto& self = this->self();
-
-        mvector::IteratorVectorInputProvider<Container, InputIterator> provider(self.ctr(), start, length);
-
-        return self.insert(provider);
+        mvector::VectorIteratorInputProvider<Container, InputIterator> provider(self().ctr(), start, end);
+        return Base::bulk_insert(provider);
     }
 
     template <typename OutputIterator>
