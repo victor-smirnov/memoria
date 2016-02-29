@@ -84,6 +84,11 @@ int main() {
 			cout << entry.first << " +++ " << entry.second << endl;
 		}
 
+
+		cout << "Removed: " << map->seek(map->size() / 2)->remove(map->size()) << endl;
+
+		cout << "Ater remove: " << map->size() << endl;
+
 		snp->commit();
 
 

@@ -57,18 +57,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavMaxName)
     	return Base::bulk_insert(*bulk.get());
     }
 
-//    template <typename Provider>
-//    void bulk_insert(Provider&&) {}
-
-//    template <typename EntriesProvider>
-//    auto bulk_insert(EntriesProvider&& provider, Int ib_capacity = 10000)
-//    {
-//    	using Provider = map::MapEntryInputProvider<Container, EntriesProvider>;
-//
-//    	auto bulk = std::make_unique<Provider>(self().ctr(), provider, ib_capacity);
-//
-//    	return Base::insert(*bulk.get());
-//    }
 
     void remove()
     {
@@ -82,6 +70,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavMaxName)
     	}
     }
 
+    auto remove(CtrSizeT size)
+    {
+    	return Base::remove(size);
+    }
 
 
     auto findFwGT(Int index, Key key)

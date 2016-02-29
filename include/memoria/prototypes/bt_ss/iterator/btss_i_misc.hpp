@@ -113,7 +113,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btss::IteratorMiscName)
 
         auto to = self;
 
-        to.skipFw(size);
+        auto actual_size = to.skipFw(size);
 
         auto& from_path     = self.leaf();
         Position from_pos   = Position(self.idx());
@@ -129,7 +129,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btss::IteratorMiscName)
 
         self.refresh();
 
-        return self.ctr().getStreamSizes(keys)[0];
+        //return self.ctr().getStreamSizes(keys)[0];
+        return actual_size;
     }
 
     SplitStatus split()
