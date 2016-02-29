@@ -32,32 +32,43 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveToolsName)
     using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
     using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
 
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
+    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     typedef typename Base::Metadata                                             Metadata;
 
     typedef std::function<void (const Position&)>                          		MergeFn;
 
-    void removeNode(NodeBaseG& node, BranchNodeEntry& accum);
+public:
+    void drop()
+    {
+    	auto& self = this->self();
+
+    	if (self.isActive())
+    	{
+    		NodeBaseG root = self.getRoot();
+        	self.removeRootNode(root);
+        	self.set_root(ID());
+    	}
+    	else {
+    		throw Exception(MA_RAW_SRC, "Transaction must be in active state to drop containers");
+    	}
+    }
+
+
+protected:
+    MEMORIA_DECLARE_NODE_FN(RemoveSpaceFn, removeSpace);
+
+    void removeNodeRecursively(NodeBaseG& node, Position& accum);
     void removeNode(NodeBaseG& node);
     void removeRootNode(NodeBaseG& node);
 
-    MEMORIA_DECLARE_NODE_FN(RemoveNodeContentFn, removeSpace);
-    void removeNodeContent(NodeBaseG& node, Int start, Int end, BranchNodeEntry& sums);
+    void removeNodeContent(NodeBaseG& node, Int start, Int end, Position& sums);
+    Position removeLeafContent(NodeBaseG& node, const Position& start, const Position& end);
+    Position removeLeafContent(NodeBaseG& node, Int stream, Int start, Int end);
 
-    MEMORIA_DECLARE_NODE_FN_RTN(RemoveLeafContentFn, removeSpace, BranchNodeEntry);
-    BranchNodeEntry removeLeafContent(NodeBaseG& node, const Position& start, const Position& end);
-
-    BranchNodeEntry removeLeafContent(NodeBaseG& node, Int stream, Int start, Int end);
-
-
-    MEMORIA_DECLARE_NODE_FN_RTN(RemoveNonLeafNodeEntryFn, removeSpaceAcc, BranchNodeEntry);
+    MEMORIA_DECLARE_NODE_FN(RemoveNonLeafNodeEntryFn, removeSpaceAcc);
     void removeNonLeafNodeEntry(NodeBaseG& node, Int idx);
-
-
-
-
 
     bool mergeLeafWithLeftSibling(NodeBaseG& node, MergeFn fn = [](const Position&, Int){});
     bool mergeLeafWithRightSibling(NodeBaseG& node);
@@ -80,20 +91,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveToolsName)
     void removeRedundantRootP(NodeBaseG& node);
 
 
-
-    /**
-     * \brief Check if two nodes can be merged.
-     *
-     * \param tgt path to the node to be merged with
-     * \param src path to the node to be merged
-     * \param level level of the node in the tree
-     * \return true if nodes can be merged according to the current policy
-     */
-
-
-
-
-
     bool isTheSameParent(const NodeBaseG& left, const NodeBaseG& right)
     {
         return left->parent_id() == right->parent_id();
@@ -101,16 +98,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveToolsName)
 
 
 
-    MEMORIA_DECLARE_NODE_FN_RTN(RemoveSpaceFn, removeSpace, BranchNodeEntry);
-
-
-    MEMORIA_PUBLIC void drop()
-    {
-        NodeBaseG root = self().getRoot();
-        self().removeRootNode(root);
-
-        self().set_root(ID(0));
-    }
 
 MEMORIA_CONTAINER_PART_END
 
@@ -121,7 +108,7 @@ MEMORIA_CONTAINER_PART_END
 
 
 M_PARAMS
-void M_TYPE::removeNode(NodeBaseG& node, BranchNodeEntry& sums)
+void M_TYPE::removeNodeRecursively(NodeBaseG& node, Position& sizes)
 {
     auto& self = this->self();
 
@@ -132,11 +119,11 @@ void M_TYPE::removeNode(NodeBaseG& node, BranchNodeEntry& sums)
         {
             auto& self = this->self();
             NodeBaseG child = self.allocator().getPage(id, self.master_name());
-            this->removeNode(child, sums);
+            this->removeNodeRecursively(child, sizes);
         });
     }
     else {
-        sums = self.max(node);
+        sizes += self.leaf_sizes(node);
     }
 
     self.allocator().removePage(node->id(), self.master_name());
@@ -170,32 +157,29 @@ void M_TYPE::removeRootNode(NodeBaseG& node)
 
     MEMORIA_ASSERT_TRUE(node->is_root());
 
-    BranchNodeEntry sums;
     Position sizes;
 
-    self.removeNode(node, sums, sizes);
+    self.removeNodeRecursively(node, sizes);
 }
 
 
 
 M_PARAMS
-void M_TYPE::removeNodeContent(NodeBaseG& node, Int start, Int end, BranchNodeEntry& sums)
+void M_TYPE::removeNodeContent(NodeBaseG& node, Int start, Int end, Position& sizes)
 {
     auto& self = this->self();
 
     MEMORIA_ASSERT_TRUE(!node->is_leaf());
 
-    BranchNodeEntry deleted_sums;
+
 
     self.forAllIDs(node, start, end, [&, this](const ID& id, Int idx){
         auto& self = this->self();
         NodeBaseG child = self.allocator().getPage(id, self.master_name());
-        self.removeNode(child, deleted_sums);
+        self.removeNodeRecursively(child, sizes);
     });
 
-    BranchDispatcher::dispatch(node, RemoveNodeContentFn(), start, end);
-
-    VectorAdd(sums, deleted_sums);
+    BranchDispatcher::dispatch(node, RemoveSpaceFn(), start, end);
 
     auto max = self.max(node);
 
@@ -224,35 +208,35 @@ void M_TYPE::removeNonLeafNodeEntry(NodeBaseG& node, Int start)
 
 
 M_PARAMS
-typename M_TYPE::BranchNodeEntry M_TYPE::removeLeafContent(NodeBaseG& node, const Position& start, const Position& end)
+typename M_TYPE::Position M_TYPE::removeLeafContent(NodeBaseG& node, const Position& start, const Position& end)
 {
     auto& self = this->self();
 
     self.updatePageG(node);
 
-    LeafDispatcher::dispatch(node, RemoveLeafContentFn(), start, end);
+    LeafDispatcher::dispatch(node, RemoveSpaceFn(), start, end);
 
     auto max = self.max(node);
 
     self.update_parent(node, max);
 
-    return max;
+    return end - start;
 }
 
 M_PARAMS
-typename M_TYPE::BranchNodeEntry M_TYPE::removeLeafContent(NodeBaseG& node, Int stream, Int start, Int end)
+typename M_TYPE::Position M_TYPE::removeLeafContent(NodeBaseG& node, Int stream, Int start, Int end)
 {
     auto& self = this->self();
 
     self.updatePageG(node);
 
-    BranchNodeEntry sums = LeafDispatcher::dispatch(node, RemoveLeafContentFn(), stream, start, end);
+    BranchNodeEntry sums = LeafDispatcher::dispatch(node, RemoveSpaceFn(), stream, start, end);
 
     auto max = self.max(node);
 
     self.update_parent(node, max);
 
-    return max;
+    return Position(end - start);
 }
 
 

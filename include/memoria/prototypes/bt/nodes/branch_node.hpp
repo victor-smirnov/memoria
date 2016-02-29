@@ -938,24 +938,14 @@ public:
         }
     };
 
-    BranchNodeEntry removeSpace(const Position& from_pos, const Position& end_pos)
+    void removeSpace(const Position& from_pos, const Position& end_pos)
     {
-        BranchNodeEntry sums;
-
-        this->sums(from_pos.get(), end_pos.get(), sums);
         this->removeSpace(from_pos.get(), end_pos.get());
-
-        return sums;
     }
 
-    BranchNodeEntry removeSpaceAcc(Int room_start, Int room_end)
+    void removeSpaceAcc(Int room_start, Int room_end)
     {
-        BranchNodeEntry sums;
-
-//        this->sums(room_start, room_end, sums);
         removeSpace(room_start, room_end);
-
-        return sums;
     }
 
     void removeSpace(Int room_start, Int room_end)
@@ -976,15 +966,9 @@ public:
         allocator()->resizeBlock(values, requested_block_size);
     }
 
-    BranchNodeEntry removeSpace(Int stream, Int room_start, Int room_end)
+    void removeSpace(Int stream, Int room_start, Int room_end)
     {
-        BranchNodeEntry accum;
-
-        sum(stream, room_start, room_end, accum);
-
         removeSpace(room_start, room_end);
-
-        return accum;
     }
 
 

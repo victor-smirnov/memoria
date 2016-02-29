@@ -212,6 +212,10 @@ public:
 		return history_node_->is_active();
 	}
 
+	virtual bool isActive() {
+		return is_active();
+	}
+
 	bool is_marked_to_clear() const {
 		return history_node_->mark_to_clear();
 	}
@@ -240,6 +244,25 @@ public:
 		}
 		else {
 			throw Exception(MA_SRC, "Can't drop root snapshot");
+		}
+	}
+
+	bool drop_ctr(const UUID& name)
+	{
+		UUID root_id = getRootID(name);
+
+		if (root_id.is_set())
+		{
+			PageG page = this->getPage(root_id, name);
+
+			ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(page->ctr_type_hash());
+
+			ctr_meta->getCtrInterface()->drop(root_id, name, this);
+
+			return true;
+		}
+		else {
+			return false;
 		}
 	}
 

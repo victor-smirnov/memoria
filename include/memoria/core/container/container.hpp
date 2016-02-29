@@ -217,6 +217,16 @@ public:
             ctr.walkTree(walker);
         }
 
+        virtual void drop(const UUID& root_id, const UUID& name, void* allocator)
+        {
+            Allocator* alloc = T2T<Allocator*>(allocator);
+
+            PageG page = alloc->getPage(root_id, name);
+
+            MyType ctr(alloc, root_id, CtrInitData(name, page->master_ctr_type_hash(), page->owner_ctr_type_hash()));
+            return ctr.drop();
+        }
+
         virtual String ctr_type_name() const
         {
             return TypeNameFactory<ContainerTypeName>::name();

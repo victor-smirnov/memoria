@@ -26,7 +26,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveBatchName)
     using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
     using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
 
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
+    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     typedef typename Base::Metadata                                             Metadata;
@@ -37,19 +37,19 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveBatchName)
             Position&  from_idx,
             NodeBaseG& to,
             Position&  to_idx,
-            BranchNodeEntry& sums,
-            bool merge                  = true
+            Position& sizes,
+            bool merge = true
     );
 
 
 
-    void removeAllNodes(NodeBaseG& start, NodeBaseG& stop, BranchNodeEntry& sums);
+    void removeAllNodes(NodeBaseG& start, NodeBaseG& stop, Position& sums);
 
-    void removeNodesFromStart(NodeBaseG& stop, const Position& stop_idx, BranchNodeEntry& sums);
-    void removeBranchNodesFromStart(NodeBaseG& stop, Int stop_idx, BranchNodeEntry& sums);
+    void removeNodesFromStart(NodeBaseG& stop, const Position& stop_idx, Position& sums);
+    void removeBranchNodesFromStart(NodeBaseG& stop, Int stop_idx, Position& sums);
 
-    void removeNodesAtEnd(NodeBaseG& start, const Position& start_idx, BranchNodeEntry& sums);
-    void removeBranchNodesAtEnd(NodeBaseG& start, Int start_idx, BranchNodeEntry& sums);
+    void removeNodesAtEnd(NodeBaseG& start, const Position& start_idx, Position& sums);
+    void removeBranchNodesAtEnd(NodeBaseG& start, Int start_idx, Position& sums);
 
     void removeNodes(
             NodeBaseG& start,
@@ -58,7 +58,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveBatchName)
             NodeBaseG& stop,
             Position& stop_idx,
 
-            BranchNodeEntry& sums
+			Position& sums
     );
 
     void tryMergeNodesAfterRemove(
@@ -81,7 +81,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveBatchName)
             NodeBaseG& stop,
             Int stop_idx,
 
-            BranchNodeEntry& sums
+            Position& sizes
     );
 
 
@@ -114,7 +114,7 @@ void M_TYPE::removeEntries(
         Position&  start_idx,
         NodeBaseG& stop,
         Position&  stop_idx,
-        BranchNodeEntry& sums,
+        Position& sizes,
         bool merge
 )
 {
@@ -169,13 +169,13 @@ void M_TYPE::removeEntries(
 
     if (from_start && at_end)
     {
-        removeAllNodes(start, stop, sums);
+        removeAllNodes(start, stop, sizes);
 
         start_idx = stop_idx.setAll(0);
     }
     else if (from_start && !at_end)
     {
-        removeNodesFromStart(stop, stop_idx, sums);
+        removeNodesFromStart(stop, stop_idx, sizes);
 
         if (merge)
         {
@@ -187,7 +187,7 @@ void M_TYPE::removeEntries(
     }
     else if ((!from_start) && at_end)
     {
-        removeNodesAtEnd(start, start_idx, sums);
+        removeNodesAtEnd(start, start_idx, sizes);
 
         if (merge)
         {
@@ -201,7 +201,7 @@ void M_TYPE::removeEntries(
         stop_idx    = start_idx;
     }
     else {
-        removeNodes(start, start_idx, stop, stop_idx, sums);
+        removeNodes(start, start_idx, stop, stop_idx, sizes);
 
         if (merge)
         {
@@ -222,7 +222,7 @@ void M_TYPE::removeEntries(
 
 
 M_PARAMS
-void M_TYPE::removeAllNodes(NodeBaseG& start, NodeBaseG& stop, BranchNodeEntry& sums)
+void M_TYPE::removeAllNodes(NodeBaseG& start, NodeBaseG& stop, Position& sizes)
 {
     auto& self = this->self();
 
@@ -232,7 +232,7 @@ void M_TYPE::removeAllNodes(NodeBaseG& start, NodeBaseG& stop, BranchNodeEntry& 
         node = self.getNodeParent(node);
     }
 
-    self.removeNode(node, sums);
+    self.removeNodeRecursively(node, sizes);
 
     Metadata meta = self.getRootMetadata();
 
@@ -244,7 +244,7 @@ void M_TYPE::removeAllNodes(NodeBaseG& start, NodeBaseG& stop, BranchNodeEntry& 
 
 
 M_PARAMS
-void M_TYPE::removeBranchNodesFromStart(NodeBaseG& stop, Int stop_idx, BranchNodeEntry& sums)
+void M_TYPE::removeBranchNodesFromStart(NodeBaseG& stop, Int stop_idx, Position& sizes)
 {
     auto& self = this->self();
 
@@ -252,7 +252,7 @@ void M_TYPE::removeBranchNodesFromStart(NodeBaseG& stop, Int stop_idx, BranchNod
 
     NodeBaseG node = stop;
 
-    self.removeNodeContent(node, 0, stop_idx, sums);
+    self.removeNodeContent(node, 0, stop_idx, sizes);
 
     while (!node->is_root())
     {
@@ -262,20 +262,20 @@ void M_TYPE::removeBranchNodesFromStart(NodeBaseG& stop, Int stop_idx, BranchNod
 
         if (parent_idx > 0)
         {
-            self.removeNodeContent(node, 0, parent_idx, sums);
+            self.removeNodeContent(node, 0, parent_idx, sizes);
         }
     }
 }
 
 
 M_PARAMS
-void M_TYPE::removeNodesFromStart(NodeBaseG& stop, const Position& stop_idx, BranchNodeEntry& sums)
+void M_TYPE::removeNodesFromStart(NodeBaseG& stop, const Position& stop_idx, Position& sizes)
 {
     auto& self = this->self();
 
     NodeBaseG node = stop;
 
-    VectorAdd(sums, self.removeLeafContent(node, Position(0), stop_idx));
+    sizes += self.removeLeafContent(node, Position(0), stop_idx);
 
     if (!node->is_root())
     {
@@ -283,7 +283,7 @@ void M_TYPE::removeNodesFromStart(NodeBaseG& stop, const Position& stop_idx, Bra
 
         Int parent_idx = node->parent_idx();
 
-        self.removeBranchNodesFromStart(parent, parent_idx, sums);
+        self.removeBranchNodesFromStart(parent, parent_idx, sizes);
 
         self.removeRedundantRootP(node);
     }
@@ -291,7 +291,7 @@ void M_TYPE::removeNodesFromStart(NodeBaseG& stop, const Position& stop_idx, Bra
 
 
 M_PARAMS
-void M_TYPE::removeBranchNodesAtEnd(NodeBaseG& start, Int start_idx, BranchNodeEntry& sums)
+void M_TYPE::removeBranchNodesAtEnd(NodeBaseG& start, Int start_idx, Position& sizes)
 {
     auto& self = this->self();
 
@@ -299,7 +299,7 @@ void M_TYPE::removeBranchNodesAtEnd(NodeBaseG& start, Int start_idx, BranchNodeE
 
     Int node_size = self.getNodeSize(node, 0);
 
-    self.removeNodeContent(node, start_idx, node_size, sums);
+    self.removeNodeContent(node, start_idx, node_size, sizes);
 
     while (!node->is_root())
     {
@@ -310,26 +310,26 @@ void M_TYPE::removeBranchNodesAtEnd(NodeBaseG& start, Int start_idx, BranchNodeE
 
         if (parent_idx < node_size - 1)
         {
-            self.removeNodeContent(node, parent_idx + 1, node_size, sums);
+            self.removeNodeContent(node, parent_idx + 1, node_size, sizes);
         }
     }
 }
 
 
 M_PARAMS
-void M_TYPE::removeNodesAtEnd(NodeBaseG& start, const Position& start_idx, BranchNodeEntry& sums)
+void M_TYPE::removeNodesAtEnd(NodeBaseG& start, const Position& start_idx, Position& sizes)
 {
     auto& self = this->self();
 
     Position node_sizes = self.getNodeSizes(start);
 
-    VectorAdd(sums, self.removeLeafContent(start, start_idx, node_sizes));
+    sizes += self.removeLeafContent(start, start_idx, node_sizes);
 
     if (!start->is_root())
     {
         NodeBaseG parent = self.getNodeParentForUpdate(start);
 
-        self.removeBranchNodesAtEnd(parent, start->parent_idx() + 1, sums);
+        self.removeBranchNodesAtEnd(parent, start->parent_idx() + 1, sizes);
 
         self.removeRedundantRootP(start);
     }
@@ -343,7 +343,7 @@ void M_TYPE::removeNodes(
         NodeBaseG& stop,
         Position& stop_idx,
 
-        BranchNodeEntry& sums
+		Position& sizes
 ) {
 
     auto& self = this->self();
@@ -355,7 +355,7 @@ void M_TYPE::removeNodes(
         if ((stop_idx - start_idx).gtAny(0))
         {
             //remove some space within the node
-            VectorAdd(sums, self.removeLeafContent(start, start_idx, stop_idx));
+            sizes += self.removeLeafContent(start, start_idx, stop_idx);
 
             stop_idx = start_idx;
 
@@ -370,9 +370,9 @@ void M_TYPE::removeNodes(
 
         Position start_end = self.getNodeSizes(start);
 
-        VectorAdd(sums, self.removeLeafContent(start, start_idx, start_end));
+        sizes += self.removeLeafContent(start, start_idx, start_end);
 
-        VectorAdd(sums, self.removeLeafContent(stop, Position(0), stop_idx));
+        sizes += self.removeLeafContent(stop, Position(0), stop_idx);
 
         Int start_parent_idx    = start->parent_idx();
         Int stop_parent_idx     = stop->parent_idx();
@@ -380,7 +380,7 @@ void M_TYPE::removeNodes(
         NodeBaseG start_parent  = self.getNodeParentForUpdate(start);
         NodeBaseG stop_parent   = self.getNodeParentForUpdate(stop);
 
-        removeBranchNodes(start_parent, start_parent_idx + 1, stop_parent, stop_parent_idx, sums);
+        removeBranchNodes(start_parent, start_parent_idx + 1, stop_parent, stop_parent_idx, sizes);
 
         if (self.isTheSameParent(start, stop))
         {
@@ -411,7 +411,7 @@ void M_TYPE::removeBranchNodes(
             NodeBaseG& stop,
             Int stop_idx,
 
-            BranchNodeEntry& sums
+            Position& sizes
 )
 {
     auto& self = this->self();
@@ -423,7 +423,7 @@ void M_TYPE::removeBranchNodes(
         if (stop_idx - start_idx > 0)
         {
             //remove some space within the node
-            self.removeNodeContent(start, start_idx, stop_idx, sums);
+            self.removeNodeContent(start, start_idx, stop_idx, sizes);
 
             self.removeRedundantRootP(start);
         }
@@ -436,8 +436,8 @@ void M_TYPE::removeBranchNodes(
 
         Int start_end = self.getNodeSize(start, 0);
 
-        self.removeNodeContent(start, start_idx, start_end, sums);
-        self.removeNodeContent(stop, 0, stop_idx, sums);
+        self.removeNodeContent(start, start_idx, start_end, sizes);
+        self.removeNodeContent(stop, 0, stop_idx, sizes);
 
         Int start_parent_idx    = start->parent_idx();
         Int stop_parent_idx     = stop->parent_idx();
@@ -445,7 +445,7 @@ void M_TYPE::removeBranchNodes(
         NodeBaseG start_parent  = self.getNodeParentForUpdate(start);
         NodeBaseG stop_parent   = self.getNodeParentForUpdate(stop);
 
-        removeBranchNodes(start_parent, start_parent_idx + 1, stop_parent, stop_parent_idx, sums);
+        removeBranchNodes(start_parent, start_parent_idx + 1, stop_parent, stop_parent_idx, sizes);
 
         if (self.isTheSameParent(start, stop))
         {

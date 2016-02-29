@@ -80,6 +80,8 @@ struct IAllocator: ICtrDirectory<typename PageType::ID> {
     virtual Logger& logger()                                                    = 0;
     virtual IAllocatorProperties& properties()                                  = 0;
 
+    virtual bool isActive()														= 0;
+
     virtual ~IAllocator() {}
 };
 

@@ -208,11 +208,26 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     	}
     };
 
+
+    struct LeafSizesFn {
+    	template <typename Node, typename... Args>
+    	auto treeNode(const Node* node, Args&&... args) {
+    		return node->sizes();
+    	}
+    };
+
     template <typename Path, typename... Args>
     auto leaf_sums(const NodeBaseG& node, Args&&... args) const
     {
     	return LeafDispatcher::dispatch(node, LeafSumsFn<Path>(), std::forward<Args>(args)...);
     }
+
+
+    auto leaf_sizes(const NodeBaseG& node) const
+    {
+    	return LeafDispatcher::dispatch(node, LeafSizesFn());
+    }
+
 
     NodeBaseG getRoot() const
     {

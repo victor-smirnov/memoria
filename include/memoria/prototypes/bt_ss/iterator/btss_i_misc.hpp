@@ -113,7 +113,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btss::IteratorMiscName)
 
         auto to = self;
 
-        auto actual_size = to.skipFw(size);
+        to.skipFw(size);
 
         auto& from_path     = self.leaf();
         Position from_pos   = Position(self.idx());
@@ -121,16 +121,15 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btss::IteratorMiscName)
         auto& to_path       = to.leaf();
         Position to_pos     = Position(to.idx());
 
-        BranchNodeEntry keys;
+        Position sizes;
 
-        self.ctr().removeEntries(from_path, from_pos, to_path, to_pos, keys, true);
+        self.ctr().removeEntries(from_path, from_pos, to_path, to_pos, sizes, true);
 
         self.idx() = to_pos.get();
 
         self.refresh();
 
-        //return self.ctr().getStreamSizes(keys)[0];
-        return actual_size;
+        return sizes[0];
     }
 
     SplitStatus split()

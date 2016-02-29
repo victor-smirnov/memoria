@@ -651,30 +651,18 @@ public:
         }
     };
 
-    BranchNodeEntry removeSpace(Int stream, Int room_start, Int room_end)
+    void removeSpace(Int stream, Int room_start, Int room_end)
     {
-        BranchNodeEntry accum;
-//        this->sums(stream, room_start, room_end, accum);
-
         Dispatcher::dispatch(stream, allocator(), RemoveSpaceFn(), room_start, room_end);
-
-//        removeEmptyStreams();
-
-        return accum;
     }
 
-    BranchNodeEntry removeSpace(const Position& room_start, const Position& room_end)
+    void removeSpace(const Position& room_start, const Position& room_end)
     {
-        BranchNodeEntry accum;
-//        this->sums(room_start, room_end, accum);
-
         this->processSubstreamGroups(RemoveSpaceFn(), room_start, room_end);
 
         // FIXME: enable once other methods (finders) are ready for
         // this optimization
         // removeEmptyStreams();
-
-        return accum;
     }
 
 //	  FIXME: this code doesn't work with substreams
