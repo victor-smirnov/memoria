@@ -64,9 +64,9 @@ struct ContainerWalker {
 
 
 struct ContainerInterface {
-    virtual bool check(const void* id, const UUID& name, void* allocator) const = 0;
+    virtual bool check(const UUID& root_id, const UUID& name, void* allocator) const = 0;
     virtual void walk(
-            const void* id,
+            const UUID& root_id,
             const UUID& name,
             void* allocator,
             ContainerWalker* walker
@@ -75,7 +75,7 @@ struct ContainerInterface {
     virtual String ctr_type_name() const                                        = 0;
 
     virtual void drop(
-    		const UUID& id,
+    		const UUID& root_id,
             const UUID& name,
             void* allocator
 	)																			= 0;

@@ -189,42 +189,45 @@ public:
 
     struct CtrInterfaceImpl: public ContainerInterface {
 
-        virtual bool check(const void* id, const UUID& name, void* allocator) const
-        {
-            Allocator* alloc = T2T<Allocator*>(allocator);
-            ID* root_id = T2T<ID*>(id);
-
-            PageG page = alloc->getPage(*root_id, name);
-
-            MyType ctr(alloc, *root_id, CtrInitData(name, page->master_ctr_type_hash(), page->owner_ctr_type_hash()));
-            return ctr.check(nullptr);
-        }
-
-        virtual void walk(
-                const void* id,
-                const UUID& name,
-                void* allocator,
-                ContainerWalker* walker
-        ) const
-        {
-            Allocator* alloc = T2T<Allocator*>(allocator);
-            ID* root_id = T2T<ID*>(id);
-
-            PageG page = alloc->getPage(*root_id, name);
-
-            MyType ctr(alloc, *root_id, CtrInitData(name, page->master_ctr_type_hash(), page->owner_ctr_type_hash()));
-
-            ctr.walkTree(walker);
-        }
-
-        virtual void drop(const UUID& root_id, const UUID& name, void* allocator)
-        {
+    	void with_ctr(const UUID& root_id, const UUID& name, void* allocator, std::function<void(MyType&)> fn) const
+    	{
             Allocator* alloc = T2T<Allocator*>(allocator);
 
             PageG page = alloc->getPage(root_id, name);
 
             MyType ctr(alloc, root_id, CtrInitData(name, page->master_ctr_type_hash(), page->owner_ctr_type_hash()));
-            return ctr.drop();
+
+            fn(ctr);
+    	}
+
+        virtual bool check(const UUID& root_id, const UUID& name, void* allocator) const
+        {
+            bool result = false;
+
+            with_ctr(root_id, name, allocator, [&](MyType& ctr){
+            	result = ctr.check(nullptr);
+            });
+
+            return result;
+        }
+
+        virtual void walk(
+                const UUID& root_id,
+                const UUID& name,
+                void* allocator,
+                ContainerWalker* walker
+        ) const
+        {
+            with_ctr(root_id, name, allocator, [&](MyType& ctr){
+            	ctr.walkTree(walker);
+            });
+        }
+
+        virtual void drop(const UUID& root_id, const UUID& name, void* allocator)
+        {
+            with_ctr(root_id, name, allocator, [&](MyType& ctr){
+            	ctr.drop();
+            });
         }
 
         virtual String ctr_type_name() const

@@ -29,14 +29,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveName)
     using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
     using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
 
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
+    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
-
-    static const Int Streams                                                    = Types::Streams;
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
-
+protected:
     template <Int Stream>
     void remove_stream_entry(Iterator& iter)
     {

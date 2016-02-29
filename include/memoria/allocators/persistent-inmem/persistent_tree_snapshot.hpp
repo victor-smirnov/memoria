@@ -680,7 +680,7 @@ public:
 
 			ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(page->ctr_type_hash());
 
-			result = ctr_meta->getCtrInterface()->check(&page->id(), ctr_name, this) || result;
+			result = ctr_meta->getCtrInterface()->check(page->id(), ctr_name, this) || result;
 
 			iter->next();
 		}
@@ -706,7 +706,7 @@ public:
 
             ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(master_hash != 0 ? master_hash : ctr_hash);
 
-            ctr_meta->getCtrInterface()->walk(&page->id(), ctr_name, this, walker);
+            ctr_meta->getCtrInterface()->walk(page->id(), ctr_name, this, walker);
 
             iter->next();
         }
