@@ -47,7 +47,7 @@ public:
     static constexpr Int ValuesPerBranchLog2 	= Log2(ValuesPerBranch) - 1;
     static constexpr Int BranchingFactorLog2 	= Log2(BranchingFactor) - 1;
 
-
+    static_assert(HasFieldFactory<IndexValueT>::Value, "IndexValue must have FieldFactory defined");
 
     enum {
     	VALUE_INDEX, SIZE_INDEX, OFFSETS, VALUES

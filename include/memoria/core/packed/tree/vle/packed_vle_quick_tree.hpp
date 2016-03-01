@@ -35,7 +35,6 @@ class PkdVQTree: public PkdVQTreeBase<typename Types::IndexValue, typename Types
 	using MyType 	= PkdVQTree<Types>;
 
 public:
-//	static constexpr PackedTreeType TreeType = PackedTreeType::SUM;
 
     using Base::BlocksStart;
     using Base::SegmentsPerBlock;

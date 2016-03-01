@@ -130,8 +130,6 @@ public:
     {
     	MEMORIA_ASSERT_TRUE(node.isSet());
 
-//    	cout<<"Register node state for "<<node->id()<<" "<<node->parent_id()<<" "<<node->parent_idx()<<endl;
-
         if (pages_.capacity() > 0)
         {
             Int page_size = node->page_size();
@@ -165,8 +163,6 @@ public:
 
     void checkpoint(NodeBaseG& node)
     {
-//    	cout<<"Checkpoint node state for "<<node->id()<<" "<<node->parent_id()<<" "<<node->parent_idx()<<endl;
-
     	for (Int c = 0; c < pages_.getSize(); c++)
     	{
     		if (std::get<0>(pages_[c])->id() == node->id())
@@ -192,11 +188,7 @@ public:
             void* backup_buffer = std::get<1>(pages_[c]);
             Int page_size       = std::get<2>(pages_[c]);
 
-//            cout<<"Restore (1) node state for "<<node->id()<<" "<<node->parent_id()<<" "<<node->parent_idx()<<endl;
-
             CopyByteBuffer(backup_buffer, node.page(), page_size);
-
-//            cout<<"Restore (2) node state for "<<node->id()<<" "<<node->parent_id()<<" "<<node->parent_idx()<<endl;
         }
     }
 
@@ -207,8 +199,6 @@ public:
             NodeBaseG& node     = std::get<0>(pages_[c]);
             void* backup_buffer = std::get<1>(pages_[c]);
             Int page_size       = std::get<2>(pages_[c]);
-
-//            cout<<"Rollback node state for "<<node->id()<<" "<<node->parent_id()<<" "<<node->parent_idx()<<endl;
 
             CopyByteBuffer(backup_buffer, node.page(), page_size);
 
@@ -332,82 +322,61 @@ struct TupleEntryAccessor {
 
 
 
-//template <Int Offset, bool StreamStart>
-//struct BatchEntryMaxHelper {
-//	template <typename T1, typename T2>
-//	static void assign_max(T1&& accum, T2&&obj)
-//	{
-//		obj->template max<Offset>(accum);
-//	}
-//
-//	template <typename T1, typename T2>
-//	static void remove_entry(T1&& accum, T2&&obj, Int idx)
-//	{
-//		obj->template _remove<Offset>(idx, accum);
-//	}
-//
-//	template <typename T1, typename T2, typename T3>
-//	static void insert_entry(T1&& accum, T2&& entry, T3&&obj, Int idx)
-//	{
-//		obj->template _insert<Offset>(idx, entry, accum);
-//	}
-//};
-//
-//template <>
-//struct BatchEntryMaxHelper<0, true> {
-//	template <typename T1, typename T2>
-//	static void assign_max(T1&& accum, T2&& obj)
-//	{
-//		accum[0] = obj->size();
-//	}
-//
-//	template <typename T1, typename T2>
-//	static void remove_entry(T1&& accum, T2&&obj, Int idx)
-//	{
-//		accum[0] -= 1;
-//	}
-//
-//	template <typename T1, typename T2, typename T3>
-//	static void insert_entry(T1&& accum, T2&& entry, T3&&obj, Int idx)
-//	{
-//		accum[0] += 1;
-//	}
-//};
-//
-//template <>
-//struct BatchEntryMaxHelper<1, true> {
-//	template <typename T1, typename T2>
-//	static void assign_max(T1&& accum, T2&& obj)
-//	{
-//		accum[0] = obj->size();
-//		obj->template max<1>(accum);
-//	}
-//
-//	template <typename T1, typename T2>
-//	static void remove_entry(T1&& accum, T2&&obj, Int idx)
-//	{
-//		obj->template _remove<1>(idx, accum);
-//		accum[0] -= 1;
-//	}
-//
-//	template <typename T1, typename T2, typename T3>
-//	static void insert_entry(T1&& accum, T2&& entry, T3&&obj, Int idx)
-//	{
-//		obj->template _insert<1>(idx, entry, accum);
-//		accum[0] += 1;
-//	}
-//};
-
-template <typename T>
-auto get_array_value(T&& v, Int idx) {
-	return v;
-}
 
 
-template <typename T, Int I>
-auto get_array_value(const memoria::core::StaticVector<T, I>&v, Int idx) {
-	return v[idx];
-}
+
+
+template <typename T> struct DefaultBranchStructTF;
+
+template <typename KeyType>
+struct DefaultBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, 0>> {
+	using Type = PackedEmptyStruct<KeyType, PkdSearchType::MAX>;
+};
+
+template <typename KeyType>
+struct DefaultBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, 0>> {
+	using Type = PackedEmptyStruct<KeyType, PkdSearchType::SUM>;
+};
+
+template <typename KeyType, Int Indexes>
+struct DefaultBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>>
+{
+	static_assert(
+			IsExternalizable<KeyType>::Value,
+			"Type must either has ValueCodec or FieldFactory defined"
+	);
+
+	//FIXME: Extend KeyType to contain enough space to represent practically large sums
+	//Should be done systematically on the level of BT
+
+	using Type = IfThenElse <
+			HasFieldFactory<KeyType>::Value,
+			PkdFQTreeT<KeyType, Indexes>,
+			PkdVQTreeT<KeyType, Indexes>
+	>;
+
+	static_assert(IndexesSize<Type>::Value == Indexes, "Packed struct has different number of indexes than requested");
+};
+
+template <typename KeyType, Int Indexes>
+struct DefaultBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
+
+	static_assert(
+			IsExternalizable<KeyType>::Value,
+			"Type must either has ValueCodec or FieldFactory defined"
+	);
+
+	using Type = IfThenElse<
+			HasFieldFactory<KeyType>::Value,
+			PkdFMTreeT<KeyType, Indexes>,
+			PkdVBMTreeT<KeyType>
+	>;
+
+	static_assert(IndexesSize<Type>::Value == Indexes, "Packed struct has different number of indexes than requested");
+};
+
+
+
 
 
 }

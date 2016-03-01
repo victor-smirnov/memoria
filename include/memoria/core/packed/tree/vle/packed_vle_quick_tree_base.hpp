@@ -46,7 +46,6 @@ public:
     using IndexValue 	= IndexValueT;
     using Value 		= ValueT;
 
-
     using typename Base::Metadata;
     using typename Base::TreeLayout;
 

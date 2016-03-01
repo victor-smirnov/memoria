@@ -1,7 +1,7 @@
 include_directories(../tools/include)
 
 if (NOT DEFINED MEMORIA_SANDBOX)
-    set(MEMORIA_SANDBOX drop_ctr map_batch)
+    set(MEMORIA_SANDBOX vector_batch)
 endif()
 
 

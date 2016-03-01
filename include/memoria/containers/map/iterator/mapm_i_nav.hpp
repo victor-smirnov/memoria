@@ -142,7 +142,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavMaxName)
 
     	void next()
     	{
-    		current_ = make_pair(key_, value_);
+    		current_ = std::make_pair(key_, value_);
     		current_++;
     	}
     };

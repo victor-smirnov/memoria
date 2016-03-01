@@ -34,27 +34,12 @@ namespace memoria    {
 
 
 template <typename Profile, typename Value_>
-struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memoria::BTSingleStream> {
+struct VectorBTTypesBase: public BTTypes<Profile, memoria::BTSingleStream> {
 
-    typedef BTTypes<Profile, memoria::BTSingleStream>                           Base;
+    using Base = BTTypes<Profile, memoria::BTSingleStream>;
 
-    typedef Value_                                                              Value;
-
-    using VectorStreamTF = StreamTF<
-        TL<
-			TL<
-				StreamSize,
-				PackedFSEArray<PackedFSEArrayTypes<Value>>
-			>
-    	>,
-        TL<TL<TL<>, TL<>>>,
-		FSEBranchStructTF
-    >;
-
-
-    typedef TypeList<VectorStreamTF>                                             StreamDescriptors;
-
-    using Entry = Value;
+    using Value = Value_;
+    using Entry = Value_;
 
 
     using CommonContainerPartsList = MergeLists<
@@ -71,6 +56,32 @@ struct BTTypes<Profile, memoria::Vector<Value_> >: public BTTypes<Profile, memor
             typename Base::IteratorPartsList,
             mvector::ItrApiName
     >;
+};
+
+
+
+
+
+template <typename Profile, typename Value>
+struct BTTypes<Profile, memoria::Vector<Value> >: public VectorBTTypesBase<Profile, Value> {
+
+	static_assert(
+			IsExternalizable<Value>::Value ,
+			"Value type must have either ValueCodec or FieldFactory defined"
+	);
+
+
+	using LeafValueStruct = typename mvector::VectorValueStructTF<Value, HasFieldFactory<Value>::Value>::Type;
+
+
+    using StreamDescriptors = TL<StreamTF<
+        TL<
+			StreamSize,
+			LeafValueStruct
+    	>,
+        TL<TL<>, TL<>>,
+		DefaultBranchStructTF
+    >>;
 };
 
 

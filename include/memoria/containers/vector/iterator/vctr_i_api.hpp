@@ -48,23 +48,50 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
         return Base::bulk_insert(provider);
     }
 
+
+
+    template <typename Iterator>
+    class EntryAdaptor {
+    	Iterator& current_;
+
+    	Value value_;
+
+    public:
+    	EntryAdaptor(Iterator& current): current_(current) {}
+
+    	template <typename V>
+    	void put(StreamTag<0>, StreamTag<0>, Int block, V&& entry) {}
+
+    	template <typename V>
+    	void put(StreamTag<0>, StreamTag<1>, Int block, V&& value) {
+    		value_ = value;
+    	}
+
+    	void next()
+    	{
+    		current_ = value_;
+    		current_++;
+    	}
+    };
+
+
     template <typename OutputIterator>
-    CtrSizeT read(OutputIterator start, BigInt size)
+    auto read(OutputIterator& iter, CtrSizeT length)
     {
     	auto& self = this->self();
 
-    	auto pos = self.pos();
-    	auto ctr_size = self.ctr().size();
+    	EntryAdaptor<OutputIterator> adaptor(iter);
 
-    	auto length = pos + size <= ctr_size ? size : ctr_size - pos;
-
-        auto read = self.for_each(length, [&](const auto& entry) {
-        	*start = entry;
-        	start++;
-        });
-
-    	return read;
+    	return self.ctr().template read_entries<0>(self, length, adaptor);
     }
+
+    template <typename OutputIterator>
+    auto read(OutputIterator& iter)
+    {
+    	auto& self = this->self();
+    	return read(iter, self.ctr().size());
+    }
+
 
     Value value() const
     {
