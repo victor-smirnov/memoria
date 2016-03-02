@@ -79,8 +79,8 @@ struct BTTypes<Profile, memoria::Vector<Value> >: public VectorBTTypesBase<Profi
 			StreamSize,
 			LeafValueStruct
     	>,
-        TL<TL<>, TL<>>,
-		DefaultBranchStructTF
+		DefaultBranchStructTF,
+		TL<TL<>, TL<>>
     >>;
 };
 
@@ -114,8 +114,8 @@ struct BTTypes<Profile, memoria::Vector<VLen<Gr, Value_>> >: public BTTypes<Prof
 			StreamSize,
 			PkdVDArrayT<Value, 1, CodecClassTF<Gr>::template Type>
     	>>,
-        TL<TL<TL<>, TL<>>>,
-		FSEBranchStructTF
+        FSEBranchStructTF,
+		TL<TL<TL<>, TL<>>>
     >;
 
 

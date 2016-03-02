@@ -27,7 +27,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorRemoveName)
     typedef typename Base::NodeBaseG                                            NodeBaseG;
 
 
-    typedef typename Base::Container::BranchNodeEntry                               BranchNodeEntry;
+    typedef typename Base::Container::BranchNodeEntry                           BranchNodeEntry;
     typedef typename Base::Container                                            Container;
     typedef typename Base::Container::Position                                  Position;
 
@@ -49,8 +49,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorRemoveName)
 
     using LeafPrefixRanks = typename Container::Types::LeafPrefixRanks;
 
-    template <Int Stream>
-    using StreamInputTuple = typename Container::Types::template StreamInputTuple<Stream>;
 
     Position remove_subtrees(CtrSizeT n)
     {

@@ -99,10 +99,6 @@ struct MapBTTypesBase: public MapBTTypesBaseBase<Profile, Key, Value> {
 					TL<LeafKeyStruct>,
 					TL<LeafValueStruct>
 				>,
-				TL<
-					TL<TL<>>, TL<TL<>>, TL<TL<>>
-				>,
-
 				map::MapBranchStructTF
 			>
     >;

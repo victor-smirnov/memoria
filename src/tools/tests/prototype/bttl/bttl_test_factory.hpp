@@ -64,8 +64,8 @@ struct BTTLTestTypesBase: public BTTypes<Profile, BTTreeLayout> {
 			StreamSize
 			//PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec>>
         >,
-        TL<TL<>>, //TL<IndexRange<0, 1>>
-		FSEBranchStructTF
+        FSEBranchStructTF,
+		TL<TL<>> //TL<IndexRange<0, 1>>
     >;
 
     using StreamFixedTF = StreamTF<
@@ -73,17 +73,18 @@ struct BTTLTestTypesBase: public BTTypes<Profile, BTTreeLayout> {
 			StreamSize
         	//PkdFTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1>>
         >,
-        TL<TL<>>, //TL<IndexRange<0, 1>>
-		FSEBranchStructTF
+        FSEBranchStructTF,
+		TL<TL<>> //TL<IndexRange<0, 1>>
     >;
 
     using DataStreamTF  = StreamTF<
     	TL<TL<
 			StreamSize,
-			PackedFSEArray<PackedFSEArrayTypes<Value>>>
-			>,
-    	TL<TL<TL<>, TL<>>>,
-		FSEBranchStructTF
+			PackedFSEArray<PackedFSEArrayTypes<Value>>
+			>
+		>,
+    	FSEBranchStructTF,
+		TL<TL<TL<>, TL<>>>
     >;
 
 
@@ -116,17 +117,6 @@ struct BTTLTestTypesBase: public BTTypes<Profile, BTTreeLayout> {
             typename Base::ID,
             ListSize<StreamDescriptors>::Value
     >;
-
-
-//    using CommonContainerPartsList = MergeLists<
-//                typename Base::CommonContainerPartsList,
-//                memoria::table::CtrApiName
-//    >;
-//
-//    using IteratorPartsList = MergeLists<
-//                typename Base::IteratorPartsList,
-//                memoria::table::ItrMiscName
-//    >;
 };
 
 

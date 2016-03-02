@@ -34,12 +34,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorUpdateName)
     using CtrSizeT 	= typename Container::Types::CtrSizeT;
     using Key		= typename Container::Types::Key;
     using Value		= typename Container::Types::Value;
-    using IteratorBranchNodeEntry		= typename Container::Types::IteratorBranchNodeEntry;
+
+    using IteratorBranchNodeEntry = typename Container::Types::IteratorBranchNodeEntry;
 
     using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
-
-    template <Int Stream>
-    using InputTupleAdapter = typename Container::Types::template InputTupleAdapter<Stream>;
 
     template <typename LeafPath>
     using AccumItemH = typename Container::Types::template AccumItemH<LeafPath>;
@@ -48,10 +46,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorUpdateName)
     static const Int SearchableStreams 		= Container::Types::SearchableStreams;
 
     using LeafPrefixRanks = typename Container::Types::LeafPrefixRanks;
-
-    template <Int Stream>
-    using StreamInputTuple = typename Container::Types::template StreamInputTuple<Stream>;
-
 
 MEMORIA_ITERATOR_PART_END
 

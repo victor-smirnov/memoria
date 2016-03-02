@@ -36,8 +36,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mmap::ItrMiscName)
 
     using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
 
-    template <Int Stream>
-    using InputTupleAdapter = typename Container::Types::template InputTupleAdapter<Stream>;
 
 MEMORIA_ITERATOR_PART_END
 

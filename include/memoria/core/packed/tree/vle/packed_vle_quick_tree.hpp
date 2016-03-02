@@ -21,7 +21,7 @@ template <
 	typename IndexValueT,
 	Int kBlocks = 1,
 	template <typename> class CodecT = ValueCodec,
-	typename ValueT = BigInt,
+	typename ValueT = IndexValueT,
 	Int kBranchingFactor = PkdVLETreeShapeProvider<CodecT<ValueT>>::BranchingFactor,
 	Int kValuesPerBranch = PkdVLETreeShapeProvider<CodecT<ValueT>>::ValuesPerBranch
 >

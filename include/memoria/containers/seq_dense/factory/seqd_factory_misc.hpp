@@ -45,8 +45,8 @@ struct BTTypes<Profile, memoria::Sequence<BitsPerSymbol_, true> >: public BTType
 
     using SeqStreamTF = StreamTF<
     	TL<TL<PkdFSSeq<SequenceTypes>>>,
-        TL<TL<TL<>>>,
-		VLDBranchStructTF
+		VLDBranchStructTF,
+		TL<TL<TL<>>>
 //		FSEBranchStructTF
     >;
 

@@ -97,7 +97,7 @@ template <
 	template <typename> class BranchStructTF,
     typename... Tail
 >
-class PackedLeafStructListBuilder<SumType, TypeList<StreamTF<LeafType, IdxRangeList, BranchStructTF>, Tail...>> {
+class PackedLeafStructListBuilder<SumType, TypeList<StreamTF<LeafType, BranchStructTF, IdxRangeList>, Tail...>> {
 
 	using BranchType = typename BTStreamDescritorsBuilder<FlattenLeafTree<LeafType>, BranchStructTF, SumType>::Type;
 
@@ -144,7 +144,7 @@ template <
 	template <typename> class BranchStructTF,
     typename... Tail
 >
-class PackedBranchStructListBuilder<SumType, TypeList<StreamTF<LeafType, IdxRangeList, BranchStructTF>, Tail...>> {
+class PackedBranchStructListBuilder<SumType, TypeList<StreamTF<LeafType, BranchStructTF, IdxRangeList>, Tail...>> {
 
     using BranchType = typename BTStreamDescritorsBuilder<FlattenLeafTree<LeafType>, BranchStructTF, SumType>::Type;
 
@@ -169,7 +169,7 @@ template <
 	template <typename> class BranchStructTF,
     typename... Tail
 >
-class IteratorBranchNodeEntryListBuilder<SumType, TypeList<StreamTF<LeafType, IdxRangeList, BranchStructTF>, Tail...>> {
+class IteratorBranchNodeEntryListBuilder<SumType, TypeList<StreamTF<LeafType, BranchStructTF, IdxRangeList>, Tail...>> {
 
 	using BranchType = typename BTStreamDescritorsBuilder<FlattenLeafTree<LeafType>, BranchStructTF, SumType>::Type;
 

@@ -46,8 +46,8 @@ struct BTSSTestStreamTF<PackedSizeType::FIXED, PackedSizeType::FIXED, CtrSizeT, 
 				StreamSize,
 				PkdFQTreeT<CtrSizeT, Indexes>
 			>>,
-			TL<TL<TL<>, TL<SumRange<0, Indexes>>>>,
-			FSEBranchStructTF
+			FSEBranchStructTF,
+			TL<TL<TL<>, TL<SumRange<0, Indexes>>>>
 	>;
 };
 
@@ -59,8 +59,8 @@ struct BTSSTestStreamTF<PackedSizeType::VARIABLE, PackedSizeType::FIXED, CtrSize
 				StreamSize,
 				PkdVQTreeT<CtrSizeT, Indexes, UByteI7Codec>
 			>>,
-			TL<TL<TL<>, TL<SumRange<0, Indexes>>>>,
-			FSEBranchStructTF
+			FSEBranchStructTF,
+			TL<TL<TL<>, TL<SumRange<0, Indexes>>>>
 	>;
 };
 
@@ -72,8 +72,8 @@ struct BTSSTestStreamTF<PackedSizeType::FIXED, PackedSizeType::VARIABLE, CtrSize
 				StreamSize,
 				PkdFQTreeT<CtrSizeT, Indexes>
 			>>,
-			TL<TL<TL<>, TL<SumRange<0, Indexes>>>>,
-			VLQBranchStructTF
+			VLQBranchStructTF,
+			TL<TL<TL<>, TL<SumRange<0, Indexes>>>>
 	>;
 };
 
@@ -85,8 +85,8 @@ struct BTSSTestStreamTF<PackedSizeType::VARIABLE, PackedSizeType::VARIABLE, CtrS
 				StreamSize,
 				PkdVDTreeT<CtrSizeT, Indexes, UByteI7Codec>
 			>>,
-			TL<TL<TL<>, TL<SumRange<0, Indexes>>>>,
-			VLQBranchStructTF
+			VLQBranchStructTF,
+			TL<TL<TL<>, TL<SumRange<0, Indexes>>>>
 	>;
 };
 
@@ -113,17 +113,6 @@ struct BTSSTestTypesBase: public BTTypes<Profile, BTSingleStream> {
             typename Base::ID,
             ListSize<StreamDescriptors>::Value
     >;
-
-
-//    using CommonContainerPartsList = MergeLists<
-//                typename Base::CommonContainerPartsList,
-//                memoria::table::CtrApiName
-//    >;
-//
-//    using IteratorPartsList = MergeLists<
-//                typename Base::IteratorPartsList,
-//                memoria::table::ItrMiscName
-//    >;
 };
 
 

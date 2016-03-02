@@ -1,68 +1,50 @@
-// Copyright Victor Smirnov 2015+.
+// Copyright Victor Smirnov 2016.
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#include <memoria/containers/map/map_factory.hpp>
 #include <memoria/memoria.hpp>
-#include <memoria/containers/seq_dense/seqd_factory.hpp>
-#include <memoria/containers/vector/vctr_factory.hpp>
+
+#include <memoria/containers/multimap/mmap_factory.hpp>
 
 #include <memoria/core/container/metadata_repository.hpp>
 
+#include <memoria/core/tools/time.hpp>
 
-std::uniform_int_distribution<int>      distribution;
-std::mt19937_64                         engine;
-auto                                    generator               = std::bind(distribution, engine);
-
+#include <memory>
+#include <vector>
 
 using namespace memoria;
 using namespace std;
 
-int main(int argc, const char** argv, const char** envp) {
+
+int main() {
 	MEMORIA_INIT(DefaultProfile<>);
 
+	using KeyType = BigInteger;
+	using ValueType = Byte;
+
+	using CtrName = Map<KeyType, Vector<ValueType>>;
+
+
+	DInit<CtrName>();
+
+
 	try {
-		SmallInMemAllocator alloc;
+		auto alloc = PersistentInMemAllocator<>::create();
+		auto snp   = alloc->master()->branch();
 
-		alloc.mem_limit() = 2*1024*1024*1024ll;
+		auto map = create<CtrName>(snp);
 
-		using CtrT  = DCtrTF<Map<BigInt, Vector<Byte>>>::Type;
-
-		CtrT::initMetadata();
-
-		CtrT map(&alloc);
-
-		auto iter = map.find(0);
-
-//		using Provider = bttl::RandomDataInputProvider<CtrT, decltype(generator)>;
-//		Provider provider({10000000, 10}, generator);
-
-		using Provider = bttl::DeterministicDataInputProvider<CtrT>;
-		Provider provider({10000000, 10});
-
-
-		map._insert(iter, provider);
-
-		alloc.commit();
-
-		cout<<"Allocated: "<<(alloc.allocated()/1024)<<"K"<<endl;
-
-		if (argc > 1)
-		{
-			const char* dump_name = argv[1];
-
-			cout<<"Dump to: "<<dump_name<<endl;
-
-			OutputStreamHandler* os = FileOutputStreamHandler::create(dump_name);
-			alloc.store(os);
-			delete os;
-		}
-
-		cout<<"Done"<<endl;
 	}
 	catch (memoria::Exception& ex) {
-		cout<<ex.message()<<" at "<<ex.source()<<endl;
+		cout << ex.message() << " at " << ex.source() << endl;
 	}
+
+	catch (memoria::PackedOOMException& ex) {
+		cout << "PackedOOMException at " << ex.source() << endl;
+	}
+
+	MetadataRepository<DefaultProfile<>>::cleanup();
 }

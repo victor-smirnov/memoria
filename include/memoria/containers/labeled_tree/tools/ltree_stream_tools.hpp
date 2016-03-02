@@ -27,8 +27,8 @@ template <typename T>       struct IdxListTF;
 
 using LoudsStreamTF = StreamTF<
 	PkdFSSeq<typename PkdFSSeqTF<1>::Type>,
-	TL<TL<>>,
-	FSEBranchStructTF
+	FSEBranchStructTF,
+	TL<TL<>>
 >;
 
 //struct LoudsStreamTF {

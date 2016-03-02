@@ -31,7 +31,7 @@ namespace {
 		typename IndexRangeList,
 		template <typename> class BranchStructTF
 	>
-	struct GetLeafList<TL<memoria::bt::StreamTF<LeafType, IndexRangeList, BranchStructTF>, Tail...>> {
+	struct GetLeafList<TL<memoria::bt::StreamTF<LeafType, BranchStructTF, IndexRangeList>, Tail...>> {
 		using Type = MergeLists<
 				TL<LeafType>,
 				typename GetLeafList<TL<Tail...>>::Type
@@ -54,7 +54,7 @@ namespace {
 		using Type = IfThenElse<
 				LeafSizeType == PackedSizeType::FIXED,
 				PkdFQTreeT<CtrSizeT, 1>,
-				PkdVQTreeT<CtrSizeT, 1, UByteI7Codec>
+				PkdVQTreeT<CtrSizeT, 1>
 		>;
 	};
 
@@ -92,7 +92,7 @@ namespace {
 template <
 	typename StreamDescriptorsList,
 	typename SizeStruct 	= typename InferSizeStruct<StreamDescriptorsList>::Type,
-	typename SizeIndexes	= TL<SumRange<0, 1>>
+	typename SizeIndexes	= TL<> // TL<SumRange<0, 1>>
 > class BTTLAugmentStreamDescriptors;
 
 template <
@@ -103,12 +103,12 @@ template <
 	typename SizeStruct,
 	typename SizeIndexes
 >
-class BTTLAugmentStreamDescriptors<TL<memoria::bt::StreamTF<LeafType, IndexRangeList, BranchStructTF>, Tail...>, SizeStruct, SizeIndexes> {
+class BTTLAugmentStreamDescriptors<TL<memoria::bt::StreamTF<LeafType, BranchStructTF, IndexRangeList>, Tail...>, SizeStruct, SizeIndexes> {
 	using NewLeafType 		= typename AppendSizeStruct<LeafType, SizeStruct>::Type;
 	using NewIndexRangeList = typename AppendSizeIndexes<IndexRangeList, SizeIndexes>::Type;
 public:
 	using Type = MergeLists<
-		memoria::bt::StreamTF<NewLeafType, NewIndexRangeList, BranchStructTF>,
+		memoria::bt::StreamTF<NewLeafType, BranchStructTF, NewIndexRangeList>,
 		typename BTTLAugmentStreamDescriptors<TL<Tail...>, SizeStruct, SizeIndexes>::Type
 	>;
 };
@@ -122,9 +122,12 @@ template <
 	typename SizeStruct,
 	typename SizeIndexes
 >
-class BTTLAugmentStreamDescriptors<TL<memoria::bt::StreamTF<LeafType, IndexRangeList, BranchStructTF>>, SizeStruct, SizeIndexes> {
+class BTTLAugmentStreamDescriptors<TL<memoria::bt::StreamTF<LeafType, BranchStructTF, IndexRangeList>>, SizeStruct, SizeIndexes> {
+	using NewLeafType 		= typename AppendSizeStruct<LeafType, SizeStruct>::Type;
+	using NewIndexRangeList = typename AppendSizeIndexes<IndexRangeList, SizeIndexes>::Type;
+
 public:
-	using Type = memoria::bt::StreamTF<LeafType, IndexRangeList, BranchStructTF>;
+	using Type = memoria::bt::StreamTF<NewLeafType, BranchStructTF, NewIndexRangeList>;
 };
 
 

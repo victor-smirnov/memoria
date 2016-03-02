@@ -40,25 +40,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorMiscName)
 
     using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
 
-    template <Int Stream>
-    using InputTupleAdapter = typename Container::Types::template InputTupleAdapter<Stream>;
-
     static const Int Streams 				= Container::Types::Streams;
     static const Int SearchableStreams 		= Container::Types::SearchableStreams;
 
     using LeafPrefixRanks = typename Container::Types::LeafPrefixRanks;
 
 
-    void update_leaf_ranks()
-    {
-    }
-
-    void update_leaf_ranks(WalkCmd cmd)
-    {
-    	if (cmd == WalkCmd::LAST_LEAF){
-    		update_leaf_ranks();
-    	}
-    }
 
     template <typename LeafPath>
     struct ScanFn {
@@ -135,6 +122,18 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorMiscName)
     	MEMORIA_ASSERT(self().cache(), ==, tmp.cache());
     }
 
+protected:
+
+    void update_leaf_ranks()
+    {
+    }
+
+    void update_leaf_ranks(WalkCmd cmd)
+    {
+    	if (cmd == WalkCmd::LAST_LEAF){
+    		update_leaf_ranks();
+    	}
+    }
 
 MEMORIA_ITERATOR_PART_END
 

@@ -29,22 +29,22 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mmap::CtrApiName)
     using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
     using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
 
-    using Key 				    = typename Types::Key;
-    using Value 			    = typename Types::Value;
-    using CtrSizeT			  = typename Types::CtrSizeT;
+    using Key 				= typename Types::Key;
+    using Value 			= typename Types::Value;
+    using CtrSizeT			= typename Types::CtrSizeT;
 
-    using BranchNodeEntry 		= typename Types::BranchNodeEntry;
-    using Position 			  = typename Types::Position;
+    using BranchNodeEntry 	= typename Types::BranchNodeEntry;
+    using Position 			= typename Types::Position;
 
     static const Int Streams = Types::Streams;
 
     using PageUpdateMgt 	= typename Types::PageUpdateMgr;
 
-    Iterator Begin() {
+    Iterator begin() {
     	return self().template _seek<0>(0);
     }
 
-    Iterator End() {
+    Iterator end() {
     	auto& self = this->self();
     	return self.template _seek<0>(self.sizes()[0]);
     }

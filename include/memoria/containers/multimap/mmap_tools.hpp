@@ -16,6 +16,9 @@
 namespace memoria {
 namespace mmap    {
 
+using bt::IdxSearchType;
+using bt::StreamTag;
+
 template <Int StreamIdx> struct InputTupleSizeH;
 
 template <>
@@ -102,104 +105,26 @@ std::ostream& operator<<(std::ostream& out, const MultimapIteratorPrefixCache<I,
 
 
 
-//template <typename CtrT, typename Rng>
-//class RandomDataInputProvider: public memoria::bttl::AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength> {
-//
-//	using Base = memoria::bttl::AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength>;
-//
-//public:
-//
-//	using Position 		= typename CtrT::Types::Position;
-//	using CtrSizeT 		= typename CtrT::CtrSizeT;
-//	using Buffer 		= typename Base::Buffer;
-//
-//	using RunDescr 		= typename Base::RunDescr;
-//
-//	using NodeBaseG		= typename Base::NodeBaseG;
-//
-//	template <Int StreamIdx>
-//	using InputTuple 		= typename CtrT::Types::template StreamInputTuple<StreamIdx>;
-//
-//	template <Int StreamIdx>
-//	using InputTupleAdapter = typename CtrT::Types::template InputTupleAdapter<StreamIdx>;
-//
-//private:
-//	CtrSizeT keys_;
-//	CtrSizeT mean_data_size_;
-//	CtrSizeT data_size_cnt_ 	= 0;
-//	CtrSizeT data_size_limit_ 	= 0;
-//
-//	CtrSizeT key_ = 0;
-//
-//	Rng rng_;
-//public:
-//	RandomDataInputProvider(CtrT& ctr, CtrSizeT keys, CtrSizeT mean_data_size, const Rng& rng):
-//		Base(ctr, Position({500, 500})),
-//		keys_(keys), mean_data_size_(mean_data_size),
-//		rng_(rng)
-//	{}
-//
-//
-//	virtual RunDescr populate(const Position& pos)
-//	{
-//		if (key_ <= keys_)
-//		{
-//			Int sym;
-//			Int length = 1;
-//
-//			if (key_ > 0)
-//			{
-//				sym = (data_size_cnt_ < data_size_limit_ ? 1 : 0);
-//			}
-//			else {
-//				sym = 0;
-//			}
-//
-//			if (sym == 0)
-//			{
-//				data_size_cnt_ = 0;
-//				//data_size_limit_ = (rng_() % (mean_data_size_*2 + 1));
-//				data_size_limit_ = mean_data_size_;
-//
-//				if (++key_ <= keys_)
-//				{
-//					std::get<0>(this->buffer_)[pos[0]] = InputTupleAdapter<0>::convert(memoria::core::StaticVector<BigInt, 2>({1, 0}));
-//				}
-//				else {
-//					return RunDescr(-1);
-//				}
-//			}
-//			else {
-//				CtrSizeT rest = data_size_limit_ - data_size_cnt_;
-//
-//				CtrSizeT capacity 	= this->capacity_[1];
-//				CtrSizeT ppos 		= pos[1];
-//
-//				CtrSizeT limit;
-//
-//				if (ppos + rest > capacity) {
-//					limit = capacity - ppos;
-//				}
-//				else {
-//					limit = rest;
-//				}
-//
-//				for (CtrSizeT c = ppos; c < ppos + limit; c++) {
-//					std::get<1>(this->buffer_)[c] = InputTupleAdapter<1>::convert(key_ % 256);
-//				}
-//
-//				data_size_cnt_ += limit;
-//
-//				length = limit;
-//			}
-//
-//			return RunDescr(sym, length);
-//		}
-//		else {
-//			return RunDescr(-1);
-//		}
-//	}
-//};
+
+
+template <typename KeyType, Int Selector = HasFieldFactory<KeyType>::Value> struct MMapKeyStructTF;
+
+template <typename KeyType>
+struct MMapKeyStructTF<KeyType, 1>: HasType<PkdFMTreeT<KeyType>> {};
+
+template <typename KeyType>
+struct MMapKeyStructTF<KeyType, 0>: HasType<PkdVBMTreeT<KeyType>> {};
+
+
+
+template <typename ValueType, Int Selector = HasFieldFactory<ValueType>::Value> struct MMapValueStructTF;
+
+template <typename ValueType>
+struct MMapValueStructTF<ValueType, 1>: HasType<PkdFSQArrayT<ValueType>> {};
+
+template <typename ValueType>
+struct MMapValueStructTF<ValueType, 0>: HasType<PkdVDArrayT<ValueType>> {};
+
 
 
 

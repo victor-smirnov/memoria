@@ -26,10 +26,42 @@ struct StreamStartTag {
 };
 
 
+template <typename StructList> struct BuildEmptyRangeList;
+
+template <typename Head, typename... Tail>
+struct BuildEmptyRangeList<TL<Head, Tail...>> {
+	using Type = MergeLists<
+		TL<TL<>>,
+		typename BuildEmptyRangeList<TL<Tail...>>::Type
+	>;
+};
+
+
+template <typename... List, typename... Tail>
+struct BuildEmptyRangeList<TL<TL<List...>, Tail...>> {
+	static_assert(
+		sizeof...(List) > 0,
+		"PackedStruct sub-list must not be empty"
+	);
+
+	using Type = MergeLists<
+		TL<typename BuildEmptyRangeList<TL<List...>>::Type>,
+		typename BuildEmptyRangeList<TL<Tail...>>::Type
+	>;
+};
+
+template <>
+struct BuildEmptyRangeList<TL<>> {
+	using Type = TL<>;
+};
+
+
+template <typename T> struct DefaultBranchStructTF;
+
 template <
 	typename LeafTypeT,
-	typename IndexRangeListT,
-	template <typename T> class BranchStructTF
+	template <typename T> class BranchStructTF = DefaultBranchStructTF,
+	typename IndexRangeListT = typename BuildEmptyRangeList<LeafTypeT>::Type
 >
 struct StreamTF {};
 

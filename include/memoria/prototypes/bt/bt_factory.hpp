@@ -76,7 +76,7 @@ using memoria::bt::WalkerTypes;
 template <typename Profile_, typename ContainerTypeSelector>
 struct BTTypes {
 
-    typedef Profile_                                                            Profile;
+    using Profile  = Profile_;
 
     using CtrSizeT = BigInt;
 
@@ -133,9 +133,10 @@ struct BTTypes {
     typedef EmptyType                                                           IteratorData;
 
 
-    typedef typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator Allocator;
-    typedef typename Allocator::ID                                              ID;
+    using Allocator = typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator;
+    using ID 		= typename Allocator::ID;
 
+    using Metadata 	= BalancedTreeMetadata<ID>;
 
     typedef TypeList<
             BranchNodeTypes<BranchNode>,

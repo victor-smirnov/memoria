@@ -26,22 +26,17 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorStreamRankName)
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
 
-
-    typedef typename Base::Container::BranchNodeEntry                               BranchNodeEntry;
+    typedef typename Base::Container::BranchNodeEntry                           BranchNodeEntry;
     typedef typename Base::Container                                            Container;
     typedef typename Base::Container::Position                                  Position;
 
-    using CtrSizeT 				= typename Container::Types::CtrSizeT;
+    using CtrSizeT 					= typename Container::Types::CtrSizeT;
     using IteratorBranchNodeEntry 	= typename Container::Types::IteratorBranchNodeEntry;
 
     using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
 
-    template <Int Stream>
-    using InputTupleAdapter = typename Container::Types::template InputTupleAdapter<Stream>;
-
     template <Int StreamIdx>
-    using LeafSizesSubstreamPath = typename Container::Types::template LeafSizesSubstreamPath<StreamIdx>;
-
+    using LeafSizesSubstreamPath 	= typename Container::Types::template LeafSizesSubstreamPath<StreamIdx>;
 
     template <typename LeafPath>
     using AccumItemH = typename Container::Types::template AccumItemH<LeafPath>;
@@ -50,9 +45,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorStreamRankName)
     static const Int SearchableStreams 		= Container::Types::SearchableStreams;
 
     using LeafPrefixRanks = typename Container::Types::LeafPrefixRanks;
-
-
-
 
 
 MEMORIA_ITERATOR_PART_END

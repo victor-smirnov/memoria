@@ -53,13 +53,13 @@ struct BTTypes<Profile, memoria::LabeledTree<LabelDescriptors...>>: BTTypes<Prof
     using StreamDescriptors = MergeLists<
     		StreamTF<
 				PkdFSSeq<typename PkdFSSeqTF<1>::Type>,
-				TL<TL<>>,
-				FSEBranchStructTF
+				FSEBranchStructTF,
+				TL<TL<>>
 			>,
 			StreamTF<
 				TL<typename louds::StreamDescriptorsListHelper<LabelDescriptors...>::LeafType>,
-				TL<typename louds::StreamDescriptorsListHelper<LabelDescriptors...>::IdxList>,
-				FSEBranchStructTF
+				FSEBranchStructTF,
+				TL<typename louds::StreamDescriptorsListHelper<LabelDescriptors...>::IdxList>
 			>
     >;
 

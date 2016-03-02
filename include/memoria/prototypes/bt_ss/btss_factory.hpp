@@ -38,8 +38,6 @@ struct BTTypes<Profile, memoria::BTSingleStream>: public BTTypes<Profile, memori
 
     using Base = BTTypes<Profile, memoria::BT>;
 
-    using Metadata = BalancedTreeMetadata<typename Base::ID, 1>;
-
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
                 memoria::btss::LeafCommonName,

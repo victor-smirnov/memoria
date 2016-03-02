@@ -20,7 +20,7 @@ namespace memoria    {
 using namespace memoria::bt;
 
 
-template <typename ID, Int Streams>
+template <typename ID>
 class BalancedTreeMetadata
 {
     static const UInt VERSION = 1;
@@ -43,7 +43,6 @@ public:
                 ConstValue<UInt, VERSION>,
                 ConstValue<UInt, ROOTS>,
                 decltype(model_name_),
-                ConstValue<UInt, Streams>,
                 decltype(branching_factor_),
                 decltype(page_size_),
 				decltype(txn_id_),
@@ -151,16 +150,16 @@ public:
     }
 };
 
-template <typename ID, Int Streams>
-struct TypeHash<BalancedTreeMetadata<ID, Streams>>: UIntValue<
-    HashHelper<2500, TypeHash<ID>::Value, Streams>::Value
+template <typename ID>
+struct TypeHash<BalancedTreeMetadata<ID>>: UIntValue<
+    HashHelper<2500, TypeHash<ID>::Value>::Value
 > {};
 
 
-template <typename ID, Int Streams>
-struct FieldFactory<BalancedTreeMetadata<ID, Streams>> {
+template <typename ID>
+struct FieldFactory<BalancedTreeMetadata<ID>> {
 
-	using Type = BalancedTreeMetadata<ID, Streams>;
+	using Type = BalancedTreeMetadata<ID>;
 
     static void serialize(SerializationData& data, const Type& field)
     {

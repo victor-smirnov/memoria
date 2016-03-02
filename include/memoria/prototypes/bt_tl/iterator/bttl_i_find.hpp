@@ -27,7 +27,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorFindName)
     typedef typename Base::NodeBaseG                                            NodeBaseG;
 
 
-    typedef typename Base::Container::BranchNodeEntry                               BranchNodeEntry;
+    typedef typename Base::Container::BranchNodeEntry                           BranchNodeEntry;
     typedef typename Base::Container                                            Container;
     typedef typename Base::Container::Position                                  Position;
 
@@ -49,7 +49,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorFindName)
 
     using LeafPrefixRanks = typename Container::Types::LeafPrefixRanks;
 
-
+protected:
     template <typename Walker>
     void finish_walking(Int idx, Walker& w, WalkCmd cmd) {
     	Base::finish_walking(idx, w, cmd);

@@ -49,8 +49,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorInsertName)
 
     using LeafPrefixRanks = typename Container::Types::LeafPrefixRanks;
 
-    template <Int Stream>
-    using StreamInputTuple = typename Container::Types::template StreamInputTuple<Stream>;
 
     SplitStatus split()
     {
@@ -91,8 +89,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorInsertName)
 
 
 
-    template <Int StreamIdx>
-    SplitStatus _insert(const StreamInputTuple<StreamIdx>& data)
+    template <Int StreamIdx, typename EntryBuffer>
+    SplitStatus _insert(const EntryBuffer& data)
     {
     	auto& self  = this->self();
     	auto stream = self.stream();

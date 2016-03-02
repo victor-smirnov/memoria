@@ -25,84 +25,18 @@
 namespace memoria {
 
 
-
 template <
     typename Profile,
     typename Key_,
     typename Value_
 >
-struct MultimapBTTypesBase: public BTTypes<Profile, memoria::BTTreeLayout> {
+struct MultimapBTTypesBaseBase: public BTTypes<Profile, memoria::BTTreeLayout> {
 
     using Base = BTTypes<Profile, memoria::BTTreeLayout>;
 
-    using ValueType = IfThenElse<
-                    IfTypesEqual<Value_, IDType>::Value,
-                    typename Base::ID,
-                    Value_
-    >;
-
-    static constexpr PackedSizeType SizeType = PackedSizeType::FIXED;
 
     using Key 	= Key_;
     using Value	= Value_;
-
-    using CtrSizeT = BigInt;
-
-
-    using FirstStreamVariableTF = StreamTF<
-    	TL<
-			//PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec>>
-		>,
-		TL<
-			//IndexRange<0, 1>
-    	>,
-		FSEBranchStructTF
-	>;
-
-
-
-    using FirstStreamFixedTF = StreamTF<
-        TL<
-        	//PkdFQTree<CtrSizeT, 1>
-        >,
-        TL<
-			//TL<IndexRange<0, 1>>
-		>,
-		FSEBranchStructTF
-    >;
-
-
-    using DataStreamTF  = StreamTF<
-    	TL<TL<PkdFSQArrayT<Value, 1>>>,
-    	TL<TL<TL<>>>,
-		FSEBranchStructTF
-    >;
-
-
-    using RawStreamDescriptors = IfThenElse<
-    		SizeType == PackedSizeType::FIXED,
-			MergeLists<
-				FirstStreamFixedTF,
-				DataStreamTF
-			>,
-			MergeLists<
-				FirstStreamVariableTF,
-				DataStreamTF
-			>
-    >;
-
-    using StreamDescriptors = typename bttl::BTTLAugmentStreamDescriptors<
-    		RawStreamDescriptors,
-			//PkdVDTreeT<CtrSizeT, 1, UByteI7Codec>
-			PkdFQTreeT<CtrSizeT, 1>
-	>::Type;
-
-
-    using Metadata = BalancedTreeMetadata<
-            typename Base::ID,
-            ListSize<StreamDescriptors>::Value
-    >;
-
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
@@ -113,9 +47,46 @@ struct MultimapBTTypesBase: public BTTypes<Profile, memoria::BTTreeLayout> {
                 typename Base::IteratorPartsList,
                 memoria::mmap::ItrMiscName
     >;
+};
 
 
 
+template <
+    typename Profile,
+    typename Key,
+    typename Value
+>
+struct MultimapBTTypesBase: public MultimapBTTypesBaseBase<Profile, Key, Value> {
+
+    using Base = MultimapBTTypesBaseBase<Profile, Key, Value>;
+
+    using CtrSizeT = typename Base::CtrSizeT;
+
+    using FirstStreamTF = StreamTF<
+    	TL<
+			TL<StreamSize>,
+			TL<typename mmap::MMapKeyStructTF<Key>::Type>
+		>,
+		DefaultBranchStructTF
+	>;
+
+    using DataStreamTF = StreamTF<
+    	TL<
+			TL<StreamSize>,
+			TL<typename mmap::MMapValueStructTF<Value>::Type>
+		>,
+    	DefaultBranchStructTF
+    >;
+
+
+    using RawStreamDescriptors = TL<
+			FirstStreamTF,
+			DataStreamTF
+	>;
+
+    using StreamDescriptors = typename bttl::BTTLAugmentStreamDescriptors<
+    		RawStreamDescriptors
+	>::Type;
 };
 
 
