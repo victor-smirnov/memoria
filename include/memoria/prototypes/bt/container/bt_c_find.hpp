@@ -53,7 +53,6 @@ public:
     template <typename Walker>
     IteratorPtr find_(Walker&& walker);
 
-
     template <typename LeafPath>
     IteratorPtr find_gt(Int index, TargetType<LeafPath> key)
     {
@@ -208,6 +207,9 @@ public:
     		NodeDispatcher::dispatch(node, walker, WalkCmd::PREFIXES, 0, idx);
     	}
     }
+
+protected:
+
 
 MEMORIA_CONTAINER_PART_END
 

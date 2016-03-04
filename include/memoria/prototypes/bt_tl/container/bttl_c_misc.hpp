@@ -44,51 +44,51 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::MiscName)
 
     using PageUpdateMgt 	= typename Types::PageUpdateMgr;
 
-    auto Begin() {
-    	return self().template seek_stream<0>(0);
-    }
-
-    auto End() {
-    	auto& self = this->self();
-    	return self.template seek_stream<0>(self.sizes()[0]);
-    }
-
-    auto begin() {
-    	return self().template seek_stream<0>(0);
-    }
-
-    auto end() {
-    	auto& self = this->self();
-    	return self.template seek_stream<0>(self.size());
-    }
-
-
-
-    CtrSizeT size() const {
-    	return self().sizes()[0];
-    }
-
-    auto find(Key key)
-    {
-    	auto iter = self().template find_ge<IntList<0>>(0, key);
-
-    	iter.cache().data_size()[0] = self().size();
-    	iter.cache().data_pos()[0]++;
-
-    	return iter;
-    }
-
-    auto seek(CtrSizeT pos)
-    {
-    	auto iter = self().template seek_stream<0>(pos);
-
-    	auto& cache = iter->cache();
-
-    	cache.data_size()[0] = self().size();
-    	cache.data_pos()[0]++;
-
-    	return iter;
-    }
+//    auto Begin() {
+//    	return self().template seek_stream<0>(0);
+//    }
+//
+//    auto End() {
+//    	auto& self = this->self();
+//    	return self.template seek_stream<0>(self.sizes()[0]);
+//    }
+//
+//    auto begin() {
+//    	return self().template seek_stream<0>(0);
+//    }
+//
+//    auto end() {
+//    	auto& self = this->self();
+//    	return self.template seek_stream<0>(self.size());
+//    }
+//
+//
+//
+//    CtrSizeT size() const {
+//    	return self().sizes()[0];
+//    }
+//
+//    auto find(Key key)
+//    {
+//    	auto iter = self().template find_ge<IntList<0>>(0, key);
+//
+//    	iter.cache().data_size()[0] = self().size();
+//    	iter.cache().data_pos()[0]++;
+//
+//    	return iter;
+//    }
+//
+//    auto seek(CtrSizeT pos)
+//    {
+//    	auto iter = self().template seek_stream<0>(pos);
+//
+//    	auto& cache = iter->cache();
+//
+//    	cache.data_size()[0] = self().size();
+//    	cache.data_pos()[0]++;
+//
+//    	return iter;
+//    }
 
 
     CtrSizesT compute_extent(const NodeBaseG& leaf)

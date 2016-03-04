@@ -237,20 +237,14 @@ class CtrTF<Profile, memoria::BT, ContainerTypeName_> {
 
 public:
 
-    typedef BTTypes<Profile, ContainerTypeName_>                                ContainerTypes;
-
-    
-    typedef typename ContainerTypes::Allocator::Page::ID                        ID;
-
-//    typedef typename ContainerTypes::Value                                      Value;
+    using ContainerTypes = BTTypes<Profile, ContainerTypeName_>;
+    using ID 			 = typename ContainerTypes::Allocator::Page::ID;
 
     using StreamDescriptors = typename ContainerTypes::StreamDescriptors;
     static const Int Streams = ListSize<StreamDescriptors>::Value;
 
-
-
-    using Position_ = core::StaticVector<typename ContainerTypes::CtrSizeT, Streams>;
-    using Page      = typename ContainerTypes::Allocator::Page;
+    using Position_ 		= core::StaticVector<typename ContainerTypes::CtrSizeT, Streams>;
+    using Page      		= typename ContainerTypes::Allocator::Page;
 
     using NodePageBase0     = TreeNodeBase<typename ContainerTypes::Metadata, Page>;
     using NodePageBase0G    = PageGuard<NodePageBase0, typename ContainerTypes::Allocator>;
@@ -372,7 +366,7 @@ public:
         typedef PageUpdateManager<CtrTypes>                                     PageUpdateMgr;
 
         using LeafStreamsStructList 	= typename MyType::LeafStreamsStructList;
-        using StreamsInputTypeList 		= typename MyType::StreamsInputTypeList;
+
         using InputBufferStructList		= typename MyType::InputBufferStructList;
 
         using BranchStreamsStructList 	= typename MyType::BranchStreamsStructList;
@@ -402,14 +396,15 @@ public:
 				>
         >::Type;
 
+        using StreamsInputTypeList = typename MyType::StreamsInputTypeList;
 
-//        template <Int Stream>
-//        using StreamInputTuple = TypeListToTuple<Select<Stream, StreamsInputTypeList>>;
-//
-//        template <Int Stream>
-//        using InputTupleAdapter = StreamTupleHelper<StreamInputTuple<Stream>>;
+        template <Int Stream>
+        using StreamInputTuple = TypeListToTuple<Select<Stream, StreamsInputTypeList>>;
 
-        using InputBuffer = CompoundInputBuffer<typename MyType::NodeTypesBase>;
+        template <Int Stream>
+        using InputTupleAdapter = StreamTupleHelper<StreamInputTuple<Stream>>;
+
+//        using InputBuffer = CompoundInputBuffer<typename MyType::NodeTypesBase>;
 
         template <typename LeafPath>
         using AccumItemH = AccumItem<LeafStreamsStructList, LeafPath, IteratorBranchNodeEntry>;

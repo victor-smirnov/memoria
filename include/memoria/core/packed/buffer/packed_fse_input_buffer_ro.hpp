@@ -234,31 +234,8 @@ public:
 
     void dump(std::ostream& out = cout) const
     {
-        out<<"size_       = "<<size_<<endl;
-        out<<"max_size_   = "<<max_size_<<endl;
-        out<<endl;
-
-        out<<"Data:"<<endl;
-
-        const Value* values_ = buffer_;
-
-        if (Blocks == 1)
-        {
-        	dumpArray<Value>(out, size_ * Blocks, [&](Int pos) -> Value {
-        		return values_[pos];
-        	});
-        }
-        else {
-        	for (Int c = 0; c < size_; c++)
-        	{
-        		out<<c<<": ";
-        		for (Int b = 0; b < Blocks; b++)
-        		{
-        			out<<values_[c * Blocks + b]<<", ";
-        		}
-        		out<<endl;
-        	}
-        }
+    	TextPageDumper dumper(out);
+    	generateDataEvents(&dumper);
     }
 
     void generateDataEvents(IPageDataEventHandler* handler) const

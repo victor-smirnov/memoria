@@ -616,7 +616,7 @@ public:
     	}
 
     	for (Int c = idx; c < Indexes; c++) {
-    		values_[c] = 0;
+    		values_[c] = ElementType_();
     	}
 
     	return *this;

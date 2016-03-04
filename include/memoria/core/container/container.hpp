@@ -195,9 +195,9 @@ public:
 
             PageG page = alloc->getPage(root_id, name);
 
-            MyType ctr(alloc, root_id, CtrInitData(name, page->master_ctr_type_hash(), page->owner_ctr_type_hash()));
+            auto ctr_ptr = std::make_shared<MyType>(alloc, root_id, CtrInitData(name, page->master_ctr_type_hash(), page->owner_ctr_type_hash()));
 
-            fn(ctr);
+            fn(*ctr_ptr.get());
     	}
 
         virtual bool check(const UUID& root_id, const UUID& name, void* allocator) const

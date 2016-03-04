@@ -151,6 +151,10 @@ public:
     	Base::reindex(Blocks);
     }
 
+    void check() const {
+    	Base::check(Blocks);
+    }
+
     void dump_index(std::ostream& out = cout) const {
     	Base::dump_index(Blocks, out);
     }
@@ -684,9 +688,6 @@ public:
     		fn.next();
     	}
     }
-
-    // FIXME: implement content checking
-    void check() const {}
 
     void clear()
     {

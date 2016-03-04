@@ -117,8 +117,7 @@ public:
 
         using PageUpdateMgr 	= PageUpdateManager<CtrTypes>;
 
-        template <Int StreamIdx>
-        using InputTupleSizeAccessor = mmap::InputTupleSizeH<StreamIdx>;
+        using LeafStreamsStructList = FailIf<typename Base::Types::LeafStreamsStructList, false>;
     };
 
     using CtrTypes 	= typename Types::CtrTypes;

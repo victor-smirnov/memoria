@@ -92,7 +92,7 @@ namespace {
 template <
 	typename StreamDescriptorsList,
 	typename SizeStruct 	= typename InferSizeStruct<StreamDescriptorsList>::Type,
-	typename SizeIndexes	= TL<> // TL<SumRange<0, 1>>
+	typename SizeIndexes	= TL<SumRange<0, 1>>
 > class BTTLAugmentStreamDescriptors;
 
 template <
@@ -123,11 +123,9 @@ template <
 	typename SizeIndexes
 >
 class BTTLAugmentStreamDescriptors<TL<memoria::bt::StreamTF<LeafType, BranchStructTF, IndexRangeList>>, SizeStruct, SizeIndexes> {
-	using NewLeafType 		= typename AppendSizeStruct<LeafType, SizeStruct>::Type;
-	using NewIndexRangeList = typename AppendSizeIndexes<IndexRangeList, SizeIndexes>::Type;
-
+	// Last stream don't need sizes augmentation
 public:
-	using Type = memoria::bt::StreamTF<NewLeafType, BranchStructTF, NewIndexRangeList>;
+	using Type = memoria::bt::StreamTF<LeafType, BranchStructTF, IndexRangeList>;
 };
 
 

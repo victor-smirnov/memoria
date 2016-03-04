@@ -1621,6 +1621,8 @@ protected:
     	Int data_size 	 = meta->data_size();
     	Int offsets_size = this->element_size(OFFSETS);
 
+    	Codec codec;
+
     	if (layout.levels_max >= 0)
     	{
     		MEMORIA_ASSERT(this->element_size(SIZE_INDEX), >, 0);
@@ -1634,7 +1636,7 @@ protected:
 
     		Int level_start = layout.level_starts[levels - 1];
 
-    		Codec codec;
+
 
     		size_t pos = 0;
     		SizesValue size_cnt = 0;
@@ -1645,6 +1647,7 @@ protected:
 
     		auto index = has_index() ? this->index() : nullptr;
 
+    		Value prev_value;
     		Value value;
 
     		Int idx = 0;
@@ -1669,7 +1672,14 @@ protected:
     				size_cnt  = 0;
     			}
 
-    			auto len = codec.decode(values, value, pos, data_size);
+    			auto len = codec.decode(values, value, pos);
+
+    			if (pos > 0)
+    			{
+    				MEMORIA_ASSERT(value, >=, prev_value);
+    			}
+
+    			prev_value = value;
 
     			size_cnt++;
 
@@ -1719,8 +1729,36 @@ protected:
     	else {
     		MEMORIA_ASSERT(this->element_size(SIZE_INDEX), ==, 0);
 
+    		Int data_size = meta->data_size();
+
     		if (data_size > 0)
     		{
+    			auto values = this->values();
+
+    			Value prev_value;
+    			Value value;
+
+    			size_t pos = 0;
+
+    			Int idx = 0;
+    			while(pos < data_size)
+    			{
+    				auto len = codec.decode(values, value, pos);
+
+    				if (pos > 0)
+    				{
+    					MEMORIA_ASSERT(value, >=, prev_value);
+    				}
+
+    				prev_value = value;
+
+    				pos += len;
+    				idx++;
+    			}
+
+    			MEMORIA_ASSERT((Int)pos, ==, data_size);
+    			MEMORIA_ASSERT(idx, ==, meta->size());
+
     			MEMORIA_ASSERT(offsets_size, ==, offsets_segment_size(data_size));
     			MEMORIA_ASSERT(offset(0), ==, 0);
     		}

@@ -117,11 +117,10 @@ template <typename StreamEntry, typename DataBuffer, typename CtrSizeT, bool Las
 struct BTSSStreamInputBuffer: BTSSStreamInputBufferBase<DataBuffer, CtrSizeT> {
 	using Base = BTSSStreamInputBufferBase<DataBuffer, CtrSizeT>;
 
-	using BufferT = typename DataBuffer::PtrType;
-	using EntryT = StreamEntry;
+	using BufferT 		= typename DataBuffer::PtrType;
+	using EntryT 		= StreamEntry;
 
-	using Sizes = std::vector<CtrSizeT>;
-	using EntryBuffer = std::vector<EntryT>;
+	using EntryBuffer 	= std::vector<EntryT>;
 
 private:
 
@@ -145,30 +144,40 @@ public:
 	void reset()
 	{
 		Base::reset();
+
+		for (size_t c = 0; c < entry_buffer_.size(); c++)
+		{
+			constexpr Int SizeIdx = std::tuple_size<EntryT>::value - 1;
+			std::get<SizeIdx>(entry_buffer_[c]) = 0;
+		}
+
 		eb_head_ = 0;
 	}
 
 	void finish()
 	{
-		auto buffer_sizes = BufferT::compute_buffer_sizes_for(eb_head_, entry_buffer_);
-
-		if (this->buffer().is_null() || !this->buffer()->has_capacity_for(buffer_sizes))
+		if (eb_head_ > 0)
 		{
-			Int block_size = BufferT::block_size(buffer_sizes);
-			BufferT* buffer = T2T<BufferT*>(malloc(block_size));
-			if (buffer)
-			{
-				buffer->setTopLevelAllocator();
-				buffer->init(block_size, buffer_sizes);
-				this->init(DataBuffer(buffer));
-			}
-			else {
-				throw OOMException(MA_SRC);
-			}
-		}
+			auto buffer_sizes = BufferT::compute_buffer_sizes_for(eb_head_, entry_buffer_);
 
-		this->buffer()->append(entry_buffer_, 0, eb_head_);
-		this->buffer()->reindex();
+			if (this->buffer().is_null() || !this->buffer()->has_capacity_for(buffer_sizes))
+			{
+				Int block_size = BufferT::block_size(buffer_sizes);
+				BufferT* buffer = T2T<BufferT*>(malloc(block_size));
+				if (buffer)
+				{
+					buffer->setTopLevelAllocator();
+					buffer->init(block_size, buffer_sizes);
+					this->init(DataBuffer(buffer));
+				}
+				else {
+					throw OOMException(MA_SRC);
+				}
+			}
+
+			this->buffer()->append(entry_buffer_, 0, eb_head_);
+			this->buffer()->reindex();
+		}
 	}
 
 	void add_size(Int idx, CtrSizeT value)
@@ -176,6 +185,8 @@ public:
 		constexpr Int SizeIdx = std::tuple_size<EntryT>::value - 1;
 		std::get<SizeIdx>(entry_buffer_[idx]) += value;
 	}
+
+
 
 
 	void append_entry(const EntryT& entry)
@@ -189,6 +200,16 @@ public:
 		}
 
 		eb_head_++;
+	}
+
+	EntryT& append_entry()
+	{
+		if (entry_buffer_.size() == eb_head_)
+		{
+			entry_buffer_.resize(entry_buffer_.size() + 1);
+		}
+
+		return entry_buffer_[eb_head_++];
 	}
 
 	Int size() const {
@@ -760,8 +781,8 @@ protected:
 
 template <
 	typename CtrT,
-	Int Streams,
-	LeafDataLengthType LeafDataLength
+	Int Streams = CtrT::Types::Streams,
+	LeafDataLengthType LeafDataLength = CtrT::Types::LeafDataLength
 >
 class AbstractCtrInputProvider;
 

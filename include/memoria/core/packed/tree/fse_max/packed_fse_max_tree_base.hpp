@@ -323,6 +323,34 @@ public:
     	}
     }
 
+    void check(Int blocks) const
+    {
+    	const Metadata* meta = this->metadata();
+
+    	TreeLayout layout;
+    	Int levels = this->compute_tree_layout(meta, layout);
+
+    	MEMORIA_ASSERT(meta->index_size(), ==, layout.index_size);
+
+    	for (Int block = 0; block < blocks; block++)
+    	{
+    		auto values = this->values(block);
+    		for (Int c = 1; c < meta->size(); c++)
+    		{
+    			MEMORIA_ASSERT(values[c - 1], <=, values[c]);
+    		}
+
+    		if (levels > 0)
+    		{
+    			this->check_block(meta, block, layout);
+    		}
+    		else {
+    			MEMORIA_ASSERT(Base::element_size(block * SegmentsPerBlock + 1), ==, 0);
+    		}
+    	}
+    }
+
+
     const Int& size() const {
     	return metadata()->size();
     }
@@ -563,6 +591,50 @@ protected:
     			Int end = (window_end <= current_level_size ? window_end : current_level_size) + current_level_start;
 
     			indexes[previous_level_start + i] = indexes[end - 1];
+    		}
+    	}
+    }
+
+
+    void check_block(const Metadata* meta, Int block, TreeLayout& layout) const
+    {
+    	auto values = this->values(block);
+    	auto indexes = this->index(block);
+
+    	layout.indexes = indexes;
+
+    	Int levels = layout.levels_max + 1;
+
+    	Int level_start = layout.level_starts[levels - 1];
+    	Int level_size = layout.level_sizes[levels - 1];
+
+    	Int size = meta->size();
+
+    	for (int i = 0; i < level_size; i++)
+    	{
+    		Int window_end = (i + 1) << ValuesPerBranchLog2;
+
+    		Int end = window_end <= size ? window_end : size;
+
+    		MEMORIA_ASSERT(indexes[level_start + i], ==, values[end - 1]);
+    	}
+
+    	for (Int level = levels - 1; level > 0; level--)
+    	{
+    		Int previous_level_start = layout.level_starts[level - 1];
+    		Int previous_level_size  = layout.level_sizes[level - 1];
+
+    		Int current_level_start  = layout.level_starts[level];
+
+    		Int current_level_size = layout.level_sizes[level];
+
+    		for (int i = 0; i < previous_level_size; i++)
+    		{
+    			Int window_end 	= ((i + 1) << BranchingFactorLog2);
+
+    			Int end = (window_end <= current_level_size ? window_end : current_level_size) + current_level_start;
+
+    			MEMORIA_ASSERT(indexes[previous_level_start + i], ==, indexes[end - 1]);
     		}
     	}
     }

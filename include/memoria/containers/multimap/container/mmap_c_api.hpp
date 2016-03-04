@@ -20,33 +20,31 @@ namespace memoria    {
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::mmap::CtrApiName)
 
-    using Types 			= typename Base::Types;
+	using typename Base::Types;
 
-    using NodeBaseG 		= typename Types::NodeBaseG;
-    using Iterator  		= typename Base::Iterator;
+	using typename Base::NodeBaseG;
+	using typename Base::IteratorPtr;
 
-    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
+	using typename Base::NodeDispatcher;
+	using typename Base::LeafDispatcher;
+	using typename Base::BranchDispatcher;
+	using typename Base::Position;
+	using typename Base::BranchNodeEntry;
+	using typename Base::PageUpdateMgr;
+	using typename Base::CtrSizeT;
 
-    using Key 				= typename Types::Key;
-    using Value 			= typename Types::Value;
-    using CtrSizeT			= typename Types::CtrSizeT;
+	using Key 	= typename Types::Key;
+	using Value = typename Types::Value;
 
-    using BranchNodeEntry 	= typename Types::BranchNodeEntry;
-    using Position 			= typename Types::Position;
+	using CtrSizesT	= Position;
 
-    static const Int Streams = Types::Streams;
-
-    using PageUpdateMgt 	= typename Types::PageUpdateMgr;
-
-    Iterator begin() {
-    	return self().template _seek<0>(0);
+    IteratorPtr begin() {
+    	return self().template seek_stream<0>(0);
     }
 
-    Iterator end() {
+    IteratorPtr end() {
     	auto& self = this->self();
-    	return self.template _seek<0>(self.sizes()[0]);
+    	return self.template seek_stream<0>(self.sizes()[0]);
     }
 
 
@@ -54,10 +52,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mmap::CtrApiName)
     	return self().sizes()[0];
     }
 
-    Iterator find(Key key)
+    IteratorPtr find(Key key)
     {
     	return self().template find_ge<IntList<0>>(0, key);
     }
+
+protected:
 
 MEMORIA_CONTAINER_PART_END
 

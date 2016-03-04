@@ -38,7 +38,7 @@ public:
     		return 1;
     	}
     	else {
-    		return buffer[idx + 1] + 1;
+    		return buffer[idx + 1] + 2;
     	}
     }
 
@@ -229,7 +229,7 @@ public:
     		return 1;
     	}
     	else {
-    		return buffer[idx + 1] + 1;
+    		return buffer[idx + 1] + 2;
     	}
     }
 

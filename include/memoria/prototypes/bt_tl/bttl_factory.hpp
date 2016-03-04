@@ -27,6 +27,7 @@
 #include <memoria/prototypes/bt_tl/container/bttl_c_branch_fixed.hpp>
 #include <memoria/prototypes/bt_tl/container/bttl_c_branch_variable.hpp>
 #include <memoria/prototypes/bt_tl/container/bttl_c_ranks.hpp>
+#include <memoria/prototypes/bt_tl/container/bttl_c_checks.hpp>
 
 #include <memoria/prototypes/bt_tl/iterator/bttl_i_misc.hpp>
 #include <memoria/prototypes/bt_tl/iterator/bttl_i_srank.hpp>
@@ -58,7 +59,8 @@ struct BTTypes<Profile, memoria::BTTreeLayout>: public BTTypes<Profile, memoria:
 				memoria::bttl::InsertName,
 				memoria::bttl::BranchCommonName,
 				memoria::bttl::LeafCommonName,
-				memoria::bttl::RanksName
+				memoria::bttl::RanksName,
+				memoria::bttl::ChecksName
     >;
 
     using FixedBranchContainerPartsList = MergeLists<

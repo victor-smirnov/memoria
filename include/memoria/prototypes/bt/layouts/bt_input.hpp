@@ -199,7 +199,7 @@ private:
     	template <Int AllocatorIdx, Int Idx, typename Stream>
     	void stream(Stream*, PackedAllocator* alloc, const BufferSizesT& capacities)
     	{
-    		Stream* buffer = alloc->template allocateSpace<Stream>(AllocatorIdx, Stream::empty_size());
+    		Stream* buffer = alloc->template allocateSpace<Stream>(AllocatorIdx, Stream::block_size(std::get<Idx>(capacities)));
     		buffer->init(std::get<Idx>(capacities));
     	}
     };

@@ -168,7 +168,7 @@ public:
 
     	long t1 = getTimeInMillis();
 
-    	out()<<"Creation time: "<<FormatTime(t1 - t0)<<" consumed: "<<provider.consumed()<<endl;
+    	out() << "Creation time: " << FormatTime(t1 - t0) << " consumed: " << provider.consumed() << endl;
 
     	auto sizes = ctr.sizes();
 

@@ -732,6 +732,9 @@ public:
 
     	reindex();
 
+    	buffer->dump();
+    	dump();
+
     	return at + total_lengths;
     }
 
