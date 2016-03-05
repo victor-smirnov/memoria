@@ -282,7 +282,8 @@ public:
         using ID        = typename MyType::ID;
 
         using BranchNodeEntry   = BranchNodeEntry_;
-        using Position      = Position_;
+        using Position      	= Position_;
+        using CtrSizesT      	= Position_;
 
         using LeafStreamsStructList 	= typename MyType::LeafStreamsStructList;
         using BranchStreamsStructList 	= typename MyType::BranchStreamsStructList;
@@ -361,7 +362,8 @@ public:
 
         typedef BranchNodeEntry_                                                    BranchNodeEntry;
 
-        typedef Position_                                                       Position;
+        using Position 	= Position_;
+        using CtrSizesT = Position_;
 
         typedef PageUpdateManager<CtrTypes>                                     PageUpdateMgr;
 
@@ -403,8 +405,6 @@ public:
 
         template <Int Stream>
         using InputTupleAdapter = StreamTupleHelper<StreamInputTuple<Stream>>;
-
-//        using InputBuffer = CompoundInputBuffer<typename MyType::NodeTypesBase>;
 
         template <typename LeafPath>
         using AccumItemH = AccumItem<LeafStreamsStructList, LeafPath, IteratorBranchNodeEntry>;

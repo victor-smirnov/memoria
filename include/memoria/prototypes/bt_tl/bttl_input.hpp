@@ -156,27 +156,33 @@ public:
 
 	void finish()
 	{
+		auto buffer_sizes = BufferT::compute_buffer_sizes_for(eb_head_, entry_buffer_);
+
+		if (this->buffer().is_null() || !this->buffer()->has_capacity_for(buffer_sizes))
+		{
+			Int block_size = BufferT::block_size(buffer_sizes);
+			BufferT* buffer = T2T<BufferT*>(malloc(block_size));
+			if (buffer)
+			{
+				buffer->setTopLevelAllocator();
+				buffer->init(block_size, buffer_sizes);
+				this->init(DataBuffer(buffer));
+			}
+			else {
+				throw OOMException(MA_SRC);
+			}
+		}
+		else {
+			this->buffer()->reset();
+		}
+
 		if (eb_head_ > 0)
 		{
-			auto buffer_sizes = BufferT::compute_buffer_sizes_for(eb_head_, entry_buffer_);
-
-			if (this->buffer().is_null() || !this->buffer()->has_capacity_for(buffer_sizes))
-			{
-				Int block_size = BufferT::block_size(buffer_sizes);
-				BufferT* buffer = T2T<BufferT*>(malloc(block_size));
-				if (buffer)
-				{
-					buffer->setTopLevelAllocator();
-					buffer->init(block_size, buffer_sizes);
-					this->init(DataBuffer(buffer));
-				}
-				else {
-					throw OOMException(MA_SRC);
-				}
-			}
-
 			this->buffer()->append(entry_buffer_, 0, eb_head_);
 			this->buffer()->reindex();
+		}
+		else {
+			this->buffer()->reset();
 		}
 	}
 
@@ -1106,6 +1112,10 @@ protected:
 
 	bool tryInsertBuffer(PageUpdateMgr& mgr, NodeBaseG& leaf, const Position& at, const Position& size)
 	{
+		if (at.ltAny(0)) {
+			cout<<at<<endl;
+		}
+
 		try {
 			CtrT::Types::Pages::LeafDispatcher::dispatch(leaf, typename Base::InsertBufferFn(), at, this->start_, size, this->buffer_);
 
@@ -1509,6 +1519,217 @@ public:
 		return data_provider_;
 	}
 };
+
+
+
+
+
+
+
+namespace {
+
+	template <Int Size, Int Idx = 0>
+	struct StreamSizeAdapter {
+		template <typename T, typename... Args>
+		static auto process(Int stream, T&& object, Args&&... args)
+		{
+			if (stream == Idx)
+			{
+				return object.stream_size(StreamTag<Idx>(), std::forward<Args>(args)...);
+			}
+			else {
+				return StreamSizeAdapter<Size, Idx+1>::process(stream, std::forward<T>(object), std::forward<Args>(args)...);
+			}
+		}
+	};
+
+
+	template <Int Size>
+	struct StreamSizeAdapter<Size, Size> {
+		template <typename T, typename... Args>
+		static auto process(Int stream, T&& object, Args&&... args)
+		{
+			if (stream == Size)
+			{
+				return object.stream_size(StreamTag<Size>(), std::forward<Args>(args)...);
+			}
+			else {
+				throw Exception(MA_RAW_SRC, SBuf() << "Invalid stream number: " << stream);
+			}
+		}
+	};
+
+
+	template <typename StreamEntry, Int Size = std::tuple_size<StreamEntry>::value - 2, Int SubstreamIdx = 0>
+	struct StreamEntryTupleAdaptor;
+
+	template <typename StreamEntry, Int Size, Int SubstreamIdx>
+	struct StreamEntryTupleAdaptor {
+
+		template <Int StreamIdx, typename EntryValue, typename T, typename... Args>
+		static void process_value(const StreamTag<StreamIdx>& tag, EntryValue&& value, T&& object, Args&&... args)
+		{
+			value = object.buffer(tag, StreamTag<SubstreamIdx>(), std::forward<Args>(args)..., 0);
+		}
+
+		template <Int StreamIdx, typename V, Int Indexes, typename T, typename... Args>
+		static void process_value(const StreamTag<StreamIdx>& tag, core::StaticVector<V, Indexes>& value, T&& object, Args&&... args)
+		{
+			for (Int i = 0; i < Indexes; i++)
+			{
+				value[i] = object.buffer(tag, StreamTag<SubstreamIdx>(), std::forward<Args>(args)..., i);
+			}
+		}
+
+
+		template <Int StreamIdx, typename T, typename... Args>
+		static void process(const StreamTag<StreamIdx>& tag, StreamEntry& entry, T&& object, Args&&... args)
+		{
+			process_value(tag, get<SubstreamIdx>(entry), std::forward<T>(object), std::forward<Args>(args)...);
+
+			StreamEntryTupleAdaptor<StreamEntry, Size, SubstreamIdx + 1>::process(tag, entry, std::forward<T>(object), std::forward<Args>(args)...);
+		}
+	};
+
+	template <typename StreamEntry, Int Size>
+	struct StreamEntryTupleAdaptor<StreamEntry, Size, Size> {
+		template <Int StreamIdx, typename EntryValue, typename T, typename... Args>
+		static void process_value(const StreamTag<StreamIdx>& tag, EntryValue&& value, T&& object, Args&&... args)
+		{
+			value = object.buffer(tag, StreamTag<Size>(), std::forward<Args>(args)..., 0);
+		}
+
+		template <Int StreamIdx, typename V, Int Indexes, typename T, typename... Args>
+		static void process_value(const StreamTag<StreamIdx>& tag, core::StaticVector<V, Indexes>& value, T&& object, Args&&... args)
+		{
+			for (Int i = 0; i < Indexes; i++)
+			{
+				value[i] = object.buffer(tag, StreamTag<Size>(), std::forward<Args>(args)..., i);
+			}
+		}
+
+
+		template <Int StreamIdx, typename T, typename... Args>
+		static void process(const StreamTag<StreamIdx>& tag, StreamEntry& entry, T&& object, Args&&... args)
+		{
+			process_value(tag, get<Size>(entry), std::forward<T>(object), std::forward<Args>(args)...);
+		}
+	};
+}
+
+
+template <typename CtrT, typename MyType, Int LevelStart = 0> class SizedFlatTreeStreamingAdapterBase;
+
+
+template <typename CtrT, typename MyType, Int LevelStart>
+class SizedFlatTreeStreamingAdapterBase {
+
+public:
+	using CtrSizesT 	= typename CtrT::Types::Position;
+	using CtrSizeT 		= typename CtrT::CtrSizeT;
+
+	template <Int StreamIdx>
+	using InputTuple 	= typename CtrT::Types::template StreamInputTuple<StreamIdx>;
+
+	static constexpr Int Streams = CtrT::Types::Streams;
+
+private:
+
+	CtrSizesT counts_;
+	CtrSizesT current_limits_;
+	CtrSizesT totals_;
+
+	Int level_;
+
+	template <Int, Int> friend struct StreamSizeAdapter;
+
+public:
+	SizedFlatTreeStreamingAdapterBase(Int level = 0):
+		level_(level)
+	{}
+
+	auto query()
+	{
+		if (counts_[level_] < current_limits_[level_])
+		{
+			if (level_ < Streams - 1)
+			{
+				level_++;
+
+				counts_[level_] = 0;
+				current_limits_[level_] = StreamSizeAdapter<Streams - 1>::process(level_, *this, counts_);
+
+				return bttl::RunDescr(level_ - 1, 1);
+			}
+			else {
+				return bttl::RunDescr(level_, current_limits_[level_] - counts_[level_]);
+			}
+		}
+		else if (level_ > 0)
+		{
+			level_--;
+			return this->query();
+		}
+		else {
+			return bttl::RunDescr(-1);
+		}
+	}
+
+	template <Int StreamIdx, typename Buffer>
+	auto populate(const StreamTag<StreamIdx>& tag, Buffer&& buffer, CtrSizeT length)
+	{
+		for (auto c = 0; c < length; c++)
+		{
+			StreamEntryTupleAdaptor<InputTuple<StreamIdx>>::process(tag, buffer.append_entry(), self(), counts_);
+
+			counts_[StreamIdx] += 1;
+			totals_[StreamIdx] += 1;
+		}
+
+		return length;
+	}
+
+	template <typename Buffer>
+	auto populateLastStream(Buffer&& buffer, CtrSizeT length)
+	{
+		constexpr Int Level = Streams - 1;
+
+		Int inserted = buffer.buffer()->append_vbuffer(&self(), counts_[Level], length);
+
+		counts_[Level] += inserted;
+		totals_[Level] += inserted;
+
+		return inserted;
+	}
+
+	const CtrSizesT& consumed() const{
+		return totals_;
+	}
+
+	MyType& self() {return *T2T<MyType*>(this);}
+	const MyType& self() const {return *T2T<MyType*>(this);}
+
+protected:
+
+	void init() {
+		current_limits_[level_] = StreamSizeAdapter<Streams - 1>::process(level_, *this, counts_);
+	}
+
+private:
+
+	auto stream_size(StreamTag<0>, const CtrSizesT& pos)
+	{
+		return self().prepare(StreamTag<0>());
+	}
+
+	template <Int StreamIdx>
+	auto stream_size(StreamTag<StreamIdx>, const CtrSizesT& pos)
+	{
+		return self().prepare(StreamTag<StreamIdx>(), pos);
+	}
+};
+
+
 
 
 

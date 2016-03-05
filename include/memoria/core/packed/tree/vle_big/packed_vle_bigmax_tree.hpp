@@ -1674,12 +1674,12 @@ protected:
 
     			auto len = codec.decode(values, value, pos);
 
-    			if (pos > 0)
-    			{
-    				MEMORIA_ASSERT(value, >=, prev_value);
-    			}
-
-    			prev_value = value;
+//    			if (pos > 0)
+//    			{
+//    				MEMORIA_ASSERT(value, >=, prev_value);
+//    			}
+//
+//    			prev_value = value;
 
     			size_cnt++;
 
@@ -1733,34 +1733,34 @@ protected:
 
     		if (data_size > 0)
     		{
-    			auto values = this->values();
-
-    			Value prev_value;
-    			Value value;
-
-    			size_t pos = 0;
-
-    			Int idx = 0;
-    			while(pos < data_size)
-    			{
-    				auto len = codec.decode(values, value, pos);
-
-    				if (pos > 0)
-    				{
-    					MEMORIA_ASSERT(value, >=, prev_value);
-    				}
-
-    				prev_value = value;
-
-    				pos += len;
-    				idx++;
-    			}
-
-    			MEMORIA_ASSERT((Int)pos, ==, data_size);
-    			MEMORIA_ASSERT(idx, ==, meta->size());
-
-    			MEMORIA_ASSERT(offsets_size, ==, offsets_segment_size(data_size));
-    			MEMORIA_ASSERT(offset(0), ==, 0);
+//    			auto values = this->values();
+//
+//    			Value prev_value;
+//    			Value value;
+//
+//    			size_t pos = 0;
+//
+//    			Int idx = 0;
+//    			while(pos < data_size)
+//    			{
+//    				auto len = codec.decode(values, value, pos);
+//
+//    				if (pos > 0)
+//    				{
+//    					MEMORIA_ASSERT(value, >=, prev_value);
+//    				}
+//
+//    				prev_value = value;
+//
+//    				pos += len;
+//    				idx++;
+//    			}
+//
+//    			MEMORIA_ASSERT((Int)pos, ==, data_size);
+//    			MEMORIA_ASSERT(idx, ==, meta->size());
+//
+//    			MEMORIA_ASSERT(offsets_size, ==, offsets_segment_size(data_size));
+//    			MEMORIA_ASSERT(offset(0), ==, 0);
     		}
     		else {
     			MEMORIA_ASSERT(offsets_size, ==, Base::roundUpBytesToAlignmentBlocks(sizeof(OffsetsType)));

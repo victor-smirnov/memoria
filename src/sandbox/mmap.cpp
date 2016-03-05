@@ -58,6 +58,19 @@ vector<Value> createValueData(size_t values, Fn2&& value_fn)
 	return data;
 }
 
+template <typename Key, typename Fn2>
+vector<Key> createKeyData(size_t keys, Fn2&& key_fn)
+{
+	vector<Key> data;
+
+	for (size_t v = 0; v < keys; v++)
+	{
+		data.push_back(key_fn(v));
+	}
+
+	return data;
+}
+
 
 template <typename Key, typename Value, typename Fn1, typename Fn2>
 MapData<Key, Value> createRandomShapedMapData(size_t keys, size_t values, Fn1&& key_fn, Fn2&& value_fn)
@@ -98,45 +111,65 @@ int main() {
 	try {
 		auto alloc = PersistentInMemAllocator<>::create();
 		auto snp   = alloc->master()->branch();
+		try {
+			auto map   = create<CtrName>(snp);
 
-		auto map = create<CtrName>(snp);
+			using Ctr  = typename DCtrTF<CtrName>::Type;
 
-		using Ctr = typename DCtrTF<CtrName>::Type;
+			auto map_data = createRandomShapedMapData<KeyType, ValueType>(
+					10,
+					1000,
+					//			[](auto k) {return "str_"+toString(k);},
+					[](auto k) {return k;},
+					//			[](auto k) {return UUID(0, k);},
+					[](auto k, auto v) {return getRandomG(v);}
+			);
 
-		auto map_data = createRandomShapedMapData<KeyType, ValueType>(
-			400,
-			1000,
-//			[](auto k) {return "str_"+toString(k);},
-			[](auto k) {return k;},
-			[](auto k, auto v) {return getRandomG(v);}
-		);
+			auto iter = map->begin();
 
-		auto iter = map->begin();
+			using EntryAdaptor 	= mmap::MMapAdaptor<Ctr>;
+			using ValueAdaptor 	= mmap::MMapValueAdaptor<Ctr>;
+			using KeyAdaptor 	= mmap::MMapKeyAdaptor<Ctr>;
 
-		using StreamAdaptor = mmap::SizedStreamAdaptor<MapData<KeyType, ValueType>>;
-		using InputProvider = mmap::MMapStreamingAdapter<Ctr, StreamAdaptor>;
+			EntryAdaptor stream_adaptor(map_data);
 
-		StreamAdaptor stream_adaptor(map_data);
+			auto totals = map->_insert(*iter.get(), stream_adaptor);
 
-		InputProvider provider(stream_adaptor);
+			auto sizes = map->sizes();
+			MEMORIA_ASSERT(totals, ==, sizes);
 
-		auto totals = map->_insert(*iter.get(), provider);
+			auto iter2 = map->seek(8);
 
-		auto sizes = map->sizes();
-		MEMORIA_ASSERT(totals, ==, sizes);
+			iter2->toData();
 
-		snp->commit();
+			auto map_values = createValueData<ValueType>(100000, [](auto x){return 0;});
+			ValueAdaptor value_adaptor(map_values);
 
-		check_snapshot(snp);
+			map->_insert(*iter2.get(), value_adaptor);
 
-		FSDumpAllocator(snp, "mmap.dir");
+			auto key_data = createKeyData<KeyType>(1000, [](auto k){return k + 1000;});
+			KeyAdaptor key_adaptor(key_data);
 
-		cout << "Totals: " << totals << endl;
+			auto iter3 = map->end();
+
+			map->_insert(*iter3.get(), key_adaptor);
+
+			snp->commit();
+
+			FSDumpAllocator(snp, "mmap.dir");
+
+			check_snapshot(snp);
+
+			cout << "Totals: " << totals << endl;
+		}
+		catch (...) {
+			FSDumpAllocator(snp, "mmap_fail.dir");
+			throw;
+		}
 	}
 	catch (memoria::Exception& ex) {
 		cout << ex.message() << " at " << ex.source() << endl;
 	}
-
 	catch (memoria::PackedOOMException& ex) {
 		cout << "PackedOOMException at " << ex.source() << endl;
 	}

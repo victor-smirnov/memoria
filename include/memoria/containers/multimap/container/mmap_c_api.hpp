@@ -47,6 +47,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mmap::CtrApiName)
     	return self.template seek_stream<0>(self.sizes()[0]);
     }
 
+    IteratorPtr seek(CtrSizeT idx) {
+    	auto& self = this->self();
+    	return self.template seek_stream<0>(idx);
+    }
+
 
     CtrSizeT size() const {
     	return self().sizes()[0];

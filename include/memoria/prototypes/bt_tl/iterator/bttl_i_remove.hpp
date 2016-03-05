@@ -165,6 +165,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorRemoveName)
     		}
     	}
 
+    	if (DebugCounter) {
+    		int a = 0; a++;
+    	}
+
     	for (Int s = stream; s < SearchableStreams; s++)
     	{
     		ranks[s + 1] = self.local_child_idx(s, ranks[s]);

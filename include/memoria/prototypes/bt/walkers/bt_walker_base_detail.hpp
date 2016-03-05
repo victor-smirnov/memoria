@@ -17,81 +17,108 @@ namespace memoria {
 namespace bt      {
 namespace detail  {
 
-template <typename BranchNodeEntry, typename IdxList> struct BranchAccumWalker1;
-template <typename BranchNodeEntry, Int SubstreamsBaseIdx, typename IdxList> struct BranchAccumWalker2;
+template <typename StreamIdxList> struct IteratorStreamRangesListWalker;
+
+namespace {
+
+	template <typename SubstreamIdxList> struct IteratorSubstreamsRangesListWalker;
+	template <typename RangesIdxList> struct SubstreamRangesTupleWalker;
+
+	template <Int Idx, Int... Tail>
+	struct SubstreamRangesTupleWalker<IntList<Idx, Tail...>> {
+
+		template <typename Walker, typename StreamObj, typename RangesListTuple, typename... Args>
+		static void process(Walker& walker, const StreamObj* obj, RangesListTuple& ranges_tuple, Args&&... args)
+		{
+			walker.branch_iterator_BranchNodeEntry(obj, std::get<Idx>(ranges_tuple), std::forward<Args>(args)...);
+
+			SubstreamRangesTupleWalker<IntList<Tail...>>::process(walker, obj, ranges_tuple, std::forward<Args>(args)...);
+		}
+	};
+
+
+	template <>
+	struct SubstreamRangesTupleWalker<IntList<>> {
+
+		template <typename Walker, typename Node, typename RangesListTuple, typename... Args>
+		static void process(Walker& walker, const Node* node, RangesListTuple& accum, Args&&... args)
+		{}
+	};
+
+
+
+
+
+	template <Int Idx, Int... Tail>
+	struct IteratorSubstreamsRangesListWalker<IntList<Idx, Tail...>> {
+
+		template <typename Walker, typename Node, typename BranchNodeEntry, typename... Args>
+		static void process(Walker& walker, const Node* node, BranchNodeEntry& accum, Args&&... args)
+		{
+			using RangesTuple 	= typename std::tuple_element<Idx, BranchNodeEntry>::type;
+			using RangesIdxList = memoria::list_tree::MakeValueList<Int, 0, std::tuple_size<RangesTuple>::value>;
+
+			IteratorSubstreamsRangesListWalker<IntList<Idx, Tail...>> w;
+
+			node->template processStreamByIdx<Idx>(w, RangesIdxList(), std::get<Idx>(accum), walker, std::forward<Args>(args)...);
+
+			IteratorSubstreamsRangesListWalker<IntList<Tail...>>::process(walker, node, accum, std::forward<Args>(args)...);
+		}
+
+
+		template <
+			typename StreamObj,
+			typename RangesIdxList,
+			typename T,
+			typename Walker,
+			typename... Args
+		>
+		void stream(const StreamObj* obj, RangesIdxList, T& ranges_tuple, Walker& walker, Args&&... args)
+		{
+			SubstreamRangesTupleWalker<RangesIdxList>::process(walker, obj, ranges_tuple, std::forward<Args>(args)...);
+		}
+	};
+
+
+	template <>
+	struct IteratorSubstreamsRangesListWalker<IntList<>> {
+
+		template <typename Walker, typename Node, typename BranchNodeEntry, typename... Args>
+		static void process(Walker& walker, const Node* node, BranchNodeEntry& accum, Args&&... args)
+		{}
+	};
+
+}
+
+
+
+
 
 template <
-	typename BranchNodeEntry,
-	Int SubstreamsBaseIdx,
-	Int Idx,
-	Int... Tail
->
-struct BranchAccumWalker2<BranchNodeEntry, SubstreamsBaseIdx, IntList<Idx, Tail...>> {
-
-	template <typename Walker, typename Node, typename... Args>
-	static void process(Walker& walker, const Node* node, BranchNodeEntry& accum, Args&&... args)
-	{
-		BranchAccumWalker2<BranchNodeEntry, SubstreamsBaseIdx, IntList<Idx, Tail...>> w;
-
-		node->template processStreamByIdx<Idx>(w, std::get<Idx - SubstreamsBaseIdx>(accum), walker, std::forward<Args>(args)...);
-
-		BranchAccumWalker2<BranchNodeEntry, SubstreamsBaseIdx, IntList<Tail...>>::process(walker, node, accum, std::forward<Args>(args)...);
-	}
-
-	template <
-		typename StreamObj,
-		typename T,
-		typename Walker,
-		typename... Args
-	>
-	void stream(const StreamObj* obj, T& item, Walker& walker, Args&&... args)
-	{
-		walker.branch_iterator_BranchNodeEntry(obj, item, std::forward<Args>(args)...);
-	}
-};
-
-
-template <
-	typename BranchNodeEntry,
-	Int SubstreamsBaseIdx
->
-struct BranchAccumWalker2<BranchNodeEntry, SubstreamsBaseIdx, IntList<>> {
-
-	template <typename Walker, typename Node, typename... Args>
-	static void process(Walker& walker, const Node* node, BranchNodeEntry& accum, Args&&... args)
-	{}
-};
-
-
-
-template <
-	typename BranchNodeEntry,
 	Int StreamIdx,
 	Int... Tail
 >
-struct BranchAccumWalker1<BranchNodeEntry, IntList<StreamIdx, Tail...>> {
+struct IteratorStreamRangesListWalker<IntList<StreamIdx, Tail...>> {
 
-	template <typename Walker, typename Node, typename... Args>
+	template <typename Walker, typename Node, typename BranchNodeEntry, typename... Args>
 	static void process(Walker& walker, const Node* node, BranchNodeEntry& accum, Args&&... args)
 	{
 		const Int SubstreamsStartIdx = Node::template StreamStartIdx<StreamIdx>::Value;
+		const Int StreamSize 		 = Node::template StreamSize<StreamIdx>::Value;
 
-		using ItemType 		= typename std::tuple_element<StreamIdx, BranchNodeEntry>::type;
-		using RangeIdxList 	= memoria::list_tree::MakeValueList<Int, SubstreamsStartIdx, SubstreamsStartIdx + std::tuple_size<ItemType>::value>;
+		using StreamIdxList = memoria::list_tree::MakeValueList<Int, SubstreamsStartIdx, SubstreamsStartIdx + StreamSize>;
 
-		BranchAccumWalker2<ItemType, SubstreamsStartIdx, RangeIdxList>::process(walker, node, std::get<StreamIdx>(accum), std::forward<Args>(args)...);
+		IteratorSubstreamsRangesListWalker<StreamIdxList>::process(walker, node, accum, std::forward<Args>(args)...);
 
-		BranchAccumWalker1<BranchNodeEntry, IntList<Tail...>>::process(walker, node, accum, std::forward<Args>(args)...);
+		IteratorStreamRangesListWalker<IntList<Tail...>>::process(walker, node, accum, std::forward<Args>(args)...);
 	}
 };
 
 
-template <
-	typename BranchNodeEntry
->
-struct BranchAccumWalker1<BranchNodeEntry, IntList<>> {
+template <>
+struct IteratorStreamRangesListWalker<IntList<>> {
 
-	template <typename Walker, typename Node, typename... Args>
+	template <typename Walker, typename Node, typename BranchNodeEntry, typename... Args>
 	static void process(Walker& walker, const Node* node, BranchNodeEntry& accum, Args&&... args)
 	{}
 };

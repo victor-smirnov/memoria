@@ -59,7 +59,7 @@ template <
 class WalkerBase {
 public:
     typedef Iter<typename Types::IterTypes>                                     Iterator;
-    typedef typename Types::IteratorBranchNodeEntry                                 IteratorBranchNodeEntry;
+    typedef typename Types::IteratorBranchNodeEntry                             IteratorBranchNodeEntry;
     typedef typename Types::LeafStreamsStructList                               LeafStructList;
     typedef typename Types::LeafRangeList                                 		LeafRangeList;
     typedef typename Types::LeafRangeOffsetList                                 LeafRangeOffsetList;
@@ -378,8 +378,8 @@ public:
     {
     	using ItrAccList = memoria::list_tree::MakeValueList<Int, 0, Node::Streams>;
 
-    	detail::BranchAccumWalker1<
-    		IteratorBranchNodeEntry,
+    	detail::IteratorStreamRangesListWalker<
+    		//IteratorBranchNodeEntry,
     		ItrAccList
     	>::
     	process(self(), node, branch_BranchNodeEntry(), std::forward<Args>(args)...);
