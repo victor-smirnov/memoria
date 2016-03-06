@@ -39,7 +39,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 
     using CtrSizeT = typename Container::Types::CtrSizeT;
 
-    using InputBuffer = typename Container::Types::InputBuffer;
 
     template <typename InputIterator>
     auto bulk_insert(const InputIterator& start, const InputIterator& end)
@@ -52,12 +51,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 
     template <typename Iterator>
     class EntryAdaptor {
-    	Iterator& current_;
+    	Iterator current_;
 
     	Value value_;
 
     public:
-    	EntryAdaptor(Iterator& current): current_(current) {}
+    	EntryAdaptor(Iterator current): current_(current) {}
 
     	template <typename V>
     	void put(StreamTag<0>, StreamTag<0>, Int block, V&& entry) {}
@@ -69,14 +68,14 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 
     	void next()
     	{
-    		current_ = value_;
+    		*current_ = value_;
     		current_++;
     	}
     };
 
 
     template <typename OutputIterator>
-    auto read(OutputIterator& iter, CtrSizeT length)
+    auto read(OutputIterator iter, CtrSizeT length)
     {
     	auto& self = this->self();
 
@@ -86,7 +85,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
     }
 
     template <typename OutputIterator>
-    auto read(OutputIterator& iter)
+    auto read(OutputIterator iter)
     {
     	auto& self = this->self();
     	return read(iter, self.ctr().size());
