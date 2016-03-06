@@ -104,9 +104,10 @@ public:
 
         for (Int b = 0; b < Blocks; b++)
         {
-        	tree->scan(b, 0, tree->size(), [&](Int idx, auto v){
-        		AssertEQ(MA_SRC, v, vals[idx][b]);
-        	});
+        	Int idx = 0;
+        	tree->read(b, 0, tree->size(), make_fn_with_next([&](Int block, auto v){
+        		AssertEQ(MA_SRC, v, vals[idx][block]);
+        	}, [&]{idx++;}));
         }
 
         return vals;

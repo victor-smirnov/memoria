@@ -1447,25 +1447,25 @@ public:
 
 
     template <typename ConsumerFn>
-    Int scan(Int block, Int start, Int end, ConsumerFn&& fn) const
+    Int read(Int block, Int start, Int end, ConsumerFn&& fn) const
     {
     	Int size = this->size();
     	Int global_idx = block * size + start;
 
     	size_t pos = this->locate(0, global_idx);
-    	size_t data_size = this->data_size();
 
     	Codec codec;
 
     	auto values = this->values();
 
     	Int c;
-    	for (c = start; c < end && pos < data_size; c++)
+    	for (c = start; c < end; c++)
     	{
     		Value value;
     		auto len = codec.decode(values, value, pos);
-    		fn(c, value);
+    		fn(block, value);
     		pos += len;
+    		fn.next();
     	}
 
     	return c;
@@ -1479,9 +1479,10 @@ public:
     	MEMORIA_ASSERT(start, <=, end);
     	MEMORIA_ASSERT(end, <=, size());
 
-    	scan(block, start, end, [&](Int c, auto value){
-    		values[c - start] = value;
-    	});
+    	Int idx = 0;
+    	scan(block, start, end, make_fn_with_next([&](Int block, auto value){
+    		values[idx - start] = value;
+    	}), [&]{idx++;});
     }
 
 

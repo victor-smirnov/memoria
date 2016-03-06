@@ -368,11 +368,11 @@ public:
     	MEMORIA_ASSERT(start, >=, 0);
     	MEMORIA_ASSERT(start, <=, end);
 
-        auto values = this->values();
+    	auto values = this->values(block);
 
         for (Int c = start; c < end; c++)
         {
-        	fn(values[c * Blocks + block]);
+        	fn(block, values[c]);
         	fn.next();
         }
     }
@@ -386,12 +386,16 @@ public:
         MEMORIA_ASSERT(start, >=, 0);
         MEMORIA_ASSERT(start, <=, end);
 
-        auto values = this->values();
+        const Values vals[Blocks];
+
+        for (Int b = 0; b  < Blocks; b++) {
+        	vals[b] = this->values(b);
+        }
 
         for (Int c = start; c < end; c++)
         {
         	for (Int b = 0; b < Blocks; b++) {
-        		fn(b, values[c * Blocks + b]);
+        		fn(b, vals[c]);
         	}
 
         	fn.next();

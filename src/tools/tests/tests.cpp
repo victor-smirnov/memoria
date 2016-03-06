@@ -10,8 +10,8 @@
 
 #include "packed/codecs/packed_codecs_test_suite.hpp"
 //#include "packed/allocator/palloc_test_suite.hpp"
-//#include "packed/tree/packed_tree_test_suite.hpp"
-#include "packed/maxtree/packed_maxtree_test_suite.hpp"
+#include "packed/tree/packed_tree_test_suite.hpp"
+//#include "packed/maxtree/packed_maxtree_test_suite.hpp"
 //#include "packed/louds/packed_louds_suite.hpp"
 //#include "packed/louds_cardinal/packed_lcardinal_suite.hpp"
 //#include "packed/array/packed_array_test_suite.hpp"
@@ -77,8 +77,8 @@ int main(int argc, const char** argv, const char** envp)
 //
         runner.registerTask(new PackedCodecsTestSuite());
 //        runner.registerTask(new PackedAllocatorTestSuite());
-//        runner.registerTask(new PackedTreeTestSuite());
-        runner.registerTask(new PackedMaxTreeTestSuite());
+        runner.registerTask(new PackedTreeTestSuite());
+//        runner.registerTask(new PackedMaxTreeTestSuite());
 //        runner.registerTask(new PackedArrayTestSuite());
 //        runner.registerTask(new PackedSequenceTestSuite());
 //        runner.registerTask(new PackedLoudsTestSuite());
