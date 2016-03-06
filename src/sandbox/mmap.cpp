@@ -153,7 +153,7 @@ int main() {
 	MEMORIA_INIT(DefaultProfile<>);
 
 	using KeyType 	= double;
-	using ValueType = String;
+	using ValueType = double;
 
 	using CtrName = Map<KeyType, Vector<ValueType>>;
 

@@ -49,42 +49,55 @@ namespace {
 	template <typename V>
 	size_t max_width(Int count, bool hex, function<V(Int)> fn)
 	{
-		if (sizeof(V) == 1) {
-			return 2;
-		}
-		else if (sizeof(V) == 2)
-		{
-			return 4;
-		}
-		else
-		{
-			size_t max = 0;
+		size_t max = 0;
 
-			for (Int c = 0; c < count; c++)
+		for (Int c = 0; c < count; c++)
+		{
+			V v = fn(c);
+
+			auto str = toString(v, hex);
+
+			auto len = str.length();
+
+			if (len > max)
 			{
-				V v = fn(c);
-
-				auto str = toString(v, hex);
-
-				auto len = str.length();
-
-				if (len > max)
-				{
-					max = len;
-				}
+				max = len;
 			}
-
-			return max;
 		}
+
+		return max;
+	}
+
+	template <typename T>
+	T mask_controls(T ch) {
+		return (ch >= 32 && ch < 127) ? ch : (T)32;
+	}
+
+	template <typename T>
+	inline void dump_as_char(std::ostream& out, const T& val) {}
+
+
+	inline void dump_as_char(std::ostream& out, const UByte& val) {
+		out << mask_controls(val);
+	}
+
+
+	inline void dump_as_char(std::ostream& out, const Byte& val) {
+		out << mask_controls(val);
+	}
+
+
+	inline void dump_as_char(std::ostream& out, const Char& val) {
+		out << mask_controls(val);
 	}
 }
 
 template <typename V>
 void dumpArray(std::ostream& out, Int count, function<V (Int)> fn)
 {
-	bool is_hex = std::is_same<V, UByte>::value || std::is_same<V, Byte>::value || std::is_same<V, Char>::value;
+	bool is_char = std::is_same<V, UByte>::value || std::is_same<V, Byte>::value || std::is_same<V, Char>::value;
 
-	auto width = max_width(count, is_hex, fn) + 1;
+	auto width = max_width(count, is_char, fn) + 1;
 
 	if (width < 3) width = 3;
 
@@ -103,8 +116,20 @@ void dumpArray(std::ostream& out, Int count, function<V (Int)> fn)
     {
         out.width(width);
         out << c;
-        out.flush();
     }
+
+    if (is_char)
+    {
+    	out.width(16);
+    	out << "";
+
+    	for (int c = 0; c < columns; c++)
+    	{
+    		out.width(1);
+    		out << c % 10;
+    	}
+    }
+
     out << dec << endl;
 
     for (Int c = 0; c < count; c+= columns)
@@ -116,20 +141,41 @@ void dumpArray(std::ostream& out, Int count, function<V (Int)> fn)
         out.width(6);
         out << c << ": ";
 
-        out << (is_hex ? hex : dec);
-
-        for (Int d = 0; d < columns && c + d < count; d++)
+        Int d;
+        for (d = 0; d < columns && c + d < count; d++)
         {
-            out.width(width);
-
             stringstream ss;
+
+            ss << (is_char ? hex : dec);
 
             OutputHelepr<V>::out(ss, fn(c + d));
 
+            out.width(width);
             out<<ss.str();
         }
 
-        out << dec << endl;
+        out << dec;
+
+        if (is_char)
+        {
+        	for (; d < columns; d++)
+        	{
+        		out.width(width);
+        		out << "";
+        	}
+
+        	out.width(16);
+        	out << "";
+
+        	for (Int d = 0; d < columns && c + d < count; d++)
+            {
+                out.width(1);
+
+                dump_as_char(out, fn(c + d));
+            }
+        }
+
+        out << endl;
     }
 }
 
@@ -191,50 +237,6 @@ void dumpSymbols(ostream& out_, Int size_, Int bits_per_symbol, function<V(Int)>
 }
 
 
-
-template <typename T>
-void dumpArray(std::ostream& out_, const T* data, Int count)
-{
-    Int columns;
-
-    switch (sizeof(T)) {
-    case 1: columns = 32; break;
-    case 2: columns = 16; break;
-    case 4: columns = 16; break;
-    default: columns = 8;
-    }
-
-    Int width = sizeof(T) * 2 + 1;
-
-    out_<<endl;
-    Expand(out_, 19 + width);
-    for (int c = 0; c < columns; c++)
-    {
-        out_.width(width);
-        out_<<hex<<c;
-    }
-    out_<<endl;
-
-    for (Int c = 0; c < count; c+= columns)
-    {
-        Expand(out_, 12);
-        out_<<" ";
-        out_.width(6);
-        out_<<dec<<c<<" "<<hex;
-        out_.width(6);
-        out_<<c<<": ";
-
-        for (Int d = 0; d < columns && c + d < count; d++)
-        {
-            out_<<hex;
-            out_.width(width);
-
-            OutputHelepr<T>::out(out_, data[c + d]);
-        }
-
-        out_<<dec<<endl;
-    }
-}
 
 template <typename T>
 void dumpSymbols(ostream& out_, T* symbols, Int size_, Int bits_per_symbol)

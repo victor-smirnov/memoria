@@ -21,7 +21,6 @@ void Expand(ostream& os, Int level)
 {
     for (Int c = 0; c < level; c++) {
     	os<<" ";
-    	os.flush();
     }
 }
 
