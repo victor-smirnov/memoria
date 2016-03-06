@@ -28,6 +28,7 @@
 namespace memoria   {
 namespace bt        {
 
+template <Int StreamIdx> struct StreamTag {};
 
 template <Int Streams, Int Idx = 0>
 struct ForEachStream {
@@ -376,6 +377,45 @@ struct DefaultBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>
 };
 
 
+
+template <typename Fn>
+class SubstreamReadLambdaAdapter {
+	Fn& fn_;
+public:
+	SubstreamReadLambdaAdapter(Fn& fn): fn_(fn) {}
+
+	template <Int StreamIdx, Int SubstreamIdx, typename T>
+	void put(const StreamTag<StreamIdx>&, const StreamTag<SubstreamIdx>&, T&& value)
+	{
+		fn_(value);
+	}
+};
+
+template <typename Fn>
+class SubstreamReadLambdaAdapter<Fn&&> {
+	Fn&& fn_;
+public:
+	SubstreamReadLambdaAdapter(Fn&& fn): fn_(fn) {}
+
+	template <Int StreamIdx, Int SubstreamIdx, typename T>
+	void put(const StreamTag<StreamIdx>&, const StreamTag<SubstreamIdx>&, T&& value)
+	{
+		fn_(value);
+	}
+};
+
+template <typename Fn>
+class SubstreamReadLambdaAdapter<const Fn&> {
+	const Fn& fn_;
+public:
+	SubstreamReadLambdaAdapter(const Fn& fn): fn_(fn) {}
+
+	template <Int StreamIdx, Int SubstreamIdx, typename T>
+	void put(const StreamTag<StreamIdx>&, const StreamTag<SubstreamIdx>&, T&& value)
+	{
+		fn_(value);
+	}
+};
 
 
 

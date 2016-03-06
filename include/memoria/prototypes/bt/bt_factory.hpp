@@ -24,7 +24,6 @@
 #include <memoria/prototypes/bt/tools/bt_tools.hpp>
 #include <memoria/prototypes/bt/bt_walkers.hpp>
 
-#include <memoria/prototypes/bt/layouts/bt_input_buffer.hpp>
 #include <memoria/prototypes/bt/layouts/bt_input.hpp>
 
 #include <memoria/prototypes/bt/walkers/bt_skip_walkers.hpp>

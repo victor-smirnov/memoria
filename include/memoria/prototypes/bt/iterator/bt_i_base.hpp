@@ -24,18 +24,22 @@ using namespace memoria::bt;
 
 MEMORIA_BT_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTIteratorBase)
 public:
-    typedef typename Base::Container::Types                                             Types;
-    typedef typename Base::Container::NodeBase                                          NodeBase;
-    typedef typename Base::Container::NodeBaseG                                         NodeBaseG;
-    typedef typename Base::Container::Allocator                                         Allocator;
-    typedef typename Base::Container::BranchNodeEntry                                       BranchNodeEntry;
+    using Types 	= typename Base::Container::Types;
+    using NodeBase 	= typename Base::Container::NodeBase;
+    using NodeBaseG = typename Base::Container::NodeBaseG;
+    using Allocator = typename Base::Container::Allocator;
 
-    typedef typename Base::Container::Iterator                                          Iterator;
+    using BranchNodeEntry = typename Base::Container::BranchNodeEntry;
 
-    typedef typename Types::template IteratorCacheFactory<
+    using CtrSizeT 	= typename Types::CtrSizeT;
+    using CtrSizesT = typename Types::CtrSizesT;
+
+    using Iterator  = typename Base::Container::Iterator;
+
+    using IteratorCache = typename Types::template IteratorCacheFactory<
             MyType,
             typename Base::Container
-    >::Type                                                                             IteratorCache;
+    >::Type;
 
 
 private:
@@ -313,9 +317,7 @@ public:
     void init() {}
 
     template <typename Walker>
-    void finish_walking(Int idx, const Walker&, WalkCmd cmd) {
-    	int a = 0; a++;
-    }
+    void finish_walking(Int idx, const Walker&, WalkCmd cmd) {}
 
     void refresh() {}
 

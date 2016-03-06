@@ -989,7 +989,7 @@ public:
     	Base::generateDataEvents(handler);
 
     	handler->startStruct();
-    	handler->startGroup("VLD_TREE");
+    	handler->startGroup("VLD_ARRAY");
 
     	auto meta = this->metadata();
 

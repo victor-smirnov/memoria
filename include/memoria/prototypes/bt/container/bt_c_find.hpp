@@ -416,6 +416,8 @@ typename M_TYPE::IteratorPtr M_TYPE::find_(Walker&& walker)
         walker.finish(*i.get(), result.idx(), WalkCmd::LAST_LEAF);
     }
 
+    i->init();
+
     return i;
 }
 

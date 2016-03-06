@@ -334,11 +334,11 @@ public:
 
     	for (Int block = 0; block < blocks; block++)
     	{
-    		auto values = this->values(block);
-    		for (Int c = 1; c < meta->size(); c++)
-    		{
-    			MEMORIA_ASSERT(values[c - 1], <=, values[c]);
-    		}
+//    		auto values = this->values(block);
+//    		for (Int c = 1; c < meta->size(); c++)
+//    		{
+//    			MEMORIA_ASSERT(values[c - 1], <=, values[c]);
+//    		}
 
     		if (levels > 0)
     		{

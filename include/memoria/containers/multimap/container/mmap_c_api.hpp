@@ -32,6 +32,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mmap::CtrApiName)
 	using typename Base::BranchNodeEntry;
 	using typename Base::PageUpdateMgr;
 	using typename Base::CtrSizeT;
+	using typename Base::CtrSizesT;
 
 	using Key 	= typename Types::Key;
 	using Value = typename Types::Value;
@@ -59,7 +60,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mmap::CtrApiName)
 
     IteratorPtr find(Key key)
     {
-    	return self().template find_ge<IntList<0>>(0, key);
+    	return self().template find_max_ge<IntList<0, 0, 1>>(0, key);
     }
 
 protected:

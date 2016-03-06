@@ -359,7 +359,7 @@ private:
 
 			if (Idx == Streams - 1)
 			{
-				Int object_size = BufferType::block_size(total_capacity);
+				Int object_size = BufferType::block_size(total_capacity) + 256;
 
 				void* ptr = malloc(object_size);
 
@@ -678,7 +678,7 @@ public:
 				}
 				else {
 					// buffer is full
-					cout<<"Buffer is full: "<<size_<<endl;
+					// cout<<"Buffer is full: "<<size_<<endl;
 					this->finish_stream_run(0, Streams - 1, sizes, buffer_sums);
 					break;
 				}
@@ -1112,10 +1112,6 @@ protected:
 
 	bool tryInsertBuffer(PageUpdateMgr& mgr, NodeBaseG& leaf, const Position& at, const Position& size)
 	{
-		if (at.ltAny(0)) {
-			cout<<at<<endl;
-		}
-
 		try {
 			CtrT::Types::Pages::LeafDispatcher::dispatch(leaf, typename Base::InsertBufferFn(), at, this->start_, size, this->buffer_);
 

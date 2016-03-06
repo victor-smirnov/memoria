@@ -23,44 +23,41 @@ namespace memoria    {
 
 MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorRemoveName)
 
-    typedef typename Base::Allocator                                            Allocator;
-    typedef typename Base::NodeBaseG                                            NodeBaseG;
 
-
-    typedef typename Base::Container::BranchNodeEntry                           BranchNodeEntry;
-    typedef typename Base::Container                                            Container;
-    typedef typename Base::Container::Position                                  Position;
+    using typename Base::NodeBaseG;
+    using typename Base::Container;
+    using typename Base::Position;
 
     using CtrSizeT 	= typename Container::Types::CtrSizeT;
+    using CtrSizesT = typename Container::Types::CtrSizesT;
     using Key		= typename Container::Types::Key;
     using Value		= typename Container::Types::Value;
+
+    using BranchNodeEntry				= typename Container::Types::BranchNodeEntry;
     using IteratorBranchNodeEntry		= typename Container::Types::IteratorBranchNodeEntry;
 
     using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
-
-    template <Int Stream>
-    using InputTupleAdapter = typename Container::Types::template InputTupleAdapter<Stream>;
-
-    template <typename LeafPath>
-    using AccumItemH = typename Container::Types::template AccumItemH<LeafPath>;
 
     static const Int Streams 				= Container::Types::Streams;
     static const Int SearchableStreams 		= Container::Types::SearchableStreams;
 
     using LeafPrefixRanks = typename Container::Types::LeafPrefixRanks;
 
-
     Position remove_subtrees(CtrSizeT n)
     {
-    	BranchNodeEntry sums;
+    	CtrSizesT sizes;
 
-    	self().remove_subtrees(n, sums);
+    	self().remove_subtrees(n, sizes);
 
-    	return Position();
+    	return sizes;
     }
 
-    void remove_subtrees(CtrSizeT n, BranchNodeEntry& sums)
+protected:
+
+    void remove_subtrees(CtrSizeT n, CtrSizesT& sizes)
     {
+    	MEMORIA_ASSERT(n, >=, 0);
+
     	auto& self 	= this->self();
     	auto stream = self.stream();
     	auto tmp 	= self;
@@ -80,7 +77,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorRemoveName)
 
     	Position end = tmp.adjust_to_indel();
 
-    	self.ctr().removeEntries(self.leaf(), start, tmp.leaf(), end, sums, true);
+    	self.ctr().removeEntries(self.leaf(), start, tmp.leaf(), end, sizes, true);
 
     	tmp.idx() = end[stream];
 
@@ -103,6 +100,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorRemoveName)
     		tmp2.add_substream_size(tmp2.stream(), tmp2.idx(), -length_to_remove);
     	}
     }
+
 
 
     // Returns leaf ranks of position idx in the specified
@@ -163,10 +161,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorRemoveName)
     		else {
     			break;
     		}
-    	}
-
-    	if (DebugCounter) {
-    		int a = 0; a++;
     	}
 
     	for (Int s = stream; s < SearchableStreams; s++)

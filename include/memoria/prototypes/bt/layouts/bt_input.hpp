@@ -29,8 +29,7 @@
 namespace memoria 	{
 namespace bt 		{
 
-template <Int StreamIdx> struct StreamTag {};
-
+template <Int StreamIdx> struct StreamTag;
 
 template <typename T>
 class StreamEntryBuffer {

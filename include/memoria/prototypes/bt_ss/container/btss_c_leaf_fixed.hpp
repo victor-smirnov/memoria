@@ -10,7 +10,6 @@
 #define _MEMORIA_PROTOTYPES_BALANCEDTREE_SS_MODEL_LEAF_FIXED_HPP
 
 #include <memoria/prototypes/bt/tools/bt_tools.hpp>
-#include <memoria/prototypes/bt/layouts/bt_input_buffer.hpp>
 #include <memoria/prototypes/bt/bt_macros.hpp>
 #include <memoria/core/container/macros.hpp>
 
@@ -41,7 +40,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::LeafFixedName)
 
     typedef typename Base::Metadata                                             Metadata;
 
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
+    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
@@ -49,6 +48,8 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::LeafFixedName)
     using CtrSizeT = typename Types::CtrSizeT;
 
     static const Int Streams                                                    = Types::Streams;
+
+protected:
 
     MEMORIA_DECLARE_NODE_FN_RTN(GetStreamCapacityFn, single_stream_capacity, Int);
 

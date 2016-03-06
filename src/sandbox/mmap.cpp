@@ -98,11 +98,62 @@ MapData<Key, Value> createRandomShapedMapData(size_t keys, size_t values, Fn1&& 
 
 
 
+template <typename T> struct TypeTag {};
+
+template <typename V, typename T>
+T make_key(V&& num, TypeTag<T>) {
+	return num;
+}
+
+template <typename V>
+String make_key(V&& num, TypeTag<String>)
+{
+	stringstream ss;
+	ss<<"'";
+	ss.width(16);
+	ss << num;
+	ss<<"'";
+	return ss.str();
+}
+
+template <typename V>
+UUID make_key(V&& num, TypeTag<UUID>)
+{
+	return UUID(num);
+}
+
+
+
+template <typename V, typename T>
+T make_value(V&& num, TypeTag<T>) {
+	return num;
+}
+
+template <typename V>
+String make_value(V&& num, TypeTag<String>)
+{
+	stringstream ss;
+	ss << num;
+	return ss.str();
+}
+
+template <typename V>
+UUID make_value(V&& num, TypeTag<UUID>)
+{
+	if (num != 0) {
+		return UUID::make_random();
+	}
+	else {
+		return UUID();
+	}
+}
+
+
 int main() {
 	MEMORIA_INIT(DefaultProfile<>);
 
-	using KeyType = BigInteger;
-	using ValueType = Byte;
+	using KeyType 	= double;
+	using ValueType = String;
 
 	using CtrName = Map<KeyType, Vector<ValueType>>;
 
@@ -118,11 +169,9 @@ int main() {
 
 			auto map_data = createRandomShapedMapData<KeyType, ValueType>(
 					10,
-					1000,
-					//			[](auto k) {return "str_"+toString(k);},
-					[](auto k) {return k;},
-					//			[](auto k) {return UUID(0, k);},
-					[](auto k, auto v) {return getRandomG(v);}
+					10000,
+					[](auto k) {return make_key(k, TypeTag<KeyType>());},
+					[](auto k, auto v) {return make_value(getRandomG(), TypeTag<ValueType>());}
 			);
 
 			auto iter = map->begin();
@@ -142,19 +191,44 @@ int main() {
 
 			iter2->toData();
 
-			auto map_values = createValueData<ValueType>(100000, [](auto x){return 0;});
+			auto map_values = createValueData<ValueType>(100000, [](auto x){return make_value(0, TypeTag<ValueType>());});
 			ValueAdaptor value_adaptor(map_values);
 
 			map->_insert(*iter2.get(), value_adaptor);
 
-			auto key_data = createKeyData<KeyType>(1000, [](auto k){return k + 1000;});
+			auto key_data = createKeyData<KeyType>(1000, [](auto k){return make_key(k + 1000, TypeTag<KeyType>());});
 			KeyAdaptor key_adaptor(key_data);
 
 			auto iter3 = map->end();
 
 			map->_insert(*iter3.get(), key_adaptor);
 
+			int idx = 0;
+
+			auto s_iter = map->seek(9);
+
+			s_iter->scan_values([&](auto&& value){
+				cout << "Value: " << (idx++) << " " << hex << value << dec << endl;
+			});
+
+			idx = 0;
+			map->seek(5)->scan_keys([&](auto&& value){
+				cout << "Key: " << (idx++) << " " << value << endl;
+			});
+
+
+			auto iter4 = map->seek(8);
+
+			iter4->remove();
+
 			snp->commit();
+
+//
+//			auto values2 = map->seek(2)->read_values();
+//
+//			dumpVector(cout, values2);
+//
+//			cout << "Values2.size = " << values2.size() << endl;
 
 			FSDumpAllocator(snp, "mmap.dir");
 

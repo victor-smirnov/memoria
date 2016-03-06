@@ -99,7 +99,7 @@ public:
     static constexpr UInt VERSION = 1;
     static constexpr Int Blocks = Types::Blocks;
 
-    static constexpr Int SafetyMargin = 128 / Codec::ElementSize;
+    static constexpr Int SafetyMargin = (1024 * 8) / Codec::ElementSize;
 
     using FieldsList = MergeLists<
                 typename Base::FieldsList,

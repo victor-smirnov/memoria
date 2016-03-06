@@ -47,6 +47,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorMiscName)
 
 
 
+
+
     template <typename LeafPath>
     struct ScanFn {
     	template <typename Node, typename Fn>
@@ -108,6 +110,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorMiscName)
     	auto& cache	= self.cache();
 
     	cache.data_size()[0] = self.ctr().sizes()[0];
+
+    	// FIXME: Is it necessary here?
     	cache.data_pos()[0] = 0;
     	cache.abs_pos()[0] = 0;
     }
@@ -120,6 +124,18 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorMiscName)
 
 
     	MEMORIA_ASSERT(self().cache(), ==, tmp.cache());
+    }
+
+
+
+    void init()
+    {
+    	Base::init();
+
+    	auto& self = this->self();
+    	auto& cache = self.cache();
+
+    	cache.data_size()[0] = self.ctr().size();
     }
 
 protected:

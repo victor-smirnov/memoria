@@ -112,7 +112,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ReadName)
     	template <typename Node, typename Fn>
     	Int treeNode(const Node* node, Int from, CtrSizeT to, Fn&& fn)
     	{
-    		Int limit = node->size(0);
+    		Int limit = node->size(ListHead<SubstreamPath>::Value);
 
     		if (to < limit) {
     			limit = to;

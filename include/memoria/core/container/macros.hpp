@@ -181,6 +181,8 @@ class IterPart<PartName, Base1, Types>: public Base1 {                          
     typedef Base1 Base;                                                         \
     typedef Iter<Types> MyType;                                                 \
                                                                                 \
+	template <typename, typename, typename> friend class CtrPart;				\
+	template <typename, typename, typename> friend class IterPart;				\
 public:
 
 
@@ -196,7 +198,7 @@ public:
 
 
 #define MEMORIA_ITERATOR_PART_END                                               \
-        MyType& self() {                                                        \
+    MyType& self() {                                                        	\
         return *static_cast<MyType*>(this);                                     \
     }                                                                           \
                                                                                 \
@@ -204,13 +206,6 @@ public:
         return *static_cast<const MyType*>(this);                               \
     }                                                                           \
                                                                                 \
-    MyType* me() {                                                              \
-        return static_cast<MyType*>(this);                                      \
-    }                                                                           \
-                                                                                \
-    const MyType* me() const {                                                  \
-        return static_cast<const MyType*>(this);                                \
-    }                                                                           \
 };
 
 

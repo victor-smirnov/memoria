@@ -19,77 +19,123 @@ void Expand(std::ostream& os, Int level);
 
 namespace {
 
-template <typename T>
-struct OutputHelepr {
-	static std::ostream& out(std::ostream& o, const T& value)
-	{
-		o<<value;
-		return o;
-	}
-};
+	template <typename T>
+	struct OutputHelepr {
+		static std::ostream& out(std::ostream& o, const T& value)
+		{
+			o<<value;
+			return o;
+		}
+	};
 
-template <>
-struct OutputHelepr<Byte> {
-	static std::ostream& out(std::ostream& o, const Byte& value)
-	{
-		o<<(Int)(UByte)value;
-		return o;
-	}
-};
+	template <>
+	struct OutputHelepr<Byte> {
+		static std::ostream& out(std::ostream& o, const Byte& value)
+		{
+			o<<(Int)(UByte)value;
+			return o;
+		}
+	};
 
-template <>
-struct OutputHelepr<UByte> {
-	static std::ostream& out(std::ostream& o, const UByte& value)
-	{
-		o<<(Int)value;
-		return o;
-	}
-};
+	template <>
+	struct OutputHelepr<UByte> {
+		static std::ostream& out(std::ostream& o, const UByte& value)
+		{
+			o<<(Int)value;
+			return o;
+		}
+	};
 
+	template <typename V>
+	size_t max_width(Int count, bool hex, function<V(Int)> fn)
+	{
+		if (sizeof(V) == 1) {
+			return 2;
+		}
+		else if (sizeof(V) == 2)
+		{
+			return 4;
+		}
+		else
+		{
+			size_t max = 0;
+
+			for (Int c = 0; c < count; c++)
+			{
+				V v = fn(c);
+
+				auto str = toString(v, hex);
+
+				auto len = str.length();
+
+				if (len > max)
+				{
+					max = len;
+				}
+			}
+
+			return max;
+		}
+	}
 }
 
 template <typename V>
-void dumpArray(std::ostream& out, Int count, function<V(Int)> fn)
+void dumpArray(std::ostream& out, Int count, function<V (Int)> fn)
 {
-    Int columns;
+	bool is_hex = !(std::is_same<V, double>::value || std::is_same<V, float>::value);
 
-    switch (sizeof(V)) {
-    case 1: columns = 32; break;
-    case 2: columns = 16; break;
-    case 4: columns = 16; break;
-    default: columns = 8;
+	auto width = max_width(count, is_hex, fn) + 1;
+
+	if (width < 3) width = 3;
+
+	Int columns;
+
+    switch (sizeof(V))
+    {
+    	case 1: columns = 32; break;
+    	case 2: columns = 16; break;
+    	default: columns = (80 / width > 0 ? 80 / width : 1);
     }
 
-    Int width = sizeof(V) * 2 + 1;
-
-    out<<endl;
-    Expand(out, 19 + width);
+    out << endl;
+    Expand(out, 28);
     for (int c = 0; c < columns; c++)
     {
         out.width(width);
-        out<<hex<<c;
+        out << hex << c;
+        out.flush();
     }
-    out<<dec<<endl;
+    out << dec << endl;
 
     for (Int c = 0; c < count; c+= columns)
     {
         Expand(out, 12);
-        out<<" ";
+        out << " ";
         out.width(6);
-        out<<dec<<c<<" "<<hex;
+        out << dec << c << " " << hex;
         out.width(6);
-        out<<c<<": ";
+        out << c << ": ";
 
         for (Int d = 0; d < columns && c + d < count; d++)
         {
-            out<<hex;
+            if (is_hex)
+            {
+            	out << hex;
+            }
+
             out.width(width);
 
             OutputHelepr<V>::out(out, fn(c + d));
         }
 
-        out<<dec<<endl;
+        out << dec << endl;
     }
+}
+
+template <typename V>
+void dumpVector(std::ostream& out, const std::vector<V>& data)
+{
+	dumpArray<V>(out, data.size(), [&](Int idx) {return data[idx];});
 }
 
 

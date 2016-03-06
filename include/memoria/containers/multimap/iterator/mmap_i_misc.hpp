@@ -22,19 +22,117 @@ namespace memoria    {
 
 MEMORIA_ITERATOR_PART_BEGIN(memoria::mmap::ItrMiscName)
 
-    typedef typename Base::Allocator                                            Allocator;
-    typedef typename Base::NodeBaseG                                            NodeBaseG;
+    using typename Base::NodeBaseG;
+	using typename Base::Container;
+    using typename Base::BranchNodeEntry;
+    using typename Base::CtrSizeT;
+    using typename Base::CtrSizesT;
 
 
-    typedef typename Base::Container::BranchNodeEntry                               BranchNodeEntry;
-    typedef typename Base::Container                                            Container;
-    typedef typename Base::Container::Position                                  Position;
-
-    using CtrSizeT 	= typename Container::Types::CtrSizeT;
     using Key		= typename Container::Types::Key;
     using Value		= typename Container::Types::Value;
 
     using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
+
+    Key key() const
+    {
+    	auto& self = this->self();
+
+    	MEMORIA_ASSERT(self.stream(), ==, 0);
+
+    	return std::get<0>(self().ctr().template read_leaf_entry<IntList<0, 0, 1>>(self.leaf(), self.idx(), 0));
+    }
+
+    Value value() const
+    {
+    	auto& self = this->self();
+
+    	MEMORIA_ASSERT(self.stream(), ==, 1);
+
+    	return std::get<0>(self().ctr().template read_leaf_entry<IntList<1, 1>>(self.leaf(), self.idx(), 0));
+    }
+
+    std::vector<Value> read_values(CtrSizeT length = -1)
+    {
+    	auto& self = this->self();
+
+    	std::vector<Value> values;
+
+    	self.scan_values(length, [&](auto&& value){
+    		values.push_back(value);
+    	});
+
+    	return values;
+    }
+
+
+    template <typename Fn>
+    CtrSizeT scan_values(CtrSizeT length, Fn&& fn)
+    {
+    	auto& self = this->self();
+
+    	if (self.stream() == 0) {
+    		self.toData();
+    	}
+
+    	auto data_size 	= self.cache().data_size()[1];
+    	auto pos 		= self.cache().data_pos()[1];
+
+    	if (length < 0 || pos + length > data_size)
+    	{
+    		length = data_size - pos;
+    	}
+
+    	SubstreamReadLambdaAdapter<Fn> adapter(fn);
+
+    	return self.ctr().template read_substream<IntList<1, 1>>(self, 0, length, adapter);
+    }
+
+    template <typename Fn>
+    CtrSizeT scan_values(Fn&& fn)
+    {
+    	auto& self = this->self();
+    	return self.scan_values(-1, std::forward<Fn>(fn));
+    }
+
+    template <typename Fn>
+    CtrSizeT scan_keys(Fn&& fn)
+    {
+    	auto& self = this->self();
+    	return self.scan_keys(-1, std::forward<Fn>(fn));
+    }
+
+    template <typename Fn>
+    CtrSizeT scan_keys(CtrSizeT length, Fn&& fn)
+    {
+    	auto& self = this->self();
+
+    	if (self.stream() == 0) {
+    		self.toIndex();
+    	}
+
+    	auto data_size 	= self.cache().data_size()[0];
+    	auto pos 		= self.cache().data_pos()[0];
+
+    	if (length < 0 || pos + length > data_size)
+    	{
+    		length = data_size - pos;
+    	}
+
+    	SubstreamReadLambdaAdapter<Fn> adapter(fn);
+
+    	return self.ctr().template read_substream<IntList<0, 0, 1>>(self, 0, length, adapter);
+    }
+
+
+    CtrSizesT remove(CtrSizeT length = 1)
+    {
+    	return self().remove_subtrees(length);
+    }
+
+    CtrSizeT values_size() const {
+    	return self().cache().substream_size();
+    }
 
 
 MEMORIA_ITERATOR_PART_END
