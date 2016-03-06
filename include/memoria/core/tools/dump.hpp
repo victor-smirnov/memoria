@@ -82,7 +82,7 @@ namespace {
 template <typename V>
 void dumpArray(std::ostream& out, Int count, function<V (Int)> fn)
 {
-	bool is_hex = !(std::is_same<V, double>::value || std::is_same<V, float>::value);
+	bool is_hex = std::is_same<V, UByte>::value || std::is_same<V, Byte>::value || std::is_same<V, Char>::value;
 
 	auto width = max_width(count, is_hex, fn) + 1;
 
@@ -102,7 +102,7 @@ void dumpArray(std::ostream& out, Int count, function<V (Int)> fn)
     for (int c = 0; c < columns; c++)
     {
         out.width(width);
-        out << hex << c;
+        out << c;
         out.flush();
     }
     out << dec << endl;
@@ -116,16 +116,17 @@ void dumpArray(std::ostream& out, Int count, function<V (Int)> fn)
         out.width(6);
         out << c << ": ";
 
+        out << (is_hex ? hex : dec);
+
         for (Int d = 0; d < columns && c + d < count; d++)
         {
-            if (is_hex)
-            {
-            	out << hex;
-            }
-
             out.width(width);
 
-            OutputHelepr<V>::out(out, fn(c + d));
+            stringstream ss;
+
+            OutputHelepr<V>::out(ss, fn(c + d));
+
+            out<<ss.str();
         }
 
         out << dec << endl;

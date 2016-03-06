@@ -49,7 +49,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::LeafFixedName)
 
     static const Int Streams                                                    = Types::Streams;
 
-protected:
+
 
     MEMORIA_DECLARE_NODE_FN_RTN(GetStreamCapacityFn, single_stream_capacity, Int);
 

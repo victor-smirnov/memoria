@@ -78,7 +78,7 @@ int main(int argc, const char** argv, const char** envp)
         runner.registerTask(new PackedCodecsTestSuite());
 //        runner.registerTask(new PackedAllocatorTestSuite());
 //        runner.registerTask(new PackedTreeTestSuite());
-//        runner.registerTask(new PackedMaxTreeTestSuite());
+        runner.registerTask(new PackedMaxTreeTestSuite());
 //        runner.registerTask(new PackedArrayTestSuite());
 //        runner.registerTask(new PackedSequenceTestSuite());
 //        runner.registerTask(new PackedLoudsTestSuite());

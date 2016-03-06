@@ -49,8 +49,6 @@ public:
     PackedMaxTreeTestBase(StringRef name): TestTask(name)
     {}
 
-
-
     TreePtr createEmptyTree(Int block_size = MEMBUF_SIZE)
     {
         return MakeSharedPackedStructByBlock<Tree>(block_size);
@@ -92,11 +90,14 @@ public:
 
         AssertEQ(MA_SRC, size, tree->size());
 
+        dumpVector(this->out(), vals);
+
+        Int idx = 0;
         for (Int b = 0; b < Blocks; b++)
         {
-        	tree->scan(b, 0, tree->size(), [&](Int idx, auto v){
-        		AssertEQ(MA_SRC, v, vals[idx][b]);
-        	});
+        	tree->read(b, 0, tree->size(), make_fn_with_next([&](Int block, auto v){
+        		AssertEQ(MA_SRC, v, vals[idx][block]);
+        	}, [&]{idx++;}));
         }
 
         return vals;
