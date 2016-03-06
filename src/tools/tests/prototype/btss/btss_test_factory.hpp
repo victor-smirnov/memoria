@@ -108,11 +108,6 @@ struct BTSSTestTypesBase: public BTTypes<Profile, BTSingleStream> {
 	>;
 
     using Entry = CtrSizeT;
-
-    using Metadata = BalancedTreeMetadata<
-            typename Base::ID,
-            ListSize<StreamDescriptors>::Value
-    >;
 };
 
 

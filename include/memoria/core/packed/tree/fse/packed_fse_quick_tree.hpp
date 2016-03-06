@@ -386,7 +386,7 @@ public:
         MEMORIA_ASSERT(start, >=, 0);
         MEMORIA_ASSERT(start, <=, end);
 
-        const Values vals[Blocks];
+        const Value* vals[Blocks];
 
         for (Int b = 0; b  < Blocks; b++) {
         	vals[b] = this->values(b);
@@ -395,7 +395,7 @@ public:
         for (Int c = start; c < end; c++)
         {
         	for (Int b = 0; b < Blocks; b++) {
-        		fn(b, vals[c]);
+        		fn(b, vals[b][c]);
         	}
 
         	fn.next();

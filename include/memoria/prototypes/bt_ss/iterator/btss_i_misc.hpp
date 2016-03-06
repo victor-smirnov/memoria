@@ -184,8 +184,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btss::IteratorMiscName)
     	void put(StreamTag<0>, StreamTag<0>, V&& entry) {}
 
     	template <Int SubstreamIdx, typename V>
-    	void put(StreamTag<0>, StreamTag<SubstreamIdx>, V&& entry) {
-    		*current_ = entry[0];
+    	void put(StreamTag<0>, StreamTag<SubstreamIdx>, Int block, V&& entry) {
+    		*current_ = entry;
     	}
 
     	void next() {

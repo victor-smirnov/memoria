@@ -1471,6 +1471,41 @@ public:
     	return c;
     }
 
+    template <typename ConsumerFn>
+    Int read(Int start, Int end, ConsumerFn&& fn) const
+    {
+    	Int size = this->size();
+
+    	Codec codec;
+
+    	auto values = this->values();
+
+    	size_t pos[Blocks];
+
+    	for (Int b = 0; b < Blocks; b++)
+    	{
+    		Int global_idx = b * size + start;
+    		pos[b] = this->locate(0, global_idx);
+    	}
+
+    	Int c;
+    	for (c = start; c < end; c++)
+    	{
+    		for (Int b = 0; b  < Blocks; b++)
+    		{
+    			Value value;
+    			auto len = codec.decode(values, value, pos[b]);
+    			fn(b, value);
+    			pos[b] += len;
+    		}
+
+    		fn.next();
+    	}
+
+    	return c;
+    }
+
+
 
     template <typename T>
     void read(Int block, Int start, Int end, T* values) const
