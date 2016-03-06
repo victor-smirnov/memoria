@@ -174,7 +174,10 @@ private:
 
 			using Path = StreamsSizesPath<StreamIdx>;
 
-			node->template substream<Path>()->read(0, idx, limit, buffer);
+			Int idx0 = 0;
+			node->template substream<Path>()->read(0, idx, limit, make_fn_with_next([&](Int block, auto&& value){
+				buffer[idx0] = value;
+			}, [&]{idx0++;}));
 
 			Int anchor = anchors_[StreamIdx];
 			if (anchor >= idx && anchor < limit)

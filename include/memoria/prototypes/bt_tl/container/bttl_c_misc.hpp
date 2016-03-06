@@ -44,9 +44,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::MiscName)
 
     using PageUpdateMgt 	= typename Types::PageUpdateMgr;
 
-//    auto Begin() {
-//    	return self().template seek_stream<0>(0);
-//    }
+    auto begin() {
+    	return self().template seek_stream<0>(0);
+    }
 //
 //    auto End() {
 //    	auto& self = this->self();
@@ -57,16 +57,16 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::MiscName)
 //    	return self().template seek_stream<0>(0);
 //    }
 //
-//    auto end() {
-//    	auto& self = this->self();
-//    	return self.template seek_stream<0>(self.size());
-//    }
+    auto end() {
+    	auto& self = this->self();
+    	return self.template seek_stream<0>(self.size());
+    }
 //
 //
 //
-//    CtrSizeT size() const {
-//    	return self().sizes()[0];
-//    }
+    CtrSizeT size() const {
+    	return self().sizes()[0];
+    }
 //
 //    auto find(Key key)
 //    {
@@ -78,9 +78,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::MiscName)
 //    	return iter;
 //    }
 //
-//    auto seek(CtrSizeT pos)
-//    {
-//    	auto iter = self().template seek_stream<0>(pos);
+    auto seek(CtrSizeT pos)
+    {
+    	return self().template seek_stream<0>(pos);
 //
 //    	auto& cache = iter->cache();
 //
@@ -88,7 +88,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::MiscName)
 //    	cache.data_pos()[0]++;
 //
 //    	return iter;
-//    }
+    }
 
 
     CtrSizesT compute_extent(const NodeBaseG& leaf)

@@ -112,11 +112,6 @@ struct BTTLTestTypesBase: public BTTypes<Profile, BTTreeLayout> {
     		RawStreamDescriptors,
 			BTTLNavigationStruct
 	>::Type;
-
-    using Metadata = BalancedTreeMetadata<
-            typename Base::ID,
-            ListSize<StreamDescriptors>::Value
-    >;
 };
 
 

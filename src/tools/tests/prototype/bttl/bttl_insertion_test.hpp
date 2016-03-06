@@ -137,7 +137,7 @@ public:
     	auto iter = ctr.seek(insertion_pos_[0]);
 
     	for (Int s = 1; s <= level_; s++) {
-    		iter.toData(insertion_pos_[s]);
+    		iter->toData(insertion_pos_[s]);
     	}
 
     	for (Int s = 0; s < level_; s++) {
@@ -148,7 +148,7 @@ public:
 
     	DetInputProvider provider(shape_, level_);
 
-    	auto totals = ctr._insert(iter, provider);
+    	auto totals = ctr._insert(*iter.get(), provider);
 
     	auto new_sizes = ctr.sizes();
     	AssertEQ(MA_SRC, new_sizes, sizes + totals);
@@ -172,10 +172,10 @@ public:
 
     		for (Int s = 1; s <= level_; s++)
     		{
-    			iter.toData(insertion_pos_[s]);
+    			iter->toData(insertion_pos_[s]);
     		}
 
-    		this->checkSubtree(iter, totals[level_]);
+    		this->checkSubtree(*iter.get(), totals[level_]);
     	}
 
     	this->out()<<"Check subtree is done in "<<FormatTime(getTimeInMillis() - t0)<<endl;
@@ -284,7 +284,7 @@ public:
     		{
     			if (insertion_pos_[s - 1] < path_sizes[s - 1])
     			{
-    				auto local_size = iter.substream_size();
+    				auto local_size = iter->substream_size();
 
     				if (local_size > 0)
     				{
@@ -295,7 +295,7 @@ public:
     						insertion_pos_[s] = sampleSizeNZ(c, local_size);
     					}
 
-    					iter.toData(insertion_pos_[s]);
+    					iter->toData(insertion_pos_[s]);
     					level_ = s;
 
     					path_sizes[s] = local_size;

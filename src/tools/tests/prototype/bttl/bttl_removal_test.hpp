@@ -138,14 +138,14 @@ public:
     	auto iter = ctr.seek(removal_pos_[0]);
 
     	for (Int s = 1; s <= level_; s++) {
-    		iter.toData(removal_pos_[s]);
+    		iter->toData(removal_pos_[s]);
     	}
 
     	auto sizes_before = ctr.sizes();
 
     	out()<<"Remove "<<length_<<" elements data at: "<<removal_pos_<<" size: "<<sizes_before<<endl;
 
-    	iter.remove_subtrees(length_);
+    	iter->remove_subtrees(length_);
 
     	auto sizes_after = ctr.sizes();
     	auto ctr_totals = ctr.total_counts();
@@ -250,13 +250,13 @@ public:
 
 			for (Int s = 1; s <= level; s++)
 			{
-				auto local_size = iter.substream_size();
+				auto local_size = iter->substream_size();
 
 				if (local_size > 0)
 				{
 					removal_pos_[s] = sampleSize(c, local_size);
 
-					iter.toData(removal_pos_[s]);
+					iter->toData(removal_pos_[s]);
 					level_ = s;
 				}
 				else {
@@ -264,8 +264,8 @@ public:
 				}
 			}
 
-			auto pos  = iter.pos();
-			auto size = iter.size();
+			auto pos  = iter->pos();
+			auto size = iter->size();
 
 			auto len = size - pos;
 

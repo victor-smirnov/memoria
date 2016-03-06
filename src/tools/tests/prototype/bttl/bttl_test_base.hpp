@@ -206,11 +206,11 @@ public:
     	{
     		if (path[s] >= 0)
     		{
-    			iter.toData(path[s]);
+    			iter->toData(path[s]);
     		}
     	}
 
-    	this->checkSubtree(iter, 1);
+    	this->checkSubtree(*iter.get(), 1);
     }
 
 

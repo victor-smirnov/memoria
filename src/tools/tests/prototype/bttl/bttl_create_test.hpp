@@ -73,7 +73,7 @@ public:
     	Base(name)
     {
     	MEMORIA_ADD_TEST(testDetProvider);
-    	MEMORIA_ADD_TEST(testRngProvider);
+//    	MEMORIA_ADD_TEST(testRngProvider);
     }
 
     virtual ~BTTLCreateTest() throw () {}
