@@ -194,15 +194,19 @@ public:
 
     	for (Int l = level + 1; l < Streams; l++)
     	{
-    		AssertEQ(source, cache.data_pos()[l], -1, SBuf()<<"Position for level "<<l<<" is not default (-1)");
-    		AssertEQ(source, cache.data_size()[l], -1, SBuf()<<"Substream size for level "<<l<<" is not default (-1)");
-    		AssertEQ(source, cache.abs_pos()[l], -1, SBuf()<<"Absolute position for level "<<l<<" is not default (-1)");
+    		AssertEQ(source, cache.data_pos()[l], -1, SBuf() << "Position for level " << l << " is not default (-1)");
+    		AssertEQ(source, cache.data_size()[l], -1, SBuf() << "Substream size for level " << l << " is not default (-1)");
+    		AssertEQ(source, cache.abs_pos()[l], -1, SBuf() << "Absolute position for level " << l << " is not default (-1)");
     	}
+
+    	iter->checkPrefix();
     }
 
 
     void scanAndCheckIterator(Ctr& ctr)
     {
+    	out() << "Scan Iterator for " << ctr.sizes() << endl;
+
     	CtrSizesT pos{-1};
     	CtrSizesT abs_pos;
 
@@ -226,6 +230,10 @@ private:
     		for (CtrSizeT c = 0; c < size; c++)
     		{
     			auto substream_size = iter->substream_size();
+
+    			if (level == 0) {
+    				this->out() << "Scan Iterator: row " << c << endl;
+    			}
 
     			iter->toData();
 

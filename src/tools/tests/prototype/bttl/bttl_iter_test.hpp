@@ -166,6 +166,8 @@ public:
 
             check(snp, "Snapshot check failed", MA_RAW_SRC);
 
+            scanAndCheckIterator(*ctr.get());
+
             for (CtrSizeT r = 0; r < totals[0]; r++)
             {
                 CtrSizesT path(-1);
