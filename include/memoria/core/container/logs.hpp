@@ -10,6 +10,7 @@
 #define _MEMORIA_CORE_API_MODELS_LOGS_HPP
 
 #include <memoria/core/tools/id.hpp>
+#include <memoria/core/tools/uuid.hpp>
 #include <iostream>
 #include <iomanip>
 
@@ -61,6 +62,7 @@ struct MEMORIA_API LogHandler {
     virtual void log(StringRef value)   = 0;
     virtual void log(const char* value) = 0;
     virtual void log(const void* value) = 0;
+    virtual void log(const UUID& value) = 0;
 
     virtual void log(...) = 0;
 
@@ -235,6 +237,7 @@ public:
     virtual void log(StringRef value)       {preprocess(); out_<<value; postprocess();}
     virtual void log(const char* value)     {preprocess(); out_<<value; postprocess();}
     virtual void log(const void* value)     {preprocess(); out_<<value; postprocess();}
+    virtual void log(const UUID& value)     {preprocess(); out_<<value; postprocess();}
 
     virtual void log(...)                   {preprocess(); out_<<"DEFAULT"; postprocess();}
 

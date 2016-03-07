@@ -388,6 +388,8 @@ typename M_TYPE::IteratorPtr M_TYPE::find_(Walker&& walker)
 
     IteratorPtr i = self.make_iterator();
 
+    i->prepare();
+
     NodeBaseG node = self.getRoot();
     if (node.isSet())
     {

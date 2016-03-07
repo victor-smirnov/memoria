@@ -252,17 +252,18 @@ public:
 
     void testInsertForLevel(Int level)
     {
-    	out()<<"Test for level: "<<level<<endl;
+    	out() << "Test for level: " << level << endl;
 
     	auto snp = branch();
 
     	auto ctr_name = create<CtrName>(snp)->name();
+    	out() << "Container Name: " << ctr_name << endl;
 
     	commit();
 
     	for (Int c = 0; c < iterations && checkSoftMemLimit(); c++)
     	{
-    		out()<<"Iteration: "<<c<<endl;
+    		out() << "Iteration: " << c << endl;
 
     		auto snp = branch();
     		auto ctr = find<CtrName>(snp, ctr_name);
@@ -277,7 +278,10 @@ public:
     		path_sizes[0] = sizes[0];
 
 
+
     		auto iter = ctr->seek(insertion_pos_[0]);
+
+
     		level_ = 0;
 
     		for (Int s = 1; s <= level; s++)
@@ -313,7 +317,7 @@ public:
 
     		testInsertionStep(*ctr.get());
 
-    		out()<<"Sizes: "<<ctr->sizes()<<endl<<endl;
+    		out() << "Sizes: " << ctr->sizes() << endl << endl;
 
     		commit();
     	}

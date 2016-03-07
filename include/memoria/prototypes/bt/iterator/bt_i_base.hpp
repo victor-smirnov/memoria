@@ -314,6 +314,8 @@ public:
         self.ctr().dump(self.leaf(), out);
     }
 
+    void prepare() {}
+
     void init() {}
 
     template <typename Walker>

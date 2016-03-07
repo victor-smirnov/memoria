@@ -622,7 +622,7 @@ public:
     {
     	auto buffer_values = buffer->values() + starts[0] * Blocks;
 
-    	_insert(at[0], inserted, [=](Int block, Int idx) {
+    	_insert(at[0], inserted, [&](Int block, Int idx) {
     		return buffer_values[idx * Blocks + block];
     	});
 
@@ -633,7 +633,7 @@ public:
     {
     	auto buffer_values = buffer->values() + start * Blocks;
 
-    	_insert(at, inserted, [=](Int block, Int idx) {
+    	_insert(at, inserted, [&](Int block, Int idx) {
     		return buffer_values[idx * Blocks + block];
     	});
     }
@@ -684,6 +684,7 @@ public:
 
     BigInt setValue(Int block, Int idx, Value value)
     {
+    	// FIXME: Why do we skip setting if value is zero
     	if (value != 0)
     	{
     		Value val = this->value(block, idx);

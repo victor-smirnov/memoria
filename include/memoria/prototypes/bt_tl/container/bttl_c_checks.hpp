@@ -39,8 +39,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::ChecksName)
 	using Key 	= typename Types::Key;
 	using Value = typename Types::Value;
 
-    using CtrSizesT	= Position;
-
     static const Int Streams = Types::Streams;
 
     using PageUpdateMgt = typename Types::PageUpdateMgr;

@@ -283,7 +283,7 @@ public:
     		{
     			auto ranks = ctr.leafrank_(i->leaf(), sizes, prefix_ranks, c);
 
-    			AssertEQ(MA_SRC, ranks.sum(), c, SBuf()<<DebugCounter);
+    			AssertEQ(MA_SRC, ranks.sum(), c);
 
     			c += this->getRandom(100) + 1;
     		}

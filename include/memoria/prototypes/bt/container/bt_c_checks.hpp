@@ -80,7 +80,7 @@ public:
 
 
 
-//PRIVATE API:
+private:
     void checkTreeStructure(const NodeBaseG& parent, Int parent_idx, const NodeBaseG& node, bool &errors) const;
 
 

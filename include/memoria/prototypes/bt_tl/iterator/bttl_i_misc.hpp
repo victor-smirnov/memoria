@@ -111,7 +111,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorMiscName)
 
     	cache.data_size()[0] = self.ctr().sizes()[0];
 
-    	// FIXME: Is it necessary here?
+    	// FIXME: Is it necessary here? Is it correct?
     	cache.data_pos()[0] = 0;
     	cache.abs_pos()[0] = 0;
     }
@@ -126,6 +126,14 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorMiscName)
     	MEMORIA_ASSERT(self().cache(), ==, tmp.cache());
     }
 
+    void prepare() {
+    	Base::prepare();
+
+    	auto& self = this->self();
+    	auto& cache = self.cache();
+
+    	cache.data_pos()[0] = 0;
+    }
 
 
     void init()

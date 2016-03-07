@@ -519,6 +519,13 @@ protected:
 
     	Codec codec;
     	Int end = start + length;
+
+    	if (data_size < end) {
+    		cout << "RemoeSpace: " << this->size() << endl;
+    	}
+
+    	MEMORIA_ASSERT(data_size, >=, end);
+
     	codec.move(values, end, start, data_size - end);
 
     	resize(block, data_size, start, -(end - start));
@@ -926,13 +933,13 @@ public:
     template <typename UpdateFn>
     void update_value(Int block, Int start, UpdateFn&& update_fn)
     {
-    	if(start > this->size()) {
+    	if(start >= this->size()) {
 //    		this->dump();
     		cout<<"Update Value!"<<endl;
     		int a = 0; a++;
     	}
 
-    	MEMORIA_ASSERT(start, <=, this->size());
+    	MEMORIA_ASSERT(start, <, this->size());
     	MEMORIA_ASSERT(start, >=, 0);
     	MEMORIA_ASSERT(block, >=, 0);
     	MEMORIA_ASSERT(block, <=, Blocks);

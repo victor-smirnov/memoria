@@ -560,7 +560,6 @@ public:
 	{
 		CtrT::Types::Pages::LeafDispatcher::dispatch(leaf, InsertBufferFn(), at, start_, sizes, buffer_);
 
-//		auto end = at + sizes;
 
 		if (leaf->parent_id().isSet())
 		{
