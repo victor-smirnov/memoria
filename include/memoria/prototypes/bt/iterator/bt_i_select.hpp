@@ -35,23 +35,23 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorSelectName)
     template <typename LeafPath>
     auto select_fw_(Int index, CtrSizeT rank)
     {
-    	MEMORIA_ASSERT(index, >=, 0);
-    	MEMORIA_ASSERT(rank, >=, 0);
+        MEMORIA_ASSERT(index, >=, 0);
+        MEMORIA_ASSERT(rank, >=, 0);
 
-    	typename Types::template SelectForwardWalker<Types, LeafPath> walker(index, rank);
+        typename Types::template SelectForwardWalker<Types, LeafPath> walker(index, rank);
 
-    	return self().find_fw(walker);
+        return self().find_fw(walker);
     }
 
     template <typename LeafPath>
     auto select_bw_(Int index, CtrSizeT rank)
     {
-    	MEMORIA_ASSERT(index, >=, 0);
-    	MEMORIA_ASSERT(rank, >=, 0);
+        MEMORIA_ASSERT(index, >=, 0);
+        MEMORIA_ASSERT(rank, >=, 0);
 
-    	typename Types::template SelectBackwardWalker<Types, LeafPath> walker(index, rank);
+        typename Types::template SelectBackwardWalker<Types, LeafPath> walker(index, rank);
 
-    	return self().find_bw(walker);
+        return self().find_bw(walker);
     }
 MEMORIA_ITERATOR_PART_END
 

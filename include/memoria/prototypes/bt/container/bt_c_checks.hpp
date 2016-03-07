@@ -31,10 +31,10 @@ public:
 
     typedef typename Types::NodeBaseG                                           NodeBaseG;
 
-    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
-    using TreeDispatcher 	= typename Types::Pages::TreeDispatcher;
+    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
+    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
+    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
+    using TreeDispatcher    = typename Types::Pages::TreeDispatcher;
 
     typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
 
@@ -194,7 +194,7 @@ bool M_TYPE::checkTypedNodeContent(const Node1 *parent, const Node2* node, Int p
     if (sums != keys)
     {
         MEMORIA_ERROR(
-        		self(),
+                self(),
                 "Invalid parent-child nodes chain",
                 (SBuf()<<sums).str(),
                 (SBuf()<<keys).str(),

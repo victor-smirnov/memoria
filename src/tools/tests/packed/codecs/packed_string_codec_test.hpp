@@ -21,7 +21,7 @@ namespace memoria {
 class PackedStringCodecTest: public PackedCodecsTestBase<String> {
 
     using MyType = PackedStringCodecTest;
-    using Base 	 = PackedCodecsTestBase<String>;
+    using Base   = PackedCodecsTestBase<String>;
 
 public:
 
@@ -35,91 +35,91 @@ public:
 
     void testShortStrings()
     {
-    	size_t block_size = 1024*1024ull;
+        size_t block_size = 1024*1024ull;
 
-    	unique_ptr<UByte[]> buf = make_unique<UByte[]>(block_size);
+        unique_ptr<UByte[]> buf = make_unique<UByte[]>(block_size);
 
-    	ValueCodec<String> codec;
+        ValueCodec<String> codec;
 
-    	size_t cnt = 0;
-    	for (size_t pos = 0; pos < block_size - 100; cnt++)
-    	{
-    		String value = toString(pos);
+        size_t cnt = 0;
+        for (size_t pos = 0; pos < block_size - 100; cnt++)
+        {
+            String value = toString(pos);
 
-    		auto len = codec.encode(buf.get(), value, pos);
+            auto len = codec.encode(buf.get(), value, pos);
 
-    		try {
-    			AssertEQ(MA_SRC, len, codec.length(value));
-    			AssertEQ(MA_SRC, len, codec.length(buf.get(), pos, -1ull));
-    		}
-    		catch(...) {
-    			cout << "Value: " << value << endl;
-    			throw;
-    		}
+            try {
+                AssertEQ(MA_SRC, len, codec.length(value));
+                AssertEQ(MA_SRC, len, codec.length(buf.get(), pos, -1ull));
+            }
+            catch(...) {
+                cout << "Value: " << value << endl;
+                throw;
+            }
 
-    		pos += len;
-    	}
+            pos += len;
+        }
 
-    	for (size_t pos = 0, c = 0; c < cnt; c++)
-    	{
-    		String val;
-    		auto len = codec.decode(buf.get(), val, pos);
+        for (size_t pos = 0, c = 0; c < cnt; c++)
+        {
+            String val;
+            auto len = codec.decode(buf.get(), val, pos);
 
-    		AssertEQ(MA_SRC, val, toString(pos));
+            AssertEQ(MA_SRC, val, toString(pos));
 
-    		pos += len;
-    	}
+            pos += len;
+        }
     }
 
 
     void testLongStrings()
     {
-    	size_t block_size = 1024*1024ull;
+        size_t block_size = 1024*1024ull;
 
-    	unique_ptr<UByte[]> buf = make_unique<UByte[]>(block_size);
+        unique_ptr<UByte[]> buf = make_unique<UByte[]>(block_size);
 
-    	ValueCodec<String> codec;
+        ValueCodec<String> codec;
 
-    	size_t cnt = 0;
-    	for (size_t pos = 0; pos < block_size - 1000; cnt++)
-    	{
-    		String value = replicate(toString(pos), 20);
+        size_t cnt = 0;
+        for (size_t pos = 0; pos < block_size - 1000; cnt++)
+        {
+            String value = replicate(toString(pos), 20);
 
-    		auto len = codec.encode(buf.get(), value, pos);
+            auto len = codec.encode(buf.get(), value, pos);
 
-    		try {
-    			AssertEQ(MA_SRC, len, codec.length(value));
-    			AssertEQ(MA_SRC, len, codec.length(buf.get(), pos, -1ull));
-    		}
-    		catch(...) {
-    			cout << "Value: " << value << endl;
-    			throw;
-    		}
+            try {
+                AssertEQ(MA_SRC, len, codec.length(value));
+                AssertEQ(MA_SRC, len, codec.length(buf.get(), pos, -1ull));
+            }
+            catch(...) {
+                cout << "Value: " << value << endl;
+                throw;
+            }
 
-    		pos += len;
-    	}
+            pos += len;
+        }
 
-    	for (size_t pos = 0, c = 0; c < cnt; c++)
-    	{
-    		String val;
-    		auto len = codec.decode(buf.get(), val, pos);
+        for (size_t pos = 0, c = 0; c < cnt; c++)
+        {
+            String val;
+            auto len = codec.decode(buf.get(), val, pos);
 
-    		AssertEQ(MA_SRC, val, replicate(toString(pos), 20));
+            AssertEQ(MA_SRC, val, replicate(toString(pos), 20));
 
-    		pos += len;
-    	}
+            pos += len;
+        }
     }
 
 private:
     String replicate(const String& st, size_t times)
     {
-    	String val;
+        String val;
 
-    	for (size_t c = 0; c < times; c++) {
-    		val += st;
-    	}
+        for (size_t c = 0; c < times; c++) {
+            val += st;
+        }
 
-    	return val;
+        return val;
     }
 };
 

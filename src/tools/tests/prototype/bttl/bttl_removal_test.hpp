@@ -22,35 +22,35 @@ namespace memoria {
 
 template <
     typename CtrName,
-	typename AllocatorT 	= PersistentInMemAllocator<>,
-	typename ProfileT		= DefaultProfile<>
+    typename AllocatorT     = PersistentInMemAllocator<>,
+    typename ProfileT       = DefaultProfile<>
 >
 class BTTLRemovalTest;
 
 template <
-	Int Levels,
-	PackedSizeType SizeType,
-	typename AllocatorT,
-	typename ProfileT
+    Int Levels,
+    PackedSizeType SizeType,
+    typename AllocatorT,
+    typename ProfileT
 >
 class BTTLRemovalTest<BTTLTestCtr<Levels, SizeType>, AllocatorT, ProfileT>: public BTTLTestBase<BTTLTestCtr<Levels, SizeType>, AllocatorT, ProfileT> {
 
-	using CtrName = BTTLTestCtr<Levels, SizeType>;
+    using CtrName = BTTLTestCtr<Levels, SizeType>;
 
-    using Base 	 = BTTLTestBase<CtrName, AllocatorT, ProfileT>;
+    using Base   = BTTLTestBase<CtrName, AllocatorT, ProfileT>;
     using MyType = BTTLRemovalTest<CtrName, AllocatorT, ProfileT>;
 
-    using Allocator 	= typename Base::Allocator;
-    using AllocatorPtr 	= typename Base::AllocatorPtr;
-    using Ctr 			= typename Base::Ctr;
+    using Allocator     = typename Base::Allocator;
+    using AllocatorPtr  = typename Base::AllocatorPtr;
+    using Ctr           = typename Base::Ctr;
 
-    using DetInputProvider  	= bttl::DeterministicDataInputProvider<Ctr>;
-    using RngInputProvider  	= bttl::RandomDataInputProvider<Ctr, RngInt>;
+    using DetInputProvider      = bttl::DeterministicDataInputProvider<Ctr>;
+    using RngInputProvider      = bttl::RandomDataInputProvider<Ctr, RngInt>;
 
-    using Rng 			 = typename RngInputProvider::Rng;
+    using Rng            = typename RngInputProvider::Rng;
 
-    using CtrSizesT 	 = typename Ctr::Types::Position;
-    using CtrSizeT 	 	 = typename Ctr::Types::CtrSizeT;
+    using CtrSizesT      = typename Ctr::Types::Position;
+    using CtrSizeT       = typename Ctr::Types::CtrSizeT;
 
     static const Int Streams = Ctr::Types::Streams;
 
@@ -82,208 +82,208 @@ class BTTLRemovalTest<BTTLTestCtr<Levels, SizeType>, AllocatorT, ProfileT>: publ
     using Base::last_level_limit;
 
 
-	Int level  = -1;
+    Int level  = -1;
 
-	CtrSizeT 	length_;
-	CtrSizesT	removal_pos_;
-	UUID		ctr_name_;
+    CtrSizeT    length_;
+    CtrSizesT   removal_pos_;
+    UUID        ctr_name_;
 
-	Int level_;
+    Int level_;
 
 public:
 
     BTTLRemovalTest(String name):
-    	Base(name)
+        Base(name)
     {
 
-    	MEMORIA_ADD_TEST_PARAM(level);
+        MEMORIA_ADD_TEST_PARAM(level);
 
-    	MEMORIA_ADD_TEST_PARAM(length_)->state();
-    	MEMORIA_ADD_TEST_PARAM(removal_pos_)->state();
-    	MEMORIA_ADD_TEST_PARAM(ctr_name_)->state();
-    	MEMORIA_ADD_TEST_PARAM(level_)->state();
+        MEMORIA_ADD_TEST_PARAM(length_)->state();
+        MEMORIA_ADD_TEST_PARAM(removal_pos_)->state();
+        MEMORIA_ADD_TEST_PARAM(ctr_name_)->state();
+        MEMORIA_ADD_TEST_PARAM(level_)->state();
 
-    	MEMORIA_ADD_TEST_WITH_REPLAY(testRemove, replayRemove);
+        MEMORIA_ADD_TEST_WITH_REPLAY(testRemove, replayRemove);
     }
 
     virtual ~BTTLRemovalTest() throw () {}
 
     virtual void smokeCoverage(Int scale)
     {
-    	this->size 			= 10000  * scale;
-    	this->iterations	= 1;
+        this->size          = 10000  * scale;
+        this->iterations    = 1;
     }
 
     virtual void smallCoverage(Int scale)
     {
-    	this->size 			= 100000  * scale;
-    	this->iterations	= 3;
+        this->size          = 100000  * scale;
+        this->iterations    = 3;
     }
 
     virtual void normalCoverage(Int scale)
     {
-    	this->size 			= 100000 * scale;
-    	this->iterations	= 50;
+        this->size          = 100000 * scale;
+        this->iterations    = 50;
     }
 
     virtual void largeCoverage(Int scale)
     {
-    	this->size 			= 1000000 * scale;
-    	this->iterations	= 10;
+        this->size          = 1000000 * scale;
+        this->iterations    = 10;
     }
 
 
     void testRemovalStep(Ctr& ctr)
     {
-    	auto iter = ctr.seek(removal_pos_[0]);
+        auto iter = ctr.seek(removal_pos_[0]);
 
-    	for (Int s = 1; s <= level_; s++) {
-    		iter->toData(removal_pos_[s]);
-    	}
+        for (Int s = 1; s <= level_; s++) {
+            iter->toData(removal_pos_[s]);
+        }
 
-    	auto sizes_before = ctr.sizes();
+        auto sizes_before = ctr.sizes();
 
-    	out()<<"Remove "<<length_<<" elements data at: "<<removal_pos_<<" size: "<<sizes_before<<endl;
+        out()<<"Remove "<<length_<<" elements data at: "<<removal_pos_<<" size: "<<sizes_before<<endl;
 
-    	iter->remove_subtrees(length_);
+        iter->remove_subtrees(length_);
 
-    	auto sizes_after = ctr.sizes();
-    	auto ctr_totals = ctr.total_counts();
+        auto sizes_after = ctr.sizes();
+        auto ctr_totals = ctr.total_counts();
 
-    	out()<<"Totals: "<<ctr_totals<<" "<<sizes_after<<endl;
-    	AssertEQ(MA_SRC, ctr_totals, sizes_after);
+        out()<<"Totals: "<<ctr_totals<<" "<<sizes_after<<endl;
+        AssertEQ(MA_SRC, ctr_totals, sizes_after);
 
-    	check(MA_SRC, "Remove: Container Check Failed");
+        check(MA_SRC, "Remove: Container Check Failed");
 
-    	checkExtents(ctr);
+        checkExtents(ctr);
 
-    	checkTree(ctr);
+        checkTree(ctr);
     }
 
     void replayRemove()
     {
-    	out()<<"Replay!"<<endl;
+        out()<<"Replay!"<<endl;
 
-    	auto snp = branch();
+        auto snp = branch();
 
-    	auto ctr = find<CtrName>(snp, ctr_name_);
+        auto ctr = find<CtrName>(snp, ctr_name_);
 
-    	testRemovalStep(*ctr.get());
+        testRemovalStep(*ctr.get());
 
-    	commit();
+        commit();
     }
 
     CtrSizeT sampleSize(Int iteration, CtrSizeT size)
     {
-    	if (iteration % 3 == 0)
-    	{
-    		return this->getRandom(size);
-    	}
-    	else if (iteration % 3 == 1) {
-    		return size - 1;
-    	}
-    	else {
-    		return 0;
-    	}
+        if (iteration % 3 == 0)
+        {
+            return this->getRandom(size);
+        }
+        else if (iteration % 3 == 1) {
+            return size - 1;
+        }
+        else {
+            return 0;
+        }
     }
 
     void testRemove() {
 
-    	if (level == -1)
-    	{
-    		for (Int c = 0; c < Levels; c++)
-    		{
-    			testRemovalForLevel(c);
-    			out()<<endl;
-    		}
-    	}
-    	else {
-    		testRemovalForLevel(level);
-    	}
+        if (level == -1)
+        {
+            for (Int c = 0; c < Levels; c++)
+            {
+                testRemovalForLevel(c);
+                out()<<endl;
+            }
+        }
+        else {
+            testRemovalForLevel(level);
+        }
     }
 
     void testRemovalForLevel(Int level)
     {
-    	out()<<"Test for level: "<<level<<endl;
+        out()<<"Test for level: "<<level<<endl;
 
-    	auto snp = branch();
+        auto snp = branch();
 
-    	auto ctr_name = create<CtrName>(snp)->name();
+        auto ctr_name = create<CtrName>(snp)->name();
 
-    	commit();
+        commit();
 
-		auto shape = sampleTreeShape();
+        auto shape = sampleTreeShape();
 
-		BigInt total_sum;
+        BigInt total_sum;
 
-		{
-			auto snp = branch();
-			auto ctr = find<CtrName>(snp, ctr_name);
+        {
+            auto snp = branch();
+            auto ctr = find<CtrName>(snp, ctr_name);
 
-			out()<<"shape: "<<shape<<endl;
+            out()<<"shape: "<<shape<<endl;
 
-			RngInputProvider provider(shape, this->getIntTestGenerator());
+            RngInputProvider provider(shape, this->getIntTestGenerator());
 
-			fillCtr(*ctr.get(), provider);
+            fillCtr(*ctr.get(), provider);
 
-			total_sum = ctr->sizes().sum();
+            total_sum = ctr->sizes().sum();
 
-			commit();
-		}
+            commit();
+        }
 
 
-		for (Int c = 0; c < iterations && total_sum > 0; c++)
-		{
-			out()<<"Iteration: "<<c<<endl;
+        for (Int c = 0; c < iterations && total_sum > 0; c++)
+        {
+            out()<<"Iteration: "<<c<<endl;
 
-			auto snp = branch();
-			auto ctr = find<CtrName>(snp, ctr_name);
+            auto snp = branch();
+            auto ctr = find<CtrName>(snp, ctr_name);
 
-			auto sizes = ctr->sizes();
+            auto sizes = ctr->sizes();
 
-			removal_pos_ = CtrSizesT(-1);
+            removal_pos_ = CtrSizesT(-1);
 
-			removal_pos_[0] = sampleSize(c, sizes[0]);
+            removal_pos_[0] = sampleSize(c, sizes[0]);
 
-			auto iter = ctr->seek(removal_pos_[0]);
-			level_ = 0;
+            auto iter = ctr->seek(removal_pos_[0]);
+            level_ = 0;
 
-			for (Int s = 1; s <= level; s++)
-			{
-				auto local_size = iter->substream_size();
+            for (Int s = 1; s <= level; s++)
+            {
+                auto local_size = iter->substream_size();
 
-				if (local_size > 0)
-				{
-					removal_pos_[s] = sampleSize(c, local_size);
+                if (local_size > 0)
+                {
+                    removal_pos_[s] = sampleSize(c, local_size);
 
-					iter->toData(removal_pos_[s]);
-					level_ = s;
-				}
-				else {
-					break;
-				}
-			}
+                    iter->toData(removal_pos_[s]);
+                    level_ = s;
+                }
+                else {
+                    break;
+                }
+            }
 
-			auto pos  = iter->pos();
-			auto size = iter->size();
+            auto pos  = iter->pos();
+            auto size = iter->size();
 
-			auto len = size - pos;
+            auto len = size - pos;
 
-			if (len > 0) {
-				length_ = getRandom(len - 1) + 1;
-			}
-			else {
-				length_ = 0;
-			}
+            if (len > 0) {
+                length_ = getRandom(len - 1) + 1;
+            }
+            else {
+                length_ = 0;
+            }
 
-			testRemovalStep(*ctr.get());
+            testRemovalStep(*ctr.get());
 
-			out()<<"Sizes: "<<ctr->sizes()<<endl<<endl;
+            out()<<"Sizes: "<<ctr->sizes()<<endl<<endl;
 
-			total_sum = ctr->sizes().sum();
+            total_sum = ctr->sizes().sum();
 
-			commit();
-		}
+            commit();
+        }
     }
 };
 

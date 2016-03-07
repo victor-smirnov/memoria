@@ -22,94 +22,94 @@ namespace memoria    {
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::MiscName)
 
-	using typename Base::Types;
+    using typename Base::Types;
 
-	using typename Base::NodeBaseG;
-	using typename Base::IteratorPtr;
+    using typename Base::NodeBaseG;
+    using typename Base::IteratorPtr;
 
-	using typename Base::NodeDispatcher;
-	using typename Base::LeafDispatcher;
-	using typename Base::BranchDispatcher;
-	using typename Base::Position;
-	using typename Base::BranchNodeEntry;
-	using typename Base::PageUpdateMgr;
-	using typename Base::CtrSizeT;
+    using typename Base::NodeDispatcher;
+    using typename Base::LeafDispatcher;
+    using typename Base::BranchDispatcher;
+    using typename Base::Position;
+    using typename Base::BranchNodeEntry;
+    using typename Base::PageUpdateMgr;
+    using typename Base::CtrSizeT;
 
-	using Key 	= typename Types::Key;
-	using Value = typename Types::Value;
+    using Key   = typename Types::Key;
+    using Value = typename Types::Value;
 
-    using CtrSizesT	= Position;
+    using CtrSizesT = Position;
 
     static const Int Streams = Types::Streams;
 
-    using PageUpdateMgt 	= typename Types::PageUpdateMgr;
+    using PageUpdateMgt     = typename Types::PageUpdateMgr;
 
     auto begin() {
-    	return self().template seek_stream<0>(0);
+        return self().template seek_stream<0>(0);
     }
 //
 //    auto End() {
-//    	auto& self = this->self();
-//    	return self.template seek_stream<0>(self.sizes()[0]);
+//      auto& self = this->self();
+//      return self.template seek_stream<0>(self.sizes()[0]);
 //    }
 //
 //    auto begin() {
-//    	return self().template seek_stream<0>(0);
+//      return self().template seek_stream<0>(0);
 //    }
 //
     auto end() {
-    	auto& self = this->self();
-    	return self.template seek_stream<0>(self.size());
+        auto& self = this->self();
+        return self.template seek_stream<0>(self.size());
     }
 //
 //
 //
     CtrSizeT size() const {
-    	return self().sizes()[0];
+        return self().sizes()[0];
     }
 //
 //    auto find(Key key)
 //    {
-//    	auto iter = self().template find_ge<IntList<0>>(0, key);
+//      auto iter = self().template find_ge<IntList<0>>(0, key);
 //
-//    	iter.cache().data_size()[0] = self().size();
-//    	iter.cache().data_pos()[0]++;
+//      iter.cache().data_size()[0] = self().size();
+//      iter.cache().data_pos()[0]++;
 //
-//    	return iter;
+//      return iter;
 //    }
 //
     auto seek(CtrSizeT pos)
     {
-    	return self().template seek_stream<0>(pos);
+        return self().template seek_stream<0>(pos);
 //
-//    	auto& cache = iter->cache();
+//      auto& cache = iter->cache();
 //
-//    	cache.data_size()[0] = self().size();
-//    	cache.data_pos()[0]++;
+//      cache.data_size()[0] = self().size();
+//      cache.data_pos()[0]++;
 //
-//    	return iter;
+//      return iter;
     }
 
 
     CtrSizesT compute_extent(const NodeBaseG& leaf)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	auto i = self.seek(0);
+        auto i = self.seek(0);
 
-    	CtrSizesT extent;
+        CtrSizesT extent;
 
-    	while (i.leaf() != leaf)
-    	{
-    		extent += self.node_extents(i.leaf());
+        while (i.leaf() != leaf)
+        {
+            extent += self.node_extents(i.leaf());
 
-    		if (!i.nextLeaf())
-    		{
-    			throw Exception(MA_SRC, "Premature end of tree");
-    		}
-    	}
+            if (!i.nextLeaf())
+            {
+                throw Exception(MA_SRC, "Premature end of tree");
+            }
+        }
 
-    	return extent;
+        return extent;
     }
 
 

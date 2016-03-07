@@ -33,68 +33,68 @@ template <PackedSizeType LeafSizeType, PackedSizeType BranchSizeType>
 class BTSSTestCtr {};
 
 template <
-	PackedSizeType LeafSizeType,
-	PackedSizeType BranchSizeType,
-	typename CtrSizeT,
-	Int Indexes = 1
+    PackedSizeType LeafSizeType,
+    PackedSizeType BranchSizeType,
+    typename CtrSizeT,
+    Int Indexes = 1
 > struct BTSSTestStreamTF;
 
 template <typename CtrSizeT, Int Indexes>
 struct BTSSTestStreamTF<PackedSizeType::FIXED, PackedSizeType::FIXED, CtrSizeT, Indexes> {
-	using Type = StreamTF<
-			TL<TL<
-				StreamSize,
-				PkdFQTreeT<CtrSizeT, Indexes>
-			>>,
-			FSEBranchStructTF,
-			TL<TL<TL<>, TL<SumRange<0, Indexes>>>>
-	>;
+    using Type = StreamTF<
+            TL<TL<
+                StreamSize,
+                PkdFQTreeT<CtrSizeT, Indexes>
+            >>,
+            FSEBranchStructTF,
+            TL<TL<TL<>, TL<SumRange<0, Indexes>>>>
+    >;
 };
 
 
 template <typename CtrSizeT, Int Indexes>
 struct BTSSTestStreamTF<PackedSizeType::VARIABLE, PackedSizeType::FIXED, CtrSizeT, Indexes> {
-	using Type = StreamTF<
-			TL<TL<
-				StreamSize,
-				PkdVQTreeT<CtrSizeT, Indexes, UByteI7Codec>
-			>>,
-			FSEBranchStructTF,
-			TL<TL<TL<>, TL<SumRange<0, Indexes>>>>
-	>;
+    using Type = StreamTF<
+            TL<TL<
+                StreamSize,
+                PkdVQTreeT<CtrSizeT, Indexes, UByteI7Codec>
+            >>,
+            FSEBranchStructTF,
+            TL<TL<TL<>, TL<SumRange<0, Indexes>>>>
+    >;
 };
 
 
 template <typename CtrSizeT, Int Indexes>
 struct BTSSTestStreamTF<PackedSizeType::FIXED, PackedSizeType::VARIABLE, CtrSizeT, Indexes> {
-	using Type = StreamTF<
-			TL<TL<
-				StreamSize,
-				PkdFQTreeT<CtrSizeT, Indexes>
-			>>,
-			VLQBranchStructTF,
-			TL<TL<TL<>, TL<SumRange<0, Indexes>>>>
-	>;
+    using Type = StreamTF<
+            TL<TL<
+                StreamSize,
+                PkdFQTreeT<CtrSizeT, Indexes>
+            >>,
+            VLQBranchStructTF,
+            TL<TL<TL<>, TL<SumRange<0, Indexes>>>>
+    >;
 };
 
 
 template <typename CtrSizeT, Int Indexes>
 struct BTSSTestStreamTF<PackedSizeType::VARIABLE, PackedSizeType::VARIABLE, CtrSizeT, Indexes> {
-	using Type = StreamTF<
-			TL<TL<
-				StreamSize,
-				PkdVDTreeT<CtrSizeT, Indexes, UByteI7Codec>
-			>>,
-			VLQBranchStructTF,
-			TL<TL<TL<>, TL<SumRange<0, Indexes>>>>
-	>;
+    using Type = StreamTF<
+            TL<TL<
+                StreamSize,
+                PkdVDTreeT<CtrSizeT, Indexes, UByteI7Codec>
+            >>,
+            VLQBranchStructTF,
+            TL<TL<TL<>, TL<SumRange<0, Indexes>>>>
+    >;
 };
 
 
 template <
     typename Profile,
     PackedSizeType LeafSizeType,
-	PackedSizeType BranchSizeType
+    PackedSizeType BranchSizeType
 >
 struct BTSSTestTypesBase: public BTTypes<Profile, BTSingleStream> {
 
@@ -104,8 +104,8 @@ struct BTSSTestTypesBase: public BTTypes<Profile, BTSingleStream> {
     using CtrSizeT = BigInt;
 
     using StreamDescriptors = TL<
-    		typename BTSSTestStreamTF<LeafSizeType, BranchSizeType, CtrSizeT, 1>::Type
-	>;
+            typename BTSSTestStreamTF<LeafSizeType, BranchSizeType, CtrSizeT, 1>::Type
+    >;
 
     using Entry = CtrSizeT;
 };
@@ -119,7 +119,7 @@ struct BTSSTestTypesBase: public BTTypes<Profile, BTSingleStream> {
 template <
     typename Profile,
     PackedSizeType LeafSizeType,
-	PackedSizeType BranchSizeType
+    PackedSizeType BranchSizeType
 >
 struct BTTypes<Profile, BTSSTestCtr<LeafSizeType, BranchSizeType>>: public BTSSTestTypesBase<Profile, LeafSizeType, BranchSizeType>
 {

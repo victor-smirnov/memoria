@@ -44,8 +44,8 @@ public:
 
         if (result.is_found())
         {
-        	sum  += rank;
-        	return StreamOpResult(result.idx(), start, false);
+            sum  += rank;
+            return StreamOpResult(result.idx(), start, false);
         }
         else {
             Int size = seq->size();
@@ -119,8 +119,8 @@ public:
 
         if (result.is_found())
         {
-        	sum += target;
-        	return StreamOpResult(result.idx(), start, false);
+            sum += target;
+            return StreamOpResult(result.idx(), start, false);
         }
         else {
             sum += result.rank();

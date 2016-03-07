@@ -26,36 +26,36 @@ template <typename T> struct FieldFactory;
 template<>
 struct FieldFactory<UUID> {
 
-	using Type = UUID;
+    using Type = UUID;
 
     static void serialize(SerializationData& data, const Type& field)
     {
-    	FieldFactory<UBigInt>::serialize(data, field.lo());
-    	FieldFactory<UBigInt>::serialize(data, field.hi());
+        FieldFactory<UBigInt>::serialize(data, field.lo());
+        FieldFactory<UBigInt>::serialize(data, field.hi());
     }
 
     static void serialize(SerializationData& data, const Type* field, Int size)
     {
         for (Int c = 0; c < size; c++)
         {
-        	FieldFactory<UBigInt>::serialize(data, field[c].lo());
-        	FieldFactory<UBigInt>::serialize(data, field[c].hi());
+            FieldFactory<UBigInt>::serialize(data, field[c].lo());
+            FieldFactory<UBigInt>::serialize(data, field[c].hi());
         }
     }
 
 
     static void deserialize(DeserializationData& data, Type& field)
     {
-    	FieldFactory<UBigInt>::deserialize(data, field.lo());
-    	FieldFactory<UBigInt>::deserialize(data, field.hi());
+        FieldFactory<UBigInt>::deserialize(data, field.lo());
+        FieldFactory<UBigInt>::deserialize(data, field.hi());
     }
 
     static void deserialize(DeserializationData& data, Type* field, Int size)
     {
         for (Int c = 0; c < size; c++)
         {
-        	FieldFactory<UBigInt>::deserialize(data, field[c].lo());
-        	FieldFactory<UBigInt>::deserialize(data, field[c].hi());
+            FieldFactory<UBigInt>::deserialize(data, field[c].lo());
+            FieldFactory<UBigInt>::deserialize(data, field[c].hi());
         }
     }
 };
@@ -72,15 +72,15 @@ template <typename PkdStructList> struct MakeStreamEntryTL;
 
 template <typename Head, typename... Tail>
 struct MakeStreamEntryTL<TL<Head, Tail...>> {
-	using Type = AppendItemToList<
-			typename PkdStructInputType<Head>::Type,
-			typename MakeStreamEntryTL<TL<Tail...>>::Type
-	>;
+    using Type = AppendItemToList<
+            typename PkdStructInputType<Head>::Type,
+            typename MakeStreamEntryTL<TL<Tail...>>::Type
+    >;
 };
 
 template <>
 struct MakeStreamEntryTL<TL<>> {
-	using Type = TL<>;
+    using Type = TL<>;
 };
 
 
@@ -91,7 +91,7 @@ using TypeListToTuple = typename TypeListToTupleH<List>::Type;
 
 template <typename... List>
 struct TypeListToTupleH<TL<List...>> {
-	using Type = std::tuple<List...>;
+    using Type = std::tuple<List...>;
 };
 
 }

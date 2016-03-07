@@ -40,7 +40,7 @@ template <
     Int BitsPerSymbol_,
     Int VPB,
 
-	typename IndexType,
+    typename IndexType,
     template <typename> class ReindexFnType = BitmapReindexFn,
     template <typename> class SelectFnType  = BitmapSelectFn,
     template <typename> class RankFnType    = BitmapRankFn,
@@ -99,18 +99,18 @@ public:
             BitsPerSymbol == 8,
             UByte,
             UBigInt
-    >                                                                   		Value;
+    >                                                                           Value;
 
-    typedef typename Types::Index                          						Index;
+    typedef typename Types::Index                                               Index;
 
     static const Int IndexSizeThreshold                                         = 0;
-    static const PackedSizeType SizeType										= PkdStructSizeType<Index>::Value;
+    static const PackedSizeType SizeType                                        = PkdStructSizeType<Index>::Value;
 
     typedef core::StaticVector<BigInt, Indexes>                                 Values;
 
     typedef typename Types::template ToolsFn<MyType>                            Tools;
 
-    using InputType 	= Value;
+    using InputType     = Value;
 
     using InputBuffer = PkdFSESequenceInputBuffer<Types>;
 
@@ -206,7 +206,7 @@ public:
     }
 
     Int value(Int symbol, Int idx) const {
-    	return this->symbol(idx) == symbol;
+        return this->symbol(idx) == symbol;
     }
 
 
@@ -262,12 +262,12 @@ public:
 
     Int block_size(const MyType* other) const
     {
-    	return packed_block_size(size() + other->size());
+        return packed_block_size(size() + other->size());
     }
 
     static Int packed_block_size(Int size)
     {
-    	return estimate_block_size(size, 1, 1);
+        return estimate_block_size(size, 1, 1);
     }
 
 private:
@@ -474,9 +474,9 @@ public:
 
     void insert_buffer(Int at, const InputBuffer* buffer, Int start, Int size)
     {
-    	insertDataRoom(at, size);
-    	tools().move(buffer->symbols(), this->symbols(), start, at, size);
-    	reindex();
+        insertDataRoom(at, size);
+        tools().move(buffer->symbols(), this->symbols(), start, at, size);
+        reindex();
     }
 
 
@@ -496,28 +496,28 @@ public:
     template <typename Adaptor>
     void fill_with_buf(Int start, Int length, Adaptor&& adaptor)
     {
-    	Int size = this->size();
+        Int size = this->size();
 
-    	MEMORIA_ASSERT(start, >=, 0);
-    	MEMORIA_ASSERT(start, <=, size);
-    	MEMORIA_ASSERT(length, >=, 0);
+        MEMORIA_ASSERT(start, >=, 0);
+        MEMORIA_ASSERT(start, <=, size);
+        MEMORIA_ASSERT(length, >=, 0);
 
-    	insertDataRoom(start, length);
+        insertDataRoom(start, length);
 
-    	auto symbols = this->symbols();
+        auto symbols = this->symbols();
 
-    	Int total = 0;
+        Int total = 0;
 
-    	while (total < length)
-    	{
-    		auto buf = adaptor(length - total);
+        while (total < length)
+        {
+            auto buf = adaptor(length - total);
 
-    		tools().move(buf.symbols(), symbols, 0, start + total, buf.size());
+            tools().move(buf.symbols(), symbols, 0, start + total, buf.size());
 
-    		total += buf.size();
-    	}
+            total += buf.size();
+        }
 
-    	reindex();
+        reindex();
     }
 
 
@@ -551,28 +551,28 @@ public:
     template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
     void _insert(Int idx, Int symbol, BranchNodeEntryItem<T, Size>& accum)
     {
-    	insert(idx, symbol);
+        insert(idx, symbol);
 
-    	sum<Offset>(idx, accum);
+        sum<Offset>(idx, accum);
     }
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
     void _update(Int idx, Int symbol, BranchNodeEntryItem<T, Size>& accum)
     {
-    	sub<Offset>(idx, accum);
+        sub<Offset>(idx, accum);
 
-    	this->symbol(idx) = symbol;
+        this->symbol(idx) = symbol;
 
-    	this->reindex();
+        this->reindex();
 
-    	sum<Offset>(idx, accum);
+        sum<Offset>(idx, accum);
     }
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
     void _remove(Int idx, BranchNodeEntryItem<T, Size>& accum)
     {
-    	sub<Offset>(idx, accum);
-    	remove(idx, idx + 1);
+        sub<Offset>(idx, accum);
+        remove(idx, idx + 1);
     }
 
 
@@ -679,7 +679,7 @@ public:
 
     Values ranks() const
     {
-    	return this->ranks(this->size());
+        return this->ranks(this->size());
     }
 
 
@@ -717,12 +717,12 @@ public:
     template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
     void max(BranchNodeEntryItem<T, Size>& accum) const
     {
-    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
 
-    	for (Int block = 0; block < Indexes; block++)
-    	{
-    		accum[block + Offset] = rank(block);
-    	}
+        for (Int block = 0; block < Indexes; block++)
+        {
+            accum[block + Offset] = rank(block);
+        }
     }
 
 
@@ -730,65 +730,65 @@ public:
     template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
     void sum(BranchNodeEntryItem<T, Size>& accum) const
     {
-    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
 
-    	for (Int block = 0; block < Indexes; block++)
-    	{
-    		accum[block + Offset] += rank(block);
-    	}
+        for (Int block = 0; block < Indexes; block++)
+        {
+            accum[block + Offset] += rank(block);
+        }
     }
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
     void sum(Int start, Int end, BranchNodeEntryItem<T, Size>& accum) const
     {
-    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
 
-    	for (Int block = 0; block < Indexes; block++)
-    	{
-    		accum[block + Offset] += rank(start, end, block);
-    	}
+        for (Int block = 0; block < Indexes; block++)
+        {
+            accum[block + Offset] += rank(start, end, block);
+        }
     }
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
     void sum(Int idx, BranchNodeEntryItem<T, Size>& accum) const
     {
-    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
 
-    	accum[symbol(idx) + Offset] ++;
+        accum[symbol(idx) + Offset] ++;
     }
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
     void sub(Int idx, BranchNodeEntryItem<T, Size>& accum) const
     {
-    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
 
-    	accum[symbol(idx) + Offset]--;
+        accum[symbol(idx) + Offset]--;
     }
 
 
     template <Int Offset, Int From, Int To, typename T, template <typename, Int, Int> class BranchNodeEntryItem>
     void sum(Int start, Int end, BranchNodeEntryItem<T, From, To>& accum) const
     {
-    	for (Int block = 0; block < Indexes; block++)
-    	{
-    		accum[block + Offset] += rank(block, start, end);
-    	}
+        for (Int block = 0; block < Indexes; block++)
+        {
+            accum[block + Offset] += rank(block, start, end);
+        }
     }
 
 
     Int sum(Int symbol, Int start, Int end) const
     {
-    	return rank(start, end, symbol);
+        return rank(start, end, symbol);
     }
 
     Int sum(Int symbol, Int end) const
     {
-    	return rank(end, symbol);
+        return rank(end, symbol);
     }
 
     Int sum(Int symbol) const
     {
-    	return rank(symbol);
+        return rank(symbol);
     }
 
 
@@ -798,19 +798,19 @@ public:
     template <typename T>
     void _add(Int symbol, T& value) const
     {
-    	value += rank(symbol);
+        value += rank(symbol);
     }
 
     template <typename T>
     void _add(Int symbol, Int end, T& value) const
     {
-    	value += rank(end, symbol);
+        value += rank(end, symbol);
     }
 
     template <typename T>
     void _add(Int symbol, Int start, Int end, T& value) const
     {
-    	value += rank(start, end, symbol);
+        value += rank(start, end, symbol);
     }
 
 
@@ -818,27 +818,27 @@ public:
     template <typename T>
     void _sub(Int symbol, T& value) const
     {
-    	value -= rank(symbol);
+        value -= rank(symbol);
     }
 
     template <typename T>
     void _sub(Int symbol, Int end, T& value) const
     {
-    	value -= rank(end, symbol);
+        value -= rank(end, symbol);
     }
 
     template <typename T>
     void _sub(Int symbol, Int start, Int end, T& value) const
     {
-    	value -= rank(start, end, symbol);
+        value -= rank(start, end, symbol);
     }
 
 
     Int get(Int idx) const
     {
-    	if (idx >= size()) {
-    		int a = 0; a++;
-    	}
+        if (idx >= size()) {
+            int a = 0; a++;
+        }
 
         MEMORIA_ASSERT(idx , <, size());
         return tools().get(symbols(), idx);
@@ -1080,7 +1080,7 @@ struct StructSizeProvider<PkdFSSeq<T>> {
 
 template <Int BitsPerSymbol>
 struct PkdFSSeqTF: HasType<
-	IfThenElse<
+    IfThenElse<
                 BitsPerSymbol == 1,
                 PkdFSSeqTypes<
                     1,
@@ -1097,7 +1097,7 @@ struct PkdFSSeqTF: HasType<
                         BitsPerSymbol,
                         1024,
                         PkdFQTreeT<Int, 1<<BitsPerSymbol>,
-						ReindexFn,
+                        ReindexFn,
                         SeqSelectFn,
                         SeqRankFn,
                         SeqToolsFn

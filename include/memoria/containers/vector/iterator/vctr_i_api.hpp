@@ -51,44 +51,44 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 
     template <typename Iterator>
     class EntryAdaptor {
-    	Iterator current_;
+        Iterator current_;
 
-    	Value value_;
+        Value value_;
 
     public:
-    	EntryAdaptor(Iterator current): current_(current) {}
+        EntryAdaptor(Iterator current): current_(current) {}
 
-    	template <typename V>
-    	void put(StreamTag<0>, StreamTag<0>, Int block, V&& entry) {}
+        template <typename V>
+        void put(StreamTag<0>, StreamTag<0>, Int block, V&& entry) {}
 
-    	template <typename V>
-    	void put(StreamTag<0>, StreamTag<1>, Int block, V&& value) {
-    		value_ = value;
-    	}
+        template <typename V>
+        void put(StreamTag<0>, StreamTag<1>, Int block, V&& value) {
+            value_ = value;
+        }
 
-    	void next()
-    	{
-    		*current_ = value_;
-    		current_++;
-    	}
+        void next()
+        {
+            *current_ = value_;
+            current_++;
+        }
     };
 
 
     template <typename OutputIterator>
     auto read(OutputIterator iter, CtrSizeT length)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	EntryAdaptor<OutputIterator> adaptor(iter);
+        EntryAdaptor<OutputIterator> adaptor(iter);
 
-    	return self.ctr().template read_entries<0>(self, length, adaptor);
+        return self.ctr().template read_entries<0>(self, length, adaptor);
     }
 
     template <typename OutputIterator>
     auto read(OutputIterator iter)
     {
-    	auto& self = this->self();
-    	return read(iter, self.ctr().size());
+        auto& self = this->self();
+        return read(iter, self.ctr().size());
     }
 
 
@@ -113,12 +113,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 
     std::vector<Value> read(CtrSizeT size)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	auto pos = self.pos();
-    	auto ctr_size = self.ctr().size();
+        auto pos = self.pos();
+        auto ctr_size = self.ctr().size();
 
-    	auto length = pos + size <= ctr_size ? size : ctr_size - pos;
+        auto length = pos + size <= ctr_size ? size : ctr_size - pos;
 
         std::vector<Value> data(length);
 
@@ -127,35 +127,35 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
         auto begin = data.begin();
 
         self.for_each(length, [&](const auto& entry) {
-        	*begin = entry;
-        	begin++;
+            *begin = entry;
+            begin++;
         });
 
         return data;
     }
 
     struct ForEachFn {
-    	template <typename StreamObj, typename Fn>
-    	void stream(const StreamObj* obj, Int from, Int to, Fn&& fn)
-    	{
-    		obj->for_each(from, to, fn);
-    	}
+        template <typename StreamObj, typename Fn>
+        void stream(const StreamObj* obj, Int from, Int to, Fn&& fn)
+        {
+            obj->for_each(from, to, fn);
+        }
     };
 
     template <typename Fn>
     CtrSizeT for_each(CtrSizeT length, Fn&& fn)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	return self.ctr().template read_substream<IntList<0, 0, 1>>(self, 0, length, std::forward<Fn>(fn));
+        return self.ctr().template read_substream<IntList<0, 0, 1>>(self, 0, length, std::forward<Fn>(fn));
     }
 
 
     auto seek(CtrSizeT pos)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	CtrSizeT current_pos = self.pos();
+        CtrSizeT current_pos = self.pos();
         self.skip(pos - current_pos);
     }
 

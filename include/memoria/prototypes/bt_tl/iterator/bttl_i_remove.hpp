@@ -28,77 +28,77 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorRemoveName)
     using typename Base::Container;
     using typename Base::Position;
 
-    using CtrSizeT 	= typename Container::Types::CtrSizeT;
+    using CtrSizeT  = typename Container::Types::CtrSizeT;
     using CtrSizesT = typename Container::Types::CtrSizesT;
-    using Key		= typename Container::Types::Key;
-    using Value		= typename Container::Types::Value;
+    using Key       = typename Container::Types::Key;
+    using Value     = typename Container::Types::Value;
 
-    using BranchNodeEntry				= typename Container::Types::BranchNodeEntry;
-    using IteratorBranchNodeEntry		= typename Container::Types::IteratorBranchNodeEntry;
+    using BranchNodeEntry               = typename Container::Types::BranchNodeEntry;
+    using IteratorBranchNodeEntry       = typename Container::Types::IteratorBranchNodeEntry;
 
     using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
 
-    static const Int Streams 				= Container::Types::Streams;
-    static const Int SearchableStreams 		= Container::Types::SearchableStreams;
+    static const Int Streams                = Container::Types::Streams;
+    static const Int SearchableStreams      = Container::Types::SearchableStreams;
 
     using LeafPrefixRanks = typename Container::Types::LeafPrefixRanks;
 
     Position remove_subtrees(CtrSizeT n)
     {
-    	CtrSizesT sizes;
+        CtrSizesT sizes;
 
-    	self().remove_subtrees(n, sizes);
+        self().remove_subtrees(n, sizes);
 
-    	return sizes;
+        return sizes;
     }
 
 protected:
 
     void remove_subtrees(CtrSizeT n, CtrSizesT& sizes)
     {
-    	MEMORIA_ASSERT(n, >=, 0);
+        MEMORIA_ASSERT(n, >=, 0);
 
-    	auto& self 	= this->self();
-    	auto stream = self.stream();
-    	auto tmp 	= self;
+        auto& self  = this->self();
+        auto stream = self.stream();
+        auto tmp    = self;
 
-    	auto start = self.adjust_to_indel();
+        auto start = self.adjust_to_indel();
 
-    	auto start_abs_pos 	 = self.cache().abs_pos();
-    	auto start_data_pos  = self.cache().data_pos();
-    	auto start_data_size = self.cache().data_size();
+        auto start_abs_pos   = self.cache().abs_pos();
+        auto start_data_pos  = self.cache().data_pos();
+        auto start_data_size = self.cache().data_size();
 
-    	tmp.skipFw(n);
+        tmp.skipFw(n);
 
-    	auto end_abs_pos   = tmp.cache().abs_pos();
-//    	auto end_data_pos  = tmp.cache().data_pos();
+        auto end_abs_pos   = tmp.cache().abs_pos();
+//      auto end_data_pos  = tmp.cache().data_pos();
 
-    	auto length_to_remove = end_abs_pos[stream] - start_abs_pos[stream];
+        auto length_to_remove = end_abs_pos[stream] - start_abs_pos[stream];
 
-    	Position end = tmp.adjust_to_indel();
+        Position end = tmp.adjust_to_indel();
 
-    	self.ctr().removeEntries(self.leaf(), start, tmp.leaf(), end, sizes, true);
+        self.ctr().removeEntries(self.leaf(), start, tmp.leaf(), end, sizes, true);
 
-    	tmp.idx() = end[stream];
+        tmp.idx() = end[stream];
 
-    	self = tmp;
+        self = tmp;
 
-    	self.refresh();
+        self.refresh();
 
-    	self.cache().abs_pos() = start_abs_pos;
-    	self.cache().data_pos() = start_data_pos;
+        self.cache().abs_pos() = start_abs_pos;
+        self.cache().data_pos() = start_data_pos;
 
-    	self.cache().data_size() = start_data_size;
-    	self.cache().data_size()[stream] -= length_to_remove;
+        self.cache().data_size() = start_data_size;
+        self.cache().data_size()[stream] -= length_to_remove;
 
-    	if (stream > 0)
-    	{
-    		auto tmp2 = self;
+        if (stream > 0)
+        {
+            auto tmp2 = self;
 
-    		tmp2.toIndex();
+            tmp2.toIndex();
 
-    		tmp2.add_substream_size(tmp2.stream(), tmp2.idx(), -length_to_remove);
-    	}
+            tmp2.add_substream_size(tmp2.stream(), tmp2.idx(), -length_to_remove);
+        }
     }
 
 
@@ -107,68 +107,68 @@ protected:
     // stream.
 
     Position local_left_margin() const {
-    	auto& self = this->self();
-    	return self.local_left_margin(self.stream(), self.idx());
+        auto& self = this->self();
+        return self.local_left_margin(self.stream(), self.idx());
     }
 
     Position local_left_margin(Int stream, Int idx) const
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	Position ranks;
+        Position ranks;
 
-    	ranks[stream] = idx;
+        ranks[stream] = idx;
 
-    	for (Int s = stream; s > 0; s--)
-    	{
-    		ranks[s - 1] = self.local_parent_idx(s, ranks[s]);
-    	}
+        for (Int s = stream; s > 0; s--)
+        {
+            ranks[s - 1] = self.local_parent_idx(s, ranks[s]);
+        }
 
-    	for (Int s = stream; s < SearchableStreams; s++)
-    	{
-    		ranks[s + 1] = self.local_child_idx(s, ranks[s]);
-    	}
+        for (Int s = stream; s < SearchableStreams; s++)
+        {
+            ranks[s + 1] = self.local_child_idx(s, ranks[s]);
+        }
 
-    	return ranks;
+        return ranks;
     }
 
     Position local_stream_posrank_() const {
-    	auto& self = this->self();
-    	return self.local_stream_posrank_(self.stream(), self.idx());
+        auto& self = this->self();
+        return self.local_stream_posrank_(self.stream(), self.idx());
     }
 
     Position local_stream_posrank_(Int stream, Int idx) const
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	Position ranks;
+        Position ranks;
 
-//    	auto sizes = self.leaf_sizes();
+//      auto sizes = self.leaf_sizes();
 
-//    	auto extent = self.leaf_extent();
+//      auto extent = self.leaf_extent();
 
-    	ranks[stream] = idx;
+        ranks[stream] = idx;
 
-    	Int parent_idx = ranks[stream];
+        Int parent_idx = ranks[stream];
 
-    	for (Int s = stream; s > 0; s--)
-    	{
-    		parent_idx = self.local_parent_idx(s, parent_idx);
+        for (Int s = stream; s > 0; s--)
+        {
+            parent_idx = self.local_parent_idx(s, parent_idx);
 
-    		if (parent_idx >= 0) {
-    			ranks[s - 1] = parent_idx + 1;//(sizes[s - 1] > 0 ? 1 : 0);
-    		}
-    		else {
-    			break;
-    		}
-    	}
+            if (parent_idx >= 0) {
+                ranks[s - 1] = parent_idx + 1;//(sizes[s - 1] > 0 ? 1 : 0);
+            }
+            else {
+                break;
+            }
+        }
 
-    	for (Int s = stream; s < SearchableStreams; s++)
-    	{
-    		ranks[s + 1] = self.local_child_idx(s, ranks[s]);
-    	}
+        for (Int s = stream; s < SearchableStreams; s++)
+        {
+            ranks[s + 1] = self.local_child_idx(s, ranks[s]);
+        }
 
-    	return ranks;
+        return ranks;
     }
 
 

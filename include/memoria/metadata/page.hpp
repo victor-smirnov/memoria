@@ -53,8 +53,8 @@ struct IPageDataEventHandler {
     virtual void startLine(const char* name, Int size = -1)                                     = 0;
     virtual void endLine()                                                                      = 0;
 
-    virtual void startGroupWithAddr(const char* name, const void* ptr)               			= 0;
-    virtual void startGroup(const char* name, Int elements = -1)               					= 0;
+    virtual void startGroupWithAddr(const char* name, const void* ptr)                          = 0;
+    virtual void startGroup(const char* name, Int elements = -1)                                = 0;
     virtual void endGroup()                                                                     = 0;
 
     virtual void value(const char* name, const Byte* value, Int count = 1, Int kind = 0)        = 0;
@@ -66,18 +66,18 @@ struct IPageDataEventHandler {
     virtual void value(const char* name, const BigInt* value, Int count = 1, Int kind = 0)      = 0;
     virtual void value(const char* name, const UBigInt* value, Int count = 1, Int kind = 0)     = 0;
     virtual void value(const char* name, const IDValue* value, Int count = 1, Int kind = 0)     = 0;
-    virtual void value(const char* name, const float* value, Int count = 1, Int kind = 0)     	= 0;
+    virtual void value(const char* name, const float* value, Int count = 1, Int kind = 0)       = 0;
     virtual void value(const char* name, const double* value, Int count = 1, Int kind = 0)      = 0;
     virtual void value(const char* name, const UUID* value, Int count = 1, Int kind = 0)        = 0;
 
     virtual void value(const char* name, const BigInteger* value, Int count = 1, Int kind = 0)  = 0;
-    virtual void value(const char* name, const String* value, Int count = 1, Int kind = 0)  	= 0;
+    virtual void value(const char* name, const String* value, Int count = 1, Int kind = 0)      = 0;
 
     virtual void symbols(const char* name, const UBigInt* value, Int count, Int bits_per_symbol)    = 0;
     virtual void symbols(const char* name, const UByte* value, Int count, Int bits_per_symbol)      = 0;
 
-    virtual void startStruct() 																	= 0;
-    virtual void endStruct() 																	= 0;
+    virtual void startStruct()                                                                  = 0;
+    virtual void endStruct()                                                                    = 0;
 };
 
 struct DataEventsParams {};
@@ -114,7 +114,7 @@ struct MEMORIA_API PageMetadata: public MetadataGroup
             const IPageOperations* page_operations);
 
     virtual ~PageMetadata() throw () {
-    	delete page_operations_;
+        delete page_operations_;
     }
 
     virtual Int hash() const {
@@ -142,7 +142,7 @@ struct ValueHelper {
 
     static void setup(IPageDataEventHandler* handler, const char* name, const T* value, Int size, Int type)
     {
-    	handler->value(name, value, size, type);
+        handler->value(name, value, size, type);
     }
 };
 
@@ -158,11 +158,11 @@ struct ValueHelper<PageID<T> > {
 
     static void setup(IPageDataEventHandler* handler, const char* name, const Type* value, Int size, Int type)
     {
-    	for (Int c = 0; c < size; c++)
-    	{
-    		IDValue id(value + c);
-    		handler->value(name, &id);
-    	}
+        for (Int c = 0; c < size; c++)
+        {
+            IDValue id(value + c);
+            handler->value(name, &id);
+        }
     }
 };
 
@@ -434,34 +434,34 @@ public:
 
     virtual void value(const char* name, const UUID* value, Int count = 1, Int kind = 0)
     {
-    	if (kind == BYTE_ARRAY)
-    	{
-    		::memoria::dumpArray<UUID>(out_, count, [=](Int idx){return value[idx];});
-    	}
-    	else {
-    		OutNumber(name, value, count, kind);
-    	}
+        if (kind == BYTE_ARRAY)
+        {
+            ::memoria::dumpArray<UUID>(out_, count, [=](Int idx){return value[idx];});
+        }
+        else {
+            OutNumber(name, value, count, kind);
+        }
     }
 
     virtual void value(const char* name, const BigInteger* value, Int count = 1, Int kind = 0) {
-    	if (kind == BYTE_ARRAY)
-    	{
-    		::memoria::dumpArray<BigInteger>(out_, count, [=](Int idx){return value[idx];});
-    	}
-    	else {
-    		OutNumber(name, value, count, kind);
-    	}
+        if (kind == BYTE_ARRAY)
+        {
+            ::memoria::dumpArray<BigInteger>(out_, count, [=](Int idx){return value[idx];});
+        }
+        else {
+            OutNumber(name, value, count, kind);
+        }
     }
 
     virtual void value(const char* name, const String* value, Int count = 1, Int kind = 0)
     {
-    	if (kind == BYTE_ARRAY)
-    	{
-    		::memoria::dumpArray<String>(out_, count, [=](Int idx){return value[idx];});
-    	}
-    	else {
-    		OutNumber(name, value, count, kind);
-    	}
+        if (kind == BYTE_ARRAY)
+        {
+            ::memoria::dumpArray<String>(out_, count, [=](Int idx){return value[idx];});
+        }
+        else {
+            OutNumber(name, value, count, kind);
+        }
     }
 
 
@@ -477,7 +477,7 @@ public:
 
 
     virtual void startStruct() {
-    	out_<<std::endl;
+        out_<<std::endl;
     }
 
     virtual void endStruct() {}
@@ -545,9 +545,9 @@ private:
 template <typename Struct>
 void DumpStruct(const Struct* s, std::ostream& out = std::cout)
 {
-	TextPageDumper dumper(out);
+    TextPageDumper dumper(out);
 
-	s->generateDataEvents(&dumper);
+    s->generateDataEvents(&dumper);
 }
 
 

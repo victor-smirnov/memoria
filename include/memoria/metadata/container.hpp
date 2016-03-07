@@ -75,10 +75,10 @@ struct ContainerInterface {
     virtual String ctr_type_name() const                                        = 0;
 
     virtual void drop(
-    		const UUID& root_id,
+            const UUID& root_id,
             const UUID& name,
             void* allocator
-	)																			= 0;
+    )                                                                           = 0;
 
 
     virtual ~ContainerInterface() {}
@@ -111,7 +111,7 @@ public:
 
     virtual ~ContainerMetadata() throw ()
     {
-    	delete container_interface_;
+        delete container_interface_;
     }
 
     virtual Int ctr_hash() const {
@@ -153,11 +153,11 @@ public:
 
     virtual ~ContainerMetadataRepository() throw ()
     {
-    	//FIXME need to rewrite ownership for metadata objects
-    	for (auto entry: model_map_)
-    	{
-    		delete entry.second;
-    	}
+        //FIXME need to rewrite ownership for metadata objects
+        for (auto entry: model_map_)
+        {
+            delete entry.second;
+        }
     }
 
     virtual Int hash() const {
@@ -221,12 +221,12 @@ public:
 
     virtual void beginSnapshotSet(const char* descr, size_t number)
     {
-    	pushFolder(descr);
+        pushFolder(descr);
     }
 
     virtual void endSnapshotSet()
     {
-    	path_.pop();
+        path_.pop();
     }
 
     virtual void beginAllocator(const char* type, const char* desc)
@@ -407,16 +407,16 @@ private:
 private:
     String shorten(const char* txt)
     {
-    	String text = txt;
+        String text = txt;
 
-    	auto start = text.find_first_of("<");
+        auto start = text.find_first_of("<");
 
-    	if (start != String::npos)
-    	{
-    		text.erase(start);
-    	}
+        if (start != String::npos)
+        {
+            text.erase(start);
+        }
 
-    	return text;
+        return text;
     }
 };
 

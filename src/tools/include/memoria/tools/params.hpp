@@ -52,10 +52,10 @@ public:
 
     virtual ~ParametersSet()
     {
-    	for (auto d: descriptors_)
-    	{
-    		delete d;
-    	}
+        for (auto d: descriptors_)
+        {
+            delete d;
+        }
     }
 
     virtual String getFullName() const
@@ -470,7 +470,7 @@ protected:
 template <typename T, Int Size>
 class ParamDescriptor<core::StaticVector<T, Size>>: public AbstractParamDescriptor {
 
-	using ValueType = core::StaticVector<T, Size>;
+    using ValueType = core::StaticVector<T, Size>;
 
     using MyType = ParamDescriptor<ValueType>;
 

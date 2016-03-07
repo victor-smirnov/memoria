@@ -47,54 +47,54 @@ class MMapAdaptor;
 
 template <typename Ctr, typename Key, typename Value>
 class MMapAdaptor<Ctr, Key, Value, std::vector<std::pair<Key, std::vector<Value>>>>:
-	public bttl::SizedFlatTreeStreamingAdapterBase<
-		Ctr,
-		MMapAdaptor<Ctr, Key, Value, std::vector<std::pair<Key, std::vector<Value>>>>
-	>
+    public bttl::SizedFlatTreeStreamingAdapterBase<
+        Ctr,
+        MMapAdaptor<Ctr, Key, Value, std::vector<std::pair<Key, std::vector<Value>>>>
+    >
 {
-	using Base = bttl::SizedFlatTreeStreamingAdapterBase<
-		Ctr,
-		MMapAdaptor<Ctr, Key, Value, std::vector<std::pair<Key, std::vector<Value>>>>
-	>;
+    using Base = bttl::SizedFlatTreeStreamingAdapterBase<
+        Ctr,
+        MMapAdaptor<Ctr, Key, Value, std::vector<std::pair<Key, std::vector<Value>>>>
+    >;
 
-	using Data = std::vector<std::pair<Key, std::vector<Value>>>;
+    using Data = std::vector<std::pair<Key, std::vector<Value>>>;
 
-	const Data& data_;
+    const Data& data_;
 
-	using CtrSizesT = core::StaticVector<BigInt, 2>;
+    using CtrSizesT = core::StaticVector<BigInt, 2>;
 
-	const Value* values_;
+    const Value* values_;
 
 public:
-	MMapAdaptor(const Data& data): Base(), data_(data), values_() {
-		this->init();
-	}
+    MMapAdaptor(const Data& data): Base(), data_(data), values_() {
+        this->init();
+    }
 
-	auto prepare(StreamTag<0>) {
-		return data_.size();
-	}
+    auto prepare(StreamTag<0>) {
+        return data_.size();
+    }
 
-	auto prepare(StreamTag<1>, const CtrSizesT& path)
-	{
-		values_ = data_[path[0]].second.data();
-		return data_[path[0]].second.size();
-	}
+    auto prepare(StreamTag<1>, const CtrSizesT& path)
+    {
+        values_ = data_[path[0]].second.data();
+        return data_[path[0]].second.size();
+    }
 
-	auto buffer(StreamTag<0>, StreamTag<0>, const CtrSizesT& pos, Int block) {
-		return 1;
-	}
+    auto buffer(StreamTag<0>, StreamTag<0>, const CtrSizesT& pos, Int block) {
+        return 1;
+    }
 
-	auto buffer(StreamTag<0>, StreamTag<1>, const CtrSizesT& pos, Int block) {
-		return data_[pos[0]].first;
-	}
+    auto buffer(StreamTag<0>, StreamTag<1>, const CtrSizesT& pos, Int block) {
+        return data_[pos[0]].first;
+    }
 
-	auto buffer(StreamTag<1>, StreamTag<0>, BigInt pos, Int block) {
-		return 1;
-	}
+    auto buffer(StreamTag<1>, StreamTag<0>, BigInt pos, Int block) {
+        return 1;
+    }
 
-	auto buffer(StreamTag<1>, StreamTag<1>, BigInt pos, Int block) {
-		return values_[pos];
-	}
+    auto buffer(StreamTag<1>, StreamTag<1>, BigInt pos, Int block) {
+        return values_[pos];
+    }
 };
 
 
@@ -108,57 +108,57 @@ class MMapValueAdaptor;
 
 template <typename Ctr, typename Value>
 class MMapValueAdaptor<Ctr, Value, std::vector<Value>>:
-	public bttl::SizedFlatTreeStreamingAdapterBase<
-		Ctr,
-		MMapValueAdaptor<Ctr, Value, std::vector<Value>>
-	>
+    public bttl::SizedFlatTreeStreamingAdapterBase<
+        Ctr,
+        MMapValueAdaptor<Ctr, Value, std::vector<Value>>
+    >
 {
-	using Base = bttl::SizedFlatTreeStreamingAdapterBase<
-		Ctr,
-		MMapValueAdaptor<Ctr, Value, std::vector<Value>>
-	>;
+    using Base = bttl::SizedFlatTreeStreamingAdapterBase<
+        Ctr,
+        MMapValueAdaptor<Ctr, Value, std::vector<Value>>
+    >;
 
-	using Data 		= std::vector<Value>;
+    using Data      = std::vector<Value>;
 
-	using CtrSizeT 	= typename Ctr::Types::CtrSizeT;
-	using CtrSizesT = typename Ctr::Types::CtrSizesT;
+    using CtrSizeT  = typename Ctr::Types::CtrSizeT;
+    using CtrSizesT = typename Ctr::Types::CtrSizesT;
 
-	using Key 		= typename Ctr::Types::Key;
+    using Key       = typename Ctr::Types::Key;
 
 
-	const Data& data_;
-	const Value* values_;
+    const Data& data_;
+    const Value* values_;
 
 public:
-	MMapValueAdaptor(const Data& data): Base(1), data_(data), values_() {
-		this->init();
-	}
+    MMapValueAdaptor(const Data& data): Base(1), data_(data), values_() {
+        this->init();
+    }
 
-	size_t prepare(StreamTag<0>) {
-		return 0;
-	}
+    size_t prepare(StreamTag<0>) {
+        return 0;
+    }
 
-	size_t prepare(StreamTag<1>, const CtrSizesT& path)
-	{
-		values_ = data_.data();
-		return data_.size();
-	}
+    size_t prepare(StreamTag<1>, const CtrSizesT& path)
+    {
+        values_ = data_.data();
+        return data_.size();
+    }
 
-	auto buffer(StreamTag<0>, StreamTag<0>, const CtrSizesT& pos, Int block) {
-		return CtrSizeT();
-	}
+    auto buffer(StreamTag<0>, StreamTag<0>, const CtrSizesT& pos, Int block) {
+        return CtrSizeT();
+    }
 
-	auto buffer(StreamTag<0>, StreamTag<1>, const CtrSizesT& pos, Int block) {
-		return CtrSizeT();
-	}
+    auto buffer(StreamTag<0>, StreamTag<1>, const CtrSizesT& pos, Int block) {
+        return CtrSizeT();
+    }
 
-	auto buffer(StreamTag<1>, StreamTag<0>, BigInt pos, Int block) {
-		return CtrSizeT();
-	}
+    auto buffer(StreamTag<1>, StreamTag<0>, BigInt pos, Int block) {
+        return CtrSizeT();
+    }
 
-	auto buffer(StreamTag<1>, StreamTag<1>, BigInt pos, Int block) {
-		return values_[pos];
-	}
+    auto buffer(StreamTag<1>, StreamTag<1>, BigInt pos, Int block) {
+        return values_[pos];
+    }
 };
 
 
@@ -168,56 +168,56 @@ class MMapKeyAdaptor;
 
 template <typename Ctr, typename Key>
 class MMapKeyAdaptor<Ctr, Key, std::vector<Key>>:
-	public bttl::SizedFlatTreeStreamingAdapterBase<
-		Ctr,
-		MMapKeyAdaptor<Ctr, Key, std::vector<Key>>
-	>
+    public bttl::SizedFlatTreeStreamingAdapterBase<
+        Ctr,
+        MMapKeyAdaptor<Ctr, Key, std::vector<Key>>
+    >
 {
-	using Base = bttl::SizedFlatTreeStreamingAdapterBase<
-		Ctr,
-		MMapKeyAdaptor<Ctr, Key, std::vector<Key>>
-	>;
+    using Base = bttl::SizedFlatTreeStreamingAdapterBase<
+        Ctr,
+        MMapKeyAdaptor<Ctr, Key, std::vector<Key>>
+    >;
 
-	using Data = std::vector<Key>;
+    using Data = std::vector<Key>;
 
-	const Data& data_;
+    const Data& data_;
 
-	using CtrSizeT = typename Ctr::Types::CtrSizeT;
-	using CtrSizesT = typename Ctr::Types::CtrSizesT;
+    using CtrSizeT = typename Ctr::Types::CtrSizeT;
+    using CtrSizesT = typename Ctr::Types::CtrSizesT;
 
-	using Value = typename Ctr::Types::Value;
+    using Value = typename Ctr::Types::Value;
 
-	const Key* keys_;
+    const Key* keys_;
 
 public:
-	MMapKeyAdaptor(const Data& data): Base(), data_(data), keys_(data.data()) {
-		this->init();
-	}
+    MMapKeyAdaptor(const Data& data): Base(), data_(data), keys_(data.data()) {
+        this->init();
+    }
 
-	size_t prepare(StreamTag<0>) {
-		return data_.size();
-	}
+    size_t prepare(StreamTag<0>) {
+        return data_.size();
+    }
 
-	size_t prepare(StreamTag<1>, const CtrSizesT& path)
-	{
-		return 0;
-	}
+    size_t prepare(StreamTag<1>, const CtrSizesT& path)
+    {
+        return 0;
+    }
 
-	auto buffer(StreamTag<0>, StreamTag<0>, const CtrSizesT& pos, Int block) {
-		return CtrSizeT();
-	}
+    auto buffer(StreamTag<0>, StreamTag<0>, const CtrSizesT& pos, Int block) {
+        return CtrSizeT();
+    }
 
-	auto buffer(StreamTag<0>, StreamTag<1>, const CtrSizesT& pos, Int block) {
-		return keys_[pos[0]];
-	}
+    auto buffer(StreamTag<0>, StreamTag<1>, const CtrSizesT& pos, Int block) {
+        return keys_[pos[0]];
+    }
 
-	auto buffer(StreamTag<1>, StreamTag<0>, BigInt pos, Int block) {
-		return CtrSizeT();
-	}
+    auto buffer(StreamTag<1>, StreamTag<0>, BigInt pos, Int block) {
+        return CtrSizeT();
+    }
 
-	auto buffer(StreamTag<1>, StreamTag<1>, BigInt pos, Int block) {
-		return Value();
-	}
+    auto buffer(StreamTag<1>, StreamTag<1>, BigInt pos, Int block) {
+        return Value();
+    }
 };
 
 

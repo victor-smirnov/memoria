@@ -35,15 +35,15 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     using BranchNodeEntry = typename Types::BranchNodeEntry;
 
-    using NodeBase 	= typename Types::NodeBase;
+    using NodeBase  = typename Types::NodeBase;
     using NodeBaseG = typename Types::NodeBaseG;
 
-    using Position 	= typename Types::Position;
-    using CtrSizeT 	= typename Types::CtrSizeT;
+    using Position  = typename Types::Position;
+    using CtrSizeT  = typename Types::CtrSizeT;
 
-    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
+    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
+    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
+    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
     using DefaultDispatcher = typename Types::Pages::DefaultDispatcher;
 
     using Metadata = typename Types::Metadata;
@@ -124,7 +124,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
                 createCtrByName();
             }
             else {
-            	throw CtrAlreadyExistsException (
+                throw CtrAlreadyExistsException (
                         MEMORIA_SOURCE,
                         SBuf()<<"Container with name "<<self.master_name()<<" already exists"
                 );
@@ -137,13 +137,13 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     void initCtr(const ID& root_id)
     {
-    	self().set_root_id(root_id);
+        self().set_root_id(root_id);
     }
 
     void initCtr(const ID& root_id, const UUID& name)
     {
-    	auto& self = this->self();
-    	self.set_root_id(root_id);
+        auto& self = this->self();
+        self.set_root_id(root_id);
     }
 
 
@@ -195,11 +195,11 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     Metadata getRootMetadata() const
     {
-    	auto& self 		 	= this->self();
-    	const auto& root_id = self.root();
-        NodeBaseG root 		= self.allocator().getPage(root_id, self.master_name());
+        auto& self          = this->self();
+        const auto& root_id = self.root();
+        NodeBaseG root      = self.allocator().getPage(root_id, self.master_name());
 
-    	return root->root_metadata();
+        return root->root_metadata();
     }
 
     void setRootMetadata(const Metadata& metadata) const
@@ -408,27 +408,27 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     void findCtrByName()
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	auto name = self.master_name();
+        auto name = self.master_name();
 
-    	ID root_id = self.allocator().getRootID(name);
+        ID root_id = self.allocator().getRootID(name);
 
-    	if (!root_id.is_null())
-    	{
-    		PageG node = self.allocator().getPage(root_id, name);
+        if (!root_id.is_null())
+        {
+            PageG node = self.allocator().getPage(root_id, name);
 
-    		if (node->ctr_type_hash() == CONTAINER_HASH)
-    		{
-    			self.set_root_id(root_id);
-    		}
-    		else {
-    			throw CtrTypeException(MEMORIA_SOURCE, SBuf()<<"Invalid container type: "<<node->ctr_type_hash());
-    		}
-    	}
-    	else {
-    		throw NoCtrException(MEMORIA_SOURCE, SBuf()<<"Container with name "<<name<<" does not exists");
-    	}
+            if (node->ctr_type_hash() == CONTAINER_HASH)
+            {
+                self.set_root_id(root_id);
+            }
+            else {
+                throw CtrTypeException(MEMORIA_SOURCE, SBuf()<<"Invalid container type: "<<node->ctr_type_hash());
+            }
+        }
+        else {
+            throw NoCtrException(MEMORIA_SOURCE, SBuf()<<"Container with name "<<name<<" does not exists");
+        }
     }
 
     void createCtrByName()

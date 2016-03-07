@@ -130,7 +130,7 @@ public:
     }
 
     Int size() const {
-    	return size_;
+        return size_;
     }
 
     Int capacity() const {
@@ -237,7 +237,7 @@ public:
     template <typename T>
     StaticVector(std::initializer_list<T> list)
     {
-    	T last = T();
+        T last = T();
 
         Int idx = 0;
         for (const T& e: list)
@@ -247,13 +247,13 @@ public:
 
         for (Int c = idx; c < Indexes; c++)
         {
-        	values_[c] = last;
+            values_[c] = last;
         }
     }
 
     ElementType get() const
     {
-    	check(0);
+        check(0);
         return values_[0];
     }
 
@@ -267,7 +267,7 @@ public:
 
     static MyType create(Int idx, const ElementType& value)
     {
-    	check(idx);
+        check(idx);
 
         MyType me;
 
@@ -289,26 +289,26 @@ public:
 
     const ElementType& value(Int idx) const
     {
-    	check(idx);
+        check(idx);
         return values_[idx];
     }
 
     ElementType& value(Int idx)
     {
-    	check(idx);
+        check(idx);
         return values_[idx];
     }
 
     const ElementType& operator[](Int idx) const
     {
-    	check(idx);
+        check(idx);
         return values_[idx];
     }
 
     ElementType& operator[](Int idx)
     {
-    	check(idx);
-    	return values_[idx];
+        check(idx);
+        return values_[idx];
     }
 
     void clear()
@@ -492,15 +492,15 @@ public:
 
     bool ltAny( const ElementType& other ) const
     {
-    	for (Int c = 0; c < Indexes; c++)
-    	{
-    		if (values_[c] < other)
-    		{
-    			return true;
-    		}
-    	}
+        for (Int c = 0; c < Indexes; c++)
+        {
+            if (values_[c] < other)
+            {
+                return true;
+            }
+        }
 
-    	return false;
+        return false;
     }
 
     bool gtAny( const MyType& other ) const
@@ -609,30 +609,30 @@ public:
     template <typename Value>
     MyType& operator=(const Value& value)
     {
-    	for (Int c = 0; c < Indexes; c++) values_[c] = value;
-    	return *this;
+        for (Int c = 0; c < Indexes; c++) values_[c] = value;
+        return *this;
     }
 
 
     template <typename Value>
     MyType& operator=(const std::initializer_list<Value>& list)
     {
-    	Int idx = 0;
-    	for (Value e: list)
-    	{
-    		values_[idx++] = e;
+        Int idx = 0;
+        for (Value e: list)
+        {
+            values_[idx++] = e;
 
-    		if (idx >= Indexes)
-    		{
-    			break;
-    		}
-    	}
+            if (idx >= Indexes)
+            {
+                break;
+            }
+        }
 
-    	for (Int c = idx; c < Indexes; c++) {
-    		values_[c] = ElementType_();
-    	}
+        for (Int c = idx; c < Indexes; c++) {
+            values_[c] = ElementType_();
+        }
 
-    	return *this;
+        return *this;
     }
 
 
@@ -762,54 +762,54 @@ public:
 
     auto max() const
     {
-    	ElementType value = values_[0];
+        ElementType value = values_[0];
 
-    	for (Int c = 1; c < Indexes; c++)
-    	{
-    		if (values_[c] > value)
-    		{
-    			value = values_[c];
-    		}
-    	}
+        for (Int c = 1; c < Indexes; c++)
+        {
+            if (values_[c] > value)
+            {
+                value = values_[c];
+            }
+        }
 
-    	return value;
+        return value;
     }
 
     auto min() const
     {
-    	ElementType value = values_[0];
+        ElementType value = values_[0];
 
-    	for (Int c = 1; c < Indexes; c++)
-    	{
-    		if (values_[c] < value)
-    		{
-    			value = values_[c];
-    		}
-    	}
+        for (Int c = 1; c < Indexes; c++)
+        {
+            if (values_[c] < value)
+            {
+                value = values_[c];
+            }
+        }
 
-    	return value;
+        return value;
     }
 
 private:
     static void check(Int idx)
     {
-//    	if (idx < 0 || idx >= Indexes_) {
-//    		throw BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid StaticVector index: "<<idx);
-//    	}
+//      if (idx < 0 || idx >= Indexes_) {
+//          throw BoundsException(MEMORIA_SOURCE, SBuf()<<"Invalid StaticVector index: "<<idx);
+//      }
     }
 };
 
 
 template <typename K, typename... Args>
 auto make_sv(Args&&... values) -> StaticVector<K, sizeof...(Args)>{
-	return StaticVector<K, sizeof...(Args)>({values...});
+    return StaticVector<K, sizeof...(Args)>({values...});
 }
 
 
 template <typename T, typename... Args>
 auto MakeStaticVector(Args&&... args) -> StaticVector<T, sizeof...(Args)>
 {
-	return StaticVector<T, sizeof...(Args)>(std::forward<Args>(args)...);
+    return StaticVector<T, sizeof...(Args)>(std::forward<Args>(args)...);
 }
 
 
@@ -855,9 +855,9 @@ struct FromString<core::StaticVector<T, Size>> {
 
         for (Int c = str.size() - 1; c >= 0; c--)
         {
-        	if (str[c] == '[' || str[c] == ']') {
-        		str.erase(c, 1);
-        	}
+            if (str[c] == '[' || str[c] == ']') {
+                str.erase(c, 1);
+            }
         }
 
         for (Int c = 0; c < Size; c++)

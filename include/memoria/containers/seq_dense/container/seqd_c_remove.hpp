@@ -31,9 +31,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrRemoveName)
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
+    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
+    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
+    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
 
     typedef typename Base::Metadata                                             Metadata;
 

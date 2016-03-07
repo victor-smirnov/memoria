@@ -30,7 +30,7 @@ class SequenceTestBase: public BTTestBase<Sequence<BitsPerSymbol, Dense>, Persis
 
     using MyType = SequenceTestBase<BitsPerSymbol, Dense>;
 
-    using Base 	 = BTTestBase<Sequence<BitsPerSymbol, Dense>, PersistentInMemAllocator<>, DefaultProfile<>>;
+    using Base   = BTTestBase<Sequence<BitsPerSymbol, Dense>, PersistentInMemAllocator<>, DefaultProfile<>>;
 
 protected:
     using CtrName = Sequence<BitsPerSymbol, Dense>;
@@ -81,19 +81,19 @@ public:
 
     PackedSeq1Ptr createEmptyPackedSeq(Int size)
     {
-    	Int block_size;
+        Int block_size;
 
-    	if (BitsPerSymbol == 1) {
-    		block_size = PackedSeq1::estimate_block_size(size, 1, 1);
-    	}
-    	else if (BitsPerSymbol == 4) {
-    		block_size = PackedSeq1::estimate_block_size(size, 1, 1);
-    	}
-    	else {
-    		block_size = PackedSeq1::estimate_block_size(size, 3, 2);
-    	}
+        if (BitsPerSymbol == 1) {
+            block_size = PackedSeq1::estimate_block_size(size, 1, 1);
+        }
+        else if (BitsPerSymbol == 4) {
+            block_size = PackedSeq1::estimate_block_size(size, 1, 1);
+        }
+        else {
+            block_size = PackedSeq1::estimate_block_size(size, 3, 2);
+        }
 
-    	return MakeSharedPackedStructByBlock<PackedSeq1>(block_size);
+        return MakeSharedPackedStructByBlock<PackedSeq1>(block_size);
     }
 
     PackedSeq1Ptr fillRandomSeq(Ctr& ctr, Int size)
@@ -106,29 +106,29 @@ public:
 
         seq->fill_with_buf(0, size, [this](Int len) {
 
-			SymbolsBuffer buf;
-			Int limit = len > buf.capacity() ? buf.capacity() : len;
+            SymbolsBuffer buf;
+            Int limit = len > buf.capacity() ? buf.capacity() : len;
 
-			buf.resize(limit);
+            buf.resize(limit);
 
-			auto symbols = buf.symbols();
+            auto symbols = buf.symbols();
 
-			for (Int c = 0; c < SymbolsBuffer::BufSize; c++)
-			{
-				symbols[c] = getRandom();
-			}
+            for (Int c = 0; c < SymbolsBuffer::BufSize; c++)
+            {
+                symbols[c] = getRandom();
+            }
 
-			return buf;
+            return buf;
         });
 
         BigInt t1 = getTimeInMillis();
 
         auto iter = ctr.begin();
 
-		using Provider = seq_dense::SymbolSequenceInputProvider<Ctr>;
-		Provider provider(ctr, seq->symbols(), 0, 4000000);
+        using Provider = seq_dense::SymbolSequenceInputProvider<Ctr>;
+        Provider provider(ctr, seq->symbols(), 0, 4000000);
 
-		ctr.insert(*iter.get(), provider);
+        ctr.insert(*iter.get(), provider);
 
         BigInt t2 = getTimeInMillis();
 

@@ -30,7 +30,7 @@ using memoria::tools::LblTreeNode;
 class VectorTreeTestBase: public BTTestBase<VTree, PersistentInMemAllocator<>, DefaultProfile<>> {
 
     using MyType = VectorTreeTestBase;
-    using Base 	 = BTTestBase<VTree, PersistentInMemAllocator<>, DefaultProfile<>>;
+    using Base   = BTTestBase<VTree, PersistentInMemAllocator<>, DefaultProfile<>>;
 
 protected:
 

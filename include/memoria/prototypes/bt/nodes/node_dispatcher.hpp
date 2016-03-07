@@ -45,7 +45,7 @@ struct IsTreeNode<TreeNode, NodePageAdaptor<TreeNode, Types>> {
 template <typename Types, int Idx>
 class NDT0 {
 
-	using MyType = NDT0<Types, Idx>;
+    using MyType = NDT0<Types, Idx>;
 public:
     using Head      = SelectByIndex<Idx, typename Types::List>;
 

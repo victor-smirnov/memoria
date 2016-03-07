@@ -44,14 +44,14 @@ class TestTask: public Task {
 protected:
     typedef Task Base;
 
-    BigInt	size_;
+    BigInt  size_;
     String  current_test_name_;
 
-    RngInt  	int_generator_;
-    RngBigInt  	bigint_generator_;
+    RngInt      int_generator_;
+    RngBigInt   bigint_generator_;
 
-    size_t 		soft_memlimit_;
-    size_t 		hard_memlimit_;
+    size_t      soft_memlimit_;
+    size_t      hard_memlimit_;
 
 
     struct TestDescriptor {
@@ -137,24 +137,24 @@ public:
     {
         configurator_ = cfg;
 
-        String coverage 	= cfg->getValue<String>("coverage", "small");
-        Int coverage_size	= cfg->getValue<Int>("coverage_size", 1);
+        String coverage     = cfg->getValue<String>("coverage", "small");
+        Int coverage_size   = cfg->getValue<Int>("coverage_size", 1);
 
         if (coverage == "smoke")
         {
-        	this->smokeCoverage(coverage_size);
+            this->smokeCoverage(coverage_size);
         }
         else if (coverage == "small")
         {
-        	this->smallCoverage(coverage_size);
+            this->smallCoverage(coverage_size);
         }
         else if (coverage == "normal")
         {
-        	this->normalCoverage(coverage_size);
+            this->normalCoverage(coverage_size);
         }
         else if (coverage == "large")
         {
-        	this->largeCoverage(coverage_size);
+            this->largeCoverage(coverage_size);
         }
         else {
             throw Exception(MA_SRC, SBuf()<<"Coverage type "+coverage+" is not recognized");
@@ -169,69 +169,69 @@ public:
     virtual void defaultCoverage(Int size) {}
 
     virtual void smokeCoverage(Int size) {
-    	defaultCoverage(size);
+        defaultCoverage(size);
     }
 
     virtual void smallCoverage(Int size) {
-    	defaultCoverage(size);
+        defaultCoverage(size);
     }
 
     virtual void normalCoverage(Int size) {
-    	defaultCoverage(size);
+        defaultCoverage(size);
     }
 
     virtual void largeCoverage(Int size) {
-    	defaultCoverage(size);
+        defaultCoverage(size);
     }
 
     RngInt& getIntTestGenerator() {
-    	return int_generator_;
+        return int_generator_;
     }
     RngBigInt& getBigIntTestGenerator() {
-    	return bigint_generator_;
+        return bigint_generator_;
     }
 
     const RngInt& getIntGenerator() const {
-    	return int_generator_;
+        return int_generator_;
     }
     const RngBigInt& getBigIntGenerator() const {
-    	return bigint_generator_;
+        return bigint_generator_;
     }
 
     virtual void configureSeed()
     {
-    	Int seed = this->getSeed();
-    	if (seed == -1)
-    	{
-    		seed = getTimeInMillis() % 1000000;
-    		setSeed(seed);
-    	}
+        Int seed = this->getSeed();
+        if (seed == -1)
+        {
+            seed = getTimeInMillis() % 1000000;
+            setSeed(seed);
+        }
 
-    	std::seed_seq ss({seed});
-    	int_generator_.engine().seed(ss);
-    	bigint_generator_.engine().seed(ss);
+        std::seed_seq ss({seed});
+        int_generator_.engine().seed(ss);
+        bigint_generator_.engine().seed(ss);
 
-    	this->out()<<"seed = "<<seed<<endl;
+        this->out()<<"seed = "<<seed<<endl;
     }
 
     Int getRandom()
     {
-    	return int_generator_();
+        return int_generator_();
     }
 
     Int getRandom(Int max)
     {
-    	return int_generator_(max);
+        return int_generator_(max);
     }
 
     BigInt getBIRandom()
     {
-    	return bigint_generator_();
+        return bigint_generator_();
     }
 
     BigInt getBIRandom(BigInt max)
     {
-    	return bigint_generator_(max);
+        return bigint_generator_(max);
     }
 
     virtual void setUp() {}

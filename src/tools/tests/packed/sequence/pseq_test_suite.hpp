@@ -34,13 +34,13 @@ public:
     PackedSequenceTestSuite(): TestSuite("Packed.Seq")
     {
         registerTask(new PackedSearchableSequenceMiscTest<
-        		1,
-				PkdFQTreeT<Int, 2>,
-				::memoria::BitmapReindexFn,
-				BitmapSelectFn,
-				BitmapRankFn,
-				BitmapToolsFn
-		>("Misc.1"));
+                1,
+                PkdFQTreeT<Int, 2>,
+                ::memoria::BitmapReindexFn,
+                BitmapSelectFn,
+                BitmapRankFn,
+                BitmapToolsFn
+        >("Misc.1"));
 
         registerTask(new PackedSearchableSequenceMiscTest<
                         4,
@@ -90,13 +90,13 @@ public:
 
 
         registerTask(new PackedSearchableSequenceRankTest<
-        		1,
-				PkdFQTreeT<Int, 2>,
-				::memoria::BitmapReindexFn,
-				 BitmapSelectFn,
-				 BitmapRankFn,
-				 BitmapToolsFn
-		>("Rank.1"));
+                1,
+                PkdFQTreeT<Int, 2>,
+                ::memoria::BitmapReindexFn,
+                 BitmapSelectFn,
+                 BitmapRankFn,
+                 BitmapToolsFn
+        >("Rank.1"));
 
         registerTask(new PackedSearchableSequenceRankTest<
                 4,
@@ -131,13 +131,13 @@ public:
 
 
         registerTask(new PackedSearchableSequenceSelectTest<
-        		1,
-				PkdFQTreeT<Int, 2>,
-				::memoria::BitmapReindexFn,
-				 BitmapSelectFn,
-				 BitmapRankFn,
-				 BitmapToolsFn
-		>("Select.1"));
+                1,
+                PkdFQTreeT<Int, 2>,
+                ::memoria::BitmapReindexFn,
+                 BitmapSelectFn,
+                 BitmapRankFn,
+                 BitmapToolsFn
+        >("Select.1"));
 
         registerTask(new PackedSearchableSequenceSelectTest<
                 4,

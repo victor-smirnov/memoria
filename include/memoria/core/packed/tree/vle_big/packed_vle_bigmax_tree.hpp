@@ -27,30 +27,30 @@ class TextPageDumper;
 template <typename> class ValueCodec;
 
 template <
-	typename ValueT,
-	template <typename> class CodecT,
-	Int kBranchingFactor
+    typename ValueT,
+    template <typename> class CodecT,
+    Int kBranchingFactor
 >
 struct PkdVBMTreeTypes {
-	using Value = ValueT;
-	using IndexValue = ValueT;
+    using Value = ValueT;
+    using IndexValue = ValueT;
 
-	template <typename T>
-	using Codec = CodecT<T>;
-	static constexpr Int ValueBranchingFactor = kBranchingFactor;
+    template <typename T>
+    using Codec = CodecT<T>;
+    static constexpr Int ValueBranchingFactor = kBranchingFactor;
 
-	static constexpr Int Blocks = 1;
+    static constexpr Int Blocks = 1;
 
-	static constexpr Int BranchingFactor = 32;
-	static constexpr Int ValuesPerBranch = kBranchingFactor;
+    static constexpr Int BranchingFactor = 32;
+    static constexpr Int ValuesPerBranch = kBranchingFactor;
 };
 
 template <typename Types> class PkdVBMTree;
 
 template <
-	typename ValueT,
-	template <typename> class CodecT = ValueCodec,
-	Int kBranchingFactor = 1024
+    typename ValueT,
+    template <typename> class CodecT = ValueCodec,
+    Int kBranchingFactor = 1024
 >
 using PkdVBMTreeT = PkdVBMTree<PkdVBMTreeTypes<ValueT, CodecT, kBranchingFactor>>;
 
@@ -58,185 +58,185 @@ using PkdVBMTreeT = PkdVBMTree<PkdVBMTreeTypes<ValueT, CodecT, kBranchingFactor>
 template <typename Types>
 class PkdVBMTree: public PackedAllocator {
 
-	using Base 		= PackedAllocator;
-	using MyType 	= PkdVBMTree<Types>;
+    using Base      = PackedAllocator;
+    using MyType    = PkdVBMTree<Types>;
 
 public:
-    static constexpr UInt VERSION 	= 1;
+    static constexpr UInt VERSION   = 1;
 
 
-    static constexpr Int Blocks 	= 1;
+    static constexpr Int Blocks     = 1;
 
     static constexpr PkdSearchType KeySearchType = PkdSearchType::MAX;
 
-	static const Int BranchingFactorI        	= PackedTreeBranchingFactor;
-	static const Int BranchingFactorV        	= Types::ValueBranchingFactor;
+    static const Int BranchingFactorI           = PackedTreeBranchingFactor;
+    static const Int BranchingFactorV           = Types::ValueBranchingFactor;
 
-    static constexpr Int BranchingFactorVMask 	= BranchingFactorV - 1;
-    static constexpr Int BranchingFactorVLog2 	= Log2(BranchingFactorV) - 1;
+    static constexpr Int BranchingFactorVMask   = BranchingFactorV - 1;
+    static constexpr Int BranchingFactorVLog2   = Log2(BranchingFactorV) - 1;
 
-    static constexpr Int BranchingFactorIMask 	= BranchingFactorI - 1;
-    static constexpr Int BranchingFactorILog2 	= Log2(BranchingFactorI) - 1;
+    static constexpr Int BranchingFactorIMask   = BranchingFactorI - 1;
+    static constexpr Int BranchingFactorILog2   = Log2(BranchingFactorI) - 1;
 
     enum {METADATA, INDEX, SIZE_INDEX, OFFSETS, VALUES, TOTAL_BLOCKS};
 
 
     class Metadata {
-    	Int size_;
-    	Int data_size_;
+        Int size_;
+        Int data_size_;
     public:
-    	Int& size(){return size_;}
-    	const Int& size() const {return size_;}
+        Int& size(){return size_;}
+        const Int& size() const {return size_;}
 
-    	Int& data_size() {return data_size_;}
-    	const Int& data_size() const {return data_size_;}
+        Int& data_size() {return data_size_;}
+        const Int& data_size() const {return data_size_;}
     };
 
     using FieldsList = MergeLists<>;
 
-    using OffsetsType	= UShort;
-    using SizesValue 	= Int;
-    using Value		 	= typename Types::Value;
-    using IndexValue	= typename Types::Value;
+    using OffsetsType   = UShort;
+    using SizesValue    = Int;
+    using Value         = typename Types::Value;
+    using IndexValue    = typename Types::Value;
 
-    using Values 		= core::StaticVector<Value, Blocks>;
+    using Values        = core::StaticVector<Value, Blocks>;
 
-    using InputBuffer 	= PkdVLEColumnOrderInputBuffer<Types>;
-    using InputType 	= Values;
+    using InputBuffer   = PkdVLEColumnOrderInputBuffer<Types>;
+    using InputType     = Values;
 
     using SizesT = core::StaticVector<Int, 1>;
 
-    using Codec 		= typename Types::template Codec<Value>;
+    using Codec         = typename Types::template Codec<Value>;
 
     using ValueData = typename Codec::BufferType;
 
     struct TreeLayout {
-    	Int level_starts[8];
-    	Int level_sizes[8];
-    	Int levels_max = 0;
-    	Int index_size = 0;
+        Int level_starts[8];
+        Int level_sizes[8];
+        Int levels_max = 0;
+        Int index_size = 0;
 
-    	const Int* valaue_block_size_prefix;
+        const Int* valaue_block_size_prefix;
     };
 
     struct LocateResult {
-    	Int idx = 0;
-    	Int index_cnt = 0;
+        Int idx = 0;
+        Int index_cnt = 0;
 
-    	LocateResult(Int idx_, Int index_cnt_ = 0) :
-    		idx(idx_), index_cnt(index_cnt_)
-    	{}
+        LocateResult(Int idx_, Int index_cnt_ = 0) :
+            idx(idx_), index_cnt(index_cnt_)
+        {}
 
-    	LocateResult() {}
+        LocateResult() {}
 
-    	Int local_cnt() const {return idx - index_cnt;}
+        Int local_cnt() const {return idx - index_cnt;}
     };
 
 
     void init()
     {
-    	Base::init(empty_size(), TOTAL_BLOCKS);
+        Base::init(empty_size(), TOTAL_BLOCKS);
 
-    	Metadata* meta = this->template allocate<Metadata>(METADATA);
+        Metadata* meta = this->template allocate<Metadata>(METADATA);
 
-    	meta->size() = 0;
-    	meta->data_size() = 0;
+        meta->size() = 0;
+        meta->data_size() = 0;
 
-    	this->template allocateArrayBySize<Int>(SIZE_INDEX, 0);
-    	this->template allocateArrayBySize<OffsetsType>(OFFSETS, number_of_offsets(0));
-    	this->template allocateArrayBySize<ValueData>(VALUES, 0);
+        this->template allocateArrayBySize<Int>(SIZE_INDEX, 0);
+        this->template allocateArrayBySize<OffsetsType>(OFFSETS, number_of_offsets(0));
+        this->template allocateArrayBySize<ValueData>(VALUES, 0);
     }
 
     Int block_size() const
     {
-    	return Base::block_size();
+        return Base::block_size();
     }
 
 
 
     Metadata* metadata() {
-    	return this->template get<Metadata>(METADATA);
+        return this->template get<Metadata>(METADATA);
     }
 
     const Metadata* metadata() const {
-    	return this->template get<Metadata>(METADATA);
+        return this->template get<Metadata>(METADATA);
     }
 
 
     const Int& size() const {
-    	return metadata()->size();
+        return metadata()->size();
     }
 
     Int& size() {
-    	return metadata()->size();
+        return metadata()->size();
     }
 
     Values get_values(Int idx) const
     {
-    	Values v;
+        Values v;
 
-    	for (Int i = 0; i < Blocks; i++)
-    	{
-    		v[i] = this->value(i, idx);
-    	}
+        for (Int i = 0; i < Blocks; i++)
+        {
+            v[i] = this->value(i, idx);
+        }
 
-    	return v;
+        return v;
     }
 
     Value get_values(Int idx, Int index) const
     {
-    	return this->value(index, idx);
+        return this->value(index, idx);
     }
 
     Value getValue(Int index, Int idx) const
     {
-    	return this->value(index, idx);
+        return this->value(index, idx);
     }
 
 
 
     Value value(Int block, Int idx) const
     {
-    	return value(idx);
+        return value(idx);
     }
 
 
 
     Value value(Int idx) const
     {
-    	MEMORIA_ASSERT(idx, >=, 0);
-    	MEMORIA_ASSERT(idx, <, this->size());
+        MEMORIA_ASSERT(idx, >=, 0);
+        MEMORIA_ASSERT(idx, <, this->size());
 
-    	auto meta 		  = this->metadata();
+        auto meta         = this->metadata();
 
-    	Int data_size	  = meta->data_size();
-    	auto values 	  = this->values();
-    	TreeLayout layout = compute_tree_layout(data_size);
+        Int data_size     = meta->data_size();
+        auto values       = this->values();
+        TreeLayout layout = compute_tree_layout(data_size);
 
-		Int start_pos  	  = locate(layout, values, idx).idx;
+        Int start_pos     = locate(layout, values, idx).idx;
 
-		MEMORIA_ASSERT(start_pos, <, data_size);
+        MEMORIA_ASSERT(start_pos, <, data_size);
 
-		Codec codec;
-		Value value;
-		codec.decode(values, value, start_pos);
+        Codec codec;
+        Value value;
+        codec.decode(values, value, start_pos);
 
-		return value;
+        return value;
     }
 
 
 //    BigInt setValue(Int block, Int idx, Value value)
 //    {
-//    	if (value != 0)
-//    	{
-//    		Value val = this->value(block, idx);
-//    		this->value(block, idx) = value;
+//      if (value != 0)
+//      {
+//          Value val = this->value(block, idx);
+//          this->value(block, idx) = value;
 //
-//    		return val - value;
-//    	}
-//    	else {
-//    		return 0;
-//    	}
+//          return val - value;
+//      }
+//      else {
+//          return 0;
+//      }
 //    }
 //
 
@@ -244,28 +244,28 @@ public:
     template <typename T>
     void setValues(Int idx, const core::StaticVector<T, Blocks>& values)
     {
-    	update_values(idx, [&](Int block, auto old_value){return values[block];});
+        update_values(idx, [&](Int block, auto old_value){return values[block];});
     }
 
 
 
     static Int empty_size()
     {
-    	Int metadata_length = Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
+        Int metadata_length = Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
 
-    	Int sizes_length	= 0;
+        Int sizes_length    = 0;
 
-    	Int values_length   = 0;
-    	Int offsets_length 	= offsets_segment_size(0);
+        Int values_length   = 0;
+        Int offsets_length  = offsets_segment_size(0);
 
-    	Int segments_length = values_length + offsets_length + sizes_length;
+        Int segments_length = values_length + offsets_length + sizes_length;
 
 
-    	return PackedAllocator::block_size(
-    			metadata_length +
-				segments_length,
-				TOTAL_BLOCKS
-    	);
+        return PackedAllocator::block_size(
+                metadata_length +
+                segments_length,
+                TOTAL_BLOCKS
+        );
     }
 
 
@@ -275,16 +275,16 @@ public:
 
 //    bool check_capacity(Int size) const
 //    {
-//    	MEMORIA_ASSERT_TRUE(size >= 0);
+//      MEMORIA_ASSERT_TRUE(size >= 0);
 //
-//    	auto alloc = this->allocator();
+//      auto alloc = this->allocator();
 //
-//    	Int total_size          = this->size() + size;
-//    	Int total_block_size    = MyType::block_size(total_size);
-//    	Int my_block_size       = alloc->element_size(this);
-//    	Int delta               = total_block_size - my_block_size;
+//      Int total_size          = this->size() + size;
+//      Int total_block_size    = MyType::block_size(total_size);
+//      Int my_block_size       = alloc->element_size(this);
+//      Int delta               = total_block_size - my_block_size;
 //
-//    	return alloc->free_space() >= delta;
+//      return alloc->free_space() >= delta;
 //    }
 
 
@@ -293,105 +293,105 @@ public:
 
     Value max(Int block) const
     {
-    	auto size = this->size();
+        auto size = this->size();
 
-    	if (size > 0) {
-    		return this->value(block, size - 1);
-    	}
-    	else {
-    		return Value();
-    	}
+        if (size > 0) {
+            return this->value(block, size - 1);
+        }
+        else {
+            return Value();
+        }
     }
 
     template <typename T>
     void addValues(Int idx, const core::StaticVector<T, Blocks>& values)
     {
-    	for (Int b = 0; b < Blocks; b++) {
-    		this->values(b)[idx] = values[b];
-    	}
+        for (Int b = 0; b < Blocks; b++) {
+            this->values(b)[idx] = values[b];
+        }
 
-    	reindex();
+        reindex();
     }
 
     void sums(Values& values) const
     {
-    	for (Int c = 0; c < Blocks; c++) {
-    		values[c] = this->max(c);
-    	}
+        for (Int c = 0; c < Blocks; c++) {
+            values[c] = this->max(c);
+        }
     }
 
     void sums(Int start, Int end, Values& values) const
     {
-    	if (end - 1 > start)
-    	{
-    		for (Int c = 0; c < Blocks; c++)
-    		{
-    			values[c] = this->values(c)[end - 1];
-    		}
-    	}
+        if (end - 1 > start)
+        {
+            for (Int c = 0; c < Blocks; c++)
+            {
+                values[c] = this->values(c)[end - 1];
+            }
+        }
     }
 
     template <typename T>
     void max(core::StaticVector<T, Blocks>& accum) const
     {
-    	for (Int block = 0; block < Blocks; block++)
-    	{
-    		accum[block] = this->max(block);
-    	}
+        for (Int block = 0; block < Blocks; block++)
+        {
+            accum[block] = this->max(block);
+        }
     }
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
     void max(BranchNodeEntryItem<T, Size>& accum) const
     {
-    	static_assert(Offset <= Size - Blocks, "Invalid balanced tree structure");
+        static_assert(Offset <= Size - Blocks, "Invalid balanced tree structure");
 
-    	for (Int block = 0; block < Blocks; block++)
-    	{
-    		accum[block + Offset] = this->max(block);
-    	}
+        for (Int block = 0; block < Blocks; block++)
+        {
+            accum[block + Offset] = this->max(block);
+        }
     }
 
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
     void sum(BranchNodeEntryItem<T, Size>& accum) const
     {
-    	static_assert(Offset <= Size - Blocks, "Invalid balanced tree structure");
+        static_assert(Offset <= Size - Blocks, "Invalid balanced tree structure");
 
-    	for (Int block = 0; block < Blocks; block++)
-    	{
-    		accum[block + Offset] = this->max(block);
-    	}
+        for (Int block = 0; block < Blocks; block++)
+        {
+            accum[block + Offset] = this->max(block);
+        }
     }
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
     void sum(Int start, Int end, BranchNodeEntryItem<T, Size>& accum) const
     {
-    	static_assert(Offset <= Size - Blocks, "Invalid balanced tree structure");
+        static_assert(Offset <= Size - Blocks, "Invalid balanced tree structure");
 
-    	for (Int block = 0; block < Blocks; block++)
-    	{
-    		accum[block + Offset] = this->value(block, end);
-    	}
+        for (Int block = 0; block < Blocks; block++)
+        {
+            accum[block + Offset] = this->value(block, end);
+        }
     }
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
     void sum(Int idx, BranchNodeEntryItem<T, Size>& accum) const
     {
-    	static_assert(Offset <= Size - Blocks, "Invalid balanced tree structure");
+        static_assert(Offset <= Size - Blocks, "Invalid balanced tree structure");
 
-    	for (Int block = 0; block < Blocks; block++)
-    	{
-    		accum[block + Offset] = this->value(block, idx);
-    	}
+        for (Int block = 0; block < Blocks; block++)
+        {
+            accum[block + Offset] = this->value(block, idx);
+        }
     }
 
     template <Int Offset, Int From, Int To, typename T, template <typename, Int, Int> class BranchNodeEntryItem>
     void sum(Int start, Int end, BranchNodeEntryItem<T, From, To>& accum) const
     {
-    	for (Int block = 0; block < Blocks; block++)
-    	{
-    		accum[block + Offset] = this->value(block, end);
-    	}
+        for (Int block = 0; block < Blocks; block++)
+        {
+            accum[block + Offset] = this->value(block, end);
+        }
     }
 
 //    template <typename T>
@@ -405,101 +405,101 @@ public:
 //    template <Int Offset, Int Size, typename T1, typename T2, template <typename, Int> class BranchNodeEntryItem>
 //    void _insert(Int idx, const core::StaticVector<T1, Blocks>& values, BranchNodeEntryItem<T2, Size>& accum)
 //    {
-//    	insert(idx, values);
+//      insert(idx, values);
 //
-//    	sum<Offset>(idx, accum);
+//      sum<Offset>(idx, accum);
 //    }
 //
 //    template <Int Offset, Int Size, typename T1, typename T2, template <typename, Int> class BranchNodeEntryItem>
 //    void _update(Int idx, const core::StaticVector<T1, Blocks>& values, BranchNodeEntryItem<T2, Size>& accum)
 //    {
-//    	sub<Offset>(idx, accum);
+//      sub<Offset>(idx, accum);
 //
-//    	update(idx, values);
+//      update(idx, values);
 //
-//    	sum<Offset>(idx, accum);
+//      sum<Offset>(idx, accum);
 //    }
 //
 //
 //    template <Int Offset, Int Size, typename T1, typename T2, typename I, template <typename, Int> class BranchNodeEntryItem>
 //    void _update(Int idx, const std::pair<T1, I>& values, BranchNodeEntryItem<T2, Size>& accum)
 //    {
-//    	sub<Offset>(idx, accum);
+//      sub<Offset>(idx, accum);
 //
-//    	this->setValue(values.first, idx, values.second);
+//      this->setValue(values.first, idx, values.second);
 //
-//    	sum<Offset>(idx, accum);
+//      sum<Offset>(idx, accum);
 //    }
 //
 //    template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
 //    void _remove(Int idx, BranchNodeEntryItem<T, Size>& accum)
 //    {
-//    	sub<Offset>(idx, accum);
-//    	remove(idx, idx + 1);
+//      sub<Offset>(idx, accum);
+//      remove(idx, idx + 1);
 //    }
 
     template <Int Offset, Int Size, typename T1, typename T2, template <typename, Int> class BranchNodeEntryItem>
     void _insert(Int idx, const core::StaticVector<T1, Blocks>& values, BranchNodeEntryItem<T2, Size>& accum)
     {
-    	insert(idx, values);
+        insert(idx, values);
 
-    	sum<Offset>(this->size() - 1, accum);
+        sum<Offset>(this->size() - 1, accum);
     }
 
     template <Int Offset, Int Size, typename T2, template <typename, Int> class BranchNodeEntryItem, typename AccessorFn>
     void _insert_b(Int idx, BranchNodeEntryItem<T2, Size>& accum, AccessorFn&& values)
     {
-    	this->_insert(idx, 1, [&](Int block, Int idx) {
-    		return values(block);
-    	});
+        this->_insert(idx, 1, [&](Int block, Int idx) {
+            return values(block);
+        });
 
-    	sum<Offset>(this->size() - 1, accum);
+        sum<Offset>(this->size() - 1, accum);
     }
 
 
 //    template <Int Offset, typename T1>
 //    void _insert(Int idx, const core::StaticVector<T1, Blocks>& values)
 //    {
-//    	insert(idx, values);
+//      insert(idx, values);
 //    }
 
     template <Int Offset, Int Size, typename T1, typename T2, template <typename, Int> class BranchNodeEntryItem>
     void _update(Int idx, const core::StaticVector<T1, Blocks>& values, BranchNodeEntryItem<T2, Size>& accum)
     {
-    	update(idx, values);
+        update(idx, values);
 
-    	sum<Offset>(this->size() - 1, accum);
+        sum<Offset>(this->size() - 1, accum);
     }
 
     template <Int Offset, Int Size, typename T2, template <typename, Int> class BranchNodeEntryItem, typename AccessorFn>
     void _update_b(Int idx, BranchNodeEntryItem<T2, Size>& accum, AccessorFn&& values)
     {
-    	update(idx, idx + 1, [&](Int block, Int idx){
-    		return values(block);
-    	});
+        update(idx, idx + 1, [&](Int block, Int idx){
+            return values(block);
+        });
 
-    	sum<Offset>(this->size() - 1, accum);
+        sum<Offset>(this->size() - 1, accum);
     }
 
 
     template <Int Offset, Int Size, typename T1, typename T2, typename I, template <typename, Int> class BranchNodeEntryItem>
     void _update(Int idx, const std::pair<T1, I>& values, BranchNodeEntryItem<T2, Size>& accum)
     {
-    	this->setValue(values.first, idx, values.second);
+        this->setValue(values.first, idx, values.second);
 
-    	sum<Offset>(this->size() - 1, accum);
+        sum<Offset>(this->size() - 1, accum);
     }
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
     void _remove(Int idx, BranchNodeEntryItem<T, Size>& accum)
     {
-    	remove(idx, idx + 1);
+        remove(idx, idx + 1);
 
-    	auto size = this->size();
-    	if (size > 0)
-    	{
-    		sum<Offset>(size - 1, accum);
-    	}
+        auto size = this->size();
+        if (size > 0)
+        {
+            sum<Offset>(size - 1, accum);
+        }
     }
 
 
@@ -513,21 +513,21 @@ public:
 public:
     void splitTo(MyType* other, Int idx)
     {
-    	auto meta = this->metadata();
+        auto meta = this->metadata();
 
-    	TreeLayout layout 	= compute_tree_layout(meta->data_size());
-    	auto values 		= this->values();
+        TreeLayout layout   = compute_tree_layout(meta->data_size());
+        auto values         = this->values();
 
-    	Codec codec;
+        Codec codec;
 
-    	Int start 		= locate(layout, values, idx).idx;
-    	Int data_size  	= meta->data_size() - start;
+        Int start       = locate(layout, values, idx).idx;
+        Int data_size   = meta->data_size() - start;
 
-    	other->insert_space(0, data_size);
-    	codec.copy(values, start, other->values(), 0, data_size);
+        other->insert_space(0, data_size);
+        codec.copy(values, start, other->values(), 0, data_size);
 
-    	Int size 		= meta->size();
-        other->size() 	+= size - idx;
+        Int size        = meta->size();
+        other->size()   += size - idx;
 
         other->reindex();
 
@@ -537,45 +537,45 @@ public:
 
     void mergeWith(MyType* other)
     {
-    	auto meta 		= this->metadata();
-    	auto other_meta = other->metadata();
+        auto meta       = this->metadata();
+        auto other_meta = other->metadata();
 
-    	Int data_size 		= meta->data_size();
-    	Int other_data_size = other_meta->data_size();
-    	Int start 			= other_data_size;
+        Int data_size       = meta->data_size();
+        Int other_data_size = other_meta->data_size();
+        Int start           = other_data_size;
 
-    	other->insert_space(other_data_size, data_size);
+        other->insert_space(other_data_size, data_size);
 
-    	Codec codec;
-    	codec.copy(this->values(), 0, other->values(), start, data_size);
+        Codec codec;
+        codec.copy(this->values(), 0, other->values(), start, data_size);
 
-    	other->size() += meta->size();
+        other->size() += meta->size();
 
-    	other->reindex();
+        other->reindex();
 
-    	clear();
+        clear();
     }
 
 
     void removeSpace(Int start, Int end) {
-    	remove(start, end);
+        remove(start, end);
     }
 
     void remove(Int start, Int end)
     {
-    	auto meta 			= this->metadata();
+        auto meta           = this->metadata();
 
-    	auto values			= this->values();
-    	TreeLayout layout 	= compute_tree_layout(meta->data_size());
+        auto values         = this->values();
+        TreeLayout layout   = compute_tree_layout(meta->data_size());
 
-    	Int start_pos = locate(layout, values, start).idx;
-    	Int end_pos   = locate(layout, values, end).idx;
+        Int start_pos = locate(layout, values, start).idx;
+        Int end_pos   = locate(layout, values, end).idx;
 
-    	this->remove_space(start_pos, end_pos - start_pos);
+        this->remove_space(start_pos, end_pos - start_pos);
 
-    	meta->size() -= end - start;
+        meta->size() -= end - start;
 
-    	reindex();
+        reindex();
     }
 
 
@@ -584,131 +584,131 @@ public:
     template <typename T>
     void insert(Int idx, const core::StaticVector<T, 1>& values)
     {
-    	this->_insert(idx, 1, [&](Int block, Int idx) {
-    		return values[block];
-    	});
+        this->_insert(idx, 1, [&](Int block, Int idx) {
+            return values[block];
+        });
     }
 
 
 
     template <typename Adaptor>
     void insert(Int pos, Int processed, Adaptor&& adaptor) {
-    	_insert(pos, processed, std::forward<Adaptor>(adaptor));
+        _insert(pos, processed, std::forward<Adaptor>(adaptor));
     }
 
 
     template <typename Adaptor>
     void _insert(Int pos, Int processed, Adaptor&& adaptor)
     {
-    	auto meta = this->metadata();
+        auto meta = this->metadata();
 
-    	Int size = meta->size();
+        Int size = meta->size();
 
-    	MEMORIA_ASSERT(pos, >=, 0);
-    	MEMORIA_ASSERT(pos, <=, size);
-    	MEMORIA_ASSERT(processed, >=, 0);
+        MEMORIA_ASSERT(pos, >=, 0);
+        MEMORIA_ASSERT(pos, <=, size);
+        MEMORIA_ASSERT(processed, >=, 0);
 
-    	Codec codec;
+        Codec codec;
 
-    	SizeT total_lengths = 0;
+        SizeT total_lengths = 0;
 
-    	for (SizeT c = 0; c < processed; c++)
-    	{
-    		auto value 	= adaptor(0, c);
-    		auto len 	= codec.length(value);
-    		total_lengths += len;
-    	}
+        for (SizeT c = 0; c < processed; c++)
+        {
+            auto value  = adaptor(0, c);
+            auto len    = codec.length(value);
+            total_lengths += len;
+        }
 
-    	Int data_size		= meta->data_size();
-    	auto values			= this->values();
-    	TreeLayout layout 	= compute_tree_layout(data_size);
+        Int data_size       = meta->data_size();
+        auto values         = this->values();
+        TreeLayout layout   = compute_tree_layout(data_size);
 
-    	auto lr = locate(layout, values, pos);
+        auto lr = locate(layout, values, pos);
 
-    	size_t insertion_pos = lr.idx;
+        size_t insertion_pos = lr.idx;
 
-    	insert_space(insertion_pos, total_lengths);
+        insert_space(insertion_pos, total_lengths);
 
-    	values = this->values();
+        values = this->values();
 
-    	for (Int c = 0; c < processed; c++)
-    	{
-    		auto value = adaptor(0, c);
-    		auto len = codec.encode(values, value, insertion_pos);
-    		insertion_pos += len;
-    	}
+        for (Int c = 0; c < processed; c++)
+        {
+            auto value = adaptor(0, c);
+            auto len = codec.encode(values, value, insertion_pos);
+            insertion_pos += len;
+        }
 
-    	meta->size() += processed;
+        meta->size() += processed;
 
-    	reindex();
+        reindex();
     }
 
 
     SizesT positions(Int idx) const
     {
-    	auto meta = this->metadata();
+        auto meta = this->metadata();
 
-    	MEMORIA_ASSERT(idx, >=, 0);
-    	MEMORIA_ASSERT(idx, <=, meta->size());
+        MEMORIA_ASSERT(idx, >=, 0);
+        MEMORIA_ASSERT(idx, <=, meta->size());
 
-    	Int data_size		= meta->data_size();
-    	auto values			= this->values();
-    	TreeLayout layout 	= compute_tree_layout(data_size);
+        Int data_size       = meta->data_size();
+        auto values         = this->values();
+        TreeLayout layout   = compute_tree_layout(data_size);
 
-    	return SizesT(locate(layout, values, idx).idx);
+        return SizesT(locate(layout, values, idx).idx);
     }
 
 
     SizesT insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, Int size)
     {
-    	auto meta = this->metadata();
+        auto meta = this->metadata();
 
-    	Codec codec;
+        Codec codec;
 
-    	SizesT total_lengths = ends - starts;
+        SizesT total_lengths = ends - starts;
 
 
-    	auto values	= this->values();
+        auto values = this->values();
 
-    	size_t insertion_pos = at[0];
+        size_t insertion_pos = at[0];
 
-    	insert_space(insertion_pos, total_lengths[0]);
+        insert_space(insertion_pos, total_lengths[0]);
 
-    	values = this->values();
+        values = this->values();
 
-    	codec.copy(buffer->values(), starts[0], values, insertion_pos, total_lengths[0]);
+        codec.copy(buffer->values(), starts[0], values, insertion_pos, total_lengths[0]);
 
-    	meta->size() += size;
+        meta->size() += size;
 
-    	reindex();
+        reindex();
 
-    	return at + total_lengths;
+        return at + total_lengths;
     }
 
     void insert_buffer(Int pos, const InputBuffer* buffer, Int start, Int size)
     {
-    	Codec codec;
+        Codec codec;
 
-    	SizesT starts = buffer->positions(start);
-    	SizesT ends   = buffer->positions(start + size);
+        SizesT starts = buffer->positions(start);
+        SizesT ends   = buffer->positions(start + size);
 
-    	SizesT at 	  = this->positions(pos);
+        SizesT at     = this->positions(pos);
 
-    	SizesT total_lengths = ends - starts;
+        SizesT total_lengths = ends - starts;
 
-    	auto values	= this->values();
+        auto values = this->values();
 
-    	size_t insertion_pos = at[0];
+        size_t insertion_pos = at[0];
 
-    	insert_space(insertion_pos, total_lengths[0]);
+        insert_space(insertion_pos, total_lengths[0]);
 
-    	values = this->values();
+        values = this->values();
 
-    	codec.copy(buffer->values(0), starts[0], values, insertion_pos, total_lengths[0]);
+        codec.copy(buffer->values(0), starts[0], values, insertion_pos, total_lengths[0]);
 
-    	this->size() += size;
+        this->size() += size;
 
-    	reindex();
+        reindex();
     }
 
 
@@ -716,33 +716,33 @@ public:
     template <typename Adaptor>
     SizesT populate(const SizesT& at, Int size, Adaptor&& adaptor)
     {
-    	auto meta = this->metadata();
+        auto meta = this->metadata();
 
-    	Codec codec;
+        Codec codec;
 
-    	SizesT total_lengths;
+        SizesT total_lengths;
 
-    	for (Int c = 0; c < size; c++)
-    	{
-    		total_lengths[0] += codec.length(adaptor(0, c));
-    	}
+        for (Int c = 0; c < size; c++)
+        {
+            total_lengths[0] += codec.length(adaptor(0, c));
+        }
 
-    	size_t insertion_pos = at[0];
+        size_t insertion_pos = at[0];
 
-    	auto values = this->values();
+        auto values = this->values();
 
-    	for (Int c = 0; c < size; c++)
-    	{
-    		auto value = adaptor(0, c);
-    		auto len = codec.encode(values, value, insertion_pos);
-    		insertion_pos += len;
-    	}
+        for (Int c = 0; c < size; c++)
+        {
+            auto value = adaptor(0, c);
+            auto len = codec.encode(values, value, insertion_pos);
+            insertion_pos += len;
+        }
 
-    	meta->data_size() += total_lengths[0];
+        meta->data_size() += total_lengths[0];
 
-    	meta->size() += size;
+        meta->size() += size;
 
-    	return at + total_lengths;
+        return at + total_lengths;
     }
 
 
@@ -750,115 +750,115 @@ public:
     template <typename UpdateFn>
     void update_values(Int start, Int end, UpdateFn&& update_fn)
     {
-    	auto meta = this->metadata();
+        auto meta = this->metadata();
 
-    	Codec codec;
+        Codec codec;
 
-    	auto values			= this->values();
-    	Int data_size 		= meta->data_size();
-    	TreeLayout layout 	= compute_tree_layout(data_size);
-    	size_t data_start	= locate(layout, values, start);
+        auto values         = this->values();
+        Int data_size       = meta->data_size();
+        TreeLayout layout   = compute_tree_layout(data_size);
+        size_t data_start   = locate(layout, values, start);
 
-    	for (Int window_start = start; window_start < end; window_start += 32)
-    	{
-    		Int window_end = (window_start + 32) < end ? window_start + 32 : end;
+        for (Int window_start = start; window_start < end; window_start += 32)
+        {
+            Int window_end = (window_start + 32) < end ? window_start + 32 : end;
 
-    		Int old_length = 0;
-    		Int new_length = 0;
+            Int old_length = 0;
+            Int new_length = 0;
 
-    		auto values	= this->values();
+            auto values = this->values();
 
-    		size_t data_start_tmp = data_start;
+            size_t data_start_tmp = data_start;
 
-    		Value buffer[32];
+            Value buffer[32];
 
-    		for (Int c = window_start; c < window_end; c++)
-    		{
-    			Value old_value;
-    			auto len = codec.decode(values, old_value, data_start_tmp, data_size);
+            for (Int c = window_start; c < window_end; c++)
+            {
+                Value old_value;
+                auto len = codec.decode(values, old_value, data_start_tmp, data_size);
 
-    			auto new_value = update_fn(0, c, old_value);
+                auto new_value = update_fn(0, c, old_value);
 
-    			buffer[c - window_start] = new_value;
+                buffer[c - window_start] = new_value;
 
-    			old_length += len;
-    			new_length += codec.length(new_value);
+                old_length += len;
+                new_length += codec.length(new_value);
 
-    			data_start_tmp += len;
-    		}
+                data_start_tmp += len;
+            }
 
-    		if (new_length > old_length)
-    		{
-    			auto delta = new_length - old_length;
-    			insert_space(data_start, delta);
+            if (new_length > old_length)
+            {
+                auto delta = new_length - old_length;
+                insert_space(data_start, delta);
 
-    			values = this->values();
-    		}
-    		else if (new_length < old_length)
-    		{
-    			auto delta = old_length - new_length;
-    			remove_space(data_start, delta);
+                values = this->values();
+            }
+            else if (new_length < old_length)
+            {
+                auto delta = old_length - new_length;
+                remove_space(data_start, delta);
 
-    			values = this->values();
-    		}
+                values = this->values();
+            }
 
-    		for (Int c = window_start; c < window_end; c++)
-    		{
-    			data_start += codec.encode(values, buffer[c], data_start);
-    		}
-    	}
+            for (Int c = window_start; c < window_end; c++)
+            {
+                data_start += codec.encode(values, buffer[c], data_start);
+            }
+        }
 
-    	reindex();
+        reindex();
     }
 
 
     template <typename UpdateFn>
     void update_values(Int start, UpdateFn&& update_fn)
     {
-    	update_value(start, std::forward<UpdateFn>(update_fn));
+        update_value(start, std::forward<UpdateFn>(update_fn));
     }
 
 
     template <typename UpdateFn>
     void update_value(Int start, UpdateFn&& update_fn)
     {
-    	auto meta = this->metadata();
+        auto meta = this->metadata();
 
-    	MEMORIA_ASSERT(start, <=, meta->size());
-    	MEMORIA_ASSERT(start, >=, 0);
+        MEMORIA_ASSERT(start, <=, meta->size());
+        MEMORIA_ASSERT(start, >=, 0);
 
-    	Codec codec;
+        Codec codec;
 
-    	Int data_size 			= meta->data_size();
+        Int data_size           = meta->data_size();
 
-    	auto values				= this->values();
-    	TreeLayout layout 		= compute_tree_layout(data_size);
-    	size_t insertion_pos 	= locate(layout, values, start).idx;
+        auto values             = this->values();
+        TreeLayout layout       = compute_tree_layout(data_size);
+        size_t insertion_pos    = locate(layout, values, start).idx;
 
-    	Value value;
-    	size_t old_length = codec.decode(values, value, insertion_pos, data_size);
-    	auto new_value = update_fn(0, value);
+        Value value;
+        size_t old_length = codec.decode(values, value, insertion_pos, data_size);
+        auto new_value = update_fn(0, value);
 
-    	if (new_value != value)
-    	{
-    		size_t new_length = codec.length(new_value);
+        if (new_value != value)
+        {
+            size_t new_length = codec.length(new_value);
 
-    		if (new_length > old_length)
-    		{
-    			insert_space(insertion_pos, new_length - old_length);
-    			values = this->values();
+            if (new_length > old_length)
+            {
+                insert_space(insertion_pos, new_length - old_length);
+                values = this->values();
 
-    		}
-    		else if (old_length > new_length)
-    		{
-    			remove_space(insertion_pos, old_length - new_length);
-    			values = this->values();
-    		}
+            }
+            else if (old_length > new_length)
+            {
+                remove_space(insertion_pos, old_length - new_length);
+                values = this->values();
+            }
 
-    		codec.encode(values, new_value, insertion_pos);
+            codec.encode(values, new_value, insertion_pos);
 
-    		reindex();
-    	}
+            reindex();
+        }
     }
 
 
@@ -879,102 +879,102 @@ public:
 
     void dump(std::ostream& out = std::cout) const
     {
-    	std::unique_ptr<TextPageDumper> dumper = std::make_unique<TextPageDumper>(out);
-    	this->generateDataEvents(dumper.get());
+        std::unique_ptr<TextPageDumper> dumper = std::make_unique<TextPageDumper>(out);
+        this->generateDataEvents(dumper.get());
     }
 
 
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
-    	Base::generateDataEvents(handler);
+        Base::generateDataEvents(handler);
 
-    	handler->startStruct();
-    	handler->startGroup("VBM_TREE");
+        handler->startStruct();
+        handler->startGroup("VBM_TREE");
 
-    	if (has_index())
-    	{
-    		handler->startGroup("INDEX");
-    		index()->generateDataEvents(handler);
-    		handler->endGroup();
-    	}
+        if (has_index())
+        {
+            handler->startGroup("INDEX");
+            index()->generateDataEvents(handler);
+            handler->endGroup();
+        }
 
-    	auto meta = this->metadata();
+        auto meta = this->metadata();
 
-    	handler->value("SIZE",      &meta->size());
-    	handler->value("DATA_SIZE", &meta->data_size());
+        handler->value("SIZE",      &meta->size());
+        handler->value("DATA_SIZE", &meta->data_size());
 
-		TreeLayout layout = compute_tree_layout(meta->data_size());
+        TreeLayout layout = compute_tree_layout(meta->data_size());
 
-		if (layout.levels_max >= 0)
-		{
-			handler->startGroup("TREE_LAYOUT", layout.index_size);
+        if (layout.levels_max >= 0)
+        {
+            handler->startGroup("TREE_LAYOUT", layout.index_size);
 
-			for (Int c = 0; c < layout.index_size; c++)
-			{
-				handler->value("LAYOUT_ITEM", &this->size_index()[c]);
-			}
+            for (Int c = 0; c < layout.index_size; c++)
+            {
+                handler->value("LAYOUT_ITEM", &this->size_index()[c]);
+            }
 
-			handler->endGroup();
-		}
-
-
-		auto offsets_num = number_of_offsets(meta->data_size());
-		handler->startGroup("OFFSETS", offsets_num);
-
-		auto offsets = this->offsets();
-
-		handler->value("OFFSETS", offsets, offsets_num, IPageDataEventHandler::BYTE_ARRAY);
-
-		handler->endGroup();
+            handler->endGroup();
+        }
 
 
+        auto offsets_num = number_of_offsets(meta->data_size());
+        handler->startGroup("OFFSETS", offsets_num);
 
-    	handler->startGroup("DATA", meta->size());
+        auto offsets = this->offsets();
 
-    	const ValueData* values = this->values();
+        handler->value("OFFSETS", offsets, offsets_num, IPageDataEventHandler::BYTE_ARRAY);
 
-    	size_t position = 0;
+        handler->endGroup();
 
-    	Int size = meta->size();
 
-    	Codec codec;
 
-    	for (Int idx = 0; idx < size; idx++)
-    	{
-    		Value value;
-    		auto len = codec.decode(values, value, position);
-    		position += len;
+        handler->startGroup("DATA", meta->size());
 
-    		handler->value("TREE_ITEM", &value);
-    	}
+        const ValueData* values = this->values();
 
-    	handler->endGroup();
+        size_t position = 0;
 
-    	handler->endGroup();
+        Int size = meta->size();
 
-    	handler->endStruct();
+        Codec codec;
+
+        for (Int idx = 0; idx < size; idx++)
+        {
+            Value value;
+            auto len = codec.decode(values, value, position);
+            position += len;
+
+            handler->value("TREE_ITEM", &value);
+        }
+
+        handler->endGroup();
+
+        handler->endGroup();
+
+        handler->endStruct();
     }
 
     void serialize(SerializationData& buf) const
     {
-    	Base::serialize(buf);
+        Base::serialize(buf);
 
-    	auto meta = this->metadata();
+        auto meta = this->metadata();
 
-    	FieldFactory<Int>::serialize(buf, meta->size());
-    	FieldFactory<Int>::serialize(buf, meta->data_size());
+        FieldFactory<Int>::serialize(buf, meta->size());
+        FieldFactory<Int>::serialize(buf, meta->data_size());
 
-    	if (has_index())
-    	{
-    		index()->serialize(buf);
-    	}
+        if (has_index())
+        {
+            index()->serialize(buf);
+        }
 
-    	Base::template serializeSegment<SizesValue>(buf, SIZE_INDEX);
-    	Base::template serializeSegment<OffsetsType>(buf, OFFSETS);
+        Base::template serializeSegment<SizesValue>(buf, SIZE_INDEX);
+        Base::template serializeSegment<OffsetsType>(buf, OFFSETS);
 
-    	Int data_block_size = this->data_block_size();
+        Int data_block_size = this->data_block_size();
 
-    	FieldFactory<ValueData>::serialize(buf, this->values(), data_block_size);
+        FieldFactory<ValueData>::serialize(buf, this->values(), data_block_size);
 
     }
 
@@ -984,98 +984,98 @@ public:
 
         auto meta = this->metadata();
 
-    	FieldFactory<Int>::deserialize(buf, meta->size());
-    	FieldFactory<Int>::deserialize(buf, meta->data_size());
+        FieldFactory<Int>::deserialize(buf, meta->size());
+        FieldFactory<Int>::deserialize(buf, meta->data_size());
 
-    	if (has_index())
-    	{
-    		index()->deserialize(buf);
-    	}
+        if (has_index())
+        {
+            index()->deserialize(buf);
+        }
 
-    	Base::template deserializeSegment<Int>(buf, SIZE_INDEX);
-    	Base::template deserializeSegment<OffsetsType>(buf, OFFSETS);
+        Base::template deserializeSegment<Int>(buf, SIZE_INDEX);
+        Base::template deserializeSegment<OffsetsType>(buf, OFFSETS);
 
-    	Int data_block_size = this->data_block_size();
+        Int data_block_size = this->data_block_size();
 
-    	FieldFactory<ValueData>::deserialize(buf, this->values(), data_block_size);
+        FieldFactory<ValueData>::deserialize(buf, this->values(), data_block_size);
     }
 
 
     template <typename Walker>
     auto find(Walker&& walker) const
     {
-    	auto meta = this->metadata();
-    	auto values = this->values();
+        auto meta = this->metadata();
+        auto values = this->values();
 
-    	size_t data_size = meta->data_size();
-    	Int size = meta->size();
+        size_t data_size = meta->data_size();
+        Int size = meta->size();
 
-    	Codec codec;
+        Codec codec;
 
-    	if (!this->has_index())
-    	{
-    		size_t pos = 0;
-    		for (Int c = 0; pos < data_size; c++)
-    		{
-    			Value value;
-    			size_t length = codec.decode(values, value, pos, data_size);
+        if (!this->has_index())
+        {
+            size_t pos = 0;
+            for (Int c = 0; pos < data_size; c++)
+            {
+                Value value;
+                size_t length = codec.decode(values, value, pos, data_size);
 
-    			if (walker.compare(value))
-    			{
-    				return walker.idx(c);
-    			}
-    			else {
-    				pos += length;
-    				walker.next();
-    			}
-    		}
+                if (walker.compare(value))
+                {
+                    return walker.idx(c);
+                }
+                else {
+                    pos += length;
+                    walker.next();
+                }
+            }
 
-    		return walker.idx(size);
-    	}
-    	else {
-    		Int index_size  = this->index()->size();
-    		auto idx = this->index()->find(walker).idx();
-    		if (idx < index_size)
-    		{
-        		size_t local_pos = (idx << BranchingFactorVLog2) + offset(idx);
+            return walker.idx(size);
+        }
+        else {
+            Int index_size  = this->index()->size();
+            auto idx = this->index()->find(walker).idx();
+            if (idx < index_size)
+            {
+                size_t local_pos = (idx << BranchingFactorVLog2) + offset(idx);
 
-        		TreeLayout layout = compute_tree_layout(data_size);
-        		layout.valaue_block_size_prefix = this->size_index();
+                TreeLayout layout = compute_tree_layout(data_size);
+                layout.valaue_block_size_prefix = this->size_index();
 
-        		Int prefix = this->sum_index(layout, idx);
+                Int prefix = this->sum_index(layout, idx);
 
-        		for (Int local_idx = prefix; local_pos < data_size; local_idx++)
-        		{
-        			Value value;
-        			size_t length = codec.decode(values, value, local_pos, data_size);
+                for (Int local_idx = prefix; local_pos < data_size; local_idx++)
+                {
+                    Value value;
+                    size_t length = codec.decode(values, value, local_pos, data_size);
 
-        			if (walker.compare(value))
-        			{
-        				return walker.idx(local_idx);
-        			}
-        			else {
-        				local_pos += length;
-        				walker.next();
-        			}
-        		}
+                    if (walker.compare(value))
+                    {
+                        return walker.idx(local_idx);
+                    }
+                    else {
+                        local_pos += length;
+                        walker.next();
+                    }
+                }
 
-        		return walker.idx(size);
-    		}
-    		else {
-    			return walker.idx(size);
-    		}
-    	}
+                return walker.idx(size);
+            }
+            else {
+                return walker.idx(size);
+            }
+        }
     }
 
 
     auto find_ge(const Value& value) const
     {
-    	return find(FindGEWalker(value));
+        return find(FindGEWalker(value));
     }
 
     auto find_gt(const Value& value) const
     {
-    	return find(FindGTWalker(value));
+        return find(FindGTWalker(value));
     }
 
 
@@ -1083,32 +1083,32 @@ public:
 
     auto findGTForward(const Value& val) const
     {
-    	return this->find_gt(val);
+        return this->find_gt(val);
     }
 
     auto findGEForward(const Value& val) const
     {
-    	return this->find_ge(val);
+        return this->find_ge(val);
     }
 
     auto findGTForward(Int block, const Value& val) const
     {
-    	return this->find_gt(val);
+        return this->find_gt(val);
     }
 
     auto findGEForward(Int block, const Value& val) const
     {
-    	return this->find_ge(val);
+        return this->find_ge(val);
     }
 
 
 
     class FindResult {
-    	Int idx_;
+        Int idx_;
     public:
-    	template <typename Fn>
-    	FindResult(Fn&& fn): idx_(fn.idx()) {}
-    	Int idx() const {return idx_;}
+        template <typename Fn>
+        FindResult(Fn&& fn): idx_(fn.idx()) {}
+        Int idx() const {return idx_;}
     };
 
     auto findForward(SearchType search_type, Int block, Int start, Value val) const
@@ -1124,13 +1124,13 @@ public:
 
     auto findForward(SearchType search_type, Int block, Value val) const
     {
-    	if (search_type == SearchType::GT)
-    	{
-    		return FindResult(findGTForward(block, val));
-    	}
-    	else {
-    		return FindResult(findGEForward(block, val));
-    	}
+        if (search_type == SearchType::GT)
+        {
+            return FindResult(findGTForward(block, val));
+        }
+        else {
+            return FindResult(findGEForward(block, val));
+        }
     }
 
 
@@ -1141,106 +1141,106 @@ public:
     template <typename ConsumerFn>
     void read(Int block, Int start, Int end, ConsumerFn&& fn) const
     {
-    	auto meta = this->metadata();
+        auto meta = this->metadata();
 
-    	MEMORIA_ASSERT(start, >=, 0);
-    	MEMORIA_ASSERT(start, <=, end);
-    	MEMORIA_ASSERT(end, <=, meta->size());
+        MEMORIA_ASSERT(start, >=, 0);
+        MEMORIA_ASSERT(start, <=, end);
+        MEMORIA_ASSERT(end, <=, meta->size());
 
-    	auto values 		= this->values();
-    	TreeLayout layout 	= compute_tree_layout(meta->data_size());
-    	size_t pos 			= locate(layout, values, start).idx;
-    	size_t data_size 	= meta->data_size();
+        auto values         = this->values();
+        TreeLayout layout   = compute_tree_layout(meta->data_size());
+        size_t pos          = locate(layout, values, start).idx;
+        size_t data_size    = meta->data_size();
 
-    	Codec codec;
+        Codec codec;
 
-    	Int c;
-    	for (c = start; c < end && pos < data_size; c++)
-    	{
-    		Value value;
-    		auto len = codec.decode(values, value, pos);
-    		fn(block, value);
-    		fn.next();
+        Int c;
+        for (c = start; c < end && pos < data_size; c++)
+        {
+            Value value;
+            auto len = codec.decode(values, value, pos);
+            fn(block, value);
+            fn.next();
 
-    		pos += len;
-    	}
+            pos += len;
+        }
     }
 
 
     template <typename ConsumerFn>
     void read(Int start, Int end, ConsumerFn&& fn) const
     {
-    	read(0, start, end, std::forward<ConsumerFn>(fn));
+        read(0, start, end, std::forward<ConsumerFn>(fn));
     }
 
     void reindex()
     {
-    	auto meta = this->metadata();
+        auto meta = this->metadata();
 
-    	Int data_size 	  = meta->data_size();
-    	TreeLayout layout = compute_tree_layout(data_size);
+        Int data_size     = meta->data_size();
+        TreeLayout layout = compute_tree_layout(data_size);
 
-    	reindex(layout, meta);
+        reindex(layout, meta);
     }
 
     void check() const
     {
-    	auto meta = this->metadata();
+        auto meta = this->metadata();
 
-    	Int data_size 		= meta->data_size();
-    	TreeLayout layout 	= compute_tree_layout(data_size);
+        Int data_size       = meta->data_size();
+        TreeLayout layout   = compute_tree_layout(data_size);
 
-    	check(layout, meta);
+        check(layout, meta);
     }
 
 
 
 
     struct FindGEWalker {
-    	Value target_;
-    	Int idx_ = 0;
+        Value target_;
+        Int idx_ = 0;
     public:
-    	FindGEWalker(const Value& target): target_(target) {}
+        FindGEWalker(const Value& target): target_(target) {}
 
-    	template <typename T>
-    	bool compare(T&& value)
-    	{
-    		return compare_ge(value, target_);
-    	}
+        template <typename T>
+        bool compare(T&& value)
+        {
+            return compare_ge(value, target_);
+        }
 
-    	void next() {}
+        void next() {}
 
-    	Int& idx() {return idx_;}
-    	const Int& idx() const {return idx_;}
+        Int& idx() {return idx_;}
+        const Int& idx() const {return idx_;}
 
-    	FindGEWalker& idx(Int value) {
-    		idx_ = value;
-    		return *this;
-    	}
+        FindGEWalker& idx(Int value) {
+            idx_ = value;
+            return *this;
+        }
     };
 
     struct FindGTWalker {
-    	Value target_;
+        Value target_;
 
-    	Int idx_;
+        Int idx_;
     public:
-    	FindGTWalker(const Value& target): target_(target) {}
+        FindGTWalker(const Value& target): target_(target) {}
 
-    	template <typename T>
-    	bool compare(T&& value)
-    	{
-    		return compare_gt(value, target_);
-    	}
+        template <typename T>
+        bool compare(T&& value)
+        {
+            return compare_gt(value, target_);
+        }
 
-    	void next() {}
+        void next() {}
 
-    	Int& idx() {return idx_;}
-    	const Int& idx() const {return idx_;}
+        Int& idx() {return idx_;}
+        const Int& idx() const {return idx_;}
 
-    	FindGTWalker& idx(Int value) {
-    		idx_ = value;
-    		return *this;
-    	}
+        FindGTWalker& idx(Int value) {
+            idx_ = value;
+            return *this;
+        }
     };
 
 
@@ -1248,600 +1248,600 @@ protected:
 
     Int data_block_size() const
     {
-    	Int size = this->element_size(VALUES);
-    	return PackedAllocatable::roundUpBytesToAlignmentBlocks(size) / sizeof(ValueData);
+        Int size = this->element_size(VALUES);
+        return PackedAllocatable::roundUpBytesToAlignmentBlocks(size) / sizeof(ValueData);
     }
 
 
 
     bool has_index() const
     {
-    	return this->element_size(INDEX) > 0;
+        return this->element_size(INDEX) > 0;
     }
 
 
     MyType* index() {
-    	return this->template get<MyType>(INDEX);
+        return this->template get<MyType>(INDEX);
     }
 
     const MyType* index() const {
-    	return this->template get<MyType>(INDEX);
+        return this->template get<MyType>(INDEX);
     }
 
     Int* size_index() {
-    	return this->template get<Int>(SIZE_INDEX);
+        return this->template get<Int>(SIZE_INDEX);
     }
 
     const Int* size_index() const {
-    	return this->template get<Int>(SIZE_INDEX);
+        return this->template get<Int>(SIZE_INDEX);
     }
 
     OffsetsType offset(Int idx) const
     {
-    	return offsets()[idx];
+        return offsets()[idx];
     }
 
     void set_offset(Int idx, OffsetsType value)
     {
-    	offsets()[idx] = value;
+        offsets()[idx] = value;
     }
 
     void set_offset(OffsetsType* block, Int idx, Int value)
     {
-    	block[idx] = value;
+        block[idx] = value;
     }
 
     OffsetsType* offsets() {
-    	return this->template get<OffsetsType>(OFFSETS);
+        return this->template get<OffsetsType>(OFFSETS);
     }
 
     const OffsetsType* offsets() const {
-    	return this->template get<OffsetsType>(OFFSETS);
+        return this->template get<OffsetsType>(OFFSETS);
     }
 
     ValueData* values() {
-    	return this->template get<ValueData>(VALUES);
+        return this->template get<ValueData>(VALUES);
     }
     const ValueData* values() const {
-    	return this->template get<ValueData>(VALUES);
+        return this->template get<ValueData>(VALUES);
     }
 
     static constexpr Int number_of_offsets(Int values)
     {
-    	return values > 0 ? divUpV(values) : 1;
+        return values > 0 ? divUpV(values) : 1;
     }
 
     static constexpr Int offsets_segment_size(Int values)
     {
-    	return PackedAllocator::roundUpBytesToAlignmentBlocks(number_of_offsets(values) * sizeof(OffsetsType));
+        return PackedAllocator::roundUpBytesToAlignmentBlocks(number_of_offsets(values) * sizeof(OffsetsType));
     }
 
     static constexpr Int divUpV(Int value) {
-    	return (value >> BranchingFactorVLog2) + ((value & BranchingFactorVMask) ? 1 : 0);
+        return (value >> BranchingFactorVLog2) + ((value & BranchingFactorVMask) ? 1 : 0);
     }
 
     static constexpr Int divUpI(Int value) {
-    	return (value >> BranchingFactorILog2) + ((value & BranchingFactorIMask) ? 1 : 0);
+        return (value >> BranchingFactorILog2) + ((value & BranchingFactorIMask) ? 1 : 0);
     }
 
     template <Int Divisor>
     static constexpr Int divUp(Int value, Int divisor) {
-    	return (value / Divisor) + ((value % Divisor) ? 1 : 0);
+        return (value / Divisor) + ((value % Divisor) ? 1 : 0);
     }
 
 
 
     LocateResult locate(TreeLayout& layout, const ValueData* values, Int idx) const
     {
-    	auto meta = this->metadata();
+        auto meta = this->metadata();
 
-    	size_t data_size = meta->data_size();
+        size_t data_size = meta->data_size();
 
-    	if (data_size > 0)
-    	{
-    		LocateResult locate_result;
+        if (data_size > 0)
+        {
+            LocateResult locate_result;
 
-    		if (layout.levels_max >= 0)
-    		{
-    			layout.valaue_block_size_prefix = this->size_index();
-    			locate_result = this->locate_index(layout, idx);
-    		}
+            if (layout.levels_max >= 0)
+            {
+                layout.valaue_block_size_prefix = this->size_index();
+                locate_result = this->locate_index(layout, idx);
+            }
 
-    		Int window_num = locate_result.idx;
+            Int window_num = locate_result.idx;
 
-    		Int window_start = window_num << BranchingFactorVLog2;
-    		if (window_start >= 0)
-    		{
-    			Codec codec;
+            Int window_start = window_num << BranchingFactorVLog2;
+            if (window_start >= 0)
+            {
+                Codec codec;
 
-    			size_t offset = this->offset(window_num);
+                size_t offset = this->offset(window_num);
 
-    			Int c = 0;
-    			Int local_idx = idx - locate_result.index_cnt;
-    			size_t pos;
-    			for (pos = window_start + offset; pos < data_size && c < local_idx; c++)
-    			{
-    				auto len = codec.length(values, pos, data_size);
-    				pos += len;
-    			}
+                Int c = 0;
+                Int local_idx = idx - locate_result.index_cnt;
+                size_t pos;
+                for (pos = window_start + offset; pos < data_size && c < local_idx; c++)
+                {
+                    auto len = codec.length(values, pos, data_size);
+                    pos += len;
+                }
 
-    			locate_result.idx = pos;
+                locate_result.idx = pos;
 
-    			return locate_result;
-    		}
-    		else {
-    			return LocateResult(data_size, locate_result.index_cnt);
-    		}
-    	}
-    	else {
-    		return LocateResult(0, 0);
-    	}
+                return locate_result;
+            }
+            else {
+                return LocateResult(data_size, locate_result.index_cnt);
+            }
+        }
+        else {
+            return LocateResult(0, 0);
+        }
     }
 
 
     LocateResult locate_index(TreeLayout& data, Int idx) const
     {
-    	Int branch_start = 0;
+        Int branch_start = 0;
 
-    	Int sum = 0;
+        Int sum = 0;
 
-    	for (Int level = 1; level <= data.levels_max; level++)
-    	{
-    		Int level_start = data.level_starts[level];
+        for (Int level = 1; level <= data.levels_max; level++)
+        {
+            Int level_start = data.level_starts[level];
 
-    		for (int c = level_start + branch_start; c < level_start + data.level_sizes[level]; c++)
-    		{
-    			if (sum + data.valaue_block_size_prefix[c] > idx)
-    			{
-    				if (level < data.levels_max)
-    				{
-    					branch_start = (c - level_start) << BranchingFactorILog2;
-    					goto next_level;
-    				}
-    				else {
-    					return LocateResult(c - level_start, sum);
-    				}
-    			}
-    			else {
-    				sum += data.valaue_block_size_prefix[c];
-    			}
-    		}
+            for (int c = level_start + branch_start; c < level_start + data.level_sizes[level]; c++)
+            {
+                if (sum + data.valaue_block_size_prefix[c] > idx)
+                {
+                    if (level < data.levels_max)
+                    {
+                        branch_start = (c - level_start) << BranchingFactorILog2;
+                        goto next_level;
+                    }
+                    else {
+                        return LocateResult(c - level_start, sum);
+                    }
+                }
+                else {
+                    sum += data.valaue_block_size_prefix[c];
+                }
+            }
 
-    		return LocateResult(-1, sum);
+            return LocateResult(-1, sum);
 
-    		next_level:;
-    	}
+            next_level:;
+        }
 
-    	return LocateResult(-1, sum);
+        return LocateResult(-1, sum);
     }
 
     Int sum_index(const TreeLayout& layout, Int end) const
     {
-    	Int sum = 0;
-    	sum_index(layout, sum, 0, end, layout.levels_max);
-    	return sum;
+        Int sum = 0;
+        sum_index(layout, sum, 0, end, layout.levels_max);
+        return sum;
     }
 
 
     void sum_index(const TreeLayout& layout, Int& sum, Int start, Int end, Int level) const
     {
-    	Int level_start = layout.level_starts[level];
+        Int level_start = layout.level_starts[level];
 
-    	Int branch_end = (start | BranchingFactorIMask) + 1;
-    	Int branch_start = end & ~BranchingFactorIMask;
+        Int branch_end = (start | BranchingFactorIMask) + 1;
+        Int branch_start = end & ~BranchingFactorIMask;
 
-    	if (end <= branch_end || branch_start == branch_end)
-    	{
-    		for (Int c = start + level_start; c < end + level_start; c++)
-    		{
-    			sum += layout.valaue_block_size_prefix[c];
-    		}
-    	}
-    	else {
-    		for (Int c = start + level_start; c < branch_end + level_start; c++)
-    		{
-    			sum += layout.valaue_block_size_prefix[c];
-    		}
+        if (end <= branch_end || branch_start == branch_end)
+        {
+            for (Int c = start + level_start; c < end + level_start; c++)
+            {
+                sum += layout.valaue_block_size_prefix[c];
+            }
+        }
+        else {
+            for (Int c = start + level_start; c < branch_end + level_start; c++)
+            {
+                sum += layout.valaue_block_size_prefix[c];
+            }
 
-    		sum_index(
-    				layout,
-    				sum,
-					branch_end >> BranchingFactorILog2,
-					branch_start >> BranchingFactorILog2,
-					level - 1
-    		);
+            sum_index(
+                    layout,
+                    sum,
+                    branch_end >> BranchingFactorILog2,
+                    branch_start >> BranchingFactorILog2,
+                    level - 1
+            );
 
-    		for (Int c = branch_start + level_start; c < end + level_start; c++)
-    		{
-    			sum += layout.valaue_block_size_prefix[c];
-    		}
-    	}
+            for (Int c = branch_start + level_start; c < end + level_start; c++)
+            {
+                sum += layout.valaue_block_size_prefix[c];
+            }
+        }
     }
 
 
     void resize(Int data_size, Int length)
     {
-    	Int new_data_size = data_size + length;
+        Int new_data_size = data_size + length;
 
-    	Int data_segment_size 	 = PackedAllocator::roundUpBytesToAlignmentBlocks(new_data_size);
-    	Int offsets_segment_size = this->offsets_segment_size(new_data_size);
-    	Int index_size 	 	   	 = MyType::index_size(new_data_size);
+        Int data_segment_size    = PackedAllocator::roundUpBytesToAlignmentBlocks(new_data_size);
+        Int offsets_segment_size = this->offsets_segment_size(new_data_size);
+        Int index_size           = MyType::index_size(new_data_size);
 
-    	this->resizeBlock(VALUES, data_segment_size);
-    	this->resizeBlock(OFFSETS, offsets_segment_size);
-    	this->resizeBlock(SIZE_INDEX, index_size * sizeof(SizesValue));
+        this->resizeBlock(VALUES, data_segment_size);
+        this->resizeBlock(OFFSETS, offsets_segment_size);
+        this->resizeBlock(SIZE_INDEX, index_size * sizeof(SizesValue));
     }
 
 
     void insert_space(Int start, Int length)
     {
-    	auto meta = this->metadata();
+        auto meta = this->metadata();
 
-    	Int data_size = meta->data_size();
-    	resize(data_size, length);
+        Int data_size = meta->data_size();
+        resize(data_size, length);
 
-    	auto values = this->values();
+        auto values = this->values();
 
-    	Codec codec;
-    	codec.move(values, start, start + length, data_size - start);
+        Codec codec;
+        codec.move(values, start, start + length, data_size - start);
 
-    	meta->data_size() += length;
+        meta->data_size() += length;
     }
 
 
 
     void remove_space(Int start, Int length)
     {
-    	auto meta = this->metadata();
+        auto meta = this->metadata();
 
-    	Int data_size = meta->data_size();
-    	auto values = this->values();
+        Int data_size = meta->data_size();
+        auto values = this->values();
 
-    	Codec codec;
-    	Int end = start + length;
-    	codec.move(values, end, start, data_size - end);
+        Codec codec;
+        Int end = start + length;
+        codec.move(values, end, start, data_size - end);
 
-    	resize(data_size, -(end - start));
+        resize(data_size, -(end - start));
 
-    	meta->data_size() -= (end - start);
+        meta->data_size() -= (end - start);
     }
 
     static Int index_size(Int capacity)
     {
-    	TreeLayout layout;
-    	compute_tree_layout(capacity, layout);
-    	return layout.index_size;
+        TreeLayout layout;
+        compute_tree_layout(capacity, layout);
+        return layout.index_size;
     }
 
 
     void reindex(TreeLayout& layout, Metadata* meta)
     {
-    	if (layout.levels_max >= 0)
-    	{
-    		auto values 	= this->values();
-    		auto size_index = this->size_index();
-    		auto offsets 	= this->offsets();
+        if (layout.levels_max >= 0)
+        {
+            auto values     = this->values();
+            auto size_index = this->size_index();
+            auto offsets    = this->offsets();
 
-    		Base::clear(SIZE_INDEX);
-    		Base::clear(OFFSETS);
+            Base::clear(SIZE_INDEX);
+            Base::clear(OFFSETS);
 
-    		layout.valaue_block_size_prefix = size_index;
+            layout.valaue_block_size_prefix = size_index;
 
-    		Int levels 		= layout.levels_max + 1;
-    		Int level_start = layout.level_starts[levels - 1];
-    		Int data_size 	= meta->data_size();
+            Int levels      = layout.levels_max + 1;
+            Int level_start = layout.level_starts[levels - 1];
+            Int data_size   = meta->data_size();
 
-    		std::unique_ptr<ValueData[]> buffer = std::make_unique<ValueData[]>(data_size);
+            std::unique_ptr<ValueData[]> buffer = std::make_unique<ValueData[]>(data_size);
 
-    		Codec codec;
+            Codec codec;
 
-    		size_t pos = 0;
-    		SizesValue size_cnt = 0;
-    		size_t threshold = BranchingFactorV;
-    		size_t buffer_pos = 0;
+            size_t pos = 0;
+            SizesValue size_cnt = 0;
+            size_t threshold = BranchingFactorV;
+            size_t buffer_pos = 0;
 
-    		set_offset(offsets, 0, 0);
+            set_offset(offsets, 0, 0);
 
-    		Int idx = 0;
+            Int idx = 0;
 
-    		typename Codec::ValuePtr value;
+            typename Codec::ValuePtr value;
 
-    		while(pos < data_size)
-    		{
-    			if (pos >= threshold)
-    			{
-    				set_offset(offsets, idx + 1, pos - threshold);
-    				size_index[level_start + idx] = size_cnt;
+            while(pos < data_size)
+            {
+                if (pos >= threshold)
+                {
+                    set_offset(offsets, idx + 1, pos - threshold);
+                    size_index[level_start + idx] = size_cnt;
 
-    				threshold += BranchingFactorV;
+                    threshold += BranchingFactorV;
 
-    				buffer_pos += codec.encode(buffer.get(), value, buffer_pos);
+                    buffer_pos += codec.encode(buffer.get(), value, buffer_pos);
 
-    				idx++;
-    				size_cnt  = 0;
-    			}
+                    idx++;
+                    size_cnt  = 0;
+                }
 
-    			value = codec.describe(values, pos);
+                value = codec.describe(values, pos);
 
-    			size_cnt++;
+                size_cnt++;
 
-    			pos += value.length();
-    		}
+                pos += value.length();
+            }
 
-    		buffer_pos += codec.encode(buffer.get(), value, buffer_pos);
-    		size_index[level_start + idx] = size_cnt;
+            buffer_pos += codec.encode(buffer.get(), value, buffer_pos);
+            size_index[level_start + idx] = size_cnt;
 
-    		idx++;
+            idx++;
 
-    		for (Int level = levels - 1; level > 0; level--)
-    		{
-    			Int previous_level_start = layout.level_starts[level - 1];
-    			Int previous_level_size  = layout.level_sizes[level - 1];
+            for (Int level = levels - 1; level > 0; level--)
+            {
+                Int previous_level_start = layout.level_starts[level - 1];
+                Int previous_level_size  = layout.level_sizes[level - 1];
 
-    			Int current_level_start  = layout.level_starts[level];
+                Int current_level_start  = layout.level_starts[level];
 
-    			Int current_level_size = layout.level_sizes[level];
+                Int current_level_size = layout.level_sizes[level];
 
-    			for (int i = 0; i < previous_level_size; i++)
-    			{
-    				SizesValue sizes_sum  = 0;
+                for (int i = 0; i < previous_level_size; i++)
+                {
+                    SizesValue sizes_sum  = 0;
 
-    				Int start 		= (i << BranchingFactorILog2) + current_level_start;
-    				Int window_end 	= ((i + 1) << BranchingFactorILog2);
+                    Int start       = (i << BranchingFactorILog2) + current_level_start;
+                    Int window_end  = ((i + 1) << BranchingFactorILog2);
 
-    				Int end = (window_end <= current_level_size ? window_end : current_level_size) + current_level_start;
+                    Int end = (window_end <= current_level_size ? window_end : current_level_size) + current_level_start;
 
-    				for (Int c = start; c < end; c++)
-    				{
-    					sizes_sum += size_index[c];
-    				}
+                    for (Int c = start; c < end; c++)
+                    {
+                        sizes_sum += size_index[c];
+                    }
 
-    				size_index[previous_level_start + i] = sizes_sum;
-    			}
-    		}
+                    size_index[previous_level_start + i] = sizes_sum;
+                }
+            }
 
-    		if (idx > 0)
-    		{
-    			this->template allocateEmpty<MyType>(INDEX);
-    			index()->insert_data(0, buffer.get(), 0, buffer_pos, idx);
-    		}
-    		else {
-    			Base::free(INDEX);
-    		}
-    	}
-    	else {
-    		Base::clear(OFFSETS);
-    		Base::free(INDEX);
-    	}
+            if (idx > 0)
+            {
+                this->template allocateEmpty<MyType>(INDEX);
+                index()->insert_data(0, buffer.get(), 0, buffer_pos, idx);
+            }
+            else {
+                Base::free(INDEX);
+            }
+        }
+        else {
+            Base::clear(OFFSETS);
+            Base::free(INDEX);
+        }
     }
 
 
     void check(TreeLayout& layout, const Metadata* meta) const
     {
-    	Int data_size 	 = meta->data_size();
-    	Int offsets_size = this->element_size(OFFSETS);
+        Int data_size    = meta->data_size();
+        Int offsets_size = this->element_size(OFFSETS);
 
-    	Codec codec;
+        Codec codec;
 
-    	if (layout.levels_max >= 0)
-    	{
-    		MEMORIA_ASSERT(this->element_size(SIZE_INDEX), >, 0);
+        if (layout.levels_max >= 0)
+        {
+            MEMORIA_ASSERT(this->element_size(SIZE_INDEX), >, 0);
 
-    		auto values 	= this->values();
-    		auto size_index = this->size_index();
+            auto values     = this->values();
+            auto size_index = this->size_index();
 
-    		layout.valaue_block_size_prefix = size_index;
+            layout.valaue_block_size_prefix = size_index;
 
-    		Int levels = layout.levels_max + 1;
+            Int levels = layout.levels_max + 1;
 
-    		Int level_start = layout.level_starts[levels - 1];
+            Int level_start = layout.level_starts[levels - 1];
 
 
 
-    		size_t pos = 0;
-    		SizesValue size_cnt = 0;
-    		size_t threshold = BranchingFactorV;
-    		Int total_size = 0;
+            size_t pos = 0;
+            SizesValue size_cnt = 0;
+            size_t threshold = BranchingFactorV;
+            Int total_size = 0;
 
-    		MEMORIA_ASSERT(offset(0), ==, 0);
+            MEMORIA_ASSERT(offset(0), ==, 0);
 
-    		auto index = has_index() ? this->index() : nullptr;
+            auto index = has_index() ? this->index() : nullptr;
 
-    		Value prev_value;
-    		Value value;
+            Value prev_value;
+            Value value;
 
-    		Int idx = 0;
-    		while(pos < data_size)
-    		{
-    			if (pos >= threshold)
-    			{
-    				MEMORIA_ASSERT(offset(idx + 1), ==, pos - threshold);
-    				MEMORIA_ASSERT(size_index[level_start + idx], ==, size_cnt);
+            Int idx = 0;
+            while(pos < data_size)
+            {
+                if (pos >= threshold)
+                {
+                    MEMORIA_ASSERT(offset(idx + 1), ==, pos - threshold);
+                    MEMORIA_ASSERT(size_index[level_start + idx], ==, size_cnt);
 
-    				threshold += BranchingFactorV;
+                    threshold += BranchingFactorV;
 
-    				if (index)
-    				{
-    					MEMORIA_ASSERT(value, ==, index->value(idx));
-    				}
+                    if (index)
+                    {
+                        MEMORIA_ASSERT(value, ==, index->value(idx));
+                    }
 
-    				idx++;
+                    idx++;
 
-    				total_size += size_cnt;
+                    total_size += size_cnt;
 
-    				size_cnt  = 0;
-    			}
+                    size_cnt  = 0;
+                }
 
-    			auto len = codec.decode(values, value, pos);
+                auto len = codec.decode(values, value, pos);
 
-//    			if (pos > 0)
-//    			{
-//    				MEMORIA_ASSERT(value, >=, prev_value);
-//    			}
+//              if (pos > 0)
+//              {
+//                  MEMORIA_ASSERT(value, >=, prev_value);
+//              }
 //
-//    			prev_value = value;
+//              prev_value = value;
 
-    			size_cnt++;
+                size_cnt++;
 
-    			pos += len;
-    		}
+                pos += len;
+            }
 
-    		MEMORIA_ASSERT((Int)pos, ==, data_size);
+            MEMORIA_ASSERT((Int)pos, ==, data_size);
 
-    		if (index) {
-    			MEMORIA_ASSERT(value, ==, index->value(idx));
-    		}
+            if (index) {
+                MEMORIA_ASSERT(value, ==, index->value(idx));
+            }
 
-    		MEMORIA_ASSERT(size_index[level_start + idx], ==, size_cnt);
-    		MEMORIA_ASSERT(meta->size(), ==, size_cnt + total_size);
+            MEMORIA_ASSERT(size_index[level_start + idx], ==, size_cnt);
+            MEMORIA_ASSERT(meta->size(), ==, size_cnt + total_size);
 
-    		for (Int level = levels - 1; level > 0; level--)
-    		{
-    			Int previous_level_start = layout.level_starts[level - 1];
-    			Int previous_level_size  = layout.level_sizes[level - 1];
+            for (Int level = levels - 1; level > 0; level--)
+            {
+                Int previous_level_start = layout.level_starts[level - 1];
+                Int previous_level_size  = layout.level_sizes[level - 1];
 
-    			Int current_level_start  = layout.level_starts[level];
+                Int current_level_start  = layout.level_starts[level];
 
-    			Int current_level_size = layout.level_sizes[level];
+                Int current_level_size = layout.level_sizes[level];
 
-    			for (int i = 0; i < previous_level_size; i++)
-    			{
-    				SizesValue sizes_sum  = 0;
+                for (int i = 0; i < previous_level_size; i++)
+                {
+                    SizesValue sizes_sum  = 0;
 
-    				Int start 		= (i << BranchingFactorILog2) + current_level_start;
-    				Int window_end 	= ((i + 1) << BranchingFactorILog2);
+                    Int start       = (i << BranchingFactorILog2) + current_level_start;
+                    Int window_end  = ((i + 1) << BranchingFactorILog2);
 
-    				Int end = (window_end <= current_level_size ? window_end : current_level_size) + current_level_start;
+                    Int end = (window_end <= current_level_size ? window_end : current_level_size) + current_level_start;
 
-    				for (Int c = start; c < end; c++)
-    				{
-    					sizes_sum += size_index[c];
-    				}
+                    for (Int c = start; c < end; c++)
+                    {
+                        sizes_sum += size_index[c];
+                    }
 
-    				MEMORIA_ASSERT(size_index[previous_level_start + i], ==, sizes_sum);
-    			}
-    		}
+                    MEMORIA_ASSERT(size_index[previous_level_start + i], ==, sizes_sum);
+                }
+            }
 
-    		if (index) {
-    			index->check();
-    		}
-    	}
-    	else {
-    		MEMORIA_ASSERT(this->element_size(SIZE_INDEX), ==, 0);
+            if (index) {
+                index->check();
+            }
+        }
+        else {
+            MEMORIA_ASSERT(this->element_size(SIZE_INDEX), ==, 0);
 
-    		Int data_size = meta->data_size();
+            Int data_size = meta->data_size();
 
-    		if (data_size > 0)
-    		{
-//    			auto values = this->values();
+            if (data_size > 0)
+            {
+//              auto values = this->values();
 //
-//    			Value prev_value;
-//    			Value value;
+//              Value prev_value;
+//              Value value;
 //
-//    			size_t pos = 0;
+//              size_t pos = 0;
 //
-//    			Int idx = 0;
-//    			while(pos < data_size)
-//    			{
-//    				auto len = codec.decode(values, value, pos);
+//              Int idx = 0;
+//              while(pos < data_size)
+//              {
+//                  auto len = codec.decode(values, value, pos);
 //
-//    				if (pos > 0)
-//    				{
-//    					MEMORIA_ASSERT(value, >=, prev_value);
-//    				}
+//                  if (pos > 0)
+//                  {
+//                      MEMORIA_ASSERT(value, >=, prev_value);
+//                  }
 //
-//    				prev_value = value;
+//                  prev_value = value;
 //
-//    				pos += len;
-//    				idx++;
-//    			}
+//                  pos += len;
+//                  idx++;
+//              }
 //
-//    			MEMORIA_ASSERT((Int)pos, ==, data_size);
-//    			MEMORIA_ASSERT(idx, ==, meta->size());
+//              MEMORIA_ASSERT((Int)pos, ==, data_size);
+//              MEMORIA_ASSERT(idx, ==, meta->size());
 //
-//    			MEMORIA_ASSERT(offsets_size, ==, offsets_segment_size(data_size));
-//    			MEMORIA_ASSERT(offset(0), ==, 0);
-    		}
-    		else {
-    			MEMORIA_ASSERT(offsets_size, ==, Base::roundUpBytesToAlignmentBlocks(sizeof(OffsetsType)));
-    		}
+//              MEMORIA_ASSERT(offsets_size, ==, offsets_segment_size(data_size));
+//              MEMORIA_ASSERT(offset(0), ==, 0);
+            }
+            else {
+                MEMORIA_ASSERT(offsets_size, ==, Base::roundUpBytesToAlignmentBlocks(sizeof(OffsetsType)));
+            }
 
-    		MEMORIA_ASSERT(meta->data_size(), <=, BranchingFactorV);
-    	}
+            MEMORIA_ASSERT(meta->data_size(), <=, BranchingFactorV);
+        }
     }
 
     void insert_data(Int at, const ValueData* buffer, Int start, Int end, Int size)
     {
-    	auto meta = this->metadata();
+        auto meta = this->metadata();
 
-    	Codec codec;
+        Codec codec;
 
-    	Int data_size = end - start;
+        Int data_size = end - start;
 
-    	auto values	= this->values();
+        auto values = this->values();
 
-    	size_t insertion_pos = at;
+        size_t insertion_pos = at;
 
-    	insert_space(insertion_pos, data_size);
+        insert_space(insertion_pos, data_size);
 
-    	values = this->values();
+        values = this->values();
 
-    	codec.copy(buffer, start, values, insertion_pos, data_size);
+        codec.copy(buffer, start, values, insertion_pos, data_size);
 
-    	meta->size() += size;
+        meta->size() += size;
 
-    	reindex();
+        reindex();
     }
 
     static TreeLayout compute_tree_layout(Int size)
     {
-    	TreeLayout layout;
-    	compute_tree_layout(size, layout);
-    	return layout;
+        TreeLayout layout;
+        compute_tree_layout(size, layout);
+        return layout;
     }
 
     static Int compute_tree_layout(Int size, TreeLayout& layout)
     {
-    	if (size <= BranchingFactorV)
-    	{
-    		layout.levels_max = -1;
-    		layout.index_size = 0;
+        if (size <= BranchingFactorV)
+        {
+            layout.levels_max = -1;
+            layout.index_size = 0;
 
-    		return 0;
-    	}
-    	else {
-    		Int level = 0;
+            return 0;
+        }
+        else {
+            Int level = 0;
 
-    		layout.level_sizes[level] = divUpV(size);
-    		level++;
+            layout.level_sizes[level] = divUpV(size);
+            level++;
 
-    		while((layout.level_sizes[level] = divUpI(layout.level_sizes[level - 1])) > 1)
-    		{
-    			level++;
-    		}
+            while((layout.level_sizes[level] = divUpI(layout.level_sizes[level - 1])) > 1)
+            {
+                level++;
+            }
 
-    		level++;
+            level++;
 
-    		for (int c = 0; c < level / 2; c++)
-    		{
-    			auto tmp = layout.level_sizes[c];
-    			layout.level_sizes[c] = layout.level_sizes[level - c - 1];
-    			layout.level_sizes[level - c - 1] = tmp;
-    		}
+            for (int c = 0; c < level / 2; c++)
+            {
+                auto tmp = layout.level_sizes[c];
+                layout.level_sizes[c] = layout.level_sizes[level - c - 1];
+                layout.level_sizes[level - c - 1] = tmp;
+            }
 
-    		Int level_start = 0;
+            Int level_start = 0;
 
-    		for (int c = 0; c < level; c++)
-    		{
-    			layout.level_starts[c] = level_start;
-    			level_start += layout.level_sizes[c];
-    		}
+            for (int c = 0; c < level; c++)
+            {
+                layout.level_starts[c] = level_start;
+                level_start += layout.level_sizes[c];
+            }
 
-    		layout.index_size = level_start;
-    		layout.levels_max = level - 1;
+            layout.index_size = level_start;
+            layout.levels_max = level - 1;
 
-    		return level;
-    	}
+            return level;
+        }
     }
 
 
@@ -1852,7 +1852,7 @@ protected:
 
 template <typename Types>
 struct PkdStructSizeType<PkdVBMTree<Types>> {
-	static const PackedSizeType Value = PackedSizeType::VARIABLE;
+    static const PackedSizeType Value = PackedSizeType::VARIABLE;
 };
 
 
@@ -1863,7 +1863,7 @@ struct StructSizeProvider<PkdVBMTree<Types>> {
 
 template <typename Types>
 struct IndexesSize<PkdVBMTree<Types>> {
-	static const Int Value = 1;
+    static const Int Value = 1;
 };
 
 

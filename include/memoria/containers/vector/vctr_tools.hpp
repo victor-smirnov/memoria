@@ -33,33 +33,33 @@ struct VectorValueStructTF<KeyType, 0>: HasType<PkdVDArrayT<KeyType>> {};
 
 template <typename CtrT, typename InputIterator, Int EntryBufferSize = 1000>
 class VectorIteratorInputProvider: public memoria::btss::AbstractIteratorBTSSInputProvider<
-	CtrT,
-	VectorIteratorInputProvider<CtrT, InputIterator, EntryBufferSize>,
-	InputIterator
+    CtrT,
+    VectorIteratorInputProvider<CtrT, InputIterator, EntryBufferSize>,
+    InputIterator
 >
 {
-	using Base = memoria::btss::AbstractIteratorBTSSInputProvider<
-			CtrT,
-			VectorIteratorInputProvider<CtrT, InputIterator, EntryBufferSize>,
-			InputIterator
-	>;
+    using Base = memoria::btss::AbstractIteratorBTSSInputProvider<
+            CtrT,
+            VectorIteratorInputProvider<CtrT, InputIterator, EntryBufferSize>,
+            InputIterator
+    >;
 
 public:
 
-	using typename Base::CtrSizeT;
+    using typename Base::CtrSizeT;
 
 public:
-	VectorIteratorInputProvider(CtrT& ctr, const InputIterator& start, const InputIterator& end, Int capacity = 10000):
-		Base(ctr, start, end, capacity)
-	{}
+    VectorIteratorInputProvider(CtrT& ctr, const InputIterator& start, const InputIterator& end, Int capacity = 10000):
+        Base(ctr, start, end, capacity)
+    {}
 
-	auto buffer(StreamTag<0>, StreamTag<0>, Int idx, Int block) {
-		return CtrSizeT();
-	}
+    auto buffer(StreamTag<0>, StreamTag<0>, Int idx, Int block) {
+        return CtrSizeT();
+    }
 
-	const auto& buffer(StreamTag<0>, StreamTag<1>, Int idx, Int block) {
-		return Base::input_value_buffer_[idx];
-	}
+    const auto& buffer(StreamTag<0>, StreamTag<1>, Int idx, Int block) {
+        return Base::input_value_buffer_[idx];
+    }
 };
 
 

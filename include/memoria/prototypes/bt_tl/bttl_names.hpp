@@ -13,7 +13,7 @@
 #include <memoria/core/tools/static_array.hpp>
 
 namespace memoria    {
-namespace bttl		 {
+namespace bttl       {
 
 class ToolsName             {};
 class FindName              {};
@@ -44,16 +44,16 @@ class BranchCommonName      {};
 class BranchFixedName       {};
 class BranchVariableName    {};
 
-class LeafCommonName      	{};
-class LeafFixedName       	{};
-class LeafVariableName    	{};
+class LeafCommonName        {};
+class LeafFixedName         {};
+class LeafVariableName      {};
 
 class ApiName               {};
 class ChecksName            {};
 class WalkName              {};
 class AllocatorName         {};
-class MiscName         		{};
-class RanksName         	{};
+class MiscName              {};
+class RanksName             {};
 
 
 

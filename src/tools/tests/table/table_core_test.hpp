@@ -22,23 +22,23 @@ namespace memoria {
 
 template <
     typename CtrName,
-	typename AllocatorT 	= SmallInMemAllocator,
-	typename ProfileT		= DefaultProfile<>
+    typename AllocatorT     = SmallInMemAllocator,
+    typename ProfileT       = DefaultProfile<>
 >
 class TableCoreTest: public BTTLTestBase<CtrName, AllocatorT, ProfileT> {
 
-    using Base 	 = BTTLTestBase<CtrName, AllocatorT, ProfileT>;
+    using Base   = BTTLTestBase<CtrName, AllocatorT, ProfileT>;
     using MyType = TableCoreTest<CtrName, AllocatorT, ProfileT>;
 
-    using Allocator 	= typename Base::Allocator;
+    using Allocator     = typename Base::Allocator;
     using AllocatorSPtr = typename Base::AllocatorSPtr;
-    using CtrT 			= typename Base::Ctr;
+    using CtrT          = typename Base::Ctr;
 
 public:
 
     TableCoreTest(String name): Base(name)
     {
-    	MEMORIA_ADD_TEST(basicTest);
+        MEMORIA_ADD_TEST(basicTest);
     }
 
     virtual ~TableCoreTest() throw () {}
@@ -46,7 +46,7 @@ public:
 
     virtual void createAllocator(AllocatorSPtr& allocator)
     {
-    	allocator = std::make_shared<Allocator>();
+        allocator = std::make_shared<Allocator>();
     }
 
     void basicTest() {

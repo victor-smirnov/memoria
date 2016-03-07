@@ -113,7 +113,7 @@ public:
     }
 
     void set_block_size(Int block_size) {
-    	this->block_size_ = block_size;
+        this->block_size_ = block_size;
     }
 
     void init(Int block_size, Int blocks)
@@ -146,7 +146,7 @@ public:
 
 //        return my_size() + layout_size + bitmap_size + roundUpBytesToAlignmentBlocks(client_area);
 
-    	return my_size() + (blocks + (blocks % 2 ? 1 : 2))*sizeof(Int) + roundUpBitsToAlignmentBlocks(blocks) + roundUpBytesToAlignmentBlocks(client_area);
+        return my_size() + (blocks + (blocks % 2 ? 1 : 2))*sizeof(Int) + roundUpBitsToAlignmentBlocks(blocks) + roundUpBytesToAlignmentBlocks(client_area);
     }
 
     static constexpr Int client_area(Int block_size, Int blocks)
@@ -158,7 +158,7 @@ public:
 
 //        return roundDownBytesToAlignmentBlocks(block_size - (my_size() + layout_size + bitmap_size));
 
-    	return roundDownBytesToAlignmentBlocks(block_size - (my_size() + (blocks + (blocks % 2 ? 1 : 2))*sizeof(Int) + roundUpBitsToAlignmentBlocks(blocks)));
+        return roundDownBytesToAlignmentBlocks(block_size - (my_size() + (blocks + (blocks % 2 ? 1 : 2))*sizeof(Int) + roundUpBitsToAlignmentBlocks(blocks)));
     }
 
     Int computeElementOffset(const void* element) const
@@ -508,7 +508,7 @@ public:
 
     void resizeBlock(Int new_size)
     {
-    	block_size_ = new_size;
+        block_size_ = new_size;
     }
 
     Int resize(Int new_size)
@@ -598,15 +598,15 @@ public:
     template <typename T>
     void serializeSegment(SerializationData& buf, Int segment) const
     {
-    	auto data = this->describe(segment);
-    	FieldFactory<T>::serialize(buf, T2T<const T*>(data.ptr()), data.size() / (Int)sizeof(T));
+        auto data = this->describe(segment);
+        FieldFactory<T>::serialize(buf, T2T<const T*>(data.ptr()), data.size() / (Int)sizeof(T));
     }
 
     template <typename T>
     void deserializeSegment(DeserializationData& buf, Int segment)
     {
-    	auto data = this->describe(segment);
-    	FieldFactory<T>::deserialize(buf, T2T<T*>(data.ptr()), data.size() / (Int)sizeof(T));
+        auto data = this->describe(segment);
+        FieldFactory<T>::deserialize(buf, T2T<T*>(data.ptr()), data.size() / (Int)sizeof(T));
     }
 
 

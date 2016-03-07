@@ -42,11 +42,11 @@ public:
 
 
     CtrSizeT rank() const {
-    	return rank_;
+        return rank_;
     }
 
     CtrSizeT result() const {
-    	return rank_;
+        return rank_;
     }
 
     template <Int StreamIdx, typename StreamType>
@@ -58,18 +58,18 @@ public:
     template <Int StreamIdx, typename StreamType>
     void postProcessBranchStream(const StreamType* stream, Int start, Int end)
     {
-    	rank_ += stream->sum(Base::branchIndex(symbol_), start, end);
+        rank_ += stream->sum(Base::branchIndex(symbol_), start, end);
     }
 
     template <Int StreamIdx, typename Tree>
     void process_branch_cmd(const Tree* tree, WalkCmd cmd, Int index, Int start, Int end)
     {
-    	Base::template process_branch_cmd<StreamIdx, Tree>(tree, cmd, index, start, end);
+        Base::template process_branch_cmd<StreamIdx, Tree>(tree, cmd, index, start, end);
 
-    	if (cmd == WalkCmd::FIX_TARGET)
-    	{
-    		rank_ -= tree->value(Base::branchIndex(symbol_), end);
-    	}
+        if (cmd == WalkCmd::FIX_TARGET)
+        {
+            rank_ -= tree->value(Base::branchIndex(symbol_), end);
+        }
     }
 
     CtrSizeT finish(Iterator& iter, Int idx, WalkCmd cmd)
@@ -107,19 +107,19 @@ public:
     {}
 
     CtrSizeT rank() const {
-    	return rank_;
+        return rank_;
     }
 
     CtrSizeT result() const {
-    	return rank_;
+        return rank_;
     }
 
 
     template <Int StreamIdx, typename StreamType>
     void postProcessLeafStream(const StreamType* stream, Int start, Int end)
     {
-    	if (start > stream->size()) start = stream->size();
-    	if (end < 0) end = 0;
+        if (start > stream->size()) start = stream->size();
+        if (end < 0) end = 0;
 
         rank_ += stream->rank(end, start, symbol_);
     }
@@ -127,20 +127,20 @@ public:
     template <Int StreamIdx, typename StreamType>
     void postProcessBranchStream(const StreamType* stream, Int start, Int end)
     {
-    	if (start > stream->size()) start = stream->size() - 1;
+        if (start > stream->size()) start = stream->size() - 1;
 
-    	rank_ += stream->sum(Base::branchIndex(symbol_), end + 1, start + 1);
+        rank_ += stream->sum(Base::branchIndex(symbol_), end + 1, start + 1);
     }
 
     template <Int StreamIdx, typename Tree>
     void process_branch_cmd(const Tree* tree, WalkCmd cmd, Int index, Int start, Int end)
     {
-    	Base::template process_branch_cmd<StreamIdx, Tree>(tree, cmd, index, start, end);
+        Base::template process_branch_cmd<StreamIdx, Tree>(tree, cmd, index, start, end);
 
-    	if (cmd == WalkCmd::FIX_TARGET)
-    	{
-    		rank_ -= tree->value(Base::branchIndex(symbol_), end + 1);
-    	}
+        if (cmd == WalkCmd::FIX_TARGET)
+        {
+            rank_ -= tree->value(Base::branchIndex(symbol_), end + 1);
+        }
     }
 
     CtrSizeT finish(Iterator& iter, Int idx, WalkCmd cmd)

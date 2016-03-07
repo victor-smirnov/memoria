@@ -23,15 +23,15 @@ using namespace memoria;
 
 int main(void) {
 
-	auto t0 = getTimeInMillis();
+    auto t0 = getTimeInMillis();
 
-	for (Int c = 0; c < 10; c++) {
-		cout<<UUID::make_random()<<endl;
-	}
+    for (Int c = 0; c < 10; c++) {
+        cout<<UUID::make_random()<<endl;
+    }
 
-	auto t1 = getTimeInMillis();
+    auto t1 = getTimeInMillis();
 
-	cout<<FormatTime(t1 - t0)<<endl;
+    cout<<FormatTime(t1 - t0)<<endl;
 
     return 0;
 }

@@ -42,7 +42,7 @@ class Sort {
                 Asc,
                 typename MinElement<SrcList, ValueProvider, ValueType>::Result,
                 typename MaxElement<SrcList, ValueProvider, ValueType>::Result
-    >                                                                   		Element;
+    >                                                                           Element;
 
     typedef typename AppendTool<Element, Result>::Result                        List_;
 

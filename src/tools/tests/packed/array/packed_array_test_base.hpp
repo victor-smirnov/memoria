@@ -21,8 +21,8 @@ template <typename TreeType>
 class PackedArrayTestBase: public TestTask {
 protected:
 
-    typedef TreeType                                                     		Array;
-    typedef PkdStructSPtr<Array>												ArrayPtr;
+    typedef TreeType                                                            Array;
+    typedef PkdStructSPtr<Array>                                                ArrayPtr;
 
     typedef typename Array::Value                                               Value;
     typedef typename Array::Values                                              Values;
@@ -60,10 +60,10 @@ public:
         vector<Values> vals(size);
 
         for (auto& v: vals) {
-        	for (Int b = 0; b < Blocks; b++)
-        	{
-        		v[b] = getRandom(max_value);
-        	}
+            for (Int b = 0; b < Blocks; b++)
+            {
+                v[b] = getRandom(max_value);
+            }
         }
 
         tree->insert(0, size, [&](Int block, Int idx) {
@@ -78,7 +78,7 @@ public:
         vector<Values> vals(size);
 
         for (auto& v: vals) {
-        	v = values;
+            v = values;
         }
 
         tree->insert(0, [&](Int block, Int idx) -> bool {
@@ -93,14 +93,14 @@ public:
         vector<Values> vals(size);
 
         for (auto& v: vals) {
-        	for (Int b = 0; b < Blocks; b++)
-        	{
-        		v[b] = value;
-        	}
+            for (Int b = 0; b < Blocks; b++)
+            {
+                v[b] = value;
+            }
         }
 
         tree->insert(0, [&](Int block, Int idx) -> bool {
-        	return value;
+            return value;
         });
 
         return vals;

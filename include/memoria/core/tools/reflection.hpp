@@ -120,7 +120,7 @@ template <> struct FieldFactory<Type> {                                         
 
 template <> struct FieldFactory<UBigInt> {
 
-	using Type = UBigInt;
+    using Type = UBigInt;
 
     static void serialize(SerializationData& data, const Type& field) {
         memmove(data.buf, &field, sizeof(Type));

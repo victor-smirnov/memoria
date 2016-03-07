@@ -20,47 +20,47 @@ namespace memoria    {
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::mmap::CtrApiName)
 
-	using typename Base::Types;
+    using typename Base::Types;
 
-	using typename Base::NodeBaseG;
-	using typename Base::IteratorPtr;
+    using typename Base::NodeBaseG;
+    using typename Base::IteratorPtr;
 
-	using typename Base::NodeDispatcher;
-	using typename Base::LeafDispatcher;
-	using typename Base::BranchDispatcher;
-	using typename Base::Position;
-	using typename Base::BranchNodeEntry;
-	using typename Base::PageUpdateMgr;
-	using typename Base::CtrSizeT;
-	using typename Base::CtrSizesT;
+    using typename Base::NodeDispatcher;
+    using typename Base::LeafDispatcher;
+    using typename Base::BranchDispatcher;
+    using typename Base::Position;
+    using typename Base::BranchNodeEntry;
+    using typename Base::PageUpdateMgr;
+    using typename Base::CtrSizeT;
+    using typename Base::CtrSizesT;
 
-	using Key 	= typename Types::Key;
-	using Value = typename Types::Value;
+    using Key   = typename Types::Key;
+    using Value = typename Types::Value;
 
-	using CtrSizesT	= Position;
+    using CtrSizesT = Position;
 
     IteratorPtr begin() {
-    	return self().template seek_stream<0>(0);
+        return self().template seek_stream<0>(0);
     }
 
     IteratorPtr end() {
-    	auto& self = this->self();
-    	return self.template seek_stream<0>(self.sizes()[0]);
+        auto& self = this->self();
+        return self.template seek_stream<0>(self.sizes()[0]);
     }
 
     IteratorPtr seek(CtrSizeT idx) {
-    	auto& self = this->self();
-    	return self.template seek_stream<0>(idx);
+        auto& self = this->self();
+        return self.template seek_stream<0>(idx);
     }
 
 
     CtrSizeT size() const {
-    	return self().sizes()[0];
+        return self().sizes()[0];
     }
 
     IteratorPtr find(Key key)
     {
-    	return self().template find_max_ge<IntList<0, 0, 1>>(0, key);
+        return self().template find_max_ge<IntList<0, 0, 1>>(0, key);
     }
 
 protected:

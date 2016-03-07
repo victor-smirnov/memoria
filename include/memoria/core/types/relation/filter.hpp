@@ -33,7 +33,7 @@ class Filter {
                     Value,
                     typename AppendTool<Record, typename Accumulator::Result>::Result,
                     typename Accumulator::Result
-        >                                                               		Result;
+        >                                                                       Result;
     };
 
     struct Init {

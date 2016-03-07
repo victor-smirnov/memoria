@@ -81,7 +81,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrRemoveName)
 
                 if (StreamStart)
                 {
-                	accum[0] -= 1;
+                    accum[0] -= 1;
                 }
             }
         }
@@ -97,7 +97,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrRemoveName)
 
                 if (StreamStart)
                 {
-                	accum[0] -= 1;
+                    accum[0] -= 1;
                 }
 
                 accum[Offset] -= size;
@@ -118,7 +118,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrRemoveName)
 
     Position removeFromLeaf(NodeBaseG& leaf, Int idx, BranchNodeEntry& indexes)
     {
-    	RemoveFromLeafFn fn(indexes);
+        RemoveFromLeafFn fn(indexes);
         LeafDispatcher::dispatch(leaf, fn, idx);
 
         return fn.sizes_;

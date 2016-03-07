@@ -18,12 +18,12 @@ namespace memoria {
 
 template <typename PkdStruct>
 struct AccumType {
-	using Type = typename PkdStruct::Value;
+    using Type = typename PkdStruct::Value;
 };
 
 template <typename PkdStruct>
 struct PkdStructInputType {
-	using Type = typename PkdStruct::InputType;
+    using Type = typename PkdStruct::InputType;
 };
 
 
@@ -33,12 +33,12 @@ enum class PkdSearchType {SUM, MAX};
 
 template <typename PkdStruct>
 struct PkdSearchTypeProvider {
-	static constexpr PkdSearchType Value = PkdStruct::KeySearchType;
+    static constexpr PkdSearchType Value = PkdStruct::KeySearchType;
 };
 
 template <typename PkdStruct>
 struct PkdSearchKeyTypeProvider {
-	using Type = typename PkdStruct::IndexValue;
+    using Type = typename PkdStruct::IndexValue;
 };
 
 template <typename T> struct StructSizeProvider;
@@ -46,12 +46,12 @@ template <typename T> struct StructSizeProvider;
 
 template <typename PkdStruct>
 struct PkdStructSizeType {
-	static const PackedSizeType Value = PkdStruct::SizeType;
+    static const PackedSizeType Value = PkdStruct::SizeType;
 };
 
 template <typename PkdStruct>
 struct PkdStructInputBufferType {
-	using Type = typename PkdStruct::InputBuffer;
+    using Type = typename PkdStruct::InputBuffer;
 };
 
 
@@ -61,17 +61,17 @@ template <typename List> struct PackedListStructSizeType;
 
 template <typename Head, typename... Tail>
 struct PackedListStructSizeType<TL<Head, Tail...>> {
-	static const PackedSizeType HeadValue = PkdStructSizeType<Head>::Value;
+    static const PackedSizeType HeadValue = PkdStructSizeType<Head>::Value;
 
-	static const PackedSizeType Value =
-			(HeadValue == PackedSizeType::VARIABLE) ?
-					PackedSizeType::VARIABLE :
-					PackedListStructSizeType<TL<Tail...>>::Value;
+    static const PackedSizeType Value =
+            (HeadValue == PackedSizeType::VARIABLE) ?
+                    PackedSizeType::VARIABLE :
+                    PackedListStructSizeType<TL<Tail...>>::Value;
 };
 
 template <>
 struct PackedListStructSizeType<TL<>> {
-	static const PackedSizeType Value = PackedSizeType::FIXED;
+    static const PackedSizeType Value = PackedSizeType::FIXED;
 };
 
 
@@ -79,12 +79,12 @@ template <PackedSizeType... SizeTypes> struct PackedSizeTypeList;
 
 template <PackedSizeType Head, PackedSizeType... Tail>
 struct PackedSizeTypeList<Head, Tail...> {
-	static const PackedSizeType Value = (Head == PackedSizeType::VARIABLE) ? PackedSizeType::VARIABLE : PackedSizeTypeList<Tail...>::Value;
+    static const PackedSizeType Value = (Head == PackedSizeType::VARIABLE) ? PackedSizeType::VARIABLE : PackedSizeTypeList<Tail...>::Value;
 };
 
 template <>
 struct PackedSizeTypeList<> {
-	static const PackedSizeType Value = PackedSizeType::FIXED;
+    static const PackedSizeType Value = PackedSizeType::FIXED;
 };
 
 class MEMORIA_API PackedOOMException: public MemoriaThrowable {
@@ -155,7 +155,7 @@ public:
 
     void setTopLevelAllocator()
     {
-    	allocator_offset() = 0;
+        allocator_offset() = 0;
     }
 
 
@@ -227,7 +227,7 @@ public:
     }
 
     static constexpr Int divUp(Int value, Int divider) {
-    	return (value / divider) + (value % divider ? 1 : 0);
+        return (value / divider) + (value % divider ? 1 : 0);
     }
 
     void serialize(SerializationData& buf) const

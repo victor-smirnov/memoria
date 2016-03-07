@@ -20,9 +20,9 @@ namespace memoria {
 using namespace std;
 
 template <
-	typename ContainerTypeName,
+    typename ContainerTypeName,
     typename AllocatorType,
-	typename Profile
+    typename Profile
 >
 class BTTestBase: public TestTask {
 
@@ -35,16 +35,16 @@ class BTTestBase: public TestTask {
     using Base = TestTask;
 
 protected:
-    using CtrName			= ContainerTypeName;
-    using Ctr 				= typename CtrTF<Profile, ContainerTypeName>::Type;
-    using Iterator 			= typename Ctr::Iterator;
-    using IteratorPtr 		= typename Ctr::IteratorPtr;
-    using ID 				= typename Ctr::ID;
+    using CtrName           = ContainerTypeName;
+    using Ctr               = typename CtrTF<Profile, ContainerTypeName>::Type;
+    using Iterator          = typename Ctr::Iterator;
+    using IteratorPtr       = typename Ctr::IteratorPtr;
+    using ID                = typename Ctr::ID;
 
 
-    using Allocator 	= AllocatorType;
-    using AllocatorPtr 	= typename Allocator::AllocatorPtr;
-    using SnapshotPtr 	= typename Allocator::SnapshotPtr;
+    using Allocator     = AllocatorType;
+    using AllocatorPtr  = typename Allocator::AllocatorPtr;
+    using SnapshotPtr   = typename Allocator::SnapshotPtr;
 
     AllocatorPtr allocator_;
     SnapshotPtr  snapshot_;
@@ -64,145 +64,145 @@ public:
     virtual ~BTTestBase() throw() {}
 
     auto& allocator() {
-    	return allocator_;
+        return allocator_;
     }
 
     const auto& allocator() const {
-    	return allocator_;
+        return allocator_;
     }
 
     auto& snapshot() {
-    	return snapshot_;
+        return snapshot_;
     }
 
     const auto& snapshot() const {
-    	return snapshot_;
+        return snapshot_;
     }
 
     auto& branch()
     {
-    	if (snapshot_) {
-    		snapshot_ = snapshot_->branch();
-    	}
-    	else {
-    		snapshot_ = allocator_->master()->branch();
-    	}
+        if (snapshot_) {
+            snapshot_ = snapshot_->branch();
+        }
+        else {
+            snapshot_ = allocator_->master()->branch();
+        }
 
-    	return snapshot_;
+        return snapshot_;
     }
 
     void commit()
     {
-    	snapshot_->commit();
-    	snapshot_->set_as_master();
+        snapshot_->commit();
+        snapshot_->set_as_master();
 
-    	if (snapshot_->has_parent())
-    	{
-    		auto parent = snapshot_->parent();
+        if (snapshot_->has_parent())
+        {
+            auto parent = snapshot_->parent();
 
-    		if (parent->has_parent())
-    		{
-    			parent->drop();
-    			allocator_->pack();
-    		}
-    	}
+            if (parent->has_parent())
+            {
+                parent->drop();
+                allocator_->pack();
+            }
+        }
     }
 
     void drop()
     {
-    	auto parent = snapshot_->parent();
+        auto parent = snapshot_->parent();
 
-    	snapshot_->drop();
-    	snapshot_.reset();
+        snapshot_->drop();
+        snapshot_.reset();
 
-    	parent->set_as_master();
+        parent->set_as_master();
 
-    	snapshot_ = parent;
+        snapshot_ = parent;
 
-    	allocator_->pack();
+        allocator_->pack();
     }
 
     void check(const SnapshotPtr& snapshot, const char* source)
     {
-    	::memoria::check(snapshot, "Snapshot check failed", source);
+        ::memoria::check(snapshot, "Snapshot check failed", source);
     }
 
     void check(const char* source)
     {
-    	::memoria::check(snapshot_, "Snapshot check failed", source);
+        ::memoria::check(snapshot_, "Snapshot check failed", source);
     }
 
     void check(const SnapshotPtr& snapshot, const char* msg, const char* source)
     {
-    	::memoria::check(snapshot, msg, source);
+        ::memoria::check(snapshot, msg, source);
     }
 
     void check(const char* msg, const char* source)
     {
-    	::memoria::check(snapshot_, msg, source);
+        ::memoria::check(snapshot_, msg, source);
     }
 
     // FIXME: remove it
     virtual void createAllocator(AllocatorPtr& allocator)
     {
-    	allocator = Allocator::create();
+        allocator = Allocator::create();
     }
 
     virtual void setUp()
     {
-    	Base::setUp();
+        Base::setUp();
 
-    	if (!isReplayMode())
-    	{
-    		createAllocator(allocator_);
-    		MEMORIA_ASSERT_NOT_NULL(allocator_.get());
-    	}
-    	else {
-    		loadAllocator(dump_name_);
-    		snapshot_ = allocator_->master();
-    	}
+        if (!isReplayMode())
+        {
+            createAllocator(allocator_);
+            MEMORIA_ASSERT_NOT_NULL(allocator_.get());
+        }
+        else {
+            loadAllocator(dump_name_);
+            snapshot_ = allocator_->master();
+        }
     }
 
     virtual void tearDown()
     {
-    	if (snapshot_) {
-    		snapshot_.reset();
-    	}
+        if (snapshot_) {
+            snapshot_.reset();
+        }
 
-    	allocator_.reset();
+        allocator_.reset();
     }
 
     virtual void onException() noexcept
     {
-    	try {
+        try {
 
-    		if (snapshot_->is_active())
-    		{
-    			commit();
+            if (snapshot_->is_active())
+            {
+                commit();
 
-    			auto file_name_invalid = getAllocatorFileName(".invalid");
-    			storeAllocator(file_name_invalid);
+                auto file_name_invalid = getAllocatorFileName(".invalid");
+                storeAllocator(file_name_invalid);
 
-    			drop();
+                drop();
 
-    			dump_name_ = getAllocatorFileName(".valid");
-    			storeAllocator(dump_name_);
-    		}
-    		else if (snapshot_->is_committed())
-    		{
-    			dump_name_ = getAllocatorFileName(".valid");
-    			storeAllocator(dump_name_);
-    		}
-    	}
-    	catch (...) {
-    		out() << "Exception is thrown in BTTestBase::onException()";
-    	}
+                dump_name_ = getAllocatorFileName(".valid");
+                storeAllocator(dump_name_);
+            }
+            else if (snapshot_->is_committed())
+            {
+                dump_name_ = getAllocatorFileName(".valid");
+                storeAllocator(dump_name_);
+            }
+        }
+        catch (...) {
+            out() << "Exception is thrown in BTTestBase::onException()";
+        }
     }
 
     virtual void storeAllocator(String file_name) const
     {
-    	auto out = FileOutputStreamHandler::create(file_name.c_str());
-    	allocator_->store(out.get());
+        auto out = FileOutputStreamHandler::create(file_name.c_str());
+        allocator_->store(out.get());
     }
 
 
@@ -214,24 +214,24 @@ public:
 
     virtual void dumpAllocator()
     {
-    	String file_name = getAllocatorFileName("-allocator.dump");
-    	FSDumpAllocator(allocator_, file_name);
+        String file_name = getAllocatorFileName("-allocator.dump");
+        FSDumpAllocator(allocator_, file_name);
     }
 
     virtual void dumpSnapshot()
     {
-    	if (snapshot_)
-    	{
-    		String file_name = getAllocatorFileName("-snapshot.dump");
-    		FSDumpAllocator(snapshot_, file_name);
-    	}
+        if (snapshot_)
+        {
+            String file_name = getAllocatorFileName("-snapshot.dump");
+            FSDumpAllocator(snapshot_, file_name);
+        }
     }
 
 
 
     virtual void checkAllocator(const char* msg, const char* source)
     {
-    	::memoria::check<Allocator>(this->allocator(), msg, source);
+        ::memoria::check<Allocator>(this->allocator(), msg, source);
     }
 
     virtual String getAllocatorFileName(StringRef infix = "") const
@@ -241,11 +241,11 @@ public:
 
     bool checkSoftMemLimit()
     {
-//    	size_t allocated = allocator()->allocated();
+//      size_t allocated = allocator()->allocated();
 //
-//    	return allocated <= this->soft_memlimit_;
+//      return allocated <= this->soft_memlimit_;
 
-    	return true;
+        return true;
     }
 };
 

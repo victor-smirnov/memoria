@@ -94,19 +94,19 @@ class CtrBase: public TypesType::Allocator, public std::enable_shared_from_this<
 public:
 
     using ThisType  = CtrBase<TypesType>;
-    using MyType	= Ctr<TypesType>;
+    using MyType    = Ctr<TypesType>;
 
     using ContainerTypeName = typename TypesType::ContainerTypeName;
-    using Name 				= ContainerTypeName;
-    using Types 			= TypesType;
+    using Name              = ContainerTypeName;
+    using Types             = TypesType;
 
     using Allocator = typename Types::Allocator;
-    using ID 		= typename Allocator::ID;
-    using Page 		= typename Allocator::Page;
-    using PageG		= typename Allocator::PageG;
+    using ID        = typename Allocator::ID;
+    using Page      = typename Allocator::Page;
+    using PageG     = typename Allocator::PageG;
 
-    using Iterator		= Iter<typename Types::IterTypes>;
-    using IteratorPtr	= std::shared_ptr<Iterator>;
+    using Iterator      = Iter<typename Types::IterTypes>;
+    using IteratorPtr   = std::shared_ptr<Iterator>;
     
     static const Int CONTAINER_HASH = TypeHash<Name>::Value;
 
@@ -137,14 +137,14 @@ public:
 
     void set_root(const ID &root)
     {
-    	root_ = root;
+        root_ = root;
 
-    	self().allocator().setRoot(self().master_name(), root);
+        self().allocator().setRoot(self().master_name(), root);
     }
 
     void set_root_id(const ID &root)
     {
-    	root_ = root;
+        root_ = root;
     }
 
     const ID &root() const
@@ -189,8 +189,8 @@ public:
 
     struct CtrInterfaceImpl: public ContainerInterface {
 
-    	void with_ctr(const UUID& root_id, const UUID& name, void* allocator, std::function<void(MyType&)> fn) const
-    	{
+        void with_ctr(const UUID& root_id, const UUID& name, void* allocator, std::function<void(MyType&)> fn) const
+        {
             Allocator* alloc = T2T<Allocator*>(allocator);
 
             PageG page = alloc->getPage(root_id, name);
@@ -198,14 +198,14 @@ public:
             auto ctr_ptr = std::make_shared<MyType>(alloc, root_id, CtrInitData(name, page->master_ctr_type_hash(), page->owner_ctr_type_hash()));
 
             fn(*ctr_ptr.get());
-    	}
+        }
 
         virtual bool check(const UUID& root_id, const UUID& name, void* allocator) const
         {
             bool result = false;
 
             with_ctr(root_id, name, allocator, [&](MyType& ctr){
-            	result = ctr.check(nullptr);
+                result = ctr.check(nullptr);
             });
 
             return result;
@@ -219,14 +219,14 @@ public:
         ) const
         {
             with_ctr(root_id, name, allocator, [&](MyType& ctr){
-            	ctr.walkTree(walker);
+                ctr.walkTree(walker);
             });
         }
 
         virtual void drop(const UUID& root_id, const UUID& name, void* allocator)
         {
             with_ctr(root_id, name, allocator, [&](MyType& ctr){
-            	ctr.drop();
+                ctr.drop();
             });
         }
 
@@ -285,22 +285,22 @@ protected:
 
     template <typename... Args>
     IteratorPtr make_iterator(Args&&... args) const {
-    	return make_shared<Iterator>(this->shared_from_this(), std::forward<Args>(args)...);
+        return make_shared<Iterator>(this->shared_from_this(), std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     IteratorPtr make_iterator(Args&&... args) {
-    	return make_shared<Iterator>(this->shared_from_this(), std::forward<Args>(args)...);
+        return make_shared<Iterator>(this->shared_from_this(), std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     IteratorPtr clone_iterator(Args&&... args) const {
-    	return make_shared<Iterator>(std::forward<Args>(args)...);
+        return make_shared<Iterator>(std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     IteratorPtr clone_iterator(Args&&... args) {
-    	return make_shared<Iterator>(std::forward<Args>(args)...);
+        return make_shared<Iterator>(std::forward<Args>(args)...);
     }
 
 
@@ -412,7 +412,7 @@ public:
 private:
 
     Allocator*  allocator_;
-    UUID      	name_;
+    UUID        name_;
     const char* model_type_name_;
 
     Logger          logger_;

@@ -22,25 +22,25 @@ namespace memoria    {
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::BranchVariableName)
 
-    using Types 			= typename Base::Types;
+    using Types             = typename Base::Types;
 
-    using NodeBaseG 		= typename Types::NodeBaseG;
-    using Iterator  		= typename Base::Iterator;
+    using NodeBaseG         = typename Types::NodeBaseG;
+    using Iterator          = typename Base::Iterator;
 
-    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
+    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
+    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
+    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
 
-    using Key 				= typename Types::Key;
-    using Value 			= typename Types::Value;
-    using CtrSizeT			= typename Types::CtrSizeT;
+    using Key               = typename Types::Key;
+    using Value             = typename Types::Value;
+    using CtrSizeT          = typename Types::CtrSizeT;
 
-    using BranchNodeEntry 		= typename Types::BranchNodeEntry;
-    using Position 			= typename Types::Position;
+    using BranchNodeEntry       = typename Types::BranchNodeEntry;
+    using Position          = typename Types::Position;
 
     static const Int Streams = Types::Streams;
 
-    using PageUpdateMgt 	= typename Types::PageUpdateMgr;
+    using PageUpdateMgt     = typename Types::PageUpdateMgr;
 
 
 

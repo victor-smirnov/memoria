@@ -132,89 +132,89 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
     template <Int Stream, typename SubstreamsList, typename... Args>
     void _updateStream(Args&&... args)
     {
-    	auto& self = this->self();
-    	auto& ctr  = self.model();
+        auto& self = this->self();
+        auto& ctr  = self.model();
 
-    	ctr.template update_stream_entry<Stream, SubstreamsList>(self, std::make_tuple(std::forward<Args>(args)...));
+        ctr.template update_stream_entry<Stream, SubstreamsList>(self, std::make_tuple(std::forward<Args>(args)...));
     }
 
 
     template <Int Stream, typename SubstreamsIdxList, typename... Args>
     auto read_leaf_entry(Args&&... args) const
     {
-    	 return self().ctr().template read_leaf_entry<Stream, SubstreamsIdxList>(self().leaf(), std::forward<Args>(args)...);
+         return self().ctr().template read_leaf_entry<Stream, SubstreamsIdxList>(self().leaf(), std::forward<Args>(args)...);
     }
 
     template <typename Walker>
     void walkUpForRefresh(NodeBaseG node, Int idx, Walker&& walker) const
     {
-    	if (!node->is_leaf())
-    	{
-    		BranchDispatcher::dispatch(node, walker, WalkCmd::PREFIXES, 0, idx);
-    	}
+        if (!node->is_leaf())
+        {
+            BranchDispatcher::dispatch(node, walker, WalkCmd::PREFIXES, 0, idx);
+        }
 
-    	while (!node->is_root())
-    	{
-    		idx = node->parent_idx();
-    		node = self().ctr().getNodeParent(node);
+        while (!node->is_root())
+        {
+            idx = node->parent_idx();
+            node = self().ctr().getNodeParent(node);
 
-    		NodeDispatcher::dispatch(node, walker, WalkCmd::PREFIXES, 0, idx);
-    	}
+            NodeDispatcher::dispatch(node, walker, WalkCmd::PREFIXES, 0, idx);
+        }
     }
 
     void refreshBranchPrefixes()
     {
-    	auto& self  = this->self();
-    	auto& cache = self.cache();
+        auto& self  = this->self();
+        auto& cache = self.cache();
 
-    	FindForwardWalker<bt::WalkerTypes<Types, IntList<0>>> walker(0, 0);
+        FindForwardWalker<bt::WalkerTypes<Types, IntList<0>>> walker(0, 0);
 
-    	cache.reset();
+        cache.reset();
 
-    	self.walkUpForRefresh(self.leaf(), self.idx(), walker);
+        self.walkUpForRefresh(self.leaf(), self.idx(), walker);
 
-    	walker.finish(self, self.idx(), WalkCmd::REFRESH);
+        walker.finish(self, self.idx(), WalkCmd::REFRESH);
     }
 
     template <int StreamIdx>
     void _refreshLeafPrefixes()
     {
-    	auto& self 	= this->self();
-    	auto idx 	= self.idx();
+        auto& self  = this->self();
+        auto idx    = self.idx();
 
-    	FindForwardWalker<bt::WalkerTypes<Types, IntList<StreamIdx>>> walker(0, 0);
-    	LeafDispatcher::dispatch(self.leaf(), walker, WalkCmd::LAST_LEAF, 0, idx);
+        FindForwardWalker<bt::WalkerTypes<Types, IntList<StreamIdx>>> walker(0, 0);
+        LeafDispatcher::dispatch(self.leaf(), walker, WalkCmd::LAST_LEAF, 0, idx);
     }
 
 
     struct RefreshLeafPrefixesFn
-	{
-    	template <Int StreamIdx, typename Iter>
-    	bool process(Iter&& iter)
-    	{
-    		if (StreamIdx == iter.stream())
-    		{
-    			iter.template _refreshLeafPrefixes<StreamIdx>();
-    		}
+    {
+        template <Int StreamIdx, typename Iter>
+        bool process(Iter&& iter)
+        {
+            if (StreamIdx == iter.stream())
+            {
+                iter.template _refreshLeafPrefixes<StreamIdx>();
+            }
 
-    		return true;
-    	}
+            return true;
+        }
     };
 
 
     void refreshLeafPrefixes()
     {
-    	auto& self 	= this->self();
-    	ForEach<1, Streams>::process(RefreshLeafPrefixesFn(), self);
+        auto& self  = this->self();
+        ForEach<1, Streams>::process(RefreshLeafPrefixesFn(), self);
     }
 
 
     void refresh()
     {
-    	Base::refresh();
+        Base::refresh();
 
-    	self().refreshBranchPrefixes();
-    	self().refreshLeafPrefixes();
+        self().refreshBranchPrefixes();
+        self().refreshLeafPrefixes();
     }
 
 MEMORIA_ITERATOR_PART_END

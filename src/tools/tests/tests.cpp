@@ -55,12 +55,12 @@ const char* CFG_FILE    = "tests.properties";
 
 int main(int argc, const char** argv, const char** envp)
 {
-	MEMORIA_INIT(DefaultProfile<>);
+    MEMORIA_INIT(DefaultProfile<>);
 
     Term::init(argc, argv, envp);
 
     try {
-    	CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::REPLAY);
+        CmdLine cmd_line(argc, argv, envp, CFG_FILE, CmdLine::REPLAY);
 
         Int seed = cmd_line.getConfigurator().getValue<Int>("seed", -1);
 
@@ -125,7 +125,7 @@ int main(int argc, const char** argv, const char** envp)
         }
         else if (cmd_line.IsReplay())
         {
-        	runner.Replay(cout, cmd_line.getReplayFile());
+            runner.Replay(cout, cmd_line.getReplayFile());
             return 0;
         }
         else if (cmd_line.IsDump())
@@ -134,7 +134,7 @@ int main(int argc, const char** argv, const char** envp)
         }
         else {
             if (seed >= 0) {
-            	cout<<"Seed: "<<seed<<endl;
+                cout<<"Seed: "<<seed<<endl;
             }
 
             cout<<"Coverage: "<<cmd_line.getConfigurator().getValue<String>("coverage", "small")<<", Size: "<<cmd_line.getConfigurator().getValue<String>("coverage_size", "1")<<endl;

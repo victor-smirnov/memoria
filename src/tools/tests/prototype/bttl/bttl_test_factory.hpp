@@ -31,87 +31,87 @@ class BTTLTestCtr {};
 template <
     typename Profile,
     Int Levels,
-	PackedSizeType SizeType
+    PackedSizeType SizeType
 >
 struct BTTLTestTypesBase: public BTTypes<Profile, BTTreeLayout> {
 
     using Base = BTTypes<Profile, BTTreeLayout>;
 
-    using Key 	= BigInt;
-    using Value	= Byte;
+    using Key   = BigInt;
+    using Value = Byte;
 
     using CtrSizeT = BigInt;
 
 
 //    using StreamVariableTF = StreamTF<
 //        TL<TL<
-//			PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec>>
+//          PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec>>
 //        >>,
 //        TL<TL<TL<IndexRange<0, 1>>>>,
-//		FSEBranchStructTF
+//      FSEBranchStructTF
 //    >;
 //
 //    using StreamFixedTF = StreamTF<
 //        TL<TL<
-//        	PkdFTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1>>
+//          PkdFTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1>>
 //        >>,
 //        TL<TL<TL<IndexRange<0, 1>>>>,
-//		FSEBranchStructTF
+//      FSEBranchStructTF
 //    >;
 
     using StreamVariableTF = StreamTF<
         TL<
-			StreamSize
-			//PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec>>
+            StreamSize
+            //PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec>>
         >,
         FSEBranchStructTF,
-		TL<TL<>> //TL<IndexRange<0, 1>>
+        TL<TL<>> //TL<IndexRange<0, 1>>
     >;
 
     using StreamFixedTF = StreamTF<
         TL<
-			StreamSize
-        	//PkdFTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1>>
+            StreamSize
+            //PkdFTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1>>
         >,
         FSEBranchStructTF,
-		TL<TL<>> //TL<IndexRange<0, 1>>
+        TL<TL<>> //TL<IndexRange<0, 1>>
     >;
 
     using DataStreamTF  = StreamTF<
-    	TL<TL<
-			StreamSize,
-			PackedFSEArray<PackedFSEArrayTypes<Value>>
-			>
-		>,
-    	FSEBranchStructTF,
-		TL<TL<TL<>, TL<>>>
+        TL<TL<
+            StreamSize,
+            PackedFSEArray<PackedFSEArrayTypes<Value>>
+            >
+        >,
+        FSEBranchStructTF,
+        TL<TL<TL<>, TL<>>>
     >;
 
 
     using RawStreamDescriptors = IfThenElse<
-    		SizeType == PackedSizeType::FIXED,
-			MergeLists<
-				typename MakeList<StreamFixedTF, Levels - 1>::Type,
-				DataStreamTF
-			>,
-			MergeLists<
-				typename MakeList<StreamVariableTF, Levels - 1>::Type,
-				DataStreamTF
-			>
+            SizeType == PackedSizeType::FIXED,
+            MergeLists<
+                typename MakeList<StreamFixedTF, Levels - 1>::Type,
+                DataStreamTF
+            >,
+            MergeLists<
+                typename MakeList<StreamVariableTF, Levels - 1>::Type,
+                DataStreamTF
+            >
     >;
 
 
     using BTTLNavigationStruct = IfThenElse<
-    		SizeType == PackedSizeType::FIXED,
-			PkdFQTreeT<CtrSizeT, 1>,
-			PkdVQTreeT<CtrSizeT, 1, UByteI7Codec>
+            SizeType == PackedSizeType::FIXED,
+            PkdFQTreeT<CtrSizeT, 1>,
+            PkdVQTreeT<CtrSizeT, 1, UByteI7Codec>
     >;
 
 
     using StreamDescriptors = typename bttl::BTTLAugmentStreamDescriptors<
-    		RawStreamDescriptors,
-			BTTLNavigationStruct
-	>::Type;
+            RawStreamDescriptors,
+            BTTLNavigationStruct
+    >::Type;
 };
 
 
@@ -123,7 +123,7 @@ struct BTTLTestTypesBase: public BTTypes<Profile, BTTreeLayout> {
 template <
     typename Profile,
     Int Levels,
-	PackedSizeType SizeType
+    PackedSizeType SizeType
 >
 struct BTTypes<Profile, BTTLTestCtr<Levels, SizeType>>: public BTTLTestTypesBase<Profile, Levels, SizeType>
 {
@@ -137,14 +137,14 @@ public:
 
 //    struct Types: Base::Types
 //    {
-//    	using CtrTypes 			= TableCtrTypes<Types>;
-//        using IterTypes 		= TableIterTypes<Types>;
+//      using CtrTypes          = TableCtrTypes<Types>;
+//        using IterTypes       = TableIterTypes<Types>;
 //
-//        using PageUpdateMgr 	= PageUpdateManager<CtrTypes>;
+//        using PageUpdateMgr   = PageUpdateManager<CtrTypes>;
 //    };
 //
-//    using CtrTypes 	= typename Types::CtrTypes;
-//    using Type 		= Ctr<CtrTypes>;
+//    using CtrTypes    = typename Types::CtrTypes;
+//    using Type        = Ctr<CtrTypes>;
 };
 
 

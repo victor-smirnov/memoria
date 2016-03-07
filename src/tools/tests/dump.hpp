@@ -59,7 +59,7 @@ static Int DumpAllocator(String file_name)
             return 1;
         }
         
-        	auto is = FileInputStreamHandler::create(file.getPath().c_str());
+            auto is = FileInputStreamHandler::create(file.getPath().c_str());
 
             auto allocator = PersistentInMemAllocator<>::load(is.get());
             

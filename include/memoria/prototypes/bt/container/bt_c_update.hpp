@@ -33,9 +33,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::UpdateName)
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
+    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
+    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
+    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
 
     typedef typename Base::Metadata                                             Metadata;
 
@@ -54,25 +54,25 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::UpdateName)
     template <Int Stream, typename SubstreamsList, typename Buffer>
     void update_stream_entry(Iterator& iter, const Buffer& entry)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	auto result = self.template try_update_stream_entry<Stream, SubstreamsList>(iter, entry);
+        auto result = self.template try_update_stream_entry<Stream, SubstreamsList>(iter, entry);
 
-    	if (!std::get<0>(result))
-    	{
-    		iter.split();
+        if (!std::get<0>(result))
+        {
+            iter.split();
 
-    		result = self.template try_update_stream_entry<Stream, SubstreamsList>(iter, entry);
+            result = self.template try_update_stream_entry<Stream, SubstreamsList>(iter, entry);
 
-    		if (!std::get<0>(result))
-    		{
-    			throw Exception(MA_SRC, "Second insertion attempt failed");
-    		}
-    	}
+            if (!std::get<0>(result))
+            {
+                throw Exception(MA_SRC, "Second insertion attempt failed");
+            }
+        }
 
-    	auto max = self.max(iter.leaf());
+        auto max = self.max(iter.leaf());
 
-    	self.update_parent(iter.leaf(), max);
+        self.update_parent(iter.leaf(), max);
     }
 
 

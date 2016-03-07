@@ -23,7 +23,7 @@ public:
 
     TableTestSuite(): TestSuite("TableSuite")
     {
-//    	registerTask(new TableCoreTest<Table<BigInt, Byte>>("Core"));
+//      registerTask(new TableCoreTest<Table<BigInt, Byte>>("Core"));
     }
 };
 

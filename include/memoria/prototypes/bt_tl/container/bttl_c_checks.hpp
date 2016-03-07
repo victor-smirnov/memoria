@@ -22,22 +22,22 @@ namespace memoria    {
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::ChecksName)
 
-	using typename Base::Types;
+    using typename Base::Types;
 
-	using typename Base::NodeBaseG;
-	using typename Base::IteratorPtr;
+    using typename Base::NodeBaseG;
+    using typename Base::IteratorPtr;
 
-	using typename Base::NodeDispatcher;
-	using typename Base::LeafDispatcher;
-	using typename Base::BranchDispatcher;
-	using typename Base::Position;
-	using typename Base::BranchNodeEntry;
-	using typename Base::PageUpdateMgr;
-	using typename Base::CtrSizeT;
-	using typename Base::CtrSizesT;
+    using typename Base::NodeDispatcher;
+    using typename Base::LeafDispatcher;
+    using typename Base::BranchDispatcher;
+    using typename Base::Position;
+    using typename Base::BranchNodeEntry;
+    using typename Base::PageUpdateMgr;
+    using typename Base::CtrSizeT;
+    using typename Base::CtrSizesT;
 
-	using Key 	= typename Types::Key;
-	using Value = typename Types::Value;
+    using Key   = typename Types::Key;
+    using Value = typename Types::Value;
 
     static const Int Streams = Types::Streams;
 
@@ -47,55 +47,55 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::ChecksName)
 
     bool check(void *data)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
         return self.checkTree() || self.checkExtents();
     }
 
 
     bool checkExtents()
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	auto sizes = self.sizes();
-    	auto ctr_totals = self.total_counts();
+        auto sizes = self.sizes();
+        auto ctr_totals = self.total_counts();
 
-    	if (ctr_totals != sizes)
-    	{
-    		MEMORIA_ERROR(self, "ctr_totals != sizes", (SBuf()<<ctr_totals).str(), (SBuf()<<sizes).str());
-    		return true;
-    	}
+        if (ctr_totals != sizes)
+        {
+            MEMORIA_ERROR(self, "ctr_totals != sizes", (SBuf()<<ctr_totals).str(), (SBuf()<<sizes).str());
+            return true;
+        }
 
-    	auto i = self.begin();
+        auto i = self.begin();
 
-    	CtrSizesT extent;
+        CtrSizesT extent;
 
-    	do
-    	{
-    		auto current_extent = i->leaf_extent();
+        do
+        {
+            auto current_extent = i->leaf_extent();
 
-    		if (current_extent != extent)
-    		{
-    			MEMORIA_ERROR(self, "current_extent != extent", (SBuf()<<current_extent).str(), (SBuf()<<extent).str(), i->leaf()->id());
+            if (current_extent != extent)
+            {
+                MEMORIA_ERROR(self, "current_extent != extent", (SBuf()<<current_extent).str(), (SBuf()<<extent).str(), i->leaf()->id());
 
-    			return true;
-    		}
+                return true;
+            }
 
-    		for (Int c = 0; c < Streams; c++)
-    		{
-    			if (extent[c] < 0)
-    			{
-    				MEMORIA_ERROR(self, "extent[c] < 0", (SBuf()<<extent).str(), i->leaf()->id());
-    				return true;
-    			}
-    		}
+            for (Int c = 0; c < Streams; c++)
+            {
+                if (extent[c] < 0)
+                {
+                    MEMORIA_ERROR(self, "extent[c] < 0", (SBuf()<<extent).str(), i->leaf()->id());
+                    return true;
+                }
+            }
 
-    		auto ex = self.node_extents(i->leaf());
+            auto ex = self.node_extents(i->leaf());
 
-    		extent += ex;
-    	}
-    	while(i->nextLeaf());
+            extent += ex;
+        }
+        while(i->nextLeaf());
 
-    	return false;
+        return false;
     }
 
 

@@ -94,7 +94,7 @@ struct LoudsTreeTypes {
 template <typename Types>
 class PackedLoudsTree: public PkdFSSeq<PkdFSSeqTypes <1, Types::ValuesPerBranch, PkdFQTreeT<Int, 2>>> {
 
-	using Base = PkdFSSeq<PkdFSSeqTypes <1, Types::ValuesPerBranch, PkdFQTreeT<Int, 2>>>;
+    using Base = PkdFSSeq<PkdFSSeqTypes <1, Types::ValuesPerBranch, PkdFQTreeT<Int, 2>>>;
 
     typedef PackedLoudsTree<Types>                                              MyType;
 
@@ -224,7 +224,7 @@ public:
             Base::reindex();
         }
         else {
-        	throw Exception(MA_SRC, "Can't remove non-leaf node");
+            throw Exception(MA_SRC, "Can't remove non-leaf node");
         }
     }
 

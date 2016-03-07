@@ -128,7 +128,7 @@ istream& operator>>(std::istream& in, std::vector<T, A>& vec)
 
         if (in.fail())
         {
-        	throw Exception(MEMORIA_SOURCE, SBuf()<< "Can't read file at pos "<<in.tellg());
+            throw Exception(MEMORIA_SOURCE, SBuf()<< "Can't read file at pos "<<in.tellg());
         }
 
         vec.push_back(value);

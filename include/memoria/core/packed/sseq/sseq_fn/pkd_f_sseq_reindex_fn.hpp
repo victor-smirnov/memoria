@@ -15,61 +15,61 @@ namespace memoria {
 
 namespace packed_seq {
 
-	template <typename Values, Int WindowSize, Int RawBufferSize = 1024>
-	struct IndexBuffer {
-		static constexpr Int NSymbols = Values::Indexes;
-		using IndexType = typename Values::ElementType;
+    template <typename Values, Int WindowSize, Int RawBufferSize = 1024>
+    struct IndexBuffer {
+        static constexpr Int NSymbols = Values::Indexes;
+        using IndexType = typename Values::ElementType;
 
-		static constexpr Int BatchSize = RawBufferSize / sizeof(IndexType) / NSymbols;
-	private:
+        static constexpr Int BatchSize = RawBufferSize / sizeof(IndexType) / NSymbols;
+    private:
 
-		Values buffer_[BatchSize];
-		Int window_start_ 	= 0;
-		Int window_end_		= WindowSize;
+        Values buffer_[BatchSize];
+        Int window_start_   = 0;
+        Int window_end_     = WindowSize;
 
-		Int size_;
+        Int size_;
 
-	public:
-		IndexBuffer(Int size): size_(size)
-	{}
+    public:
+        IndexBuffer(Int size): size_(size)
+    {}
 
-		Values* buffer() {return buffer_;}
-		const Values* buffer() const {return buffer_;}
+        Values* buffer() {return buffer_;}
+        const Values* buffer() const {return buffer_;}
 
-		template <typename Fn>
-		Int process(Fn&& fn)
-		{
-			if (window_start_ < size_)
-			{
-				Int buffer_pos;
+        template <typename Fn>
+        Int process(Fn&& fn)
+        {
+            if (window_start_ < size_)
+            {
+                Int buffer_pos;
 
-				for (buffer_pos = 0; buffer_pos < BatchSize; buffer_pos++)
-				{
-					if (window_end_ < size_)
-					{
-						buffer_[buffer_pos] = fn(window_start_, window_end_);
+                for (buffer_pos = 0; buffer_pos < BatchSize; buffer_pos++)
+                {
+                    if (window_end_ < size_)
+                    {
+                        buffer_[buffer_pos] = fn(window_start_, window_end_);
 
-						window_start_ += WindowSize;
-						window_end_ += WindowSize;
-					}
-					else {
-						buffer_[buffer_pos] = fn(window_start_, size_);
+                        window_start_ += WindowSize;
+                        window_end_ += WindowSize;
+                    }
+                    else {
+                        buffer_[buffer_pos] = fn(window_start_, size_);
 
-						window_start_ += WindowSize;
-						window_end_ += WindowSize;
+                        window_start_ += WindowSize;
+                        window_end_ += WindowSize;
 
-						return buffer_pos + 1;
-					}
-				}
+                        return buffer_pos + 1;
+                    }
+                }
 
-				return buffer_pos;
-			}
-			else
-			{
-				return 0;
-			}
-		}
-	};
+                return buffer_pos;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+    };
 
 }
 
@@ -111,12 +111,12 @@ public:
             BufferType buffer(size);
 
             auto fn = [&](Int start, Int end) {
-            	Values histogramm;
+                Values histogramm;
 
-            	histogramm[1] = PopCount(symbols, start, end);
-            	histogramm[0] = (end - start) - histogramm[1];
+                histogramm[1] = PopCount(symbols, start, end);
+                histogramm[0] = (end - start) - histogramm[1];
 
-            	return histogramm;
+                return histogramm;
             };
 
             Int at = 0;
@@ -124,11 +124,11 @@ public:
             Int buffer_size;
             while ((buffer_size = buffer.process(fn)) > 0)
             {
-            	index->populate(at, buffer_size, [&](Int block, Int idx) {
-            		return buffer.buffer()[idx][block];
-            	});
+                index->populate(at, buffer_size, [&](Int block, Int idx) {
+                    return buffer.buffer()[idx][block];
+                });
 
-            	at += buffer_size;
+                at += buffer_size;
             }
 
             index->reindex();
@@ -156,12 +156,12 @@ public:
             BufferType buffer(size);
 
             auto fn = [&](Int start, Int end) {
-            	Values histogramm;
+                Values histogramm;
 
-            	histogramm[1] = PopCount(symbols, start, end);
-            	histogramm[0] = (end - start) - histogramm[1];
+                histogramm[1] = PopCount(symbols, start, end);
+                histogramm[0] = (end - start) - histogramm[1];
 
-            	return histogramm;
+                return histogramm;
             };
 
             Int at = 0;
@@ -169,15 +169,15 @@ public:
             Int buffer_size;
             while ((buffer_size = buffer.process(fn)) > 0)
             {
-            	for (Int b = 0; b < Blocks; b++)
-            	{
-            		for (Int c = 0; c < buffer_size; c++)
-            		{
-            			MEMORIA_ASSERT(index->value(b, c + at), ==, buffer.buffer()[c][b]);
-            		}
-            	}
+                for (Int b = 0; b < Blocks; b++)
+                {
+                    for (Int c = 0; c < buffer_size; c++)
+                    {
+                        MEMORIA_ASSERT(index->value(b, c + at), ==, buffer.buffer()[c][b]);
+                    }
+                }
 
-            	at += buffer_size;
+                at += buffer_size;
             }
         }
         else {
@@ -222,15 +222,15 @@ public:
             auto symbols = seq.symbols();
 
             auto fn = [&](Int start, Int end) {
-            	Values histogramm;
+                Values histogramm;
 
-            	for (Int idx = start; idx < end; idx++)
-            	{
-            		Int symbol = GetBits(symbols, idx * BitsPerSymbol, BitsPerSymbol);
-            		histogramm[symbol]++;
-            	}
+                for (Int idx = start; idx < end; idx++)
+                {
+                    Int symbol = GetBits(symbols, idx * BitsPerSymbol, BitsPerSymbol);
+                    histogramm[symbol]++;
+                }
 
-            	return histogramm;
+                return histogramm;
             };
 
             Int at = 0;
@@ -240,11 +240,11 @@ public:
             Int buffer_size;
             while ((buffer_size = buffer.process(fn)) > 0)
             {
-            	index->populate(at, buffer_size, [&](Int block, Int idx) {
-            		return buffer.buffer()[idx][block];
-            	});
+                index->populate(at, buffer_size, [&](Int block, Int idx) {
+                    return buffer.buffer()[idx][block];
+                });
 
-            	at += buffer_size;
+                at += buffer_size;
             }
 
             index->reindex();
@@ -272,15 +272,15 @@ public:
             BufferType buffer(size);
 
             auto fn = [&](Int start, Int end) {
-            	Values histogramm;
+                Values histogramm;
 
-            	for (Int idx = start; idx < end; idx++)
-            	{
-            		Int symbol = GetBits(symbols, idx * BitsPerSymbol, BitsPerSymbol);
-            		histogramm[symbol]++;
-            	}
+                for (Int idx = start; idx < end; idx++)
+                {
+                    Int symbol = GetBits(symbols, idx * BitsPerSymbol, BitsPerSymbol);
+                    histogramm[symbol]++;
+                }
 
-            	return histogramm;
+                return histogramm;
             };
 
             Int at = 0;
@@ -288,15 +288,15 @@ public:
             Int buffer_size;
             while ((buffer_size = buffer.process(fn)) > 0)
             {
-            	for (Int b = 0; b < Blocks; b++)
-            	{
-            		for (Int c = 0; c < buffer_size; c++)
-            		{
-            			MEMORIA_ASSERT(index->value(b, c + at), ==, buffer.buffer()[c][b]);
-            		}
-            	}
+                for (Int b = 0; b < Blocks; b++)
+                {
+                    for (Int c = 0; c < buffer_size; c++)
+                    {
+                        MEMORIA_ASSERT(index->value(b, c + at), ==, buffer.buffer()[c][b]);
+                    }
+                }
 
-            	at += buffer_size;
+                at += buffer_size;
             }
         }
         else {
@@ -370,79 +370,79 @@ public:
             BufferType buffer(size);
 
             auto fn = [&](Int start, Int end) {
-            	Values histogramm;
+                Values histogramm;
 
-            	for (Int idx = start; idx < end; idx++)
-            	{
-            		Int symbol = GetBits(symbols, idx * BitsPerSymbol, BitsPerSymbol);
-            		histogramm[symbol]++;
-            	}
+                for (Int idx = start; idx < end; idx++)
+                {
+                    Int symbol = GetBits(symbols, idx * BitsPerSymbol, BitsPerSymbol);
+                    histogramm[symbol]++;
+                }
 
-            	return histogramm;
+                return histogramm;
             };
 
             Int buffer_size;
             SizesT at;
             while ((buffer_size = buffer.process(fn)) > 0)
             {
-            	at = index->populate(at, buffer_size, [&](Int block, Int idx) {
-            		return buffer.buffer()[idx][block];
-            	});
+                at = index->populate(at, buffer_size, [&](Int block, Int idx) {
+                    return buffer.buffer()[idx][block];
+                });
             }
 
             index->reindex();
         }
         else {
-        	seq.removeIndex();
+            seq.removeIndex();
         }
     }
 
 
     void check(const Seq& seq)
     {
-    	Int size = seq.size();
+        Int size = seq.size();
 
-    	if (size > ValuesPerBranch)
-    	{
-    		auto index = seq.index();
+        if (size > ValuesPerBranch)
+        {
+            auto index = seq.index();
 
-    		auto symbols = seq.symbols();
+            auto symbols = seq.symbols();
 
-    		auto fn = [&](Int start, Int end) {
-    			Values histogramm;
+            auto fn = [&](Int start, Int end) {
+                Values histogramm;
 
-    			for (Int idx = start; idx < end; idx++)
-    			{
-    				Int symbol = GetBits(symbols, idx * BitsPerSymbol, BitsPerSymbol);
-    				histogramm[symbol]++;
-    			}
+                for (Int idx = start; idx < end; idx++)
+                {
+                    Int symbol = GetBits(symbols, idx * BitsPerSymbol, BitsPerSymbol);
+                    histogramm[symbol]++;
+                }
 
-    			return histogramm;
-    		};
+                return histogramm;
+            };
 
-    		BufferType buffer(size);
+            BufferType buffer(size);
             Int at = 0;
 
             Int buffer_size;
             while ((buffer_size = buffer.process(fn)) > 0)
             {
-            	for (Int b = 0; b < Blocks; b++)
-            	{
-            		for (Int c = 0; c < buffer_size; c++)
-            		{
-            			auto idx_value = index->value(b, c + at);
-            			auto buf_value = buffer.buffer()[c][b];
+                for (Int b = 0; b < Blocks; b++)
+                {
+                    for (Int c = 0; c < buffer_size; c++)
+                    {
+                        auto idx_value = index->value(b, c + at);
+                        auto buf_value = buffer.buffer()[c][b];
 
-            			MEMORIA_ASSERT(idx_value, ==, buf_value);
-            		}
-            	}
+                        MEMORIA_ASSERT(idx_value, ==, buf_value);
+                    }
+                }
 
-            	at += buffer_size;
+                at += buffer_size;
             }
-    	}
-    	else {
-    		MEMORIA_ASSERT_FALSE(seq.has_index());
-    	}
+        }
+        else {
+            MEMORIA_ASSERT_FALSE(seq.has_index());
+        }
     }
 };
 
@@ -512,23 +512,23 @@ public:
             SizesT at;
 
             auto fn = [&](Int start, Int end) {
-            	Values histogramm;
+                Values histogramm;
 
-            	for (Int idx = start; idx < end; idx++)
-            	{
-            		Int symbol = symbols[idx];
-            		histogramm[symbol]++;
-            	}
+                for (Int idx = start; idx < end; idx++)
+                {
+                    Int symbol = symbols[idx];
+                    histogramm[symbol]++;
+                }
 
-            	return histogramm;
+                return histogramm;
             };
 
             Int buffer_size;
             while ((buffer_size = buffer.process(fn)) > 0)
             {
-            	at = index->populate(at, buffer_size, [&](Int block, Int idx) {
-            		return buffer.buffer()[idx][block];
-            	});
+                at = index->populate(at, buffer_size, [&](Int block, Int idx) {
+                    return buffer.buffer()[idx][block];
+                });
             }
 
             index->reindex();
@@ -540,46 +540,46 @@ public:
 
     void check(const Seq& seq)
     {
-    	Int size = seq.size();
+        Int size = seq.size();
 
-    	if (size > ValuesPerBranch)
-    	{
-    		auto index = seq.index();
+        if (size > ValuesPerBranch)
+        {
+            auto index = seq.index();
 
-    		auto symbols = seq.symbols();
+            auto symbols = seq.symbols();
 
-    		auto fn = [&](Int start, Int end) {
-    			Values histogramm;
+            auto fn = [&](Int start, Int end) {
+                Values histogramm;
 
-            	for (Int idx = start; idx < end; idx++)
-            	{
-            		Int symbol = symbols[idx];
-            		histogramm[symbol]++;
-            	}
+                for (Int idx = start; idx < end; idx++)
+                {
+                    Int symbol = symbols[idx];
+                    histogramm[symbol]++;
+                }
 
-    			return histogramm;
-    		};
+                return histogramm;
+            };
 
-    		BufferType buffer(size);
+            BufferType buffer(size);
             Int at = 0;
 
             Int buffer_size;
             while ((buffer_size = buffer.process(fn)) > 0)
             {
-            	for (Int b = 0; b < Blocks; b++)
-            	{
-            		for (Int c = 0; c < buffer_size; c++)
-            		{
-            			MEMORIA_ASSERT(index->value(b, c + at), ==, buffer.buffer()[c][b]);
-            		}
-            	}
+                for (Int b = 0; b < Blocks; b++)
+                {
+                    for (Int c = 0; c < buffer_size; c++)
+                    {
+                        MEMORIA_ASSERT(index->value(b, c + at), ==, buffer.buffer()[c][b]);
+                    }
+                }
 
-            	at += buffer_size;
+                at += buffer_size;
             }
-    	}
-    	else {
-    		MEMORIA_ASSERT_FALSE(seq.has_index());
-    	}
+        }
+        else {
+            MEMORIA_ASSERT_FALSE(seq.has_index());
+        }
     }
 
 };

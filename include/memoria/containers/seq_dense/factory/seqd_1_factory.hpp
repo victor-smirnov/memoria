@@ -50,13 +50,13 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >: public BTTypes<Profile, me
     using SequenceTypes = typename PkdFSSeqTF<BitsPerSymbol>::Type;
 
     using SeqStreamTF = StreamTF<
-    	TL<TL<PkdFSSeq<SequenceTypes>>>,
+        TL<TL<PkdFSSeq<SequenceTypes>>>,
         FSEBranchStructTF,
-		TL<TL<TL<SumRange<0, BranchIndexes - 1>>>>
+        TL<TL<TL<SumRange<0, BranchIndexes - 1>>>>
     >;
 
     typedef TypeList<
-    		SeqStreamTF
+            SeqStreamTF
     >                                                                           StreamDescriptors;
 
     typedef BalancedTreeMetadata<

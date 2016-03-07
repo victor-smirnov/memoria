@@ -19,60 +19,60 @@ namespace bt        {
 
 namespace   {
 
-	template <typename BranchSubstream, typename LeafSubstream>
-	struct ValidateSubstreams {
-		static const bool Value = true;
-	};
+    template <typename BranchSubstream, typename LeafSubstream>
+    struct ValidateSubstreams {
+        static const bool Value = true;
+    };
 
-	template <typename T, typename... List>
-	struct ValidateSubstreams<T, TypeList<List...>> {
-		static const bool Value = true;
-	};
+    template <typename T, typename... List>
+    struct ValidateSubstreams<T, TypeList<List...>> {
+        static const bool Value = true;
+    };
 
-	template <typename T, typename... List>
-	struct ValidateSubstreams<TypeList<T>, TypeList<List...>> {
-		static const bool Value = true;
-	};
+    template <typename T, typename... List>
+    struct ValidateSubstreams<TypeList<T>, TypeList<List...>> {
+        static const bool Value = true;
+    };
 
-	template <typename T1, typename T2>
-	struct ValidateSubstreams<TypeList<T1>, T2> {
-		static const bool Value = true;
-	};
+    template <typename T1, typename T2>
+    struct ValidateSubstreams<TypeList<T1>, T2> {
+        static const bool Value = true;
+    };
 
-	template <typename T1, typename... List1, typename T2, typename... List2>
-	struct ValidateSubstreams<TypeList<T1, List1...>, TypeList<T2, List2...>> {
-		static const bool Value = (sizeof...(List1) == sizeof...(List2)) &&
-									IsPlainList<TypeList<T1, List1...>>::Value;
-	};
+    template <typename T1, typename... List1, typename T2, typename... List2>
+    struct ValidateSubstreams<TypeList<T1, List1...>, TypeList<T2, List2...>> {
+        static const bool Value = (sizeof...(List1) == sizeof...(List2)) &&
+                                    IsPlainList<TypeList<T1, List1...>>::Value;
+    };
 
 
-	template <typename List> struct InputBufferListBuilder;
+    template <typename List> struct InputBufferListBuilder;
 
-	template <typename Head, typename... Tail>
-	struct InputBufferListBuilder<TL<Head, Tail...>> {
-		using Type = MergeLists<
-				typename PkdStructInputBufferType<Head>::Type,
-				typename InputBufferListBuilder<TL<Tail...>>::Type
-		>;
-	};
+    template <typename Head, typename... Tail>
+    struct InputBufferListBuilder<TL<Head, Tail...>> {
+        using Type = MergeLists<
+                typename PkdStructInputBufferType<Head>::Type,
+                typename InputBufferListBuilder<TL<Tail...>>::Type
+        >;
+    };
 
-	template <typename PackedStruct>
-	struct InputBufferListBuilder {
-		using Type = TL<typename PkdStructInputBufferType<PackedStruct>::Type>;
-	};
+    template <typename PackedStruct>
+    struct InputBufferListBuilder {
+        using Type = TL<typename PkdStructInputBufferType<PackedStruct>::Type>;
+    };
 
-	template <typename... List, typename... Tail>
-	struct InputBufferListBuilder<TL<TL<List...>, Tail...>> {
-		using Type = MergeLists<
-				TL<typename InputBufferListBuilder<TL<List...>>::Type>,
-				typename InputBufferListBuilder<TL<Tail...>>::Type
-		>;
-	};
+    template <typename... List, typename... Tail>
+    struct InputBufferListBuilder<TL<TL<List...>, Tail...>> {
+        using Type = MergeLists<
+                TL<typename InputBufferListBuilder<TL<List...>>::Type>,
+                typename InputBufferListBuilder<TL<Tail...>>::Type
+        >;
+    };
 
-	template <>
-	struct InputBufferListBuilder<TL<>> {
-		using Type = TL<>;
-	};
+    template <>
+    struct InputBufferListBuilder<TL<>> {
+        using Type = TL<>;
+    };
 }
 
 
@@ -91,15 +91,15 @@ class IteratorBranchNodeEntryListBuilder;
 
 
 template <
-	typename SumType,
+    typename SumType,
     typename LeafType,
-	typename IdxRangeList,
-	template <typename> class BranchStructTF,
+    typename IdxRangeList,
+    template <typename> class BranchStructTF,
     typename... Tail
 >
 class PackedLeafStructListBuilder<SumType, TypeList<StreamTF<LeafType, BranchStructTF, IdxRangeList>, Tail...>> {
 
-	using BranchType = typename BTStreamDescritorsBuilder<FlattenLeafTree<LeafType>, BranchStructTF, SumType>::Type;
+    using BranchType = typename BTStreamDescritorsBuilder<FlattenLeafTree<LeafType>, BranchStructTF, SumType>::Type;
 
     static_assert(
             true,//ValidateSubstreams<BranchType, LeafType>::Value,
@@ -112,25 +112,25 @@ public:
     using StructList = AppendItemToList<
                 LeafType,
                 typename PackedLeafStructListBuilder<
-					SumType,
+                    SumType,
                     TypeList<Tail...>
                 >::StructList
     >;
 
     using StreamInputList = AppendItemToList<
-    		typename MakeStreamEntryTL<Linearize<LeafType>>::Type,
-    		typename PackedLeafStructListBuilder<
-				SumType,
-    			TypeList<Tail...>
-    		>::StreamInputList
+            typename MakeStreamEntryTL<Linearize<LeafType>>::Type,
+            typename PackedLeafStructListBuilder<
+                SumType,
+                TypeList<Tail...>
+            >::StreamInputList
     >;
 
     using InputBufferList = AppendItemToList<
-    		InputBufferType,
-    		typename PackedLeafStructListBuilder<
-						SumType,
-    					TypeList<Tail...>
-    		>::InputBufferList
+            InputBufferType,
+            typename PackedLeafStructListBuilder<
+                        SumType,
+                        TypeList<Tail...>
+            >::InputBufferList
     >;
 };
 
@@ -138,10 +138,10 @@ public:
 
 
 template <
-	typename SumType,
+    typename SumType,
     typename LeafType,
-	typename IdxRangeList,
-	template <typename> class BranchStructTF,
+    typename IdxRangeList,
+    template <typename> class BranchStructTF,
     typename... Tail
 >
 class PackedBranchStructListBuilder<SumType, TypeList<StreamTF<LeafType, BranchStructTF, IdxRangeList>, Tail...>> {
@@ -152,7 +152,7 @@ public:
     using StructList = AppendItemToList<
                 BranchType,
                 typename PackedBranchStructListBuilder<
-					SumType,
+                    SumType,
                     TypeList<Tail...>
                 >::StructList
     >;
@@ -163,60 +163,60 @@ class Undefined;
 
 
 template <
-	typename SumType,
-	typename LeafType,
-	typename IdxRangeList,
-	template <typename> class BranchStructTF,
+    typename SumType,
+    typename LeafType,
+    typename IdxRangeList,
+    template <typename> class BranchStructTF,
     typename... Tail
 >
 class IteratorBranchNodeEntryListBuilder<SumType, TypeList<StreamTF<LeafType, BranchStructTF, IdxRangeList>, Tail...>> {
 
-	using BranchType = typename BTStreamDescritorsBuilder<FlattenLeafTree<LeafType>, BranchStructTF, SumType>::Type;
+    using BranchType = typename BTStreamDescritorsBuilder<FlattenLeafTree<LeafType>, BranchStructTF, SumType>::Type;
 
-	using LeafStructList 	= FlattenLeafTree<LeafType>;
-    using BranchStructList 	= FlattenBranchTree<BranchType>;
-    using FlatIdxRangeList 	= FlattenIndexRangeTree<IdxRangeList>;
+    using LeafStructList    = FlattenLeafTree<LeafType>;
+    using BranchStructList  = FlattenBranchTree<BranchType>;
+    using FlatIdxRangeList  = FlattenIndexRangeTree<IdxRangeList>;
 
     using RangeListType = typename BranchNodeRangeListBuilder<
-    		BranchStructList,
-    		LeafStructList,
-    		FlatIdxRangeList
+            BranchStructList,
+            LeafStructList,
+            FlatIdxRangeList
     >::Type;
 
-	using RangeOffsetListType = typename BranchNodeRangeListBuilder<
-			BranchStructList,
-			LeafStructList,
-			FlatIdxRangeList
-	>::OffsetList;
+    using RangeOffsetListType = typename BranchNodeRangeListBuilder<
+            BranchStructList,
+            LeafStructList,
+            FlatIdxRangeList
+    >::OffsetList;
 
     using AccType = typename IteratorBranchNodeEntryBuilder<
-    		BranchStructList,
-    		RangeListType
+            BranchStructList,
+            RangeListType
     >::Type;
 
 public:
     using AccumTuple = AppendItemToList<
-    		AccType,
-    		typename IteratorBranchNodeEntryListBuilder<SumType, TypeList<Tail...>>::AccumTuple
+            AccType,
+            typename IteratorBranchNodeEntryListBuilder<SumType, TypeList<Tail...>>::AccumTuple
     >;
 
     using RangeOffsetList = AppendItemToList<
-    		RangeOffsetListType,
-    		typename IteratorBranchNodeEntryListBuilder<SumType, TypeList<Tail...>>::RangeOffsetList
+            RangeOffsetListType,
+            typename IteratorBranchNodeEntryListBuilder<SumType, TypeList<Tail...>>::RangeOffsetList
     >;
 
     using IndexRangeList = AppendItemToList<
-    		IdxRangeList,
-    		typename IteratorBranchNodeEntryListBuilder<SumType, TypeList<Tail...>>::IndexRangeList
+            IdxRangeList,
+            typename IteratorBranchNodeEntryListBuilder<SumType, TypeList<Tail...>>::IndexRangeList
     >;
 };
 
 template <typename SumType>
 class PackedLeafStructListBuilder<SumType, TypeList<>> {
 public:
-    using StructList 		= TypeList<>;
-    using StreamInputList 	= TypeList<>;
-    using InputBufferList 	= TypeList<>;
+    using StructList        = TypeList<>;
+    using StreamInputList   = TypeList<>;
+    using InputBufferList   = TypeList<>;
 };
 
 
@@ -229,9 +229,9 @@ public:
 template <typename SumType>
 class IteratorBranchNodeEntryListBuilder<SumType, TypeList<>> {
 public:
-    using AccumTuple 		= TypeList<>;
-    using RangeOffsetList 	= TypeList<>;
-    using IndexRangeList	= TypeList<>;
+    using AccumTuple        = TypeList<>;
+    using RangeOffsetList   = TypeList<>;
+    using IndexRangeList    = TypeList<>;
 };
 
 
@@ -244,18 +244,18 @@ template <typename T> struct BranchNodeEntryBuilder;
 
 template <typename PackedStruct, typename... Tail>
 struct BranchNodeEntryBuilder<TL<PackedStruct, Tail...>> {
-	using Type = MergeLists<
-					memoria::core::StaticVector<
-						typename PkdSearchKeyTypeProvider<PackedStruct>::Type,
-						StructSizeProvider<PackedStruct>::Value
-					>,
-					typename BranchNodeEntryBuilder<TL<Tail...>>::Type
-	>;
+    using Type = MergeLists<
+                    memoria::core::StaticVector<
+                        typename PkdSearchKeyTypeProvider<PackedStruct>::Type,
+                        StructSizeProvider<PackedStruct>::Value
+                    >,
+                    typename BranchNodeEntryBuilder<TL<Tail...>>::Type
+    >;
 };
 
 template <>
 struct BranchNodeEntryBuilder<TL<>> {
-	using Type = TL<>;
+    using Type = TL<>;
 };
 
 

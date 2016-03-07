@@ -26,7 +26,7 @@ namespace memoria    {
 
 struct MEMORIA_API Page {
 
-    virtual UUID getId() const                    	 = 0;
+    virtual UUID getId() const                       = 0;
     virtual Int getContainerHash() const             = 0;
     virtual Int getPageTypeHash() const              = 0;
     virtual BigInt getFlags() const                  = 0;

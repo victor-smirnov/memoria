@@ -28,17 +28,17 @@ struct MEMORIA_API InputStreamHandler {
     virtual size_t read(void* mem, size_t offset, size_t length) = 0;
 
 
-    virtual Byte readByte()				= 0;
-    virtual UByte readUByte()			= 0;
-    virtual Short readShort()			= 0;
-    virtual UShort readUShort()			= 0;
-    virtual Int readInt()				= 0;
-    virtual UInt readUInt()				= 0;
-    virtual BigInt readBigInt()			= 0;
-    virtual UBigInt readUBigInt()		= 0;
-    virtual bool readBool()				= 0;
-    virtual float readFloat()			= 0;
-    virtual double readDouble()			= 0;
+    virtual Byte readByte()             = 0;
+    virtual UByte readUByte()           = 0;
+    virtual Short readShort()           = 0;
+    virtual UShort readUShort()         = 0;
+    virtual Int readInt()               = 0;
+    virtual UInt readUInt()             = 0;
+    virtual BigInt readBigInt()         = 0;
+    virtual UBigInt readUBigInt()       = 0;
+    virtual bool readBool()             = 0;
+    virtual float readFloat()           = 0;
+    virtual double readDouble()         = 0;
 
     virtual ~InputStreamHandler() throw() {}
 
@@ -82,17 +82,17 @@ struct MEMORIA_API OutputStreamHandler {
     virtual BigInt pos() = 0;
     virtual void write(const void* mem, size_t offset, size_t lenght) = 0;
 
-    virtual void write(Byte value) 		= 0;
-    virtual void write(UByte value) 	= 0;
-    virtual void write(Short value) 	= 0;
-    virtual void write(UShort value) 	= 0;
-    virtual void write(Int value) 		= 0;
-    virtual void write(UInt value) 		= 0;
-    virtual void write(BigInt value) 	= 0;
-    virtual void write(UBigInt value) 	= 0;
-    virtual void write(bool value) 		= 0;
-    virtual void write(float value) 	= 0;
-    virtual void write(double value) 	= 0;
+    virtual void write(Byte value)      = 0;
+    virtual void write(UByte value)     = 0;
+    virtual void write(Short value)     = 0;
+    virtual void write(UShort value)    = 0;
+    virtual void write(Int value)       = 0;
+    virtual void write(UInt value)      = 0;
+    virtual void write(BigInt value)    = 0;
+    virtual void write(UBigInt value)   = 0;
+    virtual void write(bool value)      = 0;
+    virtual void write(float value)     = 0;
+    virtual void write(double value)    = 0;
 
     virtual ~OutputStreamHandler() throw() {}
 };
@@ -143,7 +143,7 @@ public:
     virtual Int bufferSize() {return 0;}
 
     virtual void flush() {
-    	fflush(fd_);
+        fflush(fd_);
     }
 
     virtual void close()
@@ -167,54 +167,54 @@ public:
     }
 
     virtual void write(Byte value) {
-    	writeT(value);
+        writeT(value);
     }
 
     virtual void write(UByte value) {
-    	writeT(value);
+        writeT(value);
     }
 
     virtual void write(Short value) {
-    	writeT(value);
+        writeT(value);
     }
 
     virtual void write(UShort value) {
-    	writeT(value);
+        writeT(value);
     }
 
     virtual void write(Int value) {
-    	writeT(value);
+        writeT(value);
     }
 
     virtual void write(UInt value) {
-    	writeT(value);
+        writeT(value);
     }
 
     virtual void write(BigInt value) {
-    	writeT(value);
+        writeT(value);
     }
 
     virtual void write(UBigInt value) {
-    	writeT(value);
+        writeT(value);
     }
 
     virtual void write(bool value) {
-    	writeT((Byte)value);
+        writeT((Byte)value);
     }
 
     virtual void write(float value) {
-    	writeT(value);
+        writeT(value);
     }
 
     virtual void write(double value) {
-    	writeT(value);
+        writeT(value);
     }
 
 
 private:
     template <typename T>
     void writeT(const T& value) {
-    	write(&value, 0, sizeof(T));
+        write(&value, 0, sizeof(T));
     }
 };
 
@@ -238,24 +238,24 @@ public:
 
         if (fseeko(fd_, 0, SEEK_END) < 0)
         {
-        	throw Exception(MEMORIA_SOURCE, SBuf()<<"Can't seek to the end for file "<<file);
+            throw Exception(MEMORIA_SOURCE, SBuf()<<"Can't seek to the end for file "<<file);
         }
 
         size_ = ftello64(fd_);
 
         if (size_ < 0)
         {
-        	throw Exception(MEMORIA_SOURCE, SBuf()<<"Can't read file position for file "<<file);
+            throw Exception(MEMORIA_SOURCE, SBuf()<<"Can't read file position for file "<<file);
         }
 
         if (fseeko64(fd_, 0, SEEK_SET) < 0)
         {
-        	throw Exception(MEMORIA_SOURCE, SBuf()<<"Can't seek to the start for file "<<file);
+            throw Exception(MEMORIA_SOURCE, SBuf()<<"Can't seek to the start for file "<<file);
         }
     }
 
     virtual BigInt size() const {
-    	return size_;
+        return size_;
     }
 
     virtual ~FileInputStreamHandlerImpl() throw()
@@ -292,148 +292,148 @@ public:
     }
 
     virtual Byte readByte() {
-    	return readT<Byte>();
+        return readT<Byte>();
     }
 
     virtual UByte readUByte() {
-    	return readT<UByte>();
+        return readT<UByte>();
     }
 
     virtual Short readShort() {
-    	return readT<Short>();
+        return readT<Short>();
     }
 
     virtual UShort readUShort() {
-    	return readT<UShort>();
+        return readT<UShort>();
     }
 
     virtual Int readInt() {
-    	return readT<Int>();
+        return readT<Int>();
     }
 
     virtual UInt readUInt() {
-    	return readT<UInt>();
+        return readT<UInt>();
     }
 
     virtual BigInt readBigInt() {
-    	return readT<BigInt>();
+        return readT<BigInt>();
     }
 
     virtual UBigInt readUBigInt() {
-    	return readT<UBigInt>();
+        return readT<UBigInt>();
     }
 
     virtual bool readBool() {
-    	return readT<Byte>();
+        return readT<Byte>();
     }
 
     virtual float readFloat() {
-    	return readT<float>();
+        return readT<float>();
     }
 
     virtual double readDouble() {
-    	return readT<double>();
+        return readT<double>();
     }
 
 private:
     template <typename T>
     T readT()
     {
-    	T value;
+        T value;
 
-    	auto len = read(&value, 0, sizeof(T));
+        auto len = read(&value, 0, sizeof(T));
 
-    	if (len == sizeof(T)) {
-    		return value;
-    	}
-    	else {
-    		throw Exception(MA_SRC, "Can't read value from InputStreamHandler");
-    	}
+        if (len == sizeof(T)) {
+            return value;
+        }
+        else {
+            throw Exception(MA_SRC, "Can't read value from InputStreamHandler");
+        }
     }
 };
 
 
 inline InputStreamHandler& operator>>(InputStreamHandler& in, Byte& value) {
-	value = in.readByte();
-	return in;
+    value = in.readByte();
+    return in;
 }
 
 inline InputStreamHandler& operator>>(InputStreamHandler& in, UByte& value) {
-	value = in.readUByte();
-	return in;
+    value = in.readUByte();
+    return in;
 }
 
 inline InputStreamHandler& operator>>(InputStreamHandler& in, Short& value) {
-	value = in.readShort();
-	return in;
+    value = in.readShort();
+    return in;
 }
 
 inline InputStreamHandler& operator>>(InputStreamHandler& in, UShort& value) {
-	value = in.readUShort();
-	return in;
+    value = in.readUShort();
+    return in;
 }
 
 inline InputStreamHandler& operator>>(InputStreamHandler& in, Int& value) {
-	value = in.readInt();
-	return in;
+    value = in.readInt();
+    return in;
 }
 
 inline InputStreamHandler& operator>>(InputStreamHandler& in, UInt& value) {
-	value = in.readUInt();
-	return in;
+    value = in.readUInt();
+    return in;
 }
 
 inline InputStreamHandler& operator>>(InputStreamHandler& in, BigInt& value) {
-	value = in.readBigInt();
-	return in;
+    value = in.readBigInt();
+    return in;
 }
 
 inline InputStreamHandler& operator>>(InputStreamHandler& in, UBigInt& value) {
-	value = in.readUBigInt();
-	return in;
+    value = in.readUBigInt();
+    return in;
 }
 
 inline InputStreamHandler& operator>>(InputStreamHandler& in, bool& value) {
-	value = in.readBool();
-	return in;
+    value = in.readBool();
+    return in;
 }
 
 inline InputStreamHandler& operator>>(InputStreamHandler& in, float& value) {
-	value = in.readFloat();
-	return in;
+    value = in.readFloat();
+    return in;
 }
 
 inline InputStreamHandler& operator>>(InputStreamHandler& in, double& value) {
-	value = in.readDouble();
-	return in;
+    value = in.readDouble();
+    return in;
 }
 
 inline InputStreamHandler& operator>>(InputStreamHandler& in, String& value)
 {
-	BigInt size = in.readBigInt();
+    BigInt size = in.readBigInt();
 
-	value.clear();
-	value.insert(0, size, 0);
+    value.clear();
+    value.insert(0, size, 0);
 
-	in.read(&value[0], size);
+    in.read(&value[0], size);
 
-	return in;
+    return in;
 }
 
 
 template <typename T>
 OutputStreamHandler& operator<<(OutputStreamHandler& out, const T& value) {
-	out.write(value);
-	return out;
+    out.write(value);
+    return out;
 }
 
 
 inline OutputStreamHandler& operator<<(OutputStreamHandler& out, const String& value)
 {
-	out << (BigInt)value.length();
+    out << (BigInt)value.length();
 
-	out.write(value.c_str(), 0, value.length());
-	return out;
+    out.write(value.c_str(), 0, value.length());
+    return out;
 }
 
 }

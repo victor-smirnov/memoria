@@ -56,43 +56,43 @@ struct BTTypes<Profile, memoria::BTTreeLayout>: public BTTypes<Profile, memoria:
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
                 memoria::bttl::MiscName,
-				memoria::bttl::InsertName,
-				memoria::bttl::BranchCommonName,
-				memoria::bttl::LeafCommonName,
-				memoria::bttl::RanksName,
-				memoria::bttl::ChecksName
+                memoria::bttl::InsertName,
+                memoria::bttl::BranchCommonName,
+                memoria::bttl::LeafCommonName,
+                memoria::bttl::RanksName,
+                memoria::bttl::ChecksName
     >;
 
     using FixedBranchContainerPartsList = MergeLists<
-    			typename Base::FixedBranchContainerPartsList,
-				memoria::bttl::BranchFixedName
+                typename Base::FixedBranchContainerPartsList,
+                memoria::bttl::BranchFixedName
     >;
 
     using VariableBranchContainerPartsList = MergeLists<
-    			typename Base::VariableBranchContainerPartsList,
-				memoria::bttl::BranchVariableName
+                typename Base::VariableBranchContainerPartsList,
+                memoria::bttl::BranchVariableName
     >;
 
     using FixedLeafContainerPartsList = MergeLists<
-        			typename Base::FixedLeafContainerPartsList,
-					memoria::bttl::LeafFixedName
+                    typename Base::FixedLeafContainerPartsList,
+                    memoria::bttl::LeafFixedName
     >;
 
     using VariableLeafContainerPartsList = MergeLists<
-        			typename Base::VariableLeafContainerPartsList,
-					memoria::bttl::LeafVariableName
+                    typename Base::VariableLeafContainerPartsList,
+                    memoria::bttl::LeafVariableName
     >;
 
 
     using IteratorPartsList = MergeLists<
                 typename Base::IteratorPartsList,
                 memoria::bttl::IteratorMiscName,
-				memoria::bttl::IteratorStreamRankName,
-				memoria::bttl::IteratorFindName,
-				memoria::bttl::IteratorSkipName,
-				memoria::bttl::IteratorUpdateName,
-				memoria::bttl::IteratorRemoveName,
-				memoria::bttl::IteratorInsertName
+                memoria::bttl::IteratorStreamRankName,
+                memoria::bttl::IteratorFindName,
+                memoria::bttl::IteratorSkipName,
+                memoria::bttl::IteratorUpdateName,
+                memoria::bttl::IteratorRemoveName,
+                memoria::bttl::IteratorInsertName
     >;
 
     template <typename Iterator, typename Container>
@@ -112,26 +112,26 @@ public:
 
     struct Types: Base::Types
     {
-    	using CtrTypes 			= BTTLCtrTypes<Types>;
-        using IterTypes 		= BTTLIterTypes<Types>;
+        using CtrTypes          = BTTLCtrTypes<Types>;
+        using IterTypes         = BTTLIterTypes<Types>;
 
-        using PageUpdateMgr 	= PageUpdateManager<CtrTypes>;
+        using PageUpdateMgr     = PageUpdateManager<CtrTypes>;
 
         using LeafPrefixRanks   = memoria::core::StaticVector<typename Base::Types::Position, Base::Types::Streams>;
 
         template <Int StreamIdx>
         using LeafSizesSubstreamIdx = IntValue<
-        		memoria::list_tree::LeafCountSup<
-					typename Base::Types::LeafStreamsStructList,
-					IntList<StreamIdx>>::Value - 1
-		>;
+                memoria::list_tree::LeafCountSup<
+                    typename Base::Types::LeafStreamsStructList,
+                    IntList<StreamIdx>>::Value - 1
+        >;
 
         template <Int StreamIdx>
         using BranchSizesSubstreamIdx = IntValue<
-        		memoria::list_tree::LeafCountSup<
-					typename Base::Types::BranchStreamsStructList,
-					IntList<StreamIdx>>::Value - 1
-		>;
+                memoria::list_tree::LeafCountSup<
+                    typename Base::Types::BranchStreamsStructList,
+                    IntList<StreamIdx>>::Value - 1
+        >;
 
         template <Int StreamIdx>
         using LeafSizesSubstreamPath = typename Base::Types::template LeafPathT<LeafSizesSubstreamIdx<StreamIdx>::Value>;
@@ -142,8 +142,8 @@ public:
         static const Int SearchableStreams = Base::Types::Streams - 1;
     };
 
-    using CtrTypes 	= typename Types::CtrTypes;
-    using Type 		= Ctr<CtrTypes>;
+    using CtrTypes  = typename Types::CtrTypes;
+    using Type      = Ctr<CtrTypes>;
 };
 
 

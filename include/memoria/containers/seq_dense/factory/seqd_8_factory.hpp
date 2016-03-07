@@ -36,10 +36,10 @@ struct BTTypes<Profile, memoria::Sequence<8, true> >: public BTTypes<Profile, me
 
     typedef BTTypes<Profile, memoria::BTSingleStream>                           Base;
 
-    typedef UByte                                                             	Value;
+    typedef UByte                                                               Value;
 
     static const Int BitsPerSymbol                                              = 8;
-    static const Int Symbols                                              		= 256;
+    static const Int Symbols                                                    = 256;
     static const Int BranchIndexes                                              = (1 << BitsPerSymbol) + 1;
 
     using SequenceTypes = typename PkdFSSeqTF<BitsPerSymbol>::Type;
@@ -49,10 +49,10 @@ struct BTTypes<Profile, memoria::Sequence<8, true> >: public BTTypes<Profile, me
 //            >>                                                          NonLeafType;
 
     using SeqStreamTF = StreamTF<
-    	TL<TL<PkdFSSeq<SequenceTypes>>>,
-		VLDBranchStructTF,
-		TL<TL<TL<>>>
-//		FSEBranchStructTF
+        TL<TL<PkdFSSeq<SequenceTypes>>>,
+        VLDBranchStructTF,
+        TL<TL<TL<>>>
+//      FSEBranchStructTF
     >;
 
 
@@ -72,7 +72,7 @@ struct BTTypes<Profile, memoria::Sequence<8, true> >: public BTTypes<Profile, me
                 seq_dense::CtrFindName,
                 seq_dense::CtrInsertName,
                 seq_dense::CtrRemoveName
-    >                                                                   		CommonContainerPartsList;
+    >                                                                           CommonContainerPartsList;
 
 
     using FixedLeafContainerPartsList = MergeLists<
@@ -98,7 +98,7 @@ struct BTTypes<Profile, memoria::Sequence<8, true> >: public BTTypes<Profile, me
                 seq_dense::IterRankName,
                 seq_dense::IterSkipName
 
-    >                                                                   		IteratorPartsList;
+    >                                                                           IteratorPartsList;
 };
 
 }

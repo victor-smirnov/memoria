@@ -47,9 +47,9 @@ public:
 
     void testFillTree()
     {
-    	auto snp = branch();
+        auto snp = branch();
 
-    	auto tree = create<CtrName>(snp);
+        auto tree = create<CtrName>(snp);
 
         tree->setNewPageSize(512);
 

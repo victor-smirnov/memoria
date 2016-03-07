@@ -63,25 +63,25 @@ public:
 
     void testCtrRank()
     {
-    	auto snp = branch();
+        auto snp = branch();
 
-    	auto ctr = create<CtrName>(snp);
+        auto ctr = create<CtrName>(snp);
 
-    	auto seq = fillRandomSeq(*ctr.get(), size_);
+        auto seq = fillRandomSeq(*ctr.get(), size_);
 
-    	check(MA_SRC);
+        check(MA_SRC);
 
         for (Int c = 0; c < iterations_; c++)
         {
-        	out()<<c<<std::endl;
+            out()<<c<<std::endl;
 
-        	Int pos     = getRandom(size_);
-        	Int symbol  = getRandom(Base::Symbols);
+            Int pos     = getRandom(size_);
+            Int symbol  = getRandom(Base::Symbols);
 
-        	BigInt rank1 = ctr->rank(pos, symbol);
-        	BigInt rank2 = seq->rank(pos, symbol);
+            BigInt rank1 = ctr->rank(pos, symbol);
+            BigInt rank2 = seq->rank(pos, symbol);
 
-        	AssertEQ(MA_SRC, rank1, rank2);
+            AssertEQ(MA_SRC, rank1, rank2);
         }
 
         commit();
@@ -90,37 +90,37 @@ public:
 
     void testIterRank()
     {
-    	auto snp = branch();
+        auto snp = branch();
 
-    	auto ctr = create<CtrName>(snp);
+        auto ctr = create<CtrName>(snp);
 
-    	auto seq = fillRandomSeq(*ctr.get(), size_);
+        auto seq = fillRandomSeq(*ctr.get(), size_);
 
-    	check(MA_SRC);
+        check(MA_SRC);
 
-    	for (Int c = 0; c < iterations_; c++)
-    	{
-    		out()<<c<<std::endl;
+        for (Int c = 0; c < iterations_; c++)
+        {
+            out()<<c<<std::endl;
 
-    		Int pos1    = getRandom(size_);
-    		Int pos2    = pos1 + getRandom(size_ - pos1);
-    		Int symbol  = getRandom(Base::Symbols);
+            Int pos1    = getRandom(size_);
+            Int pos2    = pos1 + getRandom(size_ - pos1);
+            Int symbol  = getRandom(Base::Symbols);
 
-    		auto iter   = ctr->seek(pos1);
+            auto iter   = ctr->seek(pos1);
 
-    		BigInt rank1 = iter->rank(pos2 - pos1, symbol);
-    		BigInt rank2 = seq->rank(pos1, pos2, symbol);
+            BigInt rank1 = iter->rank(pos2 - pos1, symbol);
+            BigInt rank2 = seq->rank(pos1, pos2, symbol);
 
-    		AssertEQ(MA_SRC, iter->pos(), pos2);
-    		AssertEQ(MA_SRC, rank1, rank2);
+            AssertEQ(MA_SRC, iter->pos(), pos2);
+            AssertEQ(MA_SRC, rank1, rank2);
 
-    		BigInt rank3 = iter->rank(pos1 - pos2, symbol);
+            BigInt rank3 = iter->rank(pos1 - pos2, symbol);
 
-    		AssertEQ(MA_SRC, iter->pos(), pos1);
-    		AssertEQ(MA_SRC, rank1, rank3);
-    	}
+            AssertEQ(MA_SRC, iter->pos(), pos1);
+            AssertEQ(MA_SRC, rank1, rank3);
+        }
 
-    	commit();
+        commit();
     }
 };
 

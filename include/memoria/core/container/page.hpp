@@ -107,7 +107,7 @@ public:
                 ConstValue<UInt, VERSION>,
                 decltype(flags_),
                 decltype(id_),
-				decltype(uuid_),
+                decltype(uuid_),
                 decltype(crc_),
                 decltype(master_ctr_type_hash_),
                 decltype(owner_ctr_type_hash_),
@@ -212,19 +212,19 @@ public:
     }
 
     auto ref() {
-    	auto r = ++references_;
+        auto r = ++references_;
 
         return r;
     }
 
     auto unref() {
-    	auto r = --references_;
+        auto r = --references_;
 
-    	MEMORIA_ASSERT(r, >=, 0);
+        MEMORIA_ASSERT(r, >=, 0);
 
-//    	if (r <= 0) {
-//    		cerr << "PageUnref: " << uuid_ << " " << r << endl;
-//    	}
+//      if (r <= 0) {
+//          cerr << "PageUnref: " << uuid_ << " " << r << endl;
+//      }
 
         return r;
     }
@@ -808,10 +808,10 @@ template <typename T, typename A>
 ostream& operator<<(ostream& out, const PageGuard<T, A>& pg)
 {
     if (pg.isSet()) {
-    	out<<pg->id();
+        out<<pg->id();
     }
     else {
-    	out<<"nullptr";
+        out<<"nullptr";
     }
     return out;
 }

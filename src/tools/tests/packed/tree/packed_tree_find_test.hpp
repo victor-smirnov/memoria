@@ -64,55 +64,55 @@ public:
     template <typename Walker>
     auto find_fw(const TreePtr& tree, Int block, Int start, IndexValue limit)
     {
-    	Int end = tree->size();
+        Int end = tree->size();
 
-    	Walker walker(limit);
+        Walker walker(limit);
 
-    	for (Int c = start; c < end; c++)
-    	{
-    		Value value = tree->value(block, c);
+        for (Int c = start; c < end; c++)
+        {
+            Value value = tree->value(block, c);
 
-    		if (walker.compare(value))
-    		{
-    			return walker.idx(c);
-    		}
-    		else {
-    			walker.next();
-    		}
-    	}
+            if (walker.compare(value))
+            {
+                return walker.idx(c);
+            }
+            else {
+                walker.next();
+            }
+        }
 
-    	return walker.idx(end);
+        return walker.idx(end);
     }
 
     template <typename Walker>
     auto find_bw(const TreePtr& tree, Int block, Int start, IndexValue limit)
     {
-    	Walker walker(limit);
+        Walker walker(limit);
 
-    	for (Int c = start; c >= 0; c--)
-    	{
-    		Value value = tree->value(block, c);
+        for (Int c = start; c >= 0; c--)
+        {
+            Value value = tree->value(block, c);
 
-    		if (walker.compare(value))
-    		{
-    			return walker.idx(c);
-    		}
-    		else {
-    			walker.next();
-    		}
-    	}
+            if (walker.compare(value))
+            {
+                return walker.idx(c);
+            }
+            else {
+                walker.next();
+            }
+        }
 
-    	return walker.idx(-1);
+        return walker.idx(-1);
     }
 
 
 
     void testFindForward()
     {
-    	for (Int c = 4; c < 1024; c *= 2)
-    	{
-    		testFindForward(c);
-    	}
+        for (Int c = 4; c < 1024; c *= 2)
+        {
+            testFindForward(c);
+        }
 
         for (Int c = 1024*3; c <= this->size_; c += 1024)
         {
@@ -206,46 +206,46 @@ public:
 
     void testFindForwardFromStart(Int tree_size)
     {
-    	out()<<tree_size<<endl;
+        out()<<tree_size<<endl;
 
-    	auto tree = createEmptyTree();
-    	auto values = fillRandom(tree, tree_size);
+        auto tree = createEmptyTree();
+        auto values = fillRandom(tree, tree_size);
 
-    	Int size = tree->size();
+        Int size = tree->size();
 
-    	for (Int c = 0; c < iterations_; c++)
-    	{
-    		Int rnd     = this->getRandom(size - 2);
-    		Int end     = rnd + 2;
+        for (Int c = 0; c < iterations_; c++)
+        {
+            Int rnd     = this->getRandom(size - 2);
+            Int end     = rnd + 2;
 
-    		Int block   = this->getRandom(Tree::Blocks);
+            Int block   = this->getRandom(Tree::Blocks);
 
-    		Int sum     = tree->sum(block, 0, end);
+            Int sum     = tree->sum(block, 0, end);
 
-    		if (sum == 0) continue;
+            if (sum == 0) continue;
 
-    		auto result1_lt = tree->findGTForward(block, sum);
-    		auto result1_le = tree->findGEForward(block, sum);
+            auto result1_lt = tree->findGTForward(block, sum);
+            auto result1_le = tree->findGEForward(block, sum);
 
-    		auto result2_lt = find_fw<typename Tree::FindGTWalker>(tree, block, 0, sum);
-    		auto result2_le = find_fw<typename Tree::FindGEWalker>(tree, block, 0, sum);
+            auto result2_lt = find_fw<typename Tree::FindGTWalker>(tree, block, 0, sum);
+            auto result2_le = find_fw<typename Tree::FindGEWalker>(tree, block, 0, sum);
 
-    		AssertEQ(MA_SRC, result1_lt.idx(), result2_lt.idx(), SBuf()<<"IDX "<<sum<<" "<<block);
-    		AssertEQ(MA_SRC, result1_lt.prefix(), result2_lt.prefix(), SBuf()<<"SUM "<<" "<<sum<<" "<<block);
+            AssertEQ(MA_SRC, result1_lt.idx(), result2_lt.idx(), SBuf()<<"IDX "<<sum<<" "<<block);
+            AssertEQ(MA_SRC, result1_lt.prefix(), result2_lt.prefix(), SBuf()<<"SUM "<<" "<<sum<<" "<<block);
 
-    		AssertEQ(MA_SRC, result1_le.idx(), result2_le.idx(), SBuf()<<"IDX "<<" "<<sum<<" "<<block);
-    		AssertEQ(MA_SRC, result1_le.prefix(), result2_le.prefix(), SBuf()<<"SUM "<<" "<<sum<<" "<<block);
-    	}
+            AssertEQ(MA_SRC, result1_le.idx(), result2_le.idx(), SBuf()<<"IDX "<<" "<<sum<<" "<<block);
+            AssertEQ(MA_SRC, result1_le.prefix(), result2_le.prefix(), SBuf()<<"SUM "<<" "<<sum<<" "<<block);
+        }
     }
 
 
 
     void testFindBackward()
     {
-    	for (Int c = 4; c < 1024; c *= 2)
-    	{
-    		testFindBackward(c);
-    	}
+        for (Int c = 4; c < 1024; c *= 2)
+        {
+            testFindBackward(c);
+        }
 
         for (Int c = 1024; c <= this->size_; c += 1024)
         {
@@ -261,9 +261,9 @@ public:
 
         auto values = fillRandom(tree, tree_size);
 
-        Int size 		= tree->size();
-        Int block_t    	= getRandom(Tree::Blocks);
-        auto total_sum 	= tree->sum(block_t, 0, size);
+        Int size        = tree->size();
+        Int block_t     = getRandom(Tree::Blocks);
+        auto total_sum  = tree->sum(block_t, 0, size);
 
         auto result_lt_t = tree->findGTBackward(block_t, size - 1, total_sum);
         auto result_le_t = tree->findGEBackward(block_t, size - 1, total_sum);
@@ -285,7 +285,7 @@ public:
 
         for (Int c = 0; c < iterations_; c++)
         {
-        	Int start   = getRandom(size - 2) + 2;
+            Int start   = getRandom(size - 2) + 2;
             Int rnd     = getRandom(start - 2) + 1;
             Int end     = start - rnd;
             Int block   = getRandom(Tree::Blocks);
@@ -313,47 +313,47 @@ public:
 
     void testFindBackwardFromEnd()
     {
-    	for (Int c = 1024; c <= this->size_; c += 1024)
-    	{
-    		testFindBackwardFromEnd(c);
-    	}
+        for (Int c = 1024; c <= this->size_; c += 1024)
+        {
+            testFindBackwardFromEnd(c);
+        }
     }
 
     void testFindBackwardFromEnd(Int tree_size)
     {
-    	out()<<tree_size<<endl;
+        out()<<tree_size<<endl;
 
-    	auto tree = createEmptyTree();
-    	auto values = fillRandom(tree, tree_size);
+        auto tree = createEmptyTree();
+        auto values = fillRandom(tree, tree_size);
 
-    	Int size = tree->size();
+        Int size = tree->size();
 
-    	for (Int c = 0; c < iterations_; c++)
-    	{
-    		Int start   = size - 1;
-    		Int rnd     = getRandom(start - 2) + 1;
-    		Int end     = start - rnd;
-    		Int block   = getRandom(Tree::Blocks);
+        for (Int c = 0; c < iterations_; c++)
+        {
+            Int start   = size - 1;
+            Int rnd     = getRandom(start - 2) + 1;
+            Int end     = start - rnd;
+            Int block   = getRandom(Tree::Blocks);
 
-    		AssertGE(MA_SRC, end, 0);
+            AssertGE(MA_SRC, end, 0);
 
-    		Int sum     = tree->sum(block, end + 1, start + 1);
+            Int sum     = tree->sum(block, end + 1, start + 1);
 
-    		// we do not handle zero sums correctly in this test yet
-			if (sum == 0) continue;
+            // we do not handle zero sums correctly in this test yet
+            if (sum == 0) continue;
 
-    		auto result1_lt = tree->findGTBackward(block, sum);
-    		auto result1_le = tree->findGEBackward(block, sum);
+            auto result1_lt = tree->findGTBackward(block, sum);
+            auto result1_le = tree->findGEBackward(block, sum);
 
-    		auto result2_lt = find_bw<typename Tree::FindGTWalker>(tree, block, start, sum);
-    		auto result2_le = find_bw<typename Tree::FindGEWalker>(tree, block, start, sum);
+            auto result2_lt = find_bw<typename Tree::FindGTWalker>(tree, block, start, sum);
+            auto result2_le = find_bw<typename Tree::FindGEWalker>(tree, block, start, sum);
 
-    		AssertEQ(MA_SRC, result1_lt.idx(), result2_lt.idx(), SBuf()<<"IDX "<<start<<" "<<sum<<" "<<block);
-    		AssertEQ(MA_SRC, result1_lt.prefix(), result2_lt.prefix(), SBuf()<<"SUM "<<start<<" "<<sum<<" "<<block);
+            AssertEQ(MA_SRC, result1_lt.idx(), result2_lt.idx(), SBuf()<<"IDX "<<start<<" "<<sum<<" "<<block);
+            AssertEQ(MA_SRC, result1_lt.prefix(), result2_lt.prefix(), SBuf()<<"SUM "<<start<<" "<<sum<<" "<<block);
 
-    		AssertEQ(MA_SRC, result1_le.idx(), result2_le.idx(), SBuf()<<"IDX "<<start<<" "<<sum<<" "<<block);
-    		AssertEQ(MA_SRC, result1_le.prefix(), result2_le.prefix(), SBuf()<<"SUM "<<start<<" "<<sum<<" "<<block);
-    	}
+            AssertEQ(MA_SRC, result1_le.idx(), result2_le.idx(), SBuf()<<"IDX "<<start<<" "<<sum<<" "<<block);
+            AssertEQ(MA_SRC, result1_le.prefix(), result2_le.prefix(), SBuf()<<"SUM "<<start<<" "<<sum<<" "<<block);
+        }
     }
 };
 

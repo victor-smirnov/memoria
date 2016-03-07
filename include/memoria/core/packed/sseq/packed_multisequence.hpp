@@ -22,7 +22,7 @@ using namespace std;
 
 template <
     Int BitsPerSymbol_ = 8,
-	typename IndexType = PkdVDTreeT<BigInt, 1<<BitsPerSymbol_, UBigIntI64Codec>,
+    typename IndexType = PkdVDTreeT<BigInt, 1<<BitsPerSymbol_, UBigIntI64Codec>,
     template <typename> class ReindexFnType = VLEReindex8Fn,
     template <typename> class SelectFnType  = Seq8SelectFn,
     template <typename> class RankFnType    = Seq8RankFn,
@@ -55,7 +55,7 @@ class PackedCxMultiSequence: public PackedAllocator {
 
 public:
 
-    typedef PkdFQTreeT<Int, 1>                                           		LabelArray;
+    typedef PkdFQTreeT<Int, 1>                                                  LabelArray;
     typedef typename LabelArray::Values                                         LabelArrayValues;
 
     typedef PkdFSSeqTypes<

@@ -30,9 +30,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::table::ItrMiscName)
     typedef typename Base::Container                                            Container;
     typedef typename Base::Container::Position                                  Position;
 
-    using CtrSizeT 	= typename Container::Types::CtrSizeT;
-    using Key		= typename Container::Types::Key;
-    using Value		= typename Container::Types::Value;
+    using CtrSizeT  = typename Container::Types::CtrSizeT;
+    using Key       = typename Container::Types::Key;
+    using Value     = typename Container::Types::Value;
 
     using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
 

@@ -30,19 +30,19 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorStreamRankName)
     typedef typename Base::Container                                            Container;
     typedef typename Base::Container::Position                                  Position;
 
-    using CtrSizeT 					= typename Container::Types::CtrSizeT;
-    using IteratorBranchNodeEntry 	= typename Container::Types::IteratorBranchNodeEntry;
+    using CtrSizeT                  = typename Container::Types::CtrSizeT;
+    using IteratorBranchNodeEntry   = typename Container::Types::IteratorBranchNodeEntry;
 
     using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
 
     template <Int StreamIdx>
-    using LeafSizesSubstreamPath 	= typename Container::Types::template LeafSizesSubstreamPath<StreamIdx>;
+    using LeafSizesSubstreamPath    = typename Container::Types::template LeafSizesSubstreamPath<StreamIdx>;
 
     template <typename LeafPath>
     using AccumItemH = typename Container::Types::template AccumItemH<LeafPath>;
 
-    static const Int Streams 				= Container::Types::Streams;
-    static const Int SearchableStreams 		= Container::Types::SearchableStreams;
+    static const Int Streams                = Container::Types::Streams;
+    static const Int SearchableStreams      = Container::Types::SearchableStreams;
 
     using LeafPrefixRanks = typename Container::Types::LeafPrefixRanks;
 

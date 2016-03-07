@@ -28,31 +28,31 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveToolsName)
     typedef typename Base::NodeBaseG                                            NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
+    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
+    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
+    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
 
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     typedef typename Base::Metadata                                             Metadata;
 
-    typedef std::function<void (const Position&)>                          		MergeFn;
+    typedef std::function<void (const Position&)>                               MergeFn;
 
 public:
     void drop()
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	if (self.isActive())
-    	{
-    		NodeBaseG root = self.getRoot();
-        	self.removeRootNode(root);
-        	self.set_root(ID());
-    	}
-    	else {
-    		throw Exception(MA_RAW_SRC, "Transaction must be in active state to drop containers");
-    	}
+        if (self.isActive())
+        {
+            NodeBaseG root = self.getRoot();
+            self.removeRootNode(root);
+            self.set_root(ID());
+        }
+        else {
+            throw Exception(MA_RAW_SRC, "Transaction must be in active state to drop containers");
+        }
     }
 
 

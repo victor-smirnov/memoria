@@ -22,7 +22,7 @@ protected:
     typedef Iter<typename Types::IterTypes>                                     Iterator;
     typedef typename Types::IteratorBranchNodeEntry                                 IteratorBranchNodeEntry;
     typedef typename Types::LeafStreamsStructList                               LeafStructList;
-    typedef typename Types::LeafRangeList                                 		LeafRangeList;
+    typedef typename Types::LeafRangeList                                       LeafRangeList;
     typedef typename Types::LeafRangeOffsetList                                 LeafRangeOffsetList;
 
     static const Int Streams                                                    = Types::Streams;
@@ -32,8 +32,8 @@ protected:
     IteratorBranchNodeEntry branch_prefix_;
     IteratorBranchNodeEntry leaf_prefix_;
 
-    bool compute_branch_ 	= true;
-    bool compute_leaf_ 		= true;
+    bool compute_branch_    = true;
+    bool compute_leaf_      = true;
 
 public:
 
@@ -53,100 +53,100 @@ public:
 
     void empty(Iterator& iter)
     {
-    	iter.idx() = 0;
+        iter.idx() = 0;
     }
 
     const bool& compute_branch() const {
-    	return compute_branch_;
+        return compute_branch_;
     }
 
     bool& compute_branch() {
-    	return compute_branch_;
+        return compute_branch_;
     }
 
     const bool& compute_leaf() const {
-    	return compute_leaf_;
+        return compute_leaf_;
     }
 
     bool& compute_leaf() {
-    	return compute_leaf_;
+        return compute_leaf_;
     }
 
 
     template <typename LeafPath>
     auto branch_index(Int index)
     {
-    	return AccumItemH<LeafPath>::value(index, branch_prefix_);
+        return AccumItemH<LeafPath>::value(index, branch_prefix_);
     }
 
     template <typename LeafPath>
     auto branch_index(Int index) const
     {
-    	return AccumItemH<LeafPath>::cvalue(index, branch_prefix_);
+        return AccumItemH<LeafPath>::cvalue(index, branch_prefix_);
     }
 
     template <typename LeafPath>
     auto leaf_index(Int index)
     {
-    	return AccumItemH<LeafPath>::value(index, leaf_prefix_);
+        return AccumItemH<LeafPath>::value(index, leaf_prefix_);
     }
 
     template <typename LeafPath>
     auto leaf_index(Int index) const
     {
-    	return AccumItemH<LeafPath>::cvalue(index, leaf_prefix_);
+        return AccumItemH<LeafPath>::cvalue(index, leaf_prefix_);
     }
 
 
     template <typename LeafPath>
     auto total_index(Int index) const
     {
-    	return AccumItemH<LeafPath>::cvalue(index, branch_prefix_) +
-    			AccumItemH<LeafPath>::cvalue(index, leaf_prefix_);
+        return AccumItemH<LeafPath>::cvalue(index, branch_prefix_) +
+                AccumItemH<LeafPath>::cvalue(index, leaf_prefix_);
     }
 
     void prepare(Iterator& iter)
     {
-    	branch_prefix_ 		= iter.cache().prefixes();
-    	leaf_prefix_ 		= iter.cache().leaf_prefixes();
-    	branch_size_prefix_	= iter.cache().size_prefix();
+        branch_prefix_      = iter.cache().prefixes();
+        leaf_prefix_        = iter.cache().leaf_prefixes();
+        branch_size_prefix_ = iter.cache().size_prefix();
     }
 
     BigInt finish(Iterator& iter, Int idx, WalkCmd cmd)
     {
-    	iter.finish_walking(idx, self(), cmd);
+        iter.finish_walking(idx, self(), cmd);
 
-    	iter.idx() = idx;
+        iter.idx() = idx;
 
-    	iter.cache().prefixes() 	 = branch_prefix_;
-    	iter.cache().leaf_prefixes() = leaf_prefix_;
-    	iter.cache().size_prefix() 	 = branch_size_prefix_;
+        iter.cache().prefixes()      = branch_prefix_;
+        iter.cache().leaf_prefixes() = leaf_prefix_;
+        iter.cache().size_prefix()   = branch_size_prefix_;
 
-    	return 0;
+        return 0;
     }
 
     const IteratorBranchNodeEntry& branch_BranchNodeEntry() const {
-    	return branch_prefix_;
+        return branch_prefix_;
     }
 
     IteratorBranchNodeEntry& branch_BranchNodeEntry() {
-    	return branch_prefix_;
+        return branch_prefix_;
     }
 
     const IteratorBranchNodeEntry& leaf_BranchNodeEntry() const {
-    	return leaf_prefix_;
+        return leaf_prefix_;
     }
 
     IteratorBranchNodeEntry& leaf_BranchNodeEntry() {
-    	return leaf_prefix_;
+        return leaf_prefix_;
     }
 
     const StaticVector<BigInt, Streams>& branch_size_prefix() const {
-    	return branch_size_prefix_;
+        return branch_size_prefix_;
     }
 
     StaticVector<BigInt, Streams>& branch_size_prefix() {
-    	return branch_size_prefix_;
+        return branch_size_prefix_;
     }
 
 
@@ -162,46 +162,46 @@ public:
     template <typename Node, typename... Args>
     void processLeafIteratorBranchNodeEntry(Node* node, IteratorBranchNodeEntry&accum, Args&&... args)
     {
-    	detail::LeafAccumWalker<
-    		LeafStructList,
-    		LeafRangeList,
-    		LeafRangeOffsetList,
-    		Node::template StreamStartIdx<0>::Value
-    	> w;
+        detail::LeafAccumWalker<
+            LeafStructList,
+            LeafRangeList,
+            LeafRangeOffsetList,
+            Node::template StreamStartIdx<0>::Value
+        > w;
 
-    	Node::Dispatcher::dispatchAll(node->allocator(), w, self(), accum, std::forward<Args>(args)...);
+        Node::Dispatcher::dispatchAll(node->allocator(), w, self(), accum, std::forward<Args>(args)...);
     }
 
     struct BranchSizePrefix
     {
-    	template <Int GroupIdx, Int AllocatorIdx, Int ListIdx, typename StreamObj, typename... Args>
-    	void stream(const StreamObj* obj, MyType& walker, Args&&... args)
-    	{
-    		walker.template branch_size_prefix<ListIdx>(obj, std::forward<Args>(args)...);
-    	}
+        template <Int GroupIdx, Int AllocatorIdx, Int ListIdx, typename StreamObj, typename... Args>
+        void stream(const StreamObj* obj, MyType& walker, Args&&... args)
+        {
+            walker.template branch_size_prefix<ListIdx>(obj, std::forward<Args>(args)...);
+        }
     };
 
 
     struct LeafSizePrefix
     {
-    	template <Int GroupIdx, Int AllocatorIdx, Int ListIdx, typename StreamObj, typename... Args>
-    	void stream(const StreamObj* obj, MyType& walker, Args&&... args)
-    	{
-    		walker.template leaf_size_prefix<ListIdx>(obj, std::forward<Args>(args)...);
-    	}
+        template <Int GroupIdx, Int AllocatorIdx, Int ListIdx, typename StreamObj, typename... Args>
+        void stream(const StreamObj* obj, MyType& walker, Args&&... args)
+        {
+            walker.template leaf_size_prefix<ListIdx>(obj, std::forward<Args>(args)...);
+        }
     };
 
 
     template <typename Node, typename... Args>
     void processBranchSizePrefix(Node* node, Args&&... args)
     {
-    	node->template processStreamsStart(BranchSizePrefix(), self(), std::forward<Args>(args)...);
+        node->template processStreamsStart(BranchSizePrefix(), self(), std::forward<Args>(args)...);
     }
 
     template <typename Node, typename... Args>
     void processLeafSizePrefix(Node* node, Args&&... args)
     {
-    	node->template processStreamsStart(LeafSizePrefix(), self(), std::forward<Args>(args)...);
+        node->template processStreamsStart(LeafSizePrefix(), self(), std::forward<Args>(args)...);
     }
 };
 
@@ -212,9 +212,9 @@ template <
 >
 class ForwardLeafWalker: public LeafWalkerBase<Types, ForwardLeafWalker<Types>> {
 protected:
-	using Base = LeafWalkerBase<Types, ForwardLeafWalker<Types>>;
+    using Base = LeafWalkerBase<Types, ForwardLeafWalker<Types>>;
 
-	using IteratorBranchNodeEntry = typename Base::IteratorBranchNodeEntry;
+    using IteratorBranchNodeEntry = typename Base::IteratorBranchNodeEntry;
 
 public:
 
@@ -228,67 +228,67 @@ public:
     auto treeNode(Args&&... args) ->
     decltype(std::declval<Base>().treeNode(std::declval<Args>()...))
     {
-    	return Base::treeNode(std::forward<Args>(args)...);
+        return Base::treeNode(std::forward<Args>(args)...);
     }
 
 
     template <typename NodeTypes>
     StreamOpResult treeNode(const bt::BranchNode<NodeTypes>* node, WalkDirection direction, Int start)
     {
-    	Int size = node->size();
+        Int size = node->size();
 
-    	if (start < size)
-    	{
-    		return StreamOpResult(start, start, false);
-    	}
-    	else {
-    		return StreamOpResult(size, start, true);
-    	}
+        if (start < size)
+        {
+            return StreamOpResult(start, start, false);
+        }
+        else {
+            return StreamOpResult(size, start, true);
+        }
     }
 
     template <typename NodeTypes>
     StreamOpResult treeNode(const bt::LeafNode<NodeTypes>* node, WalkDirection direction, Int start)
     {
-    	return StreamOpResult(0, 0, true);
+        return StreamOpResult(0, 0, true);
     }
 
 
     template <typename NodeTypes>
     void treeNode(const bt::LeafNode<NodeTypes>* node, WalkCmd cmd, Int start, Int end)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	if (cmd == WalkCmd::THE_ONLY_LEAF)
-    	{
-    		self.leaf_BranchNodeEntry() = IteratorBranchNodeEntry();
-    	}
-    	else if (cmd == WalkCmd::FIRST_LEAF)
-    	{
-    		self.processLeafIteratorBranchNodeEntry(node, this->branch_BranchNodeEntry());
-    		self.processLeafSizePrefix(node);
-    	}
-    	else {
-    		self.leaf_BranchNodeEntry() = IteratorBranchNodeEntry();
-    	}
+        if (cmd == WalkCmd::THE_ONLY_LEAF)
+        {
+            self.leaf_BranchNodeEntry() = IteratorBranchNodeEntry();
+        }
+        else if (cmd == WalkCmd::FIRST_LEAF)
+        {
+            self.processLeafIteratorBranchNodeEntry(node, this->branch_BranchNodeEntry());
+            self.processLeafSizePrefix(node);
+        }
+        else {
+            self.leaf_BranchNodeEntry() = IteratorBranchNodeEntry();
+        }
     }
 
 
-	template <Int StreamIdx, typename StreamType>
-	void leaf_size_prefix(const StreamType* stream)
-	{
-		Base::branch_size_prefix()[StreamIdx] += stream->size();
-	}
+    template <Int StreamIdx, typename StreamType>
+    void leaf_size_prefix(const StreamType* stream)
+    {
+        Base::branch_size_prefix()[StreamIdx] += stream->size();
+    }
 
-	template <Int Offset, Int From, Int Size, typename StreamObj, typename AccumItem>
-	void leaf_iterator_BranchNodeEntry(const StreamObj* obj, AccumItem& item)
-	{
-		const Int Idx = Offset - std::remove_reference<decltype(item)>::type::From;
+    template <Int Offset, Int From, Int Size, typename StreamObj, typename AccumItem>
+    void leaf_iterator_BranchNodeEntry(const StreamObj* obj, AccumItem& item)
+    {
+        const Int Idx = Offset - std::remove_reference<decltype(item)>::type::From;
 
-		for (Int c = 0; c < Size; c++)
-		{
-			obj->_add(c + From, item[Idx + c]);
-		}
-	}
+        for (Int c = 0; c < Size; c++)
+        {
+            obj->_add(c + From, item[Idx + c]);
+        }
+    }
 };
 
 
@@ -298,8 +298,8 @@ template <
 >
 class BackwardLeafWalker: public LeafWalkerBase<Types, BackwardLeafWalker<Types>> {
 protected:
-	using Base = LeafWalkerBase<Types, BackwardLeafWalker<Types>>;
-	using IteratorBranchNodeEntry = typename Base::IteratorBranchNodeEntry;
+    using Base = LeafWalkerBase<Types, BackwardLeafWalker<Types>>;
+    using IteratorBranchNodeEntry = typename Base::IteratorBranchNodeEntry;
 
 public:
 
@@ -313,64 +313,64 @@ public:
     auto treeNode(Args&&... args) ->
     decltype(std::declval<Base>().treeNode(std::declval<Args>()...))
     {
-    	return Base::treeNode(std::forward<Args>(args)...);
+        return Base::treeNode(std::forward<Args>(args)...);
     }
 
 
     template <typename NodeTypes>
     StreamOpResult treeNode(const bt::BranchNode<NodeTypes>* node, WalkDirection direction, Int start)
     {
-    	if (start >= 0)
-    	{
-    		return StreamOpResult(start, start, false);
-    	}
-    	else {
-    		return StreamOpResult(0, 0, true);
-    	}
+        if (start >= 0)
+        {
+            return StreamOpResult(start, start, false);
+        }
+        else {
+            return StreamOpResult(0, 0, true);
+        }
     }
 
     template <typename NodeTypes>
     StreamOpResult treeNode(const bt::LeafNode<NodeTypes>* node, WalkDirection direction, Int start)
     {
-    	return StreamOpResult(0, 0, true);
+        return StreamOpResult(0, 0, true);
     }
 
 
     template <typename NodeTypes>
     void treeNode(const bt::LeafNode<NodeTypes>* node, WalkCmd cmd, Int start, Int end)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	if (cmd == WalkCmd::THE_ONLY_LEAF)
-    	{
-    		self.leaf_BranchNodeEntry() = IteratorBranchNodeEntry();
-    	}
-    	else if (cmd == WalkCmd::LAST_LEAF)
-    	{
-    		self.leaf_BranchNodeEntry() = IteratorBranchNodeEntry();
+        if (cmd == WalkCmd::THE_ONLY_LEAF)
+        {
+            self.leaf_BranchNodeEntry() = IteratorBranchNodeEntry();
+        }
+        else if (cmd == WalkCmd::LAST_LEAF)
+        {
+            self.leaf_BranchNodeEntry() = IteratorBranchNodeEntry();
 
-    		self.processLeafIteratorBranchNodeEntry(node, this->branch_BranchNodeEntry());
-    		self.processLeafSizePrefix(node);
-    	}
+            self.processLeafIteratorBranchNodeEntry(node, this->branch_BranchNodeEntry());
+            self.processLeafSizePrefix(node);
+        }
     }
 
 
-	template <Int StreamIdx, typename StreamType>
-	void leaf_size_prefix(const StreamType* stream)
-	{
-		Base::branch_size_prefix()[StreamIdx] -= stream->size();
-	}
+    template <Int StreamIdx, typename StreamType>
+    void leaf_size_prefix(const StreamType* stream)
+    {
+        Base::branch_size_prefix()[StreamIdx] -= stream->size();
+    }
 
-	template <Int Offset, Int From, Int Size, typename StreamObj, typename AccumItem>
-	void leaf_iterator_BranchNodeEntry(const StreamObj* obj, AccumItem& item)
-	{
-		const Int Idx = Offset - std::remove_reference<decltype(item)>::type::From;
+    template <Int Offset, Int From, Int Size, typename StreamObj, typename AccumItem>
+    void leaf_iterator_BranchNodeEntry(const StreamObj* obj, AccumItem& item)
+    {
+        const Int Idx = Offset - std::remove_reference<decltype(item)>::type::From;
 
-		for (Int c = 0; c < Size; c++)
-		{
-			obj->_sub(c + From, item[Idx + c]);
-		}
-	}
+        for (Int c = 0; c < Size; c++)
+        {
+            obj->_sub(c + From, item[Idx + c]);
+        }
+    }
 };
 
 

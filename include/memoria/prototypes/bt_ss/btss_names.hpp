@@ -13,7 +13,7 @@
 #include <memoria/core/tools/static_array.hpp>
 
 namespace memoria    {
-namespace btss     	 {
+namespace btss       {
 
 class ToolsName             {};
 class FindName              {};
@@ -35,9 +35,9 @@ class BranchCommonName      {};
 class BranchFixedName       {};
 class BranchVariableName    {};
 
-class LeafCommonName      	{};
-class LeafFixedName       	{};
-class LeafVariableName    	{};
+class LeafCommonName        {};
+class LeafFixedName         {};
+class LeafVariableName      {};
 
 class ApiName               {};
 class ChecksName            {};

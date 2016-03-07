@@ -7,5 +7,5 @@
 #include "types/type_tests.hpp"
 
 int main(void) {
-	return 0;
+    return 0;
 }

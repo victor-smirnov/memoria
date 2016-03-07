@@ -14,8 +14,8 @@
 #include <iostream>
 #include <iomanip>
 
-#define MEMORIA_LOG(logger_, level, ...)                                         		 \
-    if (logger_.is_log(level))                                                    		 \
+#define MEMORIA_LOG(logger_, level, ...)                                                 \
+    if (logger_.is_log(level))                                                           \
         memoria::log(logger_.logger(), level, MEMORIA_SOURCE, logger_.typeName(),  \
                 ExtractFunctionName(__FUNCTION__), ##__VA_ARGS__)
 

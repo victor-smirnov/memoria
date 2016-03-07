@@ -17,12 +17,12 @@ namespace memoria {
 using namespace std;
 
 template <
-	typename PackedTreeT
+    typename PackedTreeT
 >
 class PackedTreeMiscTest: public PackedTreeTestBase<PackedTreeT> {
 
     using MyType = PackedTreeMiscTest<PackedTreeT>;
-    using Base 	 = PackedTreeTestBase<PackedTreeT>;
+    using Base   = PackedTreeTestBase<PackedTreeT>;
 
     typedef typename Base::Tree                                                 Tree;
     typedef typename Base::Values                                               Values;
@@ -234,7 +234,7 @@ public:
             for (Int c = 0; c < this->iterations_; c++)
             {
                 Int start   = getRandom(tree->size());
-                Int end		= start + getRandom(tree->size() - start);
+                Int end     = start + getRandom(tree->size() - start);
 
                 Int block_size = tree->block_size();
 
@@ -304,7 +304,7 @@ public:
 
     void testClear()
     {
-    	testClear(0);
+        testClear(0);
 
         for (int c = 1; c <= this->size_; c*=2)
         {

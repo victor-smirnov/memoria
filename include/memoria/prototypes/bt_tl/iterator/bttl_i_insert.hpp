@@ -31,10 +31,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorInsertName)
     typedef typename Base::Container                                            Container;
     typedef typename Base::Container::Position                                  Position;
 
-    using CtrSizeT 	= typename Container::Types::CtrSizeT;
-    using Key		= typename Container::Types::Key;
-    using Value		= typename Container::Types::Value;
-    using IteratorBranchNodeEntry		= typename Container::Types::IteratorBranchNodeEntry;
+    using CtrSizeT  = typename Container::Types::CtrSizeT;
+    using Key       = typename Container::Types::Key;
+    using Value     = typename Container::Types::Value;
+    using IteratorBranchNodeEntry       = typename Container::Types::IteratorBranchNodeEntry;
 
     using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
 
@@ -44,45 +44,45 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorInsertName)
     template <typename LeafPath>
     using AccumItemH = typename Container::Types::template AccumItemH<LeafPath>;
 
-    static const Int Streams 				= Container::Types::Streams;
-    static const Int SearchableStreams 		= Container::Types::SearchableStreams;
+    static const Int Streams                = Container::Types::Streams;
+    static const Int SearchableStreams      = Container::Types::SearchableStreams;
 
     using LeafPrefixRanks = typename Container::Types::LeafPrefixRanks;
 
 
     SplitStatus split()
     {
-    	auto& self  = this->self();
-    	auto& leaf  = self.leaf();
-    	auto stream = self.stream();
+        auto& self  = this->self();
+        auto& leaf  = self.leaf();
+        auto stream = self.stream();
 
-    	auto sizes = self.leaf_sizes();
-    	auto full_leaf_size = sizes.sum();
+        auto sizes = self.leaf_sizes();
+        auto full_leaf_size = sizes.sum();
 
-    	if (full_leaf_size > 1)
-    	{
-    		auto half_ranks = self.leafrank_(full_leaf_size/2);
-    		auto right = self.ctr().split_leaf_p(leaf, half_ranks);
+        if (full_leaf_size > 1)
+        {
+            auto half_ranks = self.leafrank_(full_leaf_size/2);
+            auto right = self.ctr().split_leaf_p(leaf, half_ranks);
 
-    		auto& idx = self.idx();
+            auto& idx = self.idx();
 
-    		if (idx > half_ranks[stream])
-    		{
-    			leaf = right;
-    			idx -= half_ranks[stream];
+            if (idx > half_ranks[stream])
+            {
+                leaf = right;
+                idx -= half_ranks[stream];
 
-    			self.refresh();
+                self.refresh();
 
-    			return SplitStatus::RIGHT;
-    		}
-    		else {
-    			return SplitStatus::LEFT;
-    		}
-    	}
-    	else {
-    		self.ctr().split_leaf_p(leaf, sizes);
-    		return SplitStatus::LEFT;
-    	}
+                return SplitStatus::RIGHT;
+            }
+            else {
+                return SplitStatus::LEFT;
+            }
+        }
+        else {
+            self.ctr().split_leaf_p(leaf, sizes);
+            return SplitStatus::LEFT;
+        }
     }
 
 
@@ -92,39 +92,39 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorInsertName)
     template <Int StreamIdx, typename EntryBuffer>
     SplitStatus _insert(const EntryBuffer& data)
     {
-    	auto& self  = this->self();
-    	auto stream = self.stream();
+        auto& self  = this->self();
+        auto stream = self.stream();
 
-    	MEMORIA_ASSERT(StreamIdx, ==, stream);
+        MEMORIA_ASSERT(StreamIdx, ==, stream);
 
-    	auto main_split_status = self.ctr().template insert_stream_entry<StreamIdx>(self, data);
+        auto main_split_status = self.ctr().template insert_stream_entry<StreamIdx>(self, data);
 
-    	auto tmp = self;
-    	tmp.toIndex();
+        auto tmp = self;
+        tmp.toIndex();
 
-    	if (tmp.has_same_leaf(self))
-    	{
-        	auto status = tmp.add_substream_size(tmp.stream(), tmp.idx(), 1);
+        if (tmp.has_same_leaf(self))
+        {
+            auto status = tmp.add_substream_size(tmp.stream(), tmp.idx(), 1);
 
-        	if (status == SplitStatus::NONE)
-        	{
-        		return main_split_status;
-        	}
-        	else
-        	{
-        		auto pos = self.pos();
+            if (status == SplitStatus::NONE)
+            {
+                return main_split_status;
+            }
+            else
+            {
+                auto pos = self.pos();
 
-        		self = tmp;
-        		self.toData(pos);
+                self = tmp;
+                self.toData(pos);
 
-        		return SplitStatus::UNKNOWN;
-        	}
-    	}
-    	else {
-    		tmp.add_substream_size(tmp.stream(), tmp.idx(), 1);
-    	}
+                return SplitStatus::UNKNOWN;
+            }
+        }
+        else {
+            tmp.add_substream_size(tmp.stream(), tmp.idx(), 1);
+        }
 
-    	return main_split_status;
+        return main_split_status;
     }
 
 

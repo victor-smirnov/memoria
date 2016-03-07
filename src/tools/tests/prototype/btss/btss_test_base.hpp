@@ -21,31 +21,31 @@ namespace memoria {
 using namespace std;
 
 template <
-	typename ContainerTypeName,
+    typename ContainerTypeName,
     typename AllocatorType,
-	typename Profile
+    typename Profile
 >
 class BTSSTestBase: public BTTestBase<ContainerTypeName, AllocatorType, Profile> {
 
     using MyType = BTSSTestBase<
                 ContainerTypeName,
-				Profile,
-				AllocatorType
+                Profile,
+                AllocatorType
     >;
 
     using Base = BTTestBase<ContainerTypeName, AllocatorType, Profile>;
 
 protected:
-    using Ctr 			= typename CtrTF<Profile, ContainerTypeName>::Type;
-    using IteratorPtr 	= typename Ctr::IteratorPtr;
-    using ID 			= typename Ctr::ID;
+    using Ctr           = typename CtrTF<Profile, ContainerTypeName>::Type;
+    using IteratorPtr   = typename Ctr::IteratorPtr;
+    using ID            = typename Ctr::ID;
     using BranchNodeEntry = typename Ctr::BranchNodeEntry;
 
-    using Allocator 	= AllocatorType;
+    using Allocator     = AllocatorType;
 
-    using Entry 		= typename Ctr::Types::Entry;
+    using Entry         = typename Ctr::Types::Entry;
 
-    using MemBuffer		= std::vector<Entry>;
+    using MemBuffer     = std::vector<Entry>;
 
     using Base::getRandom;
 
@@ -60,7 +60,7 @@ public:
     virtual ~BTSSTestBase() throw() {}
 
     MemBuffer createBuffer(Int size) {
-    	return MemBuffer(size);
+        return MemBuffer(size);
     }
 
     virtual MemBuffer createRandomBuffer(Int size) = 0;
@@ -69,15 +69,15 @@ public:
 
     void compareBuffers(const MemBuffer& src, const MemBuffer& tgt, const char* source)
     {
-    	AssertEQ(source, src.size(), tgt.size(), SBuf()<<"buffer sizes are not equal");
+        AssertEQ(source, src.size(), tgt.size(), SBuf()<<"buffer sizes are not equal");
 
-    	for (size_t c = 0; c < src.size(); c++)
-    	{
-    		typename MemBuffer::value_type v1 = src[c];
-    		typename MemBuffer::value_type v2 = tgt[c];
+        for (size_t c = 0; c < src.size(); c++)
+        {
+            typename MemBuffer::value_type v1 = src[c];
+            typename MemBuffer::value_type v2 = tgt[c];
 
-    		AssertEQ(source, v1, v2, [=](){return SBuf()<<"c="<<c;});
-    	}
+            AssertEQ(source, v1, v2, [=](){return SBuf()<<"c="<<c;});
+        }
     }
 
     virtual void fillRandom(Ctr& ctr, BigInt size)

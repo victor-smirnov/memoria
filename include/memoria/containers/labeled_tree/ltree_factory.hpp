@@ -32,13 +32,13 @@ namespace memoria {
 template <typename Profile, typename... LabelDescriptors>
 struct BTTypes<Profile, memoria::LabeledTree<LabelDescriptors...>>: BTTypes<Profile, memoria::BT> {
 
-    typedef BTTypes<Profile, memoria::BT>                        				Base;
+    typedef BTTypes<Profile, memoria::BT>                                       Base;
 
     typedef UBigInt                                                             Value;
 
 
-    static constexpr Int BitsPerSymbol 	= 1;
-    static constexpr Int Symbols 		= 2;
+    static constexpr Int BitsPerSymbol  = 1;
+    static constexpr Int Symbols        = 2;
 
     typedef TypeList<
                 BranchNodeTypes<BranchNode>,
@@ -51,16 +51,16 @@ struct BTTypes<Profile, memoria::LabeledTree<LabelDescriptors...>>: BTTypes<Prof
     >                                                                           DefaultNodeTypesList;
 
     using StreamDescriptors = MergeLists<
-    		StreamTF<
-				PkdFSSeq<typename PkdFSSeqTF<1>::Type>,
-				FSEBranchStructTF,
-				TL<TL<>>
-			>,
-			StreamTF<
-				TL<typename louds::StreamDescriptorsListHelper<LabelDescriptors...>::LeafType>,
-				FSEBranchStructTF,
-				TL<typename louds::StreamDescriptorsListHelper<LabelDescriptors...>::IdxList>
-			>
+            StreamTF<
+                PkdFSSeq<typename PkdFSSeqTF<1>::Type>,
+                FSEBranchStructTF,
+                TL<TL<>>
+            >,
+            StreamTF<
+                TL<typename louds::StreamDescriptorsListHelper<LabelDescriptors...>::LeafType>,
+                FSEBranchStructTF,
+                TL<typename louds::StreamDescriptorsListHelper<LabelDescriptors...>::IdxList>
+            >
     >;
 
 
@@ -78,12 +78,12 @@ struct BTTypes<Profile, memoria::LabeledTree<LabelDescriptors...>>: BTTypes<Prof
                 seq_dense::CtrInsertName,
                 seq_dense::CtrRemoveName,
 
-				louds::CtrApiName,
-				louds::CtrFindName,
-				louds::CtrInsertName,
-				louds::CtrUpdateName,
-				louds::CtrRemoveName,
-				louds::CtrChecksName
+                louds::CtrApiName,
+                louds::CtrFindName,
+                louds::CtrInsertName,
+                louds::CtrUpdateName,
+                louds::CtrRemoveName,
+                louds::CtrChecksName
     >;
 
     using FixedLeafContainerPartsList = MergeLists<
@@ -102,11 +102,11 @@ struct BTTypes<Profile, memoria::LabeledTree<LabelDescriptors...>>: BTTypes<Prof
     using IteratorPartsList = MergeLists<
                 typename Base::IteratorPartsList,
 
-				seq_dense::IterSelectName,
-				seq_dense::IterMiscName,
-				seq_dense::IterCountName,
-				seq_dense::IterRankName,
-				seq_dense::IterSkipName,
+                seq_dense::IterSelectName,
+                seq_dense::IterMiscName,
+                seq_dense::IterCountName,
+                seq_dense::IterRankName,
+                seq_dense::IterSkipName,
 
                 louds::ItrApiName
     >;

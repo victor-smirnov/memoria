@@ -138,47 +138,47 @@ void CmdLine::processTests()
         }
         else if (arg == "--coverage")
         {
-        	if (c < argc_ - 1)
-        	{
-        		coverage_ = argv_[c + 1];
-        		c += 1;
-        	}
-        	else {
-        		throw Exception(MEMORIA_SOURCE, "Incorrect --coverage parameters number");
-        	}
+            if (c < argc_ - 1)
+            {
+                coverage_ = argv_[c + 1];
+                c += 1;
+            }
+            else {
+                throw Exception(MEMORIA_SOURCE, "Incorrect --coverage parameters number");
+            }
         }
         else if (arg == "--coverage-size")
         {
-        	if (c < argc_ - 1)
-        	{
-        		coverage_size_ = FromString<String>::convert(argv_[c + 1]);
-        		c += 1;
-        	}
-        	else {
-        		throw Exception(MEMORIA_SOURCE, "Incorrect --coverage-size parameters number");
-        	}
+            if (c < argc_ - 1)
+            {
+                coverage_size_ = FromString<String>::convert(argv_[c + 1]);
+                c += 1;
+            }
+            else {
+                throw Exception(MEMORIA_SOURCE, "Incorrect --coverage-size parameters number");
+            }
         }
         else if (arg == "--soft-memlimit")
         {
-        	if (c < argc_ - 1)
-        	{
-        		soft_memlimit_ = FromString<String>::convert(argv_[c + 1]);
-        		c += 1;
-        	}
-        	else {
-        		throw Exception(MEMORIA_SOURCE, "Incorrect --soft-memlimit parameters number");
-        	}
+            if (c < argc_ - 1)
+            {
+                soft_memlimit_ = FromString<String>::convert(argv_[c + 1]);
+                c += 1;
+            }
+            else {
+                throw Exception(MEMORIA_SOURCE, "Incorrect --soft-memlimit parameters number");
+            }
         }
         else if (arg == "--hard-memlimit")
         {
-        	if (c < argc_ - 1)
-        	{
-        		hard_memlimit_ = FromString<String>::convert(argv_[c + 1]);
-        		c += 1;
-        	}
-        	else {
-        		throw Exception(MEMORIA_SOURCE, "Incorrect --hard-memlimit parameters number");
-        	}
+            if (c < argc_ - 1)
+            {
+                hard_memlimit_ = FromString<String>::convert(argv_[c + 1]);
+                c += 1;
+            }
+            else {
+                throw Exception(MEMORIA_SOURCE, "Incorrect --hard-memlimit parameters number");
+            }
         }
         else if (arg == "--replay" && (operations_ & REPLAY))
         {
@@ -228,19 +228,19 @@ void CmdLine::processTests()
     }
 
     if (coverage_ != "") {
-    	cfg_cmdline_.AddProperty("coverage", coverage_);
+        cfg_cmdline_.AddProperty("coverage", coverage_);
     }
 
     if (coverage_size_ != "") {
-    	cfg_cmdline_.AddProperty("coverage_size", coverage_size_);
+        cfg_cmdline_.AddProperty("coverage_size", coverage_size_);
     }
 
     if (soft_memlimit_ != "") {
-    	cfg_cmdline_.AddProperty("soft_memlimit", soft_memlimit_);
+        cfg_cmdline_.AddProperty("soft_memlimit", soft_memlimit_);
     }
 
     if (hard_memlimit_ != "") {
-    	cfg_cmdline_.AddProperty("hard_memlimit", hard_memlimit_);
+        cfg_cmdline_.AddProperty("hard_memlimit", hard_memlimit_);
     }
 }
 

@@ -89,44 +89,44 @@ public:
 
     void testRemoveNodes()
     {
-    	auto snp = branch();
+        auto snp = branch();
 
-    	UUID ctr_name;
-    	BigInt nodes;
-    	TreeNode root;
+        UUID ctr_name;
+        BigInt nodes;
+        TreeNode root;
 
-    	{
-    		auto tree = create<CtrName>(snp);
-    		ctr_name = tree->name();
+        {
+            auto tree = create<CtrName>(snp);
+            ctr_name = tree->name();
 
-    		root = fillRandom(*tree.get(), size_, max_degree_);
+            root = fillRandom(*tree.get(), size_, max_degree_);
 
-    		nodes = tree->nodes();
+            nodes = tree->nodes();
 
-    		check(MA_SRC);
-    		commit();
-    	}
+            check(MA_SRC);
+            commit();
+        }
 
-    	out()<<"Tree created"<<endl;
+        out()<<"Tree created"<<endl;
 
-    	for (Int c = 0; c < iterations_ && nodes > 1; c++)
-    	{
-    		out()<<c<<std::endl;
+        for (Int c = 0; c < iterations_ && nodes > 1; c++)
+        {
+            out()<<c<<std::endl;
 
-    		snp = branch();
+            snp = branch();
 
-    		auto tree = find<CtrName>(snp, ctr_name);
+            auto tree = find<CtrName>(snp, ctr_name);
 
-    		removeNodes(*tree.get(), root, remove_batch_);
+            removeNodes(*tree.get(), root, remove_batch_);
 
-    		nodes = tree->nodes();
+            nodes = tree->nodes();
 
-    		check(MA_SRC);
+            check(MA_SRC);
 
-    		checkTree(*tree.get(), root);
+            checkTree(*tree.get(), root);
 
-    		commit();
-    	}
+            commit();
+        }
     }
 };
 

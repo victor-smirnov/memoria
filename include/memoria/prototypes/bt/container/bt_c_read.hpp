@@ -30,9 +30,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ReadName)
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
+    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
+    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
+    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
 
     typedef typename Base::Metadata                                             Metadata;
 
@@ -44,32 +44,32 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ReadName)
     template <Int StreamIdx>
     struct ReadEntriesFn {
 
-    	template <Int SubstreamIdx, typename StreamObj, typename Entry>
-    	auto stream(const StreamObj* obj, Entry&& entry, Int idx)
-    	{
-    		obj->read(idx, idx + 1, make_fn_with_next([&](Int block, auto&& value) {
-    			entry.put(StreamTag<StreamIdx>(), StreamTag<SubstreamIdx>(), block, value);
-    		}));
-    	}
+        template <Int SubstreamIdx, typename StreamObj, typename Entry>
+        auto stream(const StreamObj* obj, Entry&& entry, Int idx)
+        {
+            obj->read(idx, idx + 1, make_fn_with_next([&](Int block, auto&& value) {
+                entry.put(StreamTag<StreamIdx>(), StreamTag<SubstreamIdx>(), block, value);
+            }));
+        }
 
-    	template <typename Node, typename Fn, typename... Args>
-    	Int treeNode(const Node* node, Fn&& fn, Int from, CtrSizeT to, Args&&... args)
-    	{
-    		Int limit = node->size(0);
+        template <typename Node, typename Fn, typename... Args>
+        Int treeNode(const Node* node, Fn&& fn, Int from, CtrSizeT to, Args&&... args)
+        {
+            Int limit = node->size(0);
 
-    		if (to < limit) {
-    			limit = to;
-    		}
+            if (to < limit) {
+                limit = to;
+            }
 
-    		for (Int c = from; c < limit; c++)
-    		{
-    			node->template processSubstreams<IntList<StreamIdx>>(*this, fn, c, std::forward<Args>(args)...);
+            for (Int c = from; c < limit; c++)
+            {
+                node->template processSubstreams<IntList<StreamIdx>>(*this, fn, c, std::forward<Args>(args)...);
 
-    			fn.next();
-    		}
+                fn.next();
+            }
 
-    		return limit - from;
-    	}
+            return limit - from;
+        }
     };
 
 
@@ -77,73 +77,73 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ReadName)
     template <Int StreamIdx, typename Fn>
     CtrSizeT read_entries(Iterator& iter, CtrSizeT length, Fn&& fn)
     {
-    	CtrSizeT total = 0;
+        CtrSizeT total = 0;
 
-    	while (total < length)
-    	{
-    		auto idx = iter.idx();
+        while (total < length)
+        {
+            auto idx = iter.idx();
 
-    		Int processed = LeafDispatcher::dispatch(iter.leaf(), ReadEntriesFn<StreamIdx>(), std::forward<Fn>(fn), idx, idx + (length - total));
+            Int processed = LeafDispatcher::dispatch(iter.leaf(), ReadEntriesFn<StreamIdx>(), std::forward<Fn>(fn), idx, idx + (length - total));
 
-    		if (processed > 0) {
-    			total += iter.skipFw(processed);
-    		}
-    		else {
-    			break;
-    		}
-    	}
+            if (processed > 0) {
+                total += iter.skipFw(processed);
+            }
+            else {
+                break;
+            }
+        }
 
-    	return total;
+        return total;
     }
 
     template <typename SubstreamPath>
     struct ReadSubstreamFn {
 
-    	template <Int SubstreamIdx, typename StreamObj, typename Fn>
-    	auto stream(const StreamObj* obj, Int from, Int to, Fn&& entry)
-    	{
-    		static constexpr Int StreamIdx = ListHead<SubstreamPath>::Value;
+        template <Int SubstreamIdx, typename StreamObj, typename Fn>
+        auto stream(const StreamObj* obj, Int from, Int to, Fn&& entry)
+        {
+            static constexpr Int StreamIdx = ListHead<SubstreamPath>::Value;
 
-    		obj->read(from, to, make_fn_with_next([&](Int block, auto&& value) {
-    			entry.put(StreamTag<StreamIdx>(), StreamTag<SubstreamIdx>(), value);
-    		}));
-    	}
+            obj->read(from, to, make_fn_with_next([&](Int block, auto&& value) {
+                entry.put(StreamTag<StreamIdx>(), StreamTag<SubstreamIdx>(), value);
+            }));
+        }
 
-    	template <typename Node, typename Fn>
-    	Int treeNode(const Node* node, Int from, CtrSizeT to, Fn&& fn)
-    	{
-    		Int limit = node->size(ListHead<SubstreamPath>::Value);
+        template <typename Node, typename Fn>
+        Int treeNode(const Node* node, Int from, CtrSizeT to, Fn&& fn)
+        {
+            Int limit = node->size(ListHead<SubstreamPath>::Value);
 
-    		if (to < limit) {
-    			limit = to;
-    		}
+            if (to < limit) {
+                limit = to;
+            }
 
-    		node->template processStream<SubstreamPath>(*this, from, limit, std::forward<Fn>(fn));
+            node->template processStream<SubstreamPath>(*this, from, limit, std::forward<Fn>(fn));
 
-    		return limit - from;
-    	}
+            return limit - from;
+        }
     };
 
     template <typename SubstreamPath, typename Fn>
     CtrSizeT read_substream(Iterator& iter, Int block, CtrSizeT length, Fn&& fn)
     {
-    	CtrSizeT total = 0;
+        CtrSizeT total = 0;
 
-    	while (total < length)
-    	{
-    		auto idx = iter.idx();
+        while (total < length)
+        {
+            auto idx = iter.idx();
 
-    		Int processed = LeafDispatcher::dispatch(iter.leaf(), ReadSubstreamFn<SubstreamPath>(), idx, idx + (length - total), std::forward<Fn>(fn));
+            Int processed = LeafDispatcher::dispatch(iter.leaf(), ReadSubstreamFn<SubstreamPath>(), idx, idx + (length - total), std::forward<Fn>(fn));
 
-    		if (processed > 0) {
-    			total += iter.skipFw(processed);
-    		}
-    		else {
-    			break;
-    		}
-    	}
+            if (processed > 0) {
+                total += iter.skipFw(processed);
+            }
+            else {
+                break;
+            }
+        }
 
-    	return total;
+        return total;
     }
 
 
@@ -152,51 +152,51 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ReadName)
     template <typename SubstreamPath>
     struct ScanSubstreamBlockFn {
 
-    	template <Int SubstreamIdx, typename StreamObj, typename Fn>
-    	auto stream(const StreamObj* obj, Int from, Int to, Int block, Fn&& entry)
-    	{
-    		static constexpr Int StreamIdx = ListHead<SubstreamPath>::Value;
+        template <Int SubstreamIdx, typename StreamObj, typename Fn>
+        auto stream(const StreamObj* obj, Int from, Int to, Int block, Fn&& entry)
+        {
+            static constexpr Int StreamIdx = ListHead<SubstreamPath>::Value;
 
-    		obj->read(from, to, make_fn_with_next([&](Int block, auto&& value) {
-    			entry.put(StreamTag<StreamIdx>(), StreamTag<SubstreamIdx>(), value);
-    		}));
-    	}
+            obj->read(from, to, make_fn_with_next([&](Int block, auto&& value) {
+                entry.put(StreamTag<StreamIdx>(), StreamTag<SubstreamIdx>(), value);
+            }));
+        }
 
-    	template <typename Node, typename Fn>
-    	Int treeNode(const Node* node, Int from, CtrSizeT to, Int block, Fn&& fn)
-    	{
-    		Int limit = node->size(0);
+        template <typename Node, typename Fn>
+        Int treeNode(const Node* node, Int from, CtrSizeT to, Int block, Fn&& fn)
+        {
+            Int limit = node->size(0);
 
-    		if (to < limit) {
-    			limit = to;
-    		}
+            if (to < limit) {
+                limit = to;
+            }
 
-    		node->template processStream<SubstreamPath>(*this, from, limit, block, std::forward<Fn>(fn));
+            node->template processStream<SubstreamPath>(*this, from, limit, block, std::forward<Fn>(fn));
 
-    		return limit - from;
-    	}
+            return limit - from;
+        }
     };
 
     template <typename SubstreamPath, typename Fn>
     CtrSizeT scan_substream_block(Iterator& iter, Int block, CtrSizeT length, Fn&& fn)
     {
-    	CtrSizeT total = 0;
+        CtrSizeT total = 0;
 
-    	while (total < length)
-    	{
-    		auto idx = iter.idx();
+        while (total < length)
+        {
+            auto idx = iter.idx();
 
-    		Int processed = LeafDispatcher::dispatch(iter.leaf(), ScanSubstreamBlockFn<SubstreamPath>(), block, idx, idx + (length - total), std::forward<Fn>(fn));
+            Int processed = LeafDispatcher::dispatch(iter.leaf(), ScanSubstreamBlockFn<SubstreamPath>(), block, idx, idx + (length - total), std::forward<Fn>(fn));
 
-    		if (processed > 0) {
-    			total += iter.skipFw(processed);
-    		}
-    		else {
-    			break;
-    		}
-    	}
+            if (processed > 0) {
+                total += iter.skipFw(processed);
+            }
+            else {
+                break;
+            }
+        }
 
-    	return total;
+        return total;
     }
 
 MEMORIA_CONTAINER_PART_END

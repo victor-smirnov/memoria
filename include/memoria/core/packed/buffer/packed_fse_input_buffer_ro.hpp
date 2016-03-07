@@ -21,8 +21,8 @@ template <
     Int Blocks_ = 1
 >
 struct PackedFSERowOrderInputBufferTypes {
-    typedef V               	Value;
-    static const Int Blocks		= Blocks_;
+    typedef V                   Value;
+    static const Int Blocks     = Blocks_;
 };
 
 
@@ -38,11 +38,11 @@ public:
     typedef Types_                                                              Types;
     typedef PackedFSERowOrderInputBuffer<Types>                                 MyType;
 
-    typedef PackedAllocator                                            			Allocator;
+    typedef PackedAllocator                                                     Allocator;
     typedef typename Types::Value                                               Value;
 
-    static constexpr Int Indexes 	= 0;
-    static constexpr Int Blocks 	= Types::Blocks;
+    static constexpr Int Indexes    = 0;
+    static constexpr Int Blocks     = Types::Blocks;
 
     static constexpr Int SafetyMargin = 0;
 
@@ -94,7 +94,7 @@ public:
 
     static constexpr Int block_size(const SizesT& array_size)
     {
-    	return PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(MyType) + array_size[0] * sizeof(Value) * Blocks);
+        return PackedAllocator::roundUpBytesToAlignmentBlocks(sizeof(MyType) + array_size[0] * sizeof(Value) * Blocks);
     }
 
     void init(Int block_size)
@@ -115,7 +115,7 @@ public:
 
     bool has_capacity_for(const SizesT& sizes) const
     {
-    	return sizes[0] <= max_size_;
+        return sizes[0] <= max_size_;
     }
 
     static constexpr Int empty_size()
@@ -158,7 +158,7 @@ public:
     template <typename Adaptor>
     static SizesT calculate_size(Int size, Adaptor&& fn)
     {
-    	return SizesT(size);
+        return SizesT(size);
     }
 
 
@@ -166,12 +166,12 @@ public:
 
     void reset()
     {
-    	size_ = 0;
+        size_ = 0;
     }
 
 
     SizesT positions(Int idx) const {
-    	return SizesT(idx);
+        return SizesT(idx);
     }
 
 
@@ -180,23 +180,23 @@ public:
     template <typename Adaptor>
     Int append(Int size, Adaptor&& adaptor)
     {
-    	auto values = this->values();
+        auto values = this->values();
 
-    	Int start = size_;
-    	Int limit = (start + size) <= max_size_ ? size : max_size_ - start;
+        Int start = size_;
+        Int limit = (start + size) <= max_size_ ? size : max_size_ - start;
 
-    	for (Int c = 0; c < limit; c++)
-    	{
-    		for (Int block = 0; block < Blocks; block++)
-    		{
-    			auto value = adaptor(block, c);
-    			values[(start + c) * Blocks + block] = value;
-    		}
-    	}
+        for (Int c = 0; c < limit; c++)
+        {
+            for (Int block = 0; block < Blocks; block++)
+            {
+                auto value = adaptor(block, c);
+                values[(start + c) * Blocks + block] = value;
+            }
+        }
 
-    	size_ += limit;
+        size_ += limit;
 
-    	return limit;
+        return limit;
     }
 
 
@@ -217,12 +217,12 @@ public:
 
         for (Int c = start; c < end; c++)
         {
-        	Values item;
-        	for (Int b = 0; b < Blocks; b++) {
-        		item[b] = values[c * Blocks + b];
-        	}
+            Values item;
+            for (Int b = 0; b < Blocks; b++) {
+                item[b] = values[c * Blocks + b];
+            }
 
-        	fn(item);
+            fn(item);
         }
 
         return SizesT(end);
@@ -234,38 +234,38 @@ public:
 
     void dump(std::ostream& out = cout) const
     {
-    	TextPageDumper dumper(out);
-    	generateDataEvents(&dumper);
+        TextPageDumper dumper(out);
+        generateDataEvents(&dumper);
     }
 
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
-    	handler->startStruct();
-    	handler->startGroup("FSE_ROW_ORDER_INPUT_BUFFER");
+        handler->startStruct();
+        handler->startGroup("FSE_ROW_ORDER_INPUT_BUFFER");
 
-    	handler->value("ALLOCATOR",     &Base::allocator_offset());
-    	handler->value("SIZE",          &size_);
-    	handler->value("MAX_SIZE",      &max_size_);
+        handler->value("ALLOCATOR",     &Base::allocator_offset());
+        handler->value("SIZE",          &size_);
+        handler->value("MAX_SIZE",      &max_size_);
 
-    	handler->startGroup("DATA", size_);
+        handler->startGroup("DATA", size_);
 
-    	if (Blocks == 1)
-    	{
-    		ValueHelper<Value>::setup(handler, "DATA_ITEM", buffer_, size_ * Blocks, IPageDataEventHandler::BYTE_ARRAY);
-    	}
-    	else {
-    		auto values = this->values();
+        if (Blocks == 1)
+        {
+            ValueHelper<Value>::setup(handler, "DATA_ITEM", buffer_, size_ * Blocks, IPageDataEventHandler::BYTE_ARRAY);
+        }
+        else {
+            auto values = this->values();
 
-    		for (Int c = 0; c < size_; c++)
-    		{
-    			handler->value("DATA_ITEM", values + c * Blocks, Blocks);
-    		}
-    	}
+            for (Int c = 0; c < size_; c++)
+            {
+                handler->value("DATA_ITEM", values + c * Blocks, Blocks);
+            }
+        }
 
-    	handler->endGroup();
+        handler->endGroup();
 
-    	handler->endGroup();
-    	handler->endStruct();
+        handler->endGroup();
+        handler->endStruct();
     }
 
 };

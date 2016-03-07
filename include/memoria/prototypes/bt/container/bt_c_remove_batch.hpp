@@ -22,9 +22,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveBatchName)
     typedef typename Base::NodeBaseG                                            NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
+    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
+    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
+    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
 
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
@@ -58,7 +58,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveBatchName)
             NodeBaseG& stop,
             Position& stop_idx,
 
-			Position& sums
+            Position& sums
     );
 
     void tryMergeNodesAfterRemove(
@@ -193,7 +193,7 @@ void M_TYPE::removeEntries(
         {
             self.mergeLeafWithLeftSibling(start, [&](const Position& left_sizes)
             {
-            	start_idx += left_sizes;
+                start_idx += left_sizes;
             });
         }
 
@@ -343,7 +343,7 @@ void M_TYPE::removeNodes(
         NodeBaseG& stop,
         Position& stop_idx,
 
-		Position& sizes
+        Position& sizes
 ) {
 
     auto& self = this->self();

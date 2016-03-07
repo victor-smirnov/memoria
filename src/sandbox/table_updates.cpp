@@ -20,97 +20,97 @@ using namespace memoria;
 using namespace memoria::tools;
 using namespace std;
 
-using CtrT 		= DCtrTF<Table<BigInt, Short>>::Type;
-using Provider 	= bttl::RandomDataInputProvider<CtrT, RngInt>;
+using CtrT      = DCtrTF<Table<BigInt, Short>>::Type;
+using Provider  = bttl::RandomDataInputProvider<CtrT, RngInt>;
 
 template<Int StreamIdx>
-using Adapter	= CtrT::Types::template InputTupleAdapter<StreamIdx>;
+using Adapter   = CtrT::Types::template InputTupleAdapter<StreamIdx>;
 
 using IV = std::initializer_list<BigInt>;
 
 struct ScanFn {
-	BigInt value_ = 0;
+    BigInt value_ = 0;
 
-	template <typename Stream>
-	void operator()(const Stream* obj, Int start, Int end)
-	{
-		value_++;
-	}
+    template <typename Stream>
+    void operator()(const Stream* obj, Int start, Int end)
+    {
+        value_++;
+    }
 };
 
 
 int main(int argc, const char** argv, const char** envp) {
-	MEMORIA_INIT(DefaultProfile<>);
+    MEMORIA_INIT(DefaultProfile<>);
 
-	try {
-		SmallInMemAllocator alloc;
+    try {
+        SmallInMemAllocator alloc;
 
-		alloc.mem_limit() = 2*1024*1024*1024ll;
+        alloc.mem_limit() = 2*1024*1024*1024ll;
 
-		CtrT::initMetadata();
+        CtrT::initMetadata();
 
-		CtrT ctr(&alloc);
+        CtrT ctr(&alloc);
 
-		auto iter = ctr.seek(0);
+        auto iter = ctr.seek(0);
 
-		Int rows 		= 1000000;
-		Int cols		= 10;
-		Int data_size	= 50;
+        Int rows        = 1000000;
+        Int cols        = 10;
+        Int data_size   = 50;
 
-		Provider provider({rows + 1, cols, data_size}, getGlobalIntGenerator());
+        Provider provider({rows + 1, cols, data_size}, getGlobalIntGenerator());
 
-		ctr._insert(iter, provider);
+        ctr._insert(iter, provider);
 
-//		iter = ctr.seek(0);
+//      iter = ctr.seek(0);
 
-//		ctr.add_to_stream_counter(iter.leaf(), iter.stream(), iter.idx(), 1001);
+//      ctr.add_to_stream_counter(iter.leaf(), iter.stream(), iter.idx(), 1001);
 
-//		iter.dump();
+//      iter.dump();
 
-//		iter.toData(5);
-//		iter.toIndex();
-//		iter.skipFw(1);
-//		iter.skipBw(1);
+//      iter.toData(5);
+//      iter.toIndex();
+//      iter.skipFw(1);
+//      iter.skipBw(1);
 //
-//		iter.split();
+//      iter.split();
 
-//		iter.toData(1);
+//      iter.toData(1);
 
-//		iter.template _insert<2>(Adapter<2>::convert(0xFF));
+//      iter.template _insert<2>(Adapter<2>::convert(0xFF));
 
 
-//		iter.template _insert<0>(Adapter<0>::convert(IV{22, 0}));
+//      iter.template _insert<0>(Adapter<0>::convert(IV{22, 0}));
 //
-//		iter = ctr.seek(0);
+//      iter = ctr.seek(0);
 
-//		iter.skipFw(2);
-//		iter.toData(3);
+//      iter.skipFw(2);
+//      iter.toData(3);
 //
 //
-//		iter.dump();
+//      iter.dump();
 //
-//		iter.remove_subtrees(6);
+//      iter.remove_subtrees(6);
 //
-//		cout<<"*******************************===================*****************************"<<endl;
+//      cout<<"*******************************===================*****************************"<<endl;
 //
-//		iter.dump();
+//      iter.dump();
 
-		alloc.commit();
+        alloc.commit();
 
-		if (argc > 1)
-		{
-			const char* dump_name = argv[1];
+        if (argc > 1)
+        {
+            const char* dump_name = argv[1];
 
-			cout<<"Dump to: "<<dump_name<<endl;
+            cout<<"Dump to: "<<dump_name<<endl;
 
-			OutputStreamHandler* os = FileOutputStreamHandler::create(dump_name);
-			alloc.store(os);
-			delete os;
-		}
+            OutputStreamHandler* os = FileOutputStreamHandler::create(dump_name);
+            alloc.store(os);
+            delete os;
+        }
 
-		cout<<"Done"<<endl;
-	}
-	catch (memoria::Exception& ex) {
-		cout<<ex.message()<<" at "<<ex.source()<<endl;
-	}
+        cout<<"Done"<<endl;
+    }
+    catch (memoria::Exception& ex) {
+        cout<<ex.message()<<" at "<<ex.source()<<endl;
+    }
 }

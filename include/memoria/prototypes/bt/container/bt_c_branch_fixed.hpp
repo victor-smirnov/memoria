@@ -33,9 +33,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchFixedName)
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
+    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
+    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
+    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
 
 
     typedef typename Base::Metadata                                             Metadata;
@@ -45,7 +45,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchFixedName)
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
-    typedef std::function<void (NodeBaseG&, NodeBaseG&)>             			SplitFn;
+    typedef std::function<void (NodeBaseG&, NodeBaseG&)>                        SplitFn;
 
     static const Int Streams                                                    = Types::Streams;
 
@@ -69,7 +69,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchFixedName)
     MEMORIA_DECLARE_NODE2_FN_RTN(CanMergeFn, canBeMergedWith, bool);
     bool canMerge(const NodeBaseG& tgt, const NodeBaseG& src)
     {
-    	return NodeDispatcher::dispatch(src, tgt, CanMergeFn());
+        return NodeDispatcher::dispatch(src, tgt, CanMergeFn());
     }
 
 
@@ -132,7 +132,7 @@ typename M_TYPE::NodeBaseG M_TYPE::splitP(NodeBaseG& left_node, SplitFn split_fn
 
     if (self.getBranchNodeCapacity(left_parent, -1) > 0)
     {
-    	self.insertToBranchNodeP(left_parent, parent_idx + 1, right_max, right_node->id());
+        self.insertToBranchNodeP(left_parent, parent_idx + 1, right_max, right_node->id());
     }
     else {
         NodeBaseG right_parent = splitPathP(left_parent, parent_idx + 1);
@@ -176,8 +176,8 @@ void M_TYPE::updateBranchNodes(NodeBaseG& node, Int& idx, const BranchNodeEntry&
 
     while(!tmp->is_root())
     {
-        auto max 		= self.max(tmp);
-    	Int parent_idx 	= tmp->parent_idx();
+        auto max        = self.max(tmp);
+        Int parent_idx  = tmp->parent_idx();
 
         tmp = self.getNodeParentForUpdate(tmp);
 

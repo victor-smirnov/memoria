@@ -50,7 +50,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
     template <typename SubstreamsIdxList, typename... Args>
     auto read_leaf_entry(const NodeBaseG& leaf, Args&&... args) const
     {
-    	return self().template apply_substreams_fn<0, SubstreamsIdxList>(leaf, GetLeafValuesFn(), std::forward<Args>(args)...);
+        return self().template apply_substreams_fn<0, SubstreamsIdxList>(leaf, GetLeafValuesFn(), std::forward<Args>(args)...);
     }
 
     struct InsertLabelsFn
@@ -58,7 +58,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
         const LabelsTuple& labels_;
 
         InsertLabelsFn(const LabelsTuple& labels):
-        	labels_(labels)
+            labels_(labels)
         {}
 
         template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename BranchNodeEntryItem>
@@ -68,7 +68,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
 
             if (StreamStart)
             {
-            	accum[0] += 1;
+                accum[0] += 1;
             }
         }
 
@@ -86,7 +86,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
 
             if (StreamStart)
             {
-            	accum[0] += 1;
+                accum[0] += 1;
             }
 
             accum[Offset] += size;
@@ -141,7 +141,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
 
     bool insertLoudsNode(NodeBaseG& leaf, Int node_idx, Int label_idx, BranchNodeEntry& sums, const LabelsTuple& labels)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
         PageUpdateMgr mgr(self);
 
@@ -228,7 +228,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
             self.update_parent(leaf, sums);
         }
         else {
-        	self.split(iter);
+            self.split(iter);
 
             label_idx = iter.label_idx();
 

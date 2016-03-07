@@ -20,18 +20,18 @@ namespace memoria    {
 
 namespace {
 
-	template <Int Num, typename List, Int Idx> struct SelectT;
+    template <Int Num, typename List, Int Idx> struct SelectT;
 
-	template <Int Num, typename Head, typename ... Tail>
-	struct SelectT<Num, TypeList<Head, Tail...>, Num>: HasType<Head> {};
+    template <Int Num, typename Head, typename ... Tail>
+    struct SelectT<Num, TypeList<Head, Tail...>, Num>: HasType<Head> {};
 
-	template <Int Num, typename Head, typename ... Tail, Int Idx>
-	struct SelectT<Num, TypeList<Head, Tail...>, Idx>: HasType<
-		typename SelectT<Num, TypeList<Tail...>, Idx + 1>::Type
-	> {};
+    template <Int Num, typename Head, typename ... Tail, Int Idx>
+    struct SelectT<Num, TypeList<Head, Tail...>, Idx>: HasType<
+        typename SelectT<Num, TypeList<Tail...>, Idx + 1>::Type
+    > {};
 
-	template <Int Num, Int Idx>
-	struct SelectT<Num, TypeList<>, Idx>;
+    template <Int Num, Int Idx>
+    struct SelectT<Num, TypeList<>, Idx>;
 }
 
 template <Int Num, typename List>

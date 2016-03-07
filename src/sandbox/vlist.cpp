@@ -22,29 +22,29 @@ template <typename StructList> struct BuildEmptyRangeList;
 
 template <typename Head, typename... Tail>
 struct BuildEmptyRangeList<TL<Head, Tail...>> {
-	using Type = MergeLists<
-		TL<TL<>>,
-		typename BuildEmptyRangeList<TL<Tail...>>::Type
-	>;
+    using Type = MergeLists<
+        TL<TL<>>,
+        typename BuildEmptyRangeList<TL<Tail...>>::Type
+    >;
 };
 
 
 template <typename... List, typename... Tail>
 struct BuildEmptyRangeList<TL<TL<List...>, Tail...>> {
-	static_assert(
-		sizeof...(List) > 0,
-		"PackedStruct sub-list must not be empty"
-	);
+    static_assert(
+        sizeof...(List) > 0,
+        "PackedStruct sub-list must not be empty"
+    );
 
-	using Type = MergeLists<
-		TL<typename BuildEmptyRangeList<TL<List...>>::Type>,
-		typename BuildEmptyRangeList<TL<Tail...>>::Type
-	>;
+    using Type = MergeLists<
+        TL<typename BuildEmptyRangeList<TL<List...>>::Type>,
+        typename BuildEmptyRangeList<TL<Tail...>>::Type
+    >;
 };
 
 template <>
 struct BuildEmptyRangeList<TL<>> {
-	using Type = TL<>;
+    using Type = TL<>;
 };
 
 
@@ -53,19 +53,19 @@ class Struct {};
 
 using StructList =
 TL<
-	TL<
-		TL<
-			TL<
-				Struct<0>
-			>
-		>,
-		TL<
-			Struct<1>
-		>
-	>,
-	TL<
-		Struct<2>
-	>
+    TL<
+        TL<
+            TL<
+                Struct<0>
+            >
+        >,
+        TL<
+            Struct<1>
+        >
+    >,
+    TL<
+        Struct<2>
+    >
 >;
 
 
@@ -75,7 +75,7 @@ using RangeList = BuildEmptyRangeList<StructList>::Type;
 
 int main(void) {
 
-	ListPrinter<RangeList>::print(cout)<<endl;
+    ListPrinter<RangeList>::print(cout)<<endl;
 
     return 0;
 }

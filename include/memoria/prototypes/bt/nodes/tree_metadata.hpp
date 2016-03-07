@@ -45,7 +45,7 @@ public:
                 decltype(model_name_),
                 decltype(branching_factor_),
                 decltype(page_size_),
-				decltype(txn_id_),
+                decltype(txn_id_),
                 ID
     >;
 
@@ -159,7 +159,7 @@ struct TypeHash<BalancedTreeMetadata<ID>>: UIntValue<
 template <typename ID>
 struct FieldFactory<BalancedTreeMetadata<ID>> {
 
-	using Type = BalancedTreeMetadata<ID>;
+    using Type = BalancedTreeMetadata<ID>;
 
     static void serialize(SerializationData& data, const Type& field)
     {

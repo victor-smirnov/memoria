@@ -58,32 +58,32 @@ public:
     template <typename Walker>
     auto find_fw(const TreePtr& tree, Int block, IndexValue limit)
     {
-    	Int end = tree->size();
+        Int end = tree->size();
 
-    	Walker walker(limit);
+        Walker walker(limit);
 
-    	for (Int c = 0; c < end; c++)
-    	{
-    		Value value = tree->value(block, c);
+        for (Int c = 0; c < end; c++)
+        {
+            Value value = tree->value(block, c);
 
-    		if (walker.compare(value))
-    		{
-    			return walker.idx(c);
-    		}
-    		else {
-    			walker.next();
-    		}
-    	}
+            if (walker.compare(value))
+            {
+                return walker.idx(c);
+            }
+            else {
+                walker.next();
+            }
+        }
 
-    	return walker.idx(end);
+        return walker.idx(end);
     }
 
     void testFindForward()
     {
-    	for (Int c = 4; c < 1024; c *= 2)
-    	{
-    		testFindForward(c);
-    	}
+        for (Int c = 4; c < 1024; c *= 2)
+        {
+            testFindForward(c);
+        }
 
         for (Int c = 1024*3; c <= this->size_; c += 1024)
         {
@@ -94,30 +94,30 @@ public:
 
     void testFindForward(Int tree_size)
     {
-    	out()<<tree_size<<endl;
+        out()<<tree_size<<endl;
 
-    	auto tree = createEmptyTree();
-    	auto values = fillRandom(tree, tree_size);
+        auto tree = createEmptyTree();
+        auto values = fillRandom(tree, tree_size);
 
-    	Int size = tree->size();
+        Int size = tree->size();
 
-    	for (Int c = 0; c < iterations_; c++)
-    	{
-    		Int end     = this->getRandom(size);
+        for (Int c = 0; c < iterations_; c++)
+        {
+            Int end     = this->getRandom(size);
 
-    		Int block   = this->getRandom(Tree::Blocks);
+            Int block   = this->getRandom(Tree::Blocks);
 
-    		auto max     = tree->value(block, end);
+            auto max     = tree->value(block, end);
 
-    		auto result1_lt = tree->findGTForward(block, max);
-    		auto result1_le = tree->findGEForward(block, max);
+            auto result1_lt = tree->findGTForward(block, max);
+            auto result1_le = tree->findGEForward(block, max);
 
-    		auto result2_lt = find_fw<typename Tree::FindGTWalker>(tree, block, max);
-    		auto result2_le = find_fw<typename Tree::FindGEWalker>(tree, block, max);
+            auto result2_lt = find_fw<typename Tree::FindGTWalker>(tree, block, max);
+            auto result2_le = find_fw<typename Tree::FindGEWalker>(tree, block, max);
 
-    		AssertEQ(MA_SRC, result1_lt.idx(), result2_lt.idx(), SBuf()<<"IDX "<<max<<" "<<block);
-    		AssertEQ(MA_SRC, result1_le.idx(), result2_le.idx(), SBuf()<<"IDX "<<" "<<max<<" "<<block);
-    	}
+            AssertEQ(MA_SRC, result1_lt.idx(), result2_lt.idx(), SBuf()<<"IDX "<<max<<" "<<block);
+            AssertEQ(MA_SRC, result1_le.idx(), result2_le.idx(), SBuf()<<"IDX "<<" "<<max<<" "<<block);
+        }
     }
 };
 

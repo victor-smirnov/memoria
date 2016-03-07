@@ -23,17 +23,17 @@ namespace memoria {
 
 template <
     typename CtrName,
-	typename AllocatorT 	= PersistentInMemAllocator<>,
-	typename ProfileT		= DefaultProfile<>
+    typename AllocatorT     = PersistentInMemAllocator<>,
+    typename ProfileT       = DefaultProfile<>
 >
 class BTSSCoreTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT> {
 
-    using Base 	 = BTSSTestBase<CtrName, AllocatorT, ProfileT>;
+    using Base   = BTSSTestBase<CtrName, AllocatorT, ProfileT>;
     using MyType = BTSSCoreTest<CtrName, AllocatorT, ProfileT>;
 
-    using Allocator 	= typename Base::Allocator;
+    using Allocator     = typename Base::Allocator;
     using AllocatorSPtr = typename Base::AllocatorSPtr;
-    using Ctr 			= typename Base::Ctr;
+    using Ctr           = typename Base::Ctr;
 
 public:
 
@@ -46,7 +46,7 @@ public:
 
 
     virtual void createAllocator(AllocatorSPtr& allocator) {
-    	allocator = std::make_shared<Allocator>();
+        allocator = std::make_shared<Allocator>();
     }
 
 };

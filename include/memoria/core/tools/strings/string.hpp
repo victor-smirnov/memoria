@@ -20,7 +20,7 @@
 
 namespace memoria {
 
-using String 	= std::string;
+using String    = std::string;
 using StringRef = const String&;
 
 template <typename T> struct TypeHash;
@@ -31,27 +31,27 @@ struct TypeHash<String> {
 };
 
 inline bool compare_gt(const String& first, const String& second) {
-	return first.compare(second) > 0;
+    return first.compare(second) > 0;
 }
 
 
 inline bool compare_eq(const String& first, const String& second) {
-	return first.compare(second) == 0;
+    return first.compare(second) == 0;
 }
 
 
 inline bool compare_lt(const String& first, const String& second) {
-	return first.compare(second) > 0;
+    return first.compare(second) > 0;
 }
 
 
 inline bool compare_ge(const String& first, const String& second) {
-	return first.compare(second) >= 0;
+    return first.compare(second) >= 0;
 }
 
 
 inline bool compare_le(const String& first, const String& second) {
-	return first.compare(second) <= 0;
+    return first.compare(second) <= 0;
 }
 
 

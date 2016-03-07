@@ -18,11 +18,11 @@ template <typename> class ValueCodec;
 template<>
 class ValueCodec<String> {
 public:
-    using BufferType 	= UByte;
-    using T 			= BufferType;
-    using V 			= String;
+    using BufferType    = UByte;
+    using T             = BufferType;
+    using V             = String;
 
-    using ValuePtr		= ValuePtrT1<BufferType>;
+    using ValuePtr      = ValuePtrT1<BufferType>;
 
     ValueCodec<int64_t> size_codec_;
 
@@ -31,23 +31,23 @@ public:
 
     ValuePtr describe(const T* buffer, size_t idx)
     {
-    	return ValuePtr(buffer + idx, length(buffer, idx, -1ull));
+        return ValuePtr(buffer + idx, length(buffer, idx, -1ull));
     }
 
     size_t length(const T* buffer, size_t idx, size_t limit) const
     {
-    	int64_t len;
-    	size_t pos = idx;
+        int64_t len;
+        size_t pos = idx;
 
-    	pos += size_codec_.decode(buffer, len, idx);
+        pos += size_codec_.decode(buffer, len, idx);
 
-    	return pos - idx + len;
+        return pos - idx + len;
     }
 
     size_t length(const V& value) const
     {
-    	auto len = value.size();
-    	return size_codec_.length(len) + len;
+        auto len = value.size();
+        return size_codec_.length(len) + len;
     }
 
     size_t decode(const T* buffer, V& value, size_t idx, size_t limit) const
@@ -57,30 +57,30 @@ public:
 
     size_t decode(const T* buffer, V& value, size_t idx) const
     {
-    	int64_t len0 = 0;
-    	size_t pos = idx;
-    	pos += size_codec_.decode(buffer, len0, idx);
+        int64_t len0 = 0;
+        size_t pos = idx;
+        pos += size_codec_.decode(buffer, len0, idx);
 
-    	size_t len = len0;
+        size_t len = len0;
 
-    	V tmp(len, ' ');
+        V tmp(len, ' ');
 
-    	for (size_t c = 0; c < len; c++)
-    	{
-    		tmp[c] = buffer[c + pos];
-    	}
+        for (size_t c = 0; c < len; c++)
+        {
+            tmp[c] = buffer[c + pos];
+        }
 
-    	pos += len;
+        pos += len;
 
-    	value.swap(tmp);
+        value.swap(tmp);
 
-    	return pos - idx;
+        return pos - idx;
     }
 
     size_t encode(T* buffer, const ValuePtr& value, size_t idx) const
     {
-    	copy(value.addr(), 0, buffer, idx, value.length());
-    	return value.length();
+        copy(value.addr(), 0, buffer, idx, value.length());
+        return value.length();
     }
 
 
@@ -91,17 +91,17 @@ public:
 
     size_t encode(T* buffer, const V& value, size_t idx) const
     {
-    	size_t pos = idx;
-    	pos += size_codec_.encode(buffer, value.size(), pos);
+        size_t pos = idx;
+        pos += size_codec_.encode(buffer, value.size(), pos);
 
-    	size_t len = value.size();
+        size_t len = value.size();
 
-    	for (size_t c = 0; c < len; c++)
-    	{
-    		buffer[pos++] = value[c];
-    	}
+        for (size_t c = 0; c < len; c++)
+        {
+            buffer[pos++] = value[c];
+        }
 
-    	return pos - idx;
+        return pos - idx;
     }
 
     void move(T* buffer, size_t from, size_t to, size_t size) const

@@ -24,19 +24,19 @@ using namespace std;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::LeafCommonName)
 
-	using Types = TypesType;
-	using NodeBaseG = typename Types::NodeBaseG;
+    using Types = TypesType;
+    using NodeBaseG = typename Types::NodeBaseG;
 
-	using Iterator = typename Base::Iterator;
+    using Iterator = typename Base::Iterator;
 
-	using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
-	using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
-	using BranchDispatcher = typename Types::Pages::BranchDispatcher;
+    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
+    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
+    using BranchDispatcher = typename Types::Pages::BranchDispatcher;
 
 
 
-	using BranchNodeEntry 	= typename Types::BranchNodeEntry;
-	using Position		= typename Types::Position;
+    using BranchNodeEntry   = typename Types::BranchNodeEntry;
+    using Position      = typename Types::Position;
 
     using SplitFn = std::function<BranchNodeEntry (NodeBaseG&, NodeBaseG&)>;
     using MergeFn = std::function<void (const Position&)>;
@@ -48,20 +48,20 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::LeafCommonName)
     template <typename SubstreamsIdxList, typename... Args>
     auto read_leaf_entry(const NodeBaseG& leaf, Args&&... args) const
     {
-    	 return self().template apply_substreams_fn<0, SubstreamsIdxList>(leaf, GetLeafValuesFn(), std::forward<Args>(args)...);
+         return self().template apply_substreams_fn<0, SubstreamsIdxList>(leaf, GetLeafValuesFn(), std::forward<Args>(args)...);
     }
 
 
     bool isAtTheEnd2(const NodeBaseG& leaf, const Position& pos)
     {
-    	Int size = self().template getLeafStreamSize<0>(leaf);
-    	return pos[0] >= size;
+        Int size = self().template getLeafStreamSize<0>(leaf);
+        return pos[0] >= size;
     }
 
     template <typename EntryBuffer>
     void insert_entry(Iterator& iter, const EntryBuffer& entry)
     {
-    	self().template insert_stream_entry<0>(iter, entry);
+        self().template insert_stream_entry<0>(iter, entry);
     }
 
 
@@ -70,12 +70,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::LeafCommonName)
     template <typename SubstreamsList, typename EntryBuffer>
     void update_entry(Iterator& iter, const EntryBuffer& entry)
     {
-    	self().template update_stream_entry<0, SubstreamsList>(iter, entry);
+        self().template update_stream_entry<0, SubstreamsList>(iter, entry);
     }
 
 
     void removeEntry(Iterator& iter) {
-    	self().template remove_stream_entry<0>(iter);
+        self().template remove_stream_entry<0>(iter);
     }
 
 
@@ -83,23 +83,23 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::LeafCommonName)
     template <typename InputProvider>
     CtrSizeT insert(Iterator& iter, InputProvider& provider)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	auto pos = Position(iter.idx());
+        auto pos = Position(iter.idx());
 
-    	auto id = iter.leaf()->id();
+        auto id = iter.leaf()->id();
 
-    	auto result = self.insert_provided_data(iter.leaf(), pos, provider);
+        auto result = self.insert_provided_data(iter.leaf(), pos, provider);
 
-    	iter.leaf() = result.leaf();
-    	iter.idx() = result.position()[0];
+        iter.leaf() = result.leaf();
+        iter.idx() = result.position()[0];
 
-    	if (id != iter.leaf()->id())
-    	{
-    		iter.refresh();
-    	}
+        if (id != iter.leaf()->id())
+        {
+            iter.refresh();
+        }
 
-    	return provider.total();
+        return provider.total();
     }
 
 MEMORIA_CONTAINER_PART_END

@@ -28,88 +28,88 @@ using SVector = shared_ptr<vector<T>>;
 
 
 int main() {
-	MEMORIA_INIT(DefaultProfile<>);
+    MEMORIA_INIT(DefaultProfile<>);
 
-	cout<<"Field Factory: "<<HasFieldFactory<double>::Value<<endl;
-	cout<<"ValueCodec: "<<HasValueCodec<double>::Value<<endl;
+    cout<<"Field Factory: "<<HasFieldFactory<double>::Value<<endl;
+    cout<<"ValueCodec: "<<HasValueCodec<double>::Value<<endl;
 
-	using ValueType = UByte;
+    using ValueType = UByte;
 
-	using CtrName = Vector<ValueType>;
+    using CtrName = Vector<ValueType>;
 
-	DInit<CtrName>();
+    DInit<CtrName>();
 
-	using Entry = ValueType;
+    using Entry = ValueType;
 
-	try {
-		auto alloc = PersistentInMemAllocator<>::create();
-		auto snp   = alloc->master()->branch();
+    try {
+        auto alloc = PersistentInMemAllocator<>::create();
+        auto snp   = alloc->master()->branch();
 
-		auto map = create<CtrName>(snp);
-
-
-		auto data = make_shared<vector<Entry>>(100000);
-
-		for (size_t c = 0; c < data->size(); c++)
-		{
-//			data->operator[](c) = Entry("str_"+toString(c));
-
-			data->operator[](c) = Entry(c);
-		}
+        auto map = create<CtrName>(snp);
 
 
+        auto data = make_shared<vector<Entry>>(100000);
 
-		BigInt t0 = getTimeInMillis();
+        for (size_t c = 0; c < data->size(); c++)
+        {
+//          data->operator[](c) = Entry("str_"+toString(c));
 
-		cout << "Inserted: " << map->end()->bulk_insert(data->begin(), data->end()) << endl;
-		BigInt t1 = getTimeInMillis();
-		cout << "Insertion time: " << FormatTime(t1 - t0) << " s" << endl;
-
-		FSDumpAllocator(snp, "vector_batch_data.dir");
-
-
-		vector<Entry> data2;
-		auto inserter = back_inserter(data2);
-
-		map->begin()->read(inserter, map->size());
-
-		cout << "Entries data: " << endl;
-
-		for (auto& entry: data2) {
-			cout << entry << endl;
-		}
+            data->operator[](c) = Entry(c);
+        }
 
 
 
-		cout << "Removed: " << map->seek(map->size() / 2)->remove(map->size()) << endl;
-		cout << "Ater remove: " << map->size() << endl;
+        BigInt t0 = getTimeInMillis();
 
-		snp->commit();
+        cout << "Inserted: " << map->end()->bulk_insert(data->begin(), data->end()) << endl;
+        BigInt t1 = getTimeInMillis();
+        cout << "Insertion time: " << FormatTime(t1 - t0) << " s" << endl;
+
+        FSDumpAllocator(snp, "vector_batch_data.dir");
+
+
+        vector<Entry> data2;
+        auto inserter = back_inserter(data2);
+
+        map->begin()->read(inserter, map->size());
+
+        cout << "Entries data: " << endl;
+
+        for (auto& entry: data2) {
+            cout << entry << endl;
+        }
 
 
 
+        cout << "Removed: " << map->seek(map->size() / 2)->remove(map->size()) << endl;
+        cout << "Ater remove: " << map->size() << endl;
 
-		BigInt t2 = getTimeInMillis();
-		check_snapshot(snp);
-		BigInt t3 = getTimeInMillis();
-		cout << "Check time: " << FormatTime(t3 - t2) << " s" << endl;
+        snp->commit();
 
 
 
 
-		BigInt t4 = getTimeInMillis();
-		unique_ptr <FileOutputStreamHandler> out(FileOutputStreamHandler::create("vector_batch_data.dump"));
-		alloc->store(out.get());
-		BigInt t5 = getTimeInMillis();
-		cout << "Dump time: " << FormatTime(t5 - t4) << " s" << endl;
-	}
-	catch (memoria::Exception& ex) {
-		cout << ex.message() << " at " << ex.source() << endl;
-	}
+        BigInt t2 = getTimeInMillis();
+        check_snapshot(snp);
+        BigInt t3 = getTimeInMillis();
+        cout << "Check time: " << FormatTime(t3 - t2) << " s" << endl;
 
-	catch (memoria::PackedOOMException& ex) {
-		cout << "PackedOOMException at " << ex.source() << endl;
-	}
 
-	MetadataRepository<DefaultProfile<>>::cleanup();
+
+
+        BigInt t4 = getTimeInMillis();
+        unique_ptr <FileOutputStreamHandler> out(FileOutputStreamHandler::create("vector_batch_data.dump"));
+        alloc->store(out.get());
+        BigInt t5 = getTimeInMillis();
+        cout << "Dump time: " << FormatTime(t5 - t4) << " s" << endl;
+    }
+    catch (memoria::Exception& ex) {
+        cout << ex.message() << " at " << ex.source() << endl;
+    }
+
+    catch (memoria::PackedOOMException& ex) {
+        cout << "PackedOOMException at " << ex.source() << endl;
+    }
+
+    MetadataRepository<DefaultProfile<>>::cleanup();
 }

@@ -33,9 +33,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchVariableName)
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
+    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
+    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
+    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
 
     typedef typename Base::Metadata                                             Metadata;
 
@@ -44,7 +44,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchVariableName)
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
-    typedef std::function<void (NodeBaseG&, NodeBaseG&)>             			SplitFn;
+    typedef std::function<void (NodeBaseG&, NodeBaseG&)>                        SplitFn;
 
     static const Int Streams                                                    = Types::Streams;
 

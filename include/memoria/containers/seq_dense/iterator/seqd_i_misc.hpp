@@ -33,7 +33,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
     typedef typename Base::NodeBaseG                                            NodeBaseG;
 
     typedef typename Container::BranchNodeEntry                                     BranchNodeEntry;
-    typedef typename Container::Iterator                                     	Iterator;
+    typedef typename Container::Iterator                                        Iterator;
 
     typedef typename Container::Types::Pages::LeafDispatcher                    LeafDispatcher;
     typedef typename Container::Position                                        Position;
@@ -44,8 +44,8 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
     template <Int Stream>
     using InputTupleAdapter = typename Container::Types::template InputTupleAdapter<Stream>;
 
-    static const Int BitsPerSymbol 	= Container::Types::BitsPerSymbol;
-    static const Int Symbols 		= Container::Types::Symbols;
+    static const Int BitsPerSymbol  = Container::Types::BitsPerSymbol;
+    static const Int Symbols        = Container::Types::Symbols;
 
 
     Int symbol() const
@@ -57,9 +57,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
 
     void setSymbol(Int symbol)
     {
-    	auto& self  = this->self();
+        auto& self  = this->self();
 
-    	self.ctr().template update_stream_entry<0, IntList<0>>(self, std::make_tuple(symbol));
+        self.ctr().template update_stream_entry<0, IntList<0>>(self, std::make_tuple(symbol));
     }
 
 
@@ -67,64 +67,64 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
     {
         MEMORIA_ASSERT(symbol, <, Symbols);
 
-    	auto& self  = this->self();
+        auto& self  = this->self();
         auto& ctr   = self.ctr();
 
-    	ctr.insert_entry(
-    			self,
-    			InputTupleAdapter<0>::convert(symbol)
-    	);
+        ctr.insert_entry(
+                self,
+                InputTupleAdapter<0>::convert(symbol)
+        );
 
-    	self.skipFw(1);
+        self.skipFw(1);
     }
 
 
     template <typename T>
     struct ReadWalker {
-    	T& data_;
-    	CtrSizeT processed_ = 0;
-    	const CtrSizeT max_;
+        T& data_;
+        CtrSizeT processed_ = 0;
+        const CtrSizeT max_;
 
-    	ReadWalker(T& data): data_(data), max_(data.size()) {}
+        ReadWalker(T& data): data_(data), max_(data.size()) {}
 
-    	template <typename NodeTypes>
-    	Int treeNode(const LeafNode<NodeTypes>* leaf, Int start)
-    	{
-    		return std::get<0>(leaf->template processSubstreams<IntList<0, 0>>(*this, start));
-    	}
+        template <typename NodeTypes>
+        Int treeNode(const LeafNode<NodeTypes>* leaf, Int start)
+        {
+            return std::get<0>(leaf->template processSubstreams<IntList<0, 0>>(*this, start));
+        }
 
-    	template <typename StreamObj>
-    	Int stream(const StreamObj* obj, Int start)
-    	{
-    		if (obj != nullptr)
-    		{
-    			Int size 		= obj->size();
-    			Int remainder 	= size - start;
+        template <typename StreamObj>
+        Int stream(const StreamObj* obj, Int start)
+        {
+            if (obj != nullptr)
+            {
+                Int size        = obj->size();
+                Int remainder   = size - start;
 
-    			Int to_read = (processed_ + remainder < max_) ? remainder : (max_ - processed_);
+                Int to_read = (processed_ + remainder < max_) ? remainder : (max_ - processed_);
 
-    			obj->read(&data_, start, processed_, to_read);
+                obj->read(&data_, start, processed_, to_read);
 
-    			return to_read;
-    		}
-    		else {
-    			return 0;
-    		}
-    	}
+                return to_read;
+            }
+            else {
+                return 0;
+            }
+        }
 
-    	void start_leaf() {}
+        void start_leaf() {}
 
-    	void end_leaf(Int skip) {
-    		processed_ += skip;
-    	}
+        void end_leaf(Int skip) {
+            processed_ += skip;
+        }
 
-    	CtrSizeT result() const {
-    		return processed_;
-    	}
+        CtrSizeT result() const {
+            return processed_;
+        }
 
-    	bool stop() const {
-    		return processed_ >= max_;
-    	}
+        bool stop() const {
+            return processed_ >= max_;
+        }
     };
 
 
@@ -140,38 +140,38 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)
 
     void insert_symbols(SymbolsBuffer<BitsPerSymbol>& data)
     {
-    	auto& self = this->self();
-    	auto& model = self.ctr();
+        auto& self = this->self();
+        auto& model = self.ctr();
 
-    	auto& leaf = self.leaf();
+        auto& leaf = self.leaf();
 
-    	seq_dense::SymbolsInputBufferProvider<BitsPerSymbol> provider(data);
+        seq_dense::SymbolsInputBufferProvider<BitsPerSymbol> provider(data);
 
-    	auto result = model.insertBuffers(leaf, self.idx(), provider);
+        auto result = model.insertBuffers(leaf, self.idx(), provider);
 
-    	self.leaf() = result.leaf();
-    	self.idx() = result.position();
+        self.leaf() = result.leaf();
+        self.idx() = result.position();
 
-    	self.refresh();
+        self.refresh();
 
-    	model.markCtrUpdated();
+        model.markCtrUpdated();
     }
 
     void check(const char* source = nullptr) const
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	auto tmp = self;
+        auto tmp = self;
 
-    	tmp.refresh();
+        tmp.refresh();
 
-    	if (self.cache() != tmp.cache())
-    	{
-    		throw TestException(
-    				source != nullptr ? source : MA_SRC,
-    				SBuf()<<"Iterator cache mismatch: having: "<<self.cache()<<", should be: "<<tmp.cache()
-    		);
-    	}
+        if (self.cache() != tmp.cache())
+        {
+            throw TestException(
+                    source != nullptr ? source : MA_SRC,
+                    SBuf()<<"Iterator cache mismatch: having: "<<self.cache()<<", should be: "<<tmp.cache()
+            );
+        }
     }
 
 

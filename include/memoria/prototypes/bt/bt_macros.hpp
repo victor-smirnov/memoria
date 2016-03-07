@@ -19,9 +19,9 @@ class BTreeCtrBaseClassName: public CtrBase<TypesType> {                        
                                                                                         \
     typedef BTreeCtrBaseClassName<TypesType>                              ThisType;     \
     typedef CtrBase<TypesType>                                            Base;         \
-    typedef Ctr<TypesType>                                                MyType; 		\
+    typedef Ctr<TypesType>                                                MyType;       \
                                                                                         \
-    template <typename, typename, typename > friend class CtrPart;						\
+    template <typename, typename, typename > friend class CtrPart;                      \
 public:
 
 #define MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBaseClassName)                        \
@@ -32,7 +32,7 @@ public:
 
 
 #define MEMORIA_BT_MODEL_BASE_CLASS_END                                                 \
-private:																				\
+private:                                                                                \
     MyType& self() {                                                                    \
         return *static_cast<MyType*>(this);                                             \
     }                                                                                   \
@@ -51,8 +51,8 @@ class BTreeIteratorBaseClassName: public IteratorBase<TypesType>                
 {                                                                                       \
     typedef IteratorBase<TypesType>                                             Base;   \
     typedef BTreeIteratorBaseClassName<TypesType>                               ThisType;\
-    template <typename, typename, typename> friend class CtrPart;						\
-    template <typename, typename, typename> friend class IterPart;						\
+    template <typename, typename, typename> friend class CtrPart;                       \
+    template <typename, typename, typename> friend class IterPart;                      \
 public:                                                                                 \
     typedef Iter<TypesType>                                                     MyType;
 
@@ -67,12 +67,12 @@ MEMORIA_BT_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTreeIteratorBaseClassName)        
 #define MEMORIA_BT_ITERATOR_BASE_CLASS_END                                              \
     MyType& self() {                                                                    \
         /*return *static_cast<MyType*>(this);*/                                         \
-		return *(MyType*)(this);                                         				\
+        return *(MyType*)(this);                                                        \
     }                                                                                   \
                                                                                         \
     const MyType& self() const {                                                        \
         /*return *static_cast<const MyType*>(this);*/                                   \
-		return *(MyType*)(this);                                       					\
+        return *(MyType*)(this);                                                        \
     }                                                                                   \
 };
 

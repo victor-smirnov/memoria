@@ -157,14 +157,14 @@ public:
         AssertEQ(MA_SRC, seq->size(), (Int)symbols.size());
 
         try {
-        	for (Int c = 0; c < seq->size(); c++)
-        	{
-        		AssertEQ(MA_SRC, (UBigInt)seq->symbol(c), (UBigInt)symbols[c], SBuf()<<"Index: "<<c);
-        	}
+            for (Int c = 0; c < seq->size(); c++)
+            {
+                AssertEQ(MA_SRC, (UBigInt)seq->symbol(c), (UBigInt)symbols[c], SBuf()<<"Index: "<<c);
+            }
         }
         catch(...) {
-        	seq->dump(this->out());
-        	throw;
+            seq->dump(this->out());
+            throw;
         }
     }
 };

@@ -18,9 +18,9 @@
 #include <memoria/core/packed/tools/packed_rtn_type_list.hpp>
 
 
-namespace memoria 	{
-namespace detail 	{
-namespace pd 		{
+namespace memoria   {
+namespace detail    {
+namespace pd        {
 
 class TNotDefined;
 
@@ -67,14 +67,14 @@ using Ex4Type = typename FnTraits<Fn4Type<typename std::remove_reference<T>::typ
 
 template <typename Fn, Int GroupIdx, Int AllocIdx, Int Idx, typename ArgsList, typename T = EmptyType>
 struct HasFn1H {
-	static const Int Value = 0;
-	using RtnType = TNotDefined;
+    static const Int Value = 0;
+    using RtnType = TNotDefined;
 };
 
 template <typename Fn, Int GroupIdx, Int AllocIdx, Int Idx, typename... Args>
 struct HasFn1H<Fn, GroupIdx, AllocIdx, Idx, TypeList<Args...>, Ex1Type<Fn, Args...>> {
-	static const Int Value = 1;
-	using RtnType = Rtn1Type<Fn, Args...>;
+    static const Int Value = 1;
+    using RtnType = Rtn1Type<Fn, Args...>;
 };
 
 template <typename Fn, Int GroupIdx, Int AllocIdx, Int Idx, typename... Args>
@@ -83,14 +83,14 @@ using HasFn1 = HasFn1H<Fn, GroupIdx, AllocIdx, Idx, TypeList<Args...>>;
 
 template <typename Fn, Int GroupIdx, Int AllocIdx, Int Idx, typename ArgsList, typename T = EmptyType>
 struct HasFn2H {
-	static const Int Value = 0;
-	using RtnType = TNotDefined;
+    static const Int Value = 0;
+    using RtnType = TNotDefined;
 };
 
 template <typename Fn, Int GroupIdx, Int AllocIdx, Int Idx, typename... Args>
 struct HasFn2H<Fn, GroupIdx, AllocIdx, Idx, TypeList<Args...>, Ex2Type<Fn, Idx, Args...>> {
-	static const Int Value = 2;
-	using RtnType = Rtn2Type<Fn, Idx, Args...>;
+    static const Int Value = 2;
+    using RtnType = Rtn2Type<Fn, Idx, Args...>;
 };
 
 template <typename Fn, Int GroupIdx, Int AllocIdx, Int Idx, typename... Args>
@@ -100,14 +100,14 @@ using HasFn2 = HasFn2H<Fn, GroupIdx, AllocIdx, Idx, TypeList<Args...>>;
 
 template <typename Fn, Int GroupIdx, Int AllocIdx, Int Idx, typename ArgsList, typename T = EmptyType>
 struct HasFn3H {
-	static const Int Value = 0;
-	using RtnType = TNotDefined;
+    static const Int Value = 0;
+    using RtnType = TNotDefined;
 };
 
 template <typename Fn, Int GroupIdx, Int AllocIdx, Int Idx, typename... Args>
 struct HasFn3H<Fn, GroupIdx, AllocIdx, Idx, TypeList<Args...>, Ex3Type<Fn, AllocIdx, Idx, Args...>> {
-	static const Int Value = 3;
-	using RtnType = Rtn3Type<Fn, AllocIdx, Idx, Args...>;
+    static const Int Value = 3;
+    using RtnType = Rtn3Type<Fn, AllocIdx, Idx, Args...>;
 };
 
 template <typename Fn, Int GroupIdx, Int AllocIdx, Int Idx, typename... Args>
@@ -117,14 +117,14 @@ using HasFn3 = HasFn3H<Fn, GroupIdx, AllocIdx, Idx, TypeList<Args...>>;
 
 template <typename Fn, Int GroupIdx, Int AllocIdx, Int Idx, typename ArgsList, typename T = EmptyType>
 struct HasFn4H {
-	static const Int Value = 0;
-	using RtnType = TNotDefined;
+    static const Int Value = 0;
+    using RtnType = TNotDefined;
 };
 
 template <typename Fn, Int GroupIdx, Int AllocIdx, Int Idx, typename... Args>
 struct HasFn4H<Fn, GroupIdx, AllocIdx, Idx, TypeList<Args...>, Ex4Type<Fn, GroupIdx, AllocIdx, Idx, Args...>> {
-	static const Int Value = 4;
-	using RtnType = Rtn4Type<Fn, GroupIdx, AllocIdx, Idx, Args...>;
+    static const Int Value = 4;
+    using RtnType = Rtn4Type<Fn, GroupIdx, AllocIdx, Idx, Args...>;
 };
 
 template <typename Fn, Int GroupIdx, Int AllocIdx, Int Idx, typename... Args>
@@ -135,26 +135,26 @@ using HasFn4 = HasFn4H<Fn, GroupIdx, AllocIdx, Idx, TypeList<Args...>>;
 
 template <typename Fn, Int GroupIdx, Int AllocIdx, Int Idx, typename... Args>
 using FnList = TypeList<
-		IntValue<HasFn4<Fn, GroupIdx, AllocIdx, Idx, Args...>::Value>,
-		IntValue<HasFn3<Fn, GroupIdx, AllocIdx, Idx, Args...>::Value>,
-		IntValue<HasFn2<Fn, GroupIdx, AllocIdx, Idx, Args...>::Value>,
-		IntValue<HasFn1<Fn, GroupIdx, AllocIdx, Idx, Args...>::Value>
+        IntValue<HasFn4<Fn, GroupIdx, AllocIdx, Idx, Args...>::Value>,
+        IntValue<HasFn3<Fn, GroupIdx, AllocIdx, Idx, Args...>::Value>,
+        IntValue<HasFn2<Fn, GroupIdx, AllocIdx, Idx, Args...>::Value>,
+        IntValue<HasFn1<Fn, GroupIdx, AllocIdx, Idx, Args...>::Value>
 >;
 
 
 template <typename Fn, Int GroupIdx, Int AllocIdx, Int Idx, typename... Args>
 using FnRtnType = IfThenElse<
-		(HasFn4<Fn, GroupIdx, AllocIdx, Idx, Args...>::Value > 0),
-		typename HasFn4<Fn, GroupIdx, AllocIdx, Idx, Args...>::RtnType,
-		IfThenElse<
-			(HasFn3<Fn, GroupIdx, AllocIdx, Idx, Args...>::Value > 0),
-			typename HasFn3<Fn, GroupIdx, AllocIdx, Idx, Args...>::RtnType,
-			IfThenElse<
-				(HasFn2<Fn, GroupIdx, AllocIdx, Idx, Args...>::Value > 0),
-				typename HasFn2<Fn, GroupIdx, AllocIdx, Idx, Args...>::RtnType,
-				typename HasFn1<Fn, GroupIdx, AllocIdx, Idx, Args...>::RtnType
-			>
-		>
+        (HasFn4<Fn, GroupIdx, AllocIdx, Idx, Args...>::Value > 0),
+        typename HasFn4<Fn, GroupIdx, AllocIdx, Idx, Args...>::RtnType,
+        IfThenElse<
+            (HasFn3<Fn, GroupIdx, AllocIdx, Idx, Args...>::Value > 0),
+            typename HasFn3<Fn, GroupIdx, AllocIdx, Idx, Args...>::RtnType,
+            IfThenElse<
+                (HasFn2<Fn, GroupIdx, AllocIdx, Idx, Args...>::Value > 0),
+                typename HasFn2<Fn, GroupIdx, AllocIdx, Idx, Args...>::RtnType,
+                typename HasFn1<Fn, GroupIdx, AllocIdx, Idx, Args...>::RtnType
+            >
+        >
 >;
 
 
@@ -165,49 +165,49 @@ struct FnDispatcher;
 
 template <typename... Tail, Int GroupIdx, Int AllocIdx, Int Idx, typename RtnType>
 struct FnDispatcher<TypeList<IntValue<0>, Tail...>, GroupIdx, AllocIdx, Idx, RtnType> {
-	template <typename Fn, typename... Args>
-	static RtnType dispatch(Fn&& fn, Args&&... args)
-	{
-		return FnDispatcher<TypeList<Tail...>, GroupIdx, AllocIdx, Idx, RtnType>::dispatch(std::forward<Fn>(fn), std::forward<Args>(args)...);
-	};
+    template <typename Fn, typename... Args>
+    static RtnType dispatch(Fn&& fn, Args&&... args)
+    {
+        return FnDispatcher<TypeList<Tail...>, GroupIdx, AllocIdx, Idx, RtnType>::dispatch(std::forward<Fn>(fn), std::forward<Args>(args)...);
+    };
 };
 
 template <typename... Tail, Int GroupIdx, Int AllocIdx, Int Idx, typename RtnType>
 struct FnDispatcher<TypeList<IntValue<1>, Tail...>, GroupIdx, AllocIdx, Idx, RtnType> {
-	template <typename Fn, typename... Args>
-	static RtnType dispatch(Fn&& fn, Args&&... args)
-	{
-		return fn.stream(std::forward<Args>(args)...);
-	};
+    template <typename Fn, typename... Args>
+    static RtnType dispatch(Fn&& fn, Args&&... args)
+    {
+        return fn.stream(std::forward<Args>(args)...);
+    };
 };
 
 template <typename... Tail, Int GroupIdx, Int AllocIdx, Int Idx, typename RtnType>
 struct FnDispatcher<TypeList<IntValue<2>, Tail...>, GroupIdx, AllocIdx, Idx, RtnType> {
-	template <typename Fn, typename... Args>
-	static RtnType dispatch(Fn&& fn, Args&&... args)
-	{
-		return fn.template stream<Idx>(std::forward<Args>(args)...);
-	};
+    template <typename Fn, typename... Args>
+    static RtnType dispatch(Fn&& fn, Args&&... args)
+    {
+        return fn.template stream<Idx>(std::forward<Args>(args)...);
+    };
 };
 
 
 template <typename... Tail, Int GroupIdx, Int AllocIdx, Int Idx, typename RtnType>
 struct FnDispatcher<TypeList<IntValue<3>, Tail...>, GroupIdx, AllocIdx, Idx, RtnType> {
-	template <typename Fn, typename... Args>
-	static RtnType dispatch(Fn&& fn, Args&&... args)
-	{
-		return fn.template stream<AllocIdx, Idx>(std::forward<Args>(args)...);
-	};
+    template <typename Fn, typename... Args>
+    static RtnType dispatch(Fn&& fn, Args&&... args)
+    {
+        return fn.template stream<AllocIdx, Idx>(std::forward<Args>(args)...);
+    };
 };
 
 
 template <typename... Tail, Int GroupIdx, Int AllocIdx, Int Idx, typename RtnType>
 struct FnDispatcher<TypeList<IntValue<4>, Tail...>, GroupIdx, AllocIdx, Idx, RtnType> {
-	template <typename Fn, typename... Args>
-	static RtnType dispatch(Fn&& fn, Args&&... args)
-	{
-		return fn.template stream<GroupIdx, AllocIdx, Idx>(std::forward<Args>(args)...);
-	};
+    template <typename Fn, typename... Args>
+    static RtnType dispatch(Fn&& fn, Args&&... args)
+    {
+        return fn.template stream<GroupIdx, AllocIdx, Idx>(std::forward<Args>(args)...);
+    };
 };
 
 
@@ -222,10 +222,10 @@ template <Int GroupIdx, Int AllocIdx, Int Idx, typename Fn, typename... Args>
 auto dispatchFn(Fn&& fn, Args&&... args)
 -> FnRtnType<Fn, GroupIdx, AllocIdx, Idx, Args...>
 {
-	using List = FnList<Fn, GroupIdx, AllocIdx, Idx, Args...>;
-	using RtnType = FnRtnType<Fn, GroupIdx, AllocIdx, Idx, Args...>;
+    using List = FnList<Fn, GroupIdx, AllocIdx, Idx, Args...>;
+    using RtnType = FnRtnType<Fn, GroupIdx, AllocIdx, Idx, Args...>;
 
-	return FnDispatcher<List, GroupIdx, AllocIdx, Idx, RtnType>::dispatch(std::forward<Fn>(fn), std::forward<Args>(args)...);
+    return FnDispatcher<List, GroupIdx, AllocIdx, Idx, RtnType>::dispatch(std::forward<Fn>(fn), std::forward<Args>(args)...);
 }
 
 

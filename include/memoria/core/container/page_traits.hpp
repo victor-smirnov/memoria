@@ -58,7 +58,7 @@ public:
 
 template <Int Size>
 struct FieldFactory<BitBuffer<Size> > {
-	using Type = BitBuffer<Size>;
+    using Type = BitBuffer<Size>;
 
     static void serialize(SerializationData& data, const Type& field)
     {

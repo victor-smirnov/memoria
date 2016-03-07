@@ -41,21 +41,21 @@ typedef std::uint8_t            UByte;
 enum class PackedSizeType {FIXED, VARIABLE};
 
 namespace internal {
-	template <int size> struct PlatformLongHelper;
+    template <int size> struct PlatformLongHelper;
 
-	template <>
-	struct PlatformLongHelper<4> {
-		typedef Int             LongType;
-		typedef UInt            ULongType;
-		typedef Int             SizeTType;
-	};
+    template <>
+    struct PlatformLongHelper<4> {
+        typedef Int             LongType;
+        typedef UInt            ULongType;
+        typedef Int             SizeTType;
+    };
 
-	template <>
-	struct PlatformLongHelper<8> {
-		typedef BigInt          LongType;
-		typedef UBigInt         ULongType;
-		typedef BigInt          SizeTType;
-	};
+    template <>
+    struct PlatformLongHelper<8> {
+        typedef BigInt          LongType;
+        typedef UBigInt         ULongType;
+        typedef BigInt          SizeTType;
+    };
 }
 
 
@@ -123,7 +123,7 @@ template <typename T> struct TypeHash; // must define Value constant
 
 template <typename ... Types>
 struct TypeList {
-	constexpr TypeList() = default;
+    constexpr TypeList() = default;
 };
 
 template <typename ... Types>
@@ -132,7 +132,7 @@ using TL = TypeList<Types...>;
 
 template <typename T, T ... Values>
 struct ValueList {
-	constexpr ValueList() = default;
+    constexpr ValueList() = default;
 };
 
 
@@ -324,7 +324,7 @@ enum class WalkCmd {
 
 
 enum class UpdateType {
-	SET, ADD
+    SET, ADD
 };
 
 enum class SearchType {LT, LE, GT, GE};
@@ -336,7 +336,7 @@ enum class LeafDataLengthType {FIXED, VARIABLE};
 
 template <typename T>
 struct TypeP {
-	using Type = T;
+    using Type = T;
 };
 
 class NoParamCtr {};
@@ -350,7 +350,7 @@ enum class SplitStatus {NONE, LEFT, RIGHT, UNKNOWN};
 
 template <typename PkdStruct>
 struct IndexesSize {
-	static const Int Value = PkdStruct::Indexes;
+    static const Int Value = PkdStruct::Indexes;
 };
 
 
@@ -368,27 +368,27 @@ using AsTuple = typename AsTupleH<List>::Type;
 
 template <typename... Types>
 struct AsTupleH<TL<Types...>> {
-	using Type = std::tuple<Types...>;
+    using Type = std::tuple<Types...>;
 };
 
 
 template <typename T>
 struct HasType {
-	using Type = T;
+    using Type = T;
 };
 
 template <typename T, T V_>
 struct HasValue {
-	static constexpr T Value = V_;
+    static constexpr T Value = V_;
 };
 
 
 namespace {
-	template <typename T, bool Flag, typename T2>
-	struct FailIfT {
-		static_assert(!Flag, "Template failed");
-		using Type = T;
-	};
+    template <typename T, bool Flag, typename T2>
+    struct FailIfT {
+        static_assert(!Flag, "Template failed");
+        using Type = T;
+    };
 }
 
 template <typename T, bool Flag = true, typename T2 = void>
@@ -400,27 +400,27 @@ using FailIfV = typename FailIfT<IntValue<V>, Flag, T2>::Type;
 
 template <typename T1, typename T2>
 constexpr bool compare_gt(T1&& first, T2&& second) {
-	return first > second;
+    return first > second;
 }
 
 template <typename T1, typename T2>
 constexpr bool compare_eq(T1&& first, T2&& second) {
-	return first == second;
+    return first == second;
 }
 
 template <typename T1, typename T2>
 constexpr bool compare_lt(T1&& first, T2&& second) {
-	return first < second;
+    return first < second;
 }
 
 template <typename T1, typename T2>
 constexpr bool compare_ge(T1&& first, T2&& second) {
-	return first >= second;
+    return first >= second;
 }
 
 template <typename T1, typename T2>
 constexpr bool compare_le(T1&& first, T2&& second) {
-	return first <= second;
+    return first <= second;
 }
 
 
@@ -429,43 +429,43 @@ template <typename T> struct FieldFactory;
 
 template <typename T>
 class ValuePtrT1 {
-	const T* addr_;
-	size_t length_;
+    const T* addr_;
+    size_t length_;
 public:
-	ValuePtrT1(): addr_(), length_() {}
-	ValuePtrT1(const T* addr, size_t length): addr_(addr), length_(length) {}
+    ValuePtrT1(): addr_(), length_() {}
+    ValuePtrT1(const T* addr, size_t length): addr_(addr), length_(length) {}
 
-	const T* addr() const {return addr_;}
-	size_t length() const {return length_;}
+    const T* addr() const {return addr_;}
+    size_t length() const {return length_;}
 };
 
 template <typename T>
 class ValuePtrT2 {
-	const T* addr_;
-	size_t offset_;
-	size_t length_;
+    const T* addr_;
+    size_t offset_;
+    size_t length_;
 public:
-	ValuePtrT2(): addr_(), offset_(0), length_() {}
-	ValuePtrT2(const T* addr, size_t offset, size_t length): addr_(addr), offset_(offset), length_(length) {}
+    ValuePtrT2(): addr_(), offset_(0), length_() {}
+    ValuePtrT2(const T* addr, size_t offset, size_t length): addr_(addr), offset_(offset), length_(length) {}
 
-	const T* addr() const {return addr_;}
-	size_t length() const {return length_;}
-	size_t offset() const {return offset_;}
+    const T* addr() const {return addr_;}
+    size_t length() const {return length_;}
+    size_t offset() const {return offset_;}
 };
 
 
 namespace {
-	template <typename T> struct Void {
-		using Type = void;
-	};
+    template <typename T> struct Void {
+        using Type = void;
+    };
 
-	template <typename T>
-	struct IsCompleteHelper {
-	    template <typename U>
-	    static auto test(U*)  -> std::integral_constant<bool, sizeof(U) == sizeof(U)>;
-	    static auto test(...) -> std::false_type;
-	    using Type = decltype(test((T*)0));
-	};
+    template <typename T>
+    struct IsCompleteHelper {
+        template <typename U>
+        static auto test(U*)  -> std::integral_constant<bool, sizeof(U) == sizeof(U)>;
+        static auto test(...) -> std::false_type;
+        using Type = decltype(test((T*)0));
+    };
 }
 
 template <typename T>

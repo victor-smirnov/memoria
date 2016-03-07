@@ -36,18 +36,18 @@ struct BTTypes<Profile, memoria::Sequence<BitsPerSymbol_, true> >: public BTType
 
     typedef BTTypes<Profile, memoria::BTSingleStream>                           Base;
 
-    typedef UByte                                                             	Value;
+    typedef UByte                                                               Value;
 
     static const Int BitsPerSymbol                                              = BitsPerSymbol_;
-    static const Int Symbols                                              		= 1<<BitsPerSymbol;
+    static const Int Symbols                                                    = 1<<BitsPerSymbol;
 
     using SequenceTypes = typename PkdFSSeqTF<BitsPerSymbol>::Type;
 
     using SeqStreamTF = StreamTF<
-    	TL<TL<PkdFSSeq<SequenceTypes>>>,
-		VLDBranchStructTF,
-		TL<TL<TL<>>>
-//		FSEBranchStructTF
+        TL<TL<PkdFSSeq<SequenceTypes>>>,
+        VLDBranchStructTF,
+        TL<TL<TL<>>>
+//      FSEBranchStructTF
     >;
 
 
@@ -67,7 +67,7 @@ struct BTTypes<Profile, memoria::Sequence<BitsPerSymbol_, true> >: public BTType
                 seq_dense::CtrFindName,
                 seq_dense::CtrInsertName,
                 seq_dense::CtrRemoveName
-    >                                                                   		CommonContainerPartsList;
+    >                                                                           CommonContainerPartsList;
 
 
     using FixedLeafContainerPartsList = MergeLists<
@@ -93,7 +93,7 @@ struct BTTypes<Profile, memoria::Sequence<BitsPerSymbol_, true> >: public BTType
                 seq_dense::IterRankName,
                 seq_dense::IterSkipName
 
-    >                                                                   		IteratorPartsList;
+    >                                                                           IteratorPartsList;
 };
 
 }

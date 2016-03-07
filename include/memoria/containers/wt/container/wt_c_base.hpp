@@ -35,7 +35,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(WTCtrBase)
     typedef WTLabeledTree<
                 FLabel<UByte>,
                 VLabel<
-					BigInt,
+                    BigInt,
                     Granularity::Byte,
                     Indexed::Yes
                 >

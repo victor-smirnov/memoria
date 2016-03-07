@@ -7,16 +7,16 @@
 
 namespace memoria   {
 
-RngInt		int_generator;
-RngBigInt	bigint_generator;
+RngInt      int_generator;
+RngBigInt   bigint_generator;
 
 
 RngInt& getGlobalIntGenerator() {
-	return int_generator;
+    return int_generator;
 }
 
 RngBigInt& getGlobalBigIntGenerator() {
-	return bigint_generator;
+    return bigint_generator;
 }
 
 Int getRandomG()
@@ -31,8 +31,8 @@ Int getRandomG(Int max)
 
 void Seed(Int value)
 {
-	std::seed_seq ss({value});
-	int_generator.engine().seed(ss);
+    std::seed_seq ss({value});
+    int_generator.engine().seed(ss);
 }
 
 
@@ -48,8 +48,8 @@ BigInt getBIRandomG(BigInt max)
 
 void SeedBI(BigInt value)
 {
-	std::seed_seq ss({value});
-	bigint_generator.engine().seed(ss);
+    std::seed_seq ss({value});
+    bigint_generator.engine().seed(ss);
 }
 
 

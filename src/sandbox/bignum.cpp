@@ -34,40 +34,40 @@ using namespace boost::multiprecision;
 
 int main()
 {
-	try {
-		String str = "abc";
+    try {
+        String str = "abc";
 
-		cout<<sizeof(str)<<endl;
+        cout<<sizeof(str)<<endl;
 
 
-//		using Tree = PkdVBMTreeT<BigInteger>;
-//		auto block = AllocateAllocator(1024*10240);
+//      using Tree = PkdVBMTreeT<BigInteger>;
+//      auto block = AllocateAllocator(1024*10240);
 //
-//		auto tree = block->template allocateEmpty<Tree>(0);
+//      auto tree = block->template allocateEmpty<Tree>(0);
 //
-//		BigInteger num("12345670000000000000000000000000000000000000000000000");
+//      BigInteger num("12345670000000000000000000000000000000000000000000000");
 //
-//		tree->_insert(0, 100000, [&](Int, Int c) -> BigInteger {
-//			return (num++);
-//		});
+//      tree->_insert(0, 100000, [&](Int, Int c) -> BigInteger {
+//          return (num++);
+//      });
 //
-//		DumpStruct(tree);
+//      DumpStruct(tree);
 //
 //
-//		auto tgt = num - 60;
-//		cout<<"Looking for: "<<tgt<<endl;
-//		cout<<"Find: "<<tree->find_ge(tgt).idx()<<endl;
+//      auto tgt = num - 60;
+//      cout<<"Looking for: "<<tgt<<endl;
+//      cout<<"Find: "<<tree->find_ge(tgt).idx()<<endl;
 //
-//		tree->check();
-	}
-	catch (PackedOOMException& ex) {
-		cout<<ex.source()<<endl;
-		cout<<ex<<endl;
-	}
-	catch (Exception& ex) {
-		cout<<ex.source()<<endl;
-		cout<<ex<<endl;
-	}
+//      tree->check();
+    }
+    catch (PackedOOMException& ex) {
+        cout<<ex.source()<<endl;
+        cout<<ex<<endl;
+    }
+    catch (Exception& ex) {
+        cout<<ex.source()<<endl;
+        cout<<ex<<endl;
+    }
 }
 
 

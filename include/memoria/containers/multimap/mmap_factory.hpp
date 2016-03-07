@@ -35,8 +35,8 @@ struct MultimapBTTypesBaseBase: public BTTypes<Profile, memoria::BTTreeLayout> {
     using Base = BTTypes<Profile, memoria::BTTreeLayout>;
 
 
-    using Key 	= Key_;
-    using Value	= Value_;
+    using Key   = Key_;
+    using Value = Value_;
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
@@ -63,30 +63,30 @@ struct MultimapBTTypesBase: public MultimapBTTypesBaseBase<Profile, Key, Value> 
     using CtrSizeT = typename Base::CtrSizeT;
 
     using FirstStreamTF = StreamTF<
-    	TL<
-			TL<StreamSize>,
-			TL<typename mmap::MMapKeyStructTF<Key>::Type>
-		>,
-		DefaultBranchStructTF
-	>;
+        TL<
+            TL<StreamSize>,
+            TL<typename mmap::MMapKeyStructTF<Key>::Type>
+        >,
+        DefaultBranchStructTF
+    >;
 
     using DataStreamTF = StreamTF<
-    	TL<
-			TL<StreamSize>,
-			TL<typename mmap::MMapValueStructTF<Value>::Type>
-		>,
-    	DefaultBranchStructTF
+        TL<
+            TL<StreamSize>,
+            TL<typename mmap::MMapValueStructTF<Value>::Type>
+        >,
+        DefaultBranchStructTF
     >;
 
 
     using RawStreamDescriptors = TL<
-			FirstStreamTF,
-			DataStreamTF
-	>;
+            FirstStreamTF,
+            DataStreamTF
+    >;
 
     using StreamDescriptors = typename bttl::BTTLAugmentStreamDescriptors<
-    		RawStreamDescriptors
-	>::Type;
+            RawStreamDescriptors
+    >::Type;
 };
 
 
@@ -112,18 +112,18 @@ public:
 
     struct Types: Base::Types
     {
-    	using CtrTypes 			= MultimapCtrTypes<Types>;
-        using IterTypes 		= MultimapIterTypes<Types>;
+        using CtrTypes          = MultimapCtrTypes<Types>;
+        using IterTypes         = MultimapIterTypes<Types>;
 
-        using PageUpdateMgr 	= PageUpdateManager<CtrTypes>;
+        using PageUpdateMgr     = PageUpdateManager<CtrTypes>;
 
         using LeafStreamsStructList = FailIf<typename Base::Types::LeafStreamsStructList, false>;
 
         using IteratorBranchNodeEntry = FailIf<typename Base::Types::IteratorBranchNodeEntry, false>;
     };
 
-    using CtrTypes 	= typename Types::CtrTypes;
-    using Type 		= Ctr<CtrTypes>;
+    using CtrTypes  = typename Types::CtrTypes;
+    using Type      = Ctr<CtrTypes>;
 };
 
 

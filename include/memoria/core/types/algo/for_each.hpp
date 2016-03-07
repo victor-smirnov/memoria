@@ -55,39 +55,39 @@ struct ForEachItem<Config, TypeList<Head, Tail...>, Handler, Accumulator> {
 
 template <Int Idx, Int Size>
 struct ForEach {
-	template <typename Fn, typename... Args>
-	static void process(Fn&& fn, Args&&... args)
-	{
-		if (fn.template process<Idx>(std::forward<Args>(args)...))
-		{
-			ForEach<Idx + 1, Size>::process(std::forward<Fn>(fn), std::forward<Args>(args)...);
-		}
-	}
+    template <typename Fn, typename... Args>
+    static void process(Fn&& fn, Args&&... args)
+    {
+        if (fn.template process<Idx>(std::forward<Args>(args)...))
+        {
+            ForEach<Idx + 1, Size>::process(std::forward<Fn>(fn), std::forward<Args>(args)...);
+        }
+    }
 };
 
 
 template <Int Idx>
 struct ForEach<Idx, Idx> {
-	template <typename... Args>
-	static void process(Args&&... args){}
+    template <typename... Args>
+    static void process(Args&&... args){}
 };
 
 
 template <Int V1, Int V2> struct IfLess
 {
-	template <typename Fn, typename ElseFn, typename... Args>
-	static auto process(Fn&& fn, ElseFn&& else_fn, Args&&... args) {
-		return fn.template process<V1>(std::forward<Args>(args)...);
-	}
+    template <typename Fn, typename ElseFn, typename... Args>
+    static auto process(Fn&& fn, ElseFn&& else_fn, Args&&... args) {
+        return fn.template process<V1>(std::forward<Args>(args)...);
+    }
 };
 
 template <Int V2>
 struct IfLess<V2, V2>
 {
-	template <typename Fn, typename ElseFn, typename... Args>
-	static auto process(Fn&& fn, ElseFn&& else_fn, Args&&... args) {
-		return else_fn.template process<V2>(std::forward<Args>(args)...);
-	}
+    template <typename Fn, typename ElseFn, typename... Args>
+    static auto process(Fn&& fn, ElseFn&& else_fn, Args&&... args) {
+        return else_fn.template process<V2>(std::forward<Args>(args)...);
+    }
 };
 
 
@@ -95,20 +95,20 @@ template <typename List, template <typename Item> class Mapper> struct MapTL;
 
 template <typename Head, typename... Tail, template <typename Item> class Mapper>
 struct MapTL<TL<Head, Tail...>, Mapper> {
-	using Type = MergeLists<
-			typename Mapper<Head>::Type,
-			typename MapTL<TL<Tail...>, Mapper>::Type
-	>;
+    using Type = MergeLists<
+            typename Mapper<Head>::Type,
+            typename MapTL<TL<Tail...>, Mapper>::Type
+    >;
 };
 
 template <template <typename Item> class Mapper>
 struct MapTL<TL<>, Mapper>{
-	using Type = TL<>;
+    using Type = TL<>;
 };
 
 template <typename T>
 struct WithType {
-	using Type = T;
+    using Type = T;
 };
 
 }

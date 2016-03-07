@@ -138,8 +138,8 @@ class CtrPart<PartName, Base1, TypesType>: public Base1 {                       
     typedef Base1 Base;                                                         \
     typedef CtrPart<PartName, Base1, TypesType> ThisType;                       \
     typedef Ctr<TypesType> MyType;                                              \
-    template <typename, typename, typename> friend class CtrPart;				\
-    template <typename, typename, typename> friend class IterPart;				\
+    template <typename, typename, typename> friend class CtrPart;               \
+    template <typename, typename, typename> friend class IterPart;              \
 public:
 
 
@@ -151,7 +151,7 @@ public:
 
 
 #define MEMORIA_CONTAINER_PART_END                                              \
-	private:																	\
+    private:                                                                    \
     MyType& self() {                                                            \
         return *static_cast<MyType*>(this);                                     \
     }                                                                           \
@@ -181,8 +181,8 @@ class IterPart<PartName, Base1, Types>: public Base1 {                          
     typedef Base1 Base;                                                         \
     typedef Iter<Types> MyType;                                                 \
                                                                                 \
-	template <typename, typename, typename> friend class CtrPart;				\
-	template <typename, typename, typename> friend class IterPart;				\
+    template <typename, typename, typename> friend class CtrPart;               \
+    template <typename, typename, typename> friend class IterPart;              \
 public:
 
 
@@ -198,7 +198,7 @@ public:
 
 
 #define MEMORIA_ITERATOR_PART_END                                               \
-    MyType& self() {                                                        	\
+    MyType& self() {                                                            \
         return *static_cast<MyType*>(this);                                     \
     }                                                                           \
                                                                                 \

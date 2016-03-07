@@ -34,14 +34,14 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorMiscName)
     typedef typename Base::Container                                            Container;
     typedef typename Base::Container::Position                                  Position;
 
-    using CtrSizeT 	= typename Container::Types::CtrSizeT;
-    using Key		= typename Container::Types::Key;
-    using Value		= typename Container::Types::Value;
+    using CtrSizeT  = typename Container::Types::CtrSizeT;
+    using Key       = typename Container::Types::Key;
+    using Value     = typename Container::Types::Value;
 
     using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
 
-    static const Int Streams 				= Container::Types::Streams;
-    static const Int SearchableStreams 		= Container::Types::SearchableStreams;
+    static const Int Streams                = Container::Types::Streams;
+    static const Int SearchableStreams      = Container::Types::SearchableStreams;
 
     using LeafPrefixRanks = typename Container::Types::LeafPrefixRanks;
 
@@ -51,18 +51,18 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorMiscName)
 
     template <typename LeafPath>
     struct ScanFn {
-    	template <typename Node, typename Fn>
-    	auto treeNode(const Node* node, Fn&& fn, Int from, CtrSizeT to)
-    	{
-    		auto stream = node->template substream<LeafPath>();
-    		Int stream_size = stream->size();
+        template <typename Node, typename Fn>
+        auto treeNode(const Node* node, Fn&& fn, Int from, CtrSizeT to)
+        {
+            auto stream = node->template substream<LeafPath>();
+            Int stream_size = stream->size();
 
-    		Int limit = (to > stream_size) ? stream_size : to;
+            Int limit = (to > stream_size) ? stream_size : to;
 
-    		fn(stream, from, limit);
+            fn(stream, from, limit);
 
-    		return limit - from;
-    	}
+            return limit - from;
+        }
     };
 
 
@@ -70,80 +70,80 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorMiscName)
     template <typename LeafPath, typename Fn>
     CtrSizeT scan(Fn&& fn, CtrSizeT limit = -1)
     {
-    	auto& self 	= this->self();
-    	auto& cache = self.cache();
+        auto& self  = this->self();
+        auto& cache = self.cache();
 
-    	constexpr Int StreamIdx = ListHead<LeafPath>::Value;
+        constexpr Int StreamIdx = ListHead<LeafPath>::Value;
 
-    	MEMORIA_ASSERT(StreamIdx, ==, self.stream());
+        MEMORIA_ASSERT(StreamIdx, ==, self.stream());
 
-    	auto size = cache.data_size()[StreamIdx];
+        auto size = cache.data_size()[StreamIdx];
 
-    	if (limit == -1 || limit > size) {
-    		limit = size;
-    	}
+        if (limit == -1 || limit > size) {
+            limit = size;
+        }
 
-    	auto pos = cache.data_pos()[StreamIdx];
+        auto pos = cache.data_pos()[StreamIdx];
 
-    	CtrSizeT total = 0;
+        CtrSizeT total = 0;
 
-    	while (pos < limit)
-    	{
-    		auto idx = self.idx();
+        while (pos < limit)
+        {
+            auto idx = self.idx();
 
-    		Int processed = LeafDispatcher::dispatch(self.leaf(), ScanFn<LeafPath>(), std::forward<Fn>(fn), idx, idx + (limit - pos));
+            Int processed = LeafDispatcher::dispatch(self.leaf(), ScanFn<LeafPath>(), std::forward<Fn>(fn), idx, idx + (limit - pos));
 
-    		total += self.skipFw(processed);
+            total += self.skipFw(processed);
 
-    		pos = cache.data_pos()[StreamIdx];
-    	}
+            pos = cache.data_pos()[StreamIdx];
+        }
 
-    	return total;
+        return total;
     }
 
 
     void refresh()
     {
-    	Base::refresh();
+        Base::refresh();
 
-    	auto& self 	= this->self();
-    	auto& cache	= self.cache();
+        auto& self  = this->self();
+        auto& cache = self.cache();
 
-    	cache.data_size()[0] = self.ctr().sizes()[0];
+        cache.data_size()[0] = self.ctr().sizes()[0];
 
-    	// FIXME: Is it necessary here? Is it correct?
-    	cache.data_pos()[0] = 0;
-    	cache.abs_pos()[0] = 0;
+        // FIXME: Is it necessary here? Is it correct?
+        cache.data_pos()[0] = 0;
+        cache.abs_pos()[0] = 0;
     }
 
 
     void checkPrefix() {
-    	auto tmp = self();
+        auto tmp = self();
 
-    	tmp.refresh();
+        tmp.refresh();
 
 
-    	MEMORIA_ASSERT(self().cache(), ==, tmp.cache());
+        MEMORIA_ASSERT(self().cache(), ==, tmp.cache());
     }
 
     void prepare() {
-    	Base::prepare();
+        Base::prepare();
 
-    	auto& self = this->self();
-    	auto& cache = self.cache();
+        auto& self = this->self();
+        auto& cache = self.cache();
 
-    	cache.data_pos()[0] = 0;
+        cache.data_pos()[0] = 0;
     }
 
 
     void init()
     {
-    	Base::init();
+        Base::init();
 
-    	auto& self = this->self();
-    	auto& cache = self.cache();
+        auto& self = this->self();
+        auto& cache = self.cache();
 
-    	cache.data_size()[0] = self.ctr().size();
+        cache.data_size()[0] = self.ctr().size();
     }
 
 protected:
@@ -154,9 +154,9 @@ protected:
 
     void update_leaf_ranks(WalkCmd cmd)
     {
-    	if (cmd == WalkCmd::LAST_LEAF){
-    		update_leaf_ranks();
-    	}
+        if (cmd == WalkCmd::LAST_LEAF){
+            update_leaf_ranks();
+        }
     }
 
 MEMORIA_ITERATOR_PART_END

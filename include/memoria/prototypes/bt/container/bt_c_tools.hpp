@@ -38,9 +38,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     typedef typename Base::NodeBase                                             NodeBase;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
 
-    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
+    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
+    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
+    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
 
     typedef typename Base::Metadata                                             Metadata;
 
@@ -195,37 +195,37 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     MEMORIA_DECLARE_NODE_FN(MaxFn, max);
     BranchNodeEntry max(const NodeBaseG& node) const
     {
-    	BranchNodeEntry entry;
-    	NodeDispatcher::dispatch(node, MaxFn(), entry);
-    	return entry;
+        BranchNodeEntry entry;
+        NodeDispatcher::dispatch(node, MaxFn(), entry);
+        return entry;
     }
 
     template <typename Path>
     struct LeafSumsFn {
-    	template <typename Node, typename... Args>
-    	auto treeNode(const Node* node, Args&&... args) {
-    		return node->template leaf_sums<Path>(std::forward<Args>(args)...);
-    	}
+        template <typename Node, typename... Args>
+        auto treeNode(const Node* node, Args&&... args) {
+            return node->template leaf_sums<Path>(std::forward<Args>(args)...);
+        }
     };
 
 
     struct LeafSizesFn {
-    	template <typename Node, typename... Args>
-    	auto treeNode(const Node* node, Args&&... args) {
-    		return node->sizes();
-    	}
+        template <typename Node, typename... Args>
+        auto treeNode(const Node* node, Args&&... args) {
+            return node->sizes();
+        }
     };
 
     template <typename Path, typename... Args>
     auto leaf_sums(const NodeBaseG& node, Args&&... args) const
     {
-    	return LeafDispatcher::dispatch(node, LeafSumsFn<Path>(), std::forward<Args>(args)...);
+        return LeafDispatcher::dispatch(node, LeafSumsFn<Path>(), std::forward<Args>(args)...);
     }
 
 
     auto leaf_sizes(const NodeBaseG& node) const
     {
-    	return LeafDispatcher::dispatch(node, LeafSizesFn());
+        return LeafDispatcher::dispatch(node, LeafSizesFn());
     }
 
 
@@ -338,12 +338,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
     void forAllIDs(const NodeBaseG& node, Int start, std::function<void (const ID&, Int)> fn) const
     {
-    	BranchDispatcher::dispatch(node, ForAllIDsFn(), start, fn);
+        BranchDispatcher::dispatch(node, ForAllIDsFn(), start, fn);
     }
 
     void forAllIDs(const NodeBaseG& node, std::function<void (const ID&, Int)> fn) const
     {
-    	BranchDispatcher::dispatch(node, ForAllIDsFn(), fn);
+        BranchDispatcher::dispatch(node, ForAllIDsFn(), fn);
     }
 
 
@@ -357,33 +357,33 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
     template <Int Stream>
     struct GetLeafNodeStreamSize {
-    	template <typename T, typename... Args>
-    	Int treeNode(const LeafNode<T>* node, Args&&... args) const
-    	{
-    		return node->template streamSize<Stream>();
-    	}
+        template <typename T, typename... Args>
+        Int treeNode(const LeafNode<T>* node, Args&&... args) const
+        {
+            return node->template streamSize<Stream>();
+        }
     };
 
     struct GetLeafNodeStreamSizes {
-    	template <typename T, typename... Args>
-    	Position treeNode(const LeafNode<T>* node, Args&&... args) const
-    	{
-    		return node->sizes();
-    	}
+        template <typename T, typename... Args>
+        Position treeNode(const LeafNode<T>* node, Args&&... args) const
+        {
+            return node->sizes();
+        }
     };
 
     struct GetLeafNodeStreamSizesStatic {
-    	template <typename T, typename... Args>
-    	Position treeNode(const LeafNode<T>* node, Args&&... args) const
-    	{
-    		return LeafNode<T>::sizes(std::forward<Args>(args)...);
-    	}
+        template <typename T, typename... Args>
+        Position treeNode(const LeafNode<T>* node, Args&&... args) const
+        {
+            return LeafNode<T>::sizes(std::forward<Args>(args)...);
+        }
     };
 
 
     Int getNodeChildrenCount(const NodeBaseG& node) const
     {
-    	return BranchDispatcher::dispatch(node, GetBranchNodeChildernCount());
+        return BranchDispatcher::dispatch(node, GetBranchNodeChildernCount());
     }
 
 
@@ -401,24 +401,24 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
 
     Int getBranchNodeSize(const NodeBaseG& node) const
     {
-    	return BranchDispatcher::dispatch(node, GetSizeFn());
+        return BranchDispatcher::dispatch(node, GetSizeFn());
     }
 
     template <Int StreamIdx>
     Int getLeafStreamSize(const NodeBaseG& node) const
     {
-    	return LeafDispatcher::dispatch(node, GetLeafNodeStreamSize<StreamIdx>());
+        return LeafDispatcher::dispatch(node, GetLeafNodeStreamSize<StreamIdx>());
     }
 
     Position getLeafStreamSizes(const NodeBaseG& node) const
     {
-    	return LeafDispatcher::dispatch(node, GetLeafNodeStreamSizes());
+        return LeafDispatcher::dispatch(node, GetLeafNodeStreamSizes());
     }
 
 
     Position getStreamSizes(const BranchNodeEntry& sums) const
     {
-    	return LeafDispatcher::template dispatch<LeafNode>(true, GetLeafNodeStreamSizesStatic(), sums);
+        return LeafDispatcher::template dispatch<LeafNode>(true, GetLeafNodeStreamSizesStatic(), sums);
     }
 
 

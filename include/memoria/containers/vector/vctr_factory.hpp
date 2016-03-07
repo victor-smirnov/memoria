@@ -65,22 +65,22 @@ struct VectorBTTypesBase: public BTTypes<Profile, memoria::BTSingleStream> {
 template <typename Profile, typename Value>
 struct BTTypes<Profile, memoria::Vector<Value> >: public VectorBTTypesBase<Profile, Value> {
 
-	static_assert(
-			IsExternalizable<Value>::Value ,
-			"Value type must have either ValueCodec or FieldFactory defined"
-	);
+    static_assert(
+            IsExternalizable<Value>::Value ,
+            "Value type must have either ValueCodec or FieldFactory defined"
+    );
 
 
-	using LeafValueStruct = typename mvector::VectorValueStructTF<Value, HasFieldFactory<Value>::Value>::Type;
+    using LeafValueStruct = typename mvector::VectorValueStructTF<Value, HasFieldFactory<Value>::Value>::Type;
 
 
     using StreamDescriptors = TL<StreamTF<
         TL<
-			StreamSize,
-			LeafValueStruct
-    	>,
-		DefaultBranchStructTF,
-		TL<TL<>, TL<>>
+            StreamSize,
+            LeafValueStruct
+        >,
+        DefaultBranchStructTF,
+        TL<TL<>, TL<>>
     >>;
 };
 
@@ -90,15 +90,15 @@ template <Granularity Gr> struct CodecClassTF;
 
 template <>
 struct CodecClassTF<Granularity::Byte> {
-	template <typename V>
-	using Type = UByteI7Codec<V>;
+    template <typename V>
+    using Type = UByteI7Codec<V>;
 };
 
 
 template <>
 struct CodecClassTF<Granularity::Bit> {
-	template <typename V>
-	using Type = UBigIntEliasCodec<V>;
+    template <typename V>
+    using Type = UBigIntEliasCodec<V>;
 };
 
 
@@ -111,11 +111,11 @@ struct BTTypes<Profile, memoria::Vector<VLen<Gr, Value_>> >: public BTTypes<Prof
 
     using VectorStreamTF = StreamTF<
         TL<TL<
-			StreamSize,
-			PkdVDArrayT<Value, 1, CodecClassTF<Gr>::template Type>
-    	>>,
+            StreamSize,
+            PkdVDArrayT<Value, 1, CodecClassTF<Gr>::template Type>
+        >>,
         FSEBranchStructTF,
-		TL<TL<TL<>, TL<>>>
+        TL<TL<TL<>, TL<>>>
     >;
 
 
@@ -156,7 +156,7 @@ public:
 
     struct Types: Base::Types
     {
-    	typedef Vector2CtrTypes<Types>                                          CtrTypes;
+        typedef Vector2CtrTypes<Types>                                          CtrTypes;
         typedef Vector2IterTypes<Types>                                         IterTypes;
 
         typedef PageUpdateManager<CtrTypes>                                     PageUpdateMgr;

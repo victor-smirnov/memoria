@@ -17,7 +17,7 @@
 
 namespace memoria {
 
-using String 	= std::string;
+using String    = std::string;
 using StringRef = const String&;
 
 MEMORIA_API String trimString(StringRef str);

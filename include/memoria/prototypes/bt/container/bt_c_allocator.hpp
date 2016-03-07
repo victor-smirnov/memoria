@@ -75,7 +75,7 @@ public:
     virtual void freeMemory(void* ptr);
 
     virtual bool isActive() {
-    	return self().allocator().isActive();
+        return self().allocator().isActive();
     }
 
     virtual UUID createCtrName()

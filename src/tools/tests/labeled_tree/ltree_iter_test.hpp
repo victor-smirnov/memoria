@@ -45,9 +45,9 @@ public:
 
     void testIteratorCache()
     {
-    	auto snp = branch();
+        auto snp = branch();
 
-    	auto ctr = create<CtrName>(snp);
+        auto ctr = create<CtrName>(snp);
 
         fillRandom(*ctr.get(), size_, max_degree_);
 

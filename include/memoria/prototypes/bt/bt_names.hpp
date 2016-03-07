@@ -43,9 +43,9 @@ class BranchCommonName      {};
 class BranchFixedName       {};
 class BranchVariableName    {};
 
-class LeafCommonName      	{};
-class LeafFixedName       	{};
-class LeafVariableName    	{};
+class LeafCommonName        {};
+class LeafFixedName         {};
+class LeafVariableName      {};
 
 class ApiName               {};
 class ChecksName            {};

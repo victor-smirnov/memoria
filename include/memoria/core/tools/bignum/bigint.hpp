@@ -25,241 +25,241 @@ template <typename> class IntegerCodec;
 
 template <size_t FixedPartPrecision = 4>
 class BigIntegerT {
-	UInt metadata_;
+    UInt metadata_;
 
-	using DigitType = unsigned;
+    using DigitType = unsigned;
 
-	struct Fixed {
-		DigitType digits_[FixedPartPrecision];
-	};
+    struct Fixed {
+        DigitType digits_[FixedPartPrecision];
+    };
 
-	struct Variable {
-		DigitType* digits_;
-		size_t block_size_;
-	};
+    struct Variable {
+        DigitType* digits_;
+        size_t block_size_;
+    };
 
-	union {
-		Fixed fixed_;
-		Variable variable_;
-	}
-	content_;
+    union {
+        Fixed fixed_;
+        Variable variable_;
+    }
+    content_;
 
-	template <typename> friend class IntegerCodec;
+    template <typename> friend class IntegerCodec;
 
 public:
-	BigIntegerT()
-	{
-		init_small();
-	}
+    BigIntegerT()
+    {
+        init_small();
+    }
 
-	BigIntegerT(Int value)
-	{
-		init_small();
+    BigIntegerT(Int value)
+    {
+        init_small();
 
-		if (value < 0)
-		{
-			value = -value;
-			set_negative(true);
-		}
+        if (value < 0)
+        {
+            value = -value;
+            set_negative(true);
+        }
 
-		content_.fixed_.digits_[0] = -value;
+        content_.fixed_.digits_[0] = -value;
 
-		compute_msb_small();
-	}
+        compute_msb_small();
+    }
 
-	BigIntegerT(UInt value)
-	{
-		init_small();
+    BigIntegerT(UInt value)
+    {
+        init_small();
 
-		content_.fixed_.digits_[0] = value;
-		compute_msb_small();
-	}
+        content_.fixed_.digits_[0] = value;
+        compute_msb_small();
+    }
 
-	BigIntegerT(BigInt value)
-	{
-		init_small();
+    BigIntegerT(BigInt value)
+    {
+        init_small();
 
-		if (value < 0)
-		{
-			value = -value;
-			set_negative(true);
-		}
+        if (value < 0)
+        {
+            value = -value;
+            set_negative(true);
+        }
 
-		content_.fixed_.digits_[0] = value;
-		content_.fixed_.digits_[1] = value >> (sizeof(DigitType) * 32);
+        content_.fixed_.digits_[0] = value;
+        content_.fixed_.digits_[1] = value >> (sizeof(DigitType) * 32);
 
-		compute_msb_small();
-	}
+        compute_msb_small();
+    }
 
-	BigIntegerT(UBigInt value)
-	{
-		init_small();
+    BigIntegerT(UBigInt value)
+    {
+        init_small();
 
-		content_.fixed_.digits_[0] = value;
-		content_.fixed_.digits_[1] = value >> (sizeof(DigitType) * 32);
+        content_.fixed_.digits_[0] = value;
+        content_.fixed_.digits_[1] = value >> (sizeof(DigitType) * 32);
 
-		compute_msb_small();
-	}
+        compute_msb_small();
+    }
 
 
-	~BigIntegerT()
-	{
-		if (!is_small())
-		{
-			::free(content_.variable_.digits_);
-		}
-	}
+    ~BigIntegerT()
+    {
+        if (!is_small())
+        {
+            ::free(content_.variable_.digits_);
+        }
+    }
 
-	bool is_small() const
-	{
-		return metadata_ & 0x1;
-	}
+    bool is_small() const
+    {
+        return metadata_ & 0x1;
+    }
 
-	bool is_negative() const
-	{
-		return metadata_ & 0x2;
-	}
+    bool is_negative() const
+    {
+        return metadata_ & 0x2;
+    }
 
-	Int sign() const
-	{
-		return !(metadata_ & 0x2) ? 1 : -1;
-	}
+    Int sign() const
+    {
+        return !(metadata_ & 0x2) ? 1 : -1;
+    }
 
-	const DigitType* data() const
-	{
-		if (is_small())
-		{
-			return content_.fixed_.digits_;
-		}
-		else {
-			return content_.variable_.digits_;
-		}
-	}
+    const DigitType* data() const
+    {
+        if (is_small())
+        {
+            return content_.fixed_.digits_;
+        }
+        else {
+            return content_.variable_.digits_;
+        }
+    }
 
-	DigitType* data()
-	{
-		if (is_small())
-		{
-			return content_.fixed_.digits_;
-		}
-		else {
-			return content_.variable_.digits_;
-		}
-	}
+    DigitType* data()
+    {
+        if (is_small())
+        {
+            return content_.fixed_.digits_;
+        }
+        else {
+            return content_.variable_.digits_;
+        }
+    }
 
-	UInt msb() const
-	{
-		return metadata_ >> 2;
-	}
+    UInt msb() const
+    {
+        return metadata_ >> 2;
+    }
 
 protected:
 
-	void set_negative(bool negative)
-	{
-		metadata_ |= negative ? 0x2 : 0x0;
-	}
+    void set_negative(bool negative)
+    {
+        metadata_ |= negative ? 0x2 : 0x0;
+    }
 
-	void compute_msb()
-	{
-		UInt msb;
-		if (is_small())
-		{
-			msb = compute_msb(content_.fixed_.digits_, FixedPartPrecision);
-		}
-		else {
-			msb = compute_msb(content_.variable_.digits_, content_.variable_.block_size_ / sizeof(DigitType));
-		}
+    void compute_msb()
+    {
+        UInt msb;
+        if (is_small())
+        {
+            msb = compute_msb(content_.fixed_.digits_, FixedPartPrecision);
+        }
+        else {
+            msb = compute_msb(content_.variable_.digits_, content_.variable_.block_size_ / sizeof(DigitType));
+        }
 
-		metadata_ |= msb << 2;
-	}
+        metadata_ |= msb << 2;
+    }
 
-	void compute_msb_small()
-	{
-		UInt msb = compute_msb(content_.fixed_.digits_, FixedPartPrecision);
-		metadata_ |= msb << 2;
-	}
+    void compute_msb_small()
+    {
+        UInt msb = compute_msb(content_.fixed_.digits_, FixedPartPrecision);
+        metadata_ |= msb << 2;
+    }
 
-	void make_big(size_t len)
-	{
-		len = round_up(len);
+    void make_big(size_t len)
+    {
+        len = round_up(len);
 
-		if (is_small())
-		{
-			//FIXME: throw ex
-			content_.variable_.digits_ 		= T2T<unsigned*>(::malloc(len));
-			content_.variable_.block_size_ 	= len;
-			metadata_ &= ~0x1u;
-		}
-		else if (len != content_.variable_.block_size_)
-		{
-			::free(content_.variable_.digits_);
+        if (is_small())
+        {
+            //FIXME: throw ex
+            content_.variable_.digits_      = T2T<unsigned*>(::malloc(len));
+            content_.variable_.block_size_  = len;
+            metadata_ &= ~0x1u;
+        }
+        else if (len != content_.variable_.block_size_)
+        {
+            ::free(content_.variable_.digits_);
 
-			content_.variable_.digits_ 		= T2T<unsigned*>(::malloc(len));
-			content_.variable_.block_size_ 	= len;
-		}
+            content_.variable_.digits_      = T2T<unsigned*>(::malloc(len));
+            content_.variable_.block_size_  = len;
+        }
 
-		memset(content_.variable_.digits_, 0, len);
-	}
+        memset(content_.variable_.digits_, 0, len);
+    }
 
-	void make_small()
-	{
-		if (!is_small())
-		{
-			::free(content_.variable_.digits_);
-			metadata_ |= 0x1u;
-		}
+    void make_small()
+    {
+        if (!is_small())
+        {
+            ::free(content_.variable_.digits_);
+            metadata_ |= 0x1u;
+        }
 
-		memset(content_.fixed_.digits_, 0, FixedPartPrecision * sizeof(DigitType));
-	}
+        memset(content_.fixed_.digits_, 0, FixedPartPrecision * sizeof(DigitType));
+    }
 
 private:
-	size_t round_up(size_t size)
-	{
-		constexpr size_t Mask = (Log2(sizeof(DigitType)) << 1) - 1;
+    size_t round_up(size_t size)
+    {
+        constexpr size_t Mask = (Log2(sizeof(DigitType)) << 1) - 1;
 
-		if (size & Mask)
-		{
-			return (size | Mask) + 1;
-		}
-		else {
-			return size;
-		}
-	}
+        if (size & Mask)
+        {
+            return (size | Mask) + 1;
+        }
+        else {
+            return size;
+        }
+    }
 
-	UInt compute_msb(const DigitType* digits, size_t len)
-	{
-		for (size_t c = 0; c < len; c++)
-		{
-			auto data = digits[len - c - 1];
-			if (data > 0)
-			{
-				return c * (sizeof(DigitType) * 8) + msb(data);
-			}
-		}
+    UInt compute_msb(const DigitType* digits, size_t len)
+    {
+        for (size_t c = 0; c < len; c++)
+        {
+            auto data = digits[len - c - 1];
+            if (data > 0)
+            {
+                return c * (sizeof(DigitType) * 8) + msb(data);
+            }
+        }
 
-		return 0;
-	}
+        return 0;
+    }
 
-	UInt msb(unsigned digits)
-	{
-		return 31 - __builtin_clz(digits);
-	}
+    UInt msb(unsigned digits)
+    {
+        return 31 - __builtin_clz(digits);
+    }
 
-	UInt msb(unsigned long digits)
-	{
-		return 63 - __builtin_clzl(digits);
-	}
+    UInt msb(unsigned long digits)
+    {
+        return 63 - __builtin_clzl(digits);
+    }
 
-	UInt msb(unsigned long long digits)
-	{
-		return 63 - __builtin_clzll(digits);
-	}
+    UInt msb(unsigned long long digits)
+    {
+        return 63 - __builtin_clzll(digits);
+    }
 
-	void init_small()
-	{
-		metadata_ = 0x1;
-		memset(content_.fixed_.digits_, 0, FixedPartPrecision * sizeof(DigitType));
-	}
+    void init_small()
+    {
+        metadata_ = 0x1;
+        memset(content_.fixed_.digits_, 0, FixedPartPrecision * sizeof(DigitType));
+    }
 };
 
 */

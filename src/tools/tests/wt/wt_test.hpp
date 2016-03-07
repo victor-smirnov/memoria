@@ -23,8 +23,8 @@ using namespace std;
 
 class WTTest: public BTTestBase<WT, PersistentInMemAllocator<>, DefaultProfile<>> {
 
-    using Base 		= BTTestBase<WT, PersistentInMemAllocator<>, DefaultProfile<>>;
-    using MyType 	= WTTest;
+    using Base      = BTTestBase<WT, PersistentInMemAllocator<>, DefaultProfile<>>;
+    using MyType    = WTTest;
 
     using typename Base::Ctr;
     using typename Base::Iterator;
@@ -71,7 +71,7 @@ public:
 
     void testCreate()
     {
-    	auto snp = branch();
+        auto snp = branch();
         auto ctr = create<CtrName>(snp);
 
 
@@ -82,13 +82,13 @@ public:
 
         for (UInt c = 0; c < text.size(); c++)
         {
-        	out()<<c<<" "<<hex<<text[c]<<dec<<std::endl;
+            out()<<c<<" "<<hex<<text[c]<<dec<<std::endl;
 
-        	UBigInt value1 = text[c];
+            UBigInt value1 = text[c];
 
-        	ctr->insert(c, value1);
+            ctr->insert(c, value1);
 
-        	check(MA_SRC);
+            check(MA_SRC);
         }
 
 
@@ -100,31 +100,31 @@ public:
 
         for (auto& rnk: ranks)
         {
-        	UInt sym = rnk.first;
+            UInt sym = rnk.first;
 
-        	for (UInt c = 0; c < text.size(); c += 100)
-        	{
-        		Int rank1 = ctr->rank(c, sym);
-        		Int rank2 = rank(text, c, sym);
+            for (UInt c = 0; c < text.size(); c += 100)
+            {
+                Int rank1 = ctr->rank(c, sym);
+                Int rank2 = rank(text, c, sym);
 
-        		AssertEQ(MA_SRC, rank1, rank2);
-        	}
+                AssertEQ(MA_SRC, rank1, rank2);
+            }
         }
 
         out()<<"Check selects"<<std::endl;
 
         for (auto& rnk: ranks)
         {
-        	UInt sym = rnk.first;
-        	Int rank = rnk.second;
+            UInt sym = rnk.first;
+            Int rank = rnk.second;
 
-        	for (Int r = 1; r <= rank; r++)
-        	{
-        		Int idx1 = ctr->select(r, sym);
-        		Int idx2 = select(text, r, sym);
+            for (Int r = 1; r <= rank; r++)
+            {
+                Int idx1 = ctr->select(r, sym);
+                Int idx2 = select(text, r, sym);
 
-        		AssertEQ(MA_SRC, idx1, idx2);
-        	}
+                AssertEQ(MA_SRC, idx1, idx2);
+            }
         }
 
         commit();
@@ -133,83 +133,83 @@ public:
 
     void testRemove()
     {
-    	auto snp = branch();
-    	auto ctr = create<CtrName>(snp);
+        auto snp = branch();
+        auto ctr = create<CtrName>(snp);
 
 
-    	ctr->prepare();
+        ctr->prepare();
 
-    	auto alphabet = createRandomAlphabet(alphabet_size_);
-    	auto text = createRandomText(size_, alphabet);
+        auto alphabet = createRandomAlphabet(alphabet_size_);
+        auto text = createRandomText(size_, alphabet);
 
-    	for (UInt c = 0; c < text.size(); c++)
-    	{
-    		out()<<c<<" "<<hex<<text[c]<<dec<<std::endl;
+        for (UInt c = 0; c < text.size(); c++)
+        {
+            out()<<c<<" "<<hex<<text[c]<<dec<<std::endl;
 
-    		UBigInt value1 = text[c];
+            UBigInt value1 = text[c];
 
-    		ctr->insert(c, value1);
-    	}
+            ctr->insert(c, value1);
+        }
 
-    	assertText(*ctr.get(), text);
+        assertText(*ctr.get(), text);
 
 
 
-    	Int cnt = 0;
-    	while (ctr->size() > 0)
-    	{
-    		Int idx = getRandom(ctr->size());
+        Int cnt = 0;
+        while (ctr->size() > 0)
+        {
+            Int idx = getRandom(ctr->size());
 
-    		out()<<"Remove at "<<idx<<endl;
+            out()<<"Remove at "<<idx<<endl;
 
-    		ctr->remove(idx);
-    		text.erase(text.begin() + idx);
+            ctr->remove(idx);
+            text.erase(text.begin() + idx);
 
-    		if ((cnt++) % remove_check_ == 0)
-    		{
-    			assertText(*ctr.get(), text);
-    		}
+            if ((cnt++) % remove_check_ == 0)
+            {
+                assertText(*ctr.get(), text);
+            }
 
-    		check(MA_SRC);
-    	}
+            check(MA_SRC);
+        }
     }
 
 //    void testStore()
 //    {
-//    	auto snp = branch();
-//    	auto ctr = create<CtrName>(snp);
+//      auto snp = branch();
+//      auto ctr = create<CtrName>(snp);
 //
-//    	ctr->prepare();
+//      ctr->prepare();
 //
-//    	auto alphabet = createRandomAlphabet(alphabet_size_);
-//    	auto text = createRandomText(this->size_, alphabet);
+//      auto alphabet = createRandomAlphabet(alphabet_size_);
+//      auto text = createRandomText(this->size_, alphabet);
 //
-//    	for (UInt c = 0; c < text.size(); c++)
-//    	{
-//    		out()<<c<<" "<<hex<<text[c]<<dec<<std::endl;
+//      for (UInt c = 0; c < text.size(); c++)
+//      {
+//          out()<<c<<" "<<hex<<text[c]<<dec<<std::endl;
 //
-//    		UBigInt value1 = text[c];
+//          UBigInt value1 = text[c];
 //
-//    		ctr->insert(c, value1);
-//    	}
+//          ctr->insert(c, value1);
+//      }
 //
-//    	forceCheck(allocator, MA_SRC);
+//      forceCheck(allocator, MA_SRC);
 //
-//    	assertText(ctr, text);
+//      assertText(ctr, text);
 //
-//    	allocator.commit();
+//      allocator.commit();
 //
-//    	StoreResource(allocator, "wts");
+//      StoreResource(allocator, "wts");
 //
-//    	Allocator alloc2;
+//      Allocator alloc2;
 //
-//    	LoadResource(alloc2, "wts");
+//      LoadResource(alloc2, "wts");
 //
-//    	check(alloc2, MA_SRC);
+//      check(alloc2, MA_SRC);
 //
-//    	Ctr wt2(&alloc2, CTR_FIND, ctr->name());
+//      Ctr wt2(&alloc2, CTR_FIND, ctr->name());
 //
-//    	assertText(wt2, text);
+//      assertText(wt2, text);
 //    }
 
 

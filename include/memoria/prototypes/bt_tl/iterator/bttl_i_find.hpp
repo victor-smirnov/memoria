@@ -31,10 +31,10 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorFindName)
     typedef typename Base::Container                                            Container;
     typedef typename Base::Container::Position                                  Position;
 
-    using CtrSizeT 	= typename Container::Types::CtrSizeT;
-    using Key		= typename Container::Types::Key;
-    using Value		= typename Container::Types::Value;
-    using IteratorBranchNodeEntry		= typename Container::Types::IteratorBranchNodeEntry;
+    using CtrSizeT  = typename Container::Types::CtrSizeT;
+    using Key       = typename Container::Types::Key;
+    using Value     = typename Container::Types::Value;
+    using IteratorBranchNodeEntry       = typename Container::Types::IteratorBranchNodeEntry;
 
     using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
 
@@ -44,136 +44,136 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorFindName)
     template <typename LeafPath>
     using AccumItemH = typename Container::Types::template AccumItemH<LeafPath>;
 
-    static const Int Streams 				= Container::Types::Streams;
-    static const Int SearchableStreams 		= Container::Types::SearchableStreams;
+    static const Int Streams                = Container::Types::Streams;
+    static const Int SearchableStreams      = Container::Types::SearchableStreams;
 
     using LeafPrefixRanks = typename Container::Types::LeafPrefixRanks;
 
 protected:
     template <typename Walker>
     void finish_walking(Int idx, Walker& w, WalkCmd cmd) {
-    	Base::finish_walking(idx, w, cmd);
+        Base::finish_walking(idx, w, cmd);
     }
 
 
     template <typename WWTypes>
     void finish_walking(Int idx, const FindForwardWalker<WWTypes>& walker, WalkCmd cmd)
     {
-    	if (cmd != WalkCmd::REFRESH)
-    	{
-    		constexpr Int Stream = FindForwardWalker<WWTypes>::Stream;
+        if (cmd != WalkCmd::REFRESH)
+        {
+            constexpr Int Stream = FindForwardWalker<WWTypes>::Stream;
 
-    		auto& self = this->self();
-    		auto& cache = self.cache();
+            auto& self = this->self();
+            auto& cache = self.cache();
 
-    		auto& pos  = cache.data_pos();
-    		auto& size = cache.data_size();
+            auto& pos  = cache.data_pos();
+            auto& size = cache.data_size();
 
-    		auto stream = Stream;
+            auto stream = Stream;
 
-    		auto start 	 = walker.branch_size_prefix_backup()[stream] + walker.idx_backup();
-    		auto current = walker.branch_size_prefix()[stream] + idx;
+            auto start   = walker.branch_size_prefix_backup()[stream] + walker.idx_backup();
+            auto current = walker.branch_size_prefix()[stream] + idx;
 
-    		pos[stream] += current - start;
+            pos[stream] += current - start;
 
-    		if (stream < Streams - 1)
-    		{
-    			pos[stream + 1] = 0;
+            if (stream < Streams - 1)
+            {
+                pos[stream + 1] = 0;
 
-    			if (self.isContent(idx))
-    			{
-    				size[stream + 1] = self.template idx_data_size<Stream>(idx);
-    			}
-    			else {
-    				size[stream + 1] = -1;
-    			}
-    		}
+                if (self.isContent(idx))
+                {
+                    size[stream + 1] = self.template idx_data_size<Stream>(idx);
+                }
+                else {
+                    size[stream + 1] = -1;
+                }
+            }
 
-    		cache.abs_pos()[stream] = walker.branch_size_prefix()[stream] + idx;
+            cache.abs_pos()[stream] = walker.branch_size_prefix()[stream] + idx;
 
-    		self.update_leaf_ranks(cmd);
-    	}
+            self.update_leaf_ranks(cmd);
+        }
     }
 
     template <typename WWTypes>
     void finish_walking(Int idx, const FindBackwardWalker<WWTypes>& walker, WalkCmd cmd)
     {
-    	if (cmd != WalkCmd::REFRESH)
-    	{
+        if (cmd != WalkCmd::REFRESH)
+        {
 
-    		constexpr Int Stream = FindBackwardWalker<WWTypes>::Stream;
+            constexpr Int Stream = FindBackwardWalker<WWTypes>::Stream;
 
-    		auto& self = this->self();
-    		auto& cache = self.cache();
+            auto& self = this->self();
+            auto& cache = self.cache();
 
-    		auto& pos  = cache.data_pos();
-    		auto& size = cache.data_size();
+            auto& pos  = cache.data_pos();
+            auto& size = cache.data_size();
 
-    		auto stream = Stream;
+            auto stream = Stream;
 
-    		auto start 	 = walker.branch_size_prefix_backup()[stream] + walker.idx_backup();
-    		auto current = walker.branch_size_prefix()[stream] + idx;
+            auto start   = walker.branch_size_prefix_backup()[stream] + walker.idx_backup();
+            auto current = walker.branch_size_prefix()[stream] + idx;
 
-    		if (pos[stream] == -1) pos[stream] = 0;
-    		pos[stream] -= start - current;
+            if (pos[stream] == -1) pos[stream] = 0;
+            pos[stream] -= start - current;
 
-    		if (stream < Streams - 1)
-    		{
-    			pos[stream + 1] = 0;
+            if (stream < Streams - 1)
+            {
+                pos[stream + 1] = 0;
 
-    			if (self.isContent(idx))
-    			{
-    				size[stream + 1] = self.template idx_data_size<Stream>(idx);
-    			}
-    			else {
-    				size[stream + 1] = -1;
-    			}
-    		}
+                if (self.isContent(idx))
+                {
+                    size[stream + 1] = self.template idx_data_size<Stream>(idx);
+                }
+                else {
+                    size[stream + 1] = -1;
+                }
+            }
 
-    		cache.abs_pos()[stream] = walker.branch_size_prefix()[stream] + idx;
+            cache.abs_pos()[stream] = walker.branch_size_prefix()[stream] + idx;
 
-    		self.update_leaf_ranks(cmd);
-    	}
+            self.update_leaf_ranks(cmd);
+        }
     }
 
 
     template <typename WWTypes>
     void finish_walking(Int idx, const FindGEForwardWalker<WWTypes>& walker, WalkCmd cmd)
     {
-    	if (cmd != WalkCmd::REFRESH)
-    	{
-    		constexpr Int Stream = FindGEForwardWalker<WWTypes>::Stream;
+        if (cmd != WalkCmd::REFRESH)
+        {
+            constexpr Int Stream = FindGEForwardWalker<WWTypes>::Stream;
 
-    		auto& self = this->self();
-    		auto& cache = self.cache();
+            auto& self = this->self();
+            auto& cache = self.cache();
 
-    		auto& pos  = cache.data_pos();
-    		auto& size = cache.data_size();
+            auto& pos  = cache.data_pos();
+            auto& size = cache.data_size();
 
-    		auto stream = self.stream();
+            auto stream = self.stream();
 
-    		auto start 	 = walker.branch_size_prefix_backup()[stream] + walker.idx_backup();
-    		auto current = walker.branch_size_prefix()[stream] + idx;
+            auto start   = walker.branch_size_prefix_backup()[stream] + walker.idx_backup();
+            auto current = walker.branch_size_prefix()[stream] + idx;
 
-    		pos[stream] += current - start;
+            pos[stream] += current - start;
 
-    		if (stream < Streams - 1)
-    		{
-    			pos[stream + 1] = 0;
+            if (stream < Streams - 1)
+            {
+                pos[stream + 1] = 0;
 
-    			if (self.isContent(idx))
-    			{
-    				size[stream + 1] = self.template idx_data_size<Stream>(idx);
-    			}
-    			else {
-    				size[stream + 1] = -1;
-    			}
-    		}
+                if (self.isContent(idx))
+                {
+                    size[stream + 1] = self.template idx_data_size<Stream>(idx);
+                }
+                else {
+                    size[stream + 1] = -1;
+                }
+            }
 
-    		cache.abs_pos()[stream] = walker.branch_size_prefix()[stream] + idx;
+            cache.abs_pos()[stream] = walker.branch_size_prefix()[stream] + idx;
 
-    		self.update_leaf_ranks(cmd);
-    	}
+            self.update_leaf_ranks(cmd);
+        }
     }
 
 MEMORIA_ITERATOR_PART_END

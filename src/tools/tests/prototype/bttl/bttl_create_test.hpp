@@ -22,24 +22,24 @@ namespace memoria {
 
 template <
     typename CtrName,
-	typename AllocatorT 	= PersistentInMemAllocator<>,
-	typename ProfileT		= DefaultProfile<>
+    typename AllocatorT     = PersistentInMemAllocator<>,
+    typename ProfileT       = DefaultProfile<>
 >
 class BTTLCreateTest: public BTTLTestBase<CtrName, AllocatorT, ProfileT> {
 
-    using Base 	 = BTTLTestBase<CtrName, AllocatorT, ProfileT>;
+    using Base   = BTTLTestBase<CtrName, AllocatorT, ProfileT>;
     using MyType = BTTLCreateTest<CtrName, AllocatorT, ProfileT>;
 
-    using Allocator 	= typename Base::Allocator;
+    using Allocator     = typename Base::Allocator;
     using AllocatorPtr  = typename Base::AllocatorPtr;
-    using Ctr 			= typename Base::Ctr;
+    using Ctr           = typename Base::Ctr;
 
-    using DetInputProvider  	= bttl::DeterministicDataInputProvider<Ctr>;
-    using RngInputProvider  	= bttl::RandomDataInputProvider<Ctr, RngInt>;
+    using DetInputProvider      = bttl::DeterministicDataInputProvider<Ctr>;
+    using RngInputProvider      = bttl::RandomDataInputProvider<Ctr, RngInt>;
 
-    using Rng 			 = typename RngInputProvider::Rng;
+    using Rng            = typename RngInputProvider::Rng;
 
-    using CtrSizesT 	 = typename Ctr::Types::Position;
+    using CtrSizesT      = typename Ctr::Types::Position;
 
     static const Int Streams = Ctr::Types::Streams;
 
@@ -70,10 +70,10 @@ class BTTLCreateTest: public BTTLTestBase<CtrName, AllocatorT, ProfileT> {
 public:
 
     BTTLCreateTest(String name):
-    	Base(name)
+        Base(name)
     {
-    	MEMORIA_ADD_TEST(testDetProvider);
-//    	MEMORIA_ADD_TEST(testRngProvider);
+        MEMORIA_ADD_TEST(testDetProvider);
+//      MEMORIA_ADD_TEST(testRngProvider);
     }
 
     virtual ~BTTLCreateTest() throw () {}
@@ -82,57 +82,57 @@ public:
 
     void testDetProvider()
     {
-    	auto snp = branch();
+        auto snp = branch();
 
-    	auto ctr_name = create<CtrName>(snp)->name();
+        auto ctr_name = create<CtrName>(snp)->name();
 
-    	commit();
+        commit();
 
-    	for (Int i = 0; i < iterations; i++)
-    	{
-    		out()<<"Iteration "<<(i + 1)<<endl;
+        for (Int i = 0; i < iterations; i++)
+        {
+            out()<<"Iteration "<<(i + 1)<<endl;
 
-    		snp = branch();
+            snp = branch();
 
-    		auto ctr = find<CtrName>(snp, ctr_name);
-    		auto shape = sampleTreeShape();
+            auto ctr = find<CtrName>(snp, ctr_name);
+            auto shape = sampleTreeShape();
 
-    		out()<<"shape: "<<shape<<endl;
+            out()<<"shape: "<<shape<<endl;
 
-    		DetInputProvider provider(shape);
+            DetInputProvider provider(shape);
 
-    		testProvider(*ctr.get(), provider);
+            testProvider(*ctr.get(), provider);
 
-    		commit();
-    	}
+            commit();
+        }
     }
 
     void testRngProvider()
     {
-    	auto snp = branch();
+        auto snp = branch();
 
-    	auto ctr_name = create<CtrName>(snp)->name();
+        auto ctr_name = create<CtrName>(snp)->name();
 
-    	commit();
+        commit();
 
-    	for (Int i = 0; i < iterations; i++)
-    	{
-    		out()<<"Iteration "<<(i + 1)<<endl;
+        for (Int i = 0; i < iterations; i++)
+        {
+            out()<<"Iteration "<<(i + 1)<<endl;
 
-    		auto snp = branch();
+            auto snp = branch();
 
-    		auto ctr = find<CtrName>(snp, ctr_name);
+            auto ctr = find<CtrName>(snp, ctr_name);
 
-    		auto shape = this->sampleTreeShape();
+            auto shape = this->sampleTreeShape();
 
-    		out()<<"shape: "<<shape<<endl;
+            out()<<"shape: "<<shape<<endl;
 
-    		RngInputProvider provider(shape, this->getIntTestGenerator());
+            RngInputProvider provider(shape, this->getIntTestGenerator());
 
-    		testProvider(*ctr.get(), provider);
+            testProvider(*ctr.get(), provider);
 
-    		commit();
-    	}
+            commit();
+        }
     }
 
 
@@ -146,12 +146,12 @@ public:
     template <typename Provider>
     void testProvider(Ctr& ctr, Provider& provider)
     {
-    	fillCtr(ctr, provider);
+        fillCtr(ctr, provider);
 
-    	checkExtents(ctr);
-    	checkRanks(ctr);
+        checkExtents(ctr);
+        checkRanks(ctr);
 
-    	out()<<endl;
+        out()<<endl;
     }
 };
 

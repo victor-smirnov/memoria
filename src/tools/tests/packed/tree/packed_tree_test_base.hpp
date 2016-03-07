@@ -28,14 +28,14 @@ using namespace std;
 
 template <typename PackedTreeT>
 class PackedTreeTestBase: public TestTask {
-	using Base = TestTask;
+    using Base = TestTask;
 protected:
 
-	static constexpr Int MEMBUF_SIZE = 1024*1024*64;
+    static constexpr Int MEMBUF_SIZE = 1024*1024*64;
 
 
-    using Tree 		= PackedTreeT;
-    using TreePtr 	= PkdStructSPtr<Tree>;
+    using Tree      = PackedTreeT;
+    using TreePtr   = PkdStructSPtr<Tree>;
 
     typedef typename Tree::Value                                                Value;
     typedef typename Tree::IndexValue                                           IndexValue;
@@ -53,14 +53,14 @@ public:
     template <typename T>
     IndexValue sum(const vector<T>& tree, Int block, Int start, Int end)
     {
-    	IndexValue sum = 0;
+        IndexValue sum = 0;
 
-    	for (Int c = start; c < end; c++)
-    	{
-    		sum += tree[c][block];
-    	}
+        for (Int c = start; c < end; c++)
+        {
+            sum += tree[c][block];
+        }
 
-    	return sum;
+        return sum;
     }
 
 
@@ -71,8 +71,8 @@ public:
 
     TreePtr createTree(Int tree_capacity, Int free_space = 0)
     {
-    	Int tree_block_size = Tree::block_size(tree_capacity);
-    	return MakeSharedPackedStructByBlock<Tree>(tree_block_size + free_space);
+        Int tree_block_size = Tree::block_size(tree_capacity);
+        return MakeSharedPackedStructByBlock<Tree>(tree_block_size + free_space);
     }
 
     void truncate(vector<Values>& v, Int size) {
@@ -89,13 +89,13 @@ public:
         vector<Values> vals(size);
         for (auto& v: vals)
         {
-        	for (Int b = 0; b < Blocks; b++) {
-        		v[b] = getRandom(max_value) + min;
-        	}
+            for (Int b = 0; b < Blocks; b++) {
+                v[b] = getRandom(max_value) + min;
+            }
         }
 
         tree->_insert(0, size, [&](Int block, Int idx) {
-        	return vals[idx][block];
+            return vals[idx][block];
         });
 
         truncate(vals, size);
@@ -104,10 +104,10 @@ public:
 
         for (Int b = 0; b < Blocks; b++)
         {
-        	Int idx = 0;
-        	tree->read(b, 0, tree->size(), make_fn_with_next([&](Int block, auto v){
-        		AssertEQ(MA_SRC, v, vals[idx][block]);
-        	}, [&]{idx++;}));
+            Int idx = 0;
+            tree->read(b, 0, tree->size(), make_fn_with_next([&](Int block, auto v){
+                AssertEQ(MA_SRC, v, vals[idx][block]);
+            }, [&]{idx++;}));
         }
 
         return vals;
@@ -234,9 +234,9 @@ public:
     template <typename T>
     void dump(const std::vector<T>& v, std::ostream& out = std::cout)
     {
-    	for (Int c = 0; c < v.size(); c++) {
-    		out<<c<<": "<<v[c]<<endl;
-    	}
+        for (Int c = 0; c < v.size(); c++) {
+            out<<c<<": "<<v[c]<<endl;
+        }
     }
 };
 

@@ -36,13 +36,13 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorSkipName)
     template <Int Stream>
     auto skip_fw_(CtrSizeT amount)
     {
-    	if (amount < 0) {
-    		int a = 0; a++;
-    	}
+        if (amount < 0) {
+            int a = 0; a++;
+        }
 
-    	MEMORIA_ASSERT(amount, >=, 0);
+        MEMORIA_ASSERT(amount, >=, 0);
 
-    	typename Types::template SkipForwardWalker<Types, IntList<Stream>> walker(amount);
+        typename Types::template SkipForwardWalker<Types, IntList<Stream>> walker(amount);
 
         return self().find_fw(walker);
     }
@@ -50,11 +50,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorSkipName)
     template <Int Stream>
     auto skip_bw_(CtrSizeT amount)
     {
-    	MEMORIA_ASSERT(amount, >=, 0);
+        MEMORIA_ASSERT(amount, >=, 0);
 
-    	typename Types::template SkipBackwardWalker<Types, IntList<Stream>> walker(amount);
+        typename Types::template SkipBackwardWalker<Types, IntList<Stream>> walker(amount);
 
-    	return self().find_bw(walker);
+        return self().find_bw(walker);
     }
 
     template <Int Stream>

@@ -29,19 +29,19 @@ namespace {
 
 template <typename T>
 struct RNGTool {
-	template <typename Test>
-	static T next(Test* test) {
-		return test->getBIRandom();
-	}
+    template <typename Test>
+    static T next(Test* test) {
+        return test->getBIRandom();
+    }
 };
 
 
 template <>
 struct RNGTool<UUID> {
-	template <typename Test>
-	static UUID next(Test* test) {
-		return UUID::make_random();
-	}
+    template <typename Test>
+    static UUID next(Test* test) {
+        return UUID::make_random();
+    }
 };
 
 }
@@ -60,8 +60,8 @@ public:
 
     using Base::out;
 
-    using Key 		= typename Ctr::Types::Key;
-    using Value 	= typename Ctr::Types::Value;
+    using Key       = typename Ctr::Types::Key;
+    using Value     = typename Ctr::Types::Value;
 
     using Pair = KVPair<Key, Value>;
 
@@ -120,24 +120,24 @@ public:
 
     Key getRandomKey()
     {
-    	return RNGTool<Key>::next(this);
+        return RNGTool<Key>::next(this);
     }
 
     Value getRandomValue()
     {
-    	return RNGTool<Value>::next(this);
+        return RNGTool<Value>::next(this);
     }
 
     virtual MemBuffer createRandomBuffer(Int size)
     {
-    	auto buffer = MemBuffer(size);
+        auto buffer = MemBuffer(size);
 
-    	for (auto& v: buffer)
-    	{
-    		v = Entry(getRandomKey(), getRandomValue());
-    	}
+        for (auto& v: buffer)
+        {
+            v = Entry(getRandomKey(), getRandomValue());
+        }
 
-    	return buffer;
+        return buffer;
     }
 
 
@@ -178,12 +178,12 @@ public:
 
     virtual void checkIterator(Iterator& iter, const char* source)
     {
-    	auto cache1 = iter.cache();
+        auto cache1 = iter.cache();
 
-    	auto tmp = iter;
-    	tmp.refresh();
+        auto tmp = iter;
+        tmp.refresh();
 
-    	auto cache2 = tmp.cache();
+        auto cache2 = tmp.cache();
 
         if (cache1 != cache2)
         {
@@ -198,10 +198,10 @@ public:
 
     virtual void setUp()
     {
-    	Base::setUp();
+        Base::setUp();
 
-    	if (!this->isReplayMode())
-    	{
+        if (!this->isReplayMode())
+        {
             pairs.clear();
             pairs_sorted.clear();
 
@@ -209,28 +209,28 @@ public:
             {
                 pairs.push_back(Pair(makeRandomKey(), makeRandomValue()));
             }
-    	}
-    	else {
-    		LoadVector(pairs, pairs_data_file_);
-    		LoadVector(pairs_sorted, pairs_sorted_data_file_);
-    	}
+        }
+        else {
+            LoadVector(pairs, pairs_data_file_);
+            LoadVector(pairs_sorted, pairs_sorted_data_file_);
+        }
     }
 
     virtual void onException() noexcept
     {
-    	Base::onException();
+        Base::onException();
 
-    	String basic_name = "Data." + this->getName();
+        String basic_name = "Data." + this->getName();
 
-    	String pairs_name = basic_name + ".pairs.txt";
-    	pairs_data_file_ = this->getResourcePath(pairs_name);
+        String pairs_name = basic_name + ".pairs.txt";
+        pairs_data_file_ = this->getResourcePath(pairs_name);
 
-    	StoreVector(pairs, pairs_data_file_);
+        StoreVector(pairs, pairs_data_file_);
 
-    	String pairs_sorted_name = basic_name + ".pairs_sorted.txt";
-    	pairs_sorted_data_file_ = this->getResourcePath(pairs_sorted_name);
+        String pairs_sorted_name = basic_name + ".pairs_sorted.txt";
+        pairs_sorted_data_file_ = this->getResourcePath(pairs_sorted_name);
 
-    	StoreVector(pairs_sorted, pairs_sorted_data_file_);
+        StoreVector(pairs_sorted, pairs_sorted_data_file_);
     }
 };
 

@@ -25,26 +25,26 @@ using FreeUniquePtr = std::unique_ptr<T, decltype(free)*>;
 template <typename T>
 FreeUniquePtr<T> AllocateUnique(size_t block_size, const char* source = MA_RAW_SRC)
 {
-	T* ptr = T2T<T*>(malloc(block_size));
+    T* ptr = T2T<T*>(malloc(block_size));
 
-	if (ptr != nullptr)
-	{
-		return FreeUniquePtr<T>(ptr, free);
-	}
-	else {
-		throw new OOMException(source);
-	}
+    if (ptr != nullptr)
+    {
+        return FreeUniquePtr<T>(ptr, free);
+    }
+    else {
+        throw new OOMException(source);
+    }
 }
 
 
 inline auto AllocateAllocator(size_t block_size, Int blocks = 1)
 {
-	auto ptr = AllocateUnique<PackedAllocator>(block_size);
+    auto ptr = AllocateUnique<PackedAllocator>(block_size);
 
-	ptr->setTopLevelAllocator();
-	ptr->init(block_size, blocks);
+    ptr->setTopLevelAllocator();
+    ptr->init(block_size, blocks);
 
-	return ptr;
+    return ptr;
 }
 
 

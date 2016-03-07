@@ -27,26 +27,26 @@ class BB{};
 
 
 using List1 = TL<
-	TL<
-		T<1>,
-		TL<T<2>, T<3>, TL<T<11>, T<22>>>
-	>,
-	TL<
-		TL<TL<T<33>, T<44>>, T<4>, T<5>>,
-		T<6>
-	>
+    TL<
+        T<1>,
+        TL<T<2>, T<3>, TL<T<11>, T<22>>>
+    >,
+    TL<
+        TL<TL<T<33>, T<44>>, T<4>, T<5>>,
+        T<6>
+    >
 >;
 
 
 using List2 = TL<
-		TL<TL<BB<0, 2>>>,
-		TL<TL<BB<0, 1>>>
+        TL<TL<BB<0, 2>>>,
+        TL<TL<BB<0, 1>>>
 >;
 
 int main() {
-	ListPrinter<
-		Linearize<List2, 3>
-	>::print();
+    ListPrinter<
+        Linearize<List2, 3>
+    >::print();
 }
 
 

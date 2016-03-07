@@ -20,7 +20,7 @@ template <typename PackedTreeT>
 class PackedTreeSumTest: public PackedTreeTestBase <PackedTreeT> {
 
     using MyType = PackedTreeSumTest<PackedTreeT>;
-    using Base 	 = PackedTreeTestBase <PackedTreeT>;
+    using Base   = PackedTreeTestBase <PackedTreeT>;
 
     typedef typename Base::Tree                                                 Tree;
     typedef typename Base::Values                                               Values;

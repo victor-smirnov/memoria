@@ -20,8 +20,8 @@ namespace memoria {
 template <Int BitsPerSymbol, bool Dense = true>
 class SequenceSelectTest: public SequenceTestBase<BitsPerSymbol, Dense> {
 
-	using MyType = SequenceSelectTest<BitsPerSymbol, Dense>;
-	using Base   = SequenceTestBase<BitsPerSymbol, Dense>;
+    using MyType = SequenceSelectTest<BitsPerSymbol, Dense>;
+    using Base   = SequenceTestBase<BitsPerSymbol, Dense>;
 
     using typename Base::Iterator;
     using typename Base::Ctr;
@@ -65,128 +65,128 @@ public:
 
     void testCtrSelect()
     {
-    	auto snp = branch();
+        auto snp = branch();
 
-    	auto ctr = create<CtrName>(snp);
+        auto ctr = create<CtrName>(snp);
 
-    	auto seq = fillRandomSeq(*ctr.get(), size_);
+        auto seq = fillRandomSeq(*ctr.get(), size_);
 
-    	check(MA_SRC);
+        check(MA_SRC);
 
-    	auto ranks = seq->ranks();
+        auto ranks = seq->ranks();
 
-    	for (Int c = 0; c < iterations_; c++)
-    	{
-    		out() << c <<std::endl;
+        for (Int c = 0; c < iterations_; c++)
+        {
+            out() << c <<std::endl;
 
-    		Int symbol  = getRandom(Base::Symbols);
-    		Int rank    = getRandom(ranks[symbol]);
+            Int symbol  = getRandom(Base::Symbols);
+            Int rank    = getRandom(ranks[symbol]);
 
-    		if (rank == 0) rank = 1; //  rank of 0 is not defined for select()
+            if (rank == 0) rank = 1; //  rank of 0 is not defined for select()
 
-    		auto iter1 = ctr->select(symbol, rank);
-    		auto iter2 = seq->selectFw(symbol, rank);
+            auto iter1 = ctr->select(symbol, rank);
+            auto iter2 = seq->selectFw(symbol, rank);
 
-    		AssertFalse(MA_SRC, iter1->isEof());
-    		AssertTrue(MA_SRC,  iter2.is_found());
+            AssertFalse(MA_SRC, iter1->isEof());
+            AssertTrue(MA_SRC,  iter2.is_found());
 
-    		AssertEQ(MA_SRC, iter1->pos(), iter2.idx());
-    	}
+            AssertEQ(MA_SRC, iter1->pos(), iter2.idx());
+        }
 
-    	commit();
+        commit();
     }
 
 
     void testIterSelectFw()
     {
-    	auto snp = branch();
+        auto snp = branch();
 
-    	auto ctr = create<CtrName>(snp);
+        auto ctr = create<CtrName>(snp);
 
-    	auto seq = fillRandomSeq(*ctr.get(), size_);
+        auto seq = fillRandomSeq(*ctr.get(), size_);
 
-    	check(MA_SRC);
+        check(MA_SRC);
 
-    	for (Int c = 0; c < iterations_; c++)
-    	{
-    		out() << c << std::endl;
+        for (Int c = 0; c < iterations_; c++)
+        {
+            out() << c << std::endl;
 
-    		Int pos     = getRandom(size_);
-    		Int symbol  = getRandom(Base::Symbols);
+            Int pos     = getRandom(size_);
+            Int symbol  = getRandom(Base::Symbols);
 
-    		Int maxrank_ = seq->rank(pos, size_, symbol);
+            Int maxrank_ = seq->rank(pos, size_, symbol);
 
-    		if (maxrank_ > 0)
-    		{
-    			Int rank    = getRandom(maxrank_);
+            if (maxrank_ > 0)
+            {
+                Int rank    = getRandom(maxrank_);
 
-    			if (rank == 0) rank = 1;
+                if (rank == 0) rank = 1;
 
-    			auto iter = ctr->seek(pos);
+                auto iter = ctr->seek(pos);
 
-    			auto pos0 = iter->pos();
+                auto pos0 = iter->pos();
 
-    			AssertEQ(MA_SRC, pos0, pos);
+                AssertEQ(MA_SRC, pos0, pos);
 
-    			BigInt pos_delta1 = iter->selectFw(rank, symbol);
+                BigInt pos_delta1 = iter->selectFw(rank, symbol);
 
-    			auto tgt_pos2 = seq->selectFw(pos, symbol, rank);
+                auto tgt_pos2 = seq->selectFw(pos, symbol, rank);
 
-    			AssertEQ(MA_SRC, iter->pos(), tgt_pos2.idx());
+                AssertEQ(MA_SRC, iter->pos(), tgt_pos2.idx());
 
-    			if (tgt_pos2.is_found()) {
-    				AssertEQ(MA_SRC, pos_delta1, rank);
-    			}
-    			else {
-    				AssertEQ(MA_SRC, pos_delta1, tgt_pos2.rank());
-    			}
-    		}
-    	}
+                if (tgt_pos2.is_found()) {
+                    AssertEQ(MA_SRC, pos_delta1, rank);
+                }
+                else {
+                    AssertEQ(MA_SRC, pos_delta1, tgt_pos2.rank());
+                }
+            }
+        }
 
-    	commit();
+        commit();
     }
 
     void testIterSelectBw()
     {
-    	auto snp = branch();
+        auto snp = branch();
 
-    	auto ctr = create<CtrName>(snp);
+        auto ctr = create<CtrName>(snp);
 
-    	auto seq = fillRandomSeq(*ctr.get(), size_);
+        auto seq = fillRandomSeq(*ctr.get(), size_);
 
-    	check(MA_SRC);
+        check(MA_SRC);
 
-    	for (Int c = 0; c < iterations_; c++)
-    	{
-    		out()<<c<<std::endl;
+        for (Int c = 0; c < iterations_; c++)
+        {
+            out()<<c<<std::endl;
 
-    		Int pos     = getRandom(size_);
-    		Int symbol  = getRandom(Base::Symbols);
+            Int pos     = getRandom(size_);
+            Int symbol  = getRandom(Base::Symbols);
 
-    		Int maxrank_ = seq->rank(0, pos, symbol);
+            Int maxrank_ = seq->rank(0, pos, symbol);
 
-    		if (maxrank_ > 0)
-    		{
-    			Int rank    = getRandom(maxrank_);
+            if (maxrank_ > 0)
+            {
+                Int rank    = getRandom(maxrank_);
 
-    			if (rank == 0) rank = 1;
+                if (rank == 0) rank = 1;
 
-    			auto iter   = ctr->seek(pos);
+                auto iter   = ctr->seek(pos);
 
-    			auto tgt_pos 	= seq->selectBw(pos, symbol, rank);
-    			auto pos_delta1	= iter->selectBw(rank, symbol);
+                auto tgt_pos    = seq->selectBw(pos, symbol, rank);
+                auto pos_delta1 = iter->selectBw(rank, symbol);
 
-    			AssertEQ(MA_SRC, iter->pos(), tgt_pos.idx());
+                AssertEQ(MA_SRC, iter->pos(), tgt_pos.idx());
 
-    			if (tgt_pos.is_found())
-    			{
-    				AssertEQ(MA_SRC, pos_delta1, rank);
-    			}
-    			else {
-    				AssertEQ(MA_SRC, pos_delta1, tgt_pos.rank());
-    			}
-    		}
-    	}
+                if (tgt_pos.is_found())
+                {
+                    AssertEQ(MA_SRC, pos_delta1, rank);
+                }
+                else {
+                    AssertEQ(MA_SRC, pos_delta1, tgt_pos.rank());
+                }
+            }
+        }
 
     }
 

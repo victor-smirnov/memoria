@@ -59,7 +59,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterRankName)
         template <typename NodeTypes>
         void treeNode(const LeafNode<NodeTypes>* node, Int idx)
         {
-        	node->template processStream<IntList<0>>(*this, idx);
+            node->template processStream<IntList<0>>(*this, idx);
         }
 
         template <typename NodeTypes>
@@ -78,15 +78,15 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterRankName)
     BigInt localrank_(Int idx, Int symbol) const;
 
     auto rank(BigInt delta, Int symbol) {
-    	return self().template rank_<IntList<0>>(symbol, delta);
+        return self().template rank_<IntList<0>>(symbol, delta);
     }
 
     auto rankFw(BigInt delta, Int symbol) {
-    	return self().template rank_fw_<IntList<0>>(symbol, delta);
+        return self().template rank_fw_<IntList<0>>(symbol, delta);
     }
 
     auto rankBw(BigInt delta, Int symbol) {
-    	return self().template rank_bw_<IntList<0>>(symbol, delta);
+        return self().template rank_bw_<IntList<0>>(symbol, delta);
     }
 
 MEMORIA_ITERATOR_PART_END

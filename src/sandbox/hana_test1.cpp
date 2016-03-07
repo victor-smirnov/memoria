@@ -32,13 +32,13 @@ int main() {
     auto i = hana::integral_c<int, 3>;
 
     TypesPrinter<
-		decltype(ints),
-		decltype(hana::size_c<2>),
-		decltype(types),
-		decltype(hana::tuple_c<int, 1, 2, 3, 4, 5>),
-		decltype(hana::make_tuple(1, 2, 3, 4, 5)),
-		decltype(i)
-	>
+        decltype(ints),
+        decltype(hana::size_c<2>),
+        decltype(types),
+        decltype(hana::tuple_c<int, 1, 2, 3, 4, 5>),
+        decltype(hana::make_tuple(1, 2, 3, 4, 5)),
+        decltype(i)
+    >
     ::print(std::cout)<<std::endl;
 
     cout<<hana::value<decltype(i)>()<<endl;

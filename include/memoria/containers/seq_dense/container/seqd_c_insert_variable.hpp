@@ -33,9 +33,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertVariableName)
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
+    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
+    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
+    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
 
     typedef typename Base::Metadata                                             Metadata;
 
@@ -51,38 +51,38 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrInsertVariableName)
 //    MEMORIA_DECLARE_NODE_FN(LayoutNodeFn, layout);
 //    void layoutLeafNode(NodeBaseG& node, Int size) const
 //    {
-//    	LeafDispatcher::dispatch(node, LayoutNodeFn(), Position(size));
+//      LeafDispatcher::dispatch(node, LayoutNodeFn(), Position(size));
 //    }
 
     struct InsertBufferIntoLeafFn
     {
-    	template <typename NTypes, typename LeafPosition, typename Buffer>
-    	void treeNode(LeafNode<NTypes>* node, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
-    	{
-    		node->processAll(*this, pos, start, size, buffer);
-    	}
+        template <typename NTypes, typename LeafPosition, typename Buffer>
+        void treeNode(LeafNode<NTypes>* node, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
+        {
+            node->processAll(*this, pos, start, size, buffer);
+        }
 
-    	template <typename StreamType, typename LeafPosition, typename Buffer>
-    	void stream(StreamType* obj, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
-    	{
-    		obj->insert(buffer, pos, start, size);
-    	}
+        template <typename StreamType, typename LeafPosition, typename Buffer>
+        void stream(StreamType* obj, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
+        {
+            obj->insert(buffer, pos, start, size);
+        }
     };
 
 
     template <typename LeafPosition, typename Buffer>
     bool doInsertBufferIntoLeaf(NodeBaseG& leaf, PageUpdateMgr& mgr, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
     {
-    	try {
-    		LeafDispatcher::dispatch(leaf, InsertBufferIntoLeafFn(), pos, start, size - start, buffer);
-    		mgr.checkpoint(leaf);
-    		return true;
-    	}
-    	catch (PackedOOMException& ex)
-    	{
-    		mgr.restoreNodeState();
-    		return false;
-    	}
+        try {
+            LeafDispatcher::dispatch(leaf, InsertBufferIntoLeafFn(), pos, start, size - start, buffer);
+            mgr.checkpoint(leaf);
+            return true;
+        }
+        catch (PackedOOMException& ex)
+        {
+            mgr.restoreNodeState();
+            return false;
+        }
     }
 
 

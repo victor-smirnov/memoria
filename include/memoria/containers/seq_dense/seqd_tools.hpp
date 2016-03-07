@@ -21,199 +21,199 @@ namespace seq_dense     {
 template <Int Bits>
 class SymbolsInputBufferProvider: public bt::InputBufferProvider<Int, SymbolsBuffer<Bits>> {
 
-	using Buffer = SymbolsBuffer<Bits>;
+    using Buffer = SymbolsBuffer<Bits>;
 
-	using Position = Int;
+    using Position = Int;
 
-	SymbolsBuffer<Bits>& data_;
-	Position start_ = 0;
-	Position size_ = 0;
+    SymbolsBuffer<Bits>& data_;
+    Position start_ = 0;
+    Position size_ = 0;
 
-	bool next_ = true;
-	Position next_size_;
+    bool next_ = true;
+    Position next_size_;
 
 public:
 
 
-	SymbolsInputBufferProvider(Buffer& data, Position start = 0): data_(data), next_size_(data.size()) {}
-	SymbolsInputBufferProvider(Buffer& data, Position start, Position size): data_(data), next_size_(size)  {}
+    SymbolsInputBufferProvider(Buffer& data, Position start = 0): data_(data), next_size_(data.size()) {}
+    SymbolsInputBufferProvider(Buffer& data, Position start, Position size): data_(data), next_size_(size)  {}
 
-	virtual Position start() const {
-		return start_;
-	}
+    virtual Position start() const {
+        return start_;
+    }
 
-	virtual Position size()	const {
-		return size_;
-	}
+    virtual Position size() const {
+        return size_;
+    }
 
-	virtual Position zero()	const {return 0;}
+    virtual Position zero() const {return 0;}
 
-	virtual const Buffer* buffer() const {
-		return &data_;
-	}
+    virtual const Buffer* buffer() const {
+        return &data_;
+    }
 
-	virtual void consumed(Position sizes) {
-		start_ += sizes;
-	}
+    virtual void consumed(Position sizes) {
+        start_ += sizes;
+    }
 
-	virtual bool isConsumed() {
-		return start_ >= size_;
-	}
+    virtual bool isConsumed() {
+        return start_ >= size_;
+    }
 
-	virtual void nextBuffer()
-	{
-		if (next_) {
-			next_ = false;
-			size_ = next_size_;
-			start_ = 0;
-		}
-		else {
-			size_ = 0;
-			start_ = 0;
-		}
-	}
+    virtual void nextBuffer()
+    {
+        if (next_) {
+            next_ = false;
+            size_ = next_size_;
+            start_ = 0;
+        }
+        else {
+            size_ = 0;
+            start_ = 0;
+        }
+    }
 
-	virtual bool hasData() const {
-		return next_ || start_ < size_;
-	}
+    virtual bool hasData() const {
+        return next_ || start_ < size_;
+    }
 };
 
 
 template <typename CtrT>
 class SequenceInputProviderBase: public memoria::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength> {
-	using Base = memoria::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength>;
+    using Base = memoria::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength>;
 
 public:
 
-	using typename Base::InputBuffer;
+    using typename Base::InputBuffer;
 
-	using SequenceInputBuffer = typename InputBuffer::template StreamTypeT<0>;
+    using SequenceInputBuffer = typename InputBuffer::template StreamTypeT<0>;
 
 public:
-	SequenceInputProviderBase(CtrT& ctr, Int capacity = 10000):
-		Base(ctr, capacity)
-	{}
+    SequenceInputProviderBase(CtrT& ctr, Int capacity = 10000):
+        Base(ctr, capacity)
+    {}
 
-	virtual Int get(InputBuffer* buffer, Int pos) {
-		return get(buffer->template substream_by_idx<0>(), pos);
-	}
+    virtual Int get(InputBuffer* buffer, Int pos) {
+        return get(buffer->template substream_by_idx<0>(), pos);
+    }
 
-	virtual Int get(SequenceInputBuffer* buffer, Int pos) = 0;
+    virtual Int get(SequenceInputBuffer* buffer, Int pos) = 0;
 };
 
 template <typename CtrT>
 class FnSequenceInputProvider: public SequenceInputProviderBase<CtrT> {
-	using Base = SequenceInputProviderBase<CtrT>;
+    using Base = SequenceInputProviderBase<CtrT>;
 
 public:
 
-	using typename Base::SequenceInputBuffer;
+    using typename Base::SequenceInputBuffer;
 
 public:
-	FnSequenceInputProvider(CtrT& ctr, Int capacity = 10000):
-		Base(ctr, capacity)
-	{}
+    FnSequenceInputProvider(CtrT& ctr, Int capacity = 10000):
+        Base(ctr, capacity)
+    {}
 
-	virtual Int get(SequenceInputBuffer* buffer, Int pos)
-	{
-		return 0;
-	}
+    virtual Int get(SequenceInputBuffer* buffer, Int pos)
+    {
+        return 0;
+    }
 };
 
 
 template <typename CtrT, typename RngT = RngBigInt>
 class RandomSequenceInputProvider: public SequenceInputProviderBase<CtrT> {
-	using Base = SequenceInputProviderBase<CtrT>;
+    using Base = SequenceInputProviderBase<CtrT>;
 
-	RngT& rng_;
-
-public:
-
-	using typename Base::SequenceInputBuffer;
-
-	BigInt total_ = 0;
-	BigInt length_;
+    RngT& rng_;
 
 public:
-	RandomSequenceInputProvider(CtrT& ctr, RngT& rng, BigInt length, Int capacity = 10000):
-		Base(ctr, capacity),
-		rng_(rng),
-		length_(length)
-	{}
 
-	virtual Int get(SequenceInputBuffer* buffer, Int pos)
-	{
-		using SymbolsBuffer = typename SequenceInputBuffer::SymbolsBuffer;
+    using typename Base::SequenceInputBuffer;
 
-		if (total_ < length_)
-		{
-			return buffer->append([&, this](Int size) {
+    BigInt total_ = 0;
+    BigInt length_;
 
-				SymbolsBuffer buf;
-				Int limit = size > buf.capacity() ? buf.capacity() : size;
+public:
+    RandomSequenceInputProvider(CtrT& ctr, RngT& rng, BigInt length, Int capacity = 10000):
+        Base(ctr, capacity),
+        rng_(rng),
+        length_(length)
+    {}
 
-				if (total_ + limit > length_) {
-					limit = length_ - total_;
-				}
+    virtual Int get(SequenceInputBuffer* buffer, Int pos)
+    {
+        using SymbolsBuffer = typename SequenceInputBuffer::SymbolsBuffer;
 
-				buf.resize(limit);
+        if (total_ < length_)
+        {
+            return buffer->append([&, this](Int size) {
 
-				auto symbols = buf.symbols();
+                SymbolsBuffer buf;
+                Int limit = size > buf.capacity() ? buf.capacity() : size;
 
-				for (Int c = 0; c < SymbolsBuffer::BufSize; c++)
-				{
-					symbols[c] = this->rng_();
-				}
+                if (total_ + limit > length_) {
+                    limit = length_ - total_;
+                }
 
-				this->total_ += limit;
+                buf.resize(limit);
 
-				return buf;
-			});
-		}
-		else {
-			return -1;
-		}
-	}
+                auto symbols = buf.symbols();
+
+                for (Int c = 0; c < SymbolsBuffer::BufSize; c++)
+                {
+                    symbols[c] = this->rng_();
+                }
+
+                this->total_ += limit;
+
+                return buf;
+            });
+        }
+        else {
+            return -1;
+        }
+    }
 };
 
 
 template <typename CtrT>
 class SymbolSequenceInputProvider: public SequenceInputProviderBase<CtrT> {
-	using Base = SequenceInputProviderBase<CtrT>;
+    using Base = SequenceInputProviderBase<CtrT>;
 
 public:
 
-	using typename Base::SequenceInputBuffer;
-	using Symbols = typename SequenceInputBuffer::Value;
+    using typename Base::SequenceInputBuffer;
+    using Symbols = typename SequenceInputBuffer::Value;
 
-	static constexpr Int BitsPerSymbol = CtrT::Types::BitsPerSymbol;
+    static constexpr Int BitsPerSymbol = CtrT::Types::BitsPerSymbol;
 private:
 
-	const Symbols* symbols_;
+    const Symbols* symbols_;
 
-	Int start_;
-	Int length_;
+    Int start_;
+    Int length_;
 
 public:
-	SymbolSequenceInputProvider(CtrT& ctr, const Symbols* symbols, Int start, Int length, Int capacity = 100000):
-		Base(ctr, capacity),
-		symbols_(symbols),
-		start_(start),
-		length_(length)
-	{}
+    SymbolSequenceInputProvider(CtrT& ctr, const Symbols* symbols, Int start, Int length, Int capacity = 100000):
+        Base(ctr, capacity),
+        symbols_(symbols),
+        start_(start),
+        length_(length)
+    {}
 
-	virtual Int get(SequenceInputBuffer* buffer, Int pos)
-	{
-		if (start_ < length_)
-		{
-			Int inserted = buffer->append(symbols_, start_, length_);
-			start_ += inserted;
-			return inserted;
-		}
-		else {
-			return -1;
-		}
-	}
+    virtual Int get(SequenceInputBuffer* buffer, Int pos)
+    {
+        if (start_ < length_)
+        {
+            Int inserted = buffer->append(symbols_, start_, length_);
+            start_ += inserted;
+            return inserted;
+        }
+        else {
+            return -1;
+        }
+    }
 };
 
 

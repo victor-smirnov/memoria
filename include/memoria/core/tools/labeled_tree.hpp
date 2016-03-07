@@ -79,8 +79,8 @@ public:
 
 template <typename Data, typename... Labels>
 std::ostream& operator<<(std::ostream& out, const LblTreeNode<Data, Labels...>& node) {
-	out<<"LblTreeNode["<<node.labels()<<"]";
-	return out;
+    out<<"LblTreeNode["<<node.labels()<<"]";
+    return out;
 }
 
 }

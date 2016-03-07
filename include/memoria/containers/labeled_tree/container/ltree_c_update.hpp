@@ -83,7 +83,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrUpdateName)
     template <typename Fn, typename... Args>
     bool updateNodeLabel(
             NodeBaseG& leaf,
-			Fn&& fn,
+            Fn&& fn,
             Args&&... args
     )
     {

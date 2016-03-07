@@ -63,7 +63,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vtree::CtrApiName)
         auto& self = this->self();
 
         auto tree_iter  = self.tree().seek(node_idx);
-        auto data_base	= tree_iter->template sumLabel<1>();
+        auto data_base  = tree_iter->template sumLabel<1>();
         auto vec_iter   = self.vector().seek(data_base);
 
         return self.make_iterator(self, *tree_iter.get(), *vec_iter.get());
@@ -129,7 +129,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vtree::CtrApiName)
     {
         auto& self = this->self();
 
-        auto tree_iter	= self.tree().parent(node);
+        auto tree_iter  = self.tree().parent(node);
         auto data_base  = tree_iter->template sumLabel<1>();
         auto vec_iter   = self.vector().seek(data_base);
 
@@ -141,7 +141,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vtree::CtrApiName)
         auto& self = this->self();
 
         auto tree_iter  = self.tree().preFirstChild(node);
-        auto data_base	= tree_iter->template sumLabel<1>();
+        auto data_base  = tree_iter->template sumLabel<1>();
         auto vec_iter   = self.vector().seek(data_base);
 
         return self.make_iterator(self, *tree_iter.get(), *vec_iter.get());

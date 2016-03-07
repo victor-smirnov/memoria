@@ -29,32 +29,32 @@ namespace memoria    {
 
 template <typename T1, typename T2>
 constexpr static T2 DivUp0(T1 v, T2 d) {
-	return v / d + (v % d > 0);
+    return v / d + (v % d > 0);
 }
 
 template <typename T, Int BitsPerSymbol>
 SizeT RoundSymbolsToStorageType(SizeT length)
 {
-	SizeT bitsize               = length * BitsPerSymbol;
-	const SizeT item_bitsize    = sizeof(T) * 8;
+    SizeT bitsize               = length * BitsPerSymbol;
+    const SizeT item_bitsize    = sizeof(T) * 8;
 
-	SizeT result = DivUp0(bitsize, item_bitsize);
+    SizeT result = DivUp0(bitsize, item_bitsize);
 
-	return result * sizeof(T);
+    return result * sizeof(T);
 };
 
 
 namespace {
 
-	template <Int BitsPerSymbol>
-	struct SymbolsTypeSelector {
-		using Type = UBigInt;
-	};
+    template <Int BitsPerSymbol>
+    struct SymbolsTypeSelector {
+        using Type = UBigInt;
+    };
 
-	template <>
-	struct SymbolsTypeSelector<8> {
-		using Type = UByte;
-	};
+    template <>
+    struct SymbolsTypeSelector<8> {
+        using Type = UByte;
+    };
 
 }
 

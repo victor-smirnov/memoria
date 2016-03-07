@@ -25,40 +25,40 @@ using namespace std;
 
 
 template <
-	typename ContainerTypeName,
+    typename ContainerTypeName,
     typename AllocatorType,
-	typename Profile
+    typename Profile
 >
 class BTTLTestBase;
 
 template <
-	Int Levels,
-	PackedSizeType SizeType,
+    Int Levels,
+    PackedSizeType SizeType,
     typename AllocatorType,
-	typename Profile
+    typename Profile
 >
 class BTTLTestBase<BTTLTestCtr<Levels, SizeType>, AllocatorType, Profile>: public BTTestBase<BTTLTestCtr<Levels, SizeType>, AllocatorType, Profile> {
 
-	using ContainerTypeName = BTTLTestCtr<Levels, SizeType>;
+    using ContainerTypeName = BTTLTestCtr<Levels, SizeType>;
 
     using MyType = BTTLTestBase<
                 ContainerTypeName,
-				Profile,
-				AllocatorType
+                Profile,
+                AllocatorType
     >;
 
     using Base = BTTestBase<ContainerTypeName, AllocatorType, Profile>;
 
 protected:
-    using Ctr 			= typename CtrTF<Profile, ContainerTypeName>::Type;
-    using Iterator 		= typename Ctr::Iterator;
-    using ID 			= typename Ctr::ID;
-    using BranchNodeEntry 	= typename Ctr::BranchNodeEntry;
+    using Ctr           = typename CtrTF<Profile, ContainerTypeName>::Type;
+    using Iterator      = typename Ctr::Iterator;
+    using ID            = typename Ctr::ID;
+    using BranchNodeEntry   = typename Ctr::BranchNodeEntry;
 
-    using Allocator 	= AllocatorType;
+    using Allocator     = AllocatorType;
 
-    using CtrSizesT		= typename Ctr::Types::Position;
-    using CtrSizeT		= typename Ctr::Types::CtrSizeT;
+    using CtrSizesT     = typename Ctr::Types::Position;
+    using CtrSizeT      = typename Ctr::Types::CtrSizeT;
 
     static const Int Streams = Ctr::Types::Streams;
 
@@ -78,10 +78,10 @@ protected:
 
     bool dump = false;
 
-    BigInt size 			= 1000000;
-    Int iterations 			= 5;
-	Int level_limit 		= 1000;
-	Int last_level_limit 	= 100;
+    BigInt size             = 1000000;
+    Int iterations          = 5;
+    Int level_limit         = 1000;
+    Int last_level_limit    = 100;
 
 
 
@@ -103,234 +103,234 @@ public:
 
     virtual void smokeCoverage(Int scale)
     {
-    	size 		= 10000 * scale;
-    	iterations	= 1;
+        size        = 10000 * scale;
+        iterations  = 1;
     }
 
     virtual void smallCoverage(Int scale)
     {
-    	size 		= 100000 * scale;
-    	iterations	= 1;
+        size        = 100000 * scale;
+        iterations  = 1;
     }
 
     virtual void normalCoverage(Int scale)
     {
-    	size 		= 10000000 * scale;
-    	iterations	= 1;
+        size        = 10000000 * scale;
+        iterations  = 1;
     }
 
     virtual void largeCoverage(Int scale)
     {
-    	size 		= 100000000 * scale;
-    	iterations	= 10;
+        size        = 100000000 * scale;
+        iterations  = 10;
     }
 
     CtrSizesT sampleTreeShape() {
-    	return sampleTreeShape(level_limit, last_level_limit, size);
+        return sampleTreeShape(level_limit, last_level_limit, size);
     }
 
     CtrSizesT sampleTreeShape(Int level_limit, Int last_level_limit, CtrSizeT size)
     {
-    	CtrSizesT shape;
+        CtrSizesT shape;
 
-    	CtrSizesT limits(level_limit);
-    	limits[Streams - 1] = last_level_limit;
+        CtrSizesT limits(level_limit);
+        limits[Streams - 1] = last_level_limit;
 
-    	while(shape[0] == 0)
-    	{
-    		BigInt resource = size;
+        while(shape[0] == 0)
+        {
+            BigInt resource = size;
 
-    		for (Int c = Streams - 1; c > 0; c--)
-    		{
-    			Int level_size = this->getRandom(limits[c]) + ((c == Streams - 1)? 10 : 1);
+            for (Int c = Streams - 1; c > 0; c--)
+            {
+                Int level_size = this->getRandom(limits[c]) + ((c == Streams - 1)? 10 : 1);
 
-    			shape[c] = level_size;
+                shape[c] = level_size;
 
-    			resource = resource / level_size;
-    		}
+                resource = resource / level_size;
+            }
 
-    		shape[0] = resource;
-    	}
+            shape[0] = resource;
+        }
 
-    	return shape;
+        return shape;
     }
 
     template <typename Provider>
     CtrSizesT fillCtr(Ctr& ctr, Provider& provider)
     {
-    	auto iter = ctr.seek(0);
+        auto iter = ctr.seek(0);
 
-    	long t0 = getTimeInMillis();
+        long t0 = getTimeInMillis();
 
-    	auto totals = ctr._insert(*iter.get(), provider);
+        auto totals = ctr._insert(*iter.get(), provider);
 
-    	check("Bulk Insertion", MA_SRC);
+        check("Bulk Insertion", MA_SRC);
 
-    	long t1 = getTimeInMillis();
+        long t1 = getTimeInMillis();
 
-    	out() << "Creation time: " << FormatTime(t1 - t0) << " consumed: " << provider.consumed() << endl;
+        out() << "Creation time: " << FormatTime(t1 - t0) << " consumed: " << provider.consumed() << endl;
 
-    	auto sizes = ctr.sizes();
+        auto sizes = ctr.sizes();
 
-    	AssertEQ(MA_SRC, provider.consumed(), sizes);
-    	AssertEQ(MA_SRC, totals, sizes);
+        AssertEQ(MA_SRC, provider.consumed(), sizes);
+        AssertEQ(MA_SRC, totals, sizes);
 
-    	auto ctr_totals = ctr.total_counts();
+        auto ctr_totals = ctr.total_counts();
 
-    	out()<<"Totals: "<<ctr_totals<<" "<<sizes<<endl;
+        out()<<"Totals: "<<ctr_totals<<" "<<sizes<<endl;
 
-    	AssertEQ(MA_SRC, ctr_totals, sizes);
+        AssertEQ(MA_SRC, ctr_totals, sizes);
 
-    	return totals;
+        return totals;
     }
 
     void checkTree(Ctr& ctr)
     {
-    	auto iter = ctr.seek(0);
-    	checkSubtree(*iter.get(), ctr.sizes()[0]);
+        auto iter = ctr.seek(0);
+        checkSubtree(*iter.get(), ctr.sizes()[0]);
     }
 
     void checkSubtree(Ctr& ctr, CtrSizeT r)
     {
-    	CtrSizesT path(-1);
-    	path[0] = r;
+        CtrSizesT path(-1);
+        path[0] = r;
 
-    	this->checkSubtree(ctr, path);
+        this->checkSubtree(ctr, path);
     }
 
     void checkSubtree(Ctr& ctr, const CtrSizesT& path)
     {
-    	auto iter = ctr.seek(path[0]);
+        auto iter = ctr.seek(path[0]);
 
-    	for (Int s = 1; s < Streams; s++)
-    	{
-    		if (path[s] >= 0)
-    		{
-    			iter->toData(path[s]);
-    		}
-    	}
+        for (Int s = 1; s < Streams; s++)
+        {
+            if (path[s] >= 0)
+            {
+                iter->toData(path[s]);
+            }
+        }
 
-    	this->checkSubtree(*iter.get(), 1);
+        this->checkSubtree(*iter.get(), 1);
     }
 
 
     void checkSubtree(Iterator& iter, CtrSizeT scan_size = 1)
     {
-    	if (iter.stream() < Streams - 1)
-    	{
-    		for (Int s = 0; s < scan_size; s++)
-    		{
-    			CtrSizeT size = iter.substream_size();
+        if (iter.stream() < Streams - 1)
+        {
+            for (Int s = 0; s < scan_size; s++)
+            {
+                CtrSizeT size = iter.substream_size();
 
-    			iter.toData();
-    			iter.checkPrefix();
+                iter.toData();
+                iter.checkPrefix();
 
-    			AssertEQ(MA_SRC, size, iter.size());
+                AssertEQ(MA_SRC, size, iter.size());
 
-    			checkSubtree(iter, size);
+                checkSubtree(iter, size);
 
-    			iter.toIndex();
-    			iter.skipFw(1);
-    		}
-    	}
-    	else {
-    		Int data = 0;
-    		CtrSizeT cnt = 0;
-    		if (scan_size == -1) scan_size = 0;
+                iter.toIndex();
+                iter.skipFw(1);
+            }
+        }
+        else {
+            Int data = 0;
+            CtrSizeT cnt = 0;
+            if (scan_size == -1) scan_size = 0;
 
-    		auto scanned = iter.template scan<IntList<Levels - 1>>([&](const auto* obj, Int start, Int end) {
-    			if (cnt == 0)
-    			{
-    				data = obj->value(0, start);
-    			}
+            auto scanned = iter.template scan<IntList<Levels - 1>>([&](const auto* obj, Int start, Int end) {
+                if (cnt == 0)
+                {
+                    data = obj->value(0, start);
+                }
 
-    			for (Int c = start; c < end; c++)
-    			{
-    				AssertEQ(MA_SRC, data, obj->value(0, c));
-    			}
+                for (Int c = start; c < end; c++)
+                {
+                    AssertEQ(MA_SRC, data, obj->value(0, c));
+                }
 
-    			cnt += end - start;
-    		});
+                cnt += end - start;
+            });
 
-    		AssertEQ(MA_SRC, scanned, scan_size);
-    		AssertEQ(MA_SRC, scanned, cnt);
-    	}
+            AssertEQ(MA_SRC, scanned, scan_size);
+            AssertEQ(MA_SRC, scanned, cnt);
+        }
     }
 
     void checkRanks(Ctr& ctr)
     {
-    	auto i = ctr.seek(0);
+        auto i = ctr.seek(0);
 
-    	CtrSizesT extents;
+        CtrSizesT extents;
 
-    	long t2 = getTimeInMillis();
+        long t2 = getTimeInMillis();
 
-    	do
-    	{
-    		auto sizes = i->leaf_sizes();
+        do
+        {
+            auto sizes = i->leaf_sizes();
 
-    		auto total_leafrank_ = sizes.sum();
+            auto total_leafrank_ = sizes.sum();
 
-    		typename Ctr::Types::LeafPrefixRanks prefix_ranks;
+            typename Ctr::Types::LeafPrefixRanks prefix_ranks;
 
-    		ctr.compute_leaf_prefixes(i->leaf(), extents, prefix_ranks);
+            ctr.compute_leaf_prefixes(i->leaf(), extents, prefix_ranks);
 
-    		auto total_ranks = ctr.leafrank_(i->leaf(), sizes, prefix_ranks, sizes.sum());
+            auto total_ranks = ctr.leafrank_(i->leaf(), sizes, prefix_ranks, sizes.sum());
 
-    		AssertEQ(MA_SRC, total_ranks, sizes);
+            AssertEQ(MA_SRC, total_ranks, sizes);
 
-    		for (Int c = 0; c < total_leafrank_; )
-    		{
-    			auto ranks = ctr.leafrank_(i->leaf(), sizes, prefix_ranks, c);
+            for (Int c = 0; c < total_leafrank_; )
+            {
+                auto ranks = ctr.leafrank_(i->leaf(), sizes, prefix_ranks, c);
 
-    			AssertEQ(MA_SRC, ranks.sum(), c);
+                AssertEQ(MA_SRC, ranks.sum(), c);
 
-    			c += this->getRandom(100) + 1;
-    		}
+                c += this->getRandom(100) + 1;
+            }
 
-    		extents += ctr.node_extents(i->leaf());
-    	}
-    	while(i->nextLeaf());
+            extents += ctr.node_extents(i->leaf());
+        }
+        while(i->nextLeaf());
 
-    	long t3 = getTimeInMillis();
+        long t3 = getTimeInMillis();
 
-    	this->out()<<"Rank verification time: "<<FormatTime(t3 - t2)<<endl;
+        this->out()<<"Rank verification time: "<<FormatTime(t3 - t2)<<endl;
     }
 
 
     void checkExtents(Ctr& ctr)
     {
-    	auto i = ctr.seek(0);
+        auto i = ctr.seek(0);
 
-    	CtrSizesT extent;
+        CtrSizesT extent;
 
-    	long t2 = getTimeInMillis();
+        long t2 = getTimeInMillis();
 
-    	do
-    	{
-    		auto current_extent = i->leaf_extent();
+        do
+        {
+            auto current_extent = i->leaf_extent();
 
-    		AssertEQ(MA_SRC, current_extent, extent);
+            AssertEQ(MA_SRC, current_extent, extent);
 
-    		for (Int c = 0; c < Streams; c++)
-    		{
-    			if (extent[c] < 0)
-    			{
-    				i->dumpPath(this->out());
-    			}
+            for (Int c = 0; c < Streams; c++)
+            {
+                if (extent[c] < 0)
+                {
+                    i->dumpPath(this->out());
+                }
 
-    			AssertGE(MA_SRC, extent[c], 0, SBuf()<<"Extent: "<<extent);
-    		}
+                AssertGE(MA_SRC, extent[c], 0, SBuf()<<"Extent: "<<extent);
+            }
 
-    		auto ex = ctr.node_extents(i->leaf());
+            auto ex = ctr.node_extents(i->leaf());
 
-    		extent += ex;
-    	}
-    	while(i->nextLeaf());
+            extent += ex;
+        }
+        while(i->nextLeaf());
 
-    	long t3 = getTimeInMillis();
+        long t3 = getTimeInMillis();
 
-    	this->out()<<"Extent verification time: "<<FormatTime(t3 - t2)<<endl;
+        this->out()<<"Extent verification time: "<<FormatTime(t3 - t2)<<endl;
     }
 };
 

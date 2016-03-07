@@ -10,23 +10,23 @@
 
 #include <memoria/core/types/types.hpp>
 
-namespace memoria 	{
-namespace bt 		{
+namespace memoria   {
+namespace bt        {
 
 template <typename Ctr, typename Types>
 struct SingleStreamLayout {
-	using NodeBaseG 	= typename Types::NodeBaseG;
-	using InputBuffer	= typename Types::InputBuffer;
+    using NodeBaseG     = typename Types::NodeBaseG;
+    using InputBuffer   = typename Types::InputBuffer;
 
-	static Int insert(Ctr& self, NodeBaseG& node, Int idx, const InputBuffer* data)
-	{
-		Int capacity = self.getStreamCapacity(node, 0);
+    static Int insert(Ctr& self, NodeBaseG& node, Int idx, const InputBuffer* data)
+    {
+        Int capacity = self.getStreamCapacity(node, 0);
 
-		if (capacity >= data->size())
-		{
+        if (capacity >= data->size())
+        {
 
-		}
-	}
+        }
+    }
 };
 
 }

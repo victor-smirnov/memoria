@@ -33,9 +33,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertName)
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
+    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
+    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
+    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
 
     typedef typename Base::Metadata                                             Metadata;
 
@@ -47,32 +47,32 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertName)
     template <Int Stream, typename Entry>
     SplitStatus insert_stream_entry(Iterator& iter, const Entry& entry)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	auto result = self.template try_insert_stream_entry<Stream>(iter, entry);
+        auto result = self.template try_insert_stream_entry<Stream>(iter, entry);
 
-    	SplitStatus split_status;
+        SplitStatus split_status;
 
-    	if (!std::get<0>(result))
-    	{
-    		split_status = iter.split();
+        if (!std::get<0>(result))
+        {
+            split_status = iter.split();
 
-    		result = self.template try_insert_stream_entry<Stream>(iter, entry);
+            result = self.template try_insert_stream_entry<Stream>(iter, entry);
 
-    		if (!std::get<0>(result))
-    		{
-    			throw Exception(MA_SRC, "Second insertion attempt failed");
-    		}
-    	}
-    	else {
-    		split_status = SplitStatus::NONE;
-    	}
+            if (!std::get<0>(result))
+            {
+                throw Exception(MA_SRC, "Second insertion attempt failed");
+            }
+        }
+        else {
+            split_status = SplitStatus::NONE;
+        }
 
-    	auto max = self.max(iter.leaf());
+        auto max = self.max(iter.leaf());
 
-    	self.update_parent(iter.leaf(), max);
+        self.update_parent(iter.leaf(), max);
 
-    	return split_status;
+        return split_status;
     }
 
 

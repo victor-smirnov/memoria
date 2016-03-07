@@ -43,14 +43,14 @@ namespace memoria {
 
 template <
     typename Profile,
-	typename Key_,
+    typename Key_,
     typename Value_
 >
 struct MapBTTypesBaseBase: public BTTypes<Profile, memoria::BTSingleStream> {
 
     using Base = BTTypes<Profile, memoria::BTSingleStream>;
 
-    using Key 	= Key_;
+    using Key   = Key_;
     using Value = Value_;
 
     using Entry = std::tuple<Key, Value>;
@@ -74,33 +74,33 @@ template <
     typename Profile,
     typename Key,
     typename Value,
-	Int Special = 0
+    Int Special = 0
 >
 struct MapBTTypesBase: public MapBTTypesBaseBase<Profile, Key, Value> {
 
-	static_assert(
-			IsExternalizable<Key>::Value ,
-			"Key type must have either ValueCodec or FieldFactory defined"
-	);
+    static_assert(
+            IsExternalizable<Key>::Value ,
+            "Key type must have either ValueCodec or FieldFactory defined"
+    );
 
-	static_assert(
-			IsExternalizable<Value>::Value ,
-			"Value type must have either ValueCodec or FieldFactory defined"
-	);
+    static_assert(
+            IsExternalizable<Value>::Value ,
+            "Value type must have either ValueCodec or FieldFactory defined"
+    );
 
-	using LeafKeyStruct = typename map::MapKeyStructTF<Key, HasFieldFactory<Key>::Value>::Type;
+    using LeafKeyStruct = typename map::MapKeyStructTF<Key, HasFieldFactory<Key>::Value>::Type;
 
-	using LeafValueStruct = typename map::MapValueStructTF<Value, HasFieldFactory<Value>::Value>::Type;
+    using LeafValueStruct = typename map::MapValueStructTF<Value, HasFieldFactory<Value>::Value>::Type;
 
-	using StreamDescriptors = TL<
-    		StreamTF<
-				TL<
-					TL<StreamSize>,
-					TL<LeafKeyStruct>,
-					TL<LeafValueStruct>
-				>,
-				map::MapBranchStructTF
-			>
+    using StreamDescriptors = TL<
+            StreamTF<
+                TL<
+                    TL<StreamSize>,
+                    TL<LeafKeyStruct>,
+                    TL<LeafValueStruct>
+                >,
+                map::MapBranchStructTF
+            >
     >;
 };
 

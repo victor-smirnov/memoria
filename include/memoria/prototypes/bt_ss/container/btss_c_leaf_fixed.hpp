@@ -33,9 +33,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::LeafFixedName)
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
+    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
+    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
+    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
 
 
     typedef typename Base::Metadata                                             Metadata;
@@ -55,7 +55,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::LeafFixedName)
 
     Int getLeafNodeCapacity(const NodeBaseG& node, int max_hops = 100) const
     {
-    	return LeafDispatcher::dispatch(node, GetStreamCapacityFn(), max_hops);
+        return LeafDispatcher::dispatch(node, GetStreamCapacityFn(), max_hops);
     }
 
 

@@ -52,10 +52,10 @@ public:
     }
 
     static void cleanup() {
-    	if (metadata_) {
-    		delete metadata_;
-    		metadata_ = nullptr;
-    	}
+        if (metadata_) {
+            delete metadata_;
+            metadata_ = nullptr;
+        }
     }
 };
 
@@ -77,7 +77,7 @@ class SimpleOrderedBuilder {
         IfTypesEqual<DeclType, NotDefined>::Value,
         List,
         typename AppendTool<DeclType, List>::Type
-    >                                                   		NewList;
+    >                                                           NewList;
 
 public:
     typedef typename SimpleOrderedBuilder<Decl, Value - 1, NewList>::Type   Type;

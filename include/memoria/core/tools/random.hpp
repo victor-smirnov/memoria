@@ -25,40 +25,40 @@ using RngEngine32 = std::mt19937;
 
 template <typename T, typename Engine>
 class RNG {
-	Engine engine_;
+    Engine engine_;
 
-	std::uniform_int_distribution<T> distribution_;
+    std::uniform_int_distribution<T> distribution_;
 
 public:
-	RNG(){}
+    RNG(){}
 
-	auto operator()()
-	{
-		return distribution_(engine_);
-	}
+    auto operator()()
+    {
+        return distribution_(engine_);
+    }
 
 
-	auto operator()(T max)
-	{
-		std::uniform_int_distribution<T> distribution(0, max > 0 ? max - 1 : 0);
-		return distribution(engine_);
-	}
+    auto operator()(T max)
+    {
+        std::uniform_int_distribution<T> distribution(0, max > 0 ? max - 1 : 0);
+        return distribution(engine_);
+    }
 
-	Engine& engine() {
-		return engine_;
-	}
+    Engine& engine() {
+        return engine_;
+    }
 
-	const Engine& engine() const {
-		return engine_;
-	}
+    const Engine& engine() const {
+        return engine_;
+    }
 
-	void seed(T value) {
-		std::seed_seq ss({value});
-		engine_.seed(ss);
-	}
+    void seed(T value) {
+        std::seed_seq ss({value});
+        engine_.seed(ss);
+    }
 };
 
-using RngInt 	= RNG<Int, RngEngine32>;
+using RngInt    = RNG<Int, RngEngine32>;
 using RngBigInt = RNG<BigInt, RngEngine64>;
 
 

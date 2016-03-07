@@ -35,7 +35,7 @@ using LTreeCtrName = LabeledTree<
 
 class LabeledTreeTestBase: public BTTestBase<LTreeCtrName, PersistentInMemAllocator<>, DefaultProfile<>> {
 
-	using Base 	 = BTTestBase<LTreeCtrName, PersistentInMemAllocator<>, DefaultProfile<>>;
+    using Base   = BTTestBase<LTreeCtrName, PersistentInMemAllocator<>, DefaultProfile<>>;
     using MyType = LabeledTreeTestBase;
 
 protected:
@@ -59,7 +59,7 @@ protected:
 
     typedef LblTreeNode<EmptyType, UShort, BigInt>                              TreeNode;
 
-    typedef typename Ctr::Types::LabelsTuple                                   	LabelsTuple;
+    typedef typename Ctr::Types::LabelsTuple                                    LabelsTuple;
 
     static const Int LabelNumber                                                = 2;
 
@@ -163,48 +163,48 @@ public:
 
     void checkRawRanksSelects(Ctr& tree)
     {
-    	auto iter = tree.seek(0);
-    	auto size = tree.sizes()[0];
+        auto iter = tree.seek(0);
+        auto size = tree.sizes()[0];
 
-    	for (BigInt c = 0; c < size; c++)
-    	{
-    		BigInt r0 = 0, r1 = 0;
+        for (BigInt c = 0; c < size; c++)
+        {
+            BigInt r0 = 0, r1 = 0;
 
-    		auto rank_iter = iter->clone();
+            auto rank_iter = iter->clone();
 
-    		rank_iter->raw_rank(r0, r1, c);
+            rank_iter->raw_rank(r0, r1, c);
 
-    		auto rr0 = tree.rank0(c - 1);
-    		auto rr1 = tree.rank1(c - 1);
+            auto rr0 = tree.rank0(c - 1);
+            auto rr1 = tree.rank1(c - 1);
 
-    		AssertEQ(MA_SRC, r0, rr0);
-    		AssertEQ(MA_SRC, r1, rr1);
+            AssertEQ(MA_SRC, r0, rr0);
+            AssertEQ(MA_SRC, r1, rr1);
 
-    		if (r0 > 0 && r1 > 0)
-    		{
-    			auto select0_iter = iter;
-    			auto select1_iter = iter;
+            if (r0 > 0 && r1 > 0)
+            {
+                auto select0_iter = iter;
+                auto select1_iter = iter;
 
-    			select0_iter->raw_select(0, r0);
-    			select1_iter->raw_select(1, r1);
+                select0_iter->raw_select(0, r0);
+                select1_iter->raw_select(1, r1);
 
-    			auto pps0 = tree.select0(r0)->pos();
-    			auto pps1 = tree.select1(r1)->pos();
+                auto pps0 = tree.select0(r0)->pos();
+                auto pps1 = tree.select1(r1)->pos();
 
-    			AssertEQ(MA_SRC, select0_iter->pos(), pps0);
-    			AssertEQ(MA_SRC, select1_iter->pos(), pps1);
-    		}
-    	}
+                AssertEQ(MA_SRC, select0_iter->pos(), pps0);
+                AssertEQ(MA_SRC, select1_iter->pos(), pps1);
+            }
+        }
     }
 
     void assertIterator(const char* msg, const IteratorPtr& iter)
     {
-    	AssertEQ(msg, iter->pos(), iter->gpos());
+        AssertEQ(msg, iter->pos(), iter->gpos());
 
-    	if (!(iter->isEof() || iter->isBof()))
-    	{
-    		AssertEQ(msg, iter->rank1(), iter->ranki(1));
-    	}
+        if (!(iter->isEof() || iter->isBof()))
+        {
+            AssertEQ(msg, iter->rank1(), iter->ranki(1));
+        }
     }
 
 private:
@@ -267,7 +267,7 @@ private:
         auto labels = ctr.labels(node);
 
         if (labels != tree_node.labels()) {
-        	cout<<node<<" "<<labels<<" "<<tree_node<<endl;
+            cout<<node<<" "<<labels<<" "<<tree_node<<endl;
         }
 
         AssertEQ(MA_SRC, labels, tree_node.labels());
@@ -275,7 +275,7 @@ private:
 
     void checkTree(Ctr& tree, const LoudsNode& node, const TreeNode& tree_node, Int& size, Int level)
     {
-    	assertTreeNode(tree, node, tree_node);
+        assertTreeNode(tree, node, tree_node);
 
         auto children = tree.children(node);
 
@@ -299,10 +299,10 @@ private:
             const TreeNode& tree_node,
             const TreeNode& tree_parent,
             Int& size,
-			Int level
+            Int level
 
     ){
-    	assertTreeNode(tree, node, tree_node);
+        assertTreeNode(tree, node, tree_node);
 
         size++;
 

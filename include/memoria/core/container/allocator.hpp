@@ -70,7 +70,7 @@ struct IAllocator: ICtrDirectory<typename PageType::ID> {
     virtual PageG getPageG(Page* page)                                          = 0;
 
     virtual ID newId()                                                          = 0;
-    virtual UUID currentTxnId() const                                         	= 0;
+    virtual UUID currentTxnId() const                                           = 0;
 
     // memory pool allocator
 
@@ -80,7 +80,7 @@ struct IAllocator: ICtrDirectory<typename PageType::ID> {
     virtual Logger& logger()                                                    = 0;
     virtual IAllocatorProperties& properties()                                  = 0;
 
-    virtual bool isActive()														= 0;
+    virtual bool isActive()                                                     = 0;
 
     virtual ~IAllocator() {}
 };

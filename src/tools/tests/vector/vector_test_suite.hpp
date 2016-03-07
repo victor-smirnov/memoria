@@ -21,9 +21,9 @@ public:
 
     VectorTestSuite(): TestSuite("Vector")
     {
-    	registerTask(new VectorTest<Vector<Int>>("Int.FX"));
-    	registerTask(new VectorTest<Vector<VLen<Granularity::Byte>>>("Int.VL.Byte"));
-    	registerTask(new VectorTest<Vector<VLen<Granularity::Bit>>>("Int.VL.Bit"));
+        registerTask(new VectorTest<Vector<Int>>("Int.FX"));
+        registerTask(new VectorTest<Vector<VLen<Granularity::Byte>>>("Int.VL.Byte"));
+        registerTask(new VectorTest<Vector<VLen<Granularity::Bit>>>("Int.VL.Bit"));
     }
 };
 

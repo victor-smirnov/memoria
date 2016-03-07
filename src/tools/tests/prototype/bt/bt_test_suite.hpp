@@ -23,7 +23,7 @@ public:
 
     BTTestSuite(): TestSuite("BT.Suite")
     {
-    	//registerTask(new BTCoreTest<Table<BigInt, Byte>>("Core"));
+        //registerTask(new BTCoreTest<Table<BigInt, Byte>>("Core"));
     }
 };
 

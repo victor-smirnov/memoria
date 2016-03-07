@@ -28,92 +28,92 @@ using SVector = shared_ptr<vector<T>>;
 
 
 int main() {
-	MEMORIA_INIT(DefaultProfile<>);
+    MEMORIA_INIT(DefaultProfile<>);
 
-	cout<<"Field Factory: "<<HasFieldFactory<double>::Value<<endl;
-	cout<<"ValueCodec: "<<HasValueCodec<double>::Value<<endl;
-
-
-
-	using KeyType = String;
-	using ValueType = String;
-
-	DInit<Map<KeyType, ValueType>>();
-
-	using Entry = pair<KeyType, ValueType>;
-
-
-	ListPrinter<TL<int8_t, char, uint8_t>>::print(cout)<<endl;
-
-	try {
-		auto alloc = PersistentInMemAllocator<>::create();
-		auto snp   = alloc->master()->branch();
-
-		auto map = create<Map<KeyType, ValueType>>(snp);
-
-
-		auto data = make_shared<vector<Entry>>(100000);
-
-		for (size_t c = 0; c < data->size(); c++)
-		{
-//			data->operator[](c) = Entry("str_"+toString(c), c);
-			data->operator[](c) = Entry("key_"+toString(c), "val_"+toString(c));
-
-			//data->operator[](c) = Entry(c, c);
-		}
+    cout<<"Field Factory: "<<HasFieldFactory<double>::Value<<endl;
+    cout<<"ValueCodec: "<<HasValueCodec<double>::Value<<endl;
 
 
 
-		BigInt t0 = getTimeInMillis();
+    using KeyType = String;
+    using ValueType = String;
 
-		cout << "Inserted: " << map->end()->bulk_insert(data->begin(), data->end()) << endl;
-		BigInt t1 = getTimeInMillis();
-		cout << "Insertion time: " << FormatTime(t1 - t0) << " s" << endl;
+    DInit<Map<KeyType, ValueType>>();
 
-		FSDumpAllocator(snp, "map_batch_data.dir");
-
-
-		vector<Entry> data2;
-		auto inserter = back_inserter(data2);
-
-		map->begin()->read(inserter, map->size());
-
-		cout << "Entries data: " << endl;
-
-		for (auto& entry: data2) {
-			cout << entry.first << " +++ " << entry.second << endl;
-		}
+    using Entry = pair<KeyType, ValueType>;
 
 
-		cout << "Removed: " << map->seek(map->size() / 2)->remove(map->size()) << endl;
+    ListPrinter<TL<int8_t, char, uint8_t>>::print(cout)<<endl;
 
-		cout << "Ater remove: " << map->size() << endl;
+    try {
+        auto alloc = PersistentInMemAllocator<>::create();
+        auto snp   = alloc->master()->branch();
 
-		snp->commit();
+        auto map = create<Map<KeyType, ValueType>>(snp);
 
 
+        auto data = make_shared<vector<Entry>>(100000);
 
+        for (size_t c = 0; c < data->size(); c++)
+        {
+//          data->operator[](c) = Entry("str_"+toString(c), c);
+            data->operator[](c) = Entry("key_"+toString(c), "val_"+toString(c));
 
-		BigInt t2 = getTimeInMillis();
-		check_snapshot(snp);
-		BigInt t3 = getTimeInMillis();
-		cout << "Check time: " << FormatTime(t3 - t2) << " s" << endl;
+            //data->operator[](c) = Entry(c, c);
+        }
 
 
 
-		BigInt t4 = getTimeInMillis();
-		unique_ptr <FileOutputStreamHandler> out(FileOutputStreamHandler::create("map_batch_data.dump"));
-		alloc->store(out.get());
-		BigInt t5 = getTimeInMillis();
-		cout << "Dump time: " << FormatTime(t5 - t4) << " s" << endl;
-	}
-	catch (memoria::Exception& ex) {
-		cout << ex.message() << " at " << ex.source() << endl;
-	}
+        BigInt t0 = getTimeInMillis();
 
-	catch (memoria::PackedOOMException& ex) {
-		cout << "PackedOOMException at " << ex.source() << endl;
-	}
+        cout << "Inserted: " << map->end()->bulk_insert(data->begin(), data->end()) << endl;
+        BigInt t1 = getTimeInMillis();
+        cout << "Insertion time: " << FormatTime(t1 - t0) << " s" << endl;
 
-	MetadataRepository<DefaultProfile<>>::cleanup();
+        FSDumpAllocator(snp, "map_batch_data.dir");
+
+
+        vector<Entry> data2;
+        auto inserter = back_inserter(data2);
+
+        map->begin()->read(inserter, map->size());
+
+        cout << "Entries data: " << endl;
+
+        for (auto& entry: data2) {
+            cout << entry.first << " +++ " << entry.second << endl;
+        }
+
+
+        cout << "Removed: " << map->seek(map->size() / 2)->remove(map->size()) << endl;
+
+        cout << "Ater remove: " << map->size() << endl;
+
+        snp->commit();
+
+
+
+
+        BigInt t2 = getTimeInMillis();
+        check_snapshot(snp);
+        BigInt t3 = getTimeInMillis();
+        cout << "Check time: " << FormatTime(t3 - t2) << " s" << endl;
+
+
+
+        BigInt t4 = getTimeInMillis();
+        unique_ptr <FileOutputStreamHandler> out(FileOutputStreamHandler::create("map_batch_data.dump"));
+        alloc->store(out.get());
+        BigInt t5 = getTimeInMillis();
+        cout << "Dump time: " << FormatTime(t5 - t4) << " s" << endl;
+    }
+    catch (memoria::Exception& ex) {
+        cout << ex.message() << " at " << ex.source() << endl;
+    }
+
+    catch (memoria::PackedOOMException& ex) {
+        cout << "PackedOOMException at " << ex.source() << endl;
+    }
+
+    MetadataRepository<DefaultProfile<>>::cleanup();
 }

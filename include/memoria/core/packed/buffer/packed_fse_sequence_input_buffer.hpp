@@ -24,7 +24,7 @@ template <
 >
 struct PackedFSESequenceInputBufferTypes {
 
-	static const Int        BitsPerSymbol           = BitsPerSymbol_;
+    static const Int        BitsPerSymbol           = BitsPerSymbol_;
 
     template <typename Seq>
     using ToolsFn = ToolsFnType<Seq>;
@@ -89,7 +89,7 @@ public:
 
     void init(SizesT capacity)
     {
-    	init(capacity[0]);
+        init(capacity[0]);
     }
 
     void init()
@@ -103,7 +103,7 @@ public:
     }
 
     void reset() {
-    	size_ = 0;
+        size_ = 0;
     }
 
     Int block_size() const {
@@ -116,7 +116,7 @@ public:
     }
 
     Tools tools() const {
-    	return Tools(*this);
+        return Tools(*this);
     }
 
     Value* symbols() {
@@ -132,7 +132,7 @@ public:
     }
 
     Int symbol(Int idx) const {
-    	return tools().get(symbols(), idx);
+        return tools().get(symbols(), idx);
     }
 
     void check() const   {}
@@ -141,50 +141,50 @@ public:
     template <typename Adaptor>
     Int append(Int size, Adaptor&& adaptor)
     {
-    	auto symbols = this->symbols();
+        auto symbols = this->symbols();
 
-    	Int start = size_;
-    	Int limit = (start + size) <= max_size_ ? size : max_size_ - start;
+        Int start = size_;
+        Int limit = (start + size) <= max_size_ ? size : max_size_ - start;
 
-    	auto buf = adaptor(limit);
+        auto buf = adaptor(limit);
 
-    	tools().move(buf.symbols(), symbols, 0, size_, buf.size());
+        tools().move(buf.symbols(), symbols, 0, size_, buf.size());
 
-    	size_ += buf.size();
+        size_ += buf.size();
 
-    	return buf.size();
+        return buf.size();
     }
 
     template <typename Adaptor>
     Int append(Adaptor&& adaptor)
     {
-    	auto symbols = this->symbols();
+        auto symbols = this->symbols();
 
-    	Int limit = max_size_ - size_;
+        Int limit = max_size_ - size_;
 
-    	auto buf = adaptor(limit);
+        auto buf = adaptor(limit);
 
-    	tools().move(buf.symbols(), symbols, 0, size_, buf.size());
+        tools().move(buf.symbols(), symbols, 0, size_, buf.size());
 
-    	size_ += buf.size();
+        size_ += buf.size();
 
-    	return buf.size();
+        return buf.size();
     }
 
 
     Int append(const Value* src_symbols, Int start, Int lenght)
     {
-    	auto symbols = this->symbols();
+        auto symbols = this->symbols();
 
-    	Int limit = max_size_ - size_;
+        Int limit = max_size_ - size_;
 
-    	Int limit0 = lenght < limit ? lenght : limit;
+        Int limit0 = lenght < limit ? lenght : limit;
 
-    	tools().move(src_symbols, symbols, 0, size_, limit0);
+        tools().move(src_symbols, symbols, 0, size_, limit0);
 
-    	size_ += limit0;
+        size_ += limit0;
 
-    	return limit0;
+        return limit0;
     }
 
 
@@ -207,20 +207,20 @@ public:
 
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
-    	handler->startGroup("PACKED_FSE_INPUT_BUFFER");
+        handler->startGroup("PACKED_FSE_INPUT_BUFFER");
 
-    	handler->value("PARENT_ALLOCATOR", &(Base::allocator_offset_));
+        handler->value("PARENT_ALLOCATOR", &(Base::allocator_offset_));
 
-    	handler->value("SIZE", &size_);
-    	handler->value("MAX_SIZE", &max_size_);
+        handler->value("SIZE", &size_);
+        handler->value("MAX_SIZE", &max_size_);
 
-    	handler->startGroup("DATA", size());
+        handler->startGroup("DATA", size());
 
-    	handler->symbols("SYMBOLS", buffer_, size(), BitsPerSymbol);
+        handler->symbols("SYMBOLS", buffer_, size(), BitsPerSymbol);
 
-    	handler->endGroup();
+        handler->endGroup();
 
-    	handler->endGroup();
+        handler->endGroup();
     }
 
 };

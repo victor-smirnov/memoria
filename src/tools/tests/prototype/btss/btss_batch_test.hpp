@@ -23,12 +23,12 @@ namespace memoria {
 
 template <
     typename CtrName,
-	typename AllocatorT 	= PersistentInMemAllocator<>,
-	typename ProfileT		= DefaultProfile<>
+    typename AllocatorT     = PersistentInMemAllocator<>,
+    typename ProfileT       = DefaultProfile<>
 >
 class BTSSBatchTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT> {
 
-    using Base 	 = BTSSTestBase<CtrName, AllocatorT, ProfileT>;
+    using Base   = BTSSTestBase<CtrName, AllocatorT, ProfileT>;
     using MyType = BTSSBatchTest<CtrName, AllocatorT, ProfileT>;
 
     using typename Base::Allocator;
@@ -37,7 +37,7 @@ class BTSSBatchTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT> {
     using typename Base::MemBuffer;
     using typename Base::Entry;
 
-    using IteratorPtr 	= typename Ctr::IteratorPtr;
+    using IteratorPtr   = typename Ctr::IteratorPtr;
 
 
     using Base::commit;
@@ -108,21 +108,21 @@ public:
     }
 
     BigInt iteration() const {
-    	return iteration_;
+        return iteration_;
     }
 
     virtual ~BTSSBatchTest() throw() {}
 
     virtual MemBuffer createRandomBuffer(Int size)
     {
-    	auto buffer = MemBuffer(size);
+        auto buffer = MemBuffer(size);
 
-    	for (auto& v: buffer)
-    	{
-    		v = Entry(getRandom(100));
-    	}
+        for (auto& v: buffer)
+        {
+            v = Entry(getRandom(100));
+        }
 
-    	return buffer;
+        return buffer;
     }
 
 
@@ -225,18 +225,18 @@ public:
 
     virtual void checkIteratorPrefix(const IteratorPtr& iter, const char* source)
     {
-    	auto tmp = iter->clone();
+        auto tmp = iter->clone();
 
-    	tmp->refresh();
+        tmp->refresh();
 
-    	if (iter->cache() != tmp->cache())
-    	{
-    		iter->dumpPath(out());
-    		throw TestException(
-    				source,
-    				SBuf() << "Iterator cache mismatch: having: " << iter->cache() << ", should be: " << tmp->cache()
-    		);
-    	}
+        if (iter->cache() != tmp->cache())
+        {
+            iter->dumpPath(out());
+            throw TestException(
+                    source,
+                    SBuf() << "Iterator cache mismatch: having: " << iter->cache() << ", should be: " << tmp->cache()
+            );
+        }
     }
 
 
@@ -282,7 +282,7 @@ public:
 
     void insertAtEnd(Ctr& ctr)
     {
-    	auto iter = ctr.seek(ctr.size());
+        auto iter = ctr.seek(ctr.size());
 
         checkIterator(iter, MA_SRC);
 
@@ -345,11 +345,11 @@ public:
         }
 
         try{
-        	checkBufferWritten(iter, data,   MA_SRC);
+            checkBufferWritten(iter, data,   MA_SRC);
         }
         catch (...) {
-        	iter->dumpPath();
-        	throw;
+            iter->dumpPath();
+            throw;
         }
 
         checkBufferWritten(iter, suffix, MA_SRC);
@@ -514,92 +514,92 @@ public:
     }
 
     std::ostream& out() {
-    	return Base::out();
+        return Base::out();
     }
 
 
     virtual void testInsert(TestFn test_fn)
     {
-    	ctr_name_ = UUID::make_random();
+        ctr_name_ = UUID::make_random();
 
-    	iteration_ = 0;
+        iteration_ = 0;
 
-    	BigInt size = 0;
+        BigInt size = 0;
 
-    	while (size < this->size_)
-    	{
-    		auto snp = branch();
+        while (size < this->size_)
+        {
+            auto snp = branch();
 
-    		auto ctr = find_or_create<CtrName>(snp, ctr_name_);
+            auto ctr = find_or_create<CtrName>(snp, ctr_name_);
 
-    		test_fn(this, *ctr.get());
+            test_fn(this, *ctr.get());
 
-    		out()<<"Size: "<<ctr->size()<<endl;
+            out()<<"Size: "<<ctr->size()<<endl;
 
-    		check(snp, "Insert: Container Check Failed", MA_SRC);
+            check(snp, "Insert: Container Check Failed", MA_SRC);
 
-    		iteration_++;
+            iteration_++;
 
-    		commit();
+            commit();
 
-    		size = ctr->size();
-    	}
+            size = ctr->size();
+        }
 
-    	if (!isReplayMode())
-    	{
-    		storeAllocator(getResourcePath((SBuf()<<"Insert_"<<(++cnt_i_)<<".dump").str()));
-    	}
+        if (!isReplayMode())
+        {
+            storeAllocator(getResourcePath((SBuf()<<"Insert_"<<(++cnt_i_)<<".dump").str()));
+        }
     }
 
 
     virtual void testRemove(TestFn test_fn)
     {
-    	ctr_name_ = UUID::make_random();
+        ctr_name_ = UUID::make_random();
 
-    	auto snp = branch();
-    	auto ctr = find_or_create<CtrName>(snp, ctr_name_);
+        auto snp = branch();
+        auto ctr = find_or_create<CtrName>(snp, ctr_name_);
 
-    	fillRandom(*ctr.get(), size_);
+        fillRandom(*ctr.get(), size_);
 
-    	commit();
+        commit();
 
-    	iteration_ = 0;
+        iteration_ = 0;
 
-    	BigInt size = ctr->size();
+        BigInt size = ctr->size();
 
-    	while (size > 0)
-    	{
-    		snp = branch();
-    		ctr = find<CtrName>(snp, ctr_name_);
+        while (size > 0)
+        {
+            snp = branch();
+            ctr = find<CtrName>(snp, ctr_name_);
 
-    		test_fn(this, *ctr.get());
+            test_fn(this, *ctr.get());
 
-    		out()<<"Size: "<<ctr->size()<<endl;
+            out()<<"Size: "<<ctr->size()<<endl;
 
-    		check("Remove: Container Check Failed", MA_SRC);
+            check("Remove: Container Check Failed", MA_SRC);
 
-    		size = ctr->size();
+            size = ctr->size();
 
-    		iteration_++;
-    		commit();
-    	}
+            iteration_++;
+            commit();
+        }
 
-    	if (!isReplayMode())
-    	{
-    		storeAllocator(getResourcePath((SBuf()<<"Remove_"<<(++cnt_i_)<<".dump").str()));
-    	}
+        if (!isReplayMode())
+        {
+            storeAllocator(getResourcePath((SBuf()<<"Remove_"<<(++cnt_i_)<<".dump").str()));
+        }
     }
 
     virtual void replay(TestFn test_fn)
     {
-    	auto snp = branch();
-    	auto ctr = find_or_create<CtrName>(snp, ctr_name_);
+        auto snp = branch();
+        auto ctr = find_or_create<CtrName>(snp, ctr_name_);
 
-    	test_fn(this, *ctr.get());
+        test_fn(this, *ctr.get());
 
-    	check(snp, "Replay: Container Check Failed", MA_SRC);
+        check(snp, "Replay: Container Check Failed", MA_SRC);
 
-    	commit();
+        commit();
     }
 };
 

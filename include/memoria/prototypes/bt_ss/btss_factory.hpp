@@ -41,18 +41,18 @@ struct BTTypes<Profile, memoria::BTSingleStream>: public BTTypes<Profile, memori
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
                 memoria::btss::LeafCommonName,
-				memoria::btss::FindName
+                memoria::btss::FindName
     >;
 
     using FixedLeafContainerPartsList = MergeLists<
-    			typename Base::FixedLeafContainerPartsList,
-    			memoria::btss::LeafFixedName
+                typename Base::FixedLeafContainerPartsList,
+                memoria::btss::LeafFixedName
     >;
 
 
     using VariableLeafContainerPartsList = MergeLists<
-    			typename Base::VariableLeafContainerPartsList,
-    			memoria::btss::LeafVariableName
+                typename Base::VariableLeafContainerPartsList,
+                memoria::btss::LeafVariableName
     >;
 
     using IteratorPartsList = MergeLists<
@@ -73,14 +73,14 @@ public:
 
     struct Types: Base::Types
     {
-       	using CtrTypes 			= BTSSCtrTypes<Types>;
-        using IterTypes 		= BTSSIterTypes<Types>;
+        using CtrTypes          = BTSSCtrTypes<Types>;
+        using IterTypes         = BTSSIterTypes<Types>;
 
-        using PageUpdateMgr 	= PageUpdateManager<CtrTypes>;
+        using PageUpdateMgr     = PageUpdateManager<CtrTypes>;
     };
 
-    using CtrTypes 	= typename Types::CtrTypes;
-    using Type 		= Ctr<CtrTypes>;
+    using CtrTypes  = typename Types::CtrTypes;
+    using Type      = Ctr<CtrTypes>;
 };
 
 

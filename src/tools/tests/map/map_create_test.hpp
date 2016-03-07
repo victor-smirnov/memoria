@@ -26,7 +26,7 @@ template <
 class MapCreateTest: public MapTestBase<MapName> {
 
     using MyType = MapCreateTest<MapName>;
-    using Base 	 = MapTestBase<MapName>;
+    using Base   = MapTestBase<MapName>;
 
 
     using typename Base::Allocator;
@@ -53,8 +53,8 @@ class MapCreateTest: public MapTestBase<MapName> {
     using Base::checkIterator;
 
 
-    Key  	key_;
-    Value  	value_;
+    Key     key_;
+    Value   value_;
 
 public:
 
@@ -72,18 +72,18 @@ public:
     virtual ~MapCreateTest() throw () {}
 
     virtual Key makeRandomKey() {
-    	return Key::make_random();
+        return Key::make_random();
     }
 
     virtual Value makeRandomValue() {
-    	return this->getBIRandom();
+        return this->getBIRandom();
     }
 
 
     void runCreateTest()
     {
-    	auto snp = branch();
-    	auto map = create<MapName>(snp);
+        auto snp = branch();
+        auto map = create<MapName>(snp);
 
         map->setNewPageSize(4096);
 
@@ -92,51 +92,51 @@ public:
 
         for (vector_idx_ = 0; vector_idx_ < size_; vector_idx_++)
         {
-        	out()<<vector_idx_<<endl;
+            out()<<vector_idx_<<endl;
 
-        	auto key 	= pairs[vector_idx_].key_;
-        	auto value 	= pairs[vector_idx_].value_;
+            auto key    = pairs[vector_idx_].key_;
+            auto value  = pairs[vector_idx_].value_;
 
-        	{
-        		auto iter = map->assign(key, value);
+            {
+                auto iter = map->assign(key, value);
 
-        		checkIterator(*iter.get(), MA_SRC);
-        	}
+                checkIterator(*iter.get(), MA_SRC);
+            }
 
-        	check(snp, MA_SRC);
+            check(snp, MA_SRC);
 
-        	PairVector tmp = pairs_sorted;
+            PairVector tmp = pairs_sorted;
 
-        	appendToSortedVector(tmp, pairs[vector_idx_]);
+            appendToSortedVector(tmp, pairs[vector_idx_]);
 
-        	checkContainerData(map, tmp);
+            checkContainerData(map, tmp);
 
-        	commit();
+            commit();
 
-        	snp = branch();
-        	map = find<MapName>(snp, ctr_name_);
+            snp = branch();
+            map = find<MapName>(snp, ctr_name_);
 
-        	pairs_sorted = tmp;
+            pairs_sorted = tmp;
         }
 
         if (snapshot()->is_active())
         {
-        	commit();
+            commit();
         }
     }
 
     void replayCreateTest()
     {
-    	auto snp = branch();
-    	auto map = find<MapName>(snp, ctr_name_);
+        auto snp = branch();
+        auto map = find<MapName>(snp, ctr_name_);
 
         auto key = pairs[vector_idx_].key_;
         auto value = pairs[vector_idx_].value_;
 
         {
-        	auto iter = map->assign(key, value);
+            auto iter = map->assign(key, value);
 
-        	checkIterator(*iter.get(), MA_SRC);
+            checkIterator(*iter.get(), MA_SRC);
         }
 
         check(snp, MA_SRC);

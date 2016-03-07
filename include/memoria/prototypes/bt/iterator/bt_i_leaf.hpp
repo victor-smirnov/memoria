@@ -42,21 +42,21 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorLeafName)
 
         if (next_leaf.isSet())
         {
-        	typename Types::template NextLeafWalker<Types> walker;
+            typename Types::template NextLeafWalker<Types> walker;
 
-        	walker.prepare(self);
+            walker.prepare(self);
 
-        	self.leaf() = next_leaf;
+            self.leaf() = next_leaf;
 
-        	LeafDispatcher::dispatch(current_leaf, walker, WalkCmd::FIRST_LEAF, 0, 0);
+            LeafDispatcher::dispatch(current_leaf, walker, WalkCmd::FIRST_LEAF, 0, 0);
 
-        	walker.finish(self, 0, WalkCmd::NONE);
+            walker.finish(self, 0, WalkCmd::NONE);
 
-        	return true;
+            return true;
         }
         else {
-        	self.leaf() = current_leaf;
-        	return false;
+            self.leaf() = current_leaf;
+            return false;
         }
     }
 
@@ -70,21 +70,21 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorLeafName)
 
         if (prev_leaf.isSet())
         {
-        	typename Types::template PrevLeafWalker<Types> walker;
+            typename Types::template PrevLeafWalker<Types> walker;
 
-        	walker.prepare(self);
+            walker.prepare(self);
 
-        	self.leaf() = prev_leaf;
+            self.leaf() = prev_leaf;
 
-        	LeafDispatcher::dispatch(current_leaf, walker, WalkCmd::LAST_LEAF, 0, 0);
+            LeafDispatcher::dispatch(current_leaf, walker, WalkCmd::LAST_LEAF, 0, 0);
 
-        	walker.finish(self, 0, WalkCmd::NONE);
+            walker.finish(self, 0, WalkCmd::NONE);
 
-        	return true;
+            return true;
         }
         else {
-        	self.leaf() = current_leaf;
-        	return false;
+            self.leaf() = current_leaf;
+            return false;
         }
     }
 

@@ -19,8 +19,8 @@ template <
     Int Blocks_ = 1
 >
 struct PackedFSEArrayTypes {
-    typedef V               	Value;
-    static const Int Blocks		= Blocks_;
+    typedef V                   Value;
+    static const Int Blocks     = Blocks_;
 };
 
 template <typename Types> class PackedFSEArray;
@@ -41,13 +41,13 @@ public:
     typedef Types_                                                              Types;
     typedef PackedFSEArray<Types>                                               MyType;
 
-    typedef PackedAllocator                                           			Allocator;
+    typedef PackedAllocator                                                     Allocator;
     typedef typename Types::Value                                               Value;
 
-    static constexpr Int Indexes 													= 0;
-    static constexpr Int Blocks 													= Types::Blocks;
+    static constexpr Int Indexes                                                    = 0;
+    static constexpr Int Blocks                                                     = Types::Blocks;
 
-    static constexpr Int SafetyMargin 												= 0;
+    static constexpr Int SafetyMargin                                               = 0;
 
     using InputType = core::StaticVector<Value, Blocks>;
 
@@ -144,7 +144,7 @@ public:
 
     void initEmpty()
     {
-    	size_ = 0;
+        size_ = 0;
         max_size_   = 0;
     }
 
@@ -170,11 +170,11 @@ public:
 
 
     Value get_values(Int idx) const {
-    	return value(0, idx);
+        return value(0, idx);
     }
 
     Value get_values(Int idx, Int index) const {
-    	return value(index, idx);
+        return value(index, idx);
     }
 
     Value* data() {
@@ -197,32 +197,32 @@ public:
     template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
     void max(BranchNodeEntryItem<T, Size>& accum) const
     {
-    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
     }
 
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
     void sum(BranchNodeEntryItem<T, Size>& accum) const
     {
-    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
     }
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
     void sum(Int start, Int end, BranchNodeEntryItem<T, Size>& accum) const
     {
-    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
     }
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
     void sub(Int start, BranchNodeEntryItem<T, Size>& accum) const
     {
-    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
     }
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
     void sum(Int idx, BranchNodeEntryItem<T, Size>& accum) const
     {
-    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
     }
 
 
@@ -262,25 +262,25 @@ public:
 
     void remove(Int start, Int end)
     {
-    	MEMORIA_ASSERT_TRUE(start >= 0);
-    	MEMORIA_ASSERT_TRUE(end >= 0);
+        MEMORIA_ASSERT_TRUE(start >= 0);
+        MEMORIA_ASSERT_TRUE(end >= 0);
 
-    	Int room_length = end - start;
-    	Int size = this->size();
+        Int room_length = end - start;
+        Int size = this->size();
 
-    	MEMORIA_ASSERT(room_length, <= , size - start);
+        MEMORIA_ASSERT(room_length, <= , size - start);
 
-    	Value* values = this->values();
+        Value* values = this->values();
 
-    	CopyBuffer(
-    			values + end * Blocks,
-				values + start * Blocks,
-				(size_ - end) * Blocks
-    	);
+        CopyBuffer(
+                values + end * Blocks,
+                values + start * Blocks,
+                (size_ - end) * Blocks
+        );
 
-    	size_ -= room_length;
+        size_ -= room_length;
 
-    	shrink(room_length);
+        shrink(room_length);
     }
 
     void removeSpace(Int room_start, Int room_end) {
@@ -303,9 +303,9 @@ public:
         auto values = this->values();
 
         CopyBuffer(
-        		values + idx * Blocks,
-				values + (idx + room_length) * Blocks,
-				(size_ - idx) * Blocks
+                values + idx * Blocks,
+                values + (idx + room_length) * Blocks,
+                (size_ - idx) * Blocks
         );
 
         size_ += room_length;
@@ -319,20 +319,20 @@ public:
 
     void clear(Int start, Int end)
     {
-    	auto values = this->values();
+        auto values = this->values();
 
-    	for (Int c = start; c < end; c++)
-    	{
-    		for (Int block = 0; block < Blocks; block++)
-    		{
-    			values[c * Blocks + block] = Value();
-    		}
-    	}
+        for (Int c = start; c < end; c++)
+        {
+            for (Int block = 0; block < Blocks; block++)
+            {
+                values[c * Blocks + block] = Value();
+            }
+        }
     }
 
     void reset()
     {
-    	size_ = 0;
+        size_ = 0;
     }
 
 
@@ -369,9 +369,9 @@ public:
         MEMORIA_ASSERT_TRUE(count >= 0);
 
         CopyBuffer(
-        		this->values() + copy_from * Blocks,
-				other->values() + copy_to * Blocks,
-				count * Blocks
+                this->values() + copy_from * Blocks,
+                other->values() + copy_to * Blocks,
+                count * Blocks
         );
 
     }
@@ -407,12 +407,12 @@ public:
 
     void insert(Int pos, Value val)
     {
-    	insertSpace(pos, 1);
+        insertSpace(pos, 1);
 
-    	for (Int block = 0;  block < Blocks; block++)
-    	{
-    		value(block, pos) = val;
-    	}
+        for (Int block = 0;  block < Blocks; block++)
+        {
+            value(block, pos) = val;
+        }
     }
 
     void insert(Int block, Int pos, Value val)
@@ -423,79 +423,79 @@ public:
 
     void insert(Int pos, Int start, Int size, const InputBuffer* buffer)
     {
-    	insertSpace(pos, size);
+        insertSpace(pos, size);
 
-    	for (Int block = 0; block < Blocks; block++)
-    	{
-    		Value* vals 		= values(block);
-    		const Value* data 	= buffer->values(block);
-    		CopyBuffer(data + start, vals + pos, size);
-    	}
+        for (Int block = 0; block < Blocks; block++)
+        {
+            Value* vals         = values(block);
+            const Value* data   = buffer->values(block);
+            CopyBuffer(data + start, vals + pos, size);
+        }
     }
 
     template <typename Adaptor>
     void insert(Int pos, Int size, Adaptor&& adaptor)
     {
-    	insertSpace(pos, size);
+        insertSpace(pos, size);
 
-    	auto values = this->values();
+        auto values = this->values();
 
-    	for (Int c = 0; c < size; c++)
-    	{
-    		for (Int block = 0; block < Blocks; block++)
-    		{
-    			auto val = adaptor(block, c);
-    			values[c * Blocks + block] = val;
-    		}
-    	}
+        for (Int c = 0; c < size; c++)
+        {
+            for (Int block = 0; block < Blocks; block++)
+            {
+                auto val = adaptor(block, c);
+                values[c * Blocks + block] = val;
+            }
+        }
     }
 
 
     SizesT insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, Int size)
     {
-    	insertSpace(at[0], size);
+        insertSpace(at[0], size);
 
-    	auto buffer_values = buffer->values();
+        auto buffer_values = buffer->values();
 
-    	Int start = starts[0];
-    	Int end   = ends[0];
+        Int start = starts[0];
+        Int end   = ends[0];
 
-    	CopyBuffer(buffer_values + start * Blocks, this->values() + at[0] * Blocks, (end - start) * Blocks);
+        CopyBuffer(buffer_values + start * Blocks, this->values() + at[0] * Blocks, (end - start) * Blocks);
 
-    	return at + SizesT(size);
+        return at + SizesT(size);
     }
 
     Int insert_buffer(Int at, const InputBuffer* buffer, Int start, Int size)
     {
-    	insertSpace(at, size);
+        insertSpace(at, size);
 
-    	auto buffer_values = buffer->values();
+        auto buffer_values = buffer->values();
 
-    	Int end = start + size;
+        Int end = start + size;
 
-    	CopyBuffer(buffer_values + start * Blocks, this->values() + at * Blocks, (end - start) * Blocks);
+        CopyBuffer(buffer_values + start * Blocks, this->values() + at * Blocks, (end - start) * Blocks);
 
-    	return at + size;
+        return at + size;
     }
 
     SizesT positions(Int idx) const {
-    	return SizesT(idx);
+        return SizesT(idx);
     }
 
 
     template <typename Adaptor>
     void _insert(Int pos, Int size, Adaptor&& adaptor)
     {
-    	insertSpace(pos, size);
+        insertSpace(pos, size);
 
-    	auto values = this->values();
+        auto values = this->values();
 
-    	for (Int c = 0; c < size; c++)
-    	{
-    		for (Int b = 0; b < Blocks; b++) {
-    			values[(c + pos) * Blocks + b] = adaptor(b, c);
-    		}
-    	}
+        for (Int c = 0; c < size; c++)
+        {
+            for (Int b = 0; b < Blocks; b++) {
+                values[(c + pos) * Blocks + b] = adaptor(b, c);
+            }
+        }
     }
 
 
@@ -508,46 +508,46 @@ public:
     template <Int Offset, typename T, Int Size, template <typename, Int> class BranchNodeEntryItem, typename AccessorFn>
     void _update_b(Int pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&& val)
     {
-    	value(0, pos) = val(0);
+        value(0, pos) = val(0);
     }
 
     template <Int Offset, typename Value, typename T, Int Size, template <typename, Int> class BranchNodeEntryItem>
     void _insert(Int pos, Value&& val, BranchNodeEntryItem<T, Size>& accum)
     {
-    	_insert(pos, 1, [&](int block, int idx){
-    		return val[block];
-    	});
+        _insert(pos, 1, [&](int block, int idx){
+            return val[block];
+        });
     }
 
     template <Int Offset, typename T, Int Size, template <typename, Int> class BranchNodeEntryItem, typename AccessorFn>
     void _insert_b(Int pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&& val)
     {
-    	_insert(pos, 1, [&](int block, int idx){
-    		return val(block);
-    	});
+        _insert(pos, 1, [&](int block, int idx){
+            return val(block);
+        });
     }
 
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
     void _remove(Int idx, BranchNodeEntryItem<T, Size>& accum)
     {
-    	remove(idx, idx + 1);
+        remove(idx, idx + 1);
     }
 
 
     template <typename Fn>
     void read(Int block, Int start, Int end, Fn&& fn) const
     {
-    	MEMORIA_ASSERT(end, <=, size_);
-    	MEMORIA_ASSERT(start, >=, 0);
-    	MEMORIA_ASSERT(start, <=, end);
+        MEMORIA_ASSERT(end, <=, size_);
+        MEMORIA_ASSERT(start, >=, 0);
+        MEMORIA_ASSERT(start, <=, end);
 
         auto values = this->values();
 
         for (Int c = start; c < end; c++)
         {
-        	fn(values[c * Blocks + block]);
-        	fn.next();
+            fn(values[c * Blocks + block]);
+            fn.next();
         }
     }
 
@@ -556,19 +556,19 @@ public:
     template <typename Fn>
     void read(Int start, Int end, Fn&& fn) const
     {
-    	MEMORIA_ASSERT(end, <=, size_);
-    	MEMORIA_ASSERT(start, >=, 0);
-    	MEMORIA_ASSERT(start, <=, end);
+        MEMORIA_ASSERT(end, <=, size_);
+        MEMORIA_ASSERT(start, >=, 0);
+        MEMORIA_ASSERT(start, <=, end);
 
         auto values = this->values();
 
         for (Int c = start; c < end; c++)
         {
-        	for (Int b = 0; b < Blocks; b++) {
-        		fn(b, values[c * Blocks + b]);
-        	}
+            for (Int b = 0; b < Blocks; b++) {
+                fn(b, values[c * Blocks + b]);
+            }
 
-        	fn.next();
+            fn.next();
         }
     }
 
@@ -587,27 +587,27 @@ public:
 
         if (Blocks == 1)
         {
-        	dumpArray<Value>(out, size_ * Blocks, [&](Int pos) -> Value {
-        		return values_[pos];
-        	});
+            dumpArray<Value>(out, size_ * Blocks, [&](Int pos) -> Value {
+                return values_[pos];
+            });
         }
         else {
-        	for (Int c = 0; c < size_; c++)
-        	{
-        		out<<c<<": ";
-        		for (Int b = 0; b < Blocks; b++)
-        		{
-        			out<<values_[c * Blocks + b]<<", ";
-        		}
-        		out<<endl;
-        	}
+            for (Int c = 0; c < size_; c++)
+            {
+                out<<c<<": ";
+                for (Int b = 0; b < Blocks; b++)
+                {
+                    out<<values_[c * Blocks + b]<<", ";
+                }
+                out<<endl;
+            }
         }
     }
 
 
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
-    	handler->startStruct();
+        handler->startStruct();
         handler->startGroup("FSE_ARRAY");
 
         handler->value("ALLOCATOR",     &Base::allocator_offset());
@@ -621,12 +621,12 @@ public:
         handler->endGroup();
 
         handler->endGroup();
-    	handler->endStruct();
+        handler->endStruct();
     }
 
     void serialize(SerializationData& buf) const
     {
-    	FieldFactory<Int>::serialize(buf, Base::allocator_offset_);
+        FieldFactory<Int>::serialize(buf, Base::allocator_offset_);
         FieldFactory<Int>::serialize(buf, size_);
         FieldFactory<Int>::serialize(buf, max_size_);
 
@@ -646,7 +646,7 @@ public:
 
 template <typename Types>
 struct PkdStructSizeType<PackedFSEArray<Types>> {
-	static const PackedSizeType Value = PackedSizeType::FIXED;
+    static const PackedSizeType Value = PackedSizeType::FIXED;
 };
 
 template <typename T>
@@ -657,7 +657,7 @@ struct StructSizeProvider<PackedFSEArray<T>> {
 
 template <typename T>
 struct PkdSearchKeyTypeProvider<PackedFSEArray<T>> {
-	using Type = typename PackedFSEArray<T>::Value;
+    using Type = typename PackedFSEArray<T>::Value;
 };
 
 

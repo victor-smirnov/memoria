@@ -98,11 +98,11 @@ public:
     virtual ~Task() throw ();
 
     Int getSeed() const {
-    	return seed_;
+        return seed_;
     }
 
     void setSeed(Int v) {
-    	seed_ = v;
+        seed_ = v;
     }
 
     virtual bool IsGroup() const {
@@ -143,7 +143,7 @@ public:
 
     void setOutputFolder(StringRef folder)
     {
-    	output_folder_ = folder;
+        output_folder_ = folder;
     }
 
     String getResourcePath(StringRef name) const
@@ -194,7 +194,7 @@ public:
 
     virtual void StoreProperties(StringRef file_name)
     {
-    	fstream file;
+        fstream file;
         file.open(file_name.c_str(), fstream::out | fstream::trunc | fstream::trunc);
 
         file<<"task = "<<this->getFullName()<<endl;
@@ -326,7 +326,7 @@ public:
     virtual ~GroupRunner() throw() {}
 
 //    Int getSeed() const {
-//    	return seed_ >= 0 ? seed_ : (getTimeInMillis() % 1000000);
+//      return seed_ >= 0 ? seed_ : (getTimeInMillis() % 1000000);
 //    }
 
 

@@ -98,24 +98,24 @@ struct BTTypes {
 
 
     typedef TypeList<
-    		bt::BranchFixedName,
-    		bt::InsertBatchFixedName
+            bt::BranchFixedName,
+            bt::InsertBatchFixedName
     >                                                                           FixedBranchContainerPartsList;
 
     typedef TypeList<
-    		bt::BranchVariableName,
-    		bt::InsertBatchVariableName
+            bt::BranchVariableName,
+            bt::InsertBatchVariableName
     >                                                                           VariableBranchContainerPartsList;
 
     typedef TypeList<
-    		bt::LeafFixedName
+            bt::LeafFixedName
     >                                                                           FixedLeafContainerPartsList;
 
     typedef TypeList<
-    		bt::LeafVariableName
+            bt::LeafVariableName
     >                                                                           VariableLeafContainerPartsList;
     
-    typedef TypeList<> 															CommonContainerPartsList;
+    typedef TypeList<>                                                          CommonContainerPartsList;
 
 
     typedef TypeList<
@@ -133,9 +133,9 @@ struct BTTypes {
 
 
     using Allocator = typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator;
-    using ID 		= typename Allocator::ID;
+    using ID        = typename Allocator::ID;
 
-    using Metadata 	= BalancedTreeMetadata<ID>;
+    using Metadata  = BalancedTreeMetadata<ID>;
 
     typedef TypeList<
             BranchNodeTypes<BranchNode>,
@@ -179,7 +179,7 @@ struct BTTypes {
     using FindGTForwardWalker          = bt::FindGTForwardWalker<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using FindMaxGTWalker          	   = bt::FindMaxGTWalker<WalkerTypes<Types, LeafPath>>;
+    using FindMaxGTWalker              = bt::FindMaxGTWalker<WalkerTypes<Types, LeafPath>>;
 
 
     template <typename Types, typename LeafPath>
@@ -219,10 +219,10 @@ struct BTTypes {
     using PrevLeafWalker      = bt::BackwardLeafWalker<Types>;
 
     template <typename Types, typename LeafPath>
-    using NextLeafMutistreamWalker 	= bt::SkipForwardWalker<WalkerTypes<Types, LeafPath>>;
+    using NextLeafMutistreamWalker  = bt::SkipForwardWalker<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using PrevLeafMutistreamWalker	= bt::SkipBackwardWalker<WalkerTypes<Types, LeafPath>>;
+    using PrevLeafMutistreamWalker  = bt::SkipBackwardWalker<WalkerTypes<Types, LeafPath>>;
 };
 
 
@@ -237,38 +237,38 @@ class CtrTF<Profile, memoria::BT, ContainerTypeName_> {
 public:
 
     using ContainerTypes = BTTypes<Profile, ContainerTypeName_>;
-    using ID 			 = typename ContainerTypes::Allocator::Page::ID;
+    using ID             = typename ContainerTypes::Allocator::Page::ID;
 
     using StreamDescriptors = typename ContainerTypes::StreamDescriptors;
     static const Int Streams = ListSize<StreamDescriptors>::Value;
 
-    using Position_ 		= core::StaticVector<typename ContainerTypes::CtrSizeT, Streams>;
-    using Page      		= typename ContainerTypes::Allocator::Page;
+    using Position_         = core::StaticVector<typename ContainerTypes::CtrSizeT, Streams>;
+    using Page              = typename ContainerTypes::Allocator::Page;
 
     using NodePageBase0     = TreeNodeBase<typename ContainerTypes::Metadata, Page>;
     using NodePageBase0G    = PageGuard<NodePageBase0, typename ContainerTypes::Allocator>;
 
-    using CtrSizeT 					= typename ContainerTypes::CtrSizeT;
+    using CtrSizeT                  = typename ContainerTypes::CtrSizeT;
 
-    using BranchStreamsStructList 	= typename PackedBranchStructListBuilder<CtrSizeT, StreamDescriptors>::StructList;
+    using BranchStreamsStructList   = typename PackedBranchStructListBuilder<CtrSizeT, StreamDescriptors>::StructList;
 
-    using LeafStreamsStructList 	= typename PackedLeafStructListBuilder<CtrSizeT, StreamDescriptors>::StructList;
-    using StreamsInputTypeList 		= typename PackedLeafStructListBuilder<CtrSizeT, StreamDescriptors>::StreamInputList;
-    using InputBufferStructList 	= typename PackedLeafStructListBuilder<CtrSizeT, StreamDescriptors>::InputBufferList;
+    using LeafStreamsStructList     = typename PackedLeafStructListBuilder<CtrSizeT, StreamDescriptors>::StructList;
+    using StreamsInputTypeList      = typename PackedLeafStructListBuilder<CtrSizeT, StreamDescriptors>::StreamInputList;
+    using InputBufferStructList     = typename PackedLeafStructListBuilder<CtrSizeT, StreamDescriptors>::InputBufferList;
 
     using IteratorBranchNodeEntry = TypeListToTuple<
-    			Linearize<
-    				typename IteratorBranchNodeEntryListBuilder<CtrSizeT, StreamDescriptors>::AccumTuple
+                Linearize<
+                    typename IteratorBranchNodeEntryListBuilder<CtrSizeT, StreamDescriptors>::AccumTuple
                 >
     >;
 
     using LeafRangeOffsetList = Linearize<
-    				typename IteratorBranchNodeEntryListBuilder<CtrSizeT, StreamDescriptors>::RangeOffsetList
+                    typename IteratorBranchNodeEntryListBuilder<CtrSizeT, StreamDescriptors>::RangeOffsetList
     >;
 
     using LeafRangeList = Linearize<
-    				typename IteratorBranchNodeEntryListBuilder<CtrSizeT, StreamDescriptors>::IndexRangeList,
-    				2
+                    typename IteratorBranchNodeEntryListBuilder<CtrSizeT, StreamDescriptors>::IndexRangeList,
+                    2
     >;
 
 
@@ -281,14 +281,14 @@ public:
         using ID        = typename MyType::ID;
 
         using BranchNodeEntry   = BranchNodeEntry_;
-        using Position      	= Position_;
-        using CtrSizesT      	= Position_;
+        using Position          = Position_;
+        using CtrSizesT         = Position_;
 
-        using LeafStreamsStructList 	= typename MyType::LeafStreamsStructList;
-        using BranchStreamsStructList 	= typename MyType::BranchStreamsStructList;
-        using IteratorBranchNodeEntry 	= typename MyType::IteratorBranchNodeEntry;
-        using StreamsInputTypeList		= typename MyType::StreamsInputTypeList;
-        using InputBufferStructList		= typename MyType::InputBufferStructList;
+        using LeafStreamsStructList     = typename MyType::LeafStreamsStructList;
+        using BranchStreamsStructList   = typename MyType::BranchStreamsStructList;
+        using IteratorBranchNodeEntry   = typename MyType::IteratorBranchNodeEntry;
+        using StreamsInputTypeList      = typename MyType::StreamsInputTypeList;
+        using InputBufferStructList     = typename MyType::InputBufferStructList;
     };
 
     struct BranchNodeTypes: NodeTypesBase {
@@ -312,28 +312,28 @@ public:
 
     typedef bt::BTreeDispatchers<DispatcherTypes>                              PageDispatchers;
 
-    static const PackedSizeType BranchSizeType 	= PackedListStructSizeType<Linearize<BranchStreamsStructList>>::Value;
-    static const PackedSizeType LeafSizeType 	= PackedListStructSizeType<Linearize<LeafStreamsStructList>>::Value;
+    static const PackedSizeType BranchSizeType  = PackedListStructSizeType<Linearize<BranchStreamsStructList>>::Value;
+    static const PackedSizeType LeafSizeType    = PackedListStructSizeType<Linearize<LeafStreamsStructList>>::Value;
 
-    static const PackedSizeType TotalSizeType 	= PackedSizeTypeList<BranchSizeType, LeafSizeType>::Value;
+    static const PackedSizeType TotalSizeType   = PackedSizeTypeList<BranchSizeType, LeafSizeType>::Value;
 
 
 
     using CtrListBranch = IfThenElse<
-    						BranchSizeType == PackedSizeType::FIXED,
-    						typename ContainerTypes::FixedBranchContainerPartsList,
-    						typename ContainerTypes::VariableBranchContainerPartsList
+                            BranchSizeType == PackedSizeType::FIXED,
+                            typename ContainerTypes::FixedBranchContainerPartsList,
+                            typename ContainerTypes::VariableBranchContainerPartsList
     >;
 
     using CtrListLeaf = IfThenElse<
-    					LeafSizeType == PackedSizeType::FIXED,
-    					typename ContainerTypes::FixedLeafContainerPartsList,
-    					typename ContainerTypes::VariableLeafContainerPartsList
+                        LeafSizeType == PackedSizeType::FIXED,
+                        typename ContainerTypes::FixedLeafContainerPartsList,
+                        typename ContainerTypes::VariableLeafContainerPartsList
     >;
 
     using CtrList = MergeLists<
-    		typename ContainerTypes::ContainerPartsList,
-    		MergeLists<CtrListLeaf, CtrListBranch, typename ContainerTypes::CommonContainerPartsList>
+            typename ContainerTypes::ContainerPartsList,
+            MergeLists<CtrListLeaf, CtrListBranch, typename ContainerTypes::CommonContainerPartsList>
     >;
 
 
@@ -349,7 +349,7 @@ public:
         typedef NodePageBase0                                                   NodeBase;
         typedef NodePageBase0G                                                  NodeBaseG;
 
-        typedef typename MyType::CtrList                     					CtrList;
+        typedef typename MyType::CtrList                                        CtrList;
         typedef typename ContainerTypes::IteratorPartsList                      IterList;
 
         // FIXME Refactor BTree hierarchy
@@ -361,40 +361,40 @@ public:
 
         typedef BranchNodeEntry_                                                    BranchNodeEntry;
 
-        using Position 	= Position_;
+        using Position  = Position_;
         using CtrSizesT = Position_;
 
         typedef PageUpdateManager<CtrTypes>                                     PageUpdateMgr;
 
-        using LeafStreamsStructList 	= typename MyType::LeafStreamsStructList;
+        using LeafStreamsStructList     = typename MyType::LeafStreamsStructList;
 
-        using InputBufferStructList		= typename MyType::InputBufferStructList;
+        using InputBufferStructList     = typename MyType::InputBufferStructList;
 
-        using BranchStreamsStructList 	= typename MyType::BranchStreamsStructList;
+        using BranchStreamsStructList   = typename MyType::BranchStreamsStructList;
 
-        using IteratorBranchNodeEntry 		= typename MyType::IteratorBranchNodeEntry;
-        using LeafRangeOffsetList 		= typename MyType::LeafRangeOffsetList;
-        using LeafRangeList				= typename MyType::LeafRangeList;
+        using IteratorBranchNodeEntry       = typename MyType::IteratorBranchNodeEntry;
+        using LeafRangeOffsetList       = typename MyType::LeafRangeOffsetList;
+        using LeafRangeList             = typename MyType::LeafRangeList;
 
 //        template <typename LeafPath>
 //        using TargetType = typename PackedStructValueTypeH<LeafStreamsStructList, LeafPath>::Type;
 
         template <typename LeafPath>
         using TargetType = typename AccumType<
-        		BrachStructAccessorTool<
-					LeafStreamsStructList,
-					BranchStreamsStructList,
-					LeafPath
-				>
+                BrachStructAccessorTool<
+                    LeafStreamsStructList,
+                    BranchStreamsStructList,
+                    LeafPath
+                >
         >::Type;
 
         template <typename LeafPath>
         using TargetType2 = typename AccumType<
-        		BrachStructAccessorTool<
-					LeafStreamsStructList,
-					BranchStreamsStructList,
-					LeafPath
-				>
+                BrachStructAccessorTool<
+                    LeafStreamsStructList,
+                    BranchStreamsStructList,
+                    LeafPath
+                >
         >::Type;
 
         using StreamsInputTypeList = typename MyType::StreamsInputTypeList;
@@ -420,8 +420,8 @@ public:
 
 
         static const LeafDataLengthType LeafDataLength = LeafSizeType == PackedSizeType::FIXED ?
-        												LeafDataLengthType::FIXED :
-														LeafDataLengthType::VARIABLE;
+                                                        LeafDataLengthType::FIXED :
+                                                        LeafDataLengthType::VARIABLE;
 
 
         using LeafType = typename Pages::LeafDispatcher::Head::Base;

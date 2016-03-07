@@ -16,13 +16,13 @@ using namespace std;
 
 template <typename ValueT>
 class PackedCodecsTestBase: public TestTask {
-	using Base = TestTask;
+    using Base = TestTask;
 protected:
 
-	static constexpr Int MEMBUF_SIZE = 1024*1024*64;
+    static constexpr Int MEMBUF_SIZE = 1024*1024*64;
 
 
-    using Value 	= ValueT;
+    using Value     = ValueT;
 
 public:
 

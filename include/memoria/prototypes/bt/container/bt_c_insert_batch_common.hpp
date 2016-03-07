@@ -34,9 +34,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchCommonName)
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
+    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
+    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
+    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
 
     typedef typename Base::Metadata                                             Metadata;
 
@@ -48,43 +48,43 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchCommonName)
     typedef typename Types::CtrSizeT                                            CtrSizeT;
 
     class Checkpoint {
-    	NodeBaseG head_;
-    	Int size_;
+        NodeBaseG head_;
+        Int size_;
     public:
-    	Checkpoint(NodeBaseG head, Int size): head_(head), size_(size) {}
+        Checkpoint(NodeBaseG head, Int size): head_(head), size_(size) {}
 
-    	NodeBaseG head() const {return head_;};
-    	Int size() const {return size_;};
+        NodeBaseG head() const {return head_;};
+        Int size() const {return size_;};
     };
 
 
     struct ILeafProvider {
-    	virtual NodeBaseG get_leaf() 	= 0;
+        virtual NodeBaseG get_leaf()    = 0;
 
-    	virtual Checkpoint checkpoint() = 0;
+        virtual Checkpoint checkpoint() = 0;
 
-    	virtual void rollback(const Checkpoint& chekpoint) = 0;
+        virtual void rollback(const Checkpoint& chekpoint) = 0;
 
-    	virtual CtrSizeT size() const		= 0;
+        virtual CtrSizeT size() const       = 0;
     };
 
 
 
     void updateChildIndexes(NodeBaseG& node, Int start)
     {
-    	auto& self = this->self();
-		Int size = self.getBranchNodeSize(node);
+        auto& self = this->self();
+        Int size = self.getBranchNodeSize(node);
 
-		if (start < size)
-		{
-			self.forAllIDs(node, start, size, [&, this](const ID& id, Int parent_idx)
-			{
-				auto& self = this->self();
-				NodeBaseG child = self.allocator().getPageForUpdate(id, self.master_name());
+        if (start < size)
+        {
+            self.forAllIDs(node, start, size, [&, this](const ID& id, Int parent_idx)
+            {
+                auto& self = this->self();
+                NodeBaseG child = self.allocator().getPageForUpdate(id, self.master_name());
 
-				child->parent_idx() = parent_idx;
-			});
-		}
+                child->parent_idx() = parent_idx;
+            });
+        }
     }
 
     void remove_branch_nodes(ID node_id)
@@ -106,42 +106,42 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchCommonName)
     }
 
     class InsertBatchResult {
-    	Int idx_;
-    	CtrSizeT subtree_size_;
+        Int idx_;
+        CtrSizeT subtree_size_;
     public:
-    	InsertBatchResult(Int idx, CtrSizeT size): idx_(idx), subtree_size_(size) {}
+        InsertBatchResult(Int idx, CtrSizeT size): idx_(idx), subtree_size_(size) {}
 
-    	Int idx() const {return idx_;}
-    	CtrSizeT subtree_size() const {return subtree_size_;}
+        Int idx() const {return idx_;}
+        CtrSizeT subtree_size() const {return subtree_size_;}
     };
 
 
     NodeBaseG BuildSubtree(ILeafProvider& provider, Int level)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	if (provider.size() > 0)
-    	{
-    		if (level >= 1)
-    		{
-    			NodeBaseG node = self.createNode1(level, false, false);
+        if (provider.size() > 0)
+        {
+            if (level >= 1)
+            {
+                NodeBaseG node = self.createNode1(level, false, false);
 
-    			self.layoutNonLeafNode(node, 0xFF);
+                self.layoutNonLeafNode(node, 0xFF);
 
-    			self.insertSubtree(node, 0, provider, [this, level, &provider]() -> NodeBaseG {
-    				auto& self = this->self();
-    				return self.BuildSubtree(provider, level - 1);
-    			}, false);
+                self.insertSubtree(node, 0, provider, [this, level, &provider]() -> NodeBaseG {
+                    auto& self = this->self();
+                    return self.BuildSubtree(provider, level - 1);
+                }, false);
 
-    			return node;
-    		}
-    		else {
-    			return provider.get_leaf();
-    		}
-    	}
-    	else {
-    		return NodeBaseG();
-    	}
+                return node;
+            }
+            else {
+                return provider.get_leaf();
+            }
+        }
+        else {
+            return NodeBaseG();
+        }
     }
 
 
@@ -149,43 +149,43 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchCommonName)
 
 
     class ListLeafProvider: public ILeafProvider {
-    	NodeBaseG	head_;
-    	CtrSizeT 	size_ = 0;
+        NodeBaseG   head_;
+        CtrSizeT    size_ = 0;
 
-    	MyType& 	ctr_;
+        MyType&     ctr_;
 
     public:
-    	ListLeafProvider(MyType& ctr, NodeBaseG head, CtrSizeT size): head_(head),  size_(size), ctr_(ctr) {}
+        ListLeafProvider(MyType& ctr, NodeBaseG head, CtrSizeT size): head_(head),  size_(size), ctr_(ctr) {}
 
-    	virtual CtrSizeT size() const
-    	{
-    		return size_;
-    	}
+        virtual CtrSizeT size() const
+        {
+            return size_;
+        }
 
-    	virtual NodeBaseG get_leaf()
-    	{
-    		if (head_.isSet())
-    		{
-    			auto node = head_;
-    			head_ = ctr_.allocator().getPage(head_->next_leaf_id(), ctr_.master_name());
-    			size_--;
-    			return node;
-    		}
-    		else {
-    			throw memoria::BoundsException(MA_SRC, "Leaf List is empty");
-    		}
-    	}
+        virtual NodeBaseG get_leaf()
+        {
+            if (head_.isSet())
+            {
+                auto node = head_;
+                head_ = ctr_.allocator().getPage(head_->next_leaf_id(), ctr_.master_name());
+                size_--;
+                return node;
+            }
+            else {
+                throw memoria::BoundsException(MA_SRC, "Leaf List is empty");
+            }
+        }
 
-    	virtual Checkpoint checkpoint() {
-    		return Checkpoint(head_, size_);
-    	}
+        virtual Checkpoint checkpoint() {
+            return Checkpoint(head_, size_);
+        }
 
 
-    	virtual void rollback(const Checkpoint& checkpoint)
-    	{
-    		size_ 	= checkpoint.size();
-    		head_ 	= checkpoint.head();
-    	}
+        virtual void rollback(const Checkpoint& checkpoint)
+        {
+            size_   = checkpoint.size();
+            head_   = checkpoint.head();
+        }
     };
 
 

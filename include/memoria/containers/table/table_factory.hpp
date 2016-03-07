@@ -38,7 +38,7 @@ template <
     typename Profile,
     typename Key_,
     typename Value_,
-	PackedSizeType SizeType
+    PackedSizeType SizeType
 >
 struct TableBTTypesBase: public BTTypes<Profile, memoria::BTTreeLayout> {
 
@@ -51,73 +51,73 @@ struct TableBTTypesBase: public BTTypes<Profile, memoria::BTTreeLayout> {
     >;
 
 
-    using Key 	= Key_;
-    using Value	= Value_;
+    using Key   = Key_;
+    using Value = Value_;
 
     using CtrSizeT = BigInt;
 
     static constexpr Int Levels = 3;
 
     using FirstStreamVariableTF = StreamTF<
-    	TL<
-			//PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec>>
-		>,
-		FSEBranchStructTF,
-		TL<
-			//IndexRange<0, 1>
-    	>
+        TL<
+            //PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec>>
+        >,
+        FSEBranchStructTF,
+        TL<
+            //IndexRange<0, 1>
+        >
 
-	>;
+    >;
 
     using StreamVariableTF = StreamTF<
         TL<>,
         TL<>,
-		FSEBranchStructTF
+        FSEBranchStructTF
     >;
 
 
     using FirstStreamFixedTF = StreamTF<
         TL<
-        	//PkdFQTree<CtrSizeT, 1>
+            //PkdFQTree<CtrSizeT, 1>
         >,
-		FSEBranchStructTF,
+        FSEBranchStructTF,
         TL<
-			//TL<IndexRange<0, 1>>
-		>
+            //TL<IndexRange<0, 1>>
+        >
     >;
 
     using StreamFixedTF = StreamTF<
         TL<>,
-		FSEBranchStructTF,
-		TL<>
+        FSEBranchStructTF,
+        TL<>
     >;
 
     using DataStreamTF  = StreamTF<
-    	TL<TL<PkdFSQArrayT<Value, 1>>>,
-    	FSEBranchStructTF,
-		TL<TL<TL<>>>
+        TL<TL<PkdFSQArrayT<Value, 1>>>,
+        FSEBranchStructTF,
+        TL<TL<TL<>>>
     >;
 
 
     using RawStreamDescriptors = IfThenElse<
-    		SizeType == PackedSizeType::FIXED,
-			MergeLists<
-				FirstStreamFixedTF,
-				typename MakeList<StreamFixedTF, Levels - 2>::Type,
-				DataStreamTF
-			>,
-			MergeLists<
-				FirstStreamVariableTF,
-				typename MakeList<StreamVariableTF, Levels - 2>::Type,
-				DataStreamTF
-			>
+            SizeType == PackedSizeType::FIXED,
+            MergeLists<
+                FirstStreamFixedTF,
+                typename MakeList<StreamFixedTF, Levels - 2>::Type,
+                DataStreamTF
+            >,
+            MergeLists<
+                FirstStreamVariableTF,
+                typename MakeList<StreamVariableTF, Levels - 2>::Type,
+                DataStreamTF
+            >
     >;
 
     using StreamDescriptors = typename bttl::BTTLAugmentStreamDescriptors<
-    		RawStreamDescriptors,
-			//PkdVDTreeT<CtrSizeT, 1, UByteI7Codec>
-			PkdFQTreeT<CtrSizeT, 1>
-	>::Type;
+            RawStreamDescriptors,
+            //PkdVDTreeT<CtrSizeT, 1, UByteI7Codec>
+            PkdFQTreeT<CtrSizeT, 1>
+    >::Type;
 
 
     using Metadata = BalancedTreeMetadata<
@@ -147,7 +147,7 @@ template <
     typename Profile,
     typename Key_,
     typename Value_,
-	PackedSizeType SizeType
+    PackedSizeType SizeType
 >
 struct BTTypes<Profile, memoria::Table<Key_, Value_, SizeType>>: public TableBTTypesBase<Profile, Key_, Value_, SizeType>
 {
@@ -161,14 +161,14 @@ public:
 
     struct Types: Base::Types
     {
-    	using CtrTypes 			= TableCtrTypes<Types>;
-        using IterTypes 		= TableIterTypes<Types>;
+        using CtrTypes          = TableCtrTypes<Types>;
+        using IterTypes         = TableIterTypes<Types>;
 
-        using PageUpdateMgr 	= PageUpdateManager<CtrTypes>;
+        using PageUpdateMgr     = PageUpdateManager<CtrTypes>;
     };
 
-    using CtrTypes 	= typename Types::CtrTypes;
-    using Type 		= Ctr<CtrTypes>;
+    using CtrTypes  = typename Types::CtrTypes;
+    using Type      = Ctr<CtrTypes>;
 };
 
 

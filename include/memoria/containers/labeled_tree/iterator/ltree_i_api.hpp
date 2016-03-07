@@ -41,68 +41,68 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
     typedef typename Container::Types::CtrSizeT                                 CtrSizeT;
 
     bool operator++() {
-    	return self().skipFw(1);
+        return self().skipFw(1);
     }
 
     bool operator--() {
-    	return self().skipBw(1);
+        return self().skipBw(1);
     }
 
     bool next() {
-    	return self().skipFw(1);
+        return self().skipFw(1);
     }
 
     bool prev() {
-    	return self().skipBw(1);
+        return self().skipBw(1);
     }
 
 
     bool operator++(int) {
-    	return self().skipFw(1);
+        return self().skipFw(1);
     }
 
     bool operator--(int) {
-    	return self().skipFw(1);
+        return self().skipFw(1);
     }
 
     CtrSizeT operator+=(CtrSizeT size) {
-    	return self().skipFw(size);
+        return self().skipFw(size);
     }
 
     CtrSizeT operator-=(CtrSizeT size) {
-    	return self().skipBw(size);
-	}
+        return self().skipBw(size);
+    }
 
     Int size() const
     {
-    	return self().leafSize(0);
+        return self().leafSize(0);
     }
 
     bool isEof() const {
-    	return self().idx() >= self().size();
+        return self().idx() >= self().size();
     }
 
     bool isBof() const {
-    	return self().idx() < 0;
+        return self().idx() < 0;
     }
 
     CtrSizeT skipFw(CtrSizeT amount) {
-    	return self().template skip_fw_<0>(amount);
+        return self().template skip_fw_<0>(amount);
     }
 
     CtrSizeT skipBw(CtrSizeT amount) {
-    	return self().template skip_bw_<0>(amount);
+        return self().template skip_bw_<0>(amount);
     }
 
     CtrSizeT skip(CtrSizeT amount) {
-    	return self().template skip_<0>(amount);
+        return self().template skip_<0>(amount);
     }
 
     CtrSizeT pos() const
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	return self.idx() + self.cache().size_prefix()[0];
+        return self.idx() + self.cache().size_prefix()[0];
     }
 
     CtrSizeT noderank_() const
@@ -375,12 +375,12 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
         template <typename NodeTypes>
         void treeNode(const BranchNode<NodeTypes>* node, WalkCmd, Int start, Int idx)
         {
-        	using BNode = BranchNode<NodeTypes>;
-        	using BranchPath = typename BNode::template BuildBranchPath<LeafPath>;
+            using BNode = BranchNode<NodeTypes>;
+            using BranchPath = typename BNode::template BuildBranchPath<LeafPath>;
 
-        	Int block = BNode::template translateLeafIndexToBranchIndex<LeafPath>(0);
+            Int block = BNode::template translateLeafIndexToBranchIndex<LeafPath>(0);
 
-        	node->template processStream<BranchPath>(*this, block, idx);
+            node->template processStream<BranchPath>(*this, block, idx);
         }
 
         template <typename NodeTypes>
@@ -420,72 +420,72 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
     }
 
     void remove() {
-    	auto& self = this->self();
-    	self.ctr().remove(self);
+        auto& self = this->self();
+        self.ctr().remove(self);
     }
 
 
     auto skip_for_rank(CtrSizeT& r0, CtrSizeT r1)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	auto sym = self.value();
+        auto sym = self.value();
 
-    	if (sym) {
-    		r1++;
-    	}
-    	else {
-    		r0++;
-    	}
+        if (sym) {
+            r1++;
+        }
+        else {
+            r0++;
+        }
 
-    	return self.skipFw(1);
+        return self.skipFw(1);
     }
 
     auto raw_rank(CtrSizeT& r0, CtrSizeT& r1, CtrSizeT idx)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	while (idx > 0 && !self.isEnd())
-    	{
-    		auto sym = self.value();
+        while (idx > 0 && !self.isEnd())
+        {
+            auto sym = self.value();
 
-    		if (sym)
-    		{
-    			r1++;
-    		}
-    		else {
-    			r0++;
-    		}
+            if (sym)
+            {
+                r1++;
+            }
+            else {
+                r0++;
+            }
 
-    		idx--;
+            idx--;
 
-    		self.skipFw(1);
-    	}
+            self.skipFw(1);
+        }
     }
 
     auto raw_select(Int symbol, CtrSizeT rank)
     {
-    	auto& self = this->self();
-    	CtrSizeT cnt = 0;
+        auto& self = this->self();
+        CtrSizeT cnt = 0;
 
-    	while (!self.isEnd())
-    	{
-    		auto sym = self.value();
+        while (!self.isEnd())
+        {
+            auto sym = self.value();
 
-    		if (sym == symbol)
-    		{
-    			rank--;
+            if (sym == symbol)
+            {
+                rank--;
 
-    			if (!rank) {
-    				break;
-    			}
-    		}
+                if (!rank) {
+                    break;
+                }
+            }
 
-    		cnt++;
-    		self.skipFw(1);
-    	}
+            cnt++;
+            self.skipFw(1);
+        }
 
-    	return cnt;
+        return cnt;
     }
 
     struct GPosFn {

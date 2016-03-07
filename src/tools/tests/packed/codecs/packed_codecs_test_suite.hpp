@@ -23,9 +23,9 @@ public:
 
     PackedCodecsTestSuite(): TestSuite("Packed.Codecs")
     {
-    	registerTask(new PackedInt64TCodecTest("Int64T"));
-    	registerTask(new PackedStringCodecTest("String"));
-    	registerTask(new PackedBigIntegerCodecTest("BigInteger"));
+        registerTask(new PackedInt64TCodecTest("Int64T"));
+        registerTask(new PackedStringCodecTest("String"));
+        registerTask(new PackedBigIntegerCodecTest("BigInteger"));
     }
 
 };

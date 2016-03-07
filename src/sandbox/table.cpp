@@ -22,72 +22,72 @@ using namespace memoria;
 using namespace std;
 
 int main(int argc, const char** argv, const char** envp) {
-	MEMORIA_INIT(DefaultProfile<>);
+    MEMORIA_INIT(DefaultProfile<>);
 
-	try {
-		SmallInMemAllocator alloc;
+    try {
+        SmallInMemAllocator alloc;
 
-		alloc.mem_limit() = 2*1024*1024*1024ll;
+        alloc.mem_limit() = 2*1024*1024*1024ll;
 
-		using CtrT  = DCtrTF<Table<BigInt, Byte>>::Type;
+        using CtrT  = DCtrTF<Table<BigInt, Byte>>::Type;
 
-		CtrT::initMetadata();
+        CtrT::initMetadata();
 
-		CtrT ctr(&alloc);
+        CtrT ctr(&alloc);
 
-		auto iter = ctr.seek(0);
+        auto iter = ctr.seek(0);
 
-		using Provider = table::RandomDataInputProvider<CtrT, decltype(generator)>;
+        using Provider = table::RandomDataInputProvider<CtrT, decltype(generator)>;
 
-		Provider provider(ctr, 100, 10, 10, generator);
+        Provider provider(ctr, 100, 10, 10, generator);
 
-		using Position = Provider::Position;
+        using Position = Provider::Position;
 
-		ctr.insert_provided_data(iter.leaf(), Position(), provider);
+        ctr.insert_provided_data(iter.leaf(), Position(), provider);
 
-		cout<<"Data inserted!"<<endl;
+        cout<<"Data inserted!"<<endl;
 
-		cout<<"Stream 0"<<endl;
-		iter = ctr.seek(26);
-		iter.dumpHeader();
-		cout<<endl;
+        cout<<"Stream 0"<<endl;
+        iter = ctr.seek(26);
+        iter.dumpHeader();
+        cout<<endl;
 
-		cout<<"Stream 1"<<endl;
-		iter.toData(9);
-		iter.dumpHeader();
-		cout<<endl;
+        cout<<"Stream 1"<<endl;
+        iter.toData(9);
+        iter.dumpHeader();
+        cout<<endl;
 
-		cout<<"Stream 2"<<endl;
-		iter.toData(10);
-		iter.dumpHeader();
-		cout<<endl;
+        cout<<"Stream 2"<<endl;
+        iter.toData(10);
+        iter.dumpHeader();
+        cout<<endl;
 
-		cout<<"Stream 1"<<endl;
-		iter.toIndex();
-		iter.dumpHeader();
-		cout<<endl;
+        cout<<"Stream 1"<<endl;
+        iter.toIndex();
+        iter.dumpHeader();
+        cout<<endl;
 
-		cout<<"Stream 0"<<endl;
-		iter.toIndex();
-		iter.dumpHeader();
-		cout<<endl;
+        cout<<"Stream 0"<<endl;
+        iter.toIndex();
+        iter.dumpHeader();
+        cout<<endl;
 
-		alloc.commit();
+        alloc.commit();
 
-		if (argc > 1)
-		{
-			const char* dump_name = argv[1];
+        if (argc > 1)
+        {
+            const char* dump_name = argv[1];
 
-			cout<<"Dump to: "<<dump_name<<endl;
+            cout<<"Dump to: "<<dump_name<<endl;
 
-			OutputStreamHandler* os = FileOutputStreamHandler::create(dump_name);
-			alloc.store(os);
-			delete os;
-		}
+            OutputStreamHandler* os = FileOutputStreamHandler::create(dump_name);
+            alloc.store(os);
+            delete os;
+        }
 
-		cout<<"Done"<<endl;
-	}
-	catch (memoria::Exception& ex) {
-		cout<<ex.message()<<" at "<<ex.source()<<endl;
-	}
+        cout<<"Done"<<endl;
+    }
+    catch (memoria::Exception& ex) {
+        cout<<ex.message()<<" at "<<ex.source()<<endl;
+    }
 }

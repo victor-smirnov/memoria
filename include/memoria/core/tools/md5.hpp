@@ -58,8 +58,8 @@ public:
     void add(UInt value);
     void add_ubi(UBigInt value)
     {
-    	this->add(static_cast<UInt>(value & 0xFFFFFFFF));
-    	this->add(static_cast<UInt>((value >> 32) & 0xFFFFFFFF));
+        this->add(static_cast<UInt>(value & 0xFFFFFFFF));
+        this->add(static_cast<UInt>((value >> 32) & 0xFFFFFFFF));
     }
 
     void compute();

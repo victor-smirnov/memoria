@@ -19,95 +19,95 @@ void Expand(std::ostream& os, Int level);
 
 namespace {
 
-	template <typename T>
-	struct OutputHelepr {
-		static std::ostream& out(std::ostream& o, const T& value)
-		{
-			o<<value;
-			return o;
-		}
-	};
+    template <typename T>
+    struct OutputHelepr {
+        static std::ostream& out(std::ostream& o, const T& value)
+        {
+            o<<value;
+            return o;
+        }
+    };
 
-	template <>
-	struct OutputHelepr<Byte> {
-		static std::ostream& out(std::ostream& o, const Byte& value)
-		{
-			o<<(Int)(UByte)value;
-			return o;
-		}
-	};
+    template <>
+    struct OutputHelepr<Byte> {
+        static std::ostream& out(std::ostream& o, const Byte& value)
+        {
+            o<<(Int)(UByte)value;
+            return o;
+        }
+    };
 
-	template <>
-	struct OutputHelepr<UByte> {
-		static std::ostream& out(std::ostream& o, const UByte& value)
-		{
-			o<<(Int)value;
-			return o;
-		}
-	};
+    template <>
+    struct OutputHelepr<UByte> {
+        static std::ostream& out(std::ostream& o, const UByte& value)
+        {
+            o<<(Int)value;
+            return o;
+        }
+    };
 
-	template <typename V>
-	size_t max_width(Int count, bool hex, function<V(Int)> fn)
-	{
-		size_t max = 0;
+    template <typename V>
+    size_t max_width(Int count, bool hex, function<V(Int)> fn)
+    {
+        size_t max = 0;
 
-		for (Int c = 0; c < count; c++)
-		{
-			V v = fn(c);
+        for (Int c = 0; c < count; c++)
+        {
+            V v = fn(c);
 
-			auto str = toString(v, hex);
+            auto str = toString(v, hex);
 
-			auto len = str.length();
+            auto len = str.length();
 
-			if (len > max)
-			{
-				max = len;
-			}
-		}
+            if (len > max)
+            {
+                max = len;
+            }
+        }
 
-		return max;
-	}
+        return max;
+    }
 
-	template <typename T>
-	T mask_controls(T ch) {
-		return (ch >= 32 && ch < 127) ? ch : (T)32;
-	}
+    template <typename T>
+    T mask_controls(T ch) {
+        return (ch >= 32 && ch < 127) ? ch : (T)32;
+    }
 
-	template <typename T>
-	inline void dump_as_char(std::ostream& out, const T& val) {}
-
-
-	inline void dump_as_char(std::ostream& out, const UByte& val) {
-		out << mask_controls(val);
-	}
+    template <typename T>
+    inline void dump_as_char(std::ostream& out, const T& val) {}
 
 
-	inline void dump_as_char(std::ostream& out, const Byte& val) {
-		out << mask_controls(val);
-	}
+    inline void dump_as_char(std::ostream& out, const UByte& val) {
+        out << mask_controls(val);
+    }
 
 
-	inline void dump_as_char(std::ostream& out, const Char& val) {
-		out << mask_controls(val);
-	}
+    inline void dump_as_char(std::ostream& out, const Byte& val) {
+        out << mask_controls(val);
+    }
+
+
+    inline void dump_as_char(std::ostream& out, const Char& val) {
+        out << mask_controls(val);
+    }
 }
 
 template <typename V>
 void dumpArray(std::ostream& out, Int count, function<V (Int)> fn)
 {
-	bool is_char = std::is_same<V, UByte>::value || std::is_same<V, Byte>::value || std::is_same<V, Char>::value;
+    bool is_char = std::is_same<V, UByte>::value || std::is_same<V, Byte>::value || std::is_same<V, Char>::value;
 
-	auto width = max_width(count, is_char, fn) + 1;
+    auto width = max_width(count, is_char, fn) + 1;
 
-	if (width < 3) width = 3;
+    if (width < 3) width = 3;
 
-	Int columns;
+    Int columns;
 
     switch (sizeof(V))
     {
-    	case 1: columns = 32; break;
-    	case 2: columns = 16; break;
-    	default: columns = (80 / width > 0 ? 80 / width : 1);
+        case 1: columns = 32; break;
+        case 2: columns = 16; break;
+        default: columns = (80 / width > 0 ? 80 / width : 1);
     }
 
     out << endl;
@@ -120,14 +120,14 @@ void dumpArray(std::ostream& out, Int count, function<V (Int)> fn)
 
     if (is_char)
     {
-    	out.width(16);
-    	out << "";
+        out.width(16);
+        out << "";
 
-    	for (int c = 0; c < columns; c++)
-    	{
-    		out.width(1);
-    		out << c % 10;
-    	}
+        for (int c = 0; c < columns; c++)
+        {
+            out.width(1);
+            out << c % 10;
+        }
     }
 
     out << dec << endl;
@@ -158,16 +158,16 @@ void dumpArray(std::ostream& out, Int count, function<V (Int)> fn)
 
         if (is_char)
         {
-        	for (; d < columns; d++)
-        	{
-        		out.width(width);
-        		out << "";
-        	}
+            for (; d < columns; d++)
+            {
+                out.width(width);
+                out << "";
+            }
 
-        	out.width(16);
-        	out << "";
+            out.width(16);
+            out << "";
 
-        	for (Int d = 0; d < columns && c + d < count; d++)
+            for (Int d = 0; d < columns && c + d < count; d++)
             {
                 out.width(1);
 
@@ -182,7 +182,7 @@ void dumpArray(std::ostream& out, Int count, function<V (Int)> fn)
 template <typename V>
 void dumpVector(std::ostream& out, const std::vector<V>& data)
 {
-	dumpArray<V>(out, data.size(), [&](Int idx) {return data[idx];});
+    dumpArray<V>(out, data.size(), [&](Int idx) {return data[idx];});
 }
 
 

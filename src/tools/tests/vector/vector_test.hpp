@@ -26,8 +26,8 @@ using namespace std;
 
 template <
     typename CtrName,
-	typename AllocatorT 	= PersistentInMemAllocator<>,
-	typename ProfileT		= DefaultProfile<>
+    typename AllocatorT     = PersistentInMemAllocator<>,
+    typename ProfileT       = DefaultProfile<>
 >
 class VectorTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT>
 {
@@ -60,53 +60,53 @@ public:
     VectorTest(StringRef name):
         Base(name)
     {
-    	MEMORIA_ADD_TEST_PARAM(size);
+        MEMORIA_ADD_TEST_PARAM(size);
 
-    	MEMORIA_ADD_TEST_WITH_REPLAY(testCreate, replayCreate);
+        MEMORIA_ADD_TEST_WITH_REPLAY(testCreate, replayCreate);
     }
 
     virtual MemBuffer createRandomBuffer(Int size)
     {
-    	auto buffer = MemBuffer(size);
+        auto buffer = MemBuffer(size);
 
-    	for (auto& v: buffer)
-    	{
-    		v = getRandom(100);
-    	}
+        for (auto& v: buffer)
+        {
+            v = getRandom(100);
+        }
 
-    	return buffer;
+        return buffer;
     }
 
 
     void testCreate()
     {
-    	auto snp = branch();
+        auto snp = branch();
 
-    	auto ctr = create<CtrName>(snp);
+        auto ctr = create<CtrName>(snp);
 
-    	std::vector<Value> data(size);
+        std::vector<Value> data(size);
 
-    	for (auto& d: data)
-    	{
-    		d = this->getRandom(100);
-    	}
+        for (auto& d: data)
+        {
+            d = this->getRandom(100);
+        }
 
-    	ctr->begin()->bulk_insert(data.begin(), data.end());
+        ctr->begin()->bulk_insert(data.begin(), data.end());
 
-    	AssertEQ(MA_SRC, ctr->size(), data.size());
+        AssertEQ(MA_SRC, ctr->size(), data.size());
 
-    	std::vector<Value> data2(size);
+        std::vector<Value> data2(size);
 
-    	auto read = ctr->begin()->read(data2.begin(), data2.size());
+        auto read = ctr->begin()->read(data2.begin(), data2.size());
 
-    	AssertEQ(MA_SRC, read, data2.size());
+        AssertEQ(MA_SRC, read, data2.size());
 
-    	for (size_t c = 0; c< data.size(); c++)
-    	{
-    		AssertEQ(MA_SRC, data[c], data2[c]);
-    	}
+        for (size_t c = 0; c< data.size(); c++)
+        {
+            AssertEQ(MA_SRC, data[c], data2[c]);
+        }
 
-    	commit();
+        commit();
     }
 
     void replayCreate() {

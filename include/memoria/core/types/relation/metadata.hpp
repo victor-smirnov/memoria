@@ -56,7 +56,7 @@ class findColumn {
                     Equal,
                     Item,
                     typename Accumulator::Result
-        >                                                               		Result;
+        >                                                                       Result;
     };
 
     struct Init {
@@ -74,7 +74,7 @@ class findColumn {
 
 public:
 
-    typedef IfThenElse<Found, Result0, ColumnNotFound<Name> >  					Result;
+    typedef IfThenElse<Found, Result0, ColumnNotFound<Name> >                   Result;
 };
 
 

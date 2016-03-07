@@ -19,7 +19,7 @@ class CtrToolsName      {};
 class CtrFindName       {};
 class CtrInsertName     {};
 class CtrInsertFixedName    {};
-class CtrInsertVariableName	{};
+class CtrInsertVariableName {};
 class CtrComprName      {};
 class CtrNormName       {};
 class CtrRemoveName     {};

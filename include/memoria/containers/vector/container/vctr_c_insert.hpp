@@ -32,9 +32,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrInsertName)
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;
 
-    using NodeDispatcher 	= typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher 	= typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher 	= typename Types::Pages::BranchDispatcher;
+    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
+    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
+    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
 
     typedef typename Base::Metadata                                             Metadata;
 
@@ -50,17 +50,17 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrInsertName)
 
 //    struct InsertBufferIntoLeafFn
 //    {
-//    	template <typename NTypes, typename LeafPosition, typename Buffer>
-//    	void treeNode(LeafNode<NTypes>* node, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
-//    	{
-//    		node->processAll(*this, pos, start, size, buffer);
-//    	}
+//      template <typename NTypes, typename LeafPosition, typename Buffer>
+//      void treeNode(LeafNode<NTypes>* node, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
+//      {
+//          node->processAll(*this, pos, start, size, buffer);
+//      }
 //
-//    	template <Int ListIdx, typename StreamType, typename LeafPosition, typename Buffer>
-//    	void stream(StreamType* obj, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
-//    	{
-//    		obj->insert(pos, start, size, buffer->template geti<ListIdx>());
-//    	}
+//      template <Int ListIdx, typename StreamType, typename LeafPosition, typename Buffer>
+//      void stream(StreamType* obj, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
+//      {
+//          obj->insert(pos, start, size, buffer->template geti<ListIdx>());
+//      }
 //    };
 //
 //
@@ -70,17 +70,17 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrInsertName)
 //    template <typename LeafPosition, typename Buffer>
 //    InsertBufferResult<LeafPosition> insertBufferIntoLeaf(NodeBaseG& leaf, LeafPosition pos, LeafPosition start, LeafPosition size, const Buffer* buffer)
 //    {
-//    	auto& self = this->self();
+//      auto& self = this->self();
 //
-//    	Int sizes = size - start;
+//      Int sizes = size - start;
 //
-//    	Int capacity = self.getLeafNodeCapacity(leaf, 0);
+//      Int capacity = self.getLeafNodeCapacity(leaf, 0);
 //
-//    	Int to_insert = capacity >= sizes ? sizes : capacity;
+//      Int to_insert = capacity >= sizes ? sizes : capacity;
 //
-//    	LeafDispatcher::dispatch(leaf, InsertBufferIntoLeafFn(), pos, start, to_insert, buffer);
+//      LeafDispatcher::dispatch(leaf, InsertBufferIntoLeafFn(), pos, start, to_insert, buffer);
 //
-//    	return InsertBufferResult<LeafPosition>(to_insert, capacity > to_insert);
+//      return InsertBufferResult<LeafPosition>(to_insert, capacity > to_insert);
 //    }
 
 MEMORIA_CONTAINER_PART_END

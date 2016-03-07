@@ -151,12 +151,12 @@ void MemoriaTestRunner::Replay(ostream& out, StringRef task_folder)
             task->configureSeed();
             task->setUp();
             try {
-            	task->Replay(out, &cfg);
-            	out<<"PASSED"<<endl;
+                task->Replay(out, &cfg);
+                out<<"PASSED"<<endl;
             }
             catch (...) {
-            	task->tearDown();
-            	throw;
+                task->tearDown();
+                throw;
             }
         }
         catch (const std::exception& e)

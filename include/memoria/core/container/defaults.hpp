@@ -28,7 +28,7 @@ template <
 >
 struct BasicContainerCollectionCfg {
 
-    typedef UUID                                                 				ID;
+    typedef UUID                                                                ID;
     typedef AbstractPage <ID, FlagsCount>                                       Page;
     typedef TransactionType                                                     Transaction;
 

@@ -72,9 +72,9 @@ public:
 
     static Int elements_for(Int block_size)
     {
-    	size_t bsize = block_size;
+        size_t bsize = block_size;
 
-    	return bsize >= sizeof(MyType) ? std::numeric_limits<Int>::max() : 0;
+        return bsize >= sizeof(MyType) ? std::numeric_limits<Int>::max() : 0;
     }
 
 
@@ -111,38 +111,38 @@ public:
     template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
     void max(BranchNodeEntryItem<T, Size>& accum) const
     {
-    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
     }
 
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
     void sum(BranchNodeEntryItem<T, Size>& accum) const
     {
-    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
     }
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
     void sum(Int start, Int end, BranchNodeEntryItem<T, Size>& accum) const
     {
-    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
     }
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
     void sub(Int start, BranchNodeEntryItem<T, Size>& accum) const
     {
-    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
     }
 
     template <Int Offset, Int Size, typename T, template <typename, Int> class BranchNodeEntryItem>
     void sum(Int idx, BranchNodeEntryItem<T, Size>& accum) const
     {
-    	static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
+        static_assert(Offset <= Size - Indexes, "Invalid balanced tree structure");
     }
 
     template <typename T>
     Int append(Int size, T&&)
     {
-    	return size;
+        return size;
     }
 
     // =================================== Update ========================================== //
@@ -191,20 +191,20 @@ public:
 
     SizesT insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, Int size)
     {
-    	return at + SizesT(size);
+        return at + SizesT(size);
     }
 
     Int insert_buffer(Int at, const InputBuffer* buffer, Int start, Int size)
     {
-    	return at + size;
+        return at + size;
     }
 
     Value value(Int, Int) const {
-    	return Value();
+        return Value();
     }
 
     SizesT positions(Int idx) const {
-    	return SizesT(idx);
+        return SizesT(idx);
     }
 
 
@@ -259,18 +259,18 @@ public:
 
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
-    	handler->startStruct();
+        handler->startStruct();
         handler->startGroup("EMPTY_STRUCT");
 
         handler->value("ALLOCATOR",     &Base::allocator_offset());
 
         handler->endGroup();
-    	handler->endStruct();
+        handler->endStruct();
     }
 
     void serialize(SerializationData& buf) const
     {
-    	FieldFactory<Int>::serialize(buf, Base::allocator_offset_);
+        FieldFactory<Int>::serialize(buf, Base::allocator_offset_);
     }
 
     void deserialize(DeserializationData& buf)
@@ -284,7 +284,7 @@ public:
 
 template <typename T, PkdSearchType S>
 struct PkdStructSizeType<PackedEmptyStruct<T, S>> {
-	static const PackedSizeType Value = PackedSizeType::FIXED;
+    static const PackedSizeType Value = PackedSizeType::FIXED;
 };
 
 template <typename T, PkdSearchType S>

@@ -28,7 +28,7 @@ class PackedWaveletTreeTest: public TestTask {
 
     typedef PackedWaveletTreeTypes<>                                        Types;
 
-    using WaveletTree 	 = PackedWaveletTree<Types>;
+    using WaveletTree    = PackedWaveletTree<Types>;
     using WaveletTreePtr = PkdStructSPtr<WaveletTree>;
 
     typedef typename WaveletTree::CardinalTree::LoudsTree                   LoudsTree;

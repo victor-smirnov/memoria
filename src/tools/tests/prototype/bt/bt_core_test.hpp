@@ -22,17 +22,17 @@ namespace memoria {
 
 template <
     typename CtrName,
-	typename AllocatorT 	= SmallInMemAllocator,
-	typename ProfileT		= DefaultProfile<>
+    typename AllocatorT     = SmallInMemAllocator,
+    typename ProfileT       = DefaultProfile<>
 >
 class BTCoreTest: public BTTestBase<CtrName, AllocatorT, ProfileT> {
 
-    using Base 	 = BTTestBase<CtrName, AllocatorT, ProfileT>;
+    using Base   = BTTestBase<CtrName, AllocatorT, ProfileT>;
     using MyType = BTCoreTest<CtrName, AllocatorT, ProfileT>;
 
-    using Allocator 	= typename Base::Allocator;
+    using Allocator     = typename Base::Allocator;
     using AllocatorSPtr = typename Base::AllocatorSPtr;
-    using Ctr 			= typename Base::Ctr;
+    using Ctr           = typename Base::Ctr;
 
 public:
 
@@ -45,8 +45,8 @@ public:
 
 
     void createAllocator(AllocatorSPtr& allocator) {
-    	allocator = std::make_shared<Allocator>();
-    	allocator->mem_limit() = this->hard_memlimit_;
+        allocator = std::make_shared<Allocator>();
+        allocator->mem_limit() = this->hard_memlimit_;
     }
 
 };

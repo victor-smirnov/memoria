@@ -24,14 +24,14 @@ using namespace memoria::bt;
 
 MEMORIA_BT_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTIteratorBase)
 public:
-    using Types 	= typename Base::Container::Types;
-    using NodeBase 	= typename Base::Container::NodeBase;
+    using Types     = typename Base::Container::Types;
+    using NodeBase  = typename Base::Container::NodeBase;
     using NodeBaseG = typename Base::Container::NodeBaseG;
     using Allocator = typename Base::Container::Allocator;
 
     using BranchNodeEntry = typename Base::Container::BranchNodeEntry;
 
-    using CtrSizeT 	= typename Types::CtrSizeT;
+    using CtrSizeT  = typename Types::CtrSizeT;
     using CtrSizesT = typename Types::CtrSizesT;
 
     using Iterator  = typename Base::Container::Iterator;
@@ -106,7 +106,7 @@ public:
 
     auto clone() const
     {
-    	return self().ctr().clone_iterator(self());
+        return self().ctr().clone_iterator(self());
     }
 
     const bool& found() const {
@@ -192,8 +192,8 @@ public:
 
     bool is_end() const
     {
-    	auto& self = this->self();
-    	return leaf().isSet() ? idx() >= self.leaf_size() : true;
+        auto& self = this->self();
+        return leaf().isSet() ? idx() >= self.leaf_size() : true;
     }
 
     bool isEnd(Int idx) const
@@ -211,13 +211,13 @@ public:
 
     bool isContent(Int idx) const
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	bool is_set = self.leaf().isSet();
+        bool is_set = self.leaf().isSet();
 
-    	auto leaf_size = self.leaf_size();
+        auto leaf_size = self.leaf_size();
 
-    	return is_set && idx >= 0 && idx < leaf_size;
+        return is_set && idx >= 0 && idx < leaf_size;
     }
 
     bool isNotEnd() const
@@ -249,7 +249,7 @@ public:
 
     bool has_same_leaf(const Iterator& other) const
     {
-    	return self().leaf()->id() == other.leaf()->id();
+        return self().leaf()->id() == other.leaf()->id();
     }
 
 
@@ -292,7 +292,7 @@ public:
         self().dumpCache(out);
         self().dumpKeys(out);
         if (self().leaf().isSet()) {
-        	cout<<"Node ID: "<<self().leaf()->id()<<endl;
+            cout<<"Node ID: "<<self().leaf()->id()<<endl;
         }
     }
 

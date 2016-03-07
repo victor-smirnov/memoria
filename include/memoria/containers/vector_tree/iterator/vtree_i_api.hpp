@@ -91,9 +91,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::vtree::ItrApiName)
         auto& self = this->self();
 
         mvector::IteratorVectorInputProvider<
-			typename ContainerType::Vec,
-			typename std::vector<Value>::const_iterator
-		>
+            typename ContainerType::Vec,
+            typename std::vector<Value>::const_iterator
+        >
         provider(self.ctr().vector(), values.begin(), values.size());
 
         self.vector_iter().insert(provider);

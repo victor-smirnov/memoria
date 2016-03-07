@@ -46,11 +46,11 @@ class CmdLine {
 
     Int             count_;
 
-    String 			coverage_;
-    String 			coverage_size_;
+    String          coverage_;
+    String          coverage_size_;
 
-    String 			soft_memlimit_;
-    String 			hard_memlimit_;
+    String          soft_memlimit_;
+    String          hard_memlimit_;
 
 public:
 
@@ -128,20 +128,20 @@ public:
 
     StringRef getCoverage() const
     {
-    	return coverage_;
+        return coverage_;
     }
 
     StringRef getCoverageSize() const {
-    	return coverage_size_;
+        return coverage_size_;
     }
 
     StringRef getSoftMemLimit() const
     {
-    	return soft_memlimit_;
+        return soft_memlimit_;
     }
 
     StringRef getHardMemLimit() const {
-    	return hard_memlimit_;
+        return hard_memlimit_;
     }
 
     void Process();

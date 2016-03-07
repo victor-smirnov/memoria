@@ -26,9 +26,9 @@ template <typename T>       struct IdxListTF;
 
 
 using LoudsStreamTF = StreamTF<
-	PkdFSSeq<typename PkdFSSeqTF<1>::Type>,
-	FSEBranchStructTF,
-	TL<TL<>>
+    PkdFSSeq<typename PkdFSSeqTF<1>::Type>,
+    FSEBranchStructTF,
+    TL<TL<>>
 >;
 
 //struct LoudsStreamTF {
@@ -39,7 +39,7 @@ using LoudsStreamTF = StreamTF<
 //    typedef core::StaticVector<BigInt, 1>                       IteratorPrefixPart;
 //
 //    typedef PkdFQTreeT<Key, 3>             NonLeafType;
-//    typedef TL<TL<>>											IdxRangeList;
+//    typedef TL<TL<>>                                          IdxRangeList;
 //
 //
 //    static const Int BitsPerSymbol = 1;
@@ -82,7 +82,7 @@ struct LabelFTreeNodeTFBase {
 
 
     typedef PkdFQTreeT<BigInt, Indexes>                                                 NonLeafType;
-    typedef TL<TL<>>															IdxRangeList;
+    typedef TL<TL<>>                                                            IdxRangeList;
 };
 
 
@@ -135,7 +135,7 @@ struct LabelVTreeNodeTFBase {
 //    > TreeTypes;
 
     typedef PkdVQTreeT<BigInt, Indexes, UByteI7Codec>                           NonLeafType;
-    typedef TL<TL<>>															IdxRangeList;
+    typedef TL<TL<>>                                                            IdxRangeList;
 };
 
 
@@ -218,7 +218,7 @@ struct LeafTypeTF<VLabel<T, Granularity::Byte, Indexed::No>> {
 
 template <typename T>
 struct IdxListTF {
-	using Type = TL<>;
+    using Type = TL<>;
 };
 
 
@@ -226,14 +226,14 @@ template <typename Head, typename... Tail >
 struct StreamDescriptorsListHelper<Head, Tail...> {
 
     using LeafType = MergeLists<
-    		typename LeafTypeTF<Head>::Type,
+            typename LeafTypeTF<Head>::Type,
             typename StreamDescriptorsListHelper<Tail...>::LeafType
     >;
 
     using IdxList = MergeLists<
-    		TL<typename IdxListTF<Head>::Type>,
-			typename StreamDescriptorsListHelper<Tail...>::IdxList
-	>;
+            TL<typename IdxListTF<Head>::Type>,
+            typename StreamDescriptorsListHelper<Tail...>::IdxList
+    >;
 
 };
 

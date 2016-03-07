@@ -54,8 +54,8 @@ public:
 
     static const Int Size = ListSize<List>::Value;
 
-    static const Int AllocatorIdxStart 	= Index;
-    static const Int AllocatorIdxEnd 	= Select<Size - 1, List>::Value + 1;
+    static const Int AllocatorIdxStart  = Index;
+    static const Int AllocatorIdxEnd    = Select<Size - 1, List>::Value + 1;
 
 
     template<typename, Int, Int> friend class PackedDispatcher;
@@ -158,10 +158,10 @@ public:
     template <Int StreamIdx, typename Fn, typename... Args>
     static auto dispatch(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-        using StreamDescrT 	= StreamTypeT<StreamIdx>;
-        using StreamType 	= typename StreamDescrT::Type;
+        using StreamDescrT  = StreamTypeT<StreamIdx>;
+        using StreamType    = typename StreamDescrT::Type;
 
-        const Int AllocatorIdx 	= StreamDescrT::Value;
+        const Int AllocatorIdx  = StreamDescrT::Value;
 
         const StreamType* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx))
@@ -176,10 +176,10 @@ public:
     template <Int StreamIdx, typename Fn, typename... Args>
     static auto dispatch(PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-        using StreamDescrT 	= StreamTypeT<StreamIdx>;
-        using StreamType 	= typename StreamDescrT::Type;
+        using StreamDescrT  = StreamTypeT<StreamIdx>;
+        using StreamType    = typename StreamDescrT::Type;
 
-        const Int AllocatorIdx 	= StreamDescrT::Value;
+        const Int AllocatorIdx  = StreamDescrT::Value;
 
         StreamType* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx))
@@ -612,8 +612,8 @@ public:
 
     typedef TypeList<SubstreamDescr<Head, Index>> List;
 
-    static const Int AllocatorIdxStart 	= Index;
-    static const Int AllocatorIdxEnd 	= Index + 1;
+    static const Int AllocatorIdxStart  = Index;
+    static const Int AllocatorIdxEnd    = Index + 1;
 
     static const Int Size = ListSize<List>::Value;
 
@@ -666,7 +666,7 @@ public:
 
     template <typename Subset, Int GroupIdx_ = GroupIdx>
     using SubsetDispatcher = PackedDispatcher<
-    								::memoria::ListSubset<
+                                    ::memoria::ListSubset<
                                         TypeList<SubstreamDescr<Head, Index>>,
                                         Subset
                                     >,
@@ -715,10 +715,10 @@ public:
     template <Int StreamIdx, typename Fn, typename... Args>
     static auto dispatch(PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-        using StreamDescrT 	= StreamTypeT<StreamIdx>;
-        using StreamType 	= typename StreamDescrT::Type;
+        using StreamDescrT  = StreamTypeT<StreamIdx>;
+        using StreamType    = typename StreamDescrT::Type;
 
-        const Int AllocatorIdx 	= StreamDescrT::Value;
+        const Int AllocatorIdx  = StreamDescrT::Value;
 
         StreamType* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx))
@@ -733,10 +733,10 @@ public:
     template <Int StreamIdx, typename Fn, typename... Args>
     static auto dispatch(const PackedAllocator* alloc, Fn&& fn, Args&&... args)
     {
-        using StreamDescrT 	= StreamTypeT<StreamIdx>;
-        using StreamType 	= typename StreamDescrT::Type;
+        using StreamDescrT  = StreamTypeT<StreamIdx>;
+        using StreamType    = typename StreamDescrT::Type;
 
-        const Int AllocatorIdx 	= StreamDescrT::Value;
+        const Int AllocatorIdx  = StreamDescrT::Value;
 
         const StreamType* head = nullptr;
         if (!alloc->is_empty(AllocatorIdx))
@@ -1021,8 +1021,8 @@ public:
     template <typename Tuple, typename Fn, typename... Args>
     static void dispatchAllTupleStatic(Tuple& tuple, Fn&& fn, Args&&... args)
     {
-    	const Head* head = nullptr;
-    	std::get<ListIdx>(tuple) = detail::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
+        const Head* head = nullptr;
+        std::get<ListIdx>(tuple) = detail::pd::dispatchFn<GroupIdx, AllocatorIdx, ListIdx>(std::forward<Fn>(fn), head, std::forward<Args>(args)...);
     }
 
 
@@ -1069,7 +1069,7 @@ public:
 template <Int GroupIdx, Int ListOffsetIdx>
 class PackedDispatcher<TypeList<>, GroupIdx, ListOffsetIdx> {
 public:
-	template<typename, Int, Int> friend class PackedDispatcher;
+    template<typename, Int, Int> friend class PackedDispatcher;
 
     template <typename Fn, typename... Args>
     static void dispatchAllStatic(Fn&& fn, Args&&...)

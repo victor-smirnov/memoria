@@ -51,7 +51,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrFindName)
     }
 
     auto seek(CtrSizeT idx) {
-    	return self().template seek_stream<0>(idx);
+        return self().template seek_stream<0>(idx);
     }
 
 

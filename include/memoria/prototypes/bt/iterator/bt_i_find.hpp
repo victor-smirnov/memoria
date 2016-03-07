@@ -37,20 +37,20 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorFindName)
     template <typename Walker>
     auto find_fw(Walker&& walker)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	walker.prepare(self);
+        walker.prepare(self);
 
-    	typename Container::NodeChain node_chain(self.leaf(), self.key_idx());
+        typename Container::NodeChain node_chain(self.leaf(), self.key_idx());
 
-    	auto result = self.ctr().find_fw(node_chain, walker);
+        auto result = self.ctr().find_fw(node_chain, walker);
 
-    	self.leaf() = result.node;
-    	self.idx()  = result.idx;
+        self.leaf() = result.node;
+        self.idx()  = result.idx;
 
-    	walker.finish(self, result.idx, result.cmd);
+        walker.finish(self, result.idx, result.cmd);
 
-    	return walker.result();
+        return walker.result();
     }
 
     template <typename Walker>
@@ -77,46 +77,46 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorFindName)
     template <typename LeafPath>
     auto find_fw_gt(Int index, TargetType<LeafPath> key)
     {
-    	MEMORIA_ASSERT(index, >=, 0);
-    	MEMORIA_ASSERT(key, >=, 0);
+        MEMORIA_ASSERT(index, >=, 0);
+        MEMORIA_ASSERT(key, >=, 0);
 
-    	typename Types::template FindGTForwardWalker<Types, LeafPath> walker(index, key);
+        typename Types::template FindGTForwardWalker<Types, LeafPath> walker(index, key);
 
-    	return self().find_fw(walker);
+        return self().find_fw(walker);
     }
 
     template <typename LeafPath>
     auto find_fw_ge(Int index, TargetType<LeafPath> key)
     {
-    	MEMORIA_ASSERT(index, >=, 0);
-    	MEMORIA_ASSERT(key, >=, 0);
+        MEMORIA_ASSERT(index, >=, 0);
+        MEMORIA_ASSERT(key, >=, 0);
 
-    	typename Types::template FindGEForwardWalker<Types, LeafPath> walker(index, key);
+        typename Types::template FindGEForwardWalker<Types, LeafPath> walker(index, key);
 
-    	return self().find_fw(walker);
+        return self().find_fw(walker);
     }
 
 
     template <typename LeafPath>
     auto find_bw_gt(Int index, TargetType<LeafPath> key)
     {
-    	MEMORIA_ASSERT(index, >=, 0);
-    	MEMORIA_ASSERT(key, >=, 0);
+        MEMORIA_ASSERT(index, >=, 0);
+        MEMORIA_ASSERT(key, >=, 0);
 
-    	typename Types::template FindGTBackwardWalker<Types, LeafPath> walker(index, key);
+        typename Types::template FindGTBackwardWalker<Types, LeafPath> walker(index, key);
 
-    	return self().find_bw(walker);
+        return self().find_bw(walker);
     }
 
     template <typename LeafPath>
     auto find_bw_ge(Int index, TargetType<LeafPath> key)
     {
-    	MEMORIA_ASSERT(index, >=, 0);
-    	MEMORIA_ASSERT(key, >=, 0);
+        MEMORIA_ASSERT(index, >=, 0);
+        MEMORIA_ASSERT(key, >=, 0);
 
-    	typename Types::template FindGEBackwardWalker<Types, LeafPath> walker(index, key);
+        typename Types::template FindGEBackwardWalker<Types, LeafPath> walker(index, key);
 
-    	return self().find_bw(walker);
+        return self().find_bw(walker);
     }
 
 MEMORIA_ITERATOR_PART_END

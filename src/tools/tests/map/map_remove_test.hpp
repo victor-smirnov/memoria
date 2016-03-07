@@ -68,11 +68,11 @@ public:
     virtual ~MapRemoveTest() throw () {}
 
     virtual Key makeRandomKey() {
-    	return Key::make_random();
+        return Key::make_random();
     }
 
     virtual Value makeRandomValue() {
-    	return this->getBIRandom();
+        return this->getBIRandom();
     }
 
     void runRemoveTest()
@@ -89,10 +89,10 @@ public:
 
         for (vector_idx_ = 0; vector_idx_ < size_; vector_idx_++)
         {
-        	auto key 	= pairs[vector_idx_].key_;
-        	auto value	= pairs[vector_idx_].value_;
+            auto key    = pairs[vector_idx_].key_;
+            auto value  = pairs[vector_idx_].value_;
 
-        	map->assign(key, value);
+            map->assign(key, value);
         }
 
         check(snapshot(), MEMORIA_SOURCE);
@@ -107,59 +107,59 @@ public:
 
         for (auto iter = map->begin(); !iter->is_end(); iter->next())
         {
-        	pairs_sorted.push_back(Pair(iter->key(), iter->value()));
+            pairs_sorted.push_back(Pair(iter->key(), iter->value()));
         }
 
         map_creation_ = false;
 
         for (vector_idx_ = 0; vector_idx_ < size_; vector_idx_++)
         {
-        	bool result = map->remove(pairs[vector_idx_].key_);
+            bool result = map->remove(pairs[vector_idx_].key_);
 
-        	AssertTrue(MA_SRC, result);
+            AssertTrue(MA_SRC, result);
 
-        	check(snp, MA_SRC);
+            check(snp, MA_SRC);
 
-        	out()<<vector_idx_<<endl;
+            out()<<vector_idx_<<endl;
 
-        	BigInt size = size_ - vector_idx_ - 1;
+            BigInt size = size_ - vector_idx_ - 1;
 
-        	AssertEQ(MA_SRC, size, map->size());
+            AssertEQ(MA_SRC, size, map->size());
 
-        	PairVector pairs_sorted_tmp = pairs_sorted;
+            PairVector pairs_sorted_tmp = pairs_sorted;
 
-        	for (UInt x = 0; x < pairs_sorted_tmp.size(); x++)
-        	{
-        		if (pairs_sorted_tmp[x].key_ == pairs[vector_idx_].key_)
-        		{
-        			pairs_sorted_tmp.erase(pairs_sorted_tmp.begin() + x);
-        		}
-        	}
+            for (UInt x = 0; x < pairs_sorted_tmp.size(); x++)
+            {
+                if (pairs_sorted_tmp[x].key_ == pairs[vector_idx_].key_)
+                {
+                    pairs_sorted_tmp.erase(pairs_sorted_tmp.begin() + x);
+                }
+            }
 
-        	checkContainerData(map, pairs_sorted_tmp);
+            checkContainerData(map, pairs_sorted_tmp);
 
-        	commit();
-        	snp = branch();
-        	map = find<MapName>(snp, ctr_name_);
+            commit();
+            snp = branch();
+            map = find<MapName>(snp, ctr_name_);
 
-        	check(snp, MA_SRC);
+            check(snp, MA_SRC);
 
-        	pairs_sorted = pairs_sorted_tmp;
+            pairs_sorted = pairs_sorted_tmp;
         }
 
         if (snapshot()->is_active())
         {
-        	commit();
+            commit();
         }
     }
 
     void replayRemoveTest()
     {
-    	auto snp = branch();
+        auto snp = branch();
 
-    	auto map = find<MapName>(snp, ctr_name_);
+        auto map = find<MapName>(snp, ctr_name_);
 
-    	checkContainerData(map, pairs_sorted);
+        checkContainerData(map, pairs_sorted);
 
         auto key = pairs[vector_idx_].key_;
         bool result = map->remove(key);
@@ -174,10 +174,10 @@ public:
 
         for (UInt x = 0; x < pairs_sorted.size(); x++)
         {
-        	if (pairs_sorted[x].key_ == pairs[vector_idx_].key_)
-        	{
-        		pairs_sorted.erase(pairs_sorted.begin() + x);
-        	}
+            if (pairs_sorted[x].key_ == pairs[vector_idx_].key_)
+            {
+                pairs_sorted.erase(pairs_sorted.begin() + x);
+            }
         }
 
         commit();

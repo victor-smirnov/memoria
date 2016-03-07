@@ -138,11 +138,11 @@ public:
         if (!result1.is_found())
         {
             try {
-            	AssertEQ(MA_SRC, result1.rank(), result2.rank(), SBuf()<<start<<" "<<rank);
+                AssertEQ(MA_SRC, result1.rank(), result2.rank(), SBuf()<<start<<" "<<rank);
             }
             catch (...) {
-            	seq->dump(this->out());
-            	throw;
+                seq->dump(this->out());
+                throw;
             }
         }
         else {

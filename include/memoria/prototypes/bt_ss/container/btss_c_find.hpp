@@ -24,18 +24,18 @@ using namespace std;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::FindName)
 
-	using typename Base::Types;
+    using typename Base::Types;
 
-	using typename Base::NodeBaseG;
-	using typename Base::IteratorPtr;
+    using typename Base::NodeBaseG;
+    using typename Base::IteratorPtr;
 
-	using typename Base::NodeDispatcher;
-	using typename Base::LeafDispatcher;
-	using typename Base::BranchDispatcher;
-	using typename Base::Position;
-	using typename Base::BranchNodeEntry;
-	using typename Base::PageUpdateMgr;
-	using typename Base::CtrSizeT;
+    using typename Base::NodeDispatcher;
+    using typename Base::LeafDispatcher;
+    using typename Base::BranchDispatcher;
+    using typename Base::Position;
+    using typename Base::BranchNodeEntry;
+    using typename Base::PageUpdateMgr;
+    using typename Base::CtrSizeT;
 
     using SplitFn = std::function<BranchNodeEntry (NodeBaseG&, NodeBaseG&)>;
     using MergeFn = std::function<void (const Position&)>;
@@ -43,36 +43,36 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::FindName)
     using Base::Streams;
 
     auto size() const {
-    	return self().sizes()[0];
+        return self().sizes()[0];
     }
 
     IteratorPtr seek(CtrSizeT position)
     {
-    	return self().template seek_stream<0>(position);
+        return self().template seek_stream<0>(position);
     }
 
     IteratorPtr Begin() {
-    	return self().seek(0);
+        return self().seek(0);
     }
 
     IteratorPtr End()
     {
-    	auto size = self().size();
-    	if (size > 0)
-    	{
-    		return self().seek(size);
-    	}
-    	else {
-    		return self().seek(0);
-    	}
+        auto size = self().size();
+        if (size > 0)
+        {
+            return self().seek(size);
+        }
+        else {
+            return self().seek(0);
+        }
     }
 
     IteratorPtr begin() {
-    	return self().Begin();
+        return self().Begin();
     }
 
     IteratorPtr end() {
-    	return self().End();
+        return self().End();
     }
 
     IterEndMark endm()

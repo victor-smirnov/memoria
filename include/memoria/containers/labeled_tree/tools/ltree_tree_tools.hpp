@@ -57,8 +57,8 @@ public:
 
 static std::ostream& operator<<(std::ostream& out, const LoudsNode& node)
 {
-	out<<"LoudsNode["<<node.node()<<", "<<node.rank0()<<", "<<node.rank1()<<"]";
-	return out;
+    out<<"LoudsNode["<<node.node()<<", "<<node.rank0()<<", "<<node.rank1()<<"]";
+    return out;
 }
 
 

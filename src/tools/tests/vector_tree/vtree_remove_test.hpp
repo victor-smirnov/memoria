@@ -24,8 +24,8 @@ using namespace memoria::louds;
 
 class VectorTreeRemoveTest: public VectorTreeTestBase {
 
-    using Base 		= VectorTreeTestBase;
-    using MyType 	= VectorTreeRemoveTest;
+    using Base      = VectorTreeTestBase;
+    using MyType    = VectorTreeRemoveTest;
 
     Int     iterations_     = 1000;
     Int     max_degree_     = 10;
@@ -106,17 +106,17 @@ public:
 
         for (Int c = 0; c < iterations_ && tree_nodes; c++)
         {
-        	out()<<c<<std::endl;
+            out()<<c<<std::endl;
 
-        	snp = branch();
+            snp = branch();
 
-        	tree = find<CtrName>(snp, ctr_name);
+            tree = find<CtrName>(snp, ctr_name);
 
-        	removeNodes(*tree.get(), root, remove_batch_);
+            removeNodes(*tree.get(), root, remove_batch_);
 
-        	check(MA_SRC);
+            check(MA_SRC);
 
-        	checkTree(*tree.get(), root);
+            checkTree(*tree.get(), root);
         }
     }
 };

@@ -45,7 +45,7 @@ class MinElement {
                     IsMin,
                     Item,
                     typename Accumulator::MinElement
-        >                                                               		MinElement;
+        >                                                                       MinElement;
     };
 
     struct Init {
@@ -89,7 +89,7 @@ class MaxElement {
                     IsMax,
                     Item,
                     typename Accumulator::MaxElement
-        >                                                               		MaxElement;
+        >                                                                       MaxElement;
     };
 
     struct Init {
