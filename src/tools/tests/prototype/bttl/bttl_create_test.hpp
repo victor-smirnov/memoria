@@ -73,7 +73,7 @@ public:
         Base(name)
     {
         MEMORIA_ADD_TEST(testDetProvider);
-//      MEMORIA_ADD_TEST(testRngProvider);
+        MEMORIA_ADD_TEST(testRngProvider);
     }
 
     virtual ~BTTLCreateTest() throw () {}
@@ -101,7 +101,7 @@ public:
 
             DetInputProvider provider(shape);
 
-            testProvider(*ctr.get(), provider);
+            testProvider(snp, *ctr.get(), provider);
 
             commit();
         }
@@ -129,26 +129,20 @@ public:
 
             RngInputProvider provider(shape, this->getIntTestGenerator());
 
-            testProvider(*ctr.get(), provider);
+            testProvider(snp, *ctr.get(), provider);
 
             commit();
         }
     }
 
 
-
-
-
-
-
-
-
-    template <typename Provider>
-    void testProvider(Ctr& ctr, Provider& provider)
+    template <typename Snapshot, typename Provider>
+    void testProvider(Snapshot&& snp, Ctr& ctr, Provider& provider)
     {
         fillCtr(ctr, provider);
 
-        checkExtents(ctr);
+        check(snp, "Snapshot check failed", MA_RAW_SRC);
+
         checkRanks(ctr);
 
         out()<<endl;

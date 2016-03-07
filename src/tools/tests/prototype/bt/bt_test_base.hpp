@@ -39,7 +39,7 @@ protected:
     using Ctr               = typename CtrTF<Profile, ContainerTypeName>::Type;
     using Iterator          = typename Ctr::Iterator;
     using IteratorPtr       = typename Ctr::IteratorPtr;
-    using ID                = typename Ctr::ID;
+    using CtrSizesT         = typename Ctr::Types::CtrSizesT;
 
 
     using Allocator     = AllocatorType;
@@ -50,6 +50,8 @@ protected:
     SnapshotPtr  snapshot_;
 
     String dump_name_;
+
+    static constexpr Int Streams = Ctr::Types::Streams;
 
 public:
 
@@ -121,6 +123,7 @@ public:
 
         allocator_->pack();
     }
+
 
     void check(const SnapshotPtr& snapshot, const char* source)
     {

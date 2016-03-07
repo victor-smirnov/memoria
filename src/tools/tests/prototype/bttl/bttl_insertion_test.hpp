@@ -49,7 +49,7 @@ class BTTLInsertionTest<BTTLTestCtr<Levels, SizeType>, AllocatorT, ProfileT>: pu
 
     using Rng            = typename RngInputProvider::Rng;
 
-    using CtrSizesT      = typename Ctr::Types::Position;
+    using CtrSizesT      = typename Ctr::Types::CtrSizesT;
     using CtrSizeT       = typename Ctr::Types::CtrSizeT;
 
     static const Int Streams = Ctr::Types::Streams;
@@ -69,6 +69,7 @@ class BTTLInsertionTest<BTTLTestCtr<Levels, SizeType>, AllocatorT, ProfileT>: pu
     using Base::fillCtr;
     using Base::checkRanks;
     using Base::checkExtents;
+    using Base::checkIterator;
     using Base::checkSubtree;
     using Base::sampleTreeShape;
     using Base::getIntTestGenerator;
@@ -277,10 +278,9 @@ public:
             CtrSizesT path_sizes;
             path_sizes[0] = sizes[0];
 
-
-
             auto iter = ctr->seek(insertion_pos_[0]);
 
+            checkIterator(MA_RAW_SRC, iter, CtrSizesT({insertion_pos_[0], -1l}));
 
             level_ = 0;
 
@@ -312,6 +312,8 @@ public:
                     break;
                 }
             }
+
+            checkIterator(MA_RAW_SRC, iter, insertion_pos_, level_);
 
             shape_ = this->sampleTreeShape();
 

@@ -52,12 +52,13 @@ class BTTLTestBase<BTTLTestCtr<Levels, SizeType>, AllocatorType, Profile>: publi
 protected:
     using Ctr           = typename CtrTF<Profile, ContainerTypeName>::Type;
     using Iterator      = typename Ctr::Iterator;
-    using ID            = typename Ctr::ID;
+    using IteratorPtr      	= typename Ctr::IteratorPtr;
+    using ID            	= typename Ctr::ID;
     using BranchNodeEntry   = typename Ctr::BranchNodeEntry;
 
     using Allocator     = AllocatorType;
 
-    using CtrSizesT     = typename Ctr::Types::Position;
+    using CtrSizesT     = typename Ctr::Types::CtrSizesT;
     using CtrSizeT      = typename Ctr::Types::CtrSizeT;
 
     static const Int Streams = Ctr::Types::Streams;
@@ -184,6 +185,84 @@ public:
         return totals;
     }
 
+    void checkIterator(const char* source, const IteratorPtr& iter, const CtrSizesT& positions, Int level = 0)
+    {
+    	auto& cache = iter->cache();
+
+    	AssertEQ(source, cache.data_pos(), positions, SBuf()<<"Positions do not match");
+    	AssertEQ(source, cache.abs_pos()[0], positions[0], SBuf()<<"Level 0 absolute positions do not match");
+
+    	for (Int l = level + 1; l < Streams; l++)
+    	{
+    		AssertEQ(source, cache.data_pos()[l], -1, SBuf()<<"Position for level "<<l<<" is not default (-1)");
+    		AssertEQ(source, cache.data_size()[l], -1, SBuf()<<"Substream size for level "<<l<<" is not default (-1)");
+    		AssertEQ(source, cache.abs_pos()[l], -1, SBuf()<<"Absolute position for level "<<l<<" is not default (-1)");
+    	}
+    }
+
+
+    void scanAndCheckIterator(Ctr& ctr)
+    {
+    	CtrSizesT pos{-1};
+    	CtrSizesT abs_pos;
+
+    	scanAndCheckIterator_(ctr.begin(), pos, abs_pos, ctr.size());
+
+    	AssertEQ(MA_RAW_SRC, abs_pos, ctr.sizes());
+    }
+
+private:
+    void scanAndCheckIterator_(const IteratorPtr& iter, CtrSizesT& pos, CtrSizesT& abs_pos, CtrSizeT size, Int level = 0)
+    {
+    	AssertEQ(MA_SRC, iter->stream(), level);
+
+    	AssertEQ(MA_SRC, iter->size(), size);
+
+    	pos[level] = 0;
+
+
+    	if (level < Streams - 1)
+    	{
+    		for (CtrSizeT c = 0; c < size; c++)
+    		{
+    			auto substream_size = iter->substream_size();
+
+    			iter->toData();
+
+    			scanAndCheckIterator_(iter, pos, abs_pos, substream_size, level + 1);
+
+    			iter->toIndex();
+
+    			checkIterator(MA_RAW_SRC, iter, pos, level);
+    			AssertEQ(MA_RAW_SRC, abs_pos[level], iter->cache().abs_pos()[level]);
+
+    			auto len = iter->skipFw(1);
+    			AssertEQ(MA_RAW_SRC, len, 1);
+
+    			pos[level] ++;
+    			abs_pos[level] ++;
+    		}
+    	}
+    	else {
+    		checkIterator(MA_RAW_SRC, iter, pos, level);
+    		AssertEQ(MA_RAW_SRC, abs_pos[level], iter->cache().abs_pos()[level]);
+
+    		auto len = iter->skipFw(size);
+    		AssertEQ(MA_RAW_SRC, len, size);
+
+    		pos[level] += size;
+    		abs_pos[level] += size;
+    	}
+
+    	checkIterator(MA_RAW_SRC, iter, pos, level);
+
+    	pos[level] = -1;
+    }
+
+
+public:
+
+
     void checkTree(Ctr& ctr)
     {
         auto iter = ctr.seek(0);
@@ -202,16 +281,21 @@ public:
     {
         auto iter = ctr.seek(path[0]);
 
+        checkIterator(MA_RAW_SRC, iter, path, 0);
+
         for (Int s = 1; s < Streams; s++)
         {
             if (path[s] >= 0)
             {
                 iter->toData(path[s]);
+                checkIterator(MA_RAW_SRC, iter, path, s);
             }
         }
 
         this->checkSubtree(*iter.get(), 1);
     }
+
+
 
 
     void checkSubtree(Iterator& iter, CtrSizeT scan_size = 1)

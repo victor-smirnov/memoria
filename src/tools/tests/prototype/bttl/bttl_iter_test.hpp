@@ -42,6 +42,8 @@ class BTTLIterTest: public BTTLTestBase<CtrName, AllocatorT, ProfileT> {
     using CtrSizeT       = typename Ctr::Types::CtrSizeT;
     using CtrSizesT      = typename Ctr::Types::Position;
 
+
+
     static const Int Streams = Ctr::Types::Streams;
 
     using Base::commit;
@@ -61,6 +63,9 @@ class BTTLIterTest: public BTTLTestBase<CtrName, AllocatorT, ProfileT> {
     using Base::checkSubtree;
     using Base::sampleTreeShape;
     using Base::getIntTestGenerator;
+    using Base::checkIterator;
+    using Base::scanAndCheckIterator;
+
 
     using Base::dump;
     using Base::size;
@@ -118,8 +123,11 @@ public:
 
             auto totals = fillCtr(*ctr.get(), provider);
 
-            //              checkScan(ctr, shape);
-            //              this->checkSubtree(ctr, path);
+            AssertEQ(MA_RAW_SRC, totals, ctr->sizes());
+
+            check(snp, "Snapshot check failed", MA_RAW_SRC);
+
+            scanAndCheckIterator(*ctr.get());
 
             for (CtrSizeT r = 0; r < totals[0]; r++)
             {
@@ -130,7 +138,6 @@ public:
             }
 
             out()<<endl;
-
         }
     }
 
@@ -156,6 +163,8 @@ public:
             RngInputProvider provider(shape, getIntTestGenerator());
 
             auto totals = fillCtr(*ctr.get(), provider);
+
+            check(snp, "Snapshot check failed", MA_RAW_SRC);
 
             for (CtrSizeT r = 0; r < totals[0]; r++)
             {

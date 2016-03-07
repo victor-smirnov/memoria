@@ -113,7 +113,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorMiscName)
 
         // FIXME: Is it necessary here? Is it correct?
         cache.data_pos()[0] = 0;
-        cache.abs_pos()[0] = 0;
+        cache.abs_pos()[0]  = 0;
     }
 
 
@@ -148,9 +148,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorMiscName)
 
 protected:
 
-    void update_leaf_ranks()
-    {
-    }
+    void update_leaf_ranks() {}
 
     void update_leaf_ranks(WalkCmd cmd)
     {
