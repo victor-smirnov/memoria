@@ -48,8 +48,8 @@ int main()
         // Create Map
         auto map = create<Map<Key, Value>>(snp);
 
-        int from = -1000;
-        int to   =  1000;
+        int from = -300;
+        int to   =  300;
 
         // Fill map element by element.
         for (int c = from; c < to; c++)
@@ -64,7 +64,7 @@ int main()
         }
 
 
-        // Dump contents of allocator to disk to see what is under the hood.
+        // Dump readable contents of allocator to disk to see what is under the hood.
         // Mostly usable for hacking and debugging.
         FSDumpAllocator(snp, "map_full.dir");
 
@@ -78,6 +78,10 @@ int main()
 
         // Finish snapshot so no other updates are possible.
         snp->commit();
+
+        // Store binary contents of allocator to the file.
+        auto out = FileOutputStreamHandler::create("map_data.dump");
+        alloc->store(out.get());
     }
     catch (memoria::Exception& ex)
     {
