@@ -52,8 +52,8 @@ class BTTLTestBase<BTTLTestCtr<Levels, SizeType>, AllocatorType, Profile>: publi
 protected:
     using Ctr           = typename CtrTF<Profile, ContainerTypeName>::Type;
     using Iterator      = typename Ctr::Iterator;
-    using IteratorPtr      	= typename Ctr::IteratorPtr;
-    using ID            	= typename Ctr::ID;
+    using IteratorPtr       = typename Ctr::IteratorPtr;
+    using ID                = typename Ctr::ID;
     using BranchNodeEntry   = typename Ctr::BranchNodeEntry;
 
     using Allocator     = AllocatorType;
@@ -187,84 +187,84 @@ public:
 
     void checkIterator(const char* source, const IteratorPtr& iter, const CtrSizesT& positions, Int level = 0)
     {
-    	auto& cache = iter->cache();
+        auto& cache = iter->cache();
 
-    	AssertEQ(source, cache.data_pos(), positions, SBuf()<<"Positions do not match");
-    	AssertEQ(source, cache.abs_pos()[0], positions[0], SBuf()<<"Level 0 absolute positions do not match");
+        AssertEQ(source, cache.data_pos(), positions, SBuf()<<"Positions do not match");
+        AssertEQ(source, cache.abs_pos()[0], positions[0], SBuf()<<"Level 0 absolute positions do not match");
 
-    	for (Int l = level + 1; l < Streams; l++)
-    	{
-    		AssertEQ(source, cache.data_pos()[l], -1, SBuf() << "Position for level " << l << " is not default (-1)");
-    		AssertEQ(source, cache.data_size()[l], -1, SBuf() << "Substream size for level " << l << " is not default (-1)");
-    		AssertEQ(source, cache.abs_pos()[l], -1, SBuf() << "Absolute position for level " << l << " is not default (-1)");
-    	}
+        for (Int l = level + 1; l < Streams; l++)
+        {
+            AssertEQ(source, cache.data_pos()[l], -1, SBuf() << "Position for level " << l << " is not default (-1)");
+            AssertEQ(source, cache.data_size()[l], -1, SBuf() << "Substream size for level " << l << " is not default (-1)");
+            AssertEQ(source, cache.abs_pos()[l], -1, SBuf() << "Absolute position for level " << l << " is not default (-1)");
+        }
 
-    	iter->checkPrefix();
+        iter->checkPrefix();
     }
 
 
     void scanAndCheckIterator(Ctr& ctr)
     {
-    	out() << "Scan Iterator for " << ctr.sizes() << endl;
+        out() << "Scan Iterator for " << ctr.sizes() << endl;
 
-    	CtrSizesT pos{-1};
-    	CtrSizesT abs_pos;
+        CtrSizesT pos{-1};
+        CtrSizesT abs_pos;
 
-    	scanAndCheckIterator_(ctr.begin(), pos, abs_pos, ctr.size());
+        scanAndCheckIterator_(ctr.begin(), pos, abs_pos, ctr.size());
 
-    	AssertEQ(MA_RAW_SRC, abs_pos, ctr.sizes());
+        AssertEQ(MA_RAW_SRC, abs_pos, ctr.sizes());
     }
 
 private:
     void scanAndCheckIterator_(const IteratorPtr& iter, CtrSizesT& pos, CtrSizesT& abs_pos, CtrSizeT size, Int level = 0)
     {
-    	AssertEQ(MA_SRC, iter->stream(), level);
+        AssertEQ(MA_SRC, iter->stream(), level);
 
-    	AssertEQ(MA_SRC, iter->size(), size);
+        AssertEQ(MA_SRC, iter->size(), size);
 
-    	pos[level] = 0;
+        pos[level] = 0;
 
 
-    	if (level < Streams - 1)
-    	{
-    		for (CtrSizeT c = 0; c < size; c++)
-    		{
-    			auto substream_size = iter->substream_size();
+        if (level < Streams - 1)
+        {
+            for (CtrSizeT c = 0; c < size; c++)
+            {
+                auto substream_size = iter->substream_size();
 
-    			if (level == 0) {
-    				this->out() << "Scan Iterator: row " << c << endl;
-    			}
+                if (level == 0) {
+                    this->out() << "Scan Iterator: row " << c << endl;
+                }
 
-    			iter->toData();
+                iter->toData();
 
-    			scanAndCheckIterator_(iter, pos, abs_pos, substream_size, level + 1);
+                scanAndCheckIterator_(iter, pos, abs_pos, substream_size, level + 1);
 
-    			iter->toIndex();
+                iter->toIndex();
 
-    			checkIterator(MA_RAW_SRC, iter, pos, level);
-    			AssertEQ(MA_RAW_SRC, abs_pos[level], iter->cache().abs_pos()[level]);
+                checkIterator(MA_RAW_SRC, iter, pos, level);
+                AssertEQ(MA_RAW_SRC, abs_pos[level], iter->cache().abs_pos()[level]);
 
-    			auto len = iter->skipFw(1);
-    			AssertEQ(MA_RAW_SRC, len, 1);
+                auto len = iter->skipFw(1);
+                AssertEQ(MA_RAW_SRC, len, 1);
 
-    			pos[level] ++;
-    			abs_pos[level] ++;
-    		}
-    	}
-    	else {
-    		checkIterator(MA_RAW_SRC, iter, pos, level);
-    		AssertEQ(MA_RAW_SRC, abs_pos[level], iter->cache().abs_pos()[level]);
+                pos[level] ++;
+                abs_pos[level] ++;
+            }
+        }
+        else {
+            checkIterator(MA_RAW_SRC, iter, pos, level);
+            AssertEQ(MA_RAW_SRC, abs_pos[level], iter->cache().abs_pos()[level]);
 
-    		auto len = iter->skipFw(size);
-    		AssertEQ(MA_RAW_SRC, len, size);
+            auto len = iter->skipFw(size);
+            AssertEQ(MA_RAW_SRC, len, size);
 
-    		pos[level] += size;
-    		abs_pos[level] += size;
-    	}
+            pos[level] += size;
+            abs_pos[level] += size;
+        }
 
-    	checkIterator(MA_RAW_SRC, iter, pos, level);
+        checkIterator(MA_RAW_SRC, iter, pos, level);
 
-    	pos[level] = -1;
+        pos[level] = -1;
     }
 
 
