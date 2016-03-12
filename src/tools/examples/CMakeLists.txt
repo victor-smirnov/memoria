@@ -1,10 +1,16 @@
-#examples.cpp 
-set (SRCS examples.cpp)
-
-add_executable(examples ${SRCS})
-set_target_properties(examples PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
-set_target_properties(examples PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-
-if (NOT CHECK_SYNTAX_ONLY)
-	target_link_libraries(examples Memoria MemoriaTools ${MEMORIA_LIBS})
+if (NOT DEFINED MEMORIA_EXAMPLES)
+    set(MEMORIA_EXAMPLES map)
 endif()
+
+FOREACH(MEMORIA_TARGET ${MEMORIA_EXAMPLES})
+
+    add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
+    set_target_properties(${MEMORIA_TARGET} PROPERTIES COMPILE_FLAGS "-g ${MEMORIA_COMPILE_FLAGS} -DMEMORIA_STATIC")
+    set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS} -luuid")
+    set_target_properties(${MEMORIA_TARGET} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}/examples")
+        
+    if (NOT CHECK_SYNTAX_ONLY)
+        target_link_libraries(${MEMORIA_TARGET} Memoria ${MEMORIA_LIBS})
+    endif()
+    
+ENDFOREACH(MEMORIA_TARGET)

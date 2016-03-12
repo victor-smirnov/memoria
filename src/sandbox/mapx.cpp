@@ -7,10 +7,8 @@
 #include <memoria/memoria.hpp>
 
 #include <memoria/containers/map/map_factory.hpp>
-#include <memoria/containers/seq_dense/seqd_factory.hpp>
-#include <memoria/containers/vector/vctr_factory.hpp>
 
-#include <memoria/core/container/metadata_repository.hpp>
+
 
 #include <memory>
 
@@ -37,7 +35,7 @@ int main() {
             auto map = create<Map<Key, Value>>(snp);
 
             int from = -10000;
-            int to   = 10000;
+            int to   =  10000;
 
             for (int c = from; c < to; c++) {
                 // map->assign(toString(c), c);

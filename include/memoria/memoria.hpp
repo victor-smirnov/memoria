@@ -8,6 +8,7 @@
 #define _MEMORIA_HPP
 
 #include <memoria/allocators/persistent-inmem/factory.hpp>
+#include <memoria/core/container/metadata_repository.hpp>
 #include <memoria/core/tools/file.hpp>
 
 namespace memoria {
