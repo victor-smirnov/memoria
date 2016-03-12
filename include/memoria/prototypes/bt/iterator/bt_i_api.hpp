@@ -142,7 +142,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
     template <Int Stream, typename SubstreamsIdxList, typename... Args>
     auto read_leaf_entry(Args&&... args) const
     {
-         return self().ctr().template read_leaf_entry<Stream, SubstreamsIdxList>(self().leaf(), std::forward<Args>(args)...);
+         return self().ctr().template apply_substreams_fn<Stream, SubstreamsIdxList>(self().leaf(), GetLeafValuesFn(), std::forward<Args>(args)...);
     }
 
     template <typename Walker>

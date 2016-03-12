@@ -40,7 +40,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mmap::ItrMiscName)
 
         MEMORIA_ASSERT(self.stream(), ==, 0);
 
-        return std::get<0>(self().ctr().template read_leaf_entry<IntList<0, 0, 1>>(self.leaf(), self.idx(), 0));
+        return std::get<0>(self.template read_leaf_entry<0, IntList<1>>(self.idx(), 0));
     }
 
     Value value() const
@@ -49,7 +49,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mmap::ItrMiscName)
 
         MEMORIA_ASSERT(self.stream(), ==, 1);
 
-        return std::get<0>(self().ctr().template read_leaf_entry<IntList<1, 1>>(self.leaf(), self.idx(), 0));
+        return std::get<0>(self.template read_leaf_entry<1, IntList<1>>(self.idx(), 0));
     }
 
     std::vector<Value> read_values(CtrSizeT length = -1)

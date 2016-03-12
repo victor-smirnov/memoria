@@ -49,6 +49,14 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
 
     using LeafPrefixRanks = typename Container::Types::LeafPrefixRanks;
 
+    bool next() {
+    	return self().skipFw(1) > 0;
+    }
+
+    bool prev() {
+    	return self().skipBw(1) > 0;
+    }
+
     struct SkipFwFn {
         template <Int StreamIdx, typename Itr>
         auto process(Itr&& iter, CtrSizeT n)

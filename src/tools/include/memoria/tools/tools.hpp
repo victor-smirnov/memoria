@@ -497,6 +497,24 @@ void AssertEQ(const char* src, const Op1& op1, const Op2& op2)
 }
 
 template <typename Op1, typename Op2>
+void AssertEQ(const char* src, const std::vector<Op1>& op1, const std::vector<Op2>& op2)
+{
+    if (op1.size() != op2.size())
+    {
+        throw TestException(src, SBuf()<<"EQ size assertion failed: " << op1.size() << " " << op2.size());
+    }
+    else {
+    	for (size_t c = 0; c < op1.size(); c++)
+    	{
+    		if (op1[c] != op2[c])
+    		{
+    			throw TestException(src, SBuf()<<"EQ data assertion failed: " << c << op1[c] << " " << op2[c]);
+    		}
+    	}
+    }
+}
+
+template <typename Op1, typename Op2>
 void AssertLT(const char* src, const Op1& op1, const Op2& op2)
 {
     if (!(op1 < op2))
