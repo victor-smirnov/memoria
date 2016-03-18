@@ -34,6 +34,10 @@ $ ./tests --help
 
 Usually tests take several minutes to complete.
 
+## Examples
+
+See [examples](/src/tools/examples/) to get an idea how it works.
+
 ## IDE Integration
 
 See [instructions](https://bitbucket.org/vsmirnov/memoria/wiki/Eclipse_IDE_instructions) to setup the project in Eclipse IDE.
