@@ -42,7 +42,7 @@ class VectorTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT>
     using typename Base::MemBuffer;
     using typename Base::Entry;
 
-    using BranchNodeEntry = typename Ctr::BranchNodeEntry;
+    using BranchNodeEntry = typename Ctr::Types::BranchNodeEntry;
 
     using Value = typename Ctr::Types::Value;
 

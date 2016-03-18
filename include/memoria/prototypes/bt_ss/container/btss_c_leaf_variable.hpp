@@ -24,28 +24,7 @@ using namespace std;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::LeafVariableName)
 
-    typedef typename Base::Types                                                Types;
-    typedef typename Base::Allocator                                            Allocator;
-
-    typedef typename Base::ID                                                   ID;
-    
-    typedef typename Types::NodeBase                                            NodeBase;
-    typedef typename Types::NodeBaseG                                           NodeBaseG;
-    typedef typename Base::Iterator                                             Iterator;
-
-    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
-
-
-    typedef typename Base::Metadata                                             Metadata;
-
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
-    typedef typename Types::Position                                            Position;
-
-    typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
-
-    static const Int Streams                                                    = Types::Streams;
+protected:
 
 MEMORIA_CONTAINER_PART_END
 

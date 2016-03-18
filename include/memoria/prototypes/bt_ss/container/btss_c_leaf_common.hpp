@@ -24,24 +24,25 @@ using namespace std;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::LeafCommonName)
 
-    using Types = TypesType;
-    using NodeBaseG = typename Types::NodeBaseG;
-
-    using Iterator = typename Base::Iterator;
-
-    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher = typename Types::Pages::BranchDispatcher;
+public:
+    using typename Base::Types;
+    using typename Base::Iterator;
 
 
+protected:
+    using typename Base::NodeBaseG;
+    using typename Base::NodeDispatcher;
+    using typename Base::LeafDispatcher;
+    using typename Base::BranchDispatcher;
 
-    using BranchNodeEntry   = typename Types::BranchNodeEntry;
-    using Position      = typename Types::Position;
+
+    using typename Base::BranchNodeEntry;
+    using typename Base::Position;
 
     using SplitFn = std::function<BranchNodeEntry (NodeBaseG&, NodeBaseG&)>;
     using MergeFn = std::function<void (const Position&)>;
 
-    using CtrSizeT = typename Types::CtrSizeT;
+    using typename Base::CtrSizeT;
 
     static const Int Streams                                                    = Types::Streams;
 

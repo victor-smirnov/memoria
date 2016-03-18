@@ -21,12 +21,12 @@
 namespace memoria    {
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
-
+public:
     using Types             = typename Base::Types;
-
-    using NodeBaseG         = typename Types::NodeBaseG;
     using Iterator          = typename Base::Iterator;
 
+protected:
+    using NodeBaseG         = typename Types::NodeBaseG;
     using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
     using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
     using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
@@ -50,6 +50,123 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
 
     using AnchorValueT  = core::StaticVector<CtrSizeT, Streams - 1>;
     using AnchorPosT    = core::StaticVector<Int, Streams - 1>;
+
+
+public:
+    auto total_counts() const
+    {
+        auto& self = this->self();
+
+        NodeBaseG root = self.getRoot();
+
+        auto root_counts = self.count_items(root);
+
+        root_counts[0] = self.sizes()[0];
+
+        return root_counts;
+    }
+
+    Position node_extents(const NodeBaseG& node) const
+    {
+        auto& self = this->self();
+
+        auto counts = self.count_items(node);
+        auto sizes  = self.node_stream_sizes(node);
+
+        return counts - sizes;
+    }
+
+
+    //FIXME: handle PackedOOM correctly for branch nodes
+    void add_to_stream_counter(NodeBaseG node, Int stream, Int idx, CtrSizeT value)
+    {
+    	auto& self = this->self();
+
+    	if (value != 0)
+    	{
+    		AddToStreamCounter fn;
+
+    		self.updatePageG(node);
+
+    		self.process_count_substreams(node, stream, fn, idx, value);
+
+    		while (node->parent_id().isSet())
+    		{
+    			NodeBaseG parent = self.getNodeParentForUpdate(node);
+    			Int parent_idx   = node->parent_idx();
+
+    			self.updatePageG(parent);
+
+    			self.process_count_substreams(parent, stream, fn, parent_idx, value);
+
+    			node = parent;
+    		}
+    	}
+    }
+
+    template <typename... Args>
+    Position leafrank_(const NodeBaseG& leaf, const Position& sizes, const Position& extent, Int pos, const AnchorPosT& anchors = AnchorPosT(-1), const AnchorValueT& anchor_values = AnchorValueT(0)) const
+    {
+        auto& self = this->self();
+
+        MEMORIA_ASSERT_TRUE(sizes.gteAll(0));
+        MEMORIA_ASSERT_TRUE(extent.gteAll(0));
+
+        LeafPrefixRanks prefixes;
+
+        self.compute_leaf_prefixes(leaf, extent, prefixes, anchors, anchor_values);
+
+        return self.leafrank_(leaf, sizes, prefixes, pos, anchors, anchor_values);
+    }
+
+
+    template <typename... Args>
+    Position leafrank_(const NodeBaseG& leaf, Position sizes, const LeafPrefixRanks& prefixes, Int pos, Args&&... args) const
+    {
+        if (pos >= sizes.sum()) {
+            return sizes;
+        }
+        else
+        {
+            for (Int s = 0; s < Streams; s++)
+            {
+                Int sum = prefixes[s].sum();
+                if (pos >= sum)
+                {
+                    return bttl::detail::ZeroRankHelper<0, Streams>::process(this, leaf, sizes, prefixes[s], pos, std::forward<Args>(args)...);
+                }
+                else {
+                    sizes[s] = 0;
+                }
+            }
+
+            return Position();
+        }
+    }
+
+
+    template <Int Stream, typename... Args>
+    Position _streamsrank_(const NodeBaseG& leaf, Args&&... args) const
+    {
+        return LeafDispatcher::dispatch(leaf, _StreamsRankFn<Stream>(), std::forward<Args>(args)...);
+    }
+
+    void compute_leaf_prefixes(const NodeBaseG& leaf, const Position& extent, LeafPrefixRanks& prefixes, const AnchorPosT& anchors = AnchorPosT(-1), const AnchorValueT& anchor_values = AnchorValueT(0)) const
+    {
+        const auto& self  = this->self();
+
+        prefixes[Streams - 2][Streams - 1] = extent[Streams - 1];
+
+        for (Int s = SearchableStreams - 1; s > 0; s--)
+        {
+            prefixes[s - 1] = prefixes[s];
+            self.count_downstream_items(leaf, prefixes[s], prefixes[s - 1], s, extent[s], anchors, anchor_values);
+            prefixes[s - 1][s] = extent[s];
+        }
+    }
+
+
+protected:
 
     template <Int StreamIdx>
     struct ProcessCountSubstreamFn {
@@ -152,32 +269,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
         }
     };
 
-    //FIXME: handle PackedOOM correctly for branch nodes
-    void add_to_stream_counter(NodeBaseG node, Int stream, Int idx, CtrSizeT value)
-    {
-        auto& self = this->self();
-
-        if (value != 0)
-        {
-            AddToStreamCounter fn;
-
-            self.updatePageG(node);
-
-            self.process_count_substreams(node, stream, fn, idx, value);
-
-            while (node->parent_id().isSet())
-            {
-                NodeBaseG parent = self.getNodeParentForUpdate(node);
-                Int parent_idx   = node->parent_idx();
-
-                self.updatePageG(parent);
-
-                self.process_count_substreams(parent, stream, fn, parent_idx, value);
-
-                node = parent;
-            }
-        }
-    }
 
     struct GetStreamCounter {
         template <typename Stream>
@@ -279,84 +370,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
         return counts;
     }
 
-    Position node_extents(const NodeBaseG& node) const
-    {
-        auto& self = this->self();
-
-        auto counts = self.count_items(node);
-        auto sizes  = self.node_stream_sizes(node);
-
-        return counts - sizes;
-    }
 
 
-    Position total_counts() const
-    {
-        auto& self = this->self();
-
-        NodeBaseG root = self.getRoot();
-
-        auto root_counts = self.count_items(root);
-
-        root_counts[0] = self.sizes()[0];
-
-        return root_counts;
-    }
 
 
-    void compute_leaf_prefixes(const NodeBaseG& leaf, const Position& extent, LeafPrefixRanks& prefixes, const AnchorPosT& anchors = AnchorPosT(-1), const AnchorValueT& anchor_values = AnchorValueT(0)) const
-    {
-        const auto& self  = this->self();
-
-        prefixes[Streams - 2][Streams - 1] = extent[Streams - 1];
-
-        for (Int s = SearchableStreams - 1; s > 0; s--)
-        {
-            prefixes[s - 1] = prefixes[s];
-            self.count_downstream_items(leaf, prefixes[s], prefixes[s - 1], s, extent[s], anchors, anchor_values);
-            prefixes[s - 1][s] = extent[s];
-        }
-    }
-
-    template <typename... Args>
-    Position leafrank_(const NodeBaseG& leaf, const Position& sizes, const Position& extent, Int pos, const AnchorPosT& anchors = AnchorPosT(-1), const AnchorValueT& anchor_values = AnchorValueT(0)) const
-    {
-        auto& self = this->self();
-
-        MEMORIA_ASSERT_TRUE(sizes.gteAll(0));
-        MEMORIA_ASSERT_TRUE(extent.gteAll(0));
-
-        LeafPrefixRanks prefixes;
-
-        self.compute_leaf_prefixes(leaf, extent, prefixes, anchors, anchor_values);
-
-        return self.leafrank_(leaf, sizes, prefixes, pos, anchors, anchor_values);
-    }
 
 
-    template <typename... Args>
-    Position leafrank_(const NodeBaseG& leaf, Position sizes, const LeafPrefixRanks& prefixes, Int pos, Args&&... args) const
-    {
-        if (pos >= sizes.sum()) {
-            return sizes;
-        }
-        else
-        {
-            for (Int s = 0; s < Streams; s++)
-            {
-                Int sum = prefixes[s].sum();
-                if (pos >= sum)
-                {
-                    return bttl::detail::ZeroRankHelper<0, Streams>::process(this, leaf, sizes, prefixes[s], pos, std::forward<Args>(args)...);
-                }
-                else {
-                    sizes[s] = 0;
-                }
-            }
-
-            return Position();
-        }
-    }
 
 
     template <Int Stream>
@@ -390,11 +409,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::RanksName)
         }
     };
 
-    template <Int Stream, typename... Args>
-    Position _streamsrank_(const NodeBaseG& leaf, Args&&... args) const
-    {
-        return LeafDispatcher::dispatch(leaf, _StreamsRankFn<Stream>(), std::forward<Args>(args)...);
-    }
 
 
 

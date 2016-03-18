@@ -22,11 +22,12 @@ namespace memoria    {
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::ChecksName)
 
+public:
     using typename Base::Types;
-
-    using typename Base::NodeBaseG;
     using typename Base::IteratorPtr;
 
+protected:
+    using typename Base::NodeBaseG;
     using typename Base::NodeDispatcher;
     using typename Base::LeafDispatcher;
     using typename Base::BranchDispatcher;
@@ -43,15 +44,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::ChecksName)
 
     using PageUpdateMgt = typename Types::PageUpdateMgr;
 
-
-
+public:
     bool check(void *data)
     {
         auto& self = this->self();
         return self.checkTree() || self.checkExtents();
     }
 
-
+protected:
     bool checkExtents()
     {
         auto& self = this->self();

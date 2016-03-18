@@ -24,15 +24,18 @@ using namespace memoria::core;
 using namespace std;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchVariableName)
+public:
+    using typename Base::Types;
+    using typename Base::Iterator;
 
-    typedef typename Base::Types                                                Types;
+protected:
     typedef typename Base::Allocator                                            Allocator;
 
     typedef typename Base::ID                                                   ID;
     
     typedef typename Types::NodeBase                                            NodeBase;
     typedef typename Types::NodeBaseG                                           NodeBaseG;
-    typedef typename Base::Iterator                                             Iterator;
+
 
     using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
     using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
@@ -51,8 +54,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchVariableName)
     using Checkpoint    = typename Base::Checkpoint;
     using ILeafProvider = typename Base::ILeafProvider;
 
-
-
     class InsertBatchResult {
         Int idx_;
         CtrSizeT subtree_size_;
@@ -67,8 +68,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchVariableName)
     InsertBatchResult insertSubtree(NodeBaseG& node, Int idx, ILeafProvider& provider, std::function<NodeBaseG ()> child_fn, bool update_hierarchy)
     {
         auto& self = this->self();
-
-//      Int idx0 = idx;
 
         Int batch_size = 32;
 

@@ -25,11 +25,12 @@ using namespace std;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchFixedName)
 
-    typedef typename Base::Types                                                Types;
-    typedef typename Base::Allocator                                            Allocator;
+public:
+    using typename Base::Types;
+    using typename Base::Allocator;
 
+protected:
     typedef typename Base::ID                                                   ID;
-    
     typedef typename Types::NodeBase                                            NodeBase;
     typedef typename Types::NodeBaseG                                           NodeBaseG;
     typedef typename Base::Iterator                                             Iterator;

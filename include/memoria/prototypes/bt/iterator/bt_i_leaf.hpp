@@ -33,6 +33,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorLeafName)
 
     using CtrSizeT = typename Container::Types::CtrSizeT;
 
+public:
     bool nextLeaf()
     {
         auto& self = this->self();

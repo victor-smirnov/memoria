@@ -43,6 +43,23 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
 
     static const Int Streams = Container::Types::Streams;
 
+    MEMORIA_DECLARE_NODE_FN_RTN(SizesFn, sizes, Position);
+
+public:
+    auto leaf_sizes() const {
+        return LeafDispatcher::dispatch(self().leaf(), SizesFn());
+    }
+
+    void refresh()
+    {
+        Base::refresh();
+
+        self().refreshBranchPrefixes();
+        self().refreshLeafPrefixes();
+    }
+
+protected:
+
 
     bool nextLeaf();
     bool nextLeafMs(UBigInt streams);
@@ -81,11 +98,9 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
         return LeafDispatcher::dispatch(self().leaf(), SizeFn(), self().stream());
     }
 
-    MEMORIA_DECLARE_NODE_FN_RTN(SizesFn, sizes, Position);
 
-    Position leaf_sizes() const {
-        return LeafDispatcher::dispatch(self().leaf(), SizesFn());
-    }
+
+
 
     bool has_no_data() const
     {
@@ -209,13 +224,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
     }
 
 
-    void refresh()
-    {
-        Base::refresh();
 
-        self().refreshBranchPrefixes();
-        self().refreshLeafPrefixes();
-    }
 
 MEMORIA_ITERATOR_PART_END
 

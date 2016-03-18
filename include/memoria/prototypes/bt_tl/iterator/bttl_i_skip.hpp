@@ -49,6 +49,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
 
     using LeafPrefixRanks = typename Container::Types::LeafPrefixRanks;
 
+public:
     bool next() {
     	return self().skipFw(1) > 0;
     }
@@ -255,7 +256,21 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
         return sizes;
     }
 
+    Position leaf_extent() const
+    {
+        const auto& self  = this->self();
+        const auto& cache = self.cache();
+        const auto& branch_prefix = cache.prefixes();
 
+        Position expected_sizes;
+        bttl::detail::ExpectedSizesHelper<Streams - 1, LeafSizesSubstreamPath, AccumItemH>::process(branch_prefix, expected_sizes);
+
+        expected_sizes[0] = cache.size_prefix()[0];
+
+        return expected_sizes - cache.size_prefix();
+    }
+
+protected:
     Int local_parent_idx(Int stream, Int idx) const
     {
         MEMORIA_ASSERT(stream, >, 0);
@@ -300,19 +315,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
     }
 
 
-    Position leaf_extent() const
-    {
-        const auto& self  = this->self();
-        const auto& cache = self.cache();
-        const auto& branch_prefix = cache.prefixes();
 
-        Position expected_sizes;
-        bttl::detail::ExpectedSizesHelper<Streams - 1, LeafSizesSubstreamPath, AccumItemH>::process(branch_prefix, expected_sizes);
-
-        expected_sizes[0] = cache.size_prefix()[0];
-
-        return expected_sizes - cache.size_prefix();
-    }
 
 
     void dumpRanks(std::ostream& out = std::cout) const

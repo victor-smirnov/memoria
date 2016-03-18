@@ -23,12 +23,12 @@ using namespace memoria::core;
 using namespace std;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::FindName)
-
+public:
     using typename Base::Types;
-
-    using typename Base::NodeBaseG;
     using typename Base::IteratorPtr;
 
+protected:
+    using typename Base::NodeBaseG;
     using typename Base::NodeDispatcher;
     using typename Base::LeafDispatcher;
     using typename Base::BranchDispatcher;
@@ -42,20 +42,21 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::FindName)
 
     using Base::Streams;
 
+public:
     auto size() const {
         return self().sizes()[0];
     }
 
-    IteratorPtr seek(CtrSizeT position)
+    auto seek(CtrSizeT position)
     {
         return self().template seek_stream<0>(position);
     }
 
-    IteratorPtr Begin() {
+    auto Begin() {
         return self().seek(0);
     }
 
-    IteratorPtr End()
+    auto End()
     {
         auto size = self().size();
         if (size > 0)
@@ -67,15 +68,15 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::FindName)
         }
     }
 
-    IteratorPtr begin() {
+    auto begin() {
         return self().Begin();
     }
 
-    IteratorPtr end() {
+    auto end() {
         return self().End();
     }
 
-    IterEndMark endm()
+    auto endm()
     {
         return IterEndMark();
     }

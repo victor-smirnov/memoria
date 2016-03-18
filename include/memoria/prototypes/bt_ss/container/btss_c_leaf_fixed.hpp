@@ -23,8 +23,10 @@ using namespace memoria::core;
 using namespace std;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::LeafFixedName)
+public:
+    using typename Base::Types;
 
-    typedef typename Base::Types                                                Types;
+protected:
     typedef typename Base::Allocator                                            Allocator;
 
     typedef typename Base::ID                                                   ID;
@@ -53,6 +55,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::LeafFixedName)
 
     MEMORIA_DECLARE_NODE_FN_RTN(GetStreamCapacityFn, single_stream_capacity, Int);
 
+public:
     Int getLeafNodeCapacity(const NodeBaseG& node, int max_hops = 100) const
     {
         return LeafDispatcher::dispatch(node, GetStreamCapacityFn(), max_hops);

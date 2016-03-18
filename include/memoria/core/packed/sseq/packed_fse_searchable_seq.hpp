@@ -83,6 +83,7 @@ public:
 
     typedef Int                                                                 IndexValue;
 
+    static constexpr PkdSearchType KeySearchType = PkdSearchType::SUM;
 
     static constexpr Int ValuesPerBranch        = Types::ValuesPerBranch;
     static constexpr Int Indexes                = Types::Blocks;

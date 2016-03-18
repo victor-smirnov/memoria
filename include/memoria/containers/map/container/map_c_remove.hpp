@@ -20,19 +20,20 @@ namespace memoria    {
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrRemoveName)
 
-    typedef typename Base::Types                                                Types;
+public:
+    using typename Base::Types;
 
-    typedef typename Types::NodeBaseG                                           NodeBaseG;
-    typedef typename Base::Iterator                                             Iterator;
+protected:
+    using typename Base::NodeBaseG;
 
-    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
+    using typename Base::NodeDispatcher;
+    using typename Base::LeafDispatcher;
+    using typename Base::BranchDispatcher;
 
     typedef typename Types::Key                                                 Key;
     typedef typename Types::Value                                               Value;
 
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
+    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     static const Int Streams                                                    = Types::Streams;

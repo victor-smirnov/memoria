@@ -26,7 +26,7 @@ struct BTTLTupleFactory {
     template <Int StreamIdx>
     using InputTupleAdapter = typename CtrT::Types::template InputTupleAdapter<StreamIdx>;
 
-    using CtrSizeT          = typename CtrT::CtrSizeT;
+    using CtrSizeT          = typename CtrT::Types::CtrSizeT;
 
     static constexpr Int Streams = CtrT::Types::Streams;
 
@@ -61,7 +61,7 @@ class RandomDataInputProvider {
 public:
 
     using CtrSizesT     = typename CtrT::Types::Position;
-    using CtrSizeT      = typename CtrT::CtrSizeT;
+    using CtrSizeT      = typename CtrT::Types::CtrSizeT;
 
     using Rng           = RngT;
 
@@ -209,7 +209,7 @@ class DeterministicDataInputProvider {
 public:
 
     using CtrSizesT     = typename CtrT::Types::Position;
-    using CtrSizeT      = typename CtrT::CtrSizeT;
+    using CtrSizeT      = typename CtrT::Types::CtrSizeT;
 
     template <Int StreamIdx>
     using InputTupleAdapter = typename CtrT::Types::template InputTupleAdapter<StreamIdx>;

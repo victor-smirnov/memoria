@@ -19,12 +19,12 @@
 namespace memoria    {
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::mmap::CtrApiName)
-
+public:
     using typename Base::Types;
-
-    using typename Base::NodeBaseG;
     using typename Base::IteratorPtr;
 
+protected:
+    using typename Base::NodeBaseG;
     using typename Base::NodeDispatcher;
     using typename Base::LeafDispatcher;
     using typename Base::BranchDispatcher;
@@ -37,8 +37,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mmap::CtrApiName)
     using Key   = typename Types::Key;
     using Value = typename Types::Value;
 
-    using CtrSizesT = Position;
-
+public:
     IteratorPtr begin() {
         return self().template seek_stream<0>(0);
     }

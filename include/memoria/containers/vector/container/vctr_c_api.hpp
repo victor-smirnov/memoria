@@ -22,11 +22,11 @@ using namespace memoria::bt;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrApiName)
 
+public:
     using typename Base::Types;
 
+protected:
     using typename Base::NodeBaseG;
-    using typename Base::IteratorPtr;
-
     using typename Base::NodeDispatcher;
     using typename Base::LeafDispatcher;
     using typename Base::BranchDispatcher;
@@ -37,12 +37,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrApiName)
 
     using Value = typename Types::Value;
 
-
+public:
     CtrSizeT size() const {
         return self().sizes()[0];
     }
 
-    IteratorPtr seek(CtrSizeT pos)
+    auto seek(CtrSizeT pos)
     {
         typename Types::template SkipForwardWalker<Types, IntList<0>> walker(pos);
 

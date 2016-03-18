@@ -80,7 +80,7 @@ public:
     	auto iter = map->begin();
 
     	EntryAdaptor stream_adaptor(map_data);
-    	auto totals = map->_insert(*iter.get(), stream_adaptor);
+    	auto totals = iter->bulk_insert(stream_adaptor);
 
     	auto sizes = map->sizes();
     	AssertEQ(MA_RAW_SRC, totals, sizes);

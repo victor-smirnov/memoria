@@ -15,7 +15,7 @@
 #include <memoria/prototypes/bt_tl/bttl_factory.hpp>
 #include <memoria/prototypes/bt_tl/tools/bttl_tools_random_gen.hpp>
 #include "../bt/bt_test_base.hpp"
-#include "bttl_test_factory.hpp"
+#include "container/bttl_test_factory.hpp"
 
 #include <functional>
 
@@ -50,11 +50,11 @@ class BTTLTestBase<BTTLTestCtr<Levels, SizeType>, AllocatorType, Profile>: publi
     using Base = BTTestBase<ContainerTypeName, AllocatorType, Profile>;
 
 protected:
-    using Ctr           = typename CtrTF<Profile, ContainerTypeName>::Type;
-    using Iterator      = typename Ctr::Iterator;
+    using Ctr           	= typename CtrTF<Profile, ContainerTypeName>::Type;
+    using Iterator      	= typename Ctr::Iterator;
     using IteratorPtr       = typename Ctr::IteratorPtr;
     using ID                = typename Ctr::ID;
-    using BranchNodeEntry   = typename Ctr::BranchNodeEntry;
+    using BranchNodeEntry   = typename Ctr::Types::BranchNodeEntry;
 
     using Allocator     = AllocatorType;
 
@@ -163,7 +163,7 @@ public:
 
         long t0 = getTimeInMillis();
 
-        auto totals = ctr._insert(*iter.get(), provider);
+        auto totals = iter->bulk_insert(provider);
 
         check("Bulk Insertion", MA_SRC);
 

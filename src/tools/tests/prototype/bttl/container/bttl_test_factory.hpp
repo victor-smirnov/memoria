@@ -15,9 +15,13 @@
 #include <memoria/prototypes/bt_tl/bttl_factory.hpp>
 #include <memoria/core/types/typehash.hpp>
 #include <memoria/prototypes/bt_tl/tools/bttl_tools_random_gen.hpp>
+
 #include "bttl_test_tools.hpp"
+#include "bttl_test_names.hpp"
 
 
+#include "container/bttl_test_c_api.hpp"
+#include "iterator/bttl_test_i_api.hpp"
 
 #include <functional>
 
@@ -43,38 +47,20 @@ struct BTTLTestTypesBase: public BTTypes<Profile, BTTreeLayout> {
     using CtrSizeT = BigInt;
 
 
-//    using StreamVariableTF = StreamTF<
-//        TL<TL<
-//          PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec>>
-//        >>,
-//        TL<TL<TL<IndexRange<0, 1>>>>,
-//      FSEBranchStructTF
-//    >;
-//
-//    using StreamFixedTF = StreamTF<
-//        TL<TL<
-//          PkdFTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1>>
-//        >>,
-//        TL<TL<TL<IndexRange<0, 1>>>>,
-//      FSEBranchStructTF
-//    >;
-
     using StreamVariableTF = StreamTF<
         TL<
             StreamSize
-            //PkdVTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1, UByteI7Codec>>
         >,
         FSEBranchStructTF,
-        TL<TL<>> //TL<IndexRange<0, 1>>
+        TL<TL<>>
     >;
 
     using StreamFixedTF = StreamTF<
         TL<
             StreamSize
-            //PkdFTree<Packed2TreeTypes<CtrSizeT, CtrSizeT, 1>>
         >,
         FSEBranchStructTF,
-        TL<TL<>> //TL<IndexRange<0, 1>>
+        TL<TL<>>
     >;
 
     using DataStreamTF  = StreamTF<
@@ -112,6 +98,17 @@ struct BTTLTestTypesBase: public BTTypes<Profile, BTTreeLayout> {
             RawStreamDescriptors,
             BTTLNavigationStruct
     >::Type;
+
+    using CommonContainerPartsList = MergeLists<
+                typename Base::CommonContainerPartsList,
+                memoria::bttl_test::CtrApiName
+    >;
+
+    using IteratorPartsList = MergeLists<
+                typename Base::IteratorPartsList,
+				memoria::bttl_test::IterApiName
+    >;
+
 };
 
 

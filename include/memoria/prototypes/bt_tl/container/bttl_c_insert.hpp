@@ -22,11 +22,12 @@ namespace memoria    {
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::InsertName)
 
+public:
     using Types             = typename Base::Types;
-
-    using NodeBaseG         = typename Types::NodeBaseG;
     using Iterator          = typename Base::Iterator;
 
+protected:
+    using NodeBaseG         = typename Types::NodeBaseG;
     using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
     using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
     using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
@@ -38,26 +39,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::InsertName)
 
     using BranchNodeEntry       = typename Types::BranchNodeEntry;
 
-
     static const Int Streams = Types::Streams;
 
     using PageUpdateMgt     = typename Types::PageUpdateMgr;
 
-//    template <typename Provider>
-//    CtrSizesT _insert(Iterator& iter, Provider&& provider, const CtrSizesT& buffer = CtrSizesT(2000))
-//    {
-//      auto& self = this->self();
-//
-//      bttl::StreamingCtrInputProvider2<MyType, Provider> streamingProvider(self, provider, iter.stream(), buffer.sum());
-//
-//      auto pos = iter.local_stream_posrank_();
-//
-//      streamingProvider.prepare(iter, pos);
-//
-//      self.insert_provided_data(iter.leaf(), pos, streamingProvider);
-//
-//      return streamingProvider.totals();
-//    }
 
     template <typename Provider>
     CtrSizesT _insert(Iterator& iter, Provider&& provider, const Int total_capacity = 2000)
@@ -72,7 +57,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::InsertName)
 
         self.insert_provided_data(iter.leaf(), pos, streamingProvider);
 
-        return streamingProvider.totals();
+        auto totals = streamingProvider.totals();
+
+        return totals;
     }
 
 MEMORIA_CONTAINER_PART_END

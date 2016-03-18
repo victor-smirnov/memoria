@@ -24,7 +24,10 @@ using namespace std;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchVariableName)
 
-    typedef typename Base::Types                                                Types;
+public:
+    using typename Base::Types;
+
+protected:
     typedef typename Base::Allocator                                            Allocator;
 
     typedef typename Base::ID                                                   ID;
@@ -46,9 +49,12 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchVariableName)
 
     typedef std::function<void (NodeBaseG&, NodeBaseG&)>                        SplitFn;
 
-    static const Int Streams                                                    = Types::Streams;
+    static const Int Streams = Types::Streams;
 
+public:
+    void update_parent(NodeBaseG& node, const BranchNodeEntry& sums);
 
+protected:
     MEMORIA_DECLARE_NODE_FN(InsertFn, insert);
     void insertToBranchNodeP(NodeBaseG& node, Int idx, const BranchNodeEntry& keys, const ID& id);
 
@@ -62,7 +68,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchVariableName)
 
     void updateBranchNodes(NodeBaseG& node, Int& idx, const BranchNodeEntry& entry);
 
-    void update_parent(NodeBaseG& node, const BranchNodeEntry& sums);
+
 
     void updateBranchNodesNoBackup(NodeBaseG& node, Int idx, const BranchNodeEntry& entry);
 

@@ -34,6 +34,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavMaxName)
 
     using CtrSizeT = typename Container::Types::CtrSizeT;
 
+public:
     void insert(const Key& key, const Value& value)
     {
         auto& self = this->self();

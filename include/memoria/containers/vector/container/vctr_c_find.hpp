@@ -21,12 +21,12 @@ namespace memoria    {
 using namespace memoria::bt;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrFindName)
-
+public:
     using typename Base::Types;
-
-    using typename Base::NodeBaseG;
     using typename Base::IteratorPtr;
 
+protected:
+    using typename Base::NodeBaseG;
     using typename Base::NodeDispatcher;
     using typename Base::LeafDispatcher;
     using typename Base::BranchDispatcher;
@@ -37,17 +37,9 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrFindName)
 
     using Value = typename Types::Value;
 
-//    Iterator Begin() {
-//      return self().seek(0);
-//    }
-//
-//    Iterator End()
-//    {
-//        auto& self = this->self();
-//        return self.seek(self.size());
-//    }
 
-    IteratorPtr RBegin()
+public:
+    auto RBegin()
     {
         auto& self  = this->self();
         auto size   = self.size();
@@ -61,7 +53,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrFindName)
         }
     }
 
-    IteratorPtr REnd()
+    auto REnd()
     {
         auto& self  = this->self();
         auto size   = self.size();

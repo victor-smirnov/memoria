@@ -21,12 +21,12 @@
 namespace memoria    {
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::MiscName)
-
+public:
     using typename Base::Types;
-
-    using typename Base::NodeBaseG;
     using typename Base::IteratorPtr;
 
+protected:
+    using typename Base::NodeBaseG;
     using typename Base::NodeDispatcher;
     using typename Base::LeafDispatcher;
     using typename Base::BranchDispatcher;
@@ -44,6 +44,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::MiscName)
 
     using PageUpdateMgt     = typename Types::PageUpdateMgr;
 
+public:
     auto begin() {
         return self().template seek_stream<0>(0);
     }

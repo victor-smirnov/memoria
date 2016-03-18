@@ -37,6 +37,7 @@ class BTTestBase: public TestTask {
 protected:
     using CtrName           = ContainerTypeName;
     using Ctr               = typename CtrTF<Profile, ContainerTypeName>::Type;
+
     using Iterator          = typename Ctr::Iterator;
     using IteratorPtr       = typename Ctr::IteratorPtr;
     using CtrSizesT         = typename Ctr::Types::CtrSizesT;

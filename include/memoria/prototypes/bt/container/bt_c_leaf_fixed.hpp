@@ -23,8 +23,10 @@ using namespace memoria::core;
 using namespace std;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafFixedName)
+public:
+    using typename Base::Types;
 
-    typedef typename Base::Types                                                Types;
+protected:
     typedef typename Base::Allocator                                            Allocator;
 
     typedef typename Base::ID                                                   ID;

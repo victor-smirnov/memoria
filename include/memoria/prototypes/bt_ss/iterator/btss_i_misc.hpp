@@ -28,7 +28,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btss::IteratorMiscName)
 
     using Position = typename Container::Types::Position;
     using CtrSizeT = typename Container::Types::CtrSizeT;
-
+public:
     bool operator++() {
         return self().skipFw(1);
     }
@@ -132,31 +132,6 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btss::IteratorMiscName)
         return sizes[0];
     }
 
-    SplitStatus split()
-    {
-        auto& self = this->self();
-
-        NodeBaseG& leaf = self.leaf();
-        Int& idx        = self.idx();
-
-        Int size        = self.leaf_size(0);
-        Int split_idx   = size/2;
-
-        auto right = self.ctr().split_leaf_p(leaf, Position::create(0, split_idx));
-
-        if (idx > split_idx)
-        {
-            leaf = right;
-            idx -= split_idx;
-
-            self.refresh();
-
-            return SplitStatus::RIGHT;
-        }
-        else {
-            return SplitStatus::LEFT;
-        }
-    }
 
     auto bulk_insert(btss::AbstractBTSSInputProvider<Container>& provider)
     {
@@ -202,6 +177,35 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::btss::IteratorMiscName)
 
         return self.ctr().template read_entries<0>(self, length, adaptor);
     }
+
+protected:
+
+    SplitStatus split()
+    {
+        auto& self = this->self();
+
+        NodeBaseG& leaf = self.leaf();
+        Int& idx        = self.idx();
+
+        Int size        = self.leaf_size(0);
+        Int split_idx   = size/2;
+
+        auto right = self.ctr().split_leaf_p(leaf, Position::create(0, split_idx));
+
+        if (idx > split_idx)
+        {
+            leaf = right;
+            idx -= split_idx;
+
+            self.refresh();
+
+            return SplitStatus::RIGHT;
+        }
+        else {
+            return SplitStatus::LEFT;
+        }
+    }
+
 
 MEMORIA_ITERATOR_PART_END
 

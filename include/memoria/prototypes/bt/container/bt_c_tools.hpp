@@ -25,10 +25,10 @@ using namespace memoria::bt;
 
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
+public:
+    using typename Base::Types;
 
-
-
-    typedef typename Base::Types                                                Types;
+protected:
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::Allocator::PageG                                     PageG;
 
@@ -48,6 +48,79 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     typedef typename Types::Position                                            Position;
 
     static const Int Streams                                                    = Types::Streams;
+
+public:
+    NodeBaseG getRoot() const
+    {
+        auto& self = this->self();
+        return self.allocator().getPage(self.root(), self.master_name());
+    }
+
+    NodeBaseG getRootForUpdate() const
+    {
+        auto& self = this->self();
+        return self.allocator().getPageForUpdate(self.root(), self.master_name());
+    }
+
+
+    MEMORIA_DECLARE_NODE_FN(MaxFn, max);
+    BranchNodeEntry max(const NodeBaseG& node) const
+    {
+        BranchNodeEntry entry;
+        NodeDispatcher::dispatch(node, MaxFn(), entry);
+        return entry;
+    }
+
+    MEMORIA_DECLARE_NODE_FN_RTN(GetSizesFn, sizes, Position);
+    Position getNodeSizes(const NodeBaseG& node) const
+    {
+        return NodeDispatcher::dispatch(node, GetSizesFn());
+    }
+
+    MEMORIA_DECLARE_NODE_FN_RTN(GetSizeFn, size, Int);
+    Int getNodeSize(const NodeBaseG& node, Int stream) const
+    {
+        return NodeDispatcher::dispatch(node, GetSizeFn(), stream);
+    }
+
+    MEMORIA_DECLARE_NODE_FN_RTN(CheckCapacitiesFn, checkCapacities, bool);
+    bool checkCapacities(const NodeBaseG& node, const Position& sizes) const
+    {
+        return NodeDispatcher::dispatch(node, CheckCapacitiesFn(), sizes);
+    }
+
+    void dump(const NodeBaseG& page, std::ostream& out = std::cout) const
+    {
+        if (page)
+        {
+            PageWrapper<const Page> pw(page);
+            PageMetadata* meta = self().getMetadata()->getPageMetadata(pw.getContainerHash(), pw.getPageTypeHash());
+            memoria::dumpPage(meta, &pw, out);
+            out<<std::endl;
+            out<<std::endl;
+        }
+        else {
+            out<<"NULL"<<std::endl;
+        }
+    }
+
+    void dumpPath(NodeBaseG node, std::ostream& out = std::cout, Int depth = 100) const
+    {
+        auto& self = this->self();
+
+        out<<"Path:"<<std::endl;
+
+        self.dump(node, out);
+
+        while (!node->is_root() && node->level() < depth)
+        {
+            node = self.getNodeParent(node);
+            self.dump(node, out);
+        }
+    }
+
+
+protected:
 
     bool isTheSameNode(const NodeBaseG& node1, const NodeBaseG& node2) const
     {
@@ -192,13 +265,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
         return sums;
     }
 
-    MEMORIA_DECLARE_NODE_FN(MaxFn, max);
-    BranchNodeEntry max(const NodeBaseG& node) const
-    {
-        BranchNodeEntry entry;
-        NodeDispatcher::dispatch(node, MaxFn(), entry);
-        return entry;
-    }
+
 
     template <typename Path>
     struct LeafSumsFn {
@@ -229,17 +296,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     }
 
 
-    NodeBaseG getRoot() const
-    {
-        auto& self = this->self();
-        return self.allocator().getPage(self.root(), self.master_name());
-    }
-
-    NodeBaseG getRootForUpdate() const
-    {
-        auto& self = this->self();
-        return self.allocator().getPageForUpdate(self.root(), self.master_name());
-    }
 
 
     MEMORIA_DECLARE_NODE_FN(SetKeysFn, setKeys);
@@ -259,46 +315,13 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     }
 
 
-    void dump(const NodeBaseG& page, std::ostream& out = std::cout) const
-    {
-        if (page)
-        {
-            PageWrapper<const Page> pw(page);
-            PageMetadata* meta = self().getMetadata()->getPageMetadata(pw.getContainerHash(), pw.getPageTypeHash());
-            memoria::dumpPage(meta, &pw, out);
-            out<<std::endl;
-            out<<std::endl;
-        }
-        else {
-            out<<"NULL"<<std::endl;
-        }
-    }
-
-    void dumpPath(NodeBaseG node, std::ostream& out = std::cout, Int depth = 100) const
-    {
-        auto& self = this->self();
-
-        out<<"Path:"<<std::endl;
-
-        self.dump(node, out);
-
-        while (!node->is_root() && node->level() < depth)
-        {
-            node = self.getNodeParent(node);
-            self.dump(node, out);
-        }
-    }
 
 
     NodeBaseG getNextNodeP(NodeBaseG& node) const;
     NodeBaseG getPrevNodeP(NodeBaseG& node) const;
 
 
-    MEMORIA_DECLARE_NODE_FN_RTN(CheckCapacitiesFn, checkCapacities, bool);
-    bool checkCapacities(const NodeBaseG& node, const Position& sizes) const
-    {
-        return NodeDispatcher::dispatch(node, CheckCapacitiesFn(), sizes);
-    }
+
 
 
 
@@ -387,17 +410,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
     }
 
 
-    MEMORIA_DECLARE_NODE_FN_RTN(GetSizesFn, sizes, Position);
-    Position getNodeSizes(const NodeBaseG& node) const
-    {
-        return NodeDispatcher::dispatch(node, GetSizesFn());
-    }
-
-    MEMORIA_DECLARE_NODE_FN_RTN(GetSizeFn, size, Int);
-    Int getNodeSize(const NodeBaseG& node, Int stream) const
-    {
-        return NodeDispatcher::dispatch(node, GetSizeFn(), stream);
-    }
 
     Int getBranchNodeSize(const NodeBaseG& node) const
     {

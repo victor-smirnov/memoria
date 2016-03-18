@@ -18,7 +18,6 @@ namespace memoria    {
 
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::AllocatorName)
-private:
     
 public:
 
@@ -29,6 +28,7 @@ public:
     typedef typename Allocator::Page::ID                                        ID;
     typedef typename Allocator::PageG                                           PageG;
     typedef typename Allocator::Shared                                          Shared;
+
 
     bool isNew() const {
         return self().root().is_null();

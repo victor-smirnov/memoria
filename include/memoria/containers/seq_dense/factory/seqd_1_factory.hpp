@@ -30,6 +30,8 @@
 
 #include <memoria/containers/seq_dense/factory/seqd_factory_misc.hpp>
 
+#include <memoria/core/packed/misc/packed_sized_struct.hpp>
+
 namespace memoria {
 
 
@@ -50,7 +52,7 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >: public BTTypes<Profile, me
     using SequenceTypes = typename PkdFSSeqTF<BitsPerSymbol>::Type;
 
     using SeqStreamTF = StreamTF<
-        TL<TL<PkdFSSeq<SequenceTypes>>>,
+        TL<TL<StreamSize, PkdFSSeq<SequenceTypes>>>,
         FSEBranchStructTF,
         TL<TL<TL<SumRange<0, BranchIndexes - 1>>>>
     >;
@@ -59,10 +61,7 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >: public BTTypes<Profile, me
             SeqStreamTF
     >                                                                           StreamDescriptors;
 
-    typedef BalancedTreeMetadata<
-            typename Base::ID,
-            ListSize<StreamDescriptors>::Value
-    >                                                                           Metadata;
+
 
 
     using CommonContainerPartsList = MergeLists<

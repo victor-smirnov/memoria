@@ -9,10 +9,11 @@
 #ifndef _MEMORIA_CONTAINERS_SEQ_DENSE_TOOLS_HPP
 #define _MEMORIA_CONTAINERS_SEQ_DENSE_TOOLS_HPP
 
-#include <memoria/prototypes/bt/layouts/bt_input_buffer.hpp>
 #include <memoria/core/tools/isymbols.hpp>
 #include <memoria/core/tools/random.hpp>
 #include <memoria/core/packed/wrappers/symbol_sequence.hpp>
+
+#include <memoria/prototypes/bt/layouts/bt_input.hpp>
 
 namespace memoria       {
 namespace seq_dense     {

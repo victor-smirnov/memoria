@@ -28,6 +28,8 @@
 #include <memoria/containers/seq_dense/iterator/seqd_i_select.hpp>
 #include <memoria/containers/seq_dense/iterator/seqd_i_skip.hpp>
 
+#include <memoria/core/packed/misc/packed_sized_struct.hpp>
+
 namespace memoria {
 
 
@@ -44,7 +46,10 @@ struct BTTypes<Profile, memoria::Sequence<BitsPerSymbol_, true> >: public BTType
     using SequenceTypes = typename PkdFSSeqTF<BitsPerSymbol>::Type;
 
     using SeqStreamTF = StreamTF<
-        TL<TL<PkdFSSeq<SequenceTypes>>>,
+        TL<TL<
+			StreamSize,
+			PkdFSSeq<SequenceTypes>
+    	>>,
         VLDBranchStructTF,
         TL<TL<TL<>>>
 //      FSEBranchStructTF
@@ -54,11 +59,6 @@ struct BTTypes<Profile, memoria::Sequence<BitsPerSymbol_, true> >: public BTType
     typedef TypeList<
                 SeqStreamTF
     >                                                                           StreamDescriptors;
-
-    typedef BalancedTreeMetadata<
-                typename Base::ID,
-                ListSize<StreamDescriptors>::Value
-    >                                                                           Metadata;
 
 
     typedef MergeLists<

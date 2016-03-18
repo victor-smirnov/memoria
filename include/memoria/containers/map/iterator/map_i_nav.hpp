@@ -21,7 +21,7 @@ namespace memoria    {
 
 
 MEMORIA_ITERATOR_PART_BEGIN(memoria::map::ItrNavName)
-
+public:
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
 

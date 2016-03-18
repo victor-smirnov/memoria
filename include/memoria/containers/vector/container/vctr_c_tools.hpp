@@ -21,37 +21,11 @@ namespace memoria    {
 using namespace memoria::bt;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrToolsName)
-
-    typedef typename Base::Types                                                Types;
-    typedef typename Base::Allocator                                            Allocator;
-
-    typedef typename Base::ID                                                   ID;
-
-    typedef typename Types::NodeBase                                            NodeBase;
-    typedef typename Types::NodeBaseG                                           NodeBaseG;
-    typedef typename Base::Iterator                                             Iterator;
-
-    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
-
-    typedef typename Types::Value                                                Value;
-
-    typedef typename Base::Metadata                                             Metadata;
-
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
-    typedef typename Types::Position                                            Position;
+public:
+    using typename Base::Types;
+protected:
 
 
-    static const Int Streams                                                    = Types::Streams;
-
-
-
-//    MEMORIA_DECLARE_NODE_FN(LayoutNodeFn, layout);
-//    void layoutLeafNode(NodeBaseG& node, Int size) const
-//    {
-//        LeafDispatcher::dispatch(node, LayoutNodeFn(), Position(size));
-//    }
 
 MEMORIA_CONTAINER_PART_END
 

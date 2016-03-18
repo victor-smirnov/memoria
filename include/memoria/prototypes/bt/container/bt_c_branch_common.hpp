@@ -23,7 +23,7 @@ using namespace memoria::core;
 using namespace std;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchCommonName)
-
+public:
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
 
@@ -40,14 +40,15 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchCommonName)
 
     typedef typename Base::Metadata                                             Metadata;
 
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
+    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
-    typedef std::function<BranchNodeEntry (NodeBaseG&, NodeBaseG&)>                 SplitFn;
+    typedef std::function<BranchNodeEntry (NodeBaseG&, NodeBaseG&)>             SplitFn;
 
-    static const Int Streams                                                    = Types::Streams;
+protected:
+    static const Int Streams = Types::Streams;
 
     void newRootP(NodeBaseG& root);
 

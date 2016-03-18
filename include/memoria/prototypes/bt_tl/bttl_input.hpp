@@ -1621,7 +1621,7 @@ class SizedFlatTreeStreamingAdapterBase {
 
 public:
     using CtrSizesT     = typename CtrT::Types::Position;
-    using CtrSizeT      = typename CtrT::CtrSizeT;
+    using CtrSizeT      = typename CtrT::Types::CtrSizeT;
 
     template <Int StreamIdx>
     using InputTuple    = typename CtrT::Types::template StreamInputTuple<StreamIdx>;

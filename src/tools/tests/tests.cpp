@@ -8,6 +8,8 @@
 //#include "bitmap/bitmap_test_suite.hpp"
 //
 
+//#include "packed/sequence/pseq_test_suite.hpp"
+
 #include "packed/codecs/packed_codecs_test_suite.hpp"
 //#include "packed/allocator/palloc_test_suite.hpp"
 //#include "packed/tree/packed_tree_test_suite.hpp"
@@ -19,13 +21,14 @@
 
 
 //#include "prototype/bt/bt_test_suite.hpp"
-//#include "prototype/bttl/bttl_test_suite.hpp"
-//#include "prototype/btss/btss_test_suite.hpp"
+#include "prototype/bttl/bttl_test_suite.hpp"
+#include "prototype/btss/btss_test_suite.hpp"
 //#include "table/table_test_suite.hpp"
 
-//#include "map/map_test_suite.hpp"
-//#include "vector/vector_test_suite.hpp"
+#include "map/map_test_suite.hpp"
+#include "vector/vector_test_suite.hpp"
 #include "multimap/multimap_test_suite.hpp"
+
 //#include "sequence/sequence_test_suite.hpp"
 //#include "labeled_tree/ltree_test_suite.hpp"
 //#include "vector_tree/vtree_test_suite.hpp"
@@ -43,7 +46,7 @@
 
 
 #include <iostream>
-#include "packed/sequence/pseq_test_suite.hpp"
+
 
 using namespace std;
 using namespace memoria;
@@ -88,14 +91,14 @@ int main(int argc, const char** argv, const char** envp)
 
 
 //        runner.registerTask(new BTTestSuite());
-//        runner.registerTask(new BTTLTestSuite());
-//        runner.registerTask(new BTSSTestSuite());
+        runner.registerTask(new BTTLTestSuite());
+        runner.registerTask(new BTSSTestSuite());
 
 //        runner.registerTask(new TableTestSuite());
 
-//        runner.registerTask(new MapTestSuite());
+        runner.registerTask(new MapTestSuite());
+        runner.registerTask(new VectorTestSuite());
         runner.registerTask(new MultiMapTestSuite());
-//        runner.registerTask(new VectorTestSuite());
 //        runner.registerTask(new SequenceTestSuite());
 //        runner.registerTask(new LabeledTreeTestSuite());
 //        runner.registerTask(new VTreeTestSuite());

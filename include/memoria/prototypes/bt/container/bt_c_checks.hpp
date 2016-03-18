@@ -38,17 +38,12 @@ public:
 
     typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
 
-
-//PROTECETED API:
-
-//PUBLIC API:
-
-    bool checkTree() const;
-
     bool check(void *data) const
     {
-        return self().checkTree();
+    	return self().checkTree();
     }
+
+
 
     void checkIt()
     {
@@ -61,6 +56,9 @@ public:
             throw Exception(MA_SRC, SBuf()<<"Container "<<self.name()<<" ("<<self.type_name_str()<<") check failed");
         }
     }
+
+protected:
+    bool checkTree() const;
 
     MEMORIA_DECLARE_NODE_FN(CheckContentFn, check);
     bool checkContent(const NodeBaseG& node) const

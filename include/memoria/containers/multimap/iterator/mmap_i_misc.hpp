@@ -34,6 +34,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mmap::ItrMiscName)
 
     using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
 
+public:
     Key key() const
     {
         auto& self = this->self();
@@ -132,6 +133,15 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::mmap::ItrMiscName)
 
     CtrSizeT values_size() const {
         return self().cache().substream_size();
+    }
+
+
+    template <typename Provider>
+    auto bulk_insert(Provider&& provider, const Int total_capacity = 2000)
+    {
+    	auto& self = this->self();
+
+    	return self.ctr()._insert(self, std::forward<Provider>(provider), total_capacity);
     }
 
 

@@ -21,12 +21,13 @@
 namespace memoria    {
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::LeafFixedName)
-
+public:
     using Types             = typename Base::Types;
-
-    using NodeBaseG         = typename Types::NodeBaseG;
     using Iterator          = typename Base::Iterator;
 
+protected:
+
+    using NodeBaseG         = typename Types::NodeBaseG;
     using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
     using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
     using BranchDispatcher  = typename Types::Pages::BranchDispatcher;

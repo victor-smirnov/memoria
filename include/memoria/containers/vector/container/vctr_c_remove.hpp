@@ -21,25 +21,11 @@ using namespace memoria::bt;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrRemoveName)
 
-    typedef typename Base::Types                                                Types;
-    typedef typename Base::Allocator                                            Allocator;
+public:
+	using typename Base::Types;
 
-    typedef typename Base::ID                                                   ID;
+protected:
 
-    typedef typename Types::NodeBase                                            NodeBase;
-    typedef typename Types::NodeBaseG                                           NodeBaseG;
-    typedef typename Base::Iterator                                             Iterator;
-
-    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
-
-    typedef typename Base::Metadata                                             Metadata;
-
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
-    typedef typename Types::Position                                            Position;
-
-    static const Int Streams                                                    = Types::Streams;
 
 MEMORIA_CONTAINER_PART_END
 

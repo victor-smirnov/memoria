@@ -29,6 +29,22 @@
 namespace memoria   {
 namespace bt        {
 
+template <typename Position, typename Buffer>
+struct InputBufferProvider {
+	virtual Position start() const			= 0;
+	virtual Position size()	const			= 0;
+	virtual Position zero()	const			= 0;
+
+	virtual const Buffer* buffer() const 	= 0;
+	virtual void consumed(Position sizes) 	= 0;
+	virtual bool isConsumed() 				= 0;
+
+	virtual void nextBuffer() 				= 0;
+	virtual bool hasData() const 			= 0;
+
+	InputBufferProvider<Position, Buffer>& me() {return *this;}
+};
+
 template <Int StreamIdx> struct StreamTag;
 
 template <typename T>

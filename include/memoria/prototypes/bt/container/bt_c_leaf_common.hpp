@@ -23,8 +23,10 @@ using namespace memoria::core;
 using namespace std;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
+public:
+    using typename Base::Types;
 
-    typedef typename Base::Types                                                Types;
+protected:
     typedef typename Base::Allocator                                            Allocator;
 
     typedef typename Base::ID                                                   ID;
@@ -49,12 +51,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
 
     static const Int Streams                                                    = Types::Streams;
 
-    MEMORIA_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, BranchNodeEntry);
-    BranchNodeEntry split_leaf_node(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at)
-    {
-        return LeafDispatcher::dispatch(src, tgt, SplitNodeFn(), split_at);
-    }
-
+public:
     NodeBaseG split_leaf_p(NodeBaseG& left_node, const Position& split_at)
     {
         auto& self = this->self();
@@ -63,6 +60,19 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafCommonName)
             return self.split_leaf_node(left, right, split_at);
         });
     }
+
+    MEMORIA_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, BranchNodeEntry);
+    BranchNodeEntry split_leaf_node(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at)
+    {
+        return LeafDispatcher::dispatch(src, tgt, SplitNodeFn(), split_at);
+    }
+
+protected:
+
+
+
+
+
 
 
 

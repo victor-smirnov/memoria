@@ -43,6 +43,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorRemoveName)
 
     using LeafPrefixRanks = typename Container::Types::LeafPrefixRanks;
 
+public:
     Position remove_subtrees(CtrSizeT n)
     {
         CtrSizesT sizes;
@@ -132,11 +133,13 @@ protected:
         return ranks;
     }
 
+public:
     Position local_stream_posrank_() const {
         auto& self = this->self();
         return self.local_stream_posrank_(self.stream(), self.idx());
     }
 
+protected:
     Position local_stream_posrank_(Int stream, Int idx) const
     {
         auto& self = this->self();

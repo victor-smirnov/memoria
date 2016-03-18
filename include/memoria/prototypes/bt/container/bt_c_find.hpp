@@ -21,7 +21,7 @@ namespace memoria    {
 using namespace memoria::bt;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::FindName)
-
+public:
     using Types = TypesType;
 
     using typename Base::Allocator;
@@ -46,9 +46,14 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::FindName)
     using TargetType2 = typename Types::template TargetType2<LeafPath>;
 
 
+    MEMORIA_DECLARE_NODE_FN_RTN(SizesFn, size_sums, Position);
+    Position sizes() const
+    {
+        NodeBaseG node = self().getRoot();
+        return NodeDispatcher::dispatch(node, SizesFn());
+    }
 
-
-public:
+protected:
 
     template <typename Walker>
     IteratorPtr find_(Walker&& walker);
@@ -181,12 +186,7 @@ public:
     }
 
 
-    MEMORIA_DECLARE_NODE_FN_RTN(SizesFn, size_sums, Position);
-    Position sizes() const
-    {
-        NodeBaseG node = self().getRoot();
-        return NodeDispatcher::dispatch(node, SizesFn());
-    }
+
 
     template <typename Walker>
     void walkUp(NodeBaseG node, Int idx, Walker&& walker) const

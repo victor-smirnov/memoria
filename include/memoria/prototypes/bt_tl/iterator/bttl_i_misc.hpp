@@ -46,7 +46,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorMiscName)
     using LeafPrefixRanks = typename Container::Types::LeafPrefixRanks;
 
 
-
+public:
 
 
     template <typename LeafPath>

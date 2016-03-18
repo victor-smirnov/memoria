@@ -25,11 +25,11 @@ using namespace memoria::bt;
 MEMORIA_BT_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTIteratorBase)
 public:
     using Types     = typename Base::Container::Types;
-    using NodeBase  = typename Base::Container::NodeBase;
-    using NodeBaseG = typename Base::Container::NodeBaseG;
+    using NodeBase  = typename Types::NodeBase;
+    using NodeBaseG = typename Types::NodeBaseG;
     using Allocator = typename Base::Container::Allocator;
 
-    using BranchNodeEntry = typename Base::Container::BranchNodeEntry;
+    using BranchNodeEntry = typename Types::BranchNodeEntry;
 
     using CtrSizeT  = typename Types::CtrSizeT;
     using CtrSizesT = typename Types::CtrSizesT;

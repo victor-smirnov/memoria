@@ -140,14 +140,15 @@ class CtrPart<PartName, Base1, TypesType>: public Base1 {                       
     typedef Ctr<TypesType> MyType;                                              \
     template <typename, typename, typename> friend class CtrPart;               \
     template <typename, typename, typename> friend class IterPart;              \
-public:
+protected:
 
 
 #define MEMORIA_CONTAINER_PART_BEGIN(PartName)                                  \
     MEMORIA_CONTAINER_PART_NO_CTR_BEGIN(PartName)                               \
+public:																			\
     CtrPart(const CtrInitData& data): Base(data)  {}                            \
     virtual ~CtrPart() throw() {}                                               \
-
+protected:
 
 
 #define MEMORIA_CONTAINER_PART_END                                              \
@@ -183,16 +184,19 @@ class IterPart<PartName, Base1, Types>: public Base1 {                          
                                                                                 \
     template <typename, typename, typename> friend class CtrPart;               \
     template <typename, typename, typename> friend class IterPart;              \
-public:
+    template <typename> friend class BTIteratorBase;							\
+protected:
 
 
 
 #define MEMORIA_ITERATOR_PART_BEGIN(PartName)                                   \
     MEMORIA_ITERATOR_PART_NO_CTOR_BEGIN(PartName)                               \
+public:																			\
     IterPart(): Base() {}                                                       \
     IterPart(ThisPartType&& other): Base(std::move(other)) {}                   \
     IterPart(const ThisPartType& other): Base(other) {}                         \
-    virtual ~IterPart() throw() {}
+    virtual ~IterPart() throw() {}												\
+protected:
 
 
 
@@ -205,7 +209,6 @@ public:
     const MyType& self() const {                                                \
         return *static_cast<const MyType*>(this);                               \
     }                                                                           \
-                                                                                \
 };
 
 

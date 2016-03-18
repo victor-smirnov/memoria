@@ -20,11 +20,12 @@ namespace memoria    {
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertMaxName)
 
+public:
     using typename Base::Types;
-
-    using typename Base::NodeBaseG;
     using typename Base::IteratorPtr;
 
+protected:
+    using typename Base::NodeBaseG;
     using typename Base::NodeDispatcher;
     using typename Base::LeafDispatcher;
     using typename Base::BranchDispatcher;
@@ -34,8 +35,6 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertMaxName)
 
     using Key = typename Types::Key;
     using Value = typename Types::Value;
-
-
 
     static const Int Streams = Types::Streams;
 
@@ -47,6 +46,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertMaxName)
 
     using CtrSizeT = typename Types::CtrSizeT;
 
+public:
     CtrSizeT size() const {
         return self().sizes()[0];
     }

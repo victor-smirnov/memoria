@@ -24,6 +24,7 @@ using namespace std;
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchFixedName)
 
+public:
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
 
@@ -49,7 +50,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchFixedName)
 
     static const Int Streams                                                    = Types::Streams;
 
+public:
+    void update_parent(NodeBaseG& node, const BranchNodeEntry& entry);
 
+protected:
     MEMORIA_DECLARE_NODE_FN(InsertFn, insert);
     void insertToBranchNodeP(NodeBaseG& node, Int idx, const BranchNodeEntry& keys, const ID& id);
 
@@ -62,7 +66,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchFixedName)
 
     void updateBranchNodes(NodeBaseG& node, Int& idx, const BranchNodeEntry& entry);
 
-    void update_parent(NodeBaseG& node, const BranchNodeEntry& entry);
+
 
 
 

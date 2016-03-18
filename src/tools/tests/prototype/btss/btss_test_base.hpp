@@ -39,7 +39,7 @@ protected:
     using Ctr           = typename CtrTF<Profile, ContainerTypeName>::Type;
     using IteratorPtr   = typename Ctr::IteratorPtr;
     using ID            = typename Ctr::ID;
-    using BranchNodeEntry = typename Ctr::BranchNodeEntry;
+    using BranchNodeEntry = typename Ctr::Types::BranchNodeEntry;
 
     using Allocator     = AllocatorType;
 

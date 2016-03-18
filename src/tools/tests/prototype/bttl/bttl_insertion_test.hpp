@@ -149,7 +149,9 @@ public:
 
         DetInputProvider provider(shape_, level_);
 
-        auto totals = ctr._insert(*iter.get(), provider);
+        auto totals = iter->bulk_insert(provider);
+
+//        checkIterator(MA_RAW_SRC, iter, insertion_pos_ + totals, level_);
 
         auto new_sizes = ctr.sizes();
         AssertEQ(MA_SRC, new_sizes, sizes + totals);
