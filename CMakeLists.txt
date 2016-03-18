@@ -140,7 +140,18 @@ if (EMIT_AST)
     endif()
 endif()
 
-include_directories(../boost_1_60_0)
+
+set(Boost_USE_STATIC_LIBS        ON) 
+set(Boost_USE_MULTITHREADED      ON)
+set(Boost_USE_STATIC_RUNTIME    OFF)
+find_package(Boost
+  1.60.0       
+  REQUIRED
+)   
+
+#COMPONENTS multiprecision # Boost libraries by their canonical name
+
+include_directories(${Boost_INCLUDE_DIRS})
 
 set_property (GLOBAL PROPERTY GLOBAL_SOURCES)
 

@@ -34,7 +34,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/src/tools/include}&quot;"/>
 									<listOptionValue builtIn="false" value="/usr/local/include"/>
 								</option>
-								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.223574919" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
+								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.223574919" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="MEMORIA_TESTS"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.1155896270" languageId="org.eclipse.cdt.core.assembly" languageName="Assembly" sourceContentType="org.eclipse.cdt.core.asmSource" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
@@ -47,7 +47,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/src/tools/include}&quot;"/>
 									<listOptionValue builtIn="false" value="/usr/local/include"/>
 								</option>
-								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.836124985" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
+								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.836124985" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="MEMORIA_TESTS"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.1318837041" languageId="org.eclipse.cdt.core.parser.upc.upc" languageName="UPC" sourceContentType="org.eclipse.cdt.core.parser.upc.upcSource" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
@@ -73,7 +73,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/src/tools/include}&quot;"/>
 									<listOptionValue builtIn="false" value="/usr/local/include"/>
 								</option>
-								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.1352789942" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
+								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.1352789942" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="MEMORIA_TESTS"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.259740723" languageId="org.eclipse.cdt.core.gcc" languageName="GNU C" sourceContentType="org.eclipse.cdt.core.cSource,org.eclipse.cdt.core.cHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
