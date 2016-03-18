@@ -36,7 +36,7 @@ Usually tests take several minutes to complete.
 
 ## Examples
 
-See [examples](/src/tools/examples/) to get an idea how it works.
+Check [examples](/src/tools/examples/) to see Memoria in action.
 
 ## IDE Integration
 
