@@ -60,6 +60,9 @@ protected:
         MEMORIA_ASSERT(n, >=, 0);
 
         auto& self  = this->self();
+
+        auto path = self.path();
+
         auto stream = self.stream();
         auto tmp    = self;
 
@@ -86,7 +89,7 @@ protected:
 
         self.refresh();
 
-        self.cache().abs_pos() = start_abs_pos;
+        self.cache().abs_pos()  = start_abs_pos;
         self.cache().data_pos() = start_data_pos;
 
         self.cache().data_size() = start_data_size;
@@ -100,8 +103,9 @@ protected:
 
             tmp2.add_substream_size(tmp2.stream(), tmp2.idx(), -length_to_remove);
         }
-    }
 
+        self = *self.ctr().seek(path, stream).get();
+    }
 
 
     // Returns leaf ranks of position idx in the specified

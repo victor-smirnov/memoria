@@ -40,6 +40,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     using Position  = typename Types::Position;
     using CtrSizeT  = typename Types::CtrSizeT;
+    using CtrSizesT = typename Types::CtrSizesT;
 
     using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
     using LeafDispatcher    = typename Types::Pages::LeafDispatcher;

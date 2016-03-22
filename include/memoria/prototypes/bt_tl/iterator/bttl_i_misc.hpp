@@ -116,6 +116,11 @@ public:
         cache.abs_pos()[0]  = 0;
     }
 
+    void refresh_prefixes()
+    {
+    	Base::refresh();
+    }
+
 
     void checkPrefix() {
         auto tmp = self();

@@ -23,20 +23,11 @@ namespace memoria    {
 
 MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
 
-    typedef typename Base::Allocator                                            Allocator;
-    typedef typename Base::NodeBaseG                                            NodeBaseG;
+    using typename Base::CtrSizeT;
+	using typename Base::CtrSizesT;
+	using typename Base::Container;
 
-
-    typedef typename Base::Container::BranchNodeEntry                               BranchNodeEntry;
-    typedef typename Base::Container                                            Container;
-    typedef typename Base::Container::Position                                  Position;
-
-    using CtrSizeT  = typename Container::Types::CtrSizeT;
-    using Key       = typename Container::Types::Key;
-    using Value     = typename Container::Types::Value;
-    using IteratorBranchNodeEntry       = typename Container::Types::IteratorBranchNodeEntry;
-
-    using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
+	using typename Base::LeafDispatcher;
 
     template <Int StreamIdx>
     using LeafSizesSubstreamPath = typename Container::Types::template LeafSizesSubstreamPath<StreamIdx>;
@@ -50,6 +41,20 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
     using LeafPrefixRanks = typename Container::Types::LeafPrefixRanks;
 
 public:
+
+    CtrSizesT path() const
+    {
+    	auto& self = this->self();
+    	CtrSizesT p = self.cache().data_pos();
+
+    	for (Int s = self.stream() + 1; s < Streams; s++) {
+    		p[s] = -1;
+    	}
+
+    	return p;
+    }
+
+
     bool next() {
     	return self().skipFw(1) > 0;
     }
@@ -230,7 +235,17 @@ public:
         return cache.data_pos()[stream] >= cache.data_size()[stream];
     }
 
-    Position positions_to() const
+    bool is_data() const
+    {
+        auto& self  = this->self();
+        auto& cache = self.cache();
+
+        auto& stream = self.stream();
+
+        return cache.data_pos()[stream] < cache.data_size()[stream];
+    }
+
+    CtrSizesT positions_to() const
     {
         auto path = self().cache().data_pos();
         auto stream = self().stream();
@@ -243,7 +258,7 @@ public:
         return path;
     }
 
-    Position sizes_of() const
+    CtrSizesT sizes_of() const
     {
         auto sizes = self().cache().data_size();
         auto stream = self().stream();
@@ -256,13 +271,13 @@ public:
         return sizes;
     }
 
-    Position leaf_extent() const
+    CtrSizesT leaf_extent() const
     {
         const auto& self  = this->self();
         const auto& cache = self.cache();
         const auto& branch_prefix = cache.prefixes();
 
-        Position expected_sizes;
+        CtrSizesT expected_sizes;
         bttl::detail::ExpectedSizesHelper<Streams - 1, LeafSizesSubstreamPath, AccumItemH>::process(branch_prefix, expected_sizes);
 
         expected_sizes[0] = cache.size_prefix()[0];
@@ -281,7 +296,7 @@ protected:
 
         Int size = self.leaf_size(stream);
 
-        if (idx >= excess && idx < size)
+        if (idx >= excess && idx <= size)
         {
             return self.find_offset(stream - 1, idx - excess);
         }
@@ -304,7 +319,7 @@ protected:
     }
 
 
-    Position leafrank_(Int pos) const
+    CtrSizesT leafrank_(Int pos) const
     {
         auto& self = this->self();
 
@@ -340,7 +355,7 @@ protected:
 
 
 
-    Position adjust_to_indel()
+    CtrSizesT adjust_to_indel()
     {
         auto& self = this->self();
         auto& cache = this->cache();
@@ -348,8 +363,8 @@ protected:
         auto size = self.size();
         auto pos  = self.pos();
 
-        auto idx        = self.idx();
-        auto stream     = self.stream();
+        auto idx    = self.idx();
+        auto stream = self.stream();
 
         if (idx > 0 || pos < size || stream == 0)
         {
@@ -418,12 +433,12 @@ private:
     }
 
 
-    Position _local_stream_posrank_(Int stream, Int idx)
+    CtrSizesT _local_stream_posrank_(Int stream, Int idx)
     {
         auto& self = this->self();
         auto& cache = self.cache();
 
-        Position ranks;
+        CtrSizesT ranks;
 
         ranks[stream] = idx;
 
@@ -452,7 +467,7 @@ private:
         return ranks;
     }
 
-    Position _local_stream_pos_rank2(CtrSizeT abs_pos)
+    CtrSizesT _local_stream_pos_rank2(CtrSizeT abs_pos)
     {
         auto& self = this->self();
         auto& cache = self.cache();
@@ -460,7 +475,7 @@ private:
         auto stream = self.stream();
         auto idx    = self.idx();
 
-        Position ranks;
+        CtrSizesT ranks;
         ranks[stream] = idx;
 
         for (Int s = stream - 1; s >= 0; s--)

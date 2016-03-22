@@ -305,6 +305,7 @@ public:
     >;
 
     using Position  = typename CtrT::Types::Position;
+    using CtrSizesT = typename CtrT::Types::CtrSizesT;
 
     using ForAllBuffer = detail::ForAllTuple<std::tuple_size<Buffer>::value>;
 
@@ -323,8 +324,8 @@ public:
 
 protected:
     Buffer buffer_;
-    Position start_;
-    Position size_;
+    CtrSizesT start_;
+    CtrSizesT size_;
 
     Int total_capacity_;
 
@@ -346,7 +347,8 @@ protected:
 
     CtrSizeT total_symbols_ = 0;
 
-    Position totals_;
+    CtrSizesT totals_;
+    CtrSizesT locals_;
 
 private:
     struct CreateBufferFn {
@@ -470,9 +472,18 @@ public:
         return orphan_splits_;
     }
 
-    const Position& totals() const {
+    const CtrSizesT& totals() const {
         return totals_;
     }
+
+    const CtrSizesT& locals() const {
+    	return locals_;
+    }
+
+    Int last_symbol() const {
+    	return last_symbol_;
+    }
+
 
     virtual bool hasData()
     {
@@ -660,10 +671,14 @@ public:
                     {
                         this->finish_stream_run(symbol, last_symbol_, sizes, buffer_sums);
                     }
+                    else if (symbol > last_symbol_) {
+                    	locals_[symbol] = 0;
+                    }
 
                     buffer_sums[symbol] += length;
                     sizes[symbol]       += length;
                     totals_[symbol]     += length;
+                    locals_[symbol]     += length;
 
                     if (capacity <= 0)
                     {
@@ -677,14 +692,13 @@ public:
                 }
                 else {
                     // buffer is full
-                    // cout<<"Buffer is full: "<<size_<<endl;
                     this->finish_stream_run(0, Streams - 1, sizes, buffer_sums);
                     break;
                 }
             }
             else {
                 this->finish_stream_run(0, Streams - 1, sizes, buffer_sums);
-                last_symbol_ = -1;
+//                last_symbol_ = -1;
                 break;
             }
         }

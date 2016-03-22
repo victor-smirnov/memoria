@@ -27,37 +27,44 @@ public:
     using Iterator          = typename Base::Iterator;
 
 protected:
-    using NodeBaseG         = typename Types::NodeBaseG;
-    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
 
-    using Key               = typename Types::Key;
-    using Value             = typename Types::Value;
-    using CtrSizeT          = typename Types::CtrSizeT;
-    using CtrSizesT         = typename Types::Position;
-
-    using BranchNodeEntry       = typename Types::BranchNodeEntry;
 
     static const Int Streams = Types::Streams;
 
-    using PageUpdateMgt     = typename Types::PageUpdateMgr;
-
-
     template <typename Provider>
-    CtrSizesT _insert(Iterator& iter, Provider&& provider, const Int total_capacity = 2000)
+    auto _insert(Iterator& iter, Provider&& provider, const Int total_capacity = 2000)
     {
         auto& self = this->self();
 
-        bttl::StreamingCtrInputProvider<MyType, Provider> streamingProvider(self, provider, iter.stream(), total_capacity);
+        auto path = iter.cache().data_pos();
+
+        auto stream = iter.stream();
+
+        bttl::StreamingCtrInputProvider<MyType, Provider> streamingProvider(self, provider, stream, total_capacity);
 
         auto pos = iter.local_stream_posrank_();
 
         streamingProvider.prepare(iter, pos);
 
-        self.insert_provided_data(iter.leaf(), pos, streamingProvider);
+        auto result = self.insert_provided_data(iter.leaf(), pos, streamingProvider);
 
         auto totals = streamingProvider.totals();
+        auto locals = streamingProvider.locals();
+
+        Int last_stream = streamingProvider.last_symbol();
+
+        MEMORIA_ASSERT(locals[stream], >, 0);
+        path[stream] += locals[stream] - 1;
+
+        for (Int s = stream + 1; s < last_stream; s++)
+        {
+        	MEMORIA_ASSERT(locals[s], >, 0);
+        	path[s] = locals[s] - 1;
+        }
+
+        path[last_stream] = locals[last_stream];
+
+        iter = *self.seek(path, last_stream).get();
 
         return totals;
     }

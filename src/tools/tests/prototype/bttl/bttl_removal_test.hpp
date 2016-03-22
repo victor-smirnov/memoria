@@ -73,6 +73,7 @@ class BTTLRemovalTest<BTTLTestCtr<Levels, SizeType>, AllocatorT, ProfileT>: publ
     using Base::checkSubtree;
     using Base::checkTree;
     using Base::sampleTreeShape;
+    using Base::checkIterator;
     using Base::getIntTestGenerator;
 
     using Base::dump;
@@ -143,9 +144,11 @@ public:
 
         auto sizes_before = ctr.sizes();
 
-        out()<<"Remove "<<length_<<" elements data at: "<<removal_pos_<<" size: "<<sizes_before<<endl;
+        out()<<"Remove "<<length_<<" elements data at: "<<removal_pos_<<", Ctr size before data removal: "<<sizes_before<<endl;
 
         iter->remove_subtrees(length_);
+
+        checkIterator(MA_RAW_SRC, iter, removal_pos_, level_);
 
         auto sizes_after = ctr.sizes();
         auto ctr_totals = ctr.total_counts();

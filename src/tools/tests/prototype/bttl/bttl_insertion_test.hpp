@@ -151,7 +151,9 @@ public:
 
         auto totals = iter->bulk_insert(provider);
 
-//        checkIterator(MA_RAW_SRC, iter, insertion_pos_ + totals, level_);
+        AssertEQ(MA_RAW_SRC, iter->stream(), Streams - 1);
+
+        checkIterator(MA_RAW_SRC, iter, iter->path(), iter->stream());
 
         auto new_sizes = ctr.sizes();
         AssertEQ(MA_SRC, new_sizes, sizes + totals);
