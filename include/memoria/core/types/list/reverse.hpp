@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef _MEMORIA_CORE_TOOLS_TYPES_LIST_REVERSE_HPP
-#define _MEMORIA_CORE_TOOLS_TYPES_LIST_REVERSE_HPP
+#pragma once
 
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/types/list/append.hpp>
@@ -33,5 +30,3 @@ struct RevertList<TypeList<>> {
 
 
 }
-
-#endif  /* _MEMORIA_CORE_TOOLS_TYPES_LIST_APPEND_HPP */

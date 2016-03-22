@@ -4,9 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-#ifndef MEMORIA_CONTAINERS_LBLTREE_TOOLS_LABELS_HPP_
-#define MEMORIA_CONTAINERS_LBLTREE_TOOLS_LABELS_HPP_
+#pragma once
 
 #include <memoria/core/tools/isequencedata.hpp>
 #include <memoria/core/packed/array/packed_fse_bitmap.hpp>
@@ -90,6 +88,3 @@ public:
 
 }
 }
-
-
-#endif /* LBLTREE_TOOLS_HPP_ */

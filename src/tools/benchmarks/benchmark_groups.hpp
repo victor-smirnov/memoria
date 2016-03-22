@@ -4,8 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef TOOLS_BENCHMARKS_BENCHMARK_GROUPS_HPP_
-#define TOOLS_BENCHMARKS_BENCHMARK_GROUPS_HPP_
+#pragma once
 
 #include <memoria/tools/benchmarks.hpp>
 
@@ -507,5 +506,3 @@ public:
 
 }
 
-
-#endif /* BENCHMARK_GROUPS_HPP_ */

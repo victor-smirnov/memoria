@@ -4,9 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_CORE_TOOLS_BIGINT_HPP_
-#define MEMORIA_CORE_TOOLS_BIGINT_HPP_
-
+#pragma once
 
 #include <memoria/core/types/types.hpp>
 
@@ -274,5 +272,3 @@ struct TypeHash<BigInteger> {
 };
 
 }
-
-#endif

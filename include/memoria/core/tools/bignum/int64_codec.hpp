@@ -4,8 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_CORE_TOOLS_BIGNUM_INT64_CODEC_HPP_
-#define MEMORIA_CORE_TOOLS_BIGNUM_INT64_CODEC_HPP_
+#pragma once
 
 #include <memoria/core/tools/strings/string.hpp>
 #include <memoria/core/tools/bitmap.hpp>
@@ -451,5 +450,3 @@ template <>
 class ValueCodec<bool>: public PrimitiveTypeCodec<bool> {};
 
 }
-
-#endif

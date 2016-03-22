@@ -4,9 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-#ifndef _MEMORIA_CORE_TOOLS_TYPES_STATIC_MD5_HPP
-#define _MEMORIA_CORE_TOOLS_TYPES_STATIC_MD5_HPP
+#pragma once
 
 #include <memoria/core/types/algo/select.hpp>
 #include <memoria/core/tools/type_name.hpp>
@@ -363,6 +361,3 @@ struct Md5Sum<ValueList<UInt, Data...>> {
 }
 }
 
-
-
-#endif

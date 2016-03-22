@@ -4,9 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-#ifndef MEMORIA_CORE_PACKED_VLE_INPUT_BUFFER_COLUMN_ORDER_HPP_
-#define MEMORIA_CORE_PACKED_VLE_INPUT_BUFFER_COLUMN_ORDER_HPP_
+#pragma once
 
 #include <memoria/core/packed/tree/vle/packed_vle_quick_tree_base.hpp>
 #include <memoria/core/packed/tree/vle/packed_vle_tools.hpp>
@@ -627,6 +625,3 @@ public:
 
 
 }
-
-
-#endif

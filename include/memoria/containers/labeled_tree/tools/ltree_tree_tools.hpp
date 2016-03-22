@@ -4,9 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-#ifndef MEMORIA_CONTAINERS_LBLTREE_TOOLS_TREE_HPP_
-#define MEMORIA_CONTAINERS_LBLTREE_TOOLS_TREE_HPP_
+#pragma once
 
 #include <memoria/core/tools/isequencedata.hpp>
 #include <memoria/core/types/types.hpp>
@@ -87,12 +85,5 @@ public:
 };
 
 
-
-
-
-
 }
 }
-
-
-#endif /* LBLTREE_TOOLS_HPP_ */

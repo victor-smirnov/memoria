@@ -4,9 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-#ifndef MEMORIA_CORE_TYPES_LIST_LIST_TREE_HPP1_
-#define MEMORIA_CORE_TYPES_LIST_LIST_TREE_HPP1_
+#pragma once
 
 #include <memoria/core/types/list/linearize.hpp>
 #include <memoria/core/types/list/typelist.hpp>
@@ -295,5 +293,3 @@ struct BuildTreePath<TypeList<>, LeafIdx, IntList<PathList...>, Idx>;
 
 }
 }
-
-#endif

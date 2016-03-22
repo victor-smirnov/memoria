@@ -4,8 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_PACKED_DISPATCHER_DETAIL_HPP_
-#define MEMORIA_PACKED_DISPATCHER_DETAIL_HPP_
+#pragma once
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/types/type2type.hpp>
@@ -232,5 +231,3 @@ auto dispatchFn(Fn&& fn, Args&&... args)
 }
 }
 }
-
-#endif

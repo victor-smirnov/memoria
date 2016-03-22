@@ -4,9 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-#ifndef MEMORIA_CORE_PACKED_FSE_SEARCHABLESEQ_HPP_
-#define MEMORIA_CORE_PACKED_FSE_SEARCHABLESEQ_HPP_
+#pragma once
 
 #include <memoria/core/packed/tools/packed_allocator.hpp>
 #include <memoria/core/packed/tree/fse/packed_fse_quick_tree.hpp>
@@ -1118,6 +1116,3 @@ struct PkdFSSeqTF: HasType<
 
 
 }
-
-
-#endif

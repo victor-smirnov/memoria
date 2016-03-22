@@ -4,8 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_CORE_TYPES_INT128_HPP_
-#define MEMORIA_CORE_TYPES_INT128_HPP_
+#pragma once
 
 #include <memoria/core/types/types.hpp>
 #include <cstdint>
@@ -31,6 +30,3 @@ namespace std {
 //}
 
 }
-
-
-#endif /* MEMORIA_CORE_TYPES_INT128_HPP_ */

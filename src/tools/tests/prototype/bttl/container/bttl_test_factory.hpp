@@ -4,8 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_BTTL_TEST_FACTORY1_HPP_
-#define MEMORIA_TESTS_BTTL_TEST_FACTORY1_HPP_
+#pragma once
 
 #include <memoria/memoria.hpp>
 
@@ -106,7 +105,7 @@ struct BTTLTestTypesBase: public BTTypes<Profile, BTTreeLayout> {
 
     using IteratorPartsList = MergeLists<
                 typename Base::IteratorPartsList,
-				memoria::bttl_test::IterApiName
+                memoria::bttl_test::IterApiName
     >;
 
 };
@@ -152,6 +151,3 @@ struct TypeHash<BTTLTestCtr<Level, SizeType>>:   UIntValue<
 
 
 }
-
-
-#endif

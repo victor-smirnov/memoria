@@ -4,8 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_CORE_PACKED_DISPATCHER_HPP_
-#define MEMORIA_CORE_PACKED_DISPATCHER_HPP_
+#pragma once
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/types/type2type.hpp>
@@ -1131,5 +1130,3 @@ struct PackedDispatchersListBuilder<TypeList<>, Idx> {
 };
 
 }
-
-#endif

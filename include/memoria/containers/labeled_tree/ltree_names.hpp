@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef MEMORIA_CONTAINERS_LBLTREE_NAMES_HPP_
-#define MEMORIA_CONTAINERS_LBLTREE_NAMES_HPP_
+#pragma once
 
 #include <memoria/prototypes/ctr_wrapper/ctrwrapper_names.hpp>
 
@@ -43,5 +40,3 @@ using LoudsIterTypes = IterWrapperTypes<LoudsIterTypesT<Types>>;
 
 
 }
-
-#endif

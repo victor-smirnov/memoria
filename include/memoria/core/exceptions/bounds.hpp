@@ -5,8 +5,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_VAPI_EXCEPTIONS_BOUNDS_HPP
-#define _MEMORIA_VAPI_EXCEPTIONS_BOUNDS_HPP
+#pragma once
 
 #include <memoria/core/exceptions/memoria.hpp>
 
@@ -28,5 +27,3 @@ public:
 
 
 }
-
-#endif

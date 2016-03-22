@@ -4,9 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-#ifndef _MEMORIA_PROTOTYPES_BTTL_CTR_MISC_HPP
-#define _MEMORIA_PROTOTYPES_BTTL_CTR_MISC_HPP
+#pragma once
 
 
 #include <memoria/prototypes/bt_tl/bttl_names.hpp>
@@ -61,26 +59,26 @@ public:
 
     auto seek(const CtrSizesT& pos, Int level)
     {
-    	auto& self = this->self();
-    	auto iter  = self.template seek_stream<0>(pos[0]);
+        auto& self = this->self();
+        auto iter  = self.template seek_stream<0>(pos[0]);
 
-    	for (Int l = 1; l <= level; l++)
-    	{
-    		if (iter->is_data())
-    		{
-    			iter->toData(pos[l]);
-    		}
-    		else if (iter->isSEnd() && iter->size() > 0)
-    		{
-    			iter->skipBw(1);
-    			iter->toData(pos[l]);
-    		}
-    		else {
-    			break;
-    		}
-    	}
+        for (Int l = 1; l <= level; l++)
+        {
+            if (iter->is_data())
+            {
+                iter->toData(pos[l]);
+            }
+            else if (iter->isSEnd() && iter->size() > 0)
+            {
+                iter->skipBw(1);
+                iter->toData(pos[l]);
+            }
+            else {
+                break;
+            }
+        }
 
-    	return iter;
+        return iter;
     }
 
 
@@ -117,6 +115,3 @@ MEMORIA_CONTAINER_PART_END
 #undef M_TYPE
 
 }
-
-
-#endif

@@ -4,7 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
+#pragma once
 
 /**
  * Basic bitmap tools. get/set bit and bit groups. Copy/Shift bits in a Buffer.
@@ -12,8 +12,6 @@
  * Buffer must have Long type declarator and [] overloaded operator.
  */
 
-#ifndef _MEMORIA_CORE_TOOLS_BITMAP_H
-#define _MEMORIA_CORE_TOOLS_BITMAP_H
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/types/type2type.hpp>
@@ -1068,5 +1066,3 @@ static inline bool IsClean(const void *dst, long size)
 }
 
 }
-
-#endif

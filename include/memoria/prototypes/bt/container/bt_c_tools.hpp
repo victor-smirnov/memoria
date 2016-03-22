@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_TOOLS_HPP
-#define _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_TOOLS_HPP
+#pragma once
 
 #include <memoria/metadata/tools.hpp>
 #include <memoria/core/container/macros.hpp>
@@ -525,6 +522,3 @@ typename M_TYPE::NodeBaseG M_TYPE::getPrevNodeP(NodeBaseG& node) const
 #undef M_PARAMS
 
 }
-
-
-#endif

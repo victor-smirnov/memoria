@@ -4,9 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-#ifndef INCLUDE_MEMORIA_CORE_TOOLS_COW_TOOLS_HPP_
-#define INCLUDE_MEMORIA_CORE_TOOLS_COW_TOOLS_HPP_
+#pragma once
 
 #include <memoria/core/types/types.hpp>
 
@@ -277,5 +275,3 @@ private:
 }
 }
 }
-
-#endif

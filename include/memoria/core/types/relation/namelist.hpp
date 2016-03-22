@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef _MEMORIA_CORE_TOOLS_TYPES_RELATION_NAMELIST_HPP
-#define _MEMORIA_CORE_TOOLS_TYPES_RELATION_NAMELIST_HPP
+#pragma once
 
 #include <memoria/core/types/relation/expression.hpp>
 #include <memoria/core/types/algo.hpp>
@@ -91,5 +88,3 @@ public:
 }
 }
 }
-
-#endif

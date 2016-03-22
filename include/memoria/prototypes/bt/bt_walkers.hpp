@@ -4,9 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-#ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_WALKERS_HPP
-#define _MEMORIA_PROTOTYPES_BALANCEDTREE_WALKERS_HPP
+#pragma once
 
 #include <memoria/core/tools/static_array.hpp>
 #include <memoria/core/container/iterator.hpp>
@@ -29,6 +27,3 @@ namespace bt            {
 
 }
 }
-
-#endif
-

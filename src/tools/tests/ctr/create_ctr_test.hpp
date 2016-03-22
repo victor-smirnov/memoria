@@ -4,8 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_CREATE_CTR_CREATE_CTR_TEST_HPP_
-#define MEMORIA_TESTS_CREATE_CTR_CREATE_CTR_TEST_HPP_
+#pragma once
 
 #include <memoria/tools/profile_tests.hpp>
 #include <memoria/tools/tools.hpp>
@@ -293,7 +292,3 @@ public:
 
 
 }
-
-
-#endif
-

@@ -4,8 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_CORE_TYPES_LIST_LINEARIZE_HPP_
-#define MEMORIA_CORE_TYPES_LIST_LINEARIZE_HPP_
+#pragma once
 
 #include <memoria/core/types/list/misc.hpp>
 #include <memoria/core/types/algo/select.hpp>
@@ -117,5 +116,3 @@ struct ListSubsetH<List, IntList<>> {
 };
 
 }
-
-#endif

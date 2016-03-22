@@ -3,8 +3,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_MULTIMAP_TEST_BASE_HPP_
-#define MEMORIA_TESTS_MULTIMAP_TEST_BASE_HPP_
+#pragma once
 
 #include <memoria/memoria.hpp>
 
@@ -27,8 +26,8 @@ namespace memoria {
 
 template<typename MapName>
 class MultiMapTestBase: public BTTestBase<MapName, PersistentInMemAllocator<>, DefaultProfile<>> {
-    using MyType 	= MultiMapTestBase<MapName>;
-    using Base 		= BTTestBase<MapName, PersistentInMemAllocator<>, DefaultProfile<>>;
+    using MyType    = MultiMapTestBase<MapName>;
+    using Base      = BTTestBase<MapName, PersistentInMemAllocator<>, DefaultProfile<>>;
 
 public:
     using typename Base::Ctr;
@@ -66,19 +65,19 @@ public:
 
     void checkData(Ctr& ctr, const MapData& data)
     {
-    	AssertEQ(MA_RAW_SRC, ctr.size(), data.size());
+        AssertEQ(MA_RAW_SRC, ctr.size(), data.size());
 
-    	size_t c = 0;
-    	for (auto iter = ctr.begin(); !iter->is_end(); iter->next(), c++)
-    	{
-    		auto key 	= iter->key();
-    		auto value 	= iter->read_values();
+        size_t c = 0;
+        for (auto iter = ctr.begin(); !iter->is_end(); iter->next(), c++)
+        {
+            auto key    = iter->key();
+            auto value  = iter->read_values();
 
-    		AssertEQ(MA_RAW_SRC, key, std::get<0>(data[c]));
-    		AssertEQ(MA_RAW_SRC, value, std::get<1>(data[c]));
+            AssertEQ(MA_RAW_SRC, key, std::get<0>(data[c]));
+            AssertEQ(MA_RAW_SRC, value, std::get<1>(data[c]));
 
-    		iter->toIndex();
-    	}
+            iter->toIndex();
+        }
     }
 
 
@@ -209,5 +208,3 @@ public:
 };
 
 }
-
-#endif

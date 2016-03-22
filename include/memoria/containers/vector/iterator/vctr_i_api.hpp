@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef _MEMORIA_CONTAINER_vctr_ITERATOR_API_HPP
-#define _MEMORIA_CONTAINER_vctr_ITERATOR_API_HPP
+#pragma once
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/tools/dump.hpp>
@@ -170,5 +167,3 @@ MEMORIA_ITERATOR_PART_END
 
 #undef M_TYPE
 #undef M_PARAMS
-
-#endif

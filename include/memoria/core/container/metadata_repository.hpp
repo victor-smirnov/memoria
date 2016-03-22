@@ -4,11 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef _MEMORIA_CORE_CONTAINER_CONTAINER_TYPES_COLLECTION_HPP
-#define _MEMORIA_CORE_CONTAINER_CONTAINER_TYPES_COLLECTION_HPP
-
+#pragma once
 
 #include <memoria/core/container/names.hpp>
 #include <memoria/core/container/dispatcher.hpp>
@@ -141,5 +137,3 @@ public:
 
 
 }
-
-#endif

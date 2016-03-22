@@ -4,8 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_BTTL_TEST_BASE_HPP_
-#define MEMORIA_TESTS_BTTL_TEST_BASE_HPP_
+#pragma once
 
 #include <memoria/memoria.hpp>
 
@@ -50,8 +49,8 @@ class BTTLTestBase<BTTLTestCtr<Levels, SizeType>, AllocatorType, Profile>: publi
     using Base = BTTestBase<ContainerTypeName, AllocatorType, Profile>;
 
 protected:
-    using Ctr           	= typename CtrTF<Profile, ContainerTypeName>::Type;
-    using Iterator      	= typename Ctr::Iterator;
+    using Ctr               = typename CtrTF<Profile, ContainerTypeName>::Type;
+    using Iterator          = typename Ctr::Iterator;
     using IteratorPtr       = typename Ctr::IteratorPtr;
     using ID                = typename Ctr::ID;
     using BranchNodeEntry   = typename Ctr::Types::BranchNodeEntry;
@@ -427,6 +426,3 @@ public:
 };
 
 }
-
-
-#endif

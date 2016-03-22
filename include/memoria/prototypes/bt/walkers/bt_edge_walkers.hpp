@@ -4,8 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_EDGE_WALKERS_HPP
-#define _MEMORIA_PROTOTYPES_BALANCEDTREE_EDGE_WALKERS_HPP
+#pragma once
 
 namespace memoria {
 namespace bt1     {
@@ -63,5 +62,3 @@ public:
 
 }
 }
-
-#endif

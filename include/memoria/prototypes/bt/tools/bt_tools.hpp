@@ -4,9 +4,9 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
+#pragma once
 
-#ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_TOOLS_HPP
-#define _MEMORIA_PROTOTYPES_BALANCEDTREE_TOOLS_HPP
+
 
 #include <memoria/core/tools/static_array.hpp>
 #include <memoria/core/tools/vector_tuple.hpp>
@@ -421,6 +421,3 @@ public:
 
 }
 }
-
-#endif
-

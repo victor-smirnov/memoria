@@ -4,8 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_BTTL_TEST_NAMES_HPP_
-#define MEMORIA_TESTS_BTTL_TEST_NAMES_HPP_
+#pragma once
 
 #include <memoria/prototypes/bt_tl/bttl_names.hpp>
 
@@ -17,6 +16,3 @@ class IterApiName {};
 
 }
 }
-
-
-#endif

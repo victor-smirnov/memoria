@@ -4,8 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_BENCHMARKS_PMAP_CUSTOM_ALLOCATOR_HPP_
-#define MEMORIA_BENCHMARKS_PMAP_CUSTOM_ALLOCATOR_HPP_
+#pragma once
 
 
 #include <memory>
@@ -114,6 +113,3 @@ bool operator==(const CustomAllocator<T1>&, const CustomAllocator<T2>&) throw()
 }
 
 }
-
-
-#endif

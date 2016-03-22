@@ -4,8 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_CORE_TOOLS_ALLOC_HPP_
-#define MEMORIA_CORE_TOOLS_ALLOC_HPP_
+#pragma once
 
 #include <memoria/core/exceptions/exceptions.hpp>
 #include <memoria/core/packed/tools/packed_allocator_types.hpp>
@@ -49,7 +48,3 @@ inline auto AllocateAllocator(size_t block_size, Int blocks = 1)
 
 
 }
-
-
-#endif
-

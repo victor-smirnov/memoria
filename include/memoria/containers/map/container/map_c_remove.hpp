@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-#ifndef _MEMORIA_CONTAINERS_MAPX_CTR_REMOVE_HPP
-#define _MEMORIA_CONTAINERS_MAPX_CTR_REMOVE_HPP
-
+#pragma once
 
 #include <memoria/containers/map/map_names.hpp>
 #include <memoria/containers/map/map_tools.hpp>
@@ -51,6 +48,3 @@ MEMORIA_CONTAINER_PART_END
 #undef M_TYPE
 
 }
-
-
-#endif

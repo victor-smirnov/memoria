@@ -3,8 +3,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_CORE_TOOLS_TIME_HPP_
-#define MEMORIA_CORE_TOOLS_TIME_HPP_
+#pragma once
 
 #include <memoria/core/tools/strings/string.hpp>
 #include <memoria/core/types/types.hpp>
@@ -17,6 +16,3 @@ BigInt  getTimeInMillis();
 String FormatTime(BigInt millis);
 
 }
-
-
-#endif /* TERMINAL_HPP_ */

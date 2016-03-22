@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-#ifndef MEMORIA_CONTAINERS_VTREE_ITERATOR_HPP_
-#define MEMORIA_CONTAINERS_VTREE_ITERATOR_HPP_
-
+#pragma once
 
 #include <memoria/containers/vector_tree/vtree_names.hpp>
 
@@ -238,8 +235,3 @@ bool operator!=(const Iter<VTreeIterTypes<Types> >& iter, const IterEndMark& mar
 }
 
 }
-
-
-
-
-#endif

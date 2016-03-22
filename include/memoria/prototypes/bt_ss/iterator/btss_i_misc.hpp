@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_SS_ITERATOR_MISC_HPP
-#define _MEMORIA_PROTOTYPES_BALANCEDTREE_SS_ITERATOR_MISC_HPP
+#pragma once
 
 #include <memoria/core/container/macros.hpp>
 #include <memoria/core/types/types.hpp>
@@ -220,5 +217,3 @@ MEMORIA_ITERATOR_PART_END
 
 }
 
-
-#endif

@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef MEMORIA_CORE_PACKED2_TOOLS_HPP_
-#define MEMORIA_CORE_PACKED2_TOOLS_HPP_
+#pragma once
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/exceptions/exceptions.hpp>
@@ -316,6 +313,3 @@ auto make_fn_with_next(Fn&& fn)
 
 
 }
-
-
-#endif

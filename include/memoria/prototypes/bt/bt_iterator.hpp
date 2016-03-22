@@ -4,12 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef __MEMORIA_PROTOTYPES_BALANCEDTREE_ITERATOR_H
-#define __MEMORIA_PROTOTYPES_BALANCEDTREE_ITERATOR_H
-
-
+#pragma once
 
 #include <memoria/prototypes/bt/iterator/bt_i_api.hpp>
 #include <memoria/prototypes/bt/iterator/bt_i_base.hpp>
@@ -164,5 +159,3 @@ bool operator!=(const Iter<BTIterTypes<Types> >& iter, const IterEndMark& mark)
 
 
 }
-
-#endif

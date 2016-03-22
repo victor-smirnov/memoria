@@ -5,8 +5,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_TOOLS_PROFILE_BENCHMARK_HPP
-#define _MEMORIA_TOOLS_PROFILE_BENCHMARK_HPP
+#pragma once
 
 
 #include <memoria/tools/task.hpp>
@@ -107,4 +106,3 @@ typedef SPBenchmarkTaskT<> SPBenchmarkTask;
 
 
 }
-#endif

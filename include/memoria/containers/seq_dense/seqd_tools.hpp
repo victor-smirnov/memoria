@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef _MEMORIA_CONTAINERS_SEQ_DENSE_TOOLS_HPP
-#define _MEMORIA_CONTAINERS_SEQ_DENSE_TOOLS_HPP
+#pragma once
 
 #include <memoria/core/tools/isymbols.hpp>
 #include <memoria/core/tools/random.hpp>
@@ -220,5 +217,3 @@ public:
 
 }
 }
-
-#endif

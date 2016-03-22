@@ -4,9 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-#ifndef MEMORIA_CORE_PACKED_FSE_QUICK_TREE_HPP_
-#define MEMORIA_CORE_PACKED_FSE_QUICK_TREE_HPP_
+#pragma once
 
 #include <memoria/core/packed/tree/fse/packed_fse_quick_tree_base.hpp>
 #include <memoria/core/packed/buffer/packed_fse_input_buffer_ro.hpp>
@@ -888,6 +886,3 @@ struct IndexesSize<PkdFQTree<Types>> {
 
 
 }
-
-
-#endif

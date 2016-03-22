@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-#ifndef _MEMORIA_PROTOTYPES_BTTL_CTR_RANKS_HPP
-#define _MEMORIA_PROTOTYPES_BTTL_CTR_RANKS_HPP
-
+#pragma once
 
 #include <memoria/prototypes/bt_tl/bttl_names.hpp>
 #include <memoria/core/container/container.hpp>
@@ -80,28 +77,28 @@ public:
     //FIXME: handle PackedOOM correctly for branch nodes
     void add_to_stream_counter(NodeBaseG node, Int stream, Int idx, CtrSizeT value)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	if (value != 0)
-    	{
-    		AddToStreamCounter fn;
+        if (value != 0)
+        {
+            AddToStreamCounter fn;
 
-    		self.updatePageG(node);
+            self.updatePageG(node);
 
-    		self.process_count_substreams(node, stream, fn, idx, value);
+            self.process_count_substreams(node, stream, fn, idx, value);
 
-    		while (node->parent_id().isSet())
-    		{
-    			NodeBaseG parent = self.getNodeParentForUpdate(node);
-    			Int parent_idx   = node->parent_idx();
+            while (node->parent_id().isSet())
+            {
+                NodeBaseG parent = self.getNodeParentForUpdate(node);
+                Int parent_idx   = node->parent_idx();
 
-    			self.updatePageG(parent);
+                self.updatePageG(parent);
 
-    			self.process_count_substreams(parent, stream, fn, parent_idx, value);
+                self.process_count_substreams(parent, stream, fn, parent_idx, value);
 
-    			node = parent;
-    		}
-    	}
+                node = parent;
+            }
+        }
     }
 
     template <typename... Args>
@@ -498,6 +495,3 @@ MEMORIA_CONTAINER_PART_END
 #undef M_TYPE
 
 }
-
-
-#endif

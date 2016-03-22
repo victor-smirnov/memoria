@@ -4,9 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-#ifndef MEMORIA_CORE_TOOLS_LABELED_TREE_H
-#define MEMORIA_CORE_TOOLS_LABELED_TREE_H
+#pragma once
 
 #include <memoria/core/tools/buffer.hpp>
 
@@ -85,5 +83,3 @@ std::ostream& operator<<(std::ostream& out, const LblTreeNode<Data, Labels...>& 
 
 }
 }
-
-#endif

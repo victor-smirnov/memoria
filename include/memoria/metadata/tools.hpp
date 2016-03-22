@@ -4,11 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef _MEMORIA_VAPI_METADATA_TOOLS_HPP
-#define _MEMORIA_VAPI_METADATA_TOOLS_HPP
-
+#pragma once
 
 #include <memoria/metadata/group.hpp>
 #include <memoria/metadata/page.hpp>
@@ -24,5 +20,3 @@ void dumpPage(PageMetadata* meta, const Page* page, std::ostream& out);
 void dumpPageData(PageMetadata* meta, const void* page, std::ostream& out);
 
 }
-
-#endif

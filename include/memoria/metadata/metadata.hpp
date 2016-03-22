@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef _MEMORIA_VAPI_METADATA_METADATA_HPP1
-#define _MEMORIA_VAPI_METADATA_METADATA_HPP1
+#pragma once
 
 #include <memoria/core/types/types.hpp>
 
@@ -83,5 +80,3 @@ private:
 
 
 }
-
-#endif

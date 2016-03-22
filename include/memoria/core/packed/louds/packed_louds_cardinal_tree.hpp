@@ -4,9 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-#ifndef MEMORIA_CORE_PACKED2_LOUDSCARDINALTREE_HPP_
-#define MEMORIA_CORE_PACKED2_LOUDSCARDINALTREE_HPP_
+#pragma once
 
 #include <memoria/core/packed/louds/packed_louds_tree.hpp>
 #include <memoria/core/packed/array/packed_fse_bitmap.hpp>
@@ -289,6 +287,3 @@ public:
 };
 
 }
-
-
-#endif

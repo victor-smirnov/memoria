@@ -5,8 +5,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_TOOLS_PROFILE_TESTS_HPP
-#define _MEMORIA_TOOLS_PROFILE_TESTS_HPP
+#pragma once
 
 
 #include <memoria/tools/tests.hpp>
@@ -149,4 +148,3 @@ typedef SPTestTaskT<> SPTestTask;
 
 
 }
-#endif

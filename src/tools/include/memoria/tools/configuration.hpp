@@ -4,8 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TOOLS_CONFIGURATION_HPP_
-#define MEMORIA_TOOLS_CONFIGURATION_HPP_
+#pragma once
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/tools/platform.hpp>
@@ -130,6 +129,3 @@ public:
 
 
 }
-
-
-#endif

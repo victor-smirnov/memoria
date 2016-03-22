@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef _MEMORIA_PROTOTYPES_BTTL_ITER_SKIP_HPP
-#define _MEMORIA_PROTOTYPES_BTTL_ITER_SKIP_HPP
+#pragma once
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/types/algo/for_each.hpp>
@@ -24,10 +21,10 @@ namespace memoria    {
 MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
 
     using typename Base::CtrSizeT;
-	using typename Base::CtrSizesT;
-	using typename Base::Container;
+    using typename Base::CtrSizesT;
+    using typename Base::Container;
 
-	using typename Base::LeafDispatcher;
+    using typename Base::LeafDispatcher;
 
     template <Int StreamIdx>
     using LeafSizesSubstreamPath = typename Container::Types::template LeafSizesSubstreamPath<StreamIdx>;
@@ -44,23 +41,23 @@ public:
 
     CtrSizesT path() const
     {
-    	auto& self = this->self();
-    	CtrSizesT p = self.cache().data_pos();
+        auto& self = this->self();
+        CtrSizesT p = self.cache().data_pos();
 
-    	for (Int s = self.stream() + 1; s < Streams; s++) {
-    		p[s] = -1;
-    	}
+        for (Int s = self.stream() + 1; s < Streams; s++) {
+            p[s] = -1;
+        }
 
-    	return p;
+        return p;
     }
 
 
     bool next() {
-    	return self().skipFw(1) > 0;
+        return self().skipFw(1) > 0;
     }
 
     bool prev() {
-    	return self().skipBw(1) > 0;
+        return self().skipBw(1) > 0;
     }
 
     struct SkipFwFn {
@@ -718,7 +715,4 @@ MEMORIA_ITERATOR_PART_END
 
 #undef M_TYPE
 #undef M_PARAMS
-
-
-#endif
 

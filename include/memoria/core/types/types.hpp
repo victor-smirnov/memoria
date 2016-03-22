@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef _MEMORIA_CORE_TYPES_TYPES_HPP
-#define _MEMORIA_CORE_TYPES_TYPES_HPP
+#pragma once
 
 #include <string>
 #include <sstream>
@@ -485,4 +482,3 @@ struct IsExternalizable: HasValue<bool, HasValueCodec<T>::Value || HasFieldFacto
 
 }
 
-#endif

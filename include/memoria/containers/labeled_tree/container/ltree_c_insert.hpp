@@ -4,9 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-#ifndef MEMORIA_CONTAINERS_LBLTREE_C_INSERT_HPP
-#define MEMORIA_CONTAINERS_LBLTREE_C_INSERT_HPP
+#pragma once
 
 #include <memoria/containers/labeled_tree/ltree_names.hpp>
 #include <memoria/containers/labeled_tree/tools/ltree_tree_tools.hpp>
@@ -298,6 +296,3 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrInsertName)
 MEMORIA_CONTAINER_PART_END
 
 }
-
-
-#endif

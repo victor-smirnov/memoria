@@ -5,8 +5,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_TESTS_BTTL_TEST_CTR_API_HPP
-#define _MEMORIA_TESTS_BTTL_TEST_CTR_API_HPP
+#pragma once
 
 #include <memoria/prototypes/bt_tl/bttl_names.hpp>
 #include <memoria/core/container/container.hpp>
@@ -55,6 +54,3 @@ MEMORIA_CONTAINER_PART_END
 #undef M_TYPE
 
 }
-
-
-#endif

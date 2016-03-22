@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef _MEMORIA_TESTS_BTTL_TEST_ITER_API_HPP
-#define _MEMORIA_TESTS_BTTL_TEST_ITER_API_HPP
+#pragma once
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/types/algo/for_each.hpp>
@@ -55,9 +52,9 @@ public:
     template <typename Provider>
     auto bulk_insert(Provider&& provider, const Int total_capacity = 2000)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	return self.ctr()._insert(self, std::forward<Provider>(provider), total_capacity);
+        return self.ctr()._insert(self, std::forward<Provider>(provider), total_capacity);
     }
 
 MEMORIA_ITERATOR_PART_END
@@ -72,7 +69,4 @@ MEMORIA_ITERATOR_PART_END
 
 #undef M_TYPE
 #undef M_PARAMS
-
-
-#endif
 

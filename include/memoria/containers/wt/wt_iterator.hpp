@@ -4,9 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-#ifndef MEMORIA_CONTAINERS_WT_ITERATOR_HPP_
-#define MEMORIA_CONTAINERS_WT_ITERATOR_HPP_
+#pragma once
 
 
 #include <memoria/containers/wt/wt_names.hpp>
@@ -241,7 +239,3 @@ bool operator!=(const Iter<WTIterTypes<Types> >& iter, const IterEndMark& mark)
 
 }
 
-
-
-
-#endif

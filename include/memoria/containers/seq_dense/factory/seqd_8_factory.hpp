@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef _MEMORIA_CONTAINERS_SEQD_FACTORY_FACTORY_8_HPP
-#define _MEMORIA_CONTAINERS_SEQD_FACTORY_FACTORY_8_HPP
+#pragma once
 
 #include <memoria/prototypes/bt/bt_factory.hpp>
 
@@ -96,5 +93,3 @@ struct BTTypes<Profile, memoria::Sequence<8, true> >: public BTTypes<Profile, me
 };
 
 }
-
-#endif

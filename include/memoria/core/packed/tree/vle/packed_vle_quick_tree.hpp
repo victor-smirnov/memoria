@@ -4,9 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-#ifndef MEMORIA_CORE_PACKED_VLE_QUICK_TREE_HPP_
-#define MEMORIA_CORE_PACKED_VLE_QUICK_TREE_HPP_
+#pragma once
 
 #include <memoria/core/packed/buffer/packed_vle_input_buffer_co.hpp>
 #include <memoria/core/packed/tree/vle/packed_vle_quick_tree_base.hpp>
@@ -1506,6 +1504,3 @@ struct IndexesSize<PkdVQTree<Types>> {
 
 
 }
-
-
-#endif

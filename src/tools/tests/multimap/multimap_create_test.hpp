@@ -3,8 +3,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_MULTIMAP_CREATE_TEST_HPP_
-#define MEMORIA_TESTS_MULTIMAP_CREATE_TEST_HPP_
+#pragma once
 
 #include <memoria/memoria.hpp>
 
@@ -64,30 +63,30 @@ public:
 
     void runCreateTest()
     {
-    	auto snp = branch();
-    	auto map = create<MapName>(snp);
+        auto snp = branch();
+        auto map = create<MapName>(snp);
 
 
-    	auto map_data = createRandomShapedMapData(
-    			sizes_[0],
-				sizes_[1],
-				[this](auto k) {return make_key(k, TypeTag<Key>());},
-				[this](auto k, auto v) {return make_value(getRandom(), TypeTag<Value>());}
-    	);
+        auto map_data = createRandomShapedMapData(
+                sizes_[0],
+                sizes_[1],
+                [this](auto k) {return make_key(k, TypeTag<Key>());},
+                [this](auto k, auto v) {return make_value(getRandom(), TypeTag<Value>());}
+        );
 
-    	using EntryAdaptor = mmap::MMapAdaptor<Ctr>;
+        using EntryAdaptor = mmap::MMapAdaptor<Ctr>;
 
-    	auto iter = map->begin();
+        auto iter = map->begin();
 
-    	EntryAdaptor stream_adaptor(map_data);
-    	auto totals = iter->bulk_insert(stream_adaptor);
+        EntryAdaptor stream_adaptor(map_data);
+        auto totals = iter->bulk_insert(stream_adaptor);
 
-    	auto sizes = map->sizes();
-    	AssertEQ(MA_RAW_SRC, totals, sizes);
+        auto sizes = map->sizes();
+        AssertEQ(MA_RAW_SRC, totals, sizes);
 
-    	checkData(*map.get(), map_data);
+        checkData(*map.get(), map_data);
 
-    	snp->commit();
+        snp->commit();
     }
 
     void replayCreateTest()
@@ -98,4 +97,3 @@ public:
 
 }
 
-#endif

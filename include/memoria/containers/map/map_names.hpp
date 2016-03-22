@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef _MEMORIA_MODELS_IDX_MAPX_NAMES_HPP
-#define _MEMORIA_MODELS_IDX_MAPX_NAMES_HPP
+#pragma once
 
 #include <memoria/prototypes/bt/bt_names.hpp>
 
@@ -52,5 +49,3 @@ using MapIterTypes = BTIterTypes<MapIterTypesT<Types>>;
 
 
 }
-
-#endif

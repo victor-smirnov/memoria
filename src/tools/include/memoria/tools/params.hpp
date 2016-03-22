@@ -5,8 +5,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_TOOLS_PARAMS_HPP
-#define _MEMORIA_TOOLS_PARAMS_HPP
+#pragma once
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/types/type2type.hpp>
@@ -625,6 +624,3 @@ protected:
 
 
 }
-
-
-#endif

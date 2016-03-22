@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_CTR_BRANCH_COMMON_HPP
-#define _MEMORIA_PROTOTYPES_BALANCEDTREE_CTR_BRANCH_COMMON_HPP
+#pragma once
 
 #include <memoria/prototypes/bt/tools/bt_tools.hpp>
 #include <memoria/prototypes/bt/bt_macros.hpp>
@@ -113,7 +110,3 @@ void M_TYPE::newRootP(NodeBaseG& root)
 #undef M_PARAMS
 
 }
-
-
-
-#endif

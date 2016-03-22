@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_BASE_HPP
-#define _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_BASE_HPP
+#pragma once
 
 #include <memoria/core/container/container.hpp>
 #include <memoria/core/container/names.hpp>
@@ -445,5 +442,3 @@ MEMORIA_BT_MODEL_BASE_CLASS_END
 
 
 }}
-
-#endif

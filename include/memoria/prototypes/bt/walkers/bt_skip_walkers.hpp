@@ -4,8 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_SKIP_WALKERS_HPP
-#define _MEMORIA_PROTOTYPES_BALANCEDTREE_SKIP_WALKERS_HPP
+#pragma once
 
 #include <memoria/prototypes/bt/walkers/bt_find_walkers.hpp>
 
@@ -160,5 +159,3 @@ public:
 
 }
 }
-
-#endif

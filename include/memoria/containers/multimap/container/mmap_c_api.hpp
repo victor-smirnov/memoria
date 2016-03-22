@@ -5,8 +5,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_CONTAINERS_MULTIMAP_CTR_INSERT_HPP
-#define _MEMORIA_CONTAINERS_MULTIMAP_CTR_INSERT_HPP
+#pragma once
 
 
 #include <memoria/containers/map/map_names.hpp>
@@ -52,6 +51,11 @@ public:
         return self.template seek_stream<0>(idx);
     }
 
+    IteratorPtr seek(const CtrSizesT& idx, Int level)
+    {
+        return Base::seek(idx, level);
+    }
+
 
     CtrSizeT size() const {
         return self().sizes()[0];
@@ -75,6 +79,3 @@ MEMORIA_CONTAINER_PART_END
 #undef M_TYPE
 
 }
-
-
-#endif

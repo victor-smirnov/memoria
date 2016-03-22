@@ -4,8 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_CORE_TOOLS_ANY_HPP_
-#define MEMORIA_CORE_TOOLS_ANY_HPP_
+#pragma once
 
 #include <typeinfo>
 
@@ -207,7 +206,3 @@ using namespace memoria;
 ostream& operator<<(ostream& out, const Any& any);
 
 }
-
-
-#endif
-

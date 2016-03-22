@@ -5,9 +5,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-
-#ifndef _MEMORIA_CORE_TOOLS_BITMAP_SELECT_H
-#define _MEMORIA_CORE_TOOLS_BITMAP_SELECT_H
+#pragma once
 
 #include <memoria/core/tools/bitmap.hpp>
 
@@ -563,5 +561,3 @@ SelectResult Select0BW(const T* buffer, size_t start, size_t stop, size_t rank)
 
 
 } //memoria
-
-#endif

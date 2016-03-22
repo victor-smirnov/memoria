@@ -5,13 +5,10 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef BENCHMARKS_INC_HPP_
-#define BENCHMARKS_INC_HPP_
+#pragma once
 
 #include <memoria/core/tools/strings/string.hpp>
 #include <memoria/tools/tools.hpp>
 #include <memoria/tools/tests.hpp>
 #include <memoria/core/types/types.hpp>
 
-
-#endif /* SHARED_HPP_ */

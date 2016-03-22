@@ -4,9 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-#ifndef MEMORIA_CONTAINERS_WT_C_BASE_HPP
-#define MEMORIA_CONTAINERS_WT_C_BASE_HPP
+#pragma once
 
 
 
@@ -222,5 +220,3 @@ MEMORIA_BT_MODEL_BASE_CLASS_END
 
 
 }}
-
-#endif

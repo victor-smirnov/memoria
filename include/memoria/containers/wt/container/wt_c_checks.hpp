@@ -4,9 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-#ifndef MEMORIA_CONTAINERS_WTLBLTREE_C_CHECKS_HPP
-#define MEMORIA_CONTAINERS_WTLBLTREE_C_CHECKS_HPP
+#pragma once
 
 #include <memoria/core/container/container.hpp>
 #include <memoria/containers/wt/wt_names.hpp>
@@ -110,6 +108,3 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::wt::CtrChecksName)
 MEMORIA_CONTAINER_PART_END
 
 }
-
-
-#endif

@@ -4,9 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_CORE_TOOLS_STRINGS_STRING_BUFFER22_HPP_
-#define MEMORIA_CORE_TOOLS_STRINGS_STRING_BUFFER22_HPP_
-
+#pragma once
 
 
 #include <memoria/core/tools/strings/strings.hpp>
@@ -71,8 +69,3 @@ public:
 
 
 }
-
-
-
-#endif
-

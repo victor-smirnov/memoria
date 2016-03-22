@@ -5,9 +5,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-
-#ifndef MEMORIA_CORE_TOOLS_HASH_HPP_
-#define MEMORIA_CORE_TOOLS_HASH_HPP_
+#pragma once
 
 #include <memoria/core/types/types.hpp>
 
@@ -38,5 +36,3 @@ struct PtrToHash<T, sizeof(BigInt)> {
 
 
 }
-
-#endif

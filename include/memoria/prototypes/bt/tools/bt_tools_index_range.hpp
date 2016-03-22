@@ -4,9 +4,8 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
+#pragma once
 
-#ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_TOOLS_INDEX_RANGE_HPP
-#define _MEMORIA_PROTOTYPES_BALANCEDTREE_TOOLS_INDEX_RANGE_HPP
 
 #include <memoria/core/tools/static_array.hpp>
 
@@ -737,6 +736,3 @@ private:
 
 }
 }
-
-#endif
-

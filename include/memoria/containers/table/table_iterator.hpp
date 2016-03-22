@@ -4,9 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-#ifndef MEMORIA_CONTAINERS_TABLE_ITERATOR_HPP_
-#define MEMORIA_CONTAINERS_TABLE_ITERATOR_HPP_
+#pragma once
 
 #include <memoria/prototypes/ctr_wrapper/iterator.hpp>
 #include <memoria/containers/table/table_names.hpp>
@@ -20,6 +18,3 @@ void AssignToItem(Iter<TableIterTypes<Types>>& iter, Value&& value)
 }
 
 }
-
-
-#endif

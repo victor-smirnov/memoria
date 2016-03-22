@@ -4,8 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_PROTOTYPES_BT_TL_INPUT_HPP_
-#define MEMORIA_PROTOTYPES_BT_TL_INPUT_HPP_
+#pragma once
 
 #include <memoria/core/types/types.hpp>
 
@@ -477,11 +476,11 @@ public:
     }
 
     const CtrSizesT& locals() const {
-    	return locals_;
+        return locals_;
     }
 
     Int last_symbol() const {
-    	return last_symbol_;
+        return last_symbol_;
     }
 
 
@@ -672,7 +671,7 @@ public:
                         this->finish_stream_run(symbol, last_symbol_, sizes, buffer_sums);
                     }
                     else if (symbol > last_symbol_) {
-                    	locals_[symbol] = 0;
+                        locals_[symbol] = 0;
                     }
 
                     buffer_sums[symbol] += length;
@@ -1745,10 +1744,3 @@ private:
 
 }
 }
-
-
-
-
-
-
-#endif

@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef _MEMORIA_CORE_TOOLS_ISEQUENCEDATA_HPP
-#define _MEMORIA_CORE_TOOLS_ISEQUENCEDATA_HPP
+#pragma once
 
 
 namespace memoria    {
@@ -25,8 +22,3 @@ struct ISequenceDataTarget {
 
 
 }
-
-
-
-
-#endif

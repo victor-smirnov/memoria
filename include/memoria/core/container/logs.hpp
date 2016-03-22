@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef _MEMORIA_CORE_API_MODELS_LOGS_HPP
-#define _MEMORIA_CORE_API_MODELS_LOGS_HPP
+#pragma once
 
 #include <memoria/core/tools/id.hpp>
 #include <memoria/core/tools/uuid.hpp>
@@ -694,7 +691,3 @@ bool log(const Logger& log, Int level,
 }
 
 }
-
-
-
-#endif

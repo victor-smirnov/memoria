@@ -4,8 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_BT_SUBSTREAMGROUP_DISPATCHER_HPP_
-#define MEMORIA_BT_SUBSTREAMGROUP_DISPATCHER_HPP_
+#pragma once
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/types/list/list_tree.hpp>
@@ -143,4 +142,3 @@ struct GroupDispatcher<Dispatcher, TypeList<>, GroupIdx>
 
 }
 }
-#endif

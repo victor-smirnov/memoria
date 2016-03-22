@@ -4,9 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-#ifndef MEMORIA_CORE_PACKED_FSE_MAX_TREE_HPP_
-#define MEMORIA_CORE_PACKED_FSE_MAX_TREE_HPP_
+#pragma once
 
 #include <memoria/core/packed/tree/fse_max/packed_fse_max_tree_base.hpp>
 #include <memoria/core/packed/buffer/packed_fse_input_buffer_ro.hpp>
@@ -831,6 +829,3 @@ struct IndexesSize<PkdFMTree<Types>> {
 
 
 }
-
-
-#endif

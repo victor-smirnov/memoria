@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef _MEMORIA_CONTAINERS_SEQD_SEQ_C_FIND_HPP
-#define _MEMORIA_CONTAINERS_SEQD_SEQ_C_FIND_HPP
+#pragma once
 
 
 #include <memoria/core/types/typelist.hpp>
@@ -112,6 +109,3 @@ MEMORIA_CONTAINER_PART_END
 #undef M_TYPE
 
 }
-
-
-#endif

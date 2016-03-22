@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef _MEMORIA_CORE_TOOLS_TYPES_HIERARCHY_HPP
-#define _MEMORIA_CORE_TOOLS_TYPES_HIERARCHY_HPP
+#pragma once
 
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/types/types.hpp>
@@ -40,6 +37,4 @@ template <
 struct SimpleHierarchy<TypeList<T>, Element, Base>: public Element<T, Base> {};
 
 }
-
-#endif  /* _MEMORIA_CORE_TOOLS_TYPES_HIERARCHY_HPP */
 

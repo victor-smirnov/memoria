@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef MEMORIA_CONTAINERS_LBLTREE_ITERATOR_API_HPP
-#define MEMORIA_CONTAINERS_LBLTREE_ITERATOR_API_HPP
+#pragma once
 
 #include <memoria/core/types/types.hpp>
 
@@ -528,6 +525,3 @@ MEMORIA_ITERATOR_PART_END
 
 
 }
-
-
-#endif

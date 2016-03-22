@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef __MEMORIA_PROTOTYPES_BALANCEDTREE_ITERATOR_BASE_H
-#define __MEMORIA_PROTOTYPES_BALANCEDTREE_ITERATOR_BASE_H
+#pragma once
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/prototypes/bt/bt_names.hpp>
@@ -326,7 +323,3 @@ public:
 MEMORIA_BT_ITERATOR_BASE_CLASS_END
 
 } //memoria
-
-
-
-#endif

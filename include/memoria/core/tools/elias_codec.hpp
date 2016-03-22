@@ -4,11 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef MEMORIA_CORE_TOOLS_ELIASCODEC_HPP_
-#define MEMORIA_CORE_TOOLS_ELIASCODEC_HPP_
-
+#pragma once
 
 /**
  * Elias Delta based codec. It has right the same code lengths as the original Elias Delta code,
@@ -195,5 +191,3 @@ using UBigIntEliasCodec = EliasDeltaCodec<UBigInt, V>;
 
 
 }
-
-#endif

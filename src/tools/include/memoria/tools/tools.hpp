@@ -5,8 +5,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_TOOLS_TOOLS_HPP
-#define _MEMORIA_TOOLS_TOOLS_HPP
+#pragma once
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/exceptions/exceptions.hpp>
@@ -504,13 +503,13 @@ void AssertEQ(const char* src, const std::vector<Op1>& op1, const std::vector<Op
         throw TestException(src, SBuf()<<"EQ size assertion failed: " << op1.size() << " " << op2.size());
     }
     else {
-    	for (size_t c = 0; c < op1.size(); c++)
-    	{
-    		if (op1[c] != op2[c])
-    		{
-    			throw TestException(src, SBuf()<<"EQ data assertion failed: " << c << op1[c] << " " << op2[c]);
-    		}
-    	}
+        for (size_t c = 0; c < op1.size(); c++)
+        {
+            if (op1[c] != op2[c])
+            {
+                throw TestException(src, SBuf()<<"EQ data assertion failed: " << c << op1[c] << " " << op2[c]);
+            }
+        }
     }
 }
 
@@ -592,4 +591,3 @@ void AssertNEQ(const char* src, const Op1& op1, const Op2& op2, const SBuf& msg)
 
 }
 
-#endif

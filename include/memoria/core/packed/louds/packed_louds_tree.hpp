@@ -4,9 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-#ifndef MEMORIA_CORE_PACKED2_LOUDSTREE_HPP_
-#define MEMORIA_CORE_PACKED2_LOUDSTREE_HPP_
+#pragma once
 
 #include <memoria/core/packed/sseq/packed_fse_searchable_seq.hpp>
 
@@ -443,6 +441,3 @@ private:
 };
 
 }
-
-
-#endif

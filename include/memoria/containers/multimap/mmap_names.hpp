@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef _MEMORIA_CONTAINERS_MULTIMAP_NAMES_HPP
-#define _MEMORIA_CONTAINERS_MULTIMAP_NAMES_HPP
+#pragma once
 
 #include <memoria/prototypes/bt/bt_names.hpp>
 
@@ -51,5 +48,3 @@ using MultimapIterTypes = BTIterTypes<MultimapIterTypesT<Types>>;
 
 
 }
-
-#endif

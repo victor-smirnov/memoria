@@ -5,9 +5,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-
-#ifndef _MEMORIA_PROTOTYPES_CTRWRAPPER_ITERATOR_HPP
-#define _MEMORIA_PROTOTYPES_CTRWRAPPER_ITERATOR_HPP
+#pragma once
 
 #include <memoria/core/container/container.hpp>
 #include <memoria/prototypes/ctr_wrapper/ctrwrapper_names.hpp>
@@ -211,7 +209,3 @@ bool operator!=(const Iter<IterWrapperTypes<Types> >& iter, const IterEndMark& m
 }
 
 }
-
-
-
-#endif

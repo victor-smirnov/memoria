@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef __MEMORIA_PROTOTYPES_BALANCEDTREE_ITERATOR_API_H
-#define __MEMORIA_PROTOTYPES_BALANCEDTREE_ITERATOR_API_H
+#pragma once
 
 #include <memoria/core/types/types.hpp>
 
@@ -425,6 +422,3 @@ bool M_TYPE::findPrevLeaf(Walker&& walker)
 
 
 }
-
-
-#endif

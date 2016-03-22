@@ -5,8 +5,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_TOOLS_PROFILE_EXAMPLE_HPP
-#define _MEMORIA_TOOLS_PROFILE_EXAMPLE_HPP
+#pragma once
 
 
 #include <memoria/tools/task.hpp>
@@ -96,4 +95,3 @@ typedef SPExampleTaskT<> SPExampleTask;
 
 
 }
-#endif

@@ -5,9 +5,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-
-#ifndef MEMORIA_PROTOTYPES_CTRWRAPPER_NAMES_HPP_
-#define MEMORIA_PROTOTYPES_CTRWRAPPER_NAMES_HPP_
+#pragma once
 
 #include <memoria/core/container/names.hpp>
 
@@ -20,5 +18,3 @@ template <typename Types>
 struct IterWrapperTypes: IterTypesT<Types> {};
 
 }
-
-#endif

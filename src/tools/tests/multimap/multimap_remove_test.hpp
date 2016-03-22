@@ -3,8 +3,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_MULTIMAP_REMOVE_TEST_HPP_
-#define MEMORIA_TESTS_MULTIMAP_REMOVE_TEST_HPP_
+#pragma once
 
 #include <memoria/memoria.hpp>
 
@@ -69,62 +68,62 @@ public:
 
     void removeKeys(MapData& data, size_t at, size_t size = 1)
     {
-    	if (at + size > data.size())
-    	{
-    		size = data.size() - at;
-    	}
+        if (at + size > data.size())
+        {
+            size = data.size() - at;
+        }
 
-    	data.erase(data.begin() + at, data.begin() + at + size);
+        data.erase(data.begin() + at, data.begin() + at + size);
     }
 
     void removeValues(MapData& data, size_t key_num, size_t at, size_t size = 1)
     {
-    	AssertLT(MA_RAW_SRC, key_num, data.size());
+        AssertLT(MA_RAW_SRC, key_num, data.size());
 
-    	auto& values = std::get<1>(data[key_num]);
+        auto& values = std::get<1>(data[key_num]);
 
-    	if (at + size > values.size())
-    	{
-    		size = values.size() - at;
-    	}
+        if (at + size > values.size())
+        {
+            size = values.size() - at;
+        }
 
-    	values.erase(values.begin() + at, values.begin() + at + size);
+        values.erase(values.begin() + at, values.begin() + at + size);
     }
 
     void runRemoveKeysTest()
     {
-    	auto snp = branch();
-    	auto map = create<MapName>(snp);
+        auto snp = branch();
+        auto map = create<MapName>(snp);
 
-    	auto map_data = createRandomShapedMapData(
-    			sizes_[0],
-				sizes_[1],
-				[this](auto k) {return make_key(k, TypeTag<Key>());},
-				[this](auto k, auto v) {return make_value(getRandom(), TypeTag<Value>());}
-    	);
+        auto map_data = createRandomShapedMapData(
+                sizes_[0],
+                sizes_[1],
+                [this](auto k) {return make_key(k, TypeTag<Key>());},
+                [this](auto k, auto v) {return make_value(getRandom(), TypeTag<Value>());}
+        );
 
-    	using EntryAdaptor = mmap::MMapAdaptor<Ctr>;
+        using EntryAdaptor = mmap::MMapAdaptor<Ctr>;
 
-    	auto iter = map->begin();
+        auto iter = map->begin();
 
-    	EntryAdaptor stream_adaptor(map_data);
-    	auto totals = iter->bulk_insert(stream_adaptor);
+        EntryAdaptor stream_adaptor(map_data);
+        auto totals = iter->bulk_insert(stream_adaptor);
 
-    	auto sizes = map->sizes();
-    	AssertEQ(MA_RAW_SRC, totals, sizes);
+        auto sizes = map->sizes();
+        AssertEQ(MA_RAW_SRC, totals, sizes);
 
-    	for (Int c = 0; c < iterations_; c++)
-    	{
-    		size_t idx = getRandom(map_data.size());
+        for (Int c = 0; c < iterations_; c++)
+        {
+            size_t idx = getRandom(map_data.size());
 
-    		removeKeys(map_data, idx);
+            removeKeys(map_data, idx);
 
-    		map->seek(idx)->remove();
+            map->seek(idx)->remove();
 
-    		checkData(*map.get(), map_data);
-    	}
+            checkData(*map.get(), map_data);
+        }
 
-    	snp->commit();
+        snp->commit();
     }
 
     void replayRemoveKeysTest()
@@ -134,42 +133,42 @@ public:
 
     void runRemoveValuesTest()
     {
-    	auto snp = branch();
-    	auto map = create<MapName>(snp);
+        auto snp = branch();
+        auto map = create<MapName>(snp);
 
-    	auto map_data = createRandomShapedMapData(
-    			sizes_[0],
-				sizes_[1],
-				[this](auto k) {return make_key(k, TypeTag<Key>());},
-				[this](auto k, auto v) {return make_value(getRandom(), TypeTag<Value>());}
-    	);
+        auto map_data = createRandomShapedMapData(
+                sizes_[0],
+                sizes_[1],
+                [this](auto k) {return make_key(k, TypeTag<Key>());},
+                [this](auto k, auto v) {return make_value(getRandom(), TypeTag<Value>());}
+        );
 
-    	using EntryAdaptor = mmap::MMapAdaptor<Ctr>;
+        using EntryAdaptor = mmap::MMapAdaptor<Ctr>;
 
-    	auto iter = map->begin();
+        auto iter = map->begin();
 
-    	EntryAdaptor stream_adaptor(map_data);
-    	auto totals = iter->bulk_insert(stream_adaptor);
+        EntryAdaptor stream_adaptor(map_data);
+        auto totals = iter->bulk_insert(stream_adaptor);
 
-    	auto sizes = map->sizes();
-    	AssertEQ(MA_RAW_SRC, totals, sizes);
+        auto sizes = map->sizes();
+        AssertEQ(MA_RAW_SRC, totals, sizes);
 
-    	for (Int c = 0; c < iterations_; c++)
-    	{
-    		size_t key_idx = getRandom(map_data.size());
-    		size_t value_idx = getRandom(std::get<1>(map_data[key_idx]).size());
-    		size_t value_len = getRandom(std::get<1>(map_data[key_idx]).size() - value_idx);
+        for (Int c = 0; c < iterations_; c++)
+        {
+            size_t key_idx = getRandom(map_data.size());
+            size_t value_idx = getRandom(std::get<1>(map_data[key_idx]).size());
+            size_t value_len = getRandom(std::get<1>(map_data[key_idx]).size() - value_idx);
 
-    		removeValues(map_data, key_idx, value_idx, value_len);
+            removeValues(map_data, key_idx, value_idx, value_len);
 
-    		auto iter2 = map->seek(key_idx);
-    		iter2->toData(value_idx);
-    		iter2->remove(value_len);
+            auto iter2 = map->seek(key_idx);
+            iter2->toData(value_idx);
+            iter2->remove(value_len);
 
-    		checkData(*map.get(), map_data);
-    	}
+            checkData(*map.get(), map_data);
+        }
 
-    	snp->commit();
+        snp->commit();
     }
 
     void replayRemoveValuesTest()
@@ -180,5 +179,3 @@ public:
 };
 
 }
-
-#endif

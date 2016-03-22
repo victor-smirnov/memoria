@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef MEMORIA_CORE_TOOLS_LOUDSTREE_HPP
-#define MEMORIA_CORE_TOOLS_LOUDSTREE_HPP
+#pragma once
 
 #include <memoria/core/packed/wrappers/symbol_sequence.hpp>
 
@@ -481,6 +478,3 @@ private:
 
 
 }
-
-
-#endif

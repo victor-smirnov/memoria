@@ -4,9 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-#ifndef MEMORIA_CORE_TYPES_LIST_SUBLIST_HPP_
-#define MEMORIA_CORE_TYPES_LIST_SUBLIST_HPP_
+#pragma once
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/types/list/append.hpp>
@@ -119,5 +117,3 @@ struct Sublist {
 };
 
 }
-
-#endif

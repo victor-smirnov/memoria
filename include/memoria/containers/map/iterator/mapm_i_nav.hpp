@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef _MEMORIA_CONTAINERS_MAPM_ITER_NAV_MAX_HPP
-#define _MEMORIA_CONTAINERS_MAPM_ITER_NAV_MAX_HPP
+#pragma once
 
 #include <memoria/containers/map/map_names.hpp>
 #include <memoria/core/types/types.hpp>
@@ -181,6 +178,3 @@ MEMORIA_ITERATOR_PART_END
 
 #undef M_TYPE
 #undef M_PARAMS
-
-
-#endif

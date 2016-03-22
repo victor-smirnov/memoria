@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef _MEMORIA_PROTOTYPES_BTTL_ITER_MISC_HPP
-#define _MEMORIA_PROTOTYPES_BTTL_ITER_MISC_HPP
+#pragma once
 
 #include <memoria/core/types/types.hpp>
 
@@ -118,7 +115,7 @@ public:
 
     void refresh_prefixes()
     {
-    	Base::refresh();
+        Base::refresh();
     }
 
 
@@ -174,7 +171,4 @@ MEMORIA_ITERATOR_PART_END
 
 #undef M_TYPE
 #undef M_PARAMS
-
-
-#endif
 

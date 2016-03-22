@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-#ifndef _MEMORIA_PROTOTYPES_BTTL_CTR_BRANCH_VARIABLE_HPP
-#define _MEMORIA_PROTOTYPES_BTTL_CTR_BRANCH_VARIABLE_HPP
-
+#pragma once
 
 #include <memoria/prototypes/bt_tl/bttl_names.hpp>
 #include <memoria/core/container/container.hpp>
@@ -24,7 +21,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::BranchVariableName)
 
 public:
     using Types             = typename Base::Types;
-	using Iterator          = typename Base::Iterator;
+    using Iterator          = typename Base::Iterator;
 
 protected:
     using NodeBaseG         = typename Types::NodeBaseG;
@@ -56,6 +53,3 @@ MEMORIA_CONTAINER_PART_END
 #undef M_TYPE
 
 }
-
-
-#endif

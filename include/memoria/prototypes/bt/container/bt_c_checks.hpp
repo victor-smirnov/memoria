@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_CHECKS_HPP
-#define _MEMORIA_PROTOTYPES_BALANCEDTREE_MODEL_CHECKS_HPP
+#pragma once
 
 #include <iostream>
 
@@ -40,7 +37,7 @@ public:
 
     bool check(void *data) const
     {
-    	return self().checkTree();
+        return self().checkTree();
     }
 
 
@@ -215,6 +212,3 @@ bool M_TYPE::checkTypedNodeContent(const Node1 *parent, const Node2* node, Int p
 #undef M_PARAMS
 
 }
-
-
-#endif

@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef _MEMORIA_PROTOTYPES_BT_CTR_ALLOCATOR_HPP
-#define _MEMORIA_PROTOTYPES_BT_CTR_ALLOCATOR_HPP
+#pragma once
 
 #include <iostream>
 #include <memoria/prototypes/bt/bt_names.hpp>
@@ -151,13 +148,4 @@ void M_TYPE::freeMemory(void* ptr)
 #undef M_TYPE
 #undef M_PARAMS
 
-
-
-
-
-
 }
-
-
-
-#endif

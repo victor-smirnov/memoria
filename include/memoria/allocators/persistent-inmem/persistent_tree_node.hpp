@@ -4,9 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-#ifndef _MEMORIA_ALLOCATORS_PERSISTENT_INMEM_PERSISTENT_TREE_NODE_HPP
-#define _MEMORIA_ALLOCATORS_PERSISTENT_INMEM_PERSISTENT_TREE_NODE_HPP
+#pragma once
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/tools/uuid.hpp>
@@ -701,5 +699,3 @@ static std::ostream& operator<<(std::ostream& out, NodeType node_type) {
 
 }
 }
-
-#endif

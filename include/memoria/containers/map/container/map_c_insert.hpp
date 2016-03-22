@@ -5,8 +5,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_CONTAINERS_MAPX_CTR_INSERT_HPP
-#define _MEMORIA_CONTAINERS_MAPX_CTR_INSERT_HPP
+#pragma once
 
 
 #include <memoria/containers/map/map_names.hpp>
@@ -91,6 +90,3 @@ MEMORIA_CONTAINER_PART_END
 #undef M_TYPE
 
 }
-
-
-#endif

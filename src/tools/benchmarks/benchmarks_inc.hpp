@@ -4,14 +4,8 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-#ifndef BENCHMARKS_INC_HPP_
-#define BENCHMARKS_INC_HPP_
+#pragma once
 
 #include <memoria/tools/tools.hpp>
 #include <memoria/tools/profile_benchmark.hpp>
 
-
-
-
-#endif /* SHARED_HPP_ */

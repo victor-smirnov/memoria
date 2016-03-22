@@ -1,6 +1,9 @@
+// Copyright Victor Smirnov 2012.
+// Distributed under the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE_1_0.txt or copy at
+// http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_BT_PACKED_STRUCT_LIST_BUILDER_HPP_
-#define MEMORIA_BT_PACKED_STRUCT_LIST_BUILDER_HPP_
+#pragma once
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/packed/tools/packed_dispatcher.hpp>
@@ -266,7 +269,3 @@ struct BranchNodeEntryBuilder<TL<>> {
 
 }
 }
-
-
-
-#endif /* MEMORIA_BT_PACKED_STRUCT_LIST_BUILDER_HPP_ */

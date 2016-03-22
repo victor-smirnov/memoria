@@ -4,11 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef MEMORIA_CORE_TOOLS_I64CODEC_HPP_
-#define MEMORIA_CORE_TOOLS_I64CODEC_HPP_
-
+#pragma once
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/tools/bitmap.hpp>
@@ -156,5 +152,3 @@ template <typename Value>
 using UBigIntI64Codec = I64Codec<UBigInt, Value>;
 
 }
-
-#endif

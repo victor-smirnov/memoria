@@ -4,9 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-#ifndef _MEMORIA_CONTAINER_vctr_C_REMOVE_HPP
-#define _MEMORIA_CONTAINER_vctr_C_REMOVE_HPP
+#pragma once
 
 
 #include <memoria/containers/vector/vctr_names.hpp>
@@ -22,7 +20,7 @@ using namespace memoria::bt;
 MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrRemoveName)
 
 public:
-	using typename Base::Types;
+    using typename Base::Types;
 
 protected:
 
@@ -37,6 +35,3 @@ MEMORIA_CONTAINER_PART_END
 
 #undef M_TYPE
 #undef M_PARAMS
-
-
-#endif

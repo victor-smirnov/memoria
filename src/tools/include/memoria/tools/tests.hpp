@@ -5,8 +5,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_TOOLS_TESTS_HPP
-#define _MEMORIA_TOOLS_TESTS_HPP
+#pragma once
 
 #include <memoria/tools/task.hpp>
 
@@ -322,4 +321,4 @@ public:
 
 
 }
-#endif
+

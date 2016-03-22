@@ -4,8 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_CORE_PACKED_ALLOCATOR_TYPES_HPP_
-#define MEMORIA_CORE_PACKED_ALLOCATOR_TYPES_HPP_
+#pragma once
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/types/type2type.hpp>
@@ -297,6 +296,3 @@ struct EmptyAllocator {
 };
 
 }
-
-
-#endif

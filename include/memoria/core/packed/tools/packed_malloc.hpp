@@ -4,8 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_CORE_PACKED_TOOLS_PACKED_MALLOC_HPP_
-#define MEMORIA_CORE_PACKED_TOOLS_PACKED_MALLOC_HPP_
+#pragma once
 
 #include <memoria/core/exceptions/exceptions.hpp>
 #include <memoria/core/packed/tools/packed_allocator.hpp>
@@ -73,7 +72,3 @@ struct AllocTool<PackedAllocator> {
 
 
 }
-
-
-#endif
-

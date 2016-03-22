@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef _MEMORIA_CORE_TOOLS_STREAM_HPP
-#define _MEMORIA_CORE_TOOLS_STREAM_HPP
+#pragma once
 
 #include <memoria/metadata/metadata.hpp>
 #include <memoria/core/exceptions/exceptions.hpp>
@@ -437,6 +434,3 @@ inline OutputStreamHandler& operator<<(OutputStreamHandler& out, const String& v
 }
 
 }
-
-
-#endif

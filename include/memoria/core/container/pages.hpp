@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef _MEMORIA_CORE_CONTAINER_PAGES_HPP
-#define _MEMORIA_CORE_CONTAINER_PAGES_HPP
+#pragma once
 
 #include <memoria/core/types/typelist.hpp>
 #include <memoria/core/container/builder.hpp>
@@ -279,11 +276,4 @@ class PageStart: public PageHelper<ListSize<typename Types::List>::Value - 1, Ty
 
 }
 
-
-
-
-
-
 #include <memoria/core/container/page_traits.hpp>
-
-#endif  // _MEMORIA_CORE_CONTAINER_PAGES_HPP

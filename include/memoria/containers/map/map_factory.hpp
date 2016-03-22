@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef _MEMORIA_CONTAINERS_MAPX_FACTORY_HPP
-#define _MEMORIA_CONTAINERS_MAPX_FACTORY_HPP
+#pragma once
 
 #include <memoria/containers/map/container/map_c_insert.hpp>
 #include <memoria/containers/map/container/mapm_c_insert.hpp>
@@ -123,5 +120,3 @@ class CtrTF<Profile, memoria::Map<Key, Value>, T>: public CtrTF<Profile, memoria
 
 
 }
-
-#endif

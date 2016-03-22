@@ -5,8 +5,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef INCLUDE_MEMORIA_CORE_TOOLS_COW_TREE_TXN_HPP_
-#define INCLUDE_MEMORIA_CORE_TOOLS_COW_TREE_TXN_HPP_
+#pragma once
 
 #include <memoria/core/tools/cow_tree/cow_tree_tools.hpp>
 #include <memoria/core/types/types.hpp>
@@ -248,5 +247,3 @@ protected:
 }
 }
 }
-
-#endif

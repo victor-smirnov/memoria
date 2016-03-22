@@ -5,9 +5,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-
-#ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_FACTORY_HPP
-#define _MEMORIA_PROTOTYPES_BALANCEDTREE_FACTORY_HPP
+#pragma once
 
 #include <memoria/core/types/type2type.hpp>
 #include <memoria/core/tools/vector_tuple.hpp>
@@ -434,5 +432,3 @@ public:
 
 
 }
-
-#endif

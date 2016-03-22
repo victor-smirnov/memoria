@@ -4,9 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-#ifndef MEMORIA_CONTAINERS_LBLTREE_C_UPDATE_HPP
-#define MEMORIA_CONTAINERS_LBLTREE_C_UPDATE_HPP
+#pragma once
 
 #include <memoria/core/container/container.hpp>
 #include <memoria/containers/labeled_tree/ltree_names.hpp>
@@ -202,6 +200,3 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrUpdateName)
 MEMORIA_CONTAINER_PART_END
 
 }
-
-
-#endif

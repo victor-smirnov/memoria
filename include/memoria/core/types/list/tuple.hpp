@@ -4,8 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_CORE_TYPES_LIST_TUPLE_HPP_
-#define MEMORIA_CORE_TYPES_LIST_TUPLE_HPP_
+#pragma once
 
 #include<memoria/core/types/types.hpp>
 
@@ -39,5 +38,3 @@ using MakeTuple = typename MakeTupleH<typename MakeList<T, Size>::Type>::Type;
 
 
 }
-
-#endif /* TUPLE_HPP_ */

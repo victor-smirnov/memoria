@@ -4,9 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-#ifndef MEMORIA_CORE_PACKED_VLE_DENSE_ARRAY_HPP_
-#define MEMORIA_CORE_PACKED_VLE_DENSE_ARRAY_HPP_
+#pragma once
 
 #include <memoria/core/packed/array/packed_vle_array_base.hpp>
 #include <memoria/core/packed/tree/vle/packed_vle_tools.hpp>
@@ -1268,6 +1266,3 @@ struct PkdSearchKeyTypeProvider<PkdVDArray<T>> {
 
 
 }
-
-
-#endif

@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_PAGES_DISPATCHERS_DISPATCHER_NDT1_HPP
-#define _MEMORIA_PROTOTYPES_BALANCEDTREE_PAGES_DISPATCHERS_DISPATCHER_NDT1_HPP
+#pragma once
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/types/fn_traits.hpp>
@@ -133,6 +130,3 @@ public:
 
 }
 }
-
-
-#endif

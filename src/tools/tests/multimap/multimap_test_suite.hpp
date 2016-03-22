@@ -4,8 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_TESTS_MULTIMAP_TEST_SUITE_HPP_
-#define MEMORIA_TESTS_MULTIMAP_TEST_SUITE_HPP_
+#pragma once
 
 
 #include "../tests_inc.hpp"
@@ -41,7 +40,3 @@ public:
 };
 
 }
-
-
-#endif
-

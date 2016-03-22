@@ -4,8 +4,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_HPP
-#define _MEMORIA_HPP
+#pragma once
 
 #include <memoria/allocators/persistent-inmem/factory.hpp>
 #include <memoria/core/container/metadata_repository.hpp>
@@ -17,7 +16,5 @@ template <>
 struct CtrNameDeclarator<0>: TypeDef<Map<UUID, UUID>> {};
 
 }
-
-#endif
 
 

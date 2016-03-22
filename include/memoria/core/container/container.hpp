@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef _MEMORIA_CORE_CONTAINER_MODEL_HPP
-#define _MEMORIA_CORE_CONTAINER_MODEL_HPP
+#pragma once
 
 #include <memoria/core/types/types.hpp>
 
@@ -639,8 +636,3 @@ Logger Ctr<Types>::class_logger_(typeid(typename Types::ContainerTypeName).name(
 
 
 }
-
-
-
-
-#endif

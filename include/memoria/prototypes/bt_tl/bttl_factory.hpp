@@ -5,9 +5,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-
-#ifndef _MEMORIA_PROTOTYPES_BALANCEDTREE_TL_FACTORY_HPP
-#define _MEMORIA_PROTOTYPES_BALANCEDTREE_TL_FACTORY_HPP
+#pragma once
 
 #include <memoria/prototypes/bt/bt_factory.hpp>
 
@@ -148,5 +146,3 @@ public:
 
 
 }
-
-#endif

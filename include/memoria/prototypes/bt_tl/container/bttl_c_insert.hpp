@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-#ifndef _MEMORIA_PROTOTYPES_BTTL_CTR_INSERT_HPP
-#define _MEMORIA_PROTOTYPES_BTTL_CTR_INSERT_HPP
-
+#pragma once
 
 #include <memoria/prototypes/bt_tl/bttl_names.hpp>
 #include <memoria/core/container/container.hpp>
@@ -58,8 +55,8 @@ protected:
 
         for (Int s = stream + 1; s < last_stream; s++)
         {
-        	MEMORIA_ASSERT(locals[s], >, 0);
-        	path[s] = locals[s] - 1;
+            MEMORIA_ASSERT(locals[s], >, 0);
+            path[s] = locals[s] - 1;
         }
 
         path[last_stream] = locals[last_stream];
@@ -80,6 +77,3 @@ MEMORIA_CONTAINER_PART_END
 #undef M_TYPE
 
 }
-
-
-#endif

@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef _MEMORIA_CORE_CONTAINER_PAGES_TRAITS11_HPP
-#define _MEMORIA_CORE_CONTAINER_PAGES_TRAITS11_HPP
+#pragma once
 
 #include <memoria/core/types/typehash.hpp>
 #include <memoria/core/tools/reflection.hpp>
@@ -75,5 +72,3 @@ struct FieldFactory<BitBuffer<Size> > {
 };
 
 }
-
-#endif

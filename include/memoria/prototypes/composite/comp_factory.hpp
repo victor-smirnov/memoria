@@ -5,9 +5,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-
-#ifndef _MEMORIA_PROTOTYPES_COMPOSITE_FACTORY_HPP
-#define _MEMORIA_PROTOTYPES_COMPOSITE_FACTORY_HPP
+#pragma once
 
 #include <memoria/prototypes/composite/comp_names.hpp>
 #include <memoria/core/container/container.hpp>
@@ -69,5 +67,3 @@ public:
 
 
 }
-
-#endif

@@ -4,8 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef MEMORIA_BENCHMARKS_vctr_STL_vctr_LINEAR_READ_HPP_
-#define MEMORIA_BENCHMARKS_vctr_STL_vctr_LINEAR_READ_HPP_
+#pragma once
 
 #include "../benchmarks_inc.hpp"
 
@@ -75,6 +74,3 @@ public:
 
 
 }
-
-
-#endif

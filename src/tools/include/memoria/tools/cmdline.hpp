@@ -5,8 +5,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#ifndef _MEMORIA_TOOLS_CMDLINE_HPP
-#define _MEMORIA_TOOLS_CMDLINE_HPP
+#pragma once
 
 #include <memoria/core/types/types.hpp>
 #include <memoria/core/tools/file.hpp>
@@ -155,4 +154,3 @@ protected:
 
 
 }
-#endif

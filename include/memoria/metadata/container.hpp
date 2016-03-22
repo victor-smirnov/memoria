@@ -4,10 +4,7 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-
-
-#ifndef _MEMORIA_VAPI_METADATA_CONTAINER_HPP
-#define _MEMORIA_VAPI_METADATA_CONTAINER_HPP
+#pragma once
 
 #include <memoria/metadata/group.hpp>
 #include <memoria/metadata/page.hpp>
@@ -439,9 +436,4 @@ void FSDumpAllocator(const std::shared_ptr<Allocator>& allocator, StringRef path
     allocator->walkContainers(&walker);
 }
 
-
-
 }
-
-
-#endif
