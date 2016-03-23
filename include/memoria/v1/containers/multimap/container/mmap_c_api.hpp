@@ -47,16 +47,12 @@ public:
         return self.template seek_stream<0>(self.sizes()[0]);
     }
 
+    using Base::seek;
+
     IteratorPtr seek(CtrSizeT idx) {
         auto& self = this->self();
         return self.template seek_stream<0>(idx);
     }
-
-    IteratorPtr seek(const CtrSizesT& idx, Int level)
-    {
-        return Base::seek(idx, level);
-    }
-
 
     CtrSizeT size() const {
         return self().sizes()[0];
