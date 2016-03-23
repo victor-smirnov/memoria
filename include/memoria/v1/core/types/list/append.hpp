@@ -11,6 +11,7 @@
 #include <memoria/v1/core/types/list/typelist.hpp>
 
 namespace memoria {
+namespace v1 {
 
 template <typename Item1, typename Item2> struct AppendTool;
 template <typename List, typename ... Items> struct AppendToList;
@@ -223,4 +224,4 @@ template <typename T1, typename T2>
 using AppendItemToList = typename AppendToListH<T1, T2>::Type;
 
 
-}
+}}

@@ -18,8 +18,9 @@
 #include <memory>
 
 namespace memoria {
+namespace v1 {
 
-using namespace memoria::louds;
+using namespace v1::louds;
 
 class LabeledTreeIterTest: public LabeledTreeTestBase {
 
@@ -163,5 +164,4 @@ public:
     }
 };
 
-}
-
+}}

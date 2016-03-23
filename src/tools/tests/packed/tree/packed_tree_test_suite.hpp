@@ -15,6 +15,7 @@
 #include "packed_tree_buffer_test.hpp"
 
 namespace memoria {
+namespace v1 {
 
 using namespace std;
 
@@ -52,5 +53,4 @@ public:
 
 };
 
-}
-
+}}

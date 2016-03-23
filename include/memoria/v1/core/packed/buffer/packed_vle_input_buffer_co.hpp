@@ -12,6 +12,7 @@
 #include <memoria/v1/core/packed/array/packed_vle_array_base.hpp>
 
 namespace memoria {
+namespace v1 {
 
 
 template <Int Blocks>
@@ -624,4 +625,4 @@ public:
 
 
 
-}
+}}

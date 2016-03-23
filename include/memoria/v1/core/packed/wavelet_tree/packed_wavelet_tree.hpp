@@ -17,6 +17,7 @@
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 
 namespace memoria {
+namespace v1 {
 
 template <typename Allocator_ = PackedAllocator>
 struct PackedWaveletTreeTypes {
@@ -263,4 +264,4 @@ private:
 };
 
 
-}
+}}

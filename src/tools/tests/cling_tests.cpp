@@ -6,5 +6,4 @@ void cling_tests() {
     const char* argv[] = {"tests"};
 
     main(1, argv, nullptr);
-}
-
+}}

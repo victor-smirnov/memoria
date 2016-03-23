@@ -13,6 +13,7 @@
 #include <memoria/v1/core/tools/bitmap.hpp>
 
 namespace memoria {
+namespace v1 {
 
 template <Int BitsPerSymbol_, Int BufSize_ = BitsPerSymbol_ == 8 ? 16 : 1>
 class SmallSymbolBuffer {
@@ -177,4 +178,4 @@ public:
 
 
 
-}
+}}

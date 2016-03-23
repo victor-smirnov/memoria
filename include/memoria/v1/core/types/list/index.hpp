@@ -9,6 +9,7 @@
 #include <memoria/v1/core/types/types.hpp>
 
 namespace memoria {
+namespace v1 {
 
 template <typename Item_> struct DefaultItemProvider {
     typedef Item_ Item;
@@ -92,4 +93,4 @@ struct SelectByIndexTool<Idx, ValueList<T>, true, Counter> {
     static const T Value = 0;
 };
 
-}
+}}

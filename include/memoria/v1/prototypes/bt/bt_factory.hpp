@@ -67,8 +67,9 @@
 
 
 namespace memoria {
+namespace v1 {
 
-using memoria::bt::WalkerTypes;
+using v1::bt::WalkerTypes;
 
 template <typename Profile_, typename ContainerTypeSelector>
 struct BTTypes {
@@ -168,7 +169,7 @@ struct BTTypes {
 
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {
-        typedef memoria::bt::BTreeIteratorPrefixCache<Iterator, Container>   Type;
+        typedef v1::bt::BTreeIteratorPrefixCache<Iterator, Container>   Type;
     };
 
 
@@ -228,9 +229,9 @@ template <
         typename Profile,
         typename ContainerTypeName_
 >
-class CtrTF<Profile, memoria::BT, ContainerTypeName_> {
+class CtrTF<Profile, v1::BT, ContainerTypeName_> {
 
-    typedef CtrTF<Profile, memoria::BT, ContainerTypeName_>                     MyType;
+    typedef CtrTF<Profile, v1::BT, ContainerTypeName_>                     MyType;
 
 public:
 
@@ -408,10 +409,10 @@ public:
 
 
         template <Int SubstreamIdx>
-        using LeafPathT = typename memoria::list_tree::BuildTreePath<LeafStreamsStructList, SubstreamIdx>::Type;
+        using LeafPathT = typename v1::list_tree::BuildTreePath<LeafStreamsStructList, SubstreamIdx>::Type;
 
         template <Int SubstreamIdx>
-        using BranchPathT = typename memoria::list_tree::BuildTreePath<BranchStreamsStructList, SubstreamIdx>::Type;
+        using BranchPathT = typename v1::list_tree::BuildTreePath<BranchStreamsStructList, SubstreamIdx>::Type;
 
         template <Int StreamIdx>
         using StreamInputBufferStructList = Select<StreamIdx, InputBufferStructList>;
@@ -431,4 +432,4 @@ public:
 
 
 
-}
+}}

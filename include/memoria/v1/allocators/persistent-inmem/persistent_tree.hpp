@@ -20,6 +20,7 @@
 #include <malloc.h>
 
 namespace memoria {
+namespace v1 {
 namespace persistent_inmem   {
 
 
@@ -807,4 +808,4 @@ protected:
 
 
 }
-}
+}}

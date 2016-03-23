@@ -13,21 +13,23 @@
 #include <iostream>
 
 namespace memoria {
+namespace v1 {
 
 template <bool Value> class STATIC_ASSERT_FAILURE;
 template <> class STATIC_ASSERT_FAILURE <true> {};
 
-}
+}}
+
 
 #define MEMORIA_STATIC_ASSERT(B) \
-    enum { MEMORIA_JOIN(MEMORIA_static_assert_, __LINE__) = sizeof(memoria::STATIC_ASSERT_FAILURE<(bool)(B)>)}
+    enum { MEMORIA_JOIN(MEMORIA_static_assert_, __LINE__) = sizeof(v1::STATIC_ASSERT_FAILURE<(bool)(B)>)}
 
 
 #ifndef MEMORIA_NO_ASSERTS
 
 #define MEMORIA_ASSERT(Left, Operation, Right)                                                          \
         if (!(Left Operation Right)) {                                                                  \
-            throw memoria::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "                 \
+            throw v1::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "                 \
                     <<#Left<<" "<<#Operation<<" "<<#Right<<" Values: "<<Left<<" "<<Right);              \
         }
 
@@ -43,40 +45,40 @@ template <> class STATIC_ASSERT_FAILURE <true> {};
 
 #define MEMORIA_ASSERT_TRUE(Arg0)                                                                       \
         if (!(Arg0)) {                                                                                  \
-            throw memoria::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT TRUE FAILURE: "            \
+            throw v1::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT TRUE FAILURE: "            \
                     <<#Arg0);                                                                           \
         }
 
 #define MEMORIA_ASSERT_FALSE(Arg0)                                                                      \
         if ((Arg0)) {                                                                                   \
-            throw memoria::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FALSE FAILURE: "           \
+            throw v1::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FALSE FAILURE: "           \
                     <<#Arg0);                                                                           \
         }
 
 
 #define MEMORIA_ASSERT_EXPR(Expr, Msg)                                                              \
         if (!(Expr)) {                                                                              \
-            throw memoria::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "<<#Expr<<" "<<#Msg);   \
+            throw v1::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "<<#Expr<<" "<<#Msg);   \
         }
 
 
 #define MEMORIA_ASSERT_NOT_NULL(Operand)                                                                        \
         if (Operand == NULL) {                                                                                  \
-            throw memoria::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "<<#Operand<<" must not be NULL");  \
+            throw v1::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "<<#Operand<<" must not be NULL");  \
         }
 
 #define MEMORIA_ASSERT_NOT_EMPTY(Operand)                                                                       \
         if (Operand.is_null()) {                                                                                    \
-            throw memoria::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "<<#Operand<<" must not be 0"); \
+            throw v1::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "<<#Operand<<" must not be 0"); \
         }
 
 
 #define MEMORIA_INVALID_STREAM(Idx) \
-    throw memoria::Exception(MEMORIA_SOURCE, SBuf()<<"Invalid Stream: "<<Idx)
+    throw v1::Exception(MEMORIA_SOURCE, SBuf()<<"Invalid Stream: "<<Idx)
 
 #define MEMORIA_ASSERT_ALIGN(MemExpr, Align)                                                    \
         if (T2T<std::ptrdiff_t>(MemExpr) % Align != 0) {                                        \
-            throw memoria::Exception(MEMORIA_SOURCE,                                          \
+            throw v1::Exception(MEMORIA_SOURCE,                                          \
                 SBuf()<<"ASSERT FAILURE: \""<<#MemExpr<<"\" is not properly aligned ("<<Align<<")");    \
         }
 

@@ -17,6 +17,7 @@
 #include <functional>
 
 namespace memoria {
+namespace v1 {
 
 
 void Fill(char* buf, int size, char value)
@@ -31,4 +32,4 @@ void Fill(char* buf, int size, char value)
 
 
 
-} //memoria
+}}

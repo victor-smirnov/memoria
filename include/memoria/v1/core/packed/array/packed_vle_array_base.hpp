@@ -10,6 +10,7 @@
 
 
 namespace memoria {
+namespace v1 {
 
 template <Int Blocks>
 class PkdVDArrayMetadata {
@@ -602,4 +603,4 @@ protected:
     }
 };
 
-}
+}}

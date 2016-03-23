@@ -24,6 +24,7 @@
 #include <string.h>
 
 namespace memoria {
+namespace v1 {
 
 using namespace std;
 
@@ -1065,4 +1066,4 @@ static inline bool IsClean(const void *dst, long size)
     return true;
 }
 
-}
+}}

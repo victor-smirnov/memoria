@@ -12,6 +12,7 @@
 #include <utility>
 
 namespace memoria {
+namespace v1 {
 namespace louds     {
 
 class LoudsNode {
@@ -86,4 +87,4 @@ public:
 
 
 }
-}
+}}

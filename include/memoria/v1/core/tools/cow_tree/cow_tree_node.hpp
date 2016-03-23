@@ -14,6 +14,7 @@
 #include <algorithm>
 
 namespace memoria {
+namespace v1 {
 namespace cow       {
 namespace tree      {
 
@@ -559,4 +560,4 @@ std::ostream& operator<<(std::ostream& out, NodeType node_type) {
 
 }
 }
-}
+}}

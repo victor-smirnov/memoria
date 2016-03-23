@@ -13,6 +13,7 @@
 #include "packed_int64t_codec_test.hpp"
 
 namespace memoria {
+namespace v1 {
 
 using namespace std;
 
@@ -29,4 +30,4 @@ public:
 
 };
 
-}
+}}

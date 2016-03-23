@@ -13,6 +13,7 @@
 #include <memoria/v1/prototypes/ctr_wrapper/iterator.hpp>
 
 namespace memoria {
+namespace v1 {
 
 template <typename Profile_, typename ContainerTypeSelector>
 struct WrapperTypes {
@@ -22,7 +23,7 @@ struct WrapperTypes {
     typedef Profile_                                                            Profile;
 
     typedef TypeList<
-        memoria::bt::AllocatorName
+        v1::bt::AllocatorName
     >                                                                           ContainerPartsList;
 
     typedef TypeList<>                                                          IteratorPartsList;
@@ -58,4 +59,4 @@ public:
     };
 };
 
-}
+}}

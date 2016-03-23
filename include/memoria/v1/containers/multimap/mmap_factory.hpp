@@ -20,6 +20,7 @@
 #include <tuple>
 
 namespace memoria {
+namespace v1 {
 
 
 template <
@@ -27,9 +28,9 @@ template <
     typename Key_,
     typename Value_
 >
-struct MultimapBTTypesBaseBase: public BTTypes<Profile, memoria::BTTreeLayout> {
+struct MultimapBTTypesBaseBase: public BTTypes<Profile, v1::BTTreeLayout> {
 
-    using Base = BTTypes<Profile, memoria::BTTreeLayout>;
+    using Base = BTTypes<Profile, v1::BTTreeLayout>;
 
 
     using Key   = Key_;
@@ -37,12 +38,12 @@ struct MultimapBTTypesBaseBase: public BTTypes<Profile, memoria::BTTreeLayout> {
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
-                memoria::mmap::CtrApiName
+                v1::mmap::CtrApiName
     >;
 
     using IteratorPartsList = MergeLists<
                 typename Base::IteratorPartsList,
-                memoria::mmap::ItrMiscName
+                v1::mmap::ItrMiscName
     >;
 };
 
@@ -97,14 +98,14 @@ template <
     typename Key_,
     typename Value_
 >
-struct BTTypes<Profile, memoria::Map<Key_, Vector<Value_>>>: public MultimapBTTypesBase<Profile, Key_, Value_>
+struct BTTypes<Profile, v1::Map<Key_, Vector<Value_>>>: public MultimapBTTypesBase<Profile, Key_, Value_>
 {
 };
 
 
 template <typename Profile, typename Key, typename Value, typename T>
-class CtrTF<Profile, memoria::Map<Key, Vector<Value>>, T>: public CtrTF<Profile, memoria::BTTreeLayout, T> {
-    using Base = CtrTF<Profile, memoria::BTTreeLayout, T>;
+class CtrTF<Profile, v1::Map<Key, Vector<Value>>, T>: public CtrTF<Profile, v1::BTTreeLayout, T> {
+    using Base = CtrTF<Profile, v1::BTTreeLayout, T>;
 public:
 
     struct Types: Base::Types
@@ -124,4 +125,4 @@ public:
 };
 
 
-}
+}}

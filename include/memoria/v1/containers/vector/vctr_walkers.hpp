@@ -18,6 +18,7 @@
 #include <ostream>
 
 namespace memoria {
+namespace v1 {
 namespace mvector       {
 
 
@@ -167,4 +168,4 @@ public:
 
 
 }
-}
+}}

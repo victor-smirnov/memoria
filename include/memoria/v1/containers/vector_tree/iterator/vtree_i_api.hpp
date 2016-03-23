@@ -14,9 +14,10 @@
 #include <functional>
 
 namespace memoria {
+namespace v1 {
 
 
-MEMORIA_ITERATOR_PART_BEGIN(memoria::vtree::ItrApiName)
+MEMORIA_ITERATOR_PART_BEGIN(v1::vtree::ItrApiName)
 
     typedef Ctr<VTreeCtrTypes<Types>>                           ContainerType;
 
@@ -169,4 +170,4 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::vtree::ItrApiName)
 
 MEMORIA_ITERATOR_PART_END
 
-}
+}}

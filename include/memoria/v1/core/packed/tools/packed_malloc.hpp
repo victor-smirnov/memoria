@@ -16,6 +16,7 @@
 
 
 namespace memoria {
+namespace v1 {
 
 
 template <typename T> struct AllocTool;
@@ -71,4 +72,4 @@ struct AllocTool<PackedAllocator> {
 
 
 
-}
+}}

@@ -12,6 +12,7 @@
 #include <errno.h>
 
 namespace memoria {
+namespace v1 {
 
 using namespace std;
 
@@ -169,14 +170,14 @@ Int getValueMultiplier(const char* chars, const char* ptr)
         return 1000*1000*1000;
     }
     else {
-        throw memoria::Exception(MEMORIA_SOURCE, SBuf()<<"Invalid number format: "<<chars);
+        throw v1::Exception(MEMORIA_SOURCE, SBuf()<<"Invalid number format: "<<chars);
     }
 }
 
 void checkError(const char* chars, const char* ptr)
 {
     if (*ptr != 0) {
-        throw memoria::Exception(MEMORIA_SOURCE, SBuf()<<"Invalid number format: "<<chars);
+        throw v1::Exception(MEMORIA_SOURCE, SBuf()<<"Invalid number format: "<<chars);
     }
 }
 
@@ -257,10 +258,8 @@ bool ConvertToBool(StringRef str)
         return false;
     }
     else {
-        throw memoria::Exception(MEMORIA_SOURCE, SBuf()<<"Invalid boolean format: "<<str);
+        throw v1::Exception(MEMORIA_SOURCE, SBuf()<<"Invalid boolean format: "<<str);
     }
 }
 
-}
-
-
+}}

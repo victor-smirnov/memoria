@@ -13,12 +13,12 @@
 #include <memoria/v1/core/tools/random.hpp>
 
 using namespace memoria;
-using namespace memoria::tools;
+using namespace v1::tools;
 using namespace std;
 
 template <typename CtrT>
-class InputProvider2: public memoria::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength> {
-    using Base = memoria::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength>;
+class InputProvider2: public v1::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength> {
+    using Base = v1::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength>;
 
 public:
     using CtrSizeT  = typename Base::CtrSizeT;
@@ -62,8 +62,8 @@ public:
 
 
 template <typename CtrT, typename InputIterator>
-class IteratorInputProvider: public memoria::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength> {
-    using Base = memoria::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength>;
+class IteratorInputProvider: public v1::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength> {
+    using Base = v1::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength>;
 
 public:
     using CtrSizeT  = typename Base::CtrSizeT;
@@ -169,7 +169,7 @@ int main(int argc, const char** argv, const char** envp) {
 
         cout<<"Done"<<endl;
     }
-    catch (memoria::Exception& ex) {
+    catch (v1::Exception& ex) {
         cout<<ex.message()<<" at "<<ex.source()<<endl;
     }
 }

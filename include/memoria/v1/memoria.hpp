@@ -11,10 +11,9 @@
 #include <memoria/v1/core/tools/file.hpp>
 
 namespace memoria {
+namespace v1 {
 
 template <>
 struct CtrNameDeclarator<0>: TypeDef<Map<UUID, UUID>> {};
 
-}
-
-
+}}

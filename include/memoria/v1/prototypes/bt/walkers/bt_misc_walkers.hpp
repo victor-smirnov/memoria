@@ -10,6 +10,7 @@
 #include <memoria/v1/core/packed/tools/packed_tools.hpp>
 
 namespace memoria {
+namespace v1 {
 namespace bt      {
 
 
@@ -166,4 +167,4 @@ struct SetLeafValuesFn {
 
 
 }
-}
+}}

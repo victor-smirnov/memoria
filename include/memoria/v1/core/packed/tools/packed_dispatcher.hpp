@@ -23,6 +23,7 @@
 #include <type_traits>
 
 namespace memoria {
+namespace v1 {
 
 template <typename T>
 struct RtnFnBase {
@@ -97,7 +98,7 @@ public:
 
     template <Int From = 0, Int To = sizeof...(Tail) + 1, Int GroupIdx_ = GroupIdx>
     using SubrangeDispatcher = PackedDispatcher<
-                                typename memoria::Sublist<
+                                typename v1::Sublist<
                                     List,
                                     From, To
                                 >::Type,
@@ -106,7 +107,7 @@ public:
 
     template <typename Subset, Int GroupIdx_ = GroupIdx>
     using SubsetDispatcher = PackedDispatcher<
-                                memoria::ListSubset<
+                                v1::ListSubset<
                                     List,
                                     Subset
                                 >,
@@ -656,7 +657,7 @@ public:
 
     template <Int From = 0, Int To = 1, Int GroupIdx_ = GroupIdx>
     using SubrangeDispatcher = PackedDispatcher<
-                                typename memoria::Sublist<
+                                typename v1::Sublist<
                                     TypeList<SubstreamDescr<Head, Index>>,
                                     From, To
                                 >::Type,
@@ -665,7 +666,7 @@ public:
 
     template <typename Subset, Int GroupIdx_ = GroupIdx>
     using SubsetDispatcher = PackedDispatcher<
-                                    memoria::ListSubset<
+                                    v1::ListSubset<
                                         TypeList<SubstreamDescr<Head, Index>>,
                                         Subset
                                     >,
@@ -1129,4 +1130,4 @@ struct PackedDispatchersListBuilder<TypeList<>, Idx> {
     using Type = TypeList<>;
 };
 
-}
+}}

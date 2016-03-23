@@ -9,6 +9,7 @@
 #include <memoria/v1/prototypes/bt/walkers/bt_walker_base.hpp>
 
 namespace memoria {
+namespace v1 {
 namespace bt {
 
 
@@ -159,4 +160,4 @@ public:
 
 
 }
-}
+}}

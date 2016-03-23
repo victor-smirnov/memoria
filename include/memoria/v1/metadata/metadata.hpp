@@ -21,6 +21,7 @@
 #include <string>
 
 namespace memoria {
+namespace v1 {
 
 struct Metadata;
 struct PageMetadata;
@@ -79,4 +80,4 @@ private:
 
 
 
-}
+}}

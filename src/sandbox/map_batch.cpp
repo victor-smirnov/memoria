@@ -107,11 +107,11 @@ int main() {
         BigInt t5 = getTimeInMillis();
         cout << "Dump time: " << FormatTime(t5 - t4) << " s" << endl;
     }
-    catch (memoria::Exception& ex) {
+    catch (v1::Exception& ex) {
         cout << ex.message() << " at " << ex.source() << endl;
     }
 
-    catch (memoria::PackedOOMException& ex) {
+    catch (v1::PackedOOMException& ex) {
         cout << "PackedOOMException at " << ex.source() << endl;
     }
 

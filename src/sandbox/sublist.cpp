@@ -76,5 +76,3 @@ int main() {
 
     ListPrinter<List3>::print(cout);
 }
-
-

@@ -16,6 +16,7 @@
 #include <memory>
 
 namespace memoria {
+namespace v1 {
 
 class PackedBigIntegerCodecTest: public PackedCodecsTestBase<BigInteger> {
 
@@ -144,4 +145,4 @@ private:
 };
 
 
-}
+}}

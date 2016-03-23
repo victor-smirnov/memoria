@@ -12,6 +12,7 @@
 #include "../maxtree/packed_maxtree_test_base.hpp"
 
 namespace memoria {
+namespace v1 {
 
 using namespace std;
 
@@ -121,4 +122,4 @@ public:
 };
 
 
-}
+}}

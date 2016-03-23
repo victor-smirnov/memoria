@@ -13,6 +13,7 @@
 #include <iostream>
 
 namespace memoria {
+namespace v1 {
 
 //FIXME: this RNGs are single-threaded!
 
@@ -76,4 +77,4 @@ BigInt  getSeedBI();
 Int getNonZeroRandomG(Int size);
 
 
-}
+}}

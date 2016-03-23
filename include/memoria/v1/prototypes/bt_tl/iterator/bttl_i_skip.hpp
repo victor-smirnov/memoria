@@ -16,9 +16,10 @@
 #include <iostream>
 
 namespace memoria {
+namespace v1 {
 
 
-MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorSkipName)
+MEMORIA_ITERATOR_PART_BEGIN(v1::bttl::IteratorSkipName)
 
     using typename Base::CtrSizeT;
     using typename Base::CtrSizesT;
@@ -705,11 +706,11 @@ public:
 
 MEMORIA_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::bttl::IteratorSkipName)
+#define M_TYPE      MEMORIA_ITERATOR_TYPE(v1::bttl::IteratorSkipName)
 #define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
 
 
 #undef M_TYPE
 #undef M_PARAMS
 
-}
+}}

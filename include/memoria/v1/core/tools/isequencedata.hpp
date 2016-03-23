@@ -8,6 +8,7 @@
 
 
 namespace memoria {
+namespace v1 {
 
 template <typename T, Int BitsPerSymbol>
 struct ISequenceDataSource {
@@ -21,4 +22,4 @@ struct ISequenceDataTarget {
 };
 
 
-}
+}}

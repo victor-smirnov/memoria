@@ -14,6 +14,7 @@
 #include <string>
 
 namespace memoria {
+namespace v1 {
 
 using namespace std;
 
@@ -43,6 +44,4 @@ void dumpPageData(PageMetadata* meta, const void* page, std::ostream& out)
 }
 
 
-}
-
-
+}}

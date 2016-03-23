@@ -13,6 +13,7 @@
 #include <memory>
 
 namespace memoria {
+namespace v1 {
 
 template <typename AllocatorT>
 static void LoadFile(const std::shared_ptr<AllocatorT>& allocator, const char* file)
@@ -93,4 +94,4 @@ static Int DumpAllocator(String file_name)
     return 0;
 }
 
-}
+}}

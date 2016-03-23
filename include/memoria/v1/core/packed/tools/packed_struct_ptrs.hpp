@@ -16,6 +16,7 @@
 #include <malloc.h>
 
 namespace memoria {
+namespace v1 {
 
 template <typename PackedStruct>
 using PkdStructUPtr = std::unique_ptr<PackedStruct, std::function<void (void*)>>;
@@ -197,4 +198,4 @@ MakeSharedPackedStructByBlock(Int block_size, Args&&... args)
 
 
 
-}
+}}

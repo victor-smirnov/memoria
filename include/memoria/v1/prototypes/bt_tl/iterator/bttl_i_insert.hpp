@@ -16,9 +16,10 @@
 #include <iostream>
 
 namespace memoria {
+namespace v1 {
 
 
-MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorInsertName)
+MEMORIA_ITERATOR_PART_BEGIN(v1::bttl::IteratorInsertName)
 
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
@@ -130,11 +131,11 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::bttl::IteratorInsertName)
 
 MEMORIA_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::bttl::IteratorInsertName)
+#define M_TYPE      MEMORIA_ITERATOR_TYPE(v1::bttl::IteratorInsertName)
 #define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
 
 
 #undef M_TYPE
 #undef M_PARAMS
 
-}
+}}

@@ -9,6 +9,7 @@
 #include <memoria/v1/prototypes/bt/bt_names.hpp>
 
 namespace memoria {
+namespace v1 {
 namespace table      {
 
 class CtrApiName        {};
@@ -47,4 +48,4 @@ template <typename Types>
 using TableIterTypes = BTIterTypes<TableIterTypesT<Types>>;
 
 
-}
+}}

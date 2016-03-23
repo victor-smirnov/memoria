@@ -9,6 +9,7 @@
 #include <memoria/v1/prototypes/bt/bt_names.hpp>
 
 namespace memoria {
+namespace v1 {
 namespace mvector    {
 
 class CtrApiName    {};
@@ -36,4 +37,4 @@ template <typename Types>
 using Vector2IterTypes = BTIterTypesT<Vector2IterTypesT<Types>>;
 
 
-}
+}}

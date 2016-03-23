@@ -11,6 +11,7 @@
 #include <memoria/v1/core/tools/accessors.hpp>
 
 namespace memoria {
+namespace v1 {
 
 template <
     typename V,
@@ -660,4 +661,4 @@ struct PkdSearchKeyTypeProvider<PackedFSEArray<T>> {
 
 
 
-}
+}}

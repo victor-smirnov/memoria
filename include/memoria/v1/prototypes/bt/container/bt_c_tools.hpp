@@ -16,12 +16,13 @@
 #include <iostream>
 
 namespace memoria {
+namespace v1 {
 
-using namespace memoria::bt;
+using namespace v1::bt;
 
 
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ToolsName)
+MEMORIA_CONTAINER_PART_BEGIN(v1::bt::ToolsName)
 public:
     using typename Base::Types;
 
@@ -92,7 +93,7 @@ public:
         {
             PageWrapper<const Page> pw(page);
             PageMetadata* meta = self().getMetadata()->getPageMetadata(pw.getContainerHash(), pw.getPageTypeHash());
-            memoria::dumpPage(meta, &pw, out);
+            v1::dumpPage(meta, &pw, out);
             out<<std::endl;
             out<<std::endl;
         }
@@ -437,7 +438,7 @@ protected:
 
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bt::ToolsName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::bt::ToolsName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 
@@ -521,4 +522,4 @@ typename M_TYPE::NodeBaseG M_TYPE::getPrevNodeP(NodeBaseG& node) const
 #undef M_TYPE
 #undef M_PARAMS
 
-}
+}}

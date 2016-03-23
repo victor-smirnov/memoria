@@ -10,8 +10,9 @@
 #include <memoria/v1/prototypes/bt/bt_names.hpp>
 
 namespace memoria {
+namespace v1 {
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveBatchName)
+MEMORIA_CONTAINER_PART_BEGIN(v1::bt::RemoveBatchName)
 
     typedef TypesType                                                           Types;
     typedef typename Base::Allocator                                            Allocator;
@@ -86,7 +87,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveBatchName)
 MEMORIA_CONTAINER_PART_END
 
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bt::RemoveBatchName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::bt::RemoveBatchName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 
@@ -465,4 +466,4 @@ void M_TYPE::removeBranchNodes(
 #undef M_PARAMS
 
 
-}
+}}

@@ -16,6 +16,7 @@
 #include <memory>
 
 namespace memoria {
+namespace v1 {
 
 
 
@@ -117,7 +118,7 @@ private:
 
 public:
     IteratorBase():
-        logger_("Iterator", Logger::DERIVED, &memoria::logger),
+        logger_("Iterator", Logger::DERIVED, &v1::logger),
         type_(NORMAL)
     {}
 
@@ -168,7 +169,7 @@ public:
         return logger_.isLogEnabled(level);
     }
 
-    memoria::Logger& logger()
+    v1::Logger& logger()
     {
           return logger_;
     }
@@ -251,4 +252,4 @@ public:
 */
 
 
-}
+}}

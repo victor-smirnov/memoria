@@ -6,16 +6,19 @@
 
 #pragma once
 
+#include <memoria/v1/core/tools/config.hpp>
+
 #include <string>
 #include <sstream>
 #include <cassert>
 #include <cstdint>
 
-#include <memoria/v1/core/tools/config.hpp>
+
 #include <type_traits>
 #include <tuple>
 
 namespace memoria {
+namespace v1 {
 
 static const int DEFAULT_BLOCK_SIZE                 = 4096;
 static const int PackedTreeBranchingFactor          = 32;
@@ -480,5 +483,4 @@ template <typename T>
 struct IsExternalizable: HasValue<bool, HasValueCodec<T>::Value || HasFieldFactory<T>::Value> {};
 
 
-}
-
+}}

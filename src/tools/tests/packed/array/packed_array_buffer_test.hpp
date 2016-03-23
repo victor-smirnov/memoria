@@ -12,6 +12,7 @@
 #include "packed_array_test_base.hpp"
 
 namespace memoria {
+namespace v1 {
 
 using namespace std;
 
@@ -242,4 +243,4 @@ public:
 };
 
 
-}
+}}

@@ -13,13 +13,14 @@
 #include <vector>
 
 namespace memoria {
+namespace v1 {
 
-using namespace memoria::bt;
-using namespace memoria::core;
+using namespace v1::bt;
+using namespace v1::core;
 
 using namespace std;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::btss::LeafCommonName)
+MEMORIA_CONTAINER_PART_BEGIN(v1::btss::LeafCommonName)
 
 public:
     using typename Base::Types;
@@ -103,7 +104,7 @@ protected:
 MEMORIA_CONTAINER_PART_END
 
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bt::LeafCommonName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::bt::LeafCommonName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 
@@ -113,4 +114,4 @@ MEMORIA_CONTAINER_PART_END
 #undef M_TYPE
 #undef M_PARAMS
 
-}
+}}

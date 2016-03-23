@@ -14,11 +14,12 @@
 #include <type_traits>
 
 namespace memoria {
+namespace v1 {
 
 
 
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrFindName)
+MEMORIA_CONTAINER_PART_BEGIN(v1::louds::CtrFindName)
 
     typedef TypesType                                                           Types;
     typedef typename Base::Iterator                                             Iterator;
@@ -111,4 +112,4 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrFindName)
 
 MEMORIA_CONTAINER_PART_END
 
-}
+}}

@@ -14,6 +14,7 @@
 #include <tuple>
 
 namespace memoria {
+namespace v1 {
 
 struct TypeHashes {
     enum {SCALAR = 1, ARRAY, CONST_VALUE};
@@ -176,4 +177,4 @@ struct TypeHash<Table<Key, Value, PackedSizeType::VARIABLE>>:   UIntValue<
     HashHelper<3099, TypeHash<Key>::Value, TypeHash<Value>::Value>::Value
 > {};
 
-}
+}}

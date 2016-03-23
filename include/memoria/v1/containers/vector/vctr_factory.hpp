@@ -28,13 +28,14 @@
 #include <memoria/v1/core/packed/misc/packed_sized_struct.hpp>
 
 namespace memoria {
+namespace v1 {
 
 
 
 template <typename Profile, typename Value_>
-struct VectorBTTypesBase: public BTTypes<Profile, memoria::BTSingleStream> {
+struct VectorBTTypesBase: public BTTypes<Profile, v1::BTSingleStream> {
 
-    using Base = BTTypes<Profile, memoria::BTSingleStream>;
+    using Base = BTTypes<Profile, v1::BTSingleStream>;
 
     using Value = Value_;
     using Entry = Value_;
@@ -61,7 +62,7 @@ struct VectorBTTypesBase: public BTTypes<Profile, memoria::BTSingleStream> {
 
 
 template <typename Profile, typename Value>
-struct BTTypes<Profile, memoria::Vector<Value> >: public VectorBTTypesBase<Profile, Value> {
+struct BTTypes<Profile, v1::Vector<Value> >: public VectorBTTypesBase<Profile, Value> {
 
     static_assert(
             IsExternalizable<Value>::Value ,
@@ -101,9 +102,9 @@ struct CodecClassTF<Granularity::Bit> {
 
 
 template <typename Profile, Granularity Gr, typename Value_>
-struct BTTypes<Profile, memoria::Vector<VLen<Gr, Value_>> >: public BTTypes<Profile, memoria::BTSingleStream> {
+struct BTTypes<Profile, v1::Vector<VLen<Gr, Value_>> >: public BTTypes<Profile, v1::BTSingleStream> {
 
-    typedef BTTypes<Profile, memoria::BTSingleStream>                           Base;
+    typedef BTTypes<Profile, v1::BTSingleStream>                           Base;
 
     typedef Value_                                                              Value;
 
@@ -147,9 +148,9 @@ struct BTTypes<Profile, memoria::Vector<VLen<Gr, Value_>> >: public BTTypes<Prof
 
 
 template <typename Profile, typename Value, typename T>
-class CtrTF<Profile, memoria::Vector<Value>, T>: public CtrTF<Profile, memoria::BTSingleStream, T> {
+class CtrTF<Profile, v1::Vector<Value>, T>: public CtrTF<Profile, v1::BTSingleStream, T> {
 
-    using Base = CtrTF<Profile, memoria::BTSingleStream, T>;
+    using Base = CtrTF<Profile, v1::BTSingleStream, T>;
 public:
 
     struct Types: Base::Types
@@ -169,4 +170,4 @@ public:
 
 
 
-}
+}}

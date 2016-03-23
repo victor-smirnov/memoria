@@ -17,6 +17,7 @@
 #include <memoria/v1/metadata/metadata.hpp>
 
 namespace memoria {
+namespace v1 {
 
 
 template <typename Profile, typename PageType, typename List>
@@ -233,4 +234,4 @@ public:
 };
 
 
-}
+}}

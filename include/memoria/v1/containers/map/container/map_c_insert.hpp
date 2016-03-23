@@ -16,8 +16,9 @@
 #include <vector>
 
 namespace memoria {
+namespace v1 {
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertName)
+MEMORIA_CONTAINER_PART_BEGIN(v1::map::CtrInsertName)
 
     using typename Base::Types;
 
@@ -83,10 +84,10 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::map::CtrInsertName)
 
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::map::CtrRemoveName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::map::CtrRemoveName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 #undef M_PARAMS
 #undef M_TYPE
 
-}
+}}

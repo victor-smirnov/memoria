@@ -18,6 +18,7 @@
 #include <memoria/v1/core/container/container.hpp>
 
 namespace memoria {
+namespace v1 {
 namespace bttl    {
 
 namespace {
@@ -29,7 +30,7 @@ namespace {
         typename IndexRangeList,
         template <typename> class BranchStructTF
     >
-    struct GetLeafList<TL<memoria::bt::StreamTF<LeafType, BranchStructTF, IndexRangeList>, Tail...>> {
+    struct GetLeafList<TL<v1::bt::StreamTF<LeafType, BranchStructTF, IndexRangeList>, Tail...>> {
         using Type = MergeLists<
                 TL<LeafType>,
                 typename GetLeafList<TL<Tail...>>::Type
@@ -101,12 +102,12 @@ template <
     typename SizeStruct,
     typename SizeIndexes
 >
-class BTTLAugmentStreamDescriptors<TL<memoria::bt::StreamTF<LeafType, BranchStructTF, IndexRangeList>, Tail...>, SizeStruct, SizeIndexes> {
+class BTTLAugmentStreamDescriptors<TL<v1::bt::StreamTF<LeafType, BranchStructTF, IndexRangeList>, Tail...>, SizeStruct, SizeIndexes> {
     using NewLeafType       = typename AppendSizeStruct<LeafType, SizeStruct>::Type;
     using NewIndexRangeList = typename AppendSizeIndexes<IndexRangeList, SizeIndexes>::Type;
 public:
     using Type = MergeLists<
-        memoria::bt::StreamTF<NewLeafType, BranchStructTF, NewIndexRangeList>,
+        v1::bt::StreamTF<NewLeafType, BranchStructTF, NewIndexRangeList>,
         typename BTTLAugmentStreamDescriptors<TL<Tail...>, SizeStruct, SizeIndexes>::Type
     >;
 };
@@ -120,12 +121,12 @@ template <
     typename SizeStruct,
     typename SizeIndexes
 >
-class BTTLAugmentStreamDescriptors<TL<memoria::bt::StreamTF<LeafType, BranchStructTF, IndexRangeList>>, SizeStruct, SizeIndexes> {
+class BTTLAugmentStreamDescriptors<TL<v1::bt::StreamTF<LeafType, BranchStructTF, IndexRangeList>>, SizeStruct, SizeIndexes> {
     // Last stream don't need sizes augmentation
 public:
-    using Type = memoria::bt::StreamTF<LeafType, BranchStructTF, IndexRangeList>;
+    using Type = v1::bt::StreamTF<LeafType, BranchStructTF, IndexRangeList>;
 };
 
 
 }
-}
+}}

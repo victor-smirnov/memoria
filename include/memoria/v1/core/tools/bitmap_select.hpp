@@ -10,6 +10,7 @@
 #include <memoria/v1/core/tools/bitmap.hpp>
 
 namespace memoria {
+namespace v1 {
 
 using namespace std;
 
@@ -560,4 +561,4 @@ SelectResult Select0BW(const T* buffer, size_t start, size_t stop, size_t rank)
 
 
 
-} //memoria
+}}

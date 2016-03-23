@@ -15,8 +15,9 @@
 #include <vector>
 
 namespace memoria {
+namespace v1 {
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveName)
+MEMORIA_CONTAINER_PART_BEGIN(v1::bt::RemoveName)
 
     typedef typename Base::Types                                                Types;
 
@@ -83,7 +84,7 @@ protected:
 
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bt::RemoveName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::bt::RemoveName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 
@@ -91,4 +92,4 @@ MEMORIA_CONTAINER_PART_END
 #undef M_PARAMS
 #undef M_TYPE
 
-}
+}}

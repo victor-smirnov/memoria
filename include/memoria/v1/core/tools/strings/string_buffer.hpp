@@ -13,6 +13,7 @@
 #include <vector>
 
 namespace memoria {
+namespace v1 {
 
 
 
@@ -23,7 +24,7 @@ class SBuf {
 public:
 
     SBuf() {}
-    SBuf(const memoria::SBuf& other): buffer_(other.buffer_.str()) {}
+    SBuf(const SBuf& other): buffer_(other.buffer_.str()) {}
 
     std::stringstream& buffer() {
         return buffer_;
@@ -68,4 +69,4 @@ public:
 
 
 
-}
+}}

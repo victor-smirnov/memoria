@@ -7,6 +7,7 @@
 #pragma once
 
 namespace memoria {
+namespace v1 {
 
 template <typename Container, typename Key = typename Container::KeyType, bool Forward = true>
 class SumTreeWalker {
@@ -53,4 +54,4 @@ public:
 
 
 
-}
+}}

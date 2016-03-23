@@ -10,8 +10,9 @@
 #include <memoria/v1/core/types/types.hpp>
 
 namespace memoria {
+namespace v1 {
 
-using memoria::TypeList;
+using v1::TypeList;
 
 template <
     typename TChain,
@@ -36,5 +37,4 @@ template <
 >
 struct SimpleHierarchy<TypeList<T>, Element, Base>: public Element<T, Base> {};
 
-}
-
+}}

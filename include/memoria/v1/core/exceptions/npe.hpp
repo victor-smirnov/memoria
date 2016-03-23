@@ -9,6 +9,7 @@
 #include <memoria/v1/core/exceptions/memoria.hpp>
 
 namespace memoria {
+namespace v1 {
 
 using namespace std;
 
@@ -27,4 +28,4 @@ public:
 };
 
 
-}
+}}

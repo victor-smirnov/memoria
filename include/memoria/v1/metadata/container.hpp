@@ -20,6 +20,7 @@
 #include <ostream>
 
 namespace memoria {
+namespace v1 {
 
 
 struct ContainerWalker {
@@ -436,4 +437,4 @@ void FSDumpAllocator(const std::shared_ptr<Allocator>& allocator, StringRef path
     allocator->walkContainers(&walker);
 }
 
-}
+}}

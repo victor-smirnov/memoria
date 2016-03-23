@@ -14,6 +14,7 @@
 #include <memoria/v1/containers/vector/vctr_factory.hpp>
 
 namespace memoria {
+namespace v1 {
 
 using namespace std;
 
@@ -94,4 +95,4 @@ public:
 };
 
 
-}
+}}

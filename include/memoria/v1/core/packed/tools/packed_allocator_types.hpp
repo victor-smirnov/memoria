@@ -13,6 +13,7 @@
 #include <memoria/v1/metadata/page.hpp>
 
 namespace memoria {
+namespace v1 {
 
 
 template <typename PkdStruct>
@@ -295,4 +296,4 @@ struct EmptyAllocator {
     static Int roundUpBytesToAlignmentBlocks(int size) {return size;}
 };
 
-}
+}}

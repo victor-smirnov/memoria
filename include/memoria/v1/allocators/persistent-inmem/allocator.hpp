@@ -23,6 +23,7 @@
 #include <unordered_map>
 
 namespace memoria {
+namespace v1 {
 
 template <typename ValueT, typename TxnIdT>
 class PersistentTreeValue {
@@ -89,11 +90,11 @@ public:
     using TxnId             = UUID;
     using PTreeNodeId       = UUID;
 
-    using LeafNodeT         = memoria::persistent_inmem::LeafNode<Key, PersistentTreeValue<PageType*, TxnId>, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
-    using LeafNodeBufferT   = memoria::persistent_inmem::LeafNode<Key, PersistentTreeValue<typename PageType::ID, TxnId>, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
+    using LeafNodeT         = v1::persistent_inmem::LeafNode<Key, PersistentTreeValue<PageType*, TxnId>, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
+    using LeafNodeBufferT   = v1::persistent_inmem::LeafNode<Key, PersistentTreeValue<typename PageType::ID, TxnId>, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
 
-    using BranchNodeT       = memoria::persistent_inmem::BranchNode<Key, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
-    using BranchNodeBufferT = memoria::persistent_inmem::BranchNode<Key, NodeSize, NodeIndexSize, PTreeNodeId, TxnId, PTreeNodeId>;
+    using BranchNodeT       = v1::persistent_inmem::BranchNode<Key, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
+    using BranchNodeBufferT = v1::persistent_inmem::BranchNode<Key, NodeSize, NodeIndexSize, PTreeNodeId, TxnId, PTreeNodeId>;
     using NodeBaseT         = typename BranchNodeT::NodeBaseT;
     using NodeBaseBufferT   = typename BranchNodeBufferT::NodeBaseT;
 
@@ -296,8 +297,8 @@ public:
     };
 
 
-    using PersistentTreeT       = memoria::persistent_inmem::PersistentTree<BranchNodeT, LeafNodeT, HistoryNode, PageType>;
-    using SnapshotT             = memoria::persistent_inmem::Snapshot<Profile, PageType, HistoryNode, PersistentTreeT, MyType>;
+    using PersistentTreeT       = v1::persistent_inmem::PersistentTree<BranchNodeT, LeafNodeT, HistoryNode, PageType>;
+    using SnapshotT             = v1::persistent_inmem::Snapshot<Profile, PageType, HistoryNode, PersistentTreeT, MyType>;
     using SnapshotPtr           = std::shared_ptr<SnapshotT>;
     using AllocatorPtr          = std::shared_ptr<MyType>;
 
@@ -309,7 +310,7 @@ public:
     using BranchMap             = std::unordered_map<String, HistoryNode*>;
 
     template <typename, typename, typename, typename, typename>
-    friend class memoria::persistent_inmem::Snapshot;
+    friend class v1::persistent_inmem::Snapshot;
 
 private:
 
@@ -1305,4 +1306,4 @@ using PersistentInMemAllocator = class PersistentInMemAllocatorT<
 
 
 
-}
+}}

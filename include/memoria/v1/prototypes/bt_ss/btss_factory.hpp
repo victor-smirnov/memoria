@@ -25,36 +25,37 @@
 #include <tuple>
 
 namespace memoria {
+namespace v1 {
 
 struct BTSingleStream {};
 
 template <
     typename Profile
 >
-struct BTTypes<Profile, memoria::BTSingleStream>: public BTTypes<Profile, memoria::BT> {
+struct BTTypes<Profile, v1::BTSingleStream>: public BTTypes<Profile, v1::BT> {
 
-    using Base = BTTypes<Profile, memoria::BT>;
+    using Base = BTTypes<Profile, v1::BT>;
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
-                memoria::btss::LeafCommonName,
-                memoria::btss::FindName
+                v1::btss::LeafCommonName,
+                v1::btss::FindName
     >;
 
     using FixedLeafContainerPartsList = MergeLists<
                 typename Base::FixedLeafContainerPartsList,
-                memoria::btss::LeafFixedName
+                v1::btss::LeafFixedName
     >;
 
 
     using VariableLeafContainerPartsList = MergeLists<
                 typename Base::VariableLeafContainerPartsList,
-                memoria::btss::LeafVariableName
+                v1::btss::LeafVariableName
     >;
 
     using IteratorPartsList = MergeLists<
                 typename Base::IteratorPartsList,
-                memoria::btss::IteratorMiscName
+                v1::btss::IteratorMiscName
     >;
 
 };
@@ -63,9 +64,9 @@ struct BTTypes<Profile, memoria::BTSingleStream>: public BTTypes<Profile, memori
 
 
 template <typename Profile, typename T>
-class CtrTF<Profile, memoria::BTSingleStream, T>: public CtrTF<Profile, memoria::BT, T> {
+class CtrTF<Profile, v1::BTSingleStream, T>: public CtrTF<Profile, v1::BT, T> {
 
-    using Base = CtrTF<Profile, memoria::BT, T>;
+    using Base = CtrTF<Profile, v1::BT, T>;
 public:
 
     struct Types: Base::Types
@@ -81,4 +82,4 @@ public:
 };
 
 
-}
+}}

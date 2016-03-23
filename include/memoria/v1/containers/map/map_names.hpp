@@ -9,6 +9,7 @@
 #include <memoria/v1/prototypes/bt/bt_names.hpp>
 
 namespace memoria {
+namespace v1 {
 namespace map        {
 
 class CtrApiName        {};
@@ -48,4 +49,4 @@ template <typename Types>
 using MapIterTypes = BTIterTypes<MapIterTypesT<Types>>;
 
 
-}
+}}

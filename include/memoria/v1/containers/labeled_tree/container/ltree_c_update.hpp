@@ -13,11 +13,12 @@
 
 
 namespace memoria {
+namespace v1 {
 
 
 
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrUpdateName)
+MEMORIA_CONTAINER_PART_BEGIN(v1::louds::CtrUpdateName)
 
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
@@ -199,4 +200,4 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrUpdateName)
 
 MEMORIA_CONTAINER_PART_END
 
-}
+}}

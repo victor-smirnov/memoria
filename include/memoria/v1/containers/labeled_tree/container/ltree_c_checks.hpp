@@ -15,8 +15,9 @@
 #include <memoria/v1/prototypes/ctr_wrapper/iterator.hpp>
 
 namespace memoria {
+namespace v1 {
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrChecksName)
+MEMORIA_CONTAINER_PART_BEGIN(v1::louds::CtrChecksName)
 
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
@@ -135,4 +136,4 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrChecksName)
 
 MEMORIA_CONTAINER_PART_END
 
-}
+}}

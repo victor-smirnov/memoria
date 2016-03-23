@@ -23,6 +23,7 @@
 
 
 namespace memoria {
+namespace v1 {
 
 using namespace std;
 
@@ -39,5 +40,4 @@ std::unique_ptr<FileInputStreamHandler> FileInputStreamHandler::create(const cha
 
 
 
-}
-
+}}

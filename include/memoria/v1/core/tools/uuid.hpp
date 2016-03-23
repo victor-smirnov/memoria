@@ -13,6 +13,7 @@
 
 
 namespace memoria {
+namespace v1 {
 
 class UUID;
 
@@ -136,4 +137,4 @@ struct FromString<UUID> {
 
 
 
-}
+}}

@@ -15,6 +15,7 @@
 #include <fstream>
 
 namespace memoria {
+namespace v1 {
 
 using namespace std;
 
@@ -47,4 +48,4 @@ public:
     String getFileName(StringRef name) const;
 };
 
-}
+}}

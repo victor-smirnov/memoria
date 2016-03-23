@@ -15,6 +15,7 @@
 
 
 namespace memoria {
+namespace v1 {
 
 using namespace memoria;
 
@@ -43,4 +44,4 @@ public:
 };
 
 
-}
+}}

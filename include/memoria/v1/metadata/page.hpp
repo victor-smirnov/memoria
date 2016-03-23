@@ -16,6 +16,7 @@
 #include <tuple>
 
 namespace memoria {
+namespace v1 {
 
 template <typename T> class PageID;
 
@@ -247,7 +248,7 @@ public:
 
     virtual void startGroupWithAddr(const char* name, const void* ptr) {
         cnt_ = 0;
-        memoria::Expand(out_, level_++);
+        v1::Expand(out_, level_++);
 
         out_<<name;
 
@@ -258,7 +259,7 @@ public:
     virtual void startGroup(const char* name, Int elements = -1)
     {
         cnt_ = 0;
-        memoria::Expand(out_, level_++);
+        v1::Expand(out_, level_++);
 
         out_<<name;
 
@@ -294,7 +295,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            memoria::dumpArray<Byte>(out_, count, [=](Int idx){return value[idx];});
+            v1::dumpArray<Byte>(out_, count, [=](Int idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -305,7 +306,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            memoria::dumpArray<UByte>(out_, count, [=](Int idx){return value[idx];});
+            v1::dumpArray<UByte>(out_, count, [=](Int idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -316,7 +317,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            memoria::dumpArray<Short>(out_, count, [=](Int idx){return value[idx];});
+            v1::dumpArray<Short>(out_, count, [=](Int idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -328,7 +329,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            memoria::dumpArray<UShort>(out_, count, [=](Int idx){return value[idx];});
+            v1::dumpArray<UShort>(out_, count, [=](Int idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -339,7 +340,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            memoria::dumpArray<Int>(out_, count, [=](Int idx){return value[idx];});
+            v1::dumpArray<Int>(out_, count, [=](Int idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -351,7 +352,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            memoria::dumpArray<UInt>(out_, count, [=](Int idx){return value[idx];});
+            v1::dumpArray<UInt>(out_, count, [=](Int idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -362,7 +363,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            memoria::dumpArray<BigInt>(out_, count, [=](Int idx){return value[idx];});
+            v1::dumpArray<BigInt>(out_, count, [=](Int idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -373,7 +374,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            memoria::dumpArray<UBigInt>(out_, count, [=](Int idx){return value[idx];});
+            v1::dumpArray<UBigInt>(out_, count, [=](Int idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -384,7 +385,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            memoria::dumpArray<float>(out_, count, [=](Int idx){return value[idx];});
+            v1::dumpArray<float>(out_, count, [=](Int idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -395,7 +396,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            memoria::dumpArray<double>(out_, count, [=](Int idx){return value[idx];});
+            v1::dumpArray<double>(out_, count, [=](Int idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -433,7 +434,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            memoria::dumpArray<UUID>(out_, count, [=](Int idx){return value[idx];});
+            v1::dumpArray<UUID>(out_, count, [=](Int idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -443,7 +444,7 @@ public:
     virtual void value(const char* name, const BigInteger* value, Int count = 1, Int kind = 0) {
         if (kind == BYTE_ARRAY)
         {
-            memoria::dumpArray<BigInteger>(out_, count, [=](Int idx){return value[idx];});
+            v1::dumpArray<BigInteger>(out_, count, [=](Int idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -454,7 +455,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            memoria::dumpArray<String>(out_, count, [=](Int idx){return value[idx];});
+            v1::dumpArray<String>(out_, count, [=](Int idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -484,24 +485,24 @@ private:
     void dumpFieldHeader(ostream &out, Int level, Int idx, StringRef name)
     {
         stringstream str;
-        memoria::Expand(str, level);
+        v1::Expand(str, level);
         str<<"FIELD: ";
         str<<idx<<" "<<name;
 
         int size = str.str().size();
-        memoria::Expand(str, 30 - size);
+        v1::Expand(str, 30 - size);
         out<<str.str();
     }
 
     void dumpLineHeader(ostream &out, Int level, Int idx, StringRef name)
     {
         stringstream str;
-        memoria::Expand(str, level);
+        v1::Expand(str, level);
         str<<name<<": ";
         str<<idx<<" ";
 
         int size = str.str().size();
-        memoria::Expand(str, 15 - size);
+        v1::Expand(str, 15 - size);
         out<<str.str();
     }
 
@@ -549,4 +550,4 @@ void DumpStruct(const Struct* s, std::ostream& out = std::cout)
 
 
 
-}
+}}

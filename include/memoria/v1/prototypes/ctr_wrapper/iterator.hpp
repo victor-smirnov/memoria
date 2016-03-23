@@ -11,6 +11,7 @@
 #include <memoria/v1/prototypes/ctr_wrapper/ctrwrapper_names.hpp>
 
 namespace memoria {
+namespace v1 {
 
 
 
@@ -208,4 +209,4 @@ bool operator!=(const Iter<IterWrapperTypes<Types> >& iter, const IterEndMark& m
     return iter.isNotEnd();
 }
 
-}
+}}

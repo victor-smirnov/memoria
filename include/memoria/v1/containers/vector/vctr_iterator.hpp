@@ -10,6 +10,7 @@
 #include <memoria/v1/containers/vector/vctr_names.hpp>
 
 namespace memoria {
+namespace v1 {
 
 //template <typename Types, typename Value>
 //void AssignToItem(Iter<Vector2IterTypes<Types>>& iter, const Value& value)
@@ -17,4 +18,4 @@ namespace memoria {
 //    iter.setValue(value);
 //}
 
-}
+}}

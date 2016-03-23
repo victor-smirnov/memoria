@@ -25,6 +25,7 @@
 #include <functional>
 
 namespace memoria {
+namespace v1 {
 
 
 template <Int Levels, PackedSizeType SizeType>
@@ -100,12 +101,12 @@ struct BTTLTestTypesBase: public BTTypes<Profile, BTTreeLayout> {
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
-                memoria::bttl_test::CtrApiName
+                v1::bttl_test::CtrApiName
     >;
 
     using IteratorPartsList = MergeLists<
                 typename Base::IteratorPartsList,
-                memoria::bttl_test::IterApiName
+                v1::bttl_test::IterApiName
     >;
 
 };
@@ -127,8 +128,8 @@ struct BTTypes<Profile, BTTLTestCtr<Levels, SizeType>>: public BTTLTestTypesBase
 
 
 template <typename Profile, Int Levels, PackedSizeType SizeType, typename T>
-class CtrTF<Profile, BTTLTestCtr<Levels, SizeType>, T>: public CtrTF<Profile, memoria::BTTreeLayout, T> {
-    using Base = CtrTF<Profile, memoria::BTTreeLayout, T>;
+class CtrTF<Profile, BTTLTestCtr<Levels, SizeType>, T>: public CtrTF<Profile, v1::BTTreeLayout, T> {
+    using Base = CtrTF<Profile, v1::BTTreeLayout, T>;
 public:
 
 //    struct Types: Base::Types
@@ -150,4 +151,4 @@ struct TypeHash<BTTLTestCtr<Level, SizeType>>:   UIntValue<
 > {};
 
 
-}
+}}

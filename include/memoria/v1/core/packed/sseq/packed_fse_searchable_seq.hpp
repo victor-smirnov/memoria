@@ -30,6 +30,7 @@
 #include <ostream>
 
 namespace memoria {
+namespace v1 {
 
 
 
@@ -1115,4 +1116,4 @@ struct PkdFSSeqTF: HasType<
 > {};
 
 
-}
+}}

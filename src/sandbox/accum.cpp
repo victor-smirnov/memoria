@@ -12,8 +12,8 @@
 #include <iostream>
 
 using namespace memoria;
-using namespace memoria::bt;
-using namespace memoria::list_tree;
+using namespace v1::bt;
+using namespace v1::list_tree;
 using namespace std;
 
 class T{};
@@ -160,5 +160,3 @@ int main() {
     cout<<"Offset: "<<LeafToBranchIndexByValueTranslator<LeafStructList2, LeafIdx>::LeafOffset<<endl;
     cout<<"ISStart: "<<LeafToBranchIndexByValueTranslator<LeafStructList2, LeafIdx>::IsStreamStart<<endl;
 }
-
-

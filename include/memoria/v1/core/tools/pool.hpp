@@ -17,6 +17,7 @@
 
 
 namespace memoria {
+namespace v1 {
 
 
 template <typename ID, typename Object, Int Size = 64>
@@ -137,4 +138,4 @@ private:
 };
 
 
-}
+}}

@@ -11,6 +11,7 @@
 #include <memoria/v1/core/tools/stream.hpp>
 
 namespace memoria {
+namespace v1 {
 namespace persistent_inmem   {
 
 enum class NodeType {LEAF, BRANCH};
@@ -698,4 +699,4 @@ static std::ostream& operator<<(std::ostream& out, NodeType node_type) {
 }
 
 }
-}
+}}

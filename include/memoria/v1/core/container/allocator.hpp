@@ -14,6 +14,7 @@
 #include <memory>
 
 namespace memoria {
+namespace v1 {
 
 
 // Ctr directory interface
@@ -92,4 +93,4 @@ struct IWalkableAllocator: IAllocator<PageType> {
 
 
 
-}
+}}

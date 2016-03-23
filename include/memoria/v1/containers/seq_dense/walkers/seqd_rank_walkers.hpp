@@ -11,6 +11,7 @@
 #include <memoria/v1/core/packed/sseq/packed_fse_searchable_seq.hpp>
 
 namespace memoria {
+namespace v1 {
 namespace seq_dense {
 
 /*
@@ -179,4 +180,4 @@ public:
 
 
 }
-}
+}}

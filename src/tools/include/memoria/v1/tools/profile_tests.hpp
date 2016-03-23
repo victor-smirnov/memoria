@@ -17,6 +17,7 @@
 #include <fstream>
 
 namespace memoria {
+namespace v1 {
 
 using namespace std;
 
@@ -100,7 +101,7 @@ public:
 
         if (step_count > 0 && (check_count % step_count == 0))
         {
-            memoria::check<Allocator>(allocator, "Allocator check failed", source);
+            v1::check<Allocator>(allocator, "Allocator check failed", source);
         }
 
         check_count++;
@@ -108,7 +109,7 @@ public:
 
     void forceCheck(const std::shared_ptr<Allocator>& allocator, const char* source)
     {
-        memoria::check<Allocator>(allocator, "Allocator check failed", source);
+        v1::check<Allocator>(allocator, "Allocator check failed", source);
     }
 
     void check(const std::shared_ptr<Allocator>& allocator, const char* message, const char* source)
@@ -117,7 +118,7 @@ public:
 
         if (check_count % step_count == 0)
         {
-            memoria::check<Allocator>(allocator, message, source);
+            v1::check<Allocator>(allocator, message, source);
         }
         check_count++;
     }
@@ -129,7 +130,7 @@ public:
 
         if (step_count > 0 && (check_count % step_count == 0))
         {
-            memoria::checkCtr<CtrType>(ctr, message, source);
+            v1::checkCtr<CtrType>(ctr, message, source);
         }
 
         check_count++;
@@ -147,4 +148,4 @@ typedef SPTestTaskT<> SPTestTask;
 
 
 
-}
+}}

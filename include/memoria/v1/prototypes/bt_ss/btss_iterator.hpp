@@ -9,6 +9,7 @@
 #include <memoria/v1/prototypes/bt_ss/btss_names.hpp>
 
 namespace memoria {
+namespace v1 {
 
 template <typename Types, typename Value>
 void AssignToItem(Iter<BTSSIterTypes<Types>>& iter, const Value& value)
@@ -16,4 +17,4 @@ void AssignToItem(Iter<BTSSIterTypes<Types>>& iter, const Value& value)
     iter.setValue(value);
 }
 
-}
+}}

@@ -10,6 +10,7 @@
 #include <memoria/v1/core/types/algo/select.hpp>
 
 namespace memoria {
+namespace v1 {
 
 template <typename List, Int Depth = 0>
 struct ListDepth {
@@ -115,4 +116,4 @@ struct ListSubsetH<List, IntList<>> {
     using Type = TypeList<>;
 };
 
-}
+}}

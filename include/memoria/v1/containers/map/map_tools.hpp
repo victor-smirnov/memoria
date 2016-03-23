@@ -22,6 +22,7 @@
 #include <memoria/v1/prototypes/bt_ss/btss_input.hpp>
 
 namespace memoria {
+namespace v1 {
 namespace map           {
 
 using bt::IdxSearchType;
@@ -137,13 +138,13 @@ public:
 
 
 template <typename CtrT, typename InputIterator, Int EntryBufferSize = 1000>
-class MapEntryIteratorInputProvider: public memoria::btss::AbstractIteratorBTSSInputProvider<
+class MapEntryIteratorInputProvider: public v1::btss::AbstractIteratorBTSSInputProvider<
     CtrT,
     MapEntryIteratorInputProvider<CtrT, InputIterator, EntryBufferSize>,
     InputIterator
 >
 {
-    using Base = memoria::btss::AbstractIteratorBTSSInputProvider<
+    using Base = v1::btss::AbstractIteratorBTSSInputProvider<
             CtrT,
             MapEntryIteratorInputProvider<CtrT, InputIterator, EntryBufferSize>,
             InputIterator
@@ -174,4 +175,4 @@ public:
 
 
 }
-}
+}}

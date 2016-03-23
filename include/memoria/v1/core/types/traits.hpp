@@ -12,6 +12,7 @@
 
 
 namespace memoria {
+namespace v1 {
 
 
 
@@ -74,4 +75,4 @@ struct ValueTraits<EmptyValue> {
 
 #undef MEMORIA_VALUE_TRAITS
 
-} //memoria
+}}

@@ -9,6 +9,7 @@
 #include <cstddef>
 
 namespace memoria {
+namespace v1 {
 
 
 
@@ -331,4 +332,4 @@ private:
 };
 
 
-}
+}}

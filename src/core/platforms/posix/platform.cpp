@@ -9,6 +9,7 @@
 
 
 namespace memoria {
+namespace v1 {
 
 String Platform::getFilePathSeparator() {
     return "/";
@@ -22,5 +23,4 @@ String Platform::getLineSeparator() {
     return "\n";
 }
 
-}
-
+}}

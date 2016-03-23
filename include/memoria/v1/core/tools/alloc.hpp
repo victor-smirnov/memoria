@@ -16,6 +16,7 @@
 
 
 namespace memoria {
+namespace v1 {
 
 template <typename T>
 using FreeUniquePtr = std::unique_ptr<T, decltype(free)*>;
@@ -47,4 +48,4 @@ inline auto AllocateAllocator(size_t block_size, Int blocks = 1)
 }
 
 
-}
+}}

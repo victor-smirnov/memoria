@@ -7,6 +7,7 @@
 #pragma once
 
 namespace memoria {
+namespace v1 {
 
 class ContainerCollectionCfgName                        {};
 
@@ -37,4 +38,4 @@ template <typename Types>  struct IterTypesT: Types {
 };
 
 
-}
+}}

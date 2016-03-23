@@ -10,6 +10,7 @@
 #include <memoria/v1/core/container/container.hpp>
 
 namespace memoria {
+namespace v1 {
 namespace bttl    {
 
 
@@ -356,4 +357,4 @@ std::ostream& operator<<(std::ostream& out, const BTTLIteratorPrefixCache<I, C>&
 
 
 }
-}
+}}

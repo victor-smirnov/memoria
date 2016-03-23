@@ -14,6 +14,7 @@
 
 
 namespace memoria {
+namespace v1 {
 
 template <
         typename List,
@@ -66,4 +67,4 @@ public:
 };
 
 
-}
+}}

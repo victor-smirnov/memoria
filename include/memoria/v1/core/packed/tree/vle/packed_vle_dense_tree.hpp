@@ -11,6 +11,7 @@
 #include <memoria/v1/core/packed/tree/vle/packed_vle_tools.hpp>
 
 namespace memoria {
+namespace v1 {
 
 template <typename Types> class PkdVDTree;
 
@@ -1626,4 +1627,4 @@ struct IndexesSize<PkdVDTree<Types>> {
 };
 
 
-}
+}}

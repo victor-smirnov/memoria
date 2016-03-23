@@ -17,6 +17,7 @@
 #include "multimap_test_base.hpp"
 
 namespace memoria {
+namespace v1 {
 
 template <
     typename MapName
@@ -95,5 +96,4 @@ public:
     }
 };
 
-}
-
+}}

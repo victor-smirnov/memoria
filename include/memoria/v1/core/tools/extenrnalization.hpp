@@ -6,6 +6,7 @@
 #pragma once
 
 namespace memoria {
+namespace v1 {
 namespace core      {
 
 
@@ -13,4 +14,4 @@ namespace core      {
 
 
 }
-}
+}}

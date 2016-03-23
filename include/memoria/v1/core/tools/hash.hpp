@@ -10,6 +10,7 @@
 #include <memoria/v1/core/types/types.hpp>
 
 namespace memoria {
+namespace v1 {
 
 template <typename T, Int n = sizeof(T)> struct PtrToHash;
 
@@ -35,4 +36,4 @@ struct PtrToHash<T, sizeof(BigInt)> {
 
 
 
-}
+}}

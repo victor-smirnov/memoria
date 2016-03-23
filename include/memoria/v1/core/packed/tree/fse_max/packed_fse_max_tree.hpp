@@ -15,6 +15,7 @@
 
 
 namespace memoria {
+namespace v1 {
 
 template <typename ValueT, Int kBlocks, Int kBranchingFactor = PackedTreeBranchingFactor, Int kValuesPerBranch = PackedTreeBranchingFactor>
 struct PkdFMTreeTypes {
@@ -828,4 +829,4 @@ struct IndexesSize<PkdFMTree<Types>> {
 };
 
 
-}
+}}

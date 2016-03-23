@@ -7,6 +7,7 @@
 #pragma once
 
 namespace memoria {
+namespace v1 {
 namespace bt1     {
 
 template <typename Types>
@@ -61,4 +62,4 @@ public:
 
 
 }
-}
+}}

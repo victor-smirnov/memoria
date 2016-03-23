@@ -13,6 +13,7 @@
 #include <functional>
 
 namespace memoria {
+namespace v1 {
 
 void Expand(std::ostream& os, Int level);
 
@@ -297,4 +298,4 @@ void dumpSymbols(ostream& out_, T* symbols, Int size_, Int bits_per_symbol)
 
 
 
-}
+}}

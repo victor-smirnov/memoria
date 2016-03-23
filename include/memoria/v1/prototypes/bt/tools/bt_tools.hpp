@@ -26,6 +26,7 @@
 #include <tuple>
 
 namespace memoria {
+namespace v1 {
 namespace bt        {
 
 template <Int StreamIdx> struct StreamTag {};
@@ -420,4 +421,4 @@ public:
 
 
 }
-}
+}}

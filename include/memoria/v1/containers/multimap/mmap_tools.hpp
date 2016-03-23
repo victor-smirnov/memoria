@@ -13,6 +13,7 @@
 #include <vector>
 
 namespace memoria {
+namespace v1 {
 namespace mmap    {
 
 using bt::IdxSearchType;
@@ -223,4 +224,4 @@ public:
 
 
 }
-}
+}}

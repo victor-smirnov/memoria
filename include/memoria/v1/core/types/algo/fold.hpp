@@ -10,6 +10,7 @@
 #include <memoria/v1/core/types/typelist.hpp>
 
 namespace memoria {
+namespace v1 {
 
 namespace {
 
@@ -64,4 +65,4 @@ using FoldTLRight = typename FoldTLRightT<List, FoldingFn, State>::Type;
 template <typename List, template <typename, typename> class FoldingFn>
 using FoldTLLeft = typename FoldTLLeftT<List, FoldingFn>::Type;
 
-}
+}}

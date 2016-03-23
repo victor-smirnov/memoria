@@ -10,6 +10,7 @@
 #include <memoria/v1/prototypes/ctr_wrapper/iterator.hpp>
 
 namespace memoria {
+namespace v1 {
 
 template <typename Types, typename Value>
 void AssignToItem(Iter<MapIterTypes<Types>>& iter, Value&& value)
@@ -17,4 +18,4 @@ void AssignToItem(Iter<MapIterTypes<Types>>& iter, Value&& value)
     iter.setValue(value);
 }
 
-}
+}}

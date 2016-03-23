@@ -10,6 +10,7 @@
 #include <memoria/v1/core/types/list/append.hpp>
 
 namespace memoria {
+namespace v1 {
 
 template <typename Item, typename List, bool All = false> struct RemoveTool;
 
@@ -67,4 +68,4 @@ public:
     typedef typename AppendTool<Head, HeadResult>::Result                       Result;
 };
 
-}
+}}

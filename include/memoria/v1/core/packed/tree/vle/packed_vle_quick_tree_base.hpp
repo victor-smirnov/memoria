@@ -10,6 +10,7 @@
 
 
 namespace memoria {
+namespace v1 {
 
 class PkdVQTreeMetadata {
     Int size_;
@@ -1302,4 +1303,4 @@ protected:
     }
 };
 
-}
+}}

@@ -28,6 +28,7 @@
 #include <tuple>
 
 namespace memoria {
+namespace v1 {
 
 
 
@@ -37,9 +38,9 @@ template <
     typename Value_,
     PackedSizeType SizeType
 >
-struct TableBTTypesBase: public BTTypes<Profile, memoria::BTTreeLayout> {
+struct TableBTTypesBase: public BTTypes<Profile, v1::BTTreeLayout> {
 
-    using Base = BTTypes<Profile, memoria::BTTreeLayout>;
+    using Base = BTTypes<Profile, v1::BTTreeLayout>;
 
     using ValueType = IfThenElse<
                     IfTypesEqual<Value_, IDType>::Value,
@@ -125,12 +126,12 @@ struct TableBTTypesBase: public BTTypes<Profile, memoria::BTTreeLayout> {
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
-                memoria::table::CtrApiName
+                v1::table::CtrApiName
     >;
 
     using IteratorPartsList = MergeLists<
                 typename Base::IteratorPartsList,
-                memoria::table::ItrMiscName
+                v1::table::ItrMiscName
     >;
 };
 
@@ -146,14 +147,14 @@ template <
     typename Value_,
     PackedSizeType SizeType
 >
-struct BTTypes<Profile, memoria::Table<Key_, Value_, SizeType>>: public TableBTTypesBase<Profile, Key_, Value_, SizeType>
+struct BTTypes<Profile, v1::Table<Key_, Value_, SizeType>>: public TableBTTypesBase<Profile, Key_, Value_, SizeType>
 {
 };
 
 
 template <typename Profile, typename Key, typename Value, PackedSizeType SizeType, typename T>
-class CtrTF<Profile, memoria::Table<Key, Value, SizeType>, T>: public CtrTF<Profile, memoria::BTTreeLayout, T> {
-    using Base = CtrTF<Profile, memoria::BTTreeLayout, T>;
+class CtrTF<Profile, v1::Table<Key, Value, SizeType>, T>: public CtrTF<Profile, v1::BTTreeLayout, T> {
+    using Base = CtrTF<Profile, v1::BTTreeLayout, T>;
 public:
 
     struct Types: Base::Types
@@ -169,4 +170,4 @@ public:
 };
 
 
-}
+}}

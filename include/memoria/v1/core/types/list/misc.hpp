@@ -10,6 +10,7 @@
 
 
 namespace memoria {
+namespace v1 {
 
 template <typename T, T V1, T V2>
 struct Max {
@@ -21,5 +22,4 @@ struct Min {
     static const T Value = V1 < V2 ? V1 : V2;
 };
 
-}
-
+}}

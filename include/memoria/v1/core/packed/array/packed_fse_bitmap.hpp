@@ -13,6 +13,7 @@
 #include <memoria/v1/core/packed/sseq/sseq_fn/pkd_f_sseq_tools_fn.hpp>
 
 namespace memoria {
+namespace v1 {
 
 
 
@@ -359,4 +360,4 @@ private:
 };
 
 
-}
+}}

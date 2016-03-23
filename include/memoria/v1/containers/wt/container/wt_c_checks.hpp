@@ -10,8 +10,9 @@
 #include <memoria/v1/containers/wt/wt_names.hpp>
 
 namespace memoria {
+namespace v1 {
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::wt::CtrChecksName)
+MEMORIA_CONTAINER_PART_BEGIN(v1::wt::CtrChecksName)
 
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
@@ -107,4 +108,4 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::wt::CtrChecksName)
 
 MEMORIA_CONTAINER_PART_END
 
-}
+}}

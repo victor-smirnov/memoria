@@ -6,6 +6,7 @@
 #include <memoria/v1/core/tools/random.hpp>
 
 namespace memoria {
+namespace v1 {
 
 RngInt      int_generator;
 RngBigInt   bigint_generator;
@@ -61,4 +62,4 @@ Int getNonZeroRandomG(Int size)
 
 
 
-}
+}}

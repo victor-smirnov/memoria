@@ -13,6 +13,7 @@
 #include <memoria/v1/core/tools/strings/string.hpp>
 
 namespace memoria {
+namespace v1 {
 
 template <typename T> class PageID;
 
@@ -151,6 +152,6 @@ private:
 };
 
 
-std::ostream& operator<<(std::ostream& os, const memoria::IDValue& id);
+std::ostream& operator<<(std::ostream& os, const v1::IDValue& id);
 
-}
+}}

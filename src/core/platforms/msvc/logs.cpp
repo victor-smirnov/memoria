@@ -3,6 +3,7 @@
 
 
 namespace memoria {
+namespace v1 {
 
 const char* ExtractFunctionName(const char* full_name)
 {
@@ -26,5 +27,4 @@ const char* ExtractFunctionName(const char* full_name)
     return start;
 }
 
-}
-
+}}

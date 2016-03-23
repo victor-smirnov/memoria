@@ -12,6 +12,7 @@
 #include <ostream>
 
 namespace memoria {
+namespace v1 {
 
 template <typename T>
 class Optional {
@@ -57,4 +58,4 @@ std::ostream& operator<<(std::ostream& out, const Optional<T>& op) {
 }
 
 
-}
+}}

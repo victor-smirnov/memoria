@@ -24,8 +24,9 @@
 #include <tuple>
 
 namespace memoria {
+namespace v1 {
 
-using memoria::tools::LblTreeNode;
+using v1::tools::LblTreeNode;
 
 using LTreeCtrName = LabeledTree<
         FLabel<UShort>,
@@ -337,4 +338,4 @@ private:
 
 };
 
-}
+}}

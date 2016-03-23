@@ -18,6 +18,7 @@
 #include <memoria/v1/core/types/types.hpp>
 
 namespace memoria {
+namespace v1 {
 
 #ifdef __GNUC__
 template<typename T, int BufferSize = 40960>
@@ -49,4 +50,4 @@ struct TypeNameFactory
 #endif
 
 
-}
+}}

@@ -22,6 +22,7 @@
 
 
 namespace memoria {
+namespace v1 {
 
 
 template <Int Size>
@@ -55,7 +56,7 @@ public:
     }
 
     void setBit(int index, int bit) {
-        memoria::SetBit(*this, index + RESERVED_BITSIZE, bit);
+        v1::SetBit(*this, index + RESERVED_BITSIZE, bit);
     }
 };
 
@@ -846,4 +847,4 @@ InputStreamHandler& operator>>(InputStreamHandler& in, PageID<T>& id)
     return in;
 }
 
-}
+}}

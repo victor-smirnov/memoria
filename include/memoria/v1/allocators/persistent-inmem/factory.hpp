@@ -13,6 +13,7 @@
 #include "allocator.hpp"
 
 namespace memoria {
+namespace v1 {
 
 template <typename Profile>
 class ContainerCollectionCfg;
@@ -24,7 +25,7 @@ public:
 };
 
 
-//using SmallInMemAllocator = memoria::InMemAllocator<
+//using SmallInMemAllocator = v1::InMemAllocator<
 //  DefaultProfile<>,
 //  ContainerCollectionCfg<DefaultProfile<> >::Types::Page
 //>;
@@ -41,4 +42,4 @@ void DInit() {
     DCtr<CtrName>::initMetadata();
 }
 
-}
+}}

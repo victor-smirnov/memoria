@@ -18,6 +18,7 @@
 #include <memoria/v1/prototypes/bt_ss/btss_input.hpp>
 
 namespace memoria {
+namespace v1 {
 namespace mvector       {
 
 template <typename KeyType, Int Selector> struct VectorValueStructTF;
@@ -30,13 +31,13 @@ struct VectorValueStructTF<KeyType, 0>: HasType<PkdVDArrayT<KeyType>> {};
 
 
 template <typename CtrT, typename InputIterator, Int EntryBufferSize = 1000>
-class VectorIteratorInputProvider: public memoria::btss::AbstractIteratorBTSSInputProvider<
+class VectorIteratorInputProvider: public v1::btss::AbstractIteratorBTSSInputProvider<
     CtrT,
     VectorIteratorInputProvider<CtrT, InputIterator, EntryBufferSize>,
     InputIterator
 >
 {
-    using Base = memoria::btss::AbstractIteratorBTSSInputProvider<
+    using Base = v1::btss::AbstractIteratorBTSSInputProvider<
             CtrT,
             VectorIteratorInputProvider<CtrT, InputIterator, EntryBufferSize>,
             InputIterator
@@ -65,4 +66,4 @@ public:
 
 
 }
-}
+}}

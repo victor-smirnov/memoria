@@ -23,6 +23,7 @@
 #include <tuple>
 
 namespace memoria {
+namespace v1 {
 
 namespace {
 
@@ -233,4 +234,4 @@ public:
     }
 };
 
-}
+}}

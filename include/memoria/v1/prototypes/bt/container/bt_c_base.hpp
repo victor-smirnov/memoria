@@ -18,6 +18,7 @@
 #include <iostream>
 
 namespace memoria {
+namespace v1 {
 namespace bt     {
 
 MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
@@ -441,4 +442,4 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 MEMORIA_BT_MODEL_BASE_CLASS_END
 
 
-}}
+}}}

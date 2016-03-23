@@ -18,6 +18,7 @@
 #include <type_traits>
 
 namespace memoria {
+namespace v1 {
 
 
 
@@ -812,4 +813,4 @@ struct GenerateDataEventsTool<TypeList<>> {
 };
 
 
-}
+}}

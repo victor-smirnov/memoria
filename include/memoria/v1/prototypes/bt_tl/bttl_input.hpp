@@ -15,6 +15,7 @@
 #include <memoria/v1/prototypes/bt_tl/bttl_tools.hpp>
 
 namespace memoria {
+namespace v1 {
 namespace bttl      {
 
 namespace detail {
@@ -924,7 +925,7 @@ public:
     using PageUpdateMgr         = typename CtrT::Types::PageUpdateMgr;
     using LeafPrefixRanks       = typename CtrT::Types::LeafPrefixRanks;
 
-    using LeafExtents           = memoria::core::StaticVector<Position, Streams - 1>;
+    using LeafExtents           = v1::core::StaticVector<Position, Streams - 1>;
 
     Position current_extent_;
     LeafExtents leaf_extents_;
@@ -1495,9 +1496,9 @@ template <
     typename CtrT,
     typename DataProvider
 >
-class StreamingCtrInputProvider: public memoria::bttl::AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength> {
+class StreamingCtrInputProvider: public v1::bttl::AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength> {
 public:
-    using Base      = memoria::bttl::AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength>;
+    using Base      = v1::bttl::AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength>;
 
     using CtrSizesT = typename CtrT::Types::Position;
 
@@ -1743,4 +1744,4 @@ private:
 
 
 }
-}
+}}

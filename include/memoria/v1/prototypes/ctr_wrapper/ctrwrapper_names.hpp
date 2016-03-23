@@ -10,6 +10,7 @@
 #include <memoria/v1/core/container/names.hpp>
 
 namespace memoria {
+namespace v1 {
 
 template <typename Types>
 struct CtrWrapperTypes: CtrTypesT<Types> {};
@@ -17,4 +18,4 @@ struct CtrWrapperTypes: CtrTypesT<Types> {};
 template <typename Types>
 struct IterWrapperTypes: IterTypesT<Types> {};
 
-}
+}}

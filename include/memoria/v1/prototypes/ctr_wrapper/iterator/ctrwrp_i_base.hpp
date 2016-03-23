@@ -9,6 +9,7 @@
 #include <memoria/v1/prototypes/bt/bt_macros.hpp>
 
 namespace memoria {
+namespace v1 {
 
 MEMORIA_BT_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(CtrWrapperIteratorBase)
 
@@ -62,4 +63,4 @@ MEMORIA_BT_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(CtrWrapperIteratorBase)
 
 MEMORIA_BT_ITERATOR_BASE_CLASS_END;
 
-}
+}}

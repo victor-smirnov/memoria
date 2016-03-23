@@ -16,6 +16,7 @@
 #include <iostream>
 
 namespace memoria {
+namespace v1 {
 
 template <typename Node>
 struct DefaultEvictionPredicate {
@@ -358,4 +359,4 @@ private:
 };
 
 
-}
+}}

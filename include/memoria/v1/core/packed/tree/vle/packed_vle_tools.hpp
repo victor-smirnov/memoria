@@ -10,6 +10,7 @@
 
 
 namespace memoria {
+namespace v1 {
 
 template <typename Codec>
 struct PkdVLETreeShapeProvider {
@@ -42,5 +43,4 @@ struct PkdVLETreeTypes {
 
 
 
-}
-
+}}

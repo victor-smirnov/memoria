@@ -13,6 +13,7 @@
 #include <vector>
 
 namespace memoria {
+namespace v1 {
 
 class MEMORIA_API Platform {
 public:
@@ -21,4 +22,4 @@ public:
     static String getFilePathSeparator();
 };
 
-}
+}}

@@ -13,6 +13,7 @@
 
 
 namespace memoria {
+namespace v1 {
 
 
 class TemplateTestTask: public SPTestTask {
@@ -61,4 +62,4 @@ public:
 };
 
 
-}
+}}

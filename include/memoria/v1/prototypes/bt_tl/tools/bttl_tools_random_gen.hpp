@@ -12,6 +12,7 @@
 #include <memoria/v1/core/container/container.hpp>
 
 namespace memoria {
+namespace v1 {
 namespace bttl    {
 
 using bt::StreamTag;
@@ -325,4 +326,4 @@ public:
 
 
 }
-}
+}}

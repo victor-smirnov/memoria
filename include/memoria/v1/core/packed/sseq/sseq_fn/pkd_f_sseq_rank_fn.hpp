@@ -10,6 +10,7 @@
 
 
 namespace memoria {
+namespace v1 {
 
 
 
@@ -106,4 +107,4 @@ public:
 };
 
 
-}
+}}

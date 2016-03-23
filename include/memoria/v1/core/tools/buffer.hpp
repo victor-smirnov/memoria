@@ -16,6 +16,7 @@
 
 
 namespace memoria {
+namespace v1 {
 
 template <size_t Size>
 class StaticBuffer {
@@ -115,4 +116,4 @@ public:
 };
 
 
-} //memoria
+}}

@@ -14,6 +14,7 @@
 #include <string>
 
 namespace memoria {
+namespace v1 {
 
 class BoundsException: public Exception {
 
@@ -26,4 +27,4 @@ public:
 };
 
 
-}
+}}

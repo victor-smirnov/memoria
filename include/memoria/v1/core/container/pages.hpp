@@ -20,6 +20,7 @@
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 
 namespace memoria {
+namespace v1 {
 
 struct MEMORIA_API Page {
 
@@ -274,6 +275,6 @@ class PageStart: public PageHelper<ListSize<typename Types::List>::Value - 1, Ty
 
 };
 
-}
+}}
 
 #include <memoria/v1/core/container/page_traits.hpp>

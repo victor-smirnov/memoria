@@ -13,9 +13,10 @@
 #include <functional>
 
 namespace memoria {
+namespace v1 {
 
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::wt::CtrCTreeName)
+MEMORIA_CONTAINER_PART_BEGIN(v1::wt::CtrCTreeName)
 
     typedef typename Base::Tree                                                 Tree;
     typedef typename Base::Seq                                                  Seq;
@@ -288,4 +289,4 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::wt::CtrCTreeName)
 */
 MEMORIA_CONTAINER_PART_END
 
-}
+}}

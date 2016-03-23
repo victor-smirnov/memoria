@@ -11,6 +11,7 @@
 #include <memoria/v1/core/types/list/typelist.hpp>
 
 namespace memoria {
+namespace v1 {
 
 template <typename Type>
 struct IsList: ConstValue<bool, false> {};
@@ -28,4 +29,4 @@ struct IsNonemptyList<TypeList<List...>>: ConstValue<bool, true> {};
 template <>
 struct IsNonemptyList<TypeList<>>: ConstValue<bool, false> {};
 
-}
+}}

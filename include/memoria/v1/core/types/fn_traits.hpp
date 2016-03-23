@@ -11,6 +11,7 @@
 #include <tuple>
 
 namespace memoria {
+namespace v1 {
 
 template <typename T> struct FnTraits;
 
@@ -76,5 +77,4 @@ struct FnTraits<RtnType_ (Args_...)> {
 };
 
 
-}
-
+}}

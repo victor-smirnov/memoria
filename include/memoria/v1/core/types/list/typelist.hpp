@@ -13,6 +13,7 @@
 #include <iostream>
 
 namespace memoria {
+namespace v1 {
 
 template<typename...> struct False {
     static const bool Value = false;
@@ -26,7 +27,7 @@ template <typename List> struct ListSize {
 //template <typename List> struct ListSize;
 
 template <typename ... List>
-struct ListSize<TypeList<List...> > {
+struct ListSize<v1::TypeList<List...> > {
     static const Int Value = sizeof...(List);
 };
 
@@ -66,7 +67,7 @@ template <typename T>
 struct TypePrinter {
     static std::ostream& print(std::ostream& out)
     {
-        out<<memoria::TypeNameFactory<T>::name();
+        out<<v1::TypeNameFactory<T>::name();
         return out;
     }
 
@@ -85,7 +86,7 @@ template <typename Head, typename... Tail>
 struct ListPrinter<TypeList<Head, Tail...>> {
     static std::ostream& print(std::ostream& out = std::cout)
     {
-        out<<memoria::TypeNameFactory<Head>::name()<<std::endl;
+        out<<v1::TypeNameFactory<Head>::name()<<std::endl;
         return ListPrinter<TypeList<Tail...>>::print(out);
     }
 };
@@ -125,4 +126,4 @@ struct TypesPrinter {
     }
 };
 
-}
+}}

@@ -12,6 +12,7 @@
 #include <boost/multiprecision/cpp_int.hpp>
 
 namespace memoria {
+namespace v1 {
 
 template <typename> class ValueCodec;
 
@@ -303,4 +304,4 @@ private:
     }
 };
 
-}
+}}

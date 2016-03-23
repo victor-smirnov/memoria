@@ -12,11 +12,12 @@
 #include <memoria/v1/core/tools/assert.hpp>
 
 namespace memoria {
+namespace v1 {
 namespace types     {
 namespace relation  {
 
-using namespace memoria::tools::types::algo;
-using namespace memoria::tools::types::typelist;
+using namespace v1::tools::types::algo;
+using namespace v1::tools::types::typelist;
 
 template <typename Item, typename List>
 class AddIfNotcontains {
@@ -87,4 +88,4 @@ public:
 
 }
 }
-}
+}}

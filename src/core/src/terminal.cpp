@@ -13,6 +13,7 @@
 
 
 namespace memoria {
+namespace v1 {
 namespace tools     {
 
 using namespace std;
@@ -145,4 +146,4 @@ String FormatTimeT(BigInt millis)
 
 
 }
-}
+}}

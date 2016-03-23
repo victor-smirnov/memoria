@@ -11,6 +11,7 @@
 #include <memoria/v1/core/tools/bignum/bigint.hpp>
 
 namespace memoria {
+namespace v1 {
 
 
 
@@ -298,4 +299,4 @@ private:
 
 
 
-}
+}}

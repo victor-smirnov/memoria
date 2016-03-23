@@ -17,9 +17,10 @@
 #include <memoria/v1/prototypes/bt/bt_macros.hpp>
 
 namespace memoria {
+namespace v1 {
 
 
-MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterRankName)
+MEMORIA_ITERATOR_PART_BEGIN(v1::seq_dense::IterRankName)
 
     typedef Ctr<typename Types::CtrTypes>                                       Container;
 
@@ -89,7 +90,7 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterRankName)
 MEMORIA_ITERATOR_PART_END
 
 
-#define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::seq_dense::IterRankName)
+#define M_TYPE      MEMORIA_ITERATOR_TYPE(v1::seq_dense::IterRankName)
 #define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
 
 M_PARAMS
@@ -182,4 +183,4 @@ BigInt M_TYPE::ranki(Int symbol) const
 #undef M_PARAMS
 
 
-}
+}}

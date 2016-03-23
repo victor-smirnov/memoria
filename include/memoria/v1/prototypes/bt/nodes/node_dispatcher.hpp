@@ -10,6 +10,7 @@
 #include <memoria/v1/prototypes/bt/nodes/node_dispatcher_ndt2.hpp>
 
 namespace memoria {
+namespace v1 {
 namespace bt            {
 
 
@@ -389,4 +390,4 @@ public:
 };
 
 }
-}
+}}

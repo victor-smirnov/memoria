@@ -17,7 +17,7 @@
 
 
 using namespace memoria;
-using namespace memoria::tools;
+using namespace v1::tools;
 using namespace std;
 
 using CtrT      = DCtrTF<Table<BigInt, Short>>::Type;
@@ -110,7 +110,7 @@ int main(int argc, const char** argv, const char** envp) {
 
         cout<<"Done"<<endl;
     }
-    catch (memoria::Exception& ex) {
+    catch (v1::Exception& ex) {
         cout<<ex.message()<<" at "<<ex.source()<<endl;
     }
 }

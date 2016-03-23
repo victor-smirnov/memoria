@@ -13,6 +13,7 @@
 #include <limits>
 
 namespace memoria {
+namespace v1 {
 
 
 template <typename Value_ = BigInt, PkdSearchType SearchType_ = PkdSearchType::SUM>
@@ -292,4 +293,4 @@ struct StructSizeProvider<PackedEmptyStruct<T, S>> {
 
 
 
-}
+}}

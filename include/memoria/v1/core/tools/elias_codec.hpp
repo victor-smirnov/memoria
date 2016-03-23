@@ -17,6 +17,7 @@
 #include <memoria/v1/core/tools/bitmap_select.hpp>
 
 namespace memoria {
+namespace v1 {
 
 template <typename V>
 size_t GetEliasDeltaValueLength(V value)
@@ -190,4 +191,4 @@ using UBigIntEliasCodec = EliasDeltaCodec<UBigInt, V>;
 
 
 
-}
+}}

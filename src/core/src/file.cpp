@@ -9,10 +9,11 @@
 #include <memoria/v1/core/tools/file.hpp>
 
 namespace memoria {
+namespace v1 {
 
 File::File(StringRef path): path_(normalizePath(path)) {}
 File::File(const File& file): path_(file.getPath()) {}
 
 File::~File() throw() {}
 
-}
+}}

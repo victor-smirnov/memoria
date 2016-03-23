@@ -12,6 +12,7 @@
 #include <memory>
 
 namespace memoria {
+namespace v1 {
 
 using namespace std;
 
@@ -116,4 +117,4 @@ public:
 };
 
 
-}
+}}

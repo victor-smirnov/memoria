@@ -13,8 +13,8 @@
 #include <iostream>
 
 using namespace memoria;
-using namespace memoria::bt;
-using namespace memoria::list_tree;
+using namespace v1::bt;
+using namespace v1::list_tree;
 using namespace std;
 
 template <Int I>
@@ -48,5 +48,3 @@ int main() {
         Linearize<List2, 3>
     >::print();
 }
-
-

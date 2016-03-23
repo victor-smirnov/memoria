@@ -12,6 +12,7 @@
 #include <memoria/v1/core/container/container.hpp>
 
 namespace memoria {
+namespace v1 {
 
 template <typename Types>
 class Iter<WTIterTypes<Types> >: public IterStart<WTIterTypes<Types> >
@@ -237,5 +238,4 @@ bool operator!=(const Iter<WTIterTypes<Types> >& iter, const IterEndMark& mark)
     return iter.isNotEnd();
 }
 
-}
-
+}}

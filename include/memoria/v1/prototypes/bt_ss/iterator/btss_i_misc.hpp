@@ -11,10 +11,11 @@
 #include <memoria/v1/prototypes/bt_ss/btss_names.hpp>
 
 namespace memoria {
+namespace v1 {
 
 using bt::StreamTag;
 
-MEMORIA_ITERATOR_PART_BEGIN(memoria::btss::IteratorMiscName)
+MEMORIA_ITERATOR_PART_BEGIN(v1::btss::IteratorMiscName)
 
     using typename Base::NodeBaseG;
     using typename Base::Container;
@@ -206,7 +207,7 @@ protected:
 
 MEMORIA_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::btss::IteratorMiscName)
+#define M_TYPE      MEMORIA_ITERATOR_TYPE(v1::btss::IteratorMiscName)
 #define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
 
 
@@ -215,5 +216,4 @@ MEMORIA_ITERATOR_PART_END
 #undef M_PARAMS
 #undef M_TYPE
 
-}
-
+}}

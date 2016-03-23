@@ -10,6 +10,7 @@
 #include <memoria/v1/core/tools/static_array.hpp>
 
 namespace memoria {
+namespace v1 {
 namespace bttl       {
 
 class ToolsName             {};
@@ -85,4 +86,4 @@ template <typename Types>
 using BTTLIterTypes = BTIterTypesT<TLIterTypesT<Types>>;
 
 
-}
+}}

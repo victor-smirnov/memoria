@@ -11,6 +11,7 @@
 
 
 namespace memoria {
+namespace v1 {
 
 using namespace std;
 
@@ -112,4 +113,4 @@ bool operator==(const CustomAllocator<T1>&, const CustomAllocator<T2>&) throw()
     return true;
 }
 
-}
+}}

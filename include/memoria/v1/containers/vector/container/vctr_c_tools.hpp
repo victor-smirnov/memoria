@@ -15,10 +15,11 @@
 
 
 namespace memoria {
+namespace v1 {
 
-using namespace memoria::bt;
+using namespace v1::bt;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrToolsName)
+MEMORIA_CONTAINER_PART_BEGIN(v1::mvector::CtrToolsName)
 public:
     using typename Base::Types;
 protected:
@@ -27,7 +28,7 @@ protected:
 
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::mvector::CtrToolsName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::mvector::CtrToolsName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 
@@ -35,4 +36,4 @@ MEMORIA_CONTAINER_PART_END
 #undef M_PARAMS
 
 
-}
+}}

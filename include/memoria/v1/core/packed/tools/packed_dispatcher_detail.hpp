@@ -18,6 +18,7 @@
 
 
 namespace memoria {
+namespace v1 {
 namespace detail    {
 namespace pd        {
 
@@ -230,4 +231,4 @@ auto dispatchFn(Fn&& fn, Args&&... args)
 
 }
 }
-}
+}}

@@ -10,6 +10,7 @@
 #include <memoria/v1/core/tools/bitmap.hpp>
 
 namespace memoria {
+namespace v1 {
 
 template <typename> class ValueCodec;
 
@@ -449,4 +450,4 @@ class ValueCodec<UInt>: public PrimitiveTypeCodec<UInt> {};
 template <>
 class ValueCodec<bool>: public PrimitiveTypeCodec<bool> {};
 
-}
+}}

@@ -10,6 +10,7 @@
 #include <memoria/v1/core/tools/strings/string.hpp>
 
 namespace memoria {
+namespace v1 {
 
 using namespace std;
 
@@ -37,4 +38,4 @@ public:
 };
 
 
-}
+}}

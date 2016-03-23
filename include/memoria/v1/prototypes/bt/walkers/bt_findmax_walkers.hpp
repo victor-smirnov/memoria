@@ -10,6 +10,7 @@
 #include <memoria/v1/prototypes/bt/walkers/bt_find_walkers.hpp>
 
 namespace memoria {
+namespace v1 {
 namespace bt {
 
 /***********************************************************************/
@@ -323,4 +324,4 @@ public:
 
 
 }
-}
+}}

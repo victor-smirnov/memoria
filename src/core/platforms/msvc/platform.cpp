@@ -9,6 +9,7 @@
 
 
 namespace memoria {
+namespace v1 {
 
 using namespace std;
 
@@ -20,5 +21,4 @@ String Platform::getLineSeparator() {
     return "\r\n";
 }
 
-}
-
+}}

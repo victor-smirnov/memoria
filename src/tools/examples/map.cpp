@@ -16,7 +16,7 @@
 #include <memoria/v1/memoria.hpp>
 #include <memoria/v1/containers/map/map_factory.hpp>
 
-using namespace memoria;
+using namespace memoria::v1;
 using namespace std;
 
 int main()
@@ -83,7 +83,7 @@ int main()
         auto out = FileOutputStreamHandler::create("map_data.dump");
         alloc->store(out.get());
     }
-    catch (memoria::Exception& ex)
+    catch (Exception& ex)
     {
         cout << ex.message() << " at " << ex.source() << endl;
     }

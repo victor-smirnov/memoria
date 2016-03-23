@@ -15,6 +15,7 @@
 #include "bttl_removal_test.hpp"
 
 namespace memoria {
+namespace v1 {
 
 using namespace std;
 
@@ -63,4 +64,4 @@ public:
     }
 };
 
-}
+}}

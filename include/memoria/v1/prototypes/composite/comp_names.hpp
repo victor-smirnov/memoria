@@ -9,6 +9,7 @@
 #include <memoria/v1/core/container/names.hpp>
 
 namespace memoria {
+namespace v1 {
 namespace composite   {
 
 template <typename Types>
@@ -27,5 +28,4 @@ using CompositeIterTypes = CtrTypesT<CompositeIterTypesT<Types>>;
 
 
 }
-}
-
+}}

@@ -8,6 +8,7 @@
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 
 namespace memoria {
+namespace v1 {
 
 
 
@@ -50,4 +51,4 @@ AbstractParamDescriptor* ParametersSet::put(AbstractParamDescriptor* descr)
 
 
 
-}
+}}

@@ -15,8 +15,9 @@
 
 
 namespace memoria {
+namespace v1 {
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ChecksName)
+MEMORIA_CONTAINER_PART_BEGIN(v1::bt::ChecksName)
 private:
     
 public:
@@ -87,7 +88,7 @@ private:
 MEMORIA_CONTAINER_PART_END
 
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bt::ChecksName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::bt::ChecksName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
@@ -211,4 +212,4 @@ bool M_TYPE::checkTypedNodeContent(const Node1 *parent, const Node2* node, Int p
 #undef M_TYPE
 #undef M_PARAMS
 
-}
+}}

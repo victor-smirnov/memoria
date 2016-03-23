@@ -9,6 +9,7 @@
 #include <memoria/v1/core/types/types.hpp>
 
 namespace memoria {
+namespace v1 {
 
 template <typename SrcType, typename DstType>
 union T2TBuf {
@@ -53,4 +54,4 @@ const DstType& P2CR(const SrcType value) {
     return *buf.dst;
 }
 
-}
+}}

@@ -17,8 +17,9 @@
 #include <vector>
 
 namespace memoria {
+namespace v1 {
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::LeafCommonName)
+MEMORIA_CONTAINER_PART_BEGIN(v1::bttl::LeafCommonName)
 public:
     using Types             = typename Base::Types;
     using Iterator          = typename Base::Iterator;
@@ -50,7 +51,7 @@ protected:
 
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bttl::LeafCommonName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::bttl::LeafCommonName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 
@@ -58,4 +59,4 @@ MEMORIA_CONTAINER_PART_END
 #undef M_PARAMS
 #undef M_TYPE
 
-}
+}}

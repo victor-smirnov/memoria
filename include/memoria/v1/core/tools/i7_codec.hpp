@@ -11,6 +11,7 @@
 #include <memoria/v1/core/tools/bitmap.hpp>
 
 namespace memoria {
+namespace v1 {
 
 template <typename V>
 size_t GetI7ValueLength(V value)
@@ -134,4 +135,4 @@ struct I7Codec {
 template <typename Value>
 using UByteI7Codec = I7Codec<UByte, Value>;
 
-}
+}}

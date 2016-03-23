@@ -14,6 +14,7 @@
 #include <memory>
 
 namespace memoria {
+namespace v1 {
 
 struct MEMORIA_API InputStreamHandler {
 
@@ -433,4 +434,4 @@ inline OutputStreamHandler& operator<<(OutputStreamHandler& out, const String& v
     return out;
 }
 
-}
+}}

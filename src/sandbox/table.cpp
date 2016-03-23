@@ -87,7 +87,7 @@ int main(int argc, const char** argv, const char** envp) {
 
         cout<<"Done"<<endl;
     }
-    catch (memoria::Exception& ex) {
+    catch (v1::Exception& ex) {
         cout<<ex.message()<<" at "<<ex.source()<<endl;
     }
 }

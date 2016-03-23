@@ -16,11 +16,12 @@
 #include <functional>
 
 namespace memoria {
+namespace v1 {
 
 using louds::LoudsNode;
 using louds::LoudsNodeRange;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrApiName)
+MEMORIA_CONTAINER_PART_BEGIN(v1::louds::CtrApiName)
 
     typedef typename Base::Iterator                                             Iterator;
 
@@ -186,4 +187,4 @@ private:
 
 MEMORIA_CONTAINER_PART_END
 
-}
+}}

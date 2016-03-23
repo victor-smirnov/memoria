@@ -92,6 +92,7 @@
 
 
 namespace memoria {
+namespace v1 {
 
 class LogXScaleGnuplotGraph: public GnuplotGraph {
     BigInt value_;
@@ -504,5 +505,4 @@ public:
 };
 */
 
-}
-
+}}

@@ -12,6 +12,7 @@
 #include <memoria/v1/core/tools/static_array.hpp>
 
 namespace memoria {
+namespace v1 {
 
 template <typename IndexValueT, Int kBlocks, typename ValueT = IndexValueT, Int kBranchingFactor = PackedTreeBranchingFactor, Int kValuesPerBranch = PackedTreeBranchingFactor>
 struct PkdFQTreeTypes {
@@ -30,7 +31,7 @@ template <typename IndexValueT, Int kBlocks = 1, typename ValueT = IndexValueT, 
 using PkdFQTreeT = PkdFQTree<PkdFQTreeTypes<IndexValueT, kBlocks, ValueT, kBranchingFactor, kValuesPerBranch>>;
 
 
-using memoria::core::StaticVector;
+using v1::core::StaticVector;
 
 template <typename Types>
 class PkdFQTree: public PkdFQTreeBase<typename Types::IndexValue, typename Types::Value, Types::BranchingFactor, Types::ValuesPerBranch> {
@@ -885,4 +886,4 @@ struct IndexesSize<PkdFQTree<Types>> {
 };
 
 
-}
+}}

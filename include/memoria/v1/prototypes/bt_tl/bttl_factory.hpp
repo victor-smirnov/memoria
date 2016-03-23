@@ -41,61 +41,62 @@
 #include <tuple>
 
 namespace memoria {
+namespace v1 {
 
 struct BTTreeLayout {};
 
 template <
     typename Profile
 >
-struct BTTypes<Profile, memoria::BTTreeLayout>: public BTTypes<Profile, memoria::BT> {
+struct BTTypes<Profile, v1::BTTreeLayout>: public BTTypes<Profile, v1::BT> {
 
-    typedef BTTypes<Profile, memoria::BT>                                       Base;
+    typedef BTTypes<Profile, v1::BT>                                       Base;
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
-                memoria::bttl::MiscName,
-                memoria::bttl::InsertName,
-                memoria::bttl::BranchCommonName,
-                memoria::bttl::LeafCommonName,
-                memoria::bttl::RanksName,
-                memoria::bttl::ChecksName
+                v1::bttl::MiscName,
+                v1::bttl::InsertName,
+                v1::bttl::BranchCommonName,
+                v1::bttl::LeafCommonName,
+                v1::bttl::RanksName,
+                v1::bttl::ChecksName
     >;
 
     using FixedBranchContainerPartsList = MergeLists<
                 typename Base::FixedBranchContainerPartsList,
-                memoria::bttl::BranchFixedName
+                v1::bttl::BranchFixedName
     >;
 
     using VariableBranchContainerPartsList = MergeLists<
                 typename Base::VariableBranchContainerPartsList,
-                memoria::bttl::BranchVariableName
+                v1::bttl::BranchVariableName
     >;
 
     using FixedLeafContainerPartsList = MergeLists<
                     typename Base::FixedLeafContainerPartsList,
-                    memoria::bttl::LeafFixedName
+                    v1::bttl::LeafFixedName
     >;
 
     using VariableLeafContainerPartsList = MergeLists<
                     typename Base::VariableLeafContainerPartsList,
-                    memoria::bttl::LeafVariableName
+                    v1::bttl::LeafVariableName
     >;
 
 
     using IteratorPartsList = MergeLists<
                 typename Base::IteratorPartsList,
-                memoria::bttl::IteratorMiscName,
-                memoria::bttl::IteratorStreamRankName,
-                memoria::bttl::IteratorFindName,
-                memoria::bttl::IteratorSkipName,
-                memoria::bttl::IteratorUpdateName,
-                memoria::bttl::IteratorRemoveName,
-                memoria::bttl::IteratorInsertName
+                v1::bttl::IteratorMiscName,
+                v1::bttl::IteratorStreamRankName,
+                v1::bttl::IteratorFindName,
+                v1::bttl::IteratorSkipName,
+                v1::bttl::IteratorUpdateName,
+                v1::bttl::IteratorRemoveName,
+                v1::bttl::IteratorInsertName
     >;
 
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {
-        typedef memoria::bttl::BTTLIteratorPrefixCache<Iterator, Container>   Type;
+        typedef v1::bttl::BTTLIteratorPrefixCache<Iterator, Container>   Type;
     };
 };
 
@@ -103,9 +104,9 @@ struct BTTypes<Profile, memoria::BTTreeLayout>: public BTTypes<Profile, memoria:
 
 
 template <typename Profile, typename T>
-class CtrTF<Profile, memoria::BTTreeLayout, T>: public CtrTF<Profile, memoria::BT, T> {
+class CtrTF<Profile, v1::BTTreeLayout, T>: public CtrTF<Profile, v1::BT, T> {
 
-    using Base = CtrTF<Profile, memoria::BT, T>;
+    using Base = CtrTF<Profile, v1::BT, T>;
 public:
 
     struct Types: Base::Types
@@ -115,18 +116,18 @@ public:
 
         using PageUpdateMgr     = PageUpdateManager<CtrTypes>;
 
-        using LeafPrefixRanks   = memoria::core::StaticVector<typename Base::Types::Position, Base::Types::Streams>;
+        using LeafPrefixRanks   = v1::core::StaticVector<typename Base::Types::Position, Base::Types::Streams>;
 
         template <Int StreamIdx>
         using LeafSizesSubstreamIdx = IntValue<
-                memoria::list_tree::LeafCountSup<
+                v1::list_tree::LeafCountSup<
                     typename Base::Types::LeafStreamsStructList,
                     IntList<StreamIdx>>::Value - 1
         >;
 
         template <Int StreamIdx>
         using BranchSizesSubstreamIdx = IntValue<
-                memoria::list_tree::LeafCountSup<
+                v1::list_tree::LeafCountSup<
                     typename Base::Types::BranchStreamsStructList,
                     IntList<StreamIdx>>::Value - 1
         >;
@@ -145,4 +146,4 @@ public:
 };
 
 
-}
+}}

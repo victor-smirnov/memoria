@@ -26,6 +26,7 @@
 #include <functional>
 
 namespace memoria {
+namespace v1 {
 
 
 template <PackedSizeType LeafSizeType, PackedSizeType BranchSizeType>
@@ -126,8 +127,8 @@ struct BTTypes<Profile, BTSSTestCtr<LeafSizeType, BranchSizeType>>: public BTSST
 
 
 template <typename Profile, PackedSizeType LeafSizeType, PackedSizeType BranchSizeType, typename T>
-class CtrTF<Profile, BTSSTestCtr<LeafSizeType, BranchSizeType>, T>: public CtrTF<Profile, memoria::BTSingleStream, T> {
-    using Base = CtrTF<Profile, memoria::BTSingleStream, T>;
+class CtrTF<Profile, BTSSTestCtr<LeafSizeType, BranchSizeType>, T>: public CtrTF<Profile, v1::BTSingleStream, T> {
+    using Base = CtrTF<Profile, v1::BTSingleStream, T>;
 public:
 };
 
@@ -138,4 +139,4 @@ struct TypeHash<BTSSTestCtr<LeafSizeType, BranchSizeType>>:   UIntValue<
 > {};
 
 
-}
+}}

@@ -25,13 +25,14 @@
 #include <memoria/v1/containers/labeled_tree/ltree_tools.hpp>
 
 namespace memoria {
+namespace v1 {
 
 
 
 template <typename Profile, typename... LabelDescriptors>
-struct BTTypes<Profile, memoria::LabeledTree<LabelDescriptors...>>: BTTypes<Profile, memoria::BT> {
+struct BTTypes<Profile, v1::LabeledTree<LabelDescriptors...>>: BTTypes<Profile, v1::BT> {
 
-    typedef BTTypes<Profile, memoria::BT>                                       Base;
+    typedef BTTypes<Profile, v1::BT>                                       Base;
 
     typedef UBigInt                                                             Value;
 
@@ -114,15 +115,15 @@ struct BTTypes<Profile, memoria::LabeledTree<LabelDescriptors...>>: BTTypes<Prof
 
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {
-        typedef memoria::louds::LOUDSIteratorCache<Iterator, Container> Type;
+        typedef v1::louds::LOUDSIteratorCache<Iterator, Container> Type;
     };
 };
 
 
 
 template <typename Profile, typename... LabelDescriptors, typename T>
-class CtrTF<Profile, memoria::LabeledTree<LabelDescriptors...>, T>: public CtrTF<Profile, memoria::BT, T> {
+class CtrTF<Profile, v1::LabeledTree<LabelDescriptors...>, T>: public CtrTF<Profile, v1::BT, T> {
 };
 
 
-}
+}}

@@ -10,9 +10,10 @@
 #include <memoria/v1/containers/seq_dense/factory/seqd_8_factory.hpp>
 
 namespace memoria {
+namespace v1 {
 
 template <typename Profile, Int BitsPerSymbol, bool Dense, typename T>
-class CtrTF<Profile, memoria::Sequence<BitsPerSymbol, Dense>, T>: public CtrTF<Profile, memoria::BTSingleStream, T> {
+class CtrTF<Profile, v1::Sequence<BitsPerSymbol, Dense>, T>: public CtrTF<Profile, v1::BTSingleStream, T> {
 };
 
-}
+}}

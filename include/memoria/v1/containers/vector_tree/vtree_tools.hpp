@@ -13,6 +13,7 @@
 
 
 namespace memoria {
+namespace v1 {
 namespace vtree         {
 
 
@@ -22,4 +23,4 @@ namespace vtree         {
 
 
 }
-}
+}}

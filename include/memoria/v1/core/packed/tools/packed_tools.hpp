@@ -12,6 +12,7 @@
 #include <memory>
 
 namespace memoria {
+namespace v1 {
 
 template <typename Fn>
 static Int FindTotalElementsNumber(Int block_size, Fn&& fn)
@@ -312,4 +313,4 @@ auto make_fn_with_next(Fn&& fn)
 
 
 
-}
+}}

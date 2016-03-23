@@ -12,6 +12,7 @@
 #include <tuple>
 
 namespace memoria {
+namespace v1 {
 namespace tools     {
 
 
@@ -82,4 +83,4 @@ std::ostream& operator<<(std::ostream& out, const LblTreeNode<Data, Labels...>& 
 }
 
 }
-}
+}}

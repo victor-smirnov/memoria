@@ -15,6 +15,7 @@
 
 
 namespace memoria {
+namespace v1 {
 namespace louds     {
 
 template <typename... List> struct StreamDescriptorsListHelper;
@@ -245,4 +246,4 @@ struct StreamDescriptorsListHelper<> {
 
 
 }
-}
+}}

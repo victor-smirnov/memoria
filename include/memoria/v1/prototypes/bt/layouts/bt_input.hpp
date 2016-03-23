@@ -26,6 +26,7 @@
 #include <tuple>
 
 namespace memoria {
+namespace v1 {
 namespace bt        {
 
 template <typename Position, typename Buffer>
@@ -135,8 +136,8 @@ public:
 
     template <typename SubstreamsPath>
     using SubstreamsDispatcher = SubrangeDispatcher<
-            memoria::list_tree::LeafCountInf<SubstreamsStructList, SubstreamsPath>::Value,
-            memoria::list_tree::LeafCountSup<SubstreamsStructList, SubstreamsPath>::Value
+            v1::list_tree::LeafCountInf<SubstreamsStructList, SubstreamsPath>::Value,
+            v1::list_tree::LeafCountSup<SubstreamsStructList, SubstreamsPath>::Value
     >;
 
     template <Int StreamIdx>
@@ -144,27 +145,27 @@ public:
 
     template <Int StreamIdx>
     using StreamStartIdx = IntValue<
-            memoria::list_tree::LeafCountInf<SubstreamsStructList, IntList<StreamIdx>>::Value
+            v1::list_tree::LeafCountInf<SubstreamsStructList, IntList<StreamIdx>>::Value
     >;
 
     template <Int StreamIdx>
     using StreamSize = IntValue<
-            memoria::list_tree::LeafCountSup<SubstreamsStructList, IntList<StreamIdx>>::Value -
-            memoria::list_tree::LeafCountInf<SubstreamsStructList, IntList<StreamIdx>>::Value
+            v1::list_tree::LeafCountSup<SubstreamsStructList, IntList<StreamIdx>>::Value -
+            v1::list_tree::LeafCountInf<SubstreamsStructList, IntList<StreamIdx>>::Value
     >;
 
 
     template <Int Stream, typename SubstreamIdxList>
     using SubstreamsByIdxDispatcher = typename Dispatcher::template SubsetDispatcher<
-            memoria::list_tree::AddToValueList<
-                memoria::list_tree::LeafCount<SubstreamsStructList, IntList<Stream>>::Value,
+            v1::list_tree::AddToValueList<
+                v1::list_tree::LeafCount<SubstreamsStructList, IntList<Stream>>::Value,
                 SubstreamIdxList
             >,
             Stream
     >;
 
     template <Int SubstreamIdx>
-    using PathT = typename memoria::list_tree::BuildTreePath<SubstreamsStructList, SubstreamIdx>::Type;
+    using PathT = typename v1::list_tree::BuildTreePath<SubstreamsStructList, SubstreamIdx>::Type;
 
     static const Int Streams = 1;
 
@@ -621,7 +622,7 @@ public:
     template <typename SubstreamPath>
     auto substream()
     {
-        const Int SubstreamIdx = memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value;
+        const Int SubstreamIdx = v1::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value;
         using T = typename Dispatcher::template StreamTypeT<SubstreamIdx>::Type;
         return this->allocator()->template get<T>(SubstreamIdx + SubstreamsStart);
     }
@@ -629,7 +630,7 @@ public:
     template <typename SubstreamPath>
     auto substream() const
     {
-        const Int SubstreamIdx = memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value;
+        const Int SubstreamIdx = v1::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value;
         using T = typename Dispatcher::template StreamTypeT<SubstreamIdx>::Type;
         return this->allocator()->template get<T>(SubstreamIdx + SubstreamsStart);
     }
@@ -654,14 +655,14 @@ public:
     template <typename SubstreamPath, typename Fn, typename... Args>
     auto processStream(Fn&& fn, Args&&... args) const
     {
-        const Int StreamIdx = memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value;
+        const Int StreamIdx = v1::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value;
         return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
     template <typename SubstreamPath, typename Fn, typename... Args>
     auto processStream(Fn&& fn, Args&&... args)
     {
-        const Int StreamIdx = memoria::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value;
+        const Int StreamIdx = v1::list_tree::LeafCount<SubstreamsStructList, SubstreamPath>::Value;
         return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
@@ -763,4 +764,4 @@ public:
 
 
 }
-}
+}}

@@ -9,10 +9,11 @@
 #include <memoria/v1/prototypes/bt_tl/bttl_names.hpp>
 
 namespace memoria {
+namespace v1 {
 namespace bttl_test {
 
 class CtrApiName {};
 class IterApiName {};
 
 }
-}
+}}

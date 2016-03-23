@@ -13,6 +13,7 @@
 #include <tuple>
 
 namespace memoria {
+namespace v1 {
 
 inline BigInt PtrToLong(const void *ptr) {
     return T2T<BigInt>(ptr);
@@ -201,27 +202,27 @@ struct FieldFactory<std::tuple<Types...> > {
 
     static void serialize(SerializationData& data, const Type& field)
     {
-        memoria::internal::TupleFactoryHelper<Type>::serialize(data, field);
+        v1::internal::TupleFactoryHelper<Type>::serialize(data, field);
     }
 
     static void serialize(SerializationData& data, const Type* field, Int size)
     {
         for (Int c = 0; c < size; c++)
         {
-            memoria::internal::TupleFactoryHelper<Type>::serialize(data, field[c]);
+            v1::internal::TupleFactoryHelper<Type>::serialize(data, field[c]);
         }
     }
 
     static void deserialize(DeserializationData& data, Type& field)
     {
-        memoria::internal::TupleFactoryHelper<Type>::deserialize(data, field);
+        v1::internal::TupleFactoryHelper<Type>::deserialize(data, field);
     }
 
     static void deserialize(DeserializationData& data, Type* field, Int size)
     {
         for (Int c = 0; c < size; c++)
         {
-            memoria::internal::TupleFactoryHelper<Type>::deserialize(data, field[c]);
+            v1::internal::TupleFactoryHelper<Type>::deserialize(data, field[c]);
         }
     }
 };
@@ -231,4 +232,4 @@ struct FieldFactory<std::tuple<Types...> > {
 #undef MEMORIA_TYPED_FIELD
 
 
-}
+}}

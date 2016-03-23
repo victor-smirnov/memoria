@@ -9,6 +9,7 @@
 
 
 namespace memoria {
+namespace v1 {
 
 using namespace std;
 
@@ -24,5 +25,4 @@ String Platform::getFilePathSeparator() {
     return "/";
 }
 
-}
-
+}}

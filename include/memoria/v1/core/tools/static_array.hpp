@@ -16,6 +16,7 @@
 #include <type_traits>
 
 namespace memoria {
+namespace v1 {
 namespace core       {
 
 
@@ -810,12 +811,12 @@ auto MakeStaticVector(Args&&... args) -> StaticVector<T, sizeof...(Args)>
 }
 
 
-template <typename Key, memoria::Int Indexes>
-std::ostream& operator<<(std::ostream& out, const memoria::core::StaticVector<Key, Indexes>& accum)
+template <typename Key, v1::Int Indexes>
+std::ostream& operator<<(std::ostream& out, const v1::core::StaticVector<Key, Indexes>& accum)
 {
     out<<"[";
 
-    for (memoria::Int c = 0; c < Indexes; c++)
+    for (v1::Int c = 0; c < Indexes; c++)
     {
         out<<accum.value(c);
 
@@ -884,4 +885,4 @@ struct FromString<core::StaticVector<T, Size>> {
 
 
 
-}
+}}

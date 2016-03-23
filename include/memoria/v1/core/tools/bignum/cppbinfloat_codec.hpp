@@ -15,6 +15,7 @@
 #include <boost/multiprecision/cpp_bin_float.hpp>
 
 namespace memoria {
+namespace v1 {
 
 namespace mp = boost::multiprecision;
 
@@ -411,4 +412,4 @@ public:
 
 
 
-}
+}}

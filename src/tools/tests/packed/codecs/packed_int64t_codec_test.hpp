@@ -16,6 +16,7 @@
 #include <memory>
 
 namespace memoria {
+namespace v1 {
 
 class PackedInt64TCodecTest: public PackedCodecsTestBase<int64_t> {
 
@@ -90,4 +91,4 @@ public:
 };
 
 
-}
+}}

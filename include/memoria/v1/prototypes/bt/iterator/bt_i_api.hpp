@@ -18,11 +18,12 @@
 
 
 namespace memoria {
+namespace v1 {
 
-using namespace memoria::bt;
+using namespace v1::bt;
 
 
-MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorAPIName)
+MEMORIA_ITERATOR_PART_BEGIN(v1::bt::IteratorAPIName)
 
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::NodeBase                                             NodeBase;
@@ -226,7 +227,7 @@ protected:
 MEMORIA_ITERATOR_PART_END
 
 
-#define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::bt::IteratorAPIName)
+#define M_TYPE      MEMORIA_ITERATOR_TYPE(v1::bt::IteratorAPIName)
 #define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
 
 // --------------------- PUBLIC API --------------------------------------
@@ -421,4 +422,4 @@ bool M_TYPE::findPrevLeaf(Walker&& walker)
 #undef M_PARAMS
 
 
-}
+}}

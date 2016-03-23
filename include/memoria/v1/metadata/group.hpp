@@ -9,6 +9,7 @@
 #include <memoria/v1/metadata/metadata.hpp>
 
 namespace memoria {
+namespace v1 {
 
 struct MetadataGroup: public Metadata {
 public:
@@ -73,4 +74,4 @@ inline bool isGroup(Metadata *meta)
 
 
 
-}
+}}

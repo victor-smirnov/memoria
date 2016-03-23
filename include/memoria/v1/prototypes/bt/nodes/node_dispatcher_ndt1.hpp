@@ -15,6 +15,7 @@
 #include <tuple>
 
 namespace memoria {
+namespace v1 {
 namespace bt {
 
 template <typename Types, int idx> class NDT1;
@@ -129,4 +130,4 @@ public:
 
 
 }
-}
+}}

@@ -12,6 +12,7 @@
 #include <memoria/v1/core/types/algo/select.hpp>
 
 namespace memoria {
+namespace v1 {
 namespace list_tree {
 
 
@@ -292,4 +293,4 @@ template <
 struct BuildTreePath<TypeList<>, LeafIdx, IntList<PathList...>, Idx>;
 
 }
-}
+}}

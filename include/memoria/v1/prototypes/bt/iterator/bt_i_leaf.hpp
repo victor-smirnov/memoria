@@ -15,9 +15,10 @@
 #include <iostream>
 
 namespace memoria {
+namespace v1 {
 
 
-MEMORIA_ITERATOR_PART_BEGIN(memoria::bt::IteratorLeafName)
+MEMORIA_ITERATOR_PART_BEGIN(v1::bt::IteratorLeafName)
 
     typedef typename Base::NodeBaseG                                                NodeBaseG;
     typedef typename Base::Container                                                Container;
@@ -90,11 +91,11 @@ public:
 
 MEMORIA_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::bt::IteratorLeafName)
+#define M_TYPE      MEMORIA_ITERATOR_TYPE(v1::bt::IteratorLeafName)
 #define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
 
 
 #undef M_PARAMS
 #undef M_TYPE
 
-}
+}}

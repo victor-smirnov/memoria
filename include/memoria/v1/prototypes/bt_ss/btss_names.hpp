@@ -10,6 +10,7 @@
 #include <memoria/v1/core/tools/static_array.hpp>
 
 namespace memoria {
+namespace v1 {
 namespace btss       {
 
 class ToolsName             {};
@@ -70,4 +71,4 @@ template <typename Types>
 using BTSSIterTypes = BTIterTypesT<SSIterTypesT<Types>>;
 
 
-}
+}}

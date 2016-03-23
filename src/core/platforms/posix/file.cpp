@@ -27,6 +27,7 @@
 
 
 namespace memoria {
+namespace v1 {
 
 using namespace std;
 
@@ -315,5 +316,4 @@ void File::copy(StringRef new_file)
 }
 
 
-}
-
+}}

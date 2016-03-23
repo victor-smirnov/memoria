@@ -13,6 +13,7 @@
 #include <memory>
 
 namespace memoria {
+namespace v1 {
 
 TestTask::~TestTask() throw ()
 {
@@ -189,4 +190,4 @@ Int MemoriaTestRunner::Run()
 }
 
 
-}
+}}

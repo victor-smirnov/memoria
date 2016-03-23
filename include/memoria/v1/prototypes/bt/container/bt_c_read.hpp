@@ -13,10 +13,11 @@
 #include <vector>
 
 namespace memoria {
+namespace v1 {
 
-using memoria::bt::StreamTag;
+using v1::bt::StreamTag;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ReadName)
+MEMORIA_CONTAINER_PART_BEGIN(v1::bt::ReadName)
 
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
@@ -198,7 +199,7 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::ReadName)
 
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bt::ReadName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::bt::ReadName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 
@@ -206,4 +207,4 @@ MEMORIA_CONTAINER_PART_END
 #undef M_TYPE
 #undef M_PARAMS
 
-}
+}}

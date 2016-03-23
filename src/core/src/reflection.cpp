@@ -10,8 +10,9 @@
 
 
 namespace memoria {
+namespace v1 {
 
-ostream& operator<<(ostream& os, const memoria::IDValue& id) {
+ostream& operator<<(ostream& os, const v1::IDValue& id) {
     os<<id.str();
     return os;
 }
@@ -126,7 +127,4 @@ PageMetadata::PageMetadata(
 
 
 
-}
-
-
-
+}}

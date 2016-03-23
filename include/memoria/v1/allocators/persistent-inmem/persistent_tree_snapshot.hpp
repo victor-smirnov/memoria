@@ -22,6 +22,7 @@
 #include <memory>
 
 namespace memoria {
+namespace v1 {
 
 template <typename Profile, typename PageType>
 class PersistentInMemAllocatorT;
@@ -121,7 +122,7 @@ private:
     ContainerMetadataRepository*  metadata_;
 
     template <typename, typename>
-    friend class memoria::PersistentInMemAllocatorT;
+    friend class v1::PersistentInMemAllocatorT;
 
 
 public:
@@ -959,4 +960,4 @@ void check_snapshot(const std::shared_ptr<Allocator>& allocator)
 
 
 
-}
+}}

@@ -26,6 +26,7 @@
 
 
 namespace memoria {
+namespace v1 {
 namespace bt        {
 
 template <
@@ -359,28 +360,28 @@ public:
 
     template <Int StreamIdx>
     using StreamStartIdx = IntValue<
-        memoria::list_tree::LeafCountInf<BranchSubstreamsStructList, IntList<StreamIdx>>::Value
+        v1::list_tree::LeafCountInf<BranchSubstreamsStructList, IntList<StreamIdx>>::Value
     >;
 
     template <Int StreamIdx>
     using StreamSize = IntValue<
-            memoria::list_tree::LeafCountSup<BranchSubstreamsStructList, IntList<StreamIdx>>::Value -
-            memoria::list_tree::LeafCountInf<BranchSubstreamsStructList, IntList<StreamIdx>>::Value
+            v1::list_tree::LeafCountSup<BranchSubstreamsStructList, IntList<StreamIdx>>::Value -
+            v1::list_tree::LeafCountInf<BranchSubstreamsStructList, IntList<StreamIdx>>::Value
     >;
 
 
 
     template <typename SubstreamsPath>
     using SubstreamsDispatcher = SubrangeDispatcher<
-            memoria::list_tree::LeafCountInf<BranchSubstreamsStructList, SubstreamsPath>::Value,
-            memoria::list_tree::LeafCountSup<BranchSubstreamsStructList, SubstreamsPath>::Value
+            v1::list_tree::LeafCountInf<BranchSubstreamsStructList, SubstreamsPath>::Value,
+            v1::list_tree::LeafCountSup<BranchSubstreamsStructList, SubstreamsPath>::Value
     >;
 
     template <Int SubstreamIdx>
-    using LeafPathT = typename memoria::list_tree::BuildTreePath<LeafSubstreamsStructList, SubstreamIdx>::Type;
+    using LeafPathT = typename v1::list_tree::BuildTreePath<LeafSubstreamsStructList, SubstreamIdx>::Type;
 
     template <Int SubstreamIdx>
-    using BranchPathT = typename memoria::list_tree::BuildTreePath<BranchSubstreamsStructList, SubstreamIdx>::Type;
+    using BranchPathT = typename v1::list_tree::BuildTreePath<BranchSubstreamsStructList, SubstreamIdx>::Type;
 
 
     static const Int Streams                                                    = ListSize<BranchSubstreamsStructList>::Value;
@@ -394,12 +395,12 @@ public:
 
 
     template <typename LeafPath>
-    using BuildBranchPath = typename memoria::list_tree::BuildTreePath<
+    using BuildBranchPath = typename v1::list_tree::BuildTreePath<
             BranchSubstreamsStructList,
-            memoria::list_tree::LeafCountInf<LeafSubstreamsStructList, LeafPath, 2>::Value -
+            v1::list_tree::LeafCountInf<LeafSubstreamsStructList, LeafPath, 2>::Value -
                 FindLocalLeafOffsetV<
                     FlattenLeafTree<LeafSubstreamsStructList>,
-                    memoria::list_tree::LeafCount<LeafSubstreamsStructList, LeafPath>::Value
+                    v1::list_tree::LeafCount<LeafSubstreamsStructList, LeafPath>::Value
                 >::Value
     >::Type;
 
@@ -1335,14 +1336,14 @@ public:
     template <typename SubstreamPath, typename Fn, typename... Args>
     auto processStream(Fn&& fn, Args&&... args) const
     {
-        const Int StreamIdx = memoria::list_tree::LeafCount<BranchSubstreamsStructList, SubstreamPath>::Value;
+        const Int StreamIdx = v1::list_tree::LeafCount<BranchSubstreamsStructList, SubstreamPath>::Value;
         return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
     template <typename SubstreamPath, typename Fn, typename... Args>
     auto processStream(Fn&& fn, Args&&... args)
     {
-        const Int StreamIdx = memoria::list_tree::LeafCount<BranchSubstreamsStructList, SubstreamPath>::Value;
+        const Int StreamIdx = v1::list_tree::LeafCount<BranchSubstreamsStructList, SubstreamPath>::Value;
         return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
@@ -1723,4 +1724,4 @@ struct TypeHash<bt::BranchNode<Types> > {
 };
 
 
-}
+}}

@@ -16,11 +16,11 @@
 
 
 using namespace memoria;
-using namespace memoria::tools;
+using namespace v1::tools;
 using namespace std;
 
 using CtrT      = DCtrTF<Table<BigInt, Byte, PackedSizeType::VARIABLE>>::Type;
-using Provider  = memoria::bttl::DeterministicDataInputProvider<CtrT>;
+using Provider  = v1::bttl::DeterministicDataInputProvider<CtrT>;
 
 
 struct ScanFn {
@@ -125,7 +125,7 @@ int main(int argc, const char** argv, const char** envp) {
 
         cout<<"Done"<<endl;
     }
-    catch (memoria::Exception& ex) {
+    catch (v1::Exception& ex) {
         cout<<ex.message()<<" at "<<ex.source()<<endl;
     }
 }

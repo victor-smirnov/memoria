@@ -23,8 +23,9 @@
 #include <tuple>
 
 namespace memoria {
+namespace v1 {
 
-using memoria::tools::LblTreeNode;
+using v1::tools::LblTreeNode;
 
 class VectorTreeTestBase: public BTTestBase<VTree, PersistentInMemAllocator<>, DefaultProfile<>> {
 
@@ -314,4 +315,4 @@ private:
 
 };
 
-}
+}}

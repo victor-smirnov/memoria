@@ -16,6 +16,7 @@
 #include <memory>
 
 namespace memoria {
+namespace v1 {
 
 
 class TextPageDumper;
@@ -1865,4 +1866,4 @@ struct IndexesSize<PkdVBMTree<Types>> {
 };
 
 
-}
+}}

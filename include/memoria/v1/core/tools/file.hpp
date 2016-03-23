@@ -14,6 +14,7 @@
 #include <memory>
 
 namespace memoria {
+namespace v1 {
 
 class MEMORIA_API File {
     String path_;
@@ -125,4 +126,4 @@ public:
     virtual void sync();
 };
 
-}
+}}

@@ -12,6 +12,7 @@
 
 
 namespace memoria {
+namespace v1 {
 
 template <typename T> struct FieldFactory;
 
@@ -71,4 +72,4 @@ struct FieldFactory<BitBuffer<Size> > {
     }
 };
 
-}
+}}

@@ -9,6 +9,7 @@
 #include <memoria/v1/core/types/types.hpp>
 
 namespace memoria {
+namespace v1 {
 
 template <Int Order = 200>
 struct RootCtrListBuilder {
@@ -51,4 +52,4 @@ struct ProfileListBuilder<Order> {                                              
     typedef typename AppendTool<Profile, typename ProfileListBuilder<Order - 1>::Type>::Type   Type;   \
 }
 
-}
+}}

@@ -83,10 +83,10 @@ int main(int argc, const char** argv, const char** envp) {
 
         cout<<"Done"<<endl;
     }
-    catch (memoria::PackedOOMException& ex) {
+    catch (v1::PackedOOMException& ex) {
         cout<<"PackedOOMException at "<<ex.source()<<endl;
     }
-    catch (memoria::Exception& ex) {
+    catch (v1::Exception& ex) {
         cout<<ex.message()<<" at "<<ex.source()<<endl;
     }
 }

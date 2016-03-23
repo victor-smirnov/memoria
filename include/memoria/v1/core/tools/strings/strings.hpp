@@ -13,6 +13,7 @@
 #include <sstream>
 
 namespace memoria {
+namespace v1 {
 
 using String    = std::string;
 using StringRef = const String&;
@@ -177,4 +178,4 @@ struct FromString<T[Size]> {
 
 
 
-}
+}}

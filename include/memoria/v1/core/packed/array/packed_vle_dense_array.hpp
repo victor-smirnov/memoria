@@ -11,6 +11,7 @@
 #include <memoria/v1/core/packed/buffer/packed_vle_input_buffer_ro.hpp>
 
 namespace memoria {
+namespace v1 {
 
 
 
@@ -1265,4 +1266,4 @@ struct PkdSearchKeyTypeProvider<PkdVDArray<T>> {
 
 
 
-}
+}}

@@ -12,6 +12,7 @@
 #include <iostream>
 
 namespace memoria {
+namespace v1 {
 
 using namespace std;
 
@@ -176,4 +177,4 @@ const UInt MD5Hash::X[64] = {
 };
 
 
-}
+}}

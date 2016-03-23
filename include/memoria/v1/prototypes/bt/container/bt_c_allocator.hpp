@@ -12,9 +12,10 @@
 #include <memoria/v1/core/container/macros.hpp>
 
 namespace memoria {
+namespace v1 {
 
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::AllocatorName)
+MEMORIA_CONTAINER_PART_BEGIN(v1::bt::AllocatorName)
     
 public:
 
@@ -93,7 +94,7 @@ public:
 MEMORIA_CONTAINER_PART_END
 
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bt::AllocatorName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::bt::AllocatorName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
@@ -148,4 +149,4 @@ void M_TYPE::freeMemory(void* ptr)
 #undef M_TYPE
 #undef M_PARAMS
 
-}
+}}

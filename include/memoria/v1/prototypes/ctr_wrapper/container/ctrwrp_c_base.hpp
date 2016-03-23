@@ -15,6 +15,7 @@
 #include <iostream>
 
 namespace memoria {
+namespace v1 {
 
 
 MEMORIA_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(CtrWrapperCtrBase1)
@@ -147,4 +148,4 @@ public:
 MEMORIA_BT_MODEL_BASE_CLASS_END
 
 
-}
+}}

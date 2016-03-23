@@ -12,6 +12,7 @@
 #include <memoria/v1/core/container/allocator.hpp>
 
 namespace memoria {
+namespace v1 {
 
 
 class AbstractTransaction {
@@ -35,4 +36,4 @@ struct BasicContainerCollectionCfg {
 };
 
 
-}
+}}

@@ -241,10 +241,10 @@ int main() {
             throw;
         }
     }
-    catch (memoria::Exception& ex) {
+    catch (v1::Exception& ex) {
         cout << ex.message() << " at " << ex.source() << endl;
     }
-    catch (memoria::PackedOOMException& ex) {
+    catch (v1::PackedOOMException& ex) {
         cout << "PackedOOMException at " << ex.source() << endl;
     }
 

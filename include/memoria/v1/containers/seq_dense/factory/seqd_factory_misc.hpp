@@ -28,12 +28,13 @@
 #include <memoria/v1/core/packed/misc/packed_sized_struct.hpp>
 
 namespace memoria {
+namespace v1 {
 
 
 template <typename Profile, Int BitsPerSymbol_>
-struct BTTypes<Profile, memoria::Sequence<BitsPerSymbol_, true> >: public BTTypes<Profile, memoria::BTSingleStream> {
+struct BTTypes<Profile, v1::Sequence<BitsPerSymbol_, true> >: public BTTypes<Profile, v1::BTSingleStream> {
 
-    typedef BTTypes<Profile, memoria::BTSingleStream>                           Base;
+    typedef BTTypes<Profile, v1::BTSingleStream>                           Base;
 
     typedef UByte                                                               Value;
 
@@ -93,4 +94,4 @@ struct BTTypes<Profile, memoria::Sequence<BitsPerSymbol_, true> >: public BTType
     >                                                                           IteratorPartsList;
 };
 
-}
+}}

@@ -22,6 +22,7 @@
 #include <memoria/v1/core/tools/exint_codec.hpp>
 
 namespace memoria {
+namespace v1 {
 
 using namespace std;
 
@@ -239,6 +240,4 @@ public:
     }
 };
 
-}
-
-
+}}

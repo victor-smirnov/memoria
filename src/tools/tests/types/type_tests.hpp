@@ -12,6 +12,7 @@
 
 
 namespace memoria {
+namespace v1 {
 namespace tests     {
 
 using namespace std;
@@ -49,5 +50,4 @@ class T{};
 
 
 }
-}
-
+}}

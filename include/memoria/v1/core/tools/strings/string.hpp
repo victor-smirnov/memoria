@@ -16,6 +16,7 @@
 #include <sstream>
 
 namespace memoria {
+namespace v1 {
 
 using String    = std::string;
 using StringRef = const String&;
@@ -52,4 +53,4 @@ inline bool compare_le(const String& first, const String& second) {
 }
 
 
-}
+}}

@@ -13,6 +13,7 @@
 #include "pseq_test_base.hpp"
 
 namespace memoria {
+namespace v1 {
 
 using namespace std;
 
@@ -227,4 +228,4 @@ public:
 };
 
 
-}
+}}

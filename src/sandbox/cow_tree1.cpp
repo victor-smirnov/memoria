@@ -12,7 +12,7 @@
 #include <thread>
 
 using namespace memoria;
-using namespace memoria::cow::tree;
+using namespace v1::cow::tree;
 using namespace std;
 
 int main(int argc, const char** argv, const char** envp)

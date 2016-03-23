@@ -11,6 +11,7 @@
 #include <tuple>
 
 namespace memoria {
+namespace v1 {
 
 
 template <typename T, Int Size>
@@ -37,4 +38,4 @@ template <typename T, Int Size>
 using MakeTuple = typename MakeTupleH<typename MakeList<T, Size>::Type>::Type;
 
 
-}
+}}

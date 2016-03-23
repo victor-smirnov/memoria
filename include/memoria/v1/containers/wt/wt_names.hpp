@@ -9,6 +9,7 @@
 #include <memoria/v1/prototypes/ctr_wrapper/ctrwrapper_names.hpp>
 
 namespace memoria {
+namespace v1 {
 namespace wt         {
 
 template <typename... LabelDescriptors>
@@ -43,4 +44,4 @@ using WTIterTypes = WTIterTypesT<Types>;
 
 
 
-}
+}}

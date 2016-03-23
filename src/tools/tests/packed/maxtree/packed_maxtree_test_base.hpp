@@ -21,6 +21,7 @@
 #include <memoria/v1/core/tools/bignum/cppint_codec.hpp>
 
 namespace memoria {
+namespace v1 {
 
 using namespace std;
 
@@ -197,4 +198,4 @@ public:
     }
 };
 
-}
+}}

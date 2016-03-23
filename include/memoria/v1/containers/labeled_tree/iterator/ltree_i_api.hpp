@@ -21,8 +21,9 @@
 #include <iostream>
 
 namespace memoria {
+namespace v1 {
 
-MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
+MEMORIA_ITERATOR_PART_BEGIN(v1::louds::ItrApiName)
 
     typedef Ctr<typename Types::CtrTypes>                                       Container;
     typedef Ctr<typename Types::IterTypes>                                      Iterator;
@@ -524,4 +525,4 @@ MEMORIA_ITERATOR_PART_BEGIN(memoria::louds::ItrApiName)
 MEMORIA_ITERATOR_PART_END
 
 
-}
+}}

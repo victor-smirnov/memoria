@@ -10,6 +10,7 @@
 
 
 namespace memoria {
+namespace v1 {
 
 namespace packed_seq {
 
@@ -666,4 +667,4 @@ public:
 };
 
 
-}
+}}

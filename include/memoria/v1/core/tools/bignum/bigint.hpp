@@ -17,6 +17,7 @@
 #include <ostream>
 
 namespace memoria {
+namespace v1 {
 
 /*
 template <typename> class IntegerCodec;
@@ -271,4 +272,4 @@ struct TypeHash<BigInteger> {
     static const UInt Value = 50;
 };
 
-}
+}}

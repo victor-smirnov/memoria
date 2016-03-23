@@ -11,6 +11,7 @@
 #include <memoria/v1/core/container/container.hpp>
 
 namespace memoria {
+namespace v1 {
 
 
 
@@ -20,7 +21,7 @@ struct CompositeTypes {
     typedef Profile_                                                            Profile;
 
     typedef TypeList<
-        memoria::bt::AllocatorName
+        v1::bt::AllocatorName
     >                                                                           ContainerPartsList;
 
     typedef TypeList<>                                                          IteratorPartsList;
@@ -41,7 +42,7 @@ struct CompositeTypes {
 
 
 template <typename Profile_, typename T>
-class CtrTF<Profile_, memoria::Composite, T> {
+class CtrTF<Profile_, v1::Composite, T> {
 
     typedef CtrTF<Profile_, Composite, T>                                       MyType;
 
@@ -66,4 +67,4 @@ public:
 };
 
 
-}
+}}

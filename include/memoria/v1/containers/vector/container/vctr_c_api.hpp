@@ -15,10 +15,11 @@
 
 
 namespace memoria {
+namespace v1 {
 
-using namespace memoria::bt;
+using namespace v1::bt;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::mvector::CtrApiName)
+MEMORIA_CONTAINER_PART_BEGIN(v1::mvector::CtrApiName)
 
 public:
     using typename Base::Types;
@@ -58,4 +59,4 @@ public:
 
 MEMORIA_CONTAINER_PART_END
 
-}
+}}

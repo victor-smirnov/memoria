@@ -17,6 +17,7 @@
 #include <memoria/v1/core/tools/strings/string.hpp>
 
 namespace memoria {
+namespace v1 {
 
 struct RAFileImpl {
     Int fd_ = 0;
@@ -179,4 +180,4 @@ void RAFile::truncate(UBigInt size)
 }
 
 
-}
+}}

@@ -12,6 +12,7 @@
 #include <memoria/v1/core/types/typehash.hpp>
 
 namespace memoria {
+namespace v1 {
 namespace wt            {
 }
 
@@ -26,4 +27,4 @@ struct TypeHash<wt::WTLabeledTree<TypeList<LabelDescriptors...>>>: TypeHash<Labe
 
 
 
-}
+}}

@@ -49,8 +49,8 @@
 
 
 using namespace std;
-using namespace memoria;
-using namespace memoria::tools;
+using namespace memoria::v1;
+using namespace memoria::v1::tools;
 
 
 

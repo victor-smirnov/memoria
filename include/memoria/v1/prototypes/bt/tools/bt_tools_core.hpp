@@ -18,6 +18,7 @@
 #include <tuple>
 
 namespace memoria {
+namespace v1 {
 
 template <typename T> struct FieldFactory;
 
@@ -93,4 +94,4 @@ struct TypeListToTupleH<TL<List...>> {
 };
 
 }
-}
+}}

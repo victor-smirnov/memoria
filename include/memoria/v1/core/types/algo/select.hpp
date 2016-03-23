@@ -14,6 +14,7 @@
 
 
 namespace memoria {
+namespace v1 {
 
 namespace {
 
@@ -94,4 +95,4 @@ struct IfTypesEqual<Type, Type> {
     static const bool Value = true;
 };
 
-}
+}}

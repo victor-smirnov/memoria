@@ -14,6 +14,7 @@
 #include <map>
 
 namespace memoria {
+namespace v1 {
 
 using std::map;
 using namespace std;
@@ -354,4 +355,4 @@ void GroupRunner::dumpProperties(std::ostream& os, bool dump_prefix, bool dump_a
     }
 }
 
-}
+}}

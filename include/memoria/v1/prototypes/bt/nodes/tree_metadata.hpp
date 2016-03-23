@@ -13,8 +13,9 @@
 
 
 namespace memoria {
+namespace v1 {
 
-using namespace memoria::bt;
+using namespace v1::bt;
 
 
 template <typename ID>
@@ -187,4 +188,4 @@ struct FieldFactory<BalancedTreeMetadata<ID>> {
 };
 
 
-}
+}}

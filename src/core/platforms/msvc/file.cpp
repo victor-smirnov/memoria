@@ -29,6 +29,7 @@
 
 
 namespace memoria {
+namespace v1 {
 
 
 using namespace std;
@@ -363,5 +364,4 @@ String ConvertSlash(StringRef str) {
     return replace(result, "/", "\\", action);
 }
 
-}
-
+}}

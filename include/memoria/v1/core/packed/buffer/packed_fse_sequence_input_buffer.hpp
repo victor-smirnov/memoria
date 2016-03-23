@@ -14,6 +14,7 @@
 #include <memoria/v1/core/packed/sseq/small_symbols_buffer.hpp>
 
 namespace memoria {
+namespace v1 {
 
 
 template <
@@ -224,4 +225,4 @@ public:
 };
 
 
-}
+}}

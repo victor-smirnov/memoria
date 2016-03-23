@@ -10,6 +10,7 @@
 
 
 namespace memoria {
+namespace v1 {
 
 
 enum CompareOps {EQ, GT, GTE, LT, LTE, NE};
@@ -161,4 +162,4 @@ public:
     static const bool Value = true;
 };
 
-}
+}}

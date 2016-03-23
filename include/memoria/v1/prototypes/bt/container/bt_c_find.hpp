@@ -14,10 +14,11 @@
 #include <limits>
 
 namespace memoria {
+namespace v1 {
 
-using namespace memoria::bt;
+using namespace v1::bt;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::FindName)
+MEMORIA_CONTAINER_PART_BEGIN(v1::bt::FindName)
 public:
     using Types = TypesType;
 
@@ -212,7 +213,7 @@ MEMORIA_CONTAINER_PART_END
 
 
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bt::FindName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::bt::FindName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
@@ -426,4 +427,4 @@ typename M_TYPE::IteratorPtr M_TYPE::find_(Walker&& walker)
 #undef M_TYPE
 #undef M_PARAMS
 
-}
+}}

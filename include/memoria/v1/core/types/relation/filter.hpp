@@ -10,6 +10,7 @@
 #include <memoria/v1/core/tools/assert.hpp>
 
 namespace memoria {
+namespace v1 {
 
 
 template <
@@ -49,4 +50,4 @@ public:
     typedef typename Result0::Result                                            Result;
 };
 
-}
+}}

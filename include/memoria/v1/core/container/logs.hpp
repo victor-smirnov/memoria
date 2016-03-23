@@ -6,6 +6,8 @@
 
 #pragma once
 
+
+#include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/core/tools/id.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
 #include <iostream>
@@ -13,26 +15,27 @@
 
 #define MEMORIA_LOG(logger_, level, ...)                                                 \
     if (logger_.is_log(level))                                                           \
-        memoria::log(logger_.logger(), level, MEMORIA_SOURCE, logger_.typeName(),  \
+        v1::log(logger_.logger(), level, MEMORIA_SOURCE, logger_.typeName(),  \
                 ExtractFunctionName(__FUNCTION__), ##__VA_ARGS__)
 
 #define MEMORIA_DEBUG(logger_, ...)                                              \
-    MEMORIA_LOG(logger_, memoria::Logger::DEBUG, ##__VA_ARGS__)
+    MEMORIA_LOG(logger_, v1::Logger::DEBUG, ##__VA_ARGS__)
 
 #define MEMORIA_WARN(logger_, ...)                                               \
-    MEMORIA_LOG(logger_, memoria::Logger::WARN, ##__VA_ARGS__)
+    MEMORIA_LOG(logger_, v1::Logger::WARN, ##__VA_ARGS__)
 
 #define MEMORIA_ERROR(logger_, ...)                                              \
-    MEMORIA_LOG(logger_, memoria::Logger::ERROR, ##__VA_ARGS__)
+    MEMORIA_LOG(logger_, v1::Logger::ERROR, ##__VA_ARGS__)
 
 #define MEMORIA_INFO(logger_, ...)                                               \
-    MEMORIA_LOG(logger_, memoria::Logger::INFO, ##__VA_ARGS__)
+    MEMORIA_LOG(logger_, v1::Logger::INFO, ##__VA_ARGS__)
 
 #define MEMORIA_TRACE(logger_, ...)                                              \
-    MEMORIA_LOG(logger_, memoria::Logger::TRACE, ##__VA_ARGS__)
+    MEMORIA_LOG(logger_, v1::Logger::TRACE, ##__VA_ARGS__)
 
 
 namespace memoria {
+namespace v1 {
 
 
 const char* ExtractFunctionName(const char* full_name);
@@ -42,7 +45,7 @@ struct MEMORIA_API LogHandler {
 
     LogHandler() {}
 
-    virtual void begin(Int level)       = 0;
+    virtual void begin(v1::Int level)       = 0;
 
     virtual void log(const bool value)        = 0;
     virtual void log(const Byte value)        = 0;
@@ -88,7 +91,7 @@ public:
     enum {DERIVED = 0, TRACE = 10000, DEBUG = 20000, ERROR = 30000,
           WARNING = 40000, INFO = 50000, FATAL = 60000, NONE = 70000};
 
-    Logger(const char* category, int level = DERIVED, Logger* parent = &memoria::logger):
+    Logger(const char* category, int level = DERIVED, Logger* parent = &v1::logger):
         category_(category), level_(level), parent_(parent), handler_(NULL)
     {}
 
@@ -128,7 +131,7 @@ public:
         return level_;
     }
 
-    void configure(const char* category, int level = DERIVED, Logger* parent = &memoria::logger)
+    void configure(const char* category, int level = DERIVED, Logger* parent = &v1::logger)
     {
         category_   = category;
         level_      = level;
@@ -690,4 +693,4 @@ bool log(const Logger& log, Int level,
     }
 }
 
-}
+}}

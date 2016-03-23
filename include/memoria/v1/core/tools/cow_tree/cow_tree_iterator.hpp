@@ -20,6 +20,7 @@
  */
 
 namespace memoria {
+namespace v1 {
 namespace cow       {
 namespace tree      {
 
@@ -323,4 +324,4 @@ public:
 
 }
 }
-}
+}}

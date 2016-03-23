@@ -25,6 +25,7 @@
 #include <memoria/v1/core/tools/strings/string.hpp>
 
 namespace memoria {
+namespace v1 {
 
 using tools::Term;
 
@@ -69,7 +70,7 @@ struct KVPair {
 };
 
 template <typename K, typename V>
-std::ostream& operator<<(std::ostream& out, const memoria::KVPair<K, V>& pair)
+std::ostream& operator<<(std::ostream& out, const v1::KVPair<K, V>& pair)
 {
     out<<pair.key_<<" "<<pair.value_;
     return out;
@@ -101,7 +102,7 @@ std::ostream& operator<<(std::ostream& out, const std::vector<UByte, A>& vec)
 
 
 template <typename K, typename V>
-istream& operator>>(std::istream& in, memoria::KVPair<K, V>& pair)
+istream& operator>>(std::istream& in, v1::KVPair<K, V>& pair)
 {
     in>>skipws;
     in>>pair.key_;
@@ -589,5 +590,4 @@ void AssertNEQ(const char* src, const Op1& op1, const Op2& op2, const SBuf& msg)
 
 
 
-}
-
+}}

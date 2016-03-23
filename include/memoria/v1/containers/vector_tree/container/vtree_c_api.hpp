@@ -14,11 +14,12 @@
 #include <functional>
 
 namespace memoria {
+namespace v1 {
 
 
 using louds::LoudsNode;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::vtree::CtrApiName)
+MEMORIA_CONTAINER_PART_BEGIN(v1::vtree::CtrApiName)
 
     typedef typename Base::Tree                                                 Tree;
     typedef typename Base::Vec                                                  Vec;
@@ -162,4 +163,4 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::vtree::CtrApiName)
 
 MEMORIA_CONTAINER_PART_END
 
-}
+}}

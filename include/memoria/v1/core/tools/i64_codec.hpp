@@ -11,6 +11,7 @@
 #include <memoria/v1/core/container/macros.hpp>
 
 namespace memoria {
+namespace v1 {
 
 template <typename V>
 //__attribute__((always_inline))
@@ -151,4 +152,4 @@ struct I64Codec {
 template <typename Value>
 using UBigIntI64Codec = I64Codec<UBigInt, Value>;
 
-}
+}}

@@ -16,6 +16,7 @@
 #include <vector>
 
 namespace memoria {
+namespace v1 {
 
 class ListOfStrings;
 class Configurator;
@@ -128,4 +129,4 @@ public:
 
 
 
-}
+}}

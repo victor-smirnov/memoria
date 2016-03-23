@@ -240,6 +240,3 @@ int main() {
         cout<<ex<<endl;
     }
 }
-
-
-

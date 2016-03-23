@@ -12,6 +12,7 @@
 #include <memoria/v1/core/types/list/misc.hpp>
 
 namespace memoria {
+namespace v1 {
 
 
 template <typename List> struct TypeToValueList;
@@ -359,5 +360,4 @@ struct Md5Sum<ValueList<UInt, Data...>> {
 
 
 }
-}
-
+}}

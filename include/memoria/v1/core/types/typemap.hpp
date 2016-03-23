@@ -10,6 +10,7 @@
 #include <memoria/v1/core/types/typelist.hpp>
 
 namespace memoria {
+namespace v1 {
 
 template <
     typename T,
@@ -41,8 +42,8 @@ template <
     typename ... Tail,
     typename DefaultType
 >
-struct Type2TypeMap<T, memoria::TypeList<Head, Tail...>, DefaultType> {
+struct Type2TypeMap<T, v1::TypeList<Head, Tail...>, DefaultType> {
     typedef typename Type2TypeMap<T, TypeList<Tail...>, DefaultType>::Result Result;
 };
 
-}
+}}

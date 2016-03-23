@@ -174,4 +174,3 @@ struct WrapperName {                                        \
         return node1->NodeMethodName(node2, std::forward<Args>(args)...);\
     }                                                       \
 }
-

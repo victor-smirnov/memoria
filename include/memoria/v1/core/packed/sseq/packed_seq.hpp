@@ -28,6 +28,7 @@
 #include <algorithm>
 
 namespace memoria {
+namespace v1 {
 
 
 namespace intrnl1 {
@@ -1599,4 +1600,4 @@ private:
     }
 };
 
-}
+}}

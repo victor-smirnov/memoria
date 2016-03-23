@@ -18,6 +18,7 @@
 
 
 namespace memoria {
+namespace v1 {
 namespace bt        {
 
 namespace   {
@@ -248,7 +249,7 @@ template <typename T> struct BranchNodeEntryBuilder;
 template <typename PackedStruct, typename... Tail>
 struct BranchNodeEntryBuilder<TL<PackedStruct, Tail...>> {
     using Type = MergeLists<
-                    memoria::core::StaticVector<
+                    v1::core::StaticVector<
                         typename PkdSearchKeyTypeProvider<PackedStruct>::Type,
                         StructSizeProvider<PackedStruct>::Value
                     >,
@@ -268,4 +269,4 @@ struct BranchNodeEntryBuilder<TL<>> {
 
 
 }
-}
+}}

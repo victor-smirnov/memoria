@@ -10,6 +10,7 @@
 #include <tuple>
 
 namespace memoria {
+namespace v1 {
 namespace tools     {
 
 template <typename Tuple, Int Idx = std::tuple_size<Tuple>::value>
@@ -54,4 +55,4 @@ public:
 };
 
 }
-}
+}}

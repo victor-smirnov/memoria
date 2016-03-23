@@ -17,6 +17,7 @@
 
 
 namespace memoria {
+namespace v1 {
 namespace btss      {
 
 using bt::LeafNode;
@@ -418,8 +419,8 @@ protected:
 
 
 template <typename CtrT, typename InputIterator>
-class IteratorBTSSInputProvider: public memoria::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength> {
-    using Base = memoria::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength>;
+class IteratorBTSSInputProvider: public v1::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength> {
+    using Base = v1::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength>;
 
 public:
 
@@ -485,9 +486,9 @@ public:
 
 
 template <typename CtrT, typename MyType, Int BufferSize = 1000, typename EntryT = typename CtrT::Types::Entry>
-class AbstractBufferedBTSSInputProvider: public memoria::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength> {
+class AbstractBufferedBTSSInputProvider: public v1::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength> {
 
-    using Base = memoria::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength>;
+    using Base = v1::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength>;
 
 protected:
 
@@ -628,4 +629,4 @@ public:
 
 
 }
-}
+}}

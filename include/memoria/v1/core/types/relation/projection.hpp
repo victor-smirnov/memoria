@@ -13,6 +13,7 @@
 
 
 namespace memoria {
+namespace v1 {
 
 template <typename ColumnType, typename ColumnValue> struct WrapperProvider;
 
@@ -99,4 +100,4 @@ public:
 };
 
 
-}
+}}

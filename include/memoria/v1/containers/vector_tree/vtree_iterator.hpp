@@ -11,6 +11,7 @@
 #include <memoria/v1/core/container/container.hpp>
 
 namespace memoria {
+namespace v1 {
 
 template <typename Types>
 class Iter<VTreeIterTypes<Types> >: public IterStart<VTreeIterTypes<Types> >
@@ -234,4 +235,4 @@ bool operator!=(const Iter<VTreeIterTypes<Types> >& iter, const IterEndMark& mar
     return iter.isNotEnd();
 }
 
-}
+}}

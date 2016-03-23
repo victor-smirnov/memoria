@@ -18,6 +18,7 @@
 #include <type_traits>
 
 namespace memoria {
+namespace v1 {
 
 
 
@@ -252,4 +253,4 @@ protected:
 
 };
 
-}
+}}

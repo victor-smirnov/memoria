@@ -17,6 +17,7 @@
 #include <iostream>
 
 namespace memoria {
+namespace v1 {
 namespace vtree         {
 
 MEMORIA_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(VTreeCtrBase)
@@ -211,4 +212,4 @@ private:
 MEMORIA_BT_MODEL_BASE_CLASS_END
 
 
-}}
+}}}

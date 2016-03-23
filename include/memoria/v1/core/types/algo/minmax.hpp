@@ -20,6 +20,7 @@
 #include <typeinfo>
 
 namespace memoria {
+namespace v1 {
 
 template <
         typename List,
@@ -113,4 +114,4 @@ struct TypeSizeValueProvider {
 
 
 
-}
+}}

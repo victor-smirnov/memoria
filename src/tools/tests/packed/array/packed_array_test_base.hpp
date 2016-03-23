@@ -13,6 +13,7 @@
 #include <memoria/v1/core/packed/tools/packed_struct_ptrs.hpp>
 
 namespace memoria {
+namespace v1 {
 
 using namespace std;
 
@@ -190,4 +191,4 @@ public:
     }
 };
 
-}
+}}

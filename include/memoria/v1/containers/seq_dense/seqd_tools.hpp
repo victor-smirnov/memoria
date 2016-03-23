@@ -13,6 +13,7 @@
 #include <memoria/v1/prototypes/bt/layouts/bt_input.hpp>
 
 namespace memoria {
+namespace v1 {
 namespace seq_dense     {
 
 
@@ -78,8 +79,8 @@ public:
 
 
 template <typename CtrT>
-class SequenceInputProviderBase: public memoria::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength> {
-    using Base = memoria::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength>;
+class SequenceInputProviderBase: public v1::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength> {
+    using Base = v1::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength>;
 
 public:
 
@@ -216,4 +217,4 @@ public:
 
 
 }
-}
+}}

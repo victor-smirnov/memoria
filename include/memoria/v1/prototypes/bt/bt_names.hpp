@@ -9,6 +9,7 @@
 #include <memoria/v1/core/container/container.hpp>
 
 namespace memoria {
+namespace v1 {
 
 template <typename Profile> class ContainerCollectionCfg;
 
@@ -83,4 +84,4 @@ template <typename Types>
 using BTIterTypes = BTIterTypesT<Types>;
 
 
-}
+}}

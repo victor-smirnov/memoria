@@ -12,8 +12,9 @@
 #include <memoria/v1/core/container/profile.hpp>
 
 namespace memoria {
+namespace v1 {
 
-using memoria::TypeList;
+using v1::TypeList;
 template <
     typename List,
     template <typename, typename> class Element,
@@ -83,4 +84,4 @@ struct Builder<TypeList<>, Element, Base>: public Base {
 
 
 
-}
+}}

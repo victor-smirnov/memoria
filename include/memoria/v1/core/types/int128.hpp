@@ -11,6 +11,7 @@
 #include <ostream>
 
 namespace memoria {
+namespace v1 {
 
 typedef __uint64_t         UInt128;
 typedef __int64_t          Int128;
@@ -19,14 +20,14 @@ typedef __int64_t          Int128;
 
 namespace std {
 
-//ostream& operator<<(ostream& out, const memoria::Int128& value) {
+//ostream& operator<<(ostream& out, const v1::Int128& value) {
 //    out<<value;
 //    return out;
 //}
 //
-//ostream& operator<<(ostream& out, const memoria::UInt128& value) {
+//ostream& operator<<(ostream& out, const v1::UInt128& value) {
 //    out<<value;
 //    return out;
 //}
 
-}
+}}

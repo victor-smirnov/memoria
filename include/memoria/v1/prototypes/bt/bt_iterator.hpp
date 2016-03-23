@@ -16,6 +16,7 @@
 #include <memoria/v1/prototypes/bt/bt_names.hpp>
 
 namespace memoria {
+namespace v1 {
 
 template <typename Types> struct IterTypesT;
 template <typename Types> class Iter;
@@ -158,4 +159,4 @@ bool operator!=(const Iter<BTIterTypes<Types> >& iter, const IterEndMark& mark)
 }
 
 
-}
+}}

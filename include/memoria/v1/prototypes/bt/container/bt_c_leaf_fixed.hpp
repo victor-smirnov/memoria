@@ -13,13 +13,14 @@
 #include <vector>
 
 namespace memoria {
+namespace v1 {
 
-using namespace memoria::bt;
-using namespace memoria::core;
+using namespace v1::bt;
+using namespace v1::core;
 
 using namespace std;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::LeafFixedName)
+MEMORIA_CONTAINER_PART_BEGIN(v1::bt::LeafFixedName)
 public:
     using typename Base::Types;
 
@@ -235,7 +236,7 @@ protected:
 MEMORIA_CONTAINER_PART_END
 
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bt::LeafFixedName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::bt::LeafFixedName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 
@@ -345,4 +346,4 @@ bool M_TYPE::mergeCurrentLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
 #undef M_TYPE
 #undef M_PARAMS
 
-}
+}}

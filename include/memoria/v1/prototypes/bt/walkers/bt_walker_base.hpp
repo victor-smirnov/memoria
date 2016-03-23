@@ -15,6 +15,7 @@
 #include <tuple>
 
 namespace memoria {
+namespace v1 {
 
 namespace bt {
 template <typename Types, typename LeafPath_>
@@ -195,7 +196,7 @@ public:
 
     static constexpr Int branchIndex(Int leaf_index)
     {
-        return memoria::bt::LeafToBranchIndexTranslator<LeafStructList, LeafPath, 0>::BranchIndex + leaf_index;
+        return v1::bt::LeafToBranchIndexTranslator<LeafStructList, LeafPath, 0>::BranchIndex + leaf_index;
     }
 
 
@@ -375,7 +376,7 @@ public:
     template <typename Node, typename... Args>
     void processBranchIteratorBranchNodeEntry(Node* node, Args&&... args)
     {
-        using ItrAccList = memoria::list_tree::MakeValueList<Int, 0, Node::Streams>;
+        using ItrAccList = v1::list_tree::MakeValueList<Int, 0, Node::Streams>;
 
         detail::IteratorStreamRangesListWalker<
             //IteratorBranchNodeEntry,
@@ -428,4 +429,4 @@ public:
 
 
 }
-}
+}}

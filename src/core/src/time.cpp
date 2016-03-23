@@ -13,6 +13,7 @@
 
 
 namespace memoria {
+namespace v1 {
 
 
 
@@ -97,4 +98,4 @@ String FormatTime(BigInt millis)
     }
 }
 
-}
+}}

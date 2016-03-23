@@ -18,6 +18,7 @@
 #include <memory>
 
 namespace memoria {
+namespace v1 {
 
 template <
     typename CtrName,
@@ -50,4 +51,4 @@ public:
 
 };
 
-}
+}}

@@ -14,13 +14,14 @@
 #include <algorithm>
 
 namespace memoria {
+namespace v1 {
 
-using namespace memoria::bt;
-using namespace memoria::core;
+using namespace v1::bt;
+using namespace v1::core;
 
 using namespace std;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertBatchVariableName)
+MEMORIA_CONTAINER_PART_BEGIN(v1::bt::InsertBatchVariableName)
 public:
     using typename Base::Types;
     using typename Base::Iterator;
@@ -182,7 +183,7 @@ protected:
                 return node;
             }
             else {
-                throw memoria::BoundsException(MA_SRC, "Leaf List is empty");
+                throw v1::BoundsException(MA_SRC, "Leaf List is empty");
             }
         }
 
@@ -378,7 +379,7 @@ protected:
 
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bt::InsertBatchVariableName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::bt::InsertBatchVariableName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 
@@ -386,4 +387,4 @@ MEMORIA_CONTAINER_PART_END
 #undef M_TYPE
 #undef M_PARAMS
 
-}
+}}

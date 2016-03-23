@@ -15,6 +15,7 @@
 #include <memoria/v1/core/tools/bitmap.hpp>
 
 namespace memoria {
+namespace v1 {
 
 template <typename V>
 size_t GetExintValueLength(V value)
@@ -119,4 +120,4 @@ struct ExintCodec {
 template <typename Value>
 using UByteExintCodec = ExintCodec<UByte, Value>;
 
-}
+}}

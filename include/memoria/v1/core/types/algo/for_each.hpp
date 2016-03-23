@@ -12,6 +12,7 @@
 
 
 namespace memoria {
+namespace v1 {
 
 
 template <
@@ -108,4 +109,4 @@ struct WithType {
     using Type = T;
 };
 
-}
+}}

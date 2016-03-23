@@ -13,13 +13,14 @@
 #include <vector>
 
 namespace memoria {
+namespace v1 {
 
-using namespace memoria::bt;
-using namespace memoria::core;
+using namespace v1::bt;
+using namespace v1::core;
 
 using namespace std;
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertName)
+MEMORIA_CONTAINER_PART_BEGIN(v1::bt::InsertName)
 
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
@@ -77,11 +78,11 @@ MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::InsertName)
 
 MEMORIA_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bt::InsertName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::bt::InsertName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 
 #undef M_TYPE
 #undef M_PARAMS
 
-}
+}}

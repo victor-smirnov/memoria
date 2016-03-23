@@ -19,6 +19,7 @@
 #include <iostream>
 
 namespace memoria {
+namespace v1 {
 namespace wt            {
 
 MEMORIA_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(WTCtrBase)
@@ -219,4 +220,4 @@ private:
 MEMORIA_BT_MODEL_BASE_CLASS_END
 
 
-}}
+}}}

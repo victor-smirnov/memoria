@@ -14,8 +14,9 @@
 #include <memoria/v1/core/types/algo/select.hpp>
 
 namespace memoria {
+namespace v1 {
 
-using memoria::ContainerMetadataRepository;
+using v1::ContainerMetadataRepository;
 
 template <typename Profile, typename SelectorType, typename ContainerTypeName = SelectorType> class CtrTF;
 
@@ -136,4 +137,4 @@ public:
 
 
 
-}
+}}

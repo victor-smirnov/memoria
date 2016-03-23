@@ -16,8 +16,9 @@
 
 
 namespace memoria {
+namespace v1 {
 
-MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::RemoveToolsName)
+MEMORIA_CONTAINER_PART_BEGIN(v1::bt::RemoveToolsName)
 
     typedef TypesType                                                           Types;
     typedef typename Base::Allocator                                            Allocator;
@@ -99,7 +100,7 @@ protected:
 MEMORIA_CONTAINER_PART_END
 
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bt::RemoveToolsName)
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::bt::RemoveToolsName)
 #define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
 
 
@@ -395,4 +396,4 @@ bool M_TYPE::mergeLeafWithRightSibling(NodeBaseG& node)
 #undef M_PARAMS
 
 
-}
+}}

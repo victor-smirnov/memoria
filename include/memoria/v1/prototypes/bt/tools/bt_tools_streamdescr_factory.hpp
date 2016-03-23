@@ -38,6 +38,7 @@
 #include <type_traits>
 
 namespace memoria {
+namespace v1 {
 namespace bt        {
 
 
@@ -375,5 +376,4 @@ struct BTStreamDescritorsBuilder<TL<TL<LeafStruct, Tail1...>, Tail2...>, BranchS
 
 
 }
-}
-
+}}

@@ -11,6 +11,7 @@
 #include <string.h>
 
 namespace memoria {
+namespace v1 {
 
 UBigInt cnt = 1;
 
@@ -98,5 +99,4 @@ std::istream& operator>>(std::istream& in, UUID& uuid)
     return in;
 }
 
-}
-
+}}

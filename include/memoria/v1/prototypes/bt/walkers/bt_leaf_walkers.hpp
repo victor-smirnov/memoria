@@ -9,6 +9,7 @@
 #include <memoria/v1/prototypes/bt/walkers/bt_walker_base.hpp>
 
 namespace memoria {
+namespace v1 {
 namespace bt      {
 
 
@@ -37,7 +38,7 @@ protected:
 public:
 
     template <typename LeafPath>
-    using AccumItemH = memoria::bt::AccumItem<LeafStructList, LeafPath, IteratorBranchNodeEntry>;
+    using AccumItemH = v1::bt::AccumItem<LeafStructList, LeafPath, IteratorBranchNodeEntry>;
 
 protected:
 
@@ -377,4 +378,4 @@ public:
 
 
 }
-}
+}}

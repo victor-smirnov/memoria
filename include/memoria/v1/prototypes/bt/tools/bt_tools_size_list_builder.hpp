@@ -11,6 +11,7 @@
 #include <memoria/v1/core/types/algo/select.hpp>
 
 namespace memoria {
+namespace v1 {
 namespace bt        {
 
 template <typename Tree>
@@ -159,7 +160,7 @@ namespace {
 
     template <typename List, Int Offset, Int Idx, Int Max>
     class ForAllTopLevelElements {
-        static const Int LeafOffset = memoria::list_tree::LeafCountInf<List, IntList<Idx>>::Value;
+        static const Int LeafOffset = v1::list_tree::LeafCountInf<List, IntList<Idx>>::Value;
     public:
         using Type = AppendItemToList<
                 IntValue<LeafOffset + Offset>,
@@ -194,8 +195,8 @@ public:
 
 template <typename List, typename Path>
 using LeafSubsetInf = typename ForAllTopLevelElements<
-        typename memoria::list_tree::Subtree<List, Path>::Type,
-        memoria::list_tree::LeafCount<List, Path>::Value
+        typename v1::list_tree::Subtree<List, Path>::Type,
+        v1::list_tree::LeafCount<List, Path>::Value
 >::Type;
 
 
@@ -214,7 +215,7 @@ template <
 >
 struct FindTopLevelIdx<TypeList<Head, Tail...>, Idx, Pos>
 {
-    static const Int Children = memoria::list_tree::SubtreeLeafCount<TypeList<Head>, IntList<>>::Value;
+    static const Int Children = v1::list_tree::SubtreeLeafCount<TypeList<Head>, IntList<>>::Value;
 
     static const Int Value = Idx < Children ?
             Pos :
@@ -509,12 +510,12 @@ protected:
 
     using LocalLeafGroup = typename FindLocalLeafOffsetT<LeafOffsets, LeafIdx>::Type;
 
-    using LeafPath = typename memoria::list_tree::BuildTreePath<LeafStructList, LeafIdx>::Type;
+    using LeafPath = typename v1::list_tree::BuildTreePath<LeafStructList, LeafIdx>::Type;
 
 public:
     static const Int LeafOffset = GetLeafPrefix<LocalLeafGroup, LocalLeafOffset>::Value;
 
-    static const Int BranchStructIdx = memoria::list_tree::LeafCount<LeafStructList, LeafPath, 2>::Value - LocalLeafOffset;
+    static const Int BranchStructIdx = v1::list_tree::LeafCount<LeafStructList, LeafPath, 2>::Value - LocalLeafOffset;
 
     static const bool IsStreamStart = LocalLeafOffset == 0 && IsStreamStartTag<LocalLeafGroup>::Value;
 };
@@ -529,7 +530,7 @@ protected:
 
     using Leafs = FlattenLeafTree<LeafStructList>;
 
-    static const Int LeafIdx            = memoria::list_tree::LeafCount<LeafStructList, LeafPath>::Value;
+    static const Int LeafIdx            = v1::list_tree::LeafCount<LeafStructList, LeafPath>::Value;
     static const Int LocalLeafOffset    = FindLocalLeafOffsetV<Leafs, LeafIdx>::Value;
 
     using LocalLeafGroup = typename FindLocalLeafOffsetT<LeafOffsets, LeafIdx>::Type;
@@ -541,7 +542,7 @@ public:
 
     static Int translate(Int leaf_index)
     {
-        const Int LeafIdx           = memoria::list_tree::LeafCount<LeafStructList, LeafPath>::Value;
+        const Int LeafIdx           = v1::list_tree::LeafCount<LeafStructList, LeafPath>::Value;
         const Int LocalLeafOffset   = FindLocalLeafOffsetV<Leafs, LeafIdx>::Value;
 
         using LocalLeafGroup = typename FindLocalLeafOffsetT<LeafOffsets, LeafIdx>::Type;
@@ -557,12 +558,12 @@ public:
 
 
 template <typename LeafStructList, typename BranchStructList, typename LeafPath>
-using BuildBranchPath = typename memoria::list_tree::BuildTreePath<
+using BuildBranchPath = typename v1::list_tree::BuildTreePath<
             BranchStructList,
-            memoria::list_tree::LeafCountInf<LeafStructList, LeafPath, 2>::Value -
+            v1::list_tree::LeafCountInf<LeafStructList, LeafPath, 2>::Value -
                 FindLocalLeafOffsetV<
                     FlattenLeafTree<LeafStructList>,
-                    memoria::list_tree::LeafCount<LeafStructList, LeafPath>::Value
+                    v1::list_tree::LeafCount<LeafStructList, LeafPath>::Value
                 >::Value
 >::Type;
 
@@ -574,10 +575,10 @@ template <
     typename LeafPath
 >
 using BrachStructAccessorTool = Select<
-        memoria::list_tree::LeafCountInf<LeafStructList, LeafPath, 2>::Value -
+        v1::list_tree::LeafCountInf<LeafStructList, LeafPath, 2>::Value -
             FindLocalLeafOffsetV<
                 FlattenLeafTree<LeafStructList>,
-                memoria::list_tree::LeafCount<LeafStructList, LeafPath>::Value
+                v1::list_tree::LeafCount<LeafStructList, LeafPath>::Value
         >::Value,
         Linearize<BranchStructList>
 >;
@@ -586,4 +587,4 @@ using BrachStructAccessorTool = Select<
 
 
 }
-}
+}}

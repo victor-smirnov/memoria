@@ -18,6 +18,7 @@
 #include <iostream>
 
 namespace memoria {
+namespace v1 {
 
 using namespace std;
 
@@ -426,6 +427,4 @@ Configurator* Configurator::BuildChain(const char** envp, bool read_config_files
 
 
 
-}
-
-
+}}

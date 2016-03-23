@@ -33,6 +33,7 @@
         throw Exception(MEMORIA_SOURCE, SBuf()<<"Method is not implemented for "<<me()->typeName())
 
 namespace memoria {
+namespace v1 {
 
 template <typename Profile, typename SelectorType, typename ContainerTypeName> class CtrTF;
 
@@ -452,12 +453,12 @@ public:
     {
         if ((command & CTR_CREATE) == 0 && (command & CTR_FIND) == 0)
         {
-            throw memoria::Exception(MEMORIA_SOURCE, "Either CTR_CREATE, CTR_FIND or both must be specified");
+            throw v1::Exception(MEMORIA_SOURCE, "Either CTR_CREATE, CTR_FIND or both must be specified");
         }
 
         if ((command & CTR_FIND) && name == CTR_DEFAULT_NAME)
         {
-            throw memoria::Exception(MEMORIA_SOURCE, "Container name must be specified for the CTR_FIND operation");
+            throw v1::Exception(MEMORIA_SOURCE, "Container name must be specified for the CTR_FIND operation");
         }
     }
 
@@ -577,15 +578,15 @@ public:
         return logger_.isLogEnabled(level);
     }
 
-    MEMORIA_PUBLIC const memoria::Logger& logger() const {
+    MEMORIA_PUBLIC const v1::Logger& logger() const {
         return logger_;
     }
 
-    MEMORIA_PUBLIC memoria::Logger& logger() {
+    MEMORIA_PUBLIC v1::Logger& logger() {
             return logger_;
         }
 
-    static memoria::Logger& class_logger() {
+    static v1::Logger& class_logger() {
         return class_logger_;
     }
 
@@ -632,7 +633,7 @@ public:
 template<
         typename Types
 >
-Logger Ctr<Types>::class_logger_(typeid(typename Types::ContainerTypeName).name(), Logger::DERIVED, &memoria::logger);
+Logger Ctr<Types>::class_logger_(typeid(typename Types::ContainerTypeName).name(), Logger::DERIVED, &v1::logger);
 
 
-}
+}}

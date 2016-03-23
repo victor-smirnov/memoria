@@ -9,6 +9,7 @@
 #include <memoria/v1/prototypes/bt/bt_names.hpp>
 
 namespace memoria {
+namespace v1 {
 namespace seq_dense     {
 
 class CtrChecksName     {};
@@ -41,4 +42,4 @@ using DenseSeqCtrTypes  = BTCtrTypes<DenseSeqCtrTypesT<Types>>;
 template <typename Types>
 using DenseSeqIterTypes = BTCtrTypes<DenseSeqIterTypesT<Types>>;
 
-}
+}}

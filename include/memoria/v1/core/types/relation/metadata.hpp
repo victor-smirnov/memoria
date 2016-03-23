@@ -11,6 +11,7 @@
 #include <memoria/v1/core/tools/assert.hpp>
 
 namespace memoria {
+namespace v1 {
 
 template <Int Name_, typename Type_ = NullType>
 struct Column {
@@ -101,4 +102,4 @@ template <
 >
 struct IsRelationMetadata<RelationMetadata<ColumnsList, ValueProvider> >: ConstValue<bool, true> {};
 
-}
+}}

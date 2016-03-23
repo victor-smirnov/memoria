@@ -79,7 +79,7 @@ int main() {
             throw;
         }
     }
-    catch (memoria::Exception& ex) {
+    catch (v1::Exception& ex) {
         cout << ex.message() << " at " << ex.source() << endl;
     }
 

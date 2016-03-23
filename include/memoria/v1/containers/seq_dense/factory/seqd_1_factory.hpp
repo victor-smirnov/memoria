@@ -30,14 +30,15 @@
 #include <memoria/v1/core/packed/misc/packed_sized_struct.hpp>
 
 namespace memoria {
+namespace v1 {
 
 
 
 
 template <typename Profile>
-struct BTTypes<Profile, memoria::Sequence<1, true> >: public BTTypes<Profile, memoria::BTSingleStream> {
+struct BTTypes<Profile, v1::Sequence<1, true> >: public BTTypes<Profile, v1::BTSingleStream> {
 
-    typedef BTTypes<Profile, memoria::BTSingleStream>                           Base;
+    typedef BTTypes<Profile, v1::BTSingleStream>                           Base;
 
     typedef UBigInt                                                             Value;
     typedef TypeList<BigInt>                                                    KeysList;
@@ -97,4 +98,4 @@ struct BTTypes<Profile, memoria::Sequence<1, true> >: public BTTypes<Profile, me
 };
 
 
-}
+}}

@@ -11,6 +11,7 @@
 
 
 namespace memoria {
+namespace v1 {
 namespace louds     {
 
 
@@ -125,4 +126,4 @@ public:
 
 
 }
-}
+}}

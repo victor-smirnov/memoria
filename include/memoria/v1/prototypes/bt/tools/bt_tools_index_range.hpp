@@ -22,6 +22,7 @@
 #include <utility>
 
 namespace memoria {
+namespace v1 {
 namespace bt        {
 
 
@@ -63,13 +64,13 @@ template <typename T, typename RangesList>
 struct IndexDescr {};
 
 template <typename T, Int From_, Int To_>
-struct SumVector: public memoria::core::StaticVector<T, To_ - From_> {
+struct SumVector: public v1::core::StaticVector<T, To_ - From_> {
     static const Int To     = To_;
     static const Int From   = From_;
 };
 
 template <typename T, Int From_, Int To_>
-struct MaxVector: public memoria::core::StaticVector<T, To_ - From_> {
+struct MaxVector: public v1::core::StaticVector<T, To_ - From_> {
     static const Int To     = To_;
     static const Int From   = From_;
 };
@@ -385,11 +386,11 @@ struct BranchNodeRangeListBuilder<TypeList<BranchStruct, BTail...>, TypeList<Lea
             Offset
     >::OffsetList;
 
-    static_assert(memoria::bt::CheckRangeList<IndexesSize<BranchStruct>::Value, List>::Value, "RangeList exceeds PackedStruct size");
+    static_assert(v1::bt::CheckRangeList<IndexesSize<BranchStruct>::Value, List>::Value, "RangeList exceeds PackedStruct size");
 
     using Type = MergeLists<
             TL<
-                typename memoria::bt::GlueRanges<List>::Type
+                typename v1::bt::GlueRanges<List>::Type
             >,
             typename BranchNodeRangeListBuilder<
                 TypeList<BTail...>,
@@ -430,7 +431,7 @@ struct IteratorBranchNodeEntryBuilder<TL<BranchStruct, BTail...>, TL<RangeList, 
     using Type = MergeLists<
             typename MakeTuple<
                 typename AccumBuilderH<
-                    typename memoria::AccumType<BranchStruct>::Type,
+                    typename v1::AccumType<BranchStruct>::Type,
                     RangeList,
                     IndexesSize<BranchStruct>::Value
                 >::Type
@@ -579,7 +580,7 @@ struct AccumItem: public LeafToBranchIndexTranslator<LeafStructList, LeafPath, 0
 public:
     using Base = LeafToBranchIndexTranslator<LeafStructList, LeafPath, 0>;
 
-    static constexpr Int BranchIdx  = memoria::list_tree::LeafCountInf<LeafStructList, LeafPath, 2>::Value - Base::LocalLeafOffset;
+    static constexpr Int BranchIdx  = v1::list_tree::LeafCountInf<LeafStructList, LeafPath, 2>::Value - Base::LocalLeafOffset;
 
     static constexpr Int LeafPrefix = Base::BranchIndex;
 
@@ -628,7 +629,7 @@ public:
 
 template <typename LeafStructList, typename LeafPath>
 struct PackedStructValueTypeH {
-    static const Int LeafIdx = memoria::list_tree::LeafCount<LeafStructList, LeafPath>::Value;
+    static const Int LeafIdx = v1::list_tree::LeafCount<LeafStructList, LeafPath>::Value;
     using PkdStruct = Select<LeafIdx, Linearize<LeafStructList>>;
 
     using Type = typename AccumType<PkdStruct>::Type;
@@ -735,4 +736,4 @@ private:
 
 
 }
-}
+}}

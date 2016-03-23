@@ -18,6 +18,7 @@
 #include <utility>
 
 namespace memoria {
+namespace v1 {
 
 template <typename Struct, Int Index> struct SubstreamDescr;
 
@@ -31,7 +32,7 @@ class MakeRtnTypeList<TypeList<SubstreamDescr<Head, Index>, Tail...>, GroupIdx, 
 
     using FnType = typename std::remove_reference<Fn>::type;
 
-    using RtnType = memoria::detail::pd::FnRtnType<Fn, GroupIdx, Index, StreamIdx, Head*, Args...>;
+    using RtnType = v1::detail::pd::FnRtnType<Fn, GroupIdx, Index, StreamIdx, Head*, Args...>;
 
 public:
     using Type = MergeLists<
@@ -63,7 +64,7 @@ class ContainsVoidRtnType<TypeList<SubstreamDescr<Head, Index>, Tail...>, GroupI
 
     using FnType = typename std::remove_reference<Fn>::type;
 
-    using RtnType = memoria::detail::pd::FnRtnType<Fn, GroupIdx, Index, StreamIdx, Head*, Args...>;
+    using RtnType = v1::detail::pd::FnRtnType<Fn, GroupIdx, Index, StreamIdx, Head*, Args...>;
 
 public:
     static const bool Value = IsVoid<RtnType>::Value ||
@@ -89,7 +90,7 @@ class MakeRtnTypeListConst<TypeList<SubstreamDescr<Head, Index>, Tail...>, Group
 
     using FnType = typename std::remove_reference<Fn>::type;
 
-    using RtnType = memoria::detail::pd::FnRtnType<Fn, GroupIdx, Index, StreamIdx, const Head*, Args...>;
+    using RtnType = v1::detail::pd::FnRtnType<Fn, GroupIdx, Index, StreamIdx, const Head*, Args...>;
 
 public:
 
@@ -112,7 +113,7 @@ class ContainsVoidRtnTypeConst<TypeList<SubstreamDescr<Head, Index>, Tail...>, G
 
     using FnType = typename std::remove_reference<Fn>::type;
 
-    using RtnType = memoria::detail::pd::FnRtnType<Fn, GroupIdx, Index, StreamIdx, const Head*, Args...>;
+    using RtnType = v1::detail::pd::FnRtnType<Fn, GroupIdx, Index, StreamIdx, const Head*, Args...>;
 public:
 
     static const bool Value = IsVoid<RtnType>::Value ||
@@ -133,4 +134,4 @@ public:
 
 
 }
-}
+}}

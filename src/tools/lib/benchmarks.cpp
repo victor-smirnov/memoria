@@ -11,6 +11,7 @@
 #include <fstream>
 
 namespace memoria {
+namespace v1 {
 
 BenchmarkTaskGroup::~BenchmarkTaskGroup() throw ()
 {
@@ -244,4 +245,4 @@ void GnuplotGraph::BuildGnuplotScript(StringRef file_name)
 
 
 
-}
+}}

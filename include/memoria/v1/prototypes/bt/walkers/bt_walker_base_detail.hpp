@@ -13,6 +13,7 @@
 #include <tuple>
 
 namespace memoria {
+namespace v1 {
 namespace bt      {
 namespace detail  {
 
@@ -55,7 +56,7 @@ namespace {
         static void process(Walker& walker, const Node* node, BranchNodeEntry& accum, Args&&... args)
         {
             using RangesTuple   = typename std::tuple_element<Idx, BranchNodeEntry>::type;
-            using RangesIdxList = memoria::list_tree::MakeValueList<Int, 0, std::tuple_size<RangesTuple>::value>;
+            using RangesIdxList = v1::list_tree::MakeValueList<Int, 0, std::tuple_size<RangesTuple>::value>;
 
             IteratorSubstreamsRangesListWalker<IntList<Idx, Tail...>> w;
 
@@ -105,7 +106,7 @@ struct IteratorStreamRangesListWalker<IntList<StreamIdx, Tail...>> {
         const Int SubstreamsStartIdx = Node::template StreamStartIdx<StreamIdx>::Value;
         const Int StreamSize         = Node::template StreamSize<StreamIdx>::Value;
 
-        using StreamIdxList = memoria::list_tree::MakeValueList<Int, SubstreamsStartIdx, SubstreamsStartIdx + StreamSize>;
+        using StreamIdxList = v1::list_tree::MakeValueList<Int, SubstreamsStartIdx, SubstreamsStartIdx + StreamSize>;
 
         IteratorSubstreamsRangesListWalker<StreamIdxList>::process(walker, node, accum, std::forward<Args>(args)...);
 
@@ -133,7 +134,7 @@ template <
     typename... Tail,
     Int... RTail
 >
-struct LeafIndexRangeWalker<AccumItemH, TL<memoria::bt::SumRange<From, To>, Tail...>, IntList<Offset, RTail...>> {
+struct LeafIndexRangeWalker<AccumItemH, TL<v1::bt::SumRange<From, To>, Tail...>, IntList<Offset, RTail...>> {
 
     template <typename StreamObj, typename Walker, typename Accum, typename... Args>
     static void process(const StreamObj* obj, Walker& walker, Accum& accum, Args&&... args)
@@ -154,7 +155,7 @@ template <
     typename... Tail,
     Int... RTail
 >
-struct LeafIndexRangeWalker<AccumItemH, TL<memoria::bt::MaxRange<From, To>, Tail...>, IntList<Offset, RTail...>> {
+struct LeafIndexRangeWalker<AccumItemH, TL<v1::bt::MaxRange<From, To>, Tail...>, IntList<Offset, RTail...>> {
 
     template <typename StreamObj, typename Walker, typename Accum, typename... Args>
     static void process(const StreamObj* obj, Walker& walker, Accum& accum, Args&&... args)
@@ -191,8 +192,8 @@ struct LeafAccumWalker {
     {
         constexpr Int SubstreamIdx = StreamIdx + Idx;
 
-        using LeafPath   = typename memoria::list_tree::BuildTreePath<LeafStructList, SubstreamIdx>::Type;
-        using AccumItemH = memoria::bt::AccumItem<LeafStructList, LeafPath, Accum>;
+        using LeafPath   = typename v1::list_tree::BuildTreePath<LeafStructList, SubstreamIdx>::Type;
+        using AccumItemH = v1::bt::AccumItem<LeafStructList, LeafPath, Accum>;
 
         using RangeList = Select<SubstreamIdx, Linearize<LeafRangeList, 2>>;
         using RangeOffsetList = Select<SubstreamIdx, Linearize<LeafRangeOffsetList>>;
@@ -204,4 +205,4 @@ struct LeafAccumWalker {
 }
 
 }
-}
+}}

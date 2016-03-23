@@ -6,16 +6,16 @@
 
 #pragma once
 
-#include <string>
 #include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/core/tools/config.hpp>
 #include <memoria/v1/core/tools/strings/string_buffer.hpp>
 
-
+#include <string>
 
 #include <stdlib.h>
 
 namespace memoria {
+namespace v1 {
 
 using namespace std;
 
@@ -92,4 +92,4 @@ MEMORIA_API const char* ExtractMemoriaPath(const char* path);
 
 ostream& operator<<(ostream& out, const MemoriaThrowable& t);
 
-}
+}}

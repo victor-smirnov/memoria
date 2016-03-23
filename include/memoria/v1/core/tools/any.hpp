@@ -9,6 +9,7 @@
 #include <typeinfo>
 
 namespace memoria {
+namespace v1 {
 
 template <typename> struct Any2Type;
 
@@ -205,4 +206,4 @@ using namespace memoria;
 
 ostream& operator<<(ostream& out, const Any& any);
 
-}
+}}

@@ -10,6 +10,7 @@
 #include <memoria/v1/core/types/list/append.hpp>
 
 namespace memoria {
+namespace v1 {
 
 
 template <typename List, Int Len> struct SublistFromStart;
@@ -116,4 +117,4 @@ struct Sublist {
     >::Type;
 };
 
-}
+}}

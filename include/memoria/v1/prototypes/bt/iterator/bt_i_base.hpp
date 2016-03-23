@@ -15,8 +15,9 @@
 #include <iostream>
 
 namespace memoria {
+namespace v1 {
 
-using namespace memoria::bt;
+using namespace v1::bt;
 
 
 MEMORIA_BT_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(BTIteratorBase)
@@ -322,4 +323,4 @@ public:
 
 MEMORIA_BT_ITERATOR_BASE_CLASS_END
 
-} //memoria
+}}

@@ -13,6 +13,7 @@
 #include <tuple>
 
 namespace memoria {
+namespace v1 {
 namespace bt        {
 
 namespace detail {
@@ -31,11 +32,11 @@ using BuildTopLevelLeafSubsets = typename BuildTopLevelLeafSubsetsH<List, Offset
 
 template <typename List, Int Offset, Int Idx, Int Max>
 class BuildTopLevelLeafSubsetsH {
-    static const Int LeafOffsetInf = memoria::list_tree::LeafCountInf<List, IntList<Idx>>::Value;
-    static const Int LeafOffsetSup = memoria::list_tree::LeafCountSup<List, IntList<Idx>>::Value;
+    static const Int LeafOffsetInf = v1::list_tree::LeafCountInf<List, IntList<Idx>>::Value;
+    static const Int LeafOffsetSup = v1::list_tree::LeafCountSup<List, IntList<Idx>>::Value;
 public:
     using Type = MergeLists<
-            memoria::list_tree::MakeValueList<
+            v1::list_tree::MakeValueList<
                 Int,
                 LeafOffsetInf + Offset,
                 LeafOffsetSup + Offset
@@ -141,4 +142,4 @@ struct GroupDispatcher<Dispatcher, TypeList<>, GroupIdx>
 
 
 }
-}
+}}

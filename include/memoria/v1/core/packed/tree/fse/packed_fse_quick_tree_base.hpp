@@ -10,6 +10,7 @@
 
 
 namespace memoria {
+namespace v1 {
 
 template <typename IndexValueT, typename ValueT, Int kBranchingFactor, Int kValuesPerBranch> class PkdFQTreeBase;
 
@@ -894,4 +895,4 @@ protected:
 };
 
 
-}
+}}

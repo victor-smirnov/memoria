@@ -13,6 +13,7 @@
 #include <tuple>
 
 namespace memoria {
+namespace v1 {
 namespace louds     {
 
 template<typename LabedDescr> struct LabelTypeTF;
@@ -87,4 +88,4 @@ public:
 };
 
 }
-}
+}}
