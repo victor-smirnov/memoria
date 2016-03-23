@@ -29,9 +29,7 @@
 #endif
 
 
-
-
-#ifndef MEMORIA_AT
+#ifndef MEMORIA_SOURCE
 
 #define MEMORIA_JOIN( X, Y ) MEMORIA_INT0_JOIN( X, Y )
 #define MEMORIA_INT0_JOIN( X, Y ) MEMORIA_INT1_JOIN(X,Y)
@@ -41,14 +39,6 @@
 #define MEMORIA_TOSTRING(x) MEMORIA_STRINGIFY(x)
 
 #define MEMORIA_AT MEMORIA_TOSTRING(__LINE__)
-
-#endif
-
-
-
-
-
-#ifndef MEMORIA_SOURCE
 
 #define MEMORIA_SOURCE (__FILE__ ":" MEMORIA_AT)
 #define MEMORIA_RAW_SOURCE (__FILE__ ":" MEMORIA_AT)
