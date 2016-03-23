@@ -20,7 +20,7 @@ using namespace memoria::tools;
 using namespace std;
 
 using CtrT      = DCtrTF<Table<BigInt, Byte, PackedSizeType::VARIABLE>>::Type;
-using Provider  = ::memoria::bttl::DeterministicDataInputProvider<CtrT>;
+using Provider  = memoria::bttl::DeterministicDataInputProvider<CtrT>;
 
 
 struct ScanFn {

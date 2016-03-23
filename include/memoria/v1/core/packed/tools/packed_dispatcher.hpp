@@ -97,7 +97,7 @@ public:
 
     template <Int From = 0, Int To = sizeof...(Tail) + 1, Int GroupIdx_ = GroupIdx>
     using SubrangeDispatcher = PackedDispatcher<
-                                typename ::memoria::Sublist<
+                                typename memoria::Sublist<
                                     List,
                                     From, To
                                 >::Type,
@@ -106,7 +106,7 @@ public:
 
     template <typename Subset, Int GroupIdx_ = GroupIdx>
     using SubsetDispatcher = PackedDispatcher<
-                                ::memoria::ListSubset<
+                                memoria::ListSubset<
                                     List,
                                     Subset
                                 >,
@@ -656,7 +656,7 @@ public:
 
     template <Int From = 0, Int To = 1, Int GroupIdx_ = GroupIdx>
     using SubrangeDispatcher = PackedDispatcher<
-                                typename ::memoria::Sublist<
+                                typename memoria::Sublist<
                                     TypeList<SubstreamDescr<Head, Index>>,
                                     From, To
                                 >::Type,
@@ -665,7 +665,7 @@ public:
 
     template <typename Subset, Int GroupIdx_ = GroupIdx>
     using SubsetDispatcher = PackedDispatcher<
-                                    ::memoria::ListSubset<
+                                    memoria::ListSubset<
                                         TypeList<SubstreamDescr<Head, Index>>,
                                         Subset
                                     >,

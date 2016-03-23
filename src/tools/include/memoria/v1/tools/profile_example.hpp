@@ -65,18 +65,18 @@ public:
 
     void check(Allocator& allocator, const char* source)
     {
-        ::memoria::check<Allocator>(allocator, "Allocator check failed", source);
+        memoria::check<Allocator>(allocator, "Allocator check failed", source);
     }
 
     void check(Allocator& allocator, const char* message, const char* source)
     {
-        ::memoria::check<Allocator>(allocator, message, source);
+        memoria::check<Allocator>(allocator, message, source);
     }
 
     template <typename CtrType>
     void checkCtr(CtrType& ctr, const char* message, const char* source)
     {
-        ::memoria::checkCtr<CtrType>(ctr, message, source);
+        memoria::checkCtr<CtrType>(ctr, message, source);
     }
 
     template <typename CtrType>

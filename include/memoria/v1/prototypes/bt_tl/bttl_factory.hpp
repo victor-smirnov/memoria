@@ -95,7 +95,7 @@ struct BTTypes<Profile, memoria::BTTreeLayout>: public BTTypes<Profile, memoria:
 
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {
-        typedef ::memoria::bttl::BTTLIteratorPrefixCache<Iterator, Container>   Type;
+        typedef memoria::bttl::BTTLIteratorPrefixCache<Iterator, Container>   Type;
     };
 };
 

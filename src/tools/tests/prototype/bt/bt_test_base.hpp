@@ -127,22 +127,22 @@ public:
 
     void check(const SnapshotPtr& snapshot, const char* source)
     {
-        ::memoria::check(snapshot, "Snapshot check failed", source);
+        memoria::check(snapshot, "Snapshot check failed", source);
     }
 
     void check(const char* source)
     {
-        ::memoria::check(snapshot_, "Snapshot check failed", source);
+        memoria::check(snapshot_, "Snapshot check failed", source);
     }
 
     void check(const SnapshotPtr& snapshot, const char* msg, const char* source)
     {
-        ::memoria::check(snapshot, msg, source);
+        memoria::check(snapshot, msg, source);
     }
 
     void check(const char* msg, const char* source)
     {
-        ::memoria::check(snapshot_, msg, source);
+        memoria::check(snapshot_, msg, source);
     }
 
     // FIXME: remove it
@@ -234,7 +234,7 @@ public:
 
     virtual void checkAllocator(const char* msg, const char* source)
     {
-        ::memoria::check<Allocator>(this->allocator(), msg, source);
+        memoria::check<Allocator>(this->allocator(), msg, source);
     }
 
     virtual String getAllocatorFileName(StringRef infix = "") const

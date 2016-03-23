@@ -35,7 +35,7 @@ public:
         registerTask(new PackedSearchableSequenceMiscTest<
                 1,
                 PkdFQTreeT<Int, 2>,
-                ::memoria::BitmapReindexFn,
+                memoria::BitmapReindexFn,
                 BitmapSelectFn,
                 BitmapRankFn,
                 BitmapToolsFn
@@ -44,7 +44,7 @@ public:
         registerTask(new PackedSearchableSequenceMiscTest<
                         4,
                         PkdFQTreeT<Int, 16>,
-                        ::memoria::ReindexFn,
+                        memoria::ReindexFn,
                         SeqSelectFn,
                         SeqRankFn,
                         SeqToolsFn
@@ -91,7 +91,7 @@ public:
         registerTask(new PackedSearchableSequenceRankTest<
                 1,
                 PkdFQTreeT<Int, 2>,
-                ::memoria::BitmapReindexFn,
+                memoria::BitmapReindexFn,
                  BitmapSelectFn,
                  BitmapRankFn,
                  BitmapToolsFn
@@ -100,7 +100,7 @@ public:
         registerTask(new PackedSearchableSequenceRankTest<
                 4,
                 PkdFQTreeT<Int, 16>,
-                ::memoria::ReindexFn,
+                memoria::ReindexFn,
                 SeqSelectFn,
                 SeqRankFn,
                 SeqToolsFn
@@ -132,7 +132,7 @@ public:
         registerTask(new PackedSearchableSequenceSelectTest<
                 1,
                 PkdFQTreeT<Int, 2>,
-                ::memoria::BitmapReindexFn,
+                memoria::BitmapReindexFn,
                  BitmapSelectFn,
                  BitmapRankFn,
                  BitmapToolsFn
@@ -141,7 +141,7 @@ public:
         registerTask(new PackedSearchableSequenceSelectTest<
                 4,
                 PkdFQTreeT<Int, 16>,
-                ::memoria::ReindexFn,
+                memoria::ReindexFn,
                 SeqSelectFn,
                 SeqRankFn,
                 SeqToolsFn

@@ -121,7 +121,7 @@ private:
     ContainerMetadataRepository*  metadata_;
 
     template <typename, typename>
-    friend class ::memoria::PersistentInMemAllocatorT;
+    friend class memoria::PersistentInMemAllocatorT;
 
 
 public:

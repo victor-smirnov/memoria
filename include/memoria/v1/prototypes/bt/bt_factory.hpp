@@ -168,7 +168,7 @@ struct BTTypes {
 
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {
-        typedef ::memoria::bt::BTreeIteratorPrefixCache<Iterator, Container>   Type;
+        typedef memoria::bt::BTreeIteratorPrefixCache<Iterator, Container>   Type;
     };
 
 

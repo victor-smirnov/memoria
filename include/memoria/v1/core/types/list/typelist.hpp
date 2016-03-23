@@ -66,7 +66,7 @@ template <typename T>
 struct TypePrinter {
     static std::ostream& print(std::ostream& out)
     {
-        out<<::memoria::TypeNameFactory<T>::name();
+        out<<memoria::TypeNameFactory<T>::name();
         return out;
     }
 
@@ -85,7 +85,7 @@ template <typename Head, typename... Tail>
 struct ListPrinter<TypeList<Head, Tail...>> {
     static std::ostream& print(std::ostream& out = std::cout)
     {
-        out<<::memoria::TypeNameFactory<Head>::name()<<std::endl;
+        out<<memoria::TypeNameFactory<Head>::name()<<std::endl;
         return ListPrinter<TypeList<Tail...>>::print(out);
     }
 };

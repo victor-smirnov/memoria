@@ -20,8 +20,8 @@ using namespace memoria::tools;
 using namespace std;
 
 using CtrT      = DCtrTF<Table<BigInt, Byte, PackedSizeType::FIXED>>::Type;
-//using Provider    = ::memoria::bttl::RandomDataInputProvider<CtrT, RngInt>;
-using Provider  = ::memoria::bttl::DeterministicDataInputProvider<CtrT>;
+//using Provider    = memoria::bttl::RandomDataInputProvider<CtrT, RngInt>;
+using Provider  = memoria::bttl::DeterministicDataInputProvider<CtrT>;
 using Position  = CtrT::Types::Position;
 
 

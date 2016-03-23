@@ -294,7 +294,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            ::memoria::dumpArray<Byte>(out_, count, [=](Int idx){return value[idx];});
+            memoria::dumpArray<Byte>(out_, count, [=](Int idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -305,7 +305,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            ::memoria::dumpArray<UByte>(out_, count, [=](Int idx){return value[idx];});
+            memoria::dumpArray<UByte>(out_, count, [=](Int idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -316,7 +316,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            ::memoria::dumpArray<Short>(out_, count, [=](Int idx){return value[idx];});
+            memoria::dumpArray<Short>(out_, count, [=](Int idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -328,7 +328,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            ::memoria::dumpArray<UShort>(out_, count, [=](Int idx){return value[idx];});
+            memoria::dumpArray<UShort>(out_, count, [=](Int idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -339,7 +339,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            ::memoria::dumpArray<Int>(out_, count, [=](Int idx){return value[idx];});
+            memoria::dumpArray<Int>(out_, count, [=](Int idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -351,7 +351,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            ::memoria::dumpArray<UInt>(out_, count, [=](Int idx){return value[idx];});
+            memoria::dumpArray<UInt>(out_, count, [=](Int idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -362,7 +362,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            ::memoria::dumpArray<BigInt>(out_, count, [=](Int idx){return value[idx];});
+            memoria::dumpArray<BigInt>(out_, count, [=](Int idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -373,7 +373,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            ::memoria::dumpArray<UBigInt>(out_, count, [=](Int idx){return value[idx];});
+            memoria::dumpArray<UBigInt>(out_, count, [=](Int idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -384,7 +384,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            ::memoria::dumpArray<float>(out_, count, [=](Int idx){return value[idx];});
+            memoria::dumpArray<float>(out_, count, [=](Int idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -395,7 +395,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            ::memoria::dumpArray<double>(out_, count, [=](Int idx){return value[idx];});
+            memoria::dumpArray<double>(out_, count, [=](Int idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -433,7 +433,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            ::memoria::dumpArray<UUID>(out_, count, [=](Int idx){return value[idx];});
+            memoria::dumpArray<UUID>(out_, count, [=](Int idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -443,7 +443,7 @@ public:
     virtual void value(const char* name, const BigInteger* value, Int count = 1, Int kind = 0) {
         if (kind == BYTE_ARRAY)
         {
-            ::memoria::dumpArray<BigInteger>(out_, count, [=](Int idx){return value[idx];});
+            memoria::dumpArray<BigInteger>(out_, count, [=](Int idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);
@@ -454,7 +454,7 @@ public:
     {
         if (kind == BYTE_ARRAY)
         {
-            ::memoria::dumpArray<String>(out_, count, [=](Int idx){return value[idx];});
+            memoria::dumpArray<String>(out_, count, [=](Int idx){return value[idx];});
         }
         else {
             OutNumber(name, value, count, kind);

@@ -73,8 +73,8 @@
 
 #define MEMORIA_AT MEMORIA_TOSTRING(__LINE__)
 
-#define MEMORIA_SOURCE ::memoria::ExtractMemoriaPath(__FILE__ ":" MEMORIA_AT)
-#define MEMORIA_RAW_SOURCE ::memoria::ExtractMemoriaPath(__FILE__ ":" MEMORIA_AT)
+#define MEMORIA_SOURCE memoria::ExtractMemoriaPath(__FILE__ ":" MEMORIA_AT)
+#define MEMORIA_RAW_SOURCE memoria::ExtractMemoriaPath(__FILE__ ":" MEMORIA_AT)
 #define MA_SRC MEMORIA_SOURCE
 #define MA_RAW_SRC MEMORIA_RAW_SOURCE
 
