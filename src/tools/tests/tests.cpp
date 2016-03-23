@@ -92,13 +92,13 @@ int main(int argc, const char** argv, const char** envp)
 
 //        runner.registerTask(new BTTestSuite());
         runner.registerTask(new BTTLTestSuite());
-//        runner.registerTask(new BTSSTestSuite());
+        runner.registerTask(new BTSSTestSuite());
 
 //        runner.registerTask(new TableTestSuite());
 
-//        runner.registerTask(new MapTestSuite());
-//        runner.registerTask(new VectorTestSuite());
-//        runner.registerTask(new MultiMapTestSuite());
+        runner.registerTask(new MapTestSuite());
+        runner.registerTask(new VectorTestSuite());
+        runner.registerTask(new MultiMapTestSuite());
 //        runner.registerTask(new SequenceTestSuite());
 //        runner.registerTask(new LabeledTreeTestSuite());
 //        runner.registerTask(new VTreeTestSuite());
