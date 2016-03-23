@@ -83,7 +83,7 @@ class BTTLIterTest: public BTTLTestBase<CtrName, AllocatorT, ProfileT> {
         {
             for (Int c = start; c < end; c++)
             {
-                MEMORIA_ASSERT(obj->value(c), ==, expected_);
+                MEMORIA_V1_ASSERT(obj->value(c), ==, expected_);
             }
         }
     };

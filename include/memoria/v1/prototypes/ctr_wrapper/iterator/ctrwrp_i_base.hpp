@@ -11,7 +11,7 @@
 namespace memoria {
 namespace v1 {
 
-MEMORIA_BT_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(CtrWrapperIteratorBase)
+MEMORIA_V1_BT_ITERATOR_BASE_CLASS_NO_CTOR_BEGIN(CtrWrapperIteratorBase)
 
     typedef TypesType                                                           Types;
     typedef Ctr<typename Types::CtrTypes>                                       Container;

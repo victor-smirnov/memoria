@@ -404,7 +404,7 @@ public:
                         shared->refresh();
                     }
                     else {
-                        MEMORIA_ASSERT(shared->state(), ==, Shared::UPDATE);
+                        MEMORIA_V1_ASSERT(shared->state(), ==, Shared::UPDATE);
 
                         shared->set_page(page_opt.value().page());
 
@@ -761,7 +761,7 @@ protected:
 
     Shared* get_shared(Page* page)
     {
-        MEMORIA_ASSERT_TRUE(page != nullptr);
+        MEMORIA_V1_ASSERT_TRUE(page != nullptr);
 
         Shared* shared = pool_.get(page->id());
 

@@ -12,7 +12,7 @@
 namespace memoria {
 namespace v1 {
 
-MEMORIA_CONTAINER_PART_BEGIN(v1::wt::CtrChecksName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(v1::wt::CtrChecksName)
 
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
@@ -106,6 +106,6 @@ MEMORIA_CONTAINER_PART_BEGIN(v1::wt::CtrChecksName)
     }
 
 
-MEMORIA_CONTAINER_PART_END
+MEMORIA_V1_CONTAINER_PART_END
 
 }}

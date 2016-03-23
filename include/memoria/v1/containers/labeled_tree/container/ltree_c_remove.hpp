@@ -17,7 +17,7 @@
 namespace memoria {
 namespace v1 {
 
-MEMORIA_CONTAINER_PART_BEGIN(v1::louds::CtrRemoveName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(v1::louds::CtrRemoveName)
 
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
@@ -50,7 +50,7 @@ MEMORIA_CONTAINER_PART_BEGIN(v1::louds::CtrRemoveName)
         template <Int Offset, bool StreamStart, Int Idx, typename SeqTypes, typename BranchNodeEntryItem>
         void stream(PkdFSSeq<SeqTypes>* seq, BranchNodeEntryItem& accum, Int idx)
         {
-            MEMORIA_ASSERT_TRUE(seq != nullptr);
+            MEMORIA_V1_ASSERT_TRUE(seq != nullptr);
 
             Int sym = seq->symbol(idx);
 
@@ -155,11 +155,11 @@ MEMORIA_CONTAINER_PART_BEGIN(v1::louds::CtrRemoveName)
 
         auto iter = self.findNode(node);
 
-        MEMORIA_ASSERT_TRUE(iter->symbol() == 1);
+        MEMORIA_V1_ASSERT_TRUE(iter->symbol() == 1);
 
         iter->firstChild();
 
-        MEMORIA_ASSERT_TRUE(iter->symbol() == 0);
+        MEMORIA_V1_ASSERT_TRUE(iter->symbol() == 0);
 
         iter->remove();
 
@@ -173,7 +173,7 @@ MEMORIA_CONTAINER_PART_BEGIN(v1::louds::CtrRemoveName)
 
         CtrSizeT idx = iter.pos();
 
-        MEMORIA_ASSERT_TRUE(iter.symbol() == 1);
+        MEMORIA_V1_ASSERT_TRUE(iter.symbol() == 1);
 
         iter.firstChild();
 
@@ -182,7 +182,7 @@ MEMORIA_CONTAINER_PART_BEGIN(v1::louds::CtrRemoveName)
             iter.dumpPath();
         }
 
-        MEMORIA_ASSERT_TRUE(iter.symbol() == 0);
+        MEMORIA_V1_ASSERT_TRUE(iter.symbol() == 0);
 
         iter.remove();
 
@@ -190,6 +190,6 @@ MEMORIA_CONTAINER_PART_BEGIN(v1::louds::CtrRemoveName)
         iter.remove();
     }
 
-MEMORIA_CONTAINER_PART_END
+MEMORIA_V1_CONTAINER_PART_END
 
 }}

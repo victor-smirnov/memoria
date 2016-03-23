@@ -20,7 +20,7 @@ namespace memoria {
 namespace v1 {
 
 
-MEMORIA_ITERATOR_PART_BEGIN(v1::seq_dense::IterRankName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(v1::seq_dense::IterRankName)
 
     typedef Ctr<typename Types::CtrTypes>                                       Container;
 
@@ -87,11 +87,11 @@ MEMORIA_ITERATOR_PART_BEGIN(v1::seq_dense::IterRankName)
         return self().template rank_bw_<IntList<0>>(symbol, delta);
     }
 
-MEMORIA_ITERATOR_PART_END
+MEMORIA_V1_ITERATOR_PART_END
 
 
-#define M_TYPE      MEMORIA_ITERATOR_TYPE(v1::seq_dense::IterRankName)
-#define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(v1::seq_dense::IterRankName)
+#define M_PARAMS    MEMORIA_V1_ITERATOR_TEMPLATE_PARAMS
 
 M_PARAMS
 BigInt M_TYPE::rank(Int symbol) const
@@ -156,7 +156,7 @@ BigInt M_TYPE::ranki(Int symbol) const
 //{
 //    auto& self  = this->self();
 //
-//    MEMORIA_ASSERT(delta, >=, 0);
+//    MEMORIA_V1_ASSERT(delta, >=, 0);
 //
 //    typename Types::template RankFWWalker<Types, IntList<0>> walker(symbol, delta);
 //
@@ -169,7 +169,7 @@ BigInt M_TYPE::ranki(Int symbol) const
 //{
 //    auto& self  = this->self();
 //
-//    MEMORIA_ASSERT(delta, >=, 0);
+//    MEMORIA_V1_ASSERT(delta, >=, 0);
 //
 //    typename Types::template RankBWWalker<Types, IntList<0>> walker(symbol, delta);
 //

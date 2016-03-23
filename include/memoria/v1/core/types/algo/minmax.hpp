@@ -29,7 +29,7 @@ template <
 >
 class MinElement {
 
-    MEMORIA_STATIC_ASSERT(IsList<List>::Value);
+    MEMORIA_V1_STATIC_ASSERT(IsList<List>::Value);
 
     template <typename Config, typename Item, typename Accumulator>
     struct Handler {
@@ -73,7 +73,7 @@ template <
 >
 class MaxElement {
 
-    MEMORIA_STATIC_ASSERT(IsList<List>::Value);
+    MEMORIA_V1_STATIC_ASSERT(IsList<List>::Value);
 
     template <typename Config, typename Item, typename Accumulator>
     struct Handler {

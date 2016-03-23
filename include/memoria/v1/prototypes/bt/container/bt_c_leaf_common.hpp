@@ -20,7 +20,7 @@ using namespace v1::core;
 
 using namespace std;
 
-MEMORIA_CONTAINER_PART_BEGIN(v1::bt::LeafCommonName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::LeafCommonName)
 public:
     using typename Base::Types;
 
@@ -59,7 +59,7 @@ public:
         });
     }
 
-    MEMORIA_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, BranchNodeEntry);
+    MEMORIA_V1_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, BranchNodeEntry);
     BranchNodeEntry split_leaf_node(NodeBaseG& src, NodeBaseG& tgt, const Position& split_at)
     {
         return LeafDispatcher::dispatch(src, tgt, SplitNodeFn(), split_at);
@@ -425,11 +425,11 @@ protected:
         }
     }
 
-MEMORIA_CONTAINER_PART_END
+MEMORIA_V1_CONTAINER_PART_END
 
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::bt::LeafCommonName)
-#define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::bt::LeafCommonName)
+#define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 
 

@@ -51,7 +51,7 @@ public:
 
     PackedLoudsNode findRandomLeaf(const LoudsTree* tree)
     {
-        MEMORIA_ASSERT_TRUE(tree->tree_size() >= 1);
+        MEMORIA_V1_ASSERT_TRUE(tree->tree_size() >= 1);
 
         return findRandomLeaf(tree, tree->root());
     }

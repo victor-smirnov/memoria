@@ -21,7 +21,7 @@ namespace memoria {
 namespace v1 {
 namespace bt     {
 
-MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
+MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     using Types = typename Base::Types;
 
@@ -65,7 +65,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return node->root_metadata().model_name();
     }
 
-    MEMORIA_CONST_FN_WRAPPER_RTN(GetModelNameFn, getModelNameFn, UUID);
+    MEMORIA_V1_CONST_FN_WRAPPER_RTN(GetModelNameFn, getModelNameFn, UUID);
 
 
     template <typename Node>
@@ -74,7 +74,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         node->root_metadata().model_name() = name;
     }
 
-    MEMORIA_CONST_FN_WRAPPER(SetModelNameFn, setModelNameFn);
+    MEMORIA_V1_CONST_FN_WRAPPER(SetModelNameFn, setModelNameFn);
 
 
 
@@ -84,7 +84,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
      */
     UUID getModelName(ID root_id) const
     {
-        MEMORIA_ASSERT_NOT_EMPTY(root_id);
+        MEMORIA_V1_ASSERT_NOT_EMPTY(root_id);
 
         auto& self = this->self();
 
@@ -156,7 +156,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     }
 
 
-    MEMORIA_FN_WRAPPER_RTN(SetRootIdFn, setRootIdFn, Metadata);
+    MEMORIA_V1_FN_WRAPPER_RTN(SetRootIdFn, setRootIdFn, Metadata);
 
     virtual void setRoot(const UUID& name, const ID& root_id)
     {
@@ -171,8 +171,8 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     static Metadata getCtrRootMetadata(NodeBaseG node)
     {
-        MEMORIA_ASSERT_TRUE(node.isSet());
-        MEMORIA_ASSERT_TRUE(node->has_root_metadata());
+        MEMORIA_V1_ASSERT_TRUE(node.isSet());
+        MEMORIA_V1_ASSERT_TRUE(node->has_root_metadata());
 
         return node->root_metadata();
     }
@@ -186,7 +186,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     void setCtrRootMetadata(NodeBaseG& node, const Metadata& metadata) const
     {
-        MEMORIA_ASSERT_TRUE(node.isSet());
+        MEMORIA_V1_ASSERT_TRUE(node.isSet());
 
         self().updatePageG(node);
         node->setMetadata(metadata);
@@ -265,11 +265,11 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return node;
     }
 
-    MEMORIA_CONST_STATIC_FN_WRAPPER_RTN(CreateNodeFn, createNodeFn, NodeBaseG);
+    MEMORIA_V1_CONST_STATIC_FN_WRAPPER_RTN(CreateNodeFn, createNodeFn, NodeBaseG);
 
     NodeBaseG createNode(Short level, bool root, bool leaf, Int size = -1) const
     {
-        MEMORIA_ASSERT(level, >=, 0);
+        MEMORIA_V1_ASSERT(level, >=, 0);
 
         auto& self = this->self();
 
@@ -319,7 +319,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     NodeBaseG createRootNode(Short level, bool leaf, const Metadata& metadata) const
     {
-        MEMORIA_ASSERT(level, >=, 0);
+        MEMORIA_V1_ASSERT(level, >=, 0);
 
         auto& self = this->self();
 
@@ -354,11 +354,11 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         node->prepare();
     }
 
-    MEMORIA_CONST_FN_WRAPPER(PrepareNodeFn, prepareNode);
+    MEMORIA_V1_CONST_FN_WRAPPER(PrepareNodeFn, prepareNode);
 
     void prepareNode(NodeBaseG& node) const
     {
-        MEMORIA_ASSERT_TRUE(node.isSet());
+        MEMORIA_V1_ASSERT_TRUE(node.isSet());
 
         NodeDispatcher::dispatch(node, PrepareNodeFn(self()));
     }
@@ -439,7 +439,7 @@ MEMORIA_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         self.set_root(node->id());
     }
 
-MEMORIA_BT_MODEL_BASE_CLASS_END
+MEMORIA_V1_BT_MODEL_BASE_CLASS_END
 
 
 }}}

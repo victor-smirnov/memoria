@@ -18,7 +18,7 @@
 namespace memoria {
 namespace v1 {
 
-MEMORIA_CONTAINER_PART_BEGIN(v1::bttl_test::CtrApiName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bttl_test::CtrApiName)
 
 public:
     using Types             = typename Base::Types;
@@ -44,10 +44,10 @@ protected:
 
 
 
-MEMORIA_CONTAINER_PART_END
+MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::bttl_test::CtrApiName)
-#define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::bttl_test::CtrApiName)
+#define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 
 

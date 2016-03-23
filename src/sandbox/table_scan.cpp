@@ -95,27 +95,27 @@ int main(int argc, const char** argv, const char** envp) {
             iter = ctr.seek(0);
             for (Int r = 0; r < rows; r++)
             {
-                MEMORIA_ASSERT(iter.pos(), ==, r);
-                MEMORIA_ASSERT(iter.cache().abs_pos()[0], ==, r);
-                MEMORIA_ASSERT(iter.size(), ==, rows);
+                MEMORIA_V1_ASSERT(iter.pos(), ==, r);
+                MEMORIA_V1_ASSERT(iter.cache().abs_pos()[0], ==, r);
+                MEMORIA_V1_ASSERT(iter.size(), ==, rows);
 
                 iter.toData();
 
                 for (Int c = 0; c < cols; c++)
                 {
-                    MEMORIA_ASSERT(iter.pos(), ==, c);
-                    MEMORIA_ASSERT(iter.size(), ==, cols);
+                    MEMORIA_V1_ASSERT(iter.pos(), ==, c);
+                    MEMORIA_V1_ASSERT(iter.size(), ==, cols);
 
                     iter.toData();
 
                     iter.template scan<IntList<2>>(scan_fn);
-                    MEMORIA_ASSERT_TRUE(iter.isSEnd());
+                    MEMORIA_V1_ASSERT_TRUE(iter.isSEnd());
 
                     iter.toIndex();
                     iter.skipFw(1);
 
                     if (c == cols -1){
-                        MEMORIA_ASSERT_TRUE(iter.isSEnd());
+                        MEMORIA_V1_ASSERT_TRUE(iter.isSEnd());
                     }
                 }
 

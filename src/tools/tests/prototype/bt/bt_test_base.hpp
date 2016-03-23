@@ -159,7 +159,7 @@ public:
         if (!isReplayMode())
         {
             createAllocator(allocator_);
-            MEMORIA_ASSERT_NOT_NULL(allocator_.get());
+            MEMORIA_V1_ASSERT_NOT_NULL(allocator_.get());
         }
         else {
             loadAllocator(dump_name_);

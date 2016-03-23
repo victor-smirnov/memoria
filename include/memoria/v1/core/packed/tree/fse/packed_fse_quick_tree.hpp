@@ -70,8 +70,8 @@ public:
 
     static Int estimate_block_size(Int tree_capacity, Int density_hi = 1, Int density_lo = 1)
     {
-        MEMORIA_ASSERT(density_hi, ==, 1); // data density should not be set for this type of trees
-        MEMORIA_ASSERT(density_lo, ==, 1);
+        MEMORIA_V1_ASSERT(density_hi, ==, 1); // data density should not be set for this type of trees
+        MEMORIA_V1_ASSERT(density_lo, ==, 1);
 
         return block_size(tree_capacity);
     }
@@ -158,7 +158,7 @@ public:
 
     bool check_capacity(Int size) const
     {
-        MEMORIA_ASSERT_TRUE(size >= 0);
+        MEMORIA_V1_ASSERT_TRUE(size >= 0);
 
         auto alloc = this->allocator();
 
@@ -363,9 +363,9 @@ public:
     template <typename Fn>
     void read(Int block, Int start, Int end, Fn&& fn) const
     {
-        MEMORIA_ASSERT(end, <=, this->size());
-        MEMORIA_ASSERT(start, >=, 0);
-        MEMORIA_ASSERT(start, <=, end);
+        MEMORIA_V1_ASSERT(end, <=, this->size());
+        MEMORIA_V1_ASSERT(start, >=, 0);
+        MEMORIA_V1_ASSERT(start, <=, end);
 
         auto values = this->values(block);
 
@@ -381,9 +381,9 @@ public:
     template <typename Fn>
     void read(Int start, Int end, Fn&& fn) const
     {
-        MEMORIA_ASSERT(end, <=, this->size());
-        MEMORIA_ASSERT(start, >=, 0);
-        MEMORIA_ASSERT(start, <=, end);
+        MEMORIA_V1_ASSERT(end, <=, this->size());
+        MEMORIA_V1_ASSERT(start, >=, 0);
+        MEMORIA_V1_ASSERT(start, <=, end);
 
         const Value* vals[Blocks];
 
@@ -456,8 +456,8 @@ protected:
 
     void copyTo(MyType* other, Int copy_from, Int count, Int copy_to) const
     {
-        MEMORIA_ASSERT_TRUE(copy_from >= 0);
-        MEMORIA_ASSERT_TRUE(count >= 0);
+        MEMORIA_V1_ASSERT_TRUE(copy_from >= 0);
+        MEMORIA_V1_ASSERT_TRUE(count >= 0);
 
         for (Int block = 0; block < Blocks; block++)
         {

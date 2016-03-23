@@ -378,7 +378,7 @@ private:
     {
         String name = path_.top().getPath() + Platform::getFilePathSeparator() + String(descr);
         File file(name);
-        MEMORIA_ASSERT_TRUE(file.mkDir());
+        MEMORIA_V1_ASSERT_TRUE(file.mkDir());
         path_.push(file);
     }
 

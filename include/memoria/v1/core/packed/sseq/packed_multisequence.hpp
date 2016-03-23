@@ -120,7 +120,7 @@ public:
         const Sequence*     seq     = sequence();
         const LabelArray*   labels  = this->labels();
 
-        MEMORIA_ASSERT(to, <=, labels->value(0, subseq_num));
+        MEMORIA_V1_ASSERT(to, <=, labels->value(0, subseq_num));
 
         Int seq_pefix   = labels->sum(0, subseq_num);
 
@@ -164,7 +164,7 @@ public:
 
         Int seq_prefix  = labels->sum(0, subseq_num);
 
-        MEMORIA_ASSERT(idx, <=, labels->value(0, subseq_num));
+        MEMORIA_V1_ASSERT(idx, <=, labels->value(0, subseq_num));
 
         seq->insert(seq_prefix + idx, symbol);
 
@@ -183,7 +183,7 @@ public:
 
         Int seq_prefix  = labels->sum(0, subseq_num);
 
-        MEMORIA_ASSERT(idx, <=, labels->value(0, subseq_num));
+        MEMORIA_V1_ASSERT(idx, <=, labels->value(0, subseq_num));
 
         seq->removeSymbol(seq_prefix + idx);
 
@@ -205,7 +205,7 @@ public:
     void remove(Int subseq_num)
     {
         LabelArray* labels  = this->labels();
-        MEMORIA_ASSERT(labels->value(0, subseq_num), ==, 0);
+        MEMORIA_V1_ASSERT(labels->value(0, subseq_num), ==, 0);
 
         labels->removeSpace(subseq_num, subseq_num + 1);
     }
@@ -232,7 +232,7 @@ public:
         Int seq_prefix  = labels()->sum(0, seq_num);
         Int size        = labels()->value(0, seq_num);
 
-        MEMORIA_ASSERT(idx, <, size);
+        MEMORIA_V1_ASSERT(idx, <, size);
 
         return sequence()->symbol(seq_prefix + idx);
     }
@@ -243,7 +243,7 @@ public:
         Int seq_prefix  = labels()->sum(0, seq_num);
         Int size        = labels()->value(seq_num);
 
-        MEMORIA_ASSERT(idx, <, size);
+        MEMORIA_V1_ASSERT(idx, <, size);
 
         return sequence()->symbol(seq_prefix + idx);
     }

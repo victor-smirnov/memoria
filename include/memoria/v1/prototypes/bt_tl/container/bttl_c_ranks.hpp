@@ -18,7 +18,7 @@
 namespace memoria {
 namespace v1 {
 
-MEMORIA_CONTAINER_PART_BEGIN(v1::bttl::RanksName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bttl::RanksName)
 public:
     using Types             = typename Base::Types;
     using Iterator          = typename Base::Iterator;
@@ -107,8 +107,8 @@ public:
     {
         auto& self = this->self();
 
-        MEMORIA_ASSERT_TRUE(sizes.gteAll(0));
-        MEMORIA_ASSERT_TRUE(extent.gteAll(0));
+        MEMORIA_V1_ASSERT_TRUE(sizes.gteAll(0));
+        MEMORIA_V1_ASSERT_TRUE(extent.gteAll(0));
 
         LeafPrefixRanks prefixes;
 
@@ -327,8 +327,8 @@ protected:
 
     Int find_offset(const NodeBaseG& node, Int stream, Int idx) const
     {
-        MEMORIA_ASSERT_TRUE(stream >= 0 && stream < Streams - 1);
-        MEMORIA_ASSERT(idx, >=, 0);
+        MEMORIA_V1_ASSERT_TRUE(stream >= 0 && stream < Streams - 1);
+        MEMORIA_V1_ASSERT(idx, >=, 0);
 
         return self().process_count_substreams(node, stream, FindOffsetFn(), idx);
     }
@@ -485,10 +485,10 @@ private:
 
 
 
-MEMORIA_CONTAINER_PART_END
+MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::bttl::RanksName)
-#define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::bttl::RanksName)
+#define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 
 

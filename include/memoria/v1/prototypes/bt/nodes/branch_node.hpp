@@ -149,7 +149,7 @@ public:
 
     Metadata& root_metadata()
     {
-        MEMORIA_ASSERT_TRUE(!allocator_.is_empty(METADATA));
+        MEMORIA_V1_ASSERT_TRUE(!allocator_.is_empty(METADATA));
         return *allocator()->template get<Metadata>(METADATA);
     }
 
@@ -194,7 +194,7 @@ public:
     void initAllocator(Int entries)
     {
         Int page_size = this->page_size();
-        MEMORIA_ASSERT(page_size, >, (int)sizeof(Me) + PackedAllocator::my_size());
+        MEMORIA_V1_ASSERT(page_size, >, (int)sizeof(Me) + PackedAllocator::my_size());
 
         allocator_.setTopLevelAllocator();
         allocator_.init(page_size - sizeof(Me) + PackedAllocator::my_size(), entries);
@@ -829,8 +829,8 @@ public:
     {
         Int size = this->size();
 
-        MEMORIA_ASSERT(idx, >=, 0);
-        MEMORIA_ASSERT(idx, <=, size);
+        MEMORIA_V1_ASSERT(idx, >=, 0);
+        MEMORIA_V1_ASSERT(idx, <=, size);
 
         Dispatcher::dispatchNotEmpty(allocator(), InsertFn(), idx, keys);
 
@@ -869,9 +869,9 @@ public:
     {
         Int size = this->size();
 
-        MEMORIA_ASSERT(room_start, >=, 0);
-        MEMORIA_ASSERT(room_start, <=, size);
-        MEMORIA_ASSERT(stream, ==, 0);
+        MEMORIA_V1_ASSERT(room_start, >=, 0);
+        MEMORIA_V1_ASSERT(room_start, <=, size);
+        MEMORIA_V1_ASSERT(stream, ==, 0);
 
         Dispatcher::dispatchNotEmpty(allocator(), InsertSpaceFn(), room_start, room_length);
 
@@ -882,8 +882,8 @@ public:
     {
         Int size = this->size();
 
-        MEMORIA_ASSERT(room_start, >=, 0);
-        MEMORIA_ASSERT(room_start, <=, size);
+        MEMORIA_V1_ASSERT(room_start, >=, 0);
+        MEMORIA_V1_ASSERT(room_start, <=, size);
 
         Dispatcher::dispatchNotEmpty(allocator(), InsertSpaceFn(), room_start, room_length);
 
@@ -897,8 +897,8 @@ public:
             int a = 0; a++;
         }
 
-        MEMORIA_ASSERT(room_start, >=, 0);
-        MEMORIA_ASSERT(room_start, <=, old_size);
+        MEMORIA_V1_ASSERT(room_start, >=, 0);
+        MEMORIA_V1_ASSERT(room_start, <=, old_size);
 
         Int requested_block_size = (old_size + room_length) * sizeof(Value);
 
@@ -958,7 +958,7 @@ public:
 
         this->reindex();
 
-        MEMORIA_ASSERT(old_size, >=, room_end - room_start);
+        MEMORIA_V1_ASSERT(old_size, >=, room_end - room_start);
 
         Int requested_block_size = (old_size - (room_end - room_start)) * sizeof(Value);
         allocator()->resizeBlock(values, requested_block_size);
@@ -975,7 +975,7 @@ public:
         template <Int AllocatorIdx, Int Idx, typename Tree>
         void stream(const Tree* tree, MyType* other, Int copy_from, Int count, Int copy_to)
         {
-            MEMORIA_ASSERT_TRUE(!other->allocator()->is_empty(AllocatorIdx));
+            MEMORIA_V1_ASSERT_TRUE(!other->allocator()->is_empty(AllocatorIdx));
 
             tree->copyTo(other->allocator()->template get<Tree>(AllocatorIdx), copy_from, count, copy_to);
         }
@@ -984,7 +984,7 @@ public:
 
     void copyTo(MyType* other, Int copy_from, Int count, Int copy_to) const
     {
-        MEMORIA_ASSERT(copy_from + count, <=, size());
+        MEMORIA_V1_ASSERT(copy_from + count, <=, size());
 
         Dispatcher::dispatchNotEmpty(allocator(), CopyToFn(), other, copy_from, count, copy_to);
 
@@ -1094,7 +1094,7 @@ public:
         Int size        = this->size();
         Int remainder   = size - split_idx;
 
-        MEMORIA_ASSERT(split_idx, <=, size);
+        MEMORIA_V1_ASSERT(split_idx, <=, size);
 
         BranchNodeEntry result;
 //        this->sums(split_idx, size, result);
@@ -1161,8 +1161,8 @@ public:
 
     Value& value(Int idx)
     {
-        MEMORIA_ASSERT(idx, >=, 0);
-        MEMORIA_ASSERT(idx, <, size());
+        MEMORIA_V1_ASSERT(idx, >=, 0);
+        MEMORIA_V1_ASSERT(idx, <, size());
 
         return *(values() + idx);
     }
@@ -1173,8 +1173,8 @@ public:
             int a = 0; a++;
         }
 
-        MEMORIA_ASSERT(idx, >=, 0);
-        MEMORIA_ASSERT(idx, <, size());
+        MEMORIA_V1_ASSERT(idx, >=, 0);
+        MEMORIA_V1_ASSERT(idx, <, size());
 
         return *(values() + idx);
     }

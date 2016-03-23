@@ -19,7 +19,7 @@ namespace memoria {
 namespace v1 {
 
 
-MEMORIA_ITERATOR_PART_BEGIN(v1::map::ItrNavName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(v1::map::ItrNavName)
 public:
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
@@ -42,7 +42,7 @@ public:
 
         auto delta = key - self.prefix();
 
-        MEMORIA_ASSERT_TRUE(delta > 0);
+        MEMORIA_V1_ASSERT_TRUE(delta > 0);
 
         self.ctr().insert_entry(
                 self,
@@ -55,7 +55,7 @@ public:
         {
             auto k = self.raw_key();
 
-            MEMORIA_ASSERT_TRUE((k - StaticVector<BigInt, 1>(delta))[0] >= 0);
+            MEMORIA_V1_ASSERT_TRUE((k - StaticVector<BigInt, 1>(delta))[0] >= 0);
 
             self.ctr().template update_entry<IntList<1>>(self, std::make_tuple(k - StaticVector<BigInt, 1>(delta)));
         }
@@ -152,10 +152,10 @@ public:
         return (!self.isEnd()) && self.key() == k;
     }
 
-MEMORIA_ITERATOR_PART_END
+MEMORIA_V1_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_ITERATOR_TYPE(v1::map::ItrNavName)
-#define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(v1::map::ItrNavName)
+#define M_PARAMS    MEMORIA_V1_ITERATOR_TEMPLATE_PARAMS
 
 
 

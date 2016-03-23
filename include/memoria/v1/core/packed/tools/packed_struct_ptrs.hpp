@@ -95,7 +95,7 @@ std::enable_if_t<
 >
 MakeUniquePackedStructByBlock(Int block_size, Args&&... args)
 {
-    MEMORIA_ASSERT(block_size, >=, sizeof(T::empty_size()));
+    MEMORIA_V1_ASSERT(block_size, >=, sizeof(T::empty_size()));
 
     void* block = malloc(block_size);
     memset(block, 0, block_size);

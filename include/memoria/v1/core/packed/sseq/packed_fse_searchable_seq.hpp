@@ -237,7 +237,7 @@ public:
 
     void init(Int block_size)
     {
-        MEMORIA_ASSERT(block_size, >=, empty_size());
+        MEMORIA_V1_ASSERT(block_size, >=, empty_size());
 
         init();
     }
@@ -356,7 +356,7 @@ public:
 
     void set(Int idx, Int symbol)
     {
-        MEMORIA_ASSERT(idx , <, size());
+        MEMORIA_V1_ASSERT(idx , <, size());
 
         tools().set(symbols(), idx, symbol);
     }
@@ -428,11 +428,11 @@ public:
     {
         Int& size = this->size();
 
-        MEMORIA_ASSERT(start, >=, 0);
-        MEMORIA_ASSERT(end, >=, 0);
-        MEMORIA_ASSERT(start, <=, end);
+        MEMORIA_V1_ASSERT(start, >=, 0);
+        MEMORIA_V1_ASSERT(end, >=, 0);
+        MEMORIA_V1_ASSERT(start, <=, end);
 
-        MEMORIA_ASSERT(end, <=, size);
+        MEMORIA_V1_ASSERT(end, <=, size);
 
         auto symbols = this->symbols();
 
@@ -482,10 +482,10 @@ public:
 
     void insert(Int start, Int length, std::function<Value ()> fn)
     {
-        MEMORIA_ASSERT(start, >=, 0);
-        MEMORIA_ASSERT(start, <=, size());
+        MEMORIA_V1_ASSERT(start, >=, 0);
+        MEMORIA_V1_ASSERT(start, <=, size());
 
-        MEMORIA_ASSERT(length, >=, 0);
+        MEMORIA_V1_ASSERT(length, >=, 0);
 
         insertDataRoom(start, length);
         fill(start, start + length, fn);
@@ -498,9 +498,9 @@ public:
     {
         Int size = this->size();
 
-        MEMORIA_ASSERT(start, >=, 0);
-        MEMORIA_ASSERT(start, <=, size);
-        MEMORIA_ASSERT(length, >=, 0);
+        MEMORIA_V1_ASSERT(start, >=, 0);
+        MEMORIA_V1_ASSERT(start, <=, size);
+        MEMORIA_V1_ASSERT(length, >=, 0);
 
         insertDataRoom(start, length);
 
@@ -523,9 +523,9 @@ public:
 
     void update(Int start, Int end, std::function<Value ()> fn)
     {
-        MEMORIA_ASSERT(start, >=, 0);
-        MEMORIA_ASSERT(start, <=, end);
-        MEMORIA_ASSERT(end, <=, size());
+        MEMORIA_V1_ASSERT(start, >=, 0);
+        MEMORIA_V1_ASSERT(start, <=, end);
+        MEMORIA_V1_ASSERT(end, <=, size());
 
         fill(start, end, fn);
         reindex();
@@ -533,9 +533,9 @@ public:
 
     void read(Int start, Int end, std::function<void (Value)> fn) const
     {
-        MEMORIA_ASSERT(start, >=, 0);
-        MEMORIA_ASSERT(start, <=, end);
-        MEMORIA_ASSERT(end, <=, size());
+        MEMORIA_V1_ASSERT(start, >=, 0);
+        MEMORIA_V1_ASSERT(start, <=, end);
+        MEMORIA_V1_ASSERT(end, <=, size());
 
         auto symbols    = this->symbols();
         auto tools      = this->tools();
@@ -840,19 +840,19 @@ public:
             int a = 0; a++;
         }
 
-        MEMORIA_ASSERT(idx , <, size());
+        MEMORIA_V1_ASSERT(idx , <, size());
         return tools().get(symbols(), idx);
     }
 
     Int get_values(Int idx) const
     {
-        MEMORIA_ASSERT(idx , <, size());
+        MEMORIA_V1_ASSERT(idx , <, size());
         return tools().get(symbols(), idx);
     }
 
     bool test(Int idx, Value symbol) const
     {
-        MEMORIA_ASSERT(idx , <, size());
+        MEMORIA_V1_ASSERT(idx , <, size());
         return tools().test(symbols(), idx, symbol);
     }
 
@@ -878,10 +878,10 @@ public:
 
     Int rank(Int end, Int symbol) const
     {
-        MEMORIA_ASSERT(end, <=, size());
-        MEMORIA_ASSERT_TRUE(end >= 0);
+        MEMORIA_V1_ASSERT(end, <=, size());
+        MEMORIA_V1_ASSERT_TRUE(end >= 0);
 
-        MEMORIA_ASSERT_TRUE(symbol >= 0 && symbol < AlphabetSize);
+        MEMORIA_V1_ASSERT_TRUE(symbol >= 0 && symbol < AlphabetSize);
 
         if (has_index())
         {
@@ -918,8 +918,8 @@ public:
 
     SelectResult selectFw(Int symbol, BigInt rank) const
     {
-        MEMORIA_ASSERT(rank, >=, 0);
-        MEMORIA_ASSERT_TRUE(symbol >= 0 && symbol < AlphabetSize);
+        MEMORIA_V1_ASSERT(rank, >=, 0);
+        MEMORIA_V1_ASSERT_TRUE(symbol >= 0 && symbol < AlphabetSize);
 
         if (has_index())
         {

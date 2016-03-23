@@ -19,7 +19,7 @@ namespace v1 {
 
 using louds::LoudsNode;
 
-MEMORIA_CONTAINER_PART_BEGIN(v1::vtree::CtrApiName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(v1::vtree::CtrApiName)
 
     typedef typename Base::Tree                                                 Tree;
     typedef typename Base::Vec                                                  Vec;
@@ -161,6 +161,6 @@ MEMORIA_CONTAINER_PART_BEGIN(v1::vtree::CtrApiName)
         self.tree().removeLeaf(iter->tree_iter());
     }
 
-MEMORIA_CONTAINER_PART_END
+MEMORIA_V1_CONTAINER_PART_END
 
 }}

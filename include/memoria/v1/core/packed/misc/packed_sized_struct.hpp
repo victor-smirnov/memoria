@@ -198,8 +198,8 @@ public:
 
     void remove(Int start, Int end)
     {
-        MEMORIA_ASSERT_TRUE(start >= 0);
-        MEMORIA_ASSERT_TRUE(end >= 0);
+        MEMORIA_V1_ASSERT_TRUE(start >= 0);
+        MEMORIA_V1_ASSERT_TRUE(end >= 0);
 
         Int room_length = end - start;
 
@@ -216,9 +216,9 @@ public:
             int a = 0; a++;
         }
 
-        MEMORIA_ASSERT(idx, <=, this->size());
-        MEMORIA_ASSERT(idx, >=, 0);
-        MEMORIA_ASSERT(room_length, >=, 0);
+        MEMORIA_V1_ASSERT(idx, <=, this->size());
+        MEMORIA_V1_ASSERT(idx, >=, 0);
+        MEMORIA_V1_ASSERT(room_length, >=, 0);
 
         size_ += room_length;
     }
@@ -231,7 +231,7 @@ public:
 
     void splitTo(MyType* other, Int idx)
     {
-        MEMORIA_ASSERT(other->size(), ==, 0);
+        MEMORIA_V1_ASSERT(other->size(), ==, 0);
 
         Int split_size = this->size() - idx;
         other->insertSpace(0, split_size);
@@ -360,10 +360,10 @@ public:
     template <typename Fn>
     void read(Int block, Int start, Int end, Fn&& fn) const
     {
-        MEMORIA_ASSERT(start, <=, size_);
-        MEMORIA_ASSERT(start, >=, 0);
-        MEMORIA_ASSERT(end, >=, 0);
-        MEMORIA_ASSERT(end, <=, size_);
+        MEMORIA_V1_ASSERT(start, <=, size_);
+        MEMORIA_V1_ASSERT(start, >=, 0);
+        MEMORIA_V1_ASSERT(end, >=, 0);
+        MEMORIA_V1_ASSERT(end, <=, size_);
 
         for (Int c = start; c < end; c++)
         {

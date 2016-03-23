@@ -16,9 +16,9 @@ namespace memoria {
 namespace v1 {
 
 
-MEMORIA_CONTAINER_PART_BEGIN(v1::wt::ItrApiName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(v1::wt::ItrApiName)
 
 
-MEMORIA_CONTAINER_PART_END
+MEMORIA_V1_CONTAINER_PART_END
 
 }}

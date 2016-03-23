@@ -18,7 +18,7 @@ namespace memoria {
 namespace v1 {
 
 
-MEMORIA_ITERATOR_PART_BEGIN(v1::bt::IteratorSkipName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(v1::bt::IteratorSkipName)
 
     typedef typename Base::NodeBaseG                                                NodeBaseG;
     typedef typename Base::Container                                                Container;
@@ -38,7 +38,7 @@ MEMORIA_ITERATOR_PART_BEGIN(v1::bt::IteratorSkipName)
             int a = 0; a++;
         }
 
-        MEMORIA_ASSERT(amount, >=, 0);
+        MEMORIA_V1_ASSERT(amount, >=, 0);
 
         typename Types::template SkipForwardWalker<Types, IntList<Stream>> walker(amount);
 
@@ -48,7 +48,7 @@ MEMORIA_ITERATOR_PART_BEGIN(v1::bt::IteratorSkipName)
     template <Int Stream>
     auto skip_bw_(CtrSizeT amount)
     {
-        MEMORIA_ASSERT(amount, >=, 0);
+        MEMORIA_V1_ASSERT(amount, >=, 0);
 
         typename Types::template SkipBackwardWalker<Types, IntList<Stream>> walker(amount);
 
@@ -69,10 +69,10 @@ MEMORIA_ITERATOR_PART_BEGIN(v1::bt::IteratorSkipName)
         }
     }
 
-MEMORIA_ITERATOR_PART_END
+MEMORIA_V1_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_ITERATOR_TYPE(v1::bt::IteratorSkipName)
-#define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(v1::bt::IteratorSkipName)
+#define M_PARAMS    MEMORIA_V1_ITERATOR_TEMPLATE_PARAMS
 
 
 

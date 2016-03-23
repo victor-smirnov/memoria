@@ -18,7 +18,7 @@
 namespace memoria {
 namespace v1 {
 
-MEMORIA_CONTAINER_PART_BEGIN(v1::bttl::InsertName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bttl::InsertName)
 
 public:
     using Types             = typename Base::Types;
@@ -51,12 +51,12 @@ protected:
 
         Int last_stream = streamingProvider.last_symbol();
 
-        MEMORIA_ASSERT(locals[stream], >, 0);
+        MEMORIA_V1_ASSERT(locals[stream], >, 0);
         path[stream] += locals[stream] - 1;
 
         for (Int s = stream + 1; s < last_stream; s++)
         {
-            MEMORIA_ASSERT(locals[s], >, 0);
+            MEMORIA_V1_ASSERT(locals[s], >, 0);
             path[s] = locals[s] - 1;
         }
 
@@ -67,10 +67,10 @@ protected:
         return totals;
     }
 
-MEMORIA_CONTAINER_PART_END
+MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::bttl::InsertName)
-#define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::bttl::InsertName)
+#define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 
 

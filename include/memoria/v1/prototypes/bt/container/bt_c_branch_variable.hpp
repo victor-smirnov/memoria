@@ -20,7 +20,7 @@ using namespace v1::core;
 
 using namespace std;
 
-MEMORIA_CONTAINER_PART_BEGIN(v1::bt::BranchVariableName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::BranchVariableName)
 
 public:
     using typename Base::Types;
@@ -53,13 +53,13 @@ public:
     void update_parent(NodeBaseG& node, const BranchNodeEntry& sums);
 
 protected:
-    MEMORIA_DECLARE_NODE_FN(InsertFn, insert);
+    MEMORIA_V1_DECLARE_NODE_FN(InsertFn, insert);
     void insertToBranchNodeP(NodeBaseG& node, Int idx, const BranchNodeEntry& keys, const ID& id);
 
     NodeBaseG splitPathP(NodeBaseG& node, Int split_at);
     NodeBaseG splitP(NodeBaseG& node, SplitFn split_fn);
 
-    MEMORIA_DECLARE_NODE_FN(UpdateNodeFn, updateUp);
+    MEMORIA_V1_DECLARE_NODE_FN(UpdateNodeFn, updateUp);
 
 
     bool updateBranchNode(NodeBaseG& node, Int idx, const BranchNodeEntry& entry);
@@ -71,17 +71,17 @@ protected:
     void updateBranchNodesNoBackup(NodeBaseG& node, Int idx, const BranchNodeEntry& entry);
 
 
-    MEMORIA_DECLARE_NODE_FN(TryMergeNodesFn, mergeWith);
+    MEMORIA_V1_DECLARE_NODE_FN(TryMergeNodesFn, mergeWith);
     bool tryMergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src);
     bool mergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src);
     bool mergeCurrentBranchNodes(NodeBaseG& tgt, NodeBaseG& src);
 
 
-MEMORIA_CONTAINER_PART_END
+MEMORIA_V1_CONTAINER_PART_END
 
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::bt::BranchVariableName)
-#define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::bt::BranchVariableName)
+#define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
 void M_TYPE::insertToBranchNodeP(
@@ -225,7 +225,7 @@ void M_TYPE::updateBranchNodes(NodeBaseG& node, Int& idx, const BranchNodeEntry&
         }
 
         bool result = self.updateBranchNode(node, idx, entry);
-        MEMORIA_ASSERT_TRUE(result);
+        MEMORIA_V1_ASSERT_TRUE(result);
     }
 
     if(!node->is_root())
@@ -292,7 +292,7 @@ bool M_TYPE::tryMergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src)
         NodeBaseG src_parent    = self.getNodeParent(src);
         Int parent_idx          = src->parent_idx();
 
-        MEMORIA_ASSERT(parent_idx, >, 0);
+        MEMORIA_V1_ASSERT(parent_idx, >, 0);
 
         BranchDispatcher::dispatch(src, tgt, TryMergeNodesFn());
 

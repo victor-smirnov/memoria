@@ -79,20 +79,20 @@ int main(int argc, const char** argv, const char** envp) {
             {
                 //iter = ctr.seek(r);
 
-                MEMORIA_ASSERT(iter.pos(), ==, r);
-                MEMORIA_ASSERT(iter.size(), ==, rows);
+                MEMORIA_V1_ASSERT(iter.pos(), ==, r);
+                MEMORIA_V1_ASSERT(iter.size(), ==, rows);
 
                 auto tmp = iter;
 
                 iter.toData(cols/2);
 
-                MEMORIA_ASSERT(iter.pos(), ==, cols/2);
-                MEMORIA_ASSERT(iter.size(), ==, cols);
+                MEMORIA_V1_ASSERT(iter.pos(), ==, cols/2);
+                MEMORIA_V1_ASSERT(iter.size(), ==, cols);
 
                 iter.toData();
 
                 iter.template scan<IntList<2>>(scan_fn);
-                MEMORIA_ASSERT_TRUE(iter.isSEnd());
+                MEMORIA_V1_ASSERT_TRUE(iter.isSEnd());
 
                 //iter.toIndex(); // columns
                 //iter.toIndex(); // rows

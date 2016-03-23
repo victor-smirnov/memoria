@@ -17,7 +17,7 @@ namespace v1 {
 
 using v1::bt::StreamTag;
 
-MEMORIA_CONTAINER_PART_BEGIN(v1::bt::ReadName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::ReadName)
 
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
@@ -197,10 +197,10 @@ MEMORIA_CONTAINER_PART_BEGIN(v1::bt::ReadName)
         return total;
     }
 
-MEMORIA_CONTAINER_PART_END
+MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::bt::ReadName)
-#define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::bt::ReadName)
+#define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 
 

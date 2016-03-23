@@ -18,7 +18,7 @@ namespace memoria {
 namespace v1 {
 
 
-MEMORIA_ITERATOR_PART_BEGIN(v1::bt::IteratorFindName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(v1::bt::IteratorFindName)
 
     typedef typename Base::NodeBaseG                                                NodeBaseG;
     typedef typename Base::Container                                                Container;
@@ -75,8 +75,8 @@ MEMORIA_ITERATOR_PART_BEGIN(v1::bt::IteratorFindName)
     template <typename LeafPath>
     auto find_fw_gt(Int index, TargetType<LeafPath> key)
     {
-        MEMORIA_ASSERT(index, >=, 0);
-        MEMORIA_ASSERT(key, >=, 0);
+        MEMORIA_V1_ASSERT(index, >=, 0);
+        MEMORIA_V1_ASSERT(key, >=, 0);
 
         typename Types::template FindGTForwardWalker<Types, LeafPath> walker(index, key);
 
@@ -86,8 +86,8 @@ MEMORIA_ITERATOR_PART_BEGIN(v1::bt::IteratorFindName)
     template <typename LeafPath>
     auto find_fw_ge(Int index, TargetType<LeafPath> key)
     {
-        MEMORIA_ASSERT(index, >=, 0);
-        MEMORIA_ASSERT(key, >=, 0);
+        MEMORIA_V1_ASSERT(index, >=, 0);
+        MEMORIA_V1_ASSERT(key, >=, 0);
 
         typename Types::template FindGEForwardWalker<Types, LeafPath> walker(index, key);
 
@@ -98,8 +98,8 @@ MEMORIA_ITERATOR_PART_BEGIN(v1::bt::IteratorFindName)
     template <typename LeafPath>
     auto find_bw_gt(Int index, TargetType<LeafPath> key)
     {
-        MEMORIA_ASSERT(index, >=, 0);
-        MEMORIA_ASSERT(key, >=, 0);
+        MEMORIA_V1_ASSERT(index, >=, 0);
+        MEMORIA_V1_ASSERT(key, >=, 0);
 
         typename Types::template FindGTBackwardWalker<Types, LeafPath> walker(index, key);
 
@@ -109,18 +109,18 @@ MEMORIA_ITERATOR_PART_BEGIN(v1::bt::IteratorFindName)
     template <typename LeafPath>
     auto find_bw_ge(Int index, TargetType<LeafPath> key)
     {
-        MEMORIA_ASSERT(index, >=, 0);
-        MEMORIA_ASSERT(key, >=, 0);
+        MEMORIA_V1_ASSERT(index, >=, 0);
+        MEMORIA_V1_ASSERT(key, >=, 0);
 
         typename Types::template FindGEBackwardWalker<Types, LeafPath> walker(index, key);
 
         return self().find_bw(walker);
     }
 
-MEMORIA_ITERATOR_PART_END
+MEMORIA_V1_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_ITERATOR_TYPE(v1::bt::IteratorFindName)
-#define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(v1::bt::IteratorFindName)
+#define M_PARAMS    MEMORIA_V1_ITERATOR_TEMPLATE_PARAMS
 
 
 #undef M_PARAMS

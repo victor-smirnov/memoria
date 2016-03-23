@@ -20,7 +20,7 @@ using namespace v1::core;
 
 using namespace std;
 
-MEMORIA_CONTAINER_PART_BEGIN(v1::bt::BranchCommonName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::BranchCommonName)
 public:
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
@@ -50,21 +50,21 @@ protected:
 
     void newRootP(NodeBaseG& root);
 
-    MEMORIA_DECLARE_NODE_FN_RTN(GetNonLeafCapacityFn, capacity, Int);
+    MEMORIA_V1_DECLARE_NODE_FN_RTN(GetNonLeafCapacityFn, capacity, Int);
     Int getBranchNodeCapacity(const NodeBaseG& node, UBigInt active_streams) const
     {
         return BranchDispatcher::dispatch(node, GetNonLeafCapacityFn(), active_streams);
     }
 
 
-    MEMORIA_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, BranchNodeEntry);
+    MEMORIA_V1_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, BranchNodeEntry);
     BranchNodeEntry splitBranchNode(NodeBaseG& src, NodeBaseG& tgt, Int split_at);
 
-MEMORIA_CONTAINER_PART_END
+MEMORIA_V1_CONTAINER_PART_END
 
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::bt::BranchCommonName)
-#define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::bt::BranchCommonName)
+#define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
 typename M_TYPE::BranchNodeEntry M_TYPE::splitBranchNode(NodeBaseG& src, NodeBaseG& tgt, Int split_at)

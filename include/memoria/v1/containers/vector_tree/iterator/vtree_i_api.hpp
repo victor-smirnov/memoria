@@ -17,7 +17,7 @@ namespace memoria {
 namespace v1 {
 
 
-MEMORIA_ITERATOR_PART_BEGIN(v1::vtree::ItrApiName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(v1::vtree::ItrApiName)
 
     typedef Ctr<VTreeCtrTypes<Types>>                           ContainerType;
 
@@ -168,6 +168,6 @@ MEMORIA_ITERATOR_PART_BEGIN(v1::vtree::ItrApiName)
         return viter.read(data_size);
     }
 
-MEMORIA_ITERATOR_PART_END
+MEMORIA_V1_ITERATOR_PART_END
 
 }}

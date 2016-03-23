@@ -20,7 +20,7 @@ using namespace v1::core;
 
 using namespace std;
 
-MEMORIA_CONTAINER_PART_BEGIN(v1::bt::BranchFixedName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::BranchFixedName)
 
 public:
     typedef typename Base::Types                                                Types;
@@ -52,14 +52,14 @@ public:
     void update_parent(NodeBaseG& node, const BranchNodeEntry& entry);
 
 protected:
-    MEMORIA_DECLARE_NODE_FN(InsertFn, insert);
+    MEMORIA_V1_DECLARE_NODE_FN(InsertFn, insert);
     void insertToBranchNodeP(NodeBaseG& node, Int idx, const BranchNodeEntry& keys, const ID& id);
 
     NodeBaseG splitPathP(NodeBaseG& node, Int split_at);
 
     NodeBaseG splitP(NodeBaseG& node, SplitFn split_fn);
 
-    MEMORIA_DECLARE_NODE_FN(UpdateNodeFn, updateUp);
+    MEMORIA_V1_DECLARE_NODE_FN(UpdateNodeFn, updateUp);
     bool updateBranchNode(NodeBaseG& node, Int idx, const BranchNodeEntry& entry);
 
     void updateBranchNodes(NodeBaseG& node, Int& idx, const BranchNodeEntry& entry);
@@ -68,24 +68,24 @@ protected:
 
 
 
-    MEMORIA_DECLARE_NODE2_FN_RTN(CanMergeFn, canBeMergedWith, bool);
+    MEMORIA_V1_DECLARE_NODE2_FN_RTN(CanMergeFn, canBeMergedWith, bool);
     bool canMerge(const NodeBaseG& tgt, const NodeBaseG& src)
     {
         return NodeDispatcher::dispatch(src, tgt, CanMergeFn());
     }
 
 
-    MEMORIA_DECLARE_NODE_FN(MergeNodesFn, mergeWith);
+    MEMORIA_V1_DECLARE_NODE_FN(MergeNodesFn, mergeWith);
     void doMergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src);
     bool mergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src);
     bool mergeCurrentBranchNodes(NodeBaseG& tgt, NodeBaseG& src);
 
 
-MEMORIA_CONTAINER_PART_END
+MEMORIA_V1_CONTAINER_PART_END
 
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::bt::BranchFixedName)
-#define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::bt::BranchFixedName)
+#define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 
 
@@ -244,7 +244,7 @@ void M_TYPE::doMergeBranchNodes(NodeBaseG& tgt, NodeBaseG& src)
     NodeBaseG src_parent = self.getNodeParent(src);
     Int parent_idx       = src->parent_idx();
 
-    MEMORIA_ASSERT(parent_idx, >, 0);
+    MEMORIA_V1_ASSERT(parent_idx, >, 0);
 
     auto max = self.max(tgt);
 

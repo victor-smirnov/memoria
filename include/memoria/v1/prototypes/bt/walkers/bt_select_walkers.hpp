@@ -34,7 +34,7 @@ public:
     template <Int StreamIdx, typename Seq>
     StreamOpResult find_leaf(const Seq* seq, Int start)
     {
-        MEMORIA_ASSERT_TRUE(seq);
+        MEMORIA_V1_ASSERT_TRUE(seq);
 
         auto& sum       = Base::sum_;
         auto symbol     = Base::leaf_index();
@@ -105,7 +105,7 @@ public:
     template <Int StreamIdx, typename Seq>
     StreamOpResult find_leaf(const Seq* seq, Int start)
     {
-        MEMORIA_ASSERT_TRUE(seq);
+        MEMORIA_V1_ASSERT_TRUE(seq);
 
         auto size = seq->size();
 

@@ -26,8 +26,8 @@ template <
         typename Relation
 >
 class Sorter {
-    MEMORIA_STATIC_ASSERT(IsRelationMetadata<Metadata>::Value);
-    MEMORIA_STATIC_ASSERT(IsList<Relation>::Value);
+    MEMORIA_V1_STATIC_ASSERT(IsRelationMetadata<Metadata>::Value);
+    MEMORIA_V1_STATIC_ASSERT(IsList<Relation>::Value);
 
     typedef typename findColumn<ColumnName, typename Metadata::List>::Result    Column;
     typedef typename Column::Type                                               ValueType;

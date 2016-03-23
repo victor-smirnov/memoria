@@ -91,7 +91,7 @@ public:
 
     SelectResult selectFW(const SeqPtr& seq, Int start, Int rank, Value symbol)
     {
-        MEMORIA_ASSERT(rank, >, 0);
+        MEMORIA_V1_ASSERT(rank, >, 0);
 
         Int total = 0;
 
@@ -111,7 +111,7 @@ public:
 
     SelectResult selectBW(const SeqPtr& seq, Int start, Int rank, Value symbol)
     {
-        MEMORIA_ASSERT(rank, >, 0);
+        MEMORIA_V1_ASSERT(rank, >, 0);
 
         Int total = 0;
 

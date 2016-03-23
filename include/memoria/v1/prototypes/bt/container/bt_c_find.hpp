@@ -18,7 +18,7 @@ namespace v1 {
 
 using namespace v1::bt;
 
-MEMORIA_CONTAINER_PART_BEGIN(v1::bt::FindName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::FindName)
 public:
     using Types = TypesType;
 
@@ -44,7 +44,7 @@ public:
     using TargetType2 = typename Types::template TargetType2<LeafPath>;
 
 
-    MEMORIA_DECLARE_NODE_FN_RTN(SizesFn, size_sums, Position);
+    MEMORIA_V1_DECLARE_NODE_FN_RTN(SizesFn, size_sums, Position);
     Position sizes() const
     {
         NodeBaseG node = self().getRoot();
@@ -209,12 +209,12 @@ protected:
 protected:
 
 
-MEMORIA_CONTAINER_PART_END
+MEMORIA_V1_CONTAINER_PART_END
 
 
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::bt::FindName)
-#define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::bt::FindName)
+#define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
 template <typename Walker>

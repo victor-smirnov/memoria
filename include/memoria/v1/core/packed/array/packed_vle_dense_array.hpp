@@ -244,8 +244,8 @@ public:
     {
         Int size = this->size();
 
-        MEMORIA_ASSERT(idx, >=, 0);
-        MEMORIA_ASSERT(idx, <, size);
+        MEMORIA_V1_ASSERT(idx, >=, 0);
+        MEMORIA_V1_ASSERT(idx, <, size);
 
         Int data_size     = this->data_size();
         auto values       = this->values();
@@ -254,7 +254,7 @@ public:
         Int global_idx    = idx * Blocks + block;
         Int start_pos     = this->locate(layout, values, 0, global_idx, data_size).idx;
 
-        MEMORIA_ASSERT(start_pos, <, data_size);
+        MEMORIA_V1_ASSERT(start_pos, <, data_size);
 
         Codec codec;
         Value value;
@@ -275,7 +275,7 @@ public:
 
     bool check_capacity(Int size) const
     {
-        MEMORIA_ASSERT_TRUE(size >= 0);
+        MEMORIA_V1_ASSERT_TRUE(size >= 0);
 
         auto alloc = this->allocator();
 
@@ -326,8 +326,8 @@ public:
     {
         Int size = this->size();
 
-        MEMORIA_ASSERT(idx, >=, 0);
-        MEMORIA_ASSERT(idx, <, size);
+        MEMORIA_V1_ASSERT(idx, >=, 0);
+        MEMORIA_V1_ASSERT(idx, <, size);
 
         Int data_size     = this->data_size();
         auto values       = this->values();
@@ -336,7 +336,7 @@ public:
         Int global_idx    = idx * size;
         Int start_pos     = this->locate(layout, values, 0, idx, global_idx).idx;
 
-        MEMORIA_ASSERT(start_pos, <, data_size);
+        MEMORIA_V1_ASSERT(start_pos, <, data_size);
 
         Codec codec;
         Values values_data;
@@ -565,8 +565,8 @@ public:
     void _insert(Int idx, Int inserted, Adaptor&& adaptor)
     {
         Int size      = this->size();
-        MEMORIA_ASSERT(idx, >=, 0);
-        MEMORIA_ASSERT(idx, <=, size);
+        MEMORIA_V1_ASSERT(idx, >=, 0);
+        MEMORIA_V1_ASSERT(idx, <=, size);
 
         Codec codec;
 
@@ -620,8 +620,8 @@ public:
     {
         Int size = this->size();
 
-        MEMORIA_ASSERT(idx, >=, 0);
-        MEMORIA_ASSERT(idx, <=, size);
+        MEMORIA_V1_ASSERT(idx, >=, 0);
+        MEMORIA_V1_ASSERT(idx, <=, size);
 
         Int data_size       = this->data_size();
         auto values         = this->values();
@@ -837,8 +837,8 @@ public:
     {
         Int size       = this->size();
 
-        MEMORIA_ASSERT(start, >=, 0);
-        MEMORIA_ASSERT(start, <, size);
+        MEMORIA_V1_ASSERT(start, >=, 0);
+        MEMORIA_V1_ASSERT(start, <, size);
 
         Int global_idx = start * Blocks;
 
@@ -894,8 +894,8 @@ public:
     {
         Int size       = this->size();
 
-        MEMORIA_ASSERT(start, >=, 0);
-        MEMORIA_ASSERT(start, <, size);
+        MEMORIA_V1_ASSERT(start, >=, 0);
+        MEMORIA_V1_ASSERT(start, <, size);
 
         Int global_idx = start * Blocks + block;
 
@@ -1094,9 +1094,9 @@ public:
     {
         Int size = this->size();
 
-        MEMORIA_ASSERT(start, >=, 0);
-        MEMORIA_ASSERT(start, <=, end);
-        MEMORIA_ASSERT(end, <=, size);
+        MEMORIA_V1_ASSERT(start, >=, 0);
+        MEMORIA_V1_ASSERT(start, <=, end);
+        MEMORIA_V1_ASSERT(end, <=, size);
 
         size_t positions[Blocks];
 
@@ -1133,9 +1133,9 @@ public:
     {
         Int size = this->size();
 
-        MEMORIA_ASSERT(start, >=, 0);
-        MEMORIA_ASSERT(start, <=, end);
-        MEMORIA_ASSERT(end, <=, size);
+        MEMORIA_V1_ASSERT(start, >=, 0);
+        MEMORIA_V1_ASSERT(start, <=, end);
+        MEMORIA_V1_ASSERT(end, <=, size);
 
         Int global_idx = block * size + start;
 

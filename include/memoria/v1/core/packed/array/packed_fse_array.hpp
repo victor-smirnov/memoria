@@ -254,20 +254,20 @@ public:
 
     void shrink(Int items_num)
     {
-        MEMORIA_ASSERT(max_size_ - items_num, >=, size_);
+        MEMORIA_V1_ASSERT(max_size_ - items_num, >=, size_);
 
         enlarge(-items_num);
     }
 
     void remove(Int start, Int end)
     {
-        MEMORIA_ASSERT_TRUE(start >= 0);
-        MEMORIA_ASSERT_TRUE(end >= 0);
+        MEMORIA_V1_ASSERT_TRUE(start >= 0);
+        MEMORIA_V1_ASSERT_TRUE(end >= 0);
 
         Int room_length = end - start;
         Int size = this->size();
 
-        MEMORIA_ASSERT(room_length, <= , size - start);
+        MEMORIA_V1_ASSERT(room_length, <= , size - start);
 
         Value* values = this->values();
 
@@ -288,9 +288,9 @@ public:
 
     void insertSpace(Int idx, Int room_length)
     {
-        MEMORIA_ASSERT(idx, <=, this->size());
-        MEMORIA_ASSERT(idx, >=, 0);
-        MEMORIA_ASSERT(room_length, >=, 0);
+        MEMORIA_V1_ASSERT(idx, <=, this->size());
+        MEMORIA_V1_ASSERT(idx, >=, 0);
+        MEMORIA_V1_ASSERT(room_length, >=, 0);
 
         Int capacity = this->capacity();
 
@@ -337,7 +337,7 @@ public:
 
     void splitTo(MyType* other, Int idx)
     {
-        MEMORIA_ASSERT(other->size(), ==, 0);
+        MEMORIA_V1_ASSERT(other->size(), ==, 0);
 
         Int split_size = this->size() - idx;
         other->insertSpace(0, split_size);
@@ -364,8 +364,8 @@ public:
 
     void copyTo(MyType* other, Int copy_from, Int count, Int copy_to) const
     {
-        MEMORIA_ASSERT_TRUE(copy_from >= 0);
-        MEMORIA_ASSERT_TRUE(count >= 0);
+        MEMORIA_V1_ASSERT_TRUE(copy_from >= 0);
+        MEMORIA_V1_ASSERT_TRUE(count >= 0);
 
         CopyBuffer(
                 this->values() + copy_from * Blocks,
@@ -537,9 +537,9 @@ public:
     template <typename Fn>
     void read(Int block, Int start, Int end, Fn&& fn) const
     {
-        MEMORIA_ASSERT(end, <=, size_);
-        MEMORIA_ASSERT(start, >=, 0);
-        MEMORIA_ASSERT(start, <=, end);
+        MEMORIA_V1_ASSERT(end, <=, size_);
+        MEMORIA_V1_ASSERT(start, >=, 0);
+        MEMORIA_V1_ASSERT(start, <=, end);
 
         auto values = this->values();
 
@@ -555,9 +555,9 @@ public:
     template <typename Fn>
     void read(Int start, Int end, Fn&& fn) const
     {
-        MEMORIA_ASSERT(end, <=, size_);
-        MEMORIA_ASSERT(start, >=, 0);
-        MEMORIA_ASSERT(start, <=, end);
+        MEMORIA_V1_ASSERT(end, <=, size_);
+        MEMORIA_V1_ASSERT(start, >=, 0);
+        MEMORIA_V1_ASSERT(start, <=, end);
 
         auto values = this->values();
 

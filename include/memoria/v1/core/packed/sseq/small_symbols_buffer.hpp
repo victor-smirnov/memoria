@@ -37,20 +37,20 @@ public:
 
     Int symbol(Int n) const
     {
-        MEMORIA_ASSERT(n, <, size_);
+        MEMORIA_V1_ASSERT(n, <, size_);
         return GetBits(symbols(), n, BitsPerSymbol);
     }
 
     void set_symbol(Int n, Int symbol)
     {
-        MEMORIA_ASSERT(n, <, size_);
+        MEMORIA_V1_ASSERT(n, <, size_);
         SetBits(symbols(), n, symbol, BitsPerSymbol);
     }
 
     void set_symbols(Int n, Int symbol, Int nsyms)
     {
-        MEMORIA_ASSERT(n, <, size_);
-        MEMORIA_ASSERT(nsyms, <=, (Int)sizeof(Int) * 8 / BitsPerSymbol);
+        MEMORIA_V1_ASSERT(n, <, size_);
+        MEMORIA_V1_ASSERT(nsyms, <=, (Int)sizeof(Int) * 8 / BitsPerSymbol);
 
         return SetBits(symbols(), n, symbol, BitsPerSymbol * nsyms);
     }
@@ -67,7 +67,7 @@ public:
 
     void resize(Int size)
     {
-        MEMORIA_ASSERT(size, <=, max_size());
+        MEMORIA_V1_ASSERT(size, <=, max_size());
         this->size_ = size;
     }
 
@@ -77,7 +77,7 @@ public:
 
     void append(Int symbol)
     {
-        MEMORIA_ASSERT(size_, <, max_size());
+        MEMORIA_V1_ASSERT(size_, <, max_size());
 
         Int pos = size_;
         size_ += 1;
@@ -114,20 +114,20 @@ public:
 
     Int symbol(Int n) const
     {
-        MEMORIA_ASSERT(n, <, size_);
+        MEMORIA_V1_ASSERT(n, <, size_);
         return symbols_[n];
     }
 
     void set_symbol(Int n, Int symbol)
     {
-        MEMORIA_ASSERT(n, <, size_);
+        MEMORIA_V1_ASSERT(n, <, size_);
         symbols_[n] = symbol;
     }
 
     void set_symbols(Int n, Int symbols, Int nsyms)
     {
-        MEMORIA_ASSERT(n, <, size_);
-        MEMORIA_ASSERT(nsyms, <, (Int)sizeof(Int));
+        MEMORIA_V1_ASSERT(n, <, size_);
+        MEMORIA_V1_ASSERT(nsyms, <, (Int)sizeof(Int));
 
         for (Int c = 0; c < nsyms; c++)
         {
@@ -149,7 +149,7 @@ public:
 
     void resize(Int size)
     {
-        MEMORIA_ASSERT(size, <=, max_size());
+        MEMORIA_V1_ASSERT(size, <=, max_size());
         this->size_ = size;
     }
 
@@ -159,7 +159,7 @@ public:
 
     void append(Int symbol)
     {
-        MEMORIA_ASSERT(size_, <, max_size());
+        MEMORIA_V1_ASSERT(size_, <, max_size());
 
         Int pos = size_;
         size_ += 1;

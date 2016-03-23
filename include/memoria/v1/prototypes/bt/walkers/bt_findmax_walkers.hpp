@@ -125,7 +125,7 @@ public:
 
         if (start < size)
         {
-            MEMORIA_ASSERT(start, ==, 0);
+            MEMORIA_V1_ASSERT(start, ==, 0);
 
             auto result = tree->findForward(Base::search_type_, index, Base::target_);
 
@@ -154,7 +154,7 @@ public:
         {
             if (start < tree->size())
             {
-                MEMORIA_ASSERT(start, ==, 0);
+                MEMORIA_V1_ASSERT(start, ==, 0);
 
                 Int index   = this->leaf_index();
 

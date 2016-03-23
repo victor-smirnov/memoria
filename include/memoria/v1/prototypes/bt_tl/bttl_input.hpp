@@ -1018,7 +1018,7 @@ public:
                     }
                     else if (end_pos < split_at_pos)
                     {
-                        MEMORIA_ASSERT_TRUE(!leaf->parent_id().is_null());
+                        MEMORIA_V1_ASSERT_TRUE(!leaf->parent_id().is_null());
 
                         updateLeafAnchors(leaf, pos, inserted);
 
@@ -1224,7 +1224,7 @@ private:
 
         if (anchor_value > 0)
         {
-            MEMORIA_ASSERT_TRUE(leaf);
+            MEMORIA_V1_ASSERT_TRUE(leaf);
 
             PageUpdateMgr mgr(ctr);
 
@@ -1328,7 +1328,7 @@ private:
 
         auto next_leaf = leaf;
 
-        MEMORIA_ASSERT_TRUE(leaf);
+        MEMORIA_V1_ASSERT_TRUE(leaf);
 
         if (anchor_value > 0)
         {
@@ -1405,7 +1405,7 @@ private:
 
     void updateLeafAnchors(const NodeBaseG& leaf, const Position& at, const Position& sizes)
     {
-        MEMORIA_ASSERT_TRUE(current_extent_.gteAll(0));
+        MEMORIA_V1_ASSERT_TRUE(current_extent_.gteAll(0));
 
         for (Int c = 0; c < Streams - 1; c++)
         {

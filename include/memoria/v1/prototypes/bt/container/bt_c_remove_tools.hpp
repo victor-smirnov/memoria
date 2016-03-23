@@ -18,7 +18,7 @@
 namespace memoria {
 namespace v1 {
 
-MEMORIA_CONTAINER_PART_BEGIN(v1::bt::RemoveToolsName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::RemoveToolsName)
 
     typedef TypesType                                                           Types;
     typedef typename Base::Allocator                                            Allocator;
@@ -55,7 +55,7 @@ public:
 
 
 protected:
-    MEMORIA_DECLARE_NODE_FN(RemoveSpaceFn, removeSpace);
+    MEMORIA_V1_DECLARE_NODE_FN(RemoveSpaceFn, removeSpace);
 
     void removeNodeRecursively(NodeBaseG& node, Position& accum);
     void removeNode(NodeBaseG& node);
@@ -65,7 +65,7 @@ protected:
     Position removeLeafContent(NodeBaseG& node, const Position& start, const Position& end);
     Position removeLeafContent(NodeBaseG& node, Int stream, Int start, Int end);
 
-    MEMORIA_DECLARE_NODE_FN(RemoveNonLeafNodeEntryFn, removeSpaceAcc);
+    MEMORIA_V1_DECLARE_NODE_FN(RemoveNonLeafNodeEntryFn, removeSpaceAcc);
     void removeNonLeafNodeEntry(NodeBaseG& node, Int idx);
 
     bool mergeLeafWithLeftSibling(NodeBaseG& node, MergeFn fn = [](const Position&, Int){});
@@ -73,7 +73,7 @@ protected:
     MergeType mergeLeafWithSiblings(NodeBaseG& node, MergeFn fn = [](const Position&, Int){});
 
 
-    MEMORIA_DECLARE_NODE_FN_RTN(ShouldBeMergedNodeFn, shouldBeMergedWithSiblings, bool);
+    MEMORIA_V1_DECLARE_NODE_FN_RTN(ShouldBeMergedNodeFn, shouldBeMergedWithSiblings, bool);
     bool shouldMergeNode(const NodeBaseG& node) const
     {
         return NodeDispatcher::dispatch(node, ShouldBeMergedNodeFn());
@@ -97,11 +97,11 @@ protected:
 
 
 
-MEMORIA_CONTAINER_PART_END
+MEMORIA_V1_CONTAINER_PART_END
 
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::bt::RemoveToolsName)
-#define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::bt::RemoveToolsName)
+#define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 
 
@@ -153,7 +153,7 @@ void M_TYPE::removeRootNode(NodeBaseG& node)
 {
     auto& self = this->self();
 
-    MEMORIA_ASSERT_TRUE(node->is_root());
+    MEMORIA_V1_ASSERT_TRUE(node->is_root());
 
     Position sizes;
 
@@ -167,7 +167,7 @@ void M_TYPE::removeNodeContent(NodeBaseG& node, Int start, Int end, Position& si
 {
     auto& self = this->self();
 
-    MEMORIA_ASSERT_TRUE(!node->is_leaf());
+    MEMORIA_V1_ASSERT_TRUE(!node->is_leaf());
 
 
 
@@ -192,7 +192,7 @@ void M_TYPE::removeNonLeafNodeEntry(NodeBaseG& node, Int start)
 {
     auto& self = this->self();
 
-    MEMORIA_ASSERT_TRUE(!node->is_leaf());
+    MEMORIA_V1_ASSERT_TRUE(!node->is_leaf());
 
     self.updatePageG(node);
     BranchDispatcher::dispatch(node, RemoveNonLeafNodeEntryFn(), start, start + 1);

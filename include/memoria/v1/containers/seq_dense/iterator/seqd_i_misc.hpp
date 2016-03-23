@@ -22,7 +22,7 @@ namespace memoria {
 namespace v1 {
 
 
-MEMORIA_ITERATOR_PART_BEGIN(v1::seq_dense::IterMiscName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(v1::seq_dense::IterMiscName)
 
     typedef Ctr<typename Types::CtrTypes>                                       Container;
 
@@ -63,7 +63,7 @@ MEMORIA_ITERATOR_PART_BEGIN(v1::seq_dense::IterMiscName)
 
     void insert_symbol(Int symbol)
     {
-        MEMORIA_ASSERT(symbol, <, Symbols);
+        MEMORIA_V1_ASSERT(symbol, <, Symbols);
 
         auto& self  = this->self();
         auto& ctr   = self.ctr();
@@ -173,11 +173,11 @@ MEMORIA_ITERATOR_PART_BEGIN(v1::seq_dense::IterMiscName)
     }
 
 
-MEMORIA_ITERATOR_PART_END
+MEMORIA_V1_ITERATOR_PART_END
 
 
-#define M_TYPE      MEMORIA_ITERATOR_TYPE(v1::seq_dense::IterMiscName)
-#define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(v1::seq_dense::IterMiscName)
+#define M_PARAMS    MEMORIA_V1_ITERATOR_TEMPLATE_PARAMS
 
 
 

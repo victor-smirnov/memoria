@@ -21,7 +21,7 @@
 namespace memoria {
 namespace v1 {
 
-MEMORIA_ITERATOR_PART_BEGIN(v1::mvector::ItrApiName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(v1::mvector::ItrApiName)
 
     typedef Ctr<typename Types::CtrTypes>                                       Container;
 
@@ -157,10 +157,10 @@ public:
         self.skip(pos - current_pos);
     }
 
-MEMORIA_ITERATOR_PART_END
+MEMORIA_V1_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_ITERATOR_TYPE(v1::mvector::ItrApiName)
-#define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(v1::mvector::ItrApiName)
+#define M_PARAMS    MEMORIA_V1_ITERATOR_TEMPLATE_PARAMS
 
 #undef M_TYPE
 #undef M_PARAMS

@@ -19,7 +19,7 @@ namespace v1 {
 
 using namespace v1::bt;
 
-MEMORIA_CONTAINER_PART_BEGIN(v1::mvector::CtrApiName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(v1::mvector::CtrApiName)
 
 public:
     using typename Base::Types;
@@ -57,6 +57,6 @@ public:
         return self;
     }
 
-MEMORIA_CONTAINER_PART_END
+MEMORIA_V1_CONTAINER_PART_END
 
 }}

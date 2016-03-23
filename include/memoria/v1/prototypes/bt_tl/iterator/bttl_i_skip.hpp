@@ -19,7 +19,7 @@ namespace memoria {
 namespace v1 {
 
 
-MEMORIA_ITERATOR_PART_BEGIN(v1::bttl::IteratorSkipName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(v1::bttl::IteratorSkipName)
 
     using typename Base::CtrSizeT;
     using typename Base::CtrSizesT;
@@ -286,7 +286,7 @@ public:
 protected:
     Int local_parent_idx(Int stream, Int idx) const
     {
-        MEMORIA_ASSERT(stream, >, 0);
+        MEMORIA_V1_ASSERT(stream, >, 0);
 
         auto& self = this->self();
 
@@ -305,7 +305,7 @@ protected:
 
     Int local_child_idx(Int stream, Int idx) const
     {
-        MEMORIA_ASSERT(stream, <, Streams - 1);
+        MEMORIA_V1_ASSERT(stream, <, Streams - 1);
 
         auto& self = this->self();
 
@@ -540,7 +540,7 @@ public:
         {
             auto expected_size = bt::ForEachStream<SearchableStreams - 1>::process(stream - 1, DataOffsetFn(), cache);
 
-            MEMORIA_ASSERT(expected_size, >=, 0);
+            MEMORIA_V1_ASSERT(expected_size, >=, 0);
 
             auto actual_size = cache.size_prefix()[stream];
 
@@ -704,10 +704,10 @@ public:
 //      self.update_leaf_ranks(cmd);
 //    }
 
-MEMORIA_ITERATOR_PART_END
+MEMORIA_V1_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_ITERATOR_TYPE(v1::bttl::IteratorSkipName)
-#define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(v1::bttl::IteratorSkipName)
+#define M_PARAMS    MEMORIA_V1_ITERATOR_TEMPLATE_PARAMS
 
 
 #undef M_TYPE

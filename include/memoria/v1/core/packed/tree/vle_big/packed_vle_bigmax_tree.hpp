@@ -203,8 +203,8 @@ public:
 
     Value value(Int idx) const
     {
-        MEMORIA_ASSERT(idx, >=, 0);
-        MEMORIA_ASSERT(idx, <, this->size());
+        MEMORIA_V1_ASSERT(idx, >=, 0);
+        MEMORIA_V1_ASSERT(idx, <, this->size());
 
         auto meta         = this->metadata();
 
@@ -214,7 +214,7 @@ public:
 
         Int start_pos     = locate(layout, values, idx).idx;
 
-        MEMORIA_ASSERT(start_pos, <, data_size);
+        MEMORIA_V1_ASSERT(start_pos, <, data_size);
 
         Codec codec;
         Value value;
@@ -274,7 +274,7 @@ public:
 
 //    bool check_capacity(Int size) const
 //    {
-//      MEMORIA_ASSERT_TRUE(size >= 0);
+//      MEMORIA_V1_ASSERT_TRUE(size >= 0);
 //
 //      auto alloc = this->allocator();
 //
@@ -603,9 +603,9 @@ public:
 
         Int size = meta->size();
 
-        MEMORIA_ASSERT(pos, >=, 0);
-        MEMORIA_ASSERT(pos, <=, size);
-        MEMORIA_ASSERT(processed, >=, 0);
+        MEMORIA_V1_ASSERT(pos, >=, 0);
+        MEMORIA_V1_ASSERT(pos, <=, size);
+        MEMORIA_V1_ASSERT(processed, >=, 0);
 
         Codec codec;
 
@@ -647,8 +647,8 @@ public:
     {
         auto meta = this->metadata();
 
-        MEMORIA_ASSERT(idx, >=, 0);
-        MEMORIA_ASSERT(idx, <=, meta->size());
+        MEMORIA_V1_ASSERT(idx, >=, 0);
+        MEMORIA_V1_ASSERT(idx, <=, meta->size());
 
         Int data_size       = meta->data_size();
         auto values         = this->values();
@@ -823,8 +823,8 @@ public:
     {
         auto meta = this->metadata();
 
-        MEMORIA_ASSERT(start, <=, meta->size());
-        MEMORIA_ASSERT(start, >=, 0);
+        MEMORIA_V1_ASSERT(start, <=, meta->size());
+        MEMORIA_V1_ASSERT(start, >=, 0);
 
         Codec codec;
 
@@ -1142,9 +1142,9 @@ public:
     {
         auto meta = this->metadata();
 
-        MEMORIA_ASSERT(start, >=, 0);
-        MEMORIA_ASSERT(start, <=, end);
-        MEMORIA_ASSERT(end, <=, meta->size());
+        MEMORIA_V1_ASSERT(start, >=, 0);
+        MEMORIA_V1_ASSERT(start, <=, end);
+        MEMORIA_V1_ASSERT(end, <=, meta->size());
 
         auto values         = this->values();
         TreeLayout layout   = compute_tree_layout(meta->data_size());
@@ -1624,7 +1624,7 @@ protected:
 
         if (layout.levels_max >= 0)
         {
-            MEMORIA_ASSERT(this->element_size(SIZE_INDEX), >, 0);
+            MEMORIA_V1_ASSERT(this->element_size(SIZE_INDEX), >, 0);
 
             auto values     = this->values();
             auto size_index = this->size_index();
@@ -1642,7 +1642,7 @@ protected:
             size_t threshold = BranchingFactorV;
             Int total_size = 0;
 
-            MEMORIA_ASSERT(offset(0), ==, 0);
+            MEMORIA_V1_ASSERT(offset(0), ==, 0);
 
             auto index = has_index() ? this->index() : nullptr;
 
@@ -1654,14 +1654,14 @@ protected:
             {
                 if (pos >= threshold)
                 {
-                    MEMORIA_ASSERT(offset(idx + 1), ==, pos - threshold);
-                    MEMORIA_ASSERT(size_index[level_start + idx], ==, size_cnt);
+                    MEMORIA_V1_ASSERT(offset(idx + 1), ==, pos - threshold);
+                    MEMORIA_V1_ASSERT(size_index[level_start + idx], ==, size_cnt);
 
                     threshold += BranchingFactorV;
 
                     if (index)
                     {
-                        MEMORIA_ASSERT(value, ==, index->value(idx));
+                        MEMORIA_V1_ASSERT(value, ==, index->value(idx));
                     }
 
                     idx++;
@@ -1675,7 +1675,7 @@ protected:
 
 //              if (pos > 0)
 //              {
-//                  MEMORIA_ASSERT(value, >=, prev_value);
+//                  MEMORIA_V1_ASSERT(value, >=, prev_value);
 //              }
 //
 //              prev_value = value;
@@ -1685,14 +1685,14 @@ protected:
                 pos += len;
             }
 
-            MEMORIA_ASSERT((Int)pos, ==, data_size);
+            MEMORIA_V1_ASSERT((Int)pos, ==, data_size);
 
             if (index) {
-                MEMORIA_ASSERT(value, ==, index->value(idx));
+                MEMORIA_V1_ASSERT(value, ==, index->value(idx));
             }
 
-            MEMORIA_ASSERT(size_index[level_start + idx], ==, size_cnt);
-            MEMORIA_ASSERT(meta->size(), ==, size_cnt + total_size);
+            MEMORIA_V1_ASSERT(size_index[level_start + idx], ==, size_cnt);
+            MEMORIA_V1_ASSERT(meta->size(), ==, size_cnt + total_size);
 
             for (Int level = levels - 1; level > 0; level--)
             {
@@ -1717,7 +1717,7 @@ protected:
                         sizes_sum += size_index[c];
                     }
 
-                    MEMORIA_ASSERT(size_index[previous_level_start + i], ==, sizes_sum);
+                    MEMORIA_V1_ASSERT(size_index[previous_level_start + i], ==, sizes_sum);
                 }
             }
 
@@ -1726,7 +1726,7 @@ protected:
             }
         }
         else {
-            MEMORIA_ASSERT(this->element_size(SIZE_INDEX), ==, 0);
+            MEMORIA_V1_ASSERT(this->element_size(SIZE_INDEX), ==, 0);
 
             Int data_size = meta->data_size();
 
@@ -1746,7 +1746,7 @@ protected:
 //
 //                  if (pos > 0)
 //                  {
-//                      MEMORIA_ASSERT(value, >=, prev_value);
+//                      MEMORIA_V1_ASSERT(value, >=, prev_value);
 //                  }
 //
 //                  prev_value = value;
@@ -1755,17 +1755,17 @@ protected:
 //                  idx++;
 //              }
 //
-//              MEMORIA_ASSERT((Int)pos, ==, data_size);
-//              MEMORIA_ASSERT(idx, ==, meta->size());
+//              MEMORIA_V1_ASSERT((Int)pos, ==, data_size);
+//              MEMORIA_V1_ASSERT(idx, ==, meta->size());
 //
-//              MEMORIA_ASSERT(offsets_size, ==, offsets_segment_size(data_size));
-//              MEMORIA_ASSERT(offset(0), ==, 0);
+//              MEMORIA_V1_ASSERT(offsets_size, ==, offsets_segment_size(data_size));
+//              MEMORIA_V1_ASSERT(offset(0), ==, 0);
             }
             else {
-                MEMORIA_ASSERT(offsets_size, ==, Base::roundUpBytesToAlignmentBlocks(sizeof(OffsetsType)));
+                MEMORIA_V1_ASSERT(offsets_size, ==, Base::roundUpBytesToAlignmentBlocks(sizeof(OffsetsType)));
             }
 
-            MEMORIA_ASSERT(meta->data_size(), <=, BranchingFactorV);
+            MEMORIA_V1_ASSERT(meta->data_size(), <=, BranchingFactorV);
         }
     }
 

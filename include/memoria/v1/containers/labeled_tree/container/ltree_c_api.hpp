@@ -21,7 +21,7 @@ namespace v1 {
 using louds::LoudsNode;
 using louds::LoudsNodeRange;
 
-MEMORIA_CONTAINER_PART_BEGIN(v1::louds::CtrApiName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(v1::louds::CtrApiName)
 
     typedef typename Base::Iterator                                             Iterator;
 
@@ -185,6 +185,6 @@ private:
         return left.nodeIdx() >= right.nodeIdx();
     }
 
-MEMORIA_CONTAINER_PART_END
+MEMORIA_V1_CONTAINER_PART_END
 
 }}

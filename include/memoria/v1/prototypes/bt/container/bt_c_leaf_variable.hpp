@@ -20,7 +20,7 @@ using namespace v1::core;
 
 using namespace std;
 
-MEMORIA_CONTAINER_PART_BEGIN(v1::bt::LeafVariableName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::LeafVariableName)
 public:
     using typename Base::Types;
 
@@ -231,16 +231,16 @@ protected:
     // FIXME: not used
     NodeBaseG createNextLeaf(NodeBaseG& leaf);
 
-    MEMORIA_DECLARE_NODE_FN(TryMergeNodesFn, mergeWith);
+    MEMORIA_V1_DECLARE_NODE_FN(TryMergeNodesFn, mergeWith);
     bool tryMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn = [](const Position&){});
     bool mergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&){});
     bool mergeCurrentLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&){});
 
-MEMORIA_CONTAINER_PART_END
+MEMORIA_V1_CONTAINER_PART_END
 
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::bt::LeafVariableName)
-#define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::bt::LeafVariableName)
+#define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 
 M_PARAMS
@@ -317,7 +317,7 @@ bool M_TYPE::tryMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn)
         NodeBaseG src_parent    = self.getNodeParent(src);
         Int parent_idx          = src->parent_idx();
 
-        MEMORIA_ASSERT(parent_idx, >, 0);
+        MEMORIA_V1_ASSERT(parent_idx, >, 0);
 
         LeafDispatcher::dispatch(src, tgt, TryMergeNodesFn());
 

@@ -24,7 +24,7 @@ struct DefaultListItemProvider {
 
 template <typename Type, typename List, template <typename> class Provider = DefaultListItemProvider>
 class IndexOf {
-    MEMORIA_STATIC_ASSERT(IsList<List>::Value);
+    MEMORIA_V1_STATIC_ASSERT(IsList<List>::Value);
 
     template <typename Config, typename Item, typename Accumulator>
     struct Handler {

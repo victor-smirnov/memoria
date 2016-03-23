@@ -22,7 +22,7 @@ using namespace v1::bt;
 
 
 
-MEMORIA_CONTAINER_PART_BEGIN(v1::bt::ToolsName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::ToolsName)
 public:
     using typename Base::Types;
 
@@ -61,7 +61,7 @@ public:
     }
 
 
-    MEMORIA_DECLARE_NODE_FN(MaxFn, max);
+    MEMORIA_V1_DECLARE_NODE_FN(MaxFn, max);
     BranchNodeEntry max(const NodeBaseG& node) const
     {
         BranchNodeEntry entry;
@@ -69,19 +69,19 @@ public:
         return entry;
     }
 
-    MEMORIA_DECLARE_NODE_FN_RTN(GetSizesFn, sizes, Position);
+    MEMORIA_V1_DECLARE_NODE_FN_RTN(GetSizesFn, sizes, Position);
     Position getNodeSizes(const NodeBaseG& node) const
     {
         return NodeDispatcher::dispatch(node, GetSizesFn());
     }
 
-    MEMORIA_DECLARE_NODE_FN_RTN(GetSizeFn, size, Int);
+    MEMORIA_V1_DECLARE_NODE_FN_RTN(GetSizeFn, size, Int);
     Int getNodeSize(const NodeBaseG& node, Int stream) const
     {
         return NodeDispatcher::dispatch(node, GetSizeFn(), stream);
     }
 
-    MEMORIA_DECLARE_NODE_FN_RTN(CheckCapacitiesFn, checkCapacities, bool);
+    MEMORIA_V1_DECLARE_NODE_FN_RTN(CheckCapacitiesFn, checkCapacities, bool);
     bool checkCapacities(const NodeBaseG& node, const Position& sizes) const
     {
         return NodeDispatcher::dispatch(node, CheckCapacitiesFn(), sizes);
@@ -175,7 +175,7 @@ protected:
     }
 
 
-    MEMORIA_CONST_FN_WRAPPER_RTN(GetChildFn, getChildFn, NodeBaseG);
+    MEMORIA_V1_CONST_FN_WRAPPER_RTN(GetChildFn, getChildFn, NodeBaseG);
     NodeBaseG getChild(const NodeBaseG& node, Int idx) const
     {
         NodeBaseG result = BranchDispatcher::dispatch(node, GetChildFn(self()), idx);
@@ -191,7 +191,7 @@ protected:
 
 
 
-    MEMORIA_CONST_FN_WRAPPER_RTN(GetChildForUpdateFn, getChildForUpdateFn, NodeBaseG);
+    MEMORIA_V1_CONST_FN_WRAPPER_RTN(GetChildForUpdateFn, getChildForUpdateFn, NodeBaseG);
     NodeBaseG getChildForUpdate(const NodeBaseG& node, Int idx) const
     {
         NodeBaseG result = BranchDispatcher::dispatch(node, GetChildForUpdateFn(self()), idx);
@@ -219,7 +219,7 @@ protected:
     }
 
 
-    MEMORIA_DECLARE_NODE_FN_RTN(NodeStreamSizesFn, size_sums, Position);
+    MEMORIA_V1_DECLARE_NODE_FN_RTN(NodeStreamSizesFn, size_sums, Position);
     Position node_stream_sizes(const NodeBaseG& node) const
     {
         return NodeDispatcher::dispatch(node, NodeStreamSizesFn());
@@ -227,13 +227,13 @@ protected:
 
 
 
-    MEMORIA_DECLARE_NODE_FN(SumsFn, sums);
+    MEMORIA_V1_DECLARE_NODE_FN(SumsFn, sums);
     void sums(const NodeBaseG& node, BranchNodeEntry& sums) const
     {
         NodeDispatcher::dispatch(node, SumsFn(), sums);
     }
 
-    MEMORIA_DECLARE_NODE_FN_RTN(SumsRtnFn, sums, BranchNodeEntry);
+    MEMORIA_V1_DECLARE_NODE_FN_RTN(SumsRtnFn, sums, BranchNodeEntry);
     BranchNodeEntry sums(const NodeBaseG& node) const
     {
         return NodeDispatcher::dispatch(node, SumsRtnFn());
@@ -296,7 +296,7 @@ protected:
 
 
 
-    MEMORIA_DECLARE_NODE_FN(SetKeysFn, setKeys);
+    MEMORIA_V1_DECLARE_NODE_FN(SetKeysFn, setKeys);
 
 
     void setBranchKeys(NodeBaseG& node, Int idx, const BranchNodeEntry& keys) const
@@ -306,7 +306,7 @@ protected:
     }
 
 
-    MEMORIA_DECLARE_NODE_FN_RTN(GetINodeDataFn, value, ID);
+    MEMORIA_V1_DECLARE_NODE_FN_RTN(GetINodeDataFn, value, ID);
     ID getChildID(const NodeBaseG& node, Int idx) const
     {
         return BranchDispatcher::dispatch(node, GetINodeDataFn(), idx);
@@ -325,7 +325,7 @@ protected:
 
 
 
-    MEMORIA_DECLARE_NODE_FN(LayoutNodeFn, layout);
+    MEMORIA_V1_DECLARE_NODE_FN(LayoutNodeFn, layout);
     void layoutBranchNode(NodeBaseG& node, UBigInt active_streams) const
     {
         BranchDispatcher::dispatch(node, LayoutNodeFn(), active_streams);
@@ -336,7 +336,7 @@ protected:
         LeafDispatcher::dispatch(node, LayoutNodeFn(), sizes);
     }
 
-    MEMORIA_DECLARE_NODE_FN_RTN(GetActiveStreamsFn, active_streams, UBigInt);
+    MEMORIA_V1_DECLARE_NODE_FN_RTN(GetActiveStreamsFn, active_streams, UBigInt);
     UBigInt getActiveStreams(const NodeBaseG& node) const
     {
         return NodeDispatcher::dispatch(node, GetActiveStreamsFn());
@@ -344,14 +344,14 @@ protected:
 
     void initLeaf(NodeBaseG& node) const {}
 
-    MEMORIA_DECLARE_NODE_FN_RTN(IsNodeEmpty, is_empty, bool);
+    MEMORIA_V1_DECLARE_NODE_FN_RTN(IsNodeEmpty, is_empty, bool);
     bool isNodeEmpty(const NodeBaseG& node)
     {
         return NodeDispatcher::dispatch(node, IsNodeEmpty());
     }
 
 
-    MEMORIA_DECLARE_NODE_FN(ForAllIDsFn, forAllValues);
+    MEMORIA_V1_DECLARE_NODE_FN(ForAllIDsFn, forAllValues);
     void forAllIDs(const NodeBaseG& node, Int start, Int end, std::function<void (const ID&, Int)> fn) const
     {
         BranchDispatcher::dispatch(node, ForAllIDsFn(), start, end, fn);
@@ -436,10 +436,10 @@ protected:
 
 
 
-MEMORIA_CONTAINER_PART_END
+MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::bt::ToolsName)
-#define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::bt::ToolsName)
+#define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 
 

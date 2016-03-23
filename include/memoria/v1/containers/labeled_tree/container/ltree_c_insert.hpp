@@ -24,7 +24,7 @@ namespace v1 {
 
 
 
-MEMORIA_CONTAINER_PART_BEGIN(v1::louds::CtrInsertName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(v1::louds::CtrInsertName)
 
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
@@ -107,7 +107,7 @@ MEMORIA_CONTAINER_PART_BEGIN(v1::louds::CtrInsertName)
         template <Int Idx, typename SeqTypes>
         void stream(PkdFSSeq<SeqTypes>* seq, Int idx, Int symbol)
         {
-            MEMORIA_ASSERT_TRUE(seq != nullptr);
+            MEMORIA_V1_ASSERT_TRUE(seq != nullptr);
 
             seq->insert(idx, symbol);
 
@@ -232,7 +232,7 @@ MEMORIA_CONTAINER_PART_BEGIN(v1::louds::CtrInsertName)
             label_idx = iter.label_idx();
 
             bool result = self.insertLoudsNode(leaf, idx, label_idx, sums, labels);
-            MEMORIA_ASSERT_TRUE(result);
+            MEMORIA_V1_ASSERT_TRUE(result);
             self.update_parent(leaf, sums);
         }
     }
@@ -256,7 +256,7 @@ MEMORIA_CONTAINER_PART_BEGIN(v1::louds::CtrInsertName)
 
             bool result = self.insertLoudsZero(leaf, idx, sums);
 
-            MEMORIA_ASSERT_TRUE(result);
+            MEMORIA_V1_ASSERT_TRUE(result);
             self.update_parent(leaf, sums);
         }
     }
@@ -294,6 +294,6 @@ MEMORIA_CONTAINER_PART_BEGIN(v1::louds::CtrInsertName)
 
 
 
-MEMORIA_CONTAINER_PART_END
+MEMORIA_V1_CONTAINER_PART_END
 
 }}

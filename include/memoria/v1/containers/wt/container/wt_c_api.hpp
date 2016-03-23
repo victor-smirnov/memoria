@@ -16,7 +16,7 @@ namespace memoria {
 namespace v1 {
 
 
-MEMORIA_CONTAINER_PART_BEGIN(v1::wt::CtrApiName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(v1::wt::CtrApiName)
 
     typedef typename Base::Tree                                                 Tree;
     typedef typename Base::Seq                                                  Seq;
@@ -242,6 +242,6 @@ private:
     }
 
 
-MEMORIA_CONTAINER_PART_END
+MEMORIA_V1_CONTAINER_PART_END
 
 }}

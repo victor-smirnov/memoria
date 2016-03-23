@@ -434,7 +434,7 @@ public:
         model_type_name_(mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname()),
         debug_(false)
     {
-        MEMORIA_ASSERT_NOT_NULL(allocator);
+        MEMORIA_V1_ASSERT_NOT_NULL(allocator);
 
         checkCommandArguments(command, name);
 
@@ -470,7 +470,7 @@ public:
         model_type_name_(mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname()),
         debug_(false)
     {
-        MEMORIA_ASSERT_NOT_NULL(allocator);
+        MEMORIA_V1_ASSERT_NOT_NULL(allocator);
 
         initLogger();
 
@@ -521,7 +521,7 @@ public:
 
     void initCtr(Allocator* allocator, const ID& root_id, const char* mname = NULL)
     {
-        MEMORIA_ASSERT_EXPR(!root_id.is_null(), "Container root ID must not be empty");
+        MEMORIA_V1_ASSERT_EXPR(!root_id.is_null(), "Container root ID must not be empty");
 
         allocator_          = allocator;
         model_type_name_    = mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname();

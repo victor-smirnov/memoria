@@ -21,7 +21,7 @@ using namespace v1::core;
 
 using namespace std;
 
-MEMORIA_CONTAINER_PART_BEGIN(v1::bt::InsertBatchCommonName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::InsertBatchCommonName)
 
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
@@ -191,7 +191,7 @@ MEMORIA_CONTAINER_PART_BEGIN(v1::bt::InsertBatchCommonName)
     void updateChildren(const NodeBaseG& node, Int start);
     void updateChildren(const NodeBaseG& node, Int start, Int end);
 
-    MEMORIA_DECLARE_NODE_FN_RTN(IsEmptyFn, isEmpty, bool);
+    MEMORIA_V1_DECLARE_NODE_FN_RTN(IsEmptyFn, isEmpty, bool);
     bool isEmpty(const NodeBaseG& node) {
         return NodeDispatcher::dispatch(node, IsEmptyFn());
     }
@@ -203,10 +203,10 @@ public:
 
     NodeBaseG createNextLeaf(NodeBaseG& left_node);
 
-MEMORIA_CONTAINER_PART_END
+MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::bt::InsertBatchCommonName)
-#define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::bt::InsertBatchCommonName)
+#define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 
 M_PARAMS

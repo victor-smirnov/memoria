@@ -224,8 +224,8 @@ public:
 
     Value value(Int block, Int idx) const
     {
-        MEMORIA_ASSERT(idx, >=, 0);
-        MEMORIA_ASSERT(idx, <, this->size());
+        MEMORIA_V1_ASSERT(idx, >=, 0);
+        MEMORIA_V1_ASSERT(idx, <, this->size());
 
         Int data_size     = this->data_size(block);
         auto values       = this->values(block);
@@ -233,7 +233,7 @@ public:
 
         Int start_pos     = this->locate(layout, values, block, idx).idx;
 
-        MEMORIA_ASSERT(start_pos, <, data_size);
+        MEMORIA_V1_ASSERT(start_pos, <, data_size);
 
         Codec codec;
         Value value;
@@ -257,7 +257,7 @@ public:
 
     bool check_capacity(Int size) const
     {
-        MEMORIA_ASSERT_TRUE(size >= 0);
+        MEMORIA_V1_ASSERT_TRUE(size >= 0);
 
         auto alloc = this->allocator();
 
@@ -523,7 +523,7 @@ protected:
             cout << "RemoeSpace: " << this->size() << endl;
         }
 
-        MEMORIA_ASSERT(data_size, >=, end);
+        MEMORIA_V1_ASSERT(data_size, >=, end);
 
         codec.move(values, end, start, data_size - end);
 
@@ -645,9 +645,9 @@ public:
     {
         Int size = this->size();
 
-        MEMORIA_ASSERT(pos, >=, 0);
-        MEMORIA_ASSERT(pos, <=, size);
-        MEMORIA_ASSERT(processed, >=, 0);
+        MEMORIA_V1_ASSERT(pos, >=, 0);
+        MEMORIA_V1_ASSERT(pos, <=, size);
+        MEMORIA_V1_ASSERT(processed, >=, 0);
 
         Codec codec;
 
@@ -694,13 +694,13 @@ public:
 
     SizesT positions(Int idx) const
     {
-        MEMORIA_ASSERT(idx, >=, 0);
+        MEMORIA_V1_ASSERT(idx, >=, 0);
 
         if(idx > this->size()) {
             this->dump();
         }
 
-        MEMORIA_ASSERT(idx, <=, this->size());
+        MEMORIA_V1_ASSERT(idx, <=, this->size());
 
         SizesT pos;
         for (Int block = 0; block < Blocks; block++)
@@ -938,10 +938,10 @@ public:
             int a = 0; a++;
         }
 
-        MEMORIA_ASSERT(start, <, this->size());
-        MEMORIA_ASSERT(start, >=, 0);
-        MEMORIA_ASSERT(block, >=, 0);
-        MEMORIA_ASSERT(block, <=, Blocks);
+        MEMORIA_V1_ASSERT(start, <, this->size());
+        MEMORIA_V1_ASSERT(start, >=, 0);
+        MEMORIA_V1_ASSERT(block, >=, 0);
+        MEMORIA_V1_ASSERT(block, <=, Blocks);
 
         Codec codec;
 
@@ -1317,9 +1317,9 @@ public:
     template <typename ConsumerFn>
     void read(Int block, Int start, Int end, ConsumerFn&& fn) const
     {
-        MEMORIA_ASSERT(start, >=, 0);
-        MEMORIA_ASSERT(start, <=, end);
-        MEMORIA_ASSERT(end, <=, this->size());
+        MEMORIA_V1_ASSERT(start, >=, 0);
+        MEMORIA_V1_ASSERT(start, <=, end);
+        MEMORIA_V1_ASSERT(end, <=, this->size());
 
         auto values = this->values(block);
         TreeLayout layout = this->compute_tree_layout(this->data_size(block));
@@ -1341,9 +1341,9 @@ public:
     template <typename ConsumerFn>
     void read(Int start, Int end, ConsumerFn&& fn) const
     {
-        MEMORIA_ASSERT(start, >=, 0);
-        MEMORIA_ASSERT(start, <=, end);
-        MEMORIA_ASSERT(end, <=, this->size());
+        MEMORIA_V1_ASSERT(start, >=, 0);
+        MEMORIA_V1_ASSERT(start, <=, end);
+        MEMORIA_V1_ASSERT(end, <=, this->size());
 
         const ValueData* values[Blocks];
         size_t positions[Blocks];
@@ -1377,9 +1377,9 @@ public:
     template <typename T>
     void read(Int block, Int start, Int end, T* values) const
     {
-        MEMORIA_ASSERT(start, >=, 0);
-        MEMORIA_ASSERT(start, <=, end);
-        MEMORIA_ASSERT(end, <=, this->size());
+        MEMORIA_V1_ASSERT(start, >=, 0);
+        MEMORIA_V1_ASSERT(start, <=, end);
+        MEMORIA_V1_ASSERT(end, <=, this->size());
 
         Int c = 0;
         read(block, start, end, make_fn_with_next([&](Int c, auto&& value){

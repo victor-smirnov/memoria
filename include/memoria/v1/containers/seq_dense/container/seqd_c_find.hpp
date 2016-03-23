@@ -16,7 +16,7 @@
 namespace memoria {
 namespace v1 {
 
-MEMORIA_CONTAINER_PART_BEGIN(v1::seq_dense::CtrFindName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(v1::seq_dense::CtrFindName)
 
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
@@ -72,8 +72,8 @@ MEMORIA_CONTAINER_PART_BEGIN(v1::seq_dense::CtrFindName)
     {
         auto& self = this->self();
 
-        MEMORIA_ASSERT(rank, >=, 1);
-        MEMORIA_ASSERT(symbol, >=, 0);
+        MEMORIA_V1_ASSERT(rank, >=, 1);
+        MEMORIA_V1_ASSERT(symbol, >=, 0);
 
         typename Types::template SelectForwardWalker<Types, IntList<0>> walker(symbol, rank);
 
@@ -99,10 +99,10 @@ MEMORIA_CONTAINER_PART_BEGIN(v1::seq_dense::CtrFindName)
 
 
 
-MEMORIA_CONTAINER_PART_END
+MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::seq_dense::CtrFindName)
-#define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::seq_dense::CtrFindName)
+#define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 
 

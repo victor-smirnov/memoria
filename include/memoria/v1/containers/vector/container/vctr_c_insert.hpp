@@ -20,7 +20,7 @@ namespace v1 {
 
 using namespace v1::bt;
 
-MEMORIA_CONTAINER_PART_BEGIN(v1::mvector::CtrInsertName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(v1::mvector::CtrInsertName)
 public:
     using typename Base::Types;
     using typename Base::Iterator;
@@ -48,10 +48,10 @@ protected:
     static const Int Streams                                                    = Types::Streams;
 
 
-MEMORIA_CONTAINER_PART_END
+MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::mvector::CtrInsertName)
-#define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::mvector::CtrInsertName)
+#define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 
 #undef M_PARAMS

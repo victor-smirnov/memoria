@@ -34,7 +34,7 @@ template <
         typename Result>
 class Sort {
 
-    MEMORIA_STATIC_ASSERT(IsList<SrcList>::Value);
+    MEMORIA_V1_STATIC_ASSERT(IsList<SrcList>::Value);
 
     typedef IfThenElse<
                 Asc,

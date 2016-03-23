@@ -17,7 +17,7 @@
 namespace memoria {
 namespace v1 {
 
-MEMORIA_CONTAINER_PART_BEGIN(v1::seq_dense::CtrRemoveName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(v1::seq_dense::CtrRemoveName)
 
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
@@ -41,10 +41,10 @@ MEMORIA_CONTAINER_PART_BEGIN(v1::seq_dense::CtrRemoveName)
 
     typedef typename Types::CtrSizeT                                            CtrSizeT;
 
-MEMORIA_CONTAINER_PART_END
+MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::seq_dense::CtrRemoveName)
-#define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::seq_dense::CtrRemoveName)
+#define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 
 #undef M_PARAMS

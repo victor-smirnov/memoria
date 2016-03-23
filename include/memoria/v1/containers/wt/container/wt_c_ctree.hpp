@@ -16,7 +16,7 @@ namespace memoria {
 namespace v1 {
 
 
-MEMORIA_CONTAINER_PART_BEGIN(v1::wt::CtrCTreeName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(v1::wt::CtrCTreeName)
 
     typedef typename Base::Tree                                                 Tree;
     typedef typename Base::Seq                                                  Seq;
@@ -141,8 +141,8 @@ MEMORIA_CONTAINER_PART_BEGIN(v1::wt::CtrCTreeName)
 //      auto& tree = self.tree();
 //
 //      LoudsNode node = tree.insertNode(at);
-//      MEMORIA_ASSERT_TRUE(node);
-//      MEMORIA_ASSERT_TRUE(labels()->insert(node.rank1() - 1, label));
+//      MEMORIA_V1_ASSERT_TRUE(node);
+//      MEMORIA_V1_ASSERT_TRUE(labels()->insert(node.rank1() - 1, label));
 //
 //      return node;
 //  }
@@ -197,7 +197,7 @@ MEMORIA_CONTAINER_PART_BEGIN(v1::wt::CtrCTreeName)
 
                 louds->reindex();
 
-                MEMORIA_ASSERT(louds, ==, this->tree());
+                MEMORIA_V1_ASSERT(louds, ==, this->tree());
 
                 fn(node, label, level);
 
@@ -226,7 +226,7 @@ MEMORIA_CONTAINER_PART_BEGIN(v1::wt::CtrCTreeName)
 
             LoudsNode child = find_child(node, label);
 
-            MEMORIA_ASSERT(child.is_empty(), !=, true);
+            MEMORIA_V1_ASSERT(child.is_empty(), !=, true);
 
             level++;
         }
@@ -287,6 +287,6 @@ MEMORIA_CONTAINER_PART_BEGIN(v1::wt::CtrCTreeName)
         return remove_path(node, path, size, 0) != Status::NOT_FOUND;
     }
 */
-MEMORIA_CONTAINER_PART_END
+MEMORIA_V1_CONTAINER_PART_END
 
 }}

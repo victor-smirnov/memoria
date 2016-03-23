@@ -65,8 +65,8 @@ public:
     PackedLoudsNode insertNode(const PackedLoudsNode& at, Int label)
     {
         PackedLoudsNode node = tree()->insertNode(at);
-        MEMORIA_ASSERT_TRUE(node);
-        MEMORIA_ASSERT_TRUE(labels()->insert(node.rank1() - 1, label));
+        MEMORIA_V1_ASSERT_TRUE(node);
+        MEMORIA_V1_ASSERT_TRUE(labels()->insert(node.rank1() - 1, label));
 
         return node;
     }
@@ -154,7 +154,7 @@ public:
 
                 louds->reindex();
 
-                MEMORIA_ASSERT(louds, ==, this->tree());
+                MEMORIA_V1_ASSERT(louds, ==, this->tree());
 
                 fn(node, label, level);
 
@@ -183,7 +183,7 @@ public:
 
             PackedLoudsNode child = find_child(node, label);
 
-            MEMORIA_ASSERT(child.is_empty(), !=, true);
+            MEMORIA_V1_ASSERT(child.is_empty(), !=, true);
 
             level++;
         }

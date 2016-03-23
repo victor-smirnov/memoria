@@ -329,14 +329,14 @@ public:
         TreeLayout layout;
         Int levels = this->compute_tree_layout(meta, layout);
 
-        MEMORIA_ASSERT(meta->index_size(), ==, layout.index_size);
+        MEMORIA_V1_ASSERT(meta->index_size(), ==, layout.index_size);
 
         for (Int block = 0; block < blocks; block++)
         {
 //          auto values = this->values(block);
 //          for (Int c = 1; c < meta->size(); c++)
 //          {
-//              MEMORIA_ASSERT(values[c - 1], <=, values[c]);
+//              MEMORIA_V1_ASSERT(values[c - 1], <=, values[c]);
 //          }
 
             if (levels > 0)
@@ -344,7 +344,7 @@ public:
                 this->check_block(meta, block, layout);
             }
             else {
-                MEMORIA_ASSERT(Base::element_size(block * SegmentsPerBlock + 1), ==, 0);
+                MEMORIA_V1_ASSERT(Base::element_size(block * SegmentsPerBlock + 1), ==, 0);
             }
         }
     }
@@ -541,9 +541,9 @@ public:
     template <typename T>
     void read(Int block, Int start, Int end, T* values) const
     {
-        MEMORIA_ASSERT(start, >=, 0);
-        MEMORIA_ASSERT(start, <=, end);
-        MEMORIA_ASSERT(end, <=, size());
+        MEMORIA_V1_ASSERT(start, >=, 0);
+        MEMORIA_V1_ASSERT(start, <=, end);
+        MEMORIA_V1_ASSERT(end, <=, size());
 
         scan(block, start, end, [&](Int c, auto value){
             values[c - start] = value;
@@ -615,7 +615,7 @@ protected:
 
             Int end = window_end <= size ? window_end : size;
 
-            MEMORIA_ASSERT(indexes[level_start + i], ==, values[end - 1]);
+            MEMORIA_V1_ASSERT(indexes[level_start + i], ==, values[end - 1]);
         }
 
         for (Int level = levels - 1; level > 0; level--)
@@ -633,7 +633,7 @@ protected:
 
                 Int end = (window_end <= current_level_size ? window_end : current_level_size) + current_level_start;
 
-                MEMORIA_ASSERT(indexes[previous_level_start + i], ==, indexes[end - 1]);
+                MEMORIA_V1_ASSERT(indexes[previous_level_start + i], ==, indexes[end - 1]);
             }
         }
     }

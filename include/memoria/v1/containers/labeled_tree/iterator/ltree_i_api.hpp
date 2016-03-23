@@ -23,7 +23,7 @@
 namespace memoria {
 namespace v1 {
 
-MEMORIA_ITERATOR_PART_BEGIN(v1::louds::ItrApiName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(v1::louds::ItrApiName)
 
     typedef Ctr<typename Types::CtrTypes>                                       Container;
     typedef Ctr<typename Types::IterTypes>                                      Iterator;
@@ -149,7 +149,7 @@ MEMORIA_ITERATOR_PART_BEGIN(v1::louds::ItrApiName)
 
     CtrSizeT countFw(Int symbol)
     {
-        MEMORIA_ASSERT_TRUE(symbol == 0 || symbol == 1);
+        MEMORIA_V1_ASSERT_TRUE(symbol == 0 || symbol == 1);
 
         auto& self = this->self();
 
@@ -303,7 +303,7 @@ MEMORIA_ITERATOR_PART_BEGIN(v1::louds::ItrApiName)
 //      BigInt gpos     = self.gpos();
 //      BigInt pos      = self.pos();
 //
-//      MEMORIA_ASSERT(gpos, ==, pos);
+//      MEMORIA_V1_ASSERT(gpos, ==, pos);
 //
 //      BigInt rank1_a  = self.rank(1);
 //      BigInt rank1_b  = self.cache().rank1();
@@ -313,7 +313,7 @@ MEMORIA_ITERATOR_PART_BEGIN(v1::louds::ItrApiName)
 //          cout<<"Check: "<<rank1_a<<" "<<rank1_b<<" "<<self.pos()<<endl;
 //      }
 //
-//      MEMORIA_ASSERT(rank1_a, ==, rank1_b);
+//      MEMORIA_V1_ASSERT(rank1_a, ==, rank1_b);
 //    }
 
     Int label_idx() const
@@ -522,7 +522,7 @@ MEMORIA_ITERATOR_PART_BEGIN(v1::louds::ItrApiName)
     }
 
 
-MEMORIA_ITERATOR_PART_END
+MEMORIA_V1_ITERATOR_PART_END
 
 
 }}

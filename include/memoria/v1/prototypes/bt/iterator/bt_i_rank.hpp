@@ -18,7 +18,7 @@ namespace memoria {
 namespace v1 {
 
 
-MEMORIA_ITERATOR_PART_BEGIN(v1::bt::IteratorRankName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(v1::bt::IteratorRankName)
 
     typedef typename Base::NodeBaseG                                                NodeBaseG;
     typedef typename Base::Container                                                Container;
@@ -32,8 +32,8 @@ MEMORIA_ITERATOR_PART_BEGIN(v1::bt::IteratorRankName)
     template <typename LeafPath>
     auto rank_fw_(Int index, CtrSizeT pos)
     {
-        MEMORIA_ASSERT(pos, >=, 0);
-        MEMORIA_ASSERT(index, >=, 0);
+        MEMORIA_V1_ASSERT(pos, >=, 0);
+        MEMORIA_V1_ASSERT(index, >=, 0);
 
         typename Types::template RankForwardWalker<Types, LeafPath> walker(index, pos);
 
@@ -43,8 +43,8 @@ MEMORIA_ITERATOR_PART_BEGIN(v1::bt::IteratorRankName)
     template <typename LeafPath>
     auto rank_bw_(Int index, CtrSizeT pos)
     {
-        MEMORIA_ASSERT(pos, >=, 0);
-        MEMORIA_ASSERT(index, >=, 0);
+        MEMORIA_V1_ASSERT(pos, >=, 0);
+        MEMORIA_V1_ASSERT(index, >=, 0);
 
         typename Types::template RankBackwardWalker<Types, LeafPath> walker(index, pos);
 
@@ -64,10 +64,10 @@ MEMORIA_ITERATOR_PART_BEGIN(v1::bt::IteratorRankName)
     }
 
 
-MEMORIA_ITERATOR_PART_END
+MEMORIA_V1_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_ITERATOR_TYPE(v1::bt::IteratorRankName)
-#define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(v1::bt::IteratorRankName)
+#define M_PARAMS    MEMORIA_V1_ITERATOR_TEMPLATE_PARAMS
 
 
 

@@ -19,7 +19,7 @@ namespace memoria {
 namespace v1 {
 
 
-MEMORIA_ITERATOR_PART_BEGIN(v1::mmap::ItrMiscName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(v1::mmap::ItrMiscName)
 
     using typename Base::NodeBaseG;
     using typename Base::Container;
@@ -38,7 +38,7 @@ public:
     {
         auto& self = this->self();
 
-        MEMORIA_ASSERT(self.stream(), ==, 0);
+        MEMORIA_V1_ASSERT(self.stream(), ==, 0);
 
         return std::get<0>(self.template read_leaf_entry<0, IntList<1>>(self.idx(), 0));
     }
@@ -47,7 +47,7 @@ public:
     {
         auto& self = this->self();
 
-        MEMORIA_ASSERT(self.stream(), ==, 1);
+        MEMORIA_V1_ASSERT(self.stream(), ==, 1);
 
         return std::get<0>(self.template read_leaf_entry<1, IntList<1>>(self.idx(), 0));
     }
@@ -144,10 +144,10 @@ public:
     }
 
 
-MEMORIA_ITERATOR_PART_END
+MEMORIA_V1_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_ITERATOR_TYPE(v1::mmap::ItrMiscName)
-#define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(v1::mmap::ItrMiscName)
+#define M_PARAMS    MEMORIA_V1_ITERATOR_TEMPLATE_PARAMS
 
 
 #undef M_TYPE

@@ -19,7 +19,7 @@ namespace v1 {
 
 using bt::StreamTag;
 
-MEMORIA_ITERATOR_PART_BEGIN(v1::map::ItrNavMaxName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(v1::map::ItrNavMaxName)
 
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
@@ -167,10 +167,10 @@ public:
         return read(iter, self.ctr().size());
     }
 
-MEMORIA_ITERATOR_PART_END
+MEMORIA_V1_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_ITERATOR_TYPE(v1::map::ItrNavName)
-#define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(v1::map::ItrNavName)
+#define M_PARAMS    MEMORIA_V1_ITERATOR_TEMPLATE_PARAMS
 
 
 #undef M_TYPE

@@ -19,7 +19,7 @@ namespace memoria {
 namespace v1 {
 
 
-MEMORIA_ITERATOR_PART_BEGIN(v1::bttl::IteratorFindName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(v1::bttl::IteratorFindName)
 
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
@@ -174,10 +174,10 @@ protected:
         }
     }
 
-MEMORIA_ITERATOR_PART_END
+MEMORIA_V1_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_ITERATOR_TYPE(v1::bttl::IteratorFindName)
-#define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(v1::bttl::IteratorFindName)
+#define M_PARAMS    MEMORIA_V1_ITERATOR_TEMPLATE_PARAMS
 
 
 #undef M_TYPE

@@ -20,9 +20,9 @@ template <
 >
 class Filter {
 
-    MEMORIA_STATIC_ASSERT(IsRelationMetadata<Metadata>::Value);
-    MEMORIA_STATIC_ASSERT(IsExpression<Expression>::Value);
-    MEMORIA_STATIC_ASSERT(IsList<Relation>::Value);
+    MEMORIA_V1_STATIC_ASSERT(IsRelationMetadata<Metadata>::Value);
+    MEMORIA_V1_STATIC_ASSERT(IsExpression<Expression>::Value);
+    MEMORIA_V1_STATIC_ASSERT(IsList<Relation>::Value);
 
     template <typename Config, typename Record, typename Accumulator>
     struct Handler {

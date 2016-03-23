@@ -52,7 +52,7 @@ public:
         {
             if (root_provider_->parent())
             {
-                MEMORIA_ASSERT_TRUE(root_provider_->parent()->is_committed());
+                MEMORIA_V1_ASSERT_TRUE(root_provider_->parent()->is_committed());
 
                 auto root_provider = root_provider_->parent();
 
@@ -655,7 +655,7 @@ protected:
 
             remove_node(root);
 
-            MEMORIA_ASSERT(node->refs(), ==, 1);
+            MEMORIA_V1_ASSERT(node->refs(), ==, 1);
         }
 
         next[level] = node;

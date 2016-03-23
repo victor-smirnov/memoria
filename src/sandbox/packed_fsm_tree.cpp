@@ -66,7 +66,7 @@ int main() {
 //
 ////            cout<<v<<" -- "<<result.idx()<<" -- "<<data_s[result.idx()]<<endl;
 //
-//          MEMORIA_ASSERT(v, ==, data_s[result.idx()]);
+//          MEMORIA_V1_ASSERT(v, ==, data_s[result.idx()]);
 //      }
 
         auto nv = UUID::make_random();

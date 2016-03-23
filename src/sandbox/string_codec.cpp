@@ -35,8 +35,8 @@ int main()
             auto len = codec.encode(buf.get(), value, pos);
 
             try {
-                MEMORIA_ASSERT(len, ==, codec.length(value));
-                MEMORIA_ASSERT(len, ==, codec.length(buf.get(), pos, -1ull));
+                MEMORIA_V1_ASSERT(len, ==, codec.length(value));
+                MEMORIA_V1_ASSERT(len, ==, codec.length(buf.get(), pos, -1ull));
             }
             catch(...) {
                 cout << "Value: " << value << endl;
@@ -51,7 +51,7 @@ int main()
             String val;
             auto len = codec.decode(buf.get(), val, pos);
 
-            MEMORIA_ASSERT(val, ==, toString(pos));
+            MEMORIA_V1_ASSERT(val, ==, toString(pos));
 
             pos += len;
         }

@@ -17,7 +17,7 @@
 namespace memoria {
 namespace v1 {
 
-MEMORIA_CONTAINER_PART_BEGIN(v1::bt::ChecksName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::ChecksName)
 private:
     
 public:
@@ -58,7 +58,7 @@ public:
 protected:
     bool checkTree() const;
 
-    MEMORIA_DECLARE_NODE_FN(CheckContentFn, check);
+    MEMORIA_V1_DECLARE_NODE_FN(CheckContentFn, check);
     bool checkContent(const NodeBaseG& node) const
     {
         try {
@@ -83,13 +83,13 @@ private:
     template <typename Node1, typename Node2>
     bool checkTypedNodeContent(const Node1 *node, const Node2 *parent, Int parent_idx) const;
 
-    MEMORIA_CONST_FN_WRAPPER_RTN(CheckTypedNodeContentFn, checkTypedNodeContent, bool);
+    MEMORIA_V1_CONST_FN_WRAPPER_RTN(CheckTypedNodeContentFn, checkTypedNodeContent, bool);
 
-MEMORIA_CONTAINER_PART_END
+MEMORIA_V1_CONTAINER_PART_END
 
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::bt::ChecksName)
-#define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::bt::ChecksName)
+#define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 M_PARAMS
 bool M_TYPE::checkTree() const

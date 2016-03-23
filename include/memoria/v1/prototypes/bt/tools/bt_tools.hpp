@@ -115,7 +115,7 @@ public:
 
     bool contains(const NodeBaseG& node)
     {
-        MEMORIA_ASSERT_TRUE(node.isSet());
+        MEMORIA_V1_ASSERT_TRUE(node.isSet());
 
         for (Int c = pages_.getSize() - 1; c >= 0; c--)
         {
@@ -130,7 +130,7 @@ public:
 
     void add(NodeBaseG& node)
     {
-        MEMORIA_ASSERT_TRUE(node.isSet());
+        MEMORIA_V1_ASSERT_TRUE(node.isSet());
 
         if (pages_.capacity() > 0)
         {
@@ -149,7 +149,7 @@ public:
 
     void remove(const NodeBaseG& node)
     {
-        MEMORIA_ASSERT_TRUE(node.isSet());
+        MEMORIA_V1_ASSERT_TRUE(node.isSet());
 
         for (Int c = pages_.getSize() - 1; c >= 0; c--)
         {

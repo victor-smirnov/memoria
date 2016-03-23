@@ -218,7 +218,7 @@ public:
     auto unref() {
         auto r = --references_;
 
-        MEMORIA_ASSERT(r, >=, 0);
+        MEMORIA_V1_ASSERT(r, >=, 0);
 
 //      if (r <= 0) {
 //          cerr << "PageUnref: " << uuid_ << " " << r << endl;
@@ -499,7 +499,7 @@ public:
 
     void setDelegate(MyType* delegate)
     {
-        MEMORIA_ASSERT_TRUE(delegate != this);
+        MEMORIA_V1_ASSERT_TRUE(delegate != this);
 
         if (delegate_)
         {

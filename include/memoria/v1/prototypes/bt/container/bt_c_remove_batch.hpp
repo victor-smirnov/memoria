@@ -12,7 +12,7 @@
 namespace memoria {
 namespace v1 {
 
-MEMORIA_CONTAINER_PART_BEGIN(v1::bt::RemoveBatchName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::RemoveBatchName)
 
     typedef TypesType                                                           Types;
     typedef typename Base::Allocator                                            Allocator;
@@ -84,11 +84,11 @@ MEMORIA_CONTAINER_PART_BEGIN(v1::bt::RemoveBatchName)
 
 
 
-MEMORIA_CONTAINER_PART_END
+MEMORIA_V1_CONTAINER_PART_END
 
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::bt::RemoveBatchName)
-#define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::bt::RemoveBatchName)
+#define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 
 
@@ -246,7 +246,7 @@ void M_TYPE::removeBranchNodesFromStart(NodeBaseG& stop, Int stop_idx, Position&
 {
     auto& self = this->self();
 
-    MEMORIA_ASSERT(stop_idx, >=, 0);
+    MEMORIA_V1_ASSERT(stop_idx, >=, 0);
 
     NodeBaseG node = stop;
 

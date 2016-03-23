@@ -180,7 +180,7 @@ public:
 
     Int resizeBlock(Int idx, Int new_size)
     {
-        MEMORIA_ASSERT(new_size, >=, 0);
+        MEMORIA_V1_ASSERT(new_size, >=, 0);
 
         Int allocation_size = roundUpBytesToAlignmentBlocks(new_size);
 
@@ -242,7 +242,7 @@ public:
     Int findElement(const void* element_ptr) const
     {
         Int offset  = computeElementOffset(element_ptr);
-        MEMORIA_ASSERT(offset, >=, 0);
+        MEMORIA_V1_ASSERT(offset, >=, 0);
 
         for (Int c = 0; c < layout_size_ / 4; c++)
         {
@@ -261,7 +261,7 @@ public:
     {
         const T* addr = T2T<const T*>(base() + element_offset(idx));
 
-//        MEMORIA_ASSERT_ALIGN(addr, 8);
+//        MEMORIA_V1_ASSERT_ALIGN(addr, 8);
         __builtin_prefetch(addr);
 
         return addr;
@@ -272,7 +272,7 @@ public:
     {
         T* addr = T2T<T*>(base() + element_offset(idx));
 
-//        MEMORIA_ASSERT_ALIGN(addr, 8);
+//        MEMORIA_V1_ASSERT_ALIGN(addr, 8);
         __builtin_prefetch(addr);
 
         return addr;
@@ -419,7 +419,7 @@ public:
 
         auto offs = base() + offset;
 
-        MEMORIA_ASSERT_ALIGN(offs, 8);
+        MEMORIA_V1_ASSERT_ALIGN(offs, 8);
 
         return AllocationBlock(allocation_size, offset, base() + offset);
     }

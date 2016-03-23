@@ -19,7 +19,7 @@
 namespace memoria {
 namespace v1 {
 
-MEMORIA_CONTAINER_PART_BEGIN(v1::bttl::MiscName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bttl::MiscName)
 public:
     using typename Base::Types;
     using typename Base::IteratorPtr;
@@ -105,10 +105,10 @@ public:
     }
 
 
-MEMORIA_CONTAINER_PART_END
+MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::bttl::MiscName)
-#define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::bttl::MiscName)
+#define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 
 

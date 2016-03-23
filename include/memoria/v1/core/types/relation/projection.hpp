@@ -40,8 +40,8 @@ struct WrapperProvider {
 template <typename Metadata, typename ColumnNamesList, typename Record>
 class CreateColumnValuesList {
 
-    MEMORIA_STATIC_ASSERT(IsRelationMetadata<Metadata>::Value);
-    MEMORIA_STATIC_ASSERT(IsNonemptyList<ColumnNamesList>::Value);
+    MEMORIA_V1_STATIC_ASSERT(IsRelationMetadata<Metadata>::Value);
+    MEMORIA_V1_STATIC_ASSERT(IsNonemptyList<ColumnNamesList>::Value);
 
     template <typename Config, typename Column, typename Accumulator>
     struct Handler {
@@ -71,9 +71,9 @@ public:
 template <typename Metadata, typename ColumnNamesList, typename RecordList>
 class Projection {
 
-    MEMORIA_STATIC_ASSERT(IsRelationMetadata<Metadata>::Value);
-    MEMORIA_STATIC_ASSERT(IsNonemptyList<ColumnNamesList>::Value);
-    MEMORIA_STATIC_ASSERT(IsList<RecordList>::Value);
+    MEMORIA_V1_STATIC_ASSERT(IsRelationMetadata<Metadata>::Value);
+    MEMORIA_V1_STATIC_ASSERT(IsNonemptyList<ColumnNamesList>::Value);
+    MEMORIA_V1_STATIC_ASSERT(IsList<RecordList>::Value);
     
     template <typename Config, typename Record, typename Accumulator>
     struct Handler {

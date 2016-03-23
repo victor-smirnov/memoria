@@ -20,7 +20,7 @@ namespace v1 {
 template <typename V>
 size_t GetExintValueLength(V value)
 {
-    //MEMORIA_ASSERT(value, >=, 0);
+    //MEMORIA_V1_ASSERT(value, >=, 0);
 
     size_t length;
 
@@ -36,7 +36,7 @@ size_t GetExintValueLength(V value)
 template <typename T, typename V>
 size_t EncodeExint(T* buffer, V value, size_t start)
 {
-    //MEMORIA_ASSERT(value, >=, 0);
+    //MEMORIA_V1_ASSERT(value, >=, 0);
 
     UByte& byte_length = buffer[start];
 

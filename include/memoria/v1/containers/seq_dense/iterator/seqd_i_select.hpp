@@ -20,7 +20,7 @@ namespace memoria {
 namespace v1 {
 
 
-MEMORIA_ITERATOR_PART_BEGIN(v1::seq_dense::IterSelectName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(v1::seq_dense::IterSelectName)
 
     typedef Ctr<typename Types::CtrTypes>                                       Container;
 
@@ -51,11 +51,11 @@ MEMORIA_ITERATOR_PART_BEGIN(v1::seq_dense::IterSelectName)
         return self().template select_bw_<IntList<0>>(symbol, rank_delta);
     }
     
-MEMORIA_ITERATOR_PART_END
+MEMORIA_V1_ITERATOR_PART_END
 
 
-#define M_TYPE      MEMORIA_ITERATOR_TYPE(v1::seq_dense::IterSelectName)
-#define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(v1::seq_dense::IterSelectName)
+#define M_PARAMS    MEMORIA_V1_ITERATOR_TEMPLATE_PARAMS
 
 
 

@@ -15,7 +15,7 @@ namespace v1 {
 
 using bt::StreamTag;
 
-MEMORIA_ITERATOR_PART_BEGIN(v1::btss::IteratorMiscName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btss::IteratorMiscName)
 
     using typename Base::NodeBaseG;
     using typename Base::Container;
@@ -205,10 +205,10 @@ protected:
     }
 
 
-MEMORIA_ITERATOR_PART_END
+MEMORIA_V1_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_ITERATOR_TYPE(v1::btss::IteratorMiscName)
-#define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(v1::btss::IteratorMiscName)
+#define M_PARAMS    MEMORIA_V1_ITERATOR_TEMPLATE_PARAMS
 
 
 

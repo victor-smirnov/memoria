@@ -19,7 +19,7 @@
 namespace memoria {
 namespace v1 {
 
-MEMORIA_CONTAINER_PART_BEGIN(v1::seq_dense::CtrInsertName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(v1::seq_dense::CtrInsertName)
 
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
@@ -48,7 +48,7 @@ MEMORIA_CONTAINER_PART_BEGIN(v1::seq_dense::CtrInsertName)
 //        template <Int Idx, typename SeqTypes>
 //        void stream(PkdFSSeq<SeqTypes>* seq, Int idx, Int symbol, BranchNodeEntry* delta)
 //        {
-//            MEMORIA_ASSERT_TRUE(seq != nullptr);
+//            MEMORIA_V1_ASSERT_TRUE(seq != nullptr);
 //
 //            typedef PkdFSSeq<SeqTypes>                  Seq;
 //            typedef typename Seq::Value                 Symbol;
@@ -129,17 +129,17 @@ MEMORIA_CONTAINER_PART_BEGIN(v1::seq_dense::CtrInsertName)
 //            }
 //
 //            bool result = self.insertIntoLeaf(leaf, idx, symbol, sums);
-//            MEMORIA_ASSERT_TRUE(result);
+//            MEMORIA_V1_ASSERT_TRUE(result);
 //            self.update_parent(leaf, sums);
 //        }
 //
 //        iter++;
 //    }
 
-MEMORIA_CONTAINER_PART_END
+MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::seq_dense::CtrInsertName)
-#define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::seq_dense::CtrInsertName)
+#define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 
 

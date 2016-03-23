@@ -19,7 +19,7 @@
 namespace memoria {
 namespace v1 {
 
-MEMORIA_CONTAINER_PART_BEGIN(v1::seq_dense::CtrInsertVariableName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(v1::seq_dense::CtrInsertVariableName)
 
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
@@ -45,7 +45,7 @@ MEMORIA_CONTAINER_PART_BEGIN(v1::seq_dense::CtrInsertVariableName)
 
     //==========================================================================================
 
-//    MEMORIA_DECLARE_NODE_FN(LayoutNodeFn, layout);
+//    MEMORIA_V1_DECLARE_NODE_FN(LayoutNodeFn, layout);
 //    void layoutLeafNode(NodeBaseG& node, Int size) const
 //    {
 //      LeafDispatcher::dispatch(node, LayoutNodeFn(), Position(size));
@@ -85,10 +85,10 @@ MEMORIA_CONTAINER_PART_BEGIN(v1::seq_dense::CtrInsertVariableName)
 
 
 
-MEMORIA_CONTAINER_PART_END
+MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::seq_dense::CtrInsertVariableName)
-#define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::seq_dense::CtrInsertVariableName)
+#define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 
 

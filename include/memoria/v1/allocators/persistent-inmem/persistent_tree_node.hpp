@@ -182,7 +182,7 @@ public:
 //
 //      cerr << "PTreeNode.UnRef " << r << " " << node_id_ << " " << node_id_.lo() << " "<< node_type_ << " " << refs_ <<endl;
 
-        MEMORIA_ASSERT(r, >=, 0);
+        MEMORIA_V1_ASSERT(r, >=, 0);
 
         return r;
     }

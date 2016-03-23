@@ -23,7 +23,7 @@ namespace v1 {
 using namespace v1::bt;
 
 
-MEMORIA_ITERATOR_PART_BEGIN(v1::bt::IteratorAPIName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(v1::bt::IteratorAPIName)
 
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::NodeBase                                             NodeBase;
@@ -41,7 +41,7 @@ MEMORIA_ITERATOR_PART_BEGIN(v1::bt::IteratorAPIName)
 
     static const Int Streams = Container::Types::Streams;
 
-    MEMORIA_DECLARE_NODE_FN_RTN(SizesFn, sizes, Position);
+    MEMORIA_V1_DECLARE_NODE_FN_RTN(SizesFn, sizes, Position);
 
 public:
     auto leaf_sizes() const {
@@ -79,7 +79,7 @@ protected:
     CtrSizeT skipStreamBw(Int stream, CtrSizeT distance);
     CtrSizeT skipStream(Int stream, CtrSizeT distance);
 
-    MEMORIA_DECLARE_NODE_FN_RTN(SizeFn, size, Int);
+    MEMORIA_V1_DECLARE_NODE_FN_RTN(SizeFn, size, Int);
 
     Int leafSize(Int stream) const
     {
@@ -224,11 +224,11 @@ protected:
 
 
 
-MEMORIA_ITERATOR_PART_END
+MEMORIA_V1_ITERATOR_PART_END
 
 
-#define M_TYPE      MEMORIA_ITERATOR_TYPE(v1::bt::IteratorAPIName)
-#define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(v1::bt::IteratorAPIName)
+#define M_PARAMS    MEMORIA_V1_ITERATOR_TEMPLATE_PARAMS
 
 // --------------------- PUBLIC API --------------------------------------
 
@@ -344,7 +344,7 @@ bool M_TYPE::findNextLeaf(Walker&& walker)
 
         Int size = self.ctr().getNodeSize(parent, stream);
 
-        MEMORIA_ASSERT_TRUE(size > 0);
+        MEMORIA_V1_ASSERT_TRUE(size > 0);
 
         Int child_idx;
 
@@ -391,7 +391,7 @@ bool M_TYPE::findPrevLeaf(Walker&& walker)
 
         Int size = self.model().getNodeSize(parent, stream);
 
-        MEMORIA_ASSERT_TRUE(size > 0);
+        MEMORIA_V1_ASSERT_TRUE(size > 0);
 
         Int child_idx;
 

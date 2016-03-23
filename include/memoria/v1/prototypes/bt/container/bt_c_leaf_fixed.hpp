@@ -20,7 +20,7 @@ using namespace v1::core;
 
 using namespace std;
 
-MEMORIA_CONTAINER_PART_BEGIN(v1::bt::LeafFixedName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::LeafFixedName)
 public:
     using typename Base::Types;
 
@@ -221,23 +221,23 @@ protected:
 
     //==========================================================================================
 
-    MEMORIA_DECLARE_NODE2_FN_RTN(CanMergeFn, canBeMergedWith, bool);
+    MEMORIA_V1_DECLARE_NODE2_FN_RTN(CanMergeFn, canBeMergedWith, bool);
     bool canMerge(const NodeBaseG& tgt, const NodeBaseG& src)
     {
         return NodeDispatcher::dispatch(src, tgt, CanMergeFn());
     }
 
 
-    MEMORIA_DECLARE_NODE_FN(MergeNodesFn, mergeWith);
+    MEMORIA_V1_DECLARE_NODE_FN(MergeNodesFn, mergeWith);
     void doMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src);
     bool mergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&){});
     bool mergeCurrentLeafNodes(NodeBaseG& tgt, NodeBaseG& src, MergeFn fn = [](const Position&){});
 
-MEMORIA_CONTAINER_PART_END
+MEMORIA_V1_CONTAINER_PART_END
 
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::bt::LeafFixedName)
-#define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::bt::LeafFixedName)
+#define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 
 M_PARAMS
@@ -257,7 +257,7 @@ void M_TYPE::doMergeLeafNodes(NodeBaseG& tgt, NodeBaseG& src)
     NodeBaseG src_parent    = self.getNodeParent(src);
     Int parent_idx          = src->parent_idx();
 
-    MEMORIA_ASSERT(parent_idx, >, 0);
+    MEMORIA_V1_ASSERT(parent_idx, >, 0);
 
     self.removeNonLeafNodeEntry(src_parent, parent_idx);
 

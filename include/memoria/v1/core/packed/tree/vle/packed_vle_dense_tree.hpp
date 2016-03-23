@@ -219,8 +219,8 @@ public:
             this->dump();
         }
 
-        MEMORIA_ASSERT(idx, >=, 0);
-        MEMORIA_ASSERT(idx, <, size);
+        MEMORIA_V1_ASSERT(idx, >=, 0);
+        MEMORIA_V1_ASSERT(idx, <, size);
 
         Int data_size     = this->data_size();
         auto values       = this->values();
@@ -229,7 +229,7 @@ public:
         Int global_idx = idx + size * block;
         Int start_pos     = this->locate(layout, values, 0, global_idx).idx;
 
-        MEMORIA_ASSERT(start_pos, <, data_size);
+        MEMORIA_V1_ASSERT(start_pos, <, data_size);
 
         Codec codec;
         Value value;
@@ -250,7 +250,7 @@ public:
 
     bool check_capacity(Int size) const
     {
-        MEMORIA_ASSERT_TRUE(size >= 0);
+        MEMORIA_V1_ASSERT_TRUE(size >= 0);
 
         auto alloc = this->allocator();
 
@@ -493,8 +493,8 @@ protected:
 
 //    void copyTo(MyType* other, Int copy_from, Int count, Int copy_to) const
 //    {
-//      MEMORIA_ASSERT_TRUE(copy_from >= 0);
-//      MEMORIA_ASSERT_TRUE(count >= 0);
+//      MEMORIA_V1_ASSERT_TRUE(copy_from >= 0);
+//      MEMORIA_V1_ASSERT_TRUE(count >= 0);
 //
 //      for (Int block = 0; block < Blocks; block++)
 //      {
@@ -732,8 +732,8 @@ public:
     {
         Int size = this->size();
 
-        MEMORIA_ASSERT(idx, >=, 0);
-        MEMORIA_ASSERT(idx, <=, size);
+        MEMORIA_V1_ASSERT(idx, >=, 0);
+        MEMORIA_V1_ASSERT(idx, <=, size);
 
         Int data_size       = this->data_size();
         auto values         = this->values();
@@ -1023,8 +1023,8 @@ public:
     {
         Int size       = this->size();
 
-        MEMORIA_ASSERT(start, >=, 0);
-        MEMORIA_ASSERT(start, <, size);
+        MEMORIA_V1_ASSERT(start, >=, 0);
+        MEMORIA_V1_ASSERT(start, <, size);
 
         Int global_idx = block * size + start;
 
@@ -1509,9 +1509,9 @@ public:
     template <typename T>
     void read(Int block, Int start, Int end, T* values) const
     {
-        MEMORIA_ASSERT(start, >=, 0);
-        MEMORIA_ASSERT(start, <=, end);
-        MEMORIA_ASSERT(end, <=, size());
+        MEMORIA_V1_ASSERT(start, >=, 0);
+        MEMORIA_V1_ASSERT(start, <=, end);
+        MEMORIA_V1_ASSERT(end, <=, size());
 
         Int idx = 0;
         scan(block, start, end, make_fn_with_next([&](Int block, auto value){

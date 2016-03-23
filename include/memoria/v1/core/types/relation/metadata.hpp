@@ -44,7 +44,7 @@ template <Int Name> class ColumnNotFound;
 template <Int Name, typename ColumnsList>
 class findColumn {
 
-    MEMORIA_STATIC_ASSERT(IsNonemptyList<ColumnsList>::Value);
+    MEMORIA_V1_STATIC_ASSERT(IsNonemptyList<ColumnsList>::Value);
 
     template <typename Config, typename Item, typename Accumulator>
     struct Handler {
@@ -82,7 +82,7 @@ template <
         template <Int Name, typename ColumnType, typename Record> class ValueProvider
 >
 class RelationMetadata {
-    MEMORIA_STATIC_ASSERT(IsNonemptyList<ColumnsList>::Value);
+    MEMORIA_V1_STATIC_ASSERT(IsNonemptyList<ColumnsList>::Value);
 public:
     typedef ColumnsList List;
     template <Int Name, typename Record>

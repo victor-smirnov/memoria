@@ -614,7 +614,7 @@ public:
                 tree->insertSpace(room_start[StreamIdx], room_length[StreamIdx]);
             }
             else {
-                MEMORIA_ASSERT_TRUE(room_length[StreamIdx] == 0);
+                MEMORIA_V1_ASSERT_TRUE(room_length[StreamIdx] == 0);
             }
         }
     };
@@ -753,8 +753,8 @@ public:
                     int a = 0; a++;
                 }
 
-                MEMORIA_ASSERT(idx, >=, 0);
-                MEMORIA_ASSERT(idx, <=, size);
+                MEMORIA_V1_ASSERT(idx, >=, 0);
+                MEMORIA_V1_ASSERT(idx, <=, size);
 
                 Tree* other_tree = other->allocator()->template allocateEmpty<Tree>(AllocatorIdx);
                 tree->splitTo(other_tree, idx);
@@ -799,8 +799,8 @@ public:
 
     void copyTo(MyType* other, const Position& copy_from, const Position& count, const Position& copy_to) const
     {
-        MEMORIA_ASSERT_TRUE((copy_from + count).lteAll(sizes()));
-        MEMORIA_ASSERT_TRUE((copy_to + count).lteAll(other->max_sizes()));
+        MEMORIA_V1_ASSERT_TRUE((copy_from + count).lteAll(sizes()));
+        MEMORIA_V1_ASSERT_TRUE((copy_to + count).lteAll(other->max_sizes()));
 
         this->processSubstreamGroups(CopyToFn(), other, copy_from, count, copy_to);
     }

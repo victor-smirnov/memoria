@@ -149,8 +149,8 @@ public:
     {
         auto meta = this->metadata();
 
-        MEMORIA_ASSERT(idx, >=, 0);
-        MEMORIA_ASSERT(idx, <=, meta->size());
+        MEMORIA_V1_ASSERT(idx, >=, 0);
+        MEMORIA_V1_ASSERT(idx, <=, meta->size());
 
         auto values = this->values(0);
         auto data_size = meta->data_size(0);
@@ -195,7 +195,7 @@ public:
 
     bool check_capacity(Int size) const
     {
-        MEMORIA_ASSERT_TRUE(size >= 0);
+        MEMORIA_V1_ASSERT_TRUE(size >= 0);
 
         auto alloc = this->allocator();
 
@@ -323,18 +323,18 @@ public:
     void check_indexless(Int block, Int data_size) const
     {
         Int offsets_size = this->element_size(block * SegmentsPerBlock + Base::OFFSETS + BlocksStart);
-        MEMORIA_ASSERT(this->element_size(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart), ==, 0);
+        MEMORIA_V1_ASSERT(this->element_size(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart), ==, 0);
 
         if (data_size > 0)
         {
-            MEMORIA_ASSERT(offsets_size, ==, sizeof(OffsetsType));
-            MEMORIA_ASSERT(this->offset(block, 0), ==, 0);
+            MEMORIA_V1_ASSERT(offsets_size, ==, sizeof(OffsetsType));
+            MEMORIA_V1_ASSERT(this->offset(block, 0), ==, 0);
         }
         else {
-            MEMORIA_ASSERT(offsets_size, ==, 0);
+            MEMORIA_V1_ASSERT(offsets_size, ==, 0);
         }
 
-        MEMORIA_ASSERT(data_size, <=, ValuesPerBranch);
+        MEMORIA_V1_ASSERT(data_size, <=, ValuesPerBranch);
     }
 
 
@@ -347,7 +347,7 @@ public:
             Int data_size     = metadata->data_size(block);
             Int max_data_size = metadata->max_data_size(block);
 
-            MEMORIA_ASSERT(data_size, <=, max_data_size);
+            MEMORIA_V1_ASSERT(data_size, <=, max_data_size);
 
             TreeLayout layout = this->compute_tree_layout(max_data_size);
 
@@ -366,9 +366,9 @@ public:
     {
         auto metadata = this->metadata();
 
-        MEMORIA_ASSERT(start, >=, 0);
-        MEMORIA_ASSERT(end, >=, start);
-        MEMORIA_ASSERT(end, <=, metadata->size());
+        MEMORIA_V1_ASSERT(start, >=, 0);
+        MEMORIA_V1_ASSERT(end, >=, start);
+        MEMORIA_V1_ASSERT(end, <=, metadata->size());
 
         Codec codec;
 

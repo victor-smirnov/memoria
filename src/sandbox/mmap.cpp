@@ -185,7 +185,7 @@ int main() {
             auto totals = map->_insert(*iter.get(), stream_adaptor);
 
             auto sizes = map->sizes();
-            MEMORIA_ASSERT(totals, ==, sizes);
+            MEMORIA_V1_ASSERT(totals, ==, sizes);
 
             auto iter2 = map->seek(8);
 

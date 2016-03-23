@@ -19,7 +19,7 @@ namespace v1 {
 
 
 
-MEMORIA_CONTAINER_PART_BEGIN(v1::louds::CtrFindName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(v1::louds::CtrFindName)
 
     typedef TypesType                                                           Types;
     typedef typename Base::Iterator                                             Iterator;
@@ -110,6 +110,6 @@ MEMORIA_CONTAINER_PART_BEGIN(v1::louds::CtrFindName)
         return self().seek(node.node())->labels();
     }
 
-MEMORIA_CONTAINER_PART_END
+MEMORIA_V1_CONTAINER_PART_END
 
 }}

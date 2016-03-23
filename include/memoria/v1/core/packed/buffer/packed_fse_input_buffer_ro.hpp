@@ -207,10 +207,10 @@ public:
     template <typename Fn>
     SizesT scan(Int start, Int end, Fn&& fn) const
     {
-        MEMORIA_ASSERT(start, <=, size_);
-        MEMORIA_ASSERT(start, >=, 0);
-        MEMORIA_ASSERT(end, >=, 0);
-        MEMORIA_ASSERT(end, <=, size_);
+        MEMORIA_V1_ASSERT(start, <=, size_);
+        MEMORIA_V1_ASSERT(start, >=, 0);
+        MEMORIA_V1_ASSERT(end, >=, 0);
+        MEMORIA_V1_ASSERT(end, <=, size_);
 
         auto values = this->values();
 

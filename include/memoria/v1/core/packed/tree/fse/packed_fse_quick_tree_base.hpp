@@ -826,9 +826,9 @@ public:
     template <typename T>
     void read(Int block, Int start, Int end, T* values) const
     {
-        MEMORIA_ASSERT(start, >=, 0);
-        MEMORIA_ASSERT(start, <=, end);
-        MEMORIA_ASSERT(end, <=, size());
+        MEMORIA_V1_ASSERT(start, >=, 0);
+        MEMORIA_V1_ASSERT(start, <=, end);
+        MEMORIA_V1_ASSERT(end, <=, size());
 
         scan(block, start, end, [&](Int c, auto value){
             values[c - start] = value;

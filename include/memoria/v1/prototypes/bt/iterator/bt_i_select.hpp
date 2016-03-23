@@ -18,7 +18,7 @@ namespace memoria {
 namespace v1 {
 
 
-MEMORIA_ITERATOR_PART_BEGIN(v1::bt::IteratorSelectName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(v1::bt::IteratorSelectName)
 
     typedef typename Base::NodeBaseG                                                NodeBaseG;
     typedef typename Base::Container                                                Container;
@@ -33,8 +33,8 @@ MEMORIA_ITERATOR_PART_BEGIN(v1::bt::IteratorSelectName)
     template <typename LeafPath>
     auto select_fw_(Int index, CtrSizeT rank)
     {
-        MEMORIA_ASSERT(index, >=, 0);
-        MEMORIA_ASSERT(rank, >=, 0);
+        MEMORIA_V1_ASSERT(index, >=, 0);
+        MEMORIA_V1_ASSERT(rank, >=, 0);
 
         typename Types::template SelectForwardWalker<Types, LeafPath> walker(index, rank);
 
@@ -44,17 +44,17 @@ MEMORIA_ITERATOR_PART_BEGIN(v1::bt::IteratorSelectName)
     template <typename LeafPath>
     auto select_bw_(Int index, CtrSizeT rank)
     {
-        MEMORIA_ASSERT(index, >=, 0);
-        MEMORIA_ASSERT(rank, >=, 0);
+        MEMORIA_V1_ASSERT(index, >=, 0);
+        MEMORIA_V1_ASSERT(rank, >=, 0);
 
         typename Types::template SelectBackwardWalker<Types, LeafPath> walker(index, rank);
 
         return self().find_bw(walker);
     }
-MEMORIA_ITERATOR_PART_END
+MEMORIA_V1_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_ITERATOR_TYPE(v1::bt::IteratorSelectName)
-#define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(v1::bt::IteratorSelectName)
+#define M_PARAMS    MEMORIA_V1_ITERATOR_TEMPLATE_PARAMS
 
 
 

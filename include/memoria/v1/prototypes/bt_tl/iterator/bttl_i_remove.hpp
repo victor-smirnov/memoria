@@ -19,7 +19,7 @@ namespace memoria {
 namespace v1 {
 
 
-MEMORIA_ITERATOR_PART_BEGIN(v1::bttl::IteratorRemoveName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(v1::bttl::IteratorRemoveName)
 
 
     using typename Base::NodeBaseG;
@@ -55,7 +55,7 @@ protected:
 
     void remove_subtrees(CtrSizeT n, CtrSizesT& sizes)
     {
-        MEMORIA_ASSERT(n, >=, 0);
+        MEMORIA_V1_ASSERT(n, >=, 0);
 
         auto& self  = this->self();
 
@@ -177,10 +177,10 @@ protected:
     }
 
 
-MEMORIA_ITERATOR_PART_END
+MEMORIA_V1_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_ITERATOR_TYPE(v1::bttl::IteratorRemoveName)
-#define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(v1::bttl::IteratorRemoveName)
+#define M_PARAMS    MEMORIA_V1_ITERATOR_TEMPLATE_PARAMS
 
 
 #undef M_TYPE

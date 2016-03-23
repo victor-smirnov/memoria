@@ -21,7 +21,7 @@ using namespace v1::core;
 
 using namespace std;
 
-MEMORIA_CONTAINER_PART_BEGIN(v1::bt::InsertBatchVariableName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::InsertBatchVariableName)
 public:
     using typename Base::Types;
     using typename Base::Iterator;
@@ -62,7 +62,7 @@ protected:
         CtrSizeT subtree_size() const {return subtree_size_;}
     };
 
-    MEMORIA_DECLARE_NODE_FN(InsertChildFn, insert);
+    MEMORIA_V1_DECLARE_NODE_FN(InsertChildFn, insert);
     InsertBatchResult insertSubtree(NodeBaseG& node, Int idx, ILeafProvider& provider, std::function<NodeBaseG ()> child_fn, bool update_hierarchy)
     {
         auto& self = this->self();
@@ -377,10 +377,10 @@ protected:
 
 
 
-MEMORIA_CONTAINER_PART_END
+MEMORIA_V1_CONTAINER_PART_END
 
-#define M_TYPE      MEMORIA_CONTAINER_TYPE(v1::bt::InsertBatchVariableName)
-#define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_CONTAINER_TYPE(v1::bt::InsertBatchVariableName)
+#define M_PARAMS    MEMORIA_V1_CONTAINER_TEMPLATE_PARAMS
 
 
 

@@ -516,7 +516,7 @@ protected:
 
         if (layout.levels_max >= 0)
         {
-            MEMORIA_ASSERT(this->element_size(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart), >, 0);
+            MEMORIA_V1_ASSERT(this->element_size(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart), >, 0);
 
             auto values     = this->values(block);
             auto size_index = this->size_index(block);
@@ -534,15 +534,15 @@ protected:
             Int size_cnt = 0;
             size_t threshold = ValuesPerBranch;
 
-            MEMORIA_ASSERT(offset(offsets, 0), ==, 0);
+            MEMORIA_V1_ASSERT(offset(offsets, 0), ==, 0);
 
             Int idx = 0;
             while(pos < data_size)
             {
                 if (pos >= threshold)
                 {
-                    MEMORIA_ASSERT(offset(offsets, idx + 1), ==, pos - threshold);
-                    MEMORIA_ASSERT(size_index[level_start + idx], ==, size_cnt);
+                    MEMORIA_V1_ASSERT(offset(offsets, idx + 1), ==, pos - threshold);
+                    MEMORIA_V1_ASSERT(size_index[level_start + idx], ==, size_cnt);
 
                     threshold += ValuesPerBranch;
 
@@ -557,8 +557,8 @@ protected:
                 pos += len;
             }
 
-            MEMORIA_ASSERT((Int)pos, ==, data_size);
-            MEMORIA_ASSERT(size_index[level_start + idx], ==, size_cnt);
+            MEMORIA_V1_ASSERT((Int)pos, ==, data_size);
+            MEMORIA_V1_ASSERT(size_index[level_start + idx], ==, size_cnt);
 
             for (Int level = levels - 1; level > 0; level--)
             {
@@ -582,23 +582,23 @@ protected:
                         sizes_sum += size_index[c];
                     }
 
-                    MEMORIA_ASSERT(size_index[previous_level_start + i], ==, sizes_sum);
+                    MEMORIA_V1_ASSERT(size_index[previous_level_start + i], ==, sizes_sum);
                 }
             }
         }
         else {
-            MEMORIA_ASSERT(this->element_size(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart), ==, 0);
+            MEMORIA_V1_ASSERT(this->element_size(block * SegmentsPerBlock + SIZE_INDEX + BlocksStart), ==, 0);
 
             if (data_size > 0)
             {
-                MEMORIA_ASSERT(offsets_size, ==, sizeof(OffsetsType));
-                MEMORIA_ASSERT(this->offset(block, 0), ==, 0);
+                MEMORIA_V1_ASSERT(offsets_size, ==, sizeof(OffsetsType));
+                MEMORIA_V1_ASSERT(this->offset(block, 0), ==, 0);
             }
             else {
-//              MEMORIA_ASSERT(offsets_size, ==, 0);
+//              MEMORIA_V1_ASSERT(offsets_size, ==, 0);
             }
 
-            MEMORIA_ASSERT(this->data_size(block), <=, kValuesPerBranch);
+            MEMORIA_V1_ASSERT(this->data_size(block), <=, kValuesPerBranch);
         }
     }
 };

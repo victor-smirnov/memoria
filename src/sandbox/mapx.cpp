@@ -45,7 +45,7 @@ int main() {
 
             FSDumpAllocator(snp, "mapx_orig.dir");
 
-            MEMORIA_ASSERT(map->size(), ==, to - from);
+            MEMORIA_V1_ASSERT(map->size(), ==, to - from);
 
             check_snapshot(snp);
 
@@ -66,7 +66,7 @@ int main() {
                 cout << c->key() << " -- " << c->value() << endl;
             }
 
-            MEMORIA_ASSERT(map->size(), ==, 0);
+            MEMORIA_V1_ASSERT(map->size(), ==, 0);
 
             snp->commit();
 

@@ -18,7 +18,7 @@ namespace v1 {
 
 
 
-MEMORIA_CONTAINER_PART_BEGIN(v1::louds::CtrUpdateName)
+MEMORIA_V1_CONTAINER_PART_BEGIN(v1::louds::CtrUpdateName)
 
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
@@ -125,7 +125,7 @@ MEMORIA_CONTAINER_PART_BEGIN(v1::louds::CtrUpdateName)
 
             auto result = self.updateNodeLabel(leaf, SetLabelValueFn<LabelIdx>(sums), label_idx, value);
 
-            MEMORIA_ASSERT_TRUE(result);
+            MEMORIA_V1_ASSERT_TRUE(result);
             self.update_parent(leaf, sums);
         }
     }
@@ -193,11 +193,11 @@ MEMORIA_CONTAINER_PART_BEGIN(v1::louds::CtrUpdateName)
 
             auto result = self.updateNodeLabel(leaf, AddLabelValueFn<LabelIdx>(sums), label_idx, value);
 
-            MEMORIA_ASSERT_TRUE(result);
+            MEMORIA_V1_ASSERT_TRUE(result);
             self.update_parent(leaf, sums);
         }
     }
 
-MEMORIA_CONTAINER_PART_END
+MEMORIA_V1_CONTAINER_PART_END
 
 }}

@@ -181,9 +181,9 @@ public:
             enlarge(space - capacity());
         }
 
-        MEMORIA_ASSERT(idx, >=, 0);
-        MEMORIA_ASSERT(idx, <=, size_);
-        MEMORIA_ASSERT(size_ + space, <=, max_size_);
+        MEMORIA_V1_ASSERT(idx, >=, 0);
+        MEMORIA_V1_ASSERT(idx, <=, size_);
+        MEMORIA_V1_ASSERT(size_ + space, <=, max_size_);
 
         Int remainder = (size_ - idx) * BitsPerSymbol;
 
@@ -212,9 +212,9 @@ public:
 
     void removeSpace(Int start, Int end)
     {
-        MEMORIA_ASSERT(start, >=, 0);
-        MEMORIA_ASSERT(start, <=, size_);
-        MEMORIA_ASSERT(end, <=, size_);
+        MEMORIA_V1_ASSERT(start, >=, 0);
+        MEMORIA_V1_ASSERT(start, <=, size_);
+        MEMORIA_V1_ASSERT(end, <=, size_);
 
         Value* data = this->data();
 
@@ -349,7 +349,7 @@ private:
 
     void shrink(Int elements)
     {
-        MEMORIA_ASSERT(size_, >=, elements);
+        MEMORIA_V1_ASSERT(size_, >=, elements);
 
         Allocator* alloc = Base::allocator();
         Int amount = roundUpBitsToAlignmentBlocks((size_ - elements) * BitsPerSymbol);

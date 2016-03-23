@@ -22,7 +22,7 @@ namespace memoria {
 namespace v1 {
 namespace wt            {
 
-MEMORIA_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(WTCtrBase)
+MEMORIA_V1_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(WTCtrBase)
 
     typedef TypesType                                                           Types;
     typedef typename Types::Profile                                             Profile;
@@ -217,7 +217,7 @@ private:
         return meta.roots(UUID(0, name));
     }
 
-MEMORIA_BT_MODEL_BASE_CLASS_END
+MEMORIA_V1_BT_MODEL_BASE_CLASS_END
 
 
 }}}

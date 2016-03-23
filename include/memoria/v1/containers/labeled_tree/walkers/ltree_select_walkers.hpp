@@ -58,7 +58,7 @@ public:
     template <Int Idx, typename StreamTypes>
     ResultType stream(const PkdFSSeq<StreamTypes>* seq, Int start)
     {
-        MEMORIA_ASSERT_TRUE(seq != nullptr);
+        MEMORIA_V1_ASSERT_TRUE(seq != nullptr);
 
         auto& sum       = Base::sum_;
         auto symbol     = Base::index_ - 1;
@@ -85,7 +85,7 @@ public:
 
     void prepare(Iterator& iter)
     {
-        MEMORIA_ASSERT_TRUE(!iter.isBof());
+        MEMORIA_V1_ASSERT_TRUE(!iter.isBof());
     }
 
     BigInt finish(Iterator& iter, Int idx)
@@ -148,7 +148,7 @@ public:
     template <Int Idx, typename TreeTypes>
     ResultType stream(const PkdFSSeq<TreeTypes>* seq, Int start)
     {
-        MEMORIA_ASSERT_TRUE(seq != nullptr);
+        MEMORIA_V1_ASSERT_TRUE(seq != nullptr);
 
         BigInt target   = Base::target_ - Base::sum_;
 
@@ -174,7 +174,7 @@ public:
 
     void prepare(Iterator& iter)
     {
-        MEMORIA_ASSERT_TRUE(!iter.isBof());
+        MEMORIA_V1_ASSERT_TRUE(!iter.isBof());
     }
 
     BigInt finish(Iterator& iter, Int idx)

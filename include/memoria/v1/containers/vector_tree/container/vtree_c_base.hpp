@@ -20,7 +20,7 @@ namespace memoria {
 namespace v1 {
 namespace vtree         {
 
-MEMORIA_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(VTreeCtrBase)
+MEMORIA_V1_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(VTreeCtrBase)
 
     typedef TypesType                                                           Types;
     typedef typename Types::Profile                                             Profile;
@@ -209,7 +209,7 @@ private:
         return meta.roots(UUID(0, name));
     }
 
-MEMORIA_BT_MODEL_BASE_CLASS_END
+MEMORIA_V1_BT_MODEL_BASE_CLASS_END
 
 
 }}}

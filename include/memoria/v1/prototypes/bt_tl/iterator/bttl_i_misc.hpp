@@ -22,7 +22,7 @@ namespace memoria {
 namespace v1 {
 
 
-MEMORIA_ITERATOR_PART_BEGIN(v1::bttl::IteratorMiscName)
+MEMORIA_V1_ITERATOR_PART_BEGIN(v1::bttl::IteratorMiscName)
 
     typedef typename Base::Allocator                                            Allocator;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
@@ -73,7 +73,7 @@ public:
 
         constexpr Int StreamIdx = ListHead<LeafPath>::Value;
 
-        MEMORIA_ASSERT(StreamIdx, ==, self.stream());
+        MEMORIA_V1_ASSERT(StreamIdx, ==, self.stream());
 
         auto size = cache.data_size()[StreamIdx];
 
@@ -126,7 +126,7 @@ public:
         tmp.refresh();
 
 
-        MEMORIA_ASSERT(self().cache(), ==, tmp.cache());
+        MEMORIA_V1_ASSERT(self().cache(), ==, tmp.cache());
     }
 
     void prepare() {
@@ -160,10 +160,10 @@ protected:
         }
     }
 
-MEMORIA_ITERATOR_PART_END
+MEMORIA_V1_ITERATOR_PART_END
 
-#define M_TYPE      MEMORIA_ITERATOR_TYPE(v1::bttl::IteratorMiscName)
-#define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
+#define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(v1::bttl::IteratorMiscName)
+#define M_PARAMS    MEMORIA_V1_ITERATOR_TEMPLATE_PARAMS
 
 
 #undef M_TYPE
