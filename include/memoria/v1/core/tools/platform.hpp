@@ -12,7 +12,7 @@
 
 #include <vector>
 
-namespace memoria{
+namespace memoria {
 
 class MEMORIA_API Platform {
 public:

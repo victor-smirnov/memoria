@@ -1,6 +1,6 @@
 #include <memoria/v1/core/exceptions/memoria.hpp>
 
-namespace memoria{
+namespace memoria {
 
 #ifndef MEMORIA_SRC
 #error "MEMORIA_SRC symbol must be defined at compile time"

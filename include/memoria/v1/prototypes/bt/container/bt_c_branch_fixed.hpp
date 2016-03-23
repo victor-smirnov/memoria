@@ -344,5 +344,5 @@ bool M_TYPE::mergeCurrentBranchNodes(NodeBaseG& tgt, NodeBaseG& src)
 #undef M_TYPE
 #undef M_PARAMS
 
-} //memoria
+}
 

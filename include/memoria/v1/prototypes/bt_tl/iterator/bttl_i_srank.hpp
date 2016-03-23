@@ -49,10 +49,8 @@ MEMORIA_ITERATOR_PART_END
 #define M_TYPE      MEMORIA_ITERATOR_TYPE(memoria::bttl::IteratorStreamRankName)
 #define M_PARAMS    MEMORIA_ITERATOR_TEMPLATE_PARAMS
 
-
-
+#undef M_TYPE
+#undef M_PARAMS
 
 }
 
-#undef M_TYPE
-#undef M_PARAMS

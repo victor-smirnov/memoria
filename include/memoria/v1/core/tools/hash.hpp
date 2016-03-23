@@ -9,7 +9,7 @@
 
 #include <memoria/v1/core/types/types.hpp>
 
-namespace memoria{
+namespace memoria {
 
 template <typename T, Int n = sizeof(T)> struct PtrToHash;
 

@@ -13,7 +13,7 @@
 #include <vector>
 #include <memory>
 
-namespace memoria{
+namespace memoria {
 
 class MEMORIA_API File {
     String path_;
