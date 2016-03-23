@@ -15,7 +15,7 @@
 
 #include <iostream>
 
-namespace memoria    {
+namespace memoria {
 
 using namespace memoria::bt;
 

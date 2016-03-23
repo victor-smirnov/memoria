@@ -8,7 +8,7 @@
 #include <memoria/v1/core/tools/strings/string.hpp>
 #include <memoria/v1/core/types/types.hpp>
 
-namespace memoria   {
+namespace memoria {
 
 
 

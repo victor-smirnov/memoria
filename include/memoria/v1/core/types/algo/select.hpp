@@ -13,7 +13,7 @@
 
 
 
-namespace memoria    {
+namespace memoria {
 
 namespace {
 

@@ -16,7 +16,7 @@
 
 #include <vector>
 
-namespace memoria    {
+namespace memoria {
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::bttl::LeafCommonName)
 public:

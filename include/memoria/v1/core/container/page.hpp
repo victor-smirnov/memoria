@@ -21,7 +21,7 @@
 #include <type_traits>
 
 
-namespace memoria    {
+namespace memoria {
 
 
 template <Int Size>

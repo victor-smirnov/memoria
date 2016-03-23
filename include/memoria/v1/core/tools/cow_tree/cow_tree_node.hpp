@@ -13,7 +13,7 @@
 
 #include <algorithm>
 
-namespace memoria   {
+namespace memoria {
 namespace cow       {
 namespace tree      {
 

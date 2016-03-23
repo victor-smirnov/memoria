@@ -11,7 +11,7 @@
 
 #include <memoria/v1/core/types/typehash.hpp>
 
-namespace memoria       {
+namespace memoria {
 namespace wt            {
 }
 

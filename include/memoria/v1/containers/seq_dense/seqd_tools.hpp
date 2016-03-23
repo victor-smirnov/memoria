@@ -12,7 +12,7 @@
 
 #include <memoria/v1/prototypes/bt/layouts/bt_input.hpp>
 
-namespace memoria       {
+namespace memoria {
 namespace seq_dense     {
 
 

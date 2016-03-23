@@ -9,7 +9,7 @@
 #include <memoria/v1/core/types/relation/expression.hpp>
 #include <memoria/v1/core/tools/assert.hpp>
 
-namespace memoria    {
+namespace memoria {
 
 
 template <

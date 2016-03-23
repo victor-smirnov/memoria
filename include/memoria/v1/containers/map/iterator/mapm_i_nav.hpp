@@ -14,7 +14,7 @@
 
 #include <iostream>
 
-namespace memoria    {
+namespace memoria {
 
 using bt::StreamTag;
 

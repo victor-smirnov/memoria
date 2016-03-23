@@ -15,7 +15,7 @@
 
 #include <memory>
 
-namespace memoria    {
+namespace memoria {
 
 
 

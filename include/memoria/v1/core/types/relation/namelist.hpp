@@ -11,7 +11,7 @@
 #include <memoria/v1/core/types/typelist.hpp>
 #include <memoria/v1/core/tools/assert.hpp>
 
-namespace memoria    {
+namespace memoria {
 namespace types     {
 namespace relation  {
 

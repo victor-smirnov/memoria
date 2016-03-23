@@ -5,7 +5,7 @@
 
 #pragma once
 
-namespace memoria   {
+namespace memoria {
 namespace core      {
 
 

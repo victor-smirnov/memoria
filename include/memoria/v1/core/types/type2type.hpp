@@ -8,7 +8,7 @@
 
 #include <memoria/v1/core/types/types.hpp>
 
-namespace memoria    {
+namespace memoria {
 
 template <typename SrcType, typename DstType>
 union T2TBuf {

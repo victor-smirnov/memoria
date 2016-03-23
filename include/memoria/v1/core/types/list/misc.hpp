@@ -9,7 +9,7 @@
 #include <memoria/v1/core/types/types.hpp>
 
 
-namespace memoria    {
+namespace memoria {
 
 template <typename T, T V1, T V2>
 struct Max {

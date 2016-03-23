@@ -11,7 +11,7 @@
 
 #include <memoria/v1/core/container/profile.hpp>
 
-namespace memoria    {
+namespace memoria {
 
 using memoria::TypeList;
 template <

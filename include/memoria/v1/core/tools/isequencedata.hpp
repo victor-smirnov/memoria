@@ -7,7 +7,7 @@
 #pragma once
 
 
-namespace memoria    {
+namespace memoria {
 
 template <typename T, Int BitsPerSymbol>
 struct ISequenceDataSource {

@@ -9,7 +9,7 @@
 #include <memoria/v1/core/types/typelist.hpp>
 #include <memoria/v1/core/types/list/append.hpp>
 
-namespace memoria    {
+namespace memoria {
 
 template <typename List> struct RevertList;
 

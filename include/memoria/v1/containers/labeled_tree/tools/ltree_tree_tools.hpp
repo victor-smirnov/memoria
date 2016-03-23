@@ -11,7 +11,7 @@
 
 #include <utility>
 
-namespace memoria   {
+namespace memoria {
 namespace louds     {
 
 class LoudsNode {

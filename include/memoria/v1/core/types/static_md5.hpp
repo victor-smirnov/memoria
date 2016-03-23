@@ -11,7 +11,7 @@
 #include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/core/types/list/misc.hpp>
 
-namespace memoria   {
+namespace memoria {
 
 
 template <typename List> struct TypeToValueList;

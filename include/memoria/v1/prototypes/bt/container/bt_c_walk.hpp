@@ -13,7 +13,7 @@
 #include <memoria/v1/core/tools/config.hpp>
 
 
-namespace memoria    {
+namespace memoria {
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::WalkName)
 private:

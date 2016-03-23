@@ -17,7 +17,7 @@
 #include <memoria/v1/core/packed/tools/packed_rtn_type_list.hpp>
 
 
-namespace memoria   {
+namespace memoria {
 namespace detail    {
 namespace pd        {
 

@@ -2,7 +2,7 @@
 
 
 
-namespace memoria   {
+namespace memoria {
 
 const char* ExtractFunctionName(const char* full_name)
 {

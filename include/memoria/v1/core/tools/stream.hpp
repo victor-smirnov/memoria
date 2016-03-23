@@ -13,7 +13,7 @@
 #include <limits>
 #include <memory>
 
-namespace memoria    {
+namespace memoria {
 
 struct MEMORIA_API InputStreamHandler {
 

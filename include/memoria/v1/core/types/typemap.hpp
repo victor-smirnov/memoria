@@ -9,7 +9,7 @@
 #include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/core/types/typelist.hpp>
 
-namespace memoria    {
+namespace memoria {
 
 template <
     typename T,

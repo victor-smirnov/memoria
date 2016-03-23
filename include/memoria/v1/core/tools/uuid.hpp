@@ -12,7 +12,7 @@
 #include <iostream>
 
 
-namespace memoria    {
+namespace memoria {
 
 class UUID;
 

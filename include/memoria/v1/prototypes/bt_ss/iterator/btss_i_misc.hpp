@@ -10,7 +10,7 @@
 #include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/prototypes/bt_ss/btss_names.hpp>
 
-namespace memoria    {
+namespace memoria {
 
 using bt::StreamTag;
 

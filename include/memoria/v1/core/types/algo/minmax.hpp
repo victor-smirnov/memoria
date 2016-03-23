@@ -19,7 +19,7 @@
 
 #include <typeinfo>
 
-namespace memoria    {
+namespace memoria {
 
 template <
         typename List,

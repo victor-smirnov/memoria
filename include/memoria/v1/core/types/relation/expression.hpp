@@ -9,7 +9,7 @@
 #include <memoria/v1/core/types/typemap.hpp>
 
 
-namespace memoria    {
+namespace memoria {
 
 
 enum CompareOps {EQ, GT, GTE, LT, LTE, NE};

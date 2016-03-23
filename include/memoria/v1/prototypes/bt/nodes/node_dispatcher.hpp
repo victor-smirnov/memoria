@@ -9,7 +9,7 @@
 #include <memoria/v1/prototypes/bt/nodes/node_dispatcher_ndt1.hpp>
 #include <memoria/v1/prototypes/bt/nodes/node_dispatcher_ndt2.hpp>
 
-namespace memoria       {
+namespace memoria {
 namespace bt            {
 
 

@@ -14,7 +14,7 @@
 
 #include <memoria/v1/core/tools/assert.hpp>
 
-namespace memoria    {
+namespace memoria {
 
 template <typename Item>
 struct DefaultListItemProvider {

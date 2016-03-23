@@ -11,7 +11,7 @@
 #include <memoria/v1/core/types/algo/fold.hpp>
 #include <memoria/v1/core/types/list/append.hpp>
 
-namespace memoria    {
+namespace memoria {
 
 namespace details {
     template <typename State, typename Item, typename Fn>

@@ -18,7 +18,7 @@
 #include <memoria/v1/prototypes/bt/nodes/leaf_node.hpp>
 #include <memoria/v1/prototypes/bt/walkers/bt_misc_walkers.hpp>
 
-namespace memoria    {
+namespace memoria {
 
 
 

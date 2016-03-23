@@ -13,7 +13,7 @@
 
 #include <string>
 
-namespace memoria    {
+namespace memoria {
 
 class BoundsException: public Exception {
 

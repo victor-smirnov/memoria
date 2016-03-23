@@ -15,7 +15,7 @@
 #include <algorithm>
 #include <type_traits>
 
-namespace memoria    {
+namespace memoria {
 namespace core       {
 
 

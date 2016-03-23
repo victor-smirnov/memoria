@@ -12,7 +12,7 @@
 #include <string.h>
 #include <tuple>
 
-namespace memoria    {
+namespace memoria {
 
 inline BigInt PtrToLong(const void *ptr) {
     return T2T<BigInt>(ptr);

@@ -19,7 +19,7 @@
 
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 
-namespace memoria    {
+namespace memoria {
 
 struct MEMORIA_API Page {
 

@@ -8,7 +8,7 @@
 
 #include <memoria/v1/prototypes/ctr_wrapper/ctrwrapper_names.hpp>
 
-namespace memoria    {
+namespace memoria {
 namespace vtree      {
 
 class CtrApiName    {};

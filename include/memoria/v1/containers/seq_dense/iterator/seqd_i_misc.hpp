@@ -18,7 +18,7 @@
 
 #include <memoria/v1/core/packed/array/packed_fse_bitmap.hpp>
 
-namespace memoria    {
+namespace memoria {
 
 
 MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterMiscName)

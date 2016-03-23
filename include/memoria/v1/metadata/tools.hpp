@@ -13,7 +13,7 @@
 
 #include <iostream>
 
-namespace memoria    {
+namespace memoria {
 
 
 void dumpPage(PageMetadata* meta, const Page* page, std::ostream& out);

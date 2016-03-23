@@ -9,7 +9,7 @@
 #include <memoria/v1/core/container/container.hpp>
 #include <memoria/v1/core/tools/static_array.hpp>
 
-namespace memoria    {
+namespace memoria {
 namespace bttl       {
 
 class ToolsName             {};

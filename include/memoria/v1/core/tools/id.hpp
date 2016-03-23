@@ -12,7 +12,7 @@
 
 #include <memoria/v1/core/tools/strings/string.hpp>
 
-namespace memoria    {
+namespace memoria {
 
 template <typename T> class PageID;
 

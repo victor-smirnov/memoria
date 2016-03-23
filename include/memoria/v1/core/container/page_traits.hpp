@@ -11,7 +11,7 @@
 #include <memoria/v1/core/container/page.hpp>
 
 
-namespace memoria    {
+namespace memoria {
 
 template <typename T> struct FieldFactory;
 

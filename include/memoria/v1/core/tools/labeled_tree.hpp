@@ -11,7 +11,7 @@
 #include <vector>
 #include <tuple>
 
-namespace memoria   {
+namespace memoria {
 namespace tools     {
 
 

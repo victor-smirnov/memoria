@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace memoria    {
+namespace memoria {
 
 template<typename...> struct False {
     static const bool Value = false;

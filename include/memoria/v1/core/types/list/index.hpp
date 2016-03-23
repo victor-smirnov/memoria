@@ -8,7 +8,7 @@
 
 #include <memoria/v1/core/types/types.hpp>
 
-namespace memoria    {
+namespace memoria {
 
 template <typename Item_> struct DefaultItemProvider {
     typedef Item_ Item;

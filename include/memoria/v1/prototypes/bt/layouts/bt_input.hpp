@@ -25,7 +25,7 @@
 #include <cstdlib>
 #include <tuple>
 
-namespace memoria   {
+namespace memoria {
 namespace bt        {
 
 template <typename Position, typename Buffer>

@@ -13,7 +13,7 @@
 #include <memoria/v1/containers/seq_dense/seqd_walkers.hpp>
 #include <memoria/v1/containers/seq_dense/seqd_names.hpp>
 
-namespace memoria    {
+namespace memoria {
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrFindName)
 

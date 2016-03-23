@@ -9,7 +9,7 @@
 #include <memoria/v1/core/container/container.hpp>
 #include <memoria/v1/containers/wt/wt_names.hpp>
 
-namespace memoria    {
+namespace memoria {
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::wt::CtrChecksName)
 

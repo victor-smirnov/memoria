@@ -27,7 +27,7 @@
 #include <memoria/v1/core/packed/array/packed_vle_dense_array.hpp>
 #include <memoria/v1/core/packed/misc/packed_sized_struct.hpp>
 
-namespace memoria    {
+namespace memoria {
 
 
 

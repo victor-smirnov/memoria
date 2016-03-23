@@ -16,7 +16,7 @@
 #include <memoria/v1/prototypes/bt/nodes/branch_node.hpp>
 
 
-namespace memoria   {
+namespace memoria {
 namespace btss      {
 
 using bt::LeafNode;

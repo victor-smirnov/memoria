@@ -21,7 +21,7 @@
  * MRSW Copy-on-write B+Tree. Shared Resource Handle.
  */
 
-namespace memoria   {
+namespace memoria {
 namespace cow       {
 namespace tree      {
 

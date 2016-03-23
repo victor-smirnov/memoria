@@ -9,7 +9,7 @@
 
 #include <memoria/v1/core/tools/bitmap.hpp>
 
-namespace memoria    {
+namespace memoria {
 
 using namespace std;
 

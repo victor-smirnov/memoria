@@ -10,7 +10,7 @@
 #include <memoria/v1/core/tools/uuid.hpp>
 #include <memoria/v1/core/tools/stream.hpp>
 
-namespace memoria            {
+namespace memoria {
 namespace persistent_inmem   {
 
 enum class NodeType {LEAF, BRANCH};

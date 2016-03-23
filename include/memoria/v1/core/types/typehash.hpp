@@ -13,7 +13,7 @@
 
 #include <tuple>
 
-namespace memoria    {
+namespace memoria {
 
 struct TypeHashes {
     enum {SCALAR = 1, ARRAY, CONST_VALUE};

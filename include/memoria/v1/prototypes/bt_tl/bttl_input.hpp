@@ -14,7 +14,7 @@
 
 #include <memoria/v1/prototypes/bt_tl/bttl_tools.hpp>
 
-namespace memoria   {
+namespace memoria {
 namespace bttl      {
 
 namespace detail {

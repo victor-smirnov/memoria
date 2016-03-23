@@ -8,7 +8,7 @@
 
 #include <memoria/v1/prototypes/bt/bt_names.hpp>
 
-namespace memoria    {
+namespace memoria {
 namespace map        {
 
 class CtrApiName        {};

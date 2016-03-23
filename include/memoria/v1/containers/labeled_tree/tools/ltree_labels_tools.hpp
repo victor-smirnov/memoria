@@ -12,7 +12,7 @@
 
 #include <tuple>
 
-namespace memoria   {
+namespace memoria {
 namespace louds     {
 
 template<typename LabedDescr> struct LabelTypeTF;

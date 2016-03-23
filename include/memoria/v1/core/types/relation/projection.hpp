@@ -12,7 +12,7 @@
 #include <memoria/v1/core/types/relation/metadata.hpp>
 
 
-namespace memoria    {
+namespace memoria {
 
 template <typename ColumnType, typename ColumnValue> struct WrapperProvider;
 

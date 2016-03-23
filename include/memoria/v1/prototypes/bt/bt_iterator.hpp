@@ -15,7 +15,7 @@
 #include <memoria/v1/prototypes/bt/iterator/bt_i_leaf.hpp>
 #include <memoria/v1/prototypes/bt/bt_names.hpp>
 
-namespace memoria    {
+namespace memoria {
 
 template <typename Types> struct IterTypesT;
 template <typename Types> class Iter;

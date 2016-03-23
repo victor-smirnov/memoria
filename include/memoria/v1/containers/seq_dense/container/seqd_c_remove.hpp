@@ -14,7 +14,7 @@
 
 #include <memoria/v1/core/tools/static_array.hpp>
 
-namespace memoria    {
+namespace memoria {
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::seq_dense::CtrRemoveName)
 

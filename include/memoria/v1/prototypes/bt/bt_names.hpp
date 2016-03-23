@@ -8,7 +8,7 @@
 
 #include <memoria/v1/core/container/container.hpp>
 
-namespace memoria    {
+namespace memoria {
 
 template <typename Profile> class ContainerCollectionCfg;
 

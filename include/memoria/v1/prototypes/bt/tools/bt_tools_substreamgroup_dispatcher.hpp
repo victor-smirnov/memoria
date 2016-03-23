@@ -12,7 +12,7 @@
 #include <memoria/v1/prototypes/bt/tools/bt_tools_size_list_builder.hpp>
 #include <tuple>
 
-namespace memoria   {
+namespace memoria {
 namespace bt        {
 
 namespace detail {

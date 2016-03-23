@@ -16,7 +16,7 @@
 
 #include <memoria/v1/prototypes/bt/bt_macros.hpp>
 
-namespace memoria    {
+namespace memoria {
 
 
 MEMORIA_ITERATOR_PART_BEGIN(memoria::seq_dense::IterSelectName)

@@ -13,7 +13,7 @@
 
 #include <type_traits>
 
-namespace memoria    {
+namespace memoria {
 
 
 

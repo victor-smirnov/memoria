@@ -8,7 +8,7 @@
 
 #include <memoria/v1/core/exceptions/memoria.hpp>
 
-namespace memoria    {
+namespace memoria {
 
 using namespace std;
 

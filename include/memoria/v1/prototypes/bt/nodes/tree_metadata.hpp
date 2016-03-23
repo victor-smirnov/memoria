@@ -12,7 +12,7 @@
 #include <memoria/v1/core/tools/uuid.hpp>
 
 
-namespace memoria    {
+namespace memoria {
 
 using namespace memoria::bt;
 

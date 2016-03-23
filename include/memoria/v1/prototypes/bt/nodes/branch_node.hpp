@@ -25,7 +25,7 @@
 #include <memoria/v1/core/tools/uuid.hpp>
 
 
-namespace memoria   {
+namespace memoria {
 namespace bt        {
 
 template <

@@ -19,7 +19,7 @@
  * Serializable Copy-on-write B+Tree (Without leaf links).
  */
 
-namespace memoria           {
+namespace memoria {
 namespace persistent_inmem  {
 
 

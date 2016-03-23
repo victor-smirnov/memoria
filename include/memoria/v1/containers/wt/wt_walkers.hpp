@@ -17,7 +17,7 @@
 
 #include <ostream>
 
-namespace memoria       {
+namespace memoria {
 namespace wt            {
 
 

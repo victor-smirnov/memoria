@@ -5,7 +5,7 @@
 
 #include <memoria/v1/core/tools/random.hpp>
 
-namespace memoria   {
+namespace memoria {
 
 RngInt      int_generator;
 RngBigInt   bigint_generator;

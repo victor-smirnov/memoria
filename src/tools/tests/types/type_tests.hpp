@@ -11,7 +11,7 @@
 #include <type_traits>
 
 
-namespace memoria   {
+namespace memoria {
 namespace tests     {
 
 using namespace std;

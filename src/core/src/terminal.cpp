@@ -12,7 +12,7 @@
 #include <sys/timeb.h>
 
 
-namespace memoria   {
+namespace memoria {
 namespace tools     {
 
 using namespace std;

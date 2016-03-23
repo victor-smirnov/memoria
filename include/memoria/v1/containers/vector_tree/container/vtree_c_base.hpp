@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-namespace memoria       {
+namespace memoria {
 namespace vtree         {
 
 MEMORIA_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(VTreeCtrBase)

@@ -15,7 +15,7 @@
 
 #include <tuple>
 
-namespace memoria    {
+namespace memoria {
 
 template <typename T> class PageID;
 

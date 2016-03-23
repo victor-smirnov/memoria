@@ -11,7 +11,7 @@
 #include <memoria/v1/core/types/list/sublist.hpp>
 #include <memoria/v1/core/types/algo/select.hpp>
 
-namespace memoria   {
+namespace memoria {
 namespace list_tree {
 
 

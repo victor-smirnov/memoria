@@ -10,7 +10,7 @@
 #include <memoria/v1/core/types/list/list_tree.hpp>
 #include <memoria/v1/core/types/algo/select.hpp>
 
-namespace memoria   {
+namespace memoria {
 namespace bt        {
 
 template <typename Tree>

@@ -17,7 +17,7 @@
 #include <ostream>
 #include <tuple>
 
-namespace memoria   {
+namespace memoria {
 
 template <typename T> struct FieldFactory;
 

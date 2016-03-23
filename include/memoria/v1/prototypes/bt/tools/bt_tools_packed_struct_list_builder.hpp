@@ -17,7 +17,7 @@
 #include <memoria/v1/prototypes/bt/tools/bt_tools_streamdescr_factory.hpp>
 
 
-namespace memoria   {
+namespace memoria {
 namespace bt        {
 
 namespace   {

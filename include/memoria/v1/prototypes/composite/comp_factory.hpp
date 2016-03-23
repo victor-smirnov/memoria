@@ -10,7 +10,7 @@
 #include <memoria/v1/prototypes/composite/comp_names.hpp>
 #include <memoria/v1/core/container/container.hpp>
 
-namespace memoria    {
+namespace memoria {
 
 
 

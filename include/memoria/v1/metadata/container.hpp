@@ -19,7 +19,7 @@
 #include <fstream>
 #include <ostream>
 
-namespace memoria    {
+namespace memoria {
 
 
 struct ContainerWalker {

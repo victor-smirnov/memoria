@@ -15,7 +15,7 @@
 
 #include <vector>
 
-namespace memoria    {
+namespace memoria {
 
 using namespace memoria::bt;
 

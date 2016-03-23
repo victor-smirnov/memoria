@@ -13,7 +13,7 @@
 #include <utility>
 #include <tuple>
 
-namespace memoria   {
+namespace memoria {
 namespace bt        {
 
 template <typename Types, int idx> class NDT2;

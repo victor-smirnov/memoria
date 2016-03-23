@@ -10,7 +10,7 @@
 #include <memoria/v1/core/types/types.hpp>
 
 
-namespace memoria   {
+namespace memoria {
 namespace louds     {
 
 

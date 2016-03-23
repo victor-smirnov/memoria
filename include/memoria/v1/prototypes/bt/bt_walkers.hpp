@@ -22,7 +22,7 @@
 #include <functional>
 
 
-namespace memoria       {
+namespace memoria {
 namespace bt            {
 
 }

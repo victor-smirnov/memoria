@@ -16,7 +16,7 @@
 #include <memoria/v1/core/exceptions/memoria.hpp>
 #include <memoria/v1/metadata/metadata.hpp>
 
-namespace memoria    {
+namespace memoria {
 
 
 template <typename Profile, typename PageType, typename List>

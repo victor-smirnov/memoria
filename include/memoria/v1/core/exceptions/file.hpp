@@ -9,7 +9,7 @@
 #include <memoria/v1/core/exceptions/memoria.hpp>
 #include <string>
 
-namespace memoria    {
+namespace memoria {
 
 
 using namespace std;

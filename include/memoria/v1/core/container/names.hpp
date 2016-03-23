@@ -6,7 +6,7 @@
 
 #pragma once
 
-namespace memoria    {
+namespace memoria {
 
 class ContainerCollectionCfgName                        {};
 

@@ -10,7 +10,7 @@
 
 #include <memoria/v1/core/types/list/typelist.hpp>
 
-namespace memoria    {
+namespace memoria {
 
 template <typename Type>
 struct IsList: ConstValue<bool, false> {};

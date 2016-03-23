@@ -18,7 +18,7 @@
 
 #include <iostream>
 
-namespace memoria    {
+namespace memoria {
 
 MEMORIA_ITERATOR_PART_BEGIN(memoria::mvector::ItrApiName)
 

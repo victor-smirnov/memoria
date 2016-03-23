@@ -15,7 +15,7 @@
 
 #include <stdlib.h>
 
-namespace memoria    {
+namespace memoria {
 
 using namespace std;
 

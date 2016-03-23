@@ -11,7 +11,7 @@
 
 
 
-namespace memoria    {
+namespace memoria {
 
 
 template <

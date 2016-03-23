@@ -20,7 +20,7 @@
 #include <unordered_map>
 #include <string>
 
-namespace memoria    {
+namespace memoria {
 
 struct Metadata;
 struct PageMetadata;

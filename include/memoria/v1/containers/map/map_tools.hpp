@@ -21,7 +21,7 @@
 
 #include <memoria/v1/prototypes/bt_ss/btss_input.hpp>
 
-namespace memoria       {
+namespace memoria {
 namespace map           {
 
 using bt::IdxSearchType;

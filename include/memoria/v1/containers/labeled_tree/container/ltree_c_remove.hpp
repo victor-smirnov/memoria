@@ -14,7 +14,7 @@
 
 #include <memoria/v1/prototypes/ctr_wrapper/iterator.hpp>
 
-namespace memoria    {
+namespace memoria {
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::louds::CtrRemoveName)
 

@@ -32,7 +32,7 @@
     MEMORIA_LOG(logger_, memoria::Logger::TRACE, ##__VA_ARGS__)
 
 
-namespace memoria    {
+namespace memoria {
 
 
 const char* ExtractFunctionName(const char* full_name);

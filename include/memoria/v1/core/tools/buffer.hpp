@@ -15,7 +15,7 @@
 #include <type_traits>
 
 
-namespace memoria    {
+namespace memoria {
 
 template <size_t Size>
 class StaticBuffer {

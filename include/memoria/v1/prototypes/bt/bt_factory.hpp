@@ -66,7 +66,7 @@
 #include <memoria/v1/prototypes/bt/container/bt_c_remove_tools.hpp>
 
 
-namespace memoria    {
+namespace memoria {
 
 using memoria::bt::WalkerTypes;
 

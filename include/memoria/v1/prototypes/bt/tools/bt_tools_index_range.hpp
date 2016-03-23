@@ -21,7 +21,7 @@
 #include <tuple>
 #include <utility>
 
-namespace memoria   {
+namespace memoria {
 namespace bt        {
 
 

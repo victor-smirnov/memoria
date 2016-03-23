@@ -12,7 +12,7 @@
 #include <memoria/v1/core/tools/strings/string.hpp>
 #include <iostream>
 
-namespace memoria    {
+namespace memoria {
 
 template <bool Value> class STATIC_ASSERT_FAILURE;
 template <> class STATIC_ASSERT_FAILURE <true> {};

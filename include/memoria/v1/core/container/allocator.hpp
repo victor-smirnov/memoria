@@ -13,7 +13,7 @@
 
 #include <memory>
 
-namespace memoria    {
+namespace memoria {
 
 
 // Ctr directory interface

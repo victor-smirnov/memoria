@@ -22,7 +22,7 @@
 #include <memoria/v1/prototypes/bt/tools/bt_tools_substreamgroup_dispatcher.hpp>
 
 
-namespace memoria   {
+namespace memoria {
 namespace bt        {
 
 

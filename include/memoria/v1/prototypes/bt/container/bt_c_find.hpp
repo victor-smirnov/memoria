@@ -13,7 +13,7 @@
 
 #include <limits>
 
-namespace memoria    {
+namespace memoria {
 
 using namespace memoria::bt;
 

@@ -22,7 +22,7 @@
 
 #include <malloc.h>
 
-namespace memoria    {
+namespace memoria {
 
 template <typename T1, typename T2>
 constexpr static T2 DivUp0(T1 v, T2 d) {

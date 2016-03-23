@@ -11,7 +11,7 @@
 #include <memoria/v1/prototypes/bt/bt_macros.hpp>
 #include <memoria/v1/core/container/macros.hpp>
 
-namespace memoria    {
+namespace memoria {
 
 
 MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::AllocatorName)

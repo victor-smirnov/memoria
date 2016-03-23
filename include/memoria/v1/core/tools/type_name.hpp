@@ -17,7 +17,7 @@
 #include <typeinfo>
 #include <memoria/v1/core/types/types.hpp>
 
-namespace memoria    {
+namespace memoria {
 
 #ifdef __GNUC__
 template<typename T, int BufferSize = 40960>

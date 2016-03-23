@@ -32,7 +32,7 @@
 #define MEMORIA_MODEL_METHOD_IS_NOT_IMPLEMENTED() \
         throw Exception(MEMORIA_SOURCE, SBuf()<<"Method is not implemented for "<<me()->typeName())
 
-namespace memoria    {
+namespace memoria {
 
 template <typename Profile, typename SelectorType, typename ContainerTypeName> class CtrTF;
 

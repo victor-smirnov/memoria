@@ -25,7 +25,7 @@
 #include <ostream>
 #include <tuple>
 
-namespace memoria   {
+namespace memoria {
 namespace bt        {
 
 template <Int StreamIdx> struct StreamTag {};

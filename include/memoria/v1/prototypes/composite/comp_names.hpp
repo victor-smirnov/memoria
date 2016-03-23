@@ -8,7 +8,7 @@
 
 #include <memoria/v1/core/container/names.hpp>
 
-namespace memoria     {
+namespace memoria {
 namespace composite   {
 
 template <typename Types>

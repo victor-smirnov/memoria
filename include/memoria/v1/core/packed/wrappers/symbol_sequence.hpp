@@ -14,7 +14,7 @@
 #include <iostream>
 #include <functional>
 
-namespace memoria    {
+namespace memoria {
 
 template <typename Seq>
 class SequenceDataSourceAdapter: public ISequenceDataSource<typename Seq::Value, Seq::BitsPerSymbol> {

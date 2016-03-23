@@ -10,7 +10,7 @@
 #include <memoria/v1/core/types/algo.hpp>
 #include <memoria/v1/core/tools/assert.hpp>
 
-namespace memoria    {
+namespace memoria {
 
 template <Int Name_, typename Type_ = NullType>
 struct Column {

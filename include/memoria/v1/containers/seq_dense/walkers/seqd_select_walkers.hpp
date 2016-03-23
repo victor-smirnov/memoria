@@ -10,7 +10,7 @@
 
 #include <memoria/v1/core/packed/sseq/packed_fse_searchable_seq.hpp>
 
-namespace memoria   {
+namespace memoria {
 namespace seq_dense {
 
 
