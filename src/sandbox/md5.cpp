@@ -8,12 +8,12 @@
 #include <typeinfo>
 #include <iostream>
 
-#include <memoria/core/types/types.hpp>
-#include <memoria/core/tools/type_name.hpp>
-#include <memoria/core/types/list/append.hpp>
-#include <memoria/core/types/algo/select.hpp>
-#include <memoria/core/tools/md5.hpp>
-#include <memoria/core/types/typehash.hpp>
+#include <memoria/v1/core/types/types.hpp>
+#include <memoria/v1/core/tools/type_name.hpp>
+#include <memoria/v1/core/types/list/append.hpp>
+#include <memoria/v1/core/types/algo/select.hpp>
+#include <memoria/v1/core/tools/md5.hpp>
+#include <memoria/v1/core/types/typehash.hpp>
 
 using namespace std;
 using namespace memoria;

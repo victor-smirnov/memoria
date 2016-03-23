@@ -5,14 +5,14 @@
 
 #pragma once
 
-#include <memoria/memoria.hpp>
+#include <memoria/v1/memoria.hpp>
 
-#include <memoria/containers/map/map_factory.hpp>
+#include <memoria/v1/containers/map/map_factory.hpp>
 
-#include <memoria/tools/profile_tests.hpp>
+#include <memoria/v1/tools/profile_tests.hpp>
 
-#include <memoria/tools/tests.hpp>
-#include <memoria/tools/tools.hpp>
+#include <memoria/v1/tools/tests.hpp>
+#include <memoria/v1/tools/tools.hpp>
 
 #include "../prototype/btss/btss_test_base.hpp"
 

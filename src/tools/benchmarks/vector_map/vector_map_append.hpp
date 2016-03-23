@@ -8,7 +8,7 @@
 
 #include "../benchmarks_inc.hpp"
 
-#include <memoria/containers/vector_map/vmap_factory.hpp>
+#include <memoria/v1/containers/vector_map/vmap_factory.hpp>
 
 #include <malloc.h>
 #include <memory>

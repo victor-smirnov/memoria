@@ -1,4 +1,4 @@
-#include <memoria/core/exceptions/memoria.hpp>
+#include <memoria/v1/core/exceptions/memoria.hpp>
 
 namespace memoria{
 

@@ -5,9 +5,9 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#include <memoria/tools/tools.hpp>
+#include <memoria/v1/tools/tools.hpp>
 
-#include <memoria/core/tools/louds_tree.hpp>
+#include <memoria/v1/core/tools/louds_tree.hpp>
 
 #include <pugixml.hpp>
 

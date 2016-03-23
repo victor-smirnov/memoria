@@ -7,9 +7,9 @@
 
 #pragma once
 
-#include <memoria/prototypes/bt_tl/bttl_names.hpp>
-#include <memoria/core/container/container.hpp>
-#include <memoria/core/container/macros.hpp>
+#include <memoria/v1/prototypes/bt_tl/bttl_names.hpp>
+#include <memoria/v1/core/container/container.hpp>
+#include <memoria/v1/core/container/macros.hpp>
 
 #include "../bttl_test_names.hpp"
 

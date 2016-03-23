@@ -4,11 +4,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#include <memoria/memoria.hpp>
-#include <memoria/containers/seq_dense/seqd_factory.hpp>
+#include <memoria/v1/memoria.hpp>
+#include <memoria/v1/containers/seq_dense/seqd_factory.hpp>
 
-#include <memoria/core/tools/random.hpp>
-#include <memoria/core/tools/time.hpp>
+#include <memoria/v1/core/tools/random.hpp>
+#include <memoria/v1/core/tools/time.hpp>
 
 using namespace memoria;
 using namespace std;

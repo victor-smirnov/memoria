@@ -1,0 +1,112 @@
+
+// Copyright Victor Smirnov 2015+.
+// Distributed under the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE_1_0.txt or copy at
+// http://www.boost.org/LICENSE_1_0.txt)
+
+#pragma once
+
+#include <memoria/v1/prototypes/bt/tools/bt_tools.hpp>
+#include <memoria/v1/prototypes/bt/bt_macros.hpp>
+#include <memoria/v1/core/container/macros.hpp>
+
+#include <vector>
+
+namespace memoria {
+
+using namespace memoria::bt;
+using namespace memoria::core;
+
+using namespace std;
+
+MEMORIA_CONTAINER_PART_BEGIN(memoria::bt::BranchCommonName)
+public:
+    typedef typename Base::Types                                                Types;
+    typedef typename Base::Allocator                                            Allocator;
+
+    typedef typename Base::ID                                                   ID;
+    
+    typedef typename Types::NodeBase                                            NodeBase;
+    typedef typename Types::NodeBaseG                                           NodeBaseG;
+    typedef typename Base::Iterator                                             Iterator;
+
+    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
+    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
+    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
+
+
+    typedef typename Base::Metadata                                             Metadata;
+
+    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
+    typedef typename Types::Position                                            Position;
+
+    typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
+
+    typedef std::function<BranchNodeEntry (NodeBaseG&, NodeBaseG&)>             SplitFn;
+
+protected:
+    static const Int Streams = Types::Streams;
+
+    void newRootP(NodeBaseG& root);
+
+    MEMORIA_DECLARE_NODE_FN_RTN(GetNonLeafCapacityFn, capacity, Int);
+    Int getBranchNodeCapacity(const NodeBaseG& node, UBigInt active_streams) const
+    {
+        return BranchDispatcher::dispatch(node, GetNonLeafCapacityFn(), active_streams);
+    }
+
+
+    MEMORIA_DECLARE_NODE_FN_RTN(SplitNodeFn, splitTo, BranchNodeEntry);
+    BranchNodeEntry splitBranchNode(NodeBaseG& src, NodeBaseG& tgt, Int split_at);
+
+MEMORIA_CONTAINER_PART_END
+
+
+#define M_TYPE      MEMORIA_CONTAINER_TYPE(memoria::bt::BranchCommonName)
+#define M_PARAMS    MEMORIA_CONTAINER_TEMPLATE_PARAMS
+
+M_PARAMS
+typename M_TYPE::BranchNodeEntry M_TYPE::splitBranchNode(NodeBaseG& src, NodeBaseG& tgt, Int split_at)
+{
+    auto& self = this->self();
+
+    BranchNodeEntry accum = BranchDispatcher::dispatch(src, tgt, SplitNodeFn(), split_at);
+
+    self.updateChildren(tgt);
+
+    return accum;
+}
+
+
+M_PARAMS
+void M_TYPE::newRootP(NodeBaseG& root)
+{
+    auto& self = this->self();
+
+    self.updatePageG(root);
+
+    NodeBaseG new_root = self.createNode(root->level() + 1, true, false, root->page_size());
+
+    UBigInt root_active_streams = self.getActiveStreams(root);
+    self.layoutBranchNode(new_root, root_active_streams);
+
+    self.copyRootMetadata(root, new_root);
+
+    self.root2Node(root);
+
+    BranchNodeEntry max = self.max(root);
+
+    self.insertToBranchNodeP(new_root, 0, max, root->id());
+
+    root->parent_id()  = new_root->id();
+    root->parent_idx() = 0;
+
+    self.set_root(new_root->id());
+}
+
+
+
+#undef M_TYPE
+#undef M_PARAMS
+
+}

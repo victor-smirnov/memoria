@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include <memoria/tools/profile_tests.hpp>
-#include <memoria/tools/tools.hpp>
+#include <memoria/v1/tools/profile_tests.hpp>
+#include <memoria/v1/tools/tools.hpp>
 
 #include <vector>
 

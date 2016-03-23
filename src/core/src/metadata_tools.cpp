@@ -6,9 +6,9 @@
 
 
 
-#include <memoria/metadata/tools.hpp>
-#include <memoria/metadata/page.hpp>
-#include <memoria/core/tools/dump.hpp>
+#include <memoria/v1/metadata/tools.hpp>
+#include <memoria/v1/metadata/page.hpp>
+#include <memoria/v1/core/tools/dump.hpp>
 
 #include <sstream>
 #include <string>

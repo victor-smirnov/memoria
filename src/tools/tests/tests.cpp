@@ -36,10 +36,10 @@
 
 
 
-#include <memoria/tools/cmdline.hpp>
-#include <memoria/tools/tools.hpp>
-#include <memoria/tools/tests.hpp>
-#include <memoria/core/tools/terminal.hpp>
+#include <memoria/v1/tools/cmdline.hpp>
+#include <memoria/v1/tools/tools.hpp>
+#include <memoria/v1/tools/tests.hpp>
+#include <memoria/v1/core/tools/terminal.hpp>
 #include "dump.hpp"
 
 

@@ -4,9 +4,9 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#include <memoria/tools/task.hpp>
-#include <memoria/tools/tools.hpp>
-#include <memoria/core/tools/file.hpp>
+#include <memoria/v1/tools/task.hpp>
+#include <memoria/v1/tools/tools.hpp>
+#include <memoria/v1/core/tools/file.hpp>
 
 #include <algorithm>
 #include <memory>

@@ -5,7 +5,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#include <memoria/core/tools/platform.hpp>
+#include <memoria/v1/core/tools/platform.hpp>
 
 
 namespace memoria {

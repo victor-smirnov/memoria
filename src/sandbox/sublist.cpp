@@ -5,8 +5,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#include <memoria/core/types/list/sublist.hpp>
-#include <memoria/core/types/typelist.hpp>
+#include <memoria/v1/core/types/list/sublist.hpp>
+#include <memoria/v1/core/types/typelist.hpp>
 
 #include <iostream>
 

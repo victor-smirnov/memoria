@@ -6,14 +6,14 @@
 
 #pragma once
 
-#include <memoria/memoria.hpp>
+#include <memoria/v1/memoria.hpp>
 
-#include <memoria/tools/profile_tests.hpp>
-#include <memoria/tools/tools.hpp>
+#include <memoria/v1/tools/profile_tests.hpp>
+#include <memoria/v1/tools/tools.hpp>
 
-#include <memoria/prototypes/bt_tl/bttl_factory.hpp>
-#include <memoria/core/types/typehash.hpp>
-#include <memoria/prototypes/bt_tl/tools/bttl_tools_random_gen.hpp>
+#include <memoria/v1/prototypes/bt_tl/bttl_factory.hpp>
+#include <memoria/v1/core/types/typehash.hpp>
+#include <memoria/v1/prototypes/bt_tl/tools/bttl_tools_random_gen.hpp>
 
 #include "bttl_test_tools.hpp"
 #include "bttl_test_names.hpp"

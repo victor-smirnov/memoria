@@ -5,10 +5,10 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#include <memoria/tools/cmdline.hpp>
-#include <memoria/core/tools/platform.hpp>
-#include <memoria/core/exceptions/exceptions.hpp>
-#include <memoria/core/tools/strings/string.hpp>
+#include <memoria/v1/tools/cmdline.hpp>
+#include <memoria/v1/core/tools/platform.hpp>
+#include <memoria/v1/core/exceptions/exceptions.hpp>
+#include <memoria/v1/core/tools/strings/string.hpp>
 
 namespace memoria {
 

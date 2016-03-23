@@ -5,21 +5,21 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#include <memoria/core/packed/tree/vle_big/packed_vle_bigmax_tree.hpp>
+#include <memoria/v1/core/packed/tree/vle_big/packed_vle_bigmax_tree.hpp>
 
-#include <memoria/core/tools/time.hpp>
+#include <memoria/v1/core/tools/time.hpp>
 
-#include <memoria/core/packed/tools/packed_struct_ptrs.hpp>
-#include <memoria/core/tools/bignum/bigint.hpp>
-#include <memoria/core/tools/bignum/cppint_codec.hpp>
-#include <memoria/core/tools/bignum/int64_codec.hpp>
-#include <memoria/core/tools/alloc.hpp>
+#include <memoria/v1/core/packed/tools/packed_struct_ptrs.hpp>
+#include <memoria/v1/core/tools/bignum/bigint.hpp>
+#include <memoria/v1/core/tools/bignum/cppint_codec.hpp>
+#include <memoria/v1/core/tools/bignum/int64_codec.hpp>
+#include <memoria/v1/core/tools/alloc.hpp>
 
 
 #include <boost/multiprecision/cpp_bin_float.hpp>
 #include <boost/multiprecision/cpp_dec_float.hpp>
 
-#include <memoria/metadata/page.hpp>
+#include <memoria/v1/metadata/page.hpp>
 
 #include <iostream>
 #include <vector>

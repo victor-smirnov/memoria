@@ -6,12 +6,12 @@
 
 #pragma once
 
-#include <memoria/core/types/types.hpp>
-#include <memoria/core/types/algo/for_each.hpp>
+#include <memoria/v1/core/types/types.hpp>
+#include <memoria/v1/core/types/algo/for_each.hpp>
 
-#include <memoria/prototypes/bt_tl/bttl_names.hpp>
-#include <memoria/core/container/iterator.hpp>
-#include <memoria/core/container/macros.hpp>
+#include <memoria/v1/prototypes/bt_tl/bttl_names.hpp>
+#include <memoria/v1/core/container/iterator.hpp>
+#include <memoria/v1/core/container/macros.hpp>
 
 #include "../bttl_test_names.hpp"
 

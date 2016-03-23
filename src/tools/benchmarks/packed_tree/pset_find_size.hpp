@@ -8,7 +8,7 @@
 
 #include "../benchmarks_inc.hpp"
 
-#include <memoria/core/packed/tree/packed_fse_tree.hpp>
+#include <memoria/v1/core/packed/tree/packed_fse_tree.hpp>
 
 #include <malloc.h>
 #include <memory>

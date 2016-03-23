@@ -4,9 +4,9 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#include <memoria/core/tools/cow_tree/cow_tree.hpp>
-#include <memoria/core/tools/time.hpp>
-#include <memoria/core/tools/random.hpp>
+#include <memoria/v1/core/tools/cow_tree/cow_tree.hpp>
+#include <memoria/v1/core/tools/time.hpp>
+#include <memoria/v1/core/tools/random.hpp>
 
 #include <vector>
 #include <thread>

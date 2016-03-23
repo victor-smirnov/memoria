@@ -7,8 +7,8 @@
 #pragma once
 
 
-#include <memoria/allocators/persistent-inmem/factory.hpp>
-#include <memoria/metadata/container.hpp>
+#include <memoria/v1/allocators/persistent-inmem/factory.hpp>
+#include <memoria/v1/metadata/container.hpp>
 
 #include <memory>
 

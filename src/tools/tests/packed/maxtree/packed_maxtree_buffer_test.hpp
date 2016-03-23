@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include <memoria/tools/tests.hpp>
-#include <memoria/tools/tools.hpp>
+#include <memoria/v1/tools/tests.hpp>
+#include <memoria/v1/tools/tools.hpp>
 
 #include "../maxtree/packed_maxtree_test_base.hpp"
 

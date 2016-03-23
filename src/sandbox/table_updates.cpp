@@ -4,16 +4,16 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#include <memoria/containers/map/map_factory.hpp>
-#include <memoria/memoria.hpp>
-#include <memoria/containers/table/table_factory.hpp>
-#include <memoria/containers/seq_dense/seqd_factory.hpp>
-#include <memoria/containers/vector/vctr_factory.hpp>
+#include <memoria/v1/containers/map/map_factory.hpp>
+#include <memoria/v1/memoria.hpp>
+#include <memoria/v1/containers/table/table_factory.hpp>
+#include <memoria/v1/containers/seq_dense/seqd_factory.hpp>
+#include <memoria/v1/containers/vector/vctr_factory.hpp>
 
-#include <memoria/core/container/metadata_repository.hpp>
+#include <memoria/v1/core/container/metadata_repository.hpp>
 
-#include <memoria/core/tools/time.hpp>
-#include <memoria/core/tools/random.hpp>
+#include <memoria/v1/core/tools/time.hpp>
+#include <memoria/v1/core/tools/random.hpp>
 
 
 using namespace memoria;

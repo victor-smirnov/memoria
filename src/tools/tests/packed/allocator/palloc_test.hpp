@@ -6,10 +6,10 @@
 
 #pragma once
 
-#include <memoria/tools/tests.hpp>
-#include <memoria/tools/tools.hpp>
+#include <memoria/v1/tools/tests.hpp>
+#include <memoria/v1/tools/tools.hpp>
 
-#include <memoria/core/packed/tools/packed_allocator.hpp>
+#include <memoria/v1/core/packed/tools/packed_allocator.hpp>
 
 #include <memory>
 

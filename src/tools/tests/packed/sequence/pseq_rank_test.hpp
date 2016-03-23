@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include <memoria/tools/tests.hpp>
-#include <memoria/tools/tools.hpp>
+#include <memoria/v1/tools/tests.hpp>
+#include <memoria/v1/tools/tools.hpp>
 
 #include <memory>
 #include "pseq_test_base.hpp"

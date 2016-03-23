@@ -6,12 +6,12 @@
 
 #pragma once
 
-#include <memoria/tools/tests.hpp>
-#include <memoria/tools/tools.hpp>
+#include <memoria/v1/tools/tests.hpp>
+#include <memoria/v1/tools/tools.hpp>
 
 #include "packed_codecs_test_base.hpp"
 
-#include <memoria/core/tools/strings/string_codec.hpp>
+#include <memoria/v1/core/tools/strings/string_codec.hpp>
 
 #include <memory>
 

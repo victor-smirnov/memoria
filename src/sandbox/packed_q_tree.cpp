@@ -5,18 +5,18 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#include <memoria/core/packed/tree/fse/packed_fse_quick_tree.hpp>
-#include <memoria/core/packed/tree/vle/packed_vle_quick_tree.hpp>
-#include <memoria/core/packed/tree/vle/packed_vle_dense_tree.hpp>
+#include <memoria/v1/core/packed/tree/fse/packed_fse_quick_tree.hpp>
+#include <memoria/v1/core/packed/tree/vle/packed_vle_quick_tree.hpp>
+#include <memoria/v1/core/packed/tree/vle/packed_vle_dense_tree.hpp>
 
 
 
-#include <memoria/core/tools/i7_codec.hpp>
-#include <memoria/core/tools/elias_codec.hpp>
-#include <memoria/core/tools/time.hpp>
-#include <memoria/core/tools/random.hpp>
+#include <memoria/v1/core/tools/i7_codec.hpp>
+#include <memoria/v1/core/tools/elias_codec.hpp>
+#include <memoria/v1/core/tools/time.hpp>
+#include <memoria/v1/core/tools/random.hpp>
 
-#include <memoria/core/packed/tools/packed_struct_ptrs.hpp>
+#include <memoria/v1/core/packed/tools/packed_struct_ptrs.hpp>
 
 #include <iostream>
 

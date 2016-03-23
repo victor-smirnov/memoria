@@ -6,10 +6,10 @@
 
 #pragma once
 
-#include <memoria/memoria.hpp>
-#include <memoria/tools/tests.hpp>
+#include <memoria/v1/memoria.hpp>
+#include <memoria/v1/tools/tests.hpp>
 
-#include <memoria/containers/vector/vctr_factory.hpp>
+#include <memoria/v1/containers/vector/vctr_factory.hpp>
 
 #include "../prototype/btss/btss_test_base.hpp"
 

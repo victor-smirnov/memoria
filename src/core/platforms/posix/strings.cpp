@@ -7,11 +7,11 @@
 
 
 
-#include <memoria/core/exceptions/exceptions.hpp>
-#include <memoria/core/tools/file.hpp>
+#include <memoria/v1/core/exceptions/exceptions.hpp>
+#include <memoria/v1/core/tools/file.hpp>
 
 #include <errno.h>
-#include <memoria/core/tools/strings/string.hpp>
+#include <memoria/v1/core/tools/strings/string.hpp>
 #include <stdlib.h>
 
 

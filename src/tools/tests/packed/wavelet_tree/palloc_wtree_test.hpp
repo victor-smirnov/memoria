@@ -6,12 +6,12 @@
 
 #pragma once
 
-#include <memoria/tools/tests.hpp>
-#include <memoria/tools/tools.hpp>
+#include <memoria/v1/tools/tests.hpp>
+#include <memoria/v1/tools/tools.hpp>
 
-#include <memoria/core/packed/wavelet_tree/packed_wavelet_tree.hpp>
-#include <memoria/core/packed/sseq/packed_multisequence.hpp>
-#include <memoria/core/packed/tools/packed_struct_ptrs.hpp>
+#include <memoria/v1/core/packed/wavelet_tree/packed_wavelet_tree.hpp>
+#include <memoria/v1/core/packed/sseq/packed_multisequence.hpp>
+#include <memoria/v1/core/packed/tools/packed_struct_ptrs.hpp>
 
 #include <memory>
 #include <map>

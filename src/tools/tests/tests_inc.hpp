@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include <memoria/core/tools/strings/string.hpp>
-#include <memoria/tools/tools.hpp>
-#include <memoria/tools/tests.hpp>
-#include <memoria/core/types/types.hpp>
+#include <memoria/v1/core/tools/strings/string.hpp>
+#include <memoria/v1/tools/tools.hpp>
+#include <memoria/v1/tools/tests.hpp>
+#include <memoria/v1/core/types/types.hpp>
 

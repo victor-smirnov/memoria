@@ -5,8 +5,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#include <memoria/core/tools/file.hpp>
-#include <memoria/core/exceptions/memoria.hpp>
+#include <memoria/v1/core/tools/file.hpp>
+#include <memoria/v1/core/exceptions/memoria.hpp>
 
 #include <unistd.h>
 #include <sys/types.h>
@@ -14,7 +14,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <errno.h>
-#include <memoria/core/tools/strings/string.hpp>
+#include <memoria/v1/core/tools/strings/string.hpp>
 
 namespace memoria {
 

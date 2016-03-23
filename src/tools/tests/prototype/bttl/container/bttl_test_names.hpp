@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <memoria/prototypes/bt_tl/bttl_names.hpp>
+#include <memoria/v1/prototypes/bt_tl/bttl_names.hpp>
 
 namespace memoria {
 namespace bttl_test {

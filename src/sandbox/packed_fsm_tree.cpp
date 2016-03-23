@@ -5,13 +5,13 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#include <memoria/core/packed/tree/fse_max/packed_fse_max_tree.hpp>
+#include <memoria/v1/core/packed/tree/fse_max/packed_fse_max_tree.hpp>
 
-#include <memoria/core/tools/time.hpp>
-#include <memoria/core/tools/uuid.hpp>
+#include <memoria/v1/core/tools/time.hpp>
+#include <memoria/v1/core/tools/uuid.hpp>
 
 
-#include <memoria/core/packed/tools/packed_struct_ptrs.hpp>
+#include <memoria/v1/core/packed/tools/packed_struct_ptrs.hpp>
 
 #include <iostream>
 

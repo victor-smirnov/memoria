@@ -5,10 +5,10 @@
 
 #pragma once
 
-#include <memoria/memoria.hpp>
+#include <memoria/v1/memoria.hpp>
 
-#include <memoria/tools/tests.hpp>
-#include <memoria/tools/tools.hpp>
+#include <memoria/v1/tools/tests.hpp>
+#include <memoria/v1/tools/tools.hpp>
 
 #include <vector>
 #include <algorithm>

@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include <memoria/memoria.hpp>
-#include <memoria/tools/tests.hpp>
+#include <memoria/v1/memoria.hpp>
+#include <memoria/v1/tools/tests.hpp>
 
 #include "sequence_test_base.hpp"
 

@@ -1,0 +1,17 @@
+
+// Copyright Victor Smirnov 2012.
+// Distributed under the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE_1_0.txt or copy at
+// http://www.boost.org/LICENSE_1_0.txt)
+
+#pragma once
+
+#include <memoria/v1/core/container/init.hpp>
+#include <memoria/v1/core/types/types.hpp>
+
+namespace memoria {
+
+MEMORIA_DECLARE_PROFILE(DefaultProfile<>, 0);
+
+}
+

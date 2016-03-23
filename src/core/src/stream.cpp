@@ -6,8 +6,8 @@
 
 
 
-#include <memoria/core/tools/stream.hpp>
-#include <memoria/core/tools/strings/string.hpp>
+#include <memoria/v1/core/tools/stream.hpp>
+#include <memoria/v1/core/tools/strings/string.hpp>
 
 
 #ifdef __GNUC__

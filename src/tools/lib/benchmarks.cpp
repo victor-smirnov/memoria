@@ -4,8 +4,8 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#include <memoria/tools/task.hpp>
-#include <memoria/tools/benchmarks.hpp>
+#include <memoria/v1/tools/task.hpp>
+#include <memoria/v1/tools/benchmarks.hpp>
 
 #include <algorithm>
 #include <fstream>

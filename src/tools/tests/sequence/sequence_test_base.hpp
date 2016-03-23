@@ -6,14 +6,14 @@
 
 #pragma once
 
-#include <memoria/memoria.hpp>
-#include <memoria/tools/profile_tests.hpp>
+#include <memoria/v1/memoria.hpp>
+#include <memoria/v1/tools/profile_tests.hpp>
 
-#include <memoria/containers/seq_dense/seqd_factory.hpp>
+#include <memoria/v1/containers/seq_dense/seqd_factory.hpp>
 
-#include <memoria/core/packed/wrappers/symbol_sequence.hpp>
-#include <memoria/core/packed/tools/packed_struct_ptrs.hpp>
-#include <memoria/core/tools/isymbols.hpp>
+#include <memoria/v1/core/packed/wrappers/symbol_sequence.hpp>
+#include <memoria/v1/core/packed/tools/packed_struct_ptrs.hpp>
+#include <memoria/v1/core/tools/isymbols.hpp>
 
 #include "../prototype/btss/btss_test_base.hpp"
 

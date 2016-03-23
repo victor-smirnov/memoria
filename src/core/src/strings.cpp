@@ -6,8 +6,8 @@
 
 
 
-#include <memoria/core/exceptions/exceptions.hpp>
-#include <memoria/core/tools/strings/string.hpp>
+#include <memoria/v1/core/exceptions/exceptions.hpp>
+#include <memoria/v1/core/tools/strings/string.hpp>
 
 #include <errno.h>
 

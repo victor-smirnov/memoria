@@ -6,6 +6,6 @@
 
 #pragma once
 
-#include <memoria/tools/tools.hpp>
-#include <memoria/tools/profile_benchmark.hpp>
+#include <memoria/v1/tools/tools.hpp>
+#include <memoria/v1/tools/profile_benchmark.hpp>
 

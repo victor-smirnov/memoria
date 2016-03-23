@@ -5,12 +5,12 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#include <memoria/allocators/persistent-inmem/factory.hpp>
-#include <memoria/core/tools/time.hpp>
-#include <memoria/core/tools/random.hpp>
+#include <memoria/v1/allocators/persistent-inmem/factory.hpp>
+#include <memoria/v1/core/tools/time.hpp>
+#include <memoria/v1/core/tools/random.hpp>
 
-#include <memoria/containers/vector/vctr_factory.hpp>
-#include <memoria/containers/map/map_factory.hpp>
+#include <memoria/v1/containers/vector/vctr_factory.hpp>
+#include <memoria/v1/containers/map/map_factory.hpp>
 
 #include <iostream>
 #include <string>

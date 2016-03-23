@@ -4,8 +4,8 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#include <memoria/tools/params.hpp>
-#include <memoria/core/exceptions/exceptions.hpp>
+#include <memoria/v1/tools/params.hpp>
+#include <memoria/v1/core/exceptions/exceptions.hpp>
 
 namespace memoria {
 

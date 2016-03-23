@@ -6,8 +6,8 @@
 
 
 
-#include <memoria/metadata/tools.hpp>
-#include <memoria/core/tools/hash.hpp>
+#include <memoria/v1/metadata/tools.hpp>
+#include <memoria/v1/core/tools/hash.hpp>
 
 namespace memoria {
 

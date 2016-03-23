@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <memoria/tools/benchmarks.hpp>
+#include <memoria/v1/tools/benchmarks.hpp>
 
 #include "packed_tree/pset_find_mem.hpp"
 #include "packed_tree/pset_find_size.hpp"

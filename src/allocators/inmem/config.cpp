@@ -5,5 +5,5 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-//#include <memoria/allocators/inmem/factory.hpp>
+//#include <memoria/v1/allocators/inmem/factory.hpp>
 

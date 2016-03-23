@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <memoria/memoria.hpp>
+#include <memoria/v1/memoria.hpp>
 
 #include "../tests_inc.hpp"
 

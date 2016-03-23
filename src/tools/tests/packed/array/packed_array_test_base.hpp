@@ -8,9 +8,9 @@
 
 #include "../../tests_inc.hpp"
 
-#include <memoria/core/packed/array/packed_vle_dense_array.hpp>
-#include <memoria/core/packed/array/packed_fse_array.hpp>
-#include <memoria/core/packed/tools/packed_struct_ptrs.hpp>
+#include <memoria/v1/core/packed/array/packed_vle_dense_array.hpp>
+#include <memoria/v1/core/packed/array/packed_fse_array.hpp>
+#include <memoria/v1/core/packed/tools/packed_struct_ptrs.hpp>
 
 namespace memoria {
 

@@ -6,7 +6,7 @@
 
 #include <boost/hana.hpp>
 
-#include <memoria/core/types/typelist.hpp>
+#include <memoria/v1/core/types/typelist.hpp>
 
 #include <sstream>
 #include <iostream>

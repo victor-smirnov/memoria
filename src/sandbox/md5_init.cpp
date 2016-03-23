@@ -9,10 +9,10 @@
 #include <math.h>
 #include <limits.h>
 
-#include <memoria/core/types/types.hpp>
-#include <memoria/core/tools/type_name.hpp>
-#include <memoria/core/types/list/append.hpp>
-#include <memoria/core/types/algo/select.hpp>
+#include <memoria/v1/core/types/types.hpp>
+#include <memoria/v1/core/tools/type_name.hpp>
+#include <memoria/v1/core/types/list/append.hpp>
+#include <memoria/v1/core/types/algo/select.hpp>
 
 using namespace std;
 using namespace memoria;

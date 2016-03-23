@@ -11,7 +11,7 @@
 #include <malloc.h>
 #include <memory>
 
-#include <memoria/containers/vector/vctr_factory.hpp>
+#include <memoria/v1/containers/vector/vctr_factory.hpp>
 
 namespace memoria {
 

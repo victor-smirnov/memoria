@@ -5,9 +5,9 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#include <memoria/tools/benchmarks.hpp>
-#include <memoria/tools/cmdline.hpp>
-#include <memoria/memoria.hpp>
+#include <memoria/v1/tools/benchmarks.hpp>
+#include <memoria/v1/tools/cmdline.hpp>
+#include <memoria/v1/memoria.hpp>
 
 #include "benchmark_groups.hpp"
 

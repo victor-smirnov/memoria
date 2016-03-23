@@ -5,7 +5,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#include <memoria/core/tools/uuid.hpp>
+#include <memoria/v1/core/tools/uuid.hpp>
 
 #include <uuid/uuid.h>
 #include <string.h>
