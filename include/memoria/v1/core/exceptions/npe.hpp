@@ -13,7 +13,7 @@ namespace v1 {
 
 using namespace std;
 
-class MEMORIA_API NullPointerException: public Exception {
+class NullPointerException: public Exception {
 
 public:
     NullPointerException(const char* source, StringRef message):

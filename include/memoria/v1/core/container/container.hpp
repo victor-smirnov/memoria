@@ -549,40 +549,40 @@ public:
         return debug_;
     }
 
-    MEMORIA_PUBLIC Allocator& allocator() {
+    Allocator& allocator() {
         return *allocator_;
     }
 
-    MEMORIA_PUBLIC Allocator& allocator() const {
+    Allocator& allocator() const {
         return *allocator_;
     }
 
-    MEMORIA_PUBLIC const char* typeName() const
+    const char* typeName() const
     {
         return model_type_name_;
     }
 
-    MEMORIA_PUBLIC static String type_name_str()
+    static String type_name_str()
     {
         return TypeNameFactory<ContainerTypeName>::name();
     }
 
-    MEMORIA_PUBLIC static const char* type_name_cstr()
+    static const char* type_name_cstr()
     {
         return TypeNameFactory<ContainerTypeName>::cname();
     }
 
 
-    MEMORIA_PUBLIC bool is_log(Int level) const
+    bool is_log(Int level) const
     {
         return logger_.isLogEnabled(level);
     }
 
-    MEMORIA_PUBLIC const v1::Logger& logger() const {
+    const v1::Logger& logger() const {
         return logger_;
     }
 
-    MEMORIA_PUBLIC v1::Logger& logger() {
+    v1::Logger& logger() {
             return logger_;
         }
 

@@ -18,15 +18,15 @@ namespace v1 {
 using String    = std::string;
 using StringRef = const String&;
 
-MEMORIA_API String trimString(StringRef str);
-//MEMORIA_API String ReplaceFirst(StringRef str, StringRef txt);
-//MEMORIA_API String ReplaceLast(StringRef str, StringRef txt);
-//MEMORIA_API String ReplaceAll(StringRef str, StringRef txt);
-MEMORIA_API bool isEmpty(StringRef str);
-MEMORIA_API bool isEmpty(StringRef str, String::size_type start, String::size_type end, StringRef sep);
-MEMORIA_API bool isEndsWith(StringRef str, StringRef end);
-MEMORIA_API bool isStartsWith(StringRef str, StringRef start);
-MEMORIA_API Long strToL(StringRef str);
+String trimString(StringRef str);
+//String ReplaceFirst(StringRef str, StringRef txt);
+//String ReplaceLast(StringRef str, StringRef txt);
+//String ReplaceAll(StringRef str, StringRef txt);
+bool isEmpty(StringRef str);
+bool isEmpty(StringRef str, String::size_type start, String::size_type end, StringRef sep);
+bool isEndsWith(StringRef str, StringRef end);
+bool isStartsWith(StringRef str, StringRef start);
+Long strToL(StringRef str);
 
 // FIXME: move it into the string library
 template <typename T>

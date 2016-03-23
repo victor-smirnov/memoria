@@ -19,7 +19,7 @@ template <typename T> class PageID;
 
 
 
-class MEMORIA_API IDValue {
+class IDValue {
     Byte data_[8];
 public:
     IDValue() {

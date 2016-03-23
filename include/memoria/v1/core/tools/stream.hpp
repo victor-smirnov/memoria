@@ -16,7 +16,7 @@
 namespace memoria {
 namespace v1 {
 
-struct MEMORIA_API InputStreamHandler {
+struct InputStreamHandler {
 
     virtual Int available()                             = 0;
     virtual void close()                                = 0;
@@ -72,7 +72,7 @@ struct MEMORIA_API InputStreamHandler {
 
 
 
-struct MEMORIA_API OutputStreamHandler {
+struct OutputStreamHandler {
 
     virtual Int bufferSize() = 0;
     virtual void flush() = 0;
@@ -95,14 +95,14 @@ struct MEMORIA_API OutputStreamHandler {
     virtual ~OutputStreamHandler() throw() {}
 };
 
-class MEMORIA_API FileOutputStreamHandler: public OutputStreamHandler {
+class FileOutputStreamHandler: public OutputStreamHandler {
 public:
     static std::unique_ptr<FileOutputStreamHandler> create(const char* file);
 
     virtual ~FileOutputStreamHandler() throw() {}
 };
 
-class MEMORIA_API FileInputStreamHandler: public InputStreamHandler {
+class FileInputStreamHandler: public InputStreamHandler {
 public:
     static std::unique_ptr<FileInputStreamHandler> create(const char* file);
     virtual ~FileInputStreamHandler() throw() {}

@@ -103,7 +103,7 @@ struct IPageOperations
 };
 
 
-struct MEMORIA_API PageMetadata: public MetadataGroup
+struct PageMetadata: public MetadataGroup
 {
     PageMetadata(
             StringRef name,

@@ -77,7 +77,7 @@ public:
 };
 
 
-class MEMORIA_API OOMException: public MemoriaThrowable {
+class OOMException: public MemoriaThrowable {
 
 public:
     OOMException(const char* source): MemoriaThrowable(source) {}
@@ -88,7 +88,7 @@ public:
 
 
 
-MEMORIA_API const char* ExtractMemoriaPath(const char* path);
+const char* ExtractMemoriaPath(const char* path);
 
 ostream& operator<<(ostream& out, const MemoriaThrowable& t);
 

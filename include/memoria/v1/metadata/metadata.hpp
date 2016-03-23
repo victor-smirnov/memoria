@@ -34,7 +34,7 @@ typedef std::unordered_map<Int, PageMetadata*>          PageMetadataMap;
 typedef std::unordered_map<Int, ContainerMetadata*>     ContainerMetadataMap;
 
 
-struct MEMORIA_API Metadata {
+struct Metadata {
 
 public:
     enum   {GROUP,  PAGE, CONTAINER};

@@ -14,7 +14,7 @@ namespace v1 {
 
 using namespace std;
 
-class MEMORIA_API DispatchException: public Exception {
+class DispatchException: public Exception {
     Int code1_;
     Int code2_;
 public:

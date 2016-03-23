@@ -6,11 +6,6 @@
 
 #pragma once
 
-#ifdef PAGE_SIZE
-#define SYSTEM_PAGESIZE PAGE_SIZE
-#undef PAGE_SIZE
-#endif
-
 
 #ifdef _INTEL_COMPILER
 
@@ -36,33 +31,7 @@
 
 
 
-
-#ifndef MEMORIA_STATIC
-#if defined (WIN32)
-#   define MEMORIA_EXPORT __declspec(dllexport)
-#   define MEMORIA_NO_EXPORT
-#   define MEMORIA_IMPORT __declspec(dllimport)
-#elif defined(__GNUC__) && (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4))
-#       define MEMORIA_EXPORT __attribute__((visibility("default")))
-#       define MEMORIA_NO_EXPORT __attribute__((visibility("hidden")))
-#       define MEMORIA_IMPORT
-#else
-#       define MEMORIA_EXPORT
-#       define MEMORIA_NO_EXPORT
-#       define MEMORIA_IMPORT
-#endif
-#else
-#       define MEMORIA_EXPORT
-#       define MEMORIA_NO_EXPORT
-#       define MEMORIA_IMPORT
-#endif
-
-#if defined(MEMORIA_MAIN)
-#define MEMORIA_API MEMORIA_EXPORT
-#else
-#define MEMORIA_API MEMORIA_IMPORT
-#endif
-
+#ifndef MEMORIA_AT
 
 #define MEMORIA_JOIN( X, Y ) MEMORIA_INT0_JOIN( X, Y )
 #define MEMORIA_INT0_JOIN( X, Y ) MEMORIA_INT1_JOIN(X,Y)
@@ -73,16 +42,17 @@
 
 #define MEMORIA_AT MEMORIA_TOSTRING(__LINE__)
 
-#define MEMORIA_SOURCE v1::ExtractMemoriaPath(__FILE__ ":" MEMORIA_AT)
-#define MEMORIA_RAW_SOURCE v1::ExtractMemoriaPath(__FILE__ ":" MEMORIA_AT)
+#endif
+
+
+
+
+
+#ifndef MEMORIA_SOURCE
+
+#define MEMORIA_SOURCE (__FILE__ ":" MEMORIA_AT)
+#define MEMORIA_RAW_SOURCE (__FILE__ ":" MEMORIA_AT)
 #define MA_SRC MEMORIA_SOURCE
 #define MA_RAW_SRC MEMORIA_RAW_SOURCE
 
-#define MEMORIA_PUBLIC
-#define MEMORIA_DEPRECATED
-
-#if !defined(MEMORIA_DLL) && !defined(MEMORIA_MAIN)
-#define MEMORIA_TEMPLATE_EXTERN extern
-#else
-#define MEMORIA_TEMPLATE_EXTERN
 #endif

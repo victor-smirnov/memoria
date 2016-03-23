@@ -16,7 +16,7 @@
 namespace memoria {
 namespace v1 {
 
-class MEMORIA_API File {
+class File {
     String path_;
 
 public:

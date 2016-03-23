@@ -15,7 +15,7 @@
 namespace memoria {
 namespace v1 {
 
-class MEMORIA_API Platform {
+class Platform {
 public:
     static String getLineSeparator();
     static String getPathSeparator();

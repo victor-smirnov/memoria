@@ -82,7 +82,7 @@ struct ContainerInterface {
     virtual ~ContainerInterface() {}
 };
 
-struct MEMORIA_API ContainerMetadata: public MetadataGroup {
+struct ContainerMetadata: public MetadataGroup {
 public:
 
     ContainerMetadata(StringRef name, const MetadataList &content, Int ctr_hash, ContainerInterface* container_interface):
@@ -143,7 +143,7 @@ private:
 
 
 
-struct MEMORIA_API ContainerMetadataRepository: public MetadataGroup {
+struct ContainerMetadataRepository: public MetadataGroup {
 
 public:
 

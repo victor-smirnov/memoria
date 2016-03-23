@@ -15,7 +15,7 @@ namespace v1 {
 
 using namespace std;
 
-class MEMORIA_API FileException: public Exception {
+class FileException: public Exception {
 
 public:
     FileException(const char* source, StringRef message):

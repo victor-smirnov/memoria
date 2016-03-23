@@ -41,7 +41,7 @@ namespace v1 {
 const char* ExtractFunctionName(const char* full_name);
 
 
-struct MEMORIA_API LogHandler {
+struct LogHandler {
 
     LogHandler() {}
 

@@ -22,7 +22,7 @@
 namespace memoria {
 namespace v1 {
 
-struct MEMORIA_API Page {
+struct Page {
 
     virtual UUID getId() const                       = 0;
     virtual Int getContainerHash() const             = 0;
