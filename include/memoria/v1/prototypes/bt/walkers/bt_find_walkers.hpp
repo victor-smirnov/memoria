@@ -142,7 +142,7 @@ public:
     template <Int StreamIdx, typename Tree>
     StreamOpResult find_non_leaf(const Tree* tree, bool root, Int index, Int start)
     {
-        auto size = tree->size();
+    	auto size = tree->size();
 
         if (start < size)
         {

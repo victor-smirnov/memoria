@@ -96,15 +96,20 @@ public:
 
     using typename Base::InputBuffer;
 
-    using SequenceInputBuffer = typename InputBuffer::template StreamTypeT<0>;
+    using SequenceInputBuffer = typename InputBuffer::template StreamTypeT<1>;
 
 public:
     SequenceInputProviderBase(CtrT& ctr, Int capacity = 10000):
         Base(ctr, capacity)
     {}
 
-    virtual Int get(InputBuffer* buffer, Int pos) {
-        return get(buffer->template substream_by_idx<0>(), pos);
+    virtual Int get(InputBuffer* buffer, Int pos)
+    {
+    	Int inserted = get(buffer->template substream_by_idx<1>(), pos);
+
+    	buffer->template substream_by_idx<0>()->append(inserted, 0);
+
+        return inserted;
     }
 
     virtual Int get(SequenceInputBuffer* buffer, Int pos) = 0;

@@ -50,6 +50,7 @@ class SequenceRankTest: public SequenceTestBase<BitsPerSymbol, Dense> {
     using Base::out;
     using Base::fillRandomSeq;
     using Base::size_;
+    using Base::rank;
     using Base::storeAllocator;
     using Base::isReplayMode;
     using Base::getResourcePath;
@@ -62,7 +63,7 @@ public:
     SequenceRankTest(StringRef name):
         Base(name)
     {
-        Base::size_ = 30000;
+        Base::size_ = 300000;
 
         MEMORIA_ADD_TEST_PARAM(iterations_);
 
@@ -106,8 +107,6 @@ public:
 
         auto seq = fillRandomSeq(*ctr.get(), size_);
 
-        check(MA_SRC);
-
         for (Int c = 0; c < iterations_; c++)
         {
             out()<<c<<std::endl;
@@ -118,11 +117,11 @@ public:
 
             auto iter   = ctr->seek(pos1);
 
-            BigInt rank1 = iter->rank(pos2 - pos1, symbol);
+            BigInt rank1 = iter->rankFw(pos2 - pos1, symbol);
             BigInt rank2 = seq->rank(pos1, pos2, symbol);
 
-            AssertEQ(MA_SRC, iter->pos(), pos2);
             AssertEQ(MA_SRC, rank1, rank2);
+            AssertEQ(MA_SRC, iter->pos(), pos2);
 
             BigInt rank3 = iter->rank(pos1 - pos2, symbol);
 

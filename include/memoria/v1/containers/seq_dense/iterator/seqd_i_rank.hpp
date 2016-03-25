@@ -31,7 +31,7 @@ namespace v1 {
 
 
 MEMORIA_V1_ITERATOR_PART_BEGIN(v1::seq_dense::IterRankName)
-
+public:
     typedef Ctr<typename Types::CtrTypes>                                       Container;
 
 
@@ -45,6 +45,9 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::seq_dense::IterRankName)
 
     using CtrSizeT = typename Container::Types::CtrSizeT;
 
+    using SymbolsSubstreamPath = typename Container::Types::SymbolsSubstreamPath;
+
+    template <typename RankSubstreamPath>
     struct RankFn {
         BigInt rank_ = 0;
         Int symbol_;
@@ -53,7 +56,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::seq_dense::IterRankName)
         template <Int Idx, typename StreamTypes>
         void stream(const PkdFSSeq<StreamTypes>* seq, Int idx)
         {
-            if (seq != nullptr) {
+        	if (seq != nullptr) {
                 rank_ += seq->rank(0, idx, symbol_);
             }
         }
@@ -61,13 +64,13 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::seq_dense::IterRankName)
         template <typename NodeTypes>
         void treeNode(const LeafNode<NodeTypes>* node, WalkCmd, Int start, Int idx)
         {
-            node->template processStream<IntList<0>>(*this, idx);
+            node->template processStream<RankSubstreamPath>(*this, idx);
         }
 
         template <typename NodeTypes>
         void treeNode(const LeafNode<NodeTypes>* node, Int idx)
         {
-            node->template processStream<IntList<0>>(*this, idx);
+            node->template processStream<RankSubstreamPath>(*this, idx);
         }
 
         template <typename NodeTypes>
@@ -75,7 +78,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::seq_dense::IterRankName)
         {
             if (node != nullptr)
             {
-                node->sum(0, symbol_ + 1, 0, idx, rank_);
+                node->template sum_substream_for_leaf_path<RankSubstreamPath>(symbol_, 0, idx, rank_);
             }
         }
     };
@@ -85,16 +88,19 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::seq_dense::IterRankName)
 
     BigInt localrank_(Int idx, Int symbol) const;
 
-    auto rank(BigInt delta, Int symbol) {
-        return self().template rank_<IntList<0>>(symbol, delta);
+    auto rank(BigInt delta, Int symbol)
+    {
+        return self().template rank_<SymbolsSubstreamPath>(symbol, delta);
     }
 
-    auto rankFw(BigInt delta, Int symbol) {
-        return self().template rank_fw_<IntList<0>>(symbol, delta);
+    auto rankFw(BigInt delta, Int symbol)
+    {
+        return self().template rank_fw_<SymbolsSubstreamPath>(symbol, delta);
     }
 
-    auto rankBw(BigInt delta, Int symbol) {
-        return self().template rank_bw_<IntList<0>>(symbol, delta);
+    auto rankBw(BigInt delta, Int symbol)
+    {
+        return self().template rank_bw_<SymbolsSubstreamPath>(symbol, delta);
     }
 
 MEMORIA_V1_ITERATOR_PART_END
@@ -108,7 +114,7 @@ BigInt M_TYPE::rank(Int symbol) const
 {
     auto& self = this->self();
 
-    RankFn fn(symbol);
+    RankFn<IntList<0, 1>> fn(symbol);
 
     if (self.idx() >= 0)
     {
@@ -123,7 +129,7 @@ BigInt M_TYPE::localrank_(Int idx, Int symbol) const
 {
     auto& self = this->self();
 
-    RankFn fn(symbol);
+    RankFn<IntList<0, 1>> fn(symbol);
 
     LeafDispatcher::dispatch(self.leaf(), fn, idx);
 
@@ -136,7 +142,7 @@ BigInt M_TYPE::ranki(Int symbol) const
 {
     auto& self = this->self();
 
-    RankFn fn(symbol);
+    RankFn<IntList<0, 1>> fn(symbol);
 
     self.ctr().walkUp(self.leaf(), self.idx() + 1, fn);
 

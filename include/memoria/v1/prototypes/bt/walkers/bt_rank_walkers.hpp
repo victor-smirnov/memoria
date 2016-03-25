@@ -23,22 +23,49 @@ namespace v1 {
 namespace bt {
 
 
-/*****************************************************************************************/
+template <typename Types, typename LeafPath_>
+struct RankWalkerTypes: Types {
+    using LeafPath = IntList<ListHead<LeafPath_>::Value>;
+    using RankLeafPath = LeafPath_;
+};
 
-template <
-    typename Types
->
+
+
+
+template <typename Types>
 class RankForwardWalker: public SkipForwardWalkerBase<Types, RankForwardWalker<Types>> {
+
+	using MyType = RankForwardWalker<Types>;
 
     using Base      = SkipForwardWalkerBase<Types, RankForwardWalker<Types>>;
     using Iterator  = typename Base::Iterator;
 
-    using CtrSizeT = typename Types::CtrSizeT;
-    CtrSizeT rank_ = 0;
+    using RankLeafSubstreamPath = typename Types::RankLeafPath;
 
+    using CtrSizeT = typename Types::CtrSizeT;
+
+    CtrSizeT rank_ = 0;
     Int symbol_;
 
+    struct BranchFn {
+        template <typename StreamType>
+        auto stream(const StreamType* stream, Int symbol, Int start, Int end)
+        {
+        	return stream->sum(symbol, start, end);
+        }
+    };
+
+    struct LeafFn {
+    	template <typename StreamType>
+    	auto stream(const StreamType* stream, Int symbol, Int start, Int end)
+    	{
+    		return stream->rank(start, end, symbol);
+    	}
+    };
+
+
 public:
+    using Base::processCmd;
 
     RankForwardWalker(Int, Int symbol, CtrSizeT target):
         Base(target),
@@ -59,26 +86,19 @@ public:
         return rank_;
     }
 
-    template <Int StreamIdx, typename StreamType>
-    void postProcessLeafStream(const StreamType* stream, Int start, Int end)
+    template <typename NodeTypes, typename... Args>
+    void processCmd(const bt::BranchNode<NodeTypes>* node, WalkCmd cmd, Int start, Int end, Args&&... args)
     {
-        rank_ += stream->rank(start, end, symbol_);
-    }
+    	using Node = bt::BranchNode<NodeTypes>;
 
-    template <Int StreamIdx, typename StreamType>
-    void postProcessBranchStream(const StreamType* stream, Int start, Int end)
-    {
-        rank_ += stream->sum(Base::branchIndex(symbol_), start, end);
-    }
-
-    template <Int StreamIdx, typename Tree>
-    void process_branch_cmd(const Tree* tree, WalkCmd cmd, Int index, Int start, Int end)
-    {
-        Base::template process_branch_cmd<StreamIdx, Tree>(tree, cmd, index, start, end);
+        Base::processCmd(node, cmd, start, end, std::forward<Args>(args)...);
 
         if (cmd == WalkCmd::FIX_TARGET)
         {
-            rank_ -= tree->value(Base::branchIndex(symbol_), end);
+        	using BranchPath = typename Node::template BuildBranchPath<RankLeafSubstreamPath>;
+        	const Int index = Node::template translateLeafIndexToBranchIndex<RankLeafSubstreamPath>(symbol_);
+
+        	rank_ -= node->template processStream<BranchPath>(BranchFn(), index, end, end + 1);
         }
     }
 
@@ -88,7 +108,28 @@ public:
 
         return rank_;
     }
+
+
+    template <typename Node, typename Result>
+    void postProcessBranchNode(const Node* node, WalkDirection direction, Int start, Result&& result)
+    {
+    	using BranchPath = typename Node::template BuildBranchPath<RankLeafSubstreamPath>;
+    	const Int index = Node::template translateLeafIndexToBranchIndex<RankLeafSubstreamPath>(symbol_);
+
+    	rank_ += node->template processStream<BranchPath>(BranchFn(), index, start, result.idx());
+    }
+
+    template <typename Node, typename Result>
+    void postProcessLeafNode(const Node* node, WalkDirection direction, Int start, Result&& result)
+    {
+    	rank_ += node->template processStream<RankLeafSubstreamPath>(LeafFn(), symbol_, start, result.idx());
+    }
 };
+
+
+
+
+
 
 
 template <
@@ -99,12 +140,39 @@ class RankBackwardWalker: public SkipBackwardWalkerBase<Types, RankBackwardWalke
     using Base      = SkipBackwardWalkerBase<Types, RankBackwardWalker<Types>>;
     using Iterator  = typename Base::Iterator;
 
+    using RankLeafSubstreamPath = typename Types::RankLeafPath;
+
     using CtrSizeT = typename Types::CtrSizeT;
     CtrSizeT rank_ = 0;
 
     Int symbol_;
 
+
+    struct BranchFn {
+        template <typename StreamType>
+        auto stream(const StreamType* stream, Int symbol, Int start, Int end)
+        {
+            if (start > stream->size()) start = stream->size() - 1;
+
+            return stream->sum(symbol, end + 1, start + 1);
+        }
+    };
+
+    struct LeafFn {
+    	template <typename StreamType>
+    	auto stream(const StreamType* stream, Int symbol, Int start, Int end)
+    	{
+            if (start > stream->size()) start = stream->size();
+            if (end < 0) end = 0;
+
+            return stream->rank(end, start, symbol);
+    	}
+    };
+
+
+
 public:
+    using Base::processCmd;
 
     RankBackwardWalker(Int, Int symbol, CtrSizeT target):
         Base(target),
@@ -125,33 +193,68 @@ public:
     }
 
 
-    template <Int StreamIdx, typename StreamType>
-    void postProcessLeafStream(const StreamType* stream, Int start, Int end)
-    {
-        if (start > stream->size()) start = stream->size();
-        if (end < 0) end = 0;
+//    template <Int StreamIdx, typename StreamType>
+//    void postProcessLeafStream(const StreamType* stream, Int start, Int end)
+//    {
+//        if (start > stream->size()) start = stream->size();
+//        if (end < 0) end = 0;
+//
+//        rank_ += stream->rank(end, start, symbol_);
+//    }
+//
+//    template <Int StreamIdx, typename StreamType>
+//    void postProcessBranchStream(const StreamType* stream, Int start, Int end)
+//    {
+//        if (start > stream->size()) start = stream->size() - 1;
+//
+//        rank_ += stream->sum(Base::branchIndex(symbol_), end + 1, start + 1);
+//    }
 
-        rank_ += stream->rank(end, start, symbol_);
+
+    template <typename Node, typename Result>
+    void postProcessBranchNode(const Node* node, WalkDirection direction, Int start, Result&& result)
+    {
+    	using BranchPath = typename Node::template BuildBranchPath<RankLeafSubstreamPath>;
+    	const Int index = Node::template translateLeafIndexToBranchIndex<RankLeafSubstreamPath>(symbol_);
+
+    	rank_ += node->template processStream<BranchPath>(BranchFn(), index, start, result.idx());
     }
 
-    template <Int StreamIdx, typename StreamType>
-    void postProcessBranchStream(const StreamType* stream, Int start, Int end)
+    template <typename Node, typename Result>
+    void postProcessLeafNode(const Node* node, WalkDirection direction, Int start, Result&& result)
     {
-        if (start > stream->size()) start = stream->size() - 1;
-
-        rank_ += stream->sum(Base::branchIndex(symbol_), end + 1, start + 1);
+    	rank_ += node->template processStream<RankLeafSubstreamPath>(LeafFn(), symbol_, start, result.idx());
     }
 
-    template <Int StreamIdx, typename Tree>
-    void process_branch_cmd(const Tree* tree, WalkCmd cmd, Int index, Int start, Int end)
+
+    template <typename NodeTypes, typename... Args>
+    void processCmd(const bt::BranchNode<NodeTypes>* node, WalkCmd cmd, Int start, Int end, Args&&... args)
     {
-        Base::template process_branch_cmd<StreamIdx, Tree>(tree, cmd, index, start, end);
+    	using Node = bt::BranchNode<NodeTypes>;
+
+        Base::processCmd(node, cmd, start, end, std::forward<Args>(args)...);
 
         if (cmd == WalkCmd::FIX_TARGET)
         {
-            rank_ -= tree->value(Base::branchIndex(symbol_), end + 1);
+        	using BranchPath = typename Node::template BuildBranchPath<RankLeafSubstreamPath>;
+        	const Int index = Node::template translateLeafIndexToBranchIndex<RankLeafSubstreamPath>(symbol_);
+
+        	rank_ -= node->template processStream<BranchPath>(BranchFn(), index, end + 1, end + 2);
         }
     }
+
+
+
+//    template <Int StreamIdx, typename Tree>
+//    void process_branch_cmd(const Tree* tree, WalkCmd cmd, Int index, Int start, Int end)
+//    {
+//        Base::template process_branch_cmd<StreamIdx, Tree>(tree, cmd, index, start, end);
+//
+//        if (cmd == WalkCmd::FIX_TARGET)
+//        {
+//            rank_ -= tree->value(Base::branchIndex(symbol_), end + 1);
+//        }
+//    }
 
     CtrSizeT finish(Iterator& iter, Int idx, WalkCmd cmd)
     {

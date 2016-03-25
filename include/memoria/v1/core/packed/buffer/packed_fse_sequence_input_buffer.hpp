@@ -111,6 +111,11 @@ public:
         return sizeof(MyType) + roundUpBitsToAlignmentBlocks(elements * BitsPerSymbol);
     }
 
+    static constexpr Int block_size(const SizesT& elements)
+    {
+    	return sizeof(MyType) + roundUpBitsToAlignmentBlocks(elements[0] * BitsPerSymbol);
+    }
+
     void reset() {
         size_ = 0;
     }
@@ -189,7 +194,7 @@ public:
 
         Int limit0 = lenght < limit ? lenght : limit;
 
-        tools().move(src_symbols, symbols, 0, size_, limit0);
+        tools().move(src_symbols, symbols, start, size_, limit0);
 
         size_ += limit0;
 

@@ -306,14 +306,22 @@ public:
         Int index = node->template translateLeafIndexToBranchIndex<LeafPath>(self.leaf_index());
 
         using BranchPath = typename bt::BranchNode<NodeTypes>::template BuildBranchPath<LeafPath>;
-        return node->template processStream<BranchPath>(FindBranchFn(self), node->is_root(), index, start);
+        auto result = node->template processStream<BranchPath>(FindBranchFn(self), node->is_root(), index, start);
+
+        self.postProcessBranchNode(node, direction, start, result);
+
+        return result;
     }
 
     template <typename NodeTypes>
     StreamOpResult treeNode(const bt::LeafNode<NodeTypes>* node, WalkDirection direction, Int start)
     {
         auto& self = this->self();
-        return node->template processStream<LeafPath>(FindLeafFn(self), start);
+        auto result = node->template processStream<LeafPath>(FindLeafFn(self), start);
+
+        self.postProcessLeafNode(node, direction, start, result);
+
+        return result;
     }
 
 
@@ -433,6 +441,12 @@ public:
 
     template <Int StreamIdx, typename StreamType>
     void postProcessLeafStream(const StreamType*, Int, Int) {}
+
+    template <typename Node, typename Result>
+    void postProcessBranchNode(const Node* node, WalkDirection direction, Int start, Result&&) {}
+
+    template <typename Node, typename Result>
+    void postProcessLeafNode(const Node* node, WalkDirection direction, Int start, Result&&) {}
 };
 
 

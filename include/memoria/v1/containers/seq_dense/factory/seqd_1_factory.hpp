@@ -59,18 +59,15 @@ struct BTTypes<Profile, v1::Sequence<1, true> >: public BTTypes<Profile, v1::BTS
 
     using SequenceTypes = typename PkdFSSeqTF<BitsPerSymbol>::Type;
 
+    using SymbolsSubstreamPath = IntList<0, 1>;
+
     using SeqStreamTF = StreamTF<
-        TL<TL<StreamSize, PkdFSSeq<SequenceTypes>>>,
+        TL<StreamSize, TL<PkdFSSeq<SequenceTypes>>>,
         FSEBranchStructTF,
-        TL<TL<TL<SumRange<0, BranchIndexes - 1>>>>
+        TL<TL<>, TL<TL<SumRange<0, BranchIndexes - 1>>>>
     >;
 
-    typedef TypeList<
-            SeqStreamTF
-    >                                                                           StreamDescriptors;
-
-
-
+    using StreamDescriptors = TypeList<SeqStreamTF>;
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,

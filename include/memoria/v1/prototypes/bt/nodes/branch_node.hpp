@@ -419,7 +419,7 @@ public:
 
 
     template <typename LeafPath>
-    static Int translateLeafIndexToBranchIndex(Int leaf_index)
+    static const Int translateLeafIndexToBranchIndex(Int leaf_index)
     {
         return LeafToBranchIndexTranslator<LeafSubstreamsStructList, LeafPath, 0>::translate(leaf_index);
     }
@@ -1242,6 +1242,22 @@ public:
         Dispatcher::dispatch(stream, allocator(), SumsFn(), block_num, start, end, accum);
     }
 
+    template <typename SubstreamPath>
+    void sum_substream(Int block_num, Int start, Int end, BigInt& accum) const
+    {
+    	processStream<SubstreamPath>(SumsFn(), block_num, start, end, accum);
+    }
+
+    template <typename LeafSubstreamPath>
+    void sum_substream_for_leaf_path(Int leaf_block_num, Int start, Int end, BigInt& accum) const
+    {
+    	using BranchPath = BuildBranchPath<LeafSubstreamPath>;
+
+    	const Int index = MyType::translateLeafIndexToBranchIndex<LeafSubstreamPath>(leaf_block_num);
+
+    	processStream<BranchPath>(SumsFn(), index, start, end, accum);
+    }
+
 
     struct MaxFn {
         template <Int Idx, typename StreamType>
@@ -1356,6 +1372,8 @@ public:
         const Int StreamIdx = v1::list_tree::LeafCount<BranchSubstreamsStructList, SubstreamPath>::Value;
         return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
+
+
 
 
     template <Int StreamIdx, typename Fn, typename... Args>

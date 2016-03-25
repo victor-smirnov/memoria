@@ -76,6 +76,7 @@ protected:
     using Base::isReplayMode;
     using Base::getResourcePath;
     using Base::getRandom;
+    using Base::getBIRandom;
 
     UUID ctr_name_;
 
@@ -125,7 +126,7 @@ public:
 
             for (Int c = 0; c < SymbolsBuffer::BufSize; c++)
             {
-                symbols[c] = getRandom();
+                symbols[c] = getBIRandom();
             }
 
             return buf;
@@ -136,15 +137,29 @@ public:
         auto iter = ctr.begin();
 
         using Provider = seq_dense::SymbolSequenceInputProvider<Ctr>;
-        Provider provider(ctr, seq->symbols(), 0, 4000000);
+        Provider provider(ctr, seq->symbols(), 0, size);
 
-        ctr.insert(*iter.get(), provider);
+        iter->bulk_insert(provider);
 
         BigInt t2 = getTimeInMillis();
 
         this->out() << "Sequence creation time: " << FormatTime(t1 - t0) << " " << FormatTime(t2 - t1) << std::endl;
 
+        check(MA_SRC);
+
         return seq;
+    }
+
+    auto rank(const PackedSeq1* seq, Int start, Int end, Int symbol)
+    {
+    	BigInt rank = 0;
+
+    	for (Int c = start; c < end; c++)
+    	{
+    		rank += seq->symbol(c) == symbol;
+    	}
+
+    	return rank;
     }
 };
 

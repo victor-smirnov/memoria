@@ -31,7 +31,7 @@ namespace v1 {
 
 
 MEMORIA_V1_ITERATOR_PART_BEGIN(v1::seq_dense::IterSkipName)
-
+public:
     typedef Ctr<typename Types::CtrTypes>                                       Container;
 
 

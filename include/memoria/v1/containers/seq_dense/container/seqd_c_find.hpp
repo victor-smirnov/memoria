@@ -27,26 +27,12 @@ namespace memoria {
 namespace v1 {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(v1::seq_dense::CtrFindName)
+public:
+    using typename Base::Types;
+    using typename Base::CtrSizeT;
 
-    typedef typename Base::Types                                                Types;
-    typedef typename Base::Allocator                                            Allocator;
+    using SymbolsSubstreamPath = typename Types::SymbolsSubstreamPath;
 
-    typedef typename Base::ID                                                   ID;
-
-    typedef typename Types::NodeBase                                            NodeBase;
-    typedef typename Types::NodeBaseG                                           NodeBaseG;
-    typedef typename Base::Iterator                                             Iterator;
-
-    using NodeDispatcher    = typename Types::Pages::NodeDispatcher;
-    using LeafDispatcher    = typename Types::Pages::LeafDispatcher;
-    using BranchDispatcher  = typename Types::Pages::BranchDispatcher;
-
-    typedef typename Base::Metadata                                             Metadata;
-
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
-    typedef typename Types::Position                                            Position;
-
-    typedef typename Types::CtrSizeT                                            CtrSizeT;
 
     CtrSizeT size() {
         return self().sizes()[0];
@@ -54,13 +40,13 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::seq_dense::CtrFindName)
 
     CtrSizeT rank(CtrSizeT idx, Int symbol)
     {
-        auto& self = this->self();
+    	auto& self = this->self();
 
-        typename Types::template RankForwardWalker<Types, IntList<0>> walker(0, symbol, idx);
+    	typename Types::template RankForwardWalker<Types, SymbolsSubstreamPath> walker(symbol, idx);
 
-        auto iter = self.find_(walker);
+    	self.find_(walker);
 
-        return walker.rank();
+    	return walker.rank();
     }
 
     CtrSizeT rank(Int symbol) {
@@ -85,7 +71,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::seq_dense::CtrFindName)
         MEMORIA_V1_ASSERT(rank, >=, 1);
         MEMORIA_V1_ASSERT(symbol, >=, 0);
 
-        typename Types::template SelectForwardWalker<Types, IntList<0>> walker(symbol, rank);
+        typename Types::template SelectForwardWalker<Types, SymbolsSubstreamPath> walker(symbol, rank);
 
         return self.find_(walker);
     }

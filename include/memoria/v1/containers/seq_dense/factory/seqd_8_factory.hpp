@@ -54,11 +54,12 @@ struct BTTypes<Profile, v1::Sequence<8, true> >: public BTTypes<Profile, v1::BTS
 
     using SequenceTypes = typename PkdFSSeqTF<BitsPerSymbol>::Type;
 
+    using SymbolsSubstreamPath = IntList<0, 1>;
+
 
     using SeqStreamTF = StreamTF<
-        TL<TL<StreamSize, PkdFSSeq<SequenceTypes>>>,
-        VLDBranchStructTF,
-        TL<TL<TL<>>>
+    	TL<StreamSize, TL<PkdFSSeq<SequenceTypes>>>,
+        VLDBranchStructTF
     >;
 
 

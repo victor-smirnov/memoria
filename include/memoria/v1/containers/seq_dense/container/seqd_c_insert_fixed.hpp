@@ -30,8 +30,9 @@ namespace memoria {
 namespace v1 {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(v1::seq_dense::CtrInsertFixedName)
-
+public:
     typedef typename Base::Types                                                Types;
+
     typedef typename Base::Allocator                                            Allocator;
 
     typedef typename Base::ID                                                   ID;

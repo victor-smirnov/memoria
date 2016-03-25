@@ -31,7 +31,7 @@ namespace v1 {
 
 
 MEMORIA_V1_ITERATOR_PART_BEGIN(v1::seq_dense::IterSelectName)
-
+public:
     typedef Ctr<typename Types::CtrTypes>                                       Container;
 
 
@@ -43,22 +43,24 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::seq_dense::IterSelectName)
     typedef typename Container::LeafDispatcher                                  LeafDispatcher;
     typedef typename Container::Position                                        Position;
 
+    using SymbolsSubstreamPath = typename Container::Types::SymbolsSubstreamPath;
+
     using CtrSizeT = typename Container::Types::CtrSizeT;
 
 
     auto select(CtrSizeT rank_delta, Int symbol)
     {
-        return self().template select_<IntList<0>>(symbol, rank_delta);
+        return self().template select_<SymbolsSubstreamPath>(symbol, rank_delta);
     }
 
     auto selectFw(CtrSizeT rank_delta, Int symbol)
     {
-        return self().template select_fw_<IntList<0>>(symbol, rank_delta);
+        return self().template select_fw_<SymbolsSubstreamPath>(symbol, rank_delta);
     }
 
     auto selectBw(CtrSizeT rank_delta, Int symbol)
     {
-        return self().template select_bw_<IntList<0>>(symbol, rank_delta);
+        return self().template select_bw_<SymbolsSubstreamPath>(symbol, rank_delta);
     }
     
 MEMORIA_V1_ITERATOR_PART_END

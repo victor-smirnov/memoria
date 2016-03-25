@@ -216,10 +216,10 @@ struct BTTypes {
     using SelectBackwardWalker  = bt::SelectBackwardWalker<WalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using RankForwardWalker   = bt::RankForwardWalker<WalkerTypes<Types, LeafPath>>;
+    using RankForwardWalker   = bt::RankForwardWalker<bt::RankWalkerTypes<Types, LeafPath>>;
 
     template <typename Types, typename LeafPath>
-    using RankBackwardWalker  = bt::RankBackwardWalker<WalkerTypes<Types, LeafPath>>;
+    using RankBackwardWalker  = bt::RankBackwardWalker<bt::RankWalkerTypes<Types, LeafPath>>;
 
     template <typename Types>
     using NextLeafWalker      = bt::ForwardLeafWalker<Types>;
