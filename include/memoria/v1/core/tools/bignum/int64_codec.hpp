@@ -411,7 +411,7 @@ public:
 
     size_t encode(T* buffer, const ValuePtr& value, size_t idx) const
     {
-        codec_.encode(buffer, value, idx);
+        return codec_.encode(buffer, value, idx);
     }
 
     size_t encode(T* buffer, V value, size_t idx, size_t limit) const

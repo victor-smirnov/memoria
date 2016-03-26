@@ -30,7 +30,7 @@ namespace v1 {
 
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(v1::louds::CtrFindName)
-
+public:
     typedef TypesType                                                           Types;
     typedef typename Base::Iterator                                             Iterator;
     typedef typename Base::Types::LabelsTuple                                   LabelsTuple;
@@ -102,7 +102,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::louds::CtrFindName)
         template <typename NTypes>
         void treeNode(const LeafNode<NTypes>* node, Int label_idx)
         {
-            node->template processSubstreams<IntList<1>>(*this, label_idx);
+            node->template processSubstreams<IntList<1, 1>>(*this, label_idx);
         }
     };
 

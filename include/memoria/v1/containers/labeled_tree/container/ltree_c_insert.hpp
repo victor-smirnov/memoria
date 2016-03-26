@@ -35,7 +35,7 @@ namespace v1 {
 
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(v1::louds::CtrInsertName)
-
+public:
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
 
@@ -44,12 +44,13 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::louds::CtrInsertName)
 
     typedef typename Base::LeafDispatcher                                       LeafDispatcher;
 
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
+    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
 
-    typedef typename Base::Types::LabelsTuple                                   LabelsTuple;
+
+    using LabelsTuple = typename Types::LabelsTuple;
 
     typedef typename Base::Types::CtrSizeT                                      CtrSizeT;
 
@@ -64,40 +65,36 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::louds::CtrInsertName)
 
     struct InsertLabelsFn
     {
-        const LabelsTuple& labels_;
+        template <
+            Int Offset,
+            bool StreamStart,
+            Int Idx,
+            typename BranchNodeEntryItem
+        >
+        void stream(StreamSize* obj, BranchNodeEntryItem& accum, const LabelsTuple& labels, Int idx)
+        {
+        	obj->insert(idx, 1);
+        	accum[Offset]++;
+        }
 
-        InsertLabelsFn(const LabelsTuple& labels):
-            labels_(labels)
-        {}
 
         template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename BranchNodeEntryItem>
-        void stream(PackedFSEArray<StreamTypes>* labels, BranchNodeEntryItem& accum, Int idx)
+        void stream(PackedFSEArray<StreamTypes>* array, BranchNodeEntryItem& accum, const LabelsTuple& labels, Int idx)
         {
-            labels->insert(idx, std::get<Idx>(labels_));
-
-            if (StreamStart)
-            {
-                accum[0] += 1;
-            }
+            array->insert(idx, std::get<Idx - 1>(labels));
         }
 
         template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename BranchNodeEntryItem>
-        void stream(PkdVQTree<StreamTypes>* sizes, BranchNodeEntryItem& accum, Int idx)
+        void stream(PkdVQTree<StreamTypes>* sizes, BranchNodeEntryItem& accum, const LabelsTuple& labels, Int idx)
         {
             typedef typename PkdVQTree<StreamTypes>::Values Values;
 
-            auto size = std::get<Idx>(labels_);
+            auto size = std::get<Idx - 1>(labels);
 
             Values values;
             values[0] = size;
 
             sizes->insert(idx, values);
-
-            if (StreamStart)
-            {
-                accum[0] += 1;
-            }
-
             accum[Offset] += size;
         }
     };
@@ -106,40 +103,53 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::louds::CtrInsertName)
 
 
     struct InsertNodeFn {
-        BranchNodeEntry& delta_;
-        const LabelsTuple& labels_;
-
-        InsertNodeFn(BranchNodeEntry& delta, const LabelsTuple& labels):
-            delta_(delta),
-            labels_(labels)
-        {}
-
-        template <Int Idx, typename SeqTypes>
-        void stream(PkdFSSeq<SeqTypes>* seq, Int idx, Int symbol)
+        template <
+            Int Offset,
+            bool StreamStart,
+            Int Idx,
+            typename SeqTypes,
+            typename BranchNodeEntryItem
+        >
+        void stream(PkdFSSeq<SeqTypes>* obj, BranchNodeEntryItem& accum, Int idx, Int symbol)
         {
-            MEMORIA_V1_ASSERT_TRUE(seq != nullptr);
-
-            seq->insert(idx, symbol);
-
-            std::get<Idx>(delta_)[0]++;
-            std::get<Idx>(delta_)[symbol + 1]++;
+        	obj->insert(idx, symbol);
+        	accum[Offset + symbol]++;
         }
 
-        template <typename NTypes, typename... Labels>
-        void treeNode(LeafNode<NTypes>* node, Int node_idx, Int label_idx, Int symbol)
+        template <
+            Int Offset,
+            bool StreamStart,
+            Int Idx,
+            typename BranchNodeEntryItem
+        >
+        void stream(StreamSize* obj, BranchNodeEntryItem& accum, Int idx, Int symbol)
         {
-            node->layout(-1);
-            node->template processStream<IntList<0>>(*this, node_idx, symbol);
-
-            InsertLabelsFn fn(labels_);
-            node->template processStreamAcc<1>(fn, delta_, label_idx);
+        	obj->insert(idx, symbol);
+        	accum[Offset]++;
         }
 
-        template <typename NTypes, typename... Labels>
-        void treeNode(LeafNode<NTypes>* node, Int node_idx)
+        template <typename NTypes>
+        void treeNode(
+        		LeafNode<NTypes>* node,
+				BranchNodeEntry& delta,
+				const LabelsTuple& labels,
+				Int node_idx,
+				Int label_idx,
+				Int symbol
+		)
         {
-            node->layout(1);
-            node->template processStream<IntList<0>>(*this, node_idx, 0);
+            node->layout(-1ull);
+            node->template processStreamAcc<0>(*this, delta, node_idx, symbol);
+
+            InsertLabelsFn fn;
+            node->template processStreamAcc<1>(fn, delta, labels, label_idx);
+        }
+
+        template <typename NTypes>
+        void treeNode(LeafNode<NTypes>* node, BranchNodeEntry& delta, Int node_idx)
+        {
+            node->layout(-1ull);
+            node->template processStreamAcc<0>(*this, delta, node_idx, 0);
         }
     };
 
@@ -159,7 +169,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::louds::CtrInsertName)
         try {
             LeafDispatcher::dispatch(
                     leaf,
-                    InsertNodeFn(sums, labels),
+                    InsertNodeFn(),
+					sums,
+					labels,
                     node_idx,
                     label_idx,
                     1
@@ -189,7 +201,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::louds::CtrInsertName)
         mgr.add(leaf);
 
         try {
-            LeafDispatcher::dispatch(leaf, InsertNodeFn(sums, LabelsTuple()), node_idx);
+            LeafDispatcher::dispatch(leaf, InsertNodeFn(), sums, node_idx);
             return true;
         }
         catch (PackedOOMException& e)
@@ -234,7 +246,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::louds::CtrInsertName)
 
         if (self.insertLoudsNode(leaf, idx, label_idx, sums, labels))
         {
-            self.update_parent(leaf, sums);
+            auto max = self.max(leaf);
+
+        	self.update_parent(leaf, max);
         }
         else {
             self.split(iter);
@@ -243,7 +257,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::louds::CtrInsertName)
 
             bool result = self.insertLoudsNode(leaf, idx, label_idx, sums, labels);
             MEMORIA_V1_ASSERT_TRUE(result);
-            self.update_parent(leaf, sums);
+
+            auto max = self.max(leaf);
+            self.update_parent(leaf, max);
         }
     }
 
@@ -253,12 +269,12 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::louds::CtrInsertName)
         auto& leaf  = iter.leaf();
         Int& idx    = iter.idx();
 
-
         BranchNodeEntry sums;
 
         if (self.insertLoudsZero(leaf, idx, sums))
         {
-            self.update_parent(leaf, sums);
+        	auto max = self.max(leaf);
+            self.update_parent(leaf, max);
         }
         else
         {
@@ -267,7 +283,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::louds::CtrInsertName)
             bool result = self.insertLoudsZero(leaf, idx, sums);
 
             MEMORIA_V1_ASSERT_TRUE(result);
-            self.update_parent(leaf, sums);
+
+            auto max = self.max(leaf);
+            self.update_parent(leaf, max);
         }
     }
 

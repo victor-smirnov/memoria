@@ -28,7 +28,7 @@ namespace memoria {
 namespace v1 {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(v1::louds::CtrRemoveName)
-
+public:
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
 
@@ -37,7 +37,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::louds::CtrRemoveName)
 
     typedef typename Base::LeafDispatcher                                       LeafDispatcher;
 
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
+    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
@@ -50,15 +50,16 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::louds::CtrRemoveName)
 
 
     struct RemoveFromLeafFn {
-        BranchNodeEntry& delta_;
-        Position sizes_;
+        Int label_idx_ = -1;
 
-        Int label_idx_;
 
-        RemoveFromLeafFn(BranchNodeEntry& delta): delta_(delta) {}
+        void stream(StreamSize* obj, Int idx)
+        {
+        	obj->remove(idx, idx + 1);
+        }
 
-        template <Int Offset, bool StreamStart, Int Idx, typename SeqTypes, typename BranchNodeEntryItem>
-        void stream(PkdFSSeq<SeqTypes>* seq, BranchNodeEntryItem& accum, Int idx)
+        template <typename SeqTypes>
+        void stream(PkdFSSeq<SeqTypes>* seq, Int idx)
         {
             MEMORIA_V1_ASSERT_TRUE(seq != nullptr);
 
@@ -72,65 +73,36 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::louds::CtrRemoveName)
             }
 
             seq->remove(idx, idx + 1);
-
-            accum[0] -= 1;
-            accum[Offset + sym] -= 1;
-
-            sizes_[Idx] = -1;
         }
 
-        template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename BranchNodeEntryItem>
-        void stream(PackedFSEArray<StreamTypes>* labels, BranchNodeEntryItem& accum, Int idx)
+        template <typename StreamTypes>
+        void stream(PackedFSEArray<StreamTypes>* labels, Int idx)
         {
-            if (label_idx_ >= 0)
-            {
-                labels->remove(label_idx_, label_idx_ + 1);
-
-                sizes_[Idx] = -1;
-
-                if (StreamStart)
-                {
-                    accum[0] -= 1;
-                }
-            }
+            labels->remove(idx, idx + 1);
         }
 
-        template <Int Offset, bool StreamStart, Int Idx, typename StreamTypes, typename BranchNodeEntryItem>
-        void stream(PkdVQTree<StreamTypes>* sizes, BranchNodeEntryItem& accum, Int idx)
+        template <typename StreamTypes>
+        void stream(PkdVQTree<StreamTypes>* sizes, Int idx)
         {
-            if (label_idx_ >= 0)
-            {
-                auto size = sizes->value(0, label_idx_);
-
-                sizes->remove(label_idx_, label_idx_ + 1);
-
-                if (StreamStart)
-                {
-                    accum[0] -= 1;
-                }
-
-                accum[Offset] -= size;
-
-                sizes_[Idx] = -1;
-            }
+        	sizes->remove(idx, idx + 1);
         }
-
-
 
         template <typename NTypes>
         void treeNode(LeafNode<NTypes>* node, Int idx)
         {
-            node->template processStreamAcc<0>(*this, delta_, idx);
-            node->template processStreamAcc<1>(*this, delta_, idx);
+            node->template processSubstreams<IntList<0>>(*this, idx);
+
+            if (label_idx_ >= 0)
+            {
+            	node->template processSubstreams<IntList<1>>(*this, label_idx_);
+            }
         }
     };
 
-    Position removeFromLeaf(NodeBaseG& leaf, Int idx, BranchNodeEntry& indexes)
+    auto removeFromLeaf(NodeBaseG& leaf, Int idx)
     {
-        RemoveFromLeafFn fn(indexes);
+        RemoveFromLeafFn fn;
         LeafDispatcher::dispatch(leaf, fn, idx);
-
-        return fn.sizes_;
     }
 
     void remove(CtrSizeT idx)
@@ -138,7 +110,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::louds::CtrRemoveName)
         auto& self  = this->self();
         auto iter   = self.seek(idx);
 
-        self.remove(iter);
+        self.remove(*iter.get());
     }
 
     void remove(Iterator& iter)
@@ -147,11 +119,10 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::louds::CtrRemoveName)
         auto& leaf  = iter.leaf();
         Int& idx    = iter.idx();
 
-        BranchNodeEntry sums;
+        removeFromLeaf(leaf, idx);
 
-        removeFromLeaf(leaf, idx, sums);
-
-        self.update_parent(leaf, sums);
+        auto max = self.max(leaf);
+        self.update_parent(leaf, max);
 
         self.mergeLeafWithRightSibling(leaf);
     }

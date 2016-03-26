@@ -39,8 +39,8 @@
 //#include "vector/vector_test_suite.hpp"
 //#include "multimap/multimap_test_suite.hpp"
 
-#include "sequence/sequence_test_suite.hpp"
-//#include "labeled_tree/ltree_test_suite.hpp"
+//#include "sequence/sequence_test_suite.hpp"
+#include "labeled_tree/ltree_test_suite.hpp"
 //#include "vector_tree/vtree_test_suite.hpp"
 //#include "wt/wt_test_suite.hpp"
 
@@ -82,9 +82,6 @@ int main(int argc, const char** argv, const char** envp)
 
         runner.setSeed(seed);
 
-//        DCtrTF<Table<BigInt, Byte, PackedSizeType::FIXED>>::Type::initMetadata();
-//        DCtrTF<Table<BigInt, Byte, PackedSizeType::VARIABLE>>::Type::initMetadata();
-
         runner.setRunCount(cmd_line.getCount());
 //
 //        runner.registerTask(new BitmapTestSuite());
@@ -109,8 +106,8 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new MapTestSuite());
 //        runner.registerTask(new VectorTestSuite());
 //        runner.registerTask(new MultiMapTestSuite());
-        runner.registerTask(new SequenceTestSuite());
-//        runner.registerTask(new LabeledTreeTestSuite());
+//        runner.registerTask(new SequenceTestSuite());
+          runner.registerTask(new LabeledTreeTestSuite());
 //        runner.registerTask(new VTreeTestSuite());
 //        runner.registerTask(new WTTestSuite());
 

@@ -29,7 +29,7 @@ namespace v1 {
 
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(v1::louds::CtrUpdateName)
-
+public:
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
 
@@ -84,7 +84,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::louds::CtrUpdateName)
         void treeNode(Node* node, Int label_idx, T&& value)
         {
             node->layout(-1);
-            node->template processStreamAccP<IntList<1, 0, LabelIdx>>(*this, delta_, label_idx, std::forward<T>(value));
+            node->template processStreamAccP<IntList<1, 1, LabelIdx>>(*this, delta_, label_idx, std::forward<T>(value));
         }
     };
 
@@ -176,7 +176,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::louds::CtrUpdateName)
         void treeNode(Node* node, Int label_idx, T&& value)
         {
             node->layout(-1);
-            node->template processStreamAccP<IntList<1, 0, LabelIdx>>(*this, delta_, label_idx, std::forward<T>(value));
+            node->template processStreamAccP<IntList<1, 1, LabelIdx>>(*this, delta_, label_idx, std::forward<T>(value));
         }
     };
 
@@ -193,7 +193,8 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::louds::CtrUpdateName)
 
         if (self.updateNodeLabel(leaf, AddLabelValueFn<LabelIdx>(sums), label_idx, value))
         {
-            self.update_parent(leaf, sums);
+        	auto max = self.max(leaf);
+            self.update_parent(leaf, max);
         }
         else
         {
@@ -204,7 +205,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::louds::CtrUpdateName)
             auto result = self.updateNodeLabel(leaf, AddLabelValueFn<LabelIdx>(sums), label_idx, value);
 
             MEMORIA_V1_ASSERT_TRUE(result);
-            self.update_parent(leaf, sums);
+
+            auto max = self.max(leaf);
+            self.update_parent(leaf, max);
         }
     }
 

@@ -34,7 +34,7 @@ namespace memoria {
 namespace v1 {
 
 MEMORIA_V1_ITERATOR_PART_BEGIN(v1::louds::ItrApiName)
-
+public:
     typedef Ctr<typename Types::CtrTypes>                                       Container;
     typedef Ctr<typename Types::IterTypes>                                      Iterator;
 
@@ -369,7 +369,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::louds::ItrApiName)
     struct SumLabelFn {
         CtrSizeT sum_ = 0;
 
-        using LeafPath = IntList<1, 0, LabelIdx>;
+        using LeafPath = IntList<1, 1, LabelIdx>;
 
         template <Int Idx, typename Stream>
         void stream(const Stream* obj, Int block, Int idx)

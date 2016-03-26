@@ -23,7 +23,7 @@
 
 namespace memoria {
 namespace v1 {
-namespace louds     {
+namespace louds {
 
 class LoudsNode {
 protected:

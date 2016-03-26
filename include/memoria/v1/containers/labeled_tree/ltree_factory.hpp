@@ -34,6 +34,8 @@
 #include <memoria/v1/containers/labeled_tree/ltree_walkers.hpp>
 #include <memoria/v1/containers/labeled_tree/ltree_tools.hpp>
 
+#include <memoria/v1/prototypes/bt_ss/btss_factory.hpp>
+
 namespace memoria {
 namespace v1 {
 
@@ -42,43 +44,34 @@ namespace v1 {
 template <typename Profile, typename... LabelDescriptors>
 struct BTTypes<Profile, v1::LabeledTree<LabelDescriptors...>>: BTTypes<Profile, v1::BT> {
 
-    typedef BTTypes<Profile, v1::BT>                                       Base;
-
-    typedef UBigInt                                                             Value;
-
+    typedef BTTypes<Profile, v1::BT>                                       		Base;
 
     static constexpr Int BitsPerSymbol  = 1;
     static constexpr Int Symbols        = 2;
 
-    typedef TypeList<
-                BranchNodeTypes<BranchNode>,
-                LeafNodeTypes<LeafNode>
-    >                                                                           NodeTypesList;
+    using SymbolsSubstreamPath = IntList<0, 1>;
 
-    typedef TypeList<
-                TreeNodeType<LeafNode>,
-                TreeNodeType<BranchNode>
-    >                                                                           DefaultNodeTypesList;
-
-    using StreamDescriptors = MergeLists<
+    using StreamDescriptors = TL<
             StreamTF<
-                PkdFSSeq<typename PkdFSSeqTF<1>::Type>,
-                FSEBranchStructTF,
-                TL<TL<>>
+				TL<
+					StreamSize,
+					TL<PkdFSSeq<typename PkdFSSeqTF<BitsPerSymbol>::Type>>
+				>,
+                FSEBranchStructTF
             >,
             StreamTF<
-                TL<typename louds::StreamDescriptorsListHelper<LabelDescriptors...>::LeafType>,
+				TL<
+					StreamSize,
+					TL<typename louds::StreamDescriptorsListHelper<LabelDescriptors...>::LeafType>
+				>,
                 FSEBranchStructTF,
-                TL<typename louds::StreamDescriptorsListHelper<LabelDescriptors...>::IdxList>
+                TL<
+					TL<>,
+					TL<typename louds::StreamDescriptorsListHelper<LabelDescriptors...>::IdxList>
+				>
             >
     >;
 
-
-
-    using Metadata = BalancedTreeMetadata<
-            typename Base::ID,
-            ListSize<StreamDescriptors>::Value
-    >;
 
 
     using CommonContainerPartsList = MergeLists<

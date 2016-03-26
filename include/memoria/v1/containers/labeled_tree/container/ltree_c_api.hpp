@@ -32,7 +32,7 @@ using louds::LoudsNode;
 using louds::LoudsNodeRange;
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(v1::louds::CtrApiName)
-
+public:
     typedef typename Base::Iterator                                             Iterator;
 
     typedef typename Base::Types::CtrSizeT                                      CtrSizeT;

@@ -65,6 +65,8 @@ protected:
     using Base::storeAllocator;
     using Base::isReplayMode;
     using Base::getResourcePath;
+    using Base::getRandom;
+    using Base::getBIRandom;
 
 
     typedef LblTreeNode<EmptyType, UShort, BigInt>                              TreeNode;

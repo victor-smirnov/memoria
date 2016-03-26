@@ -28,7 +28,7 @@ namespace memoria {
 namespace v1 {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(v1::louds::CtrChecksName)
-
+public:
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
 
@@ -113,6 +113,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::louds::CtrChecksName)
         {
             checkLabelsSize<Idx>(labels);
         }
+
+        template <Int Idx, typename Stream>
+        void stream(const Stream*){}
 
         template <typename Node>
         void treeNode(const Node* node)
