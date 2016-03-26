@@ -27,7 +27,7 @@ namespace v1 {
 
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(v1::wt::CtrApiName)
-
+public:
     typedef typename Base::Tree                                                 Tree;
     typedef typename Base::Seq                                                  Seq;
 
@@ -40,7 +40,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::wt::CtrApiName)
         auto& self = this->self();
         auto& tree = self.tree();
 
-        auto iter = tree.seek(0);
+        auto iter = tree->seek(0);
 
         iter->insertNode(std::make_tuple(0, 0));
         iter->next();
@@ -50,7 +50,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::wt::CtrApiName)
     CtrSizeT size()
     {
         auto& self = this->self();
-        auto root = self.tree().seek(0);
+        auto root = self.tree()->seek(0);
 
         if (!root->isEof())
         {
@@ -66,7 +66,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::wt::CtrApiName)
         auto& self = this->self();
         auto& tree = self.tree();
 
-        auto root = tree.seek(0);
+        auto root = tree->seek(0);
 
         insert(*root.get(), idx, value, 3);
     }
@@ -76,7 +76,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::wt::CtrApiName)
         auto& self = this->self();
         auto& tree = self.tree();
 
-        auto root = tree.seek(0);
+        auto root = tree->seek(0);
 
         removeValue(idx, *root.get(), 3);
     }
@@ -90,7 +90,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::wt::CtrApiName)
         auto& self = this->self();
         auto& tree = self.tree();
 
-        auto root = tree.seek(0);
+        auto root = tree->seek(0);
 
         buildValue(idx, *root.get(), value, 3);
 
@@ -103,7 +103,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::wt::CtrApiName)
         auto& self = this->self();
         auto& tree = self.tree();
 
-        auto root = tree.seek(0);
+        auto root = tree->seek(0);
 
         return buildRank(*root.get(), idx, symbol, 3);
     }
@@ -114,7 +114,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::wt::CtrApiName)
         auto& self = this->self();
         auto& tree = self.tree();
 
-        auto root = tree.seek(0);
+        auto root = tree->seek(0);
 
         return select(*root.get(), rank, symbol, 3) - 1;
     }
@@ -131,10 +131,10 @@ private:
 
         BigInt seq_base = node.template sumLabel<1>();
 
-        seq.insert_symbol(seq_base + idx, label);
+        seq->insert_symbol(seq_base + idx, label);
         node.template addLabel<1>(1);
 
-        BigInt rank = seq.rank(seq_base, idx + 1, label);
+        BigInt rank = seq->rank(seq_base, idx + 1, label);
 
         if (level > 0)
         {
@@ -142,7 +142,7 @@ private:
 
             if (rank == 1)
             {
-                tree.newNodeAt(*child.get(), std::make_tuple(label, 0));
+                tree->newNodeAt(*child.get(), std::make_tuple(label, 0));
             }
 
             insert(*child.get(), rank - 1, value, level - 1);
@@ -156,8 +156,8 @@ private:
         auto& seq  = self.seq();
 
         CtrSizeT seq_base   = node.template sumLabel<1>();
-        UBigInt label       = seq.seek(seq_base + idx)->symbol();
-        CtrSizeT  rank      = seq.rank(seq_base, idx + 1, label);
+        UBigInt label       = seq->seek(seq_base + idx)->symbol();
+        CtrSizeT  rank      = seq->rank(seq_base, idx + 1, label);
 
         value |= label << (level * 8);
 
@@ -178,8 +178,8 @@ private:
         CtrSizeT node_pos   = node.pos();
 
         CtrSizeT seq_base   = node.template sumLabel<1>();
-        UBigInt label       = seq.seek(seq_base + idx)->symbol();
-        CtrSizeT  rank      = seq.rank(seq_base, idx + 1, label);
+        UBigInt label       = seq->seek(seq_base + idx)->symbol();
+        CtrSizeT  rank      = seq->rank(seq_base, idx + 1, label);
 
         if (level > 0)
         {
@@ -187,10 +187,10 @@ private:
             removeValue(rank - 1, *child.get(), level - 1);
         }
 
-        node = *tree.seek(node_pos).get();
+        node = *tree->seek(node_pos).get();
 
         seq_base = node.template sumLabel<1>();
-        seq.seek(seq_base + idx)->remove();
+        seq->seek(seq_base + idx)->remove();
         node.template addLabel<1>(-1);
 
         CtrSizeT seq_length = std::get<1>(node.labels());
@@ -199,7 +199,7 @@ private:
         {
             if (node.pos() > 0)
             {
-                tree.removeLeaf(node);
+                tree->removeLeaf(node);
             }
         }
     }
@@ -220,7 +220,7 @@ private:
 
             CtrSizeT seq_base = node.template sumLabel<1>();
 
-            BigInt pos = seq.select(seq_base, rnk, label)->pos() + 1;
+            BigInt pos = seq->select(seq_base, rnk, label)->pos() + 1;
 
             return pos - seq_base;
         }
@@ -239,7 +239,7 @@ private:
 
         CtrSizeT seq_base = node.template sumLabel<1>();
 
-        CtrSizeT rank = seq.rank(seq_base, idx + 1, label);
+        CtrSizeT rank = seq->rank(seq_base, idx + 1, label);
 
         if (level > 0)
         {

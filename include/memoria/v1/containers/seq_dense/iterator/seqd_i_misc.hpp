@@ -71,6 +71,21 @@ public:
         self.ctr().template update_stream_entry<0, IntList<1>>(self, std::make_tuple(symbol));
     }
 
+    struct InsertSymbolFn {
+
+    	Int symbol_;
+
+    	InsertSymbolFn(Int symbol): symbol_(symbol) {}
+
+    	auto get(StreamTag<0>, StreamTag<0>, Int block) const {
+    		return 1;
+    	}
+
+    	auto get(StreamTag<0>, StreamTag<1>, Int block) const {
+    		return symbol_;
+    	}
+    };
+
 
     void insert_symbol(Int symbol)
     {
@@ -81,7 +96,7 @@ public:
 
         ctr.insert_entry(
                 self,
-                InputTupleAdapter<0>::convert(0, symbol)
+				InsertSymbolFn(symbol)
         );
 
         self.skipFw(1);

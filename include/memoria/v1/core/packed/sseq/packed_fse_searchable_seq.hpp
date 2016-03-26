@@ -421,6 +421,12 @@ protected:
 
 public:
 
+    template <Int Offset, Int Size, typename AccessorFn, typename T2, template <typename, Int> class BranchNodeEntryItem>
+    void _insert_b(Int idx, BranchNodeEntryItem<T2, Size>& accum, AccessorFn&& values)
+    {
+        insert(idx, values(0));
+    }
+
 
 
     void insert(Int pos, Int symbol)

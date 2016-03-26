@@ -27,14 +27,11 @@ namespace v1 {
 
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(v1::wt::CtrCTreeName)
-
+public:
     typedef typename Base::Tree                                                 Tree;
     typedef typename Base::Seq                                                  Seq;
 
     typedef typename Tree::Iterator                                             TreeIterator;
-
-//  typedef std::function<Int (Int)>                                            LabelProviderFn;
-//  typedef std::function<void (SeqIterator& Int)>                              SeqHandlerFn;
 
     static const Int BitsPerlabel = 8;
 
@@ -90,11 +87,11 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::wt::CtrCTreeName)
         template <typename Node>
         void treeNode(const Node* node, Int start)
         {
-            node->template processStream<IntList<0>>(*this, start);
+            node->template processStream<IntList<0, 1>>(*this, start);
 
             if (end_ > start_)
             {
-                node->template processStream<IntList<1, 0, 0>>(*this);
+                node->template processStream<IntList<1, 1, 0>>(*this);
             }
         }
     };
@@ -106,7 +103,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::wt::CtrCTreeName)
         auto& self = this->self();
         auto& tree = self.tree();
 
-        auto iter = tree.firstChild(node.node());
+        auto iter = tree->firstChild(node.node());
 
         while (true)
         {

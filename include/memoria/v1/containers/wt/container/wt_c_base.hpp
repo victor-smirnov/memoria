@@ -30,10 +30,10 @@
 
 namespace memoria {
 namespace v1 {
-namespace wt            {
+namespace wt {
 
 MEMORIA_V1_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(WTCtrBase)
-
+public:
     typedef TypesType                                                           Types;
     typedef typename Types::Profile                                             Profile;
 
@@ -52,94 +52,97 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(WTCtrBase)
 
     typedef Sequence<8, true>                                                   SeqName;
 
-    typedef typename CtrTF<Profile, TreeName, TreeName>::Type                   Tree;
-    typedef typename CtrTF<Profile, SeqName, SeqName>::Type                     Seq;
+    using Tree 	= typename CtrTF<Profile, TreeName, TreeName>::Type;
+    using TreePtr = std::shared_ptr<Tree>;
+
+    using Seq 	= typename CtrTF<Profile, SeqName, SeqName>::Type;
+    using SeqPtr = std::shared_ptr<Seq>;
 
 private:
-    Tree   tree_;
-    Seq    seq_;
+    TreePtr   tree_;
+    SeqPtr    seq_;
 
 public:
 
     WTCtrBase(const CtrInitData& data):
         Base(data),
-        tree_(data.owner(Base::CONTAINER_HASH)),
-        seq_(data.owner(Base::CONTAINER_HASH))
+        tree_(std::make_shared<Tree>(data.owner(Base::CONTAINER_HASH))),
+        seq_(std::make_shared<Seq>(data.owner(Base::CONTAINER_HASH)))
     {}
 
-    WTCtrBase(const ThisType& other, Allocator* allocator):
-        Base(other, allocator),
-        tree_(other.tree_, allocator),
-        seq_(other.seq_, allocator)
-    {}
+//    WTCtrBase(const ThisType& other, Allocator* allocator):
+//        Base(other, allocator),
+//        tree_(other.tree_, allocator),
+//        seq_(other.seq_, allocator)
+//    {}
+//
+//    WTCtrBase(ThisType&& other, Allocator* allocator):
+//        Base(std::move(other), allocator),
+//        tree_(std::move(other.tree_), allocator),
+//        seq_(std::move(other.seq_), allocator)
+//    {}
+//
+//    //broken constructor
+//    WTCtrBase(const ThisType& other):
+//        Base(other),
+//        tree_(NoParamCtr()),
+//        seq_(NoParamCtr())
+//    {}
+//
+//    WTCtrBase(ThisType&& other):
+//        Base(std::move(other)),
+//        tree_(NoParamCtr()),
+//        seq_(NoParamCtr())
+//    {}
 
-    WTCtrBase(ThisType&& other, Allocator* allocator):
-        Base(std::move(other), allocator),
-        tree_(std::move(other.tree_), allocator),
-        seq_(std::move(other.seq_), allocator)
-    {}
-
-    //broken constructor
-    WTCtrBase(const ThisType& other):
-        Base(other),
-        tree_(NoParamCtr()),
-        seq_(NoParamCtr())
-    {}
-
-    WTCtrBase(ThisType&& other):
-        Base(std::move(other)),
-        tree_(NoParamCtr()),
-        seq_(NoParamCtr())
-    {}
-
-    Seq& seq() {
+    SeqPtr& seq() {
         return seq_;
     }
 
-    Tree& tree() {
+    TreePtr& tree() {
         return tree_;
     }
 
-    const Seq& seq() const {
+    const SeqPtr& seq() const {
         return seq_;
     }
 
-    const Tree& tree() const {
+    const TreePtr& tree() const {
         return tree_;
     }
 
-    void operator=(ThisType&& other)
-    {
-        Base::operator=(std::move(other));
-
-        tree_  = std::move(other.tree_);
-        seq_    = std::move(other.seq_);
-
-    }
-
-    void operator=(const ThisType& other)
-    {
-        Base::operator=(other);
-
-        tree_   = other.tree_;
-        seq_    = other.seq_;
-
-    }
+//    void operator=(ThisType&& other)
+//    {
+//        Base::operator=(std::move(other));
+//
+//        tree_  = std::move(other.tree_);
+//        seq_    = std::move(other.seq_);
+//
+//    }
+//
+//    void operator=(const ThisType& other)
+//    {
+//        Base::operator=(other);
+//
+//        tree_   = other.tree_;
+//        seq_    = other.seq_;
+//
+//    }
 
     void initCtr(Int command)
     {
         auto& self = this->self();
 
-        tree_.initCtr(&self.allocator(), self.master_name(), command);
-        seq_. initCtr(&tree_, UUID(), command);
+        tree_->initCtr(&self.allocator(), self.master_name(), command);
+        seq_->initCtr(tree_.get(), UUID(), command);
     }
 
     void initCtr(const ID& root_id, const UUID& name)
     {
         auto& self = this->self();
 
-        tree_.initCtr(&self.allocator(), root_id);
-        seq_.initCtr(&tree_, get_ctr_root(self.allocator(), root_id, name, 0));
+        tree_->initCtr(&self.allocator(), root_id);
+        seq_->initCtr(tree_.get(), get_ctr_root(self.allocator(), root_id, name, 0));
     }
 
     virtual bool hasRoot(const UUID& name)
@@ -158,10 +161,10 @@ public:
             Tree::getMetadata()->putAll(list);
             Seq::getMetadata()->putAll(list);
 
-            Base::setMetadata(new ContainerMetadata(
+            Base::setMetadata(std::make_shared<ContainerMetadata>(
                                     TypeNameFactory<typename Types::ContainerTypeName>::name(),
                                     list,
-                                    TypeHash<typename Types::ContainerTypeName>::Value,
+                                    static_cast<int>(TypeHash<typename Types::ContainerTypeName>::Value),
                                     Base::getContainerInterface()
                              )
             );
@@ -174,7 +177,7 @@ public:
 
     virtual ID getRootID(const UUID& name)
     {
-        return self().tree().getRootID(name);
+        return self().tree()->getRootID(name);
     }
 
 
@@ -182,13 +185,13 @@ public:
 
     virtual void setRoot(const UUID& name, const ID& root_id)
     {
-        self().tree().setRoot(name, root_id);
+        self().tree()->setRoot(name, root_id);
     }
 
     bool check(void* ptr = NULL)
     {
-        bool tree_errors   = tree_.check(ptr);
-        bool seq_errors     = seq_.check(ptr);
+        bool tree_errors   = tree_->check(ptr);
+        bool seq_errors     = seq_->check(ptr);
 
         return tree_errors || seq_errors;
     }
@@ -208,10 +211,14 @@ public:
                 self.name()
         );
 
-        tree_.walkTree(walker);
-        seq_.walkTree(walker);
+        tree_->walkTree(walker);
+        seq_->walkTree(walker);
 
         walker->endCompositeCtr();
+    }
+
+    void drop() {
+    	//FIXME: implement
     }
 
 private:

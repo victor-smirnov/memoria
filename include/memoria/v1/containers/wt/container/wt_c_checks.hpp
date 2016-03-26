@@ -23,7 +23,7 @@ namespace memoria {
 namespace v1 {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(v1::wt::CtrChecksName)
-
+public:
     typedef typename Base::Types                                                Types;
     typedef typename Base::Allocator                                            Allocator;
 
@@ -34,7 +34,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::wt::CtrChecksName)
 
     typedef typename Base::LeafDispatcher                                       LeafDispatcher;
 
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
+    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
@@ -89,7 +89,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::wt::CtrChecksName)
         template <typename Node>
         void treeNode(const Node* node)
         {
-            node->template processStream<IntList<1, 0, 1>>(*this);
+            node->template processStream<IntList<1, 1, 1>>(*this);
         }
     };
 
