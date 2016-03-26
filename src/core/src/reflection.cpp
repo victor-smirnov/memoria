@@ -39,7 +39,7 @@ ContainerMetadataRepository::ContainerMetadataRepository(StringRef name, const M
     {
         if (content[c]->getTypeCode() == Metadata::CONTAINER)
         {
-            ContainerMetadata *model = static_cast<ContainerMetadata*> (content_[c]);
+            ContainerMetadataPtr model = std::static_pointer_cast<ContainerMetadata> (content_[c]);
             process_model(model);
         }
         else {
@@ -48,7 +48,7 @@ ContainerMetadataRepository::ContainerMetadataRepository(StringRef name, const M
     }
 }
 
-void ContainerMetadataRepository::process_model(ContainerMetadata* model)
+void ContainerMetadataRepository::process_model(const ContainerMetadataPtr& model)
 {
     if (model_map_.find(model->ctr_hash()) == model_map_.end())
     {
@@ -58,15 +58,15 @@ void ContainerMetadataRepository::process_model(ContainerMetadata* model)
 
         for (Int d = 0; d < model->size(); d++)
         {
-            Metadata* item = model->getItem(d);
+            auto item = model->getItem(d);
             if (item->getTypeCode() == Metadata::PAGE)
             {
-                PageMetadata *page = static_cast<PageMetadata*> (item);
+                PageMetadataPtr page = std::static_pointer_cast<PageMetadata> (item);
                 page_map_[page->hash() ^ model->ctr_hash()] = page;
             }
             else if (item->getTypeCode() == Metadata::CONTAINER)
             {
-                process_model(static_cast<ContainerMetadata*> (item));
+                process_model(std::static_pointer_cast<ContainerMetadata> (item));
             }
             else {
                 //exception
@@ -76,7 +76,7 @@ void ContainerMetadataRepository::process_model(ContainerMetadata* model)
 }
 
 
-PageMetadata* ContainerMetadataRepository::getPageMetadata(Int model_hash, Int page_hash) const
+const PageMetadataPtr& ContainerMetadataRepository::getPageMetadata(Int model_hash, Int page_hash) const
 {
     PageMetadataMap::const_iterator i = page_map_.find(model_hash ^ page_hash);
     if (i != page_map_.end())
@@ -89,7 +89,7 @@ PageMetadata* ContainerMetadataRepository::getPageMetadata(Int model_hash, Int p
 }
 
 
-ContainerMetadata* ContainerMetadataRepository::getContainerMetadata(Int hashCode) const
+const ContainerMetadataPtr& ContainerMetadataRepository::getContainerMetadata(Int hashCode) const
 {
     auto i = model_map_.find(hashCode);
     if (i != model_map_.end())

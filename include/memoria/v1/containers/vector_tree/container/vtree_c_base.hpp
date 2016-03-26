@@ -31,112 +31,73 @@ namespace v1 {
 namespace vtree         {
 
 MEMORIA_V1_BT_MODEL_BASE_CLASS_NO_CTOR_BEGIN(VTreeCtrBase)
-
+public:
     typedef TypesType                                                           Types;
     typedef typename Types::Profile                                             Profile;
 
     typedef typename Base::ID                                                   ID;
     typedef typename Base::Allocator                                            Allocator;
 
-    typedef LabeledTree<
+    using TreeName = LabeledTree<
                 FLabel<BigInt>,
                 VLabel<BigInt,
                     Granularity::Byte,
                     Indexed::Yes
                 >
-    >                                                                           TreeName;
+    >;
 
-    typedef Vector<Short>                                                       VectorName;
+    using VectorName = Vector<Short>;
 
     typedef typename CtrTF<Profile, TreeName, TreeName>::Type                   Tree;
     typedef typename CtrTF<Profile, VectorName, VectorName>::Type               Vec;
-    typedef typename Vec::Value                                                 Value;
+    typedef typename Vec::Types::Value                                          Value;
+
+    using TreePtr 	= std::shared_ptr<Tree>;
+    using VecPtr 	= std::shared_ptr<Vec>;
 
 private:
-    Tree   tree_;
-    Vec    vector_;
+    TreePtr   tree_;
+    VecPtr    vector_;
 
 public:
 
     VTreeCtrBase(const CtrInitData& data):
         Base(data),
-        tree_(data.owner(Base::CONTAINER_HASH)),
-        vector_(data.owner(Base::CONTAINER_HASH))
+        tree_(std::make_shared<Tree>(data.owner(Base::CONTAINER_HASH))),
+        vector_(std::make_shared<Vec>(data.owner(Base::CONTAINER_HASH)))
     {}
 
-    VTreeCtrBase(const ThisType& other, Allocator* allocator):
-        Base(other, allocator),
-        tree_(other.tree_, allocator),
-        vector_(other.vector_, allocator)
-    {}
-
-    VTreeCtrBase(ThisType&& other, Allocator* allocator):
-        Base(std::move(other), allocator),
-        tree_(std::move(other.tree_), allocator),
-        vector_(std::move(other.vector_), allocator)
-    {}
-
-    //broken constructor
-    VTreeCtrBase(const ThisType& other):
-        Base(other),
-        tree_(NoParamCtr()),
-        vector_(NoParamCtr())
-    {}
-
-    VTreeCtrBase(ThisType&& other):
-        Base(std::move(other)),
-        tree_(NoParamCtr()),
-        vector_(NoParamCtr())
-    {}
-
-    Vec& vector() {
+    VecPtr& vector() {
         return vector_;
     }
 
-    Tree& tree() {
+    TreePtr& tree() {
         return tree_;
     }
 
-    const Vec& vector() const {
+    const VecPtr& vector() const {
         return vector_;
     }
 
-    const Tree& tree() const {
+    const TreePtr& tree() const {
         return tree_;
     }
 
-    void operator=(ThisType&& other)
-    {
-        Base::operator=(std::move(other));
-
-        tree_   = std::move(other.tree_);
-        vector_ = std::move(other.vector_);
-
-    }
-
-    void operator=(const ThisType& other)
-    {
-        Base::operator=(other);
-
-        tree_   = other.tree_;
-        vector_ = other.vector_;
-
-    }
 
     void initCtr(Int command)
     {
         auto& self = this->self();
 
-        tree_.initCtr(&self.allocator(), self.master_name(), command);
-        vector_. initCtr(&tree_, UUID(), command);
+        tree_->initCtr(&self.allocator(), self.master_name(), command);
+        vector_->initCtr(tree_.get(), UUID(), command);
     }
 
     void initCtr(const ID& root_id, UUID name)
     {
         auto& self = this->self();
 
-        tree_.initCtr(&self.allocator(), root_id);
-        vector_.initCtr(&tree_, get_ctr_root(self.allocator(), root_id, name, 0));
+        tree_->initCtr(&self.allocator(), root_id);
+        vector_->initCtr(tree_.get(), get_ctr_root(self.allocator(), root_id, name, 0));
     }
 
     virtual bool hasRoot(const UUID& name)
@@ -149,19 +110,19 @@ public:
     {
         Int hash = Tree::initMetadata() + Vec::initMetadata();
 
-        if (Base::getMetadata() == NULL)
+        if (!Base::getMetadata())
         {
             MetadataList list;
 
             Tree::getMetadata()->putAll(list);
             Vec::getMetadata()->putAll(list);
 
-            Base::setMetadata(new ContainerMetadata(
-                                    TypeNameFactory<typename Types::ContainerTypeName>::name(),
-                                    list,
-                                    TypeHash<typename Types::ContainerTypeName>::Value,
-                                    Base::getContainerInterface()
-                                  )
+            Base::setMetadata(std::make_shared<ContainerMetadata>(
+            		TypeNameFactory<typename Types::ContainerTypeName>::name(),
+					list,
+					static_cast<int>(TypeHash<typename Types::ContainerTypeName>::Value),
+					Base::getContainerInterface()
+            )
             );
 
             MetadataRepository<typename Types::Profile>::registerMetadata(Base::getMetadata());
@@ -172,7 +133,7 @@ public:
 
     virtual ID getRootID(const UUID& name)
     {
-        return self().tree().getRootID(name);
+        return self().tree()->getRootID(name);
     }
 
 
@@ -180,13 +141,13 @@ public:
 
     virtual void setRoot(const UUID& name, const ID& root_id)
     {
-        self().tree().setRoot(name, root_id);
+        self().tree()->setRoot(name, root_id);
     }
 
     bool check(void* ptr = NULL)
     {
-        bool tree_errors   = tree_.check(ptr);
-        bool seq_errors     = vector_.check(ptr);
+        bool tree_errors   = tree_->check(ptr);
+        bool seq_errors     = vector_->check(ptr);
 
         return tree_errors || seq_errors;
     }
@@ -200,10 +161,14 @@ public:
                 self.name()
         );
 
-        tree_.walkTree(walker);
-        vector_.walkTree(walker);
+        tree_->walkTree(walker);
+        vector_->walkTree(walker);
 
         walker->endCompositeCtr();
+    }
+
+    void drop() {
+    	// FIXME: implement
     }
 
 private:

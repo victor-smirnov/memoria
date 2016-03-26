@@ -74,8 +74,6 @@ public:
 
     VectorTreeTestBase(StringRef name): Base(name)
     {
-        Ctr::initMetadata();
-
         MEMORIA_ADD_TEST_PARAM(max_data_size_);
     }
 
@@ -235,7 +233,7 @@ private:
 
     void assertTreeNode(Ctr& ctr, const LoudsNode& node, const TreeNode& tree_node)
     {
-        auto labels = ctr.tree().labels(node);
+        auto labels = ctr.tree()->labels(node);
         AssertEQ(MA_SRC, labels, tree_node.labels());
 
         auto vtree_node = ctr.seek(node.node());

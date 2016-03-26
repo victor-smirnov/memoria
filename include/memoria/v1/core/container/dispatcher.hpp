@@ -93,7 +93,7 @@ public:
 
     static void buildMetadataList(MetadataList &list) {
         Head1::initMetadata();
-        Metadata* metadata = Head1::page_metadata();
+        auto metadata = Head1::page_metadata();
         list.push_back(metadata);
         ContainerDispatcher<Profile, Allocator, Tail1>::buildMetadataList(list);
     }

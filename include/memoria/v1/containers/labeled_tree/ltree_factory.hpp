@@ -51,7 +51,7 @@ struct BTTypes<Profile, v1::LabeledTree<LabelDescriptors...>>: BTTypes<Profile, 
 
     using SymbolsSubstreamPath = IntList<0, 1>;
 
-    using StreamDescriptors = TL<
+    using StreamDescriptors = FailIf<TL<
             StreamTF<
 				TL<
 					StreamSize,
@@ -62,7 +62,7 @@ struct BTTypes<Profile, v1::LabeledTree<LabelDescriptors...>>: BTTypes<Profile, 
             StreamTF<
 				TL<
 					StreamSize,
-					TL<typename louds::StreamDescriptorsListHelper<LabelDescriptors...>::LeafType>
+					typename louds::StreamDescriptorsListHelper<LabelDescriptors...>::LeafType
 				>,
                 FSEBranchStructTF,
                 TL<
@@ -70,7 +70,7 @@ struct BTTypes<Profile, v1::LabeledTree<LabelDescriptors...>>: BTTypes<Profile, 
 					TL<typename louds::StreamDescriptorsListHelper<LabelDescriptors...>::IdxList>
 				>
             >
-    >;
+    >, false>;
 
 
 
@@ -126,6 +126,19 @@ struct BTTypes<Profile, v1::LabeledTree<LabelDescriptors...>>: BTTypes<Profile, 
 
 template <typename Profile, typename... LabelDescriptors, typename T>
 class CtrTF<Profile, v1::LabeledTree<LabelDescriptors...>, T>: public CtrTF<Profile, v1::BT, T> {
+
+    using Base = CtrTF<Profile, v1::BT, T>;
+public:
+
+    struct Types: Base::Types
+    {
+    	using LeafStreamsStructList = FailIf<typename Base::Types::LeafStreamsStructList, false>;
+    };
+
+
+    typedef typename Types::CtrTypes                                            CtrTypes;
+    typedef Ctr<CtrTypes>                                                       Type;
+
 };
 
 

@@ -28,7 +28,7 @@ namespace v1 {
 
 
 MEMORIA_V1_ITERATOR_PART_BEGIN(v1::vtree::ItrApiName)
-
+public:
     typedef Ctr<VTreeCtrTypes<Types>>                           ContainerType;
 
     typedef typename ContainerType::Tree::Iterator              TreeIterator;
@@ -54,7 +54,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::vtree::ItrApiName)
         if (self.tree_iter().next_sibling())
         {
             auto data_base = self.tree_iter().template sumLabel<1>();
-            self.vector_iter() = *self.ctr().vector().seek(data_base).get();
+            self.vector_iter() = *self.ctr().vector()->seek(data_base).get();
 
             return true;
         }
@@ -70,7 +70,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::vtree::ItrApiName)
         if (self.tree_iter().prev_sibling())
         {
             auto data_base = self.tree_iter().template sumLabel<1>();
-            self.vector_iter() = *self.ctr().vector().seek(data_base).get();
+            self.vector_iter() = *self.ctr().vector()->seek(data_base).get();
 
             return true;
         }
@@ -99,13 +99,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::vtree::ItrApiName)
     {
         auto& self = this->self();
 
-        mvector::IteratorVectorInputProvider<
-            typename ContainerType::Vec,
-            typename std::vector<Value>::const_iterator
-        >
-        provider(self.ctr().vector(), values.begin(), values.size());
-
-        self.vector_iter().insert(provider);
+        self.vector_iter().bulk_insert(values.begin(), values.end());
 
         self.tree_iter().template addLabel<1>(values.size());
     }

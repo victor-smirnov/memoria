@@ -879,7 +879,7 @@ private:
 
         in.read(page_data.get(), 0, page_data_size);
 
-        PageMetadata* pageMetadata = metadata_->getPageMetadata(ctr_hash, page_hash);
+        auto pageMetadata = metadata_->getPageMetadata(ctr_hash, page_hash);
         pageMetadata->getPageOperations()->deserialize(page_data.get(), page_data_size, T2T<void*>(page));
 
         if (map.find(page->uuid()) == map.end())
@@ -1212,12 +1212,12 @@ private:
         UByte type = TYPE_DATA_PAGE;
         out << type;
 
-        PageMetadata* pageMetadata = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
+        auto pageMetadata = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
 
         auto page_size = page->page_size();
         unique_ptr<Byte, void (*)(void*)> buffer((Byte*)::malloc(page_size), ::free);
 
-        const IPageOperations* operations = pageMetadata->getPageOperations();
+        const auto operations = pageMetadata->getPageOperations();
 
         Int total_data_size = operations->serialize(page, buffer.get());
 
@@ -1236,7 +1236,7 @@ private:
     {
         TextPageDumper dumper(out);
 
-        PageMetadata* meta = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
+        auto meta = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
 
         meta->getPageOperations()->generateDataEvents(page, DataEventsParams(), &dumper);
     }

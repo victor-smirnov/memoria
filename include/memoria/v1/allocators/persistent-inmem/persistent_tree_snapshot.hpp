@@ -553,7 +553,7 @@ public:
         if (shared->state() == Shared::READ)
         {
             Page* page = shared->get();
-            PageMetadata* pageMetadata = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
+            auto pageMetadata = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
 
             Page* new_page = T2T<Page*>(this->malloc(new_size));
 
@@ -566,7 +566,7 @@ public:
         else if (shared->state() == Shared::UPDATE)
         {
             Page* page = shared->get();
-            PageMetadata* pageMetadata = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
+            auto pageMetadata = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
 
             Page* new_page  = T2T<Page*>(realloc(page, new_size));
 
@@ -687,7 +687,7 @@ public:
 
             PageG page = this->getPage(iter->value(), ctr_name);
 
-            ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(page->ctr_type_hash());
+            auto ctr_meta = metadata_->getContainerMetadata(page->ctr_type_hash());
 
             result = ctr_meta->getCtrInterface()->check(page->id(), ctr_name, this) || result;
 
@@ -713,7 +713,7 @@ public:
             Int master_hash = page->master_ctr_type_hash();
             Int ctr_hash    = page->ctr_type_hash();
 
-            ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(master_hash != 0 ? master_hash : ctr_hash);
+            auto ctr_meta = metadata_->getContainerMetadata(master_hash != 0 ? master_hash : ctr_hash);
 
             ctr_meta->getCtrInterface()->walk(page->id(), ctr_name, this, walker);
 

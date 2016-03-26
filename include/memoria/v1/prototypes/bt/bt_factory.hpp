@@ -381,7 +381,7 @@ public:
 
         using BranchStreamsStructList   = typename MyType::BranchStreamsStructList;
 
-        using IteratorBranchNodeEntry       = typename MyType::IteratorBranchNodeEntry;
+        using IteratorBranchNodeEntry   = typename MyType::IteratorBranchNodeEntry;
         using LeafRangeOffsetList       = typename MyType::LeafRangeOffsetList;
         using LeafRangeList             = typename MyType::LeafRangeList;
 

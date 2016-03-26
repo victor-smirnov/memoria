@@ -116,7 +116,7 @@ public:
     using Iterator      = Iter<typename Types::IterTypes>;
     using IteratorPtr   = std::shared_ptr<Iterator>;
     
-    static const Int CONTAINER_HASH = TypeHash<Name>::Value;
+    static constexpr Int CONTAINER_HASH = TypeHash<Name>::Value;
 
     template <typename> friend class BTIteratorBase;
 
@@ -130,7 +130,7 @@ public:
 
 
 protected:
-    static ContainerMetadata* reflection_;
+    static ContainerMetadataPtr reflection_;
 
     ID root_;
 
@@ -176,21 +176,23 @@ public:
         return CONTAINER_HASH;
     }
 
-    static ContainerMetadata* getMetadata()
+    static const ContainerMetadataPtr& getMetadata()
     {
         return reflection_;
     }
     
     static void destroyMetadata()
     {
-        if (reflection_ != nullptr)
+        if (reflection_)
         {
-            delete reflection_->getCtrInterface();
+//            delete reflection_->getCtrInterface();
 
             MetadataRepository<typename Types::Profile>::unregisterMetadata(reflection_);
 
-            delete reflection_;
-            reflection_ = nullptr;
+            reflection_.reset();
+
+//            delete reflection_;
+//            reflection_ = nullptr;
         }
     }
 
@@ -247,22 +249,22 @@ public:
     };
 
 
-    static ContainerInterface* getContainerInterface()
+    static ContainerInterfacePtr getContainerInterface()
     {
-        return new CtrInterfaceImpl();
+        return std::make_shared<CtrInterfaceImpl>();
     }
 
     static Int initMetadata(Int salt = 0)
     {
-        if (reflection_ == nullptr)
+    	if (!reflection_)
         {
             MetadataList list;
 
             Types::Pages::NodeDispatcher::buildMetadataList(list);
 
-            reflection_ = new ContainerMetadata(TypeNameFactory<Name>::name(),
+            reflection_ = std::make_shared<ContainerMetadata>(TypeNameFactory<Name>::name(),
                                                 list,
-                                                CONTAINER_HASH,
+												static_cast<int>(CONTAINER_HASH),
                                                 MyType::getContainerInterface());
 
             MetadataRepository<typename Types::Profile>::registerMetadata(reflection_);
@@ -316,7 +318,7 @@ protected:
      * \brief Set container reflection metadata.
      */
 
-    static void setMetadata(ContainerMetadata* metadata)
+    static void setMetadata(ContainerMetadataPtr metadata)
     {
         reflection_ = metadata;
     }
@@ -337,7 +339,7 @@ private:
 };
 
 template <typename TypesType>
-ContainerMetadata* CtrBase<TypesType>::reflection_ = NULL;
+ContainerMetadataPtr CtrBase<TypesType>::reflection_;
 
 
 

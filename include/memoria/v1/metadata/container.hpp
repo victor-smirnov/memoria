@@ -92,10 +92,12 @@ struct ContainerInterface {
     virtual ~ContainerInterface() {}
 };
 
+using ContainerInterfacePtr = std::shared_ptr<ContainerInterface>;
+
 struct ContainerMetadata: public MetadataGroup {
 public:
 
-    ContainerMetadata(StringRef name, const MetadataList &content, Int ctr_hash, ContainerInterface* container_interface):
+    ContainerMetadata(StringRef name, const MetadataList &content, Int ctr_hash, ContainerInterfacePtr container_interface):
         MetadataGroup(name, content),
         container_interface_(container_interface),
         ctr_hash_(ctr_hash)
@@ -105,7 +107,7 @@ public:
         {
             if (content[c]->getTypeCode() == Metadata::PAGE)
             {
-                PageMetadata *page = static_cast<PageMetadata*> (content[c]);
+                PageMetadataPtr page = static_pointer_cast<PageMetadata> (content[c]);
                 page_map_[page->hash() ^ ctr_hash] = page;
             }
             else if (content[c]->getTypeCode() == Metadata::CONTAINER) {
@@ -118,15 +120,13 @@ public:
     }
 
     virtual ~ContainerMetadata() throw ()
-    {
-        delete container_interface_;
-    }
+    {}
 
     virtual Int ctr_hash() const {
         return ctr_hash_;
     }
 
-    virtual PageMetadata* getPageMetadata(Int model_hash, Int page_hash) const
+    virtual const PageMetadataPtr& getPageMetadata(Int model_hash, Int page_hash) const
     {
         PageMetadataMap::const_iterator i = page_map_.find(model_hash ^ page_hash);
         if (i != page_map_.end())
@@ -138,7 +138,7 @@ public:
         }
     }
 
-    virtual ContainerInterface* getCtrInterface() const
+    virtual const ContainerInterfacePtr& getCtrInterface() const
     {
         return container_interface_;
     }
@@ -146,7 +146,7 @@ public:
 private:
 
     PageMetadataMap         page_map_;
-    ContainerInterface*     container_interface_;
+    ContainerInterfacePtr   container_interface_;
 
     Int                     ctr_hash_;
 };
@@ -161,27 +161,22 @@ public:
 
     virtual ~ContainerMetadataRepository() throw ()
     {
-        //FIXME need to rewrite ownership for metadata objects
-        for (auto entry: model_map_)
-        {
-            delete entry.second;
-        }
     }
 
     virtual Int hash() const {
         return hash_;
     }
 
-    PageMetadata* getPageMetadata(Int model_hash, Int page_hash) const;
-    ContainerMetadata* getContainerMetadata(Int model_hash) const;
+    const PageMetadataPtr& getPageMetadata(Int model_hash, Int page_hash) const;
+    const ContainerMetadataPtr& getContainerMetadata(Int model_hash) const;
 
 
-    virtual void registerMetadata(ContainerMetadata* metadata)
+    virtual void registerMetadata(const ContainerMetadataPtr& metadata)
     {
         process_model(metadata);
     }
 
-    virtual void unregisterMetadata(ContainerMetadata* metadata) {}
+    virtual void unregisterMetadata(const ContainerMetadataPtr& metadata) {}
 
     void dumpMetadata(std::ostream& out);
 
@@ -190,7 +185,7 @@ private:
     PageMetadataMap         page_map_;
     ContainerMetadataMap    model_map_;
 
-    void process_model(ContainerMetadata* model);
+    void process_model(const ContainerMetadataPtr& model);
 };
 
 
@@ -370,9 +365,9 @@ private:
     {
         std::ofstream pagetxt(file.c_str());
 
-        PageMetadata* meta = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
+        auto meta = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
 
-        dumpPageData(meta, page, pagetxt);
+        dumpPageData(meta.get(), page, pagetxt);
     }
 
     void dumpDescription(StringRef type, StringRef content)

@@ -37,23 +37,15 @@ public:
     {}
 
     virtual ~MetadataGroup() throw ()
-    {
-        for (UInt c = 0; c < content_.size(); c++)
-        {
-            delete content_[c];
-        }
-    }
-
+    {}
 
     virtual Int size() const {
         return content_.size();
     }
 
-    virtual Metadata* getItem(Int idx) const {
+    virtual const MetadataPtr& getItem(Int idx) const {
         return content_[idx];
     }
-
-
 
     virtual void putAll(MetadataList& target) const
     {

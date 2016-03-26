@@ -28,21 +28,28 @@
 
 #include <vector>
 #include <unordered_map>
+#include <memory>
 #include <string>
 
 namespace memoria {
 namespace v1 {
 
 struct Metadata;
+using MetadataPtr 			= std::shared_ptr<Metadata>;
+
 struct PageMetadata;
+using PageMetadataPtr 		= std::shared_ptr<PageMetadata>;
+
 struct ContainerMetadata;
+using ContainerMetadataPtr 	= std::shared_ptr<ContainerMetadata>;
+
 struct ContainerCollection;
 struct Container;
 
-typedef std::vector<Metadata*>                          MetadataList;
-typedef std::unordered_map<Int, PageMetadata*>          PageMetadataMap;
-typedef std::unordered_map<Int, ContainerMetadata*>     ContainerMetadataMap;
-
+// FIXME change map key to UInt
+using MetadataList 			= std::vector<MetadataPtr>;
+using PageMetadataMap 		= std::unordered_map<Int, PageMetadataPtr>;
+using ContainerMetadataMap 	= std::unordered_map<Int, ContainerMetadataPtr>;
 
 struct Metadata {
 

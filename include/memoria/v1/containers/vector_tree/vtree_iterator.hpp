@@ -47,7 +47,7 @@ class Iter<VTreeIterTypes<Types> >: public IterStart<VTreeIterTypes<Types> >
 public:
 
     Iter(const CtrPtr& ptr): Base(ptr),
-        tree_iter_(model.tree()), vec_iter_(model.seq()), exists_(false) {}
+        tree_iter_(ptr->tree()), vec_iter_(ptr->seq()), exists_(false) {}
 
     Iter(const MyType& other): Base(other),
         tree_iter_(other.tree_iter_), vec_iter_(other.vec_iter_), exists_(other.exists_) {}
@@ -56,10 +56,10 @@ public:
         tree_iter_(tree_iter), vec_iter_(seq_iter), exists_(exists) {}
 
     Iter(const CtrPtr& ptr, const TreeIterator& tree_iter, bool exists = false): Base(ptr),
-        tree_iter_(tree_iter), vec_iter_(model.seq()), exists_(exists) {}
+        tree_iter_(tree_iter), vec_iter_(ptr->seq()), exists_(exists) {}
 
-    Iter(const CtrPtr& ptr, const VectorIterator& seq_iter, bool exists = false): Base(Ptr),
-        tree_iter_(model.tree()), vec_iter_(seq_iter), exists_(exists) {}
+    Iter(const CtrPtr& ptr, const VectorIterator& seq_iter, bool exists = false): Base(ptr),
+        tree_iter_(ptr->tree()), vec_iter_(seq_iter), exists_(exists) {}
 
     //We have no move constructors for iterator
 

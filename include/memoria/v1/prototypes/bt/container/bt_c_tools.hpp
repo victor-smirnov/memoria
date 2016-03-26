@@ -102,8 +102,10 @@ public:
         if (page)
         {
             PageWrapper<const Page> pw(page);
-            PageMetadata* meta = self().getMetadata()->getPageMetadata(pw.getContainerHash(), pw.getPageTypeHash());
-            v1::dumpPage(meta, &pw, out);
+            auto meta = self().getMetadata()->getPageMetadata(pw.getContainerHash(), pw.getPageTypeHash());
+
+            v1::dumpPage(meta.get(), &pw, out);
+
             out<<std::endl;
             out<<std::endl;
         }

@@ -1605,7 +1605,7 @@ public:
     friend class NodePageAdaptor;
 
 private:
-    static PageMetadata *page_metadata_;
+    static PageMetadataPtr page_metadata_;
 
 public:
     NodePageAdaptor() = default;
@@ -1614,7 +1614,7 @@ public:
         return PAGE_HASH;
     }
 
-    static PageMetadata *page_metadata() {
+    static const PageMetadataPtr& page_metadata() {
         return page_metadata_;
     }
 
@@ -1696,13 +1696,13 @@ public:
     {
         Base::InitType();
 
-        if (page_metadata_ == NULL)
+        if (!page_metadata_)
         {
             Int attrs = 0;
 
             PageOperations* ops = new PageOperations();
 
-            page_metadata_ = new PageMetadata("BTREE_PAGE", attrs, hash(), ops);
+            page_metadata_ = std::make_shared<PageMetadata>("BTREE_PAGE", attrs, hash(), ops);
         }
         else {}
 
@@ -1715,7 +1715,7 @@ template <
     template <typename> class TreeNode,
     typename Types
 >
-PageMetadata* NodePageAdaptor<TreeNode, Types>::page_metadata_ = NULL;
+PageMetadataPtr NodePageAdaptor<TreeNode, Types>::page_metadata_;
 
 }
 

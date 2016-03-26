@@ -127,6 +127,8 @@ public:
             check(MA_SRC);
 
             checkTree(*tree.get(), root);
+
+            snp->commit();
         }
     }
 };

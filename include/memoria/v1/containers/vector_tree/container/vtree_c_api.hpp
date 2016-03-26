@@ -30,7 +30,7 @@ namespace v1 {
 using louds::LoudsNode;
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(v1::vtree::CtrApiName)
-
+public:
     typedef typename Base::Tree                                                 Tree;
     typedef typename Base::Vec                                                  Vec;
 
@@ -43,39 +43,39 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::vtree::CtrApiName)
 
 
     CtrSizeT nodes() {
-        return self().tree().nodes();
+        return self().tree()->nodes();
     }
 
     CtrSizeT bitmap_size() {
-        return self().tree().size();
+        return self().tree()->size();
     }
 
     void prepare()
     {
         auto& self = this->self();
-        auto iter = self.tree().seek(0);
-        self.tree().insertZero(*iter.get());
+        auto iter = self.tree()->seek(0);
+        self.tree()->insertZero(*iter.get());
     }
 
     auto root_node()
     {
         auto& self = this->self();
 
-        auto tree_iter  = self.tree().seek(0);
-        auto vec_iter   = self.vector().seek(0);
+        auto tree_iter  = self.tree()->seek(0);
+        auto vec_iter   = self.vector()->seek(0);
 
-        return self.make_iterator(self, *tree_iter.get(), *vec_iter.get());
+        return self.make_iterator(*tree_iter.get(), *vec_iter.get());
     }
 
     auto seek(CtrSizeT node_idx)
     {
         auto& self = this->self();
 
-        auto tree_iter  = self.tree().seek(node_idx);
+        auto tree_iter  = self.tree()->seek(node_idx);
         auto data_base  = tree_iter->template sumLabel<1>();
-        auto vec_iter   = self.vector().seek(data_base);
+        auto vec_iter   = self.vector()->seek(data_base);
 
-        return self.make_iterator(self, *tree_iter.get(), *vec_iter.get());
+        return self.make_iterator(*tree_iter.get(), *vec_iter.get());
     }
 
 
@@ -83,7 +83,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::vtree::CtrApiName)
     {
         auto node_pos = pos.tree_iter().node().node();
 
-        auto child = self().tree().newNodeAt(pos.tree_iter().node(), std::make_tuple(node_type, 0));
+        auto child = self().tree()->newNodeAt(pos.tree_iter().node(), std::make_tuple(node_type, 0));
 
         auto pos1 = *self().seek(node_pos).get();
 
@@ -104,11 +104,11 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::vtree::CtrApiName)
     {
         auto& self = this->self();
 
-        auto tree_iter  = self.tree().firstChild(node);
+        auto tree_iter  = self.tree()->firstChild(node);
         auto data_base  = tree_iter->template sumLabel<1>();
-        auto vec_iter   = self.vector().seek(data_base);
+        auto vec_iter   = self.vector()->seek(data_base);
 
-        return self.make_iterator(self, *tree_iter.get(), *vec_iter.get());
+        return self.make_iterator(*tree_iter.get(), *vec_iter.get());
     }
 
 
@@ -116,44 +116,44 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::vtree::CtrApiName)
     {
         auto& self = this->self();
 
-        auto tree_iter  = self.tree().lastChild(node);
+        auto tree_iter  = self.tree()->lastChild(node);
         auto data_base  = tree_iter->template sumLabel<1>();
-        auto vec_iter   = self.vector().seek(data_base);
+        auto vec_iter   = self.vector()->seek(data_base);
 
-        return self.make_iterator(self, *tree_iter.get(), *vec_iter.get());
+        return self.make_iterator(*tree_iter.get(), *vec_iter.get());
     }
 
     auto child(const LoudsNode& node, CtrSizeT child_num)
     {
         auto& self = this->self();
 
-        auto tree_iter  = self.tree().child(node, child_num);
+        auto tree_iter  = self.tree()->child(node, child_num);
         auto data_base  = tree_iter->template sumLabel<1>();
-        auto vec_iter   = self.vector().seek(data_base);
+        auto vec_iter   = self.vector()->seek(data_base);
 
-        return self.make_iterator(self, *tree_iter.get(), *vec_iter.get());
+        return self.make_iterator(*tree_iter.get(), *vec_iter.get());
     }
 
     auto parent(const LoudsNode& node)
     {
         auto& self = this->self();
 
-        auto tree_iter  = self.tree().parent(node);
+        auto tree_iter  = self.tree()->parent(node);
         auto data_base  = tree_iter->template sumLabel<1>();
-        auto vec_iter   = self.vector().seek(data_base);
+        auto vec_iter   = self.vector()->seek(data_base);
 
-        return self.make_iterator(self, *tree_iter.get(), *vec_iter.get());
+        return self.make_iterator(*tree_iter.get(), *vec_iter.get());
     }
 
     auto children(const LoudsNode& node)
     {
         auto& self = this->self();
 
-        auto tree_iter  = self.tree().preFirstChild(node);
+        auto tree_iter  = self.tree()->preFirstChild(node);
         auto data_base  = tree_iter->template sumLabel<1>();
-        auto vec_iter   = self.vector().seek(data_base);
+        auto vec_iter   = self.vector()->seek(data_base);
 
-        return self.make_iterator(self, *tree_iter.get(), *vec_iter.get());
+        return self.make_iterator(*tree_iter.get(), *vec_iter.get());
     }
 
     void removeLeaf(const LoudsNode& node)
@@ -165,10 +165,10 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::vtree::CtrApiName)
         auto data_base = iter->lobBase();
         auto data_size = iter->lobSize();
 
-        auto vec_iter = self.vector().seek(data_base);
+        auto vec_iter = self.vector()->seek(data_base);
         vec_iter->remove(data_size);
 
-        self.tree().removeLeaf(iter->tree_iter());
+        self.tree()->removeLeaf(iter->tree_iter());
     }
 
 MEMORIA_V1_CONTAINER_PART_END

@@ -128,16 +128,9 @@ public:
 
         auto length = pos + size <= ctr_size ? size : ctr_size - pos;
 
-        std::vector<Value> data(length);
+        std::vector<Value> data;
 
-        auto iter = self;
-
-        auto begin = data.begin();
-
-        self.for_each(length, [&](const auto& entry) {
-            *begin = entry;
-            begin++;
-        });
+        self.read(std::back_inserter(data), length);
 
         return data;
     }
@@ -155,7 +148,7 @@ public:
     {
         auto& self = this->self();
 
-        return self.ctr().template read_substream<IntList<0, 0, 1>>(self, 0, length, std::forward<Fn>(fn));
+        return self.ctr().template read_substream<IntList<0, 1>>(self, 0, length, std::forward<Fn>(fn));
     }
 
 

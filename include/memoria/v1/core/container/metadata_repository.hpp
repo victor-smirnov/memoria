@@ -40,12 +40,12 @@ public:
         return metadata_;
     }
 
-    static void registerMetadata(ContainerMetadata* ctr_metadata)
+    static void registerMetadata(const ContainerMetadataPtr& ctr_metadata)
     {
         metadata_->registerMetadata(ctr_metadata);
     }
 
-    static void unregisterMetadata(ContainerMetadata* ctr_metadata)
+    static void unregisterMetadata(const ContainerMetadataPtr& ctr_metadata)
     {
         metadata_->unregisterMetadata(ctr_metadata);
     }

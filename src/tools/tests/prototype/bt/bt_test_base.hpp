@@ -49,7 +49,8 @@ protected:
     using Ctr               = typename CtrTF<Profile, ContainerTypeName>::Type;
 
     using IteratorPtr       = typename Ctr::IteratorPtr;
-    using CtrSizesT         = typename Ctr::Types::CtrSizesT;
+    using Iterator       	= typename Ctr::Iterator;
+//    using CtrSizesT         = typename Ctr::Types::CtrSizesT;
 
 
     using Allocator     = AllocatorType;
@@ -61,7 +62,7 @@ protected:
 
     String dump_name_;
 
-    static constexpr Int Streams = Ctr::Types::Streams;
+//    static constexpr Int Streams = Ctr::Types::Streams;
 
 public:
 
