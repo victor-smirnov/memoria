@@ -47,14 +47,39 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::RemoveToolsName)
 
     typedef std::function<void (const Position&)>                               MergeFn;
 
+    using Base::CONTAINER_HASH;
+
+
 public:
     void drop()
     {
         auto& self = this->self();
 
-        if (self.isActive())
+        if (self.allocator().isActive())
         {
-            NodeBaseG root = self.getRoot();
+        	auto meta = self.getRootMetadata();
+
+        	for (Int c = 0; c < meta.ROOTS; c++)
+        	{
+        		const auto& root = meta.roots(UUID(0, c));
+        		if (!root.is_null())
+        		{
+        			auto root_page  	= self.allocator().getPage(root, UUID());
+        			auto ctr_meta_rep   = MetadataRepository<typename Types::Profile>::getMetadata();
+
+        			Int ctr_hash    	= root_page->ctr_type_hash();
+
+        			auto ctr_meta 		= ctr_meta_rep->getContainerMetadata(ctr_hash);
+
+        			auto ctr_interface 	= ctr_meta->getCtrInterface();
+
+        			cout << "Ctr Name: " << ctr_interface->ctr_name() <<" main: " << MyType::getMetadata()->getCtrInterface()->ctr_name() << endl;
+
+        			ctr_interface->drop(root, UUID(), this);
+        		}
+        	}
+
+        	NodeBaseG root = self.getRoot();
             self.removeRootNode(root);
             self.set_root(ID());
         }

@@ -14,7 +14,7 @@
 # limitations under the License.
 
 if (NOT DEFINED MEMORIA_EXAMPLES)
-    set(MEMORIA_EXAMPLES map)
+    set(MEMORIA_EXAMPLES map wt)
 endif()
 
 FOREACH(MEMORIA_TARGET ${MEMORIA_EXAMPLES})

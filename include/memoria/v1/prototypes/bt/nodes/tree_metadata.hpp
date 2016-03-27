@@ -33,8 +33,10 @@ class BalancedTreeMetadata
 {
     static const UInt VERSION = 1;
 
+public:
     static const Int ROOTS = 2;
 
+private:
     UUID  model_name_;
 
     Int   branching_factor_;

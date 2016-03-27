@@ -158,7 +158,7 @@ public:
 
         walker->beginCompositeCtr(
                 TypeNameFactory<typename Types::ContainerTypeName>::name().c_str(),
-                self.name()
+                self.master_name()
         );
 
         tree_->walkTree(walker);
@@ -168,7 +168,7 @@ public:
     }
 
     void drop() {
-    	// FIXME: implement
+    	tree_->drop();
     }
 
 private:

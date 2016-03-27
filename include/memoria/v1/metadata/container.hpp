@@ -72,6 +72,11 @@ struct ContainerWalker {
 
 
 struct ContainerInterface {
+
+	// FIXME: remove name from parameters, it's already in Ctr's page root metadata
+
+	virtual String ctr_name() = 0;
+
     virtual bool check(const UUID& root_id, const UUID& name, void* allocator) const = 0;
     virtual void walk(
             const UUID& root_id,
@@ -256,7 +261,7 @@ public:
     {
         stringstream str;
 
-        str<<name;
+        str << shorten(descr) <<": " << name;
 
         pushFolder(str.str().c_str());
 
@@ -436,7 +441,7 @@ private:
 template <typename Allocator>
 void FSDumpAllocator(const std::shared_ptr<Allocator>& allocator, StringRef path)
 {
-    typedef FSDumpContainerWalker<typename Allocator::Page> Walker;
+    using Walker = FSDumpContainerWalker<typename Allocator::Page>;
 
     Walker walker(allocator->getMetadata(), path);
     allocator->walkContainers(&walker);

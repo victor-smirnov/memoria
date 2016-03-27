@@ -58,6 +58,10 @@ public:
     using Seq 	= typename CtrTF<Profile, SeqName, SeqName>::Type;
     using SeqPtr = std::shared_ptr<Seq>;
 
+    using NodeBaseG = typename Tree::Types::NodeBaseG;
+    using Metadata  = typename Tree::Types::Metadata;
+
+
 private:
     TreePtr   tree_;
     SeqPtr    seq_;
@@ -70,30 +74,6 @@ public:
         seq_(std::make_shared<Seq>(data.owner(Base::CONTAINER_HASH)))
     {}
 
-//    WTCtrBase(const ThisType& other, Allocator* allocator):
-//        Base(other, allocator),
-//        tree_(other.tree_, allocator),
-//        seq_(other.seq_, allocator)
-//    {}
-//
-//    WTCtrBase(ThisType&& other, Allocator* allocator):
-//        Base(std::move(other), allocator),
-//        tree_(std::move(other.tree_), allocator),
-//        seq_(std::move(other.seq_), allocator)
-//    {}
-//
-//    //broken constructor
-//    WTCtrBase(const ThisType& other):
-//        Base(other),
-//        tree_(NoParamCtr()),
-//        seq_(NoParamCtr())
-//    {}
-//
-//    WTCtrBase(ThisType&& other):
-//        Base(std::move(other)),
-//        tree_(NoParamCtr()),
-//        seq_(NoParamCtr())
-//    {}
 
     SeqPtr& seq() {
         return seq_;
@@ -110,24 +90,6 @@ public:
     const TreePtr& tree() const {
         return tree_;
     }
-
-//    void operator=(ThisType&& other)
-//    {
-//        Base::operator=(std::move(other));
-//
-//        tree_  = std::move(other.tree_);
-//        seq_    = std::move(other.seq_);
-//
-//    }
-//
-//    void operator=(const ThisType& other)
-//    {
-//        Base::operator=(other);
-//
-//        tree_   = other.tree_;
-//        seq_    = other.seq_;
-//
-//    }
 
     void initCtr(Int command)
     {
@@ -160,6 +122,8 @@ public:
 
             Tree::getMetadata()->putAll(list);
             Seq::getMetadata()->putAll(list);
+
+            cout << "Init Metadata for: " << TypeNameFactory<typename Types::ContainerTypeName>::name() << endl;
 
             Base::setMetadata(std::make_shared<ContainerMetadata>(
                                     TypeNameFactory<typename Types::ContainerTypeName>::name(),
@@ -208,7 +172,7 @@ public:
 
         walker->beginCompositeCtr(
                 TypeNameFactory<typename Types::ContainerTypeName>::name().c_str(),
-                self.name()
+                self.master_name()
         );
 
         tree_->walkTree(walker);
@@ -218,15 +182,28 @@ public:
     }
 
     void drop() {
-    	//FIXME: implement
+    	tree_->drop();
+    }
+
+    static auto getModelNameS(NodeBaseG root)
+    {
+    	return getRootMetadataS(root).model_name();
+    }
+
+    static const auto& getRootMetadataS(NodeBaseG node)
+    {
+        MEMORIA_V1_ASSERT_TRUE(node.isSet());
+        MEMORIA_V1_ASSERT_TRUE(node->is_root());
+
+        return node->root_metadata();
     }
 
 private:
 
     static ID get_ctr_root(Allocator& allocator, const ID& root_id, const UUID& ctr_name, BigInt name)
     {
-        typedef typename Tree::NodeBaseG   NodeBaseG;
-        typedef typename Tree::Metadata    Metadata;
+//        typedef typename Tree::Types::NodeBaseG   NodeBaseG;
+//        typedef typename Tree::Types::Metadata    Metadata;
 
         NodeBaseG root  = allocator.getPage(root_id, ctr_name);
         Metadata  meta  = Tree::getCtrRootMetadata(root);

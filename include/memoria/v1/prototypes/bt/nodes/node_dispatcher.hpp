@@ -274,7 +274,7 @@ public:
             return functor.treeNode(static_cast<Head*>(node.page()), std::forward<Args>(args)...);
         }
         else {
-            throw DispatchException(MEMORIA_SOURCE, "Can't dispatch btree node type");
+            throw DispatchException(MEMORIA_SOURCE, SBuf() << "Can't dispatch btree node type: " << node->page_type_hash());
         }
     }
 

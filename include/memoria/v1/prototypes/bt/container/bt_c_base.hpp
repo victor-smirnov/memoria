@@ -103,6 +103,21 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         return NodeDispatcher::dispatch(root, GetModelNameFn(self));
     }
 
+    static UUID getModelNameS(NodeBaseG root)
+    {
+    	return getRootMetadataS(root).model_name();
+    }
+
+    static const Metadata& getRootMetadataS(NodeBaseG node)
+    {
+        MEMORIA_V1_ASSERT_TRUE(node.isSet());
+        MEMORIA_V1_ASSERT_TRUE(node->is_root());
+
+        return node->root_metadata();
+    }
+
+
+
     void setModelName(const UUID& name)
     {
         NodeBaseG root = self().getRoot();

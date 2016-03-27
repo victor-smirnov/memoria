@@ -185,19 +185,18 @@ public:
     {
         if (reflection_)
         {
-//            delete reflection_->getCtrInterface();
-
             MetadataRepository<typename Types::Profile>::unregisterMetadata(reflection_);
-
             reflection_.reset();
-
-//            delete reflection_;
-//            reflection_ = nullptr;
         }
     }
 
 
     struct CtrInterfaceImpl: public ContainerInterface {
+
+    	virtual String ctr_name()
+    	{
+    		return TypeNameFactory<Name>::name();
+    	}
 
         void with_ctr(const UUID& root_id, const UUID& name, void* allocator, std::function<void(MyType&)> fn) const
         {
@@ -205,7 +204,9 @@ public:
 
             PageG page = alloc->getPage(root_id, name);
 
-            auto ctr_ptr = std::make_shared<MyType>(alloc, root_id, CtrInitData(name, page->master_ctr_type_hash(), page->owner_ctr_type_hash()));
+            auto ctr_name = MyType::getModelNameS(page);
+
+            auto ctr_ptr = std::make_shared<MyType>(alloc, root_id, CtrInitData(ctr_name, page->master_ctr_type_hash(), page->owner_ctr_type_hash()));
 
             fn(*ctr_ptr.get());
         }
@@ -261,6 +262,8 @@ public:
             MetadataList list;
 
             Types::Pages::NodeDispatcher::buildMetadataList(list);
+
+            cout << "Init Metadata for: " << TypeNameFactory<Name>::name() << endl;
 
             reflection_ = std::make_shared<ContainerMetadata>(TypeNameFactory<Name>::name(),
                                                 list,

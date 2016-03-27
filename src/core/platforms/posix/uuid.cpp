@@ -44,12 +44,12 @@ UUID make_uuid(uuid_t uuid)
 
 UUID UUID::make_random()
 {
-//    uuid_t uuid;
-//
-//    uuid_generate_random(uuid);
-//
-//    return make_uuid(uuid);
-	return UUID(0, cnt++);
+    uuid_t uuid;
+
+    uuid_generate_random(uuid);
+
+    return make_uuid(uuid);
+//	return UUID(0, cnt++);
 }
 
 UUID UUID::make_time()
