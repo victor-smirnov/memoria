@@ -37,6 +37,8 @@ class BitmapMiscTest: public BitmapTestBase<T> {
     typedef BitmapMiscTest<T>                                                   MyType;
     typedef BitmapTestBase<T>                                                   Base;
 
+    using Base::getRandom;
+    using Base::getBIRandom;
 
 
 public:

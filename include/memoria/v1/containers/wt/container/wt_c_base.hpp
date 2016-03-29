@@ -123,8 +123,6 @@ public:
             Tree::getMetadata()->putAll(list);
             Seq::getMetadata()->putAll(list);
 
-            cout << "Init Metadata for: " << TypeNameFactory<typename Types::ContainerTypeName>::name() << endl;
-
             Base::setMetadata(std::make_shared<ContainerMetadata>(
                                     TypeNameFactory<typename Types::ContainerTypeName>::name(),
                                     list,

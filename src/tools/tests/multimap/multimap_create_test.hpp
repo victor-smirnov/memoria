@@ -104,6 +104,57 @@ public:
     {
 
     }
+
+
+//    template <typename T> struct TypeTag {};
+//
+//    template <typename V, typename T>
+//    T make_key(V&& num, TypeTag<T>) {
+//        return num;
+//    }
+//
+//    template <typename V>
+//    String make_key(V&& num, TypeTag<String>)
+//    {
+//        stringstream ss;
+//        ss<<"'";
+//        ss.width(16);
+//        ss << num;
+//        ss<<"'";
+//        return ss.str();
+//    }
+//
+//    template <typename V>
+//    UUID make_key(V&& num, TypeTag<UUID>)
+//    {
+//        return UUID(0, num);
+//    }
+//
+//
+//
+//    template <typename V, typename T>
+//    T make_value(V&& num, TypeTag<T>) {
+//        return num;
+//    }
+//
+//    template <typename V>
+//    String make_value(V&& num, TypeTag<String>)
+//    {
+//        stringstream ss;
+//        ss << num;
+//        return ss.str();
+//    }
+//
+//    template <typename V>
+//    UUID make_value(V&& num, TypeTag<UUID>)
+//    {
+//        if (num != 0) {
+//            return UUID::make_random();
+//        }
+//        else {
+//            return UUID();
+//        }
+//    }
 };
 
 }}

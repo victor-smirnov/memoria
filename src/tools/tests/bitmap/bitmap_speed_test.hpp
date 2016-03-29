@@ -37,7 +37,8 @@ class BitmapSpeedTest: public BitmapTestBase<T> {
     typedef BitmapSpeedTest<T>                                                  MyType;
     typedef BitmapTestBase<T>                                                   Base;
 
-
+    using Base::getRandom;
+    using Base::getBIRandom;
 
 public:
     BitmapSpeedTest(StringRef name):

@@ -36,6 +36,8 @@ class BitmapRankTest: public BitmapTestBase<T> {
     typedef BitmapRankTest<T>                                                       MyType;
     typedef BitmapTestBase<T>                                                       Base;
 
+    using Base::getRandom;
+    using Base::getBIRandom;
 
 public:
     BitmapRankTest(StringRef name):

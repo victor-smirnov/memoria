@@ -263,8 +263,6 @@ public:
 
             Types::Pages::NodeDispatcher::buildMetadataList(list);
 
-            cout << "Init Metadata for: " << TypeNameFactory<Name>::name() << endl;
-
             reflection_ = std::make_shared<ContainerMetadata>(TypeNameFactory<Name>::name(),
                                                 list,
 												static_cast<int>(CONTAINER_HASH),

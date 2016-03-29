@@ -13,13 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "bitmap/bitmap_test_suite.hpp"
 
-//#include "symbol_seq/symseq_test_suite.hpp"
-//#include "bitmap/bitmap_test_suite.hpp"
 //
-
 //#include "packed/sequence/pseq_test_suite.hpp"
-
+//
 //#include "packed/codecs/packed_codecs_test_suite.hpp"
 //#include "packed/allocator/palloc_test_suite.hpp"
 //#include "packed/tree/packed_tree_test_suite.hpp"
@@ -28,21 +26,23 @@
 //#include "packed/louds_cardinal/packed_lcardinal_suite.hpp"
 //#include "packed/array/packed_array_test_suite.hpp"
 //#include "packed/wavelet_tree/packed_wtree_suite.hpp"
-
-
-//#include "prototype/bt/bt_test_suite.hpp"
+//
+//
+////#include "prototype/bt/bt_test_suite.hpp"
+////#include "table/table_test_suite.hpp"
+//
 //#include "prototype/bttl/bttl_test_suite.hpp"
 //#include "prototype/btss/btss_test_suite.hpp"
-//#include "table/table_test_suite.hpp"
-
+//
+//
 //#include "map/map_test_suite.hpp"
 //#include "vector/vector_test_suite.hpp"
 //#include "multimap/multimap_test_suite.hpp"
-
+//
 //#include "sequence/sequence_test_suite.hpp"
 //#include "labeled_tree/ltree_test_suite.hpp"
 //#include "vector_tree/vtree_test_suite.hpp"
-#include "wt/wt_test_suite.hpp"
+//#include "wt/wt_test_suite.hpp"
 
 
 
@@ -83,9 +83,9 @@ int main(int argc, const char** argv, const char** envp)
         runner.setSeed(seed);
 
         runner.setRunCount(cmd_line.getCount());
-//
-//        runner.registerTask(new BitmapTestSuite());
-//
+
+        runner.registerTask(new BitmapTestSuite());
+
 //        runner.registerTask(new PackedCodecsTestSuite());
 //        runner.registerTask(new PackedAllocatorTestSuite());
 //        runner.registerTask(new PackedTreeTestSuite());
@@ -95,21 +95,21 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new PackedLoudsTestSuite());
 //        runner.registerTask(new PackedLoudsCardinalTestSuite());
 //        runner.registerTask(new PackedWaveletTreeTestSuite());
-
-
-//        runner.registerTask(new BTTestSuite());
+//
+//
+////        runner.registerTask(new BTTestSuite());
+////        runner.registerTask(new TableTestSuite());
+//
 //        runner.registerTask(new BTTLTestSuite());
 //        runner.registerTask(new BTSSTestSuite());
-
-//        runner.registerTask(new TableTestSuite());
-
+//
 //        runner.registerTask(new MapTestSuite());
 //        runner.registerTask(new VectorTestSuite());
 //        runner.registerTask(new MultiMapTestSuite());
 //        runner.registerTask(new SequenceTestSuite());
-//          runner.registerTask(new LabeledTreeTestSuite());
+//        runner.registerTask(new LabeledTreeTestSuite());
 //        runner.registerTask(new VTreeTestSuite());
-        runner.registerTask(new WTTestSuite());
+//        runner.registerTask(new WTTestSuite());
 
 
         runner.Configure(&cmd_line.getConfigurator());

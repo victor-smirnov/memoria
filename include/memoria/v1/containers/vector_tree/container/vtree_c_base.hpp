@@ -55,6 +55,9 @@ public:
     using TreePtr 	= std::shared_ptr<Tree>;
     using VecPtr 	= std::shared_ptr<Vec>;
 
+    using NodeBaseG = typename Tree::Types::NodeBaseG;
+    using Metadata  = typename Tree::Types::Metadata;
+
 private:
     TreePtr   tree_;
     VecPtr    vector_;
@@ -169,6 +172,19 @@ public:
 
     void drop() {
     	tree_->drop();
+    }
+
+    static auto getModelNameS(NodeBaseG root)
+    {
+    	return getRootMetadataS(root).model_name();
+    }
+
+    static const auto& getRootMetadataS(NodeBaseG node)
+    {
+        MEMORIA_V1_ASSERT_TRUE(node.isSet());
+        MEMORIA_V1_ASSERT_TRUE(node->is_root());
+
+        return node->root_metadata();
     }
 
 private:

@@ -42,8 +42,9 @@ class MultiMapTestBase: public BTTestBase<MapName, PersistentInMemAllocator<>, D
 
 public:
     using typename Base::Ctr;
-    using typename Base::CtrSizesT;
     using typename Base::IteratorPtr;
+
+    using CtrSizesT = typename Ctr::Types::CtrSizesT;
 
     using Base::out;
 
@@ -141,8 +142,8 @@ public:
     }
 
 
-    template <typename Fn1, typename Fn2>
-    MapData createRandomShapedMapData(size_t keys, size_t values, Fn1&& key_fn, Fn2&& value_fn)
+
+    MapData createRandomShapedMapData(size_t keys, size_t values, std::function<Key(size_t)> key_fn, std::function<Value (size_t, size_t)> value_fn)
     {
         MapData data;
 

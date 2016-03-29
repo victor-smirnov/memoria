@@ -64,7 +64,7 @@ public:
 
         T values[10];
 
-        Int bitsize     = sizeof(values) * 8;
+        Int bitsize = sizeof(values) * 8;
 
         for (Int length = 0; length < bitsize; length++)
         {
@@ -112,7 +112,7 @@ public:
 
         T values[10];
 
-        Int bitsize     = sizeof(values) * 8;
+        Int bitsize = sizeof(values) * 8;
 
         for (Int length = 0; length < bitsize; length++)
         {

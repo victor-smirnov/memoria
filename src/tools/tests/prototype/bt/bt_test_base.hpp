@@ -50,7 +50,6 @@ protected:
 
     using IteratorPtr       = typename Ctr::IteratorPtr;
     using Iterator       	= typename Ctr::Iterator;
-//    using CtrSizesT         = typename Ctr::Types::CtrSizesT;
 
 
     using Allocator     = AllocatorType;
@@ -61,8 +60,6 @@ protected:
     SnapshotPtr  snapshot_;
 
     String dump_name_;
-
-//    static constexpr Int Streams = Ctr::Types::Streams;
 
 public:
 
