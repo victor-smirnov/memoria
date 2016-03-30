@@ -16,12 +16,25 @@
 cmake_minimum_required (VERSION 2.8.5)
 project (Memoria)
 
-# Gcc/MinGW/MSVC are supported
+set(VERSION "0.1.0")
+
+set(CPACK_PACKAGE_VERSION ${VERSION})
+set(CPACK_GENERATOR "RPM")
+set(CPACK_PACKAGE_NAME "memoria")
+set(CPACK_PACKAGE_RELEASE 1)
+set(CPACK_PACKAGE_CONTACT "aist11@gmail.com")
+set(CPACK_PACKAGE_VENDOR "Victor Smirnov")
+set(CPACK_PACKAGING_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_PACKAGE_RELEASE}.${CMAKE_SYSTEM_PROCESSOR}")
+set(CPACK_RPM_PACKAGE_REQUIRES_PRE "boost")
+
+
+
+
+# Gcc/Clang for linux are supported
 #
-# Intel C++ for Windows is supported as MSVC variant but not fully tested.
-# Use variables to disable components which are fail to build.
-# Intel C++ for Linux is to be done
-#
+# Intel C++/MSVC are not yet supported. 
+
 
 #TODO Use cmake options 
 
@@ -173,3 +186,5 @@ set_property (GLOBAL PROPERTY GLOBAL_SOURCES)
 add_subdirectory(src/build-tools)
 
 add_subdirectory(src)
+
+include(CPack)
