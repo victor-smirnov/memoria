@@ -78,9 +78,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::UpdateName)
             }
         }
 
-        auto max = self.max(iter.leaf());
-
-        self.update_parent(iter.leaf(), max);
+        self.update_path(iter.leaf());
     }
 
 

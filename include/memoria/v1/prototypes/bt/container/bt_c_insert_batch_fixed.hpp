@@ -150,8 +150,7 @@ protected:
 
         if (update_hierarchy)
         {
-            BranchNodeEntry sums = self.max(node);
-            self.update_parent(node, sums);
+        	self.update_path(node);
             self.updateChildIndexes(node, max);
         }
 

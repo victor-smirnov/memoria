@@ -81,8 +81,8 @@ public:
         auto map_data = createRandomShapedMapData(
                 sizes_[0],
                 sizes_[1],
-                [this](auto k) {return make_key(k, TypeTag<Key>());},
-                [this](auto k, auto v) {return make_value(getRandom(), TypeTag<Value>());}
+                [this](auto k) {return this->make_key(k, TypeTag<Key>());},
+                [this](auto k, auto v) {return this->make_value(this->getRandom(), TypeTag<Value>());}
         );
 
         using EntryAdaptor = mmap::MMapAdaptor<Ctr>;

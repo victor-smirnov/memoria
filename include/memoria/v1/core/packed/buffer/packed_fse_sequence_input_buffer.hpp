@@ -223,7 +223,7 @@ public:
     {
         handler->startGroup("PACKED_FSE_INPUT_BUFFER");
 
-        handler->value("PARENT_ALLOCATOR", &(Base::allocator_offset_));
+        handler->value("PARENT_ALLOCATOR", &this->allocator_offset_);
 
         handler->value("SIZE", &size_);
         handler->value("MAX_SIZE", &max_size_);

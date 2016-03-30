@@ -246,9 +246,7 @@ public:
 
         if (self.insertLoudsNode(leaf, idx, label_idx, sums, labels))
         {
-            auto max = self.max(leaf);
-
-        	self.update_parent(leaf, max);
+            self.update_path(leaf);
         }
         else {
             self.split(iter);
@@ -258,8 +256,7 @@ public:
             bool result = self.insertLoudsNode(leaf, idx, label_idx, sums, labels);
             MEMORIA_V1_ASSERT_TRUE(result);
 
-            auto max = self.max(leaf);
-            self.update_parent(leaf, max);
+            self.update_path(leaf);
         }
     }
 
@@ -273,8 +270,7 @@ public:
 
         if (self.insertLoudsZero(leaf, idx, sums))
         {
-        	auto max = self.max(leaf);
-            self.update_parent(leaf, max);
+        	self.update_path(leaf);
         }
         else
         {
@@ -284,8 +280,7 @@ public:
 
             MEMORIA_V1_ASSERT_TRUE(result);
 
-            auto max = self.max(leaf);
-            self.update_parent(leaf, max);
+            self.update_path(leaf);
         }
     }
 

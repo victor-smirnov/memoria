@@ -200,9 +200,6 @@ private:
 
     static ID get_ctr_root(Allocator& allocator, const ID& root_id, const UUID& ctr_name, BigInt name)
     {
-//        typedef typename Tree::Types::NodeBaseG   NodeBaseG;
-//        typedef typename Tree::Types::Metadata    Metadata;
-
         NodeBaseG root  = allocator.getPage(root_id, ctr_name);
         Metadata  meta  = Tree::getCtrRootMetadata(root);
 

@@ -121,8 +121,7 @@ public:
 
         removeFromLeaf(leaf, idx);
 
-        auto max = self.max(leaf);
-        self.update_parent(leaf, max);
+        self.update_path(leaf);
 
         self.mergeLeafWithRightSibling(leaf);
     }

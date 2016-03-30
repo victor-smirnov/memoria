@@ -125,7 +125,7 @@ public:
 
         if (self.updateNodeLabel(leaf, SetLabelValueFn<LabelIdx>(sums), label_idx, value))
         {
-            self.update_parent(leaf, sums);
+        	self.update_path(leaf);
         }
         else
         {
@@ -136,7 +136,7 @@ public:
             auto result = self.updateNodeLabel(leaf, SetLabelValueFn<LabelIdx>(sums), label_idx, value);
 
             MEMORIA_V1_ASSERT_TRUE(result);
-            self.update_parent(leaf, sums);
+            self.update_path(leaf);
         }
     }
 
@@ -193,8 +193,7 @@ public:
 
         if (self.updateNodeLabel(leaf, AddLabelValueFn<LabelIdx>(sums), label_idx, value))
         {
-        	auto max = self.max(leaf);
-            self.update_parent(leaf, max);
+        	self.update_path(leaf);
         }
         else
         {
@@ -206,8 +205,7 @@ public:
 
             MEMORIA_V1_ASSERT_TRUE(result);
 
-            auto max = self.max(leaf);
-            self.update_parent(leaf, max);
+            self.update_path(leaf);
         }
     }
 

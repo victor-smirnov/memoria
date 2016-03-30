@@ -62,14 +62,10 @@ protected:
                 throw Exception(MA_SRC, "Second removal attempt failed");
             }
 
-            auto max = self.max(iter.leaf());
-
-            self.update_parent(iter.leaf(), max);
+            self.update_path(iter.leaf());
         }
         else {
-            auto max = self.max(iter.leaf());
-
-            self.update_parent(iter.leaf(), max);
+            self.update_path(iter.leaf());
 
             auto next = self.getNextNodeP(iter.leaf());
 

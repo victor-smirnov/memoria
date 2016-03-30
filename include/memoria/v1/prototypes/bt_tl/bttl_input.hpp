@@ -584,8 +584,7 @@ public:
 
         if (leaf->parent_id().isSet())
         {
-            auto max = ctr().max(leaf);
-            ctr().update_parent(leaf, max);
+            ctr().update_path(leaf);
         }
 
         updateLeafAnchors(leaf, at, sizes);
@@ -992,8 +991,7 @@ public:
                 //TODO update leaf's parents here
                 if (leaf->parent_id().isSet())
                 {
-                    auto max = ctr().max(leaf);
-                    ctr().update_parent(leaf, max);
+                    ctr().update_path(leaf);
                 }
 
                 auto next_leaf = applyAnchorValues(mgr, leaf, pos, inserted);

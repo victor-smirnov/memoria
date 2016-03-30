@@ -128,8 +128,7 @@ protected:
 
         if (update_hierarchy)
         {
-            BranchNodeEntry sums = self.max(node);
-            self.update_parent(node, sums);
+        	self.update_path(node);
             self.updateChildIndexes(node, idx);
         }
 
@@ -343,8 +342,7 @@ protected:
 
                     if (provider.size() == 0)
                     {
-                        auto sums = self.max(next);
-                        self.update_parent(next, sums);
+                    	self.update_path(next);
 
                         self.updateChildIndexes(next, next_result.idx());
 

@@ -32,7 +32,7 @@ namespace v1 {
 
 template <
     typename CtrName,
-    typename AllocatorT     = SmallInMemAllocator,
+    typename AllocatorT     = PersistentInMemAllocator<>,
     typename ProfileT       = DefaultProfile<>
 >
 class BTCoreTest: public BTTestBase<CtrName, AllocatorT, ProfileT> {
@@ -52,12 +52,6 @@ public:
     }
 
     virtual ~BTCoreTest() throw () {}
-
-
-    void createAllocator(AllocatorSPtr& allocator) {
-        allocator = std::make_shared<Allocator>();
-        allocator->mem_limit() = this->hard_memlimit_;
-    }
 
 };
 

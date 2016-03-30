@@ -59,7 +59,9 @@ public:
     static const Int Streams                                                    = Types::Streams;
 
 public:
-    void update_parent(NodeBaseG& node, const BranchNodeEntry& entry);
+
+    void update_path(const NodeBaseG& node);
+
 
 protected:
     MEMORIA_V1_DECLARE_NODE_FN(InsertFn, insert);
@@ -200,14 +202,15 @@ void M_TYPE::updateBranchNodes(NodeBaseG& node, Int& idx, const BranchNodeEntry&
 
 
 
-
 M_PARAMS
-void M_TYPE::update_parent(NodeBaseG& node, const BranchNodeEntry& entry)
+void M_TYPE::update_path(const NodeBaseG& node)
 {
     auto& self = this->self();
 
     if (!node->is_root())
     {
+    	auto entry = self.max(node);
+
         NodeBaseG parent = self.getNodeParentForUpdate(node);
 
         Int parent_idx = node->parent_idx();
@@ -215,7 +218,6 @@ void M_TYPE::update_parent(NodeBaseG& node, const BranchNodeEntry& entry)
         self.updateBranchNodes(parent, parent_idx, entry);
     }
 }
-
 
 
 

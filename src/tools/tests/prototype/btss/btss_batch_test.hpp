@@ -68,10 +68,8 @@ class BTSSBatchTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT> {
 
 public:
 
-
-
-    Int max_block_size_     = 1024;
-    Int check_size_         = 1000;
+    Int max_block_size_ = 1024;
+    Int check_size_     = 1000;
 
     UUID ctr_name_;
     Int prefix_size_;

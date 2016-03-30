@@ -73,8 +73,6 @@ public:
 
         			auto ctr_interface 	= ctr_meta->getCtrInterface();
 
-        			cout << "Ctr Name: " << ctr_interface->ctr_name() <<" main: " << MyType::getMetadata()->getCtrInterface()->ctr_name() << endl;
-
         			ctr_interface->drop(root, UUID(), this);
         		}
         	}
@@ -214,9 +212,7 @@ void M_TYPE::removeNodeContent(NodeBaseG& node, Int start, Int end, Position& si
 
     BranchDispatcher::dispatch(node, RemoveSpaceFn(), start, end);
 
-    auto max = self.max(node);
-
-    self.update_parent(node, max);
+    self.update_path(node);
 
     self.updateChildren(node, start);
 }
@@ -234,8 +230,7 @@ void M_TYPE::removeNonLeafNodeEntry(NodeBaseG& node, Int start)
 
     self.updateChildren(node, start);
 
-    auto max = self.max(node);
-    self.update_parent(node, max);
+    self.update_path(node);
 }
 
 
@@ -249,9 +244,7 @@ typename M_TYPE::Position M_TYPE::removeLeafContent(NodeBaseG& node, const Posit
 
     LeafDispatcher::dispatch(node, RemoveSpaceFn(), start, end);
 
-    auto max = self.max(node);
-
-    self.update_parent(node, max);
+    self.update_path(node);
 
     return end - start;
 }
@@ -263,11 +256,9 @@ typename M_TYPE::Position M_TYPE::removeLeafContent(NodeBaseG& node, Int stream,
 
     self.updatePageG(node);
 
-    BranchNodeEntry sums = LeafDispatcher::dispatch(node, RemoveSpaceFn(), stream, start, end);
+    LeafDispatcher::dispatch(node, RemoveSpaceFn(), stream, start, end);
 
-    auto max = self.max(node);
-
-    self.update_parent(node, max);
+    self.update_path(node);
 
     return Position(end - start);
 }

@@ -79,7 +79,7 @@ int main()
         ctr->prepare();
 
         Int alphabet_size = 100;
-        Int text_size = 50;
+        Int text_size = 5000;
 
 
         auto alphabet = createRandomAlphabet(alphabet_size);
