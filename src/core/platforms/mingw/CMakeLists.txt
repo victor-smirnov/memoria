@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-file(GLOB SRCS ../posix/config.cpp ../posix/container.cpp ../posix/m*.cpp ../posix/s*.cpp ../posix/t*.cpp ../posix/logs.cpp *.cpp)
+file(GLOB SRCS ../posix/posix_config.cpp ../posix/posix_container.cpp ../posix/posix_m*.cpp ../posix/posix_s*.cpp ../posix/posix_t*.cpp ../posix/posix_logs.cpp *.cpp)
 set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES ${SRCS})
 
 include_directories(../posix)

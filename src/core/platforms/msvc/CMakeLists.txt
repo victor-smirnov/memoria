@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-file(GLOB SRCS ../posix/config.cpp ../posix/container.cpp ../posix/m*.cpp ../posix/s*.cpp ../posix/t*.cpp *.cpp)
+file(GLOB SRCS ../posix/msvc_config.cpp ../posix/msvc_container.cpp ../posix/msvc_m*.cpp ../posix/msvc_s*.cpp ../posix/msvc_t*.cpp *.cpp)
 set_property(GLOBAL APPEND PROPERTY GLOBAL_SOURCES ${SRCS})
 
 include_directories(../posix)
