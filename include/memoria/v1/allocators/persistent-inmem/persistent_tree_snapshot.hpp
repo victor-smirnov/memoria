@@ -25,6 +25,7 @@
 
 #include <memoria/v1/core/tools/pool.hpp>
 #include <memoria/v1/core/tools/bitmap.hpp>
+#include <memoria/v1/core/tools/peer.hpp>
 
 #include <memoria/v1/containers/map/map_factory.hpp>
 
@@ -134,6 +135,7 @@ private:
     template <typename, typename>
     friend class v1::PersistentInMemAllocatorT;
 
+    PeerPtr peer_;
 
 public:
 
@@ -205,6 +207,14 @@ public:
         }
     }
 
+    PeerPtr& peer() {
+    	return peer_;
+    }
+
+    const PeerPtr& peer() const {
+    	return peer_;
+    }
+
     static void initMetadata() {
         RootMapType::initMetadata();
     }
@@ -226,7 +236,7 @@ public:
     }
 
     bool is_marked_to_clear() const {
-        return history_node_->mark_to_clear();
+        return history_node_->is_dropped();
     }
 
     bool is_committed() const {
@@ -264,7 +274,7 @@ public:
         {
             PageG page = this->getPage(root_id, name);
 
-            ContainerMetadata* ctr_meta = metadata_->getContainerMetadata(page->ctr_type_hash());
+            auto& ctr_meta = metadata_->getContainerMetadata(page->ctr_type_hash());
 
             ctr_meta->getCtrInterface()->drop(root_id, name, this);
 

@@ -31,12 +31,12 @@ UUID make_uuid(uuid_t uuid)
 
     for (int c = 0; c < 8; c++)
     {
-        uuid2.lo() |= ((UBigInt)uuid[c]) << (c * 8);
+        uuid2.hi() |= ((UBigInt)uuid[c]) << (c * 8);
     }
 
     for (int c = 0; c < 8; c++)
     {
-        uuid2.hi() |= ((UBigInt)uuid[c + 8]) << (c * 8);
+        uuid2.lo() |= ((UBigInt)uuid[c + 8]) << (c * 8);
     }
 
     return uuid2;
@@ -77,12 +77,12 @@ std::ostream& operator<<(std::ostream& out, const UUID& uuid)
 
     for (int c = 0; c < 8; c++)
     {
-        uu[c] = uuid.lo() >> (c * 8);
+        uu[c] = uuid.hi() >> (c * 8);
     }
 
     for (int c = 0; c < 8; c++)
     {
-        uu[c + 8] = uuid.hi() >> (c * 8);
+        uu[c + 8] = uuid.lo() >> (c * 8);
     }
 
     char out_buffer[37];

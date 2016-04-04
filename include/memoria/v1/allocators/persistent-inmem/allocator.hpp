@@ -21,6 +21,7 @@
 #include <memoria/v1/core/tools/pool.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
 #include <memoria/v1/core/tools/stream.hpp>
+#include <memoria/v1/core/tools/peer.hpp>
 
 #include <memoria/v1/allocators/persistent-inmem/persistent_tree_node.hpp>
 #include <memoria/v1/allocators/persistent-inmem/persistent_tree.hpp>
@@ -240,6 +241,8 @@ public:
             status_ = Status::DROPPED;
         }
 
+
+
         auto references() {return references_;}
         auto ref() {
             return ++references_;
@@ -367,6 +370,8 @@ private:
 
     BigInt active_snapshots_ = 0;
 
+    std::unique_ptr<Peer> peer_;
+
 public:
     PersistentInMemAllocatorT():
         logger_("PersistentInMemAllocator"),
@@ -394,7 +399,15 @@ public:
 
     virtual ~PersistentInMemAllocatorT()
     {
-        free_memory(history_tree_);
+    	free_memory(history_tree_);
+    }
+
+    std::unique_ptr<Peer>& peer() {
+    	return peer_;
+    }
+
+    const std::unique_ptr<Peer>& peer() const {
+    	return peer_;
     }
 
     // return true in case of errors

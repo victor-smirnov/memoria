@@ -18,6 +18,7 @@
 
 #include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/core/types/typelist.hpp>
+#include <memoria/v1/core/tools/peer.hpp>
 
 #include <memoria/v1/core/container/names.hpp>
 
@@ -126,6 +127,8 @@ private:
 
     Int type_;
 
+    PeerPtr peer_;
+
 public:
     IteratorBase():
         logger_("Iterator", Logger::DERIVED, &v1::logger),
@@ -134,6 +137,11 @@ public:
 
     IteratorBase(ThisType&& other): logger_(std::move(other.logger_)), type_(other.type_) {}
     IteratorBase(const ThisType& other): logger_(other.logger_), type_(other.type_)       {}
+
+
+    PeerPtr& peer() {return peer_;}
+    const PeerPtr& peer() const {return peer_;}
+
 
     const Int& type() const {
         return type_;

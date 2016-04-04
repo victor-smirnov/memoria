@@ -25,6 +25,8 @@
 
 #include <memoria/v1/prototypes/bt/bt_macros.hpp>
 
+#include <memoria/v1/core/tools/peer.hpp>
+
 #include <iostream>
 
 namespace memoria {
