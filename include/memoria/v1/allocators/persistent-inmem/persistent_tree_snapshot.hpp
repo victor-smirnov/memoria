@@ -25,12 +25,11 @@
 
 #include <memoria/v1/core/tools/pool.hpp>
 #include <memoria/v1/core/tools/bitmap.hpp>
-#include <memoria/v1/core/tools/peer.hpp>
-
 #include <memoria/v1/containers/map/map_factory.hpp>
 
 #include <vector>
 #include <memory>
+#include "../../core/tools/pair.hpp"
 
 namespace memoria {
 namespace v1 {
@@ -135,7 +134,7 @@ private:
     template <typename, typename>
     friend class v1::PersistentInMemAllocatorT;
 
-    PeerPtr peer_;
+    PairPtr pair_;
 
 public:
 
@@ -207,12 +206,12 @@ public:
         }
     }
 
-    PeerPtr& peer() {
-    	return peer_;
+    PairPtr& pair() {
+    	return pair_;
     }
 
-    const PeerPtr& peer() const {
-    	return peer_;
+    const PairPtr& pair() const {
+    	return pair_;
     }
 
     static void initMetadata() {

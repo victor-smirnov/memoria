@@ -18,13 +18,12 @@
 
 #include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/core/types/typelist.hpp>
-#include <memoria/v1/core/tools/peer.hpp>
-
 #include <memoria/v1/core/container/names.hpp>
 
 #include <memoria/v1/core/container/logs.hpp>
 
 #include <memory>
+#include "../tools/pair.hpp"
 
 namespace memoria {
 namespace v1 {
@@ -127,7 +126,7 @@ private:
 
     Int type_;
 
-    PeerPtr peer_;
+    PairPtr pair_;
 
 public:
     IteratorBase():
@@ -139,8 +138,8 @@ public:
     IteratorBase(const ThisType& other): logger_(other.logger_), type_(other.type_)       {}
 
 
-    PeerPtr& peer() {return peer_;}
-    const PeerPtr& peer() const {return peer_;}
+    PairPtr& pair() {return pair_;}
+    const PairPtr& pair() const {return pair_;}
 
 
     const Int& type() const {

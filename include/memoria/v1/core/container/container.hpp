@@ -34,10 +34,9 @@
 #include <memoria/v1/core/container/macros.hpp>
 #include <memoria/v1/core/container/init.hpp>
 
-#include <memoria/v1/core/tools/peer.hpp>
-
 #include <string>
 #include <memory>
+#include "../tools/pair.hpp"
 
 
 
@@ -138,7 +137,7 @@ protected:
 
     CtrInitData init_data_;
 
-    PeerPtr peer_;
+    PairPtr pair_;
 
 public:
     CtrBase(const CtrInitData& data): init_data_(data)
@@ -146,8 +145,8 @@ public:
 
     virtual ~CtrBase() throw () {}
 
-    PeerPtr& peer() {return peer_;}
-    const PeerPtr& peer() const {return peer_;}
+    PairPtr& pair() {return pair_;}
+    const PairPtr& pair() const {return pair_;}
 
     void set_root(const ID &root)
     {

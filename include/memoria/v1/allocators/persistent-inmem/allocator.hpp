@@ -21,8 +21,6 @@
 #include <memoria/v1/core/tools/pool.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
 #include <memoria/v1/core/tools/stream.hpp>
-#include <memoria/v1/core/tools/peer.hpp>
-
 #include <memoria/v1/allocators/persistent-inmem/persistent_tree_node.hpp>
 #include <memoria/v1/allocators/persistent-inmem/persistent_tree.hpp>
 #include <memoria/v1/allocators/persistent-inmem/persistent_tree_snapshot.hpp>
@@ -32,6 +30,7 @@
 #include <limits>
 #include <string>
 #include <unordered_map>
+#include "../../core/tools/pair.hpp"
 
 namespace memoria {
 namespace v1 {
@@ -370,7 +369,7 @@ private:
 
     BigInt active_snapshots_ = 0;
 
-    std::unique_ptr<Peer> peer_;
+    PairPtr pair_;
 
 public:
     PersistentInMemAllocatorT():
@@ -402,12 +401,12 @@ public:
     	free_memory(history_tree_);
     }
 
-    std::unique_ptr<Peer>& peer() {
-    	return peer_;
+    PairPtr& pair() {
+    	return pair_;
     }
 
-    const std::unique_ptr<Peer>& peer() const {
-    	return peer_;
+    const PairPtr& pair() const {
+    	return pair_;
     }
 
     // return true in case of errors

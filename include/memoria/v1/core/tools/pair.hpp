@@ -25,17 +25,17 @@
 namespace memoria {
 namespace v1 {
 
-class Peer {
+class ScriptPair {
 	void* ptr_;
 public:
-	Peer(void* ptr): ptr_(ptr) {}
+	ScriptPair(void* ptr): ptr_(ptr) {}
 
-	virtual ~Peer() noexcept {}
+	virtual ~ScriptPair() noexcept {}
 
 	void* ptr() {return ptr_;}
 	const void* ptr() const {return ptr_;}
 };
 
-using PeerPtr = std::unique_ptr<Peer>;
+using PairPtr = std::unique_ptr<ScriptPair>;
 
 }}
