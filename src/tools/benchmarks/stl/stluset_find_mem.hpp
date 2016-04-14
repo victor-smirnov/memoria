@@ -51,7 +51,7 @@ public:
 
     StlUsetMemBenchmark(StringRef name): BenchmarkTask(name) {}
 
-    virtual ~StlUsetMemBenchmark() throw() {}
+    virtual ~StlUsetMemBenchmark() noexcept {}
 
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {

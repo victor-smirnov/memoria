@@ -60,7 +60,7 @@ public:
         Add("memory_size", memory_size);
     }
 
-    virtual ~VectorAppendBenchmark() throw() {}
+    virtual ~VectorAppendBenchmark() noexcept {}
 
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {

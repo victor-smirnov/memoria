@@ -52,7 +52,7 @@ public:
         SPBenchmarkTask(name)
     {}
 
-    virtual ~SetInsertBenchmark() throw() {}
+    virtual ~SetInsertBenchmark() noexcept {}
 
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {

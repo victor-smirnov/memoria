@@ -47,7 +47,7 @@ public:
     PackedLoudsCardinalTreeTestBase(StringRef name): TestTask(name)
     {}
 
-    virtual ~PackedLoudsCardinalTreeTestBase() throw() {}
+    virtual ~PackedLoudsCardinalTreeTestBase() noexcept {}
 
     TreePtr createEmptyTree(Int block_size = 1024*1024)
     {

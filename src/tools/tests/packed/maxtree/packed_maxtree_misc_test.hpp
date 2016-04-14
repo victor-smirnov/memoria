@@ -74,7 +74,7 @@ public:
         MEMORIA_ADD_TEST(testClear);
     }
 
-    virtual ~PackedMaxTreeMiscTest() throw() {}
+    virtual ~PackedMaxTreeMiscTest() noexcept {}
 
     void testInsertVector()
     {

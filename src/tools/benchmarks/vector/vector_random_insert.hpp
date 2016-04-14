@@ -51,7 +51,7 @@ public:
         Add("memory_size", memory_size);
     }
 
-    virtual ~VectorRandomInsertBenchmark() throw() {}
+    virtual ~VectorRandomInsertBenchmark() noexcept {}
 
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {

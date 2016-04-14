@@ -53,7 +53,7 @@ public:
         Add("max_size", max_size);
     }
 
-    virtual ~SetCommitRandomBenchmark() throw() {}
+    virtual ~SetCommitRandomBenchmark() noexcept {}
 
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {

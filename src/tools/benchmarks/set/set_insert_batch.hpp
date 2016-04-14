@@ -53,7 +53,7 @@ public:
         Add("max_size", max_size);
     }
 
-    virtual ~SetInsertBatchBenchmark() throw() {}
+    virtual ~SetInsertBatchBenchmark() noexcept {}
 
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {

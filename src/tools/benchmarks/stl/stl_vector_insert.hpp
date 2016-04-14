@@ -44,7 +44,7 @@ public:
     {
     }
 
-    virtual ~StlVectorWriteBenchmark() throw() {}
+    virtual ~StlVectorWriteBenchmark() noexcept {}
 
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {

@@ -41,7 +41,7 @@ public:
         average = 5;
     }
 
-    virtual ~MemmoveBenchmark() throw() {}
+    virtual ~MemmoveBenchmark() noexcept {}
 
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {

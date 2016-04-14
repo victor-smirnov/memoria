@@ -76,7 +76,7 @@ public:
         MEMORIA_ADD_TEST(testClear);
     }
 
-    virtual ~PackedTreeMiscTest() throw() {}
+    virtual ~PackedTreeMiscTest() noexcept {}
 
     void testInsertVector()
     {

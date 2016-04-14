@@ -333,7 +333,7 @@ public:
         Add("run_count", run_count);
     }
 
-    virtual ~GroupRunner() throw() {}
+    virtual ~GroupRunner() noexcept {}
 
 //    Int getSeed() const {
 //      return seed_ >= 0 ? seed_ : (getTimeInMillis() % 1000000);

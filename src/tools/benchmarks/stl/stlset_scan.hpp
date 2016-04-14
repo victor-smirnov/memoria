@@ -45,7 +45,7 @@ public:
 
     StlSetScanBenchmark(StringRef name): BenchmarkTask(name) {}
 
-    virtual ~StlSetScanBenchmark() throw() {}
+    virtual ~StlSetScanBenchmark() noexcept {}
 
 
 

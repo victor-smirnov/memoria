@@ -139,7 +139,7 @@ public:
         MEMORIA_ADD_TEST(testEnlarge);
     }
 
-    virtual ~PackedAllocatorTest() throw() {}
+    virtual ~PackedAllocatorTest() noexcept {}
 
     AllocatorPtr createAllocator(Int client_area_size, Int elements)
     {

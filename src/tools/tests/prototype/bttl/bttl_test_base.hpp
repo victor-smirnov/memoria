@@ -110,7 +110,7 @@ public:
         MEMORIA_ADD_TEST_PARAM(last_level_limit);
     }
 
-    virtual ~BTTLTestBase() throw() {}
+    virtual ~BTTLTestBase() noexcept {}
 
     virtual void smokeCoverage(Int scale)
     {

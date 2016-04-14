@@ -33,13 +33,13 @@ public:
     class FileListType: public std::vector<File*> {
     public:
         FileListType(){}
-        virtual ~FileListType() throw();
+        virtual ~FileListType() noexcept;
     };
 
     File(StringRef path);
     File(const File& file);
 
-    virtual ~File() throw();
+    virtual ~File() noexcept;
 
     virtual String getName() const;
     virtual StringRef getPath() const;

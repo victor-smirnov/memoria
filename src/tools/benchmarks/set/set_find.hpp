@@ -62,7 +62,7 @@ public:
         average = 10;
     }
 
-    virtual ~SetFindRandomBenchmark() throw() {}
+    virtual ~SetFindRandomBenchmark() noexcept {}
 
     Key key(Int c) const
     {

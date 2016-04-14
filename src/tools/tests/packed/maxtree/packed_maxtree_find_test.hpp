@@ -63,7 +63,7 @@ public:
         MEMORIA_ADD_TEST(testFindForward);
     }
 
-    virtual ~PackedMaxTreeFindTest() throw() {}
+    virtual ~PackedMaxTreeFindTest() noexcept {}
 
     template <typename Walker>
     auto find_fw(const TreePtr& tree, Int block, IndexValue limit)

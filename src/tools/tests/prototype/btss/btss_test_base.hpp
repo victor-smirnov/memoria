@@ -67,7 +67,7 @@ public:
         Ctr::initMetadata();
     }
 
-    virtual ~BTSSTestBase() throw() {}
+    virtual ~BTSSTestBase() noexcept {}
 
     MemBuffer createBuffer(Int size) {
         return MemBuffer(size);

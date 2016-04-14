@@ -52,7 +52,7 @@ public:
         MEMORIA_ADD_TEST(testBlockSum);
     }
 
-    virtual ~PackedTreeSumTest() throw() {}
+    virtual ~PackedTreeSumTest() noexcept {}
 
     IndexValue sum(const TreePtr& tree, Int block, Int start, Int end)
     {

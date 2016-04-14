@@ -294,7 +294,7 @@ public:
     }
 
 
-    ~Locker() throw() {
+    ~Locker() noexcept {
         try {
             handler_->end();
         }

@@ -41,7 +41,7 @@ public:
         MEMORIA_ADD_TEST(testLongStrings);
     }
 
-    virtual ~PackedStringCodecTest() throw() {}
+    virtual ~PackedStringCodecTest() noexcept {}
 
     void testShortStrings()
     {

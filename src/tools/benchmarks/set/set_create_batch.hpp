@@ -48,7 +48,7 @@ public:
         SPBenchmarkTask(name)
     {}
 
-    virtual ~setCreateBatchBenchmark() throw() {}
+    virtual ~setCreateBatchBenchmark() noexcept {}
 
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {

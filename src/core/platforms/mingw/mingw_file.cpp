@@ -41,7 +41,7 @@ namespace v1 {
 
 using namespace std;
 
-File::FileListType::~FileListType() throw() {
+File::FileListType::~FileListType() noexcept {
     try {
         for (UInt c = 0; c < size(); c++) {
             delete operator [](c);

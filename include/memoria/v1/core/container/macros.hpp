@@ -75,7 +75,7 @@ protected:
     MEMORIA_V1_CONTAINER_PART_NO_CTR_BEGIN(PartName)                            \
 public:                                                                         \
     CtrPart(const CtrInitData& data): Base(data)  {}                            \
-    virtual ~CtrPart() throw() {}                                               \
+    virtual ~CtrPart() noexcept {}                                               \
 protected:
 
 
@@ -123,7 +123,7 @@ public:                                                                         
     IterPart(): Base() {}                                                       \
     IterPart(ThisPartType&& other): Base(std::move(other)) {}                   \
     IterPart(const ThisPartType& other): Base(other) {}                         \
-    virtual ~IterPart() throw() {}                                              \
+    virtual ~IterPart() noexcept {}                                              \
 protected:
 
 

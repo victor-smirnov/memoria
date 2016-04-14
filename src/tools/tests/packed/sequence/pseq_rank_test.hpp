@@ -95,7 +95,7 @@ public:
         MEMORIA_ADD_TEST(runTest4);
     }
 
-    virtual ~PackedSearchableSequenceRankTest() throw() {}
+    virtual ~PackedSearchableSequenceRankTest() noexcept {}
 
 
 

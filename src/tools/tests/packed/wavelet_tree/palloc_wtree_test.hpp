@@ -59,7 +59,7 @@ public:
         MEMORIA_ADD_TEST(testRemoveTree);
     }
 
-    virtual ~PackedWaveletTreeTest() throw() {}
+    virtual ~PackedWaveletTreeTest() noexcept {}
 
 
 

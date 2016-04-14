@@ -69,7 +69,7 @@ public:
         MEMORIA_ADD_TEST(runStoreTest);
     }
 
-    virtual ~CreateCtrTest() throw() {}
+    virtual ~CreateCtrTest() noexcept {}
 
 
     void assertEmpty(const char* src, Allocator& allocator)

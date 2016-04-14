@@ -42,7 +42,7 @@ public:
         MEMORIA_ADD_TEST(testLongValues);
     }
 
-    virtual ~PackedBigIntegerCodecTest() throw() {}
+    virtual ~PackedBigIntegerCodecTest() noexcept {}
 
     void testRawValues()
     {

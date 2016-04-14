@@ -50,7 +50,7 @@ public:
         MEMORIA_ADD_TEST(testRemoveCardinalTree);
     }
 
-    virtual ~PackedLoudsCardinalTest() throw() {}
+    virtual ~PackedLoudsCardinalTest() noexcept {}
 
     CardinalTreePtr createCardinalTree(Int block_size = 64*1024)
     {

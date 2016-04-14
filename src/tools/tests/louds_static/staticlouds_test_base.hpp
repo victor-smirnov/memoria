@@ -41,7 +41,7 @@ public:
 
     }
 
-    virtual ~StaticLoudsTestBase() throw() {}
+    virtual ~StaticLoudsTestBase() noexcept {}
 
 
 

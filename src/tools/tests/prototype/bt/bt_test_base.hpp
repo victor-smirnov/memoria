@@ -71,7 +71,7 @@ public:
         MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
     }
 
-    virtual ~BTTestBase() throw() {}
+    virtual ~BTTestBase() noexcept {}
 
     auto& allocator() {
         return allocator_;

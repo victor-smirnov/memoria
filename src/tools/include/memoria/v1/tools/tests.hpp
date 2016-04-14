@@ -313,7 +313,7 @@ public:
     {
     }
 
-    virtual ~TestSuite() throw() {}
+    virtual ~TestSuite() noexcept {}
 };
 
 

@@ -51,7 +51,7 @@ public:
         average = 10;
     }
 
-    virtual ~StlSetMemBenchmark() throw() {}
+    virtual ~StlSetMemBenchmark() noexcept {}
 
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {

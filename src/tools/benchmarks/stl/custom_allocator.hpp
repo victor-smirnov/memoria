@@ -73,13 +73,13 @@ public:
     }
 
 
-    CustomAllocator() throw()                           {}
-    CustomAllocator(const CustomAllocator&) throw()     {}
+    CustomAllocator() noexcept                           {}
+    CustomAllocator(const CustomAllocator&) noexcept     {}
     template <class U>
-    CustomAllocator (const CustomAllocator<U>&) throw() {}
-    ~CustomAllocator() throw()                          {}
+    CustomAllocator (const CustomAllocator<U>&) noexcept {}
+    ~CustomAllocator() noexcept                          {}
 
-    size_type max_size () const throw()
+    size_type max_size () const noexcept
     {
         return std::numeric_limits<std::size_t>::max() / sizeof(T);
     }
@@ -112,13 +112,13 @@ public:
 
 
 template <class T1, class T2>
-bool operator!=(const CustomAllocator<T1>&, const CustomAllocator<T2>&) throw()
+bool operator!=(const CustomAllocator<T1>&, const CustomAllocator<T2>&) noexcept
 {
     return false;
 }
 
 template <class T1, class T2>
-bool operator==(const CustomAllocator<T1>&, const CustomAllocator<T2>&) throw()
+bool operator==(const CustomAllocator<T1>&, const CustomAllocator<T2>&) noexcept
 {
     return true;
 }

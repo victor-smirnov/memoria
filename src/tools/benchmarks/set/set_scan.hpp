@@ -58,7 +58,7 @@ public:
         SetCtrType::initMetadata();
     }
 
-    virtual ~SetScanBenchmark() throw() {}
+    virtual ~SetScanBenchmark() noexcept {}
 
     Key key(Int c) const
     {

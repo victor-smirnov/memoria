@@ -47,7 +47,7 @@ public:
 
     }
 
-    virtual ~StaticLoudsSubtreeTest() throw() {}
+    virtual ~StaticLoudsSubtreeTest() noexcept {}
 
 
     void testGetSubtree()

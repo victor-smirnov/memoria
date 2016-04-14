@@ -40,7 +40,7 @@ public:
         MEMORIA_ADD_TEST(testRawValues);
     }
 
-    virtual ~PackedInt64TCodecTest() throw() {}
+    virtual ~PackedInt64TCodecTest() noexcept {}
 
     void testRawValues()
     {

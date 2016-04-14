@@ -92,7 +92,7 @@ public:
         MEMORIA_ADD_TEST(testInsertRemove);
     }
 
-    virtual ~PackedSearchableSequenceSpeedTest() throw() {}
+    virtual ~PackedSearchableSequenceSpeedTest() noexcept {}
 
     void testInsertRemove()
     {

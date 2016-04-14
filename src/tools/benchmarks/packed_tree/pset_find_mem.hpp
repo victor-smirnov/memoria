@@ -62,7 +62,7 @@ public:
         average = 10;
     }
 
-    virtual ~PSetMemBenchmark() throw() {}
+    virtual ~PSetMemBenchmark() noexcept {}
 
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {

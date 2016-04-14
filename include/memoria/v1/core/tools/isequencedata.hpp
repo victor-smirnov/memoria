@@ -22,13 +22,13 @@ namespace v1 {
 
 template <typename T, Int BitsPerSymbol>
 struct ISequenceDataSource {
-    virtual ~ISequenceDataSource() throw() {}
+    virtual ~ISequenceDataSource() noexcept {}
 };
 
 
 template <typename T, Int BitsPerSymbol>
 struct ISequenceDataTarget {
-    virtual ~ISequenceDataTarget() throw() {}
+    virtual ~ISequenceDataTarget() noexcept {}
 };
 
 

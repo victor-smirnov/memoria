@@ -51,7 +51,7 @@ public:
 
     StlUsetSizeBenchmark(StringRef name): BenchmarkTask(name) {}
 
-    virtual ~StlUsetSizeBenchmark() throw() {}
+    virtual ~StlUsetSizeBenchmark() noexcept {}
 
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {

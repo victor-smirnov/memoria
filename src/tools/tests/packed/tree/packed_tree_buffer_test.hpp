@@ -69,7 +69,7 @@ public:
         MEMORIA_ADD_TEST(testInsertion);
     }
 
-    virtual ~PackedTreeInputBufferTest() throw() {}
+    virtual ~PackedTreeInputBufferTest() noexcept {}
 
     InputBufferPtr createInputBuffer(Int capacity, Int free_space = 0)
     {

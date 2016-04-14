@@ -53,7 +53,7 @@ public:
         Add("memory_size", memory_size);
     }
 
-    virtual ~VectorMapRandomInsertBenchmark() throw() {}
+    virtual ~VectorMapRandomInsertBenchmark() noexcept {}
 
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {

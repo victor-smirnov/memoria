@@ -41,7 +41,7 @@ class CoWTreeException: std::exception {
 public:
     CoWTreeException(const char* msg): msg_(msg) {}
 
-    virtual const char* what() const throw() {
+    virtual const char* what() const noexcept {
         return msg_;
     }
 };

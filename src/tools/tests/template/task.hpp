@@ -67,7 +67,7 @@ public:
         out()<<"Param="<<param_<<endl;
     }
 
-    virtual ~TemplateTestTask() throw() {}
+    virtual ~TemplateTestTask() noexcept {}
 
 };
 

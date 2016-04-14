@@ -47,7 +47,7 @@ struct Page {
     virtual Int getByte(Int idx) const               = 0;
     virtual void setByte(Int idx, Int value)         = 0;
 
-    virtual ~Page() throw() {}
+    virtual ~Page() noexcept {}
 };
 
 
@@ -59,7 +59,7 @@ public:
     PageWrapper(PageType* page): page_(page) {}
     PageWrapper(): page_(NULL) {}
 
-    virtual ~PageWrapper() throw()  {}
+    virtual ~PageWrapper() noexcept  {}
 
     virtual bool isNull() const {
         return page_ == NULL;
@@ -162,7 +162,7 @@ public:
     PageWrapper(const PageType* page): page_(page) {}
     PageWrapper(): page_(NULL) {}
 
-    virtual ~PageWrapper() throw()  {}
+    virtual ~PageWrapper() noexcept  {}
 
     virtual bool isNull() const {
         return page_ == NULL;

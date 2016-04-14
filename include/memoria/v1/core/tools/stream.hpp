@@ -31,8 +31,6 @@ struct InputStreamHandler {
     virtual Int available()                             = 0;
     virtual void close()                                = 0;
     virtual Int bufferSize()                            = 0;
-    virtual BigInt pos() const                          = 0;
-    virtual BigInt size() const                         = 0;
     virtual size_t read(void* mem, size_t offset, size_t length) = 0;
 
 
@@ -48,7 +46,7 @@ struct InputStreamHandler {
     virtual float readFloat()           = 0;
     virtual double readDouble()         = 0;
 
-    virtual ~InputStreamHandler() throw() {}
+    virtual ~InputStreamHandler() noexcept {}
 
     template <typename T>
     bool read(T &value) {
@@ -87,7 +85,6 @@ struct OutputStreamHandler {
     virtual Int bufferSize() = 0;
     virtual void flush() = 0;
     virtual void close() = 0;
-    virtual BigInt pos() = 0;
     virtual void write(const void* mem, size_t offset, size_t lenght) = 0;
 
     virtual void write(Byte value)      = 0;
@@ -102,20 +99,20 @@ struct OutputStreamHandler {
     virtual void write(float value)     = 0;
     virtual void write(double value)    = 0;
 
-    virtual ~OutputStreamHandler() throw() {}
+    virtual ~OutputStreamHandler() noexcept {}
 };
 
 class FileOutputStreamHandler: public OutputStreamHandler {
 public:
     static std::unique_ptr<FileOutputStreamHandler> create(const char* file);
 
-    virtual ~FileOutputStreamHandler() throw() {}
+    virtual ~FileOutputStreamHandler() noexcept {}
 };
 
 class FileInputStreamHandler: public InputStreamHandler {
 public:
     static std::unique_ptr<FileInputStreamHandler> create(const char* file);
-    virtual ~FileInputStreamHandler() throw() {}
+    virtual ~FileInputStreamHandler() noexcept {}
 };
 
 
@@ -136,7 +133,7 @@ public:
         }
     }
 
-    virtual ~FileOutputStreamHandlerImpl() throw()
+    virtual ~FileOutputStreamHandlerImpl() noexcept
     {
         if (!closed_)
         {
@@ -144,9 +141,6 @@ public:
         }
     }
 
-    virtual BigInt pos() {
-        return ftell(fd_);
-    }
 
     virtual Int bufferSize() {return 0;}
 
@@ -262,11 +256,7 @@ public:
         }
     }
 
-    virtual BigInt size() const {
-        return size_;
-    }
-
-    virtual ~FileInputStreamHandlerImpl() throw()
+    virtual ~FileInputStreamHandlerImpl() noexcept
     {
         if (!closed_)
         {
@@ -285,11 +275,6 @@ public:
             closed_ = true;
         }
     }
-
-    virtual BigInt pos() const {
-        return ftello64(fd_);
-    }
-
 
 
     virtual size_t read(void* mem, size_t offset, size_t length)

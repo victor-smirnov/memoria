@@ -114,7 +114,7 @@ public:
 
     PageUpdateManager(CtrT& ctr): ctr_(ctr) {}
 
-    ~PageUpdateManager() throw()
+    ~PageUpdateManager() noexcept
     {
         for (Int c = 0; c < pages_.getSize(); c++)
         {

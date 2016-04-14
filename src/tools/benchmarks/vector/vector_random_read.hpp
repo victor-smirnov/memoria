@@ -56,7 +56,7 @@ public:
         average = 10;
     }
 
-    virtual ~VectorRandomReadBenchmark() throw() {}
+    virtual ~VectorRandomReadBenchmark() noexcept {}
 
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {

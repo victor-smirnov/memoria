@@ -95,7 +95,7 @@ public:
         MEMORIA_ADD_TEST(testClear);
     }
 
-    virtual ~PackedSearchableSequenceMiscTest() throw() {}
+    virtual ~PackedSearchableSequenceMiscTest() noexcept {}
 
     void testCreate()
     {

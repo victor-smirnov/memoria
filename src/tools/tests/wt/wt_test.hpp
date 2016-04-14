@@ -75,7 +75,7 @@ public:
 //        MEMORIA_ADD_TEST(testStore);
     }
 
-    virtual ~WTTest() throw() {}
+    virtual ~WTTest() noexcept {}
 
 
 

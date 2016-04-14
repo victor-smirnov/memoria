@@ -95,7 +95,7 @@ public:
         MEMORIA_ADD_TEST(runSelectBWTest);
     }
 
-    virtual ~PackedSearchableSequenceSelectTest() throw() {}
+    virtual ~PackedSearchableSequenceSelectTest() noexcept {}
 
 
 

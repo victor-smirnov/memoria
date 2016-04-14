@@ -507,7 +507,7 @@ public:
     Ctr(const MyType& other) = delete;
     Ctr(MyType&& other) = delete;
 
-    virtual ~Ctr() throw()
+    virtual ~Ctr() noexcept
     {}
 
     void initLogger(Logger* other)

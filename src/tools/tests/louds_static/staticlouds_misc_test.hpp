@@ -39,7 +39,7 @@ public:
     StaticLoudsMiscTest(): StaticLoudsTestBase("Misc")
     {}
 
-    virtual ~StaticLoudsMiscTest() throw() {}
+    virtual ~StaticLoudsMiscTest() noexcept {}
 };
 
 

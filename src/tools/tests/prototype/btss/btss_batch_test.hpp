@@ -119,7 +119,7 @@ public:
         return iteration_;
     }
 
-    virtual ~BTSSBatchTest() throw() {}
+    virtual ~BTSSBatchTest() noexcept {}
 
     virtual MemBuffer createRandomBuffer(Int size)
     {

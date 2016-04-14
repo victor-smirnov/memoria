@@ -41,7 +41,7 @@ public:
     PackedLoudsTestBase(StringRef name): TestTask(name)
     {}
 
-    virtual ~PackedLoudsTestBase() throw() {}
+    virtual ~PackedLoudsTestBase() noexcept {}
 
 
     void checkTreeStructure(

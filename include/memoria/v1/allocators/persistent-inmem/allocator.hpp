@@ -602,7 +602,7 @@ public:
 
         allocator->snapshot_map_.clear();
 
-        BigInt size = input->size();
+//        BigInt size = input->size();
 
         HistoryTreeNodeMap      history_node_map;
         PersistentTreeNodeMap   ptree_node_map;
@@ -612,7 +612,9 @@ public:
 
         Checksum checksum;
 
-        while (input->pos() < size)
+        bool proceed = true;
+
+        while (proceed)
         {
             UByte type;
             *input >> type;
@@ -624,7 +626,7 @@ public:
                 case TYPE_LEAF_NODE:    allocator->read_leaf_node(*input, ptree_node_map); break;
                 case TYPE_BRANCH_NODE:  allocator->read_branch_node(*input, ptree_node_map); break;
                 case TYPE_HISTORY_NODE: allocator->read_history_node(*input, history_node_map); break;
-                case TYPE_CHECKSUM:     allocator->read_checksum(*input, checksum); break;
+                case TYPE_CHECKSUM:     allocator->read_checksum(*input, checksum); proceed = false; break;
                 default:
                     throw Exception(MA_SRC, SBuf()<<"Unknown record type: "<<(Int)type);
             }

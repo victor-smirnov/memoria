@@ -67,7 +67,7 @@ public:
         MEMORIA_ADD_TEST(testFindBackwardFromEnd);
     }
 
-    virtual ~PackedTreeFindTest() throw() {}
+    virtual ~PackedTreeFindTest() noexcept {}
 
 
 

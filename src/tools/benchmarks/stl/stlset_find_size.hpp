@@ -50,7 +50,7 @@ public:
         average = 10;
     }
 
-    virtual ~StlSetSizeBenchmark() throw() {}
+    virtual ~StlSetSizeBenchmark() noexcept {}
 
     virtual void Prepare(BenchmarkParameters& params, ostream& out)
     {

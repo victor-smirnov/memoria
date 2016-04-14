@@ -41,7 +41,7 @@ public:
         MEMORIA_ADD_TEST(testRemoveAll);
     }
 
-    virtual ~PackedLoudsCreateTest() throw() {}
+    virtual ~PackedLoudsCreateTest() noexcept {}
 
 
     void testCreateRandom()

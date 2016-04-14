@@ -70,7 +70,7 @@ String getErrorMsg() {
 }
 
 
-File::FileListType::~FileListType() throw() {
+File::FileListType::~FileListType() noexcept {
     try {
         for (UInt c = 0; c < size(); c++) {
             delete operator [](c);

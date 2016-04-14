@@ -82,7 +82,7 @@ public:
         MEMORIA_ADD_TEST_PARAM(iterations_);
     }
 
-    virtual ~PackedSearchableSequenceTestBase() throw() {}
+    virtual ~PackedSearchableSequenceTestBase() noexcept {}
 
     SeqPtr createEmptySequence(Int block_size = 1024*1024)
     {
