@@ -340,10 +340,15 @@ public:
                         typename ContainerTypes::VariableLeafContainerPartsList
     >;
 
+    using CtrExtensionsList  = typename ContainerExtensionsTF<Profile, ContainerTypeName_>::Type;
+    using IterExtensionsList = typename IteratorExtensionsTF<Profile, ContainerTypeName_>::Type;
+
     using CtrList = MergeLists<
             typename ContainerTypes::ContainerPartsList,
-            MergeLists<CtrListLeaf, CtrListBranch, typename ContainerTypes::CommonContainerPartsList>
+            MergeLists<CtrExtensionsList, CtrListLeaf, CtrListBranch, typename ContainerTypes::CommonContainerPartsList>
     >;
+
+    using IterList = MergeLists<IterExtensionsList, typename ContainerTypes::IteratorPartsList>;
 
 
 public:
@@ -359,7 +364,7 @@ public:
         typedef NodePageBase0G                                                  NodeBaseG;
 
         typedef typename MyType::CtrList                                        CtrList;
-        typedef typename ContainerTypes::IteratorPartsList                      IterList;
+        typedef typename MyType::IterList                      					IterList;
 
         // FIXME Refactor BTree hierarchy
         // Use container types as base definitions
@@ -368,7 +373,7 @@ public:
 
         static const Int Streams                                                = MyType::Streams;
 
-        typedef BranchNodeEntry_                                                    BranchNodeEntry;
+        typedef BranchNodeEntry_                                                BranchNodeEntry;
 
         using Position  = Position_;
         using CtrSizesT = Position_;

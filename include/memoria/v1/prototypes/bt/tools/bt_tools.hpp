@@ -37,7 +37,7 @@
 
 namespace memoria {
 namespace v1 {
-namespace bt        {
+namespace bt {
 
 template <Int StreamIdx> struct StreamTag {};
 
@@ -428,6 +428,17 @@ public:
     }
 };
 
+
+
+template <typename Profile, typename CtrName>
+struct ContainerExtensionsTF {
+	using Type = TL<>;
+};
+
+template <typename Profile, typename CtrName>
+struct IteratorExtensionsTF {
+	using Type = TL<>;
+};
 
 
 }
