@@ -177,11 +177,9 @@ struct Table        {};
 
 
 
-template <typename Key, Int Indexes = 1>
-using Set = Map<Key, EmptyValue>;
+template <typename Key>
+struct Set			{};
 
-typedef Set<BigInt, 1>       Set1;
-typedef Set<BigInt, 2>       Set2;
 
 
 template <typename T>

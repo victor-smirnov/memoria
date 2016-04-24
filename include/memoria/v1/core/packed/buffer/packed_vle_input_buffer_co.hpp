@@ -21,6 +21,8 @@
 
 #include <memoria/v1/core/packed/array/packed_vle_array_base.hpp>
 
+#include <memoria/v1/core/tools/assert.hpp>
+
 namespace memoria {
 namespace v1 {
 
@@ -329,6 +331,24 @@ public:
         }
 
         return sizes;
+    }
+
+    void fill(const ValueData* data, Int size, const SizesT& data_size)
+    {
+    	auto meta = this->metadata();
+
+    	meta->size() = size;
+
+    	size_t acc = 0;
+
+    	for (Int blk = 0; blk < Blocks; blk++)
+    	{
+    		meta->data_size(blk) = data_size[blk];
+    		auto size 			 = data_size[blk];
+
+    		CopyBuffer(data + acc, this->values(blk), size);
+    		acc += size;
+    	}
     }
 
 

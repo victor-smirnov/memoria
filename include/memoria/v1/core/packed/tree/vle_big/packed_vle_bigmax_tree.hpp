@@ -670,12 +670,11 @@ public:
 
     SizesT insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, Int size)
     {
-        auto meta = this->metadata();
+    	auto meta = this->metadata();
 
         Codec codec;
 
         SizesT total_lengths = ends - starts;
-
 
         auto values = this->values();
 
@@ -696,7 +695,7 @@ public:
 
     void insert_buffer(Int pos, const InputBuffer* buffer, Int start, Int size)
     {
-        Codec codec;
+    	Codec codec;
 
         SizesT starts = buffer->positions(start);
         SizesT ends   = buffer->positions(start + size);
@@ -1173,6 +1172,39 @@ public:
 
             pos += len;
         }
+    }
+
+    template <typename ConsumerFn>
+    Int describe(Int block, Int start, Int end, ConsumerFn&& fn) const
+    {
+        auto meta = this->metadata();
+
+        MEMORIA_V1_ASSERT(start, >=, 0);
+        MEMORIA_V1_ASSERT(start, <=, end);
+        MEMORIA_V1_ASSERT(end, <=, meta->size());
+
+        auto values         = this->values();
+        TreeLayout layout   = compute_tree_layout(meta->data_size());
+        size_t pos          = locate(layout, values, start).idx;
+        size_t data_size    = meta->data_size();
+
+        Codec codec;
+
+        Int c;
+        for (c = start; c < end && pos < data_size; c++)
+        {
+            auto descr = codec.describe(values, pos);
+            if (fn(block, descr))
+            {
+            	fn.next();
+            	pos += descr.length();
+            }
+            else {
+            	return c - start;
+            }
+        }
+
+        return end - start;
     }
 
 

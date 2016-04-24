@@ -16,7 +16,7 @@
 include_directories(../tools/include)
 
 if (NOT DEFINED MEMORIA_SANDBOX)
-    set(MEMORIA_SANDBOX ltree)
+    set(MEMORIA_SANDBOX set)
 endif()
 
 

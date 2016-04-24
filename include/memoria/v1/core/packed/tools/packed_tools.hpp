@@ -281,8 +281,8 @@ namespace {
         MultiValueFNHelper(Fn fn, Next next): fn_(fn), next_(next) {}
 
         template <typename V>
-        void operator()(Int block, V&& value) {
-            fn_(block, std::forward<V>(value));
+        auto operator()(Int block, V&& value) {
+            return fn_(block, std::forward<V>(value));
         }
 
         void next() {
@@ -298,8 +298,8 @@ namespace {
         MultiValueFNHelper1(Fn fn): fn_(fn){}
 
         template <typename V>
-        void operator()(Int block, V&& value) {
-            fn_(block, std::forward<V>(value));
+        auto operator()(Int block, V&& value) {
+            return fn_(block, std::forward<V>(value));
         }
 
         void next() {}

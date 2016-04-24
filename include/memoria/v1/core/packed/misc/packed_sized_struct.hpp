@@ -201,6 +201,12 @@ public:
         return size;
     }
 
+
+    void fill(Int size)
+    {
+    	this->size_ += size;
+    }
+
     // =================================== Update ========================================== //
 
     void reindex() {}

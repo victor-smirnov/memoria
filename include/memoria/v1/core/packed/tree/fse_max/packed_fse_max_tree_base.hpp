@@ -17,7 +17,7 @@
 #pragma once
 
 #include <memoria/v1/core/packed/tree/fse_max/packed_fse_max_tree_base_base.hpp>
-
+#include <memoria/v1/core/tools/assert.hpp>
 
 namespace memoria {
 namespace v1 {

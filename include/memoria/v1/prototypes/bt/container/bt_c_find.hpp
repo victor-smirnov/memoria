@@ -82,14 +82,14 @@ protected:
 
 
     template <typename LeafPath>
-    IteratorPtr find_ge(Int index, TargetType<LeafPath> key)
+    IteratorPtr find_ge(Int index, const TargetType<LeafPath>& key)
     {
         typename Types::template FindGEForwardWalker<Types, LeafPath> walker(index, key);
         return self().find_(walker);
     }
 
     template <typename LeafPath>
-    IteratorPtr find_max_ge(Int index, TargetType<LeafPath> key)
+    IteratorPtr find_max_ge(Int index, const TargetType<LeafPath> key)
     {
         typename Types::template FindMaxGEWalker<Types, LeafPath> walker(index, key);
         return self().find_(walker);

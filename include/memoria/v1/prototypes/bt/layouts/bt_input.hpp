@@ -547,6 +547,22 @@ public:
         return fn.sizes.min();
     }
 
+    struct FillBufferFn {
+        template <Int Idx, typename StreamObj, typename BufferProvider>
+        void stream(StreamObj* stream, BufferProvider&& buffer)
+        {
+        	buffer->fill(StreamTag<InputBufferStreamIdx>(), StreamTag<Idx>(), stream);
+        }
+    };
+
+    template <typename... Args>
+    void fill_buffer(Args&&... args)
+    {
+        FillBufferFn fn;
+        Dispatcher::dispatchAll(allocator(), fn, std::forward<Args>(args)...);
+    }
+
+
 
     template <typename Fn, typename... Args>
     auto process(Int stream, Fn&& fn, Args&&... args) const

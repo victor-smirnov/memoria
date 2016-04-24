@@ -33,6 +33,20 @@ namespace btss      {
 using bt::LeafNode;
 using bt::StreamTag;
 
+class BTSSBufferStatus {
+	Int size_;
+	bool buffer_filled_;
+	bool finished_;
+public:
+	BTSSBufferStatus(Int size = 0, bool buffer_filled = false, bool finished = false):
+		size_(size), buffer_filled_(buffer_filled), finished_(finished)
+	{}
+
+	Int size() const {return size_;}
+	bool is_buffer_filled() const {return buffer_filled_;}
+	bool is_finished() const {return finished_;}
+};
+
 template <typename CtrT>
 class AbstractBTSSInputProviderBase {
 

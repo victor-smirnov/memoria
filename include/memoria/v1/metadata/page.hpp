@@ -22,6 +22,7 @@
 
 #include <memoria/v1/core/tools/bignum/bigint.hpp>
 #include <memoria/v1/core/tools/strings/string.hpp>
+#include <memoria/v1/core/tools/bytes/bytes.hpp>
 
 #include <tuple>
 
@@ -80,6 +81,7 @@ struct IPageDataEventHandler {
 
     virtual void value(const char* name, const BigInteger* value, Int count = 1, Int kind = 0)  = 0;
     virtual void value(const char* name, const String* value, Int count = 1, Int kind = 0)      = 0;
+    virtual void value(const char* name, const Bytes* value, Int count = 1, Int kind = 0)       = 0;
 
     virtual void symbols(const char* name, const UBigInt* value, Int count, Int bits_per_symbol)    = 0;
     virtual void symbols(const char* name, const UByte* value, Int count, Int bits_per_symbol)      = 0;
@@ -470,6 +472,16 @@ public:
         else {
             OutNumber(name, value, count, kind);
         }
+    }
+
+    virtual void value(const char* name, const Bytes* value, Int count = 1, Int kind = 0) {
+    	if (kind == BYTE_ARRAY)
+    	{
+    		v1::dumpArray<Bytes>(out_, count, [=](Int idx){return value[idx];});
+    	}
+    	else {
+    		OutNumber(name, value, count, kind);
+    	}
     }
 
 
