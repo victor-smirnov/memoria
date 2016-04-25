@@ -21,6 +21,7 @@
 
 #include <memory>
 #include <algorithm>
+#include <iomanip>
 
 #include <stdlib.h>
 
@@ -207,10 +208,10 @@ std::ostream& operator<<(std::ostream& out, const RawData<T>& val)
 		std::ios  state(nullptr);
 		state.copyfmt(out);
 
-		out<<setbase(16);
+		out<<std::setbase(16);
 		for (size_t c = 0; c < val.size(); c++)
 		{
-			out<<setw(sizeof(T) * 2)<<setfill('0');
+			out<<std::setw(sizeof(T) * 2)<<setfill('0');
 			out << (UBigInt)val[c];
 		}
 

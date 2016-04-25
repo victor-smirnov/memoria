@@ -37,7 +37,10 @@
 #include <memoria/v1/core/packed/array/packed_vle_dense_array.hpp>
 #include <memoria/v1/core/packed/misc/packed_sized_struct.hpp>
 
+#ifdef HAVE_BOOST
 #include <memoria/v1/core/tools/bignum/bigint.hpp>
+#endif
+
 #include <memoria/v1/core/tools/strings/string.hpp>
 #include <memoria/v1/core/tools/strings/string_codec.hpp>
 

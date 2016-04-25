@@ -20,7 +20,10 @@
 #include <memoria/v1/core/tools/dump.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
 
+#ifdef HAVE_BOOST
 #include <memoria/v1/core/tools/bignum/bigint.hpp>
+#endif
+
 #include <memoria/v1/core/tools/strings/string.hpp>
 #include <memoria/v1/core/tools/bytes/bytes.hpp>
 
@@ -79,7 +82,10 @@ struct IPageDataEventHandler {
     virtual void value(const char* name, const double* value, Int count = 1, Int kind = 0)      = 0;
     virtual void value(const char* name, const UUID* value, Int count = 1, Int kind = 0)        = 0;
 
+#ifdef HAVE_BOOST
     virtual void value(const char* name, const BigInteger* value, Int count = 1, Int kind = 0)  = 0;
+#endif
+
     virtual void value(const char* name, const String* value, Int count = 1, Int kind = 0)      = 0;
     virtual void value(const char* name, const Bytes* value, Int count = 1, Int kind = 0)       = 0;
 
@@ -453,6 +459,7 @@ public:
         }
     }
 
+#ifdef HAVE_BOOST
     virtual void value(const char* name, const BigInteger* value, Int count = 1, Int kind = 0) {
         if (kind == BYTE_ARRAY)
         {
@@ -462,6 +469,7 @@ public:
             OutNumber(name, value, count, kind);
         }
     }
+#endif
 
     virtual void value(const char* name, const String* value, Int count = 1, Int kind = 0)
     {

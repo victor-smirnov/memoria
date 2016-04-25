@@ -19,8 +19,11 @@
 #include "../../tests_inc.hpp"
 
 #include "packed_string_codec_test.hpp"
-#include "packed_biginteger_codec_test.hpp"
 #include "packed_int64t_codec_test.hpp"
+
+#ifdef HAVE_BOOST
+#include "packed_biginteger_codec_test.hpp"
+#endif
 
 namespace memoria {
 namespace v1 {
@@ -35,7 +38,10 @@ public:
     {
         registerTask(new PackedInt64TCodecTest("Int64T"));
         registerTask(new PackedStringCodecTest("String"));
+
+#ifdef HAVE_BOOST
         registerTask(new PackedBigIntegerCodecTest("BigInteger"));
+#endif
     }
 
 };

@@ -164,6 +164,7 @@ endif()
 
 if (EMIT_AST)
     if (NOT CLANG_COMPILER)
+        set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -DHAVE_BOOST")
         message(FATAL_ERROR "EMIT_AST is supported only for clang compiler")
     endif()
 endif()
@@ -173,13 +174,14 @@ set(Boost_USE_STATIC_LIBS        ON)
 set(Boost_USE_MULTITHREADED      ON)
 set(Boost_USE_STATIC_RUNTIME    OFF)
 find_package(Boost
-  1.60.0       
-  REQUIRED
+  1.60.0
 )   
 
 #COMPONENTS multiprecision # Boost libraries by their canonical name
 
-include_directories(${Boost_INCLUDE_DIRS})
+if (Boost_FOUND)
+    include_directories(${Boost_INCLUDE_DIRS})
+endif()
 
 set_property (GLOBAL PROPERTY GLOBAL_SOURCES)
 

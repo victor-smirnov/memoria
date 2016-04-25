@@ -35,7 +35,10 @@
 #include <memoria/v1/core/packed/misc/packed_sized_struct.hpp>
 #include <memoria/v1/core/packed/misc/packed_empty_struct.hpp>
 
+#ifdef HAVE_BOOST
 #include <memoria/v1/core/tools/bignum/bigint.hpp>
+#endif
+
 #include <memoria/v1/core/tools/strings/string.hpp>
 
 #include <memoria/v1/core/tools/i7_codec.hpp>
@@ -107,7 +110,9 @@ struct VLQBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
     static_assert(
             std::is_arithmetic<KeyType>::value ||
+#ifdef HAVE_BOOST
             std::is_same<KeyType, BigInteger>::value ||
+#endif
             std::is_same<KeyType, String>::value,
             "Only arithmetic types, BigNumber and String are supported for VLQBranchStructTF<>"
     );

@@ -28,7 +28,9 @@
 #include <memoria/v1/core/tools/elias_codec.hpp>
 #include <memoria/v1/core/tools/exint_codec.hpp>
 
+#ifdef HAVE_BOOST
 #include <memoria/v1/core/tools/bignum/cppint_codec.hpp>
+#endif
 
 namespace memoria {
 namespace v1 {
