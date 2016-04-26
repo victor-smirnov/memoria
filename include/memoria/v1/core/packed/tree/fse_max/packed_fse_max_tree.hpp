@@ -748,13 +748,9 @@ public:
 
         for (Int c = 0; c < index_size; c++)
         {
-            IndexValue indexes[Blocks];
-            for (Int block = 0; block < Blocks; block++)
-            {
-                indexes[block] = index[block][c];
-            }
-
-            handler->value("INDEX", indexes, Blocks);
+            handler->value("INDEX", PageValueProviderFactory::provider(Blocks, [&](Int idx) {
+            	return index[idx][c];
+            }));
         }
 
         handler->endGroup();
@@ -769,15 +765,11 @@ public:
             values[b] = this->values(b);
         }
 
-        for (Int idx = 0; idx < meta->size() ; idx++)
+        for (Int c = 0; c < meta->size(); c++)
         {
-            Value values_data[Blocks];
-            for (Int block = 0; block < Blocks; block++)
-            {
-                values_data[block] = values[block][idx];
-            }
-
-            handler->value("TREE_ITEM", values_data, Blocks);
+            handler->value("TREE_ITEM", PageValueProviderFactory::provider(Blocks, [&](Int idx) {
+            	return values[idx][c];
+            }));
         }
 
         handler->endGroup();

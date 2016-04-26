@@ -1078,7 +1078,9 @@ public:
                     size_indexes[c]
                 };
 
-                handler->value("INDEX", indexes, 2);
+                handler->value("INDEX", PageValueProviderFactory::provider(2, [&](Int idx) {
+                	return indexes[idx];
+                }));
             }
 
             handler->endGroup();
@@ -1110,7 +1112,9 @@ public:
                 positions[block] += len;
             }
 
-            handler->value("TREE_ITEM", values_data, Blocks);
+            handler->value("TREE_ITEM", PageValueProviderFactory::provider(Blocks, [&](Int b) {
+            	return values_data[b];
+            }));
         }
 
         handler->endGroup();

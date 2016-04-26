@@ -267,7 +267,9 @@ public:
 
             for (Int c = 0; c < size_; c++)
             {
-                handler->value("DATA_ITEM", values + c * Blocks, Blocks);
+                handler->value("DATA_ITEM", PageValueProviderFactory::provider(Blocks, [&](Int idx) {
+                   	return values + c * Blocks + idx;
+                }));
             }
         }
 

@@ -36,6 +36,80 @@ void Expand(ostream& os, Int level)
 }
 
 
+size_t max_width(const PageDataValueProvider& provider)
+{
+    size_t max = 0;
+
+    for (Int c = 0; c < provider.size(); c++)
+    {
+        auto str = provider.value(c);
+
+        auto len = str.length();
+
+        if (len > max)
+        {
+            max = len;
+        }
+    }
+
+    return max;
+}
+
+
+void dumpPageDataValueProviderAsArray(std::ostream& out, const PageDataValueProvider& provider)
+{
+    auto width = max_width(provider) + 1;
+
+    if (width < 3) width = 3;
+
+    Int columns;
+
+    if (width <= 3) {
+    	columns = 32;
+    }
+    else if (width <= 7) {
+    	columns = 16;
+    }
+    else {
+    	columns = (80 / width > 0 ? 80 / width : 1);
+    }
+
+    out << endl;
+    Expand(out, 28);
+    for (int c = 0; c < columns; c++)
+    {
+        out.width(width);
+        out << c;
+    }
+
+    out << dec << endl;
+
+    for (Int c = 0; c < provider.size(); c+= columns)
+    {
+        Expand(out, 12);
+        out << " ";
+        out.width(6);
+        out << dec << c << " " << hex;
+        out.width(6);
+        out << c << ": ";
+
+        Int d;
+        for (d = 0; d < columns && c + d < provider.size(); d++)
+        {
+            stringstream ss;
+
+            ss << provider.value(c + d);
+
+            out.width(width);
+            out<<ss.str();
+        }
+
+        out << endl;
+    }
+}
+
+
+
 
 
 void dumpPage(PageMetadata* meta, const Page* page, std::ostream& out)
@@ -52,6 +126,10 @@ void dumpPageData(PageMetadata* meta, const void* page, std::ostream& out)
 
     meta->getPageOperations()->generateDataEvents(page, DataEventsParams(), &dumper);
 }
+
+
+
+
 
 
 }}

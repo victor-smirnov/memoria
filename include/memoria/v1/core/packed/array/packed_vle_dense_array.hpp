@@ -1017,11 +1017,7 @@ public:
 
             for (Int c = 0; c < index_size; c++)
             {
-                BigInt indexes[] = {
-                    size_indexes[c]
-                };
-
-                handler->value("INDEX", indexes, 1);
+            	handler->value("INDEX", PageValueProviderFactory::provider(size_indexes[c]));
             }
 
             handler->endGroup();
@@ -1052,7 +1048,9 @@ public:
                 positions[block] += len;
             }
 
-            handler->value("TREE_ITEM", values_data, Blocks);
+            handler->value("ARRAY_ITEM", PageValueProviderFactory::provider(Blocks, [&](Int idx) {
+            	return values_data[idx];
+            }));
         }
 
         handler->endGroup();

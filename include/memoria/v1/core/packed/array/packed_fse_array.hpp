@@ -625,7 +625,15 @@ public:
 
         handler->startGroup("DATA", size_);
 
-        ValueHelper<Value>::setup(handler, "DATA_ITEM", buffer_, size_ * Blocks, IPageDataEventHandler::BYTE_ARRAY);
+        if (sizeof(Value) == 1)
+        {
+        	ValueHelper<Value>::setup(handler, "DATA_ITEMS", buffer_, size_ * Blocks, IPageDataEventHandler::BYTE_ARRAY);
+        }
+        else {
+        	handler->value("DATA_ITEMS", PageValueProviderFactory::provider(size_ * Blocks, [&](Int idx) {
+        		return buffer_ + idx;
+        	}));
+        }
 
         handler->endGroup();
 

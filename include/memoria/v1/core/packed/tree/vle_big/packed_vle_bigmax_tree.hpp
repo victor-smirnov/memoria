@@ -957,7 +957,7 @@ public:
             auto len = codec.decode(values, value, position);
             position += len;
 
-            handler->value("TREE_ITEM", &value);
+            handler->value("TREE_ITEM", PageValueProviderFactory::provider(value));
         }
 
         handler->endGroup();

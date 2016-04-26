@@ -641,7 +641,9 @@ public:
                 positions[block] += len;
             }
 
-            handler->value("ARRAY_ITEM", values_data, Blocks);
+            handler->value("ARRAY_ITEM", PageValueProviderFactory::provider(Blocks, [&](Int idx) {
+               	return values_data[idx];
+            }));
         }
 
         handler->endGroup();
