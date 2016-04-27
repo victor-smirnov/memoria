@@ -463,6 +463,8 @@ public:
 
     InputValue input_value_buffer_[INPUT_END];
 
+    CtrSizeT one_ = 1;
+
 public:
     IteratorBTSSInputProvider(CtrT& ctr, InputIterator start, InputIterator end, Int capacity = 10000):
         Base(ctr, capacity),
@@ -494,8 +496,8 @@ public:
         return -1;
     }
 
-    auto buffer(StreamTag<0>, StreamTag<0>, Int idx, Int block) {
-        return CtrSizeT();
+    const auto& buffer(StreamTag<0>, StreamTag<0>, Int idx, Int block) {
+        return one_;
     }
 
     const auto& buffer(StreamTag<0>, StreamTag<1>, Int idx, Int block) {
@@ -633,13 +635,16 @@ public:
 
     using typename Base::CtrSizeT;
 
+private:
+    CtrSizeT one_ = 1;
+
 public:
     BTSSIteratorInputProvider(CtrT& ctr, const InputIterator& start, const InputIterator& end, Int capacity = 10000):
         Base(ctr, start, end, capacity)
     {}
 
-    auto buffer(StreamTag<0>, StreamTag<0>, Int idx, Int block) {
-        return CtrSizeT();
+    const auto& buffer(StreamTag<0>, StreamTag<0>, Int idx, Int block) {
+        return one_;
     }
 
     const auto& buffer(StreamTag<0>, StreamTag<1>, Int idx, Int block) {

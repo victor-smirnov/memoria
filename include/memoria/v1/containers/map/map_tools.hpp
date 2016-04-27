@@ -165,14 +165,15 @@ class MapEntryIteratorInputProvider: public v1::btss::AbstractIteratorBTSSInputP
 public:
 
     using typename Base::CtrSizeT;
-
+private:
+    CtrSizeT zero_;
 public:
     MapEntryIteratorInputProvider(CtrT& ctr, const InputIterator& start, const InputIterator& end, Int capacity = 10000):
-        Base(ctr, start, end, capacity)
+        Base(ctr, start, end, capacity), zero_()
     {}
 
-    auto buffer(StreamTag<0>, StreamTag<0>, Int idx, Int block) {
-        return CtrSizeT();
+    const auto& buffer(StreamTag<0>, StreamTag<0>, Int idx, Int block) {
+        return zero_;
     }
 
     const auto& buffer(StreamTag<0>, StreamTag<1>, Int idx, Int block) {

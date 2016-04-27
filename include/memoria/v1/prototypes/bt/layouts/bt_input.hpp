@@ -465,7 +465,7 @@ public:
         template <Int Idx, typename StreamObj, typename Tuple>
         void stream(StreamObj* stream, Tuple&& tuple)
         {
-            sizes[Idx] = stream->append(1, [&](Int block, Int idx){
+            sizes[Idx] = stream->append(1, [&](Int block, Int idx) -> const auto& {
                 return std::get<Idx>(tuple)[block];
             });
         }
@@ -473,7 +473,7 @@ public:
         template <Int Idx, typename StreamObj, typename Tuple>
         void stream(StreamObj* stream, Tuple&& tuples, Int start, Int size)
         {
-            sizes[Idx] = stream->append(size, [&](Int block, Int idx){
+            sizes[Idx] = stream->append(size, [&](Int block, Int idx) -> const auto& {
                 return std::get<Idx>(tuples[start + idx]) [block];
             });
         }
@@ -485,7 +485,7 @@ public:
             Int size  = buffer.size();
             auto data = buffer.buffer();
 
-            sizes[Idx] = stream->append(size, [&](Int block, Int idx){
+            sizes[Idx] = stream->append(size, [&](Int block, Int idx) -> const auto& {
                 return std::get<Idx>(data[start + idx])[block];
             });
         }
@@ -502,7 +502,7 @@ public:
             Int size  = buffer.size();
             const auto& data = buffer.buffer();
 
-            sizes[Idx] = stream->append(size, [&](Int block, Int idx){
+            sizes[Idx] = stream->append(size, [&](Int block, Int idx) -> const auto& {
                 return std::get<Idx>(data[start + idx])[block];
             });
         }
@@ -533,7 +533,7 @@ public:
         template <Int Idx, typename StreamObj, typename BufferProvider>
         void stream(StreamObj* stream, BufferProvider&& buffer, Int start, Int size)
         {
-            sizes[Idx] = stream->append(size, [&](Int block, Int idx) {
+            sizes[Idx] = stream->append(size, [&](Int block, Int idx) -> const auto& {
                 return buffer->buffer(StreamTag<InputBufferStreamIdx>(), StreamTag<Idx>(), start + idx, block);
             });
         }

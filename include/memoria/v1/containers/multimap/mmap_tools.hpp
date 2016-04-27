@@ -74,6 +74,8 @@ class MMapAdaptor<Ctr, Key, Value, std::vector<std::pair<Key, std::vector<Value>
 
     const Value* values_;
 
+    BigInt one_ = 1;
+
 public:
     MMapAdaptor(const Data& data): Base(), data_(data), values_() {
         this->init();
@@ -89,19 +91,19 @@ public:
         return data_[path[0]].second.size();
     }
 
-    auto buffer(StreamTag<0>, StreamTag<0>, const CtrSizesT& pos, Int block) {
-        return 1;
+    const auto& buffer(StreamTag<0>, StreamTag<0>, const CtrSizesT& pos, Int block) {
+        return one_;
     }
 
-    auto buffer(StreamTag<0>, StreamTag<1>, const CtrSizesT& pos, Int block) {
+    const auto& buffer(StreamTag<0>, StreamTag<1>, const CtrSizesT& pos, Int block) {
         return data_[pos[0]].first;
     }
 
-    auto buffer(StreamTag<1>, StreamTag<0>, BigInt pos, Int block) {
-        return 1;
+    const auto& buffer(StreamTag<1>, StreamTag<0>, BigInt pos, Int block) {
+    	return one_;
     }
 
-    auto buffer(StreamTag<1>, StreamTag<1>, BigInt pos, Int block) {
+    const auto& buffer(StreamTag<1>, StreamTag<1>, BigInt pos, Int block) {
         return values_[pos];
     }
 };
@@ -138,6 +140,8 @@ class MMapValueAdaptor<Ctr, Value, std::vector<Value>>:
     const Data& data_;
     const Value* values_;
 
+    CtrSizeT zero_ = 0;
+
 public:
     MMapValueAdaptor(const Data& data): Base(1), data_(data), values_() {
         this->init();
@@ -153,19 +157,19 @@ public:
         return data_.size();
     }
 
-    auto buffer(StreamTag<0>, StreamTag<0>, const CtrSizesT& pos, Int block) {
-        return CtrSizeT();
+    const auto& buffer(StreamTag<0>, StreamTag<0>, const CtrSizesT& pos, Int block) {
+        return zero_;
     }
 
-    auto buffer(StreamTag<0>, StreamTag<1>, const CtrSizesT& pos, Int block) {
-        return CtrSizeT();
+    const auto& buffer(StreamTag<0>, StreamTag<1>, const CtrSizesT& pos, Int block) {
+        return zero_;
     }
 
-    auto buffer(StreamTag<1>, StreamTag<0>, BigInt pos, Int block) {
-        return CtrSizeT();
+    const auto& buffer(StreamTag<1>, StreamTag<0>, BigInt pos, Int block) {
+        return zero_;
     }
 
-    auto buffer(StreamTag<1>, StreamTag<1>, BigInt pos, Int block) {
+    const auto& buffer(StreamTag<1>, StreamTag<1>, BigInt pos, Int block) {
         return values_[pos];
     }
 };
@@ -198,8 +202,11 @@ class MMapKeyAdaptor<Ctr, Key, std::vector<Key>>:
 
     const Key* keys_;
 
+    CtrSizeT zero_ = 0;
+    Value val_;
+
 public:
-    MMapKeyAdaptor(const Data& data): Base(), data_(data), keys_(data.data()) {
+    MMapKeyAdaptor(const Data& data): Base(), data_(data), keys_(data.data()), val_() {
         this->init();
     }
 
@@ -212,20 +219,20 @@ public:
         return 0;
     }
 
-    auto buffer(StreamTag<0>, StreamTag<0>, const CtrSizesT& pos, Int block) {
-        return CtrSizeT();
+    const auto& buffer(StreamTag<0>, StreamTag<0>, const CtrSizesT& pos, Int block) {
+        return zero_;
     }
 
-    auto buffer(StreamTag<0>, StreamTag<1>, const CtrSizesT& pos, Int block) {
+    const auto& buffer(StreamTag<0>, StreamTag<1>, const CtrSizesT& pos, Int block) {
         return keys_[pos[0]];
     }
 
-    auto buffer(StreamTag<1>, StreamTag<0>, BigInt pos, Int block) {
-        return CtrSizeT();
+    const auto& buffer(StreamTag<1>, StreamTag<0>, BigInt pos, Int block) {
+        return zero_;
     }
 
-    auto buffer(StreamTag<1>, StreamTag<1>, BigInt pos, Int block) {
-        return Value();
+    const auto& buffer(StreamTag<1>, StreamTag<1>, BigInt pos, Int block) {
+        return val_;
     }
 };
 
