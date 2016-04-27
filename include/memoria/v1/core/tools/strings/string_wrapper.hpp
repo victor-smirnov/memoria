@@ -54,7 +54,6 @@ public:
 			data_ = data;
 		}
 		else {
-			DebugCounter1++;
 			CharT* tmp = T2T<CharT*>(malloc(length_));
 
 			if (!tmp)
@@ -114,8 +113,6 @@ public:
 		{
 			::free(const_cast<CharT*>(data_));
 		}
-
-		DebugCounter2++;
 
 		CharT* tmp = T2T<CharT*>(malloc(other.length_));
 
