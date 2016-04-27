@@ -75,13 +75,15 @@ public:
 
     	Int symbol_;
 
+    	CtrSizeT one_ = 1;
+
     	InsertSymbolFn(Int symbol): symbol_(symbol) {}
 
-    	auto get(StreamTag<0>, StreamTag<0>, Int block) const {
-    		return 1;
+    	const auto& get(StreamTag<0>, StreamTag<0>, Int block) const {
+    		return one_;
     	}
 
-    	auto get(StreamTag<0>, StreamTag<1>, Int block) const {
+    	const auto& get(StreamTag<0>, StreamTag<1>, Int block) const {
     		return symbol_;
     	}
     };
@@ -89,7 +91,7 @@ public:
 
     void insert_symbol(Int symbol)
     {
-        MEMORIA_V1_ASSERT(symbol, <, Symbols);
+        MEMORIA_V1_ASSERT(symbol, <, (Int)Symbols);
 
         auto& self  = this->self();
         auto& ctr   = self.ctr();

@@ -272,6 +272,14 @@ public:
         }
     }
 
+    StaticVector(MyType&& other)
+    {
+    	for (Int c = 0; c < Indexes; c++)
+    	{
+    		values_[c] = std::move(other.values_[c]);
+    	}
+    }
+
     static MyType create(Int idx, const ElementType& value)
     {
         check(idx);
@@ -608,6 +616,16 @@ public:
         for (Int c = 0; c < Indexes; c++)
         {
             values_[c] = other.values_[c];
+        }
+
+        return *this;
+    }
+
+    MyType& operator=(MyType&& other)
+    {
+        for (Int c = 0; c < Indexes; c++)
+        {
+            values_[c] = std::move(other.values_[c]);
         }
 
         return *this;

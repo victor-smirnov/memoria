@@ -76,7 +76,7 @@ protected:
         >
         void stream(SubstreamType* obj, BranchNodeEntryItem& accum, Int idx, const Entry& entry)
         {
-            obj->template _insert_b<Offset>(idx, accum, [&](Int block){
+            obj->template _insert_b<Offset>(idx, accum, [&](Int block) -> const auto& {
                 return entry.get(StreamTag<Stream>(), StreamTag<Idx>(), block);
             });
         }
@@ -91,7 +91,7 @@ protected:
 
 
     template <Int Stream, typename Entry>
-    std::tuple<bool, BranchNodeEntry> try_insert_stream_entry(Iterator& iter, const Entry& entry)
+    std::tuple<bool> try_insert_stream_entry(Iterator& iter, const Entry& entry)
     {
         auto& self = this->self();
 
@@ -101,10 +101,10 @@ protected:
         {
             BranchNodeEntry accum;
             LeafDispatcher::dispatch(iter.leaf(), InsertStreamEntryFn<Stream>(), iter.idx(), accum, entry);
-            return std::make_tuple(true, accum);
+            return std::make_tuple(true);
         }
         else {
-            return std::tuple<bool, BranchNodeEntry>(false, BranchNodeEntry());
+            return std::tuple<bool>(false);
         }
     }
 

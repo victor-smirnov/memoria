@@ -664,7 +664,7 @@ public:
     template <typename T>
     void insert(Int idx, const core::StaticVector<T, Blocks>& values)
     {
-        this->_insert(idx, 1, [&](Int block, Int idx){
+        this->_insert(idx, 1, [&](Int block, Int idx) -> const auto& {
             return values[block];
         });
     }
@@ -698,7 +698,7 @@ public:
 
             for (SizeT c = 0; c < inserted; c++)
             {
-                auto value = adaptor(block, c);
+                const auto& value = adaptor(block, c);
                 auto len = codec.length(value);
 
                 total_lengths[block] += len;
@@ -721,7 +721,7 @@ public:
 
             for (Int c = 0; c < inserted; c++)
             {
-                auto value = adaptor(block, c);
+                const auto& value = adaptor(block, c);
                 auto len = codec.encode(values, value, insertion_pos);
                 insertion_pos += len;
             }
@@ -866,7 +866,7 @@ public:
 
             for (Int c = 0; c < size; c++)
             {
-                auto value = adaptor(block, c);
+                const auto& value = adaptor(block, c);
                 auto len = codec.encode(values, value, insertion_pos);
                 insertion_pos += len;
             }
@@ -969,7 +969,7 @@ public:
                     Value old_value;
                     auto len = codec.decode(values, old_value, data_start_tmp);
 
-                    auto new_value = update_fn(block, c, old_value);
+                    const auto& new_value = update_fn(block, c, old_value);
 
                     buffer[c - window_start] = new_value;
 
@@ -1047,7 +1047,7 @@ public:
 
         Value value;
         size_t old_length = codec.decode(values, value, insertion_pos);
-        auto new_value    = update_fn(block, value);
+        const auto& new_value    = update_fn(block, value);
 
         if (new_value != value)
         {
@@ -1092,7 +1092,7 @@ public:
     }
 
 
-    void addValue(Int block, Int idx, Value value)
+    void addValue(Int block, Int idx, const Value& value)
     {
         update_value(block, idx, [&](Int block, auto old_value){return value + old_value;});
     }
@@ -1247,7 +1247,7 @@ public:
     }
 
 
-    auto find_ge(Int block, IndexValue value) const
+    auto find_ge(Int block, const IndexValue& value) const
     {
         Int size = this->size();
         Int block_start = block * size;
@@ -1266,7 +1266,7 @@ public:
         }
     }
 
-    auto find_gt(Int block, IndexValue value) const
+    auto find_gt(Int block, const IndexValue& value) const
     {
         Int size = this->size();
         Int block_start = block * size;
@@ -1285,7 +1285,7 @@ public:
         }
     }
 
-    auto find_ge_fw(Int block, Int start, IndexValue value) const
+    auto find_ge_fw(Int block, Int start, const IndexValue& value) const
     {
         Int size = this->size();
         Int block_start = block * size;
@@ -1301,7 +1301,7 @@ public:
         }
     }
 
-    auto find_gt_fw(Int block, Int start, IndexValue value) const
+    auto find_gt_fw(Int block, Int start, const IndexValue& value) const
     {
         Int size = this->size();
         Int block_start = block * size;
@@ -1319,7 +1319,7 @@ public:
     }
 
 
-    auto find_ge_bw(Int block, Int start, IndexValue value) const
+    auto find_ge_bw(Int block, Int start, const IndexValue& value) const
     {
         Int size = this->size();
         Int block_start = block * size;
@@ -1335,7 +1335,7 @@ public:
         }
     }
 
-    auto find_gt_bw(Int block, Int start, IndexValue value) const
+    auto find_gt_bw(Int block, Int start, const IndexValue& value) const
     {
         Int size = this->size();
         Int block_start = block * size;
@@ -1380,46 +1380,46 @@ public:
 
 
 
-    auto findGTForward(Int block, Int start, IndexValue val) const
+    auto findGTForward(Int block, Int start, const IndexValue& val) const
     {
         return this->find_gt_fw(block, start, val);
     }
 
-    auto findGTForward(Int block, IndexValue val) const
+    auto findGTForward(Int block, const IndexValue& val) const
     {
         return this->find_gt(block, val);
     }
 
 
 
-    auto findGTBackward(Int block, Int start, IndexValue val) const
+    auto findGTBackward(Int block, Int start, const IndexValue& val) const
     {
         return this->find_gt_bw(block, start, val);
     }
 
-    auto findGTBackward(Int block, IndexValue val) const
+    auto findGTBackward(Int block, const IndexValue& val) const
     {
         return this->find_gt_bw(block, this->size() - 1, val);
     }
 
 
 
-    auto findGEForward(Int block, Int start, IndexValue val) const
+    auto findGEForward(Int block, Int start, const IndexValue& val) const
     {
         return this->find_ge_fw(block, start, val);
     }
 
-    auto findGEForward(Int block, IndexValue val) const
+    auto findGEForward(Int block, const IndexValue& val) const
     {
         return this->find_ge(block, val);
     }
 
-    auto findGEBackward(Int block, Int start, IndexValue val) const
+    auto findGEBackward(Int block, Int start, const IndexValue& val) const
     {
         return this->find_ge_bw(block, start, val);
     }
 
-    auto findGEBackward(Int block, IndexValue val) const
+    auto findGEBackward(Int block, const IndexValue& val) const
     {
         return this->find_ge_bw(block, this->size() - 1, val);
     }
@@ -1435,7 +1435,7 @@ public:
         Int idx() const {return idx_;}
     };
 
-    auto findForward(SearchType search_type, Int block, Int start, IndexValue val) const
+    auto findForward(SearchType search_type, Int block, Int start, const IndexValue& val) const
     {
         if (search_type == SearchType::GT)
         {
@@ -1446,7 +1446,7 @@ public:
         }
     }
 
-    auto findBackward(SearchType search_type, Int block, Int start, IndexValue val) const
+    auto findBackward(SearchType search_type, Int block, Int start, const IndexValue& val) const
     {
         if (search_type == SearchType::GT)
         {
@@ -1616,8 +1616,6 @@ public:
             out<<endl;
         }
     }
-
-
 };
 
 

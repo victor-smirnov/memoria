@@ -257,7 +257,7 @@ public:
     template <typename T>
     void setValues(Int idx, const core::StaticVector<T, Blocks>& values)
     {
-        update_values(idx, [&](Int block, auto old_value){return values[block];});
+        update_values(idx, [&](Int block, const auto& old_value) -> const auto& {return values[block];});
     }
 
 
@@ -462,7 +462,7 @@ public:
     template <Int Offset, Int Size, typename T2, template <typename, Int> class BranchNodeEntryItem, typename AccessorFn>
     void _insert_b(Int idx, BranchNodeEntryItem<T2, Size>& accum, AccessorFn&& values)
     {
-        this->_insert(idx, 1, [&](Int block, Int idx) {
+        this->_insert(idx, 1, [&](Int block, Int idx) -> const auto& {
             return values(block);
         });
 
@@ -597,7 +597,7 @@ public:
     template <typename T>
     void insert(Int idx, const core::StaticVector<T, 1>& values)
     {
-        this->_insert(idx, 1, [&](Int block, Int idx) {
+        this->_insert(idx, 1, [&](Int block, Int idx) -> const T& {
             return values[block];
         });
     }
@@ -627,7 +627,7 @@ public:
 
         for (SizeT c = 0; c < processed; c++)
         {
-            auto value  = adaptor(0, c);
+            const auto& value  = adaptor(0, c);
             auto len    = codec.length(value);
             total_lengths += len;
         }
@@ -646,7 +646,7 @@ public:
 
         for (Int c = 0; c < processed; c++)
         {
-            auto value = adaptor(0, c);
+            const auto& value = adaptor(0, c);
             auto len = codec.encode(values, value, insertion_pos);
             insertion_pos += len;
         }
@@ -789,7 +789,7 @@ public:
                 Value old_value;
                 auto len = codec.decode(values, old_value, data_start_tmp, data_size);
 
-                auto new_value = update_fn(0, c, old_value);
+                const auto& new_value = update_fn(0, c, old_value);
 
                 buffer[c - window_start] = new_value;
 
@@ -849,7 +849,7 @@ public:
 
         Value value;
         size_t old_length = codec.decode(values, value, insertion_pos, data_size);
-        auto new_value = update_fn(0, value);
+        const auto& new_value = update_fn(0, value);
 
         if (new_value != value)
         {
@@ -1123,7 +1123,7 @@ public:
         Int idx() const {return idx_;}
     };
 
-    auto findForward(SearchType search_type, Int block, Int start, Value val) const
+    auto findForward(SearchType search_type, Int block, Int start, const Value& val) const
     {
         if (search_type == SearchType::GT)
         {
@@ -1134,7 +1134,7 @@ public:
         }
     }
 
-    auto findForward(SearchType search_type, Int block, Value val) const
+    auto findForward(SearchType search_type, Int block, const Value& val) const
     {
         if (search_type == SearchType::GT)
         {
@@ -1242,7 +1242,7 @@ public:
 
 
     struct FindGEWalker {
-        Value target_;
+        const Value& target_;
         Int idx_ = 0;
     public:
         FindGEWalker(const Value& target): target_(target) {}
@@ -1265,7 +1265,7 @@ public:
     };
 
     struct FindGTWalker {
-        Value target_;
+        const Value& target_;
 
         Int idx_;
     public:
@@ -1811,7 +1811,7 @@ protected:
                 MEMORIA_V1_ASSERT(offsets_size, ==, Base::roundUpBytesToAlignmentBlocks(sizeof(OffsetsType)));
             }
 
-            MEMORIA_V1_ASSERT(meta->data_size(), <=, BranchingFactorV);
+            MEMORIA_V1_ASSERT(meta->data_size(), <=, (Int)BranchingFactorV);
         }
     }
 

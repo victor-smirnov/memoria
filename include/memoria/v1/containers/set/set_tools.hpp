@@ -105,15 +105,15 @@ struct SetBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 template <typename Key, typename CtrSizeT = BigInt>
 class KeyEntry {
     const Key& key_;
-
+    CtrSizeT zero_ = 0;
 public:
     KeyEntry(const Key& key): key_(key) {}
 
-    auto get(StreamTag<0>, StreamTag<0>, Int) const {
-        return 0;
+    const auto& get(StreamTag<0>, StreamTag<0>, Int) const {
+        return zero_;
     }
 
-    auto get(StreamTag<0>, StreamTag<1>, Int) const {
+    const auto& get(StreamTag<0>, StreamTag<1>, Int) const {
         return key_;
     }
 };

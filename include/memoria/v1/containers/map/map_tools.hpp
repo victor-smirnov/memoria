@@ -117,18 +117,20 @@ class KeyValueEntry {
     const Key& key_;
     const Value& value_;
 
+    CtrSizeT zero_ = 0;
+
 public:
     KeyValueEntry(const Key& key, const Value& value): key_(key), value_(value) {}
 
-    auto get(StreamTag<0>, StreamTag<0>, Int) const {
-        return 0;
+    const auto& get(StreamTag<0>, StreamTag<0>, Int) const {
+        return zero_;
     }
 
-    auto get(StreamTag<0>, StreamTag<1>, Int) const {
+    const auto& get(StreamTag<0>, StreamTag<1>, Int) const {
         return key_;
     }
 
-    auto get(StreamTag<0>, StreamTag<2>, Int) const {
+    const auto& get(StreamTag<0>, StreamTag<2>, Int) const {
         return value_;
     }
 };
@@ -139,7 +141,7 @@ class ValueBuffer {
 public:
     ValueBuffer(const T& value): value_(value) {}
 
-    auto get(StreamTag<0>, StreamTag<SubstreamIdx>, Int) const {
+    const auto& get(StreamTag<0>, StreamTag<SubstreamIdx>, Int) const {
         return value_;
     }
 };

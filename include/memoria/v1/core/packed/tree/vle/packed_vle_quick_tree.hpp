@@ -639,7 +639,7 @@ public:
     template <typename T>
     void insert(Int idx, const core::StaticVector<T, Blocks>& values)
     {
-        this->_insert(idx, 1, [&](Int block, Int idx) {
+        this->_insert(idx, 1, [&](Int block, Int idx) -> const auto& {
             return values[block];
         });
     }
@@ -667,7 +667,7 @@ public:
         {
             for (Int block = 0; block < Blocks; block++)
             {
-                auto value = adaptor(block, c);
+                const auto& value = adaptor(block, c);
                 auto len = codec.length(value);
                 total_lengths[block] += len;
             }
@@ -690,7 +690,7 @@ public:
 
             for (Int c = 0; c < processed; c++)
             {
-                auto value = adaptor(block, c);
+                const auto& value = adaptor(block, c);
                 auto len = codec.encode(values, value, insertion_pos);
                 insertion_pos += len;
             }
@@ -805,7 +805,7 @@ public:
 
             for (Int c = 0; c < size; c++)
             {
-                auto value = adaptor(block, c);
+                const auto& value = adaptor(block, c);
                 auto len = codec.encode(values, value, insertion_pos);
                 insertion_pos += len;
             }
@@ -942,16 +942,10 @@ public:
     template <typename UpdateFn>
     void update_value(Int block, Int start, UpdateFn&& update_fn)
     {
-        if(start >= this->size()) {
-//          this->dump();
-            cout<<"Update Value!"<<endl;
-            int a = 0; a++;
-        }
-
         MEMORIA_V1_ASSERT(start, <, this->size());
         MEMORIA_V1_ASSERT(start, >=, 0);
         MEMORIA_V1_ASSERT(block, >=, 0);
-        MEMORIA_V1_ASSERT(block, <=, Blocks);
+        MEMORIA_V1_ASSERT(block, <=, (Int)Blocks);
 
         Codec codec;
 
@@ -1023,7 +1017,6 @@ public:
 
         reindex();
     }
-
 
 
 

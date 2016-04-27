@@ -617,7 +617,7 @@ public:
         {
             for (Int block = 0; block < Blocks; block++)
             {
-                auto item = adaptor(block, c);
+                const auto& item = adaptor(block, c);
                 this->value(block, c + pos) = item;
             }
         }
@@ -631,7 +631,7 @@ public:
     {
         auto buffer_values = buffer->values() + starts[0] * Blocks;
 
-        _insert(at[0], inserted, [&](Int block, Int idx) {
+        _insert(at[0], inserted, [&](Int block, Int idx) -> const auto& {
             return buffer_values[idx * Blocks + block];
         });
 
@@ -642,7 +642,7 @@ public:
     {
         auto buffer_values = buffer->values() + start * Blocks;
 
-        _insert(at, inserted, [&](Int block, Int idx) {
+        _insert(at, inserted, [&](Int block, Int idx) -> const auto& {
             return buffer_values[idx * Blocks + block];
         });
     }
@@ -691,7 +691,7 @@ public:
     }
 
 
-    BigInt setValue(Int block, Int idx, Value value)
+    BigInt setValue(Int block, Int idx, const Value& value)
     {
         // FIXME: Why do we skip setting if value is zero
         if (value != 0)
@@ -729,7 +729,7 @@ public:
     }
 
 
-    void addValue(Int block, Int idx, Value value)
+    void addValue(Int block, Int idx, const Value& value)
     {
         if (value != 0)
         {

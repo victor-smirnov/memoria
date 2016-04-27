@@ -414,7 +414,7 @@ public:
 
     // ===================================== IO ============================================ //
 
-    void insert(Int pos, Value val)
+    void insert(Int pos, const Value& val)
     {
         insertSpace(pos, 1);
 
@@ -424,7 +424,7 @@ public:
         }
     }
 
-    void insert(Int block, Int pos, Value val)
+    void insert(Int block, Int pos, const Value& val)
     {
         insertSpace(pos, 1);
         value(block, pos) = val;
@@ -453,7 +453,7 @@ public:
         {
             for (Int block = 0; block < Blocks; block++)
             {
-                auto val = adaptor(block, c);
+                const auto& val = adaptor(block, c);
                 values[c * Blocks + block] = val;
             }
         }
@@ -523,7 +523,7 @@ public:
     template <Int Offset, typename Value, typename T, Int Size, template <typename, Int> class BranchNodeEntryItem>
     void _insert(Int pos, Value&& val, BranchNodeEntryItem<T, Size>& accum)
     {
-        _insert(pos, 1, [&](int block, int idx){
+        _insert(pos, 1, [&](int block, int idx) -> const auto& {
             return val[block];
         });
     }
@@ -531,7 +531,7 @@ public:
     template <Int Offset, typename T, Int Size, template <typename, Int> class BranchNodeEntryItem, typename AccessorFn>
     void _insert_b(Int pos, BranchNodeEntryItem<T, Size>& accum, AccessorFn&& val)
     {
-        _insert(pos, 1, [&](int block, int idx){
+        _insert(pos, 1, [&](int block, int idx) -> const auto& {
             return val(block);
         });
     }
@@ -630,8 +630,8 @@ public:
         	ValueHelper<Value>::setup(handler, "DATA_ITEMS", buffer_, size_ * Blocks, IPageDataEventHandler::BYTE_ARRAY);
         }
         else {
-        	handler->value("DATA_ITEMS", PageValueProviderFactory::provider(size_ * Blocks, [&](Int idx) {
-        		return buffer_ + idx;
+        	handler->value("DATA_ITEMS", PageValueProviderFactory::provider(size_ * Blocks, [&](Int idx) -> const Value& {
+        		return *(buffer_ + idx);
         	}));
         }
 

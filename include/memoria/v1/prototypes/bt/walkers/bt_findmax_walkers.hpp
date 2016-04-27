@@ -19,6 +19,8 @@
 #include <memoria/v1/prototypes/bt/walkers/bt_walker_base.hpp>
 #include <memoria/v1/prototypes/bt/walkers/bt_find_walkers.hpp>
 
+#include <memoria/v1/core/tools/assert.hpp>
+
 namespace memoria {
 namespace v1 {
 namespace bt {
@@ -40,13 +42,13 @@ public:
 
 protected:
 
-    TargetType target_;
+    const TargetType& target_;
 
     SearchType search_type_ = SearchType::GT;
 
 public:
 
-    FindMaxWalkerBaseBase(Int leaf_index, TargetType target, SearchType search_type):
+    FindMaxWalkerBaseBase(Int leaf_index, const TargetType& target, SearchType search_type):
         Base(leaf_index), target_(target), search_type_(search_type)
     {}
 
@@ -54,7 +56,7 @@ public:
         return search_type_;
     }
 
-    TargetType target() const {
+    const TargetType& target() const {
         return target_;
     }
 };
@@ -70,7 +72,7 @@ public:
     using Position      = typename Base::Position;
     using LeafPath       = typename Base::LeafPath;
 
-    FindMaxWalkerBase(Int leaf_index, TargetType target, SearchType search_type):
+    FindMaxWalkerBase(Int leaf_index, const TargetType& target, SearchType search_type):
         Base(leaf_index, target, search_type)
     {}
 
@@ -290,7 +292,7 @@ protected:
     using TargetType    = typename Base::TargetType;
 
 public:
-    FindMaxWalker(Int leaf_index, TargetType target, SearchType search_type = SearchType::GE):
+    FindMaxWalker(Int leaf_index, const TargetType& target, SearchType search_type = SearchType::GE):
         Base(leaf_index, target, search_type)
     {}
 };
@@ -305,11 +307,11 @@ class FindMaxGTWalker: public FindMaxWalker<Types> {
     using TargetType    = typename Base::TargetType;
 
 public:
-    FindMaxGTWalker(Int leaf_index, TargetType target):
+    FindMaxGTWalker(Int leaf_index, const TargetType& target):
         Base(leaf_index, target, SearchType::GT)
     {}
 
-    FindMaxGTWalker(Int stream, Int leaf_index, TargetType target):
+    FindMaxGTWalker(Int stream, Int leaf_index, const TargetType& target):
         Base(leaf_index, target, SearchType::GT)
     {}
 };
@@ -323,11 +325,11 @@ class FindMaxGEWalker: public FindMaxWalkerBase<Types, FindMaxGTWalker<Types>> {
     using TargetType    = typename Base::TargetType;
 
 public:
-    FindMaxGEWalker(Int leaf_index, TargetType target):
+    FindMaxGEWalker(Int leaf_index, const TargetType& target):
         Base(leaf_index, target, SearchType::GE)
     {}
 
-    FindMaxGEWalker(Int stream, Int leaf_index, TargetType target):
+    FindMaxGEWalker(Int stream, Int leaf_index, const TargetType& target):
         Base(leaf_index, target, SearchType::GE)
     {}
 };

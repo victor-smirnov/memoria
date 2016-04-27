@@ -269,7 +269,7 @@ public:
 template <typename T>
 class PageValueProviderT: public PageDataValueProvider {
 
-	T value_;
+	const T& value_;
 
 public:
 	PageValueProviderT(const T& value): value_(value) {}
@@ -328,13 +328,13 @@ public:
 
     virtual void startPage(const char* name, const void* ptr)
     {
-        out_<<name<<" at "<<ptr<<endl;
+        out_ << name << " at " << ptr << std::endl;
         level_++;
     }
 
     virtual void endPage()
     {
-        out_<<endl;
+        out_ << std::endl;
         level_--;
     }
 
@@ -342,10 +342,10 @@ public:
         cnt_ = 0;
         v1::Expand(out_, level_++);
 
-        out_<<name;
+        out_ << name;
 
-        out_<<" at "<<ptr;
-        out_<<endl;
+        out_ << " at " << ptr;
+        out_ << std::endl;
     }
 
     virtual void startGroup(const char* name, Int elements = -1)
@@ -353,14 +353,14 @@ public:
         cnt_ = 0;
         v1::Expand(out_, level_++);
 
-        out_<<name;
+        out_ << name;
 
         if (elements >= 0)
         {
-            out_<<": "<<elements;
+            out_ << ": " << elements;
         }
 
-        out_<<endl;
+        out_ << std::endl;
     };
 
     virtual void endGroup()
@@ -378,7 +378,7 @@ public:
     virtual void endLine()
     {
         line_ = false;
-        out_<<endl;
+        out_ << endl;
     }
 
 
@@ -503,16 +503,16 @@ public:
             dumpFieldHeader(out_, level_, cnt_++, name);
         }
         else {
-            out_<<"    "<<name<<" ";
+            out_ << "    " << name << " ";
         }
 
         for (Int c = 0; c < count; c++)
         {
-            out_<<*value;
+            out_ << *value;
 
             if (c < count - 1)
             {
-                out_<<", ";
+                out_ << ", ";
             }
         }
 
@@ -550,7 +550,7 @@ public:
     	if (value.isArray())
     	{
     		OutLine(name);
-    		out_<<std::endl;
+    		out_ << std::endl;
     		dumpPageDataValueProviderAsArray(out_, value);
     	}
     	else {
@@ -560,7 +560,7 @@ public:
 
 
     virtual void startStruct() {
-        out_<<std::endl;
+        out_ << std::endl;
     }
 
     virtual void endStruct() {}
@@ -569,26 +569,26 @@ private:
 
     void dumpFieldHeader(ostream &out, Int level, Int idx, StringRef name)
     {
-        stringstream str;
+        std::stringstream str;
         v1::Expand(str, level);
-        str<<"FIELD: ";
-        str<<idx<<" "<<name;
+        str << "FIELD: ";
+        str << idx << " " << name;
 
         int size = str.str().size();
         v1::Expand(str, 30 - size);
-        out<<str.str();
+        out << str.str();
     }
 
     void dumpLineHeader(ostream &out, Int level, Int idx, StringRef name)
     {
-        stringstream str;
+        std::stringstream str;
         v1::Expand(str, level);
-        str<<name<<": ";
-        str<<idx<<" ";
+        str << name << ": ";
+        str << idx << " ";
 
         int size = str.str().size();
         v1::Expand(str, 15 - size);
-        out<<str.str();
+        out << str.str();
     }
 
 
@@ -601,25 +601,25 @@ private:
             dumpFieldHeader(out_, level_, cnt_++, name);
         }
         else {
-            out_<<"    "<<name<<" ";
+            out_ << "    " << name << " ";
         }
 
         for (Int c = 0; c < count; c++)
         {
             out_.width(12);
-            out_<<*(value + c);
+            out_ << *(value + c);
 
             if (c < count - 1)
             {
-                out_<<",";
+                out_ << ",";
             }
 
-            out_<<" ";
+            out_ << " ";
         }
 
         if (!line_)
         {
-            out_<<endl;
+            out_ << std::endl;
         }
     }
 
@@ -630,7 +630,7 @@ private:
     		dumpFieldHeader(out_, level_, cnt_++, name);
     	}
     	else {
-    		out_<<"    "<<name<<" ";
+    		out_ << "    " << name << " ";
     	}
     }
 
@@ -641,20 +641,20 @@ private:
 
     	for (Int c = 0; c < value.size(); c++)
     	{
-    		out_.width(12);
-    		out_<<value.value(c);
+    		out_.width(24);
+    		out_ << value.value(c);
 
     		if (c < value.size() - 1)
     		{
-    			out_<<",";
+    			out_ << ",";
     		}
 
-    		out_<<" ";
+    		out_ << " ";
     	}
 
     	if (!line_)
     	{
-    		out_<<endl;
+    		out_ << std::endl;
     	}
     }
 };

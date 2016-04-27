@@ -49,7 +49,7 @@ protected:
 
 public:
 
-    FindWalkerBase(Int leaf_index, TargetType target, SearchType search_type):
+    FindWalkerBase(Int leaf_index, const TargetType& target, SearchType search_type):
         Base(leaf_index), sum_(), target_(target), search_type_(search_type)
     {}
 
@@ -81,7 +81,7 @@ public:
     using Position      = typename Base::Position;
     using LeafPath       = typename Base::LeafPath;
 
-    FindForwardWalkerBase(Int leaf_index, TargetType target, SearchType search_type):
+    FindForwardWalkerBase(Int leaf_index, const TargetType& target, SearchType search_type):
         Base(leaf_index, target, search_type)
     {}
 
@@ -305,7 +305,7 @@ protected:
     using TargetType    = typename Base::TargetType;
 
 public:
-    FindForwardWalker(Int leaf_index, TargetType target, SearchType search_type = SearchType::GE):
+    FindForwardWalker(Int leaf_index, const TargetType& target, SearchType search_type = SearchType::GE):
         Base(leaf_index, target, search_type)
     {}
 };
@@ -320,11 +320,11 @@ class FindGTForwardWalker: public FindForwardWalker<Types> {
     using TargetType    = typename Base::TargetType;
 
 public:
-    FindGTForwardWalker(Int leaf_index, TargetType target):
+    FindGTForwardWalker(Int leaf_index, const TargetType& target):
         Base(leaf_index, target, SearchType::GT)
     {}
 
-    FindGTForwardWalker(Int stream, Int leaf_index, TargetType target):
+    FindGTForwardWalker(Int stream, Int leaf_index, const TargetType& target):
         Base(leaf_index, target, SearchType::GT)
     {}
 };
@@ -338,11 +338,11 @@ class FindGEForwardWalker: public FindForwardWalkerBase<Types, FindGTForwardWalk
     using TargetType    = typename Base::TargetType;
 
 public:
-    FindGEForwardWalker(Int leaf_index, TargetType target):
+    FindGEForwardWalker(Int leaf_index, const TargetType& target):
         Base(leaf_index, target, SearchType::GE)
     {}
 
-    FindGEForwardWalker(Int stream, Int leaf_index, TargetType target):
+    FindGEForwardWalker(Int stream, Int leaf_index, const TargetType& target):
         Base(leaf_index, target, SearchType::GE)
     {}
 };
@@ -368,7 +368,7 @@ protected:
 
 public:
 
-    FindBackwardWalkerBase(Int leaf_index, TargetType target, SearchType search_type):
+    FindBackwardWalkerBase(Int leaf_index, const TargetType& target, SearchType search_type):
         Base(leaf_index, target, search_type)
     {}
 
@@ -579,7 +579,7 @@ class FindBackwardWalker: public FindBackwardWalkerBase<Types, FindBackwardWalke
     using TargetType    = typename Base::TargetType;
 
 public:
-    FindBackwardWalker(Int leaf_index, TargetType target, SearchType search_type = SearchType::GE):
+    FindBackwardWalker(Int leaf_index, const TargetType& target, SearchType search_type = SearchType::GE):
         Base(leaf_index, target, search_type)
     {}
 };
@@ -595,11 +595,11 @@ class FindGTBackwardWalker: public FindBackwardWalkerBase<Types, FindGTBackwardW
     using TargetType    = typename Base::TargetType;
 
 public:
-    FindGTBackwardWalker(Int leaf_index, TargetType target):
+    FindGTBackwardWalker(Int leaf_index, const TargetType& target):
         Base(leaf_index, target, SearchType::GT)
     {}
 
-    FindGTBackwardWalker(Int stream, Int leaf_index, TargetType target):
+    FindGTBackwardWalker(Int stream, Int leaf_index, const TargetType& target):
         Base(leaf_index, target, SearchType::GT)
     {}
 };
@@ -614,11 +614,11 @@ class FindGEBackwardWalker: public FindBackwardWalkerBase<Types, FindGTBackwardW
     using TargetType = typename Base::TargetType;
 
 public:
-    FindGEBackwardWalker(Int leaf_index, TargetType target):
+    FindGEBackwardWalker(Int leaf_index, const TargetType& target):
         Base(leaf_index, target, SearchType::GE)
     {}
 
-    FindGEBackwardWalker(Int stream, Int leaf_index, TargetType target):
+    FindGEBackwardWalker(Int stream, Int leaf_index, const TargetType& target):
         Base(leaf_index, target, SearchType::GE)
     {}
 };

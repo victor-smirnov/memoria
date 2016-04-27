@@ -560,7 +560,7 @@ public:
     template <typename T>
     void insert(Int idx, const core::StaticVector<T, Blocks>& values)
     {
-        this->_insert(idx, 1, [&](Int idx){
+        this->_insert(idx, 1, [&](Int idx) -> const auto& {
             return values;
         });
     }
@@ -595,7 +595,7 @@ public:
         {
             for (Int block = 0; block < Blocks; block++)
             {
-                auto value = adaptor(block, c);
+                const auto& value = adaptor(block, c);
                 auto len = codec.length(value);
 
                 total_length += len;
@@ -612,7 +612,7 @@ public:
         {
             for (Int block = 0; block < Blocks; block++)
             {
-                auto value = adaptor(block, c);
+                const auto& value = adaptor(block, c);
                 Int len = codec.encode(values, value, insertion_pos);
                 insertion_pos += len;
             }
@@ -709,7 +709,7 @@ public:
     template <Int Offset, Int Size, typename T2, template <typename, Int> class BranchNodeEntryItem, typename Fn>
     void _insert_b(Int idx, BranchNodeEntryItem<T2, Size>& accum, Fn&& fn)
     {
-        _insert(idx, 1, [&](Int block, Int c){
+        _insert(idx, 1, [&](Int block, Int c) -> const auto& {
             return fn(block);
         });
 
@@ -1048,7 +1048,7 @@ public:
                 positions[block] += len;
             }
 
-            handler->value("ARRAY_ITEM", PageValueProviderFactory::provider(Blocks, [&](Int idx) {
+            handler->value("ARRAY_ITEM", PageValueProviderFactory::provider(Blocks, [&](Int idx) -> const Value& {
             	return values_data[idx];
             }));
         }
@@ -1170,7 +1170,7 @@ public:
     template <typename T>
     void read(Int block, Int start, Int end, T* values) const
     {
-        read(block, start, end, [&](Int c, auto value){
+        read(block, start, end, [&](Int c, const auto& value){
             values[c - start] = value;
         });
     }

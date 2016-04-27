@@ -17,7 +17,7 @@
 #pragma once
 
 #include <memoria/v1/core/packed/tree/vle/packed_vle_quick_tree_base_base.hpp>
-
+#include <memoria/v1/core/tools/assert.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -313,7 +313,7 @@ public:
         Int idx_;
 
     public:
-        FindGEWalker(IndexValue target): target_(target) {}
+        FindGEWalker(const IndexValue& target): target_(target) {}
 
         template <typename T>
         bool compare(T value)
@@ -390,7 +390,7 @@ public:
 
         Int idx_;
     public:
-        FindGTWalker(IndexValue target): target_(target) {}
+        FindGTWalker(const IndexValue& target): target_(target) {}
 
         template <typename T>
         bool compare(T value)
@@ -460,33 +460,33 @@ public:
 
 
 
-    auto gfind_ge(Int block, IndexValue value) const
+    auto gfind_ge(Int block, const IndexValue& value) const
     {
         return find(block, FindGEWalker(value));
     }
 
-    auto gfind_gt(Int block, IndexValue value) const
+    auto gfind_gt(Int block, const IndexValue& value) const
     {
         return find(block, FindGTWalker(value));
     }
 
-    auto gfind_ge_fw(Int block, Int start, IndexValue value) const
+    auto gfind_ge_fw(Int block, Int start, const IndexValue& value) const
     {
         return walk_fw(block, start, FindGEWalker(value));
     }
 
-    auto gfind_gt_fw(Int block, Int start, IndexValue value) const
+    auto gfind_gt_fw(Int block, Int start, const IndexValue& value) const
     {
         return walk_fw(block, start, FindGTWalker(value));
     }
 
 
-    auto gfind_ge_bw(Int block, Int start, IndexValue value) const
+    auto gfind_ge_bw(Int block, Int start, const IndexValue& value) const
     {
         return walk_bw(block, start, FindGEWalker(value));
     }
 
-    auto gfind_gt_bw(Int block, Int start, IndexValue value) const
+    auto gfind_gt_bw(Int block, Int start, const IndexValue& value) const
     {
         return walk_bw(block, start, FindGTWalker(value));
     }

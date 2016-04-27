@@ -408,7 +408,7 @@ public:
             MEMORIA_V1_ASSERT(offsets_size, ==, 0);
         }
 
-        MEMORIA_V1_ASSERT(data_size, <=, ValuesPerBranch);
+        MEMORIA_V1_ASSERT(data_size, <=, (Int)ValuesPerBranch);
     }
 
 
