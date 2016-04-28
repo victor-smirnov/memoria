@@ -376,7 +376,7 @@ public:
         {
             for (Int block = 0; block < Blocks; block++)
             {
-                auto value = adaptor(block, c);
+                const auto& value = adaptor(block, c);
                 positions[block] += codec.encode(values[block], value, positions[block]);
             }
         }

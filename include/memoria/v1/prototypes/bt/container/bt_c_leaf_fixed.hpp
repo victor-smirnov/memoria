@@ -184,7 +184,7 @@ protected:
         >
         void stream(SubstreamType* obj, BranchNodeEntryItem& accum, Int idx, const Entry& entry)
         {
-            obj->template _update_b<Offset>(idx, accum, [&](Int block){
+            obj->template _update_b<Offset>(idx, accum, [&](Int block) -> const auto& {
                 return entry.get(StreamTag<Stream>(), StreamTag<Idx>(), block);
             });
         }
