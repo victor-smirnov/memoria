@@ -194,8 +194,33 @@ public:
             SizeTMapper
     >::Type>;
 
+
+
+
     template <Int SubstreamIdx>
     using StreamTypeT = typename Dispatcher::template StreamTypeT<SubstreamIdx>::Type;
+
+//    template <Int Stream, typename SubstreamIdxList, template <typename> class MapFn>
+//    using MapSubstreamsStructs 	= typename SubstreamsByIdxDispatcher<Stream, SubstreamIdxList>::template ForAllStructs<MapFn>;
+
+//    template <typename T>
+//    using SizeTMapper = WithType<typename T::SizesT>;
+
+
+
+//    template <template <typename> class MapFn>
+//    using MapStreamStructs 		= typename Dispatcher::template ForAllStructs<MapFn>;
+
+
+    template <typename StructDescr>
+    using BuildAppendStateFn = HasType<typename StructDescr::AppendState>;
+
+    using AppendState = AsTuple<typename MapTL<
+        		Linearize<SubstreamsStructList>,
+				BuildAppendStateFn
+    >::Type>;
+
+
 
 private:
     struct InitFn {
@@ -444,12 +469,25 @@ public:
         {
             return tree != nullptr ? tree->size() : 0;
         }
+
+        template <Int Idx, typename Tree>
+        void stream(const Tree* tree, SizesT& sizes)
+        {
+        	sizes[Idx] = tree != nullptr ? tree->size() : -1234567;
+        }
     };
 
 
     Int size() const
     {
         return this->processStream<IntList<0>>(SizeFn());
+    }
+
+    SizesT sizes() const
+    {
+    	SizesT sizes0;
+    	Dispatcher::dispatchAll(allocator(), SizeFn(), sizes0);
+    	return sizes0;
     }
 
     bool isEmpty() const
@@ -546,6 +584,65 @@ public:
         Dispatcher::dispatchAll(allocator(), fn, std::forward<Args>(args)...);
         return fn.sizes.min();
     }
+
+
+
+    struct AppendEntryFromIOBufferFn {
+    	bool proceed_ = true;
+
+    	template <Int Idx, typename StreamObj, typename IOBuffer>
+    	void stream(StreamObj* stream, AppendState& state, IOBuffer& buffer)
+    	{
+    		proceed_ = proceed_ && stream->append_entry_from_iobuffer(std::get<Idx>(state), buffer);
+    	}
+    };
+
+
+
+    template <typename AppendState, typename IOBuffer>
+    bool append_entry_from_iobuffer(AppendState& state, IOBuffer& buffer)
+    {
+    	AppendEntryFromIOBufferFn fn;
+    	Dispatcher::dispatchAll(allocator(), fn, state, buffer);
+    	return fn.proceed_;
+    }
+
+    struct AppendStateFn {
+    	AppendState state_;
+
+    	template <Int Idx, typename StreamObj>
+    	void stream(StreamObj* stream)
+    	{
+    		std::get<Idx>(state_) = stream->append_state();
+    	}
+    };
+
+
+    AppendState append_state()
+    {
+    	AppendStateFn fn;
+    	Dispatcher::dispatchAll(allocator(), fn);
+    	return fn.state_;
+    }
+
+    struct RestoreAppendStateFn {
+    	template <Int Idx, typename StreamObj>
+    	void stream(StreamObj* stream, const AppendState& state)
+    	{
+    		stream->restore(std::get<Idx>(state));
+    	}
+    };
+
+    void restore_append_state(const AppendState& state)
+    {
+    	Dispatcher::dispatchAll(allocator(), RestoreAppendStateFn(), state);
+    }
+
+
+
+
+
+
 
     struct FillBufferFn {
         template <Int Idx, typename StreamObj, typename BufferProvider>

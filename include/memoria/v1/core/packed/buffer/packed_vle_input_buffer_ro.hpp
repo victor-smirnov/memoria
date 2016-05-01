@@ -95,6 +95,27 @@ public:
 
     using SizesT = core::StaticVector<Int, Blocks>;
 
+    class AppendState {
+    	Int pos_;
+    	Int size_ = 0;
+
+    	using ValueDataP = ValueData*;
+
+    	ValueDataP values_;
+
+
+
+    public:
+    	Int& pos() {return pos_;}
+    	const Int& pos() const {return pos_;}
+
+    	Int& size() {return size_;}
+    	const Int& size() const {return size_;}
+
+    	ValueDataP& values() {return values_;}
+    	const ValueDataP& values() const {return values_;}
+    };
+
     void init(const SizesT& sizes)
     {
         Base::init(block_size(sizes), TreeBlocks * SegmentsPerBlock + BlocksStart);
@@ -295,6 +316,70 @@ public:
         return sizes;
     }
 
+
+
+    AppendState append_state()
+    {
+    	AppendState state;
+
+    	auto meta = this->metadata();
+
+    	state.pos()  = meta->data_size()[0];
+    	state.size() = meta->size();
+
+    	state.values() = this->values(0);
+
+    	return state;
+    }
+
+
+    template <typename IOBuffer>
+    bool append_entry_from_iobuffer(AppendState& state, IOBuffer& buffer)
+    {
+        Codec codec;
+
+        auto meta = this->metadata();
+
+        size_t capacity = meta->capacity(0);
+
+        for (Int block = 0; block < Blocks; block++)
+        {
+        	auto ptr = buffer.array();
+        	auto pos = buffer.pos();
+
+        	size_t len = codec.length(ptr, pos, -1);
+
+        	if (len <= capacity)
+        	{
+        		Int& data_pos = meta->data_size(0);
+
+        		codec.copy(ptr, pos, state.values(), data_pos, len);
+
+        		data_pos += len;
+        		buffer.skip(len);
+        		capacity -= len;
+        	}
+        	else {
+        		return false;
+        	}
+        }
+
+        state.size()++;
+        state.pos() = meta->data_size()[0];
+        this->size()++;
+
+        return true;
+    }
+
+
+
+    void restore(const AppendState& state)
+    {
+    	auto meta = this->metadata();
+
+    	meta->size() = state.size();
+    	meta->data_size()[0] = state.pos();
+    }
 
 
 

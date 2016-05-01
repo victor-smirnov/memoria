@@ -23,6 +23,7 @@
 #include <memoria/v1/core/types/fn_traits.hpp>
 #include <memoria/v1/core/types/list/tuple.hpp>
 #include <memoria/v1/core/types/list/misc.hpp>
+#include <memoria/v1/core/types/list/map.hpp>
 
 #include <memoria/v1/core/packed/tools/packed_allocator.hpp>
 #include <memoria/v1/core/packed/tools/packed_rtn_type_list.hpp>
@@ -126,6 +127,9 @@ public:
 
     template <Int GroupIdx_>
     using GroupDispatcher = PackedDispatcher<List, GroupIdx>;
+
+    template <template <typename> class MapFn>
+    using ForAllStructs = MapTL2<List, MapFn>;
 
     template <typename Fn, typename... Args>
     static auto dispatch(Int idx, PackedAllocator* alloc, Fn&& fn, Args&&... args)
@@ -683,6 +687,8 @@ public:
                                     GroupIdx_
                               >;
 
+    template <template <typename> class MapFn>
+    using ForAllStructs = MapTL2<List, MapFn>;
 
     template <typename Fn, typename... Args>
     static auto dispatch(Int idx, PackedAllocator* alloc, Fn&& fn, Args&&... args)

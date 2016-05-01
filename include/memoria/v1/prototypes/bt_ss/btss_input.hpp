@@ -67,6 +67,7 @@ public:
 protected:
     Int start_ = 0;
     Int size_ = 0;
+    bool finish_ = false;
 
     CtrT&   ctr_;
 
@@ -208,28 +209,36 @@ public:
     virtual bool populate_buffer()
     {
         this->start_ = 0;
-        this->size_ = 0;
+        this->size_  = 0;
 
-        input_buffer_->reset();
-
-        start_buffer(input_buffer_);
-
-        Int size;
-        Int position = 0;
-        while ((size = get(input_buffer_, position)) > 0)
+        if (!finish_)
         {
-            position += size;
+        	input_buffer_->reset();
+
+        	start_buffer(input_buffer_);
+
+        	Int entries = get(input_buffer_, 0);
+
+        	if (entries > 0)
+        	{
+        		size_ = entries;
+        	}
+        	else {
+        		size_ = -entries;
+        		finish_ = true;
+        	}
+
+        	input_buffer_->reindex();
+
+        	total_ += this->size_;
+
+        	end_buffer(input_buffer_, this->size_);
+
+        	return finish_;
         }
-
-        input_buffer_->reindex();
-
-        total_ += position;
-
-        size_ = position;
-
-        end_buffer(input_buffer_, position);
-
-        return position > 0;
+        else {
+        	return false;
+        }
     }
 
 private:
@@ -654,6 +663,99 @@ public:
 
 
 
+
+template <typename CtrT, typename IOBuffer>
+class AbstractIOBufferBTSSInputProvider: public v1::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength> {
+
+    using Base = v1::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength>;
+
+protected:
+
+    using typename Base::CtrSizeT;
+    using typename Base::Position;
+    using typename Base::InputBuffer;
+
+    IOBuffer& io_buffer_;
+    Int num_entries_ = 0;
+    Int entry_ = 0;
+
+    Int finish_ = false;
+
+public:
+    AbstractIOBufferBTSSInputProvider(CtrT& ctr, IOBuffer& buffer, Int input_buffer_capacity = 10000):
+        Base(ctr, input_buffer_capacity),
+		io_buffer_(buffer)
+    {}
+
+    virtual ~AbstractIOBufferBTSSInputProvider() {}
+
+    virtual Int populate(IOBuffer& buffer) = 0;
+
+    virtual Int get(InputBuffer* buffer, Int pos)
+    {
+    	auto input_buffer_state = buffer->append_state();
+
+    	Int total = 0;
+
+
+    	while (true)
+    	{
+    		if (entry_ == num_entries_ && !finish_)
+    		{
+    			io_buffer_.rewind();
+    			Int entries = populate(io_buffer_);
+
+    			if (entries > 0) {
+    				num_entries_ = entries;
+    			}
+    			else {
+    				num_entries_ = -entries;
+    				finish_ = true;
+    			}
+
+    			io_buffer_.rewind();
+    			entry_ = 0;
+    		}
+
+    		for (; entry_ < num_entries_; entry_++, total++)
+    		{
+    			auto pos 	= io_buffer_.pos();
+    			auto backup = input_buffer_state;
+
+    			if (!buffer->append_entry_from_iobuffer(input_buffer_state, io_buffer_))
+    			{
+    				io_buffer_.pos(pos);
+    				input_buffer_state = backup;
+    				buffer->restore_append_state(backup);
+
+    				return total;
+    			}
+    		}
+
+    		if (finish_)
+    		{
+    			return -total;
+    		}
+    	}
+    }
+};
+
+
+template <typename CtrT, typename IOBuffer>
+class IOBufferProducerBTSSInputProvider : public AbstractIOBufferBTSSInputProvider<CtrT, IOBuffer> {
+	using Base = AbstractIOBufferBTSSInputProvider<CtrT, IOBuffer>;
+	bt::BufferProducer<IOBuffer>* producer_;
+public:
+	IOBufferProducerBTSSInputProvider(CtrT& ctr, bt::BufferProducer<IOBuffer>* producer, Int input_buffer_capacity = 10000):
+		Base(ctr, producer->buffer(), input_buffer_capacity),
+		producer_(producer)
+	{}
+
+	virtual Int populate(IOBuffer& buffer)
+	{
+		return producer_->populate(buffer);
+	}
+};
 
 }
 }}

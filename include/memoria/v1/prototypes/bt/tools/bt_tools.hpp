@@ -441,5 +441,18 @@ struct IteratorExtensionsTF {
 };
 
 
+
+template <typename IOBuffer>
+struct BufferConsumer {
+	virtual IOBuffer& buffer() = 0;
+	virtual Int process(IOBuffer& buffer, Int entries) = 0;
+};
+
+template <typename IOBuffer>
+struct BufferProducer {
+	virtual IOBuffer& buffer() = 0;
+	virtual Int populate(IOBuffer& buffer) = 0;
+};
+
 }
 }}

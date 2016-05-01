@@ -65,6 +65,8 @@ public:
     using Values = core::StaticVector<Value, Blocks>;
     using SizesT = core::StaticVector<Int, Blocks>;
 
+    using ReadState = SizesT;
+
 private:
 
     Int size_;
@@ -487,8 +489,8 @@ public:
         return at + size;
     }
 
-    SizesT positions(Int idx) const {
-        return SizesT(idx);
+    ReadState positions(Int idx) const {
+        return ReadState(idx);
     }
 
 
@@ -559,7 +561,6 @@ public:
             fn.next();
         }
     }
-
 
 
     template <typename Fn>

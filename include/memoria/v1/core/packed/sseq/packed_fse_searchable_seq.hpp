@@ -547,6 +547,9 @@ public:
         reindex();
     }
 
+
+    using ReadState = SizesT;
+
     void read(Int start, Int end, std::function<void (Value)> fn) const
     {
         MEMORIA_V1_ASSERT(start, >=, 0);

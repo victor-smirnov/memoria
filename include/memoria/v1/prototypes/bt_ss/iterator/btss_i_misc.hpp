@@ -186,6 +186,49 @@ public:
         return self.ctr().template read_entries<0>(self, length, adaptor);
     }
 
+
+
+    template <typename IOBuffer>
+    auto read_buffer(bt::BufferConsumer<IOBuffer>* consumer, CtrSizeT length)
+    {
+    	auto& self = this->self();
+    	return self.ctr().template buffered_read<0>(self, length, consumer->buffer(), *consumer);
+    }
+
+    template <typename IOBuffer>
+    auto read_buffer(bt::BufferConsumer<IOBuffer>* consumer)
+    {
+    	auto& self = this->self();
+    	return self.read_buffer(consumer, self.ctr().size());
+    }
+
+    template <typename IOBuffer>
+    auto populate_buffer(IOBuffer* buffer, CtrSizeT length)
+    {
+    	auto& self = this->self();
+    	return self.ctr().template populate_buffer<0>(self, length, *buffer);
+    }
+
+    template <typename IOBuffer>
+    auto populate_buffer(IOBuffer* buffer)
+    {
+    	auto& self = this->self();
+    	return self.populate_buffer(buffer, self.ctr().size());
+    }
+
+
+    template <typename IOBuffer>
+    auto insert_iobuffer(bt::BufferProducer<IOBuffer>* producer, Int ib_capacity = 10000)
+    {
+    	using InputProvider = btss::IOBufferProducerBTSSInputProvider<Container, IOBuffer>;
+
+    	auto bulk = std::make_unique<InputProvider>(self().ctr(), producer, ib_capacity);
+
+        return this->bulk_insert(*bulk.get());
+    }
+
+
+
 protected:
 
     SplitStatus split()

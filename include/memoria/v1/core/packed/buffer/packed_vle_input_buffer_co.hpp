@@ -55,6 +55,10 @@ public:
         return max_data_size_ - data_size_;
     }
 
+    Int capacity(Int block) const {
+    	return max_data_size_[block] - data_size_[block];
+    }
+
     template <Int, typename, template <typename> class Codec, Int, Int, typename> friend class PkdVLEArrayBase;
 };
 
@@ -127,6 +131,25 @@ public:
     using InputType     = Values;
 
     using SizesT = core::StaticVector<Int, Blocks>;
+
+    class AppendState {
+    	SizesT pos_;
+    	Int size_ = 0;
+
+    	using VValueData = core::StaticVector<ValueData*, Blocks>;
+
+    	VValueData values_;
+
+    public:
+    	SizesT& pos() {return pos_;}
+    	const SizesT& pos() const {return pos_;}
+
+    	Int& size() {return size_;}
+    	const Int& size() const {return size_;}
+
+    	VValueData& values() {return values_;}
+    	const VValueData& values() const {return values_;}
+    };
 
     void init(const SizesT& sizes)
     {
@@ -301,6 +324,10 @@ public:
     {
         auto metadata = this->metadata();
 
+        if (idx > this->size()) {
+        	cout << idx << " " << this->size() << endl;
+        }
+
         MEMORIA_V1_ASSERT(idx, >=, 0);
         MEMORIA_V1_ASSERT(idx, <=, this->size());
 
@@ -313,6 +340,7 @@ public:
 
             pos[block] = this->locate(layout, values, block, idx, data_size).idx;
         }
+
         return pos;
     }
 
@@ -350,6 +378,71 @@ public:
     		acc += size;
     	}
     }
+
+    AppendState append_state()
+    {
+    	AppendState state;
+
+    	auto meta = this->metadata();
+
+    	state.pos()  = meta->data_size();
+    	state.size() = meta->size();
+
+    	for (Int b = 0; b < Blocks; b++) {
+    		state.values()[b] = this->values(b);
+    	}
+
+    	return state;
+    }
+
+
+    template <typename IOBuffer>
+    bool append_entry_from_iobuffer(AppendState& state, IOBuffer& buffer)
+    {
+        Codec codec;
+
+        auto meta = this->metadata();
+
+        for (Int block = 0; block < Blocks; block++)
+        {
+        	size_t capacity = meta->capacity(block);
+
+        	auto ptr = buffer.array();
+        	auto pos = buffer.pos();
+
+        	size_t len = codec.length(ptr, pos, -1);
+
+        	if (len <= capacity)
+        	{
+        		Int& data_pos = meta->data_size(block);
+        		codec.copy(ptr, pos, state.values()[block], data_pos, len);
+        		data_pos += len;
+        		buffer.skip(len);
+        	}
+        	else {
+        		return false;
+        	}
+        }
+
+        state.size()++;
+        state.pos() = meta->data_size();
+        this->size()++;
+
+        return true;
+    }
+
+
+
+    void restore(const AppendState& state)
+    {
+    	auto meta = this->metadata();
+
+    	meta->size() 		= state.size();
+    	meta->data_size() 	= state.pos();
+    }
+
+
+
 
 
     template <typename Adaptor>

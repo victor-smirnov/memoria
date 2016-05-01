@@ -67,6 +67,7 @@ public:
     }
 
 
+
     void remove()
     {
         auto& self = this->self();
@@ -176,6 +177,8 @@ public:
 
         return read(iter, self.ctr().size());
     }
+
+
 
 MEMORIA_V1_ITERATOR_PART_END
 

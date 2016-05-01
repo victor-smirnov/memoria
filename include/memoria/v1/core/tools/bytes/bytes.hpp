@@ -96,6 +96,10 @@ public:
 		return size_;
 	}
 
+	size_t length() const {
+		return size_;
+	}
+
 	MyType& operator=(const MyType& other)
 	{
 		if (data_ && owner_) ::free(data_);
@@ -170,6 +174,7 @@ public:
 	{
 		std::swap(data_, other.data_);
 		std::swap(size_, other.size_);
+		std::swap(owner_, other.owner_);
 	}
 
 	T& operator[](size_t c) {

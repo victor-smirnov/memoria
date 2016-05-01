@@ -119,6 +119,8 @@ public:
 
     using SizesT = core::StaticVector<Int, 1>;
 
+    using ReadState 	= SizesT;
+
     using Codec         = typename Types::template Codec<Value>;
 
     using ValueData = typename Codec::BufferType;
@@ -657,7 +659,7 @@ public:
     }
 
 
-    SizesT positions(Int idx) const
+    ReadState positions(Int idx) const
     {
         auto meta = this->metadata();
 
@@ -1147,6 +1149,25 @@ public:
 
 
 
+
+
+    template <typename IOBuffer>
+    bool readTo(ReadState& state, IOBuffer& buffer) const
+    {
+    	Codec codec;
+    	auto values = this->values();
+
+    	auto val = codec.describe(values, state[0]);
+
+    	if (buffer.put(val))
+    	{
+    		state[0] += val.length();
+    		return true;
+    	}
+    	else {
+    		return false;
+    	}
+    }
 
 
 

@@ -93,6 +93,8 @@ public:
 
     using SizesT = core::StaticVector<Int, Blocks>;
 
+    using ReadState = SizesT;
+
     static Int estimate_block_size(Int tree_capacity, Int density_hi = 1000, Int density_lo = 333)
     {
         Int max_tree_capacity = (tree_capacity * Blocks * density_hi) / density_lo;
@@ -737,7 +739,7 @@ public:
     }
 
 
-    SizesT positions(Int idx) const
+    ReadState positions(Int idx) const
     {
         Int size = this->size();
 
@@ -1456,6 +1458,7 @@ public:
             return FindResult(findGEBackward(block, start, val));
         }
     }
+
 
 
     template <typename ConsumerFn>

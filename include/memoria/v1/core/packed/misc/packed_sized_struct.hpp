@@ -53,6 +53,16 @@ public:
     using InputType = Values;
     using IndexValue = Value;
     using SizesT = core::StaticVector<Int, Blocks>;
+    using ReadState = SizesT;
+
+    class AppendState {
+    	Int size_ = 0;
+    public:
+    	Int& size() {return size_;}
+    	const Int& size() const {return size_;}
+    };
+
+
 
 private:
 
@@ -193,6 +203,37 @@ public:
         accum[Offset] += idx;
     }
 
+
+    AppendState append_state() const
+    {
+    	AppendState state;
+
+    	state.size() = this->size();
+
+    	return state;
+    }
+
+
+    template <typename IOBuffer>
+    bool append_entry_from_iobuffer(AppendState& state, IOBuffer& buffer)
+    {
+        state.size()++;
+
+        this->size()++;
+
+        return true;
+    }
+
+
+
+    void restore(const AppendState& state)
+    {
+    	this->size() = state.size();
+    }
+
+
+
+
     template <typename T>
     Int append(Int size, T&&)
     {
@@ -300,8 +341,8 @@ public:
         return Value();
     }
 
-    SizesT positions(Int idx) const {
-        return SizesT(idx);
+    ReadState positions(Int idx) const {
+        return ReadState(idx);
     }
 
     Values get_values(Int) const {
@@ -358,6 +399,13 @@ public:
         remove(idx, idx + 1);
     }
 
+
+    template <typename IOBuffer>
+    bool readTo(ReadState& state, IOBuffer& buffer) const
+    {
+    	// Don't read anything into the buffer
+    	return true;
+    }
 
 
     template <typename Fn>

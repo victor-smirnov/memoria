@@ -80,6 +80,8 @@ public:
 
     using SizesT = core::StaticVector<Int, Blocks>;
 
+    using ReadState = SizesT;
+
     static Int estimate_block_size(Int tree_capacity, Int density_hi = 1, Int density_lo = 1)
     {
         MEMORIA_V1_ASSERT(density_hi, ==, 1); // data density should not be set for this type of trees
@@ -595,8 +597,8 @@ public:
         }
     }
 
-    SizesT positions(Int idx) const {
-        return SizesT(idx);
+    ReadState positions(Int idx) const {
+        return ReadState(idx);
     }
 
     SizesT insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, Int inserted)
@@ -653,6 +655,8 @@ public:
 
         reindex();
     }
+
+
 
     template <typename Fn>
     void read(Int start, Int end, Fn&& fn) const

@@ -51,6 +51,7 @@ public:
     using InputType = Values;
     using IndexValue = Value;
     using SizesT = core::StaticVector<Int, Blocks>;
+    using ReadState = SizesT;
 
 private:
 
@@ -212,8 +213,8 @@ public:
         return Value();
     }
 
-    SizesT positions(Int idx) const {
-        return SizesT(idx);
+    ReadState positions(Int idx) const {
+        return ReadState(idx);
     }
 
 
@@ -237,6 +238,7 @@ public:
     {
 
     }
+
 
 
     template <typename Fn>

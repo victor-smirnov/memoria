@@ -39,7 +39,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::bt::IteratorAPIName)
     typedef typename Base::NodeBase                                             NodeBase;
     typedef typename Base::NodeBaseG                                            NodeBaseG;
 
-    typedef typename Base::Container::BranchNodeEntry                               BranchNodeEntry;
+    typedef typename Base::Container::BranchNodeEntry                           BranchNodeEntry;
     typedef typename Base::Container                                            Container;
     typedef typename Container::Types::Pages::LeafDispatcher                    LeafDispatcher;
     typedef typename Container::Types::Pages::BranchDispatcher                  BranchDispatcher;
@@ -65,6 +65,7 @@ public:
         self().refreshBranchPrefixes();
         self().refreshLeafPrefixes();
     }
+
 
 protected:
 
