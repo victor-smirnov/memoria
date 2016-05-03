@@ -19,6 +19,7 @@
 #include <memoria/v1/core/packed/tools/packed_allocator_types.hpp>
 #include <memoria/v1/core/tools/accessors.hpp>
 #include <memoria/v1/core/tools/assert.hpp>
+#include <memoria/v1/core/tools/iobuffer/io_buffer.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -60,6 +61,17 @@ public:
 
     using Values = core::StaticVector<Value, Blocks>;
     using SizesT = core::StaticVector<Int, Blocks>;
+
+
+    class AppendState {
+    	Int size_;
+    public:
+    	AppendState(): size_(0) {}
+    	AppendState(Int size): size_(size) {}
+
+    	Int& size() {return size_;}
+    	const Int& size() const {return size_;}
+    };
 
 private:
 
@@ -182,6 +194,45 @@ public:
     SizesT positions(Int idx) const {
         return SizesT(idx);
     }
+
+
+
+    AppendState append_state()
+    {
+    	return AppendState(size_);
+    }
+
+
+    template <typename IOBuffer>
+    bool append_entry_from_iobuffer(AppendState& state, IOBuffer& buffer)
+    {
+        for (Int block = 0; block < Blocks; block++)
+        {
+        	int capacity = max_size_ - size_;
+        	int len = sizeof(Value);
+
+        	if (len <= capacity)
+        	{
+        		this->value(block, size_) = IOBufferAdaptor<Value>::get(buffer);
+        	}
+        	else {
+        		return false;
+        	}
+        }
+
+        state.size()++;
+        this->size()++;
+
+        return true;
+    }
+
+
+
+    void restore(const AppendState& state)
+    {
+    	this->size_ = state.size();
+    }
+
 
 
 

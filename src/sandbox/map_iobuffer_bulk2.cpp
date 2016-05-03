@@ -14,6 +14,7 @@
 
 
 
+
 #include <memoria/v1/memoria.hpp>
 #include <memoria/v1/containers/map/map_factory.hpp>
 #include <memoria/v1/core/tools/iobuffer/io_buffer.hpp>
@@ -74,30 +75,15 @@ public:
 	{
 		Int entries = 0;
 
-		ValueCodec<Key> 	key_codec;
-		ValueCodec<Value> 	value_codec;
-
 		while (iter_ != end_)
 		{
-			size_t key_len = key_codec.length(iter_->key());
-
-			if (buffer.has_capacity(key_len))
+			if (!IOBufferAdaptor<Key>::put(buffer, iter_->key()))
 			{
-				key_codec.encode(buffer.array(), iter_->key(), buffer.pos());
-				buffer.skip(key_len);
-			}
-			else {
 				return entries;
 			}
 
-			size_t value_len = value_codec.length(iter_->value());
-
-			if (buffer.has_capacity(value_len))
+			if (!IOBufferAdaptor<Value>::put(buffer, iter_->value()))
 			{
-				value_codec.encode(buffer.array(), iter_->value(), buffer.pos());
-				buffer.skip(value_len);
-			}
-			else {
 				return entries;
 			}
 
@@ -142,7 +128,7 @@ int main()
 {
     MEMORIA_INIT(DefaultProfile<>);
 
-    using Key   = String;
+    using Key   = BigInt;
     using Value = String;
 
     DInit<Map<Key, Value>>();
@@ -153,8 +139,9 @@ int main()
         auto snp = alloc->master()->branch();
 
         auto map = create<Map<Key, Value>>(snp);
+        map->setNewPageSize(65536);
 
-        int size = 10000000;
+        int size = 5000;
 
         using PairVector = vector<KeyValuePair<Key, Value>>;
 
@@ -164,7 +151,7 @@ int main()
 
         for (int c = 0; c < size; c++)
         {
-        	pairs.emplace_back("key_" + toString(c), "value_" + toString(c));
+        	pairs.emplace_back(c, "xxxx00xxx Zoo " + toString(c));
         }
 
         BigInt ts1 = getTimeInMillis();
@@ -180,9 +167,9 @@ int main()
         BigInt t0 = getTimeInMillis();
         map->begin()->insert_iobuffer(&producer);
 
-        cout << "Insertion time: " << FormatTime(getTimeInMillis() - t0) << endl;
+        cout << "Insertion time: " << FormatTime(getTimeInMillis() - t0) <<" size: " << map->size() << endl;
 
-//        FSDumpAllocator(snp, "map_full.dir");
+//        FSDumpAllocator(snp, "maplb_full.dir");
 
 
 //        PrintingConsumer consumer(65536);

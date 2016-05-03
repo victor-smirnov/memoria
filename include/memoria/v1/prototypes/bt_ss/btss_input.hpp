@@ -208,36 +208,42 @@ public:
 
     virtual bool populate_buffer()
     {
-        this->start_ = 0;
-        this->size_  = 0;
-
-        if (!finish_)
+        if (size_ == start_)
         {
-        	input_buffer_->reset();
-
-        	start_buffer(input_buffer_);
-
-        	Int entries = get(input_buffer_, 0);
-
-        	if (entries > 0)
+        	if (!finish_)
         	{
-        		size_ = entries;
+        		start_ = 0;
+        		size_  = 0;
+
+        		input_buffer_->reset();
+
+        		start_buffer(input_buffer_);
+
+        		Int entries = get(input_buffer_, 0);
+
+        		if (entries > 0)
+        		{
+        			size_ = entries;
+        		}
+        		else {
+        			size_ = -entries;
+        			finish_ = true;
+        		}
+
+        		input_buffer_->reindex();
+
+        		total_ += this->size_;
+
+        		end_buffer(input_buffer_, this->size_);
+
+        		return entries != 0;
         	}
         	else {
-        		size_ = -entries;
-        		finish_ = true;
+        		return false;
         	}
-
-        	input_buffer_->reindex();
-
-        	total_ += this->size_;
-
-        	end_buffer(input_buffer_, this->size_);
-
-        	return finish_;
         }
         else {
-        	return false;
+        	return true;
         }
     }
 

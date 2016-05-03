@@ -113,17 +113,31 @@ public:
     using IndexValue    = typename Types::Value;
 
     using Values        = core::StaticVector<Value, Blocks>;
+    using Codec         = typename Types::template Codec<Value>;
 
+    using ValueData 	= typename Codec::BufferType;
     using InputBuffer   = PkdVLEColumnOrderInputBuffer<Types>;
     using InputType     = Values;
 
-    using SizesT = core::StaticVector<Int, 1>;
+    using SizesT 		= core::StaticVector<Int, Blocks>;
+    using PtrsT  		= core::StaticVector<ValueData*, Blocks>;
+    using ConstPtrsT  	= core::StaticVector<const ValueData*, Blocks>;
 
-    using ReadState 	= SizesT;
 
-    using Codec         = typename Types::template Codec<Value>;
+    class ReadState {
+    	ConstPtrsT values_;
+    	SizesT data_pos_;
+    public:
 
-    using ValueData = typename Codec::BufferType;
+    	Int& data_pos(Int idx) {return data_pos_[idx];}
+    	const Int& data_pos(Int idx) const {return data_pos_[idx];}
+
+    	ConstPtrsT& values() {return values_;}
+    	SizesT& data_pos() {return data_pos_;}
+
+    	const ConstPtrsT& values() const {return values_;}
+    	const SizesT& data_pos() const {return data_pos_;}
+    };
 
     struct TreeLayout {
         Int level_starts[8];
@@ -670,7 +684,12 @@ public:
         auto values         = this->values();
         TreeLayout layout   = compute_tree_layout(data_size);
 
-        return SizesT(locate(layout, values, idx).idx);
+        ReadState read_state;
+
+        read_state.values()[0] = values;
+        read_state.data_pos()[0] = locate(layout, values, idx).idx;
+
+        return read_state;
     }
 
 
@@ -703,16 +722,16 @@ public:
     {
     	Codec codec;
 
-        SizesT starts = buffer->positions(start);
-        SizesT ends   = buffer->positions(start + size);
+        SizesT starts 	= buffer->positions(start);
+        SizesT ends   	= buffer->positions(start + size);
 
-        SizesT at     = this->positions(pos);
+        auto at     	= this->positions(pos);
 
         SizesT total_lengths = ends - starts;
 
         auto values = this->values();
 
-        size_t insertion_pos = at[0];
+        size_t insertion_pos = at.data_pos(0);
 
         insert_space(insertion_pos, total_lengths[0]);
 
@@ -1148,20 +1167,16 @@ public:
     }
 
 
-
-
-
     template <typename IOBuffer>
     bool readTo(ReadState& state, IOBuffer& buffer) const
     {
     	Codec codec;
-    	auto values = this->values();
 
-    	auto val = codec.describe(values, state[0]);
+    	auto val = codec.describe(state.values()[0], state.data_pos()[0]);
 
     	if (buffer.put(val))
     	{
-    		state[0] += val.length();
+    		state.data_pos()[0] += val.length();
     		return true;
     	}
     	else {

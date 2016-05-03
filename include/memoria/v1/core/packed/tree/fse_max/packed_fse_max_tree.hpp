@@ -22,7 +22,7 @@
 
 
 #include <memoria/v1/core/tools/static_array.hpp>
-
+#include <memoria/v1/core/tools/iobuffer/io_buffer.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -78,9 +78,19 @@ public:
     using InputBuffer   = PackedFSERowOrderInputBuffer<PackedFSERowOrderInputBufferTypes<Value, Blocks>>;
     using InputType     = Values;
 
-    using SizesT = core::StaticVector<Int, Blocks>;
+    using SizesT 		= core::StaticVector<Int, Blocks>;
+    using PtrsT 		= core::StaticVector<Value*, Blocks>;
+    using ConstPtrsT 	= core::StaticVector<const Value*, Blocks>;
 
-    using ReadState = SizesT;
+    class ReadState {
+    	ConstPtrsT values_;
+    	Int idx_ = 0;
+    public:
+    	ConstPtrsT& values() {return values_;}
+    	Int& idx() {return idx_;}
+    	const ConstPtrsT& values() const {return values_;}
+    	const Int& idx() const {return idx_;}
+    };
 
     static Int estimate_block_size(Int tree_capacity, Int density_hi = 1, Int density_lo = 1)
     {
@@ -597,9 +607,7 @@ public:
         }
     }
 
-    ReadState positions(Int idx) const {
-        return ReadState(idx);
-    }
+
 
     SizesT insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, Int inserted)
     {
@@ -656,6 +664,35 @@ public:
         reindex();
     }
 
+    ReadState positions(Int idx) const
+    {
+    	ReadState state;
+
+    	state.idx() = idx;
+
+    	for (Int b = 0; b < Blocks; b++) {
+    		state.values()[b] = this->values(b);
+    	}
+
+    	return state;
+    }
+
+
+    template <typename IOBuffer>
+    bool readTo(ReadState& state, IOBuffer& buffer) const
+    {
+    	for (Int b = 0; b < Blocks; b++)
+    	{
+    		auto val = state.values()[b][state.idx()];
+
+    		if (!IOBufferAdaptor<Value>::put(buffer, val))
+    		{
+    			return false;
+    		}
+    	}
+
+    	return true;
+    }
 
 
     template <typename Fn>

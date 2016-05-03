@@ -40,7 +40,7 @@ namespace {
 
     template <typename Element, template <typename> class Fn>
     struct MapFoldFn<EmptyType, Element, Fn> {
-        using Type = TL<Element>;
+        using Type = TL<typename Fn<Element>::Type>;
     };
 
     template <typename List, template <typename> class MapFn>
@@ -48,7 +48,7 @@ namespace {
         template <typename State, typename Item>
         using FoldFn = typename MapFoldFn<State, Item, MapFn>::Type;
 
-        using Type 	 = FoldTLRight<List, FoldFn, TL<>>;
+        using Type 	 = FoldTLLeft<List, FoldFn>;
     };
 }
 

@@ -136,11 +136,16 @@ public:
     	SizesT pos_;
     	Int size_ = 0;
 
+    	Metadata* meta_;
     	using VValueData = core::StaticVector<ValueData*, Blocks>;
 
     	VValueData values_;
 
     public:
+    	AppendState() {}
+    	AppendState(Metadata* meta): meta_(meta) {}
+
+
     	SizesT& pos() {return pos_;}
     	const SizesT& pos() const {return pos_;}
 
@@ -149,6 +154,8 @@ public:
 
     	VValueData& values() {return values_;}
     	const VValueData& values() const {return values_;}
+
+    	Metadata* meta() {return meta_;}
     };
 
     void init(const SizesT& sizes)
@@ -381,9 +388,9 @@ public:
 
     AppendState append_state()
     {
-    	AppendState state;
-
     	auto meta = this->metadata();
+
+    	AppendState state(meta);
 
     	state.pos()  = meta->data_size();
     	state.size() = meta->size();
@@ -401,7 +408,7 @@ public:
     {
         Codec codec;
 
-        auto meta = this->metadata();
+        auto meta = state.meta();
 
         for (Int block = 0; block < Blocks; block++)
         {

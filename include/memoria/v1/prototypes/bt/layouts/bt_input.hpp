@@ -194,33 +194,17 @@ public:
             SizeTMapper
     >::Type>;
 
-
-
-
     template <Int SubstreamIdx>
     using StreamTypeT = typename Dispatcher::template StreamTypeT<SubstreamIdx>::Type;
 
-//    template <Int Stream, typename SubstreamIdxList, template <typename> class MapFn>
-//    using MapSubstreamsStructs 	= typename SubstreamsByIdxDispatcher<Stream, SubstreamIdxList>::template ForAllStructs<MapFn>;
-
-//    template <typename T>
-//    using SizeTMapper = WithType<typename T::SizesT>;
-
-
-
-//    template <template <typename> class MapFn>
-//    using MapStreamStructs 		= typename Dispatcher::template ForAllStructs<MapFn>;
-
 
     template <typename StructDescr>
-    using BuildAppendStateFn = HasType<typename StructDescr::AppendState>;
+    using BuildAppendStateFn = HasType<typename StructDescr::Type::AppendState>;
 
-    using AppendState = AsTuple<typename MapTL<
-        		Linearize<SubstreamsStructList>,
-				BuildAppendStateFn
-    >::Type>;
+    template <template <typename> class MapFn>
+    using MapStreamStructs = typename Dispatcher::template ForAllStructs<MapFn>;
 
-
+    using AppendState = AsTuple<MapStreamStructs<BuildAppendStateFn>>;
 
 private:
     struct InitFn {

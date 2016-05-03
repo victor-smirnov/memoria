@@ -99,13 +99,16 @@ public:
     	Int pos_;
     	Int size_ = 0;
 
+    	Metadata* meta_;
+
     	using ValueDataP = ValueData*;
 
     	ValueDataP values_;
 
-
-
     public:
+    	AppendState() {}
+    	AppendState(Metadata* meta): meta_(meta) {}
+
     	Int& pos() {return pos_;}
     	const Int& pos() const {return pos_;}
 
@@ -114,6 +117,8 @@ public:
 
     	ValueDataP& values() {return values_;}
     	const ValueDataP& values() const {return values_;}
+
+    	Metadata* meta() {return meta_;}
     };
 
     void init(const SizesT& sizes)
@@ -320,9 +325,8 @@ public:
 
     AppendState append_state()
     {
-    	AppendState state;
-
     	auto meta = this->metadata();
+    	AppendState state(meta);
 
     	state.pos()  = meta->data_size()[0];
     	state.size() = meta->size();
@@ -338,7 +342,7 @@ public:
     {
         Codec codec;
 
-        auto meta = this->metadata();
+        auto meta = state.meta();
 
         size_t capacity = meta->capacity(0);
 

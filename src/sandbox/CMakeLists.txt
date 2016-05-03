@@ -16,7 +16,7 @@
 include_directories(../tools/include)
 
 if (NOT DEFINED MEMORIA_SANDBOX)
-    set(MEMORIA_SANDBOX map_iobuffer_bulk)
+    set(MEMORIA_SANDBOX map_iobuffer_bulk2)
 endif()
 
 
