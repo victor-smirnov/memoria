@@ -206,7 +206,7 @@ public:
     template <typename IOBuffer>
     bool append_entry_from_iobuffer(AppendState& state, IOBuffer& buffer)
     {
-        for (Int block = 0; block < Blocks; block++)
+    	for (Int block = 0; block < Blocks; block++)
         {
         	int capacity = max_size_ - size_;
         	int len = sizeof(Value);

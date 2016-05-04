@@ -29,8 +29,8 @@ namespace memoria {
 namespace v1 {
 
 class IOBuffer {
-	UByte* array_;
-	size_t length_;
+	UByte* array_ = nullptr;
+	size_t length_ = 0;
 	size_t pos_ = 0;
 	bool owner_;
 
@@ -488,7 +488,7 @@ public:
 	int64_t getVLen()
 	{
 		int64_t len = 0;
-		pos_ += vlen_codec_.encode(array_, len, pos_);
+		pos_ += vlen_codec_.decode(array_, len, pos_);
 		return len;
 	}
 
