@@ -19,6 +19,7 @@
 #include <memoria/v1/prototypes/bt/tools/bt_tools.hpp>
 #include <memoria/v1/prototypes/bt_tl/bttl_tools.hpp>
 #include <memoria/v1/prototypes/bt_tl/bttl_input.hpp>
+#include <memoria/v1/prototypes/bt_tl/bttl_iobuf_input.hpp>
 #include <memoria/v1/core/container/container.hpp>
 
 namespace memoria {

@@ -298,9 +298,6 @@ int main() {
 //
 
             auto map_data = createRandomShapedMapData<KeyType, ValueType>(
-//                    2000,
-//                    10000,
-
             		2000,
 					10000,
                     [](auto k) {return make_key(k, TypeTag<KeyType>());},

@@ -70,6 +70,16 @@ public:
 
     using SizesT = core::StaticVector<Int, 1>;
 
+    class AppendState {
+    	Int size_;
+    public:
+    	AppendState(): size_(0) {}
+    	AppendState(Int size): size_(size) {}
+
+    	Int& size() {return size_;}
+    	const Int& size() const {return size_;}
+    };
+
 private:
 
     Int size_;
