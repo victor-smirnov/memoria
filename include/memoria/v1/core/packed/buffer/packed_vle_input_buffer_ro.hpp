@@ -89,7 +89,7 @@ public:
                 ConstValue<UInt, Blocks>
     >;
 
-    using Value      = typename Types::Value;
+    using Value  = typename Types::Value;
 
     using Values = core::StaticVector<Value, Blocks>;
 
@@ -172,12 +172,54 @@ public:
         );
     }
 
+
+    SizesT data_capacity() const
+    {
+    	return SizesT(this->metadata()->max_data_size()[0]);
+    }
+
+    void copyTo(MyType* other) const
+    {
+    	auto meta = this->metadata();
+    	auto other_meta = this->metadata();
+
+    	other->meta()->size() 		= meta->size();
+    	other->meta()->data_size()	= meta->data_size();
+
+    	Codec codec;
+    	codec.move(this->values(), other->values(), meta->data_pos()[0]);
+    }
+
+
     bool has_capacity_for(const SizesT& sizes) const
     {
         auto capacity = this->metadata()->meta->max_data_size(0);
         auto sum = sizes.sum();
 
         return sum <= capacity;
+    }
+
+
+    template <typename Buffer>
+    bool has_capacity_for(const Buffer& buffer, Int start, Int length) const
+    {
+        auto meta = this->metadata();
+
+        Codec codec;
+
+        Int data_size = 0;
+
+        for (Int c = start; c < start + length; c++)
+        {
+        	Values entry = buffer[c];
+
+        	for (Int block = 0; block < Blocks; block++)
+        	{
+        		data_size += codec.length(entry[block]);
+        	}
+        }
+
+        return data_size <= this->metadata()->meta->max_data_size(0);
     }
 
 

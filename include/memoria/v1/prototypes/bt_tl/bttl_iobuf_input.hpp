@@ -24,346 +24,420 @@
 
 #include <memoria/v1/prototypes/bt_tl/bttl_tools.hpp>
 
-#include <memory>
-
 namespace memoria {
 namespace v1 {
 namespace bttl {
+namespace iobuf {
 
-namespace detail {
+namespace {
 
-template <Int Size, Int Idx = 0>
-struct ForAllTuple {
-    template <typename InputBuffer, typename Fn, typename... Args>
-    static void process(InputBuffer&& tuple, Fn&& fn, Args&&... args)
-    {
-        fn.template process<Idx>(std::get<Idx>(tuple), std::forward<Args>(args)...);
-        ForAllTuple<Size, Idx + 1>::process(tuple, std::forward<Fn>(fn), std::forward<Args>(args)...);
-    }
-};
+	static constexpr Int BTTLGetBitsPerSymbol(Int v) {
+		return v == 1 ?  0 : (v == 2 ? 1 : (v == 3 ? 2 : (v == 4 ? 2 : (v == 5 ? 3 : (v == 6 ? 3 : (v == 7 ? 3 : 4))))));
+	}
 
-template <Int Idx>
-struct ForAllTuple<Idx, Idx> {
-    template <typename InputBuffer, typename Fn, typename... Args>
-    static void process(InputBuffer&& tuple, Fn&& fn, Args&&... args)
-    {}
-};
+	template <Int Size, Int Idx = 0>
+	struct ForAllTuple {
+		template <typename InputBuffer, typename Fn, typename... Args>
+		static void process(InputBuffer&& tuple, Fn&& fn, Args&&... args)
+		{
+			fn.template process<Idx>(std::get<Idx>(tuple), std::forward<Args>(args)...);
+			ForAllTuple<Size, Idx + 1>::process(tuple, std::forward<Fn>(fn), std::forward<Args>(args)...);
+		}
+	};
 
+	template <Int Idx>
+	struct ForAllTuple<Idx, Idx> {
+		template <typename InputBuffer, typename Fn, typename... Args>
+		static void process(InputBuffer&& tuple, Fn&& fn, Args&&... args)
+		{}
+	};
 
 
-template <typename T>
-class InputBufferHandle {
-    T* ref_;
-public:
-    using MyType = InputBufferHandle<T>;
-    using PtrType = T;
 
-    InputBufferHandle(T* ref): ref_(ref) {}
-    InputBufferHandle(): ref_(nullptr) {}
-    InputBufferHandle(const MyType& other) = delete;
-    InputBufferHandle(MyType&& other): ref_(other.ref_) {
-        other.ref_ = nullptr;
-    }
-
-    ~InputBufferHandle() {
-        if (ref_) ::free(ref_);
-    }
-
-    T* get() {
-        return ref_;
-    }
+	template <typename T>
+	class InputBufferHandle {
+		T* ref_;
+	public:
+		using MyType = InputBufferHandle<T>;
+		using PtrType = T;
 
-    const T* get() const {
-        return ref_;
-    }
-
-    MyType& operator=(const MyType& other) = delete;
-
-    void operator=(MyType&& other) {
-        if (ref_) ::free(ref_);
-        ref_ = other.ref_;
-        other.ref_ = nullptr;
-    }
+		InputBufferHandle(T* ref): ref_(ref) {}
+		InputBufferHandle(): ref_(nullptr) {}
+		InputBufferHandle(const MyType& other) = delete;
+		InputBufferHandle(MyType&& other): ref_(other.ref_) {
+			other.ref_ = nullptr;
+		}
 
-    T* operator->() {return ref_;}
-    const T* operator->() const {return ref_;}
+		~InputBufferHandle() {
+			if (ref_) ::free(ref_);
+		}
 
-    bool is_null() const {
-        return ref_ == nullptr;
-    }
-};
+		T* get() {
+			return ref_;
+		}
 
+		const T* get() const {
+			return ref_;
+		}
+
+		MyType& operator=(const MyType& other) = delete;
+
+		void operator=(MyType&& other) {
+			if (ref_) ::free(ref_);
+			ref_ = other.ref_;
+			other.ref_ = nullptr;
+		}
 
+		T* operator->() {return ref_;}
+		const T* operator->() const {return ref_;}
 
-template <typename DataBuffer, typename CtrSizeT>
-struct BTSSStreamInputBufferBase {
-    using Buffer    = DataBuffer;
-private:
+		bool is_null() const {
+			return ref_ == nullptr;
+		}
+	};
 
-    DataBuffer buffer_;
 
-    using BufferT 		= typename DataBuffer::PtrType;
-    using BufferSizes 	= typename BufferT::BufferSizesT;
 
-    using AppendState	= typename BufferT::AppendState;
+	template <typename DataBuffer, typename CtrSizeT>
+	struct BTSSStreamInputBufferBase {
+		using Buffer    = DataBuffer;
+	protected:
 
-    AppendState append_state_;
+		using BufferT 		= typename DataBuffer::PtrType;
+		using BufferSizes 	= typename BufferT::BufferSizesT;
 
-public:
-    BTSSStreamInputBufferBase()
-    {}
+		using AppendState	= typename BufferT::AppendState;
 
-    void init(DataBuffer&& buffer)
-    {
-        buffer_ = std::move(buffer);
-    }
+		DataBuffer 	buffer_;
+		BufferT*   	buffer_ptr_;
+		AppendState append_state_;
 
+	public:
+		BTSSStreamInputBufferBase()
+	{}
 
-    DataBuffer& buffer() {return buffer_;}
-    const DataBuffer& buffer() const {return buffer_;}
+		void init(DataBuffer&& buffer)
+		{
+			buffer_ 	= std::move(buffer);
+			buffer_ptr_ = buffer_.get();
+		}
 
+		void init(Int capacity)
+		{
+			init(create_input_buffer(capacity));
+		}
 
-    void reset() {
-        if (!buffer_.is_null()) {
-            buffer_->reset();
-        }
-    }
 
+		DataBuffer& buffer() {return buffer_;}
+		const DataBuffer& buffer() const {return buffer_;}
 
-    template <typename IOBuffer>
-    void append_io_entry(IOBuffer& io_buffer, Int enlargements = 0)
-    {
-    	size_t pos = io_buffer.pos();
 
-    	if (!this->buffer()->append_entry_from_iobuffer(append_state_, io_buffer))
-    	{
-    		io_buffer.pos(pos);
-    		if (enlargements < 10)
-    		{
-    			enlarge();
-    			append_io_entry(io_buffer, enlargements + 1);
-    		}
-    		else {
-    			throw Exception(MA_RAW_SRC, "Supplied entry is too large for InputBuffer");
-    		}
-    	}
-    }
+		void reset()
+		{
+			if (!buffer_.is_null())
+			{
+				buffer_->reset();
+				append_state_ =  buffer_->append_state();
+			}
+		}
 
 
-    BufferSizes data_capacity() const {
-    	return buffer_->data_capacity();
-    }
 
-    auto* create_input_buffer(const BufferSizes& buffer_sizes)
-    {
-    	Int block_size = BufferT::block_size(buffer_sizes);
-    	BufferT* buffer = T2T<BufferT*>(malloc(block_size));
-    	if (buffer)
-    	{
-    		buffer->setTopLevelAllocator();
-    		buffer->init(block_size, buffer_sizes);
-    		return buffer;
-    	}
-    	else {
-    		throw OOMException(MA_RAW_SRC);
-    	}
-    }
 
 
 
-private:
-    void enlarge()
-    {
-    	BufferSizes current_capacity 	= data_capacity();
-    	BufferSizes new_capacity 		= current_capacity * 2;
 
-    	auto new_buffer = create_input_buffer(new_capacity);
+		BufferSizes data_capacity() const {
+			return buffer_->data_capacity();
+		}
 
-    	buffer_.get()->copyTo(new_buffer);
+		auto* create_input_buffer(const BufferSizes& buffer_sizes)
+		{
+			Int block_size = BufferT::block_size(buffer_sizes);
+			BufferT* buffer = T2T<BufferT*>(malloc(block_size));
+			if (buffer)
+			{
+				buffer->setTopLevelAllocator();
+				buffer->init(block_size, buffer_sizes);
+				return buffer;
+			}
+			else {
+				throw OOMException(MA_RAW_SRC);
+			}
+		}
 
-    	init(DataBuffer(new_buffer));
-    }
-};
+		auto* create_input_buffer(Int buffer_size)
+		{
+			Int block_size = BufferT::block_size(buffer_size);
+			BufferT* buffer = T2T<BufferT*>(malloc(block_size));
+			if (buffer)
+			{
+				buffer->setTopLevelAllocator();
+				buffer->init(block_size, buffer_size);
+				return buffer;
+			}
+			else {
+				throw OOMException(MA_RAW_SRC);
+			}
+		}
 
 
+	protected:
 
-template <typename StreamEntry, typename DataBuffer, typename CtrSizeT, bool LastStream>
-struct BTSSStreamInputBuffer: BTSSStreamInputBufferBase<DataBuffer, CtrSizeT> {
-    using Base = BTSSStreamInputBufferBase<DataBuffer, CtrSizeT>;
+		void enlarge()
+		{
+			BufferSizes current_capacity 	= data_capacity();
+			BufferSizes new_capacity 		= current_capacity;
+			VectorAdd(new_capacity, new_capacity);
 
-    using BufferT       = typename DataBuffer::PtrType;
-    using EntryT        = StreamEntry;
+			auto new_buffer = create_input_buffer(new_capacity);
 
-    using EntryBuffer   = std::vector<EntryT>;
+			buffer_.get()->copyTo(new_buffer);
 
+			init(DataBuffer(new_buffer));
+		}
+	};
 
 
-private:
 
-    EntryBuffer entry_buffer_;
-    size_t eb_head_ = 0;
 
 
+	template <typename DataBuffer, typename CtrSizeT, bool LastStream>
+	struct BTSSStreamInputBuffer: BTSSStreamInputBufferBase<DataBuffer, CtrSizeT> {
+		using Base = BTSSStreamInputBufferBase<DataBuffer, CtrSizeT>;
 
-public:
-    BTSSStreamInputBuffer() {}
+		using BufferT       = typename DataBuffer::PtrType;
 
-    void init(DataBuffer&& buffer, Int capacity)
-    {
-        Base::init(std::move(buffer), capacity);
-    }
+		using SizesBuffer   = std::vector<CtrSizeT>;
 
+		using AppendState	= typename BufferT::AppendState;
 
-    void init(DataBuffer&& buffer)
-    {
-        Base::init(std::move(buffer));
-    }
+	private:
 
-    void reset()
-    {
-        Base::reset();
+		SizesBuffer sizes_buffer_;
+		size_t eb_head_ = 0;
 
-        for (size_t c = 0; c < entry_buffer_.size(); c++)
-        {
-            constexpr Int SizeIdx = std::tuple_size<EntryT>::value - 1;
-            std::get<SizeIdx>(entry_buffer_[c]) = 0;
-        }
+		AppendState append_state_;
 
-        eb_head_ = 0;
-    }
+	public:
+		BTSSStreamInputBuffer() {}
 
-    void finish()
-    {
-        auto buffer_sizes = BufferT::compute_buffer_sizes_for(eb_head_, entry_buffer_);
 
-        if (this->buffer().is_null() || !this->buffer()->has_capacity_for(buffer_sizes))
-        {
-            Int block_size = BufferT::block_size(buffer_sizes);
-            BufferT* buffer = T2T<BufferT*>(malloc(block_size));
-            if (buffer)
-            {
-                buffer->setTopLevelAllocator();
-                buffer->init(block_size, buffer_sizes);
-                this->init(DataBuffer(buffer));
-            }
-            else {
-                throw OOMException(MA_SRC);
-            }
-        }
-        else {
-            this->buffer()->reset();
-        }
 
-        if (eb_head_ > 0)
-        {
-            this->buffer()->append(entry_buffer_, 0, eb_head_);
-            this->buffer()->reindex();
-        }
-        else {
-            this->buffer()->reset();
-        }
-    }
+		void reset()
+		{
+			Base::reset();
 
+			for (size_t c = 0; c < sizes_buffer_.size(); c++)
+			{
+				sizes_buffer_[c] = 0;
+			}
 
+			eb_head_ = 0;
+		}
 
+		void finish()
+		{
+			if (eb_head_ > 0)
+			{
+				append_sizes_substream();
+				this->buffer()->reindex();
+			}
+			else {
+				this->buffer()->reset();
+			}
+		}
 
 
-    void add_size(Int idx, CtrSizeT value)
-    {
-        constexpr Int SizeIdx = std::tuple_size<EntryT>::value - 1;
-        std::get<SizeIdx>(entry_buffer_[idx]) += value;
-    }
+		void add_size(Int idx, CtrSizeT value)
+		{
+			sizes_buffer_[idx] += value;
+		}
 
 
+		template <typename IOBuffer>
+		void append_stream_entries(Int entries, IOBuffer& buffer)
+		{
+			for (Int c = 0; c < entries; c++)
+			{
+				this->append_io_entry(buffer);
+
+				if (eb_head_ < sizes_buffer_.size())
+				{
+					sizes_buffer_[eb_head_] = 0;
+				}
+				else {
+					sizes_buffer_.emplace_back(0);
+				}
 
+				eb_head_++;
+			}
+		}
 
-    void append_entry(const EntryT& entry)
-    {
-        if (entry_buffer_.size() == eb_head_)
-        {
-            entry_buffer_.resize(entry_buffer_.size() + 1, entry);
-        }
-        else {
-            entry_buffer_[eb_head_] = entry;
-        }
+	private:
 
-        eb_head_++;
-    }
 
-    EntryT& append_entry()
-    {
-        if (entry_buffer_.size() == eb_head_)
-        {
-            entry_buffer_.resize(entry_buffer_.size() + 1);
-        }
+		template <typename IOBuffer>
+		void append_io_entry(IOBuffer& io_buffer, Int enlargements = 0)
+		{
+			size_t pos = io_buffer.pos();
 
-        return entry_buffer_[eb_head_++];
-    }
+			auto tmp = append_state_;
 
-    Int size() const {
-        return eb_head_;
-    }
+			if (!this->buffer_ptr_->append_bttl_entry_from_iobuffer(append_state_, io_buffer))
+			{
+				append_state_ = tmp;
+				io_buffer.pos(pos);
 
+				if (enlargements < 5)
+				{
+					this->enlarge();
+					append_io_entry(io_buffer, enlargements + 1);
+				}
+				else {
+					throw Exception(MA_RAW_SRC, "Supplied entry is too large for InputBuffer");
+				}
+			}
+		}
 
-};
+		void append_sizes_substream()
+		{
+			Int tries = 0;
+			while (tries < 5)
+			{
+				if (this->buffer()->has_bttl_capacity_for(sizes_buffer_, 0, eb_head_))
+				{
+					this->buffer()->append_last_substream(sizes_buffer_, 0, eb_head_);
+					return;
+				}
+				else if (tries < 5)
+				{
+					this->enlarge();
+				}
+				else {
+					throw Exception(MA_RAW_SRC, "Supplied stream sizes buffer is too large for InputBuffer");
+				}
+			}
+		}
+	};
 
 
-template <typename StreamEntry, typename DataBuffer, typename CtrSizeT>
-struct BTSSStreamInputBuffer<StreamEntry, DataBuffer, CtrSizeT, true>: BTSSStreamInputBufferBase<DataBuffer, CtrSizeT> {
-    void finish() {
-        this->buffer()->reindex();
-    }
-};
+	template <typename DataBuffer, typename CtrSizeT>
+	struct BTSSStreamInputBuffer<DataBuffer, CtrSizeT, true>: BTSSStreamInputBufferBase<DataBuffer, CtrSizeT> {
+		void finish()
+		{
+			this->buffer()->reindex();
+		}
 
 
+		template <typename IOBuffer>
+		void append_stream_entries(Int entries, IOBuffer& buffer)
+		{
+			for (Int c = 0; c < entries; c++)
+			{
+				this->append_io_entry(buffer);
+			}
+		}
 
 
+		template <typename IOBuffer>
+		void append_io_entry(IOBuffer& io_buffer, Int enlargements = 0)
+		{
+			size_t pos = io_buffer.pos();
 
+			auto tmp = this->append_state_;
 
-template <typename Types, Int Streams, Int Idx = 0>
-struct InputBufferBuilder {
-    using InputBuffer = StreamInputBuffer<
-            Idx,
-            typename Types::template StreamInputBufferStructList<Idx>
-    >;
+			if (!this->buffer_ptr_->append_entry_from_iobuffer(this->append_state_, io_buffer))
+			{
+				this->append_state_ = tmp;
+				io_buffer.pos(pos);
 
-    using StreamEntry = typename Types::template StreamInputTuple<Idx>;
+				if (enlargements < 5)
+				{
+					this->enlarge();
+					append_io_entry(io_buffer, enlargements + 1);
+				}
+				else {
+					throw Exception(MA_RAW_SRC, "Supplied entry is too large for InputBuffer");
+				}
+			}
+		}
+	};
 
-    using UInputBufferPtr = InputBufferHandle<InputBuffer>;
 
-    using SizedBuffer = BTSSStreamInputBuffer<StreamEntry, UInputBufferPtr, typename Types::CtrSizeT, Idx == Streams - 1>;
 
-    using Type = MergeLists<
-            SizedBuffer,
-            typename InputBufferBuilder<Types, Streams, Idx + 1>::Type
-    >;
-};
 
-template <typename Types, Int Streams>
-struct InputBufferBuilder<Types, Streams, Streams> {
-    using Type = TL<>;
-};
 
 
+	template <typename Types, Int Streams, Int Idx = 0>
+	struct InputBufferBuilder {
+		using InputBuffer = StreamInputBuffer<
+				Idx,
+				typename Types::template StreamInputBufferStructList<Idx>
+		>;
 
+		using UInputBufferPtr 	= InputBufferHandle<InputBuffer>;
+		using SizedBuffer 		= BTSSStreamInputBuffer<UInputBufferPtr, typename Types::CtrSizeT, Idx == Streams - 1>;
 
+		using Type = MergeLists<
+				SizedBuffer,
+				typename InputBufferBuilder<Types, Streams, Idx + 1>::Type
+		>;
+	};
+
+	template <typename Types, Int Streams>
+	struct InputBufferBuilder<Types, Streams, Streams> {
+		using Type = TL<>;
+	};
+
+
+	template <typename SeqT>
+	class SymbolsHandle {
+		FreeUniquePtr<PackedAllocator>  ref_;
+	public:
+		SymbolsHandle(Int capacity): ref_(allocate(capacity))
+	{}
+
+		SeqT* get() {return ref_->template get<SeqT>(0);}
+		const SeqT* get() const {return ref_->template get<SeqT>(0);}
+
+		SeqT* operator->() {return this->get();}
+		const SeqT* operator->() const {return this->get();}
+
+		void enlarge(Int required)
+		{
+			Int current_size = get()->size();
+			Int new_size = current_size * 2;
+
+			Int new_capacity = new_size - current_size;
+			if (new_capacity < required)
+			{
+				new_size += required - new_capacity;
+			}
+
+			auto new_ptr = allocate(new_size);
+
+			get()->splitTo(new_ptr->template get<SeqT>(0), 0);
+
+			ref_.reset(new_ptr.release());
+		}
+
+	private:
+		static auto allocate(Int capacity)
+		{
+			Int block_size = SeqT::packed_block_size(capacity);
+			auto ptr = AllocTool<PackedAllocator>::create(block_size, 1);
+
+			SeqT* seq = ptr->template allocate<SeqT>(0, SeqT::packed_block_size(capacity));
+
+			seq->enlargeData(capacity);
+
+			return ptr;
+		}
+	};
 
 }
 
-
-class RunDescr {
-    Int symbol_;
-    Int length_;
-public:
-    RunDescr(Int symbol, Int length = 1): symbol_(symbol), length_(length) {}
-
-    Int symbol() const {return symbol_;}
-    Int length() const {return length_;}
-
-    void set_length(Int len) {
-        length_ = len;
-    }
-};
 
 
 
@@ -382,7 +456,7 @@ public:
     using Iterator  = typename CtrT::Iterator;
 
     using Buffer = AsTuple<
-            typename detail::InputBufferBuilder<
+            typename InputBufferBuilder<
                 typename CtrT::Types,
                 Streams
             >::Type
@@ -391,13 +465,13 @@ public:
     using Position  = typename CtrT::Types::Position;
     using CtrSizesT = typename CtrT::Types::CtrSizesT;
 
-    using ForAllBuffer = detail::ForAllTuple<std::tuple_size<Buffer>::value>;
+    using ForAllBuffer = ForAllTuple<std::tuple_size<Buffer>::value>;
 
-    static constexpr Int get_symbols_number(Int v) {
-        return v == 1 ?  0 : (v == 2 ? 1 : (v == 3 ? 2 : (v == 4 ? 2 : (v == 5 ? 3 : (v == 6 ? 3 : (v == 7 ? 3 : 4))))));
-    }
 
-    using Symbols = PkdFSSeq<typename PkdFSSeqTF<get_symbols_number(Streams)>::Type>;
+
+    static constexpr Int BitsPerSymbol = BTTLGetBitsPerSymbol(Streams);
+
+
 
     using NodePair = std::pair<NodeBaseG, NodeBaseG>;
 
@@ -405,64 +479,46 @@ public:
     using AnchorPosT    = core::StaticVector<Int, Streams - 1>;
     using AnchorNodeT   = core::StaticVector<NodeBaseG, Streams - 1>;
 
+    using Sequence = PkdFSSeq<typename PkdFSSeqTF<BitsPerSymbol>::Type>;
 
 protected:
+
     Buffer buffer_;
     CtrSizesT start_;
     CtrSizesT size_;
+    bool finished_ = false;
 
-    Int total_capacity_;
 
-    FreeUniquePtr<PackedAllocator> allocator_;
+    SymbolsHandle<Sequence> symbols_;
 
-    CtrT&   ctr_;
+    CtrT& ctr_;
 
     AnchorPosT   anchors_;
     AnchorValueT anchor_values_;
     AnchorNodeT  leafs_;
 
-    Int last_symbol_;
+
+    Int last_stream_;
 
     CtrSizeT orphan_splits_ = 0;
 
     NodePair split_watcher_;
 
-    Int start_level_;
+    Int start_stream_;
 
     CtrSizeT total_symbols_ = 0;
 
     CtrSizesT totals_;
-    CtrSizesT locals_;
+    CtrSizesT locals_; // FIXME: remove?
+
+
 
 private:
     struct CreateBufferFn {
         template <Int Idx, typename Buffer>
-        void process(Buffer&& buffer, Int total_capacity)
+        void process(Buffer&& buffer, Int initial_capacity)
         {
-            using SizesBufferHandleType     = typename std::remove_reference<Buffer>::type;
-            using BufferHandleType          = typename SizesBufferHandleType::Buffer;
-            using BufferType                = typename BufferHandleType::PtrType;
-
-            if (Idx == Streams - 1)
-            {
-                Int object_size = BufferType::block_size(total_capacity) + 256;
-
-                void* ptr = malloc(object_size);
-
-                if (ptr != nullptr)
-                {
-                    BufferType* pbuffer = T2T<BufferType*>(ptr);
-
-                    pbuffer->setTopLevelAllocator();
-
-                    pbuffer->init(object_size, total_capacity);
-
-                    buffer.init(BufferHandleType(pbuffer));
-                }
-                else {
-                    throw OOMException(MA_SRC);
-                }
-            }
+            buffer.init(initial_capacity);
         }
     };
 
@@ -495,25 +551,21 @@ private:
 
 public:
 
-    AbstractCtrInputProviderBase(CtrT& ctr, Int start_level, Int total_capacity):
-        total_capacity_(total_capacity),
-        allocator_(AllocTool<PackedAllocator>::create(block_size(total_capacity), 1)),
+    AbstractCtrInputProviderBase(CtrT& ctr, Int start_level, Int initial_capacity):
+        symbols_(initial_capacity),
         ctr_(ctr),
-        last_symbol_(start_level - 1),
-        start_level_(start_level)
+        last_stream_(start_level - 1),
+        start_stream_(start_level)
     {
-        ForAllBuffer::process(buffer_, CreateBufferFn(), total_capacity);
-
-        allocator_->template allocate<Symbols>(0, Symbols::packed_block_size(total_capacity));
-
-        symbols()->enlargeData(total_capacity);
+        ForAllBuffer::process(buffer_, CreateBufferFn(), initial_capacity);
     }
 private:
     static Int block_size(Int capacity)
     {
-        return Symbols::packed_block_size(capacity);
+        return Sequence::packed_block_size(capacity);
     }
 
+protected:
     void finish_buffer()
     {
         ForAllBuffer::process(buffer_, FinishBufferFn());
@@ -565,7 +617,7 @@ public:
     }
 
     Int last_symbol() const {
-        return last_symbol_;
+        return last_stream_;
     }
 
 
@@ -655,7 +707,6 @@ public:
     {
         CtrT::Types::Pages::LeafDispatcher::dispatch(leaf, InsertBufferFn(), at, start_, sizes, buffer_);
 
-
         if (leaf->parent_id().isSet())
         {
             ctr().update_path(leaf);
@@ -682,7 +733,7 @@ public:
 
         Int start_pos = start_.sum();
 
-        auto symbols = this->symbols();
+        const Sequence* symbols = this->symbols();
 
         for (Int s = 0; s < Streams; s++)
         {
@@ -696,104 +747,30 @@ public:
         return buffer_size();
     }
 
-
     virtual bool populate_buffer()
     {
-        reset_buffer();
+    	if (start_.sum() < size_.sum())
+    	{
+    		return true;
+    	}
+    	else if (!finished_)
+    	{
+    		do_populate_iobuffer();
 
-        Position sizes;
-        Position buffer_sums;
-
-        start_.clear();
-        size_.clear();
-
-        Int capacity = total_capacity_;
-
-        Int symbol_pos = 0;
-
-        auto symbols = this->symbols();
-
-        auto& symbols_size = symbols->size();
-
-        symbols_size = 0;
-
-        auto syms = symbols->symbols();
-
-        while (true)
-        {
-            RunDescr run = populate(capacity);
-
-            Int symbol = run.symbol();
-            Int length = run.length();
-
-            if (symbol >= 0)
-            {
-                if (length > 0)
-                {
-                    if (total_symbols_ == 0 && (symbol != start_level_))
-                    {
-                        throw Exception(MA_SRC, SBuf()<<"Invalid start symbol: "<<symbol<<" expected: "<<start_level_);
-                    }
-
-                    symbols_size += length;
-                    for (Int c = symbol_pos; c < symbol_pos + length; c++)
-                    {
-                        symbols->tools().set(syms, c, symbol);
-                    }
-
-                    symbol_pos      += length;
-                    total_symbols_  += length;
-                    size_[symbol]   += length;
-                    capacity        -= length;
-
-                    if (symbol > last_symbol_ + 1)
-                    {
-                        throw Exception(MA_SRC, SBuf()<<"Invalid sequence state: last_symbol="<<last_symbol_<<", symbol="<<symbol);
-                    }
-                    else if (symbol < last_symbol_)
-                    {
-                        this->finish_stream_run(symbol, last_symbol_, sizes, buffer_sums);
-                    }
-                    else if (symbol > last_symbol_) {
-                        locals_[symbol] = 0;
-                    }
-
-                    buffer_sums[symbol] += length;
-                    sizes[symbol]       += length;
-                    totals_[symbol]     += length;
-                    locals_[symbol]     += length;
-
-                    if (capacity <= 0)
-                    {
-                        this->finish_stream_run(0, Streams - 1, sizes, buffer_sums);
-                        last_symbol_ = symbol;
-                        break;
-                    }
-                    else {
-                        last_symbol_ = symbol;
-                    }
-                }
-                else {
-                    // buffer is full
-                    this->finish_stream_run(0, Streams - 1, sizes, buffer_sums);
-                    break;
-                }
-            }
-            else {
-                this->finish_stream_run(0, Streams - 1, sizes, buffer_sums);
-//                last_symbol_ = -1;
-                break;
-            }
-        }
-
-        symbols->reindex();
-
-        finish_buffer();
-
-        return symbol_pos > 0;
+    		if (finished_)
+    		{
+    			return start_.sum() < size_.sum();
+    		}
+    		else {
+    			return true;
+    		}
+    	}
+    	else {
+    		return false;
+    	}
     }
 
-    virtual RunDescr populate(Int capacity) = 0;
+    virtual void do_populate_iobuffer() = 0;
 
 
     void dump_buffer(std::ostream& out = std::cout) const
@@ -807,12 +784,12 @@ public:
     }
 
 protected:
-    Symbols* symbols() {
-        return allocator_->get<Symbols>(0);
+    auto* symbols() {
+        return symbols_.get();
     }
 
-    const Symbols* symbols() const {
-        return allocator_->get<Symbols>(0);
+    const auto* symbols() const {
+        return symbols_.get();
     }
 
 protected:
@@ -1507,107 +1484,345 @@ private:
 
 
 
-
-
-
-
-
-
-
-namespace details {
-
-template <
-    template <Int> class Tag,
-    Int Size,
-    Int Idx = 0
->
-struct PopulateHelper {
-    template <typename Chunk, typename Provider, typename Buffer, typename... Args>
-    static void process(Chunk&& chunk, Provider&& provider, Buffer&& buffer, Int capacity, Args&&... args)
-    {
-        if (chunk.symbol() == Idx)
-        {
-            auto len1  = chunk.length();
-
-            if (len1 > capacity)
-            {
-                len1 = capacity;
-            }
-
-            auto len2 = provider.populate(Tag<Idx>(), std::get<Idx>(buffer), len1, std::forward<Args>(args)...);
-
-            chunk.set_length(len2);
-        }
-        else {
-            PopulateHelper<Tag, Size, Idx + 1>::process(
-                    chunk,
-                    std::forward<Provider>(provider),
-                    std::forward<Buffer>(buffer),
-                    capacity,
-                    std::forward<Args>(args)...
-            );
-        }
-    }
-};
-
-
-template <template <Int> class Tag, Int Size>
-struct PopulateHelper<Tag, Size, Size> {
-
-    template <typename Chunk, typename Provider, typename Buffer, typename... Args>
-    static void process(Chunk&& chunk, Provider&& provider, Buffer&& buffer, Int capacity, Args&&... args)
-    {
-        auto len1  = chunk.length();
-
-        if (len1 > capacity)
-        {
-            len1 = capacity;
-        }
-
-        auto len2 = provider.populateLastStream(std::get<Size>(buffer), len1, std::forward<Args>(args)...);
-
-        chunk.set_length(len2);
-    }
-};
-
-
-}
-
-
 template <
     typename CtrT,
-    typename DataProvider
+    typename IOBuffer
 >
-class StreamingCtrInputProvider: public v1::bttl::AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength> {
+class IOBufferCtrInputProvider: public v1::bttl::iobuf::AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength> {
 public:
-    using Base      = v1::bttl::AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength>;
+    using Base      = v1::bttl::iobuf::AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength>;
 
     using CtrSizesT = typename CtrT::Types::Position;
 
     static constexpr Int Streams = CtrT::Types::Streams;
-private:
 
-    DataProvider& data_provider_;
+    using typename Base::Position;
+    using typename Base::CtrSizesT;
+
+protected:
+
+    using typename Base::ForAllBuffer;
+    using typename Base::Buffer;
+
+    using Base::BitsPerSymbol;
+
+    using Base::reset_buffer;
+    using Base::finish_buffer;
+
+    using Base::start_;
+    using Base::size_;
+    using Base::buffer_;
+    using Base::symbols_;
+    using Base::finished_;
+    using Base::last_stream_;
+    using Base::start_stream_;
+    using Base::total_symbols_;
+    using Base::locals_;
+    using Base::totals_;
+
+
+    Int stream_run_remainder_ = 0;
+
+    BufferProducer<IOBuffer>* iobuffer_producer_;
+    IOBuffer* io_buffer_;
+
 public:
-    StreamingCtrInputProvider(CtrT& ctr, DataProvider& data_provider, Int start_level, Int total_capacity = 4000):
-        Base(ctr, start_level, total_capacity),
-        data_provider_(data_provider)
+    IOBufferCtrInputProvider(CtrT& ctr, BufferProducer<IOBuffer>* iobuffer_producer, Int start_level, Int initial_capacity = 4000):
+        Base(ctr, start_level, initial_capacity),
+		iobuffer_producer_(iobuffer_producer),
+		io_buffer_(&iobuffer_producer->buffer())
     {}
 
-    virtual RunDescr populate(Int capacity)
+
+    struct AppendStreamEntriesFn {
+    	template <Int Idx, typename InputBuffer>
+    	void process(InputBuffer& input_buffer, Int stream, Int length, IOBuffer& io_buffer)
+    	{
+    		if (Idx == stream)
+    		{
+    			input_buffer.append_stream_entries(length, io_buffer);
+    		}
+    	}
+    };
+
+
+    void append_stream_entries(Int stream, Int length, IOBuffer& io_buffer)
     {
-        RunDescr chunk = data_provider_.query();
-
-        if (chunk.symbol() >= 0)
-        {
-            details::PopulateHelper<StreamTag, Streams - 1>::process(chunk, data_provider_, this->buffer_, capacity);
-        }
-
-        return chunk;
+    	ForAllBuffer::process(buffer_, AppendStreamEntriesFn(), stream, length, io_buffer);
     }
 
-    const DataProvider& data_provider() const {
-        return data_provider_;
+    virtual void do_populate_iobuffer()
+    {
+    	reset_buffer();
+
+        Position sizes;
+        Position buffer_sums;
+
+        start_.clear();
+        size_.clear();
+
+        auto symbols 		= symbols_.get();
+        auto tools 	 		= symbols->tools();
+        auto syms 	 		= symbols->symbols();
+        auto* symbols_size 	= &symbols->size();
+
+        *symbols_size = 0;
+
+        Int capacity 		= symbols->capacity();
+        Int symbol_pos 		= 0;
+
+        io_buffer_->rewind();
+        Int entries = iobuffer_producer_->populate(*io_buffer_);
+        io_buffer_->rewind();
+
+        if (entries != 0)
+        {
+        	if (entries < 0)
+        	{
+        		finished_ = true;
+        		entries = -entries;
+        	}
+
+        	for (Int entry_num = 0; entry_num < entries;)
+        	{
+        		Int stream;
+        		Int run_length;
+        		bool premature_eob = false;
+
+        		if (stream_run_remainder_ == 0)
+        		{
+        			stream = io_buffer_->getUByte();
+        			entry_num++;
+
+        			run_length 	= stream >> BitsPerSymbol;
+        			stream 		= stream & ((1 << BitsPerSymbol) - 1);
+
+        			int iobuffer_remainder = entries - entry_num;
+
+        			if (run_length >= iobuffer_remainder)
+        			{
+        				stream_run_remainder_ 	= run_length - iobuffer_remainder;
+        				run_length 				-= stream_run_remainder_;
+        				premature_eob 			= true;
+        			}
+        		}
+        		else {
+        			stream = last_stream_;
+
+        			if (stream_run_remainder_ <= entries)
+        			{
+        				run_length 				= stream_run_remainder_;
+        				stream_run_remainder_ 	= 0;
+        			}
+        			else {
+        				run_length 				= entries;
+        				stream_run_remainder_ 	-= entries;
+        				premature_eob 			= true;
+        			}
+        		}
+
+
+        		if (total_symbols_ == 0 && (stream != start_stream_))
+        		{
+        			throw Exception(MA_SRC, SBuf()<<"Invalid start stream: "<<stream<<" expected: "<<start_stream_);
+        		}
+        		else if (stream > last_stream_ + 1)
+        		{
+        			throw Exception(MA_RAW_SRC, SBuf() << "Invalid sequence state: last_stream=" << last_stream_ << ", stream=" << stream);
+        		}
+
+
+        		if (capacity < run_length)
+        		{
+        			symbols_.enlarge(run_length);
+
+        			symbols 		= this->symbols();
+        			syms 	 		= symbols->symbols();
+        			symbols_size 	= &symbols->size();
+        			capacity 		= symbols->capacity();
+        		}
+
+        		append_stream_entries(stream, run_length, *io_buffer_);
+
+				*symbols_size += run_length;
+				for (Int c = symbol_pos; c < symbol_pos + run_length; c++)
+				{
+					tools.set(syms, c, stream);
+				}
+
+				symbol_pos      += run_length;
+				total_symbols_  += run_length;
+				size_[stream]   += run_length;
+				capacity        -= run_length;
+
+				if (!premature_eob)
+				{
+					if (stream < last_stream_)
+					{
+						this->finish_stream_run(stream, last_stream_, sizes, buffer_sums);
+					}
+					else if (stream > last_stream_)
+					{
+						locals_[stream] = 0;
+					}
+
+					buffer_sums[stream] += run_length;
+				}
+				else {
+					// We have reached the end of IOBuffer
+
+					buffer_sums[stream] += run_length;
+					this->finish_stream_run(0,  Streams - 1, sizes, buffer_sums);
+				}
+
+
+				sizes[stream]       += run_length;
+				totals_[stream]     += run_length;
+				locals_[stream]     += run_length;
+
+				last_stream_ = stream;
+
+				entry_num += run_length;
+        	}
+
+        	if (finished_)
+        	{
+        		// We have reached the end of data stream
+        		this->finish_stream_run(0,  Streams - 1, sizes, buffer_sums);
+        	}
+
+        	symbols->reindex();
+
+        	finish_buffer();
+        }
+        else {
+        	finished_ = true;
+        }
+    }
+
+};
+
+
+class RunDescr {
+    Int symbol_;
+    Int length_;
+public:
+    RunDescr(): symbol_(), length_() {}
+
+    RunDescr(Int symbol, Int length = 1): symbol_(symbol), length_(length) {}
+
+    Int symbol() const {return symbol_;}
+    Int length() const {return length_;}
+
+    void set_length(Int len) {
+        length_ = len;
+    }
+};
+
+
+template <Int Streams, typename IOBuffer>
+class FlatTreeIOBufferAdapter: public BufferProducer<IOBuffer> {
+
+public:
+
+    static constexpr Int BitsPerSymbol 	= BTTLGetBitsPerSymbol(Streams);
+    static constexpr Int LevelCodeMask 	= (1 << BitsPerSymbol) - 1;
+
+    static constexpr Int MaxRunLength 	= (256 >> BitsPerSymbol) - 1;
+
+private:
+
+    RunDescr state_;
+    Int processed_ = 0;
+    Int run_length_ = 0;
+    Int run_processed_ = 0;
+    bool symbol_encoded_ = false;
+
+public:
+    FlatTreeIOBufferAdapter(){}
+
+
+
+    constexpr UByte encodeRun(Int symbol, Int len)
+    {
+    	return symbol | (len << BitsPerSymbol);
+    }
+
+    virtual RunDescr query() = 0;
+    virtual Int populate_stream(Int stream, IOBuffer& buffer, Int length) = 0;
+
+    virtual Int populate(IOBuffer& io_buffer)
+    {
+    	Int entries = 0;
+
+    	while (true)
+    	{
+    		if (processed_ == state_.length())
+    		{
+    			state_ 			= this->query();
+    			symbol_encoded_ = false;
+    			processed_ 		= 0;
+    		}
+
+    		if (state_.symbol() >= 0)
+    		{
+    			auto length = state_.length();
+
+    			while (processed_ < length || length == 0)
+    			{
+    				Int remainder = length - processed_;
+
+    				if (run_processed_ == run_length_)
+    				{
+    					run_length_ = remainder > MaxRunLength ? MaxRunLength : remainder;
+    					run_processed_  = 0;
+    					symbol_encoded_ = false;
+    				}
+
+    				Int to_encode = run_length_ - run_processed_;
+
+    				if (!symbol_encoded_)
+    				{
+    					auto subrunDescr = encodeRun(state_.symbol(), to_encode);
+
+    					auto pos = io_buffer.pos();
+//    					cout << "Put run length of " << (Int) subrunDescr << " at " << pos << endl;
+    					if (!io_buffer.put(subrunDescr))
+    					{
+    						io_buffer.pos(pos);
+    						symbol_encoded_ = false;
+    						return entries;
+    					}
+    					else {
+    						symbol_encoded_ = true;
+    						entries++;
+    					}
+    				}
+
+    				if (to_encode > 0)
+    				{
+    					Int actual = populate_stream(state_.symbol(), io_buffer, to_encode);
+
+    					processed_ 		+= actual;
+    					run_processed_ 	+= actual;
+    					entries 		+= actual;
+
+    					if (actual < to_encode)
+    					{
+    						return entries;
+    					}
+    					else {
+    						symbol_encoded_ = false;
+    					}
+    				}
+    			}
+    		}
+    		else {
+    			return -entries;
+    		}
+    	}
+
+    	return entries;
     }
 };
 
@@ -1649,80 +1864,21 @@ namespace {
             }
         }
     };
-
-
-    template <typename StreamEntry, Int Size = std::tuple_size<StreamEntry>::value - 2, Int SubstreamIdx = 0>
-    struct StreamEntryTupleAdaptor;
-
-    template <typename StreamEntry, Int Size, Int SubstreamIdx>
-    struct StreamEntryTupleAdaptor {
-
-        template <Int StreamIdx, typename EntryValue, typename T, typename... Args>
-        static void process_value(const StreamTag<StreamIdx>& tag, EntryValue&& value, T&& object, Args&&... args)
-        {
-            value = object.buffer(tag, StreamTag<SubstreamIdx>(), std::forward<Args>(args)..., 0);
-        }
-
-        template <Int StreamIdx, typename V, Int Indexes, typename T, typename... Args>
-        static void process_value(const StreamTag<StreamIdx>& tag, core::StaticVector<V, Indexes>& value, T&& object, Args&&... args)
-        {
-            for (Int i = 0; i < Indexes; i++)
-            {
-                value[i] = object.buffer(tag, StreamTag<SubstreamIdx>(), std::forward<Args>(args)..., i);
-            }
-        }
-
-
-        template <Int StreamIdx, typename T, typename... Args>
-        static void process(const StreamTag<StreamIdx>& tag, StreamEntry& entry, T&& object, Args&&... args)
-        {
-            process_value(tag, get<SubstreamIdx>(entry), std::forward<T>(object), std::forward<Args>(args)...);
-
-            StreamEntryTupleAdaptor<StreamEntry, Size, SubstreamIdx + 1>::process(tag, entry, std::forward<T>(object), std::forward<Args>(args)...);
-        }
-    };
-
-    template <typename StreamEntry, Int Size>
-    struct StreamEntryTupleAdaptor<StreamEntry, Size, Size> {
-        template <Int StreamIdx, typename EntryValue, typename T, typename... Args>
-        static void process_value(const StreamTag<StreamIdx>& tag, EntryValue&& value, T&& object, Args&&... args)
-        {
-            value = object.buffer(tag, StreamTag<Size>(), std::forward<Args>(args)..., 0);
-        }
-
-        template <Int StreamIdx, typename V, Int Indexes, typename T, typename... Args>
-        static void process_value(const StreamTag<StreamIdx>& tag, core::StaticVector<V, Indexes>& value, T&& object, Args&&... args)
-        {
-            for (Int i = 0; i < Indexes; i++)
-            {
-                value[i] = object.buffer(tag, StreamTag<Size>(), std::forward<Args>(args)..., i);
-            }
-        }
-
-
-        template <Int StreamIdx, typename T, typename... Args>
-        static void process(const StreamTag<StreamIdx>& tag, StreamEntry& entry, T&& object, Args&&... args)
-        {
-            process_value(tag, get<Size>(entry), std::forward<T>(object), std::forward<Args>(args)...);
-        }
-    };
 }
 
 
-template <typename CtrT, typename MyType, Int LevelStart = 0> class SizedFlatTreeStreamingAdapterBase;
 
 
-template <typename CtrT, typename MyType, Int LevelStart>
-class SizedFlatTreeStreamingAdapterBase {
+
+
+
+template <typename MyType, Int Streams>
+class FlatTreeStructureAdapterBase {
 
 public:
-    using CtrSizesT     = typename CtrT::Types::Position;
-    using CtrSizeT      = typename CtrT::Types::CtrSizeT;
+	using CtrSizeT = BigInt;
 
-    template <Int StreamIdx>
-    using InputTuple    = typename CtrT::Types::template StreamInputTuple<StreamIdx>;
-
-    static constexpr Int Streams = CtrT::Types::Streams;
+    using CtrSizesT = core::StaticVector<CtrSizeT, Streams>;
 
 private:
 
@@ -1735,7 +1891,7 @@ private:
     template <Int, Int> friend struct StreamSizeAdapter;
 
 public:
-    SizedFlatTreeStreamingAdapterBase(Int level = 0):
+    FlatTreeStructureAdapterBase(Int level = 0):
         level_(level)
     {}
 
@@ -1750,10 +1906,10 @@ public:
                 counts_[level_] = 0;
                 current_limits_[level_] = StreamSizeAdapter<Streams - 1>::process(level_, *this, counts_);
 
-                return bttl::RunDescr(level_ - 1, 1);
+                return bttl::iobuf::RunDescr(level_ - 1, 1);
             }
             else {
-                return bttl::RunDescr(level_, current_limits_[level_] - counts_[level_]);
+                return bttl::iobuf::RunDescr(level_, current_limits_[level_] - counts_[level_]);
             }
         }
         else if (level_ > 0)
@@ -1762,45 +1918,32 @@ public:
             return this->query();
         }
         else {
-            return bttl::RunDescr(-1);
+            return bttl::iobuf::RunDescr(-1);
         }
     }
 
-    template <Int StreamIdx, typename Buffer>
-    auto populate(const StreamTag<StreamIdx>& tag, Buffer&& buffer, CtrSizeT length)
-    {
-        for (auto c = 0; c < length; c++)
-        {
-            StreamEntryTupleAdaptor<InputTuple<StreamIdx>>::process(tag, buffer.append_entry(), self(), counts_);
-
-            counts_[StreamIdx] += 1;
-            totals_[StreamIdx] += 1;
-        }
-
-        return length;
-    }
-
-    template <typename Buffer>
-    auto populateLastStream(Buffer&& buffer, CtrSizeT length)
-    {
-        constexpr Int Level = Streams - 1;
-
-        Int inserted = buffer.buffer()->append_vbuffer(&self(), counts_[Level], length);
-
-        counts_[Level] += inserted;
-        totals_[Level] += inserted;
-
-        return inserted;
-    }
-
-    const CtrSizesT& consumed() const{
+    const auto& consumed() const {
         return totals_;
+    }
+
+    auto& consumed() {
+    	return totals_;
+    }
+
+    const auto& counts() const {
+    	return counts_;
+    }
+
+    auto& counts() {
+    	return counts_;
+    }
+
+    const auto& current_limits() const {
+    	return current_limits_;
     }
 
     MyType& self() {return *T2T<MyType*>(this);}
     const MyType& self() const {return *T2T<MyType*>(this);}
-
-protected:
 
     void init() {
         current_limits_[level_] = StreamSizeAdapter<Streams - 1>::process(level_, *this, counts_);
@@ -1824,9 +1967,4 @@ private:
 
 
 
-
-
-
-
-}
-}}
+}}}}

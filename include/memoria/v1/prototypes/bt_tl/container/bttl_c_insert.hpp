@@ -21,6 +21,7 @@
 #include <memoria/v1/core/container/macros.hpp>
 
 #include <memoria/v1/prototypes/bt_tl/bttl_tools.hpp>
+#include <memoria/v1/prototypes/bt_tl/bttl_iobuf_input.hpp>
 
 
 #include <vector>
@@ -49,6 +50,44 @@ protected:
         auto stream = iter.stream();
 
         bttl::StreamingCtrInputProvider<MyType, Provider> streamingProvider(self, provider, stream, total_capacity);
+
+        auto pos = iter.local_stream_posrank_();
+
+        streamingProvider.prepare(iter, pos);
+
+        auto result = self.insert_provided_data(iter.leaf(), pos, streamingProvider);
+
+        auto totals = streamingProvider.totals();
+        auto locals = streamingProvider.locals();
+
+        Int last_stream = streamingProvider.last_symbol();
+
+        MEMORIA_V1_ASSERT(locals[stream], >, 0);
+        path[stream] += locals[stream] - 1;
+
+        for (Int s = stream + 1; s < last_stream; s++)
+        {
+            MEMORIA_V1_ASSERT(locals[s], >, 0);
+            path[s] = locals[s] - 1;
+        }
+
+        path[last_stream] = locals[last_stream];
+
+        iter = *self.seek(path, last_stream).get();
+
+        return totals;
+    }
+
+    template <typename IOBuffer>
+    auto _insert2(Iterator& iter, BufferProducer<IOBuffer>& provider, const Int initial_capacity = 20000)
+    {
+        auto& self = this->self();
+
+        auto path = iter.cache().data_pos();
+
+        auto stream = iter.stream();
+
+        bttl::iobuf::IOBufferCtrInputProvider<MyType, IOBuffer> streamingProvider(self, &provider, stream, initial_capacity);
 
         auto pos = iter.local_stream_posrank_();
 

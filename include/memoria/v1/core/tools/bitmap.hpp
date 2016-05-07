@@ -102,6 +102,8 @@ constexpr inline size_t TypeBitmaskPopCount(T mask) {
 }
 
 
+
+
 /**
  * set one bit (0, 1) 'bit' in buffer 'buf' at address 'idx'
  *

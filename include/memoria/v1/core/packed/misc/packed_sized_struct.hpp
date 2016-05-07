@@ -19,6 +19,7 @@
 #include <memoria/v1/core/packed/tools/packed_allocator_types.hpp>
 #include <memoria/v1/core/packed/buffer/packed_fse_input_buffer_ro.hpp>
 #include <memoria/v1/core/tools/accessors.hpp>
+#include <memoria/v1/core/tools/assert.hpp>
 
 #include <limits>
 
@@ -129,6 +130,11 @@ public:
         size_ = 0;
     }
 
+    SizesT data_capacity() const
+    {
+    	return SizesT(size_ * 2);
+    }
+
     template <typename Adaptor>
     static SizesT calculate_size(Int size, Adaptor&& fn)
     {
@@ -225,6 +231,12 @@ public:
     }
 
 
+    void copyTo(MyType* other) const
+    {
+    	other->size_ = this->size_;
+    }
+
+
 
     void restore(const AppendState& state)
     {
@@ -251,10 +263,17 @@ public:
     // =================================== Update ========================================== //
 
     void reindex() {}
-    void check() const {}
+    void check() const
+    {
+    	MEMORIA_V1_ASSERT(size_, >=, 0);
+    }
 
     void remove(Int start, Int end)
     {
+    	if (end < 0) {
+    		Int a = 0; a++;
+    	}
+
         MEMORIA_V1_ASSERT_TRUE(start >= 0);
         MEMORIA_V1_ASSERT_TRUE(end >= 0);
 

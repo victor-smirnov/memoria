@@ -45,6 +45,9 @@ public:
     SizesT& data_size() {return data_size_;}
     const SizesT& data_size() const {return data_size_;}
 
+    SizesT& max_data_size() {return max_data_size_;}
+    const SizesT& max_data_size() const {return max_data_size_;}
+
     Int& data_size(Int block) {return data_size_[block];}
     const Int& data_size(Int block) const {return data_size_[block];}
 
@@ -234,12 +237,62 @@ public:
         return true;
     }
 
+    template <typename Buffer>
+    bool has_capacity_for(const Buffer& buffer, Int start, Int length) const
+    {
+        auto meta = this->metadata();
+
+        Codec codec;
+
+        SizesT sizes;
+
+        for (Int c = start; c < start + length; c++)
+        {
+        	Values entry = buffer[c];
+
+        	for (Int block = 0; block < Blocks; block++)
+        	{
+        		sizes[block] += codec.length(entry[block]);
+        	}
+        }
+
+        for (Int block = 0; block < Blocks; block++)
+        {
+        	if(sizes[block] > meta->max_data_size(block) - SafetyMargin)
+        	{
+        		return false;
+        	}
+        }
+
+        return true;
+    }
+
 
     Int block_size() const
     {
         return Base::block_size();
     }
 
+    SizesT data_capacity() const
+    {
+    	return this->metadata()->max_data_size();
+    }
+
+    void copyTo(MyType* other) const
+    {
+    	auto meta = this->metadata();
+    	auto other_meta = this->metadata();
+
+    	other->meta()->size() 		= meta->size();
+    	other->meta()->data_size()	= meta->data_size();
+
+    	Codec codec;
+
+    	for (int b = 0; b < Blocks; b++)
+    	{
+    		codec.move(this->values(b), other->values(b), meta->data_pos(b));
+    	}
+    }
 
 
 

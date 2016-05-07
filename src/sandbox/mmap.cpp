@@ -22,11 +22,12 @@
 
 #include <memoria/v1/core/tools/time.hpp>
 #include <memoria/v1/core/tools/random.hpp>
+#include <memoria/v1/prototypes/bt_tl/bttl_iobuf_input.hpp>
 
 #include <memory>
 #include <vector>
 
-using namespace memoria;
+using namespace memoria::v1;
 using namespace std;
 
 template <typename Key, typename Value>
@@ -159,11 +160,130 @@ UUID make_value(V&& num, TypeTag<UUID>)
 }
 
 
+
+
+
+template <typename Key, typename Value>
+class MapIOBufferAdapter: public bttl::iobuf::FlatTreeIOBufferAdapter<2, IOBuffer> {
+
+	using Base 	 = bttl::iobuf::FlatTreeIOBufferAdapter<2, IOBuffer>;
+	using MyType = MapIOBufferAdapter<Key, Value>;
+
+
+
+	using Data = MapData<Key, Value>;
+	using Positions = core::StaticVector<Int, 2>;
+
+
+	const Data& data_;
+
+	IOBuffer io_buffer_;
+	Positions positions_;
+	Int level_ = 0;
+
+	struct StructureAdapter: public bttl::iobuf::FlatTreeStructureAdapterBase<StructureAdapter, 2> {
+		MyType* adapter_;
+		StructureAdapter(MyType* adapter):
+			adapter_(adapter)
+		{}
+
+
+		auto prepare(const StreamTag<0>&)
+		{
+			return adapter_->data().size();
+		}
+
+		template <Int Idx, typename Pos>
+		auto prepare(const StreamTag<Idx>&, const Pos& pos)
+		{
+			return adapter_->data()[pos[Idx - 1]].second.size();
+		}
+	};
+
+
+	StructureAdapter structure_generator_;
+
+public:
+
+
+	MapIOBufferAdapter(const Data& data, size_t iobuffer_size = 65536):
+		data_(data),
+		io_buffer_(iobuffer_size),
+		structure_generator_(this)
+	{
+		structure_generator_.init();
+	}
+
+	const Data& data() {return data_;}
+
+	virtual IOBuffer& buffer() {return io_buffer_;}
+
+	virtual bttl::iobuf::RunDescr query()
+	{
+		auto r = structure_generator_.query();
+
+//		cout << "query: " << r.symbol() << " " << r.length() << endl;
+
+		return r;
+	}
+
+	virtual Int populate_stream(Int stream, IOBuffer& buffer, Int length)
+	{
+		if (stream == 1)
+		{
+			Int c;
+			for (c = 0; c < length; c++)
+			{
+				auto pos = buffer.pos();
+				if (!IOBufferAdaptor<Value>::put(buffer, structure_generator_.counts()[0]))
+				{
+					buffer.pos(pos);
+					structure_generator_.counts()[1] += c;
+					break;
+				}
+			}
+
+			structure_generator_.counts()[1] += length;
+
+			return c;
+		}
+		else {
+			Int c;
+			for (c = 0; c < length; c++)
+			{
+				auto key = structure_generator_.counts()[0];
+//				cout << "write key: " << key << endl;
+
+				auto pos = buffer.pos();
+				if (!IOBufferAdaptor<Key>::put(buffer, key))
+				{
+					buffer.pos(pos);
+					structure_generator_.counts()[0] += c;
+					break;
+				}
+			}
+
+			structure_generator_.counts()[0] += length;
+
+			return c;
+		}
+	}
+
+};
+
+
+
+
+
+
+
+
+
 int main() {
     MEMORIA_INIT(DefaultProfile<>);
 
-    using KeyType   = double;
-    using ValueType = double;
+    using KeyType   = BigInt;
+    using ValueType = UByte;
 
     using CtrName = Map<KeyType, Vector<ValueType>>;
 
@@ -175,61 +295,70 @@ int main() {
         try {
             auto map   = create<CtrName>(snp);
 
-            using Ctr  = typename DCtrTF<CtrName>::Type;
+//
 
             auto map_data = createRandomShapedMapData<KeyType, ValueType>(
-                    10,
-                    10000,
+//                    2000,
+//                    10000,
+
+            		2000,
+					10000,
                     [](auto k) {return make_key(k, TypeTag<KeyType>());},
                     [](auto k, auto v) {return make_value(getRandomG(), TypeTag<ValueType>());}
             );
 
             auto iter = map->begin();
 
-            using EntryAdaptor  = mmap::MMapAdaptor<Ctr>;
-            using ValueAdaptor  = mmap::MMapValueAdaptor<Ctr>;
-            using KeyAdaptor    = mmap::MMapKeyAdaptor<Ctr>;
 
-            EntryAdaptor stream_adaptor(map_data);
+            MapIOBufferAdapter<KeyType, ValueType> iobuf_adapter(map_data, 512);
+            auto totals = map->begin()->bulkio_insert(iobuf_adapter);
 
-            auto totals = map->_insert(*iter.get(), stream_adaptor);
+//
+//            using ValueAdaptor  = mmap::MMapValueAdaptor<Ctr>;
+//            using KeyAdaptor    = mmap::MMapKeyAdaptor<Ctr>;
+
+//            using Ctr = typename DCtrTF<CtrName>::Type;
+//            using EntryAdaptor = mmap::MMapAdaptor<Ctr>;
+//            EntryAdaptor stream_adaptor(map_data);
+//            auto totals = map->begin()->bulk_insert(stream_adaptor);
+
 
             auto sizes = map->sizes();
             MEMORIA_V1_ASSERT(totals, ==, sizes);
 
-            auto iter2 = map->seek(8);
+//            auto iter2 = map->seek(8);
+//
+//            iter2->toData();
+//
+//            auto map_values = createValueData<ValueType>(100000, [](auto x){return make_value(0, TypeTag<ValueType>());});
+//            ValueAdaptor value_adaptor(map_values);
+//
+//            map->begin()->bulk_insert(value_adaptor);
+//
+//            auto key_data = createKeyData<KeyType>(1000, [](auto k){return make_key(k + 1000, TypeTag<KeyType>());});
+//            KeyAdaptor key_adaptor(key_data);
+//
+//            auto iter3 = map->end();
+//
+//            map->_insert(*iter3.get(), key_adaptor);
+//
+//            int idx = 0;
+//
+//            auto s_iter = map->seek(9);
+//
+//            s_iter->scan_values([&](auto&& value){
+//                cout << "Value: " << (idx++) << " " << hex << value << dec << endl;
+//            });
+//
+//            idx = 0;
+//            map->seek(5)->scan_keys([&](auto&& value){
+//                cout << "Key: " << (idx++) << " " << value << endl;
+//            });
 
-            iter2->toData();
 
-            auto map_values = createValueData<ValueType>(100000, [](auto x){return make_value(0, TypeTag<ValueType>());});
-            ValueAdaptor value_adaptor(map_values);
-
-            map->_insert(*iter2.get(), value_adaptor);
-
-            auto key_data = createKeyData<KeyType>(1000, [](auto k){return make_key(k + 1000, TypeTag<KeyType>());});
-            KeyAdaptor key_adaptor(key_data);
-
-            auto iter3 = map->end();
-
-            map->_insert(*iter3.get(), key_adaptor);
-
-            int idx = 0;
-
-            auto s_iter = map->seek(9);
-
-            s_iter->scan_values([&](auto&& value){
-                cout << "Value: " << (idx++) << " " << hex << value << dec << endl;
-            });
-
-            idx = 0;
-            map->seek(5)->scan_keys([&](auto&& value){
-                cout << "Key: " << (idx++) << " " << value << endl;
-            });
-
-
-            auto iter4 = map->seek(8);
-
-            iter4->remove();
+//            auto iter4 = map->seek(8);
+//
+//            iter4->remove();
 
             snp->commit();
 
@@ -247,14 +376,14 @@ int main() {
             cout << "Totals: " << totals << endl;
         }
         catch (...) {
-            FSDumpAllocator(snp, "mmap_fail.dir");
-            throw;
+        	FSDumpAllocator(snp, "mmap_fail.dir");
+        	throw;
         }
     }
-    catch (v1::Exception& ex) {
+    catch (::memoria::v1::Exception& ex) {
         cout << ex.message() << " at " << ex.source() << endl;
     }
-    catch (v1::PackedOOMException& ex) {
+    catch (::memoria::v1::PackedOOMException& ex) {
         cout << "PackedOOMException at " << ex.source() << endl;
     }
 

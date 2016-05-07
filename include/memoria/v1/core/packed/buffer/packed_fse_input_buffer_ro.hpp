@@ -130,6 +130,18 @@ public:
         max_size_ = capacities[0];
     }
 
+    SizesT data_capacity() const
+    {
+    	return SizesT(max_size_);
+    }
+
+    void copyTo(MyType* other) const
+    {
+    	other->size() = this->size();
+    	CopyBuffer(buffer_, other->buffer_, size_ * Blocks);
+    }
+
+
     static constexpr Int max_size_for(Int block_size) {
         return (block_size - empty_size()) / (sizeof(Value) * Blocks);
     }
@@ -137,6 +149,12 @@ public:
     bool has_capacity_for(const SizesT& sizes) const
     {
         return sizes[0] <= max_size_;
+    }
+
+    template <typename SizesBuffer>
+    bool has_capacity_for(const SizesBuffer& sizes, int start, int length) const
+    {
+    	return length <= max_size_;
     }
 
     static constexpr Int empty_size()

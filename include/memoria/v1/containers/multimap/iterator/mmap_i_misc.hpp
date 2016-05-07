@@ -146,11 +146,19 @@ public:
 
 
     template <typename Provider>
-    auto bulk_insert(Provider&& provider, const Int total_capacity = 2000)
+    auto bulk_insert(Provider&& provider, const Int initial_capacity = 2000)
     {
         auto& self = this->self();
 
-        return self.ctr()._insert(self, std::forward<Provider>(provider), total_capacity);
+        return self.ctr()._insert(self, std::forward<Provider>(provider), initial_capacity);
+    }
+
+    template <typename IOBuffer>
+    auto bulkio_insert(BufferProducer<IOBuffer>& provider, const Int initial_capacity = 20000)
+    {
+    	auto& self = this->self();
+
+    	return self.ctr()._insert2(self, provider, initial_capacity);
     }
 
 
