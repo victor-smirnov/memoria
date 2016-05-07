@@ -173,7 +173,7 @@ public:
 
         long t0 = getTimeInMillis();
 
-        auto totals = iter->bulk_insert(provider);
+        auto totals = iter->bulkio_insert(provider);
 
         check("Bulk Insertion", MA_SRC);
 

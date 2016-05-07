@@ -68,6 +68,14 @@ public:
         return self.ctr()._insert(self, std::forward<Provider>(provider), total_capacity);
     }
 
+    template <typename IOBuffer>
+    auto bulkio_insert(BufferProducer<IOBuffer>& provider, const Int initial_capacity = 20000)
+    {
+    	auto& self = this->self();
+
+    	return self.ctr()._insert2(self, provider, initial_capacity);
+    }
+
 MEMORIA_V1_ITERATOR_PART_END
 
 #define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(v1::bttl_test::IterApiName)

@@ -446,12 +446,16 @@ template <typename IOBuffer>
 struct BufferConsumer {
 	virtual IOBuffer& buffer() = 0;
 	virtual Int process(IOBuffer& buffer, Int entries) = 0;
+
+	virtual ~BufferConsumer() noexcept {}
 };
 
 template <typename IOBuffer>
 struct BufferProducer {
 	virtual IOBuffer& buffer() = 0;
 	virtual Int populate(IOBuffer& buffer) = 0;
+
+	virtual ~BufferProducer() noexcept {}
 };
 
 }

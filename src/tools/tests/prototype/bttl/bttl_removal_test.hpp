@@ -54,8 +54,8 @@ class BTTLRemovalTest<BTTLTestCtr<Levels, SizeType>, AllocatorT, ProfileT>: publ
     using AllocatorPtr  = typename Base::AllocatorPtr;
     using Ctr           = typename Base::Ctr;
 
-    using DetInputProvider      = bttl::DeterministicDataInputProvider<Ctr>;
-    using RngInputProvider      = bttl::RandomDataInputProvider<Ctr, RngInt>;
+    using DetInputProvider      = bttl::iobuf::DeterministicDataInputProvider<Ctr>;
+    using RngInputProvider      = bttl::iobuf::RandomDataInputProvider<Ctr, RngInt>;
 
     using Rng            = typename RngInputProvider::Rng;
 

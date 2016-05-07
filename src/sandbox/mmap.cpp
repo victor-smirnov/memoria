@@ -181,7 +181,7 @@ class MapIOBufferAdapter: public bttl::iobuf::FlatTreeIOBufferAdapter<2, IOBuffe
 	Positions positions_;
 	Int level_ = 0;
 
-	struct StructureAdapter: public bttl::iobuf::FlatTreeStructureAdapterBase<StructureAdapter, 2> {
+	struct StructureAdapter: public bttl::iobuf::FlatTreeStructureGeneratorBase<StructureAdapter, 2> {
 		MyType* adapter_;
 		StructureAdapter(MyType* adapter):
 			adapter_(adapter)
@@ -220,11 +220,7 @@ public:
 
 	virtual bttl::iobuf::RunDescr query()
 	{
-		auto r = structure_generator_.query();
-
-//		cout << "query: " << r.symbol() << " " << r.length() << endl;
-
-		return r;
+		return structure_generator_.query();
 	}
 
 	virtual Int populate_stream(Int stream, IOBuffer& buffer, Int length)

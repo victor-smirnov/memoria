@@ -248,7 +248,7 @@ public:
 
         for (Int c = start; c < start + length; c++)
         {
-        	Values entry = buffer[c];
+        	Values entry(buffer[c]);
 
         	for (Int block = 0; block < Blocks; block++)
         	{
@@ -281,16 +281,16 @@ public:
     void copyTo(MyType* other) const
     {
     	auto meta = this->metadata();
-    	auto other_meta = this->metadata();
+    	auto other_meta = other->metadata();
 
-    	other->meta()->size() 		= meta->size();
-    	other->meta()->data_size()	= meta->data_size();
+    	other_meta->size() 		= meta->size();
+    	other_meta->data_size()	= meta->data_size();
 
     	Codec codec;
 
     	for (int b = 0; b < Blocks; b++)
     	{
-    		codec.move(this->values(b), other->values(b), meta->data_pos(b));
+    		codec.copy(this->values(b), 0, other->values(b), 0, meta->data_size(b));
     	}
     }
 

@@ -168,7 +168,7 @@ namespace {
 
 		auto* create_input_buffer(Int buffer_size)
 		{
-			Int block_size = BufferT::block_size(buffer_size);
+			Int block_size = BufferT::block_size(buffer_size) + 500;
 			BufferT* buffer = T2T<BufferT*>(malloc(block_size));
 			if (buffer)
 			{
@@ -1492,8 +1492,6 @@ class IOBufferCtrInputProvider: public v1::bttl::iobuf::AbstractCtrInputProvider
 public:
     using Base      = v1::bttl::iobuf::AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength>;
 
-    using CtrSizesT = typename CtrT::Types::Position;
-
     static constexpr Int Streams = CtrT::Types::Streams;
 
     using typename Base::Position;
@@ -1730,6 +1728,8 @@ public:
 
     static constexpr Int MaxRunLength 	= (256 >> BitsPerSymbol) - 1;
 
+    using CtrSizesT = core::StaticVector<BigInt, Streams>;
+
 private:
 
     RunDescr state_;
@@ -1738,9 +1738,14 @@ private:
     Int run_processed_ = 0;
     bool symbol_encoded_ = false;
 
+    CtrSizesT consumed_;
+
 public:
     FlatTreeIOBufferAdapter(){}
 
+    const CtrSizesT& consumed() const {
+    	return consumed_;
+    }
 
 
     constexpr UByte encodeRun(Int symbol, Int len)
@@ -1786,7 +1791,6 @@ public:
     					auto subrunDescr = encodeRun(state_.symbol(), to_encode);
 
     					auto pos = io_buffer.pos();
-//    					cout << "Put run length of " << (Int) subrunDescr << " at " << pos << endl;
     					if (!io_buffer.put(subrunDescr))
     					{
     						io_buffer.pos(pos);
@@ -1806,6 +1810,8 @@ public:
     					processed_ 		+= actual;
     					run_processed_ 	+= actual;
     					entries 		+= actual;
+
+    					consumed_[state_.symbol()] += actual;
 
     					if (actual < to_encode)
     					{
@@ -1873,7 +1879,7 @@ namespace {
 
 
 template <typename MyType, Int Streams>
-class FlatTreeStructureAdapterBase {
+class FlatTreeStructureGeneratorBase {
 
 public:
 	using CtrSizeT = BigInt;
@@ -1891,7 +1897,7 @@ private:
     template <Int, Int> friend struct StreamSizeAdapter;
 
 public:
-    FlatTreeStructureAdapterBase(Int level = 0):
+    FlatTreeStructureGeneratorBase(Int level = 0):
         level_(level)
     {}
 
