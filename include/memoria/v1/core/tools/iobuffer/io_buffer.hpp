@@ -22,6 +22,7 @@
 #include <memoria/v1/core/tools/bytes/bytes_codec.hpp>
 #include <memoria/v1/core/tools/bignum/int64_codec.hpp>
 #include <memoria/v1/core/tools/strings/string_codec.hpp>
+#include <memoria/v1/core/tools/uuid.hpp>
 
 #include <malloc.h>
 
@@ -556,7 +557,7 @@ private:
 	}
 };
 
-template <typename T> struct IOBufferAdaptor;
+
 
 template <typename T>
 struct IOBufferAdaptorBase {
@@ -664,6 +665,28 @@ struct IOBufferAdaptor<String>: IOBufferAdaptorBase<String> {
 		return buffer.getString();
 	}
 };
+
+template <>
+struct IOBufferAdaptor<UUID> {
+
+	static bool put(IOBuffer& buffer, const UUID& value)
+	{
+		if (buffer.put(value.hi()))
+		{
+			if (buffer.put(value.lo())) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	static UUID get(IOBuffer& buffer)
+	{
+		return UUID(buffer.getUBigInt(), buffer.getUBigInt());
+	}
+};
+
 
 
 }

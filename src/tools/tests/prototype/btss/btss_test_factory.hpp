@@ -21,8 +21,6 @@
 #include <memoria/v1/tools/profile_tests.hpp>
 #include <memoria/v1/tools/tools.hpp>
 
-//#include <memoria/v1/prototypes/bt_tl/bttl_factory.hpp>
-//#include <memoria/v1/prototypes/bt_tl/tools/bttl_tools_random_gen.hpp>
 
 #include <memoria/v1/core/types/typehash.hpp>
 #include <memoria/v1/core/packed/tree/fse/packed_fse_quick_tree.hpp>
@@ -30,7 +28,7 @@
 #include <memoria/v1/core/packed/tree/vle/packed_vle_quick_tree.hpp>
 #include <memoria/v1/core/packed/misc/packed_sized_struct.hpp>
 
-//#include <memoria/v1/containers/table/table_factory.hpp>
+#include "btss_test_tools.hpp"
 
 
 #include <functional>
@@ -67,7 +65,7 @@ struct BTSSTestStreamTF<PackedSizeType::VARIABLE, PackedSizeType::FIXED, CtrSize
     using Type = StreamTF<
             TL<TL<
                 StreamSize,
-                PkdVQTreeT<CtrSizeT, Indexes, UByteI7Codec>
+                PkdVQTreeT<CtrSizeT, Indexes, ValueCodec>
             >>,
             FSEBranchStructTF,
             TL<TL<TL<>, TL<SumRange<0, Indexes>>>>
@@ -93,7 +91,7 @@ struct BTSSTestStreamTF<PackedSizeType::VARIABLE, PackedSizeType::VARIABLE, CtrS
     using Type = StreamTF<
             TL<TL<
                 StreamSize,
-                PkdVDTreeT<CtrSizeT, Indexes, UByteI7Codec>
+                PkdVDTreeT<CtrSizeT, Indexes, ValueCodec>
             >>,
             VLQBranchStructTF,
             TL<TL<TL<>, TL<SumRange<0, Indexes>>>>

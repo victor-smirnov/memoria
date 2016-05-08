@@ -218,11 +218,11 @@ public:
 
 
     template <typename IOBuffer>
-    auto insert_iobuffer(bt::BufferProducer<IOBuffer>* producer, Int ib_capacity = 10000)
+    auto insert_iobuffer(bt::BufferProducer<IOBuffer>* producer, Int ib_initial_capacity = 10000)
     {
     	using InputProvider = btss::IOBufferProducerBTSSInputProvider<Container, IOBuffer>;
 
-    	auto bulk = std::make_unique<InputProvider>(self().ctr(), producer, ib_capacity);
+    	auto bulk = std::make_unique<InputProvider>(self().ctr(), producer, ib_initial_capacity);
 
         return this->bulk_insert(*bulk.get());
     }

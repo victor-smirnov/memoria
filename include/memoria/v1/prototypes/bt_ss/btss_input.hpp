@@ -28,7 +28,7 @@
 
 namespace memoria {
 namespace v1 {
-namespace btss      {
+namespace btss {
 
 using bt::LeafNode;
 using bt::StreamTag;
@@ -63,6 +63,8 @@ public:
     >;
 
     using NodePair = std::pair<NodeBaseG, NodeBaseG>;
+
+    using BufferSizes = typename InputBuffer::BufferSizesT;
 
 protected:
     Int start_ = 0;
@@ -247,7 +249,11 @@ public:
         }
     }
 
-private:
+protected:
+    BufferSizes data_capacity() const {
+    	return input_buffer_->data_capacity();
+    }
+
     static InputBuffer* create_input_buffer(Int capacity)
     {
         Int buffer_size = InputBuffer::block_size(capacity) + 256;
@@ -264,6 +270,40 @@ private:
         else {
             throw OOMException(MA_SRC);
         }
+    }
+
+    static InputBuffer* create_input_buffer(const BufferSizes& capacity)
+    {
+    	Int buffer_size = InputBuffer::block_size(capacity) + 256;
+
+    	void* block = malloc(buffer_size);
+    	if (block != nullptr)
+    	{
+    		InputBuffer* buffer = T2T<InputBuffer*>(block);
+    		buffer->setTopLevelAllocator();
+    		buffer->init(buffer_size, capacity);
+
+    		return buffer;
+    	}
+    	else {
+    		throw OOMException(MA_SRC);
+    	}
+    }
+
+
+    void enlarge()
+    {
+    	BufferSizes current_capacity 	= data_capacity();
+    	BufferSizes new_capacity 		= current_capacity;
+    	VectorAdd(new_capacity, new_capacity);
+
+    	auto new_buffer = create_input_buffer(new_capacity);
+
+    	input_buffer_->copyTo(new_buffer);
+
+    	delete_buffer(input_buffer_);
+
+    	input_buffer_ = new_buffer;
     }
 
     static void delete_buffer(InputBuffer* buffer)
@@ -671,7 +711,7 @@ public:
 
 
 template <typename CtrT, typename IOBuffer>
-class AbstractIOBufferBTSSInputProvider: public v1::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength> {
+class AbstractIOBufferBTSSInputProvider1: public v1::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength> {
 
     using Base = v1::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength>;
 
@@ -688,12 +728,12 @@ protected:
     Int finish_ = false;
 
 public:
-    AbstractIOBufferBTSSInputProvider(CtrT& ctr, IOBuffer& buffer, Int input_buffer_capacity = 10000):
+    AbstractIOBufferBTSSInputProvider1(CtrT& ctr, IOBuffer& buffer, Int input_buffer_capacity = 10000):
         Base(ctr, input_buffer_capacity),
 		io_buffer_(buffer)
     {}
 
-    virtual ~AbstractIOBufferBTSSInputProvider() {}
+    virtual ~AbstractIOBufferBTSSInputProvider1() {}
 
     virtual Int populate(IOBuffer& buffer) = 0;
 
@@ -745,6 +785,100 @@ public:
     	}
     }
 };
+
+
+template <typename CtrT, typename IOBuffer>
+class AbstractIOBufferBTSSInputProvider: public v1::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength> {
+
+    using Base = v1::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength>;
+
+protected:
+
+    using typename Base::CtrSizeT;
+    using typename Base::Position;
+    using typename Base::InputBuffer;
+
+    using AppendState = typename InputBuffer::AppendState;
+
+    using Base::input_buffer_;
+
+
+    IOBuffer& io_buffer_;
+    Int finished_ = false;
+
+    AppendState append_state_;
+
+public:
+    AbstractIOBufferBTSSInputProvider(CtrT& ctr, IOBuffer& buffer, Int input_buffer_capacity = 10000):
+        Base(ctr, input_buffer_capacity),
+		io_buffer_(buffer)
+    {}
+
+    virtual ~AbstractIOBufferBTSSInputProvider() {}
+
+    virtual Int populate(IOBuffer& buffer) = 0;
+
+    virtual Int get(InputBuffer* buffer, Int pos)
+    {
+    	if (!finished_)
+    	{
+    		append_state_ = input_buffer_->append_state();
+
+    		io_buffer_.rewind();
+    		Int entries = populate(io_buffer_);
+
+    		Int total;
+    		if (entries >  0)
+    		{
+    			total = entries;
+    		}
+    		else {
+    			total = -entries;
+    			finished_ = true;
+    		}
+
+    		io_buffer_.rewind();
+
+    		for (Int c = 0; c < total; c++)
+    		{
+    			this->append_io_entry();
+    		}
+
+    		return entries;
+    	}
+    	else {
+    		return 0;
+    	}
+    }
+
+
+
+    void append_io_entry(Int enlargements = 0)
+    {
+    	size_t pos = io_buffer_.pos();
+
+    	auto tmp = append_state_;
+
+    	if (!input_buffer_->append_entry_from_iobuffer(append_state_, io_buffer_))
+    	{
+    		append_state_ = tmp;
+    		io_buffer_.pos(pos);
+
+    		if (enlargements < 5)
+    		{
+    			this->enlarge();
+    			append_state_ = input_buffer_->append_state();
+
+    			append_io_entry(enlargements + 1);
+    		}
+    		else {
+    			throw Exception(MA_RAW_SRC, "Supplied entry is too large for InputBuffer");
+    		}
+    	}
+    }
+};
+
+
 
 
 template <typename CtrT, typename IOBuffer>

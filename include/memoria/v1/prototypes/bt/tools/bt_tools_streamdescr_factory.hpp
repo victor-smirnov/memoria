@@ -92,7 +92,7 @@ template <typename T> struct VLQBranchStructTF;
 
 template <typename KeyType, Int Indexes>
 struct VLQBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>> {
-    using Type = PkdVQTreeT<KeyType, Indexes, UByteI7Codec>;
+    using Type = PkdVQTreeT<KeyType, Indexes, ValueCodec>;
 };
 
 template <typename KeyType>

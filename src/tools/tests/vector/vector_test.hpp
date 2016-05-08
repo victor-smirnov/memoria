@@ -101,7 +101,8 @@ public:
             d = this->getRandom(100);
         }
 
-        ctr->begin()->bulk_insert(data.begin(), data.end());
+        BTSSTestInputProvider<Ctr, MemBuffer> provider(data);
+        ctr->begin()->insert_iobuffer(&provider);
 
         AssertEQ(MA_SRC, ctr->size(), data.size());
 

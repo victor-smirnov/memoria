@@ -22,6 +22,7 @@
 #include <memoria/v1/tools/tools.hpp>
 
 #include "../bt/bt_test_base.hpp"
+#include "btss_test_tools.hpp"
 
 #include <functional>
 
@@ -95,7 +96,9 @@ public:
         MemBuffer data = createRandomBuffer(size);
 
         auto iter = ctr.end();
-        iter->bulk_insert(data.begin(), data.end());
+
+        BTSSTestInputProvider<Ctr, MemBuffer> provider(data);
+        iter->insert_iobuffer(&provider);
     }
 
 
@@ -113,7 +116,8 @@ public:
 
             MemBuffer data = createRandomBuffer(tmp_size);
 
-            iter->bulk_insert(data.begin(), data.end());
+            BTSSTestInputProvider<Ctr, MemBuffer> provider(data);
+            iter->insert_iobuffer(&provider);
 
             total += tmp_size;
         }

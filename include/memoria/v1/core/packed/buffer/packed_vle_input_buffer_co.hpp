@@ -384,10 +384,6 @@ public:
     {
         auto metadata = this->metadata();
 
-        if (idx > this->size()) {
-        	cout << idx << " " << this->size() << endl;
-        }
-
         MEMORIA_V1_ASSERT(idx, >=, 0);
         MEMORIA_V1_ASSERT(idx, <=, this->size());
 

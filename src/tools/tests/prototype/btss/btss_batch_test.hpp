@@ -259,7 +259,8 @@ public:
 
         BigInt size = ctr.size();
 
-        iter->bulk_insert(data.begin(), data.end());
+        BTSSTestInputProvider<Ctr, MemBuffer> provider(data);
+        iter->insert_iobuffer(&provider);
 
         BigInt size2 = ctr.size();
 
@@ -299,7 +300,8 @@ public:
 
         BigInt position = iter->pos();
 
-        iter->bulk_insert(data.begin(), data.end());
+        BTSSTestInputProvider<Ctr, MemBuffer> provider(data);
+        iter->insert_iobuffer(&provider);
 
         checkIterator(iter, MA_SRC);
 
@@ -337,7 +339,8 @@ public:
 
         MemBuffer data   = createDataBuffer();
 
-        iter->bulk_insert(data.begin(), data.end());
+        BTSSTestInputProvider<Ctr, MemBuffer> provider(data);
+        iter->insert_iobuffer(&provider);
 
         checkIterator(iter, MA_SRC);
 

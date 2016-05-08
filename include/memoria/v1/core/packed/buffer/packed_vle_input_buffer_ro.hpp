@@ -181,13 +181,13 @@ public:
     void copyTo(MyType* other) const
     {
     	auto meta = this->metadata();
-    	auto other_meta = this->metadata();
+    	auto other_meta = other->metadata();
 
-    	other->meta()->size() 		= meta->size();
-    	other->meta()->data_size()	= meta->data_size();
+    	other_meta->size() 		= meta->size();
+    	other_meta->data_size()	= meta->data_size();
 
     	Codec codec;
-    	codec.move(this->values(), other->values(), meta->data_pos()[0]);
+    	codec.copy(this->values(0), 0, other->values(0), 0, meta->data_size()[0]);
     }
 
 
