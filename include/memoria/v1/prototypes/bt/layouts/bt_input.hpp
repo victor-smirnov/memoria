@@ -37,7 +37,7 @@
 
 namespace memoria {
 namespace v1 {
-namespace bt        {
+namespace bt {
 
 template <typename Position, typename Buffer>
 struct InputBufferProvider {
@@ -55,74 +55,8 @@ struct InputBufferProvider {
     InputBufferProvider<Position, Buffer>& me() {return *this;}
 };
 
-//template <Int StreamIdx> struct StreamTag;
 
-template <typename T>
-class StreamEntryBuffer {
-    std::vector<T> buffer_;
-    Int head_ = 0;
-    Int start_ = 0;
-public:
-    StreamEntryBuffer(Int capacity = 1000): buffer_(capacity) {}
 
-    const std::vector<T>& buffer() const {return buffer_;}
-
-    bool append(const T& value)
-    {
-        size_t size = buffer_.size();
-
-        buffer_[head_++] = value;
-
-        return head_ < size;
-    }
-
-    template <typename Adaptor>
-    size_t append(size_t size, Adaptor&& fn)
-    {
-        size_t max = buffer_.size();
-        size_t limit = (start_ + size < max) ? start_ + size : max;
-        for (size_t c = start_; c < limit; c++)
-        {
-            buffer_[c] = fn();
-        }
-
-        head_ += limit;
-
-        return head_ - start_;
-    }
-
-    void reset()
-    {
-        head_  = 0;
-        start_ = 0;
-    }
-
-    bool is_full() const {
-        size_t size = buffer_.size();
-        return head_ >= size;
-    }
-
-    bool has_room() const {
-        size_t size = buffer_.size();
-        return head_ >= size;
-    }
-
-    bool has_data() const {
-        return start_ < head_;
-    }
-
-    Int start() const {
-        return start_;
-    }
-
-    void commit(Int size) {
-        start_ += size;
-    }
-
-    size_t size() const {
-        return head_ - start_;
-    }
-};
 
 
 template <
@@ -193,7 +127,6 @@ private:
         {
             using BSizesT = typename Stream::SizesT;
             Stream* buffer = alloc->template allocateSpace<Stream>(AllocatorIdx, Stream::block_size(BSizesT(capacity)));
-
 
             buffer->init(BSizesT(capacity));
         }
@@ -510,22 +443,6 @@ public:
         return size() == 0;
     }
 
-    template <typename Sizes>
-    struct AppendBufferFn {
-        Sizes sizes;
-
-        template <Int Idx, typename StreamObj, typename Entry>
-        void stream(StreamObj* stream, const StreamEntryBuffer<Entry>& buffer)
-        {
-            Int start = buffer.start();
-            Int size  = buffer.size();
-            const auto& data = buffer.buffer();
-
-            sizes[Idx] = stream->append(size, [&](Int block, Int idx) -> const auto& {
-                return std::get<Idx>(data[start + idx])[block];
-            });
-        }
-    };
 
 
 
