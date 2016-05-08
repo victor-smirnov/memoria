@@ -150,11 +150,11 @@ public:
     template <typename InputIterator>
     auto bulk_insert(InputIterator begin, InputIterator end)
     {
-        auto& self = this->self();
-
-        btss::BTSSIteratorInputProvider<Container, InputIterator> provider(self.ctr(), begin, end);
-
-        return self.ctr().insert(self, provider);
+//        auto& self = this->self();
+//
+//        btss::BTSSIteratorInputProvider<Container, InputIterator> provider(self.ctr(), begin, end);
+//
+//        return self.ctr().insert(self, provider);
     }
 
     template <typename Iterator>

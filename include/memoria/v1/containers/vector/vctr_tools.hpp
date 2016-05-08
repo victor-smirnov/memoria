@@ -39,39 +39,39 @@ struct VectorValueStructTF<KeyType, 1>: HasType<PkdFSQArrayT<KeyType>> {};
 template <typename KeyType>
 struct VectorValueStructTF<KeyType, 0>: HasType<PkdVDArrayT<KeyType>> {};
 
-
-template <typename CtrT, typename InputIterator, Int EntryBufferSize = 1000>
-class VectorIteratorInputProvider: public v1::btss::AbstractIteratorBTSSInputProvider<
-    CtrT,
-    VectorIteratorInputProvider<CtrT, InputIterator, EntryBufferSize>,
-    InputIterator
->
-{
-    using Base = v1::btss::AbstractIteratorBTSSInputProvider<
-            CtrT,
-            VectorIteratorInputProvider<CtrT, InputIterator, EntryBufferSize>,
-            InputIterator
-    >;
-
-public:
-
-    using typename Base::CtrSizeT;
-private:
-    CtrSizeT one_ = 1;
-public:
-    VectorIteratorInputProvider(CtrT& ctr, const InputIterator& start, const InputIterator& end, Int capacity = 10000):
-        Base(ctr, start, end, capacity)
-    {}
-
-    const auto& buffer(StreamTag<0>, StreamTag<0>, Int idx, Int block) {
-        return one_;
-    }
-
-    const auto& buffer(StreamTag<0>, StreamTag<1>, Int idx, Int block) {
-        return Base::input_value_buffer_[idx];
-    }
-};
-
+//
+//template <typename CtrT, typename InputIterator, Int EntryBufferSize = 1000>
+//class VectorIteratorInputProvider: public v1::btss::AbstractIteratorBTSSInputProvider<
+//    CtrT,
+//    VectorIteratorInputProvider<CtrT, InputIterator, EntryBufferSize>,
+//    InputIterator
+//>
+//{
+//    using Base = v1::btss::AbstractIteratorBTSSInputProvider<
+//            CtrT,
+//            VectorIteratorInputProvider<CtrT, InputIterator, EntryBufferSize>,
+//            InputIterator
+//    >;
+//
+//public:
+//
+//    using typename Base::CtrSizeT;
+//private:
+//    CtrSizeT one_ = 1;
+//public:
+//    VectorIteratorInputProvider(CtrT& ctr, const InputIterator& start, const InputIterator& end, Int capacity = 10000):
+//        Base(ctr, start, end, capacity)
+//    {}
+//
+//    const auto& buffer(StreamTag<0>, StreamTag<0>, Int idx, Int block) {
+//        return one_;
+//    }
+//
+//    const auto& buffer(StreamTag<0>, StreamTag<1>, Int idx, Int block) {
+//        return Base::input_value_buffer_[idx];
+//    }
+//};
+//
 
 
 
