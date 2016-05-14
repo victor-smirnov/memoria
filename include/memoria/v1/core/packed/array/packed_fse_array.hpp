@@ -37,6 +37,32 @@ template <typename Types> class PackedFSEArray;
 template <typename V, Int Blocks = 1>
 using PkdFSQArrayT = PackedFSEArray<PackedFSEArrayTypes<V, Blocks>>;
 
+
+namespace {
+
+	template <bool Selector>
+	struct GenerateDataEventsHelper {
+		template <Int Blocks, typename Value, typename H, typename S, typename B>
+		static void process(H* handler, S size_, const B* buffer_)
+		{
+			handler->value("DATA_ITEMS", PageValueProviderFactory::provider(size_ * Blocks, [&](Int idx) -> const Value& {
+				return *(buffer_ + idx);
+			}));
+		}
+	};
+
+	template <>
+	struct GenerateDataEventsHelper<true> {
+		template <Int Blocks, typename Value, typename H, typename S, typename B>
+		static void process(H* handler, S size_, const B* buffer_)
+		{
+			ValueHelper<Value>::setup(handler, "DATA_ITEMS", buffer_, size_ * Blocks, IPageDataEventHandler::BYTE_ARRAY);
+		}
+	};
+
+}
+
+
 template <typename Types_>
 class PackedFSEArray: public PackedAllocatable {
 
@@ -65,7 +91,14 @@ public:
     using Values = core::StaticVector<Value, Blocks>;
     using SizesT = core::StaticVector<Int, Blocks>;
 
-    using ReadState = SizesT;
+    using ConstPtrsT = core::StaticVector<const Value*, Blocks>;
+
+    class ReadState {
+    	Int idx_ = 0;
+    public:
+    	Int& idx() {return idx_;}
+    	const Int& idx() const {return idx_;}
+    };
 
 private:
 
@@ -490,7 +523,11 @@ public:
     }
 
     ReadState positions(Int idx) const {
-        return ReadState(idx);
+        ReadState state;
+
+        state.idx() = idx;
+
+        return state;
     }
 
 
@@ -544,6 +581,28 @@ public:
     {
         remove(idx, idx + 1);
     }
+
+
+    template <typename IOBuffer>
+    bool readTo(ReadState& state, IOBuffer& buffer) const
+    {
+    	const auto* values = this->values();
+
+    	const Int base = state.idx() * Blocks;
+
+    	for (Int b = 0; b < Blocks; b++)
+    	{
+    		auto val = values[base + b];
+
+    		if (!IOBufferAdaptor<Value>::put(buffer, val))
+    		{
+    			return false;
+    		}
+    	}
+
+    	return true;
+    }
+
 
 
     template <typename Fn>
@@ -626,15 +685,17 @@ public:
 
         handler->startGroup("DATA", size_);
 
-        if (sizeof(Value) == 1)
-        {
-        	ValueHelper<Value>::setup(handler, "DATA_ITEMS", buffer_, size_ * Blocks, IPageDataEventHandler::BYTE_ARRAY);
-        }
-        else {
-        	handler->value("DATA_ITEMS", PageValueProviderFactory::provider(size_ * Blocks, [&](Int idx) -> const Value& {
-        		return *(buffer_ + idx);
-        	}));
-        }
+//        if (sizeof(Value) == 1)
+//        {
+//        	ValueHelper<Value>::setup(handler, "DATA_ITEMS", buffer_, size_ * Blocks, IPageDataEventHandler::BYTE_ARRAY);
+//        }
+//        else {
+//        	handler->value("DATA_ITEMS", PageValueProviderFactory::provider(size_ * Blocks, [&](Int idx) -> const Value& {
+//        		return *(buffer_ + idx);
+//        	}));
+//        }
+
+        GenerateDataEventsHelper<sizeof(Value) == 1>::template process<Blocks, Value>(handler, size_, buffer_);
 
         handler->endGroup();
 

@@ -59,7 +59,7 @@ public:
                 typename Types::NodeBase
     >                                                                           Base;
 
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
+    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     template <template <typename> class, typename>
@@ -108,6 +108,26 @@ public:
             >,
             Stream
     >;
+
+    template <Int Stream>
+    using BTTLStreamDataDispatcher = SubrangeDispatcher<
+    		StreamStartIdx<Stream>::Value,
+			StreamStartIdx<Stream>::Value + StreamSize<Stream>::Value - 1
+    >;
+
+
+    template <Int Stream>
+    using BTTLLastStreamDataDispatcher = SubrangeDispatcher<
+    		StreamStartIdx<Stream>::Value,
+			StreamStartIdx<Stream>::Value + StreamSize<Stream>::Value
+	>;
+
+
+    template <Int Stream>
+    using BTTLStreamSizesDispatcher = SubrangeDispatcher<
+    		StreamStartIdx<Stream>::Value + StreamSize<Stream>::Value - 1,
+			StreamStartIdx<Stream>::Value + StreamSize<Stream>::Value
+	>;
 
     template <Int SubstreamIdx>
     using LeafPathT = typename v1::list_tree::BuildTreePath<LeafSubstreamsStructList, SubstreamIdx>::Type;
@@ -1251,7 +1271,6 @@ public:
         using T = typename Dispatcher::template StreamTypeT<SubstreamIdx>::Type;
         return this->allocator()->template get<T>(SubstreamIdx + SubstreamsStart);
     }
-
 
 
 

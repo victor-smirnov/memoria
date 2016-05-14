@@ -58,7 +58,7 @@ public:
 
     using MyType = PackedDispatcher<TypeList<SubstreamDescr<Head, Index>, Tail...>, GroupIdx, ListIdx>;
 
-    static const Int AllocatorIdx   = Index;
+    static const Int AllocatorIdx = Index;
 
     using List              = TypeList<SubstreamDescr<Head, Index>, Tail...>;
     using NextDispatcher    = PackedDispatcher<TypeList<Tail...>, GroupIdx, ListIdx + 1>;
@@ -114,7 +114,7 @@ public:
                                     From, To
                                 >::Type,
                                 GroupIdx_
-                          >;
+                             >;
 
     template <typename Subset, Int GroupIdx_ = GroupIdx>
     using SubsetDispatcher = PackedDispatcher<
@@ -123,7 +123,7 @@ public:
                                     Subset
                                 >,
                                 GroupIdx_
-                          >;
+                           >;
 
     template <Int GroupIdx_>
     using GroupDispatcher = PackedDispatcher<List, GroupIdx>;

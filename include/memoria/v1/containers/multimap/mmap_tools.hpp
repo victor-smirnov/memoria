@@ -30,6 +30,7 @@ using bt::IdxSearchType;
 using bt::StreamTag;
 
 template <typename KeyType, Int Selector = HasFieldFactory<KeyType>::Value> struct MMapKeyStructTF;
+template <typename KeyType, Int Selector = HasFieldFactory<KeyType>::Value> struct MMapSumKeyStructTF;
 
 template <typename KeyType>
 struct MMapKeyStructTF<KeyType, 1>: HasType<PkdFMTreeT<KeyType>> {};
@@ -37,6 +38,12 @@ struct MMapKeyStructTF<KeyType, 1>: HasType<PkdFMTreeT<KeyType>> {};
 template <typename KeyType>
 struct MMapKeyStructTF<KeyType, 0>: HasType<PkdVBMTreeT<KeyType>> {};
 
+
+template <typename KeyType>
+struct MMapSumKeyStructTF<KeyType, 1>: HasType<PkdFQTreeT<KeyType>> {};
+
+template <typename KeyType>
+struct MMapSumKeyStructTF<KeyType, 0>: HasType<PkdVQTreeT<KeyType>> {};
 
 
 template <typename ValueType, Int Selector = HasFieldFactory<ValueType>::Value> struct MMapValueStructTF;

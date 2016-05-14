@@ -47,14 +47,12 @@ class Iter<BTIterTypes<Types>>: public IterStart<BTIterTypes<Types>>
 
     using CtrPtr = std::shared_ptr<ContainerType>;
 
-//    ContainerType& model_;
-
 public:
-
-    enum {GENERIC_ITERATOR, BEGIN_ITERATOR, END_ITERATOR, REVERSE_BEGIN_ITERATOR, REVERSE_END_ITERATOR};
 
     typedef ContainerType                                                       Container;
     
+    Iter(): Base() {}
+
     Iter(const CtrPtr& ptr): Base(ptr)
     {
         Base::idx() = 0;
@@ -62,21 +60,7 @@ public:
     
     Iter(const MyType& other): Base(other) {}
 
-//    ContainerType& model() {
-//        return model_;
-//    }
-//
-//    const ContainerType& model() const {
-//        return model_;
-//    }
-//
-//    ContainerType& ctr() {
-//        return model_;
-//    }
-//
-//    const ContainerType& ctr() const {
-//        return model_;
-//    }
+
 
     MyType& operator=(MyType&& other)
     {

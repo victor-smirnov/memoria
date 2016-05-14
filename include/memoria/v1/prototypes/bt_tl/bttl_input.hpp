@@ -33,28 +33,10 @@ namespace iobuf {
 
 namespace {
 
+	// FIXME: replace to NumberOfBits() from bitmap.hpp
 	static constexpr Int BTTLGetBitsPerSymbol(Int v) {
-		return v == 1 ?  0 : (v == 2 ? 1 : (v == 3 ? 2 : (v == 4 ? 2 : (v == 5 ? 3 : (v == 6 ? 3 : (v == 7 ? 3 : 4))))));
+		return v == 0 ?  1 : (v == 2 ? 1 : (v == 3 ? 2 : (v == 4 ? 2 : (v == 5 ? 3 : (v == 6 ? 3 : (v == 7 ? 3 : 4))))));
 	}
-
-	template <Int Size, Int Idx = 0>
-	struct ForAllTuple {
-		template <typename InputBuffer, typename Fn, typename... Args>
-		static void process(InputBuffer&& tuple, Fn&& fn, Args&&... args)
-		{
-			fn.template process<Idx>(std::get<Idx>(tuple), std::forward<Args>(args)...);
-			ForAllTuple<Size, Idx + 1>::process(tuple, std::forward<Fn>(fn), std::forward<Args>(args)...);
-		}
-	};
-
-	template <Int Idx>
-	struct ForAllTuple<Idx, Idx> {
-		template <typename InputBuffer, typename Fn, typename... Args>
-		static void process(InputBuffer&& tuple, Fn&& fn, Args&&... args)
-		{}
-	};
-
-
 
 	template <typename T>
 	class InputBufferHandle {
@@ -286,8 +268,11 @@ namespace {
 
 			auto tmp = append_state_;
 
-			if (!this->buffer_ptr_->append_bttl_entry_from_iobuffer(append_state_, io_buffer))
+			if (this->buffer_ptr_->append_bttl_entry_from_iobuffer(append_state_, io_buffer))
 			{
+				return;
+			}
+			else {
 				append_state_ = tmp;
 				io_buffer.pos(pos);
 
@@ -349,8 +334,11 @@ namespace {
 
 			auto tmp = this->append_state_;
 
-			if (!this->buffer_ptr_->append_entry_from_iobuffer(this->append_state_, io_buffer))
+			if (this->buffer_ptr_->append_entry_from_iobuffer(this->append_state_, io_buffer))
 			{
+				return;
+			}
+			else{
 				this->append_state_ = tmp;
 				io_buffer.pos(pos);
 
@@ -1589,8 +1577,22 @@ public:
         		Int run_length;
         		bool premature_eob = false;
 
-        		if (stream_run_remainder_ == 0)
+        		if (stream_run_remainder_ != 0)
         		{
+        			stream = last_stream_;
+
+        			if (stream_run_remainder_ <= entries)
+        			{
+        				run_length 				= stream_run_remainder_;
+        				stream_run_remainder_ 	= 0;
+        			}
+        			else {
+        				run_length 				= entries;
+        				stream_run_remainder_ 	-= entries;
+        				premature_eob 			= true;
+        			}
+        		}
+        		else {
         			stream = io_buffer_->getUByte();
         			entry_num++;
 
@@ -1606,20 +1608,7 @@ public:
         				premature_eob 			= true;
         			}
         		}
-        		else {
-        			stream = last_stream_;
 
-        			if (stream_run_remainder_ <= entries)
-        			{
-        				run_length 				= stream_run_remainder_;
-        				stream_run_remainder_ 	= 0;
-        			}
-        			else {
-        				run_length 				= entries;
-        				stream_run_remainder_ 	-= entries;
-        				premature_eob 			= true;
-        			}
-        		}
 
 
         		if (total_symbols_ == 0 && (stream != start_stream_))
@@ -1943,6 +1932,11 @@ public:
 
     auto& counts() {
     	return counts_;
+    }
+
+    void commit(Int level, CtrSizeT len)
+    {
+    	counts_[level] += len;
     }
 
     const auto& current_limits() const {

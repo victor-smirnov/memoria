@@ -158,7 +158,7 @@ public:
     {
     	auto& self = this->self();
 
-    	return self.ctr()._insert2(self, provider, initial_capacity);
+    	return self.ctr().bulkio_insert(self, provider, initial_capacity);
     }
 
 

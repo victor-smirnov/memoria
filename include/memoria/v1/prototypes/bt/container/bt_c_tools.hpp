@@ -325,13 +325,13 @@ protected:
     }
 
 
-
+public:
 
     NodeBaseG getNextNodeP(NodeBaseG& node) const;
     NodeBaseG getPrevNodeP(NodeBaseG& node) const;
 
 
-
+protected:
 
 
 
@@ -425,6 +425,8 @@ protected:
     {
         return BranchDispatcher::dispatch(node, GetSizeFn());
     }
+
+public:
 
     template <Int StreamIdx>
     Int getLeafStreamSize(const NodeBaseG& node) const

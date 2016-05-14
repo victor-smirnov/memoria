@@ -22,7 +22,11 @@
 #include <memoria/v1/core/tools/bytes/bytes_codec.hpp>
 #include <memoria/v1/core/tools/bignum/int64_codec.hpp>
 #include <memoria/v1/core/tools/strings/string_codec.hpp>
+#include <memoria/v1/core/tools/bitmap.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
+
+
+#include <limits>
 
 #include <malloc.h>
 
@@ -40,6 +44,9 @@ class IOBuffer {
 	ValueCodec<Bytes>   bytes_codec_;
 
 public:
+
+
+
 	IOBuffer():
 		array_(nullptr), length_(0), owner_(false)
 	{}
@@ -306,14 +313,20 @@ public:
 	{
 		if (has_capacity(8))
 		{
-			array_[pos_++] = v & 0xFF;
-			array_[pos_++] = (v >> 8) & 0xFF;
-			array_[pos_++] = (v >> 16) & 0xFF;
-			array_[pos_++] = (v >> 24) & 0xFF;
-			array_[pos_++] = (v >> 32) & 0xFF;
-			array_[pos_++] = (v >> 40) & 0xFF;
-			array_[pos_++] = (v >> 48) & 0xFF;
-			array_[pos_++] = (v >> 56) & 0xFF;
+//			*T2T<UBigInt*>(array_ + pos_) = __builtin_bswap64(v);
+//			pos_ += 8;
+
+			array_[pos_] = v & 0xFF;
+			array_[pos_+1] = (v >> 8) & 0xFF;
+			array_[pos_+2] = (v >> 16) & 0xFF;
+			array_[pos_+3] = (v >> 24) & 0xFF;
+			array_[pos_+4] = (v >> 32) & 0xFF;
+			array_[pos_+5] = (v >> 40) & 0xFF;
+			array_[pos_+6] = (v >> 48) & 0xFF;
+			array_[pos_+7] = (v >> 56) & 0xFF;
+
+			pos_ += 8;
+
 			return true;
 		}
 		else {
@@ -324,16 +337,20 @@ public:
 	UBigInt getUBigInt()
 	{
 		assertRange(8, "getUBigInt()");
-		UBigInt v = 0;
+//		UBigInt v = __builtin_bswap64(*T2T<const UBigInt*>(array_ + pos_));
+//		pos_ += 8;
 
-		v = array_[pos_++];
-		v |= ((UBigInt)array_[pos_++]) << 8;
-		v |= ((UBigInt)array_[pos_++]) << 16;
-		v |= ((UBigInt)array_[pos_++]) << 24;
-		v |= ((UBigInt)array_[pos_++]) << 32;
-		v |= ((UBigInt)array_[pos_++]) << 40;
-		v |= ((UBigInt)array_[pos_++]) << 48;
-		v |= ((UBigInt)array_[pos_++]) << 56;
+
+		UBigInt v = 0;
+		v = array_[pos_];
+		v |= ((UBigInt)array_[pos_+1]) << 8;
+		v |= ((UBigInt)array_[pos_+2]) << 16;
+		v |= ((UBigInt)array_[pos_+3]) << 24;
+		v |= ((UBigInt)array_[pos_+4]) << 32;
+		v |= ((UBigInt)array_[pos_+5]) << 40;
+		v |= ((UBigInt)array_[pos_+6]) << 48;
+		v |= ((UBigInt)array_[pos_+7]) << 56;
+		pos_ += 8;
 
 		return v;
 	}
@@ -527,13 +544,87 @@ public:
 		}
 	}
 
+
+	template <Int Symbols>
+	static constexpr BigInt getMaxSymbolsRunLength()
+	{
+		constexpr Int BitsPerSymbol = NumberOfBits(Symbols);
+		return numeric_limits<int64_t>::max() >> BitsPerSymbol;
+	}
+
+	template <Int Symbols>
+	bool putSymbolsRun(Int symbol, BigInt length)
+	{
+		constexpr Int BitsPerSymbol 	= NumberOfBits(Symbols);
+
+		if (length <= getMaxSymbolsRunLength<Symbols>())
+		{
+			BigInt value = symbol | (length << BitsPerSymbol);
+			return putVLen(value);
+		}
+		else {
+			throw Exception(MA_SRC, SBuf() << "Max symbols run length of " << length << " exceeds " << getMaxSymbolsRunLength<Symbols>());
+		}
+	}
+
+	class SymbolsRun {
+		Int symbol_;
+		BigInt length_;
+	public:
+		SymbolsRun(Int symbol, BigInt length): symbol_(symbol), length_(length) {}
+
+		Int symbol() const {return symbol_;};
+		BigInt length() const {return length_;}
+	};
+
+	template <Int Symbols>
+	SymbolsRun getSymbolsRun()
+	{
+		static constexpr BigInt BitsPerSymbol = NumberOfBits(Symbols);
+		static constexpr BigInt LevelCodeMask = (1 << BitsPerSymbol) - 1;
+
+		BigInt value = getVLen();
+
+		return SymbolsRun(value & LevelCodeMask, value >> BitsPerSymbol);
+	}
+
+
+	void enlarge(size_t minimal_capacity = 0)
+	{
+		if (owner_)
+		{
+			size_t new_length 	= length_ * 2;
+			size_t new_capacity = new_length - pos_;
+
+			if (new_capacity < minimal_capacity)
+			{
+				new_length += minimal_capacity - new_capacity;
+			}
+
+			auto new_array = allocate(new_length);
+
+			CopyBuffer(array_, new_array, pos_);
+
+			::free(array_);
+
+			array_  = new_array;
+			length_ = new_length;
+		}
+		else {
+			throw Exception(MA_SRC, "IOBuffer can't enlarge alien data buffer");
+		}
+	}
+
 private:
 	void assertRange(size_t window, const char* op_type)
 	{
-		if (pos_ + window > length_)
-		{
-			throw Exception(MA_SRC, SBuf() << "IOBuffer::" << op_type << " is out of bounds: " << pos_ << " " << window << " " << length_);
-		}
+//		if (pos_ + window <= length_)
+//		{
+//			return;
+//		}
+//		else {
+//			throw Exception(MA_SRC, SBuf() << "IOBuffer::" << op_type << " is out of bounds: " << pos_ << " " << window << " " << length_);
+//		}
 	}
 
 	void release()

@@ -155,7 +155,7 @@ struct StreamsRankFn {
     {
         CtrSizeT size = node->template streamSize<StreamIdx>();
 
-        const Int limit = end <= size ? end : size;
+        const CtrSizeT limit = end <= size ? end : size;
 
         auto delta = target_ - pos_;
 

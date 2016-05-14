@@ -192,10 +192,7 @@ struct IOBufferAdaptor<FixedArray<Size>> {
 		{
 			FixedArray<Size> array;
 
-			for (int64_t c = 0; c < len; c++)
-			{
-				array[c] = buffer.getUByte();
-			}
+			buffer.get(array.data(), len);
 
 			for (int64_t c = len; c < Size; c++) {
 				array[c] = 0;

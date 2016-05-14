@@ -83,6 +83,8 @@ class IterStart: public IterHelper<ListSize<typename Types::List>::Value - 1, Ty
 
 
 public:
+    IterStart(): Base(), ctr_ptr_(), model_() {}
+
     IterStart(const CtrPtr& ptr): Base(), ctr_ptr_(ptr), model_(ptr.get()) {}
     IterStart(ThisType&& other): Base(std::move(other)), ctr_ptr_(std::move(other.ctr_ptr_)), model_(other.model_) {}
     IterStart(const ThisType& other): Base(other), ctr_ptr_(other.ctr_ptr_), model_(other.model_) {}
@@ -198,75 +200,9 @@ public:
 
 
 
-template <typename Container> class IteratorFactoryName {};
-
-/*
-template<
-        typename Types
->
-class Iter: public IterStart <Types>
-{
-    typedef IterStart<Types>                                                        Base;
-
-    typedef Iter<Types>                                                             ThisIteratorType;
-    typedef Iter<Types>                                                             MyType;
-public:
+//template <typename Container> class IteratorFactoryName {};
 
 
-    typedef Ctr<typename Types::CtrTypes>                                           ContainerType;
-
-
-protected:
-    ContainerType&      model_;
-
-public:
-    
-    Iter(ContainerType &model): model_(model) {}
-
-    MyType* me() {
-        return this;
-    }
-
-    const MyType* me() const {
-        return this;
-    }
-
-    ContainerType& model() {
-        return model_;
-    }
-
-    const ContainerType& model() const {
-        return model_;
-    }
-
-    ContainerType& ctr() {
-        return model_;
-    }
-
-    const ContainerType& ctr() const {
-        return model_;
-    }
-
-    bool operator==(const MyType& other) const
-    {
-        return Base::operator==(other);
-    }
-
-    bool operator!=(const MyType& other) const {
-        return !operator==(other);
-    }
-
-    ThisIteratorType& operator=(ThisIteratorType&& other)
-    {
-        if (this != &other)
-        {
-            Base::operator=(std::move(other));
-        }
-
-        return *this;
-    }
-};
-*/
 
 
 }}

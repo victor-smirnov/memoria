@@ -272,7 +272,7 @@ public:
         const T* addr = T2T<const T*>(base() + element_offset(idx));
 
 //        MEMORIA_V1_ASSERT_ALIGN(addr, 8);
-        __builtin_prefetch(addr);
+//        __builtin_prefetch(addr);
 
         return addr;
     }
@@ -283,7 +283,7 @@ public:
         T* addr = T2T<T*>(base() + element_offset(idx));
 
 //        MEMORIA_V1_ASSERT_ALIGN(addr, 8);
-        __builtin_prefetch(addr);
+//        __builtin_prefetch(addr);
 
         return addr;
     }

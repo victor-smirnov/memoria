@@ -22,7 +22,8 @@
 
 #include <memoria/v1/core/tools/time.hpp>
 #include <memoria/v1/core/tools/random.hpp>
-#include <memoria/v1/prototypes/bt_tl/bttl_iobuf_input.hpp>
+#include <memoria/v1/core/tools/fixed_array.hpp>
+#include <memoria/v1/prototypes/bt_tl/bttl_input.hpp>
 
 #include <memory>
 #include <vector>
@@ -49,7 +50,7 @@ MapData<Key, Value> createMapData(size_t keys, size_t values, Fn1&& key_fn, Fn2&
         }
 
         data.push_back(
-            make_pair(key_fn(c), std::move(val))
+            make_pair(key_fn(c + 1), std::move(val))
         );
     }
 
@@ -100,7 +101,7 @@ MapData<Key, Value> createRandomShapedMapData(size_t keys, size_t values, Fn1&& 
         }
 
         data.push_back(
-            make_pair(key_fn(c), std::move(val))
+            make_pair(key_fn(c + 1), std::move(val))
         );
     }
 
@@ -146,6 +147,16 @@ String make_value(V&& num, TypeTag<String>)
     stringstream ss;
     ss << num;
     return ss.str();
+}
+
+template <typename V, Int N>
+FixedArray<N> make_value(V&& num, TypeTag<FixedArray<N>>)
+{
+    FixedArray<N> array;
+
+    *T2T<std::remove_reference_t<V>*>(array.data()) = num;
+
+    return array;
 }
 
 template <typename V>
@@ -227,39 +238,43 @@ public:
 	{
 		if (stream == 1)
 		{
+			auto& idx 	 = structure_generator_.counts()[1];
+			auto key_idx = structure_generator_.counts()[0];
+
+			const auto& data = data_[key_idx - 1].second;
+
 			Int c;
 			for (c = 0; c < length; c++)
 			{
 				auto pos = buffer.pos();
-				if (!IOBufferAdaptor<Value>::put(buffer, structure_generator_.counts()[0]))
+				if (!IOBufferAdaptor<Value>::put(buffer, data[idx]))
 				{
 					buffer.pos(pos);
-					structure_generator_.counts()[1] += c;
+					idx += c;
 					break;
 				}
 			}
 
-			structure_generator_.counts()[1] += length;
+			idx += length;
 
 			return c;
 		}
 		else {
+			auto& idx = structure_generator_.counts()[0];
+
 			Int c;
 			for (c = 0; c < length; c++)
 			{
-				auto key = structure_generator_.counts()[0];
-//				cout << "write key: " << key << endl;
-
 				auto pos = buffer.pos();
-				if (!IOBufferAdaptor<Key>::put(buffer, key))
+				if (!IOBufferAdaptor<Key>::put(buffer, data_[idx].first))
 				{
 					buffer.pos(pos);
-					structure_generator_.counts()[0] += c;
+					idx += c;
 					break;
 				}
 			}
 
-			structure_generator_.counts()[0] += length;
+			idx += length;
 
 			return c;
 		}
@@ -270,16 +285,31 @@ public:
 
 
 
+class MMapBufferConsumer: public bt::BufferConsumer<IOBuffer> {
+	IOBuffer io_buffer_;
+public:
+	MMapBufferConsumer(): io_buffer_(65536) {}
+
+	virtual IOBuffer& buffer() {return io_buffer_;}
+	virtual Int process(IOBuffer& buffer, Int entries)
+	{
+//		cout << "Consume " << entries << " entries" << endl;
+
+		return entries;
+	}
+};
 
 
 
 
 
-int main() {
+
+int main()
+{
     MEMORIA_INIT(DefaultProfile<>);
 
     using KeyType   = BigInt;
-    using ValueType = UByte;
+    using ValueType = UBigInt;//FixedArray<32>;
 
     using CtrName = Map<KeyType, Vector<ValueType>>;
 
@@ -289,82 +319,47 @@ int main() {
         auto alloc = PersistentInMemAllocator<>::create();
         auto snp   = alloc->master()->branch();
         try {
-            auto map   = create<CtrName>(snp);
+            auto map = create<CtrName>(snp);
 
-//
+            map->setNewPageSize(32768);
 
             auto map_data = createRandomShapedMapData<KeyType, ValueType>(
-            		2000,
-					10000,
-                    [](auto k) {return make_key(k, TypeTag<KeyType>());},
-                    [](auto k, auto v) {return make_value(getRandomG(), TypeTag<ValueType>());}
+            		1000,
+					20000,
+                    [](auto k) {
+            			return make_key(k, TypeTag<KeyType>());
+            		},
+                    [](auto k, auto v) {return make_value(k, TypeTag<ValueType>());}
             );
 
             auto iter = map->begin();
 
+            BigInt ti0 = getTimeInMillis();
 
-            MapIOBufferAdapter<KeyType, ValueType> iobuf_adapter(map_data, 512);
+            MapIOBufferAdapter<KeyType, ValueType> iobuf_adapter(map_data, 65536);
             auto totals = map->begin()->bulkio_insert(iobuf_adapter);
 
-//
-//            using ValueAdaptor  = mmap::MMapValueAdaptor<Ctr>;
-//            using KeyAdaptor    = mmap::MMapKeyAdaptor<Ctr>;
+            BigInt ti1 = getTimeInMillis();
 
-//            using Ctr = typename DCtrTF<CtrName>::Type;
-//            using EntryAdaptor = mmap::MMapAdaptor<Ctr>;
-//            EntryAdaptor stream_adaptor(map_data);
-//            auto totals = map->begin()->bulk_insert(stream_adaptor);
-
+            cout << "Insertion time: " << (ti1 - ti0) <<" " << totals << endl;
 
             auto sizes = map->sizes();
             MEMORIA_V1_ASSERT(totals, ==, sizes);
-
-//            auto iter2 = map->seek(8);
-//
-//            iter2->toData();
-//
-//            auto map_values = createValueData<ValueType>(100000, [](auto x){return make_value(0, TypeTag<ValueType>());});
-//            ValueAdaptor value_adaptor(map_values);
-//
-//            map->begin()->bulk_insert(value_adaptor);
-//
-//            auto key_data = createKeyData<KeyType>(1000, [](auto k){return make_key(k + 1000, TypeTag<KeyType>());});
-//            KeyAdaptor key_adaptor(key_data);
-//
-//            auto iter3 = map->end();
-//
-//            map->_insert(*iter3.get(), key_adaptor);
-//
-//            int idx = 0;
-//
-//            auto s_iter = map->seek(9);
-//
-//            s_iter->scan_values([&](auto&& value){
-//                cout << "Value: " << (idx++) << " " << hex << value << dec << endl;
-//            });
-//
-//            idx = 0;
-//            map->seek(5)->scan_keys([&](auto&& value){
-//                cout << "Key: " << (idx++) << " " << value << endl;
-//            });
-
-
-//            auto iter4 = map->seek(8);
-//
-//            iter4->remove();
-
             snp->commit();
 
-//
-//          auto values2 = map->seek(2)->read_values();
-//
-//          dumpVector(cout, values2);
-//
-//          cout << "Values2.size = " << values2.size() << endl;
+//            FSDumpAllocator(snp, "mmap.dir");
 
-            FSDumpAllocator(snp, "mmap.dir");
+            MMapBufferConsumer consumer;
 
-            check_snapshot(snp);
+            BigInt t0 = getTimeInMillis();
+
+            map->begin()->bulkio_read(&consumer);
+
+            BigInt t1 = getTimeInMillis();
+
+            cout << "Read Time: " << (t1 - t0) << endl;
+
+//            check_snapshot(snp);
 
             cout << "Totals: " << totals << endl;
         }

@@ -198,6 +198,26 @@ struct ValueHelper<EmptyValue> {
 };
 
 
+//template <Int N>
+//struct ValueHelper<FixedArray<N> > {
+//    using Type = FixedArray<N>;
+//
+//    static void setup(IPageDataEventHandler* handler, const char* name, const Type& value)
+//    {
+//        IDValue id(&value);
+//        handler->value(name, &id);
+//    }
+//
+//    static void setup(IPageDataEventHandler* handler, const char* name, const Type* value, Int size, Int type)
+//    {
+//        for (Int c = 0; c < size; c++)
+//        {
+//            IDValue id(value + c);
+//            handler->value(name, &id);
+//        }
+//    }
+//};
+
 
 namespace internal {
 

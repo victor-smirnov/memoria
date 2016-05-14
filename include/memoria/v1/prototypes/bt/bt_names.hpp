@@ -33,6 +33,7 @@ class IteratorPartsListFactory      {};
 
 class ToolsName             {};
 class FindName              {};
+class IOReadName            {};
 class ReadName              {};
 class UpdateName            {};
 

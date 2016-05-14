@@ -21,6 +21,7 @@
 #include <memoria/v1/core/container/macros.hpp>
 
 #include <memoria/v1/prototypes/bt_tl/bttl_tools.hpp>
+#include <memoria/v1/prototypes/bt_tl/bttl_output.hpp>
 
 
 #include <vector>
@@ -112,7 +113,6 @@ public:
         }
     }
 
-    template <typename... Args>
     Position leafrank_(const NodeBaseG& leaf, const Position& sizes, const Position& extent, Int pos, const AnchorPosT& anchors = AnchorPosT(-1), const AnchorValueT& anchor_values = AnchorValueT(0)) const
     {
         auto& self = this->self();
@@ -173,6 +173,18 @@ public:
         }
     }
 
+
+    template <typename Fn>
+    void build_node_layout(const NodeBaseG& leaf, const Position& extent, Fn&& fn) const
+    {
+    	auto& self = this->self();
+
+        MEMORIA_V1_ASSERT_TRUE(extent.gteAll(0));
+
+        bttl::iobuf::FlatTreeStructureBuilder<MyType, Fn> builder(self, fn);
+
+        builder.build(leaf, extent);
+    }
 
 protected:
 

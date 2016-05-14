@@ -53,6 +53,7 @@
 #include <memoria/v1/prototypes/bt/container/bt_c_checks.hpp>
 #include <memoria/v1/prototypes/bt/container/bt_c_insert.hpp>
 #include <memoria/v1/prototypes/bt/container/bt_c_read.hpp>
+#include <memoria/v1/prototypes/bt/container/bt_c_ioread.hpp>
 #include <memoria/v1/prototypes/bt/container/bt_c_update.hpp>
 #include <memoria/v1/prototypes/bt/container/bt_c_branch_common.hpp>
 #include <memoria/v1/prototypes/bt/container/bt_c_branch_variable.hpp>
@@ -101,6 +102,7 @@ struct BTTypes {
             bt::RemoveName,
             bt::FindName,
             bt::ReadName,
+			bt::IOReadName,
             bt::UpdateName,
             bt::WalkName
     >                                                                           ContainerPartsList;
@@ -390,8 +392,6 @@ public:
         using LeafRangeOffsetList       = typename MyType::LeafRangeOffsetList;
         using LeafRangeList             = typename MyType::LeafRangeList;
 
-//        template <typename LeafPath>
-//        using TargetType = typename PackedStructValueTypeH<LeafStreamsStructList, LeafPath>::Type;
 
         template <typename LeafPath>
         using TargetType = typename AccumType<
@@ -432,6 +432,8 @@ public:
         template <Int StreamIdx>
         using StreamInputBufferStructList = Select<StreamIdx, InputBufferStructList>;
 
+
+        using LeafNode = typename Pages::LeafDispatcher::Head;
 
         static const LeafDataLengthType LeafDataLength = LeafSizeType == PackedSizeType::FIXED ?
                                                         LeafDataLengthType::FIXED :

@@ -149,7 +149,8 @@ public:
         return self().cache().data_size()[stream];
     }
 
-    CtrSizeT substream_size() const {
+    CtrSizeT substream_size() const
+    {
         auto& self = this->self();
         auto stream = self.stream();
         auto idx = self.idx();

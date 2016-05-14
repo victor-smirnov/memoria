@@ -44,10 +44,6 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::bt::IteratorSkipName)
     template <Int Stream>
     auto skip_fw_(CtrSizeT amount)
     {
-        if (amount < 0) {
-            int a = 0; a++;
-        }
-
         MEMORIA_V1_ASSERT(amount, >=, 0);
 
         typename Types::template SkipForwardWalker<Types, IntList<Stream>> walker(amount);

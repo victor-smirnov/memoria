@@ -442,6 +442,24 @@ struct IteratorExtensionsTF {
 
 
 
+template <Int Size, Int Idx = 0>
+struct ForAllTuple {
+	template <typename InputBuffer, typename Fn, typename... Args>
+	static void process(InputBuffer&& tuple, Fn&& fn, Args&&... args)
+	{
+		fn.template process<Idx>(std::get<Idx>(tuple), std::forward<Args>(args)...);
+		ForAllTuple<Size, Idx + 1>::process(tuple, std::forward<Fn>(fn), std::forward<Args>(args)...);
+	}
+};
+
+template <Int Idx>
+struct ForAllTuple<Idx, Idx> {
+	template <typename InputBuffer, typename Fn, typename... Args>
+	static void process(InputBuffer&& tuple, Fn&& fn, Args&&... args)
+	{}
+};
+
+
 template <typename IOBuffer>
 struct BufferConsumer {
 	virtual IOBuffer& buffer() = 0;
@@ -457,6 +475,11 @@ struct BufferProducer {
 
 	virtual ~BufferProducer() noexcept {}
 };
+
+
+
+
+
 
 }
 }}
