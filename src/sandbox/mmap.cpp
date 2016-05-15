@@ -35,6 +35,8 @@ template <typename Key, typename Value>
 using MapData = vector<pair<Key, vector<Value>>>;
 
 
+using MMapIOBuffer = DefaultIOBuffer;
+
 template <typename Key, typename Value, typename Fn1, typename Fn2>
 MapData<Key, Value> createMapData(size_t keys, size_t values, Fn1&& key_fn, Fn2&& value_fn)
 {
@@ -175,12 +177,12 @@ UUID make_value(V&& num, TypeTag<UUID>)
 
 
 template <typename Key, typename Value>
-class MapIOBufferAdapter: public bttl::iobuf::FlatTreeIOBufferAdapter<2, IOBuffer> {
+class MapIOBufferAdapter: public bttl::iobuf::FlatTreeIOBufferAdapter<2, MMapIOBuffer> {
 
-	using Base 	 = bttl::iobuf::FlatTreeIOBufferAdapter<2, IOBuffer>;
+	using Base 	 = bttl::iobuf::FlatTreeIOBufferAdapter<2, MMapIOBuffer>;
 	using MyType = MapIOBufferAdapter<Key, Value>;
 
-
+	using typename Base::IOBuffer;
 
 	using Data = MapData<Key, Value>;
 	using Positions = core::StaticVector<Int, 2>;
@@ -247,7 +249,7 @@ public:
 			for (c = 0; c < length; c++)
 			{
 				auto pos = buffer.pos();
-				if (!IOBufferAdaptor<Value>::put(buffer, data[idx]))
+				if (!IOBufferAdapter<Value>::put(buffer, data[idx]))
 				{
 					buffer.pos(pos);
 					idx += c;
@@ -266,7 +268,7 @@ public:
 			for (c = 0; c < length; c++)
 			{
 				auto pos = buffer.pos();
-				if (!IOBufferAdaptor<Key>::put(buffer, data_[idx].first))
+				if (!IOBufferAdapter<Key>::put(buffer, data_[idx].first))
 				{
 					buffer.pos(pos);
 					idx += c;
@@ -285,7 +287,9 @@ public:
 
 
 
-class MMapBufferConsumer: public bt::BufferConsumer<IOBuffer> {
+class MMapBufferConsumer: public bt::BufferConsumer<MMapIOBuffer> {
+	using IOBuffer = MMapIOBuffer;
+
 	IOBuffer io_buffer_;
 public:
 	MMapBufferConsumer(): io_buffer_(65536) {}
@@ -324,8 +328,8 @@ int main()
             map->setNewPageSize(32768);
 
             auto map_data = createRandomShapedMapData<KeyType, ValueType>(
-            		1000,
-					20000,
+            		100000,
+					200,
                     [](auto k) {
             			return make_key(k, TypeTag<KeyType>());
             		},

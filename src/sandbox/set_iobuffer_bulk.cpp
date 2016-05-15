@@ -57,7 +57,7 @@ public:
 
 		while (iter_ != end_)
 		{
-			if (!IOBufferAdaptor<Key>::put(buffer, *iter_))
+			if (!IOBufferAdapter<Key>::put(buffer, *iter_))
 			{
 				return entries;
 			}

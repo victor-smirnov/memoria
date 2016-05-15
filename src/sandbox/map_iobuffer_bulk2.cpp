@@ -77,12 +77,12 @@ public:
 
 		while (iter_ != end_)
 		{
-			if (!IOBufferAdaptor<Key>::put(buffer, iter_->key()))
+			if (!IOBufferAdapter<Key>::put(buffer, iter_->key()))
 			{
 				return entries;
 			}
 
-			if (!IOBufferAdaptor<Value>::put(buffer, iter_->value()))
+			if (!IOBufferAdapter<Value>::put(buffer, iter_->value()))
 			{
 				return entries;
 			}

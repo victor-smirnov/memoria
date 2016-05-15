@@ -27,7 +27,9 @@ template <typename CtrT, typename Data, LeafDataLengthType LeafDataLength = CtrT
 
 
 template <typename CtrT, typename Data>
-class BTSSTestInputProvider<CtrT, Data, LeafDataLengthType::FIXED>: public bt::BufferProducer<IOBuffer> {
+class BTSSTestInputProvider<CtrT, Data, LeafDataLengthType::FIXED>: public bt::BufferProducer<DefaultIOBuffer> {
+
+	using IOBuffer = DefaultIOBuffer;
 
 	IOBuffer io_buffer_;
 
@@ -54,7 +56,7 @@ public:
 		for (;current_ < data_.size(); current_++, total++)
 		{
 			auto pos = buffer.pos();
-			if (!IOBufferAdaptor<Value>::put(buffer, data_[current_]))
+			if (!IOBufferAdapter<Value>::put(buffer, data_[current_]))
 			{
 				buffer.pos(pos);
 				return total;
@@ -67,7 +69,9 @@ public:
 
 
 template <typename CtrT, typename Data>
-class BTSSTestInputProvider<CtrT, Data, LeafDataLengthType::VARIABLE>: public bt::BufferProducer<IOBuffer> {
+class BTSSTestInputProvider<CtrT, Data, LeafDataLengthType::VARIABLE>: public bt::BufferProducer<DefaultIOBuffer> {
+
+	using IOBuffer = DefaultIOBuffer;
 
 	IOBuffer io_buffer_;
 

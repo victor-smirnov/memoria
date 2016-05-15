@@ -231,7 +231,7 @@ public:
 
         	if (len <= capacity)
         	{
-        		this->value(block, size_) = IOBufferAdaptor<Value>::get(buffer);
+        		this->value(block, size_) = IOBufferAdapter<Value>::get(buffer);
         	}
         	else {
         		return false;

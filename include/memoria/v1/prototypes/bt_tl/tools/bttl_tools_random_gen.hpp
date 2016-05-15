@@ -28,7 +28,7 @@ namespace iobuf {
 
 
 
-template <typename CtrT, typename IOBufferT = IOBuffer>
+template <typename CtrT, typename IOBufferT = DefaultIOBuffer>
 class DeterministicAdapterBase: public bttl::iobuf::FlatTreeIOBufferAdapter<CtrT::Types::Streams, IOBufferT> {
 
 protected:
@@ -37,6 +37,8 @@ protected:
 
 	using Base 	 	= bttl::iobuf::FlatTreeIOBufferAdapter<Streams, IOBufferT>;
 	using MyType 	= DeterministicAdapterBase<CtrT, IOBufferT>;
+
+	using IOBuffer = IOBufferT;
 
 	using CtrSizesT = typename CtrT::Types::CtrSizesT;
 
@@ -93,30 +95,31 @@ public:
 	}
 
 
-	virtual IOBuffer& buffer() {return io_buffer_;}
+	virtual IOBufferT& buffer() {return io_buffer_;}
 
 	virtual bttl::iobuf::RunDescr query()
 	{
 		return structure_generator_.query();
 	}
 
-	virtual Int populate_stream(Int stream, IOBuffer& buffer, Int length) = 0;
+	virtual Int populate_stream(Int stream, IOBufferT& buffer, Int length) = 0;
 };
 
 
 
 
-template <typename CtrT, typename RngT, typename IOBufferT = IOBuffer>
+template <typename CtrT, typename RngT, typename IOBufferT = DefaultIOBuffer>
 class RandomAdapterBase: public bttl::iobuf::FlatTreeIOBufferAdapter<CtrT::Types::Streams, IOBufferT> {
 public:
 	using Rng = RngT;
 protected:
 
+	using IOBuffer = IOBufferT;
 
 	static constexpr Int Streams = CtrT::Types::Streams;
 
 	using Base 	 	= bttl::iobuf::FlatTreeIOBufferAdapter<Streams, IOBufferT>;
-	using MyType 	= RandomAdapterBase<CtrT, RngT, IOBuffer>;
+	using MyType 	= RandomAdapterBase<CtrT, RngT, IOBufferT>;
 
 	using CtrSizesT = typename CtrT::Types::CtrSizesT;
 
@@ -172,7 +175,7 @@ public:
 	RngT& rng() {return rng_;}
 	const RngT& rng() const {return rng_;}
 
-	virtual IOBuffer& buffer() {return io_buffer_;}
+	virtual IOBufferT& buffer() {return io_buffer_;}
 
 	virtual bttl::iobuf::RunDescr query()
 	{
@@ -187,7 +190,7 @@ public:
 		return structure_generator_;
 	}
 
-	virtual Int populate_stream(Int stream, IOBuffer& buffer, Int length) = 0;
+	virtual Int populate_stream(Int stream, IOBufferT& buffer, Int length) = 0;
 };
 
 

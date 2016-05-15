@@ -177,14 +177,16 @@ struct TypeHash<FixedArray<Size>> {
 
 
 template <Int Size>
-struct IOBufferAdaptor<FixedArray<Size>> {
+struct IOBufferAdapter<FixedArray<Size>> {
 
+	template <typename IOBuffer>
 	static bool put(IOBuffer& buffer, const FixedArray<Size>& value)
 	{
 		buffer.putVLen(Size);
 		return buffer.put(value.data(), Size);
 	}
 
+	template <typename IOBuffer>
 	static FixedArray<Size> get(IOBuffer& buffer)
 	{
 		int64_t len = buffer.getVLen();

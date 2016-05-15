@@ -685,7 +685,7 @@ public:
     	{
     		auto val = state.values()[b][state.idx()];
 
-    		if (!IOBufferAdaptor<Value>::put(buffer, val))
+    		if (!IOBufferAdapter<Value>::put(buffer, val))
     		{
     			return false;
     		}

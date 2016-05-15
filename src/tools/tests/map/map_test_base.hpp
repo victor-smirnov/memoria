@@ -58,15 +58,16 @@ struct RNGTool<UUID> {
 
 
 template <typename Key, typename Value>
-struct IOBufferAdaptor<std::tuple<Key, Value>> {
+struct IOBufferAdapter<std::tuple<Key, Value>> {
 
 	using T = std::tuple<Key, Value>;
 
+	template <typename IOBuffer>
 	static bool put(IOBuffer& buffer, const T& value)
 	{
-		if (IOBufferAdaptor<Key>::put(buffer, std::get<0>(value)))
+		if (IOBufferAdapter<Key>::put(buffer, std::get<0>(value)))
 		{
-			if (IOBufferAdaptor<Value>::put(buffer, std::get<1>(value))) {
+			if (IOBufferAdapter<Value>::put(buffer, std::get<1>(value))) {
 				return true;
 			}
 		}
@@ -74,9 +75,10 @@ struct IOBufferAdaptor<std::tuple<Key, Value>> {
 		return false;
 	}
 
+	template <typename IOBuffer>
 	static T get(IOBuffer& buffer)
 	{
-		return std::make_tuple(IOBufferAdaptor<Key>::get(buffer), IOBufferAdaptor<Value>::get(buffer));
+		return std::make_tuple(IOBufferAdapter<Key>::get(buffer), IOBufferAdapter<Value>::get(buffer));
 	}
 };
 

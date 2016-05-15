@@ -482,7 +482,7 @@ class BTTLWalker {
 	Int stream_ = 0;
 	StreamsSizes idx_;
 
-	IOBuffer symbols_;
+	DefaultIOBuffer symbols_;
 	size_t symbol_runs_ = 0;
 	size_t current_symbols_run_ = 0;
 

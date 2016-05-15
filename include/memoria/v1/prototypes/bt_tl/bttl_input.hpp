@@ -1709,8 +1709,8 @@ public:
 };
 
 
-template <Int Streams, typename IOBuffer>
-class FlatTreeIOBufferAdapter: public BufferProducer<IOBuffer> {
+template <Int Streams, typename IOBufferT>
+class FlatTreeIOBufferAdapter: public BufferProducer<IOBufferT> {
 
 public:
 
@@ -1720,6 +1720,8 @@ public:
     static constexpr Int MaxRunLength 	= (256 >> BitsPerSymbol) - 1;
 
     using CtrSizesT = core::StaticVector<BigInt, Streams>;
+
+    using IOBuffer = IOBufferT;
 
 private:
 

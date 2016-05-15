@@ -594,7 +594,7 @@ public:
     	{
     		auto val = values[base + b];
 
-    		if (!IOBufferAdaptor<Value>::put(buffer, val))
+    		if (!IOBufferAdapter<Value>::put(buffer, val))
     		{
     			return false;
     		}

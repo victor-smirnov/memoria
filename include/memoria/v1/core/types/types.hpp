@@ -490,7 +490,16 @@ struct HasFieldFactory: HasValue<bool, IsComplete<FieldFactory<T>>::type::value>
 template <typename T>
 struct IsExternalizable: HasValue<bool, HasValueCodec<T>::Value || HasFieldFactory<T>::Value> {};
 
-template <typename T> struct IOBufferAdaptor;
+template <typename T> struct IOBufferAdapter;
+
+
+enum class ByteOrder {
+	BIG, LITTLE
+};
+
+enum class MemoryAccess {
+	ALIGNED, UNALIGNED
+};
 
 
 }}

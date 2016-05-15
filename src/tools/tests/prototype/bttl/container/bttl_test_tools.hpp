@@ -35,6 +35,8 @@ class RandomDataInputProvider: public RandomAdapterBase<CtrT, RngT> {
 
 	using Base = RandomAdapterBase<CtrT, RngT>;
 
+	using typename Base::IOBuffer;
+
 	using Base::structure_generator;
 	using Base::Streams;
 
@@ -55,7 +57,7 @@ public:
 			for (c = 0; c < length; c++)
 			{
 				auto pos = buffer.pos();
-				if (!IOBufferAdaptor<Value>::put(buffer, structure_generator().counts()[stream - 1]))
+				if (!IOBufferAdapter<Value>::put(buffer, structure_generator().counts()[stream - 1]))
 				{
 					buffer.pos(pos);
 					structure_generator().counts()[stream] += c;
@@ -81,6 +83,8 @@ class DeterministicDataInputProvider: public DeterministicAdapterBase<CtrT> {
 
 	using Base = DeterministicAdapterBase<CtrT>;
 
+	using typename Base::IOBuffer;
+
 	using Base::structure_generator;
 	using Base::Streams;
 
@@ -101,7 +105,7 @@ public:
 			for (c = 0; c < length; c++)
 			{
 				auto pos = buffer.pos();
-				if (!IOBufferAdaptor<Value>::put(buffer, structure_generator().counts()[stream - 1]))
+				if (!IOBufferAdapter<Value>::put(buffer, structure_generator().counts()[stream - 1]))
 				{
 					buffer.pos(pos);
 					structure_generator().counts()[stream] += c;
