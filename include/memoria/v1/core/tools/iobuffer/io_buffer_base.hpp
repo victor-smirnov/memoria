@@ -291,8 +291,8 @@ public:
 	template <Int Symbols>
 	static constexpr BigInt getMaxSymbolsRunLength()
 	{
-		constexpr Int BitsPerSymbol = NumberOfBits(Symbols);
-		return numeric_limits<int64_t>::max() >> BitsPerSymbol;
+		constexpr BigInt BitsPerSymbol = NumberOfBits(Symbols);
+		return numeric_limits<BigInt>::max() >> BitsPerSymbol;
 	}
 
 	template <Int Symbols>

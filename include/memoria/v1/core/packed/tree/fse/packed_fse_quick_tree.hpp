@@ -78,7 +78,17 @@ public:
 
     using SizesT = core::StaticVector<Int, Blocks>;
 
-    using ReadState = SizesT;
+    using ConstPtrsT 	= core::StaticVector<const Value*, Blocks>;
+
+    class ReadState {
+    	ConstPtrsT values_;
+    	Int idx_ = 0;
+    public:
+    	ConstPtrsT& values() {return values_;}
+    	Int& idx() {return idx_;}
+    	const ConstPtrsT& values() const {return values_;}
+    	const Int& idx() const {return idx_;}
+    };
 
     static Int estimate_block_size(Int tree_capacity, Int density_hi = 1, Int density_lo = 1)
     {
@@ -373,6 +383,22 @@ public:
     }
 
 
+    template <typename IOBuffer>
+    bool readTo(ReadState& state, IOBuffer& buffer) const
+    {
+    	for (Int b = 0; b < Blocks; b++)
+    	{
+    		auto val = state.values()[b][state.idx()];
+
+    		if (!IOBufferAdapter<Value>::put(buffer, val))
+    		{
+    			return false;
+    		}
+    	}
+
+    	return true;
+    }
+
 
 
     template <typename Fn>
@@ -629,7 +655,15 @@ public:
     }
 
     ReadState positions(Int idx) const {
-        return ReadState(idx);
+        ReadState state;
+
+        state.idx() = idx;
+
+        for (Int b = 0; b < Blocks; b++) {
+        	state.values()[b] = this->values(b);
+        }
+
+        return state;
     }
 
     SizesT insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, Int inserted)
@@ -787,7 +821,7 @@ public:
 
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
-        Base::generateDataEvents(handler);
+//        Base::generateDataEvents(handler);
 
         handler->startStruct();
         handler->startGroup("FSQ_TREE");
@@ -829,7 +863,7 @@ public:
 
         for (Int c = 0; c < meta->size() ; c++)
         {
-            handler->value("TREE_ITEM", PageValueProviderFactory::provider(Blocks, [&](Int idx) {
+            handler->value("TREE_ITEM", PageValueProviderFactory::provider(false, Blocks, [&](Int idx) {
             	return values[idx][c];
             }));
         }

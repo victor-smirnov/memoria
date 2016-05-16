@@ -766,7 +766,7 @@ public:
 
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
-        Base::generateDataEvents(handler);
+//        Base::generateDataEvents(handler);
 
         handler->startStruct();
         handler->startGroup("FSM_TREE");

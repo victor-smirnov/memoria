@@ -465,7 +465,7 @@ public:
         handler->startStruct();
         handler->startGroup("SIZED_STRUCT");
 
-        handler->value("ALLOCATOR",     &Base::allocator_offset());
+//        handler->value("ALLOCATOR",     &Base::allocator_offset());
         handler->value("SIZE",          &size_);
 
         handler->endGroup();

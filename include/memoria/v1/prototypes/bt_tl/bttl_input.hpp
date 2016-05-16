@@ -33,11 +33,6 @@ namespace iobuf {
 
 namespace {
 
-	// FIXME: replace to NumberOfBits() from bitmap.hpp
-	static constexpr Int BTTLGetBitsPerSymbol(Int v) {
-		return v == 0 ?  1 : (v == 2 ? 1 : (v == 3 ? 2 : (v == 4 ? 2 : (v == 5 ? 3 : (v == 6 ? 3 : (v == 7 ? 3 : 4))))));
-	}
-
 	template <typename T>
 	class InputBufferHandle {
 		T* ref_;
@@ -457,19 +452,13 @@ public:
 
     using ForAllBuffer = ForAllTuple<std::tuple_size<Buffer>::value>;
 
-
-
-    static constexpr Int BitsPerSymbol = BTTLGetBitsPerSymbol(Streams);
-
-
-
     using NodePair = std::pair<NodeBaseG, NodeBaseG>;
 
     using AnchorValueT  = core::StaticVector<CtrSizeT, Streams - 1>;
     using AnchorPosT    = core::StaticVector<Int, Streams - 1>;
     using AnchorNodeT   = core::StaticVector<NodeBaseG, Streams - 1>;
 
-    using Sequence = PkdFSSeq<typename PkdFSSeqTF<BitsPerSymbol>::Type>;
+    using Sequence = PkdFSSeq<typename PkdFSSeqTF<NumberOfBits(Streams)>::Type>;
 
 protected:
 
@@ -1492,7 +1481,6 @@ protected:
     using typename Base::ForAllBuffer;
     using typename Base::Buffer;
 
-    using Base::BitsPerSymbol;
 
     using Base::reset_buffer;
     using Base::finish_buffer;
@@ -1593,13 +1581,14 @@ public:
         			}
         		}
         		else {
-        			stream = io_buffer_->getUByte();
+        			auto run = io_buffer_->template getSymbolsRun<Streams>();
+
+        			stream 		= run.symbol();
+        			run_length 	= run.length();
+
         			entry_num++;
 
-        			run_length 	= stream >> BitsPerSymbol;
-        			stream 		= stream & ((1 << BitsPerSymbol) - 1);
-
-        			int iobuffer_remainder = entries - entry_num;
+        			Int iobuffer_remainder = entries - entry_num;
 
         			if (run_length >= iobuffer_remainder)
         			{
@@ -1714,10 +1703,7 @@ class FlatTreeIOBufferAdapter: public BufferProducer<IOBufferT> {
 
 public:
 
-    static constexpr Int BitsPerSymbol 	= BTTLGetBitsPerSymbol(Streams);
-    static constexpr Int LevelCodeMask 	= (1 << BitsPerSymbol) - 1;
-
-    static constexpr Int MaxRunLength 	= (256 >> BitsPerSymbol) - 1;
+    static constexpr BigInt MaxRunLength 	= IOBufferT::template getMaxSymbolsRunLength<Streams>();
 
     using CtrSizesT = core::StaticVector<BigInt, Streams>;
 
@@ -1727,8 +1713,8 @@ private:
 
     RunDescr state_;
     Int processed_ = 0;
-    Int run_length_ = 0;
-    Int run_processed_ = 0;
+    BigInt run_length_ = 0;
+    BigInt run_processed_ = 0;
     bool symbol_encoded_ = false;
 
     CtrSizesT consumed_;
@@ -1738,12 +1724,6 @@ public:
 
     const CtrSizesT& consumed() const {
     	return consumed_;
-    }
-
-
-    constexpr UByte encodeRun(Int symbol, Int len)
-    {
-    	return symbol | (len << BitsPerSymbol);
     }
 
     virtual RunDescr query() = 0;
@@ -1781,18 +1761,16 @@ public:
 
     				if (!symbol_encoded_)
     				{
-    					auto subrunDescr = encodeRun(state_.symbol(), to_encode);
-
     					auto pos = io_buffer.pos();
-    					if (!io_buffer.put(subrunDescr))
+    					if (io_buffer.template putSymbolsRun<Streams>(state_.symbol(), to_encode))
     					{
+    						symbol_encoded_ = true;
+    						entries++;
+    					}
+    					else {
     						io_buffer.pos(pos);
     						symbol_encoded_ = false;
     						return entries;
-    					}
-    					else {
-    						symbol_encoded_ = true;
-    						entries++;
     					}
     				}
 

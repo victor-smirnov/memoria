@@ -157,7 +157,6 @@ public:
     auto bulkio_insert(BufferProducer<IOBuffer>& provider, const Int initial_capacity = 20000)
     {
     	auto& self = this->self();
-
     	return self.ctr().bulkio_insert(self, provider, initial_capacity);
     }
 

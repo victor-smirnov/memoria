@@ -23,6 +23,7 @@
 #include <memoria/v1/core/tools/time.hpp>
 #include <memoria/v1/core/tools/random.hpp>
 #include <memoria/v1/core/tools/fixed_array.hpp>
+#include <memoria/v1/core/tools/dump.hpp>
 #include <memoria/v1/prototypes/bt_tl/bttl_input.hpp>
 
 #include <memory>
@@ -253,7 +254,7 @@ public:
 				{
 					buffer.pos(pos);
 					idx += c;
-					break;
+					return c;
 				}
 			}
 
@@ -272,7 +273,7 @@ public:
 				{
 					buffer.pos(pos);
 					idx += c;
-					break;
+					return c;
 				}
 			}
 
@@ -328,13 +329,19 @@ int main()
             map->setNewPageSize(32768);
 
             auto map_data = createRandomShapedMapData<KeyType, ValueType>(
-            		100000,
+            		1000000,
 					200,
                     [](auto k) {
-            			return make_key(k, TypeTag<KeyType>());
+            			return make_key(1, TypeTag<KeyType>());
             		},
                     [](auto k, auto v) {return make_value(k, TypeTag<ValueType>());}
             );
+
+            size_t total_data_size = 0;
+
+            for (auto& kv: map_data) {
+            	total_data_size += kv.second.size();
+            }
 
             auto iter = map->begin();
 
@@ -353,19 +360,19 @@ int main()
 
 //            FSDumpAllocator(snp, "mmap.dir");
 
-            MMapBufferConsumer consumer;
-
-            BigInt t0 = getTimeInMillis();
-
-            map->begin()->bulkio_read(&consumer);
-
-            BigInt t1 = getTimeInMillis();
-
-            cout << "Read Time: " << (t1 - t0) << endl;
+//            MMapBufferConsumer consumer;
+//
+//            BigInt t0 = getTimeInMillis();
+//
+//            map->begin()->bulkio_read(&consumer);
+//
+//            BigInt t1 = getTimeInMillis();
+//
+//            cout << "Read Time: " << (t1 - t0) << endl;
 
 //            check_snapshot(snp);
 
-            cout << "Totals: " << totals << endl;
+            cout << "Totals: " << totals << " total data: " << total_data_size << endl;
         }
         catch (...) {
         	FSDumpAllocator(snp, "mmap_fail.dir");

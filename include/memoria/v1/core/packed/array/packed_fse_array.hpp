@@ -45,7 +45,7 @@ namespace {
 		template <Int Blocks, typename Value, typename H, typename S, typename B>
 		static void process(H* handler, S size_, const B* buffer_)
 		{
-			handler->value("DATA_ITEMS", PageValueProviderFactory::provider(size_ * Blocks, [&](Int idx) -> const Value& {
+			handler->value("DATA_ITEMS", PageValueProviderFactory::provider(true, size_ * Blocks, [&](Int idx) -> const Value& {
 				return *(buffer_ + idx);
 			}));
 		}
@@ -679,21 +679,11 @@ public:
         handler->startStruct();
         handler->startGroup("FSE_ARRAY");
 
-        handler->value("ALLOCATOR",     &Base::allocator_offset());
+//        handler->value("ALLOCATOR",     &Base::allocator_offset());
         handler->value("SIZE",          &size_);
         handler->value("MAX_SIZE",      &max_size_);
 
         handler->startGroup("DATA", size_);
-
-//        if (sizeof(Value) == 1)
-//        {
-//        	ValueHelper<Value>::setup(handler, "DATA_ITEMS", buffer_, size_ * Blocks, IPageDataEventHandler::BYTE_ARRAY);
-//        }
-//        else {
-//        	handler->value("DATA_ITEMS", PageValueProviderFactory::provider(size_ * Blocks, [&](Int idx) -> const Value& {
-//        		return *(buffer_ + idx);
-//        	}));
-//        }
 
         GenerateDataEventsHelper<sizeof(Value) == 1>::template process<Blocks, Value>(handler, size_, buffer_);
 
