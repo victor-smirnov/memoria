@@ -81,13 +81,58 @@ public:
     using ConstPtrsT 	= core::StaticVector<const Value*, Blocks>;
 
     class ReadState {
+    protected:
     	ConstPtrsT values_;
     	Int idx_ = 0;
     public:
+    	ReadState() {}
+    	ReadState(const ConstPtrsT& values, Int idx): values_(values), idx_(idx) {}
+
     	ConstPtrsT& values() {return values_;}
     	Int& idx() {return idx_;}
     	const ConstPtrsT& values() const {return values_;}
     	const Int& idx() const {return idx_;}
+    };
+
+    class Iterator: public ReadState {
+    	Int size_;
+    	Values data_values_;
+
+    	using ReadState::idx_;
+    	using ReadState::values_;
+
+    	Int idx_backup_;
+
+    public:
+    	Iterator() {}
+    	Iterator(const ConstPtrsT& values, Int idx, Int size):
+    		ReadState(values, idx),
+			size_(size)
+    	{}
+
+    	Int size() const {return size_;}
+
+    	bool has_next() const {return idx_ < size_;}
+
+    	void next()
+    	{
+    		for (Int b = 0; b < Blocks; b++)
+    		{
+    			data_values_[b] = values_[b][idx_];
+    		}
+
+    		idx_++;
+    	}
+
+    	const auto& value(Int block) {return data_values_[block];}
+
+    	void mark() {
+    		idx_backup_ = idx_;
+    	}
+
+    	void restore() {
+    		idx_ = idx_backup_;
+    	}
     };
 
     static Int estimate_block_size(Int tree_capacity, Int density_hi = 1, Int density_lo = 1)
@@ -632,6 +677,10 @@ public:
     }
 
 
+
+
+
+
     template <typename Adaptor>
     void _insert(Int pos, Int size, Adaptor&& adaptor)
     {
@@ -654,7 +703,30 @@ public:
         }
     }
 
-    ReadState positions(Int idx) const {
+
+    template <typename Iter>
+    void populate_from_iterator(Int start, Int length, Iter&& iter)
+    {
+    	MEMORIA_V1_ASSERT(start, >=, 0);
+    	MEMORIA_V1_ASSERT(start, <=, this->size());
+
+    	MEMORIA_V1_ASSERT(length, >=, 0);
+
+    	insertSpace(start, length);
+
+    	for (Int c = 0; c < length; c++)
+    	{
+    		iter.next();
+    		for (Int block = 0; block < Blocks; block++)
+    		{
+    			this->value(block, c + start) = iter.value(block);
+    		}
+    	}
+    }
+
+
+    ReadState positions(Int idx) const
+    {
         ReadState state;
 
         state.idx() = idx;
@@ -664,6 +736,17 @@ public:
         }
 
         return state;
+    }
+
+    Iterator iterator(Int idx) const
+    {
+        ConstPtrsT ptrs;
+
+        for (Int b = 0; b < Blocks; b++) {
+        	ptrs[b] = this->values(b);
+        }
+
+        return Iterator(ptrs, idx, this->size());
     }
 
     SizesT insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, Int inserted)
@@ -687,6 +770,19 @@ public:
     }
 
     template <typename T>
+    void append(const StaticVector<T, Blocks>& values)
+    {
+    	auto meta = this->metadata();
+
+    	for (Int b = 0; b < Blocks; b++)
+    	{
+    		this->values(b)[meta->size()] = values[b];
+    	}
+
+    	meta->size()++;
+    }
+
+    template <typename T>
     void update(Int idx, const core::StaticVector<T, Blocks>& values)
     {
         setValues(idx, values);
@@ -700,6 +796,21 @@ public:
 
         sum<Offset>(idx, accum);
     }
+
+    template <Int Offset, Int Size, typename AccessorFn, typename T2, template <typename, Int> class BranchNodeEntryItem>
+    void _insert_b(Int idx, BranchNodeEntryItem<T2, Size>& accum, AccessorFn&& values)
+    {
+        insertSpace(idx, 1);
+
+        for (Int b = 0; b < Blocks; b++) {
+            this->values(b)[idx] = values(b);
+        }
+
+        reindex();
+
+        sum<Offset>(this->size() - 1, accum);
+    }
+
 
     template <Int Offset, Int Size, typename T1, typename T2, template <typename, Int> class BranchNodeEntryItem>
     void _update(Int idx, const core::StaticVector<T1, Blocks>& values, BranchNodeEntryItem<T2, Size>& accum)

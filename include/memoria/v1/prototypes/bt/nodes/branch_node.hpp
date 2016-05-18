@@ -1131,12 +1131,14 @@ public:
         template <Int Idx, typename Tree>
         void stream(const Tree* tree, Int idx, BranchNodeEntry* acc)
         {
-            const Int Blocks = Tree::Blocks;
+//            const Int Blocks = Tree::Blocks;
 
-            for (Int c = 0; c < Blocks; c++)
-            {
-                std::get<Idx>(*acc)[c] = tree->value(c, idx);
-            }
+//            for (Int c = 0; c < Blocks; c++)
+//            {
+//                std::get<Idx>(*acc)[c] = tree->value(c, idx);
+//            }
+
+            std::get<Idx>(*acc) = tree->get_values(idx);
         }
     };
 

@@ -22,6 +22,7 @@
 
 #include <memoria/v1/core/packed/tree/fse/packed_fse_quick_tree.hpp>
 #include <memoria/v1/core/packed/tree/fse_max/packed_fse_max_tree.hpp>
+#include <memoria/v1/core/packed/tree/fse_max/packed_fse_optmax_tree.hpp>
 #include <memoria/v1/core/packed/tree/vle/packed_vle_quick_tree.hpp>
 #include <memoria/v1/core/packed/tree/vle/packed_vle_dense_tree.hpp>
 #include <memoria/v1/core/packed/tree/vle_big/packed_vle_bigmax_tree.hpp>
@@ -101,7 +102,7 @@ struct MapBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
     using Type = IfThenElse<
             HasFieldFactory<KeyType>::Value,
-            PkdFMTreeT<KeyType, Indexes>,
+            PkdFMOTreeT<KeyType, Indexes>,
             PkdVBMTreeT<KeyType>
     >;
 

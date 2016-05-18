@@ -22,6 +22,7 @@
 
 
 #include <memoria/v1/core/tools/static_array.hpp>
+#include <memoria/v1/core/tools/optional.hpp>
 #include <memoria/v1/core/tools/iobuffer/io_buffer.hpp>
 
 namespace memoria {
@@ -225,15 +226,16 @@ public:
     }
 
 
-    Value max(Int block) const
+    Optional<Value> max(Int block) const
     {
         auto size = this->size();
 
-        if (size > 0) {
+        if (size > 0)
+        {
             return this->value(block, size - 1);
         }
         else {
-            return Value();
+            return Optional<Value>();
         }
     }
 
@@ -348,9 +350,17 @@ protected:
         meta->index_size()  = new_index_size;
     }
 
+public:
     void insertSpace(Int idx, Int room_length)
     {
         auto meta = this->metadata();
+
+        if (idx > meta->size())
+        {
+        	int a = 0; a++;
+        }
+
+        MEMORIA_V1_ASSERT(idx, <=, meta->size());
 
         Int capacity  = meta->capacity();
 
@@ -377,8 +387,7 @@ protected:
         meta->size() += room_length;
     }
 
-
-
+protected:
     void copyTo(MyType* other, Int copy_from, Int count, Int copy_to) const
     {
         MEMORIA_V1_ASSERT_TRUE(copy_from >= 0);
@@ -422,27 +431,6 @@ public:
         removeSpace(0, my_size);
 
         reindex();
-        other->reindex();
-    }
-
-    template <typename TreeType>
-    void transferDataTo(TreeType* other) const
-    {
-        other->insertSpace(0, this->size());
-
-        Int size = this->size();
-
-        for (Int block = 0; block < Blocks; block++)
-        {
-            const auto* my_values   = this->values(block);
-            auto* other_values      = other->values(block);
-
-            for (Int c = 0; c < size; c++)
-            {
-                other_values[c] = my_values[c];
-            }
-        }
-
         other->reindex();
     }
 
@@ -506,12 +494,6 @@ public:
     }
 
 
-//    template <Int Offset, typename T1>
-//    void _insert(Int idx, const core::StaticVector<T1, Blocks>& values)
-//    {
-//      insert(idx, values);
-//    }
-
     template <Int Offset, Int Size, typename T1, typename T2, template <typename, Int> class BranchNodeEntryItem>
     void _update(Int idx, const core::StaticVector<T1, Blocks>& values, BranchNodeEntryItem<T2, Size>& accum)
     {
@@ -552,7 +534,7 @@ public:
 
 
 
-    void insert(Int idx, Int size, std::function<Values (Int)> provider, bool reindex = true)
+    void insert(Int idx, Int size, std::function<const Values& (Int)> provider, bool reindex = true)
     {
         insertSpace(idx, size);
 
@@ -564,7 +546,7 @@ public:
 
         for (Int c = idx; c < idx + size; c++)
         {
-            Values vals = provider(c - idx);
+            const Values& vals = provider(c - idx);
 
             for (Int block = 0; block < Blocks; block++)
             {
@@ -869,6 +851,12 @@ struct StructSizeProvider<PkdFMTree<Types>> {
 template <typename Types>
 struct IndexesSize<PkdFMTree<Types>> {
     static const Int Value = PkdFMTree<Types>::Blocks;
+};
+
+
+template <typename T>
+struct PkdSearchKeyTypeProvider<PkdFMTree<T>> {
+    using Type = Optional<typename PkdFMTree<T>::Value>;
 };
 
 

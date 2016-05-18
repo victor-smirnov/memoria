@@ -1025,8 +1025,6 @@ public:
 
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
-        Base::generateDataEvents(handler);
-
         handler->startGroup("PACKED_SEQUENCE");
 
         handler->value("SIZE",          &size());

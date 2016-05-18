@@ -73,6 +73,20 @@ public:
         return self().template find_max_ge<IntList<0, 0, 1>>(0, key);
     }
 
+    IteratorPtr find_or_create(Key key)
+    {
+    	auto& self = this->self();
+
+    	auto iter = self.find(key);
+
+    	if (!iter->is_found(key))
+    	{
+    		iter->insert_key(key);
+    	}
+
+    	return iter;
+    }
+
 protected:
 
 MEMORIA_V1_CONTAINER_PART_END

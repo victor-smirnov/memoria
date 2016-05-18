@@ -103,7 +103,7 @@ protected:
         template <Int ListIdx, typename StreamType>
         void stream(StreamType* obj, Int from, Int to, const BranchNodeEntryT* entries)
         {
-            obj->insert(from, to - from, [entries](Int idx) {
+            obj->insert(from, to - from, [entries](Int idx) -> const auto& {
                 return std::get<ListIdx>(entries[idx].accum());
             });
         }

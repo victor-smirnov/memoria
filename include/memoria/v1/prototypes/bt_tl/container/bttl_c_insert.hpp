@@ -55,8 +55,8 @@ protected:
         streamingProvider.prepare(iter, pos);
 
         auto result = self.insert_provided_data(iter.leaf(), pos, streamingProvider);
-
         auto totals = streamingProvider.totals();
+
         auto locals = streamingProvider.locals();
 
         Int last_stream = streamingProvider.last_symbol();

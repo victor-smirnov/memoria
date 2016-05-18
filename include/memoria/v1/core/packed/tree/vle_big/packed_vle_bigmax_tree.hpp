@@ -1405,10 +1405,10 @@ protected:
         return (value >> BranchingFactorILog2) + ((value & BranchingFactorIMask) ? 1 : 0);
     }
 
-    template <Int Divisor>
-    static constexpr Int divUp(Int value, Int divisor) {
-        return (value / Divisor) + ((value % Divisor) ? 1 : 0);
-    }
+//    template <Int Divisor>
+//    static constexpr Int divUp(Int value, Int divisor) {
+//        return (value / Divisor) + ((value % Divisor) ? 1 : 0);
+//    }
 
 
 

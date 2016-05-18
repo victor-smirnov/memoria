@@ -157,8 +157,6 @@ public:
     			break;
     		}
     	}
-
-    	cout << "Locals: " << walker.locals() << endl;
     }
 
 

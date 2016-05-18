@@ -301,9 +301,9 @@ public:
 template <
     typename Types
 >
-class FindMaxGTWalker: public FindMaxWalker<Types> {
+class FindMaxGTWalker: public FindMaxWalkerBase<Types, FindMaxGTWalker<Types>> {
 
-    using Base          = FindMaxWalker<Types>;
+    using Base          = FindMaxWalkerBase<Types, FindMaxGTWalker<Types>>;
     using TargetType    = typename Base::TargetType;
 
 public:
@@ -319,9 +319,9 @@ public:
 template <
     typename Types
 >
-class FindMaxGEWalker: public FindMaxWalkerBase<Types, FindMaxGTWalker<Types>> {
+class FindMaxGEWalker: public FindMaxWalkerBase<Types, FindMaxGEWalker<Types>> {
 
-    using Base          = FindMaxWalkerBase<Types, FindMaxGTWalker<Types>>;
+    using Base          = FindMaxWalkerBase<Types, FindMaxGEWalker<Types>>;
     using TargetType    = typename Base::TargetType;
 
 public:

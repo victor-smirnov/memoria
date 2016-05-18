@@ -327,7 +327,7 @@ public:
     void init() {}
 
     template <typename Walker>
-    void finish_walking(Int idx, const Walker&, WalkCmd cmd) {}
+    void finish_walking(Int idx, const Walker& w, WalkCmd cmd) {}
 
     void refresh() {}
 

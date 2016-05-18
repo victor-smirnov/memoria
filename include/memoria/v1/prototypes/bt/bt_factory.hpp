@@ -283,7 +283,7 @@ public:
     >;
 
 
-    using BranchNodeEntry_ = TypeListToTuple<typename BranchNodeEntryBuilder<Linearize<BranchStreamsStructList>>::Type>;
+    using BranchNodeEntry_ = AsTuple<typename BranchNodeEntryBuilder<Linearize<BranchStreamsStructList>>::Type>;
 
     struct NodeTypesBase: ContainerTypes {
         using NodeBase  = Page;
@@ -375,7 +375,7 @@ public:
 
         static const Int Streams                                                = MyType::Streams;
 
-        typedef BranchNodeEntry_                                                BranchNodeEntry;
+        using BranchNodeEntry = BranchNodeEntry_;
 
         using Position  = Position_;
         using CtrSizesT = Position_;

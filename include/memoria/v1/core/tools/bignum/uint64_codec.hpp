@@ -24,16 +24,18 @@ namespace v1 {
 template <typename> class ValueCodec;
 
 template <>
-class ValueCodec<BigInt> {
+class ValueCodec<UBigInt> {
 public:
     using BufferType    = UByte;
     using T             = BufferType;
-    using V             = BigInt;
+    using V             = UBigInt;
 
     using ValuePtr      = ValuePtrT1<BufferType>;
 
     static constexpr Int BitsPerOffset  = 4;
     static constexpr Int ElementSize    = 8; // In bits;
+
+    static constexpr UBigInt UpperBound = 246;
 
     ValuePtr describe(const T* buffer, size_t idx)
     {
@@ -43,35 +45,23 @@ public:
     size_t length(const T* buffer, size_t idx, size_t limit) const
     {
         auto head = buffer[idx];
-        if (head < 252) {
+        if (head < 246) {
             return 1;
         }
         else {
-            return buffer[idx + 1] + 2;
+            return buffer[idx];
         }
     }
 
     size_t length(const V& value) const
     {
-        if (value >= 0)
-        {
-            if (value < 126)
-            {
-                return 1;
-            }
-            else {
-                return 2 + byte_length(value);
-            }
-        }
-        else {
-            if (value > -127)
-            {
-                return 1;
-            }
-            else {
-                return 2 + byte_length(-value);
-            }
-        }
+    	if (value < 246)
+    	{
+    		return 1;
+    	}
+    	else {
+    		return 1 + byte_length(value);
+    	}
     }
 
     size_t decode(const T* buffer, V& value, size_t idx, size_t limit) const
@@ -83,31 +73,19 @@ public:
     {
         auto header = buffer[idx];
 
-        if (header < 126u)
+        if (header < UpperBound)
         {
             value = header;
-            return 1;
-        }
-        else if (header < 252u)
-        {
-            value = -(header - 125);
             return 1;
         }
         else
         {
             value = 0;
-            idx++;
+            size_t len = buffer[idx] - UpperBound;
 
-            size_t len = buffer[idx++];
+            deserialize(buffer, value, idx + 1, len);
 
-            deserialize(buffer, value, idx, len);
-
-            if (header == 253u)
-            {
-                value = -value;
-            }
-
-            return len + 2;
+            return len + 1;
         }
     }
 
@@ -124,40 +102,18 @@ public:
 
     size_t encode(T* buffer, const V& value, size_t idx) const
     {
-        if (value >= 0)
-        {
-            if (value < 126ul)
-            {
-                buffer[idx] = value;
-                return 1;
-            }
-            else {
-                buffer[idx] = 252u;
+    	if (value < 246ul)
+    	{
+    		buffer[idx] = value;
+    		return 1;
+    	}
+    	else {
+    		size_t len = serialize(buffer, value, idx + 1);
 
-                size_t len = serialize(buffer, value, idx + 2);
+    		buffer[idx] = len + UpperBound;
 
-                buffer[idx + 1] = len;
-
-                return 2 + len;
-            }
-        }
-        else {
-            if (value > -127)
-            {
-                buffer[idx] = (-value) + 125;
-                return 1;
-            }
-            else {
-                buffer[idx] = 253u;
-
-                size_t len = serialize(buffer, -value, idx + 2);
-
-                buffer[idx + 1] = len;
-
-                return 2 + len;
-            }
-        }
-
+    		return 1 + len;
+    	}
     }
 
     void move(T* buffer, size_t from, size_t to, size_t size) const
@@ -174,7 +130,7 @@ private:
 
 
 
-    static size_t serialize(T* buffer, int64_t value, size_t idx)
+    static size_t serialize(T* buffer, UBigInt value, size_t idx)
     {
         UInt len = bytes(value);
 
@@ -186,16 +142,16 @@ private:
         return len;
     }
 
-    static void deserialize(const T* buffer, int64_t& value, size_t idx, size_t len)
+    static void deserialize(const T* buffer, UBigInt& value, size_t idx, size_t len)
     {
-        for (size_t c = 0; c < len; c++)
+        for (size_t c = 0; c < len; c++, idx++)
         {
-            value |= ((int64_t)buffer[idx++]) << (c << 3);
+            value |= ((UBigInt)buffer[idx]) << (c << 3);
         }
     }
 
 
-    constexpr static UInt msb(unsigned long long digits)
+    constexpr static UInt msb(UBigInt digits)
     {
         return 63 - __builtin_clzll(digits);
     }
@@ -207,7 +163,7 @@ private:
         return (v >> 3) + ((v & 0x7) != 0);
     }
 
-    constexpr static UInt byte_length(const int64_t data)
+    constexpr static UInt byte_length(const UBigInt data)
     {
         return bytes(data);
     }

@@ -29,8 +29,14 @@ class Optional {
     T value_;
     bool is_set_;
 public:
+    using ValueType = T;
+
     template <typename TT>
-    Optional(TT&& value, bool is_set = true): value_(value), is_set_(is_set) {}
+    Optional(TT&& value): value_(value), is_set_(true) {}
+
+    template <typename TT>
+    Optional(TT&& value, bool is_set): value_(value), is_set_(is_set) {}
+
     Optional(): is_set_(false) {}
 
     const T& value() const {
@@ -52,8 +58,6 @@ public:
     const T& operator*() const {
         return value_;
     }
-
-    //TODO: Other methods for this monade
 };
 
 template <typename T>
@@ -67,5 +71,7 @@ std::ostream& operator<<(std::ostream& out, const Optional<T>& op) {
     return out;
 }
 
+template <typename T>
+struct HasFieldFactory<Optional<T>>: HasValue<bool, IsComplete<FieldFactory<T>>::type::value> {};
 
 }}

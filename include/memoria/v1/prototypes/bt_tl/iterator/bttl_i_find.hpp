@@ -58,10 +58,8 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::bttl::IteratorFindName)
     using LeafPrefixRanks = typename Container::Types::LeafPrefixRanks;
 
 protected:
-    template <typename Walker>
-    void finish_walking(Int idx, Walker& w, WalkCmd cmd) {
-        Base::finish_walking(idx, w, cmd);
-    }
+    using Base::finish_walking;
+
 
 
     template <typename WWTypes>
@@ -183,6 +181,47 @@ protected:
             self.update_leaf_ranks(cmd);
         }
     }
+
+    template <typename WWTypes>
+    void finish_walking(Int idx, const FindMaxGEWalker<WWTypes>& walker, WalkCmd cmd)
+    {
+        if (cmd != WalkCmd::REFRESH)
+        {
+            constexpr Int Stream = FindMaxGEWalker<WWTypes>::Stream;
+
+            auto& self = this->self();
+            auto& cache = self.cache();
+
+            auto& pos  = cache.data_pos();
+            auto& size = cache.data_size();
+
+            auto stream = self.stream();
+
+            auto start   = walker.branch_size_prefix_backup()[stream] + walker.idx_backup();
+            auto current = walker.branch_size_prefix()[stream] + idx;
+
+            pos[stream] += current - start;
+
+            if (stream < Streams - 1)
+            {
+                pos[stream + 1] = 0;
+
+                if (self.isContent(idx))
+                {
+                    size[stream + 1] = self.template idx_data_size<Stream>(idx);
+                }
+                else {
+                    size[stream + 1] = -1;
+                }
+            }
+
+            cache.abs_pos()[stream] = walker.branch_size_prefix()[stream] + idx;
+
+            self.update_leaf_ranks(cmd);
+        }
+    }
+
+
 
 MEMORIA_V1_ITERATOR_PART_END
 

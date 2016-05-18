@@ -287,7 +287,13 @@ public:
 
     void insertSpace(Int idx, Int room_length)
     {
-        MEMORIA_V1_ASSERT(idx, <=, this->size());
+        if (idx > this->size()) {
+        	int a = 0;
+        	a++;
+        }
+
+
+    	MEMORIA_V1_ASSERT(idx, <=, this->size());
         MEMORIA_V1_ASSERT(idx, >=, 0);
         MEMORIA_V1_ASSERT(room_length, >=, 0);
 

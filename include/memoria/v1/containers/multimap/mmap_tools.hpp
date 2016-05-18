@@ -32,6 +32,8 @@ using bt::StreamTag;
 template <typename KeyType, Int Selector = HasFieldFactory<KeyType>::Value> struct MMapKeyStructTF;
 template <typename KeyType, Int Selector = HasFieldFactory<KeyType>::Value> struct MMapSumKeyStructTF;
 
+template <typename T> struct MMapBranchStructTF;
+
 template <typename KeyType>
 struct MMapKeyStructTF<KeyType, 1>: HasType<PkdFMTreeT<KeyType>> {};
 
@@ -53,6 +55,65 @@ struct MMapValueStructTF<ValueType, 1>: HasType<PkdFSQArrayT<ValueType>> {};
 
 template <typename ValueType>
 struct MMapValueStructTF<ValueType, 0>: HasType<PkdVDArrayT<ValueType>> {};
+
+
+
+
+
+
+
+template <typename KeyType>
+struct MMapBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, 0>> {
+    using Type = PackedEmptyStruct<KeyType, PkdSearchType::MAX>;
+};
+
+
+template <typename KeyType>
+struct MMapBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, 0>> {
+    using Type = PackedEmptyStruct<KeyType, PkdSearchType::SUM>;
+};
+
+template <typename KeyType, Int Indexes>
+struct MMapBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>>
+{
+    static_assert(
+            IsExternalizable<KeyType>::Value,
+            "Type must either has ValueCodec or FieldFactory defined"
+    );
+
+    //FIXME: Extend KeyType to contain enough space to represent practically large sums
+    //Should be done systematically on the level of BT
+
+    using Type = IfThenElse <
+            HasFieldFactory<KeyType>::Value,
+            PkdFQTreeT<KeyType, Indexes>,
+            PkdVQTreeT<KeyType, Indexes>
+    >;
+
+    static_assert(IndexesSize<Type>::Value == Indexes, "Packed struct has different number of indexes than requested");
+};
+
+template <typename KeyType, Int Indexes>
+struct MMapBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
+
+    static_assert(
+            IsExternalizable<KeyType>::Value,
+            "Type must either has ValueCodec or FieldFactory defined"
+    );
+
+    using Type = IfThenElse<
+            HasFieldFactory<KeyType>::Value,
+            PkdFMOTreeT<KeyType, Indexes>,
+            PkdVBMTreeT<KeyType>
+    >;
+
+    static_assert(IndexesSize<Type>::Value == Indexes, "Packed struct has different number of indexes than requested");
+};
+
+
+
+
+
 
 
 template <typename K, typename V>

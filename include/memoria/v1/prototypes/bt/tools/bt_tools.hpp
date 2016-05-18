@@ -380,7 +380,7 @@ struct DefaultBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>
 
     using Type = IfThenElse<
             HasFieldFactory<KeyType>::Value,
-            PkdFMTreeT<KeyType, Indexes>,
+            PkdFMOTreeT<KeyType, Indexes>,
             PkdVBMTreeT<KeyType>
     >;
 

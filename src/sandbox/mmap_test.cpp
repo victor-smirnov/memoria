@@ -287,6 +287,107 @@ public:
 
 
 
+template <typename Key, typename Value>
+class MapIOBufferValuesAdapter: public bttl::iobuf::FlatTreeIOBufferAdapter<2, MMapIOBuffer> {
+
+	using Base 	 = bttl::iobuf::FlatTreeIOBufferAdapter<2, MMapIOBuffer>;
+	using MyType = MapIOBufferValuesAdapter<Key, Value>;
+
+	using typename Base::IOBuffer;
+
+	using Data 	 = std::vector<Value>;
+	using Positions = core::StaticVector<Int, 2>;
+
+
+	const Data* data_;
+
+	IOBuffer io_buffer_;
+	Positions positions_;
+	Int level_ = 0;
+
+	size_t idx_ = 0;
+
+	struct StructureAdapter: public bttl::iobuf::FlatTreeStructureGeneratorBase<StructureAdapter, 2> {
+
+		using AdapterBase = bttl::iobuf::FlatTreeStructureGeneratorBase<StructureAdapter, 2>;
+
+		MyType* adapter_;
+		StructureAdapter(MyType* adapter):
+			AdapterBase(1),
+			adapter_(adapter)
+		{}
+
+		auto prepare(const StreamTag<0>&)
+		{
+			return 0ul;
+		}
+
+		template <Int Idx, typename Pos>
+		auto prepare(const StreamTag<Idx>&, const Pos& pos)
+		{
+			return adapter_->data().size();
+		}
+	};
+
+
+	StructureAdapter structure_generator_;
+
+public:
+
+
+	MapIOBufferValuesAdapter(size_t iobuffer_size = 65536):
+		io_buffer_(iobuffer_size),
+		structure_generator_(this)
+	{
+	}
+
+	void setup(const Data& data)
+	{
+		data_ = &data;
+		io_buffer_.rewind();
+		structure_generator_.counts().clear();
+
+		structure_generator_.init();
+	}
+
+	const Data& data() {return *data_;}
+
+	virtual IOBuffer& buffer() {return io_buffer_;}
+
+	virtual bttl::iobuf::RunDescr query()
+	{
+		return structure_generator_.query();
+	}
+
+	virtual Int populate_stream(Int stream, IOBuffer& buffer, Int length)
+	{
+		if (stream == 1)
+		{
+			auto& counts = structure_generator_.counts()[1];
+
+			Int c;
+			for (c = 0; c < length; c++, counts++)
+			{
+				auto pos = buffer.pos();
+				if (!IOBufferAdapter<Value>::put(buffer, (*data_)[counts]))
+				{
+					buffer.pos(pos);
+					return c;
+				}
+			}
+
+			return c;
+		}
+		else {
+			throw Exception(MA_SRC, "Invalid stream");
+		}
+	}
+
+};
+
+
+
+
 
 class MMapBufferConsumer: public bt::BufferConsumer<MMapIOBuffer> {
 	using IOBuffer = MMapIOBuffer;
@@ -298,7 +399,6 @@ public:
 	virtual IOBuffer& buffer() {return io_buffer_;}
 	virtual Int process(IOBuffer& buffer, Int entries)
 	{
-//		cout << "Consume " << entries << " entries" << endl;
 		return entries;
 	}
 };
@@ -325,70 +425,51 @@ int main()
         try {
             auto map = create<CtrName>(snp);
 
-            map->setNewPageSize(32768);
+            BigInt tt, t0;
+            tt = t0 = getTimeInMillis();
 
-            Int keys = 100;
+            BigInt thresholdInc = 100000;
+            BigInt threshold = thresholdInc;
 
-            cout << "FindOrCreate 0 " << map->find_or_create(0)->is_found(0) << endl;
-            cout << "FindOrCreate 101 " << map->find_or_create(keys + 1)->is_found(keys + 1) << endl;
+            MapIOBufferValuesAdapter<KeyType, ValueType> adapter;
 
-            auto map_data = createRandomShapedMapData<KeyType, ValueType>(
-            		keys,
-					20000,
-                    [](auto k) {
-            			return make_key(k, TypeTag<KeyType>());
-            		},
-                    [](auto k, auto v) {return make_value(k, TypeTag<ValueType>());}
-            );
+            std::vector<ValueType> data(200);
 
-            size_t total_data_size = 0;
-
-            for (auto& kv: map_data) {
-            	total_data_size += kv.second.size();
-            }
-
-            auto iter = map->begin();
-
-//            BigInt ti0 = getTimeInMillis();
-//
-//            MapIOBufferAdapter<KeyType, ValueType> iobuf_adapter(map_data, 65536);
-//            auto totals = map->begin()->bulkio_insert(iobuf_adapter);
-//
-//            BigInt ti1 = getTimeInMillis();
-//
-//            cout << "Insertion time: " << (ti1 - ti0) <<" " << totals << endl;
-
-//            auto sizes = map->sizes();
-//            MEMORIA_V1_ASSERT(totals, ==, sizes);
-
-
-
-            snp->commit();
-
-            for (Int c = 0; c <= keys + 1; c++)
+            for (BigInt c = 0; c < 1; c++)
             {
-            	auto i = map->find(c);
-            	cout << "Key " << c << " -- "<< i->is_found(c) << endl;
+            	BigInt key = getBIRandomG();
+
+            	auto iter = map->find_or_create(key);
+
+            	if (iter->values_size() == 0)
+            	{
+            		iter->toData();
+
+            		iter->dump();
+
+            		adapter.setup(data);
+
+            		iter->bulkio_insert(adapter);
+            	}
+
+            	if (threshold == c)
+            	{
+            		BigInt ts = getTimeInMillis();
+            		cout << c << " records, time =  " << (ts - tt) << endl;
+            		tt = ts;
+
+            		threshold += thresholdInc;
+            	}
             }
 
+            BigInt t1 = getTimeInMillis();
+
+            cout << "Total keys: " << map->size() << " in " << (t1 - t0) << endl;
 
             FSDumpAllocator(snp, "mmap.dir");
-//            MMapBufferConsumer consumer;
-//
-//            BigInt t0 = getTimeInMillis();
-//
-//            map->begin()->bulkio_read(&consumer);
-//
-//            BigInt t1 = getTimeInMillis();
-//
-//            cout << "Read Time: " << (t1 - t0) << endl;
-
-//            check_snapshot(snp);
-
-//            cout << "Totals: " << totals << " total data: " << total_data_size << endl;
         }
         catch (...) {
-        	//FSDumpAllocator(snp, "mmap_fail.dir");
+        	FSDumpAllocator(snp, "mmap_fail.dir");
         	throw;
         }
     }

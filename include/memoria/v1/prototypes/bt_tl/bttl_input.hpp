@@ -1677,7 +1677,6 @@ public:
         	finished_ = true;
         }
     }
-
 };
 
 

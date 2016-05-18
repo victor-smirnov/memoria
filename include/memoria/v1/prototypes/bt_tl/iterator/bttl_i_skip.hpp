@@ -68,7 +68,9 @@ public:
     }
 
     bool prev() {
-        return self().skipBw(1) > 0;
+    	auto distance = self().skipBw(1);
+
+        return distance > 0;
     }
 
     struct SkipFwFn {
@@ -641,10 +643,12 @@ public:
     }
 
 
-    template <typename Walker>
-    void finish_walking(Int idx, Walker& w, WalkCmd cmd) {
-        Base::finish_walking(idx, w, cmd);
-    }
+//    template <typename Walker>
+//    void finish_walking(Int idx, Walker& w, WalkCmd cmd) {
+//        Base::finish_walking(idx, w, cmd);
+//    }
+
+    using Base::finish_walking;
 
 
     template <typename WTypes>

@@ -209,8 +209,8 @@ public:
         return at + size;
     }
 
-    Value value(Int, Int) const {
-        return Value();
+    Values get_values(Int) const {
+        return Values();
     }
 
     ReadState positions(Int idx) const {

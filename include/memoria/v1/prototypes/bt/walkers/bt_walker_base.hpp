@@ -85,9 +85,9 @@ public:
 
 protected:
 
-    Int leaf_index_;
+    Int leaf_index_ = 0;
 
-    Int idx_backup_;
+    Int idx_backup_ = 0;
     Position branch_size_prefix_backup_;
 
     Position branch_size_prefix_;

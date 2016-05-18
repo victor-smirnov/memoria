@@ -43,6 +43,8 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::mmap::ItrMiscName)
 
     using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
 
+    static constexpr Int SizesSubstreamIdx = 2;
+
 public:
     Key key() const
     {
@@ -60,6 +62,66 @@ public:
         MEMORIA_V1_ASSERT(self.stream(), ==, 1);
 
         return std::get<0>(self.template read_leaf_entry<1, IntList<1>>(self.idx(), 0));
+    }
+
+
+
+    struct InsertKeyFn {
+
+    	CtrSizeT one_;
+    	CtrSizeT zero_;
+    	const Key& key_;
+
+    	InsertKeyFn(const Key& key): one_(1), zero_(0), key_(key) {}
+
+    	const auto& get(const StreamTag<0>& , const StreamTag<0>&, Int block) const
+    	{
+    		return one_;
+    	}
+
+    	const auto& get(const StreamTag<0>& , const StreamTag<1>&, Int block) const
+    	{
+    		return key_;
+    	}
+
+    	const auto& get(const StreamTag<0>& , const StreamTag<SizesSubstreamIdx>&, Int block) const
+    	{
+    		return zero_;
+    	}
+    };
+
+    void insert_key(const Key& key)
+    {
+    	auto& self = this->self();
+
+    	MEMORIA_V1_ASSERT(self.stream(), ==, 0);
+
+    	if (!self.isEnd())
+    	{
+    		self.ctr().template insert_stream_entry<0>(self, InsertKeyFn(key));
+    	}
+    	else {
+    		if (self.prev())
+    		{
+    			auto pos = self.values_size();
+    			self.toData(pos);
+
+    			Int parent_idx = self.local_parent_idx(self.stream(), self.idx());
+
+    			self.stream() = 0;
+    			self.idx() 	  = parent_idx >= 0 ? parent_idx : 0;
+
+    			self.ctr().template insert_stream_entry<0>(self, InsertKeyFn(key));
+    		}
+    		else {
+    			self.idx() = 0;
+    			self.ctr().template insert_stream_entry<0>(self, InsertKeyFn(key));
+    		}
+    	}
+
+    	self.cache().data_size()[0] ++;
+    	self.cache().data_size()[1] = 0;
+
     }
 
     std::vector<Value> read_values(CtrSizeT length = -1)
@@ -141,7 +203,7 @@ public:
     }
 
     CtrSizeT values_size() const {
-        return self().cache().substream_size();
+        return self().substream_size();
     }
 
 
@@ -158,6 +220,19 @@ public:
     {
     	auto& self = this->self();
     	return self.ctr().bulkio_insert(self, provider, initial_capacity);
+    }
+
+
+    bool is_found(const Key& key)
+    {
+    	auto& self = this->self();
+    	if (self.stream() == 0)
+    	{
+    		return (!self.isEnd()) && self.key() == key;
+    	}
+    	else {
+    		throw Exception(MA_SRC, SBuf() << "Current stream is not key stream");
+    	}
     }
 
 
