@@ -273,16 +273,16 @@ public:
 
         Value operator=(Value val)
         {
-            seq_.set(idx_, val);
+            seq_.set_symbol(idx_, val);
             return val;
         }
 
         operator Value() const {
-            return seq_.get(idx_);
+            return seq_.get_symbol(idx_);
         }
 
         Value value() const {
-            return seq_.get(idx_);
+            return seq_.get_symbol(idx_);
         }
     };
 
@@ -290,6 +290,142 @@ public:
     {
         return SymbolAccessor(*this, idx);
     }
+
+    Int get_symbol(Int idx) const
+    {
+    	auto result = this->find_run(idx);
+
+    	if (!result.out_of_rage())
+    	{
+    		return result.symbol();
+    	}
+    	else {
+    		throw Exception(MA_SRC, SBuf() << "Symbol index " << idx << " is out of range " << this->size());
+    	}
+    }
+
+
+    void set_symbol(Int idx, Int symbol)
+    {
+    	auto location = this->find_run(idx);
+
+    	if (!location.out_of_range())
+    	{
+    		if (location.symbol() != symbol)
+    		{
+    			auto symbols = this->symbols();
+    			auto meta 	 = this->metadata();
+
+    			Codec codec;
+    			UBigInt new_run_value = encode_run(symbol, 1);
+    			size_t new_run_value_length = codec.length(new_run_value);
+
+    			if (location.run_prefix() > 0)
+    			{
+    				if (location.run_suffix() > 1)
+    				{
+    					UBigInt left_run_length  = location.run_prefix();
+    					UBigInt right_run_length = location.run_suffix() - 1;
+
+    					UBigInt left_run_value 		 = encode_run(location.symbol(), left_run_length);
+    					size_t left_run_value_length = codec.length(left_run_value);
+
+    					UBigInt right_run_value 	  = encode_run(location.symbol(), right_run_length);
+    					size_t right_run_value_length = codec.length(right_run_value);
+
+    					size_t total_run_value_length = left_run_value_length + new_run_value_length + right_run_value_length;
+
+    					if (total_run_value_length >= location.data_length())
+    					{
+    						auto delta = total_run_value_length - location.data_length();
+
+    						ensure_capacity(delta);
+
+    						codec.move(symbols, location.data_end(), location.data_end() + delta, meta->data_size() - location.data_end());
+
+    						auto pos = location.data_pos();
+
+    						pos += codec.encode(symbols, left_run_value, pos);
+    						pos += codec.encode(symbols, new_run_value, pos);
+    						codec.encode(symbols, right_run_value, pos);
+
+    						meta->data_size() += delta;
+    					}
+    					else
+    					{
+    						// should not happen
+    						throw Exception(MA_SRC, "RLE symbol sequence encoding anomaly");
+    					}
+    				}
+    				else {
+    					UBigInt left_run_length  = location.run_prefix();
+
+    					UBigInt left_run_value 		 = encode_run(location.symbol(), left_run_length);
+    					size_t left_run_value_length = codec.length(left_run_value);
+
+    					size_t total_run_value_length = left_run_value_length + new_run_value_length;
+
+    					if (total_run_value_length >= location.data_length())
+    					{
+    						auto delta = total_run_value_length - location.data_length();
+
+    						ensure_capacity(delta);
+
+    						codec.move(symbols, location.data_end(), location.data_end() + delta, meta->data_size() - location.data_end());
+
+    						auto pos = location.data_pos();
+
+    						pos += codec.encode(symbols, left_run_value, pos);
+
+    						long new_pos = pos;
+
+    						codec.encode(symbols, new_run_value, pos);
+
+    						meta->data_size() += delta;
+
+    						try_merge_two_adjustent_runs(new_pos);
+    					}
+    					else
+    					{
+    						// should not happen
+    						throw Exception(MA_SRC, "RLE symbol sequence encoding anomaly");
+    					}
+    				}
+    			}
+    			else if (location.length() > 1)
+    			{
+    				UBigInt right_run_value 	  = encode_run(location.symbol(), location.run_suffix() - 1);
+    				size_t right_run_value_length = codec.length(right_run_value);
+
+    				size_t total_run_value_length = new_run_value_length + right_run_value_length;
+
+    				auto delta = total_run_value_length - location.data_length();
+
+    				ensure_capacity(delta);
+
+    				codec.move(symbols, location.data_end(), location.data_end() + delta, meta->data_size() - location.data_end());
+
+    				auto pos = location.data_pos();
+
+    				pos += codec.encode(symbols, new_run_value, pos);
+    				codec.encode(symbols, right_run_value, pos);
+
+    				meta->data_size() += delta;
+    			}
+    			else {
+    				codec.encode(symbols, new_run_value, location.data_pos());
+
+    				try_merge_two_adjustent_runs(location.data_pos());
+    			}
+
+    			reindex();
+    		}
+    	}
+    	else {
+    		throw Exception(MA_SRC, SBuf() << "Symbol index " << idx << " is out of range " << this->size());
+    	}
+    }
+
 
     Int value(Int symbol, Int idx) const {
         return this->symbol(idx) == symbol;
@@ -303,11 +439,11 @@ public:
         ConstSymbolAccessor(const MyType& seq, Int idx): seq_(seq), idx_(idx) {}
 
         operator Value() const {
-            return seq_.get(idx_);
+            return seq_.get_symbol(idx_);
         }
 
         Value value() const {
-            return seq_.get(idx_);
+            return seq_.get_symbol(idx_);
         }
     };
 
@@ -529,6 +665,11 @@ protected:
         }
     }
 
+    void shrink_to_data()
+    {
+    	shrinkData(this->symbols_block_capacity());
+    }
+
 public:
 
     template <Int Offset, Int Size, typename AccessorFn, typename T2, template <typename, Int> class BranchNodeEntryItem>
@@ -564,10 +705,17 @@ public:
 
         if (location_end.local_idx() > 0)
         {
-        	remove_runs(location_start, location_end);
-
-        	if (location_start.symbol() == location_end.symbol())
+        	if (location_start.run_prefix() > 0)
         	{
+        		remove_runs(location_start, location_end);
+
+        		if (location_start.symbol() == location_end.symbol())
+        		{
+        			try_merge_two_adjustent_runs(location_start.data_pos());
+        		}
+        	}
+        	else {
+        		remove_runs_one_sided_left(location_start, location_end);
         		try_merge_two_adjustent_runs(location_start.data_pos());
         	}
         }
@@ -583,8 +731,13 @@ public:
 
         meta->size() -= end - start;
 
+        shrink_to_data();
+
         reindex();
     }
+
+
+
 
     void removeSpace(Int start, Int end) {
         remove(start, end);
@@ -724,8 +877,7 @@ public:
 
 
 
-    //FIXME: check code for zero-length runs proper handling
-    //FIXME: merge runs on foreign side if necessary
+
     void splitTo(MyType* other, Int idx)
     {
     	auto meta = this->metadata();
@@ -736,27 +888,29 @@ public:
 
     		auto location 	= this->find_run(idx);
 
-    		Int symbols_to_move = location.run_.length() - location.inrun_idx_;
-
     		Codec codec;
 
-    		Int current_run_data_length = codec.length(location.run_.length());
-    		Int new_run_data_length		= codec.length(symbols_to_move);
-    		Int data_to_move_remainder 	= meta->data_size() - current_run_data_length - location.data_pos_;
+    		size_t symbols_to_move 		= location.suffix();
+    		UBigInt suffix_value 		= encode_run(location.symbol(), symbols_to_move);
+    		size_t  suffix_value_length = codec.length(suffix_value);
 
-    		Int data_to_move = data_to_move_remainder + new_run_data_length;
+    		Int current_run_data_length = location.data_length();
+
+    		Int data_to_move_remainder 	= meta->data_size() - (location.data_pos() + current_run_data_length);
+
+    		Int data_to_move = data_to_move_remainder + suffix_value_length;
 
     		other->ensure_capacity(data_to_move);
 
     		codec.move(other->symbols(), 0, data_to_move, other_meta->data_size());
 
-    		codec.copy(symbols(), location.data_pos_ + current_run_data_length, other->symbols(), new_run_data_length, data_to_move_remainder);
-
-    		auto run_value = encode_run(location.run_.symbol(), symbols_to_move);
-    		codec.encode(other->symbols(), run_value, 0);
+    		codec.copy(symbols(), location.data_pos() + current_run_data_length, other->symbols(), suffix_value_length, data_to_move_remainder);
+    		codec.encode(other->symbols(), suffix_value, 0);
 
     		other_meta->data_size() += data_to_move;
     		other_meta->size() 		+= meta->size() - idx;
+
+    		other->try_merge_two_adjustent_runs(0);
 
     		other->reindex();
 
@@ -1214,54 +1368,70 @@ public:
 
     auto find_run(Int symbol_pos) const
     {
-    	auto meta = this->metadata();
-
-    	if (symbol_pos < meta->size())
+    	if (symbol_pos >= 0)
     	{
+    		auto meta = this->metadata();
 
-    		if (!has_index())
+    		if (symbol_pos < meta->size())
     		{
-    			return locate_run(meta, 0, symbol_pos);
+
+    			if (!has_index())
+    			{
+    				return locate_run(meta, 0, symbol_pos);
+    			}
+    			else
+    			{
+    				auto find_result = this->size_index()->find_gt(0, symbol_pos);
+
+    				Int local_pos 		= symbol_pos - find_result.prefix();
+    				size_t block_offset = find_result.idx() * ValuesPerBranch;
+    				auto offset 		= offsets()[find_result.idx()];
+
+    				block_offset += offset;
+
+    				return locate_run(meta, block_offset, local_pos);
+    			}
     		}
-    		else
-    		{
-    			auto find_result = this->size_index()->find_gt(0, symbol_pos);
-
-    			Int local_pos 		= symbol_pos - find_result.prefix();
-    			size_t block_offset = find_result.idx() * ValuesPerBranch;
-    			auto offset 		= offsets()[find_result.idx()];
-
-    			block_offset += offset;
-
-    			return locate_run(meta, block_offset, local_pos);
+    		else {
+    			return Location(meta->data_size(), 0, 0, RLESymbolsRun(), true);
     		}
     	}
     	else {
-    		return LocateResult(meta->data_size(), 0, RLESymbolsRun());
+    		throw Exception(MA_SRC, SBuf() << "Symbol index must be >= 0: " << symbol_pos);
     	}
     }
 
 private:
 
-    struct LocateResult {
+    struct Location {
     	size_t data_pos_;
+    	size_t data_length_;
     	size_t inrun_idx_;
     	RLESymbolsRun run_;
+    	bool out_of_range_;
 
-    	LocateResult(size_t data_pos, size_t inrun_idx, RLESymbolsRun run):
-    		data_pos_(data_pos), inrun_idx_(inrun_idx), run_(run)
+    	Location(size_t data_pos, size_t data_length, size_t inrun_idx, RLESymbolsRun run, bool out_of_range = false):
+    		data_pos_(data_pos), data_length_(data_length), inrun_idx_(inrun_idx), run_(run), out_of_range_(out_of_range)
     	{}
 
     	size_t run_suffix() const {return run_.length() - inrun_idx_;}
     	size_t run_prefix() const {return inrun_idx_;}
+
+    	size_t local_idx() 	const {return inrun_idx_;}
     	auto symbol() 		const {return run_.symbol();}
     	auto length() 		const {return run_.length();}
-    	size_t local_idx() 	const {return inrun_idx_;}
-    	size_t data_pos() 	const {return data_pos_;}
+
+    	auto data_pos() 	const {return data_pos_;}
+    	auto data_length() 	const {return data_length_;}
+    	auto data_end() 	const {return data_pos_ + data_length_;}
+
+
+    	bool out_of_range() const {return out_of_range_;}
+
     	const RLESymbolsRun& run() const {return run_;}
     };
 
-    LocateResult locate_run(const Metadata* meta, size_t pos, size_t idx) const
+    Location locate_run(const Metadata* meta, size_t pos, size_t idx) const
     {
     	Codec codec;
     	auto symbols = this->symbols();
@@ -1284,14 +1454,14 @@ private:
     			pos += len;
     		}
     		else {
-    			return LocateResult(pos, idx - base, run);
+    			return Location(pos, len, idx - base, run);
     		}
     	}
 
     	throw Exception(MA_SRC, SBuf() << "Symbol index is out of bounds: " << idx << " " <<meta->size());
     }
 
-    void remove_runs(const LocateResult& start, const LocateResult& end)
+    void remove_runs(const Location& start, const Location& end)
     {
     	Codec codec;
 
@@ -1302,7 +1472,7 @@ private:
     	size_t new_end_run_length 		= codec.length(new_end_run_value);
 
     	size_t hole_start 	= start.data_pos() + new_start_run_length;
-    	size_t hole_end 	= end.data_pos() + new_end_run_length;
+    	size_t hole_end 	= end.data_pos() + (end.data_length() - new_end_run_length);
 
     	size_t to_remove  	= hole_end - hole_start;
 
@@ -1318,7 +1488,32 @@ private:
     	meta->data_size() -= to_remove;
     }
 
-    void remove_runs_one_sided(const LocateResult& start, size_t end)
+
+    void remove_runs_one_sided_left(const Location& start, const Location& end)
+    {
+    	Codec codec;
+
+    	UBigInt new_end_run_value 		= encode_run(end.symbol(), end.run_suffix());
+    	size_t new_end_run_length 		= codec.length(new_end_run_value);
+
+    	size_t hole_start 	= start.data_pos();
+    	size_t hole_end 	= end.data_pos() + (end.data_length() - new_end_run_length);
+
+    	size_t to_remove  	= hole_end - hole_start;
+
+    	auto symbols = this->symbols();
+
+    	codec.move(symbols, hole_end, hole_start, to_remove);
+
+    	codec.encode(symbols, new_end_run_value, hole_start);
+
+    	auto meta = this->metadata();
+
+    	meta->data_size() -= to_remove;
+    }
+
+
+    void remove_runs_one_sided(const Location& start, size_t end)
     {
     	Codec codec;
 
@@ -1345,10 +1540,10 @@ private:
 
     	auto symbols = this->symbols();
 
-    	Codec codec;
-    	codec.move(symbols, end, start, to_remove);
-
     	auto meta = this->metadata();
+
+    	Codec codec;
+    	codec.move(symbols, end, start, meta->data_size() - end);
 
     	meta->data_size() -= to_remove;
     }
@@ -1363,7 +1558,7 @@ private:
     	UBigInt first_run_value = 0;
     	auto first_len = codec.decode(symbols, first_run_value, run_pos);
 
-    	if (run_pos + first_len <= meta->data_size())
+    	if (run_pos + first_len < meta->data_size())
     	{
     		UBigInt next_run_value = 0;
     		auto next_len = codec.decode(symbols, next_run_value, run_pos + first_len);

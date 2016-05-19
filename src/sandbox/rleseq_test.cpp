@@ -15,6 +15,7 @@
 
 #include <memoria/v1/core/packed/sseq/packed_rle_searchable_seq.hpp>
 #include <memoria/v1/core/tools/alloc.hpp>
+#include <memoria/v1/core/tools/dump.hpp>
 
 #include <memory>
 #include <vector>
@@ -32,33 +33,30 @@ int main()
 
 		auto seq = allocator->template allocateEmpty<Seq>(0);
 
-		for (int c = 0; c < 1; c++)
-		{
-			seq->append(c & 0x1, 10);
-
-		}
+		seq->append(0, 1000);
 
 		seq->reindex();
-		seq->check();
 		seq->dump();
 
-//		for (int c = 0; c < seq->size(); c++)
-//		{
-//			auto iter = seq->iterator(c);
-//			cout << c << " -- " << iter.run().length() << ": " << iter.run().symbol() << endl;
-//		}
+		cout << endl << endl;
 
+		seq->symbol(999) = 1;
+		seq->dump();
 
-		size_t cnt = 0;
-		auto iter = seq->iterator(5);
-		while (iter.has_next_symbol())
-		{
-			Int sym = iter.next_symbol();
+		cout << endl << endl;
 
-			cout << (cnt++) << ": " << sym << " " << iter.symbol_idx() << " " << iter.run().length() << endl;
-		}
+		seq->symbol(999) = 0;
+		seq->dump();
 
-		seq->remove(1,2);
+		cout << endl << endl;
+
+		seq->symbol(998) = 1;
+		seq->dump();
+
+		cout << endl << endl;
+
+		seq->symbol(997) = 1;
+		seq->dump();
 	}
     catch (::memoria::v1::Exception& ex) {
         cout << ex.message() << " at " << ex.source() << endl;

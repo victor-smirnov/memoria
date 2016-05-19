@@ -278,7 +278,7 @@ public:
 
             auto symbols   = seq.symbols();
             auto offsets   = seq.offsets();
-            auto data_size = meta->size();
+            auto data_size = meta->data_size();
 
             auto size_index_iterator = size_index->iterator(0);
 
