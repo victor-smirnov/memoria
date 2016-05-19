@@ -305,6 +305,7 @@ public:
     }
 
 
+
     void set_symbol(Int idx, Int symbol)
     {
     	auto location = this->find_run(idx);
@@ -313,108 +314,26 @@ public:
     	{
     		if (location.symbol() != symbol)
     		{
-    			auto symbols = this->symbols();
-    			auto meta 	 = this->metadata();
-
-    			Codec codec;
-    			UBigInt new_run_value = encode_run(symbol, 1);
-    			size_t new_run_value_length = codec.length(new_run_value);
-
     			if (location.run_prefix() > 0)
     			{
     				if (location.run_suffix() > 1)
     				{
-    					UBigInt left_run_length  = location.run_prefix();
-    					UBigInt right_run_length = location.run_suffix() - 1;
-
-    					UBigInt left_run_value 		 = encode_run(location.symbol(), left_run_length);
-    					size_t left_run_value_length = codec.length(left_run_value);
-
-    					UBigInt right_run_value 	  = encode_run(location.symbol(), right_run_length);
-    					size_t right_run_value_length = codec.length(right_run_value);
-
-    					size_t total_run_value_length = left_run_value_length + new_run_value_length + right_run_value_length;
-
-    					if (total_run_value_length >= location.data_length())
-    					{
-    						auto delta = total_run_value_length - location.data_length();
-
-    						ensure_capacity(delta);
-
-    						codec.move(symbols, location.data_end(), location.data_end() + delta, meta->data_size() - location.data_end());
-
-    						auto pos = location.data_pos();
-
-    						pos += codec.encode(symbols, left_run_value, pos);
-    						pos += codec.encode(symbols, new_run_value, pos);
-    						codec.encode(symbols, right_run_value, pos);
-
-    						meta->data_size() += delta;
-    					}
-    					else
-    					{
-    						// should not happen
-    						throw Exception(MA_SRC, "RLE symbol sequence encoding anomaly");
-    					}
+    					location = split_run(location, 1);
+    					insert_run(location.data_pos(), symbol, 1);
     				}
     				else {
-    					UBigInt left_run_length  = location.run_prefix();
-
-    					UBigInt left_run_value 		 = encode_run(location.symbol(), left_run_length);
-    					size_t left_run_value_length = codec.length(left_run_value);
-
-    					size_t total_run_value_length = left_run_value_length + new_run_value_length;
-
-    					if (total_run_value_length >= location.data_length())
-    					{
-    						auto delta = total_run_value_length - location.data_length();
-
-    						ensure_capacity(delta);
-
-    						codec.move(symbols, location.data_end(), location.data_end() + delta, meta->data_size() - location.data_end());
-
-    						auto pos = location.data_pos();
-
-    						pos += codec.encode(symbols, left_run_value, pos);
-
-    						long new_pos = pos;
-
-    						codec.encode(symbols, new_run_value, pos);
-
-    						meta->data_size() += delta;
-
-    						try_merge_two_adjustent_runs(new_pos);
-    					}
-    					else
-    					{
-    						// should not happen
-    						throw Exception(MA_SRC, "RLE symbol sequence encoding anomaly");
-    					}
+    					auto run_value_length = add_run_length(location, -1);
+    					insert_run(location.data_pos() + run_value_length, symbol, 1);
     				}
     			}
     			else if (location.length() > 1)
     			{
-    				UBigInt right_run_value 	  = encode_run(location.symbol(), location.run_suffix() - 1);
-    				size_t right_run_value_length = codec.length(right_run_value);
-
-    				size_t total_run_value_length = new_run_value_length + right_run_value_length;
-
-    				auto delta = total_run_value_length - location.data_length();
-
-    				ensure_capacity(delta);
-
-    				codec.move(symbols, location.data_end(), location.data_end() + delta, meta->data_size() - location.data_end());
-
-    				auto pos = location.data_pos();
-
-    				pos += codec.encode(symbols, new_run_value, pos);
-    				codec.encode(symbols, right_run_value, pos);
-
-    				meta->data_size() += delta;
+    				add_run_length(location, -1);
+    				insert_run(location.data_pos(), symbol, 1);
     			}
     			else {
-    				codec.encode(symbols, new_run_value, location.data_pos());
-
+    				remove_run(location);
+    				insert_run(location.data_pos(), symbol, 1);
     				try_merge_two_adjustent_runs(location.data_pos());
     			}
 
@@ -736,17 +655,33 @@ public:
         reindex();
     }
 
+    void insert(Int idx, Int symbol, UBigInt length)
+    {
+    	auto location = find_run(idx);
 
+    	if (!location.out_of_range())
+    	{
+    		if (location.symbol() != symbol || location.length() + length > MaxRunLength)
+    		{
+    			if (location.run_prefix() > 0)
+    			{
+    				location = split_run(location);
+    			}
 
+    			insert_run(location.data_pos(), symbol, length);
+    		}
+    		else {
+    			add_run_length(location, length);
+    		}
+    	}
+    	else {
+    		insert_run(location.data_pos(), symbol, length);
+    	}
 
-    void removeSpace(Int start, Int end) {
-        remove(start, end);
+    	reindex();
     }
 
 
-    void removeSymbol(Int idx) {
-        remove(idx, idx + 1);
-    }
 
 
 
@@ -890,7 +825,7 @@ public:
 
     		Codec codec;
 
-    		size_t symbols_to_move 		= location.suffix();
+    		size_t symbols_to_move 		= location.run_suffix();
     		UBigInt suffix_value 		= encode_run(location.symbol(), symbols_to_move);
     		size_t  suffix_value_length = codec.length(suffix_value);
 
@@ -1374,7 +1309,6 @@ public:
 
     		if (symbol_pos < meta->size())
     		{
-
     			if (!has_index())
     			{
     				return locate_run(meta, 0, symbol_pos);
@@ -1585,6 +1519,121 @@ private:
     		}
     	}
     }
+
+    Location split_run(const Location& location, UBigInt subtraction = 0)
+    {
+    	UBigInt pos = location.local_idx();
+
+    	if (pos > 0 && pos < location.length())
+    	{
+    		Codec codec;
+    		auto symbols = this->symbols();
+    		auto meta    = this->metadata();
+
+    		UBigInt prefix_run_value 	= encode_run(location.symbol(), location.run_prefix());
+    		size_t  prefix_value_length = codec.length(prefix_run_value);
+
+    		UBigInt suffix_run_value = encode_run(location.symbol(), location.run_suffix() - subtraction);
+    		size_t  suffix_value_length = codec.length(suffix_run_value);
+
+    		size_t total_length = prefix_value_length + suffix_value_length;
+
+    		if (total_length >= location.data_length())
+    		{
+    			size_t delta = total_length - location.data_length();
+
+    			if (delta > 0)
+    			{
+    				ensure_capacity(delta);
+    				codec.move(symbols, location.data_end(), location.data_pos() + delta, meta->data_size() - location.data_end());
+    			}
+
+    			auto pos_tmp = location.data_pos();
+    			pos_tmp += codec.encode(symbols, prefix_run_value, pos_tmp);
+    			codec.encode(symbols, suffix_run_value, pos_tmp);
+
+    			meta->data_size() += delta;
+    			meta->size() -= subtraction;
+    		}
+    		else {
+    			size_t delta = location.data_length() - total_length;
+
+    			codec.move(symbols, location.data_end(), location.data_end() - delta, meta->data_size() - location.data_end());
+
+    			auto pos_tmp = location.data_pos();
+    			pos_tmp += codec.encode(symbols, prefix_run_value, pos_tmp);
+    			codec.encode(symbols, suffix_run_value, pos_tmp);
+
+    			meta->data_size() -= delta;
+    			meta->size() -= subtraction;
+
+    			shrink_to_data();
+    		}
+
+    		return Location(location.data_pos() + prefix_value_length, suffix_value_length, 0, RLESymbolsRun(location.symbol(), location.run_suffix()));
+    	}
+    	else {
+    		throw Exception(MA_SRC, SBuf() << "split_run: invalid split position: " << pos << " " << location.length());
+    	}
+    }
+
+    size_t add_run_length(const Location& location, BigInt length)
+    {
+    	Codec codec;
+    	auto meta = this->metadata();
+
+		UBigInt run_value 		= encode_run(location.symbol(), location.length() + length);
+		size_t run_value_length = codec.length(run_value);
+
+		ensure_capacity(run_value_length);
+
+		auto symbols = this->symbols();
+
+		codec.move(symbols, location.data_end(), location.data_pos() + run_value_length, meta->data_size() - location.data_end());
+		codec.encode(symbols, run_value, location.data_pos());
+
+		meta->data_size() += (run_value_length - location.data_length());
+		meta->size() += length;
+
+		return run_value_length;
+    }
+
+    void remove_run(const Location& location)
+    {
+    	Codec codec;
+    	auto meta = this->metadata();
+
+    	auto symbols = this->symbols();
+
+    	codec.move(symbols, location.data_end(), location.data_pos(), meta->data_size() - location.data_end());
+
+    	meta->data_size() -= location.data_length();
+    	meta->size() -= location.length();
+
+    	shrink_to_data();
+    }
+
+    size_t insert_run(const size_t& location, Int symbol, UBigInt length)
+    {
+    	Codec codec;
+    	auto symbols = this->symbols();
+    	auto meta    = this->metadata();
+
+    	UBigInt run_value 		= encode_run(symbol, length);
+    	size_t run_value_length = codec.length(run_value);
+
+    	ensure_capacity(run_value_length);
+
+    	codec.move(symbols, location, location + run_value_length, meta->data_size() - location);
+    	codec.encode(symbols, run_value, location);
+
+    	meta->data_size() += run_value_length;
+    	meta->size() += length;
+
+    	return run_value_length;
+    }
+
+
 };
 
 template <typename T>

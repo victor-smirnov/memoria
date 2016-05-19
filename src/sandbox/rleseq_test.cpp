@@ -26,37 +26,34 @@ using namespace std;
 int main()
 {
 	try {
-
-		auto allocator = AllocateAllocator(65536);
+		auto allocator1 = AllocateAllocator(65536);
 
 		using Seq = PkdRLESeqT<2>;
 
-		auto seq = allocator->template allocateEmpty<Seq>(0);
+		auto seq = allocator1->template allocateEmpty<Seq>(0);
 
 		seq->append(0, 1000);
-
 		seq->reindex();
 		seq->dump();
-
 		cout << endl << endl;
 
-		seq->symbol(999) = 1;
+		cout << endl << endl;
+		seq->set_symbol(1, 1);
 		seq->dump();
 
 		cout << endl << endl;
-
-		seq->symbol(999) = 0;
+		seq->set_symbol(1, 0);
 		seq->dump();
 
-		cout << endl << endl;
+//
+//		seq->insert(1, 1, 10);
+//		seq->dump();
+//
+//		cout << endl << endl;
+//
+//		seq->insert(1010, 0, 5);
+//		seq->dump();
 
-		seq->symbol(998) = 1;
-		seq->dump();
-
-		cout << endl << endl;
-
-		seq->symbol(997) = 1;
-		seq->dump();
 	}
     catch (::memoria::v1::Exception& ex) {
         cout << ex.message() << " at " << ex.source() << endl;
