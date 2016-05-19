@@ -870,6 +870,8 @@ public:
         other_meta->data_size() += data_to_move;
         other_meta->size() 		+= meta->size();
 
+        compactify_runs();
+
         other->reindex();
     }
 
@@ -1246,7 +1248,7 @@ public:
 
         auto iter = this->iterator(0);
 
-        BigInt values[3] = {0,0,0};
+        BigInt values[4] = {0, 0, 0};
 
         while (iter.has_next_run())
         {
@@ -1335,7 +1337,90 @@ public:
     	}
     }
 
+    void compactify()
+    {
+    	compactify_runs();
+    	reindex();
+    }
+
 private:
+
+    void compactify_runs()
+    {
+    	auto meta 	 = this->metadata();
+    	auto symbols = this->symbols();
+
+    	size_t pos = 0;
+    	size_t data_size = meta->data_size();
+
+    	Codec codec;
+
+    	UBigInt size = 0;
+
+    	while (pos < data_size)
+    	{
+    		size_t pos0 = pos;
+
+    		Int last_symbol = -1;
+    		BigInt total_length = 0;
+
+    		size_t runs;
+    		for (runs = 0; pos0 < data_size; runs++)
+    		{
+    			UBigInt run_value = 0;
+    			auto len = codec.decode(symbols, run_value, pos0);
+    			auto run = decode_run(run_value);
+
+    			if (run.symbol() == last_symbol || last_symbol == -1)
+    			{
+    				if (total_length + run.length() <= MaxRunLength)
+    				{
+    					pos0 += len;
+    					total_length += run.length();
+    					last_symbol = run.symbol();
+
+    					size += run.length();
+    				}
+    				else {
+    					break;
+    				}
+    			}
+    			else {
+    				break;
+    			}
+    		}
+
+
+    		if (runs > 1)
+    		{
+    			auto new_run_value 			= encode_run(last_symbol, total_length);
+    			size_t new_run_value_length = codec.length(new_run_value);
+    			size_t current_length		= pos0 - pos;
+
+    			if (current_length > new_run_value_length)
+    			{
+    				codec.move(symbols, pos0, pos + new_run_value_length, data_size - pos0);
+
+    				codec.encode(symbols, new_run_value, pos);
+
+    				data_size -= current_length - new_run_value_length;
+    				pos += new_run_value_length;
+    			}
+    			else {
+    				pos = pos0;
+    			}
+    		}
+    		else {
+    			pos = pos0;
+    		}
+    	}
+
+    	meta->data_size() = data_size;
+
+    	MEMORIA_V1_ASSERT(meta->size(), ==, size);
+
+    	shrink_to_data();
+    }
 
     struct Location {
     	size_t data_pos_;

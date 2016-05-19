@@ -32,28 +32,18 @@ int main()
 
 		auto seq = allocator1->template allocateEmpty<Seq>(0);
 
-		seq->append(0, 1000);
+		for (int c = 0; c < 100; c++)
+		{
+			seq->append(c % 6 == 0, c + 1);
+		}
 		seq->reindex();
 		seq->dump();
-		cout << endl << endl;
 
 		cout << endl << endl;
-		seq->set_symbol(1, 1);
+
+		seq->compactify();
+		seq->reindex();
 		seq->dump();
-
-		cout << endl << endl;
-		seq->set_symbol(1, 0);
-		seq->dump();
-
-//
-//		seq->insert(1, 1, 10);
-//		seq->dump();
-//
-//		cout << endl << endl;
-//
-//		seq->insert(1010, 0, 5);
-//		seq->dump();
-
 	}
     catch (::memoria::v1::Exception& ex) {
         cout << ex.message() << " at " << ex.source() << endl;
