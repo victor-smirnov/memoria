@@ -40,45 +40,53 @@ namespace rleseq {
 template <typename Seq>
 class RLESeqIterator {
 	using Codec = typename Seq::Codec;
+	using Value = typename Seq::Value;
 
-	const UByte* symbols_;
+	const Value* symbols_;
 
 	size_t data_pos_;
 	size_t data_size_;
 
-	size_t symbol_idx_start_;
-	size_t symbol_idx_;
+	size_t run_prefix_;
+	size_t local_idx_;
 
 	Codec codec_;
 
 	RLESymbolsRun run_;
 
-	Int run_idx_backup_ 		= 0;
+	RLESymbolsRun run_backup_;
 	size_t datapos_backup_ 		= 0;
-	size_t symbol_idx_backup_ 	= 0;
+	size_t run_prefix_backup_	= 0;
+	size_t local_idx_backup_ 	= 0;
 
 public:
-	RLESeqIterator(): symbols_(), data_pos_(), data_size_(), symbol_idx_start_(), symbol_idx_() {}
-	RLESeqIterator(const UByte* symbols, size_t data_pos, size_t data_size, size_t symbol_idx, RLESymbolsRun run):
-		symbols_(symbols), data_pos_(data_pos), data_size_(data_size), symbol_idx_start_(symbol_idx), run_(run)
+	RLESeqIterator(): symbols_(), data_pos_(), data_size_(), run_prefix_(), local_idx_() {}
+	RLESeqIterator(const Value* symbols, size_t data_pos, size_t data_size, size_t local_idx, size_t run_prefix, RLESymbolsRun run):
+		symbols_(symbols),
+		data_pos_(data_pos),
+		data_size_(data_size),
+		run_prefix_(run_prefix),
+		local_idx_(local_idx),
+		run_(run)
 	{
-		symbol_idx_ = run.length();
+		if (data_pos < data_size)
+		{
+			Codec codec;
+			data_pos_ += codec.length(Seq::encode_run(run.symbol(), run.length()));
+		}
 	}
 
-	bool has_next_run() const {
-		return data_pos_ < data_size_;
+
+	bool has_symbol_in_run() const {
+		return local_idx_ < run_.length();
 	}
 
-	bool has_next_symbol_in_run() const {
-		return symbol_idx_ < run_.length();
+	bool has_data() const {
+		return has_symbol_in_run() || data_pos_ < data_size_;
 	}
 
-	bool has_next_symbol() const {
-		return has_next_symbol_in_run() || has_next_run();
-	}
-
-	size_t symbol_idx() const {
-		return symbol_idx_ - 1;
+	size_t local_idx() const {
+		return local_idx_;
 	}
 
 	const auto& run() const {
@@ -88,11 +96,17 @@ public:
 	size_t data_pos() const {return data_pos_;}
 	size_t data_size() const {return data_size_;}
 
+	size_t idx() const {return run_prefix_ + local_idx();}
+
+	Int symbol() const {return run_.symbol();}
+
 	void next_run()
 	{
 		if (data_pos_ < data_size_)
 		{
-			symbol_idx_ = symbol_idx_start_;
+			run_prefix_ += run_.length();
+
+			local_idx_ = 0;
 
 			UBigInt value = 0;
 			auto len = codec_.decode(symbols_, value, data_pos_);
@@ -100,51 +114,48 @@ public:
 			run_ = Seq::decode_run(value);
 
 			data_pos_ += len;
-			symbol_idx_start_ = 0;
 		}
 		else {
-			throw Exception(MA_SRC, SBuf() << "RLE Sequence Iterator is out of symbol runs");
+			local_idx_ = run_.length();
 		}
 	}
 
 	Int next_symbol_in_run()
 	{
-		if (symbol_idx_ < run_.length())
+		if (local_idx_ < run_.length() - 1)
 		{
 			Int sym = run_.symbol();
-			symbol_idx_++;
+			local_idx_++;
 
 			return sym;
-		}
-		else {
-			throw Exception(MA_SRC, SBuf() << "RLE Sequence Iterator is out of symbols run");
 		}
 	}
 
-	Int next_symbol()
+	void next()
 	{
-		if (symbol_idx_ < run_.length())
+		if (++local_idx_ < run_.length())
 		{
-			Int sym = run_.symbol();
-			symbol_idx_++;
+			return;
+		}
 
-			return sym;
-		}
-		else {
-			next_run();
-			return next_symbol_in_run();
-		}
+		next_run();
 	}
 
 	void mark()
 	{
-		symbol_idx_backup_	= symbol_idx_;
+		run_backup_			= run_;
+		run_prefix_backup_	= run_prefix_;
+		local_idx_backup_	= local_idx_;
 		datapos_backup_ 	= data_pos_;
 	}
 
-	void restore() {
-		symbol_idx_	 = symbol_idx_backup_;
-		data_pos_ 	 = datapos_backup_;
+
+	void restore()
+	{
+		run_		= run_backup_;
+		run_prefix_	= run_prefix_backup_;
+		local_idx_	= local_idx_backup_;
+		data_pos_ 	= datapos_backup_;
 	}
 };
 

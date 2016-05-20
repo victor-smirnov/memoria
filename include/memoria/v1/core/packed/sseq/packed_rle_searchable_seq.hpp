@@ -132,7 +132,10 @@ public:
 
     using Iterator = rleseq::RLESeqIterator<MyType>;
 
-
+    Int number_of_offsets() const
+    {
+    	return number_of_offsets(this->element_size(SYMBOLS));
+    }
 
     static constexpr Int number_of_offsets(Int values)
     {
@@ -147,6 +150,40 @@ public:
     static constexpr size_t divUp(size_t value, size_t divisor) {
         return (value / divisor) + ((value % divisor) ? 1 : 0);
     }
+
+    struct Location {
+    	size_t data_pos_;
+    	size_t data_length_;
+    	size_t inrun_idx_;
+    	size_t block_base_;
+    	size_t run_base_;
+
+    	RLESymbolsRun run_;
+    	bool out_of_range_;
+
+    	Location(size_t data_pos, size_t data_length, size_t inrun_idx, size_t block_base, size_t run_base, RLESymbolsRun run, bool out_of_range = false):
+    		data_pos_(data_pos), data_length_(data_length), inrun_idx_(inrun_idx), block_base_(block_base), run_base_(run_base), run_(run), out_of_range_(out_of_range)
+    	{}
+
+    	size_t run_suffix() const {return run_.length() - inrun_idx_;}
+    	size_t run_prefix() const {return inrun_idx_;}
+
+    	size_t local_idx() 	const {return inrun_idx_;}
+    	auto symbol() 		const {return run_.symbol();}
+    	auto length() 		const {return run_.length();}
+
+    	auto data_pos() 	const {return data_pos_;}
+    	auto data_length() 	const {return data_length_;}
+    	auto data_end() 	const {return data_pos_ + data_length_;}
+    	auto block() 		const {return data_pos_ / ValuesPerBranch;}
+    	auto block_base()	const {return block_base_;}
+    	auto run_base()		const {return run_base_;}
+
+    	bool out_of_range() const {return out_of_range_;}
+
+    	const RLESymbolsRun& run() const {return run_;}
+    };
+
 
 public:
     PkdRLESeq() = default;
@@ -295,7 +332,7 @@ public:
     {
     	auto result = this->find_run(idx);
 
-    	if (!result.out_of_rage())
+    	if (!result.out_of_range())
     	{
     		return result.symbol();
     	}
@@ -374,6 +411,8 @@ public:
 
     void append(Int symbol, UBigInt length)
     {
+    	MEMORIA_V1_ASSERT_TRUE(symbol >= 0 && symbol < Symbols);
+
     	auto meta = this->metadata();
 
     	auto run_value = encode_run(symbol, length);
@@ -475,8 +514,8 @@ public:
     	{
     		if (!has_index())
     		{
-    			auto result = locate_run(meta, 0, symbol_pos);
-    			return Iterator(symbols(), result.data_pos_, meta->data_size(), result.inrun_idx_, result.run_);
+    			auto result = locate_run(meta, 0, symbol_pos, 0);
+    			return Iterator(symbols(), result.data_pos_, meta->data_size(), result.inrun_idx_, result.run_base(), result.run_);
     		}
     		else
     		{
@@ -488,12 +527,12 @@ public:
 
     			block_offset += offset;
 
-    			auto result = locate_run(meta, block_offset, local_pos);
-    			return Iterator(symbols(), result.data_pos_, meta->data_size(), result.inrun_idx_, result.run_);
+    			auto result = locate_run(meta, block_offset, local_pos, find_result.prefix());
+    			return Iterator(symbols(), result.data_pos_, meta->data_size(), result.inrun_idx_, result.run_base(), result.run_);
     		}
     	}
     	else {
-    		return Iterator(symbols(), meta->data_size(), meta->data_size(), 0, RLESymbolsRun());
+    		return Iterator(symbols(), meta->data_size(), meta->data_size(), symbol_pos, 0, RLESymbolsRun());
     	}
     }
 
@@ -1124,102 +1163,99 @@ public:
         return rank_end - rank_start;
     }
 
-//    Int rank(Int end, Int symbol) const
-//    {
-//        if (end > size()) {
-//        	dump();
-//        }
-//
-//    	MEMORIA_V1_ASSERT(end, <=, size());
-//        MEMORIA_V1_ASSERT_TRUE(end >= 0);
-//
-//        MEMORIA_V1_ASSERT_TRUE(symbol >= 0 && symbol < Symbols);
-//
-//        if (has_index())
-//        {
-//            const Index* index = this->index();
-//
-//            Int values_block    = (end / ValuesPerBranch);
-//            Int start           = values_block * ValuesPerBranch;
-//
-//            Int sum = index->sum(symbol, values_block);
-//
-//            typename Types::template RankFn<MyType> fn(*this);
-//
-//            Int block_sum = fn(start, end, symbol);
-//
-//            return sum + block_sum;
-//        }
-//        else {
-//            typename Types::template RankFn<MyType> fn(*this);
-//
-//            return fn(0, end, symbol);
-//        }
-//    }
+    UBigInt rank(Int end, Int symbol) const
+    {
+    	auto meta = this->metadata();
+    	Int size = meta->size();
+
+        MEMORIA_V1_ASSERT_TRUE(end >= 0);
+
+        MEMORIA_V1_ASSERT_TRUE(symbol >= 0 && symbol < Symbols);
+
+        if (has_index())
+        {
+        	const SumIndex* sum_index  = this->sum_index();
+
+        	if (end < size)
+        	{
+        		auto location 		= find_run(end);
+        		auto block 	  		= location.block();
+        		auto block_start 	= block * ValuesPerBranch;
+
+        		auto rank_base 	= sum_index->sum(symbol, block);
+
+        		auto block_offset = offsets()[block];
+
+        		auto local_rank = block_rank(meta, block_start + block_offset, end - location.block_base(), symbol);
+
+        		return local_rank + rank_base;
+        	}
+        	else {
+        		return sum_index->sum(symbol);
+        	}
+        }
+        else {
+        	return block_rank(meta, 0, end, symbol);
+        }
+    }
+
+    UBigInt find_rank(Int end, Int symbol) const
+    {
+    	return block_rank(metadata(), 0, end, symbol);
+    }
+
+    UBigInt find_rank_iter(Int end, Int symbol) const
+    {
+    	auto iter = iterator(0);
+
+    	UBigInt rank = 0;
+
+    	while (iter.has_next())
+    	{
+    		iter.next();
+    		if (iter.idx() < end)
+    		{
+    			rank += iter.symbol() == symbol;
+    		}
+    	}
+
+    	return rank;
+    }
 
 
-//    SelectResult selectFw(Int start, Int symbol, BigInt rank) const
-//    {
-//        Int startrank_ = this->rank(start, symbol);
-//        auto result = selectFw(symbol, startrank_ + rank);
-//
-//        result.rank() -= startrank_;
-//
-//        return result;
-//    }
+    Iterator select(Int symbol, UBigInt rank) const
+    {
+    	auto meta 	 = this->metadata();
+    	auto symbols = this->symbols();
 
-//    SelectResult selectFw(Int symbol, BigInt rank) const
-//    {
-//        MEMORIA_V1_ASSERT(rank, >=, 0);
-//        MEMORIA_V1_ASSERT_TRUE(symbol >= 0 && symbol < AlphabetSize);
-//
-//        if (has_index())
-//        {
-//            const Index* index = this->index();
-//
-//            Int index_size = index->size();
-//
-//            auto result = index->findGEForward(symbol, rank);
-//
-//            if (result.idx() < index_size)
-//            {
-//                Int start = result.idx() * ValuesPerBranch;
-//
-//                typename Types::template SelectFn<MyType> fn(*this);
-//
-//                Int localrank_ = rank - result.prefix();
-//
-//                Int size = this->size();
-//
-//                return fn(start, size, symbol, localrank_);
-//            }
-//            else {
-//                return SelectResult(result.idx(), result.prefix(), false);
-//            }
-//        }
-//        else {
-//            typename Types::template SelectFn<MyType> fn(*this);
-//            return fn(0, size(), symbol, rank);
-//        }
-//    }
-//
-//    SelectResult selectBw(Int start, Int symbol, BigInt rank) const
-//    {
-//        Int localrank_ = this->rank(start, symbol);
-//
-//        if (localrank_ >= rank)
-//        {
-//            return selectFw(symbol, localrank_ - rank + 1);
-//        }
-//        else {
-//            return SelectResult(-1,localrank_,false);
-//        }
-//    }
-//
-//    SelectResult selectBw(Int symbol, BigInt rank) const
-//    {
-//        return selectBw(size(), symbol, rank);
-//    }
+        MEMORIA_V1_ASSERT_TRUE(symbol >= 0 && symbol < Symbols);
+
+        if (has_index())
+        {
+        	const SumIndex* sum_index 	= this->sum_index();
+        	auto find_result 			= sum_index->find_ge(symbol, rank);
+        	Int blocks 					= sum_index->size();
+
+        	if (find_result.idx() < blocks)
+        	{
+        		auto block_start   = find_result.idx() * ValuesPerBranch;
+        		auto block_offset  = offsets()[find_result.idx()];
+        		UBigInt local_rank = rank - find_result.prefix();
+
+        		auto block_size_start  = this->size_index()->sum(0, find_result.idx());
+
+        		return block_select(meta, symbols, block_start + block_offset, local_rank, block_size_start, symbol);
+        	}
+        	else {
+        		return this->iterator(this->size());
+        	}
+        }
+        else {
+        	return block_select(meta, symbols, 0, rank, 0, symbol);
+        }
+    }
+
+
 
     void dump(std::ostream& out = cout, bool dump_index = true) const
     {
@@ -1244,22 +1280,26 @@ public:
             handler->endGroup();
         }
 
+        handler->value("OFFSETS", PageValueProviderFactory::provider(true, number_of_offsets(), [&](Int idx) {
+        	return offsets()[idx];
+        }));
+
         handler->startGroup("SYMBOL RUNS", size());
 
         auto iter = this->iterator(0);
 
         BigInt values[4] = {0, 0, 0};
 
-        while (iter.has_next_run())
+        while (iter.has_data())
         {
-        	iter.next_run();
-
         	values[1] = iter.run().symbol();
         	values[2] = iter.run().length();
 
         	handler->value("RUN", values, 3);
 
         	values[0] += iter.run().length();
+
+        	iter.next_run();
         }
 
         handler->endGroup();
@@ -1275,6 +1315,8 @@ public:
 
         FieldFactory<Int>::serialize(buf, meta->size());
         FieldFactory<Int>::serialize(buf, meta->data_size());
+
+        FieldFactory<OffsetsType>::serialize(buf, offsets(), number_of_offsets());
 
         if (has_index())
         {
@@ -1293,6 +1335,8 @@ public:
 
         FieldFactory<Int>::deserialize(buf, meta->size());
         FieldFactory<Int>::deserialize(buf, meta->data_size());
+
+        FieldFactory<OffsetsType>::deserialize(buf, offsets(), number_of_offsets());
 
         if (has_index()) {
             size_index()->deserialize(buf);
@@ -1313,7 +1357,7 @@ public:
     		{
     			if (!has_index())
     			{
-    				return locate_run(meta, 0, symbol_pos);
+    				return locate_run(meta, 0, symbol_pos, 0);
     			}
     			else
     			{
@@ -1325,11 +1369,11 @@ public:
 
     				block_offset += offset;
 
-    				return locate_run(meta, block_offset, local_pos);
+    				return locate_run(meta, block_offset, local_pos, find_result.prefix());
     			}
     		}
     		else {
-    			return Location(meta->data_size(), 0, 0, RLESymbolsRun(), true);
+    			return Location(meta->data_size(), 0, 0, meta->data_size(), symbol_pos, RLESymbolsRun(), true);
     		}
     	}
     	else {
@@ -1344,6 +1388,144 @@ public:
     }
 
 private:
+    size_t block_rank(const Metadata* meta, size_t data_pos, size_t idx, Int symbol) const
+    {
+    	Codec codec;
+    	size_t data_size = meta->data_size();
+    	auto symbols = this->symbols();
+
+    	size_t run_base  = 0;
+    	UBigInt rank 	 = 0;
+
+    	while (data_pos < data_size)
+    	{
+    		UBigInt run_value = 0;
+    		auto len = codec.decode(symbols, run_value, data_pos);
+    		auto run = decode_run(run_value);
+
+    		auto run_length = run.length();
+
+    		if (run.symbol() == symbol)
+    		{
+    			if (idx >= run_base + run_length)
+    			{
+    				rank += run_length;
+    			}
+    			else {
+    				return rank + idx - run_base;
+    			}
+    		}
+    		else if (idx < run_base + run_length)
+			{
+				return rank;
+			}
+
+			run_base += run_length;
+			data_pos += len;
+    	}
+
+    	return rank;
+    }
+
+    class BlockSelectResult {
+    	UBigInt rank_;
+    	size_t data_pos_;
+    	size_t local_idx_;
+    	size_t block_idx_;
+    public:
+    	BlockSelectResult(UBigInt rank, size_t data_pos, size_t local_idx, size_t block_idx):
+    		rank_(rank), data_pos_(data_pos), local_idx_(local_idx), block_idx_(block_idx)
+    	{}
+
+    	UBigInt rank() const {return rank_;}
+    	size_t data_pos() const {return data_pos_;}
+    	size_t local_idx() const {return local_idx_;}
+    	size_t block_idx() const {return block_idx_;}
+    };
+
+
+    Iterator block_select(const Metadata* meta, const Value* symbols, size_t data_pos, UBigInt rank, size_t block_size_prefix, Int symbol) const
+    {
+    	Codec codec;
+    	size_t data_size = meta->data_size();
+
+    	UBigInt rank_base = 0;
+    	size_t  run_base  = 0;
+
+    	RLESymbolsRun run;
+
+    	while (data_pos < data_size)
+    	{
+    		UBigInt run_value = 0;
+    		auto len = codec.decode(symbols, run_value, data_pos);
+    		run = decode_run(run_value);
+
+    		auto run_length = run.length();
+
+			if (run.symbol() == symbol)
+			{
+				if (rank > rank_base + run_length)
+				{
+					rank_base += run_length;
+					run_base  += run_length;
+				}
+				else {
+					size_t local_idx   = rank - rank_base - 1;
+					return Iterator(symbols, data_pos, data_size, local_idx, run_base + block_size_prefix, run);
+				}
+			}
+			else {
+				run_base += run_length;
+			}
+
+			data_pos += len;
+    	}
+
+    	// FIXME: specify correct local_idx
+    	return Iterator(symbols, data_size, data_size, 0, run_base + block_size_prefix, run);
+    }
+
+
+    Location block_count(const Metadata* meta, const Value* symbols, const Location& location, UBigInt rank) const
+    {
+    	Codec codec;
+    	size_t data_size = meta->data_size();
+    	size_t data_pos  = location.data_pos();
+
+    	UBigInt rank_base = 0;
+    	size_t  run_base  = 0;
+
+    	while (data_pos < data_size)
+    	{
+    		UBigInt run_value = 0;
+    		auto len = codec.decode(symbols, run_value, data_pos);
+    		auto run = decode_run(run_value);
+
+    		auto run_length = run.length();
+
+			if (run.symbol() == location.symbol())
+			{
+				if (rank >= rank_base + run_length)
+				{
+					rank_base += run_length;
+					run_base  += run_length;
+				}
+				else {
+					size_t local_idx   = rank - rank_base;
+					UBigInt block_rank = rank_base + local_idx; // FIXME: +1?
+					size_t block_idx   = run_base + local_idx;
+
+					return BlockSelectResult(block_rank, data_pos, local_idx, block_idx);
+				}
+			}
+
+			run_base += run_length;
+			data_pos += len;
+    	}
+
+    	return BlockSelectResult(rank_base, data_size, 0, run_base);
+    }
+
 
     void compactify_runs()
     {
@@ -1354,8 +1536,6 @@ private:
     	size_t data_size = meta->data_size();
 
     	Codec codec;
-
-    	UBigInt size = 0;
 
     	while (pos < data_size)
     	{
@@ -1378,8 +1558,6 @@ private:
     					pos0 += len;
     					total_length += run.length();
     					last_symbol = run.symbol();
-
-    					size += run.length();
     				}
     				else {
     					break;
@@ -1417,40 +1595,12 @@ private:
 
     	meta->data_size() = data_size;
 
-    	MEMORIA_V1_ASSERT(meta->size(), ==, size);
-
     	shrink_to_data();
     }
 
-    struct Location {
-    	size_t data_pos_;
-    	size_t data_length_;
-    	size_t inrun_idx_;
-    	RLESymbolsRun run_;
-    	bool out_of_range_;
-
-    	Location(size_t data_pos, size_t data_length, size_t inrun_idx, RLESymbolsRun run, bool out_of_range = false):
-    		data_pos_(data_pos), data_length_(data_length), inrun_idx_(inrun_idx), run_(run), out_of_range_(out_of_range)
-    	{}
-
-    	size_t run_suffix() const {return run_.length() - inrun_idx_;}
-    	size_t run_prefix() const {return inrun_idx_;}
-
-    	size_t local_idx() 	const {return inrun_idx_;}
-    	auto symbol() 		const {return run_.symbol();}
-    	auto length() 		const {return run_.length();}
-
-    	auto data_pos() 	const {return data_pos_;}
-    	auto data_length() 	const {return data_length_;}
-    	auto data_end() 	const {return data_pos_ + data_length_;}
 
 
-    	bool out_of_range() const {return out_of_range_;}
-
-    	const RLESymbolsRun& run() const {return run_;}
-    };
-
-    Location locate_run(const Metadata* meta, size_t pos, size_t idx) const
+    Location locate_run(const Metadata* meta, size_t pos, size_t idx, size_t size_base) const
     {
     	Codec codec;
     	auto symbols = this->symbols();
@@ -1473,12 +1623,14 @@ private:
     			pos += len;
     		}
     		else {
-    			return Location(pos, len, idx - base, run);
+    			return Location(pos, len, idx - base, size_base, idx, run);
     		}
     	}
 
     	throw Exception(MA_SRC, SBuf() << "Symbol index is out of bounds: " << idx << " " <<meta->size());
     }
+
+
 
     void remove_runs(const Location& start, const Location& end)
     {

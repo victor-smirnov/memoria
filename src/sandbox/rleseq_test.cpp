@@ -32,18 +32,38 @@ int main()
 
 		auto seq = allocator1->template allocateEmpty<Seq>(0);
 
-		for (int c = 0; c < 100; c++)
+		size_t sums[] = {0, 0};
+
+		for (int c = 0; c < 302; c++)
 		{
-			seq->append(c % 6 == 0, c + 1);
+			Int symbol = (c % 8 == 0);
+
+			sums[symbol] += c + 1;
+
+			seq->append(symbol, c + 1);
 		}
+
 		seq->reindex();
 		seq->dump();
 
 		cout << endl << endl;
 
-		seq->compactify();
-		seq->reindex();
-		seq->dump();
+//		auto iter = seq->iterator(0);
+//
+//		while (iter.has_data())
+//		{
+//			cout << iter.idx() << " -- " << iter.symbol() << endl;
+//			iter.next();
+//		}
+
+		Int size = seq->size();
+		for (Int c = 0; c < size; c++)
+		{
+			auto rank = seq->rank(c + 1, 1);
+			cout << c << " -- " << rank << " -- " << seq->select(1, rank).idx() << endl;
+		}
+
+		cout << "Sums: " << sums[0] << " " << sums[1] << endl;
 	}
     catch (::memoria::v1::Exception& ex) {
         cout << ex.message() << " at " << ex.source() << endl;
