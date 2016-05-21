@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "../../tests_inc.hpp"
+#include "../../../tests_inc.hpp"
 
 
 #include <memoria/v1/core/tools/i64_codec.hpp>

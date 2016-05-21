@@ -22,6 +22,7 @@
 #include <memory>
 #include <vector>
 #include <functional>
+
 #include "pseq_test_base.hpp"
 
 namespace memoria {

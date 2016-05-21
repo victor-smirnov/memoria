@@ -20,6 +20,7 @@
 #include <memoria/v1/tools/tools.hpp>
 
 #include <memory>
+
 #include "pseq_test_base.hpp"
 
 namespace memoria {

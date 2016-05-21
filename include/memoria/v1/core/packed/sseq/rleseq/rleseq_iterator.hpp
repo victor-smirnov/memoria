@@ -100,6 +100,10 @@ public:
 
 	Int symbol() const {return run_.symbol();}
 
+	bool is_found() const {
+		return has_data();
+	}
+
 	void next_run()
 	{
 		if (data_pos_ < data_size_)

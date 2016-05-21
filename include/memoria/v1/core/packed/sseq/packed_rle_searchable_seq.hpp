@@ -1139,10 +1139,10 @@ public:
         return tools().get(symbols(), idx);
     }
 
-    bool test(Int idx, Value symbol) const
+    bool test(Int idx, Int symbol) const
     {
         MEMORIA_V1_ASSERT(idx , <, size());
-        return tools().test(symbols(), idx, symbol);
+        return iterator(idx).symbol() == symbol;
     }
 
     Int rank(Int symbol) const
@@ -1201,15 +1201,54 @@ public:
         }
     }
 
-    UBigInt find_rank(Int end, Int symbol) const
+    UBigInt rank_s(Int end, Int symbol) const
     {
+    	MEMORIA_V1_ASSERT(end, >=, 0);
+    	MEMORIA_V1_ASSERT(end, <=, size());
+
     	return block_rank(metadata(), 0, end, symbol);
     }
 
-    auto find_select(Int symbol, UBigInt rank) const
+    UBigInt rank_s(Int start, Int end, Int symbol) const
     {
+    	return rank_s(end, symbol) - rank_s(start, symbol);
+    }
+
+    UBigInt rank_is(Int end, Int symbol) const
+    {
+    	auto iter = begin();
+
+    	UBigInt rank = 0;
+
+    	while (iter.has_data() && iter.idx() < end)
+    	{
+    		rank += iter.symbol() == symbol;
+    		iter.next();
+    	}
+
+    	return rank;
+    }
+
+    UBigInt rank_is(Int start, Int end, Int symbol) const
+    {
+    	return rank_is(end, symbol) - rank_s(start, symbol);
+    }
+
+    auto select_s(Int symbol, UBigInt rank) const
+    {
+    	MEMORIA_V1_ASSERT(rank, >=, 1);
     	return block_select(metadata(), symbols(), 0, rank, 0, symbol);
     }
+
+    auto select_is(Int symbol, UBigInt rank) const {
+    	return select_is(begin(), symbol, rank);
+    }
+
+    auto selectFw_is(Int pos, UBigInt rank, Int symbol) const
+    {
+    	return select_fw_is(iterator(pos), symbol, rank);
+    }
+
 
     UBigInt find_rank_iter(Int end, Int symbol) const
     {
@@ -1312,7 +1351,7 @@ public:
 
     void dump(std::ostream& out = cout, bool dump_index = true) const
     {
-    	TextPageDumper dumper(cout);
+    	TextPageDumper dumper(out);
 
     	generateDataEvents(&dumper);
     }
@@ -1441,6 +1480,26 @@ public:
     }
 
 private:
+    auto select_fw_is(Iterator iter, Int symbol, UBigInt rank) const
+    {
+    	MEMORIA_V1_ASSERT(rank, >=, 1);
+
+    	UBigInt cnt = 0;
+
+    	while (iter.has_data())
+    	{
+    		if (iter.symbol() == symbol) {
+    			if (++cnt == rank)
+    			{
+    				return iter;
+    			}
+    		}
+    	}
+
+    	return end();
+    }
+
+
     size_t block_rank(const Metadata* meta, size_t data_pos, size_t idx, Int symbol) const
     {
     	Codec codec;
