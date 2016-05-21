@@ -152,8 +152,8 @@ public:
     	RLESymbolsRun run_;
     	bool out_of_range_;
 
-    	Location(size_t data_pos, size_t data_length, size_t inrun_idx, size_t block_base, size_t run_base, RLESymbolsRun run, bool out_of_range = false):
-    		data_pos_(data_pos), data_length_(data_length), local_idx_(inrun_idx), block_base_(block_base), run_base_(run_base), run_(run), out_of_range_(out_of_range)
+    	Location(size_t data_pos, size_t data_length, size_t local_idx, size_t block_base, size_t run_base, RLESymbolsRun run, bool out_of_range = false):
+    		data_pos_(data_pos), data_length_(data_length), local_idx_(local_idx), block_base_(block_base), run_base_(run_base), run_(run), out_of_range_(out_of_range)
     	{}
 
     	size_t run_suffix() const {return run_.length() - local_idx_;}
@@ -642,13 +642,7 @@ public:
 
     void insert(Int pos, Int symbol)
     {
-        insertDataRoom(pos, 1);
-
-        Value* symbols = this->symbols();
-
-        tools().set(symbols, pos, symbol);
-
-        reindex();
+        insert(pos, symbol, 1);
     }
 
     void remove(Int start, Int end)
@@ -1728,7 +1722,7 @@ private:
     			pos += len;
     		}
     		else {
-    			return Location(pos, len, idx - base, size_base, idx, run);
+    			return Location(pos, len, idx - base, size_base, base, run);
     		}
     	}
 
@@ -1739,35 +1733,44 @@ private:
 
     void remove_runs(const Location& start, const Location& end)
     {
-    	Codec codec;
+    	if (start.data_pos() < end.data_pos())
+    	{
+    		auto meta = this->metadata();
 
-    	UBigInt new_start_run_value 	= encode_run(start.symbol(), start.run_prefix());
-    	size_t new_start_run_length 	= codec.length(new_start_run_value);
+    		Codec codec;
 
-    	UBigInt new_end_run_value 		= encode_run(end.symbol(), end.run_suffix());
-    	size_t new_end_run_length 		= codec.length(new_end_run_value);
+    		UBigInt new_start_run_value 	= encode_run(start.symbol(), start.run_prefix());
+    		size_t new_start_run_length 	= codec.length(new_start_run_value);
 
-    	size_t hole_start 	= start.data_pos() + new_start_run_length;
-    	size_t hole_end 	= end.data_pos() + (end.data_length() - new_end_run_length);
+    		UBigInt new_end_run_value 		= encode_run(end.symbol(), end.run_suffix());
+    		size_t new_end_run_length 		= codec.length(new_end_run_value);
 
-    	size_t to_remove  	= hole_end - hole_start;
+    		size_t hole_start 	= start.data_pos() + new_start_run_length;
+    		size_t hole_end 	= end.data_pos() + (end.data_length() - new_end_run_length);
 
-    	auto symbols = this->symbols();
+    		size_t to_remove  	= hole_end - hole_start;
 
-    	codec.move(symbols, hole_end, hole_start, to_remove);
+    		auto symbols = this->symbols();
 
-    	codec.encode(symbols, new_start_run_value, start.data_pos());
-    	codec.encode(symbols, new_end_run_value, hole_start);
+    		codec.move(symbols, hole_end, hole_start, meta->data_size() - hole_end);
 
-    	auto meta = this->metadata();
+    		codec.encode(symbols, new_start_run_value, start.data_pos());
+    		codec.encode(symbols, new_end_run_value, hole_start);
 
-    	meta->data_size() -= to_remove;
+    		meta->data_size() -= to_remove;
+    	}
+    	else {
+    		BigInt delta = end.local_idx() - start.local_idx();
+    		add_run_length0(start, -delta);
+    	}
     }
 
 
     void remove_runs_one_sided_left(const Location& start, const Location& end)
     {
     	Codec codec;
+
+    	auto meta = this->metadata();
 
     	UBigInt new_end_run_value 		= encode_run(end.symbol(), end.run_suffix());
     	size_t new_end_run_length 		= codec.length(new_end_run_value);
@@ -1779,11 +1782,9 @@ private:
 
     	auto symbols = this->symbols();
 
-    	codec.move(symbols, hole_end, hole_start, to_remove);
+    	codec.move(symbols, hole_end, hole_start, meta->data_size() - hole_end);
 
     	codec.encode(symbols, new_end_run_value, hole_start);
-
-    	auto meta = this->metadata();
 
     	meta->data_size() -= to_remove;
     }
@@ -1793,6 +1794,8 @@ private:
     {
     	Codec codec;
 
+    	auto meta = this->metadata();
+
     	UBigInt new_run_value 	= encode_run(start.symbol(), start.run_prefix());
     	size_t new_run_length 	= codec.length(new_run_value);
 
@@ -1801,11 +1804,9 @@ private:
 
     	auto symbols = this->symbols();
 
-    	codec.move(symbols, end, hole_start, to_remove);
+    	codec.move(symbols, end, hole_start, meta->data_size() - end);
 
     	codec.encode(symbols, new_run_value, start.data_pos());
-
-    	auto meta = this->metadata();
 
     	meta->data_size() -= to_remove;
     }
@@ -1887,7 +1888,7 @@ private:
     			if (delta > 0)
     			{
     				ensure_capacity(delta);
-    				codec.move(symbols, location.data_end(), location.data_pos() + delta, meta->data_size() - location.data_end());
+    				codec.move(symbols, location.data_end(), location.data_end() + delta, meta->data_size() - location.data_end());
     			}
 
     			auto pos_tmp = location.data_pos();
@@ -1912,14 +1913,21 @@ private:
     			shrink_to_data();
     		}
 
-    		return Location(location.data_pos() + prefix_value_length, suffix_value_length, 0, RLESymbolsRun(location.symbol(), location.run_suffix()));
+    		return Location(
+    				location.data_pos() + prefix_value_length,
+					suffix_value_length,
+					0,
+					location.block_base(),
+					location.run_base() + location.run_prefix(),
+					RLESymbolsRun(location.symbol(), location.run_suffix())
+			);
     	}
     	else {
     		throw Exception(MA_SRC, SBuf() << "split_run: invalid split position: " << pos << " " << location.length());
     	}
     }
 
-    size_t add_run_length(const Location& location, BigInt length)
+    size_t add_run_length0(const Location& location, BigInt length)
     {
     	Codec codec;
     	auto meta = this->metadata();
@@ -1935,6 +1943,15 @@ private:
 		codec.encode(symbols, run_value, location.data_pos());
 
 		meta->data_size() += (run_value_length - location.data_length());
+
+		return run_value_length;
+    }
+
+    size_t add_run_length(const Location& location, BigInt length)
+    {
+    	auto run_value_length = add_run_length0(location, length);
+
+    	auto meta = this->metadata();
 		meta->size() += length;
 
 		return run_value_length;
