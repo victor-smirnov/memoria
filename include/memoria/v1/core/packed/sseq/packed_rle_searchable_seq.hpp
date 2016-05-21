@@ -18,24 +18,15 @@
 
 #include <memoria/v1/core/packed/tools/packed_allocator.hpp>
 #include <memoria/v1/core/packed/tree/fse/packed_fse_quick_tree.hpp>
-#include <memoria/v1/core/packed/tree/vle/packed_vle_dense_tree.hpp>
-#include <memoria/v1/core/packed/tree/vle/packed_vle_quick_tree.hpp>
 
-#include <memoria/v1/core/types/algo/select.hpp>
 #include <memoria/v1/core/tools/static_array.hpp>
-
-#include <memoria/v1/core/tools/i64_codec.hpp>
-#include <memoria/v1/core/tools/elias_codec.hpp>
-#include <memoria/v1/core/tools/exint_codec.hpp>
-#include <memoria/v1/core/tools/i7_codec.hpp>
-
+#include <memoria/v1/core/tools/optional.hpp>
 #include <memoria/v1/core/tools/bignum/primitive_codec.hpp>
 
 #include <memoria/v1/metadata/page.hpp>
 
 #include "rleseq/rleseq_reindex_fn.hpp"
 #include "rleseq/rleseq_iterator.hpp"
-
 
 #include <ostream>
 
@@ -532,8 +523,19 @@ public:
     		}
     	}
     	else {
-    		return Iterator(symbols(), meta->data_size(), meta->data_size(), symbol_pos, 0, RLESymbolsRun());
+    		return end();
     	}
+    }
+
+    Iterator end() const
+    {
+    	auto meta = this->metadata();
+    	return Iterator(symbols(), meta->data_size(), meta->data_size(), meta->size(), 0, RLESymbolsRun());
+    }
+
+    Iterator begin() const
+    {
+    	return iterator(0);
     }
 
 
@@ -1228,7 +1230,7 @@ public:
     }
 
 
-    Iterator select(Int symbol, UBigInt rank) const
+    Iterator select(UBigInt rank, Int symbol) const
     {
     	auto meta 	 = this->metadata();
     	auto symbols = this->symbols();
@@ -1259,6 +1261,47 @@ public:
         	return block_select(meta, symbols, 0, rank, 0, symbol);
         }
     }
+
+
+    Iterator selectFw(Int pos, UBigInt rank, Int symbol) const
+    {
+    	MEMORIA_V1_ASSERT(rank, >=, 1);
+
+    	auto meta = this->metadata();
+
+    	if (pos < meta->size())
+    	{
+    		UBigInt rank_prefix = this->rank(pos + 1, symbol);
+    		return select(rank_prefix + rank, symbol);
+    	}
+    	else {
+    		return end();
+    	}
+    }
+
+    Optional<Iterator> selectBw(Int pos, UBigInt rank, Int symbol) const
+    {
+    	MEMORIA_V1_ASSERT(rank, >=, 1);
+
+    	auto meta = this->metadata();
+
+    	if (pos < meta->size())
+    	{
+    		UBigInt rank_prefix = this->rank(pos, symbol);
+    		if (rank_prefix > 0)
+    		{
+    			return Optional<Iterator>(select(rank_prefix - (rank - 1), symbol));
+    		}
+    		else {
+    			return Optional<Iterator>();
+    		}
+    	}
+    	else {
+    		return Optional<Iterator>();
+    	}
+    }
+
+
 
     UBigInt count(Int pos) const
     {
