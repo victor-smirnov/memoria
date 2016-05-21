@@ -154,7 +154,7 @@ public:
     struct Location {
     	size_t data_pos_;
     	size_t data_length_;
-    	size_t inrun_idx_;
+    	size_t local_idx_;
     	size_t block_base_;
     	size_t run_base_;
 
@@ -162,13 +162,13 @@ public:
     	bool out_of_range_;
 
     	Location(size_t data_pos, size_t data_length, size_t inrun_idx, size_t block_base, size_t run_base, RLESymbolsRun run, bool out_of_range = false):
-    		data_pos_(data_pos), data_length_(data_length), inrun_idx_(inrun_idx), block_base_(block_base), run_base_(run_base), run_(run), out_of_range_(out_of_range)
+    		data_pos_(data_pos), data_length_(data_length), local_idx_(inrun_idx), block_base_(block_base), run_base_(run_base), run_(run), out_of_range_(out_of_range)
     	{}
 
-    	size_t run_suffix() const {return run_.length() - inrun_idx_;}
-    	size_t run_prefix() const {return inrun_idx_;}
+    	size_t run_suffix() const {return run_.length() - local_idx_;}
+    	size_t run_prefix() const {return local_idx_;}
 
-    	size_t local_idx() 	const {return inrun_idx_;}
+    	size_t local_idx() 	const {return local_idx_;}
     	auto symbol() 		const {return run_.symbol();}
     	auto length() 		const {return run_.length();}
 
@@ -515,7 +515,7 @@ public:
     		if (!has_index())
     		{
     			auto result = locate_run(meta, 0, symbol_pos, 0);
-    			return Iterator(symbols(), result.data_pos_, meta->data_size(), result.inrun_idx_, result.run_base(), result.run_);
+    			return Iterator(symbols(), result.data_pos(), meta->data_size(), result.local_idx(), result.run_base(), result.run());
     		}
     		else
     		{
@@ -528,7 +528,7 @@ public:
     			block_offset += offset;
 
     			auto result = locate_run(meta, block_offset, local_pos, find_result.prefix());
-    			return Iterator(symbols(), result.data_pos_, meta->data_size(), result.inrun_idx_, result.run_base(), result.run_);
+    			return Iterator(symbols(), result.data_pos(), meta->data_size(), result.local_idx(), result.run_base(), result.run());
     		}
     	}
     	else {
@@ -1204,6 +1204,11 @@ public:
     	return block_rank(metadata(), 0, end, symbol);
     }
 
+    auto find_select(Int symbol, UBigInt rank) const
+    {
+    	return block_select(metadata(), symbols(), 0, rank, 0, symbol);
+    }
+
     UBigInt find_rank_iter(Int end, Int symbol) const
     {
     	auto iter = iterator(0);
@@ -1247,7 +1252,7 @@ public:
         		return block_select(meta, symbols, block_start + block_offset, local_rank, block_size_start, symbol);
         	}
         	else {
-        		return this->iterator(this->size());
+        		return this->iterator(meta->size());
         	}
         }
         else {
@@ -1255,6 +1260,11 @@ public:
         }
     }
 
+    UBigInt count(Int pos) const
+    {
+    	auto location = find_run(pos);
+    	return block_count(metadata(), symbols(), location);
+    }
 
 
     void dump(std::ostream& out = cout, bool dump_index = true) const
@@ -1481,49 +1491,42 @@ private:
 			data_pos += len;
     	}
 
-    	// FIXME: specify correct local_idx
     	return Iterator(symbols, data_size, data_size, 0, run_base + block_size_prefix, run);
     }
 
 
-    Location block_count(const Metadata* meta, const Value* symbols, const Location& location, UBigInt rank) const
+    UBigInt block_count(const Metadata* meta, const Value* symbols, const Location& location) const
     {
-    	Codec codec;
+    	size_t pos = location.data_pos();
     	size_t data_size = meta->data_size();
-    	size_t data_pos  = location.data_pos();
 
-    	UBigInt rank_base = 0;
-    	size_t  run_base  = 0;
+    	Codec codec;
 
-    	while (data_pos < data_size)
+    	UBigInt local_pos = location.local_idx();
+
+    	UBigInt count = 0;
+    	Int last_symbol = -1;
+
+    	while (pos < data_size)
     	{
     		UBigInt run_value = 0;
-    		auto len = codec.decode(symbols, run_value, data_pos);
+    		auto len = codec.decode(symbols, run_value, pos);
     		auto run = decode_run(run_value);
 
-    		auto run_length = run.length();
+    		if (run.symbol() == last_symbol || last_symbol == -1)
+    		{
+    			pos += len;
+    			count += run.length() - local_pos;
+    			last_symbol = run.symbol();
 
-			if (run.symbol() == location.symbol())
-			{
-				if (rank >= rank_base + run_length)
-				{
-					rank_base += run_length;
-					run_base  += run_length;
-				}
-				else {
-					size_t local_idx   = rank - rank_base;
-					UBigInt block_rank = rank_base + local_idx; // FIXME: +1?
-					size_t block_idx   = run_base + local_idx;
-
-					return BlockSelectResult(block_rank, data_pos, local_idx, block_idx);
-				}
-			}
-
-			run_base += run_length;
-			data_pos += len;
+    			local_pos = 0;
+    		}
+    		else {
+    			return count;
+    		}
     	}
 
-    	return BlockSelectResult(rank_base, data_size, 0, run_base);
+    	return count;
     }
 
 

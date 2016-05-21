@@ -34,9 +34,9 @@ int main()
 
 		size_t sums[] = {0, 0};
 
-		for (int c = 0; c < 302; c++)
+		for (int c = 0; c < 100; c++)
 		{
-			Int symbol = (c % 8 == 0);
+			Int symbol = (c % 2 == 0);
 
 			sums[symbol] += c + 1;
 
@@ -48,6 +48,14 @@ int main()
 
 		cout << endl << endl;
 
+		Int size = seq->size();
+		for (Int c = 0; c <= size; c++)
+		{
+			auto rank = seq->count(c);
+			cout << c << " -- " << rank << endl;
+		}
+
+
 //		auto iter = seq->iterator(0);
 //
 //		while (iter.has_data())
@@ -56,12 +64,15 @@ int main()
 //			iter.next();
 //		}
 
-		Int size = seq->size();
-		for (Int c = 0; c < size; c++)
-		{
-			auto rank = seq->rank(c + 1, 1);
-			cout << c << " -- " << rank << " -- " << seq->select(1, rank).idx() << endl;
-		}
+//		Int size = seq->size();
+//		for (Int c = 0; c < size; c++)
+//		{
+//			auto rank = seq->rank(c + 1, 1);
+//			cout << c << " -- " << rank << " -- " << seq->select(1, rank).idx() << endl;
+//		}
+
+//		auto rank = seq->rank(c + 1, 1);
+//		cout << seq->find_select(1, 638).idx() << endl;
 
 		cout << "Sums: " << sums[0] << " " << sums[1] << endl;
 	}
