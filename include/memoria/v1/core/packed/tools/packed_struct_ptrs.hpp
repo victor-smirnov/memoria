@@ -169,7 +169,7 @@ MakeSharedPackedStructByBlock(Int block_size, Args&&... args)
     PkdStructSPtr<T> ptr = std::allocate_shared<T>(SharedPtrAllocator<T>(block_size, sizeof(T)));
 
     ptr->setTopLevelAllocator();
-    ptr->init(std::forward<Args>(args)...);
+    ptr->init(block_size, std::forward<Args>(args)...);
     ptr->set_block_size(block_size);
 
     return ptr;

@@ -165,6 +165,24 @@ public:
         }
     }
 
+
+    void init_by_block(Int block_size, Int capacity = 0)
+    {
+    	Base::init(block_size, Blocks * SegmentsPerBlock + 1);
+
+    	Metadata* meta = this->template allocate<Metadata>(METADATA);
+
+    	meta->size()        = 0;
+    	meta->max_size()    = capacity;
+    	meta->index_size()  = MyType::index_size(capacity);
+
+    	for (Int block = 0; block < Blocks; block++)
+    	{
+    		this->template allocateArrayBySize<IndexValue>(block * SegmentsPerBlock + 1, meta->index_size());
+    		this->template allocateArrayBySize<Value>(block * SegmentsPerBlock + 2, capacity);
+    	}
+    }
+
     void init(const SizesT& sizes)
     {
         MyType::init(sizes[0]);

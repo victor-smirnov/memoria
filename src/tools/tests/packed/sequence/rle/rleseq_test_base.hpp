@@ -80,13 +80,15 @@ public:
         return symbols;
     }
 
-    vector<Int> populateRandom(SeqPtr& seq, Int size)
+    template <typename T>
+    vector<Int> populateRandom(T& seq, Int size)
     {
         seq->clear();
         return fillRandom(seq, size);
     }
 
-    vector<Int> fillRandom(SeqPtr& seq, Int size)
+    template <typename T>
+    vector<Int> fillRandom(T& seq, Int size)
     {
         for (Int c = 0; c < size; c++)
         {
@@ -111,13 +113,13 @@ public:
         	iter.next();
         }
 
-        this->assertIndexCorrect(MA_SRC, seq);
         this->assertEqual(seq, symbols);
 
         return symbols;
     }
 
-    Int rank(const SeqPtr& seq, Int start, Int end, Int symbol)
+    template <typename T>
+    Int rank(const T& seq, Int start, Int end, Int symbol)
     {
         Int rank = 0;
 
@@ -132,7 +134,8 @@ public:
         return rank;
     }
 
-    void assertIndexCorrect(const char* src, const SeqPtr& seq)
+    template <typename T>
+    void assertIndexCorrect(const char* src, const T& seq)
     {
         try {
             seq->check();
@@ -144,13 +147,23 @@ public:
         }
     }
 
-    void assertEmpty(const SeqPtr& seq)
+    template <typename T>
+    void assertEmpty(const T& seq)
     {
         AssertEQ(MA_SRC, seq->size(), 0);
         AssertFalse(MA_SRC, seq->has_index());
     }
 
-    void assertEqual(const SeqPtr& seq, const vector<Int>& symbols)
+    template <typename T>
+    void dumpAsSymbols(const vector<T>& symbols)
+    {
+        dumpSymbols<Byte>(this->out(), symbols.size(), NumberOfBits(Symbols - 1), [&](Int idx){
+        	return symbols[idx];
+        });
+    }
+
+    template <typename T>
+    void assertEqual(const T& seq, const vector<Int>& symbols)
     {
         AssertEQ(MA_SRC, seq->size(), (Int)symbols.size());
 
@@ -169,9 +182,7 @@ public:
         }
         catch(...) {
             seq->dump(this->out());
-            dumpArray<Byte>(this->out(), symbols.size(), [&](Int idx){
-            	return symbols[idx];
-            });
+            dumpAsSymbols(symbols);
             throw;
         }
     }

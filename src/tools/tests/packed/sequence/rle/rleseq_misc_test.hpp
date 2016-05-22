@@ -57,14 +57,13 @@ public:
     {
         this->size_ = 2048;
 
-//        MEMORIA_ADD_TEST(testCreate);
-//        MEMORIA_ADD_TEST(testInsertSingle);
-////        MEMORIA_ADD_TEST(testInsertMultiple);
-//        MEMORIA_ADD_TEST(testRemoveMulti);
-//        MEMORIA_ADD_TEST(testRemoveAll);
-//        MEMORIA_ADD_TEST(testClear);
+        MEMORIA_ADD_TEST(testCreate);
+        MEMORIA_ADD_TEST(testInsertSingle);
+        MEMORIA_ADD_TEST(testRemoveMulti);
+        MEMORIA_ADD_TEST(testRemoveAll);
+        MEMORIA_ADD_TEST(testClear);
 
-//        MEMORIA_ADD_TEST(testSplit);
+        MEMORIA_ADD_TEST(testSplit);
         MEMORIA_ADD_TEST(testMerge);
     }
 
@@ -173,40 +172,6 @@ public:
 
 
 
-//
-//    void testInsertMultiple()
-//    {
-//        for (Int size = 8192; size <= this->size_; size *= 2)
-//        {
-//            out()<<size<<std::endl;
-//
-//            auto seq = this->createEmptySequence();
-//
-//            auto symbols = fillRandom(seq, size);
-//
-//            for (Int c = 0; c < this->iterations_; c++)
-//            {
-//                Int idx     = getRandom(seq->size());
-//
-//                vector<Int> block(10);
-//                for (Int d = 0; d < block.size(); d++)
-//                {
-//                    block[d] = getRandom(Blocks);
-//                }
-//
-//                Int cnt = 0;
-//                seq->insert(idx, block.size(), [&](){
-//                    return block[cnt++];
-//                });
-//
-//                symbols.insert(symbols.begin() + idx, block.begin(), block.end());
-//
-//                assertIndexCorrect(MA_SRC, seq);
-//                assertEqual(seq, symbols);
-//            }
-//        }
-//    }
-//
     void testRemoveMulti()
     {
         for (Int size = 1; size <= this->size_; size *= 2)

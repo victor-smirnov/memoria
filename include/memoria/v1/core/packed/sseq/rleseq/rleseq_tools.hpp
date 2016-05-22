@@ -68,4 +68,38 @@ static constexpr UBigInt EncodeRun(Int symbol, UBigInt length)
 }
 
 
+struct Location {
+	size_t data_pos_;
+	size_t data_length_;
+	size_t local_idx_;
+	size_t block_base_;
+	size_t run_base_;
+
+	RLESymbolsRun run_;
+	bool out_of_range_;
+
+	Location(size_t data_pos, size_t data_length, size_t local_idx, size_t block_base, size_t run_base, RLESymbolsRun run, bool out_of_range = false):
+		data_pos_(data_pos), data_length_(data_length), local_idx_(local_idx), block_base_(block_base), run_base_(run_base), run_(run), out_of_range_(out_of_range)
+	{}
+
+	size_t run_suffix() const {return run_.length() - local_idx_;}
+	size_t run_prefix() const {return local_idx_;}
+
+	size_t local_idx() 	const {return local_idx_;}
+	auto symbol() 		const {return run_.symbol();}
+	auto length() 		const {return run_.length();}
+
+	auto data_pos() 	const {return data_pos_;}
+	auto data_length() 	const {return data_length_;}
+	auto data_end() 	const {return data_pos_ + data_length_;}
+	auto block_base()	const {return block_base_;}
+	auto run_base()		const {return run_base_;}
+
+	bool out_of_range() const {return out_of_range_;}
+
+	const RLESymbolsRun& run() const {return run_;}
+};
+
+
+
 }}}

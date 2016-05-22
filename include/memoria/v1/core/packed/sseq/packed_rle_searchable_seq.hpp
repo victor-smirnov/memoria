@@ -18,6 +18,8 @@
 
 #include <memoria/v1/core/packed/tools/packed_allocator.hpp>
 #include <memoria/v1/core/packed/tree/fse/packed_fse_quick_tree.hpp>
+#include <memoria/v1/core/packed/buffer/packed_rle_sequence_input_buffer.hpp>
+
 
 #include <memoria/v1/core/tools/static_array.hpp>
 #include <memoria/v1/core/tools/optional.hpp>
@@ -34,6 +36,7 @@ namespace memoria {
 namespace v1 {
 
 using rleseq::RLESymbolsRun;
+using rleseq::Location;
 
 namespace {
 	static constexpr Int SymbolsRange(Int symbols) {
@@ -84,8 +87,6 @@ public:
 
     static constexpr Int Indexes                = Types::Blocks;
     static constexpr Int Symbols                = Types::Blocks;
-//    static constexpr Int BitsPerSymbol          = NumberOfBits(Symbols - 1);
-//    static constexpr Int SymbolMask          	= (1 << BitsPerSymbol) - 1;
 
     static constexpr size_t MaxRunLength        = MaxRLERunLength;
 
@@ -105,7 +106,7 @@ public:
     using SizeIndex = PkdFQTreeT<BigInt, 1>;
 
     using InputType = Value;
-    using InputBuffer = MyType;
+    using InputBuffer = PkdRLESeqInputBuffer<Types_>;
 
     using OffsetsType = UByte;
 
@@ -145,38 +146,6 @@ public:
         return (value / divisor) + ((value % divisor) ? 1 : 0);
     }
 
-    struct Location {
-    	size_t data_pos_;
-    	size_t data_length_;
-    	size_t local_idx_;
-    	size_t block_base_;
-    	size_t run_base_;
-
-    	RLESymbolsRun run_;
-    	bool out_of_range_;
-
-    	Location(size_t data_pos, size_t data_length, size_t local_idx, size_t block_base, size_t run_base, RLESymbolsRun run, bool out_of_range = false):
-    		data_pos_(data_pos), data_length_(data_length), local_idx_(local_idx), block_base_(block_base), run_base_(run_base), run_(run), out_of_range_(out_of_range)
-    	{}
-
-    	size_t run_suffix() const {return run_.length() - local_idx_;}
-    	size_t run_prefix() const {return local_idx_;}
-
-    	size_t local_idx() 	const {return local_idx_;}
-    	auto symbol() 		const {return run_.symbol();}
-    	auto length() 		const {return run_.length();}
-
-    	auto data_pos() 	const {return data_pos_;}
-    	auto data_length() 	const {return data_length_;}
-    	auto data_end() 	const {return data_pos_ + data_length_;}
-    	auto block() 		const {return data_pos_ / ValuesPerBranch;}
-    	auto block_base()	const {return block_base_;}
-    	auto run_base()		const {return run_base_;}
-
-    	bool out_of_range() const {return out_of_range_;}
-
-    	const RLESymbolsRun& run() const {return run_;}
-    };
 
 
 public:
@@ -685,18 +654,91 @@ public:
 
     void insert_buffer(Int at, const InputBuffer* buffer, Int start, Int size)
     {
-//        insertDataRoom(at, size);
-//        tools().move(buffer->symbols(), this->symbols(), start, at, size);
-//        reindex();
+    	if (size > 0)
+    	{
+    		auto meta = this->metadata();
+
+    		MEMORIA_V1_ASSERT(at, <= , meta->size());
+
+    		auto start_run 	= buffer->find_run(start);
+    		auto end_run 	= buffer->find_run(start + size);
+
+    		auto symbols 	 = this->symbols();
+    		auto buf_symbols = buffer->symbols();
+
+    		Codec codec;
+
+    		auto location = find_run(at);
+
+    		if (start_run.data_pos() < end_run.data_pos())
+    		{
+        		if (location.run_prefix() > 0)
+        		{
+        			location = split_run(location);
+        		}
+
+    			UBigInt start_run_value = encode_run(start_run.symbol(), start_run.run_suffix());
+    			size_t start_run_value_length = codec.length(start_run_value);
+
+    			if (end_run.run_prefix() > 0)
+    			{
+    				UBigInt end_run_value = encode_run(end_run.symbol(), end_run.run_prefix());
+    				size_t end_run_value_length = codec.length(end_run_value);
+
+    				size_t to_copy 		= end_run.data_pos() - start_run.data_end();
+    				size_t total_length = start_run_value_length + to_copy + end_run_value_length;
+
+    				ensure_capacity(total_length);
+
+    				size_t pos = location.data_pos();
+    				codec.move(symbols, pos, pos + total_length, meta->data_size() - pos);
+
+    				pos += codec.encode(symbols, start_run_value, pos);
+    				codec.copy(buf_symbols, start_run.data_end(), symbols, pos, to_copy);
+
+    				pos += to_copy;
+    				codec.encode(symbols, end_run_value, pos);
+
+    				meta->data_size() += total_length;
+    			}
+    			else {
+    				size_t to_copy 		= end_run.data_pos() - start_run.data_end();
+    				size_t total_length = start_run_value_length + to_copy;
+
+    				ensure_capacity(total_length);
+
+    				size_t pos = location.data_pos();
+    				codec.move(symbols, pos, pos + total_length, meta->data_size() - pos);
+
+    				pos += codec.encode(symbols, start_run_value, pos);
+    				codec.copy(buf_symbols, start_run.data_end(), symbols, pos, to_copy);
+
+    				meta->data_size() += total_length;
+    			}
+
+    			meta->size() += size;
+    		}
+    		else if (location.symbol() == start_run.symbol())
+    		{
+    			add_run_length(location, size);
+    		}
+    		else {
+    			if (location.run_prefix() > 0)
+    			{
+    				location = split_run(location);
+    			}
+
+    			insert_run(location.data_pos(), start_run.symbol(), size);
+    		}
+
+    		reindex();
+    	}
     }
 
 
 
 
-    void read(Int start, Int end, std::function<void (Value)> fn) const
-    {
 
-    }
 
 
 
@@ -1054,7 +1096,7 @@ public:
         	if (end < size)
         	{
         		auto location 		= find_run(end);
-        		auto block 	  		= location.block();
+        		auto block 	  		= location.data_pos() / ValuesPerBranch;
         		auto block_start 	= block * ValuesPerBranch;
 
         		auto rank_base 	= sum_index->sum(symbol, block);
