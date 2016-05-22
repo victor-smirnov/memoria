@@ -61,10 +61,12 @@ public:
     {
         this->size_ = 300;
 
-        MEMORIA_ADD_TEST(runSelectFromFWTest);
         MEMORIA_ADD_TEST(runSelectFWTest);
-
         MEMORIA_ADD_TEST(runSelectBWTest);
+
+
+        MEMORIA_ADD_TEST(runSelectFromFWTest);
+        MEMORIA_ADD_TEST(runSelectFromBWTest);
     }
 
     virtual ~PackedRLESearchableSequenceSelectTest() noexcept {}
@@ -107,28 +109,36 @@ public:
             }
         }
 
-        return SelectResult(-1, total, total == rank);
+        return SelectResult(seq->size(), total, total == rank);
     }
 
     void assertSelectFW(const SeqPtr& seq, Int start, Int rank, Value symbol)
     {
-        auto result1 = seq->selectFw(start, rank, symbol);
+        auto result1 = seq->selectFW(start, rank, symbol);
         auto result2 = selectFW(seq, start, rank, symbol);
 
-        AssertEQ(MA_SRC, result1.idx(),  result2.idx(), SBuf() << start << " " << rank);
+        AssertEQ(MA_SRC, result1.is_found(),  result2.is_found(), SBuf() << start << " " << rank);
+        AssertEQ(MA_SRC, result1.rank(),  result2.rank(), SBuf() << start << " " << rank);
+
+        if (result1.is_found())
+        {
+        	AssertEQ(MA_SRC, result1.idx(),  result2.idx(), SBuf() << start << " " << rank);
+        }
     }
+
+
 
     void assertSelectBW(const SeqPtr& seq, Int start, Int rank, Value symbol)
     {
-        auto result1 = seq->selectBw(start, rank, symbol);
+        auto result1 = seq->selectBW(start, rank, symbol);
         auto result2 = selectBW(seq, start, rank, symbol);
 
-        if (result1.is_set())
+        AssertEQ(MA_SRC, result1.is_found(),  result2.is_found(), SBuf() << start << " " << rank);
+        AssertEQ(MA_SRC, result1.rank(),  result2.rank(), SBuf() << start << " " << rank);
+
+        if (result1.is_found())
         {
-        	AssertEQ(MA_SRC, result1.value().idx(),  result2.idx(), SBuf()<<start<<" "<<rank);
-        }
-        else {
-        	// FIXME: check out-of-range cases
+        	AssertEQ(MA_SRC, result1.idx(),  result2.idx(), SBuf() << start << " " << rank);
         }
     }
 
@@ -186,7 +196,7 @@ public:
             }
         }
 
-        return Pair(rank > 0 ? rank : 1, start);
+        return Pair(rank > 0 ? rank * 2 : 1, start);
     }
 
 
@@ -207,7 +217,7 @@ public:
             }
         }
 
-        return Pair(rank > 0 ? rank : 1, start);
+        return Pair(rank > 0 ? rank * 2 : 1, start);
     }
 
 
@@ -245,25 +255,12 @@ public:
     {
         out()<<"Parameters: Symbols="<<Symbols<<" symbol="<<(Int)symbol<<endl;
 
-        auto seq = createEmptySequence();
-
-        populate(seq, this->size_, symbol);
-
-        auto ranks = createRanksFW(seq, symbol);
-
-        out()<<"Solid bitmap"<<endl;
-
-        for (const auto& pair: ranks)
-        {
-        	assertSelectFW(seq, pair.idx, pair.rank, symbol);
-        }
-
-        out()<<endl;
         out()<<"Random bitmap, random positions"<<endl;
 
+        auto seq = createEmptySequence();
         populateRandom(seq, this->size_);
 
-        ranks = createRanksFW(seq, symbol);
+        auto ranks = createRanksFW(seq, symbol);
         for (const auto& pair: ranks)
         {
         	assertSelectFW(seq, pair.idx, pair.rank, symbol);
@@ -281,50 +278,75 @@ public:
 
         Int maxrank_ = seq->rank(1) + 1;
 
-        for (Int rank = 1; rank < maxrank_; rank += 10)
+        for (Int rank = 1; rank < maxrank_; rank += 100)
         {
-            auto result1 = seq->select(rank, 1);
+            auto result1 = seq->selectFW(rank, 1);
             auto result3 = selectFW(seq, -1, rank, 1);
 
             AssertEQ(MA_SRC, result1.is_found(), result3.is_found(), SBuf()<<rank);
-
-            if (result1.is_found())
-            {
-                AssertEQ(MA_SRC, result1.idx(), result3.idx(), SBuf()<<rank);
-            }
+            AssertEQ(MA_SRC, result1.idx(), result3.idx(), SBuf()<<rank);
+            AssertEQ(MA_SRC, result1.rank(), result3.rank(), SBuf()<<rank);
         }
+
+        auto result1 = seq->selectFW(maxrank_ * 2, 1);
+        auto result3 = selectFW(seq, -1, maxrank_ * 2, 1);
+
+        AssertFalse(MA_SRC, result1.is_found());
+        AssertEQ(MA_SRC, result1.rank(), maxrank_ - 1);
+
+        AssertEQ(MA_SRC, result1.is_found(), result3.is_found());
+        AssertEQ(MA_SRC, result1.rank(), result3.rank());
     }
+
 
 
     void runSelectBWTest()
     {
-        runSelectBWTest(0);
-        runSelectBWTest(Symbols - 1);
-    }
-
-    void runSelectBWTest(Value symbol)
-    {
-        out()<<"Parameters: Symbols="<<Symbols<<" symbol="<<(Int)symbol<<endl;
-
         auto seq = createEmptySequence();
-
-        populate(seq, this->size_, symbol);
-
-        auto ranks = this->createRanksBW(seq, symbol);
-
-        out()<<"Solid bitmap"<<endl;
-
-        for (const auto& pair: ranks)
-        {
-        	assertSelectBW(seq, pair.idx, pair.rank, symbol);
-        }
-
-        out()<<endl;
-        out()<<"Random bitmap, random positions"<<endl;
 
         populateRandom(seq, this->size_);
 
-        ranks = this->createRanksBW(seq, symbol);
+        Int maxrank_ = seq->rank(1) + 1;
+
+        for (Int rank = 1; rank < maxrank_; rank += 100)
+        {
+            auto result1 = seq->selectBW(rank, 1);
+            auto result3 = selectBW(seq, seq->size(), rank, 1);
+
+            AssertEQ(MA_SRC, result1.is_found(), result3.is_found(), SBuf()<<rank);
+            AssertEQ(MA_SRC, result1.idx(), result3.idx(), SBuf()<<rank);
+
+            AssertEQ(MA_SRC, result1.rank(), result3.rank(), SBuf()<<rank);
+        }
+
+        auto result1 = seq->selectBW(maxrank_ * 2, 1);
+        auto result3 = selectBW(seq, seq->size(), maxrank_ * 2, 1);
+
+        AssertFalse(MA_SRC, result1.is_found());
+        AssertEQ(MA_SRC, result1.rank(), maxrank_ - 1);
+
+        AssertEQ(MA_SRC, result1.is_found(), result3.is_found());
+        AssertEQ(MA_SRC, result1.rank(), result3.rank());
+    }
+
+
+    void runSelectFromBWTest()
+    {
+        runSelectFromBWTest(0);
+        runSelectFromBWTest(Symbols - 1);
+    }
+
+    void runSelectFromBWTest(Value symbol)
+    {
+        out()<<"Parameters: Symbols="<<Symbols<<" symbol="<<(Int)symbol<<endl;
+
+
+        out()<<"Random bitmap, random positions"<<endl;
+
+        auto seq = createEmptySequence();
+        populateRandom(seq, this->size_);
+
+        auto ranks = this->createRanksBW(seq, symbol);
 
         for (const auto& pair: ranks)
         {

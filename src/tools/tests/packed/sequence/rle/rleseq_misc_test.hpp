@@ -57,12 +57,15 @@ public:
     {
         this->size_ = 2048;
 
-        MEMORIA_ADD_TEST(testCreate);
-        MEMORIA_ADD_TEST(testInsertSingle);
-//        MEMORIA_ADD_TEST(testInsertMultiple);
-        MEMORIA_ADD_TEST(testRemoveMulti);
-        MEMORIA_ADD_TEST(testRemoveAll);
-        MEMORIA_ADD_TEST(testClear);
+//        MEMORIA_ADD_TEST(testCreate);
+//        MEMORIA_ADD_TEST(testInsertSingle);
+////        MEMORIA_ADD_TEST(testInsertMultiple);
+//        MEMORIA_ADD_TEST(testRemoveMulti);
+//        MEMORIA_ADD_TEST(testRemoveAll);
+//        MEMORIA_ADD_TEST(testClear);
+
+//        MEMORIA_ADD_TEST(testSplit);
+        MEMORIA_ADD_TEST(testMerge);
     }
 
     virtual ~PackedRLESearchableSequenceMiscTest() noexcept {}
@@ -90,12 +93,11 @@ public:
             out() << size << endl;
 
             auto seq = createEmptySequence();
-
             auto symbols = fillRandom(seq, size);
 
             for (Int c = 0; c < this->iterations_; c++)
             {
-                Int idx     = getRandom(seq->size());
+            	Int idx     = getRandom(seq->size());
                 Int symbol  = getRandom(Blocks);
 
                 out() << "Insert " << symbol << " at " << idx << endl;
@@ -109,6 +111,68 @@ public:
             }
         }
     }
+
+    void testSplit()
+    {
+    	for (Int size = 16; size <= this->size_; size *= 2)
+    	{
+    		out() << size << endl;
+
+    		for (Int c = 0; c < this->iterations_; c++)
+    		{
+    			auto seq = createEmptySequence();
+    			auto symbols = fillRandom(seq, size);
+
+    			Int idx = getRandom(seq->size());
+
+    			auto seq2 = createEmptySequence();
+
+    			out() << "Split at " << idx << endl;
+
+    			seq->splitTo(seq2.get(), idx);
+
+    			seq2->check();
+    			seq->check();
+
+    			vector<Int> symbols2(symbols.begin() + idx, symbols.end());
+
+    			symbols.erase(symbols.begin() + idx, symbols.end());
+
+
+    			assertEqual(seq, symbols);
+    			assertEqual(seq2, symbols2);
+    		}
+    	}
+    }
+
+    void testMerge()
+    {
+    	for (Int size = 16; size <= this->size_; size *= 2)
+    	{
+    		out() << size << endl;
+
+    		for (Int c = 0; c < this->iterations_; c++)
+    		{
+    			auto seq1 = createEmptySequence();
+    			auto symbols1 = fillRandom(seq1, size);
+
+    			auto seq2 = createEmptySequence();
+    			auto symbols2 = fillRandom(seq2, size);
+
+
+    			seq1->mergeWith(seq2.get());
+
+    			seq2->check();
+
+    			symbols2.insert(symbols2.begin(), symbols1.begin(), symbols1.end());
+
+    			assertEqual(seq2, symbols2);
+    		}
+    	}
+    }
+
+
+
 //
 //    void testInsertMultiple()
 //    {

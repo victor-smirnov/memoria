@@ -20,6 +20,8 @@
 #include <memoria/v1/core/tools/static_array.hpp>
 #include <memoria/v1/core/tools/assert.hpp>
 
+#include "rleseq_tools.hpp"
+
 namespace memoria {
 namespace v1 {
 namespace rleseq {

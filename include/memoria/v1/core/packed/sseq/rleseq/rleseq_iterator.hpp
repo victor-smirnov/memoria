@@ -20,19 +20,11 @@
 #include <memoria/v1/core/tools/static_array.hpp>
 #include <memoria/v1/core/tools/assert.hpp>
 
+#include "rleseq_tools.hpp"
+
 namespace memoria {
 namespace v1 {
 
-class RLESymbolsRun {
-	Int symbol_;
-	UBigInt length_;
-public:
-	constexpr RLESymbolsRun(): symbol_(0), length_(0) {}
-	constexpr RLESymbolsRun(Int symbol, UBigInt length): symbol_(symbol), length_(length) {}
-
-	Int symbol() const {return symbol_;}
-	UBigInt length() const {return length_;}
-};
 
 
 namespace rleseq {

@@ -33,6 +33,7 @@
 namespace memoria {
 namespace v1 {
 
+using rleseq::RLESymbolsRun;
 
 namespace {
 	static constexpr Int SymbolsRange(Int symbols) {
@@ -83,8 +84,8 @@ public:
 
     static constexpr Int Indexes                = Types::Blocks;
     static constexpr Int Symbols                = Types::Blocks;
-    static constexpr Int BitsPerSymbol          = NumberOfBits(Symbols - 1);
-    static constexpr Int SymbolMask          	= (1 << BitsPerSymbol) - 1;
+//    static constexpr Int BitsPerSymbol          = NumberOfBits(Symbols - 1);
+//    static constexpr Int SymbolMask          	= (1 << BitsPerSymbol) - 1;
 
     static constexpr size_t MaxRunLength        = MaxRLERunLength;
 
@@ -191,24 +192,12 @@ public:
 
     static constexpr RLESymbolsRun decode_run(UBigInt value)
     {
-    	return RLESymbolsRun(value & SymbolMask, value >> BitsPerSymbol);
+    	return rleseq::DecodeRun<Symbols>(value);
     }
 
     static constexpr UBigInt encode_run(Int symbol, UBigInt length)
     {
-    	if (length <= MaxRunLength)
-    	{
-    		if (length > 0)
-    		{
-    			return (symbol & SymbolMask) | (length << BitsPerSymbol);
-    		}
-    		else {
-    			throw Exception(MA_SRC, "Symbols run length must be positive");
-    		}
-    	}
-    	else {
-    		throw Exception(MA_SRC, SBuf() << "Symbols run length of " << length << " exceeds limit (" << (size_t)MaxRunLength << ")");
-    	}
+    	return rleseq::EncodeRun<Symbols, MaxRunLength>(symbol, length);
     }
 
 
@@ -455,6 +444,17 @@ public:
         // other sections are empty at this moment
     }
 
+    void clear()
+    {
+        Base::resizeBlock(SYMBOLS, 0);
+        removeIndex();
+
+        auto meta = this->metadata();
+
+        meta->size() 		= 0;
+        meta->data_size() 	= 0;
+    }
+
 
 public:
     static Int empty_size()
@@ -464,6 +464,7 @@ public:
         Int offsets_length  	= offsets_segment_size(0);
         Int sum_index_length    = 0;
         Int values_length   	= 0;
+
         Int block_size      	= Base::block_size(metadata_length + size_index_length  + offsets_length + sum_index_length + values_length, TOTAL_SEGMENTS__);
         return block_size;
     }
@@ -473,6 +474,8 @@ public:
     {
         Base::free(SIZE_INDEX);
         Base::free(SUM_INDEX);
+
+        Base::resizeBlock(OFFSETS, offsets_segment_size(0));
     }
 
 
@@ -555,25 +558,6 @@ public:
         }
     }
 
-    void set(Int idx, Int symbol)
-    {
-        MEMORIA_V1_ASSERT(idx , <, size());
-
-        //tools().set(symbols(), idx, symbol);
-    }
-
-    void clear()
-    {
-        Base::resizeBlock(SYMBOLS, 0);
-        removeIndex();
-
-        auto meta = this->metadata();
-
-        meta->size() = 0;
-        meta->data_size() = 0;
-    }
-
-
     void ensure_capacity(Int capacity)
     {
     	Int current_capacity = this->symbols_block_capacity();
@@ -595,20 +579,6 @@ protected:
         Base::resizeBlock(SYMBOLS, new_size);
     }
 
-
-    void insertDataRoom(Int pos, Int length)
-    {
-        enlargeData(length);
-
-        auto symbols = this->symbols();
-
-        Int rest = size() - pos;
-
-        tools().move(symbols, pos, (pos + length), rest);
-
-        size() += length;
-    }
-
     void shrinkData(Int length)
     {
         Int current_size = this->element_size(SYMBOLS);
@@ -620,6 +590,7 @@ protected:
             Base::resizeBlock(SYMBOLS, new_size);
         }
     }
+
 
     void shrink_to_data()
     {
@@ -712,101 +683,19 @@ public:
     	reindex();
     }
 
-
-
-
-
-
-
-    void fill(Int start, Int end, std::function<Value ()> fn)
-    {
-        auto symbols = this->symbols();
-        auto tools = this->tools();
-
-        for (Int c = start; c < end; c++)
-        {
-            Value val = fn();
-            tools.set(symbols, c, val);
-        }
-    }
-
     void insert_buffer(Int at, const InputBuffer* buffer, Int start, Int size)
     {
-        insertDataRoom(at, size);
-        tools().move(buffer->symbols(), this->symbols(), start, at, size);
-        reindex();
-    }
-
-
-    void insert(Int start, Int length, std::function<Value ()> fn)
-    {
-        MEMORIA_V1_ASSERT(start, >=, 0);
-        MEMORIA_V1_ASSERT(start, <=, size());
-
-        MEMORIA_V1_ASSERT(length, >=, 0);
-
-        insertDataRoom(start, length);
-        fill(start, start + length, fn);
-        reindex();
+//        insertDataRoom(at, size);
+//        tools().move(buffer->symbols(), this->symbols(), start, at, size);
+//        reindex();
     }
 
 
 
-
-    template <typename Adaptor>
-    void fill_with_buf(Int start, Int length, Adaptor&& adaptor)
-    {
-        Int size = this->size();
-
-        MEMORIA_V1_ASSERT(start, >=, 0);
-        MEMORIA_V1_ASSERT(start, <=, size);
-        MEMORIA_V1_ASSERT(length, >=, 0);
-
-        insertDataRoom(start, length);
-
-        auto symbols = this->symbols();
-
-        Int total = 0;
-
-        while (total < length)
-        {
-            auto buf = adaptor(length - total);
-
-            tools().move(buf.symbols(), symbols, 0, start + total, buf.size());
-
-            total += buf.size();
-        }
-
-        reindex();
-    }
-
-
-    void update(Int start, Int end, std::function<Value ()> fn)
-    {
-        MEMORIA_V1_ASSERT(start, >=, 0);
-        MEMORIA_V1_ASSERT(start, <=, end);
-        MEMORIA_V1_ASSERT(end, <=, size());
-
-        fill(start, end, fn);
-        reindex();
-    }
-
-
-    using ReadState = SizesT;
 
     void read(Int start, Int end, std::function<void (Value)> fn) const
     {
-        MEMORIA_V1_ASSERT(start, >=, 0);
-        MEMORIA_V1_ASSERT(start, <=, end);
-        MEMORIA_V1_ASSERT(end, <=, size());
 
-        auto symbols    = this->symbols();
-        auto tools      = this->tools();
-
-        for (Int c = start; c < end; c++)
-        {
-            fn(tools.get(symbols, c));
-        }
     }
 
 
@@ -901,7 +790,7 @@ public:
         other_meta->data_size() += data_to_move;
         other_meta->size() 		+= meta->size();
 
-        compactify_runs();
+        other->compactify_runs();
 
         other->reindex();
     }
@@ -1117,12 +1006,6 @@ public:
     }
 
 
-//    Int get(Int idx) const
-//    {
-//        MEMORIA_V1_ASSERT(idx , <, size());
-//        return tools().get(symbols(), idx);
-//    }
-
     Int get_values(Int idx) const
     {
         MEMORIA_V1_ASSERT(idx , <, size());
@@ -1191,75 +1074,7 @@ public:
         }
     }
 
-    UBigInt rank_s(Int end, Int symbol) const
-    {
-    	MEMORIA_V1_ASSERT(end, >=, 0);
-    	MEMORIA_V1_ASSERT(end, <=, size());
-
-    	return block_rank(metadata(), 0, end, symbol);
-    }
-
-    UBigInt rank_s(Int start, Int end, Int symbol) const
-    {
-    	return rank_s(end, symbol) - rank_s(start, symbol);
-    }
-
-    UBigInt rank_is(Int end, Int symbol) const
-    {
-    	auto iter = begin();
-
-    	UBigInt rank = 0;
-
-    	while (iter.has_data() && iter.idx() < end)
-    	{
-    		rank += iter.symbol() == symbol;
-    		iter.next();
-    	}
-
-    	return rank;
-    }
-
-    UBigInt rank_is(Int start, Int end, Int symbol) const
-    {
-    	return rank_is(end, symbol) - rank_s(start, symbol);
-    }
-
-    auto select_s(Int symbol, UBigInt rank) const
-    {
-    	MEMORIA_V1_ASSERT(rank, >=, 1);
-    	return block_select(metadata(), symbols(), 0, rank, 0, symbol);
-    }
-
-    auto select_is(Int symbol, UBigInt rank) const {
-    	return select_is(begin(), symbol, rank);
-    }
-
-    auto selectFw_is(Int pos, UBigInt rank, Int symbol) const
-    {
-    	return select_fw_is(iterator(pos), symbol, rank);
-    }
-
-
-    UBigInt find_rank_iter(Int end, Int symbol) const
-    {
-    	auto iter = iterator(0);
-
-    	UBigInt rank = 0;
-
-    	while (iter.has_next())
-    	{
-    		iter.next();
-    		if (iter.idx() < end)
-    		{
-    			rank += iter.symbol() == symbol;
-    		}
-    	}
-
-    	return rank;
-    }
-
-
-    Iterator select(UBigInt rank, Int symbol) const
+    SelectResult selectFW(UBigInt rank, Int symbol) const
     {
     	auto meta 	 = this->metadata();
     	auto symbols = this->symbols();
@@ -1280,10 +1095,14 @@ public:
 
         		auto block_size_start  = this->size_index()->sum(0, find_result.idx());
 
-        		return block_select(meta, symbols, block_start + block_offset, local_rank, block_size_start, symbol);
+        		auto result = block_select(meta, symbols, block_start + block_offset, local_rank, block_size_start, symbol);
+
+        		result.rank() += find_result.prefix();
+
+        		return result;
         	}
         	else {
-        		return this->iterator(meta->size());
+        		return SelectResult(meta->size(), find_result.prefix(), false);
         	}
         }
         else {
@@ -1291,42 +1110,59 @@ public:
         }
     }
 
+    SelectResult selectBW(UBigInt rank, Int symbol) const
+    {
+    	return selectBW(size(), rank, symbol);
+    }
 
-    Iterator selectFw(Int pos, UBigInt rank, Int symbol) const
+
+    SelectResult selectFW(Int pos, UBigInt rank, Int symbol) const
     {
     	MEMORIA_V1_ASSERT(rank, >=, 1);
+    	MEMORIA_V1_ASSERT(pos, >=, -1);
 
     	auto meta = this->metadata();
 
     	if (pos < meta->size())
     	{
     		UBigInt rank_prefix = this->rank(pos + 1, symbol);
-    		return select(rank_prefix + rank, symbol);
+    		auto result = selectFW(rank_prefix + rank, symbol);
+
+    		result.rank() -= rank_prefix;
+
+    		return result;
     	}
     	else {
-    		return end();
+    		return SelectResult(meta->size(), 0, false);
     	}
     }
 
-    Optional<Iterator> selectBw(Int pos, UBigInt rank, Int symbol) const
+    SelectResult selectBW(Int pos, UBigInt rank, Int symbol) const
     {
-    	MEMORIA_V1_ASSERT(rank, >=, 1);
-
     	auto meta = this->metadata();
 
-    	if (pos < meta->size())
+    	MEMORIA_V1_ASSERT(rank, >=, 1);
+    	MEMORIA_V1_ASSERT(pos, >=, 0);
+    	MEMORIA_V1_ASSERT(pos, <=, meta->size());
+
+    	UBigInt rank_prefix = this->rank(pos, symbol);
+    	if (rank_prefix >= rank)
     	{
-    		UBigInt rank_prefix = this->rank(pos, symbol);
-    		if (rank_prefix > 0)
+    		auto target_rank = rank_prefix - (rank - 1);
+    		auto result = selectFW(target_rank, symbol);
+
+    		if (result.is_found())
     		{
-    			return Optional<Iterator>(select(rank_prefix - (rank - 1), symbol));
+    			result.rank() = rank;
     		}
     		else {
-    			return Optional<Iterator>();
+    			result.rank() = rank_prefix;
     		}
+
+    		return result;
     	}
     	else {
-    		return Optional<Iterator>();
+    		return SelectResult(0, rank_prefix, false);
     	}
     }
 
@@ -1342,9 +1178,9 @@ public:
     void dump(std::ostream& out = cout, bool dump_index = true) const
     {
     	TextPageDumper dumper(out);
-
     	generateDataEvents(&dumper);
     }
+
 
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
@@ -1546,7 +1382,7 @@ private:
     };
 
 
-    Iterator block_select(const Metadata* meta, const Value* symbols, size_t data_pos, UBigInt rank, size_t block_size_prefix, Int symbol) const
+    SelectResult block_select(const Metadata* meta, const Value* symbols, size_t data_pos, UBigInt rank, size_t block_size_prefix, Int symbol) const
     {
     	Codec codec;
     	size_t data_size = meta->data_size();
@@ -1573,7 +1409,7 @@ private:
 				}
 				else {
 					size_t local_idx   = rank - rank_base - 1;
-					return Iterator(symbols, data_pos, data_size, local_idx, run_base + block_size_prefix, run);
+					return SelectResult(run_base + block_size_prefix + local_idx, rank_base + local_idx + 1, true);
 				}
 			}
 			else {
@@ -1583,7 +1419,7 @@ private:
 			data_pos += len;
     	}
 
-    	return Iterator(symbols, data_size, data_size, 0, run_base + block_size_prefix, run);
+    	return SelectResult(run_base + block_size_prefix, rank_base, false);
     }
 
 

@@ -98,6 +98,9 @@ public:
         seq->reindex();
         seq->check();
 
+        seq->compactify();
+        seq->check();
+
         vector<Int> symbols;
 
         auto iter = seq->begin();
