@@ -52,59 +52,7 @@ protected:
 
     using PageUpdateMgt = typename Types::PageUpdateMgr;
 
-public:
-    bool check(void *data)
-    {
-        auto& self = this->self();
-        return self.checkTree() || self.checkExtents();
-    }
 
-protected:
-    bool checkExtents()
-    {
-        auto& self = this->self();
-
-        auto sizes = self.sizes();
-        auto ctr_totals = self.total_counts();
-
-        if (ctr_totals != sizes)
-        {
-            MEMORIA_ERROR(self, "ctr_totals != sizes", (SBuf()<<ctr_totals).str(), (SBuf()<<sizes).str());
-            return true;
-        }
-
-        auto i = self.begin();
-
-        CtrSizesT extent;
-
-        do
-        {
-            auto current_extent = i->leaf_extent();
-
-            if (current_extent != extent)
-            {
-                MEMORIA_ERROR(self, "current_extent != extent", (SBuf()<<current_extent).str(), (SBuf()<<extent).str(), i->leaf()->id());
-
-                return true;
-            }
-
-            for (Int c = 0; c < Streams; c++)
-            {
-                if (extent[c] < 0)
-                {
-                    MEMORIA_ERROR(self, "extent[c] < 0", (SBuf()<<extent).str(), i->leaf()->id());
-                    return true;
-                }
-            }
-
-            auto ex = self.node_extents(i->leaf());
-
-            extent += ex;
-        }
-        while(i->nextLeaf());
-
-        return false;
-    }
 
 
 MEMORIA_V1_CONTAINER_PART_END

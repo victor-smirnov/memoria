@@ -56,61 +56,6 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorMiscName)
     using LeafPrefixRanks = typename Container::Types::LeafPrefixRanks;
 
 
-public:
-
-
-    template <typename LeafPath>
-    struct ScanFn {
-        template <typename Node, typename Fn>
-        auto treeNode(const Node* node, Fn&& fn, Int from, CtrSizeT to)
-        {
-            auto stream = node->template substream<LeafPath>();
-            Int stream_size = stream->size();
-
-            Int limit = (to > stream_size) ? stream_size : to;
-
-            fn(stream, from, limit);
-
-            return limit - from;
-        }
-    };
-
-
-
-    template <typename LeafPath, typename Fn>
-    CtrSizeT scan(Fn&& fn, CtrSizeT limit = -1)
-    {
-        auto& self  = this->self();
-        auto& cache = self.cache();
-
-        constexpr Int StreamIdx = ListHead<LeafPath>::Value;
-
-        MEMORIA_V1_ASSERT(StreamIdx, ==, self.stream());
-
-        auto size = cache.data_size()[StreamIdx];
-
-        if (limit == -1 || limit > size) {
-            limit = size;
-        }
-
-        auto pos = cache.data_pos()[StreamIdx];
-
-        CtrSizeT total = 0;
-
-        while (pos < limit)
-        {
-            auto idx = self.idx();
-
-            Int processed = LeafDispatcher::dispatch(self.leaf(), ScanFn<LeafPath>(), std::forward<Fn>(fn), idx, idx + (limit - pos));
-
-            total += self.skipFw(processed);
-
-            pos = cache.data_pos()[StreamIdx];
-        }
-
-        return total;
-    }
-
     template <typename IOBuffer>
     void bulkio_read(BufferConsumer<IOBuffer>* consumer)
     {
@@ -163,15 +108,6 @@ public:
     void refresh()
     {
         Base::refresh();
-
-        auto& self  = this->self();
-        auto& cache = self.cache();
-
-        cache.data_size()[0] = self.ctr().sizes()[0];
-
-        // FIXME: Is it necessary here? Is it correct?
-        cache.data_pos()[0] = 0;
-        cache.abs_pos()[0]  = 0;
     }
 
     void refresh_prefixes()
@@ -185,7 +121,6 @@ public:
 
         tmp.refresh();
 
-
         MEMORIA_V1_ASSERT(self().cache(), ==, tmp.cache());
     }
 
@@ -194,31 +129,14 @@ public:
 
         auto& self = this->self();
         auto& cache = self.cache();
-
-        cache.data_pos()[0] = 0;
     }
 
 
     void init()
     {
         Base::init();
-
-        auto& self = this->self();
-        auto& cache = self.cache();
-
-        cache.data_size()[0] = self.ctr().size();
     }
 
-protected:
-
-    void update_leaf_ranks() {}
-
-    void update_leaf_ranks(WalkCmd cmd)
-    {
-        if (cmd == WalkCmd::LAST_LEAF){
-            update_leaf_ranks();
-        }
-    }
 
 MEMORIA_V1_ITERATOR_PART_END
 
