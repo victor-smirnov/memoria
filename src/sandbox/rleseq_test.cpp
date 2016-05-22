@@ -28,15 +28,15 @@ int main()
 	try {
 		auto allocator1 = AllocateAllocator(65536);
 
-		using Seq = PkdRLESeqT<2>;
+		using Seq = PkdRLESeqT<4>;
 
 		auto seq = allocator1->template allocateEmpty<Seq>(0);
 
-		size_t sums[] = {0, 0};
+		size_t sums[] = {0, 0, 0, 0};
 
-		for (int c = 0; c < 11; c++)
+		for (int c = 0; c < 1000; c++)
 		{
-			Int symbol = (c % 3 != 0);
+			Int symbol = (c % 4);
 
 			sums[symbol] += c + 1;
 
@@ -45,10 +45,11 @@ int main()
 
 		seq->reindex();
 		seq->dump();
+		seq->check();
 
 		cout << endl << endl;
 
-		Int size = seq->size();
+//		Int size = seq->size();
 //		for (Int c = 0; c < size; c++)
 //		{
 //			auto iter = seq->selectFw(c, 1, 1);
@@ -56,18 +57,18 @@ int main()
 //			cout << c << " -- " << iter.idx() << endl;
 //		}
 
-		for (Int c = size - 1; c >= 0; c--)
-		{
-			auto iter = seq->selectBw(c, 1, 1);
-
-			if (iter.is_set())
-			{
-				cout << c << " -- " << iter.value().idx() << endl;
-			}
-			else {
-				cout << c << " -- OOR" << endl;
-			}
-		}
+//		for (Int c = size - 1; c >= 0; c--)
+//		{
+//			auto iter = seq->selectBw(c, 1, 1);
+//
+//			if (iter.is_set())
+//			{
+//				cout << c << " -- " << iter.value().idx() << endl;
+//			}
+//			else {
+//				cout << c << " -- OOR" << endl;
+//			}
+//		}
 
 
 		cout << "Sums: " << sums[0] << " " << sums[1] << endl;

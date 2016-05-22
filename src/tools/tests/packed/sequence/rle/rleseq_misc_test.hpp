@@ -69,7 +69,7 @@ public:
 
     void testCreate()
     {
-        for (Int size = 8; size <= this->size_; size *= 2)
+        for (Int size = 64; size <= this->size_; size *= 2)
         {
             out() << size << endl;
 

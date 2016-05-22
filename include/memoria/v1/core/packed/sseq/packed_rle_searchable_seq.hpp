@@ -83,7 +83,9 @@ public:
 
     static constexpr Int Indexes                = Types::Blocks;
     static constexpr Int Symbols                = Types::Blocks;
-    static constexpr Int BitsPerSymbol          = NumberOfBits(Symbols);
+    static constexpr Int BitsPerSymbol          = NumberOfBits(Symbols - 1);
+    static constexpr Int SymbolMask          	= (1 << BitsPerSymbol) - 1;
+
     static constexpr size_t MaxRunLength        = MaxRLERunLength;
 
     enum {
@@ -189,7 +191,7 @@ public:
 
     static constexpr RLESymbolsRun decode_run(UBigInt value)
     {
-    	return RLESymbolsRun(value & (BitsPerSymbol - 1), value >> BitsPerSymbol);
+    	return RLESymbolsRun(value & SymbolMask, value >> BitsPerSymbol);
     }
 
     static constexpr UBigInt encode_run(Int symbol, UBigInt length)
@@ -198,10 +200,10 @@ public:
     	{
     		if (length > 0)
     		{
-    			return symbol | (length << BitsPerSymbol);
+    			return (symbol & SymbolMask) | (length << BitsPerSymbol);
     		}
     		else {
-    			throw Exception(MA_SRC, "Symbols run length must be positive ");
+    			throw Exception(MA_SRC, "Symbols run length must be positive");
     		}
     	}
     	else {
@@ -409,15 +411,9 @@ public:
     	auto run_value = encode_run(symbol, length);
 
     	Codec codec;
-
-    	size_t capacity = this->symbols_block_capacity(meta);
-
     	auto len = codec.length(run_value);
 
-    	if (len > capacity)
-    	{
-    		enlargeData(len - capacity);
-    	}
+    	ensure_capacity(len);
 
     	meta->data_size() += codec.encode(this->symbols(), run_value, meta->data_size());
     	meta->size() += length;
@@ -485,7 +481,7 @@ public:
         Int size_index_block_size = SizeIndex::block_size(index_size);
         Base::resizeBlock(SIZE_INDEX, size_index_block_size);
 
-        Int sum_index_block_size = SizeIndex::block_size(index_size);
+        Int sum_index_block_size = SumIndex::block_size(index_size);
         Base::resizeBlock(SUM_INDEX, sum_index_block_size);
 
         auto size_index = this->size_index();

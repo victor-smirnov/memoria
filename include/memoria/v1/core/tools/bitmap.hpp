@@ -168,9 +168,9 @@ T MakeMask(Int start, Int length)
     }
 }
 
-constexpr UBigInt NumberOfBits(UBigInt x)
+constexpr UBigInt NumberOfBits(UBigInt value)
 {
-    return x < 2 ? x : 1 + NumberOfBits(x >> 1);
+    return value < 2 ? value : 1 + NumberOfBits(value >> 1);
 }
 
 
