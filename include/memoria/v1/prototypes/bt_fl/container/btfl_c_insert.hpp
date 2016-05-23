@@ -21,9 +21,6 @@
 #include <memoria/v1/core/container/macros.hpp>
 
 #include <memoria/v1/prototypes/bt_fl/btfl_tools.hpp>
-#include <memoria/v1/prototypes/bt_fl/btfl_input.hpp>
-
-
 #include <vector>
 
 namespace memoria {
@@ -48,7 +45,7 @@ protected:
 
         auto stream = iter.stream();
 
-        btfl::iobuf::IOBufferCtrInputProvider<MyType, IOBuffer> streamingProvider(self, &provider, stream, initial_capacity);
+        btfl::io::IOBufferCtrInputProvider<MyType, IOBuffer> streamingProvider(self, &provider, stream, initial_capacity);
 
         auto pos = iter.local_stream_posrank_();
 

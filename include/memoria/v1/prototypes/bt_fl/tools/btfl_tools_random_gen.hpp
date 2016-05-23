@@ -18,8 +18,9 @@
 
 #include <memoria/v1/prototypes/bt/tools/bt_tools.hpp>
 #include <memoria/v1/prototypes/bt_fl/btfl_tools.hpp>
-#include <memoria/v1/prototypes/bt_fl/btfl_input.hpp>
 #include <memoria/v1/core/container/container.hpp>
+
+#include <memoria/v1/prototypes/bt_fl/io/btfl_input.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -29,13 +30,13 @@ namespace iobuf {
 
 
 template <typename CtrT, typename IOBufferT = DefaultIOBuffer>
-class DeterministicAdapterBase: public btfl::iobuf::FlatTreeIOBufferAdapter<CtrT::Types::Streams, IOBufferT> {
+class DeterministicAdapterBase: public btfl::io::FlatTreeIOBufferAdapter<CtrT::Types::Streams, IOBufferT> {
 
 protected:
 
 	static constexpr Int Streams = CtrT::Types::Streams;
 
-	using Base 	 	= btfl::iobuf::FlatTreeIOBufferAdapter<Streams, IOBufferT>;
+	using Base 	 	= btfl::io::FlatTreeIOBufferAdapter<Streams, IOBufferT>;
 	using MyType 	= DeterministicAdapterBase<CtrT, IOBufferT>;
 
 	using IOBuffer = IOBufferT;
@@ -47,12 +48,12 @@ protected:
 
 	Int level_ = 0;
 
-	struct StructureGenerator: public btfl::iobuf::FlatTreeStructureGeneratorBase<StructureGenerator, Streams> {
+	struct StructureGenerator: public btfl::io::FlatTreeStructureGeneratorBase<StructureGenerator, Streams> {
 
 		MyType* adapter_;
 
 		StructureGenerator(MyType* adapter, Int level):
-			btfl::iobuf::FlatTreeStructureGeneratorBase<StructureGenerator, Streams>(level),
+			btfl::io::FlatTreeStructureGeneratorBase<StructureGenerator, Streams>(level),
 			adapter_(adapter)
 		{}
 
@@ -97,7 +98,7 @@ public:
 
 	virtual IOBufferT& buffer() {return io_buffer_;}
 
-	virtual btfl::iobuf::RunDescr query()
+	virtual btfl::io::RunDescr query()
 	{
 		return structure_generator_.query();
 	}
@@ -109,7 +110,7 @@ public:
 
 
 template <typename CtrT, typename RngT, typename IOBufferT = DefaultIOBuffer>
-class RandomAdapterBase: public btfl::iobuf::FlatTreeIOBufferAdapter<CtrT::Types::Streams, IOBufferT> {
+class RandomAdapterBase: public btfl::io::FlatTreeIOBufferAdapter<CtrT::Types::Streams, IOBufferT> {
 public:
 	using Rng = RngT;
 protected:
@@ -118,7 +119,7 @@ protected:
 
 	static constexpr Int Streams = CtrT::Types::Streams;
 
-	using Base 	 	= btfl::iobuf::FlatTreeIOBufferAdapter<Streams, IOBufferT>;
+	using Base 	 	= btfl::io::FlatTreeIOBufferAdapter<Streams, IOBufferT>;
 	using MyType 	= RandomAdapterBase<CtrT, RngT, IOBufferT>;
 
 	using CtrSizesT = typename CtrT::Types::CtrSizesT;
@@ -128,12 +129,12 @@ protected:
 
 	Int level_ = 0;
 
-	struct StructureGenerator: public btfl::iobuf::FlatTreeStructureGeneratorBase<StructureGenerator, Streams> {
+	struct StructureGenerator: public btfl::io::FlatTreeStructureGeneratorBase<StructureGenerator, Streams> {
 
 		MyType* adapter_;
 
 		StructureGenerator(MyType* adapter, Int level):
-			btfl::iobuf::FlatTreeStructureGeneratorBase<StructureGenerator, Streams>(level),
+			btfl::io::FlatTreeStructureGeneratorBase<StructureGenerator, Streams>(level),
 			adapter_(adapter)
 		{}
 
@@ -177,7 +178,7 @@ public:
 
 	virtual IOBufferT& buffer() {return io_buffer_;}
 
-	virtual btfl::iobuf::RunDescr query()
+	virtual btfl::io::RunDescr query()
 	{
 		return structure_generator_.query();
 	}

@@ -21,10 +21,8 @@
 #include <memoria/v1/core/container/macros.hpp>
 
 #include <memoria/v1/prototypes/bt_fl/btfl_tools.hpp>
-#include <memoria/v1/prototypes/bt_fl/btfl_output.hpp>
-
-
 #include <vector>
+#include "../io/btfl_output.hpp"
 
 namespace memoria {
 namespace v1 {

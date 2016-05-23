@@ -187,7 +187,12 @@ public:
 
     Int symbols_block_capacity(const Metadata* meta) const
     {
-    	return this->element_size(SYMBOLS) - meta->data_size();
+    	return symbols_block_size() - meta->data_size();
+    }
+
+    Int symbols_block_size() const
+    {
+    	return this->element_size(SYMBOLS);
     }
 
     bool has_index() const {
@@ -250,6 +255,28 @@ public:
     	Codec codec;
     	meta->data_size() += codec.encode(this->symbols(), run_value, meta->data_size());
     	meta->size() += length;
+    }
+
+    bool emplace_back(Int symbol, UBigInt length)
+    {
+    	auto meta = this->metadata();
+
+    	auto run_value = encode_run(symbol, length);
+
+    	Codec codec;
+    	auto len = codec.length(run_value);
+
+    	if (has_capacity(len))
+    	{
+    		meta->data_size() += codec.encode(this->symbols(), run_value, meta->data_size());
+    		meta->size() 	  += length;
+    	}
+    }
+
+    bool has_capacity(Int required_capacity) const
+    {
+    	Int current_capacity = this->symbols_block_capacity();
+    	return current_capacity >= required_capacity;
     }
 
 

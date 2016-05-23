@@ -19,12 +19,12 @@
 
 #include <memoria/v1/prototypes/bt/bt_factory.hpp>
 
-#include <memoria/v1/prototypes/bt_tl/bttl_input.hpp>
+#include <memoria/v1/prototypes/bt_fl/io/btfl_input.hpp>
 
-#include <memoria/v1/prototypes/bt_tl/bttl_names.hpp>
-#include <memoria/v1/prototypes/bt_tl/bttl_iterator.hpp>
+#include <memoria/v1/prototypes/bt_fl/btfl_names.hpp>
+#include <memoria/v1/prototypes/bt_fl/btfl_iterator.hpp>
 
-#include <memoria/v1/prototypes/bt_tl/bttl_tools.hpp>
+#include <memoria/v1/prototypes/bt_fl/btfl_tools.hpp>
 
 #include <memoria/v1/prototypes/bt_fl/container/btfl_c_misc.hpp>
 #include <memoria/v1/prototypes/bt_fl/container/btfl_c_insert.hpp>
@@ -60,7 +60,7 @@ template <
 >
 struct BTTypes<Profile, v1::BTFreeLayout>: public BTTypes<Profile, v1::BT> {
 
-    typedef BTTypes<Profile, v1::BT>                                       Base;
+    using Base = BTTypes<Profile, v1::BT>;
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
@@ -104,6 +104,9 @@ struct BTTypes<Profile, v1::BTFreeLayout>: public BTTypes<Profile, v1::BT> {
                 v1::btfl::IteratorInsertName
     >;
 
+
+
+
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {
         typedef v1::btfl::BTFLIteratorPrefixCache<Iterator, Container>   Type;
@@ -121,8 +124,8 @@ public:
 
     struct Types: Base::Types
     {
-        using CtrTypes          = BTTLCtrTypes<Types>;
-        using IterTypes         = BTTLIterTypes<Types>;
+        using CtrTypes          = BTFLCtrTypes<Types>;
+        using IterTypes         = BTFLIterTypes<Types>;
 
         using PageUpdateMgr     = PageUpdateManager<CtrTypes>;
 
@@ -148,7 +151,11 @@ public:
         template <Int StreamIdx>
         using BranchSizesSubstreamPath = typename Base::Types::template BranchPathT<BranchSizesSubstreamIdx<StreamIdx>::Value>;
 
-        static const Int SearchableStreams = Base::Types::Streams - 1;
+
+        static const Int DataStreams 		= Base::Types::Streams - 1;
+        static const Int DataStreamsStart	= 1;
+
+        static const Int StructureStream  	= 0;
     };
 
     using CtrTypes  = typename Types::CtrTypes;
