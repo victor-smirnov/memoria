@@ -20,11 +20,12 @@
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 
 #include <memoria/v1/core/tools/bytes/bytes_codec.hpp>
-#include <memoria/v1/core/tools/bignum/int64_codec.hpp>
+#include <memoria/v1/core/tools/bignum/primitive_codec.hpp>
 #include <memoria/v1/core/tools/strings/string_codec.hpp>
 #include <memoria/v1/core/tools/bitmap.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
 
+#include <memoria/v1/core/packed/sseq/rleseq/rleseq_tools.hpp>
 
 #include <limits>
 
@@ -42,7 +43,8 @@ protected:
 	size_t pos_ = 0;
 	bool owner_;
 
-	ValueCodec<int64_t> vlen_codec_;
+	ValueCodec<UBigInt> uvlen_codec_;
+	ValueCodec<BigInt>  vlen_codec_;
 	ValueCodec<String>  string_codec_;
 	ValueCodec<Bytes>   bytes_codec_;
 
@@ -228,12 +230,17 @@ public:
 		return str;
 	}
 
-	size_t length(int64_t val) const
+	size_t length(BigInt val) const
 	{
 		return vlen_codec_.length(val);
 	}
 
-	bool putVLen(int64_t val)
+	size_t ulength(UBigInt val) const
+	{
+		return uvlen_codec_.length(val);
+	}
+
+	bool putVLen(BigInt val)
 	{
 		size_t len = vlen_codec_.length(val);
 		if (has_capacity(len))
@@ -246,10 +253,38 @@ public:
 		}
 	}
 
-	int64_t getVLen()
+	bool putUVLen(UBigInt val)
 	{
-		int64_t len = 0;
+		cout << "Put UVLen " << val << " at " << pos_ << endl;
+
+		size_t len = uvlen_codec_.length(val);
+		if (has_capacity(len))
+		{
+			pos_ += uvlen_codec_.encode(array_, val, pos_);
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+
+	BigInt getVLen()
+	{
+		BigInt len = 0;
 		pos_ += vlen_codec_.decode(array_, len, pos_);
+		return len;
+	}
+
+	BigInt getUVLen()
+	{
+		auto pos0 = pos_;
+
+		UBigInt len = 0;
+		pos_ += uvlen_codec_.decode(array_, len, pos_);
+
+		cout << "Get UVLen " << len << " from " << pos0 << endl;
+
 		return len;
 	}
 
@@ -291,44 +326,30 @@ public:
 	template <Int Symbols>
 	static constexpr BigInt getMaxSymbolsRunLength()
 	{
-		constexpr BigInt BitsPerSymbol = NumberOfBits(Symbols);
-		return numeric_limits<BigInt>::max() >> BitsPerSymbol;
+		return MaxRLERunLength;
 	}
 
 	template <Int Symbols>
-	bool putSymbolsRun(Int symbol, BigInt length)
+	bool putSymbolsRun(Int symbol, UBigInt length)
 	{
-		constexpr Int BitsPerSymbol 	= NumberOfBits(Symbols);
-
 		if (length <= getMaxSymbolsRunLength<Symbols>())
 		{
-			BigInt value = symbol | (length << BitsPerSymbol);
-			return putVLen(value);
+			UBigInt value = memoria::v1::rleseq::EncodeRun<Symbols, MaxRLERunLength>(symbol, length);
+			return putUVLen(value);
 		}
 		else {
 			throw Exception(MA_SRC, SBuf() << "Max symbols run length of " << length << " exceeds " << getMaxSymbolsRunLength<Symbols>());
 		}
 	}
 
-	class SymbolsRun {
-		Int symbol_;
-		BigInt length_;
-	public:
-		SymbolsRun(Int symbol, BigInt length): symbol_(symbol), length_(length) {}
 
-		Int symbol() const {return symbol_;};
-		BigInt length() const {return length_;}
-	};
 
 	template <Int Symbols>
-	SymbolsRun getSymbolsRun()
+	memoria::v1::rleseq::RLESymbolsRun getSymbolsRun()
 	{
-		static constexpr BigInt BitsPerSymbol = NumberOfBits(Symbols);
-		static constexpr BigInt LevelCodeMask = (1 << BitsPerSymbol) - 1;
+		UBigInt value = getUVLen();
 
-		BigInt value = getVLen();
-
-		return SymbolsRun(value & LevelCodeMask, value >> BitsPerSymbol);
+		return memoria::v1::rleseq::DecodeRun<Symbols>(value);
 	}
 
 	void enlarge(size_t minimal_capacity = 0)

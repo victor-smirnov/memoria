@@ -52,44 +52,93 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorInsertName)
     template <typename LeafPath>
     using AccumItemH = typename Container::Types::template AccumItemH<LeafPath>;
 
-    static const Int Streams                = Container::Types::Streams;
-    static const Int SearchableStreams      = Container::Types::SearchableStreams;
+    static const Int Streams          = Container::Types::Streams;
+    static const Int DataStreams      = Container::Types::DataStreams;
 
     using LeafPrefixRanks = typename Container::Types::LeafPrefixRanks;
 
 
-    SplitStatus split()
+
+    struct InsertSymbolFn {
+
+    	CtrSizeT one_;
+    	const Int symbol_;
+
+    	InsertSymbolFn(Int symbol): one_(1), symbol_(symbol) {}
+
+    	const auto& get(const StreamTag<0>& , const StreamTag<0>&, Int block) const
+    	{
+    		return one_;
+    	}
+
+    	const auto& get(const StreamTag<0>& , const StreamTag<1>&, Int block) const
+    	{
+    		return symbol_;
+    	}
+    };
+
+
+    template <Int Stream, typename EntryFn>
+    void insert_entry(EntryFn&& entry)
     {
-        auto& self  = this->self();
-        auto& leaf  = self.leaf();
-        auto stream = self.stream();
+    	auto& self = this->self();
 
-        auto sizes = self.leaf_sizes();
-        auto full_leaf_size = sizes.sum();
+    	self.ctr().template insert_stream_entry<0>(self, 0, self.idx(), InsertSymbolFn(0));
 
-        if (full_leaf_size > 1)
-        {
-            auto half_ranks = self.leafrank_(full_leaf_size/2);
-            auto right = self.ctr().split_leaf_p(leaf, half_ranks);
+    	Int key_idx = self.data_stream_idx(Stream - 1);
+    	self.ctr().template insert_stream_entry<Stream>(self, Stream, key_idx, std::forward<EntryFn>(entry));
+    }
+
+
+    SplitResult split(Int stream, Int target_idx)
+    {
+    	auto& self  = this->self();
+    	auto& leaf  = self.leaf();
+
+    	Int structure_size = self.structure_size();
+
+    	if (structure_size > 1)
+    	{
+        	Int split_idx = structure_size / 2;
+
+            auto half_ranks = self.leafrank(split_idx);
+            auto right 		= self.ctr().split_leaf_p(leaf, half_ranks);
 
             auto& idx = self.idx();
 
-            if (idx > half_ranks[stream])
+            if (idx > split_idx)
             {
                 leaf = right;
-                idx -= half_ranks[stream];
+                idx -= split_idx;
 
                 self.refresh();
+            }
 
-                return SplitStatus::RIGHT;
+            if (target_idx > half_ranks[stream - 1])
+            {
+                leaf = right;
+                target_idx -= half_ranks[stream - 1];
+
+                return SplitResult(SplitStatus::RIGHT, target_idx);
             }
             else {
-                return SplitStatus::LEFT;
+                return SplitResult(SplitStatus::LEFT, target_idx);
             }
         }
         else {
-            self.ctr().split_leaf_p(leaf, sizes);
-            return SplitStatus::LEFT;
+        	auto ranks = self.leaf_sizes();
+
+            self.ctr().split_leaf_p(leaf, self.leaf_sizes());
+
+            if (target_idx > ranks[stream])
+            {
+                target_idx -= ranks[stream];
+
+                return SplitResult(SplitStatus::RIGHT, target_idx);
+            }
+            else {
+                return SplitResult(SplitStatus::LEFT, target_idx);
+            }
         }
     }
 

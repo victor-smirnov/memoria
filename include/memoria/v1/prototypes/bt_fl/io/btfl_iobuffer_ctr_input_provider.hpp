@@ -45,10 +45,8 @@ class IOBufferCtrInputProvider: public v1::btfl::io::AbstractCtrInputProvider<Ct
 public:
     using Base      = v1::btfl::io::AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength>;
 
-    static constexpr Int Streams = CtrT::Types::Streams;
 
     using typename Base::DataPositions;
-    using typename Base::CtrSizesT;
 
 protected:
 
@@ -56,6 +54,8 @@ protected:
 
     using typename Base::DataStreamBuffers;
     using typename Base::StructureStreamBuffer;
+
+    using Base::DataStreams;
 
 
     using Base::reset_buffer;
@@ -150,7 +150,7 @@ public:
         			}
         		}
         		else {
-        			auto run = io_buffer_->template getSymbolsRun<Streams>();
+        			auto run = io_buffer_->template getSymbolsRun<DataStreams>();
 
         			stream 		= run.symbol();
         			run_length 	= run.length();
@@ -167,7 +167,7 @@ public:
         			}
         		}
 
-        		append_stream_entries(stream, run_length, *io_buffer_);
+        		append_data_streams_entries(stream, run_length, *io_buffer_);
 
         		symbols_.append_run(stream, run_length);
         		structure_buffer_.append_run(stream, run_length);

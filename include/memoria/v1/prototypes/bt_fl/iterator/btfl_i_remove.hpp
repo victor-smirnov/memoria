@@ -46,74 +46,74 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorRemoveName)
 
     using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
 
-    static const Int Streams                = Container::Types::Streams;
-    static const Int SearchableStreams      = Container::Types::SearchableStreams;
+    static const Int Streams          = Container::Types::Streams;
+    static const Int DataStreams      = Container::Types::DataStreams;
 
     using LeafPrefixRanks = typename Container::Types::LeafPrefixRanks;
 
 public:
-    Position remove_subtrees(CtrSizeT n)
-    {
-        CtrSizesT sizes;
-
-        self().remove_subtrees(n, sizes);
-
-        return sizes;
-    }
+//    Position remove_subtrees(CtrSizeT n)
+//    {
+//        CtrSizesT sizes;
+//
+//        self().remove_subtrees(n, sizes);
+//
+//        return sizes;
+//    }
 
 protected:
 
-    void remove_subtrees(CtrSizeT n, CtrSizesT& sizes)
-    {
-        MEMORIA_V1_ASSERT(n, >=, 0);
-
-        auto& self  = this->self();
-
-        auto path = self.path();
-
-        auto stream = self.stream();
-        auto tmp    = self;
-
-        auto start = self.adjust_to_indel();
-
-        auto start_abs_pos   = self.cache().abs_pos();
-        auto start_data_pos  = self.cache().data_pos();
-        auto start_data_size = self.cache().data_size();
-
-        tmp.skipFw(n);
-
-        auto end_abs_pos   = tmp.cache().abs_pos();
-//      auto end_data_pos  = tmp.cache().data_pos();
-
-        auto length_to_remove = end_abs_pos[stream] - start_abs_pos[stream];
-
-        Position end = tmp.adjust_to_indel();
-
-        self.ctr().removeEntries(self.leaf(), start, tmp.leaf(), end, sizes, true);
-
-        tmp.idx() = end[stream];
-
-        self = tmp;
-
-        self.refresh();
-
-        self.cache().abs_pos()  = start_abs_pos;
-        self.cache().data_pos() = start_data_pos;
-
-        self.cache().data_size() = start_data_size;
-        self.cache().data_size()[stream] -= length_to_remove;
-
-        if (stream > 0)
-        {
-            auto tmp2 = self;
-
-            tmp2.toIndex();
-
-            tmp2.add_substream_size(tmp2.stream(), tmp2.idx(), -length_to_remove);
-        }
-
-        self = *self.ctr().seek(path, stream).get();
-    }
+//    void remove_subtrees(CtrSizeT n, CtrSizesT& sizes)
+//    {
+//        MEMORIA_V1_ASSERT(n, >=, 0);
+//
+//        auto& self  = this->self();
+//
+//        auto path = self.path();
+//
+//        auto stream = self.stream();
+//        auto tmp    = self;
+//
+//        auto start = self.adjust_to_indel();
+//
+//        auto start_abs_pos   = self.cache().abs_pos();
+//        auto start_data_pos  = self.cache().data_pos();
+//        auto start_data_size = self.cache().data_size();
+//
+//        tmp.skipFw(n);
+//
+//        auto end_abs_pos   = tmp.cache().abs_pos();
+////      auto end_data_pos  = tmp.cache().data_pos();
+//
+//        auto length_to_remove = end_abs_pos[stream] - start_abs_pos[stream];
+//
+//        Position end = tmp.adjust_to_indel();
+//
+//        self.ctr().removeEntries(self.leaf(), start, tmp.leaf(), end, sizes, true);
+//
+//        tmp.idx() = end[stream];
+//
+//        self = tmp;
+//
+//        self.refresh();
+//
+//        self.cache().abs_pos()  = start_abs_pos;
+//        self.cache().data_pos() = start_data_pos;
+//
+//        self.cache().data_size() = start_data_size;
+//        self.cache().data_size()[stream] -= length_to_remove;
+//
+//        if (stream > 0)
+//        {
+//            auto tmp2 = self;
+//
+//            tmp2.toIndex();
+//
+//            tmp2.add_substream_size(tmp2.stream(), tmp2.idx(), -length_to_remove);
+//        }
+//
+//        self = *self.ctr().seek(path, stream).get();
+//    }
 
 
 

@@ -60,17 +60,17 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::UpdateName)
 
 
     template <Int Stream, typename SubstreamsList, typename Buffer>
-    void update_stream_entry(Iterator& iter, const Buffer& entry)
+    void update_stream_entry(Iterator& iter, Int stream, Int idx, const Buffer& entry)
     {
         auto& self = this->self();
 
-        auto result = self.template try_update_stream_entry<Stream, SubstreamsList>(iter, entry);
+        auto result = self.template try_update_stream_entry<Stream, SubstreamsList>(iter, idx, entry);
 
         if (!std::get<0>(result))
         {
-            iter.split();
+            iter.split(stream, idx);
 
-            result = self.template try_update_stream_entry<Stream, SubstreamsList>(iter, entry);
+            result = self.template try_update_stream_entry<Stream, SubstreamsList>(iter, idx, entry);
 
             if (!std::get<0>(result))
             {

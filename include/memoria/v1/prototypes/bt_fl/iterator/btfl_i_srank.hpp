@@ -43,16 +43,9 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorStreamRankName)
 
     using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
 
-    template <Int StreamIdx>
-    using LeafSizesSubstreamPath    = typename Container::Types::template LeafSizesSubstreamPath<StreamIdx>;
 
     template <typename LeafPath>
     using AccumItemH = typename Container::Types::template AccumItemH<LeafPath>;
-
-    static const Int Streams                = Container::Types::Streams;
-    static const Int SearchableStreams      = Container::Types::SearchableStreams;
-
-    using LeafPrefixRanks = typename Container::Types::LeafPrefixRanks;
 
 
 MEMORIA_V1_ITERATOR_PART_END

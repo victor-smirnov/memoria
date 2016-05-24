@@ -51,7 +51,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorMiscName)
     using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
 
     static const Int Streams                = Container::Types::Streams;
-    static const Int SearchableStreams      = Container::Types::SearchableStreams;
+    static const Int DataStreams      		= Container::Types::DataStreams;
 
     using LeafPrefixRanks = typename Container::Types::LeafPrefixRanks;
 
@@ -124,12 +124,12 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorMiscName)
         MEMORIA_V1_ASSERT(self().cache(), ==, tmp.cache());
     }
 
-    void prepare() {
-        Base::prepare();
-
-        auto& self = this->self();
-        auto& cache = self.cache();
-    }
+//    void prepare() {
+//        Base::prepare();
+//
+//        auto& self = this->self();
+//        auto& cache = self.cache();
+//    }
 
 
     void init()

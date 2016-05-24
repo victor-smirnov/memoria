@@ -46,24 +46,9 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorFindName)
 
     using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
 
-    template <Int Stream>
-    using InputTupleAdapter = typename Container::Types::template InputTupleAdapter<Stream>;
 
     template <typename LeafPath>
     using AccumItemH = typename Container::Types::template AccumItemH<LeafPath>;
-
-    static const Int Streams                = Container::Types::Streams;
-    static const Int SearchableStreams      = Container::Types::SearchableStreams;
-
-    using LeafPrefixRanks = typename Container::Types::LeafPrefixRanks;
-
-protected:
-    using Base::finish_walking;
-
-
-
-
-
 
 MEMORIA_V1_ITERATOR_PART_END
 

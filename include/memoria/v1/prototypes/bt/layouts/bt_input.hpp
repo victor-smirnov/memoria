@@ -24,6 +24,7 @@
 #include <memoria/v1/core/packed/tools/packed_allocator.hpp>
 
 #include <memoria/v1/core/packed/sseq/packed_fse_searchable_seq.hpp>
+#include <memoria/v1/core/packed/buffer/packed_rle_sequence_input_buffer.hpp>
 
 #include <memoria/v1/core/tools/bitmap.hpp>
 #include <memoria/v1/core/types/algo/for_each.hpp>
@@ -443,6 +444,32 @@ public:
         return size() == 0;
     }
 
+
+
+    struct EmplaceBackFn {
+
+    	bool status_ = false;
+
+    	template <Int Idx, typename Value, Int Indexes, PkdSearchType SearchType>
+    	void stream(PackedSizedStruct<Value, Indexes, SearchType>* stream, Int symbol, UBigInt length)
+    	{
+    		stream->insert(0, length);
+    	}
+
+    	template <Int Idx, typename SeqTypes>
+    	void stream(PkdRLESeqInputBuffer<SeqTypes>* stream, Int symbol, UBigInt length)
+    	{
+    		status_ = stream->emplace_back(symbol, length);
+    	}
+    };
+
+
+    bool emplace_back_symbols_run(Int symbol, UBigInt length)
+    {
+    	EmplaceBackFn fn;
+    	Dispatcher::dispatchAll(allocator(), fn, symbol, length);
+    	return fn.status_;
+    }
 
 
 

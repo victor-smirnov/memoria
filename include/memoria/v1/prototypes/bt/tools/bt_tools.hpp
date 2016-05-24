@@ -478,6 +478,33 @@ struct BufferProducer {
 
 
 
+template <Int Stream, typename CtrSizeT>
+class EntryFnBase {
+	CtrSizeT one_;
+public:
+	EntryFnBase(): one_(1) {}
+
+	const auto& get(const StreamTag<Stream>& , const StreamTag<0>&, Int block) const
+	{
+		return one_;
+	}
+};
+
+
+template <Int Stream, typename T, typename CtrSizeT>
+struct SingleValueEntryFn: EntryFnBase<Stream, CtrSizeT> {
+
+	using EntryFnBase<Stream, CtrSizeT>::get;
+
+	const T& value_;
+
+	SingleValueEntryFn(const T& value): value_(value) {}
+
+	const auto& get(const StreamTag<Stream>& , const StreamTag<1>&, Int block) const
+	{
+		return value_;
+	}
+};
 
 
 

@@ -92,7 +92,7 @@ public:
 
 	void append_run(Int symbol, UBigInt run_length)
 	{
-		if (symbol == last_symbol_ || last_symbol_ >= 0)
+		if (symbol == last_symbol_ || last_symbol_ < 0)
 		{
 			last_symbol_ = symbol;
 			run_length_ += run_length;

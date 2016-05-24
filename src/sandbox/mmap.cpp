@@ -24,7 +24,6 @@
 #include <memoria/v1/core/tools/random.hpp>
 #include <memoria/v1/core/tools/fixed_array.hpp>
 #include <memoria/v1/core/tools/dump.hpp>
-#include <memoria/v1/prototypes/bt_tl/bttl_input.hpp>
 
 #include <memory>
 #include <vector>
@@ -178,9 +177,9 @@ UUID make_value(V&& num, TypeTag<UUID>)
 
 
 template <typename Key, typename Value>
-class MapIOBufferAdapter: public bttl::iobuf::FlatTreeIOBufferAdapter<2, MMapIOBuffer> {
+class MapIOBufferAdapter: public btfl::io::FlatTreeIOBufferAdapter<3, MMapIOBuffer> {
 
-	using Base 	 = bttl::iobuf::FlatTreeIOBufferAdapter<2, MMapIOBuffer>;
+	using Base 	 = btfl::io::FlatTreeIOBufferAdapter<3, MMapIOBuffer>;
 	using MyType = MapIOBufferAdapter<Key, Value>;
 
 	using typename Base::IOBuffer;
@@ -195,7 +194,7 @@ class MapIOBufferAdapter: public bttl::iobuf::FlatTreeIOBufferAdapter<2, MMapIOB
 	Positions positions_;
 	Int level_ = 0;
 
-	struct StructureAdapter: public bttl::iobuf::FlatTreeStructureGeneratorBase<StructureAdapter, 2> {
+	struct StructureAdapter: public btfl::io::FlatTreeStructureGeneratorBase<StructureAdapter, 2> {
 		MyType* adapter_;
 		StructureAdapter(MyType* adapter):
 			adapter_(adapter)
@@ -232,7 +231,7 @@ public:
 
 	virtual IOBuffer& buffer() {return io_buffer_;}
 
-	virtual bttl::iobuf::RunDescr query()
+	virtual btfl::io::RunDescr query()
 	{
 		return structure_generator_.query();
 	}
@@ -329,8 +328,14 @@ int main()
 
             Int keys = 100;
 
-            cout << "FindOrCreate 0 " << map->find_or_create(0)->is_found(0) << endl;
-            cout << "FindOrCreate 101 " << map->find_or_create(keys + 1)->is_found(keys + 1) << endl;
+//            for (Int k = 0; k < keys; k++)
+//            {
+//            	map->find_or_create(k);
+//            }
+//
+//            FSDumpAllocator(snp, "mmap.dir");
+
+
 
             auto map_data = createRandomShapedMapData<KeyType, ValueType>(
             		keys,
@@ -341,38 +346,43 @@ int main()
                     [](auto k, auto v) {return make_value(k, TypeTag<ValueType>());}
             );
 
-            size_t total_data_size = 0;
+            MapIOBufferAdapter<KeyType, ValueType> iobuf_adapter(map_data, 65536);
+            auto totals = map->begin()->bulkio_insert(iobuf_adapter);
 
-            for (auto& kv: map_data) {
-            	total_data_size += kv.second.size();
-            }
-
-            auto iter = map->begin();
-
-//            BigInt ti0 = getTimeInMillis();
+            cout << "Totals: " << totals << endl;
 //
-//            MapIOBufferAdapter<KeyType, ValueType> iobuf_adapter(map_data, 65536);
-//            auto totals = map->begin()->bulkio_insert(iobuf_adapter);
+//            size_t total_data_size = 0;
 //
-//            BigInt ti1 = getTimeInMillis();
+//            for (auto& kv: map_data) {
+//            	total_data_size += kv.second.size();
+//            }
 //
-//            cout << "Insertion time: " << (ti1 - ti0) <<" " << totals << endl;
-
-//            auto sizes = map->sizes();
-//            MEMORIA_V1_ASSERT(totals, ==, sizes);
-
-
-
-            snp->commit();
-
-            for (Int c = 0; c <= keys + 1; c++)
-            {
-            	auto i = map->find(c);
-            	cout << "Key " << c << " -- "<< i->is_found(c) << endl;
-            }
-
-
-            FSDumpAllocator(snp, "mmap.dir");
+//            auto iter = map->begin();
+//
+////            BigInt ti0 = getTimeInMillis();
+////
+////            MapIOBufferAdapter<KeyType, ValueType> iobuf_adapter(map_data, 65536);
+////            auto totals = map->begin()->bulkio_insert(iobuf_adapter);
+////
+////            BigInt ti1 = getTimeInMillis();
+////
+////            cout << "Insertion time: " << (ti1 - ti0) <<" " << totals << endl;
+//
+////            auto sizes = map->sizes();
+////            MEMORIA_V1_ASSERT(totals, ==, sizes);
+//
+//
+//
+//            snp->commit();
+//
+//            for (Int c = 0; c <= keys + 1; c++)
+//            {
+//            	auto i = map->find(c);
+//            	cout << "Key " << c << " -- "<< i->is_found(c) << endl;
+//            }
+//
+//
+//            FSDumpAllocator(snp, "mmap.dir");
 //            MMapBufferConsumer consumer;
 //
 //            BigInt t0 = getTimeInMillis();

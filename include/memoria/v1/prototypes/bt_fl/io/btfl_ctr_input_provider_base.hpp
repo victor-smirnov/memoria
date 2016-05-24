@@ -58,6 +58,11 @@ namespace {
 	struct DataStreamInputBufferBuilder<Types, Streams, Streams> {
 		using Type = TL<>;
 	};
+
+	template <typename... Args> struct JoinBuffersH;
+
+	template <typename T1, typename... T2>
+	struct JoinBuffersH<T1, std::tuple<T2...>>: HasType<std::tuple<const T1*, const T2*...>> {};
 }
 
 
@@ -101,8 +106,13 @@ public:
     using RankDictionaryT = RankDictionary<DataStreams>;
 
     using StructureStreamBuffer = StructureStreamInputBuffer<
-    	typename CtrT::Types::template StreamInputBufferStructList<0>,
-		CtrSizeT
+    		InputBufferHandler<
+				StreamInputBuffer<
+					0,
+					typename CtrT::Types::template StreamInputBufferStructList<0>
+    			>
+    		>,
+			CtrSizeT
     >;
 
 protected:
@@ -178,6 +188,8 @@ public:
         start_stream_(start_level)
     {
     	ForAllDataStreams::process(data_buffers_, CreateBufferFn(), initial_capacity);
+
+    	structure_buffer_.init(initial_capacity);
     }
 
 
@@ -348,7 +360,7 @@ public:
 
         const auto* symbols = this->symbols();
 
-        for (Int s = 0; s < Streams; s++)
+        for (Int s = 0; s < DataStreams; s++)
         {
             rnk[s] = symbols->rank(idx + start_pos, s);
         }
@@ -400,7 +412,7 @@ public:
     {
     	DataPositions dp;
 
-    	for (Int c = 0; c < DataPositions::INDEXES; c++) {
+    	for (Int c = 0; c < DataPositions::Indexes; c++) {
     		dp[c] = pos[c + DataStreamsStartIdx];
     	}
 
@@ -460,12 +472,14 @@ public:
 
     using typename Base::DataPositions;
     using typename Base::Position;
+    using typename Base::DataStreamBuffers;
+    using typename Base::StructureStreamBuffer;
 
 protected:
     using Base::rank;
     using Base::ctr_;
     using Base::start_;
-    using Base::data_buffer_;
+    using Base::data_buffers_;
     using Base::structure_buffer_;
     using Base::to_data_positions;
 
@@ -482,11 +496,11 @@ public:
         return ctr_;
     }
 
-    Position to_ctr_positions(Position& ctr_start, const DataPositions& start, const DataPositions& end)
+    Position to_ctr_positions(const Position& ctr_start, const DataPositions& start, const DataPositions& end)
     {
     	Position ctr_end;
 
-    	for (Int c = 0; c < DataPositions::INDEXES; c++)
+    	for (Int c = 0; c < DataPositions::Indexes; c++)
     	{
     		ctr_end[c + DataStreamsStartIdx] = end[c];
     	}
@@ -589,29 +603,19 @@ public:
 
 protected:
 
-    struct InsertBufferFn {
+    struct InsertBuffersFn {
 
         template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename StreamObj, typename StreamBuffer>
-        void stream(StreamObj* stream, PackedAllocator* alloc, const Position& at, const Position& starts, const Position& sizes, const StreamBuffer& buffer)
+        void stream(StreamObj* stream, PackedAllocator* alloc, const Position& at, const Position& starts, const Position& sizes, StreamBuffer&& buffer)
         {
             static_assert(StreamIdx < std::tuple_size<StreamBuffer>::value, "");
 
             stream->insert_buffer(
                     at[StreamIdx],
-                    std::get<StreamIdx>(buffer).buffer()->template substream_by_idx<Idx>(),
+                    std::get<StreamIdx>(buffer)->buffer()->template substream_by_idx<Idx>(),
                     starts[StreamIdx],
                     sizes[StreamIdx]
             );
-        }
-
-        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename StreamObj, typename StreamBuffer>
-        void stream(StreamObj* stream, PackedAllocator* alloc, Int at, Int start, Int size, const StreamBuffer& buffer)
-        {
-            static_assert(StreamIdx < std::tuple_size<StreamBuffer>::value, "");
-
-            auto ib_struct = buffer.buffer()->template substream_by_idx<Idx>();
-
-            stream->insert_buffer(at, ib_struct, start, size);
         }
 
         template <typename NodeTypes, typename... Args>
@@ -623,12 +627,55 @@ protected:
     };
 
 
+    struct AssignDataBuffersFn {
+        template <Int Idx, typename DataBuffers, typename JointBuffers>
+        void process(DataBuffers&& data_buffers, JointBuffers&& joint_buffers)
+        {
+            std::get<Idx + 1>(joint_buffers) = &data_buffers;
+        }
+    };
+
+
+
+    auto make_joined_buffers_tuple()
+    {
+    	using JointBufferTupleT = typename JoinBuffersH<StructureStreamBuffer, DataStreamBuffers>::Type;
+
+    	JointBufferTupleT joint_buffer;
+
+    	std::get<0>(joint_buffer) = &structure_buffer_;
+
+    	ForAllTuple<std::tuple_size<DataStreamBuffers>::value>::process(data_buffers_, AssignDataBuffersFn(), joint_buffer);
+
+    	return joint_buffer;
+    }
+
+    Position to_position(const DataPositions& data_pos)
+    {
+    	Position pos;
+
+    	pos[0] = data_pos.sum();
+
+    	for (Int c = 0; c < DataPositions::Indexes; c++)
+    	{
+    		pos[c + 1] = data_pos[c];
+    	}
+
+    	return pos;
+    }
+
+
     bool tryInsertBuffer(PageUpdateMgr& mgr, NodeBaseG& leaf, const DataPositions& at, const DataPositions& size)
     {
         try {
-            CtrT::Types::Pages::LeafDispatcher::dispatch(leaf, InsertBufferFn(), at, start_, size, data_buffer_);
-
-            CtrT::Types::Pages::LeafDispatcher::dispatch(leaf, InsertBufferFn(), at.sum(), start_.sum(), size.sum(), structure_buffer_);
+            CtrT::Types::Pages::LeafDispatcher::dispatch(
+            		leaf,
+					InsertBuffersFn(),
+					to_position(at),
+					to_position(start_),
+					to_position(size),
+					make_joined_buffers_tuple()
+			);
 
             mgr.checkpoint(leaf);
 

@@ -46,6 +46,11 @@ protected:
 	DataBuffer 	buffer_;
 	BufferT*   	buffer_ptr_;
 
+	Int last_symbol_ 	= -1;
+	UBigInt run_length_ = 0;
+
+
+
 
 public:
 	StructureStreamInputBuffer(){}
@@ -72,11 +77,36 @@ public:
 		{
 			buffer_->reset();
 		}
+
+		last_symbol_ = -1;
+		run_length_  = 0;
 	}
 
 	void finish()
 	{
+		if (last_symbol_ >= 0)
+		{
+			flush_run();
+			last_symbol_ = -1;
+		}
+
 		buffer_->reindex();
+	}
+
+	void append_run(Int symbol, UBigInt run_length)
+	{
+		if (symbol == last_symbol_ || last_symbol_ < 0)
+		{
+			last_symbol_ = symbol;
+			run_length_ += run_length;
+		}
+		else
+		{
+			flush_run();
+
+			last_symbol_ = symbol;
+			run_length_  = run_length;
+		}
 	}
 
 
@@ -112,6 +142,24 @@ public:
 		}
 		else {
 			throw OOMException(MA_RAW_SRC);
+		}
+	}
+
+private:
+
+
+
+
+	void flush_run()
+	{
+		if (!buffer_->emplace_back_symbols_run(last_symbol_, run_length_))
+		{
+			enlarge();
+
+			if (!buffer_->emplace_back_symbols_run(last_symbol_, run_length_))
+			{
+				throw Exception(MA_SRC, "Symbols run entry is too large for RLE Sequence");
+			}
 		}
 	}
 

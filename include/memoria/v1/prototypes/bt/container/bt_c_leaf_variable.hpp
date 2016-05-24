@@ -89,7 +89,7 @@ protected:
 
 
     template <Int Stream, typename Entry>
-    std::tuple<bool> try_insert_stream_entry(Iterator& iter, const Entry& entry)
+    std::tuple<bool> try_insert_stream_entry(Iterator& iter, Int idx, const Entry& entry)
     {
         auto& self = this->self();
 
@@ -101,7 +101,7 @@ protected:
 
         try {
             BranchNodeEntry accum;
-            LeafDispatcher::dispatch(iter.leaf(), InsertStreamEntryFn<Stream>(), iter.idx(), accum, entry);
+            LeafDispatcher::dispatch(iter.leaf(), InsertStreamEntryFn<Stream>(), idx, accum, entry);
             return std::make_tuple(true);
         }
         catch (PackedOOMException& e)

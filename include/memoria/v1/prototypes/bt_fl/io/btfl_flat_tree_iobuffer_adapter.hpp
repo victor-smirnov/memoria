@@ -41,7 +41,9 @@ class FlatTreeIOBufferAdapter: public BufferProducer<IOBufferT> {
 
 public:
 
-    static constexpr BigInt MaxRunLength 	= IOBufferT::template getMaxSymbolsRunLength<Streams>();
+	static constexpr Int DataStreams = Streams - 1;
+
+    static constexpr BigInt MaxRunLength = IOBufferT::template getMaxSymbolsRunLength<DataStreams>();
 
     using CtrSizesT = core::StaticVector<BigInt, Streams>;
 
@@ -100,7 +102,7 @@ public:
     				if (!symbol_encoded_)
     				{
     					auto pos = io_buffer.pos();
-    					if (io_buffer.template putSymbolsRun<Streams>(state_.symbol(), to_encode))
+    					if (io_buffer.template putSymbolsRun<DataStreams>(state_.symbol(), to_encode))
     					{
     						symbol_encoded_ = true;
     						entries++;

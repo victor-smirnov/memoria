@@ -326,10 +326,13 @@ public:
 
     void init() {}
 
+    void refresh() {}
+
+public:
     template <typename Walker>
     void finish_walking(Int idx, const Walker& w, WalkCmd cmd) {}
 
-    void refresh() {}
+
 
 MEMORIA_BT_ITERATOR_BASE_CLASS_END
 

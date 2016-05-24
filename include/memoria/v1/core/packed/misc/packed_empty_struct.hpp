@@ -272,9 +272,6 @@ public:
     {
         handler->startStruct();
         handler->startGroup("EMPTY_STRUCT");
-
-        handler->value("ALLOCATOR",     &Base::allocator_offset());
-
         handler->endGroup();
         handler->endStruct();
     }

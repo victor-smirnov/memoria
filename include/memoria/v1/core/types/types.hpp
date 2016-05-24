@@ -357,6 +357,17 @@ class FLSelector {};
 
 enum class SplitStatus {NONE, LEFT, RIGHT, UNKNOWN};
 
+class SplitResult {
+	SplitStatus type_;
+	Int idx_;
+public:
+	SplitResult(SplitStatus type, Int idx): type_(type), idx_(idx) {}
+	SplitResult(SplitStatus type): type_(type), idx_() {}
+
+	SplitStatus type() const {return type_;}
+	Int idx() const {return idx_;}
+};
+
 
 template <typename PkdStruct>
 struct IndexesSize {

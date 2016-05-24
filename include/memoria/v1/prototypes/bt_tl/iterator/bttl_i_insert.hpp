@@ -58,7 +58,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::bttl::IteratorInsertName)
     using LeafPrefixRanks = typename Container::Types::LeafPrefixRanks;
 
 
-    SplitStatus split()
+    SplitResult split(Int stream, Int idx)
     {
         auto& self  = this->self();
         auto& leaf  = self.leaf();

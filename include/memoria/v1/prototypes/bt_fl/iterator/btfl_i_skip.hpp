@@ -43,97 +43,40 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorSkipName)
     template <typename LeafPath>
     using AccumItemH = typename Container::Types::template AccumItemH<LeafPath>;
 
-    static const Int Streams                = Container::Types::Streams;
-    static const Int SearchableStreams      = Container::Types::SearchableStreams;
-
-    using LeafPrefixRanks = typename Container::Types::LeafPrefixRanks;
+    static const Int Streams          = Container::Types::Streams;
+    static const Int DataStreams      = Container::Types::DataStreams;
 
 public:
 
-    CtrSizesT path() const
+    CtrSizeT selectFw(CtrSizeT rank, Int stream)
     {
-        auto& self = this->self();
-        CtrSizesT p = self.cache().data_pos();
+    	return self().template select_fw_<IntList<0, 1>>(stream, rank);
+    }
 
-        for (Int s = self.stream() + 1; s < Streams; s++) {
-            p[s] = -1;
-        }
-
-        return p;
+    CtrSizeT selectBw(CtrSizeT rank, Int stream)
+    {
+    	return self().template select_fw_<IntList<0, 1>>(stream, rank);
     }
 
 
-    bool next() {
+    bool next_symbol() {
         return self().skipFw(1) > 0;
     }
 
-    bool prev() {
-    	auto distance = self().skipBw(1);
-
-        return distance > 0;
+    bool prev_symbol() {
+    	return self().skipBw(1);
     }
-
-    struct SkipFwFn {
-        template <Int StreamIdx, typename Itr>
-        auto process(Itr&& iter, CtrSizeT n)
-        {
-            return iter.template skip_fw_<StreamIdx>(n);
-        }
-    };
-
-    struct SkipBwFn {
-        template <Int StreamIdx, typename Itr>
-        auto process(Itr&& iter, CtrSizeT n)
-        {
-            return iter.template skip_bw_<StreamIdx>(n);
-        }
-    };
 
 
     CtrSizeT skipFw(CtrSizeT n)
     {
-        auto& self = this->self();
-        auto& cache = self.cache();
-
-        auto stream = self.stream();
-
-        auto pos  = cache.data_pos()[stream];
-        auto size = cache.data_size()[stream];
-
-        CtrSizeT nn;
-
-        if (pos + n > size) {
-            nn = size - pos;
-        }
-        else {
-            nn = n;
-        }
-
-        return bt::ForEachStream<Streams - 1>::process(stream, SkipFwFn(), self, nn);
+    	return self().template skip_fw_<0>(n);
     }
 
 
     CtrSizeT skipBw(CtrSizeT n)
     {
-        auto& self = this->self();
-        auto& cache = self.cache();
-
-        auto stream = self.stream();
-
-        auto pos  = cache.data_pos()[stream];
-
-        if (pos - n < 0) {
-            n = pos;
-        }
-
-        return self.skipBw1(n);
-    }
-
-    CtrSizeT skipBw1(CtrSizeT n = 1)
-    {
-        auto& self = this->self();
-        auto stream = self.stream();
-        return bt::ForEachStream<Streams - 1>::process(stream, SkipBwFn(), self, n);
+    	return self().template skip_bw_<0>(n);
     }
 
     CtrSizeT skip(CtrSizeT n)
@@ -146,51 +89,96 @@ public:
         }
     }
 
-    CtrSizeT size() const {
-
-    }
-
-    CtrSizeT substream_size() const
+    Int stream() const
     {
+    	auto& self 	= this->self();
+    	auto s 		= self.leaf_structure();
+    	auto idx 	= self.idx();
 
+    	if (idx < s->size())
+    	{
+    		return s->get_symbol(idx);
+    	}
+    	else {
+    		throw Exception(MA_SRC, "End Of Data Structure");
+    	}
     }
 
-    CtrSizeT pos() const {
-
-    }
-
-
-    CtrSizeT toData(CtrSizeT offset = 0)
+    Int stream_s() const
     {
+    	auto& self 	= this->self();
+    	auto s 		= self.leaf_structure();
+    	auto idx 	= self.idx();
 
+    	if (idx < s->size())
+    	{
+    		return s->get_symbol(idx);
+    	}
+    	else {
+    		return -1;
+    	}
     }
 
-
-
-    void toIndex()
+    bool isEnd() const
     {
+    	auto& self = this->self();
+
+    	return self.leaf().isSet() ? self.idx() >= self.leaf_size(0) : true;
     }
 
-    bool isSEnd() const
+
+protected:
+
+    Int data_stream_idx(Int stream) const
     {
+    	auto& self = this->self();
+    	return self.data_stream_idx(stream, self.idx());
+    }
 
+    Int data_stream_idx(Int stream, Int structure_idx) const
+    {
+    	auto& self = this->self();
+    	return self.leaf_structure()->rank(structure_idx, stream);
     }
 
 
+    CtrSizesT leafrank(Int structure_idx) const
+    {
+    	auto& self = this->self();
+
+    	auto leaf_structure = self.leaf_structure();
+
+    	CtrSizesT ranks;
+
+    	for (Int c = 0; c < DataStreams; c++)
+    	{
+    		ranks[c + 1] = leaf_structure->rank(structure_idx, c);
+    	}
+
+    	ranks[0] = structure_idx;
+
+    	return ranks;
+    }
 
 
+    Int structure_size() const
+    {
+    	return self().leaf_size(0);
+    }
 
 
+    const auto* leaf_structure() const
+    {
+    	auto& self = this->self();
+    	return self.ctr().template getPackedStruct<IntList<0, 1>>(self.leaf());
+    }
 
+    Int symbol_idx(Int stream, Int position) const
+    {
+    	auto& self = this->self();
 
-
-
-
-
-
-
-
-public:
+    	self.leaf_structure()->selectFW(position + 1, stream);
+    }
 
 
 MEMORIA_V1_ITERATOR_PART_END

@@ -75,6 +75,8 @@ public:
     using InputType = Value;
     using OffsetsType = UByte;
 
+    struct AppendState {};
+
     class Metadata {
         Int size_;
         Int data_size_;
@@ -195,6 +197,11 @@ public:
     	return this->element_size(SYMBOLS);
     }
 
+    Int data_capacity() const
+    {
+    	return symbols_block_size();
+    }
+
     bool has_index() const {
         return Base::element_size(SIZE_INDEX) > 0;
     }
@@ -270,7 +277,11 @@ public:
     	{
     		meta->data_size() += codec.encode(this->symbols(), run_value, meta->data_size());
     		meta->size() 	  += length;
+
+    		return true;
     	}
+
+    	return false;
     }
 
     bool has_capacity(Int required_capacity) const
@@ -283,6 +294,11 @@ public:
 public:
 
     // ===================================== Allocation ================================= //
+
+    void init(const SizesT& symbols_capacity)
+    {
+    	init(block_size(symbols_capacity[0]), symbols_capacity);
+    }
 
 
     void init(Int block_size, const SizesT& symbols_capacity)
@@ -314,11 +330,15 @@ public:
         }
     }
 
-    static Int block_size(const SizesT& symbols_capacity)
+    static Int block_size(const SizesT& symbols_capacity) {
+    	return block_size(symbols_capacity[0]);
+    }
+
+    static Int block_size(Int symbols_capacity)
     {
         Int metadata_length 	= Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
 
-        Int capacity = symbols_capacity[0];
+        Int capacity = symbols_capacity;
 
         Int index_size = number_of_indexes(capacity);
 
@@ -346,6 +366,20 @@ public:
     		size_index->init_by_block(size_index_block_size, index_size);
     	}
     }
+
+
+    void copyTo(MyType* other) const
+    {
+    	auto meta = this->metadata();
+    	auto other_meta = other->metadata();
+
+    	other_meta->size() 		= meta->size();
+    	other_meta->data_size()	= meta->data_size();
+
+    	Codec codec;
+    	codec.copy(this->symbols(), 0, other->symbols(), 0, meta->data_size());
+    }
+
 
 
 public:
@@ -419,6 +453,8 @@ public:
         meta->size() = 0;
         meta->data_size() = 0;
     }
+
+    void reset() {clear();}
 
 
     void dump(std::ostream& out = cout, bool dump_index = true) const

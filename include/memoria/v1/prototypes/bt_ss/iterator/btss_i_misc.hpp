@@ -231,7 +231,7 @@ public:
 
 protected:
 
-    SplitStatus split()
+    SplitResult split(Int stream, Int target_idx)
     {
         auto& self = this->self();
 
@@ -243,17 +243,21 @@ protected:
 
         auto right = self.ctr().split_leaf_p(leaf, Position::create(0, split_idx));
 
+
         if (idx > split_idx)
         {
             leaf = right;
             idx -= split_idx;
 
             self.refresh();
+        }
 
-            return SplitStatus::RIGHT;
+        if (target_idx > split_idx)
+        {
+            return SplitResult(SplitStatus::RIGHT, target_idx);
         }
         else {
-            return SplitStatus::LEFT;
+        	return SplitResult(SplitStatus::LEFT, target_idx);
         }
     }
 

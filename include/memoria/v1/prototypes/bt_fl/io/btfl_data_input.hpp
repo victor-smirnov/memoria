@@ -134,7 +134,7 @@ public:
 
 		auto tmp = append_state_;
 
-		if (this->buffer_ptr_->append_bttl_entry_from_iobuffer(append_state_, io_buffer))
+		if (this->buffer_ptr_->append_entry_from_iobuffer(append_state_, io_buffer))
 		{
 			return;
 		}

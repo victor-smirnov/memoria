@@ -292,6 +292,10 @@ public:
         	a++;
         }
 
+        if (room_length < 0) {
+        	int a = 0; a++;
+        }
+
 
     	MEMORIA_V1_ASSERT(idx, <=, this->size());
         MEMORIA_V1_ASSERT(idx, >=, 0);

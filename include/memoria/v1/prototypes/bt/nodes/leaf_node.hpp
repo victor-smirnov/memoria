@@ -1272,6 +1272,22 @@ public:
         return this->allocator()->template get<T>(SubstreamIdx + SubstreamsStart);
     }
 
+    template <Int SubstreamIdx>
+    auto substream_by_idx()
+    {
+        using T = typename Dispatcher::template StreamTypeT<SubstreamIdx>::Type;
+        return this->allocator()->template get<T>(SubstreamIdx + SubstreamsStart);
+    }
+
+    template <Int SubstreamIdx>
+    auto substream_by_idx() const
+    {
+        using T = typename Dispatcher::template StreamTypeT<SubstreamIdx>::Type;
+        return this->allocator()->template get<T>(SubstreamIdx + SubstreamsStart);
+    }
+
+
+
 
 
     template <typename SubstreamPath, typename Fn, typename... Args>
@@ -1375,6 +1391,9 @@ public:
                 std::forward<Args>(args)...
         );
     }
+
+
+
 
 
 

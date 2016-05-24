@@ -82,13 +82,13 @@ public:
     static constexpr PkdSearchType SearchType 		= PkdSearchType::SUM;
     static const PackedSizeType SizeType 			= PackedSizeType::VARIABLE;
 
-    static constexpr Int ValuesPerBranch        = Types::ValuesPerBranch;
-    static constexpr Int ValuesPerBranchLog2    = NumberOfBits(Types::ValuesPerBranch);
+    static constexpr Int ValuesPerBranch        	= Types::ValuesPerBranch;
+    static constexpr Int ValuesPerBranchLog2    	= NumberOfBits(Types::ValuesPerBranch);
 
-    static constexpr Int Indexes                = Types::Blocks;
-    static constexpr Int Symbols                = Types::Blocks;
+    static constexpr Int Indexes                	= Types::Blocks;
+    static constexpr Int Symbols                	= Types::Blocks;
 
-    static constexpr size_t MaxRunLength        = MaxRLERunLength;
+    static constexpr size_t MaxRunLength        	= MaxRLERunLength;
 
     enum {
         METADATA, SIZE_INDEX, OFFSETS, SUM_INDEX, SYMBOLS, TOTAL_SEGMENTS__
@@ -97,6 +97,7 @@ public:
     using Base::clear;
 
     using Value = UByte;
+    using IndexValue = BigInt;
 
     using Codec = ValueCodec<UBigInt>;
 
@@ -135,6 +136,11 @@ public:
     static constexpr Int number_of_offsets(Int values)
     {
         return values > 0 ? divUp(values, ValuesPerBranch) : 1;
+    }
+
+    static constexpr Int number_of_indexes(Int capacity)
+    {
+    	return capacity <= ValuesPerBranch ? 0 : divUp(capacity, ValuesPerBranch);
     }
 
     static constexpr Int offsets_segment_size(Int values)
@@ -401,13 +407,42 @@ public:
     	{
     		meta->data_size() += codec.encode(this->symbols(), run_value, meta->data_size());
     		meta->size() 	  += length;
+
+    		return true;
     	}
+
+    	return false;
     }
 
 
 public:
 
     // ===================================== Allocation ================================= //
+
+    using PackedAllocator::block_size;
+
+    Int block_size(const MyType* other) const
+    {
+    	return block_size(this->symbols_block_size() + other->symbols_block_size());
+    }
+
+    static Int block_size(Int symbols_capacity)
+    {
+        Int metadata_length 	= Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
+
+        Int capacity = symbols_capacity;
+
+        Int index_size = number_of_indexes(capacity);
+
+        Int size_index_length   = index_size > 0 ? SizeIndex::block_size(index_size) : 0;
+        Int sum_index_length    = index_size > 0 ? SumIndex::block_size(index_size) : 0;
+
+        Int offsets_length  	= offsets_segment_size(capacity);
+        Int values_length   	= Base::roundUpBytesToAlignmentBlocks(capacity);
+
+        Int block_size      	= Base::block_size(metadata_length + size_index_length  + offsets_length + sum_index_length + values_length, TOTAL_SEGMENTS__);
+        return block_size;
+    }
 
     void init(Int block_size)
     {
@@ -444,6 +479,8 @@ public:
         meta->size() 		= 0;
         meta->data_size() 	= 0;
     }
+
+    void reset() {clear();}
 
 
 public:
@@ -606,7 +643,7 @@ public:
         insert(pos, symbol, 1);
     }
 
-    void remove(Int start, Int end)
+    void remove(Int start, Int end, bool compactify = false)
     {
     	auto meta = this->metadata();
 
@@ -646,9 +683,14 @@ public:
 
         meta->size() -= end - start;
 
-        shrink_to_data();
-
-        reindex();
+        if (compactify)
+        {
+        	this->compactify();
+        }
+        else {
+        	shrink_to_data();
+        	reindex();
+        }
     }
 
     void insert(Int idx, Int symbol, UBigInt length)
@@ -832,11 +874,11 @@ public:
     		other_meta->data_size() += data_to_move;
     		other_meta->size() 		+= meta->size() - idx;
 
-    		other->try_merge_two_adjustent_runs(0);
+    		//other->try_merge_two_adjustent_runs(0);
 
-    		other->reindex();
+    		other->compactify();
 
-    		remove(idx, meta->size());
+    		remove(idx, meta->size(), true);
     	}
     }
 
@@ -1111,6 +1153,10 @@ public:
     	Int size = meta->size();
 
         MEMORIA_V1_ASSERT_TRUE(end >= 0);
+
+        if (symbol < 0 || symbol >= Symbols) {
+        	int a = 0; a++;
+        }
 
         MEMORIA_V1_ASSERT_TRUE(symbol >= 0 && symbol < Symbols);
 

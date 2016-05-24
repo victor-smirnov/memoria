@@ -31,6 +31,7 @@
 #include <memoria/v1/prototypes/bt_fl/io/btfl_flat_tree_iobuffer_adapter.hpp>
 #include <memoria/v1/prototypes/bt_fl/io/btfl_ctr_input_provider_base.hpp>
 #include <memoria/v1/prototypes/bt_fl/io/btfl_iobuffer_ctr_input_provider.hpp>
+#include <memoria/v1/prototypes/bt_fl/io/btfl_flat_tree_iobuffer_adapter.hpp>
 
 #include <memory>
 

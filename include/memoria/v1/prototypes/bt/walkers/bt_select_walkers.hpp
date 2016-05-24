@@ -88,7 +88,7 @@ public:
     template <Int StreamIdx, typename Seq>
     SelectResult select(const Seq* seq, Int start, Int symbol, CtrSizeT rank)
     {
-        return seq->selectFw(start, symbol, rank);
+        return seq->selectFW(start - 1, rank, symbol);
     }
 };
 
@@ -162,7 +162,7 @@ public:
     template <Int StreamIdx, typename Seq>
     SelectResult select(const Seq* seq, Int start, Int symbol, CtrSizeT rank)
     {
-        return seq->selectBw(start, symbol, rank);
+        return seq->selectBW(start, rank, symbol);
     }
 };
 

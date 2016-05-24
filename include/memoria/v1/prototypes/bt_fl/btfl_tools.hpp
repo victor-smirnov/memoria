@@ -19,9 +19,16 @@
 #include <memoria/v1/prototypes/bt/tools/bt_tools.hpp>
 #include <memoria/v1/core/container/container.hpp>
 
+#include <memoria/v1/core/packed/sseq/packed_rle_searchable_seq.hpp>
+
 namespace memoria {
 namespace v1 {
 namespace btfl {
+
+
+template <Int DataStreams> struct StructureStreamTF: HasType<PkdRLESeqT<DataStreams>> {};
+
+
 
 
 
