@@ -245,100 +245,10 @@ public:
     }
 
     virtual Position fill(NodeBaseG& leaf, const Position& start) = 0;
-//    {
-//        Position pos = start;
-//
-//        while(true)
-//        {
-//            auto buffer_sizes = this->buffer_size();
-//
-//            if (buffer_sizes.sum() == 0)
-//            {
-//                if (!this->populate_buffer())
-//                {
-//                    return pos;
-//                }
-//                else {
-//                    buffer_sizes = buffer_size();
-//                }
-//            }
-//
-//            auto capacity = findCapacity(leaf, buffer_sizes);
-//
-//            if (capacity.sum() > 0)
-//            {
-//                insertBuffer(leaf, pos, capacity);
-//
-//                auto rest = buffer_size();
-//
-//                if (rest.sum() > 0)
-//                {
-//                    return pos + capacity;
-//                }
-//                else {
-//                    pos += capacity;
-//                }
-//            }
-//            else {
-//                return pos;
-//            }
-//        }
-//    }
-
-
 
     void nextLeaf(const NodeBaseG& leaf) {}
 
-//    virtual Position findCapacity(const NodeBaseG& leaf, const Position& sizes) = 0;
 
-
-//    struct InsertBufferFn {
-//
-//        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename StreamObj, typename StreamBuffer>
-//        void stream(StreamObj* stream, PackedAllocator* alloc, const Position& at, const Position& starts, const Position& sizes, const StreamBuffer& buffer)
-//        {
-//            static_assert(StreamIdx < std::tuple_size<StreamBuffer>::value, "");
-//
-//            stream->insert_buffer(
-//                    at[StreamIdx],
-//                    std::get<StreamIdx>(buffer).buffer()->template substream_by_idx<Idx>(),
-//                    starts[StreamIdx],
-//                    sizes[StreamIdx]
-//            );
-//        }
-//
-//        template <Int StreamIdx, Int AllocatorIdx, Int Idx, typename StreamObj, typename StreamBuffer>
-//        void stream(StreamObj* stream, PackedAllocator* alloc, Int at, Int start, Int size, const StreamBuffer& buffer)
-//        {
-//            static_assert(StreamIdx < std::tuple_size<StreamBuffer>::value, "");
-//
-//            auto ib_struct = buffer.buffer()->template substream_by_idx<Idx>();
-//
-//            stream->insert_buffer(at, ib_struct, start, size);
-//        }
-//
-//        template <typename NodeTypes, typename... Args>
-//        auto treeNode(LeafNode<NodeTypes>* leaf, Args&&... args)
-//        {
-//            leaf->layout(255);
-//            return leaf->processSubstreamGroups(*this, leaf->allocator(), std::forward<Args>(args)...);
-//        }
-//    };
-
-
-
-
-//    virtual void insertBuffer(NodeBaseG& leaf, const DataPositions& at, const DataPositions& sizes) = 0;
-//    {
-//        CtrT::Types::Pages::LeafDispatcher::dispatch(leaf, InsertBufferFn(), at, start_, sizes, data_buffers_);
-//
-//        if (leaf->parent_id().isSet())
-//        {
-//            ctr().update_path(leaf);
-//        }
-//
-//        start_ += sizes;
-//    }
 
     const DataStreamBuffers& data_buffer() const {
         return data_buffers_;

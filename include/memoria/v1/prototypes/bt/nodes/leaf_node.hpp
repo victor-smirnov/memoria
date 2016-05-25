@@ -109,6 +109,7 @@ public:
             Stream
     >;
 
+
     template <Int Stream>
     using BTTLStreamDataDispatcher = SubrangeDispatcher<
     		StreamStartIdx<Stream>::Value,
@@ -142,6 +143,12 @@ public:
 
     template <Int Stream, template <typename> class MapFn>
     using MapStreamStructs 		= typename StreamDispatcher<Stream>::template ForAllStructs<MapFn>;
+
+
+    template <typename SubstreamPath>
+    using PackedStruct = typename Dispatcher::template StreamTypeT<
+    		v1::list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>::Value
+    >::Type;
 
 
 

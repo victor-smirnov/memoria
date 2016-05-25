@@ -373,14 +373,14 @@ public:
         typedef BTCtrTypes<Types>                                               CtrTypes;
         typedef BTIterTypes<Types>                                              IterTypes;
 
-        static const Int Streams                                                = MyType::Streams;
+        static constexpr Int Streams = MyType::Streams;
 
         using BranchNodeEntry = BranchNodeEntry_;
 
         using Position  = Position_;
         using CtrSizesT = Position_;
 
-        typedef PageUpdateManager<CtrTypes>                                     PageUpdateMgr;
+        using PageUpdateMgr = PageUpdateManager<CtrTypes>;
 
         using LeafStreamsStructList     = typename MyType::LeafStreamsStructList;
 
@@ -414,7 +414,7 @@ public:
         using StreamsInputTypeList = typename MyType::StreamsInputTypeList;
 
         template <Int Stream>
-        using StreamInputTuple = TypeListToTuple<Select<Stream, StreamsInputTypeList>>;
+        using StreamInputTuple  = TypeListToTuple<Select<Stream, StreamsInputTypeList>>;
 
         template <Int Stream>
         using InputTupleAdapter = StreamTupleHelper<StreamInputTuple<Stream>>;
@@ -424,13 +424,16 @@ public:
 
 
         template <Int SubstreamIdx>
-        using LeafPathT = typename v1::list_tree::BuildTreePath<LeafStreamsStructList, SubstreamIdx>::Type;
+        using LeafPathT   = typename v1::list_tree::BuildTreePath<LeafStreamsStructList, SubstreamIdx>::Type;
 
         template <Int SubstreamIdx>
         using BranchPathT = typename v1::list_tree::BuildTreePath<BranchStreamsStructList, SubstreamIdx>::Type;
 
         template <Int StreamIdx>
         using StreamInputBufferStructList = Select<StreamIdx, InputBufferStructList>;
+
+        template <typename SubstreamPath>
+        using LeafPackedStruct = typename Pages::LeafDispatcher::Head::template PackedStruct<SubstreamPath>;
 
 
         using LeafNode = typename Pages::LeafDispatcher::Head;

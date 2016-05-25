@@ -1,5 +1,5 @@
 
-// Copyright 2015 Victor Smirnov
+// Copyright 2016 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@
 
 #include <memoria/v1/prototypes/bt_fl/btfl_tools.hpp>
 #include <vector>
-#include "../io/btfl_output.hpp"
 
 namespace memoria {
 namespace v1 {

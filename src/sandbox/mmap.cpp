@@ -326,7 +326,7 @@ int main()
 
             map->setNewPageSize(32768);
 
-            Int keys = 200000;
+            Int keys = 100000;
 
 //            for (Int k = 0; k < keys; k++)
 //            {
@@ -338,7 +338,7 @@ int main()
 
             auto map_data = createRandomShapedMapData<KeyType, ValueType>(
             		keys,
-					10,
+					2000,
                     [](auto k) {
             			return make_key(k, TypeTag<KeyType>());
             		},
@@ -353,15 +353,15 @@ int main()
 
             cout << "Totals: " << totals << ", time " << (t1 - t0) << endl;
 
-//            MMapBufferConsumer consumer;
-//
-//            BigInt tr0 = getTimeInMillis();
-//
-//            map->begin()->bulkio_read(&consumer);
-//
-//            BigInt tr1 = getTimeInMillis();
-//
-//            cout << "Read Time: " << (tr1 - tr0) << endl;
+            MMapBufferConsumer consumer;
+
+            BigInt tr0 = getTimeInMillis();
+
+            map->begin()->bulkio_read(&consumer);
+
+            BigInt tr1 = getTimeInMillis();
+
+            cout << "Read Time: " << (tr1 - tr0) << endl;
 
 
 //            FSDumpAllocator(snp, "mmap.dir");

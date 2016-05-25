@@ -1,5 +1,5 @@
 
-// Copyright 2015 Victor Smirnov
+// Copyright 2016 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 #include <memoria/v1/prototypes/bt/bt_factory.hpp>
 
 #include <memoria/v1/prototypes/bt_fl/io/btfl_input.hpp>
+#include <memoria/v1/prototypes/bt_fl/io/btfl_output.hpp>
 
 #include <memoria/v1/prototypes/bt_fl/btfl_names.hpp>
 #include <memoria/v1/prototypes/bt_fl/btfl_iterator.hpp>

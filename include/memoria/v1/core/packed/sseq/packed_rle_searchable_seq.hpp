@@ -111,6 +111,8 @@ public:
 
     using OffsetsType = UByte;
 
+    //struct ReadState {};
+
     class Metadata {
         Int size_;
         Int data_size_;
