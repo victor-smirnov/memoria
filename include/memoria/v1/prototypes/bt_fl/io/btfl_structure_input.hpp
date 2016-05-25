@@ -152,7 +152,7 @@ private:
 
 	void flush_run()
 	{
-		if (!buffer_->emplace_back_symbols_run(last_symbol_, run_length_))
+		if (run_length_ > 0 && !buffer_->emplace_back_symbols_run(last_symbol_, run_length_))
 		{
 			enlarge();
 

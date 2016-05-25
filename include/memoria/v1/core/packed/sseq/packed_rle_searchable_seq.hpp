@@ -480,7 +480,12 @@ public:
         meta->data_size() 	= 0;
     }
 
-    void reset() {clear();}
+    void reset() {
+    	auto meta = this->metadata();
+
+    	meta->size() 		= 0;
+    	meta->data_size() 	= 0;
+    }
 
 
 public:

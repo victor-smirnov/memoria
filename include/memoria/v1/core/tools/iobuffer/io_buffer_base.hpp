@@ -255,8 +255,6 @@ public:
 
 	bool putUVLen(UBigInt val)
 	{
-		cout << "Put UVLen " << val << " at " << pos_ << endl;
-
 		size_t len = uvlen_codec_.length(val);
 		if (has_capacity(len))
 		{
@@ -278,13 +276,8 @@ public:
 
 	BigInt getUVLen()
 	{
-		auto pos0 = pos_;
-
 		UBigInt len = 0;
 		pos_ += uvlen_codec_.decode(array_, len, pos_);
-
-		cout << "Get UVLen " << len << " from " << pos0 << endl;
-
 		return len;
 	}
 

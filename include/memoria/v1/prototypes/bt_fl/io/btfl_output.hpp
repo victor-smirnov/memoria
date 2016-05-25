@@ -33,7 +33,7 @@ namespace memoria {
 namespace v1 {
 namespace btfl {
 namespace iobuf {
-
+/*
 using bt::StreamTag;
 
 enum class Ending {
@@ -87,165 +87,165 @@ public:
 
 namespace {
 
-	template <
-		typename MyType,
-    	template <Int> class StreamsSizesPath,
-		typename CtrSizeT,
-		typename Position
-	>
-	struct StructureFlattenerFnBase {
-		static constexpr Int BufferSize = 32;
-		static constexpr Int Streams 	= Position::Indexes;
-
-		CtrSizeT pos_;
-		CtrSizeT target_;
-
-		Position sizes_;
-		Position prefix_;
-		Position indexes_;
-
-		StructureFlattenerFnBase(const Position& sizes, const Position& prefix, CtrSizeT target):
-			target_(target),
-			sizes_(sizes),
-			prefix_(prefix),
-			indexes_()
-		{
-			pos_ = prefix.sum();
-		}
-
-		MyType& self() {return *T2T<MyType*>(this);}
-		const MyType& self() const {return *T2T<const MyType*>(this);}
-
-		template <Int StreamIdx, typename NextHelper, typename Node>
-		void process(const Node* node) {
-			process<StreamIdx, NextHelper>(node, prefix_[StreamIdx], sizes_[StreamIdx]);
-		}
-
-		template <Int StreamIdx, typename NextHelper, typename Node>
-		void process(const Node* node, CtrSizeT start, CtrSizeT end)
-		{
-			CtrSizeT buffer[BufferSize];
-			for (auto& v: buffer) v = 0;
-
-			Int buffer_pos = 0;
-			Int buffer_size = 0;
-
-			const Int size   = sizes_[StreamIdx];
-			const Int limit  = end <= size ? end : size;
-
-			for (auto i = start; i < limit; i++)
-			{
-				if (pos_ < target_)
-				{
-					auto next_length = this->template buffered_get<StreamIdx>(node, i, buffer_pos, buffer_size, size, buffer);
-
-					indexes_[StreamIdx]++;
-
-					self().symbol(StreamIdx, pos_, 1);
-
-					pos_++;
-
-					auto next_offset = prefix_[StreamIdx  + 1] + indexes_[StreamIdx + 1];
-
-					NextHelper::process(node, *this, next_offset, next_offset + next_length);
-				}
-				else {
-					break;
-				}
-			}
-		}
-
-		template <Int StreamIdx, typename Node>
-		void processLast(const Node* node) {
-			processLast<StreamIdx>(node, prefix_[StreamIdx], sizes_[StreamIdx]);
-		}
-
-		template <Int StreamIdx, typename Node, typename... Args>
-		void processLast(const Node* node, CtrSizeT start, CtrSizeT end, Args&&...)
-		{
-			CtrSizeT size = node->template streamSize<StreamIdx>();
-
-			const CtrSizeT limit = end <= size ? end : size;
-
-			auto delta = target_ - pos_;
-
-			if (start + delta <= limit)
-			{
-				indexes_[StreamIdx] += delta;
-
-				self().symbol(StreamIdx, pos_, delta);
-
-				pos_ += delta;
-			}
-			else {
-				indexes_[StreamIdx] += limit - start;
-
-				self().symbol(StreamIdx, pos_, limit - start);
-
-				pos_ += limit - start;
-			}
-		}
-
-	private:
-
-		template <Int StreamIdx, typename Node>
-		CtrSizeT buffered_get(const Node* node, Int idx, Int& p0, Int& s0, Int size, CtrSizeT buffer[BufferSize])
-		{
-			if (idx < s0) {
-				return buffer[idx - p0];
-			}
-			else {
-				Int limit = (idx + BufferSize) < size ? idx + BufferSize : size;
-
-				using Path = StreamsSizesPath<StreamIdx>;
-
-				// FIXME: use Value Iterator pattern here
-
-				Int idx0 = 0;
-				node->template substream<Path>()->read(0, idx, limit, make_fn_with_next([&](Int block, auto&& value){
-					buffer[idx0] = value;
-				}, [&]{idx0++;}));
-
-				p0 = idx;
-				s0 = limit;
-
-				return buffer[0];
-			}
-		}
-	};
-
-
-
-
-
-	template <Int Idx>
-	struct StructurePrefixFlattenerHelper
-	{
-	    template <typename Walker, typename Node, typename Position, typename Prefixes, typename... Args>
-	    static void process(const Walker* walker, Node&& node, Position&& sizes, Prefixes&& prefixes, Args&&... args)
-	    {
-	    	auto total = prefixes[Idx - 1].sum();
-
-	    	if (total > 0) {
-	    		walker->template flatten_tree<Idx>(std::forward<Node>(node), sizes, prefixes[Idx], total, std::forward<Args>(args)...);
-	    	}
-
-	        StructurePrefixFlattenerHelper<Idx - 1>::process(walker, std::forward<Node>(node), sizes, prefixes, std::forward<Args>(args)...);
-	    }
-	};
-
-
-	template <>
-	struct StructurePrefixFlattenerHelper<1> {
-	    template <typename Walker, typename Node, typename Position, typename Prefixes, typename... Args>
-	    static void process(const Walker* walker, Node&& node, Position&& sizes, Prefixes&& prefixes, Args&&... args)
-	    {
-	    	auto total = prefixes[0].sum();
-	    	if (total > 0) {
-	    		walker->template flatten_tree<1>(std::forward<Node>(node), sizes, prefixes[1], total, std::forward<Args>(args)...);
-	    	}
-	    }
-	};
+//	template <
+//		typename MyType,
+//    	template <Int> class StreamsSizesPath,
+//		typename CtrSizeT,
+//		typename Position
+//	>
+//	struct StructureFlattenerFnBase {
+//		static constexpr Int BufferSize = 32;
+//		static constexpr Int Streams 	= Position::Indexes;
+//
+//		CtrSizeT pos_;
+//		CtrSizeT target_;
+//
+//		Position sizes_;
+//		Position prefix_;
+//		Position indexes_;
+//
+//		StructureFlattenerFnBase(const Position& sizes, const Position& prefix, CtrSizeT target):
+//			target_(target),
+//			sizes_(sizes),
+//			prefix_(prefix),
+//			indexes_()
+//		{
+//			pos_ = prefix.sum();
+//		}
+//
+//		MyType& self() {return *T2T<MyType*>(this);}
+//		const MyType& self() const {return *T2T<const MyType*>(this);}
+//
+//		template <Int StreamIdx, typename NextHelper, typename Node>
+//		void process(const Node* node) {
+//			process<StreamIdx, NextHelper>(node, prefix_[StreamIdx], sizes_[StreamIdx]);
+//		}
+//
+//		template <Int StreamIdx, typename NextHelper, typename Node>
+//		void process(const Node* node, CtrSizeT start, CtrSizeT end)
+//		{
+//			CtrSizeT buffer[BufferSize];
+//			for (auto& v: buffer) v = 0;
+//
+//			Int buffer_pos = 0;
+//			Int buffer_size = 0;
+//
+//			const Int size   = sizes_[StreamIdx];
+//			const Int limit  = end <= size ? end : size;
+//
+//			for (auto i = start; i < limit; i++)
+//			{
+//				if (pos_ < target_)
+//				{
+//					auto next_length = this->template buffered_get<StreamIdx>(node, i, buffer_pos, buffer_size, size, buffer);
+//
+//					indexes_[StreamIdx]++;
+//
+//					self().symbol(StreamIdx, pos_, 1);
+//
+//					pos_++;
+//
+//					auto next_offset = prefix_[StreamIdx  + 1] + indexes_[StreamIdx + 1];
+//
+//					NextHelper::process(node, *this, next_offset, next_offset + next_length);
+//				}
+//				else {
+//					break;
+//				}
+//			}
+//		}
+//
+//		template <Int StreamIdx, typename Node>
+//		void processLast(const Node* node) {
+//			processLast<StreamIdx>(node, prefix_[StreamIdx], sizes_[StreamIdx]);
+//		}
+//
+//		template <Int StreamIdx, typename Node, typename... Args>
+//		void processLast(const Node* node, CtrSizeT start, CtrSizeT end, Args&&...)
+//		{
+//			CtrSizeT size = node->template streamSize<StreamIdx>();
+//
+//			const CtrSizeT limit = end <= size ? end : size;
+//
+//			auto delta = target_ - pos_;
+//
+//			if (start + delta <= limit)
+//			{
+//				indexes_[StreamIdx] += delta;
+//
+//				self().symbol(StreamIdx, pos_, delta);
+//
+//				pos_ += delta;
+//			}
+//			else {
+//				indexes_[StreamIdx] += limit - start;
+//
+//				self().symbol(StreamIdx, pos_, limit - start);
+//
+//				pos_ += limit - start;
+//			}
+//		}
+//
+//	private:
+//
+//		template <Int StreamIdx, typename Node>
+//		CtrSizeT buffered_get(const Node* node, Int idx, Int& p0, Int& s0, Int size, CtrSizeT buffer[BufferSize])
+//		{
+//			if (idx < s0) {
+//				return buffer[idx - p0];
+//			}
+//			else {
+//				Int limit = (idx + BufferSize) < size ? idx + BufferSize : size;
+//
+//				using Path = StreamsSizesPath<StreamIdx>;
+//
+//				// FIXME: use Value Iterator pattern here
+//
+//				Int idx0 = 0;
+//				node->template substream<Path>()->read(0, idx, limit, make_fn_with_next([&](Int block, auto&& value){
+//					buffer[idx0] = value;
+//				}, [&]{idx0++;}));
+//
+//				p0 = idx;
+//				s0 = limit;
+//
+//				return buffer[0];
+//			}
+//		}
+//	};
+//
+//
+//
+//
+//
+//	template <Int Idx>
+//	struct StructurePrefixFlattenerHelper
+//	{
+//	    template <typename Walker, typename Node, typename Position, typename Prefixes, typename... Args>
+//	    static void process(const Walker* walker, Node&& node, Position&& sizes, Prefixes&& prefixes, Args&&... args)
+//	    {
+//	    	auto total = prefixes[Idx - 1].sum();
+//
+//	    	if (total > 0) {
+//	    		walker->template flatten_tree<Idx>(std::forward<Node>(node), sizes, prefixes[Idx], total, std::forward<Args>(args)...);
+//	    	}
+//
+//	        StructurePrefixFlattenerHelper<Idx - 1>::process(walker, std::forward<Node>(node), sizes, prefixes, std::forward<Args>(args)...);
+//	    }
+//	};
+//
+//
+//	template <>
+//	struct StructurePrefixFlattenerHelper<1> {
+//	    template <typename Walker, typename Node, typename Position, typename Prefixes, typename... Args>
+//	    static void process(const Walker* walker, Node&& node, Position&& sizes, Prefixes&& prefixes, Args&&... args)
+//	    {
+//	    	auto total = prefixes[0].sum();
+//	    	if (total > 0) {
+//	    		walker->template flatten_tree<1>(std::forward<Node>(node), sizes, prefixes[1], total, std::forward<Args>(args)...);
+//	    	}
+//	    }
+//	};
 
 
 	template <typename LeafNode, Int Idx, Int Streams, template <typename> class MapFn>
@@ -269,93 +269,93 @@ namespace {
 
 
 
-template <typename CtrT, typename ConsumerFn>
-class FlatTreeStructureBuilder {
-
-	using Types 	= typename CtrT::Types;
-	using MyType 	= FlatTreeStructureBuilder<CtrT, ConsumerFn>;
-
-	using LeafPrefixRanks = typename Types::LeafPrefixRanks;
-
-	using CtrSizeT  = typename Types::CtrSizeT;
-	using CtrSizesT = typename Types::CtrSizesT;
-	using NodeBaseG = typename Types::NodeBaseG;
-
-	using LeafDispatcher = typename Types::Pages::LeafDispatcher;
-
-	template <Int StreamIdx>
-	using LeafSizesSubstreamPath = typename Types::template LeafSizesSubstreamPath<StreamIdx>;
-
-
-	static constexpr Int Streams 			= Types::Streams;
-	static constexpr Int SearchableStreams 	= Streams - 1;
-
-	template <Int> friend struct StructurePrefixFlattenerHelper;
-
-	class StructureFlattenerFn: public StructureFlattenerFnBase<StructureFlattenerFn, LeafSizesSubstreamPath, CtrSizeT, CtrSizesT>
-	{
-		using Base = StructureFlattenerFnBase<StructureFlattenerFn, LeafSizesSubstreamPath, CtrSizeT, CtrSizesT>;
-
-		ConsumerFn& consumer_fn_;
-
-	public:
-		StructureFlattenerFn(ConsumerFn& consumer, const CtrSizesT& sizes, const CtrSizesT& prefix, CtrSizeT target):
-			Base(sizes, prefix, target),
-			consumer_fn_(consumer)
-		{}
-
-		void symbol(Int sym, CtrSizeT pos, CtrSizeT length)
-		{
-			consumer_fn_(sym, pos, length);
-		}
-	};
-
-
-
-    template <Int Stream>
-    struct StructureBuilderFn {
-
-    	template <typename NTypes, typename... Args>
-    	void treeNode(const LeafNode<NTypes>* leaf, ConsumerFn& consumer_fn, const CtrSizesT& sizes, const CtrSizesT& prefix, CtrSizeT pos, Args&&... args)
-    	{
-    		StructureFlattenerFn fn(consumer_fn, sizes, prefix, pos);
-    		bttl::detail::StreamsRankHelper<Stream, SearchableStreams>::process(leaf, fn, std::forward<Args>(args)...);
-    	}
-    };
-
-    const CtrT* ctr_;
-
-    ConsumerFn& consumer_fn_;
-
-public:
-
-    FlatTreeStructureBuilder(const CtrT& ctr, ConsumerFn& consumer_fn): ctr_(&ctr), consumer_fn_(consumer_fn) {}
-
-	void build(const NodeBaseG& leaf, const CtrSizesT& leaf_extent)
-	{
-		CtrSizesT sizes = ctr_->getLeafStreamSizes(leaf);
-		LeafPrefixRanks prefixes;
-
-        ctr_->compute_leaf_prefixes(leaf, leaf_extent, prefixes);
-
-		StructurePrefixFlattenerHelper<Streams - 1>::process(this, leaf, sizes, prefixes);
-
-		this->template flatten_tree<0>(leaf, sizes, prefixes[0], sizes.sum());
-	}
-
-	void consume(Int symbol, CtrSizeT pos, CtrSizeT length)
-	{
-		consumer_fn_(symbol, pos, length);
-	}
-
-private:
-
-    template <Int Stream, typename... Args>
-    void flatten_tree(const NodeBaseG& leaf, Args&&... args) const
-    {
-        return LeafDispatcher::dispatch(leaf, StructureBuilderFn<Stream>(), consumer_fn_, std::forward<Args>(args)...);
-    }
-};
+//template <typename CtrT, typename ConsumerFn>
+//class FlatTreeStructureBuilder {
+//
+//	using Types 	= typename CtrT::Types;
+//	using MyType 	= FlatTreeStructureBuilder<CtrT, ConsumerFn>;
+//
+//	using LeafPrefixRanks = typename Types::LeafPrefixRanks;
+//
+//	using CtrSizeT  = typename Types::CtrSizeT;
+//	using CtrSizesT = typename Types::CtrSizesT;
+//	using NodeBaseG = typename Types::NodeBaseG;
+//
+//	using LeafDispatcher = typename Types::Pages::LeafDispatcher;
+//
+//	template <Int StreamIdx>
+//	using LeafSizesSubstreamPath = typename Types::template LeafSizesSubstreamPath<StreamIdx>;
+//
+//
+//	static constexpr Int Streams 			= Types::Streams;
+//	static constexpr Int SearchableStreams 	= Streams - 1;
+//
+//	template <Int> friend struct StructurePrefixFlattenerHelper;
+//
+//	class StructureFlattenerFn: public StructureFlattenerFnBase<StructureFlattenerFn, LeafSizesSubstreamPath, CtrSizeT, CtrSizesT>
+//	{
+//		using Base = StructureFlattenerFnBase<StructureFlattenerFn, LeafSizesSubstreamPath, CtrSizeT, CtrSizesT>;
+//
+//		ConsumerFn& consumer_fn_;
+//
+//	public:
+//		StructureFlattenerFn(ConsumerFn& consumer, const CtrSizesT& sizes, const CtrSizesT& prefix, CtrSizeT target):
+//			Base(sizes, prefix, target),
+//			consumer_fn_(consumer)
+//		{}
+//
+//		void symbol(Int sym, CtrSizeT pos, CtrSizeT length)
+//		{
+//			consumer_fn_(sym, pos, length);
+//		}
+//	};
+//
+//
+//
+//    template <Int Stream>
+//    struct StructureBuilderFn {
+//
+//    	template <typename NTypes, typename... Args>
+//    	void treeNode(const LeafNode<NTypes>* leaf, ConsumerFn& consumer_fn, const CtrSizesT& sizes, const CtrSizesT& prefix, CtrSizeT pos, Args&&... args)
+//    	{
+//    		StructureFlattenerFn fn(consumer_fn, sizes, prefix, pos);
+//    		bttl::detail::StreamsRankHelper<Stream, SearchableStreams>::process(leaf, fn, std::forward<Args>(args)...);
+//    	}
+//    };
+//
+//    const CtrT* ctr_;
+//
+//    ConsumerFn& consumer_fn_;
+//
+//public:
+//
+//    FlatTreeStructureBuilder(const CtrT& ctr, ConsumerFn& consumer_fn): ctr_(&ctr), consumer_fn_(consumer_fn) {}
+//
+//	void build(const NodeBaseG& leaf, const CtrSizesT& leaf_extent)
+//	{
+//		CtrSizesT sizes = ctr_->getLeafStreamSizes(leaf);
+//		LeafPrefixRanks prefixes;
+//
+//        ctr_->compute_leaf_prefixes(leaf, leaf_extent, prefixes);
+//
+//		StructurePrefixFlattenerHelper<Streams - 1>::process(this, leaf, sizes, prefixes);
+//
+//		this->template flatten_tree<0>(leaf, sizes, prefixes[0], sizes.sum());
+//	}
+//
+//	void consume(Int symbol, CtrSizeT pos, CtrSizeT length)
+//	{
+//		consumer_fn_(symbol, pos, length);
+//	}
+//
+//private:
+//
+//    template <Int Stream, typename... Args>
+//    void flatten_tree(const NodeBaseG& leaf, Args&&... args) const
+//    {
+//        return LeafDispatcher::dispatch(leaf, StructureBuilderFn<Stream>(), consumer_fn_, std::forward<Args>(args)...);
+//    }
+//};
 
 
 
@@ -402,6 +402,7 @@ class BTTLWalker {
 	using Iterator  = IteratorT;
 
 	static constexpr Int Streams 			= Types::Streams;
+	static constexpr Int DataStreams 		= Types::DataStreams;
 	static constexpr Int SearchableStreams 	= Streams - 1;
 
 	using StreamsSizes 	= core::StaticVector<Int, Streams>;
@@ -482,12 +483,12 @@ class BTTLWalker {
 	Int stream_ = 0;
 	StreamsSizes idx_;
 
-	DefaultIOBuffer symbols_;
+//	DefaultIOBuffer symbols_;
 	size_t symbol_runs_ = 0;
 	size_t current_symbols_run_ = 0;
 
 	NodeBaseG leaf_;
-	CtrSizesT leaf_extents_;
+//	CtrSizesT leaf_extents_;
 
 	BigInt run_pos_ 	= 0;
 	BigInt run_length_  = 0;
@@ -501,9 +502,9 @@ public:
 	BTTLWalker(Iterator& iter):
 		iter_(&iter),
 		stream_(iter.stream()),
-		symbols_(512),
-		leaf_(iter.leaf()),
-		leaf_extents_(iter.leaf_extent())
+//		symbols_(512),
+		leaf_(iter.leaf())
+//		leaf_extents_(iter.leaf_extent())
 	{
 		locals_ = iter.path();
 
@@ -516,37 +517,37 @@ public:
 
 	void prepare_new_page()
 	{
-		symbols_.rewind();
+//		symbols_.rewind();
 		idx_.clear();
 
 		symbol_runs_ 		 = 0;
 		current_symbols_run_ = 0;
 
-		iter_->ctr().build_node_layout(leaf_, leaf_extents_, [&](Int symbol, CtrSizeT pos, CtrSizeT length)
-		{
-			auto backup = symbols_.pos();
-			if (!symbols_.putSymbolsRun<Streams>(symbol, length))
-			{
-				symbols_.pos(backup);
+//		iter_->ctr().build_node_layout(leaf_, leaf_extents_, [&](Int symbol, CtrSizeT pos, CtrSizeT length)
+//		{
+//			auto backup = symbols_.pos();
+//			if (!symbols_.putSymbolsRun<Streams>(symbol, length))
+//			{
+//				symbols_.pos(backup);
+//
+//				symbols_.enlarge();
+//
+//				if (!symbols_.putSymbolsRun<Streams>(symbol, length))
+//				{
+//					throw Exception(MA_SRC, "Can't enlarge symbols IOBuffer enough to put next symbols run");
+//				}
+//			}
+//
+//			symbol_runs_++;
+//		});
 
-				symbols_.enlarge();
-
-				if (!symbols_.putSymbolsRun<Streams>(symbol, length))
-				{
-					throw Exception(MA_SRC, "Can't enlarge symbols IOBuffer enough to put next symbols run");
-				}
-			}
-
-			symbol_runs_++;
-		});
-
-		symbols_.rewind();
+//		symbols_.rewind();
 	}
 
 	PopulateStatus write_stream(Int stream, BigInt length, IOBufferT& io_buffer)
 	{
 		WriteStreamFn fn(this);
-		ForAllTuple<Streams>::process(stream_data_, fn, stream_, length, io_buffer);
+		ForAllTuple<DataStreams>::process(stream_data_, fn, stream_, length, io_buffer);
 		return fn.status_;
 	}
 
@@ -683,7 +684,7 @@ private:
     	template <typename NTypes>
     	void treeNode(const LeafNode<NTypes>* leaf, ReadStreamDataStates& stream_data, const StreamsSizes& idx)
     	{
-    		ForAllTuple<Streams>::process(stream_data, *this, idx, leaf);
+    		ForAllTuple<DataStreams>::process(stream_data, *this, idx, leaf);
     	}
     };
 
@@ -743,6 +744,6 @@ private:
 
 
 
-
+*/
 
 }}}}

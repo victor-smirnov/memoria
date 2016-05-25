@@ -362,7 +362,7 @@ public:
 
         for (Int s = 0; s < DataStreams; s++)
         {
-            rnk[s] = symbols->rank(idx + start_pos, s);
+            rnk[s] = symbols->rank(start_pos + idx, s);
         }
 
         return rnk - start_;
@@ -479,6 +479,7 @@ protected:
     using Base::rank;
     using Base::ctr_;
     using Base::start_;
+    using Base::size_;
     using Base::data_buffers_;
     using Base::structure_buffer_;
     using Base::to_data_positions;

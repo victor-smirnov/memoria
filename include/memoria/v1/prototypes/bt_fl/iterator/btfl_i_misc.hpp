@@ -55,55 +55,56 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorMiscName)
 
     using LeafPrefixRanks = typename Container::Types::LeafPrefixRanks;
 
+public:
+//    template <typename IOBuffer>
+//    void bulkio_read(BufferConsumer<IOBuffer>* consumer)
+//    {
+//    	auto& self = this->self();
+//
+//    	btfl::iobuf::BTTLWalker<MyType, IOBuffer> walker(self);
+//
+//    	IOBuffer& buffer = consumer->buffer();
+//
+//    	Int entries = 0;
+//
+//    	while (true)
+//    	{
+//    		auto result = walker.populate(buffer);
+//
+//    		entries += result.entries();
+//
+//    		if (result.ending() == btfl::iobuf::Ending::END_OF_PAGE)
+//    		{
+//    			if (!walker.next_page())
+//    			{
+//    				if (entries > 0)
+//    				{
+//    					buffer.rewind();
+//    					consumer->process(buffer, entries);
+//    				}
+//
+//    				entries = 0;
+//
+//    				break;
+//    			}
+//    		}
+//    		else if (result.ending() == btfl::iobuf::Ending::END_OF_IOBUFFER)
+//    		{
+//    			if (entries > 0)
+//    			{
+//    				buffer.rewind();
+//    				consumer->process(buffer, entries);
+//    				entries = 0;
+//    			}
+//    		}
+//    		else
+//    		{
+//    			break;
+//    		}
+//    	}
+//    }
 
-    template <typename IOBuffer>
-    void bulkio_read(BufferConsumer<IOBuffer>* consumer)
-    {
-    	auto& self = this->self();
-
-    	btfl::iobuf::BTTLWalker<MyType, IOBuffer> walker(self);
-
-    	IOBuffer& buffer = consumer->buffer();
-
-    	Int entries = 0;
-
-    	while (true)
-    	{
-    		auto result = walker.populate(buffer);
-
-    		entries += result.entries();
-
-    		if (result.ending() == btfl::iobuf::Ending::END_OF_PAGE)
-    		{
-    			if (!walker.next_page())
-    			{
-    				if (entries > 0)
-    				{
-    					buffer.rewind();
-    					consumer->process(buffer, entries);
-    				}
-
-    				entries = 0;
-
-    				break;
-    			}
-    		}
-    		else if (result.ending() == btfl::iobuf::Ending::END_OF_IOBUFFER)
-    		{
-    			if (entries > 0)
-    			{
-    				buffer.rewind();
-    				consumer->process(buffer, entries);
-    				entries = 0;
-    			}
-    		}
-    		else
-    		{
-    			break;
-    		}
-    	}
-    }
-
+protected:
 
     void refresh()
     {

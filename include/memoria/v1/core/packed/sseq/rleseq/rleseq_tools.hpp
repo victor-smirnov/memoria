@@ -59,7 +59,7 @@ static constexpr UBigInt EncodeRun(Int symbol, UBigInt length)
 			return (symbol & SymbolMask) | (length << BitsPerSymbol);
 		}
 		else {
-			throw Exception(MA_SRC, "Symbols run length must be positive");
+			throw Exception(MA_SRC, SBuf() << "Symbols run length must be >= 0 : " << length);
 		}
 	}
 	else {

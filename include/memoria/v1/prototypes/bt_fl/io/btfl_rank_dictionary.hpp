@@ -77,6 +77,8 @@ public:
 	{
 		last_symbol_ = -1;
 		run_length_  = 0;
+
+		get()->reset();
 	}
 
 	void reindex()
@@ -106,10 +108,14 @@ public:
 		}
 	}
 
+	void dump(std::ostream& out = std::cout) const {
+		get()->dump(out);
+	}
+
 private:
 	void flush_run()
 	{
-		if (!get()->emplace_back(last_symbol_, run_length_))
+		if (run_length_ > 0 && !get()->emplace_back(last_symbol_, run_length_))
 		{
 			enlarge();
 
