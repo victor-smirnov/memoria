@@ -549,8 +549,6 @@ public:
 
         set_page(p);
 
-
-
         return PageG(shared);
     }
 

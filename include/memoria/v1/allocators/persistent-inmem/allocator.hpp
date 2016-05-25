@@ -540,6 +540,12 @@ public:
         walker->endAllocator();
     }
 
+    virtual void store(const char* file)
+    {
+    	auto fileh = FileOutputStreamHandler::create(file);
+    	store(fileh.get());
+    }
+
     virtual void store(OutputStreamHandler *output)
     {
         if (active_snapshots_) {
@@ -567,6 +573,11 @@ public:
         output->close();
     }
 
+    static std::shared_ptr<MyType> load(const char* file)
+    {
+    	auto fileh = FileInputStreamHandler::create(file);
+    	return load(fileh.get());
+    }
 
     static std::shared_ptr<MyType> load(InputStreamHandler *input)
     {

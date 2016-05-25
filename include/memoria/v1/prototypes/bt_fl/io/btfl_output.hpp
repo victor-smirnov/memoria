@@ -129,12 +129,12 @@ public:
 
 
 template <typename IteratorT, typename IOBufferT>
-class BTTLWalker {
+class BTFLWalker {
 
 	using CtrT		= typename IteratorT::Container;
 
 	using Types 	= typename CtrT::Types;
-	using MyType 	= BTTLWalker<IteratorT, IOBufferT>;
+	using MyType 	= BTFLWalker<IteratorT, IOBufferT>;
 
 	using LeafPrefixRanks = typename Types::LeafPrefixRanks;
 
@@ -243,7 +243,7 @@ class BTTLWalker {
 
 public:
 
-	BTTLWalker(Iterator& iter):
+	BTFLWalker(Iterator& iter):
 		iter_(&iter),
 		leaf_(iter.leaf()),
 		stream_(iter.stream())
@@ -455,6 +455,37 @@ private:
 	void configure_data(const DataStreamsSizes& idx)
 	{
 		return LeafDispatcher::dispatch(leaf_, ConfigureDataFn(), stream_data_, idx);
+	}
+};
+
+
+
+
+
+template <typename IOBufferT, typename Iterator>
+class ChainedIOBufferProducer: public BufferProducer<IOBufferT> {
+
+	using WalkerType = BTFLWalker<Iterator, IOBufferT>;
+
+	Iterator* iter_;
+	WalkerType walker_;
+	IOBufferT io_buffer_;
+
+public:
+	ChainedIOBufferProducer(Iterator* iter, Int buffer_size = 65536):
+		iter_(iter),
+		walker_(*iter),
+		io_buffer_(buffer_size)
+	{
+	}
+
+	virtual IOBufferT& buffer() {
+		return io_buffer_;
+	}
+
+	virtual Int populate(IOBufferT& buffer)
+	{
+		return iter_->bulkio_populate(walker_, &io_buffer_);
 	}
 };
 

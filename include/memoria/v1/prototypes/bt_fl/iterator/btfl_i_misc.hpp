@@ -63,7 +63,7 @@ public:
 
     	auto start_id = self.leaf()->id();
 
-    	btfl::io::BTTLWalker<MyType, IOBuffer> walker(self);
+    	btfl::io::BTFLWalker<MyType, IOBuffer> walker(self);
 
     	IOBuffer& buffer = consumer->buffer();
 
@@ -114,7 +114,67 @@ public:
     	}
     }
 
+    template <typename IOBuffer>
+    auto create_walker()
+    {
+    	auto& self = this->self();
+    	return std::make_shared<btfl::io::BTFLWalker<MyType, IOBuffer>>(self);
+    }
+
+
+    template <typename Walker, typename IOBuffer>
+    Int bulkio_populate(Walker& walker, IOBuffer* buffer)
+    {
+    	auto& self = this->self();
+
+    	auto start_id = self.leaf()->id();
+
+    	Int entries = 0;
+
+    	bool more_data = false;
+
+    	buffer->rewind();
+
+    	while (true)
+    	{
+    		auto result = walker.populate(*buffer);
+
+    		entries += result.entries();
+
+    		if (result.ending() == btfl::io::Ending::END_OF_PAGE)
+    		{
+    			if (!walker.next_page())
+    			{
+    				more_data = false;
+    				break;
+    			}
+    		}
+    		else if (result.ending() == btfl::io::Ending::END_OF_IOBUFFER)
+    		{
+    			more_data = true;
+    			break;
+    		}
+    		else
+    		{
+    			// what does this mean?
+    			break;
+    		}
+    	}
+
+    	self.idx() 	= walker.idx();
+    	self.leaf() = walker.leaf();
+
+    	if (self.leaf()->id() != start_id)
+    	{
+    		self.refresh();
+    	}
+
+    	return more_data ? entries : -entries;
+    }
+
 protected:
+
+
 
     void refresh()
     {

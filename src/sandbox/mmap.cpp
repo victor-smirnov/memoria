@@ -314,7 +314,7 @@ int main()
     using KeyType   = BigInt;
     using ValueType = UBigInt;//FixedArray<32>;
 
-    using CtrName = Map<KeyType, Vector<ValueType>>;
+    using CtrName 	= Map<KeyType, Vector<ValueType>>;
 
     DInit<CtrName>();
 
@@ -322,23 +322,15 @@ int main()
         auto alloc = PersistentInMemAllocator<>::create();
         auto snp   = alloc->master()->branch();
         try {
-            auto map = create<CtrName>(snp);
+            auto map = create<CtrName>(snp, UUID(10000, 20000));
 
             map->setNewPageSize(32768);
 
-            Int keys = 100000;
-
-//            for (Int k = 0; k < keys; k++)
-//            {
-//            	map->find_or_create(k);
-//            }
-//
-//            FSDumpAllocator(snp, "mmap.dir");
-
+            Int keys = 10000;
 
             auto map_data = createRandomShapedMapData<KeyType, ValueType>(
             		keys,
-					2000,
+					20000,
                     [](auto k) {
             			return make_key(k, TypeTag<KeyType>());
             		},
@@ -353,56 +345,65 @@ int main()
 
             cout << "Totals: " << totals << ", time " << (t1 - t0) << endl;
 
-            MMapBufferConsumer consumer;
-
-            BigInt tr0 = getTimeInMillis();
-
-            map->begin()->bulkio_read(&consumer);
-
-            BigInt tr1 = getTimeInMillis();
-
-            cout << "Read Time: " << (tr1 - tr0) << endl;
-
-
-//            FSDumpAllocator(snp, "mmap.dir");
+//            MMapBufferConsumer consumer;
 //
-//            size_t total_data_size = 0;
+//            BigInt tr0 = getTimeInMillis();
 //
-//            for (auto& kv: map_data) {
-//            	total_data_size += kv.second.size();
+//            map->begin()->bulkio_read(&consumer);
+//
+//            BigInt tr1 = getTimeInMillis();
+//
+//            cout << "Read Time: " << (tr1 - tr0) << endl;
+//
+//
+//            auto iter0 = map->begin();
+//
+//            auto walker = iter0->template create_walker<MMapIOBuffer>();
+//
+//            MMapIOBuffer io_buffer(65536);
+//
+//            BigInt trr0 = getTimeInMillis();
+//
+//            size_t size = 0;
+//
+//            while(true)
+//            {
+//            	Int entries = iter0->bulkio_populate(*walker.get(), &io_buffer);
+//            	if (entries > 0) {
+//            		size += entries;
+//            	}
+//            	else if (entries < 0) {
+//            		size += -entries;
+//            		break;
+//            	}
 //            }
+//
+//            BigInt trr1 = getTimeInMillis();
+//
+//            cout << "Populate Time: " << (trr1 - trr0) << " entries: " << size << endl;
+//
+//
+//            auto map2 = create<CtrName>(snp);
 //
 //            auto iter = map->begin();
+//            using CtrT = decltype(map)::element_type;
 //
-////            BigInt ti0 = getTimeInMillis();
-////
-////            MapIOBufferAdapter<KeyType, ValueType> iobuf_adapter(map_data, 65536);
-////            auto totals = map->begin()->bulkio_insert(iobuf_adapter);
-////
-////            BigInt ti1 = getTimeInMillis();
-////
-////            cout << "Insertion time: " << (ti1 - ti0) <<" " << totals << endl;
+//            ChainedIOBufferProducer<MMapIOBuffer, CtrT::Iterator> chained_producer(iter.get(), 65536);
 //
-////            auto sizes = map->sizes();
-////            MEMORIA_V1_ASSERT(totals, ==, sizes);
+//            long ti0 = getTimeInMillis();
+//            auto totals2 = map2->begin()->bulkio_insert(chained_producer);
+//            long ti1 = getTimeInMillis();
 //
-//
-//
-//            snp->commit();
-//
-//            for (Int c = 0; c <= keys + 1; c++)
-//            {
-//            	auto i = map->find(c);
-//            	cout << "Key " << c << " -- "<< i->is_found(c) << endl;
-//            }
-//
-//
-//            FSDumpAllocator(snp, "mmap.dir");
+//            cout << "Totals: " << totals2 << ", time " << (ti1 - ti0) << endl;
 
+            snp->commit();
+            snp->set_as_master();
 
-//            check_snapshot(snp);
+            check_snapshot(snp);
 
-//            cout << "Totals: " << totals << " total data: " << total_data_size << endl;
+//            FSDumpAllocator(alloc, "mmap.dir");
+
+            alloc->store("mmap.memoria");
         }
         catch (...) {
         	//FSDumpAllocator(snp, "mmap_fail.dir");
