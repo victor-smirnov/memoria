@@ -151,11 +151,8 @@ public:
         template <Int StreamIdx>
         using BranchSizesSubstreamPath = typename Base::Types::template BranchPathT<BranchSizesSubstreamIdx<StreamIdx>::Value>;
 
-
-        static const Int DataStreams 		= Base::Types::Streams - 1;
-        static const Int DataStreamsStart	= 1;
-
-        static const Int StructureStream  	= 0;
+        static const Int DataStreams 			= Base::Types::Streams - 1;
+        static const Int StructureStreamIdx  	= DataStreams;
     };
 
     using CtrTypes  = typename Types::CtrTypes;

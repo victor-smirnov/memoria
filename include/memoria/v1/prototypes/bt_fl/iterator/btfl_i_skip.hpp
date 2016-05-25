@@ -43,8 +43,9 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorSkipName)
     template <typename LeafPath>
     using AccumItemH = typename Container::Types::template AccumItemH<LeafPath>;
 
-    static const Int Streams          = Container::Types::Streams;
-    static const Int DataStreams      = Container::Types::DataStreams;
+    static const Int Streams          		= Container::Types::Streams;
+    static const Int DataStreams      		= Container::Types::DataStreams;
+    static const Int StructureStreamIdx     = Container::Types::StructureStreamIdx;
 
 public:
 
@@ -152,10 +153,10 @@ protected:
 
     	for (Int c = 0; c < DataStreams; c++)
     	{
-    		ranks[c + 1] = leaf_structure->rank(structure_idx, c);
+    		ranks[c] = leaf_structure->rank(structure_idx, c);
     	}
 
-    	ranks[0] = structure_idx;
+    	ranks[StructureStreamIdx] = structure_idx;
 
     	return ranks;
     }
@@ -170,7 +171,7 @@ protected:
     const auto* leaf_structure() const
     {
     	auto& self = this->self();
-    	return self.ctr().template getPackedStruct<IntList<0, 1>>(self.leaf());
+    	return self.ctr().template getPackedStruct<IntList<StructureStreamIdx, 1>>(self.leaf());
     }
 
     Int symbol_idx(Int stream, Int position) const

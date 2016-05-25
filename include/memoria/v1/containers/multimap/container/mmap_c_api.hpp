@@ -70,7 +70,7 @@ public:
 
     IteratorPtr find(Key key)
     {
-        return self().template find_max_ge<IntList<1, 1>>(0, key);
+        return self().template find_max_ge<IntList<0, 1>>(0, key);
     }
 
     IteratorPtr find_or_create(Key key)

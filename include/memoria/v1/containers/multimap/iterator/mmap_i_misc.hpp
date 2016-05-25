@@ -43,7 +43,8 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::mmap::ItrMiscName)
 
     using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
 
-    static constexpr Int SizesSubstreamIdx = 2;
+    static constexpr Int DataStreams 			= Container::Types::DataStreams;
+    static constexpr Int StructureStreamIdx 	= Container::Types::StructureStreamIdx;
 
 public:
     Key key() const
@@ -56,7 +57,7 @@ public:
         {
         	Int key_idx = self.data_stream_idx(stream);
 
-        	return std::get<0>(self.template read_leaf_entry<1, IntList<1>>(key_idx, 0));
+        	return std::get<0>(self.template read_leaf_entry<0, IntList<1>>(key_idx, 0));
         }
         else {
         	throw Exception(MA_SRC, SBuf() << "Invalid stream: " << stream);
@@ -72,7 +73,7 @@ public:
         if (stream == 1)
         {
         	Int value_idx = self.data_stream_idx(stream);
-        	return std::get<0>(self.template read_leaf_entry<2, IntList<1>>(value_idx, 0));
+        	return std::get<0>(self.template read_leaf_entry<1, IntList<1>>(value_idx, 0));
         }
         else {
         	throw Exception(MA_SRC, SBuf() << "Invalid stream: " << stream);
@@ -92,14 +93,14 @@ public:
     		}
     	}
 
-    	self.template insert_entry<1>(SingleValueEntryFn<1, Key, CtrSizeT>(key));
+    	self.template insert_entry<0>(SingleValueEntryFn<0, Key, CtrSizeT>(key));
     }
 
     void insert_value(const Value& value)
     {
     	auto& self = this->self();
 
-    	self.template insert_entry<2>(SingleValueEntryFn<2, Key, CtrSizeT>(value));
+    	self.template insert_entry<1>(SingleValueEntryFn<1, Key, CtrSizeT>(value));
     }
 
 
@@ -136,7 +137,7 @@ public:
 
         SubstreamReadLambdaAdapter<Fn> adapter(fn);
 
-        return self.ctr().template read_substream<IntList<2, 1>>(self, 0, length, adapter);
+        return self.ctr().template read_substream<IntList<1, 1>>(self, 0, length, adapter);
     }
 
     template <typename Fn>
@@ -172,7 +173,7 @@ public:
 
         SubstreamReadLambdaAdapter<Fn> adapter(fn);
 
-        return self.ctr().template read_substream<IntList<1, 1>>(self, 0, length, adapter);
+        return self.ctr().template read_substream<IntList<0, 1>>(self, 0, length, adapter);
     }
 
 

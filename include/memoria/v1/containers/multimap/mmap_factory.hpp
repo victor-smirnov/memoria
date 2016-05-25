@@ -96,9 +96,9 @@ struct MultimapBTTypesBase: public MultimapBTTypesBaseBase<Profile, Key, Value> 
 
 
     using StreamDescriptors = TL<
-    	StructureStreamTF,
         FirstStreamTF,
-        DataStreamTF
+        DataStreamTF,
+		StructureStreamTF
     >;
 };
 

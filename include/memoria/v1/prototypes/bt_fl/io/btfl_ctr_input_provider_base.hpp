@@ -38,7 +38,7 @@ namespace io {
 
 namespace {
 
-	template <typename Types, Int Streams, Int Idx = 1>
+	template <typename Types, Int Streams, Int Idx = 0>
 	struct DataStreamInputBufferBuilder {
 		using InputBuffer = StreamInputBuffer<
 				Idx,
@@ -61,8 +61,8 @@ namespace {
 
 	template <typename... Args> struct JoinBuffersH;
 
-	template <typename T1, typename... T2>
-	struct JoinBuffersH<T1, std::tuple<T2...>>: HasType<std::tuple<const T1*, const T2*...>> {};
+	template <typename... T1, typename T2>
+	struct JoinBuffersH<std::tuple<T1...>, T2>: HasType<std::tuple<const T1*..., const T2*>> {};
 }
 
 
@@ -74,9 +74,7 @@ class AbstractCtrInputProviderBase {
 protected:
     static const Int Streams 	 			= CtrT::Types::Streams;
     static const Int DataStreams 			= CtrT::Types::DataStreams;
-    static const Int DataStreamsStartIdx	= CtrT::Types::DataStreamsStart;
-
-    static const Int StructureStreamIdx  	= CtrT::Types::StructureStream;
+    static const Int StructureStreamIdx  	= CtrT::Types::StructureStreamIdx;
 
 
 public:
@@ -94,7 +92,7 @@ public:
     using DataStreamBuffers = AsTuple<
             typename DataStreamInputBufferBuilder<
                 typename CtrT::Types,
-                Streams
+                DataStreams
             >::Type
     >;
 
@@ -108,8 +106,8 @@ public:
     using StructureStreamBuffer = StructureStreamInputBuffer<
     		InputBufferHandler<
 				StreamInputBuffer<
-					0,
-					typename CtrT::Types::template StreamInputBufferStructList<0>
+					StructureStreamIdx,
+					typename CtrT::Types::template StreamInputBufferStructList<StructureStreamIdx>
     			>
     		>,
 			CtrSizeT
@@ -413,7 +411,7 @@ public:
     	DataPositions dp;
 
     	for (Int c = 0; c < DataPositions::Indexes; c++) {
-    		dp[c] = pos[c + DataStreamsStartIdx];
+    		dp[c] = pos[c];
     	}
 
     	return dp;
@@ -484,7 +482,8 @@ protected:
     using Base::structure_buffer_;
     using Base::to_data_positions;
 
-    using Base::DataStreamsStartIdx;
+
+    using Base::DataStreams;
     using Base::StructureStreamIdx;
 
 public:
@@ -503,7 +502,7 @@ public:
 
     	for (Int c = 0; c < DataPositions::Indexes; c++)
     	{
-    		ctr_end[c + DataStreamsStartIdx] = end[c];
+    		ctr_end[c] = end[c];
     	}
 
     	ctr_end[StructureStreamIdx] = ctr_start[StructureStreamIdx] + end.sum() - start.sum();
@@ -632,7 +631,7 @@ protected:
         template <Int Idx, typename DataBuffers, typename JointBuffers>
         void process(DataBuffers&& data_buffers, JointBuffers&& joint_buffers)
         {
-            std::get<Idx + 1>(joint_buffers) = &data_buffers;
+            std::get<Idx>(joint_buffers) = &data_buffers;
         }
     };
 
@@ -640,13 +639,13 @@ protected:
 
     auto make_joined_buffers_tuple()
     {
-    	using JointBufferTupleT = typename JoinBuffersH<StructureStreamBuffer, DataStreamBuffers>::Type;
+    	using JointBufferTupleT = typename JoinBuffersH<DataStreamBuffers, StructureStreamBuffer>::Type;
 
     	JointBufferTupleT joint_buffer;
 
-    	std::get<0>(joint_buffer) = &structure_buffer_;
-
     	ForAllTuple<std::tuple_size<DataStreamBuffers>::value>::process(data_buffers_, AssignDataBuffersFn(), joint_buffer);
+
+    	std::get<StructureStreamIdx>(joint_buffer) = &structure_buffer_;
 
     	return joint_buffer;
     }
@@ -655,12 +654,12 @@ protected:
     {
     	Position pos;
 
-    	pos[0] = data_pos.sum();
-
     	for (Int c = 0; c < DataPositions::Indexes; c++)
     	{
-    		pos[c + 1] = data_pos[c];
+    		pos[c] = data_pos[c];
     	}
+
+    	pos[StructureStreamIdx] = data_pos.sum();
 
     	return pos;
     }
