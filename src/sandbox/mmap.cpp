@@ -326,11 +326,11 @@ int main()
 
             map->setNewPageSize(32768);
 
-            Int keys = 10000;
+            Int keys = 10000000;
 
             auto map_data = createRandomShapedMapData<KeyType, ValueType>(
             		keys,
-					20000,
+					20,
                     [](auto k) {
             			return make_key(k, TypeTag<KeyType>());
             		},
@@ -345,44 +345,44 @@ int main()
 
             cout << "Totals: " << totals << ", time " << (t1 - t0) << endl;
 
-//            MMapBufferConsumer consumer;
-//
-//            BigInt tr0 = getTimeInMillis();
-//
-//            map->begin()->bulkio_read(&consumer);
-//
-//            BigInt tr1 = getTimeInMillis();
-//
-//            cout << "Read Time: " << (tr1 - tr0) << endl;
-//
-//
-//            auto iter0 = map->begin();
-//
-//            auto walker = iter0->template create_walker<MMapIOBuffer>();
-//
-//            MMapIOBuffer io_buffer(65536);
-//
-//            BigInt trr0 = getTimeInMillis();
-//
-//            size_t size = 0;
-//
-//            while(true)
-//            {
-//            	Int entries = iter0->bulkio_populate(*walker.get(), &io_buffer);
-//            	if (entries > 0) {
-//            		size += entries;
-//            	}
-//            	else if (entries < 0) {
-//            		size += -entries;
-//            		break;
-//            	}
-//            }
-//
-//            BigInt trr1 = getTimeInMillis();
-//
-//            cout << "Populate Time: " << (trr1 - trr0) << " entries: " << size << endl;
-//
-//
+            MMapBufferConsumer consumer;
+
+            BigInt tr0 = getTimeInMillis();
+            map->begin()->bulkio_read(&consumer);
+            BigInt tr1 = getTimeInMillis();
+
+            cout << "Read Time: " << (tr1 - tr0) << endl;
+
+
+
+
+            auto iter0 = map->begin();
+
+            auto walker = iter0->template create_walker<MMapIOBuffer>();
+
+            MMapIOBuffer io_buffer(65536);
+
+            BigInt trr0 = getTimeInMillis();
+
+            size_t size = 0;
+
+            while(true)
+            {
+            	Int entries = iter0->bulkio_populate(*walker.get(), &io_buffer);
+            	if (entries > 0) {
+            		size += entries;
+            	}
+            	else if (entries < 0) {
+            		size += -entries;
+            		break;
+            	}
+            }
+
+            BigInt trr1 = getTimeInMillis();
+
+            cout << "Populate Time: " << (trr1 - trr0) << " entries: " << size << endl;
+
+
 //            auto map2 = create<CtrName>(snp);
 //
 //            auto iter = map->begin();

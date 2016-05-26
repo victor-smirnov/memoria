@@ -45,6 +45,7 @@
 #include <memoria/v1/prototypes/bt_fl/iterator/btfl_i_update.hpp>
 #include <memoria/v1/prototypes/bt_fl/iterator/btfl_i_remove.hpp>
 #include <memoria/v1/prototypes/bt_fl/iterator/btfl_i_insert.hpp>
+#include <memoria/v1/prototypes/bt_fl/iterator/btfl_i_read.hpp>
 
 #include <memoria/v1/prototypes/bt_fl/tools/btfl_tools_random_gen.hpp>
 #include <memoria/v1/prototypes/bt_fl/tools/btfl_tools_streamdescr.hpp>
@@ -102,7 +103,8 @@ struct BTTypes<Profile, v1::BTFreeLayout>: public BTTypes<Profile, v1::BT> {
                 v1::btfl::IteratorSkipName,
                 v1::btfl::IteratorUpdateName,
                 v1::btfl::IteratorRemoveName,
-                v1::btfl::IteratorInsertName
+                v1::btfl::IteratorInsertName,
+				v1::btfl::IteratorReadName
     >;
 
 
@@ -130,30 +132,13 @@ public:
 
         using PageUpdateMgr     = PageUpdateManager<CtrTypes>;
 
-        using LeafPrefixRanks   = v1::core::StaticVector<typename Base::Types::Position, Base::Types::Streams>;
 
-        template <Int StreamIdx>
-        using LeafSizesSubstreamIdx = IntValue<
-                v1::list_tree::LeafCountSup<
-                    typename Base::Types::LeafStreamsStructList,
-                    IntList<StreamIdx>>::Value - 1
-        >;
-
-        template <Int StreamIdx>
-        using BranchSizesSubstreamIdx = IntValue<
-                v1::list_tree::LeafCountSup<
-                    typename Base::Types::BranchStreamsStructList,
-                    IntList<StreamIdx>>::Value - 1
-        >;
-
-        template <Int StreamIdx>
-        using LeafSizesSubstreamPath = typename Base::Types::template LeafPathT<LeafSizesSubstreamIdx<StreamIdx>::Value>;
-
-        template <Int StreamIdx>
-        using BranchSizesSubstreamPath = typename Base::Types::template BranchPathT<BranchSizesSubstreamIdx<StreamIdx>::Value>;
 
         static const Int DataStreams 			= Base::Types::Streams - 1;
         static const Int StructureStreamIdx  	= DataStreams;
+
+
+        using DataSizesT = core::StaticVector<typename Base::Types::CtrSizeT, DataStreams>;
     };
 
     using CtrTypes  = typename Types::CtrTypes;

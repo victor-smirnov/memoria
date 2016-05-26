@@ -36,141 +36,15 @@ namespace v1 {
 
 MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorMiscName)
 
-    typedef typename Base::Allocator                                            Allocator;
-    typedef typename Base::NodeBaseG                                            NodeBaseG;
+    using Container = typename Base::Container;
 
-
-    typedef typename Base::Container::BranchNodeEntry                               BranchNodeEntry;
-    typedef typename Base::Container                                            Container;
-    typedef typename Base::Container::Position                                  Position;
-
-    using CtrSizeT  = typename Container::Types::CtrSizeT;
-    using Key       = typename Container::Types::Key;
-    using Value     = typename Container::Types::Value;
-
-    using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
+    using CtrSizeT  	= typename Container::Types::CtrSizeT;
+    using DataSizesT  	= typename Container::Types::DataSizesT;
 
     static const Int Streams                = Container::Types::Streams;
     static const Int DataStreams      		= Container::Types::DataStreams;
 
-    using LeafPrefixRanks = typename Container::Types::LeafPrefixRanks;
 
-public:
-    template <typename IOBuffer>
-    void bulkio_read(BufferConsumer<IOBuffer>* consumer)
-    {
-    	auto& self = this->self();
-
-    	auto start_id = self.leaf()->id();
-
-    	btfl::io::BTFLWalker<MyType, IOBuffer> walker(self);
-
-    	IOBuffer& buffer = consumer->buffer();
-
-    	Int entries = 0;
-
-    	while (true)
-    	{
-    		auto result = walker.populate(buffer);
-
-    		entries += result.entries();
-
-    		if (result.ending() == btfl::io::Ending::END_OF_PAGE)
-    		{
-    			if (!walker.next_page())
-    			{
-    				if (entries > 0)
-    				{
-    					buffer.rewind();
-    					consumer->process(buffer, entries);
-    				}
-
-    				entries = 0;
-
-    				break;
-    			}
-    		}
-    		else if (result.ending() == btfl::io::Ending::END_OF_IOBUFFER)
-    		{
-    			if (entries > 0)
-    			{
-    				buffer.rewind();
-    				consumer->process(buffer, entries);
-    				entries = 0;
-    			}
-    		}
-    		else
-    		{
-    			break;
-    		}
-    	}
-
-    	self.idx() 	= walker.idx();
-    	self.leaf() = walker.leaf();
-
-    	if (self.leaf()->id() != start_id)
-    	{
-    		self.refresh();
-    	}
-    }
-
-    template <typename IOBuffer>
-    auto create_walker()
-    {
-    	auto& self = this->self();
-    	return std::make_shared<btfl::io::BTFLWalker<MyType, IOBuffer>>(self);
-    }
-
-
-    template <typename Walker, typename IOBuffer>
-    Int bulkio_populate(Walker& walker, IOBuffer* buffer)
-    {
-    	auto& self = this->self();
-
-    	auto start_id = self.leaf()->id();
-
-    	Int entries = 0;
-
-    	bool more_data = false;
-
-    	buffer->rewind();
-
-    	while (true)
-    	{
-    		auto result = walker.populate(*buffer);
-
-    		entries += result.entries();
-
-    		if (result.ending() == btfl::io::Ending::END_OF_PAGE)
-    		{
-    			if (!walker.next_page())
-    			{
-    				more_data = false;
-    				break;
-    			}
-    		}
-    		else if (result.ending() == btfl::io::Ending::END_OF_IOBUFFER)
-    		{
-    			more_data = true;
-    			break;
-    		}
-    		else
-    		{
-    			// what does this mean?
-    			break;
-    		}
-    	}
-
-    	self.idx() 	= walker.idx();
-    	self.leaf() = walker.leaf();
-
-    	if (self.leaf()->id() != start_id)
-    	{
-    		self.refresh();
-    	}
-
-    	return more_data ? entries : -entries;
-    }
 
 protected:
 

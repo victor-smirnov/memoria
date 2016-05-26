@@ -37,8 +37,8 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorSkipName)
 
     using typename Base::LeafDispatcher;
 
-    template <Int StreamIdx>
-    using LeafSizesSubstreamPath = typename Container::Types::template LeafSizesSubstreamPath<StreamIdx>;
+//    template <Int StreamIdx>
+//    using LeafSizesSubstreamPath = typename Container::Types::template LeafSizesSubstreamPath<StreamIdx>;
 
     template <typename LeafPath>
     using AccumItemH = typename Container::Types::template AccumItemH<LeafPath>;

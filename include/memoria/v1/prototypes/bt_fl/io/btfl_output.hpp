@@ -28,6 +28,7 @@
 
 #include <memory>
 #include <tuple>
+#include <limits>
 
 namespace memoria {
 namespace v1 {
@@ -37,7 +38,7 @@ namespace io {
 using bt::StreamTag;
 
 enum class Ending {
-	CONTINUE, END_OF_PAGE, END_OF_IOBUFFER, END_OF_STREAM, END_OF_TOTALS
+	CONTINUE, END_OF_PAGE, END_OF_IOBUFFER, LIMIT_REACHED
 };
 
 template <typename PkdStruct>
@@ -136,11 +137,10 @@ class BTFLWalker {
 	using Types 	= typename CtrT::Types;
 	using MyType 	= BTFLWalker<IteratorT, IOBufferT>;
 
-	using LeafPrefixRanks = typename Types::LeafPrefixRanks;
-
-	using CtrSizeT  = typename Types::CtrSizeT;
-	using CtrSizesT = typename Types::CtrSizesT;
-	using NodeBaseG = typename Types::NodeBaseG;
+	using CtrSizeT  	= typename Types::CtrSizeT;
+	using CtrSizesT 	= typename Types::CtrSizesT;
+	using DataSizesT 	= typename Types::DataSizesT;
+	using NodeBaseG 	= typename Types::NodeBaseG;
 
 	using LeafDispatcher = typename Types::Pages::LeafDispatcher;
 	using Iterator  = IteratorT;
@@ -230,8 +230,8 @@ class BTFLWalker {
 	NodeBaseG leaf_;
 
 
-	BigInt run_pos_ 	= 0;
-	BigInt run_length_  = 0;
+	CtrSizeT run_pos_ 	  = 0;
+	CtrSizeT run_length_  = 0;
 
 	CtrSizesT locals_;
 
@@ -241,16 +241,26 @@ class BTFLWalker {
 
 	Int stream_;
 
+	CtrSizeT total_syms_;
+	CtrSizeT limit_syms_;
+
 public:
 
-	BTFLWalker(Iterator& iter):
-		iter_(&iter),
-		leaf_(iter.leaf()),
-		stream_(iter.stream())
+	BTFLWalker(): iter_(), leaf_(), stream_(), total_syms_(), limit_syms_()
+	{}
+
+	void init(Iterator& iter, CtrSizeT limit = std::numeric_limits<CtrSizeT>::max())
 	{
+		iter_ 	= &iter;
+		leaf_ 	= iter.leaf();
+		stream_ = iter.stream();
+
+		limit_syms_ = limit;
+		total_syms_ = 0;
+
 		prepare_new_page(iter.idx());
 
-		auto data_positions = rank(idx_);
+		auto data_positions = rank(iter.idx());
 
 		configure_data(data_positions);
 	}
@@ -297,7 +307,7 @@ public:
 			}
 		}
 
-		while(symbols_.has_data())
+		while(symbols_.has_data() && total_syms_ < limit_syms_)
 		{
 			if (run_pos_ == run_length_)
 			{
@@ -306,6 +316,11 @@ public:
 
 				stream_ 	= run.symbol();
 				run_length_ = run.length();
+
+				if (total_syms_ + run_length_ > limit_syms_)
+				{
+					run_length_ = limit_syms_ - total_syms_;
+				}
 
 				if (buffer.template putSymbolsRun<DataStreams>(stream_, run_length_))
 				{
@@ -318,30 +333,27 @@ public:
 				}
 			}
 
-			auto write_result = write_stream(stream_, run_length_ - run_pos_, buffer);
+			auto length = run_length_ - run_pos_;
+
+			auto write_result = write_stream(stream_, length, buffer);
 
 			entries  += write_result.entries();
 			run_pos_ += write_result.entries();
+
+			total_syms_ += length;
 
 			if (run_pos_ == run_length_)
 			{
 				symbols_.next_run();
 			}
 
-			if (write_result.ending() == Ending::CONTINUE)
-			{
-
-			}
-			else if (write_result.ending() == Ending::END_OF_IOBUFFER)
+			if (write_result.ending() == Ending::END_OF_IOBUFFER)
 			{
 				return PopulateStatus(entries, Ending::END_OF_IOBUFFER);
 			}
-			else {
-				throw Exception(MA_SRC, SBuf() << "Unexpected BTTLWalker operation result: " << (Int)write_result.ending());
-			}
 		}
 
-		return PopulateStatus(entries, Ending::END_OF_PAGE);
+		return PopulateStatus(entries, total_syms_ < limit_syms_ ? Ending::END_OF_PAGE : Ending::LIMIT_REACHED);
 	}
 
 
@@ -366,6 +378,12 @@ public:
 
 	const CtrSizesT& locals() {
 		return locals_;
+	}
+
+	void clear() noexcept
+	{
+		leaf_ = nullptr;
+		iter_ = nullptr;
 	}
 
 private:

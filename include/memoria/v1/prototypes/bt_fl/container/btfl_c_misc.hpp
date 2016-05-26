@@ -17,12 +17,12 @@
 #pragma once
 
 
-#include <memoria/v1/prototypes/bt_fl/btfl_names.hpp>
 #include <memoria/v1/core/container/container.hpp>
 #include <memoria/v1/core/container/macros.hpp>
 
-#include <memoria/v1/prototypes/bt_fl/btfl_tools.hpp>
+#include <memoria/v1/prototypes/bt_fl/btfl_names.hpp>
 
+#include <memoria/v1/core/tools/object_pool.hpp>
 
 #include <vector>
 
@@ -44,10 +44,6 @@ protected:
     using typename Base::PageUpdateMgr;
     using typename Base::CtrSizeT;
     using typename Base::CtrSizesT;
-
-    static const Int Streams = Types::Streams;
-
-    using PageUpdateMgt     = typename Types::PageUpdateMgr;
 
 public:
     auto begin() {

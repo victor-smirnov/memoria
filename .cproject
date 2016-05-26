@@ -30,9 +30,9 @@
 								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.1940000880" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES_CPP}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/src/tools/include}&quot;"/>
 									<listOptionValue builtIn="false" value="/usr/local/include"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/tools/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/include}&quot;"/>
 								</option>
 								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.223574919" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="MEMORIA_TESTS"/>
@@ -43,9 +43,9 @@
 								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.912560337" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES_CPP}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/src/tools/include}&quot;"/>
 									<listOptionValue builtIn="false" value="/usr/local/include"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/tools/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/include}&quot;"/>
 								</option>
 								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.836124985" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="MEMORIA_TESTS"/>
@@ -56,9 +56,9 @@
 								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.797022439" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES_CPP}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/src/tools/include}&quot;"/>
 									<listOptionValue builtIn="false" value="/usr/local/include"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/tools/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/include}&quot;"/>
 								</option>
 								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.1223824715" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="MEMORIA_TESTS"/>
@@ -69,9 +69,9 @@
 								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.680423812" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES_CPP}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/memoria/src/tools/include}&quot;"/>
 									<listOptionValue builtIn="false" value="/usr/local/include"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/tools/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/include}&quot;"/>
 								</option>
 								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.1352789942" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="MEMORIA_TESTS"/>
@@ -123,6 +123,8 @@
 									<listOptionValue builtIn="false" value="../memoria/memoria/include"/>
 									<listOptionValue builtIn="false" value="../memoria/memoria/src/tools/include"/>
 									<listOptionValue builtIn="false" value="/usr/local/include"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/tools/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/include}&quot;"/>
 								</option>
 								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.1908312210" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="MEMORIA_TESTS"/>
@@ -138,6 +140,8 @@
 									<listOptionValue builtIn="false" value="../memoria/memoria/include"/>
 									<listOptionValue builtIn="false" value="../memoria/memoria/src/tools/include"/>
 									<listOptionValue builtIn="false" value="/usr/local/include"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/tools/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/include}&quot;"/>
 								</option>
 								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.73969499" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="MEMORIA_TESTS"/>
@@ -153,6 +157,8 @@
 									<listOptionValue builtIn="false" value="../memoria/memoria/include"/>
 									<listOptionValue builtIn="false" value="../memoria/memoria/src/tools/include"/>
 									<listOptionValue builtIn="false" value="/usr/local/include"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/tools/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/include}&quot;"/>
 								</option>
 								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.1965418758" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="MEMORIA_TESTS"/>
@@ -168,6 +174,8 @@
 									<listOptionValue builtIn="false" value="../memoria/memoria/include"/>
 									<listOptionValue builtIn="false" value="../memoria/memoria/src/tools/include"/>
 									<listOptionValue builtIn="false" value="/usr/local/include"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/tools/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/include}&quot;"/>
 								</option>
 								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.352425401" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="MEMORIA_TESTS"/>

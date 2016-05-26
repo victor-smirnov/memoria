@@ -21,9 +21,14 @@
 #include <memoria/v1/core/types/algo.hpp>
 #include <memoria/v1/core/tools/static_array.hpp>
 #include <memoria/v1/core/container/macros.hpp>
+#include <memoria/v1/core/tools/object_pool.hpp>
+
 
 
 #include <memoria/v1/prototypes/bt/bt_macros.hpp>
+
+
+
 
 #include <iostream>
 #include "../../../core/tools/pair.hpp"
@@ -63,6 +68,11 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
     using Base::CONTAINER_HASH;
 
     static const Int Streams = Types::Streams;
+
+    ObjectPools pools_;
+
+
+    ObjectPools& pools() {return pools_;}
 
     PageG createRoot() const {
         return self().createNode(0, true, true);

@@ -55,8 +55,6 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorInsertName)
     static const Int Streams          = Container::Types::Streams;
     static const Int DataStreams      = Container::Types::DataStreams;
 
-    using LeafPrefixRanks = typename Container::Types::LeafPrefixRanks;
-
 
 
     struct InsertSymbolFn {
