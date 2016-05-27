@@ -43,6 +43,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorReadName)
 
     static const Int Streams                = Container::Types::Streams;
     static const Int DataStreams            = Container::Types::DataStreams;
+    static const Int StructureStreamIdx     = Container::Types::StructureStreamIdx;
 
     template <typename IOBuffer>
     using ReadWalkerPool = ObjectPool<btfl::io::BTFLWalker<MyType, IOBuffer, btfl::io::ScanThroughStrategy>>;
@@ -155,6 +156,7 @@ protected:
         walker->init(self, expected_stream, limits);
 
         IOBuffer& buffer = consumer->buffer();
+        buffer.rewind();
 
         Int entries = 0;
 
@@ -219,6 +221,11 @@ protected:
         if (self.leaf()->id() != start_id)
         {
             self.refresh();
+        }
+
+        if (self.idx() >= self.leaf_size(StructureStreamIdx))
+        {
+        	self.skipFw(0);
         }
 
         return total;

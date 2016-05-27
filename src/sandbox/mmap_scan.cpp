@@ -193,7 +193,29 @@ public:
 };
 
 
+template <typename Ctr>
+void scanData(Ctr& ctr)
+{
+    size_t total_keys = 0;
+    size_t total_values = 0;
 
+    size_t c = 0;
+    for (auto iter = ctr->begin(); !iter->is_end(); c++)
+    {
+        iter->key();
+        total_keys++;
+
+        if (iter->next())
+        {
+        	  total_values += iter->read_values().size();
+        }
+        else {
+        	  break;
+        }
+    }
+
+    cout <<"Scan: " << total_keys << " " << total_values << endl;
+}
 
 
 
@@ -216,73 +238,29 @@ int main()
 
             map->setNewPageSize(32768);
 
-            Int keys = 10000000;
+            Int keys = 100000;
 
             auto map_data = createRandomShapedMapData<KeyType, ValueType>(
-                    keys,
-                20,
+                keys,
+                2000,
                 [](auto k) {return make_key(k, TypeTag<KeyType>());},
                 [](auto k, auto v) {return make_value(k, TypeTag<ValueType>());}
             );
 
-            MapIOBufferAdapter<KeyType, ValueType> iobuf_adapter(map_data, 65536);
+            mmap::MultimapIOBufferProducer<KeyType, ValueType> iobuf_adapter(map_data, 65536);
 
             long t0 = getTimeInMillis();
             auto totals = map->begin()->bulkio_insert(iobuf_adapter);
             long t1 = getTimeInMillis();
 
             cout << "Totals: " << totals << ", time " << (t1 - t0) << endl;
+            cout << "Sizes: " << map->sizes() << endl;
 
-            MMapBufferConsumer consumer;
+            long ts0 = getTimeInMillis();
+            scanData(map);
+            long ts1 = getTimeInMillis();
 
-            BigInt tr0 = getTimeInMillis();
-            map->begin()->bulkio_read(&consumer);
-            BigInt tr1 = getTimeInMillis();
-
-            cout << "Read Time: " << (tr1 - tr0) << endl;
-
-
-
-
-            auto iter0 = map->begin();
-
-            auto walker = iter0->template create_walker<MMapIOBuffer>();
-
-            MMapIOBuffer io_buffer(65536);
-
-            BigInt trr0 = getTimeInMillis();
-
-            size_t size = 0;
-
-            while(true)
-            {
-                Int entries = iter0->bulkio_populate(*walker.get(), &io_buffer);
-                if (entries > 0) {
-                    size += entries;
-                }
-                else if (entries < 0) {
-                    size += -entries;
-                    break;
-                }
-            }
-
-            BigInt trr1 = getTimeInMillis();
-
-            cout << "Populate Time: " << (trr1 - trr0) << " entries: " << size << endl;
-
-
-//            auto map2 = create<CtrName>(snp);
-//
-//            auto iter = map->begin();
-//            using CtrT = decltype(map)::element_type;
-//
-//            ChainedIOBufferProducer<MMapIOBuffer, CtrT::Iterator> chained_producer(iter.get(), 65536);
-//
-//            long ti0 = getTimeInMillis();
-//            auto totals2 = map2->begin()->bulkio_insert(chained_producer);
-//            long ti1 = getTimeInMillis();
-//
-//            cout << "Totals: " << totals2 << ", time " << (ti1 - ti0) << endl;
+            cout << "Scan time: " << (ts1 - ts0) << endl;
 
             snp->commit();
             snp->set_as_master();

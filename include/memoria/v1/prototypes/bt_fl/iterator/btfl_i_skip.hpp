@@ -45,6 +45,66 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorSkipName)
     static const Int StructureStreamIdx     = Container::Types::StructureStreamIdx;
 
 public:
+    bool isBegin() const
+    {
+    	  auto& self = this->self();
+        return self.idx() < 0 || self.isEmpty();
+    }
+
+    bool isEnd() const
+    {
+        auto& self = this->self();
+
+        return self.leaf().isSet() ? self.idx() >= self.leaf_size(StructureStreamIdx) : true;
+    }
+
+    bool is_end() const
+    {
+        auto& self = this->self();
+        return self.leaf().isSet() ? self.idx() >= self.leaf_size(StructureStreamIdx) : true;
+    }
+
+    bool isEnd(Int idx) const
+    {
+        auto& self = this->self();
+
+        return self.leaf().isSet() ? idx >= self.leaf_size(StructureStreamIdx) : true;
+    }
+
+    bool isContent() const
+    {
+        auto& self = this->self();
+        return !(self.isBegin() || self.isEnd());
+    }
+
+    bool isContent(Int idx) const
+    {
+        auto& self = this->self();
+
+        bool is_set = self.leaf().isSet();
+
+        auto leaf_size = self.leaf_size(StructureStreamIdx);
+
+        return is_set && idx >= 0 && idx < leaf_size;
+    }
+
+    bool isNotEnd() const
+    {
+        return !self().isEnd();
+    }
+
+    bool isEmpty() const
+    {
+        auto& self = this->self();
+        return self.leaf().isEmpty() || self.leaf_size(StructureStreamIdx) == 0;
+    }
+
+    bool isNotEmpty() const
+    {
+        return !self().isEmpty();
+    }
+
+
 
     CtrSizeT selectFw(CtrSizeT rank, Int stream)
     {
@@ -115,13 +175,6 @@ public:
         else {
             return -1;
         }
-    }
-
-    bool isEnd() const
-    {
-        auto& self = this->self();
-
-        return self.leaf().isSet() ? self.idx() >= self.leaf_size(0) : true;
     }
 
 

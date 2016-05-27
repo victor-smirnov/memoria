@@ -349,7 +349,7 @@ public:
                 run_written_ = true;
             }
             else {
-                throw Exception(MA_SRC, "Can't write Symbols run into IOBuffer that is probably to small");
+                return PopulateStatus(entries, Ending::END_OF_IOBUFFER);
             }
         }
 
