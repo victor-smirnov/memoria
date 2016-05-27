@@ -207,11 +207,11 @@ public:
     }
 
     PairPtr& pair() {
-    	return pair_;
+        return pair_;
     }
 
     const PairPtr& pair() const {
-    	return pair_;
+        return pair_;
     }
 
     static void initMetadata() {
@@ -720,7 +720,7 @@ public:
             Int master_hash = page->master_ctr_type_hash();
             Int ctr_hash    = page->ctr_type_hash();
 
-            auto ctr_meta 	= metadata_->getContainerMetadata(master_hash != 0 ? master_hash : ctr_hash);
+            auto ctr_meta   = metadata_->getContainerMetadata(master_hash != 0 ? master_hash : ctr_hash);
 
             ctr_meta->getCtrInterface()->walk(page->id(), ctr_name, this, walker);
 

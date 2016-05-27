@@ -179,108 +179,108 @@ UUID make_value(V&& num, TypeTag<UUID>)
 template <typename Key, typename Value>
 class MapIOBufferAdapter: public btfl::io::FlatTreeIOBufferAdapter<3, MMapIOBuffer> {
 
-	using Base 	 = btfl::io::FlatTreeIOBufferAdapter<3, MMapIOBuffer>;
-	using MyType = MapIOBufferAdapter<Key, Value>;
+    using Base   = btfl::io::FlatTreeIOBufferAdapter<3, MMapIOBuffer>;
+    using MyType = MapIOBufferAdapter<Key, Value>;
 
-	using typename Base::IOBuffer;
+    using typename Base::IOBuffer;
 
-	using Data = MapData<Key, Value>;
-	using Positions = core::StaticVector<Int, 2>;
-
-
-	const Data& data_;
-
-	IOBuffer io_buffer_;
-	Positions positions_;
-	Int level_ = 0;
-
-	struct StructureAdapter: public btfl::io::FlatTreeStructureGeneratorBase<StructureAdapter, 2> {
-		MyType* adapter_;
-		StructureAdapter(MyType* adapter):
-			adapter_(adapter)
-		{}
+    using Data = MapData<Key, Value>;
+    using Positions = core::StaticVector<Int, 2>;
 
 
-		auto prepare(const StreamTag<0>&)
-		{
-			return adapter_->data().size();
-		}
+    const Data& data_;
 
-		template <Int Idx, typename Pos>
-		auto prepare(const StreamTag<Idx>&, const Pos& pos)
-		{
-			return adapter_->data()[pos[Idx - 1]].second.size();
-		}
-	};
+    IOBuffer io_buffer_;
+    Positions positions_;
+    Int level_ = 0;
+
+    struct StructureAdapter: public btfl::io::FlatTreeStructureGeneratorBase<StructureAdapter, 2> {
+        MyType* adapter_;
+        StructureAdapter(MyType* adapter):
+            adapter_(adapter)
+        {}
 
 
-	StructureAdapter structure_generator_;
+        auto prepare(const StreamTag<0>&)
+        {
+            return adapter_->data().size();
+        }
+
+        template <Int Idx, typename Pos>
+        auto prepare(const StreamTag<Idx>&, const Pos& pos)
+        {
+            return adapter_->data()[pos[Idx - 1]].second.size();
+        }
+    };
+
+
+    StructureAdapter structure_generator_;
 
 public:
 
 
-	MapIOBufferAdapter(const Data& data, size_t iobuffer_size = 65536):
-		data_(data),
-		io_buffer_(iobuffer_size),
-		structure_generator_(this)
-	{
-		structure_generator_.init();
-	}
+    MapIOBufferAdapter(const Data& data, size_t iobuffer_size = 65536):
+        data_(data),
+        io_buffer_(iobuffer_size),
+        structure_generator_(this)
+    {
+        structure_generator_.init();
+    }
 
-	const Data& data() {return data_;}
+    const Data& data() {return data_;}
 
-	virtual IOBuffer& buffer() {return io_buffer_;}
+    virtual IOBuffer& buffer() {return io_buffer_;}
 
-	virtual btfl::io::RunDescr query()
-	{
-		return structure_generator_.query();
-	}
+    virtual btfl::io::RunDescr query()
+    {
+        return structure_generator_.query();
+    }
 
-	virtual Int populate_stream(Int stream, IOBuffer& buffer, Int length)
-	{
-		if (stream == 1)
-		{
-			auto& idx 	 = structure_generator_.counts()[1];
-			auto key_idx = structure_generator_.counts()[0];
+    virtual Int populate_stream(Int stream, IOBuffer& buffer, Int length)
+    {
+        if (stream == 1)
+        {
+            auto& idx    = structure_generator_.counts()[1];
+            auto key_idx = structure_generator_.counts()[0];
 
-			const auto& data = data_[key_idx - 1].second;
+            const auto& data = data_[key_idx - 1].second;
 
-			Int c;
-			for (c = 0; c < length; c++)
-			{
-				auto pos = buffer.pos();
-				if (!IOBufferAdapter<Value>::put(buffer, data[idx]))
-				{
-					buffer.pos(pos);
-					idx += c;
-					return c;
-				}
-			}
+            Int c;
+            for (c = 0; c < length; c++)
+            {
+                auto pos = buffer.pos();
+                if (!IOBufferAdapter<Value>::put(buffer, data[idx]))
+                {
+                    buffer.pos(pos);
+                    idx += c;
+                    return c;
+                }
+            }
 
-			idx += length;
+            idx += length;
 
-			return c;
-		}
-		else {
-			auto& idx = structure_generator_.counts()[0];
+            return c;
+        }
+        else {
+            auto& idx = structure_generator_.counts()[0];
 
-			Int c;
-			for (c = 0; c < length; c++)
-			{
-				auto pos = buffer.pos();
-				if (!IOBufferAdapter<Key>::put(buffer, data_[idx].first))
-				{
-					buffer.pos(pos);
-					idx += c;
-					return c;
-				}
-			}
+            Int c;
+            for (c = 0; c < length; c++)
+            {
+                auto pos = buffer.pos();
+                if (!IOBufferAdapter<Key>::put(buffer, data_[idx].first))
+                {
+                    buffer.pos(pos);
+                    idx += c;
+                    return c;
+                }
+            }
 
-			idx += length;
+            idx += length;
 
-			return c;
-		}
-	}
+            return c;
+        }
+    }
 
 };
 
@@ -288,18 +288,18 @@ public:
 
 
 class MMapBufferConsumer: public bt::BufferConsumer<MMapIOBuffer> {
-	using IOBuffer = MMapIOBuffer;
+    using IOBuffer = MMapIOBuffer;
 
-	IOBuffer io_buffer_;
+    IOBuffer io_buffer_;
 public:
-	MMapBufferConsumer(): io_buffer_(65536) {}
+    MMapBufferConsumer(): io_buffer_(65536) {}
 
-	virtual IOBuffer& buffer() {return io_buffer_;}
-	virtual Int process(IOBuffer& buffer, Int entries)
-	{
-//		cout << "Consume " << entries << " entries" << endl;
-		return entries;
-	}
+    virtual IOBuffer& buffer() {return io_buffer_;}
+    virtual Int process(IOBuffer& buffer, Int entries)
+    {
+//      cout << "Consume " << entries << " entries" << endl;
+        return entries;
+    }
 };
 
 
@@ -314,7 +314,7 @@ int main()
     using KeyType   = BigInt;
     using ValueType = UBigInt;//FixedArray<32>;
 
-    using CtrName 	= Map<KeyType, Vector<ValueType>>;
+    using CtrName   = Map<KeyType, Vector<ValueType>>;
 
     DInit<CtrName>();
 
@@ -330,11 +330,9 @@ int main()
 
             auto map_data = createRandomShapedMapData<KeyType, ValueType>(
             		keys,
-					20,
-                    [](auto k) {
-            			return make_key(k, TypeTag<KeyType>());
-            		},
-                    [](auto k, auto v) {return make_value(k, TypeTag<ValueType>());}
+                20,
+                [](auto k) {return make_key(k, TypeTag<KeyType>());},
+                [](auto k, auto v) {return make_value(k, TypeTag<ValueType>());}
             );
 
             MapIOBufferAdapter<KeyType, ValueType> iobuf_adapter(map_data, 65536);
@@ -368,14 +366,14 @@ int main()
 
             while(true)
             {
-            	Int entries = iter0->bulkio_populate(*walker.get(), &io_buffer);
-            	if (entries > 0) {
-            		size += entries;
-            	}
-            	else if (entries < 0) {
-            		size += -entries;
-            		break;
-            	}
+                Int entries = iter0->bulkio_populate(*walker.get(), &io_buffer);
+                if (entries > 0) {
+                    size += entries;
+                }
+                else if (entries < 0) {
+                    size += -entries;
+                    break;
+                }
             }
 
             BigInt trr1 = getTimeInMillis();
@@ -406,8 +404,8 @@ int main()
             alloc->store("mmap.memoria");
         }
         catch (...) {
-        	//FSDumpAllocator(snp, "mmap_fail.dir");
-        	throw;
+            //FSDumpAllocator(snp, "mmap_fail.dir");
+            throw;
         }
     }
     catch (::memoria::v1::Exception& ex) {

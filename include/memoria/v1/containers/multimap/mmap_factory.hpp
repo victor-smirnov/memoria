@@ -75,7 +75,7 @@ struct MultimapBTTypesBase: public MultimapBTTypesBaseBase<Profile, Key, Value> 
             TL<StreamSize>,
             TL<typename mmap::MMapKeyStructTF<Key>::Type>
         >,
-		mmap::MMapBranchStructTF
+        mmap::MMapBranchStructTF
     >;
 
     using DataStreamTF = StreamTF<
@@ -83,22 +83,22 @@ struct MultimapBTTypesBase: public MultimapBTTypesBaseBase<Profile, Key, Value> 
             TL<StreamSize>,
             TL<typename mmap::MMapValueStructTF<Value>::Type>
         >,
-		mmap::MMapBranchStructTF
+        mmap::MMapBranchStructTF
     >;
 
     using StructureStreamTF = StreamTF<
-    	TL<
-			TL<StreamSize>,
-			TL<typename btfl::StructureStreamTF<2>::Type>
-    	>,
-		mmap::MMapBranchStructTF
-	>;
+        TL<
+            TL<StreamSize>,
+            TL<typename btfl::StructureStreamTF<2>::Type>
+        >,
+        mmap::MMapBranchStructTF
+    >;
 
 
     using StreamDescriptors = TL<
         FirstStreamTF,
         DataStreamTF,
-		StructureStreamTF
+        StructureStreamTF
     >;
 };
 

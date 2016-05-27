@@ -39,12 +39,12 @@ using rleseq::RLESymbolsRun;
 using rleseq::Location;
 
 namespace {
-	static constexpr Int SymbolsRange(Int symbols) {
-		return 0; // No ranges defined at the moment
-	}
+    static constexpr Int SymbolsRange(Int symbols) {
+        return 0; // No ranges defined at the moment
+    }
 
-	template <Int Symbols, Int SymbolsRange = SymbolsRange(Symbols)>
-	struct SumIndexFactory: HasType<PkdFQTreeT<BigInt, Symbols>> {};
+    template <Int Symbols, Int SymbolsRange = SymbolsRange(Symbols)>
+    struct SumIndexFactory: HasType<PkdFQTreeT<BigInt, Symbols>> {};
 }
 
 
@@ -75,20 +75,20 @@ class PkdRLESeq: public PackedAllocator {
 public:
     static constexpr UInt VERSION = 1;
 
-    using Types	 = Types_;
+    using Types  = Types_;
     using MyType = PkdRLESeq<Types_>;
 
-    static constexpr PkdSearchType KeySearchType 	= PkdSearchType::SUM;
-    static constexpr PkdSearchType SearchType 		= PkdSearchType::SUM;
-    static const PackedSizeType SizeType 			= PackedSizeType::VARIABLE;
+    static constexpr PkdSearchType KeySearchType    = PkdSearchType::SUM;
+    static constexpr PkdSearchType SearchType       = PkdSearchType::SUM;
+    static const PackedSizeType SizeType            = PackedSizeType::VARIABLE;
 
-    static constexpr Int ValuesPerBranch        	= Types::ValuesPerBranch;
-    static constexpr Int ValuesPerBranchLog2    	= NumberOfBits(Types::ValuesPerBranch);
+    static constexpr Int ValuesPerBranch            = Types::ValuesPerBranch;
+    static constexpr Int ValuesPerBranchLog2        = NumberOfBits(Types::ValuesPerBranch);
 
-    static constexpr Int Indexes                	= Types::Blocks;
-    static constexpr Int Symbols                	= Types::Blocks;
+    static constexpr Int Indexes                    = Types::Blocks;
+    static constexpr Int Symbols                    = Types::Blocks;
 
-    static constexpr size_t MaxRunLength        	= MaxRLERunLength;
+    static constexpr size_t MaxRunLength            = MaxRLERunLength;
 
     enum {
         METADATA, SIZE_INDEX, OFFSETS, SUM_INDEX, SYMBOLS, TOTAL_SEGMENTS__
@@ -103,7 +103,7 @@ public:
 
     using Values = core::StaticVector<BigInt, Indexes>;
 
-    using SumIndex 	= typename SumIndexFactory<Symbols>::Type;
+    using SumIndex  = typename SumIndexFactory<Symbols>::Type;
     using SizeIndex = PkdFQTreeT<BigInt, 1>;
 
     using InputType = Value;
@@ -132,7 +132,7 @@ public:
 
     Int number_of_offsets() const
     {
-    	return number_of_offsets(this->element_size(SYMBOLS));
+        return number_of_offsets(this->element_size(SYMBOLS));
     }
 
     static constexpr Int number_of_offsets(Int values)
@@ -142,7 +142,7 @@ public:
 
     static constexpr Int number_of_indexes(Int capacity)
     {
-    	return capacity <= ValuesPerBranch ? 0 : divUp(capacity, ValuesPerBranch);
+        return capacity <= ValuesPerBranch ? 0 : divUp(capacity, ValuesPerBranch);
     }
 
     static constexpr Int offsets_segment_size(Int values)
@@ -169,12 +169,12 @@ public:
 
     static constexpr RLESymbolsRun decode_run(UBigInt value)
     {
-    	return rleseq::DecodeRun<Symbols>(value);
+        return rleseq::DecodeRun<Symbols>(value);
     }
 
     static constexpr UBigInt encode_run(Int symbol, UBigInt length)
     {
-    	return rleseq::EncodeRun<Symbols, MaxRunLength>(symbol, length);
+        return rleseq::EncodeRun<Symbols, MaxRunLength>(symbol, length);
     }
 
 
@@ -235,17 +235,17 @@ public:
 
     Int symbols_block_capacity() const
     {
-    	return symbols_block_capacity(metadata());
+        return symbols_block_capacity(metadata());
     }
 
     Int symbols_block_capacity(const Metadata* meta) const
     {
-    	return symbols_block_size() - meta->data_size();
+        return symbols_block_size() - meta->data_size();
     }
 
     Int symbols_block_size() const
     {
-    	return this->element_size(SYMBOLS);
+        return this->element_size(SYMBOLS);
     }
 
     bool has_index() const {
@@ -263,7 +263,7 @@ public:
     }
 
     Tools tools() const {
-    	return Tools();
+        return Tools();
     }
 
     class SymbolAccessor {
@@ -294,56 +294,56 @@ public:
 
     Int get_symbol(Int idx) const
     {
-    	auto result = this->find_run(idx);
+        auto result = this->find_run(idx);
 
-    	if (!result.out_of_range())
-    	{
-    		return result.symbol();
-    	}
-    	else {
-    		throw Exception(MA_SRC, SBuf() << "Symbol index " << idx << " is out of range " << this->size());
-    	}
+        if (!result.out_of_range())
+        {
+            return result.symbol();
+        }
+        else {
+            throw Exception(MA_SRC, SBuf() << "Symbol index " << idx << " is out of range " << this->size());
+        }
     }
 
 
 
     void set_symbol(Int idx, Int symbol)
     {
-    	auto location = this->find_run(idx);
+        auto location = this->find_run(idx);
 
-    	if (!location.out_of_range())
-    	{
-    		if (location.symbol() != symbol)
-    		{
-    			if (location.run_prefix() > 0)
-    			{
-    				if (location.run_suffix() > 1)
-    				{
-    					location = split_run(location, 1);
-    					insert_run(location.data_pos(), symbol, 1);
-    				}
-    				else {
-    					auto run_value_length = add_run_length(location, -1);
-    					insert_run(location.data_pos() + run_value_length, symbol, 1);
-    				}
-    			}
-    			else if (location.length() > 1)
-    			{
-    				add_run_length(location, -1);
-    				insert_run(location.data_pos(), symbol, 1);
-    			}
-    			else {
-    				remove_run(location);
-    				insert_run(location.data_pos(), symbol, 1);
-    				try_merge_two_adjustent_runs(location.data_pos());
-    			}
+        if (!location.out_of_range())
+        {
+            if (location.symbol() != symbol)
+            {
+                if (location.run_prefix() > 0)
+                {
+                    if (location.run_suffix() > 1)
+                    {
+                        location = split_run(location, 1);
+                        insert_run(location.data_pos(), symbol, 1);
+                    }
+                    else {
+                        auto run_value_length = add_run_length(location, -1);
+                        insert_run(location.data_pos() + run_value_length, symbol, 1);
+                    }
+                }
+                else if (location.length() > 1)
+                {
+                    add_run_length(location, -1);
+                    insert_run(location.data_pos(), symbol, 1);
+                }
+                else {
+                    remove_run(location);
+                    insert_run(location.data_pos(), symbol, 1);
+                    try_merge_two_adjustent_runs(location.data_pos());
+                }
 
-    			reindex();
-    		}
-    	}
-    	else {
-    		throw Exception(MA_SRC, SBuf() << "Symbol index " << idx << " is out of range " << this->size());
-    	}
+                reindex();
+            }
+        }
+        else {
+            throw Exception(MA_SRC, SBuf() << "Symbol index " << idx << " is out of range " << this->size());
+        }
     }
 
 
@@ -375,45 +375,45 @@ public:
 
     void append(Int symbol, UBigInt length)
     {
-    	MEMORIA_V1_ASSERT_TRUE(symbol >= 0 && symbol < Symbols);
+        MEMORIA_V1_ASSERT_TRUE(symbol >= 0 && symbol < Symbols);
 
-    	auto meta = this->metadata();
+        auto meta = this->metadata();
 
-    	auto run_value = encode_run(symbol, length);
+        auto run_value = encode_run(symbol, length);
 
-    	Codec codec;
-    	auto len = codec.length(run_value);
+        Codec codec;
+        auto len = codec.length(run_value);
 
-    	ensure_capacity(len);
+        ensure_capacity(len);
 
-    	meta->data_size() += codec.encode(this->symbols(), run_value, meta->data_size());
-    	meta->size() += length;
+        meta->data_size() += codec.encode(this->symbols(), run_value, meta->data_size());
+        meta->size() += length;
     }
 
     void append_and_reindex(Int symbol, UBigInt length)
     {
-    	append(symbol, length);
-    	reindex();
+        append(symbol, length);
+        reindex();
     }
 
     bool emplace_back(Int symbol, UBigInt length)
     {
-    	auto meta = this->metadata();
+        auto meta = this->metadata();
 
-    	auto run_value = encode_run(symbol, length);
+        auto run_value = encode_run(symbol, length);
 
-    	Codec codec;
-    	auto len = codec.length(run_value);
+        Codec codec;
+        auto len = codec.length(run_value);
 
-    	if (has_capacity(len))
-    	{
-    		meta->data_size() += codec.encode(this->symbols(), run_value, meta->data_size());
-    		meta->size() 	  += length;
+        if (has_capacity(len))
+        {
+            meta->data_size() += codec.encode(this->symbols(), run_value, meta->data_size());
+            meta->size()      += length;
 
-    		return true;
-    	}
+            return true;
+        }
 
-    	return false;
+        return false;
     }
 
 
@@ -425,12 +425,12 @@ public:
 
     Int block_size(const MyType* other) const
     {
-    	return block_size(this->symbols_block_size() + other->symbols_block_size());
+        return block_size(this->symbols_block_size() + other->symbols_block_size());
     }
 
     static Int block_size(Int symbols_capacity)
     {
-        Int metadata_length 	= Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
+        Int metadata_length     = Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
 
         Int capacity = symbols_capacity;
 
@@ -439,10 +439,10 @@ public:
         Int size_index_length   = index_size > 0 ? SizeIndex::block_size(index_size) : 0;
         Int sum_index_length    = index_size > 0 ? SumIndex::block_size(index_size) : 0;
 
-        Int offsets_length  	= offsets_segment_size(capacity);
-        Int values_length   	= Base::roundUpBytesToAlignmentBlocks(capacity);
+        Int offsets_length      = offsets_segment_size(capacity);
+        Int values_length       = Base::roundUpBytesToAlignmentBlocks(capacity);
 
-        Int block_size      	= Base::block_size(metadata_length + size_index_length  + offsets_length + sum_index_length + values_length, TOTAL_SEGMENTS__);
+        Int block_size          = Base::block_size(metadata_length + size_index_length  + offsets_length + sum_index_length + values_length, TOTAL_SEGMENTS__);
         return block_size;
     }
 
@@ -478,28 +478,28 @@ public:
 
         auto meta = this->metadata();
 
-        meta->size() 		= 0;
-        meta->data_size() 	= 0;
+        meta->size()        = 0;
+        meta->data_size()   = 0;
     }
 
     void reset() {
-    	auto meta = this->metadata();
+        auto meta = this->metadata();
 
-    	meta->size() 		= 0;
-    	meta->data_size() 	= 0;
+        meta->size()        = 0;
+        meta->data_size()   = 0;
     }
 
 
 public:
     static Int empty_size()
     {
-        Int metadata_length 	= Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
+        Int metadata_length     = Base::roundUpBytesToAlignmentBlocks(sizeof(Metadata));
         Int size_index_length   = 0;
-        Int offsets_length  	= offsets_segment_size(0);
+        Int offsets_length      = offsets_segment_size(0);
         Int sum_index_length    = 0;
-        Int values_length   	= 0;
+        Int values_length       = 0;
 
-        Int block_size      	= Base::block_size(metadata_length + size_index_length  + offsets_length + sum_index_length + values_length, TOTAL_SEGMENTS__);
+        Int block_size          = Base::block_size(metadata_length + size_index_length  + offsets_length + sum_index_length + values_length, TOTAL_SEGMENTS__);
         return block_size;
     }
 
@@ -532,43 +532,43 @@ public:
 
     Iterator iterator(Int symbol_pos) const
     {
-    	auto meta = this->metadata();
+        auto meta = this->metadata();
 
-    	if (symbol_pos < meta->size())
-    	{
-    		if (!has_index())
-    		{
-    			auto result = locate_run(meta, 0, symbol_pos, 0);
-    			return Iterator(symbols(), result.data_pos(), meta->data_size(), result.local_idx(), result.run_base(), result.run());
-    		}
-    		else
-    		{
-    			auto find_result = this->size_index()->find_gt(0, symbol_pos);
+        if (symbol_pos < meta->size())
+        {
+            if (!has_index())
+            {
+                auto result = locate_run(meta, 0, symbol_pos, 0);
+                return Iterator(symbols(), result.data_pos(), meta->data_size(), result.local_idx(), result.run_base(), result.run());
+            }
+            else
+            {
+                auto find_result = this->size_index()->find_gt(0, symbol_pos);
 
-    			Int local_pos 		= symbol_pos - find_result.prefix();
-    			size_t block_offset = find_result.idx() * ValuesPerBranch;
-    			auto offset 		= offsets()[find_result.idx()];
+                Int local_pos       = symbol_pos - find_result.prefix();
+                size_t block_offset = find_result.idx() * ValuesPerBranch;
+                auto offset         = offsets()[find_result.idx()];
 
-    			block_offset += offset;
+                block_offset += offset;
 
-    			auto result = locate_run(meta, block_offset, local_pos, find_result.prefix());
-    			return Iterator(symbols(), result.data_pos(), meta->data_size(), result.local_idx(), result.run_base(), result.run());
-    		}
-    	}
-    	else {
-    		return end();
-    	}
+                auto result = locate_run(meta, block_offset, local_pos, find_result.prefix());
+                return Iterator(symbols(), result.data_pos(), meta->data_size(), result.local_idx(), result.run_base(), result.run());
+            }
+        }
+        else {
+            return end();
+        }
     }
 
     Iterator end() const
     {
-    	auto meta = this->metadata();
-    	return Iterator(symbols(), meta->data_size(), meta->data_size(), meta->size(), 0, RLESymbolsRun());
+        auto meta = this->metadata();
+        return Iterator(symbols(), meta->data_size(), meta->data_size(), meta->size(), 0, RLESymbolsRun());
     }
 
     Iterator begin() const
     {
-    	return iterator(0);
+        return iterator(0);
     }
 
 
@@ -576,7 +576,7 @@ public:
 
     void reindex()
     {
-    	rleseq::ReindexFn<MyType> reindex_fn;
+        rleseq::ReindexFn<MyType> reindex_fn;
         reindex_fn.reindex(*this);
     }
 
@@ -594,18 +594,18 @@ public:
 
     void ensure_capacity(Int capacity)
     {
-    	Int current_capacity = this->symbols_block_capacity();
+        Int current_capacity = this->symbols_block_capacity();
 
-    	if (current_capacity < capacity)
-    	{
-    		enlargeData(capacity - current_capacity);
-    	}
+        if (current_capacity < capacity)
+        {
+            enlargeData(capacity - current_capacity);
+        }
     }
 
     bool has_capacity(Int required_capacity) const
     {
-    	Int current_capacity = this->symbols_block_capacity();
-    	return current_capacity >= required_capacity;
+        Int current_capacity = this->symbols_block_capacity();
+        return current_capacity >= required_capacity;
     }
 
 
@@ -621,7 +621,7 @@ protected:
     {
         Int current_size = this->element_size(SYMBOLS);
 
-    	Int new_size = current_size - length;
+        Int new_size = current_size - length;
 
         if (new_size >= 0)
         {
@@ -632,7 +632,7 @@ protected:
 
     void shrink_to_data()
     {
-    	shrinkData(this->symbols_block_capacity());
+        shrinkData(this->symbols_block_capacity());
     }
 
 public:
@@ -652,7 +652,7 @@ public:
 
     void remove(Int start, Int end, bool compactify = false)
     {
-    	auto meta = this->metadata();
+        auto meta = this->metadata();
 
         MEMORIA_V1_ASSERT(start, >=, 0);
         MEMORIA_V1_ASSERT(end, >=, 0);
@@ -660,153 +660,153 @@ public:
         MEMORIA_V1_ASSERT(end, <=, meta->size());
 
         auto location_start = find_run(start);
-        auto location_end 	= find_run(end);
+        auto location_end   = find_run(end);
 
         if (location_end.local_idx() > 0)
         {
-        	if (location_start.run_prefix() > 0)
-        	{
-        		remove_runs(location_start, location_end);
+            if (location_start.run_prefix() > 0)
+            {
+                remove_runs(location_start, location_end);
 
-        		if (location_start.symbol() == location_end.symbol())
-        		{
-        			try_merge_two_adjustent_runs(location_start.data_pos());
-        		}
-        	}
-        	else {
-        		remove_runs_one_sided_left(location_start, location_end);
-        		try_merge_two_adjustent_runs(location_start.data_pos());
-        	}
+                if (location_start.symbol() == location_end.symbol())
+                {
+                    try_merge_two_adjustent_runs(location_start.data_pos());
+                }
+            }
+            else {
+                remove_runs_one_sided_left(location_start, location_end);
+                try_merge_two_adjustent_runs(location_start.data_pos());
+            }
         }
         else if (location_start.run_prefix() > 0)
         {
-        	remove_runs_one_sided(location_start, location_end.data_pos());
+            remove_runs_one_sided(location_start, location_end.data_pos());
 
-        	try_merge_two_adjustent_runs(location_start.data_pos());
+            try_merge_two_adjustent_runs(location_start.data_pos());
         }
         else {
-        	remove_runs_two_sided(location_start.data_pos(), location_end.data_pos());
+            remove_runs_two_sided(location_start.data_pos(), location_end.data_pos());
         }
 
         meta->size() -= end - start;
 
         if (compactify)
         {
-        	this->compactify();
+            this->compactify();
         }
         else {
-        	shrink_to_data();
-        	reindex();
+            shrink_to_data();
+            reindex();
         }
     }
 
     void insert(Int idx, Int symbol, UBigInt length)
     {
-    	auto location = find_run(idx);
+        auto location = find_run(idx);
 
-    	if (!location.out_of_range())
-    	{
-    		if (location.symbol() != symbol || location.length() + length > MaxRunLength)
-    		{
-    			if (location.run_prefix() > 0)
-    			{
-    				location = split_run(location);
-    			}
+        if (!location.out_of_range())
+        {
+            if (location.symbol() != symbol || location.length() + length > MaxRunLength)
+            {
+                if (location.run_prefix() > 0)
+                {
+                    location = split_run(location);
+                }
 
-    			insert_run(location.data_pos(), symbol, length);
-    		}
-    		else {
-    			add_run_length(location, length);
-    		}
-    	}
-    	else {
-    		insert_run(location.data_pos(), symbol, length);
-    	}
+                insert_run(location.data_pos(), symbol, length);
+            }
+            else {
+                add_run_length(location, length);
+            }
+        }
+        else {
+            insert_run(location.data_pos(), symbol, length);
+        }
 
-    	reindex();
+        reindex();
     }
 
     void insert_buffer(Int at, const InputBuffer* buffer, Int start, Int size)
     {
-    	if (size > 0)
-    	{
-    		auto meta = this->metadata();
+        if (size > 0)
+        {
+            auto meta = this->metadata();
 
-    		MEMORIA_V1_ASSERT(at, <= , meta->size());
+            MEMORIA_V1_ASSERT(at, <= , meta->size());
 
-    		auto start_run 	= buffer->find_run(start);
-    		auto end_run 	= buffer->find_run(start + size);
+            auto start_run  = buffer->find_run(start);
+            auto end_run    = buffer->find_run(start + size);
 
-    		auto symbols 	 = this->symbols();
-    		auto buf_symbols = buffer->symbols();
+            auto symbols     = this->symbols();
+            auto buf_symbols = buffer->symbols();
 
-    		Codec codec;
+            Codec codec;
 
-    		auto location = find_run(at);
+            auto location = find_run(at);
 
-    		if (start_run.data_pos() < end_run.data_pos())
-    		{
-        		if (location.run_prefix() > 0)
-        		{
-        			location = split_run(location);
-        		}
+            if (start_run.data_pos() < end_run.data_pos())
+            {
+                if (location.run_prefix() > 0)
+                {
+                    location = split_run(location);
+                }
 
-    			UBigInt start_run_value = encode_run(start_run.symbol(), start_run.run_suffix());
-    			size_t start_run_value_length = codec.length(start_run_value);
+                UBigInt start_run_value = encode_run(start_run.symbol(), start_run.run_suffix());
+                size_t start_run_value_length = codec.length(start_run_value);
 
-    			if (end_run.run_prefix() > 0)
-    			{
-    				UBigInt end_run_value = encode_run(end_run.symbol(), end_run.run_prefix());
-    				size_t end_run_value_length = codec.length(end_run_value);
+                if (end_run.run_prefix() > 0)
+                {
+                    UBigInt end_run_value = encode_run(end_run.symbol(), end_run.run_prefix());
+                    size_t end_run_value_length = codec.length(end_run_value);
 
-    				size_t to_copy 		= end_run.data_pos() - start_run.data_end();
-    				size_t total_length = start_run_value_length + to_copy + end_run_value_length;
+                    size_t to_copy      = end_run.data_pos() - start_run.data_end();
+                    size_t total_length = start_run_value_length + to_copy + end_run_value_length;
 
-    				ensure_capacity(total_length);
+                    ensure_capacity(total_length);
 
-    				size_t pos = location.data_pos();
-    				codec.move(symbols, pos, pos + total_length, meta->data_size() - pos);
+                    size_t pos = location.data_pos();
+                    codec.move(symbols, pos, pos + total_length, meta->data_size() - pos);
 
-    				pos += codec.encode(symbols, start_run_value, pos);
-    				codec.copy(buf_symbols, start_run.data_end(), symbols, pos, to_copy);
+                    pos += codec.encode(symbols, start_run_value, pos);
+                    codec.copy(buf_symbols, start_run.data_end(), symbols, pos, to_copy);
 
-    				pos += to_copy;
-    				codec.encode(symbols, end_run_value, pos);
+                    pos += to_copy;
+                    codec.encode(symbols, end_run_value, pos);
 
-    				meta->data_size() += total_length;
-    			}
-    			else {
-    				size_t to_copy 		= end_run.data_pos() - start_run.data_end();
-    				size_t total_length = start_run_value_length + to_copy;
+                    meta->data_size() += total_length;
+                }
+                else {
+                    size_t to_copy      = end_run.data_pos() - start_run.data_end();
+                    size_t total_length = start_run_value_length + to_copy;
 
-    				ensure_capacity(total_length);
+                    ensure_capacity(total_length);
 
-    				size_t pos = location.data_pos();
-    				codec.move(symbols, pos, pos + total_length, meta->data_size() - pos);
+                    size_t pos = location.data_pos();
+                    codec.move(symbols, pos, pos + total_length, meta->data_size() - pos);
 
-    				pos += codec.encode(symbols, start_run_value, pos);
-    				codec.copy(buf_symbols, start_run.data_end(), symbols, pos, to_copy);
+                    pos += codec.encode(symbols, start_run_value, pos);
+                    codec.copy(buf_symbols, start_run.data_end(), symbols, pos, to_copy);
 
-    				meta->data_size() += total_length;
-    			}
+                    meta->data_size() += total_length;
+                }
 
-    			meta->size() += size;
-    		}
-    		else if (location.symbol() == start_run.symbol())
-    		{
-    			add_run_length(location, size);
-    		}
-    		else {
-    			if (location.run_prefix() > 0)
-    			{
-    				location = split_run(location);
-    			}
+                meta->size() += size;
+            }
+            else if (location.symbol() == start_run.symbol())
+            {
+                add_run_length(location, size);
+            }
+            else {
+                if (location.run_prefix() > 0)
+                {
+                    location = split_run(location);
+                }
 
-    			insert_run(location.data_pos(), start_run.symbol(), size);
-    		}
+                insert_run(location.data_pos(), start_run.symbol(), size);
+            }
 
-    		reindex();
-    	}
+            reindex();
+        }
     }
 
 
@@ -851,50 +851,50 @@ public:
 
     void splitTo(MyType* other, Int idx)
     {
-    	auto meta = this->metadata();
+        auto meta = this->metadata();
 
-    	if (idx < meta->size())
-    	{
-    		auto other_meta = other->metadata();
+        if (idx < meta->size())
+        {
+            auto other_meta = other->metadata();
 
-    		auto location 	= this->find_run(idx);
+            auto location   = this->find_run(idx);
 
-    		Codec codec;
+            Codec codec;
 
-    		size_t symbols_to_move 		= location.run_suffix();
-    		UBigInt suffix_value 		= encode_run(location.symbol(), symbols_to_move);
-    		size_t  suffix_value_length = codec.length(suffix_value);
+            size_t symbols_to_move      = location.run_suffix();
+            UBigInt suffix_value        = encode_run(location.symbol(), symbols_to_move);
+            size_t  suffix_value_length = codec.length(suffix_value);
 
-    		Int current_run_data_length = location.data_length();
+            Int current_run_data_length = location.data_length();
 
-    		Int data_to_move_remainder 	= meta->data_size() - (location.data_pos() + current_run_data_length);
+            Int data_to_move_remainder  = meta->data_size() - (location.data_pos() + current_run_data_length);
 
-    		Int data_to_move = data_to_move_remainder + suffix_value_length;
+            Int data_to_move = data_to_move_remainder + suffix_value_length;
 
-    		other->ensure_capacity(data_to_move);
+            other->ensure_capacity(data_to_move);
 
-    		codec.move(other->symbols(), 0, data_to_move, other_meta->data_size());
+            codec.move(other->symbols(), 0, data_to_move, other_meta->data_size());
 
-    		codec.copy(symbols(), location.data_pos() + current_run_data_length, other->symbols(), suffix_value_length, data_to_move_remainder);
-    		codec.encode(other->symbols(), suffix_value, 0);
+            codec.copy(symbols(), location.data_pos() + current_run_data_length, other->symbols(), suffix_value_length, data_to_move_remainder);
+            codec.encode(other->symbols(), suffix_value, 0);
 
-    		other_meta->data_size() += data_to_move;
-    		other_meta->size() 		+= meta->size() - idx;
+            other_meta->data_size() += data_to_move;
+            other_meta->size()      += meta->size() - idx;
 
-    		//other->try_merge_two_adjustent_runs(0);
+            //other->try_merge_two_adjustent_runs(0);
 
-    		other->compactify();
+            other->compactify();
 
-    		remove(idx, meta->size(), true);
-    	}
+            remove(idx, meta->size(), true);
+        }
     }
 
     void mergeWith(MyType* other) const
     {
-    	auto meta 		= this->metadata();
-    	auto other_meta = other->metadata();
+        auto meta       = this->metadata();
+        auto other_meta = other->metadata();
 
-    	Int data_to_move = meta->data_size();
+        Int data_to_move = meta->data_size();
 
         other->ensure_capacity(data_to_move);
 
@@ -904,7 +904,7 @@ public:
         codec.copy(symbols(), 0, other->symbols(), 0, data_to_move);
 
         other_meta->data_size() += data_to_move;
-        other_meta->size() 		+= meta->size();
+        other_meta->size()      += meta->size();
 
         other->compactify_runs();
 
@@ -1156,149 +1156,149 @@ public:
 
     UBigInt rank(Int end, Int symbol) const
     {
-    	auto meta = this->metadata();
-    	Int size = meta->size();
+        auto meta = this->metadata();
+        Int size = meta->size();
 
         MEMORIA_V1_ASSERT_TRUE(end >= 0);
 
         if (symbol < 0 || symbol >= Symbols) {
-        	int a = 0; a++;
+            int a = 0; a++;
         }
 
         MEMORIA_V1_ASSERT_TRUE(symbol >= 0 && symbol < Symbols);
 
         if (has_index())
         {
-        	const SumIndex* sum_index  = this->sum_index();
+            const SumIndex* sum_index  = this->sum_index();
 
-        	if (end < size)
-        	{
-        		auto location 		= find_run(end);
-        		auto block 	  		= location.data_pos() / ValuesPerBranch;
-        		auto block_start 	= block * ValuesPerBranch;
+            if (end < size)
+            {
+                auto location       = find_run(end);
+                auto block          = location.data_pos() / ValuesPerBranch;
+                auto block_start    = block * ValuesPerBranch;
 
-        		auto rank_base 	= sum_index->sum(symbol, block);
+                auto rank_base  = sum_index->sum(symbol, block);
 
-        		auto block_offset = offsets()[block];
+                auto block_offset = offsets()[block];
 
-        		auto local_rank = block_rank(meta, block_start + block_offset, end - location.block_base(), symbol);
+                auto local_rank = block_rank(meta, block_start + block_offset, end - location.block_base(), symbol);
 
-        		return local_rank + rank_base;
-        	}
-        	else {
-        		return sum_index->sum(symbol);
-        	}
+                return local_rank + rank_base;
+            }
+            else {
+                return sum_index->sum(symbol);
+            }
         }
         else {
-        	return block_rank(meta, 0, end, symbol);
+            return block_rank(meta, 0, end, symbol);
         }
     }
 
     SelectResult selectFW(UBigInt rank, Int symbol) const
     {
-    	auto meta 	 = this->metadata();
-    	auto symbols = this->symbols();
+        auto meta    = this->metadata();
+        auto symbols = this->symbols();
 
         MEMORIA_V1_ASSERT_TRUE(symbol >= 0 && symbol < Symbols);
 
         if (has_index())
         {
-        	const SumIndex* sum_index 	= this->sum_index();
-        	auto find_result 			= sum_index->find_ge(symbol, rank);
-        	Int blocks 					= sum_index->size();
+            const SumIndex* sum_index   = this->sum_index();
+            auto find_result            = sum_index->find_ge(symbol, rank);
+            Int blocks                  = sum_index->size();
 
-        	if (find_result.idx() < blocks)
-        	{
-        		auto block_start   = find_result.idx() * ValuesPerBranch;
-        		auto block_offset  = offsets()[find_result.idx()];
-        		UBigInt local_rank = rank - find_result.prefix();
+            if (find_result.idx() < blocks)
+            {
+                auto block_start   = find_result.idx() * ValuesPerBranch;
+                auto block_offset  = offsets()[find_result.idx()];
+                UBigInt local_rank = rank - find_result.prefix();
 
-        		auto block_size_start  = this->size_index()->sum(0, find_result.idx());
+                auto block_size_start  = this->size_index()->sum(0, find_result.idx());
 
-        		auto result = block_select(meta, symbols, block_start + block_offset, local_rank, block_size_start, symbol);
+                auto result = block_select(meta, symbols, block_start + block_offset, local_rank, block_size_start, symbol);
 
-        		result.rank() += find_result.prefix();
+                result.rank() += find_result.prefix();
 
-        		return result;
-        	}
-        	else {
-        		return SelectResult(meta->size(), find_result.prefix(), false);
-        	}
+                return result;
+            }
+            else {
+                return SelectResult(meta->size(), find_result.prefix(), false);
+            }
         }
         else {
-        	return block_select(meta, symbols, 0, rank, 0, symbol);
+            return block_select(meta, symbols, 0, rank, 0, symbol);
         }
     }
 
     SelectResult selectBW(UBigInt rank, Int symbol) const
     {
-    	return selectBW(size(), rank, symbol);
+        return selectBW(size(), rank, symbol);
     }
 
 
     SelectResult selectFW(Int pos, UBigInt rank, Int symbol) const
     {
-    	MEMORIA_V1_ASSERT(rank, >=, 1);
-    	MEMORIA_V1_ASSERT(pos, >=, -1);
+        MEMORIA_V1_ASSERT(rank, >=, 1);
+        MEMORIA_V1_ASSERT(pos, >=, -1);
 
-    	auto meta = this->metadata();
+        auto meta = this->metadata();
 
-    	if (pos < meta->size())
-    	{
-    		UBigInt rank_prefix = this->rank(pos + 1, symbol);
-    		auto result = selectFW(rank_prefix + rank, symbol);
+        if (pos < meta->size())
+        {
+            UBigInt rank_prefix = this->rank(pos + 1, symbol);
+            auto result = selectFW(rank_prefix + rank, symbol);
 
-    		result.rank() -= rank_prefix;
+            result.rank() -= rank_prefix;
 
-    		return result;
-    	}
-    	else {
-    		return SelectResult(meta->size(), 0, false);
-    	}
+            return result;
+        }
+        else {
+            return SelectResult(meta->size(), 0, false);
+        }
     }
 
     SelectResult selectBW(Int pos, UBigInt rank, Int symbol) const
     {
-    	auto meta = this->metadata();
+        auto meta = this->metadata();
 
-    	MEMORIA_V1_ASSERT(rank, >=, 1);
-    	MEMORIA_V1_ASSERT(pos, >=, 0);
-    	MEMORIA_V1_ASSERT(pos, <=, meta->size());
+        MEMORIA_V1_ASSERT(rank, >=, 1);
+        MEMORIA_V1_ASSERT(pos, >=, 0);
+        MEMORIA_V1_ASSERT(pos, <=, meta->size());
 
-    	UBigInt rank_prefix = this->rank(pos, symbol);
-    	if (rank_prefix >= rank)
-    	{
-    		auto target_rank = rank_prefix - (rank - 1);
-    		auto result = selectFW(target_rank, symbol);
+        UBigInt rank_prefix = this->rank(pos, symbol);
+        if (rank_prefix >= rank)
+        {
+            auto target_rank = rank_prefix - (rank - 1);
+            auto result = selectFW(target_rank, symbol);
 
-    		if (result.is_found())
-    		{
-    			result.rank() = rank;
-    		}
-    		else {
-    			result.rank() = rank_prefix;
-    		}
+            if (result.is_found())
+            {
+                result.rank() = rank;
+            }
+            else {
+                result.rank() = rank_prefix;
+            }
 
-    		return result;
-    	}
-    	else {
-    		return SelectResult(0, rank_prefix, false);
-    	}
+            return result;
+        }
+        else {
+            return SelectResult(0, rank_prefix, false);
+        }
     }
 
 
 
     UBigInt count(Int pos) const
     {
-    	auto location = find_run(pos);
-    	return block_count(metadata(), symbols(), location);
+        auto location = find_run(pos);
+        return block_count(metadata(), symbols(), location);
     }
 
 
     void dump(std::ostream& out = cout, bool dump_index = true) const
     {
-    	TextPageDumper dumper(out);
-    	generateDataEvents(&dumper);
+        TextPageDumper dumper(out);
+        generateDataEvents(&dumper);
     }
 
 
@@ -1312,14 +1312,14 @@ public:
 
         if (has_index())
         {
-        	handler->startGroup("INDEXES");
-        	size_index()->generateDataEvents(handler);
+            handler->startGroup("INDEXES");
+            size_index()->generateDataEvents(handler);
             sum_index()->generateDataEvents(handler);
             handler->endGroup();
         }
 
         handler->value("OFFSETS", PageValueProviderFactory::provider(true, number_of_offsets(), [&](Int idx) {
-        	return offsets()[idx];
+            return offsets()[idx];
         }));
 
         handler->startGroup("SYMBOL RUNS", size());
@@ -1330,14 +1330,14 @@ public:
 
         while (iter.has_data())
         {
-        	values[1] = iter.run().symbol();
-        	values[2] = iter.run().length();
+            values[1] = iter.run().symbol();
+            values[2] = iter.run().length();
 
-        	handler->value("RUN", values, 3);
+            handler->value("RUN", values, 3);
 
-        	values[0] += iter.run().length();
+            values[0] += iter.run().length();
 
-        	iter.next_run();
+            iter.next_run();
         }
 
         handler->endGroup();
@@ -1387,561 +1387,561 @@ public:
 
     auto find_run(Int symbol_pos) const
     {
-    	if (symbol_pos >= 0)
-    	{
-    		auto meta = this->metadata();
+        if (symbol_pos >= 0)
+        {
+            auto meta = this->metadata();
 
-    		if (symbol_pos < meta->size())
-    		{
-    			if (!has_index())
-    			{
-    				return locate_run(meta, 0, symbol_pos, 0);
-    			}
-    			else
-    			{
-    				auto find_result = this->size_index()->find_gt(0, symbol_pos);
+            if (symbol_pos < meta->size())
+            {
+                if (!has_index())
+                {
+                    return locate_run(meta, 0, symbol_pos, 0);
+                }
+                else
+                {
+                    auto find_result = this->size_index()->find_gt(0, symbol_pos);
 
-    				Int local_pos 		= symbol_pos - find_result.prefix();
-    				size_t block_offset = find_result.idx() * ValuesPerBranch;
-    				auto offset 		= offsets()[find_result.idx()];
+                    Int local_pos       = symbol_pos - find_result.prefix();
+                    size_t block_offset = find_result.idx() * ValuesPerBranch;
+                    auto offset         = offsets()[find_result.idx()];
 
-    				block_offset += offset;
+                    block_offset += offset;
 
-    				return locate_run(meta, block_offset, local_pos, find_result.prefix());
-    			}
-    		}
-    		else {
-    			return Location(meta->data_size(), 0, 0, meta->data_size(), symbol_pos, RLESymbolsRun(), true);
-    		}
-    	}
-    	else {
-    		throw Exception(MA_SRC, SBuf() << "Symbol index must be >= 0: " << symbol_pos);
-    	}
+                    return locate_run(meta, block_offset, local_pos, find_result.prefix());
+                }
+            }
+            else {
+                return Location(meta->data_size(), 0, 0, meta->data_size(), symbol_pos, RLESymbolsRun(), true);
+            }
+        }
+        else {
+            throw Exception(MA_SRC, SBuf() << "Symbol index must be >= 0: " << symbol_pos);
+        }
     }
 
     void compactify()
     {
-    	compactify_runs();
-    	reindex();
+        compactify_runs();
+        reindex();
     }
 
 private:
     auto select_fw_is(Iterator iter, Int symbol, UBigInt rank) const
     {
-    	MEMORIA_V1_ASSERT(rank, >=, 1);
+        MEMORIA_V1_ASSERT(rank, >=, 1);
 
-    	UBigInt cnt = 0;
+        UBigInt cnt = 0;
 
-    	while (iter.has_data())
-    	{
-    		if (iter.symbol() == symbol) {
-    			if (++cnt == rank)
-    			{
-    				return iter;
-    			}
-    		}
-    	}
+        while (iter.has_data())
+        {
+            if (iter.symbol() == symbol) {
+                if (++cnt == rank)
+                {
+                    return iter;
+                }
+            }
+        }
 
-    	return end();
+        return end();
     }
 
 
     size_t block_rank(const Metadata* meta, size_t data_pos, size_t idx, Int symbol) const
     {
-    	Codec codec;
-    	size_t data_size = meta->data_size();
-    	auto symbols = this->symbols();
+        Codec codec;
+        size_t data_size = meta->data_size();
+        auto symbols = this->symbols();
 
-    	size_t run_base  = 0;
-    	UBigInt rank 	 = 0;
+        size_t run_base  = 0;
+        UBigInt rank     = 0;
 
-    	while (data_pos < data_size)
-    	{
-    		UBigInt run_value = 0;
-    		auto len = codec.decode(symbols, run_value, data_pos);
-    		auto run = decode_run(run_value);
+        while (data_pos < data_size)
+        {
+            UBigInt run_value = 0;
+            auto len = codec.decode(symbols, run_value, data_pos);
+            auto run = decode_run(run_value);
 
-    		auto run_length = run.length();
+            auto run_length = run.length();
 
-    		if (run.symbol() == symbol)
-    		{
-    			if (idx >= run_base + run_length)
-    			{
-    				rank += run_length;
-    			}
-    			else {
-    				return rank + idx - run_base;
-    			}
-    		}
-    		else if (idx < run_base + run_length)
-			{
-				return rank;
-			}
+            if (run.symbol() == symbol)
+            {
+                if (idx >= run_base + run_length)
+                {
+                    rank += run_length;
+                }
+                else {
+                    return rank + idx - run_base;
+                }
+            }
+            else if (idx < run_base + run_length)
+            {
+                return rank;
+            }
 
-			run_base += run_length;
-			data_pos += len;
-    	}
+            run_base += run_length;
+            data_pos += len;
+        }
 
-    	return rank;
+        return rank;
     }
 
     class BlockSelectResult {
-    	UBigInt rank_;
-    	size_t data_pos_;
-    	size_t local_idx_;
-    	size_t block_idx_;
+        UBigInt rank_;
+        size_t data_pos_;
+        size_t local_idx_;
+        size_t block_idx_;
     public:
-    	BlockSelectResult(UBigInt rank, size_t data_pos, size_t local_idx, size_t block_idx):
-    		rank_(rank), data_pos_(data_pos), local_idx_(local_idx), block_idx_(block_idx)
-    	{}
+        BlockSelectResult(UBigInt rank, size_t data_pos, size_t local_idx, size_t block_idx):
+            rank_(rank), data_pos_(data_pos), local_idx_(local_idx), block_idx_(block_idx)
+        {}
 
-    	UBigInt rank() const {return rank_;}
-    	size_t data_pos() const {return data_pos_;}
-    	size_t local_idx() const {return local_idx_;}
-    	size_t block_idx() const {return block_idx_;}
+        UBigInt rank() const {return rank_;}
+        size_t data_pos() const {return data_pos_;}
+        size_t local_idx() const {return local_idx_;}
+        size_t block_idx() const {return block_idx_;}
     };
 
 
     SelectResult block_select(const Metadata* meta, const Value* symbols, size_t data_pos, UBigInt rank, size_t block_size_prefix, Int symbol) const
     {
-    	Codec codec;
-    	size_t data_size = meta->data_size();
+        Codec codec;
+        size_t data_size = meta->data_size();
 
-    	UBigInt rank_base = 0;
-    	size_t  run_base  = 0;
+        UBigInt rank_base = 0;
+        size_t  run_base  = 0;
 
-    	RLESymbolsRun run;
+        RLESymbolsRun run;
 
-    	while (data_pos < data_size)
-    	{
-    		UBigInt run_value = 0;
-    		auto len = codec.decode(symbols, run_value, data_pos);
-    		run = decode_run(run_value);
+        while (data_pos < data_size)
+        {
+            UBigInt run_value = 0;
+            auto len = codec.decode(symbols, run_value, data_pos);
+            run = decode_run(run_value);
 
-    		auto run_length = run.length();
+            auto run_length = run.length();
 
-			if (run.symbol() == symbol)
-			{
-				if (rank > rank_base + run_length)
-				{
-					rank_base += run_length;
-					run_base  += run_length;
-				}
-				else {
-					size_t local_idx   = rank - rank_base - 1;
-					return SelectResult(run_base + block_size_prefix + local_idx, rank_base + local_idx + 1, true);
-				}
-			}
-			else {
-				run_base += run_length;
-			}
+            if (run.symbol() == symbol)
+            {
+                if (rank > rank_base + run_length)
+                {
+                    rank_base += run_length;
+                    run_base  += run_length;
+                }
+                else {
+                    size_t local_idx   = rank - rank_base - 1;
+                    return SelectResult(run_base + block_size_prefix + local_idx, rank_base + local_idx + 1, true);
+                }
+            }
+            else {
+                run_base += run_length;
+            }
 
-			data_pos += len;
-    	}
+            data_pos += len;
+        }
 
-    	return SelectResult(run_base + block_size_prefix, rank_base, false);
+        return SelectResult(run_base + block_size_prefix, rank_base, false);
     }
 
 
     UBigInt block_count(const Metadata* meta, const Value* symbols, const Location& location) const
     {
-    	size_t pos = location.data_pos();
-    	size_t data_size = meta->data_size();
+        size_t pos = location.data_pos();
+        size_t data_size = meta->data_size();
 
-    	Codec codec;
+        Codec codec;
 
-    	UBigInt local_pos = location.local_idx();
+        UBigInt local_pos = location.local_idx();
 
-    	UBigInt count = 0;
-    	Int last_symbol = -1;
+        UBigInt count = 0;
+        Int last_symbol = -1;
 
-    	while (pos < data_size)
-    	{
-    		UBigInt run_value = 0;
-    		auto len = codec.decode(symbols, run_value, pos);
-    		auto run = decode_run(run_value);
+        while (pos < data_size)
+        {
+            UBigInt run_value = 0;
+            auto len = codec.decode(symbols, run_value, pos);
+            auto run = decode_run(run_value);
 
-    		if (run.symbol() == last_symbol || last_symbol == -1)
-    		{
-    			pos += len;
-    			count += run.length() - local_pos;
-    			last_symbol = run.symbol();
+            if (run.symbol() == last_symbol || last_symbol == -1)
+            {
+                pos += len;
+                count += run.length() - local_pos;
+                last_symbol = run.symbol();
 
-    			local_pos = 0;
-    		}
-    		else {
-    			return count;
-    		}
-    	}
+                local_pos = 0;
+            }
+            else {
+                return count;
+            }
+        }
 
-    	return count;
+        return count;
     }
 
 
     void compactify_runs()
     {
-    	auto meta 	 = this->metadata();
-    	auto symbols = this->symbols();
+        auto meta    = this->metadata();
+        auto symbols = this->symbols();
 
-    	size_t pos = 0;
-    	size_t data_size = meta->data_size();
+        size_t pos = 0;
+        size_t data_size = meta->data_size();
 
-    	Codec codec;
+        Codec codec;
 
-    	while (pos < data_size)
-    	{
-    		size_t pos0 = pos;
+        while (pos < data_size)
+        {
+            size_t pos0 = pos;
 
-    		Int last_symbol = -1;
-    		BigInt total_length = 0;
+            Int last_symbol = -1;
+            BigInt total_length = 0;
 
-    		size_t runs;
-    		for (runs = 0; pos0 < data_size; runs++)
-    		{
-    			UBigInt run_value = 0;
-    			auto len = codec.decode(symbols, run_value, pos0);
-    			auto run = decode_run(run_value);
+            size_t runs;
+            for (runs = 0; pos0 < data_size; runs++)
+            {
+                UBigInt run_value = 0;
+                auto len = codec.decode(symbols, run_value, pos0);
+                auto run = decode_run(run_value);
 
-    			if (run.symbol() == last_symbol || last_symbol == -1)
-    			{
-    				if (total_length + run.length() <= MaxRunLength)
-    				{
-    					pos0 += len;
-    					total_length += run.length();
-    					last_symbol = run.symbol();
-    				}
-    				else {
-    					break;
-    				}
-    			}
-    			else {
-    				break;
-    			}
-    		}
+                if (run.symbol() == last_symbol || last_symbol == -1)
+                {
+                    if (total_length + run.length() <= MaxRunLength)
+                    {
+                        pos0 += len;
+                        total_length += run.length();
+                        last_symbol = run.symbol();
+                    }
+                    else {
+                        break;
+                    }
+                }
+                else {
+                    break;
+                }
+            }
 
 
-    		if (runs > 1)
-    		{
-    			auto new_run_value 			= encode_run(last_symbol, total_length);
-    			size_t new_run_value_length = codec.length(new_run_value);
-    			size_t current_length		= pos0 - pos;
+            if (runs > 1)
+            {
+                auto new_run_value          = encode_run(last_symbol, total_length);
+                size_t new_run_value_length = codec.length(new_run_value);
+                size_t current_length       = pos0 - pos;
 
-    			if (current_length > new_run_value_length)
-    			{
-    				codec.move(symbols, pos0, pos + new_run_value_length, data_size - pos0);
+                if (current_length > new_run_value_length)
+                {
+                    codec.move(symbols, pos0, pos + new_run_value_length, data_size - pos0);
 
-    				codec.encode(symbols, new_run_value, pos);
+                    codec.encode(symbols, new_run_value, pos);
 
-    				data_size -= current_length - new_run_value_length;
-    				pos += new_run_value_length;
-    			}
-    			else {
-    				pos = pos0;
-    			}
-    		}
-    		else {
-    			pos = pos0;
-    		}
-    	}
+                    data_size -= current_length - new_run_value_length;
+                    pos += new_run_value_length;
+                }
+                else {
+                    pos = pos0;
+                }
+            }
+            else {
+                pos = pos0;
+            }
+        }
 
-    	meta->data_size() = data_size;
+        meta->data_size() = data_size;
 
-    	shrink_to_data();
+        shrink_to_data();
     }
 
 
 
     Location locate_run(const Metadata* meta, size_t pos, size_t idx, size_t size_base) const
     {
-    	Codec codec;
-    	auto symbols = this->symbols();
+        Codec codec;
+        auto symbols = this->symbols();
 
-    	size_t base = 0;
+        size_t base = 0;
 
-    	size_t limit = meta->data_size();
+        size_t limit = meta->data_size();
 
-    	while (pos < limit)
-    	{
-    		UBigInt run_value = 0;
-    		auto len = codec.decode(symbols, run_value, pos);
-    		auto run = decode_run(run_value);
+        while (pos < limit)
+        {
+            UBigInt run_value = 0;
+            auto len = codec.decode(symbols, run_value, pos);
+            auto run = decode_run(run_value);
 
-    		auto run_length = run.length();
+            auto run_length = run.length();
 
-    		if (idx >= base + run_length)
-    		{
-    			base += run_length;
-    			pos += len;
-    		}
-    		else {
-    			return Location(pos, len, idx - base, size_base, base, run);
-    		}
-    	}
+            if (idx >= base + run_length)
+            {
+                base += run_length;
+                pos += len;
+            }
+            else {
+                return Location(pos, len, idx - base, size_base, base, run);
+            }
+        }
 
-    	throw Exception(MA_SRC, SBuf() << "Symbol index is out of bounds: " << idx << " " <<meta->size());
+        throw Exception(MA_SRC, SBuf() << "Symbol index is out of bounds: " << idx << " " <<meta->size());
     }
 
 
 
     void remove_runs(const Location& start, const Location& end)
     {
-    	if (start.data_pos() < end.data_pos())
-    	{
-    		auto meta = this->metadata();
+        if (start.data_pos() < end.data_pos())
+        {
+            auto meta = this->metadata();
 
-    		Codec codec;
+            Codec codec;
 
-    		UBigInt new_start_run_value 	= encode_run(start.symbol(), start.run_prefix());
-    		size_t new_start_run_length 	= codec.length(new_start_run_value);
+            UBigInt new_start_run_value     = encode_run(start.symbol(), start.run_prefix());
+            size_t new_start_run_length     = codec.length(new_start_run_value);
 
-    		UBigInt new_end_run_value 		= encode_run(end.symbol(), end.run_suffix());
-    		size_t new_end_run_length 		= codec.length(new_end_run_value);
+            UBigInt new_end_run_value       = encode_run(end.symbol(), end.run_suffix());
+            size_t new_end_run_length       = codec.length(new_end_run_value);
 
-    		size_t hole_start 	= start.data_pos() + new_start_run_length;
-    		size_t hole_end 	= end.data_pos() + (end.data_length() - new_end_run_length);
+            size_t hole_start   = start.data_pos() + new_start_run_length;
+            size_t hole_end     = end.data_pos() + (end.data_length() - new_end_run_length);
 
-    		size_t to_remove  	= hole_end - hole_start;
+            size_t to_remove    = hole_end - hole_start;
 
-    		auto symbols = this->symbols();
+            auto symbols = this->symbols();
 
-    		codec.move(symbols, hole_end, hole_start, meta->data_size() - hole_end);
+            codec.move(symbols, hole_end, hole_start, meta->data_size() - hole_end);
 
-    		codec.encode(symbols, new_start_run_value, start.data_pos());
-    		codec.encode(symbols, new_end_run_value, hole_start);
+            codec.encode(symbols, new_start_run_value, start.data_pos());
+            codec.encode(symbols, new_end_run_value, hole_start);
 
-    		meta->data_size() -= to_remove;
-    	}
-    	else {
-    		BigInt delta = end.local_idx() - start.local_idx();
-    		add_run_length0(start, -delta);
-    	}
+            meta->data_size() -= to_remove;
+        }
+        else {
+            BigInt delta = end.local_idx() - start.local_idx();
+            add_run_length0(start, -delta);
+        }
     }
 
 
     void remove_runs_one_sided_left(const Location& start, const Location& end)
     {
-    	Codec codec;
+        Codec codec;
 
-    	auto meta = this->metadata();
+        auto meta = this->metadata();
 
-    	UBigInt new_end_run_value 		= encode_run(end.symbol(), end.run_suffix());
-    	size_t new_end_run_length 		= codec.length(new_end_run_value);
+        UBigInt new_end_run_value       = encode_run(end.symbol(), end.run_suffix());
+        size_t new_end_run_length       = codec.length(new_end_run_value);
 
-    	size_t hole_start 	= start.data_pos();
-    	size_t hole_end 	= end.data_pos() + (end.data_length() - new_end_run_length);
+        size_t hole_start   = start.data_pos();
+        size_t hole_end     = end.data_pos() + (end.data_length() - new_end_run_length);
 
-    	size_t to_remove  	= hole_end - hole_start;
+        size_t to_remove    = hole_end - hole_start;
 
-    	auto symbols = this->symbols();
+        auto symbols = this->symbols();
 
-    	codec.move(symbols, hole_end, hole_start, meta->data_size() - hole_end);
+        codec.move(symbols, hole_end, hole_start, meta->data_size() - hole_end);
 
-    	codec.encode(symbols, new_end_run_value, hole_start);
+        codec.encode(symbols, new_end_run_value, hole_start);
 
-    	meta->data_size() -= to_remove;
+        meta->data_size() -= to_remove;
     }
 
 
     void remove_runs_one_sided(const Location& start, size_t end)
     {
-    	Codec codec;
+        Codec codec;
 
-    	auto meta = this->metadata();
+        auto meta = this->metadata();
 
-    	UBigInt new_run_value 	= encode_run(start.symbol(), start.run_prefix());
-    	size_t new_run_length 	= codec.length(new_run_value);
+        UBigInt new_run_value   = encode_run(start.symbol(), start.run_prefix());
+        size_t new_run_length   = codec.length(new_run_value);
 
-    	size_t hole_start = start.data_pos() + new_run_length;
-    	size_t to_remove  = end - hole_start;
+        size_t hole_start = start.data_pos() + new_run_length;
+        size_t to_remove  = end - hole_start;
 
-    	auto symbols = this->symbols();
+        auto symbols = this->symbols();
 
-    	codec.move(symbols, end, hole_start, meta->data_size() - end);
+        codec.move(symbols, end, hole_start, meta->data_size() - end);
 
-    	codec.encode(symbols, new_run_value, start.data_pos());
+        codec.encode(symbols, new_run_value, start.data_pos());
 
-    	meta->data_size() -= to_remove;
+        meta->data_size() -= to_remove;
     }
 
     void remove_runs_two_sided(size_t start, size_t end)
     {
-    	size_t to_remove  = end - start;
+        size_t to_remove  = end - start;
 
-    	auto symbols = this->symbols();
+        auto symbols = this->symbols();
 
-    	auto meta = this->metadata();
+        auto meta = this->metadata();
 
-    	Codec codec;
-    	codec.move(symbols, end, start, meta->data_size() - end);
+        Codec codec;
+        codec.move(symbols, end, start, meta->data_size() - end);
 
-    	meta->data_size() -= to_remove;
+        meta->data_size() -= to_remove;
     }
 
     void try_merge_two_adjustent_runs(size_t run_pos)
     {
-    	auto meta 	 = this->metadata();
-    	auto symbols = this->symbols();
+        auto meta    = this->metadata();
+        auto symbols = this->symbols();
 
-    	Codec codec;
+        Codec codec;
 
-    	UBigInt first_run_value = 0;
-    	auto first_len = codec.decode(symbols, first_run_value, run_pos);
+        UBigInt first_run_value = 0;
+        auto first_len = codec.decode(symbols, first_run_value, run_pos);
 
-    	if (run_pos + first_len < meta->data_size())
-    	{
-    		UBigInt next_run_value = 0;
-    		auto next_len = codec.decode(symbols, next_run_value, run_pos + first_len);
+        if (run_pos + first_len < meta->data_size())
+        {
+            UBigInt next_run_value = 0;
+            auto next_len = codec.decode(symbols, next_run_value, run_pos + first_len);
 
-    		auto first_run 	= decode_run(first_run_value);
-    		auto next_run 	= decode_run(next_run_value);
+            auto first_run  = decode_run(first_run_value);
+            auto next_run   = decode_run(next_run_value);
 
-    		if (first_run.symbol() == next_run.symbol() && first_run.length() + next_run.length() <= MaxRunLength)
-    		{
-    			UBigInt new_run_value 		= encode_run(first_run.symbol(), first_run.length() + next_run.length());
-    			size_t new_run_value_length = codec.length(new_run_value);
+            if (first_run.symbol() == next_run.symbol() && first_run.length() + next_run.length() <= MaxRunLength)
+            {
+                UBigInt new_run_value       = encode_run(first_run.symbol(), first_run.length() + next_run.length());
+                size_t new_run_value_length = codec.length(new_run_value);
 
-    			size_t window_size = first_len + next_len;
+                size_t window_size = first_len + next_len;
 
-    			if (new_run_value_length <= window_size)
-    			{
-    				size_t to_remove = window_size - new_run_value_length;
+                if (new_run_value_length <= window_size)
+                {
+                    size_t to_remove = window_size - new_run_value_length;
 
-    				codec.move(symbols, run_pos + first_len + next_len, run_pos + new_run_value_length, meta->data_size() - (run_pos  + window_size));
-    				codec.encode(symbols, new_run_value, run_pos);
+                    codec.move(symbols, run_pos + first_len + next_len, run_pos + new_run_value_length, meta->data_size() - (run_pos  + window_size));
+                    codec.encode(symbols, new_run_value, run_pos);
 
-    				meta->data_size() -= to_remove;
-    			}
-    		}
-    	}
+                    meta->data_size() -= to_remove;
+                }
+            }
+        }
     }
 
     Location split_run(const Location& location, UBigInt subtraction = 0)
     {
-    	UBigInt pos = location.local_idx();
+        UBigInt pos = location.local_idx();
 
-    	if (pos > 0 && pos < location.length())
-    	{
-    		Codec codec;
-    		auto symbols = this->symbols();
-    		auto meta    = this->metadata();
+        if (pos > 0 && pos < location.length())
+        {
+            Codec codec;
+            auto symbols = this->symbols();
+            auto meta    = this->metadata();
 
-    		UBigInt prefix_run_value 	= encode_run(location.symbol(), location.run_prefix());
-    		size_t  prefix_value_length = codec.length(prefix_run_value);
+            UBigInt prefix_run_value    = encode_run(location.symbol(), location.run_prefix());
+            size_t  prefix_value_length = codec.length(prefix_run_value);
 
-    		UBigInt suffix_run_value = encode_run(location.symbol(), location.run_suffix() - subtraction);
-    		size_t  suffix_value_length = codec.length(suffix_run_value);
+            UBigInt suffix_run_value = encode_run(location.symbol(), location.run_suffix() - subtraction);
+            size_t  suffix_value_length = codec.length(suffix_run_value);
 
-    		size_t total_length = prefix_value_length + suffix_value_length;
+            size_t total_length = prefix_value_length + suffix_value_length;
 
-    		if (total_length >= location.data_length())
-    		{
-    			size_t delta = total_length - location.data_length();
+            if (total_length >= location.data_length())
+            {
+                size_t delta = total_length - location.data_length();
 
-    			if (delta > 0)
-    			{
-    				ensure_capacity(delta);
-    				codec.move(symbols, location.data_end(), location.data_end() + delta, meta->data_size() - location.data_end());
-    			}
+                if (delta > 0)
+                {
+                    ensure_capacity(delta);
+                    codec.move(symbols, location.data_end(), location.data_end() + delta, meta->data_size() - location.data_end());
+                }
 
-    			auto pos_tmp = location.data_pos();
-    			pos_tmp += codec.encode(symbols, prefix_run_value, pos_tmp);
-    			codec.encode(symbols, suffix_run_value, pos_tmp);
+                auto pos_tmp = location.data_pos();
+                pos_tmp += codec.encode(symbols, prefix_run_value, pos_tmp);
+                codec.encode(symbols, suffix_run_value, pos_tmp);
 
-    			meta->data_size() += delta;
-    			meta->size() -= subtraction;
-    		}
-    		else {
-    			size_t delta = location.data_length() - total_length;
+                meta->data_size() += delta;
+                meta->size() -= subtraction;
+            }
+            else {
+                size_t delta = location.data_length() - total_length;
 
-    			codec.move(symbols, location.data_end(), location.data_end() - delta, meta->data_size() - location.data_end());
+                codec.move(symbols, location.data_end(), location.data_end() - delta, meta->data_size() - location.data_end());
 
-    			auto pos_tmp = location.data_pos();
-    			pos_tmp += codec.encode(symbols, prefix_run_value, pos_tmp);
-    			codec.encode(symbols, suffix_run_value, pos_tmp);
+                auto pos_tmp = location.data_pos();
+                pos_tmp += codec.encode(symbols, prefix_run_value, pos_tmp);
+                codec.encode(symbols, suffix_run_value, pos_tmp);
 
-    			meta->data_size() -= delta;
-    			meta->size() -= subtraction;
+                meta->data_size() -= delta;
+                meta->size() -= subtraction;
 
-    			shrink_to_data();
-    		}
+                shrink_to_data();
+            }
 
-    		return Location(
-    				location.data_pos() + prefix_value_length,
-					suffix_value_length,
-					0,
-					location.block_base(),
-					location.run_base() + location.run_prefix(),
-					RLESymbolsRun(location.symbol(), location.run_suffix())
-			);
-    	}
-    	else {
-    		throw Exception(MA_SRC, SBuf() << "split_run: invalid split position: " << pos << " " << location.length());
-    	}
+            return Location(
+                    location.data_pos() + prefix_value_length,
+                    suffix_value_length,
+                    0,
+                    location.block_base(),
+                    location.run_base() + location.run_prefix(),
+                    RLESymbolsRun(location.symbol(), location.run_suffix())
+            );
+        }
+        else {
+            throw Exception(MA_SRC, SBuf() << "split_run: invalid split position: " << pos << " " << location.length());
+        }
     }
 
     size_t add_run_length0(const Location& location, BigInt length)
     {
-    	Codec codec;
-    	auto meta = this->metadata();
+        Codec codec;
+        auto meta = this->metadata();
 
-		UBigInt run_value 		= encode_run(location.symbol(), location.length() + length);
-		size_t run_value_length = codec.length(run_value);
+        UBigInt run_value       = encode_run(location.symbol(), location.length() + length);
+        size_t run_value_length = codec.length(run_value);
 
-		ensure_capacity(run_value_length);
+        ensure_capacity(run_value_length);
 
-		auto symbols = this->symbols();
+        auto symbols = this->symbols();
 
-		codec.move(symbols, location.data_end(), location.data_pos() + run_value_length, meta->data_size() - location.data_end());
-		codec.encode(symbols, run_value, location.data_pos());
+        codec.move(symbols, location.data_end(), location.data_pos() + run_value_length, meta->data_size() - location.data_end());
+        codec.encode(symbols, run_value, location.data_pos());
 
-		meta->data_size() += (run_value_length - location.data_length());
+        meta->data_size() += (run_value_length - location.data_length());
 
-		return run_value_length;
+        return run_value_length;
     }
 
     size_t add_run_length(const Location& location, BigInt length)
     {
-    	auto run_value_length = add_run_length0(location, length);
+        auto run_value_length = add_run_length0(location, length);
 
-    	auto meta = this->metadata();
-		meta->size() += length;
+        auto meta = this->metadata();
+        meta->size() += length;
 
-		return run_value_length;
+        return run_value_length;
     }
 
     void remove_run(const Location& location)
     {
-    	Codec codec;
-    	auto meta = this->metadata();
+        Codec codec;
+        auto meta = this->metadata();
 
-    	auto symbols = this->symbols();
+        auto symbols = this->symbols();
 
-    	codec.move(symbols, location.data_end(), location.data_pos(), meta->data_size() - location.data_end());
+        codec.move(symbols, location.data_end(), location.data_pos(), meta->data_size() - location.data_end());
 
-    	meta->data_size() -= location.data_length();
-    	meta->size() -= location.length();
+        meta->data_size() -= location.data_length();
+        meta->size() -= location.length();
 
-    	shrink_to_data();
+        shrink_to_data();
     }
 
     size_t insert_run(const size_t& location, Int symbol, UBigInt length)
     {
-    	Codec codec;
-    	auto symbols = this->symbols();
-    	auto meta    = this->metadata();
+        Codec codec;
+        auto symbols = this->symbols();
+        auto meta    = this->metadata();
 
-    	UBigInt run_value 		= encode_run(symbol, length);
-    	size_t run_value_length = codec.length(run_value);
+        UBigInt run_value       = encode_run(symbol, length);
+        size_t run_value_length = codec.length(run_value);
 
-    	ensure_capacity(run_value_length);
+        ensure_capacity(run_value_length);
 
-    	codec.move(symbols, location, location + run_value_length, meta->data_size() - location);
-    	codec.encode(symbols, run_value, location);
+        codec.move(symbols, location, location + run_value_length, meta->data_size() - location);
+        codec.encode(symbols, run_value, location);
 
-    	meta->data_size() += run_value_length;
-    	meta->size() += length;
+        meta->data_size() += run_value_length;
+        meta->size() += length;
 
-    	return run_value_length;
+        return run_value_length;
     }
 
 

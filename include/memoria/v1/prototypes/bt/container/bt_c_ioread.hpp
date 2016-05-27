@@ -51,37 +51,37 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::IOReadName)
 
 
     class PopulateIOBufferStatus {
-    	Int processed_;
-    	bool full_;
+        Int processed_;
+        bool full_;
     public:
-    	PopulateIOBufferStatus(Int processed, bool full):
-    		processed_(processed), full_(full)
-    	{}
+        PopulateIOBufferStatus(Int processed, bool full):
+            processed_(processed), full_(full)
+        {}
 
-    	Int processed() const {return processed_;}
-    	bool is_full() const {return full_;}
+        Int processed() const {return processed_;}
+        bool is_full() const {return full_;}
     };
 
 
     template <Int StreamIdx>
     struct PopulateIOBufferFn {
 
-    	bool proceed_ = true;
+        bool proceed_ = true;
 
-    	template <typename StructDescr>
-    	using ReadStateFn = HasType<typename StructDescr::Type::ReadState>;
+        template <typename StructDescr>
+        using ReadStateFn = HasType<typename StructDescr::Type::ReadState>;
 
-    	template <Int SubstreamIdx, typename StreamObj, typename ReadState, typename IOBuffer>
-    	void stream(const StreamObj* obj, ReadState& state, IOBuffer& buffer)
-    	{
-    		proceed_ = proceed_ && obj->readTo(std::get<SubstreamIdx>(state), buffer);
-    	}
+        template <Int SubstreamIdx, typename StreamObj, typename ReadState, typename IOBuffer>
+        void stream(const StreamObj* obj, ReadState& state, IOBuffer& buffer)
+        {
+            proceed_ = proceed_ && obj->readTo(std::get<SubstreamIdx>(state), buffer);
+        }
 
-    	template <Int SubstreamIdx, typename StreamObj, typename ReadState>
-    	void stream(const StreamObj* obj, ReadState& state, Int idx)
-    	{
-    		std::get<SubstreamIdx>(state) = obj->positions(idx);
-    	}
+        template <Int SubstreamIdx, typename StreamObj, typename ReadState>
+        void stream(const StreamObj* obj, ReadState& state, Int idx)
+        {
+            std::get<SubstreamIdx>(state) = obj->positions(idx);
+        }
 
 
         template <typename NodeType, typename IOBuffer>
@@ -91,7 +91,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::IOReadName)
 
             using ReadStatesTuple = AsTuple<typename Node::template MapStreamStructs<StreamIdx, ReadStateFn>>;
 
-        	Int limit = node->size(StreamIdx);
+            Int limit = node->size(StreamIdx);
 
             if (to < limit) {
                 limit = to;
@@ -103,14 +103,14 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::IOReadName)
 
             for (Int c = from; c < limit; c++)
             {
-            	size_t current_pos = buffer.pos();
-            	node->template processSubstreams<IntList<StreamIdx>>(*this, read_state, buffer);
+                size_t current_pos = buffer.pos();
+                node->template processSubstreams<IntList<StreamIdx>>(*this, read_state, buffer);
 
-            	if (!proceed_)
-            	{
-            		buffer.pos(current_pos);
-            		return PopulateIOBufferStatus(c - from, true);
-            	}
+                if (!proceed_)
+                {
+                    buffer.pos(current_pos);
+                    return PopulateIOBufferStatus(c - from, true);
+                }
             }
 
             return PopulateIOBufferStatus(limit - from, false);
@@ -136,80 +136,80 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::IOReadName)
 
             if (result.processed() > 0)
             {
-            	entries += result.processed();
+                entries += result.processed();
 
                 if (result.is_full())
                 {
-                	io_buffer.rewind();
-                	Int consumed = consumer.process(io_buffer, entries);
-                	io_buffer.rewind();
-                	entries = 0;
+                    io_buffer.rewind();
+                    Int consumed = consumer.process(io_buffer, entries);
+                    io_buffer.rewind();
+                    entries = 0;
 
-                	if (consumed >= 0)
-                	{
-                		total += iter.skipFw(result.processed());
-                		committed_buffer_position_ = 0;
-                	}
-                	else {
-                		CtrSizeT distance = committed_buffer_position_ + (-consumed);
-                		if (distance >= 0)
-                		{
-                			total += iter.skipFw(distance);
-                		}
-                		else {
-                			total -= iter.skipBw(-distance);
-                		}
+                    if (consumed >= 0)
+                    {
+                        total += iter.skipFw(result.processed());
+                        committed_buffer_position_ = 0;
+                    }
+                    else {
+                        CtrSizeT distance = committed_buffer_position_ + (-consumed);
+                        if (distance >= 0)
+                        {
+                            total += iter.skipFw(distance);
+                        }
+                        else {
+                            total -= iter.skipBw(-distance);
+                        }
 
-                		break;
-                	}
+                        break;
+                    }
                 }
                 else {
-                	total += iter.skipFw(result.processed());
-                	committed_buffer_position_ += result.processed();
+                    total += iter.skipFw(result.processed());
+                    committed_buffer_position_ += result.processed();
                 }
             }
             else if (result.is_full())
             {
-            	io_buffer.rewind();
-            	Int consumed = consumer.process(io_buffer, entries);
-            	io_buffer.rewind();
-            	entries = 0;
+                io_buffer.rewind();
+                Int consumed = consumer.process(io_buffer, entries);
+                io_buffer.rewind();
+                entries = 0;
 
-            	if (consumed < 0)
-            	{
-            		CtrSizeT distance = committed_buffer_position_ + (-consumed);
-            		if (distance >= 0)
-            		{
-            			total += iter.skipFw(distance);
-            		}
-            		else {
-            			total -= iter.skipBw(-distance);
-            		}
+                if (consumed < 0)
+                {
+                    CtrSizeT distance = committed_buffer_position_ + (-consumed);
+                    if (distance >= 0)
+                    {
+                        total += iter.skipFw(distance);
+                    }
+                    else {
+                        total -= iter.skipBw(-distance);
+                    }
 
-            		break;
-            	}
+                    break;
+                }
             }
             else {
-            	break;
+                break;
             }
         }
 
         if (entries > 0)
         {
-        	io_buffer.rewind();
-        	Int consumed = consumer.process(io_buffer, entries);
+            io_buffer.rewind();
+            Int consumed = consumer.process(io_buffer, entries);
 
-        	if (consumed < 0)
-        	{
-        		CtrSizeT distance = committed_buffer_position_ + (-consumed);
-        		if (distance >= 0)
-        		{
-        			total += iter.skipFw(distance);
-        		}
-        		else {
-        			total -= iter.skipBw(-distance);
-        		}
-        	}
+            if (consumed < 0)
+            {
+                CtrSizeT distance = committed_buffer_position_ + (-consumed);
+                if (distance >= 0)
+                {
+                    total += iter.skipFw(distance);
+                }
+                else {
+                    total -= iter.skipBw(-distance);
+                }
+            }
         }
 
         return total;
@@ -231,15 +231,15 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::IOReadName)
 
             if (result.processed() > 0)
             {
-            	total += iter.skipFw(result.processed());
+                total += iter.skipFw(result.processed());
 
                 if (result.is_full())
                 {
-                	break;
+                    break;
                 }
             }
             else {
-            	break;
+                break;
             }
         }
 

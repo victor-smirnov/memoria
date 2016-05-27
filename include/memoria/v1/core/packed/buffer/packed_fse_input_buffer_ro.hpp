@@ -64,13 +64,13 @@ public:
 
 
     class AppendState {
-    	Int size_;
+        Int size_;
     public:
-    	AppendState(): size_(0) {}
-    	AppendState(Int size): size_(size) {}
+        AppendState(): size_(0) {}
+        AppendState(Int size): size_(size) {}
 
-    	Int& size() {return size_;}
-    	const Int& size() const {return size_;}
+        Int& size() {return size_;}
+        const Int& size() const {return size_;}
     };
 
 private:
@@ -132,13 +132,13 @@ public:
 
     SizesT data_capacity() const
     {
-    	return SizesT(max_size_);
+        return SizesT(max_size_);
     }
 
     void copyTo(MyType* other) const
     {
-    	other->size() = this->size();
-    	CopyBuffer(buffer_, other->buffer_, size_ * Blocks);
+        other->size() = this->size();
+        CopyBuffer(buffer_, other->buffer_, size_ * Blocks);
     }
 
 
@@ -154,7 +154,7 @@ public:
     template <typename SizesBuffer>
     bool has_capacity_for(const SizesBuffer& sizes, int start, int length) const
     {
-    	return length <= max_size_;
+        return length <= max_size_;
     }
 
     static constexpr Int empty_size()
@@ -217,25 +217,25 @@ public:
 
     AppendState append_state()
     {
-    	return AppendState(size_);
+        return AppendState(size_);
     }
 
 
     template <typename IOBuffer>
     bool append_entry_from_iobuffer(AppendState& state, IOBuffer& buffer)
     {
-    	for (Int block = 0; block < Blocks; block++)
+        for (Int block = 0; block < Blocks; block++)
         {
-        	int capacity = max_size_ - size_;
-        	int len = sizeof(Value);
+            int capacity = max_size_ - size_;
+            int len = sizeof(Value);
 
-        	if (len <= capacity)
-        	{
-        		this->value(block, size_) = IOBufferAdapter<Value>::get(buffer);
-        	}
-        	else {
-        		return false;
-        	}
+            if (len <= capacity)
+            {
+                this->value(block, size_) = IOBufferAdapter<Value>::get(buffer);
+            }
+            else {
+                return false;
+            }
         }
 
         state.size()++;
@@ -248,7 +248,7 @@ public:
 
     void restore(const AppendState& state)
     {
-    	this->size_ = state.size();
+        this->size_ = state.size();
     }
 
 
@@ -337,7 +337,7 @@ public:
             for (Int c = 0; c < size_; c++)
             {
                 handler->value("DATA_ITEM", PageValueProviderFactory::provider(Blocks, [&](Int idx) {
-                   	return values + c * Blocks + idx;
+                    return values + c * Blocks + idx;
                 }));
             }
         }

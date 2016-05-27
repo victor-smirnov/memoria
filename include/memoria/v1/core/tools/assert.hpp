@@ -39,7 +39,7 @@ template <> class STATIC_ASSERT_FAILURE <true> {};
 
 #define MEMORIA_V1_ASSERT(Left, Operation, Right)                                                       \
         if (!(Left Operation Right)) {                                                                  \
-            throw ::memoria::v1::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "                 	\
+            throw ::memoria::v1::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "                   \
                     <<#Left<<" "<<#Operation<<" "<<#Right<<" Values: "<<Left<<" "<<Right);              \
         }
 
@@ -55,19 +55,19 @@ template <> class STATIC_ASSERT_FAILURE <true> {};
 
 #define MEMORIA_V1_ASSERT_TRUE(Arg0)                                                                    \
         if (!(Arg0)) {                                                                                  \
-            throw ::memoria::v1::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT TRUE FAILURE: "            	\
+            throw ::memoria::v1::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT TRUE FAILURE: "              \
                     <<#Arg0);                                                                           \
         }
 
 #define MEMORIA_V1_ASSERT_FALSE(Arg0)                                                                   \
         if ((Arg0)) {                                                                                   \
-            throw ::memoria::v1::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FALSE FAILURE: "           	\
+            throw ::memoria::v1::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FALSE FAILURE: "             \
                     <<#Arg0);                                                                           \
         }
 
 
-#define MEMORIA_V1_ASSERT_EXPR(Expr, Msg)                                                              	\
-        if (!(Expr)) {                                                                              	\
+#define MEMORIA_V1_ASSERT_EXPR(Expr, Msg)                                                               \
+        if (!(Expr)) {                                                                                  \
             throw ::memoria::v1::Exception(MEMORIA_SOURCE, SBuf()<<"ASSERT FAILURE: "<<#Expr<<" "<<#Msg);\
         }
 
@@ -86,9 +86,9 @@ template <> class STATIC_ASSERT_FAILURE <true> {};
 #define MEMORIA_V1_INVALID_STREAM(Idx) \
     throw ::memoria::v1::Exception(MEMORIA_SOURCE, SBuf()<<"Invalid Stream: "<<Idx)
 
-#define MEMORIA_V1_ASSERT_ALIGN(MemExpr, Align)                                                    		\
-        if (T2T<std::ptrdiff_t>(MemExpr) % Align != 0) {                                        		\
-            throw ::memoria::v1::Exception(MEMORIA_SOURCE,                                          	\
+#define MEMORIA_V1_ASSERT_ALIGN(MemExpr, Align)                                                         \
+        if (T2T<std::ptrdiff_t>(MemExpr) % Align != 0) {                                                \
+            throw ::memoria::v1::Exception(MEMORIA_SOURCE,                                              \
                 SBuf()<<"ASSERT FAILURE: \""<<#MemExpr<<"\" is not properly aligned ("<<Align<<")");    \
         }
 

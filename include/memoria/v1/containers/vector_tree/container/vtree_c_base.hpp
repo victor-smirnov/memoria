@@ -52,8 +52,8 @@ public:
     typedef typename CtrTF<Profile, VectorName, VectorName>::Type               Vec;
     typedef typename Vec::Types::Value                                          Value;
 
-    using TreePtr 	= std::shared_ptr<Tree>;
-    using VecPtr 	= std::shared_ptr<Vec>;
+    using TreePtr   = std::shared_ptr<Tree>;
+    using VecPtr    = std::shared_ptr<Vec>;
 
     using NodeBaseG = typename Tree::Types::NodeBaseG;
     using Metadata  = typename Tree::Types::Metadata;
@@ -121,10 +121,10 @@ public:
             Vec::getMetadata()->putAll(list);
 
             Base::setMetadata(std::make_shared<ContainerMetadata>(
-            		TypeNameFactory<typename Types::ContainerTypeName>::name(),
-					list,
-					static_cast<int>(TypeHash<typename Types::ContainerTypeName>::Value),
-					Base::getContainerInterface()
+                    TypeNameFactory<typename Types::ContainerTypeName>::name(),
+                    list,
+                    static_cast<int>(TypeHash<typename Types::ContainerTypeName>::Value),
+                    Base::getContainerInterface()
             )
             );
 
@@ -171,12 +171,12 @@ public:
     }
 
     void drop() {
-    	tree_->drop();
+        tree_->drop();
     }
 
     static auto getModelNameS(NodeBaseG root)
     {
-    	return getRootMetadataS(root).model_name();
+        return getRootMetadataS(root).model_name();
     }
 
     static const auto& getRootMetadataS(NodeBaseG node)

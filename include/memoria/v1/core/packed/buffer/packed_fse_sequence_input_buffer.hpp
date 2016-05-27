@@ -71,13 +71,13 @@ public:
     using SizesT = core::StaticVector<Int, 1>;
 
     class AppendState {
-    	Int size_;
+        Int size_;
     public:
-    	AppendState(): size_(0) {}
-    	AppendState(Int size): size_(size) {}
+        AppendState(): size_(0) {}
+        AppendState(Int size): size_(size) {}
 
-    	Int& size() {return size_;}
-    	const Int& size() const {return size_;}
+        Int& size() {return size_;}
+        const Int& size() const {return size_;}
     };
 
 private:
@@ -123,7 +123,7 @@ public:
 
     static constexpr Int block_size(const SizesT& elements)
     {
-    	return sizeof(MyType) + roundUpBitsToAlignmentBlocks(elements[0] * BitsPerSymbol);
+        return sizeof(MyType) + roundUpBitsToAlignmentBlocks(elements[0] * BitsPerSymbol);
     }
 
     void reset() {

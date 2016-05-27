@@ -102,7 +102,7 @@ struct BTTypes {
             bt::RemoveName,
             bt::FindName,
             bt::ReadName,
-			bt::IOReadName,
+            bt::IOReadName,
             bt::UpdateName,
             bt::WalkName
     >                                                                           ContainerPartsList;
@@ -366,7 +366,7 @@ public:
         typedef NodePageBase0G                                                  NodeBaseG;
 
         typedef typename MyType::CtrList                                        CtrList;
-        typedef typename MyType::IterList                      					IterList;
+        typedef typename MyType::IterList                                       IterList;
 
         // FIXME Refactor BTree hierarchy
         // Use container types as base definitions

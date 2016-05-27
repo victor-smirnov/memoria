@@ -44,147 +44,147 @@ using AlignedIOBuffer = IOBuffer<ByteOrder::LITTLE, MemoryAccess::ALIGNED>;
 
 template <typename T>
 struct IOBufferAdapterBase {
-	template <typename IOBuffer>
-	static bool put(IOBuffer& buffer, const T& value) {
-		return buffer.put(value);
-	}
+    template <typename IOBuffer>
+    static bool put(IOBuffer& buffer, const T& value) {
+        return buffer.put(value);
+    }
 };
 
 template <>
 struct IOBufferAdapter<Char>: IOBufferAdapterBase<Char> {
-	template <typename IOBuffer>
-	static Char get(IOBuffer& buffer) {
-		return buffer.getChar();
-	}
+    template <typename IOBuffer>
+    static Char get(IOBuffer& buffer) {
+        return buffer.getChar();
+    }
 };
 
 template <>
 struct IOBufferAdapter<Byte>: IOBufferAdapterBase<Byte> {
-	template <typename IOBuffer>
-	static Byte get(IOBuffer& buffer) {
-		return buffer.getByte();
-	}
+    template <typename IOBuffer>
+    static Byte get(IOBuffer& buffer) {
+        return buffer.getByte();
+    }
 };
 
 template <>
 struct IOBufferAdapter<UByte>: IOBufferAdapterBase<UByte> {
-	template <typename IOBuffer>
-	static UByte get(IOBuffer& buffer) {
-		return buffer.getUByte();
-	}
+    template <typename IOBuffer>
+    static UByte get(IOBuffer& buffer) {
+        return buffer.getUByte();
+    }
 };
 
 template <>
 struct IOBufferAdapter<Short>: IOBufferAdapterBase<Short> {
-	template <typename IOBuffer>
-	static Short get(IOBuffer& buffer) {
-		return buffer.getShort();
-	}
+    template <typename IOBuffer>
+    static Short get(IOBuffer& buffer) {
+        return buffer.getShort();
+    }
 };
 
 template <>
 struct IOBufferAdapter<UShort>: IOBufferAdapterBase<UShort> {
-	template <typename IOBuffer>
-	static UShort get(IOBuffer& buffer) {
-		return buffer.getUShort();
-	}
+    template <typename IOBuffer>
+    static UShort get(IOBuffer& buffer) {
+        return buffer.getUShort();
+    }
 };
 
 template <>
 struct IOBufferAdapter<Int>: IOBufferAdapterBase<Int> {
-	template <typename IOBuffer>
-	static Int get(IOBuffer& buffer) {
-		return buffer.getInt();
-	}
+    template <typename IOBuffer>
+    static Int get(IOBuffer& buffer) {
+        return buffer.getInt();
+    }
 };
 
 template <>
 struct IOBufferAdapter<UInt>: IOBufferAdapterBase<UInt> {
-	template <typename IOBuffer>
-	static UInt get(IOBuffer& buffer) {
-		return buffer.getUInt();
-	}
+    template <typename IOBuffer>
+    static UInt get(IOBuffer& buffer) {
+        return buffer.getUInt();
+    }
 };
 
 
 template <>
 struct IOBufferAdapter<BigInt>: IOBufferAdapterBase<BigInt> {
-	template <typename IOBuffer>
-	static BigInt get(IOBuffer& buffer) {
-		return buffer.getBigInt();
-	}
+    template <typename IOBuffer>
+    static BigInt get(IOBuffer& buffer) {
+        return buffer.getBigInt();
+    }
 };
 
 template <>
 struct IOBufferAdapter<UBigInt>: IOBufferAdapterBase<UBigInt> {
-	template <typename IOBuffer>
-	static UBigInt get(IOBuffer& buffer) {
-		return buffer.getUBigInt();
-	}
+    template <typename IOBuffer>
+    static UBigInt get(IOBuffer& buffer) {
+        return buffer.getUBigInt();
+    }
 };
 
 template <>
 struct IOBufferAdapter<float>: IOBufferAdapterBase<float> {
-	template <typename IOBuffer>
-	static float get(IOBuffer& buffer) {
-		return buffer.getFloat();
-	}
+    template <typename IOBuffer>
+    static float get(IOBuffer& buffer) {
+        return buffer.getFloat();
+    }
 };
 
 
 template <>
 struct IOBufferAdapter<double>: IOBufferAdapterBase<double> {
-	template <typename IOBuffer>
-	static double get(IOBuffer& buffer) {
-		return buffer.getDouble();
-	}
+    template <typename IOBuffer>
+    static double get(IOBuffer& buffer) {
+        return buffer.getDouble();
+    }
 };
 
 template <>
 struct IOBufferAdapter<bool>: IOBufferAdapterBase<bool> {
-	template <typename IOBuffer>
-	static double get(IOBuffer& buffer) {
-		return buffer.getBool();
-	}
+    template <typename IOBuffer>
+    static double get(IOBuffer& buffer) {
+        return buffer.getBool();
+    }
 };
 
 template <>
 struct IOBufferAdapter<Bytes>: IOBufferAdapterBase<Bytes> {
-	template <typename IOBuffer>
-	static Bytes get(IOBuffer& buffer) {
-		return buffer.getBytes();
-	}
+    template <typename IOBuffer>
+    static Bytes get(IOBuffer& buffer) {
+        return buffer.getBytes();
+    }
 };
 
 template <>
 struct IOBufferAdapter<String>: IOBufferAdapterBase<String> {
-	template <typename IOBuffer>
-	static String get(IOBuffer& buffer) {
-		return buffer.getString();
-	}
+    template <typename IOBuffer>
+    static String get(IOBuffer& buffer) {
+        return buffer.getString();
+    }
 };
 
 template <>
 struct IOBufferAdapter<UUID> {
 
-	template <typename IOBuffer>
-	static bool put(IOBuffer& buffer, const UUID& value)
-	{
-		if (buffer.put(value.hi()))
-		{
-			if (buffer.put(value.lo())) {
-				return true;
-			}
-		}
+    template <typename IOBuffer>
+    static bool put(IOBuffer& buffer, const UUID& value)
+    {
+        if (buffer.put(value.hi()))
+        {
+            if (buffer.put(value.lo())) {
+                return true;
+            }
+        }
 
-		return false;
-	}
+        return false;
+    }
 
-	template <typename IOBuffer>
-	static UUID get(IOBuffer& buffer)
-	{
-		return UUID(buffer.getUBigInt(), buffer.getUBigInt());
-	}
+    template <typename IOBuffer>
+    static UUID get(IOBuffer& buffer)
+    {
+        return UUID(buffer.getUBigInt(), buffer.getUBigInt());
+    }
 };
 
 

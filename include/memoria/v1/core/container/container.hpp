@@ -198,10 +198,10 @@ public:
 
     struct CtrInterfaceImpl: public ContainerInterface {
 
-    	virtual String ctr_name()
-    	{
-    		return TypeNameFactory<Name>::name();
-    	}
+        virtual String ctr_name()
+        {
+            return TypeNameFactory<Name>::name();
+        }
 
         void with_ctr(const UUID& root_id, const UUID& name, void* allocator, std::function<void(MyType&)> fn) const
         {
@@ -262,7 +262,7 @@ public:
 
     static Int initMetadata(Int salt = 0)
     {
-    	if (!reflection_)
+        if (!reflection_)
         {
             MetadataList list;
 
@@ -270,7 +270,7 @@ public:
 
             reflection_ = std::make_shared<ContainerMetadata>(TypeNameFactory<Name>::name(),
                                                 list,
-												static_cast<int>(CONTAINER_HASH),
+                                                static_cast<int>(CONTAINER_HASH),
                                                 MyType::getContainerInterface());
 
             MetadataRepository<typename Types::Profile>::registerMetadata(reflection_);

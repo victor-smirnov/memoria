@@ -40,25 +40,25 @@ using PkdFSQArrayT = PackedFSEArray<PackedFSEArrayTypes<V, Blocks>>;
 
 namespace {
 
-	template <bool Selector>
-	struct GenerateDataEventsHelper {
-		template <Int Blocks, typename Value, typename H, typename S, typename B>
-		static void process(H* handler, S size_, const B* buffer_)
-		{
-			handler->value("DATA_ITEMS", PageValueProviderFactory::provider(true, size_ * Blocks, [&](Int idx) -> const Value& {
-				return *(buffer_ + idx);
-			}));
-		}
-	};
+    template <bool Selector>
+    struct GenerateDataEventsHelper {
+        template <Int Blocks, typename Value, typename H, typename S, typename B>
+        static void process(H* handler, S size_, const B* buffer_)
+        {
+            handler->value("DATA_ITEMS", PageValueProviderFactory::provider(true, size_ * Blocks, [&](Int idx) -> const Value& {
+                return *(buffer_ + idx);
+            }));
+        }
+    };
 
-	template <>
-	struct GenerateDataEventsHelper<true> {
-		template <Int Blocks, typename Value, typename H, typename S, typename B>
-		static void process(H* handler, S size_, const B* buffer_)
-		{
-			ValueHelper<Value>::setup(handler, "DATA_ITEMS", buffer_, size_ * Blocks, IPageDataEventHandler::BYTE_ARRAY);
-		}
-	};
+    template <>
+    struct GenerateDataEventsHelper<true> {
+        template <Int Blocks, typename Value, typename H, typename S, typename B>
+        static void process(H* handler, S size_, const B* buffer_)
+        {
+            ValueHelper<Value>::setup(handler, "DATA_ITEMS", buffer_, size_ * Blocks, IPageDataEventHandler::BYTE_ARRAY);
+        }
+    };
 
 }
 
@@ -94,10 +94,10 @@ public:
     using ConstPtrsT = core::StaticVector<const Value*, Blocks>;
 
     class ReadState {
-    	Int idx_ = 0;
+        Int idx_ = 0;
     public:
-    	Int& idx() {return idx_;}
-    	const Int& idx() const {return idx_;}
+        Int& idx() {return idx_;}
+        const Int& idx() const {return idx_;}
     };
 
 private:
@@ -586,21 +586,21 @@ public:
     template <typename IOBuffer>
     bool readTo(ReadState& state, IOBuffer& buffer) const
     {
-    	const auto* values = this->values();
+        const auto* values = this->values();
 
-    	const Int base = state.idx() * Blocks;
+        const Int base = state.idx() * Blocks;
 
-    	for (Int b = 0; b < Blocks; b++)
-    	{
-    		auto val = values[base + b];
+        for (Int b = 0; b < Blocks; b++)
+        {
+            auto val = values[base + b];
 
-    		if (!IOBufferAdapter<Value>::put(buffer, val))
-    		{
-    			return false;
-    		}
-    	}
+            if (!IOBufferAdapter<Value>::put(buffer, val))
+            {
+                return false;
+            }
+        }
 
-    	return true;
+        return true;
     }
 
 

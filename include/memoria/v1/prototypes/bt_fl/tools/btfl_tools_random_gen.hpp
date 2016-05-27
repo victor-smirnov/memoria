@@ -34,76 +34,76 @@ class DeterministicAdapterBase: public btfl::io::FlatTreeIOBufferAdapter<CtrT::T
 
 protected:
 
-	static constexpr Int Streams = CtrT::Types::Streams;
+    static constexpr Int Streams = CtrT::Types::Streams;
 
-	using Base 	 	= btfl::io::FlatTreeIOBufferAdapter<Streams, IOBufferT>;
-	using MyType 	= DeterministicAdapterBase<CtrT, IOBufferT>;
+    using Base      = btfl::io::FlatTreeIOBufferAdapter<Streams, IOBufferT>;
+    using MyType    = DeterministicAdapterBase<CtrT, IOBufferT>;
 
-	using IOBuffer = IOBufferT;
+    using IOBuffer = IOBufferT;
 
-	using CtrSizesT = typename CtrT::Types::CtrSizesT;
+    using CtrSizesT = typename CtrT::Types::CtrSizesT;
 
-	CtrSizesT structure_;
-	IOBufferT io_buffer_;
+    CtrSizesT structure_;
+    IOBufferT io_buffer_;
 
-	Int level_ = 0;
+    Int level_ = 0;
 
-	struct StructureGenerator: public btfl::io::FlatTreeStructureGeneratorBase<StructureGenerator, Streams> {
+    struct StructureGenerator: public btfl::io::FlatTreeStructureGeneratorBase<StructureGenerator, Streams> {
 
-		MyType* adapter_;
+        MyType* adapter_;
 
-		StructureGenerator(MyType* adapter, Int level):
-			btfl::io::FlatTreeStructureGeneratorBase<StructureGenerator, Streams>(level),
-			adapter_(adapter)
-		{}
-
-
-		auto prepare(const StreamTag<0>&)
-		{
-			return adapter_->structure()[0];
-		}
-
-		template <Int Idx, typename Pos>
-		auto prepare(const StreamTag<Idx>&, const Pos& pos)
-		{
-			return adapter_->structure()[Idx];
-		}
-	};
+        StructureGenerator(MyType* adapter, Int level):
+            btfl::io::FlatTreeStructureGeneratorBase<StructureGenerator, Streams>(level),
+            adapter_(adapter)
+        {}
 
 
-	StructureGenerator structure_generator_;
+        auto prepare(const StreamTag<0>&)
+        {
+            return adapter_->structure()[0];
+        }
+
+        template <Int Idx, typename Pos>
+        auto prepare(const StreamTag<Idx>&, const Pos& pos)
+        {
+            return adapter_->structure()[Idx];
+        }
+    };
+
+
+    StructureGenerator structure_generator_;
 
 public:
 
-	DeterministicAdapterBase(const CtrSizesT& structure, Int level = 0, size_t iobuffer_size = 65536):
-		structure_(structure),
-		io_buffer_(iobuffer_size),
-		structure_generator_(this, level)
-	{
-		structure_generator_.init();
-	}
+    DeterministicAdapterBase(const CtrSizesT& structure, Int level = 0, size_t iobuffer_size = 65536):
+        structure_(structure),
+        io_buffer_(iobuffer_size),
+        structure_generator_(this, level)
+    {
+        structure_generator_.init();
+    }
 
-	const CtrSizesT& structure() {
-		return structure_;
-	}
+    const CtrSizesT& structure() {
+        return structure_;
+    }
 
-	StructureGenerator& structure_generator() {
-		return structure_generator_;
-	}
+    StructureGenerator& structure_generator() {
+        return structure_generator_;
+    }
 
-	const StructureGenerator& structure_generator() const {
-		return structure_generator_;
-	}
+    const StructureGenerator& structure_generator() const {
+        return structure_generator_;
+    }
 
 
-	virtual IOBufferT& buffer() {return io_buffer_;}
+    virtual IOBufferT& buffer() {return io_buffer_;}
 
-	virtual btfl::io::RunDescr query()
-	{
-		return structure_generator_.query();
-	}
+    virtual btfl::io::RunDescr query()
+    {
+        return structure_generator_.query();
+    }
 
-	virtual Int populate_stream(Int stream, IOBufferT& buffer, Int length) = 0;
+    virtual Int populate_stream(Int stream, IOBufferT& buffer, Int length) = 0;
 };
 
 
@@ -112,86 +112,86 @@ public:
 template <typename CtrT, typename RngT, typename IOBufferT = DefaultIOBuffer>
 class RandomAdapterBase: public btfl::io::FlatTreeIOBufferAdapter<CtrT::Types::Streams, IOBufferT> {
 public:
-	using Rng = RngT;
+    using Rng = RngT;
 protected:
 
-	using IOBuffer = IOBufferT;
+    using IOBuffer = IOBufferT;
 
-	static constexpr Int Streams = CtrT::Types::Streams;
+    static constexpr Int Streams = CtrT::Types::Streams;
 
-	using Base 	 	= btfl::io::FlatTreeIOBufferAdapter<Streams, IOBufferT>;
-	using MyType 	= RandomAdapterBase<CtrT, RngT, IOBufferT>;
+    using Base      = btfl::io::FlatTreeIOBufferAdapter<Streams, IOBufferT>;
+    using MyType    = RandomAdapterBase<CtrT, RngT, IOBufferT>;
 
-	using CtrSizesT = typename CtrT::Types::CtrSizesT;
+    using CtrSizesT = typename CtrT::Types::CtrSizesT;
 
-	CtrSizesT structure_;
-	IOBufferT io_buffer_;
+    CtrSizesT structure_;
+    IOBufferT io_buffer_;
 
-	Int level_ = 0;
+    Int level_ = 0;
 
-	struct StructureGenerator: public btfl::io::FlatTreeStructureGeneratorBase<StructureGenerator, Streams> {
+    struct StructureGenerator: public btfl::io::FlatTreeStructureGeneratorBase<StructureGenerator, Streams> {
 
-		MyType* adapter_;
+        MyType* adapter_;
 
-		StructureGenerator(MyType* adapter, Int level):
-			btfl::io::FlatTreeStructureGeneratorBase<StructureGenerator, Streams>(level),
-			adapter_(adapter)
-		{}
-
-
-		auto prepare(const StreamTag<0>&)
-		{
-			return adapter_->structure()[0];
-		}
-
-		template <Int Idx, typename Pos>
-		auto prepare(const StreamTag<Idx>&, const Pos& pos)
-		{
-			auto limit = adapter_->structure()[Idx];
-			BigInt v = adapter_->rng()();
-
-			return 1 + v % (2 * limit - 1);
-		}
-	};
+        StructureGenerator(MyType* adapter, Int level):
+            btfl::io::FlatTreeStructureGeneratorBase<StructureGenerator, Streams>(level),
+            adapter_(adapter)
+        {}
 
 
-	StructureGenerator structure_generator_;
+        auto prepare(const StreamTag<0>&)
+        {
+            return adapter_->structure()[0];
+        }
 
-	RngT rng_;
+        template <Int Idx, typename Pos>
+        auto prepare(const StreamTag<Idx>&, const Pos& pos)
+        {
+            auto limit = adapter_->structure()[Idx];
+            BigInt v = adapter_->rng()();
+
+            return 1 + v % (2 * limit - 1);
+        }
+    };
+
+
+    StructureGenerator structure_generator_;
+
+    RngT rng_;
 
 public:
 
-	RandomAdapterBase(const CtrSizesT& structure, const RngT& rng, Int level = 0, size_t iobuffer_size = 65536):
-		structure_(structure),
-		io_buffer_(iobuffer_size),
-		structure_generator_(this, level)
-	{
-		structure_generator_.init();
-	}
+    RandomAdapterBase(const CtrSizesT& structure, const RngT& rng, Int level = 0, size_t iobuffer_size = 65536):
+        structure_(structure),
+        io_buffer_(iobuffer_size),
+        structure_generator_(this, level)
+    {
+        structure_generator_.init();
+    }
 
-	const CtrSizesT& structure() {
-		return structure_;
-	}
+    const CtrSizesT& structure() {
+        return structure_;
+    }
 
-	RngT& rng() {return rng_;}
-	const RngT& rng() const {return rng_;}
+    RngT& rng() {return rng_;}
+    const RngT& rng() const {return rng_;}
 
-	virtual IOBufferT& buffer() {return io_buffer_;}
+    virtual IOBufferT& buffer() {return io_buffer_;}
 
-	virtual btfl::io::RunDescr query()
-	{
-		return structure_generator_.query();
-	}
+    virtual btfl::io::RunDescr query()
+    {
+        return structure_generator_.query();
+    }
 
-	StructureGenerator& structure_generator() {
-		return structure_generator_;
-	}
+    StructureGenerator& structure_generator() {
+        return structure_generator_;
+    }
 
-	const StructureGenerator& structure_generator() const {
-		return structure_generator_;
-	}
+    const StructureGenerator& structure_generator() const {
+        return structure_generator_;
+    }
 
-	virtual Int populate_stream(Int stream, IOBufferT& buffer, Int length) = 0;
+    virtual Int populate_stream(Int stream, IOBufferT& buffer, Int length) = 0;
 };
 
 

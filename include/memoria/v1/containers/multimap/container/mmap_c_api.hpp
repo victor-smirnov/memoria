@@ -75,16 +75,16 @@ public:
 
     IteratorPtr find_or_create(Key key)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	auto iter = self.find(key);
+        auto iter = self.find(key);
 
-    	if (!iter->is_found(key))
-    	{
-    		iter->insert_key(key);
-    	}
+        if (!iter->is_found(key))
+        {
+            iter->insert_key(key);
+        }
 
-    	return iter;
+        return iter;
     }
 
 protected:

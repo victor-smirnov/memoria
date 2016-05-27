@@ -57,10 +57,10 @@ public:
     using ReadState = SizesT;
 
     class AppendState {
-    	Int size_ = 0;
+        Int size_ = 0;
     public:
-    	Int& size() {return size_;}
-    	const Int& size() const {return size_;}
+        Int& size() {return size_;}
+        const Int& size() const {return size_;}
     };
 
 
@@ -132,7 +132,7 @@ public:
 
     SizesT data_capacity() const
     {
-    	return SizesT(size_ * 2);
+        return SizesT(size_ * 2);
     }
 
     template <typename Adaptor>
@@ -212,11 +212,11 @@ public:
 
     AppendState append_state() const
     {
-    	AppendState state;
+        AppendState state;
 
-    	state.size() = this->size();
+        state.size() = this->size();
 
-    	return state;
+        return state;
     }
 
 
@@ -233,14 +233,14 @@ public:
 
     void copyTo(MyType* other) const
     {
-    	other->size_ = this->size_;
+        other->size_ = this->size_;
     }
 
 
 
     void restore(const AppendState& state)
     {
-    	this->size() = state.size();
+        this->size() = state.size();
     }
 
 
@@ -257,7 +257,7 @@ public:
 
     void fill(Int size)
     {
-    	this->size_ += size;
+        this->size_ += size;
     }
 
     // =================================== Update ========================================== //
@@ -265,14 +265,14 @@ public:
     void reindex() {}
     void check() const
     {
-    	MEMORIA_V1_ASSERT(size_, >=, 0);
+        MEMORIA_V1_ASSERT(size_, >=, 0);
     }
 
     void remove(Int start, Int end)
     {
-    	if (end < 0) {
-    		Int a = 0; a++;
-    	}
+        if (end < 0) {
+            Int a = 0; a++;
+        }
 
         MEMORIA_V1_ASSERT_TRUE(start >= 0);
         MEMORIA_V1_ASSERT_TRUE(end >= 0);
@@ -288,16 +288,16 @@ public:
     void insertSpace(Int idx, Int room_length)
     {
         if (idx > this->size()) {
-        	int a = 0;
-        	a++;
+            int a = 0;
+            a++;
         }
 
         if (room_length < 0) {
-        	int a = 0; a++;
+            int a = 0; a++;
         }
 
 
-    	MEMORIA_V1_ASSERT(idx, <=, this->size());
+        MEMORIA_V1_ASSERT(idx, <=, this->size());
         MEMORIA_V1_ASSERT(idx, >=, 0);
         MEMORIA_V1_ASSERT(room_length, >=, 0);
 
@@ -432,8 +432,8 @@ public:
     template <typename IOBuffer>
     bool readTo(ReadState& state, IOBuffer& buffer) const
     {
-    	// Don't read anything into the buffer
-    	return true;
+        // Don't read anything into the buffer
+        return true;
     }
 
 

@@ -46,12 +46,12 @@ int main() {
         auto alloc = PersistentInMemAllocator<>::create();
         auto snp   = alloc->master()->branch();
         try {
-        	auto ctr = create<CtrName>(snp);
+            auto ctr = create<CtrName>(snp);
 
-        	ctr->select0(1);
+            ctr->select0(1);
 
-        	ctr->newNodeAt(louds::LoudsNode(0, 0), LabelsTuple(0, 0));
-        	ctr->remove(0);
+            ctr->newNodeAt(louds::LoudsNode(0, 0), LabelsTuple(0, 0));
+            ctr->remove(0);
         }
         catch (...) {
             FSDumpAllocator(snp, "mmap_fail.dir");

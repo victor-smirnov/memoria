@@ -114,49 +114,49 @@ public:
     template <typename IOBuffer>
     void bulkio_read(BufferConsumer<IOBuffer>* consumer)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	bttl::iobuf::BTTLWalker<MyType, IOBuffer> walker(self);
+        bttl::iobuf::BTTLWalker<MyType, IOBuffer> walker(self);
 
-    	IOBuffer& buffer = consumer->buffer();
+        IOBuffer& buffer = consumer->buffer();
 
-    	Int entries = 0;
+        Int entries = 0;
 
-    	while (true)
-    	{
-    		auto result = walker.populate(buffer);
+        while (true)
+        {
+            auto result = walker.populate(buffer);
 
-    		entries += result.entries();
+            entries += result.entries();
 
-    		if (result.ending() == bttl::iobuf::Ending::END_OF_PAGE)
-    		{
-    			if (!walker.next_page())
-    			{
-    				if (entries > 0)
-    				{
-    					buffer.rewind();
-    					consumer->process(buffer, entries);
-    				}
+            if (result.ending() == bttl::iobuf::Ending::END_OF_PAGE)
+            {
+                if (!walker.next_page())
+                {
+                    if (entries > 0)
+                    {
+                        buffer.rewind();
+                        consumer->process(buffer, entries);
+                    }
 
-    				entries = 0;
+                    entries = 0;
 
-    				break;
-    			}
-    		}
-    		else if (result.ending() == bttl::iobuf::Ending::END_OF_IOBUFFER)
-    		{
-    			if (entries > 0)
-    			{
-    				buffer.rewind();
-    				consumer->process(buffer, entries);
-    				entries = 0;
-    			}
-    		}
-    		else
-    		{
-    			break;
-    		}
-    	}
+                    break;
+                }
+            }
+            else if (result.ending() == bttl::iobuf::Ending::END_OF_IOBUFFER)
+            {
+                if (entries > 0)
+                {
+                    buffer.rewind();
+                    consumer->process(buffer, entries);
+                    entries = 0;
+                }
+            }
+            else
+            {
+                break;
+            }
+        }
     }
 
 

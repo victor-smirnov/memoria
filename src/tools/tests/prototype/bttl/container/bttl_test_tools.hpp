@@ -33,47 +33,47 @@ namespace iobuf {
 template <typename CtrT, typename RngT>
 class RandomDataInputProvider: public RandomAdapterBase<CtrT, RngT> {
 
-	using Base = RandomAdapterBase<CtrT, RngT>;
+    using Base = RandomAdapterBase<CtrT, RngT>;
 
-	using typename Base::IOBuffer;
+    using typename Base::IOBuffer;
 
-	using Base::structure_generator;
-	using Base::Streams;
+    using Base::structure_generator;
+    using Base::Streams;
 
 
-	using Value = typename CtrT::Types::Value;
-	using typename Base::CtrSizesT;
+    using Value = typename CtrT::Types::Value;
+    using typename Base::CtrSizesT;
 
 public:
-	RandomDataInputProvider(const CtrSizesT& structure, const RngT& rng, Int level = 0, size_t iobuffer_size = 65536):
-		Base(structure, rng, level, iobuffer_size)
-	{}
+    RandomDataInputProvider(const CtrSizesT& structure, const RngT& rng, Int level = 0, size_t iobuffer_size = 65536):
+        Base(structure, rng, level, iobuffer_size)
+    {}
 
-	virtual Int populate_stream(Int stream, IOBuffer& buffer, Int length)
-	{
-		if (stream == Streams - 1)
-		{
-			Int c;
-			for (c = 0; c < length; c++)
-			{
-				auto pos = buffer.pos();
-				if (!IOBufferAdapter<Value>::put(buffer, structure_generator().counts()[stream - 1]))
-				{
-					buffer.pos(pos);
-					structure_generator().counts()[stream] += c;
-					break;
-				}
-			}
+    virtual Int populate_stream(Int stream, IOBuffer& buffer, Int length)
+    {
+        if (stream == Streams - 1)
+        {
+            Int c;
+            for (c = 0; c < length; c++)
+            {
+                auto pos = buffer.pos();
+                if (!IOBufferAdapter<Value>::put(buffer, structure_generator().counts()[stream - 1]))
+                {
+                    buffer.pos(pos);
+                    structure_generator().counts()[stream] += c;
+                    break;
+                }
+            }
 
-			structure_generator().counts()[stream] += length;
+            structure_generator().counts()[stream] += length;
 
-			return c;
-		}
-		else {
-			structure_generator().counts()[stream] += length;
-			return length;
-		}
-	}
+            return c;
+        }
+        else {
+            structure_generator().counts()[stream] += length;
+            return length;
+        }
+    }
 };
 
 
@@ -81,47 +81,47 @@ public:
 template <typename CtrT>
 class DeterministicDataInputProvider: public DeterministicAdapterBase<CtrT> {
 
-	using Base = DeterministicAdapterBase<CtrT>;
+    using Base = DeterministicAdapterBase<CtrT>;
 
-	using typename Base::IOBuffer;
+    using typename Base::IOBuffer;
 
-	using Base::structure_generator;
-	using Base::Streams;
+    using Base::structure_generator;
+    using Base::Streams;
 
-	using Key 	= typename CtrT::Types::Key;
-	using Value = typename CtrT::Types::Value;
-	using typename Base::CtrSizesT;
+    using Key   = typename CtrT::Types::Key;
+    using Value = typename CtrT::Types::Value;
+    using typename Base::CtrSizesT;
 
 public:
-	DeterministicDataInputProvider(const CtrSizesT& structure, Int level = 0, size_t iobuffer_size = 65536):
-		Base(structure, level, iobuffer_size)
-	{}
+    DeterministicDataInputProvider(const CtrSizesT& structure, Int level = 0, size_t iobuffer_size = 65536):
+        Base(structure, level, iobuffer_size)
+    {}
 
-	virtual Int populate_stream(Int stream, IOBuffer& buffer, Int length)
-	{
-		if (stream == Streams - 1)
-		{
-			Int c;
-			for (c = 0; c < length; c++)
-			{
-				auto pos = buffer.pos();
-				if (!IOBufferAdapter<Value>::put(buffer, structure_generator().counts()[stream - 1]))
-				{
-					buffer.pos(pos);
-					structure_generator().counts()[stream] += c;
-					break;
-				}
-			}
+    virtual Int populate_stream(Int stream, IOBuffer& buffer, Int length)
+    {
+        if (stream == Streams - 1)
+        {
+            Int c;
+            for (c = 0; c < length; c++)
+            {
+                auto pos = buffer.pos();
+                if (!IOBufferAdapter<Value>::put(buffer, structure_generator().counts()[stream - 1]))
+                {
+                    buffer.pos(pos);
+                    structure_generator().counts()[stream] += c;
+                    break;
+                }
+            }
 
-			structure_generator().counts()[stream] += length;
+            structure_generator().counts()[stream] += length;
 
-			return c;
-		}
-		else {
-			structure_generator().counts()[stream] += length;
-			return length;
-		}
-	}
+            return c;
+        }
+        else {
+            structure_generator().counts()[stream] += length;
+            return length;
+        }
+    }
 };
 
 

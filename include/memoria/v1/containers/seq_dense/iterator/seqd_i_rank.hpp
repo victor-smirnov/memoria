@@ -56,7 +56,7 @@ public:
         template <Int Idx, typename StreamTypes>
         void stream(const PkdFSSeq<StreamTypes>* seq, Int idx)
         {
-        	if (seq != nullptr) {
+            if (seq != nullptr) {
                 rank_ += seq->rank(0, idx, symbol_);
             }
         }

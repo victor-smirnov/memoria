@@ -37,107 +37,107 @@ namespace io {
 
 template <Int Symbols>
 class RankDictionary {
-	FreeUniquePtr<PackedAllocator>  ref_;
+    FreeUniquePtr<PackedAllocator>  ref_;
 
-	Int last_symbol_ 	= -1;
-	UBigInt run_length_ = 0;
+    Int last_symbol_    = -1;
+    UBigInt run_length_ = 0;
 
 public:
-	using Sequence 	= PkdRLESeqT<Symbols>;
-	using SeqT 		= Sequence;
+    using Sequence  = PkdRLESeqT<Symbols>;
+    using SeqT      = Sequence;
 
 
-	RankDictionary(Int capacity): ref_(allocate(capacity)){}
+    RankDictionary(Int capacity): ref_(allocate(capacity)){}
 
-	SeqT* get() {return ref_->template get<SeqT>(0);}
-	const SeqT* get() const {return ref_->template get<SeqT>(0);}
+    SeqT* get() {return ref_->template get<SeqT>(0);}
+    const SeqT* get() const {return ref_->template get<SeqT>(0);}
 
-	SeqT* operator->() {return this->get();}
-	const SeqT* operator->() const {return this->get();}
+    SeqT* operator->() {return this->get();}
+    const SeqT* operator->() const {return this->get();}
 
-	void enlarge(Int required = 0)
-	{
-		Int current_size = get()->symbols_block_size();
-		Int new_size 	 = current_size * 2;
+    void enlarge(Int required = 0)
+    {
+        Int current_size = get()->symbols_block_size();
+        Int new_size     = current_size * 2;
 
-		Int new_capacity = new_size - current_size;
-		if (new_capacity < required)
-		{
-			new_size += required - new_capacity;
-		}
+        Int new_capacity = new_size - current_size;
+        if (new_capacity < required)
+        {
+            new_size += required - new_capacity;
+        }
 
-		auto new_ptr = allocate(new_size);
+        auto new_ptr = allocate(new_size);
 
-		get()->splitTo(new_ptr->template get<SeqT>(0), 0);
+        get()->splitTo(new_ptr->template get<SeqT>(0), 0);
 
-		ref_.reset(new_ptr.release());
-	}
+        ref_.reset(new_ptr.release());
+    }
 
-	void prepare()
-	{
-		last_symbol_ = -1;
-		run_length_  = 0;
+    void prepare()
+    {
+        last_symbol_ = -1;
+        run_length_  = 0;
 
-		get()->reset();
-	}
+        get()->reset();
+    }
 
-	void reindex()
-	{
-		if (last_symbol_ >= 0)
-		{
-			flush_run();
-			last_symbol_ = -1;
-		}
+    void reindex()
+    {
+        if (last_symbol_ >= 0)
+        {
+            flush_run();
+            last_symbol_ = -1;
+        }
 
-		get()->reindex();
-	}
+        get()->reindex();
+    }
 
-	void append_run(Int symbol, UBigInt run_length)
-	{
-		if (symbol == last_symbol_ || last_symbol_ < 0)
-		{
-			last_symbol_ = symbol;
-			run_length_ += run_length;
-		}
-		else
-		{
-			flush_run();
+    void append_run(Int symbol, UBigInt run_length)
+    {
+        if (symbol == last_symbol_ || last_symbol_ < 0)
+        {
+            last_symbol_ = symbol;
+            run_length_ += run_length;
+        }
+        else
+        {
+            flush_run();
 
-			last_symbol_ = symbol;
-			run_length_  = run_length;
-		}
-	}
+            last_symbol_ = symbol;
+            run_length_  = run_length;
+        }
+    }
 
-	void dump(std::ostream& out = std::cout) const {
-		get()->dump(out);
-	}
+    void dump(std::ostream& out = std::cout) const {
+        get()->dump(out);
+    }
 
 private:
-	void flush_run()
-	{
-		if (run_length_ > 0 && !get()->emplace_back(last_symbol_, run_length_))
-		{
-			enlarge();
+    void flush_run()
+    {
+        if (run_length_ > 0 && !get()->emplace_back(last_symbol_, run_length_))
+        {
+            enlarge();
 
-			if (!get()->emplace_back(last_symbol_, run_length_))
-			{
-				throw Exception(MA_SRC, "Symbols run entry is too large for RLE Sequence");
-			}
-		}
-	}
+            if (!get()->emplace_back(last_symbol_, run_length_))
+            {
+                throw Exception(MA_SRC, "Symbols run entry is too large for RLE Sequence");
+            }
+        }
+    }
 
 
-	static auto allocate(Int capacity)
-	{
-		Int block_size = SeqT::block_size(capacity);
-		auto ptr = AllocTool<PackedAllocator>::create(block_size, 1);
+    static auto allocate(Int capacity)
+    {
+        Int block_size = SeqT::block_size(capacity);
+        auto ptr = AllocTool<PackedAllocator>::create(block_size, 1);
 
-		SeqT* seq = ptr->template allocate<SeqT>(0, block_size);
+        SeqT* seq = ptr->template allocate<SeqT>(0, block_size);
 
-		seq->enlargeData(capacity);
+        seq->enlargeData(capacity);
 
-		return ptr;
-	}
+        return ptr;
+    }
 };
 
 

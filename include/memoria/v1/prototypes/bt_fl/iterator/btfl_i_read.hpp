@@ -38,11 +38,11 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorReadName)
 
     using Container = typename Base::Container;
 
-    using CtrSizeT  	= typename Container::Types::CtrSizeT;
-    using DataSizesT  	= typename Container::Types::DataSizesT;
+    using CtrSizeT      = typename Container::Types::CtrSizeT;
+    using DataSizesT    = typename Container::Types::DataSizesT;
 
     static const Int Streams                = Container::Types::Streams;
-    static const Int DataStreams      		= Container::Types::DataStreams;
+    static const Int DataStreams            = Container::Types::DataStreams;
 
     template <typename IOBuffer>
     using WalkerPool = ObjectPool<btfl::io::BTFLWalker<MyType, IOBuffer>>;
@@ -51,130 +51,130 @@ public:
     template <typename IOBuffer>
     void bulkio_read(BufferConsumer<IOBuffer>* consumer, const CtrSizeT& limits = std::numeric_limits<CtrSizeT>::max())
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	auto start_id = self.leaf()->id();
+        auto start_id = self.leaf()->id();
 
-    	auto walker = self.ctr().pools().get_instance(PoolT<WalkerPool<IOBuffer>>()).get_unique();
+        auto walker = self.ctr().pools().get_instance(PoolT<WalkerPool<IOBuffer>>()).get_unique();
 
-    	walker->init(self, limits);
+        walker->init(self, limits);
 
-    	IOBuffer& buffer = consumer->buffer();
+        IOBuffer& buffer = consumer->buffer();
 
-    	Int entries = 0;
+        Int entries = 0;
 
-    	while (true)
-    	{
-    		auto result = walker->populate(buffer);
+        while (true)
+        {
+            auto result = walker->populate(buffer);
 
-    		entries += result.entries();
+            entries += result.entries();
 
-    		if (result.ending() == btfl::io::Ending::END_OF_PAGE)
-    		{
-    			if (!walker->next_page())
-    			{
-    				if (entries > 0)
-    				{
-    					buffer.rewind();
-    					consumer->process(buffer, entries);
-    				}
+            if (result.ending() == btfl::io::Ending::END_OF_PAGE)
+            {
+                if (!walker->next_page())
+                {
+                    if (entries > 0)
+                    {
+                        buffer.rewind();
+                        consumer->process(buffer, entries);
+                    }
 
-    				entries = 0;
+                    entries = 0;
 
-    				break;
-    			}
-    		}
-    		else if (result.ending() == btfl::io::Ending::END_OF_IOBUFFER)
-    		{
-    			if (entries > 0)
-    			{
-    				buffer.rewind();
-    				consumer->process(buffer, entries);
-    				entries = 0;
-    			}
-    		}
-    		else
-    		{
-    			break;
-    		}
-    	}
+                    break;
+                }
+            }
+            else if (result.ending() == btfl::io::Ending::END_OF_IOBUFFER)
+            {
+                if (entries > 0)
+                {
+                    buffer.rewind();
+                    consumer->process(buffer, entries);
+                    entries = 0;
+                }
+            }
+            else
+            {
+                break;
+            }
+        }
 
-    	self.idx() 	= walker->idx();
-    	self.leaf() = walker->leaf();
+        self.idx()  = walker->idx();
+        self.leaf() = walker->leaf();
 
-    	walker->clear();
+        walker->clear();
 
-    	if (self.leaf()->id() != start_id)
-    	{
-    		self.refresh();
-    	}
+        if (self.leaf()->id() != start_id)
+        {
+            self.refresh();
+        }
     }
 
     template <typename IOBuffer>
     auto create_walker(CtrSizeT limit = std::numeric_limits<CtrSizeT>::max())
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	auto walker = self.ctr().pools().get_instance(PoolT<WalkerPool<IOBuffer>>()).get_unique();
+        auto walker = self.ctr().pools().get_instance(PoolT<WalkerPool<IOBuffer>>()).get_unique();
 
-    	walker->init(self, limit);
+        walker->init(self, limit);
 
-    	return walker;
+        return walker;
     }
 
 
     template <typename Walker, typename IOBuffer>
     Int bulkio_populate(Walker& walker, IOBuffer* buffer)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	auto start_id = self.leaf()->id();
+        auto start_id = self.leaf()->id();
 
-    	Int entries = 0;
+        Int entries = 0;
 
-    	bool more_data = false;
+        bool more_data = false;
 
-    	buffer->rewind();
+        buffer->rewind();
 
-    	while (true)
-    	{
-    		auto result = walker.populate(*buffer);
+        while (true)
+        {
+            auto result = walker.populate(*buffer);
 
-    		entries += result.entries();
+            entries += result.entries();
 
-    		if (result.ending() == btfl::io::Ending::END_OF_PAGE)
-    		{
-    			if (!walker.next_page())
-    			{
-    				more_data = false;
-    				break;
-    			}
-    		}
-    		else if (result.ending() == btfl::io::Ending::END_OF_IOBUFFER)
-    		{
-    			more_data = true;
-    			break;
-    		}
-    		else if (result.ending() == btfl::io::Ending::LIMIT_REACHED)
-    		{
-    			more_data = false;
-    			break;
-    		}
-    		else
-    		{
-    			throw Exception(MA_SRC, SBuf() << "Invalid populate IO buffer status: " << (Int) result.ending());
-    		}
-    	}
+            if (result.ending() == btfl::io::Ending::END_OF_PAGE)
+            {
+                if (!walker.next_page())
+                {
+                    more_data = false;
+                    break;
+                }
+            }
+            else if (result.ending() == btfl::io::Ending::END_OF_IOBUFFER)
+            {
+                more_data = true;
+                break;
+            }
+            else if (result.ending() == btfl::io::Ending::LIMIT_REACHED)
+            {
+                more_data = false;
+                break;
+            }
+            else
+            {
+                throw Exception(MA_SRC, SBuf() << "Invalid populate IO buffer status: " << (Int) result.ending());
+            }
+        }
 
-    	self.idx() 	= walker.idx();
-    	self.leaf() = walker.leaf();
+        self.idx()  = walker.idx();
+        self.leaf() = walker.leaf();
 
-    	if (self.leaf()->id() != start_id)
-    	{
-    		self.refresh();
-    	}
+        if (self.leaf()->id() != start_id)
+        {
+            self.refresh();
+        }
 
-    	return more_data ? entries : -entries;
+        return more_data ? entries : -entries;
     }
 
 protected:

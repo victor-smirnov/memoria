@@ -25,54 +25,54 @@ using namespace std;
 
 int main()
 {
-	try {
-		auto allocator1 = AllocateAllocator(65536);
+    try {
+        auto allocator1 = AllocateAllocator(65536);
 
-		using Seq = PkdRLESeqT<4>;
+        using Seq = PkdRLESeqT<4>;
 
-		auto seq = allocator1->template allocateEmpty<Seq>(0);
+        auto seq = allocator1->template allocateEmpty<Seq>(0);
 
-		size_t sums[] = {0, 0, 0, 0};
+        size_t sums[] = {0, 0, 0, 0};
 
-		for (int c = 0; c < 1000; c++)
-		{
-			Int symbol = (c % 4);
+        for (int c = 0; c < 1000; c++)
+        {
+            Int symbol = (c % 4);
 
-			sums[symbol] += c + 1;
+            sums[symbol] += c + 1;
 
-			seq->append(symbol, c + 1);
-		}
+            seq->append(symbol, c + 1);
+        }
 
-		seq->reindex();
-		seq->dump();
-		seq->check();
+        seq->reindex();
+        seq->dump();
+        seq->check();
 
-		cout << endl << endl;
+        cout << endl << endl;
 
-//		Int size = seq->size();
-//		for (Int c = 0; c < size; c++)
-//		{
-//			auto iter = seq->selectFw(c, 1, 1);
+//      Int size = seq->size();
+//      for (Int c = 0; c < size; c++)
+//      {
+//          auto iter = seq->selectFw(c, 1, 1);
 //
-//			cout << c << " -- " << iter.idx() << endl;
-//		}
+//          cout << c << " -- " << iter.idx() << endl;
+//      }
 
-//		for (Int c = size - 1; c >= 0; c--)
-//		{
-//			auto iter = seq->selectBw(c, 1, 1);
+//      for (Int c = size - 1; c >= 0; c--)
+//      {
+//          auto iter = seq->selectBw(c, 1, 1);
 //
-//			if (iter.is_set())
-//			{
-//				cout << c << " -- " << iter.value().idx() << endl;
-//			}
-//			else {
-//				cout << c << " -- OOR" << endl;
-//			}
-//		}
+//          if (iter.is_set())
+//          {
+//              cout << c << " -- " << iter.value().idx() << endl;
+//          }
+//          else {
+//              cout << c << " -- OOR" << endl;
+//          }
+//      }
 
 
-		cout << "Sums: " << sums[0] << " " << sums[1] << endl;
-	}
+        cout << "Sums: " << sums[0] << " " << sums[1] << endl;
+    }
     catch (::memoria::v1::Exception& ex) {
         cout << ex.message() << " at " << ex.source() << endl;
     }

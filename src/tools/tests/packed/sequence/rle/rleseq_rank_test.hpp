@@ -175,7 +175,7 @@ public:
 
     void runTest3()
     {
-    	out()<<"Parameters: Symbols="<<Symbols<<endl;
+        out()<<"Parameters: Symbols="<<Symbols<<endl;
 
         auto seq = createEmptySequence();
 
@@ -192,7 +192,7 @@ public:
 
     void runTest4()
     {
-    	out()<<"Parameters: Symbols="<<Symbols<<endl;
+        out()<<"Parameters: Symbols="<<Symbols<<endl;
 
         auto seq = createEmptySequence();
 

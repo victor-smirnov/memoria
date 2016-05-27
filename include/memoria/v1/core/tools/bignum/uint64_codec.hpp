@@ -55,13 +55,13 @@ public:
 
     size_t length(const V& value) const
     {
-    	if (value < 246)
-    	{
-    		return 1;
-    	}
-    	else {
-    		return 1 + byte_length(value);
-    	}
+        if (value < 246)
+        {
+            return 1;
+        }
+        else {
+            return 1 + byte_length(value);
+        }
     }
 
     size_t decode(const T* buffer, V& value, size_t idx, size_t limit) const
@@ -102,18 +102,18 @@ public:
 
     size_t encode(T* buffer, const V& value, size_t idx) const
     {
-    	if (value < 246ul)
-    	{
-    		buffer[idx] = value;
-    		return 1;
-    	}
-    	else {
-    		size_t len = serialize(buffer, value, idx + 1);
+        if (value < 246ul)
+        {
+            buffer[idx] = value;
+            return 1;
+        }
+        else {
+            size_t len = serialize(buffer, value, idx + 1);
 
-    		buffer[idx] = len + UpperBound;
+            buffer[idx] = len + UpperBound;
 
-    		return 1 + len;
-    	}
+            return 1 + len;
+        }
     }
 
     void move(T* buffer, size_t from, size_t to, size_t size) const

@@ -34,7 +34,7 @@ public:
     using BufferType    = UByte;
     using T             = BufferType;
     using V             = StringWrapper;
-    using CharT			= typename V::CharT;
+    using CharT         = typename V::CharT;
 
     using ValuePtr      = ValuePtrT1<BufferType>;
 

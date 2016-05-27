@@ -55,7 +55,7 @@ public:
 
         void stream(StreamSize* obj, Int idx)
         {
-        	obj->remove(idx, idx + 1);
+            obj->remove(idx, idx + 1);
         }
 
         template <typename SeqTypes>
@@ -84,7 +84,7 @@ public:
         template <typename StreamTypes>
         void stream(PkdVQTree<StreamTypes>* sizes, Int idx)
         {
-        	sizes->remove(idx, idx + 1);
+            sizes->remove(idx, idx + 1);
         }
 
         template <typename NTypes>
@@ -94,7 +94,7 @@ public:
 
             if (label_idx_ >= 0)
             {
-            	node->template processSubstreams<IntList<1>>(*this, label_idx_);
+                node->template processSubstreams<IntList<1>>(*this, label_idx_);
             }
         }
     };

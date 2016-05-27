@@ -112,23 +112,23 @@ public:
 
     template <Int Stream>
     using BTTLStreamDataDispatcher = SubrangeDispatcher<
-    		StreamStartIdx<Stream>::Value,
-			StreamStartIdx<Stream>::Value + StreamSize<Stream>::Value - 1
+            StreamStartIdx<Stream>::Value,
+            StreamStartIdx<Stream>::Value + StreamSize<Stream>::Value - 1
     >;
 
 
     template <Int Stream>
     using BTTLLastStreamDataDispatcher = SubrangeDispatcher<
-    		StreamStartIdx<Stream>::Value,
-			StreamStartIdx<Stream>::Value + StreamSize<Stream>::Value
-	>;
+            StreamStartIdx<Stream>::Value,
+            StreamStartIdx<Stream>::Value + StreamSize<Stream>::Value
+    >;
 
 
     template <Int Stream>
     using BTTLStreamSizesDispatcher = SubrangeDispatcher<
-    		StreamStartIdx<Stream>::Value + StreamSize<Stream>::Value - 1,
-			StreamStartIdx<Stream>::Value + StreamSize<Stream>::Value
-	>;
+            StreamStartIdx<Stream>::Value + StreamSize<Stream>::Value - 1,
+            StreamStartIdx<Stream>::Value + StreamSize<Stream>::Value
+    >;
 
     template <Int SubstreamIdx>
     using LeafPathT = typename v1::list_tree::BuildTreePath<LeafSubstreamsStructList, SubstreamIdx>::Type;
@@ -139,15 +139,15 @@ public:
 
 
     template <Int Stream, typename SubstreamIdxList, template <typename> class MapFn>
-    using MapSubstreamsStructs 	= typename SubstreamsByIdxDispatcher<Stream, SubstreamIdxList>::template ForAllStructs<MapFn>;
+    using MapSubstreamsStructs  = typename SubstreamsByIdxDispatcher<Stream, SubstreamIdxList>::template ForAllStructs<MapFn>;
 
     template <Int Stream, template <typename> class MapFn>
-    using MapStreamStructs 		= typename StreamDispatcher<Stream>::template ForAllStructs<MapFn>;
+    using MapStreamStructs      = typename StreamDispatcher<Stream>::template ForAllStructs<MapFn>;
 
 
     template <typename SubstreamPath>
     using PackedStruct = typename Dispatcher::template StreamTypeT<
-    		v1::list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>::Value
+            v1::list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>::Value
     >::Type;
 
 

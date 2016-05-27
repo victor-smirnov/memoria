@@ -34,46 +34,35 @@ public:
 
 protected:
 
+    template <typename IOBuffer>
+    using CtrInputProviderPool = ObjectPool<btfl::io::IOBufferCtrInputProvider<MyType, IOBuffer>>;
+
+
     static const Int Streams = Types::Streams;
 
     template <typename IOBuffer>
-    auto bulkio_insert(Iterator& iter, BufferProducer<IOBuffer>& provider, const Int initial_capacity = 20000)
+    auto bulkio_insert(Iterator& iter, BufferProducer<IOBuffer>& provider, const Int initial_capacity = 4000)
     {
         auto& self = this->self();
 
-//        auto path = iter.cache().data_pos();
+        auto id = iter.leaf()->id();
 
-        auto stream = iter.stream_s();
+        auto streamingProvider = self.pools().get_instance(PoolT<CtrInputProviderPool<IOBuffer>>()).get_unique(self, initial_capacity);
 
-        btfl::io::IOBufferCtrInputProvider<MyType, IOBuffer> streamingProvider(self, &provider, stream, initial_capacity);
-
-//        auto pos = iter.local_stream_posrank_();
-
-//        streamingProvider.prepare(iter, pos);
+        streamingProvider->init(&provider);
 
         auto pos = iter.leafrank(iter.idx());
 
-        auto result = self.insert_provided_data(iter.leaf(), pos, streamingProvider);
-        auto totals = streamingProvider.totals();
+        auto result = self.insert_provided_data(iter.leaf(), pos, *streamingProvider.get());
 
-//        auto locals = streamingProvider.locals();
+        iter.idx()  = result.position().sum();
+        iter.leaf() = result.leaf();
 
-//        Int last_stream = streamingProvider.last_symbol();
-//
-//        MEMORIA_V1_ASSERT(locals[stream], >, 0);
-//        path[stream] += locals[stream] - 1;
-//
-//        for (Int s = stream + 1; s < last_stream; s++)
-//        {
-//            MEMORIA_V1_ASSERT(locals[s], >, 0);
-//            path[s] = locals[s] - 1;
-//        }
-//
-//        path[last_stream] = locals[last_stream];
-//
-//        iter = *self.seek(path, last_stream).get();
+        if (iter.leaf()->id() != id) {
+            iter.refresh();
+        }
 
-        return totals;
+        return streamingProvider->totals();
     }
 
 MEMORIA_V1_CONTAINER_PART_END

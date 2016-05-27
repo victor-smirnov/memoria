@@ -28,9 +28,9 @@ namespace {
     template <typename State, typename Item, template <typename> class Fn>
     struct MapFoldFn {
         using Type = AppendItemToList<
-        		typename Fn<Item>::Type,
-				State
-		>;
+                typename Fn<Item>::Type,
+                State
+        >;
     };
 
     template <template <typename> class Fn>
@@ -48,7 +48,7 @@ namespace {
         template <typename State, typename Item>
         using FoldFn = typename MapFoldFn<State, Item, MapFn>::Type;
 
-        using Type 	 = FoldTLLeft<List, FoldFn>;
+        using Type   = FoldTLLeft<List, FoldFn>;
     };
 }
 

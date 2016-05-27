@@ -152,14 +152,14 @@ public:
 
     auto rank(const PackedSeq1* seq, Int start, Int end, Int symbol)
     {
-    	BigInt rank = 0;
+        BigInt rank = 0;
 
-    	for (Int c = start; c < end; c++)
-    	{
-    		rank += seq->symbol(c) == symbol;
-    	}
+        for (Int c = start; c < end; c++)
+        {
+            rank += seq->symbol(c) == symbol;
+        }
 
-    	return rank;
+        return rank;
     }
 };
 

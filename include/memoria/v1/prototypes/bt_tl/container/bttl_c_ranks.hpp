@@ -177,7 +177,7 @@ public:
     template <typename Fn>
     void build_node_layout(const NodeBaseG& leaf, const Position& extent, Fn&& fn) const
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
         MEMORIA_V1_ASSERT_TRUE(extent.gteAll(0));
 

@@ -43,8 +43,8 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::mmap::ItrMiscName)
 
     using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
 
-    static constexpr Int DataStreams 			= Container::Types::DataStreams;
-    static constexpr Int StructureStreamIdx 	= Container::Types::StructureStreamIdx;
+    static constexpr Int DataStreams            = Container::Types::DataStreams;
+    static constexpr Int StructureStreamIdx     = Container::Types::StructureStreamIdx;
 
 public:
     Key key() const
@@ -55,12 +55,12 @@ public:
 
         if (stream == 0)
         {
-        	Int key_idx = self.data_stream_idx(stream);
+            Int key_idx = self.data_stream_idx(stream);
 
-        	return std::get<0>(self.template read_leaf_entry<0, IntList<1>>(key_idx, 0));
+            return std::get<0>(self.template read_leaf_entry<0, IntList<1>>(key_idx, 0));
         }
         else {
-        	throw Exception(MA_SRC, SBuf() << "Invalid stream: " << stream);
+            throw Exception(MA_SRC, SBuf() << "Invalid stream: " << stream);
         }
     }
 
@@ -72,35 +72,35 @@ public:
 
         if (stream == 1)
         {
-        	Int value_idx = self.data_stream_idx(stream);
-        	return std::get<0>(self.template read_leaf_entry<1, IntList<1>>(value_idx, 0));
+            Int value_idx = self.data_stream_idx(stream);
+            return std::get<0>(self.template read_leaf_entry<1, IntList<1>>(value_idx, 0));
         }
         else {
-        	throw Exception(MA_SRC, SBuf() << "Invalid stream: " << stream);
+            throw Exception(MA_SRC, SBuf() << "Invalid stream: " << stream);
         }
     }
 
 
     void insert_key(const Key& key)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	if (!self.isEnd())
-    	{
-    		if (self.stream() != 0)
-    		{
-    			throw Exception(MA_SRC, "Key insertion into the middle of data block is not allowed");
-    		}
-    	}
+        if (!self.isEnd())
+        {
+            if (self.stream() != 0)
+            {
+                throw Exception(MA_SRC, "Key insertion into the middle of data block is not allowed");
+            }
+        }
 
-    	self.template insert_entry<0>(SingleValueEntryFn<0, Key, CtrSizeT>(key));
+        self.template insert_entry<0>(SingleValueEntryFn<0, Key, CtrSizeT>(key));
     }
 
     void insert_value(const Value& value)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	self.template insert_entry<1>(SingleValueEntryFn<1, Key, CtrSizeT>(value));
+        self.template insert_entry<1>(SingleValueEntryFn<1, Key, CtrSizeT>(value));
     }
 
 
@@ -187,32 +187,27 @@ public:
     }
 
 
-    template <typename Provider>
-    auto bulk_insert(Provider&& provider, const Int initial_capacity = 2000)
-    {
-        auto& self = this->self();
+//    template <typename Provider>
+//    auto bulk_insert(Provider&& provider, const Int initial_capacity = 2000)
+//    {
+//        auto& self = this->self();
+//
+//        return self.ctr()._insert(self, std::forward<Provider>(provider), initial_capacity);
+//    }
 
-        return self.ctr()._insert(self, std::forward<Provider>(provider), initial_capacity);
-    }
 
-    template <typename IOBuffer>
-    auto bulkio_insert(BufferProducer<IOBuffer>& provider, const Int initial_capacity = 20000)
-    {
-    	auto& self = this->self();
-    	return self.ctr().bulkio_insert(self, provider, initial_capacity);
-    }
 
 
     bool is_found(const Key& key)
     {
-    	auto& self = this->self();
-    	if (!self.isEnd())
-    	{
-    		return self.key() == key;
-    	}
-    	else {
-    		return false;
-    	}
+        auto& self = this->self();
+        if (!self.isEnd())
+        {
+            return self.key() == key;
+        }
+        else {
+            return false;
+        }
     }
 
 

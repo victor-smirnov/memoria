@@ -38,312 +38,312 @@ namespace v1 {
 
 template <>
 class IOBuffer<ByteOrder::LITTLE, MemoryAccess::ALIGNED>: public IOBufferBase {
-	using Base = IOBufferBase;
+    using Base = IOBufferBase;
 
 public:
 
-	IOBuffer(): Base()
-	{}
-
-	IOBuffer(size_t length): Base(length)
-	{}
+    IOBuffer(): Base()
+    {}
+
+    IOBuffer(size_t length): Base(length)
+    {}
 
-	IOBuffer(UByte* data, size_t length): Base(data, length)
-	{}
+    IOBuffer(UByte* data, size_t length): Base(data, length)
+    {}
 
-	IOBuffer(const IOBuffer&) = delete;
+    IOBuffer(const IOBuffer&) = delete;
 
-	IOBuffer(IOBuffer&& other): Base(std::move(other))
-	{}
+    IOBuffer(IOBuffer&& other): Base(std::move(other))
+    {}
 
-	using Base::put;
+    using Base::put;
 
-	bool put(Short v)
-	{
-		if (has_capacity(2))
-		{
-			array_[pos_] 	  = v & 0xFF;
-			array_[pos_ + 1]  = (v >> 8) & 0xFF;
+    bool put(Short v)
+    {
+        if (has_capacity(2))
+        {
+            array_[pos_]      = v & 0xFF;
+            array_[pos_ + 1]  = (v >> 8) & 0xFF;
 
-			pos_ += 2;
+            pos_ += 2;
 
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-
-	Short getShort()
-	{
-		assertRange(2, "getShort()");
-		Short v = 0;
-
-		v = array_[pos_];
-		v |= ((Short)array_[pos_ + 1]) << 8;
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    Short getShort()
+    {
+        assertRange(2, "getShort()");
+        Short v = 0;
+
+        v = array_[pos_];
+        v |= ((Short)array_[pos_ + 1]) << 8;
 
-		pos_ += 2;
-
-		return v;
-	}
+        pos_ += 2;
+
+        return v;
+    }
 
-
-	bool put(UShort v)
-	{
-		if (has_capacity(2))
-		{
-			array_[pos_] = v & 0xFF;
-			array_[pos_ + 1] = (v >> 8) & 0xFF;
-
-			pos_ += 2;
-
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-
-	UShort getUShort()
-	{
-		assertRange(2, "getShort()");
-		Short v = 0;
-
-		v = array_[pos_];
-		v |= ((UShort)array_[pos_ + 1]) << 8;
-
-		pos_ += 2;
-
-		return v;
-	}
-
-	bool put(Int v)
-	{
-		if (has_capacity(4))
-		{
-			array_[pos_] = v & 0xFF;
-			array_[pos_ + 1] = (v >> 8) & 0xFF;
-			array_[pos_ + 2] = (v >> 16) & 0xFF;
-			array_[pos_ + 3] = (v >> 24) & 0xFF;
-
-			pos_ += 4;
-
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-
-	Int getInt()
-	{
-		assertRange(4, "getInt()");
-		Int v = 0;
-
-		v = array_[pos_];
-		v |= ((Int)array_[pos_ + 1]) << 8;
-		v |= ((Int)array_[pos_ + 2]) << 16;
-		v |= ((Int)array_[pos_ + 3]) << 24;
-
-		pos_ += 4;
-
-		return v;
-	}
-
-
-	bool put(UInt v)
-	{
-		if (has_capacity(4))
-		{
-			array_[pos_] = v & 0xFF;
-			array_[pos_ + 1] = (v >> 8) & 0xFF;
-			array_[pos_ + 2] = (v >> 16) & 0xFF;
-			array_[pos_ + 3] = (v >> 24) & 0xFF;
-
-			pos_ += 4;
-
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-
-	UInt getUInt()
-	{
-		assertRange(4, "getUInt()");
-		UInt v = 0;
-
-		v = array_[pos_];
-		v |= ((UInt)array_[pos_ + 1]) << 8;
-		v |= ((UInt)array_[pos_ + 2]) << 16;
-		v |= ((UInt)array_[pos_ + 3]) << 24;
-
-		pos_ += 4;
-
-		return v;
-	}
-
-	bool put(BigInt v)
-	{
-		if (has_capacity(8))
-		{
-			array_[pos_] = v & 0xFF;
-			array_[pos_ + 1] = (v >> 8) & 0xFF;
-			array_[pos_ + 2] = (v >> 16) & 0xFF;
-			array_[pos_ + 3] = (v >> 24) & 0xFF;
-			array_[pos_ + 4] = (v >> 32) & 0xFF;
-			array_[pos_ + 5] = (v >> 40) & 0xFF;
-			array_[pos_ + 6] = (v >> 48) & 0xFF;
-			array_[pos_ + 7] = (v >> 56) & 0xFF;
-
-			pos_ += 8;
-
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-
-	BigInt getBigInt()
-	{
-		assertRange(8, "getBigInt()");
-		BigInt v = 0;
-
-		v = array_[pos_];
-		v |= ((BigInt)array_[pos_ + 1]) << 8;
-		v |= ((BigInt)array_[pos_ + 2]) << 16;
-		v |= ((BigInt)array_[pos_ + 3]) << 24;
-		v |= ((BigInt)array_[pos_ + 4]) << 32;
-		v |= ((BigInt)array_[pos_ + 5]) << 40;
-		v |= ((BigInt)array_[pos_ + 6]) << 48;
-		v |= ((BigInt)array_[pos_ + 7]) << 56;
-
-		pos_ += 8;
-
-		return v;
-	}
-
-	bool put(UBigInt v)
-	{
-		if (has_capacity(8))
-		{
-			array_[pos_] = v & 0xFF;
-			array_[pos_ + 1] = (v >> 8) & 0xFF;
-			array_[pos_ + 2] = (v >> 16) & 0xFF;
-			array_[pos_ + 3] = (v >> 24) & 0xFF;
-			array_[pos_ + 4] = (v >> 32) & 0xFF;
-			array_[pos_ + 5] = (v >> 40) & 0xFF;
-			array_[pos_ + 6] = (v >> 48) & 0xFF;
-			array_[pos_ + 7] = (v >> 56) & 0xFF;
-
-			pos_ += 8;
-
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-
-	UBigInt getUBigInt()
-	{
-		assertRange(8, "getUBigInt()");
-
-		UBigInt v = 0;
-		v = array_[pos_];
-		v |= ((UBigInt)array_[pos_ + 1]) << 8;
-		v |= ((UBigInt)array_[pos_ + 2]) << 16;
-		v |= ((UBigInt)array_[pos_ + 3]) << 24;
-		v |= ((UBigInt)array_[pos_ + 4]) << 32;
-		v |= ((UBigInt)array_[pos_ + 5]) << 40;
-		v |= ((UBigInt)array_[pos_ + 6]) << 48;
-		v |= ((UBigInt)array_[pos_ + 7]) << 56;
-
-		pos_ += 8;
-
-		return v;
-	}
-
-	bool put(float f)
-	{
-		if (has_capacity(4))
-		{
-			Int v = static_cast<Int>(f);
-
-			array_[pos_] = v & 0xFF;
-			array_[pos_ + 1] = (v >> 8) & 0xFF;
-			array_[pos_ + 2] = (v >> 16) & 0xFF;
-			array_[pos_ + 3] = (v >> 24) & 0xFF;
-
-			pos_ += 4;
-
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-
-	float getFloat()
-	{
-		assertRange(4, "getFloat()");
-		Int v = 0;
-
-		v = array_[pos_];
-		v |= ((Int)array_[pos_ + 1]) << 8;
-		v |= ((Int)array_[pos_ + 2]) << 16;
-		v |= ((Int)array_[pos_ + 3]) << 24;
-
-		pos_ += 4;
-
-		return static_cast<float>(v);
-	}
-
-
-	bool put(double f)
-	{
-		if (has_capacity(8))
-		{
-			BigInt v = static_cast<BigInt>(f);
-
-			array_[pos_] = v & 0xFF;
-			array_[pos_ + 1] = (v >> 8) & 0xFF;
-			array_[pos_ + 2] = (v >> 16) & 0xFF;
-			array_[pos_ + 3] = (v >> 24) & 0xFF;
-			array_[pos_ + 4] = (v >> 32) & 0xFF;
-			array_[pos_ + 5] = (v >> 40) & 0xFF;
-			array_[pos_ + 6] = (v >> 48) & 0xFF;
-			array_[pos_ + 7] = (v >> 56) & 0xFF;
-
-			pos_ += 8;
-
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-
-	double getDouble()
-	{
-		assertRange(8, "getDouble()");
-		BigInt v = 0;
-
-		v = array_[pos_];
-		v |= ((BigInt)array_[pos_ + 1]) << 8;
-		v |= ((BigInt)array_[pos_ + 2]) << 16;
-		v |= ((BigInt)array_[pos_ + 3]) << 24;
-		v |= ((BigInt)array_[pos_ + 4]) << 32;
-		v |= ((BigInt)array_[pos_ + 5]) << 40;
-		v |= ((BigInt)array_[pos_ + 6]) << 48;
-		v |= ((BigInt)array_[pos_ + 7]) << 56;
-
-		pos_ += 8;
-
-		return static_cast<double>(v);
-	}
+
+    bool put(UShort v)
+    {
+        if (has_capacity(2))
+        {
+            array_[pos_] = v & 0xFF;
+            array_[pos_ + 1] = (v >> 8) & 0xFF;
+
+            pos_ += 2;
+
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    UShort getUShort()
+    {
+        assertRange(2, "getShort()");
+        Short v = 0;
+
+        v = array_[pos_];
+        v |= ((UShort)array_[pos_ + 1]) << 8;
+
+        pos_ += 2;
+
+        return v;
+    }
+
+    bool put(Int v)
+    {
+        if (has_capacity(4))
+        {
+            array_[pos_] = v & 0xFF;
+            array_[pos_ + 1] = (v >> 8) & 0xFF;
+            array_[pos_ + 2] = (v >> 16) & 0xFF;
+            array_[pos_ + 3] = (v >> 24) & 0xFF;
+
+            pos_ += 4;
+
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    Int getInt()
+    {
+        assertRange(4, "getInt()");
+        Int v = 0;
+
+        v = array_[pos_];
+        v |= ((Int)array_[pos_ + 1]) << 8;
+        v |= ((Int)array_[pos_ + 2]) << 16;
+        v |= ((Int)array_[pos_ + 3]) << 24;
+
+        pos_ += 4;
+
+        return v;
+    }
+
+
+    bool put(UInt v)
+    {
+        if (has_capacity(4))
+        {
+            array_[pos_] = v & 0xFF;
+            array_[pos_ + 1] = (v >> 8) & 0xFF;
+            array_[pos_ + 2] = (v >> 16) & 0xFF;
+            array_[pos_ + 3] = (v >> 24) & 0xFF;
+
+            pos_ += 4;
+
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    UInt getUInt()
+    {
+        assertRange(4, "getUInt()");
+        UInt v = 0;
+
+        v = array_[pos_];
+        v |= ((UInt)array_[pos_ + 1]) << 8;
+        v |= ((UInt)array_[pos_ + 2]) << 16;
+        v |= ((UInt)array_[pos_ + 3]) << 24;
+
+        pos_ += 4;
+
+        return v;
+    }
+
+    bool put(BigInt v)
+    {
+        if (has_capacity(8))
+        {
+            array_[pos_] = v & 0xFF;
+            array_[pos_ + 1] = (v >> 8) & 0xFF;
+            array_[pos_ + 2] = (v >> 16) & 0xFF;
+            array_[pos_ + 3] = (v >> 24) & 0xFF;
+            array_[pos_ + 4] = (v >> 32) & 0xFF;
+            array_[pos_ + 5] = (v >> 40) & 0xFF;
+            array_[pos_ + 6] = (v >> 48) & 0xFF;
+            array_[pos_ + 7] = (v >> 56) & 0xFF;
+
+            pos_ += 8;
+
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    BigInt getBigInt()
+    {
+        assertRange(8, "getBigInt()");
+        BigInt v = 0;
+
+        v = array_[pos_];
+        v |= ((BigInt)array_[pos_ + 1]) << 8;
+        v |= ((BigInt)array_[pos_ + 2]) << 16;
+        v |= ((BigInt)array_[pos_ + 3]) << 24;
+        v |= ((BigInt)array_[pos_ + 4]) << 32;
+        v |= ((BigInt)array_[pos_ + 5]) << 40;
+        v |= ((BigInt)array_[pos_ + 6]) << 48;
+        v |= ((BigInt)array_[pos_ + 7]) << 56;
+
+        pos_ += 8;
+
+        return v;
+    }
+
+    bool put(UBigInt v)
+    {
+        if (has_capacity(8))
+        {
+            array_[pos_] = v & 0xFF;
+            array_[pos_ + 1] = (v >> 8) & 0xFF;
+            array_[pos_ + 2] = (v >> 16) & 0xFF;
+            array_[pos_ + 3] = (v >> 24) & 0xFF;
+            array_[pos_ + 4] = (v >> 32) & 0xFF;
+            array_[pos_ + 5] = (v >> 40) & 0xFF;
+            array_[pos_ + 6] = (v >> 48) & 0xFF;
+            array_[pos_ + 7] = (v >> 56) & 0xFF;
+
+            pos_ += 8;
+
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    UBigInt getUBigInt()
+    {
+        assertRange(8, "getUBigInt()");
+
+        UBigInt v = 0;
+        v = array_[pos_];
+        v |= ((UBigInt)array_[pos_ + 1]) << 8;
+        v |= ((UBigInt)array_[pos_ + 2]) << 16;
+        v |= ((UBigInt)array_[pos_ + 3]) << 24;
+        v |= ((UBigInt)array_[pos_ + 4]) << 32;
+        v |= ((UBigInt)array_[pos_ + 5]) << 40;
+        v |= ((UBigInt)array_[pos_ + 6]) << 48;
+        v |= ((UBigInt)array_[pos_ + 7]) << 56;
+
+        pos_ += 8;
+
+        return v;
+    }
+
+    bool put(float f)
+    {
+        if (has_capacity(4))
+        {
+            Int v = static_cast<Int>(f);
+
+            array_[pos_] = v & 0xFF;
+            array_[pos_ + 1] = (v >> 8) & 0xFF;
+            array_[pos_ + 2] = (v >> 16) & 0xFF;
+            array_[pos_ + 3] = (v >> 24) & 0xFF;
+
+            pos_ += 4;
+
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    float getFloat()
+    {
+        assertRange(4, "getFloat()");
+        Int v = 0;
+
+        v = array_[pos_];
+        v |= ((Int)array_[pos_ + 1]) << 8;
+        v |= ((Int)array_[pos_ + 2]) << 16;
+        v |= ((Int)array_[pos_ + 3]) << 24;
+
+        pos_ += 4;
+
+        return static_cast<float>(v);
+    }
+
+
+    bool put(double f)
+    {
+        if (has_capacity(8))
+        {
+            BigInt v = static_cast<BigInt>(f);
+
+            array_[pos_] = v & 0xFF;
+            array_[pos_ + 1] = (v >> 8) & 0xFF;
+            array_[pos_ + 2] = (v >> 16) & 0xFF;
+            array_[pos_ + 3] = (v >> 24) & 0xFF;
+            array_[pos_ + 4] = (v >> 32) & 0xFF;
+            array_[pos_ + 5] = (v >> 40) & 0xFF;
+            array_[pos_ + 6] = (v >> 48) & 0xFF;
+            array_[pos_ + 7] = (v >> 56) & 0xFF;
+
+            pos_ += 8;
+
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    double getDouble()
+    {
+        assertRange(8, "getDouble()");
+        BigInt v = 0;
+
+        v = array_[pos_];
+        v |= ((BigInt)array_[pos_ + 1]) << 8;
+        v |= ((BigInt)array_[pos_ + 2]) << 16;
+        v |= ((BigInt)array_[pos_ + 3]) << 24;
+        v |= ((BigInt)array_[pos_ + 4]) << 32;
+        v |= ((BigInt)array_[pos_ + 5]) << 40;
+        v |= ((BigInt)array_[pos_ + 6]) << 48;
+        v |= ((BigInt)array_[pos_ + 7]) << 56;
+
+        pos_ += 8;
+
+        return static_cast<double>(v);
+    }
 };
 
 

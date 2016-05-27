@@ -78,7 +78,7 @@ public:
 
         for (size_t c = 0; c < len; c++)
         {
-        	tmp[c] = buffer[c + pos];
+            tmp[c] = buffer[c + pos];
         }
 
         pos += len;

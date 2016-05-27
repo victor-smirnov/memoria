@@ -79,18 +79,18 @@ public:
     using InputBuffer   = PackedFSERowOrderInputBuffer<PackedFSERowOrderInputBufferTypes<Value, Blocks>>;
     using InputType     = Values;
 
-    using SizesT 		= core::StaticVector<Int, Blocks>;
-    using PtrsT 		= core::StaticVector<Value*, Blocks>;
-    using ConstPtrsT 	= core::StaticVector<const Value*, Blocks>;
+    using SizesT        = core::StaticVector<Int, Blocks>;
+    using PtrsT         = core::StaticVector<Value*, Blocks>;
+    using ConstPtrsT    = core::StaticVector<const Value*, Blocks>;
 
     class ReadState {
-    	ConstPtrsT values_;
-    	Int idx_ = 0;
+        ConstPtrsT values_;
+        Int idx_ = 0;
     public:
-    	ConstPtrsT& values() {return values_;}
-    	Int& idx() {return idx_;}
-    	const ConstPtrsT& values() const {return values_;}
-    	const Int& idx() const {return idx_;}
+        ConstPtrsT& values() {return values_;}
+        Int& idx() {return idx_;}
+        const ConstPtrsT& values() const {return values_;}
+        const Int& idx() const {return idx_;}
     };
 
     static Int estimate_block_size(Int tree_capacity, Int density_hi = 1, Int density_lo = 1)
@@ -357,7 +357,7 @@ public:
 
         if (idx > meta->size())
         {
-        	int a = 0; a++;
+            int a = 0; a++;
         }
 
         MEMORIA_V1_ASSERT(idx, <=, meta->size());
@@ -648,32 +648,32 @@ public:
 
     ReadState positions(Int idx) const
     {
-    	ReadState state;
+        ReadState state;
 
-    	state.idx() = idx;
+        state.idx() = idx;
 
-    	for (Int b = 0; b < Blocks; b++) {
-    		state.values()[b] = this->values(b);
-    	}
+        for (Int b = 0; b < Blocks; b++) {
+            state.values()[b] = this->values(b);
+        }
 
-    	return state;
+        return state;
     }
 
 
     template <typename IOBuffer>
     bool readTo(ReadState& state, IOBuffer& buffer) const
     {
-    	for (Int b = 0; b < Blocks; b++)
-    	{
-    		auto val = state.values()[b][state.idx()];
+        for (Int b = 0; b < Blocks; b++)
+        {
+            auto val = state.values()[b][state.idx()];
 
-    		if (!IOBufferAdapter<Value>::put(buffer, val))
-    		{
-    			return false;
-    		}
-    	}
+            if (!IOBufferAdapter<Value>::put(buffer, val))
+            {
+                return false;
+            }
+        }
 
-    	return true;
+        return true;
     }
 
 
@@ -772,7 +772,7 @@ public:
         for (Int c = 0; c < index_size; c++)
         {
             handler->value("INDEX", PageValueProviderFactory::provider(Blocks, [&](Int idx) {
-            	return index[idx][c];
+                return index[idx][c];
             }));
         }
 
@@ -791,7 +791,7 @@ public:
         for (Int c = 0; c < meta->size(); c++)
         {
             handler->value("TREE_ITEM", PageValueProviderFactory::provider(Blocks, [&](Int idx) {
-            	return values[idx][c];
+                return values[idx][c];
             }));
         }
 

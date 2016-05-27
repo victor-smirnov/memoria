@@ -48,7 +48,7 @@ int main() {
 
             for (int cc = 0; cc < bb.size(); cc++)
             {
-            	bb[cc] = 0;
+                bb[cc] = 0;
             }
 
             cout << bb << endl;
@@ -56,8 +56,8 @@ int main() {
             cout<<setbase(16);
             for (size_t c = 0; c < 4; c++)
             {
-            	cout<<setw(2)<<setfill('0');
-            	cout << 1;
+                cout<<setw(2)<<setfill('0');
+                cout << 1;
             }
 
             cout << endl;
@@ -68,13 +68,13 @@ int main() {
 
             for (int c = from; c < to; c++)
             {
-            	auto size = getRandomG(10);
-            	Bytes data(size);
+                auto size = getRandomG(10);
+                Bytes data(size);
 
-            	for (size_t d = 0; d < data.size(); d++)
-            	{
-            		data[d] = getRandomG(256);
-            	}
+                for (size_t d = 0; d < data.size(); d++)
+                {
+                    data[d] = getRandomG(256);
+                }
 
                 ctr->insert_key(data);
             }
@@ -84,7 +84,7 @@ int main() {
 //            int cnt = 0;
 //
 //            for (int c = from; c < to; c++) {
-//            	cnt += ctr->contains(c);
+//              cnt += ctr->contains(c);
 //            }
 //
 //            cout << "Contains: " << cnt << endl;

@@ -48,112 +48,113 @@ namespace memoria {
 namespace v1 {
 
 struct PoolBase {
-	virtual ~PoolBase() noexcept {}
+    virtual ~PoolBase() noexcept {}
 };
 
 template <typename ObjectType>
 class ObjectPool: public PoolBase {
 
-	using MyType = ObjectPool<ObjectType>;
+    using MyType = ObjectPool<ObjectType>;
 
-	using UniquePtr = std::unique_ptr<ObjectType, std::function<void (void*)>>;
-	using SharedPtr = std::shared_ptr<ObjectType>;
+    using UniquePtr = std::unique_ptr<ObjectType, std::function<void (void*)>>;
+    using SharedPtr = std::shared_ptr<ObjectType>;
 
-	struct Descriptor {
-		ObjectType object_;
+    struct Descriptor {
+        ObjectType object_;
 
-		Descriptor* next_;
+        Descriptor* next_;
 
-		Descriptor(): object_(), next_() {}
-	};
+        template <typename... Args>
+        Descriptor(Args&&... args): object_(std::forward<Args>(args)...), next_() {}
+    };
 
-	Descriptor* head_;
+    Descriptor* head_;
 
 
 public:
-	ObjectPool(): head_() {}
+    ObjectPool(): head_() {}
 
-	virtual ~ObjectPool()
-	{
-		while (head_)
-		{
-			auto tmp = head_;
-			head_ 	 = head_->next_;
+    virtual ~ObjectPool()
+    {
+        while (head_)
+        {
+            auto tmp = head_;
+            head_    = head_->next_;
 
-			delete tmp;
-		}
-	}
+            delete tmp;
+        }
+    }
 
-	template <typename... Args>
-	auto get_unique(Args&&... args)
-	{
-		Descriptor* descr;
+    template <typename... Args>
+    auto get_unique(Args&&... args)
+    {
+        Descriptor* descr;
 
-		if (head_)
-		{
-			descr 		 = head_;
-			head_ 		 = descr->next_;
-			descr->next_ = nullptr;
-		}
-		else {
-			descr = new Descriptor(std::forward<Args>(args)...);
-		}
+        if (head_)
+        {
+            descr        = head_;
+            head_        = descr->next_;
+            descr->next_ = nullptr;
+        }
+        else {
+            descr = new Descriptor(std::forward<Args>(args)...);
+        }
 
-		return UniquePtr(T2T<ObjectType*>(&descr->object_), [&, this](void* object_ptr) {
-			Descriptor* descr = T2T<Descriptor*>(object_ptr);
-			this->release(descr);
-		});
-	}
+        return UniquePtr(T2T<ObjectType*>(&descr->object_), [&, this](void* object_ptr) {
+            Descriptor* descr = T2T<Descriptor*>(object_ptr);
+            this->release(descr);
+        });
+    }
 
-	template <typename... Args>
-	auto get_shared(Args&&... args)
-	{
-		return SharedPtr(get_unique(std::forward<Args>(args)...));
-	}
+    template <typename... Args>
+    auto get_shared(Args&&... args)
+    {
+        return SharedPtr(get_unique(std::forward<Args>(args)...));
+    }
 
 
 private:
 
-	void release(Descriptor* entry)
-	{
-		entry->object_.clear();
+    void release(Descriptor* entry)
+    {
+        entry->object_.clear();
 
-		entry->next_ = head_;
-		head_ = entry;
-	}
+        entry->next_ = head_;
+        head_ = entry;
+    }
 };
 
 template <typename T>
 struct PoolT {};
 
 class ObjectPools {
-	using PoolMap = std::unordered_map<std::type_index, PoolBase*>;
-	PoolMap pools_;
+    using PoolMap = std::unordered_map<std::type_index, PoolBase*>;
+    PoolMap pools_;
 public:
-	ObjectPools() {}
+    ObjectPools() {}
 
-	~ObjectPools()
-	{
-		for (auto e: pools_)
-		{
-			delete e.second;
-		}
-	}
+    ~ObjectPools()
+    {
+        for (auto e: pools_)
+        {
+            delete e.second;
+        }
+    }
 
-	template <typename PoolType>
-	PoolType& get_instance(const PoolT<PoolType>&)
-	{
-		auto i = pools_.find(typeid(PoolType));
-		if (i != pools_.end())
-		{
-			return *T2T<PoolType*>(i->second);
-		}
-		else {
-			PoolType* pool = new PoolType();
-			pools_[typeid(PoolType)] = pool;
-			return *T2T<PoolType*>(pool);
-		}
-	}
+    template <typename PoolType>
+    PoolType& get_instance(const PoolT<PoolType>&)
+    {
+        auto i = pools_.find(typeid(PoolType));
+        if (i != pools_.end())
+        {
+            return *T2T<PoolType*>(i->second);
+        }
+        else {
+            PoolType* pool = new PoolType();
+            pools_[typeid(PoolType)] = pool;
+            return *T2T<PoolType*>(pool);
+        }
+    }
 };
 
 

@@ -43,7 +43,7 @@ class PackedRLESearchableSequenceCountTest: public PackedRLESequenceTestBase<Sym
 
 
     static const Int Blocks                 = Seq::Indexes;
-    static const Int Bits                 	= NumberOfBits(Symbols);
+    static const Int Bits                   = NumberOfBits(Symbols);
 
     using Base::getRandom;
     using Base::createEmptySequence;
@@ -78,7 +78,7 @@ public:
 
             if (last_symbol != symbol && last_symbol >= 0)
             {
-            	return total;
+                return total;
             }
 
             total++;
@@ -114,14 +114,14 @@ public:
 
         while (iter.has_data())
         {
-        	Int block_start = iter.idx();
-        	Int block_end 	= iter.idx() + iter.run().length();
+            Int block_start = iter.idx();
+            Int block_end   = iter.idx() + iter.run().length();
 
-        	ranks.push_back(Pair(countFW(seq, block_start), block_start));
-        	ranks.push_back(Pair(countFW(seq, block_start + 1), block_start + 1));
-        	ranks.push_back(Pair(countFW(seq, block_end - 1), block_end - 1));
+            ranks.push_back(Pair(countFW(seq, block_start), block_start));
+            ranks.push_back(Pair(countFW(seq, block_start + 1), block_start + 1));
+            ranks.push_back(Pair(countFW(seq, block_end - 1), block_end - 1));
 
-        	iter.next_run();
+            iter.next_run();
         }
 
         return ranks;
@@ -142,7 +142,7 @@ public:
 
         for (const auto& pair: ranks)
         {
-        	assertCount(seq, pair.idx, pair.rank);
+            assertCount(seq, pair.idx, pair.rank);
         }
     }
 };

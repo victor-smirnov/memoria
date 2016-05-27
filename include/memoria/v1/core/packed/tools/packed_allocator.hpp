@@ -157,11 +157,11 @@ public:
 //        return my_size() + layout_size + bitmap_size + roundUpBytesToAlignmentBlocks(client_area);
 
         return roundUpBytesToAlignmentBlocks(
-        		my_size() +
-				(blocks + (blocks % 2 ? 1 : 2))*sizeof(Int) +
-				roundUpBitsToAlignmentBlocks(blocks) +
-				roundUpBytesToAlignmentBlocks(client_area)
-		);
+                my_size() +
+                (blocks + (blocks % 2 ? 1 : 2))*sizeof(Int) +
+                roundUpBitsToAlignmentBlocks(blocks) +
+                roundUpBytesToAlignmentBlocks(client_area)
+        );
     }
 
     static constexpr Int client_area(Int block_size, Int blocks)
@@ -174,9 +174,9 @@ public:
 //        return roundDownBytesToAlignmentBlocks(block_size - (my_size() + layout_size + bitmap_size));
 
         return roundDownBytesToAlignmentBlocks(
-        		block_size -
-				(my_size() + (blocks + (blocks % 2 ? 1 : 2))*sizeof(Int) + roundUpBitsToAlignmentBlocks(blocks))
-		);
+                block_size -
+                (my_size() + (blocks + (blocks % 2 ? 1 : 2))*sizeof(Int) + roundUpBitsToAlignmentBlocks(blocks))
+        );
     }
 
     Int computeElementOffset(const void* element) const
@@ -262,7 +262,7 @@ public:
         Int offset  = computeElementOffset(element_ptr);
 
         if (offset < 0) {
-        	int a = 0; a++;
+            int a = 0; a++;
         }
 
         MEMORIA_V1_ASSERT(offset, >=, 0);

@@ -32,24 +32,24 @@ using namespace std;
 
 class PrintingConsumer: public bt::BufferConsumer<IOBuffer> {
 
-	IOBuffer buffer_;
+    IOBuffer buffer_;
 
 public:
-	PrintingConsumer(size_t size): buffer_(size) {}
+    PrintingConsumer(size_t size): buffer_(size) {}
 
-	virtual IOBuffer& buffer() {
-		return buffer_;
-	}
+    virtual IOBuffer& buffer() {
+        return buffer_;
+    }
 
-	virtual Int process(IOBuffer& buffer, Int entries)
-	{
-		for (Int c = 0; c < entries; c++)
-		{
-			cout << "Key: '" << buffer.getString() << "' Value: '" << buffer.getString() << "'" << endl;
-		}
+    virtual Int process(IOBuffer& buffer, Int entries)
+    {
+        for (Int c = 0; c < entries; c++)
+        {
+            cout << "Key: '" << buffer.getString() << "' Value: '" << buffer.getString() << "'" << endl;
+        }
 
-		return entries;
-	}
+        return entries;
+    }
 };
 
 

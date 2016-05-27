@@ -898,10 +898,10 @@ public:
     Int rank(Int end, Int symbol) const
     {
         if (end > size()) {
-        	dump();
+            dump();
         }
 
-    	MEMORIA_V1_ASSERT(end, <=, size());
+        MEMORIA_V1_ASSERT(end, <=, size());
         MEMORIA_V1_ASSERT_TRUE(end >= 0);
 
         MEMORIA_V1_ASSERT_TRUE(symbol >= 0 && symbol < AlphabetSize);

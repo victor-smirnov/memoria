@@ -68,7 +68,7 @@ public:
     }
 
     bool prev() {
-    	auto distance = self().skipBw(1);
+        auto distance = self().skipBw(1);
 
         return distance > 0;
     }

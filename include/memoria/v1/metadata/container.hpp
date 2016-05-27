@@ -73,9 +73,9 @@ struct ContainerWalker {
 
 struct ContainerInterface {
 
-	// FIXME: remove name from parameters, it's already in Ctr's page root metadata
+    // FIXME: remove name from parameters, it's already in Ctr's page root metadata
 
-	virtual String ctr_name() = 0;
+    virtual String ctr_name() = 0;
 
     virtual bool check(const UUID& root_id, const UUID& name, void* allocator) const = 0;
     virtual void walk(

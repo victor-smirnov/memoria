@@ -41,7 +41,7 @@ class FlatTreeIOBufferAdapter: public BufferProducer<IOBufferT> {
 
 public:
 
-	static constexpr Int DataStreams = Streams - 1;
+    static constexpr Int DataStreams = Streams - 1;
 
     static constexpr BigInt MaxRunLength = IOBufferT::template getMaxSymbolsRunLength<DataStreams>();
 
@@ -63,7 +63,7 @@ public:
     FlatTreeIOBufferAdapter(){}
 
     const CtrSizesT& consumed() const {
-    	return consumed_;
+        return consumed_;
     }
 
     virtual RunDescr query() = 0;
@@ -71,75 +71,75 @@ public:
 
     virtual Int populate(IOBuffer& io_buffer)
     {
-    	Int entries = 0;
+        Int entries = 0;
 
-    	while (true)
-    	{
-    		if (processed_ == state_.length())
-    		{
-    			state_ 			= this->query();
-    			symbol_encoded_ = false;
-    			processed_ 		= 0;
-    		}
+        while (true)
+        {
+            if (processed_ == state_.length())
+            {
+                state_          = this->query();
+                symbol_encoded_ = false;
+                processed_      = 0;
+            }
 
-    		if (state_.symbol() >= 0)
-    		{
-    			auto length = state_.length();
+            if (state_.symbol() >= 0)
+            {
+                auto length = state_.length();
 
-    			while (processed_ < length || length == 0)
-    			{
-    				Int remainder = length - processed_;
+                while (processed_ < length || length == 0)
+                {
+                    Int remainder = length - processed_;
 
-    				if (run_processed_ == run_length_)
-    				{
-    					run_length_ = remainder > MaxRunLength ? MaxRunLength : remainder;
-    					run_processed_  = 0;
-    					symbol_encoded_ = false;
-    				}
+                    if (run_processed_ == run_length_)
+                    {
+                        run_length_ = remainder > MaxRunLength ? MaxRunLength : remainder;
+                        run_processed_  = 0;
+                        symbol_encoded_ = false;
+                    }
 
-    				Int to_encode = run_length_ - run_processed_;
+                    Int to_encode = run_length_ - run_processed_;
 
-    				if (!symbol_encoded_)
-    				{
-    					auto pos = io_buffer.pos();
-    					if (io_buffer.template putSymbolsRun<DataStreams>(state_.symbol(), to_encode))
-    					{
-    						symbol_encoded_ = true;
-    						entries++;
-    					}
-    					else {
-    						io_buffer.pos(pos);
-    						symbol_encoded_ = false;
-    						return entries;
-    					}
-    				}
+                    if (!symbol_encoded_)
+                    {
+                        auto pos = io_buffer.pos();
+                        if (io_buffer.template putSymbolsRun<DataStreams>(state_.symbol(), to_encode))
+                        {
+                            symbol_encoded_ = true;
+                            entries++;
+                        }
+                        else {
+                            io_buffer.pos(pos);
+                            symbol_encoded_ = false;
+                            return entries;
+                        }
+                    }
 
-    				if (to_encode > 0)
-    				{
-    					Int actual = populate_stream(state_.symbol(), io_buffer, to_encode);
+                    if (to_encode > 0)
+                    {
+                        Int actual = populate_stream(state_.symbol(), io_buffer, to_encode);
 
-    					processed_ 		+= actual;
-    					run_processed_ 	+= actual;
-    					entries 		+= actual;
+                        processed_      += actual;
+                        run_processed_  += actual;
+                        entries         += actual;
 
-    					consumed_[state_.symbol()] += actual;
+                        consumed_[state_.symbol()] += actual;
 
-    					if (actual < to_encode)
-    					{
-    						return entries;
-    					}
-    					else {
-    						symbol_encoded_ = false;
-    					}
-    				}
-    			}
-    		}
-    		else {
-    			return -entries;
-    		}
-    	}
+                        if (actual < to_encode)
+                        {
+                            return entries;
+                        }
+                        else {
+                            symbol_encoded_ = false;
+                        }
+                    }
+                }
+            }
+            else {
+                return -entries;
+            }
+        }
 
-    	return entries;
+        return entries;
     }
 };
 

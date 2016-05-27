@@ -1022,7 +1022,7 @@ public:
 
             for (Int c = 0; c < index_size; c++)
             {
-            	handler->value("INDEX", PageValueProviderFactory::provider(size_indexes[c]));
+                handler->value("INDEX", PageValueProviderFactory::provider(size_indexes[c]));
             }
 
             handler->endGroup();
@@ -1054,7 +1054,7 @@ public:
             }
 
             handler->value("ARRAY_ITEM", PageValueProviderFactory::provider(Blocks, [&](Int idx) -> const Value& {
-            	return values_data[idx];
+                return values_data[idx];
             }));
         }
 
@@ -1105,24 +1105,24 @@ public:
     template <typename IOBuffer>
     bool readTo(ReadState& state, IOBuffer& buffer) const
     {
-    	Codec codec;
-    	auto values = this->values();
+        Codec codec;
+        auto values = this->values();
 
-    	for (Int b = 0; b < Blocks; b++)
-    	{
-    		Value value;
-    		auto val = codec.describe(values, state[b]);
+        for (Int b = 0; b < Blocks; b++)
+        {
+            Value value;
+            auto val = codec.describe(values, state[b]);
 
-    		if (buffer.put(val))
-    		{
-    			state[0] += val.length();
-    		}
-    		else {
-    			return false;
-    		}
-    	}
+            if (buffer.put(val))
+            {
+                state[0] += val.length();
+            }
+            else {
+                return false;
+            }
+        }
 
-    	return true;
+        return true;
     }
 
 

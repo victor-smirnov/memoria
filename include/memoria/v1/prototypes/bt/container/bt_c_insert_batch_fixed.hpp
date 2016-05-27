@@ -150,7 +150,7 @@ protected:
 
         if (update_hierarchy)
         {
-        	self.update_path(node);
+            self.update_path(node);
             self.updateChildIndexes(node, max);
         }
 

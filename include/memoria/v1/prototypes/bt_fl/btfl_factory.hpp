@@ -104,7 +104,7 @@ struct BTTypes<Profile, v1::BTFreeLayout>: public BTTypes<Profile, v1::BT> {
                 v1::btfl::IteratorUpdateName,
                 v1::btfl::IteratorRemoveName,
                 v1::btfl::IteratorInsertName,
-				v1::btfl::IteratorReadName
+                v1::btfl::IteratorReadName
     >;
 
 
@@ -134,8 +134,8 @@ public:
 
 
 
-        static const Int DataStreams 			= Base::Types::Streams - 1;
-        static const Int StructureStreamIdx  	= DataStreams;
+        static const Int DataStreams            = Base::Types::Streams - 1;
+        static const Int StructureStreamIdx     = DataStreams;
 
 
         using DataSizesT = core::StaticVector<typename Base::Types::CtrSizeT, DataStreams>;

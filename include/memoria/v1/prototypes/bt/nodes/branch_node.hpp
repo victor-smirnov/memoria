@@ -1247,17 +1247,17 @@ public:
     template <typename SubstreamPath>
     void sum_substream(Int block_num, Int start, Int end, BigInt& accum) const
     {
-    	processStream<SubstreamPath>(SumsFn(), block_num, start, end, accum);
+        processStream<SubstreamPath>(SumsFn(), block_num, start, end, accum);
     }
 
     template <typename LeafSubstreamPath>
     void sum_substream_for_leaf_path(Int leaf_block_num, Int start, Int end, BigInt& accum) const
     {
-    	using BranchPath = BuildBranchPath<LeafSubstreamPath>;
+        using BranchPath = BuildBranchPath<LeafSubstreamPath>;
 
-    	const Int index = MyType::translateLeafIndexToBranchIndex<LeafSubstreamPath>(leaf_block_num);
+        const Int index = MyType::translateLeafIndexToBranchIndex<LeafSubstreamPath>(leaf_block_num);
 
-    	processStream<BranchPath>(SumsFn(), index, start, end, accum);
+        processStream<BranchPath>(SumsFn(), index, start, end, accum);
     }
 
 

@@ -38,11 +38,11 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorMiscName)
 
     using Container = typename Base::Container;
 
-    using CtrSizeT  	= typename Container::Types::CtrSizeT;
-    using DataSizesT  	= typename Container::Types::DataSizesT;
+    using CtrSizeT      = typename Container::Types::CtrSizeT;
+    using DataSizesT    = typename Container::Types::DataSizesT;
 
     static const Int Streams                = Container::Types::Streams;
-    static const Int DataStreams      		= Container::Types::DataStreams;
+    static const Int DataStreams            = Container::Types::DataStreams;
 
 
 
@@ -50,14 +50,19 @@ protected:
 
 
 
+//    void refresh()
+//    {
+//        Base::refresh();
+//    }
+//
+//    void refresh_prefixes()
+//    {
+//        Base::refresh();
+//    }
+
     void refresh()
     {
-        Base::refresh();
-    }
-
-    void refresh_prefixes()
-    {
-        Base::refresh();
+        self().refreshBranchPrefixes();
     }
 
 

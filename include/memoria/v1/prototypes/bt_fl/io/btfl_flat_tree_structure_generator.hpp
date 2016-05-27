@@ -79,7 +79,7 @@ template <typename MyType, Int Streams>
 class FlatTreeStructureGeneratorBase {
 
 public:
-	using CtrSizeT = BigInt;
+    using CtrSizeT = BigInt;
 
     using CtrSizesT = core::StaticVector<CtrSizeT, Streams>;
 
@@ -130,24 +130,24 @@ public:
     }
 
     auto& consumed() {
-    	return totals_;
+        return totals_;
     }
 
     const auto& counts() const {
-    	return counts_;
+        return counts_;
     }
 
     auto& counts() {
-    	return counts_;
+        return counts_;
     }
 
     void commit(Int level, CtrSizeT len)
     {
-    	counts_[level] += len;
+        counts_[level] += len;
     }
 
     const auto& current_limits() const {
-    	return current_limits_;
+        return current_limits_;
     }
 
     MyType& self() {return *T2T<MyType*>(this);}

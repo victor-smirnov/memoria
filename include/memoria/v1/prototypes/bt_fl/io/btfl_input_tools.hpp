@@ -34,44 +34,44 @@ namespace io {
 
 template <typename T>
 class InputBufferHandler {
-	T* ref_;
+    T* ref_;
 public:
-	using MyType = InputBufferHandler<T>;
-	using PtrType = T;
+    using MyType = InputBufferHandler<T>;
+    using PtrType = T;
 
-	InputBufferHandler(T* ref): ref_(ref) {}
-	InputBufferHandler(): ref_(nullptr) {}
-	InputBufferHandler(const MyType& other) = delete;
-	InputBufferHandler(MyType&& other): ref_(other.ref_) {
-		other.ref_ = nullptr;
-	}
+    InputBufferHandler(T* ref): ref_(ref) {}
+    InputBufferHandler(): ref_(nullptr) {}
+    InputBufferHandler(const MyType& other) = delete;
+    InputBufferHandler(MyType&& other): ref_(other.ref_) {
+        other.ref_ = nullptr;
+    }
 
-	~InputBufferHandler() {
-		if (ref_) ::free(ref_);
-	}
+    ~InputBufferHandler() {
+        if (ref_) ::free(ref_);
+    }
 
-	T* get() {
-		return ref_;
-	}
+    T* get() {
+        return ref_;
+    }
 
-	const T* get() const {
-		return ref_;
-	}
+    const T* get() const {
+        return ref_;
+    }
 
-	MyType& operator=(const MyType& other) = delete;
+    MyType& operator=(const MyType& other) = delete;
 
-	void operator=(MyType&& other) {
-		if (ref_) ::free(ref_);
-		ref_ = other.ref_;
-		other.ref_ = nullptr;
-	}
+    void operator=(MyType&& other) {
+        if (ref_) ::free(ref_);
+        ref_ = other.ref_;
+        other.ref_ = nullptr;
+    }
 
-	T* operator->() {return ref_;}
-	const T* operator->() const {return ref_;}
+    T* operator->() {return ref_;}
+    const T* operator->() const {return ref_;}
 
-	bool is_null() const {
-		return ref_ == nullptr;
-	}
+    bool is_null() const {
+        return ref_ == nullptr;
+    }
 };
 
 

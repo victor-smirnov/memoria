@@ -510,7 +510,7 @@ public:
 
         void set_idx(Int idx)
         {
-        	this->idx_ = idx;
+            this->idx_ = idx;
         }
     };
 
@@ -528,13 +528,13 @@ public:
 
     auto findForward(SearchType search_type, Int block, const Optional<IndexValue>& val) const
     {
-    	if (search_type == SearchType::GT)
-    	{
-    		return FindResult(findGTForward(block, val.value()));
-    	}
-    	else {
-    		return FindResult(findGEForward(block, val.value()));
-    	}
+        if (search_type == SearchType::GT)
+        {
+            return FindResult(findGTForward(block, val.value()));
+        }
+        else {
+            return FindResult(findGEForward(block, val.value()));
+        }
     }
 
 

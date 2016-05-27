@@ -58,7 +58,7 @@ struct BTTypes<Profile, v1::Sequence<8, true> >: public BTTypes<Profile, v1::BTS
 
 
     using SeqStreamTF = StreamTF<
-    	TL<StreamSize, TL<PkdFSSeq<SequenceTypes>>>,
+        TL<StreamSize, TL<PkdFSSeq<SequenceTypes>>>,
         VLDBranchStructTF
     >;
 

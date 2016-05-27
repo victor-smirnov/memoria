@@ -25,9 +25,9 @@ using namespace std;
 
 int main()
 {
-	try {
+    try {
 
-	}
+    }
     catch (::memoria::v1::Exception& ex) {
         cout << ex.message() << " at " << ex.source() << endl;
     }

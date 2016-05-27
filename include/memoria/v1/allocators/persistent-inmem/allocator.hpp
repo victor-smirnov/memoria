@@ -398,15 +398,15 @@ public:
 
     virtual ~PersistentInMemAllocatorT()
     {
-    	free_memory(history_tree_);
+        free_memory(history_tree_);
     }
 
     PairPtr& pair() {
-    	return pair_;
+        return pair_;
     }
 
     const PairPtr& pair() const {
-    	return pair_;
+        return pair_;
     }
 
     // return true in case of errors
@@ -542,8 +542,8 @@ public:
 
     virtual void store(const char* file)
     {
-    	auto fileh = FileOutputStreamHandler::create(file);
-    	store(fileh.get());
+        auto fileh = FileOutputStreamHandler::create(file);
+        store(fileh.get());
     }
 
     virtual void store(OutputStreamHandler *output)
@@ -575,8 +575,8 @@ public:
 
     static std::shared_ptr<MyType> load(const char* file)
     {
-    	auto fileh = FileInputStreamHandler::create(file);
-    	return load(fileh.get());
+        auto fileh = FileInputStreamHandler::create(file);
+        return load(fileh.get());
     }
 
     static std::shared_ptr<MyType> load(InputStreamHandler *input)

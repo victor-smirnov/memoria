@@ -469,13 +469,13 @@ protected:
     template <typename SubstreamPath>
     const auto* getPackedStruct(const NodeBaseG& leaf) const
     {
-    	return LeafDispatcher::dispatch(leaf, GetPackedStructFn<SubstreamPath>());
+        return LeafDispatcher::dispatch(leaf, GetPackedStructFn<SubstreamPath>());
     }
 
     template <typename SubstreamPath>
     auto* getPackedStruct(NodeBaseG& leaf)
     {
-    	return LeafDispatcher::dispatch(leaf, GetPackedStructFn<SubstreamPath>());
+        return LeafDispatcher::dispatch(leaf, GetPackedStructFn<SubstreamPath>());
     }
 
 MEMORIA_V1_CONTAINER_PART_END

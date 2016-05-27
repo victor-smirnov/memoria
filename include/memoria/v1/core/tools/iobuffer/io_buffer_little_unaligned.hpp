@@ -36,230 +36,230 @@ namespace v1 {
 
 template <>
 class IOBuffer<ByteOrder::LITTLE, MemoryAccess::UNALIGNED>: public IOBufferBase {
-	using Base = IOBufferBase;
+    using Base = IOBufferBase;
 
 public:
 
 
-	IOBuffer(): Base()
-	{}
+    IOBuffer(): Base()
+    {}
 
-	IOBuffer(size_t length): Base(length)
-	{}
+    IOBuffer(size_t length): Base(length)
+    {}
 
-	IOBuffer(UByte* data, size_t length): Base(data, length)
-	{}
+    IOBuffer(UByte* data, size_t length): Base(data, length)
+    {}
 
-	IOBuffer(const IOBuffer&) = delete;
+    IOBuffer(const IOBuffer&) = delete;
 
-	IOBuffer(IOBuffer&& other): Base(std::move(other))
-	{}
+    IOBuffer(IOBuffer&& other): Base(std::move(other))
+    {}
 
-	using Base::put;
+    using Base::put;
 
-	bool put(Short v)
-	{
-		if (has_capacity(2))
-		{
-			*T2T<Short*>(array_ + pos_) = v;
+    bool put(Short v)
+    {
+        if (has_capacity(2))
+        {
+            *T2T<Short*>(array_ + pos_) = v;
 
-			pos_ += 2;
+            pos_ += 2;
 
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 
-	Short getShort()
-	{
-		assertRange(2, "getShort()");
-		Short v = *T2T<Short*>(array_ + pos_);
+    Short getShort()
+    {
+        assertRange(2, "getShort()");
+        Short v = *T2T<Short*>(array_ + pos_);
 
-		pos_ += 2;
+        pos_ += 2;
 
-		return v;
-	}
-
-
-	bool put(UShort v)
-	{
-		if (has_capacity(2))
-		{
-			*T2T<UShort*>(array_ + pos_) = v;
-
-			pos_ += 2;
-
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-
-	UShort getUShort()
-	{
-		assertRange(2, "getShort()");
-		Short v = *T2T<UShort*>(array_ + pos_);
-
-		pos_ += 2;
-
-		return v;
-	}
-
-	bool put(Int v)
-	{
-		if (has_capacity(4))
-		{
-			*T2T<Int*>(array_ + pos_) = v;
-
-			pos_ += 4;
-
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-
-	Int getInt()
-	{
-		assertRange(4, "getInt()");
-		Int v = *T2T<Int*>(array_ + pos_);
-
-		pos_ += 4;
-
-		return v;
-	}
+        return v;
+    }
 
 
-	bool put(UInt v)
-	{
-		if (has_capacity(4))
-		{
-			*T2T<UInt*>(array_ + pos_) = v;
+    bool put(UShort v)
+    {
+        if (has_capacity(2))
+        {
+            *T2T<UShort*>(array_ + pos_) = v;
 
-			pos_ += 4;
+            pos_ += 2;
 
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 
-	UInt getUInt()
-	{
-		assertRange(4, "getUInt()");
-		UInt v = *T2T<UInt*>(array_ + pos_);
+    UShort getUShort()
+    {
+        assertRange(2, "getShort()");
+        Short v = *T2T<UShort*>(array_ + pos_);
 
-		pos_ += 4;
+        pos_ += 2;
 
-		return v;
-	}
+        return v;
+    }
 
-	bool put(BigInt v)
-	{
-		if (has_capacity(8))
-		{
-			*T2T<BigInt*>(array_ + pos_) = v;
+    bool put(Int v)
+    {
+        if (has_capacity(4))
+        {
+            *T2T<Int*>(array_ + pos_) = v;
 
-			pos_ += 8;
+            pos_ += 4;
 
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 
-	BigInt getBigInt()
-	{
-		assertRange(8, "getBigInt()");
-		BigInt v = *T2T<BigInt*>(array_ + pos_);
+    Int getInt()
+    {
+        assertRange(4, "getInt()");
+        Int v = *T2T<Int*>(array_ + pos_);
 
-		pos_ += 8;
+        pos_ += 4;
 
-		return v;
-	}
-
-	bool put(UBigInt v)
-	{
-		if (has_capacity(8))
-		{
-			*T2T<UBigInt*>(array_ + pos_) = v;
-
-			pos_ += 8;
-
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-
-	UBigInt getUBigInt()
-	{
-		assertRange(8, "getUBigInt()");
-
-		UBigInt v = *T2T<Short*>(array_ + pos_);
-
-		pos_ += 8;
-
-		return v;
-	}
-
-	bool put(float v)
-	{
-		if (has_capacity(4))
-		{
-			*T2T<float*>(array_ + pos_) = v;
-
-			pos_ += 4;
-
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-
-	float getFloat()
-	{
-		assertRange(4, "getFloat()");
-		float v = *T2T<float*>(array_ + pos_);
-
-		pos_ += 4;
-
-		return v;
-	}
+        return v;
+    }
 
 
-	bool put(double v)
-	{
-		if (has_capacity(8))
-		{
-			*T2T<double*>(array_ + pos_) = v;
+    bool put(UInt v)
+    {
+        if (has_capacity(4))
+        {
+            *T2T<UInt*>(array_ + pos_) = v;
 
-			pos_ += 8;
+            pos_ += 4;
 
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 
-	double getDouble()
-	{
-		assertRange(8, "getDouble()");
-		double v = *T2T<double*>(array_ + pos_);
+    UInt getUInt()
+    {
+        assertRange(4, "getUInt()");
+        UInt v = *T2T<UInt*>(array_ + pos_);
 
-		pos_ += 8;
+        pos_ += 4;
 
-		return static_cast<double>(v);
-	}
+        return v;
+    }
+
+    bool put(BigInt v)
+    {
+        if (has_capacity(8))
+        {
+            *T2T<BigInt*>(array_ + pos_) = v;
+
+            pos_ += 8;
+
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    BigInt getBigInt()
+    {
+        assertRange(8, "getBigInt()");
+        BigInt v = *T2T<BigInt*>(array_ + pos_);
+
+        pos_ += 8;
+
+        return v;
+    }
+
+    bool put(UBigInt v)
+    {
+        if (has_capacity(8))
+        {
+            *T2T<UBigInt*>(array_ + pos_) = v;
+
+            pos_ += 8;
+
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    UBigInt getUBigInt()
+    {
+        assertRange(8, "getUBigInt()");
+
+        UBigInt v = *T2T<Short*>(array_ + pos_);
+
+        pos_ += 8;
+
+        return v;
+    }
+
+    bool put(float v)
+    {
+        if (has_capacity(4))
+        {
+            *T2T<float*>(array_ + pos_) = v;
+
+            pos_ += 4;
+
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    float getFloat()
+    {
+        assertRange(4, "getFloat()");
+        float v = *T2T<float*>(array_ + pos_);
+
+        pos_ += 4;
+
+        return v;
+    }
+
+
+    bool put(double v)
+    {
+        if (has_capacity(8))
+        {
+            *T2T<double*>(array_ + pos_) = v;
+
+            pos_ += 8;
+
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    double getDouble()
+    {
+        assertRange(8, "getDouble()");
+        double v = *T2T<double*>(array_ + pos_);
+
+        pos_ += 8;
+
+        return static_cast<double>(v);
+    }
 
 
 };

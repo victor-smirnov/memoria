@@ -58,23 +58,23 @@ size_t max_width(const PageDataValueProvider& provider)
 
 void dumpPageDataValueProviderAsArray(std::ostream& out, const PageDataValueProvider& provider)
 {
-//	std::ios  state(nullptr);
-//	state.copyfmt(out);
+//  std::ios  state(nullptr);
+//  state.copyfmt(out);
 
-	auto width = max_width(provider) + 1;
+    auto width = max_width(provider) + 1;
 
     if (width < 3) width = 3;
 
     Int columns;
 
     if (width <= 3) {
-    	columns = 16;
+        columns = 16;
     }
     else if (width <= 7) {
-    	columns = 16;
+        columns = 16;
     }
     else {
-    	columns = (80 / width > 0 ? 80 / width : 1);
+        columns = (80 / width > 0 ? 80 / width : 1);
     }
 
     out << endl;

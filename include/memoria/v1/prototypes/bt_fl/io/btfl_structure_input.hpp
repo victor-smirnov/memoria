@@ -37,147 +37,147 @@ namespace io {
 
 template <typename DataBuffer, typename CtrSizeT>
 struct StructureStreamInputBuffer {
-	using Buffer    = DataBuffer;
+    using Buffer    = DataBuffer;
 protected:
 
-	using BufferT 		= typename DataBuffer::PtrType;
-	using BufferSizes 	= typename BufferT::BufferSizesT;
+    using BufferT       = typename DataBuffer::PtrType;
+    using BufferSizes   = typename BufferT::BufferSizesT;
 
-	DataBuffer 	buffer_;
-	BufferT*   	buffer_ptr_;
+    DataBuffer  buffer_;
+    BufferT*    buffer_ptr_;
 
-	Int last_symbol_ 	= -1;
-	UBigInt run_length_ = 0;
+    Int last_symbol_    = -1;
+    UBigInt run_length_ = 0;
 
 
 
 
 public:
-	StructureStreamInputBuffer(){}
+    StructureStreamInputBuffer(){}
 
-	void init(DataBuffer&& buffer)
-	{
-		buffer_ 	= std::move(buffer);
-		buffer_ptr_ = buffer_.get();
-	}
+    void init(DataBuffer&& buffer)
+    {
+        buffer_     = std::move(buffer);
+        buffer_ptr_ = buffer_.get();
+    }
 
-	void init(Int capacity)
-	{
-		init(create_input_buffer(1024));
-	}
-
-
-	DataBuffer& buffer() {return buffer_;}
-	const DataBuffer& buffer() const {return buffer_;}
+    void init(Int capacity)
+    {
+        init(create_input_buffer(1024));
+    }
 
 
-	void reset()
-	{
-		if (!buffer_.is_null())
-		{
-			buffer_->reset();
-		}
-
-		last_symbol_ = -1;
-		run_length_  = 0;
-	}
-
-	void finish()
-	{
-		if (last_symbol_ >= 0)
-		{
-			flush_run();
-			last_symbol_ = -1;
-		}
-
-		buffer_->reindex();
-	}
-
-	void append_run(Int symbol, UBigInt run_length)
-	{
-		if (symbol == last_symbol_ || last_symbol_ < 0)
-		{
-			last_symbol_ = symbol;
-			run_length_ += run_length;
-		}
-		else
-		{
-			flush_run();
-
-			last_symbol_ = symbol;
-			run_length_  = run_length;
-		}
-	}
+    DataBuffer& buffer() {return buffer_;}
+    const DataBuffer& buffer() const {return buffer_;}
 
 
-	BufferSizes data_capacity() const
-	{
-		return buffer_->data_capacity();
-	}
+    void reset()
+    {
+        if (!buffer_.is_null())
+        {
+            buffer_->reset();
+        }
 
-	auto* create_input_buffer(const BufferSizes& buffer_sizes)
-	{
-		Int block_size  = BufferT::block_size(buffer_sizes);
-		BufferT* buffer = T2T<BufferT*>(malloc(block_size));
-		if (buffer)
-		{
-			buffer->setTopLevelAllocator();
-			buffer->init(block_size, buffer_sizes);
-			return buffer;
-		}
-		else {
-			throw OOMException(MA_RAW_SRC);
-		}
-	}
+        last_symbol_ = -1;
+        run_length_  = 0;
+    }
 
-	auto* create_input_buffer(Int buffer_size)
-	{
-		Int block_size  = BufferT::block_size(buffer_size) + 500;
-		BufferT* buffer = T2T<BufferT*>(malloc(block_size));
-		if (buffer)
-		{
-			buffer->setTopLevelAllocator();
-			buffer->init(block_size, buffer_size);
-			return buffer;
-		}
-		else {
-			throw OOMException(MA_RAW_SRC);
-		}
-	}
+    void finish()
+    {
+        if (last_symbol_ >= 0)
+        {
+            flush_run();
+            last_symbol_ = -1;
+        }
+
+        buffer_->reindex();
+    }
+
+    void append_run(Int symbol, UBigInt run_length)
+    {
+        if (symbol == last_symbol_ || last_symbol_ < 0)
+        {
+            last_symbol_ = symbol;
+            run_length_ += run_length;
+        }
+        else
+        {
+            flush_run();
+
+            last_symbol_ = symbol;
+            run_length_  = run_length;
+        }
+    }
+
+
+    BufferSizes data_capacity() const
+    {
+        return buffer_->data_capacity();
+    }
+
+    auto* create_input_buffer(const BufferSizes& buffer_sizes)
+    {
+        Int block_size  = BufferT::block_size(buffer_sizes);
+        BufferT* buffer = T2T<BufferT*>(malloc(block_size));
+        if (buffer)
+        {
+            buffer->setTopLevelAllocator();
+            buffer->init(block_size, buffer_sizes);
+            return buffer;
+        }
+        else {
+            throw OOMException(MA_RAW_SRC);
+        }
+    }
+
+    auto* create_input_buffer(Int buffer_size)
+    {
+        Int block_size  = BufferT::block_size(buffer_size) + 500;
+        BufferT* buffer = T2T<BufferT*>(malloc(block_size));
+        if (buffer)
+        {
+            buffer->setTopLevelAllocator();
+            buffer->init(block_size, buffer_size);
+            return buffer;
+        }
+        else {
+            throw OOMException(MA_RAW_SRC);
+        }
+    }
 
 private:
 
 
 
 
-	void flush_run()
-	{
-		if (run_length_ > 0 && !buffer_->emplace_back_symbols_run(last_symbol_, run_length_))
-		{
-			enlarge();
+    void flush_run()
+    {
+        if (run_length_ > 0 && !buffer_->emplace_back_symbols_run(last_symbol_, run_length_))
+        {
+            enlarge();
 
-			if (!buffer_->emplace_back_symbols_run(last_symbol_, run_length_))
-			{
-				throw Exception(MA_SRC, "Symbols run entry is too large for RLE Sequence");
-			}
-		}
-	}
+            if (!buffer_->emplace_back_symbols_run(last_symbol_, run_length_))
+            {
+                throw Exception(MA_SRC, "Symbols run entry is too large for RLE Sequence");
+            }
+        }
+    }
 
 
 protected:
 
-	void enlarge()
-	{
-		BufferSizes current_capacity 	= data_capacity();
-		BufferSizes new_capacity 		= current_capacity;
-		VectorAdd(new_capacity, new_capacity);
+    void enlarge()
+    {
+        BufferSizes current_capacity    = data_capacity();
+        BufferSizes new_capacity        = current_capacity;
+        VectorAdd(new_capacity, new_capacity);
 
-		auto new_buffer = create_input_buffer(new_capacity);
+        auto new_buffer = create_input_buffer(new_capacity);
 
-		buffer_.get()->copyTo(new_buffer);
+        buffer_.get()->copyTo(new_buffer);
 
-		init(DataBuffer(new_buffer));
-	}
+        init(DataBuffer(new_buffer));
+    }
 };
 
 

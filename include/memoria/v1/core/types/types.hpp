@@ -38,7 +38,7 @@ static constexpr int PackedTreeExintVPB                 = 256;
 static constexpr int PackedTreeEliasVPB                 = 1024;
 static constexpr int PackedAllocationAlignment          = 8;
 
-static constexpr size_t MaxRLERunLength        			= 0x7FFFFFF;
+static constexpr size_t MaxRLERunLength                 = 0x7FFFFFF;
 
 typedef std::int64_t            BigInt;
 typedef std::uint64_t           UBigInt;
@@ -180,7 +180,7 @@ struct Table        {};
 
 
 template <typename Key>
-struct Set			{};
+struct Set          {};
 
 
 
@@ -358,14 +358,14 @@ class FLSelector {};
 enum class SplitStatus {NONE, LEFT, RIGHT, UNKNOWN};
 
 class SplitResult {
-	SplitStatus type_;
-	Int idx_;
+    SplitStatus type_;
+    Int idx_;
 public:
-	SplitResult(SplitStatus type, Int idx): type_(type), idx_(idx) {}
-	SplitResult(SplitStatus type): type_(type), idx_() {}
+    SplitResult(SplitStatus type, Int idx): type_(type), idx_(idx) {}
+    SplitResult(SplitStatus type): type_(type), idx_() {}
 
-	SplitStatus type() const {return type_;}
-	Int idx() const {return idx_;}
+    SplitStatus type() const {return type_;}
+    Int idx() const {return idx_;}
 };
 
 
@@ -506,11 +506,11 @@ template <typename T> struct IOBufferAdapter;
 
 
 enum class ByteOrder {
-	BIG, LITTLE
+    BIG, LITTLE
 };
 
 enum class MemoryAccess {
-	ALIGNED, UNALIGNED
+    ALIGNED, UNALIGNED
 };
 
 

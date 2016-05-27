@@ -43,7 +43,7 @@ class PackedRLESearchableSequenceSelectTest: public PackedRLESequenceTestBase<Sy
 
 
     static const Int Blocks                 = Seq::Indexes;
-    static const Int Bits                 	= NumberOfBits(Symbols);
+    static const Int Bits                   = NumberOfBits(Symbols);
 
     using Base::getRandom;
     using Base::createEmptySequence;
@@ -122,7 +122,7 @@ public:
 
         if (result1.is_found())
         {
-        	AssertEQ(MA_SRC, result1.idx(),  result2.idx(), SBuf() << start << " " << rank);
+            AssertEQ(MA_SRC, result1.idx(),  result2.idx(), SBuf() << start << " " << rank);
         }
     }
 
@@ -138,7 +138,7 @@ public:
 
         if (result1.is_found())
         {
-        	AssertEQ(MA_SRC, result1.idx(),  result2.idx(), SBuf() << start << " " << rank);
+            AssertEQ(MA_SRC, result1.idx(),  result2.idx(), SBuf() << start << " " << rank);
         }
     }
 
@@ -165,14 +165,14 @@ public:
 
         while (iter.has_data())
         {
-        	Int block_start = iter.idx();
-        	Int block_end 	= iter.idx() + iter.run().length();
+            Int block_start = iter.idx();
+            Int block_end   = iter.idx() + iter.run().length();
 
-        	ranks.push_back(createRankFw(seq, block_start, symbol));
-        	ranks.push_back(createRankFw(seq, block_start + 1, symbol));
-        	ranks.push_back(createRankFw(seq, block_end - 1, symbol));
+            ranks.push_back(createRankFw(seq, block_start, symbol));
+            ranks.push_back(createRankFw(seq, block_start + 1, symbol));
+            ranks.push_back(createRankFw(seq, block_end - 1, symbol));
 
-        	iter.next_run();
+            iter.next_run();
         }
 
         return ranks;
@@ -183,8 +183,8 @@ public:
 
     Pair createRankFw(const SeqPtr& seq, Int start, Int symbol)
     {
-    	Int size = seq->size();
-    	Int end = start + getRandom(size - start - 1) + 1;
+        Int size = seq->size();
+        Int end = start + getRandom(size - start - 1) + 1;
 
         Int rank = 0;
 
@@ -205,7 +205,7 @@ public:
 
     Pair createRankBw(const SeqPtr& seq, Int start, Int symbol)
     {
-    	Int end = getRandom(start);
+        Int end = getRandom(start);
 
         Int rank = 0;
 
@@ -229,14 +229,14 @@ public:
 
         while (iter.has_data())
         {
-        	Int block_start = iter.idx();
-        	Int block_end 	= iter.idx() + iter.run().length();
+            Int block_start = iter.idx();
+            Int block_end   = iter.idx() + iter.run().length();
 
-        	ranks.push_back(createRankBw(seq, block_start, symbol));
-        	ranks.push_back(createRankBw(seq, block_start + 1, symbol));
-        	ranks.push_back(createRankBw(seq, block_end - 1, symbol));
+            ranks.push_back(createRankBw(seq, block_start, symbol));
+            ranks.push_back(createRankBw(seq, block_start + 1, symbol));
+            ranks.push_back(createRankBw(seq, block_end - 1, symbol));
 
-        	iter.next_run();
+            iter.next_run();
         }
 
         return ranks;
@@ -263,7 +263,7 @@ public:
         auto ranks = createRanksFW(seq, symbol);
         for (const auto& pair: ranks)
         {
-        	assertSelectFW(seq, pair.idx, pair.rank, symbol);
+            assertSelectFW(seq, pair.idx, pair.rank, symbol);
         }
 
         out()<<endl;
@@ -350,7 +350,7 @@ public:
 
         for (const auto& pair: ranks)
         {
-        	assertSelectBW(seq, pair.idx, pair.rank, symbol);
+            assertSelectBW(seq, pair.idx, pair.rank, symbol);
         }
 
         out()<<endl;

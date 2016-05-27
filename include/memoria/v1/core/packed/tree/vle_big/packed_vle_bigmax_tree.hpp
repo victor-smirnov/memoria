@@ -115,28 +115,28 @@ public:
     using Values        = core::StaticVector<Value, Blocks>;
     using Codec         = typename Types::template Codec<Value>;
 
-    using ValueData 	= typename Codec::BufferType;
+    using ValueData     = typename Codec::BufferType;
     using InputBuffer   = PkdVLEColumnOrderInputBuffer<Types>;
     using InputType     = Values;
 
-    using SizesT 		= core::StaticVector<Int, Blocks>;
-    using PtrsT  		= core::StaticVector<ValueData*, Blocks>;
-    using ConstPtrsT  	= core::StaticVector<const ValueData*, Blocks>;
+    using SizesT        = core::StaticVector<Int, Blocks>;
+    using PtrsT         = core::StaticVector<ValueData*, Blocks>;
+    using ConstPtrsT    = core::StaticVector<const ValueData*, Blocks>;
 
 
     class ReadState {
-    	ConstPtrsT values_;
-    	SizesT data_pos_;
+        ConstPtrsT values_;
+        SizesT data_pos_;
     public:
 
-    	Int& data_pos(Int idx) {return data_pos_[idx];}
-    	const Int& data_pos(Int idx) const {return data_pos_[idx];}
+        Int& data_pos(Int idx) {return data_pos_[idx];}
+        const Int& data_pos(Int idx) const {return data_pos_[idx];}
 
-    	ConstPtrsT& values() {return values_;}
-    	SizesT& data_pos() {return data_pos_;}
+        ConstPtrsT& values() {return values_;}
+        SizesT& data_pos() {return data_pos_;}
 
-    	const ConstPtrsT& values() const {return values_;}
-    	const SizesT& data_pos() const {return data_pos_;}
+        const ConstPtrsT& values() const {return values_;}
+        const SizesT& data_pos() const {return data_pos_;}
     };
 
     struct TreeLayout {
@@ -695,7 +695,7 @@ public:
 
     SizesT insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, Int size)
     {
-    	auto meta = this->metadata();
+        auto meta = this->metadata();
 
         Codec codec;
 
@@ -720,12 +720,12 @@ public:
 
     void insert_buffer(Int pos, const InputBuffer* buffer, Int start, Int size)
     {
-    	Codec codec;
+        Codec codec;
 
-        SizesT starts 	= buffer->positions(start);
-        SizesT ends   	= buffer->positions(start + size);
+        SizesT starts   = buffer->positions(start);
+        SizesT ends     = buffer->positions(start + size);
 
-        auto at     	= this->positions(pos);
+        auto at         = this->positions(pos);
 
         SizesT total_lengths = ends - starts;
 
@@ -1170,18 +1170,18 @@ public:
     template <typename IOBuffer>
     bool readTo(ReadState& state, IOBuffer& buffer) const
     {
-    	Codec codec;
+        Codec codec;
 
-    	auto val = codec.describe(state.values()[0], state.data_pos()[0]);
+        auto val = codec.describe(state.values()[0], state.data_pos()[0]);
 
-    	if (buffer.put(val))
-    	{
-    		state.data_pos()[0] += val.length();
-    		return true;
-    	}
-    	else {
-    		return false;
-    	}
+        if (buffer.put(val))
+        {
+            state.data_pos()[0] += val.length();
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
 
@@ -1236,11 +1236,11 @@ public:
             auto descr = codec.describe(values, pos);
             if (fn(block, descr))
             {
-            	fn.next();
-            	pos += descr.length();
+                fn.next();
+                pos += descr.length();
             }
             else {
-            	return c - start;
+                return c - start;
             }
         }
 

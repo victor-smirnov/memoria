@@ -43,7 +43,7 @@ template <
 >
 class IOBufferCtrInputProvider: public v1::btfl::io::AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength> {
 public:
-    using Base      = v1::btfl::io::AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength>;
+    using Base = v1::btfl::io::AbstractCtrInputProvider<CtrT, CtrT::Types::Streams, CtrT::Types::LeafDataLength>;
 
 
     using typename Base::DataPositions;
@@ -67,46 +67,59 @@ protected:
     using Base::structure_buffer_;
     using Base::symbols_;
     using Base::finished_;
-    using Base::last_stream_;
-    using Base::start_stream_;
     using Base::total_symbols_;
-    using Base::locals_;
     using Base::totals_;
+
+
 
 
     Int stream_run_remainder_ = 0;
 
-    BufferProducer<IOBuffer>* iobuffer_producer_;
-    IOBuffer* io_buffer_;
+    BufferProducer<IOBuffer>* iobuffer_producer_ = nullptr;
+    IOBuffer* io_buffer_ = nullptr;
+
+    Int last_stream_ = -1;
 
 public:
-    IOBufferCtrInputProvider(CtrT& ctr, BufferProducer<IOBuffer>* iobuffer_producer, Int start_level, Int initial_capacity = 4000):
-        Base(ctr, start_level, initial_capacity),
-		iobuffer_producer_(iobuffer_producer),
-		io_buffer_(&iobuffer_producer->buffer())
+    IOBufferCtrInputProvider(CtrT& ctr, Int initial_capacity = 4000):
+        Base(ctr, initial_capacity)
     {}
+
+    void init(BufferProducer<IOBuffer>* iobuffer_producer)
+    {
+        stream_run_remainder_  = 0;
+        last_stream_           = -1;
+
+        iobuffer_producer_  = iobuffer_producer;
+        io_buffer_          = &iobuffer_producer->buffer();
+    }
+
+    void clear()
+    {
+
+    }
 
 
     struct AppendStreamEntriesFn {
-    	template <Int Idx, typename InputBuffer>
-    	void process(InputBuffer& input_buffer, Int stream, Int length, IOBuffer& io_buffer)
-    	{
-    		if (Idx == stream)
-    		{
-    			input_buffer.append_stream_entries(length, io_buffer);
-    		}
-    	}
+        template <Int Idx, typename InputBuffer>
+        void process(InputBuffer& input_buffer, Int stream, Int length, IOBuffer& io_buffer)
+        {
+            if (Idx == stream)
+            {
+                input_buffer.append_stream_entries(length, io_buffer);
+            }
+        }
     };
 
 
     void append_data_streams_entries(Int stream, Int length, IOBuffer& io_buffer)
     {
-    	ForAllDataStreams::process(data_buffers_, AppendStreamEntriesFn(), stream, length, io_buffer);
+        ForAllDataStreams::process(data_buffers_, AppendStreamEntriesFn(), stream, length, io_buffer);
     }
 
     virtual void do_populate_iobuffer()
     {
-    	reset_buffer();
+        reset_buffer();
 
         DataPositions sizes;
         DataPositions buffer_sums;
@@ -122,74 +135,73 @@ public:
 
         if (entries != 0)
         {
-        	if (entries < 0)
-        	{
-        		finished_ = true;
-        		entries = -entries;
-        	}
+            if (entries < 0)
+            {
+                finished_ = true;
+                entries = -entries;
+            }
 
-        	for (Int entry_num = 0; entry_num < entries;)
-        	{
-        		Int stream;
-        		Int run_length;
-        		bool premature_eob = false;
+            for (Int entry_num = 0; entry_num < entries;)
+            {
+                Int stream;
+                Int run_length;
+                bool premature_eob = false;
 
-        		if (stream_run_remainder_ != 0)
-        		{
-        			stream = last_stream_;
+                if (stream_run_remainder_ != 0)
+                {
+                    stream = last_stream_;
 
-        			if (stream_run_remainder_ <= entries)
-        			{
-        				run_length 				= stream_run_remainder_;
-        				stream_run_remainder_ 	= 0;
-        			}
-        			else {
-        				run_length 				= entries;
-        				stream_run_remainder_ 	-= entries;
-        				premature_eob 			= true;
-        			}
-        		}
-        		else {
-        			auto run = io_buffer_->template getSymbolsRun<DataStreams>();
+                    if (stream_run_remainder_ <= entries)
+                    {
+                        run_length              = stream_run_remainder_;
+                        stream_run_remainder_   = 0;
+                    }
+                    else {
+                        run_length              = entries;
+                        stream_run_remainder_   -= entries;
+                        premature_eob           = true;
+                    }
+                }
+                else {
+                    auto run = io_buffer_->template getSymbolsRun<DataStreams>();
 
-        			stream 		= run.symbol();
-        			run_length 	= run.length();
+                    stream      = run.symbol();
+                    run_length  = run.length();
 
-        			entry_num++;
+                    entry_num++;
 
-        			Int iobuffer_remainder = entries - entry_num;
+                    Int iobuffer_remainder = entries - entry_num;
 
-        			if (run_length >= iobuffer_remainder)
-        			{
-        				stream_run_remainder_ 	= run_length - iobuffer_remainder;
-        				run_length 				-= stream_run_remainder_;
-        				premature_eob 			= true;
-        			}
-        		}
+                    if (run_length >= iobuffer_remainder)
+                    {
+                        stream_run_remainder_   = run_length - iobuffer_remainder;
+                        run_length              -= stream_run_remainder_;
+                        premature_eob           = true;
+                    }
+                }
 
-        		append_data_streams_entries(stream, run_length, *io_buffer_);
+                append_data_streams_entries(stream, run_length, *io_buffer_);
 
-        		symbols_.append_run(stream, run_length);
-        		structure_buffer_.append_run(stream, run_length);
+                symbols_.append_run(stream, run_length);
+                structure_buffer_.append_run(stream, run_length);
 
-				total_symbols_  += run_length;
-				size_[stream]   += run_length;
+                total_symbols_  += run_length;
+                size_[stream]   += run_length;
 
-				sizes[stream]       += run_length;
-				totals_[stream]     += run_length;
-				locals_[stream]     += run_length;
+                sizes[stream]       += run_length;
+                totals_[stream]     += run_length;
 
-				last_stream_ = stream;
+                last_stream_ = stream;
 
-				entry_num += run_length;
-        	}
+                entry_num += run_length;
+            }
 
-        	symbols_.reindex();
+            symbols_.reindex();
 
-        	finish_buffer();
+            finish_buffer();
         }
         else {
-        	finished_ = true;
+            finished_ = true;
         }
     }
 };

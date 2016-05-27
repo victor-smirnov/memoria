@@ -29,162 +29,162 @@ namespace rleseq {
 namespace {
 
 template <typename Seq>
-	class SymbolsIteratorBase {
-	protected:
-		using Codec 	= typename Seq::Codec;
-		using Symbols 	= typename Codec::BufferType;
+    class SymbolsIteratorBase {
+    protected:
+        using Codec     = typename Seq::Codec;
+        using Symbols   = typename Codec::BufferType;
 
-		static constexpr size_t ValuesPerBlock = Seq::ValuesPerBranch;
+        static constexpr size_t ValuesPerBlock = Seq::ValuesPerBranch;
 
-		Codec codec_;
-		const Symbols* symbols_;
-		size_t data_size_;
+        Codec codec_;
+        const Symbols* symbols_;
+        size_t data_size_;
 
-		size_t blocks_;
+        size_t blocks_;
 
-		size_t data_pos_ = 0;
-		size_t block_ = 0;
-		size_t limit_;
-
-
-
-	public:
-		SymbolsIteratorBase(const Symbols* symbols, size_t data_size, size_t blocks):
-			symbols_(symbols), data_size_(data_size), blocks_(blocks)
-		{
-			limit_ = data_size < ValuesPerBlock ? data_size : ValuesPerBlock;
-		}
-
-		bool has_next() const {
-			return block_ < blocks_;
-		}
-
-		size_t data_pos() const {return data_pos_;}
-		size_t limit() const {return limit_;}
-	};
+        size_t data_pos_ = 0;
+        size_t block_ = 0;
+        size_t limit_;
 
 
-	template <typename Seq>
-	class SymbolsSizesIterator: public SymbolsIteratorBase<Seq> {
-		using Base = SymbolsIteratorBase<Seq>;
 
-		using typename Base::Symbols;
+    public:
+        SymbolsIteratorBase(const Symbols* symbols, size_t data_size, size_t blocks):
+            symbols_(symbols), data_size_(data_size), blocks_(blocks)
+        {
+            limit_ = data_size < ValuesPerBlock ? data_size : ValuesPerBlock;
+        }
 
-		using Base::ValuesPerBlock;
+        bool has_next() const {
+            return block_ < blocks_;
+        }
 
-		using Base::codec_;
-		using Base::symbols_;
-		using Base::data_size_;
-		using Base::blocks_;
-
-		using Base::data_pos_;
-		using Base::block_;
-		using Base::limit_;
-
-		UBigInt block_stat_   = 0;
-		UBigInt block_offset_ = 0;
-
-	public:
-		SymbolsSizesIterator(const Symbols* symbols, size_t data_size, size_t blocks):
-			Base(symbols, data_size, blocks)
-		{}
-
-		bool has_next() const {
-			return block_ < blocks_;
-		}
-
-		size_t block_offset() const {
-			return block_offset_;
-		}
-
-		void next()
-		{
-			block_stat_ = 0;
-
-			block_offset_ = data_pos_ % ValuesPerBlock;
-
-			while (data_pos_ < limit_)
-			{
-				UBigInt run_value = 0;
-				auto len 	 = codec_.decode(symbols_, run_value, data_pos_);
-				auto sym_run = Seq::decode_run(run_value);
-
-				block_stat_ += sym_run.length();
-
-				data_pos_ += len;
-			}
-
-			if (limit_ + ValuesPerBlock < data_size_) {
-				limit_ += ValuesPerBlock;
-			}
-			else {
-				limit_ = data_size_;
-			}
-
-			block_++;
-		}
-
-		auto value(Int block) const
-		{
-			return block_stat_;
-		}
-	};
+        size_t data_pos() const {return data_pos_;}
+        size_t limit() const {return limit_;}
+    };
 
 
-	template <typename Seq>
-	class SymbolsSumIterator: public SymbolsIteratorBase<Seq> {
-		using Base = SymbolsIteratorBase<Seq>;
+    template <typename Seq>
+    class SymbolsSizesIterator: public SymbolsIteratorBase<Seq> {
+        using Base = SymbolsIteratorBase<Seq>;
 
-		using typename Base::Symbols;
+        using typename Base::Symbols;
 
-		using Base::ValuesPerBlock;
+        using Base::ValuesPerBlock;
 
-		using Base::codec_;
-		using Base::symbols_;
-		using Base::data_size_;
-		using Base::blocks_;
+        using Base::codec_;
+        using Base::symbols_;
+        using Base::data_size_;
+        using Base::blocks_;
 
-		using Base::data_pos_;
-		using Base::block_;
-		using Base::limit_;
+        using Base::data_pos_;
+        using Base::block_;
+        using Base::limit_;
 
-		core::StaticVector<UBigInt, Seq::Symbols> block_stat_;
+        UBigInt block_stat_   = 0;
+        UBigInt block_offset_ = 0;
 
-	public:
-		SymbolsSumIterator(const Symbols* symbols, size_t data_size, size_t blocks):
-			Base(symbols, data_size, blocks)
-		{}
+    public:
+        SymbolsSizesIterator(const Symbols* symbols, size_t data_size, size_t blocks):
+            Base(symbols, data_size, blocks)
+        {}
+
+        bool has_next() const {
+            return block_ < blocks_;
+        }
+
+        size_t block_offset() const {
+            return block_offset_;
+        }
+
+        void next()
+        {
+            block_stat_ = 0;
+
+            block_offset_ = data_pos_ % ValuesPerBlock;
+
+            while (data_pos_ < limit_)
+            {
+                UBigInt run_value = 0;
+                auto len     = codec_.decode(symbols_, run_value, data_pos_);
+                auto sym_run = Seq::decode_run(run_value);
+
+                block_stat_ += sym_run.length();
+
+                data_pos_ += len;
+            }
+
+            if (limit_ + ValuesPerBlock < data_size_) {
+                limit_ += ValuesPerBlock;
+            }
+            else {
+                limit_ = data_size_;
+            }
+
+            block_++;
+        }
+
+        auto value(Int block) const
+        {
+            return block_stat_;
+        }
+    };
 
 
-		void next()
-		{
-			block_stat_.clear();
-			while (data_pos_ < limit_)
-			{
-				UBigInt run_value = 0;
-				auto len 	 = codec_.decode(symbols_, run_value, data_pos_);
-				auto sym_run = Seq::decode_run(run_value);
+    template <typename Seq>
+    class SymbolsSumIterator: public SymbolsIteratorBase<Seq> {
+        using Base = SymbolsIteratorBase<Seq>;
 
-				block_stat_[sym_run.symbol()] += sym_run.length();
+        using typename Base::Symbols;
 
-				data_pos_ += len;
-			}
+        using Base::ValuesPerBlock;
 
-			if (limit_ + ValuesPerBlock < data_size_) {
-				limit_ += ValuesPerBlock;
-			}
-			else {
-				limit_ = data_size_;
-			}
+        using Base::codec_;
+        using Base::symbols_;
+        using Base::data_size_;
+        using Base::blocks_;
 
-			block_++;
-		}
+        using Base::data_pos_;
+        using Base::block_;
+        using Base::limit_;
 
-		auto value(Int block) const
-		{
-			return block_stat_[block];
-		}
-	};
+        core::StaticVector<UBigInt, Seq::Symbols> block_stat_;
+
+    public:
+        SymbolsSumIterator(const Symbols* symbols, size_t data_size, size_t blocks):
+            Base(symbols, data_size, blocks)
+        {}
+
+
+        void next()
+        {
+            block_stat_.clear();
+            while (data_pos_ < limit_)
+            {
+                UBigInt run_value = 0;
+                auto len     = codec_.decode(symbols_, run_value, data_pos_);
+                auto sym_run = Seq::decode_run(run_value);
+
+                block_stat_[sym_run.symbol()] += sym_run.length();
+
+                data_pos_ += len;
+            }
+
+            if (limit_ + ValuesPerBlock < data_size_) {
+                limit_ += ValuesPerBlock;
+            }
+            else {
+                limit_ = data_size_;
+            }
+
+            block_++;
+        }
+
+        auto value(Int block) const
+        {
+            return block_stat_[block];
+        }
+    };
 
 
 }
@@ -196,7 +196,7 @@ class ReindexFn {
     using SumIndex  = typename Seq::SumIndex;
 
 
-    static const Int Symbols                                              		= Seq::Symbols;
+    static const Int Symbols                                                    = Seq::Symbols;
     static const Int ValuesPerBranch                                            = Seq::ValuesPerBranch;
     static const Int Indxes                                                     = Seq::Indexes;
 
@@ -209,11 +209,11 @@ public:
     {
         auto meta = seq.metadata();
 
-    	auto symbols_block_size = seq.element_size(Seq::SYMBOLS);
-    	auto symbols_blocks 	= seq.number_of_offsets(symbols_block_size);
+        auto symbols_block_size = seq.element_size(Seq::SYMBOLS);
+        auto symbols_blocks     = seq.number_of_offsets(symbols_block_size);
 
-    	seq.resizeBlock(Seq::OFFSETS, symbols_blocks);
-    	seq.clear(Seq::OFFSETS);
+        seq.resizeBlock(Seq::OFFSETS, symbols_blocks);
+        seq.clear(Seq::OFFSETS);
 
         if (symbols_block_size > ValuesPerBranch)
         {
@@ -223,8 +223,8 @@ public:
 
             auto size_index = seq.size_index();
             auto sum_index  = seq.sum_index();
-            auto symbols 	= seq.symbols();
-            auto data_size 	= meta->data_size();
+            auto symbols    = seq.symbols();
+            auto data_size  = meta->data_size();
 
             SymbolsSizesIterator<Seq> size_iterator(symbols, data_size, index_size);
 
@@ -232,13 +232,13 @@ public:
 
             for (size_t c = 0; c < index_size; c++)
             {
-            	size_iterator.next();
+                size_iterator.next();
 
-            	offsets[c] = size_iterator.block_offset();
+                offsets[c] = size_iterator.block_offset();
 
-            	typename Seq::SizeIndex::Values sizes(size_iterator.value(0));
+                typename Seq::SizeIndex::Values sizes(size_iterator.value(0));
 
-            	size_index->append(sizes);
+                size_index->append(sizes);
             }
 
             size_index->reindex();
@@ -259,16 +259,16 @@ public:
     {
         auto meta = seq.metadata();
 
-    	auto symbols_block_size = seq.element_size(Seq::SYMBOLS);
+        auto symbols_block_size = seq.element_size(Seq::SYMBOLS);
 
         if (symbols_block_size > ValuesPerBranch)
         {
-        	auto symbols_blocks 	= seq.number_of_offsets(symbols_block_size);
-        	auto offsets_block_size = seq.element_size(Seq::OFFSETS);
+            auto symbols_blocks     = seq.number_of_offsets(symbols_block_size);
+            auto offsets_block_size = seq.element_size(Seq::OFFSETS);
 
-        	MEMORIA_V1_ASSERT(offsets_block_size, ==, seq.offsets_segment_size(symbols_block_size));
+            MEMORIA_V1_ASSERT(offsets_block_size, ==, seq.offsets_segment_size(symbols_block_size));
 
-        	MEMORIA_V1_ASSERT_TRUE(seq.has_index());
+            MEMORIA_V1_ASSERT_TRUE(seq.has_index());
 
             size_t index_size = symbols_blocks;
 
@@ -290,11 +290,11 @@ public:
 
             for (size_t c = 0; c < index_size; c++)
             {
-            	size_index_iterator.next();
-            	size_iterator.next();
+                size_index_iterator.next();
+                size_iterator.next();
 
-            	MEMORIA_V1_ASSERT(size_index_iterator.value(0), ==, size_iterator.value(0));
-            	MEMORIA_V1_ASSERT(offsets[c], ==, size_iterator.block_offset());
+                MEMORIA_V1_ASSERT(size_index_iterator.value(0), ==, size_iterator.value(0));
+                MEMORIA_V1_ASSERT(offsets[c], ==, size_iterator.block_offset());
 
                 total_size += size_iterator.value(0);
             }
@@ -307,13 +307,13 @@ public:
 
             for (size_t c = 0; c < index_size; c++)
             {
-            	sum_index_iterator.next();
-            	sum_iterator.next();
+                sum_index_iterator.next();
+                sum_iterator.next();
 
-            	for (Int s = 0; s < Seq::Symbols; s++)
-            	{
-            		MEMORIA_V1_ASSERT(sum_index_iterator.value(s), ==, sum_iterator.value(s));
-            	}
+                for (Int s = 0; s < Seq::Symbols; s++)
+                {
+                    MEMORIA_V1_ASSERT(sum_index_iterator.value(s), ==, sum_iterator.value(s));
+                }
             }
 
             MEMORIA_V1_ASSERT(sum_iterator.data_pos(), ==, sum_iterator.limit());

@@ -116,7 +116,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     static UUID getModelNameS(NodeBaseG root)
     {
-    	return getRootMetadataS(root).model_name();
+        return getRootMetadataS(root).model_name();
     }
 
     static const Metadata& getRootMetadataS(NodeBaseG node)

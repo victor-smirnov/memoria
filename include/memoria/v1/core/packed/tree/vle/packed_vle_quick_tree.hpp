@@ -1076,7 +1076,7 @@ public:
                 };
 
                 handler->value("INDEX", PageValueProviderFactory::provider(2, [&](Int idx) {
-                	return indexes[idx];
+                    return indexes[idx];
                 }));
             }
 
@@ -1110,7 +1110,7 @@ public:
             }
 
             handler->value("TREE_ITEM", PageValueProviderFactory::provider(Blocks, [&](Int b) {
-            	return values_data[b];
+                return values_data[b];
             }));
         }
 

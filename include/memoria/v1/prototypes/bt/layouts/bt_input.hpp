@@ -163,35 +163,35 @@ public:
         template <Int Idx, typename Stream>
         void stream(Stream* buf, BufferSizesT& capacities)
         {
-        	std::get<Idx>(capacities) = buf->data_capacity();
+            std::get<Idx>(capacities) = buf->data_capacity();
         }
     };
 
 
     BufferSizesT data_capacity() const
     {
-    	BufferSizesT capacities;
+        BufferSizesT capacities;
 
-    	Dispatcher::dispatchAll(allocator(), DataCapacityFn(), capacities);
+        Dispatcher::dispatchAll(allocator(), DataCapacityFn(), capacities);
 
-    	return capacities;
+        return capacities;
     }
 
     struct CopyToFn {
 
-    	template <Int Idx, typename Stream>
-    	void stream(Stream* buf, MyType* other)
-    	{
-    		if (buf) {
-    			buf->copyTo(other->template substream_by_idx<Idx>());
-    		}
-    	}
+        template <Int Idx, typename Stream>
+        void stream(Stream* buf, MyType* other)
+        {
+            if (buf) {
+                buf->copyTo(other->template substream_by_idx<Idx>());
+            }
+        }
     };
 
 
     void copyTo(MyType* other) const
     {
-    	Dispatcher::dispatchAll(allocator(), CopyToFn(), other);
+        Dispatcher::dispatchAll(allocator(), CopyToFn(), other);
     }
 
 
@@ -317,11 +317,11 @@ public:
     template <typename EntryBuffer>
     static Int compute_bttl_buffer_sizes_for(Int size, EntryBuffer&& buffer)
     {
-    	ComputeBufferSizeFn fn;
+        ComputeBufferSizeFn fn;
 
-    	MyType::processSubstreamGroupsStatic(fn, size, std::forward<EntryBuffer>(buffer));
+        MyType::processSubstreamGroupsStatic(fn, size, std::forward<EntryBuffer>(buffer));
 
-    	return fn.buffer_size_;
+        return fn.buffer_size_;
     }
 
 
@@ -352,7 +352,7 @@ public:
 
 
     struct HasBTTLCapacityForFn
-	{
+    {
         template <Int Idx, typename Stream, typename SizesBuffer>
         auto stream(const Stream* obj, SizesBuffer&& sizes_buffer, int start, int length)
         {
@@ -422,7 +422,7 @@ public:
         template <Int Idx, typename Tree>
         void stream(const Tree* tree, SizesT& sizes)
         {
-        	sizes[Idx] = tree != nullptr ? tree->size() : 0;
+            sizes[Idx] = tree != nullptr ? tree->size() : 0;
         }
     };
 
@@ -434,9 +434,9 @@ public:
 
     SizesT sizes() const
     {
-    	SizesT sizes0;
-    	Dispatcher::dispatchAll(allocator(), SizeFn(), sizes0);
-    	return sizes0;
+        SizesT sizes0;
+        Dispatcher::dispatchAll(allocator(), SizeFn(), sizes0);
+        return sizes0;
     }
 
     bool isEmpty() const
@@ -448,27 +448,27 @@ public:
 
     struct EmplaceBackFn {
 
-    	bool status_ = false;
+        bool status_ = false;
 
-    	template <Int Idx, typename Value, Int Indexes, PkdSearchType SearchType>
-    	void stream(PackedSizedStruct<Value, Indexes, SearchType>* stream, Int symbol, UBigInt length)
-    	{
-    		stream->insert(0, length);
-    	}
+        template <Int Idx, typename Value, Int Indexes, PkdSearchType SearchType>
+        void stream(PackedSizedStruct<Value, Indexes, SearchType>* stream, Int symbol, UBigInt length)
+        {
+            stream->insert(0, length);
+        }
 
-    	template <Int Idx, typename SeqTypes>
-    	void stream(PkdRLESeqInputBuffer<SeqTypes>* stream, Int symbol, UBigInt length)
-    	{
-    		status_ = stream->emplace_back(symbol, length);
-    	}
+        template <Int Idx, typename SeqTypes>
+        void stream(PkdRLESeqInputBuffer<SeqTypes>* stream, Int symbol, UBigInt length)
+        {
+            status_ = stream->emplace_back(symbol, length);
+        }
     };
 
 
     bool emplace_back_symbols_run(Int symbol, UBigInt length)
     {
-    	EmplaceBackFn fn;
-    	Dispatcher::dispatchAll(allocator(), fn, symbol, length);
-    	return fn.status_;
+        EmplaceBackFn fn;
+        Dispatcher::dispatchAll(allocator(), fn, symbol, length);
+        return fn.status_;
     }
 
 
@@ -494,13 +494,13 @@ public:
 
 
     struct AppendEntryFromIOBufferFn {
-    	bool proceed_ = true;
+        bool proceed_ = true;
 
-    	template <Int Idx, typename StreamObj, typename IOBuffer>
-    	void stream(StreamObj* stream, AppendState& state, IOBuffer& buffer)
-    	{
-    		proceed_ = proceed_ && stream->append_entry_from_iobuffer(std::get<Idx>(state), buffer);
-    	}
+        template <Int Idx, typename StreamObj, typename IOBuffer>
+        void stream(StreamObj* stream, AppendState& state, IOBuffer& buffer)
+        {
+            proceed_ = proceed_ && stream->append_entry_from_iobuffer(std::get<Idx>(state), buffer);
+        }
     };
 
 
@@ -508,50 +508,50 @@ public:
     template <typename AppendState, typename IOBuffer>
     bool append_entry_from_iobuffer(AppendState& state, IOBuffer& buffer)
     {
-    	AppendEntryFromIOBufferFn fn;
-    	SubrangeDispatcher<0, Substreams>::dispatchAll(allocator(), fn, state, buffer);
-    	return fn.proceed_;
+        AppendEntryFromIOBufferFn fn;
+        SubrangeDispatcher<0, Substreams>::dispatchAll(allocator(), fn, state, buffer);
+        return fn.proceed_;
     }
 
 
     template <typename AppendState, typename IOBuffer>
     bool append_bttl_entry_from_iobuffer(AppendState& state, IOBuffer& buffer)
     {
-    	AppendEntryFromIOBufferFn fn;
-    	SubrangeDispatcher<0, Substreams - 1>::dispatchAll(allocator(), fn, state, buffer);
-    	return fn.proceed_;
+        AppendEntryFromIOBufferFn fn;
+        SubrangeDispatcher<0, Substreams - 1>::dispatchAll(allocator(), fn, state, buffer);
+        return fn.proceed_;
     }
 
 
     struct AppendStateFn {
-    	AppendState state_;
+        AppendState state_;
 
-    	template <Int Idx, typename StreamObj>
-    	void stream(StreamObj* stream)
-    	{
-    		std::get<Idx>(state_) = stream->append_state();
-    	}
+        template <Int Idx, typename StreamObj>
+        void stream(StreamObj* stream)
+        {
+            std::get<Idx>(state_) = stream->append_state();
+        }
     };
 
 
     AppendState append_state()
     {
-    	AppendStateFn fn;
-    	Dispatcher::dispatchAll(allocator(), fn);
-    	return fn.state_;
+        AppendStateFn fn;
+        Dispatcher::dispatchAll(allocator(), fn);
+        return fn.state_;
     }
 
     struct RestoreAppendStateFn {
-    	template <Int Idx, typename StreamObj>
-    	void stream(StreamObj* stream, const AppendState& state)
-    	{
-    		stream->restore(std::get<Idx>(state));
-    	}
+        template <Int Idx, typename StreamObj>
+        void stream(StreamObj* stream, const AppendState& state)
+        {
+            stream->restore(std::get<Idx>(state));
+        }
     };
 
     void restore_append_state(const AppendState& state)
     {
-    	Dispatcher::dispatchAll(allocator(), RestoreAppendStateFn(), state);
+        Dispatcher::dispatchAll(allocator(), RestoreAppendStateFn(), state);
     }
 
 
@@ -589,15 +589,15 @@ public:
     template <typename Fn, typename... Args>
     auto processLastSubstream(Fn&& fn, Args&&... args) const
     {
-    	const Int StreamIdx = Substreams - 1;
-    	return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+        const Int StreamIdx = Substreams - 1;
+        return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
     template <typename Fn, typename... Args>
     auto processLastSubstream(Fn&& fn, Args&&... args)
     {
-    	const Int StreamIdx = Substreams - 1;
-    	return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
+        const Int StreamIdx = Substreams - 1;
+        return Dispatcher::template dispatch<StreamIdx>(allocator(), std::forward<Fn>(fn), std::forward<Args>(args)...);
     }
 
 

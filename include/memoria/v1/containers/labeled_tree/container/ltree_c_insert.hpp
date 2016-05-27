@@ -73,8 +73,8 @@ public:
         >
         void stream(StreamSize* obj, BranchNodeEntryItem& accum, const LabelsTuple& labels, Int idx)
         {
-        	obj->insert(idx, 1);
-        	accum[Offset]++;
+            obj->insert(idx, 1);
+            accum[Offset]++;
         }
 
 
@@ -112,8 +112,8 @@ public:
         >
         void stream(PkdFSSeq<SeqTypes>* obj, BranchNodeEntryItem& accum, Int idx, Int symbol)
         {
-        	obj->insert(idx, symbol);
-        	accum[Offset + symbol]++;
+            obj->insert(idx, symbol);
+            accum[Offset + symbol]++;
         }
 
         template <
@@ -124,19 +124,19 @@ public:
         >
         void stream(StreamSize* obj, BranchNodeEntryItem& accum, Int idx, Int symbol)
         {
-        	obj->insert(idx, symbol);
-        	accum[Offset]++;
+            obj->insert(idx, symbol);
+            accum[Offset]++;
         }
 
         template <typename NTypes>
         void treeNode(
-        		LeafNode<NTypes>* node,
-				BranchNodeEntry& delta,
-				const LabelsTuple& labels,
-				Int node_idx,
-				Int label_idx,
-				Int symbol
-		)
+                LeafNode<NTypes>* node,
+                BranchNodeEntry& delta,
+                const LabelsTuple& labels,
+                Int node_idx,
+                Int label_idx,
+                Int symbol
+        )
         {
             node->layout(-1ull);
             node->template processStreamAcc<0>(*this, delta, node_idx, symbol);
@@ -170,8 +170,8 @@ public:
             LeafDispatcher::dispatch(
                     leaf,
                     InsertNodeFn(),
-					sums,
-					labels,
+                    sums,
+                    labels,
                     node_idx,
                     label_idx,
                     1
@@ -270,7 +270,7 @@ public:
 
         if (self.insertLoudsZero(leaf, idx, sums))
         {
-        	self.update_path(leaf);
+            self.update_path(leaf);
         }
         else
         {

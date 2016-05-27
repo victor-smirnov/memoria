@@ -49,7 +49,7 @@ UUID UUID::make_random()
     uuid_generate_random(uuid);
 
     return make_uuid(uuid);
-//	return UUID(0, cnt++);
+//  return UUID(0, cnt++);
 }
 
 UUID UUID::make_time()

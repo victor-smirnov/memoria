@@ -38,7 +38,7 @@ class PackedRLESequenceTestBase: public TestTask {
 
 protected:
 
-    using Seq 	 = PkdRLESeqT<Symbols>;
+    using Seq    = PkdRLESeqT<Symbols>;
     using SeqPtr = PkdStructSPtr<Seq>;
 
     using Value  = typename Seq::Value;
@@ -92,9 +92,9 @@ public:
     {
         for (Int c = 0; c < size; c++)
         {
-        	Int sym = getRandom(Blocks);
-        	Int len = getRandom(100) + 1;
-        	seq->append(sym, len);
+            Int sym = getRandom(Blocks);
+            Int len = getRandom(100) + 1;
+            seq->append(sym, len);
         }
 
         seq->reindex();
@@ -109,8 +109,8 @@ public:
 
         while (iter.has_data())
         {
-        	symbols.push_back(iter.symbol());
-        	iter.next();
+            symbols.push_back(iter.symbol());
+            iter.next();
         }
 
         this->assertEqual(seq, symbols);
@@ -158,7 +158,7 @@ public:
     void dumpAsSymbols(const vector<T>& symbols)
     {
         dumpSymbols<Byte>(this->out(), symbols.size(), NumberOfBits(Symbols - 1), [&](Int idx){
-        	return symbols[idx];
+            return symbols[idx];
         });
     }
 
@@ -168,16 +168,16 @@ public:
         AssertEQ(MA_SRC, seq->size(), (Int)symbols.size());
 
         try {
-        	auto iter = seq->begin();
+            auto iter = seq->begin();
 
             for (Int c = 0; c < seq->size(); c++)
             {
                 Int sym1 = iter.symbol();
                 Int sym2 = symbols[c];
 
-            	AssertEQ(MA_SRC, sym1, sym2, SBuf()<<"Index: "<<c);
+                AssertEQ(MA_SRC, sym1, sym2, SBuf()<<"Index: "<<c);
 
-            	iter.next();
+                iter.next();
             }
         }
         catch(...) {

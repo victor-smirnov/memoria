@@ -35,18 +35,18 @@ using MMapIOBuffer = DefaultIOBuffer;
 
 
 class MMapBufferConsumer: public bt::BufferConsumer<MMapIOBuffer> {
-	using IOBuffer = MMapIOBuffer;
+    using IOBuffer = MMapIOBuffer;
 
-	IOBuffer io_buffer_;
+    IOBuffer io_buffer_;
 public:
-	MMapBufferConsumer(): io_buffer_(65536) {}
+    MMapBufferConsumer(): io_buffer_(65536) {}
 
-	virtual IOBuffer& buffer() {return io_buffer_;}
-	virtual Int process(IOBuffer& buffer, Int entries)
-	{
-//		cout << "Consume " << entries << " entries" << endl;
-		return entries;
-	}
+    virtual IOBuffer& buffer() {return io_buffer_;}
+    virtual Int process(IOBuffer& buffer, Int entries)
+    {
+//      cout << "Consume " << entries << " entries" << endl;
+        return entries;
+    }
 };
 
 
@@ -54,28 +54,28 @@ public:
 template <typename IOBufferT, typename Iterator>
 class ChainedIOBufferProducer: public BufferProducer<IOBufferT> {
 
-	using WalkerType = btfl::io::BTFLWalker<Iterator, IOBufferT>;
+    using WalkerType = btfl::io::BTFLWalker<Iterator, IOBufferT>;
 
-	Iterator* iter_;
-	WalkerType walker_;
-	IOBufferT io_buffer_;
+    Iterator* iter_;
+    WalkerType walker_;
+    IOBufferT io_buffer_;
 
 public:
-	ChainedIOBufferProducer(Iterator* iter, Int buffer_size = 65536):
-		iter_(iter),
-		walker_(*iter),
-		io_buffer_(buffer_size)
-	{
-	}
+    ChainedIOBufferProducer(Iterator* iter, Int buffer_size = 65536):
+        iter_(iter),
+        walker_(*iter),
+        io_buffer_(buffer_size)
+    {
+    }
 
-	virtual IOBufferT& buffer() {
-		return io_buffer_;
-	}
+    virtual IOBufferT& buffer() {
+        return io_buffer_;
+    }
 
-	virtual Int populate(IOBufferT& buffer)
-	{
-		return iter_->bulkio_populate(walker_, &io_buffer_);
-	}
+    virtual Int populate(IOBufferT& buffer)
+    {
+        return iter_->bulkio_populate(walker_, &io_buffer_);
+    }
 };
 
 

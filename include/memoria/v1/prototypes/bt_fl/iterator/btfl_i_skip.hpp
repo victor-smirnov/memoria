@@ -37,26 +37,23 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorSkipName)
 
     using typename Base::LeafDispatcher;
 
-//    template <Int StreamIdx>
-//    using LeafSizesSubstreamPath = typename Container::Types::template LeafSizesSubstreamPath<StreamIdx>;
-
     template <typename LeafPath>
     using AccumItemH = typename Container::Types::template AccumItemH<LeafPath>;
 
-    static const Int Streams          		= Container::Types::Streams;
-    static const Int DataStreams      		= Container::Types::DataStreams;
+    static const Int Streams                = Container::Types::Streams;
+    static const Int DataStreams            = Container::Types::DataStreams;
     static const Int StructureStreamIdx     = Container::Types::StructureStreamIdx;
 
 public:
 
     CtrSizeT selectFw(CtrSizeT rank, Int stream)
     {
-    	return self().template select_fw_<IntList<0, 1>>(stream, rank);
+        return self().template select_fw_<IntList<0, 1>>(stream, rank);
     }
 
     CtrSizeT selectBw(CtrSizeT rank, Int stream)
     {
-    	return self().template select_fw_<IntList<0, 1>>(stream, rank);
+        return self().template select_fw_<IntList<0, 1>>(stream, rank);
     }
 
 
@@ -65,19 +62,19 @@ public:
     }
 
     bool prev_symbol() {
-    	return self().skipBw(1);
+        return self().skipBw(1);
     }
 
 
     CtrSizeT skipFw(CtrSizeT n)
     {
-    	return self().template skip_fw_<0>(n);
+        return self().template skip_fw_<0>(n);
     }
 
 
     CtrSizeT skipBw(CtrSizeT n)
     {
-    	return self().template skip_bw_<0>(n);
+        return self().template skip_bw_<0>(n);
     }
 
     CtrSizeT skip(CtrSizeT n)
@@ -92,39 +89,39 @@ public:
 
     Int stream() const
     {
-    	auto& self 	= this->self();
-    	auto s 		= self.leaf_structure();
-    	auto idx 	= self.idx();
+        auto& self  = this->self();
+        auto s      = self.leaf_structure();
+        auto idx    = self.idx();
 
-    	if (idx < s->size())
-    	{
-    		return s->get_symbol(idx);
-    	}
-    	else {
-    		throw Exception(MA_SRC, "End Of Data Structure");
-    	}
+        if (idx < s->size())
+        {
+            return s->get_symbol(idx);
+        }
+        else {
+            throw Exception(MA_SRC, "End Of Data Structure");
+        }
     }
 
     Int stream_s() const
     {
-    	auto& self 	= this->self();
-    	auto s 		= self.leaf_structure();
-    	auto idx 	= self.idx();
+        auto& self  = this->self();
+        auto s      = self.leaf_structure();
+        auto idx    = self.idx();
 
-    	if (idx < s->size())
-    	{
-    		return s->get_symbol(idx);
-    	}
-    	else {
-    		return -1;
-    	}
+        if (idx < s->size())
+        {
+            return s->get_symbol(idx);
+        }
+        else {
+            return -1;
+        }
     }
 
     bool isEnd() const
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	return self.leaf().isSet() ? self.idx() >= self.leaf_size(0) : true;
+        return self.leaf().isSet() ? self.idx() >= self.leaf_size(0) : true;
     }
 
 
@@ -132,53 +129,53 @@ protected:
 
     Int data_stream_idx(Int stream) const
     {
-    	auto& self = this->self();
-    	return self.data_stream_idx(stream, self.idx());
+        auto& self = this->self();
+        return self.data_stream_idx(stream, self.idx());
     }
 
     Int data_stream_idx(Int stream, Int structure_idx) const
     {
-    	auto& self = this->self();
-    	return self.leaf_structure()->rank(structure_idx, stream);
+        auto& self = this->self();
+        return self.leaf_structure()->rank(structure_idx, stream);
     }
 
 
     CtrSizesT leafrank(Int structure_idx) const
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	auto leaf_structure = self.leaf_structure();
+        auto leaf_structure = self.leaf_structure();
 
-    	CtrSizesT ranks;
+        CtrSizesT ranks;
 
-    	for (Int c = 0; c < DataStreams; c++)
-    	{
-    		ranks[c] = leaf_structure->rank(structure_idx, c);
-    	}
+        for (Int c = 0; c < DataStreams; c++)
+        {
+            ranks[c] = leaf_structure->rank(structure_idx, c);
+        }
 
-    	ranks[StructureStreamIdx] = structure_idx;
+        ranks[StructureStreamIdx] = structure_idx;
 
-    	return ranks;
+        return ranks;
     }
 
 
     Int structure_size() const
     {
-    	return self().leaf_size(0);
+        return self().leaf_size(0);
     }
 
 
     const auto* leaf_structure() const
     {
-    	auto& self = this->self();
-    	return self.ctr().template getPackedStruct<IntList<StructureStreamIdx, 1>>(self.leaf());
+        auto& self = this->self();
+        return self.ctr().template getPackedStruct<IntList<StructureStreamIdx, 1>>(self.leaf());
     }
 
     Int symbol_idx(Int stream, Int position) const
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	self.leaf_structure()->selectFW(position + 1, stream);
+        self.leaf_structure()->selectFW(position + 1, stream);
     }
 
 

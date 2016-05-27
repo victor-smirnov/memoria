@@ -38,31 +38,31 @@ namespace io {
 
 namespace {
 
-	template <typename Types, Int Streams, Int Idx = 0>
-	struct DataStreamInputBufferBuilder {
-		using InputBuffer = StreamInputBuffer<
-				Idx,
-				typename Types::template StreamInputBufferStructList<Idx>
-		>;
+    template <typename Types, Int Streams, Int Idx = 0>
+    struct DataStreamInputBufferBuilder {
+        using InputBuffer = StreamInputBuffer<
+                Idx,
+                typename Types::template StreamInputBufferStructList<Idx>
+        >;
 
-		using UInputBufferPtr 	= InputBufferHandler<InputBuffer>;
-		using SizedBuffer 		= DataStreamInputBuffer<UInputBufferPtr, typename Types::CtrSizeT>;
+        using UInputBufferPtr   = InputBufferHandler<InputBuffer>;
+        using SizedBuffer       = DataStreamInputBuffer<UInputBufferPtr, typename Types::CtrSizeT>;
 
-		using Type = MergeLists<
-				SizedBuffer,
-				typename DataStreamInputBufferBuilder<Types, Streams, Idx + 1>::Type
-		>;
-	};
+        using Type = MergeLists<
+                SizedBuffer,
+                typename DataStreamInputBufferBuilder<Types, Streams, Idx + 1>::Type
+        >;
+    };
 
-	template <typename Types, Int Streams>
-	struct DataStreamInputBufferBuilder<Types, Streams, Streams> {
-		using Type = TL<>;
-	};
+    template <typename Types, Int Streams>
+    struct DataStreamInputBufferBuilder<Types, Streams, Streams> {
+        using Type = TL<>;
+    };
 
-	template <typename... Args> struct JoinBuffersH;
+    template <typename... Args> struct JoinBuffersH;
 
-	template <typename... T1, typename T2>
-	struct JoinBuffersH<std::tuple<T1...>, T2>: HasType<std::tuple<const T1*..., const T2*>> {};
+    template <typename... T1, typename T2>
+    struct JoinBuffersH<std::tuple<T1...>, T2>: HasType<std::tuple<const T1*..., const T2*>> {};
 }
 
 
@@ -72,19 +72,19 @@ template <typename CtrT>
 class AbstractCtrInputProviderBase {
 
 protected:
-    static const Int Streams 	 			= CtrT::Types::Streams;
-    static const Int DataStreams 			= CtrT::Types::DataStreams;
-    static const Int StructureStreamIdx  	= CtrT::Types::StructureStreamIdx;
+    static const Int Streams                = CtrT::Types::Streams;
+    static const Int DataStreams            = CtrT::Types::DataStreams;
+    static const Int StructureStreamIdx     = CtrT::Types::StructureStreamIdx;
 
 
 public:
     using MyType = AbstractCtrInputProviderBase<CtrT>;
 
-    using NodeBaseG 			= typename CtrT::Types::NodeBaseG;
-    using CtrSizeT  			= typename CtrT::Types::CtrSizeT;
-    using Position  			= typename CtrT::Types::Position;
-    using DataPositions  		= core::StaticVector<Int, DataStreams>;
-    using CtrDataPositionsT 	= core::StaticVector<BigInt, DataStreams>;
+    using NodeBaseG             = typename CtrT::Types::NodeBaseG;
+    using CtrSizeT              = typename CtrT::Types::CtrSizeT;
+    using Position              = typename CtrT::Types::Position;
+    using DataPositions         = core::StaticVector<Int, DataStreams>;
+    using CtrDataPositionsT     = core::StaticVector<BigInt, DataStreams>;
 
 
     using Iterator = typename CtrT::Iterator;
@@ -104,19 +104,19 @@ public:
     using RankDictionaryT = RankDictionary<DataStreams>;
 
     using StructureStreamBuffer = StructureStreamInputBuffer<
-    		InputBufferHandler<
-				StreamInputBuffer<
-					StructureStreamIdx,
-					typename CtrT::Types::template StreamInputBufferStructList<StructureStreamIdx>
-    			>
-    		>,
-			CtrSizeT
+            InputBufferHandler<
+                StreamInputBuffer<
+                    StructureStreamIdx,
+                    typename CtrT::Types::template StreamInputBufferStructList<StructureStreamIdx>
+                >
+            >,
+            CtrSizeT
     >;
 
 protected:
 
-    DataStreamBuffers 		data_buffers_;
-    StructureStreamBuffer	structure_buffer_;
+    DataStreamBuffers       data_buffers_;
+    StructureStreamBuffer   structure_buffer_;
 
 
     DataPositions start_;
@@ -128,18 +128,14 @@ protected:
 
     CtrT& ctr_;
 
-    Int last_stream_;
-
     CtrSizeT orphan_splits_ = 0;
 
     NodePair split_watcher_;
 
-    Int start_stream_;
 
     CtrSizeT total_symbols_ = 0;
 
     CtrDataPositionsT totals_;
-    CtrDataPositionsT locals_; // FIXME: remove?
 
 private:
     struct CreateBufferFn {
@@ -179,31 +175,30 @@ private:
 
 public:
 
-    AbstractCtrInputProviderBase(CtrT& ctr, Int start_level, Int initial_capacity):
+    AbstractCtrInputProviderBase(CtrT& ctr, Int initial_capacity):
         symbols_(initial_capacity),
-        ctr_(ctr),
-        last_stream_(start_level - 1),
-        start_stream_(start_level)
-    {
-    	ForAllDataStreams::process(data_buffers_, CreateBufferFn(), initial_capacity);
+        ctr_(ctr)
 
-    	structure_buffer_.init(initial_capacity);
+    {
+        ForAllDataStreams::process(data_buffers_, CreateBufferFn(), initial_capacity);
+
+        structure_buffer_.init(initial_capacity);
     }
 
 
 protected:
     void finish_buffer()
     {
-    	ForAllDataStreams::process(data_buffers_, FinishBufferFn());
+        ForAllDataStreams::process(data_buffers_, FinishBufferFn());
 
-    	structure_buffer_.finish();
+        structure_buffer_.finish();
     }
 
     void reset_buffer()
     {
-    	ForAllDataStreams::process(data_buffers_, ResetBufferFn());
+        ForAllDataStreams::process(data_buffers_, ResetBufferFn());
 
-    	structure_buffer_.reset();
+        structure_buffer_.reset();
     }
 
 public:
@@ -227,15 +222,6 @@ public:
     const CtrDataPositionsT& totals() const {
         return totals_;
     }
-
-    const CtrDataPositionsT& locals() const {
-        return locals_;
-    }
-
-    Int last_symbol() const {
-        return last_stream_;
-    }
-
 
     virtual bool hasData()
     {
@@ -262,7 +248,7 @@ public:
 
     DataPositions rank(CtrSizeT idx) const
     {
-    	DataPositions rnk;
+        DataPositions rnk;
 
         Int start_pos = start_.sum();
 
@@ -282,25 +268,25 @@ public:
 
     virtual bool populate_buffer()
     {
-    	if (start_.sum() < size_.sum())
-    	{
-    		return true;
-    	}
-    	else if (!finished_)
-    	{
-    		do_populate_iobuffer();
+        if (start_.sum() < size_.sum())
+        {
+            return true;
+        }
+        else if (!finished_)
+        {
+            do_populate_iobuffer();
 
-    		if (finished_)
-    		{
-    			return start_.sum() < size_.sum();
-    		}
-    		else {
-    			return true;
-    		}
-    	}
-    	else {
-    		return false;
-    	}
+            if (finished_)
+            {
+                return start_.sum() < size_.sum();
+            }
+            else {
+                return true;
+            }
+        }
+        else {
+            return false;
+        }
     }
 
     virtual void do_populate_iobuffer() = 0;
@@ -318,13 +304,13 @@ public:
 
     DataPositions to_data_positions(const Position& pos)
     {
-    	DataPositions dp;
+        DataPositions dp;
 
-    	for (Int c = 0; c < DataPositions::Indexes; c++) {
-    		dp[c] = pos[c];
-    	}
+        for (Int c = 0; c < DataPositions::Indexes; c++) {
+            dp[c] = pos[c];
+        }
 
-    	return dp;
+        return dp;
     }
 
 
@@ -398,8 +384,8 @@ protected:
 
 public:
 
-    AbstractCtrInputProvider(CtrT& ctr, Int start_level, Int total_capacity):
-        Base(ctr, start_level, total_capacity)
+    AbstractCtrInputProvider(CtrT& ctr, Int total_capacity):
+        Base(ctr, total_capacity)
     {}
 
     CtrT& ctr() {
@@ -408,22 +394,22 @@ public:
 
     Position to_ctr_positions(const Position& ctr_start, const DataPositions& start, const DataPositions& end)
     {
-    	Position ctr_end;
+        Position ctr_end;
 
-    	for (Int c = 0; c < DataPositions::Indexes; c++)
-    	{
-    		ctr_end[c] = end[c];
-    	}
+        for (Int c = 0; c < DataPositions::Indexes; c++)
+        {
+            ctr_end[c] = end[c];
+        }
 
-    	ctr_end[StructureStreamIdx] = ctr_start[StructureStreamIdx] + end.sum() - start.sum();
+        ctr_end[StructureStreamIdx] = ctr_start[StructureStreamIdx] + end.sum() - start.sum();
 
-    	return ctr_end;
+        return ctr_end;
     }
 
     virtual Position fill(NodeBaseG& leaf, const Position& start)
     {
         DataPositions data_start = to_data_positions(start);
-        DataPositions pos 		 = data_start;
+        DataPositions pos        = data_start;
 
         PageUpdateMgr mgr(ctr());
 
@@ -549,29 +535,29 @@ protected:
 
     auto make_joined_buffers_tuple()
     {
-    	using JointBufferTupleT = typename JoinBuffersH<DataStreamBuffers, StructureStreamBuffer>::Type;
+        using JointBufferTupleT = typename JoinBuffersH<DataStreamBuffers, StructureStreamBuffer>::Type;
 
-    	JointBufferTupleT joint_buffer;
+        JointBufferTupleT joint_buffer;
 
-    	ForAllTuple<std::tuple_size<DataStreamBuffers>::value>::process(data_buffers_, AssignDataBuffersFn(), joint_buffer);
+        ForAllTuple<std::tuple_size<DataStreamBuffers>::value>::process(data_buffers_, AssignDataBuffersFn(), joint_buffer);
 
-    	std::get<StructureStreamIdx>(joint_buffer) = &structure_buffer_;
+        std::get<StructureStreamIdx>(joint_buffer) = &structure_buffer_;
 
-    	return joint_buffer;
+        return joint_buffer;
     }
 
     Position to_position(const DataPositions& data_pos)
     {
-    	Position pos;
+        Position pos;
 
-    	for (Int c = 0; c < DataPositions::Indexes; c++)
-    	{
-    		pos[c] = data_pos[c];
-    	}
+        for (Int c = 0; c < DataPositions::Indexes; c++)
+        {
+            pos[c] = data_pos[c];
+        }
 
-    	pos[StructureStreamIdx] = data_pos.sum();
+        pos[StructureStreamIdx] = data_pos.sum();
 
-    	return pos;
+        return pos;
     }
 
 
@@ -579,13 +565,13 @@ protected:
     {
         try {
             CtrT::Types::Pages::LeafDispatcher::dispatch(
-            		leaf,
-					InsertBuffersFn(),
-					to_position(at),
-					to_position(start_),
-					to_position(size),
-					make_joined_buffers_tuple()
-			);
+                    leaf,
+                    InsertBuffersFn(),
+                    to_position(at),
+                    to_position(start_),
+                    to_position(size),
+                    make_joined_buffers_tuple()
+            );
 
             mgr.checkpoint(leaf);
 

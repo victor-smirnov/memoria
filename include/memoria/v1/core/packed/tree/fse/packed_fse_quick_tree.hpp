@@ -78,61 +78,61 @@ public:
 
     using SizesT = core::StaticVector<Int, Blocks>;
 
-    using ConstPtrsT 	= core::StaticVector<const Value*, Blocks>;
+    using ConstPtrsT    = core::StaticVector<const Value*, Blocks>;
 
     class ReadState {
     protected:
-    	ConstPtrsT values_;
-    	Int idx_ = 0;
+        ConstPtrsT values_;
+        Int idx_ = 0;
     public:
-    	ReadState() {}
-    	ReadState(const ConstPtrsT& values, Int idx): values_(values), idx_(idx) {}
+        ReadState() {}
+        ReadState(const ConstPtrsT& values, Int idx): values_(values), idx_(idx) {}
 
-    	ConstPtrsT& values() {return values_;}
-    	Int& idx() {return idx_;}
-    	const ConstPtrsT& values() const {return values_;}
-    	const Int& idx() const {return idx_;}
+        ConstPtrsT& values() {return values_;}
+        Int& idx() {return idx_;}
+        const ConstPtrsT& values() const {return values_;}
+        const Int& idx() const {return idx_;}
     };
 
     class Iterator: public ReadState {
-    	Int size_;
-    	Values data_values_;
+        Int size_;
+        Values data_values_;
 
-    	using ReadState::idx_;
-    	using ReadState::values_;
+        using ReadState::idx_;
+        using ReadState::values_;
 
-    	Int idx_backup_;
+        Int idx_backup_;
 
     public:
-    	Iterator() {}
-    	Iterator(const ConstPtrsT& values, Int idx, Int size):
-    		ReadState(values, idx),
-			size_(size)
-    	{}
+        Iterator() {}
+        Iterator(const ConstPtrsT& values, Int idx, Int size):
+            ReadState(values, idx),
+            size_(size)
+        {}
 
-    	Int size() const {return size_;}
+        Int size() const {return size_;}
 
-    	bool has_next() const {return idx_ < size_;}
+        bool has_next() const {return idx_ < size_;}
 
-    	void next()
-    	{
-    		for (Int b = 0; b < Blocks; b++)
-    		{
-    			data_values_[b] = values_[b][idx_];
-    		}
+        void next()
+        {
+            for (Int b = 0; b < Blocks; b++)
+            {
+                data_values_[b] = values_[b][idx_];
+            }
 
-    		idx_++;
-    	}
+            idx_++;
+        }
 
-    	const auto& value(Int block) {return data_values_[block];}
+        const auto& value(Int block) {return data_values_[block];}
 
-    	void mark() {
-    		idx_backup_ = idx_;
-    	}
+        void mark() {
+            idx_backup_ = idx_;
+        }
 
-    	void restore() {
-    		idx_ = idx_backup_;
-    	}
+        void restore() {
+            idx_ = idx_backup_;
+        }
     };
 
     static Int estimate_block_size(Int tree_capacity, Int density_hi = 1, Int density_lo = 1)
@@ -168,19 +168,19 @@ public:
 
     void init_by_block(Int block_size, Int capacity = 0)
     {
-    	Base::init(block_size, Blocks * SegmentsPerBlock + 1);
+        Base::init(block_size, Blocks * SegmentsPerBlock + 1);
 
-    	Metadata* meta = this->template allocate<Metadata>(METADATA);
+        Metadata* meta = this->template allocate<Metadata>(METADATA);
 
-    	meta->size()        = 0;
-    	meta->max_size()    = capacity;
-    	meta->index_size()  = MyType::index_size(capacity);
+        meta->size()        = 0;
+        meta->max_size()    = capacity;
+        meta->index_size()  = MyType::index_size(capacity);
 
-    	for (Int block = 0; block < Blocks; block++)
-    	{
-    		this->template allocateArrayBySize<IndexValue>(block * SegmentsPerBlock + 1, meta->index_size());
-    		this->template allocateArrayBySize<Value>(block * SegmentsPerBlock + 2, capacity);
-    	}
+        for (Int block = 0; block < Blocks; block++)
+        {
+            this->template allocateArrayBySize<IndexValue>(block * SegmentsPerBlock + 1, meta->index_size());
+            this->template allocateArrayBySize<Value>(block * SegmentsPerBlock + 2, capacity);
+        }
     }
 
     void init(const SizesT& sizes)
@@ -449,17 +449,17 @@ public:
     template <typename IOBuffer>
     bool readTo(ReadState& state, IOBuffer& buffer) const
     {
-    	for (Int b = 0; b < Blocks; b++)
-    	{
-    		auto val = state.values()[b][state.idx()];
+        for (Int b = 0; b < Blocks; b++)
+        {
+            auto val = state.values()[b][state.idx()];
 
-    		if (!IOBufferAdapter<Value>::put(buffer, val))
-    		{
-    			return false;
-    		}
-    	}
+            if (!IOBufferAdapter<Value>::put(buffer, val))
+            {
+                return false;
+            }
+        }
 
-    	return true;
+        return true;
     }
 
 
@@ -725,21 +725,21 @@ public:
     template <typename Iter>
     void populate_from_iterator(Int start, Int length, Iter&& iter)
     {
-    	MEMORIA_V1_ASSERT(start, >=, 0);
-    	MEMORIA_V1_ASSERT(start, <=, this->size());
+        MEMORIA_V1_ASSERT(start, >=, 0);
+        MEMORIA_V1_ASSERT(start, <=, this->size());
 
-    	MEMORIA_V1_ASSERT(length, >=, 0);
+        MEMORIA_V1_ASSERT(length, >=, 0);
 
-    	insertSpace(start, length);
+        insertSpace(start, length);
 
-    	for (Int c = 0; c < length; c++)
-    	{
-    		iter.next();
-    		for (Int block = 0; block < Blocks; block++)
-    		{
-    			this->value(block, c + start) = iter.value(block);
-    		}
-    	}
+        for (Int c = 0; c < length; c++)
+        {
+            iter.next();
+            for (Int block = 0; block < Blocks; block++)
+            {
+                this->value(block, c + start) = iter.value(block);
+            }
+        }
     }
 
 
@@ -750,7 +750,7 @@ public:
         state.idx() = idx;
 
         for (Int b = 0; b < Blocks; b++) {
-        	state.values()[b] = this->values(b);
+            state.values()[b] = this->values(b);
         }
 
         return state;
@@ -761,7 +761,7 @@ public:
         ConstPtrsT ptrs;
 
         for (Int b = 0; b < Blocks; b++) {
-        	ptrs[b] = this->values(b);
+            ptrs[b] = this->values(b);
         }
 
         return Iterator(ptrs, idx, this->size());
@@ -790,14 +790,14 @@ public:
     template <typename T>
     void append(const StaticVector<T, Blocks>& values)
     {
-    	auto meta = this->metadata();
+        auto meta = this->metadata();
 
-    	for (Int b = 0; b < Blocks; b++)
-    	{
-    		this->values(b)[meta->size()] = values[b];
-    	}
+        for (Int b = 0; b < Blocks; b++)
+        {
+            this->values(b)[meta->size()] = values[b];
+        }
 
-    	meta->size()++;
+        meta->size()++;
     }
 
     template <typename T>
@@ -974,7 +974,7 @@ public:
         for (Int c = 0; c < index_size; c++)
         {
             handler->value("INDEX", PageValueProviderFactory::provider(Blocks, [&](Int idx) {
-            	return index[idx][c];
+                return index[idx][c];
             }));
         }
 
@@ -993,7 +993,7 @@ public:
         for (Int c = 0; c < meta->size() ; c++)
         {
             handler->value("TREE_ITEM", PageValueProviderFactory::provider(false, Blocks, [&](Int idx) {
-            	return values[idx][c];
+                return values[idx][c];
             }));
         }
 

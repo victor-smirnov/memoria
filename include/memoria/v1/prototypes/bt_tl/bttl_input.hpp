@@ -33,92 +33,92 @@ namespace iobuf {
 
 namespace {
 
-	template <typename T>
-	class InputBufferHandle {
-		T* ref_;
-	public:
-		using MyType = InputBufferHandle<T>;
-		using PtrType = T;
+    template <typename T>
+    class InputBufferHandle {
+        T* ref_;
+    public:
+        using MyType = InputBufferHandle<T>;
+        using PtrType = T;
 
-		InputBufferHandle(T* ref): ref_(ref) {}
-		InputBufferHandle(): ref_(nullptr) {}
-		InputBufferHandle(const MyType& other) = delete;
-		InputBufferHandle(MyType&& other): ref_(other.ref_) {
-			other.ref_ = nullptr;
-		}
+        InputBufferHandle(T* ref): ref_(ref) {}
+        InputBufferHandle(): ref_(nullptr) {}
+        InputBufferHandle(const MyType& other) = delete;
+        InputBufferHandle(MyType&& other): ref_(other.ref_) {
+            other.ref_ = nullptr;
+        }
 
-		~InputBufferHandle() {
-			if (ref_) ::free(ref_);
-		}
+        ~InputBufferHandle() {
+            if (ref_) ::free(ref_);
+        }
 
-		T* get() {
-			return ref_;
-		}
-
-		const T* get() const {
-			return ref_;
-		}
-
-		MyType& operator=(const MyType& other) = delete;
-
-		void operator=(MyType&& other) {
-			if (ref_) ::free(ref_);
-			ref_ = other.ref_;
-			other.ref_ = nullptr;
-		}
-
-		T* operator->() {return ref_;}
-		const T* operator->() const {return ref_;}
+        T* get() {
+            return ref_;
+        }
+
+        const T* get() const {
+            return ref_;
+        }
+
+        MyType& operator=(const MyType& other) = delete;
+
+        void operator=(MyType&& other) {
+            if (ref_) ::free(ref_);
+            ref_ = other.ref_;
+            other.ref_ = nullptr;
+        }
+
+        T* operator->() {return ref_;}
+        const T* operator->() const {return ref_;}
 
-		bool is_null() const {
-			return ref_ == nullptr;
-		}
-	};
+        bool is_null() const {
+            return ref_ == nullptr;
+        }
+    };
 
 
 
-	template <typename DataBuffer, typename CtrSizeT>
-	struct BTSSStreamInputBufferBase {
-		using Buffer    = DataBuffer;
-	protected:
+    template <typename DataBuffer, typename CtrSizeT>
+    struct BTSSStreamInputBufferBase {
+        using Buffer    = DataBuffer;
+    protected:
 
-		using BufferT 		= typename DataBuffer::PtrType;
-		using BufferSizes 	= typename BufferT::BufferSizesT;
+        using BufferT       = typename DataBuffer::PtrType;
+        using BufferSizes   = typename BufferT::BufferSizesT;
 
-		using AppendState	= typename BufferT::AppendState;
+        using AppendState   = typename BufferT::AppendState;
 
-		DataBuffer 	buffer_;
-		BufferT*   	buffer_ptr_;
-		AppendState append_state_;
+        DataBuffer  buffer_;
+        BufferT*    buffer_ptr_;
+        AppendState append_state_;
 
-	public:
-		BTSSStreamInputBufferBase()
-	{}
+    public:
+        BTSSStreamInputBufferBase()
+    {}
 
-		void init(DataBuffer&& buffer)
-		{
-			buffer_ 	= std::move(buffer);
-			buffer_ptr_ = buffer_.get();
-		}
+        void init(DataBuffer&& buffer)
+        {
+            buffer_     = std::move(buffer);
+            buffer_ptr_ = buffer_.get();
+        }
 
-		void init(Int capacity)
-		{
-			init(create_input_buffer(capacity));
-		}
+        void init(Int capacity)
+        {
+            init(create_input_buffer(capacity));
+        }
 
 
-		DataBuffer& buffer() {return buffer_;}
-		const DataBuffer& buffer() const {return buffer_;}
+        DataBuffer& buffer() {return buffer_;}
+        const DataBuffer& buffer() const {return buffer_;}
 
 
-		void reset()
-		{
-			if (!buffer_.is_null())
-			{
-				buffer_->reset();
-				append_state_ =  buffer_->append_state();
-			}
-		}
+        void reset()
+        {
+            if (!buffer_.is_null())
+            {
+                buffer_->reset();
+                append_state_ =  buffer_->append_state();
+            }
+        }
 
 
 
@@ -126,300 +126,300 @@ namespace {
 
 
 
-		BufferSizes data_capacity() const {
-			return buffer_->data_capacity();
-		}
+        BufferSizes data_capacity() const {
+            return buffer_->data_capacity();
+        }
 
-		auto* create_input_buffer(const BufferSizes& buffer_sizes)
-		{
-			Int block_size = BufferT::block_size(buffer_sizes);
-			BufferT* buffer = T2T<BufferT*>(malloc(block_size));
-			if (buffer)
-			{
-				buffer->setTopLevelAllocator();
-				buffer->init(block_size, buffer_sizes);
-				return buffer;
-			}
-			else {
-				throw OOMException(MA_RAW_SRC);
-			}
-		}
+        auto* create_input_buffer(const BufferSizes& buffer_sizes)
+        {
+            Int block_size = BufferT::block_size(buffer_sizes);
+            BufferT* buffer = T2T<BufferT*>(malloc(block_size));
+            if (buffer)
+            {
+                buffer->setTopLevelAllocator();
+                buffer->init(block_size, buffer_sizes);
+                return buffer;
+            }
+            else {
+                throw OOMException(MA_RAW_SRC);
+            }
+        }
 
-		auto* create_input_buffer(Int buffer_size)
-		{
-			Int block_size = BufferT::block_size(buffer_size) + 500;
-			BufferT* buffer = T2T<BufferT*>(malloc(block_size));
-			if (buffer)
-			{
-				buffer->setTopLevelAllocator();
-				buffer->init(block_size, buffer_size);
-				return buffer;
-			}
-			else {
-				throw OOMException(MA_RAW_SRC);
-			}
-		}
+        auto* create_input_buffer(Int buffer_size)
+        {
+            Int block_size = BufferT::block_size(buffer_size) + 500;
+            BufferT* buffer = T2T<BufferT*>(malloc(block_size));
+            if (buffer)
+            {
+                buffer->setTopLevelAllocator();
+                buffer->init(block_size, buffer_size);
+                return buffer;
+            }
+            else {
+                throw OOMException(MA_RAW_SRC);
+            }
+        }
 
 
-	protected:
+    protected:
 
-		void enlarge()
-		{
-			BufferSizes current_capacity 	= data_capacity();
-			BufferSizes new_capacity 		= current_capacity;
-			VectorAdd(new_capacity, new_capacity);
+        void enlarge()
+        {
+            BufferSizes current_capacity    = data_capacity();
+            BufferSizes new_capacity        = current_capacity;
+            VectorAdd(new_capacity, new_capacity);
 
-			auto new_buffer = create_input_buffer(new_capacity);
+            auto new_buffer = create_input_buffer(new_capacity);
 
-			buffer_.get()->copyTo(new_buffer);
+            buffer_.get()->copyTo(new_buffer);
 
-			init(DataBuffer(new_buffer));
-		}
-	};
+            init(DataBuffer(new_buffer));
+        }
+    };
 
 
 
 
 
-	template <typename DataBuffer, typename CtrSizeT, bool LastStream>
-	struct BTSSStreamInputBuffer: BTSSStreamInputBufferBase<DataBuffer, CtrSizeT> {
-		using Base = BTSSStreamInputBufferBase<DataBuffer, CtrSizeT>;
+    template <typename DataBuffer, typename CtrSizeT, bool LastStream>
+    struct BTSSStreamInputBuffer: BTSSStreamInputBufferBase<DataBuffer, CtrSizeT> {
+        using Base = BTSSStreamInputBufferBase<DataBuffer, CtrSizeT>;
 
-		using BufferT       = typename DataBuffer::PtrType;
-
-		using SizesBuffer   = std::vector<CtrSizeT>;
-
-		using AppendState	= typename BufferT::AppendState;
-
-	private:
-
-		SizesBuffer sizes_buffer_;
-		size_t eb_head_ = 0;
-
-		AppendState append_state_;
-
-	public:
-		BTSSStreamInputBuffer() {}
-
-
-
-		void reset()
-		{
-			Base::reset();
-
-			for (size_t c = 0; c < sizes_buffer_.size(); c++)
-			{
-				sizes_buffer_[c] = 0;
-			}
-
-			eb_head_ = 0;
-		}
-
-		void finish()
-		{
-			if (eb_head_ > 0)
-			{
-				append_sizes_substream();
-				this->buffer()->reindex();
-			}
-			else {
-				this->buffer()->reset();
-			}
-		}
-
-
-		void add_size(Int idx, CtrSizeT value)
-		{
-			sizes_buffer_[idx] += value;
-		}
-
-
-		template <typename IOBuffer>
-		void append_stream_entries(Int entries, IOBuffer& buffer)
-		{
-			for (Int c = 0; c < entries; c++)
-			{
-				this->append_io_entry(buffer);
-
-				if (eb_head_ < sizes_buffer_.size())
-				{
-					sizes_buffer_[eb_head_] = 0;
-				}
-				else {
-					sizes_buffer_.emplace_back(0);
-				}
-
-				eb_head_++;
-			}
-		}
-
-	private:
-
-
-		template <typename IOBuffer>
-		void append_io_entry(IOBuffer& io_buffer, Int enlargements = 0)
-		{
-			size_t pos = io_buffer.pos();
-
-			auto tmp = append_state_;
-
-			if (this->buffer_ptr_->append_bttl_entry_from_iobuffer(append_state_, io_buffer))
-			{
-				return;
-			}
-			else {
-				append_state_ = tmp;
-				io_buffer.pos(pos);
-
-				if (enlargements < 5)
-				{
-					this->enlarge();
-					append_io_entry(io_buffer, enlargements + 1);
-				}
-				else {
-					throw Exception(MA_RAW_SRC, "Supplied entry is too large for InputBuffer");
-				}
-			}
-		}
-
-		void append_sizes_substream()
-		{
-			Int tries = 0;
-			while (tries < 5)
-			{
-				if (this->buffer()->has_bttl_capacity_for(sizes_buffer_, 0, eb_head_))
-				{
-					this->buffer()->append_last_substream(sizes_buffer_, 0, eb_head_);
-					return;
-				}
-				else if (tries < 5)
-				{
-					this->enlarge();
-				}
-				else {
-					throw Exception(MA_RAW_SRC, "Supplied stream sizes buffer is too large for InputBuffer");
-				}
-			}
-		}
-	};
-
-
-	template <typename DataBuffer, typename CtrSizeT>
-	struct BTSSStreamInputBuffer<DataBuffer, CtrSizeT, true>: BTSSStreamInputBufferBase<DataBuffer, CtrSizeT> {
-		void finish()
-		{
-			this->buffer()->reindex();
-		}
-
-
-		template <typename IOBuffer>
-		void append_stream_entries(Int entries, IOBuffer& buffer)
-		{
-			for (Int c = 0; c < entries; c++)
-			{
-				this->append_io_entry(buffer);
-			}
-		}
-
-
-		template <typename IOBuffer>
-		void append_io_entry(IOBuffer& io_buffer, Int enlargements = 0)
-		{
-			size_t pos = io_buffer.pos();
-
-			auto tmp = this->append_state_;
-
-			if (this->buffer_ptr_->append_entry_from_iobuffer(this->append_state_, io_buffer))
-			{
-				return;
-			}
-			else{
-				this->append_state_ = tmp;
-				io_buffer.pos(pos);
-
-				if (enlargements < 5)
-				{
-					this->enlarge();
-					append_io_entry(io_buffer, enlargements + 1);
-				}
-				else {
-					throw Exception(MA_RAW_SRC, "Supplied entry is too large for InputBuffer");
-				}
-			}
-		}
-	};
-
-
-
-
-
-
-	template <typename Types, Int Streams, Int Idx = 0>
-	struct InputBufferBuilder {
-		using InputBuffer = StreamInputBuffer<
-				Idx,
-				typename Types::template StreamInputBufferStructList<Idx>
-		>;
-
-		using UInputBufferPtr 	= InputBufferHandle<InputBuffer>;
-		using SizedBuffer 		= BTSSStreamInputBuffer<UInputBufferPtr, typename Types::CtrSizeT, Idx == Streams - 1>;
-
-		using Type = MergeLists<
-				SizedBuffer,
-				typename InputBufferBuilder<Types, Streams, Idx + 1>::Type
-		>;
-	};
-
-	template <typename Types, Int Streams>
-	struct InputBufferBuilder<Types, Streams, Streams> {
-		using Type = TL<>;
-	};
-
-
-	template <typename SeqT>
-	class SymbolsHandle {
-		FreeUniquePtr<PackedAllocator>  ref_;
-	public:
-		SymbolsHandle(Int capacity): ref_(allocate(capacity))
-	{}
-
-		SeqT* get() {return ref_->template get<SeqT>(0);}
-		const SeqT* get() const {return ref_->template get<SeqT>(0);}
-
-		SeqT* operator->() {return this->get();}
-		const SeqT* operator->() const {return this->get();}
-
-		void enlarge(Int required)
-		{
-			Int current_size = get()->size();
-			Int new_size = current_size * 2;
-
-			Int new_capacity = new_size - current_size;
-			if (new_capacity < required)
-			{
-				new_size += required - new_capacity;
-			}
-
-			auto new_ptr = allocate(new_size);
-
-			get()->splitTo(new_ptr->template get<SeqT>(0), 0);
-
-			ref_.reset(new_ptr.release());
-		}
-
-	private:
-		static auto allocate(Int capacity)
-		{
-			Int block_size = SeqT::packed_block_size(capacity);
-			auto ptr = AllocTool<PackedAllocator>::create(block_size, 1);
-
-			SeqT* seq = ptr->template allocate<SeqT>(0, SeqT::packed_block_size(capacity));
-
-			seq->enlargeData(capacity);
-
-			return ptr;
-		}
-	};
+        using BufferT       = typename DataBuffer::PtrType;
+
+        using SizesBuffer   = std::vector<CtrSizeT>;
+
+        using AppendState   = typename BufferT::AppendState;
+
+    private:
+
+        SizesBuffer sizes_buffer_;
+        size_t eb_head_ = 0;
+
+        AppendState append_state_;
+
+    public:
+        BTSSStreamInputBuffer() {}
+
+
+
+        void reset()
+        {
+            Base::reset();
+
+            for (size_t c = 0; c < sizes_buffer_.size(); c++)
+            {
+                sizes_buffer_[c] = 0;
+            }
+
+            eb_head_ = 0;
+        }
+
+        void finish()
+        {
+            if (eb_head_ > 0)
+            {
+                append_sizes_substream();
+                this->buffer()->reindex();
+            }
+            else {
+                this->buffer()->reset();
+            }
+        }
+
+
+        void add_size(Int idx, CtrSizeT value)
+        {
+            sizes_buffer_[idx] += value;
+        }
+
+
+        template <typename IOBuffer>
+        void append_stream_entries(Int entries, IOBuffer& buffer)
+        {
+            for (Int c = 0; c < entries; c++)
+            {
+                this->append_io_entry(buffer);
+
+                if (eb_head_ < sizes_buffer_.size())
+                {
+                    sizes_buffer_[eb_head_] = 0;
+                }
+                else {
+                    sizes_buffer_.emplace_back(0);
+                }
+
+                eb_head_++;
+            }
+        }
+
+    private:
+
+
+        template <typename IOBuffer>
+        void append_io_entry(IOBuffer& io_buffer, Int enlargements = 0)
+        {
+            size_t pos = io_buffer.pos();
+
+            auto tmp = append_state_;
+
+            if (this->buffer_ptr_->append_bttl_entry_from_iobuffer(append_state_, io_buffer))
+            {
+                return;
+            }
+            else {
+                append_state_ = tmp;
+                io_buffer.pos(pos);
+
+                if (enlargements < 5)
+                {
+                    this->enlarge();
+                    append_io_entry(io_buffer, enlargements + 1);
+                }
+                else {
+                    throw Exception(MA_RAW_SRC, "Supplied entry is too large for InputBuffer");
+                }
+            }
+        }
+
+        void append_sizes_substream()
+        {
+            Int tries = 0;
+            while (tries < 5)
+            {
+                if (this->buffer()->has_bttl_capacity_for(sizes_buffer_, 0, eb_head_))
+                {
+                    this->buffer()->append_last_substream(sizes_buffer_, 0, eb_head_);
+                    return;
+                }
+                else if (tries < 5)
+                {
+                    this->enlarge();
+                }
+                else {
+                    throw Exception(MA_RAW_SRC, "Supplied stream sizes buffer is too large for InputBuffer");
+                }
+            }
+        }
+    };
+
+
+    template <typename DataBuffer, typename CtrSizeT>
+    struct BTSSStreamInputBuffer<DataBuffer, CtrSizeT, true>: BTSSStreamInputBufferBase<DataBuffer, CtrSizeT> {
+        void finish()
+        {
+            this->buffer()->reindex();
+        }
+
+
+        template <typename IOBuffer>
+        void append_stream_entries(Int entries, IOBuffer& buffer)
+        {
+            for (Int c = 0; c < entries; c++)
+            {
+                this->append_io_entry(buffer);
+            }
+        }
+
+
+        template <typename IOBuffer>
+        void append_io_entry(IOBuffer& io_buffer, Int enlargements = 0)
+        {
+            size_t pos = io_buffer.pos();
+
+            auto tmp = this->append_state_;
+
+            if (this->buffer_ptr_->append_entry_from_iobuffer(this->append_state_, io_buffer))
+            {
+                return;
+            }
+            else{
+                this->append_state_ = tmp;
+                io_buffer.pos(pos);
+
+                if (enlargements < 5)
+                {
+                    this->enlarge();
+                    append_io_entry(io_buffer, enlargements + 1);
+                }
+                else {
+                    throw Exception(MA_RAW_SRC, "Supplied entry is too large for InputBuffer");
+                }
+            }
+        }
+    };
+
+
+
+
+
+
+    template <typename Types, Int Streams, Int Idx = 0>
+    struct InputBufferBuilder {
+        using InputBuffer = StreamInputBuffer<
+                Idx,
+                typename Types::template StreamInputBufferStructList<Idx>
+        >;
+
+        using UInputBufferPtr   = InputBufferHandle<InputBuffer>;
+        using SizedBuffer       = BTSSStreamInputBuffer<UInputBufferPtr, typename Types::CtrSizeT, Idx == Streams - 1>;
+
+        using Type = MergeLists<
+                SizedBuffer,
+                typename InputBufferBuilder<Types, Streams, Idx + 1>::Type
+        >;
+    };
+
+    template <typename Types, Int Streams>
+    struct InputBufferBuilder<Types, Streams, Streams> {
+        using Type = TL<>;
+    };
+
+
+    template <typename SeqT>
+    class SymbolsHandle {
+        FreeUniquePtr<PackedAllocator>  ref_;
+    public:
+        SymbolsHandle(Int capacity): ref_(allocate(capacity))
+    {}
+
+        SeqT* get() {return ref_->template get<SeqT>(0);}
+        const SeqT* get() const {return ref_->template get<SeqT>(0);}
+
+        SeqT* operator->() {return this->get();}
+        const SeqT* operator->() const {return this->get();}
+
+        void enlarge(Int required)
+        {
+            Int current_size = get()->size();
+            Int new_size = current_size * 2;
+
+            Int new_capacity = new_size - current_size;
+            if (new_capacity < required)
+            {
+                new_size += required - new_capacity;
+            }
+
+            auto new_ptr = allocate(new_size);
+
+            get()->splitTo(new_ptr->template get<SeqT>(0), 0);
+
+            ref_.reset(new_ptr.release());
+        }
+
+    private:
+        static auto allocate(Int capacity)
+        {
+            Int block_size = SeqT::packed_block_size(capacity);
+            auto ptr = AllocTool<PackedAllocator>::create(block_size, 1);
+
+            SeqT* seq = ptr->template allocate<SeqT>(0, SeqT::packed_block_size(capacity));
+
+            seq->enlargeData(capacity);
+
+            return ptr;
+        }
+    };
 
 }
 
@@ -728,25 +728,25 @@ public:
 
     virtual bool populate_buffer()
     {
-    	if (start_.sum() < size_.sum())
-    	{
-    		return true;
-    	}
-    	else if (!finished_)
-    	{
-    		do_populate_iobuffer();
+        if (start_.sum() < size_.sum())
+        {
+            return true;
+        }
+        else if (!finished_)
+        {
+            do_populate_iobuffer();
 
-    		if (finished_)
-    		{
-    			return start_.sum() < size_.sum();
-    		}
-    		else {
-    			return true;
-    		}
-    	}
-    	else {
-    		return false;
-    	}
+            if (finished_)
+            {
+                return start_.sum() < size_.sum();
+            }
+            else {
+                return true;
+            }
+        }
+        else {
+            return false;
+        }
     }
 
     virtual void do_populate_iobuffer() = 0;
@@ -1505,31 +1505,31 @@ protected:
 public:
     IOBufferCtrInputProvider(CtrT& ctr, BufferProducer<IOBuffer>* iobuffer_producer, Int start_level, Int initial_capacity = 4000):
         Base(ctr, start_level, initial_capacity),
-		iobuffer_producer_(iobuffer_producer),
-		io_buffer_(&iobuffer_producer->buffer())
+        iobuffer_producer_(iobuffer_producer),
+        io_buffer_(&iobuffer_producer->buffer())
     {}
 
 
     struct AppendStreamEntriesFn {
-    	template <Int Idx, typename InputBuffer>
-    	void process(InputBuffer& input_buffer, Int stream, Int length, IOBuffer& io_buffer)
-    	{
-    		if (Idx == stream)
-    		{
-    			input_buffer.append_stream_entries(length, io_buffer);
-    		}
-    	}
+        template <Int Idx, typename InputBuffer>
+        void process(InputBuffer& input_buffer, Int stream, Int length, IOBuffer& io_buffer)
+        {
+            if (Idx == stream)
+            {
+                input_buffer.append_stream_entries(length, io_buffer);
+            }
+        }
     };
 
 
     void append_stream_entries(Int stream, Int length, IOBuffer& io_buffer)
     {
-    	ForAllBuffer::process(buffer_, AppendStreamEntriesFn(), stream, length, io_buffer);
+        ForAllBuffer::process(buffer_, AppendStreamEntriesFn(), stream, length, io_buffer);
     }
 
     virtual void do_populate_iobuffer()
     {
-    	reset_buffer();
+        reset_buffer();
 
         Position sizes;
         Position buffer_sums;
@@ -1537,15 +1537,15 @@ public:
         start_.clear();
         size_.clear();
 
-        auto symbols 		= symbols_.get();
-        auto tools 	 		= symbols->tools();
-        auto syms 	 		= symbols->symbols();
-        auto* symbols_size 	= &symbols->size();
+        auto symbols        = symbols_.get();
+        auto tools          = symbols->tools();
+        auto syms           = symbols->symbols();
+        auto* symbols_size  = &symbols->size();
 
         *symbols_size = 0;
 
-        Int capacity 		= symbols->capacity();
-        Int symbol_pos 		= 0;
+        Int capacity        = symbols->capacity();
+        Int symbol_pos      = 0;
 
         io_buffer_->rewind();
         Int entries = iobuffer_producer_->populate(*io_buffer_);
@@ -1553,128 +1553,128 @@ public:
 
         if (entries != 0)
         {
-        	if (entries < 0)
-        	{
-        		finished_ = true;
-        		entries = -entries;
-        	}
+            if (entries < 0)
+            {
+                finished_ = true;
+                entries = -entries;
+            }
 
-        	for (Int entry_num = 0; entry_num < entries;)
-        	{
-        		Int stream;
-        		Int run_length;
-        		bool premature_eob = false;
+            for (Int entry_num = 0; entry_num < entries;)
+            {
+                Int stream;
+                Int run_length;
+                bool premature_eob = false;
 
-        		if (stream_run_remainder_ != 0)
-        		{
-        			stream = last_stream_;
+                if (stream_run_remainder_ != 0)
+                {
+                    stream = last_stream_;
 
-        			if (stream_run_remainder_ <= entries)
-        			{
-        				run_length 				= stream_run_remainder_;
-        				stream_run_remainder_ 	= 0;
-        			}
-        			else {
-        				run_length 				= entries;
-        				stream_run_remainder_ 	-= entries;
-        				premature_eob 			= true;
-        			}
-        		}
-        		else {
-        			auto run = io_buffer_->template getSymbolsRun<Streams>();
+                    if (stream_run_remainder_ <= entries)
+                    {
+                        run_length              = stream_run_remainder_;
+                        stream_run_remainder_   = 0;
+                    }
+                    else {
+                        run_length              = entries;
+                        stream_run_remainder_   -= entries;
+                        premature_eob           = true;
+                    }
+                }
+                else {
+                    auto run = io_buffer_->template getSymbolsRun<Streams>();
 
-        			stream 		= run.symbol();
-        			run_length 	= run.length();
+                    stream      = run.symbol();
+                    run_length  = run.length();
 
-        			entry_num++;
+                    entry_num++;
 
-        			Int iobuffer_remainder = entries - entry_num;
+                    Int iobuffer_remainder = entries - entry_num;
 
-        			if (run_length >= iobuffer_remainder)
-        			{
-        				stream_run_remainder_ 	= run_length - iobuffer_remainder;
-        				run_length 				-= stream_run_remainder_;
-        				premature_eob 			= true;
-        			}
-        		}
-
-
-
-        		if (total_symbols_ == 0 && (stream != start_stream_))
-        		{
-        			throw Exception(MA_SRC, SBuf()<<"Invalid start stream: "<<stream<<" expected: "<<start_stream_);
-        		}
-        		else if (stream > last_stream_ + 1)
-        		{
-        			throw Exception(MA_RAW_SRC, SBuf() << "Invalid sequence state: last_stream=" << last_stream_ << ", stream=" << stream);
-        		}
+                    if (run_length >= iobuffer_remainder)
+                    {
+                        stream_run_remainder_   = run_length - iobuffer_remainder;
+                        run_length              -= stream_run_remainder_;
+                        premature_eob           = true;
+                    }
+                }
 
 
-        		if (capacity < run_length)
-        		{
-        			symbols_.enlarge(run_length);
 
-        			symbols 		= this->symbols();
-        			syms 	 		= symbols->symbols();
-        			symbols_size 	= &symbols->size();
-        			capacity 		= symbols->capacity();
-        		}
-
-        		append_stream_entries(stream, run_length, *io_buffer_);
-
-				*symbols_size += run_length;
-				for (Int c = symbol_pos; c < symbol_pos + run_length; c++)
-				{
-					tools.set(syms, c, stream);
-				}
-
-				symbol_pos      += run_length;
-				total_symbols_  += run_length;
-				size_[stream]   += run_length;
-				capacity        -= run_length;
-
-				if (!premature_eob)
-				{
-					if (stream < last_stream_)
-					{
-						this->finish_stream_run(stream, last_stream_, sizes, buffer_sums);
-					}
-					else if (stream > last_stream_)
-					{
-						locals_[stream] = 0;
-					}
-
-					buffer_sums[stream] += run_length;
-				}
-				else {
-					// We have reached the end of IOBuffer
-
-					buffer_sums[stream] += run_length;
-					this->finish_stream_run(0,  Streams - 1, sizes, buffer_sums);
-				}
+                if (total_symbols_ == 0 && (stream != start_stream_))
+                {
+                    throw Exception(MA_SRC, SBuf()<<"Invalid start stream: "<<stream<<" expected: "<<start_stream_);
+                }
+                else if (stream > last_stream_ + 1)
+                {
+                    throw Exception(MA_RAW_SRC, SBuf() << "Invalid sequence state: last_stream=" << last_stream_ << ", stream=" << stream);
+                }
 
 
-				sizes[stream]       += run_length;
-				totals_[stream]     += run_length;
-				locals_[stream]     += run_length;
+                if (capacity < run_length)
+                {
+                    symbols_.enlarge(run_length);
 
-				last_stream_ = stream;
+                    symbols         = this->symbols();
+                    syms            = symbols->symbols();
+                    symbols_size    = &symbols->size();
+                    capacity        = symbols->capacity();
+                }
 
-				entry_num += run_length;
-        	}
+                append_stream_entries(stream, run_length, *io_buffer_);
 
-        	if (finished_)
-        	{
-        		// We have reached the end of data stream
-        		this->finish_stream_run(0,  Streams - 1, sizes, buffer_sums);
-        	}
+                *symbols_size += run_length;
+                for (Int c = symbol_pos; c < symbol_pos + run_length; c++)
+                {
+                    tools.set(syms, c, stream);
+                }
 
-        	symbols->reindex();
+                symbol_pos      += run_length;
+                total_symbols_  += run_length;
+                size_[stream]   += run_length;
+                capacity        -= run_length;
 
-        	finish_buffer();
+                if (!premature_eob)
+                {
+                    if (stream < last_stream_)
+                    {
+                        this->finish_stream_run(stream, last_stream_, sizes, buffer_sums);
+                    }
+                    else if (stream > last_stream_)
+                    {
+                        locals_[stream] = 0;
+                    }
+
+                    buffer_sums[stream] += run_length;
+                }
+                else {
+                    // We have reached the end of IOBuffer
+
+                    buffer_sums[stream] += run_length;
+                    this->finish_stream_run(0,  Streams - 1, sizes, buffer_sums);
+                }
+
+
+                sizes[stream]       += run_length;
+                totals_[stream]     += run_length;
+                locals_[stream]     += run_length;
+
+                last_stream_ = stream;
+
+                entry_num += run_length;
+            }
+
+            if (finished_)
+            {
+                // We have reached the end of data stream
+                this->finish_stream_run(0,  Streams - 1, sizes, buffer_sums);
+            }
+
+            symbols->reindex();
+
+            finish_buffer();
         }
         else {
-        	finished_ = true;
+            finished_ = true;
         }
     }
 };
@@ -1702,7 +1702,7 @@ class FlatTreeIOBufferAdapter: public BufferProducer<IOBufferT> {
 
 public:
 
-    static constexpr BigInt MaxRunLength 	= IOBufferT::template getMaxSymbolsRunLength<Streams>();
+    static constexpr BigInt MaxRunLength    = IOBufferT::template getMaxSymbolsRunLength<Streams>();
 
     using CtrSizesT = core::StaticVector<BigInt, Streams>;
 
@@ -1722,7 +1722,7 @@ public:
     FlatTreeIOBufferAdapter(){}
 
     const CtrSizesT& consumed() const {
-    	return consumed_;
+        return consumed_;
     }
 
     virtual RunDescr query() = 0;
@@ -1730,75 +1730,75 @@ public:
 
     virtual Int populate(IOBuffer& io_buffer)
     {
-    	Int entries = 0;
+        Int entries = 0;
 
-    	while (true)
-    	{
-    		if (processed_ == state_.length())
-    		{
-    			state_ 			= this->query();
-    			symbol_encoded_ = false;
-    			processed_ 		= 0;
-    		}
+        while (true)
+        {
+            if (processed_ == state_.length())
+            {
+                state_          = this->query();
+                symbol_encoded_ = false;
+                processed_      = 0;
+            }
 
-    		if (state_.symbol() >= 0)
-    		{
-    			auto length = state_.length();
+            if (state_.symbol() >= 0)
+            {
+                auto length = state_.length();
 
-    			while (processed_ < length || length == 0)
-    			{
-    				Int remainder = length - processed_;
+                while (processed_ < length || length == 0)
+                {
+                    Int remainder = length - processed_;
 
-    				if (run_processed_ == run_length_)
-    				{
-    					run_length_ = remainder > MaxRunLength ? MaxRunLength : remainder;
-    					run_processed_  = 0;
-    					symbol_encoded_ = false;
-    				}
+                    if (run_processed_ == run_length_)
+                    {
+                        run_length_ = remainder > MaxRunLength ? MaxRunLength : remainder;
+                        run_processed_  = 0;
+                        symbol_encoded_ = false;
+                    }
 
-    				Int to_encode = run_length_ - run_processed_;
+                    Int to_encode = run_length_ - run_processed_;
 
-    				if (!symbol_encoded_)
-    				{
-    					auto pos = io_buffer.pos();
-    					if (io_buffer.template putSymbolsRun<Streams>(state_.symbol(), to_encode))
-    					{
-    						symbol_encoded_ = true;
-    						entries++;
-    					}
-    					else {
-    						io_buffer.pos(pos);
-    						symbol_encoded_ = false;
-    						return entries;
-    					}
-    				}
+                    if (!symbol_encoded_)
+                    {
+                        auto pos = io_buffer.pos();
+                        if (io_buffer.template putSymbolsRun<Streams>(state_.symbol(), to_encode))
+                        {
+                            symbol_encoded_ = true;
+                            entries++;
+                        }
+                        else {
+                            io_buffer.pos(pos);
+                            symbol_encoded_ = false;
+                            return entries;
+                        }
+                    }
 
-    				if (to_encode > 0)
-    				{
-    					Int actual = populate_stream(state_.symbol(), io_buffer, to_encode);
+                    if (to_encode > 0)
+                    {
+                        Int actual = populate_stream(state_.symbol(), io_buffer, to_encode);
 
-    					processed_ 		+= actual;
-    					run_processed_ 	+= actual;
-    					entries 		+= actual;
+                        processed_      += actual;
+                        run_processed_  += actual;
+                        entries         += actual;
 
-    					consumed_[state_.symbol()] += actual;
+                        consumed_[state_.symbol()] += actual;
 
-    					if (actual < to_encode)
-    					{
-    						return entries;
-    					}
-    					else {
-    						symbol_encoded_ = false;
-    					}
-    				}
-    			}
-    		}
-    		else {
-    			return -entries;
-    		}
-    	}
+                        if (actual < to_encode)
+                        {
+                            return entries;
+                        }
+                        else {
+                            symbol_encoded_ = false;
+                        }
+                    }
+                }
+            }
+            else {
+                return -entries;
+            }
+        }
 
-    	return entries;
+        return entries;
     }
 };
 
@@ -1851,7 +1851,7 @@ template <typename MyType, Int Streams>
 class FlatTreeStructureGeneratorBase {
 
 public:
-	using CtrSizeT = BigInt;
+    using CtrSizeT = BigInt;
 
     using CtrSizesT = core::StaticVector<CtrSizeT, Streams>;
 
@@ -1902,24 +1902,24 @@ public:
     }
 
     auto& consumed() {
-    	return totals_;
+        return totals_;
     }
 
     const auto& counts() const {
-    	return counts_;
+        return counts_;
     }
 
     auto& counts() {
-    	return counts_;
+        return counts_;
     }
 
     void commit(Int level, CtrSizeT len)
     {
-    	counts_[level] += len;
+        counts_[level] += len;
     }
 
     const auto& current_limits() const {
-    	return current_limits_;
+        return current_limits_;
     }
 
     MyType& self() {return *T2T<MyType*>(this);}

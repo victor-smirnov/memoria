@@ -32,95 +32,95 @@ using namespace std;
 
 class PrintingConsumer: public bt::BufferConsumer<IOBuffer> {
 
-	IOBuffer buffer_;
+    IOBuffer buffer_;
 
 public:
-	PrintingConsumer(size_t size): buffer_(size) {}
+    PrintingConsumer(size_t size): buffer_(size) {}
 
-	virtual IOBuffer& buffer() {
-		return buffer_;
-	}
+    virtual IOBuffer& buffer() {
+        return buffer_;
+    }
 
-	virtual Int process(IOBuffer& buffer, Int entries)
-	{
-		for (Int c = 0; c < entries; c++)
-		{
-			cout << "Key: '" << buffer.getString() << "' Value: '" << buffer.getString() << "'" << endl;
-		}
+    virtual Int process(IOBuffer& buffer, Int entries)
+    {
+        for (Int c = 0; c < entries; c++)
+        {
+            cout << "Key: '" << buffer.getString() << "' Value: '" << buffer.getString() << "'" << endl;
+        }
 
-		return entries;
-	}
+        return entries;
+    }
 };
 
 template <typename Iter>
 class MapBufferProducer: public BufferProducer<IOBuffer> {
-	using Base = BufferProducer<IOBuffer>;
+    using Base = BufferProducer<IOBuffer>;
 
-	Iter iter_;
-	Iter end_;
+    Iter iter_;
+    Iter end_;
 
-	using Key 	= std::decay_t<decltype(std::declval<Iter>()->key())>;
-	using Value = std::decay_t<decltype(std::declval<Iter>()->value())>;
+    using Key   = std::decay_t<decltype(std::declval<Iter>()->key())>;
+    using Value = std::decay_t<decltype(std::declval<Iter>()->value())>;
 
-	IOBuffer buffer_;
+    IOBuffer buffer_;
 
 public:
-	MapBufferProducer(const Iter& begin, const Iter& end, size_t buffer_size):
-		iter_(begin), end_(end), buffer_(buffer_size)
-	{}
+    MapBufferProducer(const Iter& begin, const Iter& end, size_t buffer_size):
+        iter_(begin), end_(end), buffer_(buffer_size)
+    {}
 
-	virtual IOBuffer& buffer() {return buffer_;}
+    virtual IOBuffer& buffer() {return buffer_;}
 
-	virtual Int populate(IOBuffer& buffer)
-	{
-		Int entries = 0;
+    virtual Int populate(IOBuffer& buffer)
+    {
+        Int entries = 0;
 
-		while (iter_ != end_)
-		{
-			if (!IOBufferAdapter<Key>::put(buffer, iter_->key()))
-			{
-				return entries;
-			}
+        while (iter_ != end_)
+        {
+            if (!IOBufferAdapter<Key>::put(buffer, iter_->key()))
+            {
+                return entries;
+            }
 
-			if (!IOBufferAdapter<Value>::put(buffer, iter_->value()))
-			{
-				return entries;
-			}
+            if (!IOBufferAdapter<Value>::put(buffer, iter_->value()))
+            {
+                return entries;
+            }
 
-			entries++;
-			iter_++;
-		}
+            entries++;
+            iter_++;
+        }
 
-		return -entries;
-	}
+        return -entries;
+    }
 };
 
 
 template <typename Key, typename Value>
 class KeyValuePair {
-	using MyType = KeyValuePair<Key, Value>;
+    using MyType = KeyValuePair<Key, Value>;
 
-	Key key_;
-	Value value_;
+    Key key_;
+    Value value_;
 public:
-	KeyValuePair() {}
-	KeyValuePair(const Key& key, const Value& value):
-		key_(key), value_(value)
-	{}
+    KeyValuePair() {}
+    KeyValuePair(const Key& key, const Value& value):
+        key_(key), value_(value)
+    {}
 
-	const Key& key() const {return key_;}
-	const Value& value() const {return value_;}
+    const Key& key() const {return key_;}
+    const Value& value() const {return value_;}
 
-	void swap(MyType& other)
-	{
-		std::swap(key_, other.key_);
-		std::swap(value_, other.value_);
-	}
+    void swap(MyType& other)
+    {
+        std::swap(key_, other.key_);
+        std::swap(value_, other.value_);
+    }
 
-	bool operator<(const MyType& other) const
-	{
-		return key_ < other.key_;
-	}
+    bool operator<(const MyType& other) const
+    {
+        return key_ < other.key_;
+    }
 };
 
 
@@ -151,7 +151,7 @@ int main()
 
         for (int c = 0; c < size; c++)
         {
-        	pairs.emplace_back(c, "xxxx00xxx Zoo " + toString(c));
+            pairs.emplace_back(c, "xxxx00xxx Zoo " + toString(c));
         }
 
         BigInt ts1 = getTimeInMillis();

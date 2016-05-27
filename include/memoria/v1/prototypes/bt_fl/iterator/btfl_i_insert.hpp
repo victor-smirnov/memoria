@@ -31,13 +31,9 @@ namespace v1 {
 
 MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorInsertName)
 
-    typedef typename Base::Allocator                                            Allocator;
-    typedef typename Base::NodeBaseG                                            NodeBaseG;
 
+    using typename Base::Container;
 
-    typedef typename Base::Container::BranchNodeEntry                               BranchNodeEntry;
-    typedef typename Base::Container                                            Container;
-    typedef typename Base::Container::Position                                  Position;
 
     using CtrSizeT  = typename Container::Types::CtrSizeT;
     using Key       = typename Container::Types::Key;
@@ -55,52 +51,62 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorInsertName)
     static const Int Streams          = Container::Types::Streams;
     static const Int DataStreams      = Container::Types::DataStreams;
 
+public:
+    template <typename IOBuffer>
+    auto bulkio_insert(BufferProducer<IOBuffer>& provider, const Int initial_capacity = 20000)
+    {
+        auto& self = this->self();
+        return self.ctr().bulkio_insert(self, provider, initial_capacity);
+    }
 
+protected:
 
     struct InsertSymbolFn {
 
-    	CtrSizeT one_;
-    	const Int symbol_;
+        CtrSizeT one_;
+        const Int symbol_;
 
-    	InsertSymbolFn(Int symbol): one_(1), symbol_(symbol) {}
+        InsertSymbolFn(Int symbol): one_(1), symbol_(symbol) {}
 
-    	const auto& get(const StreamTag<0>& , const StreamTag<0>&, Int block) const
-    	{
-    		return one_;
-    	}
+        const auto& get(const StreamTag<0>& , const StreamTag<0>&, Int block) const
+        {
+            return one_;
+        }
 
-    	const auto& get(const StreamTag<0>& , const StreamTag<1>&, Int block) const
-    	{
-    		return symbol_;
-    	}
+        const auto& get(const StreamTag<0>& , const StreamTag<1>&, Int block) const
+        {
+            return symbol_;
+        }
     };
 
 
     template <Int Stream, typename EntryFn>
     void insert_entry(EntryFn&& entry)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	self.ctr().template insert_stream_entry<0>(self, 0, self.idx(), InsertSymbolFn(0));
+        self.ctr().template insert_stream_entry<0>(self, 0, self.idx(), InsertSymbolFn(0));
 
-    	Int key_idx = self.data_stream_idx(Stream - 1);
-    	self.ctr().template insert_stream_entry<Stream>(self, Stream, key_idx, std::forward<EntryFn>(entry));
+        Int key_idx = self.data_stream_idx(Stream - 1);
+        self.ctr().template insert_stream_entry<Stream>(self, Stream, key_idx, std::forward<EntryFn>(entry));
     }
+
+
 
 
     SplitResult split(Int stream, Int target_idx)
     {
-    	auto& self  = this->self();
-    	auto& leaf  = self.leaf();
+        auto& self  = this->self();
+        auto& leaf  = self.leaf();
 
-    	Int structure_size = self.structure_size();
+        Int structure_size = self.structure_size();
 
-    	if (structure_size > 1)
-    	{
-        	Int split_idx = structure_size / 2;
+        if (structure_size > 1)
+        {
+            Int split_idx = structure_size / 2;
 
             auto half_ranks = self.leafrank(split_idx);
-            auto right 		= self.ctr().split_leaf_p(leaf, half_ranks);
+            auto right      = self.ctr().split_leaf_p(leaf, half_ranks);
 
             auto& idx = self.idx();
 
@@ -124,7 +130,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorInsertName)
             }
         }
         else {
-        	auto ranks = self.leaf_sizes();
+            auto ranks = self.leaf_sizes();
 
             self.ctr().split_leaf_p(leaf, self.leaf_sizes());
 

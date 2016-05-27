@@ -38,67 +38,67 @@ namespace io {
 using bt::StreamTag;
 
 enum class Ending {
-	CONTINUE, END_OF_PAGE, END_OF_IOBUFFER, LIMIT_REACHED
+    CONTINUE, END_OF_PAGE, END_OF_IOBUFFER, LIMIT_REACHED
 };
 
 template <typename PkdStruct>
 class ReadIterator {
-	using ReadState = typename PkdStruct::ReadState;
+    using ReadState = typename PkdStruct::ReadState;
 
-	const PkdStruct* struct_ = nullptr;
-	ReadState state_;
-	Int idx_  = 0;
-	Int size_ = 0;
+    const PkdStruct* struct_ = nullptr;
+    ReadState state_;
+    Int idx_  = 0;
+    Int size_ = 0;
 
 public:
-	ReadIterator(const PkdStruct* pstruct, Int idx = 0): struct_(pstruct), state_(pstruct->positions(idx)), idx_(idx)
-	{
-		size_ = pstruct->size();
-	}
+    ReadIterator(const PkdStruct* pstruct, Int idx = 0): struct_(pstruct), state_(pstruct->positions(idx)), idx_(idx)
+    {
+        size_ = pstruct->size();
+    }
 
-	ReadIterator() {}
+    ReadIterator() {}
 
-	Int size() const {
-		return size_;
-	}
+    Int size() const {
+        return size_;
+    }
 
-	Int idx() const {
-		return idx_;
-	}
+    Int idx() const {
+        return idx_;
+    }
 
-	template <typename IOBuffer>
-	auto next(IOBuffer& io_buffer)
-	{
-		if (idx_ < size_)
-		{
-			if (struct_->readTo(state_, io_buffer))
-			{
-				return Ending::CONTINUE;
-			}
+    template <typename IOBuffer>
+    auto next(IOBuffer& io_buffer)
+    {
+        if (idx_ < size_)
+        {
+            if (struct_->readTo(state_, io_buffer))
+            {
+                return Ending::CONTINUE;
+            }
 
-			return Ending::END_OF_IOBUFFER;
-		}
-		else {
-			return Ending::END_OF_PAGE;
-		}
-	}
+            return Ending::END_OF_IOBUFFER;
+        }
+        else {
+            return Ending::END_OF_PAGE;
+        }
+    }
 };
 
 
 
 namespace {
-	template <typename LeafNode, Int Idx, Int Streams, template <typename> class MapFn>
-	struct MapAllStreams4Data {
-		using Type = MergeLists<
-				AsTuple<typename LeafNode::template StreamDispatcher<Idx>::template ForAllStructs<MapFn>>,
-				typename MapAllStreams4Data<LeafNode, Idx + 1, Streams, MapFn>::Type
-		>;
-	};
+    template <typename LeafNode, Int Idx, Int Streams, template <typename> class MapFn>
+    struct MapAllStreams4Data {
+        using Type = MergeLists<
+                AsTuple<typename LeafNode::template StreamDispatcher<Idx>::template ForAllStructs<MapFn>>,
+                typename MapAllStreams4Data<LeafNode, Idx + 1, Streams, MapFn>::Type
+        >;
+    };
 
-	template <typename LeafNode, Int Idx, template <typename> class MapFn>
-	struct MapAllStreams4Data<LeafNode, Idx, Idx, MapFn> {
-		using Type = TL<>;
-	};
+    template <typename LeafNode, Int Idx, template <typename> class MapFn>
+    struct MapAllStreams4Data<LeafNode, Idx, Idx, MapFn> {
+        using Type = TL<>;
+    };
 }
 
 
@@ -114,17 +114,17 @@ namespace {
 
 
 class PopulateStatus {
-	Int entries_;
-	Ending ending_;
+    Int entries_;
+    Ending ending_;
 public:
-	PopulateStatus(Int entries, Ending ending): entries_(entries), ending_(ending)
-	{}
+    PopulateStatus(Int entries, Ending ending): entries_(entries), ending_(ending)
+    {}
 
-	PopulateStatus(): entries_(0), ending_(Ending::CONTINUE)
-	{}
+    PopulateStatus(): entries_(0), ending_(Ending::CONTINUE)
+    {}
 
-	auto entries() const {return entries_;}
-	Ending ending() const {return ending_;}
+    auto entries() const {return entries_;}
+    Ending ending() const {return ending_;}
 };
 
 
@@ -132,279 +132,279 @@ public:
 template <typename IteratorT, typename IOBufferT>
 class BTFLWalker {
 
-	using CtrT		= typename IteratorT::Container;
+    using CtrT      = typename IteratorT::Container;
 
-	using Types 	= typename CtrT::Types;
-	using MyType 	= BTFLWalker<IteratorT, IOBufferT>;
+    using Types     = typename CtrT::Types;
+    using MyType    = BTFLWalker<IteratorT, IOBufferT>;
 
-	using CtrSizeT  	= typename Types::CtrSizeT;
-	using CtrSizesT 	= typename Types::CtrSizesT;
-	using DataSizesT 	= typename Types::DataSizesT;
-	using NodeBaseG 	= typename Types::NodeBaseG;
+    using CtrSizeT      = typename Types::CtrSizeT;
+    using CtrSizesT     = typename Types::CtrSizesT;
+    using DataSizesT    = typename Types::DataSizesT;
+    using NodeBaseG     = typename Types::NodeBaseG;
 
-	using LeafDispatcher = typename Types::Pages::LeafDispatcher;
-	using Iterator  = IteratorT;
+    using LeafDispatcher = typename Types::Pages::LeafDispatcher;
+    using Iterator  = IteratorT;
 
-	static constexpr Int DataStreams 				= Types::DataStreams;
-	static constexpr Int StructureStreamIdx 		= Types::StructureStreamIdx;
+    static constexpr Int DataStreams                = Types::DataStreams;
+    static constexpr Int StructureStreamIdx         = Types::StructureStreamIdx;
 
-	using DataStreamsSizes 	= core::StaticVector<Int, DataStreams>;
+    using DataStreamsSizes  = core::StaticVector<Int, DataStreams>;
 
-	template <typename PackedStructDescr>
-	using StreamDataMapFn = HasType<ReadIterator<typename PackedStructDescr::Type>>;
+    template <typename PackedStructDescr>
+    using StreamDataMapFn = HasType<ReadIterator<typename PackedStructDescr::Type>>;
 
-	using ReadStreamDataStates 	= AsTuple<typename MapAllStreams4Data<typename Types::LeafNode, 0, DataStreams, StreamDataMapFn>::Type>;
+    using ReadStreamDataStates  = AsTuple<typename MapAllStreams4Data<typename Types::LeafNode, 0, DataStreams, StreamDataMapFn>::Type>;
 
-	using StructureIterator 	= typename Types::template LeafPackedStruct<IntList<StructureStreamIdx, 1>>::Iterator;
-
-
+    using StructureIterator     = typename Types::template LeafPackedStruct<IntList<StructureStreamIdx, 1>>::Iterator;
 
 
-	class WriteStreamFn;
-	friend class WriteStreamFn;
-
-	class WriteStreamFn {
-
-		MyType* walker_;
-
-	public:
-
-		PopulateStatus status_;
-
-		WriteStreamFn(MyType* walker): walker_(walker) {}
-
-		template <Int Idx, typename StreamsData>
-		void process(StreamsData& stream_data, Int stream, BigInt length, IOBufferT& io_buffer)
-		{
-			if (Idx == stream)
-			{
-				Int entries = 0;
-
-				for (BigInt c = 0; c < length; c++, entries++)
-				{
-					auto backup 	  = stream_data;
-					auto write_status = write_entry(stream_data, io_buffer);
-
-					if (write_status != Ending::CONTINUE)
-					{
-						stream_data = backup;
-
-						status_ = PopulateStatus(entries, write_status);
-						return;
-					}
-				}
-
-				status_ = PopulateStatus(entries, Ending::CONTINUE);
-			}
-		}
-
-		struct WriteEntryFn
-		{
-			Ending ending_ = Ending::CONTINUE;
-
-			template <Int Idx, typename StreamsData>
-			void process(StreamsData& stream_data, IOBufferT& io_buffer)
-			{
-				if (ending_ == Ending::CONTINUE)
-				{
-					ending_ = stream_data.next(io_buffer);
-				}
-			}
-		};
-
-		template <typename StreamData>
-		Ending write_entry(StreamData& stream_data, IOBufferT& io_buffer)
-		{
-			WriteEntryFn fn;
-			ForAllTuple<std::tuple_size<std::remove_reference_t<StreamData>>::value>::process(stream_data, fn, io_buffer);
-			return fn.ending_;
-		}
-	};
-
-	ReadStreamDataStates  stream_data_;
-
-	Iterator* iter_;
-
-	Int idx_;
-
-	NodeBaseG leaf_;
 
 
-	CtrSizeT run_pos_ 	  = 0;
-	CtrSizeT run_length_  = 0;
+    class WriteStreamFn;
+    friend class WriteStreamFn;
 
-	CtrSizesT locals_;
+    class WriteStreamFn {
 
-	bool run_written_ = true;
+        MyType* walker_;
 
-	StructureIterator symbols_;
+    public:
 
-	Int stream_;
+        PopulateStatus status_;
 
-	CtrSizeT total_syms_;
-	CtrSizeT limit_syms_;
+        WriteStreamFn(MyType* walker): walker_(walker) {}
+
+        template <Int Idx, typename StreamsData>
+        void process(StreamsData& stream_data, Int stream, BigInt length, IOBufferT& io_buffer)
+        {
+            if (Idx == stream)
+            {
+                Int entries = 0;
+
+                for (BigInt c = 0; c < length; c++, entries++)
+                {
+                    auto backup       = stream_data;
+                    auto write_status = write_entry(stream_data, io_buffer);
+
+                    if (write_status != Ending::CONTINUE)
+                    {
+                        stream_data = backup;
+
+                        status_ = PopulateStatus(entries, write_status);
+                        return;
+                    }
+                }
+
+                status_ = PopulateStatus(entries, Ending::CONTINUE);
+            }
+        }
+
+        struct WriteEntryFn
+        {
+            Ending ending_ = Ending::CONTINUE;
+
+            template <Int Idx, typename StreamsData>
+            void process(StreamsData& stream_data, IOBufferT& io_buffer)
+            {
+                if (ending_ == Ending::CONTINUE)
+                {
+                    ending_ = stream_data.next(io_buffer);
+                }
+            }
+        };
+
+        template <typename StreamData>
+        Ending write_entry(StreamData& stream_data, IOBufferT& io_buffer)
+        {
+            WriteEntryFn fn;
+            ForAllTuple<std::tuple_size<std::remove_reference_t<StreamData>>::value>::process(stream_data, fn, io_buffer);
+            return fn.ending_;
+        }
+    };
+
+    ReadStreamDataStates  stream_data_;
+
+    Iterator* iter_;
+
+    Int idx_;
+
+    NodeBaseG leaf_;
+
+
+    CtrSizeT run_pos_     = 0;
+    CtrSizeT run_length_  = 0;
+
+    CtrSizesT locals_;
+
+    bool run_written_ = true;
+
+    StructureIterator symbols_;
+
+    Int stream_;
+
+    CtrSizeT total_syms_;
+    CtrSizeT limit_syms_;
 
 public:
 
-	BTFLWalker(): iter_(), leaf_(), stream_(), total_syms_(), limit_syms_()
-	{}
+    BTFLWalker(): iter_(), leaf_(), stream_(), total_syms_(), limit_syms_()
+    {}
 
-	void init(Iterator& iter, CtrSizeT limit = std::numeric_limits<CtrSizeT>::max())
-	{
-		iter_ 	= &iter;
-		leaf_ 	= iter.leaf();
-		stream_ = iter.stream();
+    void init(Iterator& iter, CtrSizeT limit = std::numeric_limits<CtrSizeT>::max())
+    {
+        iter_   = &iter;
+        leaf_   = iter.leaf();
+        stream_ = iter.stream();
 
-		limit_syms_ = limit;
-		total_syms_ = 0;
+        limit_syms_ = limit;
+        total_syms_ = 0;
 
-		prepare_new_page(iter.idx());
+        prepare_new_page(iter.idx());
 
-		auto data_positions = rank(iter.idx());
+        auto data_positions = rank(iter.idx());
 
-		configure_data(data_positions);
-	}
+        configure_data(data_positions);
+    }
 
-	Int idx() const {
-		return idx_;
-	}
+    Int idx() const {
+        return idx_;
+    }
 
-	auto& leaf() {
-		return leaf_;
-	}
+    auto& leaf() {
+        return leaf_;
+    }
 
-	const auto& leaf() const {
-		return leaf_;
-	}
+    const auto& leaf() const {
+        return leaf_;
+    }
 
-	void prepare_new_page(Int start_idx = 0)
-	{
-		idx_ 	 = start_idx;
-		symbols_ = leaf_structure()->iterator(idx_);
-	}
+    void prepare_new_page(Int start_idx = 0)
+    {
+        idx_     = start_idx;
+        symbols_ = leaf_structure()->iterator(idx_);
+    }
 
-	PopulateStatus write_stream(Int stream, BigInt length, IOBufferT& io_buffer)
-	{
-		WriteStreamFn fn(this);
-		ForAllTuple<DataStreams>::process(stream_data_, fn, stream, length, io_buffer);
-		return fn.status_;
-	}
+    PopulateStatus write_stream(Int stream, BigInt length, IOBufferT& io_buffer)
+    {
+        WriteStreamFn fn(this);
+        ForAllTuple<DataStreams>::process(stream_data_, fn, stream, length, io_buffer);
+        return fn.status_;
+    }
 
-	template <typename IOBuffer>
-	PopulateStatus populate(IOBuffer& buffer)
-	{
-		Int entries = 0;
+    template <typename IOBuffer>
+    PopulateStatus populate(IOBuffer& buffer)
+    {
+        Int entries = 0;
 
-		if (!run_written_)
-		{
-			if (buffer.template putSymbolsRun<DataStreams>(stream_, run_length_))
-			{
-				entries++;
-				run_written_ = true;
-			}
-			else {
-				throw Exception(MA_SRC, "Can't write Symbols run into IOBuffer that is probably to small");
-			}
-		}
+        if (!run_written_)
+        {
+            if (buffer.template putSymbolsRun<DataStreams>(stream_, run_length_))
+            {
+                entries++;
+                run_written_ = true;
+            }
+            else {
+                throw Exception(MA_SRC, "Can't write Symbols run into IOBuffer that is probably to small");
+            }
+        }
 
-		while(symbols_.has_data() && total_syms_ < limit_syms_)
-		{
-			if (run_pos_ == run_length_)
-			{
-				run_pos_ = 0;
-				auto run = symbols_.run();
+        while(symbols_.has_data() && total_syms_ < limit_syms_)
+        {
+            if (run_pos_ == run_length_)
+            {
+                run_pos_ = 0;
+                auto run = symbols_.run();
 
-				stream_ 	= run.symbol();
-				run_length_ = run.length();
+                stream_     = run.symbol();
+                run_length_ = run.length();
 
-				if (total_syms_ + run_length_ > limit_syms_)
-				{
-					run_length_ = limit_syms_ - total_syms_;
-				}
+                if (total_syms_ + run_length_ > limit_syms_)
+                {
+                    run_length_ = limit_syms_ - total_syms_;
+                }
 
-				if (buffer.template putSymbolsRun<DataStreams>(stream_, run_length_))
-				{
-					entries++;
-					run_written_ = true;
-				}
-				else {
-					run_written_ = false;
-					return PopulateStatus(entries, Ending::END_OF_IOBUFFER);
-				}
-			}
+                if (buffer.template putSymbolsRun<DataStreams>(stream_, run_length_))
+                {
+                    entries++;
+                    run_written_ = true;
+                }
+                else {
+                    run_written_ = false;
+                    return PopulateStatus(entries, Ending::END_OF_IOBUFFER);
+                }
+            }
 
-			auto length = run_length_ - run_pos_;
+            auto length = run_length_ - run_pos_;
 
-			auto write_result = write_stream(stream_, length, buffer);
+            auto write_result = write_stream(stream_, length, buffer);
 
-			entries  += write_result.entries();
-			run_pos_ += write_result.entries();
+            entries  += write_result.entries();
+            run_pos_ += write_result.entries();
 
-			total_syms_ += length;
+            total_syms_ += length;
 
-			if (run_pos_ == run_length_)
-			{
-				symbols_.next_run();
-			}
+            if (run_pos_ == run_length_)
+            {
+                symbols_.next_run();
+            }
 
-			if (write_result.ending() == Ending::END_OF_IOBUFFER)
-			{
-				return PopulateStatus(entries, Ending::END_OF_IOBUFFER);
-			}
-		}
+            if (write_result.ending() == Ending::END_OF_IOBUFFER)
+            {
+                return PopulateStatus(entries, Ending::END_OF_IOBUFFER);
+            }
+        }
 
-		return PopulateStatus(entries, total_syms_ < limit_syms_ ? Ending::END_OF_PAGE : Ending::LIMIT_REACHED);
-	}
+        return PopulateStatus(entries, total_syms_ < limit_syms_ ? Ending::END_OF_PAGE : Ending::LIMIT_REACHED);
+    }
 
 
-	bool next_page()
-	{
-		NodeBaseG next = iter_->ctr().getNextNodeP(leaf_);
+    bool next_page()
+    {
+        NodeBaseG next = iter_->ctr().getNextNodeP(leaf_);
 
-		if (next)
-		{
-			leaf_ = next;
+        if (next)
+        {
+            leaf_ = next;
 
-			prepare_new_page();
+            prepare_new_page();
 
-			configure_data(DataStreamsSizes());
+            configure_data(DataStreamsSizes());
 
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 
-	const CtrSizesT& locals() {
-		return locals_;
-	}
+    const CtrSizesT& locals() {
+        return locals_;
+    }
 
-	void clear() noexcept
-	{
-		leaf_ = nullptr;
-		iter_ = nullptr;
-	}
+    void clear() noexcept
+    {
+        leaf_ = nullptr;
+        iter_ = nullptr;
+    }
 
 private:
 
-	DataStreamsSizes rank(Int idx) const
-	{
-		DataStreamsSizes sizes;
+    DataStreamsSizes rank(Int idx) const
+    {
+        DataStreamsSizes sizes;
 
-		auto s = this->leaf_structure();
+        auto s = this->leaf_structure();
 
-		for (Int c = 0; c < DataStreamsSizes::Indexes; c++)
-		{
-			sizes[c] = s->rank(idx, c);
-		}
+        for (Int c = 0; c < DataStreamsSizes::Indexes; c++)
+        {
+            sizes[c] = s->rank(idx, c);
+        }
 
-		return sizes;
-	}
+        return sizes;
+    }
 
     const auto* leaf_structure() const
     {
-    	return getPackedStruct<IntList<StructureStreamIdx, 1>>();
+        return getPackedStruct<IntList<StructureStreamIdx, 1>>();
     }
 
 
@@ -426,54 +426,54 @@ private:
     template <typename SubstreamPath>
     const auto* getPackedStruct() const
     {
-    	return LeafDispatcher::dispatch(leaf_, GetPackedStructFn<SubstreamPath>());
+        return LeafDispatcher::dispatch(leaf_, GetPackedStructFn<SubstreamPath>());
     }
 
     template <typename SubstreamPath>
     auto* getPackedStruct()
     {
-    	return LeafDispatcher::dispatch(leaf_, GetPackedStructFn<SubstreamPath>());
+        return LeafDispatcher::dispatch(leaf_, GetPackedStructFn<SubstreamPath>());
     }
 
 
-	void dump_symbols()
-	{
-		leaf_structure()->dump();
-	}
+    void dump_symbols()
+    {
+        leaf_structure()->dump();
+    }
 
     struct ConfigureDataFn {
 
-		template <Int StreamIdx, typename StreamData, typename Node>
-		void process(StreamData&& data, const DataStreamsSizes& idx, const Node* leaf)
-		{
-			constexpr Int Substreams = std::tuple_size<typename std::remove_reference<StreamData>::type>::value;
+        template <Int StreamIdx, typename StreamData, typename Node>
+        void process(StreamData&& data, const DataStreamsSizes& idx, const Node* leaf)
+        {
+            constexpr Int Substreams = std::tuple_size<typename std::remove_reference<StreamData>::type>::value;
 
-			ForAllTuple<Substreams>::process(data, *this, idx[StreamIdx], leaf, bt::StreamTag<StreamIdx>());
-		}
+            ForAllTuple<Substreams>::process(data, *this, idx[StreamIdx], leaf, bt::StreamTag<StreamIdx>());
+        }
 
-		template <Int SubstreamIdx, typename StreamData, typename Node, Int StreamIdx>
-		void process(StreamData&& data, Int idx, const Node* leaf, const bt::StreamTag<StreamIdx>&)
-		{
-			constexpr Int FullSubstreamIdx = Node::template StreamStartIdx<StreamIdx>::Value + SubstreamIdx;
-			using T = typename Node::Dispatcher::template StreamTypeT<FullSubstreamIdx>::Type;
+        template <Int SubstreamIdx, typename StreamData, typename Node, Int StreamIdx>
+        void process(StreamData&& data, Int idx, const Node* leaf, const bt::StreamTag<StreamIdx>&)
+        {
+            constexpr Int FullSubstreamIdx = Node::template StreamStartIdx<StreamIdx>::Value + SubstreamIdx;
+            using T = typename Node::Dispatcher::template StreamTypeT<FullSubstreamIdx>::Type;
 
-			const T* pstruct = leaf->allocator()->template get<T>(FullSubstreamIdx + Node::SubstreamsStart);
+            const T* pstruct = leaf->allocator()->template get<T>(FullSubstreamIdx + Node::SubstreamsStart);
 
-			data = ReadIterator<T>(pstruct, idx);
-		}
+            data = ReadIterator<T>(pstruct, idx);
+        }
 
-    	template <typename NTypes>
-    	void treeNode(const LeafNode<NTypes>* leaf, ReadStreamDataStates& stream_data, const DataStreamsSizes& idx)
-    	{
-    		ForAllTuple<DataStreams>::process(stream_data, *this, idx, leaf);
-    	}
+        template <typename NTypes>
+        void treeNode(const LeafNode<NTypes>* leaf, ReadStreamDataStates& stream_data, const DataStreamsSizes& idx)
+        {
+            ForAllTuple<DataStreams>::process(stream_data, *this, idx, leaf);
+        }
     };
 
 
-	void configure_data(const DataStreamsSizes& idx)
-	{
-		return LeafDispatcher::dispatch(leaf_, ConfigureDataFn(), stream_data_, idx);
-	}
+    void configure_data(const DataStreamsSizes& idx)
+    {
+        return LeafDispatcher::dispatch(leaf_, ConfigureDataFn(), stream_data_, idx);
+    }
 };
 
 
@@ -483,28 +483,28 @@ private:
 template <typename IOBufferT, typename Iterator>
 class ChainedIOBufferProducer: public BufferProducer<IOBufferT> {
 
-	using WalkerType = BTFLWalker<Iterator, IOBufferT>;
+    using WalkerType = BTFLWalker<Iterator, IOBufferT>;
 
-	Iterator* iter_;
-	WalkerType walker_;
-	IOBufferT io_buffer_;
+    Iterator* iter_;
+    WalkerType walker_;
+    IOBufferT io_buffer_;
 
 public:
-	ChainedIOBufferProducer(Iterator* iter, Int buffer_size = 65536):
-		iter_(iter),
-		walker_(*iter),
-		io_buffer_(buffer_size)
-	{
-	}
+    ChainedIOBufferProducer(Iterator* iter, Int buffer_size = 65536):
+        iter_(iter),
+        walker_(*iter),
+        io_buffer_(buffer_size)
+    {
+    }
 
-	virtual IOBufferT& buffer() {
-		return io_buffer_;
-	}
+    virtual IOBufferT& buffer() {
+        return io_buffer_;
+    }
 
-	virtual Int populate(IOBufferT& buffer)
-	{
-		return iter_->bulkio_populate(walker_, &io_buffer_);
-	}
+    virtual Int populate(IOBufferT& buffer)
+    {
+        return iter_->bulkio_populate(walker_, &io_buffer_);
+    }
 };
 
 

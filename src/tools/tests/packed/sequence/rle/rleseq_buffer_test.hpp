@@ -46,7 +46,7 @@ class PackedRLESearchableSequenceBufferTest: public PackedRLESequenceTestBase<Sy
 
 
     static const Int Blocks                 = Seq::Indexes;
-    static const Int Bits                 	= NumberOfBits(Symbols);
+    static const Int Bits                   = NumberOfBits(Symbols);
 
     using Base::getRandom;
     using Base::createEmptySequence;
@@ -75,41 +75,41 @@ public:
 
     auto createEmptyBuffer(Int capacity = 65536)
     {
-    	auto capacityv = typename Buffer::SizesT(capacity);
+        auto capacityv = typename Buffer::SizesT(capacity);
 
-    	Int block_size = Buffer::block_size(capacityv);
+        Int block_size = Buffer::block_size(capacityv);
 
-    	return MakeSharedPackedStructByBlock<Buffer>(block_size, capacityv);
+        return MakeSharedPackedStructByBlock<Buffer>(block_size, capacityv);
     }
 
 
     void runCreateBuffer()
     {
-    	for (Int s = 1; s < size_; s++)
-    	{
-    		auto buf = createEmptyBuffer();
+        for (Int s = 1; s < size_; s++)
+        {
+            auto buf = createEmptyBuffer();
 
-    		populateRandom(buf, s);
-    	}
+            populateRandom(buf, s);
+        }
     }
 
     void runInsertBufferRandom()
     {
-    	for (Int s = 0; s < 100; s++)
-    	{
-    		auto buf = createEmptyBuffer();
-    		auto seq = createEmptySequence();
+        for (Int s = 0; s < 100; s++)
+        {
+            auto buf = createEmptyBuffer();
+            auto seq = createEmptySequence();
 
-    		auto buf_data = populateRandom(buf, size_);
-    		auto seq_data = populateRandom(seq, size_);
+            auto buf_data = populateRandom(buf, size_);
+            auto seq_data = populateRandom(seq, size_);
 
-    		Int at = getRandom(seq->size());
+            Int at = getRandom(seq->size());
 
-    		Int start 	= getRandom(buf->size() / 2);
-    		Int size	= getRandom(buf->size() - start);
+            Int start   = getRandom(buf->size() / 2);
+            Int size    = getRandom(buf->size() - start);
 
-    		tryInsertBuffer(seq, buf, at, start, size, seq_data, buf_data);
-    	}
+            tryInsertBuffer(seq, buf, at, start, size, seq_data, buf_data);
+        }
     }
 
 
@@ -119,17 +119,17 @@ public:
     template <typename T1, typename T2, typename T3>
     void tryInsertBuffer(T1& seq, T2& buf, Int at, Int start, Int size, vector<T3>& seq_data, vector<T3>& buf_data)
     {
-		out() << "Insert Buffer at " << at << " start: " << start << " size: " << size << endl;
+        out() << "Insert Buffer at " << at << " start: " << start << " size: " << size << endl;
 
-		seq->insert_buffer(at, buf.get(), start, size);
+        seq->insert_buffer(at, buf.get(), start, size);
 
-		seq_data.insert(
-				seq_data.begin() + at,
-				buf_data.begin() + start,
-				buf_data.begin() + (start + size)
-		);
+        seq_data.insert(
+                seq_data.begin() + at,
+                buf_data.begin() + start,
+                buf_data.begin() + (start + size)
+        );
 
-		assertEqual(seq, seq_data);
+        assertEqual(seq, seq_data);
     }
 };
 

@@ -35,39 +35,39 @@ using namespace std;
 
 template <typename Iter>
 class SetBufferProducer: public BufferProducer<IOBuffer> {
-	using Base = BufferProducer<IOBuffer>;
+    using Base = BufferProducer<IOBuffer>;
 
-	Iter iter_;
-	Iter end_;
+    Iter iter_;
+    Iter end_;
 
-	using Key 	= std::decay_t<decltype(*std::declval<Iter>())>;
+    using Key   = std::decay_t<decltype(*std::declval<Iter>())>;
 
-	IOBuffer buffer_;
+    IOBuffer buffer_;
 
 public:
-	SetBufferProducer(const Iter& begin, const Iter& end, size_t buffer_size):
-		iter_(begin), end_(end), buffer_(buffer_size)
-	{}
+    SetBufferProducer(const Iter& begin, const Iter& end, size_t buffer_size):
+        iter_(begin), end_(end), buffer_(buffer_size)
+    {}
 
-	virtual IOBuffer& buffer() {return buffer_;}
+    virtual IOBuffer& buffer() {return buffer_;}
 
-	virtual Int populate(IOBuffer& buffer)
-	{
-		Int entries = 0;
+    virtual Int populate(IOBuffer& buffer)
+    {
+        Int entries = 0;
 
-		while (iter_ != end_)
-		{
-			if (!IOBufferAdapter<Key>::put(buffer, *iter_))
-			{
-				return entries;
-			}
+        while (iter_ != end_)
+        {
+            if (!IOBufferAdapter<Key>::put(buffer, *iter_))
+            {
+                return entries;
+            }
 
-			entries++;
-			iter_++;
-		}
+            entries++;
+            iter_++;
+        }
 
-		return -entries;
-	}
+        return -entries;
+    }
 };
 
 
@@ -100,14 +100,14 @@ int main()
 
         for (int c = 0; c < size; c++)
         {
-        	FixedArray<16> array;
+            FixedArray<16> array;
 
-        	for (int c = 0; c < array.length(); c++)
-        	{
-        		array[c] = getRandomG(256);
-        	}
+            for (int c = 0; c < array.length(); c++)
+            {
+                array[c] = getRandomG(256);
+            }
 
-        	pairs.emplace_back(array);
+            pairs.emplace_back(array);
         }
 
         BigInt ts1 = getTimeInMillis();

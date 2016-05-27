@@ -59,7 +59,7 @@ public:
     }
 
     Int capacity(Int block) const {
-    	return max_data_size_[block] - data_size_[block];
+        return max_data_size_[block] - data_size_[block];
     }
 
     template <Int, typename, template <typename> class Codec, Int, Int, typename> friend class PkdVLEArrayBase;
@@ -136,29 +136,29 @@ public:
     using SizesT = core::StaticVector<Int, Blocks>;
 
     class AppendState {
-    	SizesT pos_;
-    	Int size_ = 0;
+        SizesT pos_;
+        Int size_ = 0;
 
-    	Metadata* meta_;
-    	using VValueData = core::StaticVector<ValueData*, Blocks>;
+        Metadata* meta_;
+        using VValueData = core::StaticVector<ValueData*, Blocks>;
 
-    	VValueData values_;
+        VValueData values_;
 
     public:
-    	AppendState() {}
-    	AppendState(Metadata* meta): meta_(meta) {}
+        AppendState() {}
+        AppendState(Metadata* meta): meta_(meta) {}
 
 
-    	SizesT& pos() {return pos_;}
-    	const SizesT& pos() const {return pos_;}
+        SizesT& pos() {return pos_;}
+        const SizesT& pos() const {return pos_;}
 
-    	Int& size() {return size_;}
-    	const Int& size() const {return size_;}
+        Int& size() {return size_;}
+        const Int& size() const {return size_;}
 
-    	VValueData& values() {return values_;}
-    	const VValueData& values() const {return values_;}
+        VValueData& values() {return values_;}
+        const VValueData& values() const {return values_;}
 
-    	Metadata* meta() {return meta_;}
+        Metadata* meta() {return meta_;}
     };
 
     void init(const SizesT& sizes)
@@ -248,20 +248,20 @@ public:
 
         for (Int c = start; c < start + length; c++)
         {
-        	Values entry(buffer[c]);
+            Values entry(buffer[c]);
 
-        	for (Int block = 0; block < Blocks; block++)
-        	{
-        		sizes[block] += codec.length(entry[block]);
-        	}
+            for (Int block = 0; block < Blocks; block++)
+            {
+                sizes[block] += codec.length(entry[block]);
+            }
         }
 
         for (Int block = 0; block < Blocks; block++)
         {
-        	if(sizes[block] > meta->max_data_size(block) - SafetyMargin)
-        	{
-        		return false;
-        	}
+            if(sizes[block] > meta->max_data_size(block) - SafetyMargin)
+            {
+                return false;
+            }
         }
 
         return true;
@@ -275,23 +275,23 @@ public:
 
     SizesT data_capacity() const
     {
-    	return this->metadata()->max_data_size();
+        return this->metadata()->max_data_size();
     }
 
     void copyTo(MyType* other) const
     {
-    	auto meta = this->metadata();
-    	auto other_meta = other->metadata();
+        auto meta = this->metadata();
+        auto other_meta = other->metadata();
 
-    	other_meta->size() 		= meta->size();
-    	other_meta->data_size()	= meta->data_size();
+        other_meta->size()      = meta->size();
+        other_meta->data_size() = meta->data_size();
 
-    	Codec codec;
+        Codec codec;
 
-    	for (int b = 0; b < Blocks; b++)
-    	{
-    		codec.copy(this->values(b), 0, other->values(b), 0, meta->data_size(b));
-    	}
+        for (int b = 0; b < Blocks; b++)
+        {
+            codec.copy(this->values(b), 0, other->values(b), 0, meta->data_size(b));
+        }
     }
 
 
@@ -419,36 +419,36 @@ public:
 
     void fill(const ValueData* data, Int size, const SizesT& data_size)
     {
-    	auto meta = this->metadata();
+        auto meta = this->metadata();
 
-    	meta->size() = size;
+        meta->size() = size;
 
-    	size_t acc = 0;
+        size_t acc = 0;
 
-    	for (Int blk = 0; blk < Blocks; blk++)
-    	{
-    		meta->data_size(blk) = data_size[blk];
-    		auto size 			 = data_size[blk];
+        for (Int blk = 0; blk < Blocks; blk++)
+        {
+            meta->data_size(blk) = data_size[blk];
+            auto size            = data_size[blk];
 
-    		CopyBuffer(data + acc, this->values(blk), size);
-    		acc += size;
-    	}
+            CopyBuffer(data + acc, this->values(blk), size);
+            acc += size;
+        }
     }
 
     AppendState append_state()
     {
-    	auto meta = this->metadata();
+        auto meta = this->metadata();
 
-    	AppendState state(meta);
+        AppendState state(meta);
 
-    	state.pos()  = meta->data_size();
-    	state.size() = meta->size();
+        state.pos()  = meta->data_size();
+        state.size() = meta->size();
 
-    	for (Int b = 0; b < Blocks; b++) {
-    		state.values()[b] = this->values(b);
-    	}
+        for (Int b = 0; b < Blocks; b++) {
+            state.values()[b] = this->values(b);
+        }
 
-    	return state;
+        return state;
     }
 
 
@@ -461,23 +461,23 @@ public:
 
         for (Int block = 0; block < Blocks; block++)
         {
-        	size_t capacity = meta->capacity(block);
+            size_t capacity = meta->capacity(block);
 
-        	auto ptr = buffer.array();
-        	auto pos = buffer.pos();
+            auto ptr = buffer.array();
+            auto pos = buffer.pos();
 
-        	size_t len = codec.length(ptr, pos, -1);
+            size_t len = codec.length(ptr, pos, -1);
 
-        	if (len <= capacity)
-        	{
-        		Int& data_pos = meta->data_size(block);
-        		codec.copy(ptr, pos, state.values()[block], data_pos, len);
-        		data_pos += len;
-        		buffer.skip(len);
-        	}
-        	else {
-        		return false;
-        	}
+            if (len <= capacity)
+            {
+                Int& data_pos = meta->data_size(block);
+                codec.copy(ptr, pos, state.values()[block], data_pos, len);
+                data_pos += len;
+                buffer.skip(len);
+            }
+            else {
+                return false;
+            }
         }
 
         state.size()++;
@@ -491,10 +491,10 @@ public:
 
     void restore(const AppendState& state)
     {
-    	auto meta = this->metadata();
+        auto meta = this->metadata();
 
-    	meta->size() 		= state.size();
-    	meta->data_size() 	= state.pos();
+        meta->size()        = state.size();
+        meta->data_size()   = state.pos();
     }
 
 
@@ -791,7 +791,7 @@ public:
             }
 
             handler->value("ARRAY_ITEM", PageValueProviderFactory::provider(Blocks, [&](Int idx) {
-               	return values_data[idx];
+                return values_data[idx];
             }));
         }
 

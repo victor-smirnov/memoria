@@ -31,128 +31,128 @@ namespace rleseq {
 
 template <typename Seq>
 class RLESeqIterator {
-	using Codec = typename Seq::Codec;
-	using Value = typename Seq::Value;
+    using Codec = typename Seq::Codec;
+    using Value = typename Seq::Value;
 
-	const Value* symbols_;
+    const Value* symbols_;
 
-	size_t data_pos_;
-	size_t data_size_;
+    size_t data_pos_;
+    size_t data_size_;
 
-	size_t run_prefix_;
-	size_t local_idx_;
+    size_t run_prefix_;
+    size_t local_idx_;
 
-	Codec codec_;
+    Codec codec_;
 
-	RLESymbolsRun run_;
+    RLESymbolsRun run_;
 
-	RLESymbolsRun run_backup_;
-	size_t datapos_backup_ 		= 0;
-	size_t run_prefix_backup_	= 0;
-	size_t local_idx_backup_ 	= 0;
+    RLESymbolsRun run_backup_;
+    size_t datapos_backup_      = 0;
+    size_t run_prefix_backup_   = 0;
+    size_t local_idx_backup_    = 0;
 
 public:
-	RLESeqIterator(): symbols_(), data_pos_(), data_size_(), run_prefix_(), local_idx_() {}
-	RLESeqIterator(const Value* symbols, size_t data_pos, size_t data_size, size_t local_idx, size_t run_prefix, RLESymbolsRun run):
-		symbols_(symbols),
-		data_pos_(data_pos),
-		data_size_(data_size),
-		run_prefix_(run_prefix),
-		local_idx_(local_idx),
-		run_(run)
-	{
-		if (data_pos < data_size)
-		{
-			Codec codec;
-			data_pos_ += codec.length(Seq::encode_run(run.symbol(), run.length()));
-		}
-	}
+    RLESeqIterator(): symbols_(), data_pos_(), data_size_(), run_prefix_(), local_idx_() {}
+    RLESeqIterator(const Value* symbols, size_t data_pos, size_t data_size, size_t local_idx, size_t run_prefix, RLESymbolsRun run):
+        symbols_(symbols),
+        data_pos_(data_pos),
+        data_size_(data_size),
+        run_prefix_(run_prefix),
+        local_idx_(local_idx),
+        run_(run)
+    {
+        if (data_pos < data_size)
+        {
+            Codec codec;
+            data_pos_ += codec.length(Seq::encode_run(run.symbol(), run.length()));
+        }
+    }
 
 
-	bool has_symbol_in_run() const {
-		return local_idx_ < run_.length();
-	}
+    bool has_symbol_in_run() const {
+        return local_idx_ < run_.length();
+    }
 
-	bool has_data() const {
-		return has_symbol_in_run() || data_pos_ < data_size_;
-	}
+    bool has_data() const {
+        return has_symbol_in_run() || data_pos_ < data_size_;
+    }
 
-	size_t local_idx() const {
-		return local_idx_;
-	}
+    size_t local_idx() const {
+        return local_idx_;
+    }
 
-	const auto& run() const {
-		return run_;
-	}
+    const auto& run() const {
+        return run_;
+    }
 
-	size_t data_pos() const {return data_pos_;}
-	size_t data_size() const {return data_size_;}
+    size_t data_pos() const {return data_pos_;}
+    size_t data_size() const {return data_size_;}
 
-	size_t idx() const {return run_prefix_ + local_idx();}
+    size_t idx() const {return run_prefix_ + local_idx();}
 
-	Int symbol() const {return run_.symbol();}
+    Int symbol() const {return run_.symbol();}
 
-	bool is_found() const {
-		return has_data();
-	}
+    bool is_found() const {
+        return has_data();
+    }
 
-	void next_run()
-	{
-		if (data_pos_ < data_size_)
-		{
-			run_prefix_ += run_.length();
+    void next_run()
+    {
+        if (data_pos_ < data_size_)
+        {
+            run_prefix_ += run_.length();
 
-			local_idx_ = 0;
+            local_idx_ = 0;
 
-			UBigInt value = 0;
-			auto len = codec_.decode(symbols_, value, data_pos_);
+            UBigInt value = 0;
+            auto len = codec_.decode(symbols_, value, data_pos_);
 
-			run_ = Seq::decode_run(value);
+            run_ = Seq::decode_run(value);
 
-			data_pos_ += len;
-		}
-		else {
-			local_idx_ = run_.length();
-		}
-	}
+            data_pos_ += len;
+        }
+        else {
+            local_idx_ = run_.length();
+        }
+    }
 
-	Int next_symbol_in_run()
-	{
-		if (local_idx_ < run_.length() - 1)
-		{
-			Int sym = run_.symbol();
-			local_idx_++;
+    Int next_symbol_in_run()
+    {
+        if (local_idx_ < run_.length() - 1)
+        {
+            Int sym = run_.symbol();
+            local_idx_++;
 
-			return sym;
-		}
-	}
+            return sym;
+        }
+    }
 
-	void next()
-	{
-		if (++local_idx_ < run_.length())
-		{
-			return;
-		}
+    void next()
+    {
+        if (++local_idx_ < run_.length())
+        {
+            return;
+        }
 
-		next_run();
-	}
+        next_run();
+    }
 
-	void mark()
-	{
-		run_backup_			= run_;
-		run_prefix_backup_	= run_prefix_;
-		local_idx_backup_	= local_idx_;
-		datapos_backup_ 	= data_pos_;
-	}
+    void mark()
+    {
+        run_backup_         = run_;
+        run_prefix_backup_  = run_prefix_;
+        local_idx_backup_   = local_idx_;
+        datapos_backup_     = data_pos_;
+    }
 
 
-	void restore()
-	{
-		run_		= run_backup_;
-		run_prefix_	= run_prefix_backup_;
-		local_idx_	= local_idx_backup_;
-		data_pos_ 	= datapos_backup_;
-	}
+    void restore()
+    {
+        run_        = run_backup_;
+        run_prefix_ = run_prefix_backup_;
+        local_idx_  = local_idx_backup_;
+        data_pos_   = datapos_backup_;
+    }
 };
 
 }}}

@@ -44,7 +44,7 @@ namespace v1 {
 template <typename Profile, typename... LabelDescriptors>
 struct BTTypes<Profile, v1::LabeledTree<LabelDescriptors...>>: BTTypes<Profile, v1::BT> {
 
-    typedef BTTypes<Profile, v1::BT>                                       		Base;
+    typedef BTTypes<Profile, v1::BT>                                            Base;
 
     static constexpr Int BitsPerSymbol  = 1;
     static constexpr Int Symbols        = 2;
@@ -53,22 +53,22 @@ struct BTTypes<Profile, v1::LabeledTree<LabelDescriptors...>>: BTTypes<Profile, 
 
     using StreamDescriptors = FailIf<TL<
             StreamTF<
-				TL<
-					StreamSize,
-					TL<PkdFSSeq<typename PkdFSSeqTF<BitsPerSymbol>::Type>>
-				>,
+                TL<
+                    StreamSize,
+                    TL<PkdFSSeq<typename PkdFSSeqTF<BitsPerSymbol>::Type>>
+                >,
                 FSEBranchStructTF
             >,
             StreamTF<
-				TL<
-					StreamSize,
-					typename louds::StreamDescriptorsListHelper<LabelDescriptors...>::LeafType
-				>,
+                TL<
+                    StreamSize,
+                    typename louds::StreamDescriptorsListHelper<LabelDescriptors...>::LeafType
+                >,
                 FSEBranchStructTF,
                 TL<
-					TL<>,
-					TL<typename louds::StreamDescriptorsListHelper<LabelDescriptors...>::IdxList>
-				>
+                    TL<>,
+                    TL<typename louds::StreamDescriptorsListHelper<LabelDescriptors...>::IdxList>
+                >
             >
     >, false>;
 
@@ -132,7 +132,7 @@ public:
 
     struct Types: Base::Types
     {
-    	using LeafStreamsStructList = FailIf<typename Base::Types::LeafStreamsStructList, false>;
+        using LeafStreamsStructList = FailIf<typename Base::Types::LeafStreamsStructList, false>;
     };
 
 

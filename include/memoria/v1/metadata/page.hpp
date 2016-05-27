@@ -57,9 +57,9 @@ struct IPageLayoutEventHandler {
 
 
 struct PageDataValueProvider {
-	virtual Int size() const							= 0;
-	virtual bool isArray() const						= 0;
-	virtual String value(Int idx) const					= 0;
+    virtual Int size() const                            = 0;
+    virtual bool isArray() const                        = 0;
+    virtual String value(Int idx) const                 = 0;
 };
 
 struct IPageDataEventHandler {
@@ -94,7 +94,7 @@ struct IPageDataEventHandler {
     virtual void symbols(const char* name, const UBigInt* value, Int count, Int bits_per_symbol)    = 0;
     virtual void symbols(const char* name, const UByte* value, Int count, Int bits_per_symbol)      = 0;
 
-    virtual void value(const char* name, const PageDataValueProvider& value)        			= 0;
+    virtual void value(const char* name, const PageDataValueProvider& value)                    = 0;
 
     virtual void startStruct()                                                                  = 0;
     virtual void endStruct()                                                                    = 0;
@@ -265,67 +265,67 @@ struct ValueHelper<std::tuple<Types...>> {
 
 template <typename Fn>
 class PageValueFnProviderT: public PageDataValueProvider {
-	Fn fn_;
-	Int size_;
-	bool array_;
+    Fn fn_;
+    Int size_;
+    bool array_;
 public:
-	PageValueFnProviderT(bool array, Int size, Fn fn): fn_(fn), size_(size), array_(array) {}
+    PageValueFnProviderT(bool array, Int size, Fn fn): fn_(fn), size_(size), array_(array) {}
 
-	virtual Int size() const {return size_;}
-	virtual bool isArray() const {return array_;}
-	virtual String value(Int idx) const
-	{
-		if (idx >= 0 && idx < size_)
-		{
-			return toString(fn_(idx));
-		}
-		else {
-			throw Exception(MA_SRC, SBuf() << "Invalid index access in PageValueProviderT: idx = " << idx << ", size = " << size_);
-		}
-	}
+    virtual Int size() const {return size_;}
+    virtual bool isArray() const {return array_;}
+    virtual String value(Int idx) const
+    {
+        if (idx >= 0 && idx < size_)
+        {
+            return toString(fn_(idx));
+        }
+        else {
+            throw Exception(MA_SRC, SBuf() << "Invalid index access in PageValueProviderT: idx = " << idx << ", size = " << size_);
+        }
+    }
 };
 
 
 template <typename T>
 class PageValueProviderT: public PageDataValueProvider {
 
-	const T& value_;
+    const T& value_;
 
 public:
-	PageValueProviderT(const T& value): value_(value) {}
+    PageValueProviderT(const T& value): value_(value) {}
 
-	virtual Int size() const {return 1;}
-	virtual bool isArray() const {return false;}
-	virtual String value(Int idx) const
-	{
-		if (idx == 0)
-		{
-			return toString(value_);
-		}
-		else {
-			throw Exception(MA_SRC, SBuf() << "Invalid index access in PageValueProviderT: idx = " << idx << ", size = 1");
-		}
-	}
+    virtual Int size() const {return 1;}
+    virtual bool isArray() const {return false;}
+    virtual String value(Int idx) const
+    {
+        if (idx == 0)
+        {
+            return toString(value_);
+        }
+        else {
+            throw Exception(MA_SRC, SBuf() << "Invalid index access in PageValueProviderT: idx = " << idx << ", size = 1");
+        }
+    }
 };
 
 
 
 
 struct PageValueProviderFactory {
-	template <typename Fn>
-	static auto provider(bool is_array, Int size, Fn fn) {
-		return PageValueFnProviderT<Fn>(is_array, size, fn);
-	}
+    template <typename Fn>
+    static auto provider(bool is_array, Int size, Fn fn) {
+        return PageValueFnProviderT<Fn>(is_array, size, fn);
+    }
 
-	template <typename Fn>
-	static auto provider(Int size, Fn fn) {
-		return PageValueFnProviderT<Fn>(false, size, fn);
-	}
+    template <typename Fn>
+    static auto provider(Int size, Fn fn) {
+        return PageValueFnProviderT<Fn>(false, size, fn);
+    }
 
-	template <typename V>
-	static auto provider(V&& v) {
-		return PageValueProviderT<V>(v);
-	}
+    template <typename V>
+    static auto provider(V&& v) {
+        return PageValueProviderT<V>(v);
+    }
 };
 
 
@@ -567,15 +567,15 @@ public:
 
     virtual void value(const char* name, const PageDataValueProvider& value)
     {
-    	if (value.isArray())
-    	{
-    		OutLine(name);
-    		out_ << std::endl;
-    		dumpPageDataValueProviderAsArray(out_, value);
-    	}
-    	else {
-    		OutValueInLine(name, value);
-    	}
+        if (value.isArray())
+        {
+            OutLine(name);
+            out_ << std::endl;
+            dumpPageDataValueProviderAsArray(out_, value);
+        }
+        else {
+            OutValueInLine(name, value);
+        }
     }
 
 
@@ -645,37 +645,37 @@ private:
 
     void OutLine(const char* name)
     {
-    	if (!line_)
-    	{
-    		dumpFieldHeader(out_, level_, cnt_++, name);
-    	}
-    	else {
-    		out_ << "    " << name << " ";
-    	}
+        if (!line_)
+        {
+            dumpFieldHeader(out_, level_, cnt_++, name);
+        }
+        else {
+            out_ << "    " << name << " ";
+        }
     }
 
 
     void OutValueInLine(const char* name, const PageDataValueProvider& value)
     {
-    	OutLine(name);
+        OutLine(name);
 
-    	for (Int c = 0; c < value.size(); c++)
-    	{
-    		out_.width(24);
-    		out_ << value.value(c);
+        for (Int c = 0; c < value.size(); c++)
+        {
+            out_.width(24);
+            out_ << value.value(c);
 
-    		if (c < value.size() - 1)
-    		{
-    			out_ << ",";
-    		}
+            if (c < value.size() - 1)
+            {
+                out_ << ",";
+            }
 
-    		out_ << " ";
-    	}
+            out_ << " ";
+        }
 
-    	if (!line_)
-    	{
-    		out_ << std::endl;
-    	}
+        if (!line_)
+        {
+            out_ << std::endl;
+        }
     }
 };
 
