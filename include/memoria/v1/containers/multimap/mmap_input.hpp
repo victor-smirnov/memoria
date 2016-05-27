@@ -40,7 +40,7 @@ class MultimapIOBufferProducer: public btfl::io::FlatTreeIOBufferAdapter<3, IOBu
 
     using typename Base::IOBuffer;
 
-    using Data          = MapData<Key, Value>;
+    using Data      = MapData<Key, Value>;
     using Positions = core::StaticVector<Int, 2>;
 
 
@@ -102,18 +102,15 @@ public:
             const auto& data = data_[key_idx - 1].second;
 
             Int c;
-            for (c = 0; c < length; c++)
+            for (c = 0; c < length; c++, idx++)
             {
                 auto pos = buffer.pos();
                 if (!IOBufferAdapter<Value>::put(buffer, data[idx]))
                 {
                     buffer.pos(pos);
-                    idx += c;
                     return c;
                 }
             }
-
-            idx += length;
 
             return c;
         }
@@ -121,18 +118,15 @@ public:
             auto& idx = structure_generator_.counts()[0];
 
             Int c;
-            for (c = 0; c < length; c++)
+            for (c = 0; c < length; c++, idx++)
             {
                 auto pos = buffer.pos();
                 if (!IOBufferAdapter<Key>::put(buffer, data_[idx].first))
                 {
                     buffer.pos(pos);
-                    idx += c;
                     return c;
                 }
             }
-
-            idx += length;
 
             return c;
         }

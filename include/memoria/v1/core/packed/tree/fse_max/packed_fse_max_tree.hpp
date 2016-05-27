@@ -673,6 +673,8 @@ public:
             }
         }
 
+        state.idx()++;
+
         return true;
     }
 

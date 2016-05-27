@@ -82,7 +82,7 @@ public:
                 sizes_[0],
                 sizes_[1],
                 [this](auto k) {return this->make_key(k, TypeTag<Key>());},
-                [this](auto k, auto v) {return this->make_value(k, TypeTag<Value>());} //this->getRandom()
+                [this](auto k, auto v) {return this->make_value(this->getRandom(), TypeTag<Value>());}
         );
 
         mmap::MultimapIOBufferProducer<Key, Value> stream_adaptor(map_data, 65536);
