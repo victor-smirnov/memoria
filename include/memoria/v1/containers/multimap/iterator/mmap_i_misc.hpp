@@ -46,6 +46,8 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::mmap::ItrMiscName)
     static constexpr Int DataStreams            = Container::Types::DataStreams;
     static constexpr Int StructureStreamIdx     = Container::Types::StructureStreamIdx;
 
+    using IOBuffer  = DefaultIOBuffer;
+
 public:
     Key key() const
     {
@@ -104,77 +106,77 @@ public:
     }
 
 
-    std::vector<Value> read_values(CtrSizeT length = -1)
+    template <typename ValueConsumer>
+    class ReadValuesFn: public BufferConsumer<IOBuffer> {
+        IOBuffer io_buffer_;
+        ValueConsumer* consumer_;
+
+        CtrSizeT run_pos_;
+
+        memoria::v1::rleseq::RLESymbolsRun run_;
+
+    public:
+        ReadValuesFn(Int capacity = 4096):
+            io_buffer_(capacity),
+            run_pos_(), run_()
+        {}
+
+        void init(ValueConsumer* consumer)
+        {
+        		io_buffer_.rewind();
+
+            run_pos_    = 0;
+            run_        = memoria::v1::rleseq::RLESymbolsRun();
+            consumer_ = consumer;
+        }
+
+        void clear() {}
+
+        virtual IOBuffer& buffer() {return io_buffer_;}
+
+        virtual Int process(IOBuffer& buffer, Int entries)
+        {
+            for (Int entry = 0; entry < entries; entry++)
+            {
+                if (run_pos_ == run_.length())
+                {
+                    run_ = buffer.template getSymbolsRun<DataStreams>();
+                    run_pos_ = 0;
+                    entry++;
+
+                    if (entry == entries) {
+                        return entries;
+                    }
+                }
+
+                consumer_->emplace_back(IOBufferAdapter<Value>::get(buffer));
+                run_pos_++;
+            }
+
+            return entries;
+        }
+    };
+
+
+    std::vector<Value> read_values(CtrSizeT length = std::numeric_limits<CtrSizeT>::max())
     {
         auto& self = this->self();
 
         std::vector<Value> values;
 
-        self.scan_values(length, [&](auto&& value){
-            values.push_back(value);
-        });
+        using ReadFn = ReadValuesFn<std::vector<Value>>;
+
+        auto read_fn = self.ctr().pools().get_instance(PoolT<ObjectPool<ReadFn>>()).get_unique();
+        read_fn->init(&values);
+
+        self.bulkio_scan(read_fn.get(), 1, length);
 
         return values;
     }
 
 
-    template <typename Fn>
-    CtrSizeT scan_values(CtrSizeT length, Fn&& fn)
-    {
-        auto& self = this->self();
 
-        if (self.stream() == 0) {
-            self.toData();
-        }
 
-        auto data_size  = self.cache().data_size()[1];
-        auto pos        = self.cache().data_pos()[1];
-
-        if (length < 0 || pos + length > data_size)
-        {
-            length = data_size - pos;
-        }
-
-        SubstreamReadLambdaAdapter<Fn> adapter(fn);
-
-        return self.ctr().template read_substream<IntList<1, 1>>(self, 0, length, adapter);
-    }
-
-    template <typename Fn>
-    CtrSizeT scan_values(Fn&& fn)
-    {
-        auto& self = this->self();
-        return self.scan_values(-1, std::forward<Fn>(fn));
-    }
-
-    template <typename Fn>
-    CtrSizeT scan_keys(Fn&& fn)
-    {
-        auto& self = this->self();
-        return self.scan_keys(-1, std::forward<Fn>(fn));
-    }
-
-    template <typename Fn>
-    CtrSizeT scan_keys(CtrSizeT length, Fn&& fn)
-    {
-        auto& self = this->self();
-
-        if (self.stream() == 0) {
-            self.toIndex();
-        }
-
-        auto data_size  = self.cache().data_size()[0];
-        auto pos        = self.cache().data_pos()[0];
-
-        if (length < 0 || pos + length > data_size)
-        {
-            length = data_size - pos;
-        }
-
-        SubstreamReadLambdaAdapter<Fn> adapter(fn);
-
-        return self.ctr().template read_substream<IntList<0, 1>>(self, 0, length, adapter);
-    }
 
 
     CtrSizesT remove(CtrSizeT length = 1)
@@ -185,18 +187,6 @@ public:
     CtrSizeT values_size() const {
         return self().substream_size();
     }
-
-
-//    template <typename Provider>
-//    auto bulk_insert(Provider&& provider, const Int initial_capacity = 2000)
-//    {
-//        auto& self = this->self();
-//
-//        return self.ctr()._insert(self, std::forward<Provider>(provider), initial_capacity);
-//    }
-
-
-
 
     bool is_found(const Key& key)
     {

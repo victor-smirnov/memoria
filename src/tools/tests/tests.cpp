@@ -13,11 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "bitmap/bitmap_test_suite.hpp"
+//#include "bitmap/bitmap_test_suite.hpp"
 
 
-#include "packed/sequence/fse/pseq_test_suite.hpp"
-#include "packed/sequence/rle/rleseq_test_suite.hpp"
+//#include "packed/sequence/fse/pseq_test_suite.hpp"
+//#include "packed/sequence/rle/rleseq_test_suite.hpp"
 
 //#include "packed/codecs/packed_codecs_test_suite.hpp"
 //#include "packed/allocator/palloc_test_suite.hpp"
@@ -36,7 +36,7 @@
 
 //#include "map/map_test_suite.hpp"
 //#include "vector/vector_test_suite.hpp"
-//#include "multimap/multimap_test_suite.hpp"
+#include "multimap/multimap_test_suite.hpp"
 
 //#include "sequence/sequence_test_suite.hpp"
 //#include "labeled_tree/ltree_test_suite.hpp"
@@ -91,7 +91,7 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new PackedMaxTreeTestSuite());
 //        runner.registerTask(new PackedArrayTestSuite());
 //        runner.registerTask(new PackedSequenceTestSuite());
-        runner.registerTask(new PackedRLESequenceTestSuite());
+//        runner.registerTask(new PackedRLESequenceTestSuite());
 //        runner.registerTask(new PackedLoudsTestSuite());
 //        runner.registerTask(new PackedLoudsCardinalTestSuite());
 //        runner.registerTask(new PackedWaveletTreeTestSuite());
@@ -99,15 +99,15 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new BTTestSuite());
 //        runner.registerTask(new BTTLTestSuite());
 //        runner.registerTask(new BTSSTestSuite());
-////
+//
 //        runner.registerTask(new MapTestSuite());
 //        runner.registerTask(new VectorTestSuite());
 //        runner.registerTask(new SequenceTestSuite());
 //        runner.registerTask(new LabeledTreeTestSuite());
 //        runner.registerTask(new WTTestSuite());
 
-        //        runner.registerTask(new VTreeTestSuite());
-        //        runner.registerTask(new MultiMapTestSuite());
+        //runner.registerTask(new VTreeTestSuite());
+        runner.registerTask(new MultiMapTestSuite());
 
         runner.Configure(&cmd_line.getConfigurator());
 

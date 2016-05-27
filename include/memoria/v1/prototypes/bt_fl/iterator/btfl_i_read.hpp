@@ -45,81 +45,32 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorReadName)
     static const Int DataStreams            = Container::Types::DataStreams;
 
     template <typename IOBuffer>
-    using WalkerPool = ObjectPool<btfl::io::BTFLWalker<MyType, IOBuffer>>;
+    using ReadWalkerPool = ObjectPool<btfl::io::BTFLWalker<MyType, IOBuffer, btfl::io::ScanThroughStrategy>>;
+
+    template <typename IOBuffer>
+    using ScanWalkerPool = ObjectPool<btfl::io::BTFLWalker<MyType, IOBuffer, btfl::io::ScanRunStrategy>>;
+
 
 public:
+
     template <typename IOBuffer>
-    void bulkio_read(BufferConsumer<IOBuffer>* consumer, const CtrSizeT& limits = std::numeric_limits<CtrSizeT>::max())
-    {
-        auto& self = this->self();
-
-        auto start_id = self.leaf()->id();
-
-        auto walker = self.ctr().pools().get_instance(PoolT<WalkerPool<IOBuffer>>()).get_unique();
-
-        walker->init(self, limits);
-
-        IOBuffer& buffer = consumer->buffer();
-
-        Int entries = 0;
-
-        while (true)
-        {
-            auto result = walker->populate(buffer);
-
-            entries += result.entries();
-
-            if (result.ending() == btfl::io::Ending::END_OF_PAGE)
-            {
-                if (!walker->next_page())
-                {
-                    if (entries > 0)
-                    {
-                        buffer.rewind();
-                        consumer->process(buffer, entries);
-                    }
-
-                    entries = 0;
-
-                    break;
-                }
-            }
-            else if (result.ending() == btfl::io::Ending::END_OF_IOBUFFER)
-            {
-                if (entries > 0)
-                {
-                    buffer.rewind();
-                    consumer->process(buffer, entries);
-                    entries = 0;
-                }
-            }
-            else
-            {
-                break;
-            }
-        }
-
-        self.idx()  = walker->idx();
-        self.leaf() = walker->leaf();
-
-        walker->clear();
-
-        if (self.leaf()->id() != start_id)
-        {
-            self.refresh();
-        }
+    CtrSizeT bulkio_read(BufferConsumer<IOBuffer>* consumer, const CtrSizeT& limits = std::numeric_limits<CtrSizeT>::max()) {
+        return bulkio_read_<ReadWalkerPool>(consumer, -1, limits);
     }
 
     template <typename IOBuffer>
-    auto create_walker(CtrSizeT limit = std::numeric_limits<CtrSizeT>::max())
-    {
-        auto& self = this->self();
+    CtrSizeT bulkio_scan(BufferConsumer<IOBuffer>* consumer, Int expected_stream = -1, const CtrSizeT& limits = std::numeric_limits<CtrSizeT>::max()) {
+        return bulkio_read_<ScanWalkerPool>(consumer, expected_stream, limits);
+    }
 
-        auto walker = self.ctr().pools().get_instance(PoolT<WalkerPool<IOBuffer>>()).get_unique();
+    template <typename IOBuffer>
+    auto create_read_walker(CtrSizeT limit = std::numeric_limits<CtrSizeT>::max()) {
+        return create_walker_<ReadWalkerPool, IOBuffer>();
+    }
 
-        walker->init(self, limit);
-
-        return walker;
+    template <typename IOBuffer>
+    auto create_scan_walker(CtrSizeT limit = std::numeric_limits<CtrSizeT>::max()) {
+        return create_walker_<ReadWalkerPool, IOBuffer>();
     }
 
 
@@ -178,6 +129,101 @@ public:
     }
 
 protected:
+
+    template <template <typename> class WalkerPoolT, typename IOBuffer>
+    auto create_walker_(CtrSizeT limit)
+    {
+        auto& self = this->self();
+
+        auto walker = self.ctr().pools().get_instance(PoolT<WalkerPoolT<IOBuffer>>()).get_unique();
+
+        walker->init(self, limit);
+
+        return walker;
+    }
+
+
+    template <template <typename> class WalkerPoolT, typename IOBuffer>
+    CtrSizeT bulkio_read_(BufferConsumer<IOBuffer>* consumer, Int expected_stream, const CtrSizeT& limits)
+    {
+        auto& self = this->self();
+
+        auto start_id = self.leaf()->id();
+
+        auto walker = self.ctr().pools().get_instance(PoolT<WalkerPoolT<IOBuffer>>()).get_unique();
+
+        walker->init(self, expected_stream, limits);
+
+        IOBuffer& buffer = consumer->buffer();
+
+        Int entries = 0;
+
+        while (true)
+        {
+            auto result = walker->populate(buffer);
+
+            entries += result.entries();
+
+            if (result.ending() == btfl::io::Ending::END_OF_PAGE)
+            {
+                if (!walker->next_page())
+                {
+                    if (entries > 0)
+                    {
+                        buffer.rewind();
+                        consumer->process(buffer, entries);
+                        buffer.rewind();
+                    }
+
+                    entries = 0;
+
+                    break;
+                }
+            }
+            else if (result.ending() == btfl::io::Ending::END_OF_IOBUFFER)
+            {
+                if (entries > 0)
+                {
+                    buffer.rewind();
+                    consumer->process(buffer, entries);
+                    buffer.rewind();
+                    entries = 0;
+                }
+                else {
+                    // put backward skip code here...
+                }
+            }
+            else // LIMIT_REACHED
+            {
+                if (entries > 0)
+                {
+                    buffer.rewind();
+                    consumer->process(buffer, entries);
+                    buffer.rewind();
+                }
+                else {
+                    // put backward skip code here...
+                }
+
+                break;
+            }
+        }
+
+        self.idx()  = walker->idx();
+        self.leaf() = walker->leaf();
+
+        CtrSizeT total = walker->totals();
+
+        walker->clear();
+
+        if (self.leaf()->id() != start_id)
+        {
+            self.refresh();
+        }
+
+        return total;
+    }
+
 
 
 

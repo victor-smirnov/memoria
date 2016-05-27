@@ -176,113 +176,113 @@ UUID make_value(V&& num, TypeTag<UUID>)
 
 
 
-template <typename Key, typename Value>
-class MapIOBufferAdapter: public btfl::io::FlatTreeIOBufferAdapter<3, MMapIOBuffer> {
-
-    using Base   = btfl::io::FlatTreeIOBufferAdapter<3, MMapIOBuffer>;
-    using MyType = MapIOBufferAdapter<Key, Value>;
-
-    using typename Base::IOBuffer;
-
-    using Data = MapData<Key, Value>;
-    using Positions = core::StaticVector<Int, 2>;
-
-
-    const Data& data_;
-
-    IOBuffer io_buffer_;
-    Positions positions_;
-    Int level_ = 0;
-
-    struct StructureAdapter: public btfl::io::FlatTreeStructureGeneratorBase<StructureAdapter, 2> {
-        MyType* adapter_;
-        StructureAdapter(MyType* adapter):
-            adapter_(adapter)
-        {}
-
-
-        auto prepare(const StreamTag<0>&)
-        {
-            return adapter_->data().size();
-        }
-
-        template <Int Idx, typename Pos>
-        auto prepare(const StreamTag<Idx>&, const Pos& pos)
-        {
-            return adapter_->data()[pos[Idx - 1]].second.size();
-        }
-    };
-
-
-    StructureAdapter structure_generator_;
-
-public:
-
-
-    MapIOBufferAdapter(const Data& data, size_t iobuffer_size = 65536):
-        data_(data),
-        io_buffer_(iobuffer_size),
-        structure_generator_(this)
-    {
-        structure_generator_.init();
-    }
-
-    const Data& data() {return data_;}
-
-    virtual IOBuffer& buffer() {return io_buffer_;}
-
-    virtual btfl::io::RunDescr query()
-    {
-        return structure_generator_.query();
-    }
-
-    virtual Int populate_stream(Int stream, IOBuffer& buffer, Int length)
-    {
-        if (stream == 1)
-        {
-            auto& idx    = structure_generator_.counts()[1];
-            auto key_idx = structure_generator_.counts()[0];
-
-            const auto& data = data_[key_idx - 1].second;
-
-            Int c;
-            for (c = 0; c < length; c++)
-            {
-                auto pos = buffer.pos();
-                if (!IOBufferAdapter<Value>::put(buffer, data[idx]))
-                {
-                    buffer.pos(pos);
-                    idx += c;
-                    return c;
-                }
-            }
-
-            idx += length;
-
-            return c;
-        }
-        else {
-            auto& idx = structure_generator_.counts()[0];
-
-            Int c;
-            for (c = 0; c < length; c++)
-            {
-                auto pos = buffer.pos();
-                if (!IOBufferAdapter<Key>::put(buffer, data_[idx].first))
-                {
-                    buffer.pos(pos);
-                    idx += c;
-                    return c;
-                }
-            }
-
-            idx += length;
-
-            return c;
-        }
-    }
-
-};
+//template <typename Key, typename Value>
+//class MapIOBufferAdapter: public btfl::io::FlatTreeIOBufferAdapter<3, MMapIOBuffer> {
+//
+//    using Base   = btfl::io::FlatTreeIOBufferAdapter<3, MMapIOBuffer>;
+//    using MyType = MapIOBufferAdapter<Key, Value>;
+//
+//    using typename Base::IOBuffer;
+//
+//    using Data = MapData<Key, Value>;
+//    using Positions = core::StaticVector<Int, 2>;
+//
+//
+//    const Data& data_;
+//
+//    IOBuffer io_buffer_;
+//    Positions positions_;
+//    Int level_ = 0;
+//
+//    struct StructureAdapter: public btfl::io::FlatTreeStructureGeneratorBase<StructureAdapter, 2> {
+//        MyType* adapter_;
+//        StructureAdapter(MyType* adapter):
+//            adapter_(adapter)
+//        {}
+//
+//
+//        auto prepare(const StreamTag<0>&)
+//        {
+//            return adapter_->data().size();
+//        }
+//
+//        template <Int Idx, typename Pos>
+//        auto prepare(const StreamTag<Idx>&, const Pos& pos)
+//        {
+//            return adapter_->data()[pos[Idx - 1]].second.size();
+//        }
+//    };
+//
+//
+//    StructureAdapter structure_generator_;
+//
+//public:
+//
+//
+//    MapIOBufferAdapter(const Data& data, size_t iobuffer_size = 65536):
+//        data_(data),
+//        io_buffer_(iobuffer_size),
+//        structure_generator_(this)
+//    {
+//        structure_generator_.init();
+//    }
+//
+//    const Data& data() {return data_;}
+//
+//    virtual IOBuffer& buffer() {return io_buffer_;}
+//
+//    virtual btfl::io::RunDescr query()
+//    {
+//        return structure_generator_.query();
+//    }
+//
+//    virtual Int populate_stream(Int stream, IOBuffer& buffer, Int length)
+//    {
+//        if (stream == 1)
+//        {
+//            auto& idx    = structure_generator_.counts()[1];
+//            auto key_idx = structure_generator_.counts()[0];
+//
+//            const auto& data = data_[key_idx - 1].second;
+//
+//            Int c;
+//            for (c = 0; c < length; c++)
+//            {
+//                auto pos = buffer.pos();
+//                if (!IOBufferAdapter<Value>::put(buffer, data[idx]))
+//                {
+//                    buffer.pos(pos);
+//                    idx += c;
+//                    return c;
+//                }
+//            }
+//
+//            idx += length;
+//
+//            return c;
+//        }
+//        else {
+//            auto& idx = structure_generator_.counts()[0];
+//
+//            Int c;
+//            for (c = 0; c < length; c++)
+//            {
+//                auto pos = buffer.pos();
+//                if (!IOBufferAdapter<Key>::put(buffer, data_[idx].first))
+//                {
+//                    buffer.pos(pos);
+//                    idx += c;
+//                    return c;
+//                }
+//            }
+//
+//            idx += length;
+//
+//            return c;
+//        }
+//    }
+//
+//};
 
 
 
@@ -329,7 +329,7 @@ int main()
             Int keys = 10000000;
 
             auto map_data = createRandomShapedMapData<KeyType, ValueType>(
-            		keys,
+                    keys,
                 20,
                 [](auto k) {return make_key(k, TypeTag<KeyType>());},
                 [](auto k, auto v) {return make_value(k, TypeTag<ValueType>());}

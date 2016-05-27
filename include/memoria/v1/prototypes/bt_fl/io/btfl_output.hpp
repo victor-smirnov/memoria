@@ -128,14 +128,45 @@ public:
 };
 
 
+/**
+ * Scans within only the run of the same symbols
+ */
 
-template <typename IteratorT, typename IOBufferT>
+template <typename T>
+class ScanRunStrategy {
+    Int stream_;
+public:
+    void init(Int stream) {
+        stream_ = stream;
+    }
+
+    bool accept(Int stream) {
+        return stream_ == stream;
+    }
+};
+
+/**
+ * Scans through all runs
+ */
+
+template <typename T>
+class ScanThroughStrategy {
+public:
+    void init(Int stream) {}
+
+    bool accept(Int stream) {
+        return true;
+    }
+};
+
+
+template <typename IteratorT, typename IOBufferT, template <typename> class ScanStrategy = ScanThroughStrategy>
 class BTFLWalker {
 
     using CtrT      = typename IteratorT::Container;
 
     using Types     = typename CtrT::Types;
-    using MyType    = BTFLWalker<IteratorT, IOBufferT>;
+    using MyType    = BTFLWalker<IteratorT, IOBufferT, ScanStrategy>;
 
     using CtrSizeT      = typename Types::CtrSizeT;
     using CtrSizesT     = typename Types::CtrSizesT;
@@ -229,11 +260,8 @@ class BTFLWalker {
 
     NodeBaseG leaf_;
 
-
     CtrSizeT run_pos_     = 0;
     CtrSizeT run_length_  = 0;
-
-    CtrSizesT locals_;
 
     bool run_written_ = true;
 
@@ -244,21 +272,24 @@ class BTFLWalker {
     CtrSizeT total_syms_;
     CtrSizeT limit_syms_;
 
+    ScanStrategy<MyType> scan_strategy_;
+
 public:
 
     BTFLWalker(): iter_(), leaf_(), stream_(), total_syms_(), limit_syms_()
     {}
 
-    void init(Iterator& iter, CtrSizeT limit = std::numeric_limits<CtrSizeT>::max())
+    void init(Iterator& iter, Int expected_stream, CtrSizeT limit = std::numeric_limits<CtrSizeT>::max())
     {
         iter_   = &iter;
         leaf_   = iter.leaf();
-        stream_ = iter.stream();
 
         limit_syms_ = limit;
         total_syms_ = 0;
 
         prepare_new_page(iter.idx());
+
+        scan_strategy_.init(expected_stream >= 0 ? expected_stream : stream_);
 
         auto data_positions = rank(iter.idx());
 
@@ -267,6 +298,10 @@ public:
 
     Int idx() const {
         return idx_;
+    }
+
+    auto totals() const {
+        return total_syms_;
     }
 
     auto& leaf() {
@@ -281,6 +316,12 @@ public:
     {
         idx_     = start_idx;
         symbols_ = leaf_structure()->iterator(idx_);
+
+        stream_ 		= symbols_.symbol();
+        run_pos_    = symbols_.local_idx();
+        run_length_ = symbols_.length();
+
+        run_written_ = false;
     }
 
     PopulateStatus write_stream(Int stream, BigInt length, IOBufferT& io_buffer)
@@ -295,9 +336,14 @@ public:
     {
         Int entries = 0;
 
+        if (!scan_strategy_.accept(stream_))
+        {
+        	return PopulateStatus(entries, Ending::LIMIT_REACHED);
+        }
+
         if (!run_written_)
         {
-            if (buffer.template putSymbolsRun<DataStreams>(stream_, run_length_))
+            if (buffer.template putSymbolsRun<DataStreams>(stream_, run_length_ - run_pos_))
             {
                 entries++;
                 run_written_ = true;
@@ -316,6 +362,11 @@ public:
 
                 stream_     = run.symbol();
                 run_length_ = run.length();
+
+                if (!scan_strategy_.accept(stream_))
+                {
+                      return PopulateStatus(entries, Ending::LIMIT_REACHED);
+                }
 
                 if (total_syms_ + run_length_ > limit_syms_)
                 {
@@ -337,10 +388,13 @@ public:
 
             auto write_result = write_stream(stream_, length, buffer);
 
-            entries  += write_result.entries();
-            run_pos_ += write_result.entries();
+            auto entries_written = write_result.entries();
 
-            total_syms_ += length;
+            entries  += entries_written;
+            run_pos_ += entries_written;
+
+            total_syms_ += entries_written;
+            idx_ 				+= entries_written;
 
             if (run_pos_ == run_length_)
             {
@@ -376,9 +430,6 @@ public:
         }
     }
 
-    const CtrSizesT& locals() {
-        return locals_;
-    }
 
     void clear() noexcept
     {

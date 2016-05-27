@@ -81,6 +81,10 @@ public:
         return local_idx_;
     }
 
+    size_t length() const {
+        return run_.length();
+    }
+
     const auto& run() const {
         return run_;
     }

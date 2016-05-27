@@ -518,7 +518,7 @@ void AssertEQ(const char* src, const std::vector<Op1>& op1, const std::vector<Op
         {
             if (op1[c] != op2[c])
             {
-                throw TestException(src, SBuf()<<"EQ data assertion failed: " << c << op1[c] << " " << op2[c]);
+                throw TestException(src, SBuf()<<"EQ data assertion failed: " << c << " " << op1[c] << " " << op2[c]);
             }
         }
     }

@@ -19,6 +19,8 @@
 #include <memoria/v1/prototypes/bt_fl/btfl_factory.hpp>
 #include <memoria/v1/containers/multimap/mmap_names.hpp>
 
+#include <memoria/v1/containers/multimap/mmap_input.hpp>
+
 #include <memoria/v1/containers/multimap/container/mmap_c_api.hpp>
 #include <memoria/v1/containers/multimap/iterator/mmap_i_misc.hpp>
 

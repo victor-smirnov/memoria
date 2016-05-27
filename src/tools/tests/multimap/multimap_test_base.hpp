@@ -67,7 +67,7 @@ public:
     {
         Ctr::initMetadata();
 
-        sizes_ = CtrSizesT({10000, 100});
+        sizes_ = CtrSizesT({1000, 2000});
 
         MEMORIA_ADD_TEST_PARAM(sizes_);
         MEMORIA_ADD_TEST_PARAM(iterations_);
@@ -80,15 +80,20 @@ public:
         AssertEQ(MA_RAW_SRC, ctr.size(), data.size());
 
         size_t c = 0;
-        for (auto iter = ctr.begin(); !iter->is_end(); iter->next(), c++)
+        for (auto iter = ctr.begin(); !iter->is_end(); c++)
         {
-            auto key    = iter->key();
-            auto value  = iter->read_values();
+            auto key = iter->key();
 
-            AssertEQ(MA_RAW_SRC, key, std::get<0>(data[c]));
-            AssertEQ(MA_RAW_SRC, value, std::get<1>(data[c]));
+            if (iter->next())
+            {
+            	  auto value  = iter->read_values();
 
-            iter->toIndex();
+                AssertEQ(MA_RAW_SRC, key, std::get<0>(data[c]));
+                AssertEQ(MA_RAW_SRC, value, std::get<1>(data[c]));
+            }
+            else {
+            	break;
+            }
         }
     }
 

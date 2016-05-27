@@ -20,7 +20,7 @@
 #include "../tests_inc.hpp"
 
 #include "multimap_create_test.hpp"
-#include "multimap_remove_test.hpp"
+//#include "multimap_remove_test.hpp"
 
 #include <vector>
 
@@ -35,17 +35,17 @@ public:
 
     MultiMapTestSuite(): TestSuite("MMapSuite")
     {
-        registerTask(new MultiMapCreateTest<Map<String, Vector<BigInt>>>("Create.S.I"));
-        registerTask(new MultiMapCreateTest<Map<double, Vector<BigInt>>>("Create.D.I"));
+//        registerTask(new MultiMapCreateTest<Map<String, Vector<BigInt>>>("Create.S.I"));
+//        registerTask(new MultiMapCreateTest<Map<double, Vector<BigInt>>>("Create.D.I"));
         registerTask(new MultiMapCreateTest<Map<BigInt, Vector<BigInt>>>("Create.I.I"));
-        registerTask(new MultiMapCreateTest<Map<BigInt, Vector<BigInt>>>("Create.I.S"));
-        registerTask(new MultiMapCreateTest<Map<UUID,   Vector<BigInt>>>("Create.U.I"));
-
-        registerTask(new MultiMapRemoveTest<Map<String, Vector<BigInt>>>("Remove.S.I"));
-        registerTask(new MultiMapRemoveTest<Map<double, Vector<BigInt>>>("Remove.D.I"));
-        registerTask(new MultiMapRemoveTest<Map<BigInt, Vector<BigInt>>>("Remove.I.I"));
-        registerTask(new MultiMapRemoveTest<Map<BigInt, Vector<BigInt>>>("Remove.I.S"));
-        registerTask(new MultiMapRemoveTest<Map<UUID,   Vector<BigInt>>>("Remove.U.I"));
+//        registerTask(new MultiMapCreateTest<Map<BigInt, Vector<BigInt>>>("Create.I.S"));
+//        registerTask(new MultiMapCreateTest<Map<UUID,   Vector<BigInt>>>("Create.U.I"));
+//
+//        registerTask(new MultiMapRemoveTest<Map<String, Vector<BigInt>>>("Remove.S.I"));
+//        registerTask(new MultiMapRemoveTest<Map<double, Vector<BigInt>>>("Remove.D.I"));
+//        registerTask(new MultiMapRemoveTest<Map<BigInt, Vector<BigInt>>>("Remove.I.I"));
+//        registerTask(new MultiMapRemoveTest<Map<BigInt, Vector<BigInt>>>("Remove.I.S"));
+//        registerTask(new MultiMapRemoveTest<Map<UUID,   Vector<BigInt>>>("Remove.U.I"));
     }
 
 };

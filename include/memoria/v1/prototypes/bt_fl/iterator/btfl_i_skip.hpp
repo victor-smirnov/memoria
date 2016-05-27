@@ -57,24 +57,24 @@ public:
     }
 
 
-    bool next_symbol() {
+    bool next() {
         return self().skipFw(1) > 0;
     }
 
-    bool prev_symbol() {
-        return self().skipBw(1);
+    bool prev() {
+        return self().skipBw(1) > 0;
     }
 
 
     CtrSizeT skipFw(CtrSizeT n)
     {
-        return self().template skip_fw_<0>(n);
+        return self().template skip_fw_<StructureStreamIdx>(n);
     }
 
 
     CtrSizeT skipBw(CtrSizeT n)
     {
-        return self().template skip_bw_<0>(n);
+        return self().template skip_bw_<StructureStreamIdx>(n);
     }
 
     CtrSizeT skip(CtrSizeT n)
