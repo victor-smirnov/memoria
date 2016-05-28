@@ -86,13 +86,13 @@ public:
 
             if (iter->next())
             {
-            	  auto value  = iter->read_values();
+                  auto value  = iter->read_values();
 
                 AssertEQ(MA_RAW_SRC, key, std::get<0>(data[c]));
                 AssertEQ(MA_RAW_SRC, value, std::get<1>(data[c]));
             }
             else {
-            	break;
+                break;
             }
         }
     }

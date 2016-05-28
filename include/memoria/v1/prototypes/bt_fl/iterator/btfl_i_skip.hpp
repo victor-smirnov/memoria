@@ -47,7 +47,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorSkipName)
 public:
     bool isBegin() const
     {
-    	  auto& self = this->self();
+          auto& self = this->self();
         return self.idx() < 0 || self.isEmpty();
     }
 
@@ -104,16 +104,24 @@ public:
         return !self().isEmpty();
     }
 
+    void dumpKeys(std::ostream& out) const
+    {
+        auto& self = this->self();
+
+        out<<"Stream:  "<<self.stream_s()<<std::endl;
+        out<<"Idx:  "<<self.idx()<<std::endl;
+    }
+
 
 
     CtrSizeT selectFw(CtrSizeT rank, Int stream)
     {
-        return self().template select_fw_<IntList<0, 1>>(stream, rank);
+        return self().template select_fw_<IntList<StructureStreamIdx, 1>>(stream, rank);
     }
 
     CtrSizeT selectBw(CtrSizeT rank, Int stream)
     {
-        return self().template select_fw_<IntList<0, 1>>(stream, rank);
+        return self().template select_fw_<IntList<StructureStreamIdx, 1>>(stream, rank);
     }
 
 

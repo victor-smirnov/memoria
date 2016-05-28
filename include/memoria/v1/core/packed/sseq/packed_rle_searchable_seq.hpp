@@ -1286,11 +1286,19 @@ public:
         }
     }
 
+    class CountResult {
+        UBigInt count_;
+        Int symbol_;
+    public:
+        CountResult(UBigInt count, Int symbol): count_(count), symbol_(symbol) {}
 
+        UBigInt count() const {return count_;}
+        Int symbol() const {return symbol_;}
+    };
 
-    UBigInt count(Int pos) const
+    CountResult count(Int start_pos) const
     {
-        auto location = find_run(pos);
+        auto location = find_run(start_pos);
         return block_count(metadata(), symbols(), location);
     }
 
@@ -1543,7 +1551,7 @@ private:
     }
 
 
-    UBigInt block_count(const Metadata* meta, const Value* symbols, const Location& location) const
+    CountResult block_count(const Metadata* meta, const Value* symbols, const Location& location) const
     {
         size_t pos = location.data_pos();
         size_t data_size = meta->data_size();
@@ -1570,11 +1578,11 @@ private:
                 local_pos = 0;
             }
             else {
-                return count;
+                return CountResult(count, last_symbol);
             }
         }
 
-        return count;
+        return CountResult(count, last_symbol);
     }
 
 

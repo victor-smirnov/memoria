@@ -394,6 +394,8 @@ typename M_TYPE::IteratorPtr M_TYPE::find_(Walker&& walker)
 {
     auto& self = this->self();
 
+    walker.top_down() = true;
+
     IteratorPtr i = self.make_iterator();
 
     i->prepare();

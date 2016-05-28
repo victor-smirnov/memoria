@@ -45,29 +45,33 @@ protected:
     using typename Base::CtrSizeT;
     using typename Base::CtrSizesT;
 
+    static const Int Streams                = Types::Streams;
+    static const Int DataStreams            = Types::DataStreams;
+    static const Int StructureStreamIdx     = Types::StructureStreamIdx;
+
 public:
     auto begin() {
-        return self().template seek_stream<0>(0);
+        return self().template seek_stream<StructureStreamIdx>(0);
     }
 
     auto end() {
         auto& self = this->self();
-        return self.template seek_stream<0>(self.size());
+        return self.template seek_stream<StructureStreamIdx>(self.size());
     }
 
     CtrSizeT size() const {
-        return self().sizes()[0];
+        return self().sizes()[StructureStreamIdx];
     }
 
     auto seek(CtrSizeT pos)
     {
-        return self().template seek_stream<0>(pos);
+        return self().template seek_stream<StructureStreamIdx>(pos);
     }
 
     auto seek(const CtrSizesT& pos, Int level)
     {
         auto& self = this->self();
-        auto iter  = self.template seek_stream<0>(pos[0]);
+        auto iter  = self.template seek_stream<StructureStreamIdx>(pos[0]);
 
         for (Int l = 1; l <= level; l++)
         {
@@ -89,25 +93,9 @@ public:
     }
 
 
-    CtrSizesT compute_extent(const NodeBaseG& leaf)
+    auto select(CtrSizeT rank, Int stream)
     {
-        auto& self = this->self();
-
-        auto i = self.seek(0);
-
-        CtrSizesT extent;
-
-        while (i.leaf() != leaf)
-        {
-            extent += self.node_extents(i.leaf());
-
-            if (!i.nextLeaf())
-            {
-                throw Exception(MA_SRC, "Premature end of tree");
-            }
-        }
-
-        return extent;
+        return self().template select_<IntList<StructureStreamIdx, 1>>(stream, rank);
     }
 
 

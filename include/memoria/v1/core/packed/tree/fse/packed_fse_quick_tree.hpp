@@ -51,10 +51,8 @@ class PkdFQTree: public PkdFQTreeBase<typename Types::IndexValue, typename Types
 
 public:
 
-
-
     static constexpr UInt VERSION = 1;
-    static constexpr Int Blocks = Types::Blocks;
+    static constexpr Int Blocks   = Types::Blocks;
 
     using Base::METADATA;
     using Base::index_size;
@@ -93,6 +91,7 @@ public:
         const ConstPtrsT& values() const {return values_;}
         const Int& idx() const {return idx_;}
     };
+
 
     class Iterator: public ReadState {
         Int size_;
@@ -134,6 +133,51 @@ public:
             idx_ = idx_backup_;
         }
     };
+
+
+    class BlockIterator {
+        const Value* values_;
+        Int idx_ = 0;
+
+        Int size_;
+        Value data_value_;
+
+        Int idx_backup_;
+    public:
+        BlockIterator() {}
+        BlockIterator(const Value* values, Int idx, Int size):
+            values_(values),
+            idx_(idx),
+            size_(size),
+            data_value_(),
+            idx_backup_()
+        {}
+
+        Int size() const {return size_;}
+
+        bool has_next() const {return idx_ < size_;}
+
+        void next()
+        {
+            for (Int b = 0; b < Blocks; b++)
+            {
+                data_value_ = values_[idx_];
+            }
+
+            idx_++;
+        }
+
+        const auto& value() {return data_value_;}
+
+        void mark() {
+            idx_backup_ = idx_;
+        }
+
+        void restore() {
+            idx_ = idx_backup_;
+        }
+    };
+
 
     static Int estimate_block_size(Int tree_capacity, Int density_hi = 1, Int density_lo = 1)
     {
@@ -766,6 +810,12 @@ public:
 
         return Iterator(ptrs, idx, this->size());
     }
+
+    BlockIterator iterator(Int block, Int idx) const
+    {
+        return BlockIterator(this->values(block), idx, this->size());
+    }
+
 
     SizesT insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, Int inserted)
     {

@@ -207,10 +207,10 @@ void scanData(Ctr& ctr)
 
         if (iter->next())
         {
-        	  total_values += iter->read_values().size();
+              total_values += iter->read_values().size();
         }
         else {
-        	  break;
+              break;
         }
     }
 
@@ -238,11 +238,11 @@ int main()
 
             map->setNewPageSize(32768);
 
-            Int keys = 100000;
+            Int keys = 10000000;
 
             auto map_data = createRandomShapedMapData<KeyType, ValueType>(
                 keys,
-                2000,
+                20,
                 [](auto k) {return make_key(k, TypeTag<KeyType>());},
                 [](auto k, auto v) {return make_value(k, TypeTag<ValueType>());}
             );

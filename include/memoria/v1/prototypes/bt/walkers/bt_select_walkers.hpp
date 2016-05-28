@@ -88,7 +88,14 @@ public:
     template <Int StreamIdx, typename Seq>
     SelectResult select(const Seq* seq, Int start, Int symbol, CtrSizeT rank)
     {
-        return seq->selectFW(start - 1, rank, symbol);
+      if (this->top_down())
+      {
+          MEMORIA_V1_ASSERT(start, ==, 0);
+          return seq->selectFW(rank, symbol);
+      }
+      else {
+          return seq->selectFW(start, rank, symbol);
+      }
     }
 };
 

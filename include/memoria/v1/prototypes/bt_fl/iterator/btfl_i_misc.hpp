@@ -23,6 +23,8 @@
 
 #include <memoria/v1/prototypes/bt_fl/io/btfl_output.hpp>
 
+
+
 #include <memoria/v1/core/container/iterator.hpp>
 #include <memoria/v1/core/container/macros.hpp>
 
@@ -43,6 +45,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorMiscName)
 
     static const Int Streams                = Container::Types::Streams;
     static const Int DataStreams            = Container::Types::DataStreams;
+    static const Int StructureStreamIdx     = Container::Types::StructureStreamIdx;
 
 
 
@@ -85,6 +88,14 @@ protected:
     void init()
     {
         Base::init();
+    }
+
+public:
+
+    auto count()
+    {
+        typename Types::template CountWalker<Types, IntList<StructureStreamIdx, 1>> walker;
+        return self().find_fw(walker);
     }
 
 

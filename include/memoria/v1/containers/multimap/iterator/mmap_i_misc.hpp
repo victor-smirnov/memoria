@@ -116,14 +116,14 @@ public:
         memoria::v1::rleseq::RLESymbolsRun run_;
 
     public:
-        ReadValuesFn(Int capacity = 4096):
+        ReadValuesFn(Int capacity = 65536):
             io_buffer_(capacity),
             run_pos_(), run_()
         {}
 
         void init(ValueConsumer* consumer)
         {
-        		io_buffer_.rewind();
+                io_buffer_.rewind();
 
             run_pos_    = 0;
             run_        = memoria::v1::rleseq::RLESymbolsRun();

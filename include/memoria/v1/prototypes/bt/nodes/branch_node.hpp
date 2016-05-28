@@ -1301,6 +1301,22 @@ public:
     }
 
 
+    template <typename SubstreamPath>
+    auto substream()
+    {
+        const Int SubstreamIdx = v1::list_tree::LeafCount<BranchSubstreamsStructList, SubstreamPath>::Value;
+        using T = typename Dispatcher::template StreamTypeT<SubstreamIdx>::Type;
+        return this->allocator()->template get<T>(SubstreamIdx + SubstreamsStart);
+    }
+
+    template <typename SubstreamPath>
+    auto substream() const
+    {
+        const Int SubstreamIdx = v1::list_tree::LeafCount<BranchSubstreamsStructList, SubstreamPath>::Value;
+        using T = typename Dispatcher::template StreamTypeT<SubstreamIdx>::Type;
+        return this->allocator()->template get<T>(SubstreamIdx + SubstreamsStart);
+    }
+
 
     template <typename Fn, typename... Args>
     auto processNotEmpty(Fn&& fn, Args&&... args) const

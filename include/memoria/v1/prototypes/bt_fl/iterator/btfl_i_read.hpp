@@ -66,12 +66,12 @@ public:
 
     template <typename IOBuffer>
     auto create_read_walker(CtrSizeT limit = std::numeric_limits<CtrSizeT>::max()) {
-        return create_walker_<ReadWalkerPool, IOBuffer>();
+        return create_walker_<ReadWalkerPool, IOBuffer>(limit);
     }
 
     template <typename IOBuffer>
     auto create_scan_walker(CtrSizeT limit = std::numeric_limits<CtrSizeT>::max()) {
-        return create_walker_<ReadWalkerPool, IOBuffer>();
+        return create_walker_<ScanWalkerPool, IOBuffer>(limit);
     }
 
 
@@ -225,7 +225,7 @@ protected:
 
         if (self.idx() >= self.leaf_size(StructureStreamIdx))
         {
-        	self.skipFw(0);
+            self.skipFw(0);
         }
 
         return total;

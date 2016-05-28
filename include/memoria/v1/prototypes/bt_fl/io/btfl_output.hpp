@@ -317,7 +317,7 @@ public:
         idx_     = start_idx;
         symbols_ = leaf_structure()->iterator(idx_);
 
-        stream_ 		= symbols_.symbol();
+        stream_         = symbols_.symbol();
         run_pos_    = symbols_.local_idx();
         run_length_ = symbols_.length();
 
@@ -338,7 +338,7 @@ public:
 
         if (!scan_strategy_.accept(stream_))
         {
-        	return PopulateStatus(entries, Ending::LIMIT_REACHED);
+            return PopulateStatus(entries, Ending::LIMIT_REACHED);
         }
 
         if (!run_written_)
@@ -394,7 +394,7 @@ public:
             run_pos_ += entries_written;
 
             total_syms_ += entries_written;
-            idx_ 				+= entries_written;
+            idx_                += entries_written;
 
             if (run_pos_ == run_length_)
             {

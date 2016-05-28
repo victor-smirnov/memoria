@@ -50,6 +50,8 @@
 #include <memoria/v1/prototypes/bt_fl/tools/btfl_tools_random_gen.hpp>
 #include <memoria/v1/prototypes/bt_fl/tools/btfl_tools_streamdescr.hpp>
 
+#include <memoria/v1/prototypes/bt/walkers/bt_count_walkers.hpp>
+
 #include <tuple>
 
 namespace memoria {
@@ -114,6 +116,10 @@ struct BTTypes<Profile, v1::BTFreeLayout>: public BTTypes<Profile, v1::BT> {
     struct IteratorCacheFactory {
         typedef v1::btfl::BTFLIteratorPrefixCache<Iterator, Container>   Type;
     };
+
+    template <typename Types, typename LeafPath>
+    using CountWalker  = bt::CountForwardWalker<bt::WalkerTypes<Types, LeafPath>>;
+
 };
 
 

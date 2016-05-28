@@ -216,16 +216,16 @@ int main()
 
             map->setNewPageSize(32768);
 
-            Int keys = 10000000;
+            Int keys = 3;
 
             auto map_data = createRandomShapedMapData<KeyType, ValueType>(
                     keys,
-                20,
+                2000000,
                 [](auto k) {return make_key(k, TypeTag<KeyType>());},
                 [](auto k, auto v) {return make_value(k, TypeTag<ValueType>());}
             );
 
-            MapIOBufferAdapter<KeyType, ValueType> iobuf_adapter(map_data, 65536);
+            mmap::MultimapIOBufferProducer<KeyType, ValueType> iobuf_adapter(map_data, 65536);
 
             long t0 = getTimeInMillis();
             auto totals = map->begin()->bulkio_insert(iobuf_adapter);
@@ -233,6 +233,33 @@ int main()
 
             cout << "Totals: " << totals << ", time " << (t1 - t0) << endl;
 
+            FSDumpAllocator(snp, "mmap.dir");
+
+
+//            auto ii = map->select(1, 0);
+//
+//            ii->dumpHeader();
+//
+//            for (int c = 0; c < 1000 && !ii->is_end(); c++)
+//            {
+//              ii->selectFw(1, 0);
+//              ii->dumpHeader();
+//              cout << endl << endl;
+//            }
+
+
+
+            auto iii = map->begin();
+            Int c = 0 ;
+            while (!iii->is_end())
+            {
+            	iii->dumpHeader();
+            	cout << "Count: " << iii->count() << " -- " << std::get<1>(map_data[(c++)/2]).size() << endl << endl << endl;
+            }
+
+
+
+            /*
             MMapBufferConsumer consumer;
 
             BigInt tr0 = getTimeInMillis();
@@ -246,7 +273,7 @@ int main()
 
             auto iter0 = map->begin();
 
-            auto walker = iter0->template create_walker<MMapIOBuffer>();
+            auto walker = iter0->template create_scan_walker<MMapIOBuffer>();
 
             MMapIOBuffer io_buffer(65536);
 
@@ -269,7 +296,7 @@ int main()
             BigInt trr1 = getTimeInMillis();
 
             cout << "Populate Time: " << (trr1 - trr0) << " entries: " << size << endl;
-
+*/
 
 //            auto map2 = create<CtrName>(snp);
 //

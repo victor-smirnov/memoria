@@ -79,17 +79,13 @@ public:
 
     using TargetType    = typename Base::TargetType;
     using Position      = typename Base::Position;
-    using LeafPath       = typename Base::LeafPath;
+    using LeafPath      = typename Base::LeafPath;
 
     FindForwardWalkerBase(Int leaf_index, const TargetType& target, SearchType search_type):
         Base(leaf_index, target, search_type)
     {}
 
-    template <typename... Args>
-    auto treeNode(Args&&... args) -> decltype(Base::treeNode(std::forward<Args>(args)...))
-    {
-        return Base::treeNode(std::forward<Args>(args)...);
-    }
+    using Base::treeNode;
 
     template <typename NodeTypes>
     void treeNode(const bt::BranchNode<NodeTypes>* node, WalkCmd cmd, Int start, Int end)

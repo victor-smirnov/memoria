@@ -30,7 +30,7 @@ namespace v1 {
 namespace bt {
 template <typename Types, typename LeafPath_>
 struct WalkerTypes: Types {
-    using LeafPath      = LeafPath_;
+    using LeafPath = LeafPath_;
 };
 
 
@@ -97,6 +97,7 @@ protected:
     bool compute_branch_    = true;
     bool compute_leaf_      = true;
 
+    bool top_down_ = false;
 
 public:
 
@@ -188,6 +189,11 @@ public:
         return leaf_index_;
     }
 
+    void set_leaf_index(Int value)
+    {
+        leaf_index_ = value;
+    }
+
     const bool& compute_branch() const {
         return compute_branch_;
     }
@@ -208,6 +214,9 @@ public:
     {
         return v1::bt::LeafToBranchIndexTranslator<LeafStructList, LeafPath, 0>::BranchIndex + leaf_index;
     }
+
+    bool& top_down() {return top_down_;}
+    const bool& top_down() const {return top_down_;}
 
 
     template <typename LeafPath>
@@ -397,7 +406,6 @@ public:
         using ItrAccList = v1::list_tree::MakeValueList<Int, 0, Node::Streams>;
 
         detail::IteratorStreamRangesListWalker<
-            //IteratorBranchNodeEntry,
             ItrAccList
         >::
         process(self(), node, branch_BranchNodeEntry(), std::forward<Args>(args)...);
