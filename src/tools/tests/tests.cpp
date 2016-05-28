@@ -17,7 +17,7 @@
 
 
 //#include "packed/sequence/fse/pseq_test_suite.hpp"
-//#include "packed/sequence/rle/rleseq_test_suite.hpp"
+#include "packed/sequence/rle/rleseq_test_suite.hpp"
 
 //#include "packed/codecs/packed_codecs_test_suite.hpp"
 //#include "packed/allocator/palloc_test_suite.hpp"

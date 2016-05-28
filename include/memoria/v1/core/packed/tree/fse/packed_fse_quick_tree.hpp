@@ -20,6 +20,7 @@
 #include <memoria/v1/core/packed/buffer/packed_fse_input_buffer_ro.hpp>
 
 #include <memoria/v1/core/tools/static_array.hpp>
+#include <memoria/v1/metadata/page.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -281,8 +282,9 @@ public:
         Base::dump_index(Blocks, out);
     }
 
-    void dump(std::ostream& out = cout, bool dump_index = true) const {
-        Base::dump(Blocks, out, dump_index);
+    void dump(std::ostream& out = cout) const {
+        TextPageDumper dumper(out);
+        generateDataEvents(&dumper);
     }
 
     bool check_capacity(Int size) const

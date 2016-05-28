@@ -47,7 +47,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorSkipName)
 public:
     bool isBegin() const
     {
-          auto& self = this->self();
+        auto& self = this->self();
         return self.idx() < 0 || self.isEmpty();
     }
 
@@ -114,15 +114,6 @@ public:
 
 
 
-    CtrSizeT selectFw(CtrSizeT rank, Int stream)
-    {
-        return self().template select_fw_<IntList<StructureStreamIdx, 1>>(stream, rank);
-    }
-
-    CtrSizeT selectBw(CtrSizeT rank, Int stream)
-    {
-        return self().template select_fw_<IntList<StructureStreamIdx, 1>>(stream, rank);
-    }
 
 
     bool next() {
@@ -236,7 +227,7 @@ protected:
     {
         auto& self = this->self();
 
-        self.leaf_structure()->selectFW(position + 1, stream);
+        return self.leaf_structure()->selectFW(position + 1, stream).idx();
     }
 
 

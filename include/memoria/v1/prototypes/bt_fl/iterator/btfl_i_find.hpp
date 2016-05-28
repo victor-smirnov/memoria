@@ -31,24 +31,88 @@ namespace v1 {
 
 MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorFindName)
 
-    typedef typename Base::Allocator                                            Allocator;
-    typedef typename Base::NodeBaseG                                            NodeBaseG;
 
-
-    typedef typename Base::Container::BranchNodeEntry                           BranchNodeEntry;
-    typedef typename Base::Container                                            Container;
-    typedef typename Base::Container::Position                                  Position;
-
+    using Container = typename Base::Container;
     using CtrSizeT  = typename Container::Types::CtrSizeT;
-    using Key       = typename Container::Types::Key;
-    using Value     = typename Container::Types::Value;
-    using IteratorBranchNodeEntry       = typename Container::Types::IteratorBranchNodeEntry;
 
-    using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
+    static const Int Streams                = Container::Types::Streams;
+    static const Int DataStreams            = Container::Types::DataStreams;
+    static const Int StructureStreamIdx     = Container::Types::StructureStreamIdx;
 
 
-    template <typename LeafPath>
-    using AccumItemH = typename Container::Types::template AccumItemH<LeafPath>;
+
+public:
+    auto countFw()
+    {
+        typename Types::template CountForwardWalker<Types, IntList<StructureStreamIdx, 1>> walker;
+        return self().find_fw(walker);
+    }
+
+    auto countBw()
+    {
+        typename Types::template CountBackwardWalker<Types, IntList<StructureStreamIdx, 1>> walker;
+        return self().find_bw(walker);
+    }
+
+
+
+    CtrSizeT selectFw(CtrSizeT rank, Int stream)
+    {
+        return self().template select_fw_<IntList<StructureStreamIdx, 1>>(stream, rank);
+    }
+
+    CtrSizeT selectBw(CtrSizeT rank, Int stream)
+    {
+        return self().template select_fw_<IntList<StructureStreamIdx, 1>>(stream, rank);
+    }
+
+
+
+    using Base::finish_walking;
+
+    template <typename Walker>
+    void do_finish_walking(Int idx, const Walker& walker, WalkCmd cmd) {
+        if (cmd != WalkCmd::REFRESH)
+        {
+            constexpr Int stream = ListHead<typename Walker::LeafPath>::Value;
+            auto& self = this->self();
+            self.idx() = self.symbol_idx(stream, idx);
+        }
+    }
+
+
+    template <typename WWTypes>
+    void finish_walking(Int idx, const FindForwardWalker<WWTypes>& walker, WalkCmd cmd)
+    {
+        do_finish_walking(idx, walker, cmd);
+    }
+
+    template <typename WWTypes>
+    void finish_walking(Int idx, const FindBackwardWalker<WWTypes>& walker, WalkCmd cmd)
+    {
+        do_finish_walking(idx, walker, cmd);
+    }
+
+
+    template <typename WWTypes>
+    void finish_walking(Int idx, const FindGEForwardWalker<WWTypes>& walker, WalkCmd cmd)
+    {
+        do_finish_walking(idx, walker, cmd);
+    }
+
+    template <typename WWTypes>
+    void finish_walking(Int idx, const FindGEBackwardWalker<WWTypes>& walker, WalkCmd cmd)
+    {
+        do_finish_walking(idx, walker, cmd);
+    }
+
+    template <typename WWTypes>
+    void finish_walking(Int idx, const FindMaxGEWalker<WWTypes>& walker, WalkCmd cmd)
+    {
+        do_finish_walking(idx, walker, cmd);
+    }
+
+
 
 MEMORIA_V1_ITERATOR_PART_END
 

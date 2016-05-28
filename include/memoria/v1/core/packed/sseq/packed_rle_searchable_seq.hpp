@@ -1286,20 +1286,18 @@ public:
         }
     }
 
-    class CountResult {
-        UBigInt count_;
-        Int symbol_;
-    public:
-        CountResult(UBigInt count, Int symbol): count_(count), symbol_(symbol) {}
 
-        UBigInt count() const {return count_;}
-        Int symbol() const {return symbol_;}
-    };
 
-    CountResult count(Int start_pos) const
+    rleseq::CountResult countFW(Int start_pos) const
     {
         auto location = find_run(start_pos);
-        return block_count(metadata(), symbols(), location);
+        return block_count_fw(metadata(), symbols(), location);
+    }
+
+    rleseq::CountResult countBW(Int start_pos) const
+    {
+        MEMORIA_V1_ASSERT(start_pos, >=, 0);
+        return block_count_bw(metadata(), symbols(), start_pos);
     }
 
 
@@ -1551,7 +1549,7 @@ private:
     }
 
 
-    CountResult block_count(const Metadata* meta, const Value* symbols, const Location& location) const
+    rleseq::CountResult block_count_fw(const Metadata* meta, const Value* symbols, const Location& location) const
     {
         size_t pos = location.data_pos();
         size_t data_size = meta->data_size();
@@ -1578,12 +1576,52 @@ private:
                 local_pos = 0;
             }
             else {
-                return CountResult(count, last_symbol);
+                return rleseq::CountResult(count, last_symbol);
             }
         }
 
-        return CountResult(count, last_symbol);
+        return rleseq::CountResult(count, last_symbol);
     }
+
+
+    rleseq::CountResult block_count_bw(const Metadata* meta, const Value* symbols, UBigInt start_pos) const
+    {
+        size_t pos = 0;
+        size_t data_size = meta->data_size();
+
+        Codec codec;
+
+        UBigInt count = 0;
+        UBigInt run_base = 0;
+
+        Int last_symbol = -1;
+
+        while (pos < data_size)
+        {
+            UBigInt run_value = 0;
+            auto len = codec.decode(symbols, run_value, pos);
+            auto run = decode_run(run_value);
+
+            if (run.symbol() != last_symbol) {
+                count = 0;
+            }
+
+            if (start_pos >= run_base + run.length())
+            {
+                count += run.length();
+                last_symbol = run.symbol();
+            }
+            else {
+                return rleseq::CountResult(count + start_pos - run_base + 1, run.symbol());
+            }
+
+            run_base += run.length();
+            pos += len;
+        }
+
+        throw Exception(MA_SRC, SBuf() << "countBW start position is out of range: " << start_pos << " " << meta->size());
+    }
+
 
 
     void compactify_runs()

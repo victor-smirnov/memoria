@@ -83,6 +83,56 @@ public:
     }
 
 
+
+    CtrSizeT count_values() const
+    {
+        auto& self = this->self();
+        Int stream = self.stream();
+
+        if (stream == 0)
+        {
+            auto ii = self.clone();
+            if (ii->next())
+            {
+                Int next_stream = ii->stream_s();
+                if (next_stream == 1)
+                {
+                    return ii->countFw();
+                }
+                else {
+                    return 0;
+                }
+            }
+            else {
+                return 0;
+            }
+        }
+        else {
+            throw Exception(MA_SRC, SBuf() << "Invalid stream: " << stream);
+        }
+    }
+
+    CtrSizeT run_pos() const
+    {
+        auto& self = this->self();
+        if (!self.is_end())
+        {
+            Int stream = self.stream();
+            if (stream == 1)
+            {
+                auto ii = self.clone();
+                return ii->countBw() - 1;
+            }
+            else {
+                return 0;
+            }
+        }
+        else {
+            return 0;
+        }
+    }
+
+
     void insert_key(const Key& key)
     {
         auto& self = this->self();

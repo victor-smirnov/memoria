@@ -99,6 +99,8 @@ protected:
 
     bool top_down_ = false;
 
+    WalkDirection direction_;
+
 public:
 
     template <typename LeafPath>
@@ -218,7 +220,6 @@ public:
     bool& top_down() {return top_down_;}
     const bool& top_down() const {return top_down_;}
 
-
     template <typename LeafPath>
     auto branch_index(Int index)
     {
@@ -312,6 +313,8 @@ public:
     {
         auto& self = this->self();
 
+        this->direction_ = direction;
+
         Int index = node->template translateLeafIndexToBranchIndex<LeafPath>(self.leaf_index());
 
         using BranchPath = typename bt::BranchNode<NodeTypes>::template BuildBranchPath<LeafPath>;
@@ -325,7 +328,9 @@ public:
     template <typename NodeTypes>
     StreamOpResult treeNode(const bt::LeafNode<NodeTypes>* node, WalkDirection direction, Int start)
     {
-        auto& self = this->self();
+        this->direction_ = direction;
+
+          auto& self = this->self();
         auto result = node->template processStream<LeafPath>(FindLeafFn(self), start);
 
         self.postProcessLeafNode(node, direction, start, result);

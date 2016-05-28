@@ -90,15 +90,6 @@ protected:
         Base::init();
     }
 
-public:
-
-    auto count()
-    {
-        typename Types::template CountWalker<Types, IntList<StructureStreamIdx, 1>> walker;
-        return self().find_fw(walker);
-    }
-
-
 MEMORIA_V1_ITERATOR_PART_END
 
 #define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(v1::btfl::IteratorMiscName)

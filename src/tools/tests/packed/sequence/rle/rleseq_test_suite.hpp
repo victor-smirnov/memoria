@@ -35,18 +35,18 @@ public:
 
     PackedRLESequenceTestSuite(): TestSuite("Packed.RLESeq")
     {
-        registerTask(new PackedRLESearchableSequenceRankTest<2>("Rank.2"));
-        registerTask(new PackedRLESearchableSequenceSelectTest<2>("Select.2"));
+//        registerTask(new PackedRLESearchableSequenceRankTest<2>("Rank.2"));
+//        registerTask(new PackedRLESearchableSequenceSelectTest<2>("Select.2"));
         registerTask(new PackedRLESearchableSequenceCountTest<2>("Count.2"));
-        registerTask(new PackedRLESearchableSequenceMiscTest<2>("Misc.2"));
-        registerTask(new PackedRLESearchableSequenceBufferTest<2>("Buffer.2"));
-
-
-        registerTask(new PackedRLESearchableSequenceMiscTest<4>("Misc.4"));
-        registerTask(new PackedRLESearchableSequenceRankTest<4>("Rank.4"));
-        registerTask(new PackedRLESearchableSequenceSelectTest<4>("Select.4"));
-        registerTask(new PackedRLESearchableSequenceCountTest<4>("Count.4"));
-        registerTask(new PackedRLESearchableSequenceBufferTest<4>("Buffer.4"));
+//        registerTask(new PackedRLESearchableSequenceMiscTest<2>("Misc.2"));
+//        registerTask(new PackedRLESearchableSequenceBufferTest<2>("Buffer.2"));
+//
+//
+//        registerTask(new PackedRLESearchableSequenceMiscTest<4>("Misc.4"));
+//        registerTask(new PackedRLESearchableSequenceRankTest<4>("Rank.4"));
+//        registerTask(new PackedRLESearchableSequenceSelectTest<4>("Select.4"));
+//        registerTask(new PackedRLESearchableSequenceCountTest<4>("Count.4"));
+//        registerTask(new PackedRLESearchableSequenceBufferTest<4>("Buffer.4"));
     }
 };
 

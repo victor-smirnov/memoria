@@ -24,6 +24,16 @@ namespace memoria {
 namespace v1 {
 namespace rleseq {
 
+class CountResult {
+    UBigInt count_;
+    Int symbol_;
+public:
+    CountResult(UBigInt count, Int symbol): count_(count), symbol_(symbol) {}
+
+    UBigInt count() const {return count_;}
+    Int symbol() const {return symbol_;}
+};
+
 
 class RLESymbolsRun {
     Int symbol_;

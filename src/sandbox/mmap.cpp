@@ -253,8 +253,8 @@ int main()
             Int c = 0 ;
             while (!iii->is_end())
             {
-            	iii->dumpHeader();
-            	cout << "Count: " << iii->count() << " -- " << std::get<1>(map_data[(c++)/2]).size() << endl << endl << endl;
+                iii->dumpHeader();
+                cout << "Count: " << iii->countFw() << " -- " << std::get<1>(map_data[(c++)/2]).size() << endl << endl << endl;
             }
 
 

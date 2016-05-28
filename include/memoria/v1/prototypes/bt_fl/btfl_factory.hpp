@@ -118,7 +118,10 @@ struct BTTypes<Profile, v1::BTFreeLayout>: public BTTypes<Profile, v1::BT> {
     };
 
     template <typename Types, typename LeafPath>
-    using CountWalker  = bt::CountForwardWalker<bt::WalkerTypes<Types, LeafPath>>;
+    using CountForwardWalker  = bt::CountForwardWalker<bt::WalkerTypes<Types, LeafPath>>;
+
+    template <typename Types, typename LeafPath>
+    using CountBackwardWalker  = bt::CountBackwardWalker<bt::WalkerTypes<Types, LeafPath>>;
 
 };
 

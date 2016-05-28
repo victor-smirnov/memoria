@@ -81,14 +81,14 @@ public:
     }
 
     template <typename T>
-    vector<Int> populateRandom(T& seq, Int size)
+    vector<Int> populateRandom(T& seq, Int size, bool compactify = true)
     {
         seq->clear();
-        return fillRandom(seq, size);
+        return fillRandom(seq, size, compactify);
     }
 
     template <typename T>
-    vector<Int> fillRandom(T& seq, Int size)
+    vector<Int> fillRandom(T& seq, Int size, bool compactify = true)
     {
         for (Int c = 0; c < size; c++)
         {
@@ -100,8 +100,10 @@ public:
         seq->reindex();
         seq->check();
 
-        seq->compactify();
-        seq->check();
+        if (compactify) {
+            seq->compactify();
+            seq->check();
+        }
 
         vector<Int> symbols;
 

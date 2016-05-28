@@ -1529,7 +1529,7 @@ public:
     }
 
     struct GenerateDataEventsFn {
-        template <typename Tree>
+        template <Int Idx, typename Tree>
         void stream(const Tree* tree, IPageDataEventHandler* handler)
         {
             tree->generateDataEvents(handler);

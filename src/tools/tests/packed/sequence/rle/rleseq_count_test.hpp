@@ -61,12 +61,13 @@ public:
     {
         this->size_ = 3000;
 
-        MEMORIA_ADD_TEST(runCountTest);
+        MEMORIA_ADD_TEST(runCountFWTest);
+        MEMORIA_ADD_TEST(runCountBWTest);
     }
 
     virtual ~PackedRLESearchableSequenceCountTest() noexcept {}
 
-    Int countFW(const SeqPtr& seq, Int start)
+    rleseq::CountResult countFW(const SeqPtr& seq, Int start)
     {
         Int total = 0;
 
@@ -78,24 +79,51 @@ public:
 
             if (last_symbol != symbol && last_symbol >= 0)
             {
-                return total;
+                return rleseq::CountResult(total, last_symbol);
             }
 
             total++;
             last_symbol = symbol;
         }
 
-        return total;
+        return rleseq::CountResult(total, last_symbol);
+    }
+
+    rleseq::CountResult countBW(const SeqPtr& seq, Int start)
+    {
+        Int total = 0;
+
+        Int last_symbol = -1;
+
+        for (Int c = start; c >= 0; c--)
+        {
+            Int symbol = seq->symbol(c);
+
+            if (last_symbol != symbol && last_symbol >= 0)
+            {
+                return rleseq::CountResult(total, last_symbol);
+            }
+
+            total++;
+            last_symbol = symbol;
+        }
+
+        return rleseq::CountResult(total, last_symbol);
     }
 
 
 
-
-    void assertCount(const SeqPtr& seq, Int start, Int rank)
+    void assertCountFW(const SeqPtr& seq, Int start, Int rank)
     {
-        auto result1 = seq->count(start);
+        auto result1 = seq->countFW(start);
 
-        AssertEQ(MA_SRC, result1,  rank, SBuf() << start << " " << rank);
+        AssertEQ(MA_SRC, result1.count(),  rank, SBuf() << start << " " << rank);
+    }
+
+    void assertCountBW(const SeqPtr& seq, Int start, Int rank)
+    {
+        auto result1 = seq->countBW(start);
+        AssertEQ(MA_SRC, result1.count(),  rank, SBuf() << start << " " << rank);
     }
 
 
@@ -117,9 +145,31 @@ public:
             Int block_start = iter.idx();
             Int block_end   = iter.idx() + iter.run().length();
 
-            ranks.push_back(Pair(countFW(seq, block_start), block_start));
-            ranks.push_back(Pair(countFW(seq, block_start + 1), block_start + 1));
-            ranks.push_back(Pair(countFW(seq, block_end - 1), block_end - 1));
+            ranks.push_back(Pair(countFW(seq, block_start).count(), block_start));
+            ranks.push_back(Pair(countFW(seq, block_start + 1).count(), block_start + 1));
+            ranks.push_back(Pair(countFW(seq, block_end - 1).count(), block_end - 1));
+
+            iter.next_run();
+        }
+
+        return ranks;
+    }
+
+
+    vector<Pair> createRanksBW(const SeqPtr& seq)
+    {
+        vector<Pair> ranks;
+
+        auto iter = seq->begin();
+
+        while (iter.has_data())
+        {
+            Int block_start = iter.idx();
+            Int block_end   = iter.idx() + iter.run().length();
+
+            ranks.push_back(Pair(countBW(seq, block_start).count(), block_start));
+            ranks.push_back(Pair(countBW(seq, block_start + 1).count(), block_start + 1));
+            ranks.push_back(Pair(countBW(seq, block_end - 1).count(), block_end - 1));
 
             iter.next_run();
         }
@@ -129,12 +179,11 @@ public:
 
 
 
-
-    void runCountTest()
+    void runCountFWTest()
     {
         auto seq = createEmptySequence();
 
-        populateRandom(seq, this->size_);
+        populateRandom(seq, this->size_, false);
 
         auto ranks = createRanksFW(seq);
 
@@ -142,7 +191,23 @@ public:
 
         for (const auto& pair: ranks)
         {
-            assertCount(seq, pair.idx, pair.rank);
+            assertCountFW(seq, pair.idx, pair.rank);
+        }
+    }
+
+    void runCountBWTest()
+    {
+        auto seq = createEmptySequence();
+
+        populateRandom(seq, this->size_, false);
+
+        auto ranks = createRanksBW(seq);
+
+        out()<<"Random bitmap"<<endl;
+
+        for (const auto& pair: ranks)
+        {
+            assertCountBW(seq, pair.idx, pair.rank);
         }
     }
 };

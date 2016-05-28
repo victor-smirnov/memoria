@@ -57,6 +57,7 @@ class MultiMapCreateTest: public MultiMapTestBase<MapName> {
     using Base::getRandom;
 
     using Base::checkData;
+    using Base::checkRunPositions;
     using Base::out;
 
     using Base::createRandomShapedMapData;
@@ -96,6 +97,7 @@ public:
 //        AssertEQ(MA_RAW_SRC, totals, sizes);
 
         checkData(*map.get(), map_data);
+        checkRunPositions(*map.get());
 
         snp->commit();
     }

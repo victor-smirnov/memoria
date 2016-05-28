@@ -67,7 +67,7 @@ public:
     {
         Ctr::initMetadata();
 
-        sizes_ = CtrSizesT({1000, 2000});
+        sizes_ = CtrSizesT({100000, 20});
 
         MEMORIA_ADD_TEST_PARAM(sizes_);
         MEMORIA_ADD_TEST_PARAM(iterations_);
@@ -84,12 +84,49 @@ public:
         {
             auto key = iter->key();
 
+            auto values_size = iter->count_values();
+
             if (iter->next())
             {
-                  auto value  = iter->read_values();
+                auto value = iter->read_values();
+
+                AssertEQ(MA_RAW_SRC, values_size, std::get<1>(data[c]).size());
 
                 AssertEQ(MA_RAW_SRC, key, std::get<0>(data[c]));
                 AssertEQ(MA_RAW_SRC, value, std::get<1>(data[c]));
+            }
+            else {
+                break;
+            }
+        }
+    }
+
+    void checkRunPositions(Ctr& ctr)
+    {
+        size_t c = 0;
+        for (auto iter = ctr.begin(); !iter->is_end(); c++)
+        {
+            auto values_size = iter->count_values();
+
+            if (iter->next())
+            {
+                auto run_pos = iter->run_pos();
+                AssertEQ(MA_RAW_SRC, run_pos, 0);
+
+                if (values_size > 1)
+                {
+                    auto target_pos = values_size / 2;
+
+                    iter->skipFw(target_pos);
+
+                    auto run_pos = iter->run_pos();
+                    AssertEQ(MA_RAW_SRC, run_pos, target_pos);
+
+                    iter->skipFw(values_size - target_pos);
+                }
+                else {
+                    iter->skipFw(values_size);
+                }
             }
             else {
                 break;
@@ -156,7 +193,7 @@ public:
         {
             vector<Value> val;
 
-            size_t values_size = getRandomG(values);
+            size_t values_size = this->getRandom(values);
 
             for (size_t v = 0; v < values_size; v++)
             {
