@@ -42,20 +42,20 @@ public:
         return ValuePtr(buffer + idx, length(buffer, idx, -1ull));
     }
 
-    size_t length(const T* buffer, size_t idx, size_t limit) const
+    size_t length(const T* buffer, size_t idx, size_t limit = -1) const
     {
         auto head = buffer[idx];
-        if (head < 246) {
+        if (head < UpperBound) {
             return 1;
         }
         else {
-            return buffer[idx];
+            return head - UpperBound + 1;
         }
     }
 
     size_t length(const V& value) const
     {
-        if (value < 246)
+        if (value < UpperBound)
         {
             return 1;
         }
@@ -102,7 +102,7 @@ public:
 
     size_t encode(T* buffer, const V& value, size_t idx) const
     {
-        if (value < 246ul)
+        if (value < UpperBound)
         {
             buffer[idx] = value;
             return 1;

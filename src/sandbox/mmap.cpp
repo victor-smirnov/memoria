@@ -112,7 +112,7 @@ MapData<Key, Value> createRandomShapedMapData(size_t keys, size_t values, Fn1&& 
 
 
 
-template <typename T> struct TypeTag {};
+
 
 template <typename V, typename T>
 T make_key(V&& num, TypeTag<T>) {

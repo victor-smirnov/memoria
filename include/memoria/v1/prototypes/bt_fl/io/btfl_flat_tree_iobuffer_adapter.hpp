@@ -36,16 +36,14 @@ namespace v1 {
 namespace btfl {
 namespace io {
 
-template <Int Streams, typename IOBufferT>
+template <Int DataStreams, typename IOBufferT>
 class FlatTreeIOBufferAdapter: public BufferProducer<IOBufferT> {
 
 public:
 
-    static constexpr Int DataStreams = Streams - 1;
-
     static constexpr BigInt MaxRunLength = IOBufferT::template getMaxSymbolsRunLength<DataStreams>();
 
-    using CtrSizesT = core::StaticVector<BigInt, Streams>;
+    using CtrSizesT = core::StaticVector<BigInt, DataStreams>;
 
     using IOBuffer = IOBufferT;
 

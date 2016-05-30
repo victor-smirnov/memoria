@@ -33,9 +33,9 @@ using MapData = std::vector<std::pair<K, std::vector<V>>>;
 
 
 template <typename Key, typename Value, typename IOBufferT = DefaultIOBuffer>
-class MultimapIOBufferProducer: public btfl::io::FlatTreeIOBufferAdapter<3, IOBufferT> {
+class MultimapIOBufferProducer: public btfl::io::FlatTreeIOBufferAdapter<2, IOBufferT> {
 
-    using Base   = btfl::io::FlatTreeIOBufferAdapter<3, IOBufferT>;
+    using Base   = btfl::io::FlatTreeIOBufferAdapter<2, IOBufferT>;
     using MyType = MultimapIOBufferProducer<Key, Value, IOBufferT>;
 
     using typename Base::IOBuffer;

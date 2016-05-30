@@ -263,8 +263,6 @@ class BTFLWalker {
     CtrSizeT run_pos_     = 0;
     CtrSizeT run_length_  = 0;
 
-    bool run_written_ = true;
-
     StructureIterator symbols_;
 
     Int stream_;
@@ -317,11 +315,14 @@ public:
         idx_     = start_idx;
         symbols_ = leaf_structure()->iterator(idx_);
 
-        stream_         = symbols_.symbol();
+        stream_     = symbols_.symbol();
         run_pos_    = symbols_.local_idx();
         run_length_ = symbols_.length();
 
-        run_written_ = false;
+        if (total_syms_ + run_length_ > limit_syms_)
+        {
+        	run_length_ = limit_syms_ - total_syms_;
+        }
     }
 
     PopulateStatus write_stream(Int stream, BigInt length, IOBufferT& io_buffer)
@@ -341,69 +342,73 @@ public:
             return PopulateStatus(entries, Ending::LIMIT_REACHED);
         }
 
-        if (!run_written_)
-        {
-            if (buffer.template putSymbolsRun<DataStreams>(stream_, run_length_ - run_pos_))
-            {
-                entries++;
-                run_written_ = true;
-            }
-            else {
-                return PopulateStatus(entries, Ending::END_OF_IOBUFFER);
-            }
-        }
-
         while(symbols_.has_data() && total_syms_ < limit_syms_)
         {
-            if (run_pos_ == run_length_)
-            {
-                run_pos_ = 0;
-                auto run = symbols_.run();
+        	  size_t descr_pos = buffer.pos();
 
-                stream_     = run.symbol();
-                run_length_ = run.length();
+        	  auto length = run_length_ - run_pos_;
 
-                if (!scan_strategy_.accept(stream_))
-                {
-                      return PopulateStatus(entries, Ending::LIMIT_REACHED);
-                }
-
-                if (total_syms_ + run_length_ > limit_syms_)
-                {
-                    run_length_ = limit_syms_ - total_syms_;
-                }
-
-                if (buffer.template putSymbolsRun<DataStreams>(stream_, run_length_))
-                {
-                    entries++;
-                    run_written_ = true;
-                }
-                else {
-                    run_written_ = false;
-                    return PopulateStatus(entries, Ending::END_OF_IOBUFFER);
-                }
-            }
-
-            auto length = run_length_ - run_pos_;
+        	  if (buffer.template putSymbolsRun<DataStreams>(stream_, length))
+        	  {
+        		  entries++;
+        	  }
+        	  else {
+        		  return PopulateStatus(entries, Ending::END_OF_IOBUFFER);
+        	  }
 
             auto write_result = write_stream(stream_, length, buffer);
 
             auto entries_written = write_result.entries();
 
+            if (entries_written < length)
+            {
+            	if (entries_written > 0) {
+            		buffer.template updateSymbolsRun<DataStreams>(descr_pos, stream_, entries_written);
+            	}
+            	else {
+            		entries--;
+            		return PopulateStatus(entries, Ending::END_OF_IOBUFFER);
+            	}
+            }
+
             entries  += entries_written;
             run_pos_ += entries_written;
 
             total_syms_ += entries_written;
-            idx_                += entries_written;
+            idx_        += entries_written;
 
-            if (run_pos_ == run_length_)
+            if (total_syms_ < limit_syms_)
             {
-                symbols_.next_run();
+            	if (run_pos_ == run_length_)
+            	{
+            		MEMORIA_V1_ASSERT_FALSE(write_result.ending() == Ending::END_OF_IOBUFFER);
+
+            		symbols_.next_run();
+
+            		if (symbols_.has_data())
+            		{
+            			if (!scan_strategy_.accept(symbols_.symbol()))
+            			{
+            				return PopulateStatus(entries, Ending::LIMIT_REACHED);
+            			}
+
+            			run_pos_ 		= 0;
+            			run_length_ = symbols_.length();
+            			stream_ 		= symbols_.symbol();
+
+            			if (total_syms_ + run_length_ > limit_syms_)
+            			{
+            				run_length_ = limit_syms_ - total_syms_;
+            			}
+            		}
+            	}
+            	else if (write_result.ending() == Ending::END_OF_IOBUFFER)
+            	{
+            		return PopulateStatus(entries, Ending::END_OF_IOBUFFER);
+            	}
             }
-
-            if (write_result.ending() == Ending::END_OF_IOBUFFER)
-            {
-                return PopulateStatus(entries, Ending::END_OF_IOBUFFER);
+            else {
+            	return PopulateStatus(entries, Ending::LIMIT_REACHED);
             }
         }
 

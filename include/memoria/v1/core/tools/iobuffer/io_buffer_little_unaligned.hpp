@@ -161,7 +161,9 @@ public:
 
     bool put(BigInt v)
     {
-        if (has_capacity(8))
+//        cout << "Put BigInt " << v << " at " << pos_ << endl;
+
+    	  if (has_capacity(8))
         {
             *T2T<BigInt*>(array_ + pos_) = v;
 
@@ -178,6 +180,8 @@ public:
     {
         assertRange(8, "getBigInt()");
         BigInt v = *T2T<BigInt*>(array_ + pos_);
+
+//        cout << "Read BigInt " << v << " from " << pos_ << endl;
 
         pos_ += 8;
 

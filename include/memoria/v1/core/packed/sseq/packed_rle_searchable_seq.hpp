@@ -1161,9 +1161,9 @@ public:
 
         MEMORIA_V1_ASSERT_TRUE(end >= 0);
 
-        if (symbol < 0 || symbol >= Symbols) {
-            int a = 0; a++;
-        }
+//        if (symbol < 0 || symbol >= Symbols) {
+//            int a = 0; a++;
+//        }
 
         MEMORIA_V1_ASSERT_TRUE(symbol >= 0 && symbol < Symbols);
 

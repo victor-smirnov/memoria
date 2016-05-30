@@ -328,6 +328,7 @@ public:
         if (length <= getMaxSymbolsRunLength<Symbols>())
         {
             UBigInt value = memoria::v1::rleseq::EncodeRun<Symbols, MaxRLERunLength>(symbol, length);
+//            cout << "Put symbols Run " << symbol << " length " << length << " at " << pos_ << endl;
             return putUVLen(value);
         }
         else {
@@ -336,11 +337,43 @@ public:
     }
 
 
+    template <Int Symbols>
+    void updateSymbolsRun(size_t pos, Int symbol, UBigInt length)
+    {
+//    	  cout << "Update run length at " << pos << " for " << symbol << " length " << length << endl;
+
+        if (length <= getMaxSymbolsRunLength<Symbols>())
+        {
+            auto current_length     = uvlen_codec_.length(array_, pos);
+            auto new_value          = memoria::v1::rleseq::EncodeRun<Symbols, MaxRLERunLength>(symbol, length);
+            auto new_length         = uvlen_codec_.length(new_value);
+
+            if (new_length > current_length)
+            {
+                auto delta = new_length - current_length;
+                insert_space(pos, delta);
+            }
+            else {
+                auto delta = current_length - new_length;
+                remove_space(pos, delta);
+            }
+
+            uvlen_codec_.encode(array_, new_value, pos);
+        }
+        else {
+            throw Exception(MA_SRC, SBuf() << "Max symbols run length of " << length << " exceeds " << getMaxSymbolsRunLength<Symbols>());
+        }
+    }
+
 
     template <Int Symbols>
     memoria::v1::rleseq::RLESymbolsRun getSymbolsRun()
     {
+//    	  auto tmp = pos_;
         UBigInt value = getUVLen();
+
+//        auto run = memoria::v1::rleseq::DecodeRun<Symbols>(value);
+//        cout << "Get symbols run from: " << tmp << " symbol: " << run.symbol() << " length " << run.length() << endl;
 
         return memoria::v1::rleseq::DecodeRun<Symbols>(value);
     }
@@ -383,6 +416,31 @@ public:
     }
 
 protected:
+
+    void insert_space(size_t pos, size_t length)
+    {
+        MEMORIA_V1_ASSERT(pos, <=, pos);
+
+        auto available = length_ - pos_;
+
+        if (length < available)
+        {
+            CopyBuffer(array_ + pos, array_ + pos + length, pos_ - pos);
+            pos_ += length;
+        }
+        else {
+            throw Exception(MA_SRC, SBuf() << "IOBuffer has no enough free space: " << length << " " << available);
+        }
+    }
+
+    void remove_space(size_t pos, size_t length)
+    {
+        MEMORIA_V1_ASSERT(pos, <=, pos);
+        MEMORIA_V1_ASSERT(pos + length, <=, pos_);
+
+        CopyBuffer(array_ + pos + length, array_ + pos, pos_ - (pos + length));
+        pos_ -= length;
+    }
 
     void release()
     {

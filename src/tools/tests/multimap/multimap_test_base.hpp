@@ -45,6 +45,7 @@ public:
     using typename Base::IteratorPtr;
 
     using CtrSizesT = typename Ctr::Types::CtrSizesT;
+    using CtrSizeT  = typename Ctr::Types::CtrSizeT;
 
     using Base::out;
 
@@ -53,11 +54,22 @@ public:
 
 protected:
 
-    CtrSizesT sizes_;
-    Int iterations_ = 10;
+    static constexpr Int DataStreams = Ctr::Types::DataStreams;
 
+    using DataSizesT = core::StaticVector<CtrSizeT, DataStreams>;
+
+    BigInt size             = 10000000;
+    Int level_limit         = 1000;
+    Int last_level_limit    = 100;
+
+
+
+    Int iterations = 0;
+    Int coverage_   = 0;
 
 public:
+
+    using Base::getRandom;
 
     using MapData = std::vector<std::pair<Key, vector<Value>>>;
 
@@ -67,13 +79,65 @@ public:
     {
         Ctr::initMetadata();
 
-        sizes_ = CtrSizesT({100000, 20});
-
-        MEMORIA_ADD_TEST_PARAM(sizes_);
-        MEMORIA_ADD_TEST_PARAM(iterations_);
+        MEMORIA_ADD_TEST_PARAM(size);
+        MEMORIA_ADD_TEST_PARAM(level_limit);
+        MEMORIA_ADD_TEST_PARAM(last_level_limit);
+        MEMORIA_ADD_TEST_PARAM(iterations);
     }
 
     virtual ~MultiMapTestBase() throw () {}
+
+
+    virtual void smokeCoverage(Int size) {
+        coverage_   = size;
+        iterations_ = 1;
+    }
+
+    virtual void smallCoverage(Int size) {
+        coverage_ = size * 10;
+        iterations_ = 10;
+    }
+
+    virtual void normalCoverage(Int size) {
+        coverage_   = size * 100;
+        iterations_ = 100;
+    }
+
+    virtual void largeCoverage(Int size) {
+        coverage_   = size * 1000;
+        iterations_ = 1000;
+    }
+
+    DataSizesT sampleTreeShape() {
+        return sampleTreeShape(level_limit, last_level_limit, size);
+    }
+
+    DataSizesT sampleTreeShape(Int level_limit, Int last_level_limit, CtrSizeT size)
+    {
+        DataSizesT shape;
+
+        DataSizesT limits(level_limit);
+        limits[DataStreams - 1] = last_level_limit;
+
+        while(shape[0] == 0)
+        {
+            BigInt resource = size;
+
+            for (Int c = DataStreams - 1; c > 0; c--)
+            {
+                Int level_size = getRandom(limits[c]) + ((c == DataStreams - 1)? 10 : 1);
+
+                shape[c] = level_size;
+
+                resource = resource / level_size;
+            }
+
+            shape[0] = resource;
+        }
+
+        return shape;
+    }
+
 
     void checkData(Ctr& ctr, const MapData& data)
     {

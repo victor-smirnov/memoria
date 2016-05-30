@@ -514,4 +514,6 @@ enum class MemoryAccess {
 };
 
 
+template <typename T> struct TypeTag {};
+
 }}
