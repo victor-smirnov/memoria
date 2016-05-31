@@ -59,9 +59,9 @@ struct BTFLTestTypesBase: public BTTypes<Profile, BTFreeLayout> {
     using StreamVariableTF = StreamTF<
         TL<TL<
             StreamSize,
-					  PkdFQTreeT<Key>
+                      PkdFQTreeT<Key>
         >>,
-				bt::DefaultBranchStructTF
+                bt::DefaultBranchStructTF
     >;
 
     using DataStreamTF = StreamTF<
@@ -70,7 +70,7 @@ struct BTFLTestTypesBase: public BTTypes<Profile, BTFreeLayout> {
             PackedFSEArray<PackedFSEArrayTypes<Value>>
             >
         >,
-				bt::DefaultBranchStructTF
+                bt::DefaultBranchStructTF
     >;
 
     using StructureStreamTF = StreamTF<
@@ -85,7 +85,7 @@ struct BTFLTestTypesBase: public BTTypes<Profile, BTFreeLayout> {
     using StreamDescriptors = MergeLists<
         typename MakeList<StreamVariableTF, DataStreams - 1>::Type,
         DataStreamTF,
-				StructureStreamTF
+                StructureStreamTF
     >;
 
     using CommonContainerPartsList = MergeLists<
@@ -100,11 +100,11 @@ struct BTFLTestTypesBase: public BTTypes<Profile, BTFreeLayout> {
 
     template <Int Level>
     using IOData = btfl::BTFLData<
-    	DataStreams,
-			Level,
-			Key,
-			Value,
-			Column
+        DataStreams,
+            Level,
+            Key,
+            Value,
+            Column
     >;
 };
 

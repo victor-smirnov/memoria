@@ -91,11 +91,7 @@ public:
     template <Int StreamIdx, typename Seq>
     SelectResult select(const Seq* seq, Int start, Int symbol, CtrSizeT rank)
     {
-//    	if (DebugCounter) {
-//    		int a = 0; a++;
-//    	}
-
-    	if (direction_ == WalkDirection::DOWN)
+        if (direction_ == WalkDirection::DOWN)
       {
           MEMORIA_V1_ASSERT(start, ==, 0);
           return seq->selectFW(rank, symbol);

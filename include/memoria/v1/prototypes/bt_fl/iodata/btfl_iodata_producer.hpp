@@ -36,13 +36,13 @@ namespace btfl {
 enum class PopulateStatus {OK, IOBUFFER};
 
 class PopulateState {
-	PopulateStatus status_;
-	Int entries_;
+    PopulateStatus status_;
+    Int entries_;
 public:
-	PopulateState(PopulateStatus status, Int entries): status_(status), entries_(entries) {}
+    PopulateState(PopulateStatus status, Int entries): status_(status), entries_(entries) {}
 
-	PopulateStatus status() const {return status_;}
-	Int entries() const {return entries_;}
+    PopulateStatus status() const {return status_;}
+    Int entries() const {return entries_;}
 };
 
 
@@ -196,7 +196,7 @@ public:
               }
 
               if (c < block_size) {
-            	  buffer.template updateSymbolsRun<DataStreams>(run_pos, StartLevel, c);
+                  buffer.template updateSymbolsRun<DataStreams>(run_pos, StartLevel, c);
               }
           }
           else {
@@ -213,54 +213,54 @@ public:
 template <typename BTFLData, Int DataStreams, Int StartLevel = 0, typename IOBufferT = DefaultIOBuffer>
 class BTFLDataIOBufferProducer: public BufferProducer<IOBufferT> {
 
-	using Helper = BTFLDataIOBufferProducerHelper<BTFLData, DataStreams, StartLevel, IOBufferT>;
+    using Helper = BTFLDataIOBufferProducerHelper<BTFLData, DataStreams, StartLevel, IOBufferT>;
 
-	IOBufferT io_buffer_;
-	Helper producer_helper_;
+    IOBufferT io_buffer_;
+    Helper producer_helper_;
 
-	using DataIterator = typename BTFLData::const_iterator;
+    using DataIterator = typename BTFLData::const_iterator;
 
 public:
 
-	BTFLDataIOBufferProducer(size_t capacity = 65536): io_buffer_(capacity) {}
+    BTFLDataIOBufferProducer(size_t capacity = 65536): io_buffer_(capacity) {}
 
-	BTFLDataIOBufferProducer(const BTFLData& data, size_t capacity = 65536):
-		io_buffer_(capacity),
-		producer_helper_(data)
+    BTFLDataIOBufferProducer(const BTFLData& data, size_t capacity = 65536):
+        io_buffer_(capacity),
+        producer_helper_(data)
   {}
 
-	BTFLDataIOBufferProducer(const DataIterator& start, const DataIterator& end, size_t capacity = 65536):
-		io_buffer_(capacity),
-		producer_helper_(start, end)
+    BTFLDataIOBufferProducer(const DataIterator& start, const DataIterator& end, size_t capacity = 65536):
+        io_buffer_(capacity),
+        producer_helper_(start, end)
   {}
 
-	void init(const BTFLData& data)
-	{
-		producer_helper_ = Helper(data);
-	}
+    void init(const BTFLData& data)
+    {
+        producer_helper_ = Helper(data);
+    }
 
-	void init(const DataIterator& start, const DataIterator& end)
-	{
-		producer_helper_ = Helper(start, end);
-	}
+    void init(const DataIterator& start, const DataIterator& end)
+    {
+        producer_helper_ = Helper(start, end);
+    }
 
-	void clear() {
-	}
+    void clear() {
+    }
 
-	virtual IOBufferT& buffer() {return io_buffer_;}
+    virtual IOBufferT& buffer() {return io_buffer_;}
 
-	virtual Int populate(IOBufferT& buffer)
-	{
-		auto state = producer_helper_.populate(buffer);
+    virtual Int populate(IOBufferT& buffer)
+    {
+        auto state = producer_helper_.populate(buffer);
 
-		if (state.status() == PopulateStatus::IOBUFFER)
-		{
-			return state.entries();
-		}
-		else {
-			return -state.entries();
-		}
-	}
+        if (state.status() == PopulateStatus::IOBUFFER)
+        {
+            return state.entries();
+        }
+        else {
+            return -state.entries();
+        }
+    }
 };
 
 

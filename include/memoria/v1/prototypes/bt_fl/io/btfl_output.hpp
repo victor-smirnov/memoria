@@ -133,15 +133,44 @@ public:
  */
 
 template <typename T>
-class ScanRunStrategy {
+class ScanRunGTStrategy {
+    BigInt limit_;
+    BigInt total_;
     Int stream_;
 public:
-    void init(Int stream) {
+    void init(Int stream, BigInt limit) {
         stream_ = stream;
+        total_ = 0;
+        limit_ = limit;
     }
 
-    bool accept(Int stream) {
-        return stream_ == stream;
+    BigInt accept(Int stream, BigInt length) const
+    {
+        if (stream_ == stream)
+        {
+            return total_ + length <= limit_ ? length : limit_ - total_;
+        }
+        else if (stream > stream_)
+        {
+            return length;
+        }
+        else {
+            return 0;
+        }
+    }
+
+
+    void commit(Int stream, BigInt length)
+    {
+        if (stream == stream_)
+        {
+            total_ += length;
+        }
+    }
+
+
+    BigInt totals() const {
+        return total_;
     }
 };
 
@@ -151,11 +180,25 @@ public:
 
 template <typename T>
 class ScanThroughStrategy {
+        BigInt limit_;
+        BigInt total_;
 public:
-    void init(Int stream) {}
+    void init(Int stream, BigInt limit) {
+        total_ = 0;
+        limit_ = limit;
+    }
 
-    bool accept(Int stream) {
-        return true;
+    BigInt accept(Int stream, BigInt length) const
+    {
+        return total_ + length <= limit_ ? length : limit_ - total_;
+    }
+
+    void commit(Int stream, BigInt length) {
+        total_ += length;
+    }
+
+    BigInt totals() const {
+        return total_;
     }
 };
 
@@ -267,27 +310,25 @@ class BTFLWalker {
 
     Int stream_;
 
-    CtrSizeT total_syms_;
-    CtrSizeT limit_syms_;
-
     ScanStrategy<MyType> scan_strategy_;
+
+    bool limit_ = false;
+    bool partial_run_ = false;
 
 public:
 
-    BTFLWalker(): iter_(), leaf_(), stream_(), total_syms_(), limit_syms_()
+    BTFLWalker(): iter_(), leaf_(), stream_()
     {}
 
     void init(Iterator& iter, Int expected_stream, CtrSizeT limit = std::numeric_limits<CtrSizeT>::max())
     {
+        limit_  = false;
         iter_   = &iter;
         leaf_   = iter.leaf();
 
-        limit_syms_ = limit;
-        total_syms_ = 0;
+        scan_strategy_.init(expected_stream >= 0 ? expected_stream : stream_, limit);
 
         prepare_new_page(iter.idx());
-
-        scan_strategy_.init(expected_stream >= 0 ? expected_stream : stream_);
 
         auto data_positions = rank(iter.idx());
 
@@ -299,7 +340,7 @@ public:
     }
 
     auto totals() const {
-        return total_syms_;
+        return scan_strategy_.totals();
     }
 
     auto& leaf() {
@@ -317,12 +358,11 @@ public:
 
         stream_     = symbols_.symbol();
         run_pos_    = symbols_.local_idx();
-        run_length_ = symbols_.length();
 
-        if (total_syms_ + run_length_ - run_pos_ > limit_syms_)
-        {
-        	run_length_ = run_pos_ + limit_syms_ - total_syms_;
-        }
+        run_length_ = run_pos_ + scan_strategy_.accept(stream_, symbols_.length() - run_pos_);
+        limit_          = run_length_ <= run_pos_;
+
+        partial_run_ = run_length_ < symbols_.length();
     }
 
     PopulateStatus write_stream(Int stream, BigInt length, IOBufferT& io_buffer)
@@ -337,24 +377,19 @@ public:
     {
         Int entries = 0;
 
-        if (!scan_strategy_.accept(stream_))
+        while(symbols_.has_data() && !limit_)
         {
-            return PopulateStatus(entries, Ending::LIMIT_REACHED);
-        }
+            size_t descr_pos = buffer.pos();
 
-        while(symbols_.has_data() && total_syms_ < limit_syms_)
-        {
-        	  size_t descr_pos = buffer.pos();
+            auto length = run_length_ - run_pos_;
 
-        	  auto length = run_length_ - run_pos_;
-
-        	  if (buffer.template putSymbolsRun<DataStreams>(stream_, length))
-        	  {
-        		  entries++;
-        	  }
-        	  else {
-        		  return PopulateStatus(entries, Ending::END_OF_IOBUFFER);
-        	  }
+            if (buffer.template putSymbolsRun<DataStreams>(stream_, length))
+            {
+                entries++;
+            }
+            else {
+                return PopulateStatus(entries, Ending::END_OF_IOBUFFER);
+            }
 
             auto write_result = write_stream(stream_, length, buffer);
 
@@ -362,57 +397,50 @@ public:
 
             if (entries_written < length)
             {
-            	if (entries_written > 0) {
-            		buffer.template updateSymbolsRun<DataStreams>(descr_pos, stream_, entries_written);
-            	}
-            	else {
-            		entries--;
-            		return PopulateStatus(entries, Ending::END_OF_IOBUFFER);
-            	}
+                if (entries_written > 0) {
+                    buffer.template updateSymbolsRun<DataStreams>(descr_pos, stream_, entries_written);
+                }
+                else {
+                    entries--;
+                    return PopulateStatus(entries, Ending::END_OF_IOBUFFER);
+                }
             }
 
             entries  += entries_written;
             run_pos_ += entries_written;
+            idx_     += entries_written;
 
-            total_syms_ += entries_written;
-            idx_        += entries_written;
+            scan_strategy_.commit(stream_, entries_written);
 
-            if (total_syms_ < limit_syms_)
+            if (run_pos_ == run_length_)
             {
-            	if (run_pos_ == run_length_)
-            	{
-            		MEMORIA_V1_ASSERT_FALSE(write_result.ending() == Ending::END_OF_IOBUFFER);
+                if (!partial_run_)
+                {
+                    MEMORIA_V1_ASSERT_FALSE(write_result.ending() == Ending::END_OF_IOBUFFER);
 
-            		symbols_.next_run();
+                    symbols_.next_run();
 
-            		if (symbols_.has_data())
-            		{
-            			if (!scan_strategy_.accept(symbols_.symbol()))
-            			{
-            				return PopulateStatus(entries, Ending::LIMIT_REACHED);
-            			}
+                    if (symbols_.has_data())
+                    {
+                        run_pos_        = 0;
+                        stream_         = symbols_.symbol();
+                        run_length_ = scan_strategy_.accept(stream_, symbols_.length());
+                        limit_          = run_length_ <= run_pos_;
 
-            			run_pos_ 		= 0;
-            			run_length_ = symbols_.length();
-            			stream_ 		= symbols_.symbol();
-
-            			if (total_syms_ + run_length_ - run_pos_ > limit_syms_)
-            			{
-            				run_length_ = run_pos_ + limit_syms_ - total_syms_;
-            			}
-            		}
-            	}
-            	else if (write_result.ending() == Ending::END_OF_IOBUFFER)
-            	{
-            		return PopulateStatus(entries, Ending::END_OF_IOBUFFER);
-            	}
+                        partial_run_ = run_length_ < symbols_.length();
+                    }
+                }
+                else {
+                    limit_ = true;
+                }
             }
-            else {
-            	return PopulateStatus(entries, Ending::LIMIT_REACHED);
+            else if (write_result.ending() == Ending::END_OF_IOBUFFER)
+            {
+                return PopulateStatus(entries, Ending::END_OF_IOBUFFER);
             }
         }
 
-        return PopulateStatus(entries, total_syms_ < limit_syms_ ? Ending::END_OF_PAGE : Ending::LIMIT_REACHED);
+        return PopulateStatus(entries, !limit_ ? Ending::END_OF_PAGE : Ending::LIMIT_REACHED);
     }
 
 
@@ -437,10 +465,10 @@ public:
 
 
     void clear() noexcept
-    {
+            {
         leaf_ = nullptr;
         iter_ = nullptr;
-    }
+            }
 
 private:
 

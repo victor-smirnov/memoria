@@ -163,7 +163,7 @@ public:
     {
 //        cout << "Put BigInt " << v << " at " << pos_ << endl;
 
-    	  if (has_capacity(8))
+          if (has_capacity(8))
         {
             *T2T<BigInt*>(array_ + pos_) = v;
 

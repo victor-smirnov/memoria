@@ -340,7 +340,7 @@ public:
     template <Int Symbols>
     void updateSymbolsRun(size_t pos, Int symbol, UBigInt length)
     {
-//    	  cout << "Update run length at " << pos << " for " << symbol << " length " << length << endl;
+//        cout << "Update run length at " << pos << " for " << symbol << " length " << length << endl;
 
         if (length <= getMaxSymbolsRunLength<Symbols>())
         {
@@ -369,7 +369,7 @@ public:
     template <Int Symbols>
     memoria::v1::rleseq::RLESymbolsRun getSymbolsRun()
     {
-//    	  auto tmp = pos_;
+//        auto tmp = pos_;
         UBigInt value = getUVLen();
 
 //        auto run = memoria::v1::rleseq::DecodeRun<Symbols>(value);

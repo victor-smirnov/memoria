@@ -63,14 +63,14 @@ public:
 
     CtrSizeT selectPosFw(CtrSizeT rank, Int stream) const
     {
-    	const auto& self = this->self();
+        const auto& self = this->self();
 
-    	auto ii = self.clone();
-    	ii->selectFw(rank, stream);
+        auto ii = self.clone();
+        ii->selectFw(rank, stream);
 
-//    	ii->dump();
+//      ii->dump();
 
-    	return ii->pos();
+        return ii->pos();
     }
 
     CtrSizeT selectBw(CtrSizeT rank, Int stream)

@@ -181,22 +181,22 @@ public:
 protected:
 
     struct PosWalker {
-    	CtrSizeT pos_ = 0;
+        CtrSizeT pos_ = 0;
 
-    	template <typename NodeTypes>
-    	void treeNode(const bt::BranchNode<NodeTypes>* node, WalkCmd cmd, Int start, Int end)
-    	{
-    		using BranchSizePath = IntList<StructureStreamIdx>;
+        template <typename NodeTypes>
+        void treeNode(const bt::BranchNode<NodeTypes>* node, WalkCmd cmd, Int start, Int end)
+        {
+            using BranchSizePath = IntList<StructureStreamIdx>;
 
-    		auto sizes_substream = node->template substream<BranchSizePath>();
+            auto sizes_substream = node->template substream<BranchSizePath>();
 
-    		pos_ += sizes_substream->sum(0, end);
-    	}
+            pos_ += sizes_substream->sum(0, end);
+        }
 
-    	template <typename NodeTypes>
-    	void treeNode(const bt::LeafNode<NodeTypes>* node, WalkCmd cmd, Int start, Int end)
-    	{
-    	}
+        template <typename NodeTypes>
+        void treeNode(const bt::LeafNode<NodeTypes>* node, WalkCmd cmd, Int start, Int end)
+        {
+        }
     };
 
 
@@ -205,12 +205,12 @@ public:
 
     CtrSizeT pos() const
     {
-    	auto& self = this->self();
-    	PosWalker fn;
+        auto& self = this->self();
+        PosWalker fn;
 
-    	self.ctr().walkUp(self.leaf(), self.idx(), fn);
+        self.ctr().walkUp(self.leaf(), self.idx(), fn);
 
-    	return fn.pos_ + self.idx();
+        return fn.pos_ + self.idx();
     }
 
 

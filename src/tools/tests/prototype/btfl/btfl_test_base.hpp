@@ -72,8 +72,8 @@ protected:
     using Value     = typename Ctr::Types::Value;
     using Column    = typename Ctr::Types::Column;
 
-    static const Int Streams     	= Ctr::Types::Streams;
-    static const Int DataStreams 	= Ctr::Types::DataStreams;
+    static const Int Streams        = Ctr::Types::Streams;
+    static const Int DataStreams    = Ctr::Types::DataStreams;
 
     using DataSizesT    = core::StaticVector<CtrSizeT, DataStreams>;
 
@@ -148,6 +148,38 @@ public:
 
     DataSizesT sampleTreeShape(Int level_limit, Int last_level_limit, CtrSizeT size)
     {
+        CtrSizeT   shape_size = 0;
+        DataSizesT largest;
+
+        for (Int c = 0; c < 10; c++)
+        {
+            auto shape = sampleSingleTreeShape(level_limit, last_level_limit, size);
+            auto size0 = estimateShapeSize(shape);
+
+            if (size0 > shape_size) {
+                largest = shape;
+            }
+        }
+
+        return largest;
+    }
+
+    auto estimateShapeSize(const DataSizesT& shape)
+    {
+        CtrSizeT size = 1;
+
+        for (Int c = 0; c < DataSizesT::Indexes; c++)
+        {
+            auto item = shape[c];
+            size *= item > 0 ? item : 1;
+        }
+
+        return size;
+    }
+
+
+    DataSizesT sampleSingleTreeShape(Int level_limit, Int last_level_limit, CtrSizeT size)
+    {
         DataSizesT shape;
 
         DataSizesT limits(level_limit);
@@ -180,7 +212,7 @@ public:
     template <typename BTFLDataT>
     size_t dataLength(const BTFLDataT& data)
     {
-    	return v1::btfl::BTFLDataComputeLengthHelper<BTFLDataT>(data).compute();
+        return v1::btfl::BTFLDataComputeLengthHelper<BTFLDataT>(data).compute();
     }
 
 
@@ -189,27 +221,27 @@ public:
     template <typename K, typename V, template <typename...> class Container1, template <typename...> class Container2, typename... Args1, typename... Args2>
     void checkEquality(const Container1<std::tuple<K, V>, Args1...>& first, const Container2<std::tuple<K, V>, Args2...>& second)
     {
-    	AssertEQ(MA_SRC, first.size(), second.size());
+        AssertEQ(MA_SRC, first.size(), second.size());
 
-    	auto i2 = second.begin();
-    	for (auto i1 = first.begin(); i1 != first.end(); i1++, i2++)
-    	{
-    		AssertEQ(MA_SRC, std::get<0>(*i1), std::get<0>(*i2));
+        auto i2 = second.begin();
+        for (auto i1 = first.begin(); i1 != first.end(); i1++, i2++)
+        {
+            AssertEQ(MA_SRC, std::get<0>(*i1), std::get<0>(*i2));
 
-    		checkEquality(std::get<1>(*i1), std::get<1>(*i2));
-    	}
+            checkEquality(std::get<1>(*i1), std::get<1>(*i2));
+        }
     }
 
     template <typename V, template <typename...> class Container1, template <typename...> class Container2, typename... Args1, typename... Args2>
     void checkEquality(const Container1<V, Args1...>& first, const Container2<V, Args2...>& second)
     {
-    	AssertEQ(MA_SRC, first.size(), second.size());
+        AssertEQ(MA_SRC, first.size(), second.size());
 
-    	auto i2 = second.begin();
-    	for (auto i1 = first.begin(); i1 != first.end(); i1++, i2++)
-    	{
-    		AssertEQ(MA_SRC, *i1, *i2);
-    	}
+        auto i2 = second.begin();
+        for (auto i1 = first.begin(); i1 != first.end(); i1++, i2++)
+        {
+            AssertEQ(MA_SRC, *i1, *i2);
+        }
     }
 
 
@@ -217,27 +249,27 @@ public:
 //    template <typename K, typename V, template <typename...> class Container1, template <typename...> class Container2, typename... Args1, typename... Args2>
 //    void deepCompare(const Container1<std::tuple<K, V>, Args1...>& first, const Container2<std::tuple<K, V>, Args2...>& second)
 //    {
-//    	AssertEQ(MA_SRC, first.size(), second.size());
+//      AssertEQ(MA_SRC, first.size(), second.size());
 //
-//    	auto i2 = second.begin();
-//    	for (auto i1 = first.begin(); i1 != first.end(); i1++, i2++)
-//    	{
-//    		AssertEQ(MA_SRC, std::get<0>(*i1), std::get<0>(*i2));
+//      auto i2 = second.begin();
+//      for (auto i1 = first.begin(); i1 != first.end(); i1++, i2++)
+//      {
+//          AssertEQ(MA_SRC, std::get<0>(*i1), std::get<0>(*i2));
 //
-//    		checkEquality(std::get<1>(*i1), std::get<1>(*i2));
-//    	}
+//          checkEquality(std::get<1>(*i1), std::get<1>(*i2));
+//      }
 //    }
 //
 //    template <typename V, template <typename...> class Container1, template <typename...> class Container2, typename... Args1, typename... Args2>
 //    void deepCompare(const Container1<V, Args1...>& first, const Container2<V, Args2...>& second)
 //    {
-//    	AssertEQ(MA_SRC, first.size(), second.size());
+//      AssertEQ(MA_SRC, first.size(), second.size());
 //
-//    	auto i2 = second.begin();
-//    	for (auto i1 = first.begin(); i1 != first.end(); i1++, i2++)
-//    	{
-//    		AssertEQ(MA_SRC, *i1, *i2);
-//    	}
+//      auto i2 = second.begin();
+//      for (auto i1 = first.begin(); i1 != first.end(); i1++, i2++)
+//      {
+//          AssertEQ(MA_SRC, *i1, *i2);
+//      }
 //    }
 
 

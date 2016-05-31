@@ -43,7 +43,7 @@ public:
 
 protected:
     using NextBTFLDataComputeLengthHelper = BTFLDataComputeLengthHelper<V>;
-    using DataIterator             				= typename BTFLDataT::const_iterator;
+    using DataIterator                          = typename BTFLDataT::const_iterator;
 
     DataIterator start_;
     DataIterator end_;
@@ -65,16 +65,16 @@ public:
 
     size_t compute()
     {
-    	size_t length = 0;
-    	while (start_ != end_)
-    	{
-    		length++;
-    		next_helper_ = NextBTFLDataComputeLengthHelper(std::get<1>(*start_));
-    		length += next_helper_.compute();
-    		start_++;
-    	}
+        size_t length = 0;
+        while (start_ != end_)
+        {
+            length++;
+            next_helper_ = NextBTFLDataComputeLengthHelper(std::get<1>(*start_));
+            length += next_helper_.compute();
+            start_++;
+        }
 
-    	return length;
+        return length;
     }
 };
 
@@ -108,7 +108,7 @@ public:
 
     size_t compute()
     {
-    	return std::distance(start_, end_);
+        return std::distance(start_, end_);
     }
 };
 

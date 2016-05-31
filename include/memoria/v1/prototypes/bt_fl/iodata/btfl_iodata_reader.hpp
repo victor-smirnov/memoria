@@ -36,41 +36,41 @@ template <typename BTFLData, Int DataStreams, Int StartLevel = 0, typename IOBuf
 template <Int DataStreams, Int StartLevel, typename IOBufferT, typename K, typename V, template <typename...> class Container, typename... Args>
 class BTFLDataIOBufferReaderHelper<Container<std::tuple<K, V>, Args...>, DataStreams, StartLevel, IOBufferT> {
 public:
-	using BTFLDataT = Container<std::tuple<K, V>, Args...>;
+    using BTFLDataT = Container<std::tuple<K, V>, Args...>;
 
 protected:
-	using NextBTFLIOBufferReader   = BTFLDataIOBufferReaderHelper<V, DataStreams, StartLevel + 1, IOBufferT>;
-	using DataIterator             = typename BTFLDataT::const_iterator;
+    using NextBTFLIOBufferReader   = BTFLDataIOBufferReaderHelper<V, DataStreams, StartLevel + 1, IOBufferT>;
+    using DataIterator             = typename BTFLDataT::const_iterator;
 
-	BTFLDataT* data_;
+    BTFLDataT* data_;
 
-	NextBTFLIOBufferReader next_reader_;
+    NextBTFLIOBufferReader next_reader_;
 
 
 public:
-	BTFLDataIOBufferReaderHelper(BTFLDataT& data):
-		data_(&data)
-	{}
+    BTFLDataIOBufferReaderHelper(BTFLDataT& data):
+        data_(&data)
+    {}
 
-	BTFLDataIOBufferReaderHelper() {}
+    BTFLDataIOBufferReaderHelper() {}
 
-	void process(Int stream, IOBufferT& buffer, Int entries)
-	{
-		if (stream == StartLevel)
-		{
-			MEMORIA_V1_ASSERT_NOT_NULL(data_);
-			for (Int e = 0; e < entries; e++)
-			{
-				auto key = IOBufferAdapter<K>::get(buffer);
-				data_->emplace_back(std::tuple<K, V>(key, V()));
+    void process(Int stream, IOBufferT& buffer, Int entries)
+    {
+        if (stream == StartLevel)
+        {
+            MEMORIA_V1_ASSERT_NOT_NULL(data_);
+            for (Int e = 0; e < entries; e++)
+            {
+                auto key = IOBufferAdapter<K>::get(buffer);
+                data_->emplace_back(std::tuple<K, V>(key, V()));
 
-				next_reader_ = NextBTFLIOBufferReader(std::get<1>(data_->back()));
-			}
-		}
-		else {
-			next_reader_.process(stream, buffer, entries);
-		}
-	}
+                next_reader_ = NextBTFLIOBufferReader(std::get<1>(data_->back()));
+            }
+        }
+        else {
+            next_reader_.process(stream, buffer, entries);
+        }
+    }
 };
 
 
@@ -80,37 +80,37 @@ public:
 template <Int DataStreams, Int StartLevel, typename IOBufferT, typename V, template <typename...> class Container, typename... Args>
 class BTFLDataIOBufferReaderHelper<Container<V, Args...>, DataStreams, StartLevel, IOBufferT> {
 public:
-	using BTFLDataT = Container<V, Args...>;
+    using BTFLDataT = Container<V, Args...>;
 
 protected:
-	using DataIterator               = typename BTFLDataT::const_iterator;
+    using DataIterator               = typename BTFLDataT::const_iterator;
 
-	BTFLDataT* data_ = nullptr;
+    BTFLDataT* data_ = nullptr;
 
 public:
 
-	BTFLDataIOBufferReaderHelper(BTFLDataT& data):
-		data_(&data)
-	{}
+    BTFLDataIOBufferReaderHelper(BTFLDataT& data):
+        data_(&data)
+    {}
 
-	BTFLDataIOBufferReaderHelper() {}
+    BTFLDataIOBufferReaderHelper() {}
 
 
-	void process(Int stream, IOBufferT& buffer, Int entries)
-	{
-		if (stream == StartLevel)
-		{
-			MEMORIA_V1_ASSERT_NOT_NULL(data_);
-			for (Int e = 0; e < entries; e++)
-			{
-				auto value = IOBufferAdapter<V>::get(buffer);
-				data_->emplace_back(value);
-			}
-		}
-		else {
-			throw Exception(MA_SRC, SBuf() << "Invalid stream: " << stream << " max: " << DataStreams);
-		}
-	}
+    void process(Int stream, IOBufferT& buffer, Int entries)
+    {
+        if (stream == StartLevel)
+        {
+            MEMORIA_V1_ASSERT_NOT_NULL(data_);
+            for (Int e = 0; e < entries; e++)
+            {
+                auto value = IOBufferAdapter<V>::get(buffer);
+                data_->emplace_back(value);
+            }
+        }
+        else {
+            throw Exception(MA_SRC, SBuf() << "Invalid stream: " << stream << " max: " << DataStreams);
+        }
+    }
 };
 
 
@@ -118,40 +118,40 @@ public:
 template <typename BTFLData, Int DataStreams, Int StartLevel = 0, typename IOBufferT = DefaultIOBuffer>
 class BTFLDataReader: public BufferConsumer<IOBufferT> {
 
-	using Helper = BTFLDataIOBufferReaderHelper<BTFLData, DataStreams, StartLevel, IOBufferT>;
+    using Helper = BTFLDataIOBufferReaderHelper<BTFLData, DataStreams, StartLevel, IOBufferT>;
 
-	IOBufferT io_buffer_;
-	Helper reader_helper_;
+    IOBufferT io_buffer_;
+    Helper reader_helper_;
 
 public:
 
-	BTFLDataReader(size_t capacity = 65536):
-		io_buffer_(capacity),
-		reader_helper_()
-	{}
+    BTFLDataReader(size_t capacity = 65536):
+        io_buffer_(capacity),
+        reader_helper_()
+    {}
 
-	void init(BTFLData& data)
-	{
-		io_buffer_.rewind();
-		reader_helper_ = Helper(data);
-	}
+    void init(BTFLData& data)
+    {
+        io_buffer_.rewind();
+        reader_helper_ = Helper(data);
+    }
 
-	void clear() {}
+    void clear() {}
 
 
-	virtual IOBufferT& buffer() {return io_buffer_;}
+    virtual IOBufferT& buffer() {return io_buffer_;}
 
-	virtual Int process(IOBufferT& buffer, Int entries)
-	{
-		for (Int e = 0; e < entries;)
-		{
-			auto run = buffer.template getSymbolsRun<DataStreams>();
-			reader_helper_.process(run.symbol(), buffer, run.length());
+    virtual Int process(IOBufferT& buffer, Int entries)
+    {
+        for (Int e = 0; e < entries;)
+        {
+            auto run = buffer.template getSymbolsRun<DataStreams>();
+            reader_helper_.process(run.symbol(), buffer, run.length());
 
-			e += run.length() + 1;
-		}
-		return entries;
-	}
+            e += run.length() + 1;
+        }
+        return entries;
+    }
 };
 
 

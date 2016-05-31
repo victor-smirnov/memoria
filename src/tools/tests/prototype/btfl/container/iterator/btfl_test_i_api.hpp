@@ -52,21 +52,21 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl_test::IterApiName)
 
     template <typename BTFLDataT>
     using BTFLDataIOBufferProducerPool = ObjectPool<
-    		btfl::BTFLDataIOBufferProducer<
-					BTFLDataT,
-					4,
-					DataStreams - btfl::BTFLDataStreamsCounter<BTFLDataT>::Value
-    		>
-		>;
+            btfl::BTFLDataIOBufferProducer<
+                    BTFLDataT,
+                    4,
+                    DataStreams - btfl::BTFLDataStreamsCounter<BTFLDataT>::Value
+            >
+        >;
 
     template <typename BTFLDataT>
     using BTFLDataReaderPool = ObjectPool<
-    		btfl::BTFLDataReader<
-    						BTFLDataT,
-    						DataStreams,
-    						DataStreams - btfl::BTFLDataStreamsCounter<BTFLDataT>::Value
-    		>
-		>;
+            btfl::BTFLDataReader<
+                            BTFLDataT,
+                            DataStreams,
+                            DataStreams - btfl::BTFLDataStreamsCounter<BTFLDataT>::Value
+            >
+        >;
 
 public:
 
@@ -81,82 +81,78 @@ public:
     template <typename BTFLDataT>
     auto insert_iodata(const BTFLDataT& data)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	auto iodata_producer = self.ctr().pools().get_instance(PoolT<BTFLDataIOBufferProducerPool<BTFLDataT>>()).get_unique(65536);
+        auto iodata_producer = self.ctr().pools().get_instance(PoolT<BTFLDataIOBufferProducerPool<BTFLDataT>>()).get_unique(65536);
 
-    	iodata_producer->init(data);
+        iodata_producer->init(data);
 
-    	return self.bulkio_insert(*iodata_producer.get());
+        return self.bulkio_insert(*iodata_producer.get());
     }
 
     template <typename BTFLDataT, typename InputIter>
     auto insert_iodata(const InputIter& start, const InputIter& end)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	auto iodata_producer = self.ctr().pools().get_instance(PoolT<BTFLDataIOBufferProducerPool<BTFLDataT>>()).get_unique(65536);
+        auto iodata_producer = self.ctr().pools().get_instance(PoolT<BTFLDataIOBufferProducerPool<BTFLDataT>>()).get_unique(65536);
 
-    	iodata_producer->init(start, end);
+        iodata_producer->init(start, end);
 
-    	return self.bulkio_insert(*iodata_producer.get());
+        return self.bulkio_insert(*iodata_producer.get());
     }
 
     template <Int Level>
-    BTFLSampleData<Level> readEntry()
+    BTFLSampleData<Level> readEntries(CtrSizeT number)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	Int stream = self.stream_s();
+        Int stream = self.stream_s();
 
-    	if (stream == Level || stream == -1)
-    	{
-    		auto pos0 = self.pos();
-    		auto pos1 = self.selectPosFw(1, stream);
-    		auto length = pos1 - pos0;
+        if (stream == Level || stream == -1)
+        {
+            using BTFLDataT = BTFLSampleData<Level>;
 
-    		using BTFLDataT = BTFLSampleData<Level>;
+            BTFLDataT data;
 
-    		BTFLDataT data;
+            auto reader = self.ctr().pools().get_instance(PoolT<BTFLDataReaderPool<BTFLDataT>>()).get_unique(65536);
 
-    		auto reader = self.ctr().pools().get_instance(PoolT<BTFLDataReaderPool<BTFLDataT>>()).get_unique(65536);
+            reader->init(data);
 
-    		reader->init(data);
+            self.bulkio_scan(reader.get(), -1, number);
 
-    		self.bulkio_read(reader.get(), length);
-
-    		return data;
-    	}
-    	else {
-    		throw Exception(MA_SRC, SBuf() << "Invalid stream: " << stream);
-    	}
+            return data;
+        }
+        else {
+            throw Exception(MA_SRC, SBuf() << "Invalid stream: " << stream);
+        }
     }
 
 
     template <Int Level>
     BTFLSampleData<Level> readData(CtrSizeT length)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	Int stream = self.stream_s();
+        Int stream = self.stream_s();
 
-    	if (stream == Level || stream == -1)
-    	{
-    		using BTFLDataT = BTFLSampleData<Level>;
+        if (stream == Level || stream == -1)
+        {
+            using BTFLDataT = BTFLSampleData<Level>;
 
-    		BTFLDataT data;
+            BTFLDataT data;
 
-    		auto reader = self.ctr().pools().get_instance(PoolT<BTFLDataReaderPool<BTFLDataT>>()).get_unique(65536);
+            auto reader = self.ctr().pools().get_instance(PoolT<BTFLDataReaderPool<BTFLDataT>>()).get_unique(65536);
 
-    		reader->init(data);
+            reader->init(data);
 
-    		self.bulkio_read(reader.get(), length);
+            self.bulkio_read(reader.get(), length);
 
-    		return data;
-    	}
-    	else {
-    		throw Exception(MA_SRC, SBuf() << "Invalid stream: " << stream);
-    	}
+            return data;
+        }
+        else {
+            throw Exception(MA_SRC, SBuf() << "Invalid stream: " << stream);
+        }
     }
 
 MEMORIA_V1_ITERATOR_PART_END

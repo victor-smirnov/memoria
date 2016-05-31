@@ -90,7 +90,6 @@ public:
         MEMORIA_ADD_TEST(testCreation3);
         MEMORIA_ADD_TEST(testCreation4);
         MEMORIA_ADD_TEST(testCreation5);
-
     }
 
     virtual ~BTFLCreateTest() throw () {}
@@ -99,27 +98,27 @@ public:
 
     void testCreation1()
     {
-    	testCreation(sampleTreeShape(10, 10, size));
+        testCreation(sampleTreeShape(10, 10, size));
     }
 
     void testCreation2()
     {
-    	testCreation(sampleTreeShape(100, 10, size));
+        testCreation(sampleTreeShape(100, 10, size));
     }
 
     void testCreation3()
     {
-    	testCreation(sampleTreeShape(10, 100, size));
+        testCreation(sampleTreeShape(10, 100, size));
     }
 
     void testCreation4()
     {
-    	testCreation(sampleTreeShape(10, 1000, size));
+        testCreation(sampleTreeShape(10, 1000, size));
     }
 
     void testCreation5()
     {
-    	testCreation(sampleTreeShape(10, 10000, size));
+        testCreation(sampleTreeShape(10, 10000, size));
     }
 
 
@@ -144,13 +143,13 @@ public:
 
         for (size_t c = 0; c < data.size(); c++)
         {
-        	auto entry = ii->template readEntry<0>();
+            auto entry = ii->template readEntries<0>(1);
 
-        	AssertEQ(MA_SRC, entry.size(), 1);
+            AssertEQ(MA_SRC, entry.size(), 1);
 
-        	AssertEQ(MA_SRC, std::get<0>(data[c]), std::get<0>(entry[0]));
+            AssertEQ(MA_SRC, std::get<0>(data[c]), std::get<0>(entry[0]));
 
-        	checkEquality(std::get<1>(data[c]), std::get<1>(entry[0]));
+            checkEquality(std::get<1>(data[c]), std::get<1>(entry[0]));
         }
 
         commit();
