@@ -112,6 +112,116 @@ struct BTFLDataSetBuilder<Container<V, Args...>, Stream, Stream> {
 
 
 
+template <typename BTFLData, Int DataStreams, Int StartLevel = 0> class BTFLDataChecker;
+
+
+template <Int DataStreams, Int StartLevel, typename K, typename V, template <typename...> class Container, typename... Args>
+class BTFLDataChecker<Container<std::tuple<K, V>, Args...>, DataStreams, StartLevel> {
+public:
+    using BTFLDataT = Container<std::tuple<K, V>, Args...>;
+
+protected:
+    using NextBTFLDataChecker      = BTFLDataChecker<V, DataStreams, StartLevel + 1>;
+    using DataIterator             = typename BTFLDataT::const_iterator;
+
+    bool value_finished_ = true;
+
+    DataIterator start_;
+    DataIterator end_;
+
+    NextBTFLDataChecker next_checker_;
+
+public:
+    BTFLDataChecker(const DataIterator& start, const DataIterator& end):
+        start_(start),
+        end_(end)
+    {}
+
+    BTFLDataChecker(const BTFLDataT& data):
+        start_(data.begin()),
+        end_(data.end())
+    {}
+
+    BTFLDataChecker() {}
+
+    std::string lvl() const {
+    	return std::string(StartLevel, ' ');
+    }
+
+    template <typename CtrIterator>
+    void check(CtrIterator&& iter)
+    {
+    	for (size_t child_idx = 0; start_ != end_; child_idx++)
+    	{
+    		auto key = iter->template key<StartLevel>();
+    		AssertEQ(MA_SRC, key, std::get<0>(*start_));
+
+    		auto children = iter->countChildren();
+
+    		AssertEQ(MA_SRC, (size_t)children, std::get<1>(*start_).size());
+
+    		if (children > 0)
+    		{
+    			next_checker_ = NextBTFLDataChecker(std::get<1>(*start_));
+
+    			iter->toChild(child_idx);
+    			next_checker_.check(iter);
+    			iter->toParent(StartLevel);
+    		}
+
+    		start_++;
+    		iter->selectGEFw(1, StartLevel);
+    	}
+    }
+};
+
+
+
+
+template <Int DataStreams, Int StartLevel, typename V, template <typename...> class Container, typename... Args>
+class BTFLDataChecker<Container<V, Args...>, DataStreams, StartLevel> {
+public:
+    using BTFLDataT = Container<V, Args...>;
+
+protected:
+    using DataIterator = typename BTFLDataT::const_iterator;
+
+    DataIterator start_;
+    DataIterator end_;
+
+public:
+    BTFLDataChecker(const DataIterator& start, const DataIterator& end):
+        start_(start),
+        end_(end)
+    {}
+
+    BTFLDataChecker(const BTFLDataT& data):
+        start_(data.begin()),
+        end_(data.end())
+    {
+    }
+
+    BTFLDataChecker() {}
+
+
+    template <typename CtrIterator>
+    void check(CtrIterator&& iter)
+    {
+    	while (start_ != end_)
+    	{
+    		auto value = iter->template key<StartLevel>();
+    		AssertEQ(MA_SRC, value, *start_);
+
+    		start_++;
+    		iter->next();
+    	}
+    }
+
+};
+
+
+
+
 
 
 

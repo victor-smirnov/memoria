@@ -45,14 +45,40 @@ protected:
     using typename Base::CtrSizeT;
     using typename Base::CtrSizesT;
 
-    using Key   = typename Types::Key;
-    using Value = typename Types::Value;
 
     static const Int Streams = Types::Streams;
 
     using PageUpdateMgt = typename Types::PageUpdateMgr;
 
 
+    bool checkContent(const NodeBaseG& node) const
+    {
+    	auto& self = this->self();
+    	if (!Base::checkContent(node))
+    	{
+    		if (node->is_leaf())
+    		{
+    			auto sizes = self.getLeafStreamSizes(node);
+
+    			CtrSizeT data_streams_size = 0;
+    			for (Int c = 0; c < CtrSizesT::Indexes - 1; c++)
+    			{
+    				data_streams_size += sizes[c];
+    			}
+
+    			if (data_streams_size != sizes[Streams - 1])
+    			{
+    				MEMORIA_ERROR(self, "Leaf streams sizes check failed", data_streams_size, sizes[Streams - 1]);
+    				return true;
+    			}
+    		}
+
+    		return false;
+    	}
+    	else {
+    		return true;
+    	}
+    }
 
 
 MEMORIA_V1_CONTAINER_PART_END

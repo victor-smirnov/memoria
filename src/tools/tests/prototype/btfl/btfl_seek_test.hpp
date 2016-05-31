@@ -35,10 +35,10 @@ template <
     typename AllocatorT     = PersistentInMemAllocator<>,
     typename ProfileT       = DefaultProfile<>
 >
-class BTFLCreateTest: public BTFLTestBase<CtrName, AllocatorT, ProfileT> {
+class BTFLSeekTest: public BTFLTestBase<CtrName, AllocatorT, ProfileT> {
 
     using Base   = BTFLTestBase<CtrName, AllocatorT, ProfileT>;
-    using MyType = BTFLCreateTest<CtrName, AllocatorT, ProfileT>;
+    using MyType = BTFLSeekTest<CtrName, AllocatorT, ProfileT>;
 
     using Allocator     = typename Base::Allocator;
     using AllocatorPtr  = typename Base::AllocatorPtr;
@@ -64,7 +64,6 @@ class BTFLCreateTest: public BTFLTestBase<CtrName, AllocatorT, ProfileT> {
     using Base::storeAllocator;
     using Base::isReplayMode;
     using Base::getResourcePath;
-    using Base::getRandom;
 
 
     using Base::createSampleBTFLData;
@@ -83,80 +82,59 @@ class BTFLCreateTest: public BTFLTestBase<CtrName, AllocatorT, ProfileT> {
 
 public:
 
-    BTFLCreateTest(String name):
+    BTFLSeekTest(String name):
         Base(name)
     {
-        MEMORIA_ADD_TEST(testCreation1);
-        MEMORIA_ADD_TEST(testCreation2);
-        MEMORIA_ADD_TEST(testCreation3);
-        MEMORIA_ADD_TEST(testCreation4);
-        MEMORIA_ADD_TEST(testCreation5);
+        MEMORIA_ADD_TEST(testSeek1);
+        MEMORIA_ADD_TEST(testSeek2);
+        MEMORIA_ADD_TEST(testSeek3);
+        MEMORIA_ADD_TEST(testSeek4);
+        MEMORIA_ADD_TEST(testSeek5);
     }
 
-    virtual ~BTFLCreateTest() throw () {}
-
-
-
-    void testCreation1()
+    void testSeek1()
     {
-        testCreation(sampleTreeShape(10, 10, size));
+        testSeek(sampleTreeShape(10, 10, size));
     }
 
-    void testCreation2()
+    void testSeek2()
     {
-        testCreation(sampleTreeShape(100, 10, size));
+        testSeek(sampleTreeShape(100, 10, size));
     }
 
-    void testCreation3()
+    void testSeek3()
     {
-        testCreation(sampleTreeShape(10, 100, size));
+        testSeek(sampleTreeShape(10, 100, size));
     }
 
-    void testCreation4()
+    void testSeek4()
     {
-        testCreation(sampleTreeShape(10, 1000, size));
+        testSeek(sampleTreeShape(10, 1000, size));
     }
 
-    void testCreation5()
+    void testSeek5()
     {
-        testCreation(sampleTreeShape(10, 10000, size));
+        testSeek(sampleTreeShape(10, 10000, size));
     }
 
 
 
-    void testCreation(const DataSizesT& shape)
+    void testSeek(const DataSizesT& shape)
     {
         out() << "Test Creation for shape: " << shape << endl;
 
         auto snp = branch();
 
         auto ctr_name = create<CtrName>(snp)->name();
-        auto ctr = find<CtrName>(snp, ctr_name);
+        auto ctr 			= find<CtrName>(snp, ctr_name);
 
         auto data = fillCtrRandomly(ctr, shape);
-        auto data_len = dataLength(data);
 
-        auto rdata = ctr->begin()->template readData<0>(data_len);
-
-        checkEquality(data, rdata);
-
-        auto ii = ctr->begin();
-
-        for (size_t c = 0; c < data.size(); )
+        for (size_t c = 0; c < data.size(); c++)
         {
-            Int len = getRandom(5) + 1;
+        		auto ii = ctr->seekL0(c);
 
-            auto entry = ii->template readEntries<0>(len);
-            AssertLE(MA_SRC, entry.size(), len);
-
-            for (size_t l = 0; l < entry.size(); l++)
-            {
-            	AssertEQ(MA_SRC, std::get<0>(data[c + l]), std::get<0>(entry[l]));
-
-            	checkEquality(std::get<1>(data[c + l]), std::get<1>(entry[l]));
-            }
-
-            c += entry.size();
+        		AssertEQ(MA_SRC, ii->rank(0), c);
         }
 
         commit();

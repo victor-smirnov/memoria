@@ -68,6 +68,12 @@ public:
         return self().template seek_stream<StructureStreamIdx>(pos);
     }
 
+    auto seekL0(CtrSizeT pos)
+    {
+    	return self().select(pos + 1, 0);
+    }
+
+
     auto seek(const CtrSizesT& pos, Int level)
     {
         auto& self = this->self();

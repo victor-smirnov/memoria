@@ -78,7 +78,7 @@ public:
 
     CtrSizeT selectBw(CtrSizeT rank, Int stream)
     {
-        return self().template select_fw_<IntList<StructureStreamIdx, 1>>(stream, rank);
+        return self().template select_bw_<IntList<StructureStreamIdx, 1>>(stream, rank);
     }
 
 

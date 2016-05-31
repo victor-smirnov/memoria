@@ -155,6 +155,74 @@ public:
         }
     }
 
+
+    template <Int Stream>
+    auto key() const
+    {
+        auto& self = this->self();
+
+        Int stream = self.stream();
+
+        MEMORIA_V1_ASSERT(stream, ==, Stream);
+
+        Int key_idx = self.data_stream_idx(stream);
+
+        return std::get<0>(self.template read_leaf_entry<Stream, IntList<1>>(key_idx, 0));
+    }
+
+    CtrSizeT countChildren() const
+    {
+        auto& self = this->self();
+        Int stream = self.stream();
+
+        if (stream < DataStreams - 1)
+        {
+            auto ii = self.clone();
+            ii->selectGEFw(1, stream);
+
+            auto r0 = self.rank(stream + 1);
+            auto r1 = ii->rank(stream + 1);
+
+//            if (r1 < r0) {
+//            	DebugCounter = 1;
+//
+//            	self.dump();
+//
+//            	auto iii = self.clone();
+//            	iii->selectGEFw(1, stream);
+//
+//
+//
+//            	iii->dump();
+//            }
+
+            return r1 - r0;
+        }
+        else {
+            throw Exception(MA_SRC, SBuf() << "Invalid stream: " << stream);
+        }
+    }
+
+    void toChild(CtrSizeT n)
+    {
+    	auto& self = this->self();
+    	Int stream = self.stream();
+
+    	if (stream < DataStreams - 1)
+    	{
+    		self.selectFw(1, stream + 1);
+    	}
+    	else {
+    		throw Exception(MA_SRC, SBuf() << "Invalid stream: " << stream);
+    	}
+    }
+
+    void toParent(Int level)
+    {
+    	auto& self = this->self();
+    	self.selectBw(1, level);
+    }
+
 MEMORIA_V1_ITERATOR_PART_END
 
 #define M_TYPE      MEMORIA_V1_ITERATOR_TYPE(v1::btfl_test::IterApiName)

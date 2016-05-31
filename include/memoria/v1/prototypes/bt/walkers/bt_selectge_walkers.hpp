@@ -61,7 +61,7 @@ public:
             }
             else {
             	Base::sum_ += tree->sum(index, start, nearest_nz_idx);
-            	return StreamOpResult(nearest_nz_idx, start, result.idx() >= size, false);
+            	return StreamOpResult(nearest_nz_idx, start, nearest_nz_idx >= size, false);
             }
         }
         else {

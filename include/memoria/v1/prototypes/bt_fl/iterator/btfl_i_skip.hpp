@@ -178,15 +178,37 @@ public:
         }
     }
 
-protected:
 
-    struct PosWalker {
+
+
+
+
+
+
+
+    CtrSizeT pos() const
+    {
+        auto& self = this->self();
+        return self.template stream_size_prefix<StructureStreamIdx>() + self.idx();
+    }
+
+//    CtrSizeT stream_pos() const
+//    {
+//
+//        return fn.pos_ + self.idx();
+//    }
+
+
+private:
+
+    template <Int Stream>
+    struct SizePrefix {
         CtrSizeT pos_ = 0;
 
         template <typename NodeTypes>
         void treeNode(const bt::BranchNode<NodeTypes>* node, WalkCmd cmd, Int start, Int end)
         {
-            using BranchSizePath = IntList<StructureStreamIdx>;
+            using BranchSizePath = IntList<Stream>;
 
             auto sizes_substream = node->template substream<BranchSizePath>();
 
@@ -199,23 +221,19 @@ protected:
         }
     };
 
-
-
 public:
-
-    CtrSizeT pos() const
+    template <Int Stream>
+    auto stream_size_prefix() const
     {
         auto& self = this->self();
-        PosWalker fn;
+        SizePrefix<Stream> fn;
 
         self.ctr().walkUp(self.leaf(), self.idx(), fn);
 
-        return fn.pos_ + self.idx();
+        return fn.pos_;
     }
 
-
 protected:
-
     Int data_stream_idx(Int stream) const
     {
         auto& self = this->self();

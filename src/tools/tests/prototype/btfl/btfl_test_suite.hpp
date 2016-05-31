@@ -20,7 +20,8 @@
 #include "../../tests_inc.hpp"
 
 #include "btfl_create_test.hpp"
-//#include "btfl_iter_test.hpp"
+#include "btfl_seek_test.hpp"
+#include "btfl_iterator_test.hpp"
 //#include "btfl_insertion_test.hpp"
 //#include "btfl_removal_test.hpp"
 
@@ -42,7 +43,9 @@ public:
 //        registerTask(new BTFLCreateTest<BTFLTestCtr<3, PackedSizeType::FIXED>>("Create.Fx.3"));
 //
 
-        registerTask(new BTFLCreateTest<BTFLTestCtr<4>>("Create.4"));
+//        registerTask(new BTFLCreateTest<BTFLTestCtr<4>>("Create.4"));
+//        registerTask(new BTFLSeekTest<BTFLTestCtr<4>>("Seek.4"));
+    	registerTask(new BTFLIteratorTest<BTFLTestCtr<4>>("Iterator.4"));
 //
 //
 //        registerTask(new BTFLIterTest<BTFLTestCtr<2, PackedSizeType::VARIABLE>>("Iter.Vr.2"));
