@@ -81,7 +81,7 @@ public:
 
         Int index = node->template translateLeafIndexToBranchIndex<LeafPath>(self.leaf_index());
 
-        using BranchPath         = typename bt::BranchNode<NodeTypes>::template BuildBranchPath<LeafPath>;
+        using BranchPath     = typename bt::BranchNode<NodeTypes>::template BuildBranchPath<LeafPath>;
         using BranchSizePath = IntList<ListHead<LeafPath>::Value>;
 
         auto sizes_substream = node->template substream<BranchSizePath>();

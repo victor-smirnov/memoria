@@ -213,12 +213,16 @@ public:
 template <typename BTFLData, Int DataStreams, Int StartLevel = 0, typename IOBufferT = DefaultIOBuffer>
 class BTFLDataIOBufferProducer: public BufferProducer<IOBufferT> {
 
+	using Helper = BTFLDataIOBufferProducerHelper<BTFLData, DataStreams, StartLevel, IOBufferT>;
+
 	IOBufferT io_buffer_;
-	BTFLDataIOBufferProducerHelper<BTFLData, DataStreams, StartLevel, IOBufferT> producer_helper_;
+	Helper producer_helper_;
 
 	using DataIterator = typename BTFLData::const_iterator;
 
 public:
+
+	BTFLDataIOBufferProducer(size_t capacity = 65536): io_buffer_(capacity) {}
 
 	BTFLDataIOBufferProducer(const BTFLData& data, size_t capacity = 65536):
 		io_buffer_(capacity),
@@ -229,6 +233,19 @@ public:
 		io_buffer_(capacity),
 		producer_helper_(start, end)
   {}
+
+	void init(const BTFLData& data)
+	{
+		producer_helper_ = Helper(data);
+	}
+
+	void init(const DataIterator& start, const DataIterator& end)
+	{
+		producer_helper_ = Helper(start, end);
+	}
+
+	void clear() {
+	}
 
 	virtual IOBufferT& buffer() {return io_buffer_;}
 

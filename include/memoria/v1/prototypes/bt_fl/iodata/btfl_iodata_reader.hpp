@@ -62,7 +62,6 @@ public:
 			for (Int e = 0; e < entries; e++)
 			{
 				auto key = IOBufferAdapter<K>::get(buffer);
-
 				data_->emplace_back(std::tuple<K, V>(key, V()));
 
 				next_reader_ = NextBTFLIOBufferReader(std::get<1>(data_->back()));
@@ -119,15 +118,26 @@ public:
 template <typename BTFLData, Int DataStreams, Int StartLevel = 0, typename IOBufferT = DefaultIOBuffer>
 class BTFLDataReader: public BufferConsumer<IOBufferT> {
 
+	using Helper = BTFLDataIOBufferReaderHelper<BTFLData, DataStreams, StartLevel, IOBufferT>;
+
 	IOBufferT io_buffer_;
-	BTFLDataIOBufferReaderHelper<BTFLData, DataStreams, StartLevel, IOBufferT> reader_helper_;
+	Helper reader_helper_;
 
 public:
 
-	BTFLDataReader(BTFLData& data, size_t capacity = 512):
+	BTFLDataReader(size_t capacity = 65536):
 		io_buffer_(capacity),
-		reader_helper_(data)
+		reader_helper_()
 	{}
+
+	void init(BTFLData& data)
+	{
+		io_buffer_.rewind();
+		reader_helper_ = Helper(data);
+	}
+
+	void clear() {}
+
 
 	virtual IOBufferT& buffer() {return io_buffer_;}
 

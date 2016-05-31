@@ -97,8 +97,6 @@ protected:
     bool compute_branch_    = true;
     bool compute_leaf_      = true;
 
-    bool top_down_ = false;
-
     WalkDirection direction_;
 
 public:
@@ -217,8 +215,6 @@ public:
         return v1::bt::LeafToBranchIndexTranslator<LeafStructList, LeafPath, 0>::BranchIndex + leaf_index;
     }
 
-    bool& top_down() {return top_down_;}
-    const bool& top_down() const {return top_down_;}
 
     template <typename LeafPath>
     auto branch_index(Int index)

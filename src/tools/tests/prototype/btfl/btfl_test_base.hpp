@@ -78,13 +78,7 @@ protected:
     using DataSizesT    = core::StaticVector<CtrSizeT, DataStreams>;
 
     template <Int Level>
-    using BTFLSampleData = btfl_test::BTFLData<
-            DataStreams,
-                Level,
-                typename Ctr::Types::Key,
-                typename Ctr::Types::Value,
-                typename Ctr::Types::Column
-        >;
+    using BTFLSampleData = typename Ctr::Types::template IOData<Level>;
 
     using Base::getRandom;
     using Base::commit;
@@ -189,17 +183,7 @@ public:
     	return v1::btfl::BTFLDataComputeLengthHelper<BTFLDataT>(data).compute();
     }
 
-    template <typename BTFLDataT, typename Iter>
-    BTFLDataT readData(Iter&& iter, CtrSizeT length)
-    {
-    	BTFLDataT data;
 
-    	btfl::BTFLDataReader<BTFLDataT, DataStreams, 0> reader(data);
-
-    	iter->bulkio_read(&reader, length);
-
-    	return data;
-    }
 
 
     template <typename K, typename V, template <typename...> class Container1, template <typename...> class Container2, typename... Args1, typename... Args2>
@@ -228,276 +212,57 @@ public:
     	}
     }
 
-/*
-    template <typename Provider>
-    CtrSizesT fillCtr(Ctr& ctr, Provider& provider)
+
+
+//    template <typename K, typename V, template <typename...> class Container1, template <typename...> class Container2, typename... Args1, typename... Args2>
+//    void deepCompare(const Container1<std::tuple<K, V>, Args1...>& first, const Container2<std::tuple<K, V>, Args2...>& second)
+//    {
+//    	AssertEQ(MA_SRC, first.size(), second.size());
+//
+//    	auto i2 = second.begin();
+//    	for (auto i1 = first.begin(); i1 != first.end(); i1++, i2++)
+//    	{
+//    		AssertEQ(MA_SRC, std::get<0>(*i1), std::get<0>(*i2));
+//
+//    		checkEquality(std::get<1>(*i1), std::get<1>(*i2));
+//    	}
+//    }
+//
+//    template <typename V, template <typename...> class Container1, template <typename...> class Container2, typename... Args1, typename... Args2>
+//    void deepCompare(const Container1<V, Args1...>& first, const Container2<V, Args2...>& second)
+//    {
+//    	AssertEQ(MA_SRC, first.size(), second.size());
+//
+//    	auto i2 = second.begin();
+//    	for (auto i1 = first.begin(); i1 != first.end(); i1++, i2++)
+//    	{
+//    		AssertEQ(MA_SRC, *i1, *i2);
+//    	}
+//    }
+
+
+
+    template <typename Ctr>
+    auto fillCtrRandomly(Ctr&& ctr, const DataSizesT& shape)
     {
-        auto iter = ctr.seek(0);
+        auto iter = ctr->begin();
 
         long t0 = getTimeInMillis();
 
-        auto totals = iter->bulkio_insert(provider);
+        auto data  = createSampleBTFLData(shape);
+        auto totals = iter->insert_iodata(data);
 
         check("Bulk Insertion", MA_SRC);
 
         long t1 = getTimeInMillis();
 
-        out() << "Creation time: " << FormatTime(t1 - t0) << " consumed: " << provider.consumed() << endl;
+        out() << "Creation time: " << FormatTime(t1 - t0) << " consumed: " << totals << endl;
 
-        auto sizes = ctr.sizes();
-
-        AssertEQ(MA_SRC, provider.consumed(), sizes);
-        AssertEQ(MA_SRC, totals, sizes);
-
-        auto ctr_totals = ctr.total_counts();
-
-        out()<<"Totals: "<<ctr_totals<<" "<<sizes<<endl;
-
-        AssertEQ(MA_SRC, ctr_totals, sizes);
-
-        return totals;
-    }
-
-    void checkIterator(const char* source, const IteratorPtr& iter, const CtrSizesT& positions, Int level = 0)
-    {
-        auto& cache = iter->cache();
-
-        AssertEQ(source, cache.data_pos(), positions, SBuf()<<"Positions do not match");
-        AssertEQ(source, cache.abs_pos()[0], positions[0], SBuf()<<"Level 0 absolute positions do not match");
-
-        for (Int l = level + 1; l < Streams; l++)
-        {
-            AssertEQ(source, cache.data_pos()[l], -1, SBuf() << "Position for level " << l << " is not default (-1)");
-            AssertEQ(source, cache.data_size()[l], -1, SBuf() << "Substream size for level " << l << " is not default (-1)");
-            AssertEQ(source, cache.abs_pos()[l], -1, SBuf() << "Absolute position for level " << l << " is not default (-1)");
-        }
-
-        iter->checkPrefix();
-    }
-
-
-    void scanAndCheckIterator(Ctr& ctr)
-    {
-        out() << "Scan Iterator for " << ctr.sizes() << endl;
-
-        CtrSizesT pos{-1};
-        CtrSizesT abs_pos;
-
-        scanAndCheckIterator_(ctr.begin(), pos, abs_pos, ctr.size());
-
-        AssertEQ(MA_RAW_SRC, abs_pos, ctr.sizes());
-    }
-
-private:
-    void scanAndCheckIterator_(const IteratorPtr& iter, CtrSizesT& pos, CtrSizesT& abs_pos, CtrSizeT size, Int level = 0)
-    {
-        AssertEQ(MA_SRC, iter->stream(), level);
-
-        AssertEQ(MA_SRC, iter->size(), size);
-
-        pos[level] = 0;
-
-
-        if (level < Streams - 1)
-        {
-            for (CtrSizeT c = 0; c < size; c++)
-            {
-                auto substream_size = iter->substream_size();
-
-                if (level == 0) {
-                    this->out() << "Scan Iterator: row " << c << endl;
-                }
-
-                iter->toData();
-
-                scanAndCheckIterator_(iter, pos, abs_pos, substream_size, level + 1);
-
-                iter->toIndex();
-
-                checkIterator(MA_RAW_SRC, iter, pos, level);
-                AssertEQ(MA_RAW_SRC, abs_pos[level], iter->cache().abs_pos()[level]);
-
-                auto len = iter->skipFw(1);
-                AssertEQ(MA_RAW_SRC, len, 1);
-
-                pos[level] ++;
-                abs_pos[level] ++;
-            }
-        }
-        else {
-            checkIterator(MA_RAW_SRC, iter, pos, level);
-            AssertEQ(MA_RAW_SRC, abs_pos[level], iter->cache().abs_pos()[level]);
-
-            auto len = iter->skipFw(size);
-            AssertEQ(MA_RAW_SRC, len, size);
-
-            pos[level] += size;
-            abs_pos[level] += size;
-        }
-
-        checkIterator(MA_RAW_SRC, iter, pos, level);
-
-        pos[level] = -1;
-    }
-
-
-public:
-
-
-    void checkTree(Ctr& ctr)
-    {
-        auto iter = ctr.seek(0);
-        checkSubtree(*iter.get(), ctr.sizes()[0]);
-    }
-
-    void checkSubtree(Ctr& ctr, CtrSizeT r)
-    {
-        CtrSizesT path(-1);
-        path[0] = r;
-
-        this->checkSubtree(ctr, path);
-    }
-
-    void checkSubtree(Ctr& ctr, const CtrSizesT& path)
-    {
-        auto iter = ctr.seek(path[0]);
-
-        checkIterator(MA_RAW_SRC, iter, path, 0);
-
-        for (Int s = 1; s < Streams; s++)
-        {
-            if (path[s] >= 0)
-            {
-                iter->toData(path[s]);
-                checkIterator(MA_RAW_SRC, iter, path, s);
-            }
-        }
-
-        this->checkSubtree(*iter.get(), 1);
+        return data;
     }
 
 
 
-
-    void checkSubtree(Iterator& iter, CtrSizeT scan_size = 1)
-    {
-        if (iter.stream() < Streams - 1)
-        {
-            for (Int s = 0; s < scan_size; s++)
-            {
-                CtrSizeT size = iter.substream_size();
-
-                iter.toData();
-                iter.checkPrefix();
-
-                AssertEQ(MA_SRC, size, iter.size());
-
-                checkSubtree(iter, size);
-
-                iter.toIndex();
-                iter.skipFw(1);
-            }
-        }
-        else {
-            Int data = 0;
-            CtrSizeT cnt = 0;
-            if (scan_size == -1) scan_size = 0;
-
-            auto scanned = iter.template scan<IntList<Levels - 1>>([&](const auto* obj, Int start, Int end) {
-                if (cnt == 0)
-                {
-                    data = obj->value(0, start);
-                }
-
-                for (Int c = start; c < end; c++)
-                {
-                    AssertEQ(MA_SRC, data, obj->value(0, c));
-                }
-
-                cnt += end - start;
-            });
-
-            AssertEQ(MA_SRC, scanned, scan_size);
-            AssertEQ(MA_SRC, scanned, cnt);
-        }
-    }
-
-    void checkRanks(Ctr& ctr)
-    {
-        auto i = ctr.seek(0);
-
-        CtrSizesT extents;
-
-        long t2 = getTimeInMillis();
-
-        do
-        {
-            auto sizes = i->leaf_sizes();
-
-            auto total_leafrank_ = sizes.sum();
-
-            typename Ctr::Types::LeafPrefixRanks prefix_ranks;
-
-            ctr.compute_leaf_prefixes(i->leaf(), extents, prefix_ranks);
-
-            auto total_ranks = ctr.leafrank_(i->leaf(), sizes, prefix_ranks, sizes.sum());
-
-            AssertEQ(MA_SRC, total_ranks, sizes);
-
-            for (Int c = 0; c < total_leafrank_; )
-            {
-                auto ranks = ctr.leafrank_(i->leaf(), sizes, prefix_ranks, c);
-
-                AssertEQ(MA_SRC, ranks.sum(), c);
-
-                c += this->getRandom(100) + 1;
-            }
-
-            extents += ctr.node_extents(i->leaf());
-        }
-        while(i->nextLeaf());
-
-        long t3 = getTimeInMillis();
-
-        this->out()<<"Rank verification time: "<<FormatTime(t3 - t2)<<endl;
-    }
-
-
-    void checkExtents(Ctr& ctr)
-    {
-        auto i = ctr.seek(0);
-
-        CtrSizesT extent;
-
-        long t2 = getTimeInMillis();
-
-        do
-        {
-            auto current_extent = i->leaf_extent();
-
-            AssertEQ(MA_SRC, current_extent, extent);
-
-            for (Int c = 0; c < Streams; c++)
-            {
-                if (extent[c] < 0)
-                {
-                    i->dumpPath(this->out());
-                }
-
-                AssertGE(MA_SRC, extent[c], 0, SBuf()<<"Extent: "<<extent);
-            }
-
-            auto ex = ctr.node_extents(i->leaf());
-
-            extent += ex;
-        }
-        while(i->nextLeaf());
-
-        long t3 = getTimeInMillis();
-
-        this->out()<<"Extent verification time: "<<FormatTime(t3 - t2)<<endl;
-    }
-    */
 };
 
 }}

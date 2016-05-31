@@ -319,9 +319,9 @@ public:
         run_pos_    = symbols_.local_idx();
         run_length_ = symbols_.length();
 
-        if (total_syms_ + run_length_ > limit_syms_)
+        if (total_syms_ + run_length_ - run_pos_ > limit_syms_)
         {
-        	run_length_ = limit_syms_ - total_syms_;
+        	run_length_ = run_pos_ + limit_syms_ - total_syms_;
         }
     }
 
@@ -396,9 +396,9 @@ public:
             			run_length_ = symbols_.length();
             			stream_ 		= symbols_.symbol();
 
-            			if (total_syms_ + run_length_ > limit_syms_)
+            			if (total_syms_ + run_length_ - run_pos_ > limit_syms_)
             			{
-            				run_length_ = limit_syms_ - total_syms_;
+            				run_length_ = run_pos_ + limit_syms_ - total_syms_;
             			}
             		}
             	}

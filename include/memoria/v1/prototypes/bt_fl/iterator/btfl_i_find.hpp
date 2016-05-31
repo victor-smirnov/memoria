@@ -61,6 +61,18 @@ public:
         return self().template select_fw_<IntList<StructureStreamIdx, 1>>(stream, rank);
     }
 
+    CtrSizeT selectPosFw(CtrSizeT rank, Int stream) const
+    {
+    	const auto& self = this->self();
+
+    	auto ii = self.clone();
+    	ii->selectFw(rank, stream);
+
+//    	ii->dump();
+
+    	return ii->pos();
+    }
+
     CtrSizeT selectBw(CtrSizeT rank, Int stream)
     {
         return self().template select_fw_<IntList<StructureStreamIdx, 1>>(stream, rank);

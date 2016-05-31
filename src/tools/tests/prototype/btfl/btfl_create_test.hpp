@@ -44,13 +44,13 @@ class BTFLCreateTest: public BTFLTestBase<CtrName, AllocatorT, ProfileT> {
     using AllocatorPtr  = typename Base::AllocatorPtr;
     using Ctr           = typename Base::Ctr;
 
-//    using DetInputProvider      = bttl::iobuf::DeterministicDataInputProvider<Ctr>;
-//    using RngInputProvider      = bttl::iobuf::RandomDataInputProvider<Ctr, RngInt>;
-//
-//    using Rng            = typename RngInputProvider::Rng;
-
     using CtrSizesT      = typename Ctr::Types::Position;
 
+    template <Int Level>
+    using BTFLSampleData = typename Ctr::Types::template IOData<Level>;
+
+
+    using typename Base::DataSizesT;
 
     using Base::Streams;
     using Base::DataStreams;
@@ -70,12 +70,7 @@ class BTFLCreateTest: public BTFLTestBase<CtrName, AllocatorT, ProfileT> {
     using Base::sampleTreeShape;
     using Base::dataLength;
     using Base::checkEquality;
-//    using Base::readData;
-
-//    using Base::fillCtr;
-//    using Base::checkRanks;
-//    using Base::checkExtents;
-//    using Base::checkSubtree;
+    using Base::fillCtrRandomly;
 
 
     using Base::dump;
@@ -90,107 +85,76 @@ public:
     BTFLCreateTest(String name):
         Base(name)
     {
-        MEMORIA_ADD_TEST(testDetProvider);
-        MEMORIA_ADD_TEST(testRngProvider);
+        MEMORIA_ADD_TEST(testCreation1);
+        MEMORIA_ADD_TEST(testCreation2);
+        MEMORIA_ADD_TEST(testCreation3);
+        MEMORIA_ADD_TEST(testCreation4);
+        MEMORIA_ADD_TEST(testCreation5);
+
     }
 
     virtual ~BTFLCreateTest() throw () {}
 
-    void testDetProvider()
+
+
+    void testCreation1()
     {
+    	testCreation(sampleTreeShape(10, 10, size));
+    }
+
+    void testCreation2()
+    {
+    	testCreation(sampleTreeShape(100, 10, size));
+    }
+
+    void testCreation3()
+    {
+    	testCreation(sampleTreeShape(10, 100, size));
+    }
+
+    void testCreation4()
+    {
+    	testCreation(sampleTreeShape(10, 1000, size));
+    }
+
+    void testCreation5()
+    {
+    	testCreation(sampleTreeShape(10, 10000, size));
+    }
+
+
+
+    void testCreation(const DataSizesT& shape)
+    {
+        out() << "Test Creation for shape: " << shape << endl;
+
         auto snp = branch();
 
         auto ctr_name = create<CtrName>(snp)->name();
-
-//        commit();
-
-        auto shape = sampleTreeShape();
-        auto data  = createSampleBTFLData(shape);
-
-        auto data_len = dataLength(data);
-
-
-
         auto ctr = find<CtrName>(snp, ctr_name);
 
-        btfl::BTFLDataIOBufferProducer<decltype(data), 4, 0> producer(data);
+        auto data = fillCtrRandomly(ctr, shape);
+        auto data_len = dataLength(data);
 
-        ctr->begin()->bulkio_insert(producer);
-//        FSDumpAllocator(snp, "create.dir");
-
-        using T = decltype(data);
-
-        auto rdata = this->template readData<T>(ctr->begin(), data_len);
+        auto rdata = ctr->begin()->template readData<0>(data_len);
 
         checkEquality(data, rdata);
 
-//        btfl_test::BTFLDataCheckerConsumer<decltype(data), 4> consumer(data);
-//
-//        ctr->begin()->bulkio_read(&consumer, data_len);
+        auto ii = ctr->begin();
 
-
-
-        commit();
-
-//        for (Int i = 0; i < iterations; i++)
-//        {
-//            out()<<"Iteration "<<(i + 1)<<endl;
-//
-//            snp = branch();
-//
-////            auto ctr = find<CtrName>(snp, ctr_name);
-////            auto shape = sampleTreeShape();
-////
-////            out()<<"shape: "<<shape<<endl;
-////
-////            DetInputProvider provider(shape);
-////
-////            testProvider(snp, *ctr.get(), provider);
-//
-//            commit();
-//        }
-    }
-
-    void testRngProvider()
-    {
-        auto snp = branch();
-
-//        auto ctr_name = create<CtrName>(snp)->name();
-
-        commit();
-
-        for (Int i = 0; i < iterations; i++)
+        for (size_t c = 0; c < data.size(); c++)
         {
-            out()<<"Iteration "<<(i + 1)<<endl;
+        	auto entry = ii->template readEntry<0>();
 
-            auto snp = branch();
+        	AssertEQ(MA_SRC, entry.size(), 1);
 
-//            auto ctr = find<CtrName>(snp, ctr_name);
-//
-//            auto shape = this->sampleTreeShape();
-//
-//            out()<<"shape: "<<shape<<endl;
-//
-//            RngInputProvider provider(shape, this->getIntTestGenerator());
-//
-//            testProvider(snp, *ctr.get(), provider);
+        	AssertEQ(MA_SRC, std::get<0>(data[c]), std::get<0>(entry[0]));
 
-            commit();
+        	checkEquality(std::get<1>(data[c]), std::get<1>(entry[0]));
         }
+
+        commit();
     }
-//
-//
-//    template <typename Snapshot, typename Provider>
-//    void testProvider(Snapshot&& snp, Ctr& ctr, Provider& provider)
-//    {
-//        fillCtr(ctr, provider);
-//
-//        check(snp, "Snapshot check failed", MA_RAW_SRC);
-//
-//        checkRanks(ctr);
-//
-//        out()<<endl;
-//    }
 };
 
 }}

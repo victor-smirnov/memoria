@@ -44,6 +44,8 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorSkipName)
     static const Int DataStreams            = Container::Types::DataStreams;
     static const Int StructureStreamIdx     = Container::Types::StructureStreamIdx;
 
+    using DataSizesT = typename Container::Types::DataSizesT;
+
 public:
     bool isBegin() const
     {
@@ -157,7 +159,7 @@ public:
             return s->get_symbol(idx);
         }
         else {
-            throw Exception(MA_SRC, "End Of Data Structure");
+            return -1;//throw Exception(MA_SRC, "End Of Data Structure");
         }
     }
 
@@ -174,6 +176,41 @@ public:
         else {
             return -1;
         }
+    }
+
+protected:
+
+    struct PosWalker {
+    	CtrSizeT pos_ = 0;
+
+    	template <typename NodeTypes>
+    	void treeNode(const bt::BranchNode<NodeTypes>* node, WalkCmd cmd, Int start, Int end)
+    	{
+    		using BranchSizePath = IntList<StructureStreamIdx>;
+
+    		auto sizes_substream = node->template substream<BranchSizePath>();
+
+    		pos_ += sizes_substream->sum(0, end);
+    	}
+
+    	template <typename NodeTypes>
+    	void treeNode(const bt::LeafNode<NodeTypes>* node, WalkCmd cmd, Int start, Int end)
+    	{
+    	}
+    };
+
+
+
+public:
+
+    CtrSizeT pos() const
+    {
+    	auto& self = this->self();
+    	PosWalker fn;
+
+    	self.ctr().walkUp(self.leaf(), self.idx(), fn);
+
+    	return fn.pos_ + self.idx();
     }
 
 

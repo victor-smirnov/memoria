@@ -61,8 +61,7 @@ struct BTFLTestTypesBase: public BTTypes<Profile, BTFreeLayout> {
             StreamSize,
 					  PkdFQTreeT<Key>
         >>,
-				bt::DefaultBranchStructTF//,
-//		    TL<TL<TL<>, TL<>>>
+				bt::DefaultBranchStructTF
     >;
 
     using DataStreamTF = StreamTF<
@@ -71,8 +70,7 @@ struct BTFLTestTypesBase: public BTTypes<Profile, BTFreeLayout> {
             PackedFSEArray<PackedFSEArrayTypes<Value>>
             >
         >,
-				bt::DefaultBranchStructTF//,
-//        TL<TL<TL<>, TL<>>>
+				bt::DefaultBranchStructTF
     >;
 
     using StructureStreamTF = StreamTF<
@@ -100,6 +98,14 @@ struct BTFLTestTypesBase: public BTTypes<Profile, BTFreeLayout> {
                 v1::btfl_test::IterApiName
     >;
 
+    template <Int Level>
+    using IOData = btfl::BTFLData<
+    	DataStreams,
+			Level,
+			Key,
+			Value,
+			Column
+    >;
 };
 
 
