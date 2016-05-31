@@ -491,6 +491,13 @@ public:
         return this->value(index, idx);
     }
 
+//    Int findNZLE(Int block, Int start) const
+//    {
+//    	MEMORIA_V1_ASSERT(block, <, (Int)Blocks);
+//    	return this->findNZLE_(block, Blocks, start);
+//    }
+
+
 
     template <typename IOBuffer>
     bool readTo(ReadState& state, IOBuffer& buffer) const

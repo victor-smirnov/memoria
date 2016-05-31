@@ -61,15 +61,18 @@ public:
         return self().template select_fw_<IntList<StructureStreamIdx, 1>>(stream, rank);
     }
 
+    CtrSizeT selectGEFw(CtrSizeT rank, Int stream)
+    {
+    	typename Types::template SelectGEForwardWalker<Types, IntList<StructureStreamIdx, 1>> walker(stream, rank);
+    	return self().find_fw(walker);
+    }
+
     CtrSizeT selectPosFw(CtrSizeT rank, Int stream) const
     {
         const auto& self = this->self();
 
         auto ii = self.clone();
         ii->selectFw(rank, stream);
-
-//      ii->dump();
-
         return ii->pos();
     }
 

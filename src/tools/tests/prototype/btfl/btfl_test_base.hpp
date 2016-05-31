@@ -120,7 +120,7 @@ public:
 
     virtual void smokeCoverage(Int scale)
     {
-        size        = 10000 * scale;
+        size        = 3000 * scale;
         iterations  = 1;
     }
 

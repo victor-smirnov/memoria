@@ -1160,11 +1160,6 @@ public:
         Int size = meta->size();
 
         MEMORIA_V1_ASSERT_TRUE(end >= 0);
-
-//        if (symbol < 0 || symbol >= Symbols) {
-//            int a = 0; a++;
-//        }
-
         MEMORIA_V1_ASSERT_TRUE(symbol >= 0 && symbol < Symbols);
 
         if (has_index())
@@ -1283,6 +1278,41 @@ public:
         }
         else {
             return SelectResult(0, rank_prefix, false);
+        }
+    }
+
+
+    SelectResult selectGEFW(UBigInt rank, Int symbol) const
+    {
+        auto meta    = this->metadata();
+        auto symbols = this->symbols();
+
+        MEMORIA_V1_ASSERT_TRUE(symbol >= 0 && symbol < Symbols);
+
+
+        return block_select_ge(meta, symbols, 0, rank, 0, symbol);
+    }
+
+    SelectResult selectGEFW(Int pos, UBigInt rank, Int symbol) const
+    {
+        auto meta    = this->metadata();
+        auto symbols = this->symbols();
+
+        MEMORIA_V1_ASSERT_TRUE(symbol >= 0 && symbol < Symbols);
+
+        auto location = find_run(pos);
+
+        if (location.symbol() == symbol)
+        {
+        	rank += location.local_idx() + 1;
+
+        	auto result = block_select_ge(meta, symbols, location.data_pos(), rank, location.block_base() + location.run_base(), symbol);
+
+        	result.rank() -= (location.local_idx() + 1);
+        	return result;
+        }
+        else {
+        	return block_select_ge(meta, symbols, location.data_pos(), rank, location.block_base() + location.run_base(), symbol);
         }
     }
 
@@ -1547,6 +1577,53 @@ private:
 
         return SelectResult(run_base + block_size_prefix, rank_base, false);
     }
+
+
+    SelectResult block_select_ge(const Metadata* meta, const Value* symbols, size_t data_pos, UBigInt rank, size_t block_size_prefix, Int symbol) const
+    {
+        Codec codec;
+        size_t data_size = meta->data_size();
+
+        UBigInt rank_base = 0;
+        size_t  run_base  = 0;
+
+        RLESymbolsRun run;
+
+        while (data_pos < data_size)
+        {
+            UBigInt run_value = 0;
+            auto len = codec.decode(symbols, run_value, data_pos);
+            run = decode_run(run_value);
+
+            auto run_length = run.length();
+
+            if (run.symbol() == symbol)
+            {
+                if (rank > rank_base + run_length)
+                {
+                    rank_base += run_length;
+                    run_base  += run_length;
+                }
+                else {
+                    size_t local_idx = rank - rank_base - 1;
+                    return SelectResult(run_base + block_size_prefix + local_idx, rank_base + local_idx + 1, true);
+                }
+            }
+            else if (run.symbol() < symbol)
+            {
+            	size_t local_idx = 0;
+            	return SelectResult(run_base + block_size_prefix + local_idx, rank_base + local_idx + 1, true);
+            }
+            else {
+                run_base += run_length;
+            }
+
+            data_pos += len;
+        }
+
+        return SelectResult(meta->size(), rank_base, false);
+    }
+
 
 
     rleseq::CountResult block_count_fw(const Metadata* meta, const Value* symbols, const Location& location) const

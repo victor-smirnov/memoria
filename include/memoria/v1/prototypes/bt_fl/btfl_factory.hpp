@@ -51,6 +51,8 @@
 #include <memoria/v1/prototypes/bt_fl/tools/btfl_tools_streamdescr.hpp>
 
 #include <memoria/v1/prototypes/bt/walkers/bt_count_walkers.hpp>
+#include <memoria/v1/prototypes/bt/walkers/bt_selectge_walkers.hpp>
+
 #include <memoria/v1/prototypes/bt_fl/iodata/btfl_iodata.hpp>
 
 
@@ -126,6 +128,9 @@ struct BTTypes<Profile, v1::BTFreeLayout>: public BTTypes<Profile, v1::BT> {
     template <typename Types, typename LeafPath>
     using CountBackwardWalker  = bt::CountBackwardWalker<bt::WalkerTypes<Types, LeafPath>>;
 
+
+    template <typename Types, typename LeafPath>
+    using SelectGEForwardWalker  = bt::SelectGEForwardWalker<bt::WalkerTypes<Types, LeafPath>>;
 };
 
 

@@ -18,6 +18,7 @@
 
 #include <memoria/v1/core/packed/tree/fse/packed_fse_quick_tree_base_base.hpp>
 
+#include <memoria/v1/core/tools/assert.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -61,7 +62,6 @@ public:
 
     using IndexValue    = IndexValueT;
     using Value         = ValueT;
-//    using TreeTools       = PackedTreeTools<kBranchingFactor, kValuesPerBranch, Int>;
 
     using Metadata      = typename Base::Metadata;
     using TreeLayout    = typename Base::template IndexedTreeLayout<IndexValue>;
@@ -815,6 +815,42 @@ public:
         else {
             return FindResult(findGEBackward(block, val));
         }
+    }
+
+    Int findNZ(Int block, Int start, Int end) const
+    {
+    	auto values = this->values(block);
+
+    	for (Int c = start; c < end; c++)
+    	{
+    		if (values[c] != 0) {
+    			return c;
+    		}
+    	}
+
+    	return end;
+    }
+
+
+
+    Int findNZLT(Int block, Int start) const
+    {
+    	auto size = this->size();
+
+    	MEMORIA_V1_ASSERT(start, <, size);
+
+    	Int min_idx = size;
+
+    	for (Int b = 0; b < block; b++)
+    	{
+    		Int idx = findNZ(b, start, size);
+    		if (idx < min_idx)
+    		{
+    			min_idx = idx;
+    		}
+    	}
+
+    	return min_idx;
     }
 
 
