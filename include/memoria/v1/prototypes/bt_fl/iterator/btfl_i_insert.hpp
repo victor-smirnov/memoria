@@ -150,43 +150,43 @@ protected:
 
 
 
-    template <Int StreamIdx, typename EntryBuffer>
-    SplitStatus _insert(const EntryBuffer& data)
-    {
-        auto& self  = this->self();
-        auto stream = self.stream();
-
-        MEMORIA_V1_ASSERT(StreamIdx, ==, stream);
-
-        auto main_split_status = self.ctr().template insert_stream_entry<StreamIdx>(self, data);
-
-        auto tmp = self;
-        tmp.toIndex();
-
-        if (tmp.has_same_leaf(self))
-        {
-            auto status = tmp.add_substream_size(tmp.stream(), tmp.idx(), 1);
-
-            if (status == SplitStatus::NONE)
-            {
-                return main_split_status;
-            }
-            else
-            {
-                auto pos = self.pos();
-
-                self = tmp;
-                self.toData(pos);
-
-                return SplitStatus::UNKNOWN;
-            }
-        }
-        else {
-            tmp.add_substream_size(tmp.stream(), tmp.idx(), 1);
-        }
-
-        return main_split_status;
-    }
+//    template <Int StreamIdx, typename EntryBuffer>
+//    SplitStatus _insert(const EntryBuffer& data)
+//    {
+//        auto& self  = this->self();
+//        auto stream = self.stream();
+//
+//        MEMORIA_V1_ASSERT(StreamIdx, ==, stream);
+//
+//        auto main_split_status = self.ctr().template insert_stream_entry<StreamIdx>(self, data);
+//
+//        auto tmp = self;
+//        tmp.toIndex();
+//
+//        if (tmp.has_same_leaf(self))
+//        {
+//            auto status = tmp.add_substream_size(tmp.stream(), tmp.idx(), 1);
+//
+//            if (status == SplitStatus::NONE)
+//            {
+//                return main_split_status;
+//            }
+//            else
+//            {
+//                auto pos = self.pos();
+//
+//                self = tmp;
+//                self.toData(pos);
+//
+//                return SplitStatus::UNKNOWN;
+//            }
+//        }
+//        else {
+//            tmp.add_substream_size(tmp.stream(), tmp.idx(), 1);
+//        }
+//
+//        return main_split_status;
+//    }
 
 
 

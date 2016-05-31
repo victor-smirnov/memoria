@@ -53,7 +53,7 @@ public:
     {
         auto& self = this->self();
 
-        Int stream = self.stream();
+        Int stream = self.data_stream();
 
         if (stream == 0)
         {
@@ -70,7 +70,7 @@ public:
     {
         auto& self = this->self();
 
-        Int stream = self.stream();
+        Int stream = self.data_stream();
 
         if (stream == 1)
         {
@@ -87,7 +87,7 @@ public:
     CtrSizeT count_values() const
     {
         auto& self = this->self();
-        Int stream = self.stream();
+        Int stream = self.data_stream();
 
         if (stream == 0)
         {
@@ -117,7 +117,7 @@ public:
         auto& self = this->self();
         if (!self.is_end())
         {
-            Int stream = self.stream();
+            Int stream = self.data_stream();
             if (stream == 1)
             {
                 auto ii = self.clone();
@@ -139,7 +139,7 @@ public:
 
         if (!self.isEnd())
         {
-            if (self.stream() != 0)
+            if (self.data_stream() != 0)
             {
                 throw Exception(MA_SRC, "Key insertion into the middle of data block is not allowed");
             }
@@ -173,7 +173,7 @@ public:
 
         void init(ValueConsumer* consumer)
         {
-                io_buffer_.rewind();
+            io_buffer_.rewind();
 
             run_pos_    = 0;
             run_        = memoria::v1::rleseq::RLESymbolsRun();

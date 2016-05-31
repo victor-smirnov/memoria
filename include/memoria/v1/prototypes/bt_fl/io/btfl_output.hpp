@@ -322,17 +322,26 @@ public:
 
     void init(Iterator& iter, Int expected_stream, CtrSizeT limit = std::numeric_limits<CtrSizeT>::max())
     {
-        limit_  = false;
-        iter_   = &iter;
-        leaf_   = iter.leaf();
+    	limit_  = false;
+    	iter_   = &iter;
+    	leaf_   = iter.leaf();
 
-        scan_strategy_.init(expected_stream >= 0 ? expected_stream : stream_, limit);
+    	idx_     = iter.idx();
+    	symbols_ = leaf_structure()->iterator(idx_);
 
-        prepare_new_page(iter.idx());
+    	stream_     = symbols_.symbol();
+    	run_pos_    = symbols_.local_idx();
 
-        auto data_positions = rank(iter.idx());
+    	scan_strategy_.init(expected_stream >= 0 ? expected_stream : stream_, limit);
 
-        configure_data(data_positions);
+    	run_length_ = run_pos_ + scan_strategy_.accept(stream_, symbols_.length() - run_pos_);
+    	limit_      = run_length_ <= run_pos_;
+
+    	partial_run_ = run_length_ < symbols_.length();
+
+    	auto data_positions = rank(iter.idx());
+
+    	configure_data(data_positions);
     }
 
     Int idx() const {
@@ -351,6 +360,9 @@ public:
         return leaf_;
     }
 
+
+
+
     void prepare_new_page(Int start_idx = 0)
     {
         idx_     = start_idx;
@@ -360,7 +372,7 @@ public:
         run_pos_    = symbols_.local_idx();
 
         run_length_ = run_pos_ + scan_strategy_.accept(stream_, symbols_.length() - run_pos_);
-        limit_          = run_length_ <= run_pos_;
+        limit_      = run_length_ <= run_pos_;
 
         partial_run_ = run_length_ < symbols_.length();
     }

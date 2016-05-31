@@ -46,8 +46,9 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorRemoveName)
 
     using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
 
-    static const Int Streams          = Container::Types::Streams;
-    static const Int DataStreams      = Container::Types::DataStreams;
+    static const Int Streams          		= Container::Types::Streams;
+    static const Int DataStreams      		= Container::Types::DataStreams;
+    static const Int StructureStreamIdx   = Container::Types::StructureStreamIdx;
 
 public:
     Position removeGE(CtrSizeT n)
@@ -55,14 +56,28 @@ public:
         auto& self = this->self();
         CtrSizesT sizes;
 
-        auto ii = self.clone();
+        if (!self.isEnd())
+        {
+        	auto ii = self.clone();
 
-        ii->selectGEFw(n);
+        	ii->selectGEFw(n, self.data_stream());
+
+        	auto start = self.leafrank();
+        	auto end 	 = ii->leafrank();
+
+        	self.ctr().removeEntries(self.leaf(), start, ii->leaf(), end, sizes, true);
+
+        	self.idx() = end[StructureStreamIdx];
+
+        	self.leaf() = ii->leaf();
+
+        	self.refresh();
+        }
 
         return sizes;
     }
 
-
+protected:
 
 
 MEMORIA_V1_ITERATOR_PART_END

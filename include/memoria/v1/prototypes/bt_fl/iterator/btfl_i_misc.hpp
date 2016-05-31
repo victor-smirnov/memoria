@@ -88,6 +88,8 @@ protected:
     void init()
     {
         Base::init();
+
+        self().stream() = StructureStreamIdx;
     }
 
 MEMORIA_V1_ITERATOR_PART_END

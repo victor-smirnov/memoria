@@ -110,7 +110,7 @@ public:
     {
         auto& self = this->self();
 
-        out<<"Stream:  "<<self.stream_s()<<std::endl;
+        out<<"Stream:  "<<self.data_stream_s()<<std::endl;
         out<<"Idx:  "<<self.idx()<<std::endl;
     }
 
@@ -148,7 +148,7 @@ public:
         }
     }
 
-    Int stream() const
+    Int data_stream() const
     {
         auto& self  = this->self();
         auto s      = self.leaf_structure();
@@ -163,7 +163,7 @@ public:
         }
     }
 
-    Int stream_s() const
+    Int data_stream_s() const
     {
         auto& self  = this->self();
         auto s      = self.leaf_structure();
@@ -244,6 +244,10 @@ protected:
     {
         auto& self = this->self();
         return self.leaf_structure()->rank(structure_idx, stream);
+    }
+
+    CtrSizesT leafrank() const {
+    	return self().leafrank(self().idx());
     }
 
 

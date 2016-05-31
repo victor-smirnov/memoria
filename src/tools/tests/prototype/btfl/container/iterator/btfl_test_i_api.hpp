@@ -103,11 +103,11 @@ public:
     }
 
     template <Int Level>
-    BTFLSampleData<Level> readEntries(CtrSizeT number)
+    BTFLSampleData<Level> readEntries(CtrSizeT number = std::numeric_limits<CtrSizeT>::max())
     {
         auto& self = this->self();
 
-        Int stream = self.stream_s();
+        Int stream = self.data_stream_s();
 
         if (stream == Level || stream == -1)
         {
@@ -134,7 +134,7 @@ public:
     {
         auto& self = this->self();
 
-        Int stream = self.stream_s();
+        Int stream = self.data_stream_s();
 
         if (stream == Level || stream == -1)
         {

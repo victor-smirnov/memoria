@@ -650,6 +650,10 @@ public:
         insert(pos, symbol, 1);
     }
 
+    void removeSpace(Int start, Int end) {
+    	remove(start, end);
+    }
+
     void remove(Int start, Int end, bool compactify = false)
     {
         auto meta = this->metadata();
@@ -900,8 +904,8 @@ public:
 
         Codec codec;
 
-        codec.move(other->symbols(), 0, data_to_move, other_meta->data_size());
-        codec.copy(symbols(), 0, other->symbols(), 0, data_to_move);
+        //codec.move(other->symbols(), 0, data_to_move, other_meta->data_size());
+        codec.copy(symbols(), 0, other->symbols(), other_meta->data_size(), data_to_move);
 
         other_meta->data_size() += data_to_move;
         other_meta->size()      += meta->size();
