@@ -36,7 +36,7 @@
 
 //#include "map/map_test_suite.hpp"
 //#include "vector/vector_test_suite.hpp"
-//#include "multimap/multimap_test_suite.hpp"
+#include "multimap/multimap_test_suite.hpp"
 
 //#include "sequence/sequence_test_suite.hpp"
 //#include "labeled_tree/ltree_test_suite.hpp"
@@ -107,7 +107,7 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new WTTestSuite());
 
         //runner.registerTask(new VTreeTestSuite());
-//        runner.registerTask(new MultiMapTestSuite());
+        runner.registerTask(new MultiMapTestSuite());
 
         runner.Configure(&cmd_line.getConfigurator());
 

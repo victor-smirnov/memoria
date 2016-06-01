@@ -54,7 +54,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl_test::IterApiName)
     using BTFLDataIOBufferProducerPool = ObjectPool<
             btfl::BTFLDataIOBufferProducer<
                     BTFLDataT,
-                    4,
+										DataStreams,
                     DataStreams - btfl::BTFLDataStreamsCounter<BTFLDataT>::Value
             >
         >;
@@ -161,7 +161,7 @@ public:
     {
         auto& self = this->self();
 
-        Int stream = self.stream();
+        Int stream = self.data_stream();
 
         MEMORIA_V1_ASSERT(stream, ==, Stream);
 
@@ -173,7 +173,7 @@ public:
     CtrSizeT countChildren() const
     {
         auto& self = this->self();
-        Int stream = self.stream();
+        Int stream = self.data_stream();
 
         if (stream < DataStreams - 1)
         {
@@ -182,19 +182,6 @@ public:
 
             auto r0 = self.rank(stream + 1);
             auto r1 = ii->rank(stream + 1);
-
-//            if (r1 < r0) {
-//            	DebugCounter = 1;
-//
-//            	self.dump();
-//
-//            	auto iii = self.clone();
-//            	iii->selectGEFw(1, stream);
-//
-//
-//
-//            	iii->dump();
-//            }
 
             return r1 - r0;
         }
@@ -206,7 +193,7 @@ public:
     void toChild(CtrSizeT n)
     {
     	auto& self = this->self();
-    	Int stream = self.stream();
+    	Int stream = self.data_stream();
 
     	if (stream < DataStreams - 1)
     	{

@@ -90,22 +90,22 @@ public:
 
     virtual void smokeCoverage(Int size) {
         coverage_   = size;
-        iterations_ = 1;
+        iterations  = 1;
     }
 
     virtual void smallCoverage(Int size) {
-        coverage_ = size * 10;
-        iterations_ = 10;
+        coverage_   = size * 10;
+        iterations  = 10;
     }
 
     virtual void normalCoverage(Int size) {
         coverage_   = size * 100;
-        iterations_ = 100;
+        iterations  = 100;
     }
 
     virtual void largeCoverage(Int size) {
         coverage_   = size * 1000;
-        iterations_ = 1000;
+        iterations  = 1000;
     }
 
     DataSizesT sampleTreeShape() {

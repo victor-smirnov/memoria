@@ -46,8 +46,6 @@ class MultiMapCreateTest: public MultiMapTestBase<MapName> {
     template <typename T>
     using TypeTag = typename Base::template TypeTag<T>;
 
-    using Base::sizes_;
-
     using Base::commit;
     using Base::drop;
     using Base::branch;
@@ -60,6 +58,7 @@ class MultiMapCreateTest: public MultiMapTestBase<MapName> {
     using Base::checkRunPositions;
     using Base::out;
 
+    using Base::sampleTreeShape;
     using Base::createRandomShapedMapData;
     using Base::make_key;
     using Base::make_value;
@@ -78,10 +77,11 @@ public:
         auto snp = branch();
         auto map = create<MapName>(snp);
 
+        auto shape = sampleTreeShape();
 
         auto map_data = createRandomShapedMapData(
-                sizes_[0],
-                sizes_[1],
+                shape[0],
+                shape[1],
                 [this](auto k) {return this->make_key(k, TypeTag<Key>());},
                 [this](auto k, auto v) {return this->make_value(this->getRandom(), TypeTag<Value>());}
         );

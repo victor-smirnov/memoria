@@ -85,7 +85,7 @@ struct BTFLTestTypesBase: public BTTypes<Profile, BTFreeLayout> {
     using StreamDescriptors = MergeLists<
         typename MakeList<StreamVariableTF, DataStreams - 1>::Type,
         DataStreamTF,
-                StructureStreamTF
+        StructureStreamTF
     >;
 
     using CommonContainerPartsList = MergeLists<

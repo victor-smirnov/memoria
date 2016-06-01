@@ -1,5 +1,5 @@
 
-// Copyright 2015 Victor Smirnov
+// Copyright 2016 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -94,7 +94,7 @@ public:
             auto ii = self.clone();
             if (ii->next())
             {
-                Int next_stream = ii->stream_s();
+                Int next_stream = ii->data_stream_s();
                 if (next_stream == 1)
                 {
                     return ii->countFw();
