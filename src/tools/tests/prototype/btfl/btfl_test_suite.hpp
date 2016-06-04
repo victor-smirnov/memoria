@@ -35,15 +35,15 @@ public:
 
     BTFLTestSuite(): TestSuite("BT.FL")
     {
-        registerTask(new BTFLCreateTest<BTFLTestCtr<2>>("Create.2"));
-        registerTask(new BTFLSeekTest<BTFLTestCtr<2>>("Seek.2"));
-        registerTask(new BTFLIteratorTest<BTFLTestCtr<2>>("Iterator.2"));
-        registerTask(new BTFLRemoveTest<BTFLTestCtr<2>>("Remove.2"));
+      registerTask(new BTFLCreateTest<BTFLTestCtr<2>>("Create.2"));
+      registerTask(new BTFLSeekTest<BTFLTestCtr<2>>("Seek.2"));
+      registerTask(new BTFLIteratorTest<BTFLTestCtr<2>>("Iterator.2"));
+      registerTask(new BTFLRemoveTest<BTFLTestCtr<2>>("Remove.2"));
 
-        registerTask(new BTFLCreateTest<BTFLTestCtr<4>>("Create.4"));
-        registerTask(new BTFLSeekTest<BTFLTestCtr<4>>("Seek.4"));
-    	  registerTask(new BTFLIteratorTest<BTFLTestCtr<4>>("Iterator.4"));
-    	  registerTask(new BTFLRemoveTest<BTFLTestCtr<4>>("Remove.4"));
+      registerTask(new BTFLCreateTest<BTFLTestCtr<4>>("Create.4"));
+      registerTask(new BTFLSeekTest<BTFLTestCtr<4>>("Seek.4"));
+      registerTask(new BTFLIteratorTest<BTFLTestCtr<4>>("Iterator.4"));
+      registerTask(new BTFLRemoveTest<BTFLTestCtr<4>>("Remove.4"));
     }
 };
 

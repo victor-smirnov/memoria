@@ -260,9 +260,9 @@ public:
 
     void finish(Iterator& iter, Int idx, WalkCmd cmd) const
     {
-        iter.finish_walking(idx, self(), cmd);
-
         iter.idx() = idx;
+
+        iter.finish_walking(idx, self(), cmd);
 
         iter.cache().prefixes()      = branch_prefix_;
         iter.cache().leaf_prefixes() = leaf_prefix_;

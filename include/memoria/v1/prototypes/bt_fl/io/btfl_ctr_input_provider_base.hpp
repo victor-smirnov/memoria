@@ -203,6 +203,15 @@ protected:
 
 public:
 
+    void init()
+    {
+    	start_.clear();
+    	size_.clear();
+
+    	finished_ 		 = false;
+    	total_symbols_ = 0;
+    }
+
 
     CtrT& ctr() {return ctr_;}
     const CtrT& ctr() const {return ctr_;}

@@ -35,21 +35,17 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorInsertName)
     using typename Base::Container;
 
 
-    using CtrSizeT  = typename Container::Types::CtrSizeT;
-    using Key       = typename Container::Types::Key;
-    using Value     = typename Container::Types::Value;
-    using IteratorBranchNodeEntry       = typename Container::Types::IteratorBranchNodeEntry;
-
-    using LeafDispatcher = typename Container::Types::Pages::LeafDispatcher;
-
-    template <Int Stream>
-    using InputTupleAdapter = typename Container::Types::template InputTupleAdapter<Stream>;
-
-    template <typename LeafPath>
-    using AccumItemH = typename Container::Types::template AccumItemH<LeafPath>;
-
     static const Int Streams          = Container::Types::Streams;
     static const Int DataStreams      = Container::Types::DataStreams;
+
+
+    using CtrSizeT  = typename Container::Types::CtrSizeT;
+
+
+
+
+
+
 
 public:
     template <typename IOBuffer>

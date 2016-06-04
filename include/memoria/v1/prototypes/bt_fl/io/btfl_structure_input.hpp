@@ -63,7 +63,7 @@ public:
 
     void init(Int capacity)
     {
-        init(create_input_buffer(1024));
+        init(create_input_buffer(256));
     }
 
 

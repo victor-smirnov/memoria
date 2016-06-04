@@ -87,6 +87,8 @@ public:
 
     void init(BufferProducer<IOBuffer>* iobuffer_producer)
     {
+        Base::init();
+
         stream_run_remainder_  = 0;
         last_stream_           = -1;
 

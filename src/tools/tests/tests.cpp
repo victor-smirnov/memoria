@@ -17,7 +17,7 @@
 
 
 //#include "packed/sequence/fse/pseq_test_suite.hpp"
-#include "packed/sequence/rle/rleseq_test_suite.hpp"
+//#include "packed/sequence/rle/rleseq_test_suite.hpp"
 
 //#include "packed/codecs/packed_codecs_test_suite.hpp"
 //#include "packed/allocator/palloc_test_suite.hpp"
@@ -107,7 +107,7 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new WTTestSuite());
 
         //runner.registerTask(new VTreeTestSuite());
-        runner.registerTask(new MultiMapTestSuite());
+//        runner.registerTask(new MultiMapTestSuite());
 
         runner.Configure(&cmd_line.getConfigurator());
 

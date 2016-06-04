@@ -289,7 +289,8 @@ class BTFLWalker {
         template <typename StreamData>
         Ending write_entry(StreamData& stream_data, IOBufferT& io_buffer)
         {
-            WriteEntryFn fn;
+            io_buffer.mark();
+        	WriteEntryFn fn;
             ForAllTuple<std::tuple_size<std::remove_reference_t<StreamData>>::value>::process(stream_data, fn, io_buffer);
             return fn.ending_;
         }
@@ -395,11 +396,13 @@ public:
 
             auto length = run_length_ - run_pos_;
 
+            size_t pos = buffer.mark();
             if (buffer.template putSymbolsRun<DataStreams>(stream_, length))
             {
                 entries++;
             }
             else {
+            	buffer.reset();
                 return PopulateStatus(entries, Ending::END_OF_IOBUFFER);
             }
 
@@ -409,11 +412,13 @@ public:
 
             if (entries_written < length)
             {
-                if (entries_written > 0) {
+                if (entries_written > 0)
+                {
                     buffer.template updateSymbolsRun<DataStreams>(descr_pos, stream_, entries_written);
                 }
                 else {
                     entries--;
+                    buffer.pos(pos);
                     return PopulateStatus(entries, Ending::END_OF_IOBUFFER);
                 }
             }
@@ -426,17 +431,17 @@ public:
 
             if (run_pos_ == run_length_)
             {
+            	MEMORIA_V1_ASSERT_FALSE(write_result.ending() == Ending::END_OF_IOBUFFER);
+
                 if (!partial_run_)
                 {
-                    MEMORIA_V1_ASSERT_FALSE(write_result.ending() == Ending::END_OF_IOBUFFER);
-
                     symbols_.next_run();
 
                     if (symbols_.has_data())
                     {
                         run_pos_        = 0;
                         stream_         = symbols_.symbol();
-                        run_length_ = scan_strategy_.accept(stream_, symbols_.length());
+                        run_length_ 	= scan_strategy_.accept(stream_, symbols_.length());
                         limit_          = run_length_ <= run_pos_;
 
                         partial_run_ = run_length_ < symbols_.length();
@@ -448,6 +453,7 @@ public:
             }
             else if (write_result.ending() == Ending::END_OF_IOBUFFER)
             {
+            	buffer.reset();
                 return PopulateStatus(entries, Ending::END_OF_IOBUFFER);
             }
         }

@@ -172,9 +172,9 @@ protected:
                 {
                     if (entries > 0)
                     {
-                        buffer.rewind();
+                        buffer.flip();
                         consumer->process(buffer, entries);
-                        buffer.rewind();
+                        buffer.moveRemainingToStart();
                     }
 
                     entries = 0;
@@ -186,9 +186,9 @@ protected:
             {
                 if (entries > 0)
                 {
-                    buffer.rewind();
+                    buffer.flip();
                     consumer->process(buffer, entries);
-                    buffer.rewind();
+                    buffer.moveRemainingToStart();
                     entries = 0;
                 }
                 else {
@@ -199,9 +199,9 @@ protected:
             {
                 if (entries > 0)
                 {
-                    buffer.rewind();
+                    buffer.flip();
                     consumer->process(buffer, entries);
-                    buffer.rewind();
+                    buffer.moveRemainingToStart();
                 }
                 else {
                     // put backward skip code here...

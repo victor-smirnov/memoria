@@ -115,7 +115,7 @@ public:
 
             BTFLDataT data;
 
-            auto reader = self.ctr().pools().get_instance(PoolT<BTFLDataReaderPool<BTFLDataT>>()).get_unique(65536);
+            auto reader = self.ctr().pools().get_instance(PoolT<BTFLDataReaderPool<BTFLDataT>>()).get_unique();
 
             reader->init(data);
 

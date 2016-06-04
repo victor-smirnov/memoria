@@ -47,6 +47,8 @@ protected:
     using Key   = typename Types::Key;
     using Value = typename Types::Value;
 
+    using IOBuffer = DefaultIOBuffer;
+
 public:
     IteratorPtr begin() {
         return self().template seek_stream<0>(0);
@@ -82,6 +84,25 @@ public:
         if (!iter->is_found(key))
         {
             iter->insert_key(key);
+        }
+
+        return iter;
+    }
+
+    template <typename Iterator>
+    IteratorPtr find_or_create(const Key& key, const Iterator& start, const Iterator& end)
+    {
+        auto& self = this->self();
+
+        auto iter = self.find(key);
+
+        if (!iter->is_found(key))
+        {
+            auto iobuffer = self.pools().get_instance(PoolT<ObjectPool<IOBuffer>>()).get_unique(65536);
+
+            mmap::MultimapEntryBufferProducer<IOBuffer, Key, Iterator> producer(*iobuffer.get(), key, start, end);
+
+            iter->bulkio_insert(producer);
         }
 
         return iter;

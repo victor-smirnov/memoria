@@ -38,9 +38,15 @@ template <ByteOrder Endian, MemoryAccess AccessType> class IOBuffer;
 
 class IOBufferBase {
 protected:
-    UByte* array_ = nullptr;
-    size_t length_ = 0;
-    size_t pos_ = 0;
+	static constexpr size_t MARK_MAX = std::numeric_limits<size_t>::max();
+
+
+    UByte* array_ 	= nullptr;
+    size_t length_	= 0;
+    size_t limit_ 	= 0;
+    size_t pos_ 	= 0;
+    size_t mark_ 	= MARK_MAX;
+
     bool owner_;
 
     ValueCodec<UBigInt> uvlen_codec_;
@@ -51,21 +57,21 @@ protected:
 public:
 
     IOBufferBase():
-        array_(nullptr), length_(0), owner_(false)
-{}
+        array_(nullptr), owner_(false)
+	{}
 
     IOBufferBase(size_t length):
-        array_(allocate(length)), length_(length), owner_(true)
+        array_(allocate(length)), length_(length), limit_(length), owner_(true)
     {}
 
     IOBufferBase(UByte* data, size_t length):
-        array_(data), length_(length), owner_(false)
+        array_(data), length_(length), limit_(length), owner_(false)
     {}
 
     IOBufferBase(const IOBufferBase&) = delete;
 
     IOBufferBase(IOBufferBase&& other):
-        array_(other.array_), length_(other.length_), pos_(other.pos_), owner_(true)
+        array_(other.array_), length_(other.length_), limit_(other.limit_), pos_(other.pos_), mark_(other.mark_), owner_(true)
     {
         other.array_ = nullptr;
         other.owner_ = false;
@@ -91,28 +97,112 @@ public:
         return array_ + pos_;
     }
 
-    void rewind() {
+    void rewind()
+    {
         pos_ = 0;
+
+        mark_  = MARK_MAX;
+        limit_ = length_;
+    }
+
+    void clear() {
+        rewind();
     }
 
     size_t pos() const {
         return pos_;
     }
 
-    void pos(size_t v) {
-        pos_ = v;
+    void pos(size_t v)
+    {
+        if (v <= limit_)
+        {
+        	pos_ = v;
+        }
+        else {
+        	throw Exception(MA_SRC, SBuf() << "Supplied value of position exceeds limit: " << v << " " << limit_);
+        }
     }
 
-    void skip(size_t len) {
-        pos_ += len;
+    void skip(size_t len)
+    {
+    	if (pos_ + len <= limit_)
+    	{
+    		pos_ += len;
+    	}
+    	else {
+    		throw Exception(MA_SRC, SBuf() << "Supplied value of len exceeds limit: " << len << " " << pos_ << " " << limit_);
+    	}
     }
 
     size_t capacity() const {
-        return length_ - pos_;
+        return limit_ - pos_;
     }
 
     bool has_capacity(size_t size) const {
         return capacity() >= size;
+    }
+
+    size_t limit() const {
+    	return limit_;
+    }
+
+    void limit(size_t value)
+    {
+    	if (value <= length_)
+    	{
+    		limit_ = value;
+    	}
+
+    	throw Exception(MA_SRC, SBuf() << "Supplied value of limit exceeds capacity: " << value << " " << length_);
+    }
+
+    void done() {
+    	pos_ = limit_;
+    }
+
+    void flip()
+    {
+    	limit_ = pos_;
+    	pos_   = 0;
+
+    	mark_  = MARK_MAX;
+    }
+
+    size_t  mark() {
+    	return mark_ = pos_;
+    }
+
+    void reset()
+    {
+    	if (mark_ != MARK_MAX)
+    	{
+    		pos_ = mark_;
+    	}
+    	else {
+    		throw Exception(MA_SRC, "IObuffer is not marked");
+    	}
+    }
+
+
+    void move(size_t from, size_t to, size_t length)
+    {
+    	MEMORIA_V1_ASSERT(from, <=, limit_);
+    	MEMORIA_V1_ASSERT(to, <=, limit_);
+
+    	MEMORIA_V1_ASSERT(from + length, <=, limit_);
+    	MEMORIA_V1_ASSERT(to + length, <=, limit_);
+
+    	CopyBuffer(array_ + from, array_ + to, length);
+    }
+
+    void moveRemainingToStart()
+    {
+    	CopyBuffer(array_ + pos_, array_, limit_ - pos_);
+
+    	pos_ 	= limit_ - pos_;
+    	limit_	= length_;
+    	mark_ 	= MARK_MAX;
     }
 
     bool put(Byte v)
@@ -328,7 +418,6 @@ public:
         if (length <= getMaxSymbolsRunLength<Symbols>())
         {
             UBigInt value = memoria::v1::rleseq::EncodeRun<Symbols, MaxRLERunLength>(symbol, length);
-//            cout << "Put symbols Run " << symbol << " length " << length << " at " << pos_ << endl;
             return putUVLen(value);
         }
         else {
@@ -340,8 +429,6 @@ public:
     template <Int Symbols>
     void updateSymbolsRun(size_t pos, Int symbol, UBigInt length)
     {
-//        cout << "Update run length at " << pos << " for " << symbol << " length " << length << endl;
-
         if (length <= getMaxSymbolsRunLength<Symbols>())
         {
             auto current_length     = uvlen_codec_.length(array_, pos);
@@ -369,12 +456,7 @@ public:
     template <Int Symbols>
     memoria::v1::rleseq::RLESymbolsRun getSymbolsRun()
     {
-//        auto tmp = pos_;
         UBigInt value = getUVLen();
-
-//        auto run = memoria::v1::rleseq::DecodeRun<Symbols>(value);
-//        cout << "Get symbols run from: " << tmp << " symbol: " << run.symbol() << " length " << run.length() << endl;
-
         return memoria::v1::rleseq::DecodeRun<Symbols>(value);
     }
 
@@ -406,12 +488,12 @@ public:
 
     void assertRange(size_t window, const char* op_type)
     {
-        if (pos_ + window <= length_)
+        if (pos_ + window <= limit_)
         {
             return;
         }
         else {
-            throw Exception(MA_SRC, SBuf() << "IOBuffer::" << op_type << " is out of bounds: " << pos_ << " " << window << " " << length_);
+            throw Exception(MA_SRC, SBuf() << "IOBuffer::" << op_type << " is out of bounds: " << pos_ << " " << window << " " << limit_);
         }
     }
 
@@ -419,14 +501,26 @@ protected:
 
     void insert_space(size_t pos, size_t length)
     {
-        MEMORIA_V1_ASSERT(pos, <=, pos);
+        MEMORIA_V1_ASSERT(pos, <=, limit_);
 
-        auto available = length_ - pos_;
+
+        auto available = limit_ - pos_;
 
         if (length < available)
         {
             CopyBuffer(array_ + pos, array_ + pos + length, pos_ - pos);
-            pos_ += length;
+
+            limit_ += length;
+
+            if (pos_ > pos)
+            {
+            	pos_ += length;
+            }
+
+            if (mark_ < MARK_MAX && mark_ > pos)
+            {
+            	mark_ += length;
+            }
         }
         else {
             throw Exception(MA_SRC, SBuf() << "IOBuffer has no enough free space: " << length << " " << available);
@@ -435,11 +529,22 @@ protected:
 
     void remove_space(size_t pos, size_t length)
     {
-        MEMORIA_V1_ASSERT(pos, <=, pos);
-        MEMORIA_V1_ASSERT(pos + length, <=, pos_);
+        MEMORIA_V1_ASSERT(pos, <=, limit_);
+        MEMORIA_V1_ASSERT(pos + length, <=, limit_);
 
         CopyBuffer(array_ + pos + length, array_ + pos, pos_ - (pos + length));
-        pos_ -= length;
+
+        limit_ -= length;
+
+        if (pos_ > pos)
+        {
+        	pos_ -= length;
+        }
+
+        if (mark_ < MARK_MAX && mark_ > pos)
+        {
+        	mark_ -= length;
+        }
     }
 
     void release()

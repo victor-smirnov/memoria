@@ -63,7 +63,7 @@ public:
         	ii->selectGEFw(n, self.data_stream());
 
         	auto start = self.leafrank();
-        	auto end 	 = ii->leafrank();
+        	auto end   = ii->leafrank();
 
         	self.ctr().removeEntries(self.leaf(), start, ii->leaf(), end, sizes, true);
 

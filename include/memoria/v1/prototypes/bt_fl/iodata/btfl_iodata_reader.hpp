@@ -143,13 +143,15 @@ public:
 
     virtual Int process(IOBufferT& buffer, Int entries)
     {
-        for (Int e = 0; e < entries;)
+    	Int e;
+    	for (e = 0; e < entries;)
         {
             auto run = buffer.template getSymbolsRun<DataStreams>();
             reader_helper_.process(run.symbol(), buffer, run.length());
 
             e += run.length() + 1;
         }
+
         return entries;
     }
 };

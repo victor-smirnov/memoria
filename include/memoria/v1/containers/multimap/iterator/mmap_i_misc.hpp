@@ -48,7 +48,13 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::mmap::ItrMiscName)
 
     using IOBuffer  = DefaultIOBuffer;
 
+
+
 public:
+
+
+
+
     Key key() const
     {
         auto& self = this->self();
@@ -62,6 +68,7 @@ public:
             return std::get<0>(self.template read_leaf_entry<0, IntList<1>>(key_idx, 0));
         }
         else {
+        	  self.dump();
             throw Exception(MA_SRC, SBuf() << "Invalid stream: " << stream);
         }
     }
@@ -231,7 +238,7 @@ public:
 
     CtrSizesT remove(CtrSizeT length = 1)
     {
-        return self().remove_subtrees(length);
+        return self().removeGE(length);
     }
 
     CtrSizeT values_size() const {
@@ -248,6 +255,25 @@ public:
         else {
             return false;
         }
+    }
+
+    void seek_value(CtrSizeT n)
+    {
+    	auto& self = this->self();
+    	Int stream = self.data_stream();
+
+    	if (stream < DataStreams - 1)
+    	{
+    		self.selectFw(1, stream + 1);
+    	}
+    	else {
+    		throw Exception(MA_SRC, SBuf() << "Invalid stream: " << stream);
+    	}
+    }
+
+    void to_prev_key()
+    {
+    	self().selectBw(1, 0);
     }
 
 

@@ -897,10 +897,6 @@ public:
 
     Int rank(Int end, Int symbol) const
     {
-        if (end > size()) {
-            dump();
-        }
-
         MEMORIA_V1_ASSERT(end, <=, size());
         MEMORIA_V1_ASSERT_TRUE(end >= 0);
 

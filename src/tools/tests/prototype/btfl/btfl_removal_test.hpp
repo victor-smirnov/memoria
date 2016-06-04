@@ -147,6 +147,8 @@ public:
         {
             size_t pos = getRandom(data.size());
 
+            out() << "Remove element " << pos << ", size = " << data.size() << " of " << size << endl;
+
             auto ii = ctr->seekL0(pos);
 
             ii->removeGE(1);

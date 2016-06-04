@@ -116,12 +116,113 @@ struct MMapBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
 
 
-//template <typename K, typename V>
-//using MapData = std::vector<std::pair<K, std::vector<V>>>;
 
 
+template <typename IOBuffer, typename Key, typename Iterator>
+class MultimapEntryBufferProducer: public bt::BufferProducer<IOBuffer> {
+
+	IOBuffer& io_buffer_;
+	Key key_;
+	Iterator start_;
+	Iterator end_;
+
+	bool key_finished_ = false;
+
+	using Value = typename Iterator::value_type;
+
+	static constexpr Int DataStreams = 2;
+
+	static constexpr Int KeyStream 		= 0;
+	static constexpr Int ValueStream 	= 1;
+
+	static constexpr size_t ValueBlockSize = 256;
+
+public:
+	MultimapEntryBufferProducer(IOBuffer& io_buffer, const Key& key, const Iterator& start, const Iterator& end):
+		io_buffer_(io_buffer), key_(key), start_(start), end_(end)
+	{}
+
+	virtual IOBuffer& buffer() {
+		return io_buffer_;
+  }
+
+	virtual Int populate(IOBuffer& buffer)
+	{
+		Int entries = 0;
+
+		if (!key_finished_)
+		{
+			if (!io_buffer_.template putSymbolsRun<DataStreams>(KeyStream, 1))
+			{
+				throw Exception(MA_SRC, "Supplied IOBuffer is probably too small");
+			}
+
+			if (!IOBufferAdapter<Key>::put(io_buffer_, key_))
+			{
+				throw Exception(MA_SRC, "Supplied IOBuffer is probably too small");
+			}
+
+			key_finished_ = true;
+			entries += 2;
+		}
+
+		while (start_ != end_)
+		{
+			size_t pos = io_buffer_.pos();
+			if (!io_buffer_.template putSymbolsRun<DataStreams>(ValueStream, ValueBlockSize))
+			{
+				return entries;
+			}
+
+			entries++;
+
+			size_t c;
+			for (c = 0; c < ValueBlockSize && start_ != end_; c++, entries++, start_++)
+			{
+				if (!IOBufferAdapter<Value>::put(io_buffer_, *start_))
+				{
+					if (c > 0) {
+						io_buffer_.template updateSymbolsRun<DataStreams>(pos, ValueStream, c);
+					}
+					else {
+						entries--;
+					}
+
+					return entries;
+				}
+			}
+
+			if (c < ValueBlockSize)
+			{
+				io_buffer_.template updateSymbolsRun<DataStreams>(pos, ValueStream, c);
+			}
+		}
+
+		return -entries;
+	}
+};
 
 
+class Ticker {
+	size_t threshold_value_;
+	size_t threshold_;
+	size_t ticks_ = 0;
+public:
+	Ticker(size_t threshold): threshold_value_(threshold), threshold_(threshold) {}
+
+	bool is_threshold() const {return threshold_ == ticks_;}
+
+	void next() {
+		threshold_ += threshold_value_;
+	}
+
+	size_t ticks() const {return ticks_;}
+	size_t size()  const {return threshold_value_;}
+
+	void tick() {
+		ticks_++;
+	}
+};
 
 
 

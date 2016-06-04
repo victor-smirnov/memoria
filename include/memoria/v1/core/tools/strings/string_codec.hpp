@@ -16,7 +16,7 @@
 #pragma once
 
 #include <memoria/v1/core/types/types.hpp>
-#include <memoria/v1/core/tools/bignum/int64_codec.hpp>
+#include <memoria/v1/core/tools/bignum/uint64_codec.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -33,7 +33,7 @@ public:
 
     using ValuePtr      = ValuePtrT1<BufferType>;
 
-    ValueCodec<int64_t> size_codec_;
+    ValueCodec<uint64_t> size_codec_;
 
     static const Int BitsPerOffset  = 16;
     static const Int ElementSize    = 8; // In bits;
@@ -45,7 +45,7 @@ public:
 
     size_t length(const T* buffer, size_t idx, size_t limit) const
     {
-        int64_t len;
+        uint64_t len;
         size_t pos = idx;
 
         pos += size_codec_.decode(buffer, len, idx);
@@ -66,7 +66,7 @@ public:
 
     size_t decode(const T* buffer, V& value, size_t idx) const
     {
-        int64_t len0 = 0;
+        uint64_t len0 = 0;
         size_t pos = idx;
         pos += size_codec_.decode(buffer, len0, idx);
 

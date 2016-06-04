@@ -91,7 +91,8 @@ public:
         {
             constexpr Int stream = ListHead<typename Walker::LeafPath>::Value;
             auto& self = this->self();
-            self.idx() = self.symbol_idx(stream, idx);
+            int iidx = self.symbol_idx(stream, idx);
+            self.idx() = iidx;
         }
     }
 
