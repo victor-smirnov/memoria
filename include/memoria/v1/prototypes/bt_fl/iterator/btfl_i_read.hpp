@@ -51,6 +51,9 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorReadName)
     template <typename IOBuffer>
     using ScanWalkerPool = ObjectPool<btfl::io::BTFLWalker<MyType, IOBuffer, btfl::io::ScanRunGTStrategy>>;
 
+    template <typename IOBuffer>
+    using ScanRunWalkerPool = ObjectPool<btfl::io::BTFLScanRunWalker<MyType, IOBuffer>>;
+
 
 public:
 
@@ -60,8 +63,13 @@ public:
     }
 
     template <typename IOBuffer>
-    CtrSizeT bulkio_scan(BufferConsumer<IOBuffer>* consumer, Int expected_stream = -1, const CtrSizeT& limits = std::numeric_limits<CtrSizeT>::max()) {
+    CtrSizeT bulkio_scan_ge(BufferConsumer<IOBuffer>* consumer, Int expected_stream = -1, const CtrSizeT& limits = std::numeric_limits<CtrSizeT>::max()) {
         return bulkio_read_<ScanWalkerPool>(consumer, expected_stream, limits);
+    }
+
+    template <typename IOBuffer>
+    CtrSizeT bulkio_scan_run(BufferConsumer<IOBuffer>* consumer, Int expected_stream = -1, const CtrSizeT& limits = std::numeric_limits<CtrSizeT>::max()) {
+    	return bulkio_read_<ScanRunWalkerPool>(consumer, expected_stream, limits);
     }
 
     template <typename IOBuffer>
@@ -70,8 +78,13 @@ public:
     }
 
     template <typename IOBuffer>
-    auto create_scan_walker(CtrSizeT limit = std::numeric_limits<CtrSizeT>::max()) {
+    auto create_scan_ge_walker(CtrSizeT limit = std::numeric_limits<CtrSizeT>::max()) {
         return create_walker_<ScanWalkerPool, IOBuffer>(limit);
+    }
+
+    template <typename IOBuffer>
+    auto create_scan_run_walker(CtrSizeT limit = std::numeric_limits<CtrSizeT>::max()) {
+    	return create_walker_<ScanRunWalkerPool, IOBuffer>(limit);
     }
 
 

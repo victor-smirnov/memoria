@@ -168,22 +168,14 @@ public:
         IOBuffer io_buffer_;
         ValueConsumer* consumer_;
 
-        CtrSizeT run_pos_;
-
-        memoria::v1::rleseq::RLESymbolsRun run_;
-
     public:
         ReadValuesFn(Int capacity = 65536):
-            io_buffer_(capacity),
-            run_pos_(), run_()
+            io_buffer_(capacity)
         {}
 
         void init(ValueConsumer* consumer)
         {
             io_buffer_.rewind();
-
-            run_pos_    = 0;
-            run_        = memoria::v1::rleseq::RLESymbolsRun();
             consumer_ = consumer;
         }
 
@@ -195,19 +187,7 @@ public:
         {
             for (Int entry = 0; entry < entries; entry++)
             {
-                if (run_pos_ == run_.length())
-                {
-                    run_ = buffer.template getSymbolsRun<DataStreams>();
-                    run_pos_ = 0;
-                    entry++;
-
-                    if (entry == entries) {
-                        return entries;
-                    }
-                }
-
                 consumer_->emplace_back(IOBufferAdapter<Value>::get(buffer));
-                run_pos_++;
             }
 
             return entries;
@@ -226,7 +206,7 @@ public:
         auto read_fn = self.ctr().pools().get_instance(PoolT<ObjectPool<ReadFn>>()).get_unique();
         read_fn->init(&values);
 
-        self.bulkio_scan(read_fn.get(), 1, length);
+        self.bulkio_scan_run(read_fn.get(), 1, length);
 
         return values;
     }

@@ -174,6 +174,13 @@ public:
     }
 };
 
+
+
+
+
+
+
+
 /**
  * Scans through all runs
  */
@@ -204,12 +211,12 @@ public:
 
 
 template <typename IteratorT, typename IOBufferT, template <typename> class ScanStrategy = ScanThroughStrategy>
-class BTFLWalker {
+class BTFLWalkerBase {
+protected:
+    using CtrT      	= typename IteratorT::Container;
 
-    using CtrT      = typename IteratorT::Container;
-
-    using Types     = typename CtrT::Types;
-    using MyType    = BTFLWalker<IteratorT, IOBufferT, ScanStrategy>;
+    using Types     	= typename CtrT::Types;
+    using MyType    	= BTFLWalkerBase<IteratorT, IOBufferT, ScanStrategy>;
 
     using CtrSizeT      = typename Types::CtrSizeT;
     using CtrSizesT     = typename Types::CtrSizesT;
@@ -318,7 +325,7 @@ class BTFLWalker {
 
 public:
 
-    BTFLWalker(): iter_(), leaf_(), stream_()
+    BTFLWalkerBase(): iter_(), leaf_(), stream_()
     {}
 
     void init(Iterator& iter, Int expected_stream, CtrSizeT limit = std::numeric_limits<CtrSizeT>::max())
@@ -385,82 +392,6 @@ public:
         return fn.status_;
     }
 
-    template <typename IOBuffer>
-    PopulateStatus populate(IOBuffer& buffer)
-    {
-        Int entries = 0;
-
-        while(symbols_.has_data() && !limit_)
-        {
-            size_t descr_pos = buffer.pos();
-
-            auto length = run_length_ - run_pos_;
-
-            size_t pos = buffer.mark();
-            if (buffer.template putSymbolsRun<DataStreams>(stream_, length))
-            {
-                entries++;
-            }
-            else {
-            	buffer.reset();
-                return PopulateStatus(entries, Ending::END_OF_IOBUFFER);
-            }
-
-            auto write_result = write_stream(stream_, length, buffer);
-
-            auto entries_written = write_result.entries();
-
-            if (entries_written < length)
-            {
-                if (entries_written > 0)
-                {
-                    buffer.template updateSymbolsRun<DataStreams>(descr_pos, stream_, entries_written);
-                }
-                else {
-                    entries--;
-                    buffer.pos(pos);
-                    return PopulateStatus(entries, Ending::END_OF_IOBUFFER);
-                }
-            }
-
-            entries  += entries_written;
-            run_pos_ += entries_written;
-            idx_     += entries_written;
-
-            scan_strategy_.commit(stream_, entries_written);
-
-            if (run_pos_ == run_length_)
-            {
-            	MEMORIA_V1_ASSERT_FALSE(write_result.ending() == Ending::END_OF_IOBUFFER);
-
-                if (!partial_run_)
-                {
-                    symbols_.next_run();
-
-                    if (symbols_.has_data())
-                    {
-                        run_pos_        = 0;
-                        stream_         = symbols_.symbol();
-                        run_length_ 	= scan_strategy_.accept(stream_, symbols_.length());
-                        limit_          = run_length_ <= run_pos_;
-
-                        partial_run_ = run_length_ < symbols_.length();
-                    }
-                }
-                else {
-                    limit_ = true;
-                }
-            }
-            else if (write_result.ending() == Ending::END_OF_IOBUFFER)
-            {
-            	buffer.reset();
-                return PopulateStatus(entries, Ending::END_OF_IOBUFFER);
-            }
-        }
-
-        return PopulateStatus(entries, !limit_ ? Ending::END_OF_PAGE : Ending::LIMIT_REACHED);
-    }
-
 
     bool next_page()
     {
@@ -483,10 +414,10 @@ public:
 
 
     void clear() noexcept
-            {
+    {
         leaf_ = nullptr;
         iter_ = nullptr;
-            }
+    }
 
 private:
 
@@ -579,6 +510,256 @@ private:
 };
 
 
+
+
+template <typename IteratorT, typename IOBufferT, template <typename> class ScanStrategy = ScanThroughStrategy>
+class BTFLWalker: public BTFLWalkerBase<IteratorT, IOBufferT, ScanStrategy> {
+protected:
+	using Base 		= BTFLWalkerBase<IteratorT, IOBufferT, ScanStrategy>;
+	using MyType    = BTFLWalker<IteratorT, IOBufferT, ScanStrategy>;
+
+    using typename Base::CtrT;
+    using typename Base::Types;
+
+
+    using typename Base::CtrSizeT;
+    using typename Base::CtrSizesT;
+    using typename Base::DataSizesT;
+    using typename Base::NodeBaseG;
+
+    using typename Base::LeafDispatcher;
+    using typename Base::Iterator;
+
+    using Base::DataStreams;
+    using Base::StructureStreamIdx;
+
+    using typename Base::DataStreamsSizes;
+
+    using Base::symbols_;
+    using Base::limit_;
+    using Base::run_length_;
+    using Base::run_pos_;
+    using Base::stream_;
+    using Base::idx_;
+    using Base::scan_strategy_;
+    using Base::partial_run_;
+
+    using Base::write_stream;
+
+public:
+
+    BTFLWalker(): Base()
+    {}
+
+
+    template <typename IOBuffer>
+    PopulateStatus populate(IOBuffer& buffer)
+    {
+        Int entries = 0;
+
+        while(symbols_.has_data() && !limit_)
+        {
+            size_t descr_pos = buffer.pos();
+
+            auto length = run_length_ - run_pos_;
+
+            size_t pos = buffer.mark();
+            if (buffer.template putSymbolsRun<DataStreams>(stream_, length))
+            {
+                entries++;
+            }
+            else {
+            	buffer.reset();
+                return PopulateStatus(entries, Ending::END_OF_IOBUFFER);
+            }
+
+            auto write_result = write_stream(stream_, length, buffer);
+
+            auto entries_written = write_result.entries();
+
+            if (entries_written < length)
+            {
+                if (entries_written > 0)
+                {
+                    buffer.template updateSymbolsRun<DataStreams>(descr_pos, stream_, entries_written);
+                }
+                else {
+                    entries--;
+                    buffer.pos(pos);
+                    return PopulateStatus(entries, Ending::END_OF_IOBUFFER);
+                }
+            }
+
+            entries  += entries_written;
+            run_pos_ += entries_written;
+            idx_     += entries_written;
+
+            scan_strategy_.commit(stream_, entries_written);
+
+            if (run_pos_ == run_length_)
+            {
+            	MEMORIA_V1_ASSERT_FALSE(write_result.ending() == Ending::END_OF_IOBUFFER);
+
+                if (!partial_run_)
+                {
+                    symbols_.next_run();
+
+                    if (symbols_.has_data())
+                    {
+                        run_pos_        = 0;
+                        stream_         = symbols_.symbol();
+                        run_length_ 	= scan_strategy_.accept(stream_, symbols_.length());
+                        limit_          = run_length_ <= run_pos_;
+
+                        partial_run_ = run_length_ < symbols_.length();
+                    }
+                }
+                else {
+                    limit_ = true;
+                }
+            }
+            else if (write_result.ending() == Ending::END_OF_IOBUFFER)
+            {
+            	buffer.reset();
+                return PopulateStatus(entries, Ending::END_OF_IOBUFFER);
+            }
+        }
+
+        return PopulateStatus(entries, !limit_ ? Ending::END_OF_PAGE : Ending::LIMIT_REACHED);
+    }
+};
+
+
+
+
+template <typename T>
+class ScanRunStrategy {
+    BigInt total_;
+    BigInt limit_;
+    Int stream_;
+public:
+    void init(Int stream, BigInt limit) {
+        stream_ = stream;
+        total_ = 0;
+        limit_ = limit;
+    }
+
+    BigInt accept(Int stream, BigInt length) const
+    {
+        if (stream_ == stream)
+        {
+            return total_ + length <= limit_ ? length : limit_ - total_;
+        }
+        else {
+            return 0;
+        }
+    }
+
+
+    void commit(Int stream, BigInt length)
+    {
+        total_ += length;
+    }
+
+
+    BigInt totals() const {
+        return total_;
+    }
+};
+
+
+
+template <typename IteratorT, typename IOBufferT>
+class BTFLScanRunWalker: public BTFLWalkerBase<IteratorT, IOBufferT, ScanRunStrategy> {
+protected:
+	using Base 		= BTFLWalkerBase<IteratorT, IOBufferT, ScanRunStrategy>;
+	using MyType    = BTFLScanRunWalker<IteratorT, IOBufferT>;
+
+    using typename Base::CtrT;
+    using typename Base::Types;
+
+
+    using typename Base::CtrSizeT;
+    using typename Base::CtrSizesT;
+    using typename Base::DataSizesT;
+    using typename Base::NodeBaseG;
+
+    using typename Base::LeafDispatcher;
+    using typename Base::Iterator;
+
+    using Base::DataStreams;
+    using Base::StructureStreamIdx;
+
+    using typename Base::DataStreamsSizes;
+
+    using Base::symbols_;
+    using Base::limit_;
+    using Base::run_length_;
+    using Base::run_pos_;
+    using Base::stream_;
+    using Base::idx_;
+    using Base::scan_strategy_;
+    using Base::partial_run_;
+
+    using Base::write_stream;
+
+public:
+
+    BTFLScanRunWalker(): Base()
+    {}
+
+
+    template <typename IOBuffer>
+    PopulateStatus populate(IOBuffer& buffer)
+    {
+        Int entries = 0;
+
+        while(symbols_.has_data() && !limit_)
+        {
+            auto length = run_length_ - run_pos_;
+
+            auto write_result = write_stream(stream_, length, buffer);
+
+            auto entries_written = write_result.entries();
+
+            entries  += entries_written;
+            run_pos_ += entries_written;
+            idx_     += entries_written;
+
+            scan_strategy_.commit(stream_, entries_written);
+
+            if (run_pos_ == run_length_)
+            {
+            	MEMORIA_V1_ASSERT_FALSE(write_result.ending() == Ending::END_OF_IOBUFFER);
+
+                if (!partial_run_)
+                {
+                    symbols_.next_run();
+
+                    if (symbols_.has_data())
+                    {
+                        run_pos_        = 0;
+                        stream_         = symbols_.symbol();
+                        run_length_ 	= scan_strategy_.accept(stream_, symbols_.length());
+                        limit_          = run_length_ <= run_pos_;
+
+                        partial_run_ = run_length_ < symbols_.length();
+                    }
+                }
+                else {
+                    limit_ = true;
+                }
+            }
+            else if (write_result.ending() == Ending::END_OF_IOBUFFER)
+            {
+            	buffer.reset();
+                return PopulateStatus(entries, Ending::END_OF_IOBUFFER);
+            }
+        }
+
+        return PopulateStatus(entries, !limit_ ? Ending::END_OF_PAGE : Ending::LIMIT_REACHED);
+    }
+};
 
 
 

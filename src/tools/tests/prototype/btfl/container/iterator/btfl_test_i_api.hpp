@@ -119,7 +119,7 @@ public:
 
             reader->init(data);
 
-            self.bulkio_scan(reader.get(), -1, number);
+            self.bulkio_scan_ge(reader.get(), -1, number);
 
             return data;
         }
