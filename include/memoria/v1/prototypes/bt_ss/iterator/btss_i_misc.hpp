@@ -36,6 +36,9 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btss::IteratorMiscName)
 
     using Position = typename Container::Types::Position;
     using CtrSizeT = typename Container::Types::CtrSizeT;
+
+
+
 public:
     bool operator++() {
         return self().skipFw(1);
@@ -192,7 +195,10 @@ public:
     auto read_buffer(bt::BufferConsumer<IOBuffer>* consumer, CtrSizeT length)
     {
         auto& self = this->self();
-        return self.ctr().template buffered_read<0>(self, length, consumer->buffer(), *consumer);
+
+        auto buffer = self.ctr().pools().get_instance(PoolT<ObjectPool<IOBuffer>>()).get_unique(65536);
+
+        return self.ctr().template buffered_read<0>(self, length, *buffer.get(), *consumer);
     }
 
     template <typename IOBuffer>
@@ -222,7 +228,9 @@ public:
     {
         using InputProvider = btss::IOBufferProducerBTSSInputProvider<Container, IOBuffer>;
 
-        auto bulk = std::make_unique<InputProvider>(self().ctr(), producer, ib_initial_capacity);
+        auto buffer = self().ctr().pools().get_instance(PoolT<ObjectPool<IOBuffer>>()).get_unique(65536);
+
+        auto bulk = std::make_unique<InputProvider>(self().ctr(), *buffer.get(), producer, ib_initial_capacity);
 
         return this->bulk_insert(*bulk.get());
     }

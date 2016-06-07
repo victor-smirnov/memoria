@@ -72,6 +72,9 @@ std::ostream& operator<<(std::ostream& out, const Optional<T>& op) {
 }
 
 template <typename T>
-struct HasFieldFactory<Optional<T>>: HasValue<bool, IsComplete<FieldFactory<T>>::type::value> {};
+struct HasFieldFactory<Optional<T>>: HasFieldFactory<T> {};
+
+template <typename T>
+struct HasValueCodec<Optional<T>>: HasValueCodec<T> {};
 
 }}

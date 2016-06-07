@@ -43,8 +43,6 @@ class MultiMapCreateTest: public MultiMapTestBase<MapName> {
     using typename Base::Value;
     using typename Base::Ctr;
 
-    template <typename T>
-    using TypeTag = typename Base::template TypeTag<T>;
 
     using Base::commit;
     using Base::drop;

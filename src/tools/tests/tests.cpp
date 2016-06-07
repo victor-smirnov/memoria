@@ -34,7 +34,7 @@
 //#include "prototype/btss/btss_test_suite.hpp"
 
 
-//#include "map/map_test_suite.hpp"
+#include "map/map_test_suite.hpp"
 //#include "vector/vector_test_suite.hpp"
 #include "multimap/multimap_test_suite.hpp"
 
@@ -100,7 +100,7 @@ int main(int argc, const char** argv, const char** envp)
         runner.registerTask(new BTFLTestSuite());
 //        runner.registerTask(new BTSSTestSuite());
 //
-//        runner.registerTask(new MapTestSuite());
+        runner.registerTask(new MapTestSuite());
 //        runner.registerTask(new VectorTestSuite());
 //        runner.registerTask(new SequenceTestSuite());
 //        runner.registerTask(new LabeledTreeTestSuite());

@@ -110,7 +110,7 @@ struct MapBTTypesBase: public MapBTTypesBaseBase<Profile, Key, Value> {
                     TL<LeafKeyStruct>,
                     TL<LeafValueStruct>
                 >,
-                map::MapBranchStructTF
+                bt::DefaultBranchStructTF
             >
     >;
 };

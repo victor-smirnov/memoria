@@ -35,7 +35,7 @@ public:
     static constexpr Int BitsPerOffset  = 4;
     static constexpr Int ElementSize    = 8; // In bits;
 
-    static constexpr UBigInt UpperBound = 246;
+    static constexpr UBigInt UpperBound = 248;
 
     ValuePtr describe(const T* buffer, size_t idx)
     {
@@ -55,7 +55,7 @@ public:
 
     size_t length(const V& value) const
     {
-        if (value < UpperBound)
+        if (value < UpperBound - 1)
         {
             return 1;
         }
@@ -75,7 +75,7 @@ public:
 
         if (header < UpperBound)
         {
-            value = header;
+            value = header - 1;
             return 1;
         }
         else
@@ -102,9 +102,9 @@ public:
 
     size_t encode(T* buffer, const V& value, size_t idx) const
     {
-        if (value < UpperBound)
+        if (value < UpperBound - 1)
         {
-            buffer[idx] = value;
+            buffer[idx] = value + 1;
             return 1;
         }
         else {

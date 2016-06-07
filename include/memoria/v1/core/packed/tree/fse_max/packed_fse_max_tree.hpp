@@ -858,7 +858,7 @@ struct IndexesSize<PkdFMTree<Types>> {
 
 template <typename T>
 struct PkdSearchKeyTypeProvider<PkdFMTree<T>> {
-    using Type = Optional<typename PkdFMTree<T>::Value>;
+	using Type = Optional<typename PkdFMTree<T>::Value>;
 };
 
 

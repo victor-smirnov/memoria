@@ -20,6 +20,7 @@
 
 #include <memoria/v1/core/tools/static_array.hpp>
 #include <memoria/v1/core/tools/vector_tuple.hpp>
+#include <memoria/v1/core/tools/optional.hpp>
 #include <memoria/v1/core/packed/tools/packed_dispatcher.hpp>
 
 #include <memoria/v1/prototypes/bt/bt_names.hpp>
@@ -28,6 +29,12 @@
 #include <memoria/v1/prototypes/bt/tools/bt_tools_core.hpp>
 #include <memoria/v1/prototypes/bt/tools/bt_tools_packed_struct_list_builder.hpp>
 #include <memoria/v1/prototypes/bt/tools/bt_tools_streamdescr_factory.hpp>
+
+
+#include <memoria/v1/core/packed/tree/fse_max/packed_fse_optmax_tree.hpp>
+#include <memoria/v1/core/packed/tree/fse_max/packed_fse_max_tree.hpp>
+#include <memoria/v1/core/packed/tree/vle_big/packed_vle_optmax_tree.hpp>
+#include <memoria/v1/core/packed/tree/vle_big/packed_vle_bigmax_tree.hpp>
 
 
 
@@ -381,11 +388,14 @@ struct DefaultBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>
     using Type = IfThenElse<
             HasFieldFactory<KeyType>::Value,
             PkdFMOTreeT<KeyType, Indexes>,
-            PkdVBMTreeT<KeyType>
+            PkdVMOTreeT<KeyType>
     >;
 
     static_assert(IndexesSize<Type>::Value == Indexes, "Packed struct has different number of indexes than requested");
 };
+
+
+
 
 
 
@@ -462,7 +472,6 @@ struct ForAllTuple<Idx, Idx> {
 
 template <typename IOBuffer>
 struct BufferConsumer {
-    virtual IOBuffer& buffer() = 0;
     virtual Int process(IOBuffer& buffer, Int entries) = 0;
 
     virtual ~BufferConsumer() noexcept {}
@@ -470,7 +479,6 @@ struct BufferConsumer {
 
 template <typename IOBuffer>
 struct BufferProducer {
-    virtual IOBuffer& buffer() = 0;
     virtual Int populate(IOBuffer& buffer) = 0;
 
     virtual ~BufferProducer() noexcept {}

@@ -1142,6 +1142,11 @@ public:
         template <typename Fn>
         FindResult(Fn&& fn): idx_(fn.idx()) {}
         Int idx() const {return idx_;}
+
+        void set_idx(Int idx)
+        {
+            this->idx_ = idx;
+        }
     };
 
     auto findForward(SearchType search_type, Int block, Int start, const Value& val) const
@@ -1155,6 +1160,17 @@ public:
         }
     }
 
+    auto findForward(SearchType search_type, Int block, Int start, const Optional<Value>& val) const
+    {
+        if (search_type == SearchType::GT)
+        {
+            return FindResult(findGTForward(block, start, val.value()));
+        }
+        else {
+            return FindResult(findGEForward(block, start, val.value()));
+        }
+    }
+
     auto findForward(SearchType search_type, Int block, const Value& val) const
     {
         if (search_type == SearchType::GT)
@@ -1164,6 +1180,17 @@ public:
         else {
             return FindResult(findGEForward(block, val));
         }
+    }
+
+    auto findForward(SearchType search_type, Int block, const Optional<Value>& val) const
+    {
+    	if (search_type == SearchType::GT)
+    	{
+    		return FindResult(findGTForward(block, val.value()));
+    	}
+    	else {
+    		return FindResult(findGEForward(block, val.value()));
+    	}
     }
 
 
@@ -1945,6 +1972,11 @@ struct StructSizeProvider<PkdVBMTree<Types>> {
 template <typename Types>
 struct IndexesSize<PkdVBMTree<Types>> {
     static const Int Value = 1;
+};
+
+template <typename T>
+struct PkdSearchKeyTypeProvider<PkdVBMTree<T>> {
+	using Type = Optional<typename PkdVBMTree<T>::Value>;
 };
 
 

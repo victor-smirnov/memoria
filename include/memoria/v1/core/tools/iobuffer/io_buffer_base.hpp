@@ -157,6 +157,10 @@ public:
     	throw Exception(MA_SRC, SBuf() << "Supplied value of limit exceeds capacity: " << value << " " << length_);
     }
 
+    size_t size() const {
+    	return length_;
+    }
+
     void done() {
     	pos_ = limit_;
     }

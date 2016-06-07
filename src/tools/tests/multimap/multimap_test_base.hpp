@@ -272,10 +272,6 @@ public:
         return data;
     }
 
-
-
-    template <typename T> struct TypeTag {};
-
     template <typename V, typename T>
     T make_key(V&& num, TypeTag<T>) {
         return num;

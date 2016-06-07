@@ -102,7 +102,7 @@ struct SetBTTypesBase: public SetBTTypesBaseBase<Profile, Key> {
                     TL<StreamSize>,
                     TL<LeafKeyStruct>
                 >,
-                set::SetBranchStructTF
+                bt::DefaultBranchStructTF
             >
     >;
 };

@@ -34,24 +34,22 @@ using namespace std;
 
 
 template <typename Iter>
-class SetBufferProducer: public BufferProducer<IOBuffer> {
-    using Base = BufferProducer<IOBuffer>;
+class SetBufferProducer: public BufferProducer<DefaultIOBuffer> {
+    using Base = BufferProducer<DefaultIOBuffer>;
 
     Iter iter_;
     Iter end_;
 
     using Key   = std::decay_t<decltype(*std::declval<Iter>())>;
 
-    IOBuffer buffer_;
-
 public:
     SetBufferProducer(const Iter& begin, const Iter& end, size_t buffer_size):
-        iter_(begin), end_(end), buffer_(buffer_size)
+        iter_(begin), end_(end)
     {}
 
-    virtual IOBuffer& buffer() {return buffer_;}
 
-    virtual Int populate(IOBuffer& buffer)
+
+    virtual Int populate(DefaultIOBuffer& buffer)
     {
         Int entries = 0;
 
@@ -79,6 +77,7 @@ int main()
     MEMORIA_INIT(DefaultProfile<>);
 
     using Key   = FixedArray<16>;
+//    using Key   = Bytes;
 
     DInit<Set<Key>>();
 
@@ -90,7 +89,7 @@ int main()
         auto map = create<Set<Key>>(snp);
         map->setNewPageSize(65536);
 
-        int size = 30000000;
+        int size = 300000;
 
         using KeyVector = vector<Key>;
 
@@ -101,6 +100,7 @@ int main()
         for (int c = 0; c < size; c++)
         {
             FixedArray<16> array;
+//        	Bytes array(16);
 
             for (int c = 0; c < array.length(); c++)
             {
@@ -125,6 +125,7 @@ int main()
 
         cout << "Insertion time: " << FormatTime(getTimeInMillis() - t0) <<" size: " << map->size() << endl;
 
+//        map->find(Bytes(16));
 
         // Finish snapshot so no other updates are possible.
         snp->commit();

@@ -127,15 +127,35 @@ public:
     }
 
 
+    struct SkipFWFn {
+    	template <Int StreamIdx, typename IterT>
+    	auto process(IterT&& iter, CtrSizeT n)
+    	{
+    		return iter.template skip_fw_<StreamIdx>(n);
+    	}
+    };
+
+
     CtrSizeT skipFw(CtrSizeT n)
     {
-        return self().template skip_fw_<StructureStreamIdx>(n);
+    	auto& self = this->self();
+    	Int stream = self.stream();
+    	return ForEachStream<Streams - 1>::process(stream, SkipFWFn(), self, n);
     }
 
+    struct SkipBWFn {
+    	template <Int StreamIdx, typename IterT>
+    	auto process(IterT&& iter, CtrSizeT n)
+    	{
+    		return iter.template skip_bw_<StreamIdx>(n);
+    	}
+    };
 
     CtrSizeT skipBw(CtrSizeT n)
     {
-        return self().template skip_bw_<StructureStreamIdx>(n);
+    	auto& self = this->self();
+    	Int stream = self.stream();
+    	return ForEachStream<Streams - 1>::process(stream, SkipBWFn(), self, n);
     }
 
     CtrSizeT skip(CtrSizeT n)
@@ -234,6 +254,48 @@ public:
     }
 
 protected:
+
+    void toStructureStream()
+    {
+    	auto& self = this->self();
+
+    	if (self.stream() != StructureStreamIdx)
+    	{
+    		Int stream = self.stream();
+
+    		Int data_idx = self.idx();
+    		auto result = self.leaf_structure()->selectFW(data_idx + 1, stream);
+
+    		self.stream() = StructureStreamIdx;
+
+    		if (result.is_found())
+    		{
+    			self.idx() = result.idx();
+    		}
+    		else {
+    			self.idx() = self.leaf_size(StructureStreamIdx);
+    		}
+    	}
+    	else {
+    		throw Exception(MA_SRC, SBuf() << "Invalid stream: " << self.stream());
+    	}
+    }
+
+    void toDataStream(Int stream)
+    {
+    	auto& self = this->self();
+
+    	if (self.stream() == StructureStreamIdx)
+    	{
+    		Int data_idx 	= self.data_stream_idx(stream);
+    		self.idx() 		= data_idx;
+    		self.stream() 	= stream;
+    	}
+    	else {
+    		throw Exception(MA_SRC, SBuf() << "Invalid stream: " << self.stream());
+    	}
+    }
+
     Int data_stream_idx(Int stream) const
     {
         auto& self = this->self();

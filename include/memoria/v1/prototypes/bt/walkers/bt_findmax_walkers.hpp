@@ -76,11 +76,13 @@ public:
         Base(leaf_index, target, search_type)
     {}
 
-    template <typename... Args>
-    auto treeNode(Args&&... args) -> decltype(Base::treeNode(std::forward<Args>(args)...))
-    {
-        return Base::treeNode(std::forward<Args>(args)...);
-    }
+    using Base::treeNode;
+
+//    template <typename... Args>
+//    auto treeNode(Args&&... args) -> decltype(Base::treeNode(std::forward<Args>(args)...))
+//    {
+//        return Base::treeNode(std::forward<Args>(args)...);
+//    }
 
     template <typename NodeTypes>
     void treeNode(const bt::BranchNode<NodeTypes>* node, WalkCmd cmd, Int start, Int end)

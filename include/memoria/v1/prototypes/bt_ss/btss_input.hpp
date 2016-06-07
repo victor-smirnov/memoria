@@ -673,8 +673,8 @@ class IOBufferProducerBTSSInputProvider : public AbstractIOBufferBTSSInputProvid
     using Base = AbstractIOBufferBTSSInputProvider<CtrT, IOBuffer>;
     bt::BufferProducer<IOBuffer>* producer_;
 public:
-    IOBufferProducerBTSSInputProvider(CtrT& ctr, bt::BufferProducer<IOBuffer>* producer, Int input_buffer_capacity = 10000):
-        Base(ctr, producer->buffer(), input_buffer_capacity),
+    IOBufferProducerBTSSInputProvider(CtrT& ctr, IOBuffer& buffer, bt::BufferProducer<IOBuffer>* producer, Int input_buffer_capacity = 10000):
+        Base(ctr, buffer, input_buffer_capacity),
         producer_(producer)
     {}
 

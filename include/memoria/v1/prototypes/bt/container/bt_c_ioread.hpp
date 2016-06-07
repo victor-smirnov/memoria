@@ -122,7 +122,7 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::IOReadName)
     template <Int StreamIdx, typename IOBuffer>
     CtrSizeT buffered_read(Iterator& iter, CtrSizeT length, IOBuffer& io_buffer, bt::BufferConsumer<IOBuffer>& consumer)
     {
-        CtrSizeT total = 0;
+    	CtrSizeT total = 0;
         io_buffer.rewind();
 
         Int entries = 0;
@@ -140,9 +140,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::IOReadName)
 
                 if (result.is_full())
                 {
-                    io_buffer.rewind();
+                    io_buffer.flip();
                     Int consumed = consumer.process(io_buffer, entries);
-                    io_buffer.rewind();
+                    io_buffer.moveRemainingToStart();
                     entries = 0;
 
                     if (consumed >= 0)
@@ -170,9 +170,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::IOReadName)
             }
             else if (result.is_full())
             {
-                io_buffer.rewind();
+                io_buffer.flip();
                 Int consumed = consumer.process(io_buffer, entries);
-                io_buffer.rewind();
+                io_buffer.moveRemainingToStart();
                 entries = 0;
 
                 if (consumed < 0)
@@ -196,8 +196,9 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::IOReadName)
 
         if (entries > 0)
         {
-            io_buffer.rewind();
+            io_buffer.flip();
             Int consumed = consumer.process(io_buffer, entries);
+            io_buffer.moveRemainingToStart();
 
             if (consumed < 0)
             {

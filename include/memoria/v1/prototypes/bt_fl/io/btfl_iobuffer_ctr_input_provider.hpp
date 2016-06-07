@@ -85,7 +85,7 @@ public:
         Base(ctr, initial_capacity)
     {}
 
-    void init(BufferProducer<IOBuffer>* iobuffer_producer)
+    void init(BufferProducer<IOBuffer>* iobuffer_producer, IOBuffer* io_buffer)
     {
         Base::init();
 
@@ -93,7 +93,7 @@ public:
         last_stream_           = -1;
 
         iobuffer_producer_  = iobuffer_producer;
-        io_buffer_          = &iobuffer_producer->buffer();
+        io_buffer_          = io_buffer;
     }
 
     void clear()

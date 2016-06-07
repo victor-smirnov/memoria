@@ -89,6 +89,14 @@ public:
         }
     }
 
+    bool next_key()
+    {
+    	auto& self = this->self();
+
+    	self.selectFw(1, 0);
+
+    	return !self.isEnd();
+    }
 
 
     CtrSizeT count_values() const
@@ -165,23 +173,17 @@ public:
 
     template <typename ValueConsumer>
     class ReadValuesFn: public BufferConsumer<IOBuffer> {
-        IOBuffer io_buffer_;
+
         ValueConsumer* consumer_;
 
     public:
-        ReadValuesFn(Int capacity = 65536):
-            io_buffer_(capacity)
-        {}
 
-        void init(ValueConsumer* consumer)
+        ReadValuesFn(ValueConsumer* consumer)
         {
-            io_buffer_.rewind();
             consumer_ = consumer;
         }
 
         void clear() {}
-
-        virtual IOBuffer& buffer() {return io_buffer_;}
 
         virtual Int process(IOBuffer& buffer, Int entries)
         {
@@ -201,12 +203,9 @@ public:
 
         std::vector<Value> values;
 
-        using ReadFn = ReadValuesFn<std::vector<Value>>;
+        ReadValuesFn<std::vector<Value>> read_fn(&values);
 
-        auto read_fn = self.ctr().pools().get_instance(PoolT<ObjectPool<ReadFn>>()).get_unique();
-        read_fn->init(&values);
-
-        self.bulkio_scan_run(read_fn.get(), 1, length);
+        self.bulkio_scan_run(&read_fn, 1, length);
 
         return values;
     }
@@ -256,6 +255,23 @@ public:
     	self().selectBw(1, 0);
     }
 
+
+
+    template <typename IOBuffer>
+    auto read_keys(bt::BufferConsumer<IOBuffer>* consumer, CtrSizeT length = std::numeric_limits<CtrSizeT>::max())
+    {
+        auto& self = this->self();
+
+        self.toDataStream(0);
+
+        auto buffer = self.ctr().pools().get_instance(PoolT<ObjectPool<IOBuffer>>()).get_unique(65536);
+
+        auto total = self.ctr().template buffered_read<0>(self, length, *buffer.get(), *consumer);
+
+        self.toStructureStream();
+
+        return total;
+    }
 
 MEMORIA_V1_ITERATOR_PART_END
 

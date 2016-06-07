@@ -17,6 +17,7 @@
 #pragma once
 
 #include <memoria/v1/core/tools/md5.hpp>
+#include <memoria/v1/core/tools/optional.hpp>
 #include <memoria/v1/core/types/type2type.hpp>
 
 #include <string.h>
@@ -30,6 +31,7 @@ inline BigInt PtrToLong(const void *ptr) {
 }
 
 template <typename T> struct FieldFactory;
+
 
 template <typename Type>
 struct CompositeFieldFactory {

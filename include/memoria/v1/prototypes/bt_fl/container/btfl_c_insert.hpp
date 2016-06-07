@@ -47,9 +47,10 @@ protected:
 
         auto id = iter.leaf()->id();
 
-        auto streamingProvider = self.pools().get_instance(PoolT<CtrInputProviderPool<IOBuffer>>()).get_unique(self, initial_capacity);
+        auto streamingProvider  = self.pools().get_instance(PoolT<CtrInputProviderPool<IOBuffer>>()).get_unique(self, initial_capacity);
+        auto iobuffer 			= self.pools().get_instance(PoolT<ObjectPool<IOBuffer>>()).get_unique(65536);
 
-        streamingProvider->init(&provider);
+        streamingProvider->init(&provider, iobuffer.get());
 
         auto pos = iter.leafrank(iter.idx());
 

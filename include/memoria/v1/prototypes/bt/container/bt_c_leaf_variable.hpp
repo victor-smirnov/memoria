@@ -141,7 +141,7 @@ protected:
 
 
     template <Int Stream>
-    std::tuple<bool, BranchNodeEntry> try_remove_stream_entry(Iterator& iter)
+    std::tuple<bool, BranchNodeEntry> try_remove_stream_entry(Iterator& iter, Int idx)
     {
         auto& self = this->self();
 
@@ -153,7 +153,7 @@ protected:
 
         try {
             BranchNodeEntry accum;
-            LeafDispatcher::dispatch(iter.leaf(), RemoveFromLeafFn<Stream>(), iter.idx(), accum);
+            LeafDispatcher::dispatch(iter.leaf(), RemoveFromLeafFn<Stream>(), idx, accum);
             return std::make_tuple(true, accum);
         }
         catch (PackedOOMException& e)
@@ -203,7 +203,7 @@ protected:
 
 
     template <Int Stream, typename SubstreamsList, typename Entry>
-    std::tuple<bool, BranchNodeEntry> try_update_stream_entry(Iterator& iter, const Entry& entry)
+    std::tuple<bool, BranchNodeEntry> try_update_stream_entry(Iterator& iter, Int idx, const Entry& entry)
     {
         auto& self = this->self();
 
@@ -218,7 +218,7 @@ protected:
             LeafDispatcher::dispatch(
                     iter.leaf(),
                     UpdateStreamEntryBufferFn<Stream, SubstreamsList>(),
-                    iter.idx(),
+                    idx,
                     accum,
                     entry
             );

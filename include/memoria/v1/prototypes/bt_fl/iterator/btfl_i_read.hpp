@@ -164,11 +164,12 @@ protected:
 
         auto start_id = self.leaf()->id();
 
-        auto walker = self.ctr().pools().get_instance(PoolT<WalkerPoolT<IOBuffer>>()).get_unique();
+        auto walker   = self.ctr().pools().get_instance(PoolT<WalkerPoolT<IOBuffer>>()).get_unique();
+        auto iobuffer = self.ctr().pools().get_instance(PoolT<ObjectPool<IOBuffer>>()).get_unique(65536);
 
         walker->init(self, expected_stream, limits);
 
-        IOBuffer& buffer = consumer->buffer();
+        IOBuffer& buffer = *iobuffer.get();
         buffer.rewind();
 
         Int entries = 0;
