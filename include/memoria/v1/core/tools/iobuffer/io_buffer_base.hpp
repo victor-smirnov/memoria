@@ -516,7 +516,7 @@ protected:
 
             limit_ += length;
 
-            if (pos_ > pos)
+            if (pos < pos_)
             {
             	pos_ += length;
             }
@@ -538,16 +538,24 @@ protected:
 
         CopyBuffer(array_ + pos + length, array_ + pos, pos_ - (pos + length));
 
-        limit_ -= length;
-
-        if (pos_ > pos)
+        if (pos + length <= pos_)
         {
         	pos_ -= length;
+        }
+        else if (pos_ >= pos) {
+        	pos_ = pos;
         }
 
         if (mark_ < MARK_MAX && mark_ > pos)
         {
         	mark_ -= length;
+        }
+
+        limit_ -= length;
+
+        if (pos_ > limit_)
+        {
+        	pos_ = limit_;
         }
     }
 

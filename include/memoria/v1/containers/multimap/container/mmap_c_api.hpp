@@ -98,9 +98,7 @@ public:
 
         if (!iter->is_found(key))
         {
-            auto iobuffer = self.pools().get_instance(PoolT<ObjectPool<IOBuffer>>()).get_unique(65536);
-
-            mmap::MultimapEntryBufferProducer<IOBuffer, Key, Iterator> producer(*iobuffer.get(), key, start, end);
+            mmap::MultimapEntryBufferProducer<IOBuffer, Key, Iterator> producer(key, start, end);
 
             iter->bulkio_insert(producer);
         }

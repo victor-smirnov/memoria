@@ -121,7 +121,6 @@ struct MMapBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 template <typename IOBuffer, typename Key, typename Iterator>
 class MultimapEntryBufferProducer: public bt::BufferProducer<IOBuffer> {
 
-	IOBuffer& io_buffer_;
 	Key key_;
 	Iterator start_;
 	Iterator end_;
@@ -138,13 +137,9 @@ class MultimapEntryBufferProducer: public bt::BufferProducer<IOBuffer> {
 	static constexpr size_t ValueBlockSize = 256;
 
 public:
-	MultimapEntryBufferProducer(IOBuffer& io_buffer, const Key& key, const Iterator& start, const Iterator& end):
-		io_buffer_(io_buffer), key_(key), start_(start), end_(end)
+	MultimapEntryBufferProducer(const Key& key, const Iterator& start, const Iterator& end):
+		key_(key), start_(start), end_(end)
 	{}
-
-	virtual IOBuffer& buffer() {
-		return io_buffer_;
-  }
 
 	virtual Int populate(IOBuffer& buffer)
 	{
@@ -152,12 +147,12 @@ public:
 
 		if (!key_finished_)
 		{
-			if (!io_buffer_.template putSymbolsRun<DataStreams>(KeyStream, 1))
+			if (!buffer.template putSymbolsRun<DataStreams>(KeyStream, 1))
 			{
 				throw Exception(MA_SRC, "Supplied IOBuffer is probably too small");
 			}
 
-			if (!IOBufferAdapter<Key>::put(io_buffer_, key_))
+			if (!IOBufferAdapter<Key>::put(buffer, key_))
 			{
 				throw Exception(MA_SRC, "Supplied IOBuffer is probably too small");
 			}
@@ -168,8 +163,8 @@ public:
 
 		while (start_ != end_)
 		{
-			size_t pos = io_buffer_.pos();
-			if (!io_buffer_.template putSymbolsRun<DataStreams>(ValueStream, ValueBlockSize))
+			size_t pos = buffer.pos();
+			if (!buffer.template putSymbolsRun<DataStreams>(ValueStream, ValueBlockSize))
 			{
 				return entries;
 			}
@@ -179,10 +174,10 @@ public:
 			size_t c;
 			for (c = 0; c < ValueBlockSize && start_ != end_; c++, entries++, start_++)
 			{
-				if (!IOBufferAdapter<Value>::put(io_buffer_, *start_))
+				if (!IOBufferAdapter<Value>::put(buffer, *start_))
 				{
 					if (c > 0) {
-						io_buffer_.template updateSymbolsRun<DataStreams>(pos, ValueStream, c);
+						buffer.template updateSymbolsRun<DataStreams>(pos, ValueStream, c);
 					}
 					else {
 						entries--;
@@ -194,7 +189,7 @@ public:
 
 			if (c < ValueBlockSize)
 			{
-				io_buffer_.template updateSymbolsRun<DataStreams>(pos, ValueStream, c);
+				buffer.template updateSymbolsRun<DataStreams>(pos, ValueStream, c);
 			}
 		}
 
