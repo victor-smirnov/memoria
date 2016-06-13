@@ -262,7 +262,7 @@ protected:
 
         if (target_idx > split_idx)
         {
-            return SplitResult(SplitStatus::RIGHT, target_idx);
+            return SplitResult(SplitStatus::RIGHT, target_idx - split_idx);
         }
         else {
             return SplitResult(SplitStatus::LEFT, target_idx);
