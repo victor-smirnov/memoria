@@ -195,11 +195,11 @@ public:
         return page_type_hash_;
     }
 
-    auto &references() {
+    auto &references1() {
         return references_;
     }
 
-    const auto& references() const {
+    const auto& references1() const {
         return references_;
     }
 
@@ -219,20 +219,16 @@ public:
         return page_size_;
     }
 
-    auto ref() {
+    auto ref1() {
         auto r = ++references_;
 
         return r;
     }
 
-    auto unref() {
+    auto unref1() {
         auto r = --references_;
 
         MEMORIA_V1_ASSERT(r, >=, 0);
-
-//      if (r <= 0) {
-//          cerr << "PageUnref: " << uuid_ << " " << r << endl;
-//      }
 
         return r;
     }

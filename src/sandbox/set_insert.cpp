@@ -28,6 +28,7 @@
 #include <vector>
 #include <type_traits>
 
+
 using namespace memoria::v1;
 using namespace memoria::v1::btss;
 using namespace std;
@@ -41,10 +42,17 @@ int main()
     using Key   = FixedArray<16>;
 //    using Key   = Bytes;
 
+
     DInit<Set<Key>>();
+
+    PersistentInMemAllocator<>::load("abcd");
 
     try {
         auto alloc = PersistentInMemAllocator<>::create();
+
+        alloc->lock();
+        alloc->unlock();
+        alloc->try_lock();
 
         auto snp = alloc->master()->branch();
 
@@ -66,7 +74,7 @@ int main()
         }
 
 
-        snp->commit();
+        snp->commit_and_drop_parent();
 
         FSDumpAllocator(snp, "setl_full.dir");
 

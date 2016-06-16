@@ -20,6 +20,8 @@
 #include <memoria/v1/core/tools/uuid.hpp>
 #include <memoria/v1/core/tools/stream.hpp>
 
+#include <atomic>
+
 namespace memoria {
 namespace v1 {
 namespace persistent_inmem   {
@@ -33,6 +35,7 @@ public:
     using Key       = Key_;
     using NodeId    = NodeId_;
     using TxnId     = TxnId_;
+    using RCType	= BigInt;
 
     class RootMetadata {
         BigInt size_ = 0;
@@ -70,7 +73,8 @@ private:
     Int size_ = 0;
 
 protected:
-    BigInt refs_ = 0;
+    std::atomic<RCType> refs_;
+
 private:
 
     static constexpr Int Indexes =  NodeSize / NodeIndexSize + ((NodeSize % NodeIndexSize == 0)?  0 : 1);
@@ -169,28 +173,19 @@ public:
         return size_ < max_size();
     }
 
-    BigInt refs() const {
+    RCType refs() const {
         return refs_;
     }
 
-    BigInt ref2()
+    RCType ref()
     {
         auto r = ++refs_;
-
-//      cerr << "PTreeNode.Ref " << r << " " << node_id_ << " " << node_id_.lo() << " "<< node_type_ << " " << refs_ <<endl;
-
         return r;
     }
 
-    BigInt unref1()
+    RCType unref()
     {
         auto r = --refs_;
-
-//      if (node_type_ != NodeType::LEAF && node_type_ != NodeType::BRANCH) {
-//          int a = 0; a++;
-//      }
-//
-//      cerr << "PTreeNode.UnRef " << r << " " << node_id_ << " " << node_id_.lo() << " "<< node_type_ << " " << refs_ <<endl;
 
         MEMORIA_V1_ASSERT(r, >=, 0);
 
@@ -347,7 +342,7 @@ public:
         out<<"Size: "<<size_<<endl;
         out<<"NodeId: "<<node_id_<<endl;
         out<<"TxnId: "<<txn_id_<<endl;
-        out<<"Refs: "<<refs_<<endl;
+        out<<"Refs: "<<refs_.load()<<endl;
 
         out<<"Index: "<<endl;
 
@@ -393,7 +388,10 @@ public:
         in >> node_id_;
         in >> txn_id_;
         in >> size_;
-        in >> refs_;
+
+        BigInt refs;
+        in >> refs;
+        refs_.store(refs);
 
         Int last_idx = size_ / NodeIndexSize + (size_ % NodeIndexSize == 0 ? 0 : 1);
         for (Int c = 0; c < last_idx; c++)
@@ -584,9 +582,7 @@ public:
         Base(txn_id, node_id, NodeType::BRANCH)
     {}
 
-    ~BranchNode() {
-
-    }
+    ~BranchNode() {}
 
 
     void del() const {

@@ -26,10 +26,13 @@
 #include <memoria/v1/core/tools/pool.hpp>
 #include <memoria/v1/core/tools/bitmap.hpp>
 #include <memoria/v1/containers/map/map_factory.hpp>
+#include <memoria/v1/core/tools/pair.hpp>
 
 #include <vector>
 #include <memory>
-#include "../../core/tools/pair.hpp"
+#include <mutex>
+
+
 
 namespace memoria {
 namespace v1 {
@@ -80,6 +83,10 @@ class Snapshot:
     using PTreeValue        = typename PersitentTree::LeafNodeT::Value;
 
     using Status            = typename HistoryNode::Status;
+
+    using MutexT		= typename std::remove_reference<decltype(std::declval<HistoryNode>().allocator_mutex())>::type;
+    using LockGuardT	= std::lock_guard<MutexT>;
+
 public:
 
     template <typename CtrName>
@@ -147,7 +154,7 @@ public:
         root_map_(nullptr),
         metadata_(MetadataRepository<Profile>::getMetadata())
     {
-        history_node_->ref();
+    	history_node_->ref();
 
         Int ctr_op;
 
@@ -189,6 +196,8 @@ public:
 
     virtual ~Snapshot()
     {
+    	LockGuardT lock_guard(history_node_->allocator_mutex());
+
         if (history_node_->unref() == 0)
         {
             if (history_node_->is_active())
@@ -227,6 +236,7 @@ public:
     }
 
     bool is_active() const {
+    	LockGuardT lock_guard(history_node_->allocator_mutex());
         return history_node_->is_active();
     }
 
@@ -235,15 +245,18 @@ public:
     }
 
     bool is_marked_to_clear() const {
+    	LockGuardT lock_guard(history_node_->allocator_mutex());
         return history_node_->is_dropped();
     }
 
     bool is_committed() const {
+    	LockGuardT lock_guard(history_node_->allocator_mutex());
         return history_node_->is_committed();
     }
 
     void commit()
     {
+    	LockGuardT lock_guard(history_node_->allocator_mutex());
         if (history_node_->is_active())
         {
             history_node_->commit();
@@ -254,8 +267,36 @@ public:
         }
     }
 
+    bool commit_and_drop_parent()
+    {
+    	LockGuardT lock_guard(history_node_->allocator_mutex());
+
+    	if (history_node_->is_active())
+    	{
+    		history_node_->commit();
+    		history_tree_raw_->unref_active();
+
+    		HistoryNode* parent_node = history_node_->parent();
+    		if (parent_node)
+    		{
+    			if (parent_node->parent())
+    			{
+    				auto parent_snp = std::make_shared<Snapshot>(parent_node, history_tree_->shared_from_this());
+    				parent_node->mark_to_clear();
+    				return true;
+    			}
+    		}
+
+    		return false;
+    	}
+    	else {
+    		throw Exception(MA_SRC, SBuf()<<"Invalid Snapshot state: "<<(Int)history_node_->status());
+    	}
+    }
+
     void drop()
     {
+    	LockGuardT lock_guard(history_node_->allocator_mutex());
         if (history_node_->parent() != nullptr)
         {
             history_node_->mark_to_clear();
@@ -267,6 +308,8 @@ public:
 
     bool drop_ctr(const UUID& name)
     {
+    	checkUpdateAllowed();
+
         UUID root_id = getRootID(name);
 
         if (root_id.is_set())
@@ -286,12 +329,28 @@ public:
 
     void set_as_master()
     {
-        history_tree_raw_->set_master(history_node_->txn_id());
+    	LockGuardT lock_guard(history_node_->allocator_mutex());
+
+    	if (history_node_->is_committed())
+    	{
+    		history_tree_raw_->set_master(history_node_->txn_id());
+    	}
+    	else {
+    		throw Exception(MA_SRC, SBuf()<<"Invalid Snapshot state: "<<(Int)history_node_->status());
+    	}
     }
 
     void set_as_branch(StringRef name)
     {
-        history_tree_raw_->set_branch(name, history_node_->txn_id());
+    	LockGuardT lock_guard(history_node_->allocator_mutex());
+
+    	if (history_node_->is_committed())
+    	{
+    		history_tree_raw_->set_branch(name, history_node_->txn_id());
+    	}
+    	else {
+    		throw Exception(MA_SRC, SBuf()<<"Invalid Snapshot state: "<<(Int)history_node_->status());
+    	}
     }
 
     StringRef metadata() const {
@@ -300,6 +359,7 @@ public:
 
     void set_metadata(StringRef metadata)
     {
+    	LockGuardT lock_guard(history_node_->allocator_mutex());
         if (history_node_->is_active())
         {
             history_node_->metadata() = metadata;
@@ -312,6 +372,8 @@ public:
 
     SnapshotPtr branch()
     {
+    	LockGuardT lock_guard(history_node_->allocator_mutex());
+
         if (history_node_->is_committed())
         {
             HistoryNode* history_node = new HistoryNode(history_node_);
@@ -326,11 +388,13 @@ public:
     }
 
     bool has_parent() const {
+    	LockGuardT lock_guard(history_node_->allocator_mutex());
         return history_node_->parent() != nullptr;
     }
 
     SnapshotPtr parent()
     {
+    	LockGuardT lock_guard(history_node_->allocator_mutex());
         if (history_node_->parent())
         {
             HistoryNode* history_node = history_node_->parent();
@@ -373,10 +437,6 @@ public:
                     shared->set_page(page_opt.value().page());
                 }
                 else {
-                    persistent_tree_.dump();
-
-                    persistent_tree_.find(id);
-
                     throw Exception(MA_SRC, SBuf()<<"Page is not found for the specified id: "<<id);
                 }
             }
@@ -771,7 +831,7 @@ protected:
         Page* new_page = T2T<Page*>(buffer);
 
         new_page->uuid()        = newId();
-        new_page->references()  = 0;
+        new_page->references1()  = 0;
 
         return new_page;
     }
@@ -819,14 +879,14 @@ protected:
 
     void set_page(Page* page)
     {
-        page->ref();
+        page->ref1();
 
         const auto& txn_id = history_node_->txn_id();
         using Value = typename PersitentTree::Value;
         auto old_value = persistent_tree_.assign(page->id(), Value(page, txn_id));
 
         if (old_value.page()) {
-            old_value.page()->unref();
+            old_value.page()->unref1();
         }
     }
 
@@ -856,7 +916,7 @@ protected:
             for (Int c = 0; c < leaf->size(); c++)
             {
                 auto& page_descr = leaf->data(c);
-                if (page_descr.page()->unref() == 0)
+                if (page_descr.page()->unref1() == 0)
                 {
                     auto shared = pool_.get(page_descr.page()->id());
 
@@ -880,7 +940,7 @@ protected:
             for (Int c = 0; c < leaf->size(); c++)
             {
                 auto& page_descr = leaf->data(c);
-                if (page_descr.page()->unref() == 0)
+                if (page_descr.page()->unref1() == 0)
                 {
                     ::free(page_descr.page());
                 }

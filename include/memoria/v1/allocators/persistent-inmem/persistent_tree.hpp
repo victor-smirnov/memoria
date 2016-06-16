@@ -28,6 +28,7 @@
 #include <unordered_map>
 #include <memory>
 #include <malloc.h>
+#include <mutex>
 
 namespace memoria {
 namespace v1 {
@@ -46,9 +47,9 @@ public:
 
     using NodeBasePtr   = NodeBaseT*;
 
-    using Iterator          = PersistentTreeIterator<BranchNodeT, LeafNodeT>;
-    using ConstIterator     = PersistentTreeConstIterator<BranchNodeT, LeafNodeT>;
-    using Path              = typename Iterator::Path;
+    using Iterator      = PersistentTreeIterator<BranchNodeT, LeafNodeT>;
+    using ConstIterator = PersistentTreeConstIterator<BranchNodeT, LeafNodeT>;
+    using Path          = typename Iterator::Path;
 
 private:
     RootProvider* root_provider_;
@@ -279,7 +280,7 @@ protected:
 
     void delete_tree(NodeBaseT* node, std::function<void (LeafNodeT*)> fn)
     {
-        if (node->unref1() == 0)
+        if (node->unref() == 0)
         {
             if (node->is_leaf())
             {
@@ -421,10 +422,10 @@ protected:
 
                 NodeBaseT* clone = clone_node(node);
 
-                parent->data(parent_idx)->unref1();
+                parent->data(parent_idx)->unref();
                 parent->data(parent_idx) = clone;
 
-                clone->ref2();
+                clone->ref();
 
                 path[level] = clone;
             }
@@ -466,7 +467,7 @@ protected:
 
         auto page = leaf->data(iter.idx()).page();
 
-        if (page->unref() == 0)
+        if (page->unref1() == 0)
         {
             ::free(page);
         }
@@ -514,7 +515,7 @@ protected:
     void insert_child_node(BranchNodeT* node, Int idx, NodeBaseT* child)
     {
         node->insert(idx, child->max_key(), child);
-        child->ref2();
+        child->ref();
     }
 
     void split_path(Path& path, Path& next, Int level = 0)
@@ -661,7 +662,7 @@ protected:
 
             root_provider_->set_root(node);
 
-            node->unref1();
+            node->unref();
 
             remove_node(root);
 
@@ -679,7 +680,7 @@ protected:
         {
             NodeBaseT* child = node->data(c);
 
-            child->ref2();
+            child->ref();
         }
     }
 
@@ -752,7 +753,7 @@ protected:
 
         for (Int c = 0; c < clone->size(); c++)
         {
-            clone->data(c).page()->ref();
+            clone->data(c).page()->ref1();
         }
 
         return clone;

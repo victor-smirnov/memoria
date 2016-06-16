@@ -30,25 +30,52 @@
 #include <limits>
 #include <string>
 #include <unordered_map>
-#include "../../core/tools/pair.hpp"
+#include <mutex>
+
+#include <memoria/v1/core/tools/pair.hpp>
 
 namespace memoria {
 namespace v1 {
 
-template <typename ValueT, typename TxnIdT>
-class PersistentTreeValue {
-    ValueT page_;
-    TxnIdT txn_id_;
-public:
-    PersistentTreeValue(): page_(), txn_id_() {}
-    PersistentTreeValue(const ValueT& page, const TxnIdT& txn_id): page_(page), txn_id_(txn_id) {}
+namespace {
 
-    const ValueT& page() const {return page_;}
-    ValueT& page() {return page_;}
+	template <typename PageT>
+	class PagePtr {
+		PageT* page_;
+		std::atomic<BigInt> refs_;
+	public:
+		PagePtr(PageT* page): page_(page) {}
+		PageT* page() {return page_;}
+		PageT* operator->() {return page_;}
+		const PageT* operator->() const {return page_;}
 
-    const TxnIdT& txn_id() const {return txn_id_;}
-    TxnIdT& txn_id() {return txn_id_;}
-};
+		void ref() {
+			refs_++;
+		}
+
+		BigInt unref() {
+			return --refs_;
+		}
+	};
+
+
+	template <typename ValueT, typename TxnIdT>
+	class PersistentTreeValue {
+		ValueT page_;
+		TxnIdT txn_id_;
+	public:
+		PersistentTreeValue(): page_(), txn_id_() {}
+		PersistentTreeValue(const ValueT& page, const TxnIdT& txn_id): page_(page), txn_id_(txn_id) {}
+
+		const ValueT& page() const {return page_;}
+		ValueT& page() {return page_;}
+
+		const TxnIdT& txn_id() const {return txn_id_;}
+		TxnIdT& txn_id() {return txn_id_;}
+	};
+
+}
+
 
 template <typename V, typename T>
 OutputStreamHandler& operator<<(OutputStreamHandler& out, const PersistentTreeValue<V, T>& value)
@@ -83,8 +110,6 @@ template <typename Profile, typename PageType>
 class PersistentInMemAllocatorT: public enable_shared_from_this<PersistentInMemAllocatorT<Profile, PageType>> {
 public:
 
-
-
     static constexpr Int NodeIndexSize  = 32;
     static constexpr Int NodeSize       = NodeIndexSize * 8;
 
@@ -108,11 +133,16 @@ public:
     using NodeBaseT         = typename BranchNodeT::NodeBaseT;
     using NodeBaseBufferT   = typename BranchNodeBufferT::NodeBaseT;
 
+    using MutexT			= std::mutex;
+    using LockGuardT		= std::lock_guard<MutexT>;
+
     struct HistoryNode {
 
         enum class Status {ACTIVE, COMMITTED, DROPPED};
 
     private:
+        MyType* allocator_;
+
         HistoryNode* parent_;
         String metadata_;
 
@@ -130,8 +160,9 @@ public:
 
     public:
 
-        HistoryNode(HistoryNode* parent, Status status = Status::ACTIVE):
-            parent_(parent),
+        HistoryNode(MyType* allocator, Status status = Status::ACTIVE):
+        	allocator_(allocator),
+            parent_(nullptr),
             root_(nullptr),
             root_id_(),
             status_(status),
@@ -142,7 +173,21 @@ public:
             }
         }
 
-        HistoryNode(const TxnId& txn_id, HistoryNode* parent, Status status):
+        HistoryNode(HistoryNode* parent, Status status = Status::ACTIVE):
+        	allocator_(parent->allocator_),
+			parent_(parent),
+			root_(nullptr),
+			root_id_(),
+			status_(status),
+			txn_id_(UUID::make_random())
+        {
+        	if (parent_) {
+        		parent_->children().push_back(this);
+        	}
+        }
+
+        HistoryNode(MyType* allocator, const TxnId& txn_id, HistoryNode* parent, Status status):
+        	allocator_(allocator),
             parent_(parent),
             root_(nullptr),
             root_id_(),
@@ -153,6 +198,9 @@ public:
                 parent_->children().push_back(this);
             }
         }
+
+        MutexT& allocator_mutex() {return allocator_->mutex_;}
+        const MutexT& allocator_mutex() const {return allocator_->mutex_;}
 
         void remove_child(HistoryNode* child)
         {
@@ -196,13 +244,13 @@ public:
         void set_root(NodeBaseT* new_root)
         {
             if (root_) {
-                root_->unref1();
+                root_->unref();
             }
 
             root_ = new_root;
 
             if (root_) {
-                root_->ref2();
+                root_->ref();
             }
         }
 
@@ -371,6 +419,8 @@ private:
 
     PairPtr pair_;
 
+    MutexT mutex_;
+
 public:
     PersistentInMemAllocatorT():
         logger_("PersistentInMemAllocator"),
@@ -378,7 +428,7 @@ public:
     {
         SnapshotT::initMetadata();
 
-        master_ = history_tree_ = new HistoryNode(nullptr, HistoryNode::Status::ACTIVE);
+        master_ = history_tree_ = new HistoryNode(this, HistoryNode::Status::ACTIVE);
 
         snapshot_map_[history_tree_->txn_id()] = history_tree_;
 
@@ -399,6 +449,26 @@ public:
     virtual ~PersistentInMemAllocatorT()
     {
         free_memory(history_tree_);
+    }
+
+    std::mutex& mutex() {
+    	return mutex_;
+    }
+
+    const std::mutex& mutex() const {
+    	return mutex_;
+    }
+
+    void lock() {
+    	mutex_.lock();
+    }
+
+    void unlock() {
+    	mutex_.unlock();
+    }
+
+    bool try_lock() {
+    	return mutex_.try_lock();
     }
 
     PairPtr& pair() {
@@ -428,7 +498,9 @@ public:
 
     void pack()
     {
-        do_pack(history_tree_, 0);
+        std::lock_guard<MutexT> lock(mutex_);
+
+    	do_pack(history_tree_, 0);
     }
 
 
@@ -444,6 +516,8 @@ public:
 
     SnapshotPtr find(const TxnId& snapshot_id)
     {
+    	LockGuardT lock_guard(mutex_);
+
         auto iter = snapshot_map_.find(snapshot_id);
         if (iter != snapshot_map_.end())
         {
@@ -464,7 +538,9 @@ public:
 
     SnapshotPtr find_branch(StringRef name)
     {
-        auto iter = named_branches_.find(name);
+    	LockGuardT lock_guard(mutex_);
+
+    	auto iter = named_branches_.find(name);
         if (iter != named_branches_.end())
         {
             auto history_node = iter->second;
@@ -484,11 +560,14 @@ public:
 
     SnapshotPtr master()
     {
+    	LockGuardT lock_guard(mutex_);
         return std::make_shared<SnapshotT>(master_, this->shared_from_this());
     }
 
     void set_master(const TxnId& txn_id)
     {
+    	LockGuardT lock_guard(mutex_);
+
         auto iter = snapshot_map_.find(txn_id);
         if (iter != snapshot_map_.end())
         {
@@ -511,6 +590,8 @@ public:
 
     void set_branch(StringRef name, const TxnId& txn_id)
     {
+    	LockGuardT lock_guard(mutex_);
+
         auto iter = snapshot_map_.find(txn_id);
         if (iter != snapshot_map_.end())
         {
@@ -528,11 +609,14 @@ public:
     }
 
     ContainerMetadataRepository* getMetadata() const {
+    	LockGuardT lock_guard(mutex_);
         return metadata_;
     }
 
     virtual void walkContainers(ContainerWalker* walker, const char* allocator_descr = nullptr)
     {
+    	LockGuardT lock_guard(mutex_);
+
         walker->beginAllocator("PersistentInMemAllocator", allocator_descr);
 
         walk_containers(history_tree_, walker);
@@ -542,13 +626,15 @@ public:
 
     virtual void store(const char* file)
     {
-        auto fileh = FileOutputStreamHandler::create(file);
+    	auto fileh = FileOutputStreamHandler::create(file);
         store(fileh.get());
     }
 
     virtual void store(OutputStreamHandler *output)
     {
-        if (active_snapshots_) {
+    	LockGuardT lock_guard(mutex_);
+
+    	if (active_snapshots_) {
             throw Exception(MA_SRC, "There are active snapshots");
         }
 
@@ -612,8 +698,6 @@ public:
         allocator->master_ = allocator->history_tree_ = nullptr;
 
         allocator->snapshot_map_.clear();
-
-//        BigInt size = input->size();
 
         HistoryTreeNodeMap      history_node_map;
         PersistentTreeNodeMap   ptree_node_map;
@@ -761,7 +845,7 @@ private:
         {
             HistoryNodeBuffer* buffer = iter->second;
 
-            HistoryNode* node = new HistoryNode(txn_id, parent, buffer->status());
+            HistoryNode* node = new HistoryNode(this, txn_id, parent, buffer->status());
 
             node->root_id() = buffer->root_id();
             node->metadata() = buffer->metadata();
@@ -838,7 +922,6 @@ private:
                 }
             }
 
-//          delete leaf;
             leaf->del();
         }
         else {
@@ -853,7 +936,6 @@ private:
                 }
             }
 
-//          delete branch;
             branch->del();
         }
     }
@@ -1189,7 +1271,7 @@ private:
             {
                 const auto& data = leaf->data(c);
 
-                if (data.txn_id() == txn_id || data.page()->references() == 1)
+                if (data.txn_id() == txn_id || data.page()->references1() == 1)
                 {
                     write(out, data.page());
                 }
