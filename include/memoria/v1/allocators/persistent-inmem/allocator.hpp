@@ -40,22 +40,31 @@ namespace v1 {
 namespace {
 
 	template <typename PageT>
-	class PagePtr {
+	struct PagePtr {
+		using RefCntT = BigInt;
+	private:
 		PageT* page_;
-		std::atomic<BigInt> refs_;
+		std::atomic<RefCntT> refs_;
 	public:
-		PagePtr(PageT* page): page_(page) {}
-		PageT* page() {return page_;}
+		PagePtr(PageT* page, BigInt refs): page_(page), refs_(refs) {}
+
+		~PagePtr() {::free(page_);}
+
+		PageT* raw_data() {return page_;}
+		const PageT* raw_data() const {return page_;}
+
 		PageT* operator->() {return page_;}
 		const PageT* operator->() const {return page_;}
 
-		void ref() {
-			refs_++;
+		void clear() {
+			page_ = nullptr;
 		}
 
-		BigInt unref() {
-			return --refs_;
-		}
+		void ref() {refs_++;}
+
+		RefCntT references() const {return refs_;}
+
+		RefCntT unref() {return --refs_;}
 	};
 
 
@@ -64,11 +73,13 @@ namespace {
 		ValueT page_;
 		TxnIdT txn_id_;
 	public:
+		using Value = ValueT;
+
 		PersistentTreeValue(): page_(), txn_id_() {}
 		PersistentTreeValue(const ValueT& page, const TxnIdT& txn_id): page_(page), txn_id_(txn_id) {}
 
-		const ValueT& page() const {return page_;}
-		ValueT& page() {return page_;}
+		const ValueT& page_ptr() const {return page_;}
+		ValueT& page_ptr() {return page_;}
 
 		const TxnIdT& txn_id() const {return txn_id_;}
 		TxnIdT& txn_id() {return txn_id_;}
@@ -80,7 +91,7 @@ namespace {
 template <typename V, typename T>
 OutputStreamHandler& operator<<(OutputStreamHandler& out, const PersistentTreeValue<V, T>& value)
 {
-    out << value.page();
+    out << value.page_ptr();
     out << value.txn_id();
     return out;
 }
@@ -88,7 +99,7 @@ OutputStreamHandler& operator<<(OutputStreamHandler& out, const PersistentTreeVa
 template <typename V, typename T>
 InputStreamHandler& operator>>(InputStreamHandler& in, PersistentTreeValue<V, T>& value)
 {
-    in >> value.page();
+    in >> value.page_ptr();
     in >> value.txn_id();
     return in;
 }
@@ -97,7 +108,7 @@ template <typename V, typename T>
 std::ostream& operator<<(std::ostream& out, const PersistentTreeValue<V, T>& value)
 {
     out<<"PersistentTreeValue[";
-    out << value.page();
+    out << value.page_ptr()->raw_data();
     out<<", ";
     out << value.txn_id();
     out<<"]";
@@ -117,7 +128,7 @@ public:
 
 
     using Page          = PageType;
-
+    using RCPagePtr		= PagePtr<Page>;
 
     using Key           = typename PageType::ID;
     using Value         = PageType*;
@@ -125,7 +136,7 @@ public:
     using TxnId             = UUID;
     using PTreeNodeId       = UUID;
 
-    using LeafNodeT         = v1::persistent_inmem::LeafNode<Key, PersistentTreeValue<PageType*, TxnId>, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
+    using LeafNodeT         = v1::persistent_inmem::LeafNode<Key, PersistentTreeValue<RCPagePtr*, TxnId>, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
     using LeafNodeBufferT   = v1::persistent_inmem::LeafNode<Key, PersistentTreeValue<typename PageType::ID, TxnId>, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
 
     using BranchNodeT       = v1::persistent_inmem::BranchNode<Key, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
@@ -366,7 +377,7 @@ public:
 
     using HistoryTreeNodeMap    = std::unordered_map<PTreeNodeId, HistoryNodeBuffer*, UUIDKeyHash, UUIDKeyEq>;
     using PersistentTreeNodeMap = std::unordered_map<PTreeNodeId, std::pair<NodeBaseBufferT*, NodeBaseT*>, UUIDKeyHash, UUIDKeyEq>;
-    using PageMap               = std::unordered_map<typename PageType::ID, PageType*, UUIDKeyHash, UUIDKeyEq>;
+    using PageMap               = std::unordered_map<typename PageType::ID, RCPagePtr*, UUIDKeyHash, UUIDKeyEq>;
     using BranchMap             = std::unordered_map<String, HistoryNode*>;
 
     template <typename, typename, typename, typename, typename>
@@ -748,14 +759,14 @@ public:
                 {
                     const auto& descr = leaf_buffer->data(c);
 
-                    auto page_iter = page_map.find(descr.page());
+                    auto page_iter = page_map.find(descr.page_ptr());
 
                     if (page_iter != page_map.end())
                     {
                         leaf_node->data(c) = typename LeafNodeT::Value(page_iter->second, descr.txn_id());
                     }
                     else {
-                        throw Exception(MA_SRC, SBuf()<<"Specified uuid "<<descr.page()<<" is not found in the page map");
+                        throw Exception(MA_SRC, SBuf() << "Specified uuid " << descr.page_ptr() << " is not found in the page map");
                     }
                 }
             }
@@ -774,7 +785,7 @@ public:
                         branch_node->data(c) = iter->second.second;
                     }
                     else {
-                        throw Exception(MA_SRC, SBuf()<<"Specified uuid "<<node_id<<" is not found in the persistent tree node map");
+                        throw Exception(MA_SRC, SBuf() << "Specified uuid " << node_id << " is not found in the persistent tree node map");
                     }
                 }
             }
@@ -787,7 +798,7 @@ public:
             allocator->master_ = allocator->snapshot_map_[metadata.master()];
         }
         else {
-            throw Exception(MA_SRC, SBuf()<<"Specified master uuid "<<metadata.master()<<" is not found in the data");
+            throw Exception(MA_SRC, SBuf() << "Specified master uuid " << metadata.master() << " is not found in the data");
         }
 
         for (auto& entry: metadata.named_branches())
@@ -799,7 +810,7 @@ public:
                 allocator->named_branches_[entry.first] = iter->second;
             }
             else {
-                throw Exception(MA_SRC, SBuf()<<"Specified snapshot uuid "<<entry.first<<" is not found");
+                throw Exception(MA_SRC, SBuf() << "Specified snapshot uuid " << entry.first << " is not found");
             }
         }
 
@@ -868,7 +879,7 @@ private:
                     return node;
                 }
                 else {
-                    throw Exception(MA_SRC, SBuf()<<"Specified node_id "<<buffer->root()<<" is not found in persistent tree data");
+                    throw Exception(MA_SRC, SBuf() << "Specified node_id " << buffer->root() << " is not found in persistent tree data");
                 }
             }
             else {
@@ -881,7 +892,7 @@ private:
             }
         }
         else {
-            throw Exception(MA_SRC, SBuf()<<"Specified txn_id "<<txn_id<<" is not found in history data");
+            throw Exception(MA_SRC, SBuf() << "Specified txn_id " << txn_id << " is not found in history data");
         }
     }
 
@@ -968,7 +979,11 @@ private:
 
     void read_data_page(InputStreamHandler& in, PageMap& map)
     {
-        Int page_data_size;
+    	typename RCPagePtr::RefCntT references;
+
+    	in >> references;
+
+    	Int page_data_size;
         in >> page_data_size;
 
         Int page_size;
@@ -991,10 +1006,10 @@ private:
 
         if (map.find(page->uuid()) == map.end())
         {
-            map[page->uuid()] = page;
+            map[page->uuid()] = new RCPagePtr(page, references);
         }
         else {
-            throw Exception(MA_SRC, SBuf()<<"Page "<<page->uuid()<<" was already registered");
+            throw Exception(MA_SRC, SBuf() << "Page " << page->uuid() << " was already registered");
         }
     }
 
@@ -1013,7 +1028,7 @@ private:
             map[buffer->node_id()] = std::make_pair(buffer, node);
         }
         else {
-            throw Exception(MA_SRC, SBuf()<<"PersistentTree LeafNode "<<buffer->node_id()<<" was already registered");
+            throw Exception(MA_SRC, SBuf() << "PersistentTree LeafNode " << buffer->node_id() << " was already registered");
         }
     }
 
@@ -1032,7 +1047,7 @@ private:
             map[buffer->node_id()] = std::make_pair(buffer, node);
         }
         else {
-            throw Exception(MA_SRC, SBuf()<<"PersistentTree BranchNode "<<buffer->node_id()<<" was already registered");
+            throw Exception(MA_SRC, SBuf() << "PersistentTree BranchNode " << buffer->node_id() << " was already registered");
         }
     }
 
@@ -1073,13 +1088,20 @@ private:
             map[node->txn_id()] = node;
         }
         else {
-            throw Exception(MA_SRC, SBuf()<<"HistoryTree Node "<<node->txn_id()<<" was already registered");
+            throw Exception(MA_SRC, SBuf() << "HistoryTree Node " << node->txn_id() << " was already registered");
         }
     }
 
 
 
 
+//    void update_leaf_references(LeafNodeT* node)
+//    {
+//        for (Int c = 0; c < node->size(); c++)
+//        {
+//        	node->data(c)->page_ptr()->raw_data()->references() = node->data(c)->page_ptr()->references();
+//        }
+//    }
 
 
 
@@ -1091,8 +1113,8 @@ private:
 
         for (Int c = 0; c < node->size(); c++)
         {
-            buf->data(c) = typename LeafNodeBufferT::Value(
-                node->data(c).page()->uuid(),
+        	buf->data(c) = typename LeafNodeBufferT::Value(
+                node->data(c).page_ptr()->raw_data()->uuid(),
                 node->data(c).txn_id()
             );
         }
@@ -1271,9 +1293,9 @@ private:
             {
                 const auto& data = leaf->data(c);
 
-                if (data.txn_id() == txn_id || data.page()->references1() == 1)
+                if (data.txn_id() == txn_id || data.page_ptr()->references() == 1)
                 {
-                    write(out, data.page());
+                    write(out, data.page_ptr());
                 }
             }
         }
@@ -1314,10 +1336,14 @@ private:
         records_++;
     }
 
-    void write(OutputStreamHandler& out, const PageType* page)
+    void write(OutputStreamHandler& out, const RCPagePtr* page_ptr)
     {
+    	auto page = page_ptr->raw_data();
+
         UByte type = TYPE_DATA_PAGE;
         out << type;
+
+        out << page_ptr->references();
 
         auto pageMetadata = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
 

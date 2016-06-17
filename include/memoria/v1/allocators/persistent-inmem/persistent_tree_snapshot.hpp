@@ -81,6 +81,7 @@ class Snapshot:
     using NodeBaseT         = typename PersitentTree::NodeBaseT;
     using LeafNodeT         = typename PersitentTree::LeafNodeT;
     using PTreeValue        = typename PersitentTree::LeafNodeT::Value;
+    using RCPagePtr			= typename std::remove_pointer<typename PersitentTree::Value::Value>::type;
 
     using Status            = typename HistoryNode::Status;
 
@@ -434,7 +435,7 @@ public:
                         shared->state() = Shared::UPDATE;
                     }
 
-                    shared->set_page(page_opt.value().page());
+                    shared->set_page(page_opt.value().page_ptr()->raw_data());
                 }
                 else {
                     throw Exception(MA_SRC, SBuf()<<"Page is not found for the specified id: "<<id);
@@ -474,9 +475,9 @@ public:
 
                     if (page_opt.value().txn_id() != txn_id)
                     {
-                        Page* new_page = clone_page(page_opt.value().page());
+                        Page* new_page = clone_page(page_opt.value().page_ptr()->raw_data());
 
-                        set_page(new_page);
+                        ptree_set_new_page(new_page);
 
                         shared->set_page(new_page);
 
@@ -485,14 +486,12 @@ public:
                     else {
                         MEMORIA_V1_ASSERT(shared->state(), ==, Shared::UPDATE);
 
-                        shared->set_page(page_opt.value().page());
+                        shared->set_page(page_opt.value().page_ptr()->raw_data());
 
                         shared->refresh();
                     }
                 }
                 else {
-                    persistent_tree_.dump();
-
                     throw Exception(MA_SRC, SBuf()<<"Page is not found for the specified id: "<<id);
                 }
             }
@@ -502,9 +501,9 @@ public:
 
                 if (page_opt)
                 {
-                    Page* new_page = clone_page(page_opt.value().page());
+                    Page* new_page = clone_page(page_opt.value().page_ptr()->raw_data());
 
-                    set_page(new_page);
+                    ptree_set_new_page(new_page);
                     shared->set_page(new_page);
 
                     shared->refresh();
@@ -543,7 +542,7 @@ public:
         {
             Page* new_page = clone_page(shared->get());
 
-            set_page(new_page);
+            ptree_set_new_page(new_page);
 
             shared->set_page(new_page);
 
@@ -607,7 +606,7 @@ public:
         shared->set_page(p);
         shared->set_allocator(this);
 
-        set_page(p);
+        ptree_set_new_page(p);
 
         return PageG(shared);
     }
@@ -628,7 +627,7 @@ public:
 
             shared->set_page(new_page);
 
-            set_page(new_page);
+            ptree_set_new_page(new_page);
         }
         else if (shared->state() == Shared::UPDATE)
         {
@@ -641,7 +640,7 @@ public:
 
             shared->set_page(new_page);
 
-            set_page(new_page);
+            ptree_set_new_page(new_page);
         }
     }
 
@@ -830,8 +829,7 @@ protected:
         CopyByteBuffer(page, buffer, page->page_size());
         Page* new_page = T2T<Page*>(buffer);
 
-        new_page->uuid()        = newId();
-        new_page->references1()  = 0;
+        new_page->uuid() = newId();
 
         return new_page;
     }
@@ -877,16 +875,19 @@ protected:
         return ::malloc(size);
     }
 
-    void set_page(Page* page)
+    void ptree_set_new_page(Page* page)
     {
-        page->ref1();
-
         const auto& txn_id = history_node_->txn_id();
         using Value = typename PersitentTree::Value;
-        auto old_value = persistent_tree_.assign(page->id(), Value(page, txn_id));
+        auto ptr = new RCPagePtr(page, 1);
+        auto old_value = persistent_tree_.assign(page->id(), Value(ptr, txn_id));
 
-        if (old_value.page()) {
-            old_value.page()->unref1();
+        if (old_value.page_ptr())
+        {
+            // FIXME: delete page if refs == 0?
+        	if (old_value.page_ptr()->unref() == 0) {
+        		throw Exception(MA_SRC, SBuf() << "Unexpected refcount == 0 for page " << old_value.page_ptr()->raw_data()->uuid());
+        	}
         }
     }
 
@@ -916,17 +917,17 @@ protected:
             for (Int c = 0; c < leaf->size(); c++)
             {
                 auto& page_descr = leaf->data(c);
-                if (page_descr.page()->unref1() == 0)
+                if (page_descr.page_ptr()->unref() == 0)
                 {
-                    auto shared = pool_.get(page_descr.page()->id());
+                    auto shared = pool_.get(page_descr.page_ptr()->raw_data()->id());
 
-                    if (!shared)
+                    if (shared)
                     {
-                        ::free(page_descr.page());
-                    }
-                    else {
+                    	page_descr.page_ptr()->clear();
                         shared->state() = Shared::DELETE;
                     }
+
+                    delete page_descr.page_ptr();
                 }
             }
         });
@@ -940,9 +941,9 @@ protected:
             for (Int c = 0; c < leaf->size(); c++)
             {
                 auto& page_descr = leaf->data(c);
-                if (page_descr.page()->unref1() == 0)
+                if (page_descr.page_ptr()->unref() == 0)
                 {
-                    ::free(page_descr.page());
+                    delete page_descr.page_ptr();
                 }
             }
         });

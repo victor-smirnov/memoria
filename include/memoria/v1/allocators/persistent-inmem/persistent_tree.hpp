@@ -465,11 +465,11 @@ protected:
 
         LeafNodeT* leaf = iter.leaf();
 
-        auto page = leaf->data(iter.idx()).page();
+        auto page = leaf->data(iter.idx()).page_ptr();
 
-        if (page->unref1() == 0)
+        if (page->unref() == 0)
         {
-            ::free(page);
+            delete page;
         }
 
         leaf->remove(iter.idx(), iter.idx() + 1);
@@ -753,7 +753,7 @@ protected:
 
         for (Int c = 0; c < clone->size(); c++)
         {
-            clone->data(c).page()->ref1();
+            clone->data(c).page_ptr()->ref();
         }
 
         return clone;
