@@ -407,9 +407,173 @@ public:
         }
     }
 
-    void join(SnapshotPtr txn) {
-        //TODO
+    void for_each_ctr_node(const UUID& name, typename ContainerInterface::BlockCallbackFn fn)
+    {
+    	auto root_id = this->getRootID(name);
+    	auto page 	 = this->getPage(root_id, name);
+
+    	if (page)
+    	{
+    		Int master_hash = page->master_ctr_type_hash();
+    		Int ctr_hash    = page->ctr_type_hash();
+
+    		auto ctr_meta   = metadata_->getContainerMetadata(master_hash != 0 ? master_hash : ctr_hash);
+
+    		ctr_meta->getCtrInterface()->for_each_ctr_node(name, this, fn);
+    	}
+    	else {
+    		throw Exception(MA_SRC, SBuf() << "Container with name " << name << " does not exist in snapshot " << history_node_->txn_id());
+    	}
     }
+
+    void move_new_ctr_from(const SnapshotPtr& txn, const UUID& name)
+    {
+    	txn->checkIfLocked();
+
+    	ID root_id = this->getRootID(name);
+
+    	auto txn_id = currentTxnId();
+
+    	if (root_id.is_null())
+    	{
+    		txn->for_each_ctr_node(name, [&](const UUID& uuid, const UUID& id, const void* page_data){
+    			auto rc_handle = txn->export_page(id);
+    			using Value = typename PersitentTree::Value;
+
+    			rc_handle->ref();
+
+    			auto old_value = persistent_tree_.assign(id, Value(rc_handle, txn_id));
+
+    			if (old_value.page_ptr())
+    			{
+    				throw Exception(MA_SRC, SBuf() << "Page with ID " << id << " is not new in snapshot " << txn_id);
+    			}
+    		});
+
+    		auto root_id = txn->getRootID(name);
+    		if (root_id.is_set())
+    		{
+    			root_map_->assign(name, root_id);
+    			txn->forget_ctr(name);
+    		}
+    		else {
+    			throw Exception(MA_SRC, SBuf() << "Unexpected empty root ID for container " << name << " in snapshot " << txn->currentTxnId());
+    		}
+    	}
+    	else {
+    		throw Exception(MA_SRC, SBuf() << "Container with name " << name << " already exists in snapshot " << txn_id);
+    	}
+    }
+
+
+    void copy_new_ctr_from(const SnapshotPtr& txn, const UUID& name)
+    {
+    	ID root_id = this->getRootID(name);
+
+    	auto txn_id = currentTxnId();
+
+    	if (root_id.is_null())
+    	{
+    		txn->for_each_ctr_node(name, [&](const UUID& uuid, const UUID& id, const void* page_data){
+    			import_foreign_page(T2T<const Page*>(page_data));
+    		});
+
+    		auto root_id = txn->getRootID(name);
+    		if (root_id.is_set())
+    		{
+    			root_map_->assign(name, root_id);
+    		}
+    		else {
+    			throw Exception(MA_SRC, SBuf() << "Unexpected empty root ID for container " << name << " in snapshot " << txn->currentTxnId());
+    		}
+    	}
+    	else {
+    		throw Exception(MA_SRC, SBuf() << "Container with name " << name << " already exists in snapshot " << txn_id);
+    	}
+    }
+
+
+    void move_ctr_from(const SnapshotPtr& txn, const UUID& name)
+    {
+    	txn->checkIfLocked();
+
+    	ID root_id = this->getRootID(name);
+
+    	auto txn_id = currentTxnId();
+
+    	if (!root_id.is_null())
+    	{
+    		txn->for_each_ctr_node(name, [&, this](const UUID& uuid, const UUID& id, const void* page_data) {
+    			auto page = this->getPage(id, name);
+    			if (page && page->uuid() == uuid)
+    			{
+    				return;
+    			}
+
+    			auto rc_handle = txn->export_page(id);
+    			using Value = typename PersitentTree::Value;
+
+    			rc_handle->ref();
+
+    			auto old_value = persistent_tree_.assign(id, Value(rc_handle, txn_id));
+
+    			if (old_value.page_ptr())
+    			{
+    				if (old_value.page_ptr()->unref() == 0)
+    				{
+    					throw Exception(MA_SRC, SBuf() << "Unexpected refcount == 0 for page " << old_value.page_ptr()->raw_data()->uuid());
+    				}
+    			}
+    		});
+
+    		auto root_id = txn->getRootID(name);
+    		if (root_id.is_set())
+    		{
+    			root_map_->assign(name, root_id);
+    		}
+    		else {
+    			throw Exception(MA_SRC, SBuf() << "Unexpected empty root ID for container " << name << " in snapshot " << txn->currentTxnId());
+    		}
+    	}
+    	else {
+    		move_new_ctr_from(txn, name);
+    	}
+    }
+
+
+    void copy_ctr_from(const SnapshotPtr& txn, const UUID& name)
+    {
+    	ID root_id = this->getRootID(name);
+
+    	auto txn_id = currentTxnId();
+
+    	if (!root_id.is_null())
+    	{
+    		txn->for_each_ctr_node(name, [&, this](const UUID& uuid, const UUID& id, const void* page_data) {
+    			auto page = this->getPage(id, name);
+    			if (page && page->uuid() == uuid)
+    			{
+    				return;
+    			}
+
+    			import_foreign_page(T2T<const Page*>(page_data));
+    		});
+
+    		auto root_id = txn->getRootID(name);
+    		if (root_id.is_set())
+    		{
+    			root_map_->assign(name, root_id);
+    			txn->forget_ctr(name);
+    		}
+    		else {
+    			throw Exception(MA_SRC, SBuf() << "Unexpected empty root ID for container " << name << " in snapshot " << txn_id);
+    		}
+    	}
+    	else {
+    		copy_new_ctr_from(txn, name);
+    	}
+    }
+
 
     virtual PageG getPage(const ID& id, const UUID& name)
     {
@@ -709,7 +873,7 @@ public:
                 root_map_->remove(name);
             }
             else {
-                throw Exception(MA_SRC, SBuf()<<"Allocator directory removal attempted");
+                throw Exception(MA_SRC, SBuf() << "Allocator directory removal attempted");
             }
         }
         else {
@@ -765,7 +929,7 @@ public:
 
     virtual void walkContainers(ContainerWalker* walker, const char* allocator_descr = nullptr)
     {
-        walker->beginSnapshot((SBuf()<<"Snapshot-"<<history_node_->txn_id()).str().c_str());
+        walker->beginSnapshot((SBuf() << "Snapshot-" << history_node_->txn_id()).str().c_str());
 
         auto iter = root_map_->Begin();
 
@@ -821,6 +985,50 @@ public:
 
 
 protected:
+
+    void forget_ctr(const UUID& name)
+    {
+    	checkIfLocked();
+    	root_map_->remove(name);
+    }
+
+    virtual void forget_page(const ID& id)
+    {
+    	checkIfLocked();
+
+    	auto iter = persistent_tree_.locate(id);
+
+    	if (!iter.is_end())
+    	{
+    		persistent_tree_.remove(iter);
+    	}
+    	else {
+    		throw Exception(MA_SRC, SBuf() << "Page with id " << id << " does not exist in snapshot " << currentTxnId());
+    	}
+    }
+
+
+    auto export_page(const UUID& id)
+    {
+    	auto opt = persistent_tree_.find(id);
+
+    	if (opt)
+    	{
+    		persistent_tree_.remove(id, false);
+    		return opt.value().page_ptr();
+    	}
+    	else {
+    		throw Exception(MA_SRC, SBuf() << "Page with id " << id << " does not exist in snapshot " << currentTxnId());
+    	}
+    }
+
+
+    void import_foreign_page(const Page* foreign_page)
+    {
+    	Page* new_page = clone_page(foreign_page);
+    	ptree_set_new_page(new_page);
+    }
+
 
     Page* clone_page(const Page* page)
     {
@@ -908,6 +1116,16 @@ protected:
         {
             throw Exception(MA_SRC, "Snapshot has been already committed");
         }
+    }
+
+    void checkIfLocked()
+    {
+//    	checkReadAllowed();
+//
+//    	if (!history_node_->is_active())
+//    	{
+//    		throw Exception(MA_SRC, "Snapshot has been already committed");
+//    	}
     }
 
 

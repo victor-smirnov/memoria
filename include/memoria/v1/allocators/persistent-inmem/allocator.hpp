@@ -620,7 +620,7 @@ public:
     }
 
     ContainerMetadataRepository* getMetadata() const {
-    	LockGuardT lock_guard(mutex_);
+    	//LockGuardT lock_guard(mutex_);
         return metadata_;
     }
 

@@ -198,29 +198,37 @@ public:
 
     struct CtrInterfaceImpl: public ContainerInterface {
 
+    	virtual ~CtrInterfaceImpl() {}
+
         virtual String ctr_name()
         {
             return TypeNameFactory<Name>::name();
         }
 
-        void with_ctr(const UUID& root_id, const UUID& name, void* allocator, std::function<void(MyType&)> fn) const
+        void with_ctr(const UUID& root_id, const UUID& name, Allocator* allocator, std::function<void(MyType&)> fn) const
         {
-            Allocator* alloc = T2T<Allocator*>(allocator);
+            PageG page = allocator->getPage(root_id, name);
 
-            PageG page = alloc->getPage(root_id, name);
+            if (page)
+            {
+            	auto ctr_name = MyType::getModelNameS(page);
 
-            auto ctr_name = MyType::getModelNameS(page);
+            	auto ctr_ptr = std::make_shared<MyType>(allocator, root_id, CtrInitData(ctr_name, page->master_ctr_type_hash(), page->owner_ctr_type_hash()));
 
-            auto ctr_ptr = std::make_shared<MyType>(alloc, root_id, CtrInitData(ctr_name, page->master_ctr_type_hash(), page->owner_ctr_type_hash()));
-
-            fn(*ctr_ptr.get());
+            	fn(*ctr_ptr.get());
+            }
+            else {
+            	throw Exception(MA_SRC, SBuf() << "No container root page is found for id " << root_id << " and name " << name);
+            }
         }
 
         virtual bool check(const UUID& root_id, const UUID& name, void* allocator) const
         {
             bool result = false;
 
-            with_ctr(root_id, name, allocator, [&](MyType& ctr){
+            Allocator* alloc = T2T<Allocator*>(allocator);
+
+            with_ctr(root_id, name, alloc, [&](MyType& ctr){
                 result = ctr.check(nullptr);
             });
 
@@ -234,14 +242,31 @@ public:
                 ContainerWalker* walker
         ) const
         {
-            with_ctr(root_id, name, allocator, [&](MyType& ctr){
+        	Allocator* alloc = T2T<Allocator*>(allocator);
+
+            with_ctr(root_id, name, alloc, [&](MyType& ctr){
+                ctr.walkTree(walker);
+            });
+        }
+
+        virtual void walk(
+                const UUID& name,
+                void* allocator,
+                ContainerWalker* walker
+        ) const
+        {
+        	Allocator* alloc = T2T<Allocator*>(allocator);
+        	auto root_id 	 = alloc->getRootID(name);
+
+        	with_ctr(root_id, name, alloc, [&](MyType& ctr){
                 ctr.walkTree(walker);
             });
         }
 
         virtual void drop(const UUID& root_id, const UUID& name, void* allocator)
         {
-            with_ctr(root_id, name, allocator, [&](MyType& ctr){
+        	Allocator* alloc = T2T<Allocator*>(allocator);
+            with_ctr(root_id, name, alloc, [&](MyType& ctr){
                 ctr.drop();
             });
         }
@@ -251,7 +276,45 @@ public:
             return TypeNameFactory<ContainerTypeName>::name();
         }
 
-        virtual ~CtrInterfaceImpl() {}
+
+        class CtrNodesWalkerAdapter: public ContainerWalkerBase {
+        	BlockCallbackFn consumer_;
+        public:
+        	CtrNodesWalkerAdapter(BlockCallbackFn consumer): consumer_(consumer)
+        	{}
+
+            virtual void beginRoot(Int idx, const void* page) {
+            	beginNode(idx, page);
+            }
+
+
+            virtual void beginNode(Int idx, const void* page) {
+            	const Page* p = T2T<const Page*>(page);
+            	consumer_(p->uuid(), p->id(), page);
+            }
+
+            virtual void rootLeaf(Int idx, const void* page) {
+            	beginNode(idx, page);
+            }
+
+            virtual void leaf(Int idx, const void* page) {
+            	beginNode(idx, page);
+            }
+        };
+
+
+
+        virtual void for_each_ctr_node(const UUID& name, void* allocator, BlockCallbackFn consumer)
+        {
+        	Allocator* alloc = T2T<Allocator*>(allocator);
+        	auto root_id 	 = alloc->getRootID(name);
+
+        	CtrNodesWalkerAdapter walker(consumer);
+
+        	with_ctr(root_id, name, alloc, [&](MyType& ctr){
+        		ctr.walkTree(&walker);
+        	});
+        }
     };
 
 

@@ -135,13 +135,13 @@ public:
         }
     }
 
-    bool remove(const Key& key)
+    bool remove(const Key& key, bool delete_on_unref = true)
     {
         auto iter = this->locate(key);
 
         if (!iter.is_end())
         {
-            remove_from(iter);
+            remove_from(iter, delete_on_unref);
             return true;
         }
         else {
@@ -149,8 +149,8 @@ public:
         }
     }
 
-    void remove(Iterator& iter) {
-        remove_from(iter);
+    void remove(Iterator& iter, bool delete_on_unref = true) {
+        remove_from(iter, delete_on_unref);
     }
 
     auto locate(const Key& key) const {
@@ -459,7 +459,7 @@ protected:
         this->root()->metadata().add_size(1);
     }
 
-    void remove_from(Iterator& iter)
+    void remove_from(Iterator& iter, bool delete_on_unref)
     {
         update_path(iter.path());
 
@@ -467,7 +467,7 @@ protected:
 
         auto page = leaf->data(iter.idx()).page_ptr();
 
-        if (page->unref() == 0)
+        if (page->unref() == 0 && delete_on_unref)
         {
             delete page;
         }
