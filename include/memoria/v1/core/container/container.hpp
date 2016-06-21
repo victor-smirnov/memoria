@@ -129,8 +129,12 @@ public:
     template <typename, typename, typename> friend class CtrPart;
     template <typename> friend class Ctr;
 
+	using MutexT			= std::mutex;
+    using LockGuardT		= std::lock_guard<MutexT>;
+
 
 protected:
+    static MutexT mutex_;
     static ContainerMetadataPtr reflection_;
 
     ID root_;
@@ -183,11 +187,15 @@ public:
 
     static const ContainerMetadataPtr& getMetadata()
     {
+    	LockGuardT lock_guard(mutex_);
+
         return reflection_;
     }
     
     static void destroyMetadata()
     {
+    	LockGuardT lock_guard(mutex_);
+
         if (reflection_)
         {
             MetadataRepository<typename Types::Profile>::unregisterMetadata(reflection_);
@@ -325,6 +333,8 @@ public:
 
     static Int initMetadata(Int salt = 0)
     {
+    	LockGuardT lock_guard(mutex_);
+
         if (!reflection_)
         {
             MetadataList list;
@@ -409,6 +419,9 @@ private:
 
 template <typename TypesType>
 ContainerMetadataPtr CtrBase<TypesType>::reflection_;
+
+template <typename TypesType>
+typename CtrBase<TypesType>::MutexT CtrBase<TypesType>::mutex_;
 
 
 
@@ -571,7 +584,19 @@ public:
     Ctr(MyType&& other) = delete;
 
     virtual ~Ctr() noexcept
-    {}
+    {
+    	try {
+    		allocator_->unregisterCtr(typeid(*this));
+    	}
+    	catch (Exception& ex) {
+    		cout << ex.source() << " " << ex.message() << endl;
+    		std::abort();
+    	}
+    	catch(...) {
+    		cout << "Unknown exception in ~Ctr(): " << typeid(*this).name() << endl;
+    		std::abort();
+    	}
+    }
 
     void initLogger(Logger* other)
     {
@@ -593,6 +618,8 @@ public:
         name_               = name;
         model_type_name_    = mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname();
 
+        allocator_->registerCtr(typeid(*this));
+
         this->init_data().set_master_name(name);
 
         //FIXME: init logger correctly
@@ -607,6 +634,8 @@ public:
         allocator_          = allocator;
         model_type_name_    = mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname();
         name_               = this->getModelName(root_id);
+
+        allocator_->registerCtr(typeid(*this));
 
         //FIXME: init logger correctly
 
@@ -664,8 +693,8 @@ public:
     }
 
     v1::Logger& logger() {
-            return logger_;
-        }
+        return logger_;
+    }
 
     static v1::Logger& class_logger() {
         return class_logger_;

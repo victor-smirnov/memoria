@@ -39,17 +39,14 @@ int main()
 {
     MEMORIA_INIT(DefaultProfile<>);
 
-    using Key   = FixedArray<16>;
+    using Key = FixedArray<16>;
 
     DInit<Set<Key>>();
 
-
     try {
-        auto alloc = PersistentInMemAllocator<>::create();
+//    	PersistentInMemAllocator<>::load("abcd");
 
-        alloc->lock();
-        alloc->unlock();
-        alloc->try_lock();
+        auto alloc = PersistentInMemAllocator<>::create();
 
         auto snp1 = alloc->master()->branch();
         auto snp2 = alloc->master()->branch();
@@ -63,6 +60,8 @@ int main()
 
         snp2->commit();
         snp2->set_as_master();
+
+        snp2->dump_open_containers();
 
         // Store binary contents of allocator to the file.
         auto out = FileOutputStreamHandler::create("setf_data.dump");

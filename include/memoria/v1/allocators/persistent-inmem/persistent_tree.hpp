@@ -32,7 +32,7 @@
 
 namespace memoria {
 namespace v1 {
-namespace persistent_inmem   {
+namespace persistent_inmem {
 
 
 template <typename BranchNodeT, typename LeafNodeT_, typename RootProvider, typename PageType>
@@ -50,6 +50,9 @@ public:
     using Iterator      = PersistentTreeIterator<BranchNodeT, LeafNodeT>;
     using ConstIterator = PersistentTreeConstIterator<BranchNodeT, LeafNodeT>;
     using Path          = typename Iterator::Path;
+
+    using MutexT		= typename std::remove_reference<decltype(std::declval<RootProvider>().snapshot_mutex())>::type;
+    using LockGuardT	= typename std::lock_guard<MutexT>;
 
 private:
     RootProvider* root_provider_;
@@ -71,6 +74,8 @@ public:
 
                 while (root_provider)
                 {
+                	LockGuardT guard(root_provider_->snapshot_mutex());
+
                     if (!root_provider->is_dropped())
                     {
                         target = root_provider;

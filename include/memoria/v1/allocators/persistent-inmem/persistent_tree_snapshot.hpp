@@ -85,8 +85,21 @@ class Snapshot:
 
     using Status            = typename HistoryNode::Status;
 
-    using MutexT		= typename std::remove_reference<decltype(std::declval<HistoryNode>().allocator_mutex())>::type;
-    using LockGuardT	= std::lock_guard<MutexT>;
+    using MutexT			= typename std::remove_reference<decltype(std::declval<HistoryNode>().snapshot_mutex())>::type;
+    using LockGuardT		= typename std::lock_guard<MutexT>;
+
+    class CtrDescr {
+    	BigInt references_;
+    public:
+    	CtrDescr(): references_() {}
+    	CtrDescr(BigInt val): references_(val) {}
+
+    	BigInt references() const {return references_;}
+    	void ref() 	 {++references_;}
+    	BigInt unref() {return --references_;}
+    };
+
+    using CtrInstanceMap 	= std::unordered_map<std::type_index, CtrDescr>;
 
 public:
 
@@ -110,7 +123,7 @@ private:
     public:
         virtual Int defaultPageSize() const
         {
-            return 4096;
+            return 8192;
         }
 
         virtual BigInt lastCommitId() const {
@@ -134,6 +147,7 @@ private:
 
     Properties properties_;
 
+    CtrInstanceMap instance_map_;
     std::shared_ptr<RootMapType> root_map_;
 
 
@@ -197,7 +211,7 @@ public:
 
     virtual ~Snapshot()
     {
-    	LockGuardT lock_guard(history_node_->allocator_mutex());
+    	LockGuardT snapshot_lock_guard(history_node_->snapshot_mutex());
 
         if (history_node_->unref() == 0)
         {
@@ -211,6 +225,7 @@ public:
             {
                 check_tree_structure(history_node_->root());
 
+                LockGuardT store_lock_guard(history_node_->store_mutex());
                 do_drop();
             }
         }
@@ -237,8 +252,11 @@ public:
     }
 
     bool is_active() const {
-    	LockGuardT lock_guard(history_node_->allocator_mutex());
         return history_node_->is_active();
+    }
+
+    bool is_data_locked() const {
+    	return history_node_->is_data_locked();
     }
 
     virtual bool isActive() {
@@ -246,58 +264,34 @@ public:
     }
 
     bool is_marked_to_clear() const {
-    	LockGuardT lock_guard(history_node_->allocator_mutex());
         return history_node_->is_dropped();
     }
 
     bool is_committed() const {
-    	LockGuardT lock_guard(history_node_->allocator_mutex());
         return history_node_->is_committed();
     }
 
     void commit()
     {
-    	LockGuardT lock_guard(history_node_->allocator_mutex());
+    	LockGuardT lock_guard(history_node_->snapshot_mutex());
+
         if (history_node_->is_active())
         {
             history_node_->commit();
             history_tree_raw_->unref_active();
         }
         else {
-            throw Exception(MA_SRC, SBuf()<<"Invalid Snapshot state: "<<(Int)history_node_->status());
+            throw Exception(MA_SRC, SBuf() << "Invalid Snapshot state: " << (Int)history_node_->status());
         }
-    }
-
-    bool commit_and_drop_parent()
-    {
-    	LockGuardT lock_guard(history_node_->allocator_mutex());
-
-    	if (history_node_->is_active())
-    	{
-    		history_node_->commit();
-    		history_tree_raw_->unref_active();
-
-    		HistoryNode* parent_node = history_node_->parent();
-    		if (parent_node)
-    		{
-    			if (parent_node->parent())
-    			{
-    				auto parent_snp = std::make_shared<Snapshot>(parent_node, history_tree_->shared_from_this());
-    				parent_node->mark_to_clear();
-    				return true;
-    			}
-    		}
-
-    		return false;
-    	}
-    	else {
-    		throw Exception(MA_SRC, SBuf()<<"Invalid Snapshot state: "<<(Int)history_node_->status());
-    	}
     }
 
     void drop()
     {
-    	LockGuardT lock_guard(history_node_->allocator_mutex());
+    	std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
+
+    	LockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
+    	LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
+
         if (history_node_->parent() != nullptr)
         {
             history_node_->mark_to_clear();
@@ -330,40 +324,49 @@ public:
 
     void set_as_master()
     {
-    	LockGuardT lock_guard(history_node_->allocator_mutex());
+    	std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
+
+    	LockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
+    	LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
 
     	if (history_node_->is_committed())
     	{
     		history_tree_raw_->set_master(history_node_->txn_id());
     	}
     	else {
-    		throw Exception(MA_SRC, SBuf()<<"Invalid Snapshot state: "<<(Int)history_node_->status());
+    		throw Exception(MA_SRC, SBuf() << "Invalid Snapshot state: " << (Int)history_node_->status());
     	}
     }
 
     void set_as_branch(StringRef name)
     {
-    	LockGuardT lock_guard(history_node_->allocator_mutex());
+    	std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
+
+    	LockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
+    	LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
 
     	if (history_node_->is_committed())
     	{
     		history_tree_raw_->set_branch(name, history_node_->txn_id());
     	}
     	else {
-    		throw Exception(MA_SRC, SBuf()<<"Invalid Snapshot state: "<<(Int)history_node_->status());
+    		throw Exception(MA_SRC, SBuf() << "Invalid Snapshot state: " << (Int)history_node_->status());
     	}
     }
 
-    StringRef metadata() const {
+    StringRef metadata() const
+    {
+    	LockGuardT lock_guard(history_node_->snapshot_mutex());
         return history_node_->metadata();
     }
 
     void set_metadata(StringRef metadata)
     {
-    	LockGuardT lock_guard(history_node_->allocator_mutex());
+    	LockGuardT lock_guard(history_node_->snapshot_mutex());
+
         if (history_node_->is_active())
         {
-            history_node_->metadata() = metadata;
+            history_node_->set_metadata(metadata);
         }
         else
         {
@@ -371,9 +374,58 @@ public:
         }
     }
 
+    bool lock_data_for_export()
+    {
+    	std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
+
+    	LockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
+    	LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
+
+    	if (history_node_->is_active())
+    	{
+    		history_node_->commit();
+    		history_tree_raw_->unref_active();
+    	}
+
+    	if (history_node_->is_committed())
+    	{
+    		if (history_node_->references() == 0 && history_node_->children().size() == 0)
+    		{
+    			history_node_->lock_data();
+    			return true;
+    		}
+    		else {
+    			return false;
+    		}
+    	}
+    	else if (history_node_->is_data_locked())
+    	{
+    		return true;
+    	}
+    	else {
+    		throw Exception(MA_SRC, SBuf() << "Invalid Snapshot state: " << (Int)history_node_->status());
+    	}
+    }
+
+    void unlock_data()
+    {
+    	LockGuardT lock_guard(history_node_->snapshot_mutex());
+
+    	if (history_node_->is_data_locked())
+    	{
+    		history_node_->commit();
+    	}
+    }
+
+
+
     SnapshotPtr branch()
     {
-    	LockGuardT lock_guard(history_node_->allocator_mutex());
+    	std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
+
+    	LockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
+    	LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
+
 
         if (history_node_->is_committed())
         {
@@ -382,20 +434,30 @@ public:
 
             return std::make_shared<Snapshot>(history_node, history_tree_->shared_from_this());
         }
+        else if (history_node_->is_data_locked())
+        {
+        	throw Exception(MA_SRC, "Snapshot is locked, branching is not possible.");
+        }
         else
         {
             throw Exception(MA_SRC, "Snapshot is still being active. Commit it first.");
         }
     }
 
-    bool has_parent() const {
+    bool has_parent() const
+    {
     	LockGuardT lock_guard(history_node_->allocator_mutex());
+
         return history_node_->parent() != nullptr;
     }
 
     SnapshotPtr parent()
     {
-    	LockGuardT lock_guard(history_node_->allocator_mutex());
+    	std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
+
+    	LockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
+    	LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
+
         if (history_node_->parent())
         {
             HistoryNode* history_node = history_node_->parent();
@@ -428,7 +490,7 @@ public:
 
     void move_new_ctr_from(const SnapshotPtr& txn, const UUID& name)
     {
-    	txn->checkIfLocked();
+    	txn->checkIfDataLocked();
 
     	ID root_id = this->getRootID(name);
 
@@ -495,7 +557,7 @@ public:
 
     void move_ctr_from(const SnapshotPtr& txn, const UUID& name)
     {
-    	txn->checkIfLocked();
+    	txn->checkIfDataLocked();
 
     	ID root_id = this->getRootID(name);
 
@@ -602,7 +664,7 @@ public:
                     shared->set_page(page_opt.value().page_ptr()->raw_data());
                 }
                 else {
-                    throw Exception(MA_SRC, SBuf()<<"Page is not found for the specified id: "<<id);
+                    throw Exception(MA_SRC, SBuf() << "Page is not found for the specified id: " << id);
                 }
             }
 
@@ -616,6 +678,43 @@ public:
     void dumpAccess(const char* msg, ID id, const Shared* shared)
     {
         cout<<msg<<": "<<id<<" "<<shared->get()<<" "<<shared->get()->uuid()<<" "<<shared->state()<<endl;
+    }
+
+
+    virtual void registerCtr(const type_info& ti)
+    {
+    	auto ii = instance_map_.find(ti);
+    	if (ii == instance_map_.end())
+    	{
+    		instance_map_.insert({ti, CtrDescr(1)});
+    	}
+    	else {
+    		ii->second.ref();
+    	}
+    }
+
+    virtual void unregisterCtr(const type_info& ti)
+    {
+    	auto ii = instance_map_.find(ti);
+    	if (ii == instance_map_.end())
+    	{
+    		throw Exception(MA_SRC, SBuf() << "Container " << ti.name() << " is not registered in snapshot " << currentTxnId());
+    	}
+    	else if (ii->second.unref() == 0) {
+    		instance_map_.erase(ii);
+    	}
+    }
+
+    bool has_open_containers() {
+    	return instance_map_.size() <= 1;
+    }
+
+    void dump_open_containers()
+    {
+    	for (const auto& pair: instance_map_)
+    	{
+    		cout << pair.first.name() << " -- " << pair.second.references() << endl;
+    	}
     }
 
     virtual PageG getPageForUpdate(const ID& id, const UUID& name)
@@ -656,7 +755,7 @@ public:
                     }
                 }
                 else {
-                    throw Exception(MA_SRC, SBuf()<<"Page is not found for the specified id: "<<id);
+                    throw Exception(MA_SRC, SBuf() << "Page is not found for the specified id: " << id);
                 }
             }
             else if (shared->state() == Shared::READ)
@@ -673,7 +772,7 @@ public:
                     shared->refresh();
                 }
                 else {
-                    throw Exception(MA_SRC, SBuf()<<"Page is not found for the specified id: "<<id);
+                    throw Exception(MA_SRC, SBuf() << "Page is not found for the specified id: " << id);
                 }
             }
             else if (shared->state() == Shared::UPDATE)
@@ -681,7 +780,7 @@ public:
                 //MEMORIA_ASEERT();
             }
             else {
-                throw Exception(MA_SRC, SBuf()<<"Invalid PageShared state: "<<shared->state());
+                throw Exception(MA_SRC, SBuf() << "Invalid PageShared state: " << shared->state());
             }
 
             shared->state() = Shared::UPDATE;
@@ -988,13 +1087,13 @@ protected:
 
     void forget_ctr(const UUID& name)
     {
-    	checkIfLocked();
+    	checkIfDataLocked();
     	root_map_->remove(name);
     }
 
     virtual void forget_page(const ID& id)
     {
-    	checkIfLocked();
+    	checkIfDataLocked();
 
     	auto iter = persistent_tree_.locate(id);
 
@@ -1118,14 +1217,14 @@ protected:
         }
     }
 
-    void checkIfLocked()
+    void checkIfDataLocked()
     {
-//    	checkReadAllowed();
-//
-//    	if (!history_node_->is_active())
-//    	{
-//    		throw Exception(MA_SRC, "Snapshot has been already committed");
-//    	}
+    	checkReadAllowed();
+
+    	if (!history_node_->is_data_locked())
+    	{
+    		throw Exception(MA_SRC, "Snapshot hasn't been locked");
+    	}
     }
 
 

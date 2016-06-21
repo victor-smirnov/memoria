@@ -28,6 +28,7 @@
 #include <sstream>
 #include <fstream>
 #include <ostream>
+#include <mutex>
 
 namespace memoria {
 namespace v1 {
@@ -222,7 +223,7 @@ public:
 
     virtual void registerMetadata(const ContainerMetadataPtr& metadata)
     {
-        process_model(metadata);
+    	process_model(metadata);
     }
 
     virtual void unregisterMetadata(const ContainerMetadataPtr& metadata) {}
@@ -233,6 +234,8 @@ private:
     Int                     hash_;
     PageMetadataMap         page_map_;
     ContainerMetadataMap    model_map_;
+
+    std::mutex mutex_;
 
     void process_model(const ContainerMetadataPtr& model);
 };

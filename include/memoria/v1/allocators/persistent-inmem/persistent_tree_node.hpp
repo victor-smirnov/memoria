@@ -88,7 +88,8 @@ public:
     NodeBase(const TxnId& txn_id, const NodeId& node_id, NodeType node_type):
         node_type_(node_type),
         node_id_(node_id),
-        txn_id_(txn_id)
+        txn_id_(txn_id),
+		refs_(0)
     {}
 
     template <typename Base>
