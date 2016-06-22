@@ -67,15 +67,21 @@ enum class SnapshotStatus {ACTIVE, COMMITTED, DROPPED, DATA_LOCKED};
 template <typename TxnId>
 class SnapshotMetadata {
 	TxnId parent_id_;
+	TxnId snapshot_id_;
 	std::vector<TxnId> children_;
 	String description_;
 	SnapshotStatus status_;
 public:
-	SnapshotMetadata(TxnId parent_id, const std::vector<TxnId>& children, StringRef description, SnapshotStatus status):
-		parent_id_(parent_id), children_(children), description_(description), status_(status)
+	SnapshotMetadata(const TxnId& parent_id, const TxnId& snapshot_id, const std::vector<TxnId>& children, StringRef description, SnapshotStatus status):
+		parent_id_(parent_id),
+		snapshot_id_(snapshot_id),
+		children_(children),
+		description_(description),
+		status_(status)
 	{}
 
 	const TxnId& parent_id() const 			{return parent_id_;}
+	const TxnId& snapshot_id() const 		{return snapshot_id_;}
 	std::vector<TxnId> children() const 	{return children_;}
 	String description() const 				{return description_;}
 	SnapshotStatus status() const 			{return status_;}
@@ -216,7 +222,7 @@ public:
         root_map_(nullptr),
         metadata_(MetadataRepository<Profile>::getMetadata())
     {
-        history_node_->ref();
+    	history_node_->ref();
 
         Int ctr_op;
 
@@ -308,7 +314,9 @@ public:
     		children.emplace_back(node->txn_id());
     	}
 
-    	return SnapshotMetadata<UUID>(history_node_->txn_id(), children, history_node_->metadata(), history_node_->status());
+    	auto parent_id = history_node_->parent() ? history_node_->parent()->txn_id() : UUID();
+
+    	return SnapshotMetadata<UUID>(parent_id, history_node_->txn_id(), children, history_node_->metadata(), history_node_->status());
     }
 
     void commit()
@@ -329,7 +337,7 @@ public:
     {
     	std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
 
-    	LockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
+    	AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
     	LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
 
         if (history_node_->parent() != nullptr)
@@ -369,19 +377,6 @@ public:
 
     void set_as_branch(StringRef name)
     {
-//    	std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
-//
-//    	AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
-//    	LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
-//
-//    	if (history_node_->is_committed())
-//    	{
-//    		history_tree_raw_->set_branch(name, history_node_->txn_id());
-//    	}
-//    	else {
-//    		throw Exception(MA_SRC, SBuf() << "Invalid Snapshot state: " << (Int)history_node_->status());
-//    	}
-
     	history_tree_raw_->set_branch(name, uuid());
     }
 
@@ -409,7 +404,7 @@ public:
     {
     	std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
 
-    	LockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
+    	AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
     	LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
 
     	if (history_node_->is_active())
@@ -457,10 +452,12 @@ public:
     	AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
     	LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
 
-
         if (history_node_->is_committed())
         {
             HistoryNode* history_node = new HistoryNode(history_node_);
+
+            LockGuardT lock_guard3(history_node->snapshot_mutex(), std::adopt_lock);
+
             history_tree_raw_->snapshot_map_[history_node->txn_id()] = history_node;
 
             return std::make_shared<Snapshot>(history_node, history_tree_->shared_from_this());

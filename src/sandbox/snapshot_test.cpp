@@ -44,11 +44,9 @@ int main()
     DInit<Set<Key>>();
 
     try {
-    	PersistentInMemAllocator<>::load("abcd");
+//    	PersistentInMemAllocator<>::load("abcd");
 
         auto alloc = PersistentInMemAllocator<>::create();
-
-        alloc->describe_master();
 
         auto snp1 = alloc->master()->branch();
         auto snp2 = alloc->master()->branch();
@@ -66,7 +64,12 @@ int main()
 
         snp2->set_as_master();
 
-        snp2->dump_open_containers();
+        snp1->dump_open_containers();
+        snp1->describe();
+
+        alloc->describe_master();
+
+        alloc->describe(UUID());
 
         // Store binary contents of allocator to the file.
         auto out = FileOutputStreamHandler::create("setf_data.dump");

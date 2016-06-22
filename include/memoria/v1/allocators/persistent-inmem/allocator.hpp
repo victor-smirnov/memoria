@@ -150,8 +150,8 @@ public:
     using NodeBaseBufferT   = typename BranchNodeBufferT::NodeBaseT;
 
     using MutexT			= std::recursive_mutex;
+    using SnapshotMutexT	= std::recursive_mutex;
     using StoreMutexT		= std::mutex;
-    using SnapshotMutexT	= std::mutex;
 
     using LockGuardT			= std::lock_guard<MutexT>;
     using StoreLockGuardT		= std::lock_guard<StoreMutexT>;
@@ -603,8 +603,10 @@ public:
         		children.emplace_back(node->txn_id());
         	}
 
+        	auto parent_id = history_node->parent() ? history_node->parent()->txn_id() : UUID();
+
         	return persistent_inmem::SnapshotMetadata<TxnId>(
-        		history_node->txn_id(), children, history_node->metadata(), history_node->status()
+        		parent_id, history_node->txn_id(), children, history_node->metadata(), history_node->status()
 			);
         }
         else {
@@ -770,8 +772,10 @@ public:
     		children.emplace_back(node->txn_id());
     	}
 
+    	auto parent_id = master_->parent() ? master_->parent()->txn_id() : UUID();
+
     	return persistent_inmem::SnapshotMetadata<TxnId>(
-    			master_->txn_id(), children, master_->metadata(), master_->status()
+    			parent_id, master_->txn_id(), children, master_->metadata(), master_->status()
     	);
     }
 
@@ -861,8 +865,8 @@ public:
     {
     	std::lock(mutex_, store_mutex_);
 
-    	LockGuardT lock_guard2(mutex_);
-    	StoreLockGuardT lock_guard1(store_mutex_);
+    	LockGuardT lock_guard2(mutex_, std::adopt_lock);
+    	StoreLockGuardT lock_guard1(store_mutex_, std::adopt_lock);
 
     	active_snapshots_.wait(0);
 

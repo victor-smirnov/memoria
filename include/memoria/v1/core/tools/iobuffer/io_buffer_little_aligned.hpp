@@ -51,6 +51,9 @@ public:
     IOBuffer(UByte* data, size_t length): Base(data, length)
     {}
 
+    IOBuffer(UByte* data, size_t pos, size_t length): Base(data, pos, length)
+    {}
+
     IOBuffer(const IOBuffer&) = delete;
 
     IOBuffer(IOBuffer&& other): Base(std::move(other))

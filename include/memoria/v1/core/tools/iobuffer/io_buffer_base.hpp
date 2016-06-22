@@ -68,6 +68,10 @@ public:
         array_(data), length_(length), limit_(length), owner_(false)
     {}
 
+    IOBufferBase(UByte* data, size_t pos, size_t length):
+    	array_(data), length_(length), limit_(length), pos_(pos), owner_(false)
+    {}
+
     IOBufferBase(const IOBufferBase&) = delete;
 
     IOBufferBase(IOBufferBase&& other):

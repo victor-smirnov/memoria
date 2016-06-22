@@ -50,6 +50,9 @@ public:
     IOBuffer(UByte* data, size_t length): Base(data, length)
     {}
 
+    IOBuffer(UByte* data, size_t pos, size_t length): Base(data, pos, length)
+    {}
+
     IOBuffer(const IOBuffer&) = delete;
 
     IOBuffer(IOBuffer&& other): Base(std::move(other))
@@ -75,7 +78,7 @@ public:
     Short getShort()
     {
         assertRange(2, "getShort()");
-        Short v = *T2T<Short*>(array_ + pos_);
+        Short v = *T2T<const Short*>(array_ + pos_);
 
         pos_ += 2;
 
@@ -101,7 +104,7 @@ public:
     UShort getUShort()
     {
         assertRange(2, "getShort()");
-        Short v = *T2T<UShort*>(array_ + pos_);
+        Short v = *T2T<const UShort*>(array_ + pos_);
 
         pos_ += 2;
 
@@ -126,7 +129,7 @@ public:
     Int getInt()
     {
         assertRange(4, "getInt()");
-        Int v = *T2T<Int*>(array_ + pos_);
+        Int v = *T2T<const Int*>(array_ + pos_);
 
         pos_ += 4;
 
@@ -152,7 +155,7 @@ public:
     UInt getUInt()
     {
         assertRange(4, "getUInt()");
-        UInt v = *T2T<UInt*>(array_ + pos_);
+        UInt v = *T2T<const UInt*>(array_ + pos_);
 
         pos_ += 4;
 
@@ -161,9 +164,7 @@ public:
 
     bool put(BigInt v)
     {
-//        cout << "Put BigInt " << v << " at " << pos_ << endl;
-
-          if (has_capacity(8))
+        if (has_capacity(8))
         {
             *T2T<BigInt*>(array_ + pos_) = v;
 
@@ -179,9 +180,7 @@ public:
     BigInt getBigInt()
     {
         assertRange(8, "getBigInt()");
-        BigInt v = *T2T<BigInt*>(array_ + pos_);
-
-//        cout << "Read BigInt " << v << " from " << pos_ << endl;
+        BigInt v = *T2T<const BigInt*>(array_ + pos_);
 
         pos_ += 8;
 
@@ -207,7 +206,7 @@ public:
     {
         assertRange(8, "getUBigInt()");
 
-        UBigInt v = *T2T<Short*>(array_ + pos_);
+        UBigInt v = *T2T<const UBigInt*>(array_ + pos_);
 
         pos_ += 8;
 
@@ -232,7 +231,7 @@ public:
     float getFloat()
     {
         assertRange(4, "getFloat()");
-        float v = *T2T<float*>(array_ + pos_);
+        float v = *T2T<const float*>(array_ + pos_);
 
         pos_ += 4;
 
@@ -258,7 +257,7 @@ public:
     double getDouble()
     {
         assertRange(8, "getDouble()");
-        double v = *T2T<double*>(array_ + pos_);
+        double v = *T2T<const double*>(array_ + pos_);
 
         pos_ += 8;
 
