@@ -415,7 +415,7 @@ public:
 
     	if (history_node_->is_committed())
     	{
-    		if (history_node_->references() == 0 && history_node_->children().size() == 0)
+    		if (history_node_->references() == 1 && history_node_->children().size() == 0)
     		{
     			history_node_->lock_data();
     			return true;
@@ -1251,7 +1251,7 @@ protected:
 
     	if (!history_node_->is_data_locked())
     	{
-    		throw Exception(MA_SRC, "Snapshot hasn't been locked");
+    		throw Exception(MA_SRC, SBuf() << "Snapshot " << uuid() << " hasn't been locked");
     	}
     }
 
