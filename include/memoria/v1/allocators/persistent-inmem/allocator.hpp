@@ -34,6 +34,7 @@
 #include <limits>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <mutex>
 
 
@@ -148,16 +149,19 @@ public:
     using NodeBaseT         = typename BranchNodeT::NodeBaseT;
     using NodeBaseBufferT   = typename BranchNodeBufferT::NodeBaseT;
 
-    using MutexT			= std::mutex;
-    using LockGuardT		= std::lock_guard<MutexT>;
+    using MutexT			= std::recursive_mutex;
+    using StoreMutexT		= std::mutex;
+    using SnapshotMutexT	= std::mutex;
+
+    using LockGuardT			= std::lock_guard<MutexT>;
+    using StoreLockGuardT		= std::lock_guard<StoreMutexT>;
+    using SnapshotLockGuardT	= std::lock_guard<SnapshotMutexT>;
 
     struct HistoryNode {
 
-        enum class Status {ACTIVE, COMMITTED, DROPPED, DATA_LOCKED};
-
-        using HMutexT = MutexT;
-
-        using HLockGuardT = std::lock_guard<HMutexT>;
+    	using Status 		= persistent_inmem::SnapshotStatus;
+        using HMutexT 		= SnapshotMutexT;
+        using HLockGuardT 	= SnapshotLockGuardT;
 
     private:
         MyType* allocator_;
@@ -220,14 +224,14 @@ public:
             }
         }
 
-        MutexT& allocator_mutex() {return allocator_->mutex_;}
-        const MutexT& allocator_mutex() const {return allocator_->mutex_;}
+        auto& allocator_mutex() {return allocator_->mutex_;}
+        const auto& allocator_mutex() const {return allocator_->mutex_;}
 
-        MutexT& store_mutex() {return allocator_->store_mutex_;}
-        const MutexT& store_mutex() const {return allocator_->store_mutex_;}
+        auto& store_mutex() {return allocator_->store_mutex_;}
+        const auto& store_mutex() const {return allocator_->store_mutex_;}
 
-        HMutexT& snapshot_mutex() {return mutex_;}
-        const HMutexT& snapshot_mutex() const {return mutex_;}
+        auto& snapshot_mutex() {return mutex_;}
+        const auto& snapshot_mutex() const {return mutex_;}
 
         void remove_child(HistoryNode* child)
         {
@@ -273,8 +277,6 @@ public:
         	HLockGuardT lock(mutex_);
         	return root_;
         }
-
-//        auto root() {return root_;}
 
         auto& root_id() {return root_id_;}
         const auto& root_id() const {return root_id_;}
@@ -471,14 +473,14 @@ private:
 
     BranchMap named_branches_;
 
-    ContainerMetadataRepository*  metadata_;
+    ContainerMetadataRepository* metadata_;
 
     BigInt records_ = 0;
 
     PairPtr pair_;
 
-    MutexT mutex_;
-    MutexT store_mutex_;
+    mutable MutexT mutex_;
+    mutable StoreMutexT store_mutex_;
 
     CountDownLatch<BigInt> active_snapshots_;
 
@@ -505,11 +507,11 @@ private:
         metadata_(MetadataRepository<Profile>::getMetadata())
     {}
 
-    MutexT& store_mutex() {
+    auto& store_mutex() {
     	return store_mutex_;
     }
 
-    const MutexT& store_mutex() const {
+    const auto& store_mutex() const {
     	return store_mutex_;
     }
 
@@ -568,8 +570,7 @@ public:
     void pack()
     {
         std::lock_guard<MutexT> lock(mutex_);
-
-    	do_pack(history_tree_, 0);
+    	do_pack(history_tree_);
     }
 
 
@@ -583,6 +584,36 @@ public:
         return PageType::ID::make_random();
     }
 
+
+    persistent_inmem::SnapshotMetadata<TxnId> describe(const TxnId& snapshot_id) const
+    {
+    	LockGuardT lock_guard2(mutex_);
+
+        auto iter = snapshot_map_.find(snapshot_id);
+        if (iter != snapshot_map_.end())
+        {
+            const auto history_node = iter->second;
+
+            SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
+
+        	std::vector<TxnId> children;
+
+        	for (const auto& node: history_node->children())
+        	{
+        		children.emplace_back(node->txn_id());
+        	}
+
+        	return persistent_inmem::SnapshotMetadata<TxnId>(
+        		history_node->txn_id(), children, history_node->metadata(), history_node->status()
+			);
+        }
+        else {
+            throw Exception(MA_SRC, SBuf() << "Snapshot id " << snapshot_id << " is unknown");
+        }
+    }
+
+
+
     SnapshotPtr find(const TxnId& snapshot_id)
     {
     	LockGuardT lock_guard(mutex_);
@@ -592,7 +623,7 @@ public:
         {
             auto history_node = iter->second;
 
-            LockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
+            SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
 
             if (history_node->is_committed())
             {
@@ -605,15 +636,15 @@ public:
             		return std::make_shared<SnapshotT>(history_node, this->shared_from_this());
             	}
             	else {
-            		throw Exception(MA_SRC, SBuf()<<"Snapshot id "<<snapshot_id<<" is locked and open");
+            		throw Exception(MA_SRC, SBuf() << "Snapshot id " << snapshot_id << " is locked and open");
             	}
             }
             else {
-                throw Exception(MA_SRC, SBuf()<<"Snapshot "<<history_node->txn_id()<<" is "<<(history_node->is_active() ? "active" : "dropped"));
+                throw Exception(MA_SRC, SBuf() << "Snapshot " << history_node->txn_id() << " is " << (history_node->is_active() ? "active" : "dropped"));
             }
         }
         else {
-            throw Exception(MA_SRC, SBuf()<<"Snapshot id "<<snapshot_id<<" is unknown");
+            throw Exception(MA_SRC, SBuf() << "Snapshot id " << snapshot_id << " is unknown");
         }
     }
 
@@ -637,15 +668,15 @@ public:
             		return std::make_shared<SnapshotT>(history_node, this->shared_from_this());
             	}
             	else {
-            		throw Exception(MA_SRC, SBuf()<<"Snapshot "<<history_node->txn_id()<<" can't be locked");
+            		throw Exception(MA_SRC, SBuf() << "Snapshot " << history_node->txn_id() << " can't be locked");
             	}
             }
             else {
-                throw Exception(MA_SRC, SBuf()<<"Snapshot "<<history_node->txn_id()<<" is "<<(history_node->is_active() ? "active" : "dropped"));
+                throw Exception(MA_SRC, SBuf() << "Snapshot " << history_node->txn_id() << " is " << (history_node->is_active() ? "active" : "dropped"));
             }
         }
         else {
-            throw Exception(MA_SRC, SBuf()<<"Snapshot id "<<snapshot_id<<" is unknown");
+            throw Exception(MA_SRC, SBuf() << "Snapshot id " << snapshot_id << " is unknown");
         }
     }
 
@@ -677,11 +708,11 @@ public:
             	}
             }
             else {
-                throw Exception(MA_SRC, SBuf()<<"Snapshot " << history_node->txn_id() << " is " << (history_node->is_active() ? "active" : "dropped"));
+                throw Exception(MA_SRC, SBuf() << "Snapshot " << history_node->txn_id() << " is " << (history_node->is_active() ? "active" : "dropped"));
             }
         }
         else {
-            throw Exception(MA_SRC, SBuf()<<"Snapshot id " << snapshot_id << " is unknown");
+            throw Exception(MA_SRC, SBuf() << "Snapshot id " << snapshot_id << " is unknown");
         }
     }
 
@@ -695,7 +726,7 @@ public:
         {
             auto history_node = iter->second;
 
-            LockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
+            SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
 
             if (history_node->is_committed())
             {
@@ -726,6 +757,24 @@ public:
         return std::make_shared<SnapshotT>(master_, this->shared_from_this());
     }
 
+    persistent_inmem::SnapshotMetadata<TxnId> describe_master() const
+    {
+    	std::lock(mutex_, master_->snapshot_mutex());
+    	LockGuardT lock_guard2(mutex_, std::adopt_lock);
+    	SnapshotLockGuardT snapshot_lock_guard(master_->snapshot_mutex(), std::adopt_lock);
+
+    	std::vector<TxnId> children;
+
+    	for (const auto& node: master_->children())
+    	{
+    		children.emplace_back(node->txn_id());
+    	}
+
+    	return persistent_inmem::SnapshotMetadata<TxnId>(
+    			master_->txn_id(), children, master_->metadata(), master_->status()
+    	);
+    }
+
     void set_master(const TxnId& txn_id)
     {
     	LockGuardT lock_guard(mutex_);
@@ -733,11 +782,19 @@ public:
         auto iter = snapshot_map_.find(txn_id);
         if (iter != snapshot_map_.end())
         {
-            if (iter->second->is_committed())
+            auto history_node = iter->second;
+
+            SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
+
+            if (history_node->is_committed())
             {
                 master_ = iter->second;
             }
-            else if (iter->second->is_dropped())
+            else if (history_node->is_data_locked())
+            {
+            	master_ = iter->second;
+            }
+            else if (history_node->is_dropped())
             {
                 throw Exception(MA_SRC, SBuf() << "Snapshot " << txn_id << " has been dropped");
             }
@@ -757,10 +814,18 @@ public:
         auto iter = snapshot_map_.find(txn_id);
         if (iter != snapshot_map_.end())
         {
-            if (iter->second->is_committed())
+            auto history_node = iter->second;
+
+            SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
+
+        	if (history_node->is_committed())
             {
-                named_branches_[name] = iter->second;
+                named_branches_[name] = history_node;
             }
+        	else if (history_node->is_data_locked())
+        	{
+        		named_branches_[name] = history_node;
+        	}
             else {
                 throw Exception(MA_SRC, SBuf() << "Snapshot " << txn_id << " hasn't been committed yet");
             }
@@ -770,8 +835,8 @@ public:
         }
     }
 
-    ContainerMetadataRepository* getMetadata() const {
-    	//LockGuardT lock_guard(mutex_);
+    ContainerMetadataRepository* getMetadata() const
+    {
         return metadata_;
     }
 
@@ -797,11 +862,11 @@ public:
     	std::lock(mutex_, store_mutex_);
 
     	LockGuardT lock_guard2(mutex_);
-    	LockGuardT lock_guard1(store_mutex_);
+    	StoreLockGuardT lock_guard1(store_mutex_);
 
     	active_snapshots_.wait(0);
 
-    	do_pack(history_tree_, 0);
+    	do_pack(history_tree_);
 
         records_ = 0;
 
@@ -1347,6 +1412,8 @@ private:
 
     void walk_containers(HistoryNode* node, ContainerWalker* walker)
     {
+    	SnapshotLockGuardT snapshot_lock_guard(node->snapshot_mutex());
+
         if (node->is_committed())
         {
             SnapshotT txn(node, this);
@@ -1547,36 +1614,92 @@ private:
         delete history_node;
     }
 
-    void do_pack(HistoryNode* node, Int depth)
+    auto get_named_branch_nodeset() const
+    {
+    	std::unordered_set<HistoryNode*> set;
+
+    	for (const auto& branch: named_branches_)
+    	{
+    		set.insert(branch.second);
+    	}
+
+    	return set;
+    }
+
+    void update_master(HistoryNode* node)
+    {
+    	if (node->parent())
+    	{
+    		if (master_ == node)
+    		{
+    			master_ = node->parent();
+    		}
+    	}
+    	else {
+    		throw Exception(MA_SRC, SBuf() << "Null snapshot's parent in do_pack() for snapshot: " << node->txn_id());
+    	}
+    }
+
+    void do_pack(HistoryNode* node)
+    {
+        std::unordered_set<HistoryNode*> branches = get_named_branch_nodeset();
+    	do_pack(history_tree_, 0, branches);
+
+    	for (const auto& branch: named_branches_)
+    	{
+    		auto node = branch.second;
+    		if (node->root() == nullptr && node->references() == 0)
+    		{
+    			do_remove_history_node(node);
+    		}
+    	}
+    }
+
+    bool do_remove_history_node(HistoryNode* node)
+    {
+        if (node->children().size() == 0)
+        {
+        	update_master(node);
+
+            node->remove_from_parent();
+            delete node;
+
+            return true;
+        }
+        else if (node->children().size() == 1)
+        {
+        	update_master(node);
+
+        	auto parent = node->parent();
+            auto child  = node->children()[0];
+
+            node->remove_from_parent();
+
+            delete node;
+
+            parent->children().push_back(child);
+            child->parent() = parent;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    void do_pack(HistoryNode* node, Int depth, const std::unordered_set<HistoryNode*>& branches)
     {
     	// FIXME: use dedicated stack data structure
 
         for (auto child: node->children())
         {
-            do_pack(child, depth + 1);
+            do_pack(child, depth + 1, branches);
         }
 
-        LockGuardT lock_guard(node->snapshot_mutex());
+        SnapshotLockGuardT lock_guard(node->snapshot_mutex());
 
-        if (node->root() == nullptr && node->references() == 0)
+        if (node->root() == nullptr && node->references() == 0 && branches.find(node) == branches.end())
         {
-            if (node->children().size() == 0)
-            {
-                node->remove_from_parent();
-                delete node;
-            }
-            else if (node->children().size() == 1)
-            {
-                auto parent = node->parent();
-                auto child  = node->children()[0];
-
-                node->remove_from_parent();
-
-                delete node;
-
-                parent->children().push_back(child);
-                child->parent() = parent;
-            }
+        	do_remove_history_node(node);
         }
     }
 

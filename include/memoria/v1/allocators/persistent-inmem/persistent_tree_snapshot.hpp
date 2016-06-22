@@ -60,8 +60,26 @@ public:
     }
 };
 
-
 }
+
+enum class SnapshotStatus {ACTIVE, COMMITTED, DROPPED, DATA_LOCKED};
+
+template <typename TxnId>
+class SnapshotMetadata {
+	TxnId parent_id_;
+	std::vector<TxnId> children_;
+	String description_;
+	SnapshotStatus status_;
+public:
+	SnapshotMetadata(TxnId parent_id, const std::vector<TxnId>& children, StringRef description, SnapshotStatus status):
+		parent_id_(parent_id), children_(children), description_(description), status_(status)
+	{}
+
+	const TxnId& parent_id() const 			{return parent_id_;}
+	std::vector<TxnId> children() const 	{return children_;}
+	String description() const 				{return description_;}
+	SnapshotStatus status() const 			{return status_;}
+};
 
 
 
@@ -85,8 +103,13 @@ class Snapshot:
 
     using Status            = typename HistoryNode::Status;
 
+    using AllocatorMutexT	= typename std::remove_reference<decltype(std::declval<HistoryNode>().allocator_mutex())>::type;
     using MutexT			= typename std::remove_reference<decltype(std::declval<HistoryNode>().snapshot_mutex())>::type;
-    using LockGuardT		= typename std::lock_guard<MutexT>;
+    using StoreMutexT		= typename std::remove_reference<decltype(std::declval<HistoryNode>().store_mutex())>::type;
+
+    using LockGuardT			= typename std::lock_guard<MutexT>;
+    using StoreLockGuardT		= typename std::lock_guard<StoreMutexT>;
+    using AllocatorLockGuardT	= typename std::lock_guard<AllocatorMutexT>;
 
     class CtrDescr {
     	BigInt references_;
@@ -225,7 +248,7 @@ public:
             {
                 check_tree_structure(history_node_->root());
 
-                LockGuardT store_lock_guard(history_node_->store_mutex());
+                StoreLockGuardT store_lock_guard(history_node_->store_mutex());
                 do_drop();
             }
         }
@@ -269,6 +292,23 @@ public:
 
     bool is_committed() const {
         return history_node_->is_committed();
+    }
+
+    SnapshotMetadata<UUID> describe() const
+    {
+    	std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
+
+    	AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
+    	LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
+
+    	std::vector<UUID> children;
+
+    	for (const auto& node: history_node_->children())
+    	{
+    		children.emplace_back(node->txn_id());
+    	}
+
+    	return SnapshotMetadata<UUID>(history_node_->txn_id(), children, history_node_->metadata(), history_node_->status());
     }
 
     void commit()
@@ -324,34 +364,25 @@ public:
 
     void set_as_master()
     {
-    	std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
-
-    	LockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
-    	LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
-
-    	if (history_node_->is_committed())
-    	{
-    		history_tree_raw_->set_master(history_node_->txn_id());
-    	}
-    	else {
-    		throw Exception(MA_SRC, SBuf() << "Invalid Snapshot state: " << (Int)history_node_->status());
-    	}
+    	history_tree_raw_->set_master(uuid());
     }
 
     void set_as_branch(StringRef name)
     {
-    	std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
+//    	std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
+//
+//    	AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
+//    	LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
+//
+//    	if (history_node_->is_committed())
+//    	{
+//    		history_tree_raw_->set_branch(name, history_node_->txn_id());
+//    	}
+//    	else {
+//    		throw Exception(MA_SRC, SBuf() << "Invalid Snapshot state: " << (Int)history_node_->status());
+//    	}
 
-    	LockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
-    	LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
-
-    	if (history_node_->is_committed())
-    	{
-    		history_tree_raw_->set_branch(name, history_node_->txn_id());
-    	}
-    	else {
-    		throw Exception(MA_SRC, SBuf() << "Invalid Snapshot state: " << (Int)history_node_->status());
-    	}
+    	history_tree_raw_->set_branch(name, uuid());
     }
 
     StringRef metadata() const
@@ -423,7 +454,7 @@ public:
     {
     	std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
 
-    	LockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
+    	AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
     	LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
 
 
@@ -446,7 +477,7 @@ public:
 
     bool has_parent() const
     {
-    	LockGuardT lock_guard(history_node_->allocator_mutex());
+    	AllocatorLockGuardT lock_guard(history_node_->allocator_mutex());
 
         return history_node_->parent() != nullptr;
     }
@@ -455,7 +486,7 @@ public:
     {
     	std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
 
-    	LockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
+    	AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
     	LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
 
         if (history_node_->parent())

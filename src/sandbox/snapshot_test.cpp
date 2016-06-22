@@ -44,9 +44,11 @@ int main()
     DInit<Set<Key>>();
 
     try {
-//    	PersistentInMemAllocator<>::load("abcd");
+    	PersistentInMemAllocator<>::load("abcd");
 
         auto alloc = PersistentInMemAllocator<>::create();
+
+        alloc->describe_master();
 
         auto snp1 = alloc->master()->branch();
         auto snp2 = alloc->master()->branch();
@@ -59,6 +61,9 @@ int main()
         snp2->move_ctr_from(snp1, set1->name());
 
         snp2->commit();
+
+        snp2->set_as_branch("abcd");
+
         snp2->set_as_master();
 
         snp2->dump_open_containers();
