@@ -178,14 +178,18 @@ public:
         return refs_;
     }
 
-    RCType ref()
+    RCType ref1()
     {
-        auto r = ++refs_;
+//        cout << "Ref PTree node " << node_id_ << " -- " << refs_ << " type=" << (Int)node_type_ << endl;
+
+    	auto r = ++refs_;
         return r;
     }
 
     RCType unref()
     {
+//    	cout << "UnRef PTree node " << node_id_ << " -- " << refs_ << " type=" << (Int)node_type_ << endl;
+
         auto r = --refs_;
 
         MEMORIA_V1_ASSERT(r, >=, 0);
@@ -266,10 +270,6 @@ public:
 
     void reindex()
     {
-        if (size_ >= 18) {
-            int a = 0; a++;
-        }
-
         for (auto& k: index_) k = Key();
 
         Int max = (size_ % NodeIndexSize == 0) ? size_ : (size_ - size_ % NodeIndexSize);
@@ -583,7 +583,9 @@ public:
         Base(txn_id, node_id, NodeType::BRANCH)
     {}
 
-    ~BranchNode() {}
+    ~BranchNode() {
+//    	cout << "Remove BRANCH node " << this->node_id() << endl;
+    }
 
 
     void del() const {
@@ -662,7 +664,9 @@ public:
     {}
 
 
-    ~LeafNode() {}
+    ~LeafNode() {
+//    	cout << "Remove LEAF node " << this->node_id() << endl;
+    }
 
 
     void del() const {

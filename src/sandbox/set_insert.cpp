@@ -50,10 +50,6 @@ int main()
     try {
         auto alloc = PersistentInMemAllocator<>::create();
 
-        alloc->lock();
-        alloc->unlock();
-        alloc->try_lock();
-
         auto snp = alloc->master()->branch();
 
         auto map = create<Set<Key>>(snp);

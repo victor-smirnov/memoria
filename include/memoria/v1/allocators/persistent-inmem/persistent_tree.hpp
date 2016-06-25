@@ -247,6 +247,13 @@ public:
         }
     }
 
+    void dump_tree(std::ostream& out = std::cout)
+    {
+    	walk_tree([&, this](NodeBaseT* node){
+    		this->dump(node, out);
+    	});
+    }
+
 
     void walk_tree(std::function<void (NodeBaseT*)> fn) {
         walk_tree( root(), fn);
@@ -283,7 +290,7 @@ protected:
         }
     }
 
-    void delete_tree(NodeBaseT* node, std::function<void (LeafNodeT*)> fn)
+    void delete_tree(NodeBaseT* node, const std::function<void (LeafNodeT*)>& fn)
     {
         if (node->unref() == 0)
         {
@@ -413,7 +420,8 @@ protected:
         {
             NodeBaseT* node = path[level];
 
-            if (node->txn_id() != this->txn_id())
+            //if (node->txn_id() != this->txn_id())
+            if (node->refs() > 1)
             {
                 BranchNodeT* parent = to_branch_node(path[level + 1]);
                 if (parent->txn_id() != this->txn_id())
@@ -427,10 +435,11 @@ protected:
 
                 NodeBaseT* clone = clone_node(node);
 
+                // FIXME: remove?
                 parent->data(parent_idx)->unref();
                 parent->data(parent_idx) = clone;
 
-                clone->ref();
+                clone->ref1();
 
                 path[level] = clone;
             }
@@ -474,6 +483,7 @@ protected:
 
         if (page->unref() == 0 && delete_on_unref)
         {
+        	cout << "Delete page " << page->raw_data()->id() << " via iterator" << endl;
             delete page;
         }
 
@@ -520,7 +530,7 @@ protected:
     void insert_child_node(BranchNodeT* node, Int idx, NodeBaseT* child)
     {
         node->insert(idx, child->max_key(), child);
-        child->ref();
+        child->ref1();
     }
 
     void split_path(Path& path, Path& next, Int level = 0)
@@ -685,7 +695,7 @@ protected:
         {
             NodeBaseT* child = node->data(c);
 
-            child->ref();
+            child->ref1();
         }
     }
 

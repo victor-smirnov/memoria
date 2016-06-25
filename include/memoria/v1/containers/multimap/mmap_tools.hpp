@@ -18,6 +18,7 @@
 
 #include <memoria/v1/prototypes/bt/tools/bt_tools.hpp>
 #include <memoria/v1/core/container/container.hpp>
+#include <memoria/v1/core/tools/ticker.hpp>
 
 #include <tuple>
 #include <vector>
@@ -198,26 +199,7 @@ public:
 };
 
 
-class Ticker {
-	size_t threshold_value_;
-	size_t threshold_;
-	size_t ticks_ = 0;
-public:
-	Ticker(size_t threshold): threshold_value_(threshold), threshold_(threshold) {}
 
-	bool is_threshold() const {return threshold_ == ticks_;}
-
-	void next() {
-		threshold_ += threshold_value_;
-	}
-
-	size_t ticks() const {return ticks_;}
-	size_t size()  const {return threshold_value_;}
-
-	void tick() {
-		ticks_++;
-	}
-};
 
 
 

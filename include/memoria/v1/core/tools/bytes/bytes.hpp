@@ -38,7 +38,7 @@ class RawData {
     bool owner_;
 public:
     RawData(): data_(nullptr), size_(0), owner_(false) {}
-    explicit RawData(size_t size): data_(alloc(size)), size_(size) {}
+    explicit RawData(size_t size): data_(alloc(size)), size_(size), owner_(true) {}
 
     RawData(const T* data, size_t size):
         data_(alloc(size)), size_(size), owner_(true)
@@ -59,7 +59,7 @@ public:
         }
     }
 
-    RawData(const MyType& other): data_(alloc(other.size_)), size_(other.size_)
+    RawData(const MyType& other): data_(alloc(other.size_)), size_(other.size_), owner_(true)
     {
         CopyBuffer(other.data_, data_, size_);
     }
@@ -68,8 +68,10 @@ public:
     {
         data_ = other.data_;
         size_ = other.size_;
+        owner_ = other.owner_;
 
         other.data_ = nullptr;
+        other.owner_ = false;
     }
 
     ~RawData()
@@ -115,10 +117,11 @@ public:
 
     MyType& operator=(MyType&& other)
     {
-        if (data_) ::free(data_);
+        if (owner_ && data_) ::free(data_);
 
         data_ = other.data_;
         size_ = other.size_;
+        owner_ = other.owner_;
 
         other.data_ = nullptr;
         other.owner_ = false;
