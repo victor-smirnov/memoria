@@ -20,6 +20,8 @@
 #include <uuid/uuid.h>
 #include <string.h>
 
+#include <mutex>
+
 namespace memoria {
 namespace v1 {
 
@@ -42,11 +44,15 @@ UUID make_uuid(uuid_t uuid)
     return uuid2;
 }
 
+std::mutex mutex_;
+
 UUID UUID::make_random()
 {
     uuid_t uuid;
 
     uuid_generate_random(uuid);
+
+    std::lock_guard<std::mutex> lk(mutex_);
 
 //    return make_uuid(uuid);
     return UUID(0, cnt++);

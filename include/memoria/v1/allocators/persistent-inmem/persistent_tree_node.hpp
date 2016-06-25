@@ -21,6 +21,7 @@
 #include <memoria/v1/core/tools/stream.hpp>
 
 #include <atomic>
+#include <mutex>
 
 namespace memoria {
 namespace v1 {
@@ -31,6 +32,9 @@ enum class NodeType {LEAF, BRANCH};
 template <typename Key_, Int NodeSize, Int NodeIndexSize, typename NodeId_, typename TxnId_>
 class NodeBase {
 public:
+
+	using MutexT = std::recursive_mutex;
+	using LockGuardT = std::lock_guard<MutexT>;
 
     using Key       = Key_;
     using NodeId    = NodeId_;
@@ -73,7 +77,8 @@ private:
     Int size_ = 0;
 
 protected:
-    std::atomic<RCType> refs_;
+    BigInt refs_;
+    mutable MutexT mutex_;
 
 private:
 
@@ -92,6 +97,21 @@ public:
 		refs_(0)
     {}
 
+    MutexT& mutex() {return mutex_;}
+    MutexT& mutex() const {return mutex_;}
+
+    void lock() {
+    	mutex_.lock();
+    }
+
+    void unlock() {
+    	mutex_.unlock();
+    }
+
+    auto try_lock() {
+    	return mutex_.try_lock();
+    }
+
     template <typename Base>
     void populate_as_buffer(const Base* node)
     {
@@ -101,7 +121,7 @@ public:
 
         metadata_   = node->metadata();
         size_       = node->size();
-        refs_       = node->refs();
+        refs_       = node->references();
 
         for (Int c = 0; c < NodeIndexSize; c++)
         {
@@ -174,26 +194,22 @@ public:
         return size_ < max_size();
     }
 
-    RCType refs() const {
+    RCType references() const {
+    	LockGuardT lk(mutex_);
         return refs_;
     }
 
-    RCType ref1()
+    void ref()
     {
-//        cout << "Ref PTree node " << node_id_ << " -- " << refs_ << " type=" << (Int)node_type_ << endl;
-
-    	auto r = ++refs_;
-        return r;
+    	LockGuardT lk(mutex_);
+    	++refs_;
     }
 
     RCType unref()
     {
-//    	cout << "UnRef PTree node " << node_id_ << " -- " << refs_ << " type=" << (Int)node_type_ << endl;
-
+    	LockGuardT lk(mutex_);
         auto r = --refs_;
-
         MEMORIA_V1_ASSERT(r, >=, 0);
-
         return r;
     }
 
@@ -343,7 +359,7 @@ public:
         out<<"Size: "<<size_<<endl;
         out<<"NodeId: "<<node_id_<<endl;
         out<<"TxnId: "<<txn_id_<<endl;
-        out<<"Refs: "<<refs_.load()<<endl;
+        out<<"Refs: "<<refs_<<endl;
 
         out<<"Index: "<<endl;
 
@@ -363,7 +379,7 @@ public:
         out << this->node_id();
         out << this->txn_id();
         out << this->size();
-        out << this->refs();
+        out << this->references();
 
         Int last_idx = size_ / NodeIndexSize + (size_ % NodeIndexSize == 0 ? 0 : 1);
         for (Int c = 0; c < last_idx; c++)
@@ -390,9 +406,9 @@ public:
         in >> txn_id_;
         in >> size_;
 
-        BigInt refs;
-        in >> refs;
-        refs_.store(refs);
+//        BigInt refs;
+        in >> refs_;
+//        refs_.store(refs);
 
         Int last_idx = size_ / NodeIndexSize + (size_ % NodeIndexSize == 0 ? 0 : 1);
         for (Int c = 0; c < last_idx; c++)

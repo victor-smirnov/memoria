@@ -414,37 +414,87 @@ protected:
         return iter;
     }
 
-    void update_path(Path& path, Int level = 0)
+    class PathLocker {
+    	Path& path_;
+    public:
+    	PathLocker(Path& path): path_(path) {lock_path(path_);}
+    	~PathLocker() {unlock_path(path_);}
+
+        void lock_path(Path& path)
+        {
+        	Int c = path.size() - 2;
+
+        	try {
+        		for (; c >= 0; c--)
+        		{
+        			path[c]->lock();
+        		}
+        	}
+        	catch (std::system_error& ex)
+        	{
+        		for (Int d = c + 1; d < path.size() - 1; d++)
+        		{
+        			path[d]->unlock();
+        		}
+        	}
+        }
+
+        void unlock_path(Path& path)
+        {
+        	for (Int c = 0; c < path.size() - 1; c++)
+        	{
+        		path[c]->unlock();
+        	}
+        }
+    };
+
+    void update_path(Path& path)
+    {
+    	Path src = path;
+    	PathLocker lk(src);
+
+    	bool split = false;
+
+    	for (int c = path.size() - 2; c >= 0; c--)
+    	{
+    		if (path[c]->references() > 1) {
+    			split = true;
+    			break;
+    		}
+    	}
+
+    	if (split) {
+    		clone_path(path);
+    	}
+    }
+
+    void clone_path(Path& path, Int level = 0)
     {
         if (level < path.size() - 1)
         {
             NodeBaseT* node = path[level];
 
-            //if (node->txn_id() != this->txn_id())
-            if (node->refs() > 1)
-            {
-                BranchNodeT* parent = to_branch_node(path[level + 1]);
-                if (parent->txn_id() != this->txn_id())
-                {
-                    update_path(path, level + 1);
+            BranchNodeT* parent = to_branch_node(path[level + 1]);
 
-                    parent = to_branch_node(path[level + 1]);
-                }
+            clone_path(path, level + 1);
 
-                Int parent_idx = parent->find_child_node(node);
+            parent = to_branch_node(path[level + 1]);
 
-                NodeBaseT* clone = clone_node(node);
+            Int parent_idx = parent->find_child_node(node);
 
-                // FIXME: remove?
-                parent->data(parent_idx)->unref();
-                parent->data(parent_idx) = clone;
+            NodeBaseT* clone = clone_node(node);
 
-                clone->ref1();
+            // FIXME: remove?
+            parent->data(parent_idx)->unref();
+            parent->data(parent_idx) = clone;
 
-                path[level] = clone;
-            }
+            clone->ref();
+
+            path[level] = clone;
         }
     }
+
+
 
     void insert_to(Iterator& iter, const Key& key, const Value& value)
     {
@@ -530,7 +580,7 @@ protected:
     void insert_child_node(BranchNodeT* node, Int idx, NodeBaseT* child)
     {
         node->insert(idx, child->max_key(), child);
-        child->ref1();
+        child->ref();
     }
 
     void split_path(Path& path, Path& next, Int level = 0)
@@ -681,7 +731,7 @@ protected:
 
             remove_node(root);
 
-            MEMORIA_V1_ASSERT(node->refs(), ==, 1);
+            MEMORIA_V1_ASSERT(node->references(), ==, 1);
         }
 
         next[level] = node;
@@ -695,7 +745,7 @@ protected:
         {
             NodeBaseT* child = node->data(c);
 
-            child->ref1();
+            child->ref();
         }
     }
 

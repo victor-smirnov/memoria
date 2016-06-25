@@ -51,16 +51,20 @@ namespace {
 		PageT* page_;
 		std::atomic<RefCntT> refs_;
 
+		// Currently for debug purposes
 		static std::atomic<BigInt> page_cnt_;
 	public:
 		PagePtr(PageT* page, BigInt refs): page_(page), refs_(refs) {
-			page_cnt_++;
-			cout << "Create page: " << page_cnt_ << endl;
+			//page_cnt_++;
+			//cout << "Create page: " << page_cnt_ << endl;
 		}
 
 		~PagePtr() {
-			page_cnt_--;
-			cout << "Remove page: " << page_cnt_ << endl;
+			//if (--page_cnt_ == 0) {
+			//	cout << "All Pages removed" << endl;
+			//}
+			//cout << "Remove page: " << page_cnt_ << endl;
+
 			::free(page_);
 		}
 
@@ -75,24 +79,12 @@ namespace {
 		}
 
 		void ref() {
-			if (DebugCounter)
-			{
-//				cout << "Ref page " << page_->id() << " " << page_ << " " << refs_ << endl;
-			}
 			refs_++;
 		}
 
 		RefCntT references() const {return refs_;}
 
 		RefCntT unref() {
-			if (DebugCounter)
-			{
-//				cout << "UnRef page " << page_->id() << " " << page_ << " " << refs_ << endl;
-
-//				if (refs_ == 1) {
-//					int a = 0; a++;
-//				}
-			}
 			return --refs_;
 		}
 	};
@@ -157,7 +149,7 @@ class PersistentInMemAllocatorT: public enable_shared_from_this<PersistentInMemA
 public:
 
     static constexpr Int NodeIndexSize  = 32;
-    static constexpr Int NodeSize       = NodeIndexSize * 1;
+    static constexpr Int NodeSize       = NodeIndexSize * 8;
 
     using MyType        = PersistentInMemAllocatorT<Profile, PageType>;
 
@@ -319,7 +311,7 @@ public:
             root_ = new_root;
 
             if (root_) {
-                root_->ref1();
+                root_->ref();
             }
         }
 
@@ -1505,7 +1497,7 @@ private:
             {
                 auto child = branch->data(c);
 
-                if (child->txn_id() == txn_id || child->refs() == 1)
+                if (child->txn_id() == txn_id || child->references() == 1)
                 {
                     write_persistent_tree(out, child, stored_pages);
                 }

@@ -31,13 +31,12 @@
 
 namespace memoria {
 namespace v1 {
-namespace persistent_inmem  {
+namespace persistent_inmem {
 
 
 template <typename BranchNode, typename LeafNode>
 class PersistentTreeIteratorBase {
 public:
-
 
     using NodeBaseT     = typename LeafNode::NodeBaseT;
     using LeafNodeT     = LeafNode;
@@ -56,7 +55,13 @@ protected:
 public:
     PersistentTreeIteratorBase() {}
 
-
+    void unlock()
+    {
+    	for (Int c = 0; c < path_.size(); c++)
+    	{
+    		path_[c]->unlock();
+    	}
+    }
 
     Int idx() const {
         return idx_;

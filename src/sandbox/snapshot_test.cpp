@@ -60,17 +60,13 @@ public:
 
 			Ticker ticker(100000);
 
-			Ticker batch(1000);
+			Ticker batch(100000);
 
 			auto ctr = create<Set<Key>>(snp);
 			ctr_name_ = ctr->name();
 
 			for (size_t c = 0; c < keys.size(); c++)
 			{
-				if (c >= 7999) {
-//					DebugCounter = 1;
-				}
-
 				ctr->insert_key(keys[c]);
 
 				if (ticker.is_threshold())
@@ -97,22 +93,11 @@ public:
 
 					snp->pack_allocator();
 
-					{
-						GuardT guard(mutex_);
-						cout << "Next batch " << c << endl;
-					}
-
-
-
 					batch.next();
 				}
 
 				ticker.tick();
 				batch.tick();
-
-				if (DebugCounter) {
-					cout << "C = " << c << endl;
-				}
 			}
 
 			snp->commit();
@@ -150,7 +135,7 @@ struct Checker {
 			}
 
 			GuardT guard(mutex_);
-			cout << "Checking thread " << th_num << ", total time = " << (getTimeInMillis() - t0) << endl;
+			cout << "Check thread " << th_num << ", total time = " << (getTimeInMillis() - t0) << endl;
 		}
 		catch (Exception& ex) {
 			GuardT guard(mutex_);
@@ -169,7 +154,7 @@ int main()
     try {
         auto alloc = PersistentInMemAllocator<>::create();
 
-        size_t total_keys = 10000;
+        size_t total_keys = 300000;
         int thread_num = 4;
 
         vector<Key> keys;
@@ -248,35 +233,35 @@ int main()
         	th.join();
         }
 
-//        cout << "Store data..." << endl;
-//
-//        // Store binary contents of allocator to the file.
-//
-//        BigInt ts0 = getTimeInMillis();
-//        alloc->store("snapshots_mt.dump");
-//
-//        {
-//        	GuardT guard(mutex_);
-//        	cout << "Store time: " << (getTimeInMillis() - ts0) << endl;
-//        }
-//
-//        BigInt tl0 = getTimeInMillis();
-//        auto alloc1 = PersistentInMemAllocator<>::load("snapshots_mt.dump");
-//        cout << "Load time: " << (getTimeInMillis() - tl0) << endl;
-//
-//        alloc->dump("snapshots_mt.dir");
-//
-//        vector<thread> checkers1;
-//
-//        for (Int c = 0; c < thread_num; c++)
-//        {
-//        	checkers1.emplace_back(thread(Checker(), alloc1, keys, c, alloc1->master()->uuid(), creators[c]->ctr_name()));
-//        }
-//
-//        for (auto& th: checkers1)
-//        {
-//        	th.join();
-//        }
+        cout << "Store data..." << endl;
+
+        // Store binary contents of allocator to the file.
+
+        BigInt ts0 = getTimeInMillis();
+        alloc->store("snapshots_mt.dump");
+
+        {
+        	GuardT guard(mutex_);
+        	cout << "Store time: " << (getTimeInMillis() - ts0) << endl;
+        }
+
+        BigInt tl0 = getTimeInMillis();
+        auto alloc1 = PersistentInMemAllocator<>::load("snapshots_mt.dump");
+        cout << "Load time: " << (getTimeInMillis() - tl0) << endl;
+
+        alloc->dump("snapshots_mt.dir");
+
+        vector<thread> checkers1;
+
+        for (Int c = 0; c < thread_num; c++)
+        {
+        	checkers1.emplace_back(thread(Checker(), alloc1, keys, c, alloc1->master()->uuid(), creators[c]->ctr_name()));
+        }
+
+        for (auto& th: checkers1)
+        {
+        	th.join();
+        }
 
         {
         	GuardT guard(mutex_);

@@ -641,9 +641,7 @@ public:
     			{
     				if (old_value.page_ptr()->unref() == 0)
     				{
-//    					cout << "Delete page " << old_value.page_ptr()->raw_data()->id() << " via import_ctr_from" << endl;
-
-    					// FIXME: delete page?
+    					// FIXME: just delete the page?
     					throw Exception(MA_SRC, SBuf() << "Unexpected refcount == 0 for page " << old_value.page_ptr()->raw_data()->uuid());
     				}
     			}
@@ -922,8 +920,6 @@ public:
 
         Page* p = new (buf) Page(id);
 
-//        cout << "Create page: " << id  << " " << p << endl;
-
         p->page_size() = initial_size;
 
         Shared* shared  = pool_.allocate(id);
@@ -1191,8 +1187,6 @@ protected:
 
         new_page->uuid() = newId();
 
-//        cout << "Clone page " << page->id() << " " << new_page << endl;
-
         return new_page;
     }
 
@@ -1249,13 +1243,6 @@ protected:
         	if (old_value.page_ptr()->unref() == 0) {
         		delete old_value.page_ptr();
         	}
-        	else {
-//        		cout << "Referenced page " << page->id() << " -- " << old_value.page_ptr()->references() << endl;
-        	}
-        }
-
-        if (DebugCounter) {
-//        	dump_persistent_tree();
         }
     }
 
@@ -1334,20 +1321,12 @@ protected:
 
     void do_drop() throw ()
     {
-    	if (DebugCounter) {
-    		int a = 0;a ++;
-
-//    		persistent_tree_.dump_tree();
-    	}
-
     	persistent_tree_.delete_tree([&](LeafNodeT* leaf){
             for (Int c = 0; c < leaf->size(); c++)
             {
                 auto& page_descr = leaf->data(c);
                 if (page_descr.page_ptr()->unref() == 0)
                 {
-//                	cout << "Delete page " << page_descr.page_ptr()->raw_data()->id() << " via do_drop" << endl;
-
                     auto shared = pool_.get(page_descr.page_ptr()->raw_data()->id());
 
                     if (shared)
@@ -1372,7 +1351,6 @@ protected:
                 auto& page_descr = leaf->data(c);
                 if (page_descr.page_ptr()->unref() == 0)
                 {
-//                	cout << "Delete page " << page_descr.page_ptr()->raw_data()->id() << " via delete_snapshot" << endl;
                     delete page_descr.page_ptr();
                 }
             }
