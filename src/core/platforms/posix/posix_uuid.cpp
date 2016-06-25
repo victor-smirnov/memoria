@@ -52,10 +52,10 @@ UUID UUID::make_random()
 
     uuid_generate_random(uuid);
 
-    std::lock_guard<std::mutex> lk(mutex_);
+//    std::lock_guard<std::mutex> lk(mutex_);
 
-//    return make_uuid(uuid);
-    return UUID(0, cnt++);
+    return make_uuid(uuid);
+//    return UUID(0, cnt++);
 }
 
 UUID UUID::make_time()

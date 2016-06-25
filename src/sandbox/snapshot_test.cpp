@@ -60,7 +60,7 @@ public:
 
 			Ticker ticker(100000);
 
-			Ticker batch(100000);
+			Ticker batch(10000000);
 
 			auto ctr = create<Set<Key>>(snp);
 			ctr_name_ = ctr->name();
@@ -154,7 +154,7 @@ int main()
     try {
         auto alloc = PersistentInMemAllocator<>::create();
 
-        size_t total_keys = 300000;
+        size_t total_keys = 3000000;
         int thread_num = 4;
 
         vector<Key> keys;
@@ -249,7 +249,7 @@ int main()
         auto alloc1 = PersistentInMemAllocator<>::load("snapshots_mt.dump");
         cout << "Load time: " << (getTimeInMillis() - tl0) << endl;
 
-        alloc->dump("snapshots_mt.dir");
+//        alloc->dump("snapshots_mt.dir");
 
         vector<thread> checkers1;
 
