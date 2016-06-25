@@ -20,6 +20,7 @@
 
 #include <memoria/v1/core/tools/static_array.hpp>
 #include <memoria/v1/core/tools/vector_tuple.hpp>
+#include <memoria/v1/core/tools/optional.hpp>
 #include <memoria/v1/core/packed/tools/packed_dispatcher.hpp>
 
 #include <memoria/v1/prototypes/bt/bt_names.hpp>
@@ -28,6 +29,12 @@
 #include <memoria/v1/prototypes/bt/tools/bt_tools_core.hpp>
 #include <memoria/v1/prototypes/bt/tools/bt_tools_packed_struct_list_builder.hpp>
 #include <memoria/v1/prototypes/bt/tools/bt_tools_streamdescr_factory.hpp>
+
+
+#include <memoria/v1/core/packed/tree/fse_max/packed_fse_optmax_tree.hpp>
+#include <memoria/v1/core/packed/tree/fse_max/packed_fse_max_tree.hpp>
+#include <memoria/v1/core/packed/tree/vle_big/packed_vle_optmax_tree.hpp>
+#include <memoria/v1/core/packed/tree/vle_big/packed_vle_bigmax_tree.hpp>
 
 
 
@@ -380,12 +387,15 @@ struct DefaultBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>
 
     using Type = IfThenElse<
             HasFieldFactory<KeyType>::Value,
-            PkdFMTreeT<KeyType, Indexes>,
-            PkdVBMTreeT<KeyType>
+            PkdFMOTreeT<KeyType, Indexes>,
+            PkdVMOTreeT<KeyType>
     >;
 
     static_assert(IndexesSize<Type>::Value == Indexes, "Packed struct has different number of indexes than requested");
 };
+
+
+
 
 
 
@@ -432,13 +442,78 @@ public:
 
 template <typename Profile, typename CtrName>
 struct ContainerExtensionsTF {
-	using Type = TL<>;
+    using Type = TL<>;
 };
 
 template <typename Profile, typename CtrName>
 struct IteratorExtensionsTF {
-	using Type = TL<>;
+    using Type = TL<>;
 };
+
+
+
+template <Int Size, Int Idx = 0>
+struct ForAllTuple {
+    template <typename InputBuffer, typename Fn, typename... Args>
+    static void process(InputBuffer&& tuple, Fn&& fn, Args&&... args)
+    {
+        fn.template process<Idx>(std::get<Idx>(tuple), std::forward<Args>(args)...);
+        ForAllTuple<Size, Idx + 1>::process(tuple, std::forward<Fn>(fn), std::forward<Args>(args)...);
+    }
+};
+
+template <Int Idx>
+struct ForAllTuple<Idx, Idx> {
+    template <typename InputBuffer, typename Fn, typename... Args>
+    static void process(InputBuffer&& tuple, Fn&& fn, Args&&... args)
+    {}
+};
+
+
+template <typename IOBuffer>
+struct BufferConsumer {
+    virtual Int process(IOBuffer& buffer, Int entries) = 0;
+
+    virtual ~BufferConsumer() noexcept {}
+};
+
+template <typename IOBuffer>
+struct BufferProducer {
+    virtual Int populate(IOBuffer& buffer) = 0;
+
+    virtual ~BufferProducer() noexcept {}
+};
+
+
+
+template <Int Stream, typename CtrSizeT>
+class EntryFnBase {
+    CtrSizeT one_;
+public:
+    EntryFnBase(): one_(1) {}
+
+    const auto& get(const StreamTag<Stream>& , const StreamTag<0>&, Int block) const
+    {
+        return one_;
+    }
+};
+
+
+template <Int Stream, typename T, typename CtrSizeT>
+struct SingleValueEntryFn: EntryFnBase<Stream, CtrSizeT> {
+
+    using EntryFnBase<Stream, CtrSizeT>::get;
+
+    const T& value_;
+
+    SingleValueEntryFn(const T& value): value_(value) {}
+
+    const auto& get(const StreamTag<Stream>& , const StreamTag<1>&, Int block) const
+    {
+        return value_;
+    }
+};
+
 
 
 }

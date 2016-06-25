@@ -16,8 +16,10 @@
 
 #pragma once
 
-#include <memoria/v1/prototypes/bt_tl/bttl_factory.hpp>
+#include <memoria/v1/prototypes/bt_fl/btfl_factory.hpp>
 #include <memoria/v1/containers/multimap/mmap_names.hpp>
+
+#include <memoria/v1/containers/multimap/mmap_input.hpp>
 
 #include <memoria/v1/containers/multimap/container/mmap_c_api.hpp>
 #include <memoria/v1/containers/multimap/iterator/mmap_i_misc.hpp>
@@ -38,9 +40,9 @@ template <
     typename Key_,
     typename Value_
 >
-struct MultimapBTTypesBaseBase: public BTTypes<Profile, v1::BTTreeLayout> {
+struct MultimapBTTypesBaseBase: public BTTypes<Profile, v1::BTFreeLayout> {
 
-    using Base = BTTypes<Profile, v1::BTTreeLayout>;
+    using Base = BTTypes<Profile, v1::BTFreeLayout>;
 
 
     using Key   = Key_;
@@ -75,7 +77,7 @@ struct MultimapBTTypesBase: public MultimapBTTypesBaseBase<Profile, Key, Value> 
             TL<StreamSize>,
             TL<typename mmap::MMapKeyStructTF<Key>::Type>
         >,
-        DefaultBranchStructTF
+        mmap::MMapBranchStructTF
     >;
 
     using DataStreamTF = StreamTF<
@@ -83,18 +85,36 @@ struct MultimapBTTypesBase: public MultimapBTTypesBaseBase<Profile, Key, Value> 
             TL<StreamSize>,
             TL<typename mmap::MMapValueStructTF<Value>::Type>
         >,
-        DefaultBranchStructTF
+        mmap::MMapBranchStructTF
+    >;
+
+    using StructureStreamTF = StreamTF<
+        TL<
+            TL<StreamSize>,
+            TL<typename btfl::StructureStreamTF<2>::Type>
+        >,
+        mmap::MMapBranchStructTF
     >;
 
 
-    using RawStreamDescriptors = TL<
-            FirstStreamTF,
-            DataStreamTF
+    using StreamDescriptors = TL<
+        FirstStreamTF,
+        DataStreamTF,
+        StructureStreamTF
     >;
 
-    using StreamDescriptors = typename bttl::BTTLAugmentStreamDescriptors<
-            RawStreamDescriptors
-    >::Type;
+
+    static constexpr Int DataStreams = 2;
+
+
+    template <Int Level>
+    using IOData = btfl::BTFLData<
+        DataStreams,
+            Level,
+            Key,
+            Value
+    >;
+
 };
 
 
@@ -114,8 +134,8 @@ struct BTTypes<Profile, v1::Map<Key_, Vector<Value_>>>: public MultimapBTTypesBa
 
 
 template <typename Profile, typename Key, typename Value, typename T>
-class CtrTF<Profile, v1::Map<Key, Vector<Value>>, T>: public CtrTF<Profile, v1::BTTreeLayout, T> {
-    using Base = CtrTF<Profile, v1::BTTreeLayout, T>;
+class CtrTF<Profile, v1::Map<Key, Vector<Value>>, T>: public CtrTF<Profile, v1::BTFreeLayout, T> {
+    using Base = CtrTF<Profile, v1::BTFreeLayout, T>;
 public:
 
     struct Types: Base::Types

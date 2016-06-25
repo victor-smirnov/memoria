@@ -45,6 +45,7 @@ public:
     using typename Base::IteratorPtr;
 
     using CtrSizesT = typename Ctr::Types::CtrSizesT;
+    using CtrSizeT  = typename Ctr::Types::CtrSizeT;
 
     using Base::out;
 
@@ -53,11 +54,22 @@ public:
 
 protected:
 
-    CtrSizesT sizes_;
-    Int iterations_ = 10;
+    static constexpr Int DataStreams = Ctr::Types::DataStreams;
 
+    using DataSizesT = core::StaticVector<CtrSizeT, DataStreams>;
+
+    BigInt size             = 10000000;
+    Int level_limit         = 1000;
+    Int last_level_limit    = 100;
+
+
+
+    Int iterations = 0;
+    Int coverage_   = 0;
 
 public:
+
+    using Base::getRandom;
 
     using MapData = std::vector<std::pair<Key, vector<Value>>>;
 
@@ -67,28 +79,122 @@ public:
     {
         Ctr::initMetadata();
 
-        sizes_ = CtrSizesT({10000, 100});
-
-        MEMORIA_ADD_TEST_PARAM(sizes_);
-        MEMORIA_ADD_TEST_PARAM(iterations_);
+        MEMORIA_ADD_TEST_PARAM(size);
+        MEMORIA_ADD_TEST_PARAM(level_limit);
+        MEMORIA_ADD_TEST_PARAM(last_level_limit);
+        MEMORIA_ADD_TEST_PARAM(iterations);
     }
 
     virtual ~MultiMapTestBase() throw () {}
+
+
+    virtual void smokeCoverage(Int size) {
+        coverage_   = size;
+        iterations  = 1;
+    }
+
+    virtual void smallCoverage(Int size) {
+        coverage_   = size * 10;
+        iterations  = 10;
+    }
+
+    virtual void normalCoverage(Int size) {
+        coverage_   = size * 100;
+        iterations  = 100;
+    }
+
+    virtual void largeCoverage(Int size) {
+        coverage_   = size * 1000;
+        iterations  = 1000;
+    }
+
+    DataSizesT sampleTreeShape() {
+        return sampleTreeShape(level_limit, last_level_limit, size);
+    }
+
+    DataSizesT sampleTreeShape(Int level_limit, Int last_level_limit, CtrSizeT size)
+    {
+        DataSizesT shape;
+
+        DataSizesT limits(level_limit);
+        limits[DataStreams - 1] = last_level_limit;
+
+        while(shape[0] == 0)
+        {
+            BigInt resource = size;
+
+            for (Int c = DataStreams - 1; c > 0; c--)
+            {
+                Int level_size = getRandom(limits[c]) + ((c == DataStreams - 1)? 10 : 1);
+
+                shape[c] = level_size;
+
+                resource = resource / level_size;
+            }
+
+            shape[0] = resource;
+        }
+
+        return shape;
+    }
+
 
     void checkData(Ctr& ctr, const MapData& data)
     {
         AssertEQ(MA_RAW_SRC, ctr.size(), data.size());
 
         size_t c = 0;
-        for (auto iter = ctr.begin(); !iter->is_end(); iter->next(), c++)
+        for (auto iter = ctr.begin(); !iter->is_end(); c++)
         {
-            auto key    = iter->key();
-            auto value  = iter->read_values();
+            auto key = iter->key();
 
-            AssertEQ(MA_RAW_SRC, key, std::get<0>(data[c]));
-            AssertEQ(MA_RAW_SRC, value, std::get<1>(data[c]));
+            auto values_size = iter->count_values();
 
-            iter->toIndex();
+            if (iter->next())
+            {
+                auto value = iter->read_values();
+
+                AssertEQ(MA_RAW_SRC, values_size, std::get<1>(data[c]).size());
+
+                AssertEQ(MA_RAW_SRC, key, std::get<0>(data[c]));
+                AssertEQ(MA_RAW_SRC, value, std::get<1>(data[c]));
+            }
+            else {
+                break;
+            }
+        }
+    }
+
+    void checkRunPositions(Ctr& ctr)
+    {
+        size_t c = 0;
+        for (auto iter = ctr.begin(); !iter->is_end(); c++)
+        {
+            auto values_size = iter->count_values();
+
+            if (iter->next())
+            {
+                auto run_pos = iter->run_pos();
+                AssertEQ(MA_RAW_SRC, run_pos, 0);
+
+                if (values_size > 1)
+                {
+                    auto target_pos = values_size / 2;
+
+                    iter->skipFw(target_pos);
+
+                    auto run_pos = iter->run_pos();
+                    AssertEQ(MA_RAW_SRC, run_pos, target_pos);
+
+                    iter->skipFw(values_size - target_pos);
+                }
+                else {
+                    iter->skipFw(values_size);
+                }
+            }
+            else {
+                break;
+            }
         }
     }
 
@@ -151,7 +257,7 @@ public:
         {
             vector<Value> val;
 
-            size_t values_size = getRandomG(values);
+            size_t values_size = this->getRandom(values);
 
             for (size_t v = 0; v < values_size; v++)
             {
@@ -165,10 +271,6 @@ public:
 
         return data;
     }
-
-
-
-    template <typename T> struct TypeTag {};
 
     template <typename V, typename T>
     T make_key(V&& num, TypeTag<T>) {

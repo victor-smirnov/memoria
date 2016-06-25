@@ -20,6 +20,9 @@
 #include <memoria/v1/core/tools/uuid.hpp>
 #include <memoria/v1/core/tools/stream.hpp>
 
+#include <atomic>
+#include <mutex>
+
 namespace memoria {
 namespace v1 {
 namespace persistent_inmem   {
@@ -30,9 +33,13 @@ template <typename Key_, Int NodeSize, Int NodeIndexSize, typename NodeId_, type
 class NodeBase {
 public:
 
+	using MutexT = std::recursive_mutex;
+	using LockGuardT = std::lock_guard<MutexT>;
+
     using Key       = Key_;
     using NodeId    = NodeId_;
     using TxnId     = TxnId_;
+    using RCType	= BigInt;
 
     class RootMetadata {
         BigInt size_ = 0;
@@ -70,7 +77,9 @@ private:
     Int size_ = 0;
 
 protected:
-    BigInt refs_ = 0;
+    BigInt refs_;
+    mutable MutexT mutex_;
+
 private:
 
     static constexpr Int Indexes =  NodeSize / NodeIndexSize + ((NodeSize % NodeIndexSize == 0)?  0 : 1);
@@ -84,8 +93,24 @@ public:
     NodeBase(const TxnId& txn_id, const NodeId& node_id, NodeType node_type):
         node_type_(node_type),
         node_id_(node_id),
-        txn_id_(txn_id)
+        txn_id_(txn_id),
+		refs_(0)
     {}
+
+    MutexT& mutex() {return mutex_;}
+    MutexT& mutex() const {return mutex_;}
+
+    void lock() {
+    	mutex_.lock();
+    }
+
+    void unlock() {
+    	mutex_.unlock();
+    }
+
+    auto try_lock() {
+    	return mutex_.try_lock();
+    }
 
     template <typename Base>
     void populate_as_buffer(const Base* node)
@@ -96,7 +121,7 @@ public:
 
         metadata_   = node->metadata();
         size_       = node->size();
-        refs_       = node->refs();
+        refs_       = node->references();
 
         for (Int c = 0; c < NodeIndexSize; c++)
         {
@@ -169,31 +194,22 @@ public:
         return size_ < max_size();
     }
 
-    BigInt refs() const {
+    RCType references() const {
+    	LockGuardT lk(mutex_);
         return refs_;
     }
 
-    BigInt ref2()
+    void ref()
     {
-        auto r = ++refs_;
-
-//      cerr << "PTreeNode.Ref " << r << " " << node_id_ << " " << node_id_.lo() << " "<< node_type_ << " " << refs_ <<endl;
-
-        return r;
+    	LockGuardT lk(mutex_);
+    	++refs_;
     }
 
-    BigInt unref1()
+    RCType unref()
     {
+    	LockGuardT lk(mutex_);
         auto r = --refs_;
-
-//      if (node_type_ != NodeType::LEAF && node_type_ != NodeType::BRANCH) {
-//          int a = 0; a++;
-//      }
-//
-//      cerr << "PTreeNode.UnRef " << r << " " << node_id_ << " " << node_id_.lo() << " "<< node_type_ << " " << refs_ <<endl;
-
         MEMORIA_V1_ASSERT(r, >=, 0);
-
         return r;
     }
 
@@ -270,10 +286,6 @@ public:
 
     void reindex()
     {
-        if (size_ >= 18) {
-            int a = 0; a++;
-        }
-
         for (auto& k: index_) k = Key();
 
         Int max = (size_ % NodeIndexSize == 0) ? size_ : (size_ - size_ % NodeIndexSize);
@@ -367,7 +379,7 @@ public:
         out << this->node_id();
         out << this->txn_id();
         out << this->size();
-        out << this->refs();
+        out << this->references();
 
         Int last_idx = size_ / NodeIndexSize + (size_ % NodeIndexSize == 0 ? 0 : 1);
         for (Int c = 0; c < last_idx; c++)
@@ -393,7 +405,10 @@ public:
         in >> node_id_;
         in >> txn_id_;
         in >> size_;
+
+//        BigInt refs;
         in >> refs_;
+//        refs_.store(refs);
 
         Int last_idx = size_ / NodeIndexSize + (size_ % NodeIndexSize == 0 ? 0 : 1);
         for (Int c = 0; c < last_idx; c++)
@@ -585,7 +600,7 @@ public:
     {}
 
     ~BranchNode() {
-
+//    	cout << "Remove BRANCH node " << this->node_id() << endl;
     }
 
 
@@ -665,7 +680,9 @@ public:
     {}
 
 
-    ~LeafNode() {}
+    ~LeafNode() {
+//    	cout << "Remove LEAF node " << this->node_id() << endl;
+    }
 
 
     void del() const {

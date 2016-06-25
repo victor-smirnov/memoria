@@ -45,6 +45,15 @@ struct TypeNameFactory
         return typeid(T).name();
     }
 };
+
+static inline std::string demangle(const char* name)
+{
+	char buf[40960];
+	size_t len = sizeof(buf);
+	abi::__cxa_demangle(name, buf, &len, NULL);
+	return std::string(buf);
+}
+
 #else
 template<typename T, int BufferSize = 40960>
 struct TypeNameFactory
@@ -57,6 +66,12 @@ struct TypeNameFactory
         return typeid(T).name();
     }
 };
+
+static inline std::string demangle(const char* name)
+{
+	return std::string(name);
+}
+
 #endif
 
 

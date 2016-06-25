@@ -45,17 +45,17 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::RemoveName)
 
 protected:
     template <Int Stream>
-    void remove_stream_entry(Iterator& iter)
+    void remove_stream_entry(Iterator& iter, Int stream, Int idx)
     {
         auto& self = this->self();
 
-        auto result = self.template try_remove_stream_entry<Stream>(iter);
+        auto result = self.template try_remove_stream_entry<Stream>(iter, idx);
 
         if (!std::get<0>(result))
         {
-            iter.split();
+            iter.split(stream, idx);
 
-            result = self.template try_remove_stream_entry<Stream>(iter);
+            result = self.template try_remove_stream_entry<Stream>(iter, idx);
 
             if (!std::get<0>(result))
             {

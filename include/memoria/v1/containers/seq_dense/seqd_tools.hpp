@@ -105,9 +105,9 @@ public:
 
     virtual Int get(InputBuffer* buffer, Int pos)
     {
-    	Int inserted = get(buffer->template substream_by_idx<1>(), pos);
+        Int inserted = get(buffer->template substream_by_idx<1>(), pos);
 
-    	buffer->template substream_by_idx<0>()->append(inserted, 0);
+        buffer->template substream_by_idx<0>()->append(inserted, 0);
 
         return inserted;
     }

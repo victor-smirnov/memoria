@@ -22,6 +22,7 @@
 
 #include <memoria/v1/core/packed/tree/fse/packed_fse_quick_tree.hpp>
 #include <memoria/v1/core/packed/tree/fse_max/packed_fse_max_tree.hpp>
+#include <memoria/v1/core/packed/tree/fse_max/packed_fse_optmax_tree.hpp>
 #include <memoria/v1/core/packed/tree/vle/packed_vle_quick_tree.hpp>
 #include <memoria/v1/core/packed/tree/vle/packed_vle_dense_tree.hpp>
 #include <memoria/v1/core/packed/tree/vle_big/packed_vle_bigmax_tree.hpp>
@@ -143,45 +144,6 @@ public:
 
     const auto& get(StreamTag<0>, StreamTag<SubstreamIdx>, Int) const {
         return value_;
-    }
-};
-
-
-
-
-template <typename CtrT, typename InputIterator, Int EntryBufferSize = 1000>
-class MapEntryIteratorInputProvider: public v1::btss::AbstractIteratorBTSSInputProvider<
-    CtrT,
-    MapEntryIteratorInputProvider<CtrT, InputIterator, EntryBufferSize>,
-    InputIterator
->
-{
-    using Base = v1::btss::AbstractIteratorBTSSInputProvider<
-            CtrT,
-            MapEntryIteratorInputProvider<CtrT, InputIterator, EntryBufferSize>,
-            InputIterator
-    >;
-
-public:
-
-    using typename Base::CtrSizeT;
-private:
-    CtrSizeT zero_;
-public:
-    MapEntryIteratorInputProvider(CtrT& ctr, const InputIterator& start, const InputIterator& end, Int capacity = 10000):
-        Base(ctr, start, end, capacity), zero_()
-    {}
-
-    const auto& buffer(StreamTag<0>, StreamTag<0>, Int idx, Int block) {
-        return zero_;
-    }
-
-    const auto& buffer(StreamTag<0>, StreamTag<1>, Int idx, Int block) {
-        return std::get<0>(Base::input_value_buffer_[idx]);
-    }
-
-    const auto& buffer(StreamTag<0>, StreamTag<2>, Int idx, Int block) {
-        return std::get<1>(Base::input_value_buffer_[idx]);
     }
 };
 

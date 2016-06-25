@@ -53,6 +53,7 @@
 #include <memoria/v1/prototypes/bt/container/bt_c_checks.hpp>
 #include <memoria/v1/prototypes/bt/container/bt_c_insert.hpp>
 #include <memoria/v1/prototypes/bt/container/bt_c_read.hpp>
+#include <memoria/v1/prototypes/bt/container/bt_c_ioread.hpp>
 #include <memoria/v1/prototypes/bt/container/bt_c_update.hpp>
 #include <memoria/v1/prototypes/bt/container/bt_c_branch_common.hpp>
 #include <memoria/v1/prototypes/bt/container/bt_c_branch_variable.hpp>
@@ -101,6 +102,7 @@ struct BTTypes {
             bt::RemoveName,
             bt::FindName,
             bt::ReadName,
+            bt::IOReadName,
             bt::UpdateName,
             bt::WalkName
     >                                                                           ContainerPartsList;
@@ -281,7 +283,7 @@ public:
     >;
 
 
-    using BranchNodeEntry_ = TypeListToTuple<typename BranchNodeEntryBuilder<Linearize<BranchStreamsStructList>>::Type>;
+    using BranchNodeEntry_ = AsTuple<typename BranchNodeEntryBuilder<Linearize<BranchStreamsStructList>>::Type>;
 
     struct NodeTypesBase: ContainerTypes {
         using NodeBase  = Page;
@@ -364,21 +366,21 @@ public:
         typedef NodePageBase0G                                                  NodeBaseG;
 
         typedef typename MyType::CtrList                                        CtrList;
-        typedef typename MyType::IterList                      					IterList;
+        typedef typename MyType::IterList                                       IterList;
 
         // FIXME Refactor BTree hierarchy
         // Use container types as base definitions
         typedef BTCtrTypes<Types>                                               CtrTypes;
         typedef BTIterTypes<Types>                                              IterTypes;
 
-        static const Int Streams                                                = MyType::Streams;
+        static constexpr Int Streams = MyType::Streams;
 
-        typedef BranchNodeEntry_                                                BranchNodeEntry;
+        using BranchNodeEntry = BranchNodeEntry_;
 
         using Position  = Position_;
         using CtrSizesT = Position_;
 
-        typedef PageUpdateManager<CtrTypes>                                     PageUpdateMgr;
+        using PageUpdateMgr = PageUpdateManager<CtrTypes>;
 
         using LeafStreamsStructList     = typename MyType::LeafStreamsStructList;
 
@@ -390,8 +392,6 @@ public:
         using LeafRangeOffsetList       = typename MyType::LeafRangeOffsetList;
         using LeafRangeList             = typename MyType::LeafRangeList;
 
-//        template <typename LeafPath>
-//        using TargetType = typename PackedStructValueTypeH<LeafStreamsStructList, LeafPath>::Type;
 
         template <typename LeafPath>
         using TargetType = typename AccumType<
@@ -414,7 +414,7 @@ public:
         using StreamsInputTypeList = typename MyType::StreamsInputTypeList;
 
         template <Int Stream>
-        using StreamInputTuple = TypeListToTuple<Select<Stream, StreamsInputTypeList>>;
+        using StreamInputTuple  = TypeListToTuple<Select<Stream, StreamsInputTypeList>>;
 
         template <Int Stream>
         using InputTupleAdapter = StreamTupleHelper<StreamInputTuple<Stream>>;
@@ -424,7 +424,7 @@ public:
 
 
         template <Int SubstreamIdx>
-        using LeafPathT = typename v1::list_tree::BuildTreePath<LeafStreamsStructList, SubstreamIdx>::Type;
+        using LeafPathT   = typename v1::list_tree::BuildTreePath<LeafStreamsStructList, SubstreamIdx>::Type;
 
         template <Int SubstreamIdx>
         using BranchPathT = typename v1::list_tree::BuildTreePath<BranchStreamsStructList, SubstreamIdx>::Type;
@@ -432,6 +432,11 @@ public:
         template <Int StreamIdx>
         using StreamInputBufferStructList = Select<StreamIdx, InputBufferStructList>;
 
+        template <typename SubstreamPath>
+        using LeafPackedStruct = typename Pages::LeafDispatcher::Head::template PackedStruct<SubstreamPath>;
+
+
+        using LeafNode = typename Pages::LeafDispatcher::Head;
 
         static const LeafDataLengthType LeafDataLength = LeafSizeType == PackedSizeType::FIXED ?
                                                         LeafDataLengthType::FIXED :

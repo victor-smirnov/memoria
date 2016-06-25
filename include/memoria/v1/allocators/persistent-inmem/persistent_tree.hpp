@@ -28,10 +28,11 @@
 #include <unordered_map>
 #include <memory>
 #include <malloc.h>
+#include <mutex>
 
 namespace memoria {
 namespace v1 {
-namespace persistent_inmem   {
+namespace persistent_inmem {
 
 
 template <typename BranchNodeT, typename LeafNodeT_, typename RootProvider, typename PageType>
@@ -46,9 +47,12 @@ public:
 
     using NodeBasePtr   = NodeBaseT*;
 
-    using Iterator          = PersistentTreeIterator<BranchNodeT, LeafNodeT>;
-    using ConstIterator     = PersistentTreeConstIterator<BranchNodeT, LeafNodeT>;
-    using Path              = typename Iterator::Path;
+    using Iterator      = PersistentTreeIterator<BranchNodeT, LeafNodeT>;
+    using ConstIterator = PersistentTreeConstIterator<BranchNodeT, LeafNodeT>;
+    using Path          = typename Iterator::Path;
+
+    using MutexT		= typename std::remove_reference<decltype(std::declval<RootProvider>().snapshot_mutex())>::type;
+    using LockGuardT	= typename std::lock_guard<MutexT>;
 
 private:
     RootProvider* root_provider_;
@@ -70,6 +74,8 @@ public:
 
                 while (root_provider)
                 {
+                	LockGuardT guard(root_provider_->snapshot_mutex());
+
                     if (!root_provider->is_dropped())
                     {
                         target = root_provider;
@@ -134,13 +140,13 @@ public:
         }
     }
 
-    bool remove(const Key& key)
+    bool remove(const Key& key, bool delete_on_unref = true)
     {
         auto iter = this->locate(key);
 
         if (!iter.is_end())
         {
-            remove_from(iter);
+            remove_from(iter, delete_on_unref);
             return true;
         }
         else {
@@ -148,8 +154,8 @@ public:
         }
     }
 
-    void remove(Iterator& iter) {
-        remove_from(iter);
+    void remove(Iterator& iter, bool delete_on_unref = true) {
+        remove_from(iter, delete_on_unref);
     }
 
     auto locate(const Key& key) const {
@@ -241,6 +247,13 @@ public:
         }
     }
 
+    void dump_tree(std::ostream& out = std::cout)
+    {
+    	walk_tree([&, this](NodeBaseT* node){
+    		this->dump(node, out);
+    	});
+    }
+
 
     void walk_tree(std::function<void (NodeBaseT*)> fn) {
         walk_tree( root(), fn);
@@ -277,9 +290,9 @@ protected:
         }
     }
 
-    void delete_tree(NodeBaseT* node, std::function<void (LeafNodeT*)> fn)
+    void delete_tree(NodeBaseT* node, const std::function<void (LeafNodeT*)>& fn)
     {
-        if (node->unref1() == 0)
+        if (node->unref() == 0)
         {
             if (node->is_leaf())
             {
@@ -401,35 +414,87 @@ protected:
         return iter;
     }
 
-    void update_path(Path& path, Int level = 0)
+    class PathLocker {
+    	Path& path_;
+    public:
+    	PathLocker(Path& path): path_(path) {lock_path(path_);}
+    	~PathLocker() {unlock_path(path_);}
+
+        void lock_path(Path& path)
+        {
+        	Int c = path.size() - 2;
+
+        	try {
+        		for (; c >= 0; c--)
+        		{
+        			path[c]->lock();
+        		}
+        	}
+        	catch (std::system_error& ex)
+        	{
+        		for (Int d = c + 1; d < path.size() - 1; d++)
+        		{
+        			path[d]->unlock();
+        		}
+        	}
+        }
+
+        void unlock_path(Path& path)
+        {
+        	for (Int c = 0; c < path.size() - 1; c++)
+        	{
+        		path[c]->unlock();
+        	}
+        }
+    };
+
+    void update_path(Path& path)
+    {
+    	Path src = path;
+    	PathLocker lk(src);
+
+    	bool split = false;
+
+    	for (int c = path.size() - 2; c >= 0; c--)
+    	{
+    		if (path[c]->references() > 1) {
+    			split = true;
+    			break;
+    		}
+    	}
+
+    	if (split) {
+    		clone_path(path);
+    	}
+    }
+
+    void clone_path(Path& path, Int level = 0)
     {
         if (level < path.size() - 1)
         {
             NodeBaseT* node = path[level];
 
-            if (node->txn_id() != this->txn_id())
-            {
-                BranchNodeT* parent = to_branch_node(path[level + 1]);
-                if (parent->txn_id() != this->txn_id())
-                {
-                    update_path(path, level + 1);
+            BranchNodeT* parent = to_branch_node(path[level + 1]);
 
-                    parent = to_branch_node(path[level + 1]);
-                }
+            clone_path(path, level + 1);
 
-                Int parent_idx = parent->find_child_node(node);
+            parent = to_branch_node(path[level + 1]);
 
-                NodeBaseT* clone = clone_node(node);
+            Int parent_idx = parent->find_child_node(node);
 
-                parent->data(parent_idx)->unref1();
-                parent->data(parent_idx) = clone;
+            NodeBaseT* clone = clone_node(node);
 
-                clone->ref2();
+            // FIXME: remove?
+            parent->data(parent_idx)->unref();
+            parent->data(parent_idx) = clone;
 
-                path[level] = clone;
-            }
+            clone->ref();
+
+            path[level] = clone;
         }
     }
+
+
 
     void insert_to(Iterator& iter, const Key& key, const Value& value)
     {
@@ -458,17 +523,18 @@ protected:
         this->root()->metadata().add_size(1);
     }
 
-    void remove_from(Iterator& iter)
+    void remove_from(Iterator& iter, bool delete_on_unref)
     {
         update_path(iter.path());
 
         LeafNodeT* leaf = iter.leaf();
 
-        auto page = leaf->data(iter.idx()).page();
+        auto page = leaf->data(iter.idx()).page_ptr();
 
-        if (page->unref() == 0)
+        if (page->unref() == 0 && delete_on_unref)
         {
-            ::free(page);
+        	cout << "Delete page " << page->raw_data()->id() << " via iterator" << endl;
+            delete page;
         }
 
         leaf->remove(iter.idx(), iter.idx() + 1);
@@ -514,7 +580,7 @@ protected:
     void insert_child_node(BranchNodeT* node, Int idx, NodeBaseT* child)
     {
         node->insert(idx, child->max_key(), child);
-        child->ref2();
+        child->ref();
     }
 
     void split_path(Path& path, Path& next, Int level = 0)
@@ -661,11 +727,11 @@ protected:
 
             root_provider_->set_root(node);
 
-            node->unref1();
+            node->unref();
 
             remove_node(root);
 
-            MEMORIA_V1_ASSERT(node->refs(), ==, 1);
+            MEMORIA_V1_ASSERT(node->references(), ==, 1);
         }
 
         next[level] = node;
@@ -679,7 +745,7 @@ protected:
         {
             NodeBaseT* child = node->data(c);
 
-            child->ref2();
+            child->ref();
         }
     }
 
@@ -752,7 +818,7 @@ protected:
 
         for (Int c = 0; c < clone->size(); c++)
         {
-            clone->data(c).page()->ref();
+            clone->data(c).page_ptr()->ref();
         }
 
         return clone;

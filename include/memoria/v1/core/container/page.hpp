@@ -42,7 +42,6 @@ class BitBuffer: public StaticBuffer<Size % 32 == 0 ? Size / 32 : ((Size / 32) +
     >                                                                           Base;
 public:
 
-
     typedef Int                                                                 Index;
     typedef typename Base::ElementType                                          Bits;
 
@@ -102,10 +101,7 @@ private:
 
     FlagsType   flags_;
 
-
-    BigInt      references_;
     Int         deleted_;
-
 
     //Txn rollback intrusive list fields. Not used by containers.
 
@@ -121,7 +117,6 @@ public:
                 decltype(owner_ctr_type_hash_),
                 decltype(ctr_type_hash_),
                 decltype(page_type_hash_),
-                decltype(references_),
                 decltype(deleted_),
                 decltype(page_size_),
                 decltype(next_block_pos_),
@@ -195,13 +190,6 @@ public:
         return page_type_hash_;
     }
 
-    auto &references() {
-        return references_;
-    }
-
-    const auto& references() const {
-        return references_;
-    }
 
     Int &deleted() {
         return deleted_;
@@ -217,24 +205,6 @@ public:
 
     const Int& page_size() const {
         return page_size_;
-    }
-
-    auto ref() {
-        auto r = ++references_;
-
-        return r;
-    }
-
-    auto unref() {
-        auto r = --references_;
-
-        MEMORIA_V1_ASSERT(r, >=, 0);
-
-//      if (r <= 0) {
-//          cerr << "PageUnref: " << uuid_ << " " << r << endl;
-//      }
-
-        return r;
     }
 
     Int data_size() const {
@@ -280,9 +250,6 @@ public:
 
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
-//        IDValue id(&id_);
-//        IDValue gid(&uuid_);
-
         handler->value("GID",               &uuid_);
         handler->value("ID",                &id_);
         handler->value("CRC",               &crc_);
@@ -290,7 +257,6 @@ public:
         handler->value("OWNER_MODEL_HASH",  &owner_ctr_type_hash_);
         handler->value("MODEL_HASH",        &ctr_type_hash_);
         handler->value("PAGE_TYPE_HASH",    &page_type_hash_);
-        handler->value("REFERENCES",        &references_);
         handler->value("DELETED",           &deleted_);
         handler->value("PAGE_SIZE",         &page_size_);
 
@@ -310,7 +276,6 @@ public:
         this->owner_ctr_type_hash()     = page->owner_ctr_type_hash();
 
         this->page_type_hash()  = page->page_type_hash();
-        this->references()      = page->references();
         this->deleted()         = page->deleted();
         this->page_size()       = page->page_size();
     }
@@ -331,7 +296,6 @@ public:
         FieldFactory<PageIdType>::serialize(buf, id());
         FieldFactory<PageIdType>::serialize(buf, uuid());
 
-        FieldFactory<BigInt>::serialize(buf, references_);
         FieldFactory<Int>::serialize(buf, deleted_);
     }
 
@@ -351,7 +315,6 @@ public:
         FieldFactory<PageIdType>::deserialize(buf, id());
         FieldFactory<PageIdType>::deserialize(buf, uuid());
 
-        FieldFactory<BigInt>::deserialize(buf, references_);
         FieldFactory<Int>::deserialize(buf, deleted_);
     }
 };

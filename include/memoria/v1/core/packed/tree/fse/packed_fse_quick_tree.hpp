@@ -20,6 +20,7 @@
 #include <memoria/v1/core/packed/buffer/packed_fse_input_buffer_ro.hpp>
 
 #include <memoria/v1/core/tools/static_array.hpp>
+#include <memoria/v1/metadata/page.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -51,10 +52,8 @@ class PkdFQTree: public PkdFQTreeBase<typename Types::IndexValue, typename Types
 
 public:
 
-
-
     static constexpr UInt VERSION = 1;
-    static constexpr Int Blocks = Types::Blocks;
+    static constexpr Int Blocks   = Types::Blocks;
 
     using Base::METADATA;
     using Base::index_size;
@@ -78,6 +77,109 @@ public:
 
     using SizesT = core::StaticVector<Int, Blocks>;
 
+    using ConstPtrsT    = core::StaticVector<const Value*, Blocks>;
+
+    class ReadState {
+    protected:
+        ConstPtrsT values_;
+        Int idx_ = 0;
+    public:
+        ReadState() {}
+        ReadState(const ConstPtrsT& values, Int idx): values_(values), idx_(idx) {}
+
+        ConstPtrsT& values() {return values_;}
+        Int& idx() {return idx_;}
+        const ConstPtrsT& values() const {return values_;}
+        const Int& idx() const {return idx_;}
+    };
+
+
+    class Iterator: public ReadState {
+        Int size_;
+        Values data_values_;
+
+        using ReadState::idx_;
+        using ReadState::values_;
+
+        Int idx_backup_;
+
+    public:
+        Iterator() {}
+        Iterator(const ConstPtrsT& values, Int idx, Int size):
+            ReadState(values, idx),
+            size_(size)
+        {}
+
+        Int size() const {return size_;}
+
+        bool has_next() const {return idx_ < size_;}
+
+        void next()
+        {
+            for (Int b = 0; b < Blocks; b++)
+            {
+                data_values_[b] = values_[b][idx_];
+            }
+
+            idx_++;
+        }
+
+        const auto& value(Int block) {return data_values_[block];}
+
+        void mark() {
+            idx_backup_ = idx_;
+        }
+
+        void restore() {
+            idx_ = idx_backup_;
+        }
+    };
+
+
+    class BlockIterator {
+        const Value* values_;
+        Int idx_ = 0;
+
+        Int size_;
+        Value data_value_;
+
+        Int idx_backup_;
+    public:
+        BlockIterator() {}
+        BlockIterator(const Value* values, Int idx, Int size):
+            values_(values),
+            idx_(idx),
+            size_(size),
+            data_value_(),
+            idx_backup_()
+        {}
+
+        Int size() const {return size_;}
+
+        bool has_next() const {return idx_ < size_;}
+
+        void next()
+        {
+            for (Int b = 0; b < Blocks; b++)
+            {
+                data_value_ = values_[idx_];
+            }
+
+            idx_++;
+        }
+
+        const auto& value() {return data_value_;}
+
+        void mark() {
+            idx_backup_ = idx_;
+        }
+
+        void restore() {
+            idx_ = idx_backup_;
+        }
+    };
+
+
     static Int estimate_block_size(Int tree_capacity, Int density_hi = 1, Int density_lo = 1)
     {
         MEMORIA_V1_ASSERT(density_hi, ==, 1); // data density should not be set for this type of trees
@@ -94,6 +196,24 @@ public:
     void init(Int capacity = 0)
     {
         Base::init(empty_size(), Blocks * SegmentsPerBlock + 1);
+
+        Metadata* meta = this->template allocate<Metadata>(METADATA);
+
+        meta->size()        = 0;
+        meta->max_size()    = capacity;
+        meta->index_size()  = MyType::index_size(capacity);
+
+        for (Int block = 0; block < Blocks; block++)
+        {
+            this->template allocateArrayBySize<IndexValue>(block * SegmentsPerBlock + 1, meta->index_size());
+            this->template allocateArrayBySize<Value>(block * SegmentsPerBlock + 2, capacity);
+        }
+    }
+
+
+    void init_by_block(Int block_size, Int capacity = 0)
+    {
+        Base::init(block_size, Blocks * SegmentsPerBlock + 1);
 
         Metadata* meta = this->template allocate<Metadata>(METADATA);
 
@@ -162,8 +282,9 @@ public:
         Base::dump_index(Blocks, out);
     }
 
-    void dump(std::ostream& out = cout, bool dump_index = true) const {
-        Base::dump(Blocks, out, dump_index);
+    void dump(std::ostream& out = cout) const {
+        TextPageDumper dumper(out);
+        generateDataEvents(&dumper);
     }
 
     bool check_capacity(Int size) const
@@ -369,6 +490,34 @@ public:
     {
         return this->value(index, idx);
     }
+
+//    Int findNZLE(Int block, Int start) const
+//    {
+//    	MEMORIA_V1_ASSERT(block, <, (Int)Blocks);
+//    	return this->findNZLE_(block, Blocks, start);
+//    }
+
+
+
+    template <typename IOBuffer>
+    bool readTo(ReadState& state, IOBuffer& buffer) const
+    {
+        for (Int b = 0; b < Blocks; b++)
+        {
+            auto val = state.values()[b][state.idx()];
+
+            if (!IOBufferAdapter<Value>::put(buffer, val))
+            {
+                return false;
+            }
+        }
+
+        state.idx()++;
+
+        return true;
+    }
+
+
 
     template <typename Fn>
     void read(Int block, Int start, Int end, Fn&& fn) const
@@ -601,6 +750,10 @@ public:
     }
 
 
+
+
+
+
     template <typename Adaptor>
     void _insert(Int pos, Int size, Adaptor&& adaptor)
     {
@@ -623,9 +776,57 @@ public:
         }
     }
 
-    SizesT positions(Int idx) const {
-        return SizesT(idx);
+
+    template <typename Iter>
+    void populate_from_iterator(Int start, Int length, Iter&& iter)
+    {
+        MEMORIA_V1_ASSERT(start, >=, 0);
+        MEMORIA_V1_ASSERT(start, <=, this->size());
+
+        MEMORIA_V1_ASSERT(length, >=, 0);
+
+        insertSpace(start, length);
+
+        for (Int c = 0; c < length; c++)
+        {
+            iter.next();
+            for (Int block = 0; block < Blocks; block++)
+            {
+                this->value(block, c + start) = iter.value(block);
+            }
+        }
     }
+
+
+    ReadState positions(Int idx) const
+    {
+        ReadState state;
+
+        state.idx() = idx;
+
+        for (Int b = 0; b < Blocks; b++) {
+            state.values()[b] = this->values(b);
+        }
+
+        return state;
+    }
+
+    Iterator iterator(Int idx) const
+    {
+        ConstPtrsT ptrs;
+
+        for (Int b = 0; b < Blocks; b++) {
+            ptrs[b] = this->values(b);
+        }
+
+        return Iterator(ptrs, idx, this->size());
+    }
+
+    BlockIterator iterator(Int block, Int idx) const
+    {
+        return BlockIterator(this->values(block), idx, this->size());
+    }
+
 
     SizesT insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, Int inserted)
     {
@@ -648,6 +849,19 @@ public:
     }
 
     template <typename T>
+    void append(const StaticVector<T, Blocks>& values)
+    {
+        auto meta = this->metadata();
+
+        for (Int b = 0; b < Blocks; b++)
+        {
+            this->values(b)[meta->size()] = values[b];
+        }
+
+        meta->size()++;
+    }
+
+    template <typename T>
     void update(Int idx, const core::StaticVector<T, Blocks>& values)
     {
         setValues(idx, values);
@@ -661,6 +875,21 @@ public:
 
         sum<Offset>(idx, accum);
     }
+
+    template <Int Offset, Int Size, typename AccessorFn, typename T2, template <typename, Int> class BranchNodeEntryItem>
+    void _insert_b(Int idx, BranchNodeEntryItem<T2, Size>& accum, AccessorFn&& values)
+    {
+        insertSpace(idx, 1);
+
+        for (Int b = 0; b < Blocks; b++) {
+            this->values(b)[idx] = values(b);
+        }
+
+        reindex();
+
+        sum<Offset>(this->size() - 1, accum);
+    }
+
 
     template <Int Offset, Int Size, typename T1, typename T2, template <typename, Int> class BranchNodeEntryItem>
     void _update(Int idx, const core::StaticVector<T1, Blocks>& values, BranchNodeEntryItem<T2, Size>& accum)
@@ -782,7 +1011,7 @@ public:
 
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
-        Base::generateDataEvents(handler);
+//        Base::generateDataEvents(handler);
 
         handler->startStruct();
         handler->startGroup("FSQ_TREE");
@@ -806,7 +1035,7 @@ public:
         for (Int c = 0; c < index_size; c++)
         {
             handler->value("INDEX", PageValueProviderFactory::provider(Blocks, [&](Int idx) {
-            	return index[idx][c];
+                return index[idx][c];
             }));
         }
 
@@ -824,8 +1053,8 @@ public:
 
         for (Int c = 0; c < meta->size() ; c++)
         {
-            handler->value("TREE_ITEM", PageValueProviderFactory::provider(Blocks, [&](Int idx) {
-            	return values[idx][c];
+            handler->value("TREE_ITEM", PageValueProviderFactory::provider(false, Blocks, [&](Int idx) {
+                return values[idx][c];
             }));
         }
 

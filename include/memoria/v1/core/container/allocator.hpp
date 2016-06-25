@@ -22,6 +22,7 @@
 #include <memoria/v1/metadata/container.hpp>
 
 #include <memory>
+#include <typeinfo>
 
 namespace memoria {
 namespace v1 {
@@ -89,6 +90,9 @@ struct IAllocator: ICtrDirectory<typename PageType::ID> {
     virtual IAllocatorProperties& properties()                                  = 0;
 
     virtual bool isActive()                                                     = 0;
+
+    virtual void registerCtr(const type_info&)                                  = 0;
+    virtual void unregisterCtr(const type_info&)                                = 0;
 
     virtual ~IAllocator() {}
 };

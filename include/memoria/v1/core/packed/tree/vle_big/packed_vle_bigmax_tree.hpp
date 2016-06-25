@@ -113,15 +113,31 @@ public:
     using IndexValue    = typename Types::Value;
 
     using Values        = core::StaticVector<Value, Blocks>;
+    using Codec         = typename Types::template Codec<Value>;
 
+    using ValueData     = typename Codec::BufferType;
     using InputBuffer   = PkdVLEColumnOrderInputBuffer<Types>;
     using InputType     = Values;
 
-    using SizesT = core::StaticVector<Int, 1>;
+    using SizesT        = core::StaticVector<Int, Blocks>;
+    using PtrsT         = core::StaticVector<ValueData*, Blocks>;
+    using ConstPtrsT    = core::StaticVector<const ValueData*, Blocks>;
 
-    using Codec         = typename Types::template Codec<Value>;
 
-    using ValueData = typename Codec::BufferType;
+    class ReadState {
+        ConstPtrsT values_;
+        SizesT data_pos_;
+    public:
+
+        Int& data_pos(Int idx) {return data_pos_[idx];}
+        const Int& data_pos(Int idx) const {return data_pos_[idx];}
+
+        ConstPtrsT& values() {return values_;}
+        SizesT& data_pos() {return data_pos_;}
+
+        const ConstPtrsT& values() const {return values_;}
+        const SizesT& data_pos() const {return data_pos_;}
+    };
 
     struct TreeLayout {
         Int level_starts[8];
@@ -657,7 +673,7 @@ public:
     }
 
 
-    SizesT positions(Int idx) const
+    ReadState positions(Int idx) const
     {
         auto meta = this->metadata();
 
@@ -668,13 +684,18 @@ public:
         auto values         = this->values();
         TreeLayout layout   = compute_tree_layout(data_size);
 
-        return SizesT(locate(layout, values, idx).idx);
+        ReadState read_state;
+
+        read_state.values()[0] = values;
+        read_state.data_pos()[0] = locate(layout, values, idx).idx;
+
+        return read_state;
     }
 
 
     SizesT insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, Int size)
     {
-    	auto meta = this->metadata();
+        auto meta = this->metadata();
 
         Codec codec;
 
@@ -699,18 +720,18 @@ public:
 
     void insert_buffer(Int pos, const InputBuffer* buffer, Int start, Int size)
     {
-    	Codec codec;
+        Codec codec;
 
-        SizesT starts = buffer->positions(start);
-        SizesT ends   = buffer->positions(start + size);
+        SizesT starts   = buffer->positions(start);
+        SizesT ends     = buffer->positions(start + size);
 
-        SizesT at     = this->positions(pos);
+        auto at         = this->positions(pos);
 
         SizesT total_lengths = ends - starts;
 
         auto values = this->values();
 
-        size_t insertion_pos = at[0];
+        size_t insertion_pos = at.data_pos(0);
 
         insert_space(insertion_pos, total_lengths[0]);
 
@@ -1121,6 +1142,11 @@ public:
         template <typename Fn>
         FindResult(Fn&& fn): idx_(fn.idx()) {}
         Int idx() const {return idx_;}
+
+        void set_idx(Int idx)
+        {
+            this->idx_ = idx;
+        }
     };
 
     auto findForward(SearchType search_type, Int block, Int start, const Value& val) const
@@ -1131,6 +1157,17 @@ public:
         }
         else {
             return FindResult(findGEForward(block, start, val));
+        }
+    }
+
+    auto findForward(SearchType search_type, Int block, Int start, const Optional<Value>& val) const
+    {
+        if (search_type == SearchType::GT)
+        {
+            return FindResult(findGTForward(block, start, val.value()));
+        }
+        else {
+            return FindResult(findGEForward(block, start, val.value()));
         }
     }
 
@@ -1145,8 +1182,34 @@ public:
         }
     }
 
+    auto findForward(SearchType search_type, Int block, const Optional<Value>& val) const
+    {
+    	if (search_type == SearchType::GT)
+    	{
+    		return FindResult(findGTForward(block, val.value()));
+    	}
+    	else {
+    		return FindResult(findGEForward(block, val.value()));
+    	}
+    }
 
 
+    template <typename IOBuffer>
+    bool readTo(ReadState& state, IOBuffer& buffer) const
+    {
+        Codec codec;
+
+        auto val = codec.describe(state.values()[0], state.data_pos()[0]);
+
+        if (buffer.put(val))
+        {
+            state.data_pos()[0] += val.length();
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 
 
 
@@ -1200,11 +1263,11 @@ public:
             auto descr = codec.describe(values, pos);
             if (fn(block, descr))
             {
-            	fn.next();
-            	pos += descr.length();
+                fn.next();
+                pos += descr.length();
             }
             else {
-            	return c - start;
+                return c - start;
             }
         }
 
@@ -1369,10 +1432,10 @@ protected:
         return (value >> BranchingFactorILog2) + ((value & BranchingFactorIMask) ? 1 : 0);
     }
 
-    template <Int Divisor>
-    static constexpr Int divUp(Int value, Int divisor) {
-        return (value / Divisor) + ((value % Divisor) ? 1 : 0);
-    }
+//    template <Int Divisor>
+//    static constexpr Int divUp(Int value, Int divisor) {
+//        return (value / Divisor) + ((value % Divisor) ? 1 : 0);
+//    }
 
 
 
@@ -1909,6 +1972,11 @@ struct StructSizeProvider<PkdVBMTree<Types>> {
 template <typename Types>
 struct IndexesSize<PkdVBMTree<Types>> {
     static const Int Value = 1;
+};
+
+template <typename T>
+struct PkdSearchKeyTypeProvider<PkdVBMTree<T>> {
+	using Type = Optional<typename PkdVBMTree<T>::Value>;
 };
 
 

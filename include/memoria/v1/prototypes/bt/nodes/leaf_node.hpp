@@ -25,6 +25,8 @@
 #include <memoria/v1/core/types/list/misc.hpp>
 #include <memoria/v1/core/types/typehash.hpp>
 #include <memoria/v1/core/types/types.hpp>
+#include <memoria/v1/core/types/algo/fold.hpp>
+
 #include <memoria/v1/prototypes/bt/nodes/branch_node.hpp>
 #include <memoria/v1/prototypes/bt/tools/bt_tools_packed_struct_list_builder.hpp>
 
@@ -57,7 +59,7 @@ public:
                 typename Types::NodeBase
     >                                                                           Base;
 
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
+    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     template <template <typename> class, typename>
@@ -107,11 +109,46 @@ public:
             Stream
     >;
 
+
+    template <Int Stream>
+    using BTTLStreamDataDispatcher = SubrangeDispatcher<
+            StreamStartIdx<Stream>::Value,
+            StreamStartIdx<Stream>::Value + StreamSize<Stream>::Value - 1
+    >;
+
+
+    template <Int Stream>
+    using BTTLLastStreamDataDispatcher = SubrangeDispatcher<
+            StreamStartIdx<Stream>::Value,
+            StreamStartIdx<Stream>::Value + StreamSize<Stream>::Value
+    >;
+
+
+    template <Int Stream>
+    using BTTLStreamSizesDispatcher = SubrangeDispatcher<
+            StreamStartIdx<Stream>::Value + StreamSize<Stream>::Value - 1,
+            StreamStartIdx<Stream>::Value + StreamSize<Stream>::Value
+    >;
+
     template <Int SubstreamIdx>
     using LeafPathT = typename v1::list_tree::BuildTreePath<LeafSubstreamsStructList, SubstreamIdx>::Type;
 
     template <Int SubstreamIdx>
     using BranchPathT = typename v1::list_tree::BuildTreePath<BranchSubstreamsStructList, SubstreamIdx>::Type;
+
+
+
+    template <Int Stream, typename SubstreamIdxList, template <typename> class MapFn>
+    using MapSubstreamsStructs  = typename SubstreamsByIdxDispatcher<Stream, SubstreamIdxList>::template ForAllStructs<MapFn>;
+
+    template <Int Stream, template <typename> class MapFn>
+    using MapStreamStructs      = typename StreamDispatcher<Stream>::template ForAllStructs<MapFn>;
+
+
+    template <typename SubstreamPath>
+    using PackedStruct = typename Dispatcher::template StreamTypeT<
+            v1::list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>::Value
+    >::Type;
 
 
 
@@ -1242,6 +1279,21 @@ public:
         return this->allocator()->template get<T>(SubstreamIdx + SubstreamsStart);
     }
 
+    template <Int SubstreamIdx>
+    auto substream_by_idx()
+    {
+        using T = typename Dispatcher::template StreamTypeT<SubstreamIdx>::Type;
+        return this->allocator()->template get<T>(SubstreamIdx + SubstreamsStart);
+    }
+
+    template <Int SubstreamIdx>
+    auto substream_by_idx() const
+    {
+        using T = typename Dispatcher::template StreamTypeT<SubstreamIdx>::Type;
+        return this->allocator()->template get<T>(SubstreamIdx + SubstreamsStart);
+    }
+
+
 
 
 
@@ -1346,6 +1398,9 @@ public:
                 std::forward<Args>(args)...
         );
     }
+
+
+
 
 
 

@@ -124,14 +124,14 @@ struct UUIDKeyEq
 
 
 inline InputStreamHandler& operator>>(InputStreamHandler& in, UUID& value) {
-	value.hi() = in.readUBigInt();
-	value.lo() = in.readUBigInt();
+    value.hi() = in.readUBigInt();
+    value.lo() = in.readUBigInt();
     return in;
 }
 
 inline OutputStreamHandler& operator<<(OutputStreamHandler& out, const UUID& value) {
-	out.write(value.hi());
-	out.write(value.lo());
+    out.write(value.hi());
+    out.write(value.lo());
     return out;
 }
 
@@ -144,6 +144,11 @@ struct FromString<UUID> {
         return UUID::parse(str.c_str());
     }
 };
+
+
+
+
+
 
 
 

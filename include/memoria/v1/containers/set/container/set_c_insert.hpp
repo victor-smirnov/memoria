@@ -79,8 +79,8 @@ public:
 
     bool contains(const Key& k)
     {
-    	auto iter = find(k);
-    	return iter->is_found(k);
+        auto iter = find(k);
+        return iter->is_found(k);
     }
 
 
@@ -89,15 +89,15 @@ public:
      */
     bool insert_key(const Key& k)
     {
-    	auto iter = find(k);
-    	if (iter->is_found(k))
-    	{
-    		return true;
-    	}
-    	else {
-    		iter->insert(k);
-    		return false;
-    	}
+        auto iter = find(k);
+        if (iter->is_found(k))
+        {
+            return true;
+        }
+        else {
+            iter->insert(k);
+            return false;
+        }
     }
 
 MEMORIA_V1_CONTAINER_PART_END

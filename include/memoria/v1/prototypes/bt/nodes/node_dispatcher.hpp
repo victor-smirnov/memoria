@@ -55,7 +55,7 @@ class NDT0 {
 
     using MyType = NDT0<Types, Idx>;
 public:
-    using Head      = SelectByIndex<Idx, typename Types::List>;
+    using Head = SelectByIndex<Idx, typename Types::List>;
 
 private:
     static const Int HASH       = Head::PAGE_HASH;

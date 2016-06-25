@@ -19,6 +19,7 @@
 #include <memoria/v1/core/packed/tools/packed_allocator_types.hpp>
 #include <memoria/v1/core/packed/buffer/packed_fse_input_buffer_ro.hpp>
 #include <memoria/v1/core/tools/accessors.hpp>
+#include <memoria/v1/core/tools/assert.hpp>
 
 #include <limits>
 
@@ -53,6 +54,16 @@ public:
     using InputType = Values;
     using IndexValue = Value;
     using SizesT = core::StaticVector<Int, Blocks>;
+    using ReadState = SizesT;
+
+    class AppendState {
+        Int size_ = 0;
+    public:
+        Int& size() {return size_;}
+        const Int& size() const {return size_;}
+    };
+
+
 
 private:
 
@@ -117,6 +128,11 @@ public:
     void init()
     {
         size_ = 0;
+    }
+
+    SizesT data_capacity() const
+    {
+        return SizesT(size_ * 2);
     }
 
     template <typename Adaptor>
@@ -193,6 +209,43 @@ public:
         accum[Offset] += idx;
     }
 
+
+    AppendState append_state() const
+    {
+        AppendState state;
+
+        state.size() = this->size();
+
+        return state;
+    }
+
+
+    template <typename IOBuffer>
+    bool append_entry_from_iobuffer(AppendState& state, IOBuffer& buffer)
+    {
+        state.size()++;
+
+        this->size()++;
+
+        return true;
+    }
+
+
+    void copyTo(MyType* other) const
+    {
+        other->size_ = this->size_;
+    }
+
+
+
+    void restore(const AppendState& state)
+    {
+        this->size() = state.size();
+    }
+
+
+
+
     template <typename T>
     Int append(Int size, T&&)
     {
@@ -204,16 +257,23 @@ public:
 
     void fill(Int size)
     {
-    	this->size_ += size;
+        this->size_ += size;
     }
 
     // =================================== Update ========================================== //
 
     void reindex() {}
-    void check() const {}
+    void check() const
+    {
+        MEMORIA_V1_ASSERT(size_, >=, 0);
+    }
 
     void remove(Int start, Int end)
     {
+        if (end < 0) {
+            Int a = 0; a++;
+        }
+
         MEMORIA_V1_ASSERT_TRUE(start >= 0);
         MEMORIA_V1_ASSERT_TRUE(end >= 0);
 
@@ -227,6 +287,16 @@ public:
 
     void insertSpace(Int idx, Int room_length)
     {
+        if (idx > this->size()) {
+            int a = 0;
+            a++;
+        }
+
+        if (room_length < 0) {
+            int a = 0; a++;
+        }
+
+
         MEMORIA_V1_ASSERT(idx, <=, this->size());
         MEMORIA_V1_ASSERT(idx, >=, 0);
         MEMORIA_V1_ASSERT(room_length, >=, 0);
@@ -300,8 +370,8 @@ public:
         return Value();
     }
 
-    SizesT positions(Int idx) const {
-        return SizesT(idx);
+    ReadState positions(Int idx) const {
+        return ReadState(idx);
     }
 
     Values get_values(Int) const {
@@ -359,6 +429,13 @@ public:
     }
 
 
+    template <typename IOBuffer>
+    bool readTo(ReadState& state, IOBuffer& buffer) const
+    {
+        // Don't read anything into the buffer
+        return true;
+    }
+
 
     template <typename Fn>
     void read(Int start, Int end, Fn&& fn) const
@@ -398,7 +475,7 @@ public:
         handler->startStruct();
         handler->startGroup("SIZED_STRUCT");
 
-        handler->value("ALLOCATOR",     &Base::allocator_offset());
+//        handler->value("ALLOCATOR",     &Base::allocator_offset());
         handler->value("SIZE",          &size_);
 
         handler->endGroup();

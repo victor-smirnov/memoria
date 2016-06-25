@@ -52,7 +52,7 @@ protected:
 
     using typename Base::CtrSizeT;
 
-    static const Int Streams                                                    = Types::Streams;
+    static const Int Streams = Types::Streams;
 
     template <typename SubstreamsIdxList, typename... Args>
     auto read_leaf_entry(const NodeBaseG& leaf, Args&&... args) const
@@ -70,7 +70,7 @@ protected:
     template <typename EntryBuffer>
     void insert_entry(Iterator& iter, const EntryBuffer& entry)
     {
-        self().template insert_stream_entry<0>(iter, entry);
+        self().template insert_stream_entry<0>(iter, iter.stream(), iter.idx(), entry);
     }
 
 
@@ -79,12 +79,12 @@ protected:
     template <typename SubstreamsList, typename EntryBuffer>
     void update_entry(Iterator& iter, const EntryBuffer& entry)
     {
-        self().template update_stream_entry<0, SubstreamsList>(iter, entry);
+        self().template update_stream_entry<0, SubstreamsList>(iter, iter.stream(), iter.idx(), entry);
     }
 
 
     void removeEntry(Iterator& iter) {
-        self().template remove_stream_entry<0>(iter);
+        self().template remove_stream_entry<0>(iter, iter.stream(), iter.idx());
     }
 
 

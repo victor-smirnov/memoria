@@ -57,27 +57,27 @@ public:
 
         if (self.allocator().isActive())
         {
-        	auto meta = self.getRootMetadata();
+            auto meta = self.getRootMetadata();
 
-        	for (Int c = 0; c < meta.ROOTS; c++)
-        	{
-        		const auto& root = meta.roots(UUID(0, c));
-        		if (!root.is_null())
-        		{
-        			auto root_page  	= self.allocator().getPage(root, UUID());
-        			auto ctr_meta_rep   = MetadataRepository<typename Types::Profile>::getMetadata();
+            for (Int c = 0; c < meta.ROOTS; c++)
+            {
+                const auto& root = meta.roots(UUID(0, c));
+                if (!root.is_null())
+                {
+                    auto root_page      = self.allocator().getPage(root, UUID());
+                    auto ctr_meta_rep   = MetadataRepository<typename Types::Profile>::getMetadata();
 
-        			Int ctr_hash    	= root_page->ctr_type_hash();
+                    Int ctr_hash        = root_page->ctr_type_hash();
 
-        			auto ctr_meta 		= ctr_meta_rep->getContainerMetadata(ctr_hash);
+                    auto ctr_meta       = ctr_meta_rep->getContainerMetadata(ctr_hash);
 
-        			auto ctr_interface 	= ctr_meta->getCtrInterface();
+                    auto ctr_interface  = ctr_meta->getCtrInterface();
 
-        			ctr_interface->drop(root, UUID(), this);
-        		}
-        	}
+                    ctr_interface->drop(root, UUID(), this);
+                }
+            }
 
-        	NodeBaseG root = self.getRoot();
+            NodeBaseG root = self.getRoot();
             self.removeRootNode(root);
             self.set_root(ID());
         }

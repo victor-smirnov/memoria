@@ -73,19 +73,19 @@ public:
 
     struct InsertSymbolFn {
 
-    	Int symbol_;
+        Int symbol_;
 
-    	CtrSizeT one_ = 1;
+        CtrSizeT one_ = 1;
 
-    	InsertSymbolFn(Int symbol): symbol_(symbol) {}
+        InsertSymbolFn(Int symbol): symbol_(symbol) {}
 
-    	const auto& get(StreamTag<0>, StreamTag<0>, Int block) const {
-    		return one_;
-    	}
+        const auto& get(StreamTag<0>, StreamTag<0>, Int block) const {
+            return one_;
+        }
 
-    	const auto& get(StreamTag<0>, StreamTag<1>, Int block) const {
-    		return symbol_;
-    	}
+        const auto& get(StreamTag<0>, StreamTag<1>, Int block) const {
+            return symbol_;
+        }
     };
 
 
@@ -98,7 +98,7 @@ public:
 
         ctr.insert_entry(
                 self,
-				InsertSymbolFn(symbol)
+                InsertSymbolFn(symbol)
         );
 
         self.skipFw(1);
@@ -187,8 +187,8 @@ public:
 
     template <typename Seq>
     class ReadAdaptor {
-    	const Seq& seq_;
-    	Int pos_ = 0;
+        const Seq& seq_;
+        Int pos_ = 0;
 
     public:
         ReadAdaptor(const Seq& seq): seq_(seq) {}
@@ -196,17 +196,17 @@ public:
         template <typename V>
         void process(StreamTag<0>, StreamTag<1>, Int start, Int end, V&& value)
         {
-        	for (Int c = start; c < end; c++)
-        	{
-        		auto sym1 = seq_.symbol(pos_ + c - start);
-        		auto sym2 = value.symbol(c);
+            for (Int c = start; c < end; c++)
+            {
+                auto sym1 = seq_.symbol(pos_ + c - start);
+                auto sym2 = value.symbol(c);
 
-        		if (sym1 != sym2) {
-        			cout << "Mismatch! " << sym1 << " " << sym2 << " " << (pos_ + c - start) << endl;
-        		}
-        	}
+                if (sym1 != sym2) {
+                    cout << "Mismatch! " << sym1 << " " << sym2 << " " << (pos_ + c - start) << endl;
+                }
+            }
 
-        	pos_ += (end - start);
+            pos_ += (end - start);
         }
     };
 
@@ -224,11 +224,11 @@ public:
     template <typename Seq>
     auto compare(Seq&& seq)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	ReadAdaptor<Seq> adaptor(seq);
+        ReadAdaptor<Seq> adaptor(seq);
 
-    	return self.ctr().template read_single_substream2<IntList<0, 1>>(self, seq.size(), adaptor);
+        return self.ctr().template read_single_substream2<IntList<0, 1>>(self, seq.size(), adaptor);
     }
 
 
@@ -252,8 +252,8 @@ public:
     template <typename Provider>
     CtrSizeT bulk_insert(Provider&& provider)
     {
-    	auto& self = this->self();
-    	return self.ctr().insert(self, std::forward<Provider>(provider));
+        auto& self = this->self();
+        return self.ctr().insert(self, std::forward<Provider>(provider));
     }
 
 

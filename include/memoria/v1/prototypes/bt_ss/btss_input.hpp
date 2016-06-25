@@ -28,23 +28,23 @@
 
 namespace memoria {
 namespace v1 {
-namespace btss      {
+namespace btss {
 
 using bt::LeafNode;
 using bt::StreamTag;
 
 class BTSSBufferStatus {
-	Int size_;
-	bool buffer_filled_;
-	bool finished_;
+    Int size_;
+    bool buffer_filled_;
+    bool finished_;
 public:
-	BTSSBufferStatus(Int size = 0, bool buffer_filled = false, bool finished = false):
-		size_(size), buffer_filled_(buffer_filled), finished_(finished)
-	{}
+    BTSSBufferStatus(Int size = 0, bool buffer_filled = false, bool finished = false):
+        size_(size), buffer_filled_(buffer_filled), finished_(finished)
+    {}
 
-	Int size() const {return size_;}
-	bool is_buffer_filled() const {return buffer_filled_;}
-	bool is_finished() const {return finished_;}
+    Int size() const {return size_;}
+    bool is_buffer_filled() const {return buffer_filled_;}
+    bool is_finished() const {return finished_;}
 };
 
 template <typename CtrT>
@@ -64,9 +64,12 @@ public:
 
     using NodePair = std::pair<NodeBaseG, NodeBaseG>;
 
+    using BufferSizes = typename InputBuffer::BufferSizesT;
+
 protected:
     Int start_ = 0;
     Int size_ = 0;
+    bool finish_ = false;
 
     CtrT&   ctr_;
 
@@ -207,32 +210,50 @@ public:
 
     virtual bool populate_buffer()
     {
-        this->start_ = 0;
-        this->size_ = 0;
-
-        input_buffer_->reset();
-
-        start_buffer(input_buffer_);
-
-        Int size;
-        Int position = 0;
-        while ((size = get(input_buffer_, position)) > 0)
+        if (size_ == start_)
         {
-            position += size;
+            if (!finish_)
+            {
+                start_ = 0;
+                size_  = 0;
+
+                input_buffer_->reset();
+
+                start_buffer(input_buffer_);
+
+                Int entries = get(input_buffer_, 0);
+
+                if (entries > 0)
+                {
+                    size_ = entries;
+                }
+                else {
+                    size_ = -entries;
+                    finish_ = true;
+                }
+
+                input_buffer_->reindex();
+
+                total_ += this->size_;
+
+                end_buffer(input_buffer_, this->size_);
+
+                return entries != 0;
+            }
+            else {
+                return false;
+            }
         }
-
-        input_buffer_->reindex();
-
-        total_ += position;
-
-        size_ = position;
-
-        end_buffer(input_buffer_, position);
-
-        return position > 0;
+        else {
+            return true;
+        }
     }
 
-private:
+protected:
+    BufferSizes data_capacity() const {
+        return input_buffer_->data_capacity();
+    }
+
     static InputBuffer* create_input_buffer(Int capacity)
     {
         Int buffer_size = InputBuffer::block_size(capacity) + 256;
@@ -249,6 +270,40 @@ private:
         else {
             throw OOMException(MA_SRC);
         }
+    }
+
+    static InputBuffer* create_input_buffer(const BufferSizes& capacity)
+    {
+        Int buffer_size = InputBuffer::block_size(capacity) + 256;
+
+        void* block = malloc(buffer_size);
+        if (block != nullptr)
+        {
+            InputBuffer* buffer = T2T<InputBuffer*>(block);
+            buffer->setTopLevelAllocator();
+            buffer->init(buffer_size, capacity);
+
+            return buffer;
+        }
+        else {
+            throw OOMException(MA_SRC);
+        }
+    }
+
+
+    void enlarge()
+    {
+        BufferSizes current_capacity    = data_capacity();
+        BufferSizes new_capacity        = current_capacity;
+        VectorAdd(new_capacity, new_capacity);
+
+        auto new_buffer = create_input_buffer(new_capacity);
+
+        input_buffer_->copyTo(new_buffer);
+
+        delete_buffer(input_buffer_);
+
+        input_buffer_ = new_buffer;
     }
 
     static void delete_buffer(InputBuffer* buffer)
@@ -440,77 +495,10 @@ protected:
 
 
 
-template <typename CtrT, typename InputIterator>
-class IteratorBTSSInputProvider: public v1::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength> {
-    using Base = v1::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength>;
-
-public:
-
-    using CtrSizeT  = typename Base::CtrSizeT;
-    using Position  = typename Base::Position;
-    using InputBuffer = typename Base::InputBuffer;
-
-    using InputValue = typename InputIterator::value_type;
-
-    InputIterator current_;
-    InputIterator end_;
 
 
-
-    Int input_start_ = 0;
-    Int input_size_ = 0;
-    static constexpr Int INPUT_END = 1000;
-
-    InputValue input_value_buffer_[INPUT_END];
-
-    CtrSizeT one_ = 1;
-
-public:
-    IteratorBTSSInputProvider(CtrT& ctr, InputIterator start, InputIterator end, Int capacity = 10000):
-        Base(ctr, capacity),
-        current_(start),
-        end_(end)
-    {}
-
-    virtual Int get(InputBuffer* buffer, Int pos)
-    {
-        if (input_start_ == input_size_)
-        {
-            input_start_ = 0;
-
-            for (input_size_ = 0 ;current_ != end_ && input_size_ < INPUT_END; input_size_++, current_++)
-            {
-                input_value_buffer_[input_size_] = *current_;
-            }
-        }
-
-        if (input_start_ < input_size_)
-        {
-            auto inserted = buffer->append_vbuffer(this, input_start_, input_size_ - input_start_);
-
-            input_start_ += inserted;
-
-            return inserted;
-        }
-
-        return -1;
-    }
-
-    const auto& buffer(StreamTag<0>, StreamTag<0>, Int idx, Int block) {
-        return one_;
-    }
-
-    const auto& buffer(StreamTag<0>, StreamTag<1>, Int idx, Int block) {
-        return std::get<0>(input_value_buffer_[idx]);
-    }
-};
-
-
-
-
-
-template <typename CtrT, typename MyType, Int BufferSize = 1000, typename EntryT = typename CtrT::Types::Entry>
-class AbstractBufferedBTSSInputProvider: public v1::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength> {
+template <typename CtrT, typename IOBuffer>
+class AbstractIOBufferBTSSInputProvider1: public v1::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength> {
 
     using Base = v1::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength>;
 
@@ -520,140 +508,181 @@ protected:
     using typename Base::Position;
     using typename Base::InputBuffer;
 
-    using Entry = EntryT;
+    IOBuffer& io_buffer_;
+    Int num_entries_ = 0;
+    Int entry_ = 0;
 
-    Int input_start_    = 0;
-    Int input_size_     = 0;
-
-    static constexpr Int INPUT_END = BufferSize;
-
-    Entry input_value_buffer_[INPUT_END];
+    Int finish_ = false;
 
 public:
-    AbstractBufferedBTSSInputProvider(CtrT& ctr, Int capacity = 10000):
-        Base(ctr, capacity)
+    AbstractIOBufferBTSSInputProvider1(CtrT& ctr, IOBuffer& buffer, Int input_buffer_capacity = 10000):
+        Base(ctr, input_buffer_capacity),
+        io_buffer_(buffer)
     {}
+
+    virtual ~AbstractIOBufferBTSSInputProvider1() {}
+
+    virtual Int populate(IOBuffer& buffer) = 0;
 
     virtual Int get(InputBuffer* buffer, Int pos)
     {
-        auto& self = this->self();
+        auto input_buffer_state = buffer->append_state();
 
-        if (input_start_ == input_size_)
+        Int total = 0;
+
+
+        while (true)
         {
-            input_start_ = 0;
-
-            for (input_size_ = 0; self.has_next() && input_size_ < INPUT_END; input_size_++)
+            if (entry_ == num_entries_ && !finish_)
             {
-                input_value_buffer_[input_size_] = self.next();
+                io_buffer_.rewind();
+                Int entries = populate(io_buffer_);
+
+                if (entries > 0) {
+                    num_entries_ = entries;
+                }
+                else {
+                    num_entries_ = -entries;
+                    finish_ = true;
+                }
+
+                io_buffer_.rewind();
+                entry_ = 0;
+            }
+
+            for (; entry_ < num_entries_; entry_++, total++)
+            {
+                auto pos    = io_buffer_.pos();
+                auto backup = input_buffer_state;
+
+                if (!buffer->append_entry_from_iobuffer(input_buffer_state, io_buffer_))
+                {
+                    io_buffer_.pos(pos);
+                    input_buffer_state = backup;
+                    buffer->restore_append_state(backup);
+
+                    return total;
+                }
+            }
+
+            if (finish_)
+            {
+                return -total;
             }
         }
-
-        if (input_start_ < input_size_)
-        {
-            auto inserted = buffer->append_vbuffer(&self, input_start_, input_size_ - input_start_);
-
-            input_start_ += inserted;
-
-            return inserted;
-        }
-
-        return -1;
     }
-
-    MyType& self() {return *static_cast<MyType*>(this);}
-    const MyType& self() const {return *static_cast<MyType*>(this);}
 };
 
 
+template <typename CtrT, typename IOBuffer>
+class AbstractIOBufferBTSSInputProvider: public v1::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength> {
 
-template <
-    typename CtrT,
-    typename MyType,
-    typename InputIterator,
-    Int BufferSize = 1000,
-    typename BufferEntry = typename CtrT::Types::Entry
->
-class AbstractIteratorBTSSInputProvider: public AbstractBufferedBTSSInputProvider<CtrT, MyType, BufferSize, BufferEntry>
-{
-    using Base = AbstractBufferedBTSSInputProvider<CtrT, MyType, BufferSize, BufferEntry>;
+    using Base = v1::btss::AbstractBTSSInputProvider<CtrT, CtrT::Types::LeafDataLength>;
 
 protected:
 
     using typename Base::CtrSizeT;
+    using typename Base::Position;
+    using typename Base::InputBuffer;
 
-    using InputValue = typename InputIterator::value_type;
+    using AppendState = typename InputBuffer::AppendState;
 
-    InputIterator current_;
-    InputIterator end_;
+    using Base::input_buffer_;
+
+
+    IOBuffer& io_buffer_;
+    Int finished_ = false;
+
+    AppendState append_state_;
 
 public:
-    AbstractIteratorBTSSInputProvider(CtrT& ctr, InputIterator start, InputIterator end, Int capacity = 10000):
-        Base(ctr, capacity),
-        current_(start),
-        end_(end)
+    AbstractIOBufferBTSSInputProvider(CtrT& ctr, IOBuffer& buffer, Int input_buffer_capacity = 10000):
+        Base(ctr, input_buffer_capacity),
+        io_buffer_(buffer)
     {}
 
-    bool has_next() {
-        return current_ != end_;
+    virtual ~AbstractIOBufferBTSSInputProvider() {}
+
+    virtual Int populate(IOBuffer& buffer) = 0;
+
+    virtual Int get(InputBuffer* buffer, Int pos)
+    {
+        if (!finished_)
+        {
+            append_state_ = input_buffer_->append_state();
+
+            io_buffer_.rewind();
+            Int entries = populate(io_buffer_);
+
+            Int total;
+            if (entries >  0)
+            {
+                total = entries;
+            }
+            else {
+                total = -entries;
+                finished_ = true;
+            }
+
+            io_buffer_.rewind();
+
+            for (Int c = 0; c < total; c++)
+            {
+                this->append_io_entry();
+            }
+
+            return entries;
+        }
+        else {
+            return 0;
+        }
     }
 
-    template <typename T>
-    auto convert(T&& value) const {
-        return value;
-    }
 
-    auto next() {
-        Incrementer inc(current_);
-        return this->self().convert(*current_);
-    }
 
-private:
-    class Incrementer {
-        InputIterator& value_;
-    public:
-        Incrementer(InputIterator& value): value_(value) {}
-        ~Incrementer() {value_++;}
-    };
+    void append_io_entry(Int enlargements = 0)
+    {
+        size_t pos = io_buffer_.pos();
+
+        auto tmp = append_state_;
+
+        if (!input_buffer_->append_entry_from_iobuffer(append_state_, io_buffer_))
+        {
+            append_state_ = tmp;
+            io_buffer_.pos(pos);
+
+            if (enlargements < 5)
+            {
+                this->enlarge();
+                append_state_ = input_buffer_->append_state();
+
+                append_io_entry(enlargements + 1);
+            }
+            else {
+                throw Exception(MA_RAW_SRC, "Supplied entry is too large for InputBuffer");
+            }
+        }
+    }
 };
 
 
 
-template <typename CtrT, typename InputIterator, Int EntryBufferSize = 1000>
-class BTSSIteratorInputProvider: public AbstractIteratorBTSSInputProvider<
-    CtrT,
-    BTSSIteratorInputProvider<CtrT, InputIterator, EntryBufferSize>,
-    InputIterator
->
-{
-    using Base = AbstractIteratorBTSSInputProvider<
-            CtrT,
-            BTSSIteratorInputProvider<CtrT, InputIterator, EntryBufferSize>,
-            InputIterator
-    >;
 
+template <typename CtrT, typename IOBuffer>
+class IOBufferProducerBTSSInputProvider : public AbstractIOBufferBTSSInputProvider<CtrT, IOBuffer> {
+    using Base = AbstractIOBufferBTSSInputProvider<CtrT, IOBuffer>;
+    bt::BufferProducer<IOBuffer>* producer_;
 public:
-
-    using typename Base::CtrSizeT;
-
-private:
-    CtrSizeT one_ = 1;
-
-public:
-    BTSSIteratorInputProvider(CtrT& ctr, const InputIterator& start, const InputIterator& end, Int capacity = 10000):
-        Base(ctr, start, end, capacity)
+    IOBufferProducerBTSSInputProvider(CtrT& ctr, IOBuffer& buffer, bt::BufferProducer<IOBuffer>* producer, Int input_buffer_capacity = 10000):
+        Base(ctr, buffer, input_buffer_capacity),
+        producer_(producer)
     {}
 
-    const auto& buffer(StreamTag<0>, StreamTag<0>, Int idx, Int block) {
-        return one_;
-    }
-
-    const auto& buffer(StreamTag<0>, StreamTag<1>, Int idx, Int block) {
-        return Base::input_value_buffer_[idx];
+    virtual Int populate(IOBuffer& buffer)
+    {
+        return producer_->populate(buffer);
     }
 };
-
-
-
 
 }
 }}

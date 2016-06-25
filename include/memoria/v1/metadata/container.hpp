@@ -28,6 +28,7 @@
 #include <sstream>
 #include <fstream>
 #include <ostream>
+#include <mutex>
 
 namespace memoria {
 namespace v1 {
@@ -68,14 +69,50 @@ struct ContainerWalker {
     virtual ~ContainerWalker() {}
 };
 
+struct ContainerWalkerBase: ContainerWalker {
+    virtual void beginAllocator(const char* type, const char* desc) {}
+    virtual void endAllocator() {}
 
+    virtual void beginSnapshot(const char* descr) {}
+    virtual void endSnapshot() {}
+
+    virtual void beginSnapshotSet(const char* descr, size_t number) {}
+    virtual void endSnapshotSet() {}
+
+    virtual void beginCompositeCtr(const char* descr, const UUID& name) {}
+    virtual void endCompositeCtr() {}
+
+    virtual void beginCtr(const char* descr, const UUID& name, const UUID& root) {}
+    virtual void endCtr() {}
+
+    virtual void beginRoot(Int idx, const void* page) {}
+    virtual void endRoot() {}
+
+    virtual void beginNode(Int idx, const void* page) {}
+    virtual void endNode() {}
+
+    virtual void rootLeaf(Int idx, const void* page) {}
+    virtual void leaf(Int idx, const void* page) {}
+
+    virtual void singleNode(const char* descr, const void* page) {}
+
+    virtual void beginSection(const char* name) {}
+    virtual void endSection() {}
+
+    virtual void content(const char* name, const char* content) {}
+
+    virtual ~ContainerWalkerBase() {}
+};
 
 
 struct ContainerInterface {
 
-	// FIXME: remove name from parameters, it's already in Ctr's page root metadata
+	// uuid, id, page data
+	using BlockCallbackFn = std::function<void(const UUID&, const UUID&, const void*)>;
 
-	virtual String ctr_name() = 0;
+    // FIXME: remove name from parameters, it's already in Ctr's page root metadata
+
+    virtual String ctr_name() = 0;
 
     virtual bool check(const UUID& root_id, const UUID& name, void* allocator) const = 0;
     virtual void walk(
@@ -85,6 +122,13 @@ struct ContainerInterface {
             ContainerWalker* walker
     ) const                                                                     = 0;
 
+    virtual void walk(
+            const UUID& name,
+            void* allocator,
+            ContainerWalker* walker
+    ) const                                                                     = 0;
+
+
     virtual String ctr_type_name() const                                        = 0;
 
     virtual void drop(
@@ -93,6 +137,7 @@ struct ContainerInterface {
             void* allocator
     )                                                                           = 0;
 
+    virtual void for_each_ctr_node(const UUID& name, void* allocator, BlockCallbackFn consumer) = 0;
 
     virtual ~ContainerInterface() {}
 };
@@ -178,7 +223,7 @@ public:
 
     virtual void registerMetadata(const ContainerMetadataPtr& metadata)
     {
-        process_model(metadata);
+    	process_model(metadata);
     }
 
     virtual void unregisterMetadata(const ContainerMetadataPtr& metadata) {}
@@ -189,6 +234,8 @@ private:
     Int                     hash_;
     PageMetadataMap         page_map_;
     ContainerMetadataMap    model_map_;
+
+    std::mutex mutex_;
 
     void process_model(const ContainerMetadataPtr& model);
 };

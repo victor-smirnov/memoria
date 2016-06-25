@@ -247,12 +247,12 @@ public:
 
 
 
-    auto find_ge(Int block, IndexValue value) const
+    auto find_ge(Int block, const IndexValue& value) const
     {
         return find(block, FindGEWalker(value));
     }
 
-    auto find_gt(Int block, IndexValue value) const
+    auto find_gt(Int block, const IndexValue& value) const
     {
         return find(block, FindGTWalker(value));
     }
@@ -489,12 +489,12 @@ public:
 
 
 
-    auto findGTForward(Int block, IndexValue val) const
+    auto findGTForward(Int block, const IndexValue& val) const
     {
         return this->find_gt(block, val);
     }
 
-    auto findGEForward(Int block, IndexValue val) const
+    auto findGEForward(Int block, const IndexValue& val) const
     {
         return this->find_ge(block, val);
     }
@@ -507,10 +507,15 @@ public:
         FindResult(Fn&& fn): idx_(fn.idx()) {}
 
         Int idx() const {return idx_;}
+
+        void set_idx(Int idx)
+        {
+            this->idx_ = idx;
+        }
     };
 
 
-    auto findForward(SearchType search_type, Int block, IndexValue val) const
+    auto findForward(SearchType search_type, Int block, const IndexValue& val) const
     {
         if (search_type == SearchType::GT)
         {
@@ -521,7 +526,19 @@ public:
         }
     }
 
-    auto findBackward(SearchType search_type, Int block, IndexValue val) const
+    auto findForward(SearchType search_type, Int block, const Optional<IndexValue>& val) const
+    {
+        if (search_type == SearchType::GT)
+        {
+            return FindResult(findGTForward(block, val.value()));
+        }
+        else {
+            return FindResult(findGEForward(block, val.value()));
+        }
+    }
+
+
+    auto findBackward(SearchType search_type, Int block, const IndexValue& val) const
     {
         if (search_type == SearchType::GT)
         {
@@ -532,6 +549,16 @@ public:
         }
     }
 
+    auto findBackward(SearchType search_type, Int block, const Optional<IndexValue>& val) const
+    {
+        if (search_type == SearchType::GT)
+        {
+            return FindResult(findGTBackward(block, val.value()));
+        }
+        else {
+            return FindResult(findGEBackward(block, val.value()));
+        }
+    }
 
 
     template <typename ConsumerFn>

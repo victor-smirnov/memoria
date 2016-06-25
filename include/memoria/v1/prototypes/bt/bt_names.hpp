@@ -33,6 +33,7 @@ class IteratorPartsListFactory      {};
 
 class ToolsName             {};
 class FindName              {};
+class IOReadName            {};
 class ReadName              {};
 class UpdateName            {};
 
@@ -74,6 +75,7 @@ class IteratorMultiskipName {};
 class IteratorContainerAPIName  {};
 class IteratorFindName      {};
 class IteratorSelectName    {};
+class IteratorCountName     {};
 class IteratorRankName      {};
 class IteratorSkipName      {};
 class IteratorLeafName      {};

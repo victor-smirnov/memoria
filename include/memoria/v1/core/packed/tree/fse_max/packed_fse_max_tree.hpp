@@ -22,7 +22,8 @@
 
 
 #include <memoria/v1/core/tools/static_array.hpp>
-
+#include <memoria/v1/core/tools/optional.hpp>
+#include <memoria/v1/core/tools/iobuffer/io_buffer.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -78,7 +79,19 @@ public:
     using InputBuffer   = PackedFSERowOrderInputBuffer<PackedFSERowOrderInputBufferTypes<Value, Blocks>>;
     using InputType     = Values;
 
-    using SizesT = core::StaticVector<Int, Blocks>;
+    using SizesT        = core::StaticVector<Int, Blocks>;
+    using PtrsT         = core::StaticVector<Value*, Blocks>;
+    using ConstPtrsT    = core::StaticVector<const Value*, Blocks>;
+
+    class ReadState {
+        ConstPtrsT values_;
+        Int idx_ = 0;
+    public:
+        ConstPtrsT& values() {return values_;}
+        Int& idx() {return idx_;}
+        const ConstPtrsT& values() const {return values_;}
+        const Int& idx() const {return idx_;}
+    };
 
     static Int estimate_block_size(Int tree_capacity, Int density_hi = 1, Int density_lo = 1)
     {
@@ -213,15 +226,16 @@ public:
     }
 
 
-    Value max(Int block) const
+    Optional<Value> max(Int block) const
     {
         auto size = this->size();
 
-        if (size > 0) {
+        if (size > 0)
+        {
             return this->value(block, size - 1);
         }
         else {
-            return Value();
+            return Optional<Value>();
         }
     }
 
@@ -336,9 +350,17 @@ protected:
         meta->index_size()  = new_index_size;
     }
 
+public:
     void insertSpace(Int idx, Int room_length)
     {
         auto meta = this->metadata();
+
+        if (idx > meta->size())
+        {
+            int a = 0; a++;
+        }
+
+        MEMORIA_V1_ASSERT(idx, <=, meta->size());
 
         Int capacity  = meta->capacity();
 
@@ -365,8 +387,7 @@ protected:
         meta->size() += room_length;
     }
 
-
-
+protected:
     void copyTo(MyType* other, Int copy_from, Int count, Int copy_to) const
     {
         MEMORIA_V1_ASSERT_TRUE(copy_from >= 0);
@@ -410,27 +431,6 @@ public:
         removeSpace(0, my_size);
 
         reindex();
-        other->reindex();
-    }
-
-    template <typename TreeType>
-    void transferDataTo(TreeType* other) const
-    {
-        other->insertSpace(0, this->size());
-
-        Int size = this->size();
-
-        for (Int block = 0; block < Blocks; block++)
-        {
-            const auto* my_values   = this->values(block);
-            auto* other_values      = other->values(block);
-
-            for (Int c = 0; c < size; c++)
-            {
-                other_values[c] = my_values[c];
-            }
-        }
-
         other->reindex();
     }
 
@@ -494,12 +494,6 @@ public:
     }
 
 
-//    template <Int Offset, typename T1>
-//    void _insert(Int idx, const core::StaticVector<T1, Blocks>& values)
-//    {
-//      insert(idx, values);
-//    }
-
     template <Int Offset, Int Size, typename T1, typename T2, template <typename, Int> class BranchNodeEntryItem>
     void _update(Int idx, const core::StaticVector<T1, Blocks>& values, BranchNodeEntryItem<T2, Size>& accum)
     {
@@ -540,7 +534,7 @@ public:
 
 
 
-    void insert(Int idx, Int size, std::function<Values (Int)> provider, bool reindex = true)
+    void insert(Int idx, Int size, std::function<const Values& (Int)> provider, bool reindex = true)
     {
         insertSpace(idx, size);
 
@@ -552,7 +546,7 @@ public:
 
         for (Int c = idx; c < idx + size; c++)
         {
-            Values vals = provider(c - idx);
+            const Values& vals = provider(c - idx);
 
             for (Int block = 0; block < Blocks; block++)
             {
@@ -595,9 +589,7 @@ public:
         }
     }
 
-    SizesT positions(Int idx) const {
-        return SizesT(idx);
-    }
+
 
     SizesT insert_buffer(SizesT at, const InputBuffer* buffer, SizesT starts, SizesT ends, Int inserted)
     {
@@ -653,6 +645,39 @@ public:
 
         reindex();
     }
+
+    ReadState positions(Int idx) const
+    {
+        ReadState state;
+
+        state.idx() = idx;
+
+        for (Int b = 0; b < Blocks; b++) {
+            state.values()[b] = this->values(b);
+        }
+
+        return state;
+    }
+
+
+    template <typename IOBuffer>
+    bool readTo(ReadState& state, IOBuffer& buffer) const
+    {
+        for (Int b = 0; b < Blocks; b++)
+        {
+            auto val = state.values()[b][state.idx()];
+
+            if (!IOBufferAdapter<Value>::put(buffer, val))
+            {
+                return false;
+            }
+        }
+
+        state.idx()++;
+
+        return true;
+    }
+
 
     template <typename Fn>
     void read(Int start, Int end, Fn&& fn) const
@@ -725,7 +750,7 @@ public:
 
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
-        Base::generateDataEvents(handler);
+//        Base::generateDataEvents(handler);
 
         handler->startStruct();
         handler->startGroup("FSM_TREE");
@@ -749,7 +774,7 @@ public:
         for (Int c = 0; c < index_size; c++)
         {
             handler->value("INDEX", PageValueProviderFactory::provider(Blocks, [&](Int idx) {
-            	return index[idx][c];
+                return index[idx][c];
             }));
         }
 
@@ -768,7 +793,7 @@ public:
         for (Int c = 0; c < meta->size(); c++)
         {
             handler->value("TREE_ITEM", PageValueProviderFactory::provider(Blocks, [&](Int idx) {
-            	return values[idx][c];
+                return values[idx][c];
             }));
         }
 
@@ -828,6 +853,12 @@ struct StructSizeProvider<PkdFMTree<Types>> {
 template <typename Types>
 struct IndexesSize<PkdFMTree<Types>> {
     static const Int Value = PkdFMTree<Types>::Blocks;
+};
+
+
+template <typename T>
+struct PkdSearchKeyTypeProvider<PkdFMTree<T>> {
+	using Type = Optional<typename PkdFMTree<T>::Value>;
 };
 
 

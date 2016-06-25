@@ -21,39 +21,102 @@
 #include <memoria/v1/core/tools/pool.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
 #include <memoria/v1/core/tools/stream.hpp>
+#include <memoria/v1/core/tools/pair.hpp>
+#include <memoria/v1/core/tools/latch.hpp>
+
 #include <memoria/v1/allocators/persistent-inmem/persistent_tree_node.hpp>
 #include <memoria/v1/allocators/persistent-inmem/persistent_tree.hpp>
 #include <memoria/v1/allocators/persistent-inmem/persistent_tree_snapshot.hpp>
+
 
 #include <malloc.h>
 #include <memory>
 #include <limits>
 #include <string>
 #include <unordered_map>
-#include "../../core/tools/pair.hpp"
+#include <unordered_set>
+#include <mutex>
+
+
 
 namespace memoria {
 namespace v1 {
 
-template <typename ValueT, typename TxnIdT>
-class PersistentTreeValue {
-    ValueT page_;
-    TxnIdT txn_id_;
-public:
-    PersistentTreeValue(): page_(), txn_id_() {}
-    PersistentTreeValue(const ValueT& page, const TxnIdT& txn_id): page_(page), txn_id_(txn_id) {}
+namespace {
 
-    const ValueT& page() const {return page_;}
-    ValueT& page() {return page_;}
+	template <typename PageT>
+	struct PagePtr {
+		using RefCntT = BigInt;
+	private:
+		PageT* page_;
+		std::atomic<RefCntT> refs_;
 
-    const TxnIdT& txn_id() const {return txn_id_;}
-    TxnIdT& txn_id() {return txn_id_;}
-};
+		// Currently for debug purposes
+		static std::atomic<BigInt> page_cnt_;
+	public:
+		PagePtr(PageT* page, BigInt refs): page_(page), refs_(refs) {
+			//page_cnt_++;
+			//cout << "Create page: " << page_cnt_ << endl;
+		}
+
+		~PagePtr() {
+			//if (--page_cnt_ == 0) {
+			//	cout << "All Pages removed" << endl;
+			//}
+			//cout << "Remove page: " << page_cnt_ << endl;
+
+			::free(page_);
+		}
+
+		PageT* raw_data() {return page_;}
+		const PageT* raw_data() const {return page_;}
+
+		PageT* operator->() {return page_;}
+		const PageT* operator->() const {return page_;}
+
+		void clear() {
+			page_ = nullptr;
+		}
+
+		void ref() {
+			refs_++;
+		}
+
+		RefCntT references() const {return refs_;}
+
+		RefCntT unref() {
+			return --refs_;
+		}
+	};
+
+	template <typename PageT>
+	std::atomic<BigInt> PagePtr<PageT>::page_cnt_(0);
+
+
+	template <typename ValueT, typename TxnIdT>
+	class PersistentTreeValue {
+		ValueT page_;
+		TxnIdT txn_id_;
+	public:
+		using Value = ValueT;
+
+		PersistentTreeValue(): page_(), txn_id_() {}
+		PersistentTreeValue(const ValueT& page, const TxnIdT& txn_id): page_(page), txn_id_(txn_id) {}
+
+		const ValueT& page_ptr() const {return page_;}
+		ValueT& page_ptr() {return page_;}
+
+		const TxnIdT& txn_id() const {return txn_id_;}
+		TxnIdT& txn_id() {return txn_id_;}
+	};
+
+}
+
 
 template <typename V, typename T>
 OutputStreamHandler& operator<<(OutputStreamHandler& out, const PersistentTreeValue<V, T>& value)
 {
-    out << value.page();
+    out << value.page_ptr();
     out << value.txn_id();
     return out;
 }
@@ -61,7 +124,7 @@ OutputStreamHandler& operator<<(OutputStreamHandler& out, const PersistentTreeVa
 template <typename V, typename T>
 InputStreamHandler& operator>>(InputStreamHandler& in, PersistentTreeValue<V, T>& value)
 {
-    in >> value.page();
+    in >> value.page_ptr();
     in >> value.txn_id();
     return in;
 }
@@ -70,7 +133,9 @@ template <typename V, typename T>
 std::ostream& operator<<(std::ostream& out, const PersistentTreeValue<V, T>& value)
 {
     out<<"PersistentTreeValue[";
-    out << value.page();
+    out << value.page_ptr()->raw_data();
+    out<<", ";
+    out << value.page_ptr()->references();
     out<<", ";
     out << value.txn_id();
     out<<"]";
@@ -83,8 +148,6 @@ template <typename Profile, typename PageType>
 class PersistentInMemAllocatorT: public enable_shared_from_this<PersistentInMemAllocatorT<Profile, PageType>> {
 public:
 
-
-
     static constexpr Int NodeIndexSize  = 32;
     static constexpr Int NodeSize       = NodeIndexSize * 8;
 
@@ -92,7 +155,7 @@ public:
 
 
     using Page          = PageType;
-
+    using RCPagePtr		= PagePtr<Page>;
 
     using Key           = typename PageType::ID;
     using Value         = PageType*;
@@ -100,7 +163,7 @@ public:
     using TxnId             = UUID;
     using PTreeNodeId       = UUID;
 
-    using LeafNodeT         = v1::persistent_inmem::LeafNode<Key, PersistentTreeValue<PageType*, TxnId>, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
+    using LeafNodeT         = v1::persistent_inmem::LeafNode<Key, PersistentTreeValue<RCPagePtr*, TxnId>, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
     using LeafNodeBufferT   = v1::persistent_inmem::LeafNode<Key, PersistentTreeValue<typename PageType::ID, TxnId>, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
 
     using BranchNodeT       = v1::persistent_inmem::BranchNode<Key, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
@@ -108,11 +171,23 @@ public:
     using NodeBaseT         = typename BranchNodeT::NodeBaseT;
     using NodeBaseBufferT   = typename BranchNodeBufferT::NodeBaseT;
 
+    using MutexT			= std::recursive_mutex;
+    using SnapshotMutexT	= std::recursive_mutex;
+    using StoreMutexT		= std::mutex;
+
+    using LockGuardT			= std::lock_guard<MutexT>;
+    using StoreLockGuardT		= std::lock_guard<StoreMutexT>;
+    using SnapshotLockGuardT	= std::lock_guard<SnapshotMutexT>;
+
     struct HistoryNode {
 
-        enum class Status {ACTIVE, COMMITTED, DROPPED};
+    	using Status 		= persistent_inmem::SnapshotStatus;
+        using HMutexT 		= SnapshotMutexT;
+        using HLockGuardT 	= SnapshotLockGuardT;
 
     private:
+        MyType* allocator_;
+
         HistoryNode* parent_;
         String metadata_;
 
@@ -128,10 +203,13 @@ public:
 
         BigInt references_ = 0;
 
+        mutable HMutexT mutex_;
+
     public:
 
-        HistoryNode(HistoryNode* parent, Status status = Status::ACTIVE):
-            parent_(parent),
+        HistoryNode(MyType* allocator, Status status = Status::ACTIVE):
+        	allocator_(allocator),
+            parent_(nullptr),
             root_(nullptr),
             root_id_(),
             status_(status),
@@ -142,7 +220,21 @@ public:
             }
         }
 
-        HistoryNode(const TxnId& txn_id, HistoryNode* parent, Status status):
+        HistoryNode(HistoryNode* parent, Status status = Status::ACTIVE):
+        	allocator_(parent->allocator_),
+			parent_(parent),
+			root_(nullptr),
+			root_id_(),
+			status_(status),
+			txn_id_(UUID::make_random())
+        {
+        	if (parent_) {
+        		parent_->children().push_back(this);
+        	}
+        }
+
+        HistoryNode(MyType* allocator, const TxnId& txn_id, HistoryNode* parent, Status status):
+        	allocator_(allocator),
             parent_(parent),
             root_(nullptr),
             root_id_(),
@@ -153,6 +245,15 @@ public:
                 parent_->children().push_back(this);
             }
         }
+
+        auto& allocator_mutex() {return allocator_->mutex_;}
+        const auto& allocator_mutex() const {return allocator_->mutex_;}
+
+        auto& store_mutex() {return allocator_->store_mutex_;}
+        const auto& store_mutex() const {return allocator_->store_mutex_;}
+
+        auto& snapshot_mutex() {return mutex_;}
+        const auto& snapshot_mutex() const {return mutex_;}
 
         void remove_child(HistoryNode* child)
         {
@@ -172,23 +273,31 @@ public:
             }
         }
 
-        bool is_committed() const {
+        bool is_committed() const
+        {
             return status_ == Status::COMMITTED;
         }
 
-        bool is_active() const {
+        bool is_active() const
+        {
             return status_ == Status::ACTIVE;
         }
 
-        bool is_dropped() const {
+        bool is_dropped() const
+        {
             return status_ == Status::DROPPED;
+        }
+
+        bool is_data_locked() const
+        {
+        	return status_ == Status::DATA_LOCKED;
         }
 
         const TxnId& txn_id() const {return txn_id_;}
 
-        const auto& root() const {return root_;}
-
-        auto root() {return root_;}
+        const auto& root() const {
+        	return root_;
+        }
 
         auto& root_id() {return root_id_;}
         const auto& root_id() const {return root_id_;}
@@ -196,13 +305,13 @@ public:
         void set_root(NodeBaseT* new_root)
         {
             if (root_) {
-                root_->unref1();
+                root_->unref();
             }
 
             root_ = new_root;
 
             if (root_) {
-                root_->ref2();
+                root_->ref();
             }
         }
 
@@ -226,11 +335,24 @@ public:
         }
 
 
-        Status& status() {return status_;}
-        const Status& status() const {return status_;}
 
-        auto& metadata() {return metadata_;}
-        const auto& metadata() const {return metadata_;}
+        const Status& status() const {
+        	return status_;
+        }
+
+        void set_status(Status& status) {
+        	status_ = status;
+        }
+
+
+        void set_metadata(StringRef metadata) {
+        	metadata_ = metadata;
+        }
+
+        const auto& metadata() const {
+        	HLockGuardT lock(mutex_);
+        	return metadata_;
+        }
 
         void commit() {
             status_ = Status::COMMITTED;
@@ -240,9 +362,16 @@ public:
             status_ = Status::DROPPED;
         }
 
+        void lock_data() {
+        	status_ = Status::DATA_LOCKED;
+        }
 
 
-        auto references() {return references_;}
+        auto references()  const
+        {
+        	return references_;
+        }
+
         auto ref() {
             return ++references_;
         }
@@ -318,7 +447,8 @@ public:
 
     using HistoryTreeNodeMap    = std::unordered_map<PTreeNodeId, HistoryNodeBuffer*, UUIDKeyHash, UUIDKeyEq>;
     using PersistentTreeNodeMap = std::unordered_map<PTreeNodeId, std::pair<NodeBaseBufferT*, NodeBaseT*>, UUIDKeyHash, UUIDKeyEq>;
-    using PageMap               = std::unordered_map<typename PageType::ID, PageType*, UUIDKeyHash, UUIDKeyEq>;
+    using PageMap               = std::unordered_map<typename PageType::ID, RCPagePtr*, UUIDKeyHash, UUIDKeyEq>;
+    using RCPageSet             = std::unordered_set<RCPagePtr*>;
     using BranchMap             = std::unordered_map<String, HistoryNode*>;
 
     template <typename, typename, typename, typename, typename>
@@ -363,13 +493,16 @@ private:
 
     BranchMap named_branches_;
 
-    ContainerMetadataRepository*  metadata_;
+    ContainerMetadataRepository* metadata_;
 
     BigInt records_ = 0;
 
-    BigInt active_snapshots_ = 0;
-
     PairPtr pair_;
+
+    mutable MutexT mutex_;
+    mutable StoreMutexT store_mutex_;
+
+    CountDownLatch<BigInt> active_snapshots_;
 
 public:
     PersistentInMemAllocatorT():
@@ -378,7 +511,7 @@ public:
     {
         SnapshotT::initMetadata();
 
-        master_ = history_tree_ = new HistoryNode(nullptr, HistoryNode::Status::ACTIVE);
+        master_ = history_tree_ = new HistoryNode(this, HistoryNode::Status::ACTIVE);
 
         snapshot_map_[history_tree_->txn_id()] = history_tree_;
 
@@ -394,19 +527,47 @@ private:
         metadata_(MetadataRepository<Profile>::getMetadata())
     {}
 
+    auto& store_mutex() {
+    	return store_mutex_;
+    }
+
+    const auto& store_mutex() const {
+    	return store_mutex_;
+    }
+
 public:
 
     virtual ~PersistentInMemAllocatorT()
     {
-    	free_memory(history_tree_);
+        free_memory(history_tree_);
+    }
+
+    MutexT& mutex() {
+    	return mutex_;
+    }
+
+    const MutexT& mutex() const {
+    	return mutex_;
+    }
+
+    void lock() {
+    	mutex_.lock();
+    }
+
+    void unlock() {
+    	mutex_.unlock();
+    }
+
+    bool try_lock() {
+    	return mutex_.try_lock();
     }
 
     PairPtr& pair() {
-    	return pair_;
+        return pair_;
     }
 
     const PairPtr& pair() const {
-    	return pair_;
+        return pair_;
     }
 
     // return true in case of errors
@@ -428,7 +589,8 @@ public:
 
     void pack()
     {
-        do_pack(history_tree_, 0);
+        std::lock_guard<MutexT> lock(mutex_);
+    	do_pack(history_tree_);
     }
 
 
@@ -442,97 +604,202 @@ public:
         return PageType::ID::make_random();
     }
 
+
+    persistent_inmem::SnapshotMetadata<TxnId> describe(const TxnId& snapshot_id) const
+    {
+    	LockGuardT lock_guard2(mutex_);
+
+        auto iter = snapshot_map_.find(snapshot_id);
+        if (iter != snapshot_map_.end())
+        {
+            const auto history_node = iter->second;
+
+            SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
+
+        	std::vector<TxnId> children;
+
+        	for (const auto& node: history_node->children())
+        	{
+        		children.emplace_back(node->txn_id());
+        	}
+
+        	auto parent_id = history_node->parent() ? history_node->parent()->txn_id() : UUID();
+
+        	return persistent_inmem::SnapshotMetadata<TxnId>(
+        		parent_id, history_node->txn_id(), children, history_node->metadata(), history_node->status()
+			);
+        }
+        else {
+            throw Exception(MA_SRC, SBuf() << "Snapshot id " << snapshot_id << " is unknown");
+        }
+    }
+
+
+
     SnapshotPtr find(const TxnId& snapshot_id)
     {
+    	LockGuardT lock_guard(mutex_);
+
         auto iter = snapshot_map_.find(snapshot_id);
         if (iter != snapshot_map_.end())
         {
             auto history_node = iter->second;
 
+            SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
+
             if (history_node->is_committed())
             {
                 return std::make_shared<SnapshotT>(history_node, this->shared_from_this());
             }
+            if (history_node->is_data_locked())
+            {
+            	throw Exception(MA_SRC, SBuf() << "Snapshot " << history_node->txn_id() << " data is locked");
+            }
             else {
-                throw Exception(MA_SRC, SBuf()<<"Snapshot "<<history_node->txn_id()<<" is "<<(history_node->is_active() ? "active" : "dropped"));
+                throw Exception(MA_SRC, SBuf() << "Snapshot " << history_node->txn_id() << " is " << (history_node->is_active() ? "active" : "dropped"));
             }
         }
         else {
-            throw Exception(MA_SRC, SBuf()<<"Snapshot id "<<snapshot_id<<" is not known");
+            throw Exception(MA_SRC, SBuf() << "Snapshot id " << snapshot_id << " is unknown");
         }
     }
 
+
+
+
     SnapshotPtr find_branch(StringRef name)
     {
-        auto iter = named_branches_.find(name);
+    	LockGuardT lock_guard(mutex_);
+
+    	auto iter = named_branches_.find(name);
         if (iter != named_branches_.end())
         {
             auto history_node = iter->second;
 
+            SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
+
             if (history_node->is_committed())
             {
                 return std::make_shared<SnapshotT>(history_node, this->shared_from_this());
             }
+            else if (history_node->is_data_locked())
+            {
+            	if (history_node->references() == 0)
+            	{
+            		return std::make_shared<SnapshotT>(history_node, this->shared_from_this());
+            	}
+            	else {
+            		throw Exception(MA_SRC, SBuf() << "Snapshot id " << history_node->txn_id() << " is locked and open");
+            	}
+            }
             else {
-                throw Exception(MA_SRC, SBuf()<<"Snapshot "<<history_node->txn_id()<<" is "<<(history_node->is_active() ? "active" : "dropped"));
+                throw Exception(MA_SRC, SBuf() << "Snapshot " << history_node->txn_id() << " is " << (history_node->is_active() ? "active" : "dropped"));
             }
         }
         else {
-            throw Exception(MA_SRC, SBuf()<<"Named branch \""<<name<<"\" is not known");
+            throw Exception(MA_SRC, SBuf() << "Named branch \"" << name << "\" is not known");
         }
     }
 
     SnapshotPtr master()
     {
+    	std::lock(mutex_, master_->snapshot_mutex());
+
+    	LockGuardT lock_guard(mutex_, std::adopt_lock);
+    	SnapshotLockGuardT snapshot_lock_guard(master_->snapshot_mutex(), std::adopt_lock);
+
         return std::make_shared<SnapshotT>(master_, this->shared_from_this());
+    }
+
+    persistent_inmem::SnapshotMetadata<TxnId> describe_master() const
+    {
+    	std::lock(mutex_, master_->snapshot_mutex());
+    	LockGuardT lock_guard2(mutex_, std::adopt_lock);
+    	SnapshotLockGuardT snapshot_lock_guard(master_->snapshot_mutex(), std::adopt_lock);
+
+    	std::vector<TxnId> children;
+
+    	for (const auto& node: master_->children())
+    	{
+    		children.emplace_back(node->txn_id());
+    	}
+
+    	auto parent_id = master_->parent() ? master_->parent()->txn_id() : UUID();
+
+    	return persistent_inmem::SnapshotMetadata<TxnId>(
+    			parent_id, master_->txn_id(), children, master_->metadata(), master_->status()
+    	);
     }
 
     void set_master(const TxnId& txn_id)
     {
+    	LockGuardT lock_guard(mutex_);
+
         auto iter = snapshot_map_.find(txn_id);
         if (iter != snapshot_map_.end())
         {
-            if (iter->second->is_committed())
+            auto history_node = iter->second;
+
+            SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
+
+            if (history_node->is_committed())
             {
                 master_ = iter->second;
             }
-            else if (iter->second->is_dropped())
+            else if (history_node->is_data_locked())
             {
-                throw Exception(MA_SRC, SBuf()<<"Snapshot "<<txn_id<<" has been dropped");
+            	master_ = iter->second;
+            }
+            else if (history_node->is_dropped())
+            {
+                throw Exception(MA_SRC, SBuf() << "Snapshot " << txn_id << " has been dropped");
             }
             else {
-                throw Exception(MA_SRC, SBuf()<<"Snapshot "<<txn_id<<" hasn't been committed yet");
+                throw Exception(MA_SRC, SBuf() << "Snapshot " << txn_id << " hasn't been committed yet");
             }
         }
         else {
-            throw Exception(MA_SRC, SBuf()<<"Snapshot "<<txn_id<<" is not known in this allocator");
+            throw Exception(MA_SRC, SBuf() << "Snapshot " << txn_id << " is not known in this allocator");
         }
     }
 
     void set_branch(StringRef name, const TxnId& txn_id)
     {
+    	LockGuardT lock_guard(mutex_);
+
         auto iter = snapshot_map_.find(txn_id);
         if (iter != snapshot_map_.end())
         {
-            if (iter->second->is_committed())
+            auto history_node = iter->second;
+
+            SnapshotLockGuardT snapshot_lock_guard(history_node->snapshot_mutex());
+
+        	if (history_node->is_committed())
             {
-                named_branches_[name] = iter->second;
+                named_branches_[name] = history_node;
             }
+        	else if (history_node->is_data_locked())
+        	{
+        		named_branches_[name] = history_node;
+        	}
             else {
-                throw Exception(MA_SRC, SBuf()<<"Snapshot "<<txn_id<<" hasn't been committed yet");
+                throw Exception(MA_SRC, SBuf() << "Snapshot " << txn_id << " hasn't been committed yet");
             }
         }
         else {
-            throw Exception(MA_SRC, SBuf()<<"Snapshot "<<txn_id<<" is not known in this allocator");
+            throw Exception(MA_SRC, SBuf()<<"Snapshot " << txn_id << " is not known in this allocator");
         }
     }
 
-    ContainerMetadataRepository* getMetadata() const {
+    ContainerMetadataRepository* getMetadata() const
+    {
         return metadata_;
     }
 
     virtual void walkContainers(ContainerWalker* walker, const char* allocator_descr = nullptr)
     {
+    	LockGuardT lock_guard(mutex_);
+
         walker->beginAllocator("PersistentInMemAllocator", allocator_descr);
 
         walk_containers(history_tree_, walker);
@@ -540,11 +807,22 @@ public:
         walker->endAllocator();
     }
 
+    virtual void store(const char* file)
+    {
+    	auto fileh = FileOutputStreamHandler::create(file);
+        store(fileh.get());
+    }
+
     virtual void store(OutputStreamHandler *output)
     {
-        if (active_snapshots_) {
-            throw Exception(MA_SRC, "There are active snapshots");
-        }
+    	std::lock(mutex_, store_mutex_);
+
+    	LockGuardT lock_guard2(mutex_, std::adopt_lock);
+    	StoreLockGuardT lock_guard1(store_mutex_, std::adopt_lock);
+
+    	active_snapshots_.wait(0);
+
+    	do_pack(history_tree_);
 
         records_ = 0;
 
@@ -555,8 +833,10 @@ public:
 
         write_metadata(*output);
 
+        RCPageSet stored_pages;
+
         walk_version_tree(history_tree_, [&](const HistoryNode* history_tree_node) {
-            write_history_node(*output, history_tree_node);
+            write_history_node(*output, history_tree_node, stored_pages);
         });
 
         Checksum checksum;
@@ -567,6 +847,19 @@ public:
         output->close();
     }
 
+    void dump(const char* path)
+    {
+        using Walker = FSDumpContainerWalker<Page>;
+
+        Walker walker(this->getMetadata(), path);
+        this->walkContainers(&walker);
+    }
+
+    static std::shared_ptr<MyType> load(const char* file)
+    {
+        auto fileh = FileInputStreamHandler::create(file);
+        return load(fileh.get());
+    }
 
     static std::shared_ptr<MyType> load(InputStreamHandler *input)
     {
@@ -601,8 +894,6 @@ public:
         allocator->master_ = allocator->history_tree_ = nullptr;
 
         allocator->snapshot_map_.clear();
-
-//        BigInt size = input->size();
 
         HistoryTreeNodeMap      history_node_map;
         PersistentTreeNodeMap   ptree_node_map;
@@ -653,14 +944,14 @@ public:
                 {
                     const auto& descr = leaf_buffer->data(c);
 
-                    auto page_iter = page_map.find(descr.page());
+                    auto page_iter = page_map.find(descr.page_ptr());
 
                     if (page_iter != page_map.end())
                     {
                         leaf_node->data(c) = typename LeafNodeT::Value(page_iter->second, descr.txn_id());
                     }
                     else {
-                        throw Exception(MA_SRC, SBuf()<<"Specified uuid "<<descr.page()<<" is not found in the page map");
+                        throw Exception(MA_SRC, SBuf() << "Specified uuid " << descr.page_ptr() << " is not found in the page map");
                     }
                 }
             }
@@ -679,7 +970,7 @@ public:
                         branch_node->data(c) = iter->second.second;
                     }
                     else {
-                        throw Exception(MA_SRC, SBuf()<<"Specified uuid "<<node_id<<" is not found in the persistent tree node map");
+                        throw Exception(MA_SRC, SBuf() << "Specified uuid " << node_id << " is not found in the persistent tree node map");
                     }
                 }
             }
@@ -692,7 +983,7 @@ public:
             allocator->master_ = allocator->snapshot_map_[metadata.master()];
         }
         else {
-            throw Exception(MA_SRC, SBuf()<<"Specified master uuid "<<metadata.master()<<" is not found in the data");
+            throw Exception(MA_SRC, SBuf() << "Specified master uuid " << metadata.master() << " is not found in the data");
         }
 
         for (auto& entry: metadata.named_branches())
@@ -704,7 +995,7 @@ public:
                 allocator->named_branches_[entry.first] = iter->second;
             }
             else {
-                throw Exception(MA_SRC, SBuf()<<"Specified snapshot uuid "<<entry.first<<" is not found");
+                throw Exception(MA_SRC, SBuf() << "Specified snapshot uuid " << entry.first << " is not found");
             }
         }
 
@@ -750,10 +1041,10 @@ private:
         {
             HistoryNodeBuffer* buffer = iter->second;
 
-            HistoryNode* node = new HistoryNode(txn_id, parent, buffer->status());
+            HistoryNode* node = new HistoryNode(this, txn_id, parent, buffer->status());
 
             node->root_id() = buffer->root_id();
-            node->metadata() = buffer->metadata();
+            node->set_metadata(buffer->metadata());
 
             snapshot_map_[txn_id] = node;
 
@@ -773,7 +1064,7 @@ private:
                     return node;
                 }
                 else {
-                    throw Exception(MA_SRC, SBuf()<<"Specified node_id "<<buffer->root()<<" is not found in persistent tree data");
+                    throw Exception(MA_SRC, SBuf() << "Specified node_id " << buffer->root() << " is not found in persistent tree data");
                 }
             }
             else {
@@ -786,7 +1077,7 @@ private:
             }
         }
         else {
-            throw Exception(MA_SRC, SBuf()<<"Specified txn_id "<<txn_id<<" is not found in history data");
+            throw Exception(MA_SRC, SBuf() << "Specified txn_id " << txn_id << " is not found in history data");
         }
     }
 
@@ -827,7 +1118,6 @@ private:
                 }
             }
 
-//          delete leaf;
             leaf->del();
         }
         else {
@@ -842,7 +1132,6 @@ private:
                 }
             }
 
-//          delete branch;
             branch->del();
         }
     }
@@ -875,7 +1164,11 @@ private:
 
     void read_data_page(InputStreamHandler& in, PageMap& map)
     {
-        Int page_data_size;
+    	typename RCPagePtr::RefCntT references;
+
+    	in >> references;
+
+    	Int page_data_size;
         in >> page_data_size;
 
         Int page_size;
@@ -898,10 +1191,10 @@ private:
 
         if (map.find(page->uuid()) == map.end())
         {
-            map[page->uuid()] = page;
+            map[page->uuid()] = new RCPagePtr(page, references);
         }
         else {
-            throw Exception(MA_SRC, SBuf()<<"Page "<<page->uuid()<<" was already registered");
+            throw Exception(MA_SRC, SBuf() << "Page " << page->uuid() << " was already registered");
         }
     }
 
@@ -920,7 +1213,7 @@ private:
             map[buffer->node_id()] = std::make_pair(buffer, node);
         }
         else {
-            throw Exception(MA_SRC, SBuf()<<"PersistentTree LeafNode "<<buffer->node_id()<<" was already registered");
+            throw Exception(MA_SRC, SBuf() << "PersistentTree LeafNode " << buffer->node_id() << " was already registered");
         }
     }
 
@@ -939,7 +1232,7 @@ private:
             map[buffer->node_id()] = std::make_pair(buffer, node);
         }
         else {
-            throw Exception(MA_SRC, SBuf()<<"PersistentTree BranchNode "<<buffer->node_id()<<" was already registered");
+            throw Exception(MA_SRC, SBuf() << "PersistentTree BranchNode " << buffer->node_id() << " was already registered");
         }
     }
 
@@ -980,13 +1273,20 @@ private:
             map[node->txn_id()] = node;
         }
         else {
-            throw Exception(MA_SRC, SBuf()<<"HistoryTree Node "<<node->txn_id()<<" was already registered");
+            throw Exception(MA_SRC, SBuf() << "HistoryTree Node " << node->txn_id() << " was already registered");
         }
     }
 
 
 
 
+//    void update_leaf_references(LeafNodeT* node)
+//    {
+//        for (Int c = 0; c < node->size(); c++)
+//        {
+//        	node->data(c)->page_ptr()->raw_data()->references() = node->data(c)->page_ptr()->references();
+//        }
+//    }
 
 
 
@@ -998,8 +1298,8 @@ private:
 
         for (Int c = 0; c < node->size(); c++)
         {
-            buf->data(c) = typename LeafNodeBufferT::Value(
-                node->data(c).page()->uuid(),
+        	buf->data(c) = typename LeafNodeBufferT::Value(
+                node->data(c).page_ptr()->raw_data()->uuid(),
                 node->data(c).txn_id()
             );
         }
@@ -1078,6 +1378,8 @@ private:
 
     void walk_containers(HistoryNode* node, ContainerWalker* walker)
     {
+    	SnapshotLockGuardT snapshot_lock_guard(node->snapshot_mutex());
+
         if (node->is_committed())
         {
             SnapshotT txn(node, this);
@@ -1121,9 +1423,9 @@ private:
         out << checksum.records() + 1;
     }
 
-    void write_history_node(OutputStreamHandler& out, const HistoryNode* history_node)
+    void write_history_node(OutputStreamHandler& out, const HistoryNode* history_node, RCPageSet& stored_pages)
     {
-        UByte type = TYPE_HISTORY_NODE;
+    	UByte type = TYPE_HISTORY_NODE;
         out << type;
         out << (Int)history_node->status();
         out << history_node->txn_id();
@@ -1159,11 +1461,11 @@ private:
 
         if (history_node->root())
         {
-            write_persistent_tree(out, history_node->root());
+            write_persistent_tree(out, history_node->root(), stored_pages);
         }
     }
 
-    void write_persistent_tree(OutputStreamHandler& out, const NodeBaseT* node)
+    void write_persistent_tree(OutputStreamHandler& out, const NodeBaseT* node, RCPageSet& stored_pages)
     {
         const auto& txn_id = node->txn_id();
 
@@ -1178,9 +1480,10 @@ private:
             {
                 const auto& data = leaf->data(c);
 
-                if (data.txn_id() == txn_id || data.page()->references() == 1)
+                if (stored_pages.count(data.page_ptr()) == 0)
                 {
-                    write(out, data.page());
+                	write(out, data.page_ptr());
+                	stored_pages.insert(data.page_ptr());
                 }
             }
         }
@@ -1194,9 +1497,9 @@ private:
             {
                 auto child = branch->data(c);
 
-                if (child->txn_id() == txn_id || child->refs() == 1)
+                if (child->txn_id() == txn_id || child->references() == 1)
                 {
-                    write_persistent_tree(out, child);
+                    write_persistent_tree(out, child, stored_pages);
                 }
             }
         }
@@ -1221,10 +1524,14 @@ private:
         records_++;
     }
 
-    void write(OutputStreamHandler& out, const PageType* page)
+    void write(OutputStreamHandler& out, const RCPagePtr* page_ptr)
     {
+    	auto page = page_ptr->raw_data();
+
         UByte type = TYPE_DATA_PAGE;
         out << type;
+
+        out << page_ptr->references();
 
         auto pageMetadata = metadata_->getPageMetadata(page->ctr_type_hash(), page->page_type_hash());
 
@@ -1256,15 +1563,17 @@ private:
     }
 
     auto ref_active() {
-        return ++active_snapshots_;
+        return active_snapshots_.inc();
     }
 
     auto unref_active() {
-        return --active_snapshots_;
+        return active_snapshots_.dec();
     }
 
     auto forget_snapshot(HistoryNode* history_node)
     {
+    	LockGuardT lock_guard(mutex_);
+
         snapshot_map_.erase(history_node->txn_id());
 
         history_node->remove_from_parent();
@@ -1272,32 +1581,99 @@ private:
         delete history_node;
     }
 
-    void do_pack(HistoryNode* node, Int depth)
+    auto get_named_branch_nodeset() const
     {
-        for (auto child: node->children())
+    	std::unordered_set<HistoryNode*> set;
+
+    	for (const auto& branch: named_branches_)
+    	{
+    		set.insert(branch.second);
+    	}
+
+    	return set;
+    }
+
+    void update_master(HistoryNode* node)
+    {
+    	if (node->parent())
+    	{
+    		if (master_ == node)
+    		{
+    			master_ = node->parent();
+    		}
+    	}
+    	else {
+    		throw Exception(MA_SRC, SBuf() << "Null snapshot's parent in do_pack() for snapshot: " << node->txn_id());
+    	}
+    }
+
+    void do_pack(HistoryNode* node)
+    {
+        std::unordered_set<HistoryNode*> branches = get_named_branch_nodeset();
+    	do_pack(history_tree_, 0, branches);
+
+    	for (const auto& branch: named_branches_)
+    	{
+    		auto node = branch.second;
+    		if (node->root() == nullptr && node->references() == 0)
+    		{
+    			do_remove_history_node(node);
+    		}
+    	}
+    }
+
+    bool do_remove_history_node(HistoryNode* node)
+    {
+        if (node->children().size() == 0)
         {
-            do_pack(child, depth + 1);
+        	update_master(node);
+
+            node->remove_from_parent();
+            delete node;
+
+            return true;
+        }
+        else if (node->children().size() == 1)
+        {
+        	update_master(node);
+
+        	auto parent = node->parent();
+            auto child  = node->children()[0];
+
+            node->remove_from_parent();
+
+            delete node;
+
+            parent->children().push_back(child);
+            child->parent() = parent;
+
+            return true;
         }
 
-        if (node->root() == nullptr && node->references() == 0)
+        return false;
+    }
+
+    void do_pack(HistoryNode* node, Int depth, const std::unordered_set<HistoryNode*>& branches)
+    {
+    	// FIXME: use dedicated stack data structure
+
+        for (auto child: node->children())
         {
-            if (node->children().size() == 0)
-            {
-                node->remove_from_parent();
-                delete node;
-            }
-            else if (node->children().size() == 1)
-            {
-                auto parent = node->parent();
-                auto child  = node->children()[0];
+            do_pack(child, depth + 1, branches);
+        }
 
-                node->remove_from_parent();
+        bool remove_node = false;
+        {
+        	SnapshotLockGuardT lock_guard(node->snapshot_mutex());
 
-                delete node;
+        	if (node->root() == nullptr && node->references() == 0 && branches.find(node) == branches.end())
+        	{
+        		remove_node = true;
+        	}
+        }
 
-                parent->children().push_back(child);
-                child->parent() = parent;
-            }
+        if (remove_node) {
+        	do_remove_history_node(node);
         }
     }
 

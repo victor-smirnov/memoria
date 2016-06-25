@@ -18,18 +18,22 @@
 
 #include <memoria/v1/prototypes/bt/tools/bt_tools.hpp>
 #include <memoria/v1/core/container/container.hpp>
+#include <memoria/v1/core/tools/ticker.hpp>
 
 #include <tuple>
 #include <vector>
 
 namespace memoria {
 namespace v1 {
-namespace mmap    {
+namespace mmap {
 
 using bt::IdxSearchType;
 using bt::StreamTag;
 
 template <typename KeyType, Int Selector = HasFieldFactory<KeyType>::Value> struct MMapKeyStructTF;
+template <typename KeyType, Int Selector = HasFieldFactory<KeyType>::Value> struct MMapSumKeyStructTF;
+
+template <typename T> struct MMapBranchStructTF;
 
 template <typename KeyType>
 struct MMapKeyStructTF<KeyType, 1>: HasType<PkdFMTreeT<KeyType>> {};
@@ -37,6 +41,12 @@ struct MMapKeyStructTF<KeyType, 1>: HasType<PkdFMTreeT<KeyType>> {};
 template <typename KeyType>
 struct MMapKeyStructTF<KeyType, 0>: HasType<PkdVBMTreeT<KeyType>> {};
 
+
+template <typename KeyType>
+struct MMapSumKeyStructTF<KeyType, 1>: HasType<PkdFQTreeT<KeyType>> {};
+
+template <typename KeyType>
+struct MMapSumKeyStructTF<KeyType, 0>: HasType<PkdVQTreeT<KeyType>> {};
 
 
 template <typename ValueType, Int Selector = HasFieldFactory<ValueType>::Value> struct MMapValueStructTF;
@@ -48,64 +58,57 @@ template <typename ValueType>
 struct MMapValueStructTF<ValueType, 0>: HasType<PkdVDArrayT<ValueType>> {};
 
 
-template <typename K, typename V>
-using MapData = std::vector<std::pair<K, std::vector<V>>>;
 
-template <typename Ctr, typename Key = typename Ctr::Types::Key, typename Value = typename Ctr::Types::Value, typename Data = std::vector<std::pair<Key, std::vector<Value>>>>
-class MMapAdaptor;
 
-template <typename Ctr, typename Key, typename Value>
-class MMapAdaptor<Ctr, Key, Value, std::vector<std::pair<Key, std::vector<Value>>>>:
-    public bttl::SizedFlatTreeStreamingAdapterBase<
-        Ctr,
-        MMapAdaptor<Ctr, Key, Value, std::vector<std::pair<Key, std::vector<Value>>>>
-    >
+
+
+
+template <typename KeyType>
+struct MMapBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, 0>> {
+    using Type = PackedEmptyStruct<KeyType, PkdSearchType::MAX>;
+};
+
+
+template <typename KeyType>
+struct MMapBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, 0>> {
+    using Type = PackedEmptyStruct<KeyType, PkdSearchType::SUM>;
+};
+
+template <typename KeyType, Int Indexes>
+struct MMapBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>>
 {
-    using Base = bttl::SizedFlatTreeStreamingAdapterBase<
-        Ctr,
-        MMapAdaptor<Ctr, Key, Value, std::vector<std::pair<Key, std::vector<Value>>>>
+    static_assert(
+            IsExternalizable<KeyType>::Value,
+            "Type must either has ValueCodec or FieldFactory defined"
+    );
+
+    //FIXME: Extend KeyType to contain enough space to represent practically large sums
+    //Should be done systematically on the level of BT
+
+    using Type = IfThenElse <
+            HasFieldFactory<KeyType>::Value,
+            PkdFQTreeT<KeyType, Indexes>,
+            PkdVQTreeT<KeyType, Indexes>
     >;
 
-    using Data = std::vector<std::pair<Key, std::vector<Value>>>;
+    static_assert(IndexesSize<Type>::Value == Indexes, "Packed struct has different number of indexes than requested");
+};
 
-    const Data& data_;
+template <typename KeyType, Int Indexes>
+struct MMapBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
-    using CtrSizesT = core::StaticVector<BigInt, 2>;
+    static_assert(
+            IsExternalizable<KeyType>::Value,
+            "Type must either has ValueCodec or FieldFactory defined"
+    );
 
-    const Value* values_;
+    using Type = IfThenElse<
+            HasFieldFactory<KeyType>::Value,
+            PkdFMOTreeT<KeyType, Indexes>,
+            PkdVBMTreeT<KeyType>
+    >;
 
-    BigInt one_ = 1;
-
-public:
-    MMapAdaptor(const Data& data): Base(), data_(data), values_() {
-        this->init();
-    }
-
-    auto prepare(StreamTag<0>) {
-        return data_.size();
-    }
-
-    auto prepare(StreamTag<1>, const CtrSizesT& path)
-    {
-        values_ = data_[path[0]].second.data();
-        return data_[path[0]].second.size();
-    }
-
-    const auto& buffer(StreamTag<0>, StreamTag<0>, const CtrSizesT& pos, Int block) {
-        return one_;
-    }
-
-    const auto& buffer(StreamTag<0>, StreamTag<1>, const CtrSizesT& pos, Int block) {
-        return data_[pos[0]].first;
-    }
-
-    const auto& buffer(StreamTag<1>, StreamTag<0>, BigInt pos, Int block) {
-    	return one_;
-    }
-
-    const auto& buffer(StreamTag<1>, StreamTag<1>, BigInt pos, Int block) {
-        return values_[pos];
-    }
+    static_assert(IndexesSize<Type>::Value == Indexes, "Packed struct has different number of indexes than requested");
 };
 
 
@@ -114,127 +117,87 @@ public:
 
 
 
-template <typename Ctr, typename Value = typename Ctr::Types::Value, typename Data = std::vector<Value>>
-class MMapValueAdaptor;
-
-template <typename Ctr, typename Value>
-class MMapValueAdaptor<Ctr, Value, std::vector<Value>>:
-    public bttl::SizedFlatTreeStreamingAdapterBase<
-        Ctr,
-        MMapValueAdaptor<Ctr, Value, std::vector<Value>>
-    >
-{
-    using Base = bttl::SizedFlatTreeStreamingAdapterBase<
-        Ctr,
-        MMapValueAdaptor<Ctr, Value, std::vector<Value>>
-    >;
-
-    using Data      = std::vector<Value>;
-
-    using CtrSizeT  = typename Ctr::Types::CtrSizeT;
-    using CtrSizesT = typename Ctr::Types::CtrSizesT;
-
-    using Key       = typename Ctr::Types::Key;
 
 
-    const Data& data_;
-    const Value* values_;
+template <typename IOBuffer, typename Key, typename Iterator>
+class MultimapEntryBufferProducer: public bt::BufferProducer<IOBuffer> {
 
-    CtrSizeT zero_ = 0;
+	Key key_;
+	Iterator start_;
+	Iterator end_;
+
+	bool key_finished_ = false;
+
+	using Value = typename Iterator::value_type;
+
+	static constexpr Int DataStreams = 2;
+
+	static constexpr Int KeyStream 		= 0;
+	static constexpr Int ValueStream 	= 1;
+
+	static constexpr size_t ValueBlockSize = 256;
 
 public:
-    MMapValueAdaptor(const Data& data): Base(1), data_(data), values_() {
-        this->init();
-    }
+	MultimapEntryBufferProducer(const Key& key, const Iterator& start, const Iterator& end):
+		key_(key), start_(start), end_(end)
+	{}
 
-    size_t prepare(StreamTag<0>) {
-        return 0;
-    }
+	virtual Int populate(IOBuffer& buffer)
+	{
+		Int entries = 0;
 
-    size_t prepare(StreamTag<1>, const CtrSizesT& path)
-    {
-        values_ = data_.data();
-        return data_.size();
-    }
+		if (!key_finished_)
+		{
+			if (!buffer.template putSymbolsRun<DataStreams>(KeyStream, 1))
+			{
+				throw Exception(MA_SRC, "Supplied IOBuffer is probably too small");
+			}
 
-    const auto& buffer(StreamTag<0>, StreamTag<0>, const CtrSizesT& pos, Int block) {
-        return zero_;
-    }
+			if (!IOBufferAdapter<Key>::put(buffer, key_))
+			{
+				throw Exception(MA_SRC, "Supplied IOBuffer is probably too small");
+			}
 
-    const auto& buffer(StreamTag<0>, StreamTag<1>, const CtrSizesT& pos, Int block) {
-        return zero_;
-    }
+			key_finished_ = true;
+			entries += 2;
+		}
 
-    const auto& buffer(StreamTag<1>, StreamTag<0>, BigInt pos, Int block) {
-        return zero_;
-    }
+		while (start_ != end_)
+		{
+			size_t pos = buffer.pos();
+			if (!buffer.template putSymbolsRun<DataStreams>(ValueStream, ValueBlockSize))
+			{
+				return entries;
+			}
 
-    const auto& buffer(StreamTag<1>, StreamTag<1>, BigInt pos, Int block) {
-        return values_[pos];
-    }
+			entries++;
+
+			size_t c;
+			for (c = 0; c < ValueBlockSize && start_ != end_; c++, entries++, start_++)
+			{
+				if (!IOBufferAdapter<Value>::put(buffer, *start_))
+				{
+					if (c > 0) {
+						buffer.template updateSymbolsRun<DataStreams>(pos, ValueStream, c);
+					}
+					else {
+						entries--;
+					}
+
+					return entries;
+				}
+			}
+
+			if (c < ValueBlockSize)
+			{
+				buffer.template updateSymbolsRun<DataStreams>(pos, ValueStream, c);
+			}
+		}
+
+		return -entries;
+	}
 };
 
-
-
-template <typename Ctr, typename Key = typename Ctr::Types::Key, typename Data = std::vector<Key>>
-class MMapKeyAdaptor;
-
-template <typename Ctr, typename Key>
-class MMapKeyAdaptor<Ctr, Key, std::vector<Key>>:
-    public bttl::SizedFlatTreeStreamingAdapterBase<
-        Ctr,
-        MMapKeyAdaptor<Ctr, Key, std::vector<Key>>
-    >
-{
-    using Base = bttl::SizedFlatTreeStreamingAdapterBase<
-        Ctr,
-        MMapKeyAdaptor<Ctr, Key, std::vector<Key>>
-    >;
-
-    using Data = std::vector<Key>;
-
-    const Data& data_;
-
-    using CtrSizeT = typename Ctr::Types::CtrSizeT;
-    using CtrSizesT = typename Ctr::Types::CtrSizesT;
-
-    using Value = typename Ctr::Types::Value;
-
-    const Key* keys_;
-
-    CtrSizeT zero_ = 0;
-    Value val_;
-
-public:
-    MMapKeyAdaptor(const Data& data): Base(), data_(data), keys_(data.data()), val_() {
-        this->init();
-    }
-
-    size_t prepare(StreamTag<0>) {
-        return data_.size();
-    }
-
-    size_t prepare(StreamTag<1>, const CtrSizesT& path)
-    {
-        return 0;
-    }
-
-    const auto& buffer(StreamTag<0>, StreamTag<0>, const CtrSizesT& pos, Int block) {
-        return zero_;
-    }
-
-    const auto& buffer(StreamTag<0>, StreamTag<1>, const CtrSizesT& pos, Int block) {
-        return keys_[pos[0]];
-    }
-
-    const auto& buffer(StreamTag<1>, StreamTag<0>, BigInt pos, Int block) {
-        return zero_;
-    }
-
-    const auto& buffer(StreamTag<1>, StreamTag<1>, BigInt pos, Int block) {
-        return val_;
-    }
-};
 
 
 

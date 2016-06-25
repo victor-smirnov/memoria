@@ -43,10 +43,6 @@ class MultiMapCreateTest: public MultiMapTestBase<MapName> {
     using typename Base::Value;
     using typename Base::Ctr;
 
-    template <typename T>
-    using TypeTag = typename Base::template TypeTag<T>;
-
-    using Base::sizes_;
 
     using Base::commit;
     using Base::drop;
@@ -57,8 +53,10 @@ class MultiMapCreateTest: public MultiMapTestBase<MapName> {
     using Base::getRandom;
 
     using Base::checkData;
+    using Base::checkRunPositions;
     using Base::out;
 
+    using Base::sampleTreeShape;
     using Base::createRandomShapedMapData;
     using Base::make_key;
     using Base::make_value;
@@ -77,25 +75,27 @@ public:
         auto snp = branch();
         auto map = create<MapName>(snp);
 
+        auto shape = sampleTreeShape();
 
         auto map_data = createRandomShapedMapData(
-                sizes_[0],
-                sizes_[1],
+                shape[0],
+                shape[1],
                 [this](auto k) {return this->make_key(k, TypeTag<Key>());},
                 [this](auto k, auto v) {return this->make_value(this->getRandom(), TypeTag<Value>());}
         );
 
-        using EntryAdaptor = mmap::MMapAdaptor<Ctr>;
+        mmap::MultimapIOBufferProducer<Key, Value> stream_adaptor(map_data, 65536);
 
         auto iter = map->begin();
 
-        EntryAdaptor stream_adaptor(map_data);
-        auto totals = iter->bulk_insert(stream_adaptor);
+//        auto totals =
+        iter->bulkio_insert(stream_adaptor);
 
-        auto sizes = map->sizes();
-        AssertEQ(MA_RAW_SRC, totals, sizes);
+//        auto sizes = map->sizes();
+//        AssertEQ(MA_RAW_SRC, totals, sizes);
 
         checkData(*map.get(), map_data);
+        checkRunPositions(*map.get());
 
         snp->commit();
     }
@@ -104,57 +104,6 @@ public:
     {
 
     }
-
-
-//    template <typename T> struct TypeTag {};
-//
-//    template <typename V, typename T>
-//    T make_key(V&& num, TypeTag<T>) {
-//        return num;
-//    }
-//
-//    template <typename V>
-//    String make_key(V&& num, TypeTag<String>)
-//    {
-//        stringstream ss;
-//        ss<<"'";
-//        ss.width(16);
-//        ss << num;
-//        ss<<"'";
-//        return ss.str();
-//    }
-//
-//    template <typename V>
-//    UUID make_key(V&& num, TypeTag<UUID>)
-//    {
-//        return UUID(0, num);
-//    }
-//
-//
-//
-//    template <typename V, typename T>
-//    T make_value(V&& num, TypeTag<T>) {
-//        return num;
-//    }
-//
-//    template <typename V>
-//    String make_value(V&& num, TypeTag<String>)
-//    {
-//        stringstream ss;
-//        ss << num;
-//        return ss.str();
-//    }
-//
-//    template <typename V>
-//    UUID make_value(V&& num, TypeTag<UUID>)
-//    {
-//        if (num != 0) {
-//            return UUID::make_random();
-//        }
-//        else {
-//            return UUID();
-//        }
-//    }
 };
 
 }}

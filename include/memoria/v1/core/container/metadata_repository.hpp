@@ -32,34 +32,46 @@ template <typename Profile, typename SelectorType, typename ContainerTypeName = 
 
 template <typename Profile>
 class MetadataRepository {
+
+	using MutexT			= std::mutex;
+    using LockGuardT		= std::lock_guard<MutexT>;
+
     static ContainerMetadataRepository* metadata_;
+    static MutexT mutex_;
+
 public:
 
     static ContainerMetadataRepository* getMetadata()
     {
+    	LockGuardT lock_guard(mutex_);
         return metadata_;
     }
 
     static void registerMetadata(const ContainerMetadataPtr& ctr_metadata)
     {
+    	LockGuardT lock_guard(mutex_);
         metadata_->registerMetadata(ctr_metadata);
     }
 
     static void unregisterMetadata(const ContainerMetadataPtr& ctr_metadata)
     {
+    	LockGuardT lock_guard(mutex_);
         metadata_->unregisterMetadata(ctr_metadata);
     }
 
     static void init()
     {
+    	LockGuardT lock_guard(mutex_);
         if (metadata_ == NULL)
         {
             metadata_ = new ContainerMetadataRepository(TypeNameFactory<Profile>::name(), MetadataList());
         }
     }
 
-    static void cleanup() {
-        if (metadata_) {
+    static void cleanup()
+    {
+        LockGuardT lock_guard(mutex_);
+    	if (metadata_) {
             delete metadata_;
             metadata_ = nullptr;
         }
@@ -69,6 +81,8 @@ public:
 template <typename Profile>
 ContainerMetadataRepository* MetadataRepository<Profile>::metadata_ = NULL;
 
+template <typename Profile>
+typename MetadataRepository<Profile>::MutexT MetadataRepository<Profile>::mutex_;
 
 
 

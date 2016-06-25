@@ -209,7 +209,7 @@ void M_TYPE::update_path(const NodeBaseG& node)
 
     if (!node->is_root())
     {
-    	auto entry = self.max(node);
+        auto entry = self.max(node);
 
         NodeBaseG parent = self.getNodeParentForUpdate(node);
 

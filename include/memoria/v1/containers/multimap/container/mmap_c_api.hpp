@@ -47,6 +47,8 @@ protected:
     using Key   = typename Types::Key;
     using Value = typename Types::Value;
 
+    using IOBuffer = DefaultIOBuffer;
+
 public:
     IteratorPtr begin() {
         return self().template seek_stream<0>(0);
@@ -70,7 +72,38 @@ public:
 
     IteratorPtr find(Key key)
     {
-        return self().template find_max_ge<IntList<0, 0, 1>>(0, key);
+        return self().template find_max_ge<IntList<0, 1>>(0, key);
+    }
+
+    IteratorPtr find_or_create(Key key)
+    {
+        auto& self = this->self();
+
+        auto iter = self.find(key);
+
+        if (!iter->is_found(key))
+        {
+            iter->insert_key(key);
+        }
+
+        return iter;
+    }
+
+    template <typename Iterator>
+    IteratorPtr find_or_create(const Key& key, const Iterator& start, const Iterator& end)
+    {
+        auto& self = this->self();
+
+        auto iter = self.find(key);
+
+        if (!iter->is_found(key))
+        {
+            mmap::MultimapEntryBufferProducer<IOBuffer, Key, Iterator> producer(key, start, end);
+
+            iter->bulkio_insert(producer);
+        }
+
+        return iter;
     }
 
 protected:

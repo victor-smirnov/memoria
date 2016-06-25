@@ -101,6 +101,9 @@ public:
         return self().allocator().newId();
     }
 
+    virtual void registerCtr(const type_info&) {}
+    virtual void unregisterCtr(const type_info&) {}
+
 MEMORIA_V1_CONTAINER_PART_END
 
 

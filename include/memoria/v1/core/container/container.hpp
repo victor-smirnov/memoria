@@ -129,8 +129,12 @@ public:
     template <typename, typename, typename> friend class CtrPart;
     template <typename> friend class Ctr;
 
+	using MutexT			= std::mutex;
+    using LockGuardT		= std::lock_guard<MutexT>;
+
 
 protected:
+    static MutexT mutex_;
     static ContainerMetadataPtr reflection_;
 
     ID root_;
@@ -183,11 +187,15 @@ public:
 
     static const ContainerMetadataPtr& getMetadata()
     {
+    	LockGuardT lock_guard(mutex_);
+
         return reflection_;
     }
     
     static void destroyMetadata()
     {
+    	LockGuardT lock_guard(mutex_);
+
         if (reflection_)
         {
             MetadataRepository<typename Types::Profile>::unregisterMetadata(reflection_);
@@ -198,29 +206,37 @@ public:
 
     struct CtrInterfaceImpl: public ContainerInterface {
 
-    	virtual String ctr_name()
-    	{
-    		return TypeNameFactory<Name>::name();
-    	}
+    	virtual ~CtrInterfaceImpl() {}
 
-        void with_ctr(const UUID& root_id, const UUID& name, void* allocator, std::function<void(MyType&)> fn) const
+        virtual String ctr_name()
         {
-            Allocator* alloc = T2T<Allocator*>(allocator);
+            return TypeNameFactory<Name>::name();
+        }
 
-            PageG page = alloc->getPage(root_id, name);
+        void with_ctr(const UUID& root_id, const UUID& name, Allocator* allocator, std::function<void(MyType&)> fn) const
+        {
+            PageG page = allocator->getPage(root_id, name);
 
-            auto ctr_name = MyType::getModelNameS(page);
+            if (page)
+            {
+            	auto ctr_name = MyType::getModelNameS(page);
 
-            auto ctr_ptr = std::make_shared<MyType>(alloc, root_id, CtrInitData(ctr_name, page->master_ctr_type_hash(), page->owner_ctr_type_hash()));
+            	auto ctr_ptr = std::make_shared<MyType>(allocator, root_id, CtrInitData(ctr_name, page->master_ctr_type_hash(), page->owner_ctr_type_hash()));
 
-            fn(*ctr_ptr.get());
+            	fn(*ctr_ptr.get());
+            }
+            else {
+            	throw Exception(MA_SRC, SBuf() << "No container root page is found for id " << root_id << " and name " << name);
+            }
         }
 
         virtual bool check(const UUID& root_id, const UUID& name, void* allocator) const
         {
             bool result = false;
 
-            with_ctr(root_id, name, allocator, [&](MyType& ctr){
+            Allocator* alloc = T2T<Allocator*>(allocator);
+
+            with_ctr(root_id, name, alloc, [&](MyType& ctr){
                 result = ctr.check(nullptr);
             });
 
@@ -234,14 +250,31 @@ public:
                 ContainerWalker* walker
         ) const
         {
-            with_ctr(root_id, name, allocator, [&](MyType& ctr){
+        	Allocator* alloc = T2T<Allocator*>(allocator);
+
+            with_ctr(root_id, name, alloc, [&](MyType& ctr){
+                ctr.walkTree(walker);
+            });
+        }
+
+        virtual void walk(
+                const UUID& name,
+                void* allocator,
+                ContainerWalker* walker
+        ) const
+        {
+        	Allocator* alloc = T2T<Allocator*>(allocator);
+        	auto root_id 	 = alloc->getRootID(name);
+
+        	with_ctr(root_id, name, alloc, [&](MyType& ctr){
                 ctr.walkTree(walker);
             });
         }
 
         virtual void drop(const UUID& root_id, const UUID& name, void* allocator)
         {
-            with_ctr(root_id, name, allocator, [&](MyType& ctr){
+        	Allocator* alloc = T2T<Allocator*>(allocator);
+            with_ctr(root_id, name, alloc, [&](MyType& ctr){
                 ctr.drop();
             });
         }
@@ -251,7 +284,45 @@ public:
             return TypeNameFactory<ContainerTypeName>::name();
         }
 
-        virtual ~CtrInterfaceImpl() {}
+
+        class CtrNodesWalkerAdapter: public ContainerWalkerBase {
+        	BlockCallbackFn consumer_;
+        public:
+        	CtrNodesWalkerAdapter(BlockCallbackFn consumer): consumer_(consumer)
+        	{}
+
+            virtual void beginRoot(Int idx, const void* page) {
+            	beginNode(idx, page);
+            }
+
+
+            virtual void beginNode(Int idx, const void* page) {
+            	const Page* p = T2T<const Page*>(page);
+            	consumer_(p->uuid(), p->id(), page);
+            }
+
+            virtual void rootLeaf(Int idx, const void* page) {
+            	beginNode(idx, page);
+            }
+
+            virtual void leaf(Int idx, const void* page) {
+            	beginNode(idx, page);
+            }
+        };
+
+
+
+        virtual void for_each_ctr_node(const UUID& name, void* allocator, BlockCallbackFn consumer)
+        {
+        	Allocator* alloc = T2T<Allocator*>(allocator);
+        	auto root_id 	 = alloc->getRootID(name);
+
+        	CtrNodesWalkerAdapter walker(consumer);
+
+        	with_ctr(root_id, name, alloc, [&](MyType& ctr){
+        		ctr.walkTree(&walker);
+        	});
+        }
     };
 
 
@@ -262,7 +333,9 @@ public:
 
     static Int initMetadata(Int salt = 0)
     {
-    	if (!reflection_)
+    	LockGuardT lock_guard(mutex_);
+
+        if (!reflection_)
         {
             MetadataList list;
 
@@ -270,7 +343,7 @@ public:
 
             reflection_ = std::make_shared<ContainerMetadata>(TypeNameFactory<Name>::name(),
                                                 list,
-												static_cast<int>(CONTAINER_HASH),
+                                                static_cast<int>(CONTAINER_HASH),
                                                 MyType::getContainerInterface());
 
             MetadataRepository<typename Types::Profile>::registerMetadata(reflection_);
@@ -346,6 +419,9 @@ private:
 
 template <typename TypesType>
 ContainerMetadataPtr CtrBase<TypesType>::reflection_;
+
+template <typename TypesType>
+typename CtrBase<TypesType>::MutexT CtrBase<TypesType>::mutex_;
 
 
 
@@ -508,7 +584,19 @@ public:
     Ctr(MyType&& other) = delete;
 
     virtual ~Ctr() noexcept
-    {}
+    {
+    	try {
+    		allocator_->unregisterCtr(typeid(*this));
+    	}
+    	catch (Exception& ex) {
+    		cout << ex.source() << " " << ex.message() << endl;
+    		std::abort();
+    	}
+    	catch(...) {
+    		cout << "Unknown exception in ~Ctr(): " << typeid(*this).name() << endl;
+    		std::abort();
+    	}
+    }
 
     void initLogger(Logger* other)
     {
@@ -530,6 +618,8 @@ public:
         name_               = name;
         model_type_name_    = mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname();
 
+        allocator_->registerCtr(typeid(*this));
+
         this->init_data().set_master_name(name);
 
         //FIXME: init logger correctly
@@ -544,6 +634,8 @@ public:
         allocator_          = allocator;
         model_type_name_    = mname != NULL ? mname : TypeNameFactory<ContainerTypeName>::cname();
         name_               = this->getModelName(root_id);
+
+        allocator_->registerCtr(typeid(*this));
 
         //FIXME: init logger correctly
 
@@ -601,8 +693,8 @@ public:
     }
 
     v1::Logger& logger() {
-            return logger_;
-        }
+        return logger_;
+    }
 
     static v1::Logger& class_logger() {
         return class_logger_;
@@ -646,6 +738,7 @@ public:
 
         return *this;
     }
+
 };
 
 template<

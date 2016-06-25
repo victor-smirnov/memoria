@@ -82,10 +82,10 @@ struct SelectHeadIfNotEmpty<TypeList<>, Default> {
 
 template <bool Value, typename ResultIfTrue, typename Else>
 struct IfThenElseT {
-    typedef typename Select<
+    using Result = typename Select<
                 Value ? 0 : 1,
                 TypeList<ResultIfTrue, Else>
-    >::Result                                                                   Result;
+    >::Result;
 };
 
 template <bool Value, typename ResultIfTrue, typename Else>

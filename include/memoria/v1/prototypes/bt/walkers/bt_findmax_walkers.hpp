@@ -76,11 +76,13 @@ public:
         Base(leaf_index, target, search_type)
     {}
 
-    template <typename... Args>
-    auto treeNode(Args&&... args) -> decltype(Base::treeNode(std::forward<Args>(args)...))
-    {
-        return Base::treeNode(std::forward<Args>(args)...);
-    }
+    using Base::treeNode;
+
+//    template <typename... Args>
+//    auto treeNode(Args&&... args) -> decltype(Base::treeNode(std::forward<Args>(args)...))
+//    {
+//        return Base::treeNode(std::forward<Args>(args)...);
+//    }
 
     template <typename NodeTypes>
     void treeNode(const bt::BranchNode<NodeTypes>* node, WalkCmd cmd, Int start, Int end)
@@ -301,9 +303,9 @@ public:
 template <
     typename Types
 >
-class FindMaxGTWalker: public FindMaxWalker<Types> {
+class FindMaxGTWalker: public FindMaxWalkerBase<Types, FindMaxGTWalker<Types>> {
 
-    using Base          = FindMaxWalker<Types>;
+    using Base          = FindMaxWalkerBase<Types, FindMaxGTWalker<Types>>;
     using TargetType    = typename Base::TargetType;
 
 public:
@@ -319,9 +321,9 @@ public:
 template <
     typename Types
 >
-class FindMaxGEWalker: public FindMaxWalkerBase<Types, FindMaxGTWalker<Types>> {
+class FindMaxGEWalker: public FindMaxWalkerBase<Types, FindMaxGEWalker<Types>> {
 
-    using Base          = FindMaxWalkerBase<Types, FindMaxGTWalker<Types>>;
+    using Base          = FindMaxWalkerBase<Types, FindMaxGEWalker<Types>>;
     using TargetType    = typename Base::TargetType;
 
 public:

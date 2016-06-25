@@ -51,6 +51,7 @@ public:
     using InputType = Values;
     using IndexValue = Value;
     using SizesT = core::StaticVector<Int, Blocks>;
+    using ReadState = SizesT;
 
 private:
 
@@ -208,12 +209,12 @@ public:
         return at + size;
     }
 
-    Value value(Int, Int) const {
-        return Value();
+    Values get_values(Int) const {
+        return Values();
     }
 
-    SizesT positions(Int idx) const {
-        return SizesT(idx);
+    ReadState positions(Int idx) const {
+        return ReadState(idx);
     }
 
 
@@ -237,6 +238,7 @@ public:
     {
 
     }
+
 
 
     template <typename Fn>
@@ -270,9 +272,6 @@ public:
     {
         handler->startStruct();
         handler->startGroup("EMPTY_STRUCT");
-
-        handler->value("ALLOCATOR",     &Base::allocator_offset());
-
         handler->endGroup();
         handler->endStruct();
     }

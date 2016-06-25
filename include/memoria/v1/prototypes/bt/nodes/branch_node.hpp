@@ -1131,12 +1131,14 @@ public:
         template <Int Idx, typename Tree>
         void stream(const Tree* tree, Int idx, BranchNodeEntry* acc)
         {
-            const Int Blocks = Tree::Blocks;
+//            const Int Blocks = Tree::Blocks;
 
-            for (Int c = 0; c < Blocks; c++)
-            {
-                std::get<Idx>(*acc)[c] = tree->value(c, idx);
-            }
+//            for (Int c = 0; c < Blocks; c++)
+//            {
+//                std::get<Idx>(*acc)[c] = tree->value(c, idx);
+//            }
+
+            std::get<Idx>(*acc) = tree->get_values(idx);
         }
     };
 
@@ -1245,17 +1247,17 @@ public:
     template <typename SubstreamPath>
     void sum_substream(Int block_num, Int start, Int end, BigInt& accum) const
     {
-    	processStream<SubstreamPath>(SumsFn(), block_num, start, end, accum);
+        processStream<SubstreamPath>(SumsFn(), block_num, start, end, accum);
     }
 
     template <typename LeafSubstreamPath>
     void sum_substream_for_leaf_path(Int leaf_block_num, Int start, Int end, BigInt& accum) const
     {
-    	using BranchPath = BuildBranchPath<LeafSubstreamPath>;
+        using BranchPath = BuildBranchPath<LeafSubstreamPath>;
 
-    	const Int index = MyType::translateLeafIndexToBranchIndex<LeafSubstreamPath>(leaf_block_num);
+        const Int index = MyType::translateLeafIndexToBranchIndex<LeafSubstreamPath>(leaf_block_num);
 
-    	processStream<BranchPath>(SumsFn(), index, start, end, accum);
+        processStream<BranchPath>(SumsFn(), index, start, end, accum);
     }
 
 
@@ -1298,6 +1300,22 @@ public:
         forAllValues(0, fn);
     }
 
+
+    template <typename SubstreamPath>
+    auto substream()
+    {
+        const Int SubstreamIdx = v1::list_tree::LeafCount<BranchSubstreamsStructList, SubstreamPath>::Value;
+        using T = typename Dispatcher::template StreamTypeT<SubstreamIdx>::Type;
+        return this->allocator()->template get<T>(SubstreamIdx + SubstreamsStart);
+    }
+
+    template <typename SubstreamPath>
+    auto substream() const
+    {
+        const Int SubstreamIdx = v1::list_tree::LeafCount<BranchSubstreamsStructList, SubstreamPath>::Value;
+        using T = typename Dispatcher::template StreamTypeT<SubstreamIdx>::Type;
+        return this->allocator()->template get<T>(SubstreamIdx + SubstreamsStart);
+    }
 
 
     template <typename Fn, typename... Args>
@@ -1511,7 +1529,7 @@ public:
     }
 
     struct GenerateDataEventsFn {
-        template <typename Tree>
+        template <Int Idx, typename Tree>
         void stream(const Tree* tree, IPageDataEventHandler* handler)
         {
             tree->generateDataEvents(handler);

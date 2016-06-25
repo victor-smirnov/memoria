@@ -156,7 +156,12 @@ public:
 
 //        return my_size() + layout_size + bitmap_size + roundUpBytesToAlignmentBlocks(client_area);
 
-        return my_size() + (blocks + (blocks % 2 ? 1 : 2))*sizeof(Int) + roundUpBitsToAlignmentBlocks(blocks) + roundUpBytesToAlignmentBlocks(client_area);
+        return roundUpBytesToAlignmentBlocks(
+                my_size() +
+                (blocks + (blocks % 2 ? 1 : 2))*sizeof(Int) +
+                roundUpBitsToAlignmentBlocks(blocks) +
+                roundUpBytesToAlignmentBlocks(client_area)
+        );
     }
 
     static constexpr Int client_area(Int block_size, Int blocks)
@@ -168,7 +173,10 @@ public:
 
 //        return roundDownBytesToAlignmentBlocks(block_size - (my_size() + layout_size + bitmap_size));
 
-        return roundDownBytesToAlignmentBlocks(block_size - (my_size() + (blocks + (blocks % 2 ? 1 : 2))*sizeof(Int) + roundUpBitsToAlignmentBlocks(blocks)));
+        return roundDownBytesToAlignmentBlocks(
+                block_size -
+                (my_size() + (blocks + (blocks % 2 ? 1 : 2))*sizeof(Int) + roundUpBitsToAlignmentBlocks(blocks))
+        );
     }
 
     Int computeElementOffset(const void* element) const
@@ -252,6 +260,11 @@ public:
     Int findElement(const void* element_ptr) const
     {
         Int offset  = computeElementOffset(element_ptr);
+
+        if (offset < 0) {
+            int a = 0; a++;
+        }
+
         MEMORIA_V1_ASSERT(offset, >=, 0);
 
         for (Int c = 0; c < layout_size_ / 4; c++)
@@ -272,7 +285,7 @@ public:
         const T* addr = T2T<const T*>(base() + element_offset(idx));
 
 //        MEMORIA_V1_ASSERT_ALIGN(addr, 8);
-        __builtin_prefetch(addr);
+//        __builtin_prefetch(addr);
 
         return addr;
     }
@@ -283,7 +296,7 @@ public:
         T* addr = T2T<T*>(base() + element_offset(idx));
 
 //        MEMORIA_V1_ASSERT_ALIGN(addr, 8);
-        __builtin_prefetch(addr);
+//        __builtin_prefetch(addr);
 
         return addr;
     }

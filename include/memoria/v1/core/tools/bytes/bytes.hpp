@@ -31,165 +31,173 @@ namespace v1 {
 template <typename T>
 class RawData {
 
-	using MyType = RawData<T>;
+    using MyType = RawData<T>;
 
-	T* data_;
-	size_t size_;
-	bool owner_;
+    T* data_;
+    size_t size_;
+    bool owner_;
 public:
-	RawData(): data_(nullptr), size_(0), owner_(false) {}
-	explicit RawData(size_t size): data_(alloc(size)), size_(size) {}
+    RawData(): data_(nullptr), size_(0), owner_(false) {}
+    explicit RawData(size_t size): data_(alloc(size)), size_(size), owner_(true) {}
 
-	RawData(const T* data, size_t size):
-		data_(alloc(size)), size_(size), owner_(true)
-	{
-		CopyBuffer(data, data_, size);
-	}
+    RawData(const T* data, size_t size):
+        data_(alloc(size)), size_(size), owner_(true)
+    {
+        CopyBuffer(data, data_, size);
+    }
 
-	RawData(T* data, size_t size, bool owner):
-		size_(size), owner_(owner)
-	{
-		if (!owner)
-		{
-			data_ = data;
-		}
-		else {
-			data_ = alloc(size);
-			CopyBuffer(data, data_, size);
-		}
-	}
+    RawData(T* data, size_t size, bool owner):
+        size_(size), owner_(owner)
+    {
+        if (!owner)
+        {
+            data_ = data;
+        }
+        else {
+            data_ = alloc(size);
+            CopyBuffer(data, data_, size);
+        }
+    }
 
-	RawData(const MyType& other): data_(alloc(other.size_)), size_(other.size_)
-	{
-		CopyBuffer(other.data_, data_, size_);
-	}
+    RawData(const MyType& other): data_(alloc(other.size_)), size_(other.size_), owner_(true)
+    {
+        CopyBuffer(other.data_, data_, size_);
+    }
 
-	RawData(MyType&& other)
-	{
-		data_ = other.data_;
-		size_ = other.size_;
+    RawData(MyType&& other)
+    {
+        data_ = other.data_;
+        size_ = other.size_;
+        owner_ = other.owner_;
 
-		other.data_ = nullptr;
-	}
+        other.data_ = nullptr;
+        other.owner_ = false;
+    }
 
-	~RawData()
-	{
-		if (owner_ && data_)
-		{
-			::free(data_);
-		}
-	}
+    ~RawData()
+    {
+        if (owner_ && data_)
+        {
+            ::free(data_);
+        }
+    }
 
-	T* data() {return data_;}
-	const T* data() const {return data_;}
+    T* data() {return data_;}
+    const T* data() const {return data_;}
 
-	T* take()
-	{
-		owner_ = false;
-		T* data = data_;
-		data_ = nullptr;
+    T* take()
+    {
+        owner_ = false;
+        T* data = data_;
+        data_ = nullptr;
 
-		return data;
-	}
+        return data;
+    }
 
-	size_t size() const {
-		return size_;
-	}
+    size_t size() const {
+        return size_;
+    }
 
-	MyType& operator=(const MyType& other)
-	{
-		if (data_ && owner_) ::free(data_);
+    size_t length() const {
+        return size_;
+    }
 
-		data_ = alloc(other.size_);
-		size_ = other.size_;
-		owner_ = true;
+    MyType& operator=(const MyType& other)
+    {
+        if (data_ && owner_) ::free(data_);
 
-		CopyBuffer(other.data_, data_, size_);
+        data_ = alloc(other.size_);
+        size_ = other.size_;
+        owner_ = true;
 
-		return *this;
-	}
+        CopyBuffer(other.data_, data_, size_);
 
-	MyType& operator=(MyType&& other)
-	{
-		if (data_) ::free(data_);
+        return *this;
+    }
 
-		data_ = other.data_;
-		size_ = other.size_;
+    MyType& operator=(MyType&& other)
+    {
+        if (owner_ && data_) ::free(data_);
 
-		other.data_ = nullptr;
-		other.owner_ = false;
+        data_ = other.data_;
+        size_ = other.size_;
+        owner_ = other.owner_;
 
-		return *this;
-	}
+        other.data_ = nullptr;
+        other.owner_ = false;
 
-
-	bool operator!=(const MyType& other) const {
-		return !operator==(other);
-	}
+        return *this;
+    }
 
 
-	bool operator==(const MyType& other) const
-	{
-		if (size_ == other.size_)
-		{
-			for (size_t c = 0; c < size_; c++)
-			{
-				if (data_[c] != other.data_[c])
-				{
-					return false;
-				}
-			}
+    bool operator!=(const MyType& other) const {
+        return !operator==(other);
+    }
 
-			return true;
-		}
 
-		return false;
-	}
+    bool operator==(const MyType& other) const
+    {
+        if (size_ == other.size_)
+        {
+            for (size_t c = 0; c < size_; c++)
+            {
+                if (data_[c] != other.data_[c])
+                {
+                    return false;
+                }
+            }
 
-	bool operator<(const MyType& other) const
-	{
-		return std::lexicographical_compare(data_, data_ + size_, other.data_, other.data_ + other.size_);
-	}
+            return true;
+        }
 
-	bool operator<=(const MyType& other) const
-	{
-		return operator<(other) || operator==(other);
-	}
+        return false;
+    }
 
-	bool operator>(const MyType& other) const
-	{
-		return !operator<=(other);
-	}
+    bool operator<(const MyType& other) const
+    {
+        return std::lexicographical_compare(data_, data_ + size_, other.data_, other.data_ + other.size_);
+    }
 
-	bool operator>=(const MyType& other) const
-	{
-		return !operator<(other);
-	}
+    bool operator<=(const MyType& other) const
+    {
+        return operator<(other) || operator==(other);
+    }
 
-	void swap(MyType& other)
-	{
-		std::swap(data_, other.data_);
-		std::swap(size_, other.size_);
-	}
+    bool operator>(const MyType& other) const
+    {
+        return !operator<=(other);
+    }
 
-	T& operator[](size_t c) {
-		return data_[c];
-	}
+    bool operator>=(const MyType& other) const
+    {
+        return !operator<(other);
+    }
 
-	const T& operator[](size_t c) const {
-		return data_[c];
-	}
+    void swap(MyType& other)
+    {
+        std::swap(data_, other.data_);
+        std::swap(size_, other.size_);
+        std::swap(owner_, other.owner_);
+    }
+
+    T& operator[](size_t c) {
+        return data_[c];
+    }
+
+    const T& operator[](size_t c) const {
+        return data_[c];
+    }
 
 private:
-	static T* alloc(size_t size)
-	{
-		T* data = T2T<T*>(::malloc(size));
-		if (!data)
-		{
-			throw Exception(MA_RAW_SRC, "Can't allocate raw data buffer");
-		}
-		return data;
-	}
+    static T* alloc(size_t size)
+    {
+        T* data = T2T<T*>(::malloc(size));
+        if (!data)
+        {
+            throw Exception(MA_RAW_SRC, "Can't allocate raw data buffer");
+        }
+        return data;
+    }
 };
 
 template <typename T>
@@ -203,22 +211,22 @@ struct TypeHash<RawData<T>> {
 template <typename T>
 std::ostream& operator<<(std::ostream& out, const RawData<T>& val)
 {
-	if (val.size() > 0)
-	{
-		std::ios  state(nullptr);
-		state.copyfmt(out);
+    if (val.size() > 0)
+    {
+        std::ios  state(nullptr);
+        state.copyfmt(out);
 
-		out<<std::setbase(16);
-		for (size_t c = 0; c < val.size(); c++)
-		{
-			out<<std::setw(sizeof(T) * 2)<<setfill('0');
-			out << (UBigInt)val[c];
-		}
+        out<<std::setbase(16);
+        for (size_t c = 0; c < val.size(); c++)
+        {
+            out<<std::setw(sizeof(T) * 2)<<setfill('0');
+            out << (UBigInt)val[c];
+        }
 
-		out.copyfmt(state);
-	}
+        out.copyfmt(state);
+    }
 
-	return out;
+    return out;
 }
 
 using Bytes = RawData<UByte>;

@@ -107,9 +107,9 @@ void dumpArray(std::ostream& out, Int count, function<V (Int)> fn)
 {
     bool is_char = std::is_same<V, UByte>::value || std::is_same<V, Byte>::value || std::is_same<V, Char>::value;
 
-    auto width = max_width(count, is_char, fn) + 1;
+    auto width = 5;//max_width(count, is_char, fn) + 1;
 
-    if (width < 3) width = 3;
+    if (width < 2) width = 2;
 
     Int columns;
 

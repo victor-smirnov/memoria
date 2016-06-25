@@ -29,6 +29,7 @@
 #include <memoria/v1/core/packed/tools/packed_allocator_types.hpp>
 #include <memoria/v1/core/packed/tree/fse/packed_fse_quick_tree.hpp>
 #include <memoria/v1/core/packed/tree/fse_max/packed_fse_max_tree.hpp>
+#include <memoria/v1/core/packed/tree/fse_max/packed_fse_optmax_tree.hpp>
 #include <memoria/v1/core/packed/tree/vle/packed_vle_quick_tree.hpp>
 #include <memoria/v1/core/packed/tree/vle/packed_vle_dense_tree.hpp>
 #include <memoria/v1/core/packed/tree/vle_big/packed_vle_bigmax_tree.hpp>
@@ -92,7 +93,7 @@ template <typename T> struct VLQBranchStructTF;
 
 template <typename KeyType, Int Indexes>
 struct VLQBranchStructTF<IdxSearchType<PkdSearchType::SUM, KeyType, Indexes>> {
-    using Type = PkdVQTreeT<KeyType, Indexes, UByteI7Codec>;
+    using Type = PkdVQTreeT<KeyType, Indexes, ValueCodec>;
 };
 
 template <typename KeyType>

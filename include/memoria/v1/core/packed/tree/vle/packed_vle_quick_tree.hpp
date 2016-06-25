@@ -94,6 +94,8 @@ public:
 
     using SizesT = core::StaticVector<Int, Blocks>;
 
+    using ReadState = SizesT;
+
     static Int estimate_block_size(Int tree_capacity, Int density_hi = 1000, Int density_lo = 333)
     {
         Int max_tree_capacity = (tree_capacity * Blocks * density_hi) / density_lo;
@@ -702,7 +704,8 @@ public:
     }
 
 
-    SizesT positions(Int idx) const
+
+    ReadState positions(Int idx) const
     {
         MEMORIA_V1_ASSERT(idx, >=, 0);
 
@@ -721,6 +724,7 @@ public:
 
             pos[block] = this->locate(layout, values, block, idx).idx;
         }
+
         return pos;
     }
 
@@ -1072,7 +1076,7 @@ public:
                 };
 
                 handler->value("INDEX", PageValueProviderFactory::provider(2, [&](Int idx) {
-                	return indexes[idx];
+                    return indexes[idx];
                 }));
             }
 
@@ -1106,7 +1110,7 @@ public:
             }
 
             handler->value("TREE_ITEM", PageValueProviderFactory::provider(Blocks, [&](Int b) {
-            	return values_data[b];
+                return values_data[b];
             }));
         }
 
@@ -1318,6 +1322,10 @@ public:
             return FindResult(findGEBackward(block, val));
         }
     }
+
+
+
+
 
 
 

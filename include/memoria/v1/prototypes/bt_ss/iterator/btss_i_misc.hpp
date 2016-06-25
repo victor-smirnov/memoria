@@ -36,6 +36,9 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btss::IteratorMiscName)
 
     using Position = typename Container::Types::Position;
     using CtrSizeT = typename Container::Types::CtrSizeT;
+
+
+
 public:
     bool operator++() {
         return self().skipFw(1);
@@ -150,11 +153,11 @@ public:
     template <typename InputIterator>
     auto bulk_insert(InputIterator begin, InputIterator end)
     {
-        auto& self = this->self();
-
-        btss::BTSSIteratorInputProvider<Container, InputIterator> provider(self.ctr(), begin, end);
-
-        return self.ctr().insert(self, provider);
+//        auto& self = this->self();
+//
+//        btss::BTSSIteratorInputProvider<Container, InputIterator> provider(self.ctr(), begin, end);
+//
+//        return self.ctr().insert(self, provider);
     }
 
     template <typename Iterator>
@@ -186,9 +189,57 @@ public:
         return self.ctr().template read_entries<0>(self, length, adaptor);
     }
 
+
+
+    template <typename IOBuffer>
+    auto read_buffer(bt::BufferConsumer<IOBuffer>* consumer, CtrSizeT length)
+    {
+        auto& self = this->self();
+
+        auto buffer = self.ctr().pools().get_instance(PoolT<ObjectPool<IOBuffer>>()).get_unique(65536);
+
+        return self.ctr().template buffered_read<0>(self, length, *buffer.get(), *consumer);
+    }
+
+    template <typename IOBuffer>
+    auto read_buffer(bt::BufferConsumer<IOBuffer>* consumer)
+    {
+        auto& self = this->self();
+        return self.read_buffer(consumer, self.ctr().size());
+    }
+
+    template <typename IOBuffer>
+    auto populate_buffer(IOBuffer* buffer, CtrSizeT length)
+    {
+        auto& self = this->self();
+        return self.ctr().template populate_buffer<0>(self, length, *buffer);
+    }
+
+    template <typename IOBuffer>
+    auto populate_buffer(IOBuffer* buffer)
+    {
+        auto& self = this->self();
+        return self.populate_buffer(buffer, self.ctr().size());
+    }
+
+
+    template <typename IOBuffer>
+    auto insert_iobuffer(bt::BufferProducer<IOBuffer>* producer, Int ib_initial_capacity = 10000)
+    {
+        using InputProvider = btss::IOBufferProducerBTSSInputProvider<Container, IOBuffer>;
+
+        auto buffer = self().ctr().pools().get_instance(PoolT<ObjectPool<IOBuffer>>()).get_unique(65536);
+
+        auto bulk = std::make_unique<InputProvider>(self().ctr(), *buffer.get(), producer, ib_initial_capacity);
+
+        return this->bulk_insert(*bulk.get());
+    }
+
+
+
 protected:
 
-    SplitStatus split()
+    SplitResult split(Int stream, Int target_idx)
     {
         auto& self = this->self();
 
@@ -200,17 +251,21 @@ protected:
 
         auto right = self.ctr().split_leaf_p(leaf, Position::create(0, split_idx));
 
+
         if (idx > split_idx)
         {
             leaf = right;
             idx -= split_idx;
 
             self.refresh();
+        }
 
-            return SplitStatus::RIGHT;
+        if (target_idx > split_idx)
+        {
+            return SplitResult(SplitStatus::RIGHT, target_idx - split_idx);
         }
         else {
-            return SplitStatus::LEFT;
+            return SplitResult(SplitStatus::LEFT, target_idx);
         }
     }
 

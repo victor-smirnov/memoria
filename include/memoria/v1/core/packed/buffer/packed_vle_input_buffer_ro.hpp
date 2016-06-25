@@ -89,11 +89,37 @@ public:
                 ConstValue<UInt, Blocks>
     >;
 
-    using Value      = typename Types::Value;
+    using Value  = typename Types::Value;
 
     using Values = core::StaticVector<Value, Blocks>;
 
     using SizesT = core::StaticVector<Int, Blocks>;
+
+    class AppendState {
+        Int pos_;
+        Int size_ = 0;
+
+        Metadata* meta_;
+
+        using ValueDataP = ValueData*;
+
+        ValueDataP values_;
+
+    public:
+        AppendState() {}
+        AppendState(Metadata* meta): meta_(meta) {}
+
+        Int& pos() {return pos_;}
+        const Int& pos() const {return pos_;}
+
+        Int& size() {return size_;}
+        const Int& size() const {return size_;}
+
+        ValueDataP& values() {return values_;}
+        const ValueDataP& values() const {return values_;}
+
+        Metadata* meta() {return meta_;}
+    };
 
     void init(const SizesT& sizes)
     {
@@ -146,12 +172,54 @@ public:
         );
     }
 
+
+    SizesT data_capacity() const
+    {
+        return SizesT(this->metadata()->max_data_size()[0]);
+    }
+
+    void copyTo(MyType* other) const
+    {
+        auto meta = this->metadata();
+        auto other_meta = other->metadata();
+
+        other_meta->size()      = meta->size();
+        other_meta->data_size() = meta->data_size();
+
+        Codec codec;
+        codec.copy(this->values(0), 0, other->values(0), 0, meta->data_size()[0]);
+    }
+
+
     bool has_capacity_for(const SizesT& sizes) const
     {
         auto capacity = this->metadata()->meta->max_data_size(0);
         auto sum = sizes.sum();
 
         return sum <= capacity;
+    }
+
+
+    template <typename Buffer>
+    bool has_capacity_for(const Buffer& buffer, Int start, Int length) const
+    {
+        auto meta = this->metadata();
+
+        Codec codec;
+
+        Int data_size = 0;
+
+        for (Int c = start; c < start + length; c++)
+        {
+            Values entry = buffer[c];
+
+            for (Int block = 0; block < Blocks; block++)
+            {
+                data_size += codec.length(entry[block]);
+            }
+        }
+
+        return data_size <= this->metadata()->meta->max_data_size(0);
     }
 
 
@@ -295,6 +363,69 @@ public:
         return sizes;
     }
 
+
+
+    AppendState append_state()
+    {
+        auto meta = this->metadata();
+        AppendState state(meta);
+
+        state.pos()  = meta->data_size()[0];
+        state.size() = meta->size();
+
+        state.values() = this->values(0);
+
+        return state;
+    }
+
+
+    template <typename IOBuffer>
+    bool append_entry_from_iobuffer(AppendState& state, IOBuffer& buffer)
+    {
+        Codec codec;
+
+        auto meta = state.meta();
+
+        size_t capacity = meta->capacity(0);
+
+        for (Int block = 0; block < Blocks; block++)
+        {
+            auto ptr = buffer.array();
+            auto pos = buffer.pos();
+
+            size_t len = codec.length(ptr, pos, -1);
+
+            if (len <= capacity)
+            {
+                Int& data_pos = meta->data_size(0);
+
+                codec.copy(ptr, pos, state.values(), data_pos, len);
+
+                data_pos += len;
+                buffer.skip(len);
+                capacity -= len;
+            }
+            else {
+                return false;
+            }
+        }
+
+        state.size()++;
+        state.pos() = meta->data_size()[0];
+        this->size()++;
+
+        return true;
+    }
+
+
+
+    void restore(const AppendState& state)
+    {
+        auto meta = this->metadata();
+
+        meta->size() = state.size();
+        meta->data_size()[0] = state.pos();
+    }
 
 
 
@@ -535,7 +666,7 @@ public:
             }
 
             handler->value("ARRAY_ITEM", PageValueProviderFactory::provider(Blocks, [&](Int idx) {
-               	return values_data[idx];
+                return values_data[idx];
             }));
         }
 

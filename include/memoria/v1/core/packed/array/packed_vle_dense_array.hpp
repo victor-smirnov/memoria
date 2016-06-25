@@ -113,6 +113,10 @@ public:
 
     using SizesT = core::StaticVector<Int, Blocks>;
 
+
+    using ReadState = SizesT;
+
+
     static Int estimate_block_size(Int tree_capacity, Int density_hi = 1000, Int density_lo = 333)
     {
         Int max_tree_capacity = (tree_capacity * Blocks * density_hi) / density_lo;
@@ -626,7 +630,8 @@ public:
     }
 
 
-    SizesT positions(Int idx) const
+
+    ReadState positions(Int idx) const
     {
         Int size = this->size();
 
@@ -640,7 +645,7 @@ public:
         SizesT pos;
         for (Int block = 0; block < Blocks; block++)
         {
-            pos[block] = this->locate(layout, values, 0, idx * Blocks + block).idx;
+            pos[block] = this->locate(layout, values, 0, idx * Blocks + block, data_size).idx;
         }
 
         return pos;
@@ -1017,7 +1022,7 @@ public:
 
             for (Int c = 0; c < index_size; c++)
             {
-            	handler->value("INDEX", PageValueProviderFactory::provider(size_indexes[c]));
+                handler->value("INDEX", PageValueProviderFactory::provider(size_indexes[c]));
             }
 
             handler->endGroup();
@@ -1049,7 +1054,7 @@ public:
             }
 
             handler->value("ARRAY_ITEM", PageValueProviderFactory::provider(Blocks, [&](Int idx) -> const Value& {
-            	return values_data[idx];
+                return values_data[idx];
             }));
         }
 
@@ -1095,6 +1100,31 @@ public:
             FieldFactory<ValueData>::deserialize(buf, Base::values(block), Base::data_size(block));
         }
     }
+
+
+    template <typename IOBuffer>
+    bool readTo(ReadState& state, IOBuffer& buffer) const
+    {
+        Codec codec;
+        auto values = this->values();
+
+        for (Int b = 0; b < Blocks; b++)
+        {
+            Value value;
+            auto val = codec.describe(values, state[b]);
+
+            if (buffer.put(val))
+            {
+                state[0] += val.length();
+            }
+            else {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
 
 
     template <typename Fn>

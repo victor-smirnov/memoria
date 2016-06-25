@@ -24,31 +24,37 @@
 namespace memoria {
 namespace v1 {
 
-namespace details {
-    template <typename State, typename Item, typename Fn>
+namespace {
+    template <typename State, typename Item, template <typename> class Fn>
     struct MapFoldFn {
-        using Type = AppendItemToList<typename Fn<Item>::Type, typename State::Type>;
+        using Type = AppendItemToList<
+                typename Fn<Item>::Type,
+                State
+        >;
     };
 
-    template <typename Fn>
+    template <template <typename> class Fn>
     struct MapFoldFn<EmptyType, EmptyType, Fn> {
         using Type = TL<>;
     };
 
-    template <typename Element, typename Fn>
+    template <typename Element, template <typename> class Fn>
     struct MapFoldFn<EmptyType, Element, Fn> {
-        using Type = TL<Element>;
+        using Type = TL<typename Fn<Element>::Type>;
+    };
+
+    template <typename List, template <typename> class MapFn>
+    struct MapTLT {
+        template <typename State, typename Item>
+        using FoldFn = typename MapFoldFn<State, Item, MapFn>::Type;
+
+        using Type   = FoldTLLeft<List, FoldFn>;
     };
 }
 
-template <typename List, template <typename> class MapFn> struct MapTL;
 
-template <typename Head, template <typename> class MapFn>
-struct MapTL_T {
-    template <typename State, typename Item>
-    using FoldFn = typename details::MapFoldFn<State, Item>::Type;
+template <typename List, template <typename> class MapFn>
+using MapTL2 = typename MapTLT<List, MapFn>::Type;
 
-    using Type = typename FoldRight<List, FoldFn>::Type::Type;
-};
 
 }}

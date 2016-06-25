@@ -57,6 +57,32 @@ struct RNGTool<UUID> {
 }
 
 
+template <typename Key, typename Value>
+struct IOBufferAdapter<std::tuple<Key, Value>> {
+
+    using T = std::tuple<Key, Value>;
+
+    template <typename IOBuffer>
+    static bool put(IOBuffer& buffer, const T& value)
+    {
+        if (IOBufferAdapter<Key>::put(buffer, std::get<0>(value)))
+        {
+            if (IOBufferAdapter<Value>::put(buffer, std::get<1>(value))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    template <typename IOBuffer>
+    static T get(IOBuffer& buffer)
+    {
+        return std::make_tuple(IOBufferAdapter<Key>::get(buffer), IOBufferAdapter<Value>::get(buffer));
+    }
+};
+
+
 template<typename MapName>
 class MapTestBase: public BTSSTestBase<MapName, PersistentInMemAllocator<>, DefaultProfile<>> {
     using MyType = MapTestBase<MapName>;

@@ -20,7 +20,10 @@
 #include <memoria/v1/prototypes/bt/bt_macros.hpp>
 #include <memoria/v1/core/container/macros.hpp>
 
+#include <memoria/v1/core/tools/iobuffer/io_buffer.hpp>
+
 #include <vector>
+#include <utility>
 
 namespace memoria {
 namespace v1 {

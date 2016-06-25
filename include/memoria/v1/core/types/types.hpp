@@ -30,13 +30,15 @@
 namespace memoria {
 namespace v1 {
 
-static const int DEFAULT_BLOCK_SIZE                 = 8192;
-static const int PackedTreeBranchingFactor          = 32;
-static const int PackedSeqBranchingFactor           = 32;
-static const int PackedSeqValuesPerBranch           = 1024;
-static const int PackedTreeExintVPB                 = 256;
-static const int PackedTreeEliasVPB                 = 1024;
-static const int PackedAllocationAlignment          = 8;
+static constexpr int DEFAULT_BLOCK_SIZE                 = 8192;
+static constexpr int PackedTreeBranchingFactor          = 32;
+static constexpr int PackedSeqBranchingFactor           = 32;
+static constexpr int PackedSeqValuesPerBranch           = 1024;
+static constexpr int PackedTreeExintVPB                 = 256;
+static constexpr int PackedTreeEliasVPB                 = 1024;
+static constexpr int PackedAllocationAlignment          = 8;
+
+static constexpr size_t MaxRLERunLength                 = 0x7FFFFFF;
 
 typedef std::int64_t            BigInt;
 typedef std::uint64_t           UBigInt;
@@ -178,7 +180,7 @@ struct Table        {};
 
 
 template <typename Key>
-struct Set			{};
+struct Set          {};
 
 
 
@@ -355,6 +357,17 @@ class FLSelector {};
 
 enum class SplitStatus {NONE, LEFT, RIGHT, UNKNOWN};
 
+class SplitResult {
+    SplitStatus type_;
+    Int idx_;
+public:
+    SplitResult(SplitStatus type, Int idx): type_(type), idx_(idx) {}
+    SplitResult(SplitStatus type): type_(type), idx_() {}
+
+    SplitStatus type() const {return type_;}
+    Int idx() const {return idx_;}
+};
+
 
 template <typename PkdStruct>
 struct IndexesSize {
@@ -486,9 +499,21 @@ struct HasValueCodec: HasValue<bool, IsComplete<ValueCodec<T>>::type::value> {};
 template <typename T>
 struct HasFieldFactory: HasValue<bool, IsComplete<FieldFactory<T>>::type::value> {};
 
-
 template <typename T>
 struct IsExternalizable: HasValue<bool, HasValueCodec<T>::Value || HasFieldFactory<T>::Value> {};
 
+template <typename T> struct IOBufferAdapter;
+
+
+enum class ByteOrder {
+    BIG, LITTLE
+};
+
+enum class MemoryAccess {
+    ALIGNED, UNALIGNED
+};
+
+
+template <typename T> struct TypeTag {};
 
 }}

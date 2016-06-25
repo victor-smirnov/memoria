@@ -80,6 +80,9 @@ class SelectForwardWalker: public SelectForwardWalkerBase<Types,SelectForwardWal
     using Base  = SelectForwardWalkerBase<Types,SelectForwardWalker<Types>>;
     using CtrSizeT   = typename Base::CtrSizeT;
 
+protected:
+    using Base::direction_;
+
 public:
     SelectForwardWalker(Int symbol, CtrSizeT rank):
         Base(symbol, rank)
@@ -88,7 +91,14 @@ public:
     template <Int StreamIdx, typename Seq>
     SelectResult select(const Seq* seq, Int start, Int symbol, CtrSizeT rank)
     {
-        return seq->selectFw(start, symbol, rank);
+        if (direction_ == WalkDirection::DOWN)
+      {
+          MEMORIA_V1_ASSERT(start, ==, 0);
+          return seq->selectFW(rank, symbol);
+      }
+      else {
+          return seq->selectFW(start, rank, symbol);
+      }
     }
 };
 
@@ -162,7 +172,7 @@ public:
     template <Int StreamIdx, typename Seq>
     SelectResult select(const Seq* seq, Int start, Int symbol, CtrSizeT rank)
     {
-        return seq->selectBw(start, symbol, rank);
+        return seq->selectBW(start, rank, symbol);
     }
 };
 

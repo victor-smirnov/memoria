@@ -58,24 +58,24 @@ int main() {
 
             for (int c = from; c < to; c++)
             {
-            	auto size = getRandomG(10) + 25;
-            	StringWrapper data(chars, size, false);
+                auto size = getRandomG(10) + 25;
+                StringWrapper data(chars, size, false);
 
-            	for (size_t d = 0; d < data.size(); d++)
-            	{
-            		chars[d] = getRandomG(10) + 48;
-            	}
+                for (size_t d = 0; d < data.size(); d++)
+                {
+                    chars[d] = getRandomG(10) + 48;
+                }
 
                 ctr->insert_key(data);
 
                 if (c == threshold)
                 {
-                	long tx = getTimeInMillis();
+                    long tx = getTimeInMillis();
 
-                	cout << c << " in " << FormatTime(tx - tt) << endl;
+                    cout << c << " in " << FormatTime(tx - tt) << endl;
 
-                	tt = tx;
-                	threshold += threshold_value;
+                    tt = tx;
+                    threshold += threshold_value;
                 }
             }
 

@@ -27,6 +27,7 @@
 
 #include <memoria/v1/prototypes/bt/walkers/bt_misc_walkers.hpp>
 #include <memoria/v1/prototypes/bt/walkers/bt_leaf_walkers.hpp>
+#include <memoria/v1/prototypes/bt/walkers/bt_selectge_walkers.hpp>
 
 #include <ostream>
 #include <functional>

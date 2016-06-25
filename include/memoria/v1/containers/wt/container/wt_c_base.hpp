@@ -52,10 +52,10 @@ public:
 
     typedef Sequence<8, true>                                                   SeqName;
 
-    using Tree 	= typename CtrTF<Profile, TreeName, TreeName>::Type;
+    using Tree  = typename CtrTF<Profile, TreeName, TreeName>::Type;
     using TreePtr = std::shared_ptr<Tree>;
 
-    using Seq 	= typename CtrTF<Profile, SeqName, SeqName>::Type;
+    using Seq   = typename CtrTF<Profile, SeqName, SeqName>::Type;
     using SeqPtr = std::shared_ptr<Seq>;
 
     using NodeBaseG = typename Tree::Types::NodeBaseG;
@@ -180,12 +180,12 @@ public:
     }
 
     void drop() {
-    	tree_->drop();
+        tree_->drop();
     }
 
     static auto getModelNameS(NodeBaseG root)
     {
-    	return getRootMetadataS(root).model_name();
+        return getRootMetadataS(root).model_name();
     }
 
     static const auto& getRootMetadataS(NodeBaseG node)

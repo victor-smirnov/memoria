@@ -19,6 +19,7 @@
 #include <memoria/v1/core/packed/tools/packed_allocator_types.hpp>
 #include <memoria/v1/core/tools/accessors.hpp>
 #include <memoria/v1/core/tools/assert.hpp>
+#include <memoria/v1/core/tools/iobuffer/io_buffer.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -60,6 +61,17 @@ public:
 
     using Values = core::StaticVector<Value, Blocks>;
     using SizesT = core::StaticVector<Int, Blocks>;
+
+
+    class AppendState {
+        Int size_;
+    public:
+        AppendState(): size_(0) {}
+        AppendState(Int size): size_(size) {}
+
+        Int& size() {return size_;}
+        const Int& size() const {return size_;}
+    };
 
 private:
 
@@ -118,6 +130,18 @@ public:
         max_size_ = capacities[0];
     }
 
+    SizesT data_capacity() const
+    {
+        return SizesT(max_size_);
+    }
+
+    void copyTo(MyType* other) const
+    {
+        other->size() = this->size();
+        CopyBuffer(buffer_, other->buffer_, size_ * Blocks);
+    }
+
+
     static constexpr Int max_size_for(Int block_size) {
         return (block_size - empty_size()) / (sizeof(Value) * Blocks);
     }
@@ -125,6 +149,12 @@ public:
     bool has_capacity_for(const SizesT& sizes) const
     {
         return sizes[0] <= max_size_;
+    }
+
+    template <typename SizesBuffer>
+    bool has_capacity_for(const SizesBuffer& sizes, int start, int length) const
+    {
+        return length <= max_size_;
     }
 
     static constexpr Int empty_size()
@@ -182,6 +212,45 @@ public:
     SizesT positions(Int idx) const {
         return SizesT(idx);
     }
+
+
+
+    AppendState append_state()
+    {
+        return AppendState(size_);
+    }
+
+
+    template <typename IOBuffer>
+    bool append_entry_from_iobuffer(AppendState& state, IOBuffer& buffer)
+    {
+        for (Int block = 0; block < Blocks; block++)
+        {
+            int capacity = max_size_ - size_;
+            int len = sizeof(Value);
+
+            if (len <= capacity)
+            {
+            	this->value(block, size_) = IOBufferAdapter<Value>::get(buffer);
+            }
+            else {
+                return false;
+            }
+        }
+
+        state.size()++;
+        this->size()++;
+
+        return true;
+    }
+
+
+
+    void restore(const AppendState& state)
+    {
+        this->size_ = state.size();
+    }
+
 
 
 
@@ -268,7 +337,7 @@ public:
             for (Int c = 0; c < size_; c++)
             {
                 handler->value("DATA_ITEM", PageValueProviderFactory::provider(Blocks, [&](Int idx) {
-                   	return values + c * Blocks + idx;
+                    return values + c * Blocks + idx;
                 }));
             }
         }

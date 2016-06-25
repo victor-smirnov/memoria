@@ -26,27 +26,27 @@ using namespace std;
 
 vector<UInt> createRandomAlphabet(Int size)
 {
-	vector<UInt> text(size);
+    vector<UInt> text(size);
 
-	for (auto& v: text)
-	{
-		v = getRandomG();
-	}
+    for (auto& v: text)
+    {
+        v = getRandomG();
+    }
 
-	return text;
+    return text;
 }
 
 
 vector<UInt> createRandomText(Int size, const vector<UInt>& alphabet)
 {
-	vector<UInt> text(size);
+    vector<UInt> text(size);
 
-	for (auto& v: text)
-	{
-		v = alphabet[getRandomG(alphabet.size())];
-	}
+    for (auto& v: text)
+    {
+        v = alphabet[getRandomG(alphabet.size())];
+    }
 
-	return text;
+    return text;
 }
 
 

@@ -18,6 +18,7 @@
 
 #include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/core/types/type2type.hpp>
+#include <memoria/v1/core/tools/optional.hpp>
 
 #include <memoria/v1/core/exceptions/bounds.hpp>
 
@@ -274,10 +275,10 @@ public:
 
     StaticVector(MyType&& other)
     {
-    	for (Int c = 0; c < Indexes; c++)
-    	{
-    		values_[c] = std::move(other.values_[c]);
-    	}
+        for (Int c = 0; c < Indexes; c++)
+        {
+            values_[c] = std::move(other.values_[c]);
+        }
     }
 
     static MyType create(Int idx, const ElementType& value)
@@ -638,6 +639,36 @@ public:
         return *this;
     }
 
+    template <typename Value>
+    MyType& operator=(const Optional<Value>& value)
+    {
+        if (value.is_set()) {
+            for (Int c = 0; c < Indexes; c++) values_[c] = value.value();
+        }
+        else {
+            for (Int c = 0; c < Indexes; c++) values_[c] = Value();
+        }
+
+        return *this;
+    }
+
+    template <typename Value>
+    MyType& operator=(const StaticVector<Optional<Value>, Indexes>& value)
+    {
+        for (Int c = 0; c < Indexes; c++) {
+            if (value[c].is_set()) {
+                values_[c] = value[c].value();
+            }
+            else {
+                values_[c] = Value();
+            }
+        }
+
+        return *this;
+    }
+
+
+
 
     template <typename Value>
     MyType& operator=(const std::initializer_list<Value>& list)
@@ -823,6 +854,24 @@ private:
 //      }
     }
 };
+
+template <typename T1, typename T2, Int Indexes>
+void OptionalAssignmentHelper(StaticVector<Optional<T1>, Indexes>& v1, const StaticVector<T2, Indexes>& v2)
+{
+    for (Int c = 0; c < Indexes; c++)
+    {
+        v1[c] = Optional<T1>(v2[c]);
+    }
+}
+
+template <typename T1, typename T2, Int Indexes>
+void OptionalAssignmentHelper(StaticVector<T1, Indexes>& v1, const StaticVector<T2, Indexes>& v2)
+{
+    for (Int c = 0; c < Indexes; c++)
+    {
+        v1[c] = v2[c];
+    }
+}
 
 
 template <typename K, typename... Args>

@@ -547,6 +547,9 @@ public:
         reindex();
     }
 
+
+    using ReadState = SizesT;
+
     void read(Int start, Int end, std::function<void (Value)> fn) const
     {
         MEMORIA_V1_ASSERT(start, >=, 0);
@@ -894,11 +897,7 @@ public:
 
     Int rank(Int end, Int symbol) const
     {
-        if (end > size()) {
-        	dump();
-        }
-
-    	MEMORIA_V1_ASSERT(end, <=, size());
+        MEMORIA_V1_ASSERT(end, <=, size());
         MEMORIA_V1_ASSERT_TRUE(end >= 0);
 
         MEMORIA_V1_ASSERT_TRUE(symbol >= 0 && symbol < AlphabetSize);
@@ -1022,8 +1021,6 @@ public:
 
     void generateDataEvents(IPageDataEventHandler* handler) const
     {
-        Base::generateDataEvents(handler);
-
         handler->startGroup("PACKED_SEQUENCE");
 
         handler->value("SIZE",          &size());

@@ -325,13 +325,13 @@ protected:
     }
 
 
-
+public:
 
     NodeBaseG getNextNodeP(NodeBaseG& node) const;
     NodeBaseG getPrevNodeP(NodeBaseG& node) const;
 
 
-
+protected:
 
 
 
@@ -426,6 +426,8 @@ protected:
         return BranchDispatcher::dispatch(node, GetSizeFn());
     }
 
+public:
+
     template <Int StreamIdx>
     Int getLeafStreamSize(const NodeBaseG& node) const
     {
@@ -445,8 +447,36 @@ protected:
 
 
 
+protected:
+
+    template <typename SubstreamPath>
+    struct GetPackedStructFn {
+        template <typename T>
+        auto treeNode(const LeafNode<T>* node) const
+        {
+            return node->template substream<SubstreamPath>();
+        }
+
+        template <typename T>
+        auto treeNode(LeafNode<T>* node) const
+        {
+            return node->template substream<SubstreamPath>();
+        }
+    };
 
 
+
+    template <typename SubstreamPath>
+    const auto* getPackedStruct(const NodeBaseG& leaf) const
+    {
+        return LeafDispatcher::dispatch(leaf, GetPackedStructFn<SubstreamPath>());
+    }
+
+    template <typename SubstreamPath>
+    auto* getPackedStruct(NodeBaseG& leaf)
+    {
+        return LeafDispatcher::dispatch(leaf, GetPackedStructFn<SubstreamPath>());
+    }
 
 MEMORIA_V1_CONTAINER_PART_END
 

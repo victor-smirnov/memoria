@@ -128,7 +128,7 @@ protected:
 
         if (update_hierarchy)
         {
-        	self.update_path(node);
+            self.update_path(node);
             self.updateChildIndexes(node, idx);
         }
 
@@ -342,7 +342,7 @@ protected:
 
                     if (provider.size() == 0)
                     {
-                    	self.update_path(next);
+                        self.update_path(next);
 
                         self.updateChildIndexes(next, next_result.idx());
 

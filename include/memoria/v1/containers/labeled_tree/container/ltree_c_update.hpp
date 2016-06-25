@@ -125,7 +125,7 @@ public:
 
         if (self.updateNodeLabel(leaf, SetLabelValueFn<LabelIdx>(sums), label_idx, value))
         {
-        	self.update_path(leaf);
+            self.update_path(leaf);
         }
         else
         {
@@ -193,7 +193,7 @@ public:
 
         if (self.updateNodeLabel(leaf, AddLabelValueFn<LabelIdx>(sums), label_idx, value))
         {
-        	self.update_path(leaf);
+            self.update_path(leaf);
         }
         else
         {

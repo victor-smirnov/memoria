@@ -227,13 +227,13 @@ public:
         {
             Int pos = getRandom(tree->size());
 
-            SizesT at = tree->positions(pos);
+            auto at = tree->positions(pos);
 
             Int buffer_size = buffer->size();
             auto buffer_starts = buffer->positions(0);
             auto buffer_ends = buffer->positions(buffer_size);
 
-            tree->insert_buffer(at, buffer.get(), buffer_starts, buffer_ends, buffer_size);
+            tree->insert_buffer(at.idx(), buffer.get(), buffer_starts, buffer_ends, buffer_size);
 
             tree_data.insert(tree_data.begin() + pos, values.begin(), values.end());
 

@@ -102,6 +102,8 @@ constexpr inline size_t TypeBitmaskPopCount(T mask) {
 }
 
 
+
+
 /**
  * set one bit (0, 1) 'bit' in buffer 'buf' at address 'idx'
  *
@@ -110,41 +112,41 @@ constexpr inline size_t TypeBitmaskPopCount(T mask) {
 namespace intrnl {
 
 
-template <typename T>
-struct ElementT {
-    typedef typename T::ElementType Type;
-};
+    template <typename T>
+    struct ElementT {
+        typedef typename T::ElementType Type;
+    };
 
-template <typename T>
-struct ElementT<T*> {
-    typedef T Type;
-};
+    template <typename T>
+    struct ElementT<T*> {
+        typedef T Type;
+    };
 
-template <typename T, size_t Size>
-struct ElementT<T[Size]> {
-    typedef T Type;
-};
+    template <typename T, size_t Size>
+    struct ElementT<T[Size]> {
+        typedef T Type;
+    };
 
 
-/**
- *                          |  size|  shift|
- * Make bitmask of type 00001111111100000000) where number of 1s is specified by
- * the size argument and mask's shift is specified by the pos argument.
- *
- * Note that optimizing compiler is able to collapse this function to one value - the mask.
- */
+    /**
+     *                          |  size|  shift|
+     * Make bitmask of type 00001111111100000000) where number of 1s is specified by
+     * the size argument and mask's shift is specified by the pos argument.
+     *
+     * Note that optimizing compiler is able to collapse this function to one value - the mask.
+     */
 
-template <typename uT, typename sT>
-uT MakeMask0(Int start, Int length)
-{
-    sT svalue   = numeric_limits<sT>::min();
+    template <typename uT, typename sT>
+    uT MakeMask0(Int start, Int length)
+    {
+        sT svalue   = numeric_limits<sT>::min();
 
-    Int bitsize = TypeBitsize<uT>();
+        Int bitsize = TypeBitsize<uT>();
 
-    uT value    = svalue >> (length - 1);
+        uT value    = svalue >> (length - 1);
 
-    return value >> (bitsize - length - start);
-}
+        return value >> (bitsize - length - start);
+    }
 }
 
 /**
@@ -165,6 +167,12 @@ T MakeMask(Int start, Int length)
         return 0;
     }
 }
+
+constexpr UBigInt NumberOfBits(UBigInt value)
+{
+    return value < 2 ? value : 1 + NumberOfBits(value >> 1);
+}
+
 
 inline UBigInt ReverseBits(UBigInt value)
 {

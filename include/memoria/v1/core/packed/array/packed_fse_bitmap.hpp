@@ -66,6 +66,9 @@ public:
     typedef BitmapAccessor<Value*, Value, BitsPerSymbol>                        SymbolAccessor;
     typedef BitmapAccessor<const Value*, Value, BitsPerSymbol>                  ConstSymbolAccessor;
 
+    using SizesT = core::StaticVector<Int, 1>;
+    using ReadState = SizesT;
+
 private:
 
     Int size_;
@@ -237,6 +240,12 @@ public:
     }
 
     void check() const {}
+
+    ReadState positions(Int idx) const {
+        return ReadState(idx);
+    }
+
+
 
     // ==================================== Node =========================================== //
 

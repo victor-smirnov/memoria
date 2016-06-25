@@ -50,6 +50,28 @@ String toString(const T& value, bool hex = false)
     return str.str();
 }
 
+
+static inline String toString(const UByte value, bool hex = false)
+{
+    std::stringstream str;
+    if (hex) {
+        str<<hex;
+    }
+    str<<(Int)value;
+    return str.str();
+}
+
+static inline String toString(const Byte value, bool hex = false)
+{
+    std::stringstream str;
+    if (hex) {
+        str<<hex;
+    }
+    str<<(Int)value;
+    return str.str();
+}
+
+
 template <typename T>
 struct AsString {
     static String convert(const T& value, bool hex = false)

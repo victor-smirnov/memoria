@@ -26,14 +26,14 @@ namespace memoria {
 namespace v1 {
 
 class ScriptPair {
-	void* ptr_;
+    void* ptr_;
 public:
-	ScriptPair(void* ptr): ptr_(ptr) {}
+    ScriptPair(void* ptr): ptr_(ptr) {}
 
-	virtual ~ScriptPair() noexcept {}
+    virtual ~ScriptPair() noexcept {}
 
-	void* ptr() {return ptr_;}
-	const void* ptr() const {return ptr_;}
+    void* ptr() {return ptr_;}
+    const void* ptr() const {return ptr_;}
 };
 
 using PairPtr = std::unique_ptr<ScriptPair>;

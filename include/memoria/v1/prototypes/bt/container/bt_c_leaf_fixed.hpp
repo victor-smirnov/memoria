@@ -91,7 +91,7 @@ protected:
 
 
     template <Int Stream, typename Entry>
-    std::tuple<bool> try_insert_stream_entry(Iterator& iter, const Entry& entry)
+    std::tuple<bool> try_insert_stream_entry(Iterator& iter, Int idx, const Entry& entry)
     {
         auto& self = this->self();
 
@@ -100,7 +100,7 @@ protected:
         if (self.checkCapacities(iter.leaf(), Position::create(Stream, 1)))
         {
             BranchNodeEntry accum;
-            LeafDispatcher::dispatch(iter.leaf(), InsertStreamEntryFn<Stream>(), iter.idx(), accum, entry);
+            LeafDispatcher::dispatch(iter.leaf(), InsertStreamEntryFn<Stream>(), idx, accum, entry);
             return std::make_tuple(true);
         }
         else {
@@ -139,10 +139,10 @@ protected:
     };
 
     template <Int Stream>
-    std::tuple<bool, BranchNodeEntry> try_remove_stream_entry(Iterator& iter)
+    std::tuple<bool, BranchNodeEntry> try_remove_stream_entry(Iterator& iter, Int idx)
     {
         BranchNodeEntry accum;
-        LeafDispatcher::dispatch(iter.leaf(), RemoveFromLeafFn<Stream>(), iter.idx(), accum);
+        LeafDispatcher::dispatch(iter.leaf(), RemoveFromLeafFn<Stream>(), idx, accum);
         return std::make_tuple(true, accum);
     }
 
@@ -207,7 +207,7 @@ protected:
 
 
     template <Int Stream, typename SubstreamsList, typename Entry>
-    std::tuple<bool, BranchNodeEntry> try_update_stream_entry(Iterator& iter, const Entry& entry)
+    std::tuple<bool, BranchNodeEntry> try_update_stream_entry(Iterator& iter, Int idx, const Entry& entry)
     {
         auto& self = this->self();
 
@@ -217,7 +217,7 @@ protected:
         LeafDispatcher::dispatch(
                 iter.leaf(),
                 UpdateStreamEntryFn<Stream, SubstreamsList>(),
-                iter.idx(),
+                idx,
                 accum,
                 entry
         );

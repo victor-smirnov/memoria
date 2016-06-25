@@ -30,7 +30,7 @@ namespace v1 {
 namespace bt {
 template <typename Types, typename LeafPath_>
 struct WalkerTypes: Types {
-    using LeafPath      = LeafPath_;
+    using LeafPath = LeafPath_;
 };
 
 
@@ -85,9 +85,9 @@ public:
 
 protected:
 
-    Int leaf_index_;
+    Int leaf_index_ = 0;
 
-    Int idx_backup_;
+    Int idx_backup_ = 0;
     Position branch_size_prefix_backup_;
 
     Position branch_size_prefix_;
@@ -97,6 +97,7 @@ protected:
     bool compute_branch_    = true;
     bool compute_leaf_      = true;
 
+    WalkDirection direction_;
 
 public:
 
@@ -188,6 +189,11 @@ public:
         return leaf_index_;
     }
 
+    void set_leaf_index(Int value)
+    {
+        leaf_index_ = value;
+    }
+
     const bool& compute_branch() const {
         return compute_branch_;
     }
@@ -254,9 +260,9 @@ public:
 
     void finish(Iterator& iter, Int idx, WalkCmd cmd) const
     {
-        iter.finish_walking(idx, self(), cmd);
-
         iter.idx() = idx;
+
+        iter.finish_walking(idx, self(), cmd);
 
         iter.cache().prefixes()      = branch_prefix_;
         iter.cache().leaf_prefixes() = leaf_prefix_;
@@ -303,6 +309,8 @@ public:
     {
         auto& self = this->self();
 
+        this->direction_ = direction;
+
         Int index = node->template translateLeafIndexToBranchIndex<LeafPath>(self.leaf_index());
 
         using BranchPath = typename bt::BranchNode<NodeTypes>::template BuildBranchPath<LeafPath>;
@@ -316,7 +324,9 @@ public:
     template <typename NodeTypes>
     StreamOpResult treeNode(const bt::LeafNode<NodeTypes>* node, WalkDirection direction, Int start)
     {
-        auto& self = this->self();
+        this->direction_ = direction;
+
+          auto& self = this->self();
         auto result = node->template processStream<LeafPath>(FindLeafFn(self), start);
 
         self.postProcessLeafNode(node, direction, start, result);
@@ -397,7 +407,6 @@ public:
         using ItrAccList = v1::list_tree::MakeValueList<Int, 0, Node::Streams>;
 
         detail::IteratorStreamRangesListWalker<
-            //IteratorBranchNodeEntry,
             ItrAccList
         >::
         process(self(), node, branch_BranchNodeEntry(), std::forward<Args>(args)...);

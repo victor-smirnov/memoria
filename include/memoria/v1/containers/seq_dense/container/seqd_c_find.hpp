@@ -40,13 +40,13 @@ public:
 
     CtrSizeT rank(CtrSizeT idx, Int symbol)
     {
-    	auto& self = this->self();
+        auto& self = this->self();
 
-    	typename Types::template RankForwardWalker<Types, SymbolsSubstreamPath> walker(symbol, idx);
+        typename Types::template RankForwardWalker<Types, SymbolsSubstreamPath> walker(symbol, idx);
 
-    	self.find_(walker);
+        self.find_(walker);
 
-    	return walker.rank();
+        return walker.rank();
     }
 
     CtrSizeT rank(Int symbol) {

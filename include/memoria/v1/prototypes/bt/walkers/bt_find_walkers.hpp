@@ -79,17 +79,13 @@ public:
 
     using TargetType    = typename Base::TargetType;
     using Position      = typename Base::Position;
-    using LeafPath       = typename Base::LeafPath;
+    using LeafPath      = typename Base::LeafPath;
 
     FindForwardWalkerBase(Int leaf_index, const TargetType& target, SearchType search_type):
         Base(leaf_index, target, search_type)
     {}
 
-    template <typename... Args>
-    auto treeNode(Args&&... args) -> decltype(Base::treeNode(std::forward<Args>(args)...))
-    {
-        return Base::treeNode(std::forward<Args>(args)...);
-    }
+    using Base::treeNode;
 
     template <typename NodeTypes>
     void treeNode(const bt::BranchNode<NodeTypes>* node, WalkCmd cmd, Int start, Int end)
@@ -142,7 +138,7 @@ public:
     template <Int StreamIdx, typename Tree>
     StreamOpResult find_non_leaf(const Tree* tree, bool root, Int index, Int start)
     {
-    	auto size = tree->size();
+        auto size = tree->size();
 
         if (start < size)
         {
@@ -332,9 +328,9 @@ public:
 template <
     typename Types
 >
-class FindGEForwardWalker: public FindForwardWalkerBase<Types, FindGTForwardWalker<Types>> {
+class FindGEForwardWalker: public FindForwardWalkerBase<Types, FindGEForwardWalker<Types>> {
 
-    using Base          = FindForwardWalkerBase<Types, FindGTForwardWalker<Types>>;
+    using Base          = FindForwardWalkerBase<Types, FindGEForwardWalker<Types>>;
     using TargetType    = typename Base::TargetType;
 
 public:
@@ -346,6 +342,8 @@ public:
         Base(leaf_index, target, SearchType::GE)
     {}
 };
+
+
 
 
 
@@ -419,12 +417,14 @@ public:
         }
     }
 
-    template <typename... Args>
-    auto treeNode(Args&&... args) ->
-    decltype(std::declval<Base>().treeNode(std::declval<Args>()...))
-    {
-        return Base::treeNode(std::forward<Args>(args)...);
-    }
+//    template <typename... Args>
+//    auto treeNode(Args&&... args) ->
+//    decltype(std::declval<Base>().treeNode(std::declval<Args>()...))
+//    {
+//        return Base::treeNode(std::forward<Args>(args)...);
+//    }
+
+    using Base::treeNode;
 
     template <typename NodeTypes>
     void treeNode(const bt::BranchNode<NodeTypes>* node, WalkCmd cmd, Int start, Int end)
@@ -604,12 +604,15 @@ public:
     {}
 };
 
+
+
+
 template <
     typename Types
 >
-class FindGEBackwardWalker: public FindBackwardWalkerBase<Types, FindGTBackwardWalker<Types>> {
+class FindGEBackwardWalker: public FindBackwardWalkerBase<Types, FindGEBackwardWalker<Types>> {
 
-    using Base  = FindBackwardWalkerBase<Types, FindGTBackwardWalker<Types>>;
+    using Base  = FindBackwardWalkerBase<Types, FindGEBackwardWalker<Types>>;
 
     using TargetType = typename Base::TargetType;
 

@@ -22,16 +22,20 @@
 
 #include <memoria/v1/core/tools/time.hpp>
 #include <memoria/v1/core/tools/random.hpp>
+#include <memoria/v1/core/tools/fixed_array.hpp>
+#include <memoria/v1/core/tools/dump.hpp>
 
 #include <memory>
 #include <vector>
 
-using namespace memoria;
+using namespace memoria::v1;
 using namespace std;
 
 template <typename Key, typename Value>
 using MapData = vector<pair<Key, vector<Value>>>;
 
+
+using MMapIOBuffer = DefaultIOBuffer;
 
 template <typename Key, typename Value, typename Fn1, typename Fn2>
 MapData<Key, Value> createMapData(size_t keys, size_t values, Fn1&& key_fn, Fn2&& value_fn)
@@ -48,7 +52,7 @@ MapData<Key, Value> createMapData(size_t keys, size_t values, Fn1&& key_fn, Fn2&
         }
 
         data.push_back(
-            make_pair(key_fn(c), std::move(val))
+            make_pair(key_fn(c + 1), std::move(val))
         );
     }
 
@@ -99,7 +103,7 @@ MapData<Key, Value> createRandomShapedMapData(size_t keys, size_t values, Fn1&& 
         }
 
         data.push_back(
-            make_pair(key_fn(c), std::move(val))
+            make_pair(key_fn(c + 1), std::move(val))
         );
     }
 
@@ -108,7 +112,7 @@ MapData<Key, Value> createRandomShapedMapData(size_t keys, size_t values, Fn1&& 
 
 
 
-template <typename T> struct TypeTag {};
+
 
 template <typename V, typename T>
 T make_key(V&& num, TypeTag<T>) {
@@ -147,6 +151,16 @@ String make_value(V&& num, TypeTag<String>)
     return ss.str();
 }
 
+template <typename V, Int N>
+FixedArray<N> make_value(V&& num, TypeTag<FixedArray<N>>)
+{
+    FixedArray<N> array;
+
+    *T2T<std::remove_reference_t<V>*>(array.data()) = num;
+
+    return array;
+}
+
 template <typename V>
 UUID make_value(V&& num, TypeTag<UUID>)
 {
@@ -159,13 +173,38 @@ UUID make_value(V&& num, TypeTag<UUID>)
 }
 
 
-int main() {
+
+
+
+
+class MMapBufferConsumer: public bt::BufferConsumer<MMapIOBuffer> {
+    using IOBuffer = MMapIOBuffer;
+
+    IOBuffer io_buffer_;
+public:
+    MMapBufferConsumer(): io_buffer_(65536) {}
+
+    virtual IOBuffer& buffer() {return io_buffer_;}
+    virtual Int process(IOBuffer& buffer, Int entries)
+    {
+//      cout << "Consume " << entries << " entries" << endl;
+        return entries;
+    }
+};
+
+
+
+
+
+
+int main()
+{
     MEMORIA_INIT(DefaultProfile<>);
 
-    using KeyType   = double;
-    using ValueType = double;
+    using KeyType   = BigInt;
+    using ValueType = UBigInt;//FixedArray<32>;
 
-    using CtrName = Map<KeyType, Vector<ValueType>>;
+    using CtrName   = Map<KeyType, Vector<ValueType>>;
 
     DInit<CtrName>();
 
@@ -173,88 +212,123 @@ int main() {
         auto alloc = PersistentInMemAllocator<>::create();
         auto snp   = alloc->master()->branch();
         try {
-            auto map   = create<CtrName>(snp);
+            auto map = create<CtrName>(snp, UUID(10000, 20000));
 
-            using Ctr  = typename DCtrTF<CtrName>::Type;
+            map->setNewPageSize(32768);
+
+            Int keys = 3;
 
             auto map_data = createRandomShapedMapData<KeyType, ValueType>(
-                    10,
-                    10000,
-                    [](auto k) {return make_key(k, TypeTag<KeyType>());},
-                    [](auto k, auto v) {return make_value(getRandomG(), TypeTag<ValueType>());}
+                    keys,
+                2000000,
+                [](auto k) {return make_key(k, TypeTag<KeyType>());},
+                [](auto k, auto v) {return make_value(k, TypeTag<ValueType>());}
             );
 
-            auto iter = map->begin();
+            mmap::MultimapIOBufferProducer<KeyType, ValueType> iobuf_adapter(map_data, 65536);
 
-            using EntryAdaptor  = mmap::MMapAdaptor<Ctr>;
-            using ValueAdaptor  = mmap::MMapValueAdaptor<Ctr>;
-            using KeyAdaptor    = mmap::MMapKeyAdaptor<Ctr>;
+            long t0 = getTimeInMillis();
+            auto totals = map->begin()->bulkio_insert(iobuf_adapter);
+            long t1 = getTimeInMillis();
 
-            EntryAdaptor stream_adaptor(map_data);
-
-            auto totals = map->_insert(*iter.get(), stream_adaptor);
-
-            auto sizes = map->sizes();
-            MEMORIA_V1_ASSERT(totals, ==, sizes);
-
-            auto iter2 = map->seek(8);
-
-            iter2->toData();
-
-            auto map_values = createValueData<ValueType>(100000, [](auto x){return make_value(0, TypeTag<ValueType>());});
-            ValueAdaptor value_adaptor(map_values);
-
-            map->_insert(*iter2.get(), value_adaptor);
-
-            auto key_data = createKeyData<KeyType>(1000, [](auto k){return make_key(k + 1000, TypeTag<KeyType>());});
-            KeyAdaptor key_adaptor(key_data);
-
-            auto iter3 = map->end();
-
-            map->_insert(*iter3.get(), key_adaptor);
-
-            int idx = 0;
-
-            auto s_iter = map->seek(9);
-
-            s_iter->scan_values([&](auto&& value){
-                cout << "Value: " << (idx++) << " " << hex << value << dec << endl;
-            });
-
-            idx = 0;
-            map->seek(5)->scan_keys([&](auto&& value){
-                cout << "Key: " << (idx++) << " " << value << endl;
-            });
-
-
-            auto iter4 = map->seek(8);
-
-            iter4->remove();
-
-            snp->commit();
-
-//
-//          auto values2 = map->seek(2)->read_values();
-//
-//          dumpVector(cout, values2);
-//
-//          cout << "Values2.size = " << values2.size() << endl;
+            cout << "Totals: " << totals << ", time " << (t1 - t0) << endl;
 
             FSDumpAllocator(snp, "mmap.dir");
 
+
+//            auto ii = map->select(1, 0);
+//
+//            ii->dumpHeader();
+//
+//            for (int c = 0; c < 1000 && !ii->is_end(); c++)
+//            {
+//              ii->selectFw(1, 0);
+//              ii->dumpHeader();
+//              cout << endl << endl;
+//            }
+
+
+
+            auto iii = map->begin();
+            Int c = 0 ;
+            while (!iii->is_end())
+            {
+                iii->dumpHeader();
+                cout << "Count: " << iii->countFw() << " -- " << std::get<1>(map_data[(c++)/2]).size() << endl << endl << endl;
+            }
+
+
+
+            /*
+            MMapBufferConsumer consumer;
+
+            BigInt tr0 = getTimeInMillis();
+            map->begin()->bulkio_read(&consumer);
+            BigInt tr1 = getTimeInMillis();
+
+            cout << "Read Time: " << (tr1 - tr0) << endl;
+
+
+
+
+            auto iter0 = map->begin();
+
+            auto walker = iter0->template create_scan_walker<MMapIOBuffer>();
+
+            MMapIOBuffer io_buffer(65536);
+
+            BigInt trr0 = getTimeInMillis();
+
+            size_t size = 0;
+
+            while(true)
+            {
+                Int entries = iter0->bulkio_populate(*walker.get(), &io_buffer);
+                if (entries > 0) {
+                    size += entries;
+                }
+                else if (entries < 0) {
+                    size += -entries;
+                    break;
+                }
+            }
+
+            BigInt trr1 = getTimeInMillis();
+
+            cout << "Populate Time: " << (trr1 - trr0) << " entries: " << size << endl;
+*/
+
+//            auto map2 = create<CtrName>(snp);
+//
+//            auto iter = map->begin();
+//            using CtrT = decltype(map)::element_type;
+//
+//            ChainedIOBufferProducer<MMapIOBuffer, CtrT::Iterator> chained_producer(iter.get(), 65536);
+//
+//            long ti0 = getTimeInMillis();
+//            auto totals2 = map2->begin()->bulkio_insert(chained_producer);
+//            long ti1 = getTimeInMillis();
+//
+//            cout << "Totals: " << totals2 << ", time " << (ti1 - ti0) << endl;
+
+            snp->commit();
+            snp->set_as_master();
+
             check_snapshot(snp);
 
-            cout << "Totals: " << totals << endl;
+//            FSDumpAllocator(alloc, "mmap.dir");
+
+            alloc->store("mmap.memoria");
         }
         catch (...) {
-            FSDumpAllocator(snp, "mmap_fail.dir");
+            //FSDumpAllocator(snp, "mmap_fail.dir");
             throw;
         }
     }
-    catch (v1::Exception& ex) {
+    catch (::memoria::v1::Exception& ex) {
         cout << ex.message() << " at " << ex.source() << endl;
     }
-    catch (v1::PackedOOMException& ex) {
+    catch (::memoria::v1::PackedOOMException& ex) {
         cout << "PackedOOMException at " << ex.source() << endl;
     }
 
