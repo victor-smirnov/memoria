@@ -24,6 +24,7 @@
 #include <memoria/v1/core/tools/random.hpp>
 #include <memoria/v1/core/tools/fixed_array.hpp>
 #include <memoria/v1/core/tools/dump.hpp>
+#include <memoria/v1/core/tools/ticker.hpp>
 
 #include <memory>
 #include <vector>
@@ -210,7 +211,7 @@ int main()
             	values.emplace_back(d);
             }
 
-            mmap::Ticker ticker(100000);
+            Ticker ticker(100000);
 
             BigInt t0 = getTimeInMillis();
             BigInt tl = t0;

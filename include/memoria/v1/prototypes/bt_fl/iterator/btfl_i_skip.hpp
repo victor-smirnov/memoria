@@ -172,30 +172,36 @@ public:
     {
         auto& self  = this->self();
         auto s      = self.leaf_structure();
-        auto idx    = self.idx();
 
-        if (idx < s->size())
+        if (s != nullptr)
         {
-            return s->get_symbol(idx);
+        	auto idx    = self.idx();
+
+        	if (idx < s->size())
+        	{
+        		return s->get_symbol(idx);
+        	}
         }
-        else {
-            return -1;//throw Exception(MA_SRC, "End Of Data Structure");
-        }
+
+        return -1;//throw Exception(MA_SRC, "End Of Data Structure");
     }
 
     Int data_stream_s() const
     {
         auto& self  = this->self();
         auto s      = self.leaf_structure();
-        auto idx    = self.idx();
 
-        if (idx < s->size())
+        if (s != nullptr)
         {
-            return s->get_symbol(idx);
+        	auto idx    = self.idx();
+
+        	if (idx < s->size())
+        	{
+        		return s->get_symbol(idx);
+        	}
         }
-        else {
-            return -1;
-        }
+
+        return -1;
     }
 
 
@@ -264,16 +270,25 @@ protected:
     		Int stream = self.stream();
 
     		Int data_idx = self.idx();
-    		auto result = self.leaf_structure()->selectFW(data_idx + 1, stream);
 
-    		self.stream() = StructureStreamIdx;
+    		auto s = self.leaf_structure();
 
-    		if (result.is_found())
+    		if (s != nullptr)
     		{
-    			self.idx() = result.idx();
+    			auto result = s->selectFW(data_idx + 1, stream);
+
+    			self.stream() = StructureStreamIdx;
+
+    			if (result.is_found())
+    			{
+    				self.idx() = result.idx();
+    			}
+    			else {
+    				self.idx() = self.leaf_size(StructureStreamIdx);
+    			}
     		}
     		else {
-    			self.idx() = self.leaf_size(StructureStreamIdx);
+    			throw Exception(MA_SRC, SBuf() << "Structure stream is empty");
     		}
     	}
     	else {
@@ -305,7 +320,14 @@ protected:
     Int data_stream_idx(Int stream, Int structure_idx) const
     {
         auto& self = this->self();
-        return self.leaf_structure()->rank(structure_idx, stream);
+
+        auto s = self.leaf_structure();
+        if (s != nullptr) {
+        	return s->rank(structure_idx, stream);
+        }
+        else {
+        	return 0;
+        }
     }
 
     CtrSizesT leafrank() const {
@@ -319,16 +341,24 @@ protected:
 
         auto leaf_structure = self.leaf_structure();
 
-        CtrSizesT ranks;
+        if (leaf_structure != nullptr) {
 
-        for (Int c = 0; c < DataStreams; c++)
-        {
-            ranks[c] = leaf_structure->rank(structure_idx, c);
+        	CtrSizesT ranks;
+
+        	for (Int c = 0; c < DataStreams; c++)
+        	{
+        		ranks[c] = leaf_structure->rank(structure_idx, c);
+        	}
+
+        	ranks[StructureStreamIdx] = structure_idx;
+
+        	return ranks;
         }
-
-        ranks[StructureStreamIdx] = structure_idx;
-
-        return ranks;
+        else {
+        	CtrSizesT ranks;
+        	ranks[StructureStreamIdx] = structure_idx;
+        	return ranks;
+        }
     }
 
 
@@ -348,7 +378,15 @@ protected:
     {
         auto& self = this->self();
 
-        return self.leaf_structure()->selectFW(position + 1, stream).idx();
+        auto s = self.leaf_structure();
+
+        if (s != nullptr)
+        {
+        	return self.leaf_structure()->selectFW(position + 1, stream).idx();
+        }
+        else {
+        	return 0;
+        }
     }
 
 

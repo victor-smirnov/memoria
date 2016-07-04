@@ -1268,7 +1268,14 @@ public:
     {
         const Int SubstreamIdx = v1::list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>::Value;
         using T = typename Dispatcher::template StreamTypeT<SubstreamIdx>::Type;
-        return this->allocator()->template get<T>(SubstreamIdx + SubstreamsStart);
+
+        if (!this->allocator()->is_empty(SubstreamIdx + SubstreamsStart))
+        {
+        	return this->allocator()->template get<T>(SubstreamIdx + SubstreamsStart);
+        }
+        else {
+        	return T2T<T*>(nullptr);
+        }
     }
 
     template <typename SubstreamPath>
@@ -1276,7 +1283,14 @@ public:
     {
         const Int SubstreamIdx = v1::list_tree::LeafCount<LeafSubstreamsStructList, SubstreamPath>::Value;
         using T = typename Dispatcher::template StreamTypeT<SubstreamIdx>::Type;
-        return this->allocator()->template get<T>(SubstreamIdx + SubstreamsStart);
+
+        if (!this->allocator()->is_empty(SubstreamIdx + SubstreamsStart))
+        {
+        	return this->allocator()->template get<T>(SubstreamIdx + SubstreamsStart);
+        }
+        else {
+        	return T2T<const T*>(nullptr);
+        }
     }
 
     template <Int SubstreamIdx>

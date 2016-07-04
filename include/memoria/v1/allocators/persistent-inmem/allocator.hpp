@@ -149,7 +149,7 @@ class PersistentInMemAllocatorT: public enable_shared_from_this<PersistentInMemA
 public:
 
     static constexpr Int NodeIndexSize  = 32;
-    static constexpr Int NodeSize       = NodeIndexSize * 8;
+    static constexpr Int NodeSize       = NodeIndexSize * 32;
 
     using MyType        = PersistentInMemAllocatorT<Profile, PageType>;
 
@@ -244,6 +244,14 @@ public:
             if (parent_) {
                 parent_->children().push_back(this);
             }
+        }
+
+        auto* allocator() {
+        	return allocator_;
+        }
+
+        const auto* callocator() const {
+        	return allocator_;
         }
 
         auto& allocator_mutex() {return allocator_->mutex_;}
@@ -450,6 +458,7 @@ public:
     using PageMap               = std::unordered_map<typename PageType::ID, RCPagePtr*, UUIDKeyHash, UUIDKeyEq>;
     using RCPageSet             = std::unordered_set<RCPagePtr*>;
     using BranchMap             = std::unordered_map<String, HistoryNode*>;
+    using ReverseBranchMap      = std::unordered_map<const HistoryNode*, String>;
 
     template <typename, typename, typename, typename, typename>
     friend class v1::persistent_inmem::Snapshot;
@@ -486,8 +495,8 @@ private:
 
     Logger logger_;
 
-    HistoryNode* history_tree_ = nullptr;
-    HistoryNode* master_ = nullptr;
+    HistoryNode* history_tree_ 	= nullptr;
+    HistoryNode* master_ 		= nullptr;
 
     TxnMap snapshot_map_;
 
@@ -503,6 +512,8 @@ private:
     mutable StoreMutexT store_mutex_;
 
     CountDownLatch<BigInt> active_snapshots_;
+
+    ReverseBranchMap snapshot_labels_metadata_;
 
 public:
     PersistentInMemAllocatorT():
@@ -798,6 +809,8 @@ public:
 
     virtual void walkContainers(ContainerWalker* walker, const char* allocator_descr = nullptr)
     {
+    	this->build_snapshot_labels_metadata();
+
     	LockGuardT lock_guard(mutex_);
 
         walker->beginAllocator("PersistentInMemAllocator", allocator_descr);
@@ -805,6 +818,8 @@ public:
         walk_containers(history_tree_, walker);
 
         walker->endAllocator();
+
+        snapshot_labels_metadata().clear();
     }
 
     virtual void store(const char* file)
@@ -1027,6 +1042,75 @@ public:
     }
 
 private:
+
+    const auto& snapshot_labels_metadata() const {
+    	return snapshot_labels_metadata_;
+    }
+
+    auto& snapshot_labels_metadata() {
+    	return snapshot_labels_metadata_;
+    }
+
+    const char* get_labels_for(const HistoryNode* node) const
+    {
+    	auto labels = snapshot_labels_metadata_.find(node);
+    	if (labels != snapshot_labels_metadata_.end())
+    	{
+    		return labels->second.c_str();
+    	}
+    	else {
+    		return nullptr;
+    	}
+    }
+
+    void build_snapshot_labels_metadata()
+    {
+    	snapshot_labels_metadata_.clear();
+
+    	walk_version_tree(history_tree_, [&, this](const HistoryNode* node) {
+    		std::vector<String> labels;
+
+    		if (node == history_tree_) {
+    			labels.emplace_back("Root");
+    		}
+
+    		if (node == master_)
+    		{
+    			labels.emplace_back("Master Head");
+    		}
+
+
+    		for (const auto& e: named_branches_)
+    		{
+    			if (e.second == node)
+    			{
+    				labels.emplace_back(e.first);
+    			}
+    		}
+
+    		if (labels.size() > 0)
+    		{
+    			std::stringstream labels_str;
+
+    			bool first = true;
+    			for (auto& s: labels)
+    			{
+    				if (!first)
+    				{
+    					labels_str << ", ";
+    				}
+    				else {
+    					first = true;
+    				}
+
+    				labels_str << s;
+    			}
+
+    			snapshot_labels_metadata_[node] = labels_str.str();
+    		}
+    	});
+    }
+
 
     HistoryNode* build_history_tree(
         const TxnId& txn_id,
@@ -1383,7 +1467,7 @@ private:
         if (node->is_committed())
         {
             SnapshotT txn(node, this);
-            txn.walkContainers(walker);
+            txn.walkContainers(walker, get_labels_for(node));
         }
 
         if (node->children().size())

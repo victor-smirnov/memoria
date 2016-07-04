@@ -68,6 +68,7 @@ class CtrPart<PartName, Base1, TypesType>: public Base1 {                       
     typedef Ctr<TypesType> MyType;                                              \
     template <typename, typename, typename> friend class CtrPart;               \
     template <typename, typename, typename> friend class IterPart;              \
+    template <typename> class BTreeCtrBase;										\
 protected:
 
 
@@ -75,7 +76,7 @@ protected:
     MEMORIA_V1_CONTAINER_PART_NO_CTR_BEGIN(PartName)                            \
 public:                                                                         \
     CtrPart(const CtrInitData& data): Base(data)  {}                            \
-    virtual ~CtrPart() noexcept {}                                               \
+    virtual ~CtrPart() noexcept {}                                              \
 protected:
 
 

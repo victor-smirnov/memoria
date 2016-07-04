@@ -326,8 +326,9 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
         NodeBaseG node = DefaultDispatcher::dispatch2(
                         leaf,
-                        CreateNodeFn(self), size
-                    );
+                        CreateNodeFn(self),
+						size
+        );
 
 
 
@@ -348,6 +349,13 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         if (root)
         {
             self.setCtrRootMetadata(node, meta);
+        }
+
+        if (leaf) {
+        	self.layoutLeafNode(node, Position());
+        }
+        else {
+        	self.layoutBranchNode(node, -1ull);
         }
 
         return node;
@@ -380,6 +388,13 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
         prepareNode(node);
 
         self.setCtrRootMetadata(node, metadata);
+
+        if (leaf) {
+        	self.layoutLeafNode(node, Position());
+        }
+        else {
+        	self.layoutBranchNode(node, -1ull);
+        }
 
         return node;
     }

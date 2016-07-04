@@ -1087,9 +1087,20 @@ public:
         return result;
     }
 
+    String get_branch_suffix() const
+    {
+    	return std::string("");
+    }
+
     virtual void walkContainers(ContainerWalker* walker, const char* allocator_descr = nullptr)
     {
-        walker->beginSnapshot((SBuf() << "Snapshot-" << history_node_->txn_id()).str().c_str());
+		if (allocator_descr != nullptr)
+		{
+			walker->beginSnapshot((SBuf() << "Snapshot-" << history_node_->txn_id() << " -- " << allocator_descr).str().c_str());
+		}
+		else {
+			walker->beginSnapshot((SBuf() << "Snapshot-" << history_node_->txn_id()).str().c_str());
+		}
 
         auto iter = root_map_->Begin();
 
@@ -1111,6 +1122,24 @@ public:
         }
 
         walker->endSnapshot();
+    }
+
+    void dump(const char* destination)
+    {
+    	std::lock(history_node_->snapshot_mutex(), history_node_->allocator_mutex());
+
+    	AllocatorLockGuardT lock_guard2(history_node_->allocator_mutex(), std::adopt_lock);
+    	LockGuardT lock_guard1(history_node_->snapshot_mutex(), std::adopt_lock);
+
+    	using Walker = FSDumpContainerWalker<Page>;
+
+    	Walker walker(this->getMetadata(), destination);
+
+    	history_node_->allocator()->build_snapshot_labels_metadata();
+
+    	this->walkContainers(&walker, history_node_->allocator()->get_labels_for(history_node_));
+
+    	history_node_->allocator()->snapshot_labels_metadata().clear();
     }
 
     void dump_persistent_tree() {

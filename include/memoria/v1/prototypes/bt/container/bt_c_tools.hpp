@@ -331,12 +331,6 @@ public:
     NodeBaseG getPrevNodeP(NodeBaseG& node) const;
 
 
-protected:
-
-
-
-
-
     MEMORIA_V1_DECLARE_NODE_FN(LayoutNodeFn, layout);
     void layoutBranchNode(NodeBaseG& node, UBigInt active_streams) const
     {
@@ -348,6 +342,8 @@ protected:
         LeafDispatcher::dispatch(node, LayoutNodeFn(), sizes);
     }
 
+
+protected:
     MEMORIA_V1_DECLARE_NODE_FN_RTN(GetActiveStreamsFn, active_streams, UBigInt);
     UBigInt getActiveStreams(const NodeBaseG& node) const
     {

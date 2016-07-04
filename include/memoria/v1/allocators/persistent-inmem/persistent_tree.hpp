@@ -533,7 +533,6 @@ protected:
 
         if (page->unref() == 0 && delete_on_unref)
         {
-        	cout << "Delete page " << page->raw_data()->id() << " via iterator" << endl;
             delete page;
         }
 
