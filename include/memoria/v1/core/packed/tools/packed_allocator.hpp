@@ -207,7 +207,8 @@ public:
 
         if (delta > 0)
         {
-            if (delta > free_space())
+        	Int free_space = this->free_space();
+            if (delta > free_space)
             {
                 enlarge(delta);
             }
@@ -498,9 +499,16 @@ public:
         return GetBit(bitmap, idx) ? PackedBlockType::ALLOCATABLE : PackedBlockType::RAW_MEMORY;
     }
 
-    void dump(ostream& out = cout) const
+    void dump(std::ostream& out = std::cout) const
     {
-        out<<"PackedAllocator Layout:"<<endl;
+        out << "PackedAllocator Layout:"<<endl;
+        out << "Block Size: " << block_size_ << endl;
+        out << "Layout Size: " << layout_size_ << endl;
+        out << "Bitmap Size: " << bitmap_size_ << endl;
+
+        out << "Allocated Size: " << allocated() << endl;
+        out << "ClientArea Size: " << client_area() << endl;
+        out << "FreeSpace Size: " << free_space() << endl;
 
         dumpLayout(out);
 
@@ -512,12 +520,17 @@ public:
         });
     }
 
-    void dumpLayout(ostream& out = cout) const
+    void dumpAllocator(std::ostream& out = std::cout) const {
+    	dump(out);
+    }
+
+    void dumpLayout(std::ostream& out = std::cout) const
     {
         dumpArray<Int>(out, layout_size_/4, [this](Int idx){
             return this->element_offset(idx);
         });
     }
+
 
     Int enlarge(Int delta)
     {
@@ -552,7 +565,9 @@ public:
             }
         }
         else {
-            throw PackedOOMException(MA_RAW_SRC, allocated(), new_size, free_space());
+        	int allocated = this->allocated();
+        	int free_space = this->free_space();
+        	throw PackedOOMException(MA_RAW_SRC, allocated, new_size, free_space);
         }
 
         return block_size_;

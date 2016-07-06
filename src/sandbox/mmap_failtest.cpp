@@ -57,19 +57,25 @@ int main()
 
 
     try {
-    	auto alloc = PersistentInMemAllocator<>::create();
-    	auto snp   = alloc->master()->branch();
+    	auto alloc = PersistentInMemAllocator<>::load("data.memoria");
 
-    	auto map = create<CtrT>(snp, UUID::parse("1fe682a0-a5ec-4a3d-842e-c9bcb7039790"));
+    	alloc->dump("alloc.dir");
 
-    	std::vector<Value> values(2048+53);
+    	auto snp   = alloc->find_branch("DICTIONARY-0")->branch();
 
-    	map->find_or_create(1111, values.begin(), values.end());
-    	map->begin()->remove(1);
-    	map->begin()->dump();
-    	map->find_or_create(1111, values.begin(), values.end());
+    	auto map = find<CtrT>(snp, UUID::parse("d4a7f47c-d057-44c2-bf0c-fcf88a974de5"));
 
-    	map->begin()->dump();
+    	std::vector<Value> values(709);
+
+    	map->find_or_create(-1560192589, values.begin(), values.end());
+
+    	snp->dump("after.dir");
+
+//    	map->begin()->remove(1);
+//    	map->begin()->dump();
+//    	map->find_or_create(1111, values.begin(), values.end());
+
+//    	map->begin()->dump();
     }
     catch (Exception& ex)
     {

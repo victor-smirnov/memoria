@@ -70,6 +70,12 @@ public:
         return self.allocator().getPageForUpdate(self.root(), self.master_name());
     }
 
+    MEMORIA_V1_DECLARE_NODE_FN(DumpBlockSizesFn, dumpBlockSizes);
+    void dumpBlockSizes(const NodeBaseG& node) const
+    {
+    	LeafDispatcher::dispatch(node, DumpBlockSizesFn());
+    }
+
 
     MEMORIA_V1_DECLARE_NODE_FN(MaxFn, max);
     BranchNodeEntry max(const NodeBaseG& node) const

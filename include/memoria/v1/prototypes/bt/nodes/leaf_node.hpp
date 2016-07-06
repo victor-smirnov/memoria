@@ -803,8 +803,19 @@ public:
                 MEMORIA_V1_ASSERT(idx, >=, 0);
                 MEMORIA_V1_ASSERT(idx, <=, size);
 
-                Tree* other_tree = other->allocator()->template allocateEmpty<Tree>(AllocatorIdx);
+                Tree* other_tree;
+
+                if (!other->allocator()->is_empty(AllocatorIdx)) {
+                	other_tree = other->allocator()->template get<Tree>(AllocatorIdx);
+                }
+                else {
+                	other_tree = other->allocator()->template allocateEmpty<Tree>(AllocatorIdx);
+                }
+
+//                cout << "Before Split: " << tree->block_size() << " -- " <<other->allocator()->free_space() << endl;
                 tree->splitTo(other_tree, idx);
+//                cout << "After Split: " << other_tree->block_size() << " -- " <<other->allocator()->free_space() << endl;
+//                other->allocator()->dumpLayout();
             }
         }
     };
@@ -817,6 +828,9 @@ public:
 //        Position sizes = this->sizes();
 
 //        sums(from, sizes, result);
+
+//        this->allocator()->dumpAllocator();
+//        other->allocator()->dumpAllocator();
 
         this->processSubstreamGroups(SplitToFn(), other, from);
 
@@ -1483,6 +1497,19 @@ public:
 
     void dump() const {
         Dispatcher::dispatchNotEmpty(allocator(), DumpFn());
+    }
+
+
+    struct DumpBlockSizesFn {
+    	template <typename Tree>
+    	void stream(Tree* tree)
+    	{
+    		std::cout << tree->block_size() << std::endl;
+    	}
+    };
+
+    void dumpBlockSizes() const {
+    	Dispatcher::dispatchNotEmpty(allocator(), DumpBlockSizesFn());
     }
 };
 
