@@ -16,7 +16,7 @@
 include_directories(../tools/include)
 
 if (NOT DEFINED MEMORIA_SANDBOX)
-    set(MEMORIA_SANDBOX mmap_failtest)
+    set(MEMORIA_SANDBOX set_insert)
 endif()
 
 
@@ -39,7 +39,7 @@ FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX})
         
  	    add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
         set_target_properties(${MEMORIA_TARGET} PROPERTIES COMPILE_FLAGS "-g ${MEMORIA_COMPILE_FLAGS} -DMEMORIA_STATIC")
-        set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS} -luuid -pthread")
+        set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS} -pthread ")
         set_target_properties(${MEMORIA_TARGET} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}/sandbox")
         
         #set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_SEARCH_START_STATIC 1)
@@ -47,7 +47,7 @@ FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX})
 		#set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
     
         if (NOT CHECK_SYNTAX_ONLY)
-            target_link_libraries(${MEMORIA_TARGET} Memoria MemoriaTools ${MEMORIA_LIBS})
+            target_link_libraries(${MEMORIA_TARGET} Memoria MemoriaTools ${MEMORIA_LIBS} rpcrt4 winpthread)
         endif()
     
     endif()

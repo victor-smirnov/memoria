@@ -38,8 +38,8 @@
 namespace memoria {
 namespace v1 {
 
-using DefaultIOBuffer = IOBuffer<ByteOrder::LITTLE, MemoryAccess::UNALIGNED>;
-using AlignedIOBuffer = IOBuffer<ByteOrder::LITTLE, MemoryAccess::ALIGNED>;
+using DefaultIOBuffer = IOBuffer<ByteOrder::LITTLE, MemoryAccess::MMA_UNALIGNED>;
+using AlignedIOBuffer = IOBuffer<ByteOrder::LITTLE, MemoryAccess::MMA_ALIGNED>;
 
 
 template <typename T>

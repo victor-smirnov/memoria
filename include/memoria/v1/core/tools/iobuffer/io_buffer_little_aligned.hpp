@@ -37,7 +37,7 @@ namespace memoria {
 namespace v1 {
 
 template <>
-class IOBuffer<ByteOrder::LITTLE, MemoryAccess::ALIGNED>: public IOBufferBase {
+class IOBuffer<ByteOrder::LITTLE, MemoryAccess::MMA_ALIGNED>: public IOBufferBase {
     using Base = IOBufferBase;
 
 public:

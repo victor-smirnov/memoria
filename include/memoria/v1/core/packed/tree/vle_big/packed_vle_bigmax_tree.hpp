@@ -1637,7 +1637,7 @@ protected:
 
             Int levels      = layout.levels_max + 1;
             Int level_start = layout.level_starts[levels - 1];
-            Int data_size   = meta->data_size();
+            size_t data_size   = meta->data_size();
 
             std::unique_ptr<ValueData[]> buffer = std::make_unique<ValueData[]>(data_size);
 
@@ -1726,7 +1726,7 @@ protected:
 
     void check(TreeLayout& layout, const Metadata* meta) const
     {
-        Int data_size    = meta->data_size();
+        size_t data_size = meta->data_size();
         Int offsets_size = this->element_size(OFFSETS);
 
         Codec codec;
@@ -1794,7 +1794,7 @@ protected:
                 pos += len;
             }
 
-            MEMORIA_V1_ASSERT((Int)pos, ==, data_size);
+            MEMORIA_V1_ASSERT(pos, ==, data_size);
 
             if (index) {
                 MEMORIA_V1_ASSERT(value, ==, index->value(idx));
