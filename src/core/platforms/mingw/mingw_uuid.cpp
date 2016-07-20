@@ -17,8 +17,7 @@
 
 #include <memoria/v1/core/tools/uuid.hpp>
 
-//#include <uuid/uuid.h>
-#include <Rpc.h>
+#include <rpc.h>
 
 #include <string.h>
 
