@@ -16,7 +16,7 @@
 include_directories(../tools/include)
 
 if (NOT DEFINED MEMORIA_SANDBOX)
-    set(MEMORIA_SANDBOX mmap_failtest)
+    set(MEMORIA_SANDBOX set_insert)
 endif()
 
 

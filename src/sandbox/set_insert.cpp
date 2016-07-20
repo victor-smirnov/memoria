@@ -23,6 +23,7 @@
 #include <memoria/v1/core/tools/time.hpp>
 #include <memoria/v1/core/tools/fixed_array.hpp>
 #include <memoria/v1/core/tools/random.hpp>
+#include <memoria/v1/core/tools/ticker.hpp>
 
 #include <algorithm>
 #include <vector>
@@ -39,13 +40,12 @@ int main()
 {
     MEMORIA_INIT(DefaultProfile<>);
 
-    using Key   = FixedArray<16>;
-//    using Key   = Bytes;
+//    using Key   = FixedArray<16>;
+    using Key   = Bytes;
 
 
     DInit<Set<Key>>();
 
-    PersistentInMemAllocator<>::load("abcd");
 
     try {
         auto alloc = PersistentInMemAllocator<>::create();
@@ -55,11 +55,16 @@ int main()
         auto map = create<Set<Key>>(snp);
         map->setNewPageSize(65536);
 
-        int size = 300000;
+        int size = 30000000;
+
+	Ticker ticker(100000);
+
+        BigInt t0 = getTimeInMillis();
+        BigInt tl = t0;
 
         for (int c = 0; c < size; c++)
         {
-            FixedArray<16> array;
+            Key array(16);
 
             for (int c = 0; c < array.length(); c++)
             {
@@ -67,12 +72,28 @@ int main()
             }
 
             map->insert_key(array);
+            
+            if (ticker.is_threshold())
+            {
+            	BigInt tt = getTimeInMillis();
+            	cout << "Inserted: " << ticker.ticks() << " in " << (tt - tl) << endl;
+            	tl = tt;
+
+            	ticker.next();
+            }
+
+            ticker.tick();
         }
+        
+        
+        BigInt t1 = getTimeInMillis();
+
+        cout << "Inserted " << size << " in " << (t1 - t0) << endl;
 
 
-        snp->commit_and_drop_parent();
 
-        FSDumpAllocator(snp, "setl_full.dir");
+        snp->commit();
+
 
         // Store binary contents of allocator to the file.
         auto out = FileOutputStreamHandler::create("setl_data.dump");
