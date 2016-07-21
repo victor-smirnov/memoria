@@ -47,7 +47,7 @@ FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX})
 		#set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
     
         if (NOT CHECK_SYNTAX_ONLY)
-            target_link_libraries(${MEMORIA_TARGET} Memoria MemoriaTools ${MEMORIA_LIBS} rpcrt4 winpthread)
+            target_link_libraries(${MEMORIA_TARGET} Memoria MemoriaTools ${MEMORIA_LIBS})
         endif()
     
     endif()

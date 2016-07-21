@@ -11,15 +11,11 @@ else()
         
         add_executable(tests ${SRCS})
         set_target_properties(tests PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
-    else()
-#       add_executable(type_tests type_tests.cpp)
-#       set_target_properties(type_tests PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_TESTS")
-#       set_target_properties(type_tests PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-#       target_link_libraries(type_tests Memoria MemoriaTools ${MEMORIA_LIBS})
-    
+    else()    
         add_executable(tests ${SRCS})
-        set_target_properties(tests PROPERTIES COMPILE_FLAGS "-g ${MEMORIA_COMPILE_FLAGS} -DMEMORIA_TESTS -DMEMORIA_STATIC")
-        set_target_properties(tests PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS} -luuid")
+        
+        set_target_properties(tests PROPERTIES COMPILE_FLAGS "-g ${MEMORIA_COMPILE_FLAGS} -DMEMORIA_TESTS")
+        set_target_properties(tests PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
         
         target_link_libraries(tests Memoria MemoriaTools ${MEMORIA_LIBS})
     endif()
