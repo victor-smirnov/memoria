@@ -226,7 +226,7 @@ int main()
             	if (ticker.is_threshold())
             	{
             		BigInt tt = getTimeInMillis();
-            		cout << "Inserted: " << ticker.ticks() << " in " << (tt - tl) << endl;
+            		cout << "Inserted: " << (ticker.ticks() + 1)<< " in " << (tt - tl) << endl;
             		tl = tt;
 
             		ticker.next();

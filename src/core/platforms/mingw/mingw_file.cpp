@@ -150,8 +150,8 @@ bool File::mkDirs() const {
     return true;
 }
 
-void File::Rename(StringRef new_name) {
-    if (rename(path_.c_str(), new_name.c_str()) != 0)
+void File::rename(StringRef new_name) {
+    if (::rename(path_.c_str(), new_name.c_str()) != 0)
     {
         throw FileException(MEMORIA_SOURCE, SBuf()<<"Can't rename file: "<<strerror(errno)<<", new name = "<<new_name);
     }
@@ -265,7 +265,7 @@ inline String replace(String& text, StringRef from, StringRef to, bool& action)
 }
 
 
-String File::NormalizePath(StringRef path)
+String File::normalizePath(StringRef path)
 {
     if (path.find("/") == String::npos)
     {
@@ -303,5 +303,24 @@ String ConvertSlash(StringRef str) {
     bool action;
     return replace(result, "/", "\\", action);
 }
+
+
+void File::copy(StringRef new_file)
+{
+    RAFile src_file;
+    RAFile tgt_file;
+
+    src_file.open(getPath().c_str(), OpenMode::READ);
+    tgt_file.open(new_file.c_str(), OpenMode::READ | OpenMode::WRITE | OpenMode::CREATE | OpenMode::TRUNC);
+
+    char buffer[4096];
+
+    UBigInt size;
+    while ((size = src_file.read(buffer, sizeof(buffer))))
+    {
+        tgt_file.write(buffer, size);
+    }
+}
+
 
 }}

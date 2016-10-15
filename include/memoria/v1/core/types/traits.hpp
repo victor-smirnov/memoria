@@ -57,8 +57,8 @@ struct ValueTraits<const ValueType> {                                           
 }
 
 
-const Long LongMin = 1l << (sizeof(Long) * 8 - 1);
-const Long LongMax = ~LongMin;
+//const Long LongMin = 1l << (sizeof(Long) * 8 - 1);
+//const Long LongMax = ~LongMin;
 
 //const ULong ULongMin = 0l;
 //const ULong ULongMax = ~ULongMin;

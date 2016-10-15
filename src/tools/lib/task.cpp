@@ -26,9 +26,6 @@
 namespace memoria {
 namespace v1 {
 
-using std::map;
-using namespace std;
-
 Task::~Task() throw () {
 
 }

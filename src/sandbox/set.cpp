@@ -46,7 +46,7 @@ int main() {
 
             Bytes bb(4);
 
-            for (int cc = 0; cc < bb.size(); cc++)
+            for (size_t cc = 0; cc < bb.size(); cc++)
             {
                 bb[cc] = 0;
             }

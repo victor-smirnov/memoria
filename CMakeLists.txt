@@ -114,8 +114,6 @@ if (NOT DEFINED CHECK_SYNTAX_ONLY)
 endif()
 
 
-
-
 if (CMAKE_COMPILER_IS_GNUCXX OR CLANG_COMPILER OR MINGW)
 
     set(PROFILE "")
@@ -123,12 +121,19 @@ if (CMAKE_COMPILER_IS_GNUCXX OR CLANG_COMPILER OR MINGW)
     SET(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)
     SET(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS)
 
-    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -std=c++14 -Wall")
+    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -std=c++14 -Wall -Wno-sign-compare -lrpcrt4")
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors  -ftemplate-backtrace-limit=0 ${PROFILE}") #-fsanitize=undefined -fno-sanitize-recover
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -Wcomment -Wunused-variable -Wno-unused-function -Wno-unneeded-internal-declaration")
     
     set (MEMORIA_LINK_FLAGS  "${MEMORIA_LINK_FLAGS} -lstdc++ ${PROFILE}") #-lubsan
-    
+        
+    if (MINGW)
+        set (MEMORIA_LIBS "${MEMORIA_LIBS}" rpcrt4 winpthread)
+    else()
+        set (MEMORIA_LIBS "${MEMORIA_LIBS}" uuid)
+    endif()
+        
+        
     if (BUILD_STATIC)
     	set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -static")
     	set (MEMORIA_LINK_FLAGS  "${MEMORIA_LINK_FLAGS} -static-libgcc -static-libstdc++ -static ")

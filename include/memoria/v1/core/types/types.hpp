@@ -510,7 +510,7 @@ enum class ByteOrder {
 };
 
 enum class MemoryAccess {
-    ALIGNED, UNALIGNED
+    MMA_ALIGNED, MMA_UNALIGNED
 };
 
 

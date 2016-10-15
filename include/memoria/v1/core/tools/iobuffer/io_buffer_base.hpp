@@ -34,7 +34,7 @@
 namespace memoria {
 namespace v1 {
 
-template <ByteOrder Endian, MemoryAccess AccessType> class IOBuffer;
+template <ByteOrder Endian, MemoryAccess AccessType = MemoryAccess::MMA_UNALIGNED> class IOBuffer;
 
 class IOBufferBase {
 protected:

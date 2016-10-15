@@ -17,7 +17,8 @@
 
 #include <memoria/v1/core/tools/uuid.hpp>
 
-#include <uuid/uuid.h>
+#include <rpc.h>
+
 #include <string.h>
 
 #include <mutex>
@@ -25,44 +26,41 @@
 namespace memoria {
 namespace v1 {
 
+using WinUUID = ::UUID;
+
 UBigInt cnt = 1;
 
-UUID make_uuid(uuid_t uuid)
+UUID make_uuid(const WinUUID& uuid)
 {
     UUID uuid2;
 
-    for (int c = 0; c < 8; c++)
-    {
-        uuid2.hi() |= ((UBigInt)uuid[c]) << (c * 8);
-    }
+    uuid2.lo() = uuid.Data1;
+
+    uuid2.lo() |= ((UBigInt)uuid.Data2) << 32;
+    uuid2.lo() |= ((UBigInt)uuid.Data3) << 48;
 
     for (int c = 0; c < 8; c++)
     {
-        uuid2.lo() |= ((UBigInt)uuid[c + 8]) << (c * 8);
+        uuid2.hi() |= ((UBigInt)uuid.Data4[c]) << (c * 8);
     }
 
     return uuid2;
 }
 
-std::mutex mutex_;
-
 UUID UUID::make_random()
 {
-    uuid_t uuid;
+    WinUUID uuid;
 
-    uuid_generate_random(uuid);
-
-//    std::lock_guard<std::mutex> lk(mutex_);
+    UuidCreate ( &uuid );
 
     return make_uuid(uuid);
-//    return UUID(0, cnt++);
 }
 
 UUID UUID::make_time()
 {
-    uuid_t uuid;
+    WinUUID uuid;
 
-    uuid_generate_time_safe(uuid);
+    UuidCreate ( &uuid );
 
     return make_uuid(uuid);
 }
@@ -70,36 +68,37 @@ UUID UUID::make_time()
 
 UUID UUID::parse(const char* in)
 {
-    uuid_t uu;
+	WinUUID uu;
 
-    uuid_parse(in, uu);
+	unsigned char in_buffer[37];
+	in_buffer[36] = 0;
+	for (size_t c = 0; c < 36; c++) in_buffer[c] = in[c];
+
+	UuidFromString(in_buffer, &uu);
 
     return make_uuid(uu);
 }
 
-
-
-
-
 std::ostream& operator<<(std::ostream& out, const UUID& uuid)
 {
-    uuid_t uu;
+    WinUUID uu;
+
+    uu.Data1 = uuid.lo();
+    uu.Data2 = (uuid.lo() >> 32) & 0xFFFF;
+    uu.Data3 = (uuid.lo() >> 48) & 0xFFFF;
 
     for (int c = 0; c < 8; c++)
     {
-        uu[c] = uuid.hi() >> (c * 8);
+        uu.Data4[c] = uuid.lo() >> (c * 8);
     }
 
-    for (int c = 0; c < 8; c++)
-    {
-        uu[c + 8] = uuid.lo() >> (c * 8);
-    }
 
-    char out_buffer[37];
+    unsigned char * str;
+    UuidToStringA ( &uu, &str );
 
-    uuid_unparse(uu, out_buffer);
+    out<< ( char* ) str;
 
-    out<<out_buffer;
+    RpcStringFreeA ( &str );
 
     return out;
 }
@@ -114,17 +113,10 @@ std::istream& operator>>(std::istream& in, UUID& uuid)
     if (s)
     {
         in.read(in_buffer, sizeof(in_buffer)-1);
-        uuid = memoria::v1::UUID::parse(in_buffer);
+        uuid = UUID::parse(in_buffer);
     }
 
     return in;
 }
 
 }}
-
-
-namespace std {
-
-
-
-}

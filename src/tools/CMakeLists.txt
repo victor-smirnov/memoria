@@ -38,7 +38,7 @@ if (NOT DEFINED BUILD_BENCHMARKS)
 endif()
 
 if (NOT DEFINED BUILD_EXAMPLES)
-    set(BUILD_EXAMPLES true)
+    set(BUILD_EXAMPLES false)
 endif()
 
 if (BUILD_TESTS) 

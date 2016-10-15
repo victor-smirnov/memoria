@@ -28,6 +28,7 @@
 #include <algorithm>
 #include <vector>
 #include <type_traits>
+#include <iostream>
 
 
 using namespace memoria::v1;
@@ -40,12 +41,11 @@ int main()
 {
     MEMORIA_INIT(DefaultProfile<>);
 
-//    using Key   = FixedArray<16>;
-    using Key   = Bytes;
+    using Key   = FixedArray<16>;
+//    using Key   = Bytes;
 
 
     DInit<Set<Key>>();
-
 
     try {
         auto alloc = PersistentInMemAllocator<>::create();
@@ -57,14 +57,16 @@ int main()
 
         int size = 30000000;
 
-	Ticker ticker(100000);
+        Ticker ticker(100000);
 
         BigInt t0 = getTimeInMillis();
         BigInt tl = t0;
 
+
+
         for (int c = 0; c < size; c++)
         {
-            Key array(16);
+            Key array;//(16);
 
             for (int c = 0; c < array.length(); c++)
             {
@@ -72,11 +74,11 @@ int main()
             }
 
             map->insert_key(array);
-            
+
             if (ticker.is_threshold())
             {
             	BigInt tt = getTimeInMillis();
-            	cout << "Inserted: " << ticker.ticks() << " in " << (tt - tl) << endl;
+            	cout << "Inserted: " << (ticker.ticks() + 1)<< " in " << (tt - tl) << endl;
             	tl = tt;
 
             	ticker.next();
@@ -84,16 +86,15 @@ int main()
 
             ticker.tick();
         }
-        
-        
+
         BigInt t1 = getTimeInMillis();
 
         cout << "Inserted " << size << " in " << (t1 - t0) << endl;
 
 
-
         snp->commit();
 
+//        FSDumpAllocator(snp, "setl_full.dir");
 
         // Store binary contents of allocator to the file.
         auto out = FileOutputStreamHandler::create("setl_data.dump");
@@ -106,4 +107,8 @@ int main()
 
     // Destroy containers metadata.
     MetadataRepository<DefaultProfile<>>::cleanup();
+}
+
+int set_insert() {
+	return main();
 }
