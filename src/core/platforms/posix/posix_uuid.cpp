@@ -77,6 +77,10 @@ UUID UUID::parse(const char* in)
     return make_uuid(uu);
 }
 
+
+
+
+
 std::ostream& operator<<(std::ostream& out, const UUID& uuid)
 {
     uuid_t uu;
@@ -110,10 +114,17 @@ std::istream& operator>>(std::istream& in, UUID& uuid)
     if (s)
     {
         in.read(in_buffer, sizeof(in_buffer)-1);
-        uuid = UUID::parse(in_buffer);
+        uuid = memoria::v1::UUID::parse(in_buffer);
     }
 
     return in;
 }
 
 }}
+
+
+namespace std {
+
+
+
+}

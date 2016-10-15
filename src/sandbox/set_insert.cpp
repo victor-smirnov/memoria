@@ -28,6 +28,7 @@
 #include <algorithm>
 #include <vector>
 #include <type_traits>
+#include <iostream>
 
 
 using namespace memoria::v1;
@@ -38,10 +39,17 @@ using namespace std;
 
 int main()
 {
+	try {
+		//throw 1;
+	}
+	catch (...) {
+		cout << "Exception!" << endl;
+	}
+
     MEMORIA_INIT(DefaultProfile<>);
 
-//    using Key   = FixedArray<16>;
-    using Key   = Bytes;
+    using Key   = FixedArray<16>;
+//    using Key   = Bytes;
 
 
     DInit<Set<Key>>();
@@ -61,9 +69,11 @@ int main()
         BigInt t0 = getTimeInMillis();
         BigInt tl = t0;
 
+
+
         for (int c = 0; c < size; c++)
         {
-            Key array(16);
+            Key array;//(16);
 
             for (int c = 0; c < array.length(); c++)
             {
@@ -104,4 +114,8 @@ int main()
 
     // Destroy containers metadata.
     MetadataRepository<DefaultProfile<>>::cleanup();
+}
+
+int set_insert() {
+	return main();
 }
