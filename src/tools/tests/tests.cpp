@@ -29,13 +29,13 @@
 //#include "packed/wavelet_tree/packed_wtree_suite.hpp"
 
 
-//#include "prototype/bt/bt_test_suite.hpp"
+#include "prototype/bt/bt_test_suite.hpp"
 #include "prototype/btfl/btfl_test_suite.hpp"
-//#include "prototype/btss/btss_test_suite.hpp"
+#include "prototype/btss/btss_test_suite.hpp"
 
 
 #include "map/map_test_suite.hpp"
-//#include "vector/vector_test_suite.hpp"
+#include "vector/vector_test_suite.hpp"
 #include "multimap/multimap_test_suite.hpp"
 
 //#include "sequence/sequence_test_suite.hpp"

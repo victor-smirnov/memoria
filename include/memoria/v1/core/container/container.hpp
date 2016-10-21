@@ -374,22 +374,22 @@ protected:
 
     template <typename... Args>
     IteratorPtr make_iterator(Args&&... args) const {
-        return make_shared<Iterator>(this->shared_from_this(), std::forward<Args>(args)...);
+        return std::make_shared<Iterator>(this->shared_from_this(), std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     IteratorPtr make_iterator(Args&&... args) {
-        return make_shared<Iterator>(this->shared_from_this(), std::forward<Args>(args)...);
+        return std::make_shared<Iterator>(this->shared_from_this(), std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     IteratorPtr clone_iterator(Args&&... args) const {
-        return make_shared<Iterator>(std::forward<Args>(args)...);
+        return std::make_shared<Iterator>(std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     IteratorPtr clone_iterator(Args&&... args) {
-        return make_shared<Iterator>(std::forward<Args>(args)...);
+        return std::make_shared<Iterator>(std::forward<Args>(args)...);
     }
 
 
