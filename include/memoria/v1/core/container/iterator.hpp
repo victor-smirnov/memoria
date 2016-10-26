@@ -19,6 +19,7 @@
 #include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/core/types/typelist.hpp>
 #include <memoria/v1/core/container/names.hpp>
+#include <memoria/v1/core/container/defaults.hpp>
 
 #include <memoria/v1/core/container/logs.hpp>
 
@@ -54,6 +55,8 @@ public:
     IterHelper(const ThisType& other): BaseType(other) {}
 };
 
+
+
 template <typename Types>
 class IterHelper<-1, Types>: public Types::template BaseFactory<Types>::Type {
 
@@ -76,7 +79,7 @@ class IterStart: public IterHelper<ListSize<typename Types::List>::Value - 1, Ty
     using Base      = IterHelper<ListSize<typename Types::List>::Value - 1, Types>;
     using ContainerType = Ctr<typename Types::CtrTypes>;
 
-    using CtrPtr    = std::shared_ptr<ContainerType>;
+    using CtrPtr = CtrSharedPtr<typename Types::Profile, ContainerType>;
 
     CtrPtr ctr_ptr_;
     ContainerType* model_;
@@ -85,9 +88,15 @@ class IterStart: public IterHelper<ListSize<typename Types::List>::Value - 1, Ty
 public:
     IterStart(): Base(), ctr_ptr_(), model_() {}
 
-    IterStart(const CtrPtr& ptr): Base(), ctr_ptr_(ptr), model_(ptr.get()) {}
+    IterStart(CtrPtr ptr): Base(), ctr_ptr_(std::move(ptr)), model_(ctr_ptr_.get()) {
+    	//std::cout << "Create Iterator: " << ctr_ptr_.use_count() << "\n";
+    }
     IterStart(ThisType&& other): Base(std::move(other)), ctr_ptr_(std::move(other.ctr_ptr_)), model_(other.model_) {}
     IterStart(const ThisType& other): Base(other), ctr_ptr_(other.ctr_ptr_), model_(other.model_) {}
+
+    virtual ~IterStart() {
+    	//std::cout << "Destroy Iterator: " << ctr_ptr_.use_count() << "\n";
+    }
 
     ContainerType& model() {
         return *model_;
@@ -197,12 +206,6 @@ public:
         return me()->model().typeName();
     }
 };
-
-
-
-//template <typename Container> class IteratorFactoryName {};
-
-
 
 
 }}

@@ -927,6 +927,8 @@ public:
             UByte type;
             *input >> type;
 
+            std::cout << "RecordType: " << (Int) type << "\n";
+
             switch (type)
             {
                 case TYPE_METADATA:     allocator->read_metadata(*input, metadata); break;
@@ -1343,8 +1345,12 @@ private:
 
         in >> node->metadata();
 
+        std::cout << "HN Metadata: " << node->metadata() << "\n";
+
         BigInt children;
         in >>children;
+
+        std::cout << "HN children: " << children << "\n";
 
         for (BigInt c = 0; c < children; c++)
         {
@@ -1485,7 +1491,9 @@ private:
 
     void write_metadata(OutputStreamHandler& out)
     {
-        UByte type = TYPE_METADATA;
+        std::cout << "Metadata\n";
+
+    	UByte type = TYPE_METADATA;
         out << type;
 
         out << master_->txn_id();
@@ -1504,6 +1512,8 @@ private:
 
     void write(OutputStreamHandler& out, const Checksum& checksum)
     {
+    	std::cout << "Checksum\n";
+
         UByte type = TYPE_CHECKSUM;
         out << type;
         out << checksum.records() + 1;
@@ -1511,6 +1521,8 @@ private:
 
     void write_history_node(OutputStreamHandler& out, const HistoryNode* history_node, RCPageSet& stored_pages)
     {
+    	std::cout << "HistoryNode\n";
+
     	UByte type = TYPE_HISTORY_NODE;
         out << type;
         out << (Int)history_node->status();
@@ -1594,6 +1606,7 @@ private:
 
     void write(OutputStreamHandler& out, const BranchNodeBufferT* node)
     {
+    	std::cout << "BranchNode\n";
         UByte type = TYPE_BRANCH_NODE;
         out << type;
         node->write(out);
@@ -1603,8 +1616,10 @@ private:
 
     void write(OutputStreamHandler& out, const LeafNodeBufferT* node)
     {
+    	std::cout << "LeafNode\n";
         UByte type = TYPE_LEAF_NODE;
         out << type;
+
         node->write(out);
 
         records_++;
@@ -1612,6 +1627,7 @@ private:
 
     void write(OutputStreamHandler& out, const RCPagePtr* page_ptr)
     {
+    	std::cout << "DataPage\n";
     	auto page = page_ptr->raw_data();
 
         UByte type = TYPE_DATA_PAGE;

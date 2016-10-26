@@ -98,7 +98,7 @@ class Logger {
 
 public:
 
-    enum {DERIVED = 0, TRACE = 10000, DEBUG = 20000, ERROR = 30000,
+    enum {DERIVED = 0, TRACE = 10000, LDEBUG = 20000, ERROR = 30000,
           WARNING = 40000, INFO = 50000, FATAL = 60000, NONE = 70000};
 
     Logger(const char* category, int level = DERIVED, Logger* parent = &v1::logger):
@@ -223,7 +223,7 @@ public:
         cnt_ = 0;
         preprocess();
         if (level <= Logger::TRACE)         out_<<"TRACE";
-        else if (level <= Logger::DEBUG)    out_<<"DEBUG";
+        else if (level <= Logger::LDEBUG)   out_<<"DEBUG";
         else if (level <= Logger::INFO)     out_<<"INFO";
         else if (level <= Logger::WARNING)  out_<<"WARNING";
         else if (level <= Logger::ERROR)    out_<<"ERROR";

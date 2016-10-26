@@ -45,7 +45,7 @@ class Iter<BTIterTypes<Types>>: public IterStart<BTIterTypes<Types>>
 
     typedef typename ContainerType::Types::NodeBaseG                            NodeBaseG;
 
-    using CtrPtr = std::shared_ptr<ContainerType>;
+    using CtrPtr = CtrSharedPtr<typename Types::Profile, ContainerType>;
 
 public:
 
@@ -53,7 +53,7 @@ public:
     
     Iter(): Base() {}
 
-    Iter(const CtrPtr& ptr): Base(ptr)
+    Iter(CtrPtr ptr): Base(std::move(ptr))
     {
         Base::idx() = 0;
     }

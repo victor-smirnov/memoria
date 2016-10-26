@@ -55,6 +55,10 @@ template <typename Types> class Iter;
 
 template <typename Profile> class MetadataRepository;
 
+
+
+
+
 constexpr UUID CTR_DEFAULT_NAME = UUID(-1ull, -1ull);
 
 class CtrInitData {
@@ -99,7 +103,7 @@ public:
 
 
 template <typename TypesType>
-class CtrBase: public TypesType::Allocator, public std::enable_shared_from_this<Ctr<TypesType>> {
+class CtrBase: public TypesType::Allocator, public CtrEnableSharedFromThis<typename TypesType::Profile, Ctr<TypesType>> {
 public:
 
     using ThisType  = CtrBase<TypesType>;
@@ -115,7 +119,7 @@ public:
     using PageG     = typename Allocator::PageG;
 
     using Iterator      = Iter<typename Types::IterTypes>;
-    using IteratorPtr   = std::shared_ptr<Iterator>;
+    using IteratorPtr   = CtrSharedPtr<typename Types::Profile, Iterator>;
     
     static constexpr Int CONTAINER_HASH = TypeHash<Name>::Value;
 
@@ -132,6 +136,8 @@ public:
 	using MutexT			= std::mutex;
     using LockGuardT		= std::lock_guard<MutexT>;
 
+    template <typename T>
+    using CtrMakeSharedPtr = memoria::v1::CtrMakeSharedPtr<typename Types::Profile, T>;
 
 protected:
     static MutexT mutex_;
@@ -221,7 +227,7 @@ public:
             {
             	auto ctr_name = MyType::getModelNameS(page);
 
-            	auto ctr_ptr = std::make_shared<MyType>(allocator, root_id, CtrInitData(ctr_name, page->master_ctr_type_hash(), page->owner_ctr_type_hash()));
+            	auto ctr_ptr = CtrMakeSharedPtr<MyType>::make_shared(allocator, root_id, CtrInitData(ctr_name, page->master_ctr_type_hash(), page->owner_ctr_type_hash()));
 
             	fn(*ctr_ptr.get());
             }
@@ -372,24 +378,27 @@ public:
 
 protected:
 
+
+
+
     template <typename... Args>
     IteratorPtr make_iterator(Args&&... args) const {
-        return std::make_shared<Iterator>(this->shared_from_this(), std::forward<Args>(args)...);
+        return CtrMakeSharedPtr<Iterator>::make_shared(this->shared_from_this(), std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     IteratorPtr make_iterator(Args&&... args) {
-        return std::make_shared<Iterator>(this->shared_from_this(), std::forward<Args>(args)...);
+        return CtrMakeSharedPtr<Iterator>::make_shared(this->shared_from_this(), std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     IteratorPtr clone_iterator(Args&&... args) const {
-        return std::make_shared<Iterator>(std::forward<Args>(args)...);
+        return CtrMakeSharedPtr<Iterator>::make_shared(std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     IteratorPtr clone_iterator(Args&&... args) {
-        return std::make_shared<Iterator>(std::forward<Args>(args)...);
+        return CtrMakeSharedPtr<Iterator>::make_shared(std::forward<Args>(args)...);
     }
 
 
