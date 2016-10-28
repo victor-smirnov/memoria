@@ -76,6 +76,8 @@ private:
 
     Int size_ = 0;
 
+    Int cpu_id_; // not used here...
+
 protected:
     BigInt refs_;
     mutable MutexT mutex_;

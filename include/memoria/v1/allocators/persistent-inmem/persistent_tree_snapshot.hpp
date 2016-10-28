@@ -263,6 +263,9 @@ public:
 
     virtual ~Snapshot()
     {
+    	//FIXME This code doesn't decrement properly number of active snapshots
+    	// for allocator to store data correctly.
+
     	bool drop1 = false;
     	bool drop2 = false;
 
@@ -294,7 +297,7 @@ public:
     		StoreLockGuardT store_lock_guard(history_node_->store_mutex());
     		do_drop();
 
-    		// FIXME: check if absens of snapshot lock here leads to data races...
+    		// FIXME: check if absence of snapshot lock here leads to data races...
     	}
     }
 
