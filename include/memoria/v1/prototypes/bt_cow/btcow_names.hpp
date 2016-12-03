@@ -1,5 +1,5 @@
 
-// Copyright 2011 Victor Smirnov
+// Copyright 2016 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ namespace v1 {
 
 template <typename Profile> class ContainerCollectionCfg;
 
-namespace bt     {
+namespace btcow {
 
 template <typename ContainerName>
 class ContainerPartsListFactory     {};
@@ -32,7 +32,6 @@ template <typename ContainerName>
 class IteratorPartsListFactory      {};
 
 class ToolsName             {};
-class ToolsPLName           {};
 class FindName              {};
 class IOReadName            {};
 class ReadName              {};
@@ -84,17 +83,17 @@ class IteratorLeafName      {};
 }
 
 template <typename Types>
-struct BTCtrTypesT: CtrTypesT<Types>         {};
+struct BTCowCtrTypesT: CtrTypesT<Types>         {};
 
 template <typename Types>
-struct BTIterTypesT: IterTypesT<Types>   {};
+struct BTCowIterTypesT: IterTypesT<Types>   {};
 
 
 template <typename Types>
-using BTCtrTypes = BTCtrTypesT<Types>;
+using BTCowCtrTypes = BTCowCtrTypesT<Types>;
 
 template <typename Types>
-using BTIterTypes = BTIterTypesT<Types>;
+using BTCowIterTypes = BTCowIterTypesT<Types>;
 
 
 }}

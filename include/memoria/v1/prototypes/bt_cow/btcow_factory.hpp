@@ -1,5 +1,5 @@
 
-// Copyright 2011 Victor Smirnov
+// Copyright 2016 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,8 +28,8 @@
 
 #include <memoria/v1/core/packed/tools/packed_allocator.hpp>
 
-#include <memoria/v1/prototypes/bt/bt_names.hpp>
-#include <memoria/v1/prototypes/bt/tools/bt_tools.hpp>
+#include <memoria/v1/prototypes/bt_cow/btcow_names.hpp>
+#include <memoria/v1/prototypes/bt_cow/tools/btcow_tools.hpp>
 #include <memoria/v1/prototypes/bt/bt_walkers.hpp>
 
 #include <memoria/v1/prototypes/bt/layouts/bt_input.hpp>
@@ -50,7 +50,6 @@
 
 #include <memoria/v1/prototypes/bt/container/bt_c_base.hpp>
 #include <memoria/v1/prototypes/bt/container/bt_c_tools.hpp>
-#include <memoria/v1/prototypes/bt/container/bt_c_tools_pl.hpp>
 #include <memoria/v1/prototypes/bt/container/bt_c_checks.hpp>
 #include <memoria/v1/prototypes/bt/container/bt_c_insert.hpp>
 #include <memoria/v1/prototypes/bt/container/bt_c_read.hpp>
@@ -77,6 +76,12 @@
 #include <memoria/v1/prototypes/bt/container/bt_c_remove_batch.hpp>
 #include <memoria/v1/prototypes/bt/container/bt_c_remove_tools.hpp>
 
+#include <memoria/v1/prototypes/bt_cow/btcow_names.hpp>
+#include <memoria/v1/prototypes/bt_cow/container/btcow_c_allocator.hpp>
+#include <memoria/v1/prototypes/bt_cow/container/btcow_c_tools.hpp>
+#include <memoria/v1/prototypes/bt_cow/container/btcow_c_find.hpp>
+
+#include <memoria/v1/prototypes/bt_cow/tools/btcow_tools.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -84,65 +89,62 @@ namespace v1 {
 using v1::bt::WalkerTypes;
 
 template <typename Profile_, typename ContainerTypeSelector>
-struct BTTypes {
+struct BTCowTypes {
 
     using Profile  = Profile_;
 
     using CtrSizeT = BigInt;
 
-    typedef TypeList<
-            bt::AllocatorName,
-            bt::ToolsName,
-			bt::ToolsPLName,
+    using ContainerPartsList = TypeList<
+            btcow::AllocatorName,
+            btcow::ToolsName,
             bt::ChecksName,
             bt::BranchCommonName,
-            bt::InsertBatchCommonName,
             bt::LeafCommonName,
             bt::InsertName,
             bt::RemoveToolsName,
-            bt::RemoveBatchName,
             bt::RemoveName,
-            bt::FindName,
+            btcow::FindName,
             bt::ReadName,
             bt::IOReadName,
             bt::UpdateName,
             bt::WalkName
-    >                                                                           ContainerPartsList;
+    >;
 
 
-    typedef TypeList<
+    using FixedBranchContainerPartsList 	= TypeList<
             bt::BranchFixedName,
             bt::InsertBatchFixedName
-    >                                                                           FixedBranchContainerPartsList;
+    >;
 
-    typedef TypeList<
+    using VariableBranchContainerPartsList 	= TypeList<
             bt::BranchVariableName,
             bt::InsertBatchVariableName
-    >                                                                           VariableBranchContainerPartsList;
+    >;
 
-    typedef TypeList<
+    using FixedLeafContainerPartsList 		= TypeList<
             bt::LeafFixedName
-    >                                                                           FixedLeafContainerPartsList;
+    >;
 
-    typedef TypeList<
+    using VariableLeafContainerPartsList 	= TypeList<
             bt::LeafVariableName
-    >                                                                           VariableLeafContainerPartsList;
+    >;
     
-    typedef TypeList<>                                                          CommonContainerPartsList;
+    using CommonContainerPartsList 		 	= TypeList<>;
 
 
-    typedef TypeList<
+    using IteratorPartsList = TypeList<
             bt::IteratorAPIName,
             bt::IteratorFindName,
             bt::IteratorSelectName,
             bt::IteratorRankName,
             bt::IteratorSkipName,
             bt::IteratorLeafName
-    >                                                                           IteratorPartsList;
+    >;
 
-    typedef EmptyType                                                           ContainerInterface;
-    typedef EmptyType                                                           IteratorInterface;
-    typedef EmptyType                                                           IteratorData;
+    using ContainerInterface = EmptyType;
+    using IteratorInterface  = EmptyType;
+    using IteratorData 		 = EmptyType;
 
 
     using Allocator = typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator;
@@ -150,21 +152,21 @@ struct BTTypes {
 
     using Metadata  = BalancedTreeMetadata<ID>;
 
-    typedef TypeList<
+    using NodeTypesList = TypeList<
             BranchNodeTypes<BranchNode>,
             LeafNodeTypes<LeafNode>
-    >                                                                           NodeTypesList;
+    >;
 
-    typedef TypeList<
+    using DefaultBranchNodeTypesList = TypeList<
             TreeNodeType<BranchNode>
-    >                                                                           DefaultBranchNodeTypesList;
+    >;
 
-    typedef TypeList<
+    using DefaultLeafNodeTypesList = TypeList<
             TreeNodeType<LeafNode>
-    >                                                                           DefaultLeafNodeTypesList;
-    //FIXME DefaultNodeTypesList is not used anymore
+    >;
 
-    typedef TypeList<>                                                          StreamDescriptors;
+
+    using StreamDescriptors = TypeList<>;
 
     template <
         typename Types_
@@ -183,7 +185,7 @@ struct BTTypes {
 
     template <typename Iterator, typename Container>
     struct IteratorCacheFactory {
-        typedef v1::bt::BTreeIteratorPrefixCache<Iterator, Container>   Type;
+        typedef v1::btcow::BTreeIteratorPrefixCache<Iterator, Container>   Type;
     };
 
 
@@ -243,13 +245,13 @@ template <
         typename Profile,
         typename ContainerTypeName_
 >
-class CtrTF<Profile, v1::BT, ContainerTypeName_> {
+class CtrTF<Profile, v1::BTCow, ContainerTypeName_> {
 
-    typedef CtrTF<Profile, v1::BT, ContainerTypeName_>                     MyType;
+    using MyType = CtrTF<Profile, v1::BTCow, ContainerTypeName_>;
 
 public:
 
-    using ContainerTypes = BTTypes<Profile, ContainerTypeName_>;
+    using ContainerTypes = BTCowTypes<Profile, ContainerTypeName_>;
     using ID             = typename ContainerTypes::Allocator::Page::ID;
 
     using StreamDescriptors = typename ContainerTypes::StreamDescriptors;
@@ -323,7 +325,8 @@ public:
         using NodeBaseG         = NodePageBase0G;
     };
 
-    typedef bt::BTreeDispatchers<DispatcherTypes>                              PageDispatchers;
+    using PageDispatchers 	= bt::BTreeDispatchers<DispatcherTypes>;
+    using TreePath 			= core::StaticArray<NodePageBase0G, 8>;
 
     static const PackedSizeType BranchSizeType  = PackedListStructSizeType<Linearize<BranchStreamsStructList>>::Value;
     static const PackedSizeType LeafSizeType    = PackedListStructSizeType<Linearize<LeafStreamsStructList>>::Value;
@@ -448,8 +451,8 @@ public:
         using LeafType = typename Pages::LeafDispatcher::Head::Base;
     };
 
-    typedef typename Types::CtrTypes                                            CtrTypes;
-    typedef Ctr<CtrTypes>                                                       Type;
+    using CtrTypes  = typename Types::CtrTypes;
+    using Type 		= Ctr<CtrTypes>;
 };
 
 

@@ -1301,6 +1301,22 @@ public:
     }
 
 
+    Int find_child_idx(const Value& id) const
+    {
+    	const Value* v = this->values();
+    	Int size = this->size();
+
+    	for (Int c = 0; c < size; c++)
+    	{
+    		if (v[c] == id) {
+    			return c;
+    		}
+    	}
+
+    	return -1;
+    }
+
+
     template <typename SubstreamPath>
     auto substream()
     {

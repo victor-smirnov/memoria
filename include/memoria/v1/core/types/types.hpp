@@ -161,6 +161,7 @@ using UIntList = ValueList<UInt, Values...>;
  */
 
 struct BT {};
+struct BTCow {};
 
 
 

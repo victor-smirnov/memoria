@@ -16,7 +16,7 @@
 include_directories(../tools/include)
 
 if (NOT DEFINED MEMORIA_SANDBOX)
-    set(MEMORIA_SANDBOX set_insert)
+    set(MEMORIA_SANDBOX btcow)
 endif()
 
 
@@ -47,7 +47,7 @@ FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX})
 		#set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
     
         if (NOT CHECK_SYNTAX_ONLY)
-            target_link_libraries(${MEMORIA_TARGET} Memoria MemoriaTools ${MEMORIA_LIBS})
+            target_link_libraries(${MEMORIA_TARGET} Memoria MemoriaTools uuid ${MEMORIA_LIBS})
         endif()
     
     endif()
