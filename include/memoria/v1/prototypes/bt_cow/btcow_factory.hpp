@@ -77,11 +77,21 @@
 #include <memoria/v1/prototypes/bt/container/bt_c_remove_tools.hpp>
 
 #include <memoria/v1/prototypes/bt_cow/btcow_names.hpp>
+
+#include <memoria/v1/prototypes/bt_cow/btcow_iterator.hpp>
+
 #include <memoria/v1/prototypes/bt_cow/container/btcow_c_allocator.hpp>
 #include <memoria/v1/prototypes/bt_cow/container/btcow_c_tools.hpp>
 #include <memoria/v1/prototypes/bt_cow/container/btcow_c_find.hpp>
+#include <memoria/v1/prototypes/bt_cow/container/btcow_c_branch_fixed.hpp>
+#include <memoria/v1/prototypes/bt_cow/container/btcow_c_branch_variable.hpp>
+#include <memoria/v1/prototypes/bt_cow/container/btcow_c_leaf_fixed.hpp>
+#include <memoria/v1/prototypes/bt_cow/container/btcow_c_leaf_variable.hpp>
+#include <memoria/v1/prototypes/bt_cow/container/btcow_c_checks.hpp>
+#include <memoria/v1/prototypes/bt_cow/container/btcow_c_walk.hpp>
 
 #include <memoria/v1/prototypes/bt_cow/tools/btcow_tools.hpp>
+#include <memoria/v1/prototypes/bt_cow/nodes/btcow_node_base.hpp>
 
 namespace memoria {
 namespace v1 {
@@ -96,9 +106,10 @@ struct BTCowTypes {
     using CtrSizeT = BigInt;
 
     using ContainerPartsList = TypeList<
+    		bt::ToolsName,
             btcow::AllocatorName,
             btcow::ToolsName,
-            bt::ChecksName,
+            btcow::ChecksName,
             bt::BranchCommonName,
             bt::LeafCommonName,
             bt::InsertName,
@@ -108,26 +119,24 @@ struct BTCowTypes {
             bt::ReadName,
             bt::IOReadName,
             bt::UpdateName,
-            bt::WalkName
+            btcow::WalkName
     >;
 
 
     using FixedBranchContainerPartsList 	= TypeList<
-            bt::BranchFixedName,
-            bt::InsertBatchFixedName
+            btcow::BranchFixedName
     >;
 
     using VariableBranchContainerPartsList 	= TypeList<
-            bt::BranchVariableName,
-            bt::InsertBatchVariableName
+            btcow::BranchVariableName
     >;
 
     using FixedLeafContainerPartsList 		= TypeList<
-            bt::LeafFixedName
+            btcow::LeafFixedName
     >;
 
     using VariableLeafContainerPartsList 	= TypeList<
-            bt::LeafVariableName
+            btcow::LeafVariableName
     >;
     
     using CommonContainerPartsList 		 	= TypeList<>;
@@ -260,7 +269,7 @@ public:
     using Position_         = core::StaticVector<typename ContainerTypes::CtrSizeT, Streams>;
     using Page              = typename ContainerTypes::Allocator::Page;
 
-    using NodePageBase0     = TreeNodeBase<typename ContainerTypes::Metadata, Page>;
+    using NodePageBase0     = btcow::TreeNodeBase<typename ContainerTypes::Metadata, Page>;
     using NodePageBase0G    = PageGuard<NodePageBase0, typename ContainerTypes::Allocator>;
 
     using CtrSizeT                  = typename ContainerTypes::CtrSizeT;
@@ -304,6 +313,9 @@ public:
         using IteratorBranchNodeEntry   = typename MyType::IteratorBranchNodeEntry;
         using StreamsInputTypeList      = typename MyType::StreamsInputTypeList;
         using InputBufferStructList     = typename MyType::InputBufferStructList;
+
+        template <typename Metadata, typename NodeBase>
+        using TreeNodeBaseTF = btcow::TreeNodeBase<Metadata, NodeBase>;
     };
 
     struct BranchNodeTypes: NodeTypesBase {
@@ -375,8 +387,10 @@ public:
 
         // FIXME Refactor BTree hierarchy
         // Use container types as base definitions
-        typedef BTCtrTypes<Types>                                               CtrTypes;
-        typedef BTIterTypes<Types>                                              IterTypes;
+        using CtrTypes  = BTCowCtrTypes<Types>;
+        using IterTypes = BTCowIterTypes<Types>;
+
+        using TreePath = core::StaticArray<NodeBaseG, 8>;
 
         static constexpr Int Streams = MyType::Streams;
 

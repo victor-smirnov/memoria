@@ -1,5 +1,5 @@
 
-// Copyright 2011 Victor Smirnov
+// Copyright 2017 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ public:
 
     using typename Base::Allocator;
 
+    using typename Base::ID;
     using typename Base::NodeBaseG;
     using typename Base::Iterator;
     using typename Base::IteratorPtr;
@@ -45,6 +46,9 @@ public:
     using typename Base::NodeDispatcher;
     using typename Base::LeafDispatcher;
     using typename Base::BranchDispatcher;
+
+	using TreePath = typename TypesType::TreePath;
+
 
     using LeafStreamsStructList = typename Types::LeafStreamsStructList;
 
@@ -176,15 +180,15 @@ protected:
         explicit FindResult(NodeBaseG _node, Int _idx, WalkCmd _cmd, bool _pass = true): node(_node), idx(_idx), pass(_pass), cmd(_cmd) {}
     };
 
-    template <typename Walker>
-    StreamOpResult find_fw(NodeBaseG& node, Int stream, Int idx, Walker&& walker);
+//    template <typename Walker>
+//    StreamOpResult find_fw(NodeBaseG& node, Int stream, Int idx, Walker&& walker);
 
     template <typename Walker>
-    FindResult find_fw(NodeChain node_chain, Walker&& walker, WalkDirection direction = WalkDirection::UP);
+    FindResult find_fw(TreePath& path, Int level, NodeChain node_chain, Walker&& walker, WalkDirection direction = WalkDirection::UP);
 
 
     template <typename Walker>
-    FindResult find_bw(NodeChain node_chain, Walker&& walker, WalkDirection direction = WalkDirection::UP);
+    FindResult find_bw(TreePath& path, Int level, NodeChain node_chain, Walker&& walker, WalkDirection direction = WalkDirection::UP);
 
     template <Int Stream>
     IteratorPtr seek_stream(CtrSizeT position)
@@ -228,7 +232,7 @@ MEMORIA_V1_CONTAINER_PART_END
 
 M_PARAMS
 template <typename Walker>
-typename M_TYPE::FindResult M_TYPE::find_fw(NodeChain node_chain, Walker&& walker, WalkDirection direction)
+typename M_TYPE::FindResult M_TYPE::find_fw(TreePath& path, Int level, NodeChain node_chain, Walker&& walker, WalkDirection direction)
 {
     auto& self = this->self();
 
@@ -249,15 +253,16 @@ typename M_TYPE::FindResult M_TYPE::find_fw(NodeChain node_chain, Walker&& walke
             }
             else {
                 auto child = self.getChild(node, result.idx());
-                return find_fw(NodeChain(child, 0, &node_chain), std::forward<Walker>(walker), WalkDirection::DOWN);
+                path[level - 1] = child;
+                return find_fw(path, level - 1, NodeChain(child, 0, &node_chain), std::forward<Walker>(walker), WalkDirection::DOWN);
             }
         }
         else {
             if (!node_chain.node->is_root())
             {
-                auto parent         = self.getNodeParent(node);
-                auto parent_idx     = node->parent_idx() + 1;
-                auto parent_result  = find_fw(NodeChain(parent, parent_idx, &node_chain), std::forward<Walker>(walker), WalkDirection::UP);
+                auto parent         = path[level + 1];
+                auto parent_idx     = self.findChildIdx(parent, node) + 1;
+                auto parent_result  = find_fw(path, level + 1, NodeChain(parent, parent_idx, &node_chain), std::forward<Walker>(walker), WalkDirection::UP);
 
                 if (parent_result.pass)
                 {
@@ -276,7 +281,8 @@ typename M_TYPE::FindResult M_TYPE::find_fw(NodeChain node_chain, Walker&& walke
                 node_chain.end = result.idx() - 1;
 
                 auto child = self.getChild(node, result.idx() - 1);
-                return find_fw(NodeChain(child, 0, &node_chain), std::forward<Walker>(walker), WalkDirection::DOWN);
+                path[level - 1] = child;
+                return find_fw(path, level - 1, NodeChain(child, 0, &node_chain), std::forward<Walker>(walker), WalkDirection::DOWN);
             }
             else {
                 return FindResult(node, start, WalkCmd::NONE, false);
@@ -291,7 +297,8 @@ typename M_TYPE::FindResult M_TYPE::find_fw(NodeChain node_chain, Walker&& walke
     else if (!result.out_of_range())
     {
         auto child = self.getChild(node_chain.node, result.idx());
-        return find_fw(NodeChain(child, 0, &node_chain), std::forward<Walker>(walker), WalkDirection::DOWN);
+        path[level - 1] = child;
+        return find_fw(path, level - 1, NodeChain(child, 0, &node_chain), std::forward<Walker>(walker), WalkDirection::DOWN);
     }
     else
     {
@@ -299,7 +306,8 @@ typename M_TYPE::FindResult M_TYPE::find_fw(NodeChain node_chain, Walker&& walke
         node_chain.end = result.idx() - 1;
 
         auto child = self.getChild(node_chain.node, result.idx() - 1);
-        return find_fw(NodeChain(child, 0, &node_chain), std::forward<Walker>(walker), WalkDirection::DOWN);
+        path[level - 1] = child;
+        return find_fw(path, level - 1, NodeChain(child, 0, &node_chain), std::forward<Walker>(walker), WalkDirection::DOWN);
     }
 }
 
@@ -308,7 +316,7 @@ typename M_TYPE::FindResult M_TYPE::find_fw(NodeChain node_chain, Walker&& walke
 
 M_PARAMS
 template <typename Walker>
-typename M_TYPE::FindResult M_TYPE::find_bw(NodeChain node_chain, Walker&& walker, WalkDirection direction)
+typename M_TYPE::FindResult M_TYPE::find_bw(TreePath& path, Int level, NodeChain node_chain, Walker&& walker, WalkDirection direction)
 {
     auto& self = this->self();
 
@@ -328,15 +336,16 @@ typename M_TYPE::FindResult M_TYPE::find_bw(NodeChain node_chain, Walker&& walke
             }
             else {
                 auto child = self.getChild(node_chain.node, result.idx());
-                return find_bw(NodeChain(child, max, &node_chain), std::forward<Walker>(walker), WalkDirection::DOWN);
+                path[level - 1] = child;
+                return find_bw(path, level - 1, NodeChain(child, max, &node_chain), std::forward<Walker>(walker), WalkDirection::DOWN);
             }
         }
         else {
             if (!node_chain.node->is_root())
             {
-                auto parent         = self.getNodeParent(node_chain.node);
-                auto parent_idx     = node_chain.node->parent_idx() - 1;
-                auto parent_result  = find_bw(NodeChain(parent, parent_idx, &node_chain), std::forward<Walker>(walker), WalkDirection::UP);
+                auto parent         = path[level + 1];
+                auto parent_idx     = self.findChildIdx(parent, node_chain.node) - 1;
+                auto parent_result  = find_bw(path, level + 1, NodeChain(parent, parent_idx, &node_chain), std::forward<Walker>(walker), WalkDirection::UP);
 
                 if (parent_result.pass)
                 {
@@ -355,7 +364,9 @@ typename M_TYPE::FindResult M_TYPE::find_bw(NodeChain node_chain, Walker&& walke
                 node_chain.end = result.idx();
 
                 auto child = self.getChild(node_chain.node, result.idx() + 1);
-                return find_bw(NodeChain(child, max, &node_chain), std::forward<Walker>(walker), WalkDirection::DOWN);
+                path[level - 1] = child;
+
+                return find_bw(path, level - 1, NodeChain(child, max, &node_chain), std::forward<Walker>(walker), WalkDirection::DOWN);
             }
             else {
                 return FindResult(node_chain.node, node_chain.start, WalkCmd::NONE, false);
@@ -370,7 +381,8 @@ typename M_TYPE::FindResult M_TYPE::find_bw(NodeChain node_chain, Walker&& walke
     else if (!result.out_of_range())
     {
         auto child = self.getChild(node_chain.node, result.idx());
-        return find_bw(NodeChain(child, max, &node_chain), std::forward<Walker>(walker), WalkDirection::DOWN);
+        path[level - 1] = child;
+        return find_bw(path, level - 1, NodeChain(child, max, &node_chain), std::forward<Walker>(walker), WalkDirection::DOWN);
     }
     else
     {
@@ -378,7 +390,9 @@ typename M_TYPE::FindResult M_TYPE::find_bw(NodeChain node_chain, Walker&& walke
         node_chain.end = result.idx();
 
         auto child = self.getChild(node_chain.node, result.idx() + 1);
-        return find_bw(NodeChain(child, max, &node_chain), std::forward<Walker>(walker), WalkDirection::DOWN);
+        path[child - 1] = child;
+
+        return find_bw(path, level - 1, NodeChain(child, max, &node_chain), std::forward<Walker>(walker), WalkDirection::DOWN);
     }
 }
 

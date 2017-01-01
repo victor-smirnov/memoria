@@ -302,6 +302,9 @@ public:
         using IteratorBranchNodeEntry   = typename MyType::IteratorBranchNodeEntry;
         using StreamsInputTypeList      = typename MyType::StreamsInputTypeList;
         using InputBufferStructList     = typename MyType::InputBufferStructList;
+
+        template <typename Metadata, typename NodeBase>
+        using TreeNodeBaseTF = bt::TreeNodeBase<Metadata, NodeBase>;
     };
 
     struct BranchNodeTypes: NodeTypesBase {

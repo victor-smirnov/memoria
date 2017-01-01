@@ -16,7 +16,7 @@
 
 #include <memoria/v1/memoria.hpp>
 
-#include <memoria/v1/containers/map/map_factory.hpp>
+#include <memoria/v1/containers/cow_map/cowmap_factory.hpp>
 
 #include <memoria/v1/prototypes/bt_cow/btcow_factory.hpp>
 
@@ -34,7 +34,7 @@ int main() {
     using Key   = BigInt;
     using Value = BigInt;
 
-    DInit<Map<Key, Value>>();
+    DInit<CowMap<Key, Value>>();
 
     try {
         auto alloc = PersistentInMemAllocator<>::create();

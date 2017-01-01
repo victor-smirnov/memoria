@@ -324,7 +324,7 @@ public:
 template <
     typename Types
 >
-class BranchNode: public TreeNodeBase<typename Types::Metadata, typename Types::NodeBase>
+class BranchNode: public Types::template TreeNodeBaseTF<typename Types::Metadata, typename Types::NodeBase>
 {
 
 //    static_assert(
@@ -341,14 +341,11 @@ public:
 
     static const bool Leaf                                                      = false;
 
-    typedef TreeNodeBase<
-        typename Types::Metadata,
-        typename Types::NodeBase
-    >                                                                           Base;
+    using Base = typename Types::template TreeNodeBaseTF<typename Types::Metadata, typename Types::NodeBase>;
 
 public:
 
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
+    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     typedef typename Types::ID                                                  Value;

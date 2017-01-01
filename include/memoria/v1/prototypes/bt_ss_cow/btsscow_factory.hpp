@@ -16,56 +16,52 @@
 
 #pragma once
 
-#include <memoria/v1/prototypes/bt/bt_factory.hpp>
+#include <memoria/v1/prototypes/bt_cow/btcow_factory.hpp>
 
 #include <memoria/v1/prototypes/bt_ss/btss_input.hpp>
 
-#include <memoria/v1/prototypes/bt_ss/btss_names.hpp>
-#include <memoria/v1/prototypes/bt_ss/btss_iterator.hpp>
-
-
-
-#include <memoria/v1/prototypes/bt_ss/container/btss_c_leaf_common.hpp>
-#include <memoria/v1/prototypes/bt_ss/container/btss_c_leaf_fixed.hpp>
-#include <memoria/v1/prototypes/bt_ss/container/btss_c_leaf_variable.hpp>
-#include <memoria/v1/prototypes/bt_ss/container/btss_c_find.hpp>
-
-#include <memoria/v1/prototypes/bt_ss/iterator/btss_i_misc.hpp>
-
 #include <tuple>
+
+#include "btsscow_iterator.hpp"
+#include "btsscow_names.hpp"
+#include "container/btsscow_c_find.hpp"
+#include "container/btsscow_c_leaf_common.hpp"
+#include "container/btsscow_c_leaf_fixed.hpp"
+#include "container/btsscow_c_leaf_variable.hpp"
+#include "iterator/btsscow_i_misc.hpp"
 
 namespace memoria {
 namespace v1 {
 
-struct BTSingleStream {};
+struct BTCowSingleStream {};
 
 template <
     typename Profile
 >
-struct BTTypes<Profile, v1::BTSingleStream>: public BTTypes<Profile, v1::BT> {
+struct BTCowTypes<Profile, v1::BTCowSingleStream>: public BTCowTypes<Profile, v1::BTCow> {
 
-    using Base = BTTypes<Profile, v1::BT>;
+    using Base = BTCowTypes<Profile, v1::BT>;
 
     using CommonContainerPartsList = MergeLists<
                 typename Base::CommonContainerPartsList,
-                v1::btss::LeafCommonName,
-                v1::btss::FindName
+                v1::btss_cow::LeafCommonName,
+                v1::btss_cow::FindName
     >;
 
     using FixedLeafContainerPartsList = MergeLists<
                 typename Base::FixedLeafContainerPartsList,
-                v1::btss::LeafFixedName
+                v1::btss_cow::LeafFixedName
     >;
 
 
     using VariableLeafContainerPartsList = MergeLists<
                 typename Base::VariableLeafContainerPartsList,
-                v1::btss::LeafVariableName
+                v1::btss_cow::LeafVariableName
     >;
 
     using IteratorPartsList = MergeLists<
                 typename Base::IteratorPartsList,
-                v1::btss::IteratorMiscName
+                v1::btss_cow::IteratorMiscName
     >;
 
 };
@@ -74,15 +70,15 @@ struct BTTypes<Profile, v1::BTSingleStream>: public BTTypes<Profile, v1::BT> {
 
 
 template <typename Profile, typename T>
-class CtrTF<Profile, v1::BTSingleStream, T>: public CtrTF<Profile, v1::BT, T> {
+class CtrTF<Profile, v1::BTCowSingleStream, T>: public CtrTF<Profile, v1::BTCow, T> {
 
-    using Base = CtrTF<Profile, v1::BT, T>;
+    using Base = CtrTF<Profile, v1::BTCow, T>;
 public:
 
     struct Types: Base::Types
     {
-        using CtrTypes          = BTSSCtrTypes<Types>;
-        using IterTypes         = BTSSIterTypes<Types>;
+        using CtrTypes          = BTCowSSCtrTypes<Types>;
+        using IterTypes         = BTCowSSIterTypes<Types>;
 
         using PageUpdateMgr     = PageUpdateManager<CtrTypes>;
     };
