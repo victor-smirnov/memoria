@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <memoria/v1/prototypes/bt/bt_names.hpp>
+
 #include <memoria/v1/prototypes/ctr_wrapper/container/ctrwrp_c_base.hpp>
 #include <memoria/v1/prototypes/ctr_wrapper/iterator/ctrwrp_i_base.hpp>
 
@@ -65,7 +67,7 @@ class CtrTF<Profile_, CtrWrapper<CtrName>, T> {
 public:
 
     struct Types: TypesBase {
-        typedef MyType::Allocator                           Allocator;
+        using Allocator = typename MyType::Allocator;
     };
 };
 

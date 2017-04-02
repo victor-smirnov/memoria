@@ -67,11 +67,11 @@ protected:
 enum class OpenMode: Int {
     READ = 1, WRITE = 2, CREATE = 4, TRUNC = 8,
 
-    RW = OpenMode::READ | OpenMode::WRITE,
+    RW = READ | WRITE,
 
-    RWC = OpenMode::RW | OpenMode::CREATE,
+    RWC = RW | CREATE,
 
-    RWCT = OpenMode::RWC | OpenMode::TRUNC
+    RWCT = RWC | TRUNC
 };
 
 

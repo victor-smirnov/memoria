@@ -14,29 +14,29 @@
 // limitations under the License.
 
 
+#include <memoria/v1/memoria.hpp>
+//#include <memoria/v1/containers/set/set_factory.hpp>
+
+#include <memoria/v1/core/tools/time.hpp>
+#include <memoria/v1/core/tools/random.hpp>
+#include <memoria/v1/core/tools/uuid.hpp>
+
+
 
 #include <typeinfo>
 #include <iostream>
 
-#include <memoria/v1/core/types/types.hpp>
-#include <memoria/v1/core/tools/type_name.hpp>
-#include <memoria/v1/core/types/list/append.hpp>
-#include <memoria/v1/core/types/algo/select.hpp>
-#include <memoria/v1/core/tools/md5.hpp>
-#include <memoria/v1/core/types/typehash.hpp>
+using namespace memoria::v1;
 
-#include <memoria/v1/core/tools/time.hpp>
-#include <memoria/v1/core/tools/uuid.hpp>
-
-using namespace std;
-using namespace memoria;
 
 int main(void) {
 
-    auto t0 = getTimeInMillis();
+	MEMORIA_INIT(DefaultProfile<>);
+
+	auto t0 = getTimeInMillis();
 
     for (Int c = 0; c < 10; c++) {
-        cout<<UUID::make_random()<<endl;
+        cout<<memoria::v1::UUID::make_random()<<endl;
     }
 
     auto t1 = getTimeInMillis();

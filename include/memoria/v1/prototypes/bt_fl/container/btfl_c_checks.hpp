@@ -31,7 +31,7 @@ namespace v1 {
 MEMORIA_V1_CONTAINER_PART_BEGIN(v1::btfl::ChecksName)
 
 public:
-    using typename Base::Types;
+    using Types = typename Base::Types;
     using typename Base::IteratorPtr;
 
 protected:

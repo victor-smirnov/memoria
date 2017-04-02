@@ -81,7 +81,7 @@ public:
     struct Types: public ContainerTypes
     {
         typedef Profile_                                        Profile;
-        typedef MyType::Allocator                               Allocator;
+        using Allocator = typename MyType::Allocator;
 
         typedef VTreeCtrTypes<Types>                            CtrTypes;
         typedef VTreeIterTypes<Types>                           IterTypes;

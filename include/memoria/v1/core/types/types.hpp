@@ -23,6 +23,24 @@
 #include <cassert>
 #include <cstdint>
 
+#ifdef _MSC_VER
+#include <windows.h>
+//#include <intrin.h>
+
+#pragma warning( disable : 4267)
+#pragma warning( disable : 4146)
+#pragma warning( disable : 4307)
+#pragma warning( disable : 4200)
+
+#ifdef max
+#undef max
+#endif
+
+#ifdef min
+#undef min
+#endif
+
+#endif
 
 #include <type_traits>
 #include <tuple>
@@ -515,5 +533,78 @@ enum class MemoryAccess {
 
 
 template <typename T> struct TypeTag {};
+
+#ifdef _MSC_VER
+
+#define MEMORIA_V1_ALWAYS_INLINE 
+
+
+
+
+constexpr uint32_t __inline __builtin_ctz(uint32_t value)
+{
+	/*DWORD trailing_zero = 0;
+
+	if (_BitScanForward(&trailing_zero, value))
+	{
+		return trailing_zero;
+	}
+	else
+	{
+		return 32;
+	}*/
+	return 0;
+}
+
+constexpr uint32_t __inline __builtin_ctzll(uint64_t value)
+{
+	/*DWORD trailing_zero = 0;
+
+	if (_BitScanForward64(&trailing_zero, value))
+	{
+		return trailing_zero;
+	}
+	else
+	{
+		return 64;
+	}*/
+	return 0;
+}
+
+constexpr uint32_t __inline __builtin_clz(uint32_t value)
+{
+	/*DWORD leading_zero = 0;
+
+	if (_BitScanReverse(&leading_zero, value))
+	{
+		return 31 - leading_zero;
+	}
+	else
+	{
+		return 32;
+	}*/
+	return 0;
+}
+
+constexpr uint32_t __inline __builtin_clzll(uint64_t value)
+{
+	/*DWORD leading_zero = 0;
+
+	if (_BitScanReverse64(&leading_zero, value))
+	{
+		return 63 - leading_zero;
+	}
+	else
+	{
+		return 64;
+	}*/
+	return 0;
+}
+
+
+#else 
+#define MEMORIA_V1_ALWAYS_INLINE __attribute__((always_inline))
+#endif
+
 
 }}

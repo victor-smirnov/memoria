@@ -66,7 +66,7 @@ String getErrorMsg(DWORD err_code)
 }
 
 String getErrorMsg() {
-    return getErrorMsg(getLastError());
+    return getErrorMsg(GetLastError());
 }
 
 
@@ -82,7 +82,7 @@ File::FileListType::~FileListType() noexcept {
 BigInt File::size() const
 {
     WIN32_FILE_ATTRIBUTE_DATA   fileInfo;
-    bool fOk = getFileAttributesEx(path_.c_str(), getFileExInfoStandard, &fileInfo);
+    bool fOk = GetFileAttributesEx(path_.c_str(), GetFileExInfoStandard, &fileInfo);
 
     if (fOk)
     {
@@ -95,7 +95,7 @@ BigInt File::size() const
 
 bool is_directory(StringRef name, bool throw_ex)
 {
-    DWORD result = getFileAttributes(name.c_str());
+    DWORD result = GetFileAttributes(name.c_str());
 
     if (result != INVALID_FILE_ATTRIBUTES)
     {
@@ -116,7 +116,7 @@ bool File::isDirectory() const
 
 bool File::isExists() const
 {
-    return getFileAttributes(path_.c_str()) != INVALID_FILE_ATTRIBUTES;
+    return GetFileAttributes(path_.c_str()) != INVALID_FILE_ATTRIBUTES;
 }
 
 String File::getAbsolutePath() const
@@ -127,7 +127,7 @@ String File::getAbsolutePath() const
     }
     else {
         char buf[8192];
-        if (getCurrentDirectory(sizeof(buf) - 1, buf))
+        if (GetCurrentDirectory(sizeof(buf) - 1, buf))
         {
             return String(buf)+"/"+path_;
         }
@@ -139,12 +139,12 @@ String File::getAbsolutePath() const
 
 bool mkdir(StringRef name)
 {
-    bool result = createDirectory(name.c_str(), NULL);
+    bool result = CreateDirectory(name.c_str(), NULL);
     if (result)
     {
         return true;
     }
-    else if (getLastError() == ERROR_ALREADY_EXISTS)
+    else if (GetLastError() == ERROR_ALREADY_EXISTS)
     {
         return File(name).isDirectory();
     }
@@ -187,7 +187,7 @@ bool File::mkDirs() const
     return true;
 }
 
-void File::Rename(StringRef new_name)
+void File::rename(StringRef new_name)
 {
     if (!MoveFile(path_.c_str(), new_name.c_str()))
     {
@@ -200,10 +200,10 @@ bool File::deleteFile() const
 {
     if (isDirectory())
     {
-        return removeDirectory(path_.c_str());
+        return RemoveDirectory(path_.c_str());
     }
     else {
-        return deleteFileFile(path_.c_str());
+        return DeleteFile(path_.c_str());
     }
 }
 
@@ -271,7 +271,7 @@ File::FileListType* File::readDir(const File& file)
         {
             char buf[8192];
             sprintf_s(buf, sizeof(buf), "%s\\*", file.getAbsolutePath().c_str());
-            if((dhandle = findFirstFile(buf, &fdata)) == INVALID_HANDLE_VALUE)
+            if((dhandle = FindFirstFile(buf, &fdata)) == INVALID_HANDLE_VALUE)
             {
                 delete list;
                 ThrowFE(MEMORIA_SOURCE, file);
@@ -288,7 +288,7 @@ File::FileListType* File::readDir(const File& file)
 
         while(1)
         {
-            if(findNextFile(dhandle, &fdata))
+            if(FindNextFile(dhandle, &fdata))
             {
                 String st(fdata.cFileName);
                 if (st != "." && st != "..")
@@ -297,23 +297,25 @@ File::FileListType* File::readDir(const File& file)
                 }
             }
             else {
-                if(getLastError() == ERROR_NO_MORE_FILES)
+                if(GetLastError() == ERROR_NO_MORE_FILES)
                 {
                     break;
                 }
                 else {
-                    findClose(dhandle);
+                    FindClose(dhandle);
                     delete list;
                     ThrowFE(MEMORIA_SOURCE, file);
                 }
             }
         }
 
-        if(findClose(dhandle) == 0)
+        if(FindClose(dhandle) == 0)
         {
             delete list;
             ThrowFE(MEMORIA_SOURCE, file);
         }
+
+		return list;
     }
     else
     {
@@ -335,7 +337,7 @@ inline String replace(String& text, StringRef from, StringRef to, bool& action)
 }
 
 
-String File::NormalizePath(StringRef path)
+String File::normalizePath(StringRef path)
 {
     if (path.find("/") == String::npos)
     {

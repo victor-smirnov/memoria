@@ -359,7 +359,7 @@ class PageShared {
 
 public:
 
-    enum {UNDEFINED, READ, UPDATE, DELETE};
+    enum {UNDEFINED, READ, UPDATE, _DELETE};
 
     template <typename Page>
     const Page* page() const {

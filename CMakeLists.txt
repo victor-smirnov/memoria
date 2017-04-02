@@ -18,6 +18,9 @@ project (Memoria)
 
 set(VERSION "0.1.0")
 
+
+set(CMAKE_CXX_STANDARD 14)
+
 set(CPACK_PACKAGE_VERSION ${VERSION})
 set(CPACK_GENERATOR "RPM")
 set(CPACK_PACKAGE_NAME "memoria")
@@ -121,7 +124,7 @@ if (CMAKE_COMPILER_IS_GNUCXX OR CLANG_COMPILER OR MINGW)
     SET(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)
     SET(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS)
 
-    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -std=c++14 -Wall -Wno-sign-compare -lrpcrt4")
+    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -std=c++14 -Wall -Wno-sign-compare -lrpcrt4 -Wa,-mbig-obj")
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors  -ftemplate-backtrace-limit=0 ${PROFILE}") #-fsanitize=undefined -fno-sanitize-recover
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -Wcomment -Wunused-variable -Wno-unused-function -Wno-unneeded-internal-declaration")
     
@@ -145,7 +148,8 @@ if (CMAKE_COMPILER_IS_GNUCXX OR CLANG_COMPILER OR MINGW)
     endif()
     
 else()
-    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} /W3")
+    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} /W3 /std:c++14 -DWIN32_LEAN_AND_MEAN")
+    set (MEMORIA_LIBS "${MEMORIA_LIBS}" rpcrt4 )
 endif()
 
 if (EMIT_LLVM)

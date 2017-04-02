@@ -94,7 +94,7 @@ class SequenceInputProviderBase: public v1::btss::AbstractBTSSInputProvider<CtrT
 
 public:
 
-    using typename Base::InputBuffer;
+    using InputBuffer = typename Base::InputBuffer;
 
     using SequenceInputBuffer = typename InputBuffer::template StreamTypeT<1>;
 
@@ -197,7 +197,7 @@ class SymbolSequenceInputProvider: public SequenceInputProviderBase<CtrT> {
 
 public:
 
-    using typename Base::SequenceInputBuffer;
+    using SequenceInputBuffer = typename Base::SequenceInputBuffer;
     using Symbols = typename SequenceInputBuffer::Value;
 
     static constexpr Int BitsPerSymbol = CtrT::Types::BitsPerSymbol;

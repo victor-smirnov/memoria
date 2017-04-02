@@ -30,7 +30,7 @@ endif()
 
 
 if (NOT DEFINED BUILD_TESTS)
-    set(BUILD_TESTS true)
+    set(BUILD_TESTS false)
 endif()
 
 if (NOT DEFINED BUILD_BENCHMARKS)

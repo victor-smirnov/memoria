@@ -84,53 +84,53 @@ ContainerMetadataRepository* MetadataRepository<Profile>::metadata_ = NULL;
 template <typename Profile>
 typename MetadataRepository<Profile>::MutexT MetadataRepository<Profile>::mutex_;
 
+namespace details {
+
+	template <
+		template <int> class Decl,
+		int Value = 100,
+		typename List = TypeList<>
+	>
+		class SimpleOrderedBuilder {
+		typedef typename Decl<Value>::Type                          DeclType;
+
+		typedef IfThenElse<
+			IfTypesEqual<DeclType, NotDefined>::Value,
+			List,
+			typename AppendTool<DeclType, List>::Type
+		>                                                           NewList;
+
+		public:
+			typedef typename SimpleOrderedBuilder<Decl, Value - 1, NewList>::Type   Type;
+	};
+
+	template <
+		template <int> class Decl,
+		typename List
+	>
+		class SimpleOrderedBuilder<Decl, -1, List> {
+		public:
+			typedef List Type;
+	};
+
+	typedef SimpleOrderedBuilder<CtrNameDeclarator> CtrNameListBuilder;
 
 
-template <
-    template <int> class Decl,
-    int Value = 100,
-    typename List = TypeList<>
->
-class SimpleOrderedBuilder {
-    typedef typename Decl<Value>::Type                          DeclType;
+	template <typename ProfileType, typename NameList>
+	struct CtrListInitializer {
+		static void init() {
+			CtrTF<ProfileType, typename ListHead<NameList>::Type>::Type::initMetadata();
 
-    typedef IfThenElse<
-        IfTypesEqual<DeclType, NotDefined>::Value,
-        List,
-        typename AppendTool<DeclType, List>::Type
-    >                                                           NewList;
+			CtrListInitializer<ProfileType, typename ListTail<NameList>::Type>::init();
+		}
+	};
 
-public:
-    typedef typename SimpleOrderedBuilder<Decl, Value - 1, NewList>::Type   Type;
-};
+	template <typename ProfileType>
+	struct CtrListInitializer<ProfileType, TypeList<> > {
+		static void init() {}
+	};
 
-template <
-    template <int> class Decl,
-    typename List
->
-class SimpleOrderedBuilder<Decl, -1, List> {
-public:
-    typedef List Type;
-};
-
-typedef SimpleOrderedBuilder<CtrNameDeclarator> CtrNameListBuilder;
-
-
-template <typename ProfileType, typename NameList>
-struct CtrListInitializer {
-    static void init() {
-        CtrTF<ProfileType, typename ListHead<NameList>::Type>::Type::initMetadata();
-
-        CtrListInitializer<ProfileType, typename ListTail<NameList>::Type>::init();
-    }
-};
-
-template <typename ProfileType>
-struct CtrListInitializer<ProfileType, TypeList<> > {
-    static void init() {}
-};
-
-
+}
 
 
 
@@ -142,16 +142,16 @@ template <
         int Value,
         typename List
     >
-    class CtrListBuilder = SimpleOrderedBuilder
+    class CtrListBuilder = memoria::v1::details::SimpleOrderedBuilder
 >
 class MetadataInitializer {
-    typedef typename CtrListBuilder<CtrNameDeclarator, 100, TypeList<> >::Type CtrNameList;
+    using CtrNameList = typename CtrListBuilder<CtrNameDeclarator, 100, TypeList<> >::Type;
 
 public:
     static void init() {
         MetadataRepository<Profile>::init();
 
-        CtrListInitializer<Profile, CtrNameList>::init();
+		memoria::v1::details::CtrListInitializer<Profile, CtrNameList>::init();
     }
 };
 

@@ -17,6 +17,8 @@
 
 #pragma once
 
+#include <memoria/v1/prototypes/bt/bt_names.hpp>
+
 #include <memoria/v1/prototypes/composite/comp_names.hpp>
 #include <memoria/v1/core/container/container.hpp>
 
@@ -54,15 +56,15 @@ struct CompositeTypes {
 template <typename Profile_, typename T>
 class CtrTF<Profile_, v1::Composite, T> {
 
-    typedef CtrTF<Profile_, Composite, T>                                       MyType;
+    using MyType = CtrTF<Profile_, Composite, T>;
 
-    typedef typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator Allocator;
+    using Allocator = typename ContainerCollectionCfg<Profile_>::Types::AbstractAllocator;
 
 public:
 
     struct Types {
         typedef Profile_                                    Profile;
-        typedef MyType::Allocator                           Allocator;
+		using Allocator = typename MyType::Allocator;
 
         typedef CtrTypesT<Types>                            CtrTypes;
         typedef IterTypesT<Types>                           IterTypes;

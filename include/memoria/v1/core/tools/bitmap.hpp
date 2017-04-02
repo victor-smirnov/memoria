@@ -424,7 +424,7 @@ SetBits0(Buffer& buf, size_t idx, typename intrnl::ElementT<Buffer>::Type bits, 
 
 template <typename Buffer>
 typename intrnl::ElementT<Buffer>::Type
-__attribute__((always_inline))
+MEMORIA_V1_ALWAYS_INLINE
 inline GetBits0(const Buffer& buf, size_t idx, Int nbits)
 {
     typedef typename intrnl::ElementT<Buffer>::Type T;
@@ -534,7 +534,7 @@ void SetBits(Buffer& buf, size_t idx, typename intrnl::ElementT<Buffer>::Type bi
 
 template <typename Buffer>
 typename intrnl::ElementT<Buffer>::Type
-__attribute__((always_inline)) inline
+MEMORIA_V1_ALWAYS_INLINE inline
 GetBits(const Buffer& buf, size_t idx, Int nbits)
 {
     typedef typename intrnl::ElementT<Buffer>::Type T;
@@ -889,7 +889,7 @@ inline constexpr Int CountTrailingZeroes(UBigInt value) {
 
 
 template <typename T>
-__attribute__((always_inline))  inline size_t CountTrailingZeroes(const T* buf, size_t pos, size_t limit)
+MEMORIA_V1_ALWAYS_INLINE inline size_t CountTrailingZeroes(const T* buf, size_t pos, size_t limit)
 {
     size_t bitsize      = TypeBitsize<T>();
     size_t mask         = TypeBitmask<T>();

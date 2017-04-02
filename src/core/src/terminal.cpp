@@ -16,7 +16,10 @@
 #include <memoria/v1/core/tools/strings/string.hpp>
 #include <memoria/v1/core/tools/terminal.hpp>
 
+#ifndef _MSC_VER
 #include <unistd.h>
+#endif
+
 #include <string>
 #include <iostream>
 #include <sys/timeb.h>
@@ -24,7 +27,7 @@
 
 namespace memoria {
 namespace v1 {
-namespace tools     {
+namespace tools {
 
 using namespace std;
 
@@ -44,6 +47,7 @@ MonochomeTerminal   mono_terminal_;
 LinuxTerminal       linux_terminal_;
 
 
+
 void Term::init(int argc, const char** argv, const char** envp)
 {
     bool color_term = false;
@@ -59,7 +63,7 @@ void Term::init(int argc, const char** argv, const char** envp)
         }
     }
 
-    if (color_term && isatty(1))
+    if (color_term && IsATTY(1))
     {
         term_ = & linux_terminal_;
     }

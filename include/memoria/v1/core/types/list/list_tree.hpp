@@ -209,7 +209,7 @@ using AddToValueList = typename AddToValueListH<V, VList>::Type;
 
 template <typename List, Int LeafIdx, typename Path = IntList<>, Int Idx = 0> struct BuildTreePath;
 
-namespace detail {
+namespace details {
 
 template <bool Condition, typename List, Int LeafIdx, typename Path, Int Idx> struct BuildTreePathHelper1;
 template <bool Condition, typename List, Int LeafIdx, typename Path, Int Idx> struct BuildTreePathHelper2;
@@ -266,7 +266,7 @@ template <
 struct BuildTreePath<TypeList<TypeList<Head...>, Tail...>, LeafIdx, IntList<PathList...>, Idx> {
     static const Int SubtreeSize = ListSize<Linearize<TypeList<Head...>>>::Value;
 
-    using Type = typename detail::BuildTreePathHelper2<
+    using Type = typename details::BuildTreePathHelper2<
             (LeafIdx < SubtreeSize),
             TypeList<TypeList<Head...>, Tail...>,
             LeafIdx,
@@ -284,7 +284,7 @@ template <
     Int Idx
 >
 struct BuildTreePath<TypeList<Head, Tail...>, LeafIdx, IntList<PathList...>, Idx> {
-    using Type = typename detail::BuildTreePathHelper1<
+    using Type = typename details::BuildTreePathHelper1<
             (LeafIdx < 1),
             TypeList<Tail...>,
             LeafIdx,

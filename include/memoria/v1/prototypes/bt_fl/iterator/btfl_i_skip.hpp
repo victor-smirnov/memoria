@@ -33,7 +33,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorSkipName)
 
     using typename Base::CtrSizeT;
     using typename Base::CtrSizesT;
-    using typename Base::Container;
+    using Container = typename Base::Container;
 
     using typename Base::LeafDispatcher;
 

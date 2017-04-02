@@ -354,7 +354,7 @@ public:
     template <typename Node, typename... Args>
     void processLeafIteratorBranchNodeEntry(Node* node, IteratorBranchNodeEntry&accum, Args&&... args)
     {
-        detail::LeafAccumWalker<
+        details::LeafAccumWalker<
             LeafStructList,
             LeafRangeList,
             LeafRangeOffsetList,
@@ -375,7 +375,7 @@ public:
         template <Int StreamIdx, typename Node, typename Walker, typename Accum, typename... Args>
         static bool process(Node* node, Walker&& walker, Accum&& accum, Args&&... args)
         {
-            detail::LeafAccumWalker<
+            details::LeafAccumWalker<
                 LeafStructList,
                 LeafRangeList,
                 LeafRangeOffsetList,
@@ -406,7 +406,7 @@ public:
     {
         using ItrAccList = v1::list_tree::MakeValueList<Int, 0, Node::Streams>;
 
-        detail::IteratorStreamRangesListWalker<
+        details::IteratorStreamRangesListWalker<
             ItrAccList
         >::
         process(self(), node, branch_BranchNodeEntry(), std::forward<Args>(args)...);

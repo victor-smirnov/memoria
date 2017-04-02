@@ -34,8 +34,8 @@ using namespace std;
 MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::InsertBatchFixedName)
 
 public:
-    using typename Base::Types;
-    using typename Base::Allocator;
+    using Types = typename Base::Types;
+    using Allocator = typename Base::Allocator;
 
 protected:
     typedef typename Base::ID                                                   ID;

@@ -32,11 +32,11 @@ MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::FindName)
 public:
     using Types = TypesType;
 
-    using typename Base::Allocator;
+    using Allocator = typename Base::Allocator;
 
     using typename Base::NodeBaseG;
     using typename Base::Iterator;
-    using typename Base::IteratorPtr;
+    using IteratorPtr = typename Base::IteratorPtr;
     using typename Base::Position;
     using typename Base::CtrSizeT;
 

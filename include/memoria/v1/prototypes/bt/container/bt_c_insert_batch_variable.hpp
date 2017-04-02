@@ -33,7 +33,7 @@ using namespace std;
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::InsertBatchVariableName)
 public:
-    using typename Base::Types;
+    using Types = typename Base::Types;
     using typename Base::Iterator;
 
 protected:

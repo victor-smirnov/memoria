@@ -32,7 +32,7 @@ namespace v1 {
 MEMORIA_V1_ITERATOR_PART_BEGIN(v1::mmap::ItrMiscName)
 
     using typename Base::NodeBaseG;
-    using typename Base::Container;
+    using Container = typename Base::Container;
     using typename Base::BranchNodeEntry;
     using typename Base::CtrSizeT;
     using typename Base::CtrSizesT;

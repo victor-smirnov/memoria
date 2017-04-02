@@ -16,9 +16,11 @@
 
 #pragma once
 
+
 #include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
 #include <memoria/v1/core/tools/stream.hpp>
+#include <memoria/v1/core/tools/md5.hpp>
 
 #include <atomic>
 #include <mutex>

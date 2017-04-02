@@ -29,7 +29,7 @@
 
 namespace memoria {
 namespace v1 {
-namespace detail    {
+namespace details   {
 namespace pd        {
 
 class TNotDefined;

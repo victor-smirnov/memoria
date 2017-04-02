@@ -41,7 +41,7 @@ MEMORIA_V1_BT_MODEL_BASE_CLASS_BEGIN(BTreeCtrBase)
 
     using Types = typename Base::Types;
 
-    using typename Base::Allocator;
+    using Allocator = typename Base::Allocator;
 
     using typename Base::Page;
     using typename Base::PageG;

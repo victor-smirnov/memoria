@@ -17,7 +17,8 @@ include_directories(../include)
 include_directories(core/include)
 
 add_subdirectory(core)
-add_subdirectory(allocators)
+#add_subdirectory(allocators)
+
 
 get_property(GLOBAL_SRCS GLOBAL PROPERTY GLOBAL_SOURCES)
 
@@ -39,7 +40,7 @@ if (NOT DEFINED BUILD_TOOLS)
 endif()
 
 if (NOT DEFINED BUILD_SANDBOX)
-    set(BUILD_SANDBOX false)
+    set(BUILD_SANDBOX true)
 endif()
 
 if (BUILD_TOOLS) 
@@ -49,3 +50,4 @@ endif()
 if (BUILD_SANDBOX) 
     add_subdirectory(sandbox)
 endif()
+
