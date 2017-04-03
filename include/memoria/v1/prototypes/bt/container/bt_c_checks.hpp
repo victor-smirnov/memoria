@@ -57,7 +57,7 @@ public:
     {
         auto& self = this->self();
 
-        self.logger().level() = Logger::ERROR;
+        self.logger().level() = Logger::_ERROR;
 
         if (self.checkTree())
         {

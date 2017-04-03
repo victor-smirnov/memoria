@@ -8,7 +8,7 @@ namespace v1 {
 namespace tools {
 
 bool IsATTY(int fd) {
-    return iatty(fd);
+    return isatty(fd);
 }
 
 }}}

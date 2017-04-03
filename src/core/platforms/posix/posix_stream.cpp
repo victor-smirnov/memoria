@@ -3,106 +3,106 @@
 namespace memoria {
 namespace v1 {
 
-    FileOutputStreamHandlerImpl::FileOutputStreamHandlerImpl(const char* file)
+FileOutputStreamHandlerImpl::FileOutputStreamHandlerImpl(const char* file)
+{
+    closed_ = false;
+    fd_ = fopen64(file, "wb");
+    if (fd_ == NULL)
     {
-        closed_ = false;
-        fd_ = fopen64(file, "wb");
-        if (fd_ == NULL)
-        {
-            throw Exception(MEMORIA_SOURCE, SBuf()<<"Can't open file "<<file);
-        }
+        throw Exception(MEMORIA_SOURCE, SBuf()<<"Can't open file "<<file);
     }
+}
 
-    FileOutputStreamHandlerImpl::~FileOutputStreamHandlerImpl() noexcept
+FileOutputStreamHandlerImpl::~FileOutputStreamHandlerImpl() noexcept
+{
+    if (!closed_)
     {
-        if (!closed_)
-        {
-            ::fclose(fd_);
-        }
+        ::fclose(fd_);
     }
+}
 
 
 
-    void FileOutputStreamHandlerImpl::flush() {
-        fflush(fd_);
-    }
+void FileOutputStreamHandlerImpl::flush() {
+    fflush(fd_);
+}
 
-    void FileOutputStreamHandlerImpl::close()
+void FileOutputStreamHandlerImpl::close()
+{
+    if (!closed_)
     {
-        if (!closed_)
-        {
-            ::fclose(fd_);
-            closed_ = true;
-        }
+        ::fclose(fd_);
+        closed_ = true;
     }
+}
 
-    void FileOutputStreamHandlerImpl::write(const void* mem, size_t offset, size_t length)
+void FileOutputStreamHandlerImpl::write(const void* mem, size_t offset, size_t length)
+{
+    const char* data = static_cast<const char*>(mem) + offset;
+    size_t total_size = fwrite(data, 1, length, fd_);
+
+    if (total_size != length)
     {
-        const char* data = static_cast<const char*>(mem) + offset;
-        size_t total_size = fwrite(data, 1, length, fd_);
-
-        if (total_size != length)
-        {
-            throw Exception(MEMORIA_SOURCE, SBuf()<<"Can't write "<<length<<" bytes to file");
-        }
+        throw Exception(MEMORIA_SOURCE, SBuf()<<"Can't write "<<length<<" bytes to file");
     }
+}
 
 
 
 
 
-    FileOutputStreamHandlerImpl::FileInputStreamHandlerImpl(const char* file)
+FileInputStreamHandlerImpl::FileInputStreamHandlerImpl(const char* file)
+{
+    closed_ = false;
+    fd_ = fopen64(file, "rb");
+    if (fd_ == NULL)
     {
-        closed_ = false;
-        fd_ = fopen64(file, "rb");
-        if (fd_ == NULL)
-        {
-            throw Exception(MEMORIA_SOURCE, SBuf()<<"Can't open file "<<file);
-        }
-
-        if (fseeko(fd_, 0, SEEK_END) < 0)
-        {
-            throw Exception(MEMORIA_SOURCE, SBuf()<<"Can't seek to the end for file "<<file);
-        }
-
-        size_ = ftello64(fd_);
-
-        if (size_ < 0)
-        {
-            throw Exception(MEMORIA_SOURCE, SBuf()<<"Can't read file position for file "<<file);
-        }
-
-        if (fseeko64(fd_, 0, SEEK_SET) < 0)
-        {
-            throw Exception(MEMORIA_SOURCE, SBuf()<<"Can't seek to the start for file "<<file);
-        }
+        throw Exception(MEMORIA_SOURCE, SBuf()<<"Can't open file "<<file);
     }
 
-    FileOutputStreamHandlerImpl::~FileInputStreamHandlerImpl() noexcept
+    if (fseeko(fd_, 0, SEEK_END) < 0)
     {
-        if (!closed_)
-        {
-            ::fclose(fd_);
-        }
+        throw Exception(MEMORIA_SOURCE, SBuf()<<"Can't seek to the end for file "<<file);
     }
 
+    size_ = ftello64(fd_);
 
-    void FileOutputStreamHandlerImpl::close()
+    if (size_ < 0)
     {
-        if (!closed_)
-        {
-            ::fclose(fd_);
-            closed_ = true;
-        }
+        throw Exception(MEMORIA_SOURCE, SBuf()<<"Can't read file position for file "<<file);
     }
 
-
-    size_t FileOutputStreamHandlerImpl::read(void* mem, size_t offset, size_t length)
+    if (fseeko64(fd_, 0, SEEK_SET) < 0)
     {
-        char* data = static_cast<char*>(mem) + offset;
-        size_t size = ::fread(data, 1, length, fd_);
-        return size == length ? size : std::numeric_limits<size_t>::max();
+        throw Exception(MEMORIA_SOURCE, SBuf()<<"Can't seek to the start for file "<<file);
     }
+}
+
+FileInputStreamHandlerImpl::~FileInputStreamHandlerImpl() noexcept
+{
+    if (!closed_)
+    {
+        ::fclose(fd_);
+    }
+}
+
+
+void FileInputStreamHandlerImpl::close()
+{
+    if (!closed_)
+    {
+        ::fclose(fd_);
+        closed_ = true;
+    }
+}
+
+
+size_t FileInputStreamHandlerImpl::read(void* mem, size_t offset, size_t length)
+{
+    char* data = static_cast<char*>(mem) + offset;
+    size_t size = ::fread(data, 1, length, fd_);
+    return size == length ? size : std::numeric_limits<size_t>::max();
+}
 
 
 

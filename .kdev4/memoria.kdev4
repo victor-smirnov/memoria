@@ -10,7 +10,7 @@ Build Directory Path=/home/victor/c++/workspace-memoria-neon-git/memoria/build
 Build Type=Debug
 CMake Binary=/usr/bin/cmake
 Environment Profile=
-Extra Arguments=
+Extra Arguments=-DCMAKE_CXX_COMPILER=clang -DCMAKE_C_COMPILER=clang
 Install Directory=
 
 [Project]

@@ -203,14 +203,7 @@ public:
     virtual Int available() {return 0;}
     virtual Int bufferSize() {return 0;}
 
-    virtual void close()
-    {
-        if (!closed_)
-        {
-            ::fclose(fd_);
-            closed_ = true;
-        }
-    }
+    virtual void close();
 
 
 	virtual size_t read(void* mem, size_t offset, size_t length);

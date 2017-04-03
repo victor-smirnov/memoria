@@ -1458,7 +1458,7 @@ void check_snapshot(const std::shared_ptr<Allocator>& allocator, const char* mes
 {
     Int level = allocator->logger().level();
 
-    allocator->logger().level() = Logger::ERROR;
+    allocator->logger().level() = Logger::_ERROR;
 
     if (allocator->check())
     {

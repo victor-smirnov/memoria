@@ -441,7 +441,7 @@ public:
 
     bool deleted() const
     {
-        return state_ == DELETE;
+        return state_ == _DELETE;
     }
 
     bool updated() const
