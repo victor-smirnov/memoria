@@ -896,7 +896,7 @@ public:
                 persistent_tree_.remove(iter);
             }
             else {
-                shared->state() = Shared::DELETE;
+                shared->state() = Shared::_DELETE;
             }
         }
     }
@@ -973,7 +973,7 @@ public:
 
     virtual void releasePage(Shared* shared) noexcept
     {
-        if (shared->state() == Shared::DELETE)
+        if (shared->state() == Shared::_DELETE)
         {
             persistent_tree_.remove(shared->get()->id());
         }
@@ -1364,7 +1364,7 @@ protected:
                     if (shared)
                     {
                     	page_descr.page_ptr()->clear();
-                        shared->state() = Shared::DELETE;
+                        shared->state() = Shared::_DELETE;
                     }
 
                     delete page_descr.page_ptr();
