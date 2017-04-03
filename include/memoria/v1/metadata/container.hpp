@@ -153,7 +153,7 @@ public:
         container_interface_(container_interface),
         ctr_hash_(ctr_hash)
     {
-        MetadataGroup::set_type() = MetadataGroup::CONTAINER;
+    	MetadataGroup::set_type() = MetadataGroup::CONTAINER;
         for (UInt c = 0; c < content.size(); c++)
         {
             if (content[c]->getTypeCode() == Metadata::PAGE)

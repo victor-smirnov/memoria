@@ -35,12 +35,6 @@ public:
 };
 
 
-//using SmallInMemAllocator = v1::InMemAllocator<
-//  DefaultProfile<>,
-//  ContainerCollectionCfg<DefaultProfile<> >::Types::Page
-//>;
-
-
 template <typename CtrName>
 using DCtrTF = CtrTF<DefaultProfile<>, CtrName>;
 

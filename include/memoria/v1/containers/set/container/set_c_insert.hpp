@@ -89,10 +89,11 @@ public:
      */
     bool insert_key(const Key& k)
     {
-        auto iter = find(k);
+    	auto iter = find(k);
+
         if (iter->is_found(k))
         {
-            return true;
+        	return true;
         }
         else {
             iter->insert(k);

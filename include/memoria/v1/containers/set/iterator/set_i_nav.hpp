@@ -52,7 +52,6 @@ public:
                 set::KeyEntry<Key, CtrSizeT>(key)
         );
 
-
         self.skipFw(1);
     }
 

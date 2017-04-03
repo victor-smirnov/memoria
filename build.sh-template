@@ -1,0 +1,13 @@
+#!/bin/bash
+
+cd seastar
+
+ninja-build
+
+cd ../memoria/build
+
+make
+
+cd ../../build
+
+make

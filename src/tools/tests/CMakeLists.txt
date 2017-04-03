@@ -17,6 +17,6 @@ else()
         set_target_properties(tests PROPERTIES COMPILE_FLAGS "-g ${MEMORIA_COMPILE_FLAGS} -DMEMORIA_TESTS")
         set_target_properties(tests PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
         
-        target_link_libraries(tests Memoria MemoriaTools ${MEMORIA_LIBS})
+        target_link_libraries(tests Memoria MemoriaTools ${MEMORIA_LIBS} uuid)
     endif()
 endif()
