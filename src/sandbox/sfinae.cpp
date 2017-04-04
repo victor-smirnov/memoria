@@ -149,51 +149,51 @@ using FnRtnType = typename IfThenElse<
 
 
 
-template <typename List, Int AccumIdx, Int Idx, typename RtnType>
+template <typename List, Int AccumIdx, Int Idx>
 struct FnDispatcher;
 
 
-template <typename... Tail, Int AccumIdx, Int Idx, typename RtnType>
-struct FnDispatcher<TypeList<IntValue<0>, Tail...>, AccumIdx, Idx, RtnType> {
+template <typename... Tail, Int AccumIdx, Int Idx>
+struct FnDispatcher<TypeList<IntValue<0>, Tail...>, AccumIdx, Idx> {
 
 	template <typename Fn, typename... Args>
-	static RtnType dispatch(Fn&& fn, Args&&... args)
+	static auto dispatch(Fn&& fn, Args&&... args)
 	{
-		return FnDispatcher<TypeList<Tail...>, AccumIdx, Idx, RtnType>::dispatch(std::forward<Fn>(fn), std::forward<Args>(args)...);
+		return FnDispatcher<TypeList<Tail...>, AccumIdx, Idx>::dispatch(std::forward<Fn>(fn), std::forward<Args>(args)...);
 	};
 };
 
-template <typename... Tail, Int AccumIdx, Int Idx, typename RtnType>
-struct FnDispatcher<TypeList<IntValue<1>, Tail...>, AccumIdx, Idx, RtnType> {
+template <typename... Tail, Int AccumIdx, Int Idx>
+struct FnDispatcher<TypeList<IntValue<1>, Tail...>, AccumIdx, Idx> {
 	template <typename Fn, typename... Args>
-	static RtnType dispatch(Fn&& fn, Args&&... args)
+	static auto dispatch(Fn&& fn, Args&&... args)
 	{
 		return fn.stream(std::forward<Args>(args)...);
 	};
 };
 
-template <typename... Tail, Int AccumIdx, Int Idx, typename RtnType>
-struct FnDispatcher<TypeList<IntValue<2>, Tail...>, AccumIdx, Idx, RtnType> {
+template <typename... Tail, Int AccumIdx, Int Idx>
+struct FnDispatcher<TypeList<IntValue<2>, Tail...>, AccumIdx, Idx> {
 	template <typename Fn, typename... Args>
-	static RtnType dispatch(Fn&& fn, Args&&... args)
+	static auto dispatch(Fn&& fn, Args&&... args)
 	{
 		return fn.template stream<Idx>(std::forward<Args>(args)...);
 	};
 };
 
 
-template <typename... Tail, Int AccumIdx, Int Idx, typename RtnType>
-struct FnDispatcher<TypeList<IntValue<3>, Tail...>, AccumIdx, Idx, RtnType> {
+template <typename... Tail, Int AccumIdx, Int Idx>
+struct FnDispatcher<TypeList<IntValue<3>, Tail...>, AccumIdx, Idx> {
 	template <typename Fn, typename... Args>
-	static RtnType dispatch(Fn&& fn, Args&&... args)
+	static auto dispatch(Fn&& fn, Args&&... args)
 	{
 		return fn.template stream<AccumIdx, Idx>(std::forward<Args>(args)...);
 	};
 };
 
 
-template <Int AccumIdx, Int Idx, typename RtnType>
-struct FnDispatcher<TypeList<>, AccumIdx, Idx, RtnType>;
+template <Int AccumIdx, Int Idx>
+struct FnDispatcher<TypeList<>, AccumIdx, Idx>;
 
 
 struct Fn0 {};
@@ -232,15 +232,15 @@ auto dispatchFn(Fn&& fn, Args&&... args)
 //-> FnRtnType<Fn, AccumIdx, Idx, Args...>
 {
 	using List = FnList<Fn, AccumIdx, Idx, Args...>;
-	using RtnType = FnRtnType<Fn, AccumIdx, Idx, Args...>;
+	//using RtnType = FnRtnType<Fn, AccumIdx, Idx, Args...>;
 
-	return FnDispatcher<List, AccumIdx, Idx, RtnType>::dispatch(std::forward<Fn>(fn), std::forward<Args>(args)...);
+	return FnDispatcher<List, AccumIdx, Idx>::dispatch(std::forward<Fn>(fn), std::forward<Args>(args)...);
 }
 
 
 int main(void)
 {
-	//ListPrinter<TL<decltype(dispatchFn<0,0>(Fn3(), 1, 2))>>::print(cout);
+	ListPrinter<TL<decltype(dispatchFn<0,0>(Fn3(), 1, 2))>>::print(cout);
 
 	
 	ListPrinter<TL<
@@ -253,7 +253,7 @@ int main(void)
 	>>
 	::print(cout);
 	
-	//std::cout << "DispatchFn: "<<dispatchFn<0,0>(Fn1(), 1,2) << std::endl;
+	std::cout << "DispatchFn: " << dispatchFn<555,777>(Fn2(), 1,8) << std::endl;
 
 	//ListPrinter<TL<int>>::print(std::cout);
 
