@@ -126,7 +126,7 @@ template <bool Value>
 using BoolValue = ConstValue<bool, Value>;
 
 
-
+template <typename...> using VoidT = void;
 
 class EmptyValue {
 public:

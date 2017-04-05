@@ -35,16 +35,16 @@ namespace pd        {
 class TNotDefined;
 
 template <typename T, typename... Args>
-using Fn1Type = auto(Args...) -> decltype(std::declval<T>().stream(std::declval<Args>()...));
+using Fn1Type = auto(Args&&...) -> decltype(std::declval<T>().stream(std::declval<Args>()...));
 
 template <typename T, Int Idx, typename... Args>
-using Fn2Type = auto(Args...) -> decltype(std::declval<T>().template stream<Idx>(std::declval<Args>()...));
+using Fn2Type = auto(Args&&...) -> decltype(std::declval<T>().template stream<Idx>(std::declval<Args>()...));
 
 template <typename T, Int AllocIdx, Int Idx, typename... Args>
-using Fn3Type = auto(Args...) -> decltype(std::declval<T>().template stream<AllocIdx, Idx>(std::declval<Args>()...));
+using Fn3Type = auto(Args&&...) -> decltype(std::declval<T>().template stream<AllocIdx, Idx>(std::declval<Args>()...));
 
 template <typename T, Int GroupIdx, Int AllocIdx, Int Idx, typename... Args>
-using Fn4Type = auto(Args...) -> decltype(std::declval<T>().template stream<GroupIdx, AllocIdx, Idx>(std::declval<Args>()...));
+using Fn4Type = auto(Args&&...) -> decltype(std::declval<T>().template stream<GroupIdx, AllocIdx, Idx>(std::declval<Args>()...));
 
 
 template <typename T, typename... Args>
@@ -59,7 +59,7 @@ using Rtn3Type = typename FnTraits<Fn3Type<typename std::remove_reference<T>::ty
 template <typename T, Int GroupIdx, Int AllocIdx, Int Idx, typename... Args>
 using Rtn4Type = typename FnTraits<Fn4Type<typename std::remove_reference<T>::type, GroupIdx, AllocIdx, Idx, Args...>>::RtnType;
 
-
+/*
 template <typename T, typename... Args>
 using Ex1Type = typename FnTraits<Fn1Type<typename std::remove_reference<T>::type, Args...>>::Exists;
 
@@ -71,18 +71,18 @@ using Ex3Type = typename FnTraits<Fn3Type<typename std::remove_reference<T>::typ
 
 template <typename T, Int GroupIdx, Int AllocIdx, Int Idx, typename... Args>
 using Ex4Type = typename FnTraits<Fn4Type<typename std::remove_reference<T>::type, GroupIdx, AllocIdx, Idx, Args...>>::Exists;
+*/
 
 
 
-
-template <typename Fn, Int GroupIdx, Int AllocIdx, Int Idx, typename ArgsList, typename T = EmptyType>
+template <typename Fn, Int GroupIdx, Int AllocIdx, Int Idx, typename ArgsList, typename T = void>
 struct HasFn1H {
     static const Int Value = 0;
     using RtnType = TNotDefined;
 };
 
-template <typename Fn, Int GroupIdx, Int AllocIdx, Int Idx, typename... Args>
-struct HasFn1H<Fn, GroupIdx, AllocIdx, Idx, TypeList<Args...>, Ex1Type<Fn, Args...>> {
+template <typename Fn, Int GroupIdx, Int AllocIdx, Int Idx, typename... Args> //VoidT<decltype(std::declval<Rtn1Type<Fn, Args...>)> 
+struct HasFn1H<Fn, GroupIdx, AllocIdx, Idx, TypeList<Args...>, VoidT<decltype(std::declval<Rtn1Type<Fn, Args...>>())>> { //Ex1Type<Fn, Args...>
     static const Int Value = 1;
     using RtnType = Rtn1Type<Fn, Args...>;
 };
@@ -91,14 +91,14 @@ template <typename Fn, Int GroupIdx, Int AllocIdx, Int Idx, typename... Args>
 using HasFn1 = HasFn1H<Fn, GroupIdx, AllocIdx, Idx, TypeList<Args...>>;
 
 
-template <typename Fn, Int GroupIdx, Int AllocIdx, Int Idx, typename ArgsList, typename T = EmptyType>
+template <typename Fn, Int GroupIdx, Int AllocIdx, Int Idx, typename ArgsList, typename T = void>
 struct HasFn2H {
     static const Int Value = 0;
     using RtnType = TNotDefined;
 };
 
-template <typename Fn, Int GroupIdx, Int AllocIdx, Int Idx, typename... Args>
-struct HasFn2H<Fn, GroupIdx, AllocIdx, Idx, TypeList<Args...>, Ex2Type<Fn, Idx, Args...>> {
+template <typename Fn, Int GroupIdx, Int AllocIdx, Int Idx, typename... Args> //
+struct HasFn2H<Fn, GroupIdx, AllocIdx, Idx, TypeList<Args...>, VoidT<decltype(std::declval<Rtn2Type<Fn, Idx, Args...>>())>> {//Ex2Type<Fn, Idx, Args...>
     static const Int Value = 2;
     using RtnType = Rtn2Type<Fn, Idx, Args...>;
 };
@@ -108,14 +108,14 @@ using HasFn2 = HasFn2H<Fn, GroupIdx, AllocIdx, Idx, TypeList<Args...>>;
 
 
 
-template <typename Fn, Int GroupIdx, Int AllocIdx, Int Idx, typename ArgsList, typename T = EmptyType>
+template <typename Fn, Int GroupIdx, Int AllocIdx, Int Idx, typename ArgsList, typename T = void>
 struct HasFn3H {
     static const Int Value = 0;
     using RtnType = TNotDefined;
 };
 
-template <typename Fn, Int GroupIdx, Int AllocIdx, Int Idx, typename... Args>
-struct HasFn3H<Fn, GroupIdx, AllocIdx, Idx, TypeList<Args...>, Ex3Type<Fn, AllocIdx, Idx, Args...>> {
+template <typename Fn, Int GroupIdx, Int AllocIdx, Int Idx, typename... Args> //VoidT<decltype(std::declval<Rtn1Type<Fn, Args...>)>
+struct HasFn3H<Fn, GroupIdx, AllocIdx, Idx, TypeList<Args...>, VoidT<decltype(std::declval<Rtn3Type<Fn, AllocIdx, Idx, Args...>>())>> {//Ex3Type<Fn, AllocIdx, Idx, Args...>
     static const Int Value = 3;
     using RtnType = Rtn3Type<Fn, AllocIdx, Idx, Args...>;
 };
@@ -125,14 +125,14 @@ using HasFn3 = HasFn3H<Fn, GroupIdx, AllocIdx, Idx, TypeList<Args...>>;
 
 
 
-template <typename Fn, Int GroupIdx, Int AllocIdx, Int Idx, typename ArgsList, typename T = EmptyType>
+template <typename Fn, Int GroupIdx, Int AllocIdx, Int Idx, typename ArgsList, typename T = void>
 struct HasFn4H {
     static const Int Value = 0;
     using RtnType = TNotDefined;
 };
 
-template <typename Fn, Int GroupIdx, Int AllocIdx, Int Idx, typename... Args>
-struct HasFn4H<Fn, GroupIdx, AllocIdx, Idx, TypeList<Args...>, Ex4Type<Fn, GroupIdx, AllocIdx, Idx, Args...>> {
+template <typename Fn, Int GroupIdx, Int AllocIdx, Int Idx, typename... Args> //VoidT<decltype(std::declval<Rtn1Type<Fn, Args...>)>
+struct HasFn4H<Fn, GroupIdx, AllocIdx, Idx, TypeList<Args...>, VoidT<decltype(std::declval<Rtn4Type<Fn, GroupIdx, AllocIdx, Idx, Args...>>())>> {//Ex4Type<Fn, GroupIdx, AllocIdx, Idx, Args...>
     static const Int Value = 4;
     using RtnType = Rtn4Type<Fn, GroupIdx, AllocIdx, Idx, Args...>;
 };

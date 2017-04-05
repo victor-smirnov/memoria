@@ -73,7 +73,7 @@ using Ex3Type = typename FnTraits<Fn3Type<typename std::remove_reference<T>::typ
 
 class TNotDefined;
 
-template <typename> using void0_t = void;
+//template <typename> using void0_t = void;
 
 ///////////====================
 template <typename Fn, Int AccumIdx, Int Idx, typename ArgsList, typename T = void>
@@ -83,7 +83,7 @@ struct HasFn1H {
 };
 
 template <typename Fn, Int AccumIdx, Int Idx, typename... Args> //
-struct HasFn1H<Fn, AccumIdx, Idx, TypeList<Args...>, void0_t<decltype(std::declval<Rtn1Type<Fn, Args...>>())>> { //Ex1Type<Fn, Args...>
+struct HasFn1H<Fn, AccumIdx, Idx, TypeList<Args...>, VoidT<decltype(std::declval<Rtn1Type<Fn, Args...>>())>> { //Ex1Type<Fn, Args...>
 	static const Int Value = 1;
 	using RtnType = Rtn1Type<Fn, Args...>;
 };
@@ -102,7 +102,7 @@ struct HasFn2H {
 };
 
 template <typename Fn, Int AccumIdx, Int Idx, typename... Args> //
-struct HasFn2H<Fn, AccumIdx, Idx, TypeList<Args...>, void0_t<decltype(std::declval<Rtn2Type<Fn, Idx, Args...>>())>> { //Ex2Type<Fn, Idx, Args...>
+struct HasFn2H<Fn, AccumIdx, Idx, TypeList<Args...>, VoidT<decltype(std::declval<Rtn2Type<Fn, Idx, Args...>>())>> { //Ex2Type<Fn, Idx, Args...>
 	static const Int Value = 2;
 	using RtnType = Rtn2Type<Fn, Idx, Args...>;
 };
@@ -119,7 +119,7 @@ struct HasFn3H {
 };
 
 template <typename Fn, Int AccumIdx, Int Idx, typename... Args> //
-struct HasFn3H<Fn, AccumIdx, Idx, TypeList<Args...>, void0_t<decltype(std::declval<Rtn3Type<Fn, AccumIdx, Idx, Args...>>())>> { //Ex3Type<Fn, AccumIdx, Idx, Args...>
+struct HasFn3H<Fn, AccumIdx, Idx, TypeList<Args...>, VoidT<decltype(std::declval<Rtn3Type<Fn, AccumIdx, Idx, Args...>>())>> { //Ex3Type<Fn, AccumIdx, Idx, Args...>
 	static const Int Value = 3;
 	using RtnType = Rtn3Type<Fn, AccumIdx, Idx, Args...>;
 };
@@ -244,7 +244,7 @@ int main(void)
 
 	
 	ListPrinter<TL<
-		void0_t<decltype(std::declval<Rtn1Type<Fn1, int, int>>())>,
+		VoidT<decltype(std::declval<Rtn1Type<Fn1, int, int>>())>,
 		Ex1Type<Fn1, int, int>,
 		HasFn1H<
 			Fn1, 1, 2, TL<int, int>

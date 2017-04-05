@@ -15,7 +15,7 @@
 
 
 #include <memoria/v1/memoria.hpp>
-//#include <memoria/v1/containers/set/set_factory.hpp>
+#include <memoria/v1/containers/set/set_factory.hpp>
 
 #include <memoria/v1/core/tools/time.hpp>
 #include <memoria/v1/core/tools/random.hpp>
@@ -25,11 +25,14 @@
 
 #include <typeinfo>
 #include <iostream>
+#include <tuple>
 
 using namespace memoria::v1;
 
 
 int main(void) {
+
+	//std::tuple<> t;
 
 	MEMORIA_INIT(DefaultProfile<>);
 
