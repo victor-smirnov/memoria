@@ -35,21 +35,105 @@ using namespace memoria::v1;
 using namespace memoria::v1::btss;
 using namespace std;
 
+template <typename> struct XCtr;
+template <typename> struct XIter;
+
+template <typename T> struct XIterBase {
+	using MyType = XIter<T>;
+	
+	using CtrType = XCtr<T>;
+	using IterType = XIter<T>;
+
+	void foo() {
+		std::cout << std::get<0>(self().ctr().template boo<1>(self().me())) << std::endl;
+		self().boo();
+	}
+
+	MyType& self() { return *static_cast<MyType*>(this); }
+};
+
+template <typename T>
+struct XIter : XIterBase<T> {
+	using Base = XIterBase<T>;
+	using typename Base::CtrType;
+	using typename Base::IterType;
+
+	CtrType* ctr_;
+	CtrType& ctr() { return *ctr_; }
+
+	XIter(CtrType* ctr) : ctr_(ctr) {}
+
+
+
+	void boo() {
+		std::cout << "Iter Bingo!" << std::endl;
+	}
+
+	IterType& me() { return *this; }
+
+};
+
+
+template <typename T> struct XBase {
+	using MyType = XCtr<T>;
+	using IterType = XIter<T>;
+
+	void foo() 
+	{
+		self().boo();
+	}
+
+	MyType& self() { return *static_cast<MyType*>(this); }
+};
+
+template <typename T> 
+struct XCtr : XBase<T> {
+	using Base = XBase<T>;
+
+	using typename Base::IterType;
+
+	auto boo() {
+		std::cout << "Bingo!" << std::endl;
+		return std::make_tuple(1);
+	}
+
+	template <Int Idx>
+	auto boo(IterType& ii) 
+	{
+		std::cout << "Ctr !!Bingo!!" << std::endl;
+
+		ii.foo();
+
+		return std::make_tuple(2);
+	}
+};
+
+
+
 
 
 int main()
 {
-    MEMORIA_INIT(DefaultProfile<>);
+	XCtr<Int> cc;
+	XIter<Int> itr(&cc);
 
+	cc.foo();
+	itr.foo();
+
+	int ii;
+	std::cin >> ii;
+
+    MEMORIA_INIT(DefaultProfile<>);
+	
     using Key   = FixedArray<16>;
-//    using Key   = Bytes;
+    //using Key   = Bytes;
 
 
     DInit<Set<Key>>();
-
+	
     try {
         auto alloc = PersistentInMemAllocator<>::create();
-
+		/*
         auto snp = alloc->master()->branch();
 
         auto map = create<Set<Key>>(snp);
@@ -99,16 +183,18 @@ int main()
         // Store binary contents of allocator to the file.
         auto out = FileOutputStreamHandler::create("setl_data.dump");
         alloc->store(out.get());
+		/**/
     }
     catch (Exception& ex)
     {
         cout << ex.message() << " at " << ex.source() << endl;
     }
+	
 
     // Destroy containers metadata.
     MetadataRepository<DefaultProfile<>>::cleanup();
+
+	/**/
 }
 
-int set_insert() {
-	return main();
-}
+
