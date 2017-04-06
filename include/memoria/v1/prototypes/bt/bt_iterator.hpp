@@ -35,17 +35,17 @@ template <typename Name, typename Base, typename Types> class IterPart;
 
 
 template<
-        typename Types
+        typename Types1
 >
-class Iter<BTIterTypes<Types>>: public IterStart<BTIterTypes<Types>>
+class Iter<BTIterTypes<Types1>>: public IterStart<BTIterTypes<Types1>>
 {
-    typedef Iter<BTIterTypes<Types>>                                            MyType;
-    typedef IterStart<BTIterTypes<Types>>                                       Base;
-    typedef Ctr<typename Types::CtrTypes>                                       ContainerType;
+    typedef Iter<BTIterTypes<Types1>>                                            MyType;
+    typedef IterStart<BTIterTypes<Types1>>                                       Base;
+    typedef Ctr<typename Types1::CtrTypes>                                       ContainerType;
 
     typedef typename ContainerType::Types::NodeBaseG                            NodeBaseG;
 
-    using CtrPtr = CtrSharedPtr<typename Types::Profile, ContainerType>;
+    using CtrPtr = CtrSharedPtr<typename Types1::Profile, ContainerType>;
 
 public:
 

@@ -36,17 +36,17 @@ template <typename Types> class Iter;
 template <typename Name, typename Base, typename Types> class IterPart;
 
 
-template <int Idx, typename Types>
+template <int Idx, typename Types1>
 class IterHelper: public IterPart<
-                            SelectByIndex<Idx,typename Types::List>,
-                            IterHelper<Idx - 1, Types>, Types
+                            SelectByIndex<Idx,typename Types1::List>,
+                            IterHelper<Idx - 1, Types1>, Types1
                          >
 {
-    using MyType    = Iter<Types>;
-    using ThisType  = IterHelper<Idx, Types>;
+    using MyType    = Iter<Types1>;
+    using ThisType  = IterHelper<Idx, Types1>;
     using BaseType  = IterPart<
-                SelectByIndex<Idx, typename Types::List>,
-                IterHelper<Idx - 1, Types>, Types
+                SelectByIndex<Idx, typename Types1::List>,
+                IterHelper<Idx - 1, Types1>, Types1
     >;
 
 public:
@@ -57,13 +57,13 @@ public:
 
 
 
-template <typename Types>
-class IterHelper<-1, Types>: public Types::template BaseFactory<Types>::Type {
+template <typename Types1>
+class IterHelper<-1, Types1>: public Types1::template BaseFactory<Types1>::Type {
 
-    typedef Iter<Types>                                                             MyType;
-    typedef IterHelper<-1, Types>                                                   ThisType;
+    typedef Iter<Types1>                                                             MyType;
+    typedef IterHelper<-1, Types1>                                                   ThisType;
 
-    typedef typename Types::template BaseFactory<Types>::Type BaseType;
+    typedef typename Types1::template BaseFactory<Types1>::Type BaseType;
 
 public:
     IterHelper(): BaseType() {}
@@ -71,15 +71,15 @@ public:
     IterHelper(const ThisType& other): BaseType(other) {}
 };
 
-template <typename Types>
-class IterStart: public IterHelper<ListSize<typename Types::List>::Value - 1, Types> {
+template <typename Types1>
+class IterStart: public IterHelper<ListSize<typename Types1::List>::Value - 1, Types1> {
 
-    using MyType    = Iter<Types>;
-    using ThisType  = IterStart<Types>;
-    using Base      = IterHelper<ListSize<typename Types::List>::Value - 1, Types>;
-    using ContainerType = Ctr<typename Types::CtrTypes>;
+    using MyType    = Iter<Types1>;
+    using ThisType  = IterStart<Types1>;
+    using Base      = IterHelper<ListSize<typename Types1::List>::Value - 1, Types1>;
+    using ContainerType = Ctr<typename Types1::CtrTypes>;
 
-    using CtrPtr = CtrSharedPtr<typename Types::Profile, ContainerType>;
+    using CtrPtr = CtrSharedPtr<typename Types1::Profile, ContainerType>;
 
     CtrPtr ctr_ptr_;
     ContainerType* model_;

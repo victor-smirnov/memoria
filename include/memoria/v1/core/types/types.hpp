@@ -31,6 +31,9 @@
 #pragma warning( disable : 4146)
 #pragma warning( disable : 4307)
 #pragma warning( disable : 4200)
+#pragma warning( disable : 4291)
+#pragma warning( disable : 4101)
+
 
 #ifdef max
 #undef max
@@ -425,7 +428,7 @@ struct HasValue {
 };
 
 
-namespace {
+namespace details {
     template <typename T, bool Flag, typename T2>
     struct FailIfT {
         static_assert(!Flag, "Template failed");
@@ -434,10 +437,10 @@ namespace {
 }
 
 template <typename T, bool Flag = true, typename T2 = void>
-using FailIf = typename FailIfT<T, Flag, T2>::Type;
+using FailIf = typename v1::details::FailIfT<T, Flag, T2>::Type;
 
 template <Int V, bool Flag = true, typename T2 = void>
-using FailIfV = typename FailIfT<IntValue<V>, Flag, T2>::Type;
+using FailIfV = typename v1::details::FailIfT<IntValue<V>, Flag, T2>::Type;
 
 
 template <typename T1, typename T2>
@@ -544,9 +547,9 @@ template <typename T> struct TypeTag {};
 
 
 
-constexpr uint32_t __inline __builtin_ctz(uint32_t value)
+uint32_t __inline __builtin_ctz(uint32_t value)
 {
-	/*DWORD trailing_zero = 0;
+	DWORD trailing_zero = 0;
 
 	if (_BitScanForward(&trailing_zero, value))
 	{
@@ -555,13 +558,13 @@ constexpr uint32_t __inline __builtin_ctz(uint32_t value)
 	else
 	{
 		return 32;
-	}*/
+	}
 	return 0;
 }
 
-constexpr uint32_t __inline __builtin_ctzll(uint64_t value)
+uint32_t __inline __builtin_ctzll(uint64_t value)
 {
-	/*DWORD trailing_zero = 0;
+	DWORD trailing_zero = 0;
 
 	if (_BitScanForward64(&trailing_zero, value))
 	{
@@ -570,13 +573,13 @@ constexpr uint32_t __inline __builtin_ctzll(uint64_t value)
 	else
 	{
 		return 64;
-	}*/
+	}
 	return 0;
 }
 
-constexpr uint32_t __inline __builtin_clz(uint32_t value)
+uint32_t __inline __builtin_clz(uint32_t value)
 {
-	/*DWORD leading_zero = 0;
+	DWORD leading_zero = 0;
 
 	if (_BitScanReverse(&leading_zero, value))
 	{
@@ -585,13 +588,13 @@ constexpr uint32_t __inline __builtin_clz(uint32_t value)
 	else
 	{
 		return 32;
-	}*/
+	}
 	return 0;
 }
 
-constexpr uint32_t __inline __builtin_clzll(uint64_t value)
+uint32_t __inline __builtin_clzll(uint64_t value)
 {
-	/*DWORD leading_zero = 0;
+	DWORD leading_zero = 0;
 
 	if (_BitScanReverse64(&leading_zero, value))
 	{
@@ -600,7 +603,7 @@ constexpr uint32_t __inline __builtin_clzll(uint64_t value)
 	else
 	{
 		return 64;
-	}*/
+	}
 	return 0;
 }
 

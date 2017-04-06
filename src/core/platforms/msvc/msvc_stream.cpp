@@ -2,11 +2,11 @@
 
 namespace memoria {
 namespace v1 {
- /*
+ 
     FileOutputStreamHandlerImpl::FileOutputStreamHandlerImpl(const char* file)
     {
         closed_ = false;
-        fd_ = fopen64(file, "wb");
+        fd_ = fopen(file, "wb");
         if (fd_ == NULL)
         {
             throw Exception(MEMORIA_SOURCE, SBuf()<<"Can't open file "<<file);
@@ -51,34 +51,34 @@ namespace v1 {
 
 
 
-    FileOutputStreamHandlerImpl::FileInputStreamHandlerImpl(const char* file)
+    FileInputStreamHandlerImpl::FileInputStreamHandlerImpl(const char* file)
     {
         closed_ = false;
-        fd_ = fopen64(file, "rb");
+        fd_ = fopen(file, "rb");
         if (fd_ == NULL)
         {
             throw Exception(MEMORIA_SOURCE, SBuf()<<"Can't open file "<<file);
         }
 
-        if (fseeko(fd_, 0, SEEK_END) < 0)
+        if (fseek(fd_, 0, SEEK_END) < 0)
         {
             throw Exception(MEMORIA_SOURCE, SBuf()<<"Can't seek to the end for file "<<file);
         }
 
-        size_ = ftello64(fd_);
+        size_ = ftell(fd_);
 
         if (size_ < 0)
         {
             throw Exception(MEMORIA_SOURCE, SBuf()<<"Can't read file position for file "<<file);
         }
 
-        if (fseeko64(fd_, 0, SEEK_SET) < 0)
+        if (fseek(fd_, 0, SEEK_SET) < 0)
         {
             throw Exception(MEMORIA_SOURCE, SBuf()<<"Can't seek to the start for file "<<file);
         }
     }
 
-    FileOutputStreamHandlerImpl::~FileInputStreamHandlerImpl() noexcept
+	FileInputStreamHandlerImpl::~FileInputStreamHandlerImpl() noexcept
     {
         if (!closed_)
         {
@@ -87,7 +87,7 @@ namespace v1 {
     }
 
 
-    void FileOutputStreamHandlerImpl::close()
+    void FileInputStreamHandlerImpl::close()
     {
         if (!closed_)
         {
@@ -97,14 +97,14 @@ namespace v1 {
     }
 
 
-    size_t FileOutputStreamHandlerImpl::read(void* mem, size_t offset, size_t length)
+    size_t FileInputStreamHandlerImpl::read(void* mem, size_t offset, size_t length)
     {
         char* data = static_cast<char*>(mem) + offset;
         size_t size = ::fread(data, 1, length, fd_);
         return size == length ? size : std::numeric_limits<size_t>::max();
     }
 
-   */
+   
 
 
 }}

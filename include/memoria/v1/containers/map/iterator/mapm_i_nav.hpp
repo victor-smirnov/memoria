@@ -116,8 +116,8 @@ public:
     }
 
     auto value() const
-    {		
-        return std::get<0>(self().ctr().template read_leaf_entry<IntList<2>>(self().leaf(), self().idx()));
+    {
+		return std::get<0>(self().ctr().template read_leaf_entry<IntList<2>>(self().leaf(), self().idx()));
     }
 
     void assign(const Value& v)

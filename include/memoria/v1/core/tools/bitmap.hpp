@@ -858,29 +858,53 @@ size_t CountBw(const T* buffer, size_t from, size_t to, const char *lut, bool ze
     }
 }
 
-inline constexpr Int Log2(UInt value) {
-    return 32 - __builtin_clz(value);
+namespace details {
+
+	
+	constexpr uint64_t CtLZ_(uint64_t val, uint64_t mask) {
+		uint64_t bit_off = (val & mask) == 0;
+		return bit_off ? 1 + ((mask > 1) ? CtLZ_(val, mask >> 1) : 0) : 0;
+	}
+
+	constexpr uint32_t CtLZ_(uint32_t val, uint32_t mask) {
+		uint32_t bit_off = (val & mask) == 0;
+		return bit_off ? 1 + ((mask > 1) ? CtLZ_(val, mask >> 1) : 0) : 0;
+	}
+
 }
 
-inline constexpr Int Log2(Int value) {
-    return 32 - __builtin_clz(value);
+//template <typename Val>
+constexpr uint32_t CtLZ(uint32_t val) {
+	return memoria::v1::details::CtLZ_(val, 0x80000000u);
+}
+
+constexpr uint64_t CtLZ(uint64_t val) {
+	return memoria::v1::details::CtLZ_(val, 0x8000000000000000ull);
+}
+
+constexpr Int Log2(UInt value) { //constexpr
+    return 32 - CtLZ(value);
+}
+
+constexpr Int Log2(Int value) {
+    return 32 - CtLZ((UInt)value);
 }
 
 
-inline constexpr Int Log2(UBigInt value) {
-    return 64 - __builtin_clzll(value);
+constexpr Int Log2(UBigInt value) {
+    return 64 - CtLZ(value);
 }
 
-inline constexpr Int Log2(BigInt value) {
-    return 64 - __builtin_clzll(value);
+static inline Int Log2(BigInt value) {
+    return 64 - CtLZ((UBigInt)value);
 }
 
 
-inline constexpr Int CountTrailingZeroes(UInt value) {
+static inline Int CountTrailingZeroes(UInt value) {
     return __builtin_ctz(value);
 }
 
-inline constexpr Int CountTrailingZeroes(UBigInt value) {
+static inline Int CountTrailingZeroes(UBigInt value) {
     return __builtin_ctzll(value);
 }
 
