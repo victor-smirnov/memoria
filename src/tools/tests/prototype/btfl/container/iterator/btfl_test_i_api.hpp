@@ -34,7 +34,7 @@ namespace v1 {
 MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl_test::IterApiName)
 
 
-    using typename Base::Container;
+    using Container = typename Base::Container;
 
 
     using CtrSizeT  = typename Container::Types::CtrSizeT;

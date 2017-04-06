@@ -23,7 +23,6 @@ namespace memoria {
 namespace v1 {
 
 template <typename V>
-//__attribute__((always_inline))
 size_t
 GetI64ValueLength(V value)
 {
@@ -40,7 +39,6 @@ GetI64ValueLength(V value)
 }
 
 template <typename T>
-//__attribute__((always_inline))
 size_t GetI64ValueLength(const T* buffer, size_t start)
 {
     T length = GetBits(buffer, start, 8);
@@ -61,7 +59,6 @@ size_t GetI64ValueLength(const T* buffer, size_t start)
 
 
 template <typename T, typename V>
-//__attribute__((always_inline))
 size_t EncodeI64(T* buffer, V value, size_t start)
 {
     if (value == 0)
@@ -89,17 +86,16 @@ size_t EncodeI64(T* buffer, V value, size_t start)
 }
 
 template <typename T, typename V>
-//__attribute__((always_inline))
 size_t DecodeI64(const T* buffer, V& value, size_t start)
 {
     T length = GetBits(buffer, start, 8);
 
-    if (__builtin_expect((length & 0x1) == 0, 0))
+    if ((length & 0x1) == 0)
     {
         value = 0;
         return 1;
     }
-    else if (__builtin_expect((length & 0x2) == 0, 1))
+    else if ((length & 0x2) == 0)
     {
         value = length >> 2;
         return 8;

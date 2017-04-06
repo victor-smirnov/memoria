@@ -33,6 +33,9 @@
 #pragma warning( disable : 4200)
 #pragma warning( disable : 4291)
 #pragma warning( disable : 4101)
+#pragma warning( disable : 4305)
+#pragma warning( disable : 4018)
+#pragma warning( disable : 4805)
 
 
 #ifdef max

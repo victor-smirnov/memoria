@@ -78,6 +78,8 @@ if (BUILD_UNIX OR MINGW)
     set (MEMORIA_LINK_FLAGS  "${MEMORIA_LINK_FLAGS} ${PROFILE} -luuid -lstdc++") #-lubsan
         
     if (MINGW)
+        set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -Wa,-mbig-obj ")
+
         set (MEMORIA_LIBS "${MEMORIA_LIBS}" rpcrt4 winpthread)
     else()
         set (MEMORIA_LIBS "${MEMORIA_LIBS}")
@@ -95,7 +97,7 @@ if (BUILD_UNIX OR MINGW)
     endif()
     
 else()
-    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} /W3 /std:c++14 -DWIN32_LEAN_AND_MEAN -D_CRT_SECURE_NO_WARNINGS")
+    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} /W3 /std:c++14 -DWIN32_LEAN_AND_MEAN -D_CRT_SECURE_NO_WARNINGS /bigobj")
     set (MEMORIA_LIBS "${MEMORIA_LIBS}" rpcrt4 )
 endif()
 
