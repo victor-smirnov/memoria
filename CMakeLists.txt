@@ -25,26 +25,26 @@ set(VERSION "0.1.0")
 
 set(CMAKE_CXX_STANDARD 14)
 
+if (NOT CMAKE_BUILD_TYPE)
+     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build." FORCE)
+endif()
+
+
 IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(ASAN_DEFAULT ON)
-    set(USAN_DEFAULT ON)
-    set(TSAN_DEFAULT OFF)
+    option(USE_ASAN "Compile with Address Sanitizer ON (Default with Debug build)" ON)
 else()
-    set(ASAN_DEFAULT OFF)
-    set(USAN_DEFAULT OFF)
-    set(TSAN_DEFAULT OFF)
+    option(USE_ASAN "Compile with Address Sanitizer ON (Default with Debug build)" OFF)
 ENDIF()
 
+option(USE_TSAN "Compile with Thread Sanitizer ON" OFF)
+option(USE_USAN "Compile with UB Sanitizer ON (Default with Debug build)" OFF)
 
-option(USE_ASAN "Compile with Address Sanitizer ON (Default with Debug build)" ${ASAN_DEFAULT})
-option(USE_TSAN "Compile with Thread Sanitizer ON" ${TSAN_DEFAULT})
-option(USE_USAN "Compile with UB Sanitizer ON (Default with Debug build)" ${USAN_DEFAULT})
 
 option(BUILD_TESTS    "Build Unit/Functional tests" OFF)
 option(BUILD_SANDBOX  "Build selected programs in the project's sandbox" OFF)
 option(BUILD_TOOLS    "Build project's tools" ON)
-
 option(BUILD_STATIC   "Build statically linked binaries" OFF)
+
 
 set (LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 set (EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
@@ -70,12 +70,27 @@ if (BUILD_UNIX OR MINGW)
     SET(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)
     SET(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS)
 
-    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -Wall -Wno-sign-compare")
+    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -Wall -Wno-sign-compare")
 
-    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors  -ftemplate-backtrace-limit=0 ${PROFILE}") #-fsanitize=undefined -fno-sanitize-recover
-    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -Wcomment -Wunused-variable -Wno-unused-but-set-variable -Wno-unused-function -Wno-unneeded-internal-declaration")
+    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors  -ftemplate-backtrace-limit=0 ${PROFILE}") #-fsanitize=undefined -fno-sanitize-recover
+    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -Wcomment -Wunused-variable  -Wno-unused-function")
     
-    set (MEMORIA_LINK_FLAGS  "${MEMORIA_LINK_FLAGS} ${PROFILE} -luuid -lstdc++") #-lubsan
+    if (USE_ASAN) 
+        set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -fsanitize=address")
+        set (MEMORIA_LINK_FLAGS  "${MEMORIA_LINK_FLAGS} -lasan")
+    endif()
+    
+    if (USE_USAN) 
+        set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -fsanitize=undefined")
+        set (MEMORIA_LINK_FLAGS  "${MEMORIA_LINK_FLAGS} -lubsan")
+    endif()
+    
+    if (USE_TSAN) 
+        set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -fsanitize=thread")
+        set (MEMORIA_LINK_FLAGS  "${MEMORIA_LINK_FLAGS} -ltsan")
+    endif()
+    
+    set (MEMORIA_LINK_FLAGS  "${MEMORIA_LINK_FLAGS} ${PROFILE} -luuid -lstdc++") 
         
     if (MINGW)
         set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -Wa,-mbig-obj ")
@@ -90,12 +105,7 @@ if (BUILD_UNIX OR MINGW)
     	set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -static")
     	set (MEMORIA_LINK_FLAGS  "${MEMORIA_LINK_FLAGS} -static-libgcc -static-libstdc++ -static")
     endif()
-    
-    if (BUILD_ASAN)
-        set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -fsanitize=address")
-        set (MEMORIA_LINK_FLAGS "${MEMORIA_LINK_FLAGS} -fsanitize=address")
-    endif()
-    
+        
 else()
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} /W3 /std:c++14 -DWIN32_LEAN_AND_MEAN -D_CRT_SECURE_NO_WARNINGS /bigobj")
     set (MEMORIA_LIBS "${MEMORIA_LIBS}" rpcrt4 )
@@ -103,7 +113,7 @@ endif()
 
 
 set(Boost_USE_STATIC_LIBS        ON) 
-set(Boost_USE_MULTITHREADED      ON)
+set(Boost_USE_MULTITHREADED      OFF)
 set(Boost_USE_STATIC_RUNTIME     ON)
 
 find_package(Boost
