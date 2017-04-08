@@ -95,6 +95,11 @@ struct TypeHash<Map<Key, Value>>:   UIntValue<
     HashHelper<1100, TypeHash<Key>::Value, TypeHash<Value>::Value>::Value
 > {};
 
+template <typename Key, typename Value>
+struct TypeHash<CowMap<Key, Value>>:   UIntValue<
+    HashHelper<1104, TypeHash<Key>::Value, TypeHash<Value>::Value>::Value
+> {};
+
 
 template <typename Key>
 struct TypeHash<Set<Key>>:   UIntValue<

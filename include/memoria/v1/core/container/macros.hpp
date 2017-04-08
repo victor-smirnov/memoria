@@ -105,11 +105,12 @@ template <typename Base, typename Types>
 
 
 #define MEMORIA_V1_ITERATOR_PART_NO_CTOR_BEGIN(PartName)                        \
-template <typename Base1, typename Types>                                       \
-class IterPart<PartName, Base1, Types>: public Base1 {                          \
-    typedef IterPart<PartName, Base1, Types> ThisPartType;                      \
+template <typename Base1, typename Types1>                                      \
+class IterPart<PartName, Base1, Types1>: public Base1 {                         \
+    typedef IterPart<PartName, Base1, Types1> ThisPartType;                     \
     typedef Base1 Base;                                                         \
-    typedef Iter<Types> MyType;                                                 \
+    typedef Iter<Types1> MyType;                                                \
+    using Types = Types1;														\
                                                                                 \
     template <typename, typename, typename> friend class CtrPart;               \
     template <typename, typename, typename> friend class IterPart;              \

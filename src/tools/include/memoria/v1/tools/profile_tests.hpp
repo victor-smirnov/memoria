@@ -79,9 +79,9 @@ public:
         String file_name = getAllocatorFileName(".valid");
         StoreAllocator(allocator, file_name);
 
-        String file_name_invalid = getAllocatorFileName(".invalid");
-        allocator.commit();
-        StoreAllocator(allocator, file_name_invalid);
+        //String file_name_invalid = getAllocatorFileName(".invalid");
+        //allocator.commit();
+        //StoreAllocator(allocator, file_name_invalid);
 
         return file_name;
     }

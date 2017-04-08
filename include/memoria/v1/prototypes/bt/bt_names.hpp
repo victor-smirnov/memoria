@@ -32,6 +32,7 @@ template <typename ContainerName>
 class IteratorPartsListFactory      {};
 
 class ToolsName             {};
+class ToolsPLName           {};
 class FindName              {};
 class IOReadName            {};
 class ReadName              {};

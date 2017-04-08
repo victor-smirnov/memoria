@@ -32,7 +32,7 @@ namespace v1 {
 MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorInsertName)
 
 
-    using typename Base::Container;
+    using Container = typename Base::Container;
 
 
     static const Int Streams          = Container::Types::Streams;

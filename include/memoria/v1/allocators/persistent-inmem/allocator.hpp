@@ -145,7 +145,7 @@ std::ostream& operator<<(std::ostream& out, const PersistentTreeValue<V, T>& val
 
 
 template <typename Profile, typename PageType>
-class PersistentInMemAllocatorT: public enable_shared_from_this<PersistentInMemAllocatorT<Profile, PageType>> {
+class PersistentInMemAllocatorT: public std::enable_shared_from_this<PersistentInMemAllocatorT<Profile, PageType>> {
 public:
 
     static constexpr Int NodeIndexSize  = 32;
@@ -536,7 +536,9 @@ public:
 private:
     PersistentInMemAllocatorT(Int):
         metadata_(MetadataRepository<Profile>::getMetadata())
-    {}
+    {
+    	SnapshotT::initMetadata();
+    }
 
     auto& store_mutex() {
     	return store_mutex_;
@@ -1502,7 +1504,7 @@ private:
 
     void write(OutputStreamHandler& out, const Checksum& checksum)
     {
-        UByte type = TYPE_CHECKSUM;
+    	UByte type = TYPE_CHECKSUM;
         out << type;
         out << checksum.records() + 1;
     }
@@ -1603,6 +1605,7 @@ private:
     {
         UByte type = TYPE_LEAF_NODE;
         out << type;
+
         node->write(out);
 
         records_++;

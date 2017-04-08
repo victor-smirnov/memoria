@@ -1,219 +1,72 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
 	<storageModule moduleId="org.eclipse.cdt.core.settings">
-		<cconfiguration id="0.299819021">
-			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="0.299819021" moduleId="org.eclipse.cdt.core.settings" name="Default">
+		<cconfiguration id="0.1983119300">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="0.1983119300" moduleId="org.eclipse.cdt.core.settings" name="Default">
 				<externalSettings/>
 				<extensions>
-					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
-					<extension id="org.eclipse.cdt.core.PE" point="org.eclipse.cdt.core.BinaryParser"/>
-					<extension id="org.eclipse.cdt.core.VCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.VCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ProjName}" buildProperties="" description="" errorParsers="org.eclipse.cdt.core.VCErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="0.299819021" name="Default" parent="org.eclipse.cdt.build.core.prefbase.cfg">
-					<folderInfo id="0.299819021." name="/" resourcePath="">
-						<toolChain errorParsers="" id="org.eclipse.cdt.build.core.prefbase.toolchain.1299312681" name="No ToolChain" resourceTypeBasedDiscovery="false" superClass="org.eclipse.cdt.build.core.prefbase.toolchain">
-							<targetPlatform binaryParser="org.eclipse.cdt.core.ELF;org.eclipse.cdt.core.PE" id="org.eclipse.cdt.build.core.prefbase.toolchain.1299312681.2029977954" name=""/>
-							<builder buildPath="${workspace_loc:/memoria}-build/${BUILD_TARGET}" command="${workspace_loc:/memoria}-build/${BUILD_TARGET}/build" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator" id="org.eclipse.cdt.build.core.settings.default.builder.1297479238" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" superClass="org.eclipse.cdt.build.core.settings.default.builder">
-								<outputEntries>
-									<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="outputPath" name=""/>
-								</outputEntries>
-							</builder>
-							<tool errorParsers="org.eclipse.cdt.core.VCErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="org.eclipse.cdt.build.core.settings.holder.libs.1708745365" name="holder for library settings" superClass="org.eclipse.cdt.build.core.settings.holder.libs"/>
-							<tool errorParsers="org.eclipse.cdt.core.VCErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="org.eclipse.cdt.build.core.settings.holder.667784978" name="Assembly" superClass="org.eclipse.cdt.build.core.settings.holder">
-								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.1940000880" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${INCLUDES}&quot;"/>
+				<configuration buildProperties="" description="" id="0.1983119300" name="Default" parent="org.eclipse.cdt.build.core.prefbase.cfg">
+					<folderInfo id="0.1983119300." name="/" resourcePath="">
+						<toolChain id="org.eclipse.cdt.build.core.prefbase.toolchain.1472705360" name="No ToolChain" resourceTypeBasedDiscovery="false" superClass="org.eclipse.cdt.build.core.prefbase.toolchain">
+							<targetPlatform id="org.eclipse.cdt.build.core.prefbase.toolchain.1472705360.2143572749" name=""/>
+							<builder buildPath="${workspace_loc:/memoria}/build/debug" id="org.eclipse.cdt.build.core.settings.default.builder.1588566263" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" superClass="org.eclipse.cdt.build.core.settings.default.builder"/>
+							<tool id="org.eclipse.cdt.build.core.settings.holder.libs.1861196638" name="holder for library settings" superClass="org.eclipse.cdt.build.core.settings.holder.libs"/>
+							<tool id="org.eclipse.cdt.build.core.settings.holder.531859633" name="Assembly" superClass="org.eclipse.cdt.build.core.settings.holder">
+								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.362036099" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${INCUDES}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES_CPP}&quot;"/>
-									<listOptionValue builtIn="false" value="/usr/local/include"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/tools/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/include}&quot;"/>
 								</option>
-								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.223574919" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="MEMORIA_TESTS"/>
-								</option>
-								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.1155896270" languageId="org.eclipse.cdt.core.assembly" languageName="Assembly" sourceContentType="org.eclipse.cdt.core.asmSource" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
+								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.1480811301" languageId="org.eclipse.cdt.core.assembly" languageName="Assembly" sourceContentType="org.eclipse.cdt.core.asmSource" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
-							<tool errorParsers="org.eclipse.cdt.core.VCErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="org.eclipse.cdt.build.core.settings.holder.924975240" name="UPC" superClass="org.eclipse.cdt.build.core.settings.holder">
-								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.912560337" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${INCLUDES}&quot;"/>
+							<tool id="org.eclipse.cdt.build.core.settings.holder.1337023566" name="GNU C++" superClass="org.eclipse.cdt.build.core.settings.holder">
+								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.1364089598" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${INCUDES}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES_CPP}&quot;"/>
-									<listOptionValue builtIn="false" value="/usr/local/include"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/tools/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/include}&quot;"/>
 								</option>
-								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.836124985" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="MEMORIA_TESTS"/>
-								</option>
-								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.1318837041" languageId="org.eclipse.cdt.core.parser.upc.upc" languageName="UPC" sourceContentType="org.eclipse.cdt.core.parser.upc.upcSource" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
+								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.1279032752" languageId="org.eclipse.cdt.core.g++" languageName="GNU C++" sourceContentType="org.eclipse.cdt.core.cxxSource,org.eclipse.cdt.core.cxxHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
-							<tool errorParsers="org.eclipse.cdt.core.VCErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="org.eclipse.cdt.build.core.settings.holder.1061691064" name="GNU C++" superClass="org.eclipse.cdt.build.core.settings.holder">
-								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.797022439" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${INCLUDES}&quot;"/>
+							<tool id="org.eclipse.cdt.build.core.settings.holder.1257472928" name="GNU C" superClass="org.eclipse.cdt.build.core.settings.holder">
+								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.990335679" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${INCUDES}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${INCLUDES_CPP}&quot;"/>
-									<listOptionValue builtIn="false" value="/usr/local/include"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/tools/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/include}&quot;"/>
 								</option>
-								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.1223824715" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="MEMORIA_TESTS"/>
-								</option>
-								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.764948347" languageId="org.eclipse.cdt.core.g++" languageName="GNU C++" sourceContentType="org.eclipse.cdt.core.cxxSource,org.eclipse.cdt.core.cxxHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
-							</tool>
-							<tool errorParsers="org.eclipse.cdt.core.VCErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="org.eclipse.cdt.build.core.settings.holder.1694871730" name="GNU C" superClass="org.eclipse.cdt.build.core.settings.holder">
-								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.680423812" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${INCLUDES}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${INCLUDES_CPP}&quot;"/>
-									<listOptionValue builtIn="false" value="/usr/local/include"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/tools/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/include}&quot;"/>
-								</option>
-								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.1352789942" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="MEMORIA_TESTS"/>
-								</option>
-								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.259740723" languageId="org.eclipse.cdt.core.gcc" languageName="GNU C" sourceContentType="org.eclipse.cdt.core.cSource,org.eclipse.cdt.core.cHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
+								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.1490985176" languageId="org.eclipse.cdt.core.gcc" languageName="GNU C" sourceContentType="org.eclipse.cdt.core.cSource,org.eclipse.cdt.core.cHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
 						</toolChain>
 					</folderInfo>
-					<sourceEntries>
-						<entry excluding="container|multimap" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-					</sourceEntries>
 				</configuration>
 			</storageModule>
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
-			<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
-			<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
-		</cconfiguration>
-		<cconfiguration id="0.299819021.302708119">
-			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="0.299819021.302708119" moduleId="org.eclipse.cdt.core.settings" name="Clang">
-				<externalSettings/>
-				<extensions>
-					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
-					<extension id="org.eclipse.cdt.core.PE" point="org.eclipse.cdt.core.BinaryParser"/>
-					<extension id="org.eclipse.cdt.core.VCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-				</extensions>
-			</storageModule>
-			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ProjName}" buildProperties="" description="" errorParsers="org.eclipse.cdt.core.VCErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="0.299819021.302708119" name="Clang" parent="org.eclipse.cdt.build.core.prefbase.cfg">
-					<folderInfo id="0.299819021.302708119." name="/" resourcePath="">
-						<toolChain errorParsers="" id="org.eclipse.cdt.build.core.prefbase.toolchain.173031764" name="No ToolChain" resourceTypeBasedDiscovery="false" superClass="org.eclipse.cdt.build.core.prefbase.toolchain">
-							<targetPlatform binaryParser="org.eclipse.cdt.core.ELF;org.eclipse.cdt.core.PE" id="org.eclipse.cdt.build.core.prefbase.toolchain.173031764.765503842" name=""/>
-							<builder arguments="" buildPath="${workspace_loc:/memoria}-build/clang" command="${workspace_loc:/memoria}-build/clang/${BUILD_COMMAND}" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator" id="org.eclipse.cdt.build.core.settings.default.builder.685093866" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" superClass="org.eclipse.cdt.build.core.settings.default.builder">
-								<outputEntries>
-									<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="outputPath" name=""/>
-								</outputEntries>
-							</builder>
-							<tool errorParsers="org.eclipse.cdt.core.VCErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="org.eclipse.cdt.build.core.settings.holder.libs.20925567" name="holder for library settings" superClass="org.eclipse.cdt.build.core.settings.holder.libs"/>
-							<tool errorParsers="org.eclipse.cdt.core.VCErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="org.eclipse.cdt.build.core.settings.holder.849811314" name="Assembly" superClass="org.eclipse.cdt.build.core.settings.holder">
-								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.2041422232" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${INCLUDES}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${INCLUDES_CPP}&quot;"/>
-									<listOptionValue builtIn="false" value="/home/victor/c++/workspace-memoria/memoria/memoria/memoria/include"/>
-									<listOptionValue builtIn="false" value="/home/victor/c++/workspace-memoria/memoria/memoria/memoria/src/tools/include"/>
-									<listOptionValue builtIn="false" value="../memoria/memoria/include"/>
-									<listOptionValue builtIn="false" value="../memoria/memoria/src/tools/include"/>
-									<listOptionValue builtIn="false" value="/usr/local/include"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/tools/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/include}&quot;"/>
-								</option>
-								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.1908312210" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="MEMORIA_TESTS"/>
-								</option>
-								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.2006883446" languageId="org.eclipse.cdt.core.assembly" languageName="Assembly" sourceContentType="org.eclipse.cdt.core.asmSource" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
-							</tool>
-							<tool errorParsers="org.eclipse.cdt.core.VCErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="org.eclipse.cdt.build.core.settings.holder.492077717" name="UPC" superClass="org.eclipse.cdt.build.core.settings.holder">
-								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.1103980078" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${INCLUDES}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${INCLUDES_CPP}&quot;"/>
-									<listOptionValue builtIn="false" value="/home/victor/c++/workspace-memoria/memoria/memoria/memoria/include"/>
-									<listOptionValue builtIn="false" value="/home/victor/c++/workspace-memoria/memoria/memoria/memoria/src/tools/include"/>
-									<listOptionValue builtIn="false" value="../memoria/memoria/include"/>
-									<listOptionValue builtIn="false" value="../memoria/memoria/src/tools/include"/>
-									<listOptionValue builtIn="false" value="/usr/local/include"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/tools/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/include}&quot;"/>
-								</option>
-								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.73969499" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="MEMORIA_TESTS"/>
-								</option>
-								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.159204786" languageId="org.eclipse.cdt.core.parser.upc.upc" languageName="UPC" sourceContentType="org.eclipse.cdt.core.parser.upc.upcSource" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
-							</tool>
-							<tool errorParsers="org.eclipse.cdt.core.VCErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="org.eclipse.cdt.build.core.settings.holder.2142238717" name="GNU C++" superClass="org.eclipse.cdt.build.core.settings.holder">
-								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.1404285452" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${INCLUDES}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${INCLUDES_CPP}&quot;"/>
-									<listOptionValue builtIn="false" value="/home/victor/c++/workspace-memoria/memoria/memoria/memoria/include"/>
-									<listOptionValue builtIn="false" value="/home/victor/c++/workspace-memoria/memoria/memoria/memoria/src/tools/include"/>
-									<listOptionValue builtIn="false" value="../memoria/memoria/include"/>
-									<listOptionValue builtIn="false" value="../memoria/memoria/src/tools/include"/>
-									<listOptionValue builtIn="false" value="/usr/local/include"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/tools/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/include}&quot;"/>
-								</option>
-								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.1965418758" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="MEMORIA_TESTS"/>
-								</option>
-								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.1687699348" languageId="org.eclipse.cdt.core.g++" languageName="GNU C++" sourceContentType="org.eclipse.cdt.core.cxxSource,org.eclipse.cdt.core.cxxHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
-							</tool>
-							<tool errorParsers="org.eclipse.cdt.core.VCErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="org.eclipse.cdt.build.core.settings.holder.1584349571" name="GNU C" superClass="org.eclipse.cdt.build.core.settings.holder">
-								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.933650428" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${INCLUDES}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${INCLUDES_CPP}&quot;"/>
-									<listOptionValue builtIn="false" value="/home/victor/c++/workspace-memoria/memoria/memoria/memoria/include"/>
-									<listOptionValue builtIn="false" value="/home/victor/c++/workspace-memoria/memoria/memoria/memoria/src/tools/include"/>
-									<listOptionValue builtIn="false" value="../memoria/memoria/include"/>
-									<listOptionValue builtIn="false" value="../memoria/memoria/src/tools/include"/>
-									<listOptionValue builtIn="false" value="/usr/local/include"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/src/tools/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/memoria/include}&quot;"/>
-								</option>
-								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.352425401" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="MEMORIA_TESTS"/>
-								</option>
-								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.936409953" languageId="org.eclipse.cdt.core.gcc" languageName="GNU C" sourceContentType="org.eclipse.cdt.core.cSource,org.eclipse.cdt.core.cHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
-							</tool>
-						</toolChain>
-					</folderInfo>
-					<sourceEntries>
-						<entry excluding="src/tools/tests/multimap|multimap|container" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src/tools/tests/multimap"/>
-					</sourceEntries>
-				</configuration>
-			</storageModule>
-			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
-			<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
-			<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 		</cconfiguration>
 	</storageModule>
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-		<project id="p1.null.1219388518" name="p1"/>
+		<project id="memoria.null.868269001" name="memoria"/>
 	</storageModule>
-	<storageModule moduleId="refreshScope" versionNumber="2">
-		<configuration configurationName="Clang"/>
-		<configuration configurationName="Default">
-			<resource resourceType="PROJECT" workspacePath="/p1"/>
-		</configuration>
-	</storageModule>
-	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
-	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
-	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 	<storageModule moduleId="scannerConfiguration">
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		<scannerConfigBuildInfo instanceId="0.299819021">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="0.299819021.302708119">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="0.299819021">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="0.1983119300">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
+	<storageModule moduleId="refreshScope" versionNumber="2">
+		<configuration configurationName="Default">
+			<resource resourceType="PROJECT" workspacePath="/memoria"/>
+		</configuration>
 	</storageModule>
 </cproject>

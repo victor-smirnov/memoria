@@ -28,7 +28,7 @@ using bt::StreamTag;
 MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btss::IteratorMiscName)
 
     using typename Base::NodeBaseG;
-    using typename Base::Container;
+    using Container = typename Base::Container;
 
     typedef typename Container::Allocator                                           Allocator;
     typedef typename Container::BranchNodeEntry                                     BranchNodeEntry;

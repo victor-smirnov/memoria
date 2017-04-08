@@ -38,7 +38,7 @@ struct FnTraits<RtnType_ (ClassType_::*)(Args_...)> {
     template <Int I>
     using Arg = typename std::tuple_element<I, std::tuple<Args_...>>::type;
 
-    using Exists = EmptyType;
+    using Exists = void;
 };
 
 template <typename RtnType_, typename ClassType_, typename... Args_>
@@ -53,7 +53,7 @@ struct FnTraits<RtnType_ (ClassType_::*)(Args_...) const> {
     template <Int I>
     using Arg = typename std::tuple_element<I, std::tuple<Args_...>>::type;
 
-    using Exists = EmptyType;
+    using Exists = void;
 };
 
 template <typename RtnType_, typename... Args_>
@@ -68,7 +68,7 @@ struct FnTraits<RtnType_ (*)(Args_...)> {
     template <Int I>
     using Arg = typename std::tuple_element<I, std::tuple<Args_...>>::type;
 
-    using Exists = EmptyType;
+    using Exists = void;
 };
 
 template <typename RtnType_, typename... Args_>
@@ -83,7 +83,7 @@ struct FnTraits<RtnType_ (Args_...)> {
     template <Int I>
     using Arg = typename std::tuple_element<I, std::tuple<Args_...>>::type;
 
-    using Exists = EmptyType;
+    using Exists = void;
 };
 
 

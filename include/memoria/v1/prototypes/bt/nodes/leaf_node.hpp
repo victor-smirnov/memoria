@@ -42,7 +42,7 @@ namespace bt        {
 template <
     typename Types
 >
-class LeafNode: public TreeNodeBase<typename Types::Metadata, typename Types::NodeBase>
+class LeafNode: public Types::template TreeNodeBaseTF<typename Types::Metadata, typename Types::NodeBase>
 {
     static const Int BranchingFactor                                            = PackedTreeBranchingFactor;
 
@@ -54,10 +54,7 @@ public:
 
     static const bool Leaf                                                      = true;
 
-    typedef bt::TreeNodeBase<
-                typename Types::Metadata,
-                typename Types::NodeBase
-    >                                                                           Base;
+    using Base = typename Types::template TreeNodeBaseTF<typename Types::Metadata, typename Types::NodeBase>;
 
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;

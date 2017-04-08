@@ -263,7 +263,7 @@ void check(const std::shared_ptr<Allocator>& allocator, const char* message,  co
 {
     Int level = allocator->logger().level();
 
-    allocator->logger().level() = Logger::ERROR;
+    allocator->logger().level() = Logger::_ERROR;
 
     if (allocator->check())
     {
@@ -280,7 +280,7 @@ void checkCtr(Ctr& ctr, const char* message,  const char* source)
 {
     Int level = ctr.logger().level();
 
-    ctr.logger().level() = Logger::ERROR;
+    ctr.logger().level() = Logger::_ERROR;
 
     if (ctr.check(NULL))
     {

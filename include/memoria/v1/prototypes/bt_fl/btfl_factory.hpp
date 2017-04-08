@@ -139,23 +139,23 @@ struct BTTypes<Profile, v1::BTFreeLayout>: public BTTypes<Profile, v1::BT> {
 template <typename Profile, typename T>
 class CtrTF<Profile, v1::BTFreeLayout, T>: public CtrTF<Profile, v1::BT, T> {
 
-    using Base = CtrTF<Profile, v1::BT, T>;
+    using Base1 = CtrTF<Profile, v1::BT, T>;
+
 public:
 
-    struct Types: Base::Types
+    struct Types: Base1::Types
     {
+		using BaseTypes = typename Base1::Types;
+
         using CtrTypes          = BTFLCtrTypes<Types>;
         using IterTypes         = BTFLIterTypes<Types>;
 
         using PageUpdateMgr     = PageUpdateManager<CtrTypes>;
 
-
-
-        static const Int DataStreams            = Base::Types::Streams - 1;
+        static const Int DataStreams            = BaseTypes::Streams - 1;
         static const Int StructureStreamIdx     = DataStreams;
 
-
-        using DataSizesT = core::StaticVector<typename Base::Types::CtrSizeT, DataStreams>;
+        using DataSizesT = core::StaticVector<typename BaseTypes::CtrSizeT, DataStreams>;
     };
 
     using CtrTypes  = typename Types::CtrTypes;

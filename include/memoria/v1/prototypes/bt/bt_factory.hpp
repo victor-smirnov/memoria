@@ -50,6 +50,7 @@
 
 #include <memoria/v1/prototypes/bt/container/bt_c_base.hpp>
 #include <memoria/v1/prototypes/bt/container/bt_c_tools.hpp>
+#include <memoria/v1/prototypes/bt/container/bt_c_tools_pl.hpp>
 #include <memoria/v1/prototypes/bt/container/bt_c_checks.hpp>
 #include <memoria/v1/prototypes/bt/container/bt_c_insert.hpp>
 #include <memoria/v1/prototypes/bt/container/bt_c_read.hpp>
@@ -92,6 +93,7 @@ struct BTTypes {
     typedef TypeList<
             bt::AllocatorName,
             bt::ToolsName,
+			bt::ToolsPLName,
             bt::ChecksName,
             bt::BranchCommonName,
             bt::InsertBatchCommonName,
@@ -300,6 +302,9 @@ public:
         using IteratorBranchNodeEntry   = typename MyType::IteratorBranchNodeEntry;
         using StreamsInputTypeList      = typename MyType::StreamsInputTypeList;
         using InputBufferStructList     = typename MyType::InputBufferStructList;
+
+        template <typename Metadata, typename NodeBase>
+        using TreeNodeBaseTF = bt::TreeNodeBase<Metadata, NodeBase>;
     };
 
     struct BranchNodeTypes: NodeTypesBase {

@@ -30,7 +30,7 @@ namespace v1 {
 MEMORIA_V1_CONTAINER_PART_BEGIN(v1::set::CtrInsertName)
 
 public:
-    using typename Base::Types;
+    using Types = typename Base::Types;
     using typename Base::IteratorPtr;
 
 protected:
@@ -89,10 +89,11 @@ public:
      */
     bool insert_key(const Key& k)
     {
-        auto iter = find(k);
+    	auto iter = find(k);
+
         if (iter->is_found(k))
         {
-            return true;
+        	return true;
         }
         else {
             iter->insert(k);

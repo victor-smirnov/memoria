@@ -213,7 +213,7 @@ class StaticVector
 {
     typedef StaticVector<ElementType_, Indexes_> MyType;
 
-    ElementType_ values_[Indexes_];
+    ElementType_ values_[Indexes_ > 0 ? Indexes_ : 1];
 
     template <typename, Int>
     friend class StaticVector;

@@ -28,7 +28,7 @@ namespace v1 {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(v1::seq_dense::CtrFindName)
 public:
-    using typename Base::Types;
+    using Types = typename Base::Types;
     using typename Base::CtrSizeT;
 
     using SymbolsSubstreamPath = typename Types::SymbolsSubstreamPath;

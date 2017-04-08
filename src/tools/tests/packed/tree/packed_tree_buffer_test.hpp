@@ -229,6 +229,8 @@ public:
 
             auto at = tree->positions(pos);
 
+			FailIf<decltype(at)>* v = nullptr;
+
             Int buffer_size = buffer->size();
             auto buffer_starts = buffer->positions(0);
             auto buffer_ends = buffer->positions(buffer_size);

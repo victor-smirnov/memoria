@@ -15,7 +15,10 @@
 
 #include <memoria/v1/core/tools/time.hpp>
 
+#ifndef _MSC_VER
 #include <unistd.h>
+#endif
+
 #include <string>
 #include <iostream>
 #include <sys/timeb.h>

@@ -583,7 +583,7 @@ protected:
 
     using typename Base::CtrSizeT;
     using typename Base::Position;
-    using typename Base::InputBuffer;
+    using InputBuffer = typename Base::InputBuffer;
 
     using AppendState = typename InputBuffer::AppendState;
 

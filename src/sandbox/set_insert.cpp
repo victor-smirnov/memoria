@@ -37,19 +37,21 @@ using namespace std;
 
 
 
+
+
 int main()
 {
-    MEMORIA_INIT(DefaultProfile<>);
-
+	MEMORIA_INIT(DefaultProfile<>);
+	
     using Key   = FixedArray<16>;
-//    using Key   = Bytes;
+    //using Key   = Bytes;
 
 
     DInit<Set<Key>>();
-
+	
     try {
         auto alloc = PersistentInMemAllocator<>::create();
-
+		
         auto snp = alloc->master()->branch();
 
         auto map = create<Set<Key>>(snp);
@@ -99,16 +101,18 @@ int main()
         // Store binary contents of allocator to the file.
         auto out = FileOutputStreamHandler::create("setl_data.dump");
         alloc->store(out.get());
+		/**/
     }
     catch (Exception& ex)
     {
         cout << ex.message() << " at " << ex.source() << endl;
     }
+	
 
     // Destroy containers metadata.
     MetadataRepository<DefaultProfile<>>::cleanup();
+
+	/**/
 }
 
-int set_insert() {
-	return main();
-}
+

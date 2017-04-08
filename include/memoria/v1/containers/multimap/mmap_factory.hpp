@@ -135,19 +135,21 @@ struct BTTypes<Profile, v1::Map<Key_, Vector<Value_>>>: public MultimapBTTypesBa
 
 template <typename Profile, typename Key, typename Value, typename T>
 class CtrTF<Profile, v1::Map<Key, Vector<Value>>, T>: public CtrTF<Profile, v1::BTFreeLayout, T> {
-    using Base = CtrTF<Profile, v1::BTFreeLayout, T>;
+    using Base1 = CtrTF<Profile, v1::BTFreeLayout, T>;
 public:
 
-    struct Types: Base::Types
+    struct Types: Base1::Types
     {
+		using BaseTypes = typename Base1::Types;
+
         using CtrTypes          = MultimapCtrTypes<Types>;
         using IterTypes         = MultimapIterTypes<Types>;
 
         using PageUpdateMgr     = PageUpdateManager<CtrTypes>;
 
-        using LeafStreamsStructList = FailIf<typename Base::Types::LeafStreamsStructList, false>;
+        using LeafStreamsStructList = FailIf<typename BaseTypes::LeafStreamsStructList, false>;
 
-        using IteratorBranchNodeEntry = FailIf<typename Base::Types::IteratorBranchNodeEntry, false>;
+        using IteratorBranchNodeEntry = FailIf<typename BaseTypes::IteratorBranchNodeEntry, false>;
     };
 
     using CtrTypes  = typename Types::CtrTypes;

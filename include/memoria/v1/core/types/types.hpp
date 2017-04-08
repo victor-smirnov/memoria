@@ -23,6 +23,30 @@
 #include <cassert>
 #include <cstdint>
 
+#ifdef _MSC_VER
+#include <windows.h>
+//#include <intrin.h>
+
+#pragma warning( disable : 4267)
+#pragma warning( disable : 4146)
+#pragma warning( disable : 4307)
+#pragma warning( disable : 4200)
+#pragma warning( disable : 4291)
+#pragma warning( disable : 4101)
+#pragma warning( disable : 4305)
+#pragma warning( disable : 4018)
+#pragma warning( disable : 4805)
+
+
+#ifdef max
+#undef max
+#endif
+
+#ifdef min
+#undef min
+#endif
+
+#endif
 
 #include <type_traits>
 #include <tuple>
@@ -108,7 +132,7 @@ template <bool Value>
 using BoolValue = ConstValue<bool, Value>;
 
 
-
+template <typename...> using VoidT = void;
 
 class EmptyValue {
 public:
@@ -172,6 +196,9 @@ class CtrWrapper    {};
 
 template <typename Key, typename Value>
 struct Map          {};
+
+template <typename Key, typename Value>
+struct CowMap       {};
 
 template <typename Key, typename Value, PackedSizeType SizeType>
 struct Table        {};
@@ -404,7 +431,7 @@ struct HasValue {
 };
 
 
-namespace {
+namespace details {
     template <typename T, bool Flag, typename T2>
     struct FailIfT {
         static_assert(!Flag, "Template failed");
@@ -413,10 +440,10 @@ namespace {
 }
 
 template <typename T, bool Flag = true, typename T2 = void>
-using FailIf = typename FailIfT<T, Flag, T2>::Type;
+using FailIf = typename v1::details::FailIfT<T, Flag, T2>::Type;
 
 template <Int V, bool Flag = true, typename T2 = void>
-using FailIfV = typename FailIfT<IntValue<V>, Flag, T2>::Type;
+using FailIfV = typename v1::details::FailIfT<IntValue<V>, Flag, T2>::Type;
 
 
 template <typename T1, typename T2>
@@ -515,5 +542,78 @@ enum class MemoryAccess {
 
 
 template <typename T> struct TypeTag {};
+
+#ifdef _MSC_VER
+
+#define MEMORIA_V1_ALWAYS_INLINE 
+
+
+
+
+uint32_t __inline __builtin_ctz(uint32_t value)
+{
+	DWORD trailing_zero = 0;
+
+	if (_BitScanForward(&trailing_zero, value))
+	{
+		return trailing_zero;
+	}
+	else
+	{
+		return 32;
+	}
+	return 0;
+}
+
+uint32_t __inline __builtin_ctzll(uint64_t value)
+{
+	DWORD trailing_zero = 0;
+
+	if (_BitScanForward64(&trailing_zero, value))
+	{
+		return trailing_zero;
+	}
+	else
+	{
+		return 64;
+	}
+	return 0;
+}
+
+uint32_t __inline __builtin_clz(uint32_t value)
+{
+	DWORD leading_zero = 0;
+
+	if (_BitScanReverse(&leading_zero, value))
+	{
+		return 31 - leading_zero;
+	}
+	else
+	{
+		return 32;
+	}
+	return 0;
+}
+
+uint32_t __inline __builtin_clzll(uint64_t value)
+{
+	DWORD leading_zero = 0;
+
+	if (_BitScanReverse64(&leading_zero, value))
+	{
+		return 63 - leading_zero;
+	}
+	else
+	{
+		return 64;
+	}
+	return 0;
+}
+
+
+#else 
+#define MEMORIA_V1_ALWAYS_INLINE __attribute__((always_inline))
+#endif
+
 
 }}

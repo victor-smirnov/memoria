@@ -172,7 +172,7 @@ public:
     template <typename Node, typename... Args>
     void processLeafIteratorBranchNodeEntry(Node* node, IteratorBranchNodeEntry&accum, Args&&... args)
     {
-        detail::LeafAccumWalker<
+        details::LeafAccumWalker<
             LeafStructList,
             LeafRangeList,
             LeafRangeOffsetList,

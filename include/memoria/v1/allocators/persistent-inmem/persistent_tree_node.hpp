@@ -19,6 +19,7 @@
 #include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
 #include <memoria/v1/core/tools/stream.hpp>
+#include <memoria/v1/core/tools/md5.hpp>
 
 #include <atomic>
 #include <mutex>
@@ -75,6 +76,8 @@ private:
     TxnId  txn_id_;
 
     Int size_ = 0;
+
+    Int cpu_id_; // not used here...
 
 protected:
     BigInt refs_;

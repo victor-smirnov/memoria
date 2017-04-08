@@ -53,7 +53,7 @@
 
 namespace memoria {
 namespace v1 {
-namespace bt        {
+namespace bt {
 
 
 template <PkdSearchType SearchType, typename KeyType_, Int Indexes_>
@@ -151,7 +151,9 @@ struct VLDBranchStructTF<IdxSearchType<PkdSearchType::MAX, KeyType, Indexes>> {
 
 
 
-namespace {
+namespace detail {
+
+	
 
     template <typename List> struct CheckPackedStructsHaveSameSearchType;
 
@@ -166,6 +168,8 @@ namespace {
         >::Value;
     };
 
+	
+
     template <typename PkdStruct1, typename PkdStruct2>
     struct CheckPackedStructsHaveSameSearchType<TL<PkdStruct1, PkdStruct2>>
     {
@@ -178,13 +182,11 @@ namespace {
     template <typename PkdStruct>
     struct CheckPackedStructsHaveSameSearchType<TL<PkdStruct>>: HasValue<bool, true> {};
 
-//  template <>
-//  struct CheckPackedStructsHaveSameSearchType<TL<>>: HasValue<bool, true> {};
+	
 
 
 
-
-
+	
     template <typename List> struct CheckPackedStructsHaveSameKeyType;
 
     template <typename PkdStruct1, typename PkdStruct2, typename... Tail>
@@ -226,7 +228,7 @@ namespace {
     };
 
 
-    template <typename T1, typename T2, bool LT = sizeof(T1) < sizeof(T2) > struct SelectMaxTypeT;
+    template <typename T1, typename T2, bool LT = (sizeof(T1) < sizeof(T2)) > struct SelectMaxTypeT;
 
     template <typename T1, typename T2>
     using SelectMaxType = typename SelectMaxTypeT<T1, T2>::Type;
@@ -367,9 +369,9 @@ struct BTStreamDescritorsBuilder<TL<LeafStruct, Tail...>, BranchStructTF, SumTyp
 
     using StructList = TL<LeafStruct, Tail...>;
 
-    using KeyMetadataList = BuildKeyMetadataList<StructList, SumType>;
+    using KeyMetadataList = detail::BuildKeyMetadataList<StructList, SumType>;
 
-    using Type = BranchStructListBuilder<KeyMetadataList, BranchStructTF>;
+    using Type = detail::BranchStructListBuilder<KeyMetadataList, BranchStructTF>;
 };
 
 template <typename LeafStruct, typename... Tail1, typename... Tail2, template <typename> class BranchStructTF, typename SumType>
@@ -382,14 +384,14 @@ struct BTStreamDescritorsBuilder<TL<TL<LeafStruct, Tail1...>, Tail2...>, BranchS
 
     using StructList = TL<TL<LeafStruct, Tail1...>, Tail2...>;
 
-    using KeyMetadataList = BuildKeyMetadataList<StructList, SumType>;
+    using KeyMetadataList = detail::BuildKeyMetadataList<StructList, SumType>;
 
-    using Type = BranchStructListBuilder<KeyMetadataList, BranchStructTF>;
+    using Type = detail::BranchStructListBuilder<KeyMetadataList, BranchStructTF>;
 };
 
 
 
-
+/**/
 
 }
 }}

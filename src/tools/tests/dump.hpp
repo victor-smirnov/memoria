@@ -26,80 +26,80 @@ namespace v1 {
 template <typename AllocatorT>
 static void LoadFile(const std::shared_ptr<AllocatorT>& allocator, const char* file)
 {
-    auto in = FileInputStreamHandler::create(file);
-    allocator->load(in.get());
+	auto in = FileInputStreamHandler::create(file);
+	allocator->load(in.get());
 }
 
 static String getPath(String dump_name)
 {
-    if (isEndsWith(dump_name, ".dump"))
-    {
-        auto idx = dump_name.find_last_of(".");
-        String name = dump_name.substr(0, idx);
-        return name;
-    }
-    else {
-        return dump_name+".data";
-    }
+	if (isEndsWith(dump_name, ".dump"))
+	{
+		auto idx = dump_name.find_last_of(".");
+		String name = dump_name.substr(0, idx);
+		return name;
+	}
+	else {
+		return dump_name+".data";
+	}
 }
 
 static Int DumpAllocator(String file_name)
 {
-    try {
-        logger.level() = Logger::NONE;
+	try {
+		logger.level() = Logger::NONE;
 
-        File file(file_name);
-        if (file.isDirectory())
-        {
-            cerr<<"ERROR: "<<file.getPath()<<" is a directory"<<endl;
-            return 1;
-        }
-        else if (!file.isExists())
-        {
-            cerr<<"ERROR: "<<file.getPath()<<" does not exists"<<endl;
-            return 1;
-        }
+		File file(file_name);
+		if (file.isDirectory())
+		{
+			cerr<<"ERROR: "<<file.getPath()<<" is a directory"<<endl;
+			return 1;
+		}
+		else if (!file.isExists())
+		{
+			cerr<<"ERROR: "<<file.getPath()<<" does not exists"<<endl;
+			return 1;
+		}
 
-        File path(getPath(file_name));
-        if (path.isExists() && !path.isDirectory())
-        {
-            cerr<<"ERROR: "<<path.getPath()<<" is not a directory"<<endl;
-            return 1;
-        }
-        
-            auto is = FileInputStreamHandler::create(file.getPath().c_str());
+		File path(getPath(file_name));
+		if (path.isExists() && !path.isDirectory())
+		{
+			cerr<<"ERROR: "<<path.getPath()<<" is not a directory"<<endl;
+			return 1;
+		}
 
-            auto allocator = PersistentInMemAllocator<>::load(is.get());
-            
-            cout<<"Load InMemAllocator file: "+file.getPath()<<endl;
+		auto is = FileInputStreamHandler::create(file.getPath().c_str());
 
-            auto start = getTimeInMillis();
+		auto allocator = PersistentInMemAllocator<>::load(is.get());
 
-            LoadFile(allocator, file.getPath().c_str());
+		cout<<"Load InMemAllocator file: "+file.getPath()<<endl;
 
-            auto end = getTimeInMillis();
+		auto start = getTimeInMillis();
 
-            cout<<"Loading time: "<<FormatTime(end-start)<<endl;
+		LoadFile(allocator, file.getPath().c_str());
 
-            FSDumpAllocator(allocator, path.getAbsolutePath());
-    }
-    catch (Exception& ex) {
-        cout<<"Exception "<<ex.source()<<" "<<ex<<endl;
-    }
-    catch (MemoriaThrowable* ex) {
-        cout<<"Exception* "<<ex->source()<<" "<<*ex<<endl;
-    }
-    catch (MemoriaThrowable& ex) {
-        cout<<"Exception "<<ex.source()<<" "<<ex<<endl;
-    }
-    catch (exception& e) {
-        cout<<"StdEx: "<<e.what()<<endl;
-    }
-    catch(...) {
-        cout<<"Unrecognized exception"<<endl;
-    }
+		auto end = getTimeInMillis();
 
-    return 0;
+		cout<<"Loading time: "<<FormatTime(end-start)<<endl;
+
+		FSDumpAllocator(allocator, path.getAbsolutePath());
+	}
+	catch (Exception& ex) {
+		cout<<"Exception "<<ex.source()<<" "<<ex<<endl;
+	}
+	catch (MemoriaThrowable* ex) {
+		cout<<"Exception* "<<ex->source()<<" "<<*ex<<endl;
+	}
+	catch (MemoriaThrowable& ex) {
+		cout<<"Exception "<<ex.source()<<" "<<ex<<endl;
+	}
+	catch (exception& e) {
+		cout<<"StdEx: "<<e.what()<<endl;
+	}
+	catch(...) {
+		cout<<"Unrecognized exception"<<endl;
+	}
+
+	return 0;
 }
 
 }}

@@ -21,6 +21,8 @@
 
 #include <memoria/v1/core/container/allocator.hpp>
 
+#include <memory>
+
 namespace memoria {
 namespace v1 {
 
@@ -28,6 +30,15 @@ namespace v1 {
 class AbstractTransaction {
 public:
     AbstractTransaction() {}
+};
+
+
+template <typename T>
+struct StdMakeSharedPtr {
+	template <typename... Args>
+	static auto make_shared(Args&&... args) {
+		return std::make_shared<T>(std::forward<Args>(args)...);
+	}
 };
 
 
@@ -43,7 +54,29 @@ struct BasicContainerCollectionCfg {
     typedef IAllocator<Page>                                                    AbstractAllocator;
 
     typedef AbstractAllocator                                                   AllocatorType;
+
+    template <typename T>
+    using CtrSharedPtr = std::shared_ptr<T>;
+
+    template <typename T>
+    using CtrEnableSharedFromThis = std::enable_shared_from_this<T>;
+
+    template <typename T>
+    using CtrMakeSharedPtr = StdMakeSharedPtr<T>;
 };
+
+
+template <typename Profile> class ContainerCollectionCfg;
+
+template <typename Profile, typename T>
+using CtrSharedPtr = typename ContainerCollectionCfg<Profile>::Types::template CtrSharedPtr<T>;
+
+template <typename Profile, typename T>
+using CtrEnableSharedFromThis = typename ContainerCollectionCfg<Profile>::Types::template CtrEnableSharedFromThis<T>;
+
+template <typename Profile, typename T>
+using CtrMakeSharedPtr = typename ContainerCollectionCfg<Profile>::Types::template CtrMakeSharedPtr<T>;
+
 
 
 }}

@@ -30,7 +30,7 @@ namespace v1 {
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(v1::map::CtrInsertName)
 
-    using typename Base::Types;
+    using Types = typename Base::Types;
 
     using typename Base::NodeBaseG;
     using typename Base::IteratorPtr;

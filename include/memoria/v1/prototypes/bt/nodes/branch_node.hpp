@@ -324,7 +324,7 @@ public:
 template <
     typename Types
 >
-class BranchNode: public TreeNodeBase<typename Types::Metadata, typename Types::NodeBase>
+class BranchNode: public Types::template TreeNodeBaseTF<typename Types::Metadata, typename Types::NodeBase>
 {
 
 //    static_assert(
@@ -341,14 +341,11 @@ public:
 
     static const bool Leaf                                                      = false;
 
-    typedef TreeNodeBase<
-        typename Types::Metadata,
-        typename Types::NodeBase
-    >                                                                           Base;
+    using Base = typename Types::template TreeNodeBaseTF<typename Types::Metadata, typename Types::NodeBase>;
 
 public:
 
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
+    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
 
     typedef typename Types::ID                                                  Value;
@@ -1298,6 +1295,22 @@ public:
     void forAllValues(std::function<void (const V&, Int)> fn) const
     {
         forAllValues(0, fn);
+    }
+
+
+    Int find_child_idx(const Value& id) const
+    {
+    	const Value* v = this->values();
+    	Int size = this->size();
+
+    	for (Int c = 0; c < size; c++)
+    	{
+    		if (v[c] == id) {
+    			return c;
+    		}
+    	}
+
+    	return -1;
     }
 
 

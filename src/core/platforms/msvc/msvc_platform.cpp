@@ -31,4 +31,8 @@ String Platform::getLineSeparator() {
     return "\r\n";
 }
 
+String Platform::getFilePathSeparator() {
+    return "/";
+}
+
 }}

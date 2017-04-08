@@ -22,6 +22,10 @@
 #include <memoria/v1/core/container/iterator.hpp>
 #include <memoria/v1/core/container/macros.hpp>
 
+#include <memoria/v1/containers/map/map_iterator.hpp>
+#include <memoria/v1/prototypes/bt_ss/btss_iterator.hpp>
+#include <memoria/v1/prototypes/bt/bt_iterator.hpp>
+
 #include <iostream>
 
 namespace memoria {
@@ -113,7 +117,7 @@ public:
 
     auto value() const
     {
-        return std::get<0>(self().ctr().template read_leaf_entry<IntList<2>>(self().leaf(), self().idx()));
+		return std::get<0>(self().ctr().template read_leaf_entry<IntList<2>>(self().leaf(), self().idx()));
     }
 
     void assign(const Value& v)

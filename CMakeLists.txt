@@ -13,184 +13,119 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required (VERSION 2.8.5)
+# available variables to be used via -D switch in command line:
+# 
+# MEMORIA_COMPILE_FLAGS            Additional flags for compiler
+# MEMORIA_LINK_FLAGS               Additional flags for linker
+
+cmake_minimum_required (VERSION 3.6)
 project (Memoria)
 
 set(VERSION "0.1.0")
 
-set(CPACK_PACKAGE_VERSION ${VERSION})
-set(CPACK_GENERATOR "RPM")
-set(CPACK_PACKAGE_NAME "memoria")
-set(CPACK_PACKAGE_RELEASE 1)
-set(CPACK_PACKAGE_CONTACT "aist11@gmail.com")
-set(CPACK_PACKAGE_VENDOR "Victor Smirnov")
-set(CPACK_PACKAGING_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
-set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_PACKAGE_RELEASE}.${CMAKE_SYSTEM_PROCESSOR}")
-set(CPACK_RPM_PACKAGE_REQUIRES_PRE "boost")
+set(CMAKE_CXX_STANDARD 14)
 
-
-
-
-# Gcc/Clang for linux are supported
-#
-# Intel C++/MSVC are not yet supported. 
-
-
-#TODO Use cmake options 
-
-# available variables to be used via -D switch in command line:
-# 
-# BUILD_STREAM_CONTAINER           build StreamContainer
-# BUILD_GENERIC_CONTAINER          build GenericContainer (disabled by default)
-# 
-# CHECK_SYNTAX_ONLY                do not produce binaries, only check syntax (GCC/MinGW)
-#
-# MEMORIA_COMPILE_FLAGS            Additional flags for compiler
-# MEMORIA_LINK_FLAGS               Additional flags for linker
-# 
-# BUIDL_TOOLS                      Build tools (default: true)
-# BUILD_TESTS                      Build tests (default: true)
-#
-# MEMORIA_TESTS                    Enumeration of tests to be compiled. See src/tests/CmakeLists.txt for defaults.
-# MEMORIA_TOOLS                    Enumeration of tests to be compiled. See src/tools/CmakeLists.txt for defaults.
-#
-# EMIT_LLVM                        Emit LLVM bitcode for executables using clang compiler
-# BUILD_ASAN                       Build with address sanitizer enabled
-
-
-if (NOT DEFINED BUILD_STREAM_CONTAINER)
-    set (BUILD_STREAM_CONTAINER true)
+if (NOT CMAKE_BUILD_TYPE)
+     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build." FORCE)
 endif()
 
-if (NOT DEFINED BUILD_GENERIC_CONTAINER)
-    set (BUILD_GENERIC_CONTAINER false)
-endif ()
 
-STRING(FIND ${CMAKE_CXX_COMPILER} "icl.exe" ICL_COMPILER_WIN_POS REVERSE)
-STRING(FIND ${CMAKE_CXX_COMPILER} "clang"   CLANG_COMPILER_POS REVERSE)
-
-if (ICL_COMPILER_WIN_POS EQUAL -1)
-    set (INTEL_COMPILER false)
+IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    option(USE_ASAN "Compile with Address Sanitizer ON (Default with Debug build)" ON)
 else()
-    set (INTEL_COMPILER true)     
-endif()
+    option(USE_ASAN "Compile with Address Sanitizer ON (Default with Debug build)" OFF)
+ENDIF()
 
-if (CLANG_COMPILER_POS EQUAL -1)
-    set (CLANG_COMPILER false)
-else()
-    set (CLANG_COMPILER true)
-endif()
+option(USE_TSAN "Compile with Thread Sanitizer ON" OFF)
+option(USE_USAN "Compile with UB Sanitizer ON (Default with Debug build)" OFF)
 
-if (NOT DEFINED EMIT_LLVM)
-    set(EMIT_LLVM false)
-endif()
 
-if (NOT DEFINED BUILD_ASAN)
-    set(BUILD_ASAN false)
-endif()
-
-if (NOT DEFINED EMIT_AST)
-    set(EMIT_AST false)
-endif()
-
-if (UNIX AND NOT CYGWIN)
-	set (BUILD_UNIX true)
-else()
-	set (BUILD_UNIX false)
-endif()
-
-if (MSVC OR INTEL_COMPILER)
-	set (BUILD_MSVC true)
-else()
-	set (BUILD_MSVC false)
-endif()
+option(BUILD_TESTS    "Build Unit/Functional tests" OFF)
+option(BUILD_SANDBOX  "Build selected programs in the project's sandbox" OFF)
+option(BUILD_TOOLS    "Build project's tools" ON)
+option(BUILD_STATIC   "Build statically linked binaries" OFF)
 
 
 set (LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 set (EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 
-if (NOT DEFINED CHECK_SYNTAX_ONLY)
-    set (CHECK_SYNTAX_ONLY false)
+set (BUILD_UNIX   FALSE)
+set (BUILD_MSVC   FALSE)
+
+if (UNIX)
+    set (BUILD_UNIX TRUE)
+elseif(MSVC)
+    set (BUILD_MSVC TRUE)
+elseif(MINGW)
+else()
+    message(FATAL_ERROR "This platform is not supported")
 endif()
 
 
-if (CMAKE_COMPILER_IS_GNUCXX OR CLANG_COMPILER OR MINGW)
 
-    set(PROFILE "")
-    
+
+
+if (BUILD_UNIX OR MINGW)
+
     SET(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)
     SET(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS)
 
-    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -std=c++14 -Wall -Wno-sign-compare -lrpcrt4")
-    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors  -ftemplate-backtrace-limit=0 ${PROFILE}") #-fsanitize=undefined -fno-sanitize-recover
-    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -Wcomment -Wunused-variable -Wno-unused-function -Wno-unneeded-internal-declaration")
+    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -Wall -Wno-sign-compare")
+
+    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors  -ftemplate-backtrace-limit=0 ${PROFILE}") #-fsanitize=undefined -fno-sanitize-recover
+    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -Wcomment -Wunused-variable  -Wno-unused-function")
     
-    set (MEMORIA_LINK_FLAGS  "${MEMORIA_LINK_FLAGS} -lstdc++ ${PROFILE}") #-lubsan
+    if (USE_ASAN) 
+        set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -fsanitize=address")
+        set (MEMORIA_LINK_FLAGS  "${MEMORIA_LINK_FLAGS} -lasan")
+    endif()
+    
+    if (USE_USAN) 
+        set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -fsanitize=undefined")
+        set (MEMORIA_LINK_FLAGS  "${MEMORIA_LINK_FLAGS} -lubsan")
+    endif()
+    
+    if (USE_TSAN) 
+        set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -fsanitize=thread")
+        set (MEMORIA_LINK_FLAGS  "${MEMORIA_LINK_FLAGS} -ltsan")
+    endif()
+    
+    set (MEMORIA_LINK_FLAGS  "${MEMORIA_LINK_FLAGS} ${PROFILE} -luuid -lstdc++") 
         
     if (MINGW)
+        set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -Wa,-mbig-obj ")
+
         set (MEMORIA_LIBS "${MEMORIA_LIBS}" rpcrt4 winpthread)
     else()
-        set (MEMORIA_LIBS "${MEMORIA_LIBS}" uuid)
+        set (MEMORIA_LIBS "${MEMORIA_LIBS}")
     endif()
         
         
     if (BUILD_STATIC)
     	set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -static")
-    	set (MEMORIA_LINK_FLAGS  "${MEMORIA_LINK_FLAGS} -static-libgcc -static-libstdc++ -static ")
+    	set (MEMORIA_LINK_FLAGS  "${MEMORIA_LINK_FLAGS} -static-libgcc -static-libstdc++ -static")
     endif()
-    
-    if (BUILD_ASAN AND NOT EMIT_LLVM)
-        set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -fsanitize=address")
-        set (MEMORIA_LINK_FLAGS "${MEMORIA_LINK_FLAGS} -fsanitize=address")
-    endif()
-    
+        
 else()
-    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} /W3")
-endif()
-
-if (EMIT_LLVM)
-    if (EMIT_AST)
-        message(FATAL_ERROR "EMIT_LLVM can't be used with EMIT_AST")
-    endif()
-
-    if (CLANG_COMPILER)
-        set (MEMORIA_COMPILE_FLAGS "-emit-llvm -fno-use-cxa-atexit -fexceptions ${MEMORIA_COMPILE_FLAGS}")
-    
-        set(CMAKE_AR "llvm-ar")
-        set(CMAKE_RANLIB "llvm-ranlib")
-    
-        set(CMAKE_CXX_LINK_EXECUTABLE "llvm-link <OBJECTS> -o <TARGET>.bc")
-        set(CMAKE_C_LINK_EXECUTABLE "llvm-link <OBJECTS> -o <TARGET>.bc")
-    else()
-        message(FATAL_ERROR "EMIT_LLVM is supported only for clang compiler")
-    endif()
-endif()
-
-
-if (EMIT_AST)
-    if (NOT CLANG_COMPILER)
-        set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}  -DHAVE_BOOST")
-        message(FATAL_ERROR "EMIT_AST is supported only for clang compiler")
-    endif()
+    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} /W3 /std:c++14 -DWIN32_LEAN_AND_MEAN -D_CRT_SECURE_NO_WARNINGS /bigobj")
+    set (MEMORIA_LIBS "${MEMORIA_LIBS}" rpcrt4 )
 endif()
 
 
 set(Boost_USE_STATIC_LIBS        ON) 
-set(Boost_USE_MULTITHREADED      ON)
-set(Boost_USE_STATIC_RUNTIME    OFF)
+set(Boost_USE_MULTITHREADED      OFF)
+set(Boost_USE_STATIC_RUNTIME     ON)
+
 find_package(Boost
   1.60.0
 )   
 
-#COMPONENTS multiprecision # Boost libraries by their canonical name
-
 if (Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
+    link_directories(${Boost_LIBRARY_DIRS})
 endif()
 
 set_property (GLOBAL PROPERTY GLOBAL_SOURCES)
-
-add_subdirectory(src/build-tools)
 
 add_subdirectory(src)
 

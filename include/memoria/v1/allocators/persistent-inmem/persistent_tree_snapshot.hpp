@@ -263,6 +263,9 @@ public:
 
     virtual ~Snapshot()
     {
+    	//FIXME This code doesn't decrement properly number of active snapshots
+    	// for allocator to store data correctly.
+
     	bool drop1 = false;
     	bool drop2 = false;
 
@@ -294,7 +297,7 @@ public:
     		StoreLockGuardT store_lock_guard(history_node_->store_mutex());
     		do_drop();
 
-    		// FIXME: check if absens of snapshot lock here leads to data races...
+    		// FIXME: check if absence of snapshot lock here leads to data races...
     	}
     }
 
@@ -893,7 +896,7 @@ public:
                 persistent_tree_.remove(iter);
             }
             else {
-                shared->state() = Shared::DELETE;
+                shared->state() = Shared::_DELETE;
             }
         }
     }
@@ -970,7 +973,7 @@ public:
 
     virtual void releasePage(Shared* shared) noexcept
     {
-        if (shared->state() == Shared::DELETE)
+        if (shared->state() == Shared::_DELETE)
         {
             persistent_tree_.remove(shared->get()->id());
         }
@@ -1361,7 +1364,7 @@ protected:
                     if (shared)
                     {
                     	page_descr.page_ptr()->clear();
-                        shared->state() = Shared::DELETE;
+                        shared->state() = Shared::_DELETE;
                     }
 
                     delete page_descr.page_ptr();
@@ -1455,7 +1458,7 @@ void check_snapshot(const std::shared_ptr<Allocator>& allocator, const char* mes
 {
     Int level = allocator->logger().level();
 
-    allocator->logger().level() = Logger::ERROR;
+    allocator->logger().level() = Logger::_ERROR;
 
     if (allocator->check())
     {

@@ -21,6 +21,8 @@ namespace memoria {
 namespace v1 {
 namespace tools     {
 
+bool IsATTY(int);
+
 class TermImpl {
 public:
     virtual const char* reds() const    = 0;

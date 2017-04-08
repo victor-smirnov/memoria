@@ -32,7 +32,7 @@ using namespace v1::bt;
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(v1::mvector::CtrInsertName)
 public:
-    using typename Base::Types;
+    using Types = typename Base::Types;
     using typename Base::Iterator;
 
 protected:

@@ -24,6 +24,8 @@
 
 #include <memoria/v1/core/types/algo/for_each.hpp>
 
+#include <memoria/v1/prototypes/bt/walkers/bt_misc_walkers.hpp>
+
 #include <iostream>
 
 
@@ -166,7 +168,7 @@ protected:
     template <Int Stream, typename SubstreamsIdxList, typename... Args>
     auto read_leaf_entry(Args&&... args) const
     {
-         return self().ctr().template apply_substreams_fn<Stream, SubstreamsIdxList>(self().leaf(), GetLeafValuesFn(), std::forward<Args>(args)...);
+         return self().ctr().template apply_substreams_fn<Stream, SubstreamsIdxList>(self().leaf(), bt::GetLeafValuesFn(), std::forward<Args>(args)...);
     }
 
     template <typename Walker>

@@ -34,7 +34,7 @@ using namespace v1::bt;
 
 MEMORIA_V1_CONTAINER_PART_BEGIN(v1::bt::ToolsName)
 public:
-    using typename Base::Types;
+    using Types = typename Base::Types;
 
 protected:
     typedef typename Base::Allocator                                            Allocator;
@@ -52,10 +52,8 @@ protected:
 
     typedef typename Base::Metadata                                             Metadata;
 
-    typedef typename Types::BranchNodeEntry                                         BranchNodeEntry;
+    typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
     typedef typename Types::Position                                            Position;
-
-    static const Int Streams                                                    = Types::Streams;
 
 public:
     NodeBaseG getRoot() const
@@ -184,6 +182,13 @@ protected:
         return self.allocator().getPage(node->value(idx), self.master_name());
     }
 
+    template <typename Node>
+    NodeBaseG getLastChildFn(const Node* node, Int idx) const
+    {
+        auto& self = this->self();
+        return self.allocator().getPage(node->value(node->size() - 1), self.master_name());
+    }
+
 
     template <typename Node>
     NodeBaseG getChildForUpdateFn(const Node* node, Int idx) const
@@ -197,6 +202,20 @@ protected:
     NodeBaseG getChild(const NodeBaseG& node, Int idx) const
     {
         NodeBaseG result = BranchDispatcher::dispatch(node, GetChildFn(self()), idx);
+
+        if (result.isSet())
+        {
+            return result;
+        }
+        else {
+            throw NullPointerException(MEMORIA_SOURCE, "Child must not be NULL");
+        }
+    }
+
+    MEMORIA_V1_CONST_FN_WRAPPER_RTN(GetLastChildFn, getLastChildFn, NodeBaseG);
+    NodeBaseG getLastChild(const NodeBaseG& node, Int idx) const
+    {
+        NodeBaseG result = BranchDispatcher::dispatch(node, GetLastChildFn(self()), idx);
 
         if (result.isSet())
         {
@@ -224,17 +243,17 @@ protected:
     }
 
 
-    NodeBaseG getNodeParent(const NodeBaseG& node) const
-    {
-        auto& self = this->self();
-        return self.allocator().getPage(node->parent_id(), self.master_name());
-    }
-
-    NodeBaseG getNodeParentForUpdate(const NodeBaseG& node) const
-    {
-        auto& self = this->self();
-        return self.allocator().getPageForUpdate(node->parent_id(), self.master_name());
-    }
+//    NodeBaseG getNodeParent(const NodeBaseG& node) const
+//    {
+//        auto& self = this->self();
+//        return self.allocator().getPage(node->parent_id(), self.master_name());
+//    }
+//
+//    NodeBaseG getNodeParentForUpdate(const NodeBaseG& node) const
+//    {
+//        auto& self = this->self();
+//        return self.allocator().getPageForUpdate(node->parent_id(), self.master_name());
+//    }
 
 
     MEMORIA_V1_DECLARE_NODE_FN_RTN(NodeStreamSizesFn, size_sums, Position);
@@ -315,8 +334,6 @@ protected:
 
 
     MEMORIA_V1_DECLARE_NODE_FN(SetKeysFn, setKeys);
-
-
     void setBranchKeys(NodeBaseG& node, Int idx, const BranchNodeEntry& keys) const
     {
         self().updatePageG(node);

@@ -33,7 +33,7 @@ MEMORIA_V1_ITERATOR_PART_BEGIN(v1::btfl::IteratorRemoveName)
 
 
     using typename Base::NodeBaseG;
-    using typename Base::Container;
+    using Container = typename Base::Container;
     using typename Base::Position;
 
     using CtrSizeT  = typename Container::Types::CtrSizeT;

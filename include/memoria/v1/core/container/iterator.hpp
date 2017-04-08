@@ -19,6 +19,7 @@
 #include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/core/types/typelist.hpp>
 #include <memoria/v1/core/container/names.hpp>
+#include <memoria/v1/core/container/defaults.hpp>
 
 #include <memoria/v1/core/container/logs.hpp>
 
@@ -35,17 +36,17 @@ template <typename Types> class Iter;
 template <typename Name, typename Base, typename Types> class IterPart;
 
 
-template <int Idx, typename Types>
+template <int Idx, typename Types1>
 class IterHelper: public IterPart<
-                            SelectByIndex<Idx,typename Types::List>,
-                            IterHelper<Idx - 1, Types>, Types
+                            SelectByIndex<Idx,typename Types1::List>,
+                            IterHelper<Idx - 1, Types1>, Types1
                          >
 {
-    using MyType    = Iter<Types>;
-    using ThisType  = IterHelper<Idx, Types>;
+    using MyType    = Iter<Types1>;
+    using ThisType  = IterHelper<Idx, Types1>;
     using BaseType  = IterPart<
-                SelectByIndex<Idx, typename Types::List>,
-                IterHelper<Idx - 1, Types>, Types
+                SelectByIndex<Idx, typename Types1::List>,
+                IterHelper<Idx - 1, Types1>, Types1
     >;
 
 public:
@@ -54,13 +55,15 @@ public:
     IterHelper(const ThisType& other): BaseType(other) {}
 };
 
-template <typename Types>
-class IterHelper<-1, Types>: public Types::template BaseFactory<Types>::Type {
 
-    typedef Iter<Types>                                                             MyType;
-    typedef IterHelper<-1, Types>                                                   ThisType;
 
-    typedef typename Types::template BaseFactory<Types>::Type BaseType;
+template <typename Types1>
+class IterHelper<-1, Types1>: public Types1::template BaseFactory<Types1>::Type {
+
+    typedef Iter<Types1>                                                             MyType;
+    typedef IterHelper<-1, Types1>                                                   ThisType;
+
+    typedef typename Types1::template BaseFactory<Types1>::Type BaseType;
 
 public:
     IterHelper(): BaseType() {}
@@ -68,15 +71,15 @@ public:
     IterHelper(const ThisType& other): BaseType(other) {}
 };
 
-template <typename Types>
-class IterStart: public IterHelper<ListSize<typename Types::List>::Value - 1, Types> {
+template <typename Types1>
+class IterStart: public IterHelper<ListSize<typename Types1::List>::Value - 1, Types1> {
 
-    using MyType    = Iter<Types>;
-    using ThisType  = IterStart<Types>;
-    using Base      = IterHelper<ListSize<typename Types::List>::Value - 1, Types>;
-    using ContainerType = Ctr<typename Types::CtrTypes>;
+    using MyType    = Iter<Types1>;
+    using ThisType  = IterStart<Types1>;
+    using Base      = IterHelper<ListSize<typename Types1::List>::Value - 1, Types1>;
+    using ContainerType = Ctr<typename Types1::CtrTypes>;
 
-    using CtrPtr    = std::shared_ptr<ContainerType>;
+    using CtrPtr = CtrSharedPtr<typename Types1::Profile, ContainerType>;
 
     CtrPtr ctr_ptr_;
     ContainerType* model_;
@@ -85,9 +88,15 @@ class IterStart: public IterHelper<ListSize<typename Types::List>::Value - 1, Ty
 public:
     IterStart(): Base(), ctr_ptr_(), model_() {}
 
-    IterStart(const CtrPtr& ptr): Base(), ctr_ptr_(ptr), model_(ptr.get()) {}
+    IterStart(CtrPtr ptr): Base(), ctr_ptr_(std::move(ptr)), model_(ctr_ptr_.get()) {
+    	//std::cout << "Create Iterator: " << ctr_ptr_.use_count() << "\n";
+    }
     IterStart(ThisType&& other): Base(std::move(other)), ctr_ptr_(std::move(other.ctr_ptr_)), model_(other.model_) {}
     IterStart(const ThisType& other): Base(other), ctr_ptr_(other.ctr_ptr_), model_(other.model_) {}
+
+    virtual ~IterStart() {
+    	//std::cout << "Destroy Iterator: " << ctr_ptr_.use_count() << "\n";
+    }
 
     ContainerType& model() {
         return *model_;
@@ -197,12 +206,6 @@ public:
         return me()->model().typeName();
     }
 };
-
-
-
-//template <typename Container> class IteratorFactoryName {};
-
-
 
 
 }}

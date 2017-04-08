@@ -29,7 +29,7 @@ namespace v1 {
 MEMORIA_V1_CONTAINER_PART_BEGIN(v1::set::CtrRemoveName)
 
 public:
-    using typename Base::Types;
+    using Types = typename Base::Types;
 
 protected:
     using typename Base::NodeBaseG;
