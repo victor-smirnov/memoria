@@ -73,7 +73,7 @@ if (BUILD_UNIX OR MINGW)
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -Wall -Wno-sign-compare")
 
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors  -ftemplate-backtrace-limit=0 ${PROFILE}") #-fsanitize=undefined -fno-sanitize-recover
-    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -Wcomment -Wunused-variable  -Wno-unused-function -Wno-unused-but-set-variable")
+    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -Wno-comment -Wno-unknown-warning-option -Wunused-variable -Wno-unused-function -Wno-unused-but-set-variable") # 
     
     if (USE_ASAN) 
         set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -fsanitize=address")

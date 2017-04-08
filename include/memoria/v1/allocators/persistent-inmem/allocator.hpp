@@ -154,6 +154,12 @@ public:
     using MyType        = PersistentInMemAllocatorT<Profile, PageType>;
 
 
+    template <typename T>
+    using CtrSharedPtr = memoria::v1::CtrSharedPtr<Profile, T>;
+    
+    template <typename T>
+    using CtrMakeSharedPtr = memoria::v1::CtrMakeSharedPtr<Profile, T>;
+    
     using Page          = PageType;
     using RCPagePtr		= v1::details::PagePtr<Page>;
 
@@ -448,7 +454,7 @@ public:
 
     using PersistentTreeT       = v1::persistent_inmem::PersistentTree<BranchNodeT, LeafNodeT, HistoryNode, PageType>;
     using SnapshotT             = v1::persistent_inmem::Snapshot<Profile, PageType, HistoryNode, PersistentTreeT, MyType>;
-    using SnapshotPtr           = std::shared_ptr<SnapshotT>;
+    using SnapshotPtr           = CtrSharedPtr<SnapshotT>;
     using AllocatorPtr          = std::shared_ptr<MyType>;
 
     using TxnMap                = std::unordered_map<TxnId, HistoryNode*, UUIDKeyHash, UUIDKeyEq>;
@@ -662,7 +668,7 @@ public:
 
             if (history_node->is_committed())
             {
-                return std::make_shared<SnapshotT>(history_node, this->shared_from_this());
+                return CtrMakeSharedPtr<SnapshotT>::make_shared(history_node, this->shared_from_this());
             }
             if (history_node->is_data_locked())
             {
@@ -693,13 +699,13 @@ public:
 
             if (history_node->is_committed())
             {
-                return std::make_shared<SnapshotT>(history_node, this->shared_from_this());
+                return CtrMakeSharedPtr<SnapshotT>::make_shared(history_node, this->shared_from_this());
             }
             else if (history_node->is_data_locked())
             {
             	if (history_node->references() == 0)
             	{
-            		return std::make_shared<SnapshotT>(history_node, this->shared_from_this());
+            		return CtrMakeSharedPtr<SnapshotT>::make_shared(history_node, this->shared_from_this());
             	}
             	else {
             		throw Exception(MA_SRC, SBuf() << "Snapshot id " << history_node->txn_id() << " is locked and open");
@@ -721,7 +727,7 @@ public:
     	LockGuardT lock_guard(mutex_, std::adopt_lock);
     	SnapshotLockGuardT snapshot_lock_guard(master_->snapshot_mutex(), std::adopt_lock);
 
-        return std::make_shared<SnapshotT>(master_, this->shared_from_this());
+        return CtrMakeSharedPtr<SnapshotT>::make_shared(master_, this->shared_from_this());
     }
 
     persistent_inmem::SnapshotMetadata<TxnId> describe_master() const

@@ -41,6 +41,14 @@ struct StdMakeSharedPtr {
 	}
 };
 
+template <typename T>
+struct StdMakeUniquePtr {
+	template <typename... Args>
+	static auto make_unique(Args&&... args) {
+		return std::make_unique<T>(std::forward<Args>(args)...);
+	}
+};
+
 
 template <
     typename Profile, typename IDValueType = BigInt, int FlagsCount = 32, typename TransactionType = AbstractTransaction
@@ -57,12 +65,18 @@ struct BasicContainerCollectionCfg {
 
     template <typename T>
     using CtrSharedPtr = std::shared_ptr<T>;
+    
+    template <typename T>
+    using CtrUniquePtr = std::unique_ptr<T>;
 
     template <typename T>
     using CtrEnableSharedFromThis = std::enable_shared_from_this<T>;
 
     template <typename T>
     using CtrMakeSharedPtr = StdMakeSharedPtr<T>;
+    
+    template <typename T>
+    using CtrMakeUniquePtr = StdMakeUniquePtr<T>;
 };
 
 
@@ -72,11 +86,18 @@ template <typename Profile, typename T>
 using CtrSharedPtr = typename ContainerCollectionCfg<Profile>::Types::template CtrSharedPtr<T>;
 
 template <typename Profile, typename T>
+using CtrUniquePtr = typename ContainerCollectionCfg<Profile>::Types::template CtrUniquePtr<T>;
+
+
+
+template <typename Profile, typename T>
 using CtrEnableSharedFromThis = typename ContainerCollectionCfg<Profile>::Types::template CtrEnableSharedFromThis<T>;
 
 template <typename Profile, typename T>
 using CtrMakeSharedPtr = typename ContainerCollectionCfg<Profile>::Types::template CtrMakeSharedPtr<T>;
 
+template <typename Profile, typename T>
+using CtrMakeUniquePtr = typename ContainerCollectionCfg<Profile>::Types::template CtrMakeUniquePtr<T>;
 
 
 }}

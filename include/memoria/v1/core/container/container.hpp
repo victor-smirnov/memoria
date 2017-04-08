@@ -137,6 +137,9 @@ public:
     using LockGuardT		= std::lock_guard<MutexT>;
 
     template <typename T>
+    using CtrSharedPtr = memoria::v1::CtrSharedPtr<typename Types::Profile, T>;
+    
+    template <typename T>
     using CtrMakeSharedPtr = memoria::v1::CtrMakeSharedPtr<typename Types::Profile, T>;
 
 protected:
@@ -514,6 +517,9 @@ public:
     typedef typename Types::ContainerTypeName                                   ContainerTypeName;
     typedef ContainerTypeName                                                   Name;
 
+    
+    
+    
 private:
 
     Allocator*  allocator_;
@@ -525,11 +531,11 @@ private:
 
     bool        debug_;
 
-    Int         owner_ctr_type_hash_ = 0;
+    Int         owner_ctr_type_hash_  = 0;
     Int         master_ctr_type_hash_ = 0;
     
 protected:
-    std::shared_ptr<Allocator> alloc_holder_;
+    typename Base::template CtrSharedPtr<Allocator> alloc_holder_;
 
 public:
 

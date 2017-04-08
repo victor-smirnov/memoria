@@ -92,15 +92,22 @@ public:
 template <typename Profile, typename PageType, typename HistoryNode, typename PersitentTree, typename HistoryTree>
 class Snapshot:
         public IWalkableAllocator<PageType>,
-        public std::enable_shared_from_this<
+        public CtrEnableSharedFromThis<
+            Profile, 
             Snapshot<Profile, PageType, HistoryNode, PersitentTree, HistoryTree>
         >
-{
+{    
     using Base              = IAllocator<PageType>;
     using MyType            = Snapshot<Profile, PageType, HistoryNode, PersitentTree, HistoryTree>;
+    
+    template <typename T>
+    using CtrSharedPtr = memoria::v1::CtrSharedPtr<Profile, T>;
+    
+    template <typename T>
+    using CtrMakeSharedPtr = memoria::v1::CtrMakeSharedPtr<Profile, T>;
 
-    using HistoryTreePtr    = std::shared_ptr<HistoryTree>;
-    using SnapshotPtr       = std::shared_ptr<MyType>;
+    using HistoryTreePtr    = CtrSharedPtr<HistoryTree>;
+    using SnapshotPtr       = CtrSharedPtr<MyType>;
 
     using NodeBaseT         = typename PersitentTree::NodeBaseT;
     using LeafNodeT         = typename PersitentTree::LeafNodeT;
@@ -185,7 +192,7 @@ private:
 
     PairPtr pair_;
     
-    std::shared_ptr<RootMapType> root_map_;
+    CtrSharedPtr<RootMapType> root_map_;
 
 public:
 
@@ -210,7 +217,7 @@ public:
             ctr_op = CTR_FIND;
         }
 
-        root_map_ = std::make_shared<RootMapType>(this, ctr_op, UUID());
+        root_map_ = CtrMakeSharedPtr<RootMapType>::make_shared(this, ctr_op, UUID());
     }
 
     Snapshot(HistoryNode* history_node, HistoryTree* history_tree):
@@ -233,7 +240,7 @@ public:
             ctr_op = CTR_FIND;
         }
 
-        root_map_ = std::make_shared<RootMapType>(this, ctr_op, UUID());
+        root_map_ = CtrMakeSharedPtr<RootMapType>::make_shared(this, ctr_op, UUID());
     }
 
 //    virtual ~Snapshot()
@@ -479,7 +486,7 @@ public:
 
             history_tree_raw_->snapshot_map_[history_node->txn_id()] = history_node;
 
-            return std::make_shared<Snapshot>(history_node, history_tree_->shared_from_this());
+            return CtrMakeSharedPtr<Snapshot>::make_shared(history_node, history_tree_->shared_from_this());
         }
         else if (history_node_->is_data_locked())
         {
@@ -508,7 +515,7 @@ public:
         if (history_node_->parent())
         {
             HistoryNode* history_node = history_node_->parent();
-            return std::make_shared<Snapshot>(history_node, history_tree_->shared_from_this());
+            return CtrMakeSharedPtr<Snapshot>::make_shared(history_node, history_tree_->shared_from_this());
         }
         else
         {
@@ -1152,28 +1159,28 @@ public:
     auto find_or_create(const UUID& name)
     {
     	checkIfConainersCreationAllowed();
-        return std::make_shared<CtrT<CtrName>>(this->shared_from_this(), CTR_FIND | CTR_CREATE, name);
+        return CtrMakeSharedPtr<CtrT<CtrName>>::make_shared(this->shared_from_this(), CTR_FIND | CTR_CREATE, name);
     }
 
     template <typename CtrName>
     auto create(const UUID& name)
     {
     	checkIfConainersCreationAllowed();
-        return std::make_shared<CtrT<CtrName>>(this->shared_from_this(), CTR_CREATE, name);
+        return CtrMakeSharedPtr<CtrT<CtrName>>::make_shared(this->shared_from_this(), CTR_CREATE, name);
     }
 
     template <typename CtrName>
     auto create()
     {
     	checkIfConainersCreationAllowed();
-        return std::make_shared<CtrT<CtrName>>(this->shared_from_this(), CTR_CREATE, CTR_DEFAULT_NAME);
+        return CtrMakeSharedPtr<CtrT<CtrName>>::make_shared(this->shared_from_this(), CTR_CREATE, CTR_DEFAULT_NAME);
     }
 
     template <typename CtrName>
     auto find(const UUID& name)
     {
     	checkIfConainersOpeneingAllowed();
-        return std::make_shared<CtrT<CtrName>>(this->shared_from_this(), CTR_FIND, name);
+        return CtrMakeSharedPtr<CtrT<CtrName>>::make_shared(this->shared_from_this(), CTR_FIND, name);
     }
 
     void pack_allocator()
@@ -1451,7 +1458,7 @@ auto find(const std::shared_ptr<persistent_inmem::Snapshot<Profile, PageType, Hi
 
 
 template <typename Allocator>
-void check_snapshot(const std::shared_ptr<Allocator>& allocator, const char* message,  const char* source)
+void check_snapshot(Allocator& allocator, const char* message, const char* source)
 {
     Int level = allocator->logger().level();
 
@@ -1468,7 +1475,7 @@ void check_snapshot(const std::shared_ptr<Allocator>& allocator, const char* mes
 }
 
 template <typename Allocator>
-void check_snapshot(const std::shared_ptr<Allocator>& allocator)
+void check_snapshot(Allocator& allocator)
 {
     check_snapshot(allocator, "Snapshot check failed", MA_RAW_SRC);
 }
