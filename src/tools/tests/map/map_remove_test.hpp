@@ -108,6 +108,7 @@ public:
         check(snapshot(), MEMORIA_SOURCE);
 
         commit();
+        
         snp = branch();
 
         map = find<MapName>(snp, ctr_name_);

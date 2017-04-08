@@ -43,21 +43,20 @@ class PersistentInMemAllocatorT;
 
 namespace persistent_inmem {
 
-namespace {
+namespace details {
 
 template <typename CtrT, typename Allocator>
 class SharedCtr: public CtrT {
 
-    std::shared_ptr<Allocator> allocator_;
-
 public:
     SharedCtr(const std::shared_ptr<Allocator>& allocator, Int command, const UUID& name):
-        CtrT(allocator.get(), command, name),
-        allocator_(allocator)
-    {}
+        CtrT(allocator.get(), command, name)
+    {
+        CtrT::alloc_holder_ = allocator;
+    }
 
     auto snapshot() const {
-        return allocator_;
+        return CtrT::alloc_holder_;
     }
 };
 
@@ -134,7 +133,7 @@ class Snapshot:
 public:
 
     template <typename CtrName>
-    using CtrT = SharedCtr<typename CtrTF<Profile, CtrName>::Type, MyType>;
+    using CtrT = v1::persistent_inmem::details::SharedCtr<typename CtrTF<Profile, CtrName>::Type, MyType>;
 
     template <typename CtrName>
     using CtrPtr = std::shared_ptr<CtrT<CtrName>>;
@@ -178,8 +177,6 @@ private:
     Properties properties_;
 
     CtrInstanceMap instance_map_;
-    std::shared_ptr<RootMapType> root_map_;
-
 
     ContainerMetadataRepository*  metadata_;
 
@@ -187,6 +184,8 @@ private:
     friend class v1::PersistentInMemAllocatorT;
 
     PairPtr pair_;
+    
+    std::shared_ptr<RootMapType> root_map_;
 
 public:
 
@@ -196,7 +195,6 @@ public:
         history_tree_raw_(history_tree.get()),
         persistent_tree_(history_node_),
         logger_("PersistentInMemAllocatorSnp", Logger::DERIVED, &history_tree->logger_),
-        root_map_(nullptr),
         metadata_(MetadataRepository<Profile>::getMetadata())
     {
     	history_node_->ref();
@@ -220,7 +218,6 @@ public:
         history_tree_raw_(history_tree),
         persistent_tree_(history_node_),
         logger_("PersistentInMemAllocatorTxn"),
-        root_map_(nullptr),
         metadata_(MetadataRepository<Profile>::getMetadata())
     {
     	history_node_->ref();

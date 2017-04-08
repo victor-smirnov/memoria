@@ -227,7 +227,11 @@ public:
             {
             	auto ctr_name = MyType::getModelNameS(page);
 
-            	auto ctr_ptr = CtrMakeSharedPtr<MyType>::make_shared(allocator, root_id, CtrInitData(ctr_name, page->master_ctr_type_hash(), page->owner_ctr_type_hash()));
+            	auto ctr_ptr = CtrMakeSharedPtr<MyType>::make_shared(
+                    allocator,
+                    root_id, 
+                    CtrInitData(ctr_name, page->master_ctr_type_hash(), page->owner_ctr_type_hash())
+                );
 
             	fn(*ctr_ptr.get());
             }
@@ -523,6 +527,9 @@ private:
 
     Int         owner_ctr_type_hash_ = 0;
     Int         master_ctr_type_hash_ = 0;
+    
+protected:
+    std::shared_ptr<Allocator> alloc_holder_;
 
 public:
 
@@ -594,7 +601,7 @@ public:
 
     virtual ~Ctr() noexcept
     {
-    	try {
+        try {
     		allocator_->unregisterCtr(typeid(*this));
     	}
     	catch (Exception& ex) {

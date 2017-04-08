@@ -42,7 +42,7 @@
 namespace memoria {
 namespace v1 {
 
-namespace {
+namespace details {
 
 	template <typename PageT>
 	struct PagePtr {
@@ -114,7 +114,7 @@ namespace {
 
 
 template <typename V, typename T>
-OutputStreamHandler& operator<<(OutputStreamHandler& out, const PersistentTreeValue<V, T>& value)
+OutputStreamHandler& operator<<(OutputStreamHandler& out, const v1::details::PersistentTreeValue<V, T>& value)
 {
     out << value.page_ptr();
     out << value.txn_id();
@@ -122,7 +122,7 @@ OutputStreamHandler& operator<<(OutputStreamHandler& out, const PersistentTreeVa
 }
 
 template <typename V, typename T>
-InputStreamHandler& operator>>(InputStreamHandler& in, PersistentTreeValue<V, T>& value)
+InputStreamHandler& operator>>(InputStreamHandler& in, v1::details::PersistentTreeValue<V, T>& value)
 {
     in >> value.page_ptr();
     in >> value.txn_id();
@@ -130,7 +130,7 @@ InputStreamHandler& operator>>(InputStreamHandler& in, PersistentTreeValue<V, T>
 }
 
 template <typename V, typename T>
-std::ostream& operator<<(std::ostream& out, const PersistentTreeValue<V, T>& value)
+std::ostream& operator<<(std::ostream& out, const v1::details::PersistentTreeValue<V, T>& value)
 {
     out<<"PersistentTreeValue[";
     out << value.page_ptr()->raw_data();
@@ -155,7 +155,7 @@ public:
 
 
     using Page          = PageType;
-    using RCPagePtr		= PagePtr<Page>;
+    using RCPagePtr		= v1::details::PagePtr<Page>;
 
     using Key           = typename PageType::ID;
     using Value         = PageType*;
@@ -163,8 +163,8 @@ public:
     using TxnId             = UUID;
     using PTreeNodeId       = UUID;
 
-    using LeafNodeT         = v1::persistent_inmem::LeafNode<Key, PersistentTreeValue<RCPagePtr*, TxnId>, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
-    using LeafNodeBufferT   = v1::persistent_inmem::LeafNode<Key, PersistentTreeValue<typename PageType::ID, TxnId>, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
+    using LeafNodeT         = v1::persistent_inmem::LeafNode<Key, v1::details::PersistentTreeValue<RCPagePtr*, TxnId>, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
+    using LeafNodeBufferT   = v1::persistent_inmem::LeafNode<Key, v1::details::PersistentTreeValue<typename PageType::ID, TxnId>, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
 
     using BranchNodeT       = v1::persistent_inmem::BranchNode<Key, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
     using BranchNodeBufferT = v1::persistent_inmem::BranchNode<Key, NodeSize, NodeIndexSize, PTreeNodeId, TxnId, PTreeNodeId>;
