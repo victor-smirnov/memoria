@@ -31,6 +31,7 @@
 #include <sys/epoll.h>
 #include <string.h>
 #include <stdint.h>
+#include <arpa/inet.h>
 
 #include <memory>
 
@@ -140,7 +141,7 @@ StreamServerSocket::StreamServerSocket(const IPAddress& ip_address, uint16_t ip_
     
     sock_address_.sin_family        = AF_INET;
     sock_address_.sin_addr.s_addr   = ip_address_.to_in_addr().s_addr;
-    sock_address_.sin_port          = ::htons(ip_port_);
+    sock_address_.sin_port          = htons(ip_port_);
     
     int bres = ::bind(socket_fd_, tools::ptr_cast<sockaddr>(&sock_address_), sizeof(sock_address_));
     

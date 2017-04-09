@@ -37,10 +37,10 @@ if (NOT DEFINED BUILD_EXAMPLES)
 endif()
 
 if (BUILD_TESTS) 
-    #add_subdirectory(tests)
-    #add_subdirectory(other-tests/disruptor)
+    add_subdirectory(tests)
+    add_subdirectory(other-tests/disruptor)
     add_subdirectory(other-tests/fiber)
-    #add_subdirectory(other-tests/reactor)
+    add_subdirectory(other-tests/reactor)
 endif()
 
 if (BUILD_BENCHMARKS) 

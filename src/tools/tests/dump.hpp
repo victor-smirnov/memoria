@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include <memoria/v1/allocators/persistent-inmem/factory.hpp>
+#include <memoria/v1/allocators/inmem/threads/factory.hpp>
 #include <memoria/v1/metadata/container.hpp>
 
 #include <memory>

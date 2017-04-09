@@ -16,9 +16,9 @@
 
 #pragma once
 
-#include <memoria/v1/allocators/persistent-inmem/persistent_tree_node.hpp>
-#include <memoria/v1/allocators/persistent-inmem/persistent_tree_iterator.hpp>
-#include <memoria/v1/allocators/persistent-inmem/persistent_tree_snapshot.hpp>
+#include "persistent_tree_node.hpp"
+#include "persistent_tree_iterator.hpp"
+#include "persistent_tree_snapshot.hpp"
 
 #include <memoria/v1/core/exceptions/memoria.hpp>
 

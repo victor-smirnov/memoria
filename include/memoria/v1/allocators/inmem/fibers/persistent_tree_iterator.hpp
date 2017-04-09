@@ -18,9 +18,10 @@
 
 #include <memoria/v1/core/types/types.hpp>
 
-#include <memoria/v1/core/tools/optional.hpp>
-#include <memoria/v1/allocators/persistent-inmem/persistent_tree_node.hpp>
+#include <dumbo/v1/allocators/inmem/persistent_tree_node.hpp>
 
+
+#include <memoria/v1/core/tools/optional.hpp>
 #include <memoria/v1/core/tools/static_array.hpp>
 
 #include <type_traits>
@@ -29,10 +30,11 @@
  * Serializable Copy-on-write B+Tree (Without leaf links).
  */
 
-namespace memoria {
+namespace dumbo {
 namespace v1 {
-namespace persistent_inmem {
+namespace inmem {
 
+using namespace memoria::v1;
 
 template <typename BranchNode, typename LeafNode>
 class PersistentTreeIteratorBase {
