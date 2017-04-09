@@ -112,6 +112,12 @@ public:
     using ContainerTypeName = typename TypesType::ContainerTypeName;
     using Name              = ContainerTypeName;
     using Types             = TypesType;
+    
+    template <typename T>
+    using CtrSharedPtr = memoria::v1::CtrSharedPtr<typename Types::Profile, T>;
+    
+    template <typename T>
+    using CtrMakeSharedPtr = memoria::v1::CtrMakeSharedPtr<typename Types::Profile, T>;
 
     using Allocator = typename Types::Allocator;
     using ID        = typename Allocator::ID;
@@ -119,7 +125,7 @@ public:
     using PageG     = typename Allocator::PageG;
 
     using Iterator      = Iter<typename Types::IterTypes>;
-    using IteratorPtr   = CtrSharedPtr<typename Types::Profile, Iterator>;
+    using IteratorPtr   = CtrSharedPtr<Iterator>;
     
     static constexpr Int CONTAINER_HASH = TypeHash<Name>::Value;
 
@@ -136,11 +142,7 @@ public:
 	using MutexT			= std::mutex;
     using LockGuardT		= std::lock_guard<MutexT>;
 
-    template <typename T>
-    using CtrSharedPtr = memoria::v1::CtrSharedPtr<typename Types::Profile, T>;
-    
-    template <typename T>
-    using CtrMakeSharedPtr = memoria::v1::CtrMakeSharedPtr<typename Types::Profile, T>;
+
 
 protected:
     static MutexT mutex_;

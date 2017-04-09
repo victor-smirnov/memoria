@@ -17,16 +17,11 @@ include_directories(include)
 
 file(GLOB TOOLS_LIB_SRC lib/*.cpp)
 
-if (EMIT_LLVM)
-    add_library(MemoriaTools OBJECT ${TOOLS_LIB_SRC})
-    SET_TARGET_PROPERTIES(MemoriaTools PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
-    SET_TARGET_PROPERTIES(MemoriaTools PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_MAIN")
-else()
-    add_library(MemoriaTools STATIC ${TOOLS_LIB_SRC})
-    SET_TARGET_PROPERTIES(MemoriaTools PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
-    SET_TARGET_PROPERTIES(MemoriaTools PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_MAIN")
-    target_link_libraries(MemoriaTools Memoria)
-endif()
+
+add_library(MemoriaTools STATIC ${TOOLS_LIB_SRC})
+SET_TARGET_PROPERTIES(MemoriaTools PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
+target_link_libraries(MemoriaTools Memoria)
+
 
 
 if (NOT DEFINED BUILD_TESTS)
@@ -42,7 +37,10 @@ if (NOT DEFINED BUILD_EXAMPLES)
 endif()
 
 if (BUILD_TESTS) 
-    add_subdirectory(tests)
+    #add_subdirectory(tests)
+    #add_subdirectory(other-tests/disruptor)
+    add_subdirectory(other-tests/fiber)
+    #add_subdirectory(other-tests/reactor)
 endif()
 
 if (BUILD_BENCHMARKS) 

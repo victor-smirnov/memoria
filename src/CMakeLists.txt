@@ -18,13 +18,15 @@ include_directories(core/include)
 
 add_subdirectory(core)
 add_subdirectory(allocators)
+add_subdirectory(fiber)
+add_subdirectory(reactor)
 
 
 get_property(GLOBAL_SRCS GLOBAL PROPERTY GLOBAL_SOURCES)
 
 
 add_library(Memoria STATIC ${GLOBAL_SRCS})
-#SET_TARGET_PROPERTIES(Memoria PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_MAIN ")
+
 SET_TARGET_PROPERTIES(Memoria PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
 SET_TARGET_PROPERTIES(Memoria PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
     
@@ -39,3 +41,7 @@ if (BUILD_SANDBOX)
     add_subdirectory(sandbox)
 endif()
 
+add_executable(memoria memoria.cpp )
+SET_TARGET_PROPERTIES(memoria PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
+set_target_properties(memoria PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
+target_link_libraries(memoria Memoria boost_context)
