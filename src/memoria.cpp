@@ -16,14 +16,7 @@ void print_fiber_sizes(const char* msg)
 
 int main(int argc, char **argv) 
 {
-/*	WSADATA wsaData = { 0 };
 
-	// Initialize Winsock
-	int iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
-	if (iResult != 0) {
-		wprintf(L"WSAStartup failed: %d\n", iResult);
-		return 1;
-	}*/
 
     dr::Application app(argc, argv);
     
@@ -39,7 +32,7 @@ int main(int argc, char **argv)
 		using namespace dr;
 
 		
-		/*IPAddress addr("127.0.0.1");
+		IPAddress addr("127.0.0.1");
 
 		auto socket = std::make_shared<dr::StreamServerSocket>(addr, 5544);
 		socket->listen();
@@ -49,13 +42,13 @@ int main(int argc, char **argv)
 		
 		int64_t size;
 		while ((size = conn->read(buffer, sizeof(buffer))) > 0) 
-		{			
+		{
 			std::cout << "Read " << size << " bytes" << std::endl;
 			conn->write(buffer, size);
-		}*/
+		}
 		
 		
-
+		/*
 			size_t buf_size = 1024 * 4096;
 			auto buf = dr::allocate_dma_buffer(buf_size);
 			for (size_t c = 0; c < buf_size; c++) {
@@ -101,7 +94,7 @@ int main(int argc, char **argv)
 
 			file.close();
 
-		
+		*/
 
 			dr::app().shutdown();
 

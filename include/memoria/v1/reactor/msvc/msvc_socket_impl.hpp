@@ -17,7 +17,7 @@
 
 //#define WIN32_LEAN_AND_MEAN
 
-#include "../../tools/bzero_struct.hpp"
+#include "../../core/tools/bzero_struct.hpp"
 #include "../message/fiber_io_message.hpp"
 
 #include <boost/mpl/size_t.hpp>

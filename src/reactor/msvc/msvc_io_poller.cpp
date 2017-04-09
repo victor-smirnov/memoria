@@ -16,8 +16,8 @@
 
 #include <memoria/v1/reactor/msvc/msvc_io_poller.hpp>
 #include <memoria/v1/reactor/reactor.hpp>
-#include <memoria/v1/tools/ptr_cast.hpp>
-#include <memoria/v1/tools/perror.hpp>
+#include <memoria/v1/core/tools/ptr_cast.hpp>
+#include <memoria/v1/core/tools/perror.hpp>
 
 
 
@@ -140,9 +140,9 @@ void DumpErrorAndTerminate(const std::string& prefix, DWORD error_code) {
 	std::terminate();
 }
 
-[[noreturn]] void rise_win_error(tools::SBuf msg, DWORD error_code) 
+[[noreturn]] void rise_win_error(SBuf msg, DWORD error_code) 
 {
-	tools::SBuf msg2;
+	SBuf msg2;
 	msg2 << msg.str();
 
 	msg2 << " -- " << GetErrorMessage(error_code);

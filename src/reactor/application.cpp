@@ -39,6 +39,17 @@ Application::Application(int argc, char** argv, char** envp):
     {
         reactors_[c]->start();
     }
+
+#ifdef _MSC_VER
+	WSADATA wsaData = { 0 };
+
+	// Initialize Winsock
+	int iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+	if (iResult != 0) {
+		wprintf(L"WSAStartup failed: %d\n", iResult);
+		std::terminate();
+	}
+#endif
 }
 
 Application& app() {

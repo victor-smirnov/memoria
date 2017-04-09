@@ -18,8 +18,8 @@
 //#define WIN32_LEAN_AND_MEAN
 
 #include "../message/message.hpp"
-#include "../../tools/bzero_struct.hpp"
-#include "../../tools/perror.hpp"
+#include "../../core/tools/bzero_struct.hpp"
+#include "../../core/tools/perror.hpp"
 
 #include "msvc_io_poller.hpp"
 

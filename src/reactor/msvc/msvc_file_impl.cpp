@@ -20,9 +20,9 @@
 #include <memoria/v1/reactor/reactor.hpp>
 #include <memoria/v1/reactor/message/fiber_io_message.hpp>
 
-#include <memoria/v1/tools/ptr_cast.hpp>
-#include <memoria/v1/tools/bzero_struct.hpp>
-#include <memoria/v1/tools/perror.hpp>
+#include <memoria/v1/core/tools/ptr_cast.hpp>
+#include <memoria/v1/core/tools/bzero_struct.hpp>
+#include <memoria/v1/core/tools/perror.hpp>
 
 
 
@@ -99,7 +99,7 @@ File::File(std::string path, FileFlags flags, FileMode mode):
 
 	if (fd_ == INVALID_HANDLE_VALUE) 
 	{
-		DumpErrorMessage(tools::SBuf() << "Can't open/create file " << path, GetLastError());
+		DumpErrorMessage(SBuf() << "Can't open/create file " << path, GetLastError());
 		std::terminate();
 	}
 	else {
@@ -117,7 +117,7 @@ void File::close()
 {
 	if (fd_ != INVALID_HANDLE_VALUE && !CloseHandle(fd_)) 
 	{
-		DumpErrorMessage(tools::SBuf() << "Can't close file ", GetLastError());
+		DumpErrorMessage(SBuf() << "Can't close file ", GetLastError());
 		std::terminate();
 	}
 }
@@ -154,7 +154,7 @@ int64_t File::read(char* buffer, int64_t offset, int64_t size)
 			}
 			else {
 				rise_win_error(
-					tools::SBuf() << "Error reading from file " << path_,
+					SBuf() << "Error reading from file " << path_,
 					overlapped.error_code_
 				);
 			}
@@ -163,7 +163,7 @@ int64_t File::read(char* buffer, int64_t offset, int64_t size)
 			message.wait_for(); // jsut sleep and wait for required resources to appear
 		}
 		else {
-			DumpErrorMessage(tools::SBuf() << "Error starting read from file " << path_, error_code);
+			DumpErrorMessage(SBuf() << "Error starting read from file " << path_, error_code);
 			std::terminate();
 		}
 	}
@@ -198,7 +198,7 @@ int64_t File::write(const char* buffer, int64_t offset, int64_t size)
 			}
 			else {
 				rise_win_error(
-					tools::SBuf() << "Error writing to file " << path_,
+					SBuf() << "Error writing to file " << path_,
 					overlapped.error_code_
 				);
 			}
@@ -207,7 +207,7 @@ int64_t File::write(const char* buffer, int64_t offset, int64_t size)
 			message.wait_for(); // jsut sleep and wait for required resources to appear
 		}
 		else {
-			DumpErrorMessage(tools::SBuf() << "Error starting write to file " << path_, error_code);
+			DumpErrorMessage(SBuf() << "Error starting write to file " << path_, error_code);
 			std::terminate();
 		}
 	}
@@ -264,7 +264,7 @@ size_t File::process_batch(IOBatchBase& batch, bool rise_ex_on_error)
 					if (rise_ex_on_error) 
 					{
 						rise_win_error(
-							tools::SBuf() << "Error submiting AIO " << (ovl->operation_ == OVERLAPPEDMsg::WRITE ? "write" : "read")
+							SBuf() << "Error submiting AIO " << (ovl->operation_ == OVERLAPPEDMsg::WRITE ? "write" : "read")
 							<< " operation number " << wait_num
 							<< " to " << path_,
 							error_code
@@ -315,11 +315,11 @@ DMABuffer allocate_dma_buffer(size_t size)
 			return buf;
 		}
 		else {
-			tools::rise_perror(tools::SBuf() << "Cant allocate dma buffer of " << size << " bytes");
+			tools::rise_perror(SBuf() << "Cant allocate dma buffer of " << size << " bytes");
 		}
 	}
 	else {
-		tools::rise_error(tools::SBuf() << "Cant allocate dma buffer of 0 bytes");
+		tools::rise_error(SBuf() << "Cant allocate dma buffer of 0 bytes");
 	}
 }
 

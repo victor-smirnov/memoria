@@ -16,7 +16,7 @@
 
 #include <memoria/v1/reactor/msvc/msvc_socket_impl.hpp>
 #include <memoria/v1/reactor/reactor.hpp>
-#include <memoria/v1/tools/perror.hpp>
+#include <memoria/v1/core/tools/perror.hpp>
 
 #include <boost/assert.hpp>
 
@@ -69,7 +69,7 @@ ssize_t StreamSocketConnection::read(char* data, size_t size)
 			}
 			else {
 				rise_win_error(
-					tools::SBuf() << "Error reading from socket connection for " << socket_->address() << ":" << socket_->port() << ":" << connection_fd_, 
+					SBuf() << "Error reading from socket connection for " << socket_->address() << ":" << socket_->port() << ":" << connection_fd_, 
 					overlapped.error_code_
 				);
 			}
@@ -79,7 +79,7 @@ ssize_t StreamSocketConnection::read(char* data, size_t size)
 		}
 		else {
 			rise_win_error(
-				tools::SBuf() << "Error starting read operation from socket connection for " << socket_->address() << ":" << socket_->port() << ":" << connection_fd_, 
+				SBuf() << "Error starting read operation from socket connection for " << socket_->address() << ":" << socket_->port() << ":" << connection_fd_, 
 				error_code
 			);
 		}
@@ -112,7 +112,7 @@ ssize_t StreamSocketConnection::write(const char* data, size_t size)
 			}
 			else {
 				rise_win_error(
-					tools::SBuf() << "Error writing to socket connection for " << socket_->address() << ":" << socket_->port() << ":" << connection_fd_, 
+					SBuf() << "Error writing to socket connection for " << socket_->address() << ":" << socket_->port() << ":" << connection_fd_, 
 					overlapped.error_code_
 				);
 			}
@@ -122,7 +122,7 @@ ssize_t StreamSocketConnection::write(const char* data, size_t size)
 		}
 		else {
 			rise_win_error(
-				tools::SBuf() << "Error starting write operation to socket connection for " << socket_->address() << ":" << socket_->port() << ":" << connection_fd_, 
+				SBuf() << "Error starting write operation to socket connection for " << socket_->address() << ":" << socket_->port() << ":" << connection_fd_, 
 				error_code
 			);
 		}
@@ -147,14 +147,14 @@ StreamServerSocket::StreamServerSocket(const IPAddress& ip_address, uint16_t ip_
     
     if (socket_fd_ == INVALID_SOCKET)
     {
-		rise_win_error(tools::SBuf() << "Create of ListenSocket socket failed with error", WSAGetLastError());
+		rise_win_error(SBuf() << "Create of ListenSocket socket failed with error", WSAGetLastError());
     }
 
 	auto cport = r.io_poller().completion_port();
 
 	if (!CreateIoCompletionPort((HANDLE)socket_fd_, cport, (u_long)0, 0)) 
 	{
-		rise_win_error(tools::SBuf() << "CreateIoCompletionPort associate failed with error", WSAGetLastError());
+		rise_win_error(SBuf() << "CreateIoCompletionPort associate failed with error", WSAGetLastError());
 	}
     
     sock_address_.sin_family        = AF_INET;
@@ -166,7 +166,7 @@ StreamServerSocket::StreamServerSocket(const IPAddress& ip_address, uint16_t ip_
     if (bres == SOCKET_ERROR)
 	{
 		::closesocket(socket_fd_);
-		rise_win_error(tools::SBuf() << "Bind failed with error", WSAGetLastError() );
+		rise_win_error(SBuf() << "Bind failed with error", WSAGetLastError() );
     }
 }
 
@@ -185,7 +185,7 @@ void StreamServerSocket::listen()
     int res = ::listen(socket_fd_, 100);
     if (res != 0) 
     {
-		rise_win_error(tools::SBuf() << "Can't start listening on socket for " << ip_address_ << ":" << ip_port_, WSAGetLastError());
+		rise_win_error(SBuf() << "Can't start listening on socket for " << ip_address_ << ":" << ip_port_, WSAGetLastError());
     }
 }
 
@@ -218,7 +218,7 @@ std::unique_ptr<StreamSocketConnection> StreamServerSocket::accept()
 
 	if (result == SOCKET_ERROR) {
 		closesocket(socket_fd_);
-		rise_win_error(tools::SBuf() << "WSAIoctl failed with error", WSAGetLastError());
+		rise_win_error(SBuf() << "WSAIoctl failed with error", WSAGetLastError());
 	}
 
     
@@ -226,7 +226,7 @@ std::unique_ptr<StreamSocketConnection> StreamServerSocket::accept()
 	SOCKET accept_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (accept_socket == INVALID_SOCKET)
 	{
-		rise_win_error(tools::SBuf() << "Create accept socket failed with error", WSAGetLastError());
+		rise_win_error(SBuf() << "Create accept socket failed with error", WSAGetLastError());
 	}
 
 	AIOMessage message(r.cpu());
@@ -251,14 +251,14 @@ std::unique_ptr<StreamSocketConnection> StreamServerSocket::accept()
 		if (!CreateIoCompletionPort((HANDLE)accept_socket, r.io_poller().completion_port(), (u_long)0, 0))
 		{
 			closesocket(accept_socket);
-			rise_win_error(tools::SBuf() << "CreateIoCompletionPort associate failed with error", WSAGetLastError());
+			rise_win_error(SBuf() << "CreateIoCompletionPort associate failed with error", WSAGetLastError());
 		}
 
 		return std::make_unique<StreamSocketConnection>(accept_socket, this->shared_from_this());
 	}
 	else {
 		closesocket(accept_socket);
-		rise_win_error(tools::SBuf() << "AcceptEx failed with error", WSAGetLastError());
+		rise_win_error(SBuf() << "AcceptEx failed with error", WSAGetLastError());
 	}
 }
 

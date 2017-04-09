@@ -20,5 +20,11 @@ FOREACH(TEST_SOURCE ${SRCS})
     add_executable(${TEST_TARGET} ${TEST_SOURCE})
     SET_TARGET_PROPERTIES(${TEST_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DBOOST_TEST_DYN_LINK -DBOOST_TEST_MAIN")
     SET_TARGET_PROPERTIES(${TEST_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-    target_link_libraries(${TEST_TARGET} Memoria boost_unit_test_framework boost_context boost_system boost_thread )
+
+    if (BUILD_MSVC)
+        target_link_libraries(${TEST_TARGET} Memoria)
+    else()
+        target_link_libraries(${TEST_TARGET} Memoria boost_unit_test_framework boost_context boost_system boost_thread)
+    endif()
+
 ENDFOREACH()

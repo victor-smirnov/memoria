@@ -19,7 +19,7 @@
 #include "../message/fiber_io_message.hpp"
 #include "../ring_buffer.hpp"
 
-#include "../../tools/string_buffer.hpp"
+#include "../../core/tools/strings/string_buffer.hpp"
 
 #include <memory>
 #include <thread>
@@ -43,7 +43,7 @@ std::string GetErrorMessage(DWORD error_code);
 void DumpErrorMessage(DWORD error_code);
 void DumpErrorMessage(const std::string& prefix, DWORD error_code);
 void DumpErrorAndTerminate(const std::string& prefix, DWORD error_code);
-[[noreturn]] void rise_win_error(tools::SBuf msg, DWORD error_code);
+[[noreturn]] void rise_win_error(SBuf msg, DWORD error_code);
 
 
 using IOBuffer = RingBuffer<Message*>;
