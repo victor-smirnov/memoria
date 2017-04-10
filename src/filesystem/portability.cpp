@@ -45,75 +45,76 @@ namespace
 
 } // unnamed namespace
 
-namespace boost
-{
-  namespace filesystem
-  {
+namespace memoria {
+	namespace v1 {
+		namespace filesystem
+		{
 
-    //  name_check functions  ----------------------------------------------//
+			//  name_check functions  ----------------------------------------------//
 
 #   ifdef BOOST_WINDOWS
-    MEMORIA_V1_FILESYSTEM_DECL bool native(const std::string & name)
-    {
-      return windows_name(name);
-    }
+			MEMORIA_V1_FILESYSTEM_DECL bool native(const std::string & name)
+			{
+				return windows_name(name);
+			}
 #   else
-    MEMORIA_V1_FILESYSTEM_DECL bool native(const std::string & name)
-    {
-      return  name.size() != 0
-        && name[0] != ' '
-        && name.find('/') == std::string::npos;
-    }
+			MEMORIA_V1_FILESYSTEM_DECL bool native(const std::string & name)
+			{
+				return  name.size() != 0
+					&& name[0] != ' '
+					&& name.find('/') == std::string::npos;
+			}
 #   endif
 
-    MEMORIA_V1_FILESYSTEM_DECL bool portable_posix_name(const std::string & name)
-    {
-      return name.size() != 0
-        && name.find_first_not_of(valid_posix) == std::string::npos;     
-    }
+			MEMORIA_V1_FILESYSTEM_DECL bool portable_posix_name(const std::string & name)
+			{
+				return name.size() != 0
+					&& name.find_first_not_of(valid_posix) == std::string::npos;
+			}
 
-    MEMORIA_V1_FILESYSTEM_DECL bool windows_name(const std::string & name)
-    {
-      return name.size() != 0
-        && name[0] != ' '
-        && name.find_first_of(windows_invalid_chars) == std::string::npos
-        && *(name.end()-1) != ' '
-        && (*(name.end()-1) != '.'
-          || name.length() == 1 || name == "..");
-    }
+			MEMORIA_V1_FILESYSTEM_DECL bool windows_name(const std::string & name)
+			{
+				return name.size() != 0
+					&& name[0] != ' '
+					&& name.find_first_of(windows_invalid_chars) == std::string::npos
+					&& *(name.end() - 1) != ' '
+					&& (*(name.end() - 1) != '.'
+						|| name.length() == 1 || name == "..");
+			}
 
-    MEMORIA_V1_FILESYSTEM_DECL bool portable_name(const std::string & name)
-    {
-      return
-        name.size() != 0
-        && (name == "."
-          || name == ".."
-          || (windows_name(name)
-            && portable_posix_name(name)
-            && name[0] != '.' && name[0] != '-'));
-    }
+			MEMORIA_V1_FILESYSTEM_DECL bool portable_name(const std::string & name)
+			{
+				return
+					name.size() != 0
+					&& (name == "."
+						|| name == ".."
+						|| (windows_name(name)
+							&& portable_posix_name(name)
+							&& name[0] != '.' && name[0] != '-'));
+			}
 
-    MEMORIA_V1_FILESYSTEM_DECL bool portable_directory_name(const std::string & name)
-    {
-      return
-        name == "."
-        || name == ".."
-        || (portable_name(name)
-          && name.find('.') == std::string::npos);
-    }
+			MEMORIA_V1_FILESYSTEM_DECL bool portable_directory_name(const std::string & name)
+			{
+				return
+					name == "."
+					|| name == ".."
+					|| (portable_name(name)
+						&& name.find('.') == std::string::npos);
+			}
 
-    MEMORIA_V1_FILESYSTEM_DECL bool portable_file_name(const std::string & name)
-    {
-      std::string::size_type pos;
-      return
-         portable_name(name)
-         && name != "."
-         && name != ".."
-         && ((pos = name.find('.')) == std::string::npos
-             || (name.find('.', pos+1) == std::string::npos
-               && (pos + 5) > name.length()))
-        ;
-    }
+			MEMORIA_V1_FILESYSTEM_DECL bool portable_file_name(const std::string & name)
+			{
+				std::string::size_type pos;
+				return
+					portable_name(name)
+					&& name != "."
+					&& name != ".."
+					&& ((pos = name.find('.')) == std::string::npos
+						|| (name.find('.', pos + 1) == std::string::npos
+							&& (pos + 5) > name.length()))
+					;
+			}
 
-  } // namespace filesystem
-} // namespace boost
+		} 
+	} 
+}
