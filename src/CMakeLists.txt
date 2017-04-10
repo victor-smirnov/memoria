@@ -20,6 +20,7 @@ add_subdirectory(core)
 add_subdirectory(allocators)
 add_subdirectory(fiber)
 add_subdirectory(reactor)
+add_subdirectory(filesystem)
 
 
 get_property(GLOBAL_SRCS GLOBAL PROPERTY GLOBAL_SOURCES)
@@ -48,5 +49,5 @@ set_target_properties(memoria-node PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}"
 if (BUILD_MSVC)
 target_link_libraries(memoria-node Memoria)
 else()
-target_link_libraries(memoria-node Memoria boost_context)
+target_link_libraries(memoria-node Memoria boost_context boost_system)
 endif()

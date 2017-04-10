@@ -1,6 +1,7 @@
 
 #include "memoria/v1/fiber/all.hpp"
 #include "memoria/v1/reactor/application.hpp"
+#include "memoria/v1/filesystem/path.hpp"
 
 #include <iostream>
 #include <thread>
