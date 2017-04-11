@@ -779,7 +779,7 @@ namespace filesystem {
 # ifdef BOOST_WINDOWS_API
     std::size_t seed = 0;
     for(const path::value_type* it = x.c_str(); *it; ++it)
-      hash_combine(seed, *it == '/' ? L'\\' : *it);
+      boost::hash_combine(seed, *it == '/' ? L'\\' : *it);
     return seed;
 # else   // BOOST_POSIX_API
     return boost::hash_range(x.native().begin(), x.native().end());
