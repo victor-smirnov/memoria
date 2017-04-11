@@ -54,6 +54,7 @@ namespace detail {
         
         Message* task_{};
         
+        
         bool stop_{false};
         bool finished_{false};
         bool ready_{false};
@@ -65,21 +66,21 @@ namespace detail {
         Worker(std::shared_ptr<Smp>& smp): smp_(smp)
         {
             thread_ = std::thread([this]
-            {
+            {   
                 std::unique_lock<std::mutex> lk(mutex_);
                 
                 while(true) 
-                {   
+                {
                     ready_ = false;
-                    cv_.wait(lk, [this]{return ready_;});
+                    cv_.wait(lk, [this]{
+                        return ready_;
+                    });
                     
                     if (!stop_)
                     {
                         BOOST_ASSERT(task_);
                         
                         task_->process();
-                        task_->set_data(this);
-                        
                         smp_->submit_to(task_->cpu(), task_);
                     }
                     else {
@@ -102,7 +103,7 @@ namespace detail {
                     task_ = nullptr;
                 }
         
-                cv_.notify_one();
+                cv_.notify_all();
             
                 thread_.join();
             }
@@ -125,7 +126,7 @@ namespace detail {
                 ready_ = true;
             }
 
-            cv_.notify_one();
+            cv_.notify_all();
         }
     };
 }
@@ -156,6 +157,7 @@ public:
         {
             WorkerT* worker = acquire_worker();
             
+            task->set_data(worker);
             worker->run(task);
             
             return true;

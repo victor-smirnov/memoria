@@ -18,6 +18,8 @@
 #endif
 
 #include <memoria/v1/filesystem/operations.hpp>
+#include <memoria/v1/reactor/reactor.hpp>
+
 #include <cassert>
 
 # ifdef BOOST_POSIX_API
@@ -33,14 +35,18 @@
 #   endif
 # endif
 
+namespace mr = memoria::v1::reactor;
+
 namespace {
 
 void fail(int err, boost::system::error_code* ec)
 {
-  if (ec == 0)
+  if (ec == 0) 
+  {
     MEMORIA_V1_FILESYSTEM_THROW( boost::system::system_error(err,
       boost::system::system_category(),
       "memoria::v1::filesystem::unique_path"));
+  }
 
   ec->assign(err, boost::system::system_category());
   return;
@@ -76,33 +82,34 @@ int acquire_crypt_handle(HCRYPTPROV& handle)
 void system_crypt_random(void* buf, std::size_t len, boost::system::error_code* ec)
 {
 # ifdef BOOST_POSIX_API
-
-  int file = open("/dev/urandom", O_RDONLY);
-  if (file == -1)
-  {
-    file = open("/dev/random", O_RDONLY);
+  return mr::engine().run_in_thread_pool([&](){
+    int file = open("/dev/urandom", O_RDONLY);
     if (file == -1)
     {
-      fail(errno, ec);
-      return;
+        file = open("/dev/random", O_RDONLY);
+        if (file == -1)
+        {
+            fail(errno, ec);
+            return;
+        }
     }
-  }
 
-  size_t bytes_read = 0;
-  while (bytes_read < len)
-  {
-    ssize_t n = read(file, buf, len - bytes_read);
-    if (n == -1)
+    size_t bytes_read = 0;
+    while (bytes_read < len)
     {
-      close(file);
-      fail(errno, ec);
-      return;
+        ssize_t n = read(file, buf, len - bytes_read);
+        if (n == -1)
+        {
+            close(file);
+            fail(errno, ec);
+            return;
+        }
+        bytes_read += n;
+        buf = static_cast<char*>(buf) + n;
     }
-    bytes_read += n;
-    buf = static_cast<char*>(buf) + n;
-  }
 
-  close(file);
+    close(file);
+  });
 
 # else // BOOST_WINDOWS_API
 

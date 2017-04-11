@@ -2,12 +2,14 @@
 #include "memoria/v1/fiber/all.hpp"
 #include "memoria/v1/reactor/application.hpp"
 #include "memoria/v1/filesystem/path.hpp"
+#include "memoria/v1/filesystem/operations.hpp"
 
 #include <iostream>
 #include <thread>
 
 namespace df  = memoria::v1::fibers;
 namespace dr  = memoria::v1::reactor;
+namespace fs  = memoria::v1::filesystem;
 
 
 void print_fiber_sizes(const char* msg) 
@@ -17,8 +19,6 @@ void print_fiber_sizes(const char* msg)
 
 int main(int argc, char **argv) 
 {
-
-
     dr::Application app(argc, argv);
     
     app.set_shutdown_hook([](){
@@ -31,9 +31,19 @@ int main(int argc, char **argv)
         std::cout << "Hello from Dumbo App! " << std::endl;
         
 		using namespace dr;
-
+        
+        fs::path path("sandbox");
+        
+        //std::cout << path << std::endl;
+        //std::cout << "File size: " << fs::file_size(path) << std::endl;
+        
+        for (fs::directory_entry& x : fs::directory_iterator(path)) 
+        {
+          std::cout << "    " << x.path() << '\n'; 
+        }
+        
 		
-		IPAddress addr("127.0.0.1");
+		/*IPAddress addr("127.0.0.1");
 
 		auto socket = std::make_shared<dr::StreamServerSocket>(addr, 5544);
 		socket->listen();
@@ -46,7 +56,7 @@ int main(int argc, char **argv)
 		{
 			std::cout << "Read " << size << " bytes" << std::endl;
 			conn->write(buffer, size);
-		}
+		}*/
 		
 		
 		/*

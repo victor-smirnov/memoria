@@ -110,6 +110,26 @@ public:
         smp_->submit_to(target_cpu, msg);
     }
     
+    template <typename Fn, typename... Args>
+    auto run_in_thread_pool(Fn&& task, Args&&... args) 
+    {
+        auto ctx = fibers::context::active();
+        BOOST_ASSERT_MSG(ctx != nullptr, "Fiber context is null");
+        
+        auto msg = make_fiber_lambda_message(cpu_, this, ctx, std::forward<Fn>(task), std::forward<Args>(args)...);
+        
+        while(!thread_pool_.try_run(msg.get())) 
+        {
+            memoria::v1::this_fiber::yield();
+        }
+        
+        scheduler_->suspend(ctx);
+        
+        thread_pool_.release(msg.get());
+        
+        return msg->result();
+    }
+    
     friend class Application;
     friend Reactor& engine();
     template <typename> friend class FiberMessage;
@@ -121,6 +141,8 @@ public:
     
     Scheduler<Reactor>* scheduler() {return scheduler_;}
     const Scheduler<Reactor>* scheduler() const {return scheduler_;}
+    
+    
     
 private:
     

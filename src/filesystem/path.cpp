@@ -25,6 +25,7 @@
 #include <memoria/v1/filesystem/config.hpp>
 #include <memoria/v1/filesystem/path.hpp>
 #include <memoria/v1/filesystem/operations.hpp>  // for filesystem_error
+#include <memoria/v1/reactor/reactor.hpp> 
 
 #include <boost/scoped_array.hpp>
 #include <boost/system/error_code.hpp>
@@ -48,6 +49,7 @@
 #endif
 
 namespace fs = memoria::v1::filesystem;
+namespace mr = memoria::v1::reactor;
 
 using memoria::v1::filesystem::path;
 

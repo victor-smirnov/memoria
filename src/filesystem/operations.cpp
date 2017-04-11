@@ -42,6 +42,10 @@
 #endif
 
 #include <memoria/v1/filesystem/operations.hpp>
+#include <memoria/v1/reactor/reactor.hpp>
+
+
+
 #include <boost/scoped_array.hpp>
 #include <boost/detail/workaround.hpp>
 #include <vector> 
@@ -58,6 +62,8 @@
 #endif
 
 namespace fs = memoria::v1::filesystem;
+namespace mr = memoria::v1::reactor;
+
 using memoria::v1::filesystem::path;
 using memoria::v1::filesystem::filesystem_error;
 using memoria::v1::filesystem::perms;
@@ -66,6 +72,8 @@ using boost::system::error_category;
 using boost::system::system_category;
 using std::string;
 using std::wstring;
+
+
 
 # ifdef BOOST_POSIX_API
 
@@ -338,15 +346,17 @@ namespace
   // only called if directory exists
   bool remove_directory(const path& p) // true if succeeds or not found
   { 
+      
     return BOOST_REMOVE_DIRECTORY(p.c_str())
       || not_found_error(BOOST_ERRNO);  // mitigate possible file system race. See #11166
   }
   
   // only called if file exists
   bool remove_file(const path& p) // true if succeeds or not found
-  {
+  {   
     return BOOST_DELETE_FILE(p.c_str())
       || not_found_error(BOOST_ERRNO);  // mitigate possible file system race. See #11166
+      
   }
   
   // called by remove and remove_all_aux
@@ -446,6 +456,7 @@ namespace
     int oflag = O_CREAT | O_WRONLY | O_TRUNC;
     if (fail_if_exists)
       oflag |= O_EXCL;
+    
     if ((outfile = ::open(to_p.c_str(), oflag, from_stat.st_mode))< 0)
     {
       int open_errno = errno;
@@ -482,6 +493,7 @@ namespace
 
     if (::close(infile)< 0)
       sz_read = -1;
+    
     if (::close(outfile)< 0)
       sz_read = -1;
 
@@ -642,9 +654,11 @@ namespace
     {
       return fs::file_status(fs::type_unknown);
     }
+    
     if (ec == 0)
       MEMORIA_V1_FILESYSTEM_THROW(filesystem_error("memoria::v1::filesystem::status",
         p, error_code(errval, system_category())));
+      
     return fs::file_status(fs::status_error);
   }
 
@@ -666,6 +680,7 @@ namespace
         return (attr & FILE_ATTRIBUTE_DIRECTORY)
           ? fs::_detail_directory_symlink
           : fs::symlink_file;
+          
       return fs::reparse_file;
     }
 
@@ -680,6 +695,7 @@ namespace
                                 FILE_ATTRIBUTE_NORMAL, 0));
     LARGE_INTEGER sz;
     sz.QuadPart = size;
+    
     return h.handle != INVALID_HANDLE_VALUE
       && ::SetFilePointerEx(h.handle, sz, 0, FILE_BEGIN)
       && ::SetEndOfFile(h.handle);
@@ -832,6 +848,7 @@ namespace detail
     {
       scan = false;
       result.clear();
+      
       for (path::iterator itr = source.begin(); itr != source.end(); ++itr)
       {
         if (*itr == dot_path())
@@ -870,14 +887,18 @@ namespace detail
               new_source /= *itr;
             source = new_source;
           }
+          
           scan = true;  // symlink causes scan to be restarted
           break;
         }
       }
     }
+    
     if (ec != 0)
       ec->clear();
+    
     BOOST_ASSERT_MSG(result.is_absolute(), "canonical() implementation error; please report");
+    
     return result;
   }
 
@@ -901,9 +922,11 @@ namespace detail
     }
     else
     {
-      if (ec == 0)
+      if (ec == 0) {
         MEMORIA_V1_FILESYSTEM_THROW(filesystem_error("memoria::v1::filesystem::copy",
-          from, to, error_code(BOOST_ERROR_NOT_SUPPORTED, system_category())));
+          from, to, error_code(BOOST_ERROR_NOT_SUPPORTED, system_category())));    
+      }
+        
       ec->assign(BOOST_ERROR_NOT_SUPPORTED, system_category());
     }
   }
@@ -911,93 +934,121 @@ namespace detail
   MEMORIA_V1_FILESYSTEM_DECL
   void copy_directory(const path& from, const path& to, boost::system::error_code* ec)
   {
+    return mr::engine().run_in_thread_pool([&](){
 #   ifdef BOOST_POSIX_API
-    struct stat from_stat;
+        struct stat from_stat;
 #   endif
-    error(!BOOST_COPY_DIRECTORY(from.c_str(), to.c_str()) ? BOOST_ERRNO : 0,
-      from, to, ec, "memoria::v1::filesystem::copy_directory");
+        error(!BOOST_COPY_DIRECTORY(from.c_str(), to.c_str()) ? BOOST_ERRNO : 0,
+        from, to, ec, "memoria::v1::filesystem::copy_directory");
+    });
   }
 
   MEMORIA_V1_FILESYSTEM_DECL
   void copy_file(const path& from, const path& to, copy_option option, error_code* ec)
   {
-    error(!BOOST_COPY_FILE(from.c_str(), to.c_str(),
-      option == fail_if_exists) ? BOOST_ERRNO : 0,
+      return mr::engine().run_in_thread_pool([&](){
+        error(!BOOST_COPY_FILE(from.c_str(), to.c_str(),
+        option == fail_if_exists) ? BOOST_ERRNO : 0,
         from, to, ec, "memoria::v1::filesystem::copy_file");
+      });
   }
 
   MEMORIA_V1_FILESYSTEM_DECL
-  void copy_symlink(const path& existing_symlink, const path& new_symlink,
-    boost::system::error_code* ec)
+  void copy_symlink(const path& existing_symlink, const path& new_symlink, boost::system::error_code* ec)
   {
+      return mr::engine().run_in_thread_pool([&](){
 # if defined(_WIN32_WINNT) && _WIN32_WINNT < 0x0600
-    error(BOOST_ERROR_NOT_SUPPORTED, new_symlink, existing_symlink, ec,
-      "memoria::v1::filesystem::copy_symlink");
+        error(BOOST_ERROR_NOT_SUPPORTED, new_symlink, existing_symlink, ec,
+        "memoria::v1::filesystem::copy_symlink");
 
 # else  // modern Windows or BOOST_POSIX_API 
-    path p(read_symlink(existing_symlink, ec));
-    if (ec != 0 && *ec) return;
-    create_symlink(p, new_symlink, ec);
-
+        path p(read_symlink(existing_symlink, ec));
+        if (ec != 0 && *ec) return;
+        create_symlink(p, new_symlink, ec);
 # endif
+      });
   }
 
  MEMORIA_V1_FILESYSTEM_DECL
-  bool create_directories(const path& p, boost::system::error_code* ec)
+  bool create_directories_(const path& p, boost::system::error_code* ec);
+  bool create_directory_(const path& p, error_code* ec);
+ 
+  bool create_directories(const path& p, boost::system::error_code* ec) 
   {
-   if (p.empty())
-   {
-     if (ec == 0)
-       MEMORIA_V1_FILESYSTEM_THROW(filesystem_error(
-         "memoria::v1::filesystem::create_directories", p,
-         boost::system::errc::make_error_code(boost::system::errc::invalid_argument)));
-     else
-       ec->assign(boost::system::errc::invalid_argument, boost::system::generic_category());
-     return false;
-   }
+    return mr::engine().run_in_thread_pool([&](){
+      return create_directories_(p, ec);
+    });
+  }
+ 
+  bool create_directories_(const path& p, boost::system::error_code* ec)
+  {
+    if (p.empty())
+    {
+        if (ec == 0) {
+            MEMORIA_V1_FILESYSTEM_THROW(filesystem_error(
+            "memoria::v1::filesystem::create_directories", p,
+            boost::system::errc::make_error_code(boost::system::errc::invalid_argument)));
+        }
+        else {
+            ec->assign(boost::system::errc::invalid_argument, boost::system::generic_category());
+        }
+        
+        return false;
+    }
 
-    if (p.filename_is_dot() || p.filename_is_dot_dot())
-      return create_directories(p.parent_path(), ec);
+    if (p.filename_is_dot() || p.filename_is_dot_dot()) {
+        return create_directories_(p.parent_path(), ec);
+    }
     
     error_code local_ec;
     file_status p_status = status(p, local_ec);
 
     if (p_status.type() == directory_file)
     {
-      if (ec != 0)
-        ec->clear();
-      return false;
+        if (ec != 0) {
+            ec->clear();
+        }
+        return false;
     }
 
     path parent = p.parent_path();
     BOOST_ASSERT_MSG(parent != p, "internal error: p == p.parent_path()");
     if (!parent.empty())
     {
-      // determine if the parent exists
-      file_status parent_status = status(parent, local_ec);
+        // determine if the parent exists
+        file_status parent_status = status(parent, local_ec);
 
-      // if the parent does not exist, create the parent
-      if (parent_status.type() == file_not_found)
-      {
-        create_directories(parent, local_ec);
-        if (local_ec)
+        // if the parent does not exist, create the parent
+        if (parent_status.type() == file_not_found)
         {
-          if (ec == 0)
-            MEMORIA_V1_FILESYSTEM_THROW(filesystem_error(
-              "memoria::v1::filesystem::create_directories", parent, local_ec));
-          else
-            *ec = local_ec;
-          return false;
+            create_directories_(parent, &local_ec);
+            if (local_ec)
+            {
+                if (ec == 0) {
+                    MEMORIA_V1_FILESYSTEM_THROW(filesystem_error(
+                    "memoria::v1::filesystem::create_directories", parent, local_ec));
+                }
+                else {
+                    *ec = local_ec;
+                }
+                return false;
+            }
         }
-      }
     }
 
     // create the directory
-    return create_directory(p, ec);
+    return create_directory_(p, ec);
   }
 
   MEMORIA_V1_FILESYSTEM_DECL
-  bool create_directory(const path& p, error_code* ec)
+  bool create_directory(const path& p, error_code* ec) 
+  {
+    return mr::engine().run_in_thread_pool([&](){
+      return create_directory_(p, ec);
+    });
+  }
+  
+  bool create_directory_(const path& p, error_code* ec)
   {
     if (BOOST_CREATE_DIRECTORY(p.c_str()))
     {
@@ -1031,269 +1082,321 @@ namespace detail
   void create_directory_symlink(const path& to, const path& from,
                                  boost::system::error_code* ec)
   {
+    return mr::engine().run_in_thread_pool([&](){
 #   if defined(BOOST_WINDOWS_API) && _WIN32_WINNT < 0x0600  // SDK earlier than Vista and Server 2008
 
-    error(BOOST_ERROR_NOT_SUPPORTED, to, from, ec,
-      "memoria::v1::filesystem::create_directory_symlink");
+        error(BOOST_ERROR_NOT_SUPPORTED, to, from, ec,
+        "memoria::v1::filesystem::create_directory_symlink");
 #   else
 
 #     if defined(BOOST_WINDOWS_API) && _WIN32_WINNT >= 0x0600
-        // see if actually supported by Windows runtime dll
-        if (error(!create_symbolic_link_api ? BOOST_ERROR_NOT_SUPPORTED : 0, to, from, ec,
-            "memoria::v1::filesystem::create_directory_symlink"))
-          return;
+            // see if actually supported by Windows runtime dll
+            if (error(!create_symbolic_link_api ? BOOST_ERROR_NOT_SUPPORTED : 0, to, from, ec,
+                "memoria::v1::filesystem::create_directory_symlink"))
+            return;
 #     endif
 
-    error(!BOOST_CREATE_SYMBOLIC_LINK(from.c_str(), to.c_str(),
-      SYMBOLIC_LINK_FLAG_DIRECTORY) ? BOOST_ERRNO : 0,
-      to, from, ec, "memoria::v1::filesystem::create_directory_symlink");
+        error(!BOOST_CREATE_SYMBOLIC_LINK(from.c_str(), to.c_str(),
+        SYMBOLIC_LINK_FLAG_DIRECTORY) ? BOOST_ERRNO : 0,
+        to, from, ec, "memoria::v1::filesystem::create_directory_symlink");
 #   endif
+    });
   }
 
   MEMORIA_V1_FILESYSTEM_DECL
   void create_hard_link(const path& to, const path& from, error_code* ec)
   {
-
+    return mr::engine().run_in_thread_pool([&](){
 #   if defined(BOOST_WINDOWS_API) && _WIN32_WINNT < 0x0500  // SDK earlier than Win 2K
 
-    error(BOOST_ERROR_NOT_SUPPORTED, to, from, ec,
-      "memoria::v1::filesystem::create_hard_link");
+        error(BOOST_ERROR_NOT_SUPPORTED, to, from, ec,
+        "memoria::v1::filesystem::create_hard_link");
 #   else
 
 #     if defined(BOOST_WINDOWS_API) && _WIN32_WINNT >= 0x0500
-        // see if actually supported by Windows runtime dll
-        if (error(!create_hard_link_api ? BOOST_ERROR_NOT_SUPPORTED : 0, to, from, ec,
-            "memoria::v1::filesystem::create_hard_link"))
-          return;
+            // see if actually supported by Windows runtime dll
+            if (error(!create_hard_link_api ? BOOST_ERROR_NOT_SUPPORTED : 0, to, from, ec,
+                "memoria::v1::filesystem::create_hard_link"))
+            return;
 #     endif
 
-    error(!BOOST_CREATE_HARD_LINK(from.c_str(), to.c_str()) ? BOOST_ERRNO : 0, to, from, ec,
-      "memoria::v1::filesystem::create_hard_link");
+        error(!BOOST_CREATE_HARD_LINK(from.c_str(), to.c_str()) ? BOOST_ERRNO : 0, to, from, ec,
+        "memoria::v1::filesystem::create_hard_link");
 #   endif
+    });
   }
 
   MEMORIA_V1_FILESYSTEM_DECL
   void create_symlink(const path& to, const path& from, error_code* ec)
   {
+    return mr::engine().run_in_thread_pool([&](){
 #   if defined(BOOST_WINDOWS_API) && _WIN32_WINNT < 0x0600  // SDK earlier than Vista and Server 2008
-    error(BOOST_ERROR_NOT_SUPPORTED, to, from, ec,
-      "memoria::v1::filesystem::create_directory_symlink");
+        error(BOOST_ERROR_NOT_SUPPORTED, to, from, ec,
+        "memoria::v1::filesystem::create_directory_symlink");
 #   else
 
 #     if defined(BOOST_WINDOWS_API) && _WIN32_WINNT >= 0x0600
-        // see if actually supported by Windows runtime dll
-        if (error(!create_symbolic_link_api ? BOOST_ERROR_NOT_SUPPORTED : 0, to, from, ec,
-            "memoria::v1::filesystem::create_symlink"))
-          return;
+            // see if actually supported by Windows runtime dll
+            if (error(!create_symbolic_link_api ? BOOST_ERROR_NOT_SUPPORTED : 0, to, from, ec,
+                "memoria::v1::filesystem::create_symlink"))
+            return;
 #     endif
 
-    error(!BOOST_CREATE_SYMBOLIC_LINK(from.c_str(), to.c_str(), 0) ? BOOST_ERRNO : 0,
-      to, from, ec, "memoria::v1::filesystem::create_symlink");
+        error(!BOOST_CREATE_SYMBOLIC_LINK(from.c_str(), to.c_str(), 0) ? BOOST_ERRNO : 0,
+        to, from, ec, "memoria::v1::filesystem::create_symlink");
 #   endif
+    });
   }
 
   MEMORIA_V1_FILESYSTEM_DECL
   path current_path(error_code* ec)
   {
+    return mr::engine().run_in_thread_pool([&](){      
 #   ifdef BOOST_POSIX_API
-    path cur;
-    for (long path_max = 128;; path_max *=2)// loop 'til buffer large enough
-    {
-      boost::scoped_array<char>
-        buf(new char[static_cast<std::size_t>(path_max)]);
-      if (::getcwd(buf.get(), static_cast<std::size_t>(path_max))== 0)
-      {
-        if (error(errno != ERANGE ? errno : 0
-      // bug in some versions of the Metrowerks C lib on the Mac: wrong errno set 
-#         if defined(__MSL__) && (defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__))
-          && errno != 0
-#         endif
-          , ec, "memoria::v1::filesystem::current_path"))
+        path cur;
+        for (long path_max = 128;; path_max *=2)// loop 'til buffer large enough
         {
-          break;
+            boost::scoped_array<char> buf(new char[static_cast<std::size_t>(path_max)]);
+            if (::getcwd(buf.get(), static_cast<std::size_t>(path_max))== 0)
+            {
+                if (error(errno != ERANGE ? errno : 0
+                // bug in some versions of the Metrowerks C lib on the Mac: wrong errno set 
+#         if defined(__MSL__) && (defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__))
+                    && errno != 0
+#         endif
+                    , ec, "memoria::v1::filesystem::current_path"))
+                {
+                    break;
+                }
+            }
+            else
+            {
+                cur = buf.get();
+                if (ec != 0) {
+                    ec->clear();
+                }
+                break;
+            }
         }
-      }
-      else
-      {
-        cur = buf.get();
-        if (ec != 0) ec->clear();
-        break;
-      }
-    }
-    return cur;
-
+        
+        return cur;
 #   else
-    DWORD sz;
-    if ((sz = ::GetCurrentDirectoryW(0, NULL)) == 0)sz = 1;
-    boost::scoped_array<path::value_type> buf(new path::value_type[sz]);
-    error(::GetCurrentDirectoryW(sz, buf.get()) == 0 ? BOOST_ERRNO : 0, ec,
-      "memoria::v1::filesystem::current_path");
-    return path(buf.get());
+        DWORD sz;
+        if ((sz = ::GetCurrentDirectoryW(0, NULL)) == 0) 
+        {
+            sz = 1;
+        }
+        
+        boost::scoped_array<path::value_type> buf(new path::value_type[sz]);
+        
+        error(
+            ::GetCurrentDirectoryW(sz, buf.get()) == 0 ? 
+            BOOST_ERRNO : 0, 
+            ec, "memoria::v1::filesystem::current_path"
+        );
+        
+        return path(buf.get());
 #   endif
+    });
   }
 
 
   MEMORIA_V1_FILESYSTEM_DECL
   void current_path(const path& p, boost::system::error_code* ec)
   {
-    error(!BOOST_SET_CURRENT_DIRECTORY(p.c_str()) ? BOOST_ERRNO : 0,
-      p, ec, "memoria::v1::filesystem::current_path");
+    return mr::engine().run_in_thread_pool([&](){
+        error(!BOOST_SET_CURRENT_DIRECTORY(p.c_str()) ? BOOST_ERRNO : 0,
+            p, ec, "memoria::v1::filesystem::current_path");
+    });
   }
 
   MEMORIA_V1_FILESYSTEM_DECL
   bool equivalent(const path& p1, const path& p2, boost::system::error_code* ec)
   {
+    return mr::engine().run_in_thread_pool([&](){      
 #   ifdef BOOST_POSIX_API
-    struct stat s2;
-    int e2(::stat(p2.c_str(), &s2));
-    struct stat s1;
-    int e1(::stat(p1.c_str(), &s1));
+        struct stat s2;
+        int e2(::stat(p2.c_str(), &s2));
+        
+        struct stat s1;
+        int e1(::stat(p1.c_str(), &s1));
 
-    if (e1 != 0 || e2 != 0)
-    {
-      // if one is invalid and the other isn't then they aren't equivalent,
-      // but if both are invalid then it is an error
-      error (e1 != 0 && e2 != 0, p1, p2, ec, "memoria::v1::filesystem::equivalent");
-      return false;
-    }
+        if (e1 != 0 || e2 != 0)
+        {
+            // if one is invalid and the other isn't then they aren't equivalent,
+            // but if both are invalid then it is an error
+            error (e1 != 0 && e2 != 0, p1, p2, ec, "memoria::v1::filesystem::equivalent");
+            return false;
+        }
 
-    // both stats now known to be valid
-    return  s1.st_dev == s2.st_dev && s1.st_ino == s2.st_ino
-        // According to the POSIX stat specs, "The st_ino and st_dev fields
-        // taken together uniquely identify the file within the system."
-        // Just to be sure, size and mod time are also checked.
-        && s1.st_size == s2.st_size && s1.st_mtime == s2.st_mtime;
+        // both stats now known to be valid
+        return  s1.st_dev == s2.st_dev && s1.st_ino == s2.st_ino
+            // According to the POSIX stat specs, "The st_ino and st_dev fields
+            // taken together uniquely identify the file within the system."
+            // Just to be sure, size and mod time are also checked.
+            && s1.st_size == s2.st_size && s1.st_mtime == s2.st_mtime;
 
 #   else  // Windows
 
-    // Note well: Physical location on external media is part of the
-    // equivalence criteria. If there are no open handles, physical location
-    // can change due to defragmentation or other relocations. Thus handles
-    // must be held open until location information for both paths has
-    // been retrieved.
+        // Note well: Physical location on external media is part of the
+        // equivalence criteria. If there are no open handles, physical location
+        // can change due to defragmentation or other relocations. Thus handles
+        // must be held open until location information for both paths has
+        // been retrieved.
 
-    // p2 is done first, so any error reported is for p1
-    handle_wrapper h2(
-      create_file_handle(
-          p2.c_str(),
-          0,
-          FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
-          0,
-          OPEN_EXISTING,
-          FILE_FLAG_BACKUP_SEMANTICS,
-          0));
+        // p2 is done first, so any error reported is for p1
+        handle_wrapper h2(
+            create_file_handle(
+                p2.c_str(),
+                0,
+                FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
+                0,
+                OPEN_EXISTING,
+                FILE_FLAG_BACKUP_SEMANTICS,
+                0
+            )
+        );
 
-    handle_wrapper h1(
-      create_file_handle(
-          p1.c_str(),
-          0,
-          FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
-          0,
-          OPEN_EXISTING,
-          FILE_FLAG_BACKUP_SEMANTICS,
-          0));
+        handle_wrapper h1(
+            create_file_handle(
+                p1.c_str(),
+                0,
+                FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
+                0,
+                OPEN_EXISTING,
+                FILE_FLAG_BACKUP_SEMANTICS,
+                0
+            )
+        );
 
-    if (h1.handle == INVALID_HANDLE_VALUE
-      || h2.handle == INVALID_HANDLE_VALUE)
-    {
-      // if one is invalid and the other isn't, then they aren't equivalent,
-      // but if both are invalid then it is an error
-      error((h1.handle == INVALID_HANDLE_VALUE
-        && h2.handle == INVALID_HANDLE_VALUE) ? BOOST_ERROR_NOT_SUPPORTED : 0, p1, p2, ec,
-          "memoria::v1::filesystem::equivalent");
-      return false;
-    }
+        if (h1.handle == INVALID_HANDLE_VALUE
+            || h2.handle == INVALID_HANDLE_VALUE)
+        {
+            // if one is invalid and the other isn't, then they aren't equivalent,
+            // but if both are invalid then it is an error
+            error((h1.handle == INVALID_HANDLE_VALUE && h2.handle == INVALID_HANDLE_VALUE) ? 
+                BOOST_ERROR_NOT_SUPPORTED : 0, 
+                p1, p2, ec,
+                "memoria::v1::filesystem::equivalent"
+            );
+            
+            return false;
+        }
 
-    // at this point, both handles are known to be valid
+        // at this point, both handles are known to be valid
 
-    BY_HANDLE_FILE_INFORMATION info1, info2;
+        BY_HANDLE_FILE_INFORMATION info1, info2;
 
-    if (error(!::GetFileInformationByHandle(h1.handle, &info1) ? BOOST_ERRNO : 0,
-      p1, p2, ec, "memoria::v1::filesystem::equivalent"))
-        return  false;
+        if (error(!::GetFileInformationByHandle(h1.handle, &info1) ? 
+            BOOST_ERRNO : 0,
+            p1, p2, ec, "memoria::v1::filesystem::equivalent")
+        ) {
+            return  false;
+        }
 
-    if (error(!::GetFileInformationByHandle(h2.handle, &info2) ? BOOST_ERRNO : 0,
-      p1, p2, ec, "memoria::v1::filesystem::equivalent"))
-        return  false;
+        if (error(!::GetFileInformationByHandle(h2.handle, &info2) ? 
+            BOOST_ERRNO : 0,
+            p1, p2, ec, "memoria::v1::filesystem::equivalent")
+        ) {
+            return  false;
+        }
 
-    // In theory, volume serial numbers are sufficient to distinguish between
-    // devices, but in practice VSN's are sometimes duplicated, so last write
-    // time and file size are also checked.
-      return 
-        info1.dwVolumeSerialNumber == info2.dwVolumeSerialNumber
-        && info1.nFileIndexHigh == info2.nFileIndexHigh
-        && info1.nFileIndexLow == info2.nFileIndexLow
-        && info1.nFileSizeHigh == info2.nFileSizeHigh
-        && info1.nFileSizeLow == info2.nFileSizeLow
-        && info1.ftLastWriteTime.dwLowDateTime
-          == info2.ftLastWriteTime.dwLowDateTime
-        && info1.ftLastWriteTime.dwHighDateTime
-          == info2.ftLastWriteTime.dwHighDateTime;
-
+        // In theory, volume serial numbers are sufficient to distinguish between
+        // devices, but in practice VSN's are sometimes duplicated, so last write
+        // time and file size are also checked.
+        return 
+            info1.dwVolumeSerialNumber == info2.dwVolumeSerialNumber
+            && info1.nFileIndexHigh == info2.nFileIndexHigh
+            && info1.nFileIndexLow == info2.nFileIndexLow
+            && info1.nFileSizeHigh == info2.nFileSizeHigh
+            && info1.nFileSizeLow == info2.nFileSizeLow
+            && info1.ftLastWriteTime.dwLowDateTime
+            == info2.ftLastWriteTime.dwLowDateTime
+            && info1.ftLastWriteTime.dwHighDateTime
+            == info2.ftLastWriteTime.dwHighDateTime;
 #   endif
+    });
   }
 
   MEMORIA_V1_FILESYSTEM_DECL
   boost::uintmax_t file_size(const path& p, error_code* ec)
   {
+    return mr::engine().run_in_thread_pool([&]{
 #   ifdef BOOST_POSIX_API
 
-    struct stat path_stat;
-    if (error(::stat(p.c_str(), &path_stat)!= 0 ? BOOST_ERRNO : 0,
-        p, ec, "memoria::v1::filesystem::file_size"))
-      return static_cast<boost::uintmax_t>(-1);
-   if (error(!S_ISREG(path_stat.st_mode) ? EPERM : 0,
-        p, ec, "memoria::v1::filesystem::file_size"))
-      return static_cast<boost::uintmax_t>(-1);
+        struct stat path_stat;
+        
+        if (error(::stat(p.c_str(), &path_stat)!= 0 ? BOOST_ERRNO : 0,
+            p, ec, "memoria::v1::filesystem::file_size")) 
+        {
+            return static_cast<boost::uintmax_t>(-1);
+        }
+        
+        if (error(!S_ISREG(path_stat.st_mode) ? EPERM : 0,
+            p, ec, "memoria::v1::filesystem::file_size")) 
+        {
+            return static_cast<boost::uintmax_t>(-1);
+        }
 
-    return static_cast<boost::uintmax_t>(path_stat.st_size);
+        return static_cast<boost::uintmax_t>(path_stat.st_size);
 
 #   else  // Windows
 
-    // assume uintmax_t is 64-bits on all Windows compilers
+        // assume uintmax_t is 64-bits on all Windows compilers
 
-    WIN32_FILE_ATTRIBUTE_DATA fad;
+        WIN32_FILE_ATTRIBUTE_DATA fad;
 
-    if (error(::GetFileAttributesExW(p.c_str(), ::GetFileExInfoStandard, &fad)== 0
-      ? BOOST_ERRNO : 0, p, ec, "memoria::v1::filesystem::file_size"))
-          return static_cast<boost::uintmax_t>(-1);
+        if (error(::GetFileAttributesExW(p.c_str(), ::GetFileExInfoStandard, &fad)== 0
+            ? BOOST_ERRNO : 0, p, ec, "memoria::v1::filesystem::file_size")) 
+        {
+            return static_cast<boost::uintmax_t>(-1);
+        }
 
-    if (error((fad.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)!= 0
-      ? ERROR_NOT_SUPPORTED : 0, p, ec, "memoria::v1::filesystem::file_size"))
-      return static_cast<boost::uintmax_t>(-1);
+        if (error((fad.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)!= 0
+            ? ERROR_NOT_SUPPORTED : 0, p, ec, "memoria::v1::filesystem::file_size")) 
+        {
+            return static_cast<boost::uintmax_t>(-1);
+        }
 
-    return (static_cast<boost::uintmax_t>(fad.nFileSizeHigh)
-              << (sizeof(fad.nFileSizeLow)*8)) + fad.nFileSizeLow;
+        return (static_cast<boost::uintmax_t>(fad.nFileSizeHigh)
+                << (sizeof(fad.nFileSizeLow)*8)) + fad.nFileSizeLow;
 #   endif
+    });
   }
 
   MEMORIA_V1_FILESYSTEM_DECL
   boost::uintmax_t hard_link_count(const path& p, boost::system::error_code* ec)
   {
+    return mr::engine().run_in_thread_pool([&](){
 #   ifdef BOOST_POSIX_API
-
-    struct stat path_stat;
-    return error(::stat(p.c_str(), &path_stat)!= 0 ? BOOST_ERRNO : 0,
-                  p, ec, "memoria::v1::filesystem::hard_link_count")
-           ? 0
-           : static_cast<boost::uintmax_t>(path_stat.st_nlink);
+        
+        struct stat path_stat;
+        
+        return error(::stat(p.c_str(), &path_stat)!= 0 ? BOOST_ERRNO : 0,
+                    p, ec, "memoria::v1::filesystem::hard_link_count")
+            ? 0
+            : static_cast<boost::uintmax_t>(path_stat.st_nlink);
 
 #   else // Windows
 
-    // Link count info is only available through GetFileInformationByHandle
-    BY_HANDLE_FILE_INFORMATION info;
-    handle_wrapper h(
-      create_file_handle(p.c_str(), 0,
-          FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE, 0,
-          OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, 0));
-    return
-      !error(h.handle == INVALID_HANDLE_VALUE ? BOOST_ERRNO : 0,
-              p, ec, "memoria::v1::filesystem::hard_link_count")
-      && !error(::GetFileInformationByHandle(h.handle, &info)== 0 ? BOOST_ERRNO : 0,
-                 p, ec, "memoria::v1::filesystem::hard_link_count")
-           ? info.nNumberOfLinks
-           : 0;
+        // Link count info is only available through GetFileInformationByHandle
+        BY_HANDLE_FILE_INFORMATION info;
+        handle_wrapper h(
+            create_file_handle(p.c_str(), 0,
+                FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE, 0,
+                OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, 0)
+        );
+        
+        return !error(h.handle == INVALID_HANDLE_VALUE ? BOOST_ERRNO : 0,
+                        p, ec, "memoria::v1::filesystem::hard_link_count"
+                     ) 
+                && !error(::GetFileInformationByHandle(h.handle, &info)== 0 ? BOOST_ERRNO : 0,
+                    p, ec, "memoria::v1::filesystem::hard_link_count"
+                )
+                ? info.nNumberOfLinks
+                : 0;
 #   endif
+    });
   }
 
   MEMORIA_V1_FILESYSTEM_DECL
@@ -1309,95 +1412,127 @@ namespace detail
   MEMORIA_V1_FILESYSTEM_DECL
   bool is_empty(const path& p, boost::system::error_code* ec)
   {
+    return mr::engine().run_in_thread_pool([&](){
 #   ifdef BOOST_POSIX_API
 
-    struct stat path_stat;
-    if (error(::stat(p.c_str(), &path_stat)!= 0,
-        p, ec, "memoria::v1::filesystem::is_empty"))
-      return false;        
-    return S_ISDIR(path_stat.st_mode)
-      ? is_empty_directory(p)
-      : path_stat.st_size == 0;
+        struct stat path_stat;
+        if (error(::stat(p.c_str(), &path_stat)!= 0,
+            p, ec, "memoria::v1::filesystem::is_empty")) 
+        {
+            return false;
+        }
+        
+        return S_ISDIR(path_stat.st_mode)
+            ? is_empty_directory(p)
+            : path_stat.st_size == 0;
 #   else
 
-    WIN32_FILE_ATTRIBUTE_DATA fad;
-    if (error(::GetFileAttributesExW(p.c_str(), ::GetFileExInfoStandard, &fad)== 0
-      ? BOOST_ERRNO : 0, p, ec, "memoria::v1::filesystem::is_empty"))
-        return false;
+        WIN32_FILE_ATTRIBUTE_DATA fad;
+        if (error(::GetFileAttributesExW(p.c_str(), ::GetFileExInfoStandard, &fad)== 0
+            ? BOOST_ERRNO : 0, p, ec, "memoria::v1::filesystem::is_empty")) 
+        {
+            return false;
+        }
 
-    if (ec != 0) ec->clear();
-    return 
-      (fad.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-        ? is_empty_directory(p)
-        : (!fad.nFileSizeHigh && !fad.nFileSizeLow);
+        if (ec != 0) {
+            ec->clear(); 
+        }
+        
+        return (fad.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+            ? is_empty_directory(p)
+            : (!fad.nFileSizeHigh && !fad.nFileSizeLow);
 #   endif
+    });
   }
 
   MEMORIA_V1_FILESYSTEM_DECL
   std::time_t last_write_time(const path& p, boost::system::error_code* ec)
   {
+    return mr::engine().run_in_thread_pool([&](){
 #   ifdef BOOST_POSIX_API
 
-    struct stat path_stat;
-    if (error(::stat(p.c_str(), &path_stat)!= 0 ? BOOST_ERRNO : 0,
-      p, ec, "memoria::v1::filesystem::last_write_time"))
-        return std::time_t(-1);
-    return path_stat.st_mtime;
+        struct stat path_stat;
+        if (error(::stat(p.c_str(), &path_stat)!= 0 ? BOOST_ERRNO : 0,
+            p, ec, "memoria::v1::filesystem::last_write_time")) 
+        {
+            return std::time_t(-1);
+        }
+        
+        return path_stat.st_mtime;
 
 #   else
 
-    handle_wrapper hw(
-      create_file_handle(p.c_str(), 0,
-        FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE, 0,
-        OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, 0));
+        handle_wrapper hw(
+            create_file_handle(
+                p.c_str(), 0,
+                FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE, 0,
+                OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, 0
+            )
+        );
 
-    if (error(hw.handle == INVALID_HANDLE_VALUE ? BOOST_ERRNO : 0,
-      p, ec, "memoria::v1::filesystem::last_write_time"))
-        return std::time_t(-1);
+        if (error(hw.handle == INVALID_HANDLE_VALUE ? BOOST_ERRNO : 0,
+            p, ec, "memoria::v1::filesystem::last_write_time")) 
+        {
+            return std::time_t(-1);
+        }
 
-    FILETIME lwt;
+        FILETIME lwt;
 
-    if (error(::GetFileTime(hw.handle, 0, 0, &lwt)== 0 ? BOOST_ERRNO : 0,
-      p, ec, "memoria::v1::filesystem::last_write_time"))
-        return std::time_t(-1);
+        if (error(::GetFileTime(hw.handle, 0, 0, &lwt)== 0 ? BOOST_ERRNO : 0,
+            p, ec, "memoria::v1::filesystem::last_write_time")) 
+        {
+            return std::time_t(-1);
+        }
 
-    return to_time_t(lwt);
+        return to_time_t(lwt);
 #   endif
+    });
   }
 
   MEMORIA_V1_FILESYSTEM_DECL
   void last_write_time(const path& p, const std::time_t new_time,
                         boost::system::error_code* ec)
   {
+    return mr::engine().run_in_thread_pool([&](){
 #   ifdef BOOST_POSIX_API
 
-    struct stat path_stat;
-    if (error(::stat(p.c_str(), &path_stat)!= 0,
-      p, ec, "memoria::v1::filesystem::last_write_time"))
-        return;
-    ::utimbuf buf;
-    buf.actime = path_stat.st_atime; // utime()updates access time too:-(
-    buf.modtime = new_time;
-    error(::utime(p.c_str(), &buf)!= 0 ? BOOST_ERRNO : 0,
-      p, ec, "memoria::v1::filesystem::last_write_time");
+        struct stat path_stat;
+        if (error(::stat(p.c_str(), &path_stat)!= 0,
+            p, ec, "memoria::v1::filesystem::last_write_time")) 
+        {
+            return;
+        }
+        
+        ::utimbuf buf;
+        buf.actime = path_stat.st_atime; // utime()updates access time too:-(
+        buf.modtime = new_time;
+        
+        error(::utime(p.c_str(), &buf)!= 0 ? BOOST_ERRNO : 0,
+            p, ec, "memoria::v1::filesystem::last_write_time");
 
 #   else
 
-    handle_wrapper hw(
-      create_file_handle(p.c_str(), FILE_WRITE_ATTRIBUTES,
-        FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE, 0,
-        OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, 0));
+        handle_wrapper hw(
+            create_file_handle(
+                p.c_str(), FILE_WRITE_ATTRIBUTES,
+                FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE, 0,
+                OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, 0
+            )
+        );
 
-    if (error(hw.handle == INVALID_HANDLE_VALUE ? BOOST_ERRNO : 0,
-      p, ec, "memoria::v1::filesystem::last_write_time"))
-        return;
+        if (error(hw.handle == INVALID_HANDLE_VALUE ? BOOST_ERRNO : 0,
+            p, ec, "memoria::v1::filesystem::last_write_time")) 
+        {
+            return;
+        }
 
-    FILETIME lwt;
-    to_FILETIME(new_time, lwt);
+        FILETIME lwt;
+        to_FILETIME(new_time, lwt);
 
-    error(::SetFileTime(hw.handle, 0, 0, &lwt)== 0 ? BOOST_ERRNO : 0,
-      p, ec, "memoria::v1::filesystem::last_write_time");
+        error(::SetFileTime(hw.handle, 0, 0, &lwt)== 0 ? BOOST_ERRNO : 0,
+            p, ec, "memoria::v1::filesystem::last_write_time");
 #   endif
+    });
   }
 
 # ifdef BOOST_POSIX_API
@@ -1408,152 +1543,185 @@ namespace detail
   MEMORIA_V1_FILESYSTEM_DECL
   void permissions(const path& p, perms prms, boost::system::error_code* ec)
   {
-    BOOST_ASSERT_MSG(!((prms & add_perms) && (prms & remove_perms)),
-      "add_perms and remove_perms are mutually exclusive");
+    return mr::engine().run_in_thread_pool([&](){
+        BOOST_ASSERT_MSG(!((prms & add_perms) && (prms & remove_perms)),
+        "add_perms and remove_perms are mutually exclusive");
 
-    if ((prms & add_perms) && (prms & remove_perms))  // precondition failed
-      return;
+        if ((prms & add_perms) && (prms & remove_perms))  // precondition failed
+        return;
 
 # ifdef BOOST_POSIX_API
-    error_code local_ec;
-    file_status current_status((prms & symlink_perms)
-                               ? fs::symlink_status(p, local_ec)
-                               : fs::status(p, local_ec));
-    if (local_ec)
-    {
-      if (ec == 0)
-      MEMORIA_V1_FILESYSTEM_THROW(filesystem_error(
-          "memoria::v1::filesystem::permissions", p, local_ec));
-      else
-        *ec = local_ec;
-      return;
-    }
+        error_code local_ec;
+        file_status current_status((prms & symlink_perms)
+                                ? fs::symlink_status(p, local_ec)
+                                : fs::status(p, local_ec));
+        if (local_ec)
+        {
+            if (ec == 0) {
+                MEMORIA_V1_FILESYSTEM_THROW(filesystem_error(
+                "memoria::v1::filesystem::permissions", p, local_ec));
+            }
+            else {
+                *ec = local_ec;
+            }
+            return;
+        }
 
-    if (prms & add_perms)
-      prms |= current_status.permissions();
-    else if (prms & remove_perms)
-      prms = current_status.permissions() & ~prms;
+        if (prms & add_perms) {
+            prms |= current_status.permissions();
+        }
+        else if (prms & remove_perms) {
+            prms = current_status.permissions() & ~prms;
+        }
 
-    // OS X <10.10, iOS <8.0 and some other platforms don't support fchmodat().
-    // Solaris (SunPro and gcc) only support fchmodat() on Solaris 11 and higher,
-    // and a runtime check is too much trouble.
-    // Linux does not support permissions on symbolic links and has no plans to
-    // support them in the future.  The chmod() code is thus more practical,
-    // rather than always hitting ENOTSUP when sending in AT_SYMLINK_NO_FOLLOW.
-    //  - See the 3rd paragraph of
-    // "Symbolic link ownership, permissions, and timestamps" at:
-    //   "http://man7.org/linux/man-pages/man7/symlink.7.html"
-    //  - See the fchmodat() Linux man page:
-    //   "http://man7.org/linux/man-pages/man2/fchmodat.2.html"
+        // OS X <10.10, iOS <8.0 and some other platforms don't support fchmodat().
+        // Solaris (SunPro and gcc) only support fchmodat() on Solaris 11 and higher,
+        // and a runtime check is too much trouble.
+        // Linux does not support permissions on symbolic links and has no plans to
+        // support them in the future.  The chmod() code is thus more practical,
+        // rather than always hitting ENOTSUP when sending in AT_SYMLINK_NO_FOLLOW.
+        //  - See the 3rd paragraph of
+        // "Symbolic link ownership, permissions, and timestamps" at:
+        //   "http://man7.org/linux/man-pages/man7/symlink.7.html"
+        //  - See the fchmodat() Linux man page:
+        //   "http://man7.org/linux/man-pages/man2/fchmodat.2.html"
 #   if defined(AT_FDCWD) && defined(AT_SYMLINK_NOFOLLOW) \
-      && !(defined(__SUNPRO_CC) || defined(__sun) || defined(sun)) \
-      && !(defined(linux) || defined(__linux) || defined(__linux__)) \
-      && !(defined(__MAC_OS_X_VERSION_MIN_REQUIRED) \
-           && __MAC_OS_X_VERSION_MIN_REQUIRED < 101000) \
-      && !(defined(__IPHONE_OS_VERSION_MIN_REQUIRED) \
-           && __IPHONE_OS_VERSION_MIN_REQUIRED < 80000)
-      if (::fchmodat(AT_FDCWD, p.c_str(), mode_cast(prms),
-           !(prms & symlink_perms) ? 0 : AT_SYMLINK_NOFOLLOW))
+        && !(defined(__SUNPRO_CC) || defined(__sun) || defined(sun)) \
+        && !(defined(linux) || defined(__linux) || defined(__linux__)) \
+        && !(defined(__MAC_OS_X_VERSION_MIN_REQUIRED) \
+            && __MAC_OS_X_VERSION_MIN_REQUIRED < 101000) \
+        && !(defined(__IPHONE_OS_VERSION_MIN_REQUIRED) \
+            && __IPHONE_OS_VERSION_MIN_REQUIRED < 80000)
+        
+        if (::fchmodat(AT_FDCWD, p.c_str(), mode_cast(prms),
+            !(prms & symlink_perms) ? 0 : AT_SYMLINK_NOFOLLOW))
+            
 #   else  // fallback if fchmodat() not supported
-      if (::chmod(p.c_str(), mode_cast(prms)))
+        if (::chmod(p.c_str(), mode_cast(prms)))
 #   endif
-    {
-      if (ec == 0)
-      MEMORIA_V1_FILESYSTEM_THROW(filesystem_error(
-          "memoria::v1::filesystem::permissions", p,
-          error_code(errno, boost::system::generic_category())));
-      else
-        ec->assign(errno, boost::system::generic_category());
-    }
+        {
+            if (ec == 0) 
+            {
+                MEMORIA_V1_FILESYSTEM_THROW(filesystem_error(
+                    "memoria::v1::filesystem::permissions", p,
+                    error_code(errno, boost::system::generic_category())));
+            }
+            else {
+            ec->assign(errno, boost::system::generic_category());
+            }
+        }
 
 # else  // Windows
 
-    // if not going to alter FILE_ATTRIBUTE_READONLY, just return
-    if (!(!((prms & (add_perms | remove_perms)))
-      || (prms & (owner_write|group_write|others_write))))
-      return;
+        // if not going to alter FILE_ATTRIBUTE_READONLY, just return
+        if (!(!((prms & (add_perms | remove_perms)))
+            || (prms & (owner_write|group_write|others_write)))) 
+        {   
+            return;
+        }
 
-    DWORD attr = ::GetFileAttributesW(p.c_str());
+        DWORD attr = ::GetFileAttributesW(p.c_str());
 
-    if (error(attr == 0 ? BOOST_ERRNO : 0, p, ec, "memoria::v1::filesystem::permissions"))
-      return;
+        if (error(attr == 0 ? BOOST_ERRNO : 0, p, ec, "memoria::v1::filesystem::permissions"))
+        {
+            return;
+        }
 
-    if (prms & add_perms)
-      attr &= ~FILE_ATTRIBUTE_READONLY;
-    else if (prms & remove_perms)
-      attr |= FILE_ATTRIBUTE_READONLY;
-    else if (prms & (owner_write|group_write|others_write))
-      attr &= ~FILE_ATTRIBUTE_READONLY;
-    else
-      attr |= FILE_ATTRIBUTE_READONLY;
+        if (prms & add_perms) {
+            attr &= ~FILE_ATTRIBUTE_READONLY;
+        }
+        else if (prms & remove_perms) {
+            attr |= FILE_ATTRIBUTE_READONLY;
+        }
+        else if (prms & (owner_write|group_write|others_write)) {
+            attr &= ~FILE_ATTRIBUTE_READONLY;
+        }
+        else {
+            attr |= FILE_ATTRIBUTE_READONLY;
+        }
 
-    error(::SetFileAttributesW(p.c_str(), attr) == 0 ? BOOST_ERRNO : 0,
-      p, ec, "memoria::v1::filesystem::permissions");
+        error(::SetFileAttributesW(p.c_str(), attr) == 0 ? BOOST_ERRNO : 0,
+            p, ec, "memoria::v1::filesystem::permissions");
 # endif
+    });
   }
 
   MEMORIA_V1_FILESYSTEM_DECL
   path read_symlink(const path& p, boost::system::error_code* ec)
   {
-    path symlink_path;
+    return mr::engine().run_in_thread_pool([&](){
+        path symlink_path;
 
 #   ifdef BOOST_POSIX_API
 
-    for (std::size_t path_max = 64;; path_max *= 2)// loop 'til buffer large enough
-    {
-      boost::scoped_array<char> buf(new char[path_max]);
-      ssize_t result;
-      if ((result=::readlink(p.c_str(), buf.get(), path_max))== -1)
-      {
-        if (ec == 0)
-          MEMORIA_V1_FILESYSTEM_THROW(filesystem_error("memoria::v1::filesystem::read_symlink",
-            p, error_code(errno, system_category())));
-        else ec->assign(errno, system_category());
-        break;
-      }
-      else
-      {
-        if(result != static_cast<ssize_t>(path_max))
+        for (std::size_t path_max = 64;; path_max *= 2)// loop 'til buffer large enough
         {
-          symlink_path.assign(buf.get(), buf.get() + result);
-          if (ec != 0) ec->clear();
-          break;
+            boost::scoped_array<char> buf(new char[path_max]);
+            ssize_t result;
+            if ((result=::readlink(p.c_str(), buf.get(), path_max))== -1)
+            {
+                if (ec == 0) {
+                    MEMORIA_V1_FILESYSTEM_THROW(filesystem_error("memoria::v1::filesystem::read_symlink",
+                        p, error_code(errno, system_category())));
+                }
+                else {
+                    ec->assign(errno, system_category());
+                }
+                break;
+            }
+            else
+            {
+                if(result != static_cast<ssize_t>(path_max))
+                {
+                    symlink_path.assign(buf.get(), buf.get() + result);
+                    if (ec != 0) {
+                        ec->clear(); 
+                    }
+                    break;
+                }
+            }
         }
-      }
-    }
 
 #   elif _WIN32_WINNT < 0x0600  // SDK earlier than Vista and Server 2008
-    error(BOOST_ERROR_NOT_SUPPORTED, p, ec,
-          "memoria::v1::filesystem::read_symlink");
+        error(BOOST_ERROR_NOT_SUPPORTED, p, ec,
+            "memoria::v1::filesystem::read_symlink");
 #   else  // Vista and Server 2008 SDK, or later
 
-    union info_t
-    {
-      char buf[REPARSE_DATA_BUFFER_HEADER_SIZE+MAXIMUM_REPARSE_DATA_BUFFER_SIZE];
-      REPARSE_DATA_BUFFER rdb;
-    } info;
+        union info_t
+        {
+            char buf[REPARSE_DATA_BUFFER_HEADER_SIZE+MAXIMUM_REPARSE_DATA_BUFFER_SIZE];
+            REPARSE_DATA_BUFFER rdb;
+        } info;
 
-    handle_wrapper h(
-      create_file_handle(p.c_str(), GENERIC_READ, 0, 0, OPEN_EXISTING,
-        FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, 0));
+        handle_wrapper h(
+            create_file_handle(
+                p.c_str(), GENERIC_READ, 0, 0, OPEN_EXISTING,
+                FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, 0
+            )
+        );
 
-    if (error(h.handle == INVALID_HANDLE_VALUE ? BOOST_ERRNO : 0,
-      p, ec, "memoria::v1::filesystem::read_symlink"))
+        if (error(h.handle == INVALID_HANDLE_VALUE ? BOOST_ERRNO : 0,
+            p, ec, "memoria::v1::filesystem::read_symlink")) 
+        {
+            return symlink_path;
+        }
+
+        DWORD sz;
+
+        if (!error(::DeviceIoControl(h.handle, FSCTL_GET_REPARSE_POINT,
+            0, 0, info.buf, sizeof(info), &sz, 0) == 0 ? BOOST_ERRNO : 0, p, ec,
+            "memoria::v1::filesystem::read_symlink" ))
+        {
+            symlink_path.assign(
+                static_cast<wchar_t*>(info.rdb.SymbolicLinkReparseBuffer.PathBuffer)
+                + info.rdb.SymbolicLinkReparseBuffer.PrintNameOffset/sizeof(wchar_t),
+                static_cast<wchar_t*>(info.rdb.SymbolicLinkReparseBuffer.PathBuffer)
+                + info.rdb.SymbolicLinkReparseBuffer.PrintNameOffset/sizeof(wchar_t)
+                + info.rdb.SymbolicLinkReparseBuffer.PrintNameLength/sizeof(wchar_t));
+        }
+    #     endif
         return symlink_path;
-
-    DWORD sz;
-
-    if (!error(::DeviceIoControl(h.handle, FSCTL_GET_REPARSE_POINT,
-          0, 0, info.buf, sizeof(info), &sz, 0) == 0 ? BOOST_ERRNO : 0, p, ec,
-          "memoria::v1::filesystem::read_symlink" ))
-      symlink_path.assign(
-        static_cast<wchar_t*>(info.rdb.SymbolicLinkReparseBuffer.PathBuffer)
-        + info.rdb.SymbolicLinkReparseBuffer.PrintNameOffset/sizeof(wchar_t),
-        static_cast<wchar_t*>(info.rdb.SymbolicLinkReparseBuffer.PathBuffer)
-        + info.rdb.SymbolicLinkReparseBuffer.PrintNameOffset/sizeof(wchar_t)
-        + info.rdb.SymbolicLinkReparseBuffer.PrintNameLength/sizeof(wchar_t));
-#     endif
-    return symlink_path;
+    });
   }
 
   MEMORIA_V1_FILESYSTEM_DECL
@@ -1561,28 +1729,41 @@ namespace detail
   {
     error_code tmp_ec;
     path wc_base(weakly_canonical(base, &tmp_ec));
-    if (error(tmp_ec.value(), base, ec, "memoria::v1::filesystem::relative"))
+    
+    if (error(tmp_ec.value(), base, ec, "memoria::v1::filesystem::relative")) 
+    {
       return path();
+    }
+    
     path wc_p(weakly_canonical(p, &tmp_ec));
-    if (error(tmp_ec.value(), base, ec, "memoria::v1::filesystem::relative"))
+    
+    if (error(tmp_ec.value(), base, ec, "memoria::v1::filesystem::relative")) 
+    {
       return path();
+    }
+    
     return wc_p.lexically_relative(wc_base);
   }
   
   MEMORIA_V1_FILESYSTEM_DECL
   bool remove(const path& p, error_code* ec)
   {
-    error_code tmp_ec;
-    file_type type = query_file_type(p, &tmp_ec);
-    if (error(type == status_error ? tmp_ec.value() : 0, p, ec,
-        "memoria::v1::filesystem::remove"))
-      return false;
+    return mr::engine().run_in_thread_pool([&](){
+        error_code tmp_ec;
+        file_type type = query_file_type(p, &tmp_ec);
+        
+        if (error(type == status_error ? tmp_ec.value() : 0, p, ec,
+            "memoria::v1::filesystem::remove")) 
+        {
+            return false;
+        }
 
-    // Since POSIX remove() is specified to work with either files or directories, in a
-    // perfect world it could just be called. But some important real-world operating
-    // systems (Windows, Mac OS X, for example) don't implement the POSIX spec. So
-    // remove_file_or_directory() is always called to keep it simple.
-    return remove_file_or_directory(p, type, ec);
+        // Since POSIX remove() is specified to work with either files or directories, in a
+        // perfect world it could just be called. But some important real-world operating
+        // systems (Windows, Mac OS X, for example) don't implement the POSIX spec. So
+        // remove_file_or_directory() is always called to keep it simple.
+        return remove_file_or_directory(p, type, ec);
+    });
   }
 
   MEMORIA_V1_FILESYSTEM_DECL
@@ -1590,288 +1771,339 @@ namespace detail
   {
     error_code tmp_ec;
     file_type type = query_file_type(p, &tmp_ec);
+    
     if (error(type == status_error ? tmp_ec.value() : 0, p, ec,
-      "memoria::v1::filesystem::remove_all"))
-      return 0;
-
-    return (type != status_error && type != file_not_found) // exists
-      ? remove_all_aux(p, type, ec)
-      : 0;
+        "memoria::v1::filesystem::remove_all")) 
+    {
+        return 0;
+    }
+    
+    return mr::engine().run_in_thread_pool([&](){
+        return (type != status_error && type != file_not_found) // exists
+            ? remove_all_aux(p, type, ec)
+            : 0;
+    });
   }
 
   MEMORIA_V1_FILESYSTEM_DECL
   void rename(const path& old_p, const path& new_p, error_code* ec)
   {
-    error(!BOOST_MOVE_FILE(old_p.c_str(), new_p.c_str()) ? BOOST_ERRNO : 0, old_p, new_p,
-      ec, "memoria::v1::filesystem::rename");
+    return mr::engine().run_in_thread_pool([&]()
+    {
+        error(!BOOST_MOVE_FILE(old_p.c_str(), new_p.c_str()) ? BOOST_ERRNO : 0, old_p, new_p,
+        ec, "memoria::v1::filesystem::rename");
+    });
   }
 
   MEMORIA_V1_FILESYSTEM_DECL
   void resize_file(const path& p, uintmax_t size, boost::system::error_code* ec)
   {
-    error(!BOOST_RESIZE_FILE(p.c_str(), size) ? BOOST_ERRNO : 0, p, ec,
-      "memoria::v1::filesystem::resize_file");
+    return mr::engine().run_in_thread_pool([&](){
+        error(!BOOST_RESIZE_FILE(p.c_str(), size) ? BOOST_ERRNO : 0, p, ec,
+        "memoria::v1::filesystem::resize_file");
+    }); 
   }
 
   MEMORIA_V1_FILESYSTEM_DECL
   space_info space(const path& p, error_code* ec)
   {
+    return mr::engine().run_in_thread_pool([&](){
 #   ifdef BOOST_POSIX_API
-    struct BOOST_STATVFS vfs;
-    space_info info;
-    if (!error(::BOOST_STATVFS(p.c_str(), &vfs)!= 0,
-      p, ec, "memoria::v1::filesystem::space"))
-    {
-      info.capacity 
-        = static_cast<boost::uintmax_t>(vfs.f_blocks)* BOOST_STATVFS_F_FRSIZE;
-      info.free 
-        = static_cast<boost::uintmax_t>(vfs.f_bfree)* BOOST_STATVFS_F_FRSIZE;
-      info.available
-        = static_cast<boost::uintmax_t>(vfs.f_bavail)* BOOST_STATVFS_F_FRSIZE;
-    }
+        struct BOOST_STATVFS vfs;
+        space_info info;
+        if (!error(::BOOST_STATVFS(p.c_str(), &vfs)!= 0,
+            p, ec, "memoria::v1::filesystem::space"))
+        {
+            info.capacity   = static_cast<boost::uintmax_t>(vfs.f_blocks) * BOOST_STATVFS_F_FRSIZE;
+            info.free       = static_cast<boost::uintmax_t>(vfs.f_bfree)  * BOOST_STATVFS_F_FRSIZE;
+            info.available  = static_cast<boost::uintmax_t>(vfs.f_bavail) * BOOST_STATVFS_F_FRSIZE;
+        }
 
 #   else
-    ULARGE_INTEGER avail, total, free;
-    space_info info;
+        ULARGE_INTEGER avail, total, free;
+        space_info info;
 
-    if (!error(::GetDiskFreeSpaceExW(p.c_str(), &avail, &total, &free)== 0,
-       p, ec, "memoria::v1::filesystem::space"))
-    {
-      info.capacity
-        = (static_cast<boost::uintmax_t>(total.HighPart)<< 32)
-          + total.LowPart;
-      info.free
-        = (static_cast<boost::uintmax_t>(free.HighPart)<< 32)
-          + free.LowPart;
-      info.available
-        = (static_cast<boost::uintmax_t>(avail.HighPart)<< 32)
-          + avail.LowPart;
-    }
+        if (!error(::GetDiskFreeSpaceExW(p.c_str(), &avail, &total, &free)== 0,
+            p, ec, "memoria::v1::filesystem::space"))
+        {
+            info.capacity   = (static_cast<boost::uintmax_t>(total.HighPart)<< 32) + total.LowPart;
+            info.free       = (static_cast<boost::uintmax_t>(free.HighPart)<< 32)  + free.LowPart;
+            info.available  = (static_cast<boost::uintmax_t>(avail.HighPart)<< 32) + avail.LowPart;
+        }
 
 #   endif
-
-    else
-    {
-      info.capacity = info.free = info.available = 0;
-    }
-    return info;
+        else
+        {
+            info.capacity = info.free = info.available = 0;
+        }
+        return info;
+    });
   }
 
   MEMORIA_V1_FILESYSTEM_DECL
   file_status status(const path& p, error_code* ec)
   {
+    return mr::engine().run_in_thread_pool([&](){
 #   ifdef BOOST_POSIX_API
 
-    struct stat path_stat;
-    if (::stat(p.c_str(), &path_stat)!= 0)
-    {
-      if (ec != 0)                            // always report errno, even though some
-        ec->assign(errno, system_category());   // errno values are not status_errors
+        struct stat path_stat;
+        if (::stat(p.c_str(), &path_stat)!= 0)
+        {
+            if (ec != 0) {                           // always report errno, even though some
+                ec->assign(errno, system_category());   // errno values are not status_errors
+            }
 
-      if (not_found_error(errno))
-      {
-        return fs::file_status(fs::file_not_found, fs::no_perms);
-      }
-      if (ec == 0)
-        MEMORIA_V1_FILESYSTEM_THROW(filesystem_error("memoria::v1::filesystem::status",
-          p, error_code(errno, system_category())));
-      return fs::file_status(fs::status_error);
-    }
-    if (ec != 0) ec->clear();;
-    if (S_ISDIR(path_stat.st_mode))
-      return fs::file_status(fs::directory_file,
-        static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
-    if (S_ISREG(path_stat.st_mode))
-      return fs::file_status(fs::regular_file,
-        static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
-    if (S_ISBLK(path_stat.st_mode))
-      return fs::file_status(fs::block_file,
-        static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
-    if (S_ISCHR(path_stat.st_mode))
-      return fs::file_status(fs::character_file,
-        static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
-    if (S_ISFIFO(path_stat.st_mode))
-      return fs::file_status(fs::fifo_file,
-        static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
-    if (S_ISSOCK(path_stat.st_mode))
-      return fs::file_status(fs::socket_file,
-        static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
-    return fs::file_status(fs::type_unknown);
+            if (not_found_error(errno))
+            {
+                return fs::file_status(fs::file_not_found, fs::no_perms);
+            }
+            
+            if (ec == 0) 
+            {
+                MEMORIA_V1_FILESYSTEM_THROW(filesystem_error("memoria::v1::filesystem::status",
+                p, error_code(errno, system_category())));
+            }
+            return fs::file_status(fs::status_error);
+        }
+        
+        if (ec != 0) {
+            ec->clear();
+        }
+        
+        if (S_ISDIR(path_stat.st_mode)) {
+            return fs::file_status(fs::directory_file, static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
+        }
+        
+        if (S_ISREG(path_stat.st_mode)) {
+            return fs::file_status(fs::regular_file, static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
+        }
+        
+        if (S_ISBLK(path_stat.st_mode)) {
+            return fs::file_status(fs::block_file, static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
+        }
+        
+        if (S_ISCHR(path_stat.st_mode)) {
+            return fs::file_status(fs::character_file, static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
+        }
+        
+        if (S_ISFIFO(path_stat.st_mode)) {
+            return fs::file_status(fs::fifo_file, static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
+        }
+        
+        if (S_ISSOCK(path_stat.st_mode)) {
+            return fs::file_status(fs::socket_file, static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
+        }
+        
+        return fs::file_status(fs::type_unknown);
 
-#   else  // Windows
+    #   else  // Windows
 
-    DWORD attr(::GetFileAttributesW(p.c_str()));
-    if (attr == 0xFFFFFFFF)
-    {
-      return process_status_failure(p, ec);
-    }
+        DWORD attr(::GetFileAttributesW(p.c_str()));
+        if (attr == 0xFFFFFFFF)
+        {
+            return process_status_failure(p, ec);
+        }
 
-    //  reparse point handling;
-    //    since GetFileAttributesW does not resolve symlinks, try to open a file
-    //    handle to discover if the file exists
-    if (attr & FILE_ATTRIBUTE_REPARSE_POINT)
-    {
-      handle_wrapper h(
-        create_file_handle(
-            p.c_str(),
-            0,  // dwDesiredAccess; attributes only
-            FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
-            0,  // lpSecurityAttributes
-            OPEN_EXISTING,
-            FILE_FLAG_BACKUP_SEMANTICS,
-            0)); // hTemplateFile
-      if (h.handle == INVALID_HANDLE_VALUE)
-      {
-        return process_status_failure(p, ec);
-      }
+        //  reparse point handling;
+        //    since GetFileAttributesW does not resolve symlinks, try to open a file
+        //    handle to discover if the file exists
+        if (attr & FILE_ATTRIBUTE_REPARSE_POINT)
+        {
+            handle_wrapper h(
+                create_file_handle(
+                    p.c_str(),
+                    0,  // dwDesiredAccess; attributes only
+                    FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
+                    0,  // lpSecurityAttributes
+                    OPEN_EXISTING,
+                    FILE_FLAG_BACKUP_SEMANTICS,
+                    0
+                )
+            ); // hTemplateFile
+        
+            if (h.handle == INVALID_HANDLE_VALUE)
+            {
+                return process_status_failure(p, ec);
+            }
 
-      if (!is_reparse_point_a_symlink(p))
-        return file_status(reparse_file, make_permissions(p, attr));
-    }
+            if (!is_reparse_point_a_symlink(p)) 
+            {
+                return file_status(reparse_file, make_permissions(p, attr));
+            }
+        }
 
-    if (ec != 0) ec->clear();
-    return (attr & FILE_ATTRIBUTE_DIRECTORY)
-      ? file_status(directory_file, make_permissions(p, attr))
-      : file_status(regular_file, make_permissions(p, attr));
-
+        if (ec != 0) {
+            ec->clear();
+        }
+        
+        return (attr & FILE_ATTRIBUTE_DIRECTORY)
+            ? file_status(directory_file, make_permissions(p, attr))
+            : file_status(regular_file, make_permissions(p, attr));
 #   endif
+    });
   }
 
   MEMORIA_V1_FILESYSTEM_DECL
   file_status symlink_status(const path& p, error_code* ec)
   {
+    return mr::engine().run_in_thread_pool([&](){
 #   ifdef BOOST_POSIX_API
 
-    struct stat path_stat;
-    if (::lstat(p.c_str(), &path_stat)!= 0)
-    {
-      if (ec != 0)                            // always report errno, even though some
-        ec->assign(errno, system_category());   // errno values are not status_errors
+        struct stat path_stat;
+        if (::lstat(p.c_str(), &path_stat)!= 0)
+        {
+            if (ec != 0) {                           // always report errno, even though some
+                ec->assign(errno, system_category());   // errno values are not status_errors
+            }
 
-      if (errno == ENOENT || errno == ENOTDIR) // these are not errors
-      {
-        return fs::file_status(fs::file_not_found, fs::no_perms);
-      }
-      if (ec == 0)
-        MEMORIA_V1_FILESYSTEM_THROW(filesystem_error("memoria::v1::filesystem::status",
-          p, error_code(errno, system_category())));
-      return fs::file_status(fs::status_error);
-    }
-    if (ec != 0) ec->clear();
-    if (S_ISREG(path_stat.st_mode))
-      return fs::file_status(fs::regular_file,
-        static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
-    if (S_ISDIR(path_stat.st_mode))
-      return fs::file_status(fs::directory_file,
-        static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
-    if (S_ISLNK(path_stat.st_mode))
-      return fs::file_status(fs::symlink_file,
-        static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
-    if (S_ISBLK(path_stat.st_mode))
-      return fs::file_status(fs::block_file,
-        static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
-    if (S_ISCHR(path_stat.st_mode))
-      return fs::file_status(fs::character_file,
-        static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
-    if (S_ISFIFO(path_stat.st_mode))
-      return fs::file_status(fs::fifo_file,
-        static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
-    if (S_ISSOCK(path_stat.st_mode))
-      return fs::file_status(fs::socket_file,
-        static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
-    return fs::file_status(fs::type_unknown);
+            if (errno == ENOENT || errno == ENOTDIR) // these are not errors
+            {
+                return fs::file_status(fs::file_not_found, fs::no_perms);
+            }
+            
+            if (ec == 0) {
+                MEMORIA_V1_FILESYSTEM_THROW(filesystem_error("memoria::v1::filesystem::status",
+                    p, error_code(errno, system_category())));
+            }
+            return fs::file_status(fs::status_error);
+        }
+        
+        if (ec != 0) {
+            ec->clear();
+        }
+        
+        if (S_ISREG(path_stat.st_mode)) {
+            return fs::file_status(fs::regular_file, static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
+        }
+        
+        if (S_ISDIR(path_stat.st_mode)) {
+            return fs::file_status(fs::directory_file, static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
+        }
+        
+        if (S_ISLNK(path_stat.st_mode)) {
+            return fs::file_status(fs::symlink_file, static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
+        }
+        
+        if (S_ISBLK(path_stat.st_mode)) { 
+            return fs::file_status(fs::block_file, static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
+        }
+        
+        if (S_ISCHR(path_stat.st_mode)) 
+        {
+            return fs::file_status(fs::character_file, static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
+        }
+        
+        if (S_ISFIFO(path_stat.st_mode)) 
+        {
+            return fs::file_status(fs::fifo_file, static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
+        }
+        
+        if (S_ISSOCK(path_stat.st_mode)) 
+        {
+            return fs::file_status(fs::socket_file, static_cast<perms>(path_stat.st_mode) & fs::perms_mask);
+        }
+        
+        return fs::file_status(fs::type_unknown);
 
 #   else  // Windows
 
-    DWORD attr(::GetFileAttributesW(p.c_str()));
-    if (attr == 0xFFFFFFFF)
-    {
-      return process_status_failure(p, ec);
-    }
+        DWORD attr(::GetFileAttributesW(p.c_str()));
+        if (attr == 0xFFFFFFFF)
+        {
+            return process_status_failure(p, ec);
+        }
 
-    if (ec != 0) ec->clear();
+        if (ec != 0) {
+            ec->clear();
+        }
 
-    if (attr & FILE_ATTRIBUTE_REPARSE_POINT)
-      return is_reparse_point_a_symlink(p)
-             ? file_status(symlink_file, make_permissions(p, attr))
-             : file_status(reparse_file, make_permissions(p, attr));
+        if (attr & FILE_ATTRIBUTE_REPARSE_POINT) 
+        {
+            return is_reparse_point_a_symlink(p)
+                ? file_status(symlink_file, make_permissions(p, attr))
+                : file_status(reparse_file, make_permissions(p, attr));
+        }
 
-    return (attr & FILE_ATTRIBUTE_DIRECTORY)
-      ? file_status(directory_file, make_permissions(p, attr))
-      : file_status(regular_file, make_permissions(p, attr));
+        return (attr & FILE_ATTRIBUTE_DIRECTORY)
+            ? file_status(directory_file, make_permissions(p, attr))
+            : file_status(regular_file, make_permissions(p, attr));
 
 #   endif
+    });
   }
 
    // contributed by Jeff Flinn
   MEMORIA_V1_FILESYSTEM_DECL
   path temp_directory_path(boost::system::error_code* ec)
   {
+    return mr::engine().run_in_thread_pool([&](){
 #   ifdef BOOST_POSIX_API
-      const char* val = 0;
-      
-      (val = std::getenv("TMPDIR" )) ||
-      (val = std::getenv("TMP"    )) ||
-      (val = std::getenv("TEMP"   )) ||
-      (val = std::getenv("TEMPDIR"));
-      
+        const char* val = 0;
+        
+        (val = std::getenv("TMPDIR" )) ||
+        (val = std::getenv("TMP"    )) ||
+        (val = std::getenv("TEMP"   )) ||
+        (val = std::getenv("TEMPDIR"));
+        
 #     ifdef __ANDROID__
         const char* default_tmp = "/data/local/tmp";
 #     else
         const char* default_tmp = "/tmp";
 #     endif
-      path p((val!=0) ? val : default_tmp);
-       
-      if (p.empty() || (ec&&!is_directory(p, *ec))||(!ec&&!is_directory(p)))
-      {
-        error(ENOTDIR, p, ec, "memoria::v1::filesystem::temp_directory_path");
-        return p;
-      }
+        path p((val!=0) ? val : default_tmp);
         
-      return p;
-      
+        if (p.empty() || (ec&&!is_directory(p, *ec))||(!ec&&!is_directory(p)))
+        {
+            error(ENOTDIR, p, ec, "memoria::v1::filesystem::temp_directory_path");
+            return p;
+        }
+            
+        return p;
+        
 #   else  // Windows
 
-      const wchar_t* tmp_env = L"TMP";
-      const wchar_t* temp_env = L"TEMP";
-      const wchar_t* localappdata_env = L"LOCALAPPDATA";
-      const wchar_t* userprofile_env = L"USERPROFILE";
-      const wchar_t* env_list[]
-        = {tmp_env, temp_env, localappdata_env, userprofile_env, 0};
+        const wchar_t* tmp_env = L"TMP";
+        const wchar_t* temp_env = L"TEMP";
+        const wchar_t* localappdata_env = L"LOCALAPPDATA";
+        const wchar_t* userprofile_env = L"USERPROFILE";
+        const wchar_t* env_list[] = {tmp_env, temp_env, localappdata_env, userprofile_env, 0};
 
-      path p;
-      for (int i = 0; env_list[i]; ++i)
-      {
-        std::wstring env = wgetenv(env_list[i]);
-        if (!env.empty())
+        path p;
+        for (int i = 0; env_list[i]; ++i)
         {
-          p = env;
-          if (i >= 2)
+            std::wstring env = wgetenv(env_list[i]);
+            if (!env.empty())
+            {
+                p = env;
+                if (i >= 2) {
+                    p /= L"Temp";
+                }
+                
+                error_code lcl_ec;
+                if (exists(p, lcl_ec) && !lcl_ec && is_directory(p, lcl_ec) && !lcl_ec) {
+                    break;
+                }
+                p.clear();
+            }
+        }
+
+        if (p.empty())
+        {
+            // use vector since in C++03 a string is not required to be contiguous
+            std::vector<wchar_t> buf(::GetWindowsDirectoryW(NULL, 0));
+
+            if (buf.empty() || ::GetWindowsDirectoryW(&buf[0], static_cast<UINT>(buf.size())) == 0)
+            {
+                error(::GetLastError(), ec, "memoria::v1::filesystem::temp_directory_path");
+                return path();
+            }
+            
+            p = &*buf.begin();  // do not depend on buf.size(); see ticket #10388
             p /= L"Temp";
-          error_code lcl_ec;
-          if (exists(p, lcl_ec) && !lcl_ec && is_directory(p, lcl_ec) && !lcl_ec)
-            break;
-          p.clear();
         }
-      }
-
-      if (p.empty())
-      {
-        // use vector since in C++03 a string is not required to be contiguous
-        std::vector<wchar_t> buf(::GetWindowsDirectoryW(NULL, 0));
-
-        if (buf.empty()
-          || ::GetWindowsDirectoryW(&buf[0], static_cast<UINT>(buf.size())) == 0)
-        {
-          error(::GetLastError(), ec, "memoria::v1::filesystem::temp_directory_path");
-          return path();
-        }
-        p = &*buf.begin();  // do not depend on buf.size(); see ticket #10388
-        p /= L"Temp";
-      }
-      return p;
-
+        return p;
 #   endif
+    });
   }
   
   MEMORIA_V1_FILESYSTEM_DECL
@@ -2055,172 +2287,208 @@ namespace
 #define dirent dirent64
 #endif
 
-  error_code dir_itr_first(void *& handle, void *& buffer,
-    const char* dir, string& target,
-    fs::file_status &, fs::file_status &)
+  error_code dir_itr_first(void *& handle, void *& buffer, const char* dir, string& target, fs::file_status &, fs::file_status &)
   {
-    if ((handle = ::opendir(dir))== 0)
-      return error_code(errno, system_category());
-    target = string(".");  // string was static but caused trouble
-                             // when iteration called from dtor, after
-                             // static had already been destroyed
-    std::size_t path_size (0);  // initialization quiets gcc warning (ticket #3509)
-    error_code ec = path_max(path_size);
-    if (ec)return ec;
-    dirent de;
-    buffer = std::malloc((sizeof(dirent) - sizeof(de.d_name))
-      +  path_size + 1); // + 1 for "/0"
-    return ok;
+    return mr::engine().run_in_thread_pool([&](){
+        if ((handle = ::opendir(dir))== 0) 
+        {
+            return error_code(errno, system_category());
+        }
+        
+        target = string(".");  // string was static but caused trouble
+                                // when iteration called from dtor, after
+                                // static had already been destroyed
+        
+        std::size_t path_size (0);  // initialization quiets gcc warning (ticket #3509)
+        error_code ec = path_max(path_size);
+        
+        if (ec) {
+            return ec;
+        }
+        
+        dirent de;
+        buffer = std::malloc((sizeof(dirent) - sizeof(de.d_name)) +  path_size + 1); // + 1 for "/0"
+        
+        return ok;
+    });
   }  
 
   // warning: the only dirent member updated is d_name
-  inline int readdir_r_simulator(DIR * dirp, struct dirent * entry,
-    struct dirent ** result)// *result set to 0 on end of directory
+  inline int readdir_r_simulator(DIR * dirp, struct dirent * entry, struct dirent ** result)// *result set to 0 on end of directory
   {
-    errno = 0;
+    return mr::engine().run_in_thread_pool([&](){
+        errno = 0;
 
 #   if !defined(__CYGWIN__)\
-    && defined(_POSIX_THREAD_SAFE_FUNCTIONS)\
-    && defined(_SC_THREAD_SAFE_FUNCTIONS)\
-    && (_POSIX_THREAD_SAFE_FUNCTIONS+0 >= 0)\
-    && (!defined(__hpux) || defined(_REENTRANT)) \
-    && (!defined(_AIX) || defined(__THREAD_SAFE))
-    if (::sysconf(_SC_THREAD_SAFE_FUNCTIONS)>= 0)
-      { return ::readdir_r(dirp, entry, result); }
+        && defined(_POSIX_THREAD_SAFE_FUNCTIONS)\
+        && defined(_SC_THREAD_SAFE_FUNCTIONS)\
+        && (_POSIX_THREAD_SAFE_FUNCTIONS+0 >= 0)\
+        && (!defined(__hpux) || defined(_REENTRANT)) \
+        && (!defined(_AIX) || defined(__THREAD_SAFE))
+        
+        if (::sysconf(_SC_THREAD_SAFE_FUNCTIONS)>= 0)
+        { 
+            return ::readdir_r(dirp, entry, result); 
+        }
 #   endif
 
-    struct dirent * p;
-    *result = 0;
-    if ((p = ::readdir(dirp))== 0)
-      return errno;
-    std::strcpy(entry->d_name, p->d_name);
-    *result = entry;
-    return 0;
+        struct dirent * p;
+        *result = 0;
+        
+        if ((p = ::readdir(dirp))== 0) {
+            return errno;
+        }
+        
+        std::strcpy(entry->d_name, p->d_name);
+        
+        *result = entry;
+        
+        return 0;
+    });
   }
 
-  error_code dir_itr_increment(void *& handle, void *& buffer,
-    string& target, fs::file_status & sf, fs::file_status & symlink_sf)
+  error_code dir_itr_increment(void *& handle, void *& buffer, string& target, fs::file_status & sf, fs::file_status & symlink_sf)
   {
-    BOOST_ASSERT(buffer != 0);
-    dirent * entry(static_cast<dirent *>(buffer));
-    dirent * result;
-    int return_code;
-    if ((return_code = readdir_r_simulator(static_cast<DIR*>(handle), entry, &result))!= 0)
-      return error_code(errno, system_category());
-    if (result == 0)
-      return fs::detail::dir_itr_close(handle, buffer);
-    target = entry->d_name;
+        BOOST_ASSERT(buffer != 0);
+        dirent * entry(static_cast<dirent *>(buffer));
+        dirent * result;
+        int return_code;
+        
+        if ((return_code = readdir_r_simulator(static_cast<DIR*>(handle), entry, &result))!= 0) {
+            return error_code(errno, system_category());
+        }
+        
+        if (result == 0) {
+            return fs::detail::dir_itr_close(handle, buffer);
+        }
+        
+        return mr::engine().run_in_thread_pool([&]()
+        {
+            target = entry->d_name;
 #   ifdef MEMORIA_V1_FILESYSTEM_STATUS_CACHE
-    if (entry->d_type == DT_UNKNOWN) // filesystem does not supply d_type value
-    {
-      sf = symlink_sf = fs::file_status(fs::status_error);
-    }
-    else  // filesystem supplies d_type value
-    {
-      if (entry->d_type == DT_DIR)
-        sf = symlink_sf = fs::file_status(fs::directory_file);
-      else if (entry->d_type == DT_REG)
-        sf = symlink_sf = fs::file_status(fs::regular_file);
-      else if (entry->d_type == DT_LNK)
-      {
-        sf = fs::file_status(fs::status_error);
-        symlink_sf = fs::file_status(fs::symlink_file);
-      }
-      else sf = symlink_sf = fs::file_status(fs::status_error);
-    }
+            if (entry->d_type == DT_UNKNOWN) // filesystem does not supply d_type value
+            {
+                sf = symlink_sf = fs::file_status(fs::status_error);
+            }
+            else  // filesystem supplies d_type value
+            {
+                if (entry->d_type == DT_DIR) {
+                    sf = symlink_sf = fs::file_status(fs::directory_file);
+                }
+                else if (entry->d_type == DT_REG) {
+                    sf = symlink_sf = fs::file_status(fs::regular_file);
+                }
+                else if (entry->d_type == DT_LNK)
+                {
+                    sf = fs::file_status(fs::status_error);
+                    symlink_sf = fs::file_status(fs::symlink_file);
+                }
+                else {
+                    sf = symlink_sf = fs::file_status(fs::status_error);
+                }
+            }
 #   else
-    sf = symlink_sf = fs::file_status(fs::status_error);
+            sf = symlink_sf = fs::file_status(fs::status_error);
 #    endif
-    return ok;
+            return ok;
+        });
   }
 
 # else // BOOST_WINDOWS_API
 
-  error_code dir_itr_first(void *& handle, const fs::path& dir,
-    wstring& target, fs::file_status & sf, fs::file_status & symlink_sf)
+  error_code dir_itr_first(void *& handle, const fs::path& dir, wstring& target, fs::file_status & sf, fs::file_status & symlink_sf)
   // Note: an empty root directory has no "." or ".." entries, so this
   // causes a ERROR_FILE_NOT_FOUND error which we do not considered an
   // error. It is treated as eof instead.
   {
-    // use a form of search Sebastian Martel reports will work with Win98
-    wstring dirpath(dir.wstring());
-    dirpath += (dirpath.empty()
-      || (dirpath[dirpath.size()-1] != L'\\'
-        && dirpath[dirpath.size()-1] != L'/'
-        && dirpath[dirpath.size()-1] != L':'))? L"\\*" : L"*";
+    return mr::engine().run_in_thread_pool([&](){
+        // use a form of search Sebastian Martel reports will work with Win98
+        wstring dirpath(dir.wstring());
+        
+        dirpath += (dirpath.empty()
+            || (dirpath[dirpath.size()-1] != L'\\'
+                && dirpath[dirpath.size()-1] != L'/'
+                && dirpath[dirpath.size()-1] != L':'))? L"\\*" : L"*";
 
-    WIN32_FIND_DATAW data;
-    if ((handle = ::FindFirstFileW(dirpath.c_str(), &data))
-      == INVALID_HANDLE_VALUE)
-    { 
-      handle = 0;  // signal eof
-      return error_code( (::GetLastError() == ERROR_FILE_NOT_FOUND
-                       // Windows Mobile returns ERROR_NO_MORE_FILES; see ticket #3551                                           
-                       || ::GetLastError() == ERROR_NO_MORE_FILES) 
-        ? 0 : ::GetLastError(), system_category() );
-    }
-    target = data.cFileName;
-    if (data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT)
-    // reparse points are complex, so don't try to handle them here; instead just mark
-    // them as status_error which causes directory_entry caching to call status()
-    // and symlink_status() which do handle reparse points fully
-    {
-      sf.type(fs::status_error);
-      symlink_sf.type(fs::status_error);
-    }
-    else
-    {
-      if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-      {
-        sf.type(fs::directory_file);
-        symlink_sf.type(fs::directory_file);
-      }
-      else
-      {
-        sf.type(fs::regular_file);
-        symlink_sf.type(fs::regular_file);
-      }
-      sf.permissions(make_permissions(data.cFileName, data.dwFileAttributes));
-      symlink_sf.permissions(sf.permissions());
-    }
-    return error_code();
+        WIN32_FIND_DATAW data;
+        
+        if ((handle = ::FindFirstFileW(dirpath.c_str(), &data)) == INVALID_HANDLE_VALUE)
+        { 
+            handle = 0;  // signal eof
+            return error_code( (::GetLastError() == ERROR_FILE_NOT_FOUND
+                        // Windows Mobile returns ERROR_NO_MORE_FILES; see ticket #3551                                           
+                        || ::GetLastError() == ERROR_NO_MORE_FILES) 
+                ? 0 : ::GetLastError(), system_category() 
+            );
+        }
+        
+        target = data.cFileName;
+        if (data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT)
+        // reparse points are complex, so don't try to handle them here; instead just mark
+        // them as status_error which causes directory_entry caching to call status()
+        // and symlink_status() which do handle reparse points fully
+        {
+            sf.type(fs::status_error);
+            symlink_sf.type(fs::status_error);
+        }
+        else
+        {
+            if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+            {
+                sf.type(fs::directory_file);
+                symlink_sf.type(fs::directory_file);
+            }
+            else
+            {
+                sf.type(fs::regular_file);
+                symlink_sf.type(fs::regular_file);
+            }
+        
+            sf.permissions(make_permissions(data.cFileName, data.dwFileAttributes));
+            symlink_sf.permissions(sf.permissions());
+        }
+        return error_code();
+    });
   }
 
   error_code  dir_itr_increment(void *& handle, wstring& target,
     fs::file_status & sf, fs::file_status & symlink_sf)
   {
-    WIN32_FIND_DATAW data;
-    if (::FindNextFileW(handle, &data)== 0)// fails
-    {
-      int error = ::GetLastError();
-      fs::detail::dir_itr_close(handle);
-      return error_code(error == ERROR_NO_MORE_FILES ? 0 : error, system_category());
-    }
-    target = data.cFileName;
-    if (data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT)
-    // reparse points are complex, so don't try to handle them here; instead just mark
-    // them as status_error which causes directory_entry caching to call status()
-    // and symlink_status() which do handle reparse points fully
-    {
-      sf.type(fs::status_error);
-      symlink_sf.type(fs::status_error);
-    }
-    else
-    {
-      if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-      {
-        sf.type(fs::directory_file);
-        symlink_sf.type(fs::directory_file);
-      }
-      else
-      {
-        sf.type(fs::regular_file);
-        symlink_sf.type(fs::regular_file);
-      }
-      sf.permissions(make_permissions(data.cFileName, data.dwFileAttributes));
-      symlink_sf.permissions(sf.permissions());
-    }
-    return error_code();
+    return mr::engine().run_in_thread_pool([&](){
+        WIN32_FIND_DATAW data;
+        if (::FindNextFileW(handle, &data)== 0)// fails
+        {
+            int error = ::GetLastError();
+            fs::detail::dir_itr_close(handle);
+            return error_code(error == ERROR_NO_MORE_FILES ? 0 : error, system_category());
+        }
+        
+        target = data.cFileName;
+        if (data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT)
+        // reparse points are complex, so don't try to handle them here; instead just mark
+        // them as status_error which causes directory_entry caching to call status()
+        // and symlink_status() which do handle reparse points fully
+        {
+            sf.type(fs::status_error);
+            symlink_sf.type(fs::status_error);
+        }
+        else
+        {
+            if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+            {
+                sf.type(fs::directory_file);
+                symlink_sf.type(fs::directory_file);
+            }
+            else
+            {
+                sf.type(fs::regular_file);
+                symlink_sf.type(fs::regular_file);
+            }
+            sf.permissions(make_permissions(data.cFileName, data.dwFileAttributes));
+            symlink_sf.permissions(sf.permissions());
+        }
+        return error_code();
+    });
   }
 #endif
 
@@ -2250,23 +2518,27 @@ namespace detail
 #   endif
    )
   {
+    return mr::engine().run_in_thread_pool([&](){
 #   ifdef BOOST_POSIX_API
-    std::free(buffer);
-    buffer = 0;
-    if (handle == 0)return ok;
-    DIR * h(static_cast<DIR*>(handle));
-    handle = 0;
-    return error_code(::closedir(h)== 0 ? 0 : errno, system_category());
-
+        std::free(buffer);
+        buffer = 0;
+        if (handle == 0) {
+            return ok;
+        }
+        
+        DIR * h(static_cast<DIR*>(handle));
+        handle = 0;
+        
+        return error_code(::closedir(h)== 0 ? 0 : errno, system_category());
 #   else
-    if (handle != 0)
-    {
-      ::FindClose(handle);
-      handle = 0;
-    }
-    return ok;
-
+        if (handle != 0)
+        {
+            ::FindClose(handle);
+            handle = 0;
+        }
+        return ok;
 #   endif
+    });
   }
 
   void directory_iterator_construct(directory_iterator& it,
