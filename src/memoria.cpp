@@ -70,6 +70,10 @@ int main(int argc, char **argv)
 
 			auto file = dr::open_buffered_file("data.bin", FileFlags::DEFAULT | FileFlags::CREATE, FileMode::IDEFLT);
 
+			std::cout << "File size: " << file->size() << std::endl;
+
+			file->fsync();
+
 			FileIOBatch batch;
 
 			for (int c = 0; c < buf_size; c += 512)

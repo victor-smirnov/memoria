@@ -22,9 +22,11 @@
 #ifndef _WIN32
 #include "linux/linux_smp.hpp"
 #include "linux/linux_socket_impl.hpp"
+#include "linux/linux_file.hpp"
 #else
 #include "msvc/msvc_smp.hpp"
 #include "msvc/msvc_socket_impl.hpp"
+#include "msvc/msvc_file.hpp"
 #endif
 
 

@@ -17,6 +17,7 @@
 
 
 #include "../../filesystem/path.hpp"
+#include "../../filesystem/operations.hpp"
 #include "../message/fiber_io_message.hpp"
 
 #include "msvc_buffer_vec.hpp"
@@ -90,26 +91,34 @@ enum class FileMode: mode_t {
 
 
 class File {
-    HANDLE fd_{};
+protected:
     filesystem::path path_;
 public:
-    File (filesystem::path file_path, FileFlags flags, FileMode mode = FileMode::IDEFLT);
-    virtual ~File() noexcept;
+	File(filesystem::path file_path): path_(file_path) {};
+	virtual ~File() noexcept {};
     
-    void close();
+	virtual uint64_t alignment() = 0;
+
+	virtual uint64_t size() {
+		return filesystem::file_size(path_);
+	}
+
+    virtual void close() = 0;
     
-    int64_t read(char* buffer, int64_t offset, int64_t size);
-    int64_t write(const char* buffer, int64_t offset, int64_t size);
+    virtual uint64_t read(char* buffer, uint64_t offset, uint64_t size) = 0;
+    virtual uint64_t write(const char* buffer, uint64_t offset, uint64_t size) = 0;
     
-    size_t process_batch(IOBatchBase& batch, bool rise_ex_on_error = true);
+    virtual size_t process_batch(IOBatchBase& batch, bool rise_ex_on_error = true) = 0;
     
-    void fsync();
-    void fdsync();
+    virtual void fsync() = 0;
+    virtual void fdsync() = 0;
     
     const filesystem::path& path() const {return path_;}
-    
-	HANDLE fd() const { return fd_; }
 };
+
+std::shared_ptr<File> open_dma_file(filesystem::path file_path, FileFlags flags, FileMode mode = FileMode::IDEFLT);
+std::shared_ptr<File> open_buffered_file(filesystem::path file_path, FileFlags flags, FileMode mode = FileMode::IDEFLT);
+
 
 namespace details {
 	template<typename T>

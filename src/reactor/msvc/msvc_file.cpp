@@ -15,7 +15,7 @@
 
 
 
-#include <memoria/v1/reactor/msvc/msvc_file_impl.hpp>
+#include <memoria/v1/reactor/msvc/msvc_file.hpp>
 #include <memoria/v1/reactor/msvc/msvc_io_poller.hpp>
 #include <memoria/v1/reactor/reactor.hpp>
 #include <memoria/v1/reactor/message/fiber_io_message.hpp>
@@ -23,6 +23,7 @@
 #include <memoria/v1/core/tools/ptr_cast.hpp>
 #include <memoria/v1/core/tools/bzero_struct.hpp>
 #include <memoria/v1/core/tools/perror.hpp>
+#include <memoria/v1/core/tools/strings/string_buffer.hpp>
 
 
 
@@ -32,9 +33,9 @@
 #include <string.h>
 #include <stdint.h>
 #include <exception>
+#include <tuple>
 
 #include <malloc.h>
-
 
 
 namespace memoria {
@@ -78,29 +79,72 @@ DWORD get_share_mode(FileFlags flags, FileMode mode) {
 	return FILE_SHARE_READ;
 }
 
-DWORD get_flags_and_attributes(FileFlags flags, FileMode mode) 
+DWORD get_flags_and_attributes(FileFlags flags, FileMode mode, bool no_buffering) 
 {
 	DWORD file_flags { FILE_ATTRIBUTE_NORMAL };
 
 	if (to_bool(flags & FileFlags::CLOEXEC)) file_flags |= FILE_FLAG_DELETE_ON_CLOSE;
 
-	file_flags |= FILE_FLAG_NO_BUFFERING | FILE_FLAG_OVERLAPPED | FILE_FLAG_RANDOM_ACCESS | FILE_FLAG_WRITE_THROUGH;
+	file_flags |= FILE_FLAG_OVERLAPPED | FILE_FLAG_RANDOM_ACCESS ;
+
+	if (no_buffering) {
+		file_flags |= FILE_FLAG_NO_BUFFERING | FILE_FLAG_WRITE_THROUGH;
+	}
 
 	return file_flags;
 }
 
-File::File(filesystem::path file_path, FileFlags flags, FileMode mode): 
-    path_(file_path) 
+
+class GenericFile: public File {
+	HANDLE fd_{ INVALID_HANDLE_VALUE };
+	bool no_buffering_;
+	bool closed_{false};
+public:
+	GenericFile(filesystem::path file_path, FileFlags flags, FileMode mode, bool no_buffering_);
+	virtual ~GenericFile() noexcept;
+
+	virtual uint64_t alignment() { return no_buffering_ ? 512 : 1; }
+
+	virtual void close();
+
+	virtual uint64_t read(char* buffer, uint64_t offset, uint64_t size);
+	virtual uint64_t write(const char* buffer, uint64_t offset, uint64_t size);
+
+	virtual size_t process_batch(IOBatchBase& batch, bool rise_ex_on_error = true);
+
+	virtual void fsync();
+	virtual void fdsync();
+};
+
+GenericFile::GenericFile(filesystem::path file_path, FileFlags flags, FileMode mode, bool no_buffering):
+    File(file_path), no_buffering_(no_buffering)
 {
-	//auto security_attrs = tools::make_zeroed<SECURITY_ATTRIBUTES>();
 	DWORD creation_disposition = get_disposition(flags, mode);
 
-	fd_ = CreateFile(path.c_str(), get_access(flags, mode), get_share_mode(flags, mode), NULL, creation_disposition, get_flags_and_attributes(flags, mode), NULL);
+	DWORD last_error{};
+
+	std::tie(fd_, last_error) = engine().run_in_thread_pool([&] {
+		return std::make_tuple(
+			CreateFile(
+				file_path.string().c_str(),
+				get_access(flags, mode),
+				get_share_mode(flags, mode),
+				NULL,
+				creation_disposition,
+				get_flags_and_attributes(flags, mode, no_buffering_),
+				NULL
+			), 
+			GetLastError()
+		);
+	});
+
 
 	if (fd_ == INVALID_HANDLE_VALUE) 
 	{
-		DumpErrorMessage(SBuf() << "Can't open/create file " << path, GetLastError());
-		std::terminate();
+		rise_win_error(
+			SBuf() << "Can't open/create file " << file_path,
+			GetLastError()
+		);
 	}
 	else {
 		Reactor& r = engine();
@@ -108,23 +152,25 @@ File::File(filesystem::path file_path, FileFlags flags, FileMode mode):
 	}
 }
 
-File::~File() noexcept
-{
-    
+GenericFile::~GenericFile() noexcept {
+	if (!closed_) {
+		CloseHandle(fd_);
+	}
 }
     
-void File::close()
+void GenericFile::close()
 {
 	if (fd_ != INVALID_HANDLE_VALUE && !CloseHandle(fd_)) 
 	{
-		DumpErrorMessage(SBuf() << "Can't close file ", GetLastError());
-		std::terminate();
+		rise_win_error(SBuf() << "Can't close file ", GetLastError());
 	}
+
+	closed_ = true;
 }
 
 
 
-int64_t File::read(char* buffer, int64_t offset, int64_t size) 
+uint64_t GenericFile::read(char* buffer, uint64_t offset, uint64_t size)
 {    
 	Reactor& r = engine();
 
@@ -158,8 +204,7 @@ int64_t File::read(char* buffer, int64_t offset, int64_t size)
 			message.wait_for(); // jsut sleep and wait for required resources to appear
 		}
 		else {
-			DumpErrorMessage(SBuf() << "Error starting read from file " << path_, error_code);
-			std::terminate();
+			rise_win_error(SBuf() << "Error starting read from file " << path_, error_code);
 		}
 	}
 }
@@ -167,7 +212,7 @@ int64_t File::read(char* buffer, int64_t offset, int64_t size)
 
 
 
-int64_t File::write(const char* buffer, int64_t offset, int64_t size)
+uint64_t GenericFile::write(const char* buffer, uint64_t offset, uint64_t size)
 {    
 	Reactor& r = engine();
 
@@ -202,14 +247,15 @@ int64_t File::write(const char* buffer, int64_t offset, int64_t size)
 			message.wait_for(); // jsut sleep and wait for required resources to appear
 		}
 		else {
-			DumpErrorMessage(SBuf() << "Error starting write to file " << path_, error_code);
-			std::terminate();
+			rise_win_error(
+				SBuf() << "Error starting write to file " << path_, error_code
+			);
 		}
 	}
 }
 
 
-size_t File::process_batch(IOBatchBase& batch, bool rise_ex_on_error) 
+size_t GenericFile::process_batch(IOBatchBase& batch, bool rise_ex_on_error)
 {
 	Reactor& r = engine();
 
@@ -288,14 +334,30 @@ size_t File::process_batch(IOBatchBase& batch, bool rise_ex_on_error)
 
 
 
-void File::fsync()
+void GenericFile::fsync()
 {
-    // NOOP at the moment
+	bool status;
+	DWORD last_error{};
+
+	std::tie(status, last_error) = engine().run_in_thread_pool([&] {
+		return std::make_tuple(
+			FlushFileBuffers(fd_),
+			GetLastError()
+		);
+	});
+
+	if (!status) 
+	{
+		rise_win_error(
+			SBuf() << "Can't sync file " << path_,
+			last_error
+		);
+	}
 }
 
-void File::fdsync()
+void GenericFile::fdsync()
 {
-    // NOOP at the moment
+	fsync();
 }
 
 
@@ -316,6 +378,16 @@ DMABuffer allocate_dma_buffer(size_t size)
 	else {
 		tools::rise_error(SBuf() << "Cant allocate dma buffer of 0 bytes");
 	}
+}
+
+std::shared_ptr<File> open_dma_file(filesystem::path file_path, FileFlags flags, FileMode mode)
+{
+	return std::static_pointer_cast<File>(std::make_shared<GenericFile>(file_path, flags, mode, true));
+}
+
+std::shared_ptr<File> open_buffered_file(filesystem::path file_path, FileFlags flags, FileMode mode)
+{
+	return std::static_pointer_cast<File>(std::make_shared<GenericFile>(file_path, flags, mode, true));
 }
 
     
