@@ -89,8 +89,8 @@ DWORD get_flags_and_attributes(FileFlags flags, FileMode mode)
 	return file_flags;
 }
 
-File::File(std::string path, FileFlags flags, FileMode mode): 
-    path_(path) 
+File::File(filesystem::path file_path, FileFlags flags, FileMode mode): 
+    path_(file_path) 
 {
 	//auto security_attrs = tools::make_zeroed<SECURITY_ATTRIBUTES>();
 	DWORD creation_disposition = get_disposition(flags, mode);
@@ -120,11 +120,6 @@ void File::close()
 		DumpErrorMessage(SBuf() << "Can't close file ", GetLastError());
 		std::terminate();
 	}
-}
-
-int64_t File::seek(int64_t pos, FileSeek whence) 
-{
-	return pos;
 }
 
 

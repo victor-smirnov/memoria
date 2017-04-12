@@ -61,14 +61,14 @@ int main(int argc, char **argv)
 		}*/
 		
 		
-		/*
+		
 			size_t buf_size = 1024 * 4096;
 			auto buf = dr::allocate_dma_buffer(buf_size);
 			for (size_t c = 0; c < buf_size; c++) {
 				buf.get()[c] = 0;
 			}
 
-			File file("data.bin", FileFlags::DEFAULT | FileFlags::CREATE, FileMode::IDEFLT);
+			auto file = dr::open_buffered_file("data.bin", FileFlags::DEFAULT | FileFlags::CREATE, FileMode::IDEFLT);
 
 			FileIOBatch batch;
 
@@ -80,7 +80,7 @@ int main(int argc, char **argv)
 			int processed = 0;
 
 			try {
-				processed = file.process_batch(batch, false);
+				processed = file->process_batch(batch, false);
 			}
 			catch (std::exception& ex) {
 				std::cout << ex.what() << std::endl;
@@ -105,12 +105,9 @@ int main(int argc, char **argv)
 				std::cout << std::dec << std::endl;
 			}
 
-			file.close();
-
-		*/
+			file->close();
 
 			dr::app().shutdown();
-
         return 5678;
     });
 

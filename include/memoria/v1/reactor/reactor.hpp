@@ -22,8 +22,8 @@
 #include "msvc/msvc_io_poller.hpp"
 #include "msvc/msvc_smp.hpp"
 #else
-#include "linux/smp.hpp"
-#include "linux/io_poller.hpp"
+#include "linux/linux_smp.hpp"
+#include "linux/linux_io_poller.hpp"
 #endif
 
 #include "thread_pool.hpp"

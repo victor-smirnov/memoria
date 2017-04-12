@@ -20,8 +20,8 @@
 #include "reactor.hpp"
 
 #ifndef _WIN32
-#include "linux/smp.hpp"
-#include "linux/socket_impl.hpp"
+#include "linux/linux_smp.hpp"
+#include "linux/linux_socket_impl.hpp"
 #else
 #include "msvc/msvc_smp.hpp"
 #include "msvc/msvc_socket_impl.hpp"

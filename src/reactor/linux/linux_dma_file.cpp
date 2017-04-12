@@ -14,8 +14,8 @@
 // limitations under the License.
 
 
-#include <memoria/v1/reactor/linux/file_impl.hpp>
-#include <memoria/v1/reactor/linux/io_poller.hpp>
+#include <memoria/v1/reactor/linux/linux_file.hpp>
+#include <memoria/v1/reactor/linux/linux_io_poller.hpp>
 #include <memoria/v1/reactor/reactor.hpp>
 #include <memoria/v1/reactor/message/fiber_io_message.hpp>
 
@@ -44,17 +44,42 @@ namespace memoria {
 namespace v1 {
 namespace reactor {
     
+class DMAFile: public File {
+    int fd_{};
+    bool closed_{true};
+public:
+    DMAFile (filesystem::path file_path, FileFlags flags, FileMode mode = FileMode::IDEFLT);
+    virtual ~DMAFile() noexcept;
+    
+    virtual uint64_t alignment() {return 512;}
+    
+    
+    
+    virtual void close();
+    
+    virtual uint64_t read(char* buffer, uint64_t offset, uint64_t size);
+    virtual uint64_t write(const char* buffer, uint64_t offset, uint64_t size);
+    
+    virtual size_t process_batch(IOBatchBase& batch, bool rise_ex_on_error = true);
+    
+    virtual void fsync() {}
+    virtual void fdsync() {}
+    
+private:
+    uint64_t process_single_io(char* buffer, uint64_t offset, uint64_t size, int command, const char* opname);
+};    
+    
 class FileSingleIOMessage: public FileIOMessage {
     
     iocb block_;
     
     int64_t size_{};
-    uint64_t status_{};
+    int64_t status_{};
     
     FiberContext* fiber_context_;
     
 public:
-    FileSingleIOMessage(int cpu, int fd, int eventfd, char* buffer, int64_t offset, int64_t size, int command):
+    FileSingleIOMessage(int cpu, int fd, int eventfd, char* buffer, uint64_t offset, uint64_t size, int command):
         FileIOMessage(cpu),
         block_(tools::make_zeroed<iocb>()),
         fiber_context_(fibers::context::active())
@@ -73,6 +98,8 @@ public:
     }
     
     virtual ~FileSingleIOMessage() {}
+    
+    virtual uint64_t alignment() {return 512;}
     
     virtual void report(io_event* status) 
     {
@@ -101,48 +128,41 @@ public:
     }
     
     int64_t size() const {return size_;}
-    uint64_t status() const {return status_;}
+    int64_t status() const {return status_;}
     
     iocb* block() {return &block_;}
 }; 
     
 
-File::File(std::string path, FileFlags flags, FileMode mode): 
-    path_(path) 
+DMAFile::DMAFile(filesystem::path file_path, FileFlags flags, FileMode mode): 
+    File(file_path)
 {
-    fd_ = ::open(path_.c_str(), (int)flags | O_DIRECT, (mode_t)mode);
-    if (fd_ < 0)
-    {
-        tools::rise_perror(SBuf() << "Can't open file " << path);
+    fd_ = engine().run_in_thread_pool([&]{
+        return ::open(file_path.c_str(), (int)flags | O_DIRECT, (mode_t)mode);
+    });
+    
+    if (fd_ < 0) {
+        tools::rise_perror(SBuf() << "Can't open file " << file_path);
     }
 }
 
-File::~File() noexcept
+DMAFile::~DMAFile() noexcept
 {
-    
+    if (!closed_) {
+        ::close(fd_);
+    }
 }
     
-void File::close()
+void DMAFile::close()
 {
     if (::close(fd_) < 0) {
         tools::rise_perror(SBuf() << "Can't close file " << path_);
     }
-}
-
-int64_t File::seek(int64_t pos, FileSeek whence) 
-{
-    off_t res = ::lseek(fd_, pos, (int)whence);
-    if (res >= 0) 
-    {
-        return res;
-    }
-    else {
-        tools::rise_perror(SBuf() << "Error seeking in file " << path_);
-    }
+    closed_ = true;
 }
 
 
-int64_t File::process_single_io(char* buffer, int64_t offset, int64_t size, int command, const char* opname) 
+uint64_t DMAFile::process_single_io(char* buffer, uint64_t offset, uint64_t size, int command, const char* opname) 
 {
     Reactor& r = engine();
     
@@ -163,7 +183,7 @@ int64_t File::process_single_io(char* buffer, int64_t offset, int64_t size, int 
             }
             
             return message.size();
-        } 
+        }
         else if (res < 0)
         {
             tools::rise_perror(SBuf() << "Can't submit AIO " << opname << " operation for file " << path_);
@@ -172,7 +192,7 @@ int64_t File::process_single_io(char* buffer, int64_t offset, int64_t size, int 
 }
 
 
-int64_t File::read(char* buffer, int64_t offset, int64_t size) 
+uint64_t DMAFile::read(char* buffer, uint64_t offset, uint64_t size) 
 {    
     return process_single_io(buffer, offset, size, IOCB_CMD_PREAD, "read");
 }
@@ -180,7 +200,7 @@ int64_t File::read(char* buffer, int64_t offset, int64_t size)
 
 
 
-int64_t File::write(const char* buffer, int64_t offset, int64_t size)
+uint64_t DMAFile::write(const char* buffer, uint64_t offset, uint64_t size)
 {    
     return process_single_io(const_cast<char*>(buffer), offset, size, IOCB_CMD_PWRITE, "write");
 }
@@ -252,7 +272,7 @@ public:
 
 
 
-size_t File::process_batch(IOBatchBase& batch, bool rise_ex_on_error) 
+size_t DMAFile::process_batch(IOBatchBase& batch, bool rise_ex_on_error) 
 {
     Reactor& r = engine();
     
@@ -294,16 +314,6 @@ size_t File::process_batch(IOBatchBase& batch, bool rise_ex_on_error)
 
 
 
-void File::fsync()
-{
-    // NOOP at the moment
-}
-
-void File::fdsync()
-{
-    // NOOP at the moment
-}
-
 DMABuffer allocate_dma_buffer(size_t size) 
 {
 	if (size != 0) 
@@ -321,6 +331,11 @@ DMABuffer allocate_dma_buffer(size_t size)
 	else {
 		tools::rise_error(SBuf() << "Cant allocate dma buffer of 0 bytes");
 	}
+}
+
+std::shared_ptr<File> open_dma_file(filesystem::path file_path, FileFlags flags, FileMode mode) 
+{
+    return std::make_shared<DMAFile>(file_path, flags, mode);
 }
     
 }}}

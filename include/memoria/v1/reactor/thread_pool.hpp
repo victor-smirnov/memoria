@@ -18,7 +18,7 @@
 #ifdef _WIN32
 #include "msvc/msvc_smp.hpp"
 #else
-#include "linux/smp.hpp"
+#include "linux/linux_smp.hpp"
 #endif
 
 #include "message/message.hpp"

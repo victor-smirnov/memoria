@@ -16,9 +16,9 @@
 #pragma once
 
 #ifdef _WIN32
-#include "msvc/msvc_file_impl.hpp"
+#include "msvc/msvc_file.hpp"
 #else
-#include "linux/file_impl.hpp"
+#include "linux/linux_file.hpp"
 #endif
 
 #include <string>

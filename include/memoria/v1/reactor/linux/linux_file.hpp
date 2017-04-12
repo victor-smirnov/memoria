@@ -15,9 +15,14 @@
 
 #pragma once
 
+#include "../../filesystem/path.hpp"
+#include "../../filesystem/operations.hpp"
+
 #include "../message/fiber_io_message.hpp"
-#include "buffer_vec.hpp"
-#include "io_poller.hpp"
+#include "linux_buffer_vec.hpp"
+#include "linux_io_poller.hpp"
+
+
 
 #include <stdint.h>
 #include <string>
@@ -69,35 +74,38 @@ enum class FileMode: mode_t {
     IDEFLT = IRWUSR | IRGRP | IROTH
 };
 
-enum class FileSeek: int {
-    BEGIN   = SEEK_SET,
-    CURRENT = SEEK_CUR,
-    END     = SEEK_END
-};
+
 
 
 class File {
-    int fd_{};
-    std::string path_;
+protected:
+    filesystem::path path_;
 public:
-    File (std::string path, FileFlags flags, FileMode mode = FileMode::IDEFLT);
-    virtual ~File() noexcept;
+    File (filesystem::path file_path): path_(file_path) {}
+    virtual ~File() noexcept {}
     
-    void close();
+    virtual void close() = 0;
     
-    int64_t seek(int64_t pos, FileSeek whence);
+    virtual uint64_t alignment() = 0;
     
-    int64_t read(char* buffer, int64_t offset, int64_t size);
-    int64_t write(const char* buffer, int64_t offset, int64_t size);
+    virtual uint64_t size() {
+        return filesystem::file_size(path_);
+    }
     
-    size_t process_batch(IOBatchBase& batch, bool rise_ex_on_error = true);
+    virtual uint64_t read(char* buffer, uint64_t offset, uint64_t size) = 0;
+    virtual uint64_t write(const char* buffer, uint64_t offset, uint64_t size) = 0;
     
-    void fsync();
-    void fdsync();
+    virtual size_t process_batch(IOBatchBase& batch, bool rise_ex_on_error = true) = 0;
     
-private:
-    int64_t process_single_io(char* buffer, int64_t offset, int64_t size, int command, const char* opname);
+    virtual void fsync() = 0;
+    virtual void fdsync() = 0;
+    
+    const filesystem::path& path() const {return path_;}
 };
+
+
+std::shared_ptr<File> open_dma_file(filesystem::path file_path, FileFlags flags, FileMode mode = FileMode::IDEFLT);
+std::shared_ptr<File> open_buffered_file(filesystem::path file_path, FileFlags flags, FileMode mode = FileMode::IDEFLT);
 
 
 namespace details {

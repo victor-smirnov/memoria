@@ -39,12 +39,13 @@ namespace reactor {
 struct ExtendedIOCB: iocb {
     int64_t processed;
     uint64_t status;
+    int errno_;
     
     void dump(int cnt) const {
         std::cout << cnt << ": " << aio_data << "," << aio_resfd << ", " << aio_offset << " " << std::endl;
     }
     
-    void configure(iocb& block, void* data, int64_t offset, int64_t size, int command)
+    static void configure(iocb& block, void* data, int64_t offset, int64_t size, int command)
     {
         block.aio_lio_opcode = command;
         block.aio_reqprio = 0;
@@ -62,6 +63,9 @@ public:
     
     virtual iocb** blocks(size_t from = 0) = 0;
     virtual size_t nblocks() const = 0;
+    
+    virtual ExtendedIOCB& block(size_t idx) = 0;
+    virtual const ExtendedIOCB& block(size_t idx) const = 0;
     
     virtual void configure(int fd, int event_fd, Message* message) = 0;
     
@@ -106,8 +110,8 @@ public:
     
     
     
-    ExtendedIOCB& block(size_t idx) {return blocks_[idx];}
-    const ExtendedIOCB& block(size_t idx) const {return blocks_[idx];}
+    virtual ExtendedIOCB& block(size_t idx) {return blocks_[idx];}
+    virtual const ExtendedIOCB& block(size_t idx) const {return blocks_[idx];}
     
     int64_t processed(size_t idx) const {
         return blocks_[idx].processed;

@@ -15,8 +15,8 @@
 
 #pragma once
 
-//#define WIN32_LEAN_AND_MEAN
 
+#include "../../filesystem/path.hpp"
 #include "../message/fiber_io_message.hpp"
 
 #include "msvc_buffer_vec.hpp"
@@ -37,15 +37,15 @@ namespace v1 {
 namespace reactor {
 
 enum class FileFlags : uint32_t {
-	RDONLY = 1 << 0,
-	WRONLY = 1 << 1,
-	RDWR = 1 << 2,
-	TRUNCATE = 1 << 3,
-	APPEND = 1 << 4,
-	CREATE = 1 << 5,
-	CLOEXEC = 1 << 6,
-	EXCL = 1 << 7,
-	NONE = 0,
+	RDONLY     = 1 << 0,
+	WRONLY     = 1 << 1,
+	RDWR       = 1 << 2,
+	TRUNCATE   = 1 << 3,
+	APPEND     = 1 << 4,
+	CREATE     = 1 << 5,
+	CLOEXEC    = 1 << 6,
+	EXCL       = 1 << 7,
+	NONE       = 0,
 
 	DEFAULT = RDWR
 };
@@ -86,23 +86,17 @@ enum class FileMode: mode_t {
     IDEFLT = IRWUSR | IRGRP | IROTH
 };
 
-enum class FileSeek: int {
-    BEGIN   = SEEK_SET,
-    CURRENT = SEEK_CUR,
-    END     = SEEK_END
-};
+
 
 
 class File {
     HANDLE fd_{};
-    std::string path_;
+    filesystem::path path_;
 public:
-    File (std::string path, FileFlags flags, FileMode mode = FileMode::IDEFLT);
+    File (filesystem::path file_path, FileFlags flags, FileMode mode = FileMode::IDEFLT);
     virtual ~File() noexcept;
     
     void close();
-    
-    int64_t seek(int64_t pos, FileSeek whence);
     
     int64_t read(char* buffer, int64_t offset, int64_t size);
     int64_t write(const char* buffer, int64_t offset, int64_t size);
@@ -111,6 +105,8 @@ public:
     
     void fsync();
     void fdsync();
+    
+    const filesystem::path& path() const {return path_;}
     
 	HANDLE fd() const { return fd_; }
 };
