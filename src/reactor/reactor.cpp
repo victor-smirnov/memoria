@@ -26,6 +26,10 @@ thread_local Reactor* Reactor::local_engine_ = nullptr;
     
 Reactor& engine() 
 {
+	if (Reactor::local_engine_ == nullptr) {
+		std::cout << "No reactor" << std::endl;
+	}
+
     BOOST_ASSERT_MSG(Reactor::local_engine_ != nullptr, "Reactor hasn't been initialized");
     
     return *Reactor::local_engine_;

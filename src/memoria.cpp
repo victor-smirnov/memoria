@@ -42,6 +42,8 @@ int main(int argc, char **argv)
           std::cout << "    " << x.path() << '\n'; 
         }
         
+		int vv;
+		std::cin >> vv;
 		
 		/*IPAddress addr("127.0.0.1");
 

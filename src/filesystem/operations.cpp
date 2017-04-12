@@ -2459,7 +2459,7 @@ namespace
         if (::FindNextFileW(handle, &data)== 0)// fails
         {
             int error = ::GetLastError();
-            fs::detail::dir_itr_close(handle);
+            fs::detail::dir_itr_close_(handle);
             return error_code(error == ERROR_NO_MORE_FILES ? 0 : error, system_category());
         }
         
@@ -2508,38 +2508,54 @@ namespace filesystem {
 
 namespace detail
 {
+  boost::system::error_code dir_itr_close_( // never throws
+	  void *& handle
+#   if defined(BOOST_POSIX_API)
+	  , void *& buffer
+#   endif
+  )
+  {
+#   ifdef BOOST_POSIX_API
+		  std::free(buffer);
+		  buffer = 0;
+		  if (handle == 0) {
+			  return ok;
+		  }
+
+		  DIR * h(static_cast<DIR*>(handle));
+		  handle = 0;
+
+		  return error_code(::closedir(h) == 0 ? 0 : errno, system_category());
+#   else
+		  if (handle != 0)
+		  {
+			  ::FindClose(handle);
+			  handle = 0;
+		  }
+		  return ok;
+#   endif
+  }
+
   //  dir_itr_close is called both from the ~dir_itr_imp()destructor 
   //  and dir_itr_increment()
+#if defined(BOOST_POSIX_API)
   MEMORIA_V1_FILESYSTEM_DECL
-  boost::system::error_code dir_itr_close( // never throws
-    void *& handle
-#   if defined(BOOST_POSIX_API)
-    , void *& buffer
-#   endif
-   )
+  boost::system::error_code dir_itr_close(void *& handle, void *& buffer)
   {
-    return mr::engine().run_in_thread_pool([&](){
-#   ifdef BOOST_POSIX_API
-        std::free(buffer);
-        buffer = 0;
-        if (handle == 0) {
-            return ok;
-        }
-        
-        DIR * h(static_cast<DIR*>(handle));
-        handle = 0;
-        
-        return error_code(::closedir(h)== 0 ? 0 : errno, system_category());
-#   else
-        if (handle != 0)
-        {
-            ::FindClose(handle);
-            handle = 0;
-        }
-        return ok;
-#   endif
-    });
+	  return mr::engine().run_in_thread_pool([&]() {
+		  return dir_itr_close_(handle, buffer);
+	  });
   }
+#else
+  MEMORIA_V1_FILESYSTEM_DECL
+  boost::system::error_code dir_itr_close(void *& handle)
+  {
+	  return mr::engine().run_in_thread_pool([&]() {
+		  return dir_itr_close_(handle);
+	  });
+  }
+#endif
+
 
   void directory_iterator_construct(directory_iterator& it,
     const path& p, boost::system::error_code* ec)    

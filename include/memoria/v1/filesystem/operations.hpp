@@ -839,12 +839,22 @@ class directory_iterator;
 namespace detail
 {
   MEMORIA_V1_FILESYSTEM_DECL
-    boost::system::error_code dir_itr_close(// never throws()
+  boost::system::error_code dir_itr_close(// never throws()
     void *& handle
 #   if     defined(BOOST_POSIX_API)
     , void *& buffer
 #   endif
   ); 
+
+
+  
+  MEMORIA_V1_FILESYSTEM_DECL
+  boost::system::error_code dir_itr_close_(// never throws()
+	void *& handle
+#   if     defined(BOOST_POSIX_API)
+	 , void *& buffer
+#   endif
+  );
 
   struct dir_itr_imp
   {
