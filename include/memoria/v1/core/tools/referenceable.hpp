@@ -1,5 +1,5 @@
 
-// Copyright 2017 Victor Smirnov
+// Copyright 2016 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,11 +15,12 @@
 
 #pragma once
 
-#ifdef _WIN32
-#include "msvc/msvc_file.hpp"
-#else
-#include "linux/linux_file.hpp"
-#endif
+namespace memoria {
+namespace v1 {
 
-
-
+struct Referenceable {
+    virtual ~Referenceable() {}
+};
+    
+} 
+}

@@ -26,7 +26,7 @@
 namespace memoria {
 namespace v1 {
 
-namespace {
+namespace details {
 
     template <Int Num, typename List, Int Idx> struct SelectT;
 
@@ -43,7 +43,7 @@ namespace {
 }
 
 template <Int Num, typename List>
-using Select = typename SelectT<Num, List, 0>::Type;
+using Select = typename details::SelectT<Num, List, 0>::Type;
 
 
 template <Int Value, typename List, Int idx = 0> struct SelectV;

@@ -18,6 +18,7 @@
 #include <memoria/v1/reactor/linux/linux_io_poller.hpp>
 #include <memoria/v1/reactor/reactor.hpp>
 #include <memoria/v1/reactor/message/fiber_io_message.hpp>
+#include <memoria/v1/reactor/file_streams.hpp>
 
 #include <memoria/v1/core/tools/ptr_cast.hpp>
 #include <memoria/v1/core/tools/bzero_struct.hpp>
@@ -43,8 +44,12 @@
 namespace memoria {
 namespace v1 {
 namespace reactor {
+
+
+
+
     
-class DMAFile: public File {
+class DMAFile: public File, public std::enable_shared_from_this<DMAFile> {
     int fd_{};
     bool closed_{true};
 public:
@@ -52,21 +57,33 @@ public:
     virtual ~DMAFile() noexcept;
     
     virtual uint64_t alignment() {return 512;}
-    
-    
-    
+        
     virtual void close();
     
-    virtual uint64_t read(char* buffer, uint64_t offset, uint64_t size);
-    virtual uint64_t write(const char* buffer, uint64_t offset, uint64_t size);
+    virtual uint64_t read(uint8_t* buffer, uint64_t offset, uint64_t size);
+    virtual uint64_t write(const uint8_t* buffer, uint64_t offset, uint64_t size);
     
     virtual size_t process_batch(IOBatchBase& batch, bool rise_ex_on_error = true);
     
     virtual void fsync() {}
     virtual void fdsync() {}
     
+    
+    
+    
+    virtual DataInputStream istream(uint64_t position = 0, size_t buffer_size = 4096) {
+        tools::rise_error(SBuf() << "Streams are not supported for DMA files");
+    }
+    
+    virtual DataOutputStream ostream(uint64_t position = 0, size_t buffer_size = 4096) 
+    {
+        //auto buffered_os = std::make_shared<DmaOS<>>(4096, std::static_pointer_cast<File>(shared_from_this()), position);
+        //return DataOutputStream(buffered_os.get(), &buffered_os->buffer(), buffered_os);
+        tools::rise_error(SBuf() << "Streams are not supported for DMA files");
+    }
+    
 private:
-    uint64_t process_single_io(char* buffer, uint64_t offset, uint64_t size, int command, const char* opname);
+    uint64_t process_single_io(uint8_t* buffer, uint64_t offset, uint64_t size, int command, const char* opname);
 };    
     
 class FileSingleIOMessage: public FileIOMessage {
@@ -79,7 +96,7 @@ class FileSingleIOMessage: public FileIOMessage {
     FiberContext* fiber_context_;
     
 public:
-    FileSingleIOMessage(int cpu, int fd, int eventfd, char* buffer, uint64_t offset, uint64_t size, int command):
+    FileSingleIOMessage(int cpu, int fd, int eventfd, uint8_t* buffer, uint64_t offset, uint64_t size, int command):
         FileIOMessage(cpu),
         block_(tools::make_zeroed<iocb>()),
         fiber_context_(fibers::context::active())
@@ -162,7 +179,7 @@ void DMAFile::close()
 }
 
 
-uint64_t DMAFile::process_single_io(char* buffer, uint64_t offset, uint64_t size, int command, const char* opname) 
+uint64_t DMAFile::process_single_io(uint8_t* buffer, uint64_t offset, uint64_t size, int command, const char* opname) 
 {
     Reactor& r = engine();
     
@@ -192,7 +209,7 @@ uint64_t DMAFile::process_single_io(char* buffer, uint64_t offset, uint64_t size
 }
 
 
-uint64_t DMAFile::read(char* buffer, uint64_t offset, uint64_t size) 
+uint64_t DMAFile::read(uint8_t* buffer, uint64_t offset, uint64_t size) 
 {    
     return process_single_io(buffer, offset, size, IOCB_CMD_PREAD, "read");
 }
@@ -200,9 +217,9 @@ uint64_t DMAFile::read(char* buffer, uint64_t offset, uint64_t size)
 
 
 
-uint64_t DMAFile::write(const char* buffer, uint64_t offset, uint64_t size)
+uint64_t DMAFile::write(const uint8_t* buffer, uint64_t offset, uint64_t size)
 {    
-    return process_single_io(const_cast<char*>(buffer), offset, size, IOCB_CMD_PWRITE, "write");
+    return process_single_io(const_cast<uint8_t*>(buffer), offset, size, IOCB_CMD_PWRITE, "write");
 }
 
 
@@ -310,10 +327,6 @@ size_t DMAFile::process_batch(IOBatchBase& batch, bool rise_ex_on_error)
 
 
 
-
-
-
-
 DMABuffer allocate_dma_buffer(size_t size) 
 {
 	if (size != 0) 
@@ -321,7 +334,7 @@ DMABuffer allocate_dma_buffer(size_t size)
 		void* ptr = aligned_alloc(512, size);
 
 		if (ptr) {
-			DMABuffer buf(tools::ptr_cast<char>(ptr));
+			DMABuffer buf(tools::ptr_cast<uint8_t>(ptr));
 			return buf;
 		}
 		else {

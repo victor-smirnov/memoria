@@ -830,7 +830,7 @@ namespace detail
       if (ec == 0)
         MEMORIA_V1_FILESYSTEM_THROW(filesystem_error(
           "memoria::v1::filesystem::canonical", source,
-          error_code(boost::system::errc::no_such_file_or_directory, boost::system::generic_category())));
+          boost::system::error_code(boost::system::errc::no_such_file_or_directory, boost::system::generic_category())));
       ec->assign(boost::system::errc::no_such_file_or_directory, boost::system::generic_category());
       return result;
     }
@@ -924,10 +924,10 @@ namespace detail
     {
       if (ec == 0) {
         MEMORIA_V1_FILESYSTEM_THROW(filesystem_error("memoria::v1::filesystem::copy",
-          from, to, error_code(BOOST_ERROR_NOT_SUPPORTED, system_category())));    
+          from, to, boost::system::error_code(BOOST_ERROR_NOT_SUPPORTED, boost::system::system_category())));    
       }
         
-      ec->assign(BOOST_ERROR_NOT_SUPPORTED, system_category());
+      ec->assign(BOOST_ERROR_NOT_SUPPORTED, boost::system::system_category());
     }
   }
 
@@ -944,7 +944,7 @@ namespace detail
   }
 
   MEMORIA_V1_FILESYSTEM_DECL
-  void copy_file(const path& from, const path& to, copy_option option, error_code* ec)
+  void copy_file(const path& from, const path& to, copy_option option, boost::system::error_code* ec)
   {
       return mr::engine().run_in_thread_pool([&](){
         error(!BOOST_COPY_FILE(from.c_str(), to.c_str(),
@@ -971,7 +971,7 @@ namespace detail
 
  MEMORIA_V1_FILESYSTEM_DECL
   bool create_directories_(const path& p, boost::system::error_code* ec);
-  bool create_directory_(const path& p, error_code* ec);
+  bool create_directory_(const path& p, boost::system::error_code* ec);
  
   bool create_directories(const path& p, boost::system::error_code* ec) 
   {
@@ -1000,7 +1000,7 @@ namespace detail
         return create_directories_(p.parent_path(), ec);
     }
     
-    error_code local_ec;
+    boost::system::error_code local_ec;
     file_status p_status = status(p, local_ec);
 
     if (p_status.type() == directory_file)
@@ -1041,14 +1041,14 @@ namespace detail
   }
 
   MEMORIA_V1_FILESYSTEM_DECL
-  bool create_directory(const path& p, error_code* ec) 
+  bool create_directory(const path& p, boost::system::error_code* ec) 
   {
     return mr::engine().run_in_thread_pool([&](){
       return create_directory_(p, ec);
     });
   }
   
-  bool create_directory_(const path& p, error_code* ec)
+  bool create_directory_(const path& p, boost::system::error_code* ec)
   {
     if (BOOST_CREATE_DIRECTORY(p.c_str()))
     {
@@ -1059,7 +1059,7 @@ namespace detail
 
     //  attempt to create directory failed
     int errval(BOOST_ERRNO);  // save reason for failure
-    error_code dummy;
+    boost::system::error_code dummy;
 
     if (is_directory(p, dummy))
     {
@@ -1071,9 +1071,9 @@ namespace detail
     //  attempt to create directory failed && it doesn't already exist
     if (ec == 0)
       MEMORIA_V1_FILESYSTEM_THROW(filesystem_error("memoria::v1::filesystem::create_directory",
-        p, error_code(errval, system_category())));
+        p, boost::system::error_code(errval, boost::system::system_category())));
     else
-      ec->assign(errval, system_category());
+      ec->assign(errval, boost::system::system_category());
 
     return false;
   }
@@ -1104,7 +1104,7 @@ namespace detail
   }
 
   MEMORIA_V1_FILESYSTEM_DECL
-  void create_hard_link(const path& to, const path& from, error_code* ec)
+  void create_hard_link(const path& to, const path& from, boost::system::error_code* ec)
   {
     return mr::engine().run_in_thread_pool([&](){
 #   if defined(BOOST_WINDOWS_API) && _WIN32_WINNT < 0x0500  // SDK earlier than Win 2K
@@ -1127,7 +1127,7 @@ namespace detail
   }
 
   MEMORIA_V1_FILESYSTEM_DECL
-  void create_symlink(const path& to, const path& from, error_code* ec)
+  void create_symlink(const path& to, const path& from, boost::system::error_code* ec)
   {
     return mr::engine().run_in_thread_pool([&](){
 #   if defined(BOOST_WINDOWS_API) && _WIN32_WINNT < 0x0600  // SDK earlier than Vista and Server 2008
@@ -1149,7 +1149,7 @@ namespace detail
   }
 
   MEMORIA_V1_FILESYSTEM_DECL
-  path current_path(error_code* ec)
+  path current_path(boost::system::error_code* ec)
   {
     return mr::engine().run_in_thread_pool([&](){      
 #   ifdef BOOST_POSIX_API
@@ -1319,7 +1319,7 @@ namespace detail
   }
 
   MEMORIA_V1_FILESYSTEM_DECL
-  boost::uintmax_t file_size(const path& p, error_code* ec)
+  boost::uintmax_t file_size(const path& p, boost::system::error_code* ec)
   {
     return mr::engine().run_in_thread_pool([&]{
 #   ifdef BOOST_POSIX_API
@@ -1400,7 +1400,7 @@ namespace detail
   }
 
   MEMORIA_V1_FILESYSTEM_DECL
-  path initial_path(error_code* ec)
+  path initial_path(boost::system::error_code* ec)
   {
       static path init_path;
       if (init_path.empty())
@@ -1551,7 +1551,7 @@ namespace detail
         return;
 
 # ifdef BOOST_POSIX_API
-        error_code local_ec;
+        boost::system::error_code local_ec;
         file_status current_status((prms & symlink_perms)
                                 ? fs::symlink_status(p, local_ec)
                                 : fs::status(p, local_ec));
@@ -1604,7 +1604,7 @@ namespace detail
             {
                 MEMORIA_V1_FILESYSTEM_THROW(filesystem_error(
                     "memoria::v1::filesystem::permissions", p,
-                    error_code(errno, boost::system::generic_category())));
+                    boost::system::error_code(errno, boost::system::generic_category())));
             }
             else {
             ec->assign(errno, boost::system::generic_category());
@@ -1662,10 +1662,10 @@ namespace detail
             {
                 if (ec == 0) {
                     MEMORIA_V1_FILESYSTEM_THROW(filesystem_error("memoria::v1::filesystem::read_symlink",
-                        p, error_code(errno, system_category())));
+                        p, boost::system::error_code(errno, boost::system::system_category())));
                 }
                 else {
-                    ec->assign(errno, system_category());
+                    ec->assign(errno, boost::system::system_category());
                 }
                 break;
             }
@@ -1725,9 +1725,9 @@ namespace detail
   }
 
   MEMORIA_V1_FILESYSTEM_DECL
-  path relative(const path& p, const path& base, error_code* ec)
+  path relative(const path& p, const path& base, boost::system::error_code* ec)
   {
-    error_code tmp_ec;
+    boost::system::error_code tmp_ec;
     path wc_base(weakly_canonical(base, &tmp_ec));
     
     if (error(tmp_ec.value(), base, ec, "memoria::v1::filesystem::relative")) 
@@ -1746,30 +1746,29 @@ namespace detail
   }
   
   MEMORIA_V1_FILESYSTEM_DECL
-  bool remove(const path& p, error_code* ec)
-  {
-    return mr::engine().run_in_thread_pool([&](){
-        error_code tmp_ec;
-        file_type type = query_file_type(p, &tmp_ec);
-        
-        if (error(type == status_error ? tmp_ec.value() : 0, p, ec,
-            "memoria::v1::filesystem::remove")) 
-        {
-            return false;
-        }
+  bool remove(const path& p, boost::system::error_code* ec)
+  {    
+    boost::system::error_code tmp_ec;
+    file_type type = query_file_type(p, &tmp_ec);
 
-        // Since POSIX remove() is specified to work with either files or directories, in a
-        // perfect world it could just be called. But some important real-world operating
-        // systems (Windows, Mac OS X, for example) don't implement the POSIX spec. So
-        // remove_file_or_directory() is always called to keep it simple.
+    if (error(type == status_error ? tmp_ec.value() : 0, p, ec, "memoria::v1::filesystem::remove")) 
+    {
+        return false;
+    }
+
+    // Since POSIX remove() is specified to work with either files or directories, in a
+    // perfect world it could just be called. But some important real-world operating
+    // systems (Windows, Mac OS X, for example) don't implement the POSIX spec. So
+    // remove_file_or_directory() is always called to keep it simple.
+    return mr::engine().run_in_thread_pool([&](){        
         return remove_file_or_directory(p, type, ec);
     });
   }
 
   MEMORIA_V1_FILESYSTEM_DECL
-  boost::uintmax_t remove_all(const path& p, error_code* ec)
+  boost::uintmax_t remove_all(const path& p, boost::system::error_code* ec)
   {
-    error_code tmp_ec;
+    boost::system::error_code tmp_ec;
     file_type type = query_file_type(p, &tmp_ec);
     
     if (error(type == status_error ? tmp_ec.value() : 0, p, ec,
@@ -1786,7 +1785,7 @@ namespace detail
   }
 
   MEMORIA_V1_FILESYSTEM_DECL
-  void rename(const path& old_p, const path& new_p, error_code* ec)
+  void rename(const path& old_p, const path& new_p, boost::system::error_code* ec)
   {
     return mr::engine().run_in_thread_pool([&]()
     {
@@ -1805,7 +1804,7 @@ namespace detail
   }
 
   MEMORIA_V1_FILESYSTEM_DECL
-  space_info space(const path& p, error_code* ec)
+  space_info space(const path& p, boost::system::error_code* ec)
   {
     return mr::engine().run_in_thread_pool([&](){
 #   ifdef BOOST_POSIX_API
@@ -1841,7 +1840,7 @@ namespace detail
   }
 
   MEMORIA_V1_FILESYSTEM_DECL
-  file_status status(const path& p, error_code* ec)
+  file_status status(const path& p, boost::system::error_code* ec)
   {
     return mr::engine().run_in_thread_pool([&](){
 #   ifdef BOOST_POSIX_API
@@ -1850,7 +1849,7 @@ namespace detail
         if (::stat(p.c_str(), &path_stat)!= 0)
         {
             if (ec != 0) {                           // always report errno, even though some
-                ec->assign(errno, system_category());   // errno values are not status_errors
+                ec->assign(errno, boost::system::system_category());   // errno values are not status_errors
             }
 
             if (not_found_error(errno))
@@ -1861,7 +1860,7 @@ namespace detail
             if (ec == 0) 
             {
                 MEMORIA_V1_FILESYSTEM_THROW(filesystem_error("memoria::v1::filesystem::status",
-                p, error_code(errno, system_category())));
+                p, boost::system::error_code(errno, boost::system::system_category())));
             }
             return fs::file_status(fs::status_error);
         }
@@ -1944,7 +1943,7 @@ namespace detail
   }
 
   MEMORIA_V1_FILESYSTEM_DECL
-  file_status symlink_status(const path& p, error_code* ec)
+  file_status symlink_status(const path& p, boost::system::error_code* ec)
   {
     return mr::engine().run_in_thread_pool([&](){
 #   ifdef BOOST_POSIX_API
@@ -1953,7 +1952,7 @@ namespace detail
         if (::lstat(p.c_str(), &path_stat)!= 0)
         {
             if (ec != 0) {                           // always report errno, even though some
-                ec->assign(errno, system_category());   // errno values are not status_errors
+                ec->assign(errno, boost::system::system_category());   // errno values are not status_errors
             }
 
             if (errno == ENOENT || errno == ENOTDIR) // these are not errors
@@ -1963,7 +1962,7 @@ namespace detail
             
             if (ec == 0) {
                 MEMORIA_V1_FILESYSTEM_THROW(filesystem_error("memoria::v1::filesystem::status",
-                    p, error_code(errno, system_category())));
+                    p, boost::system::error_code(errno, boost::system::system_category())));
             }
             return fs::file_status(fs::status_error);
         }
@@ -2525,7 +2524,7 @@ namespace detail
 		  DIR * h(static_cast<DIR*>(handle));
 		  handle = 0;
 
-		  return error_code(::closedir(h) == 0 ? 0 : errno, system_category());
+		  return boost::system::error_code(::closedir(h) == 0 ? 0 : errno, boost::system::system_category());
 #   else
 		  if (handle != 0)
 		  {
@@ -2566,7 +2565,7 @@ namespace detail
 
     path::string_type filename;
     file_status file_stat, symlink_file_stat;
-    error_code result = dir_itr_first(it.m_imp->handle,
+    boost::system::error_code result = dir_itr_first(it.m_imp->handle,
 #     if defined(BOOST_POSIX_API)
       it.m_imp->buffer,
 #     endif
@@ -2619,8 +2618,8 @@ namespace detail
           MEMORIA_V1_FILESYSTEM_THROW(
             filesystem_error("memoria::v1::filesystem::directory_iterator::operator++",
               error_path,
-              error_code(BOOST_ERRNO, system_category())));
-        ec->assign(BOOST_ERRNO, system_category());
+              boost::system::error_code(BOOST_ERRNO, boost::system::system_category())));
+        ec->assign(BOOST_ERRNO, boost::system::system_category());
         return;
       }
       else if (ec != 0) ec->clear();

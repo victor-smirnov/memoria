@@ -16,6 +16,7 @@
 #pragma once
 
 #include <memoria/v1/core/types/types.hpp>
+#include <memoria/v1/core/types/algo/select.hpp>
 #include <memoria/v1/core/types/type2type.hpp>
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 
@@ -28,6 +29,7 @@
 #include <memoria/v1/core/packed/sseq/rleseq/rleseq_tools.hpp>
 
 #include <limits>
+#include <cstring>
 
 #include <malloc.h>
 
@@ -55,6 +57,14 @@ protected:
     ValueCodec<Bytes>   bytes_codec_;
 
 public:
+    
+    template <typename T>
+    using ValueSize = IfThenElse<
+        std::is_same<T, bool>::value,
+        std::integral_constant<size_t, 1>,
+        std::integral_constant<size_t, sizeof(T)>
+    >;
+    
 
     IOBufferBase():
         array_(nullptr), owner_(false)
@@ -84,6 +94,7 @@ public:
     ~IOBufferBase() {
         release();
     }
+    
 
     UByte* array() {
         return array_;
@@ -157,8 +168,9 @@ public:
     	{
     		limit_ = value;
     	}
-
-    	throw Exception(MA_SRC, SBuf() << "Supplied value of limit exceeds capacity: " << value << " " << length_);
+        else {
+            throw Exception(MA_SRC, SBuf() << "Supplied value of limit exceeds capacity: " << value << " " << length_);
+        }
     }
 
     size_t size() const {
@@ -210,6 +222,16 @@ public:
 
     	pos_ 	= limit_ - pos_;
     	limit_	= length_;
+    	mark_ 	= MARK_MAX;
+    }
+    
+    void moveRemainingToStart0()
+    {
+    	std::memmove(array_, array_ + pos_, limit_ - pos_);
+
+        limit_	-= pos_;
+    	pos_ 	= 0;
+    	
     	mark_ 	= MARK_MAX;
     }
 
@@ -381,9 +403,10 @@ public:
 
     bool put(const UByte* data, size_t length)
     {
-        if (has_capacity(length))
+        if (MMA1_LIKELY(has_capacity(length)))
         {
-            CopyBuffer(data, array_ + pos_, length);
+            //CopyBuffer(data, array_ + pos_, length);
+            std::memcpy(array_ + pos_, data, length);
             pos_ += length;
             return true;
         }
@@ -391,11 +414,25 @@ public:
             return false;
         }
     }
+    
+    bool put_(const UByte* data, size_t length)
+    {
+        std::memcpy(array_ + pos_, data, length);
+        pos_ += length;
+        return true;
+    }
 
     void get(UByte* data, size_t length)
     {
         assertRange(length, "get(UByte*, size_t)");
-        CopyBuffer(array_ + pos_, data, length);
+        //CopyBuffer(array_ + pos_, data, length);
+        std::memcpy(data, array_ + pos_, length);
+        pos_ += length;
+    }
+    
+    void get_(UByte* data, size_t length)
+    {
+        std::memcpy(data, array_ + pos_, length);
         pos_ += length;
     }
 

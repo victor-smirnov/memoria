@@ -13,13 +13,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
-
-#ifdef _WIN32
-#include "msvc/msvc_file.hpp"
-#else
-#include "linux/linux_file.hpp"
-#endif
+//#include <memoria/v1/reactor/iostreams.hpp>
+#include <memoria/v1/reactor/file.hpp>
+#include <memoria/v1/core/tools/perror.hpp>
+#include <memoria/v1/core/tools/ptr_cast.hpp>
 
 
+#include <limits>
+#include <malloc.h>
+#include <strings.h>
 
+namespace memoria {
+namespace v1 {
+namespace reactor {
+
+
+    
+}}}

@@ -17,11 +17,15 @@
 #include <memoria/v1/reactor/linux/linux_file.hpp>
 #include <memoria/v1/reactor/linux/linux_io_poller.hpp>
 #include <memoria/v1/reactor/reactor.hpp>
+#include <memoria/v1/reactor/file_streams.hpp>
+
 #include <memoria/v1/reactor/message/fiber_io_message.hpp>
 
 #include <memoria/v1/core/tools/ptr_cast.hpp>
 #include <memoria/v1/core/tools/bzero_struct.hpp>
 #include <memoria/v1/core/tools/perror.hpp>
+
+#include <memoria/v1/core/tools/time.hpp>
 
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
@@ -38,14 +42,17 @@
 #include <stdint.h>
 #include <exception>
 #include <tuple>
-
+#include <memory>
 
 
 namespace memoria {
 namespace v1 {
 namespace reactor {
+ 
+
+
     
-class BufferedFile: public File {
+class BufferedFile: public File, public std::enable_shared_from_this<BufferedFile> {
     int fd_{};
     bool closed_{true};
 public:
@@ -55,7 +62,7 @@ public:
         int errno0 = 0;
         std::tie(fd_, errno0) = engine().run_in_thread_pool([&]{
             return std::make_tuple(
-                ::open(file_path.c_str(), (int)flags | O_DIRECT, (mode_t)mode),
+                ::open(file_path.c_str(), (int)flags, (mode_t)mode),
                 errno
             );
         });
@@ -84,7 +91,7 @@ public:
         closed_ = true;
     }
     
-    virtual uint64_t read(char* buffer, uint64_t offset, uint64_t size) 
+    virtual uint64_t read(uint8_t* buffer, uint64_t offset, uint64_t size) 
     {
         off_t res;
         int errno0;
@@ -107,7 +114,7 @@ public:
         }
     }
     
-    virtual uint64_t write(const char* buffer, uint64_t offset, uint64_t size) 
+    virtual uint64_t write(const uint8_t* buffer, uint64_t offset, uint64_t size) 
     {
         off_t res;
         int errno0 = 0;
@@ -207,6 +214,18 @@ public:
         if (res < 0) {
             tools::rise_perror(errno0, SBuf() << "Can't fsync file " << path_);
         }
+    }
+    
+    virtual DataInputStream istream(uint64_t position = 0, size_t buffer_size = 4096) 
+    {
+        auto buffered_is = std::make_shared<BufferedIS<>>(4096, std::static_pointer_cast<File>(shared_from_this()), position);
+        return DataInputStream(buffered_is.get(), &buffered_is->buffer(), buffered_is);
+    }
+    
+    virtual DataOutputStream ostream(uint64_t position = 0, size_t buffer_size = 4096) 
+    {
+        auto buffered_os = std::make_shared<BufferedOS<>>(4096, std::static_pointer_cast<File>(shared_from_this()), position);
+        return DataOutputStream(buffered_os.get(), &buffered_os->buffer(), buffered_os);
     }
 };  
 

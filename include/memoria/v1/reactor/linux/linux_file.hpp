@@ -19,10 +19,12 @@
 #include "../../filesystem/operations.hpp"
 
 #include "../message/fiber_io_message.hpp"
+
+#include "../dma_buffer.hpp"
 #include "linux_buffer_vec.hpp"
 #include "linux_io_poller.hpp"
 
-
+#include <memoria/v1/core/tools/iostreams.hpp>
 
 #include <stdint.h>
 #include <string>
@@ -92,13 +94,16 @@ public:
         return filesystem::file_size(path_);
     }
     
-    virtual uint64_t read(char* buffer, uint64_t offset, uint64_t size) = 0;
-    virtual uint64_t write(const char* buffer, uint64_t offset, uint64_t size) = 0;
+    virtual uint64_t read(uint8_t* buffer, uint64_t offset, uint64_t size) = 0;
+    virtual uint64_t write(const uint8_t* buffer, uint64_t offset, uint64_t size) = 0;
     
     virtual size_t process_batch(IOBatchBase& batch, bool rise_ex_on_error = true) = 0;
     
     virtual void fsync() = 0;
     virtual void fdsync() = 0;
+    
+    virtual DataInputStream istream(uint64_t position = 0, size_t buffer_size = 4096) = 0;
+    virtual DataOutputStream ostream(uint64_t position = 0, size_t buffer_size = 4096) = 0;
     
     const filesystem::path& path() const {return path_;}
 };
@@ -108,18 +113,7 @@ std::shared_ptr<File> open_dma_file(filesystem::path file_path, FileFlags flags,
 std::shared_ptr<File> open_buffered_file(filesystem::path file_path, FileFlags flags, FileMode mode = FileMode::IDEFLT);
 
 
-namespace details {
-	template<typename T>
-	struct aligned_delete {
-		void operator()(T* ptr) const {
-			free(ptr);
-		}
-	};
-}
 
-using DMABuffer = std::unique_ptr<char, details::aligned_delete<char>>;
-
-DMABuffer allocate_dma_buffer(size_t size);
 
     
 }}}

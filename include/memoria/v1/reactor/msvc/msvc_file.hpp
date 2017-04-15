@@ -105,8 +105,8 @@ public:
 
     virtual void close() = 0;
     
-    virtual uint64_t read(char* buffer, uint64_t offset, uint64_t size) = 0;
-    virtual uint64_t write(const char* buffer, uint64_t offset, uint64_t size) = 0;
+    virtual uint64_t read(uint8_t* buffer, uint64_t offset, uint64_t size) = 0;
+    virtual uint64_t write(const uint8_t* buffer, uint64_t offset, uint64_t size) = 0;
     
     virtual size_t process_batch(IOBatchBase& batch, bool rise_ex_on_error = true) = 0;
     
@@ -120,18 +120,7 @@ std::shared_ptr<File> open_dma_file(filesystem::path file_path, FileFlags flags,
 std::shared_ptr<File> open_buffered_file(filesystem::path file_path, FileFlags flags, FileMode mode = FileMode::IDEFLT);
 
 
-namespace details {
-	template<typename T>
-	struct aligned_delete {
-		void operator()(T* ptr) const {
-			_aligned_free(ptr);
-		}
-	};
-}
 
-using DMABuffer = std::unique_ptr<char, details::aligned_delete<char>>;
-
-DMABuffer allocate_dma_buffer(size_t size);
 
     
 }}}

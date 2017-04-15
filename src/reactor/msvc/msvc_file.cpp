@@ -170,7 +170,7 @@ void GenericFile::close()
 
 
 
-uint64_t GenericFile::read(char* buffer, uint64_t offset, uint64_t size)
+uint64_t GenericFile::read(uint8_t* buffer, uint64_t offset, uint64_t size)
 {    
 	Reactor& r = engine();
 
@@ -212,7 +212,7 @@ uint64_t GenericFile::read(char* buffer, uint64_t offset, uint64_t size)
 
 
 
-uint64_t GenericFile::write(const char* buffer, uint64_t offset, uint64_t size)
+uint64_t GenericFile::write(const uint8_t* buffer, uint64_t offset, uint64_t size)
 {    
 	Reactor& r = engine();
 
