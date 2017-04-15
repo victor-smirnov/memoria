@@ -2078,7 +2078,7 @@ namespace detail
                     p /= L"Temp";
                 }
                 
-                error_code lcl_ec;
+                boost::system::error_code lcl_ec;
                 if (exists(p, lcl_ec) && !lcl_ec && is_directory(p, lcl_ec) && !lcl_ec) {
                     break;
                 }

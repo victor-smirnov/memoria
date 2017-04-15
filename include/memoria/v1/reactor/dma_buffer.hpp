@@ -37,7 +37,7 @@ namespace details {
 
 using DMABuffer = std::unique_ptr<uint8_t, details::aligned_delete<uint8_t>>;
 
-DMABuffer allocate_dma_buffer(size_t size);    
+DMABuffer allocate_dma_buffer(size_t size);
     
 #else
     

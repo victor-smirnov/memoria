@@ -18,11 +18,6 @@
 #include <memoria/v1/core/tools/perror.hpp>
 #include <memoria/v1/core/tools/ptr_cast.hpp>
 
-
-#include <limits>
-#include <malloc.h>
-#include <strings.h>
-
 namespace memoria {
 namespace v1 {
 namespace reactor {

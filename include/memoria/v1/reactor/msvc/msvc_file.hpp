@@ -20,6 +20,9 @@
 #include "../../filesystem/operations.hpp"
 #include "../message/fiber_io_message.hpp"
 
+#include <memoria/v1/core/tools/iostreams.hpp>
+
+#include "../dma_buffer.hpp"
 #include "msvc_buffer_vec.hpp"
 #include "msvc_io_poller.hpp"
 
@@ -114,6 +117,9 @@ public:
     virtual void fdsync() = 0;
     
     const filesystem::path& path() const {return path_;}
+
+    virtual DataInputStream istream(uint64_t position = 0, size_t buffer_size = 4096) = 0;
+    virtual DataOutputStream ostream(uint64_t position = 0, size_t buffer_size = 4096) = 0;
 };
 
 std::shared_ptr<File> open_dma_file(filesystem::path file_path, FileFlags flags, FileMode mode = FileMode::IDEFLT);

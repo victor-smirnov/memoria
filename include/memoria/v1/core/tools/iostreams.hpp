@@ -291,7 +291,7 @@ public:
             
             pos += limit;
             
-            if (pull() == 0) {
+            if (pos < size && pull() == 0) {
                 break;
             }
         }

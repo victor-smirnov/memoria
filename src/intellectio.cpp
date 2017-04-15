@@ -29,11 +29,15 @@ int main(int argc, char **argv)
         
             std::cout << "Hello from Intellectio!" << std::endl;
             
-            fs::remove("file.data");
+			fs::path pp("file.data");
+
+			std::cout << "Data file path: " << fs::absolute(pp) << std::endl;
+
+            fs::remove(pp);
             
-            auto file = open_buffered_file("file.data", FileFlags::CREATE | FileFlags::RDWR | FileFlags::TRUNCATE);
+            auto file = open_buffered_file(pp, FileFlags::CREATE | FileFlags::RDWR ); //| FileFlags::TRUNCATE
                         
-            std::vector<uint8_t> data(1000000);
+            std::vector<uint8_t> data(100000000);
             
             m::Seed(12345);
             
@@ -77,7 +81,8 @@ int main(int argc, char **argv)
                     std::cout << c << ": len = " << len << " len1 = " << len1 << std::endl;
                 }
                 
-                for (size_t d = 0; d < len1; d++) {
+                for (size_t d = 0; d < len1; d++) 
+				{
                     if (data[c + d] != buf0[d])
                     {
                         mt::rise_error(m::SBuf() << "Not equal! " << (c + d) << " " << std::hex << (c + d));
@@ -92,6 +97,9 @@ int main(int argc, char **argv)
         catch (std::exception& ex) {
             std::cout << "Exception: " << ex.what() << std::endl;
         }
+
+		int ii;
+		std::cin >> ii;
 
         dr::app().shutdown();
         return 5678;

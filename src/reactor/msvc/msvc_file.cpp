@@ -25,7 +25,7 @@
 #include <memoria/v1/core/tools/perror.hpp>
 #include <memoria/v1/core/tools/strings/string_buffer.hpp>
 
-
+#include <memoria/v1/reactor/file_streams.hpp>
 
 #include <stdio.h>
 
@@ -34,6 +34,7 @@
 #include <stdint.h>
 #include <exception>
 #include <tuple>
+#include <memory>
 
 #include <malloc.h>
 
@@ -83,7 +84,9 @@ DWORD get_flags_and_attributes(FileFlags flags, FileMode mode, bool no_buffering
 {
 	DWORD file_flags { FILE_ATTRIBUTE_NORMAL };
 
-	if (to_bool(flags & FileFlags::CLOEXEC)) file_flags |= FILE_FLAG_DELETE_ON_CLOSE;
+	if (to_bool(flags & FileFlags::CLOEXEC)) {
+		file_flags |= FILE_FLAG_DELETE_ON_CLOSE;
+	}
 
 	file_flags |= FILE_FLAG_OVERLAPPED | FILE_FLAG_RANDOM_ACCESS ;
 
@@ -95,7 +98,7 @@ DWORD get_flags_and_attributes(FileFlags flags, FileMode mode, bool no_buffering
 }
 
 
-class GenericFile: public File {
+class GenericFile: public File, public std::enable_shared_from_this<GenericFile> {
 	HANDLE fd_{ INVALID_HANDLE_VALUE };
 	bool no_buffering_;
 	bool closed_{false};
@@ -107,17 +110,31 @@ public:
 
 	virtual void close();
 
-	virtual uint64_t read(char* buffer, uint64_t offset, uint64_t size);
-	virtual uint64_t write(const char* buffer, uint64_t offset, uint64_t size);
+	virtual uint64_t read(uint8_t* buffer, uint64_t offset, uint64_t size);
+	virtual uint64_t write(const uint8_t* buffer, uint64_t offset, uint64_t size);
 
 	virtual size_t process_batch(IOBatchBase& batch, bool rise_ex_on_error = true);
 
 	virtual void fsync();
 	virtual void fdsync();
+
+	virtual DataInputStream istream(uint64_t position = 0, size_t buffer_size = 4096) 
+    {
+       	auto buffered_is = std::make_shared<BufferedIS<>>(4096, std::static_pointer_cast<File>(shared_from_this()), position);
+       	return DataInputStream(buffered_is.get(), &buffered_is->buffer(), buffered_is);
+    }
+    
+	virtual DataOutputStream ostream(uint64_t position = 0, size_t buffer_size = 4096) 
+    {
+		auto ptr = this->shared_from_this();
+
+       	auto buffered_os = std::make_shared<BufferedOS<>>(4096, std::static_pointer_cast<File>(shared_from_this()), position);
+       	return DataOutputStream(buffered_os.get(), &buffered_os->buffer(), buffered_os);
+    }
 };
 
 GenericFile::GenericFile(filesystem::path file_path, FileFlags flags, FileMode mode, bool no_buffering):
-    File(file_path), no_buffering_(no_buffering)
+    File(file_path), std::enable_shared_from_this<GenericFile>(), no_buffering_(no_buffering)
 {
 	DWORD creation_disposition = get_disposition(flags, mode);
 
@@ -192,6 +209,9 @@ uint64_t GenericFile::read(uint8_t* buffer, uint64_t offset, uint64_t size)
 			
 			if (overlapped.status_) {
 				return overlapped.size_;
+			}
+			else if (overlapped.error_code_ == ERROR_HANDLE_EOF) {
+				return 0;
 			}
 			else {
 				rise_win_error(
@@ -336,22 +356,25 @@ size_t GenericFile::process_batch(IOBatchBase& batch, bool rise_ex_on_error)
 
 void GenericFile::fsync()
 {
-	bool status;
-	DWORD last_error{};
-
-	std::tie(status, last_error) = engine().run_in_thread_pool([&] {
-		return std::make_tuple(
-			FlushFileBuffers(fd_),
-			GetLastError()
-		);
-	});
-
-	if (!status) 
+	if (!no_buffering_) 
 	{
-		rise_win_error(
-			SBuf() << "Can't sync file " << path_,
-			last_error
-		);
+		bool status;
+		DWORD last_error{};
+
+		std::tie(status, last_error) = engine().run_in_thread_pool([&] {
+			return std::make_tuple(
+				FlushFileBuffers(fd_),
+				GetLastError()
+			);
+		});
+
+		if (!status)
+		{
+			rise_win_error(
+				SBuf() << "Can't sync file " << path_,
+				last_error
+			);
+		}
 	}
 }
 
@@ -361,14 +384,29 @@ void GenericFile::fdsync()
 }
 
 
-DMABuffer allocate_dma_buffer(size_t size) 
+
+std::shared_ptr<File> open_dma_file(filesystem::path file_path, FileFlags flags, FileMode mode)
 {
-	if (size != 0) 
+	return std::static_pointer_cast<File>(std::make_shared<GenericFile>(file_path, flags, mode, true));
+}
+
+std::shared_ptr<File> open_buffered_file(filesystem::path file_path, FileFlags flags, FileMode mode)
+{
+	auto ptr = std::make_shared<GenericFile>(file_path, flags, mode, false);
+	return std::static_pointer_cast<File>(ptr);
+}
+
+
+
+
+DMABuffer allocate_dma_buffer(size_t size)
+{
+	if (size != 0)
 	{
 		void* ptr = _aligned_malloc(size, 512);
 
 		if (ptr) {
-			DMABuffer buf(tools::ptr_cast<char>(ptr));
+			DMABuffer buf(tools::ptr_cast<uint8_t>(ptr));
 			return buf;
 		}
 		else {
@@ -380,15 +418,5 @@ DMABuffer allocate_dma_buffer(size_t size)
 	}
 }
 
-std::shared_ptr<File> open_dma_file(filesystem::path file_path, FileFlags flags, FileMode mode)
-{
-	return std::static_pointer_cast<File>(std::make_shared<GenericFile>(file_path, flags, mode, true));
-}
 
-std::shared_ptr<File> open_buffered_file(filesystem::path file_path, FileFlags flags, FileMode mode)
-{
-	return std::static_pointer_cast<File>(std::make_shared<GenericFile>(file_path, flags, mode, true));
-}
-
-    
 }}}

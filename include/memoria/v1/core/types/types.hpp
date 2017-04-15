@@ -547,8 +547,8 @@ template <typename T> struct TypeTag {};
 
 #define MEMORIA_V1_ALWAYS_INLINE 
 
-#define MMA1_LIKELY(expr)
-#define MMA1_UNLIKELY(expr)
+#define MMA1_LIKELY(expr) (expr)
+#define MMA1_UNLIKELY(expr) (expr)
 
 
 uint32_t __inline __builtin_ctz(uint32_t value)
