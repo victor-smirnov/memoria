@@ -182,6 +182,7 @@ public:
 
         const auto start = std::chrono::system_clock::now();
         const auto stop = start + timeout;
+        //const auto min_sequence = [&]{return cursor.sequence();}; 
         const auto min_sequence = buildMinSequenceFunction ( cursor, dependents );
 
         while ( ( available_sequence = min_sequence() ) < sequence ) {
@@ -216,6 +217,8 @@ public:
     {
         int64_t available_sequence = kInitialCursorValue;
         const auto min_sequence =   buildMinSequenceFunction ( cursor, dependents ); 
+        //const auto min_sequence = [&]{return cursor.sequence();}; 
+        
 
         if ( ( available_sequence = min_sequence() ) < sequence ) 
         {

@@ -60,8 +60,8 @@ public:
         
     virtual void close();
     
-    virtual uint64_t read(uint8_t* buffer, uint64_t offset, uint64_t size);
-    virtual uint64_t write(const uint8_t* buffer, uint64_t offset, uint64_t size);
+    virtual size_t read(uint8_t* buffer, uint64_t offset, size_t size);
+    virtual size_t write(const uint8_t* buffer, uint64_t offset, size_t size);
     
     virtual size_t process_batch(IOBatchBase& batch, bool rise_ex_on_error = true);
     
@@ -96,7 +96,7 @@ class FileSingleIOMessage: public FileIOMessage {
     FiberContext* fiber_context_;
     
 public:
-    FileSingleIOMessage(int cpu, int fd, int eventfd, uint8_t* buffer, uint64_t offset, uint64_t size, int command):
+    FileSingleIOMessage(int cpu, int fd, int eventfd, uint8_t* buffer, uint64_t offset, size_t size, int command):
         FileIOMessage(cpu),
         block_(tools::make_zeroed<iocb>()),
         fiber_context_(fibers::context::active())
@@ -179,7 +179,7 @@ void DMAFile::close()
 }
 
 
-uint64_t DMAFile::process_single_io(uint8_t* buffer, uint64_t offset, uint64_t size, int command, const char* opname) 
+size_t DMAFile::process_single_io(uint8_t* buffer, uint64_t offset, size_t size, int command, const char* opname) 
 {
     Reactor& r = engine();
     
@@ -209,7 +209,7 @@ uint64_t DMAFile::process_single_io(uint8_t* buffer, uint64_t offset, uint64_t s
 }
 
 
-uint64_t DMAFile::read(uint8_t* buffer, uint64_t offset, uint64_t size) 
+size_t DMAFile::read(uint8_t* buffer, uint64_t offset, size_t size) 
 {    
     return process_single_io(buffer, offset, size, IOCB_CMD_PREAD, "read");
 }
@@ -217,7 +217,7 @@ uint64_t DMAFile::read(uint8_t* buffer, uint64_t offset, uint64_t size)
 
 
 
-uint64_t DMAFile::write(const uint8_t* buffer, uint64_t offset, uint64_t size)
+size_t DMAFile::write(const uint8_t* buffer, uint64_t offset, size_t size)
 {    
     return process_single_io(const_cast<uint8_t*>(buffer), offset, size, IOCB_CMD_PWRITE, "write");
 }

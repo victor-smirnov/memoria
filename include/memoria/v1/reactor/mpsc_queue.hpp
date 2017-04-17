@@ -51,7 +51,7 @@ public:
         );
     }
     
-    bool send(const T& value) 
+    bool send(const T& value)
     {
         auto idx = sequencer_.Claim(1);
         sequencer_[idx] = value;
@@ -84,7 +84,7 @@ public:
         
         size_t min_size = std::min(available_size, requested_size);
         
-        for (size_t c = 0; c < min_size; c++) 
+        for (size_t c = 0; c < min_size; c++)
         {
             fn(event_processor_.get_event(c));
         }

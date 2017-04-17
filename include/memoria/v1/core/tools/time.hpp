@@ -18,6 +18,9 @@
 #include <memoria/v1/core/tools/strings/string.hpp>
 #include <memoria/v1/core/types/types.hpp>
 
+#include <chrono>
+#include <ostream>
+
 namespace memoria {
 namespace v1 {
 
@@ -25,5 +28,49 @@ namespace v1 {
 
 BigInt  getTimeInMillis();
 String FormatTime(BigInt millis);
+
+static inline uint64_t getTimeInNanos() {
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+}
+
+struct CallDuration {
+    uint64_t total_time{};
+    uint64_t total_calls{};
+};
+
+static inline std::ostream& operator<<(std::ostream& out, const CallDuration& stat) 
+{
+    if (stat.total_calls != 0) 
+    {
+        out << "[" << (stat.total_time / stat.total_calls) << ", " << stat.total_calls << "]";
+    }
+    else {
+        out << "[0, 0]";
+    }
+    
+    return out;
+}
+
+
+namespace detail {
+    struct TimeHolder {
+        CallDuration& stat;
+        uint64_t start;
+        TimeHolder(CallDuration& _stat): 
+            stat(_stat), start(getTimeInNanos())
+        {}
+        
+        ~TimeHolder() {
+            stat.total_time += (getTimeInNanos() - start);
+            stat.total_calls++;
+        }
+    };
+}
+
+template <typename Fn>
+auto withTime(CallDuration& stat, Fn&& fn) {
+    detail::TimeHolder holder(stat);
+    return fn();
+}
 
 }}

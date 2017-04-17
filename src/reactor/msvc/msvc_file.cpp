@@ -110,8 +110,8 @@ public:
 
 	virtual void close();
 
-	virtual uint64_t read(uint8_t* buffer, uint64_t offset, uint64_t size);
-	virtual uint64_t write(const uint8_t* buffer, uint64_t offset, uint64_t size);
+	virtual size_t read(uint8_t* buffer, uint64_t offset, size_t size);
+	virtual size_t write(const uint8_t* buffer, uint64_t offset, size_t size);
 
 	virtual size_t process_batch(IOBatchBase& batch, bool rise_ex_on_error = true);
 
@@ -187,7 +187,7 @@ void GenericFile::close()
 
 
 
-uint64_t GenericFile::read(uint8_t* buffer, uint64_t offset, uint64_t size)
+size_t GenericFile::read(uint8_t* buffer, uint64_t offset, size_t size)
 {    
 	Reactor& r = engine();
 
@@ -232,7 +232,7 @@ uint64_t GenericFile::read(uint8_t* buffer, uint64_t offset, uint64_t size)
 
 
 
-uint64_t GenericFile::write(const uint8_t* buffer, uint64_t offset, uint64_t size)
+size_t GenericFile::write(const uint8_t* buffer, uint64_t offset, size_t size)
 {    
 	Reactor& r = engine();
 

@@ -91,7 +91,7 @@ public:
         closed_ = true;
     }
     
-    virtual uint64_t read(uint8_t* buffer, uint64_t offset, uint64_t size) 
+    virtual size_t read(uint8_t* buffer, uint64_t offset, size_t size) 
     {
         off_t res;
         int errno0;
@@ -114,7 +114,7 @@ public:
         }
     }
     
-    virtual uint64_t write(const uint8_t* buffer, uint64_t offset, uint64_t size) 
+    virtual size_t write(const uint8_t* buffer, uint64_t offset, size_t size) 
     {
         off_t res;
         int errno0 = 0;

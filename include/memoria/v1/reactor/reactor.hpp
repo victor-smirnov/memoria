@@ -18,6 +18,9 @@
 #include "scheduler.hpp"
 #include "file.hpp"
 
+#include "../fiber/protected_stack_pool.hpp"
+#include "../fiber/pooled_fixedsize_stack.hpp"
+
 #ifdef _WIN32
 #include "msvc/msvc_io_poller.hpp"
 #include "msvc/msvc_smp.hpp"
@@ -57,6 +60,12 @@ class Reactor: public std::enable_shared_from_this<Reactor> {
     RingBuffer<Message*> ring_buffer_{16384};
     
     IOPoller io_poller_;
+    
+    fibers::protected_stack_pool fiber_stack_pool_{4};
+    //fibers::protected_fixedsize_stack fiber_stack_pool_{};
+    
+    int32_t io_poll_cnt_{};
+    int32_t yield_cnt_{};
     
 public:
     

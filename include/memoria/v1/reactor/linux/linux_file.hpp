@@ -94,8 +94,8 @@ public:
         return filesystem::file_size(path_);
     }
     
-    virtual uint64_t read(uint8_t* buffer, uint64_t offset, uint64_t size) = 0;
-    virtual uint64_t write(const uint8_t* buffer, uint64_t offset, uint64_t size) = 0;
+    virtual size_t read(uint8_t* buffer, uint64_t offset, size_t size) = 0;
+    virtual size_t write(const uint8_t* buffer, uint64_t offset, size_t size) = 0;
     
     virtual size_t process_batch(IOBatchBase& batch, bool rise_ex_on_error = true) = 0;
     

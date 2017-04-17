@@ -14,8 +14,10 @@
 // limitations under the License.
 
 #include <memoria/v1/reactor/reactor.hpp>
+#include <memoria/v1/core/tools/time.hpp>
 
 #include <memory>
+#include <chrono>
 
 namespace memoria {
 namespace v1 {
@@ -44,47 +46,69 @@ void Reactor::event_loop ()
         ->get_scheduler()
         ->set_algo(std::unique_ptr< Scheduler<Reactor> >(scheduler_));
 
-    auto process_fn = [this](Message* msg) {
+    
+    
+    CallDuration fiber_stat;
+    CallDuration yield_stat;
+    CallDuration finish_stat;
+        
+    auto process_fn = [&](Message* msg) {
         if (msg->is_return())
         {
-            msg->finish();
+            withTime(finish_stat, [&]{
+                msg->finish();
+            });
         }
         else {
-            fibers::fiber ff([this, msg](){
-                msg->process();
-                if (!msg->is_one_way()) 
-                {
-                    smp_->submit_to(msg->cpu(), msg);
-                }
-                else {
-                    try {
-                        msg->finish();
+            withTime(fiber_stat, [&]{
+                fibers::fiber ff(fibers::launch::dispatch, std::allocator_arg_t(), this->fiber_stack_pool_, [&, msg](){
+                    msg->process();
+                    if (!msg->is_one_way())
+                    {
+                        smp_->submit_to(msg->cpu(), msg);
                     }
-                    catch (...) {
-                        std::terminate();
+                    else {
+                        try {
+                            withTime(finish_stat, [msg]{
+                                msg->finish();
+                            });
+                        }
+                        catch (...) {
+                            std::terminate();
+                        }
                     }
-                }
+                });
+                
+                ff.detach();
             });
-            
-            ff.detach();
         }
     };
-        
+
+    
     while(running_ || fibers::context::contexts() > fibers::DEFAULT_CONTEXTS) 
     {
-        io_poller_.poll();
-        
-        while (ring_buffer_.available())
+        if (++io_poll_cnt_ == 32) 
         {
-            process_fn(ring_buffer_.pop_back());
+            io_poll_cnt_ = 0;
+            io_poller_.poll();
+            
+            while (ring_buffer_.available())
+            {
+                process_fn(ring_buffer_.pop_back());
+            }
         }
         
         smp_->receive_all(cpu_, process_fn);
         
-        memoria::v1::this_fiber::yield();
+        withTime(yield_stat, []{
+            memoria::v1::this_fiber::yield();
+        });
     }
     
-    std::cout << "Event Loop finished for " << cpu_ << std::endl;
+    SBuf buf;
+    buf << "Event Loop finished for " << cpu_ << " yields: " << yield_stat << ", new fibers: " << (fiber_stat) << ", finishes: " << finish_stat;
+    
+    std::cout << buf.str() << std::endl;
     
     thread_pool_.stop_workers();
 }

@@ -83,7 +83,7 @@ public:
         if ( last_consumer_sequence_ < wrap_point ) {
             while ( GetMinimumSequence ( dependents ) < wrap_point ) {
                 // TODO: configurable yield strategy
-                std::this_thread::yield();
+                //std::this_thread::yield();
             }
         }
         return next_sequence;
@@ -132,7 +132,7 @@ public:
         {
             while ( GetMinimumSequence ( dependents ) < wrap_point ) {
                 // TODO: configurable yield strategy
-                std::this_thread::yield();
+                //std::this_thread::yield();
             }
         }
         
@@ -163,7 +163,7 @@ public:
 
         while ( cursor.sequence() < my_first_sequence ) {
             // TODO: configurable yield strategy
-            std::this_thread::yield();
+            //std::this_thread::yield();
         }
     }
 

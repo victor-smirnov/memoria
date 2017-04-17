@@ -37,13 +37,11 @@
 
 #include <atomic>
 #include <vector>
+#include <limits.h>
 
-namespace memoria
-{
-namespace v1
-{
-namespace disruptor
-{
+namespace memoria {
+namespace v1 {
+namespace disruptor {
 
 // special cursor values
 constexpr int64_t kInitialCursorValue = -1L;

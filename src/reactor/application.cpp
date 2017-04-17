@@ -24,7 +24,7 @@ namespace reactor {
 Application* Application::application_;
     
 Application::Application(int argc, char** argv, char** envp): 
-    smp_(std::make_shared<Smp>(1)), 
+    smp_(std::make_shared<Smp>(2)), 
     reactors_(),
     shutdown_hook_([](){engine().stop();})
 {
