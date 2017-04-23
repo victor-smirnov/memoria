@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <mutex>
 #include <new>
+#include <iostream>
 
 #include "memoria/v1/fiber/exceptions.hpp"
 #include "memoria/v1/fiber/scheduler.hpp"
@@ -110,91 +111,16 @@ thread_local std::size_t context_initializer::counter_;
 thread_local std::size_t context_initializer::contexts_ = 0;
 
 
-
-context *
-context::active() noexcept {
-
-    // initialized the first time control passes; per thread
-    thread_local static context_initializer ctx_initializer;
-    return context_initializer::active_;
+void
+context::suspend() noexcept {
+    get_scheduler()->suspend();
 }
 
 void
-context::reset_active() noexcept {
-    context_initializer::active_ = nullptr;
+context::suspend( detail::spinlock_lock & lk) noexcept {
+    get_scheduler()->suspend( lk);
 }
 
-size_t context::contexts() noexcept {
-    return context_initializer::contexts_;
-}
-
-void
-context::resume_( detail::data_t & d) noexcept {
-    auto result = ctx_( & d);
-    detail::data_t * dp( std::get< 1 >( result) );
-    if ( nullptr != dp) {
-        dp->from->ctx_ = std::move( std::get< 0 >( result) );
-        if ( nullptr != dp->lk) {
-            dp->lk->unlock();
-        } else if ( nullptr != dp->ctx) {
-            context_initializer::active_->set_ready_( dp->ctx);
-        }
-    }
-}
-
-
-void
-context::set_ready_( context * ctx) noexcept {
-    get_scheduler()->set_ready( ctx);
-}
-
-// main fiber context
-context::context( main_context_t) noexcept :
-    use_count_{ 1 }, // allocated on main- or thread-stack
-    flags_{ 0 },
-    type_{ type::main_context },
-    ctx_{} 
-{
-    inc_contexts();
-}
-
-// dispatcher fiber context
-context::context( dispatcher_context_t, boost::context::preallocated const& palloc,
-                  default_stack const& salloc, scheduler * sched) :
-    flags_{ 0 },
-    type_{ type::dispatcher_context },
-
-    ctx_{ std::allocator_arg, palloc, salloc,
-          [this,sched](boost::context::execution_context< detail::data_t * > ctx, detail::data_t * dp) noexcept {
-            // update execution_context of calling fiber
-            dp->from->ctx_ = std::move( ctx);
-            if ( nullptr != dp->lk) {
-                dp->lk->unlock();
-            } else if ( nullptr != dp->ctx) {
-                context_initializer::active_->set_ready_( dp->ctx);
-            }
-            // execute scheduler::dispatch()
-            return sched->dispatch();
-          }}
-    
-{
-    inc_contexts();
-}
-
-context::~context() {
-    BOOST_ASSERT( wait_queue_.empty() );
-    BOOST_ASSERT( ! ready_is_linked() );
-    BOOST_ASSERT( ! sleep_is_linked() );
-    BOOST_ASSERT( ! wait_is_linked() );
-    delete properties_;
-    
-    context_initializer::contexts_--;
-}
-
-context::id
-context::get_id() const noexcept {
-    return id( const_cast< context * >( this) );
-}
 
 void
 context::resume() noexcept {
@@ -229,15 +155,110 @@ context::resume( context * ready_ctx) noexcept {
     resume_( d);
 }
 
-void
-context::suspend() noexcept {
-    get_scheduler()->suspend();
+context *
+context::active() noexcept {
+
+    // initialized the first time control passes; per thread
+    thread_local static context_initializer ctx_initializer;
+    return context_initializer::active_;
 }
 
 void
-context::suspend( detail::spinlock_lock & lk) noexcept {
-    get_scheduler()->suspend( lk);
+context::reset_active() noexcept {
+    context_initializer::active_ = nullptr;
 }
+
+size_t context::contexts() noexcept {
+    return context_initializer::contexts_;
+}
+
+
+void context::resume_( detail::data_t & d) noexcept 
+{
+    MMA1_START_SWITCH_FIBER(this->fake_stack_, stack_pointer_, stack_size_);
+    
+    auto result = ctx_( & d);
+    
+    MMA1_FINISH_SWITCH_FIBER(this->fake_stack_, this->stack_pointer_, this->stack_size_);
+    
+    detail::data_t * dp( std::get< 1 >(result) );
+    
+    if ( nullptr != dp) 
+    {
+        dp->from->ctx_ = std::move( std::get< 0 >(result) );
+        if ( nullptr != dp->lk) 
+        {
+            dp->lk->unlock();
+        } 
+        else if ( nullptr != dp->ctx) {
+            context_initializer::active_->set_ready_( dp->ctx);
+        }
+    }
+}
+
+
+void
+context::set_ready_( context * ctx) noexcept {
+    get_scheduler()->set_ready( ctx);
+}
+
+// main fiber context
+context::context( main_context_t) noexcept :
+    use_count_{ 1 }, // allocated on main- or thread-stack
+    flags_{ 0 },
+    type_{ type::main_context },
+    ctx_{} 
+{
+    inc_contexts();
+}
+
+// dispatcher fiber context
+context::context( dispatcher_context_t, boost::context::preallocated const& palloc,
+                  default_stack const& salloc, scheduler * sched) :
+    flags_{ 0 },
+    type_{ type::dispatcher_context },
+#ifdef MMA1_SANITIZE_STACKS
+    stack_pointer_{palloc.sp},
+    stack_size_{palloc.size},
+#endif
+    ctx_{ std::allocator_arg, palloc, salloc, 
+        [this,sched](boost::context::execution_context< detail::data_t * > ctx, detail::data_t * dp) noexcept {
+            
+            MMA1_FINISH_SWITCH_FIBER(dp->from->fake_stack_, dp->from->stack_pointer_, dp->from->stack_size_);
+            
+            // update execution_context of calling fiber
+            dp->from->ctx_ = std::move( ctx);
+            
+            if ( nullptr != dp->lk) {
+                dp->lk->unlock();
+            } 
+            else if ( nullptr != dp->ctx) {
+                context_initializer::active_->set_ready_( dp->ctx);
+            }
+            
+            // execute scheduler::dispatch()
+            return sched->dispatch();
+    }}
+{
+    inc_contexts();
+}
+
+context::~context() {
+    BOOST_ASSERT( wait_queue_.empty() );
+    BOOST_ASSERT( ! ready_is_linked() );
+    BOOST_ASSERT( ! sleep_is_linked() );
+    BOOST_ASSERT( ! wait_is_linked() );
+    delete properties_;
+    
+    context_initializer::contexts_--;
+}
+
+context::id
+context::get_id() const noexcept {
+    return id( const_cast< context * >( this) );
+}
+
+
 
 void
 context::join() {
@@ -276,10 +297,11 @@ context::suspend_with_cc() noexcept {
     std::swap( context_initializer::active_, prev);
     detail::data_t d{ prev };
     // context switch
+    
+    MMA1_START_SWITCH_FIBER(this->fake_stack_, stack_pointer_, stack_size_);
+    
     return std::move( std::get< 0 >( ctx_( & d) ) );
 }
-
-
 
 boost::context::execution_context< detail::data_t * >
 
@@ -343,7 +365,8 @@ void
 context::set_fss_data( void const * vp,
                        detail::fss_cleanup_function::ptr_t const& cleanup_fn,
                        void * data,
-                       bool cleanup_existing) {
+                       bool cleanup_existing) 
+{
     BOOST_ASSERT( cleanup_fn);
     uintptr_t key( reinterpret_cast< uintptr_t >( vp) );
     fss_data_t::iterator i( fss_data_.find( key) );

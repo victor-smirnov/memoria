@@ -57,7 +57,7 @@ IPAddress::IPAddress(uint8_t oct3, uint8_t oct2, uint8_t oct1, uint8_t oct0)
     
     uint32_t value = ((in_addr_t)oct3) << 24 | ((in_addr_t)oct2) << 16 | ((in_addr_t)oct1) << 8 | ((in_addr_t)oct0);
     
-    addr.s_addr = ::htonl(value);
+    addr.s_addr = htonl(value);
     
     boost::get<in_addr>(address_) = addr;
 }

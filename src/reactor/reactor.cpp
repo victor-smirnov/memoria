@@ -106,9 +106,9 @@ void Reactor::event_loop ()
     }
     
     SBuf buf;
-    buf << "Event Loop finished for " << cpu_ << " yields: " << yield_stat << ", new fibers: " << (fiber_stat) << ", finishes: " << finish_stat;
+    buf << "Event Loop finished for " << cpu_ << " yields: " << yield_stat << ", new fibers: " << (fiber_stat) << ", finishes: " << finish_stat << "\n";
     
-    std::cout << buf.str() << std::endl;
+    std::cout << buf.str();
     
     thread_pool_.stop_workers();
 }

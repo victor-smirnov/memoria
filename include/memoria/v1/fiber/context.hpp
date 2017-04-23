@@ -11,8 +11,10 @@
 #include <exception>
 #include <functional>
 #include <map>
+#include <unordered_map>
 #include <memory>
 #include <type_traits>
+#include <iostream>
 
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
@@ -36,6 +38,8 @@
 #include <memoria/v1/fiber/properties.hpp>
 #include <memoria/v1/fiber/segmented_stack.hpp>
 #include <memoria/v1/fiber/type.hpp>
+
+#include <memoria/v1/core/tools/asan.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX
@@ -154,15 +158,28 @@ private:
         }
     };
 
-    typedef std::map< uintptr_t, fss_data >     fss_data_t;
+    using fss_data_t = std::unordered_map< uintptr_t, fss_data >;
 
     std::size_t                                     use_count_{ 0 };
     unsigned int                                    flags_;
     type                                            type_;
-    scheduler                                   *   scheduler_{ nullptr };
+    scheduler*                                      scheduler_{ nullptr };
 
     launch                                          policy_{ launch::post };
+    
+#ifdef MMA1_SANITIZE_STACKS
+    // ASAN support
+    const void* stack_pointer_{};
+    size_t stack_size_{};
+    void* fake_stack_{};
+#endif
+    
+
+    
     boost::context::execution_context< detail::data_t * >   ctx_;
+
+
+
 
 
     void resume_( detail::data_t &) noexcept;
@@ -179,9 +196,11 @@ private:
             dp->from->ctx_ = std::move( ctx);
             if ( nullptr != dp->lk) {
                 dp->lk->unlock();
-            } else if ( nullptr != dp->ctx) {
+            } 
+            else if ( nullptr != dp->ctx) {
                 active()->set_ready_( dp->ctx);
             }
+            
             boost::context::detail::apply( std::move( fn), std::move( tpl) );
         }
         // terminate context
@@ -291,12 +310,18 @@ public:
         flags_{ 0 },
         type_{ type::worker_context },
         policy_{ policy },
+#ifdef MMA1_SANITIZE_STACKS
+        stack_pointer_{palloc.sp},
+        stack_size_{palloc.size},
+#endif
         ctx_{ std::allocator_arg, palloc, salloc,
-              [this,fn=detail::decay_copy( std::forward< Fn >( fn) ),tpl=std::forward< Tpl >( tpl)]
-               (boost::context::execution_context< detail::data_t * > && ctx, detail::data_t * dp) mutable noexcept {
-                    return run_( std::forward< boost::context::execution_context< detail::data_t * > >( ctx), std::move( fn), std::move( tpl), dp);
+              [this, fn=detail::decay_copy( std::forward< Fn >( fn) ),tpl=std::forward< Tpl >( tpl)]
+              (boost::context::execution_context< detail::data_t * > && ctx, detail::data_t * dp) mutable noexcept 
+              {
+                  MMA1_FINISH_SWITCH_FIBER(dp->from->fake_stack_, dp->from->stack_pointer_, dp->from->stack_size_);
+                  return run_( std::forward< boost::context::execution_context< detail::data_t * > >( ctx), std::move( fn), std::move( tpl), dp);
               }}
-    {
+    {   
         inc_contexts();
     }
 
@@ -463,6 +488,11 @@ static boost::intrusive_ptr< context > make_worker_context( launch policy,
                 std::forward< Fn >( fn),
                 std::make_tuple( std::forward< Args >( args) ... ) ) );
 }
+
+
+
+
+
 
 namespace detail {
 

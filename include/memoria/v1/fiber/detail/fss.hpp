@@ -25,7 +25,7 @@ namespace detail {
 
 class fss_cleanup_function {
 private:
-    std::atomic< std::size_t >  use_count_{ 0 };
+    std::size_t  use_count_{ 0 };
 
 public:
     typedef boost::intrusive_ptr< fss_cleanup_function >   ptr_t;

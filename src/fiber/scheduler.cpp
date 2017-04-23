@@ -26,13 +26,6 @@ namespace memoria {
 namespace v1 {
 namespace fibers {
 
-context *
-scheduler::get_next_() noexcept {
-    context * ctx = algo_->pick_next();
-    //BOOST_ASSERT( nullptr == ctx);
-    //BOOST_ASSERT( this == ctx->get_scheduler() );
-    return ctx;
-}
 
 void
 scheduler::release_terminated_() noexcept {
@@ -94,7 +87,8 @@ scheduler::scheduler() noexcept :
     algo_{ new algo::round_robin() } {
 }
 
-scheduler::~scheduler() {
+scheduler::~scheduler() 
+{
     BOOST_ASSERT( nullptr != main_ctx_);
     BOOST_ASSERT( nullptr != dispatcher_ctx_.get() );
     BOOST_ASSERT( context::active() == main_ctx_);
@@ -118,9 +112,11 @@ scheduler::~scheduler() {
 
 
 boost::context::execution_context< detail::data_t * >
-scheduler::dispatch() noexcept {
+scheduler::dispatch() noexcept 
+{
     BOOST_ASSERT( context::active() == dispatcher_ctx_);
-    for (;;) {
+    for (;;) 
+    {
         bool no_worker = worker_queue_.empty();
         if ( shutdown_) {
             // notify sched-algorithm about termination
@@ -141,7 +137,8 @@ scheduler::dispatch() noexcept {
             // so that ready-queue never becomes empty
             ctx->resume( dispatcher_ctx_.get() );
             BOOST_ASSERT( context::active() == dispatcher_ctx_.get() );
-        } else {
+        } 
+        else {
             // no ready context, wait till signaled
             // set deadline to highest value
             std::chrono::steady_clock::time_point suspend_time =

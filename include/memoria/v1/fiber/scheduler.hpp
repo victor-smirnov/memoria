@@ -82,7 +82,16 @@ private:
     sleep_queue_t                       sleep_queue_{};
     bool                                shutdown_{ false };
 
-    context * get_next_() noexcept;
+    
+    
+    context* get_next_() noexcept 
+    {
+        context* ctx = algo_->pick_next();
+        //BOOST_ASSERT( nullptr == ctx);
+        //BOOST_ASSERT( this == ctx->get_scheduler() );
+        return ctx;
+    }
+    
 
     void release_terminated_() noexcept;
 

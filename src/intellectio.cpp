@@ -22,7 +22,7 @@ using namespace dr;
 volatile size_t counter{};
 
 int main(int argc, char **argv) 
-{
+{    
     Application app(argc, argv);
     
     auto vv = app.run([](){
@@ -31,12 +31,42 @@ int main(int argc, char **argv)
         try {
             int64_t t0 = m::getTimeInMillis();
             
-            for (size_t c = 0; c < 1000000; c++) 
+            /*for (size_t c = 0; c < 100000; c++) 
             {
                 engine().run_at(1, [&]{
                     counter++;
                 });
-            }
+            }*/
+            
+            int size = 1000000;
+            
+            auto fn0 = [&]{
+                for (int c = 0; c < size; c++) {
+                    m::this_fiber::yield();
+                }
+            };
+            
+            df::fiber ff1(fn0);
+            df::fiber ff2(fn0);
+            df::fiber ff3(fn0);
+            df::fiber ff4(fn0);
+            df::fiber ff5(fn0);
+            df::fiber ff6(fn0);
+            df::fiber ff7(fn0);
+            df::fiber ff8(fn0);
+            df::fiber ff9(fn0);
+            df::fiber ff0(fn0);
+            
+            ff1.join();
+            ff2.join();
+            ff3.join();
+            ff4.join();
+            ff5.join();
+            ff6.join();
+            ff7.join();
+            ff8.join();
+            ff9.join();
+            ff0.join();
             
             int64_t t1 = m::getTimeInMillis();
 
