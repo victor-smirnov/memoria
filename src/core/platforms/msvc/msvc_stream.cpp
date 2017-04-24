@@ -3,6 +3,7 @@
 namespace memoria {
 namespace v1 {
  
+/*    
     FileOutputStreamHandlerImpl::FileOutputStreamHandlerImpl(const char* file)
     {
         closed_ = false;
@@ -105,6 +106,6 @@ namespace v1 {
     }
 
    
-
+*/
 
 }}

@@ -25,9 +25,13 @@ endif()
 FOREACH(MEMORIA_TARGET ${MEMORIA_SANDBOX})
 
     add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
-    set_target_properties(${MEMORIA_TARGET} PROPERTIES COMPILE_FLAGS "-g ${MEMORIA_COMPILE_FLAGS}")
+    set_target_properties(${MEMORIA_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
     set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
     set_target_properties(${MEMORIA_TARGET} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}/sandbox")
     target_link_libraries(${MEMORIA_TARGET} Memoria MemoriaTools ${MEMORIA_LIBS}) 
 
+    if (NOT MSVC)
+        target_link_libraries(${MEMORIA_TARGET} boost_system boost_filesystem) 
+    endif()
+    
 ENDFOREACH(MEMORIA_TARGET)

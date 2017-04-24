@@ -55,16 +55,17 @@ int main()
         auto snp = alloc->master()->branch();
 
         auto map = create<Set<Key>>(snp);
+        
+        auto map_name = map->name();
+        
         map->setNewPageSize(65536);
 
-        int size = 30000000;
+        int size = 100000;
 
         Ticker ticker(100000);
 
         BigInt t0 = getTimeInMillis();
         BigInt tl = t0;
-
-
 
         for (int c = 0; c < size; c++)
         {
@@ -96,12 +97,16 @@ int main()
 
         snp->commit();
 
-//        FSDumpAllocator(snp, "setl_full.dir");
+
 
         // Store binary contents of allocator to the file.
         auto out = FileOutputStreamHandler::create("setl_data.dump");
         alloc->store(out.get());
-		/**/
+		
+        
+        auto alloc2 = PersistentInMemAllocator<>::load("setl_data.dump");
+        
+        auto set1 = find<Set<Key>>(alloc->master(), map_name);
     }
     catch (Exception& ex)
     {
