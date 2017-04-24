@@ -43,7 +43,7 @@ namespace details {
 }
 
 template <Int Num, typename List>
-using Select = typename details::SelectT<Num, List, 0>::Type;
+using Select = typename memoria::v1::details::SelectT<Num, List, 0>::Type;
 
 
 template <Int Value, typename List, Int idx = 0> struct SelectV;

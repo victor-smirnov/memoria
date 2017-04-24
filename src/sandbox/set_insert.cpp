@@ -96,7 +96,7 @@ int main()
 
 
         snp->commit();
-
+		snp->set_as_master();
 
 
         // Store binary contents of allocator to the file.
@@ -107,6 +107,8 @@ int main()
         auto alloc2 = PersistentInMemAllocator<>::load("setl_data.dump");
         
         auto set1 = find<Set<Key>>(alloc->master(), map_name);
+
+		std::cout << "Ctr size: " << set1->size() << std::endl;
     }
     catch (Exception& ex)
     {
