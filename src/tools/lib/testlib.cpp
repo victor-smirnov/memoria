@@ -18,6 +18,8 @@
 #include <memoria/v1/tools/tools.hpp>
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 
+#include <boost/filesystem.hpp>
+
 #include <algorithm>
 #include <fstream>
 #include <memory>
@@ -25,6 +27,8 @@
 namespace memoria {
 namespace v1 {
 
+namespace bf = boost::filesystem;      
+    
 TestTask::~TestTask() throw ()
 {
     for (TestDescriptor* descr: tests_)
@@ -123,20 +127,17 @@ String TestTask::getFileName(StringRef name) const
 
 void MemoriaTestRunner::Replay(ostream& out, StringRef task_folder)
 {
-    File folder(task_folder);
-
     Configurator cfg;
     Configurator task_cfg;
 
     String replay_file_name;
     String task_file_name;
 
-    if (folder.isExists())
+    if (bf::exists(task_folder))
     {
         replay_file_name = task_folder + Platform::getFilePathSeparator() + "ReplayTask.properties";
-        File file(replay_file_name);
-
-        if (!file.isExists())
+        
+        if (!bf::exists(replay_file_name))
         {
             throw Exception(MEMORIA_SOURCE, SBuf()<<"File "<<replay_file_name<<" does not exists");
         }

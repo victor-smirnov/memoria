@@ -22,6 +22,7 @@
 #include <memoria/v1/core/tools/terminal.hpp>
 #include <memoria/v1/core/tools/random.hpp>
 #include <memoria/v1/core/tools/time.hpp>
+#include <memoria/v1/core/tools/strings/string.hpp>
 #include <memoria/v1/core/container/logs.hpp>
 
 #include <memoria/v1/containers/vector/vctr_names.hpp>
@@ -32,7 +33,7 @@
 #include <fstream>
 
 #include <malloc.h>
-#include <memoria/v1/core/tools/strings/string.hpp>
+
 
 namespace memoria {
 namespace v1 {

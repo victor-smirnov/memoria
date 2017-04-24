@@ -20,8 +20,12 @@
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 #include <memoria/v1/core/tools/strings/string.hpp>
 
+#include <boost/filesystem.hpp>
+
 namespace memoria {
 namespace v1 {
+
+namespace bf = boost::filesystem;
 
 void CmdLine::Process()
 {
@@ -219,9 +223,7 @@ void CmdLine::processTests()
 
     if ((!cfg_cpecified) && !list_)
     {
-        File f0(cfg_file_name_);
-
-        if (f0.isExists())
+        if (bf::exists(cfg_file_name_))
         {
             Configurator::Parse(cfg_file_name_, &cfg_file_);
         }
@@ -229,9 +231,7 @@ void CmdLine::processTests()
             String image_path = getImagePathPart(argv_[0]);
             String cfg_file_name = image_path + Platform::getFilePathSeparator()+cfg_file_name_;
 
-            File f1(cfg_file_name);
-
-            if (f1.isExists())
+            if (bf::exists(cfg_file_name))
             {
                 Configurator::Parse(cfg_file_name, &cfg_file_);
             }
@@ -258,45 +258,14 @@ void CmdLine::processTests()
 
 
 
-
-
-
-
 String CmdLine::getImagePathPart(const char* str)
 {
-    File file(str);
-    String abs_path = file.getAbsolutePath();
-
-    if (file.getName() == abs_path)
-    {
-        return Platform::getPathSeparator();
-    }
-    else {
-        auto pos = abs_path.find_last_of(Platform::getFilePathSeparator());
-
-        if (pos != String::npos)
-        {
-            return abs_path.substr(0, pos);
-        }
-        else {
-            return Platform::getFilePathSeparator();
-        }
-    }
+    return bf::absolute(str).parent_path().string();
 }
 
 String CmdLine::getImageName(const char* str)
 {
-    String st(str);
-
-    auto pos = st.find_last_of(Platform::getFilePathSeparator());
-
-    if (pos != String::npos)
-    {
-        return st.substr(pos + 1);
-    }
-    else {
-        return st;
-    }
+    return bf::absolute(str).filename().string();
 }
 
 

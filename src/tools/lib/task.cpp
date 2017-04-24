@@ -16,7 +16,8 @@
 
 #include <memoria/v1/tools/task.hpp>
 #include <memoria/v1/tools/tools.hpp>
-#include <memoria/v1/core/tools/file.hpp>
+
+#include <boost/filesystem.hpp>
 
 #include <algorithm>
 #include <memory>
@@ -26,6 +27,8 @@
 namespace memoria {
 namespace v1 {
 
+namespace bf = boost::filesystem;    
+    
 Task::~Task() throw () {
 
 }
@@ -39,13 +42,11 @@ void Task::Configure(Configurator* cfg)
 
 void Task::BuildResources()
 {
-    File output_f(output_folder_);
-
     bool own_folder = this->own_folder;
 
-    if (!output_f.isExists())
+    if (!bf::exists(output_folder_))
     {
-        output_f.mkDirs();
+        bf::create_directories(output_folder_);
     }
 
     String out_file_name = output_folder_
@@ -273,10 +274,9 @@ Int GroupRunner::Run()
             task_folder = output_folder_;
         }
 
-        File folder(task_folder);
-        if (!folder.isExists())
+        if (!bf::exists(task_folder))
         {
-            folder.mkDirs();
+            bf::create_directories(task_folder);
         }
 
         for (auto t: tasks_)

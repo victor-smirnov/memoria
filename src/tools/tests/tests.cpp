@@ -86,7 +86,7 @@ int main(int argc, const char** argv, const char** envp)
 
 //        runner.registerTask(new BitmapTestSuite());
 //
-//        runner.registerTask(new PackedCodecsTestSuite());
+        runner.registerTask(new PackedCodecsTestSuite());
 //        runner.registerTask(new PackedAllocatorTestSuite());
 //        runner.registerTask(new PackedTreeTestSuite());
 //        runner.registerTask(new PackedMaxTreeTestSuite());
@@ -96,19 +96,20 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new PackedLoudsTestSuite());
 //        runner.registerTask(new PackedLoudsCardinalTestSuite());
 //        runner.registerTask(new PackedWaveletTreeTestSuite());
-//
-        runner.registerTask(new BTTestSuite());
-        runner.registerTask(new BTFLTestSuite());
-        runner.registerTask(new BTSSTestSuite());
 
-        runner.registerTask(new MapTestSuite());
-        runner.registerTask(new VectorTestSuite());
+//         runner.registerTask(new BTTestSuite());
+//         runner.registerTask(new BTFLTestSuite());
+//         runner.registerTask(new BTSSTestSuite());
+// 
+//         runner.registerTask(new MapTestSuite());
+//         runner.registerTask(new VectorTestSuite());
+        
 //        runner.registerTask(new SequenceTestSuite());
 //        runner.registerTask(new LabeledTreeTestSuite());
 //        runner.registerTask(new WTTestSuite());
 
         //runner.registerTask(new VTreeTestSuite());
-        runner.registerTask(new MultiMapTestSuite());
+//         runner.registerTask(new MultiMapTestSuite());
 
         runner.Configure(&cmd_line.getConfigurator());
 

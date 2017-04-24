@@ -18,9 +18,10 @@
 
 
 #include <memoria/v1/tools/configuration.hpp>
-#include <memoria/v1/core/tools/file.hpp>
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 #include <memoria/v1/core/tools/strings/string.hpp>
+
+#include <boost/filesystem.hpp>
 
 #include <map>
 #include <fstream>
@@ -30,6 +31,8 @@
 namespace memoria {
 namespace v1 {
 
+namespace bf = boost::filesystem;
+    
 using namespace std;
 
 StringList::StringList(StringRef list, StringRef separators)
@@ -379,8 +382,7 @@ Configurator* Configurator::BuildRootConfigurator(const char** envp) {
 Configurator* Configurator::BuildChain(const char** envp, bool read_config_files)
 {
     Configurator* root = BuildRootConfigurator(envp);
-    Configurator* platform = root;//BuildPlatformDefaultsConfigurator();
-    //        platform->setParent(root);
+    Configurator* platform = root;
 
     if (read_config_files)
     {
@@ -390,32 +392,30 @@ Configurator* Configurator::BuildChain(const char** envp, bool read_config_files
         {
             try {
                 String dirPath = list.getItem(c);
-                File path(dirPath);
-                if (path.isExists())
+                
+                if (bf::exists(dirPath))
                 {
-                    if (!path.isDirectory())
+                    if (!bf::is_directory(dirPath))
                     {
-                        Configurator* cfg = Configurator::Parse(path.getPath());
+                        Configurator* cfg = Configurator::Parse(dirPath);
                         cfg->setParent(platform);
                         platform = cfg;
                     }
                     else {
-                        unique_ptr<File::FileListType> list(File::readDir(path));
                         Configurator* cfg = NULL;
 
-                        for (File::FileListType::iterator i = list->begin(); i != list->end(); i++)
+                        for (auto& entry : bf::directory_iterator(dirPath)) 
                         {
-                            File* file = *i;
-                            if (!file->isDirectory())
+                            if (bf::is_directory(entry.path()))
                             {
-                                if (isEndsWith(file->getName(), ".props"))
+                                if (isEndsWith(entry.path().string(), ".props"))
                                 {
-                                    cfg = Configurator::Parse(file->getPath(), cfg);
+                                    cfg = Configurator::Parse(entry.path().string(), cfg);
                                 }
                             }
                         }
-
-                        if (cfg != NULL)
+                        
+                        if (cfg)
                         {
                             cfg->setParent(platform);
                             platform = cfg;
@@ -425,7 +425,7 @@ Configurator* Configurator::BuildChain(const char** envp, bool read_config_files
             }
             catch (MemoriaThrowable e)
             {
-                cout<<e.source()<<": "<<e<<endl;
+                cout << e.source() << ": " << e <<endl;
             }
         }
     }

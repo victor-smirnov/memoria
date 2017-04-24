@@ -72,7 +72,7 @@ if (BUILD_UNIX OR MINGW)
     SET(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)
     SET(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS)
 
-    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -Wall -Wno-sign-compare -flto" )
+    set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -Wall -Wno-sign-compare" )
 
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -fstrict-aliasing -Wstrict-aliasing=2 -Wfatal-errors  -ftemplate-backtrace-limit=0") 
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -Wno-comment -Wno-unknown-warning-option -Wunused-variable")
@@ -81,7 +81,7 @@ if (BUILD_UNIX OR MINGW)
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -Wno-missing-braces")
     set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -Wno-variables")
     
-    set (MEMORIA_LINK_FLAGS "${MEMORIA_LINK_FLAGS} -pthread -flto")
+    set (MEMORIA_LINK_FLAGS "${MEMORIA_LINK_FLAGS} -pthread")
     
     if (USE_ASAN)
         set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -fsanitize=address -DASAN_ENABLED")
