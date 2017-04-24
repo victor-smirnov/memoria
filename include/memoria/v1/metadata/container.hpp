@@ -20,10 +20,11 @@
 #include <memoria/v1/metadata/group.hpp>
 #include <memoria/v1/metadata/page.hpp>
 #include <memoria/v1/core/exceptions/exceptions.hpp>
-#include <memoria/v1/core/tools/file.hpp>
 #include <memoria/v1/core/tools/assert.hpp>
 #include <memoria/v1/core/tools/platform.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
+
+#include <boost/filesystem.hpp>
 
 #include <stack>
 #include <sstream>
@@ -34,6 +35,7 @@
 namespace memoria {
 namespace v1 {
 
+namespace bf = boost::filesystem;    
 
 struct ContainerWalker {
     virtual void beginAllocator(const char* type, const char* desc)             = 0;
@@ -255,24 +257,22 @@ class FSDumpContainerWalker: public ContainerWalker {
     typedef typename Page::ID                                                   ID;
 
     ContainerMetadataRepository* metadata_;
-    std::stack<File> path_;
+    std::stack<bf::path> path_;
 
 public:
     FSDumpContainerWalker(ContainerMetadataRepository* metadata, StringRef root):
         metadata_(metadata)
     {
-        File root_path(root);
-
-        if (!root_path.isExists())
+        if (!bf::exists(root))
         {
-            root_path.mkDirs();
+            bf::create_directories(root);
         }
         else {
-            root_path.delTree();
-            root_path.mkDirs();
+            bf::remove_all(root);
+            bf::create_directories(root);
         }
 
-        path_.push(root_path);
+        path_.push(bf::path(root));
     }
 
     virtual void beginSnapshotSet(const char* descr, size_t number)
@@ -339,7 +339,7 @@ public:
     {
         const Page* page = T2T<Page*>(page_data);
 
-        String file_name = path_.top().getPath() + Platform::getFilePathSeparator() + "root_leaf.txt";
+        String file_name = path_.top().string() + Platform::getFilePathSeparator() + "root_leaf.txt";
 
         dumpPage(file_name, page);
     }
@@ -350,7 +350,7 @@ public:
 
         String description = getNodeName("Leaf", idx, page->id());
 
-        String file_name = path_.top().getPath() + Platform::getFilePathSeparator() + description + ".txt";
+        String file_name = path_.top().string() + Platform::getFilePathSeparator() + description + ".txt";
 
         dumpPage(file_name, page);
     }
@@ -379,7 +379,7 @@ public:
     {
         const Page* page = T2T<Page*>(page_data);
 
-        String file_name = path_.top().getPath() + Platform::getFilePathSeparator() + description + ".txt";
+        String file_name = path_.top().string() + Platform::getFilePathSeparator() + description + ".txt";
 
         dumpPage(file_name, page);
     }
@@ -408,7 +408,7 @@ private:
         String folder_name = getNodeName(type, idx, page->id());
         pushFolder(folder_name.c_str());
 
-        String file_name = path_.top().getPath() + Platform::getFilePathSeparator() + "0_page.txt";
+        String file_name = path_.top().string() + Platform::getFilePathSeparator() + "0_page.txt";
 
         dumpPage(file_name, page);
     }
@@ -425,7 +425,7 @@ private:
 
     void dumpDescription(StringRef type, StringRef content)
     {
-        String file_name = path_.top().getPath() + Platform::getFilePathSeparator() + type + ".txt";
+        String file_name = path_.top().parent_path().string() + Platform::getFilePathSeparator() + type + ".txt";
 
         std::ofstream file(file_name.c_str());
 
@@ -434,9 +434,12 @@ private:
 
     void pushFolder(const char* descr)
     {
-        String name = path_.top().getPath() + Platform::getFilePathSeparator() + String(descr);
-        File file(name);
-        MEMORIA_V1_ASSERT_TRUE(file.mkDir());
+        String name = path_.top().string() + Platform::getFilePathSeparator() + String(descr);
+        bf::path file(name);
+        
+        auto res = bf::create_directory(name);
+        
+        MEMORIA_V1_ASSERT_TRUE(res);
         path_.push(file);
     }
 

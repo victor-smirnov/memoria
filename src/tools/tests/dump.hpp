@@ -18,11 +18,15 @@
 #include <memoria/v1/allocators/inmem/threads/factory.hpp>
 #include <memoria/v1/metadata/container.hpp>
 
+#include <boost/filesystem.hpp>
+
 #include <memory>
 
 namespace memoria {
 namespace v1 {
 
+namespace bf = boost::filesystem;    
+    
 template <typename AllocatorT>
 static void LoadFile(const std::shared_ptr<AllocatorT>& allocator, const char* file)
 {
@@ -48,55 +52,55 @@ static Int DumpAllocator(String file_name)
 	try {
 		logger.level() = Logger::NONE;
 
-		File file(file_name);
-		if (file.isDirectory())
+		bf::path file(file_name);
+		if (bf::is_directory(file))
 		{
-			cerr<<"ERROR: "<<file.getPath()<<" is a directory"<<endl;
+			std::cerr << "ERROR: " << file << " is a directory" << std::endl;
 			return 1;
 		}
-		else if (!file.isExists())
+		else if (!bf::exists(file))
 		{
-			cerr<<"ERROR: "<<file.getPath()<<" does not exists"<<endl;
-			return 1;
-		}
-
-		File path(getPath(file_name));
-		if (path.isExists() && !path.isDirectory())
-		{
-			cerr<<"ERROR: "<<path.getPath()<<" is not a directory"<<endl;
+			std::cerr << "ERROR: "<< file << " does not exists" << std::endl;
 			return 1;
 		}
 
-		auto is = FileInputStreamHandler::create(file.getPath().c_str());
+		bf::path path(getPath(file_name));
+		if (bf::exists(path) && !bf::is_directory(path))
+		{
+			std::cerr << "ERROR: " << path << " is not a directory" << std::endl;
+			return 1;
+		}
+
+		auto is = FileInputStreamHandler::create(file.string().c_str());
 
 		auto allocator = PersistentInMemAllocator<>::load(is.get());
 
-		cout<<"Load InMemAllocator file: "+file.getPath()<<endl;
+		std::cout << "Load InMemAllocator file: " << file << std::endl;
 
 		auto start = getTimeInMillis();
 
-		LoadFile(allocator, file.getPath().c_str());
+		LoadFile(allocator, file.string().c_str());
 
 		auto end = getTimeInMillis();
 
-		cout<<"Loading time: "<<FormatTime(end-start)<<endl;
+		std::cout<<"Loading time: "<<FormatTime(end-start)<<std::endl;
 
-		FSDumpAllocator(allocator, path.getAbsolutePath());
+		FSDumpAllocator(allocator, bf::absolute(path).string().c_str());
 	}
 	catch (Exception& ex) {
-		cout<<"Exception "<<ex.source()<<" "<<ex<<endl;
+		std::cout<<"Exception "<<ex.source()<<" "<<ex<<std::endl;
 	}
 	catch (MemoriaThrowable* ex) {
-		cout<<"Exception* "<<ex->source()<<" "<<*ex<<endl;
+		std::cout<<"Exception* "<<ex->source()<<" "<<*ex<<std::endl;
 	}
 	catch (MemoriaThrowable& ex) {
-		cout<<"Exception "<<ex.source()<<" "<<ex<<endl;
+		std::cout<<"Exception "<<ex.source()<<" "<<ex<<std::endl;
 	}
 	catch (exception& e) {
-		cout<<"StdEx: "<<e.what()<<endl;
+		std::cout<<"StdEx: "<<e.what()<<std::endl;
 	}
 	catch(...) {
-		cout<<"Unrecognized exception"<<endl;
+		std::cout<<"Unrecognized exception"<<std::endl;
 	}
 
 	return 0;

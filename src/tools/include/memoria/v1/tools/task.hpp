@@ -19,8 +19,9 @@
 
 #include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/tools/params.hpp>
-#include <memoria/v1/core/tools/file.hpp>
 #include <memoria/v1/core/tools/time.hpp>
+
+#include <boost/filesystem.hpp>
 
 #include <vector>
 #include <ostream>
@@ -30,7 +31,7 @@
 namespace memoria {
 namespace v1 {
 
-using namespace std;
+
 
 
 class TaskParametersSet: public ParametersSet {
@@ -164,8 +165,7 @@ public:
     bool IsResourceExists(StringRef name) const
     {
         String path = getResourcePath(name);
-        File file(path);
-        return file.isExists();
+        return boost::filesystem::exists(path);
     }
 
     virtual void BuildResources();

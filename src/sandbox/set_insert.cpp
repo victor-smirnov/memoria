@@ -60,7 +60,7 @@ int main()
         
         map->setNewPageSize(65536);
 
-        int size = 100000;
+        int size = 10000;
 
         Ticker ticker(100000);
 
@@ -109,6 +109,12 @@ int main()
         auto set1 = find<Set<Key>>(alloc->master(), map_name);
 
 		std::cout << "Ctr size: " << set1->size() << std::endl;
+        
+        alloc2->dump("alloc2.dump");
+    }
+    catch (std::exception& ex)
+    {
+        cout << ex.what() << endl;
     }
     catch (Exception& ex)
     {
