@@ -100,4 +100,7 @@ template <typename Profile, typename T>
 using CtrMakeUniquePtr = typename ContainerCollectionCfg<Profile>::Types::template CtrMakeUniquePtr<T>;
 
 
+template <typename Profile>
+using ProfilePageType = typename ContainerCollectionCfg<Profile>::Types::Page;
+
 }}

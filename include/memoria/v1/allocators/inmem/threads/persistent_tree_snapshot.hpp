@@ -16,7 +16,8 @@
 
 #pragma once
 
-#include "persistent_tree_node.hpp"
+#include "persistent_tree.hpp"
+#include "allocator_inmem_threads_api.hpp"
 
 #include <memoria/v1/core/container/allocator.hpp>
 #include <memoria/v1/core/container/metadata_repository.hpp>
@@ -29,6 +30,8 @@
 #include <memoria/v1/core/tools/pair.hpp>
 #include <memoria/v1/core/tools/type_name.hpp>
 
+
+
 #include <vector>
 #include <memory>
 #include <mutex>
@@ -38,12 +41,13 @@
 namespace memoria {
 namespace v1 {
 
-template <typename Profile, typename PageType>
-class PersistentInMemAllocatorT;
+template <typename Profile>
+class ThreadInMemAllocatorImpl;
 
-namespace persistent_inmem {
 
-namespace details {
+    
+    
+namespace persistent_inmem_thread {
 
 template <typename CtrT, typename Allocator>
 class SharedCtr: public CtrT {
@@ -59,8 +63,7 @@ public:
         return CtrT::alloc_holder_;
     }
 };
-
-}
+        
 
 enum class SnapshotStatus {ACTIVE, COMMITTED, DROPPED, DATA_LOCKED};
 
@@ -89,16 +92,24 @@ public:
 
 
 
-template <typename Profile, typename PageType, typename HistoryNode, typename PersitentTree, typename HistoryTree>
+template <typename Profile, typename HistoryTree>
 class Snapshot:
-        public IWalkableAllocator<PageType>,
+        public IWalkableAllocator<ProfilePageType<Profile>>,
         public CtrEnableSharedFromThis<
             Profile, 
-            Snapshot<Profile, PageType, HistoryNode, PersitentTree, HistoryTree>
+            Snapshot<Profile, HistoryTree>
         >
 {    
+    using PageType          = ProfilePageType<Profile>;
     using Base              = IAllocator<PageType>;
-    using MyType            = Snapshot<Profile, PageType, HistoryNode, PersitentTree, HistoryTree>;
+        
+    using HistoryNode       = typename ThreadInMemAllocatorImpl<Profile>::HistoryNode;
+    
+    using PersistentTreeT   = typename HistoryTree::PersistentTreeT;
+    
+    using MyType            = Snapshot<Profile, HistoryTree>;
+    
+    
     
     template <typename T>
     using CtrSharedPtr = memoria::v1::CtrSharedPtr<Profile, T>;
@@ -109,10 +120,10 @@ class Snapshot:
     using HistoryTreePtr    = CtrSharedPtr<HistoryTree>;
     using SnapshotPtr       = CtrSharedPtr<MyType>;
 
-    using NodeBaseT         = typename PersitentTree::NodeBaseT;
-    using LeafNodeT         = typename PersitentTree::LeafNodeT;
-    using PTreeValue        = typename PersitentTree::LeafNodeT::Value;
-    using RCPagePtr			= typename std::remove_pointer<typename PersitentTree::Value::Value>::type;
+    using NodeBaseT         = typename PersistentTreeT::NodeBaseT;
+    using LeafNodeT         = typename PersistentTreeT::LeafNodeT;
+    using PTreeValue        = typename LeafNodeT::Value;
+    using RCPagePtr			= typename std::remove_pointer<typename PersistentTreeT::Value::Value>::type;
 
     using Status            = typename HistoryNode::Status;
 
@@ -140,7 +151,7 @@ class Snapshot:
 public:
 
     template <typename CtrName>
-    using CtrT = v1::persistent_inmem::details::SharedCtr<typename CtrTF<Profile, CtrName>::Type, MyType>;
+    using CtrT = v1::persistent_inmem_thread::SharedCtr<typename CtrTF<Profile, CtrName>::Type, MyType>;
 
     template <typename CtrName>
     using CtrPtr = std::shared_ptr<CtrT<CtrName>>;
@@ -175,7 +186,7 @@ private:
     HistoryTreePtr  history_tree_;
     HistoryTree*    history_tree_raw_ = nullptr;
 
-    PersitentTree persistent_tree_;
+    PersistentTreeT persistent_tree_;
 
     StaticPool<ID, Shared, 256>  pool_;
 
@@ -187,8 +198,8 @@ private:
 
     ContainerMetadataRepository*  metadata_;
 
-    template <typename, typename>
-    friend class v1::PersistentInMemAllocatorT;
+    template <typename>
+    friend class memoria::v1::ThreadInMemAllocatorImpl;
 
     PairPtr pair_;
     
@@ -557,7 +568,7 @@ public:
     	{
     		txn->for_each_ctr_node(name, [&](const UUID& uuid, const UUID& id, const void* page_data){
     			auto rc_handle = txn->export_page_rchandle(id);
-    			using Value = typename PersitentTree::Value;
+    			using Value = typename PersistentTreeT::Value;
 
     			rc_handle->ref();
 
@@ -638,7 +649,7 @@ public:
     			}
 
     			auto rc_handle = txn->export_page_rchandle(id);
-    			using Value = typename PersitentTree::Value;
+    			using Value = typename PersistentTreeT::Value;
 
     			rc_handle->ref();
 
@@ -1270,7 +1281,7 @@ protected:
     void ptree_set_new_page(Page* page)
     {
         const auto& txn_id = history_node_->txn_id();
-        using Value = typename PersitentTree::Value;
+        using Value = typename PersistentTreeT::Value;
         auto ptr = new RCPagePtr(page, 1);
         auto old_value = persistent_tree_.assign(page->id(), Value(ptr, txn_id));
 
@@ -1379,7 +1390,7 @@ protected:
 
     static void delete_snapshot(HistoryNode* node) throw ()
     {
-        PersitentTree persistent_tree(node);
+        PersistentTreeT persistent_tree(node);
 
         persistent_tree.delete_tree([&](LeafNodeT* leaf){
             for (Int c = 0; c < leaf->size(); c++)
@@ -1432,26 +1443,26 @@ protected:
 
 }
 
-template <typename CtrName, typename Profile, typename PageType, typename HistoryNode, typename PersitentTree, typename HistoryTree>
-auto create(const std::shared_ptr<persistent_inmem::Snapshot<Profile, PageType, HistoryNode, PersitentTree, HistoryTree>>& alloc, const UUID& name)
+template <typename CtrName, typename Profile, typename HistoryTree>
+auto create(const std::shared_ptr<persistent_inmem_thread::Snapshot<Profile, HistoryTree>>& alloc, const UUID& name)
 {
     return alloc->template create<CtrName>(name);
 }
 
-template <typename CtrName, typename Profile, typename PageType, typename HistoryNode, typename PersitentTree, typename HistoryTree>
-auto create(const std::shared_ptr<persistent_inmem::Snapshot<Profile, PageType, HistoryNode, PersitentTree, HistoryTree>>& alloc)
+template <typename CtrName, typename Profile, typename HistoryTree>
+auto create(const std::shared_ptr<persistent_inmem_thread::Snapshot<Profile, HistoryTree>>& alloc)
 {
     return alloc->template create<CtrName>();
 }
 
-template <typename CtrName, typename Profile, typename PageType, typename HistoryNode, typename PersitentTree, typename HistoryTree>
-auto find_or_create(const std::shared_ptr<persistent_inmem::Snapshot<Profile, PageType, HistoryNode, PersitentTree, HistoryTree>>& alloc, const UUID& name)
+template <typename CtrName, typename Profile, typename HistoryTree>
+auto find_or_create(const std::shared_ptr<persistent_inmem_thread::Snapshot<Profile, HistoryTree>>& alloc, const UUID& name)
 {
     return alloc->template find_or_create<CtrName>(name);
 }
 
-template <typename CtrName, typename Profile, typename PageType, typename HistoryNode, typename PersitentTree, typename HistoryTree>
-auto find(const std::shared_ptr<persistent_inmem::Snapshot<Profile, PageType, HistoryNode, PersitentTree, HistoryTree>>& alloc, const UUID& name)
+template <typename CtrName, typename Profile, typename HistoryTree>
+auto find(const std::shared_ptr<persistent_inmem_thread::Snapshot<Profile, HistoryTree>>& alloc, const UUID& name)
 {
     return alloc->template find<CtrName>(name);
 }

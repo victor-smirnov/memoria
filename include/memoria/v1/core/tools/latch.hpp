@@ -47,7 +47,7 @@ public:
 		--value_;
 	}
 
-	const T& get() const {
+	const T& get() {
 		std::unique_lock<std::mutex> lk(mutex_);
 		return value_;
 	}

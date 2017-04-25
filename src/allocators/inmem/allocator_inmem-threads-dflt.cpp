@@ -15,5 +15,18 @@
 
 
 
-//#include <memoria/v1/allocators/inmem/factory.hpp>
+#include <memoria/v1/allocators/inmem/threads/factory.hpp>
 
+namespace memoria {
+namespace v1 {
+
+using Profile = DefaultProfile<>;    
+    
+template class ThreadInMemAllocatorImpl<Profile>;
+
+namespace persistent_inmem_thread {
+    template class Snapshot<Profile, ThreadInMemAllocatorImpl<Profile>>;
+}
+    
+}    
+}

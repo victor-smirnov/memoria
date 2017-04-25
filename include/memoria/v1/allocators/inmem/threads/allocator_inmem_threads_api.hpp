@@ -1,5 +1,5 @@
 
-// Copyright 2016 Victor Smirnov
+// Copyright 2017 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,40 +13,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 #pragma once
 
-#include <memoria/v1/containers/map/map_factory.hpp>
-
-#include <memoria/v1/core/container/metadata_repository.hpp>
-
-#include "allocator.hpp"
+#include <memoria/v1/core/types/types.hpp>
 
 namespace memoria {
 namespace v1 {
 
+template <typename Profile> class ThreadInMemAllocatorImpl;
+    
 template <typename Profile>
-class ContainerCollectionCfg;
-
-template <typename T>
-class ContainerCollectionCfg<DefaultProfile<T> > {
+class ThreadInMemAllocator {
+    using PImpl = ThreadInMemAllocatorImpl<Profile>;
+    
+    PImpl* pimpl_;
 public:
-    using Types = BasicContainerCollectionCfg<DefaultProfile<T>>;
+    ThreadInMemAllocator(PImpl* impl): pimpl_(impl) {}
+    ThreadInMemAllocator(ThreadInMemAllocator&& impl);
+    
+    ThreadInMemAllocator(const ThreadInMemAllocator&) = delete;
+    ThreadInMemAllocator& operator=(const ThreadInMemAllocator&) = delete;
+    
+    ~ThreadInMemAllocator();
+    
+    ThreadInMemAllocator& operator=(ThreadInMemAllocator&&);
+    
+    static ThreadInMemAllocator open();
 };
 
-
-template <typename CtrName>
-using DCtrTF = CtrTF<DefaultProfile<>, CtrName>;
-
-template <typename CtrName>
-using DCtr = typename CtrTF<DefaultProfile<>, CtrName>::Type;
-
-template <typename CtrName>
-void DInit() {
-    DCtr<CtrName>::initMetadata();
 }
-
-
-
-
-}}
+}

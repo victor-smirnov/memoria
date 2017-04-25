@@ -18,7 +18,7 @@
 
 #include "persistent_tree_node.hpp"
 #include "persistent_tree_iterator.hpp"
-#include "persistent_tree_snapshot.hpp"
+
 
 #include <memoria/v1/core/exceptions/memoria.hpp>
 
@@ -32,7 +32,7 @@
 
 namespace memoria {
 namespace v1 {
-namespace persistent_inmem {
+namespace persistent_inmem_thread {
 
 
 template <typename BranchNodeT, typename LeafNodeT_, typename RootProvider, typename PageType>

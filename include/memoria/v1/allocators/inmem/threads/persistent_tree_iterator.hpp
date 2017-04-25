@@ -31,7 +31,7 @@
 
 namespace memoria {
 namespace v1 {
-namespace persistent_inmem {
+namespace persistent_inmem_thread {
 
 
 template <typename BranchNode, typename LeafNode>

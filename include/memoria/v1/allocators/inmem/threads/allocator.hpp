@@ -42,6 +42,10 @@
 namespace memoria {
 namespace v1 {
 
+    
+    
+
+namespace persistent_inmem_thread {
 namespace details {
 
 	template <typename PageT>
@@ -112,9 +116,10 @@ namespace details {
 
 }
 
+}
 
 template <typename V, typename T>
-OutputStreamHandler& operator<<(OutputStreamHandler& out, const v1::details::PersistentTreeValue<V, T>& value)
+OutputStreamHandler& operator<<(OutputStreamHandler& out, const persistent_inmem_thread::details::PersistentTreeValue<V, T>& value)
 {
     out << value.page_ptr();
     out << value.txn_id();
@@ -122,7 +127,7 @@ OutputStreamHandler& operator<<(OutputStreamHandler& out, const v1::details::Per
 }
 
 template <typename V, typename T>
-InputStreamHandler& operator>>(InputStreamHandler& in, v1::details::PersistentTreeValue<V, T>& value)
+InputStreamHandler& operator>>(InputStreamHandler& in, persistent_inmem_thread::details::PersistentTreeValue<V, T>& value)
 {
     in >> value.page_ptr();
     in >> value.txn_id();
@@ -130,7 +135,7 @@ InputStreamHandler& operator>>(InputStreamHandler& in, v1::details::PersistentTr
 }
 
 template <typename V, typename T>
-std::ostream& operator<<(std::ostream& out, const v1::details::PersistentTreeValue<V, T>& value)
+std::ostream& operator<<(std::ostream& out, const persistent_inmem_thread::details::PersistentTreeValue<V, T>& value)
 {
     out<<"PersistentTreeValue[";
     out << value.page_ptr()->raw_data();
@@ -141,17 +146,19 @@ std::ostream& operator<<(std::ostream& out, const v1::details::PersistentTreeVal
     out<<"]";
 
     return out;
-}
+}    
 
 
-template <typename Profile, typename PageType>
-class PersistentInMemAllocatorT: public std::enable_shared_from_this<PersistentInMemAllocatorT<Profile, PageType>> {
+
+template <typename Profile>
+class ThreadInMemAllocatorImpl: public std::enable_shared_from_this<ThreadInMemAllocatorImpl<Profile>> {
 public:
+    using PageType = ProfilePageType<Profile>;
 
     static constexpr Int NodeIndexSize  = 32;
     static constexpr Int NodeSize       = NodeIndexSize * 32;
 
-    using MyType        = PersistentInMemAllocatorT<Profile, PageType>;
+    using MyType        = ThreadInMemAllocatorImpl<Profile>;
 
 
     template <typename T>
@@ -161,7 +168,7 @@ public:
     using CtrMakeSharedPtr = memoria::v1::CtrMakeSharedPtr<Profile, T>;
     
     using Page          = PageType;
-    using RCPagePtr		= v1::details::PagePtr<Page>;
+    using RCPagePtr		= persistent_inmem_thread::details::PagePtr<Page>;
 
     using Key           = typename PageType::ID;
     using Value         = PageType*;
@@ -169,11 +176,11 @@ public:
     using TxnId             = UUID;
     using PTreeNodeId       = UUID;
 
-    using LeafNodeT         = v1::persistent_inmem::LeafNode<Key, v1::details::PersistentTreeValue<RCPagePtr*, TxnId>, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
-    using LeafNodeBufferT   = v1::persistent_inmem::LeafNode<Key, v1::details::PersistentTreeValue<typename PageType::ID, TxnId>, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
+    using LeafNodeT         = v1::persistent_inmem_thread::LeafNode<Key, persistent_inmem_thread::details::PersistentTreeValue<RCPagePtr*, TxnId>, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
+    using LeafNodeBufferT   = v1::persistent_inmem_thread::LeafNode<Key, persistent_inmem_thread::details::PersistentTreeValue<typename PageType::ID, TxnId>, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
 
-    using BranchNodeT       = v1::persistent_inmem::BranchNode<Key, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
-    using BranchNodeBufferT = v1::persistent_inmem::BranchNode<Key, NodeSize, NodeIndexSize, PTreeNodeId, TxnId, PTreeNodeId>;
+    using BranchNodeT       = v1::persistent_inmem_thread::BranchNode<Key, NodeSize, NodeIndexSize, PTreeNodeId, TxnId>;
+    using BranchNodeBufferT = v1::persistent_inmem_thread::BranchNode<Key, NodeSize, NodeIndexSize, PTreeNodeId, TxnId, PTreeNodeId>;
     using NodeBaseT         = typename BranchNodeT::NodeBaseT;
     using NodeBaseBufferT   = typename BranchNodeBufferT::NodeBaseT;
 
@@ -187,7 +194,7 @@ public:
 
     struct HistoryNode {
 
-    	using Status 		= persistent_inmem::SnapshotStatus;
+    	using Status 		= persistent_inmem_thread::SnapshotStatus;
         using HMutexT 		= SnapshotMutexT;
         using HLockGuardT 	= SnapshotLockGuardT;
 
@@ -452,8 +459,8 @@ public:
     };
 
 
-    using PersistentTreeT       = v1::persistent_inmem::PersistentTree<BranchNodeT, LeafNodeT, HistoryNode, PageType>;
-    using SnapshotT             = v1::persistent_inmem::Snapshot<Profile, PageType, HistoryNode, PersistentTreeT, MyType>;
+    using PersistentTreeT       = typename v1::persistent_inmem_thread::PersistentTree<BranchNodeT, LeafNodeT, HistoryNode, PageType>;
+    using SnapshotT             = v1::persistent_inmem_thread::Snapshot<Profile, MyType>;
     using SnapshotPtr           = CtrSharedPtr<SnapshotT>;
     using AllocatorPtr          = std::shared_ptr<MyType>;
 
@@ -466,8 +473,8 @@ public:
     using BranchMap             = std::unordered_map<String, HistoryNode*>;
     using ReverseBranchMap      = std::unordered_map<const HistoryNode*, String>;
 
-    template <typename, typename, typename, typename, typename>
-    friend class v1::persistent_inmem::Snapshot;
+    template <typename, typename>
+    friend class v1::persistent_inmem_thread::Snapshot;
 
 private:
 
@@ -522,7 +529,7 @@ private:
     ReverseBranchMap snapshot_labels_metadata_;
 
 public:
-    PersistentInMemAllocatorT():
+    ThreadInMemAllocatorImpl():
         logger_("PersistentInMemAllocator"),
         metadata_(MetadataRepository<Profile>::getMetadata())
     {
@@ -540,7 +547,7 @@ public:
     }
 
 private:
-    PersistentInMemAllocatorT(Int):
+    ThreadInMemAllocatorImpl(Int):
         metadata_(MetadataRepository<Profile>::getMetadata())
     {
     	SnapshotT::initMetadata();
@@ -556,7 +563,7 @@ private:
 
 public:
 
-    virtual ~PersistentInMemAllocatorT()
+    virtual ~ThreadInMemAllocatorImpl()
     {
         free_memory(history_tree_);
     }
@@ -602,8 +609,8 @@ public:
         return logger_;
     }
 
-    BigInt active_snapshots() const {
-        return active_snapshots_;
+    BigInt active_snapshots() {
+        return active_snapshots_.get();
     }
 
     void pack()
@@ -624,7 +631,7 @@ public:
     }
 
 
-    persistent_inmem::SnapshotMetadata<TxnId> describe(const TxnId& snapshot_id) const
+    persistent_inmem_thread::SnapshotMetadata<TxnId> describe(const TxnId& snapshot_id) const
     {
     	LockGuardT lock_guard2(mutex_);
 
@@ -644,7 +651,7 @@ public:
 
         	auto parent_id = history_node->parent() ? history_node->parent()->txn_id() : UUID();
 
-        	return persistent_inmem::SnapshotMetadata<TxnId>(
+        	return persistent_inmem_thread::SnapshotMetadata<TxnId>(
         		parent_id, history_node->txn_id(), children, history_node->metadata(), history_node->status()
 			);
         }
@@ -730,7 +737,7 @@ public:
         return CtrMakeSharedPtr<SnapshotT>::make_shared(master_, this->shared_from_this());
     }
 
-    persistent_inmem::SnapshotMetadata<TxnId> describe_master() const
+    persistent_inmem_thread::SnapshotMetadata<TxnId> describe_master() const
     {
     	std::lock(mutex_, master_->snapshot_mutex());
     	LockGuardT lock_guard2(mutex_, std::adopt_lock);
@@ -745,8 +752,8 @@ public:
 
     	auto parent_id = master_->parent() ? master_->parent()->txn_id() : UUID();
 
-    	return persistent_inmem::SnapshotMetadata<TxnId>(
-    			parent_id, master_->txn_id(), children, master_->metadata(), master_->status()
+    	return persistent_inmem_thread::SnapshotMetadata<TxnId>(
+            parent_id, master_->txn_id(), children, master_->metadata(), master_->status()
     	);
     }
 
@@ -1206,7 +1213,7 @@ private:
                 auto& data = leaf->data(c);
                 if (data.txn_id() == txn_id)
                 {
-                    ::free(data.page());
+                    ::free(data.page_ptr());
                 }
             }
 
@@ -1792,10 +1799,7 @@ private:
 
 
 template <typename Profile = DefaultProfile<>>
-using PersistentInMemAllocator = class PersistentInMemAllocatorT<
-        Profile,
-        typename ContainerCollectionCfg<Profile>::Types::Page
->;
+using PersistentInMemAllocator = class ThreadInMemAllocatorImpl<Profile>;
 
 
 

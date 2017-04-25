@@ -26,7 +26,7 @@
 
 namespace memoria {
 namespace v1 {
-namespace persistent_inmem   {
+namespace persistent_inmem_thread   {
 
 enum class NodeType {LEAF, BRANCH};
 
@@ -60,8 +60,8 @@ public:
     template <typename, typename, typename, typename>
     friend class PersistentTree;
 
-    template <typename Profile, typename PageType>
-    friend class PersistentInMemAllocatorT;
+    template <typename Profile>
+    friend class ThreadInMemAllocatorImpl;
 
     template <typename, Int, Int, typename, typename>
     friend class NodeBase;
