@@ -148,7 +148,7 @@ std::ostream& operator<<(std::ostream& out, const persistent_inmem_thread::detai
     return out;
 }    
 
-
+namespace persistent_inmem_thread {
 
 template <typename Profile>
 class ThreadInMemAllocatorImpl: public std::enable_shared_from_this<ThreadInMemAllocatorImpl<Profile>> {
@@ -1797,9 +1797,10 @@ private:
 
 };
 
+}
 
 template <typename Profile = DefaultProfile<>>
-using PersistentInMemAllocator = class ThreadInMemAllocatorImpl<Profile>;
+using PersistentInMemAllocator = class persistent_inmem_thread::ThreadInMemAllocatorImpl<Profile>;
 
 
 

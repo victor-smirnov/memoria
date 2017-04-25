@@ -19,14 +19,12 @@
 
 namespace memoria {
 namespace v1 {
+namespace persistent_inmem_thread {
 
-using Profile = DefaultProfile<>;    
-    
+using Profile = DefaultProfile<>;
 template class ThreadInMemAllocatorImpl<Profile>;
 
-namespace persistent_inmem_thread {
-    template class Snapshot<Profile, ThreadInMemAllocatorImpl<Profile>>;
-}
-    
-}    
-}
+template class Snapshot<Profile, ThreadInMemAllocatorImpl<Profile>>;
+
+
+}}}

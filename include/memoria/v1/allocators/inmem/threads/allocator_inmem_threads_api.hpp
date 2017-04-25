@@ -20,11 +20,13 @@
 namespace memoria {
 namespace v1 {
 
-template <typename Profile> class ThreadInMemAllocatorImpl;
+	namespace persistent_inmem_thread {
+		template <typename Profile> class ThreadInMemAllocatorImpl;
+	}
     
 template <typename Profile>
 class ThreadInMemAllocator {
-    using PImpl = ThreadInMemAllocatorImpl<Profile>;
+    using PImpl = persistent_inmem_thread::ThreadInMemAllocatorImpl<Profile>;
     
     PImpl* pimpl_;
 public:

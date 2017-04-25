@@ -40,13 +40,6 @@
 
 namespace memoria {
 namespace v1 {
-
-template <typename Profile>
-class ThreadInMemAllocatorImpl;
-
-
-    
-    
 namespace persistent_inmem_thread {
 
 template <typename CtrT, typename Allocator>
@@ -103,8 +96,7 @@ class Snapshot:
     using PageType          = ProfilePageType<Profile>;
     using Base              = IAllocator<PageType>;
         
-    using HistoryNode       = typename ThreadInMemAllocatorImpl<Profile>::HistoryNode;
-    
+	using HistoryNode		= typename HistoryTree::HistoryNode;
     using PersistentTreeT   = typename HistoryTree::PersistentTreeT;
     
     using MyType            = Snapshot<Profile, HistoryTree>;
@@ -199,7 +191,7 @@ private:
     ContainerMetadataRepository*  metadata_;
 
     template <typename>
-    friend class memoria::v1::ThreadInMemAllocatorImpl;
+    friend class ThreadInMemAllocatorImpl;
 
     PairPtr pair_;
     
