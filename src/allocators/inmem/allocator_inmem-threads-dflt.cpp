@@ -16,15 +16,21 @@
 
 
 #include <memoria/v1/allocators/inmem/threads/factory.hpp>
+#include <memoria/v1/containers/set/set_factory.hpp>
+#include <memoria/v1/core/tools/fixed_array.hpp>
 
 namespace memoria {
 namespace v1 {
+
+using Profile = DefaultProfile<>;    
+    
 namespace persistent_inmem_thread {
+    template class ThreadInMemAllocatorImpl<Profile>;
+    template class Snapshot<Profile, ThreadInMemAllocatorImpl<Profile>>;
+}
 
-using Profile = DefaultProfile<>;
-template class ThreadInMemAllocatorImpl<Profile>;
+template class ThreadInMemAllocator<Profile>;
+template class ThreadInMemSnapshot<Profile>;
 
-template class Snapshot<Profile, ThreadInMemAllocatorImpl<Profile>>;
-
-
-}}}
+}
+}

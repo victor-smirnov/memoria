@@ -151,7 +151,7 @@ std::ostream& operator<<(std::ostream& out, const persistent_inmem_thread::detai
 namespace persistent_inmem_thread {
 
 template <typename Profile>
-class ThreadInMemAllocatorImpl: public std::enable_shared_from_this<ThreadInMemAllocatorImpl<Profile>> {
+class ThreadInMemAllocatorImpl: public std::enable_shared_from_this<ThreadInMemAllocatorImpl<Profile>> { 
 public:
     using PageType = ProfilePageType<Profile>;
 
@@ -477,7 +477,7 @@ public:
     friend class v1::persistent_inmem_thread::Snapshot;
 
 private:
-
+ 
     class AllocatorMetadata {
         TxnId master_;
         TxnId root_;
@@ -506,6 +506,8 @@ private:
 
     enum {TYPE_UNKNOWN, TYPE_METADATA, TYPE_HISTORY_NODE, TYPE_BRANCH_NODE, TYPE_LEAF_NODE, TYPE_DATA_PAGE, TYPE_CHECKSUM};
 
+    
+    
     Logger logger_;
 
     HistoryNode* history_tree_ 	= nullptr;
@@ -1801,6 +1803,112 @@ private:
 
 template <typename Profile = DefaultProfile<>>
 using PersistentInMemAllocator = class persistent_inmem_thread::ThreadInMemAllocatorImpl<Profile>;
+
+
+
+template <typename Profile>
+ThreadInMemAllocator<Profile>::ThreadInMemAllocator(std::shared_ptr<PImpl> impl): pimpl_(impl) {}
+
+template <typename Profile>
+ThreadInMemAllocator<Profile>::ThreadInMemAllocator(ThreadInMemAllocator&& other): pimpl_(std::move(other.pimpl_)) {}
+
+template <typename Profile>
+ThreadInMemAllocator<Profile>::ThreadInMemAllocator(const ThreadInMemAllocator& other): pimpl_(other.pimpl_) {}
+
+template <typename Profile>
+ThreadInMemAllocator<Profile>& ThreadInMemAllocator<Profile>::operator=(const ThreadInMemAllocator& other) 
+{
+    pimpl_ = other.pimpl_;
+    
+    return *this;
+}
+
+template <typename Profile>
+ThreadInMemAllocator<Profile>& ThreadInMemAllocator<Profile>::operator=(ThreadInMemAllocator&& other) 
+{
+    pimpl_ = std::move(other.pimpl_);
+    
+    return *this;
+}
+
+template <typename Profile>
+ThreadInMemAllocator<Profile>::~ThreadInMemAllocator() {}
+
+
+
+
+template <typename Profile>
+ThreadInMemAllocator<Profile> ThreadInMemAllocator<Profile>::load(InputStreamHandler* input_stream) 
+{
+    return ThreadInMemAllocator<Profile>(PImpl::load(input_stream));
+}
+
+template <typename Profile>
+ThreadInMemAllocator<Profile> ThreadInMemAllocator<Profile>::load(boost::filesystem::path file_name) 
+{
+    return ThreadInMemAllocator<Profile>(PImpl::load(file_name.string().c_str()));
+}
+
+template <typename Profile>
+ThreadInMemAllocator<Profile> ThreadInMemAllocator<Profile>::create() 
+{
+    return ThreadInMemAllocator<Profile>(PImpl::create());
+}
+
+template <typename Profile>
+void ThreadInMemAllocator<Profile>::store(boost::filesystem::path file_name) 
+{
+    pimpl_->store(file_name.string().c_str());
+}
+
+template <typename Profile>
+void ThreadInMemAllocator<Profile>::store(OutputStreamHandler* output_stream) 
+{
+    pimpl_->store(output_stream);
+}
+
+template <typename Profile>
+typename ThreadInMemAllocator<Profile>::SnapshotPtr ThreadInMemAllocator<Profile>::master() 
+{
+    return SnapshotPtr(pimpl_->master());
+}
+
+
+template <typename Profile>
+typename ThreadInMemAllocator<Profile>::SnapshotPtr ThreadInMemAllocator<Profile>::find(const TxnId& snapshot_id) 
+{
+    return pimpl_->find(snapshot_id);
+}
+
+template <typename Profile>
+typename ThreadInMemAllocator<Profile>::SnapshotPtr ThreadInMemAllocator<Profile>::find_branch(StringRef name) 
+{
+    return pimpl_->find_branch(name);
+}
+
+template <typename Profile>
+void ThreadInMemAllocator<Profile>::set_master(const TxnId& txn_id) 
+{
+    pimpl_->set_master(txn_id);
+}
+
+template <typename Profile>
+void ThreadInMemAllocator<Profile>::set_branch(StringRef name, const TxnId& txn_id) 
+{
+    pimpl_->set_branch(name, txn_id);
+}
+
+template <typename Profile>
+ContainerMetadataRepository* ThreadInMemAllocator<Profile>::getMetadata() const 
+{
+    return pimpl_->getMetadata();
+}
+
+template <typename Profile>
+void ThreadInMemAllocator<Profile>::dump(boost::filesystem::path dump_at) 
+{
+    pimpl_->dump(dump_at.string().c_str());
+}
 
 
 

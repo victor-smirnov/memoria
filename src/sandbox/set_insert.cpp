@@ -15,7 +15,10 @@
 
 
 
-#include <memoria/v1/memoria.hpp>
+#include <memoria/v1/allocators/inmem/threads/allocator_inmem_threads_api.hpp>
+#include <memoria/v1/allocators/inmem/threads/container_collection_cfg.hpp>
+
+//#include <memoria/v1/memoria.hpp>
 #include <memoria/v1/containers/set/set_factory.hpp>
 #include <memoria/v1/core/tools/iobuffer/io_buffer.hpp>
 
@@ -35,7 +38,16 @@ using namespace memoria::v1;
 using namespace memoria::v1::btss;
 using namespace std;
 
-
+// template <typename CtrName>
+// using DCtrTF = CtrTF<DefaultProfile<>, CtrName>;
+// 
+// template <typename CtrName>
+// using DCtr = typename CtrTF<DefaultProfile<>, CtrName>::Type;
+// 
+// template <typename CtrName>
+// void DInit() {
+//     DCtr<CtrName>::initMetadata();
+// }
 
 
 
@@ -50,9 +62,9 @@ int main()
     DInit<Set<Key>>();
 	
     try {
-        auto alloc = PersistentInMemAllocator<>::create();
+        auto alloc = ThreadInMemAllocator<>::create();
 		
-        auto snp = alloc->master()->branch();
+        auto snp = alloc.master().branch();
 
         auto map = create<Set<Key>>(snp);
         
@@ -94,23 +106,21 @@ int main()
 
         cout << "Inserted " << size << " in " << (t1 - t0) << endl;
 
-
-        snp->commit();
-		snp->set_as_master();
-
+        snp.commit();
+		snp.set_as_master();
 
         // Store binary contents of allocator to the file.
         auto out = FileOutputStreamHandler::create("setl_data.dump");
-        alloc->store(out.get());
+        alloc.store(out.get());
 		
         
-        auto alloc2 = PersistentInMemAllocator<>::load("setl_data.dump");
+        auto alloc2 = ThreadInMemAllocator<>::load("setl_data.dump");
         
-        auto set1 = find<Set<Key>>(alloc->master(), map_name);
+        auto set1 = find<Set<Key>>(alloc2.master(), map_name);
 
 		std::cout << "Ctr size: " << set1->size() << std::endl;
         
-        alloc2->dump("alloc2.dump");
+        alloc2.dump("alloc2.dump");
     }
     catch (std::exception& ex)
     {

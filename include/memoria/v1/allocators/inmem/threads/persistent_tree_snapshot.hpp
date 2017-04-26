@@ -42,20 +42,20 @@ namespace memoria {
 namespace v1 {
 namespace persistent_inmem_thread {
 
-template <typename CtrT, typename Allocator>
-class SharedCtr: public CtrT {
-
-public:
-    SharedCtr(const std::shared_ptr<Allocator>& allocator, Int command, const UUID& name):
-        CtrT(allocator.get(), command, name)
-    {
-        CtrT::alloc_holder_ = allocator;
-    }
-
-    auto snapshot() const {
-        return CtrT::alloc_holder_;
-    }
-};
+// template <typename CtrT, typename Allocator>
+// class SharedCtr: public CtrT {
+// 
+// public:
+//     SharedCtr(const std::shared_ptr<Allocator>& allocator, Int command, const UUID& name):
+//         CtrT(allocator.get(), command, name)
+//     {
+//         CtrT::alloc_holder_ = allocator;
+//     }
+// 
+//     auto snapshot() const {
+//         return CtrT::alloc_holder_;
+//     }
+// };
         
 
 enum class SnapshotStatus {ACTIVE, COMMITTED, DROPPED, DATA_LOCKED};
@@ -85,32 +85,35 @@ public:
 
 
 
-template <typename Profile, typename HistoryTree>
+template <typename Profile, typename PersistentAllocator>
 class Snapshot:
         public IWalkableAllocator<ProfilePageType<Profile>>,
         public CtrEnableSharedFromThis<
             Profile, 
-            Snapshot<Profile, HistoryTree>
+            Snapshot<Profile, PersistentAllocator>
         >
 {    
     using PageType          = ProfilePageType<Profile>;
-    using Base              = IAllocator<PageType>;
+    using Base              = IWalkableAllocator<PageType>;
         
-	using HistoryNode		= typename HistoryTree::HistoryNode;
-    using PersistentTreeT   = typename HistoryTree::PersistentTreeT;
+	using HistoryNode		= typename PersistentAllocator::HistoryNode;
+    using PersistentTreeT   = typename PersistentAllocator::PersistentTreeT;
     
-    using MyType            = Snapshot<Profile, HistoryTree>;
+    using MyType            = Snapshot<Profile, PersistentAllocator>;
     
     
     
     template <typename T>
-    using CtrSharedPtr = memoria::v1::CtrSharedPtr<Profile, T>;
+    using CtrSharedPtr      = memoria::v1::CtrSharedPtr<Profile, T>;
     
     template <typename T>
     using CtrMakeSharedPtr = memoria::v1::CtrMakeSharedPtr<Profile, T>;
 
-    using HistoryTreePtr    = CtrSharedPtr<HistoryTree>;
+    using PersistentAllocatorPtr    = CtrSharedPtr<PersistentAllocator>;
     using SnapshotPtr       = CtrSharedPtr<MyType>;
+    
+    using AllocatorPtr      = CtrSharedPtr<Base>;
+    
 
     using NodeBaseT         = typename PersistentTreeT::NodeBaseT;
     using LeafNodeT         = typename PersistentTreeT::LeafNodeT;
@@ -143,7 +146,7 @@ class Snapshot:
 public:
 
     template <typename CtrName>
-    using CtrT = v1::persistent_inmem_thread::SharedCtr<typename CtrTF<Profile, CtrName>::Type, MyType>;
+    using CtrT = v1::SharedCtr<typename CtrTF<Profile, CtrName>::Type, IWalkableAllocator<ProfilePageType<Profile>>>;
 
     template <typename CtrName>
     using CtrPtr = std::shared_ptr<CtrT<CtrName>>;
@@ -175,8 +178,8 @@ private:
     };
 
     HistoryNode*    history_node_;
-    HistoryTreePtr  history_tree_;
-    HistoryTree*    history_tree_raw_ = nullptr;
+    PersistentAllocatorPtr  history_tree_;
+    PersistentAllocator*    history_tree_raw_ = nullptr;
 
     PersistentTreeT persistent_tree_;
 
@@ -192,6 +195,9 @@ private:
 
     template <typename>
     friend class ThreadInMemAllocatorImpl;
+    
+    template <typename>
+    friend class memoria::v1::ThreadInMemSnapshot;
 
     PairPtr pair_;
     
@@ -199,7 +205,7 @@ private:
 
 public:
 
-    Snapshot(HistoryNode* history_node, const HistoryTreePtr& history_tree):
+    Snapshot(HistoryNode* history_node, const PersistentAllocatorPtr& history_tree):
         history_node_(history_node),
         history_tree_(history_tree),
         history_tree_raw_(history_tree.get()),
@@ -223,7 +229,7 @@ public:
         root_map_ = CtrMakeSharedPtr<RootMapType>::make_shared(this, ctr_op, UUID());
     }
 
-    Snapshot(HistoryNode* history_node, HistoryTree* history_tree):
+    Snapshot(HistoryNode* history_node, PersistentAllocator* history_tree):
         history_node_(history_node),
         history_tree_raw_(history_tree),
         persistent_tree_(history_node_),
@@ -245,7 +251,7 @@ public:
 
         root_map_ = CtrMakeSharedPtr<RootMapType>::make_shared(this, ctr_op, UUID());
     }
-
+    
 //    virtual ~Snapshot()
 //    {
 //    	LockGuardT snapshot_lock_guard(history_node_->snapshot_mutex());
@@ -1285,6 +1291,7 @@ protected:
         }
     }
 
+
     void checkIfConainersOpeneingAllowed()
     {
     	checkReadAllowed();
@@ -1435,26 +1442,26 @@ protected:
 
 }
 
-template <typename CtrName, typename Profile, typename HistoryTree>
-auto create(const std::shared_ptr<persistent_inmem_thread::Snapshot<Profile, HistoryTree>>& alloc, const UUID& name)
+template <typename CtrName, typename Profile, typename PersistentAllocator>
+auto create(const std::shared_ptr<persistent_inmem_thread::Snapshot<Profile, PersistentAllocator>>& alloc, const UUID& name)
 {
     return alloc->template create<CtrName>(name);
 }
 
-template <typename CtrName, typename Profile, typename HistoryTree>
-auto create(const std::shared_ptr<persistent_inmem_thread::Snapshot<Profile, HistoryTree>>& alloc)
+template <typename CtrName, typename Profile, typename PersistentAllocator>
+auto create(const std::shared_ptr<persistent_inmem_thread::Snapshot<Profile, PersistentAllocator>>& alloc)
 {
     return alloc->template create<CtrName>();
 }
 
-template <typename CtrName, typename Profile, typename HistoryTree>
-auto find_or_create(const std::shared_ptr<persistent_inmem_thread::Snapshot<Profile, HistoryTree>>& alloc, const UUID& name)
+template <typename CtrName, typename Profile, typename PersistentAllocator>
+auto find_or_create(const std::shared_ptr<persistent_inmem_thread::Snapshot<Profile, PersistentAllocator>>& alloc, const UUID& name)
 {
     return alloc->template find_or_create<CtrName>(name);
 }
 
-template <typename CtrName, typename Profile, typename HistoryTree>
-auto find(const std::shared_ptr<persistent_inmem_thread::Snapshot<Profile, HistoryTree>>& alloc, const UUID& name)
+template <typename CtrName, typename Profile, typename PersistentAllocator>
+auto find(const std::shared_ptr<persistent_inmem_thread::Snapshot<Profile, PersistentAllocator>>& alloc, const UUID& name)
 {
     return alloc->template find<CtrName>(name);
 }
@@ -1482,6 +1489,181 @@ void check_snapshot(Allocator& allocator)
 {
     check_snapshot(allocator, "Snapshot check failed", MA_RAW_SRC);
 }
+
+
+
+template <typename Profile>
+ThreadInMemSnapshot<Profile>::ThreadInMemSnapshot(std::shared_ptr<PImpl> impl): pimpl_(impl) {}
+
+template <typename Profile>
+ThreadInMemSnapshot<Profile>::ThreadInMemSnapshot(ThreadInMemSnapshot<Profile>&& other): pimpl_(std::move(other.pimpl_)) {}
+
+template <typename Profile>
+ThreadInMemSnapshot<Profile>::ThreadInMemSnapshot(const ThreadInMemSnapshot<Profile>&other): pimpl_(other.pimpl_) {}
+
+template <typename Profile>
+ThreadInMemSnapshot<Profile>& ThreadInMemSnapshot<Profile>::operator=(const ThreadInMemSnapshot<Profile>& other) 
+{
+    pimpl_ = other.pimpl_;
+    return *this;
+}
+
+template <typename Profile>
+ThreadInMemSnapshot<Profile>& ThreadInMemSnapshot<Profile>::operator=(ThreadInMemSnapshot<Profile>&& other) 
+{
+    pimpl_ = std::move(other.pimpl_);
+    return *this;
+}
+
+
+template <typename Profile>
+ThreadInMemSnapshot<Profile>::~ThreadInMemSnapshot(){}
+
+
+template <typename Profile>
+ContainerMetadataRepository* ThreadInMemSnapshot<Profile>::getMetadata() const 
+{
+    return pimpl_->getMetadata();
+}
+
+template <typename Profile>
+const UUID& ThreadInMemSnapshot<Profile>::uuid() const 
+{
+    return pimpl_->uuid();
+}
+
+template <typename Profile>
+bool ThreadInMemSnapshot<Profile>::is_active() const 
+{
+    return pimpl_->is_active();
+}
+
+template <typename Profile>
+bool ThreadInMemSnapshot<Profile>::is_marked_to_clear() const 
+{
+    return pimpl_->is_marked_to_clear();
+}
+
+template <typename Profile>
+bool ThreadInMemSnapshot<Profile>::is_committed() const 
+{
+    return pimpl_->is_committed();
+}
+
+template <typename Profile>
+void ThreadInMemSnapshot<Profile>::commit() 
+{
+    return pimpl_->commit();
+}
+
+template <typename Profile>
+void ThreadInMemSnapshot<Profile>::drop() 
+{
+    return pimpl_->drop();
+}
+
+template <typename Profile>
+bool ThreadInMemSnapshot<Profile>::drop_ctr(const UUID& name) 
+{
+    return pimpl_->drop_ctr(name);
+}
+
+template <typename Profile>
+void ThreadInMemSnapshot<Profile>::set_as_master() 
+{
+    return pimpl_->set_as_master();
+}
+
+template <typename Profile>
+void ThreadInMemSnapshot<Profile>::set_as_branch(StringRef name) 
+{
+    return pimpl_->set_as_branch(name);
+}
+
+template <typename Profile>
+StringRef ThreadInMemSnapshot<Profile>::metadata() const 
+{
+    return pimpl_->metadata();
+}
+
+template <typename Profile>
+void ThreadInMemSnapshot<Profile>::set_metadata(StringRef metadata) 
+{
+    return pimpl_->set_metadata(metadata);
+}
+
+template <typename Profile>
+void ThreadInMemSnapshot<Profile>::lock_data_for_import() 
+{
+    return pimpl_->lock_data_for_import();
+}
+
+template <typename Profile>
+typename ThreadInMemSnapshot<Profile>::SnapshotPtr ThreadInMemSnapshot<Profile>::branch() 
+{
+    return pimpl_->branch();
+}
+
+template <typename Profile>
+bool ThreadInMemSnapshot<Profile>::has_parent() const 
+{
+    return pimpl_->has_parent();
+}
+
+template <typename Profile>
+typename ThreadInMemSnapshot<Profile>::SnapshotPtr ThreadInMemSnapshot<Profile>::parent() 
+{
+    return pimpl_->parent();
+}
+
+template <typename Profile>
+void ThreadInMemSnapshot<Profile>::import_new_ctr_from(ThreadInMemSnapshot<Profile>& txn, const UUID& name) 
+{
+    return pimpl_->import_new_ctr_from(txn.pimpl_, name);
+}
+
+template <typename Profile>
+void ThreadInMemSnapshot<Profile>::copy_new_ctr_from(ThreadInMemSnapshot<Profile>& txn, const UUID& name) 
+{
+    return pimpl_->copy_new_ctr_from(txn.pimpl_, name);
+}
+
+template <typename Profile>
+void ThreadInMemSnapshot<Profile>::import_ctr_from(ThreadInMemSnapshot<Profile>& txn, const UUID& name) 
+{
+    return pimpl_->import_ctr_from(txn.pimpl_, name);
+}
+
+template <typename Profile>
+void ThreadInMemSnapshot<Profile>::copy_ctr_from(ThreadInMemSnapshot<Profile>& txn, const UUID& name) 
+{
+    return pimpl_->copy_ctr_from(txn.pimpl_, name);
+}
+
+template <typename Profile>
+bool ThreadInMemSnapshot<Profile>::check() {
+    return pimpl_->check();
+}
+
+template <typename Profile>
+void ThreadInMemSnapshot<Profile>::dump(boost::filesystem::path destination) {
+    return pimpl_->dump(destination.string().c_str());
+}
+
+template <typename Profile>
+void ThreadInMemSnapshot<Profile>::dump_persistent_tree() 
+{
+    return pimpl_->dump_persistent_tree();
+}
+
+template <typename Profile>
+std::shared_ptr<IWalkableAllocator<ProfilePageType<Profile>>> ThreadInMemSnapshot<Profile>::snapshot_ref() 
+{
+    return std::static_pointer_cast<IWalkableAllocator<ProfilePageType<Profile>>>(pimpl_->shared_from_this());
+}
+
+
+
 
 
 
