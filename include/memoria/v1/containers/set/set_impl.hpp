@@ -125,18 +125,16 @@ UUID CtrApi<Set<Key>, Profile>::name()
     return pimpl_->name();
 }
 
-
-
 template <typename Key, typename Profile>
-void CtrApi<Set<Key>, Profile>::initMetadata()
-{
-    CtrT::initMetadata();
+const ContainerMetadataPtr& CtrApi<Set<Key>, Profile>::metadata() {
+    return CtrT::getMetadata();
 }
 
 
-
-
-
+template <typename Key, typename Profile>
+void CtrApi<Set<Key>, Profile>::init() {
+    CtrT::getMetadata();
+}
 
 template <typename Key, typename Profile>
 IterApi<Set<Key>, Profile>::IterApi(IterPtr ptr): pimpl_(ptr) {}

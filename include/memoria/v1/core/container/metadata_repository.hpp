@@ -35,131 +35,27 @@ template <typename Profile, typename SelectorType, typename ContainerTypeName = 
 template <typename Profile>
 class MetadataRepository {
 
-	using MutexT			= std::mutex;
-    using LockGuardT		= std::lock_guard<MutexT>;
-
-    static ContainerMetadataRepository* metadata_;
-    static MutexT mutex_;
-
 public:
 
     static ContainerMetadataRepository* getMetadata()
     {
-    	LockGuardT lock_guard(mutex_);
-        return metadata_;
+    	static thread_local ContainerMetadataRepository metadata(TypeNameFactory<Profile>::name(), MetadataList());
+        return &metadata;
     }
 
     static void registerMetadata(const ContainerMetadataPtr& ctr_metadata)
     {
-    	LockGuardT lock_guard(mutex_);
-        metadata_->registerMetadata(ctr_metadata);
+        getMetadata()->registerMetadata(ctr_metadata);
     }
 
     static void unregisterMetadata(const ContainerMetadataPtr& ctr_metadata)
     {
-    	LockGuardT lock_guard(mutex_);
-        metadata_->unregisterMetadata(ctr_metadata);
-    }
-
-    static void init()
-    {
-    	LockGuardT lock_guard(mutex_);
-        if (metadata_ == NULL)
-        {
-            metadata_ = new ContainerMetadataRepository(TypeNameFactory<Profile>::name(), MetadataList());
-        }
-    }
-
-    static void cleanup()
-    {
-        LockGuardT lock_guard(mutex_);
-    	if (metadata_) {
-            delete metadata_;
-            metadata_ = nullptr;
-        }
-    }
-};
-
-template <typename Profile>
-ContainerMetadataRepository* MetadataRepository<Profile>::metadata_ = NULL;
-
-template <typename Profile>
-typename MetadataRepository<Profile>::MutexT MetadataRepository<Profile>::mutex_;
-
-namespace details {
-
-	template <
-		template <int> class Decl,
-		int Value = 100,
-		typename List = TypeList<>
-	>
-		class SimpleOrderedBuilder {
-		typedef typename Decl<Value>::Type                          DeclType;
-
-		typedef IfThenElse<
-			IfTypesEqual<DeclType, NotDefined>::Value,
-			List,
-			typename AppendTool<DeclType, List>::Type
-		>                                                           NewList;
-
-		public:
-			typedef typename SimpleOrderedBuilder<Decl, Value - 1, NewList>::Type   Type;
-	};
-
-	template <
-		template <int> class Decl,
-		typename List
-	>
-		class SimpleOrderedBuilder<Decl, -1, List> {
-		public:
-			typedef List Type;
-	};
-
-	typedef SimpleOrderedBuilder<CtrNameDeclarator> CtrNameListBuilder;
-
-
-	template <typename ProfileType, typename NameList>
-	struct CtrListInitializer {
-		static void init() {
-			CtrTF<ProfileType, typename ListHead<NameList>::Type>::Type::initMetadata();
-
-			CtrListInitializer<ProfileType, typename ListTail<NameList>::Type>::init();
-		}
-	};
-
-	template <typename ProfileType>
-	struct CtrListInitializer<ProfileType, TypeList<> > {
-		static void init() {}
-	};
-
-}
-
-
-
-template <
-    typename Profile,
-
-    template <
-        template <int> class Decl,
-        int Value,
-        typename List
-    >
-    class CtrListBuilder = memoria::v1::details::SimpleOrderedBuilder
->
-class MetadataInitializer {
-    using CtrNameList = typename CtrListBuilder<CtrNameDeclarator, 100, TypeList<> >::Type;
-
-public:
-    static void init() {
-        MetadataRepository<Profile>::init();
-
-		memoria::v1::details::CtrListInitializer<Profile, CtrNameList>::init();
+        getMetadata()->unregisterMetadata(ctr_metadata);
     }
 };
 
 
-#define MEMORIA_INIT(Profile)\
-    MetadataInitializer<Profile>::init()
+#define MEMORIA_INIT(Profile)
 
 
 

@@ -61,7 +61,8 @@ public:
     
     UUID name();
     
-    static void initMetadata();
+    static void init();
+    static const ContainerMetadataPtr& metadata();
 };
 
 

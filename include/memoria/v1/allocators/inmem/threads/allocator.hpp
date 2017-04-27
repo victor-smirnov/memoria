@@ -535,8 +535,6 @@ public:
         logger_("PersistentInMemAllocator"),
         metadata_(MetadataRepository<Profile>::getMetadata())
     {
-        SnapshotT::initMetadata();
-
         master_ = history_tree_ = new HistoryNode(this, HistoryNode::Status::ACTIVE);
 
         snapshot_map_[history_tree_->txn_id()] = history_tree_;
@@ -551,9 +549,7 @@ public:
 private:
     ThreadInMemAllocatorImpl(Int):
         metadata_(MetadataRepository<Profile>::getMetadata())
-    {
-    	SnapshotT::initMetadata();
-    }
+    {}
 
     auto& store_mutex() {
     	return store_mutex_;

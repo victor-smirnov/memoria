@@ -147,8 +147,8 @@ public:
 
 
 protected:
-    static MutexT mutex_;
-    static ContainerMetadataPtr reflection_;
+    //static MutexT mutex_;
+    //static ContainerMetadataPtr reflection_;
 
     ID root_;
 
@@ -200,22 +200,20 @@ public:
 
     static const ContainerMetadataPtr& getMetadata()
     {
-    	LockGuardT lock_guard(mutex_);
-
-        return reflection_;
+        static thread_local ContainerMetadata* reflection_ptr = new ContainerMetadata(
+            TypeNameFactory<Name>::name(),
+            (Types*)nullptr,
+            static_cast<int>(CONTAINER_HASH),
+            MyType::getContainerInterface()
+        );
+        
+        static thread_local ContainerMetadataPtr reflection(reflection_ptr);
+        
+        static thread_local ContainerMetadata::RegistrationHelper<typename Types::Profile> helper(reflection);
+        
+        return reflection;
     }
     
-    static void destroyMetadata()
-    {
-    	LockGuardT lock_guard(mutex_);
-
-        if (reflection_)
-        {
-            MetadataRepository<typename Types::Profile>::unregisterMetadata(reflection_);
-            reflection_.reset();
-        }
-    }
-
 
     struct CtrInterfaceImpl: public ContainerInterface {
 
@@ -348,26 +346,6 @@ public:
         return std::make_shared<CtrInterfaceImpl>();
     }
 
-    static Int initMetadata(Int salt = 0)
-    {
-    	LockGuardT lock_guard(mutex_);
-
-        if (!reflection_)
-        {
-            MetadataList list;
-
-            Types::Pages::NodeDispatcher::buildMetadataList(list);
-
-            reflection_ = std::make_shared<ContainerMetadata>(TypeNameFactory<Name>::name(),
-                                                list,
-                                                static_cast<int>(CONTAINER_HASH),
-                                                MyType::getContainerInterface());
-
-            MetadataRepository<typename Types::Profile>::registerMetadata(reflection_);
-        }
-
-        return reflection_->ctr_hash();
-    }
 
     const CtrInitData& init_data() const {
         return init_data_;
@@ -413,14 +391,14 @@ protected:
     }
 
 
-    /**
-     * \brief Set container reflection metadata.
-     */
-
-    static void setMetadata(ContainerMetadataPtr metadata)
-    {
-        reflection_ = metadata;
-    }
+//     /**
+//      * \brief Set container reflection metadata.
+//      */
+// 
+//     static void setMetadata(ContainerMetadataPtr metadata)
+//     {
+//         reflection_ = metadata;
+//     }
 
 
 private:
@@ -437,11 +415,11 @@ private:
     }
 };
 
-template <typename TypesType>
-ContainerMetadataPtr CtrBase<TypesType>::reflection_;
-
-template <typename TypesType>
-typename CtrBase<TypesType>::MutexT CtrBase<TypesType>::mutex_;
+// template <typename TypesType>
+// ContainerMetadataPtr CtrBase<TypesType>::reflection_;
+// 
+// template <typename TypesType>
+// typename CtrBase<TypesType>::MutexT CtrBase<TypesType>::mutex_;
 
 
 

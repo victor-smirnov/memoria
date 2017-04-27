@@ -22,6 +22,5 @@
 namespace memoria {
 namespace v1 {
 
-MEMORIA_DECLARE_PROFILE(DefaultProfile<>, 0);
 
 }}

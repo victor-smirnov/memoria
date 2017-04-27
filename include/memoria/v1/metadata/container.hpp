@@ -34,6 +34,8 @@
 
 namespace memoria {
 namespace v1 {
+    
+template <typename Profile> class MetadataRepository;
 
 namespace bf = boost::filesystem;    
 
@@ -147,6 +149,10 @@ struct ContainerInterface {
 
 using ContainerInterfacePtr = std::shared_ptr<ContainerInterface>;
 
+
+template <typename Profile> class MetadataRepository;
+
+
 struct ContainerMetadata: public MetadataGroup {
 public:
 
@@ -172,6 +178,30 @@ public:
         }
     }
 
+    template <typename Types>
+    ContainerMetadata(StringRef name, Types* nothing, Int ctr_hash, ContainerInterfacePtr container_interface):
+        MetadataGroup(name, buildPageMetadata<Types>()),
+        container_interface_(container_interface),
+        ctr_hash_(ctr_hash)
+    {
+    	MetadataGroup::set_type() = MetadataGroup::CONTAINER;
+        for (UInt c = 0; c < content_.size(); c++)
+        {
+            if (content_[c]->getTypeCode() == Metadata::PAGE)
+            {
+                PageMetadataPtr page = static_pointer_cast<PageMetadata> (content_[c]);
+                page_map_[page->hash() ^ ctr_hash] = page;
+            }
+            else if (content_[c]->getTypeCode() == Metadata::CONTAINER) {
+                // nothing to do
+            }
+            else {
+                //exception;
+            }
+        }
+    }
+    
+
     virtual ~ContainerMetadata() throw ()
     {}
 
@@ -195,14 +225,32 @@ public:
     {
         return container_interface_;
     }
+    
+    template <typename Profile>
+    struct RegistrationHelper {
+        RegistrationHelper(const ContainerMetadataPtr& ptr) {
+            MetadataRepository<Profile>::registerMetadata(ptr);
+        }
+    };
 
 private:
+    
+    template <typename Types>
+    static auto buildPageMetadata() 
+    {
+        MetadataList list;
+        Types::Pages::NodeDispatcher::buildMetadataList(list);
+        return list;
+    }
 
     PageMetadataMap         page_map_;
     ContainerInterfacePtr   container_interface_;
 
     Int                     ctr_hash_;
 };
+
+
+
 
 
 

@@ -177,7 +177,7 @@ private:
 
     CtrInstanceMap instance_map_;
 
-    ContainerMetadataRepository*  metadata_;
+    ContainerMetadataRepository*  metadata_; //FIXME:: make it static thread local or remove at all
 
     template <typename>
     friend class ThreadInMemAllocatorImpl;
@@ -199,6 +199,8 @@ public:
         logger_("PersistentInMemAllocatorSnp", Logger::DERIVED, &history_tree->logger_),
         metadata_(MetadataRepository<Profile>::getMetadata())
     {
+        root_map_->getMetadata();
+        
     	history_node_->ref();
 
         Int ctr_op;
@@ -222,6 +224,8 @@ public:
         logger_("PersistentInMemAllocatorTxn"),
         metadata_(MetadataRepository<Profile>::getMetadata())
     {
+        root_map_->getMetadata();
+        
     	history_node_->ref();
 
         Int ctr_op;
@@ -307,10 +311,6 @@ public:
 
     const PairPtr& pair() const {
         return pair_;
-    }
-
-    static void initMetadata() {
-        RootMapType::initMetadata();
     }
 
     ContainerMetadataRepository* getMetadata() const {
@@ -400,7 +400,7 @@ public:
         {
             PageG page = this->getPage(root_id, name);
 
-            auto& ctr_meta = metadata_->getContainerMetadata(page->ctr_type_hash());
+            auto& ctr_meta = getMetadata()->getContainerMetadata(page->ctr_type_hash());
 
             ctr_meta->getCtrInterface()->drop(root_id, name, this);
 

@@ -20,7 +20,7 @@
 
 namespace memoria {
 namespace v1 {
-
+/*
 template <Int Order = 200>
 struct RootCtrListBuilder {
     typedef typename RootCtrListBuilder<Order - 1>::Type    Type;
@@ -61,5 +61,7 @@ template <>                                                                     
 struct ProfileListBuilder<Order> {                                              \
     typedef typename AppendTool<Profile, typename ProfileListBuilder<Order - 1>::Type>::Type   Type;   \
 }
+
+*/
 
 }}

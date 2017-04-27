@@ -28,7 +28,8 @@ using Profile = DefaultProfile<>;
     
 template class CtrApi<Set<FixedArray<16>>, Profile>;
 template class IterApi<Set<FixedArray<16>>, Profile>;
-    
+
+CtrMetadataInitializer<Set<FixedArray<16>>, Profile> init;
     
 }}
 

@@ -16,8 +16,6 @@
 
 
 #include <memoria/v1/allocators/inmem/threads/allocator_inmem_threads_api.hpp>
-
-//#include <memoria/v1/containers/set/set_factory.hpp>
 #include <memoria/v1/containers/set/set_api.hpp>
 
 #include <memoria/v1/core/tools/iobuffer/io_buffer.hpp>
@@ -35,20 +33,13 @@
 
 
 using namespace memoria::v1;
-using namespace std;
 
 
 int main()
 {
-	MEMORIA_INIT(DefaultProfile<>);
-	
-    using Key   = FixedArray<16>;
+	using Key = FixedArray<16>;
     //using Key   = Bytes;
 
-    CtrApi<Set<Key>>::initMetadata();
-
-    //DInit<Set<Key>>();
-	
     try {
         auto alloc = ThreadInMemAllocator<>::create();
 		
@@ -57,8 +48,6 @@ int main()
         auto map = create<Set<Key>>(snp);
         
         auto map_name = map.name();
-        
-        //map->setNewPageSize(65536);
 
         int size = 10000;
 
@@ -97,7 +86,7 @@ int main()
         size_t cnt = 0;
         for (auto ii = map.begin(); !ii.is_end(); ii.next())
         {
-            std::cout << "Row: " << (cnt++) << ": " << ii.key() << std::endl;
+            //std::cout << "Row: " << (cnt++) << ": " << ii.key() << std::endl;
         }
 
         snp.commit();
@@ -114,7 +103,7 @@ int main()
 
 		std::cout << "Ctr size: " << set1.size() << std::endl;
         
-        //alloc2.dump("alloc2.dump");
+        alloc2.dump("alloc2.dump");
     }
     catch (std::exception& ex)
     {
@@ -124,12 +113,6 @@ int main()
     {
         cout << ex.message() << " at " << ex.source() << endl;
     }
-	
-
-    // Destroy containers metadata.
-    MetadataRepository<DefaultProfile<>>::cleanup();
-
-	/**/
 }
 
 

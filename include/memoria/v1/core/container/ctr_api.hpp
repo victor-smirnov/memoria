@@ -28,6 +28,14 @@ template <typename CtrName, typename Profile = DefaultProfile<>> class IterApi;
 
 template <typename CtrName, typename Allocator, typename Profile> class SharedCtr2;
 template <typename CtrName, typename Profile> class SharedIter;
-    
+
+template <typename CtrName, typename Profile>
+struct CtrMetadataInitializer {
+    CtrMetadataInitializer() {
+        CtrApi<CtrName, Profile>::init();
+    }
+};
+
+
 }
 }
