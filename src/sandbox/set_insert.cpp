@@ -114,7 +114,7 @@ int main()
 
 		std::cout << "Ctr size: " << set1.size() << std::endl;
         
-        alloc2.dump("alloc2.dump");
+        //alloc2.dump("alloc2.dump");
     }
     catch (std::exception& ex)
     {

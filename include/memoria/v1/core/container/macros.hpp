@@ -68,7 +68,7 @@ class CtrPart<PartName, Base1, TypesType>: public Base1 {                       
     typedef Ctr<TypesType> MyType;                                              \
     template <typename, typename, typename> friend class CtrPart;               \
     template <typename, typename, typename> friend class IterPart;              \
-    template <typename> friend class BTreeCtrBase;								\
+    template <typename> class BTreeCtrBase;										\
 protected:
 
 
