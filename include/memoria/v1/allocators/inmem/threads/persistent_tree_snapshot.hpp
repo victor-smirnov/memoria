@@ -20,6 +20,8 @@
 #include "allocator_inmem_threads_api.hpp"
 
 #include <memoria/v1/core/container/allocator.hpp>
+#include <memoria/v1/core/container/ctr_impl.hpp>
+
 #include <memoria/v1/core/container/metadata_repository.hpp>
 
 #include <memoria/v1/core/exceptions/memoria.hpp>
@@ -41,22 +43,6 @@
 namespace memoria {
 namespace v1 {
 namespace persistent_inmem_thread {
-
-// template <typename CtrT, typename Allocator>
-// class SharedCtr: public CtrT {
-// 
-// public:
-//     SharedCtr(const std::shared_ptr<Allocator>& allocator, Int command, const UUID& name):
-//         CtrT(allocator.get(), command, name)
-//     {
-//         CtrT::alloc_holder_ = allocator;
-//     }
-// 
-//     auto snapshot() const {
-//         return CtrT::alloc_holder_;
-//     }
-// };
-        
 
 enum class SnapshotStatus {ACTIVE, COMMITTED, DROPPED, DATA_LOCKED};
 
@@ -1657,13 +1643,19 @@ void ThreadInMemSnapshot<Profile>::dump_persistent_tree()
 }
 
 template <typename Profile>
-std::shared_ptr<IWalkableAllocator<ProfilePageType<Profile>>> ThreadInMemSnapshot<Profile>::snapshot_ref() 
+std::shared_ptr<IWalkableAllocator<ProfilePageType<Profile>>> ThreadInMemSnapshot<Profile>::snapshot_ref_creation_allowed() 
 {
+    pimpl_->checkIfConainersCreationAllowed();
     return std::static_pointer_cast<IWalkableAllocator<ProfilePageType<Profile>>>(pimpl_->shared_from_this());
 }
 
 
-
+template <typename Profile>
+std::shared_ptr<IWalkableAllocator<ProfilePageType<Profile>>> ThreadInMemSnapshot<Profile>::snapshot_ref_opening_allowed() 
+{
+    pimpl_->checkIfConainersOpeneingAllowed();
+    return std::static_pointer_cast<IWalkableAllocator<ProfilePageType<Profile>>>(pimpl_->shared_from_this());
+}
 
 
 

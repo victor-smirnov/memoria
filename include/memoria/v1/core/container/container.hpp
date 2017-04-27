@@ -52,9 +52,10 @@ template <typename Name, typename Base, typename Types> class CtrPart;
 
 template <typename Types> class Ctr;
 template <typename Types> class Iter;
+template <typename CtrName, typename Profile> class SharedIter;
+
 
 template <typename Profile> class MetadataRepository;
-
 
 
 
@@ -125,7 +126,8 @@ public:
     using PageG     = typename Allocator::PageG;
 
     using Iterator      = Iter<typename Types::IterTypes>;
-    using IteratorPtr   = CtrSharedPtr<Iterator>;
+    using SharedIterator      = SharedIter<ContainerTypeName, typename TypesType::Profile>;
+    using IteratorPtr   = CtrSharedPtr<SharedIterator>;
     
     static constexpr Int CONTAINER_HASH = TypeHash<Name>::Value;
 
@@ -392,22 +394,22 @@ protected:
 
     template <typename... Args>
     IteratorPtr make_iterator(Args&&... args) const {
-        return CtrMakeSharedPtr<Iterator>::make_shared(this->shared_from_this(), std::forward<Args>(args)...);
+        return CtrMakeSharedPtr<SharedIterator>::make_shared(this->shared_from_this(), std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     IteratorPtr make_iterator(Args&&... args) {
-        return CtrMakeSharedPtr<Iterator>::make_shared(this->shared_from_this(), std::forward<Args>(args)...);
+        return CtrMakeSharedPtr<SharedIterator>::make_shared(this->shared_from_this(), std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     IteratorPtr clone_iterator(Args&&... args) const {
-        return CtrMakeSharedPtr<Iterator>::make_shared(std::forward<Args>(args)...);
+        return CtrMakeSharedPtr<SharedIterator>::make_shared(std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     IteratorPtr clone_iterator(Args&&... args) {
-        return CtrMakeSharedPtr<Iterator>::make_shared(std::forward<Args>(args)...);
+        return CtrMakeSharedPtr<SharedIterator>::make_shared(std::forward<Args>(args)...);
     }
 
 

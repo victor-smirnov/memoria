@@ -16,10 +16,10 @@
 
 
 #include <memoria/v1/allocators/inmem/threads/allocator_inmem_threads_api.hpp>
-#include <memoria/v1/allocators/inmem/threads/container_collection_cfg.hpp>
 
-//#include <memoria/v1/memoria.hpp>
-#include <memoria/v1/containers/set/set_factory.hpp>
+//#include <memoria/v1/containers/set/set_factory.hpp>
+#include <memoria/v1/containers/set/set_api.hpp>
+
 #include <memoria/v1/core/tools/iobuffer/io_buffer.hpp>
 
 #include <memoria/v1/core/tools/strings/string_codec.hpp>
@@ -35,20 +35,7 @@
 
 
 using namespace memoria::v1;
-using namespace memoria::v1::btss;
 using namespace std;
-
-// template <typename CtrName>
-// using DCtrTF = CtrTF<DefaultProfile<>, CtrName>;
-// 
-// template <typename CtrName>
-// using DCtr = typename CtrTF<DefaultProfile<>, CtrName>::Type;
-// 
-// template <typename CtrName>
-// void DInit() {
-//     DCtr<CtrName>::initMetadata();
-// }
-
 
 
 int main()
@@ -58,8 +45,9 @@ int main()
     using Key   = FixedArray<16>;
     //using Key   = Bytes;
 
+    CtrApi<Set<Key>>::initMetadata();
 
-    DInit<Set<Key>>();
+    //DInit<Set<Key>>();
 	
     try {
         auto alloc = ThreadInMemAllocator<>::create();
@@ -68,9 +56,9 @@ int main()
 
         auto map = create<Set<Key>>(snp);
         
-        auto map_name = map->name();
+        auto map_name = map.name();
         
-        map->setNewPageSize(65536);
+        //map->setNewPageSize(65536);
 
         int size = 10000;
 
@@ -88,7 +76,7 @@ int main()
                 array[c] = getRandomG(256);
             }
 
-            map->insert_key(array);
+            map.insert(array);
 
             if (ticker.is_threshold())
             {
@@ -105,6 +93,12 @@ int main()
         BigInt t1 = getTimeInMillis();
 
         cout << "Inserted " << size << " in " << (t1 - t0) << endl;
+        
+        size_t cnt = 0;
+        for (auto ii = map.begin(); !ii.is_end(); ii.next())
+        {
+            std::cout << "Row: " << (cnt++) << ": " << ii.key() << std::endl;
+        }
 
         snp.commit();
 		snp.set_as_master();
@@ -118,7 +112,7 @@ int main()
         
         auto set1 = find<Set<Key>>(alloc2.master(), map_name);
 
-		std::cout << "Ctr size: " << set1->size() << std::endl;
+		std::cout << "Ctr size: " << set1.size() << std::endl;
         
         alloc2.dump("alloc2.dump");
     }

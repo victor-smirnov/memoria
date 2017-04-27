@@ -20,9 +20,12 @@
 #include <memoria/v1/core/tools/stream.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
 
+#include <memoria/v1/core/container/ctr_api.hpp>
 #include <memoria/v1/core/container/container.hpp>
 #include <memoria/v1/core/container/allocator.hpp>
 #include <memoria/v1/core/container/metadata_repository.hpp>
+
+#include <memoria/v1/allocators/inmem/threads/container_collection_cfg.hpp>
 
 #include <boost/filesystem.hpp>
 
@@ -80,20 +83,7 @@ public:
 };
 
 
-template <typename CtrT, typename Allocator>
-class SharedCtr: public CtrT {
 
-public:
-    SharedCtr(const std::shared_ptr<Allocator>& allocator, Int command, const UUID& name):
-        CtrT(allocator.get(), command, name)
-    {
-        CtrT::alloc_holder_ = allocator;
-    }
-
-    auto snapshot() const {
-        return CtrT::alloc_holder_;
-    }
-};
 
 
 template <typename Profile>
@@ -104,9 +94,11 @@ class ThreadInMemSnapshot {
     using SnapshotPtr = ThreadInMemSnapshot;
     using TxnId = UUID;
 
+    using AllocatorT = IWalkableAllocator<ProfilePageType<Profile>>;
+    
 public:
     template <typename CtrName>
-    using CtrT = SharedCtr<typename CtrTF<Profile, CtrName>::Type, IWalkableAllocator<ProfilePageType<Profile>>>;
+    using CtrT = CtrApi<CtrName, Profile>;
     
     std::shared_ptr<PImpl> pimpl_;
 public:
@@ -144,35 +136,35 @@ public:
     void dump(boost::filesystem::path destination);
     void dump_persistent_tree();
     
-    std::shared_ptr<IWalkableAllocator<ProfilePageType<Profile>>> snapshot_ref();
+    
     
     template <typename CtrName>
     auto find_or_create(const UUID& name)
     {
-    	//pimpl_->checkIfConainersCreationAllowed();
-        return std::make_shared<CtrT<CtrName>>(snapshot_ref(), CTR_FIND | CTR_CREATE, name);
+        return CtrT<CtrName>(snapshot_ref_creation_allowed(), CTR_FIND | CTR_CREATE, name);
     }
 
     template <typename CtrName>
     auto create(const UUID& name)
     {
-    	//pimpl_->checkIfConainersCreationAllowed();
-        return std::make_shared<CtrT<CtrName>>(snapshot_ref(), CTR_CREATE, name);
+        return CtrT<CtrName>(snapshot_ref_creation_allowed(), CTR_CREATE, name);
     }
 
     template <typename CtrName>
     auto create()
     {
-    	//pimpl_->checkIfConainersCreationAllowed();
-        return std::make_shared<CtrT<CtrName>>(snapshot_ref(), CTR_CREATE, CTR_DEFAULT_NAME);
+        return CtrT<CtrName>(snapshot_ref_creation_allowed(), CTR_CREATE, CTR_DEFAULT_NAME);
     }
 
     template <typename CtrName>
     auto find(const UUID& name)
     {
-    	//pimpl_->checkIfConainersOpeneingAllowed();
-        return std::make_shared<CtrT<CtrName>>(snapshot_ref(), CTR_FIND, name);
+        return CtrT<CtrName>(snapshot_ref_opening_allowed(), CTR_FIND, name);
     }
+    
+private:
+    std::shared_ptr<AllocatorT> snapshot_ref_creation_allowed();
+    std::shared_ptr<AllocatorT> snapshot_ref_opening_allowed();
 };
 
 
@@ -195,11 +187,6 @@ auto create(ThreadInMemSnapshot<Profile>&& alloc, const UUID& name)
 template <typename CtrName, typename Profile>
 auto create(ThreadInMemSnapshot<Profile>& alloc)
 {
-    
-    //using CtrT = typename ThreadInMemSnapshot<Profile>::template CtrT<CtrName>;
-    
-    //return std::make_shared<CtrT>(alloc.snapshot_ref(), CTR_CREATE, CTR_DEFAULT_NAME);
-    
     return alloc.template create<CtrName>();
 }
 

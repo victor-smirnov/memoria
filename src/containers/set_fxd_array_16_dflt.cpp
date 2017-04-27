@@ -1,5 +1,5 @@
 
-// Copyright 2011 Victor Smirnov
+// Copyright 2017 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,20 +15,20 @@
 
 
 
-#include <memoria/v1/allocators/inmem/threads/factory.hpp>
+#include <memoria/v1/containers/set/set_impl.hpp>
+
+#include <memoria/v1/core/tools/fixed_array.hpp>
+
+#include <memoria/v1/allocators/inmem/threads/container_collection_cfg.hpp>
 
 namespace memoria {
 namespace v1 {
 
 using Profile = DefaultProfile<>;    
     
-namespace persistent_inmem_thread {
-    template class ThreadInMemAllocatorImpl<Profile>;
-    template class Snapshot<Profile, ThreadInMemAllocatorImpl<Profile>>;
-}
+template class CtrApi<Set<FixedArray<16>>, Profile>;
+template class IterApi<Set<FixedArray<16>>, Profile>;
+    
+    
+}}
 
-template class ThreadInMemAllocator<Profile>;
-template class ThreadInMemSnapshot<Profile>;
-
-}
-}

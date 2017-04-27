@@ -1,5 +1,5 @@
 
-// Copyright 2011 Victor Smirnov
+// Copyright 2017 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,22 +13,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#pragma once
 
+#include <memoria/v1/core/types/types.hpp>
+#include <memoria/v1/core/container/container.hpp>
 
-#include <memoria/v1/allocators/inmem/threads/factory.hpp>
+#include "profile.hpp"
 
 namespace memoria {
 namespace v1 {
 
-using Profile = DefaultProfile<>;    
+template <typename CtrName, typename Profile = DefaultProfile<>> class CtrApi;
+template <typename CtrName, typename Profile = DefaultProfile<>> class IterApi;
+
+template <typename CtrName, typename Allocator, typename Profile> class SharedCtr2;
+template <typename CtrName, typename Profile> class SharedIter;
     
-namespace persistent_inmem_thread {
-    template class ThreadInMemAllocatorImpl<Profile>;
-    template class Snapshot<Profile, ThreadInMemAllocatorImpl<Profile>>;
-}
-
-template class ThreadInMemAllocator<Profile>;
-template class ThreadInMemSnapshot<Profile>;
-
 }
 }

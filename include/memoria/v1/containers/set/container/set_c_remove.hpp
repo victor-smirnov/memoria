@@ -43,6 +43,19 @@ protected:
     typedef typename Types::BranchNodeEntry                                     BranchNodeEntry;
 
     typedef typename Types::PageUpdateMgr                                       PageUpdateMgr;
+    
+public:    
+    bool remove(const Key& key) 
+    {
+        auto iter = self().find(key);
+        if ((!iter->isEnd()) && iter->key() == key) 
+        {
+            iter->remove();
+            return true;
+        }
+        
+        return false;
+    }
 
 MEMORIA_V1_CONTAINER_PART_END
 
