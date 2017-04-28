@@ -18,9 +18,6 @@
 #include <memoria/v1/memoria.hpp>
 
 #include <memoria/v1/containers/multimap/mmap_factory.hpp>
-
-#include <memoria/v1/tools/profile_tests.hpp>
-
 #include <memoria/v1/tools/tests.hpp>
 #include <memoria/v1/tools/tools.hpp>
 

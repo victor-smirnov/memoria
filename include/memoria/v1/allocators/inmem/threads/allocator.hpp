@@ -508,7 +508,7 @@ private:
     
     Logger logger_;
 
-    HistoryNode* history_tree_ 	= nullptr;
+    HistoryNode* history_tree_  = nullptr;
     HistoryNode* master_ 		= nullptr;
 
     TxnMap snapshot_map_;
@@ -1801,6 +1801,9 @@ using PersistentInMemAllocator = class persistent_inmem_thread::ThreadInMemAlloc
 
 
 template <typename Profile>
+ThreadInMemAllocator<Profile>::ThreadInMemAllocator() {}
+
+template <typename Profile>
 ThreadInMemAllocator<Profile>::ThreadInMemAllocator(std::shared_ptr<PImpl> impl): pimpl_(impl) {}
 
 template <typename Profile>
@@ -1813,7 +1816,6 @@ template <typename Profile>
 ThreadInMemAllocator<Profile>& ThreadInMemAllocator<Profile>::operator=(const ThreadInMemAllocator& other) 
 {
     pimpl_ = other.pimpl_;
-    
     return *this;
 }
 
@@ -1821,13 +1823,25 @@ template <typename Profile>
 ThreadInMemAllocator<Profile>& ThreadInMemAllocator<Profile>::operator=(ThreadInMemAllocator&& other) 
 {
     pimpl_ = std::move(other.pimpl_);
-    
     return *this;
 }
 
 template <typename Profile>
 ThreadInMemAllocator<Profile>::~ThreadInMemAllocator() {}
 
+
+template <typename Profile>
+bool ThreadInMemAllocator<Profile>::operator==(const ThreadInMemAllocator& other) const
+{
+    return pimpl_ == other.pimpl_;
+}
+
+
+template <typename Profile>
+ThreadInMemAllocator<Profile>::operator bool() const 
+{
+    return pimpl_ != nullptr;
+}
 
 
 
@@ -1893,9 +1907,15 @@ void ThreadInMemAllocator<Profile>::set_branch(StringRef name, const TxnId& txn_
 }
 
 template <typename Profile>
-ContainerMetadataRepository* ThreadInMemAllocator<Profile>::getMetadata() const 
+ContainerMetadataRepository* ThreadInMemAllocator<Profile>::metadata() const 
 {
     return pimpl_->getMetadata();
+}
+
+template <typename Profile>
+void ThreadInMemAllocator<Profile>::walk_containers(ContainerWalker* walker, const char* allocator_descr) 
+{
+     return pimpl_->walkContainers(walker, allocator_descr);
 }
 
 template <typename Profile>
@@ -1904,6 +1924,17 @@ void ThreadInMemAllocator<Profile>::dump(boost::filesystem::path dump_at)
     pimpl_->dump(dump_at.string().c_str());
 }
 
+template <typename Profile>
+void ThreadInMemAllocator<Profile>::reset() 
+{
+    pimpl_.reset();
+}
 
+
+template <typename Profile>
+void ThreadInMemAllocator<Profile>::pack() 
+{
+    pimpl_->pack();
+}
 
 }}

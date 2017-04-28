@@ -30,14 +30,14 @@
 //#include "packed/wavelet_tree/packed_wtree_suite.hpp"
 
 
-#include "prototype/bt/bt_test_suite.hpp"
-#include "prototype/btfl/btfl_test_suite.hpp"
-#include "prototype/btss/btss_test_suite.hpp"
-
-
+// #include "prototype/bt/bt_test_suite.hpp"
+// #include "prototype/btfl/btfl_test_suite.hpp"
+// #include "prototype/btss/btss_test_suite.hpp"
+// 
+// 
 #include "map/map_test_suite.hpp"
-#include "vector/vector_test_suite.hpp"
-#include "multimap/multimap_test_suite.hpp"
+// #include "vector/vector_test_suite.hpp"
+// #include "multimap/multimap_test_suite.hpp"
 
 //#include "sequence/sequence_test_suite.hpp"
 //#include "labeled_tree/ltree_test_suite.hpp"
@@ -50,6 +50,8 @@
 #include <memoria/v1/tools/tools.hpp>
 #include <memoria/v1/tools/tests.hpp>
 #include <memoria/v1/core/tools/terminal.hpp>
+
+
 #include "dump.hpp"
 
 
@@ -95,12 +97,12 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new PackedLoudsCardinalTestSuite());
 //        runner.registerTask(new PackedWaveletTreeTestSuite());
 
-       runner.registerTask(new BTTestSuite());
-       runner.registerTask(new BTFLTestSuite());
-       runner.registerTask(new BTSSTestSuite());
-
-       runner.registerTask(new MapTestSuite());
-       runner.registerTask(new VectorTestSuite());
+//        runner.registerTask(new BTTestSuite());
+//        runner.registerTask(new BTFLTestSuite());
+//        runner.registerTask(new BTSSTestSuite());
+// 
+//        runner.registerTask(new MapTestSuite());
+//        runner.registerTask(new VectorTestSuite());
         
 //        runner.registerTask(new SequenceTestSuite());
 //        runner.registerTask(new LabeledTreeTestSuite());

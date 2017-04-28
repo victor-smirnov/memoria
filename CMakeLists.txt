@@ -46,6 +46,7 @@ option(BUILD_TESTS    "Build Unit/Functional tests" OFF)
 option(BUILD_SANDBOX  "Build selected programs in the project's sandbox" OFF)
 option(BUILD_TOOLS    "Build project's tools" ON)
 option(BUILD_STATIC   "Build statically linked binaries" OFF)
+option(BUILD_EXAMPLES "Build project examples" OFF)
 
 
 set (LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)

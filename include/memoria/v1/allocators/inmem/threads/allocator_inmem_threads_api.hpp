@@ -45,12 +45,15 @@ class ThreadInMemSnapshot;
 template <typename Profile = DefaultProfile<>>
 class ThreadInMemAllocator {
     using PImpl = persistent_inmem_thread::ThreadInMemAllocatorImpl<Profile>;
-    
-    using SnapshotPtr = ThreadInMemSnapshot<Profile>;
     using TxnId = UUID;
     
     std::shared_ptr<PImpl> pimpl_;
 public:
+    using SnapshotPtr   = ThreadInMemSnapshot<Profile>;
+    using Page          = ProfilePageType<Profile>;
+    
+    ThreadInMemAllocator();
+    
     ThreadInMemAllocator(std::shared_ptr<PImpl> impl);
     ThreadInMemAllocator(ThreadInMemAllocator&& impl);
     
@@ -60,6 +63,10 @@ public:
     ~ThreadInMemAllocator();
     
     ThreadInMemAllocator& operator=(ThreadInMemAllocator&&);
+    
+    bool operator==(const ThreadInMemAllocator&) const;
+    operator bool() const;
+    
     
     static ThreadInMemAllocator load(InputStreamHandler* input_stream);
     static ThreadInMemAllocator load(boost::filesystem::path file_name);
@@ -76,9 +83,13 @@ public:
     void set_master(const TxnId& txn_id);
     void set_branch(StringRef name, const TxnId& txn_id);
     
-    ContainerMetadataRepository* getMetadata() const;
+    ContainerMetadataRepository* metadata() const;
+    void walk_containers(ContainerWalker* walker, const char* allocator_descr = nullptr);
     
     void dump(boost::filesystem::path dump_at);
+    
+    void reset();
+    void pack();
 };
 
 
@@ -95,12 +106,18 @@ class ThreadInMemSnapshot {
 
     using AllocatorT = IWalkableAllocator<ProfilePageType<Profile>>;
     
+    std::shared_ptr<PImpl> pimpl_;
+    
 public:
     template <typename CtrName>
     using CtrT = CtrApi<CtrName, Profile>;
     
-    std::shared_ptr<PImpl> pimpl_;
+    using Page = ProfilePageType<Profile>;
+    
+    
 public:
+    ThreadInMemSnapshot();
+    
     ThreadInMemSnapshot(std::shared_ptr<PImpl> impl);
     ThreadInMemSnapshot(ThreadInMemSnapshot&& impl);
     
@@ -111,7 +128,10 @@ public:
     
     ThreadInMemSnapshot& operator=(ThreadInMemSnapshot&&);
     
-    ContainerMetadataRepository* getMetadata() const;
+    bool operator==(const ThreadInMemSnapshot&) const;
+    operator bool() const;
+    
+    ContainerMetadataRepository* metadata() const;
     const UUID& uuid() const;
     bool is_active() const;
     bool is_marked_to_clear() const;
@@ -121,8 +141,8 @@ public:
     bool drop_ctr(const UUID& name);
     void set_as_master();
     void set_as_branch(StringRef name);
-    StringRef metadata() const;
-    void set_metadata(StringRef metadata);
+    StringRef snapshot_metadata() const;
+    void set_snapshot_metadata(StringRef metadata);
     void lock_data_for_import();
     SnapshotPtr branch();
     bool has_parent() const;
@@ -134,7 +154,7 @@ public:
     bool check();
     void dump(boost::filesystem::path destination);
     void dump_persistent_tree();
-    
+    void walk_containers(ContainerWalker* walker, const char* allocator_descr = nullptr);
     
     
     template <typename CtrName>
@@ -160,6 +180,8 @@ public:
     {
         return CtrT<CtrName>(snapshot_ref_opening_allowed(), CTR_FIND, name);
     }
+    
+    void reset();
     
 private:
     std::shared_ptr<AllocatorT> snapshot_ref_creation_allowed();

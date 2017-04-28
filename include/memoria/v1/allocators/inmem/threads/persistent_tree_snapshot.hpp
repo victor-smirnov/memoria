@@ -1476,6 +1476,13 @@ void check_snapshot(Allocator& allocator)
 
 
 
+
+
+
+template <typename Profile>
+ThreadInMemSnapshot<Profile>::ThreadInMemSnapshot() {}
+
+
 template <typename Profile>
 ThreadInMemSnapshot<Profile>::ThreadInMemSnapshot(std::shared_ptr<PImpl> impl): pimpl_(impl) {}
 
@@ -1505,10 +1512,19 @@ ThreadInMemSnapshot<Profile>::~ThreadInMemSnapshot(){}
 
 
 template <typename Profile>
-ContainerMetadataRepository* ThreadInMemSnapshot<Profile>::getMetadata() const 
+bool ThreadInMemSnapshot<Profile>::operator==(const ThreadInMemSnapshot& other) const
 {
-    return pimpl_->getMetadata();
+    return pimpl_ == other.pimpl_;
 }
+
+template <typename Profile>
+ThreadInMemSnapshot<Profile>::operator bool() const
+{
+    return pimpl_ != nullptr; 
+}
+
+
+
 
 template <typename Profile>
 const UUID& ThreadInMemSnapshot<Profile>::uuid() const 
@@ -1565,13 +1581,13 @@ void ThreadInMemSnapshot<Profile>::set_as_branch(StringRef name)
 }
 
 template <typename Profile>
-StringRef ThreadInMemSnapshot<Profile>::metadata() const 
+StringRef ThreadInMemSnapshot<Profile>::snapshot_metadata() const 
 {
     return pimpl_->metadata();
 }
 
 template <typename Profile>
-void ThreadInMemSnapshot<Profile>::set_metadata(StringRef metadata) 
+void ThreadInMemSnapshot<Profile>::set_snapshot_metadata(StringRef metadata) 
 {
     return pimpl_->set_metadata(metadata);
 }
@@ -1639,6 +1655,25 @@ void ThreadInMemSnapshot<Profile>::dump_persistent_tree()
 {
     return pimpl_->dump_persistent_tree();
 }
+
+template <typename Profile>
+void ThreadInMemSnapshot<Profile>::walk_containers(ContainerWalker* walker, const char* allocator_descr) 
+{
+     return pimpl_->walkContainers(walker, allocator_descr);
+}
+
+template <typename Profile>
+void ThreadInMemSnapshot<Profile>::reset() 
+{
+    return pimpl_.reset();
+}
+
+template <typename Profile>
+ContainerMetadataRepository* ThreadInMemSnapshot<Profile>::metadata() const
+{
+    return pimpl_->getMetadata();
+}
+
 
 template <typename Profile>
 std::shared_ptr<IWalkableAllocator<ProfilePageType<Profile>>> ThreadInMemSnapshot<Profile>::snapshot_ref_creation_allowed() 

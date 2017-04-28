@@ -19,8 +19,6 @@
 
 #include <memoria/v1/containers/map/map_factory.hpp>
 
-#include <memoria/v1/tools/profile_tests.hpp>
-
 #include <memoria/v1/tools/tests.hpp>
 #include <memoria/v1/tools/tools.hpp>
 
@@ -84,9 +82,9 @@ struct IOBufferAdapter<std::tuple<Key, Value>> {
 
 
 template<typename MapName>
-class MapTestBase: public BTSSTestBase<MapName, PersistentInMemAllocator<>, DefaultProfile<>> {
+class MapTestBase: public BTSSTestBase<MapName, ThreadInMemAllocator<>, DefaultProfile<>> {
     using MyType = MapTestBase<MapName>;
-    using Base = BTSSTestBase<MapName, PersistentInMemAllocator<>, DefaultProfile<>>;
+    using Base = BTSSTestBase<MapName, ThreadInMemAllocator<>, DefaultProfile<>>;
 
 public:
     using typename Base::Ctr;

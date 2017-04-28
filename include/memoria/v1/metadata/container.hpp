@@ -19,6 +19,7 @@
 
 #include <memoria/v1/metadata/group.hpp>
 #include <memoria/v1/metadata/page.hpp>
+#include <memoria/v1/metadata/tools.hpp>
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 #include <memoria/v1/core/tools/assert.hpp>
 #include <memoria/v1/core/tools/platform.hpp>
@@ -549,22 +550,16 @@ private:
 };
 
 
-//template <typename Allocator>
-//void FSDumpAllocator(Allocator* allocator, StringRef path)
-//{
-//    typedef FSDumpContainerWalker<typename Allocator::Page> Walker;
-//
-//    Walker walker(allocator->getMetadata(), path);
-//    allocator->walkContainers(&walker);
-//}
-
 template <typename Allocator>
-void FSDumpAllocator(const std::shared_ptr<Allocator>& allocator, StringRef path)
+void FSDumpAllocator(Allocator& allocator, StringRef path)
 {
     using Walker = FSDumpContainerWalker<typename Allocator::Page>;
 
-    Walker walker(allocator->getMetadata(), path);
-    allocator->walkContainers(&walker);
+    Walker walker(allocator.metadata(), path);
+    allocator.walk_containers(&walker);
 }
+
+
+
 
 }}

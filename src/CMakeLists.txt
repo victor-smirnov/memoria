@@ -43,6 +43,7 @@ if (BUILD_SANDBOX)
     add_subdirectory(sandbox)
 endif()
 
+
 add_executable(intellectio intellectio.cpp)
 SET_TARGET_PROPERTIES(intellectio PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
 set_target_properties(intellectio PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")

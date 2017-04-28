@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include "set_api.hpp"
+#include <memoria/v1/api/set_api.hpp>
 #include "set_factory.hpp"
 
 #include <memoria/v1/core/container/ctr_impl.hpp>

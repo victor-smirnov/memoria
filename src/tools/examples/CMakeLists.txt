@@ -14,7 +14,7 @@
 # limitations under the License.
 
 if (NOT DEFINED MEMORIA_EXAMPLES)
-    set(MEMORIA_EXAMPLES map wt)
+    set(MEMORIA_EXAMPLES map)
 endif()
 
 FOREACH(MEMORIA_TARGET ${MEMORIA_EXAMPLES})
@@ -24,8 +24,14 @@ FOREACH(MEMORIA_TARGET ${MEMORIA_EXAMPLES})
     set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS} -luuid")
     set_target_properties(${MEMORIA_TARGET} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}/examples")
         
-    if (NOT CHECK_SYNTAX_ONLY)
-        target_link_libraries(${MEMORIA_TARGET} Memoria ${MEMORIA_LIBS})
+    
+    
+    
+    if (BUILD_MSVC)
+        target_link_libraries(${MEMORIA_TARGET} Memoria )
+    else()
+        target_link_libraries(${MEMORIA_TARGET} Memoria boost_context boost_system boost_filesystem m)
     endif()
+    
     
 ENDFOREACH(MEMORIA_TARGET)

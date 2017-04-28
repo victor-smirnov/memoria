@@ -18,7 +18,6 @@
 
 #include <memoria/v1/memoria.hpp>
 
-#include <memoria/v1/tools/profile_tests.hpp>
 #include <memoria/v1/tools/tools.hpp>
 
 #include <memoria/v1/prototypes/bt_fl/btfl_factory.hpp>

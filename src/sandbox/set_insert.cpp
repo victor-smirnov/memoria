@@ -13,10 +13,8 @@
 // limitations under the License.
 
 
-
-
 #include <memoria/v1/allocators/inmem/threads/allocator_inmem_threads_api.hpp>
-#include <memoria/v1/containers/set/set_api.hpp>
+#include <memoria/v1/api/set_api.hpp>
 
 #include <memoria/v1/core/tools/iobuffer/io_buffer.hpp>
 

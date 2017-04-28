@@ -18,7 +18,6 @@
 
 #include <memoria/v1/memoria.hpp>
 
-#include <memoria/v1/tools/profile_tests.hpp>
 #include <memoria/v1/tools/tools.hpp>
 
 #include <functional>
@@ -53,7 +52,7 @@ protected:
 
 
     using Allocator     = AllocatorType;
-    using AllocatorPtr  = typename Allocator::AllocatorPtr;
+    using AllocatorPtr  = Allocator;
     using SnapshotPtr   = typename Allocator::SnapshotPtr;
 
     AllocatorPtr allocator_;
@@ -90,10 +89,10 @@ public:
     auto& branch()
     {
         if (snapshot_) {
-            snapshot_ = snapshot_->branch();
+            snapshot_ = snapshot_.branch();
         }
         else {
-            snapshot_ = allocator_->master()->branch();
+            snapshot_ = allocator_.master().branch();
         }
 
         return snapshot_;
@@ -101,33 +100,33 @@ public:
 
     void commit()
     {
-        snapshot_->commit();
-        snapshot_->set_as_master();
+        snapshot_.commit();
+        snapshot_.set_as_master();
 
-        if (snapshot_->has_parent())
+        if (snapshot_.has_parent())
         {
-            auto parent = snapshot_->parent();
+            auto parent = snapshot_.parent();
 
-            if (parent->has_parent())
+            if (parent.has_parent())
             {
-                parent->drop();
-                allocator_->pack();
+                parent.drop();
+                allocator_.pack();
             }
         }
     }
 
     void drop()
     {
-        auto parent = snapshot_->parent();
+        auto parent = snapshot_.parent();
 
-        snapshot_->drop();
+        snapshot_.drop();
         snapshot_.reset();
 
-        parent->set_as_master();
+        parent.set_as_master();
 
         snapshot_ = parent;
 
-        allocator_->pack();
+        allocator_.pack();
     }
 
 
@@ -164,11 +163,11 @@ public:
         if (!isReplayMode())
         {
             createAllocator(allocator_);
-            MEMORIA_V1_ASSERT_NOT_NULL(allocator_.get());
+            MEMORIA_V1_ASSERT_TRUE(allocator_);
         }
         else {
             loadAllocator(dump_name_);
-            snapshot_ = allocator_->master();
+            snapshot_ = allocator_.master();
         }
     }
 
@@ -185,7 +184,7 @@ public:
     {
         try {
 
-            if (snapshot_->is_active())
+            if (snapshot_.is_active())
             {
                 commit();
 
@@ -197,7 +196,7 @@ public:
                 dump_name_ = getAllocatorFileName(".valid");
                 storeAllocator(dump_name_);
             }
-            else if (snapshot_->is_committed())
+            else if (snapshot_.is_committed())
             {
                 dump_name_ = getAllocatorFileName(".valid");
                 storeAllocator(dump_name_);
@@ -211,7 +210,7 @@ public:
     virtual void storeAllocator(String file_name) const
     {
         auto out = FileOutputStreamHandler::create(file_name.c_str());
-        allocator_->store(out.get());
+        allocator_.store(out.get());
     }
 
 
