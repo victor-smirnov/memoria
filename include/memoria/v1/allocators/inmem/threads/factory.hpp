@@ -18,37 +18,7 @@
 
 #include <memoria/v1/containers/map/map_factory.hpp>
 
-#include <memoria/v1/core/container/metadata_repository.hpp>
-
 #include "container_collection_cfg.hpp"
 
 #include "allocator.hpp"
 
-// namespace memoria {
-// namespace v1 {
-// 
-// template <typename Profile>
-// class ContainerCollectionCfg;
-// 
-// template <typename T>
-// class ContainerCollectionCfg<DefaultProfile<T> > {
-// public:
-//     using Types = BasicContainerCollectionCfg<DefaultProfile<T>>;
-// };
-// 
-// 
-// template <typename CtrName>
-// using DCtrTF = CtrTF<DefaultProfile<>, CtrName>;
-// 
-// template <typename CtrName>
-// using DCtr = typename CtrTF<DefaultProfile<>, CtrName>::Type;
-// 
-// template <typename CtrName>
-// void DInit() {
-//     DCtr<CtrName>::initMetadata();
-// }
-// 
-// 
-// 
-// 
-// }}

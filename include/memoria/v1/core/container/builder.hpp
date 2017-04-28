@@ -33,32 +33,32 @@ template <
 struct Builder;
 
 
+
 template <
     typename T1,
     typename ... T2,
     template <typename, typename> class Element,
     typename Base
 >
-struct Builder<TypeList<T1, T2...>, Element, Base>:
-            public Element<
-                        T1,
-                        Builder<
-                            TypeList<T2...>,
-                            Element,
-                            Base
-                        >
-            >
+struct Builder<TypeList<T1, T2...>, Element, Base>: public Element<
+    T1,
+    Builder<
+        TypeList<T2...>,
+        Element,
+        Base
+    >
+>
 {
 
 private:
-    typedef Element<
+    using BaseType = Element<
                 T1,
                 Builder<
                     TypeList<T2...>,
                     Element,
                     Base
                 >
-            >                                                               BaseType;
+            >;
 
 public:
     
@@ -72,7 +72,7 @@ template <
 >
 struct Builder<TypeList<T>, Element, Base>: public Element<T, Base> {
 private:
-    typedef Element<T, Base>                                                BaseType;
+    using BaseType = Element<T, Base>;
 
 public:
     Builder(): BaseType() {}
@@ -84,12 +84,7 @@ template <
     typename Base
 >
 struct Builder<TypeList<>, Element, Base>: public Base {
-
-
-    typedef Base                                                            BaseType;
-
-
-    Builder(): BaseType() {}
+    Builder(): Base() {}
 };
 
 

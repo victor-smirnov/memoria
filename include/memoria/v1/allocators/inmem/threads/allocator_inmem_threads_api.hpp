@@ -23,7 +23,6 @@
 #include <memoria/v1/core/container/ctr_api.hpp>
 #include <memoria/v1/core/container/container.hpp>
 #include <memoria/v1/core/container/allocator.hpp>
-#include <memoria/v1/core/container/metadata_repository.hpp>
 
 #include <memoria/v1/allocators/inmem/threads/container_collection_cfg.hpp>
 

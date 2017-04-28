@@ -16,8 +16,6 @@
 
 #pragma once
 
-#include <memoria/v1/core/container/metadata_repository.hpp>
-
 #include <memoria/v1/core/tools/pool.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
 #include <memoria/v1/core/tools/stream.hpp>

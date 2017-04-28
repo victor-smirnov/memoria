@@ -293,6 +293,27 @@ private:
 
 
 
+template <typename Profile>
+class MetadataRepository {
+
+public:
+
+    static ContainerMetadataRepository* getMetadata()
+    {
+    	static thread_local ContainerMetadataRepository metadata(TypeNameFactory<Profile>::name(), MetadataList());
+        return &metadata;
+    }
+
+    static void registerMetadata(const ContainerMetadataPtr& ctr_metadata)
+    {
+        getMetadata()->registerMetadata(ctr_metadata);
+    }
+
+    static void unregisterMetadata(const ContainerMetadataPtr& ctr_metadata)
+    {
+        getMetadata()->unregisterMetadata(ctr_metadata);
+    }
+};
 
 
 

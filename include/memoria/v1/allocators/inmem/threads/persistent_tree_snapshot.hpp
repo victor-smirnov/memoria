@@ -22,8 +22,6 @@
 #include <memoria/v1/core/container/allocator.hpp>
 #include <memoria/v1/core/container/ctr_impl.hpp>
 
-#include <memoria/v1/core/container/metadata_repository.hpp>
-
 #include <memoria/v1/core/exceptions/memoria.hpp>
 
 #include <memoria/v1/core/tools/pool.hpp>

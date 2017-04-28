@@ -17,7 +17,6 @@
 #pragma once
 
 #include <memoria/v1/core/types/types.hpp>
-#include <memoria/v1/core/container/metadata_repository.hpp>
 #include <memoria/v1/core/container/container.hpp>
 
 namespace memoria {

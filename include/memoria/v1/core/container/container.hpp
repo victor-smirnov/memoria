@@ -46,7 +46,7 @@
 namespace memoria {
 namespace v1 {
 
-template <typename Profile, typename SelectorType, typename ContainerTypeName> class CtrTF;
+template <typename Profile, typename SelectorType, typename ContainerTypeName = SelectorType> class CtrTF;
 
 template <typename Name, typename Base, typename Types> class CtrPart;
 

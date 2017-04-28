@@ -17,12 +17,3 @@
 #pragma once
 
 #include <memoria/v1/allocators/inmem/threads/factory.hpp>
-#include <memoria/v1/core/container/metadata_repository.hpp>
-
-namespace memoria {
-namespace v1 {
-
-template <>
-struct CtrNameDeclarator<0>: TypeDef<Map<UUID, UUID>> {};
-
-}}

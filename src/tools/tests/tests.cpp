@@ -95,12 +95,12 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new PackedLoudsCardinalTestSuite());
 //        runner.registerTask(new PackedWaveletTreeTestSuite());
 
-        runner.registerTask(new BTTestSuite());
-        runner.registerTask(new BTFLTestSuite());
-        runner.registerTask(new BTSSTestSuite());
-// 
-        runner.registerTask(new MapTestSuite());
-        runner.registerTask(new VectorTestSuite());
+       runner.registerTask(new BTTestSuite());
+       runner.registerTask(new BTFLTestSuite());
+       runner.registerTask(new BTSSTestSuite());
+
+       runner.registerTask(new MapTestSuite());
+       runner.registerTask(new VectorTestSuite());
         
 //        runner.registerTask(new SequenceTestSuite());
 //        runner.registerTask(new LabeledTreeTestSuite());
