@@ -77,8 +77,6 @@ public:
 
     MultiMapTestBase(StringRef name): Base(name)
     {
-        Ctr::initMetadata();
-
         MEMORIA_ADD_TEST_PARAM(size);
         MEMORIA_ADD_TEST_PARAM(level_limit);
         MEMORIA_ADD_TEST_PARAM(last_level_limit);

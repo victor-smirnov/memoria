@@ -66,8 +66,6 @@ public:
     BTTestBase(StringRef name):
         TestTask(name)
     {
-        Ctr::initMetadata();
-
         MEMORIA_ADD_TEST_PARAM(dump_name_)->state();
     }
 

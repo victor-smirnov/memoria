@@ -69,8 +69,6 @@ const char* CFG_FILE    = "tests.properties";
 
 int main(int argc, const char** argv, const char** envp)
 {
-    MEMORIA_INIT(DefaultProfile<>);
-
     Term::init(argc, argv, envp);
 
     try {
@@ -97,12 +95,12 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new PackedLoudsCardinalTestSuite());
 //        runner.registerTask(new PackedWaveletTreeTestSuite());
 
-//         runner.registerTask(new BTTestSuite());
-//         runner.registerTask(new BTFLTestSuite());
-//         runner.registerTask(new BTSSTestSuite());
+        runner.registerTask(new BTTestSuite());
+        runner.registerTask(new BTFLTestSuite());
+        runner.registerTask(new BTSSTestSuite());
 // 
-//         runner.registerTask(new MapTestSuite());
-//         runner.registerTask(new VectorTestSuite());
+        runner.registerTask(new MapTestSuite());
+        runner.registerTask(new VectorTestSuite());
         
 //        runner.registerTask(new SequenceTestSuite());
 //        runner.registerTask(new LabeledTreeTestSuite());
@@ -159,8 +157,6 @@ int main(int argc, const char** argv, const char** envp)
             Int failed = runner.Run();
             cout<<"Done..."<<endl;
 
-            MetadataRepository<DefaultProfile<>>::cleanup();
-
             return failed;
         }
     }
@@ -168,8 +164,6 @@ int main(int argc, const char** argv, const char** envp)
     {
         cerr<<e.source()<<" ERROR: "<<e<<endl;
     }
-
-    MetadataRepository<DefaultProfile<>>::cleanup();
 
     return 1;
 }

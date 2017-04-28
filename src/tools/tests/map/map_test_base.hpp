@@ -129,8 +129,6 @@ public:
 
     MapTestBase(StringRef name): Base(name)
     {
-        Ctr::initMetadata();
-
         size_ = 10000;
 
 

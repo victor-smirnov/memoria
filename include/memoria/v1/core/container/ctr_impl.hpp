@@ -63,6 +63,7 @@ class SharedIter: public Iter<typename CtrTF<Profile, CtrName, CtrName>::Types::
     using MyType1 = SharedIter<CtrName,Profile>;
     
     using CtrT = typename CtrTF<Profile, CtrName, CtrName>::Type;
+    using IterT = Iter<typename CtrTF<Profile, CtrName, CtrName>::Types::IterTypes>;
 
     using CtrPtr = CtrSharedPtr<Profile, CtrT>;
     
@@ -76,6 +77,7 @@ public:
     }
     
     SharedIter(const MyType1& other): Base(other) {}
+    SharedIter(const IterT& other): Base(other) {}
 
 };
 

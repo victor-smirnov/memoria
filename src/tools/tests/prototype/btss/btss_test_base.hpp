@@ -64,9 +64,7 @@ public:
 
     BTSSTestBase(StringRef name):
         Base(name)
-    {
-        Ctr::initMetadata();
-    }
+    {}
 
     virtual ~BTSSTestBase() noexcept {}
 

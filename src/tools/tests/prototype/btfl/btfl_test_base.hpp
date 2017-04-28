@@ -107,8 +107,6 @@ public:
     BTFLTestBase(StringRef name):
         Base(name)
     {
-        Ctr::initMetadata();
-
         MEMORIA_ADD_TEST_PARAM(size);
         MEMORIA_ADD_TEST_PARAM(iterations);
         MEMORIA_ADD_TEST_PARAM(dump);

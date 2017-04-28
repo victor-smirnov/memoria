@@ -32,11 +32,11 @@
 #include <memoria/v1/core/container/dispatcher.hpp>
 #include <memoria/v1/core/container/defaults.hpp>
 #include <memoria/v1/core/container/macros.hpp>
-#include <memoria/v1/core/container/init.hpp>
+#include "../tools/pair.hpp"
 
 #include <string>
 #include <memory>
-#include "../tools/pair.hpp"
+
 
 
 

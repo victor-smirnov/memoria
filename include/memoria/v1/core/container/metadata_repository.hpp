@@ -16,14 +16,9 @@
 
 #pragma once
 
-#include <memoria/v1/core/container/names.hpp>
+
 #include <memoria/v1/core/container/dispatcher.hpp>
 #include <memoria/v1/metadata/container.hpp>
-#include <memoria/v1/containers/roots.hpp>
-
-#include <memoria/v1/core/types/algo/select.hpp>
-
-
 
 namespace memoria {
 namespace v1 {
@@ -53,10 +48,6 @@ public:
         getMetadata()->unregisterMetadata(ctr_metadata);
     }
 };
-
-
-#define MEMORIA_INIT(Profile)
-
 
 
 }}

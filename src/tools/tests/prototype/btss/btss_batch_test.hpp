@@ -91,8 +91,6 @@ public:
     BTSSBatchTest(StringRef name):
         Base(name)
     {
-        Ctr::initMetadata();
-
         size_ = 1024 * 1024;
 
         MEMORIA_ADD_TEST_PARAM(max_block_size_);

@@ -19,13 +19,6 @@
 namespace memoria {
 namespace v1 {
 
-class ContainerCollectionCfgName                        {};
-
-template <typename PageType>
-struct AbstractAllocatorName {};
-
-template <typename Profile, typename Params> class AbstractAllocatorFactory;
-
 
 template <typename Types>  struct CtrTypesT: Types {
 
