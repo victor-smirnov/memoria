@@ -29,7 +29,7 @@ using CtrIOBuffer = DefaultIOBuffer;
 template <typename CtrName, typename Profile = DefaultProfile<>> class CtrApi;
 template <typename CtrName, typename Profile = DefaultProfile<>> class IterApi;
 
-template <typename CtrName, typename Allocator, typename Profile> class SharedCtr2;
+template <typename CtrName, typename Allocator, typename Profile> class SharedCtr;
 template <typename CtrName, typename Profile> class SharedIter;
 
 template <typename CtrName, typename Profile>

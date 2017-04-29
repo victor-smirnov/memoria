@@ -29,7 +29,7 @@ namespace v1 {
 template <typename Key, typename Profile> 
 class CtrApi<Set<Key>, Profile> {
     using AllocatorT = IWalkableAllocator<ProfilePageType<Profile>>;
-    using CtrT       = SharedCtr2<Set<Key>, AllocatorT, Profile>;
+    using CtrT       = SharedCtr<Set<Key>, AllocatorT, Profile>;
     using CtrPtr     = std::shared_ptr<CtrT>;
 
     using Iterator   = IterApi<Set<Key>, Profile>;

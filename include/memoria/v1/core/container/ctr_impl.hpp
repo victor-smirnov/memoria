@@ -25,27 +25,11 @@
 namespace memoria {
 namespace v1 {
 
-template <typename CtrT, typename Allocator>
-class SharedCtr: public CtrT {
-
-public:
-    SharedCtr(const std::shared_ptr<Allocator>& allocator, Int command, const UUID& name):
-        CtrT(allocator.get(), command, name)
-    {
-        CtrT::alloc_holder_ = allocator;
-    }
-
-    auto snapshot() const {
-        return CtrT::alloc_holder_;
-    }
-};
-
-
 template <typename CtrName, typename Allocator, typename Profile>
-class SharedCtr2: public CtrTF<Profile, CtrName, CtrName>::Type {
+class SharedCtr: public CtrTF<Profile, CtrName, CtrName>::Type {
     using Base = typename CtrTF<Profile, CtrName, CtrName>::Type;
 public:
-    SharedCtr2(const std::shared_ptr<Allocator>& allocator, Int command, const UUID& name):
+    SharedCtr(const std::shared_ptr<Allocator>& allocator, Int command, const UUID& name):
         Base(allocator.get(), command, name)
     {
         Base::alloc_holder_ = allocator;
@@ -78,7 +62,6 @@ public:
     
     SharedIter(const MyType1& other): Base(other) {}
     SharedIter(const IterT& other): Base(other) {}
-
 };
 
     

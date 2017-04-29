@@ -29,7 +29,7 @@ class CtrApi<Map<Key, Value>, Profile> {
     using MapT = Map<Key, Value>;
     
     using AllocatorT = IWalkableAllocator<ProfilePageType<Profile>>;
-    using CtrT       = SharedCtr2<MapT, AllocatorT, Profile>;
+    using CtrT       = SharedCtr<MapT, AllocatorT, Profile>;
     using CtrPtr     = std::shared_ptr<CtrT>;
 
     using Iterator = IterApi<MapT, Profile>;

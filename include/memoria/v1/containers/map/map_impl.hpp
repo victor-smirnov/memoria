@@ -29,7 +29,7 @@ namespace memoria {
 namespace v1 {
 
 template <typename Key, typename Value, typename Profile>
-using SharedMap = SharedCtr2<Map<Key, Value>, IWalkableAllocator<ProfilePageType<Profile>>, Profile>;
+using SharedMap = SharedCtr<Map<Key, Value>, IWalkableAllocator<ProfilePageType<Profile>>, Profile>;
     
     
 template <typename Key, typename Value, typename Profile>

@@ -130,7 +130,7 @@ class Snapshot:
 public:
 
     template <typename CtrName>
-    using CtrT = v1::SharedCtr<typename CtrTF<Profile, CtrName>::Type, IWalkableAllocator<ProfilePageType<Profile>>>;
+    using CtrT = v1::SharedCtr<CtrName, IWalkableAllocator<ProfilePageType<Profile>>, Profile>;
 
     template <typename CtrName>
     using CtrPtr = std::shared_ptr<CtrT<CtrName>>;

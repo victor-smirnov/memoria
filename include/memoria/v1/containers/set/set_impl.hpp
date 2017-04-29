@@ -26,7 +26,7 @@ namespace memoria {
 namespace v1 {
 
 template <typename Key, typename Profile>
-using SharedSet = SharedCtr2<Set<Key>, IWalkableAllocator<ProfilePageType<Profile>>, Profile>;
+using SharedSet = SharedCtr<Set<Key>, IWalkableAllocator<ProfilePageType<Profile>>, Profile>;
     
     
 template <typename Key, typename Profile>
