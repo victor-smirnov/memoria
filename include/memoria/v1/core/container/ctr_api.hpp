@@ -29,8 +29,11 @@ using CtrIOBuffer = DefaultIOBuffer;
 template <typename CtrName, typename Profile = DefaultProfile<>> class CtrApi;
 template <typename CtrName, typename Profile = DefaultProfile<>> class IterApi;
 
+
 template <typename CtrName, typename Allocator, typename Profile> class SharedCtr;
 template <typename CtrName, typename Profile> class SharedIter;
+
+
 
 template <typename CtrName, typename Profile>
 struct CtrMetadataInitializer {
@@ -39,7 +42,9 @@ struct CtrMetadataInitializer {
     }
 };
 
-#define MMA1_INSTANTIATE_CTR(CtrName, Profile)          \
+#define MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile)     \
+template class IterApiBTSSBase<CtrName, Profile>;       \
+template class CtrApiBTSSBase<CtrName, Profile>;        \
 template class CtrApi<CtrName, Profile>;                \
 template class IterApi<CtrName, Profile>;               \
                                                         \
@@ -47,5 +52,34 @@ namespace {                                             \
 CtrMetadataInitializer<CtrName, Profile> init;          \
 }
 
+
+
+#define MMA1_DECLARE_CTRAPI_BASIC_METHODS()                                                 \
+    CtrApi(const std::shared_ptr<AllocatorT>& allocator, Int command, const UUID& name);    \
+    ~CtrApi();                                                                              \
+                                                                                            \
+    CtrApi(const CtrApi&);                                                                  \
+    CtrApi(CtrApi&&);                                                                       \
+                                                                                            \
+    CtrApi& operator=(const CtrApi&);                                                       \
+    CtrApi& operator=(CtrApi&&);                                                            \
+                                                                                            \
+    bool operator==(const CtrApi& other) const;                                             \
+    operator bool() const;
+
+
+#define MMA1_DECLARE_ITERAPI_BASIC_METHODS()        \
+    IterApi(IterPtr);                               \
+    ~IterApi();                                     \
+                                                    \
+    IterApi(const IterApi&);                        \
+    IterApi(IterApi&&);                             \
+                                                    \
+    IterApi& operator=(const IterApi&);             \
+    IterApi& operator=(IterApi&&);                  \
+                                                    \
+    bool operator==(const IterApi& other) const;    \
+    operator bool() const;
+    
 }
 }

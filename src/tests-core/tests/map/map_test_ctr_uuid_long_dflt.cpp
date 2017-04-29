@@ -28,7 +28,7 @@ namespace v1 {
 using Profile = DefaultProfile<>;    
 using CtrName = Map<UUID, BigInt>;
 
-MMA1_INSTANTIATE_CTR(CtrName, Profile)
+MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile)
     
 }}
 

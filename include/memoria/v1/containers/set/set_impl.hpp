@@ -15,31 +15,29 @@
 
 #pragma once
 
-#include <memoria/v1/api/set_api.hpp>
 #include "set_factory.hpp"
 
-#include <memoria/v1/core/container/ctr_impl.hpp>
+#include <memoria/v1/api/set_api.hpp>
+#include <memoria/v1/core/container/ctr_impl_btss.hpp>
 
 #include <memory>
 
 namespace memoria {
 namespace v1 {
 
-template <typename Key, typename Profile>
-using SharedSet = SharedCtr<Set<Key>, IWalkableAllocator<ProfilePageType<Profile>>, Profile>;
-    
+
     
 template <typename Key, typename Profile>
 CtrApi<Set<Key>, Profile>::CtrApi(const std::shared_ptr<AllocatorT>& allocator, Int command, const UUID& name):
-    pimpl_(std::make_shared<SharedSet<Key, Profile>>(allocator, command, name))
+    Base(allocator, command, name)
 {}
 
 template <typename Key, typename Profile>
-CtrApi<Set<Key>, Profile>::CtrApi(const CtrApi& other):pimpl_(other.pimpl_) {}
+CtrApi<Set<Key>, Profile>::CtrApi(const CtrApi& other):Base(other) {}
 
 
 template <typename Key, typename Profile>
-CtrApi<Set<Key>, Profile>::CtrApi(CtrApi&& other): pimpl_(std::move(other.pimpl_)) {}
+CtrApi<Set<Key>, Profile>::CtrApi(CtrApi&& other): Base(std::move(other)) {}
 
 template <typename Key, typename Profile>
 CtrApi<Set<Key>, Profile>::~CtrApi() {}
@@ -49,7 +47,7 @@ CtrApi<Set<Key>, Profile>::~CtrApi() {}
 template <typename Key, typename Profile>
 CtrApi<Set<Key>, Profile>& CtrApi<Set<Key>, Profile>::operator=(const CtrApi& other) 
 {
-    pimpl_ = other.pimpl_;
+    Base::pimpl_ = other.pimpl_;
     return *this;
 }
 
@@ -57,7 +55,7 @@ CtrApi<Set<Key>, Profile>& CtrApi<Set<Key>, Profile>::operator=(const CtrApi& ot
 template <typename Key, typename Profile>
 CtrApi<Set<Key>, Profile>& CtrApi<Set<Key>, Profile>::operator=(CtrApi&& other) 
 {
-    pimpl_ = std::move(other.pimpl_);
+    Base::pimpl_ = std::move(other.pimpl_);
     return *this;
 }
 
@@ -65,86 +63,67 @@ CtrApi<Set<Key>, Profile>& CtrApi<Set<Key>, Profile>::operator=(CtrApi&& other)
 template <typename Key, typename Profile>
 bool CtrApi<Set<Key>, Profile>::operator==(const CtrApi& other) const 
 {
-    return pimpl_ == other.pimpl_;
+    return Base::pimpl_ == other.pimpl_;
 }
 
 template <typename Key, typename Profile>
 CtrApi<Set<Key>, Profile>::operator bool() const 
 {
-    return pimpl_ != nullptr;
+    return Base::pimpl_ != nullptr;
 }
 
 
-template <typename Key, typename Profile>
-BigInt CtrApi<Set<Key>, Profile>::size()
-{
-    return pimpl_->size();
-}
 
 
 template <typename Key, typename Profile>
 typename CtrApi<Set<Key>, Profile>::Iterator CtrApi<Set<Key>, Profile>::begin() 
 {
-    return pimpl_->begin();
+    return Base::pimpl_->begin();
 }
 
 
 template <typename Key, typename Profile>
 typename CtrApi<Set<Key>, Profile>::Iterator CtrApi<Set<Key>, Profile>::end() 
 {
-    return pimpl_->end();
+    return Base::pimpl_->end();
 }
 
 template <typename Key, typename Profile>
 typename CtrApi<Set<Key>, Profile>::Iterator CtrApi<Set<Key>, Profile>::find(const Key& key) 
 {
-    return pimpl_->find(key);
+    return Base::pimpl_->find(key);
 }
 
 template <typename Key, typename Profile>
 bool CtrApi<Set<Key>, Profile>::contains(const Key& key) 
 {
-    return pimpl_->contains(key);
+    return Base::pimpl_->contains(key);
 }
 
 template <typename Key, typename Profile>
 bool CtrApi<Set<Key>, Profile>::remove(const Key& key) 
 {
-    return pimpl_->remove(key);
+    return Base::pimpl_->remove(key);
 }
 
 template <typename Key, typename Profile>
 bool CtrApi<Set<Key>, Profile>::insert(const Key& key) 
 {
-    return pimpl_->insert_key(key);
-}
-
-template <typename Key, typename Profile>
-UUID CtrApi<Set<Key>, Profile>::name() 
-{
-    return pimpl_->name();
-}
-
-template <typename Key, typename Profile>
-const ContainerMetadataPtr& CtrApi<Set<Key>, Profile>::metadata() {
-    return CtrT::getMetadata();
+    return Base::pimpl_->insert_key(key);
 }
 
 
-template <typename Key, typename Profile>
-void CtrApi<Set<Key>, Profile>::init() {
-    CtrT::getMetadata();
-}
-
-template <typename Key, typename Profile>
-IterApi<Set<Key>, Profile>::IterApi(IterPtr ptr): pimpl_(ptr) {}
 
 
 template <typename Key, typename Profile>
-IterApi<Set<Key>, Profile>::IterApi(const IterApi& other): pimpl_(other.pimpl_) {}
+IterApi<Set<Key>, Profile>::IterApi(IterPtr ptr): Base(ptr) {}
+
 
 template <typename Key, typename Profile>
-IterApi<Set<Key>, Profile>::IterApi(IterApi&& other): pimpl_(std::move(other.pimpl_)) {}
+IterApi<Set<Key>, Profile>::IterApi(const IterApi& other): Base(other) {}
+
+template <typename Key, typename Profile>
+IterApi<Set<Key>, Profile>::IterApi(IterApi&& other): Base(std::move(other)) {}
 
 template <typename Key, typename Profile>
 IterApi<Set<Key>, Profile>::~IterApi() {}
@@ -153,14 +132,14 @@ IterApi<Set<Key>, Profile>::~IterApi() {}
 template <typename Key, typename Profile>
 IterApi<Set<Key>, Profile>& IterApi<Set<Key>, Profile>::operator=(const IterApi& other) 
 {
-    pimpl_ = other.pimpl_;
+    this->pimpl_ = other.pimpl_;
     return *this;
 }
 
 template <typename Key, typename Profile>
 IterApi<Set<Key>, Profile>& IterApi<Set<Key>, Profile>::operator=(IterApi&& other)
 {
-    pimpl_ = std::move(other.pimpl_);
+    this->pimpl_ = std::move(other.pimpl_);
     return *this;
 }
 
@@ -168,87 +147,34 @@ IterApi<Set<Key>, Profile>& IterApi<Set<Key>, Profile>::operator=(IterApi&& othe
 template <typename Key, typename Profile>
 bool IterApi<Set<Key>, Profile>::operator==(const IterApi& other) const
 {
-    return pimpl_ == other.pimpl_;
+    return this->pimpl_ == other.pimpl_;
 }
 
 template <typename Key, typename Profile>
 IterApi<Set<Key>, Profile>::operator bool() const 
 {
-    return pimpl_ != nullptr;
+    return this->pimpl_ != nullptr;
 }
 
-template <typename Key, typename Profile>
-bool IterApi<Set<Key>, Profile>::is_end() const
-{
-    return pimpl_->isEnd();
-}
 
 template <typename Key, typename Profile>
 Key IterApi<Set<Key>, Profile>::key() const
 {
-    return pimpl_->key();
+    return this->pimpl_->key();
 }
 
 
 
-template <typename Key, typename Profile>
-bool IterApi<Set<Key>, Profile>::next()
-{
-    return pimpl_->next();
-}
-
-template <typename Key, typename Profile>
-bool IterApi<Set<Key>, Profile>::prev()
-{
-    return pimpl_->prev();
-}
-
-
-template <typename Key, typename Profile>
-void IterApi<Set<Key>, Profile>::remove()
-{
-    return pimpl_->remove();
-}
 
 template <typename Key, typename Profile>
 void IterApi<Set<Key>, Profile>::insert(const Key& key)
 {
-    return pimpl_->insert(key);
+    return this->pimpl_->insert(key);
 }
 
 
-template <typename Key, typename Profile>
-BigInt IterApi<Set<Key>, Profile>::read(CtrIOBuffer& buffer, BigInt size) 
-{
-    return pimpl_->populate_buffer(&buffer, size);
-}
-
-template <typename Key, typename Profile>
-BigInt IterApi<Set<Key>, Profile>::read(bt::BufferConsumer<CtrIOBuffer>& consumer, BigInt size) 
-{
-    return pimpl_->read_buffer(&consumer, size);
-}
-
-template <typename Key, typename Profile>
-BigInt IterApi<Set<Key>, Profile>::read(std::function<Int (CtrIOBuffer&, Int)> consumer, BigInt size) 
-{
-    BufferFnConsumer<CtrIOBuffer, std::function<Int (CtrIOBuffer&, Int)>> fn_consumer(consumer);
-    return pimpl_->read_buffer(&fn_consumer, size);
-}
 
 
-template <typename Key, typename Profile>
-BigInt IterApi<Set<Key>, Profile>::insert(bt::BufferProducer<CtrIOBuffer>& producer) 
-{
-    return pimpl_->insert_iobuffer(&producer);
-}
-
-template <typename Key, typename Profile>
-BigInt IterApi<Set<Key>, Profile>::insert(std::function<Int (CtrIOBuffer&)> producer)
-{
-    BufferFnProducer<CtrIOBuffer, std::function<Int (CtrIOBuffer&)>> fn_producer(producer);
-    return pimpl_->insert_iobuffer(&fn_producer);
-}
 
     
 }}

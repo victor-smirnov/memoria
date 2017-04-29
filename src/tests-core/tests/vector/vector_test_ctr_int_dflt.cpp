@@ -15,17 +15,14 @@
 
 
 
-#include <memoria/v1/containers/set/set_impl.hpp>
-
-#include <memoria/v1/core/tools/fixed_array.hpp>
-
+#include <memoria/v1/containers/vector/vector_impl.hpp>
 #include <memoria/v1/allocators/inmem/threads/container_collection_cfg.hpp>
 
 namespace memoria {
 namespace v1 {
 
 using Profile = DefaultProfile<>;    
-using CtrName = Set<FixedArray<16>>;
+using CtrName = Vector<int>;
 
 MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile)
     

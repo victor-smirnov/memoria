@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include <memoria/v1/core/container/ctr_api.hpp>
+#include <memoria/v1/core/container/ctr_api_btss.hpp>
 
 #include <memory>
 
@@ -25,34 +25,19 @@ namespace v1 {
 
     
 template <typename Key, typename Value, typename Profile> 
-class CtrApi<Map<Key, Value>, Profile> {
+class CtrApi<Map<Key, Value>, Profile>: public CtrApiBTSSBase<Map<Key, Value>, Profile> {
     using MapT = Map<Key, Value>;
     
-    using AllocatorT = IWalkableAllocator<ProfilePageType<Profile>>;
-    using CtrT       = SharedCtr<MapT, AllocatorT, Profile>;
-    using CtrPtr     = std::shared_ptr<CtrT>;
+    using Base = CtrApiBTSSBase<Map<Key, Value>, Profile>;
+    using typename Base::AllocatorT;
+    using typename Base::CtrT;
+    using typename Base::CtrPtr;
 
-    using Iterator = IterApi<MapT, Profile>;
-    
-    
-    
-    CtrPtr pimpl_;
+    using typename Base::Iterator;
     
 public:
-    CtrApi(const std::shared_ptr<AllocatorT>& allocator, Int command, const UUID& name);
-    ~CtrApi();
+    MMA1_DECLARE_CTRAPI_BASIC_METHODS()
     
-    CtrApi(const CtrApi&);
-    CtrApi(CtrApi&&);
-    
-    CtrApi& operator=(const CtrApi&);
-    CtrApi& operator=(CtrApi&&);
-    
-    bool operator==(const CtrApi& other) const;
-    
-    operator bool() const;
-    
-    BigInt size();
     Iterator begin();
     Iterator end();
     Iterator find(const Key& key);
@@ -60,57 +45,28 @@ public:
     bool remove(const Key& key);
     
     
-    void new_page_size(int size);
-    
     Iterator assign(const Key& key, const Value& value);
-    
-    UUID name();
-    
-    static void init();
-    static const ContainerMetadataPtr& metadata();
 };
 
 
 template <typename Key, typename Value, typename Profile> 
-class IterApi<Map<Key, Value>, Profile> {
+class IterApi<Map<Key, Value>, Profile>: public IterApiBTSSBase<Map<Key, Value>, Profile> {
     
-    using IterT = SharedIter<Map<Key, Value>, Profile>;
-    using IterPtr = std::shared_ptr<IterT>;
-     
-    IterPtr pimpl_;
+    using Base = IterApiBTSSBase<Map<Key, Value>, Profile>;
+    
+    using typename Base::IterT;
+    using typename Base::IterPtr;
     
 public:
-    IterApi(IterPtr ptr);
+    using Base::read;
+    using Base::insert;
     
-    IterApi(const IterApi&);
-    IterApi(IterApi&&);
-    ~IterApi();
+    MMA1_DECLARE_ITERAPI_BASIC_METHODS()
     
-    IterApi& operator=(const IterApi&);
-    IterApi& operator=(IterApi&&);
-    
-    bool operator==(const IterApi& other) const;
-    
-    operator bool() const;
-    
-    bool is_end() const;
     Key key() const;
     Value value() const;
     
-    bool next();
-    bool prev();
-    
-    void remove();
-    void dump();
-    
     void insert(const Key& key, const Value& value);
-    
-    BigInt read(CtrIOBuffer& buffer, BigInt size = 10000000);
-    BigInt read(bt::BufferConsumer<CtrIOBuffer>& consumer, BigInt size = 10000000);
-    BigInt read(std::function<Int (CtrIOBuffer&, Int)> consumer, BigInt size = 10000000);
-    
-    BigInt insert(bt::BufferProducer<CtrIOBuffer>& producer, BigInt size = 10000000);
-    BigInt insert(std::function<Int (CtrIOBuffer&)> producer);
 };
     
 }}
