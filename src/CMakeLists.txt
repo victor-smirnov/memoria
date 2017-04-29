@@ -35,8 +35,16 @@ SET_TARGET_PROPERTIES(Memoria PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
 export(TARGETS Memoria FILE ${LIBRARY_OUTPUT_PATH}/Memoria.cmake)
 
 
-if (BUILD_TOOLS) 
-    add_subdirectory(tools)
+if (BUILD_EXAMPLES) 
+    add_subdirectory(examples)
+endif()
+
+
+if (BUILD_TESTS) 
+    add_subdirectory(tests-core)     
+#    add_subdirectory(tests-other/disruptor)
+#    add_subdirectory(tests-other/fiber)
+#    add_subdirectory(tests-other/reactor)
 endif()
 
 if (BUILD_SANDBOX) 

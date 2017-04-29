@@ -101,6 +101,15 @@ int main()
 
 		std::cout << "Ctr size: " << set1.size() << std::endl;
         
+        set1.begin().read([](CtrIOBuffer& buffer, int entries){
+            
+            for (int c = 0; c < entries; c++) {
+                std::cout << IOBufferAdapter<Key>::get(buffer) << std::endl;
+            }
+            
+            return entries;
+        });
+        
         alloc2.dump("alloc2.dump");
     }
     catch (std::exception& ex)

@@ -216,12 +216,39 @@ void IterApi<Set<Key>, Profile>::insert(const Key& key)
     return pimpl_->insert(key);
 }
 
+
 template <typename Key, typename Profile>
-BigInt IterApi<Set<Key>, Profile>::for_each(std::function<bool(const Key&)>)
+BigInt IterApi<Set<Key>, Profile>::read(CtrIOBuffer& buffer, BigInt size) 
 {
-    return 0;
+    return pimpl_->populate_buffer(&buffer, size);
 }
 
+template <typename Key, typename Profile>
+BigInt IterApi<Set<Key>, Profile>::read(bt::BufferConsumer<CtrIOBuffer>& consumer, BigInt size) 
+{
+    return pimpl_->read_buffer(&consumer, size);
+}
+
+template <typename Key, typename Profile>
+BigInt IterApi<Set<Key>, Profile>::read(std::function<Int (CtrIOBuffer&, Int)> consumer, BigInt size) 
+{
+    BufferFnConsumer<CtrIOBuffer, std::function<Int (CtrIOBuffer&, Int)>> fn_consumer(consumer);
+    return pimpl_->read_buffer(&fn_consumer, size);
+}
+
+
+template <typename Key, typename Profile>
+BigInt IterApi<Set<Key>, Profile>::insert(bt::BufferProducer<CtrIOBuffer>& producer) 
+{
+    return pimpl_->insert_iobuffer(&producer);
+}
+
+template <typename Key, typename Profile>
+BigInt IterApi<Set<Key>, Profile>::insert(std::function<Int (CtrIOBuffer&)> producer)
+{
+    BufferFnProducer<CtrIOBuffer, std::function<Int (CtrIOBuffer&)>> fn_producer(producer);
+    return pimpl_->insert_iobuffer(&fn_producer);
+}
 
     
 }}

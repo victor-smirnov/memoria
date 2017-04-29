@@ -1691,5 +1691,10 @@ std::shared_ptr<IWalkableAllocator<ProfilePageType<Profile>>> ThreadInMemSnapsho
 }
 
 
+template <typename Profile>
+Logger& ThreadInMemSnapshot<Profile>::logger()
+{
+    return pimpl_->logger();
+}
 
 }}

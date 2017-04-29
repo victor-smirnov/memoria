@@ -25,11 +25,9 @@ namespace memoria {
 namespace v1 {
 
 using Profile = DefaultProfile<>;    
-    
-template class CtrApi<Set<FixedArray<16>>, Profile>;
-template class IterApi<Set<FixedArray<16>>, Profile>;
+using CtrName = Set<FixedArray<16>>;
 
-CtrMetadataInitializer<Set<FixedArray<16>>, Profile> init;
+MMA1_INSTANTIATE_CTR(CtrName, Profile)
     
 }}
 

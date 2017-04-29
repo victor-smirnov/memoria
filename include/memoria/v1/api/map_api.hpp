@@ -59,6 +59,9 @@ public:
     bool contains(const Key& key);
     bool remove(const Key& key);
     
+    
+    void new_page_size(int size);
+    
     Iterator assign(const Key& key, const Value& value);
     
     UUID name();
@@ -98,9 +101,16 @@ public:
     bool prev();
     
     void remove();
+    void dump();
+    
     void insert(const Key& key, const Value& value);
     
-    BigInt for_each(std::function<bool(const Key&, const Value&)>);
+    BigInt read(CtrIOBuffer& buffer, BigInt size = 10000000);
+    BigInt read(bt::BufferConsumer<CtrIOBuffer>& consumer, BigInt size = 10000000);
+    BigInt read(std::function<Int (CtrIOBuffer&, Int)> consumer, BigInt size = 10000000);
+    
+    BigInt insert(bt::BufferProducer<CtrIOBuffer>& producer, BigInt size = 10000000);
+    BigInt insert(std::function<Int (CtrIOBuffer&)> producer);
 };
     
 }}

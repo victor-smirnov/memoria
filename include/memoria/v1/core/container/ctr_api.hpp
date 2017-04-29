@@ -17,12 +17,15 @@
 
 #include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/core/container/container.hpp>
+#include <memoria/v1/core/tools/iobuffer/io_buffer.hpp>
 
 #include "profile.hpp"
 
 namespace memoria {
 namespace v1 {
 
+using CtrIOBuffer = DefaultIOBuffer;    
+    
 template <typename CtrName, typename Profile = DefaultProfile<>> class CtrApi;
 template <typename CtrName, typename Profile = DefaultProfile<>> class IterApi;
 
@@ -36,6 +39,13 @@ struct CtrMetadataInitializer {
     }
 };
 
+#define MMA1_INSTANTIATE_CTR(CtrName, Profile)          \
+template class CtrApi<CtrName, Profile>;                \
+template class IterApi<CtrName, Profile>;               \
+                                                        \
+namespace {                                             \
+CtrMetadataInitializer<CtrName, Profile> init;          \
+}
 
 }
 }

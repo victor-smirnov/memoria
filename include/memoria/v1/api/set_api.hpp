@@ -20,6 +20,7 @@
 
 #include <memory>
 
+
 namespace memoria {
 namespace v1 {
 
@@ -29,9 +30,9 @@ template <typename Key, typename Profile>
 class CtrApi<Set<Key>, Profile> {
     using AllocatorT = IWalkableAllocator<ProfilePageType<Profile>>;
     using CtrT       = SharedCtr2<Set<Key>, AllocatorT, Profile>;
-    using CtrPtr = std::shared_ptr<CtrT>;
+    using CtrPtr     = std::shared_ptr<CtrT>;
 
-    using Iterator = IterApi<Set<Key>, Profile>;
+    using Iterator   = IterApi<Set<Key>, Profile>;
     
     
     
@@ -96,8 +97,18 @@ public:
     
     void remove();
     void insert(const Key& key);
+    void dump();
     
-    BigInt for_each(std::function<bool(const Key&)>);
+    
+    
+    BigInt read(CtrIOBuffer& buffer, BigInt size = 10000000);
+    BigInt read(bt::BufferConsumer<CtrIOBuffer>& consumer, BigInt size = 10000000);
+    
+    BigInt read(std::function<Int (CtrIOBuffer&, Int)> consumer, BigInt size = 10000000);
+    
+    
+    BigInt insert(bt::BufferProducer<CtrIOBuffer>& producer);
+    BigInt insert(std::function<Int (CtrIOBuffer&)> producer);
 };
     
 }}

@@ -125,9 +125,9 @@ public:
     using Page      = typename Allocator::Page;
     using PageG     = typename Allocator::PageG;
 
-    using Iterator      = Iter<typename Types::IterTypes>;
-    using SharedIterator      = SharedIter<ContainerTypeName, typename TypesType::Profile>;
-    using IteratorPtr   = CtrSharedPtr<SharedIterator>;
+    using Iterator          = Iter<typename Types::IterTypes>;
+    using SharedIterator    = SharedIter<ContainerTypeName, typename TypesType::Profile>;
+    using IteratorPtr       = CtrSharedPtr<SharedIterator>;
     
     static constexpr Int CONTAINER_HASH = TypeHash<Name>::Value;
 

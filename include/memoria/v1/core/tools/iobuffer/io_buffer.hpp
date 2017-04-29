@@ -188,6 +188,48 @@ struct IOBufferAdapter<UUID> {
 };
 
 
+namespace bt {
+
+
+template <typename IOBuffer>
+struct BufferConsumer {
+    virtual Int process(IOBuffer& buffer, Int entries) = 0;
+
+    virtual ~BufferConsumer() noexcept {}
+};
+
+template <typename IOBuffer>
+struct BufferProducer {
+    virtual Int populate(IOBuffer& buffer) = 0;
+
+    virtual ~BufferProducer() noexcept {}
+};
+
+}
+
+
+template <typename IOBuffer, typename Fn>
+class BufferFnConsumer: public bt::BufferConsumer<IOBuffer> {
+    Fn fn_;
+public:
+    BufferFnConsumer(Fn fn): fn_(fn) {}
+    
+    virtual Int process(IOBuffer& buffer, Int entries) {
+        return fn_(buffer, entries);
+    }
+};
+
+template <typename IOBuffer, typename Fn>
+class BufferFnProducer: public bt::BufferProducer<IOBuffer> {
+    Fn fn_;
+public:
+    BufferFnProducer(Fn fn): fn_(fn) {}
+    
+    virtual Int populate(IOBuffer& buffer) {
+        return fn_(buffer);
+    }
+};
+
 
 }
 }

@@ -470,21 +470,6 @@ struct ForAllTuple<Idx, Idx> {
 };
 
 
-template <typename IOBuffer>
-struct BufferConsumer {
-    virtual Int process(IOBuffer& buffer, Int entries) = 0;
-
-    virtual ~BufferConsumer() noexcept {}
-};
-
-template <typename IOBuffer>
-struct BufferProducer {
-    virtual Int populate(IOBuffer& buffer) = 0;
-
-    virtual ~BufferProducer() noexcept {}
-};
-
-
 
 template <Int Stream, typename CtrSizeT>
 class EntryFnBase {

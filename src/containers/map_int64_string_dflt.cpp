@@ -25,11 +25,9 @@ namespace memoria {
 namespace v1 {
 
 using Profile = DefaultProfile<>;    
-    
-template class CtrApi<Map<BigInt, String>, Profile>;
-template class IterApi<Map<BigInt, String>, Profile>;
+using CtrName = Map<BigInt, String>;
 
-CtrMetadataInitializer<Map<BigInt, String>, Profile> init;
+MMA1_INSTANTIATE_CTR(CtrName, Profile)
     
 }}
 

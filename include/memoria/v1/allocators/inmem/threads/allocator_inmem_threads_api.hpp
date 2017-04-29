@@ -23,6 +23,7 @@
 #include <memoria/v1/core/container/ctr_api.hpp>
 #include <memoria/v1/core/container/container.hpp>
 #include <memoria/v1/core/container/allocator.hpp>
+#include <memoria/v1/core/container/logs.hpp>
 
 #include <memoria/v1/allocators/inmem/threads/container_collection_cfg.hpp>
 
@@ -88,8 +89,11 @@ public:
     
     void dump(boost::filesystem::path dump_at);
     
+    Logger& logger();
+    
     void reset();
     void pack();
+    bool check();
 };
 
 
@@ -182,6 +186,8 @@ public:
     }
     
     void reset();
+    
+    Logger& logger();
     
 private:
     std::shared_ptr<AllocatorT> snapshot_ref_creation_allowed();

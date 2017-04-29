@@ -1937,4 +1937,10 @@ void ThreadInMemAllocator<Profile>::pack()
     pimpl_->pack();
 }
 
+template <typename Profile>
+Logger& ThreadInMemAllocator<Profile>::logger()
+{
+    return pimpl_->logger();
+}
+
 }}
