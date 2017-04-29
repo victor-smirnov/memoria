@@ -88,7 +88,6 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new BTFLTestSuite());
 //        runner.registerTask(new BTSSTestSuite());
 // 
-//        runner.registerTask(new MapTestSuite());
 //        runner.registerTask(new VectorTestSuite());
         
 //        runner.registerTask(new SequenceTestSuite());
@@ -102,20 +101,20 @@ int main(int argc, const char** argv, const char** envp)
 
         if (cmd_line.IsHelp())
         {
-            cout<<endl;
-            cout<<"Description: "<<DESCRIPTION<<endl;
-            cout<<"Usage: "<<cmd_line.getImageName()<<" [options]"<<endl;
-            cout<<"    --help                           Display this help and exit"<<endl;
-            cout<<"    --count N                        Run all tests N times"<<endl;
-            cout<<"    --config <file.properties>       Use the specified config file"<<endl;
-            cout<<"    --list                           "
-                <<"List available tasks and their configuration properties and exit"<<endl;
-            cout<<"    --dump <allocator.dump>          Dump allocator's content to disk"<<endl;
-            cout<<"    --replay <update_op.properties>  Replay the failed update operation"<<endl;
-            cout<<"    --out <output folder>            Path where tests output will be put. "
-                <<"(It will be recreated if already exists)"<<endl;
-            cout<<"    --coverage <small|normal|large>  Test coverage. Default is normal."<<endl;
-            cout<<"    --coverage-size N                Test coverage size, N >= 1. Default is 1"<<endl;
+            cout << endl;
+            cout << "Description: "<<DESCRIPTION << endl;
+            cout << "Usage: " << cmd_line.getImageName() << " [options]" << endl;
+            cout << "    --help                           Display this help and exit" << endl;
+            cout << "    --count N                        Run all tests N times" << endl;
+            cout << "    --config <file.properties>       Use the specified config file" << endl;
+            cout << "    --list                           "
+                 << "List available tasks and their configuration properties and exit" << endl;
+            cout << "    --dump <allocator.dump>          Dump allocator's content to disk" << endl;
+            cout << "    --replay <update_op.properties>  Replay the failed update operation" << endl;
+            cout << "    --out <output folder>            Path where tests output will be put. "
+                 << "(It will be recreated if already exists)" << endl;
+            cout << "    --coverage <small|normal|large>  Test coverage. Default is normal." << endl;
+            cout << "    --coverage-size N                Test coverage size, N >= 1. Default is 1" << endl;
         }
         else if (cmd_line.IsList())
         {
