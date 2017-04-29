@@ -13,9 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
-#pragma once
-
 #include <memoria/v1/tools/tests_inc.hpp>
 
 #include "../maxtree/packed_maxtree_buffer_test.hpp"
@@ -43,5 +40,8 @@ public:
     }
 
 };
+
+
+MMA1_REGISTER_TEST_SUITE(PackedMaxTreeTestSuite)
 
 }}

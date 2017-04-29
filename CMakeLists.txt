@@ -85,7 +85,7 @@ if (BUILD_UNIX OR MINGW)
     
     if (USE_ASAN)
         set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -fsanitize=address -DASAN_ENABLED")
-        set (MEMORIA_LINK_FLAGS  "${MEMORIA_LINK_FLAGS} -fsanitize=address ") #-lasan
+        set (MEMORIA_LINK_FLAGS  "${MEMORIA_LINK_FLAGS} -fsanitize=address ") 
         
         if (ASAN_SANITIZE_STACKS)
             set (MEMORIA_COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMMA1_SANITIZE_STACKS")

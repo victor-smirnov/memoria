@@ -14,8 +14,6 @@
 // limitations under the License.
 
 
-#pragma once
-
 #include <memoria/v1/tools/tests_inc.hpp>
 
 #include "packed_string_codec_test.hpp"
@@ -45,5 +43,8 @@ public:
     }
 
 };
+
+MMA1_REGISTER_TEST_SUITE(PackedCodecsTestSuite)
+
 
 }}

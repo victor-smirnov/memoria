@@ -22,6 +22,10 @@
 #include "packed_array_misc_test.hpp"
 #include "packed_array_buffer_test.hpp"
 
+#include <memoria/v1/core/tools/exint_codec.hpp>
+#include <memoria/v1/core/tools/elias_codec.hpp>
+#include <memoria/v1/core/tools/i7_codec.hpp>
+
 namespace memoria {
 namespace v1 {
 
