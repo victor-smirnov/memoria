@@ -1,6 +1,6 @@
 set (SRCS tests.cpp)
 
-set (SRCS ${SRCS} bitmap/bitmap_test_suite.cpp)
+#set (SRCS ${SRCS} bitmap/bitmap_test_suite.cpp)
 set (SRCS ${SRCS} packed/codecs/packed_codecs_test_suite.cpp)
 set (SRCS ${SRCS} packed/allocator/palloc_test_suite.cpp)
 set (SRCS ${SRCS} packed/maxtree/packed_maxtree_test_suite.cpp)
