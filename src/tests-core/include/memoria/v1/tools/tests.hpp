@@ -328,7 +328,17 @@ public:
     virtual Int Run();
 };
 
+MemoriaTestRunner& tests_runner();
 
+struct TestSuiteInit {
+    TestSuiteInit(TestSuite* suite) {
+        tests_runner().registerTask(suite);
+    }
+}; 
 
+#define MMA1_REGISTER_TEST_SUITE(SuitClass) \
+namespace {                                 \
+    TestSuiteInit init(new SuitClass());    \
+}
 
 }}

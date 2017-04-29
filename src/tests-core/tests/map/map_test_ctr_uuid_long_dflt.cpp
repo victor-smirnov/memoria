@@ -1,5 +1,5 @@
 
-// Copyright 2012 Victor Smirnov
+// Copyright 2017 Victor Smirnov
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,31 +14,21 @@
 // limitations under the License.
 
 
-#pragma once
 
+#include <memoria/v1/containers/map/map_impl.hpp>
 
-#include <memoria/v1/tools/tests_inc.hpp>
+#include <memoria/v1/core/tools/strings/string.hpp>
+#include <memoria/v1/core/tools/uuid.hpp>
 
-#include "map_create_test.hpp"
-#include "map_remove_test.hpp"
-
-#include <vector>
+#include <memoria/v1/allocators/inmem/threads/container_collection_cfg.hpp>
 
 namespace memoria {
 namespace v1 {
 
-using namespace std;
+using Profile = DefaultProfile<>;    
+using CtrName = Map<UUID, BigInt>;
 
-class MapTestSuite: public TestSuite {
-
-public:
-
-    MapTestSuite(): TestSuite("MapSuite")
-    {
-        registerTask(new MapRemoveTest<Map<UUID, BigInt>>("MapM.Remove"));
-        registerTask(new MapCreateTest<Map<UUID, BigInt>>("MapM.Create"));
-    }
-
-};
-
+MMA1_INSTANTIATE_CTR(CtrName, Profile)
+    
 }}
+

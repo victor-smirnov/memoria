@@ -35,7 +35,6 @@
 // #include "prototype/btss/btss_test_suite.hpp"
 // 
 // 
-#include "map/map_test_suite.hpp"
 // #include "vector/vector_test_suite.hpp"
 // #include "multimap/multimap_test_suite.hpp"
 
@@ -79,7 +78,7 @@ int main(int argc, const char** argv, const char** envp)
 
         Int seed = cmd_line.getConfigurator().getValue<Int>("seed", -1);
 
-        MemoriaTestRunner runner;
+        MemoriaTestRunner& runner = tests_runner();
 
         runner.setSeed(seed);
 

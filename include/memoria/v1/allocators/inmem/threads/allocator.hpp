@@ -1934,13 +1934,20 @@ void ThreadInMemAllocator<Profile>::reset()
 template <typename Profile>
 void ThreadInMemAllocator<Profile>::pack() 
 {
-    pimpl_->pack();
+    return pimpl_->pack();
 }
 
 template <typename Profile>
 Logger& ThreadInMemAllocator<Profile>::logger()
 {
     return pimpl_->logger();
+}
+
+
+template <typename Profile>
+bool ThreadInMemAllocator<Profile>::check() 
+{
+    return pimpl_->check();
 }
 
 }}

@@ -173,23 +173,23 @@ void MemoriaTestRunner::Replay(ostream& out, StringRef task_folder)
         }
         catch (const std::exception& e)
         {
-            out<<"FAILED: STL exception: "<<e.what()<<" "<<endl;
+            out << "FAILED: STL exception: " << e.what() << " " << endl;
         }
         catch (const Exception& e)
         {
-            out<<"FAILED: "<<e.source()<<" "<<e<<endl;
+            out << "FAILED: " << e.source() << " " << e << endl;
         }
         catch (const MemoriaThrowable& e)
         {
-            out<<"FAILED: "<<e.source()<<" "<<e<<endl;
+            out << "FAILED: " << e.source() << " " << e << endl;
         }
         catch (...)
         {
-            out<<"FAILED: Unknown Exception"<<endl;
+            out << "FAILED: Unknown Exception" << endl;
         }
     }
     else {
-        out<<"FAILED: Task '"<<name<<"' is not found"<<endl;
+        out << "FAILED: Task '" << name << "' is not found" << endl;
     }
 }
 
@@ -200,5 +200,10 @@ Int MemoriaTestRunner::Run()
     return result;
 }
 
+
+MemoriaTestRunner& tests_runner() {
+    static MemoriaTestRunner runner;
+    return runner;
+}
 
 }}

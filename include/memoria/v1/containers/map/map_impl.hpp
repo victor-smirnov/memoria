@@ -21,6 +21,8 @@
 
 #include <memoria/v1/core/container/ctr_impl.hpp>
 
+#include <memoria/v1/core/tools/static_array.hpp>
+
 #include <memory>
 
 namespace memoria {
@@ -144,6 +146,16 @@ void CtrApi<Map<Key, Value>, Profile>::init() {
 }
 
 template <typename Key, typename Value, typename Profile>
+void CtrApi<Map<Key, Value>, Profile>::new_page_size(int size) 
+{
+    pimpl_->setNewPageSize(size);
+}
+
+
+
+
+
+template <typename Key, typename Value, typename Profile>
 IterApi<Map<Key, Value>, Profile>::IterApi(IterPtr ptr): pimpl_(ptr) {}
 
 
@@ -196,10 +208,30 @@ Key IterApi<Map<Key, Value>, Profile>::key() const
     return pimpl_->key();
 }
 
+
+namespace detail00 {
+    template <typename T>
+    struct ValueHelper {
+        template <typename TT>
+        static T convert(TT&& value) {
+            return value;
+        }
+    };
+    
+    template <typename T>
+    struct ValueHelper<StaticVector<T, 1>> {
+        template <typename TT>
+        static T convert(TT&& value) {
+            return value[0];
+        }
+    };
+} 
+
+
 template <typename Key, typename Value, typename Profile>
 Value IterApi<Map<Key, Value>, Profile>::value() const
 {
-    return pimpl_->value()[0];
+    return detail00::ValueHelper<decltype(pimpl_->value())>::convert(pimpl_->value());
 }
 
 template <typename Key, typename Value, typename Profile>
@@ -227,6 +259,12 @@ void IterApi<Map<Key, Value>, Profile>::insert(const Key& key, const Value& valu
     return pimpl_->insert(key, value);
 }
 
+
+template <typename Key, typename Value, typename Profile>
+void IterApi<Map<Key, Value>, Profile>::dump()
+{
+    return pimpl_->dump();
+}
 
 
 template <typename Key, typename Value, typename Profile>
