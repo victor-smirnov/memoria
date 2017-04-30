@@ -13,33 +13,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
-
-#include "vctr_factory.hpp"
 
 
-#include <memoria/v1/api/vector/vector_api.hpp>
-#include <memoria/v1/api/vector/vector_input.hpp>
-#include <memoria/v1/core/container/ctr_impl_btss.hpp>
-
-#include <memory>
+#include <memoria/v1/containers/vector/vector_impl.hpp>
+#include <memoria/v1/allocators/inmem/threads/container_collection_cfg.hpp>
 
 namespace memoria {
 namespace v1 {
 
-template <typename Value, typename Profile>
-typename CtrApi<Vector<Value>, Profile>::Iterator CtrApi<Vector<Value>, Profile>::seek(BigInt pos)
-{
-    return this->pimpl_->seek(pos);
-}
+using Profile = DefaultProfile<>;    
+using CtrName = Vector<int>;
 
-template <typename Value, typename Profile>
-std::vector<Value> IterApi<Vector<Value>, Profile>::read(size_t size)
-{
-    
-    return this->pimpl_->read((BigInt)size);
-}
-
-
+MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile)
     
 }}
+

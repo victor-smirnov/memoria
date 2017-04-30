@@ -13,19 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if (NOT DEFINED MEMORIA_EXAMPLES)
-    set(MEMORIA_EXAMPLES map)
-endif()
+set(MEMORIA_EXAMPLES map vector)
+
+set (CTR_INST lib/map_int64_string_dflt.cpp)
+set (CTR_INST ${CTR_INST} lib/vector_int_dflt.cpp)
+set (CTR_INST ${CTR_INST} lib/vector_string_dflt.cpp)
 
 FOREACH(MEMORIA_TARGET ${MEMORIA_EXAMPLES})
 
-    add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp)
-    set_target_properties(${MEMORIA_TARGET} PROPERTIES COMPILE_FLAGS "-g ${MEMORIA_COMPILE_FLAGS} -DMEMORIA_STATIC")
-    set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS} -luuid")
+    add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp ${CTR_INST})
+    set_target_properties(${MEMORIA_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
+    set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
     set_target_properties(${MEMORIA_TARGET} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}/examples")
-        
-    
-    
     
     if (BUILD_MSVC)
         target_link_libraries(${MEMORIA_TARGET} Memoria )
