@@ -19,18 +19,23 @@ set (CTR_INST lib/map_int64_string_dflt.cpp)
 set (CTR_INST ${CTR_INST} lib/vector_int_dflt.cpp)
 set (CTR_INST ${CTR_INST} lib/vector_string_dflt.cpp)
 
-FOREACH(MEMORIA_TARGET ${MEMORIA_EXAMPLES})
 
-    add_executable(${MEMORIA_TARGET} ${MEMORIA_TARGET}.cpp ${CTR_INST})
-    set_target_properties(${MEMORIA_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
-    set_target_properties(${MEMORIA_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
-    set_target_properties(${MEMORIA_TARGET} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}/examples")
+MACRO (Example EX_TARGET MAIN SRCS)
+    add_executable(${EX_TARGET} ${MAIN} ${SRCS})
+    
+    set_target_properties(${EX_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
+    set_target_properties(${EX_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
+    set_target_properties(${EX_TARGET} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}/examples")
     
     if (BUILD_MSVC)
-        target_link_libraries(${MEMORIA_TARGET} Memoria )
+        target_link_libraries(${EX_TARGET} Memoria )
     else()
-        target_link_libraries(${MEMORIA_TARGET} Memoria boost_context boost_system boost_filesystem m)
+        target_link_libraries(${EX_TARGET} Memoria boost_context boost_system boost_filesystem m)
     endif()
     
-    
-ENDFOREACH(MEMORIA_TARGET)
+ENDMACRO()
+
+
+Example(map map.cpp lib/map_int64_string_dflt.cpp)
+
+Example(vector vector.cpp lib/vector_string_dflt.cpp lib/vector_int_dflt.cpp)
