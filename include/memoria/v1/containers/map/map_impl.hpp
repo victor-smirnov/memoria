@@ -28,71 +28,8 @@
 namespace memoria {
 namespace v1 {
 
-// template <typename Key, typename Value, typename Profile>
-// using SharedMap = SharedCtr<Map<Key, Value>, IWalkableAllocator<ProfilePageType<Profile>>, Profile>;
-    
-    
-template <typename Key, typename Value, typename Profile>
-CtrApi<Map<Key, Value>, Profile>::CtrApi(const std::shared_ptr<AllocatorT>& allocator, Int command, const UUID& name):
-    Base(allocator, command, name)
-{}
-
-template <typename Key, typename Value, typename Profile>
-CtrApi<Map<Key, Value>, Profile>::CtrApi(const CtrApi& other):Base(other) {}
 
 
-template <typename Key, typename Value, typename Profile>
-CtrApi<Map<Key, Value>, Profile>::CtrApi(CtrApi&& other): Base(std::move(other)) {}
-
-template <typename Key, typename Value, typename Profile>
-CtrApi<Map<Key, Value>, Profile>::~CtrApi() {}
-
-
-
-template <typename Key, typename Value, typename Profile>
-CtrApi<Map<Key, Value>, Profile>& CtrApi<Map<Key, Value>, Profile>::operator=(const CtrApi& other) 
-{
-    this->pimpl_ = other.pimpl_;
-    return *this;
-}
-
-
-template <typename Key, typename Value, typename Profile>
-CtrApi<Map<Key, Value>, Profile>& CtrApi<Map<Key, Value>, Profile>::operator=(CtrApi&& other) 
-{
-    this->pimpl_ = std::move(other.pimpl_);
-    return *this;
-}
-
-
-template <typename Key, typename Value, typename Profile>
-bool CtrApi<Map<Key, Value>, Profile>::operator==(const CtrApi& other) const 
-{
-    return this->pimpl_ == other.pimpl_;
-}
-
-template <typename Key, typename Value, typename Profile>
-CtrApi<Map<Key, Value>, Profile>::operator bool() const 
-{
-    return this->pimpl_ != nullptr;
-}
-
-
-
-
-
-template <typename Key, typename Value, typename Profile>
-typename CtrApi<Map<Key, Value>, Profile>::Iterator CtrApi<Map<Key, Value>, Profile>::begin() 
-{
-    return this->pimpl_->begin();
-}
-
-
-template <typename Key, typename Value, typename Profile>
-typename CtrApi<Map<Key, Value>, Profile>::Iterator CtrApi<Map<Key, Value>, Profile>::end() 
-{
-    return this->pimpl_->end();
-}
 
 template <typename Key, typename Value, typename Profile>
 typename CtrApi<Map<Key, Value>, Profile>::Iterator CtrApi<Map<Key, Value>, Profile>::find(const Key& key) 
@@ -128,48 +65,6 @@ typename CtrApi<Map<Key, Value>, Profile>::Iterator CtrApi<Map<Key, Value>, Prof
 
 
 
-
-
-template <typename Key, typename Value, typename Profile>
-IterApi<Map<Key, Value>, Profile>::IterApi(IterPtr ptr): Base(ptr) {}
-
-
-template <typename Key, typename Value, typename Profile>
-IterApi<Map<Key, Value>, Profile>::IterApi(const IterApi& other): Base(other) {}
-
-template <typename Key, typename Value, typename Profile>
-IterApi<Map<Key, Value>, Profile>::IterApi(IterApi&& other): Base(std::move(other)) {}
-
-template <typename Key, typename Value, typename Profile>
-IterApi<Map<Key, Value>, Profile>::~IterApi() {}
-
-
-template <typename Key, typename Value, typename Profile>
-IterApi<Map<Key, Value>, Profile>& IterApi<Map<Key, Value>, Profile>::operator=(const IterApi& other) 
-{
-    this->pimpl_ = other.pimpl_;
-    return *this;
-}
-
-template <typename Key, typename Value, typename Profile>
-IterApi<Map<Key, Value>, Profile>& IterApi<Map<Key, Value>, Profile>::operator=(IterApi&& other)
-{
-    this->pimpl_ = std::move(other.pimpl_);
-    return *this;
-}
-
-
-template <typename Key, typename Value, typename Profile>
-bool IterApi<Map<Key, Value>, Profile>::operator==(const IterApi& other) const
-{
-    return this->pimpl_ == other.pimpl_;
-}
-
-template <typename Key, typename Value, typename Profile>
-IterApi<Map<Key, Value>, Profile>::operator bool() const 
-{
-    return this->pimpl_ != nullptr;
-}
 
 
 template <typename Key, typename Value, typename Profile>
@@ -211,13 +106,6 @@ void IterApi<Map<Key, Value>, Profile>::insert(const Key& key, const Value& valu
 {
     return this->pimpl_->insert(key, value);
 }
-
-
-
-
-
-
-
 
     
 }}

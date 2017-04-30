@@ -36,10 +36,8 @@ class CtrApi<Map<Key, Value>, Profile>: public CtrApiBTSSBase<Map<Key, Value>, P
     using typename Base::Iterator;
     
 public:
-    MMA1_DECLARE_CTRAPI_BASIC_METHODS()
+    MMA1_DECLARE_CTRAPI_BTSS_BASIC_METHODS()
     
-    Iterator begin();
-    Iterator end();
     Iterator find(const Key& key);
     bool contains(const Key& key);
     bool remove(const Key& key);
@@ -61,7 +59,7 @@ public:
     using Base::read;
     using Base::insert;
     
-    MMA1_DECLARE_ITERAPI_BASIC_METHODS()
+    MMA1_DECLARE_ITERAPI_BTSS_BASIC_METHODS()
     
     Key key() const;
     Value value() const;

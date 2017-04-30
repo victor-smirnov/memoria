@@ -68,6 +68,20 @@ CtrMetadataInitializer<CtrName, Profile> init;          \
     operator bool() const;
 
 
+#define MMA1_DECLARE_CTRAPI_BTSS_BASIC_METHODS()                                            \
+    CtrApi(const std::shared_ptr<AllocatorT>& allocator, Int command, const UUID& name):    \
+        Base(allocator, command, name) {}                                                   \
+    ~CtrApi() {}                                                                            \
+                                                                                            \
+    CtrApi(const CtrApi& other): Base(other) {}                                             \
+    CtrApi(CtrApi&& other): Base(std::move(other)) {}                                       \
+                                                                                            \
+    CtrApi& operator=(const CtrApi& other) {Base::operator=(other); return *this;}          \
+    CtrApi& operator=(CtrApi&& other){Base::operator=(std::move(other)); return *this;}
+    
+    
+    
+    
 #define MMA1_DECLARE_ITERAPI_BASIC_METHODS()        \
     IterApi(IterPtr);                               \
     ~IterApi();                                     \
@@ -80,6 +94,23 @@ CtrMetadataInitializer<CtrName, Profile> init;          \
                                                     \
     bool operator==(const IterApi& other) const;    \
     operator bool() const;
-    
+
+
+#define MMA1_DECLARE_ITERAPI_BTSS_BASIC_METHODS()   \
+    IterApi(IterPtr ptr):Base(ptr) {}               \
+    ~IterApi() {}                                   \
+                                                    \
+    IterApi(const IterApi& other): Base(other) {}   \
+    IterApi(IterApi&& other):                       \
+        Base(std::move(other)) {}                   \
+                                                    \
+    IterApi& operator=(const IterApi& other) {      \
+        Base::operator=(other); return *this;       \
+    }                                               \
+    IterApi& operator=(IterApi&& other) {           \
+        Base::operator=(std::move(other));          \
+        return *this;                               \
+    }
+
 }
 }

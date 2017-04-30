@@ -67,6 +67,24 @@ public:
         self().refreshBranchPrefixes();
         self().refreshLeafPrefixes();
     }
+    
+    void check(std::ostream& out, const char* source) 
+    {
+#ifndef NDEBUG
+        auto cache1 = self().cache();
+
+        auto tmp = self().clone();
+        tmp->refresh();
+
+        auto cache2 = tmp->cache();
+
+        if (cache1 != cache2)
+        {
+            self().dump(out);
+            throw Exception(source, SBuf()<<"Invalid iterator cache. Iterator: " << cache1 << " Actual: " << cache2);
+        }
+#endif        
+    }
 
 
 protected:
@@ -235,6 +253,7 @@ protected:
     }
 
 
+    
 
 
 MEMORIA_V1_ITERATOR_PART_END

@@ -44,13 +44,21 @@ public:
     CtrApiBTSSBase(const CtrApiBTSSBase&);
     CtrApiBTSSBase(CtrApiBTSSBase&&);
     
+    void operator=(const CtrApiBTSSBase& other);
+    void operator=(CtrApiBTSSBase&& other);
+    
+    bool operator==(const CtrApiBTSSBase& other) const;
+    operator bool() const;
+    
+    Iterator begin();
+    Iterator end();
+    
     BigInt size();
     
     UUID name();
     const ContainerMetadataPtr& metadata();
     static void init();
     void new_page_size(int size);
-
 };
 
 
@@ -64,11 +72,21 @@ protected:
     IterPtr pimpl_;
     
 public:
+    using Iterator  = IterApi<CtrName, Profile>;
+    
     IterApiBTSSBase(IterPtr ptr);
     ~IterApiBTSSBase();
     
     IterApiBTSSBase(const IterApiBTSSBase&);
     IterApiBTSSBase(IterApiBTSSBase&&);
+    
+    bool operator==(const IterApiBTSSBase& other) const;
+    bool operator!=(const IterApiBTSSBase& other) const;
+    
+    operator bool() const;
+    
+    void operator=(const IterApiBTSSBase& other);
+    void operator=(IterApiBTSSBase&& other);
     
     bool is_end() const;
     
@@ -78,6 +96,10 @@ public:
     void remove();
     
     void dump();
+    void check(std::ostream& out, const char* source);
+    
+    Iterator clone();
+    
     
     BigInt read(CtrIOBuffer& buffer, BigInt size = 10000000);
     BigInt read(bt::BufferConsumer<CtrIOBuffer>& consumer, BigInt size = 10000000);

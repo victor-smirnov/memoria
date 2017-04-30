@@ -209,20 +209,8 @@ public:
         data_check_counter_++;
     }
 
-    virtual void checkIterator(Iterator& iter, const char* source)
-    {
-//         auto cache1 = iter.cache();
-// 
-//         auto tmp = iter;
-//         tmp.refresh();
-// 
-//         auto cache2 = tmp.cache();
-// 
-//         if (cache1 != cache2)
-//         {
-//             iter.dump(out());
-//             throw TestException(source, SBuf()<<"Invalid iterator cache. Iterator: "<<cache1<<" Actual: "<<cache2);
-//         }
+    virtual void checkIterator(Iterator& iter, const char* source) {
+        iter.check(out(), source);
     }
 
     virtual Key makeRandomKey() = 0;
