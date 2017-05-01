@@ -330,15 +330,16 @@ public:
 
 MemoriaTestRunner& tests_runner();
 
+template <typename SuiteClass>
 struct TestSuiteInit {
-    TestSuiteInit(TestSuite* suite) {
-        tests_runner().registerTask(suite);
+    TestSuiteInit() {
+        tests_runner().registerTask(new SuiteClass());
     }
 }; 
 
-#define MMA1_REGISTER_TEST_SUITE(SuitClass) \
-namespace {                                 \
-    TestSuiteInit init(new SuitClass());    \
+#define MMA1_REGISTER_TEST_SUITE(SuiteClass)    \
+namespace {                                     \
+    TestSuiteInit<SuiteClass> init;             \
 }
 
 }}

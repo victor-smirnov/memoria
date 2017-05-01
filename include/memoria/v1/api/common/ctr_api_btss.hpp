@@ -20,8 +20,13 @@
 #include <memoria/v1/core/tools/iobuffer/io_buffer.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
 
+#include <memoria/v1/core/container/allocator.hpp>
+
+#include "../common/ctr_input_btss.hpp"
+#include "../common/ctr_output_btss.hpp"
+
 #include "ctr_api.hpp"
-#include "allocator.hpp"
+
 
 namespace memoria {
 namespace v1 {
@@ -52,6 +57,7 @@ public:
     
     Iterator begin();
     Iterator end();
+    Iterator seek(BigInt pos);
     
     BigInt size();
     

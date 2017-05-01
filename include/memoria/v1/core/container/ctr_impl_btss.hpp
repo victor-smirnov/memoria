@@ -19,7 +19,7 @@
 #include <memoria/v1/core/tools/uuid.hpp>
 #include <memoria/v1/core/container/container.hpp>
 
-#include "ctr_api_btss.hpp"
+#include <memoria/v1/api/common/ctr_api_btss.hpp>
 #include "ctr_impl.hpp"
 
 #include <memory>
@@ -119,7 +119,11 @@ typename CtrApiBTSSBase<CtrName, Profile>::Iterator CtrApiBTSSBase<CtrName, Prof
     return pimpl_->end();
 }
 
-
+template <typename CtrName, typename Profile>
+typename CtrApiBTSSBase<CtrName, Profile>::Iterator CtrApiBTSSBase<CtrName, Profile>::seek(BigInt pos)
+{
+    return this->pimpl_->seek(pos);
+}
 
 
 

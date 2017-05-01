@@ -15,9 +15,9 @@
 
 #pragma once
 
-#include "vector_input.hpp"
 
-#include <memoria/v1/core/container/ctr_api_btss.hpp>
+
+#include <memoria/v1/api/common/ctr_api_btss.hpp>
 #include <memoria/v1/core/types/types.hpp>
 
 #include <memory>
@@ -26,7 +26,13 @@
 namespace memoria {
 namespace v1 {
 
-
+namespace detail00 {
+    template <typename V>
+    struct VectorValueHelper: HasType<V> {};
+    
+    template <Granularity G, typename V>
+    struct VectorValueHelper<VLen<G, V>>: HasType<V> {};
+}
     
 template <typename Value, typename Profile> 
 class CtrApi<Vector<Value>, Profile>: public CtrApiBTSSBase<Vector<Value>, Profile>  {
@@ -39,9 +45,11 @@ class CtrApi<Vector<Value>, Profile>: public CtrApiBTSSBase<Vector<Value>, Profi
     using typename Base::Iterator;
     
 public:
+    using DataValue = typename detail00::VectorValueHelper<Value>::Type;
+    
     MMA1_DECLARE_CTRAPI_BTSS_BASIC_METHODS()
     
-    Iterator seek(BigInt pos);
+    
 };
 
 
@@ -52,24 +60,47 @@ class IterApi<Vector<Value>, Profile>: public IterApiBTSSBase<Vector<Value>, Pro
     
     using typename Base::IterT;
     using typename Base::IterPtr;
-     
+    
 public:
+    
+    using DataValue = typename detail00::VectorValueHelper<Value>::Type;
     
     using Base::read;
     using Base::insert;
     
     MMA1_DECLARE_ITERAPI_BTSS_BASIC_METHODS()
     
-    Value value();
+    DataValue value();
     
-    void insert(const std::vector<Value>& data) 
+    template <typename T>
+    auto insert(const std::vector<T>& data) 
     {
-        using StdIter = typename std::vector<Value>::const_iterator;
-        InputIteratorProvider<Value, StdIter, StdIter, CtrIOBuffer> provider(data.begin(), data.end());
-        insert(provider);
+        using StdIter = typename std::vector<T>::const_iterator;
+        InputIteratorProvider<DataValue, StdIter, StdIter, CtrIOBuffer, IsVLen<Value>::Value> provider(data.begin(), data.end());
+        return insert(provider);
     }
     
-    std::vector<Value> read(size_t size);
+    template <typename Iterator, typename EndIterator>
+    auto insert(const Iterator& iter, const EndIterator& end) 
+    {
+        InputIteratorProvider<DataValue, Iterator, EndIterator, CtrIOBuffer, IsVLen<Value>::Value> provider(iter, end);
+        return insert(provider);
+    }
+    
+    template <typename Fn>
+    auto insert_fn(BigInt size, Fn&& fn) 
+    {
+        using Iterator = IteratorFn<std::remove_reference_t<decltype(fn)>>;
+        
+        Iterator fni(fn);
+        EndIteratorFn<BigInt> endi(size);
+        
+        InputIteratorProvider<DataValue, Iterator, EndIteratorFn<BigInt>, CtrIOBuffer, IsVLen<Value>::Value> provider(fni, endi);
+        return insert(provider);
+    }
+    
+    
+    std::vector<DataValue> read(size_t size);
 };
     
 }}

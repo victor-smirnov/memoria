@@ -34,9 +34,14 @@ int main()
         
         for (int c = 0; c < 1000; c++) {
             vec1.emplace_back("str_" + std::to_string(c));
+            //vec1.emplace_back(c);
         }
         
-        vec.begin().insert(vec1);
+        //vec.begin().insert(vec1.begin(), vec1.end());
+        size_t cnt = 0;
+        vec.begin().insert_fn(vec1.size(), [&]{
+            return vec1[cnt++];
+        });
         
         auto vv = vec.seek(0).read(12345);
         

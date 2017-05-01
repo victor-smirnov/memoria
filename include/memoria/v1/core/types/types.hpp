@@ -445,6 +445,10 @@ using FailIf = typename v1::details::FailIfT<T, Flag, T2>::Type;
 template <Int V, bool Flag = true, typename T2 = void>
 using FailIfV = typename v1::details::FailIfT<IntValue<V>, Flag, T2>::Type;
 
+template <typename T, typename T1 = Int, T1 V = T1{}>
+struct FakeValue: HasValue<T1, V> {};
+
+
 
 template <typename T1, typename T2>
 constexpr bool compare_gt(T1&& first, T2&& second) {

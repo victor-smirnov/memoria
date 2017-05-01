@@ -21,8 +21,8 @@
 namespace memoria {
 namespace v1 {
 
+using CtrName = Vector<VLen<Granularity::Byte>>;
 using Profile = DefaultProfile<>;    
-using CtrName = Vector<Int>;
 
 MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile)
     

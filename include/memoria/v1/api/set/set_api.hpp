@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include <memoria/v1/core/container/ctr_api_btss.hpp>
+#include <memoria/v1/api/common/ctr_api_btss.hpp>
 
 
 #include <memory>

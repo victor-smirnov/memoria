@@ -18,7 +18,7 @@
 #include <memoria/v1/core/types/types.hpp>
 #include <memoria/v1/core/container/container.hpp>
 
-#include "ctr_api.hpp"
+#include <memoria/v1/api/common/ctr_api.hpp>
 
 #include <memory>
 

@@ -24,7 +24,7 @@
 
 
 #include <memoria/v1/allocators/inmem/threads/allocator_inmem_threads_api.hpp>
-#include <memoria/v1/api/map_api.hpp>
+#include <memoria/v1/api/map/map_api.hpp>
 
 
 using namespace memoria::v1;
@@ -64,17 +64,16 @@ int main()
         // Iterator on the whole container
         for (auto iter = map.begin(); !iter.is_end(); iter.next())
         {
-            //cout << iter.key() << " -- " << iter.value() << endl;
+            cout << iter.key() << " -- " << iter.value() << endl;
         }
 
         int cnt = 0;
-        map.begin().read([&](CtrIOBuffer& buffer, int entries){
-            for (int c = 0; c < entries; c++) 
-            {
-                std::cout << (cnt++) << " -- " << IOBufferAdapter<Key>::get(buffer) << ": " << IOBufferAdapter<Value>::get(buffer) << std::endl;
-            }
-            return entries;
-        });
+        auto entries = map.begin().read(map.size());
+        
+        for (auto& entry: entries)
+        {
+            std::cout << (cnt++) << " -- " << std::get<0>(entry) << ": " << std::get<1>(entry) << std::endl;
+        }
         
 
         // Dump readable contents of allocator to disk to see what is under the hood.

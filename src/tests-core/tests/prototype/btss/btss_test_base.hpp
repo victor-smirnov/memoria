@@ -47,16 +47,16 @@ class BTSSTestBase: public BTTestBase<ContainerTypeName, AllocatorType, Profile>
     using Base = BTTestBase<ContainerTypeName, AllocatorType, Profile>;
 
 protected:
-    using Ctr           = typename CtrTF<Profile, ContainerTypeName>::Type;
-    using IteratorPtr   = typename Ctr::IteratorPtr;
-    using ID            = typename Ctr::ID;
-    using BranchNodeEntry = typename Ctr::Types::BranchNodeEntry;
+    using Ctr           = CtrApi<ContainerTypeName, Profile>;
+    using Iterator      = IterApi<ContainerTypeName, Profile>;
+    
 
     using Allocator     = AllocatorType;
 
-    using Entry         = typename Ctr::Types::Entry;
+    using DataValue     = typename Ctr::DataValue;
+    using Entry         = typename Ctr::DataValue;
 
-    using MemBuffer     = std::vector<Entry>;
+    using MemBuffer     = std::vector<DataValue>;
 
     using Base::getRandom;
 
@@ -93,10 +93,7 @@ public:
     {
         MemBuffer data = createRandomBuffer(size);
 
-        auto iter = ctr.end();
-
-        BTSSTestInputProvider<Ctr, MemBuffer> provider(data);
-        iter->insert_iobuffer(&provider);
+        ctr.end().insert(data);
     }
 
 
@@ -113,9 +110,8 @@ public:
             BigInt tmp_size = size - total > block_size ? block_size : size - total;
 
             MemBuffer data = createRandomBuffer(tmp_size);
-
-            BTSSTestInputProvider<Ctr, MemBuffer> provider(data);
-            iter->insert_iobuffer(&provider);
+            
+            ctr.end().insert(data);
 
             total += tmp_size;
         }

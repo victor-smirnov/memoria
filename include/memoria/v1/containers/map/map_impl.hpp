@@ -17,7 +17,7 @@
 
 #include "map_factory.hpp"
 
-#include <memoria/v1/api/map_api.hpp>
+#include <memoria/v1/api/map/map_api.hpp>
 #include <memoria/v1/core/container/ctr_impl_btss.hpp>
 #include <memoria/v1/core/tools/static_array.hpp>
 
@@ -105,6 +105,22 @@ template <typename Key, typename Value, typename Profile>
 void IterApi<Map<Key, Value>, Profile>::insert(const Key& key, const Value& value)
 {
     return this->pimpl_->insert(key, value);
+}
+
+template <typename Key, typename Value, typename Profile>
+std::vector<typename IterApi<Map<Key, Value>, Profile>::DataValue> IterApi<Map<Key, Value>, Profile>::read(size_t size) 
+{
+    std::vector<DataValue> data;
+    
+    auto fn = [&](const DataValue& vv){
+        data.emplace_back(vv);
+    };
+    
+    BTSSAdaptorFn<DataValue, std::remove_reference_t<decltype(fn)>, CtrIOBuffer> consumer(fn);
+    
+    this->read(consumer);
+    
+    return data;
 }
 
     

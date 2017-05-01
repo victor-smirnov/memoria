@@ -32,6 +32,7 @@
 
 
 #include <limits>
+#include <tuple>
 
 #include <malloc.h>
 
@@ -187,6 +188,84 @@ struct IOBufferAdapter<UUID> {
     }
 };
 
+namespace details {
+    
+    template <Int Idx, Int Max> 
+    struct IOBufferTupleSetter {
+        template <typename IOBuffer, typename T>
+        static bool put(IOBuffer& buffer, const T& tuple)
+        {
+            using TT = std::remove_reference_t<std::tuple_element_t<Idx, T>>;
+            
+            if (IOBufferAdapter<TT>::put(buffer, std::get<Idx>(tuple))) 
+            {
+                return IOBufferTupleSetter<Idx + 1, Max>::put(buffer, tuple);
+            }
+
+            return false;
+        }
+    };
+    
+    
+    template <Int Max> 
+    struct IOBufferTupleSetter<Max, Max> {
+        template <typename IOBuffer, typename T>
+        static bool put(IOBuffer& buffer, const T& tuple)
+        {
+            using TT = std::remove_reference_t<std::tuple_element_t<Max, T>>;
+            return IOBufferAdapter<TT>::put(buffer, std::get<Max>(tuple));
+        }
+    };
+    
+    
+    template <Int Idx, Int Max> 
+    struct IOBufferTupleGetter {
+        template <typename IOBuffer, typename T>
+        static void get(IOBuffer& buffer, T& tuple)
+        {
+            using TT = std::remove_reference_t<std::tuple_element_t<Idx, T>>;
+            
+            std::get<Idx>(tuple) = std::move(IOBufferAdapter<TT>::get(buffer));
+            IOBufferTupleGetter<Idx + 1, Max>::get(buffer, tuple);
+        }
+    };
+    
+    template <Int Max> 
+    struct IOBufferTupleGetter<Max, Max> {
+        template <typename IOBuffer, typename T>
+        static void get(IOBuffer& buffer, T& tuple)
+        {
+            using TT = std::remove_reference_t<std::tuple_element_t<Max, T>>;
+            std::get<Max>(tuple) = std::move(IOBufferAdapter<TT>::get(buffer));
+        }
+    };
+    
+}
+
+template <typename... T>
+struct IOBufferAdapter<std::tuple<T...>> {
+    template <typename IOBuffer>
+    static bool put(IOBuffer& buffer, const std::tuple<T...>& value)
+    {
+        return details::IOBufferTupleSetter<
+            0, 
+            sizeof...(T) - 1
+        >::put(buffer, value);
+    }
+    
+    template <typename IOBuffer>
+    static auto get(IOBuffer& buffer)
+    {
+        std::tuple<T...> tuple;
+        
+        details::IOBufferTupleGetter<
+            0, 
+            sizeof...(T) - 1
+        >::get(buffer, tuple);
+        
+        return tuple;
+    }
+};
 
 namespace bt {
 

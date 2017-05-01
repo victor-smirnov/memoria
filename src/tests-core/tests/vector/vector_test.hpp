@@ -16,10 +16,11 @@
 
 #pragma once
 
-#include <memoria/v1/memoria.hpp>
+
 #include <memoria/v1/tools/tests.hpp>
 
-#include <memoria/v1/containers/vector/vctr_factory.hpp>
+#include <memoria/v1/allocators/inmem/threads/allocator_inmem_threads_api.hpp>
+#include <memoria/v1/api/vector/vector_api.hpp>
 
 #include "../prototype/btss/btss_test_base.hpp"
 
@@ -36,7 +37,7 @@ using namespace std;
 
 template <
     typename CtrName,
-    typename AllocatorT     = PersistentInMemAllocator<>,
+    typename AllocatorT     = ThreadInMemAllocator<>,
     typename ProfileT       = DefaultProfile<>
 >
 class VectorTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT>
@@ -52,9 +53,9 @@ class VectorTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT>
     using typename Base::MemBuffer;
     using typename Base::Entry;
 
-    using BranchNodeEntry = typename Ctr::Types::BranchNodeEntry;
+    //using BranchNodeEntry = typename Ctr::Types::BranchNodeEntry;
 
-    using Value = typename Ctr::Types::Value;
+    using Value = typename Ctr::DataValue;
 
     BigInt size = 1024*1024;
 
@@ -101,16 +102,13 @@ public:
             d = this->getRandom(100);
         }
 
-        BTSSTestInputProvider<Ctr, MemBuffer> provider(data);
-        ctr->begin()->insert_iobuffer(&provider);
+        ctr.begin().insert(data);
 
-        AssertEQ(MA_SRC, ctr->size(), data.size());
+        AssertEQ(MA_SRC, ctr.size(), data.size());
 
-        std::vector<Value> data2(size);
+        std::vector<Value> data2 = ctr.begin().read(size);
 
-        auto read = ctr->begin()->read(data2.begin(), data2.size());
-
-        AssertEQ(MA_SRC, read, data2.size());
+        AssertEQ(MA_SRC, size, data2.size());
 
         for (size_t c = 0; c< data.size(); c++)
         {

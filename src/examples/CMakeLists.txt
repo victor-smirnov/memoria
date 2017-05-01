@@ -20,8 +20,10 @@ set (CTR_INST ${CTR_INST} lib/vector_int_dflt.cpp)
 set (CTR_INST ${CTR_INST} lib/vector_string_dflt.cpp)
 
 
-MACRO (Example EX_TARGET MAIN SRCS)
-    add_executable(${EX_TARGET} ${MAIN} ${SRCS})
+MACRO (Example EX_TARGET MAIN SRCS1 SRCS2)
+    message(STATUS ${MAIN} ${SRC1} ${SRCS2})
+
+    add_executable(${EX_TARGET} ${MAIN} ${SRCS1} ${SRCS2})
     
     set_target_properties(${EX_TARGET} PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS}")
     set_target_properties(${EX_TARGET} PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
@@ -36,6 +38,6 @@ MACRO (Example EX_TARGET MAIN SRCS)
 ENDMACRO()
 
 
-Example(map map.cpp lib/map_int64_string_dflt.cpp)
+Example(map map.cpp lib/map_int64_string_dflt.cpp "")
 
-Example(vector vector.cpp lib/vector_string_dflt.cpp lib/vector_int_dflt.cpp)
+Example(vector vector.cpp lib/vector_int_dflt.cpp lib/vector_string_dflt.cpp)

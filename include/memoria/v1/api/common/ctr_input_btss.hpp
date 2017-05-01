@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <memoria/v1/core/container/ctr_api.hpp>
+#include <memoria/v1/api/common/ctr_api.hpp>
 
 #include <memoria/v1/core/tools/bignum/int64_codec.hpp>
 #include <memoria/v1/core/types/types.hpp>
@@ -29,7 +29,7 @@ template <typename V> struct IsVLen: HasValue<bool, false> {};
 template <typename V, Granularity G> 
 struct IsVLen<VLen<G, V>>: HasValue<bool, true> {};
     
-template <typename Value, typename Iterator, typename EndIterator, typename IOBuffer, bool VLenSelector = IsVLen<Value>::Value> 
+template <typename Value, typename Iterator, typename EndIterator, typename IOBuffer, bool VLenSelector = false> 
 class InputIteratorProvider;
 
 
@@ -37,9 +37,9 @@ template <typename Value, typename Iterator, typename EndIterator, typename IOBu
 class InputIteratorProvider<Value, Iterator, EndIterator, IOBuffer, false>: public bt::BufferProducer<IOBuffer> {
 
     Iterator iterator_;
-    EndIterator end_;
+    const EndIterator& end_;
 public:
-    InputIteratorProvider(Iterator start, EndIterator end): 
+    InputIteratorProvider(const Iterator& start, const EndIterator& end): 
         iterator_(start), end_(end)
     {}
 
@@ -68,9 +68,9 @@ template <typename Value, typename Iterator, typename EndIterator, typename IOBu
 class InputIteratorProvider<Value, Iterator, EndIterator, IOBuffer, true>: public bt::BufferProducer<IOBuffer> {
 
     Iterator iterator_;
-    EndIterator end_;
+    const EndIterator& end_;
 public:
-    InputIteratorProvider(Iterator start, EndIterator end): 
+    InputIteratorProvider(const Iterator& start, const EndIterator& end): 
         iterator_(start), end_(end)
     {}
 
@@ -94,7 +94,32 @@ public:
     }
 };
 
+template <typename SizeT>
+class EndIteratorFn {
+    SizeT size_;
+public:
+    EndIteratorFn(SizeT size): size_(size) {}
+    
+    SizeT size() const {return size_;}
+};
 
 
+template <typename Fn>
+class IteratorFn {
+    Fn& fn_;
+    BigInt cnt_{};
+public:
+    IteratorFn(Fn& fn): fn_(fn) {}
+    
+    auto operator*() const {
+        return fn_();
+    }
+    
+    void operator++(int) {cnt_++;}
+    
+    bool operator!=(const EndIteratorFn<BigInt>& end) {
+        return cnt_ < end.size();
+    }
+};
 
 }}

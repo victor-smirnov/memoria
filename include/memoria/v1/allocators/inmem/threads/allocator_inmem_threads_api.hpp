@@ -20,7 +20,7 @@
 #include <memoria/v1/core/tools/stream.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
 
-#include <memoria/v1/core/container/ctr_api.hpp>
+#include <memoria/v1/api/common/ctr_api.hpp>
 #include <memoria/v1/core/container/container.hpp>
 #include <memoria/v1/core/container/allocator.hpp>
 #include <memoria/v1/core/container/logs.hpp>

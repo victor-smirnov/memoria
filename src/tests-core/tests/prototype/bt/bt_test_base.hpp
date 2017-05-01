@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <memoria/v1/memoria.hpp>
+#include <memoria/v1/core/types/types.hpp>
 
 #include <memoria/v1/tools/tools.hpp>
 
@@ -45,9 +45,8 @@ class BTTestBase: public TestTask {
 
 protected:
     using CtrName           = ContainerTypeName;
-    using Ctr               = typename CtrTF<Profile, ContainerTypeName>::Type;
+    using Ctr               = CtrApi<ContainerTypeName, Profile>;
 
-    using IteratorPtr       = typename Ctr::IteratorPtr;
     using Iterator          = IterApi<CtrName, Profile>;
 
 
@@ -242,15 +241,11 @@ public:
 
     virtual String getAllocatorFileName(StringRef infix = "") const
     {
-        return getResourcePath("Allocator"+infix+".dump");
+        return getResourcePath("Allocator" + infix + ".dump");
     }
 
     bool checkSoftMemLimit()
     {
-//      size_t allocated = allocator()->allocated();
-//
-//      return allocated <= this->soft_memlimit_;
-
         return true;
     }
 };

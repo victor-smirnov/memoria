@@ -23,6 +23,7 @@
 namespace memoria {
 namespace v1 {
 
+/*    
 template <typename CtrT, typename Data, LeafDataLengthType LeafDataLength = CtrT::Types::LeafDataLength> class BTSSTestInputProvider;
 
 
@@ -108,7 +109,7 @@ public:
         return -total;
     }
 };
-
+*/
 
 
 

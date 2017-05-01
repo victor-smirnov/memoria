@@ -17,8 +17,7 @@
 
 #include <memoria/v1/memoria.hpp>
 
-#include <memoria/v1/api/map_api.hpp>
-#include <memoria/v1/containers/map/map_factory.hpp>
+#include <memoria/v1/api/map/map_api.hpp>
 
 #include <memoria/v1/tools/tests.hpp>
 #include <memoria/v1/tools/tools.hpp>
@@ -91,12 +90,13 @@ public:
     using typename Base::Ctr;
     using typename Base::Iterator;
     using typename Base::MemBuffer;
-    using typename Base::Entry;
+    using typename Base::DataValue;
 
     using Base::out;
 
-    using Key       = typename Ctr::Types::Key;
-    using Value     = typename Ctr::Types::Value;
+    using Key       = typename Ctr::Key;
+    using Value     = typename Ctr::Value;
+    using Entry     = typename Ctr::DataValue;
 
     using Pair = KVPair<Key, Value>;
 

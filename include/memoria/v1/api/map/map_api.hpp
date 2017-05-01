@@ -15,17 +15,23 @@
 
 #pragma once
 
-#include <memoria/v1/core/container/ctr_api_btss.hpp>
+#include <memoria/v1/api/common/ctr_api_btss.hpp>
 
 #include <memory>
+#include <tuple>
 
 namespace memoria {
 namespace v1 {
 
 
     
-template <typename Key, typename Value, typename Profile> 
-class CtrApi<Map<Key, Value>, Profile>: public CtrApiBTSSBase<Map<Key, Value>, Profile> {
+template <typename Key_, typename Value_, typename Profile> 
+class CtrApi<Map<Key_, Value_>, Profile>: public CtrApiBTSSBase<Map<Key_, Value_>, Profile> {
+public:
+    using Key = Key_;
+    using Value = Value_;
+    using DataValue = std::tuple<Key, Value>;
+private:
     using MapT = Map<Key, Value>;
     
     using Base = CtrApiBTSSBase<Map<Key, Value>, Profile>;
@@ -36,12 +42,13 @@ class CtrApi<Map<Key, Value>, Profile>: public CtrApiBTSSBase<Map<Key, Value>, P
     using typename Base::Iterator;
     
 public:
+        
+    
     MMA1_DECLARE_CTRAPI_BTSS_BASIC_METHODS()
     
     Iterator find(const Key& key);
     bool contains(const Key& key);
     bool remove(const Key& key);
-    
     
     Iterator assign(const Key& key, const Value& value);
 };
@@ -56,6 +63,8 @@ class IterApi<Map<Key, Value>, Profile>: public IterApiBTSSBase<Map<Key, Value>,
     using typename Base::IterPtr;
     
 public:
+    using DataValue = std::tuple<Key, Value>;
+    
     using Base::read;
     using Base::insert;
     
@@ -65,6 +74,36 @@ public:
     Value value() const;
     
     void insert(const Key& key, const Value& value);
+    
+    
+    template <typename KeyT, typename ValueT>
+    auto insert(const std::vector<std::tuple<KeyT, ValueT>>& data) 
+    {
+        using StdIter = typename std::vector<std::tuple<KeyT, ValueT>>::const_iterator;
+        InputIteratorProvider<DataValue, StdIter, StdIter, CtrIOBuffer> provider(data.begin(), data.end());
+        return insert(provider);
+    }
+    
+    template <typename Iterator, typename EndIterator>
+    auto insert(const Iterator& iter, const EndIterator& end) 
+    {
+        InputIteratorProvider<DataValue, Iterator, EndIterator, CtrIOBuffer> provider(iter, end);
+        return insert(provider);
+    }
+    
+    template <typename Fn>
+    auto insert_fn(BigInt size, Fn&& fn) 
+    {
+        using Iterator = IteratorFn<std::remove_reference_t<decltype(fn)>>;
+        
+        Iterator fni(fn);
+        EndIteratorFn<BigInt> endi(size);
+        
+        InputIteratorProvider<DataValue, Iterator, EndIteratorFn<BigInt>, CtrIOBuffer> provider(fni, endi);
+        return insert(provider);
+    }
+    
+    std::vector<DataValue> read(size_t size);
 };
     
 }}
