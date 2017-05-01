@@ -15,20 +15,30 @@
 
 
 
-#include <memoria/v1/containers/map/map_impl.hpp>
+#include <memoria/v1/core/container/ctr_impl_btss.hpp>
 
 #include <memoria/v1/core/tools/strings/string.hpp>
 #include <memoria/v1/core/tools/uuid.hpp>
 
 #include <memoria/v1/allocators/inmem/threads/container_collection_cfg.hpp>
 
+#include "btss_ctr_impl.hpp"
+
 namespace memoria {
 namespace v1 {
 
-using Profile = DefaultProfile<>;
-using CtrName = Map<UUID, BigInt>;
+using Profile = DefaultProfile<>;    
 
-MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile)
+
+using Ctr1Name = BTSSTestCtr<PackedSizeType::FIXED, PackedSizeType::FIXED>;
+using Ctr2Name = BTSSTestCtr<PackedSizeType::FIXED, PackedSizeType::VARIABLE>;
+//using Ctr3Name = BTSSTestCtr<PackedSizeType::VARIABLE, PackedSizeType::FIXED>;
+//using Ctr4Name = BTSSTestCtr<PackedSizeType::VARIABLE, PackedSizeType::VARIABLE>;
+
+MMA1_INSTANTIATE_CTR_BTSS(Ctr1Name, Profile, 1)
+MMA1_INSTANTIATE_CTR_BTSS(Ctr2Name, Profile, 2)
+//MMA1_INSTANTIATE_CTR_BTSS(Ctr3Name, Profile, 3)
+//MMA1_INSTANTIATE_CTR_BTSS(Ctr4Name, Profile, 4)
     
 }}
 

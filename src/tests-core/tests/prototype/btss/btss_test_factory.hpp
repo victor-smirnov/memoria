@@ -27,8 +27,7 @@
 #include <memoria/v1/core/packed/tree/vle/packed_vle_quick_tree.hpp>
 #include <memoria/v1/core/packed/misc/packed_sized_struct.hpp>
 
-#include "btss_test_tools.hpp"
-
+#include "btss_ctr_api.hpp"
 
 #include <functional>
 
@@ -36,8 +35,7 @@ namespace memoria {
 namespace v1 {
 
 
-template <PackedSizeType LeafSizeType, PackedSizeType BranchSizeType>
-class BTSSTestCtr {};
+
 
 template <
     PackedSizeType LeafSizeType,

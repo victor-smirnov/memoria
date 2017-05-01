@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include "vctr_factory.hpp"
+#include "btss_test_factory.hpp"
 
 #include <memoria/v1/api/vector/vector_api.hpp>
 #include <memoria/v1/core/container/ctr_impl_btss.hpp>
@@ -27,13 +27,23 @@ namespace v1 {
 
 
 
-template <typename Value, typename Profile>
-std::vector<typename IterApi<Vector<Value>, Profile>::DataValue> IterApi<Vector<Value>, Profile>::read(size_t size)
+template <PackedSizeType LeafSizeType, PackedSizeType BranchSizeType, typename Profile> 
+std::vector<typename IterApi<BTSSTestCtr<LeafSizeType, BranchSizeType>, Profile>::DataValue> IterApi<BTSSTestCtr<LeafSizeType, BranchSizeType>, Profile>::read(size_t size)
 {
+    std::vector<DataValue> data;
     
-    return this->pimpl_->read((BigInt)size);
+    auto fn = [&](const DataValue& vv){
+        data.emplace_back(vv);
+    };
+    
+    BTSSAdaptorFn<DataValue, std::remove_reference_t<decltype(fn)>, CtrIOBuffer> consumer(fn);
+    
+    this->read(consumer);
+    
+    return data;
 }
 
 
     
 }}
+

@@ -113,6 +113,9 @@ public:
     const ContainerType& ctr() const {
         return *model_;
     }
+    
+    CtrPtr& ctr_ptr() {return ctr_ptr_;}
+    const CtrPtr& ctr_ptr() const {return ctr_ptr_;}
 };
 
 

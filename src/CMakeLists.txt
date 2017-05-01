@@ -57,9 +57,9 @@ SET_TARGET_PROPERTIES(intellectio PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FL
 set_target_properties(intellectio PROPERTIES LINK_FLAGS "${MEMORIA_LINK_FLAGS}")
 
 if (BUILD_MSVC)
-target_link_libraries(intellectio Memoria uuid)
+target_link_libraries(intellectio Memoria ${MEMORIA_LIBS})
 else()
-target_link_libraries(intellectio Memoria boost_context boost_system m rpcrt4)
+target_link_libraries(intellectio Memoria boost_context boost_system m)
 endif()
 
 add_executable(disruptor_bm disruptor_bm.cpp)

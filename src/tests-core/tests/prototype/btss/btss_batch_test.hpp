@@ -33,7 +33,7 @@ namespace v1 {
 
 template <
     typename CtrName,
-    typename AllocatorT     = PersistentInMemAllocator<>,
+    typename AllocatorT     = ThreadInMemAllocator<>,
     typename ProfileT       = DefaultProfile<>
 >
 class BTSSBatchTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT> {
@@ -46,8 +46,7 @@ class BTSSBatchTest: public BTSSTestBase<CtrName, AllocatorT, ProfileT> {
     using typename Base::Ctr;
     using typename Base::MemBuffer;
     using typename Base::Entry;
-
-    using IteratorPtr   = typename Ctr::IteratorPtr;
+    using typename Base::Iterator;
 
 
     using Base::commit;
@@ -150,7 +149,7 @@ public:
         return this->getRandom(max - 1) + 1;
     }
 
-    MemBuffer createSuffixCheckBuffer(IteratorPtr& iter)
+    MemBuffer createSuffixCheckBuffer(Iterator& iter)
     {
         BigInt length;
 
@@ -158,27 +157,27 @@ public:
             length              = suffix_size_;
         }
         else {
-            BigInt current_pos  = iter->pos();
-            BigInt size         = iter->ctr().size();
+            BigInt current_pos  = iter.pos();
+            BigInt size         = iter.ctr().size();
             BigInt remainder    = size - current_pos;
 
             suffix_size_ = length = check_size_ >= remainder ? remainder : check_size_;
         }
 
-        MemBuffer buf = this->createBuffer(length);
+        //MemBuffer buf = this->createBuffer(length);
 
-        iter->read(buf.begin(), buf.size());
+        MemBuffer buf = iter.read(length);
 
         checkIterator(iter, MA_SRC);
 
-        iter->skip(-length);
+        iter.skip(-length);
 
         checkIterator(iter, MA_SRC);
 
         return buf;
     }
 
-    MemBuffer createPrefixCheckBuffer(const IteratorPtr& iter)
+    MemBuffer createPrefixCheckBuffer(Iterator& iter)
     {
         BigInt length;
 
@@ -186,17 +185,15 @@ public:
             length              = prefix_size_;
         }
         else {
-            BigInt current_pos  = iter->pos();
+            BigInt current_pos  = iter.pos();
             prefix_size_ = length = check_size_ >= current_pos ? current_pos : check_size_;
         }
 
-        MemBuffer buf = this->createBuffer(length);
-
-        iter->skip(-length);
+        iter.skip(-length);
 
         checkIterator(iter, MA_SRC);
 
-        iter->read(buf.begin(), buf.size());
+        MemBuffer buf = iter.read(length);
 
         checkIterator(iter, MA_SRC);
 
@@ -204,11 +201,9 @@ public:
     }
 
 
-    virtual void checkBufferWritten(const IteratorPtr& iter, const MemBuffer& buffer, const char* source)
+    virtual void checkBufferWritten(Iterator& iter, const MemBuffer& buffer, const char* source)
     {
-        MemBuffer data = createBuffer(buffer.size());
-
-        iter->read(data.begin(), data.size());
+        MemBuffer data = iter.read(buffer.size());
 
         compareBuffers(buffer, data, source);
     }
@@ -224,25 +219,14 @@ public:
         }
     }
 
-    virtual void checkIterator(const IteratorPtr& iter, const char* source)
+    virtual void checkIterator(Iterator& iter, const char* source)
     {
         checkIteratorPrefix(iter, source);
     }
 
-    virtual void checkIteratorPrefix(const IteratorPtr& iter, const char* source)
+    virtual void checkIteratorPrefix(Iterator& iter, const char* source)
     {
-        auto tmp = iter->clone();
-
-        tmp->refresh();
-
-        if (iter->cache() != tmp->cache())
-        {
-            iter->dumpPath(out());
-            throw TestException(
-                    source,
-                    SBuf() << "Iterator cache mismatch: having: " << iter->cache() << ", should be: " << tmp->cache()
-            );
-        }
+        iter.check(out(), source);
     }
 
 
@@ -257,18 +241,17 @@ public:
 
         BigInt size = ctr.size();
 
-        BTSSTestInputProvider<Ctr, MemBuffer> provider(data);
-        iter->insert_iobuffer(&provider);
+        iter.insert(data);
 
         BigInt size2 = ctr.size();
 
         AssertEQ(MA_SRC, size2, size + data.size());
 
-        AssertEQ(MA_SRC, iter->pos(), data.size());
+        AssertEQ(MA_SRC, iter.pos(), data.size());
 
         checkIterator(iter, MA_SRC);
 
-        iter->skip(-data.size());
+        iter.skip(-data.size());
 
         checkIterator(iter, MA_SRC);
 
@@ -296,16 +279,18 @@ public:
         MemBuffer prefix = createPrefixCheckBuffer(iter);
         MemBuffer data   = createDataBuffer();
 
-        BigInt position = iter->pos();
+        BigInt position = iter.pos();
 
-        BTSSTestInputProvider<Ctr, MemBuffer> provider(data);
-        iter->insert_iobuffer(&provider);
+//         BTSSTestInputProvider<Ctr, MemBuffer> provider(data);
+//         iter->insert_iobuffer(&provider);
+        
+        iter.insert(data);
 
         checkIterator(iter, MA_SRC);
 
-        AssertEQ(MA_SRC, iter->pos(), position + data.size());
+        AssertEQ(MA_SRC, iter.pos(), position + data.size());
 
-        iter->skip(-data.size() - prefix.size());
+        iter.skip(-data.size() - prefix.size());
 
         checkIterator(iter, MA_SRC);
 
@@ -337,19 +322,21 @@ public:
 
         MemBuffer data   = createDataBuffer();
 
-        BTSSTestInputProvider<Ctr, MemBuffer> provider(data);
-        iter->insert_iobuffer(&provider);
+//         BTSSTestInputProvider<Ctr, MemBuffer> provider(data);
+//         iter->insert_iobuffer(&provider);
 
+        iter.insert(data);
+        
         checkIterator(iter, MA_SRC);
 
-        iter->skip(-data.size());
-        iter->skip(-prefix.size());
+        iter.skip(-data.size());
+        iter.skip(-prefix.size());
 
         try {
             checkBufferWritten(iter, prefix, MA_SRC);
         }
         catch (...) {
-            iter->dumpPath();
+            iter.dump_path();
             throw;
         }
 
@@ -357,7 +344,7 @@ public:
             checkBufferWritten(iter, data,   MA_SRC);
         }
         catch (...) {
-            iter->dumpPath();
+            iter.dump_path();
             throw;
         }
 
@@ -393,11 +380,11 @@ public:
 
         MemBuffer suffix = createSuffixCheckBuffer(iter);
 
-        iter->skip(-size);
+        iter.skip(-size);
 
-        iter->remove(size);
+        iter.remove(size);
 
-        AssertEQ(MA_SRC, iter->pos(), 0);
+        AssertEQ(MA_SRC, iter.pos(), 0);
 
         checkIterator(iter, MA_SRC);
 
@@ -435,7 +422,7 @@ public:
 
         BigInt last_size = ctr.size();
 
-        iter->remove(size);
+        iter.remove(size);
 
         checkIterator(iter, MA_SRC);
 
@@ -443,11 +430,11 @@ public:
 
         checkIterator(iter, MA_SRC);
 
-        AssertEQ(MA_SRC, iter->pos(), ctr.size());
+        AssertEQ(MA_SRC, iter.pos(), ctr.size());
 
-        iter->skip(-prefix.size());
+        iter.skip(-prefix.size());
 
-        AssertEQ(MA_SRC, iter->pos(), ctr.size() - prefix.size());
+        AssertEQ(MA_SRC, iter.pos(), ctr.size() - prefix.size());
 
         checkBufferWritten(iter, prefix, MA_SRC);
     }
@@ -472,7 +459,7 @@ public:
             size = block_size_;
         }
         else {
-            auto pos = iter->pos();
+            auto pos = iter.pos();
             auto ctr_size  = ctr.size();
             auto remainder = ctr_size - pos;
 
@@ -489,25 +476,25 @@ public:
 
         MemBuffer prefix = createPrefixCheckBuffer(iter);
 
-        BigInt position = iter->pos();
+        BigInt position = iter.pos();
 
-        iter->skip(size);
+        iter.skip(size);
 
         MemBuffer suffix = createSuffixCheckBuffer(iter);
 
-        iter->skip(-size);
+        iter.skip(-size);
 
-        iter->remove(size);
+        iter.remove(size);
 
         checkIterator(iter, MA_SRC);
 
-        AssertEQ(MA_SRC, iter->pos(), position);
+        AssertEQ(MA_SRC, iter.pos(), position);
 
-        iter->skip(-prefix.size());
+        iter.skip(-prefix.size());
 
         checkBufferWritten(iter, prefix, MA_SRC);
 
-        AssertEQ(MA_SRC, iter->pos(), position);
+        AssertEQ(MA_SRC, iter.pos(), position);
         checkBufferWritten(iter, suffix, MA_SRC);
     }
 
@@ -541,9 +528,9 @@ public:
 
             auto ctr = find_or_create<CtrName>(snp, ctr_name_);
 
-            test_fn(this, *ctr.get());
+            test_fn(this, ctr);
 
-            out()<<"Size: "<<ctr->size()<<endl;
+            out()<<"Size: "<<ctr.size()<<endl;
 
             check(snp, "Insert: Container Check Failed", MA_SRC);
 
@@ -551,7 +538,7 @@ public:
 
             commit();
 
-            size = ctr->size();
+            size = ctr.size();
         }
 
         if (!isReplayMode())
@@ -568,26 +555,26 @@ public:
         auto snp = branch();
         auto ctr = find_or_create<CtrName>(snp, ctr_name_);
 
-        fillRandom(*ctr.get(), size_);
+        fillRandom(ctr, size_);
 
         commit();
 
         iteration_ = 0;
 
-        BigInt size = ctr->size();
+        BigInt size = ctr.size();
 
         while (size > 0)
         {
             snp = branch();
             ctr = find<CtrName>(snp, ctr_name_);
 
-            test_fn(this, *ctr.get());
+            test_fn(this, ctr);
 
-            out()<<"Size: "<<ctr->size()<<endl;
+            out()<<"Size: "<<ctr.size()<<endl;
 
             check("Remove: Container Check Failed", MA_SRC);
 
-            size = ctr->size();
+            size = ctr.size();
 
             iteration_++;
             commit();
@@ -604,7 +591,7 @@ public:
         auto snp = branch();
         auto ctr = find_or_create<CtrName>(snp, ctr_name_);
 
-        test_fn(this, *ctr.get());
+        test_fn(this, ctr);
 
         check(snp, "Replay: Container Check Failed", MA_SRC);
 

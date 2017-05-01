@@ -14,7 +14,6 @@
 // limitations under the License.
 
 
-//#include "packed/sequence/fse/pseq_test_suite.hpp"
 //#include "packed/tree/packed_tree_test_suite.hpp"
 //#include "packed/louds/packed_louds_suite.hpp"
 //#include "packed/louds_cardinal/packed_lcardinal_suite.hpp"
@@ -24,10 +23,9 @@
 
 // #include "prototype/bt/bt_test_suite.hpp"
 // #include "prototype/btfl/btfl_test_suite.hpp"
-// #include "prototype/btss/btss_test_suite.hpp"
+
 // 
 // 
-// #include "vector/vector_test_suite.hpp"
 // #include "multimap/multimap_test_suite.hpp"
 
 //#include "sequence/sequence_test_suite.hpp"
@@ -79,16 +77,12 @@ int main(int argc, const char** argv, const char** envp)
 
 //        runner.registerTask(new PackedTreeTestSuite());
 //        runner.registerTask(new PackedArrayTestSuite());
-//        runner.registerTask(new PackedSequenceTestSuite());
 //        runner.registerTask(new PackedLoudsTestSuite());
 //        runner.registerTask(new PackedLoudsCardinalTestSuite());
 //        runner.registerTask(new PackedWaveletTreeTestSuite());
 
 //        runner.registerTask(new BTTestSuite());
 //        runner.registerTask(new BTFLTestSuite());
-//        runner.registerTask(new BTSSTestSuite());
-// 
-//        runner.registerTask(new VectorTestSuite());
         
 //        runner.registerTask(new SequenceTestSuite());
 //        runner.registerTask(new LabeledTreeTestSuite());

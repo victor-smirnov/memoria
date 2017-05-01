@@ -32,6 +32,10 @@ CtrApiBTSSBase<CtrName, Profile>::CtrApiBTSSBase(const std::shared_ptr<Allocator
     pimpl_(std::make_shared<SharedCtr<CtrName, IWalkableAllocator<ProfilePageType<Profile>>, Profile>>(allocator, command, name))
 {}
 
+template <typename CtrName, typename Profile>    
+CtrApiBTSSBase<CtrName, Profile>::CtrApiBTSSBase(CtrPtr ptr):pimpl_(std::move(ptr))
+{}
+
 template <typename CtrName, typename Profile>
 CtrApiBTSSBase<CtrName, Profile>::~CtrApiBTSSBase() {}
 
@@ -135,6 +139,7 @@ typename CtrApiBTSSBase<CtrName, Profile>::Iterator CtrApiBTSSBase<CtrName, Prof
 
 
 
+
 template <typename CtrName, typename Profile>
 IterApiBTSSBase<CtrName, Profile>::IterApiBTSSBase(IterPtr ptr): pimpl_(ptr) {}
 
@@ -189,6 +194,11 @@ IterApiBTSSBase<CtrName, Profile>::operator bool() const
     return pimpl_ != nullptr;
 }
 
+template <typename CtrName, typename Profile>
+CtrApi<CtrName, Profile> IterApiBTSSBase<CtrName, Profile>::ctr() 
+{
+    return std::static_pointer_cast<CtrT>(pimpl_->ctr_ptr());
+}
 
 
 template <typename CtrName, typename Profile>
@@ -217,12 +227,24 @@ void IterApiBTSSBase<CtrName, Profile>::remove()
     return this->pimpl_->remove();
 }
 
+template <typename CtrName, typename Profile>
+BigInt IterApiBTSSBase<CtrName, Profile>::remove(BigInt length)
+{
+    return this->pimpl_->remove(length);
+}
 
 template <typename CtrName, typename Profile>
 void IterApiBTSSBase<CtrName, Profile>::dump()
 {
     return this->pimpl_->dump();
 }
+
+template <typename CtrName, typename Profile>
+void IterApiBTSSBase<CtrName, Profile>::dump_path()
+{
+    return this->pimpl_->dumpPath();
+}
+
 
 
 template <typename CtrName, typename Profile>
@@ -270,6 +292,18 @@ BigInt IterApiBTSSBase<CtrName, Profile>::insert(std::function<Int (CtrIOBuffer&
     return this->pimpl_->insert_iobuffer(&fn_producer);
 }
 
+
+template <typename CtrName, typename Profile>
+BigInt IterApiBTSSBase<CtrName, Profile>::pos()
+{
+    return this->pimpl_->pos();
+}
+
+template <typename CtrName, typename Profile>
+BigInt IterApiBTSSBase<CtrName, Profile>::skip(BigInt offset)
+{
+    return this->pimpl_->skip(offset);
+}
 
 }
 }

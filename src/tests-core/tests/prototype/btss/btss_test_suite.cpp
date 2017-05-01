@@ -13,10 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
-#pragma once
-
-
 #include <memoria/v1/tools/tests_inc.hpp>
 
 #include "btss_batch_test.hpp"
@@ -36,9 +32,12 @@ public:
     {
         registerTask(new BTSSBatchTest<BTSSTestCtr<PackedSizeType::FIXED, PackedSizeType::FIXED>>("Batch.FX.FX"));
         registerTask(new BTSSBatchTest<BTSSTestCtr<PackedSizeType::FIXED, PackedSizeType::VARIABLE>>("Batch.FX.VL"));
-        registerTask(new BTSSBatchTest<BTSSTestCtr<PackedSizeType::VARIABLE, PackedSizeType::FIXED>>("Batch.VL.FX"));
-        registerTask(new BTSSBatchTest<BTSSTestCtr<PackedSizeType::VARIABLE, PackedSizeType::VARIABLE>>("Batch.VL.VL"));
+        //registerTask(new BTSSBatchTest<BTSSTestCtr<PackedSizeType::VARIABLE, PackedSizeType::FIXED>>("Batch.VL.FX"));
+        //registerTask(new BTSSBatchTest<BTSSTestCtr<PackedSizeType::VARIABLE, PackedSizeType::VARIABLE>>("Batch.VL.VL"));
     }
 };
+
+
+MMA1_REGISTER_TEST_SUITE(BTSSTestSuite)
 
 }}

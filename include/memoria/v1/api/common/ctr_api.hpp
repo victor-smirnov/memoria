@@ -42,14 +42,14 @@ struct CtrMetadataInitializer {
     }
 };
 
-#define MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile)     \
+#define MMA1_INSTANTIATE_CTR_BTSS(CtrName, Profile, ...)\
 template class IterApiBTSSBase<CtrName, Profile>;       \
 template class CtrApiBTSSBase<CtrName, Profile>;        \
 template class CtrApi<CtrName, Profile>;                \
 template class IterApi<CtrName, Profile>;               \
                                                         \
 namespace {                                             \
-CtrMetadataInitializer<CtrName, Profile> init;          \
+CtrMetadataInitializer<CtrName, Profile> init_##__VA_ARGS__;\
 }
 
 
@@ -74,6 +74,7 @@ CtrMetadataInitializer<CtrName, Profile> init;          \
     ~CtrApi() {}                                                                            \
                                                                                             \
     CtrApi(const CtrApi& other): Base(other) {}                                             \
+    CtrApi(const CtrPtr& ptr): Base(ptr) {}                                                 \
     CtrApi(CtrApi&& other): Base(std::move(other)) {}                                       \
                                                                                             \
     CtrApi& operator=(const CtrApi& other) {Base::operator=(other); return *this;}          \

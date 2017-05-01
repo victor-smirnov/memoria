@@ -44,6 +44,7 @@ protected:
     
 public:
     CtrApiBTSSBase(const std::shared_ptr<AllocatorT>& allocator, int command, const UUID& name);
+    CtrApiBTSSBase(CtrPtr ptr);
     ~CtrApiBTSSBase();
     
     CtrApiBTSSBase(const CtrApiBTSSBase&);
@@ -72,8 +73,11 @@ template <typename CtrName, typename Profile>
 class IterApiBTSSBase {
 protected:    
     
+    using AllocatorT = IWalkableAllocator<ProfilePageType<Profile>>;
     using IterT     = SharedIter<CtrName, Profile>;
     using IterPtr   = std::shared_ptr<IterT>;
+    using CtrT       = SharedCtr<CtrName, AllocatorT, Profile>;
+    using CtrPtr     = std::shared_ptr<CtrT>;
      
     IterPtr pimpl_;
     
@@ -94,15 +98,22 @@ public:
     void operator=(const IterApiBTSSBase& other);
     void operator=(IterApiBTSSBase&& other);
     
+    CtrApi<CtrName, Profile> ctr();
+    
     bool is_end() const;
     
     bool next();
     bool prev();
     
     void remove();
+    BigInt remove(BigInt length);
     
     void dump();
+    void dump_path();
     void check(std::ostream& out, const char* source);
+    
+    BigInt pos();
+    BigInt skip(BigInt offset);
     
     Iterator clone();
     

@@ -21,7 +21,6 @@
 #include <memoria/v1/tools/tools.hpp>
 
 #include "../btss/btss_test_base.hpp"
-#include "btss_test_factory.hpp"
 
 #include <vector>
 #include <algorithm>
