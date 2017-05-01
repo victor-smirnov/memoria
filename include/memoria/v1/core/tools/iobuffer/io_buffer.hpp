@@ -188,7 +188,7 @@ struct IOBufferAdapter<UUID> {
     }
 };
 
-namespace details {
+namespace details00 {
     
     template <Int Idx, Int Max> 
     struct IOBufferTupleSetter {
@@ -247,7 +247,7 @@ struct IOBufferAdapter<std::tuple<T...>> {
     template <typename IOBuffer>
     static bool put(IOBuffer& buffer, const std::tuple<T...>& value)
     {
-        return details::IOBufferTupleSetter<
+        return details00::IOBufferTupleSetter<
             0, 
             sizeof...(T) - 1
         >::put(buffer, value);
@@ -258,7 +258,7 @@ struct IOBufferAdapter<std::tuple<T...>> {
     {
         std::tuple<T...> tuple;
         
-        details::IOBufferTupleGetter<
+        details00::IOBufferTupleGetter<
             0, 
             sizeof...(T) - 1
         >::get(buffer, tuple);

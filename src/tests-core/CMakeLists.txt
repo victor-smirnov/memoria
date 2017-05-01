@@ -21,6 +21,7 @@ add_library(MemoriaTests STATIC ${TOOLS_LIB_SRC})
 SET_TARGET_PROPERTIES(MemoriaTests PROPERTIES COMPILE_FLAGS "${MEMORIA_COMPILE_FLAGS} -DMEMORIA_SRC=${CMAKE_SOURCE_DIR}")
 target_link_libraries(MemoriaTests Memoria)
 
+
 add_subdirectory(tests)
 
 

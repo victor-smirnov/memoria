@@ -20,5 +20,7 @@ target_link_libraries(tests Memoria MemoriaTests )
 
 if (NOT BUILD_MSVC)
     target_link_libraries(tests boost_system boost_filesystem)
+else()
+    target_link_libraries(tests ${MEMORIA_LIBS})
 endif()
 
