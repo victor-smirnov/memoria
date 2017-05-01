@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memoria/v1/tools/tests_inc.hpp>
+#include <memoria/v1/tests/tests_inc.hpp>
 
 #include "../maxtree/packed_maxtree_buffer_test.hpp"
 #include "../maxtree/packed_maxtree_find_test.hpp"

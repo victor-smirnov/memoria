@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <memoria/v1/tools/tools.hpp>
+#include <memoria/v1/tests/tools.hpp>
 #include "../bt/bt_test_base.hpp"
 
 #include <functional>

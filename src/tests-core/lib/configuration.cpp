@@ -17,7 +17,7 @@
 
 
 
-#include <memoria/v1/tools/configuration.hpp>
+#include <memoria/v1/tests/configuration.hpp>
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 #include <memoria/v1/core/tools/strings/string.hpp>
 

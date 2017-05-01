@@ -17,8 +17,8 @@
 
 #include <memoria/v1/memoria.hpp>
 
-#include <memoria/v1/tools/tests.hpp>
-#include <memoria/v1/tools/tools.hpp>
+#include <memoria/v1/tests/tests.hpp>
+#include <memoria/v1/tests/tools.hpp>
 
 #include "btss_test_base.hpp"
 #include "btss_test_factory.hpp"

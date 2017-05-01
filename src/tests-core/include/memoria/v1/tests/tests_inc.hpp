@@ -17,8 +17,10 @@
 
 #pragma once
 
+#include <memoria/v1/tests/tools.hpp>
+#include <memoria/v1/tests/tests.hpp>
+
 #include <memoria/v1/core/tools/strings/string.hpp>
-#include <memoria/v1/tools/tools.hpp>
-#include <memoria/v1/tools/tests.hpp>
+
 #include <memoria/v1/core/types/types.hpp>
 

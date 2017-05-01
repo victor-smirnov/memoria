@@ -17,7 +17,7 @@
 #pragma once
 
 
-#include <memoria/v1/tools/tests.hpp>
+#include <memoria/v1/tests/tests.hpp>
 
 #include <memoria/v1/allocators/inmem/threads/allocator_inmem_threads_api.hpp>
 #include <memoria/v1/api/vector/vector_api.hpp>

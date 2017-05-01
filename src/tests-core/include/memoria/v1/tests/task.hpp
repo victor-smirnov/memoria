@@ -17,8 +17,9 @@
 
 #pragma once
 
+#include <memoria/v1/tests/params.hpp>
+
 #include <memoria/v1/core/types/types.hpp>
-#include <memoria/v1/tools/params.hpp>
 #include <memoria/v1/core/tools/time.hpp>
 
 #include <boost/filesystem.hpp>

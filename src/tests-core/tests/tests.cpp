@@ -21,7 +21,7 @@
 //#include "packed/wavelet_tree/packed_wtree_suite.hpp"
 
 
-// #include "prototype/bt/bt_test_suite.hpp"
+
 // #include "prototype/btfl/btfl_test_suite.hpp"
 
 // 
@@ -35,17 +35,12 @@
 
 
 
-#include <memoria/v1/tools/cmdline.hpp>
-#include <memoria/v1/tools/tools.hpp>
-#include <memoria/v1/tools/tests.hpp>
-#include <memoria/v1/tools/dump.hpp>
+#include <memoria/v1/tests/cmdline.hpp>
+#include <memoria/v1/tests/tools.hpp>
+#include <memoria/v1/tests/tests.hpp>
+#include <memoria/v1/tests/dump.hpp>
+
 #include <memoria/v1/core/tools/terminal.hpp>
-
-
-
-
-
-
 
 #include <iostream>
 
@@ -81,7 +76,6 @@ int main(int argc, const char** argv, const char** envp)
 //        runner.registerTask(new PackedLoudsCardinalTestSuite());
 //        runner.registerTask(new PackedWaveletTreeTestSuite());
 
-//        runner.registerTask(new BTTestSuite());
 //        runner.registerTask(new BTFLTestSuite());
         
 //        runner.registerTask(new SequenceTestSuite());

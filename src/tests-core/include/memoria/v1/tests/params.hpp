@@ -22,7 +22,8 @@
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 #include <memoria/v1/core/tools/strings/string.hpp>
 #include <memoria/v1/core/tools/static_array.hpp>
-#include <memoria/v1/tools/configuration.hpp>
+
+#include <memoria/v1/tests/configuration.hpp>
 
 #include <limits>
 #include <stdlib.h>

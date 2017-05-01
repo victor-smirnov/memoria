@@ -17,8 +17,9 @@
 
 #pragma once
 
+#include <memoria/v1/tests/configuration.hpp>
+
 #include <memoria/v1/core/types/types.hpp>
-#include <memoria/v1/tools/configuration.hpp>
 
 #include <vector>
 #include <ostream>

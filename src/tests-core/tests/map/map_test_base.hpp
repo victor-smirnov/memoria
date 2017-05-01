@@ -19,8 +19,8 @@
 
 #include <memoria/v1/api/map/map_api.hpp>
 
-#include <memoria/v1/tools/tests.hpp>
-#include <memoria/v1/tools/tools.hpp>
+#include <memoria/v1/tests/tests.hpp>
+#include <memoria/v1/tests/tools.hpp>
 
 #include "../prototype/btss/btss_test_base.hpp"
 

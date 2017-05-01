@@ -14,7 +14,7 @@
 // limitations under the License.
 
 
-#include <memoria/v1/tools/tests_inc.hpp>
+#include <memoria/v1/tests/tests_inc.hpp>
 
 #include "packed_string_codec_test.hpp"
 #include "packed_int64t_codec_test.hpp"

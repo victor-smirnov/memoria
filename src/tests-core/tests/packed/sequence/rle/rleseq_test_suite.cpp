@@ -14,7 +14,7 @@
 // limitations under the License.
 
 
-#include <memoria/v1/tools/tests_inc.hpp>
+#include <memoria/v1/tests/tests_inc.hpp>
 
 #include "rleseq_rank_test.hpp"
 #include "rleseq_select_test.hpp"

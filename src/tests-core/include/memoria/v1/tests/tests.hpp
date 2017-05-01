@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include <memoria/v1/tools/task.hpp>
+#include <memoria/v1/tests/task.hpp>
 
 #include <memoria/v1/core/tools/random.hpp>
 

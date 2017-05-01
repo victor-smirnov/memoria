@@ -14,8 +14,8 @@
 // limitations under the License.
 
 
-#include <memoria/v1/tools/task.hpp>
-#include <memoria/v1/tools/tools.hpp>
+#include <memoria/v1/tests/task.hpp>
+#include <memoria/v1/tests/tools.hpp>
 
 #include <boost/filesystem.hpp>
 

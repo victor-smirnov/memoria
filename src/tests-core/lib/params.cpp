@@ -14,7 +14,7 @@
 // limitations under the License.
 
 
-#include <memoria/v1/tools/params.hpp>
+#include <memoria/v1/tests/params.hpp>
 #include <memoria/v1/core/exceptions/exceptions.hpp>
 
 namespace memoria {

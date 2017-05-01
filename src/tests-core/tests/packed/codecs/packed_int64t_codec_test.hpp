@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include <memoria/v1/tools/tests.hpp>
-#include <memoria/v1/tools/tools.hpp>
+#include <memoria/v1/tests/tests.hpp>
+#include <memoria/v1/tests/tools.hpp>
 
 #include "packed_codecs_test_base.hpp"
 

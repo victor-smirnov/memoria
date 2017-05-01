@@ -17,8 +17,8 @@
 
 #include <memoria/v1/memoria.hpp>
 
-#include <memoria/v1/tools/tests.hpp>
-#include <memoria/v1/tools/tools.hpp>
+#include <memoria/v1/tests/tests.hpp>
+#include <memoria/v1/tests/tools.hpp>
 
 #include "map_test_base.hpp"
 
